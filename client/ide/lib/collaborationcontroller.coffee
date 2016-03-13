@@ -27,6 +27,8 @@ actionTypes                   = require 'app/flux/environment/actiontypes'
 generateCollaborationLink     = require 'app/util/generateCollaborationLink'
 isKoding                      = require 'app/util/isKoding'
 Tracker                       = require 'app/util/tracker'
+IDEHelpers                    = require 'ide/idehelpers'
+
 
 {warn} = kd
 
@@ -592,6 +594,14 @@ module.exports = CollaborationController =
       when 'PermissionRequest'
 
         @statusBar.handlePermissionRequest origin  if @amIHost
+
+      when 'PermissionDenied'
+
+        @handlePermissionDenied()  if data.target is nick()
+
+      when 'PermissionGranted'
+
+        @handlePermissionGranted()  if data.target is nick()
 
 
   handlePermissionMapChange: (event) ->
@@ -1356,27 +1366,81 @@ module.exports = CollaborationController =
 
   showRequestPermissionView: ->
 
-    return  if @requestPermissionView
+    return  if @permissionView
 
-    @requestPermissionView = new kd.CustomHTMLView
-      cssClass : 'ide-warning-view system-notification in'
-      partial  : "
-        REQUEST ACCESS: You don't have permissions to make changes.
+    @permissionView = IDEHelpers.showNotificationBanner
+      partial   : "
+        <span>REQUEST ACCESS:</span> You don't have permissions to make changes.
         <a href='#' class='ask-permission'>Ask for permission.</a>
         <a href='#' class='close'></a>"
-      click    : (e) =>
-        kd.utils.stopDOMEvent e
-        { classList } = e.target
-
-        if classList.contains 'close'
-          @requestPermissionView.destroy()
-        else if classList.contains 'ask-permission'
+      click  : (e) =>
+        if e.target.classList.contains 'ask-permission'
           @requestPermission()
+          @permissionView.destroy()
 
-    @getView().addSubView @requestPermissionView
-
-    @requestPermissionView.once 'KDObjectWillBeDestroyed', =>
-      @requestPermissionView = null
+    @permissionView.once 'KDObjectWillBeDestroyed', => @permissionView = null
 
 
   requestPermission: -> @broadcastMessage { type: 'PermissionRequest' }
+
+
+  denyPermissionRequest: (target) ->
+
+    return  unless @amIHost
+
+    @broadcastMessage { type: 'PermissionDenied', target }
+
+
+  approvePermissionRequest: (target) ->
+
+    return  unless @amIHost
+
+    @broadcastMessage { type: 'PermissionGranted', target }
+    @setParticipantPermission target, 'edit'
+    @applyPermissionFor target, 'edit'
+
+
+  revertPermission: (target) ->
+
+    return  unless @amIHost
+
+    @broadcastMessage { type: 'PermissionDenied', target }
+    @setParticipantPermission target, 'read'
+    @applyPermissionFor target, 'read'
+
+
+  handlePermissionDenied: ->
+
+    @permissionView = IDEHelpers.showNotificationBanner
+      cssClass : 'error'
+      partial  : """
+        <span>PERMISSION DENIED:</span> Host has denied your request to make changes!
+        <a href='#' class='close'></a>
+      """
+
+    @permissionView.once 'KDObjectWillBeDestroyed', => @permissionView = null
+
+
+  handlePermissionGranted: (nickname) ->
+
+    @permissionView = IDEHelpers.showNotificationBanner
+      cssClass : 'success'
+      partial  : """
+        <span>PERMISSION GRANTED:</span> You can make changes now!
+        <a href='#' class='close'></a>
+      """
+
+    @permissionView.once 'KDObjectWillBeDestroyed', => @permissionView = null
+
+
+  applyPermissionFor: (nickname, permission) ->
+
+    return if not permission or not @amIHost or not nickname or not @rtm.isReady
+
+    me           = nick()
+    method       = if permission is 'edit' then 'set' else 'delete'
+    participants = @participants.asArray()
+
+    for participant in participants
+      map = @rtm.getFromModel "#{participant.nickname}WatchMap"
+      map[method] nickname, nickname

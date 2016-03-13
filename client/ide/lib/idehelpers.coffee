@@ -174,3 +174,26 @@ module.exports = helpers =
           remote.api.JWorkspace.update w._id, setData, callback
         else
           remote.api.JWorkspace.deleteById w._id, callback
+
+
+  showNotificationBanner: (options) ->
+
+    { cssClass, partial, container, click } = options
+
+    cssClass  or= ''
+    click     or= kd.noop
+    container or= kd.singletons.appManager.frontApp.mainView
+
+    view = new kd.CustomHTMLView
+      cssClass : "ide-warning-view system-notification in #{cssClass}"
+      partial  : partial
+      click    : (e) =>
+        kd.utils.stopDOMEvent e
+        if e.target.classList.contains 'close'
+          view.destroy()
+        else
+          click e
+
+    container.addSubView view
+
+    return view

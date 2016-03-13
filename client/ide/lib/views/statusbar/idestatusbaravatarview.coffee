@@ -71,12 +71,8 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       menuItems.separator = type: 'separator'
 
     if @hasRequest
-      type      = 'customView'
-      view      = new kd.CustomHTMLView
-        partial : """
-          <a href="#" class="deny">DENY</a> -
-          <a href="#" class="grant">GRANT PERMISSION</a>
-        """
+      type = 'customView'
+      view = @createPermissionRequestMenuItem()
 
       menuItems.actions = { type, view }
     else if amIHost
@@ -167,3 +163,24 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     @hasRequest = yes
     @showMenu()
+
+
+  createPermissionRequestMenuItem: (item, e) ->
+
+    return new kd.CustomHTMLView
+      partial : """
+        <a href="#" class="deny">DENY</a> -
+        <a href="#" class="grant">GRANT PERMISSION</a>
+      """
+      click   : (e) =>
+        { classList } = e.target
+        frontApp      = kd.singletons.appManager.getFrontApp()
+
+        if isDenied = classList.contains 'deny'
+          frontApp.denyPermissionRequest @nickname
+        else if isApproved = classList.contains 'grant'
+          frontApp.approvePermissionRequest @nickname
+
+        if isDenied or isApproved
+          @hasRequest = null
+          MENU?.destroy()
