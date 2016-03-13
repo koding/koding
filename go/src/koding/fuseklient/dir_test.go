@@ -338,10 +338,6 @@ func TestDir(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(f.Name, ShouldEqual, "file1")
 				So(f.Path, ShouldEqual, "/local/file1")
-
-				// rename calls transport to update file contents, hence it's reset
-				// to default in transport which is "Hello World!"
-				So(string(f.Content), ShouldEqual, "Hello World!")
 			})
 		})
 

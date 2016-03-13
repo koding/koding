@@ -246,7 +246,7 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		file2 := newEntry.(*File)
 		file2.Entry.Parent = newDir
 
-		if err := file2.updateContentFromRemote(); err != nil {
+		if err := file2.ResetAndRead(); err != nil {
 			return nil, err
 		}
 

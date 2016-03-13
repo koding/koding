@@ -413,17 +413,17 @@ func (k *KodingNetworkFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) 
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) error {
+	fmt.Println(">>>>>>>>>>> KodingNetworkFS#ReadFile", op.Offset)
+
 	file, err := k.getFile(ctx, op.Inode)
 	if err != nil {
 		return err
 	}
 
-	bytes, err := file.ReadAt(op.Offset)
+	op.BytesRead, err = file.ReadAt(op.Dst, op.Offset)
 	if err != nil && err != io.EOF {
 		return err
 	}
-
-	op.BytesRead = copy(op.Dst, bytes)
 
 	return nil
 }

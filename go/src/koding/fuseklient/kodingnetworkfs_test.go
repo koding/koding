@@ -401,9 +401,13 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 	Convey("KodingNetworkFS#getDir", tt, func() {
 		Convey("It should return error if specified id is not a directory", func() {
 			k := newknfs(t)
-			k.liveNodes[i] = newFile()
 
-			_, err := k.getDir(ctx, i)
+			f, err := newFile()
+			So(err, ShouldBeNil)
+
+			k.liveNodes[i] = f
+
+			_, err = k.getDir(ctx, i)
 			So(err, ShouldEqual, fuse.EIO)
 		})
 
@@ -428,7 +432,11 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 
 		Convey("It should return file with specified id", func() {
 			k := newknfs(t)
-			k.liveNodes[i] = newFile()
+
+			f, err := newFile()
+			So(err, ShouldBeNil)
+
+			k.liveNodes[i] = f
 
 			file, err := k.getEntry(ctx, i)
 			So(err, ShouldBeNil)
@@ -480,7 +488,9 @@ func TestKodingNetworkFSHandles(tt *testing.T) {
 	Convey("", tt, func() {
 		k := newknfs(nil)
 		d := newDir()
-		f := newFile()
+
+		f, err := newFile()
+		So(err, ShouldBeNil)
 
 		ctx := context.TODO()
 

@@ -2,7 +2,6 @@ package fuseklient
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/jacobsa/fuse/fuseutil"
 )
@@ -23,7 +22,9 @@ type File struct {
 	// without reading it, it'll overwrite the file on remote.
 	IsReset bool
 
-	// Content is the remotely fetched contents of the File.
+	// content deals with byte contents of the file.
+	content *ContentReadWriter
+
 	Content []byte
 }
 
@@ -31,7 +32,8 @@ type File struct {
 func NewFile(n *Entry) *File {
 	return &File{
 		Entry:   n,
-		Content: []byte{},
+		content: NewContentReadWriter(n.Transport, n.Path, int64(n.Attrs.Size)),
+		Content: nil,
 		IsDirty: false,
 		IsReset: false,
 	}
@@ -39,30 +41,19 @@ func NewFile(n *Entry) *File {
 
 // ReadAt returns contents of file at specified offset. It returns io.EOF if
 // ofset is greater than its Attrs#Size.
-func (f *File) ReadAt(offset int64) ([]byte, error) {
+func (f *File) ReadAt(p []byte, offset int64) (int, error) {
 	f.Lock()
 	defer f.Unlock()
 
-	if offset >= int64(f.Attrs.Size) {
-		return nil, io.EOF
-	}
-
-	// fetch from remote when local size doesn't match remote
-	if len(f.Content) != int(f.Attrs.Size) {
-		if err := f.updateContentFromRemote(); err != nil {
-			return nil, err
-		}
-	}
-
-	return f.Content[offset:], nil
+	return f.content.ReadAt(p, offset)
 }
 
-// Create creates a new file on remote with existing content.
+// Create creates a new file on remote with in memory content.
 func (f *File) Create() error {
 	f.Lock()
 	defer f.Unlock()
 
-	return f.writeContentToRemote(f.Content)
+	return f.content.Create()
 }
 
 // WriteAt saves specified content at specified offset. Note, this saves to
@@ -73,27 +64,11 @@ func (f *File) WriteAt(content []byte, offset int64) error {
 	f.Lock()
 	defer f.Unlock()
 
-	if f.IsReset {
-		if err := f.updateContentFromRemote(); err != nil {
-			return err
-		}
+	if err := f.content.WriteAt(content, offset); err != nil {
+		return err
 	}
 
-	f.IsDirty = true
-
-	var newLen = len(content) + int(offset)
-	if len(f.Content) < newLen {
-		padding := make([]byte, newLen-len(f.Content))
-		f.Content = append(f.Content, padding...)
-	}
-
-	copy(f.Content[offset:], content)
-
-	if offset == 0 {
-		f.Content = f.Content[0:len(content)]
-	}
-
-	f.Attrs.Size = uint64(len(f.Content))
+	f.Attrs.Size = uint64(f.content.Size)
 
 	return nil
 }
@@ -103,20 +78,9 @@ func (f *File) TruncateTo(size uint64) error {
 	f.Lock()
 	defer f.Unlock()
 
-	s := int(size)
-	switch {
-	case s < len(f.Content):
-		// specified size less than size of file, so remove all content over size
-		f.Content = f.Content[:size]
-	case s > len(f.Content):
-		// specified size greater same as size of file, so add empty padding to
-		// existing content
-		f.Content = append(f.Content, make([]byte, s-len(f.Content))...)
-	case s == len(f.Content):
-		// specified size is same as size of file, so nothing to be done
-	}
+	f.Attrs.Size = size
 
-	return f.writeContentToRemote(f.Content)
+	return f.content.TruncateTo(size)
 }
 
 // Flush saves internal cache to remote.
@@ -124,15 +88,12 @@ func (f *File) Flush() error {
 	f.Lock()
 	defer f.Unlock()
 
-	return f.syncToRemote()
+	return f.content.Save()
 }
 
 // Sync saves internal cache to remote.
 func (f *File) Sync() error {
-	f.Lock()
-	defer f.Unlock()
-
-	return f.syncToRemote()
+	return f.Flush()
 }
 
 ///// Node interface
@@ -154,7 +115,7 @@ func (f *File) Expire() error {
 	// doesn't invalidate the local cache, so we replace the InodeId.
 	f.ID = f.Parent.IDGen.Next()
 
-	return f.updateContentFromRemote()
+	return f.content.ReadAll()
 }
 
 func (f *File) ToString() string {
@@ -173,48 +134,14 @@ func (f *File) Reset() error {
 	f.Lock()
 	defer f.Unlock()
 
-	f.Content = nil
-	f.IsReset = true
+	f.content.Reset()
 
 	return nil
 }
 
-///// Helpers
+func (f *File) ResetAndRead() error {
+	f.Lock()
+	defer f.Unlock()
 
-func (f *File) syncToRemote() error {
-	// return if:
-	//   file is not dirty, ie not written since last remote sync
-	//   file was reset, ie local cache was purged
-	if !f.IsDirty || f.IsReset {
-		return nil
-	}
-
-	return f.writeContentToRemote(f.Content)
-}
-
-func (f *File) writeContentToRemote(content []byte) error {
-	f.resetFlags()
-	return f.Transport.WriteFile(f.Path, content)
-}
-
-func (f *File) updateContentFromRemote() error {
-	res, err := f.Transport.ReadFile(f.Path)
-	if err != nil {
-		return err
-	}
-
-	n := make([]byte, len(res.Content))
-	copy(n, res.Content)
-
-	f.Content = n
-	f.Attrs.Size = uint64(len(f.Content))
-
-	f.resetFlags()
-
-	return nil
-}
-
-func (f *File) resetFlags() {
-	f.IsDirty = false
-	f.IsReset = false
+	return f.content.ResetAndRead()
 }
