@@ -51,7 +51,8 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
     MENU?.destroy()
 
     { appManager } = kd.singletons
-    { rtm }        = appManager.frontApp
+    { frontApp   } = appManager
+    { rtm }        = frontApp
     menuItems      = {}
     fullName       = getFullnameFromAccount @getData()
     disabled       = 'disabled'
@@ -75,12 +76,29 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       view = @createPermissionRequestMenuItem()
 
       menuItems.actions = { type, view }
+
     else if amIHost
+      permission = rtm.getFromModel('permissions').get @nickname
+
+      if permission is 'edit'
+        menuItems['Revert Permission'] =
+          title    : 'Revert Permission'
+          callback : =>
+            MENU?.destroy()
+            frontApp.revertPermission @nickname
+
+      else if permission is 'read'
+        menuItems['Make Presenter'] =
+          title    : 'Make Presenter'
+          callback : =>
+            MENU?.destroy()
+            frontApp.approvePermissionRequest @nickname
+
       menuItems.Kick =
         title     : 'Kick'
         callback  : =>
           MENU?.destroy()
-          kd.singletons.appManager.tell 'IDE', 'kickParticipant', @getData()
+          appManager.tell 'IDE', 'kickParticipant', @getData()
 
     MENU = new KDContextMenu
       nickname    : @nickname
