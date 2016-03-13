@@ -1370,7 +1370,7 @@ module.exports = CollaborationController =
 
     @permissionView = IDEHelpers.showNotificationBanner
       partial   : "
-        <span>REQUEST ACCESS:</span> You don't have permissions to make changes.
+        <span>WARNING:</span> You don't have permission to make changes.
         <a href='#' class='ask-permission'>Ask for permission.</a>
         <a href='#' class='close'></a>"
       click  : (e) =>
@@ -1414,7 +1414,7 @@ module.exports = CollaborationController =
     @permissionView = IDEHelpers.showNotificationBanner
       cssClass : 'error'
       partial  : """
-        <span>PERMISSION DENIED:</span> Host has denied your request to make changes!
+        <span>REQUEST DENIED:</span> Host has denied your request to make changes!
         <a href='#' class='close'></a>
       """
 
@@ -1426,7 +1426,7 @@ module.exports = CollaborationController =
     @permissionView = IDEHelpers.showNotificationBanner
       cssClass : 'success'
       partial  : """
-        <span>PERMISSION GRANTED:</span> You can make changes now!
+        <span>ACCESS GRANTED:</span> You can make changes now!
         <a href='#' class='close'></a>
       """
 
