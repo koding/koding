@@ -43,7 +43,7 @@ build:
     - script:
         name: check client code quality
         code: |
-          npm -g coffee-unused
+          npm install -g coffee-unused
           scripts/check_client_code_quality.sh
     - script:
         name: notify cebeci
