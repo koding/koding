@@ -11,12 +11,42 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/cenkalti/backoff"
 	"github.com/hashicorp/yamux"
 	"github.com/koding/logging"
 )
+
+//go:generate stringer -type ClientState
+
+// ClientState represents client connection state to tunnel server.
+type ClientState uint32
+
+const (
+	ClientUnknown ClientState = iota
+	ClientStarted
+	ClientConnecting
+	ClientConnected
+	ClientDisconnected
+	ClientClosed // keep it always last
+)
+
+// ClientStateChange represents single client state transition.
+type ClientStateChange struct {
+	Previous ClientState
+	Current  ClientState
+	Error    error
+}
+
+// Strings implements the fmt.Stringer interface.
+func (cs *ClientStateChange) String() string {
+	if cs.Error != nil {
+		return fmt.Sprintf("%s->%s (%s)", cs.Previous, cs.Current, cs.Error)
+	}
+	return fmt.Sprintf("%s->%s", cs.Previous, cs.Current)
+}
 
 // Client is responsible for creating a control connection to a tunnel server,
 // creating new tunnels and proxy them to tunnel server.
@@ -39,6 +69,8 @@ type Client struct {
 
 	// redialBackoff is used to reconnect in exponential backoff intervals
 	redialBackoff backoff.BackOff
+
+	state ClientState
 }
 
 // ClientConfig defines the configuration for the Client
@@ -81,6 +113,14 @@ type ClientConfig struct {
 
 	// Log defines the logger. If nil a default logging.Logger is used.
 	Log logging.Logger
+
+	// StateChanges receives state transition details each time client
+	// connection state changes. The channel is expected to be sufficiently
+	// buffered to keep up with event pace.
+	//
+	// If nil, no information about state transitions are dispatched
+	// by the library.
+	StateChanges chan<- *ClientStateChange
 
 	// YamuxConfig defines the config which passed to every new yamux.Session. If nil
 	// yamux.DefaultConfig() is used.
@@ -161,17 +201,27 @@ func (c *Client) Start() {
 		return c.config.ServerAddr, nil
 	}
 
+	c.changeState(ClientStarted, nil)
+
 	c.redialBackoff.Reset()
+	var lastErr error
 	for {
-		time.Sleep(c.redialBackoff.NextBackOff())
+		c.changeState(ClientConnecting, lastErr)
+
+		if c.isRetry() {
+			time.Sleep(c.redialBackoff.NextBackOff())
+		}
+
 		identifier, err := fetchIdent()
 		if err != nil {
+			lastErr = err
 			c.log.Critical("client fetch identifier error: %s", err)
 			continue
 		}
 
 		serverAddr, err := fetchServerAddr()
 		if err != nil {
+			lastErr = err
 			c.log.Critical("client fetch server address error: %s", err)
 			continue
 		}
@@ -189,13 +239,16 @@ func (c *Client) Start() {
 		c.mu.Unlock()
 
 		if err := c.connect(identifier, serverAddr); err != nil {
-			c.log.Debug("client connect err: %s", err.Error())
+			lastErr = err
+			c.log.Debug("client connect error: %s", err)
 		}
 
 		// exit if closed
 		c.mu.Lock()
 		if c.closed {
 			c.mu.Unlock()
+
+			c.changeState(ClientClosed, lastErr)
 			return
 		}
 		c.mu.Unlock()
@@ -228,6 +281,29 @@ func (c *Client) Close() error {
 	}
 
 	return nil
+}
+
+func (c *Client) changeState(state ClientState, err error) {
+	prev := atomic.LoadUint32((*uint32)(&c.state))
+
+	if c.config.StateChanges != nil {
+		change := &ClientStateChange{
+			Previous: ClientState(prev),
+			Current:  state,
+			Error:    err,
+		}
+
+		select {
+		case c.config.StateChanges <- change:
+		default:
+		}
+	}
+
+	atomic.CompareAndSwapUint32((*uint32)(&c.state), uint32(prev), uint32(state))
+}
+
+func (c *Client) isRetry() bool {
+	return c.state != ClientStarted && c.state != ClientClosed
 }
 
 func (c *Client) connect(identifier, serverAddr string) error {
@@ -327,14 +403,17 @@ func (c *Client) connect(identifier, serverAddr string) error {
 }
 
 func (c *Client) listenControl(ct *control) error {
+	c.changeState(ClientConnected, nil)
+
 	for {
 		var msg controlMsg
 		err := ct.dec.Decode(&msg)
 		if err != nil {
 			c.reqWg.Wait() // wait until all requests are finished
-
 			c.session.GoAway()
 			c.session.Close()
+			c.changeState(ClientDisconnected, err)
+
 			return err
 		}
 
