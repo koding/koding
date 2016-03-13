@@ -253,16 +253,11 @@ module.exports = CollaborationController =
 
   setWatchMap: ->
 
-    if @myWatchMap.values().length
-      @emit 'WatchMapIsReady'
-      return
+    return @emit 'WatchMapIsReady'  if @amIHost
 
-    @listChatParticipants (accounts) =>
-      accounts.forEach (account) =>
-        { nickname } = account.profile
-        @myWatchMap.set nickname, nickname
-
-      @emit 'WatchMapIsReady'
+    host = @collaborationHost
+    @myWatchMap.set host, host
+    @emit 'WatchMapIsReady'
 
 
   activateRealtimeManagerForHost: ->
@@ -313,11 +308,13 @@ module.exports = CollaborationController =
 
   addParticipant: (account) ->
 
-    {hash, nickname} = account.profile
+    { hash, nickname } = account.profile
 
-    val = {nickname, hash}
+    val   = { nickname, hash }
     index = @participants.indexOf val, (a, b) -> a.nickname is b.nickname
+
     @participants.push val  if index is -1
+    @setMyPermission 'edit' if @amIHost
 
 
   watchParticipant: (nickname) -> @myWatchMap.set nickname, nickname
@@ -411,10 +408,9 @@ module.exports = CollaborationController =
       return  if nickname is nick()
 
       @statusBar.createParticipantAvatar nickname, no
-      @watchParticipant nickname
 
       if @amIHost
-        @setParticipantPermission nickname
+        @setParticipantPermission nickname, 'read'
         @setMachineUser [nickname]
 
 
@@ -1348,17 +1344,21 @@ module.exports = CollaborationController =
 
   setParticipantPermission: (nickname, permission) ->
 
-    return  if (not permission?) and @permissions.get nickname
-
-    permission ?= if @settings.get 'readOnly' then 'read' else 'edit'
     @permissions.set nickname, permission
 
 
   removeParticipantPermissions: (nickname) ->
 
-    return  unless @permissions.get nickname
-
     @permissions.delete nickname
+
+
+  getMyPermission: -> @permissions.get nick()
+
+
+  setMyPermission: (permission) ->
+
+    permission = 'edit'  if @amIHost # override for host
+    @setParticipantPermission nick(), permission
 
 
   getMyWatchers: ->
@@ -1401,3 +1401,21 @@ module.exports = CollaborationController =
 
     openFolders = @finderPane.getOpenFolders()
     @rtm.getFromModel('commonStore').set 'openFolders', openFolders
+
+
+  requestEditPermission: ->
+
+    return  if @requestEditPermissionView
+
+    @requestEditPermissionView = new kd.CustomHTMLView
+      cssClass : 'ide-warning-view system-notification in'
+      partial  : "REQUEST ACCESS: You don't have permissions to make changes. <a href='#'>Ask for permission.</a> <a href='#' class='close'></a>"
+      click    : (e) =>
+        kd.utils.stopDOMEvent e
+        if e.target.classList.contains 'close'
+          @requestEditPermissionView.destroy()
+
+    @getView().addSubView @requestEditPermissionView
+
+    @requestEditPermissionView.once 'KDObjectWillBeDestroyed', =>
+      @requestEditPermissionView = null
