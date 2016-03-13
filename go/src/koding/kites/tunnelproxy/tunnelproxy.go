@@ -11,12 +11,20 @@ import (
 	"github.com/koding/ec2dynamicdata"
 )
 
+type Service struct {
+	LocalAddr  string `json:"localAddr"`
+	RemoteAddr string `json:"remoteAddr"`
+}
+
+type Services map[string]*Service
+
 // Tunnel
 type Tunnel struct {
 	Name        string `json:"name"`
-	Port        int    `json:"port"`
+	Port        int    `json:"port"` // tries to use fixed port number or restore
 	VirtualHost string `json:"virtualHost"`
 	Error       string `json:"error,omitempty"`
+	Restore     bool   `json:"restore,omitempty"`
 }
 
 func (t *Tunnel) Err() error {
@@ -125,6 +133,29 @@ func port(addr string) int {
 	}
 
 	return 0
+}
+
+func host(addr string) string {
+	host, _, err := net.SplitHostPort(addr)
+	if err == nil {
+		return host
+	}
+
+	return addr
+}
+
+func splitHostPort(addr string) (string, int, error) {
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return "", 0, err
+	}
+
+	n, err := strconv.ParseUint(port, 10, 16)
+	if err != nil {
+		return "", 0, err
+	}
+
+	return host, int(n), nil
 }
 
 type callbacks struct {

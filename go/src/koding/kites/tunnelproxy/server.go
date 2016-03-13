@@ -246,7 +246,7 @@ func (s *Server) addClientService(ident string, tun *Tunnel) error {
 			return nil
 		}
 
-		if tun.Port == 0 {
+		if tun.Port == 0 || !tun.Restore {
 			// Tunnel already exists, reply with its port number.
 			tun.Port = existingTun.Port
 
@@ -342,7 +342,7 @@ func (s *Server) RegisterServices(r *kite.Request) (interface{}, error) {
 	var ok bool
 	services := req.ServiceList()
 	res := &RegisterServicesResult{
-		VirtualHost: s.tunnels.tunnel(req.Ident, "").VirtualHost,
+		VirtualHost: host(s.tunnels.tunnel(req.Ident, "").VirtualHost),
 		Services:    make(map[string]*Tunnel, len(services)),
 	}
 	for _, service := range services {
@@ -356,6 +356,7 @@ func (s *Server) RegisterServices(r *kite.Request) (interface{}, error) {
 			// to decided whether consider whole request
 			// as a success or as a failure and retry.
 			ok = true
+			service.VirtualHost = res.VirtualHost
 		}
 
 		res.Services[service.Name] = service
