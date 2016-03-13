@@ -5,6 +5,7 @@ module.exports =
 
   inviteUser: (browser) ->
 
+    teamsHelpers.loginTeam(browser)
     teamsHelpers.clickTeamSettings(browser)
     teamsHelpers.openInvitationsTab(browser)
     teamsHelpers.inviteUser(browser)
@@ -13,6 +14,7 @@ module.exports =
 
   resendInvitation: (browser) ->
 
+    teamsHelpers.loginTeam(browser)
     teamsHelpers.clickTeamSettings(browser)
     teamsHelpers.openInvitationsTab(browser)
     email = teamsHelpers.inviteUser(browser)
@@ -23,6 +25,7 @@ module.exports =
 
   revokeInvitation: (browser) ->
 
+    teamsHelpers.loginTeam(browser)
     teamsHelpers.clickTeamSettings(browser)
     teamsHelpers.openInvitationsTab(browser)
     email = teamsHelpers.inviteUser(browser)
@@ -33,8 +36,10 @@ module.exports =
 
   searchPendingInvitation: (browser) ->
 
+    teamsHelpers.loginTeam(browser)
     teamsHelpers.clickTeamSettings(browser)
     teamsHelpers.openInvitationsTab(browser)
+    teamsHelpers.inviteUser(browser, yes)
     browser.pause 5000 # Wait for notification
     email2 = teamsHelpers.inviteUser(browser, yes)
     teamsHelpers.clickPendingInvitations(browser, no)
