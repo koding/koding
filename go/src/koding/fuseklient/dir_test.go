@@ -271,7 +271,7 @@ func TestDir(t *testing.T) {
 				file, ok := i.(*File)
 				So(ok, ShouldBeTrue)
 				So(file.Name, ShouldEqual, "file")
-				So(len(file.Content), ShouldEqual, 0)
+				So(len(file.GetContent()), ShouldEqual, 0)
 
 				Convey("It should save file with specified permissions", func() {
 					So(file.Attrs.Mode, ShouldEqual, m)
@@ -317,13 +317,12 @@ func TestDir(t *testing.T) {
 
 		Convey("It should create temp file and move to existing file in same folder", func() {
 			d := newDir()
-			f1, err := d.CreateEntryFile("file1", os.FileMode(0755))
-			So(err, ShouldBeNil)
-			f1.Content = []byte("file1")
 
-			f2, err := d.CreateEntryFile("file2", os.FileMode(0755))
+			_, err := d.CreateEntryFile("file1", os.FileMode(0755))
 			So(err, ShouldBeNil)
-			f2.Content = []byte("file2")
+
+			_, err = d.CreateEntryFile("file2", os.FileMode(0755))
+			So(err, ShouldBeNil)
 
 			_, err = d.MoveEntry("file2", "file1", d)
 			So(err, ShouldBeNil)
@@ -345,7 +344,6 @@ func TestDir(t *testing.T) {
 			// create to be moved directory with contents
 			c := newDir()
 			f := NewFile(NewEntry(c, "file"))
-			f.Content = []byte("Hello World!")
 			c.EntriesList = map[string]Node{"file": f}
 			c.Entries = []fuseutil.Dirent{fuseutil.Dirent{}}
 
@@ -390,8 +388,7 @@ func TestDir(t *testing.T) {
 			o := newDir()
 
 			f := NewFile(NewEntry(o, "file"))
-			f.Content = []byte("Hello World!")
-			f.Attrs.Size = uint64(len(f.Content))
+			So(f.WriteAt([]byte("Hello World!"), 0), ShouldBeNil)
 
 			o.EntriesList = map[string]Node{"file": f}
 
@@ -405,10 +402,11 @@ func TestDir(t *testing.T) {
 				So(file.Name, ShouldEqual, "file1")
 
 				Convey("It should find new entry with same content as old file", func() {
-					So(string(file.Content), ShouldEqual, "Hello World!")
+					So(readAt(f, 0, []byte("Hello World!")), ShouldBeNil)
 				})
 
 				Convey("It should find new entry with same size as old file", func() {
+					So(file.content.Size, ShouldEqual, 12)
 					So(file.Attrs.Size, ShouldEqual, 12)
 				})
 

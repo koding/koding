@@ -27,6 +27,8 @@ type ContentReadWriter struct {
 
 	BlockSize int64
 
+	// isDirty indicates if File has been written to, but not yet been synced
+	// with remote.
 	isDirty bool
 	content []byte
 }

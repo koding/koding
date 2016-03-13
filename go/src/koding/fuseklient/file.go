@@ -13,19 +13,8 @@ type File struct {
 
 	////// Entry#RWLock protects the fields below.
 
-	// IsDirty indicates if File has been written to, but not yet been synced
-	// with remote.
-	IsDirty bool
-
-	// IsReset indicates if File was reset. This is used to update file contents
-	// before writing to it. Without this, if file was reset, then written to
-	// without reading it, it'll overwrite the file on remote.
-	IsReset bool
-
 	// content deals with byte contents of the file.
 	content *ContentReadWriter
-
-	Content []byte
 }
 
 // NewFile is the required initializer for File.
@@ -33,9 +22,6 @@ func NewFile(n *Entry) *File {
 	return &File{
 		Entry:   n,
 		content: NewContentReadWriter(n.Transport, n.Path, int64(n.Attrs.Size)),
-		Content: nil,
-		IsDirty: false,
-		IsReset: false,
 	}
 }
 
@@ -125,7 +111,7 @@ func (f *File) ToString() string {
 	eToS := f.Entry.ToString()
 	return fmt.Sprintf(
 		"%s\nfile: size=%d memSize=%d isDirty=%v",
-		eToS, f.Attrs.Size, len(f.Content), f.IsDirty,
+		eToS, f.Attrs.Size, len(f.GetContent()), f.content.isDirty,
 	)
 }
 
@@ -144,4 +130,17 @@ func (f *File) ResetAndRead() error {
 	defer f.Unlock()
 
 	return f.content.ResetAndRead()
+}
+
+func (f *File) GetContent() []byte {
+	return f.content.content
+}
+
+func (f *File) SetContent(content []byte) {
+	n := make([]byte, len(content))
+	copy(n, content)
+
+	f.content.content = n
+	f.content.Size = int64(len(content))
+	f.Attrs.Size = uint64(len(content))
 }

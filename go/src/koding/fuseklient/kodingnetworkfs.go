@@ -413,8 +413,6 @@ func (k *KodingNetworkFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) 
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) error {
-	fmt.Println(">>>>>>>>>>> KodingNetworkFS#ReadFile", op.Offset)
-
 	file, err := k.getFile(ctx, op.Inode)
 	if err != nil {
 		return err
@@ -530,7 +528,7 @@ func (k *KodingNetworkFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp
 	}
 
 	if r, ok := trace.FromContext(ctx); ok {
-		r.LazyPrintf("flushing file=%s sized=%d", file.Name, len(file.Content))
+		r.LazyPrintf("flushing file=%s sized=%d", file.Name, len(file.GetContent()))
 	}
 
 	return file.Flush()
@@ -546,7 +544,7 @@ func (k *KodingNetworkFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) 
 	}
 
 	if r, ok := trace.FromContext(ctx); ok {
-		r.LazyPrintf("syncing file=%s sized=%d", file.Name, len(file.Content))
+		r.LazyPrintf("syncing file=%s sized=%d", file.Name, len(file.GetContent()))
 	}
 
 	return file.Sync()
