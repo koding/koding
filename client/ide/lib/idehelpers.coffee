@@ -1,13 +1,14 @@
-kd                    = require 'kd'
-remote                = require('app/remote').getInstance()
-globals               = require 'globals'
-actions               = require 'app/flux/environment/actions'
-FSHelper              = require 'app/util/fs/fshelper'
-showError             = require 'app/util/showError'
-actiontypes           = require 'app/flux/environment/actiontypes'
-dataProvider          = require 'app/userenvironmentdataprovider'
-isTeamReactSide       = require 'app/util/isTeamReactSide'
-FilePermissionsModal  = require './views/modals/filepermissionsmodal'
+kd                     = require 'kd'
+remote                 = require('app/remote').getInstance()
+globals                = require 'globals'
+actions                = require 'app/flux/environment/actions'
+FSHelper               = require 'app/util/fs/fshelper'
+showError              = require 'app/util/showError'
+actiontypes            = require 'app/flux/environment/actiontypes'
+dataProvider           = require 'app/userenvironmentdataprovider'
+isTeamReactSide        = require 'app/util/isTeamReactSide'
+FilePermissionsModal   = require './views/modals/filepermissionsmodal'
+BannerNotificationView = require 'app/commonviews/bannernotificationview'
 
 
 WORKSPACE_WELCOME_TXT = """
@@ -178,24 +179,8 @@ module.exports = helpers =
 
   showNotificationBanner: (options) ->
 
-    { cssClass, partial, container, click } = options
+    options.cssClass    = kd.utils.curry 'ide-warning-view', options.cssClass
+    options.click     or= kd.noop
+    options.container or= kd.singletons.appManager.frontApp.mainView
 
-    cssClass  or= ''
-    click     or= kd.noop
-    container or= kd.singletons.appManager.frontApp.mainView
-
-    view = new kd.CustomHTMLView
-      cssClass : "ide-warning-view system-notification #{cssClass}"
-      partial  : partial
-      click    : (e) =>
-        kd.utils.stopDOMEvent e
-        if e.target.classList.contains 'close'
-          view.unsetClass 'in'
-          kd.utils.wait 300, -> view.destroy()
-        else
-          click e
-
-    container.addSubView view
-    kd.utils.defer -> view.setClass 'in'
-
-    return view
+    return new BannerNotificationView options

@@ -1369,14 +1369,13 @@ module.exports = CollaborationController =
     return  if @permissionView
 
     @permissionView = IDEHelpers.showNotificationBanner
-      partial   : "
-        <span>WARNING:</span> You don't have permission to make changes.
-        <a href='#' class='ask-permission'>Ask for permission.</a>
-        <a href='#' class='close'></a>"
-      click  : (e) =>
-        if e.target.classList.contains 'ask-permission'
-          @requestPermission()
-          @permissionView.destroy()
+      title   : 'WARNING:'
+      content : "You don't have permission to make changes.
+                 <a href='#' class='ask-permission'>Ask for permission.</a>"
+      click   : (e) =>
+        return  unless e.target.classList.contains 'ask-permission'
+        @requestPermission()
+        @permissionView.hide()
 
     @permissionView.once 'KDObjectWillBeDestroyed', => @permissionView = null
 
@@ -1413,10 +1412,8 @@ module.exports = CollaborationController =
 
     @permissionView = IDEHelpers.showNotificationBanner
       cssClass : 'error'
-      partial  : """
-        <span>REQUEST DENIED:</span> Host has denied your request to make changes!
-        <a href='#' class='close'></a>
-      """
+      title    : 'REQUEST DENIED:'
+      content  : "Host has denied your request to make changes!"
 
     @permissionView.once 'KDObjectWillBeDestroyed', => @permissionView = null
 
@@ -1425,10 +1422,8 @@ module.exports = CollaborationController =
 
     @permissionView = IDEHelpers.showNotificationBanner
       cssClass : 'success'
-      partial  : """
-        <span>ACCESS GRANTED:</span> You can make changes now!
-        <a href='#' class='close'></a>
-      """
+      title    : 'ACCESS GRANTED:'
+      content  : "You can make changes now!"
 
     @permissionView.once 'KDObjectWillBeDestroyed', => @permissionView = null
 
