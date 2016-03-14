@@ -425,6 +425,10 @@ dispatchEvent = (eventName, data, callback) ->
   url = "#{socialProxyUrl}/private/dispatcher/#{eventName}"
   post url, data, callback
 
+storeS3 = (pathName, data, callback) ->
+  url = "#{socialProxyUrl}/credential/#{pathName}"
+  post url, data, callback
+
 fetchBotChannel = (data, callback) ->
   url = "#{webhookProxyUrl}/botchannel"
   get url, data, callback
