@@ -49,6 +49,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
   highlightFile:(view)->
 
+    return  if @isReadOnly
+
     @selectNode @nodes[view.data.path], null, no
 
     { ace } = view
@@ -77,6 +79,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
   openItem:(nodeView, callback)->
 
+    return  if @isReadOnly
+
     options  = @getOptions()
     nodeData = nodeView.getData()
 
@@ -95,7 +99,9 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
   openFile:(nodeView)->
 
+    return  if @isReadOnly
     return unless nodeView
+
     file = nodeView.getData()
     # @appManager.openFile file
     @getDelegate().emit "FileNeedsToBeOpened", file
@@ -103,6 +109,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
   tailFile: (nodeView) ->
 
     return  unless nodeView
+    return  if @isReadOnly
+
     @getDelegate().emit "FileNeedsToBeTailed", { file: nodeView.getData() }
 
 
@@ -569,7 +577,10 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
     @openItem nodeView
 
+
   contextMenu:(nodeView, event)->
+
+    return  if @isReadOnly
 
     if @getOptions().contextMenu
       @createContextMenu nodeView, event
@@ -660,7 +671,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
   keyEventHappened:(event)->
 
-    super
+    super  unless @isReadOnly
+
 
   performDownKey:(nodeView, event)->
 
