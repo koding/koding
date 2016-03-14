@@ -302,7 +302,6 @@ module.exports.create = (KONFIG, environment)->
       # // kd/klient installers
       location ~^/d/(.*)$ {
         proxy_pass            "https://s3.amazonaws.com/koding-dl/$1";
-        proxy_set_header      Host            $host;
         proxy_set_header      X-Host          $host; # for customisation
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -322,6 +321,10 @@ module.exports.create = (KONFIG, environment)->
         resolver 8.8.8.8;
         proxy_connect_timeout 10;
         proxy_pass http://webserver;
+      }
+
+      location ~ /(blog|docs)(.*) {
+        return 301 https://www.koding.com/$1$2$is_args$args;
       }
 
       # mac and windows are case insensitive, redirect lowercased hackathon to

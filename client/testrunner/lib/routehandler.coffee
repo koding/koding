@@ -49,7 +49,7 @@ runMocha = (mochaContainer, socket) ->
 
   mocha.ui('bdd')
 
-  mochaTests = require './require-tests'
+  require './require-tests'
 
   runner = mocha.run()
 

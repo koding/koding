@@ -6,7 +6,6 @@ registerAppClass     = require '../lib/util/registerAppClass'
 ApplicationManager   = require '../lib/applicationmanager'
 KodingAppsController = require '../lib/kodingappscontroller'
 
-spy        = null
 appManager = null
 createApps = (appNames = [], shouldShow) ->
 
@@ -194,7 +193,6 @@ describe 'kd.singletons.appManager', ->
 
     it 'should create app if app config exists in globals', (done) ->
 
-      isAppCreated       = no
       isRegistered       = no
       isCallbackExecuted = no
       createdAppInstance = null

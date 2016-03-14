@@ -2,7 +2,6 @@
 globals                = require 'globals'
 kookies                = require 'kookies'
 kd                     = require 'kd'
-KDModalView            = kd.ModalView
 socketConnected        = require './util/socketConnected'
 enableLogs             = require './util/enableLogs'
 ConnectionChecker      = require './connectionchecker'
@@ -64,7 +63,6 @@ bootup = ->
 
   require('./routehandler')()
 
-  currentNotif = null
   firstLoad    = yes
 
   mainController.tempStorage = {}

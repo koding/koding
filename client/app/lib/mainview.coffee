@@ -11,11 +11,9 @@ GlobalNotificationView  = require './globalnotificationview'
 MainTabView             = require './maintabview'
 TopNavigation           = require './topnavigation'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
-actionTypes             = require 'activity/flux/actions/actiontypes'
 isTeamReactSide         = require 'app/util/isTeamReactSide'
 getGroup                = require 'app/util/getGroup'
 isSoloProductLite       = require 'app/util/issoloproductlite'
-kookies                 = require 'kookies'
 TeamName                = require './activity/sidebar/teamname'
 
 module.exports = class MainView extends kd.View

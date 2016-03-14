@@ -11,6 +11,8 @@ import (
 
 // ExecHandler runs the given command on the given remote klient.
 func (r *Remote) ExecHandler(kreq *kite.Request) (interface{}, error) {
+	log := r.log.New("remote.exec")
+
 	var params req.Exec
 
 	if kreq.Args == nil {
@@ -23,7 +25,7 @@ func (r *Remote) ExecHandler(kreq *kite.Request) (interface{}, error) {
 			err, kreq.Args.One(),
 		)
 
-		r.log.Error(err.Error())
+		log.Error(err.Error())
 		return nil, err
 	}
 
@@ -34,18 +36,13 @@ func (r *Remote) ExecHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, errors.New("Missing required argument `command`.")
 	}
 
-	remoteMachines, err := r.GetKites()
-	if err != nil {
-		return nil, err
-	}
+	log = log.New(
+		"machineName", params.Machine,
+	)
 
-	remoteMachine, err := remoteMachines.GetByName(params.Machine)
+	remoteMachine, err := r.GetDialedMachine(params.Machine)
 	if err != nil {
-		return nil, err
-	}
-
-	kiteClient := remoteMachine.Client
-	if err := kiteClient.Dial(); err != nil {
+		log.Error("Error getting dialed, valid machine. err:%s", err)
 		return nil, err
 	}
 
@@ -57,5 +54,5 @@ func (r *Remote) ExecHandler(kreq *kite.Request) (interface{}, error) {
 
 	var execReq = struct{ Command string }{cmd}
 
-	return kiteClient.Tell("exec", execReq)
+	return remoteMachine.Tell("exec", execReq)
 }

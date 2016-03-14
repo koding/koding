@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/koding/kite"
+	"koding/klient/kiteerrortypes"
 )
 
 // Error types, used when needing to return new instances with
@@ -50,6 +51,20 @@ func IsDialFailedErr(err error) bool {
 	}
 
 	if kiteErr, ok := err.(*kite.Error); ok && kiteErr.Type == "dialing failed" {
+		return true
+	}
+
+	return false
+}
+
+// IsMachineNotValidYetErr checks if the given error is machine not valid yet.
+func IsMachineNotValidYetErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	kiteErr, ok := err.(*kite.Error)
+	if ok && kiteErr.Type == kiteerrortypes.MachineNotValidYet {
 		return true
 	}
 

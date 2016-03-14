@@ -32,7 +32,7 @@ module.exports = class NoiseView extends kd.CustomHTMLView
 
     buffer = new Uint32Array imageData.data.buffer
 
-    for _, i in buffer
+    for __, i in buffer
       buffer[i] = ((255 * Math.random()) | 0) << 24
 
     context.putImageData imageData, 0, 0

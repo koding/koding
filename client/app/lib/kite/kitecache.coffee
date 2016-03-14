@@ -97,7 +97,7 @@ module.exports = class KiteCache
       ltr += "/#{part}"
       delete storage[signature + ltr + ('/' for x in [i...6]).join '']
       rtl = "/" + queryA[queryA.length - i - 1] + rtl
-      delete storage[signature + (('/' for x in [i...6]).join '') + rtl]
+      delete storage[signature + (('/' for [i...6]).join '') + rtl]
 
     return
 

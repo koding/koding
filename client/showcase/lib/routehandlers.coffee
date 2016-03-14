@@ -1,6 +1,6 @@
 kd = require 'kd'
 
-module.exports = ShowcaseRouteHandlers =
+module.exports =
 
   # /Showcase
   handleShowcaseIndex: ->

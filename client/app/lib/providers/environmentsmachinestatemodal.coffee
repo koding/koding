@@ -708,7 +708,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     {container} = @getOptions()
 
     FindManagedNodesModal = require './managed/findnodesmodal'
-    findNodes = new FindManagedNodesModal { container }, @machine
+    new FindManagedNodesModal { container }, @machine
 
 
   requestNewMachine: ->

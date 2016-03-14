@@ -1,6 +1,5 @@
 kd      = require 'kd'
 remote  = require('app/remote').getInstance()
-Machine = require '../machine'
 
 nick     = require 'app/util/nick'
 isKoding = require 'app/util/isKoding'

@@ -13,7 +13,6 @@ module.exports = class TeamDomainTab extends kd.FormView
 
     super options, data
 
-    team = utils.getTeamData()
 
     @inputView = new kd.CustomHTMLView
       cssClass     : 'login-input-view'

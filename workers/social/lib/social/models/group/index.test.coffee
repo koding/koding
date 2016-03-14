@@ -490,58 +490,16 @@ runTests = -> describe 'workers.social.group.index', ->
 
             done()
 
-      it 'should fail if plan is not supported', (done) ->
-
-        withConvertedUser { createGroup: 'yes' }, ({ group }) ->
-
-          withConvertedUser { role: 'admin' }, ({ client }) ->
-            group.setPlan client, { plan: generateRandomString() }, (err) ->
-              expect(err).to.exist
-
-              done()
-
-      testGroup = null
-
-      it 'should allow to change if provided plan is valid', (done) ->
-
-        withConvertedUser { createGroup: 'yes' }, ({ group }) ->
-
-          testGroup = group
-
-          withConvertedUser { role: 'admin' }, (data) ->
-            _client = data.client
-
-            group.setPlan _client, { plan: 'default' }, (err) ->
-              expect(err).to.not.exist
-              expect(group.getAt 'config.plan').to.be.equal 'default'
-
-              done()
-
-      it 'should reset plan if "noplan" is provided as plan', (done) ->
-
-        withConvertedUser { role: 'admin' }, ({ client }) ->
-
-          expect(testGroup.getAt 'config.plan').to.be.equal 'default'
-
-          testGroup.setPlan client, { plan: 'noplan' }, (err) ->
-            expect(err).to.not.exist
-            expect(testGroup.getAt 'config.plan').to.not.exist
-
-            done()
-
       it 'should allow to update plan overrides if provided plan is valid', (done) ->
 
         withConvertedUser { createGroup: 'yes' }, ({ group }) ->
-
-          testGroup = group
 
           withConvertedUser { role: 'admin' }, (data) ->
             _client = data.client
 
             overrides = { member: 5, validFor: 25 }
-            group.setPlan _client, { plan: 'trial', overrides }, (err) ->
+            group.setPlan _client, { overrides }, (err) ->
               expect(err).to.not.exist
-              expect(group.getAt 'config.plan').to.be.equal 'trial'
               expect(group.getAt 'config.planOverrides').to.be.equal overrides
 
               done()

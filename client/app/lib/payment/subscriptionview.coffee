@@ -9,7 +9,6 @@ module.exports = class SubscriptionView extends JView
     Subscription for #{ kd.utils.formatPlural quantity, 'plan' } #{verbPhrase}
     """
 
-  datePattern = "mmmm dS yyyy"
 
   constructor: (options = {}, data) ->
 

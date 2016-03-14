@@ -1,5 +1,4 @@
 kd       = require 'kd'
-React    = require 'kd-react'
 ReactDOM = require 'react-dom'
 
 module.exports = class ReactView extends kd.CustomHTMLView

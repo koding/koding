@@ -180,6 +180,14 @@ Please try again with just the --prefetchall flag.`
 remote machine is running & accessible and try again.`,
 	)
 
+	// MachineNotValidYet occurs when the kontrol has not yet returned a client
+	// for the given machine. Likely meaning the machine has not been online
+	// since klient has last restarted.
+	//
+	// Since the above DialingRemote error is generic enough, we're just using that
+	// for now.
+	MachineNotValidYet = FailedDialingRemote
+
 	// AttemptedRemoveRestrictedPath is when the user unmounts a path, but
 	// the path cannot be removed because it is an important path.
 	AttemptedRemoveRestrictedPath = fmt.Sprintf(

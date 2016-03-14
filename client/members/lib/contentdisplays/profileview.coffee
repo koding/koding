@@ -7,7 +7,6 @@ ExternalProfileView        = require './externalprofileview'
 ProfileContentEditableView = require './profilecontenteditableview'
 remote                     = require('app/remote').getInstance()
 globals                    = require 'globals'
-proxifyUrl                 = require 'app/util/proxifyUrl'
 checkFlag                  = require 'app/util/checkFlag'
 isMine                     = require 'app/util/isMine'
 whoami                     = require 'app/util/whoami'
@@ -213,8 +212,6 @@ module.exports = class ProfileView extends JView
 
   uploadAvatar: (avatarData, callback)->
     FSHelper.s3.upload "avatar.png", avatarData, "user", "", (err, url)=>
-      resized = proxifyUrl url,
-        crop: true, width: 300, height: 300
 
       @memberData.modify "profile.avatar": [url, +new Date()].join("?"), callback
 
@@ -223,7 +220,6 @@ module.exports = class ProfileView extends JView
 
   createExternalProfiles:->
 
-    appManager         = kd.getSingleton 'appManager'
     {externalProfiles} = globals.config
 
     for own provider, options of externalProfiles

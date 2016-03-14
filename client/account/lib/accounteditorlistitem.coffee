@@ -24,7 +24,7 @@ module.exports = class AccountEditorListItem extends KDListItemView
       delegate : @
     ,@data.extensions
 
-    info.addSubView editLink = new KDCustomHTMLView
+    info.addSubView new KDCustomHTMLView
       tagName  : "a"
       partial  : "Edit"
       cssClass : "action-link"

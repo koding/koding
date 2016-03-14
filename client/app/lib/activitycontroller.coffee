@@ -24,7 +24,7 @@ module.exports = class ActivityController extends KDObject
       groupChannel.close().off()  if groupChannel?
       groupChannel = groupsController.groupChannel
       groupChannel.on 'feed-new', (activities) =>
-        revivedActivities = (remote.revive activity for activity in activities)
+        remote.revive activity for activity in activities
         isOnActivityPage  = router.getCurrentPath() is "/Activity"
         ++@newItemsCount  unless isOnActivityPage
 

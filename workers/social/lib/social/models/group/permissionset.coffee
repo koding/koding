@@ -203,8 +203,7 @@ module.exports = class JPermissionSet extends Module
       permissions = (p.permission for p in advanced).join ', '
 
       JPermissionSet.checkPermission client, advanced, this, rest,
-        (err, hasPermission, roles) ->
-          client.roles = roles
+        (err, hasPermission) ->
           args = [client, rest..., callback]
           if err then callback err
           else if hasPermission

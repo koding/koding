@@ -1,4 +1,3 @@
-kd            = require 'kd'
 React         = require 'kd-react'
 ActivityModal = require 'app/components/activitymodal'
 

@@ -177,7 +177,6 @@ fetchConfigureData = (options, callback) ->
 
       description     = description or integration.summary
       webhookUrl      = "#{globals.config.webhookMiddleware.url}/#{integration.name}/#{token}"
-      integrationType = 'configured'
       selectedEvents  = []
       name            = settings?.customName or integration.title
       selectedChannel = channelId

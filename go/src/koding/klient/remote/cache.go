@@ -15,6 +15,8 @@ import (
 // CacheFolderHandler implements a prefetching / caching mechanism, currently
 // implemented
 func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
+	log := r.log.New("remote.cacheFolder")
+
 	var params struct {
 		req.Cache
 
@@ -48,25 +50,17 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, errors.New("Missing required argument `sshAuthSock`.")
 	}
 
-	remoteMachines, err := r.GetKites()
+	log = log.New(
+		"mountName", params.Name,
+		"localPath", params.LocalPath,
+	)
+
+	remoteMachine, err := r.GetDialedMachine(params.Name)
 	if err != nil {
+		log.Error("Error getting dialed, valid machine. err:%s", err)
 		return nil, err
 	}
-
-	remoteMachine, err := remoteMachines.GetByName(params.Name)
-	if err != nil {
-		return nil, err
-	}
-
 	kiteClient := remoteMachine.Client
-
-	if err := kiteClient.Dial(); err != nil {
-		r.log.Error("Error dialing remote klient. err:%s", err)
-		return nil, &kite.Error{
-			Type:    dialingFailedErrType,
-			Message: err.Error(),
-		}
-	}
 
 	remoteSize, err := getSizeOfRemoteFolder(kiteClient, params.RemotePath)
 	if err != nil {
@@ -86,7 +80,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		},
 		Interval: params.Interval,
 	}
-	r.log.Info("Caching remote via RSync, with options:%v", syncOpts)
+	log.Info("Caching remote via RSync, with options:%v", syncOpts)
 	progCh := rs.Sync(syncOpts.SyncOpts)
 
 	// If a valid callback is not provided, this method blocks until the data is done
@@ -99,7 +93,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		var err error
 		for p := range progCh {
 			if p.Error.Message != "" {
-				r.log.Error(
+				log.Error(
 					"Error encountered in blocking remote.cache. progress:%d, err:%s",
 					p.Progress, p.Error.Message,
 				)
@@ -116,7 +110,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 	go func() {
 		for p := range progCh {
 			if p.Error.Message != "" {
-				r.log.Error(
+				log.Error(
 					"Error encountered in nonblocking remote.cache. progress:%d, err:%s",
 					p.Progress, p.Error.Message,
 				)
@@ -125,7 +119,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		}
 
 		// After the progress chan is done, start our SyncInterval
-		startIntervaler(r.log, remoteMachine, rs, syncOpts)
+		startIntervaler(log, remoteMachine, rs, syncOpts)
 	}()
 
 	return nil, nil

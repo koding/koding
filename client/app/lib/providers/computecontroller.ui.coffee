@@ -4,7 +4,6 @@ hljs                 = require 'highlight.js'
 Encoder              = require 'htmlencode'
 
 KDView               = kd.View
-KDModalView          = kd.ModalView
 KDCustomHTMLView     = kd.CustomHTMLView
 KDNotificationView   = kd.NotificationView
 KDCustomScrollView   = kd.CustomScrollView
@@ -27,7 +26,7 @@ MissingDataView      = require './missingdataview'
 
 module.exports = class ComputeController_UI
 
-  requiresLogin = do -> ({ message }, fn) -> (args...)->
+  do -> ({ message }, fn) -> (args...)->
 
     return unless isLoggedIn()
       new KDNotificationView
