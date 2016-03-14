@@ -40,7 +40,7 @@ module.exports = class AdminAppView extends kd.ModalView
 
     @listenWindowResize()
 
-    @on 'groupSettingsUpdated', (group)->
+    @on 'groupSettingsUpdated', (group) ->
       @setData group
       @createTabs()
 
@@ -92,7 +92,7 @@ module.exports = class AdminAppView extends kd.ModalView
       slug       = pane.getOption 'slug'
       action     = pane.getOption 'action'
       identifier = pane.getOption 'identifier'
-      targetItem = viewClass: KDCustomHTMLView
+      targetItem = { viewClass: KDCustomHTMLView }
 
       for item in items
         if item.action is action

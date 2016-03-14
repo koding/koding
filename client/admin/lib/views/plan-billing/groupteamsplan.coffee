@@ -31,7 +31,7 @@ module.exports = class GroupTeamsPlan extends KDView
       startWithLazyLoader : yes
       lazyLoaderOptions   :
         spinnerOptions    :
-          size            : width: 28
+          size            : { width: 28 }
 
     @addSubView @listController.getView()
 

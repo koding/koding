@@ -12,35 +12,35 @@ module.exports = class CustomViewsAdminView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry "custom-views-admin", options.cssClass
+    options.cssClass = kd.utils.curry 'custom-views-admin', options.cssClass
 
     super options, data
 
-    {cssClass, title} = options
+    { cssClass, title } = options
 
     @title        = new KDCustomHTMLView
-      tagName     : "h3"
+      tagName     : 'h3'
       cssClass    : cssClass
       partial     : title
 
     @addNewButton = new KDButtonView
       iconOnly    : yes
-      cssClass    : "add-new"
+      cssClass    : 'add-new'
       callback    : => @addNew()
 
     @noViewLabel  = new KDCustomHTMLView
-      tagName     : "p"
-      cssClass    : "no-view"
+      tagName     : 'p'
+      cssClass    : 'no-view'
       partial     : "Currently there is no view for this section. Why don't you add new one?"
 
     @loader       = new KDLoaderView
-      cssClass    : "loader"
+      cssClass    : 'loader'
       showLoader  : yes
       size        :
         width     : 32
 
     @container    = new KDCustomHTMLView
-      cssClass    : "views"
+      cssClass    : 'views'
 
     @noViewLabel.hide()
 
@@ -52,21 +52,21 @@ module.exports = class CustomViewsAdminView extends JView
 
   bindEventHandlers: ->
 
-    @on "NewViewAdded", =>
-      @unsetClass "edit-mode"
+    @on 'NewViewAdded', =>
+      @unsetClass 'edit-mode'
       @addNewView.destroy()
       @addNewButton.show()
       @reloadViews()
 
-    @on "ViewDeleted", (customView) ->
+    @on 'ViewDeleted', (customView) ->
       @customViews.splice @customViews.indexOf(customView), 1
       @showNoViewLabelIfNeeded()
 
-    @on "ViewEditRequested", (viewData) =>
+    @on 'ViewEditRequested', (viewData) =>
       @addNew viewData
 
-    @on "AddingNewViewCancelled", =>
-      @unsetClass "edit-mode"
+    @on 'AddingNewViewCancelled', =>
+      @unsetClass 'edit-mode'
       @reloadViews()
       @addNewButton.show()
 
@@ -93,12 +93,12 @@ module.exports = class CustomViewsAdminView extends JView
   addNew: (data) ->
 
     @hideViews()
-    @setClass "edit-mode"
+    @setClass 'edit-mode'
     config     =
       delegate : this
-      viewType : @getOption "viewType"
+      viewType : @getOption 'viewType'
 
-    FormClass = @getOption("formClass") or AddNewCustomViewForm
+    FormClass = @getOption('formClass') or AddNewCustomViewForm
     @addSubView @addNewView = new FormClass config, data
 
 
@@ -111,7 +111,7 @@ module.exports = class CustomViewsAdminView extends JView
 
   fetchViews: ->
 
-    query = { partialType: @getOption "viewType" }
+    query = { partialType: @getOption 'viewType' }
 
     remote.api.JCustomPartials.some query, {}, (err, customViews) =>
       @loader.hide()
@@ -122,7 +122,7 @@ module.exports = class CustomViewsAdminView extends JView
 
   createList: (customViews) ->
 
-    viewClass = @getOption("itemClass") or CustomViewItem
+    viewClass = @getOption('itemClass') or CustomViewItem
     for customView in customViews
       customViewItem = new viewClass { delegate: this }, customView
       @customViews.push customViewItem
@@ -131,7 +131,7 @@ module.exports = class CustomViewsAdminView extends JView
 
   pistachio: ->
 
-    """
+    '''
       <div class="clearfix">
         {{> @title}}
         {{> @addNewButton}}
@@ -141,4 +141,4 @@ module.exports = class CustomViewsAdminView extends JView
         {{> @noViewLabel}}
         {{> @container}}
       </div>
-    """
+    '''

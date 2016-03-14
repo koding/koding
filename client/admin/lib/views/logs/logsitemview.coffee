@@ -21,4 +21,4 @@ module.exports = class LogsItemView extends kd.ListItemView
 
   pistachio: ->
 
-    "{{#(message)}}{span.time{#(createdAt)}}"
+    '{{#(message)}}{span.time{#(createdAt)}}'

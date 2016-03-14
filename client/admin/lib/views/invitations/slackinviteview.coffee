@@ -26,7 +26,7 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
   USERS_URL     = "#{location.origin}/api/social/slack/users"
   CHANNELS_URL  = "#{location.origin}/api/social/slack/channels"
   MESSAGING_URL = "#{location.origin}/api/social/slack/message"
-  ICON_URL      = "https://koding.com/a/images/logos/notify_logo.png"
+  ICON_URL      = 'https://koding.com/a/images/logos/notify_logo.png'
 
   constructor: (options = {}, data) ->
 
@@ -161,8 +161,8 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
         cssClass        : 'slack-user-list'
       lazyLoaderOptions :
         spinnerOptions  :
-          loaderOptions : shape: 'spiral', color: '#a4a4a4'
-          size          : width: 20, height: 20
+          loaderOptions : { shape: 'spiral', color: '#a4a4a4' }
+          size          : { width: 20, height: 20 }
     ,
       items             : users
 
@@ -197,7 +197,7 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
 
   sendMessages: (recipients) ->
 
-    invitations = recipients.map ({profile}) ->
+    invitations = recipients.map ({ profile }) ->
       email     : profile.email
       firstName : profile.first_name
       lastName  : profile.last_name
@@ -209,7 +209,7 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
     , (err, res) =>
 
       if err or not res
-        return new kd.NotificationView title : 'Something went wrong, please try again!'
+        return new kd.NotificationView { title : 'Something went wrong, please try again!' }
 
       invites = {}
 
@@ -256,8 +256,8 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
 
       async.parallel queue, (err, res) =>
         # make this smarter
-        return new kd.NotificationView title: 'There were some errors'  if err
+        return new kd.NotificationView { title: 'There were some errors' }  if err
 
-        new kd.NotificationView title: 'All invitations are sent!'
+        new kd.NotificationView { title: 'All invitations are sent!' }
 
         @emit 'InvitationsAreSent'

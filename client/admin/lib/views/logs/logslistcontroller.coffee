@@ -15,7 +15,7 @@ module.exports = class LogsListController extends kd.ListViewController
     super options, data
 
 
-  fetchLogs: (options = {})->
+  fetchLogs: (options = {}) ->
 
     return if @isFetching
 

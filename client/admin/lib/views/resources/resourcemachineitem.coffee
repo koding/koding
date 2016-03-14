@@ -21,7 +21,7 @@ module.exports   = class ResourceMachineItem extends MachinesListItem
     @labelLink = new kd.CustomHTMLView
       cssClass : 'label-link'
 
-    labelOptions = partial: label
+    labelOptions = { partial: label }
 
     @labelLink.addSubView new kd.CustomHTMLView labelOptions
 
@@ -41,7 +41,7 @@ module.exports   = class ResourceMachineItem extends MachinesListItem
           duration : 7000
 
         kloud = computeController.getKloud()
-        kloud.addAdmin machineId: machine._id
+        kloud.addAdmin { machineId: machine._id }
 
           .then (shared) ->
 
@@ -59,7 +59,7 @@ module.exports   = class ResourceMachineItem extends MachinesListItem
               notification.destroy()
 
               unless showError err
-                new kd.NotificationView title: 'Mounted successfully'
+                new kd.NotificationView { title: 'Mounted successfully' }
                 mountButton.setTitle 'Mounted'
                 mountButton.disable()
 

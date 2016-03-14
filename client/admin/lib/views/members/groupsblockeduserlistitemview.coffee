@@ -13,7 +13,7 @@ module.exports = class GroupsBlockedUserListItemView extends KDListItemView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'formline clearfix'
     options.type     = 'member-item'
@@ -22,47 +22,47 @@ module.exports = class GroupsBlockedUserListItemView extends KDListItemView
 
     data               = @getData()
     list               = @getDelegate()
-    {roles, userRoles} = list.getOptions()
+    { roles, userRoles } = list.getOptions()
     @avatar            = new AvatarStaticView {}, data
     @profileLink       = new ProfileTextView {}, data
     @usersRole         = userRoles[data.getId()]
 
     @userRole          = new KDCustomHTMLView
-      partial          : "Roles: " + @usersRole.join ', '
+      partial          : 'Roles: ' + @usersRole.join ', '
       cssClass         : 'ib role'
 
     @blockedUntil      = new KDCustomHTMLView
-      partial          : "BlockedUntil: " + @data.blockedUntil
+      partial          : 'BlockedUntil: ' + @data.blockedUntil
       cssClass         : ''
 
     @unblockButton   = new KDButtonView
-      title          : "Unblock"
+      title          : 'Unblock'
       callback       : =>
-        whoami().unblockUser @getData().getId(), (err)=>
+        whoami().unblockUser @getData().getId(), (err) =>
           if err
             kd.warn err
           else
-            new KDNotificationView title : "User is unblocked!"
+            new KDNotificationView { title : 'User is unblocked!' }
             @hide()
 
-    list.on "EditMemberRolesViewShown", (listItem)=>
+    list.on 'EditMemberRolesViewShown', (listItem) =>
       if listItem isnt this
         @hideEditMemberRolesView()
 
-  blockUser:(accountId, duration, callback)->
+  blockUser:(accountId, duration, callback) ->
     whoami().blockUser accountId, duration, callback
 
-  hideEditMemberRolesView:->
+  hideEditMemberRolesView: ->
     @unsetClass 'editing'
 
-  updateRoles:(roles)->
+  updateRoles: (roles) ->
     roles.push 'member'
     @usersRole = roles
     @userRole.updatePartial 'Roles: ' + @usersRole.join ', '
 
 
-  pistachio:->
-    """
+  pistachio: ->
+    '''
     <div class="kdlistitemview-member-item-inner">
       <section>
         <span class="avatar">{{> @avatar}}</span>
@@ -72,4 +72,4 @@ module.exports = class GroupsBlockedUserListItemView extends KDListItemView
         {{> @unblockButton}}
       </section>
     </div>
-    """
+    '''

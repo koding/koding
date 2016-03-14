@@ -15,7 +15,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
     @button    = new KDButtonView
       cssClass : 'solid compact outline configure'
       title    : "#{data.channelIntegrations.length} Configured"
-      loader   : color: '#4a4e52', diameter: 16
+      loader   : { color: '#4a4e52', diameter: 16 }
       callback : =>
         if @listView
           @listView.toggleClass 'hidden'
@@ -33,7 +33,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
     integrations = @getData().channelIntegrations
 
     for item in integrations
-      batch.push constructorName: 'JAccount', id: item.accountOldId
+      batch.push { constructorName: 'JAccount', id: item.accountOldId }
 
     remote.cacheable batch, (err, accounts) =>
       if err
@@ -43,7 +43,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
       for account in accounts
         jAccounts[account.getId()] = account
 
-      @listView = new KDCustomHTMLView cssClass: 'configured-list'
+      @listView = new KDCustomHTMLView { cssClass: 'configured-list' }
 
       integrations.forEach (item) =>
         @createSubItem item, jAccounts[item.accountOldId]

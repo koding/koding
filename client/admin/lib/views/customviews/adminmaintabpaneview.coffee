@@ -21,7 +21,7 @@ module.exports = class AdminMainTabPaneView extends kd.TabView
 
     if @getOption 'useRouter'
 
-      {pane} = handle.getOptions()
+      { pane } = handle.getOptions()
 
       kd.utils.stopDOMEvent event
       kd.singletons.router.handleRoute "/Admin/#{pane.getOption 'slug'}"

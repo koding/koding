@@ -14,43 +14,43 @@ module.exports = class OnboardingGroupView extends CustomViewsAdminView
 
     super options, data
 
-    labelText = ""
+    labelText = ''
 
-    if data.isActive then labelText = "Published"
+    if data.isActive then labelText = 'Published'
     else if data.isPreview
-    then labelText   = "On preview"
+    then labelText   = 'On preview'
 
     @title           = new KDCustomHTMLView
-      tagName        : "h3"
+      tagName        : 'h3'
       cssClass       : options.cssClass
       partial        : "#{options.title} <span>#{labelText}</span>"
 
     @addNewButton    = new KDButtonViewWithMenu
-      title          : ""
+      title          : ''
       icon           : yes
       delegate       : this
-      iconClass      : "settings"
-      cssClass       : "settings-menu"
+      iconClass      : 'settings'
+      cssClass       : 'settings-menu'
       itemChildClass : OnboardingSettingsMenuItem
-      style          : "resurrection"
+      style          : 'resurrection'
       menu           : @getMenuItems()
 
-    @loader.on "viewAppended", =>
+    @loader.on 'viewAppended', =>
       @loader.hide()
 
 
   getMenuItems: ->
 
     data         = @getData()
-    activeLabel  = if data.isActive  then "Unpublish"      else "Publish"
-    previewLabel = if data.isPreview then "Cancel preview" else "Preview"
+    activeLabel  = if data.isActive  then 'Unpublish'      else 'Publish'
+    previewLabel = if data.isPreview then 'Cancel preview' else 'Preview'
     items        =
-      "Add Into" : callback: => @addNew()
-      "Edit"     : callback: => @edit()
-      "Delete"   : callback: => @delete()
+      'Add Into' : { callback: => @addNew() }
+      'Edit'     : { callback: => @edit() }
+      'Delete'   : { callback: => @delete() }
 
-    items[activeLabel]  = callback : => @updateState "isActive"
-    items[previewLabel] = callback : => @updateState "isPreview"
+    items[activeLabel]  = { callback : => @updateState 'isActive' }
+    items[previewLabel] = { callback : => @updateState 'isPreview' }
 
     return items
 
@@ -65,35 +65,35 @@ module.exports = class OnboardingGroupView extends CustomViewsAdminView
         return kd.warn err  if err
         @getDelegate().reloadViews()
 
-    keyword = "publish"
+    keyword = 'publish'
 
-    if key is "isActive"
-      if data[key] then keyword = "unpublish"
+    if key is 'isActive'
+      if data[key] then keyword = 'unpublish'
     else
-      keyword = if data[key] then "cancel preview for" else "enable preview mode for"
+      keyword = if data[key] then 'cancel preview for' else 'enable preview mode for'
 
     content        = "Are you sure you want to #{keyword} this item?"
     modal          = new KDModalView
-      title        : "Are you sure?"
+      title        : 'Are you sure?'
       content      : "<p>#{content}</p>"
       overlay      : yes
       buttons      :
         Delete     :
-          title    : "Confirm"
-          cssClass : "solid green medium"
-          callback : =>
+          title    : 'Confirm'
+          cssClass : 'solid green medium'
+          callback : ->
             callback()
             modal.destroy()
         Cancel     :
-          title    : "Cancel"
-          cssClass : "solid light-gray medium"
+          title    : 'Cancel'
+          cssClass : 'solid light-gray medium'
           callback : -> modal.destroy()
 
 
   fetchViews: ->
 
     @loader.hide()
-    {items} = @getData().partial
+    { items } = @getData().partial
     return @noViewLabel.show()  if items?.length is 0
     @createList items
 
@@ -111,12 +111,12 @@ module.exports = class OnboardingGroupView extends CustomViewsAdminView
   deleteChildItem: (childData) ->
 
     data    = @getData()
-    {items} = data.partial
+    { items } = data.partial
     for item in items when item.name is childData.name
       items.splice items.indexOf(item), 1
       break
 
-    data.update { "partial.items": items }, (err, res) =>
+    data.update { 'partial.items': items }, (err, res) =>
       return kd.warn err  if err
       @addNewButton.show()
       @reloadViews()
@@ -143,23 +143,23 @@ module.exports = class OnboardingGroupView extends CustomViewsAdminView
   confirmDelete: (callback = kd.noop) ->
 
     modal          = new KDModalView
-      title        : "Are you sure?"
-      content      : "Are you sure you want to delete the item. This cannot be undone."
+      title        : 'Are you sure?'
+      content      : 'Are you sure you want to delete the item. This cannot be undone.'
       overlay      : yes
       buttons      :
         Delete     :
-          title    : "Delete"
-          cssClass : "solid red medium"
-          callback : =>
+          title    : 'Delete'
+          cssClass : 'solid red medium'
+          callback : ->
             callback()
             modal.destroy()
         Cancel     :
-          title    : "Cancel"
-          cssClass : "solid light-gray medium"
+          title    : 'Cancel'
+          cssClass : 'solid light-gray medium'
           callback : -> modal.destroy()
 
 
   cancel: ->
 
     @showViews()
-    @emit "SectionCancelled"
+    @emit 'SectionCancelled'

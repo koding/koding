@@ -26,7 +26,7 @@ module.exports = class InviteSomeoneView extends KDView
     @inputViews = []
 
     @createInformationView()
-    @scrollView.wrapper.addSubView @inputWrapper = new KDCustomHTMLView cssClass: 'input-wrapper'
+    @scrollView.wrapper.addSubView @inputWrapper = new KDCustomHTMLView { cssClass: 'input-wrapper' }
     @createInitialInputs()
     @createMainButtons()
 
@@ -124,7 +124,7 @@ module.exports = class InviteSomeoneView extends KDView
                 itemClass     : kd.ButtonView
                 cssClass      : 'confirm'
                 style         : 'solid green medium'
-                loader        : color: '#444444'
+                loader        : { color: '#444444' }
                 callback      : => @handleInvitationRequest invites
               Cancel          :
                 itemClass     : kd.ButtonView
@@ -145,14 +145,14 @@ module.exports = class InviteSomeoneView extends KDView
   notifyPendingInvites: (pendingInvites, newInvites) ->
 
     partial = "<strong>#{pendingInvites[0].email}</strong> has already been invited. Are you sure you want to resend invitation?"
-    resendButtonText = "Resend Invitation"
-    cancelButtonText = "Cancel"
+    resendButtonText = 'Resend Invitation'
+    cancelButtonText = 'Cancel'
 
     if pendingInvites.length > 1
       emailsText = prepareEmailsText pendingInvites
       partial = "#{emailsText} have already been invited. Are you sure you want to resend invitations?"
-      resendButtonText = "Resend Invitations"
-      cancelButtonText = "Just send the new ones" if newInvites.length
+      resendButtonText = 'Resend Invitations'
+      cancelButtonText = 'Just send the new ones' if newInvites.length
 
     @resendInvitationConfirmModal = modal = new kd.ModalViewWithForms
       title                   : 'Resend invitation'
@@ -167,7 +167,7 @@ module.exports = class InviteSomeoneView extends KDView
                 itemClass     : kd.ButtonView
                 cssClass      : 'confirm'
                 style         : 'solid green medium'
-                loader        : color: '#444444'
+                loader        : { color: '#444444' }
                 callback      : => @handleResendInvitations pendingInvites, newInvites
               "#{cancelButtonText}" :
                 itemClass     : kd.ButtonView
@@ -197,9 +197,9 @@ module.exports = class InviteSomeoneView extends KDView
     title    = 'Invitation is resent.'
     title    = 'Invitations are resent.'  if invites.length > 1
 
-    queue = invites.map (invite) => (next) =>
+    queue = invites.map (invite) -> (next) ->
 
-      remote.api.JInvitation.sendInvitationByCode invite.code, (err) =>
+      remote.api.JInvitation.sendInvitationByCode invite.code, (err) ->
         if err
         then next err
         else next()
@@ -212,7 +212,7 @@ module.exports = class InviteSomeoneView extends KDView
       duration = 5000
       unless newInvitations.length
         title  = "Invitation is resent to <strong>#{invites[0].email}</strong>"
-        title  = "All invitations are resent."  if invites.length > 1
+        title  = 'All invitations are resent.'  if invites.length > 1
         return new KDNotificationView { title, duration }
 
 
@@ -222,7 +222,7 @@ module.exports = class InviteSomeoneView extends KDView
 
     new Promise (resolve, reject) ->
 
-      remote.api.JInvitation['some'] { status: 'pending' }, options, (err, pendings) =>
+      remote.api.JInvitation['some'] { status: 'pending' }, options, (err, pendings) ->
         if err
           reject err
           return kd.warn err
@@ -249,7 +249,7 @@ module.exports = class InviteSomeoneView extends KDView
 
     return @closeConfirmModals()  unless invites.length
 
-    remote.api.JInvitation.create invitations: invites, (err) =>
+    remote.api.JInvitation.create { invitations: invites }, (err) =>
       if err
         return new KDNotificationView
           title    : 'Failed to send some invites, please try again.'
@@ -289,10 +289,10 @@ module.exports = class InviteSomeoneView extends KDView
 
     @scrollView.wrapper.addSubView new KDCustomHTMLView
       cssClass : 'information'
-      partial  : """
+      partial  : '''
         <p>Invite other teammates to your team. You can change admin rights for your teammates in the Members tab once they accept your invitation.</p>
         <label>Email</label><label>First Name</label><label>Last Name<span>Admin</span></label>
-        """
+        '''
 
 
   closeConfirmModals: ->
@@ -306,13 +306,13 @@ module.exports = class InviteSomeoneView extends KDView
 prepareEmailsText = (pendingInvites) ->
   emails = ''
   len    = pendingInvites.length
-  [0...len].forEach (i)->
+  [0...len].forEach (i) ->
     emails += "<strong>#{pendingInvites[i].email}</strong>"
     if i + 2 is len
-      emails += ", and "
+      emails += ', and '
     else if i + 1 is len
-      emails += ""
+      emails += ''
     else
-      emails += ", "
+      emails += ', '
 
   return emails
