@@ -39,9 +39,11 @@ type ServerOptions struct {
 	Config      *config.Config `json:"kiteConfig"`
 	RegisterURL *url.URL       `json:"registerURL"`
 
-	ServerAddr string `json:"serverAddr,omitempty"` // public IP
-	Debug      bool   `json:"debug,omitempty"`
-	Test       bool   `json:"test,omitempty"`
+	TCPRangeFrom int    `json:"tcpRangeFrom,omitempty"`
+	TCPRangeTo   int    `json:"tcpRangeTo,omitempty"`
+	ServerAddr   string `json:"serverAddr,omitempty"` // public IP
+	Debug        bool   `json:"debug,omitempty"`
+	Test         bool   `json:"test,omitempty"`
 
 	Log     logging.Logger     `json:"-"`
 	Metrics *metrics.DogStatsD `json:"-"`
@@ -60,6 +62,9 @@ type Server struct {
 	mu       sync.Mutex // protects services and tunnels
 	services map[int]net.Listener
 	tunnels  *Tunnels
+
+	last   int        // last random port when TCP range is set
+	lastMu sync.Mutex // protects last
 }
 
 // NewServer gives new tunneling server for the given options.
@@ -255,7 +260,7 @@ func (s *Server) addClientService(ident string, tun *Tunnel) error {
 			return nil
 		}
 
-		l, err := net.Listen("tcp", s.addr(tun.Port))
+		l, err := s.listen("tcp", s.addr(tun.Port))
 		if err != nil {
 			s.opts.Log.Debug("%s: failed to upgrade port %d -> %d for %q", existingTun.Port, tun.Port, ident)
 
@@ -288,11 +293,11 @@ func (s *Server) addClientService(ident string, tun *Tunnel) error {
 		return err
 	}
 
-	l, err := net.Listen("tcp", s.addr(tun.Port))
+	l, err := s.listen("tcp", s.addr(tun.Port))
 	if err != nil && tun.Port != 0 {
 		s.opts.Log.Debug("failed to bind to requested port %d, binding to random one: %s", tun.Port, err)
 
-		l, err = net.Listen("tcp", s.addr(0))
+		l, err = s.listen("tcp", s.addr(0))
 	}
 	if err != nil {
 		return fmt.Errorf("failed to open tunnel: %s", err)
@@ -461,6 +466,49 @@ func (s *Server) metricsFunc() kite.HandlerFunc {
 		}()
 		return true, nil
 	}
+}
+
+func (s *Server) listen(network, addr string) (net.Listener, error) {
+	host, port, err := splitHostPort(addr)
+	if err != nil || port != 0 {
+		return net.Listen(network, addr)
+	}
+
+	if s.opts.TCPRangeTo == 0 && s.opts.TCPRangeFrom == 0 {
+		return net.Listen(network, addr)
+	}
+
+	from := s.opts.TCPRangeFrom
+	if from == 0 {
+		from = 10000
+	}
+	to := s.opts.TCPRangeTo
+	if to == 0 {
+		to = 65535
+	}
+
+	s.lastMu.Lock()
+	port = s.last
+	s.lastMu.Unlock()
+
+	for j := 0; j < (to - from); j++ {
+		if port < from || port > to {
+			port = from
+		}
+
+		l, err := net.Listen(network, net.JoinHostPort(host, strconv.Itoa(port)))
+		if err == nil {
+			s.lastMu.Lock()
+			s.last = port
+			s.lastMu.Unlock()
+
+			return l, nil
+		}
+
+		port++
+	}
+
+	return nil, errors.New("unable to find available port")
 }
 
 // NewServerKite creates a server kite for the given server.

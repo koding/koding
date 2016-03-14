@@ -11,9 +11,15 @@ export E2ETEST_NGROKTOKEN=${E2ETEST_NGROKTOKEN:-}
 export E2ETEST_ACCESSKEY=${E2ETEST_ACCESSKEY:-}
 export E2ETEST_SECRETKEY=${E2ETEST_SECRETKEY:-}
 
+run=${1:-}
+
+if [[ ! -z "$run" ]]; then
+	run="-run $run"
+fi
+
 # NOTE(rjeczalik): -noclean is used to keep DNS records, sometimes
 # handy for deelopment when AWS is utterly slow.
-go test -v koding/kites/e2etest -run TCP -- -debug -ngrokdebug -noclean
+go test -v koding/kites/e2etest $run -- -debug -ngrokdebug -noclean
 
 # For more options see
 #

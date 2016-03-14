@@ -260,6 +260,8 @@ func testWithTunnelserver(t *testing.T, test func(*testing.T, *url.URL)) {
 		Config:          serverCfg,
 		ServerAddr:      serverURL.Host,
 		RegisterURL:     serverURL,
+		TCPRangeFrom:    30000,
+		TCPRangeTo:      30100,
 		Log:             Test.Log.New("tunnelserver"),
 		Debug:           true,
 	}
