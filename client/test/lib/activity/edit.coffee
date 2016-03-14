@@ -56,7 +56,7 @@ module.exports =
       .waitForElementVisible     '.kdcontextmenu .edit-comment', 25000
       .click                     '.kdcontextmenu .edit-comment'
       .setValue                  editSelector, [ browser.Keys.ESCAPE ]
-      .waitForElementNotVisible  activitySelector + ' [testpath=post-activity-button]',25000
+      .waitForElementNotVisible  activitySelector + ' [testpath=post-activity-button]', 25000
       .pause  3000
       .end()
 

@@ -8,7 +8,7 @@ module.exports = (browser, machineName) ->
   buildingLabel  = modalSelector + ' .state-label.building'
   turnOnButtonSelector = modalSelector + ' .turn-on.state-button'
 
-  browser.element 'css selector', vmSelector, (result) =>
+  browser.element 'css selector', vmSelector, (result) ->
     if result.status is 0
       console.log ' ✔ VM is running'
       browser.waitForElementNotPresent  modalSelector, 50000
@@ -16,7 +16,7 @@ module.exports = (browser, machineName) ->
       console.log ' ✔ VM is not running'
       browser
         .waitForElementVisible   modalSelector, 50000
-        .element 'css selector', buildingLabel, (result) =>
+        .element 'css selector', buildingLabel, (result) ->
           if result.status is 0
             console.log ' ✔ VM is building, waiting to finish'
 

@@ -7,7 +7,7 @@ companyNameSelector      = '.login-form input[testpath=company-name]'
 sidebarSectionsSelector  = '.activity-sidebar .SidebarChannelsSection'
 chatItem                 = '.Pane-body .ChatList .ChatItem'
 chatInputSelector        = '.ChatPaneFooter .ChatInputWidget textarea'
-invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+invitationsModalSelector = '.kdmodal-content  .AppModal--admin-tabs .invitations'
 pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
 pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
 
@@ -111,7 +111,7 @@ module.exports =
 
   congratulationsPage: (browser) ->
 
-     browser
+    browser
       .waitForElementVisible  teamsModalSelector, 20000
       .waitForElementVisible  'button span.button-title', 20000
       .click                  'button span.button-title'
@@ -249,9 +249,9 @@ module.exports =
 
   openInvitationsTab: (browser) ->
 
-    tabsSelector              = ".kdmodal-content .kdtabhandle-tabs"
+    tabsSelector              = '.kdmodal-content .kdtabhandle-tabs'
     invitationsButtonSelector = "#{tabsSelector} .invitations"
-    invitationsPageSelector   = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+    invitationsPageSelector   = '.kdmodal-content  .AppModal--admin-tabs .invitations'
 
     browser
       .waitForElementVisible  tabsSelector, 20000
@@ -326,7 +326,7 @@ module.exports =
         .assert.containsText    sidebarSectionsSelector, channelName
 
     if purpose
-      browser.assert.containsText '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose',purpose
+      browser.assert.containsText '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose', purpose
 
     return channelName
 
@@ -442,7 +442,7 @@ module.exports =
 
   inviteUser: (browser, addMoreUser = no) ->
 
-    invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+    invitationsModalSelector = '.kdmodal-content  .AppModal--admin-tabs .invitations'
     inviteUserView           = "#{invitationsModalSelector} .invite-view"
     emailInputSelector       = "#{inviteUserView} .invite-inputs input.user-email"
     userEmail                = "#{helpers.getFakeText().split(' ')[0]}#{Date.now()}@kd.io"
@@ -466,7 +466,7 @@ module.exports =
           .click                 confirmButton
 
       successMessage = if addMoreUser
-      then "Invitation is sent to"
+      then 'Invitation is sent to'
       else "Invitation is sent to #{userEmail}"
 
       browser
@@ -547,7 +547,7 @@ module.exports =
 
   likeunlikePost: (browser, likeLikePost = no) ->
 
-    likeContainer       = ".ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer"
+    likeContainer       = '.ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer'
     likeButtonUnpressed = "#{likeContainer} a[class~=ActivityLikeLink]:not(.is-likedByUser)"
     likeButtonPressed   = "#{likeContainer} .ActivityLikeLink.is-likedByUser"
     textSelector        = '.ChatListItem-itemBodyContainer:nth-of-type(1)'
@@ -612,7 +612,7 @@ module.exports =
 
   updateChannelPurpose: (browser) ->
 
-    editedPurposeText  = "edited text on the purpose field"
+    editedPurposeText  = 'edited text on the purpose field'
     menuButtonSelector = '.ChannelThreadPane-content .ChannelThreadPane-header .ButtonWithMenuWrapper button'
     editButtonSelector = '.ButtonWithMenuItemsList.ChannelThreadPane-menuItems li:nth-child(3)'
     inputTextSelector  = '.ThreadHeader.ChannelThreadPane-header .ChannelThreadPane-purposeWrapper.editing input'

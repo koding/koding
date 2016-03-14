@@ -18,7 +18,7 @@ module.exports =
     browser
       .waitForElementVisible   shareButtonSelector, 20000
       .pause   4000
-      .element 'css selector', notStartedButtonSelector, (result) =>
+      .element 'css selector', notStartedButtonSelector, (result) ->
         isActive = if result.status is 0 then no else yes
         callback(isActive)
 
@@ -124,7 +124,7 @@ module.exports =
     console.log ' ✔ Getting collaboration link...'
 
     helpers.beginTest browser, secondUser
-    browser.getCollabLink (url) =>
+    browser.getCollabLink (url) ->
 
       browser
         .url                       url
@@ -175,7 +175,7 @@ module.exports =
     host        = utils.getUser no, 0
     participant = utils.getUser no, 1
 
-    console.log " ✔ Starting collaboration test..."
+    console.log ' ✔ Starting collaboration test...'
     console.log " ✔ Host: #{host.username}"
     console.log " ✔ Participant: #{participant.username}"
 
@@ -240,7 +240,7 @@ module.exports =
       .waitForElementVisible     leaveSessionButton, 20000
       .click                     leaveSessionButton
       .waitForElementPresent     machineSelector, 20000
-      .waitForElementNotPresent  chatBox,20000
+      .waitForElementNotPresent  chatBox, 20000
 
 
   kickUser: (browser, user) ->
@@ -251,7 +251,7 @@ module.exports =
 
     browser
       .waitForElementVisible     chatHeads, 20000
-      .moveToElement             chatHeads, 14,14
+      .moveToElement             chatHeads, 14, 14
       .waitForElementVisible     menuSelector, 20000
       .waitForElementVisible     kickSelector, 20000
       .pause                     3000 # wait for participant

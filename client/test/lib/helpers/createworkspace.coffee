@@ -13,7 +13,7 @@ module.exports = (browser) ->
     .waitForElementVisible       '.add-workspace-view', 20000
     .setValue                    '.add-workspace-view input.kdinput.text', workspaceName + '\n'
     .waitForElementVisible       '.vm-info', 20000
-    .url (data) =>
+    .url (data) ->
       url    = data.value
       vmName = url.split('/IDE/')[1].split('/')[0]
 

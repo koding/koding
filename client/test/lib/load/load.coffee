@@ -85,7 +85,7 @@ waitForVMBuilding = (browser) ->
 
 runCommandOnTerminal = (browser) ->
   browser
-    .pause 2000, =>
+    .pause 2000, ->
       time = Date.now()
       browser
         .execute              "KD.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input('echo #{time}')"

@@ -1,12 +1,12 @@
 helpers = require '../helpers/helpers.js'
 
 
-module.exports = 
+module.exports =
 
   checkInvalidCardNumber: (browser) ->
 
     helpers.beginTest(browser)
-    helpers.checkInvalidCardDetails(browser, { cardNumber: "1111 1111 1111 1111" }, no)
+    helpers.checkInvalidCardDetails(browser, { cardNumber: '1111 1111 1111 1111' }, no)
 
 
   checkInvalidCVC: (browser) ->
@@ -30,4 +30,4 @@ module.exports =
   checkUpgradePlanButtonWithInvalidData: (browser) ->
 
     helpers.beginTest(browser)
-    helpers.checkInvalidCardDetails(browser, { cardNumber: "11111111111", cvc: 12345, month: 13, year: 1999 }, no)
+    helpers.checkInvalidCardDetails(browser, { cardNumber: '11111111111', cvc: 12345, month: 13, year: 1999 }, no)
