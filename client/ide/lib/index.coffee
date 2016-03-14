@@ -1408,7 +1408,10 @@ class IDEAppController extends AppController
 
     return if not context or not origin or (origin is nick() and rtmHash is @rtm.hash)
 
-    mustSyncChanges = [ 'CursorActivity', 'FileSaved' ]
+    mustSyncChanges = [ 'FileSaved' ]
+
+    if @permissions.get(origin) is 'edit'
+      mustSyncChanges.push 'CursorActivity'
 
     if @amIWatchingChangeOwner(origin) or type in mustSyncChanges
       targetPane = @getPaneByChange change
