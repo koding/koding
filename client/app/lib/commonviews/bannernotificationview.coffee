@@ -42,12 +42,13 @@ module.exports = class BannerNotificationView extends kd.CustomHTMLView
     kd.utils.wait closeTimer, @bound 'hide'
 
 
-
   show: -> @setClass 'in'
+
 
   hide: ->
 
     @once 'transitionend', @bound 'destroy'
     @unsetClass 'in'
+
 
   pistachio: -> "<p>{{> @title}} {{> @content}}</p>{{> @close}}"

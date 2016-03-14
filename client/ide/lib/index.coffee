@@ -1689,7 +1689,9 @@ class IDEAppController extends AppController
 
   handleShortcut: (e) ->
 
-    return  if (not @layoutManager.isRestored and not @initialViewsReady) or not @mountedMachine?.isRunning()
+    return  if not @layoutManager.isRestored and not @initialViewsReady
+    return  unless @mountedMachine?.isRunning()
+    return  if @getMyPermission() is 'read'
 
     kd.utils.stopDOMEvent e
 

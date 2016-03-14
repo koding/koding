@@ -1313,7 +1313,7 @@ module.exports = CollaborationController =
     @permissions.delete nickname
 
 
-  getMyPermission: -> @permissions.get nick()
+  getMyPermission: -> @permissions?.get nick()
 
 
   setMyPermission: (permission) ->
