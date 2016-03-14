@@ -35,7 +35,7 @@ module.exports = class OAuth extends bongo.Base
       when 'google'
         { client_id } = KONFIG.google
         JSession.one { clientId: client.sessionToken }, (err, session) ->
-          throw err  if err
+          return callback err  if err
           state = session._id
           url  = 'https://accounts.google.com/o/oauth2/auth?'
           url += 'scope=https://www.google.com/m8/feeds '
