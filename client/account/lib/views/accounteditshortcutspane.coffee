@@ -7,7 +7,7 @@ module.exports =
 
 class AccountEditShortcutsPane extends kd.TabPaneView
 
-  constructor: (options={}) ->
+  constructor: (options = {}) ->
 
     @collection = options.collection
     super _.omit options, 'collection'
@@ -19,8 +19,8 @@ class AccountEditShortcutsPane extends kd.TabPaneView
 
     dups = kd.getSingleton('shortcuts').getCollisionsFlat @collection._key
 
-    @collection.each (model) =>
+    @collection.each (model) ->
       dup   = _.includes dups, model.name
-      scrollView.wrapper.addSubView new Row dup: dup, model
+      scrollView.wrapper.addSubView new Row { dup, model }
 
     @addSubView scrollView

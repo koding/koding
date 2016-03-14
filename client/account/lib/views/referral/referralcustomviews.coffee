@@ -1,4 +1,5 @@
 kd             = require 'kd'
+_              = require 'lodash'
 globals        = require 'globals'
 nick           = require 'app/util/nick'
 getReferralUrl = require 'app/util/getReferralUrl'
@@ -15,8 +16,8 @@ module.exports = class ReferralCustomViews extends CustomViews
       lazyLoadThreshold   : 10
       lazyLoaderOptions   :
         spinnerOptions    :
-          loaderOptions   : shape: 'spiral', color: '#a4a4a4'
-          size            : width: 20, height: 20
+          loaderOptions   : { shape: 'spiral', color: '#a4a4a4' }
+          size            : { width: 20, height: 20 }
         partial           : ''
 
   followLazyLoad = (controller, fetcher, limit) ->
@@ -30,14 +31,14 @@ module.exports = class ReferralCustomViews extends CustomViews
       busy  = yes
       skip += limit
 
-      fetcher { limit, skip }, (err, data)->
+      fetcher { limit, skip }, (err, data) ->
         controller.hideLazyLoader()
         return  if err or data?.rewards?.length is 0
         controller.instantiateListItems data.rewards
         busy = no
 
 
-  @views extends
+  _.assign @views,
 
     totalSpace: (total) =>
 
@@ -51,17 +52,17 @@ module.exports = class ReferralCustomViews extends CustomViews
 
       return container
 
-    socialIcons: ({providers}) =>
+    socialIcons: ({ providers }) =>
 
       container = @views.container 'social'
 
-      providers.forEach (provider)=>
+      providers.forEach (provider) =>
 
-        {callback, link} = getSocialLinks provider
+        { callback, link } = getSocialLinks provider
         options   =
           link    :
             title : ''
-            icon  : cssClass: provider
+            icon  : { cssClass: provider }
 
         if provider is 'mail'
         then options.link.href  = link
@@ -71,7 +72,7 @@ module.exports = class ReferralCustomViews extends CustomViews
 
       return container
 
-    shareBox: ({title, subtitle}) =>
+    shareBox: ({ title, subtitle }) =>
 
       container = @views.container 'share-box'
 
@@ -83,7 +84,7 @@ module.exports = class ReferralCustomViews extends CustomViews
         socialIcons   :
           providers   : ['facebook', 'linkedin', 'twitter', 'google', 'mail']
         text_invite   : 'Your personal invite link:'
-        view          : 
+        view          :
           partial     : getReferralUrl nick()
           cssClass    : 'text link'
           click       : ->
@@ -98,13 +99,13 @@ module.exports = class ReferralCustomViews extends CustomViews
 
       return container
 
-    loader: (cssClass)->
+    loader: (cssClass) ->
       new kd.LoaderView {
         cssClass, showLoader: yes,
-        size: width: 40, height: 40
+        size: { width: 40, height: 40 }
       }
 
-    list: ({data, itemClass, fetcher, limit}) ->
+    list: ({ data, itemClass, fetcher, limit }) ->
 
       controller = createListController itemClass
       list       = controller.getListView()
@@ -113,13 +114,13 @@ module.exports = class ReferralCustomViews extends CustomViews
 
       if data?.length > 0
 
-        header = new kd.ListItemView {cssClass: 'referral-item header'}, {}
-        header.partial = -> "
+        header = new kd.ListItemView { cssClass: 'referral-item header' }, {}
+        header.partial = -> '
           <div>Friend</div>
           <div>Status</div>
           <div>Last Activity</div>
           <div>Space Earned</div>
-        "
+        '
         list.addItemView header, 0
         followLazyLoad controller, fetcher, limit
 
@@ -137,15 +138,15 @@ module.exports = class ReferralCustomViews extends CustomViews
 
     progress: (options) =>
 
-      {current, max, title, color} = options
+      { current, max, title, color } = options
 
       initial   = Math.round (current / max) * 100
       container = @views.container 'progress'
-      color     = {green: '#409531', yellow: '#F7B91A'}[color] or color
+      color     = { green: '#409531', yellow: '#F7B91A' }[color] or color
 
-      {progressBar} = @addTo container,
+      { progressBar } = @addTo container,
         text_label  : title
-        progressBar : {initial}
+        progressBar : { initial }
         text_value  : "#{current}GB"
 
       # We are defering here because we don't have ::bar element yet

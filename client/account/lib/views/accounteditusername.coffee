@@ -58,41 +58,41 @@ module.exports = class AccountEditUsername extends JView
       title          : 'Use Gravatar'
       loader         : yes
       callback       : =>
-        @account.modify 'profile.avatar' : '', (err) =>
+        @account.modify { 'profile.avatar' : '' }, (err) =>
           console.warn err  if err
           @useGravatarBtn.hideLoader()
 
     @userProfileFormFields =
       firstName          :
         cssClass         : 'Formline--half'
-        placeholder      : "firstname"
-        name             : "firstName"
+        placeholder      : 'firstname'
+        name             : 'firstName'
         label            : 'Name'
       lastName           :
         cssClass         : 'Formline--half'
-        placeholder      : "lastname"
-        name             : "lastName"
+        placeholder      : 'lastname'
+        name             : 'lastName'
         label            : 'Last name'
       email              :
         cssClass         : 'Formline--half'
-        placeholder      : "you@yourdomain.com"
-        name             : "email"
-        testPath         : "account-email-input"
+        placeholder      : 'you@yourdomain.com'
+        name             : 'email'
+        testPath         : 'account-email-input'
         label            : 'Email'
       username           :
         cssClass         : 'Formline--half'
-        placeholder      : "username"
-        name             : "username"
+        placeholder      : 'username'
+        name             : 'username'
         label            : 'Username'
         attributes       :
           readonly       : "#{not /^guest-/.test @account.profile.nickname}"
-        testPath         : "account-username-input"
+        testPath         : 'account-username-input'
       verifyEmail        :
         itemClass        : KDCustomHTMLView
-        tagName          : "a"
+        tagName          : 'a'
         partial          : "You didn't verify your email yet <span>Verify now</span>"
-        cssClass         : "hidden action-link verify-email"
-        testPath         : "account-email-edit"
+        cssClass         : 'hidden action-link verify-email'
+        testPath         : 'account-email-edit'
         click            : @bound 'verifyUserEmail'
       passwordHeader     :
         itemClass        : KDCustomHTMLView
@@ -100,15 +100,15 @@ module.exports = class AccountEditUsername extends JView
         cssClass         : 'AppModal-sectionHeader'
       password           :
         cssClass         : 'Formline--half'
-        placeholder      : "password"
-        name             : "password"
-        type             : "password"
+        placeholder      : 'password'
+        name             : 'password'
+        type             : 'password'
         label            : 'Password'
       confirm            :
         cssClass         : 'Formline--half'
-        placeholder      : "confirm password"
-        name             : "confirmPassword"
-        type             : "password"
+        placeholder      : 'confirm password'
+        name             : 'confirmPassword'
+        type             : 'password'
         label            : 'Password (again)'
 
     if isKoding()
@@ -155,7 +155,7 @@ module.exports = class AccountEditUsername extends JView
     reader        = new FileReader
     reader.onload = (event) =>
       dataURL     = event.target.result
-      [_, base64] = dataURL.split ","
+      [_, base64] = dataURL.split ','
 
       @uploadAvatar
         mimeType : mimeType
@@ -168,7 +168,7 @@ module.exports = class AccountEditUsername extends JView
 
   uploadAvatar: (avatar, callback) ->
 
-    {mimeType, content} = avatar
+    { mimeType, content } = avatar
 
     s3upload
       name    : "avatar-#{Date.now()}"
@@ -181,13 +181,13 @@ module.exports = class AccountEditUsername extends JView
 
       return showError err  if err
 
-      @account.modify "profile.avatar": "#{url}"
+      @account.modify { 'profile.avatar': "#{url}" }
 
 
   update: (formData) ->
 
-    {JUser} = remote.api
-    {email, password, confirmPassword, firstName, lastName, username, shareLocation} = formData
+    { JUser } = remote.api
+    { email, password, confirmPassword, firstName, lastName, username, shareLocation } = formData
     skipPasswordConfirmation = no
     queue = [
       (next) ->
@@ -195,10 +195,10 @@ module.exports = class AccountEditUsername extends JView
         me = whoami()
 
         me.modify {
-          "profile.firstName": firstName,
-          "profile.lastName" : lastName
-          "shareLocation"    : formData.shareLocation
-        }, (err)->
+          'profile.firstName': firstName,
+          'profile.lastName' : lastName
+          'shareLocation'    : formData.shareLocation
+        }, (err) ->
           return next err.message  if err
           me.shareLocation = formData.shareLocation
           next()
@@ -206,16 +206,16 @@ module.exports = class AccountEditUsername extends JView
       (next) =>
         return next() if email is @userInfo.email
 
-        options = {skipPasswordConfirmation, email}
+        options = { skipPasswordConfirmation, email }
         @confirmCurrentPassword options, (err) =>
           return next err  if err
 
-          JUser.changeEmail {email}, (err, result)=>
+          JUser.changeEmail { email }, (err, result) =>
             return next err.message  if err
 
             skipPasswordConfirmation = true
-            modal = new VerifyPINModal 'Update E-Mail', (pin)=>
-              remote.api.JUser.changeEmail {email, pin}, (err)=>
+            modal = new VerifyPINModal 'Update E-Mail', (pin) =>
+              remote.api.JUser.changeEmail { email, pin }, (err) =>
                 return next err.message  if err
                 @userInfo.email = email
                 next()
@@ -225,34 +225,34 @@ module.exports = class AccountEditUsername extends JView
         # on third turn update password
         # check for password confirmation
         if password isnt confirmPassword
-          return next "Passwords did not match"
+          return next 'Passwords did not match'
 
         #check passworg lenght
-        if password isnt "" and password.length < 8
-          return next "Passwords should be at least 8 characters"
+        if password isnt '' and password.length < 8
+          return next 'Passwords should be at least 8 characters'
 
         # if password is empty than discard operation
-        if password is ""
-          {token} = kd.utils.parseQuery()
-          return next "You should set your password"  if token
+        if password is ''
+          { token } = kd.utils.parseQuery()
+          return next 'You should set your password'  if token
           return next()
 
-        JUser.fetchUser (err, user)=>
-          return next "An error occurred"  if err
+        JUser.fetchUser (err, user) =>
+          return next 'An error occurred'  if err
 
-          skipPasswordConfirmation = true  if user.passwordStatus isnt "valid"
-          @confirmCurrentPassword {skipPasswordConfirmation}, (err) =>
+          skipPasswordConfirmation = true  if user.passwordStatus isnt 'valid'
+          @confirmCurrentPassword { skipPasswordConfirmation }, (err) =>
             return next err  if err
-            JUser.changePassword password, (err,docs)=>
-              @userProfileForm.inputs.password.setValue ""
-              @userProfileForm.inputs.confirm.setValue ""
+            JUser.changePassword password, (err, docs) =>
+              @userProfileForm.inputs.password.setValue ''
+              @userProfileForm.inputs.confirm.setValue ''
               if err
-                return next()  if err.message is "PasswordIsSame"
+                return next()  if err.message is 'PasswordIsSame'
                 return next err.message
               return next()
 
       (next) ->
-        notify "Your account information is updated."
+        notify 'Your account information is updated.'
         next()
     ]
 
@@ -263,15 +263,15 @@ module.exports = class AccountEditUsername extends JView
 
   verifyUserEmail: ->
 
-    {email} = @userInfo
-    {nickname, firstName, lastName} = @account.profile
+    { email } = @userInfo
+    { nickname, firstName, lastName } = @account.profile
 
-    notify = (message)->
+    notify = (message) ->
       new KDNotificationView
         title    : message
         duration : 3500
 
-    remote.api.JUser.verifyByPin resendIfExists: yes, (err) =>
+    remote.api.JUser.verifyByPin { resendIfExists: yes }, (err) =>
 
       @userProfileForm.fields.verifyEmail.hide()
       @userProfileForm.inputs.verifyEmail.hide()
@@ -281,12 +281,12 @@ module.exports = class AccountEditUsername extends JView
 
   confirmCurrentPassword: (opts, callback) ->
 
-    {skipPasswordConfirmation, email} = opts
+    { skipPasswordConfirmation, email } = opts
 
     return callback null  if skipPasswordConfirmation
 
     modal = new VerifyPasswordModal 'Confirm', (currentPassword) ->
-      options = {password: currentPassword, email}
+      options = { password: currentPassword, email }
       remote.api.JUser.verifyPassword options, (err, confirmed) ->
 
         return callback err.message  if err
@@ -299,14 +299,14 @@ module.exports = class AccountEditUsername extends JView
 
   viewAppended: ->
 
-    {JPasswordRecovery, JUser} = remote.api
-    {token} = kd.utils.parseQuery()
+    { JPasswordRecovery, JUser } = remote.api
+    { token } = kd.utils.parseQuery()
     if token
-      JPasswordRecovery.validate token, (err, isValid)=>
+      JPasswordRecovery.validate token, (err, isValid) ->
         if err and err.short isnt 'redeemed_token'
           notify err.message
         else if isValid
-          notify "Thanks for confirming your email address"
+          notify 'Thanks for confirming your email address'
 
     kd.singletons.mainController.ready =>
       whoami().fetchEmailAndStatus (err, userInfo) =>
@@ -322,8 +322,8 @@ module.exports = class AccountEditUsername extends JView
 
   putDefaults: ->
 
-    {email} = @userInfo
-    {nickname, firstName, lastName} = @account.profile
+    { email } = @userInfo
+    { nickname, firstName, lastName } = @account.profile
 
     @userProfileForm.inputs.email.setDefaultValue Encoder.htmlDecode email
     @userProfileForm.inputs.username.setDefaultValue Encoder.htmlDecode nickname
@@ -333,15 +333,15 @@ module.exports = class AccountEditUsername extends JView
     if isKoding()
       @userProfileForm.inputs.shareLocation.setDefaultValue whoami().shareLocation
 
-    {focus} = kd.utils.parseQuery()
+    { focus } = kd.utils.parseQuery()
     @userProfileForm.inputs[focus]?.setFocus()  if focus
 
-    notify = (message)->
+    notify = (message) ->
       new KDNotificationView
         title    : message
         duration : 3500
 
-    if @userInfo.status is "unconfirmed"
+    if @userInfo.status is 'unconfirmed'
       @userProfileForm.fields.verifyEmail.show()
       @userProfileForm.inputs.verifyEmail.show()
 
