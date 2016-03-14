@@ -5,7 +5,7 @@ FooterView = require 'app/commonviews/footerview'
 
 module.exports = class AboutAppView extends JView
 
-  constructor:->
+  constructor: ->
 
     super
 
