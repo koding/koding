@@ -597,7 +597,7 @@ module.exports = CollaborationController =
 
       when 'PermissionDenied'
 
-        @handlePermissionDenied()  if data.target is nick()
+        @handlePermissionDenied data.target
 
       when 'PermissionGranted'
 
@@ -1406,9 +1406,15 @@ module.exports = CollaborationController =
     @broadcastMessage { type: 'PermissionDenied', target }
     @setParticipantPermission target, 'read'
     @applyPermissionFor target, 'read'
+    @forEachSubViewInIDEViews_ 'editor', (ep) ->
+      ep.removeParticipantCursorWidget target
 
 
-  handlePermissionDenied: ->
+  handlePermissionDenied: (username) ->
+
+    unless username is nick()
+      return @forEachSubViewInIDEViews_ 'editor', (ep) ->
+        ep.removeParticipantCursorWidget username
 
     @permissionView?.destroy()
 
