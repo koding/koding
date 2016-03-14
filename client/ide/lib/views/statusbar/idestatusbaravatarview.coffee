@@ -59,9 +59,10 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
     menuWidth      = 150
 
     if @hasRequest
-      menuWidth = 400
+      menuWidth = 325
       type      = 'customView'
       view      = new kd.CustomHTMLView
+        cssClass: 'permission-row'
         partial : "#{fullName} is asking permission to make changes."
 
       menuItems[fullName] = { type, disabled, view }
@@ -186,6 +187,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
   createPermissionRequestMenuItem: (item, e) ->
 
     return new kd.CustomHTMLView
+      cssClass: 'permission-row'
       partial : """
         <a href="#" class="deny">DENY</a> -
         <a href="#" class="grant">GRANT PERMISSION</a>
