@@ -56,7 +56,7 @@ module.exports = [
 
   [
     { name: 'ide terminal' }
-    # { name: 'pricing invalidcarddetails' }
+    { name: 'pricing invalidcarddetails' }
   ]
 
   [
@@ -75,6 +75,10 @@ module.exports = [
 
   # [
   #   { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
+
+  # [
+  #   { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
   # ]
 
   [
