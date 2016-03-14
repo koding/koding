@@ -94,10 +94,10 @@ func TestMain(m *testing.M) {
 
 	l := multiconfig.MultiLoader(
 		&multiconfig.EnvironmentLoader{
-			Prefix: "test",
+			Prefix: "e2etest",
 		},
 		&multiconfig.FlagLoader{
-			EnvPrefix: "test",
+			EnvPrefix: "e2etest",
 			Args:      argsConfig,
 		},
 	)
