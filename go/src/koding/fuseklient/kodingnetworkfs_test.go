@@ -20,7 +20,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestKodingNetworkFS(t *testing.T) {
+func TestKodingNetworkFSMain(t *testing.T) {
 	k := newknfs(nil)
 	if _, err := k.Mount(); err != nil {
 		t.Fatal(err)
@@ -337,7 +337,10 @@ func TestKodingNetworkFSAdditional(tt *testing.T) {
 
 		Convey("ReleaseFileHandle", func() {
 			fileName := path.Join(k.MountPath, "file")
-			fi, err := os.OpenFile(fileName, os.O_RDONLY, 0400)
+			fi, err := os.OpenFile(fileName, os.O_WRONLY, 0400)
+			So(err, ShouldBeNil)
+
+			_, err = fi.WriteString("Hello World!")
 			So(err, ShouldBeNil)
 
 			// find File from list of nodes, so we can compare it later
@@ -353,20 +356,18 @@ func TestKodingNetworkFSAdditional(tt *testing.T) {
 				tt.Fatalf("File instance not found in list of nodes")
 			}
 
-			file.Content = []byte("Hello World!")
-
 			// sanity check to make sure file is saved to handle list when opened
 			So(len(k.liveHandles), ShouldEqual, 1)
 
-			err = fi.Close()
-			So(err, ShouldBeNil)
+			So(fi.Close(), ShouldBeNil)
 
 			Convey("It should delete file from handle list when released", func() {
 				So(len(k.liveHandles), ShouldEqual, 0)
 			})
 
-			Convey("It should set file content to nil", func() {
-				So(len(file.Content), ShouldEqual, 0)
+			Convey("It should reset file contents", func() {
+				file.content.remote = nil // this causes panic if it calls remote
+				So(func() { file.ReadAt(nil, 0) }, ShouldPanic)
 			})
 		})
 
@@ -401,9 +402,13 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 	Convey("KodingNetworkFS#getDir", tt, func() {
 		Convey("It should return error if specified id is not a directory", func() {
 			k := newknfs(t)
-			k.liveNodes[i] = newFile()
 
-			_, err := k.getDir(ctx, i)
+			f, err := newFile()
+			So(err, ShouldBeNil)
+
+			k.liveNodes[i] = f
+
+			_, err = k.getDir(ctx, i)
 			So(err, ShouldEqual, fuse.EIO)
 		})
 
@@ -428,7 +433,11 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 
 		Convey("It should return file with specified id", func() {
 			k := newknfs(t)
-			k.liveNodes[i] = newFile()
+
+			f, err := newFile()
+			So(err, ShouldBeNil)
+
+			k.liveNodes[i] = f
 
 			file, err := k.getEntry(ctx, i)
 			So(err, ShouldBeNil)
@@ -480,7 +489,9 @@ func TestKodingNetworkFSHandles(tt *testing.T) {
 	Convey("", tt, func() {
 		k := newknfs(nil)
 		d := newDir()
-		f := newFile()
+
+		f, err := newFile()
+		So(err, ShouldBeNil)
 
 		ctx := context.TODO()
 
