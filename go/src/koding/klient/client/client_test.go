@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http/httptest"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -316,11 +317,16 @@ func TestUnsubscribe(t *testing.T) {
 
 	// Track the calls to our subs.
 	calls := map[string]bool{}
+	var wg sync.WaitGroup
+	wg.Add(3)
 
 	// Setup our event, sub index 1
 	_, err = c1.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
-		OnPublish: dnode.Callback(func(f *dnode.Partial) { calls["c1:1"] = true }),
+		OnPublish: dnode.Callback(func(f *dnode.Partial) {
+			calls["c1:1"] = true
+			wg.Done()
+		}),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -329,7 +335,10 @@ func TestUnsubscribe(t *testing.T) {
 	// Setup our event, sub index 2
 	_, err = c2.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
-		OnPublish: dnode.Callback(func(f *dnode.Partial) { calls["c2:2"] = true }),
+		OnPublish: dnode.Callback(func(f *dnode.Partial) {
+			calls["c2:2"] = true
+			wg.Done()
+		}),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -338,7 +347,10 @@ func TestUnsubscribe(t *testing.T) {
 	// Setup our event, sub index 3
 	_, err = c2.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
-		OnPublish: dnode.Callback(func(f *dnode.Partial) { calls["c2:3"] = true }),
+		OnPublish: dnode.Callback(func(f *dnode.Partial) {
+			calls["c2:3"] = true
+			wg.Done()
+		}),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -347,7 +359,10 @@ func TestUnsubscribe(t *testing.T) {
 	// Setup our event, sub index 4
 	_, err = c1.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
-		OnPublish: dnode.Callback(func(f *dnode.Partial) { calls["c1:4"] = true }),
+		OnPublish: dnode.Callback(func(f *dnode.Partial) {
+			calls["c1:4"] = true
+			wg.Done()
+		}),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -376,8 +391,8 @@ func TestUnsubscribe(t *testing.T) {
 		EventName: "test",
 	})
 
-	// Block a moment for the goroutines.
-	time.Sleep(50 * time.Millisecond)
+	// Block, waiting for the goroutines to call the callbacks.
+	wg.Wait()
 
 	expected := map[string]bool{"c1:1": true, "c2:3": true, "c1:4": true}
 	if !reflect.DeepEqual(expected, calls) {
@@ -388,6 +403,7 @@ func TestUnsubscribe(t *testing.T) {
 	}
 	// Reset call order
 	calls = map[string]bool{}
+	wg.Add(2)
 
 	// Should allow any kite to unsub given an ID (ie, not just it's own subs)
 	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
@@ -403,8 +419,8 @@ func TestUnsubscribe(t *testing.T) {
 		EventName: "test",
 	})
 
-	// Block a moment for the goroutines.
-	time.Sleep(50 * time.Millisecond)
+	// Block, waiting for the goroutines to call the callbacks.
+	wg.Wait()
 
 	expected = map[string]bool{"c1:1": true, "c2:3": true}
 	if !reflect.DeepEqual(expected, calls) {
