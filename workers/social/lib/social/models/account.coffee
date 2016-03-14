@@ -296,10 +296,6 @@ module.exports = class JAccount extends jraphical.Module
   constructor: ->
     super
 
-  @sendUpdateInstanceEvent = (obj, op) ->
-    JAccount.bongos.forEach (bongo) ->
-      bongo.handleEvent 'instance', obj, 'updateInstance', [op]
-
   canEditPost: permit 'edit posts'
 
   canDeletePost: permit 'delete posts'
@@ -675,7 +671,6 @@ module.exports = class JAccount extends jraphical.Module
           return callback err
         @isExempt = exempt
 
-        JAccount.sendUpdateInstanceEvent this, op
         callback null, result
 
   markUserAsExemptInSocialAPI: (client, exempt, callback) ->
@@ -812,7 +807,6 @@ module.exports = class JAccount extends jraphical.Module
     if @equals(client.connection.delegate)
       op = { $set: fields }
       @update op, (err) =>
-        JAccount.sendUpdateInstanceEvent this, op  unless err
 
         firstName = fields['profile.firstName']
         lastName  = fields['profile.lastName']
