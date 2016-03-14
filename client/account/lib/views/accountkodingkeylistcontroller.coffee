@@ -5,9 +5,9 @@ remote                    = require('app/remote').getInstance()
 
 module.exports = class AccountKodingKeyListController extends AccountListViewController
 
-  constructor:(options, data)->
+  constructor: (options, data) ->
 
-    options.noItemFoundText = """
+    options.noItemFoundText = '''
     <h2>EXPERIMENTAL</h2>
     <p>
       You have no Koding keys. Koding keys are used to authenticate external
@@ -22,8 +22,8 @@ module.exports = class AccountKodingKeyListController extends AccountListViewCon
 
     and then register your machine with
     <code>$ kd register</code>
-    """
-    options.cssClass = "koding-keys"
+    '''
+    options.cssClass = 'koding-keys'
     super options, data
 
 

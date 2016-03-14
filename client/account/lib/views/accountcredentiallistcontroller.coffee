@@ -78,14 +78,14 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     { JCredential } = remote.api
 
     options.limit or= @getOption 'limit'
-    options.sort    = "meta.modifiedAt": -1
+    options.sort    = { 'meta.modifiedAt' : -1 }
 
     JCredential.some @filterStates.query, options, (err, credentials) =>
 
       if err
         @hideLazyLoader()
         showError err, \
-          KodingError : "Failed to fetch data, try again later."
+          { KodingError : 'Failed to fetch data, try again later.' }
         return
 
       callback err, credentials
@@ -138,7 +138,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
   createAddCredentialMenu: ->
 
     Providers    = globals.config.providers
-    providerList = { }
+    providerList = {}
 
     Object.keys(Providers).forEach (provider) =>
 
@@ -162,7 +162,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
           width       : 240
         , providerList
 
-        @_addButtonMenu.setCss 'z-index': 10002
+        @_addButtonMenu.setCss { 'z-index': 10002 }
 
 
   showAddCredentialFormFor: (provider) ->
@@ -177,7 +177,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     view.setClass 'form-open'
     @isAddCredentialFormOpen = yes
 
-    view.scrollView = new KDCustomScrollView  cssClass : 'add-credential-scroll'
+    view.scrollView = new KDCustomScrollView { cssClass : 'add-credential-scroll' }
 
     options                 = { provider }
     options.defaultTitle    = defaultTitle    if defaultTitle?
@@ -231,31 +231,31 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     view.setClass 'share-open'
 
     view.form           = new KDFormViewWithFields
-      cssClass          : "form-view"
+      cssClass          : 'form-view'
       fields            :
         username        :
-          label         : "User"
-          placeholder   : "Enter group slug or username"
+          label         : 'User'
+          placeholder   : 'Enter group slug or username'
           # type          : "hidden"
           # nextElement   :
           #   userWrapper :
           #     itemClass : KDView
           #     cssClass  : "completed-items"
         owner           :
-          label         : "Give ownership"
+          label         : 'Give ownership'
           itemClass     : KodingSwitch
           defaultValue  : no
       buttons           :
         Save            :
-          title         : "Share credential"
-          type          : "submit"
-          style         : "solid green medium"
+          title         : 'Share credential'
+          type          : 'submit'
+          style         : 'solid green medium'
           loader        :
-            color       : "#444444"
+            color       : '#444444'
           callback      : -> @hideLoader()
         Cancel          :
-          type          : "cancel"
-          style         : "solid medium"
+          type          : 'cancel'
+          style         : 'solid medium'
           callback      : =>
             view.form.destroy()
 
@@ -270,7 +270,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
         unless target
           return new KDNotificationView
-            title : "A user required to share credential with"
+            title : 'A user required to share credential with'
 
         { Save } = view.form.buttons
         Save.showLoader()

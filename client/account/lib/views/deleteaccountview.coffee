@@ -23,7 +23,7 @@ module.exports = class DeleteAccountView extends JView
         deleteModalView = new options.modalClass
         deleteModalView.on 'KDModalViewDestroyed', @bound 'enable'
 
-  pistachio:->
+  pistachio: ->
     return """
       <h4 class="kdview kdheaderview"><span>#{@getOptions().headerTitle}</span></h4>
       {{> @button}}
