@@ -34,11 +34,11 @@ module.exports = class AdminAppController extends AppController
       title    : 'Team Settings'
       items    : [
         { slug : 'General',        title : 'General',           viewClass : GroupGeneralSettingsView, role: 'member' }
-        { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
-        { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
+        { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView }
+        { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView }
       # { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
 
-        { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }
+        { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView }
         { slug : 'Resources',      title : 'Resources',         viewClass : AdminResourcesView       , beta: yes }
         { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 , beta: yes }
         # { slug : 'Plan-Billing',   title : 'Plan & Billing',    viewClass : GroupPlanBillingView     }
@@ -46,13 +46,13 @@ module.exports = class AdminAppController extends AppController
     koding     :
       title    : 'Koding Administration'
       items    : [
-        { slug : 'TeamManage',     title : 'Manage teams',      viewClass : TeamManageView           }
-        { slug : 'Blocked',        title : 'Blocked Users',     viewClass : GroupsBlockedUserView    }
-        { slug : 'Widgets',        title : 'Custom Views',      viewClass : CustomViewsManager       }
-        { slug : 'Onboarding',     title : 'Onboarding',        viewClass : OnboardingAdminView      }
-        { slug : 'Moderation',     title : 'Topic Moderation',  viewClass : TopicModerationView      }
-        { slug : 'Administration', title : 'Administration',    viewClass : AdministrationView       }
-        { slug : 'TeamInvite',     title : 'Invite teams',      viewClass : TeamInviteView           }
+        { slug : 'TeamManage',     title : 'Manage teams',      viewClass : TeamManageView }
+        { slug : 'Blocked',        title : 'Blocked Users',     viewClass : GroupsBlockedUserView }
+        { slug : 'Widgets',        title : 'Custom Views',      viewClass : CustomViewsManager }
+        { slug : 'Onboarding',     title : 'Onboarding',        viewClass : OnboardingAdminView }
+        { slug : 'Moderation',     title : 'Topic Moderation',  viewClass : TopicModerationView }
+        { slug : 'Administration', title : 'Administration',    viewClass : AdministrationView }
+        { slug : 'TeamInvite',     title : 'Invite teams',      viewClass : TeamInviteView }
       ]
 
 

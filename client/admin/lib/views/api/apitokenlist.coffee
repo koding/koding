@@ -17,7 +17,7 @@ module.exports = class APITokenList extends KDListView
 
   deleteItem: (item) ->
 
-    overlay = new KDOverlayView cssClass: 'second-overlay'
+    overlay = new KDOverlayView { cssClass: 'second-overlay' }
 
     modal   = KDModalView.confirm
       title       : 'Remove API Token'

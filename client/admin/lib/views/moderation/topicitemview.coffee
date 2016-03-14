@@ -31,7 +31,7 @@ module.exports = class TopicItemView extends KDListItemView
     @createSettingsView data
 
 
-  createLabels: (data)->
+  createLabels: (data) ->
 
     @moderationLabel = new KDCustomHTMLView
       cssClass : 'moderate-role'
@@ -49,7 +49,7 @@ module.exports = class TopicItemView extends KDListItemView
     @settings  = new KDCustomHTMLView
       cssClass : 'settings hidden'
 
-    if data.typeConstant is "topic" then @createAllTopicView data else @createDeletedTopicView data
+    if data.typeConstant is 'topic' then @createAllTopicView data else @createDeletedTopicView data
 
     @createLeafChannelSetting data
 
@@ -57,51 +57,51 @@ module.exports = class TopicItemView extends KDListItemView
 
 
   createAllTopicView : (data) ->
-      @settings.addSubView deleteButton = new KDCustomHTMLView
-        tagName  : 'a'
-        cssClass : 'delete-topic'
-        click    :=>
-          @setClass 'hidden'
-          options =
-            rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
-            leafId  : data.id
+    @settings.addSubView deleteButton = new KDCustomHTMLView
+      tagName  : 'a'
+      cssClass : 'delete-topic'
+      click    : =>
+        @setClass 'hidden'
+        options =
+          rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
+          leafId  : data.id
 
-          kd.singletons.socialapi.moderation.blacklist options, (err, data) =>
-            return kd.warn err if err
+        kd.singletons.socialapi.moderation.blacklist options, (err, data) ->
+          return kd.warn err if err
 
-          # TO-DO
-          # Send removed data into DELETED Topics
+        # TO-DO
+        # Send removed data into DELETED Topics
 
 
 
   createDeletedTopicView: (data) ->
-      options =
-        rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
-        leafId  : data.id
+    options =
+      rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
+      leafId  : data.id
 
-      kd.singletons.socialapi.moderation.fetchRoot options, (err, rootChannel) =>
+    kd.singletons.socialapi.moderation.fetchRoot options, (err, rootChannel) =>
 
-        return kd.warn err if err
+      return kd.warn err if err
 
 
-        if rootChannel
-          text = "Blacklisted"
-          if kd.singletons.groupsController.getCurrentGroup().socialApiChannelId isnt rootChannel.id
-            text = "##{rootChannel.name}"
+      if rootChannel
+        text = 'Blacklisted'
+        if kd.singletons.groupsController.getCurrentGroup().socialApiChannelId isnt rootChannel.id
+          text = "##{rootChannel.name}"
 
-        @typeLabel.setPartial "#{text}"
-        @typeLabel.show()
+      @typeLabel.setPartial "#{text}"
+      @typeLabel.show()
 
-        @settings.addSubView whitelistButton = new KDButtonView
-          cssClass : 'solid compact outline whitelist-topic'
-          title    : 'WHITELIST CHANNEL'
-          callback : ->
-            options =
-              rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
-              leafId  : data.id
+      @settings.addSubView whitelistButton = new KDButtonView
+        cssClass : 'solid compact outline whitelist-topic'
+        title    : 'WHITELIST CHANNEL'
+        callback : ->
+          options =
+            rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
+            leafId  : data.id
 
-            kd.singletons.socialapi.moderation.unlink options, (err, data) ->
-              return kd.warn err if err
+          kd.singletons.socialapi.moderation.unlink options, (err, data) ->
+            return kd.warn err if err
 
 
   createLeafChannelSetting: (data) ->
@@ -119,7 +119,7 @@ module.exports = class TopicItemView extends KDListItemView
       title    : 'REMOVE LINK'
       callback : =>
         listItems = @leafChannelsListController.getListItems()
-        listItems.forEach (item)=>
+        listItems.forEach (item) =>
           return  if item.switcher.getValue() is false
           options =
             rootId  : data.id
@@ -167,7 +167,7 @@ module.exports = class TopicItemView extends KDListItemView
 
 
   createLeafItemViews: (data) ->
-    options = rootId  :  data.id
+    options = { rootId : data.id }
 
     kd.singletons.socialapi.moderation.list options, (err, channels) =>
       return kd.warn err if err
@@ -202,7 +202,7 @@ module.exports = class TopicItemView extends KDListItemView
     @fetchSimilarChannels query
 
 
-  fetchSimilarChannels:(query = "") ->
+  fetchSimilarChannels: (query = '') ->
 
     options  =
       name   : query
@@ -246,15 +246,14 @@ module.exports = class TopicItemView extends KDListItemView
         itemClass         : SelectableItemView
         cssClass          : 'leaf-channel-list'
         itemOptions       : {}
-      noItemFoundWidget   : new KDCustomHTMLView  {
-          cssClass        : 'topics-empty'
-          partial         : "Doesn't have linked channels"
-      }
+      noItemFoundWidget   : new KDCustomHTMLView
+        cssClass          : 'topics-empty'
+        partial           : "Doesn't have linked channels"
       startWithLazyLoader : no
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
         spinnerOptions    :
-          size            : width: 28
+          size            : { width: 28 }
 
 
   createSimilarChannelsListController: ->
@@ -265,15 +264,14 @@ module.exports = class TopicItemView extends KDListItemView
         itemClass         : SelectableItemView
         cssClass          : 'similar-item-list'
         itemOptions       : {}
-      noItemFoundWidget   : new KDCustomHTMLView {
-          cssClass        : 'topics-empty'
-          partial         : "Doesn't have similar channels"
-      }
+      noItemFoundWidget   : new KDCustomHTMLView
+        cssClass          : 'topics-empty'
+        partial           : "Doesn't have similar channels"
       startWithLazyLoader : yes
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
         spinnerOptions    :
-          size            : width: 28
+          size            : { width: 28 }
 
 
   pistachio: ->

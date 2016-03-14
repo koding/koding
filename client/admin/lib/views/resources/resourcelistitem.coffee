@@ -16,7 +16,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
   constructor: (options = {}, data) ->
 
     options.type   or= 'member'
-    options.cssClass = kd.utils.curry "resource-item clearfix", options.cssClass
+    options.cssClass = kd.utils.curry 'resource-item clearfix', options.cssClass
 
     super options, data
 
@@ -68,7 +68,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
     computeController.ui.askFor 'deleteStack', {}, (status) ->
       return  unless status.confirmed
 
-      resource.maintenance prepareForDestroy: yes, (err) ->
+      resource.maintenance { prepareForDestroy: yes }, (err) ->
         return  if showError err
 
         computeController.destroyStack resource, (err) ->
@@ -89,7 +89,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
 
     computeController.ui.askFor 'forceDeleteStack', {}, (status) ->
       return  unless status.confirmed
-      resource.maintenance destroyStack: yes,  (err) ->
+      resource.maintenance { destroyStack: yes },  (err) ->
         delegate.emit 'ReloadItems'  unless showError err
 
 

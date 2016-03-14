@@ -15,7 +15,7 @@ module.exports = class BlockedMemberItemView extends kd.ListItemView
     super options, data
 
     @avatar = new AvatarView
-      size  : width: 40, height : 40
+      size  : { width: 40, height : 40 }
     , @getData()
 
     @roleLabel = new kd.CustomHTMLView
@@ -35,7 +35,7 @@ module.exports = class BlockedMemberItemView extends kd.ListItemView
     @settings.addSubView @unblockButton = new kd.ButtonView
       cssClass : kd.utils.curry 'solid compact outline blocked'
       title    : 'Enable User'
-      loader   : color: "#444444"
+      loader   : { color: '#444444' }
       callback : @bound 'unblockUser'
 
 

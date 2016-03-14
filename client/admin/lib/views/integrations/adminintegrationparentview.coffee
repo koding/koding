@@ -78,7 +78,7 @@ module.exports = class AdminIntegrationParentView extends JView
   createLoadingView: ->
 
     @addSubView @loader = new kd.LoaderView
-      size       : width : 26
+      size       : { width : 26 }
       cssClass   : 'action-container'
       showLoader : yes
 
