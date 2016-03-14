@@ -80,7 +80,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
     </div>
     <section>
       {{> @inviteDesc}}
-      <p>Trying to create a team? <a href="//#{utils.getMainDomain()}/Teams" target="_self">Sign up on the home page</a> to get started.</p>
+      <p>Trying to create a team? <a href="/Teams/Create" target="_self">Sign up on the home page</a> to get started.</p>
       <p>Forgot your password? <a href='/Team/Recover'>Click here</a> to reset.</p>
     </section>
     <footer>
