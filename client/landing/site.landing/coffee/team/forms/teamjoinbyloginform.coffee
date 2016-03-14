@@ -66,9 +66,6 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
     {{> @username}}
     {{> @password}}
     {{> @tfcode}}
-    <p class='dim'>
-      <a href='//#{utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a>
-    </p>
     <div class='TeamsModal-button-separator'></div>
     {{> @buttonLink}}
     {{> @button}}
