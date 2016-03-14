@@ -148,7 +148,7 @@ func (t *Tunnel) updateOptions(reg *tunnelproxy.RegisterResult) {
 	t.opts.VirtualHost = reg.VirtualHost
 	t.opts.TunnelName = guessTunnelName(reg.VirtualHost)
 
-	if err := t.db.UpdateOptions(t.opts); err != nil {
+	if err := t.db.SetOptions(t.opts); err != nil {
 		t.opts.Log.Warning("tunnel: unable to update options: %s", err)
 	}
 
@@ -170,7 +170,7 @@ func (t *Tunnel) buildOptions(final *Options) {
 		t.opts.Log.Debug("buildOptions: storage=%+v, built=%+v", storageOpts, t.opts)
 	}
 
-	if err = t.db.UpdateOptions(t.opts); err != nil {
+	if err = t.db.SetOptions(t.opts); err != nil {
 		t.opts.Log.Warning("tunnel: unable to update options: %s", err)
 	}
 }
@@ -192,7 +192,7 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
 		t.opts.LastAddr = registerURL.Host
 		t.opts.LastReachable = ok
 
-		if err := t.db.UpdateOptions(t.opts); err != nil {
+		if err := t.db.SetOptions(t.opts); err != nil {
 			t.opts.Log.Warning("tunnel: unable to update options: %s", err)
 		}
 	}

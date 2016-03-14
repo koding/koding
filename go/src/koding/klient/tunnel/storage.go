@@ -9,7 +9,7 @@ import (
 
 type Storage interface {
 	Options() (*Options, error)
-	UpdateOptions(*Options) error
+	SetOptions(*Options) error
 }
 
 func newStorage(opts *Options) Storage {
@@ -76,7 +76,7 @@ func (b *boltStorage) Options() (*Options, error) {
 	return &opts, nil
 }
 
-func (b *boltStorage) UpdateOptions(opts *Options) error {
+func (b *boltStorage) SetOptions(opts *Options) error {
 	p, err := json.Marshal(opts)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (m *memStorage) Options() (*Options, error) {
 	return m.opts.copy(), nil
 }
 
-func (m *memStorage) UpdateOptions(opts *Options) error {
+func (m *memStorage) SetOptions(opts *Options) error {
 	m.opts = opts.copy()
 	return nil
 }
