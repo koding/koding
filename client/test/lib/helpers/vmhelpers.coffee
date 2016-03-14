@@ -103,9 +103,11 @@ module.exports =
     sessionLink           = '.kdlistview-contextmenu ul:nth-of-type(1) .has-sub-items'
     openNewTerminal       = '.kdlistview-contextmenu.default .open'
     sharedVmSelector      = '.activity-sidebar .machines-wrapper section:nth-of-type(2) .vm.koding'
-    sharedVMSettings      = '.activity-sidebar .machines-wrapper section:nth-of-type(2) .vm.koding .settings-icon'
+    sharedVMSettings      = "#{sharedVmSelector} .settings-icon"
     leaveSharedVM         = '.kdmodal-content button'
-
+    secondTabSelector     = '.ws-tabview .application-tab-handle-holder .kdtabhandle-tabs div.terminal:nth-of-type(2)'
+    insertCommand         = "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input"
+    executeCommand        = "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
 
     helpers.beginTest(browser, participant)
 
@@ -127,17 +129,25 @@ module.exports =
           browser.end()
         else
           browser
-            .waitForElementVisible   newTerminalButton, 20000
-            .click                   newTerminalButton
-            .waitForElementVisible   newTerminalLink, 20000
-            .moveToElement           newTerminalLink, 5, 5
-            .waitForElementVisible   sessionLink, 20000
-            .moveToElement           sessionLink, 5, 5
-            .waitForElementVisible   openNewTerminal, 20000
-            .click                   openNewTerminal
+            .element 'css selector', secondTabSelector, (result) =>
+              if result.status is -1
+                browser
+                  .waitForElementVisible   newTerminalButton, 20000
+                  .click                   newTerminalButton
+                  .waitForElementVisible   newTerminalLink, 20000
+                  .moveToElement           newTerminalLink, 5, 5
+                  .waitForElementVisible   sessionLink, 20000
+                  .moveToElement           sessionLink, 5, 5
+                  .waitForElementVisible   openNewTerminal, 20000
+                  .click                   openNewTerminal
+
+          browser
             .pause                   2500 #wait for terminal to be displayed
-            .execute                 "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input('ls')"
-            .execute                 "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
+            .execute                 "#{insertCommand}('ls')"
+            .execute                 executeCommand
+            .pause                   2500 # wait for partner's assert
+            .execute                 "#{insertCommand}('clear')"
+            .execute                 executeCommand
             .pause                   5000
             .end()
 

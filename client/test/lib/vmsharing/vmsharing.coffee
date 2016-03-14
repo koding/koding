@@ -67,6 +67,7 @@ module.exports =
     hostBrowser           = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     participant           = utils.getUser no, 1
     vmSharingListSelector = '.vm-sharing.active'
+    terminalSelector      = '.kdtabview.application-tabview .terminal-pane .webterm .kdview.console'
 
     browser.pause 2500, -> # wait for user.json creation
       if hostBrowser
@@ -75,8 +76,9 @@ module.exports =
           browser
             .waitForElementVisible  vmSharingListSelector, 20000
             .assert.containsText    "#{vmSharingListSelector} .listview-wrapper", participant.username
-            .pause   7500 # wait for participant accept
-            .waitForTextToContain       '.kdtabview.application-tabview .terminal-pane .webterm .kdview.console', 'Applications  Backup  Documents  README.md  Web'
+            .pause                  7500 # wait for participant accept
+            .waitForTextToContain   terminalSelector, 'Applications  Backup  Documents  README.md  Web'
+            .pause                  3000 # wait for participant to clear terminal for second run
           vmHelpers.removeAllInvitations(browser)
           browser.end()
 
