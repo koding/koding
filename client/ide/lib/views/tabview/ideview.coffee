@@ -128,7 +128,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     appStorage = kd.getSingleton('appStorageController').storage 'Ace', '1.0.1'
     paneLength = tabHandle.getDelegate().panes.length
 
-    return  if paneLength > 1 # remove pane when there is only one pane left
+    return  if paneLength >= 1  # remove pane when there is only one pane left
 
     appStorage.ready =>
 
