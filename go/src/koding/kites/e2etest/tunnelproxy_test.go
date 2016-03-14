@@ -1,6 +1,7 @@
 package e2etest
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"sync"
@@ -11,8 +12,11 @@ import (
 	"koding/kites/tunnelproxy"
 )
 
-func TestE2E_Tunnelproxy(t *testing.T) {
+func TestE2E_TunnelproxyHTTP(t *testing.T) {
 	testWithTunnelserver(t, testTunnelserverHTTP)
+}
+
+func TestE2E_TunnelproxyTCP(t *testing.T) {
 	testWithTunnelserver(t, testTunnelserverTCP)
 }
 
@@ -128,6 +132,105 @@ func testTunnelserverHTTP(t *testing.T, serverURL *url.URL) {
 }
 
 func testTunnelserverTCP(t *testing.T, serverURL *url.URL) {
+	var (
+		virtualHost string
+		wg          sync.WaitGroup
+		rec         = newServiceRecorder()
+	)
+
+	wg.Add(1)
+
+	echo1, err := newEchoService()
+	if err != nil {
+		t.Fatalf("newEchoService()=%s", err)
+	}
+	defer echo1.Close()
+
+	echo2, err := newEchoService()
+	if err != nil {
+		t.Fatalf("newEchoService()=%s", err)
+	}
+	defer echo1.Close()
+
+	clientCfg, _ := Test.GenKiteConfig()
+	clientOpts := &tunnelproxy.ClientOptions{
+		LastVirtualHost:    serverURL.Host,
+		Config:             clientCfg,
+		OnRegisterServices: rec.Record,
+		OnRegister: func(req *tunnelproxy.RegisterResult) {
+			virtualHost = req.VirtualHost
+			wg.Done()
+		},
+		Log:     Test.Log.New("tunnelclient"),
+		Debug:   true,
+		Timeout: 1 * time.Minute,
+	}
+
+	client, err := tunnelproxy.NewClient(clientOpts)
+	if err != nil {
+		t.Fatalf("error creating tunnelproxy client: %s", err)
+	}
+
+	client.Start()
+	defer client.Close()
+	wg.Wait()
+
+	if virtualHost == "" {
+		t.Fatal("expected virtualHost to be non-empty")
+	}
+
+	if err := client.RegisterService("echo1", echo1.Addr().String()); err != nil {
+		t.Fatalf("RegisterService(echo1)=%s", err)
+	}
+
+	if err := client.RegisterService("echo2", echo2.Addr().String()); err != nil {
+		t.Fatalf("RegisterService(echo2)=%s", err)
+	}
+
+	if err := rec.Wait("echo1", "echo2"); err != nil {
+		t.Fatalf("Wait()=%s", err)
+	}
+
+	srv := rec.Services()
+	rec.Clear()
+
+	for _, service := range []string{"echo1", "echo2"} {
+		client, err := dialTCP(srv[service].Port)
+		if err != nil {
+			t.Fatalf("%s: dialTCP()=%s", service, err)
+		}
+
+		for i := 0; i < 100; i++ {
+			msg := fmt.Sprintf("hello_world_%d", i)
+			client.out <- msg
+
+			select {
+			case <-time.After(tcpTimeout):
+				t.Fatalf("%s(%d): timed out waiting for echo response to %q", service, i, msg)
+			case resp := <-client.in:
+				if resp != msg {
+					t.Errorf("%s(%d): want %q, got %q", service, i, resp, msg)
+				}
+			}
+		}
+
+		client.Close()
+	}
+
+	// Close client to force disconnect. After connecting again, all TCP
+	// services must be registered again.
+	client.Close()
+	wg.Add(1)
+	client.Start()
+	wg.Wait()
+
+	if virtualHost == "" {
+		t.Fatal("expected virtualHost to be non-empty")
+	}
+
+	if err := rec.Wait("echo1", "echo2"); err != nil {
+		t.Fatalf("Wait()=%s", err)
+	}
 }
 
 func testWithTunnelserver(t *testing.T, test func(*testing.T, *url.URL)) {

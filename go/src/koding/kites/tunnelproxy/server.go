@@ -235,6 +235,8 @@ func (s *Server) addClientService(ident string, tun *Tunnel) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	s.opts.Log.Debug("adding %q client: %+v", ident, tun)
+
 	err := s.tunnels.addClientService(ident, tun)
 	if err == errAlreadyExists {
 		// Tunnel already exists - try to update its port number to
@@ -259,6 +261,7 @@ func (s *Server) addClientService(ident string, tun *Tunnel) error {
 
 			// Port is still busy, return existing one.
 			tun.Port = existingTun.Port
+			tun.Restore = false
 
 			return nil
 		}
@@ -287,10 +290,12 @@ func (s *Server) addClientService(ident string, tun *Tunnel) error {
 
 	l, err := net.Listen("tcp", s.addr(tun.Port))
 	if err != nil && tun.Port != 0 {
+		s.opts.Log.Debug("failed to bind to requested port %d, binding to random one: %s", tun.Port, err)
+
 		l, err = net.Listen("tcp", s.addr(0))
 	}
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open tunnel: %s", err)
 	}
 
 	s.services[tun.Port] = l
@@ -319,7 +324,7 @@ func (s *Server) delClientService(ident, name string) {
 }
 
 func (s *Server) addr(port int) string {
-	return net.JoinHostPort(s.opts.ServerAddr, strconv.Itoa(port))
+	return net.JoinHostPort(host(s.opts.ServerAddr), strconv.Itoa(port))
 }
 
 // RegisterServices

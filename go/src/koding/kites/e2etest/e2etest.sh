@@ -13,7 +13,7 @@ export E2ETEST_SECRETKEY=${E2ETEST_SECRETKEY:-}
 
 # NOTE(rjeczalik): -noclean is used to keep DNS records, sometimes
 # handy for deelopment when AWS is utterly slow.
-go test -v koding/kites/e2etest -- -debug -ngrokdebug -noclean
+go test -v koding/kites/e2etest -run TCP -- -debug -ngrokdebug -noclean
 
 # For more options see
 #

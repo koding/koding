@@ -62,9 +62,9 @@ type ClientOptions struct {
 	// registers to a tunnel server kite.
 	OnRegister func(*RegisterResult)
 
-	// OnRegisterService, when non-nil, is called each time client successfully
+	// OnRegisterServices, when non-nil, is called each time client successfully
 	// registers a service to a tunnel server kite.
-	OnRegisterService func(*RegisterServicesResult)
+	OnRegisterServices func(*RegisterServicesResult)
 
 	// MaxRegisterRetry tells at most how many times we should retry connecting
 	// to cached tunnel server address before giving up and falling back to
@@ -308,9 +308,8 @@ func (c *Client) eventloop() {
 						continue
 					}
 					if srv.RemoteAddr == "" {
-						c.opts.Log.Critical("service %q has no remote addr but is not pending", name)
-
-						pending[name] = &Tunnel{}
+						c.opts.Log.Debug("%s: service %+v has no remote addr but is not pending", name, srv)
+						continue
 					}
 					// checks in RegisterService/RestoreServices guarantee
 					// the RemoteAddr is correctly formatted
@@ -345,18 +344,16 @@ func (c *Client) eventloop() {
 				break
 			}
 
-			empty := len(pending) == 0
+			c.opts.Log.Debug("handling service registration request: %+v", services)
 
 			for name, tun := range services {
 				pending[name] = tun
 			}
 
-			// if pending was empty we need to signal the hander
-			// to start handling pending services; nil channel
-			// means we're not connected
-			if empty && handlePending != nil {
-				handlePending <- struct{}{}
+			select {
+			case handlePending <- struct{}{}:
 				backoff.Reset()
+			default:
 			}
 
 		case <-handlePending:
@@ -368,6 +365,8 @@ func (c *Client) eventloop() {
 				Ident:    ident,
 				Services: pending,
 			}
+
+			c.opts.Log.Debug("handling service registration: %+v", pending)
 
 			client, err := c.connect()
 			if err != nil {
@@ -390,9 +389,11 @@ func (c *Client) eventloop() {
 				break
 			}
 
-			if c.opts.OnRegisterService != nil {
-				c.opts.OnRegisterService(&resp)
+			if c.opts.OnRegisterServices != nil {
+				c.opts.OnRegisterServices(&resp)
 			}
+
+			requsted := len(pending)
 
 			c.mu.Lock()
 			for name, srv := range resp.Services {
@@ -417,8 +418,8 @@ func (c *Client) eventloop() {
 				break
 			}
 
-			if n, m := len(resp.Services), len(pending); n != m {
-				c.opts.Log.Warning("wanted to handle %d services, handled only %d", m, n)
+			if len(resp.Services) != requsted {
+				c.opts.Log.Warning("wanted to handle %d services, handled only %d", requsted, len(resp.Services))
 				go retry()
 			}
 		}
@@ -527,7 +528,7 @@ func (c *Client) connect() (*kite.Client, error) {
 	}
 
 	if err := client.DialTimeout(c.opts.timeout()); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("dial failed: %s", err)
 	}
 
 	return client, nil

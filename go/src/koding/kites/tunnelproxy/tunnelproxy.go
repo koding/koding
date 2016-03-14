@@ -20,9 +20,9 @@ type Services map[string]*Service
 
 // Tunnel
 type Tunnel struct {
-	Name        string `json:"name"`
-	Port        int    `json:"port"` // tries to use fixed port number or restore
-	VirtualHost string `json:"virtualHost"`
+	Name        string `json:"name,omitempty"`
+	Port        int    `json:"port,omitempty"` // tries to use fixed port number or restore
+	VirtualHost string `json:"virtualHost,omitempty"`
 	Error       string `json:"error,omitempty"`
 	Restore     bool   `json:"restore,omitempty"`
 }
