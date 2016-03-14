@@ -1,4 +1,3 @@
-helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 
 paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'

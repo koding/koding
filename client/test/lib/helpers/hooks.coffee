@@ -45,7 +45,7 @@ methods =
     values = []
     string = ''
 
-    for name, data of browser.testData
+    for name in Object.keys(browser.testData)
       values.push arr = []
 
       for key, value of browser.testData[name]

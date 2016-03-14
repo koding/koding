@@ -8,7 +8,7 @@ module.exports =
 
     users = []
 
-    for i in [1..10]
+    for [1..10]
 
       name     = faker.Name.findName()
       username = faker.Helpers.slugify(faker.Internet.userName()).toLowerCase().replace(/\./g, '').replace(/_/g, '')

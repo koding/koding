@@ -1,7 +1,6 @@
 helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 
-activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
 module.exports =
 
@@ -39,7 +38,7 @@ module.exports =
 
     post = ''
 
-    for i in [1..6]
+    for [1..6]
 
       post += helpers.getFakeText()
 
@@ -54,7 +53,7 @@ module.exports =
     helpers.doPostActivity(browser, post)
     comment = ''
 
-    for i in [1..6]
+    for [1..6]
 
       comment += helpers.getFakeText()
 
