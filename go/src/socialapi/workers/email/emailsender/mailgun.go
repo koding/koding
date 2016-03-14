@@ -6,14 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	texttemplate "text/template"
 
 	"github.com/koding/logging"
 	"github.com/mailgun/mailgun-go"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type EmailInvitationUser struct {
@@ -97,17 +95,8 @@ func (m *MailgunSender) SendMailgunEmail(mail *Mail) error {
 	}
 
 	user, err := modelhelper.FetchUserByEmail(email)
-	if err != nil {
-		user = &models.User{
-			Name:     nickname,
-			ObjectId: bson.NewObjectId(),
-			Email:    email,
-		}
-		err = modelhelper.CreateUser(user)
-		if err != nil {
-			return err
-		}
-	} else if user.EmailFrequency != nil && !user.EmailFrequency.Global {
+
+	if user.EmailFrequency != nil && !user.EmailFrequency.Global {
 		return errors.New("User is unsubscribed from all emails")
 	}
 

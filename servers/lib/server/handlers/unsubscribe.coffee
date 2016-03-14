@@ -26,3 +26,5 @@ module.exports = (req, res, next) ->
       Tracker.identify user.username, { emailFrequency }
 
     return res.status(200).send 'unsubscribed'
+
+# mailgunUnsubscribeEmail = (email) -> 
