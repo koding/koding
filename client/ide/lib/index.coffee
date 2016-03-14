@@ -1655,7 +1655,7 @@ class IDEAppController extends AppController
     @finderPane.makeReadOnly()
 
     appView.setClass 'read-only'
-    appView.on 'click', @bound 'readOnlyNotifierCallback_'
+    appView.on 'click', @bound 'readOnlyNotifierCallback_'  if @rtm.isReady
 
 
   readOnlyNotifierCallback_: -> @showRequestPermissionView()
