@@ -69,13 +69,13 @@ func (b *Build) Exec(args []string) error {
 		}
 	case "linux":
 		deb := &Deb{
-			AppName:       appName,
-			Version:       *version,
-			Output:        output,
-			ImportPath:    *importPath,
-			Files:         *files,
-			UpstartScript: *upstart,
-			InstallPrefix: "opt/kite",
+			AppName:        appName,
+			Version:        *version,
+			Output:         output,
+			ImportPath:     *importPath,
+			Files:          *files,
+			SysvinitScript: *upstart,
+			InstallPrefix:  "opt/kite",
 		}
 
 		pkgFile, err = deb.Build()

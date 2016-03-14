@@ -1,181 +1,345 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
+# Koding Service Connector Installer.
+# Copyright (C) 2012-2016 Koding Inc., all rights reserved.
 
-if [[ ! "$(uname)" = "Linux" ]]; then
-    echo "Error: Currenty only Ubuntu Linux is supported"
-    exit 1
+is_macosx=$(uname -v | grep -Ec '^Darwin Kernel.*')
+init_tool=
+init_dir=
+init_file=
+
+alias curl='curl --retry 5 --retry-delay 0'
+
+sed_cmd='sed -i'
+
+if [[ "${is_macosx}" -eq 1 ]]; then
+	sed_cmd='sed -i ""'
 fi
 
+get_init_tool() {
+	for tool in update-rc.d chkconfig launchctl; do
+		if sudo which ${tool} &>/dev/null; then
+			echo ${tool}
+			break
+		fi
+	done
+}
 
-if [[ `lsb_release -si 2> /dev/null` != "Ubuntu" ]]; then
-    echo "Error: Currenty only Ubuntu Linux is supported"
-    exit 1
-fi
+get_init_dir() {
+	local dirs=( /etc/init.d /etc/rc.d/init.d /etc/rc.d )
+	if [ ${is_macosx} -eq 1 ]; then
+		echo "/Library/LaunchDaemons"
+	fi
+	for dir in ${dirs[@]}; do
+		if [ -d ${dir} ]; then
+			echo ${dir}
+		fi
+	done
+}
 
+get_init_file() {
+	case "${init_tool}" in
+		launchctl)
+			echo "${init_dir}/com.koding.klient.plist"
+			;;
+		*)
+			echo "${init_dir}/klient"
+			;;
+	esac
+}
 
-lsbRelease=`lsb_release -sr 2> /dev/null`
-if [ "$lsbRelease" == "15.04" ] || [ "$lsbRelease" == "15.10" ]; then
-  cat << EOF
-Error: The Koding Service Connector is not currently supported on Ubuntu ${lsbRelease}.
+get_start_klient_command() {
+	case "${init_tool}" in
+		update-rc.d)
+			echo "${init_file} start"
+			;;
+		chkconfig)
+			echo "service klient start"
+			;;
+		launchctl)
+			echo "launchctl load -w ${init_file}"
+			;;
+		*)
+			;;
+	esac
+}
+
+get_stop_klient_command() {
+	case "${init_tool}" in
+		update-rc.d)
+			echo "${init_file} stop"
+			;;
+		chkconfig)
+			echo "service klient stop"
+			;;
+		launchctl)
+			echo "launchctl unload -w ${init_file}"
+			;;
+		*)
+			;;
+	esac
+}
+
+does_service_exist() {
+	case "${init_tool}" in
+		update-rc.d)
+			[ $(sudo update-rc.d -n -f "klient" remove 2>&1 | grep -c /etc) -ge 2 ] && return 0
+			;;
+		chkconfig)
+			sudo chkconfig --list "klient" &>/dev/null && return 0
+			;;
+		launchctl)
+			sudo launchctl list "com.koding.klient" &>/dev/null && return 0
+			;;
+		*)
+			;;
+	esac
+	return 1
+}
+
+install_service() {
+	case "${init_tool}" in
+		update-rc.d)
+			sudo update-rc.d -f "klient" defaults && return 0
+			;;
+		chkconfig)
+			sudo chkconfig --add "klient" &>/dev/null && return 0
+			;;
+		launchctl)
+			return 0
+			;;
+		*)
+			;;
+	esac
+	return 1
+}
+
+# remove_service
+remove_service() {
+	case "${init_tool}" in
+			update-rc.d)
+				sudo update-rc.d -f "klient" remove &>/dev/null && return 0
+				;;
+			chkconfig)
+				sudo chkconfig --del "klient" &>/dev/null && return 0
+				;;
+			launchctl)
+				sudo rm -v "${init_file}" &>/dev/null && return 0
+				;;
+			*)
+				;;
+	esac
+	return 1
+}
+
+# do_install_klient <KONTROLURL>
+do_install_klient() {
+	local kontrolurl=${1:-https://koding.com/kontrol/kite}
+
+	init
+
+	if does_service_exist; then
+		if ! remove_service; then
+			cat <<EOF
+Unable to remove existing klient service. Please remove it manually and retry.
 EOF
-  exit 1
-fi
+			return 1
+		fi
+	fi
 
+	if [[ ${is_macosx} -eq 1 ]]; then
+		# dump xml to init_file
+		echo
+	fi
 
-echo "Testing sudo permissions, please input password if prompted.."
-sudo -l > /dev/null 2> /dev/null
-err=$?; if [ "$err" -ne 0 ]; then
-    cat << EOF
-Error: Sudo (root) permission is required to install the Koding Service
-Connector Please run this command from a Linux Account on this machine
-with proper permissions.
+	sudo cp /opt/kite/klient/klient.init "${init_file}"
+
+	# template init script
+	sudo ${sed_cmd} -e "s|\%USERNAME\%||g" "${init_file}"
+	if [[ ! -z "${kontrolurl}" ]]; then
+		sudo ${sed_cmd} -e "s|\%START_COMMAND\%|/opt/kite/klient/klient -kontrol-url ${kontrolurl}|g" "${init_file}"
+	fi
+
+	if ! install_service; then
+		cat <<EOF
+Unable to install klient service. Please retry installation.
 EOF
-    exit $err
-fi
+		return 1
+	fi
 
+	return 0
+}
 
-which screen > /dev/null
-err=$?; if [ "$err" -ne 0 ]; then
-    # If apt-get is not available, inform the user to install screen
-    # themselves.
-    which apt-get > /dev/null
-    err=$?; if [ "$err" -ne 0 ]; then
-        cat << EOF
+do_install_screen() {
+	if ! which screen &>/dev/null; then
+		# If apt-get is not available, inform the user to install screen
+		# themselves.
+		if [[ ${is_macosx} -eq 1 ]]; then
+			if ! which brew &>/dev/null &&
+				brew tap homebrew/dupes &>/dev/null &&
+				brew install screen &>/dev/null &&
+				brew untap homebrew/dupes &>/dev/null; then
+
+				cat <<EOF
 Error: The Unix command 'screen' must be installed prior to installing
 the Koding Service connector. Please install it, and retry this
 installation.
 EOF
-        exit 1
-    fi
+				return 1
+			fi
 
-    echo "Installing Screen..."
+			return 0
+		fi
 
-    # The `<&-` is used because .. i think, apt-get is swallowing
-    # stdin for some odd reason. Which would then cause the pipe to break
-    # and the entire rest of the script would just be printed.
-    #
-    # The only way i even figured it out, was
-    # via: http://unix.stackexchange.com/a/182625
-    # Unfortunately i have no more information on that.
-    sudo apt-get install -qq -y screen <&-
-fi
+		if ! which apt-get &>/dev/null; then
+			cat << EOF
+Error: The Unix command 'screen' must be installed prior to installing
+the Koding Service connector. Please install it, and retry this
+installation.
+EOF
+			exit 1
+		fi
 
+		echo "Installing Screen..."
 
-sudo route del -host 169.254.169.254 reject 2> /dev/null
-routeErr=$?
-awsApiResponse=`curl http://169.254.169.254/latest/dynamic/instance-identity/document --max-time 5 2> /dev/null`
-if [ "$routeErr" -eq 0 ]; then
-    sudo route add -host 169.254.169.254 reject 2> /dev/null
-fi
+		# The `<&-` is used because .. i think, apt-get is swallowing
+		# stdin for some odd reason. Which would then cause the pipe to break
+		# and the entire rest of the script would just be printed.
+		#
+		# The only way i even figured it out, was
+		# via: http://unix.stackexchange.com/a/182625
+		# Unfortunately i have no more information on that.
+		sudo apt-get install -qq -y screen <&-
+	fi
 
+	return 0
+}
 
-if [[ $awsApiResponse == *"614068383889"* ]]; then
-    cat << EOF
+do_start_klient() {
+	eval sudo $(get_stop_klient_command) || true
+	eval sudo $(get_start_klient_command)
+}
+
+init() {
+	export init_tool=$(get_init_tool)
+	export init_dir=$(get_init_dir)
+	export init_file=$(get_init_file)
+}
+
+main() {
+	echo "Testing sudo permissions, please input password if prompted.."
+	if ! sudo -l &>/dev/null; then
+		cat << EOF
+Error: Sudo (root) permission is required to install the Koding Service
+Connector Please run this command from a Linux Account on this machine
+with proper permissions.
+EOF
+		exit $err
+	fi
+
+	if ! do_install_screen; then
+		exit 2
+	fi
+
+	local routeErr=0
+	if ! sudo route del -host 169.254.169.254 reject 2> /dev/null; then
+		routeErr=$?
+	fi
+
+	awsApiResponse=$(curl http://169.254.169.254/latest/dynamic/instance-identity/document --max-time 5 2> /dev/null || true)
+
+	if [ "$routeErr" -eq 0 ]; then
+		sudo route add -host 169.254.169.254 reject 2> /dev/null || true
+	fi
+
+	if [[ $awsApiResponse == *"614068383889"* ]]; then
+		cat << EOF
 Error: This feature is for non-Koding machines
 EOF
-    exit 1
-fi
+		exit 1
+	fi
 
+	export KONTROLURL=${KONTROLURL:-https://koding.com/kontrol/kite}
+	export CHANNEL=${CHANNEL:-managed}
+	export KITE_USERNAME=${2:-}
 
-if [ -z "$KONTROLURL" ]; then
-    KONTROLURL="https://koding.com/kontrol/kite"
-fi
+	pushd /tmp &>/dev/null
 
+	export LATESTVERSION=$(curl -sSL https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
+	export LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest/klient_0.1.${LATESTVERSION}_${CHANNEL}_amd64.deb"
 
-if [ -z "$CHANNEL" ]; then
-    CHANNEL="managed"
-fi
-
-
-# Make tmp if needed, then navigate to it.
-mkdir -p /tmp
-cd /tmp
-
-
-LATESTVERSION=$(curl -s https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
-LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest/klient_0.1.${LATESTVERSION}_${CHANNEL}_amd64.deb"
-
-if [ ! -f klient.deb ]; then
-    cat << EOF
+	if [ ! -f klient.deb ]; then
+		cat << EOF
 Downloading Koding Service Connector 0.1.${LATESTVERSION}...
 
 EOF
-    curl -s $LATESTURL -o klient.deb
-    err=$?; if [ "$err" -ne 0 ]; then
-        cat << EOF
+		if ! curl -sSL $LATESTURL -o klient.deb; then
+			cat << EOF
 Error: Unable to download or save Koding Service Connector
 package.
 EOF
-        exit $err
-    fi
-fi
+			exit $err
+		fi
+	fi
 
-cat << EOF
+	cat << EOF
 Installing the Koding Service Connector package...
 EOF
-sudo dpkg -i --force-confnew klient.deb > /dev/null
-err=$?; if [ "$err" -ne 0 ]; then
-    echo "Error: Failed to install Koding Service Connector package"
-    exit $err
-fi
+	if ! sudo dpkg -i --force-confnew klient.deb > /dev/null; then
+		echo "Error: Failed to install Koding Service Connector package"
+		exit $err
+	fi
 
+	# Clean the klient deb from the system
+	rm -f klient.deb
 
-# Clean the klient deb from the system
-rm klient.deb
+	popd &>/dev/null
 
-
-KITE_USERNAME=""
-if [ ! -z "$2" ]; then
-    KITE_USERNAME=$2
-fi
-
-# Using an extra newline at the end of this message, because Klient
-# might need to communicate with the user - so the extra line helps any
-# klient prompts stand out.
-cat << EOF
+	# Using an extra newline at the end of this message, because Klient
+	# might need to communicate with the user - so the extra line helps any
+	# klient prompts stand out.
+	cat << EOF
 Authenticating you to the Koding Service
 
 EOF
-# It's ok $1 to be empty, in that case it'll try to register via password input
-sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token $1 -username "$KITE_USERNAME" < /dev/tty
-err=$?; if [ "$err" -ne 0 ]; then
-    cat << EOF
+
+	if ! do_install_klient "$KONTROLURL"; then
+		exit 2
+	fi
+
+	# It's ok $1 to be empty, in that case it'll try to register via password input
+	if ! sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token "${1:-}" -username "$KITE_USERNAME" < /dev/tty; then
+		cat << EOF
 $err: Service failed to register with Koding. If this continues to happen,
 please contact support@koding.com
 EOF
-    exit $err
-fi
+		exit $err
+	fi
 
-if sudo [ ! -f /etc/kite/kite.key ]; then
-    echo "Error: Critical component missing. Aborting installation."
-    exit -1
-fi
-
-# Production kontrol might return a different kontrol URL. Let us control this aspect.
-escaped_var=$(printf '%s\n' "$KONTROLURL" | sed 's:[/&\]:\\&:g;s/$/\\/')
-sudo sed -i "s/\.\/klient/\.\/klient -kontrol-url $escaped_var /g" "/etc/init/klient.conf"
-
-# To be safe, silently remove a manual upstart override if it exists
-rm /etc/init/klient.override 2> /dev/null
+	if sudo [ ! -f /etc/kite/kite.key ]; then
+		echo "Error: Critical component missing. Aborting installation."
+		exit -1
+	fi
 
 
-cat << EOF
+	cat << EOF
 Starting the Koding Service Connector...
 
 EOF
-# We need to restart it so it pick up the new environment variable
-sudo service klient restart > /dev/null 2> /dev/null
 
+	if ! do_start_klient; then
+		cat <<EOF
+Failed to start Koding Service Connector. Please reinstall the service and retry.
+EOF
+		exit 2
+	fi
 
-# TODO: Confirm that klient is running, before displaying success message
-# to user. (Trying to find the best method for confirming this, rather
-# than just grepping)
+	# TODO: Confirm that klient is running, before displaying success message
+	# to user. (Trying to find the best method for confirming this, rather
+	# than just grepping)
 
-
-# Print user friendly message.
-cat << EOF
-
-
+	# Print user friendly message.
+	cat << EOF
 
 
 
@@ -192,7 +356,9 @@ in the sidebar.
 For some reason if this machine does not show up on your koding account
 in the next 2-3 minutes, please re-run the install script or contact us
 at support@koding.com.
-
-
-
 EOF
+
+exit 0
+}
+
+main $*

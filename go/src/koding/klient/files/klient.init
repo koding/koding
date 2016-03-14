@@ -1,0 +1,117 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides: klient
+# Required-Start: $network
+# Required-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Klient
+# Description: Klient - Koding Service Connector
+### END INIT INFO
+
+# Klient - Koding Service Connector
+# Copyright (C) 2012-2016 Koding Inc., all rights reserved.
+
+export DEFAULT_START_COMMAND="/opt/kite/klient/klient -kontrol-url https://koding.com/kontrol/kite"
+export START_COMMAND="%START_COMMAND%"
+export USERNAME="%USERNAME%"
+
+if [ -z "${START_COMMAND}" ]; then
+	export START_COMMAND=$DEFAULT_START_COMMAND
+fi
+
+if [ -z "${USERNAME}" ]; then
+	export USERNAME=root
+fi
+
+do_start() {
+	if is_running; then
+		echo "-- Koding Service Connector is already running."
+		return
+	fi
+
+	echo -n "-- Starting Koding Service Connector..."
+	if [ "$(whoami)" != "${USERNAME}" ]; then
+		sudo bash -c "${START_COMMAND} >>/var/log/klient.log 2>&1" &
+	else
+		bash -c "${START_COMMAND} >>/var/log/klient.log 2>&1" &
+	fi
+
+	if [ ${?} -eq 0 ]; then
+		echo " done."
+		return 0
+	else
+		echo " failed!"
+	return 1
+	fi
+}
+
+do_stop() {
+	if is_running; then
+		echo -n "-- Stopping Koding Service Connector..."
+		if [ "$(whoami)" != "${USERNAME}" ]; then
+			sudo kill $(pidof klient) >/dev/null 2>&1
+		else
+			kill $(pidof klient) >/dev/null 2>&1
+		fi
+		for _ in $(seq 1 60); do
+			if ! is_running; then
+				break
+			fi
+			sleep 1
+		done
+		if is_running; then
+			echo " failed!"
+			exit 1
+		else
+			echo " done."
+			exit 0
+		fi
+	else
+		echo "-- Koding Service Connector is not running."
+		exit 0
+	fi
+}
+
+is_running() {
+	if [ -z "$(pidof klient)" ]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
+case "$1" in
+	start)
+		# retry starting up to 3 times
+		for _ in $(seq 1 3); do
+			if do_start; then
+				exit 0
+			fi
+			sleep 5
+		done
+
+		exit 1
+		;;
+
+	 stop)
+		do_stop
+		;;
+
+	restart)
+		${0} stop
+		${0} start
+		;;
+
+	status)
+		if is_running; then
+			echo "-- Koding Service Connector is running."
+		else
+			echo "-- Koding Service Connector is not running."
+		fi
+		;;
+
+	*)
+		echo "Usage: $0 {start|stop|restart|status}"
+		;;
+esac
