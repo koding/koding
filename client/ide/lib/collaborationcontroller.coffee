@@ -1410,6 +1410,8 @@ module.exports = CollaborationController =
 
   handlePermissionDenied: ->
 
+    @permissionView?.destroy()
+
     @permissionView = IDEHelpers.showNotificationBanner
       cssClass : 'error'
       title    : 'REQUEST DENIED:'
@@ -1419,6 +1421,8 @@ module.exports = CollaborationController =
 
 
   handlePermissionGranted: (nickname) ->
+
+    @permissionView?.destroy()
 
     @permissionView = IDEHelpers.showNotificationBanner
       cssClass : 'success'
