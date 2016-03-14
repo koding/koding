@@ -38,7 +38,7 @@ module.exports = class AccountLinkedAccountsListItem extends KDListItemView
     { provider } = @getData()
 
     mainController = kd.getSingleton 'mainController'
-    mainController.on 'ForeignAuthSuccess.#{provider}', =>
+    mainController.on "ForeignAuthSuccess.#{provider}", =>
       @whenOauthInfoFetched =>
         @linked = yes
         @switch.setOn no
@@ -62,10 +62,10 @@ module.exports = class AccountLinkedAccountsListItem extends KDListItemView
     account             = whoami()
     account.unlinkOauth provider, (err) =>
       return showError err  if err
-      account.unstore 'ext|profile|#{provider}', (err, storage) ->
+      account.unstore "ext|profile|#{provider}", (err, storage) ->
         return kd.warn err  if err
 
-      notify 'Your #{title} account is now unlinked.'
+      notify "Your #{title} account is now unlinked."
       @linked = no
 
   viewAppended: ->

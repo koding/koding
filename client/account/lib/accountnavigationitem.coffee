@@ -9,7 +9,7 @@ module.exports = class AccountNavigationItem extends KDListItemView
     options.tagName    = 'a'
     options.route      = '/Account/#{data.slug}'
     options.attributes = { href : options.route }
-    options.cssClass   = 'AppModal-navItem #{data.slug.toLowerCase()}'
+    options.cssClass   = "AppModal-navItem #{data.slug.toLowerCase()}"
 
     super options, data
 
