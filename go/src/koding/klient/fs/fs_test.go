@@ -373,29 +373,88 @@ func TestGlob(t *testing.T) {
 }
 
 func TestReadFile(t *testing.T) {
-	content, err := ioutil.ReadFile(testfile1)
+	file, err := ioutil.TempFile("", "")
 	if err != nil {
 		t.Error(err)
 	}
 
-	resp, err := remote.Tell("readFile", struct {
-		Path string
-	}{
-		Path: testfile1,
-	})
+	_, err = file.Write([]byte("kite"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	buf := resp.MustMap()["content"].MustString()
+	readFile := func(offset, blockSize int64) string {
+		resp, err := remote.Tell("readFile", struct {
+			Path      string
+			Offset    int64
+			BlockSize int64
+		}{
+			Path:      testfile1,
+			Offset:    offset,
+			BlockSize: blockSize,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	s, err := base64.StdEncoding.DecodeString(buf)
-	if err != nil {
-		t.Error(err)
+		buf := resp.MustMap()["content"].MustString()
+
+		s, err := base64.StdEncoding.DecodeString(buf)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		return string(s)
 	}
 
-	if string(s) != string(content) {
-		t.Errorf("got %s, expecting %s", string(s), string(content))
+	s := readFile(0, 0)
+	if string(s) != "kite\n" {
+		t.Errorf("got %s, expecting %s", string(s), "kite")
+	}
+
+	s = readFile(0, 1)
+	if string(s) != "k" {
+		t.Errorf("got %s, expecting %s", string(s), "k")
+	}
+
+	s = readFile(0, 4)
+	if string(s) != "kite" {
+		t.Errorf("got %s, expecting %s", string(s), "kite")
+	}
+
+	s = readFile(0, 5)
+	if string(s) != "kite\n" {
+		t.Errorf("got %s, expecting %s", string(s), "kite\n")
+	}
+
+	s = readFile(0, 100)
+	if string(s) != "kite\n" {
+		t.Errorf("got %s, expecting %s", string(s), "kite\n")
+	}
+
+	s = readFile(1, 0)
+	if string(s) != "ite\n" {
+		t.Errorf("got %s, expecting %s", string(s), "ite\n")
+	}
+
+	s = readFile(1, 2)
+	if string(s) != "it" {
+		t.Errorf("got %s, expecting %s", string(s), "it")
+	}
+
+	s = readFile(1, 3)
+	if string(s) != "ite" {
+		t.Errorf("got %s, expecting %s", string(s), "ite")
+	}
+
+	s = readFile(1, 4)
+	if string(s) != "ite\n" {
+		t.Errorf("got %s, expecting %s", string(s), "ite\n")
+	}
+
+	s = readFile(1, 100)
+	if string(s) != "ite\n" {
+		t.Errorf("got %s, expecting %s", string(s), "ite\n")
 	}
 
 }
