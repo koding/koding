@@ -85,8 +85,10 @@ build:
         code: scripts/wercker/run-command go/build.sh
     - script:
         name: test klient
-        code: |
-            ./scripts/test-klient.sh
+        code: scripts/test-klient.sh
+    - script:
+        name: test kites
+        code: go/src/koding/kites/e2etest/e2etest.sh
     - script:
         name: build social api
         code: scripts/wercker/run-command go/src/socialapi/build.sh
