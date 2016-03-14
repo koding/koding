@@ -30,10 +30,10 @@ module.exports = -> lazyrouter.bind 'account', (type, info, state, path, ctx) ->
     when 'profile'
       kd.singletons.router.handleRoute '/Account/Profile'
     when 'verified'
-      new KDNotificationView title: "Thanks for verifying"
+      new KDNotificationView { title: 'Thanks for verifying' }
       ctx.clear()
     when 'verification-failed'
-      new KDNotificationView title: "Verification failed!"
+      new KDNotificationView { title: 'Verification failed!' }
       ctx.clear()
     when 'referrer' then kd.singletons.router.handleRoute '/'
     when 'section' then handle info, path

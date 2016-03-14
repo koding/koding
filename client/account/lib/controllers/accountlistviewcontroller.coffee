@@ -5,10 +5,10 @@ KDView               = kd.View
 
 module.exports = class AccountListViewController extends KDListViewController
 
-  constructor: (options, data)->
+  constructor: (options, data) ->
 
     options.noItemFoundWidget = new KDView
-      cssClass: "no-item-found"
+      cssClass: 'no-item-found'
       partial : "<cite>#{options.noItemFoundText}</cite>"
 
     options.lazyLoaderOptions =

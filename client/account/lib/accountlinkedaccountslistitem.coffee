@@ -11,23 +11,23 @@ module.exports = class AccountLinkedAccountsListItem extends KDListItemView
 
   JView.mixin @prototype
 
-  notify = (message)-> new KDNotificationView title : message, type : 'mini', duration : 3000
+  notify = (message) -> new KDNotificationView { title : message, type : 'mini', duration : 3000 }
 
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
-    options.tagName or= "li"
-    options.type    or= "oauth"
+    options.tagName or= 'li'
+    options.type    or= 'oauth'
 
     super options, data
 
     @linked    = no
     @fetched   = no
-    {provider} = @getData()
+    { provider } = @getData()
     @setClass provider
 
     @switch = new KodingSwitch
-      callback: (state)=>
+      callback: (state) =>
         if state
           @link()
           @switch.setOn no
@@ -35,10 +35,10 @@ module.exports = class AccountLinkedAccountsListItem extends KDListItemView
           @unlink()
           @switch.setOff no
 
-    {provider} = @getData()
+    { provider } = @getData()
 
-    mainController = kd.getSingleton "mainController"
-    mainController.on "ForeignAuthSuccess.#{provider}", =>
+    mainController = kd.getSingleton 'mainController'
+    mainController.on 'ForeignAuthSuccess.#{provider}', =>
       @whenOauthInfoFetched =>
         @linked = yes
         @switch.setOn no
@@ -47,42 +47,42 @@ module.exports = class AccountLinkedAccountsListItem extends KDListItemView
   whenOauthInfoFetched: (callback) ->
 
     if @fetched then callback()
-    else @once "OauthInfoFetched", callback
+    else @once 'OauthInfoFetched', callback
 
 
-  link:->
+  link: ->
 
-    {provider} = @getData()
-    kd.singletons.oauthController.redirectToOauthUrl {provider}
+    { provider } = @getData()
+    kd.singletons.oauthController.redirectToOauthUrl { provider }
 
 
-  unlink:->
+  unlink: ->
 
-    {title, provider} = @getData()
-    account           = whoami()
-    account.unlinkOauth provider, (err)=>
+    { title, provider } = @getData()
+    account             = whoami()
+    account.unlinkOauth provider, (err) =>
       return showError err  if err
-      account.unstore "ext|profile|#{provider}", (err, storage)->
+      account.unstore 'ext|profile|#{provider}', (err, storage) ->
         return kd.warn err  if err
 
-      notify "Your #{title} account is now unlinked."
+      notify 'Your #{title} account is now unlinked.'
       @linked = no
 
-  viewAppended:->
+  viewAppended: ->
 
     JView::viewAppended.call this
-    {provider} = @getData()
+    { provider } = @getData()
 
-    whoami().fetchOAuthInfo (err, foreignAuth)=>
+    whoami().fetchOAuthInfo (err, foreignAuth) =>
 
       @linked = foreignAuth?[provider]?
       @switch.setDefaultValue @linked
 
       @fetched = yes
-      @emit "OauthInfoFetched"
+      @emit 'OauthInfoFetched'
 
 
-  pistachio:->
+  pistachio: ->
 
     """
     {{> @switch}}

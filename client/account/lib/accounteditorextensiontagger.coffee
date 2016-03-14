@@ -8,20 +8,20 @@ KDCustomHTMLView = kd.CustomHTMLView
 
 module.exports = class AccountEditorExtensionTagger extends KDFormView
 
-  viewAppended:->
+  viewAppended: ->
     # FIXME : SET AUTOCOMPLETE VIEW AS IN MEMBERS SEARCH
     @addSubView new KDInputView
-      placeholder  : "add a file type... (not available on Private Beta)"
-      name         : "extension-tag"
+      placeholder  : 'add a file type... (not available on Private Beta)'
+      name         : 'extension-tag'
 
     @addSubView actions = new KDView
-      cssClass : "actions-wrapper"
+      cssClass : 'actions-wrapper'
 
     actions.addSubView new KDButtonView
-      title        : "Save"
+      title        : 'Save'
 
     actions.addSubView new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "cancel"
-      cssClass     : "cancel-link"
-      click        : => @emit "FormCancelled"
+      tagName      : 'a'
+      partial      : 'cancel'
+      cssClass     : 'cancel-link'
+      click        : => @emit 'FormCancelled'

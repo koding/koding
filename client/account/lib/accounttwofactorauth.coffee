@@ -50,8 +50,8 @@ module.exports = class AccountTwoFactorAuth extends KDView
             return
           return @showError err
 
-        {key, qrcode} = authInfo
-        @_activeKey   = key
+        { key, qrcode } = authInfo
+        @_activeKey     = key
 
         @addSubView @getInstructionsView()
         @addSubView @getQrCodeView qrcode
@@ -157,7 +157,7 @@ module.exports = class AccountTwoFactorAuth extends KDView
 
     view.addSubView imageView = new kd.CustomHTMLView
       tagName    : 'img'
-      attributes : src: url
+      attributes : { src : url }
 
     view.addSubView button = new kd.ButtonView
       iconOnly   : yes

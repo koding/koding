@@ -7,23 +7,23 @@ whoami            = require 'app/util/whoami'
 
 module.exports = class AccountKodingKeyListItem extends KDListItemView
 
-  constructor:(options, data)->
+  constructor: (options, data) ->
     defaults  =
-      tagName : "li"
+      tagName : 'li'
     options   = defaults extends options
     super options, data
 
     @addSubView new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "Revoke Access"
-      cssClass     : "action-link"
+      tagName      : 'a'
+      partial      : 'Revoke Access'
+      cssClass     : 'action-link'
       width        : 600
       click        : =>
-        {nickname} = whoami().profile
+        { nickname } = whoami().profile
         modal = new KDModalView
-          title        : "Revoke Koding Key Access"
+          title        : 'Revoke Koding Key Access'
           overlay      : yes
-          cssClass     : "new-kdmodal koding-keys"
+          cssClass     : 'new-kdmodal koding-keys'
           content      : """
           <div class='modalformline'>
             <p>
@@ -41,26 +41,26 @@ module.exports = class AccountKodingKeyListItem extends KDListItemView
           </div>
           """
           buttons      :
-            "Yes, Revoke Access":
-              style    : "solid red medium"
-              callback : (event)=>
+            'Yes, Revoke Access':
+              style    : 'solid red medium'
+              callback : (event) =>
                 @revokeAccess options, data
                 @destroy()
                 modal.destroy()
-            "Close"    :
-              style    : "solid light-gray medium"
-              callback : (event)->
+            'Close'    :
+              style    : 'solid light-gray medium'
+              callback : (event) ->
                 modal.destroy()
 
     @addSubView new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "View access key"
+      tagName     : 'a'
+      partial     : 'View access key'
       click       : ->
         modal = new KDModalView
-          title        : "Access Key"
+          title        : 'Access Key'
           width        : 500
           overlay      : yes
-          cssClass     : "new-kdmodal koding-keys"
+          cssClass     : 'new-kdmodal koding-keys'
           content      : """
           <div class='modalformline'>
             <p>
@@ -75,10 +75,10 @@ module.exports = class AccountKodingKeyListItem extends KDListItemView
           </div>
           """
 
-  revokeAccess: (options, data)->
+  revokeAccess: (options, data) ->
     data.revoke()
 
-  partial:(data)->
+  partial: (data) ->
     """
       <span class="labelish">#{data.hostname or "Unknown Host"}</span>
     """
