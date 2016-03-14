@@ -67,7 +67,6 @@ module.exports =
           .click                  confirmResizeButton
           .waitForElementVisible  "#{contentVmSelector}pending", 20000
           .waitForElementVisible  vmSidebarSelector, 250000
-          .end()
 
     browser.end()
 
