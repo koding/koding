@@ -69,6 +69,7 @@ func (m *MailgunSender) SendMailgunEmail(mail *Mail) error {
 	var email string
 	var nickname string
 	var err error
+	var userId string
 	var tpl *template.Template
 	var tplText *texttemplate.Template
 	userObj := EmailInvitationUser{}
@@ -95,12 +96,17 @@ func (m *MailgunSender) SendMailgunEmail(mail *Mail) error {
 	}
 
 	user, err := modelhelper.FetchUserByEmail(email)
+	if err == nil {
+	    userId = user.ObjectId.Hex()
+	} else {
+	    userId = "0"
+	}
 
 	if user.EmailFrequency != nil && !user.EmailFrequency.Global {
 		return errors.New("User is unsubscribed from all emails")
 	}
 
-	userObj.LinkUnsubscribe = fmt.Sprintf("%s/Unsubscribe/%s/%s", m.VmHostname, user.ObjectId.Hex(), email)
+	userObj.LinkUnsubscribe = fmt.Sprintf("%s/Unsubscribe/%s/%s", m.VmHostname, userId, email)
 
 	buf := new(bytes.Buffer)
 	err = tpl.Execute(buf, userObj)

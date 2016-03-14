@@ -1,5 +1,8 @@
-koding = require './../bongo'
-Tracker = require '../../../../workers/social/lib/social/models/tracker.coffee'
+koding      = require './../bongo'
+request     = require 'request'
+{ argv }    = require 'optimist'
+KONFIG      = require('koding-config-manager').load "main.#{argv.c}"
+Tracker     = require '../../../../workers/social/lib/social/models/tracker.coffee'
 
 module.exports = (req, res, next) ->
 
@@ -9,6 +12,7 @@ module.exports = (req, res, next) ->
   { JAccount, JUser } = koding.models
 
   JUser.one { email }, (err, user) ->
+    mailgunUnsubscribeEmail email
 
     return res.status(500).send 'an error occured'  if err
     return res.status(404).send 'no user found'     unless user
@@ -27,4 +31,9 @@ module.exports = (req, res, next) ->
 
     return res.status(200).send 'unsubscribed'
 
-# mailgunUnsubscribeEmail = (email) -> 
+
+mailgunUnsubscribeEmail = (email) -> 
+  auth = "Basic " + new Buffer("api:" + KONFIG.mailgun.privateKey).toString("base64")
+  request.post {url:KONFIG.mailgun.unsubscribeURL, headers: { "Authorization": auth }, form: { address: email, tag: "*" } }, (err, res, raw) ->
+    if err
+      console.log "[mailgunUnsubscribeEmail] error: #{err}"

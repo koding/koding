@@ -141,9 +141,10 @@ Configuration = (options={}) ->
     redirectUri   : "https://sandbox.koding.com/-/oauth/github/callback"
 
   mailgun =
-    domain      : "koding.com"
-    privateKey  : "key-6d4a0c191866434bf958aed924512758"
-    publicKey   : "pubkey-dabf6c392b39cce9bce12e9a582ad051"
+    domain        : "koding.com"
+    privateKey    : "key-6d4a0c191866434bf958aed924512758"
+    publicKey     : "pubkey-dabf6c392b39cce9bce12e9a582ad051"
+    unsubscribeURL: "https://api.mailgun.net/v3/koding.com/unsubscribes"
 
   slack  =
     clientId          : "2155583316.22364273143"
