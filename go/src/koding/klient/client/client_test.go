@@ -80,10 +80,7 @@ func TestSubscribe(t *testing.T) {
 	}
 
 	// Should subscribe to any given event name
-	pRes, err := c1.Tell("client.Subscribe", struct {
-		EventName string
-		OnPublish dnode.Function
-	}{
+	pRes, err := c1.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
 		OnPublish: dnode.Callback(func(f *dnode.Partial) {}),
 	})
@@ -101,10 +98,7 @@ func TestSubscribe(t *testing.T) {
 	}
 
 	// Should return the subIndex
-	var res struct {
-		ID int `json:"id"`
-	}
-
+	var res SubscribeResponse
 	if err = pRes.Unmarshal(&res); err != nil {
 		t.Errorf("client.Subscribe should return a valid response struct. err:%s", err)
 	}
@@ -118,10 +112,7 @@ func TestSubscribe(t *testing.T) {
 
 	// Should store the proper callback
 	success := make(chan bool)
-	pRes, err = c1.Tell("client.Subscribe", struct {
-		EventName string
-		OnPublish dnode.Function
-	}{
+	pRes, err = c1.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
 		OnPublish: dnode.Callback(func(f *dnode.Partial) { success <- true }),
 	})
@@ -154,10 +145,7 @@ func TestSubscribe(t *testing.T) {
 	}
 
 	// Should allow multiple clients to subscribe
-	pRes, err = c2.Tell("client.Subscribe", struct {
-		EventName string
-		OnPublish dnode.Function
-	}{
+	pRes, err = c2.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
 		OnPublish: dnode.Callback(func(f *dnode.Partial) {}),
 	})
@@ -244,9 +232,7 @@ func TestPublish(t *testing.T) {
 	}
 
 	// Should require subscriptions for the given event
-	_, err = c.Tell("client.Publish", struct {
-		EventName string
-	}{
+	_, err = c.Tell("client.Publish", PublishRequest{
 		EventName: "foo",
 	})
 	if err == nil {
@@ -266,9 +252,7 @@ func TestPublish(t *testing.T) {
 		})},
 	}
 
-	_, err = c.Tell("client.Publish", struct {
-		EventName string
-	}{
+	_, err = c.Tell("client.Publish", PublishRequest{
 		EventName: "test",
 	})
 	if err != nil {
@@ -334,10 +318,7 @@ func TestUnsubscribe(t *testing.T) {
 	calls := map[string]bool{}
 
 	// Setup our event, sub index 1
-	_, err = c1.Tell("client.Subscribe", struct {
-		EventName string
-		OnPublish dnode.Function
-	}{
+	_, err = c1.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
 		OnPublish: dnode.Callback(func(f *dnode.Partial) { calls["c1:1"] = true }),
 	})
@@ -346,10 +327,7 @@ func TestUnsubscribe(t *testing.T) {
 	}
 
 	// Setup our event, sub index 2
-	_, err = c2.Tell("client.Subscribe", struct {
-		EventName string
-		OnPublish dnode.Function
-	}{
+	_, err = c2.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
 		OnPublish: dnode.Callback(func(f *dnode.Partial) { calls["c2:2"] = true }),
 	})
@@ -358,10 +336,7 @@ func TestUnsubscribe(t *testing.T) {
 	}
 
 	// Setup our event, sub index 3
-	_, err = c2.Tell("client.Subscribe", struct {
-		EventName string
-		OnPublish dnode.Function
-	}{
+	_, err = c2.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
 		OnPublish: dnode.Callback(func(f *dnode.Partial) { calls["c2:3"] = true }),
 	})
@@ -370,10 +345,7 @@ func TestUnsubscribe(t *testing.T) {
 	}
 
 	// Setup our event, sub index 4
-	_, err = c1.Tell("client.Subscribe", struct {
-		EventName string
-		OnPublish dnode.Function
-	}{
+	_, err = c1.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
 		OnPublish: dnode.Callback(func(f *dnode.Partial) { calls["c1:4"] = true }),
 	})
@@ -382,10 +354,7 @@ func TestUnsubscribe(t *testing.T) {
 	}
 
 	// Should remove subs from client
-	_, err = c2.Tell("client.Unsubscribe", struct {
-		EventName string
-		ID        int
-	}{
+	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
 		EventName: "test",
 		ID:        2,
 	})
@@ -403,9 +372,7 @@ func TestUnsubscribe(t *testing.T) {
 	// Should publish to the expected methods. The above check should
 	// work for this, but just to be safe lets actually publish and make sure
 	// the subs work like we expect.
-	_, err = c1.Tell("client.Publish", struct {
-		EventName string
-	}{
+	_, err = c1.Tell("client.Publish", PublishRequest{
 		EventName: "test",
 	})
 
@@ -423,10 +390,7 @@ func TestUnsubscribe(t *testing.T) {
 	calls = map[string]bool{}
 
 	// Should allow any kite to unsub given an ID (ie, not just it's own subs)
-	_, err = c2.Tell("client.Unsubscribe", struct {
-		EventName string
-		ID        int
-	}{
+	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
 		EventName: "test",
 		ID:        4,
 	})
@@ -435,9 +399,7 @@ func TestUnsubscribe(t *testing.T) {
 	}
 
 	// Should publish to the expected methods.
-	_, err = c1.Tell("client.Publish", struct {
-		EventName string
-	}{
+	_, err = c1.Tell("client.Publish", PublishRequest{
 		EventName: "test",
 	})
 
@@ -453,10 +415,7 @@ func TestUnsubscribe(t *testing.T) {
 	}
 
 	// Should return ErrSubNotFound if the id does not exist.
-	_, err = c2.Tell("client.Unsubscribe", struct {
-		EventName string
-		ID        int
-	}{
+	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
 		EventName: "test",
 		ID:        7,
 	})
@@ -468,10 +427,7 @@ func TestUnsubscribe(t *testing.T) {
 	}
 
 	// Should return ErrSubNotFound if the event does not exist.
-	_, err = c2.Tell("client.Unsubscribe", struct {
-		EventName string
-		ID        int
-	}{
+	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
 		EventName: "fakeEvent",
 		ID:        10,
 	})
@@ -483,20 +439,14 @@ func TestUnsubscribe(t *testing.T) {
 	}
 
 	// Should remove the event map if no subs are left.
-	_, err = c2.Tell("client.Unsubscribe", struct {
-		EventName string
-		ID        int
-	}{
+	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
 		EventName: "test",
 		ID:        1,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = c2.Tell("client.Unsubscribe", struct {
-		EventName string
-		ID        int
-	}{
+	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
 		EventName: "test",
 		ID:        3,
 	})

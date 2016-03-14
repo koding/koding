@@ -18,6 +18,28 @@ var (
 	)
 )
 
+// SubscribeResponse is the response type of the `client.Subscribe` method.
+type SubscribeResponse struct {
+	ID int `json:"id"`
+}
+
+// SubscribeRequest is the request type for the `client.Subscribe` method.
+type SubscribeRequest struct {
+	EventName string         `json:"eventName"`
+	OnPublish dnode.Function `json:"onPublish"`
+}
+
+// UnsubscribeRequest is the request type for the `client.Unsubscribe` method.
+type UnsubscribeRequest struct {
+	EventName string `json:"eventName"`
+	ID        int    `json:"id"`
+}
+
+// PublishRequest is request type for the `client.Publish` method.
+type PublishRequest struct {
+	EventName string `json:"eventName"`
+}
+
 func NewPubSub(log kite.Logger) *PubSub {
 	return &PubSub{
 		Subscriptions: make(map[string]map[int]dnode.Function),
@@ -65,9 +87,7 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 	// Parse the eventName from the incoming data. Note that this method
 	// accepts any data beyond eventName, so that this method is as generic
 	// as possible.
-	var params struct {
-		EventName string `json:"eventName"`
-	}
+	var params PublishRequest
 
 	if r.Args == nil {
 		return nil, errors.New("client.Publish: Arguments are not passed")
@@ -128,15 +148,11 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 //
 // The only response is an error, if any.
 func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
-	var params struct {
-		EventName string         `json:"eventName"`
-		OnPublish dnode.Function `json:"onPublish"`
-	}
-
 	if r.Args == nil {
 		return nil, errors.New("client.Subscribe: Arguments are not passed")
 	}
 
+	var params SubscribeRequest
 	if r.Args.One().Unmarshal(&params) != nil || params.EventName == "" {
 		c.Log.Info(fmt.Sprintf(
 			"client.Subscribe: Unknown param format '%s'\n", r.Args.One()))
@@ -172,12 +188,9 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 		}
 	})
 
-	res := struct {
-		ID int `json:"id"`
-	}{
+	res := SubscribeResponse{
 		ID: subIndex,
 	}
-
 	return res, nil
 }
 
@@ -193,15 +206,11 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 // The only response is an error, if any are encountered. If the sub cannot be
 // found, ErrSubNotFound is returned.
 func (c *PubSub) Unsubscribe(r *kite.Request) (interface{}, error) {
-	var params struct {
-		EventName string `json:"eventName"`
-		ID        int    `json:"id"`
-	}
-
 	if r.Args == nil {
 		return nil, errors.New("client.Unsubscribe: Arguments are not passed")
 	}
 
+	var params UnsubscribeRequest
 	if r.Args.One().Unmarshal(&params) != nil || params.EventName == "" {
 		c.Log.Info(fmt.Sprintf(
 			"client.Unsubscribe: Unknown param format '%s'\n", r.Args.One()))
