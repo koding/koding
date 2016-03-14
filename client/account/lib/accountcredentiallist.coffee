@@ -33,7 +33,7 @@ module.exports = class AccountCredentialList extends KDListView
 
     credential.isBootstrapped (err, bootstrapped) =>
 
-      kd.warn "Bootstrap check failed:", { credential, err }  if err
+      kd.warn 'Bootstrap check failed:', { credential, err }  if err
 
       description = applyMarkdown if bootstrapped then "
         This **#{credential.title}** credential is bootstrapped before. It
@@ -62,7 +62,7 @@ module.exports = class AccountCredentialList extends KDListView
       unless credential.owner
         description = applyMarkdown "
           You don't have permission to delete **#{credential.title}**
-          credential, however you can still remove this credential 
+          credential, however you can still remove this credential
           from your account.
           \n\n
           **WARNING!** Removing this credential from your account can cause
@@ -92,12 +92,12 @@ module.exports = class AccountCredentialList extends KDListView
             title      : removeButtonTitle ? 'Remove Credential'
             style      : 'solid red medium'
             loader     : yes
-            callback   : =>
+            callback   : ->
               modal.buttons.DestroyAll.disable()
               removeCredential()
           DestroyAll   :
             title      : 'Destroy Everything'
-            style      : "solid red medium #{if !bootstrapped then 'hidden'}"
+            style      : "solid red medium #{unless bootstrapped then 'hidden'}"
             loader     : yes
             callback   : =>
               modal.buttons.Remove.disable()
@@ -117,7 +117,7 @@ module.exports = class AccountCredentialList extends KDListView
 
     credential = item.getData()
 
-    @emit "ShowShareCredentialFormFor", credential
+    @emit 'ShowShareCredentialFormFor', credential
     item.setClass 'sharing-item'
 
     @on 'sharingFormDestroyed', -> item.unsetClass 'sharing-item'
@@ -149,7 +149,7 @@ module.exports = class AccountCredentialList extends KDListView
         subtitle       : credential.provider
         cssClass       : 'has-markdown'
         overlay        : yes
-        overlayOptions : cssClass : 'second-overlay'
+        overlayOptions : { cssClass : 'second-overlay' }
         content        : "<pre><code>#{cred}</code></pre>"
 
 
@@ -209,12 +209,12 @@ module.exports = class AccountCredentialList extends KDListView
 
       .then (response) ->
 
-        console.log "Verify result:", response
+        console.log 'Verify result:', response
         response
 
       .catch (err) ->
 
-        console.warn "Verify failed:", err
+        console.warn 'Verify failed:', err
         err
 
 

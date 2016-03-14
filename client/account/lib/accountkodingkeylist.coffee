@@ -5,9 +5,9 @@ AccountKodingKeyListItem = require './accountkodingkeylistitem'
 
 module.exports = class AccountKodingKeyList extends KDListView
 
-  constructor:(options, data)->
+  constructor: (options, data) ->
     defaults    =
-      tagName   : "ul"
+      tagName   : 'ul'
       itemClass : AccountKodingKeyListItem
     options = defaults extends options
     super options, data

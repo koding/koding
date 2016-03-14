@@ -5,7 +5,6 @@ module.exports = (browser, machineName) ->
 
   vmSelector     = ".#{machineName} .running.vm"
   modalSelector  = '.env-modal.env-machine-state'
-  loaderSelector = modalSelector + ' .kdloader'
   buildingLabel  = modalSelector + ' .state-label.building'
   turnOnButtonSelector = modalSelector + ' .turn-on.state-button'
 

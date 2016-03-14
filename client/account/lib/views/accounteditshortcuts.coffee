@@ -21,7 +21,7 @@ restoreDefaults = ->
     cancel       :
       style      : 'solid medium light-gray'
       title      : 'Cancel'
-      callback   : => modal.destroy()
+      callback   : -> modal.destroy()
 
 
 module.exports =

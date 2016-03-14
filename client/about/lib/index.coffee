@@ -9,9 +9,9 @@ module.exports = class AboutAppController extends KDViewController
     name  : 'About'
     route : '/:name?/About'
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.view    = new AboutAppView
-      cssClass      : "content-page about"
+      cssClass      : 'content-page about'
 
     super options, data

@@ -73,3 +73,18 @@ module.exports   = class ResourceMachineItem extends MachinesListItem
 
     @sidebarToggle = new kd.CustomHTMLView
 
+
+  destroyModal: ->
+
+    if modal = helper.findParentModal @parent
+      modal.destroy()
+
+
+  helper =
+
+    findParentModal: (view) ->
+
+      return  unless view
+      return view  if view instanceof kd.ModalView
+
+      helper.findParentModal view.parent

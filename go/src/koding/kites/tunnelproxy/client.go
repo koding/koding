@@ -3,11 +3,15 @@ package tunnelproxy
 import (
 	"errors"
 	"fmt"
+	"net"
+	"strconv"
+	"sync"
 	"time"
 
 	"koding/kites/common"
 	"koding/klient/protocol"
 
+	"github.com/cenkalti/backoff"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/logging"
@@ -21,7 +25,7 @@ const (
 
 var (
 	defaultMaxRegisterRetry = 7
-	defaultTimeout          = 1 * time.Minute
+	defaultTimeout          = 30 * time.Second
 )
 
 // TunnelKiteURLFromEnv gives tunnel server kite URL base on the given
@@ -57,6 +61,10 @@ type ClientOptions struct {
 	// OnRegister, when non-nil, is called each time client successfully
 	// registers to a tunnel server kite.
 	OnRegister func(*RegisterResult)
+
+	// OnRegisterServices, when non-nil, is called each time client successfully
+	// registers a service to a tunnel server kite.
+	OnRegisterServices func(*RegisterServicesResult)
 
 	// MaxRegisterRetry tells at most how many times we should retry connecting
 	// to cached tunnel server address before giving up and falling back to
@@ -122,6 +130,13 @@ type Client struct {
 	connected     *RegisterResult
 	tunnelKiteURL string
 	retry         int
+
+	stateChanges chan *tunnel.ClientStateChange
+	regserv      chan map[string]*Tunnel
+	services     map[string]*Service // maps service name to a service
+	routes       map[int]string      // maps tcp tunnel remote port to local addr
+	ident        string              // TODO: use c.connected when tryRegister is moved to eventloop
+	mu           sync.Mutex          // protets ident, services and routes
 }
 
 // NewClient gives new, unstarted tunnel client for the given options.
@@ -141,6 +156,10 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		kite:          kite.New(ClientKiteName, ClientKiteVersion),
 		opts:          &optsCopy,
 		tunnelKiteURL: optsCopy.tunnelKiteURL(),
+		stateChanges:  make(chan *tunnel.ClientStateChange, 128),
+		regserv:       make(chan map[string]*Tunnel, 1),
+		services:      make(map[string]*Service),
+		routes:        make(map[int]string),
 	}
 
 	// If VirtualHost was configured, try to connect to it first.
@@ -157,9 +176,11 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 	cfg := &tunnel.ClientConfig{
 		FetchIdentifier: c.fetchIdent,
 		FetchServerAddr: c.fetchServerAddr,
+		FetchLocalAddr:  c.fetchLocalAddr,
 		LocalAddr:       c.opts.LocalAddr,
 		Debug:           c.opts.Debug,
 		Log:             c.opts.Log.New("transport"),
+		StateChanges:    c.stateChanges,
 	}
 
 	client, err := tunnel.NewClient(cfg)
@@ -173,6 +194,7 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 }
 
 func (c *Client) Start() {
+	go c.eventloop()
 	go c.client.Start()
 	<-c.client.StartNotify()
 }
@@ -181,10 +203,227 @@ func (c *Client) Close() (err error) {
 	if c.client != nil {
 		err = c.client.Close()
 	}
+
 	if c.kite != nil {
 		c.kite.Close()
 	}
+
 	return err
+}
+
+// RestoreServices
+func (c *Client) RestoreServices(services Services) error {
+	if len(services) == 0 {
+		return nil // early return for nop ops
+	}
+
+	regserv := make(map[string]*Tunnel, len(services))
+
+	for name, srv := range services {
+		_, _, err := splitHostPort(srv.LocalAddr)
+		if err != nil {
+			return fmt.Errorf("invalid local address for %q service: %s", name, err)
+		}
+
+		_, remotePort, err := splitHostPort(srv.RemoteAddr)
+		if err != nil {
+			return fmt.Errorf("invalid remote address for %q service: %s", name, err)
+		}
+
+		regserv[name] = &Tunnel{
+			Port:    remotePort,
+			Restore: true,
+		}
+	}
+
+	c.mu.Lock()
+	for name, srv := range services {
+		// Do not set the RemoteAddr - we have no guarantee it'll be restored.
+		// If client was disconnected for longer period and other client
+		// took that port (unlikely, but possible), we're going to be
+		// assigned a different port.
+		c.services[name] = &Service{
+			LocalAddr: srv.LocalAddr,
+		}
+	}
+	c.mu.Unlock()
+
+	c.regserv <- regserv
+
+	return nil
+}
+
+// RegisterService
+func (c *Client) RegisterService(name, localAddr string) error {
+	if _, _, err := splitHostPort(localAddr); err != nil {
+		return fmt.Errorf("invalid local address for %q service: %s", name, err)
+	}
+
+	c.mu.Lock()
+	c.services[name] = &Service{
+		LocalAddr: localAddr,
+	}
+	c.mu.Unlock()
+
+	c.regserv <- map[string]*Tunnel{name: {}}
+
+	return nil
+}
+
+// TODO(rjeczalik): refactor event handlers into separate methods
+func (c *Client) eventloop() {
+	var (
+		handlePending chan struct{}
+		ident         string
+		pending       = make(map[string]*Tunnel)
+		backoff       = backoff.NewExponentialBackOff()
+	)
+
+	backoff.MaxElapsedTime = 365 * 24 * time.Hour
+
+	retry := func() {
+		time.Sleep(backoff.NextBackOff())
+
+		select {
+		case handlePending <- struct{}{}:
+		default:
+		}
+	}
+
+	for {
+		select {
+		case ch := <-c.stateChanges:
+			c.opts.Log.Debug("handling transition: %s", ch)
+
+			switch ch.Current {
+			case tunnel.ClientConnected:
+				// If we were disconnected and connected again, we need
+				// to restore already registered services.
+				//
+				// A registered service is the one present in c.services
+				// map but not is not pending.
+				c.mu.Lock()
+				for name, srv := range c.services {
+					if _, ok := pending[name]; ok {
+						continue
+					}
+					if srv.RemoteAddr == "" {
+						c.opts.Log.Debug("%s: service %+v has no remote addr but is not pending", name, srv)
+						continue
+					}
+					// checks in RegisterService/RestoreServices guarantee
+					// the RemoteAddr is correctly formatted
+					_, remotePort, _ := splitHostPort(srv.RemoteAddr)
+
+					pending[name] = &Tunnel{
+						Port:    remotePort,
+						Restore: true,
+					}
+				}
+
+				ident = c.ident
+
+				c.mu.Unlock()
+
+				// when connected, start registering services
+				handlePending = make(chan struct{}, 1)
+				handlePending <- struct{}{}
+				backoff.Reset()
+			case tunnel.ClientDisconnected, tunnel.ClientClosed:
+				// all TCP tunnels got invalidated, clear routes until
+				// we connect again and restore them
+				c.mu.Lock()
+				c.routes = make(map[int]string)
+				c.mu.Unlock()
+
+				handlePending = nil
+			}
+
+		case services := <-c.regserv:
+			if len(services) == 0 {
+				break
+			}
+
+			c.opts.Log.Debug("handling service registration request: %+v", services)
+
+			for name, tun := range services {
+				pending[name] = tun
+			}
+
+			select {
+			case handlePending <- struct{}{}:
+				backoff.Reset()
+			default:
+			}
+
+		case <-handlePending:
+			if len(pending) == 0 {
+				break
+			}
+
+			req := &RegisterServicesRequest{
+				Ident:    ident,
+				Services: pending,
+			}
+
+			c.opts.Log.Debug("handling service registration: %+v", pending)
+
+			client, err := c.connect()
+			if err != nil {
+				c.opts.Log.Error("failure connecting to tunnel server: %s", err)
+				go retry()
+				break
+			}
+
+			r, err := client.TellWithTimeout("registerServices", c.opts.timeout(), req)
+			if err != nil {
+				c.opts.Log.Error("failure calling registerServices: %s", err)
+				go retry()
+				break
+			}
+
+			var resp RegisterServicesResult
+			if err = r.Unmarshal(&resp); err != nil {
+				c.opts.Log.Error("failure calling registerServices: %s", err)
+				go retry()
+				break
+			}
+
+			if c.opts.OnRegisterServices != nil {
+				c.opts.OnRegisterServices(&resp)
+			}
+
+			requsted := len(pending)
+
+			c.mu.Lock()
+			for name, srv := range resp.Services {
+				if _, ok := c.services[name]; !ok {
+					c.opts.Log.Warning("received unrecognized service %q", name)
+					continue
+				}
+
+				if srv.Err() != nil {
+					continue
+				}
+
+				c.services[name].RemoteAddr = net.JoinHostPort(resp.VirtualHost, strconv.Itoa(srv.Port))
+				c.routes[srv.Port] = c.services[name].LocalAddr
+				delete(pending, name)
+			}
+			c.mu.Unlock()
+
+			if err := resp.Err(); err != nil {
+				c.opts.Log.Error("failed to handle all services, retrying: %s", err)
+				go retry()
+				break
+			}
+
+			if len(resp.Services) != requsted {
+				c.opts.Log.Warning("wanted to handle %d services, handled only %d", requsted, len(resp.Services))
+				go retry()
+			}
+		}
+	}
 }
 
 // handleReg is a strategy for picking tunnelserver address depending on
@@ -204,6 +443,12 @@ func (c *Client) handleReg(resp *RegisterResult, err error) error {
 			c.opts.OnRegister(resp)
 		}
 
+		// TODO(rjeczalik): remove and use connected field directly
+		// when tryRegister is moved to eventloop
+		c.mu.Lock()
+		c.ident = resp.Ident
+		c.mu.Unlock()
+
 		return nil
 	}
 
@@ -221,14 +466,10 @@ func (c *Client) handleReg(resp *RegisterResult, err error) error {
 	return err
 }
 
+// TODO(rjeczalik): move tryRegister to eventloop
 func (c *Client) tryRegister() error {
-	client := c.kite.NewClient(c.tunnelKiteURL)
-	client.Auth = &kite.Auth{
-		Type: "kiteKey",
-		Key:  c.opts.Config.KiteKey,
-	}
-
-	if err := client.DialTimeout(c.opts.timeout()); err != nil {
+	client, err := c.connect()
+	if err != nil {
 		return c.handleReg(nil, err)
 	}
 	defer client.Close()
@@ -236,7 +477,7 @@ func (c *Client) tryRegister() error {
 	req := &RegisterRequest{
 		TunnelName: c.opts.TunnelName,
 	}
-	kiteResp, err := client.TellWithTimeout("register", c.opts.Timeout, req)
+	kiteResp, err := client.TellWithTimeout("register", c.opts.timeout(), req)
 	if err != nil {
 		return c.handleReg(nil, err)
 	}
@@ -267,21 +508,28 @@ func (c *Client) fetchServerAddr() (string, error) {
 	return c.connected.ServerAddr, nil
 }
 
+func (c *Client) fetchLocalAddr(port int) (string, error) {
+	c.mu.Lock()
+	addr, ok := c.routes[port]
+	c.mu.Unlock()
+
+	if !ok {
+		return "", fmt.Errorf("no service route found for %d port", port)
+	}
+
+	return addr, nil
+}
+
 func (c *Client) connect() (*kite.Client, error) {
-	tserver := c.kite.NewClient(c.tunnelKiteURL)
-	tserver.Auth = &kite.Auth{
+	client := c.kite.NewClient(c.tunnelKiteURL)
+	client.Auth = &kite.Auth{
 		Type: "kiteKey",
 		Key:  c.opts.Config.KiteKey,
 	}
 
-	if c.opts.Timeout < 0 {
-		connected, err := tserver.DialForever()
-		if err != nil {
-			return nil, err
-		}
-		<-connected
-		return tserver, nil
+	if err := client.DialTimeout(c.opts.timeout()); err != nil {
+		return nil, fmt.Errorf("dial failed: %s", err)
 	}
 
-	return tserver, tserver.DialTimeout(c.opts.Timeout)
+	return client, nil
 }

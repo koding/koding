@@ -8,7 +8,7 @@ module.exports = class AccountCredentialListItem extends BaseStackTemplateListIt
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry "credential-item clearfix", options.cssClass
+    options.cssClass = kd.utils.curry 'credential-item clearfix', options.cssClass
 
     super options, data
 
@@ -40,9 +40,9 @@ module.exports = class AccountCredentialListItem extends BaseStackTemplateListIt
 
 
   pistachio: ->
-    """
+    '''
     <div class="credential-info">
       {{> @providerTag}} {div.title{#(title)}}
     </div>
     <div class="buttons">{{> @settings}}</div>
-    """
+    '''

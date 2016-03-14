@@ -12,9 +12,9 @@ AccountCredentialListController = require './views/accountcredentiallistcontroll
 module.exports = class AccountCredentialListWrapper extends KDView
 
 
-  DEFAULT_LIST_TEXT = """
+  DEFAULT_LIST_TEXT = '''
     Credentials may include arbitrary data that you collect for third party integrations.
-  """
+  '''
 
   constructor: (options = {}, data) ->
 

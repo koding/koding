@@ -5,12 +5,12 @@ whoami                    = require 'app/util/whoami'
 
 module.exports = class AccountSessionListController extends AccountListViewController
 
-  constructor:(options,data) ->
+  constructor: (options, data) ->
 
     options = kd.utils.extend {}, options,
       limit               : 8
       noItemFoundText     : 'You have no active session.'
-    super options,data
+    super options, data
 
     @busy = no
     @skip = 0
@@ -55,7 +55,7 @@ module.exports = class AccountSessionListController extends AccountListViewContr
       if err
         @hideLazyLoader()
         showError err, \
-          KodingError : "Failed to fetch data, try again later."
+          { KodingError : 'Failed to fetch data, try again later.' }
         return
 
       callback err, sessions

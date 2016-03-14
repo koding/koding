@@ -1,10 +1,8 @@
 helpers = require '../helpers/helpers.js'
-assert  = require 'assert'
 environmentHelpers = require '../helpers/environmenthelpers.js'
 
 domainSelector = '.machine-settings-modal .kdlistitemview-domain'
 lastDomainItem = "#{domainSelector}:last-child"
-loader         = lastDomainItem + '.in-progress'
 
 
 module.exports =

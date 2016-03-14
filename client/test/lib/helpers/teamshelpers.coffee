@@ -1,6 +1,5 @@
 helpers  = require '../helpers/helpers.js'
 utils    = require '../utils/utils.js'
-HUBSPOT  = no
 
 
 teamsModalSelector       = '.TeamsModal--groupCreation'

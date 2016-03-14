@@ -1,5 +1,3 @@
-helpers  = require '../helpers/helpers.js'
-utils    = require '../utils/utils.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
 
 
@@ -8,7 +6,6 @@ module.exports =
 
   createTeam: (browser) ->
 
-    user = utils.getUser(yes)
     teamsHelpers.createTeam(browser)
     browser.end()
 

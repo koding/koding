@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/koding/kite"
@@ -110,7 +109,16 @@ func publicIPRetry(hosts []string, maxRetries int, retryPause time.Duration, log
 }
 
 func isReachable(addr, service string) (bool, error) {
-	resp, err := defaultClient.Get(service + "/" + url.QueryEscape(addr))
+	ip, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return false, err
+	}
+	req, err := http.NewRequest("GET", service+"/"+port, nil)
+	if err != nil {
+		return false, err
+	}
+	req.Header.Set("X-Real-IP", ip)
+	resp, err := defaultClient.Do(req)
 	if err != nil {
 		return false, err
 	}

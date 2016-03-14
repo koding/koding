@@ -730,6 +730,10 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         action = 'buildStack'
         target = @stack
 
+        if @stack.config?.oldOwner?
+          return showError "Stack building is not allowed
+                            for disabled users' stacks."
+
       if @machine.jMachine.generatedFrom?.templateId?
         unless computeController.verifyStackRequirements @stack
           computeController.off  'StackRequirementsProvided'

@@ -37,7 +37,6 @@ module.exports =
 
         return browser.end() unless lowercase
 
-        tabHandleSelector = ".panel-1 div[data-file-path='/home/#{user.username}/Web/#{fileName}']"
         editorSelector    = ".panel-1 .kdtabpaneview.active.#{lowercase} .ace_content"
 
         browser

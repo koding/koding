@@ -1,7 +1,3 @@
-utils    = require '../utils/utils.js'
-fail     = require '../utils/fail.js'
-register = require '../register/register.js'
-faker    = require 'faker'
 assert   = require 'assert'
 
 environmentHelpers = require '../helpers/environmenthelpers.js'
@@ -13,7 +9,6 @@ module.exports =
   acceptOrRejectInvitation: (browser, firstUser, secondUser, accept) ->
 
     firstUserName    = firstUser.username
-    secondUserName   = secondUser.username
     shareModal       = '.share-modal'
     fullName         = shareModal + ' .user-details .fullname'
     acceptButton     = shareModal + ' .kdbutton.green'
