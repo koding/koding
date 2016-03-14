@@ -139,7 +139,7 @@ module.exports = class AccountBilling extends kd.View
 
       @state.paymentHistory = invoices
 
-      invoices = invoices.map (invoice) =>
+      invoices = invoices.map (invoice) ->
         invoice.paymentMethod = { last4: '1234' }
         return invoice
 

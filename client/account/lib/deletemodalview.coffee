@@ -73,7 +73,7 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
     @destroyExistingMachines =>
 
       JUser.unregister username.getValue(), (err) =>
-        if err then new KDNotificationView title : 'There was a problem, please try again!'
+        if err then new KDNotificationView { title : 'There was a problem, please try again!' }
         else
           surveyLink = 'https://docs.google.com/forms/d/1pNRfkqRJSYh8k7Z5JnZH06P1QXW5q8hfr6l8kLV_iOU/viewform'
           @setTitle 'Account successfully deleted'
@@ -89,7 +89,7 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
             # <iframe src="https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform?embedded=true" width="430" height="600" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
           @_windowDidResize()
 
-          logout =->
+          logout = ->
             kookies.expire 'clientId'
             global.location.replace '/'
 
@@ -113,14 +113,14 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
 
     { computeController } = kd.singletons
 
-    remote.api.JMachine.some provider: "koding", (err, machines)=>
+    remote.api.JMachine.some { provider: 'koding' }, (err, machines) ->
 
       if err? or not machines? then callback()
       else
 
         machines = machines.filter (machine) ->
 
-          container = new Machine {machine}
+          container = new Machine { machine }
           return container.isMine()
 
         machines.forEach (machine) ->

@@ -1,4 +1,3 @@
-helpers = require './helpers.js'
 assert  = require 'assert'
 
 paneSelector      = '.panel-1 .application-tab-handle-holder'

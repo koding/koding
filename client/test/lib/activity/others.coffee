@@ -21,7 +21,7 @@ module.exports =
   showMoreCommentLink: (browser) ->
 
     helpers.postComment(browser)
-    helpers.postComment(browser, no, no)  for i in [1..4]
+    helpers.postComment(browser, no, no)  for [1..4]
 
     browser
       .refresh()
@@ -99,7 +99,6 @@ module.exports =
   changeMostLikedMostRecentTab: (browser) ->
 
     user             = helpers.beginTest(browser)
-    postSelector     = "#{activitySelector} .activity-content-wrapper"
     mostLikeSelector = '.kdtabhandlecontainer [testpath="ActivityTabHandle-/Activity/Public/Liked"]'
     mostLikedPostSelector = '.most-liked [testpath=ActivityListItemView]'
 

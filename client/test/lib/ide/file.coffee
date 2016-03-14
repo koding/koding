@@ -1,7 +1,6 @@
 helpers    = require '../helpers/helpers.js'
 ideHelpers = require '../helpers/idehelpers.js'
 
-paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
 
 module.exports =
 

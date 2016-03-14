@@ -12,9 +12,9 @@ showError             = require 'app/util/showError'
 module.exports = class AccountNewSshKeyView extends KDListItemView
 
   @ViewType = {
-  	'NoMachines'
-  	'SingleMachine'
-  	'ManyMachines'
+    'NoMachines'
+    'SingleMachine'
+    'ManyMachines'
   }
 
 
@@ -35,11 +35,11 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
 
     @addSubView formWrapper
 
-    @on "FormCancelled", @bound "cancel"
-    @on "FormSaved", @bound "save"
-    @on "SubmitFailed", @bound "errorHandled"
+    @on 'FormCancelled', @bound 'cancel'
+    @on 'FormSaved', @bound 'save'
+    @on 'SubmitFailed', @bound 'errorHandled'
 
-    @getDelegate().emit "EditItem", this
+    @getDelegate().emit 'EditItem', this
 
 
   decorateNoMachineState: (formWrapper) ->
@@ -83,7 +83,7 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
 
     if manyMachines
       @machineList = list = new AccountSshMachineList()
-      listController = new KDListViewController view : list
+      listController = new KDListViewController { view : list }
       listController.instantiateListItems @getData().machines
       list.addFooter()
       formWrapper.addSubView list
@@ -113,7 +113,7 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
 
   cancel: ->
 
-    @getDelegate().emit "RemoveItem", this
+    @getDelegate().emit 'RemoveItem', this
 
 
   save: ->
@@ -129,7 +129,7 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
     unless key
       showError "Key shouldn't be empty."
     else unless title
-      showError "Title required for SSH key."
+      showError 'Title required for SSH key.'
     else
       machines = switch type
         when ViewType.SingleMachine then @getData().machines
@@ -137,10 +137,10 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
         else []
 
       unless machines.length > 0
-        showError "VM(s) should be selected for SSH key"
+        showError 'VM(s) should be selected for SSH key'
       else
         @setData { title, key, machines }
-        @getDelegate().emit "NewItemSubmitted", this
+        @getDelegate().emit 'NewItemSubmitted', this
 
     @buttonsBar.buttons.save.hideLoader()
 

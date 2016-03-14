@@ -1,7 +1,5 @@
 utils                = require '../utils/utils.js'
-helpers              = require '../helpers/helpers.js'
 collaborationHelpers = require '../helpers/collaborationhelpers.js'
-assert               = require 'assert'
 
 
 module.exports =
@@ -30,9 +28,7 @@ module.exports =
 
   startReadOnlySession: (browser) ->
 
-    host        = utils.getUser no, 0
     hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    participant = utils.getUser no, 1
 
 
     hostCallback = ->

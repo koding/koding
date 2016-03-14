@@ -3,7 +3,6 @@ assert     = require 'assert'
 ideHelpers = require './idehelpers.js'
 utils      = require '../utils/utils.js'
 
-messagePane              = '.message-pane.privatemessage'
 chatBox                  = '.collaboration.message-pane'
 shareButtonSelector      = '.status-bar a.share:not(.loading):not(.appear-in-button)'
 startedButtonSelector    = '.status-bar a.share.active'
@@ -58,9 +57,6 @@ module.exports =
 
 
   endSessionFromStatusBar: (browser, shouldAssert = yes) ->
-
-    statusBarSelector       = '.status-bar .collab-status'
-    buttonContainerSelector = statusBarSelector + ' .button-container'
 
     browser
       .waitForElementVisible  startedButtonSelector, 20000
@@ -117,15 +113,12 @@ module.exports =
   joinSession: (browser, firstUser, secondUser, callback) ->
 
     firstUserName    = firstUser.username
-    secondUserName   = secondUser.username
     shareModal       = '.share-modal'
     fullName         = "#{shareModal} .user-details .fullname"
     acceptButton     = "#{shareModal} .kdbutton.green"
     rejectButton     = "#{shareModal} .kdbutton.red"
     selectedMachine  = '.sidebar-machine-box.selected'
     filetree         = '.ide-files-tab'
-    chatUsers        = "#{chatBox} .chat-heads"
-    userAvatar       = ".avatars .avatarview.online[href='/#{firstUserName}']"
     sessionLoading   = '.session-starting'
 
     console.log ' ✔ Getting collaboration link...'
@@ -301,9 +294,7 @@ module.exports =
     host                   = utils.getUser no, 0
     hostBrowser            = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     participant            = utils.getUser no, 1
-    secondUserName         = participant.username
     sharedMachineSelector  = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
-    informationModal       = '.kdmodal:not(.env-modal)'
 
     browser.pause 2500, => # wait for user.json creation
       if hostBrowser

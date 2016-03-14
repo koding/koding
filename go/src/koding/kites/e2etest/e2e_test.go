@@ -94,10 +94,10 @@ func TestMain(m *testing.M) {
 
 	l := multiconfig.MultiLoader(
 		&multiconfig.EnvironmentLoader{
-			Prefix: "test",
+			Prefix: "e2etest",
 		},
 		&multiconfig.FlagLoader{
-			EnvPrefix: "test",
+			EnvPrefix: "e2etest",
 			Args:      argsConfig,
 		},
 	)
@@ -113,11 +113,16 @@ func TestMain(m *testing.M) {
 		fmt.Printf("e2etest.Test = %s\n", &Test)
 	}
 
+	ktrl := NewKontrol()
+	ktrl.Start()
+
 	exit := m.Run()
 
 	if !Test.NoClean {
 		Test.cleanupRoute53()
 	}
+
+	ktrl.Close()
 
 	os.Exit(exit)
 }

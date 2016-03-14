@@ -160,6 +160,13 @@ type Tunnel struct {
 	// Optional field for TCP tunnels.
 	// Ignored field for HTTP tunnels.
 	IP net.IP
+
+	// StateChanges listens on state transitions.
+	//
+	// If ClientIdent field is empty, the StateChanges will receive
+	// state transition events for the newly created client.
+	// Otherwise setting this field is a nop.
+	StateChanges chan<- *tunnel.ClientStateChange
 }
 
 type TunnelTest struct {
@@ -261,6 +268,7 @@ func (tt *TunnelTest) serveSingle(ident string, t *Tunnel) (bool, error) {
 		LocalAddr:      l.Addr().String(),
 		FetchLocalAddr: tt.fetchLocalAddr,
 		Debug:          testing.Verbose(),
+		StateChanges:   t.StateChanges,
 	}
 
 	// Register tunnel:

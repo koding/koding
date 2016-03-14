@@ -84,7 +84,12 @@ func glob(glob string) ([]string, error) {
 	return files, nil
 }
 
-func readFile(path string) (map[string]interface{}, error) {
+// readFile reads file at path and returns content. It optinally takes offset
+// and blockSize as args. One difference between this and other generic Read
+// ops is this method optimizes returning empty bytes. For example if the
+// file size is only 1, but blockSize specified is 10, resulting byte slice will
+// be 1. This is done to optimize network traffic.
+func readFile(path string, offset, blockSize int64) (map[string]interface{}, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -96,12 +101,48 @@ func readFile(path string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	if fi.Size() > 50*1024*1024 {
-		return nil, fmt.Errorf("File larger than 50MiB.")
+	if fi.Size() > 50*1024*1024 && offset == 0 && blockSize == 0 {
+		return nil, fmt.Errorf("File larger than 50MiB. Please use offset and/or blockSize")
 	}
 
-	buf := make([]byte, fi.Size())
-	if _, err := io.ReadFull(file, buf); err != nil {
+	var buf []byte
+
+	// read entire file from start to end
+	if offset == 0 && blockSize == 0 {
+		buf = make([]byte, fi.Size())
+		if _, err = io.ReadFull(file, buf); err != nil {
+			return nil, err
+		}
+
+		return map[string]interface{}{"content": buf}, nil
+	}
+
+	size := blockSize
+
+	// read entire file from offset to end
+	if offset != 0 && blockSize == 0 {
+		size = fi.Size() - offset
+	}
+
+	// read file from start till blocksize
+	// if file size is less than blocksize, then return file sized block
+	if offset == 0 && blockSize != 0 {
+		if fi.Size() < blockSize {
+			size = fi.Size()
+		}
+	}
+
+	// read file from offset till blockSize
+	// if file size from offset is less than blockSize, then return offset
+	// to end of file sized block
+	if offset != 0 && blockSize != 0 {
+		if fi.Size()-offset < blockSize {
+			size = fi.Size() - offset
+		}
+	}
+
+	buf = make([]byte, size)
+	if _, err = file.ReadAt(buf, offset); err != nil {
 		return nil, err
 	}
 

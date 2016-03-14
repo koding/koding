@@ -20,6 +20,10 @@ func defaultKiteHome() string {
 	return "."
 }
 
+func defaultNoTunnel() bool {
+	return os.Getenv("KITE_NO_TUNNEL") == "1"
+}
+
 var (
 	flagIP          = flag.String("ip", "", "Change public ip")
 	flagPort        = flag.Int("port", 56789, "Change running port")
@@ -50,6 +54,7 @@ var (
 	// Tunnel flags
 	flagTunnelName    = flag.String("tunnel-name", "", "Enable tunneling by setting non-empty tunnel name")
 	flagTunnelKiteURL = flag.String("tunnel-kite-url", "", "Change default tunnel server kite URL")
+	flagNoTunnel      = flag.Bool("no-tunnel", defaultNoTunnel(), "Force tunnel connection off")
 )
 
 func main() {

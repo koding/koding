@@ -50,7 +50,7 @@ module.exports = class AccountListWrapper extends KDView
     privacyPolicy              : PrivacyPolicyView
     shortcuts                  : AccountEditShortcuts
 
-  viewAppended:->
+  viewAppended: ->
 
     { listType } = @getData()
     type         = if listType then listType or ''
@@ -58,7 +58,7 @@ module.exports = class AccountListWrapper extends KDView
     listViewClass   = if listClasses[type] then listClasses[type] else KDListView
     controllerClass = if listClasses["#{type}Controller"] then listClasses["#{type}Controller"]
 
-    @addSubView view = new listViewClass cssClass : type, delegate: this
+    @addSubView view = new listViewClass { cssClass : type, delegate: this }
 
     if controllerClass
       new controllerClass
