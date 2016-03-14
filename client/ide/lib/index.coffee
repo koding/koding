@@ -1691,7 +1691,7 @@ class IDEAppController extends AppController
 
     return  if not @layoutManager.isRestored and not @initialViewsReady
     return  unless @mountedMachine?.isRunning()
-    return  if @getMyPermission() is 'read'
+    return  if @getMyPermission() is 'read' and not @mountedMachine.isMine()
 
     kd.utils.stopDOMEvent e
 
