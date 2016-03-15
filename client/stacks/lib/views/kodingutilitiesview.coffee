@@ -5,7 +5,7 @@ Tracker = require 'app/util/tracker'
 
 module.exports = class KodingUtilitiesView extends kd.CustomScrollView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'KodingUtilitiesView', options.cssClass
 
@@ -32,8 +32,8 @@ module.exports = class KodingUtilitiesView extends kd.CustomScrollView
         else ''
         "#{kontrolUrl}curl -sL https://kodi.ng/d/kd | bash -s #{token}"
 
-      @kd?.destroy()
-      @wrapper.addSubView @kd = new kd.CustomHTMLView
+      @kdInstallView?.destroy()
+      @wrapper.addSubView @kdInstallView = new kd.CustomHTMLView
         partial : """
           <h2>KD: Koding + Your Localhost!</h2>
           <p><code>kd</code>  is a command line program that allows you to use your local
@@ -52,7 +52,7 @@ module.exports = class KodingUtilitiesView extends kd.CustomScrollView
         partial  : cmd
         click    : @bound 'copyCommand'
 
-      @kd.addSubView @cmd, 'code.block', yes
+      @kdInstallView.addSubView @cmd, 'code.block', yes
 
 
   copyCommand: (event) ->
