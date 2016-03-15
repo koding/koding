@@ -23,7 +23,7 @@ module.exports = class ProviderSelectionView extends JView
     enabledProviders = ['aws']
     enabledProviders.push 'vagrant'  if globals.config.environment in ['dev', 'sandbox']
 
-    @providers = new kd.CustomHTMLView cssClass: 'providers box-wrapper'
+    @providers = new kd.CustomHTMLView { cssClass: 'providers box-wrapper' }
 
     providers.forEach (provider) =>
       extraClass = 'coming-soon'
@@ -54,10 +54,10 @@ module.exports = class ProviderSelectionView extends JView
 
   pistachio: ->
 
-    return """
+    return '''
       <div class="header">
         <p class="title">What provider do you want to use?</p>
         <p class="description">Koding machines run on your own cloud infrastructure. You can switch providers later at any time.</p>
       </div>
       {{> @providers}}
-    """
+    '''

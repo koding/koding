@@ -14,7 +14,7 @@ module.exports = class ReadmeView extends StackBaseEditorTabView
 
     { stackTemplate } = @getOptions()
 
-    defaultContent = """
+    defaultContent = '''
       ##### Readme text for this stack template
 
       You can write down a readme text for new users.
@@ -22,7 +22,7 @@ module.exports = class ReadmeView extends StackBaseEditorTabView
       You can use markdown with the readme content.
 
 
-    """
+    '''
 
     content = if stackTemplate?.description \
       then Encoder.htmlDecode stackTemplate?.description
