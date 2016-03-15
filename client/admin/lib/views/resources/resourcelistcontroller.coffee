@@ -19,7 +19,7 @@ module.exports = class ResourceListController extends AccountListViewController
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
         spinnerOptions    :
-          size            : width: 28
+          size            : { width: 28 }
 
     super options, data
 
@@ -59,7 +59,7 @@ module.exports = class ResourceListController extends AccountListViewController
     { groupsController } = kd.singletons
 
     options.limit ?= @getOption 'limit'
-    options.sort   = '_id' : -1
+    options.sort   = { '_id' : -1 }
 
     if query
       inJson = yamlToJson query
@@ -72,7 +72,7 @@ module.exports = class ResourceListController extends AccountListViewController
 
       if err
         @hideLazyLoader()
-        showError err, KodingError: "Failed to fetch data, try again later."
+        showError err, { KodingError: 'Failed to fetch data, try again later.' }
       else
         callback err, resources
 

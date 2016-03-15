@@ -33,7 +33,7 @@ module.exports = class GroupPermissionsView extends KDCustomScrollView
 
     group = @getData()
 
-    group.fetchRoles (err,roles) =>
+    group.fetchRoles (err, roles) =>
 
       return showError err  if err
 
@@ -41,7 +41,7 @@ module.exports = class GroupPermissionsView extends KDCustomScrollView
 
         return showError err  if err
 
-        @wrapper.addSubView header = new KDCustomHTMLView cssClass : 'header'
+        @wrapper.addSubView header = new KDCustomHTMLView { cssClass : 'header' }
 
         for role in roles when role.title isnt 'owner'
           title = role.title.capitalize()
@@ -53,7 +53,7 @@ module.exports = class GroupPermissionsView extends KDCustomScrollView
 
         @wrapper.addSubView permissions = new PermissionsForm { permissionSet, roles }, group
 
-        permissions.on 'RoleWasAdded', (newPermissions,role) =>
+        permissions.on 'RoleWasAdded', (newPermissions, role) =>
           permissions.destroy()
           @addPermissionsView()
           @loader.show()

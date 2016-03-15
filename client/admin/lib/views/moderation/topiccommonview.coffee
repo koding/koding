@@ -50,7 +50,7 @@ module.exports = class TopicCommonView extends KDView
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
         spinnerOptions    :
-          size            : width: 28
+          size            : { width: 28 }
 
     @addSubView @listController.getView()
 
@@ -74,12 +74,12 @@ module.exports = class TopicCommonView extends KDView
       limit                 : @getOptions().itemLimit
       skip                  : @skip
       showModerationNeeded  : true
-      type                  : @getOptions().typeConstant or= "topic"
+      type                  : @getOptions().typeConstant or= 'topic'
 
     kd.singletons.socialapi.channel.list options, @bound 'listFetchResults'
 
 
-  searchChannels: (query = "") ->
+  searchChannels: (query = '') ->
 
     return if @isFetching
     @isFetching = yes
@@ -89,7 +89,7 @@ module.exports = class TopicCommonView extends KDView
       limit                 : @getOptions().itemLimit
       skip                  : @searchSkip
       showModerationNeeded  : true
-      type                  : @getOptions().typeConstant or= "topic"
+      type                  : @getOptions().typeConstant or= 'topic'
 
     kd.singletons.socialapi.channel.searchTopics options, @bound 'listSearchResults'
 
@@ -157,7 +157,7 @@ module.exports = class TopicCommonView extends KDView
     @listController.lazyLoader.show()
 
 
-  isSameSearch : (query = "") ->
+  isSameSearch : (query = '') ->
     @lastQuery or= ''
 
     return query is @lastQuery

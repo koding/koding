@@ -8,7 +8,7 @@ module.exports = class SelectableItemView extends KDListItemView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'similar-item'
     super options, data
@@ -24,7 +24,7 @@ module.exports = class SelectableItemView extends KDListItemView
 
 
   pistachio: ->
-    """
+    '''
       {{> @switcher }}
       {{> @label }}
-    """
+    '''

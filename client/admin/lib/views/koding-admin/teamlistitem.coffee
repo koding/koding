@@ -17,7 +17,7 @@ module.exports = class TeamListItem extends kd.ListItemView
   constructor: (options = {}, data) ->
 
     options.type   or= 'member'
-    options.cssClass = kd.utils.curry "team-item clearfix", options.cssClass
+    options.cssClass = kd.utils.curry 'team-item clearfix', options.cssClass
 
     super options, data
 
@@ -43,7 +43,7 @@ module.exports = class TeamListItem extends kd.ListItemView
     then "Current plan is #{plan}."
     else 'Currently no plan is set, which means there is no limit for this team.'
 
-    @details.addSubView new kd.View partial: message
+    @details.addSubView new kd.View { partial: message }
 
     @details.addSubView new kd.ButtonView
       title    : 'Change Team Plan'
@@ -97,7 +97,7 @@ module.exports = class TeamListItem extends kd.ListItemView
           @hideLoader()
           return  if showError err
 
-          details = objectToString feedback, separator: "  "
+          details = objectToString feedback, { separator: '  ' }
           content = applyMarkdown "```json \n#{details}\n```"
 
           modal = new kd.ModalView
@@ -129,7 +129,7 @@ module.exports = class TeamListItem extends kd.ListItemView
         then { restriction: 'No restriction' }
         else _plans[plan]
 
-      details = objectToString data, separator: "  "
+      details = objectToString data, { separator: '  ' }
 
       applyMarkdown "```json \n#{details}\n```"
 
@@ -184,7 +184,7 @@ module.exports = class TeamListItem extends kd.ListItemView
                     button.hideLoader()
 
                     unless showError err
-                      new kd.NotificationView title: 'Team plan has been changed!'
+                      new kd.NotificationView { title: 'Team plan has been changed!' }
                       delegate.emit 'ReloadRequested'
                       modal.destroy()
 

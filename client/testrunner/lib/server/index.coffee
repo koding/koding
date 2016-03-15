@@ -20,7 +20,7 @@ dispatcher = new EventEmitter
 
 # start watching compiled js files, whenever something changes over there
 # dispatcher's gonna dispatch a change event.
-watcher = chokidar.watch jsFiles, {persistent: yes}
+watcher = chokidar.watch jsFiles, { persistent: yes }
 watcher.on 'change', -> dispatcher.emit 'change'
 
 # connected socket registry.

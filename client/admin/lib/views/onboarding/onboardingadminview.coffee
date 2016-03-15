@@ -10,16 +10,16 @@ module.exports = class OnboardingAdminView extends CustomViewsAdminView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "onboarding-view custom-views"
-    options.viewType = "ONBOARDING"
+    options.cssClass = 'onboarding-view custom-views'
+    options.viewType = 'ONBOARDING'
 
     super options, data
 
     @addNewButton  = new KDButtonView
-      title        : "ADD NEW GROUP"
-      cssClass     : "add-new solid green medium"
+      title        : 'ADD NEW GROUP'
+      cssClass     : 'add-new solid green medium'
       callback     : =>
-        @setClass  "form-visible"
+        @setClass  'form-visible'
         sectionForm = new OnboardingSectionForm()
         @bindFormEvents sectionForm
         @addSubView sectionForm
@@ -32,7 +32,7 @@ module.exports = class OnboardingAdminView extends CustomViewsAdminView
       view = new OnboardingGroupView
         delegate    : this
         title       : section.name
-        cssClass    : "onboarding-items"
+        cssClass    : 'onboarding-items'
         formClass   : OnboardingAddNewForm
       , section
       @bindFormEvents view

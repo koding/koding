@@ -76,6 +76,8 @@ class ShortcutsController extends events.EventEmitter
 
     super()
 
+    @setMaxListeners 0
+
 
   # Prepares buffer for the next batch of changes.
   #

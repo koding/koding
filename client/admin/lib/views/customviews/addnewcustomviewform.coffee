@@ -12,26 +12,26 @@ module.exports = class AddNewCustomViewForm extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass   = "add-new-view"
+    options.cssClass   = 'add-new-view'
 
     super options, data
 
     @input        = new KDInputView
-      cssClass    : "big-input"
-      type        : "text"
-      defaultValue: @getData()?.name or ""
+      cssClass    : 'big-input'
+      type        : 'text'
+      defaultValue: @getData()?.name or ''
 
     @cancelButton = new KDButtonView
-      title       : "CANCEL"
-      cssClass    : "solid red medium"
+      title       : 'CANCEL'
+      cssClass    : 'solid red medium'
       callback    : =>
         @destroy()
-        @getDelegate().emit "AddingNewViewCancelled"
+        @getDelegate().emit 'AddingNewViewCancelled'
 
     @saveButton   = new KDButtonView
-      title       : "SAVE"
-      cssClass    : "solid green medium"
-      callback    : @bound "addNew"
+      title       : 'SAVE'
+      cssClass    : 'solid green medium'
+      callback    : @bound 'addNew'
 
     @editor = new KDCustomHTMLView
 
@@ -39,24 +39,24 @@ module.exports = class AddNewCustomViewForm extends JView
   addNew: ->
 
     jCustomPartial    = @getData()
-    emptyValues       = { html: "", css: "", js: "" }
+    emptyValues       = { html: '', css: '', js: '' }
     data              =
       name            : @input.getValue()
       partial         : emptyValues
-      partialType     : @getOption "viewType"
+      partialType     : @getOption 'viewType'
       isActive        : jCustomPartial?.isActive        ? no
-      viewInstance    : jCustomPartial?.viewInstance    or ""
+      viewInstance    : jCustomPartial?.viewInstance    or ''
       isPreview       : jCustomPartial?.isPreview       ? no
       previewInstance : jCustomPartial?.previewInstance ? no
 
     if jCustomPartial
       jCustomPartial.update data, (err, customPartial) =>
         return kd.warn err  if err
-        @getDelegate().emit "NewViewAdded", customPartial
+        @getDelegate().emit 'NewViewAdded', customPartial
     else
       remote.api.JCustomPartials.create data, (err, customPartial) =>
         return kd.warn err  if err
-        @getDelegate().emit "NewViewAdded", customPartial
+        @getDelegate().emit 'NewViewAdded', customPartial
 
 
   encode: (data) ->
@@ -72,7 +72,7 @@ module.exports = class AddNewCustomViewForm extends JView
 
   pistachio: ->
 
-    """
+    '''
       <p>Name:</p>
       {{> @input}}
       <p>Code:</p>
@@ -81,4 +81,4 @@ module.exports = class AddNewCustomViewForm extends JView
         {{> @cancelButton}}
         {{> @saveButton}}
       </div>
-    """
+    '''
