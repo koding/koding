@@ -56,6 +56,10 @@ func (c *Controller) HandleChannel(channel *models.Channel) error {
 		if err := ch.Delete(); err != nil {
 			errs = multierror.Append(errs, err)
 		}
+
+		if err := ch.RemoveChannelLinks(); err != nil {
+			return err
+		}
 	}
 
 	if errs.ErrorOrNil() != nil {
