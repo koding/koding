@@ -9,7 +9,7 @@ module.exports = class WelcomeAppController extends KDViewController
     name  : 'Welcome'
     route : '/Welcome'
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.view    = new WelcomeAppView
       cssClass      : 'content-page welcome'
