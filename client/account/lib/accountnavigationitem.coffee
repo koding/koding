@@ -7,7 +7,7 @@ module.exports = class AccountNavigationItem extends KDListItemView
   constructor: (options = {}, data) ->
 
     options.tagName    = 'a'
-    options.route      = '/Account/#{data.slug}'
+    options.route      = "/Account/#{data.slug}"
     options.attributes = { href : options.route }
     options.cssClass   = "AppModal-navItem #{data.slug.toLowerCase()}"
 
