@@ -282,6 +282,10 @@ func (p *PingKite) Unsubscribe(ch chan<- ChangeSummary) {
 		delete(p.subscribers, ch)
 		close(ch)
 	}
+
+	if len(p.subscribers) == 0 {
+		p.Stop()
+	}
 }
 
 // IsConnected returns if we are actively pinging and the last ping was success.
