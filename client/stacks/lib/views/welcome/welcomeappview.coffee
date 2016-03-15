@@ -1,12 +1,8 @@
-$                   = require 'jquery'
-kd                  = require 'kd'
-globals             = require 'globals'
-whoami              = require 'app/util/whoami'
-{ boxes, HANDLERS } = require './boxes'
-Tracker             = require 'app/util/tracker'
-collectCredentials  = require 'app/util/collectCredentials'
+kd                 = require 'kd'
+collectCredentials = require 'app/util/collectCredentials'
+{ BULLETS }        = require './boxes'
 
-module.exports = class WelcomeAppView extends kd.View
+module.exports = class WelcomeAppView extends kd.CustomScrollView
 
   constructor:(options = {}, data)->
 
@@ -14,21 +10,22 @@ module.exports = class WelcomeAppView extends kd.View
 
     super options, data
 
-    @addSubView @welcome = new kd.CustomHTMLView
+
+  viewAppended: ->
+
+    super
+
+    @wrapper.addSubView @welcome = new kd.CustomHTMLView
       tagName : 'section'
       partial : '''
         <h2>Welcome to Koding For Teams!</h2>
-        <p>Get your team working faster.</p>
+        <p>Your new dev environment in the cloud.</p>
         <div class="artboard"></div>
         '''
 
     @welcome.addSubView @instructions = new kd.CustomHTMLView
       tagName  : 'ul'
-      cssClass : 'boxes clearfix'
-      click    : @bound 'handleClicks'
-
-
-  viewAppended: ->
+      cssClass : 'bullets clearfix'
 
     { groupsController, computeController } = kd.singletons
     { stacks }                              = computeController
@@ -43,164 +40,39 @@ module.exports = class WelcomeAppView extends kd.View
         return  kd.warn err  if err
         isAdmin = 'admin' in (roles ? [])
         if isAdmin
-        then view.putAdminInstructions()
-        else view.putUserInstructions()
+        then view.putAdminBullets()
+        else view.putUserBullets()
 
 
-  handleClicks: (event) ->
-
-    el = event.target
-
-    return yes  if el.tagName isnt 'A'
-
-    $(el).closest('li').next().removeClass 'dim'
-
-    return yes  if el.getAttribute('href') isnt '#'
-
-    { handler } = el.dataset
-
-    return yes  unless handler
-
-    kd.utils.stopDOMEvent event
-
-    switch handler
-      when HANDLERS.skip
-        el.classList.add 'dim'
-
-      when HANDLERS.messageAdmin then @messageAdmin()
-      when HANDLERS.installKd then @showKdInstallStep el
-      # when HANDLERS.buildStack then @buildStack()
-      else console.log "#{handler} not yet implemented"
-
-
-  # buildStack: ->
-
-  #   { computeController } = kd.singletons
-  #   { stacks }            = computeController
-
-  #   computeController.verifyStackRequirements stacks.first
-
-
-  messageAdmin: ->
-
-    ActivityFlux = require 'activity/flux'
-    ActivityFlux.actions.thread.switchToDefaultChannelForStackRequest()
-
-
-  showKdInstallStep: (el) ->
-
-    return @installKd el  if @cmd
-
-    whoami().fetchOtaToken (err, token) =>
-
-      return @cmd = null  if err
-
-      kontrolUrl = if globals.config.environment in ['dev', 'sandbox']
-      then "export KONTROLURL=#{globals.config.newkontrol.url}; "
-      else ''
-
-      @cmd = "#{kontrolUrl}curl -sL https://kodi.ng/d/kd | bash -s #{token}"
-
-      @installKd el
-
-
-  installKd: (el) ->
-
-    return new kd.NotificationView 'Please try again later!'  unless @cmd
-
-    el    = document.querySelectorAll('.copy-tooltip.install-kd-command')[0]
-    cmdEl = document.querySelectorAll('.copy-tooltip.install-kd-command > div > span')[0]
-
-    cmdEl.innerHTML = @cmd
-    el.classList.remove 'hidden'
-    kd.utils.selectText cmdEl
-
-    try
-      copied = document.execCommand 'copy'
-      couldntCopy = "couldn't copy"
-      throw couldntCopy  unless copied
-    catch
-      hintEl = document.querySelectorAll('.copy-tooltip.install-kd-command > i')[0]
-      key    = if globals.os is 'mac' then 'Cmd + C' else 'Ctrl + C'
-
-      hintEl.innerHTML = "Hit #{key} to copy!"
-
-    Tracker.track Tracker.KD_INSTALLED
-
-    kd.singletons.mainView.mainTabView.scrollToBottom 200
-
-
-  putAdminInstructions: ->
+  putAdminBullets: ->
 
     { stacks } = kd.singletons.computeController
 
     stacksBox = if stacks.length
       switch stacks.first.status
-        when 'NotInitialized' then "<li>#{boxes.buildStack}</li>"
-        else "<li>#{boxes.completeStack}</li>"
-    else "<li>#{boxes.configureStack}</li>"
+        when 'NotInitialized' then "<li>#{BULLETS.buildStack}</li>"
+        else ''
+    else "<li>#{BULLETS.adminStackCreation}</li>"
 
     @instructions.updatePartial """
       #{stacksBox}
-      <li class="dim">#{boxes.inviteTeam}</li>
-      <li class="dim">#{boxes.installKd}</li>
+      <li>#{BULLETS.inviteTeam}</li>
+      <li>#{BULLETS.installKd}</li>
       """
 
 
-  putUserInstructions: ->
+  putUserBullets: ->
 
     { stacks } = kd.singletons.computeController
 
     stacksBox = if stacks.length
       switch stacks.first.status.state
-        when 'NotInitialized' then "<li>#{boxes.buildStack}</li>"
-        else "<li>#{boxes.pendingStack}</li>"
-    else "<li>#{boxes.pendingStack}</li>"
+        when 'NotInitialized' then "<li>#{BULLETS.buildStack}</li>"
+        else "<li class='disabled'>#{BULLETS.pendingStack}</li>"
+    else "<li class='disabled'>#{BULLETS.pendingStack}</li>"
 
     @instructions.updatePartial """
       #{stacksBox}
-      <li class="dim">#{boxes.installKd}</li>
+      <li>#{BULLETS.userStackCreation}</li>
+      <li>#{BULLETS.installKd}</li>
       """
-
-
-  putProviderInstructions: (providers) ->
-
-    partial = ''
-    for p, i in providers
-      partial += """
-        <li>
-          <a href='#'>
-            <cite>#{i+1}</cite>
-            <div>
-              <span>Please authenticate with #{p}!</span>
-              <span>we'll be using oauth...</span>
-            </div>
-          </a>
-        </li>
-        """
-
-    @welcome.addSubView new kd.CustomHTMLView
-      tagName : 'ul'
-      partial : partial
-
-
-  putVariableInstructions: (variables) ->
-
-    i       = 0
-    partial = ''
-    for own key, val of variables
-      partial += """
-        <li>
-          <a href='#'>
-            <cite>#{++i}</cite>
-            <div>
-              <span>Please type #{key}!</span>
-              <span>this will be kept safe & secure</span>
-            </div>
-          </a>
-        </li>
-        """
-
-    @welcome.addSubView new kd.CustomHTMLView
-      tagName : 'ul'
-      partial : partial
