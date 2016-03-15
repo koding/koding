@@ -138,6 +138,8 @@ When you feel something is wrong, first of all just notify others that you reali
 
 We have chosen [migrate](https://github.com/mattes/migrate) package as database migrator. Instead of adding new sql scripts manually under db/sql/definitions, we are versioning database updates via this package. Whenever you initialize your development environment via `./run` command, changes in migration files are applied automatically, and you do not need to worry about them.
 
+ps: alter type does not work with migrate package
+
 ### Creating new migration file
 
 For creating a new empty version file, you should call:
@@ -217,4 +219,3 @@ migrate -url "postgres://[hostname]:[port]/[dbname]?user=[user]&password=[passwo
 ```
 
 We did not automize this process, because it would cause some problems if we apply them automatically. For instance if we apply changes to latest it would broke some other stuff on production.
-
