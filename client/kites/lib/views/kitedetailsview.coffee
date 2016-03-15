@@ -13,32 +13,32 @@ module.exports = class KiteDetailsView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass  = kd.utils.curry "content-page kite-details", options.cssClass
+    options.cssClass  = kd.utils.curry 'content-page kite-details', options.cssClass
 
     super options, data
 
     @timeAgo     = new KDTimeAgoView {}, new Date @getData().createdAt
     @productForm = new KiteProductForm null, @getData()
-    @productForm.on "PlanSelected", @bound "showPaymentModal"
+    @productForm.on 'PlanSelected', @bound 'showPaymentModal'
 
   showPaymentModal: (plan) ->
-    placeholder = new KDView cssClass: "placeholder"
-    payment     = kd.singleton "paymentController"
-    workflow    = payment.createUpgradeWorkflow productForm: placeholder
+    placeholder = new KDView { cssClass: 'placeholder' }
+    payment     = kd.singleton 'paymentController'
+    workflow    = payment.createUpgradeWorkflow { productForm: placeholder }
 
-    workflow.on "SubscriptionTransitionCompleted", -> kd.log ">>>>"
-    workflow.on "Failed", (err) -> showError err
+    workflow.on 'SubscriptionTransitionCompleted', -> kd.log '>>>>'
+    workflow.on 'Failed', (err) -> showError err
 
     new KDModalView
       view     : workflow
       width    : 1000
       overlay  : yes
-      cssClass : "payment-modal"
+      cssClass : 'payment-modal'
 
-    kd.utils.defer placeholder.lazyBound "emit", "PlanSelected", plan
+    kd.utils.defer placeholder.lazyBound 'emit', 'PlanSelected', plan
 
   pistachio: ->
-    {name, createdAt, manifest:{description, author, authorNick, readme}} = @getData()
+    { name, createdAt, manifest: { description, author, authorNick, readme } } = @getData()
 
     """
       <div class="kdview kdscrollview">

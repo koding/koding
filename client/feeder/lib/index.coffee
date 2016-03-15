@@ -10,17 +10,17 @@ module.exports = class FeederAppController extends KDController
     name       : 'Feeder'
     background : yes
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
 
     options.view    = new KDView
-    options.appInfo = name : 'Feeder'
+    options.appInfo = { name : 'Feeder' }
 
     super options, data
 
-  createContentFeedController:(options, callback, feedControllerConstructor)->
+  createContentFeedController: (options, callback, feedControllerConstructor) ->
 
     callback? \
-      if feedControllerConstructor?
-        new feedControllerConstructor options
-      else
-        new FeedController options
+    if feedControllerConstructor?
+      new feedControllerConstructor { options }
+    else
+      new FeedController { options }

@@ -7,25 +7,25 @@ JCustomHTMLView = require 'app/jcustomhtmlview'
 
 module.exports = class HeaderNavigationController extends KDController
 
-  constructor:(options, data)->
+  constructor: (options, data) ->
 
     super
 
-    mainView       = @getDelegate()
-    {items, title} = @getData()
-    @currentItem   = items.first
+    mainView         = @getDelegate()
+    { items, title } = @getData()
+    @currentItem     = items.first
 
     itemsObj = {}
-    items.forEach (item)=>
+    items.forEach (item) =>
       itemsObj[item.title] =
-        callback : @emit.bind @, "contextMenuItemClicked", item
+        callback : @emit.bind this, 'contextMenuItemClicked', item
         action   : item.action
 
     @activeFacet = new JCustomHTMLView
-      tagName   : "a"
-      cssClass  : "active-facet"
-      pistachio : "{span{#(title)}}<cite/>"
-      click     : (event)=>
+      tagName   : 'a'
+      cssClass  : 'active-facet'
+      pistachio : '{span{#(title)}}<cite/>'
+      click     : (event) =>
         offset = @activeFacet.$().offset()
         event.preventDefault()
         @contextMenu = new KDContextMenu
@@ -34,7 +34,7 @@ module.exports = class HeaderNavigationController extends KDController
           x           : offset.left + @activeFacet.getWidth() - 166
           y           : offset.top + 35
           arrow       :
-            placement : "top"
+            placement : 'top'
             margin    : -20
         , itemsObj
     ,
@@ -46,19 +46,19 @@ module.exports = class HeaderNavigationController extends KDController
     #   name          : items.first.action
 
     mainView.addSubView new KDCustomHTMLView
-      tagName  : "span"
-      cssClass : "title"
+      tagName  : 'span'
+      cssClass : 'title'
       partial  : "#{title}:"
 
     mainView.addSubView @activeFacet
 
-    @on "contextMenuItemClicked", (item)=>
+    @on 'contextMenuItemClicked', (item) =>
       @contextMenu?.destroy()
       @currentItem = item
-      @emit "NavItemReceivedClick", item
+      @emit 'NavItemReceivedClick', item
 
-  selectItem:(item)->
+  selectItem: (item) ->
     @currentItem = item
-    {title}      = item
+    { title }    = item
     @activeFacet.setData { title }
     @activeFacet.render()
