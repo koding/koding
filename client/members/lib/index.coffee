@@ -79,7 +79,6 @@ module.exports = class MembersAppController extends AppController
       contentDisplay.addSubView feederView
 
   prepareFeederView:(account, callback)->
-    windowController = kd.getSingleton('windowController')
 
     if isMine account
       owner   = "you"

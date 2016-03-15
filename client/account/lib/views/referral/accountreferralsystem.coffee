@@ -11,15 +11,15 @@ module.exports      = class AccountReferralSystem extends kd.View
   viewAppended: ->
 
     limit  = 5
-    loader = @addTo this, loader: 'initial-loader'
+    loader = @addTo this, { loader: 'initial-loader' }
 
-    @fetcher {limit}, (err, data) =>
+    @fetcher { limit }, (err, data) =>
 
       loader.destroy()
 
       return  if not data or showError err
 
-      {rewards, average, total} = data
+      { rewards, average, total } = data
 
       average ?= 6
       total   /= 1000
@@ -29,9 +29,9 @@ module.exports      = class AccountReferralSystem extends kd.View
         container_top      :
           totalSpace       : total
           shareBox         :
-            title          : "You can earn up to 7GB of free disk space
-                              by sharing your referral link with your friends."
-            subtitle       : "Share on social media and get more referrals."
+            title          : 'You can earn up to 7GB of free disk space
+                              by sharing your referral link with your friends.'
+            subtitle       : 'Share on social media and get more referrals.'
         container_bottom   :
           progress_average :
             title          : 'Average space earned'
@@ -43,10 +43,10 @@ module.exports      = class AccountReferralSystem extends kd.View
             max            : maxGiven
             current        : total
             color          : if total > average then 'green' else 'yellow'
-          list             : {data: rewards, @fetcher, limit}
+          list             : { data: rewards, @fetcher, limit }
 
 
   fetcher: (options = {}, callback) ->
-    query         = type: 'disk'
-    options.sort ?= createdAt : -1
+    query         = { type: 'disk' }
+    options.sort ?= { createdAt : -1 }
     remote.api.JReward.fetchCustomData query, options, callback

@@ -11,11 +11,11 @@ Encoder              = require 'htmlencode'
 
 module.exports = class AccountSshKeyListItem extends KDListItemView
 
-  setDomElement:(cssClass)->
+  setDomElement: (cssClass) ->
     @domElement = $ "<li class='kdview clearfix #{cssClass}'></li>"
 
 
-  viewAppended:->
+  viewAppended: ->
 
     super
     @form = form = new KDFormViewWithFields
@@ -46,14 +46,14 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
           title         : 'Delete'
           callback      : => @emit 'FormDeleted'
 
-    {title, key} = @getData()
+    { title, key } = @getData()
 
-    form.inputs["title"].setValue Encoder.htmlDecode title  if title
-    form.inputs["key"].setValue key if key
+    form.inputs['title'].setValue Encoder.htmlDecode title  if title
+    form.inputs['key'].setValue key if key
 
     @info = info = new KDCustomHTMLView
-      tagName  : "div"
-      cssClass : "ssh-key-item clearfix"
+      tagName  : 'div'
+      cssClass : 'ssh-key-item clearfix'
       partial  : """
       <div class='ssh-key-info'>
         <h4><span class="title">#{@getData().title}</span></h4>
@@ -64,73 +64,73 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
     info.addSubView buttons = new KDCustomHTMLView
       cssClass : 'buttons'
 
-    buttons.addSubView editLink = new KDButtonView
+    buttons.addSubView new KDButtonView
       iconOnly : yes
-      cssClass : "edit"
-      callback : @bound "handleEdit"
+      cssClass : 'edit'
+      callback : @bound 'handleEdit'
 
-    buttons.addSubView deleteLink = new KDButtonView
+    buttons.addSubView new KDButtonView
       iconOnly : yes
-      cssClass : "delete"
-      callback : @bound "deleteItem"
+      cssClass : 'delete'
+      callback : @bound 'deleteItem'
 
     @swappable = swappable = new AccountsSwappable
-      views : [form,info]
-      cssClass : "posstatic"
+      views : [form, info]
+      cssClass : 'posstatic'
 
-    @addSubView swappable,".swappable-wrapper"
+    @addSubView swappable, '.swappable-wrapper'
 
-    @on "FormCancelled", @bound "cancelItem"
-    @on "FormSaved", @bound "saveItem"
-    @on "FormDeleted", @bound "deleteItem"
+    @on 'FormCancelled', @bound 'cancelItem'
+    @on 'FormSaved', @bound 'saveItem'
+    @on 'FormDeleted', @bound 'deleteItem'
 
 
   handleEdit: ->
 
     @form.buttons.remove.show()
     @swappable.swapViews()
-    @getDelegate().emit "EditItem", this
+    @getDelegate().emit 'EditItem', this
 
 
   cancelItem: (skipEvent) ->
 
-    {key} = @getData()
+    { key } = @getData()
     if key
-      @getDelegate().emit "CancelItem", this  unless skipEvent
+      @getDelegate().emit 'CancelItem', this  unless skipEvent
       @swappable.swapViews()
     else
       @deleteItem()
 
 
-  deleteItem:->
+  deleteItem: ->
 
-    @getDelegate().emit "RemoveItem", this
+    @getDelegate().emit 'RemoveItem', this
 
 
-  saveItem:->
+  saveItem: ->
 
     @form.buttons.save.showLoader()
     @setData
-      title : @form.inputs["title"].getValue()
-      key   : @form.inputs["key"].getValue()
+      title : @form.inputs['title'].getValue()
+      key   : @form.inputs['key'].getValue()
 
-    {key, title} = @getData()
+    { key, title } = @getData()
 
     if key and title
       @info.$('span.title').text title
-      @info.$('span.key').text "#{key.substr(0,45)} . . . #{key.substr(-25)}"
+      @info.$('span.key').text "#{key.substr(0, 45)} . . . #{key.substr(-25)}"
       @swappable.swapViews()
-      @getDelegate().emit "UpdatedItems"
+      @getDelegate().emit 'UpdatedItems'
     else unless key
       new KDNotificationView
         title : "Key shouldn't be empty."
     else unless title
       new KDNotificationView
-        title : "Title required for SSH key."
+        title : 'Title required for SSH key.'
     @form.buttons.save.hideLoader()
 
 
-  partial:(data)->
+  partial: (data) ->
     """
       <div class='swappableish swappable-wrapper posstatic'></div>
     """

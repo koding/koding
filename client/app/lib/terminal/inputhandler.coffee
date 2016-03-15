@@ -2,7 +2,6 @@ module.exports = class InputHandler
 
   ESC = "\x1B";
   CSI = ESC + "[";
-  OSC = ESC + "]";
   SS3 = ESC + "O";
 
   KEY_SEQUENCES:

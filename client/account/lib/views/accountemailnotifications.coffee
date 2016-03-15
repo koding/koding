@@ -1,7 +1,6 @@
 kd                = require 'kd'
 KDCustomHTMLView  = kd.CustomHTMLView
 KDLoaderView      = kd.LoaderView
-KDSelectBox       = kd.SelectBox
 KDView            = kd.View
 whoami            = require 'app/util/whoami'
 notify_           = require 'app/util/notify_'
@@ -23,7 +22,7 @@ module.exports = class AccountEmailNotifications extends KDView
 
       path = kd.singletons.router.getCurrentPath()
 
-      if path.search("unsubscribe") > -1
+      if path.search('unsubscribe') > -1
         globalFlag  = no
         frequency.global = globalFlag
         notify_ 'You are unsubscribed from all email notifications.'
@@ -59,13 +58,13 @@ module.exports = class AccountEmailNotifications extends KDView
 
     for own flag, field of fields
 
-      return @["#{flag}FieldAdded"]? frequency[flag]  if field.title is null or field.title is ""
+      return @["#{flag}FieldAdded"]? frequency[flag]  if field.title is null or field.title is ''
 
-      @list.addSubView field.formView = new KDCustomHTMLView tagName : 'li'
+      @list.addSubView field.formView = new KDCustomHTMLView { tagName : 'li' }
 
       title = new KDCustomHTMLView
         partial  : field.title
-        cssClass : "title"
+        cssClass : 'title'
 
       fields[flag].switch = fieldSwitch = new KodingSwitch
         defaultValue  : frequency[flag]
@@ -74,8 +73,8 @@ module.exports = class AccountEmailNotifications extends KDView
 
       fields[flag].loader = new KDLoaderView
         cssClass      : 'email-on-off-loader'
-        size          : width : 12
-        loaderOptions : color : "#FFFFFF"
+        size          : { width : 12 }
+        loaderOptions : { color : '#FFFFFF' }
 
       field.formView.addSubView fieldSwitch
       field.formView.addSubView title
@@ -95,7 +94,7 @@ module.exports = class AccountEmailNotifications extends KDView
     whoami().setEmailPreferences prefs, (err) =>
       return @fields[flag].loader.hide()  unless err
 
-      @emit 'EmailPrefSwitched', flag, !state
+      @emit 'EmailPrefSwitched', flag, not state
       notify_ 'Failed to change state'
 
 

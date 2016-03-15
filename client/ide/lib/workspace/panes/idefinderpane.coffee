@@ -16,7 +16,6 @@ module.exports = class IDEFinderPane extends IDEPane
     super options, data
 
     appManager  = kd.getSingleton 'appManager'
-    computeCtrl = kd.getSingleton 'computeController'
 
     appManager.open 'Finder', (finderApp) =>
       fc = @finderController = finderApp.create

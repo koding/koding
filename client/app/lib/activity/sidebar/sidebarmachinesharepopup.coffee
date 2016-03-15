@@ -1,9 +1,7 @@
 kd               = require 'kd'
-nick             = require 'app/util/nick'
 async            = require 'async'
 KDView           = kd.View
 remote           = require('app/remote').getInstance()
-Machine          = require 'app/providers/machine'
 showError        = require 'app/util/showError'
 AvatarView       = require 'app/commonviews/avatarviews/avatarview'
 KDModalView      = kd.ModalView

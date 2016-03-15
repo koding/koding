@@ -12,7 +12,6 @@ module.exports = class TeamCongratzTab extends kd.TabPaneView
     super options, data
 
     { mainController } = kd.singletons
-    name               = @getOption 'name'
 
     @header = new MainHeaderView
       cssClass : 'team'

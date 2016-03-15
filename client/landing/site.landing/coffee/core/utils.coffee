@@ -40,7 +40,10 @@ module.exports = utils = {
   getMainDomain: ->
 
     { hostname, port } = location
-    domain = if prefix = hostname.split('.').shift() in ['dev', 'sandbox', 'latest']
+    kodingDomains      = ['dev', 'sandbox', 'latest', 'koding']
+    prefix             = hostname.split('.').shift()
+
+    domain = if prefix in kodingDomains
     then hostname
     else hostname.split('.').slice(1).join('.')
 

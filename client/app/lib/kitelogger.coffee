@@ -10,7 +10,6 @@ module.exports = class KiteLogger
 
   @log = (kiteName, rpcCall, state, err) ->
 
-    _log = if state is 'failed' then 'warn' else 'info'
 
     # Comment-out following lines if you need extensive logging
     # for all the kite calls from client side ~ GG

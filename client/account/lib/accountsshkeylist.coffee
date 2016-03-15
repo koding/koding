@@ -6,9 +6,9 @@ AccountSshKeyListItem = require './accountsshkeylistitem'
 
 module.exports = class AccountSshKeyList extends KDListView
 
-  constructor:(options,data)->
+  constructor: (options, data) ->
     options = $.extend
-      tagName       : "ul"
+      tagName       : 'ul'
       itemClass  : AccountSshKeyListItem
-    ,options
-    super options,data
+    , options
+    super options, data

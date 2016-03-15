@@ -11,12 +11,12 @@ module.exports = class AccountSessionList extends KDListView
 
   constructor: (options = {}, data) ->
     options.itemClass ?= AccountSessionListItem
-    super options,data
+    super options, data
 
 
   deleteItem: (item) ->
 
-    overlay = new KDOverlayView cssClass: 'second-overlay'
+    overlay = new KDOverlayView { cssClass: 'second-overlay' }
 
     modal = KDModalView.confirm
       title       : 'Remove Session'

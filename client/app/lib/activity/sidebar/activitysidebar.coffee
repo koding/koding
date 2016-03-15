@@ -1,12 +1,9 @@
 kd                              = require 'kd'
 whoami                          = require '../../util/whoami'
 remote                          = require('../../remote').getInstance()
-globals                         = require 'globals'
-Machine                         = require 'app/providers/machine'
 isKoding                        = require 'app/util/isKoding'
 showError                       = require '../../util/showError'
 groupifyLink                    = require '../../util/groupifyLink'
-ComputeHelpers                  = require 'app/providers/computehelpers'
 CustomLinkView                  = require '../../customlinkview'
 ChatSearchModal                 = require './chatsearchmodal'
 ActivitySideView                = require './activitysideview'
@@ -24,7 +21,6 @@ environmentDataProvider         = require 'app/userenvironmentdataprovider'
 SidebarSharedMachinesList       = require './sidebarsharedmachineslist'
 SidebarStackMachineList         = require './sidebarstackmachinelist'
 ChannelActivitySideView         = require './channelactivitysideview'
-SidebarStacksNotConfiguredPopup = require 'app/activity/sidebar/sidebarstacksnotconfiguredpopup'
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
 # once we merged two sidebars into one
@@ -34,16 +30,6 @@ SidebarStacksNotConfiguredPopup = require 'app/activity/sidebar/sidebarstacksnot
 # needs a little refactor. - SY
 
 module.exports = class ActivitySidebar extends KDCustomHTMLView
-
-  typeMap =
-    privatemessage : 'Message'
-    topic          : 'Topic'
-    post           : 'Post'
-    chat           : 'Chat'
-
-  slugProps =
-    SocialMessage : 'slug'
-    SocialChannel : 'name'
 
   revive = (data) ->
 
@@ -414,7 +400,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     type       = 'group'           if slug_ is 'public'
     candidates = []
 
-    for own name_, {listController} of @sections
+    for own __, {listController} of @sections
 
       for item in listController.getListItems()
 
@@ -510,7 +496,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       attributes: { href: '/Stacks' }
 
     @groupStacksChangedWarning = \
-      @machinesWrapper.addSubView view, null, shouldPrepend = yes
+      @machinesWrapper.addSubView view, null, yes
 
 
   addStacksNotConfiguredWarning: ->
@@ -558,7 +544,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
             ActivityFlux = require 'activity/flux'
             ActivityFlux.actions.thread.switchToDefaultChannelForStackRequest()
 
-      @stacksNotConfiguredWarning = @machinesWrapper.addSubView view, null, shouldPrepend = yes
+      @stacksNotConfiguredWarning = @machinesWrapper.addSubView view, null, yes
 
       @showStacksNotConfiguredWarning()
 

@@ -11,8 +11,8 @@ module.exports = class JComputeStack extends jraphical.Module
   { uniq }           = require 'underscore'
   { permit }         = require './group/permissionset'
   Validators         = require './group/validators'
-  { PROVIDERS }      = require './computeproviders/computeutils'
 
+  { PROVIDERS, reviveGroupPlan } = require './computeproviders/computeutils'
 
   @trait __dirname, '../traits/protected'
 
@@ -171,9 +171,7 @@ module.exports = class JComputeStack extends jraphical.Module
       delete data.baseStackId
       delete data.stackRevision
 
-      JGroup = require './group'
-
-      JGroup.one { slug: data.groupSlug }, (err, group) ->
+      JComputeStack.fetchGroup data.groupSlug, (err, group) ->
         return callback err  if err or not group
 
         updateGroupResourceUsage data, group, 'increment', (err) ->
@@ -222,11 +220,16 @@ module.exports = class JComputeStack extends jraphical.Module
     return selector
 
 
+  @fetchGroup = (slug, callback) ->
+
+    JGroup = require './group'
+    JGroup.one { slug }, (err, group) ->
+      reviveGroupPlan group, callback
+
+
   fetchGroup: (callback) ->
 
-    slug   = @getAt 'group'
-    JGroup = require './group'
-    JGroup.one { slug }, callback
+    JComputeStack.fetchGroup @getAt('group'), callback
 
 
   @some$ = permit 'list stacks',

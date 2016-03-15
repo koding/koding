@@ -26,7 +26,7 @@ module.exports = class AccountAppController extends AppController
     background : yes
 
   kodingDangerItems = [ { slug: 'Delete', title : 'Delete account', listType: 'deleteAccount' } ]
-  teamsDangerItems  = [ { slug: 'Leave',  title : 'Leave team',     listType: 'leaveGroup'    } ]
+  teamsDangerItems  = [ { slug: 'Leave',  title : 'Leave team',     listType: 'leaveGroup' } ]
 
   NAV_ITEMS =
     personal :
@@ -69,7 +69,7 @@ module.exports = class AccountAppController extends AppController
 
   createTab: (itemData) ->
 
-    {title, listType} = itemData
+    { title, listType } = itemData
 
     wrapper = new AccountListWrapper
       cssClass : "settings-list-wrapper #{kd.utils.slugify title}"
@@ -77,7 +77,7 @@ module.exports = class AccountAppController extends AppController
 
     wrapper.on 'ModalCloseRequested', @bound 'closeModal'
 
-    new KDTabPaneView view : wrapper
+    new KDTabPaneView { view : wrapper }
 
   closeModal: ->
 
@@ -122,7 +122,7 @@ module.exports = class AccountAppController extends AppController
       tagName   : 'aside'
       cssClass  : 'AppModal-nav'
 
-    aside.addSubView navView = @navController.getView()
+    aside.addSubView @navController.getView()
 
     modal.addSubView appContent = new KDCustomHTMLView
       cssClass            : 'AppModal-content'
@@ -135,7 +135,7 @@ module.exports = class AccountAppController extends AppController
 
     NAV_ITEMS.danger.items = if isKoding() then kodingDangerItems else teamsDangerItems
 
-    for own sectionKey, section of NAV_ITEMS
+    for own __, section of NAV_ITEMS
       mergeables = []
       for item in section.items
         if groupSlug is 'koding'
@@ -170,17 +170,17 @@ module.exports = class AccountAppController extends AppController
     @referrerModal = new ReferrerModal options
 
 
-  displayConfirmEmailModal: (name, username, callback=kd.noop) ->
+  displayConfirmEmailModal: (name, username, callback = kd.noop) ->
 
     name or= whoami().profile.firstName
     message =
-      """
+      '''
       You need to confirm your email address to continue using Koding and to fully activate your account.<br/><br/>
 
       When you registered, we sent you a link to confirm your email address. Please use that link.<br/><br/>
 
       If you had trouble with the email, please click below to resend it.<br/><br/>
-      """
+      '''
 
     modal = new KDModalView
       title            : "#{name}, please confirm your email address!"
@@ -201,7 +201,7 @@ module.exports = class AccountAppController extends AppController
 
   resendHandler : (modal, username) ->
 
-    remote.api.JPasswordRecovery.resendVerification username, (err)=>
+    remote.api.JPasswordRecovery.resendVerification username, (err) ->
       modal.buttons['Resend Confirmation Email'].hideLoader()
       return showError err if err
       new KDNotificationView

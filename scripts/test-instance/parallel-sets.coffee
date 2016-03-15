@@ -25,6 +25,7 @@ module.exports = [
     { name: 'register' }
     { name: 'login' }
     { name: 'logout' }
+    { name: 'environments vmactions_professional' }
   ]
 
   [
@@ -34,10 +35,13 @@ module.exports = [
 
   [
     { name: 'account accountsettings' }
+    { name: 'environments vmactions_hobbyist' }
+
   ]
 
   [
     { name: 'unittests' }
+    { name: 'environments vmactions_developer' }
   ]
 
   [
@@ -52,7 +56,7 @@ module.exports = [
 
   [
     { name: 'ide terminal' }
-    # { name: 'pricing invalidcarddetails' }
+    { name: 'pricing invalidcarddetails' }
   ]
 
   [
@@ -71,6 +75,10 @@ module.exports = [
 
   # [
   #   { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
+
+  # [
+  #   { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
   # ]
 
   [

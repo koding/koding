@@ -18,7 +18,6 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
 
     options.cssClass      = "section-form"
     @jCustomPartial       = data
-    formData              = data?.partial or {}
     options.fields        =
       event               :
         name              : "event"

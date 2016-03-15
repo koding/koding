@@ -25,7 +25,7 @@ var (
 
 // Used to check the status of a remote machine / kite.
 type MachineGetter interface {
-	GetMachinesWithoutCache() (machine.Machines, error)
+	GetMachinesWithoutCache() (*machine.Machines, error)
 	GetMachine(string) (*machine.Machine, error)
 }
 
@@ -107,7 +107,8 @@ func (s *Status) MachineStatus(name string) error {
 		return err
 	}
 
-	// Try and ping it directly via http. This lets us
+	// Try and ping it directly via http. This lets us know if the machine is
+	// reachable, without dealing with any kite issues.
 	if _, err := s.HTTPClient.Get(fmt.Sprintf("http://%s:56789/kite", machine.IP)); err != nil {
 		return util.KiteErrorf(
 			kiteerrortypes.MachineUnreachable,

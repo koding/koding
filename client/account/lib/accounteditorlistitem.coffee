@@ -8,40 +8,40 @@ AccountEditorExtensionTagger = require './accounteditorextensiontagger'
 
 module.exports = class AccountEditorListItem extends KDListItemView
 
-  constructor:(options,data)->
-    options = tagName : "li"
-    super options,data
+  constructor: (options, data) ->
+    options = { tagName : 'li' }
+    super options, data
 
-  viewAppended:->
+  viewAppended: ->
     super
     @form = form = new AccountEditorExtensionTagger
-      delegate : @
-      cssClass : "posstatic"
-    ,@data.extensions
+      delegate : this
+      cssClass : 'posstatic'
+    , @data.extensions
 
     @info = info = new AccountEditorTags
-      cssClass : "posstatic"
-      delegate : @
-    ,@data.extensions
+      cssClass : 'posstatic'
+      delegate : this
+    , @data.extensions
 
-    info.addSubView editLink = new KDCustomHTMLView
-      tagName  : "a"
-      partial  : "Edit"
-      cssClass : "action-link"
-      click    : @bound "swapSwappable"
+    info.addSubView new KDCustomHTMLView
+      tagName  : 'a'
+      partial  : 'Edit'
+      cssClass : 'action-link'
+      click    : @bound 'swapSwappable'
 
     @swappable = swappable = new AccountsSwappable
-      views : [form,info]
-      cssClass : "posstatic"
+      views : [form, info]
+      cssClass : 'posstatic'
 
-    @addSubView swappable,".swappable-wrapper"
+    @addSubView swappable, '.swappable-wrapper'
 
-    form.on "FormCancelled", @bound "swapSwappable"
+    form.on 'FormCancelled', @bound 'swapSwappable'
 
-  swapSwappable:->
+  swapSwappable: ->
     @swappable.swapViews()
 
-  partial:(data)->
+  partial: (data) ->
     """
       <span class='darkText'>#{data.title}</span>
     """

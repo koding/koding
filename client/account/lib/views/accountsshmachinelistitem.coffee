@@ -10,7 +10,7 @@ module.exports = class AccountSshMachineListItem extends KDListItemView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'ssh-machine-item'
     super options, data
@@ -30,7 +30,7 @@ module.exports = class AccountSshMachineListItem extends KDListItemView
 
 
   pistachio: ->
-    """
+    '''
       {{> @switcher }}
       {{> @label }}
-    """
+    '''

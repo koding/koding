@@ -1,5 +1,4 @@
 kd          = require 'kd'
-_           = require 'lodash'
 recorder    = require 'record-shortcuts'
 Pane        = require './accounteditshortcutspane'
 facade      = require './accounteditshortcutsfacade'
@@ -22,7 +21,7 @@ restoreDefaults = ->
     cancel       :
       style      : 'solid medium light-gray'
       title      : 'Cancel'
-      callback   : => modal.destroy()
+      callback   : -> modal.destroy()
 
 
 module.exports =

@@ -80,7 +80,7 @@ func (r *Remote) loadMounts() error {
 // restoreMounts will analyze the current mount list and fix and broken
 // mounts that may have been caused by process crash, os restart, etc.
 func (r *Remote) restoreMounts() error {
-	remoteMachines, err := r.GetKites()
+	remoteMachines, err := r.GetMachines()
 	if err != nil {
 		return err
 	}

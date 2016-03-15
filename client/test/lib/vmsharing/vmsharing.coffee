@@ -1,6 +1,4 @@
 utils                = require '../utils/utils.js'
-helpers              = require '../helpers/helpers.js'
-environmentHelpers   = require '../helpers/environmenthelpers.js'
 vmHelpers            = require '../helpers/vmhelpers.js'
 assert               = require 'assert'
 

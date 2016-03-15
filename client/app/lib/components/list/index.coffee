@@ -1,4 +1,3 @@
-_ = require 'lodash'
 React = require 'kd-react'
 { Component, PropTypes } = React
 

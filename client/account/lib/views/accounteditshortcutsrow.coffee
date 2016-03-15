@@ -52,7 +52,7 @@ class AccountEditShortcutsRow extends kd.View
     @_dup = options.dup
     delete options.dup
 
-    super _.extend cssClass: CLASS_NAME, options
+    super _.extend { cssClass: CLASS_NAME, options }
 
     if @_dup then @setClass DUP_CLASS_NAME
 
@@ -72,7 +72,10 @@ class AccountEditShortcutsRow extends kd.View
 
     description = new kd.View
       cssClass : COL_CLASS_NAME
-      partial  : _.trunc descriptionText, separator: DESCRIPTION_TRUNC_SEP, length: DESCRIPTION_TRUNC_LEN
+      partial  : _.trunc descriptionText, {
+        separator: DESCRIPTION_TRUNC_SEP,
+        length: DESCRIPTION_TRUNC_LEN
+      }
 
     if descriptionText.length > DESCRIPTION_TRUNC_LEN
       description.domElement.attr 'title', descriptionText
@@ -85,7 +88,7 @@ class AccountEditShortcutsRow extends kd.View
     #
     # Pass silent to trigger this explicitly, otherwise you will get an inf. loop.
     #
-    toggleClickHandler = (e, silent=no) =>
+    toggleClickHandler = (e, silent = no) =>
       e.preventDefault?()
       e.stopPropagation?()
       @_enabled = if _.isBoolean e then e else not @_enabled

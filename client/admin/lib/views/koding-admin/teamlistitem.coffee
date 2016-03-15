@@ -197,7 +197,7 @@ module.exports = class TeamListItem extends kd.ListItemView
                 nextElement       :
                   plan            :
                     itemClass     : kd.SelectBox
-                    defaultValue  : team.config?.plan ? 'noplan'
+                    defaultValue  : team.config?.testplan ? 'noplan'
                     selectOptions : plans
                     callback      : (plan) ->
                       { setplan } = modal.modalTabs.forms
@@ -219,7 +219,7 @@ module.exports = class TeamListItem extends kd.ListItemView
                   planDetails     :
                     cssClass      : 'has-markdown'
                     itemClass     : kd.View
-                    partial       : getDetails team.config?.plan
+                    partial       : getDetails team.config?.testplan
 
               planOverrides       :
                 name              : 'planoverrides'
@@ -229,7 +229,7 @@ module.exports = class TeamListItem extends kd.ListItemView
                   planOverrides   :
                     itemClass     : kd.InputView
                     type          : 'textarea'
-                    disabled      : not team.config?.plan
+                    disabled      : not team.config?.testplan
                     defaultValue  : overrides
                     validate      :
                       rules       :

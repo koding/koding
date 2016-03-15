@@ -255,29 +255,31 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
-        testGroup.setPlan client, { plan: 'default' }, (err) ->
-          expect(err).to.not.exist
+        testGroup._activePlan = 'default'
 
-          # checking in parallel to test lock mechanism ~ GG
+        # checking in parallel to test lock mechanism ~ GG
+        #
+        async.parallel [
 
-          async.parallel [
+          (fin) ->
+            ComputeProvider.updateGroupStackUsage testGroup, 'increment', fin
 
-            (fin) ->
-              ComputeProvider.updateGroupStackUsage testGroup, 'increment', fin
+          (fin) ->
+            ComputeProvider.updateGroupStackUsage testGroup, 'increment', fin
 
-            (fin) ->
-              ComputeProvider.updateGroupStackUsage testGroup, 'increment', fin
-
-          ], (err) ->
-            expect(err?.message).to.be.equal 'Provided limit has been reached'
-            done()
+        ], (err) ->
+          expect(err?.message).to.be.equal 'Provided limit has been reached'
+          done()
 
     it 'should increase given group stack count taking in account plan overrides', (done) ->
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
         overrides = { member: 3 }
-        testGroup.setPlan client, { plan: 'default', overrides }, (err) ->
+
+        testGroup._activePlan = 'default'
+
+        testGroup.setPlan client, { overrides }, (err) ->
           expect(err).to.not.exist
 
           async.parallel [
@@ -355,26 +357,27 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
-        testGroup.setPlan client, { plan: 'default' }, (err) ->
-          expect(err).to.not.exist
+        testGroup._activePlan = 'default'
 
-          options  =
-            group  : testGroup
-            change : 'increment'
-            amount : 1
+        options  =
+          group  : testGroup
+          change : 'increment'
+          amount : 1
 
-          ComputeProvider.updateGroupInstanceUsage options, (err) ->
-            expect(err).to.exist
-            expect(err.message).to.be.equal 'Provided limit has been reached'
+        ComputeProvider.updateGroupInstanceUsage options, (err) ->
+          expect(err).to.exist
+          expect(err.message).to.be.equal 'Provided limit has been reached'
 
-            done()
+          done()
 
     it 'should increase instance count taking in account plan overrides', (done) ->
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
+        testGroup._activePlan = 'default'
         overrides = { maxInstance: 3 }
-        testGroup.setPlan client, { plan: 'default', overrides }, (err) ->
+
+        testGroup.setPlan client, { overrides }, (err) ->
           expect(err).to.not.exist
 
           options  =
@@ -457,16 +460,15 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
         { group } = options
 
-        group.setPlan client, { plan: 'default' }, (err) ->
-          expect(err).to.not.exist
+        group._activePlan = 'default'
 
-          options.change = 'increment'
+        options.change = 'increment'
 
-          ComputeProvider.updateGroupResourceUsage options, (err) ->
-            expect(err).to.exist
-            expect(err.message).to.be.equal 'Provided limit has been reached'
+        ComputeProvider.updateGroupResourceUsage options, (err) ->
+          expect(err).to.exist
+          expect(err.message).to.be.equal 'Provided limit has been reached'
 
-            done()
+          done()
 
 
   describe '::updateTeamCounters', ->

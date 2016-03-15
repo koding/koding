@@ -6,9 +6,9 @@ AccountEditorListItem = require './accounteditorlistitem'
 
 module.exports = class AccountEditorList extends KDListView
 
-  constructor:(options,data)->
+  constructor: (options, data) ->
     options = $.extend
-      tagName      : "ul"
+      tagName      : 'ul'
       itemClass : AccountEditorListItem
-    ,options
-    super options,data
+    , options
+    super options, data

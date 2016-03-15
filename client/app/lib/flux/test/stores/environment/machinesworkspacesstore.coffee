@@ -1,4 +1,3 @@
-_                       = require 'lodash'
 mock                    = require '../../../../../../mocks/mockingjay'
 expect                  = require 'expect'
 Reactor                 = require 'app/flux/base/reactor'

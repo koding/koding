@@ -191,14 +191,16 @@ func Glob(r *kite.Request) (interface{}, error) {
 
 func ReadFile(r *kite.Request) (interface{}, error) {
 	var params struct {
-		Path string
+		Path      string
+		Offset    int64
+		BlockSize int64
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
 		return nil, errors.New("{ path: [string] }")
 	}
 
-	return readFile(params.Path)
+	return readFile(params.Path, params.Offset, params.BlockSize)
 }
 
 type writeFileParams struct {

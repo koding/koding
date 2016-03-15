@@ -217,7 +217,6 @@ module.exports = class AdministrationView extends KDTabViewWithForms
     super options, data
 
     {inputs, buttons} = @forms["Broadcast Message"]
-    preset = inputs.Type.change()
 
     @hideConnectedFields()
 

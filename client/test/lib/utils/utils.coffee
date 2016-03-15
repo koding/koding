@@ -8,17 +8,19 @@ module.exports =
 
     users = []
 
-    for i in [1..10]
+    for [1..10]
 
       name     = faker.Name.findName()
       username = faker.Helpers.slugify(faker.Internet.userName()).toLowerCase().replace(/\./g, '').replace(/_/g, '')
       username = username.substring(0, 7) + Date.now()
       password = @getPassword()
       teamSlug = name.toLowerCase().replace(/\s/g, '-').replace(/'/g, '').replace('.', '')
+      helpers  = require '../helpers/helpers'
+      fakeText = helpers.getFakeText()
 
       email = "kodingtestuser+#{username}@koding.com"
 
-      users.push { name, email, username, password, teamSlug }
+      users.push { name, email, username, password, teamSlug, fakeText }
 
     fs.writeFileSync 'users.json', formatter users, 'utf-8'
 

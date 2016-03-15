@@ -5,10 +5,10 @@ AccountLinkedAccountsListItem = require './accountlinkedaccountslistitem'
 
 module.exports = class AccountLinkedAccountsList extends KDListView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
-    options.tagName   or= "ul"
+    options.tagName   or= 'ul'
     options.itemClass or= AccountLinkedAccountsListItem
     options.cssClass    = 'AppModal--account-switchList'
 
-    super options,data
+    super options, data

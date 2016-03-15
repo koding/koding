@@ -248,14 +248,12 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           async.series [
 
             (next) ->
-              withConvertedUser { role: 'admin' }, (data) ->
-                _client = data.client
-                group.setPlan _client, { plan: 'default' }, (err) ->
-                  expect(err).to.not.exist
-                  next()
+              group.update { $set: { 'config.testplan': 'default' } }, (err) ->
+                expect(err).to.not.exist
+                next()
 
             (next) ->
-              ComputeProvider = require './computeprovider'
+              ComputeProvider   = require './computeprovider'
               ComputeProvider.updateGroupStackUsage group, 'increment', (err) ->
                 expect(err).to.not.exist
                 next()

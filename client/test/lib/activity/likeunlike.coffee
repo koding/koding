@@ -1,5 +1,4 @@
 helpers = require '../helpers/helpers.js'
-assert  = require 'assert'
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
@@ -34,7 +33,6 @@ module.exports =
 
     helpers.postComment(browser)
 
-    comment         = helpers.getFakeText()
     commentSelector = activitySelector + ' .comment-container .kdlistitemview-comment:first-child'
 
     browser

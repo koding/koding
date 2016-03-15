@@ -74,7 +74,6 @@ module.exports = class NotificationListItemView extends KDListItemView
 
     { socialapi } = kd.singletons
 
-    href = '#'
 
     switch @getData().type
       when 'comment', 'like', 'mention'

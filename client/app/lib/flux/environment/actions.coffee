@@ -4,7 +4,6 @@ actions                 = require './actiontypes'
 getters                 = require './getters'
 Promise                 = require 'bluebird'
 Encoder                 = require 'htmlencode'
-Machine                 = require 'app/providers/machine'
 remote                  = require('app/remote').getInstance()
 Promise                 = require 'bluebird'
 showError               = require 'app/util/showError'
@@ -363,7 +362,7 @@ reinitStack = (stackId) ->
 
   reactor.dispatch actions.REINIT_STACK, stackId
 
-  if differentStackResourcesStore = reactor.evaluate ['DifferentStackResourcesStore']
+  if reactor.evaluate ['DifferentStackResourcesStore']
     reactor.dispatch actions.GROUP_STACKS_CONSISTENT
 
 

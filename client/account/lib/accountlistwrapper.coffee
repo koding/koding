@@ -6,7 +6,6 @@ AccountBilling                      = require './views/accountbilling'
 LeaveGroupView                      = require './views/leavegroupview'
 AccountEditorList                   = require './accounteditorlist'
 AccountSshKeyList                   = require './accountsshkeylist'
-AccountSessionList                  = require './accountsessionlist'
 PrivacyPolicyView                   = require './views/privacypolicyview'
 DeleteAccountView                   = require './views/deleteaccountview'
 TermsOfServiceView                  = require './views/termsofserviceview'
@@ -21,7 +20,6 @@ AccountSessionListWrapper           = require './accountsessionlistwrapper'
 AccountEmailNotifications           = require './views/accountemailnotifications'
 AccountLinkedAccountsList           = require './accountlinkedaccountslist'
 AccountSshKeyListController         = require './views/accountsshkeylistcontroller'
-AccountSessionListController        = require './views/accountsessionlistcontroller'
 AccountEditorListController         = require './views/accounteditorlistcontroller'
 AccountKodingKeyListController      = require './views/accountkodingkeylistcontroller'
 AccountLinkedAccountsListController = require './views/accountlinkedaccountslistcontroller'
@@ -52,7 +50,7 @@ module.exports = class AccountListWrapper extends KDView
     privacyPolicy              : PrivacyPolicyView
     shortcuts                  : AccountEditShortcuts
 
-  viewAppended:->
+  viewAppended: ->
 
     { listType } = @getData()
     type         = if listType then listType or ''
@@ -60,10 +58,10 @@ module.exports = class AccountListWrapper extends KDView
     listViewClass   = if listClasses[type] then listClasses[type] else KDListView
     controllerClass = if listClasses["#{type}Controller"] then listClasses["#{type}Controller"]
 
-    @addSubView view = new listViewClass cssClass : type, delegate: this
+    @addSubView view = new listViewClass { cssClass : type, delegate: this }
 
     if controllerClass
-      controller   = new controllerClass
+      new controllerClass
         view       : view
         wrapper    : no
         scrollView : no

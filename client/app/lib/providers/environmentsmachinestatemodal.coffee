@@ -708,7 +708,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     {container} = @getOptions()
 
     FindManagedNodesModal = require './managed/findnodesmodal'
-    findNodes = new FindManagedNodesModal { container }, @machine
+    new FindManagedNodesModal { container }, @machine
 
 
   requestNewMachine: ->
@@ -729,6 +729,10 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       if @state is NotInitialized
         action = 'buildStack'
         target = @stack
+
+        if @stack.config?.oldOwner?
+          return showError "Stack building is not allowed
+                            for disabled users' stacks."
 
       if @machine.jMachine.generatedFrom?.templateId?
         unless computeController.verifyStackRequirements @stack

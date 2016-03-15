@@ -1,6 +1,5 @@
 getFullnameFromAccount = require '../../util/getFullnameFromAccount'
 kd = require 'kd'
-whoami = require '../../util/whoami'
 AvatarStaticView = require './avatarstaticview'
 JView = require '../../jview'
 MemberMailLink = require '../../members/contentdisplays/membermaillink'

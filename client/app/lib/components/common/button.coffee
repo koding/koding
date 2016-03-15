@@ -4,9 +4,6 @@ React  = require 'kd-react'
 
 module.exports = class Button extends React.Component
 
-  defaultProps=
-    tabIndex: ''
-
   onClick: (event) ->
 
     kd.utils.stopDOMEvent event

@@ -70,7 +70,8 @@ module.exports = class Payment extends Base
 
   @fetchGroupPlan = (group, callback) ->
 
-    return callback new KodingError 'No such group'  unless group
+    return callback new KodingError 'No such group'   unless group
+    return callback null, { planTitle: 'unlimited' }  if group.slug is 'koding'
 
     url = "#{socialProxyUrl}/payments/group/subscriptions?group_id=#{group._id}"
     get url, {}, (err, subscription) ->

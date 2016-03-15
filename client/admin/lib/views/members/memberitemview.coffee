@@ -15,7 +15,7 @@ defaultRoles  =
 
 
 { member, moderator, admin, owner } = defaultRoles
-kick = slug: 'kick', buttonTitle: 'KICK', extraClass: 'red'
+kick = slug: 'kick', buttonTitle: 'DISABLE USER', extraClass: 'red'
 
 buttonSet     =
   owner       :

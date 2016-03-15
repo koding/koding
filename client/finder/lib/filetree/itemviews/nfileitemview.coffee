@@ -19,7 +19,6 @@ module.exports = class NFileItemView extends KDCustomHTMLView
 
     super options, data
 
-    fileData = @getData()
 
     @loader = new KDLoaderView
       size          :

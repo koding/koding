@@ -1,4 +1,3 @@
-helpers = require './helpers.js'
 assert  = require 'assert'
 
 
