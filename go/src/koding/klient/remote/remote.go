@@ -198,7 +198,7 @@ func (r *Remote) GetMachines() (*machine.Machines, error) {
 	// see the r.machinesErrCacheMax docstring.
 	if haveMachines && err != nil && machinesCachedAgo < r.machinesErrCacheMax {
 		log.Warning(
-			"Unable to get new machines from Koding. Using existing machines. err:%s", err,
+			"Unable to get new machines from Koding. Using cached machines. err:%s", err,
 		)
 		return r.machines, nil
 	}

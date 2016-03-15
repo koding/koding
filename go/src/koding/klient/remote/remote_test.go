@@ -181,7 +181,7 @@ func TestGetMachinesWithoutCache(t *testing.T) {
 		})
 	})
 
-	Convey("Given a new pre existing machine", t, func() {
+	Convey("Given a pre existing machine", t, func() {
 		kg := newMockKiteGetter()
 		kg.AddByUrl("http://testhost1:56789")
 
