@@ -4,12 +4,15 @@ globals             = require 'globals'
 whoami              = require 'app/util/whoami'
 { boxes, HANDLERS } = require './boxes'
 Tracker             = require 'app/util/tracker'
+collectCredentials  = require 'app/util/collectCredentials'
 
 module.exports = class WelcomeAppView extends kd.View
 
-  constructor: ->
+  constructor:(options = {}, data)->
 
-    super
+    options.cssClass = kd.utils.curry 'WelcomeStacksView', options.cssClass
+
+    super options, data
 
     @addSubView @welcome = new kd.CustomHTMLView
       tagName : 'section'
@@ -23,6 +26,25 @@ module.exports = class WelcomeAppView extends kd.View
       tagName  : 'ul'
       cssClass : 'boxes clearfix'
       click    : @bound 'handleClicks'
+
+
+  viewAppended: ->
+
+    { groupsController, computeController } = kd.singletons
+    { stacks }                              = computeController
+
+    view  = this
+
+    groupsController.ready -> computeController.ready ->
+
+      { providers, variables } = collectCredentials()
+
+      groupsController.getCurrentGroup().fetchMyRoles (err, roles) ->
+        return  kd.warn err  if err
+        isAdmin = 'admin' in (roles ? [])
+        if isAdmin
+        then view.putAdminInstructions()
+        else view.putUserInstructions()
 
 
   handleClicks: (event) ->
