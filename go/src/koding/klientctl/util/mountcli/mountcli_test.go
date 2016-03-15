@@ -1,13 +1,15 @@
 package mountcli
 
 import (
+	"path/filepath"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 const inputA = `
-mountname on /some/mount/path/foo/bar (osxfusefs, nodev, nosuid, synchronous, mounted by username)
+mount1 on /path/mount1 (osxfusefs, nodev, nosuid, synchronous, mounted by username)
+mount2 on /path/mount2 (osxfusefs, nodev, nosuid, synchronous, mounted by username)
 `
 
 // generateBinRunner returns a binRunner func which simply returns whatever string
@@ -18,20 +20,85 @@ func generateBinRunner(s string, err error) func(string) (string, error) {
 	}
 }
 
-func TestFindMountedPathByName(t *testing.T) {
-	Convey("It should return the matching path", t, func() {
-		m := &Mount{binRunner: generateBinRunner(inputA, nil)}
+func TestMount(t *testing.T) {
+	Convey("Mount", t, func() {
+		m := &Mountcli{binRunner: generateBinRunner(inputA, nil)}
 
-		path, err := m.FindMountedPathByName("mountname")
+		Convey("GetAllMountedPaths", func() {
+			Convey("It should return all matching paths", func() {
+				paths, err := m.GetAllMountedPaths()
+				So(err, ShouldBeNil)
+				So(paths, ShouldResemble, []string{"/path/mount1", "/path/mount2"})
+			})
+		})
+
+		Convey("FindMountedPathByName", func() {
+			Convey("It should return the matching path", func() {
+				path, err := m.FindMountedPathByName("mount1")
+				So(err, ShouldBeNil)
+				So(path, ShouldEqual, "/path/mount1")
+			})
+
+			Convey("It should return err on no match", func() {
+				_, err := m.FindMountedPathByName("nomatch")
+				So(err, ShouldEqual, ErrNoMountName)
+			})
+		})
+
+		Convey("GetMachineMountedForPath", func() {
+			Convey("It should return the matching path", func() {
+				machine, err := m.FindMountNameByPath("/path/mount1")
+				So(err, ShouldBeNil)
+				So(machine, ShouldEqual, "mount1")
+
+				machine, err = m.FindMountNameByPath("/path/mount2")
+				So(err, ShouldBeNil)
+				So(machine, ShouldEqual, "mount2")
+			})
+
+			Convey("It should return err on no match", func() {
+				_, err := m.FindMountNameByPath("/unknownpath")
+				So(err, ShouldEqual, ErrNoMountPath)
+			})
+		})
+
+		mounts, err := m.GetAllMountedPaths()
 		So(err, ShouldBeNil)
-		So(path, ShouldEqual, "/some/mount/path/foo/bar")
-	})
+		So(len(mounts), ShouldBeGreaterThan, 0)
 
-	Convey("It should return empty on no match", t, func() {
-		m := &Mount{binRunner: generateBinRunner(inputA, nil)}
+		m1 := mounts[0]
 
-		path, err := m.FindMountedPathByName("nomatch")
-		So(err, ShouldBeNil)
-		So(path, ShouldEqual, "")
+		Convey("GetRelativeMountPath", func() {
+			Convey("It should return empty string if path is same as mount", func() {
+				relative, err := m.GetRelativeMountPath(m1)
+				So(err, ShouldBeNil)
+				So(relative, ShouldEqual, "")
+			})
+
+			Convey("It should return relative path if path is inside the mount", func() {
+				relative, err := m.GetRelativeMountPath(filepath.Join(m1, "a/b/c"))
+				So(err, ShouldBeNil)
+				So(relative, ShouldEqual, "a/b/c")
+			})
+
+			Convey("It should return error if path is not inside mount", func() {
+				_, err := m.GetRelativeMountPath("unknownpath")
+				So(err, ShouldEqual, ErrNotInMount)
+			})
+		})
+
+		Convey("IsPathInMountedPath", func() {
+			Convey("It should return false if path is not inside mount", func() {
+				inside, err := m.IsPathInMountedPath("unknownpath")
+				So(err, ShouldBeNil)
+				So(inside, ShouldEqual, false)
+			})
+
+			Convey("It should return true if path is inside mount", func() {
+				inside, err := m.IsPathInMountedPath(filepath.Join(m1, "a"))
+				So(err, ShouldBeNil)
+				So(inside, ShouldEqual, true)
+			})
+		})
 	})
 }
