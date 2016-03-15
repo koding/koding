@@ -424,18 +424,26 @@ module.exports = class IDEEditorPane extends IDEPane
 
     return  if @rtm.isDisposed
 
-    {path} = @getFile()
+    { path }  = @getFile()
+    ace       = @getAce()
 
     unless string = @rtm.getFromModel path
       return @rtm.create 'string', path, @getContent()
 
-    ace = @getAce()
-
     ace.ready =>
-      @setContent string.getText(), no
+      return  if string.getText() is @getContent()
 
-      if ace.contentChanged = ace.isCurrentContentChanged()
-        ace.emit 'FileContentChanged'
+      ace.prepend warningView = @createWarningView {
+        title     : 'There is an updated version of this file for this collaboration session. Would you like to update it?'
+        callback  : (status) =>
+          warningView.destroy()
+
+          if status
+            @setContent string.getText(), no
+
+            if ace.contentChanged = ace.isCurrentContentChanged()
+              ace.emit 'FileContentChanged'
+      }
 
 
   listenCollaborativeStringChanges: ->
