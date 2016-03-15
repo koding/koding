@@ -7,61 +7,61 @@ settings = require './settings'
 
 module.exports = class AceSettingsView extends JView
 
-  constructor:->
+  constructor: ->
     super
-    @setClass "ace-settings-view"
+    @setClass 'ace-settings-view'
 
     button = @getDelegate()
 
-    @useSoftTabs    = new KodingSwitch
-      cssClass      : "tiny"
-      callback      : (state) -> button.emit "ace.changeSetting", "useSoftTabs", state
-    @showGutter     = new KodingSwitch
-      cssClass      : "tiny"
-      callback      : (state) -> button.emit "ace.changeSetting", "showGutter", state
-    @useWordWrap    = new KodingSwitch
-      cssClass      : "tiny"
-      callback      : (state) -> button.emit "ace.changeSetting", "useWordWrap", state
-    @showPrintMargin= new KodingSwitch
-      cssClass      : "tiny"
-      callback      : (state) -> button.emit "ace.changeSetting", "showPrintMargin", state
+    @useSoftTabs     = new KodingSwitch
+      cssClass       : 'tiny'
+      callback       : (state) -> button.emit 'ace.changeSetting', 'useSoftTabs', state
+    @showGutter      = new KodingSwitch
+      cssClass       : 'tiny'
+      callback       : (state) -> button.emit 'ace.changeSetting', 'showGutter', state
+    @useWordWrap     = new KodingSwitch
+      cssClass       :'tiny'
+      callback       : (state) -> button.emit 'ace.changeSetting', 'useWordWrap', state
+    @showPrintMargin = new KodingSwitch
+      cssClass       : 'tiny'
+      callback       : (state) -> button.emit 'ace.changeSetting', 'showPrintMargin', state
     @highlightActiveLine = new KodingSwitch
-      cssClass      : "tiny"
-      callback      : (state) -> button.emit "ace.changeSetting", "highlightActiveLine", state
-    @highlightWord  = new KodingSwitch
-      cssClass      : "tiny"
-      callback      : (state) -> button.emit "ace.changeSetting", "highlightSelectedWord", state
-    @showInvisibles = new KodingSwitch
-      cssClass      : "tiny"
-      callback      : (state) -> button.emit "ace.changeSetting", "showInvisibles", state
-    @scrollPastEnd  = new KodingSwitch
-      cssClass      : "tiny"
-      callback      : (state) -> button.emit "ace.changeSetting", "scrollPastEnd", state
+      cssClass       : 'tiny'
+      callback       : (state) -> button.emit 'ace.changeSetting', 'highlightActiveLine', state
+    @highlightWord   = new KodingSwitch
+      cssClass       : 'tiny'
+      callback       : (state) -> button.emit 'ace.changeSetting', 'highlightSelectedWord', state
+    @showInvisibles  = new KodingSwitch
+      cssClass       : 'tiny'
+      callback       : (state) -> button.emit 'ace.changeSetting', 'showInvisibles', state
+    @scrollPastEnd   = new KodingSwitch
+      cssClass       : 'tiny'
+      callback       : (state) -> button.emit 'ace.changeSetting', 'scrollPastEnd', state
     @openRecentFiles = new KodingSwitch
-      cssClass      : "tiny"
-      callback      : (state) -> button.emit "ace.changeSetting", "openRecentFiles", state
+      cssClass       : 'tiny'
+      callback       : (state) -> button.emit 'ace.changeSetting', 'openRecentFiles', state
 
-    @keyboardHandler= new KDSelectBox
-      selectOptions : settings.keyboardHandlers
-      callback      : (value) -> button.emit "ace.changeSetting", "keyboardHandler", value
-    @syntax         = new KDSelectBox
-      selectOptions : settings.getSyntaxOptions()
-      callback      : (value) -> button.emit "ace.changeSetting", "syntax", value
-    @fontSize       = new KDSelectBox
-      selectOptions : settings.fontSizes
-      callback      : (value) -> button.emit "ace.changeSetting", "fontSize", value
-    @theme          = new KDSelectBox
-      selectOptions : settings.themes
-      callback      : (value) -> button.emit "ace.changeSetting", "theme", value
-    @tabSize        = new KDSelectBox
-      selectOptions : settings.tabSizes
-      callback      : (value) -> button.emit "ace.changeSetting", "tabSize", value
+    @keyboardHandler = new KDSelectBox
+      selectOptions  : settings.keyboardHandlers
+      callback       : (value) -> button.emit 'ace.changeSetting', 'keyboardHandler', value
+    @syntax          = new KDSelectBox
+      selectOptions  : settings.getSyntaxOptions()
+      callback       : (value) -> button.emit 'ace.changeSetting', 'syntax', value
+    @fontSize        = new KDSelectBox
+      selectOptions  : settings.fontSizes
+      callback       : (value) -> button.emit 'ace.changeSetting', 'fontSize', value
+    @theme           = new KDSelectBox
+      selectOptions  : settings.themes
+      callback       : (value) -> button.emit 'ace.changeSetting', 'theme', value
+    @tabSize         = new KDSelectBox
+      selectOptions  : settings.tabSizes
+      callback       : (value) -> button.emit 'ace.changeSetting', 'tabSize', value
 
-  setDefaultValues:(settings)->
+  setDefaultValues: (settings) ->
 
     @[key]?.setDefaultValue value for own key, value of settings
 
-  viewAppended:->
+  viewAppended: ->
 
     super
 
@@ -69,13 +69,13 @@ module.exports = class AceSettingsView extends JView
     if aceView
       @setDefaultValues aceView.getSettings()
 
-  click:(event)->
+  click: (event) ->
 
     event.preventDefault()
     event.stopPropagation()
     return no
 
-  pistachio:->
+  pistachio: ->
 
     """
     <p>Use soft tabs                           {{> @useSoftTabs}}</p>

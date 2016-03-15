@@ -45,14 +45,14 @@ module.exports =
   ]
 
   keyboardHandlers: [
-      value: "default"
-      title: "Default"
+      value: 'default'
+      title: 'Default'
     ,
-      value: "vim"
-      title: "Vim"
+      value: 'vim'
+      title: 'Vim'
     ,
-      value: "emacs"
-      title: "Emacs"
+      value: 'emacs'
+      title: 'Emacs'
   ]
 
   themes:
@@ -104,53 +104,53 @@ module.exports =
 
   aceToHighlightJsSyntaxMap :
 
-    coffee      : "coffee"
+    coffee      : 'coffee'
     # coldfusion: null
-    csharp      : "cs"
-    css         : "css"
-    diff        : "diff"
-    dart        : "dart"
-    golang      : "go"
+    csharp      : 'cs'
+    css         : 'css'
+    diff        : 'diff'
+    dart        : 'dart'
+    golang      : 'go'
     # groovy    : null
     # haxe      : null
-    haml        : "haml"
-    html        : "xml"
-    c_cpp       : "cpp"
+    haml        : 'haml'
+    html        : 'xml'
+    c_cpp       : 'cpp'
     # clojure   : null
-    jade        : "jade"
-    java        : "java"
-    javascript  : "javascript"
-    json        : "javascript"
-    # json      : "json"
-    latex       : "tex"
-    go          : "golang"
-    less        : "css"
-    lisp        : "lisp"
-    livescript  : "ls"
+    jade        : 'jade'
+    java        : 'java'
+    javascript  : 'javascript'
+    json        : 'javascript'
+    # json      : 'json'
+    latex       : 'tex'
+    go          : 'golang'
+    less        : 'css'
+    lisp        : 'lisp'
+    livescript  : 'ls'
     # liquid    : null
-    lua         : "lua"
-    markdown    : "markdown"
-    ocaml       : "ocaml"
-    pascal      : "pascal"
-    perl        : "perl"
-    pgsql       : "sql"
-    php         : "php"
-    powershell  : "bash"
-    python      : "python"
-    r           : "r"
-    rhtml       : "rhtml"
-    ruby        : "ruby"
+    lua         : 'lua'
+    markdown    : 'markdown'
+    ocaml       : 'ocaml'
+    pascal      : 'pascal'
+    perl        : 'perl'
+    pgsql       : 'sql'
+    php         : 'php'
+    powershell  : 'bash'
+    python      : 'python'
+    r           : 'r'
+    rhtml       : 'rhtml'
+    ruby        : 'ruby'
     # scad      : null
-    scala       : "scala"
-    scss        : "css"
-    stylus      : "stylus"
-    sh          : "bash"
-    sql         : "sql"
-    typescript  : "ts"
+    scala       : 'scala'
+    scss        : 'css'
+    stylus      : 'stylus'
+    sh          : 'bash'
+    sql         : 'sql'
+    typescript  : 'ts'
     # svg       : null
     # text      : null
     # textile   : null
-    xml         : "xml"
-    objectivec  : "objectivec"
+    xml         : 'xml'
+    objectivec  : 'objectivec'
     # xquery    : null
     # yaml      : null
