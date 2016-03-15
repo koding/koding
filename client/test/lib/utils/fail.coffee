@@ -1,6 +1,9 @@
 fs          = require 'fs'
 NW          = require '../../../../node_modules/nightwatch/lib/api/element-commands/_waitForElement.js'
 AWS         = require 'aws-sdk'
+
+require 'coffee-script/register' # require coffee to parse main.dev
+
 config      = require '../../../../../config/main.dev.coffee'
 NW_ORG_FAIL = NW::fail
 
