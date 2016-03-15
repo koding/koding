@@ -107,3 +107,22 @@ module.exports =
       .end()
 
 
+  collapseExpandSidebar: (browser) ->
+
+    sidebarSelector         = '.kdview.with-sidebar .logo-wrapper'
+    collapseButton          = '.logo-wrapper .sidebar-close-handle'
+    collapsedWindowSelector = '.kdview.with-sidebar.desktop.collapsed'
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    browser
+      .waitForElementVisible     sidebarSelector, 20000
+      .moveToElement             sidebarSelector, 5, 5
+      .waitForElementVisible     collapseButton, 20000
+      .click                     collapseButton
+      .waitForElementVisible     collapsedWindowSelector, 20000
+      .moveToElement             sidebarSelector, 5, 5
+      .waitForElementNotPresent  collapsedWindowSelector, 20000
+      .end()
+
