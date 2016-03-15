@@ -20,7 +20,7 @@ module.exports = class PricingAppView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry "content-page pricing", options.cssClass
+    options.cssClass = kd.utils.curry 'content-page pricing', options.cssClass
 
     super options, data
 
@@ -115,14 +115,14 @@ module.exports = class PricingAppView extends KDView
 
     footer.addSubView new CustomLinkView
       title    : "Learn more about all of Koding's great features"
-      cssClass : "learn-more"
-      href     : "/Features"
+      cssClass : 'learn-more'
+      href     : '/Features'
 
     return footer
 
   pistachio: ->
-    """
+    '''
       {{> @featureBranchTabView}}
       {{> @footer}}
       {{> @kodingFooter}}
-    """
+    '''

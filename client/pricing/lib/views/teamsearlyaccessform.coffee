@@ -29,7 +29,7 @@ module.exports = class TeamsEarlyAccessForm extends KDFormView
 
 
   pistachio: ->
-    """
+    '''
       {{> @email}}
       {{> @button}}
-    """
+    '''

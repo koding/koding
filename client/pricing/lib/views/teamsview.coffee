@@ -41,7 +41,7 @@ module.exports = class TeamsView extends KDView
 
         @form.email.setValue ''
 
-      error     : ({responseText}) =>
+      error     : ({ responseText }) =>
 
         responseText = title  if responseText is 'Already applied!'
 
@@ -53,8 +53,8 @@ module.exports = class TeamsView extends KDView
 
 
   pistachio: ->
-    """
+    '''
       <h2>Koding for Teams is free for all users while in beta</h2>
       {{> @earlyAccess}}
       <div class="onboarding"></div>
-    """
+    '''
