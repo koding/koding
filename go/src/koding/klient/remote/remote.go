@@ -178,13 +178,32 @@ func (r *Remote) hostFromClient(k *kite.Client) (string, error) {
 // results are not too old, we return the cached results rather than giving
 // the user a bad UX.
 func (r *Remote) GetMachines() (*machine.Machines, error) {
+	log := r.log.New("GetMachinesWithoutCache")
+
+	// For readability
+	haveMachines := r.machines.Count() > 0
+	machinesCachedAgo := time.Now().Sub(r.machinesCachedAt)
+
 	// If the machinesCachedAt value is within machinesCachedMax duration,
 	// return them immediately.
-	if r.machines.Count() > 0 && r.machinesCachedAt.After(time.Now().Add(-r.machinesCacheMax)) {
+	if haveMachines && machinesCachedAgo < r.machinesCacheMax {
+		log.Debug("Getting machines via Cache only")
 		return r.machines, nil
 	}
 
-	return r.GetMachinesWithoutCache()
+	machines, err := r.GetMachinesWithoutCache()
+
+	// If there was an error in retrieving machines without cache, but we are within
+	// our cache err max, return the error. For a better description of why this exists,
+	// see the r.machinesErrCacheMax docstring.
+	if haveMachines && err != nil && machinesCachedAgo < r.machinesErrCacheMax {
+		log.Warning(
+			"Unable to get new machines from Koding. Using existing machines. err:%s", err,
+		)
+		return r.machines, nil
+	}
+
+	return machines, err
 }
 
 func (r *Remote) getKodingKites() ([]*KodingClient, error) {
@@ -201,14 +220,11 @@ func (r *Remote) getKodingKites() ([]*KodingClient, error) {
 // are pretty good that we have machines, so we fail if we don't have to? Can we
 // fail only if we have to? When do we have to fail? etc. ~LO
 func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
-	log := r.log.New("GetMachines")
+	log := r.log.New("GetMachinesWithoutCache")
 
 	kites, err := r.getKodingKites()
 	if err != nil {
-		log.Warning(
-			"Unable to get new machines from Koding. Using existing machines. err:%s", err,
-		)
-		return r.machines, nil
+		return nil, err
 	}
 
 	// If this ends up true, call Machines.Save() after the loop.
@@ -221,6 +237,14 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 		// If the kite is our local kite, skip it.
 		if k.ID == r.localKite.Id {
 			continue
+		}
+
+		if k.Client != nil {
+			// Configure the kite klient
+			configureKiteClient(k.Client)
+		} else {
+			// Should never happen
+			log.Error("GetKodingKites returned a kite without a Client!")
 		}
 
 		var host string
