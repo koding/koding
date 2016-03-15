@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/koding/bongo"
 )
 
@@ -88,6 +89,54 @@ func (c *ChannelLink) FetchRoot() (*Channel, error) {
 	}
 
 	return channel, nil
+}
+
+// ByRoot fetches the links of a channel if exists
+func (c *ChannelLink) ByRoot() ([]ChannelLink, error) {
+	if c.RootId == 0 {
+		return nil, ErrRootIsNotSet
+	}
+
+	var cLinks []ChannelLink
+
+	bq := &bongo.Query{
+		Selector: map[string]interface{}{
+			"root_id": c.RootId,
+		},
+	}
+
+	if err := c.Some(&cLinks, bq); err != nil {
+		return nil, err
+	}
+
+	if len(cLinks) == 0 {
+		return nil, bongo.RecordNotFound
+	}
+
+	return cLinks, nil
+}
+
+// RemoveLinksWithRoot removes the links of the given root channel
+func (c *ChannelLink) RemoveLinksWithRoot() error {
+	links, err := c.ByRoot()
+	if err != nil && err != bongo.RecordNotFound {
+		return err
+	}
+
+	var errs *multierror.Error
+
+	for _, link := range links {
+		err := link.Delete()
+		if err != nil && err != bongo.RecordNotFound {
+			errs = multierror.Append(errs, err)
+		}
+	}
+
+	if errs.ErrorOrNil() != nil {
+		return errs
+	}
+
+	return nil
 }
 
 // Create creates a link between two channels
