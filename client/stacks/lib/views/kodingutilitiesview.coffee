@@ -23,8 +23,6 @@ module.exports = class KodingUtilitiesView extends kd.CustomScrollView
 
     whoami().fetchOtaToken (err, token) =>
 
-      err = yes
-
       key = if globals.os is 'mac' then '⌘ + C' else 'Ctrl + C'
       cmd = if err
         "<a href='#'>Failed to generate your command, click to try again!</a>"
