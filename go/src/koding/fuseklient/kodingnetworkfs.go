@@ -2,6 +2,7 @@ package fuseklient
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path"
@@ -417,12 +418,10 @@ func (k *KodingNetworkFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) 
 		return err
 	}
 
-	bytes, err := file.ReadAt(op.Offset)
-	if err != nil {
+	op.BytesRead, err = file.ReadAt(op.Dst, op.Offset)
+	if err != nil && err != io.EOF {
 		return err
 	}
-
-	op.BytesRead = copy(op.Dst, bytes)
 
 	return nil
 }
@@ -506,9 +505,7 @@ func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.Se
 		// if new size is 0 and entry is a file, truncate the file
 		if *op.Size == 0 {
 			if file, ok := entry.(*File); ok {
-				file.WriteAt([]byte{}, 0)
-
-				if err := file.Flush(); err != nil {
+				if err := file.TruncateTo(0); err != nil {
 					return err
 				}
 			}
@@ -531,7 +528,7 @@ func (k *KodingNetworkFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp
 	}
 
 	if r, ok := trace.FromContext(ctx); ok {
-		r.LazyPrintf("flushing file=%s sized=%d", file.Name, len(file.Content))
+		r.LazyPrintf("flushing file=%s sized=%d", file.Name, len(file.GetContent()))
 	}
 
 	return file.Flush()
@@ -547,7 +544,7 @@ func (k *KodingNetworkFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) 
 	}
 
 	if r, ok := trace.FromContext(ctx); ok {
-		r.LazyPrintf("syncing file=%s sized=%d", file.Name, len(file.Content))
+		r.LazyPrintf("syncing file=%s sized=%d", file.Name, len(file.GetContent()))
 	}
 
 	return file.Sync()

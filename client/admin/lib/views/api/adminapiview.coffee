@@ -44,7 +44,7 @@ module.exports = class AdminAPIView extends kd.View
   createTabView: ->
 
     data    = @getData()
-    tabView = new kd.TabView hideHandleCloseIcons: yes
+    tabView = new kd.TabView { hideHandleCloseIcons: yes }
 
     @addNewButton = tabView.tabHandleContainer.addSubView new kd.ButtonView
       cssClass : 'solid compact green add-new'
@@ -57,7 +57,7 @@ module.exports = class AdminAPIView extends kd.View
 
     toggleButtonState @addNewButton, @initialAPIAccessState
 
-    tabView.addPane apiTokens = new kd.TabPaneView name: 'API Tokens'
+    tabView.addPane apiTokens = new kd.TabPaneView { name: 'API Tokens' }
 
     apiTokens.addSubView @apiTokenListView = new APITokenListView
       noItemFoundWidget : new kd.CustomHTMLView

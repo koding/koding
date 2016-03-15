@@ -246,16 +246,12 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		file2 := newEntry.(*File)
 		file2.Entry.Parent = newDir
 
-		if err := file2.updateContentFromRemote(); err != nil {
+		if err := file2.ResetAndRead(); err != nil {
 			return nil, err
 		}
 
-		if len(file1.Content) >= len(file2.Content) {
-			n := make([]byte, len(file1.Content))
-			copy(n, file1.Content)
-
-			file2.Content = n
-			file2.Attrs.Size = file1.Attrs.Size
+		if len(file1.GetContent()) >= len(file2.GetContent()) {
+			file2.SetContent(file1.GetContent())
 		}
 	}
 

@@ -83,7 +83,7 @@ module.exports = class TeamMembersCommonView extends KDView
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
         spinnerOptions    :
-          size            : width: 28
+          size            : { width: 28 }
 
     @addSubView @listController.getView()
 
@@ -108,7 +108,7 @@ module.exports = class TeamMembersCommonView extends KDView
     group   = @getData()
     options =
       limit : itemLimit
-      sort  : timestamp: -1 # timestamp is at relationship collection
+      sort  : { timestamp: -1 } # timestamp is at relationship collection
       skip  : @skip
 
     # fetch members as jAccount

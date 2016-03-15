@@ -2,6 +2,7 @@ package transport
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -66,22 +67,21 @@ func (d *DiskTransport) Remove(path string) error {
 }
 
 func (d *DiskTransport) ReadFile(path string) (*ReadFileRes, error) {
-	resp, err := readFile(d.fullPath(path))
+	resp, err := readFile(d.fullPath(path), 0, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	content, ok := resp["content"]
-	if !ok {
-		return nil, errors.New("'content' is not a byte slice")
+	return readFileMarshal(resp)
+}
+
+func (d *DiskTransport) ReadFileAt(path string, offset, blockSize int64) (*ReadFileRes, error) {
+	resp, err := readFile(d.fullPath(path), offset, blockSize)
+	if err != nil {
+		return nil, err
 	}
 
-	byteContent, ok := content.([]byte)
-	if !ok {
-		return nil, errors.New("no 'content' in response")
-	}
-
-	return &ReadFileRes{Content: byteContent}, nil
+	return readFileMarshal(resp)
 }
 
 func (d *DiskTransport) WriteFile(path string, data []byte) error {
@@ -130,6 +130,20 @@ func (d *DiskTransport) fullPath(path string) string {
 // used when cleaning up responses.
 func (d *DiskTransport) relativePath(path string) string {
 	return strings.TrimPrefix(path, d.DiskPath)
+}
+
+func readFileMarshal(resp map[string]interface{}) (*ReadFileRes, error) {
+	content, ok := resp["content"]
+	if !ok {
+		return nil, errors.New("'content' is not a byte slice")
+	}
+
+	byteContent, ok := content.([]byte)
+	if !ok {
+		return nil, errors.New("no 'content' in response")
+	}
+
+	return &ReadFileRes{Content: byteContent}, nil
 }
 
 ///// COPIED FROM KLIENT. TODO: fix this.
@@ -251,7 +265,7 @@ func writeFile(filename string, data []byte, doNotOverwrite, Append bool) (int, 
 	return file.Write(data)
 }
 
-func readFile(path string) (map[string]interface{}, error) {
+func readFile(path string, offset, blockSize int64) (map[string]interface{}, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -263,8 +277,48 @@ func readFile(path string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	buf := make([]byte, fi.Size())
-	if _, err := io.ReadFull(file, buf); err != nil {
+	if fi.Size() > 50*1024*1024 && offset == 0 && blockSize == 0 {
+		return nil, fmt.Errorf("File larger than 50MiB. Please use offset and/or blockSize")
+	}
+
+	var buf []byte
+
+	// read entire file from start to end
+	if offset == 0 && blockSize == 0 {
+		buf = make([]byte, fi.Size())
+		if _, err = io.ReadFull(file, buf); err != nil {
+			return nil, err
+		}
+
+		return map[string]interface{}{"content": buf}, nil
+	}
+
+	size := blockSize
+
+	// read entire file from offset to end
+	if offset != 0 && blockSize == 0 {
+		size = fi.Size() - offset
+	}
+
+	// read file from start till blocksize
+	// if file size is less than blocksize, then return file sized block
+	if offset == 0 && blockSize != 0 {
+		if fi.Size() < blockSize {
+			size = fi.Size()
+		}
+	}
+
+	// read file from offset till blockSize
+	// if file size from offset is less than blockSize, then return offset
+	// to end of file sized block
+	if offset != 0 && blockSize != 0 {
+		if fi.Size()-offset < blockSize {
+			size = fi.Size() - offset
+		}
+	}
+
+	buf = make([]byte, size)
+	if _, err = file.ReadAt(buf, offset); err != nil {
 		return nil, err
 	}
 

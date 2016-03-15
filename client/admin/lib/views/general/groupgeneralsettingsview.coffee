@@ -37,7 +37,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     group = @getData()
     url   = if group.slug is 'koding' then '' else "#{group.slug}."
 
-    @wrapper.addSubView section = @createSection name: 'general-settings'
+    @wrapper.addSubView section = @createSection { name: 'general-settings' }
 
     section.addSubView form = @generalSettingsForm = new KDFormView
 
@@ -106,7 +106,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     section.addSubView @uploadInput = new KDInputView
       type       : 'file'
       cssClass   : 'upload-input'
-      attributes : accept : 'image/*'
+      attributes : { accept : 'image/*' }
       change     : @bound 'handleUpload'
 
 
@@ -159,7 +159,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
   showPattern: ->
 
     avatarEl = @avatar.getElement()
-    pattern  = geoPattern.generate @getData().slug, generator: 'plusSigns'
+    pattern  = geoPattern.generate @getData().slug, { generator: 'plusSigns' }
 
     avatarEl.style.backgroundImage = pattern.toDataUrl()
     @uploadSection.unsetClass 'with-logo'
@@ -192,8 +192,8 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
 
     # split from comma then trim spaces then filter empty values
     return value.split ','
-               .map    (i) -> return i.trim()
-               .filter (i) -> return i
+      .map    (i) -> return i.trim()
+      .filter (i) -> return i
 
 
   update: ->
@@ -254,7 +254,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     itemClass  or= KDInputView
     form.inputs ?= {}
 
-    form.addSubView field = new KDCustomHTMLView tagName : 'fieldset'
+    form.addSubView field = new KDCustomHTMLView { tagName : 'fieldset' }
 
     if label
       field.addSubView labelView = new KDCustomHTMLView
@@ -264,7 +264,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
       options.label = labelView
 
     field.addSubView form.inputs[name] = input = new itemClass options
-    field.addSubView new KDCustomHTMLView tagName : 'p', partial : description  if description
+    field.addSubView new KDCustomHTMLView { tagName : 'p', partial : description }  if description
 
     field.addSubView nextElement  if nextElement and nextElement instanceof KDView
 

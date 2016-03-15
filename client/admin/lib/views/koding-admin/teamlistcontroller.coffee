@@ -18,7 +18,7 @@ module.exports = class TeamListController extends AccountListViewController
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
         spinnerOptions    :
-          size            : width: 28
+          size            : { width: 28 }
 
     super options, data
 
@@ -55,14 +55,14 @@ module.exports = class TeamListController extends AccountListViewController
     { JGroup } = remote.api
 
     options.limit ?= @getOption 'limit'
-    options.sort   = '_id' : -1
+    options.sort   = { '_id' : -1 }
 
     JGroup.someWithRelationship query, options, (err, teams) =>
 
       if err
         @hideLazyLoader()
         showError err, \
-          KodingError : "Failed to fetch data, try again later."
+          { KodingError : 'Failed to fetch data, try again later.' }
         return
 
       callback err, teams

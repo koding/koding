@@ -34,7 +34,7 @@ module.exports = class AdminIntegrationsListView extends kd.View
       startWithLazyLoader : yes
       lazyLoaderOptions   :
         spinnerOptions    :
-          size            : width: 28
+          size            : { width: 28 }
 
     @addSubView @listController.getView()
 
