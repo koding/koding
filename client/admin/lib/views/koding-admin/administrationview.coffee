@@ -16,107 +16,107 @@ MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemvi
 
 module.exports = class AdministrationView extends KDTabViewWithForms
 
-  constructor:(options, data)->
+  constructor: (options, data) ->
 
     options =
       navigable             : yes
       goToNextFormOnSubmit  : no
       forms                 :
-        "User Details"      :
+        'User Details'      :
           buttons           :
             Update          :
-              title         : "Update"
-              style         : "solid medium green"
+              title         : 'Update'
+              style         : 'solid medium green'
               loader        : yes
               callback      : =>
-                {inputs, buttons} = @forms["User Details"]
+                { inputs, buttons } = @forms['User Details']
                 accounts = @userController.getSelectedItemData()
                 if accounts.length > 0
                   account  = accounts[0]
-                  flags    = (flag.trim() for flag in inputs.Flags.getValue().split ",")
-                  account.updateFlags flags, (err)->
+                  flags    = (flag.trim() for flag in inputs.Flags.getValue().split ',')
+                  account.updateFlags flags, (err) ->
                     kd.error err if err
                     new KDNotificationView
-                      title: if err then "Failed!" else "Done!"
+                      title: if err then 'Failed!' else 'Done!'
                     buttons.Update.hideLoader()
                 else
-                  new KDNotificationView {title : "Select a user first"}
+                  new KDNotificationView { title : 'Select a user first' }
           fields            :
             Username        :
-              label         : "Search for user:"
-              type          : "hidden"
+              label         : 'Search for user:'
+              type          : 'hidden'
               nextElement   :
                 userWrapper :
                   itemClass : KDView
-                  cssClass  : "completed-items"
+                  cssClass  : 'completed-items'
             Flags           :
-              label         : "Flags"
-              placeholder   : "no flags assigned"
+              label         : 'Flags'
+              placeholder   : 'no flags assigned'
             BlockUser       :
-              label         : "Block User"
+              label         : 'Block User'
               itemClass     : KDButtonView
-              title         : "Block"
+              title         : 'Block'
               callback      : =>
                 accounts = @userController.getSelectedItemData()
                 if accounts.length > 0
                   activityController = kd.getSingleton('activityController')
-                  activityController.emit "ActivityItemBlockUserClicked", accounts[0].profile.nickname
+                  activityController.emit 'ActivityItemBlockUserClicked', accounts[0].profile.nickname
                 else
-                  new KDNotificationView {title: "Please select an account!"}
+                  new KDNotificationView { title: 'Please select an account!' }
             VerifyEmail     :
-              label         : "Verify Email Address"
+              label         : 'Verify Email Address'
               itemClass     : KDButtonView
-              title         : "Verify Email Address"
+              title         : 'Verify Email Address'
               callback      : =>
                 accounts = @userController.getSelectedItemData()
                 if accounts.length > 0
-                  remote.api.JAccount.verifyEmailByUsername accounts.first.profile.nickname, (err, res)->
-                    title = if err then err.message else "Confirmed"
-                    new KDNotificationView {title}
+                  remote.api.JAccount.verifyEmailByUsername accounts.first.profile.nickname, (err, res) ->
+                    title = if err then err.message else 'Confirmed'
+                    new KDNotificationView { title }
                 else
-                  new KDNotificationView {title: "Please select an account!"}
+                  new KDNotificationView { title: 'Please select an account!' }
 
             Impersonate     :
-              label         : "Switch to User "
+              label         : 'Switch to User '
               itemClass     : KDButtonView
-              title         : "Impersonate"
+              title         : 'Impersonate'
               callback      : =>
                 modal = new KDModalView
-                  title          : "Switch to this user?"
+                  title          : 'Switch to this user?'
                   content        : "<div class='modalformline'>This action will reload Koding and log you in with this user.</div>"
-                  height         : "auto"
+                  height         : 'auto'
                   overlay        : yes
                   buttons        :
                     Impersonate  :
-                      style      : "solid green medium"
+                      style      : 'solid green medium'
                       loader     :
-                        color    : "#444444"
+                        color    : '#444444'
                       callback   : =>
                         accounts = @userController.getSelectedItemData()
                         unless accounts.length is 0
-                          impersonate accounts[0].profile.nickname, =>
+                          impersonate accounts[0].profile.nickname, ->
                             modal.destroy()
                         else
                           modal.destroy()
 
-        "Broadcast Message" :
+        'Broadcast Message' :
           buttons           :
-            "Broadcast Message"  :
-              title         : "Broadcast"
-              style         : "solid medium green"
+            'Broadcast Message'  :
+              title         : 'Broadcast'
+              style         : 'solid medium green'
               loader        : yes
 
-              callback      : (event)=>
-                {inputs, buttons} = @forms["Broadcast Message"]
+              callback      : (event) =>
+                { inputs, buttons } = @forms['Broadcast Message']
 
                 remote.api.JSystemStatus.create
-                  scheduledAt : Date.now()+inputs.Duration.getValue()*1000
+                  scheduledAt : Date.now() + inputs.Duration.getValue() * 1000
                   title       : inputs.Title.getValue()
                   content     : inputs.Description.getValue()
                   type        : inputs.Type.getValue()
                 , (err, status) ->
                   showError err  if err
-                  buttons["Broadcast Message"].hideLoader()
+                  buttons['Broadcast Message'].hideLoader()
 
           fields            :
             Presets         :
@@ -125,9 +125,9 @@ module.exports = class AdministrationView extends KDTabViewWithForms
               cssClass      : 'preset-select'
               selectOptions :
                 [
-                  { title   : "No preset selected",  value : "none"   }
-                  { title   : "Shutdown in...",    value : "restart"   }
-                  { title   : "Please refresh...",     value : "reload"    }
+                  { title   : 'No preset selected',  value : 'none' }
+                  { title   : 'Shutdown in...',    value : 'restart' }
+                  { title   : 'Please refresh...',     value : 'reload' }
                 ]
               defaultValue  : 'none'
               change        : =>
@@ -148,8 +148,8 @@ module.exports = class AdministrationView extends KDTabViewWithForms
                     duration: 10
                     type    : 'reload'
 
-                {inputs, buttons} = @forms["Broadcast Message"]
-                {title, content, duration, type} = msgMap[inputs.Presets.getValue()]
+                { inputs, buttons } = @forms['Broadcast Message']
+                { title, content, duration, type } = msgMap[inputs.Presets.getValue()]
 
                 inputs.Title.setValue       title
                 inputs.Description.setValue content
@@ -157,11 +157,11 @@ module.exports = class AdministrationView extends KDTabViewWithForms
                 inputs.Type.setValue        type
 
             Title           :
-              label         : "Message Title"
-              type          : "text"
-              placeholder   : "Shutdown in"
+              label         : 'Message Title'
+              type          : 'text'
+              placeholder   : 'Shutdown in'
               tooltip       :
-                title       : 'When using type "Restart", end title with "in",'+\
+                title       : 'When using type "Restart", end title with "in",' + \
                 ' since there will be a timer following the title.'
                 placement   : 'right'
                 direction   : 'center'
@@ -169,13 +169,13 @@ module.exports = class AdministrationView extends KDTabViewWithForms
                   top       : 2
                   left      : 0
             Description     :
-              label         : "Message Details"
-              type          : "text"
-              placeholder   : "We are upgrading our platform. Please save your work."
+              label         : 'Message Details'
+              type          : 'text'
+              placeholder   : 'We are upgrading our platform. Please save your work.'
             Duration        :
-              label         : "Timer duration"
-              type          : "text"
-              defaultValue  : 5*60
+              label         : 'Timer duration'
+              type          : 'text'
+              defaultValue  : 5 * 60
               tooltip       :
                 title       : 'in seconds'
                 placement   : 'right'
@@ -183,23 +183,23 @@ module.exports = class AdministrationView extends KDTabViewWithForms
                 offset      :
                   top       : 2
                   left      : 0
-              placeholder   : "Please enter a reasonable timeout."
+              placeholder   : 'Please enter a reasonable timeout.'
             Type            :
               label         : 'Type'
               type          : 'select'
               cssClass      : 'type-select'
               selectOptions :
                 [
-                  { title   : "Restart",      value : "restart"   }
-                  { title   : "Info Text",    value : "info"  }
-                  { title   : "Reload",       value : "reload"    }
-                  { title   : "Error",        value : "red"  }
-                  { title   : "Warning",      value : "yellow"  }
-                  { title   : "Notification", value : "green"  }
+                  { title   : 'Restart',      value : 'restart' }
+                  { title   : 'Info Text',    value : 'info' }
+                  { title   : 'Reload',       value : 'reload' }
+                  { title   : 'Error',        value : 'red' }
+                  { title   : 'Warning',      value : 'yellow' }
+                  { title   : 'Notification', value : 'green' }
                 ]
               defaultValue  : 'restart'
               change        : =>
-                {inputs, buttons} = @forms["Broadcast Message"]
+                { inputs, buttons } = @forms['Broadcast Message']
                 type = inputs.Type.getValue()
                 inputs['presetExplanation'].updatePartial switch type
                   when 'restart'
@@ -216,42 +216,42 @@ module.exports = class AdministrationView extends KDTabViewWithForms
 
     super options, data
 
-    {inputs, buttons} = @forms["Broadcast Message"]
+    { inputs, buttons } = @forms['Broadcast Message']
     preset = inputs.Type.change()
 
     @hideConnectedFields()
 
     @createUserAutoComplete()
 
-  createUserAutoComplete:->
-    {fields, inputs, buttons} = @forms["User Details"]
+  createUserAutoComplete: ->
+    { fields, inputs, buttons } = @forms['User Details']
 
-    {JAccount} = remote.api
+    { JAccount } = remote.api
 
     @userController = new KDAutoCompleteController
-      form                : @forms["User Details"]
-      name                : "userController"
+      form                : @forms['User Details']
+      name                : 'userController'
       itemClass           : MemberAutoCompleteItemView
-      itemDataPath        : "profile.nickname"
+      itemDataPath        : 'profile.nickname'
       outputWrapper       : fields.userWrapper
       selectedItemClass   : MemberAutoCompletedItemView
-      listWrapperCssClass : "users"
+      listWrapperCssClass : 'users'
       submitValuesAsText  : yes
-      dataSource          : (args, callback)=>
-        {inputValue} = args
+      dataSource          : (args, callback) =>
+        { inputValue } = args
         if /^@/.test inputValue
-          query = 'profile.nickname': inputValue.replace /^@/, ''
-          JAccount.one query, (err, account)=>
+          query = { 'profile.nickname': inputValue.replace /^@/, '' }
+          JAccount.one query, (err, account) =>
             if not account
               @userController.showNoDataFound()
             else
               callback [account]
         else
           byEmail = /[^\s@]+@[^\s@]+\.[^\s@]+/.test inputValue
-          JAccount.byRelevance inputValue, {byEmail}, (err, accounts)->
+          JAccount.byRelevance inputValue, { byEmail }, (err, accounts) ->
             callback accounts
 
-    @userController.on "ItemListChanged", =>
+    @userController.on 'ItemListChanged', =>
       accounts = @userController.getSelectedItemData()
       if accounts.length > 0
         account = accounts[0]
@@ -264,8 +264,8 @@ module.exports = class AdministrationView extends KDTabViewWithForms
 
     fields.Username.addSubView userRequestLineEdit = @userController.getView()
 
-  hideConnectedFields:->
-    {fields, inputs, buttons} = @forms["User Details"]
+  hideConnectedFields: ->
+    { fields, inputs, buttons } = @forms['User Details']
     fields.Impersonate.hide()
     buttons.Update.hide()
     fields.Flags.hide()
@@ -274,9 +274,9 @@ module.exports = class AdministrationView extends KDTabViewWithForms
 
     @metaInfo?.destroy()
 
-  showConnectedFields: (account)->
+  showConnectedFields: (account) ->
 
-    {fields, inputs, buttons} = @forms["User Details"]
+    { fields, inputs, buttons } = @forms['User Details']
     fields.Impersonate.show()
     fields.Flags.show()
     fields.Block.show()
@@ -284,9 +284,9 @@ module.exports = class AdministrationView extends KDTabViewWithForms
 
     @metaInfo?.destroy()
 
-    account.fetchMetaInformation (err, info)=>
+    account.fetchMetaInformation (err, info) =>
       return if showError err
-      info = objectToString info, separator: "  "
+      info = objectToString info, { separator: '  ' }
       @addSubView @metaInfo = new KDView
         cssClass : 'has-markdown'
         partial  : applyMarkdown "```json \n#{info}\n```"

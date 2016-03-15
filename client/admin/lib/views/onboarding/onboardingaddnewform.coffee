@@ -11,35 +11,35 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
     super options, data
 
     @path          = new KDInputView
-      type         : "text"
-      cssClass     : "big-input"
-      defaultValue : Encoder.htmlDecode data.path or ""
+      type         : 'text'
+      cssClass     : 'big-input'
+      defaultValue : Encoder.htmlDecode data.path or ''
 
     @title         = new KDInputView
-      type         : "text"
-      cssClass     : "big-input"
-      defaultValue : Encoder.htmlDecode data.title or ""
+      type         : 'text'
+      cssClass     : 'big-input'
+      defaultValue : Encoder.htmlDecode data.title or ''
 
     @content       = new KDInputView
-      type         : "textarea"
-      cssClass     : "big-input"
-      defaultValue : Encoder.htmlDecode data.content or ""
+      type         : 'textarea'
+      cssClass     : 'big-input'
+      defaultValue : Encoder.htmlDecode data.content or ''
 
-    @editor.setClass "hidden"
+    @editor.setClass 'hidden'
 
     @oldData = data
 
 
   addNew: ->
 
-    {data}    = @getDelegate()
-    {items}   = data.partial
-    newItem   =
+    { data }    = @getDelegate()
+    { items }   = data.partial
+    newItem     =
       name    : @input.getValue()
       path    : @path.getValue()
       title   : @title.getValue()
       content : @content.getValue()
-      partial : { html: "", css: "", js: "" }
+      partial : { html: '', css: '', js: '' }
 
     isUpdate  = no
 
@@ -48,14 +48,14 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
       isUpdate = yes
 
     items.push newItem  unless isUpdate
-    data.update { "partial.items": items }, (err, res) =>
+    data.update { 'partial.items': items }, (err, res) =>
       return kd.warn err  if err
-      @getDelegate().emit "NewViewAdded"
+      @getDelegate().emit 'NewViewAdded'
 
 
   pistachio: ->
 
-    """
+    '''
       <div class="inputs">
         <p>Name</p>
         {{> @input}}
@@ -71,4 +71,4 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
         {{> @cancelButton}}
         {{> @saveButton}}
       </div>
-    """
+    '''

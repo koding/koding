@@ -8,7 +8,7 @@ module.exports = class AcceptedInvitationsView extends PendingInvitationsView
   constructor: (options = {}, data) ->
 
     options.statusType          = 'accepted'
-    options.listViewItemOptions = statusType: 'accepted'
+    options.listViewItemOptions = { statusType: 'accepted' }
     options.noItemFoundWidget   = new KDCustomHTMLView
       partial  : 'There is no accepted invitation.'
       cssClass : 'hidden no-item-view'

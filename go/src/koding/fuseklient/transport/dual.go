@@ -66,6 +66,11 @@ func (d *DualTransport) ReadFile(path string) (*ReadFileRes, error) {
 	return d.CacheTransport.ReadFile(path)
 }
 
+// ReadFileAt is sent to CacheTransport only.
+func (d *DualTransport) ReadFileAt(path string, offset, blockSize int64) (*ReadFileRes, error) {
+	return d.CacheTransport.ReadFileAt(path, offset, blockSize)
+}
+
 // WriteFile is sent to RemoteTransport, then CacheTransport.
 func (d *DualTransport) WriteFile(path string, data []byte) error {
 	if err := d.RemoteTransport.WriteFile(path, data); err != nil {

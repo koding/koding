@@ -7,13 +7,13 @@ Validator = require 'validator'
 
 module.exports = class TeamInviteView extends JView
 
-  constructor:(options, data)->
+  constructor: (options, data) ->
 
     super options, data
 
     @textarea = new kd.InputView
       type        : 'textarea'
-      placeholder : """
+      placeholder : '''
         Put email addresses comma/newline separated e.g.
         sinan@koding.com, devrim@koding.com, nitin@koding.com
 
@@ -28,7 +28,7 @@ module.exports = class TeamInviteView extends JView
         --- oh@yeah I can break things .com ---
         nitin@koding.com, nicolo@koding.com
         , some jibberish @@#!
-        """
+        '''
 
     @confirmationView = new kd.ScrollView
 
@@ -72,7 +72,7 @@ module.exports = class TeamInviteView extends JView
       new kd.NotificationView
         title: 'Invitations sent!'
 
-      message = ""
+      message = ''
 
       { protocol, hostname, port } = location
 
@@ -94,7 +94,7 @@ module.exports = class TeamInviteView extends JView
 
   showConfirmation: ->
 
-    return new kd.NotificationView title : 'You\'re doing it wrong!'  unless @emails.length > 0
+    return new kd.NotificationView { title : 'You\'re doing it wrong!' }  unless @emails.length > 0
 
     @confirmationView.updatePartial @emails.join '<br/>'
 
@@ -123,9 +123,9 @@ module.exports = class TeamInviteView extends JView
 
   pistachio: ->
 
-    """
+    '''
     {{> @textarea}}
     {{> @invite}}
     {{> @confirmationView}}
     {{> @close}}{{> @confirm}}{{> @abort}}
-    """
+    '''

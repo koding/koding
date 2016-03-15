@@ -96,6 +96,17 @@ func (f *fakeTransport) ReadFile(path string) (*transport.ReadFileRes, error) {
 	return res, f.Trip("fs.readFile", nil, &res)
 }
 
+func (f *fakeTransport) ReadFileAt(path string, offset, blockSize int64) (*transport.ReadFileRes, error) {
+	var res *transport.ReadFileRes
+	if err := f.Trip("fs.readFile", nil, &res); err != nil {
+		return nil, err
+	}
+
+	res.Content = res.Content[offset:]
+
+	return res, nil
+}
+
 func (f *fakeTransport) Exec(path string) (*transport.ExecRes, error) {
 	var res *transport.ExecRes
 	return res, f.Trip("exec", nil, &res)

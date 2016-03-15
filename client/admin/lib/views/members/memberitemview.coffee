@@ -8,14 +8,14 @@ getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
 # a user be a Member, Admin and Owner at the same time but in the UI we should
 # show the role name which has the most permissions.
 defaultRoles  =
-  member      : slug: 'member',    label: 'Member',    buttonTitle: 'MAKE MEMBER',    priority: 1
-  moderator   : slug: 'moderator', label: 'Moderator', buttonTitle: 'MAKE MODERATOR', priority: 2
-  admin       : slug: 'admin',     label: 'Admin',     buttonTitle: 'MAKE ADMIN',     priority: 3
-  owner       : slug: 'owner',     label: 'Owner',     buttonTitle: 'MAKE OWNER',     priority: 4
+  member      : { slug: 'member',    label: 'Member',    buttonTitle: 'MAKE MEMBER',    priority: 1 }
+  moderator   : { slug: 'moderator', label: 'Moderator', buttonTitle: 'MAKE MODERATOR', priority: 2 }
+  admin       : { slug: 'admin',     label: 'Admin',     buttonTitle: 'MAKE ADMIN',     priority: 3 }
+  owner       : { slug: 'owner',     label: 'Owner',     buttonTitle: 'MAKE OWNER',     priority: 4 }
 
 
 { member, moderator, admin, owner } = defaultRoles
-kick = slug: 'kick', buttonTitle: 'DISABLE USER', extraClass: 'red'
+kick = { slug: 'kick', buttonTitle: 'DISABLE USER', extraClass: 'red' }
 
 buttonSet     =
   owner       :
@@ -45,7 +45,7 @@ module.exports = class MemberItemView extends kd.ListItemView
     @memberRole       = @getRole data.roles
 
     @avatar = new AvatarView
-      size  : width: 40, height : 40
+      size : { width: 40, height : 40 }
     , @getData()
 
     @roleLabel = new kd.CustomHTMLView
@@ -84,7 +84,7 @@ module.exports = class MemberItemView extends kd.ListItemView
       buttonView = new kd.ButtonView
         cssClass : kd.utils.curry 'solid compact outline', button.extraClass
         title    : button.buttonTitle
-        loader   : color: "#444444"
+        loader   : { color: '#444444' }
         callback : => @emit 'UserRoleChangeRequested', button.slug
 
       @actionButtons[button.slug] = buttonView
@@ -147,7 +147,7 @@ module.exports = class MemberItemView extends kd.ListItemView
       else
         'Failed to change user role. Please try again.'
 
-    return new kd.NotificationView title: message, duration: 5000
+    return new kd.NotificationView { title: message, duration: 5000 }
 
 
   kick: ->

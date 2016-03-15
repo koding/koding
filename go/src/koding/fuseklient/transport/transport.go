@@ -21,6 +21,10 @@ type Transport interface {
 	// ReadFile reads file at specified path and return its contents.
 	ReadFile(string) (*ReadFileRes, error)
 
+	// ReadFileAt reads file at specified offset and path with specified block
+	// size and returns it contents.
+	ReadFileAt(string, int64, int64) (*ReadFileRes, error)
+
 	// WriteFile writes file at specified path with data.
 	WriteFile(string, []byte) error
 

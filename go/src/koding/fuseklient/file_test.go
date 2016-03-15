@@ -1,312 +1,151 @@
 package fuseklient
 
 import (
-	"encoding/base64"
 	"io"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestFile(tt *testing.T) {
+func TestFileNewFile(tt *testing.T) {
 	Convey("NewFile", tt, func() {
 		Convey("It should initialize new File", func() {
-			i := &Entry{Transport: &fakeTransport{}}
-			f := NewFile(i)
+			f, err := newFile()
+			So(err, ShouldBeNil)
 
 			Convey("It should initialize content", func() {
-				So(len(f.Content), ShouldEqual, 0)
+				So(f.content, ShouldNotBeNil)
 			})
 		})
 	})
+}
 
-	Convey("File#ReadAt", tt, func() {
+func TestFileReadAt(tt *testing.T) {
+	Convey("ReadAt", tt, func() {
+		f, err := newFile()
+		So(err, ShouldBeNil)
+
 		Convey("It should return content at specified offset: 0", func() {
-			f := newFile()
-
-			content, err := f.ReadAt(0)
-			So(err, ShouldBeNil)
-			So(string(content), ShouldEqual, "Hello World!")
+			So(readAt(f, 0, dftCnt), ShouldBeNil)
 		})
 
 		Convey("It should return content at specified offset: 1", func() {
-			f := newFile()
-
-			content, err := f.ReadAt(1)
-			So(err, ShouldBeNil)
-			So(string(content), ShouldEqual, "ello World!")
+			So(readAt(f, 1, dftCnt[1:]), ShouldBeNil)
 		})
 
 		Convey("It should not fetch content from remote if content is same size as Attrs#Size", func() {
-			f := newFile()
+			So(readAt(f, 0, dftCnt), ShouldBeNil)
 
-			content, err := f.ReadAt(0)
-			So(err, ShouldBeNil)
-			So(string(content), ShouldEqual, "Hello World!")
-		})
+			f.Transport = nil // this causes panic if next method call hits remote
 
-		Convey("It should fetch content from remote if content is not same as Attrs#Size", func() {
-			f := newFileWithTransport()
-			f.Content = nil
-
-			content, err := f.ReadAt(0)
-			So(err, ShouldBeNil)
-			So(string(content), ShouldEqual, "Hello World!")
-		})
-
-		Convey("It should not fetch content from remote if content is same length of Attr#size", func() {
-			f := newFileWithTransport()
-
-			content, err := f.ReadAt(0)
-			So(err, ShouldBeNil)
-			So(string(content), ShouldEqual, "Hello World!")
-
-			// reset to empty transport, so if remote call is made, it panics
-			f.Transport = &fakeTransport{}
-
-			content, err = f.ReadAt(0)
-			So(err, ShouldBeNil)
-			So(string(content), ShouldEqual, "Hello World!")
+			So(readAt(f, 0, dftCnt), ShouldBeNil)
 		})
 
 		Convey("It should return error if offset is equal to length of content", func() {
-			f := newFile()
-
-			_, err := f.ReadAt(int64(f.Attrs.Size))
+			_, err = f.ReadAt(nil, int64(f.Attrs.Size))
 			So(err, ShouldEqual, io.EOF)
 		})
 
 		Convey("It should return error if offset is greater than length of content", func() {
-			f := newFile()
-
-			_, err := f.ReadAt(int64(f.Attrs.Size) + 1)
+			_, err := f.ReadAt(nil, int64(f.Attrs.Size)+1)
 			So(err, ShouldEqual, io.EOF)
 		})
 	})
+}
 
-	Convey("File#Create", tt, func() {
-		Convey("It should create new file in remote", func() {
-			f := newFile()
-			f.Content = []byte("Hello World!")
+func TestFileWriteAt(tt *testing.T) {
+	Convey("WriteAt", tt, func() {
+		f, err := newFile()
+		So(err, ShouldBeNil)
 
-			// since transport is empty, if it panics it means it hit remote
-			// and there was no response specified
-			//So(func() { f.Create() }, ShouldPanicWith, "Expected 'fs.writeFile' to be in list of mocked responses.")
-
-			f = newFileWithTransport()
-			f.Content = []byte("Hello World!")
-
-			err := f.Create()
-			So(err, ShouldBeNil)
-		})
-
-		Convey("It should create file in remote even if content is empty", func() {
-			f := newFile()
-			f.Content = []byte{}
-
-			// since transport is empty, if it panics it means it hit remote
-			// and there was no response specified
-			//So(func() { f.Create() }, ShouldPanicWith, "Expected 'fs.writeFile' to be in list of mocked responses.")
-
-			f = newFileWithTransport()
-			f.Content = []byte{}
-
-			err := f.Create()
-			So(err, ShouldBeNil)
-		})
-	})
-
-	Convey("File#WriteAt", tt, func() {
 		Convey("It should write specified content at beginning of file", func() {
-			f := newFile()
-			f.Content = []byte("Hello World!")
-
-			c := []byte("Hi")
-			f.WriteAt(c, 0)
-			So(string(f.Content), ShouldEqual, "Hi")
+			f.WriteAt([]byte("Holla"), 0)
+			So(readAt(f, 0, []byte("Holla World!")), ShouldBeNil)
 		})
 
 		Convey("It should write specified content at end of file", func() {
-			f := newFile()
-			f.Content = []byte("Hello World!")
-
-			c := []byte("!")
-			o := int64(len(f.Content)) // 0 indexed
-			f.WriteAt(c, o)
-
-			So(string(f.Content), ShouldEqual, "Hello World!!")
+			f.WriteAt([]byte("!"), int64(f.Attrs.Size)) // 0 indexed
+			So(readAt(f, 0, []byte("Hello World!!")), ShouldBeNil)
 		})
 
-		Convey("It should update fields", func() {
-			f := newFile()
-			f.Content = []byte("Hello World!")
-
-			c := []byte("Hi")
-			f.WriteAt(c, 0)
-
-			Convey("It should set dirty state to true", func() {
-				So(f.IsDirty, ShouldBeTrue)
-			})
-
-			Convey("It should set reset state to false", func() {
-				So(f.IsReset, ShouldBeFalse)
-			})
-
-			Convey("It should update size", func() {
-				So(f.Attrs.Size, ShouldEqual, len(c))
-			})
+		Convey("It should update file size on write", func() {
+			f.WriteAt([]byte("!"), int64(f.Attrs.Size))
+			So(f.Attrs.Size, ShouldEqual, len(dftCnt)+1)
 		})
 	})
+}
 
-	Convey("File#TruncateTo", tt, func() {
+func TestFileTruncateTo(tt *testing.T) {
+	Convey("TruncateTo", tt, func() {
+		f, err := newFile()
+		So(err, ShouldBeNil)
+
 		Convey("It should add extra padding to content if specified size is greater than size of file", func() {
-			f := newFileWithTransport()
-			f.Content = []byte("Hello World!")
+			oldSize := f.Attrs.Size
 
-			oldSize := len(f.Content)
-
-			So(f.TruncateTo(uint64(len(f.Content)+1)), ShouldBeNil)
-			So(len(f.Content), ShouldEqual, oldSize+1)
+			So(f.TruncateTo(uint64(oldSize+1)), ShouldBeNil)
+			So(f.Attrs.Size, ShouldEqual, oldSize+1)
 		})
 
 		Convey("It should not change content if specified size is same as size of file", func() {
-			f := newFileWithTransport()
-			f.Content = []byte("Hello World!")
-
-			size := len(f.Content)
+			size := f.Attrs.Size
 
 			So(f.TruncateTo(uint64(size)), ShouldBeNil)
-			So(len(f.Content), ShouldEqual, size)
+			So(f.Attrs.Size, ShouldEqual, size)
 		})
 
 		Convey("It should remove content at end if specified size is smaller than size of file", func() {
 			Convey("It should truncate file to size: 0", func() {
-				f := newFileWithTransport()
-				f.Content = []byte("Hello World!")
-
 				So(f.TruncateTo(0), ShouldBeNil)
 
 				Convey("It should save truncated content", func() {
-					So(len(f.Content), ShouldEqual, 0)
+					So(f.Attrs.Size, ShouldEqual, 0)
 				})
 			})
 
 			Convey("It should truncate file to size: 1", func() {
-				f := newFileWithTransport()
-				f.Content = []byte("Hello World!")
-
 				So(f.TruncateTo(1), ShouldBeNil)
 
 				Convey("It should save truncated content", func() {
-					So(len(f.Content), ShouldEqual, 1)
+					So(f.Attrs.Size, ShouldEqual, 1)
 				})
 			})
 		})
 	})
+}
 
-	Convey("File#Expire", tt, func() {
+func TestFileExpire(tt *testing.T) {
+	Convey("Expire", tt, func() {
 		Convey("It should increase inode id of itself", func() {
-			f := newFileWithTransport()
+			f, err := newFile()
+			So(err, ShouldBeNil)
+
 			id := f.ID
 
-			err := f.Expire()
-			So(err, ShouldBeNil)
+			So(f.Expire(), ShouldBeNil)
 
 			So(f.ID, ShouldNotEqual, id)
 		})
 	})
-
-	Convey("File#Reset", tt, func() {
-		Convey("It should set its content to nil", func() {
-			f := newFileWithTransport()
-			f.Content = []byte("Hello World!")
-
-			err := f.Reset()
-			So(err, ShouldBeNil)
-
-			So(len(f.Content), ShouldEqual, 0)
-		})
-	})
-
-	Convey("File#writeContentToRemoteIfDirty", tt, func() {
-		Convey("It should not write specified content if not dirty", func() {
-			f := newFileWithTransport()
-
-			// reset to empty transport, so if remote call is made, it panics
-			f.Transport = &fakeTransport{}
-			f.IsDirty = false
-
-			So(f.syncToRemote(), ShouldBeNil)
-		})
-
-		Convey("It should write specified content to remove if dirty", func() {
-			f := newFileWithTransport()
-			f.Content = []byte("Hello World!")
-			f.IsDirty = true
-
-			So(f.syncToRemote(), ShouldBeNil)
-
-			Convey("It should set File#IsDirty to false after writing to remote", func() {
-				So(f.IsDirty, ShouldBeFalse)
-			})
-		})
-	})
-
-	Convey("File#writeContentToRemote", tt, func() {
-		Convey("It should write specificed content to remote", func() {
-			c := []byte("Hello World!")
-
-			f := newFileWithTransport()
-			So(f.writeContentToRemote(c), ShouldBeNil)
-
-			Convey("It should set File#IsDirty to false after writing to remote", func() {
-				So(f.IsDirty, ShouldBeFalse)
-			})
-		})
-	})
-
-	Convey("File#updateContentFromRemote", tt, func() {
-		Convey("It should update content after fetching them from remote", func() {
-			c := base64.StdEncoding.EncodeToString([]byte("Modified Content"))
-
-			f := newFileWithTransport()
-			f.Content = []byte("Hello World!")
-			f.Transport = &fakeTransport{
-				TripResponses: map[string]interface{}{
-					"fs.readFile": map[string]interface{}{"content": c},
-				},
-			}
-
-			err := f.updateContentFromRemote()
-			So(err, ShouldBeNil)
-			So(string(f.Content), ShouldEqual, "Modified Content")
-		})
-	})
 }
 
-func newFileWithTransport() *File {
-	c := base64.StdEncoding.EncodeToString([]byte("Hello World!"))
-	t := &fakeTransport{
-		TripResponses: map[string]interface{}{
-			"fs.readFile":  map[string]interface{}{"content": c},
-			"fs.writeFile": 1,
-		},
+func newFile() (*File, error) {
+	rt, err := newRemoteTransport()
+	if err != nil {
+		return nil, err
 	}
-	i := &Entry{Transport: t}
+
+	if err := rt.WriteFile("1", dftCnt); err != nil {
+		return nil, err
+	}
 
 	d := newDir()
+	d.Path = ""
+
+	i := NewEntry(d, "1")
+	i.Attrs.Size = uint64(len(dftCnt))
+
 	f := NewFile(i)
-	f.Parent = d
-	f.Attrs.Size = uint64(len([]byte("Hello World!")))
 
-	return f
-}
-
-func newFile() *File {
-	i := &Entry{Transport: &fakeTransport{}}
-	f := NewFile(i)
-	f.Content = []byte("Hello World!")
-	f.Attrs.Size = uint64(len([]byte("Hello World!")))
-
-	return f
+	return f, nil
 }

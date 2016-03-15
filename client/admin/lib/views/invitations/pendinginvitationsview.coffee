@@ -12,16 +12,16 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
     options.listViewItemClass        = InvitedItemView
     options.searchInputPlaceholder   = 'Find by email or first name'
-    options.listViewItemOptions    or= statusType: 'pending'
+    options.listViewItemOptions    or= { statusType: 'pending' }
     options.statusType             or= 'pending'
     options.noItemFoundWidget      or= new KDCustomHTMLView
       partial  : 'There is no pending invitation.'
       cssClass : 'hidden no-item-view'
     options.sortOptions            or= [
       { title: 'Send date',  value: 'modifiedAt' } # sort by -1
-      { title: 'Email',      value: 'email'      } # sort by  1
-      { title: 'First name', value: 'firstName'  } # sort by  1
-      { title: 'Last name',  value: 'lastName'   } # sort by  1
+      { title: 'Email',      value: 'email' }      # sort by  1
+      { title: 'First name', value: 'firstName' }  # sort by  1
+      { title: 'Last name',  value: 'lastName' }   # sort by  1
     ]
 
     super options, data
@@ -36,7 +36,7 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
     query          = @searchInput.getValue()
     options        = { @skip, sort: @getSortOptions() }
     method         = 'some'
-    selector       = status: statusType
+    selector       = { status: statusType }
     isSuperAdmin   = checkFlag 'super-admin'
 
     if query

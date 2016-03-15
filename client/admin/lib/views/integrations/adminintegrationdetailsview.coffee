@@ -58,7 +58,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
       @instructionsView.addSubView new kd.CustomHTMLView
         partial  : applyMarkdown instructions
     else
-      @instructionsView = new kd.CustomHTMLView cssClass: 'hidden'
+      @instructionsView = new kd.CustomHTMLView { cssClass: 'hidden' }
 
 
   createAuthView: ->
@@ -66,7 +66,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     { authorizable, isAuthorized } = @getData()
 
     unless authorizable
-      @authView = new kd.CustomHTMLView cssClass: 'hidden'
+      @authView = new kd.CustomHTMLView { cssClass: 'hidden' }
       return
 
     @setClass 'authorizable'
@@ -109,7 +109,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
       scope     : 'repo'
       returnUrl : document.location.href
 
-    remote.api.OAuth.getUrl options, (err, res) =>
+    remote.api.OAuth.getUrl options, (err, res) ->
       return showError err  if err
       document.location = res # navigate to GitHub page
 
@@ -135,15 +135,15 @@ module.exports = class AdminIntegrationDetailsView extends JView
     return  unless @data.settings?.events
 
     { selectedEvents, updatedAt, createdAt } = @getData()
-    mainWrapper      = new kd.CustomHTMLView cssClass: 'event-cbes'
+    mainWrapper      = new kd.CustomHTMLView { cssClass: 'event-cbes' }
     selectedEvents   = selectedEvents or []
     isNewIntegration = updatedAt is createdAt
 
     for item in @data.settings.events
 
       { name } = item
-      wrapper  = new kd.CustomHTMLView cssClass: 'event-cb'
-      label    = new kd.LabelView title: item.description
+      wrapper  = new kd.CustomHTMLView { cssClass: 'event-cb' }
+      label    = new kd.LabelView { title: item.description }
       checkbox = new kd.InputView
         type         : 'checkbox'
         name         : name
@@ -192,7 +192,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     integrationHelpers.update options, (err) =>
       return kd.warn err  if err
       @settingsForm.buttons.Save.hideLoader()
-      new kd.NotificationView title : 'Integration is successfully saved!'
+      new kd.NotificationView { title : 'Integration is successfully saved!' }
       kd.singletons.router.handleRoute '/Admin/Integrations/Configured'
       @emit 'IntegrationUpdated'
 
@@ -268,7 +268,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
                 itemClass     : kd.ButtonView
                 cssClass      : 'confirm'
                 style         : 'solid green medium'
-                loader        : color: '#444444'
+                loader        : { color: '#444444' }
                 callback      : =>
                   integrationHelpers.remove id, (err, response) =>
                     return showError err  if err
@@ -300,12 +300,12 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     if data.channels
       for channel in data.channels when channel.name isnt '#public'
-        channels.push title: channel.name, value: channel.id
+        channels.push { title: channel.name, value: channel.id }
 
     if data.repositories
       for repository in data.repositories
         if repository.permissions?.admin
-          repositories.push title: repository.full_name , value: repository.full_name
+          repositories.push { title: repository.full_name , value: repository.full_name }
         else
           repositories.push
             title: repository.full_name + ' (requires admin perms)'
@@ -328,7 +328,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
         url             :
           label         : "<p>Webhook URL</p><span>When setting up this integration, this is the URL that you will paste into #{integration.title}.</span>"
           defaultValue  : data.webhookUrl
-          attributes    : readonly: 'readonly'
+          attributes    : { readonly: 'readonly' }
           cssClass      : if data.authorizable then 'hidden'
           click         : -> @selectAll()
           nextElement   :
@@ -395,7 +395,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
   pistachio: ->
 
-    { integration: {title, description, summary, iconPath} } = @getData()
+    { integration: { title, description, summary, iconPath } } = @getData()
 
     return """
       <header class="integration-view">

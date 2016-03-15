@@ -107,6 +107,24 @@ func (r *RemoteTransport) ReadFile(path string) (*ReadFileRes, error) {
 	return res, nil
 }
 
+func (r *RemoteTransport) ReadFileAt(path string, offset, blockSize int64) (*ReadFileRes, error) {
+	req := struct {
+		Path      string
+		Offset    int64
+		BlockSize int64
+	}{
+		r.fullPath(path),
+		offset,
+		blockSize,
+	}
+	res := &ReadFileRes{}
+	if err := r.trip("fs.readFile", req, &res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (r *RemoteTransport) WriteFile(path string, content []byte) error {
 	req := struct {
 		Path    string
