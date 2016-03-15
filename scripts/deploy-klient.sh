@@ -31,7 +31,7 @@ klient-build -o klient koding/klient
 [[ $(./klient -version) == "0.1.$NEWBUILDNO" ]]
 
 # prepare klient.gz
-gzip -N klient
+gzip -9 -N klient
 mv klient.gz klient-0.1.$NEWBUILDNO.gz
 
 # prepare klient.deb
@@ -39,7 +39,7 @@ go run "${REPO_PATH}/go/src/koding/klient/build/build.go" -e $KLIENT_CHANNEL -b 
 dpkg -f *.deb
 
 GOOS=darwin GOARCH=amd64 koding-build -o klient koding/klient
-gzip -N klient
+gzip -9 -N klient
 mv klient.gz klient-0.1.$NEWBUILDNO.darwin_amd64.gz
 
 #  Copy files to S3.

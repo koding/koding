@@ -31,7 +31,7 @@ get_init_dir() {
 		echo "/Library/LaunchDaemons"
 	fi
 	for dir in ${dirs[@]}; do
-		if [ -d ${dir} ]; then
+		if [[ -d ${dir} ]]; then
 			echo ${dir}
 		fi
 	done
@@ -83,7 +83,7 @@ get_stop_klient_command() {
 does_service_exist() {
 	case "${init_tool}" in
 		update-rc.d)
-			[ $(sudo update-rc.d -n -f "klient" remove 2>&1 | grep -c /etc) -ge 2 ] && return 0
+			[[ $(sudo update-rc.d -n -f "klient" remove 2>&1 | grep -c /etc) -ge 2 ]] && return 0
 			;;
 		chkconfig)
 			sudo chkconfig --list "klient" &>/dev/null && return 0
@@ -106,7 +106,7 @@ install_service() {
 			sudo chkconfig --add "klient" &>/dev/null && return 0
 			;;
 		launchctl)
-			return 0
+			[[ -f "${init_file}" ]] && return 0
 			;;
 		*)
 			;;
@@ -132,6 +132,60 @@ remove_service() {
 	return 1
 }
 
+download_klient() {
+	KONTROLURL=${KONTROLURL:-https://koding.com/kontrol/kite}
+	CHANNEL=${CHANNEL:-managed}
+	VERSION=$(curl -sSL https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
+
+	cat << EOF
+Downloading Koding Service Connector 0.1.${VERSION}...
+
+EOF
+	if [[ ${is_macosx} -eq 1 ]]; then
+		LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/${VERSION}/klient-0.1.${VERSION}.darwin_amd64.gz"
+
+		if ! sudo curl -sSL $LATESTURL -o /opt/kite/klient/klient.gz; then
+			cat << EOF
+Error: Unable to download or save Koding Service Connector
+package.
+EOF
+			return 1
+		fi
+
+		if ! sudo gzip -d -f /opt/kite/klient/klient.gz; then
+			echo "Error: Failed to install Koding Service Connector package" 2>&1
+			return 1
+		fi
+
+		sudo chmod 0755 /opt/kite/klient/klient
+
+		return 0
+	fi
+
+	LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/${VERSION}/klient_0.1.${VERSION}_${CHANNEL}_amd64.deb"
+
+	if ! curl -sSL $LATESTURL -o klient.deb; then
+		cat << EOF
+Error: Unable to download or save Koding Service Connector
+package.
+EOF
+		return 1
+	fi
+
+	cat << EOF
+Installing the Koding Service Connector package...
+EOF
+	if ! sudo dpkg -i --force-confnew klient.deb > /dev/null; then
+		echo "Error: Failed to install Koding Service Connector package" 2>&1
+		return 1
+	fi
+
+	# Clean the klient deb from the system
+	rm -f klient.deb
+
+	return 0
+}
+
 # do_install_klient <KONTROLURL>
 do_install_klient() {
 	local kontrolurl=${1:-https://koding.com/kontrol/kite}
@@ -148,17 +202,51 @@ EOF
 	fi
 
 	if [[ ${is_macosx} -eq 1 ]]; then
-		# dump xml to init_file
-		echo
+		cat <<EOF | sudo tee /opt/kite/klient/klient.init &>/dev/null
+<!--
+Koding Service Connector
+Copyright (C) 2012-2016 Koding Inc., all rights reserved.
+-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.koding.klient</string>
+
+	<key>WorkingDirectory</key>
+	<string>/opt/kite/klient</string>
+
+	<key>StandardErrorPath</key>
+	<string>/Library/Logs/klient.log</string>
+
+	<key>StandardOutPath</key>
+	<string>/Library/Logs/klient.log</string>
+
+	<key>RunAtLoad</key><true/>
+	<key>KeepAlive</key><true/>
+
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>KITE_HOME</key>
+		<string>/etc/kite</string>
+	</dict>
+
+	<key>ProgramArguments</key>
+	<array>
+		<string>/opt/kite/klient/klient</string>
+		<string>-kontrol-url</string>
+		<string>${kontrolurl}</string>
+	</array>
+</dict>
+</plist>
+EOF
 	fi
 
 	sudo cp /opt/kite/klient/klient.init "${init_file}"
-
-	# template init script
 	sudo ${sed_cmd} -e "s|\%USERNAME\%||g" "${init_file}"
-	if [[ ! -z "${kontrolurl}" ]]; then
-		sudo ${sed_cmd} -e "s|\%START_COMMAND\%|/opt/kite/klient/klient -kontrol-url ${kontrolurl}|g" "${init_file}"
-	fi
+	sudo ${sed_cmd} -e "s|\%START_COMMAND\%|/opt/kite/klient/klient -kontrol-url ${kontrolurl}|g" "${init_file}"
 
 	if ! install_service; then
 		cat <<EOF
@@ -172,9 +260,9 @@ EOF
 
 do_install_screen() {
 	if ! which screen &>/dev/null; then
-		# If apt-get is not available, inform the user to install screen
-		# themselves.
 		if [[ ${is_macosx} -eq 1 ]]; then
+			# If Homebrew is not available, inform the user to install screen
+			# themselves.
 			if ! which brew &>/dev/null &&
 				brew tap homebrew/dupes &>/dev/null &&
 				brew install screen &>/dev/null &&
@@ -191,6 +279,8 @@ EOF
 			return 0
 		fi
 
+		# If apt-get is not available, inform the user to install screen
+		# themselves.
 		if ! which apt-get &>/dev/null; then
 			cat << EOF
 Error: The Unix command 'screen' must be installed prior to installing
@@ -216,6 +306,9 @@ EOF
 }
 
 do_start_klient() {
+	# try to stop old upstart klients
+	sudo stop klient &>/dev/null || true
+
 	eval sudo $(get_stop_klient_command) || true
 	eval sudo $(get_start_klient_command)
 }
@@ -259,39 +352,11 @@ EOF
 		exit 1
 	fi
 
-	export KONTROLURL=${KONTROLURL:-https://koding.com/kontrol/kite}
-	export CHANNEL=${CHANNEL:-managed}
-	export KITE_USERNAME=${2:-}
-
 	pushd /tmp &>/dev/null
 
-	export LATESTVERSION=$(curl -sSL https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
-	export LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest/klient_0.1.${LATESTVERSION}_${CHANNEL}_amd64.deb"
-
-	if [ ! -f klient.deb ]; then
-		cat << EOF
-Downloading Koding Service Connector 0.1.${LATESTVERSION}...
-
-EOF
-		if ! curl -sSL $LATESTURL -o klient.deb; then
-			cat << EOF
-Error: Unable to download or save Koding Service Connector
-package.
-EOF
-			exit $err
-		fi
+	if ! download_klient; then
+		exit 2
 	fi
-
-	cat << EOF
-Installing the Koding Service Connector package...
-EOF
-	if ! sudo dpkg -i --force-confnew klient.deb > /dev/null; then
-		echo "Error: Failed to install Koding Service Connector package"
-		exit $err
-	fi
-
-	# Clean the klient deb from the system
-	rm -f klient.deb
 
 	popd &>/dev/null
 
@@ -302,6 +367,9 @@ EOF
 Authenticating you to the Koding Service
 
 EOF
+
+	export KITE_USERNAME=${2:-}
+	export KONTROLURL=${KONTROLURL:-https://koding.com/kontrol/kite}
 
 	if ! do_install_klient "$KONTROLURL"; then
 		exit 2
