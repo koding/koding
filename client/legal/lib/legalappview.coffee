@@ -25,7 +25,7 @@ module.exports = class LegalAppView extends JView
       bigTitle          : 'Copyright/DMCA Guidelines'
       view              : new CopyrightView
 
-  constructor:->
+  constructor: ->
 
     super
 
@@ -56,7 +56,7 @@ module.exports = class LegalAppView extends JView
     @handles[0].setClass 'active'
 
   selectTab : (name) ->
-    {bigTitle, view} = SECTIONS[name]
+    { bigTitle, view } = SECTIONS[name]
 
     if @currentTab
       @currentTab.destroy()
