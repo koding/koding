@@ -77,3 +77,33 @@ module.exports =
 
     layoutHelpers.waitForSnapshotRestore(browser)
     fn()
+
+
+  collapseExpandFileTree: (browser) ->
+
+    tabSelector             = '.kdtabhandle-tabs.clearfix'
+    fileTabSelector         = "#{tabSelector} .files"
+    settingsTabSelector     = "#{tabSelector} .settings"
+    collapseButton          = '.application-tab-handle-holder .general-handles'
+    collapsedWindowSelector = '.kdview.kdscrollview.kdsplitview-panel.panel-0.floating'
+    settingsHeaderSelector  = '.kdsplitview-panel.panel-0 .settings-header'
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    browser
+      .waitForElementVisible        fileTabSelector, 20000
+      .moveToElement                fileTabSelector, 5, 5
+      .waitForElementVisible        collapseButton, 20000
+      .click                        collapseButton
+      .waitForElementVisible        collapsedWindowSelector, 20000
+      .click                        fileTabSelector
+      .waitForElementNotPresent     collapsedWindowSelector, 20000
+      .click                        collapseButton
+      .waitForElementVisible        collapsedWindowSelector, 20000
+      .click                        settingsTabSelector
+      .waitForElementNotPresent     collapsedWindowSelector, 20000
+      .assert.containsText          settingsHeaderSelector, 'Editor Settings'
+      .end()
+
+
