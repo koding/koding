@@ -2,7 +2,7 @@ kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 module.exports = class FeederSingleView extends KDCustomHTMLView
 
-  constructor:(options = {})->
+  constructor: (options = {}) ->
 
     super options
 
@@ -13,7 +13,7 @@ module.exports = class FeederSingleView extends KDCustomHTMLView
     #   index           = siblings.indexOf @
     #   @_olderSiblings = siblings.slice 0,index
 
-  _windowDidResize:->
+  _windowDidResize: ->
 
     # offset = 0
     # offset += olderSibling.getHeight() for olderSibling in @_olderSiblings
