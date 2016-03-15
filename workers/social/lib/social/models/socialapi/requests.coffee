@@ -580,6 +580,9 @@ module.exports = {
   deleteNotificationSetting
   expireSubscription
   dispatchEvent
+  storeCredential
+  getCredential
+  deleteCredential
   fetchBotChannel
   post
   get
