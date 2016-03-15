@@ -1,4 +1,4 @@
-module.exports = """
+module.exports = '''
   {
     "provider": {
       "aws": {
@@ -18,7 +18,7 @@ module.exports = """
       }
     }
   }
-"""
+'''
 
 ### Full YAML Example
 

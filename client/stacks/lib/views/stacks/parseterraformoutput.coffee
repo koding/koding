@@ -17,7 +17,7 @@ module.exports = parseTerraformOutput = (response) ->
   #   }
   # ],
 
-  out = machines: []
+  out = { machines: [] }
 
   { machines } = response
 
@@ -41,6 +41,6 @@ module.exports = parseTerraformOutput = (response) ->
         provisioners : [] # TODO what are we going to do with provisioners? ~ GG
       }
 
-  console.info "[parseTerraformOutput]", out.machines
+  console.info '[parseTerraformOutput]', out.machines
 
   return out.machines

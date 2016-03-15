@@ -1,12 +1,12 @@
 module.exports = providersParser = (content) ->
 
-    regex     = /\$\{var\.(\w+?)\_/g
-    providers = {}
-    match     = regex.exec content
+  regex     = /\$\{var\.(\w+?)\_/g
+  providers = {}
+  match     = regex.exec content
 
-    while match
-      providers[match[1]] = null
-      match = regex.exec content
+  while match
+    providers[match[1]] = null
+    match = regex.exec content
 
-    # Return list of providers
-    return Object.keys providers
+  # Return list of providers
+  return Object.keys providers

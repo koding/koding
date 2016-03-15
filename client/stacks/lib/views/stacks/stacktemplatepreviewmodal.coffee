@@ -18,7 +18,7 @@ module.exports = class StackTemplatePreviewModal extends KDModalView
     options.height        or= 500
     options.width         or= 757
     options.overlay         = yes
-    options.overlayOptions  = cssClass : 'second-overlay'
+    options.overlayOptions  = { cssClass : 'second-overlay' }
 
     super options, data
 
@@ -34,7 +34,7 @@ module.exports = class StackTemplatePreviewModal extends KDModalView
         #{warnings}
         """
 
-    @addSubView @tabView = new KDTabView hideHandleCloseIcons : yes
+    @addSubView @tabView = new KDTabView { hideHandleCloseIcons : yes }
 
     @createYamlView()
     @createJSONView()

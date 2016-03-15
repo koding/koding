@@ -14,7 +14,7 @@ module.exports = class OutputView extends kd.ScrollView
 
   constructor: (options = {}, data) ->
 
-    curryIn options, cssClass: 'output has-markdown'
+    curryIn options, { cssClass: 'output has-markdown' }
 
     super options, data
 
@@ -95,4 +95,4 @@ module.exports = class OutputView extends kd.ScrollView
 
 
   pistachio: ->
-    """{{> @container}}"""
+    '''{{> @container}}'''

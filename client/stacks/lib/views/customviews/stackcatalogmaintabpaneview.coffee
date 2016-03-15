@@ -21,7 +21,7 @@ module.exports = class StackCatalogMainTabPaneView extends kd.TabView
 
     if @getOption 'useRouter'
 
-      {pane} = handle.getOptions()
+      { pane } = handle.getOptions()
 
       kd.utils.stopDOMEvent event
       kd.singletons.router.handleRoute "/Stacks/#{pane.getOption 'slug'}"

@@ -19,7 +19,7 @@ module.exports = class ServerConfigurationView extends kd.View
         partial  : "<p>#{section}</p>"
 
       for service, config of services
-        row = new kd.CustomHTMLView cssClass: "row #{service}"
+        row = new kd.CustomHTMLView { cssClass: "row #{service}" }
 
         do (service, config) =>
 

@@ -10,7 +10,7 @@ module.exports = class StackTemplateListView extends kd.View
 
   constructor: (options = {}, data) ->
 
-    curryIn options, cssClass: 'stack-template-list'
+    curryIn options, { cssClass: 'stack-template-list' }
 
     super options, data
 
