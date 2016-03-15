@@ -263,7 +263,7 @@ module.exports = class MainView extends kd.View
         cssClass : 'system-notification'
         partial  : '<p><b>UPDATE: </b>We launched Koding for Teams and there are some important
                     updates to the solo product.
-                    <a href="https://koding.com/blog/goodbye-koding-solo-welcome-koding-for-teams"
+                    <a href="http://www.koding.com/blog/goodbye-koding-solo-welcome-koding-for-teams"
                     target="_blank">Read more...</a></p><a href="#" class="close"></a>'
 
         click : (event) ->
