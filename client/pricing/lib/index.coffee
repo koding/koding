@@ -11,13 +11,13 @@ require('./routehandler')()
 module.exports = class PricingAppController extends KDViewController
 
 
-  @options = name : 'Pricing'
+  @options = { name : 'Pricing' }
 
 
   constructor: (options = {}, data) ->
 
-    options.appInfo = title: 'Pricing'
-    options.view    = new PricingAppView params: options.params
+    options.appInfo = { title: 'Pricing' }
+    options.view    = new PricingAppView { params: options.params }
 
     super options, data
 
