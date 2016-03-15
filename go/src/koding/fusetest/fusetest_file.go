@@ -89,6 +89,9 @@ func (f *Fusetest) TestWriteFile() {
 		err := ioutil.WriteFile(filePath, []byte("Hello World!"), 0700)
 		So(err, ShouldBeNil)
 
+		stat, err := os.Stat(filePath)
+		So(err, ShouldBeNil)
+
 		Convey("It should write content to existing file in root directory", func() {
 			fi, err := os.OpenFile(filePath, os.O_WRONLY, 0755)
 			So(err, ShouldBeNil)
@@ -126,6 +129,30 @@ func (f *Fusetest) TestWriteFile() {
 			contents, err := f.Remote.ReadFile(filePath)
 			So(err, ShouldBeNil)
 			So(contents, ShouldEqual, string(newContent))
+		})
+
+		Convey("It should truncate file to 0 bytes", func() {
+			So(os.Truncate(filePath, 0), ShouldBeNil)
+
+			size, err := f.Remote.Size(filePath)
+			So(err, ShouldBeNil)
+			So(size, ShouldEqual, 0)
+		})
+
+		Convey("It should truncate file to less than size of file", func() {
+			So(os.Truncate(filePath, stat.Size()-1), ShouldBeNil)
+
+			size, err := f.Remote.Size(filePath)
+			So(err, ShouldBeNil)
+			So(size, ShouldEqual, stat.Size()-1)
+		})
+
+		Convey("It should truncate file to more than size of file", func() {
+			So(os.Truncate(filePath, stat.Size()+1), ShouldBeNil)
+
+			size, err := f.Remote.Size(filePath)
+			So(err, ShouldBeNil)
+			So(size, ShouldEqual, stat.Size()+1)
 		})
 	})
 }
