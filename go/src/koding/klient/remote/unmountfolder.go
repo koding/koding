@@ -107,6 +107,10 @@ func (r *Remote) UnmountFolder(params req.UnmountFolder) error {
 		)
 	}
 
+	if m.Log == nil {
+		m.Log = r.log
+	}
+
 	// If removeMount encounters an error, we don't want to bail immediately.
 	// Rather, we want to still try to unmount the folder.
 	removeMountErr := r.RemoveMount(m)

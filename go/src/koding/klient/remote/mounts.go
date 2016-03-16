@@ -114,6 +114,8 @@ func (r *Remote) restoreMounts() error {
 
 			log.Info("Automatically unmounting")
 
+			m.Log = mount.MountLogger(m, m.Log)
+
 			// Mount path exists, and the names match. Unmount it, so that we
 			// can remount it below.
 			if err := m.Unmount(); err != nil {

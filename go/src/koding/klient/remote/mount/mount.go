@@ -7,6 +7,8 @@ import (
 	"koding/klient/remote/req"
 	"koding/klient/remote/rsync"
 	"koding/klient/util"
+
+	"github.com/koding/logging"
 )
 
 var (
@@ -46,6 +48,8 @@ type Mount struct {
 
 	MountedFS fuseklient.FS `json:"-"`
 
+	Log logging.Logger `json:"-"`
+
 	// mockable interfaces and types, used for testing and abstracting the environment
 	// away.
 
@@ -65,8 +69,17 @@ func (m *Mount) Unmount() error {
 	} else {
 		// Ignoring this error, since this fails when it's unable to find mount on
 		// path, ie. we're already at the desired state we want to be in.
-		fuseklient.Unmount(m.LocalPath)
+		if err := fuseklient.Unmount(m.LocalPath); err != nil {
+			m.Log.Warning("fuseklient.Unmount on %s failed: %s", m.LocalPath, err)
+		}
 	}
 
 	return err
+}
+
+func MountLogger(m *Mount, l logging.Logger) logging.Logger {
+	return l.New("mount").New(
+		"name", m.MountName,
+		"path", m.LocalPath,
+	)
 }
