@@ -41,14 +41,17 @@ func (r *InternetRepair) String() string {
 
 // Status simply loops through each of the http endpoints until one of them succeed,
 // or they all fail.
-func (r *InternetRepair) Status() error {
+func (r *InternetRepair) Status() (bool, error) {
 	var (
 		newline bool
+		ok      bool
 		err     error
 	)
 
 	for i := uint(0); i <= r.RetryOpts.StatusRetries; i++ {
-		if err = r.status(); err == nil {
+		// If we're ok, or there is an error during status check,
+		// break out of the loop.
+		if ok, err = r.status(); ok || err != nil {
 			break
 		}
 
@@ -68,14 +71,14 @@ func (r *InternetRepair) Status() error {
 		fmt.Fprint(r.Stdout, "\n")
 	}
 
-	return err
+	return ok, err
 }
 
 // status implements the non-repeating logic of Status
-func (r *InternetRepair) status() error {
+func (r *InternetRepair) status() (bool, error) {
 	// If we have no http endpoints, we can't verify the internet is working.
 	if len(r.InternetConfirmAddrs) == 0 {
-		return errors.New("No http addresses available to check")
+		return false, errors.New("No http addresses available to check")
 	}
 
 	client := &http.Client{
@@ -95,11 +98,11 @@ func (r *InternetRepair) status() error {
 		}
 
 		if err == nil {
-			return nil
+			return true, nil
 		}
 	}
 
-	return err
+	return false, err
 }
 
 // Repair returns an error, because we cannot actually fix the internet. Instead

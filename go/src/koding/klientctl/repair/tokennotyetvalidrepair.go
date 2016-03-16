@@ -1,6 +1,7 @@
 package repair
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"koding/klient/kiteerrortypes"
@@ -38,14 +39,14 @@ func (r *TokenNotYetValidRepair) String() string {
 }
 
 // Status simply checks if the remote kite's status is TokenNotYetValid.
-func (r *TokenNotYetValidRepair) Status() error {
+func (r *TokenNotYetValidRepair) Status() (bool, error) {
 	err := r.Klient.RemoteStatus(req.Status{
 		Item:        req.MachineStatus,
 		MachineName: r.MachineName,
 	})
 
 	if err == nil {
-		return nil
+		return true, nil
 	}
 
 	// If the error is not what this repairer is designed to handle, return ok.
@@ -55,11 +56,11 @@ func (r *TokenNotYetValidRepair) Status() error {
 	// next repairer in the list knows how to deal with this issue.
 	kErr, ok := err.(*kite.Error)
 	if !ok || kErr.Type != kiteerrortypes.AuthErrTokenIsNotValidYet {
-		r.Log.Warning("Status encountered unhandled error err:%s", err)
-		return nil
+		r.Log.Warning("Encountered error not in scope of this repair. err:%s", err)
+		return true, nil
 	}
 
-	return err
+	return false, nil
 }
 
 // Repair is unable to actually fix this error, so we wait for a configured amount
@@ -70,11 +71,11 @@ func (r *TokenNotYetValidRepair) Status() error {
 func (r *TokenNotYetValidRepair) Repair() error {
 	var (
 		newline bool
-		err     error
+		ok      bool
 	)
 
 	for i := uint(0); i <= r.RepairRetries; i++ {
-		if err = r.Status(); err == nil {
+		if ok, _ = r.Status(); ok {
 			break
 		}
 
@@ -98,7 +99,14 @@ func (r *TokenNotYetValidRepair) Repair() error {
 		fmt.Fprint(r.Stdout, "\n")
 	}
 
+	if !ok {
+		fmt.Fprintln(r.Stdout,
+			"Token did not become valid in the expected time. Please wait and try again.",
+		)
+		return errors.New("Token did not become valid")
+	}
+
 	fmt.Fprintln(r.Stdout, "Successfully authenticated to koding.com")
 
-	return err
+	return nil
 }
