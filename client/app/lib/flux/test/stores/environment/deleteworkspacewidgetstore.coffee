@@ -13,7 +13,7 @@ describe 'DeleteWorkspaceWidgetStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores deleteWorkspaceWidget : DeleteWorkspaceWidgetStore
+    @reactor.registerStores { deleteWorkspaceWidget : DeleteWorkspaceWidgetStore }
 
 
   describe '#getInitialState', ->
