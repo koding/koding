@@ -8,25 +8,25 @@ module.exports = class FeederOnboardingView extends KDCustomHTMLView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
-    options.cssClass  = "onboarding-wrapper"
+    options.cssClass  = 'onboarding-wrapper'
     super options, data
     @addCloseButton()
 
 
-  addCloseButton:->
+  addCloseButton: ->
 
     @addSubView @close = new CustomLinkView
       title      : ''
       cssClass   : 'onboarding-close'
       icon       :
-        cssClass : "close-icon"
-      click      : (event)=>
+        cssClass : 'close-icon'
+      click      : (event) =>
         event.preventDefault()
-        appManager = kd.getSingleton("appManager")
+        appManager = kd.getSingleton('appManager')
         app        = appManager.getFrontApp()
         app.appStorage?.fetchStorage =>
-          {name} = @getOptions()
+          { name } = @getOptions()
           app.appStorage.setValue "onboardingMessageIsReadFor#{name.capitalize()}Tab", yes
-          @emit "OnboardingMessageCloseIconClicked"
+          @emit 'OnboardingMessageCloseIconClicked'

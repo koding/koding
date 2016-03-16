@@ -41,7 +41,7 @@ module.exports = class AceView extends JView
     @ace = new options.aceClass aceOptions, file
 
     if options.createFindAndReplaceView
-      @findAndReplaceView = new AceFindAndReplaceView delegate: this
+      @findAndReplaceView = new AceFindAndReplaceView { delegate: this }
       @findAndReplaceView.hide()
     else
       @findAndReplaceView = new KDCustomHTMLView
@@ -97,7 +97,7 @@ module.exports = class AceView extends JView
         tabHandle.unsetClass 'saved'
 
 
-  setViewListeners:->
+  setViewListeners: ->
 
     hasBottomBar = @getOptions().createBottomBar
 
@@ -111,14 +111,14 @@ module.exports = class AceView extends JView
     if hasBottomBar
       $spans = @caretPosition.$ 'span'
 
-      @ace.on 'ace.change.cursor', (cursor) =>
+      @ace.on 'ace.change.cursor', (cursor) ->
         $spans.eq(0).text ++cursor.row
         $spans.eq(1).text ++cursor.column
 
     @ace.on 'ace.requests.saveAs', (contents, options) =>
       @openSaveDialog options
 
-    @ace.on "ace.requests.save", (contents) =>
+    @ace.on 'ace.requests.save', (contents) =>
       file = @getData()
       if /localfile:/.test file.path
         @openSaveDialog()
@@ -147,7 +147,7 @@ module.exports = class AceView extends JView
     @on 'KDObjectWillBeDestroyed', =>
       @getDelegate().removeOpenDocument? this
 
-    @ace.on 'ace.changeSetting', (setting, value)->
+    @ace.on 'ace.changeSetting', (setting, value) ->
       if setting is 'syntax'
         file = @getData()
         fileExtension = file.getExtension()
@@ -198,7 +198,7 @@ module.exports = class AceView extends JView
     mainView = kd.getSingleton 'mainView'
     mainView.toggleFullscreen()
 
-  getAdvancedSettingsMenuItems:->
+  getAdvancedSettingsMenuItems: ->
     settings      :
       type        : 'customView'
       view        : new AceSettingsView
@@ -232,35 +232,35 @@ module.exports = class AceView extends JView
 
       file.on 'fs.saveAs.finished', (newFile) =>
 
-        {tabView} = @getDelegate()
+        { tabView } = @getDelegate()
         return  if tabView.willClose
 
         @getDelegate().openSavedFile newFile, contents
 
     , { inputDefaultValue: file.name, machine: file.machine }
 
-  _windowDidResize:->
+  _windowDidResize: ->
     height = @getHeight()
     bottomBarHeight = @$('.editor-bottom-bar').height()
     newHeight = height - bottomBarHeight
     @ace.setHeight newHeight unless newHeight is 0
 
-  viewAppended:->
+  viewAppended: ->
     super
 
     @_windowDidResize()
 
-  pistachio:->
+  pistachio: ->
     hasBottomBar = @getOption 'createBottomBar'
-    template     = """
+    template     = '''
       <div class="kdview editor-main">
         {{> @ace}}
         {{> @findAndReplaceView}}
       </div>
-    """
+    '''
 
     if hasBottomBar
-      template = """
+      template = '''
         <div class="kdview editor-main">
           {{> @ace}}
           <div class="editor-bottom-bar clearfix">
@@ -269,6 +269,6 @@ module.exports = class AceView extends JView
           </div>
           {{> @findAndReplaceView}}
         </div>
-      """
+      '''
 
     return template

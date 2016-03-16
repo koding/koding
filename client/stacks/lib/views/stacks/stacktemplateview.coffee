@@ -11,7 +11,7 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
 
   constructor: (options = {}, data) ->
 
-    curryIn options, cssClass: 'step-define-stack'
+    curryIn options, { cssClass: 'step-define-stack' }
 
     super options, data ? {}
 

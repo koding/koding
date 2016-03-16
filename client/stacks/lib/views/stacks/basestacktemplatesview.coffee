@@ -13,7 +13,7 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
   constructor: (options = {}, data) ->
 
-    curryIn options, cssClass: 'stacks stacks-v2'
+    curryIn options, { cssClass: 'stacks stacks-v2' }
 
     super options, data
 
@@ -32,7 +32,7 @@ module.exports = class BaseStackTemplatesView extends kd.View
           when 'welcome'
             @createOnboardingView()
           when 'new'
-            @createOnboardingView skipOnboarding: yes
+            @createOnboardingView { skipOnboarding: yes }
           when 'edit'
             @requestEditStack identifier
           else

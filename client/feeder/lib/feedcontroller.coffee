@@ -13,9 +13,9 @@ jspath                       = require 'jspath'
 module.exports = class FeedController extends KDViewController
 
   USEDFEEDS = []
-  {warn, log} = kd
+  { warn, log } = kd
 
-  constructor:(options={})->
+  constructor: (options = {}) ->
 
     options.autoPopulate   ?= no
     options.useHeaderNav   ?= no
@@ -32,8 +32,8 @@ module.exports = class FeedController extends KDViewController
       itemClass           : options.itemClass
       filters             : options.filter
       listControllerClass : options.listControllerClass
-      listCssClass        : options.listCssClass or ""
-      delegate            : @
+      listCssClass        : options.listCssClass or ''
+      delegate            : this
       onboarding          : options.onboarding
       creator             : options.creator
 
@@ -43,7 +43,7 @@ module.exports = class FeedController extends KDViewController
         filters   : options.filter
         sorts     : options.sort
         help      : options.help
-        delegate  : @
+        delegate  : this
 
       options.view or= new FeederSplitView
         domId   : options.domId
@@ -57,11 +57,11 @@ module.exports = class FeedController extends KDViewController
         filters   : options.filter
         sorts     : options.sort
         help      : options.help
-        delegate  : @
+        delegate  : this
 
       view = (options.view or= new FeederSingleView)
 
-      view.on "viewAppended", =>
+      view.on 'viewAppended', =>
         view.addSubView @resultsController.getView()
         view.addSubView @facetsController.getView()
 
@@ -72,7 +72,7 @@ module.exports = class FeedController extends KDViewController
     @sorts              = {}
     @defaultQuery       = options.defaultQuery ? {}
 
-    {delegate} = options
+    { delegate } = options
     if delegate then delegate.on 'LazyLoadThresholdReached', @bound 'loadFeed'
     else @resultsController.on   'LazyLoadThresholdReached', @bound 'loadFeed'
 
@@ -80,15 +80,15 @@ module.exports = class FeedController extends KDViewController
     @defineSort name, sort for own name, sort of options.sort
     @getNewFeedItems() if options.dynamicDataType?
 
-    @on "FilterLoaded", ->
-      kd.getSingleton("windowController").notifyWindowResizeListeners()
+    @on 'FilterLoaded', ->
+      kd.getSingleton('windowController').notifyWindowResizeListeners()
 
-  highlightFacets:->
+  highlightFacets: ->
     filterName  = @selection.name
     sortName    = @selection.activeSort or @defaultSort.name
     @facetsController.highlight filterName, sortName
 
-  handleQuery:({filter, sort}, options = {})->
+  handleQuery: ({ filter, sort }, options = {}) ->
     if filter
       unless @filters[filter]?
         filter = (Object.keys @filters).first
@@ -105,40 +105,40 @@ module.exports = class FeedController extends KDViewController
     then @reload()
     else @loadFeed()
 
-  defineFilter:(name, filter)->
+  defineFilter: (name, filter) ->
     filter.name     = name
     @filters[name]  = filter
     if filter.isDefault or not @selection?
       @selection    = filter
 
-  defineSort:(name, sort)->
+  defineSort: (name, sort) ->
     sort.name     = name
     @sorts[name]  = sort
     if sort.isDefault or not @defaultSort?
       @defaultSort = sort
 
-  loadView:(mainView)->
+  loadView: (mainView) ->
     @loadFeed() if @getOptions().autoPopulate
     mainView._windowDidResize()
 
-  selectFilter:(name, loadFeed=yes)->
+  selectFilter: (name, loadFeed = yes) ->
     @selection = @filters[name]
     @resultsController.openTab @filters[name]
     if @resultsController.listControllers[name].getListItems().length is 0
       @loadFeed() if loadFeed
     @emit 'FilterChanged', name
 
-  changeActiveSort:(name, loadFeed=yes)->
+  changeActiveSort: (name, loadFeed = yes) ->
     @selection.activeSort = name
     @resultsController.listControllers[@selection.name].removeAllItems()
     @loadFeed() if loadFeed
 
-  getFeedSelector:->
+  getFeedSelector: ->
     # log @filters
     {}
 
-  getFeedOptions:->
-    options = sort : {}
+  getFeedOptions: ->
+    options = { sort : {} }
 
     filter  = @selection
     sort    = @sorts[@selection.activeSort] or @defaultSort
@@ -148,18 +148,18 @@ module.exports = class FeedController extends KDViewController
     options.skip  = @resultsController.listControllers[filter.name].getListItems().length
     options
 
-  emitLoadStarted:(filter)->
+  emitLoadStarted: (filter) ->
     listController = @resultsController.listControllers[filter.name]
     listController.showLazyLoader no
     return listController
 
-  emitLoadCompleted:(filter)->
+  emitLoadCompleted: (filter) ->
     listController = @resultsController.listControllers[filter.name]
     listController.hideLazyLoader()
     return listController
 
-  emitCountChanged:(count, filter)->
-    @resultsController.getDelegate().emit "FeederListViewItemCountChanged", count, filter
+  emitCountChanged: (count, filter) ->
+    @resultsController.getDelegate().emit 'FeederListViewItemCountChanged', count, filter
 
   # this is a temporary solution for a bug that
   # bongo returns correct result set in a wrong order
@@ -172,17 +172,17 @@ module.exports = class FeedController extends KDViewController
       else if (firstVar > secondVar) then return -1
       else return 0
 
-  reload:->
-    {selection, defaultSort} = this
+  reload: ->
+    { selection, defaultSort } = this
     @changeActiveSort selection.activeSort or defaultSort.title
 
-  loadFeed:(filter = @selection)=>
+  loadFeed: (filter = @selection) =>
 
     options    = @getFeedOptions()
     selector   = @getFeedSelector()
-    {itemClass, feedId}  = @getOptions()
-    feedId = "" unless feedId
-    {groupsController} = kd.singletons
+    { itemClass, feedId }  = @getOptions()
+    feedId = '' unless feedId
+    { groupsController } = kd.singletons
 
     if globals.config.entryPoint?.type is 'group'
     then group = globals.config.entryPoint.slug
@@ -193,11 +193,11 @@ module.exports = class FeedController extends KDViewController
       currentGroup = group
       feedId = "#{currentGroup}-#{feedId}"
 
-      kallback = (err, items, rest...)=>
+      kallback = (err, items, rest...) =>
         listController = @emitLoadCompleted filter
-        @emit "FilterLoaded"
-        {limit}      = options
-        {scrollView} = listController
+        @emit 'FilterLoaded'
+        { limit }      = options
+        { scrollView } = listController
         @feedIsLoading = no
         if items?.length > 0
           unless err
@@ -214,7 +214,7 @@ module.exports = class FeedController extends KDViewController
       @emitLoadStarted filter
       if options.skip isnt 0 and options.skip < options.limit # Dont load forever
         @emitLoadCompleted filter
-        @emit "FilterLoaded"
+        @emit 'FilterLoaded'
       else unless feedId in USEDFEEDS
         USEDFEEDS.push feedId
         if globals.prefetchedFeeds and prefetchedItems = globals.prefetchedFeeds[feedId]

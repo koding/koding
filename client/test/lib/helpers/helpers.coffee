@@ -3,6 +3,8 @@ faker    = require 'faker'
 assert   = require 'assert'
 HUBSPOT  = no
 
+require '../utils/fail.js' # require fail to wrap NW::fail.
+
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 

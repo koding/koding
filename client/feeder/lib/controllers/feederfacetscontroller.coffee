@@ -8,9 +8,9 @@ HelpBox = require 'app/commonviews/helpbox'
 
 module.exports = class FeederFacetsController extends KDViewController
 
-  constructor:(options = {}, data)->
+  constructor:(options = {}, data) ->
 
-    options.view or= new KDView cssClass: 'common-inner-nav'
+    options.view or= new KDView { cssClass: 'common-inner-nav' }
 
     super options, data
 
@@ -18,14 +18,14 @@ module.exports = class FeederFacetsController extends KDViewController
     @facetTypes = ['filter', 'sort']
     @state = {}
 
-  facetChange:-> kd.getSingleton('router').handleQuery @state
+  facetChange: -> kd.getSingleton('router').handleQuery @state
 
-  loadView:(mainView)->
+  loadView: (mainView) ->
 
     options = @getOptions()
     view = @getView()
 
-    @facetTypes.forEach (facet)=>
+    @facetTypes.forEach (facet) =>
 
       controller = new CommonInnerNavigationListController {},
         title     : options["#{facet}Title"] or facet.toUpperCase()
@@ -38,18 +38,18 @@ module.exports = class FeederFacetsController extends KDViewController
       @["#{facet}Controller"] = controller
 
       if controller.getData().items.length > 1
-        controller.on 'NavItemReceivedClick', (item)=>
+        controller.on 'NavItemReceivedClick', (item) =>
           @state[item.action] = item.type
           @facetChange()
         view.addSubView controller.getView()
 
     view.addSubView new HelpBox @getOptions().help
 
-  highlight:(filterName, sortName)->
-    @facetTypes.forEach (facetType)=>
+  highlight: (filterName, sortName) ->
+    @facetTypes.forEach (facetType) =>
       controller = @["#{facetType}Controller"]
       for item in controller.getListItems()
-        {type, action} = item.getData()
+        { type, action } = item.getData()
         typeMatches = switch action
           when 'filter' then filterName is type
           when 'sort'   then sortName is type

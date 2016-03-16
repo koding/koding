@@ -7,17 +7,17 @@ Tracker             = require 'app/util/tracker'
 
 module.exports = class WelcomeAppView extends kd.View
 
-  constructor:->
+  constructor: ->
 
     super
 
     @addSubView @welcome = new kd.CustomHTMLView
       tagName : 'section'
-      partial : """
+      partial : '''
         <h2>Welcome to Koding For Teams!</h2>
         <p>Get your team working faster.</p>
         <div class="artboard"></div>
-        """
+        '''
 
     @welcome.addSubView @instructions = new kd.CustomHTMLView
       tagName  : 'ul'
@@ -95,7 +95,8 @@ module.exports = class WelcomeAppView extends kd.View
 
     try
       copied = document.execCommand 'copy'
-      throw 'couldn\'t copy'  unless copied
+      couldntCopy = "couldn't copy"
+      throw couldntCopy  unless copied
     catch
       hintEl = document.querySelectorAll('.copy-tooltip.install-kd-command > i')[0]
       key    = if globals.os is 'mac' then 'Cmd + C' else 'Ctrl + C'

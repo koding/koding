@@ -60,7 +60,7 @@ module.exports = class AdminMembersView extends kd.View
         fetcherMethod     : 'fetchBlockedAccountsWithEmail'
         listViewItemClass : BlockedMemberItemView
         noItemFoundWidget : new kd.CustomHTMLView
-          partial         : 'No blocked user found!'
+          partial         : 'No disabled user found!'
           cssClass        : 'no-item-view'
       , data
 

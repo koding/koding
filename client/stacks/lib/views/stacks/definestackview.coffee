@@ -69,7 +69,7 @@ module.exports = class DefineStackView extends KDView
       partial  : "<span class='active'>#{breadcrumbTitle}</span>"
 
     @createStackNameInput()
-    @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
+    @addSubView @tabView = new KDTabView { hideHandleCloseIcons: yes }
 
     @editorViews = {}
 
@@ -206,7 +206,7 @@ module.exports = class DefineStackView extends KDView
 
     @addSubView @footer = new kd.CustomHTMLView
       cssClass : 'stack-editor-footer'
-      partial  : """
+      partial  : '''
         <div class="section">
           <span class="icon"></span>
           <div class="text">
@@ -221,7 +221,7 @@ module.exports = class DefineStackView extends KDView
             <a href="https://koding.com/docs/creating-an-aws-stack">Check out our docs</a>
           </div>
         </div>
-      """
+      '''
 
 
   createStackNameInput: ->
@@ -256,13 +256,13 @@ module.exports = class DefineStackView extends KDView
 
     { appManager } = kd.singletons
 
-    @inputTitle.addSubView @buttons = new kd.CustomHTMLView cssClass: 'buttons'
+    @inputTitle.addSubView @buttons = new kd.CustomHTMLView { cssClass: 'buttons' }
 
     @buttons.addSubView @reinitButton = new kd.ButtonView
       title          : 'Re-Init'
       cssClass       : 'solid compact nav hidden'
       tooltip        :
-        title        : "Destroys the existing stack and re-creates it."
+        title        : 'Destroys the existing stack and re-creates it.'
       callback       : @bound 'handleReinit'
 
     @buttons.addSubView @cancelButton = new kd.ButtonView
@@ -306,7 +306,7 @@ module.exports = class DefineStackView extends KDView
       # Warn user if one is trying to save without
       # variables passed while in variables tab
       if @tabView.getActivePaneIndex() is 1
-        new KDNotificationView title: 'Please check variables'
+        new KDNotificationView { title: 'Please check variables' }
 
       # Switch to Variables tab
       @tabView.showPaneByIndex 1
@@ -329,7 +329,7 @@ module.exports = class DefineStackView extends KDView
 
     @saveTemplate (err, stackTemplate) =>
 
-      if @outputView.handleError err, "Stack template save failed:"
+      if @outputView.handleError err, 'Stack template save failed:'
         @saveButton.hideLoader()
         return
 
@@ -375,14 +375,14 @@ module.exports = class DefineStackView extends KDView
         # they should see a notification that says "this stack has been deleted by Gokmen"
         # new users get the default stack should. and this button shouldn't be there each time
         # i make a new one, it should be on the list-menu.
-        @outputView[method] """
+        @outputView[method] '''
           Your stack script has been successfully saved and all your new team
           members now will see this stack by default. Existing users
           of the previous default-stack will be notified that default-stack has
           changed.
 
           You can now close this window or continue working with your stack.
-        """
+        '''
       else
         @reinitButton.show()
 
@@ -397,7 +397,7 @@ module.exports = class DefineStackView extends KDView
       @emit 'Reload'
 
       if err
-        @outputView.add "Parsing failed, please check your template and try again"
+        @outputView.add 'Parsing failed, please check your template and try again'
         return
 
       { stackTemplates }       = groupsController.getCurrentGroup()
@@ -413,20 +413,20 @@ module.exports = class DefineStackView extends KDView
 
           if canEditGroup
             @setAsDefaultButton.show()
-            @outputView.add """
+            @outputView.add '''
               Your stack script has been successfully saved.
 
               If you want to auto-provision this template when new users join your team,
               you need to click "Make Team Default" after you save it.
 
               You can now close the stack editor or continue editing your stack.
-            """
+            '''
           else
             @generateStackButton.show()
-            @outputView.add """
+            @outputView.add '''
               Your stack script has been successfully saved.
               You can now close the stack editor or continue editing your stack.
-            """
+            '''
 
           computeController.checkGroupStacks()
 
@@ -463,11 +463,11 @@ module.exports = class DefineStackView extends KDView
 
     if not credential or credential.provider not in ['aws', 'vagrant']
       @cancelButton.setTitle 'Close'
-      return failed "
+      return failed '
         Required credentials are not provided yet, we are unable to test the
         stack template. Stack template content is saved and can be tested once
         required credentials are provided.
-      "
+      '
 
     credential.isBootstrapped (err, state) =>
 
@@ -500,7 +500,7 @@ module.exports = class DefineStackView extends KDView
 
             console.log '[KLOUD:Bootstrap]', response
 
-          .catch (err) =>
+          .catch (err) ->
 
             failed err
             console.warn '[KLOUD:Bootstrap:Fail]', err

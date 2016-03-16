@@ -10,31 +10,31 @@ module.exports = class KitePlanListItemView extends KDListItemView
 
   constructor: (options = {}, data) ->
 
-    options.type = kd.utils.curry "kite-product"
+    options.type = kd.utils.curry 'kite-product'
 
     super options, data
 
     @subscribeButton = new KDButtonView
-      title          : "Subscribe"
-      cssClass       : "solid green small subscribe-button"
-      callback       : @bound "selectPlan"
+      title          : 'Subscribe'
+      cssClass       : 'solid green small subscribe-button'
+      callback       : @bound 'selectPlan'
 
   selectPlan: ->
-    @getDelegate().emit "PlanSelected", @getData()
+    @getDelegate().emit 'PlanSelected', @getData()
 
   unsubscribe: ->
     @subscription.cancel (err) =>
       return showError err  if err
-      @subscribeButton.setTitle "Subscribe"
-      @subscribeButton.setCallback @bound "selectPlan"
+      @subscribeButton.setTitle 'Subscribe'
+      @subscribeButton.setCallback @bound 'selectPlan'
 
-  partial: -> ""
+  partial: -> ''
 
   viewAppended: ->
     super
 
     data = @getData()
-    {title, description, feeAmount, feeUnit, tags} = data
+    { title, description, feeAmount, feeUnit, tags } = data
 
     @addSubView new KDCustomHTMLView
       partial: """
@@ -45,11 +45,11 @@ module.exports = class KitePlanListItemView extends KDListItemView
 
     @addSubView @subscribeButton
 
-    kd.singleton("paymentController").fetchSubscriptionsWithPlans
-      tags: $in: tags
+    kd.singleton('paymentController').fetchSubscriptionsWithPlans
+      tags: { $in: tags }
     , (err, subscriptions) =>
       for subscription in subscriptions
         if subscription.plan.getId() is data.getId()
           @subscription = subscription
-          @subscribeButton.setTitle "Unsubscribe"
-          @subscribeButton.setCallback @bound "unsubscribe"
+          @subscribeButton.setTitle 'Unsubscribe'
+          @subscribeButton.setCallback @bound 'unsubscribe'

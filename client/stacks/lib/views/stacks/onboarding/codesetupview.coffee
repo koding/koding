@@ -46,7 +46,7 @@ module.exports = class CodeSetupView extends JView
   createServicesView: ->
 
     services = [ 'github', 'bitbucket', 'gitlab', 'yourgitserver' ]
-    servicesView = new kd.CustomHTMLView cssClass: 'services box-wrapper'
+    servicesView = new kd.CustomHTMLView { cssClass: 'services box-wrapper' }
 
     services.forEach (service) =>
       label = if service is 'yourgitserver' then 'Your Git server' else ''
@@ -73,11 +73,11 @@ module.exports = class CodeSetupView extends JView
 
   pistachio: ->
 
-    return """
+    return '''
       <div class="header">
         <p class="title">Where is your code?</p>
         <p class="description">Koding can pull your project’s codebase from wherever its hosted.</p>
       </div>
       {{> @tabHandleContainer}}
       {{> @tabView}}
-    """
+    '''
