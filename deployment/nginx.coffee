@@ -38,15 +38,22 @@ createWebLocation = ({name, locationConf}) ->
   { location, proxyPass, internalOnly, auth, extraParams } = locationConf
     # 3 tabs are just for style
   extraParamsStr = extraParams?.join("\n\t\t\t") or ""
+  host = locationConf.host or "$host"
   return """\n
       location #{location} {
         proxy_pass            #{proxyPass};
+
+        proxy_set_header      Host            #{host};
+        proxy_set_header      X-Host          $host; # for customisation
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header      X-Host          $host; # for customisation
-        proxy_set_header      Host            $host;
+
+        # try again with another upstream if there is an error
         proxy_next_upstream   error timeout   invalid_header http_500;
+
+        # proxy should connect in 1 second
         proxy_connect_timeout 1;
+
         #{if internalOnly then allowInternal else ''}
         #{if auth then basicAuth else ''}
         #{extraParamsStr}
@@ -57,6 +64,7 @@ createWebsocketLocation = ({name, locationConf, proxyPass}) ->
   {location, proxyPass} = locationConf
   # 3 tabs are just for style
   extraParamsStr = locationConf.extraParams?.join("\n\t\t\t") or ""
+  host = locationConf.host or "$host"
   return """\n
       location #{location} {
         proxy_pass            #{proxyPass};
@@ -66,7 +74,7 @@ createWebsocketLocation = ({name, locationConf, proxyPass}) ->
         proxy_set_header      Upgrade         $http_upgrade;
         proxy_set_header      Connection      $connection_upgrade;
 
-        proxy_set_header      Host            $host;
+        proxy_set_header      Host            #{host};
         proxy_set_header      X-Host          $host; # for customisation
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
