@@ -21,6 +21,6 @@ class AccountEditShortcutsPane extends kd.TabPaneView
 
     @collection.each (model) ->
       dup   = _.includes dups, model.name
-      scrollView.wrapper.addSubView new Row { dup, model }
+      scrollView.wrapper.addSubView new Row { dup }, model
 
     @addSubView scrollView
