@@ -42,14 +42,13 @@ func RunAllTests(t *testing.T, mountParent string) {
 func createDir(mountDir, name string, fn func(string)) func() {
 	return func() {
 		dirPath := path.Join(mountDir, name)
-		err := os.Mkdir(dirPath, 0705)
-		if err != nil {
+		if err := os.Mkdir(dirPath, 0705); err != nil {
 			panic(err)
 		}
 
 		fn(dirPath)
 
-		if err = os.RemoveAll(dirPath); err != nil {
+		if err := os.RemoveAll(dirPath); err != nil {
 			panic(err)
 		}
 	}
