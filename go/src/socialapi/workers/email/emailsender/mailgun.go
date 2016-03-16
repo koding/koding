@@ -32,34 +32,18 @@ type MailgunSender struct {
 	Log                    logging.Logger
 }
 
-func NewMailgunSender(hostname string, log logging.Logger) *MailgunSender {
-	var err error
+func NewMailgunSender(hostname string, log logging.Logger, conf *config.Config) *MailgunSender {
 	ms := &MailgunSender{}
 
 	ms.Log = log
 	ms.VmHostname = hostname
-	ms.Conf = config.MustGet()
+	ms.Conf = conf
 	ms.Mailgun = mailgun.NewMailgun(ms.Conf.Mailgun.Domain, ms.Conf.Mailgun.PrivateKey, ms.Conf.Mailgun.PublicKey)
 
-	ms.TemplateSignup, err = template.New("email").Parse(TemplateSignup)
-	if err != nil {
-		panic(err)
-	}
-
-	ms.TemplateTeamInvite, err = template.New("email").Parse(TemplateTeamInvite)
-	if err != nil {
-		panic(err)
-	}
-
-	ms.TemplateSignupText, err = texttemplate.New("email").Parse(TemplateSignupText)
-	if err != nil {
-		panic(err)
-	}
-
-	ms.TemplateTeamInviteText, err = texttemplate.New("email").Parse(TemplateTeamInviteText)
-	if err != nil {
-		panic(err)
-	}
+	ms.TemplateSignup = template.Must(template.New("email").Parse(TemplateSignup))
+	ms.TemplateTeamInvite = template.Must(template.New("email").Parse(TemplateTeamInvite))
+	ms.TemplateSignupText = texttemplate.Must(texttemplate.New("email").Parse(TemplateSignupText))
+	ms.TemplateTeamInviteText = texttemplate.Must(texttemplate.New("email").Parse(TemplateTeamInviteText))
 
 	return ms
 }
@@ -97,9 +81,9 @@ func (m *MailgunSender) SendMailgunEmail(mail *Mail) error {
 
 	user, err := modelhelper.FetchUserByEmail(email)
 	if err == nil {
-	    userId = user.ObjectId.Hex()
+		userId = user.ObjectId.Hex()
 	} else {
-	    userId = "0"
+		userId = "0"
 	}
 
 	if user.EmailFrequency != nil && !user.EmailFrequency.Global {

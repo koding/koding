@@ -43,7 +43,7 @@ func New(exporter eventexporter.Exporter, log logging.Logger, conf *config.Confi
 		host:                    conf.Hostname,
 		forcedRecipientEmail:    conf.Email.ForcedRecipientEmail,
 		forcedRecipientUsername: conf.Email.ForcedRecipientUsername,
-		mailgun:                 NewMailgunSender(vmHostname, log),
+		mailgun:                 NewMailgunSender(vmHostname, log, conf),
 	}
 }
 
