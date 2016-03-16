@@ -15,29 +15,29 @@ module.exports = class ProductAdminControlsView extends JView
     @embedView = new EmbedCodeView { planCode }
 
     @embedButton = new KDButtonView
-      title    : "View Embed Code"
+      title    : 'View Embed Code'
       callback : =>
-        if @embedView.hasClass "hidden"
-          @embedView.unsetClass "hidden"
+        if @embedView.hasClass 'hidden'
+          @embedView.unsetClass 'hidden'
         else
-          @embedView.setClass "hidden"
+          @embedView.setClass 'hidden'
 
     @embedButton.hide()  unless soldAlone
 
     @clientsButton = new KDButtonView
-      title    : "View buyers"
+      title    : 'View buyers'
       callback : => @emit 'BuyersReportRequested', product
 
     @deleteButton = new KDButtonView
-      title    : "Remove"
+      title    : 'Remove'
       callback : => @emit 'DeleteRequested', product
 
     @editButton = new KDButtonView
-      title    : "Edit"
+      title    : 'Edit'
       callback : => @emit 'EditRequested', product
 
     @sortWeight = new KDSelectBox
-      title         : "Sort weight"
+      title         : 'Sort weight'
       defaultValue  : "#{ product.sortWeight ? 0 }"
       selectOptions : [-100..100].map (w) ->
         title       : "#{w}"
@@ -48,11 +48,11 @@ module.exports = class ProductAdminControlsView extends JView
     super()
 
   pistachio: ->
-    """
+    '''
     {{> @embedButton}}
     {{> @deleteButton}}
     {{> @clientsButton}}
     {{> @editButton}}
     {{> @sortWeight}}
     {{> @embedView}}
-    """
+    '''
