@@ -5,7 +5,7 @@ Machine = require './machine'
 
 module.exports = class ComputeEventListener extends kd.Object
 
-  {Stopped, Running, Terminated, Snapshotting} = Machine.State
+  { Stopped, Running, Terminated, Snapshotting } = Machine.State
 
   constructor: (options = {}) ->
 
@@ -46,7 +46,7 @@ module.exports = class ComputeEventListener extends kd.Object
 
   addListener: (type, eventId) ->
 
-    {computeController} = kd.singletons
+    { computeController } = kd.singletons
 
     if uniqueAdd @listeners, type, eventId
 
@@ -60,7 +60,7 @@ module.exports = class ComputeEventListener extends kd.Object
     return  if machine.provider is 'managed' and \
                event.status not in [Running, Stopped]
 
-    {computeController, kontrol} = kd.singletons
+    { computeController, kontrol } = kd.singletons
 
     state = { status : event.status, reverted : event.reverted }
     state.percentage = event.percentage  if event.percentage?
@@ -85,28 +85,28 @@ module.exports = class ComputeEventListener extends kd.Object
 
   TypeStateMap     =
     stop           :
-      public       : "MachineStopped"
+      public       : 'MachineStopped'
       private      : Stopped
     start          :
-      public       : "MachineStarted"
+      public       : 'MachineStarted'
       private      : Running
     build          :
-      public       : "MachineBuilt"
+      public       : 'MachineBuilt'
       private      : Running
     reinit         :
-      public       : "MachineBuilt"
+      public       : 'MachineBuilt'
       private      : Running
     resize         :
-      public       : "MachineResized"
+      public       : 'MachineResized'
       private      : Running
     destroy        :
-      public       : "MachineDestroyed"
+      public       : 'MachineDestroyed'
       private      : Terminated
     createSnapshot :
-      public       : "MachineSnapshotted"
+      public       : 'MachineSnapshotted'
       private      : Snapshotting
     apply          :
-      public       : "MachineBuilt"
+      public       : 'MachineBuilt'
       private      : Running
 
 
@@ -116,14 +116,14 @@ module.exports = class ComputeEventListener extends kd.Object
     return  if not force and @tickInProgress
     @tickInProgress = yes
 
-    {computeController} = kd.singletons
+    { computeController } = kd.singletons
 
     computeController.getKloud().event @listeners
 
     .then (responses) =>
 
       activeListeners = []
-      responses.forEach (res) =>
+      responses.forEach (res) ->
 
         if res.err? and not res.event?
 
@@ -135,7 +135,7 @@ module.exports = class ComputeEventListener extends kd.Object
 
           return
 
-        {event} = res
+        { event } = res
         [type, eventId] = event.eventId.split '-'
 
         if event.percentage < 100 and \
@@ -145,7 +145,7 @@ module.exports = class ComputeEventListener extends kd.Object
         kd.info "#{event.eventId}", event
 
         if not event.error and event.percentage is 100 and ev = TypeStateMap[type]
-          computeController.emit ev.public, machineId: eventId
+          computeController.emit ev.public, { machineId: eventId }
           computeController.emit "stateChanged-#{eventId}", ev.private
           computeController.stateChecker.watch eventId
           # For `apply` event revive all the machines in a stack ~ GG
@@ -167,9 +167,9 @@ module.exports = class ComputeEventListener extends kd.Object
 
     .catch (err) =>
 
-      @tick yes  if err.name is "TimeoutError"
+      @tick yes  if err.name is 'TimeoutError'
 
-      kd.warn "Eventer error:", err
+      kd.warn 'Eventer error:', err
       @stop()
 
 
@@ -177,12 +177,12 @@ module.exports = class ComputeEventListener extends kd.Object
 
     StateEventMap =
 
-      Stopping    : "stop"
-      Building    : "build"
-      Starting    : "start"
-      Rebooting   : "restart"
-      Terminating : "destroy"
-      Pending     : "resize"
+      Stopping    : 'stop'
+      Building    : 'build'
+      Starting    : 'start'
+      Rebooting   : 'restart'
+      Terminating : 'destroy'
+      Pending     : 'resize'
 
     stateEvent = StateEventMap[machine.status.state]
 
@@ -191,7 +191,7 @@ module.exports = class ComputeEventListener extends kd.Object
       @addListener stateEvent, machine._id
 
       if stateEvent is 'build' and followOthers
-        @addListener "reinit", machine._id
+        @addListener 'reinit', machine._id
 
       return yes
 
