@@ -23,3 +23,15 @@ module.exports = RemoteExtensions =
 
     remote.api.JComputeStack = require './computestack'
     remote.api.JMachine      = require './machine'
+
+
+  updateInstance: (instanceId) -> # , data) ->
+
+    instance = globals.__remoteCache[instanceId]
+    return  unless instance
+
+    instance.emit 'update' # , data
+
+
+  getCache: -> globals.__remoteCache
+

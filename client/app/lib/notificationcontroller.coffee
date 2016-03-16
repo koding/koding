@@ -8,6 +8,8 @@ KDModalView        = kd.ModalView
 KDNotificationView = kd.NotificationView
 KDObject           = kd.Object
 
+remote_extensions  = require 'app/remote-extensions'
+
 
 module.exports = class NotificationController extends KDObject
 
@@ -187,3 +189,7 @@ module.exports = class NotificationController extends KDObject
             callback  : (event) ->
               modal.destroy()
               global.location.reload yes
+
+
+    @on 'InstanceChanged', (change) ->
+      remote_extensions.updateInstance change.id
