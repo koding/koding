@@ -1,4 +1,3 @@
-// +build darwin
 // mountcli is a little package for interacting with the local "mount" command.
 //
 // A typical osxfusefs mount entry looks like:
@@ -7,15 +6,11 @@ package mountcli
 
 import (
 	"errors"
-	"fmt"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 )
-
-// An OS specific mount tag that we're filtering by.
-const defaultFuseTag = "osxfusefs"
 
 var (
 	// ErrNotInMount happens when command is run from outside a mount.
@@ -29,26 +24,22 @@ var (
 
 	// folderSeparator is the os specific seperator for dividing folders.
 	folderSeparator = string(filepath.Separator)
-
-	// match from beginning to ' on '
-	nameMatch = regexp.MustCompile(fmt.Sprintf("^(.*?) on "))
-
-	// match from ' on ' till '(osxfusefs,'
-	pathMatch = regexp.MustCompile(
-		fmt.Sprintf(" on (.*?) \\(%s,", defaultFuseTag),
-	)
 )
 
 type Mountcli struct {
-	// The name of the binary we'll be running and parsing. Should almost always
-	// be "mount"
+	// binName is the name of the command that returns results of mounts on the
+	// filesystem. It should take -t option that filters specific types of mounts.
 	binName string
 
-	// the following vars exist primarily for mocking ability, and ensuring
-	// an enclosed environment within the struct.
+	// matcher matches name and path from results returned in mount command.
+	matcher *regexp.Regexp
 
-	// A func to run the given binary and return the output as a string
-	binRunner func(string) (string, error)
+	// filterTag is used to filter just specific mounts in mount command.
+	filterTag string
+
+	// binRunner is func to run the given binary and return the output as a
+	// string. This is used for mocking ability.
+	binRunner func(string, string) (string, error)
 }
 
 // NewMountcli creates a new Mountcli instance.
@@ -56,6 +47,8 @@ func NewMountcli() *Mountcli {
 	return &Mountcli{
 		binName:   "mount",
 		binRunner: binRunner,
+		matcher:   FuseMatcher,
+		filterTag: FuseTag,
 	}
 }
 
@@ -106,7 +99,7 @@ func (m *Mountcli) FindMountNameByPath(path string) (string, error) {
 	return "", ErrNoMountPath
 }
 
-// GetRelativeMountPath returns the path that's relative to mount path based on
+// FindRelativeMountPath returns the path that's relative to mount path based on
 // specified local path. If the specified path and mount are equal, it returns
 // an empty string, else it returns the remaining paths.
 //
@@ -161,7 +154,7 @@ func (m *Mountcli) IsPathInMountedPath(path string) (bool, error) {
 }
 
 func (m *Mountcli) parse() ([]*resp, error) {
-	out, err := m.binRunner(m.binName)
+	out, err := m.binRunner(m.binName, m.filterTag)
 	if err != nil {
 		return nil, err
 	}
@@ -175,13 +168,12 @@ func (m *Mountcli) parse() ([]*resp, error) {
 
 		resp := &resp{}
 
-		nMatches := nameMatch.FindStringSubmatch(line)
-		if len(nMatches) > 0 {
-			resp.name = nMatches[1]
+		matches := m.matcher.FindStringSubmatch(line)
+		if len(matches) >= 2 {
+			resp.name = matches[1]
 		}
-		pMatches := pathMatch.FindStringSubmatch(line)
-		if len(pMatches) > 0 {
-			resp.path = pMatches[1]
+		if len(matches) >= 3 {
+			resp.path = matches[2]
 		}
 
 		resps = append(resps, resp)
@@ -197,7 +189,7 @@ type resp struct {
 	path string
 }
 
-func binRunner(bin string) (string, error) {
+func binRunner(bin, defaultFuseTag string) (string, error) {
 	cmd := exec.Command(bin, "-t", defaultFuseTag)
 
 	out, err := cmd.CombinedOutput()
