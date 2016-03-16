@@ -68,7 +68,7 @@ module.exports = class TeamInviteView extends JView
   sendInvites: ->
 
     remote.api.JTeamInvitation.sendInvitationEmails @emails, (err, invitations) =>
-      message = if err then 'Pleae retry' else 'Invitations sent!'
+      message = if err then 'Please retry' else 'Invitations sent!'
       new kd.NotificationView
         title: message
 

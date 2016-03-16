@@ -1,4 +1,4 @@
-JTeamInvitation = require '../../../workers/social/lib/social/models/teaminvitation.coffee'
+JTeamInvitation = require '../../../workers/social/lib/social/models/teaminvitation'
 
 { expect
   generateUrl
