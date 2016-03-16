@@ -8,5 +8,5 @@ module.exports = class MemberAutoCompletedItemView extends KDAutoCompletedItem
 
   JView.mixin @prototype
 
-  viewAppended:->
+  viewAppended: ->
     @addSubView @profileText = new AutoCompleteProfileTextView {}, @getData()

@@ -9,42 +9,42 @@ JCustomHTMLView = require 'app/jcustomhtmlview'
 
 module.exports = class HelpSupportModal extends KDModalViewWithForms
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options                 = kd.utils.extend options,
-      title                 : "Koding Support"
+      title                 : 'Koding Support'
       subtitle              : "Let's get you some help shall we?"
-      cssClass              : "help-support-modal"
+      cssClass              : 'help-support-modal'
       overlay               : yes
       overlayClick          : yes
       width                 : 668
       content               : HelpSupportModal.getTopics()
       tabs                  :
-        callback            : (form)=> @emit "NewTicketRequested", form
+        callback            : (form) => @emit 'NewTicketRequested', form
         forms               :
           Main              :
             buttons         :
               submit        :
-                title       : "SEND"
-                style       : "solid green medium"
-                type        : "submit"
+                title       : 'SEND'
+                style       : 'solid green medium'
+                type        : 'submit'
                 loader      : yes
             fields          :
               subject       :
-                label       : "Subject"
-                type        : "text"
-                placeholder : "Subject about your problem..."
-                validate    : rules: required: yes
+                label       : 'Subject'
+                type        : 'text'
+                placeholder : 'Subject about your problem...'
+                validate    : { rules: { required: yes } }
               message       :
-                label       : "Message"
-                type        : "textarea"
-                placeholder : "
+                label       : 'Message'
+                type        : 'textarea'
+                placeholder : '
                   Detailed message about your problem.
                   If it is a techincal issue, please also
                   provide what caused the issue and a
                   link to a screenshot.
-                "
-                validate    : rules: required: yes
+                '
+                validate    : { rules: { required: yes } }
 
     super options, data
 
@@ -53,37 +53,37 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
     form = @modalTabs.forms.Main
     form.on 'FormValidationFailed', -> form.buttons.submit.hideLoader()
 
-    @on "NewTicketRequested", (form)=>
+    @on 'NewTicketRequested', (form) =>
 
       return if @ticketRequested
       @ticketRequested = yes
 
-      {submit} = @modalTabs.forms.Main.buttons
-      {subject, message} = form
+      { submit } = @modalTabs.forms.Main.buttons
+      { subject, message } = form
 
       # if @_logUrl? ~ We are uploading logs but not including it
       #                into the support ticket ~ GG #89350576
       #   message += "\n\n --- LOGS: #{@_logUrl} --- \n"
 
       request = $.ajax "#{global.location.origin}/-/support/new",
-        type        : "POST"
-        contentType : "application/json"
+        type        : 'POST'
+        contentType : 'application/json'
         data        : JSON.stringify { subject, message }
         timeout     : 4000
-        dataType    : "json"
+        dataType    : 'json'
 
       request.done  =>
-        new KDNotificationView title: "Thanks! We will send you an email within 24 hours."
+        new KDNotificationView { title: 'Thanks! We will send you an email within 24 hours.' }
         submit.hideLoader()
         submit.setCallback @bound 'destroy'
-        submit.setTitle "CLOSE"
+        submit.setTitle 'CLOSE'
 
       request.error =>
-        new KDNotificationView title: "Sorry, could not process your request, please try again."
+        new KDNotificationView { title: 'Sorry, could not process your request, please try again.' }
         submit.hideLoader()
         @ticketRequested = no
 
-    uploadLogs (err, logUrl)=>
+    uploadLogs (err, logUrl) =>
       @_logUrl = logUrl  if not err and logUrl?
 
 
@@ -104,7 +104,7 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
 
 
   @getTopics = ->
-    """
+    '''
       <div class="container">
         <div class="topics-header">Some popular help topics</div>
 
@@ -124,4 +124,4 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
           Head over to <a href="https://koding.com/docs/topic/faq/" target="_blank">Koding University</a> for more...
         </div>
       </div>
-    """
+    '''

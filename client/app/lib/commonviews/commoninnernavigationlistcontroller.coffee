@@ -6,7 +6,7 @@ CommonInnerNavigationList = require './commoninnernavigationlist'
 
 module.exports = class CommonInnerNavigationListController extends NavigationController
 
-  constructor:(options={}, data)->
+  constructor: (options={}, data) ->
 
     options.viewOptions or=
       itemClass           : options.itemClass or CommonInnerNavigationListItem
@@ -18,16 +18,16 @@ module.exports = class CommonInnerNavigationListController extends NavigationCon
 
     listView = @getListView()
 
-    listView.on 'ItemWasAdded', (view)=>
-      view.on 'click', (event)=>
+    listView.on 'ItemWasAdded', (view) =>
+      view.on 'click', (event) =>
         unless view.getData().disabledForBeta
           @selectItem view
           @emit 'NavItemReceivedClick', view.getData()
           listView.emit 'NavItemReceivedClick', view.getData()
 
-  loadView:(mainView)->
+  loadView: (mainView) ->
     list = @getListView()
-    mainView.setClass "list"
-    mainView.addSubView new KDHeaderView size : 'small', title : @getData().title, cssClass : "list-group-title"
+    mainView.setClass 'list'
+    mainView.addSubView new KDHeaderView { size : 'small', title : @getData().title, cssClass : 'list-group-title' }
     mainView.addSubView list
     @instantiateListItems(@getData().items or [])
