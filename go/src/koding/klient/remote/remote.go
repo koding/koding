@@ -24,12 +24,6 @@ const (
 	machineNamesStorageKey = "machine_names"
 )
 
-// 15 uniquely identifiable names to be used to identify machines.
-var machineNames = []string{
-	"apple", "orange", "banana", "grape", "coconut", "peach", "mango", "date",
-	"kiwi", "lemon", "squash", "jackfruit", "raisin", "tomato", "quince",
-}
-
 // KodingKitesGetter is an interface to allow easily mockable getKodingKites calls.
 // responses.
 type KodingKitesGetter interface {
