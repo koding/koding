@@ -17,10 +17,10 @@ module.exports = class SidebarWorkspaceItem extends KDListItemView
 
     super options, data # machine data is `options.machine`, workspace data is `data`
 
-    {machine} = options
-    workspace = data # to make it more sense in the following lines.
-    path      = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
-    title     = workspace.name
+    { machine } = options
+    workspace   = data # to make it more sense in the following lines.
+    path        = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+    title       = workspace.name
 
     unless machine.isMine()
       if machine.isPermanent()
@@ -64,8 +64,8 @@ module.exports = class SidebarWorkspaceItem extends KDListItemView
 
 
   pistachio: ->
-    """
+    '''
       <figure></figure>
       {{> @title}}
       {{> @settingsIcon}}
-    """
+    '''
