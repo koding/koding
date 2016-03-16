@@ -99,6 +99,8 @@ func TestRemoteError(t *testing.T) {
 			So(err, ShouldBeNil)
 			k.liveNodes[2] = file
 
+			oldSize := file.GetAttrs().Size
+
 			Convey("It should return err when trying to truncate file", func() {
 				var size uint64 = 0
 
@@ -107,6 +109,10 @@ func TestRemoteError(t *testing.T) {
 					Size:  &size,
 				}
 				So(k.SetInodeAttributes(context.TODO(), op), ShouldEqual, syscall.ECONNREFUSED)
+
+				Convey("It should not change size of file in memory", func() {
+					So(file.GetAttrs().Size, ShouldEqual, oldSize)
+				})
 			})
 		})
 
