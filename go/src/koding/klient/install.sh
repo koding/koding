@@ -10,12 +10,6 @@ init_file=
 
 alias curl='curl --retry 5 --retry-delay 0'
 
-sed_cmd='sed -i'
-
-if [[ "${is_macosx}" -eq 1 ]]; then
-	sed_cmd='sed -i ""'
-fi
-
 get_init_tool() {
 	for tool in update-rc.d chkconfig launchctl; do
 		if sudo which ${tool} &>/dev/null; then
@@ -245,8 +239,14 @@ EOF
 	fi
 
 	sudo cp /opt/kite/klient/klient.init "${init_file}"
-	sudo ${sed_cmd} -e "s|\%USERNAME\%||g" "${init_file}"
-	sudo ${sed_cmd} -e "s|\%START_COMMAND\%|/opt/kite/klient/klient -kontrol-url ${kontrolurl}|g" "${init_file}"
+
+	if [[ ${is_macosx} -eq 1 ]]; then
+		sudo sed -i "" -e "s|\%USERNAME\%||g" "${init_file}"
+		sudo sed -i "" -e "s|\%START_COMMAND\%|/opt/kite/klient/klient -kontrol-url ${kontrolurl}|g" "${init_file}"
+	else
+		sudo sed -i -e "s|\%USERNAME\%||g" "${init_file}"
+		sudo sed -i -e "s|\%START_COMMAND\%|/opt/kite/klient/klient -kontrol-url ${kontrolurl}|g" "${init_file}"
+	fi
 
 	if ! install_service; then
 		cat <<EOF
