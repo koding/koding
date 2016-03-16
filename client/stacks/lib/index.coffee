@@ -2,7 +2,7 @@ kd                         = require 'kd'
 AdminAppController         = require 'admin/index'
 StackCatalogModalView      = require './views/customviews/stackcatalogmodalview'
 
-WelcomeView                = require './views/welcome/welcomeappview'
+WelcomeAppView             = require './views/welcome/welcomeappview'
 KodingUtilitiesView        = require './views/kodingutilitiesview'
 YourStacksView             = require 'app/environment/yourstacksview'
 MyStackTemplatesView       = require './views/stacks/my/mystacktemplatesview'
@@ -21,7 +21,7 @@ module.exports = class StacksAppController extends AdminAppController
     teams      :
       title    : 'Stack Catalog'
       items    : [
-        { slug : 'Welcome',                 title : 'Welcome',                viewClass : WelcomeView }
+        { slug : 'Welcome',                 title : 'Welcome',                viewClass : WelcomeAppView }
         { slug : 'My-Stacks',               title : 'My Stacks',              viewClass : YourStacksView }
         { slug : 'My-Stack-Templates',      title : 'My Stack Templates',     viewClass : MyStackTemplatesView }
         { slug : 'Group-Stack-Templates',   title : 'Team Stack Templates',   viewClass : GroupStackTemplatesView }
