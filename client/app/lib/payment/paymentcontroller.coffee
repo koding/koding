@@ -11,7 +11,7 @@ module.exports = class PaymentController extends kd.Controller
 
   subscribe: (token, planTitle, planInterval, options, callback) ->
 
-    {planAmount, binNumber, lastFour, cardName} = options
+    { planAmount, binNumber, lastFour, cardName } = options
 
     params = {
       token, planTitle, planInterval, planAmount
@@ -44,7 +44,7 @@ module.exports = class PaymentController extends kd.Controller
 
   updateCreditCard: (token, callback) ->
 
-    params          = {token}
+    params          = { token }
     params.provider = DEFAULT_PROVIDER
 
     @api().updateCreditCard params, callback
@@ -52,12 +52,12 @@ module.exports = class PaymentController extends kd.Controller
 
   canChangePlan: (planTitle, callback) ->
 
-    @api().canChangePlan {planTitle}, callback
+    @api().canChangePlan { planTitle }, callback
 
 
   getPaypalToken: (planTitle, planInterval, callback) ->
 
-    @api().getToken {planTitle, planInterval}, callback
+    @api().getToken { planTitle, planInterval }, callback
 
 
   logOrder: (params, callback) ->

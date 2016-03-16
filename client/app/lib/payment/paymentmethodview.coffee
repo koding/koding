@@ -7,7 +7,7 @@ module.exports = class PaymentMethodView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass    = kd.utils.curry "payment-method", options.cssClass
+    options.cssClass    = kd.utils.curry 'payment-method', options.cssClass
     options.editLink   ?= no
     options.removeLink ?= no
 
@@ -43,7 +43,7 @@ module.exports = class PaymentMethodView extends JView
 
     @controlsView = new kd.CustomHTMLView { cssClass: 'payment-method-controls' }
 
-    @paymentMethodInfo = new KDCustomHTMLView cssClass : 'billing-link'
+    @paymentMethodInfo = new KDCustomHTMLView { cssClass : 'billing-link' }
     @paymentMethodInfo.hide()
     @setPaymentInfo data
 
@@ -80,7 +80,7 @@ module.exports = class PaymentMethodView extends JView
     @paymentMethodInfo.show()
 
   pistachio: ->
-    """
+    '''
     {{> @paymentMethodInfo }}
     {{> @controlsView }}
-    """
+    '''
