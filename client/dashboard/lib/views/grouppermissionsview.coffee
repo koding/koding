@@ -7,8 +7,8 @@ JView = require 'app/jview'
 
 module.exports = class GroupPermissionsView extends JView
 
-  constructor: (options={}, data)->
-    options.cssClass = "permissions-view-old"
+  constructor: (options = {}, data) ->
+    options.cssClass = 'permissions-view-old'
     super options, data
 
     @loader     = new KDLoaderView
@@ -24,19 +24,19 @@ module.exports = class GroupPermissionsView extends JView
 
   addPermissionsView: ->
     group = @getData()
-    group.fetchRoles (err,roles)=>
+    group.fetchRoles (err, roles) =>
       return showError err if err
-      group.fetchPermissions (err, permissionSet)=>
+      group.fetchPermissions (err, permissionSet) =>
         return showError err if err
-        @addSubView permissions = new PermissionsForm {permissionSet,roles}, group
-        permissions.on 'RoleWasAdded', (newPermissions,role)=>
+        @addSubView permissions = new PermissionsForm { permissionSet, roles }, group
+        permissions.on 'RoleWasAdded', (newPermissions, role) =>
           permissions.destroy()
           @addPermissionsView()
           @loader.show()
 
         @loader.hide()
 
-  pistachio:->
-    """
+  pistachio: ->
+    '''
     {{> @loader}}
-    """
+    '''

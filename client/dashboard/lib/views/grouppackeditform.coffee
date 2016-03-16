@@ -16,27 +16,27 @@ module.exports = class GroupPackEditForm extends KDFormViewWithFields
 
     options.buttons ?=
       Save        :
-        cssClass  : "solid green medium"
-        type      : "submit"
+        cssClass  : 'solid green medium'
+        type      : 'submit'
       cancel      :
-        cssClass  : "solid light-gray medium"
+        cssClass  : 'solid light-gray medium'
         callback  : => @emit 'CancelRequested'
 
     options.fields ?= {}
 
     options.fields.title ?=
-      label           : "Title"
+      label           : 'Title'
       placeholder     : options.placeholders?.title
       defaultValue    : data.decoded 'title'
       required        : 'Title is required!'
 
     options.fields.description ?=
-      label           : "Description"
-      placeholder     : options.placeholders?.description or "(optional)"
+      label           : 'Description'
+      placeholder     : options.placeholders?.description or '(optional)'
       defaultValue    : data.decoded 'description'
 
     options.fields.tags ?=
-      label         : "Tags"
+      label         : 'Tags'
       itemClass     : KDDelimitedInputView
       defaultValue  : data.tags
 
