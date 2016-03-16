@@ -184,8 +184,6 @@ EOF
 do_install_klient() {
 	local kontrolurl=${1:-https://koding.com/kontrol/kite}
 
-	init
-
 	if does_service_exist; then
 		if ! remove_service; then
 			cat <<EOF
@@ -305,14 +303,6 @@ EOF
 	return 0
 }
 
-do_start_klient() {
-	# try to stop old upstart klients
-	sudo stop klient &>/dev/null || true
-
-	eval sudo $(get_stop_klient_command) || true
-	eval sudo $(get_start_klient_command)
-}
-
 init() {
 	export init_tool=$(get_init_tool)
 	export init_dir=$(get_init_dir)
@@ -320,6 +310,8 @@ init() {
 }
 
 main() {
+	init
+
 	echo "Testing sudo permissions, please input password if prompted.."
 	if ! sudo -l &>/dev/null; then
 		cat << EOF
@@ -353,6 +345,11 @@ EOF
 	fi
 
 	pushd /tmp &>/dev/null
+
+	# try to stop old upstart klients
+	sudo stop klient &>/dev/null || true
+
+	eval sudo $(get_stop_klient_command) || true
 
 	if ! download_klient; then
 		exit 2
@@ -395,7 +392,7 @@ Starting the Koding Service Connector...
 
 EOF
 
-	if ! do_start_klient; then
+	if ! eval sudo $(get_start_klient_command); then
 		cat <<EOF
 Failed to start Koding Service Connector. Please reinstall the service and retry.
 EOF
