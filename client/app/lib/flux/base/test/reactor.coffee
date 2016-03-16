@@ -14,7 +14,7 @@ describe 'KodingFluxReactor', ->
       flag = no
       class FooStore extends Store
         initialize: ->
-          @on 'test', (state, {foo}) -> flag = foo
+          @on 'test', (state, { foo }) -> flag = foo
 
       reactor.registerStores { foo: FooStore }
 
