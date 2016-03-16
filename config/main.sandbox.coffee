@@ -220,6 +220,7 @@ Configuration = (options={}) ->
     awsKeys                        : awsKeys
     broker                         : broker
     uri                            : address: customDomain.public
+    tunnelserver                   : tunnelserver
     userSitesDomain                : userSitesDomain
     hubspotPageURL                 : hubspotPageURL
     autoConfirmAccounts            : autoConfirmAccounts
@@ -793,36 +794,8 @@ Configuration = (options={}) ->
         websocket       : yes
         locations       : [
           {
-            location    : '~ ^\\/-\\/userproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
-            proxyPass   : 'http://$ip:56789/$rest'
-            host        : "$ip"
-            extraParams : [
-              'proxy_read_timeout 21600s;'
-              'proxy_send_timeout 21600s;'
-            ]
-          }
-          {
             location    : '~ ^\\/-\\/prodproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
             proxyPass   : 'http://$ip:56789/$rest'
-            host        : "$ip"
-            extraParams : [
-              'proxy_read_timeout 21600s;'
-              'proxy_send_timeout 21600s;'
-            ]
-          }
-          {
-            location    : '~ ^\\/-\\/sandboxproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
-            proxyPass   : 'http://$ip:56789/$rest'
-            host        : "$ip"
-            extraParams : [
-              'proxy_read_timeout 21600s;'
-              'proxy_send_timeout 21600s;'
-            ]
-          }
-          {
-            location    : '~ ^\\/-\\/latestproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
-            proxyPass   : 'http://$ip:56789/$rest'
-            host        : "$ip"
             extraParams : [
               'proxy_read_timeout 21600s;'
               'proxy_send_timeout 21600s;'
@@ -831,10 +804,29 @@ Configuration = (options={}) ->
           {
             location    : '~ ^\\/-\\/devproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
             proxyPass   : 'http://$ip:56789/$rest'
-            host        : "$ip"
             extraParams : [
               'proxy_read_timeout 21600s;'
               'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : "~ ^\\/-\\/prodtunnel\\/(?<tunnel>.+?)\.#{tunnelserver.hostedzone}(?<rest>.*)"
+            proxyPass   : "http://$tunnel.#{tunnelserver.hostedzone}$rest"
+            host        : "$tunnel.#{tunnelserver.hostedzone}"
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+              'resolver 8.8.8.8;'
+            ]
+          }
+          {
+            location    : "~ ^\\/-\\/devtunnel\\/(?<tunnel>.+?)\.#{tunnelserver.hostedzone}(?<rest>.*)"
+            proxyPass   : "http://$tunnel.#{tunnelserver.hostedzone}$rest"
+            host        : "$tunnel.#{tunnelserver.hostedzone}"
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+              'resolver 8.8.8.8;'
             ]
           }
         ]
