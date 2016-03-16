@@ -432,15 +432,19 @@ func (c *Command) initDefaultRepairers() error {
 // RetryRepairer) to repeat repair attempts on failures.
 func (c *Command) runRepairers(repairers []Repairer) error {
 	for _, r := range repairers {
-		err := r.Status()
-		if err == nil {
+		ok, err := r.Status()
+		if err != nil {
+			c.Log.Error("Repairer was unable to determine Status. Repairer not configured properly or requirements not met. err:%s", err)
+			return err
+		}
+
+		if ok {
 			// If there is no problem from Status, we can just move onto the next Repairer.
 			continue
 		}
 
 		c.Log.Warning(
-			"Repairer returned a non-ok status. Running its repair. repairer:%s, err:%s",
-			r, err,
+			"Repairer returned a non-ok status. Running its repair. repairer:%s", r,
 		)
 
 		if err := r.Repair(); err != nil {

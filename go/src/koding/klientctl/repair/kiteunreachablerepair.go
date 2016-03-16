@@ -38,9 +38,10 @@ func (r *KiteUnreachableRepair) String() string {
 }
 
 // Status simply checks if the remote kite's status is KiteUnreachable.
-func (r *KiteUnreachableRepair) Status() error {
+func (r *KiteUnreachableRepair) Status() (bool, error) {
 	var (
 		newline bool
+		ok      bool
 		err     error
 	)
 
@@ -51,6 +52,7 @@ func (r *KiteUnreachableRepair) Status() error {
 		})
 
 		if err == nil {
+			ok = true
 			break
 		}
 
@@ -59,10 +61,16 @@ func (r *KiteUnreachableRepair) Status() error {
 		// expected to fix the error. We don't know what that error is, so we shouldn't
 		// report a bad status. Log it, for debugging purposes though, and hope the
 		// next repairer in the list knows how to deal with this issue.
+		//
+		// TODO: Maybe we should retry here, instead of stopping? Ie, retry until
+		// either:
+		//   A. Everything is okay
+		//   B. We encounter an error we can handle
 		kErr, ok := err.(*kite.Error)
 		if !ok || kErr.Type != kiteerrortypes.MachineUnreachable {
-			r.Log.Warning("Status encountered unhandled error err:%s", err)
-			return nil
+			r.Log.Warning("Encountered error not in scope of this repair. err:%s", err)
+			ok = true
+			break
 		}
 
 		switch i {
@@ -80,7 +88,7 @@ func (r *KiteUnreachableRepair) Status() error {
 		fmt.Fprint(r.Stdout, "\n")
 	}
 
-	return err
+	return ok, err
 }
 
 // Repair cannot actually fix unreachable, Status should have been given a semi-high

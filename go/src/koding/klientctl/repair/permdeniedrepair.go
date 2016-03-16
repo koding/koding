@@ -42,32 +42,27 @@ func (r *PermDeniedRepair) getMountPath() (string, error) {
 
 // Status stats the mount directory that klient returns, and if it errors with
 // Permission denied, return an error.
-func (r *PermDeniedRepair) Status() error {
+func (r *PermDeniedRepair) Status() (bool, error) {
 	path, err := r.getMountPath()
 
 	// If we can't even get the mount dir from klient, return the error
 	// so that repair can fail with the same issue.
-	//
-	// TODO: Fix this behavior by adding bool to Status(), so that errors mean
-	// bad things. ~LO
 	if err != nil {
-		r.Log.Warning("Encountered ignored error. err:%s", err)
-		return nil
+		return false, err
 	}
 
 	// Stat should not fail if it's a perm denied (655) problem, the mount exists.
 	// So, we ignore this error.
 	fi, err := os.Stat(path)
 	if err != nil {
-		r.Log.Warning("Encountered ignored error. err:%s", err)
-		return nil
+		return false, err
 	}
 
 	if fi.Mode() == os.FileMode(0655)|os.ModeDir {
-		return errors.New("MountFolder has the wrong permissions, 655.")
+		return false, nil
 	}
 
-	return nil
+	return true, nil
 }
 
 // Repair simply remounts the given directory, and then checks the status one more
@@ -80,8 +75,11 @@ func (r *PermDeniedRepair) Repair() error {
 		return err
 	}
 
-	if err := r.Status(); err != nil {
+	if ok, err := r.Status(); !ok || err != nil {
 		r.Stdout.Printlnf("Unable to repair permissions issue.")
+		if err == nil {
+			err = errors.New("Status returned not-okay after running Repair")
+		}
 		return err
 	}
 
