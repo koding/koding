@@ -24,8 +24,8 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
     @throbberPlacementX = new KDSelectBox
       defaultValue  : 'left'
       selectOptions : [
-        { title : 'left',   value : 'left'   }
-        { title : 'right',  value : 'right'  }
+        { title : 'left',   value : 'left' }
+        { title : 'right',  value : 'right' }
         { title : 'center', value : 'center' }
       ]
     @throbberPlacementX.setValue data.placementX  if data.placementX
@@ -33,7 +33,7 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
     @throbberPlacementY = new KDSelectBox
       defaultValue  : 'top'
       selectOptions : [
-        { title : 'top',    value : 'top'    }
+        { title : 'top',    value : 'top' }
         { title : 'bottom', value : 'bottom' }
         { title : 'center', value : 'center' }
       ]
@@ -42,11 +42,11 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
     @throbberColor      = new KDSelectBox
       defaultValue  : 'green'
       selectOptions : [
-        { title : 'green',  value : 'green'   }
-        { title : 'red',    value : 'red'     }
-        { title : 'blue',   value : 'blue'    }
-        { title : 'yellow', value : 'yellow'  }
-        { title : 'gray',   value : 'gray'    }
+        { title : 'green',  value : 'green' }
+        { title : 'red',    value : 'red' }
+        { title : 'blue',   value : 'blue' }
+        { title : 'yellow', value : 'yellow' }
+        { title : 'gray',   value : 'gray' }
       ]
     @throbberColor.setValue data.color  if data.color
 
@@ -70,18 +70,18 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
     @tooltipPlacement   = new KDSelectBox
       defaultValue  : 'auto'
       selectOptions : [
-        { title : 'auto',   value : 'auto'   }
-        { title : 'above',  value : 'above'  }
-        { title : 'below',  value : 'below'  }
-        { title : 'left',   value : 'left'   }
-        { title : 'right',  value : 'right'  }
+        { title : 'auto',   value : 'auto' }
+        { title : 'above',  value : 'above' }
+        { title : 'below',  value : 'below' }
+        { title : 'left',   value : 'left' }
+        { title : 'right',  value : 'right' }
       ]
     @tooltipPlacement.setValue data.tooltipPlacement  if data.tooltipPlacement
 
     @targetIsScrollable = new KDCheckBox
       defaultValue  : data.targetIsScrollable
 
-    @editor.setClass "hidden"
+    @editor.setClass 'hidden'
 
     @oldData = data
 
@@ -94,11 +94,11 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
   ###
   addNew: ->
 
-    {data}  = @getDelegate()
-    {items} = data.partial
-    offsetX = @throbberOffsetX.getValue()
-    offsetY = @throbberOffsetY.getValue()
-    newItem =
+    { data }  = @getDelegate()
+    { items } = data.partial
+    offsetX   = @throbberOffsetX.getValue()
+    offsetY   = @throbberOffsetY.getValue()
+    newItem   =
       name               : @input.getValue()
       path               : @path.getValue()
       placementX         : @throbberPlacementX.getValue()
@@ -109,7 +109,7 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
       content            : @tooltipText.getValue()
       tooltipPlacement   : @tooltipPlacement.getValue()
       targetIsScrollable : @targetIsScrollable.getValue()
-      partial : { html: "", css: "", js: "" }
+      partial : { html: '', css: '', js: '' }
 
     isUpdate = no
 
@@ -118,14 +118,14 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
       isUpdate = yes
 
     items.push newItem  unless isUpdate
-    data.update { "partial.items": items }, (err, res) =>
+    data.update { 'partial.items': items }, (err, res) =>
       return kd.warn err  if err
-      @emit "NewViewAdded"
+      @emit 'NewViewAdded'
 
 
   pistachio: ->
 
-    """
+    '''
       <div class="inputs">
         <p>Name</p>
         {{> @input}}
@@ -149,4 +149,4 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
         {{> @cancelButton}}
         {{> @saveButton}}
       </div>
-    """
+    '''
