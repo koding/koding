@@ -45,9 +45,10 @@ module.exports =
     thirdVmSelector     = '.activity-sidebar .machines-wrapper .koding-vm-2'
     vmSidebarSelector   = '.activity-sidebar .machines-wrapper .vms.my-machines .koding.running'
 
+    #thirdVmSelector checks if the user has minimum 3VMs; if so, skip the test, because this test has passed the first time
     browser.element 'css selector', thirdVmSelector, (result) ->
       if result.status is -1
-
+        #secondVmSelector checks if the user has 2 VMs; if it has only one, another one is added. 2 VM's are required for this scenario
         browser.element 'css selector', secondVmSelector, (result) ->
           if result.status is -1
             environmentHelpers.addNewVM(browser, vmSelector1)
