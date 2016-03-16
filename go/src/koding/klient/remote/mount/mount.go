@@ -53,4 +53,20 @@ type Mount struct {
 	Unmounter interface {
 		Unmount() error
 	} `json:"-"`
+
+	LastMountError bool
+}
+
+func (m *Mount) Unmount() error {
+	var err error
+
+	if m.Unmounter != nil {
+		err = m.Unmounter.Unmount()
+	} else {
+		// Ignoring this error, since this fails when it's unable to find mount on
+		// path, ie. we're already at the desired state we want to be in.
+		fuseklient.Unmount(m.LocalPath)
+	}
+
+	return err
 }
