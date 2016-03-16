@@ -850,6 +850,7 @@ Configuration = (options={}) ->
           {
             location    : '~ ^\\/-\\/userproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
             proxyPass   : 'http://$ip:56789/$rest'
+            host        : "$ip"
             extraParams : [
               'proxy_read_timeout 21600s;'
               'proxy_send_timeout 21600s;'
@@ -858,6 +859,7 @@ Configuration = (options={}) ->
           {
             location    : '~ ^\\/-\\/prodproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
             proxyPass   : 'http://$ip:56789/$rest'
+            host        : "$ip"
             extraParams : [
               'proxy_read_timeout 21600s;'
               'proxy_send_timeout 21600s;'
@@ -866,6 +868,7 @@ Configuration = (options={}) ->
           {
             location    : '~ ^\\/-\\/sandboxproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
             proxyPass   : 'http://$ip:56789/$rest'
+            host        : "$ip"
             extraParams : [
               'proxy_read_timeout 21600s;'
               'proxy_send_timeout 21600s;'
@@ -874,6 +877,7 @@ Configuration = (options={}) ->
           {
             location    : '~ ^\\/-\\/latestproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
             proxyPass   : 'http://$ip:56789/$rest'
+            host        : "$ip"
             extraParams : [
               'proxy_read_timeout 21600s;'
               'proxy_send_timeout 21600s;'
@@ -882,6 +886,7 @@ Configuration = (options={}) ->
           {
             location    : '~ ^\\/-\\/devproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
             proxyPass   : 'http://$ip:56789/$rest'
+            host        : "$ip"
             extraParams : [
               'proxy_read_timeout 21600s;'
               'proxy_send_timeout 21600s;'
