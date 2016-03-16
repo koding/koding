@@ -28,6 +28,7 @@ function start_selenium_server() {
   java -jar vendor/selenium-server-standalone.jar \
        -host 0.0.0.0 \
        -port 42420 \
+       -Dwebdriver.chrome.driver=vendor/chromedriver/linux64/chromedriver \
        > $RUN_SELENIUM_OUTPUT_HOST 2>&1 &
 
   RUN_SELENIUM_SERVER_PID_HOST=$!
@@ -37,6 +38,7 @@ function start_selenium_server() {
   java -jar vendor/selenium-server-standalone.jar \
        -host 0.0.0.0 \
        -port 42421 \
+       -Dwebdriver.chrome.driver=vendor/chromedriver/linux64/chromedriver \
        > $RUN_SELENIUM_OUTPUT_PARTICIPANT 2>&1 &
 
   RUN_SELENIUM_SERVER_PID_PARTICIPANT=$!

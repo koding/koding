@@ -62,14 +62,31 @@ module.exports =
 
   doLogin: (browser, user) ->
 
+    sidebarSelector = '[testpath=main-sidebar]'
+    ideSelector     = '#main-tab-view .dark.application-page'
+    successMessage  = " ✔ Successfully logged in with username: #{user.username} and password: #{user.password}"
+
     @attemptLogin(browser, user)
 
-    browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
+    browser.element 'css selector', sidebarSelector, (result) =>
       if result.status is 0
-        console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password}"
+        console.log successMessage
       else
-        console.log " ✔ User is not registered yet. Registering... username: #{user.username} and password: #{user.password}"
-        @doRegister browser, user
+        browser
+          .pause  7500 # wait for loading
+          .element 'css selector', sidebarSelector, (result) =>
+            if result.status is 0
+              console.log successMessage
+            else
+              browser
+                .refresh()
+                .pause    5000 # wait for loading
+                .element 'css selector', ideSelector, (result) =>
+                  if result.status is 0
+                    console.log successMessage
+                  else
+                    console.log " ✔ User is not registered yet. Registering... username: #{user.username} and password: #{user.password}"
+                    @doRegister browser, user
 
 
   doLogout: (browser) ->
