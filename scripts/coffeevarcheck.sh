@@ -7,7 +7,7 @@ if [[ -z "$src" ]]; then
     src=./client
 fi
 
-v=$(node ./node_modules/coffee-unused --src $src --skip-parse-error 2>&1)
+v=$(node ./node_modules/coffee-unused --src $src --skip-parse-error)
 if [ -n "$v" ]; then
     #log it
     echo $v

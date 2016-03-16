@@ -3,7 +3,7 @@
 #  make relative paths work.
 cd $(dirname $0)/..
 
-path="./client/teams"
+path="./client"
 
 v=$(git diff-tree -r --name-only --no-commit-id master `git rev-parse HEAD` $path 2>&1)
 if [ -z "$v" ]; then
