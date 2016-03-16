@@ -124,7 +124,7 @@ remove_service() {
 				sudo chkconfig --del "klient" &>/dev/null && return 0
 				;;
 			launchctl)
-				sudo rm -v "${init_file}" &>/dev/null && return 0
+				sudo rm -f "${init_file}" &>/dev/null && return 0
 				;;
 			*)
 				;;
