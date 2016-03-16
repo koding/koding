@@ -22,10 +22,12 @@ export NEWBUILDNO=$(($OLDBUILDNO+1))
 echo "New version will be: $NEWBUILDNO"
 rm -f version
 
-alias klient-build="go build -v -ldflags \"-X koding/klient/protocol.Version 0.1.$NEWBUILDNO -X koding/klient/protocol.Environment $KLIENT_CHANNEL\""
+klient-build() {
+	GOOS="${1:-}" GOARCH=amd64 go build -v -ldflags "-X koding/klient/protocol.Version 0.1.$NEWBUILDNO -X koding/klient/protocol.Environment $KLIENT_CHANNEL" -o klient koding/klient
+}
 
 # build klient binary for linux
-klient-build -o klient koding/klient
+klient-build
 
 # validate klient version
 [[ $(./klient -version) == "0.1.$NEWBUILDNO" ]]
@@ -38,7 +40,7 @@ mv klient.gz klient-0.1.$NEWBUILDNO.gz
 go run "${REPO_PATH}/go/src/koding/klient/build/build.go" -e $KLIENT_CHANNEL -b $NEWBUILDNO
 dpkg -f *.deb
 
-GOOS=darwin GOARCH=amd64 koding-build -o klient koding/klient
+klient-build "darwin"
 gzip -9 -N klient
 mv klient.gz klient-0.1.$NEWBUILDNO.darwin_amd64.gz
 
