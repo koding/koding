@@ -149,7 +149,9 @@ func (r *Remote) restoreMounts() error {
 		}
 
 		if err := mounter.MountExisting(m); err != nil {
+			m.LastMountError = true
 			log.Error("Mounter returned error. err:%s", err)
+
 			continue
 		}
 

@@ -120,7 +120,7 @@ func (r *Remote) UnmountFolder(params req.UnmountFolder) error {
 	if err := m.Unmount(); err != nil {
 		r.log.Error(
 			"remote.unmountFolder: Unmount failed. name:%s, localPath:%s, err:%s",
-			params.Name, params.LocalPath, err,
+			params.Name, m.LocalPath, err,
 		)
 
 		// Note that we're choosing to return the unmounter error here, rather than
