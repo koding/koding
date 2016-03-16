@@ -50,7 +50,6 @@ rest = ->
   KONFIG = require("./config/main.#{o.config}.coffee")(options)
 
   equals = (x1, x2, whitelist)->
-
     for key of x1 when key not in whitelist
       if typeof (x2[key]) is "undefined"
         console.log "#{key} is undefined, but exists in 'dev'"
@@ -61,7 +60,7 @@ rest = ->
           console.log x1[key], x2[key], "are not the same"
           return false
 
-    true
+    return true
 
 
   configMatchesDev = (config)->
