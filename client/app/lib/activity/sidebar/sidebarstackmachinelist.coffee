@@ -11,7 +11,7 @@ module.exports = class SidebarStackMachineList extends SidebarOwnMachineList
 
     options.title    = options.stack.title
 
-    curryIn options, cssClass: 'stack-machines'
+    curryIn options, { cssClass: 'stack-machines' }
 
     super
 

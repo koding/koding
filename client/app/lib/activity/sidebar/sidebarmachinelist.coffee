@@ -50,7 +50,7 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
     route = if stack
     then "/My-Machines/#{stack.getId()}"
-    else "/My-Machines"
+    else '/My-Machines'
 
     kd.singletons.router.handleRoute route
 
@@ -88,7 +88,7 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
   removeWorkspaceByChannelId: (channelId) ->
 
     @forEachMachineBoxes (box) ->
-      {workspaces} = box.getData()
+      { workspaces } = box.getData()
       for workspace in workspaces when workspace
         if workspace.channelId is channelId
           return box.removeWorkspace workspace.getId()
