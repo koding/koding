@@ -4,16 +4,7 @@ collaborationHelpers = require '../helpers/collaborationhelpers.js'
 
 module.exports =
 
-
-  before: (browser) ->
-
-    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-
-    if hostBrowser
-      utils.getUser()
-
-    return if utils.suiteHookHasRun 'before'
-    utils.registerSuiteHook 'before'
+  before: utils.beforeCollaborationSuite
 
 
   leaveSessionFromSidebar: (browser) ->

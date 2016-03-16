@@ -72,3 +72,9 @@ module.exports =
       return yes
     catch
       return no
+  beforeCollaborationSuite: (browser) ->
+
+    @getUser()  if process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    @registerSuiteHook 'before'  unless @suiteHookHasRun 'before'
+
+
