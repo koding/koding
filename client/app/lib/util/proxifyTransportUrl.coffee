@@ -26,4 +26,4 @@ module.exports = (url) ->
   then 'p'
   else 'dev-p'
 
-  return "#{protocol}//#{subdomain}.koding.com/-/#{proxy}/#{parser.hostname}/kite"
+  return "#{protocol}//#{subdomain}.koding.com/-/#{proxy}/#{parser.hostname}#{parser.pathname}"
