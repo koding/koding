@@ -9,10 +9,9 @@ assert               = require 'assert'
 module.exports =
 
 
-  before: utils.beforeCollaborationSuite
+  before: (browser) -> utils.beforeCollaborationSuite browser
 
-  afterEach: utils.afterEachCollaborationTest
-
+  afterEach: (browser, done) -> utils.afterEachCollaborationTest browser, done
 
   checkIfInvitedUserCanEditFilesOtherUserVm: (browser) ->
 
