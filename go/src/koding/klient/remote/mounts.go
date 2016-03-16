@@ -8,6 +8,7 @@ import (
 	"koding/fuseklient"
 	"koding/klient/remote/mount"
 	"koding/klient/remote/rsync"
+	"koding/mountcli"
 )
 
 const (
@@ -95,13 +96,9 @@ func (r *Remote) restoreMounts() error {
 			"prefetchAll", m.MountFolder.PrefetchAll,
 		)
 
-		// Ignoring the error here, because it is not a problem if there is
-		// no mountName for the given path.
-		fsMountInfo, _ := fuseklient.GetMountByPath(m.LocalPath)
-
-		if fsMountInfo != nil {
+		fsMountName, err := mountcli.NewMountcli().FindMountNameByPath(m.LocalPath)
+		if err == mountcli.ErrNoMountPath {
 			failOnUnmount := true
-			fsMountName := fsMountInfo.FSName
 
 			// Mount path exists, but the name doesn't match our mount name.
 			// This occurs if the folder has been mounted by something else (ie,
