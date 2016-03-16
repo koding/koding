@@ -12,6 +12,7 @@ module.exports = class JStackTemplate extends Module
   { revive, checkTemplateUsage } = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
+  @trait __dirname, '../../traits/notifiable'
 
   @share()
 
@@ -378,7 +379,10 @@ module.exports = class JStackTemplate extends Module
 
         data['meta.modifiedAt'] = new Date
 
-      @update { $set: data }, (err) => callback err, this
+      @updateAndNotify {
+        account : delegate
+        group   : group.slug
+      }, { $set: data }, (err) => callback err, this
 
 
   cloneCustomCredentials = (client, credentials, callback) ->
