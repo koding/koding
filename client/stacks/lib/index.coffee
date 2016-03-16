@@ -45,7 +45,7 @@ module.exports = class StacksAppController extends AdminAppController
     super options, data
 
 
-  checkRoute: (route) -> /^\/Stacks.*/.test route
+  checkRoute: (route) -> /^\/(?:Stacks|Admin)/.test route
 
 
   toggleFullscreen: ->
