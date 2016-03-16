@@ -30,6 +30,7 @@ type Deb struct {
 	InstallPrefix   string
 	BuildFolder     string
 	Files           string
+	UpstartScript   string
 	SysvinitScript  string
 	DebianTemplates map[string]string
 	Debug           bool
@@ -140,8 +141,27 @@ func (d *Deb) createInstallDir() error {
 
 	if d.SysvinitScript != "" {
 		err := util.Copy(d.SysvinitScript, appFolder)
+
 		if err != nil {
 			log.Println("copy assets", err)
+		}
+	}
+
+	if d.UpstartScript != "" {
+		upstartPath := filepath.Join(d.BuildFolder, "debian/")
+		upstartFile := filepath.Base(d.UpstartScript)
+
+		err := util.Copy(d.UpstartScript, upstartPath)
+		if err != nil {
+			log.Println("copy assets", err)
+		}
+
+		oldFile := filepath.Join(upstartPath, upstartFile)
+		newFile := filepath.Join(upstartPath, d.AppName+".upstart")
+
+		err = os.Rename(oldFile, newFile)
+		if err != nil {
+			return err
 		}
 	}
 

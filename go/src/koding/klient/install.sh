@@ -194,6 +194,36 @@ EOF
 	fi
 
 	if [[ ${is_macosx} -eq 1 ]]; then
+		cat <<EOF | sudo tee /opt/kite/klient/klient.sh &>/dev/null
+#!/bin/bash
+
+# Koding Service Connector
+# Copyright (C) 2012-2016 Koding Inc., all rights reserved.
+
+# wait till network is ready
+
+. /etc/bashrc
+. /etc/profile
+. /etc/rc.common
+
+CheckForNetwork
+
+while [ "\${NETWORKUP}" != "-YES-" ]; do
+	sleep 5
+	NETWORKUP=
+	CheckForNetwork
+done
+
+# start klient
+
+export HOME=\$(eval cd ~\${KITE_USERNAME}; pwd)
+export KITE_KONTROL_URL=\${KITE_KONTROL_URL:-https://koding.com/kontrol/kite}
+export PATH=\$PATH:/usr/local/bin
+
+env
+
+sudo -E -u "\$KITE_USERNAME" /opt/kite/klient/klient -kontrol-url "\${KITE_KONTROL_URL}"
+EOF
 		cat <<EOF | sudo tee /opt/kite/klient/klient.init &>/dev/null
 <!--
 Koding Service Connector
@@ -221,15 +251,19 @@ Copyright (C) 2012-2016 Koding Inc., all rights reserved.
 
 	<key>EnvironmentVariables</key>
 	<dict>
-		<key>KITE_HOME</key>
-		<string>/etc/kite</string>
+			<key>KITE_USERNAME</key>
+			<string>rjeczalik</string>
+			<key>KITE_KONTROL_URL</key>
+			<string>https://sandbox.koding.com/kontrol/kite</string>
+			<key>KITE_HOME</key>
+			<string>/etc/kite</string>
 	</dict>
 
 	<key>ProgramArguments</key>
 	<array>
-		<string>/opt/kite/klient/klient</string>
-		<string>-kontrol-url</string>
-		<string>${kontrolurl}</string>
+			<string>/bin/bash</string>
+			<string>-c</string>
+			<string>/opt/kite/klient/klient.sh</string>
 	</array>
 </dict>
 </plist>
@@ -239,10 +273,10 @@ EOF
 	sudo cp /opt/kite/klient/klient.init "${init_file}"
 
 	if [[ ${is_macosx} -eq 1 ]]; then
-		sudo sed -i "" -e "s|\%USERNAME\%||g" "${init_file}"
+		sudo sed -i "" -e "s|\%USERNAME\%|$(whoami)|g" "${init_file}"
 		sudo sed -i "" -e "s|\%START_COMMAND\%|/opt/kite/klient/klient -kontrol-url ${kontrolurl}|g" "${init_file}"
 	else
-		sudo sed -i -e "s|\%USERNAME\%||g" "${init_file}"
+		sudo sed -i -e "s|\%USERNAME\%|$(whoami)|g" "${init_file}"
 		sudo sed -i -e "s|\%START_COMMAND\%|/opt/kite/klient/klient -kontrol-url ${kontrolurl}|g" "${init_file}"
 	fi
 
@@ -310,9 +344,7 @@ init() {
 }
 
 main() {
-	init
-
-	echo "Testing sudo permissions, please input password if prompted.."
+	echo "Testing sudo permissions, please input password if prompted..."
 	if ! sudo -l &>/dev/null; then
 		cat << EOF
 Error: Sudo (root) permission is required to install the Koding Service
@@ -321,6 +353,8 @@ with proper permissions.
 EOF
 		exit $err
 	fi
+
+	init
 
 	if ! do_install_screen; then
 		exit 2
@@ -381,11 +415,14 @@ EOF
 		exit $err
 	fi
 
+
 	if sudo [ ! -f /etc/kite/kite.key ]; then
 		echo "Error: Critical component missing. Aborting installation."
 		exit -1
 	fi
 
+	sudo chmod 755 /etc/kite
+	sudo chmod 644 /etc/kite/kite.key
 
 	cat << EOF
 Starting the Koding Service Connector...

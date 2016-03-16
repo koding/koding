@@ -28,6 +28,7 @@ type pkg struct {
 	importPath     string
 	files          []string
 	version        string
+	upstartScript  string
 	sysvinitScript string
 	ldflags        string
 }
@@ -51,6 +52,7 @@ func buildKlient() error {
 	}
 
 	importPath := "koding/klient"
+	upstartPath := filepath.Join(gopath, "src", importPath, "files/klient.conf")
 	sysvinitPath := filepath.Join(gopath, "src", importPath, "files/klient.init")
 
 	symbolvalue := "0.0.1"
@@ -67,6 +69,7 @@ func buildKlient() error {
 		appName:        "klient",
 		importPath:     importPath,
 		version:        symbolvalue,
+		upstartScript:  upstartPath,
 		sysvinitScript: sysvinitPath,
 		ldflags:        ldflags,
 	}
@@ -89,6 +92,7 @@ func (p *pkg) build() error {
 		ImportPath:     p.importPath,
 		Files:          strings.Join(p.files, ","),
 		InstallPrefix:  "opt/kite",
+		UpstartScript:  p.upstartScript,
 		SysvinitScript: p.sysvinitScript,
 		Ldflags:        p.ldflags,
 	}

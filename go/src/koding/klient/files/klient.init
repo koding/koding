@@ -32,7 +32,7 @@ do_start() {
 
 	echo -n "-- Starting Koding Service Connector..."
 	if [ "$(whoami)" != "${USERNAME}" ]; then
-		sudo bash -c "${START_COMMAND} >>/var/log/klient.log 2>&1" &
+		sudo -E -u "${USERNAME}" bash -c "${START_COMMAND} >>/var/log/klient.log 2>&1" &
 	else
 		bash -c "${START_COMMAND} >>/var/log/klient.log 2>&1" &
 	fi
