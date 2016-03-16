@@ -15,7 +15,7 @@ module.exports = class FooterView extends KDView
 
 
   partial: ->
-    """
+    '''
     <div class="inner-container clearfix">
       <nav class="footer-block">
         <a href="/">Koding.com</a>
@@ -28,4 +28,4 @@ module.exports = class FooterView extends KDView
         <a href="/Legal">Legal</a>
       </nav>
     </div>
-    """
+    '''

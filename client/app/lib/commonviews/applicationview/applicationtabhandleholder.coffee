@@ -7,15 +7,15 @@ module.exports = class ApplicationTabHandleHolder extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass            = kd.utils.curry "application-tab-handle-holder", options.cssClass
-    options.bind                = "mouseenter mouseleave"
+    options.cssClass            = kd.utils.curry 'application-tab-handle-holder', options.cssClass
+    options.bind                = 'mouseenter mouseleave'
     options.addPlusHandle      ?= yes
     options.addCloseHandle     ?= yes
     options.addFullscreenHandle ?= yes
 
     super options, data
 
-    @tabs = new KDCustomHTMLView cssClass: 'kdtabhandle-tabs clearfix'
+    @tabs = new KDCustomHTMLView { cssClass: 'kdtabhandle-tabs clearfix' }
 
     @generalHandlesContainer = new KDCustomHTMLView { cssClass: 'general-handles' }
 
@@ -33,17 +33,17 @@ module.exports = class ApplicationTabHandleHolder extends KDView
     @plusHandle?.destroy()
 
     @tabs.addSubView @plusHandle = new KDCustomHTMLView
-      cssClass : "kdtabhandle visible-tab-handle plus"
+      cssClass : 'kdtabhandle visible-tab-handle plus'
       partial  : "<span class='icon'></span>"
       delegate : this
-      click    : => @getDelegate()?.emit "PlusHandleClicked"
+      click    : => @getDelegate()?.emit 'PlusHandleClicked'
 
 
   addCloseHandle: ->
     @closeHandle?.destroy()
 
     @generalHandlesContainer.addSubView @closeHandle = new KDCustomHTMLView
-      cssClass : "kdtabhandle visible-tab-handle close-handle"
+      cssClass : 'kdtabhandle visible-tab-handle close-handle'
       partial  : "<span class='icon'></span>"
       delegate : this
       click    : => @getDelegate()?.emit 'CloseHandleClicked'
@@ -53,7 +53,7 @@ module.exports = class ApplicationTabHandleHolder extends KDView
     @fullscreenHandle?.destroy()
 
     @generalHandlesContainer.addSubView @fullscreenHandle = new KDCustomHTMLView
-      cssClass : "kdtabhandle visible-tab-handle fullscreen-handle"
+      cssClass : 'kdtabhandle visible-tab-handle fullscreen-handle'
       partial  : "<span class='icon'></span>"
       delegate : this
       click    : => @getDelegate()?.emit 'FullscreenHandleClicked'
@@ -78,6 +78,6 @@ module.exports = class ApplicationTabHandleHolder extends KDView
 
     @plusHandle?.$().appendTo @tabs.getDomElement()
 
-  addHandle: (handle)->
+  addHandle: (handle) ->
 
     @tabs.addSubView handle

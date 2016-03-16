@@ -4,11 +4,11 @@ JView = require '../jview'
 
 module.exports = class HelpBox extends JView
 
-  constructor:(options = {}, data = {})->
+  constructor: (options = {}, data = {}) ->
 
-    options.cssClass or= "help-box"
-    options.title    or= "NEED HELP?"
-    options.subtitle or= "Learn about sharing"
+    options.cssClass or= 'help-box'
+    options.title    or= 'NEED HELP?'
+    options.subtitle or= 'Learn about sharing'
 
     data.title    = options.title
     data.subtitle = options.subtitle
@@ -16,17 +16,17 @@ module.exports = class HelpBox extends JView
     super options, data
 
   click: ->
-    {bookIndex} = @getOptions()
+    { bookIndex } = @getOptions()
     if bookIndex
-      mainController = kd.getSingleton "mainController"
-      mainController.emit "ShowInstructionsBook", bookIndex
+      mainController = kd.getSingleton 'mainController'
+      mainController.emit 'ShowInstructionsBook', bookIndex
 
-  pistachio:->
+  pistachio: ->
 
-    """
+    '''
       <span></span>
       <div>
         {cite{ #(title)}}
         <a href="#">{{ #(subtitle)}}</a>
       </div>
-    """
+    '''

@@ -3,7 +3,7 @@ ShareLink = require './sharelink'
 
 module.exports = class FacebookShareLink extends ShareLink
   constructor: (options = {}, data) ->
-    options.provider = "facebook"
+    options.provider = 'facebook'
     super options, data
 
   getUrl: ->
