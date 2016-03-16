@@ -28,11 +28,11 @@ module.exports = class TrollButtonView extends KDToggleButton
 
   troll: ->
 
-    data       = @getData()
-    {nickname} = data.profile
+    data         = @getData()
+    { nickname } = data.profile
 
     modal = new KDModalView
-      title          : "MARK USER AS TROLL"
+      title          : 'MARK USER AS TROLL'
       content        : """
                        <div class='modalformline'>
                        This is what we call "Trolling the troll" mode.<br><br>
@@ -41,14 +41,14 @@ module.exports = class TrollButtonView extends KDToggleButton
                        Are you sure you want to mark him as a troll?
                        </div>
                        """
-      height         : "auto"
+      height         : 'auto'
       overlay        : yes
       width          : 475
       buttons        :
-        "YES, THIS USER IS DEFINITELY A TROLL" :
-          style      : "solid red medium"
+        'YES, THIS USER IS DEFINITELY A TROLL' :
+          style      : 'solid red medium'
           loader     :
-            color    : "#ffffff"
+            color    : '#ffffff'
             diameter : 16
           callback   : =>
             data.markUserAsExempt yes, (err) =>
@@ -64,8 +64,8 @@ module.exports = class TrollButtonView extends KDToggleButton
 
   untroll: ->
 
-    data       = @getData()
-    {nickname} = data.profile
+    data         = @getData()
+    { nickname } = data.profile
 
     data.markUserAsExempt no, (err) =>
 

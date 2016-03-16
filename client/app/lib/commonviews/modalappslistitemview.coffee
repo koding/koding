@@ -9,19 +9,19 @@ module.exports = class ModalAppsListItemView extends KDListItemView
 
   JView.mixin @prototype
 
-  constructor:(options,data)->
+  constructor: (options,data) ->
     options.cssClass = 'topic-item'
 
     super options, data
 
-    @titleLink = new AppLinkView {expandable:no}, data
-    @titleLink.on "click", =>
-      @getDelegate().emit "CloseTopicsModal"
+    @titleLink = new AppLinkView { expandable:no }, data
+    @titleLink.on 'click', =>
+      @getDelegate().emit 'CloseTopicsModal'
 
     @img = getAppIcon @getData(), 'modal-app-icon'
 
-  pistachio:->
-    """
+  pistachio: ->
+    '''
     <div class="app-title">
       {{> @img }}
       {{> @titleLink }}
@@ -34,4 +34,4 @@ module.exports = class ModalAppsListItemView extends KDListItemView
         <span class="icon"></span>{{#(counts.followers) or 0}} Followers
       </p>
     </div>
-    """
+    '''

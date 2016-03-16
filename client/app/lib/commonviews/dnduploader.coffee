@@ -12,27 +12,27 @@ showError = require '../util/showError'
 
 module.exports = class DNDUploader extends KDView
 
-  constructor: (options={}, data)->
+  constructor: (options = {}, data) ->
 
-    options.cssClass      = kd.utils.curry "file-droparea", options.cssClass
-    options.bind          = "dragenter dragover dragleave dragend drop"
+    options.cssClass      = kd.utils.curry 'file-droparea', options.cssClass
+    options.bind          = 'dragenter dragover dragleave dragend drop'
     options.hoverDetect  ?= yes
     options.uploadToVM   ?= yes
 
     super options, data
 
     if options.hoverDetect
-      @on "dragenter", => @setClass   "hover"
-      @on "dragover",  => @setClass   "hover"
-      @on "dragleave", => @unsetClass "hover"
-      @on "drop",      => @unsetClass "hover"
+      @on 'dragenter', => @setClass   'hover'
+      @on 'dragover',  => @setClass   'hover'
+      @on 'dragleave', => @unsetClass 'hover'
+      @on 'drop',      => @unsetClass 'hover'
 
     kd.singletons.mainController.ready @bound 'reset'
 
 
   reset: ->
 
-    {uploadToVM, defaultPath, title} = @getOptions()
+    { uploadToVM, defaultPath, title } = @getOptions()
 
     defaultPath or= "/home/#{nick()}/Uploads"
 
@@ -46,7 +46,7 @@ module.exports = class DNDUploader extends KDView
     @_uploaded = {}
 
 
-  showGenericError: (message)->
+  showGenericError: (message) ->
 
     message or= "
       <p>
@@ -60,22 +60,22 @@ module.exports = class DNDUploader extends KDView
     "
 
     modal = new KDModalView
-      title        : "Upload File Error"
+      title        : 'Upload File Error'
       width        : 500
       overlay      : yes
-      cssClass     : "new-kdmodal"
+      cssClass     : 'new-kdmodal'
       content      : "<div class='modalformline'>#{message}</div>"
       buttons      :
         Ok         :
-          style    : "solid green medium"
+          style    : 'solid green medium'
           callback : -> modal.destroy()
 
 
-  drop: (event)->
+  drop: (event) ->
 
     super
 
-    {files, items}  = event.originalEvent.dataTransfer
+    { files, items }  = event.originalEvent.dataTransfer
 
     if files.length >= 20
       @showGenericError()
@@ -88,21 +88,21 @@ module.exports = class DNDUploader extends KDView
         return  unless entry  # Fix for Chrome OS / Chromium
 
         if entry.isDirectory
-          @walkDirectory entry.filesystem.root, (file)=>
+          @walkDirectory entry.filesystem.root, (file) =>
             # upload walked file
             @uploadFiles [file], event
           , =>
             # fallback for file upload, upload the other files stack
             @uploadFiles files, event
         else if entry.isFile
-          entry.file (file)=>
+          entry.file (file) =>
             # upload file entry
             @uploadFiles [file], event
 
     else
 
       for file in files
-        if file.type is ""
+        if file.type is ''
           @showGenericError() # "Folder upload is only supported for Chrome 21+"
           return
 
@@ -110,7 +110,7 @@ module.exports = class DNDUploader extends KDView
       @uploadFiles files, event
 
 
-  uploadFiles: (files, event)->
+  uploadFiles: (files, event) ->
 
     @_uploaded or= {}
 
@@ -120,13 +120,13 @@ module.exports = class DNDUploader extends KDView
 
       for file, index in files
 
-        sizeInMb = file.size/1024/1024
-        if sizeInMb > 100 && @getOptions().uploadToVM
-          notify_ "Too big file to upload.", "error", "Max 100MB allowed per file."
+        sizeInMb = file.size / 1024 / 1024
+        if sizeInMb > 100 and @getOptions().uploadToVM
+          notify_ 'Too big file to upload.', 'error', 'Max 100MB allowed per file.'
           continue
 
         reader = new FileReader
-        reader.onloadend = do (file=files[index])=> (readEvent)=>
+        reader.onloadend = do (file = files[index]) => (readEvent) =>
 
           fileName = file.fileName or file.name
 
@@ -137,8 +137,8 @@ module.exports = class DNDUploader extends KDView
           if @getOptions().uploadToVM
             fsFile = @upload fileName, readEvent.target.result, file.relativePath
 
-          @emit "dropFile",
-            origin  : "external"
+          @emit 'dropFile',
+            origin  : 'external'
             filename: fileName
             path    : file.relativePath or no
             instance: fsFile
@@ -152,16 +152,16 @@ module.exports = class DNDUploader extends KDView
 
     else
 
-      internalData = event.originalEvent.dataTransfer.getData "Text"
+      internalData = event.originalEvent.dataTransfer.getData 'Text'
       return  unless internalData
 
-      multipleItems = internalData.split ","
+      multipleItems = internalData.split ','
       lastItem = multipleItems.last
       for item in multipleItems
-        {basename} = getPathInfo item
-        fsFile = FSHelper.createFileInstance path: item
-        @emit "dropFile",
-          origin  : "internal"
+        { basename } = getPathInfo item
+        fsFile = FSHelper.createFileInstance { path: item }
+        @emit 'dropFile',
+          origin  : 'internal'
           filename: basename
           instance: fsFile
           content : null
@@ -170,12 +170,12 @@ module.exports = class DNDUploader extends KDView
 
         @reset() if item is lastItem
 
-  walkDirectory: (dirEntry, callback, error)->
+  walkDirectory: (dirEntry, callback, error) ->
 
     dirReader = dirEntry.createReader()
     relative  = FSHelper.convertToRelative dirEntry.fullPath
 
-    dirReader.readEntries (entries)=>
+    dirReader.readEntries (entries) =>
 
       if entries.length > 20
         @showGenericError() # "It's not allowed to upload more than 20 files at once."
@@ -183,7 +183,7 @@ module.exports = class DNDUploader extends KDView
 
       for entry in entries
         if entry.isFile
-          entry.file (file)->
+          entry.file (file) ->
             file.relativePath = relative # + file.name
             callback file
         else
@@ -193,7 +193,7 @@ module.exports = class DNDUploader extends KDView
 
   setPath: (path) ->
 
-    {uploadToVM, defaultPath, title} = @getOptions()
+    { uploadToVM, defaultPath, title } = @getOptions()
 
     @path = path or defaultPath or "/home/#{nick()}/Uploads"
 
@@ -210,22 +210,22 @@ module.exports = class DNDUploader extends KDView
 
   showCancel: ->
     @addSubView new KDCustomHTMLView
-      tagName   : "a"
-      partial   : "cancel"
-      cssClass  : "cancel"
-      attributes: href: "#"
-      click     : => @emit "cancel"
+      tagName   : 'a'
+      partial   : 'cancel'
+      cssClass  : 'cancel'
+      attributes: href: '#'
+      click     : => @emit 'cancel'
 
   saveFile: (fsFile, data) ->
 
     filePath   = "[#{fsFile.machine.uid}]#{fsFile.path}"
     parentPath = "[#{fsFile.machine.uid}]#{fsFile.parentPath}"
 
-    fsFile.save "", => @emit 'uploadComplete', { filePath, parentPath }
+    fsFile.save '', => @emit 'uploadComplete', { filePath, parentPath }
 
-    fsFile.saveBinary data, (err, res, progress)=>
+    fsFile.saveBinary data, (err, res, progress) =>
 
-      kd.log "Upload result:", err, res, progress
+      kd.log 'Upload result:', err, res, progress
 
       progress or= res
       return if err
@@ -237,14 +237,14 @@ module.exports = class DNDUploader extends KDView
         @emit 'uploadProgress', { file: fsFile, progress }
 
 
-  upload: (fileName, contents, relativePath)->
+  upload: (fileName, contents, relativePath) ->
 
     machine = @getMachine()
     folder  = if relativePath and relativePath isnt fileName
     then "#{@path}/#{relativePath}"
     else @path
 
-    modalStack   = KDModalView.createStack lastToFirst: yes
+    modalStack   = KDModalView.createStack { lastToFirst: yes }
     fsFolderItem = FSHelper.createFileInstance { path: folder, type: 'folder', machine }
     fsFileItem   = FSHelper.createFileInstance { path: "#{folder}/#{fileName}", machine }
 
@@ -253,7 +253,7 @@ module.exports = class DNDUploader extends KDView
 
     upload = =>
 
-      fsFileItem.exists (err, exists)=>
+      fsFileItem.exists (err, exists) =>
 
         if not exists or fsFileItem.getLocalFileInfo().lastUploadedChunk?
 
@@ -264,7 +264,7 @@ module.exports = class DNDUploader extends KDView
           modalStack.addModal modal = new KDModalView
 
             overlay        : no
-            title          : "Overwrite File?"
+            title          : 'Overwrite File?'
             content        : """
               <div class='modalformline'>
                 You already have the file <code>#{fsFileItem.path}</code>. Do you want
@@ -275,21 +275,21 @@ module.exports = class DNDUploader extends KDView
             buttons        :
 
               overwrite    :
-                cssClass   : "solid green medium"
+                cssClass   : 'solid green medium'
                 callback   : =>
                   @saveFile fsFileItem, contents
                   modal.destroy()
 
               cancel       :
-                cssClass   : "solid light-gray medium"
+                cssClass   : 'solid light-gray medium'
                 callback   : -> modal.destroy()
 
-              "cancel all" :
-                cssClass   : "solid light-gray medium"
+              'cancel all' :
+                cssClass   : 'solid light-gray medium'
                 callback   : -> modalStack.destroy()
 
 
-    fsFolderItem.exists (err, exists)->
+    fsFolderItem.exists (err, exists) ->
 
       return if  showError err
 

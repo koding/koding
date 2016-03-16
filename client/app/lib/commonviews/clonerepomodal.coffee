@@ -8,9 +8,9 @@ module.exports = class CloneRepoModal extends ModalViewWithTerminal
 
   constructor: (options = {}, data) ->
 
-    options.title      = "Clone Remote Repository"
-    options.cssClass   = "modal-with-text clone-repo-modal"
-    options.content    = "<p>Enter the URL of remote Git repository to clone.</p>"
+    options.title      = 'Clone Remote Repository'
+    options.cssClass   = 'modal-with-text clone-repo-modal'
+    options.content    = '<p>Enter the URL of remote Git repository to clone.</p>'
     options.overlay    = yes
     options.width      = 500
     options.terminal   =
@@ -19,30 +19,30 @@ module.exports = class CloneRepoModal extends ModalViewWithTerminal
       height           : 300
     options.buttons    =
       Clone            :
-        title          : "Clone"
-        cssClass       : "solid green medium"
+        title          : 'Clone'
+        cssClass       : 'solid green medium'
         loader         :
-          color        : "#FFFFFF"
+          color        : '#FFFFFF'
           diameter     : 14
         callback       : => @cloneRepo()  if @repoPath.validate()
       Cancel           :
-        title          : "Cancel"
-        cssClass       : "solid light-gray medium"
+        title          : 'Cancel'
+        cssClass       : 'solid light-gray medium'
         callback       : => @destroy()
 
     super options, data
 
   viewAppended: ->
     @addSubView @repoPath = new KDHitEnterInputView
-      type             : "text"
-      placeholder      : "Type a git repository URL..."
+      type             : 'text'
+      placeholder      : 'Type a git repository URL...'
       validationNotifications: yes
       validate         :
         rules          :
           required     : yes
         messages       :
-          required     : "Please enter a repo URL."
-      callback         : @bound "cloneRepo"
+          required     : 'Please enter a repo URL.'
+      callback         : @bound 'cloneRepo'
 
   cloneRepo: ->
     return if @cloning
@@ -53,10 +53,10 @@ module.exports = class CloneRepoModal extends ModalViewWithTerminal
     """
 
     @cloning = yes
-    @setClass "running"
+    @setClass 'running'
     @run command
 
-    @once "terminal.event", (data) ->
-      if data is "0"
+    @once 'terminal.event', (data) ->
+      if data is '0'
         @destroy()
-        @emit "RepoClonedSuccessfully"
+        @emit 'RepoClonedSuccessfully'
