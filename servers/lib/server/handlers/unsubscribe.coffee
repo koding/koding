@@ -11,25 +11,28 @@ module.exports = (req, res, next) ->
   { email }           = params
   { JAccount, JUser } = koding.models
 
-  JUser.one { email }, (err, user) ->
-    mailgunUnsubscribeEmail email
+  mailgunUnsubscribeEmail email
 
-    return res.status(500).send 'an error occured'  if err
-    return res.status(404).send 'no user found'     unless user
-    return res.status(404).send 'token not right '  if token isnt String(user._id)
-
-    current = user.getAt('emailFrequency') or {}
-    current['global'] = false
-
-    user.update { $set: { emailFrequency: current } }, (err) ->
+  if token == "0"
+    return res.status(200).send 'unsubscribed'    
+  else
+    JUser.one { email }, (err, user) ->
       return res.status(500).send 'an error occured'  if err
+      return res.status(404).send 'no user found'     unless user
+      return res.status(404).send 'token not right '  if token isnt String(user._id)
 
-      emailFrequency =
-        global    : current.global
+      current = user.getAt('emailFrequency') or {}
+      current['global'] = false
 
-      Tracker.identify user.username, { emailFrequency }
+      user.update { $set: { emailFrequency: current } }, (err) ->
+        return res.status(500).send 'an error occured'  if err
 
-    return res.status(200).send 'unsubscribed'
+        emailFrequency =
+          global    : current.global
+
+        Tracker.identify user.username, { emailFrequency }
+
+      return res.status(200).send 'unsubscribed'
 
 
 mailgunUnsubscribeEmail = (email) -> 
