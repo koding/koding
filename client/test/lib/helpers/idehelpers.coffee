@@ -25,7 +25,9 @@ module.exports =
 
   closeAllTabs: (browser) ->
 
-    browser.pause 15000 # wait for snapshot restore
+    browser
+      .refresh()
+      .pause 15000 # wait for snapshot restore
 
     handleSelector = '.panel-1 .pane-wrapper .kdtabhandle.kddraggable'
     modalSelector  = '.autoremovepane-confirm'
