@@ -112,10 +112,11 @@ func (r *Remote) restoreMounts() error {
 				failOnUnmount = false
 			}
 
+			log.Info("Automatically unmounting")
+
 			// Mount path exists, and the names match. Unmount it, so that we
 			// can remount it below.
-			log.Info("Automatically unmounting")
-			if err := fuseklient.Unmount(m.LocalPath); err != nil {
+			if err := m.Unmount(); err != nil {
 				if failOnUnmount {
 					log.Error("Failed to automatically unmount. err:%s", err)
 					continue
@@ -128,6 +129,7 @@ func (r *Remote) restoreMounts() error {
 		// Mount path has been unmounted, or didn't exist locally.
 		// Remount it, to improve UX.
 		log.Info("Automatically mounting")
+
 		remoteMachine, err := remoteMachines.GetByIP(m.IP)
 		if err != nil {
 			log.Error("Failed to get machine by ip. err:%s", err)
