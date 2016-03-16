@@ -21,19 +21,22 @@ var (
 	// ErrNotInMount happens when command is run from outside a mount.
 	ErrNotInMount = errors.New("command not run on mount")
 
+	// ErrNoMountName happens when no mount with given name.
+	ErrNoMountName = errors.New("No mount found with given name.")
+
+	// ErrNoMountName happens when no mount there's mount on given path.
+	ErrNoMountPath = errors.New("No mount found with given path.")
+
 	// folderSeparator is the os specific seperator for dividing folders.
 	folderSeparator = string(filepath.Separator)
+
+	// match from beginning to ' on '
+	nameMatch = regexp.MustCompile(fmt.Sprintf("^(.*?) on "))
 
 	// match from ' on ' till '(osxfusefs,'
 	pathMatch = regexp.MustCompile(
 		fmt.Sprintf(" on (.*?) \\(%s,", defaultFuseTag),
 	)
-
-	// match from beginning to ' on '
-	nameMatch = regexp.MustCompile(fmt.Sprintf("^(.*?) on "))
-
-	ErrNoMountName = errors.New("No mount found with given name.")
-	ErrNoMountPath = errors.New("No mount found with given path.")
 )
 
 type Mountcli struct {
@@ -111,7 +114,7 @@ func (m *Mountcli) FindMountNameByPath(path string) (string, error) {
 //
 // It returns ErrNotInMount if specified local path is not inside or equal to
 // mount.
-func (m *Mountcli) GetRelativeMountPath(path string) (string, error) {
+func (m *Mountcli) FindRelativeMountPath(path string) (string, error) {
 	mounts, err := m.parse()
 	if err != nil {
 		return "", err

@@ -13,7 +13,7 @@ import (
 	"koding/klientctl/list"
 	"koding/klientctl/util"
 	"koding/klientctl/util/exec"
-	"koding/klientctl/util/mountcli"
+	"koding/mountcli"
 
 	"github.com/koding/logging"
 	"github.com/leeola/service"
@@ -383,7 +383,7 @@ func (c *Command) initDefaultRepairers() error {
 		Stdout:    util.NewFprint(c.Stdout),
 		MountName: c.Options.MountName,
 		Klient:    c.Klient,
-		Mountcli:  mountcli.NewMount(),
+		Mountcli:  mountcli.NewMountcli(),
 	}
 
 	permDeniedRepair := &PermDeniedRepair{
