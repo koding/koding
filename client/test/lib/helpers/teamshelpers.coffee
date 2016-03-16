@@ -94,7 +94,6 @@ module.exports =
     user = utils.getUser()
 
     browser
-      .waitForElementVisible  '.content-page.welcome', 20000 # Assertion
       .waitForElementVisible  '[testpath=main-sidebar]', 20000 # Assertion
 
     console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password} to team: #{helpers.getUrl(yes)}"
@@ -136,7 +135,10 @@ module.exports =
     user = utils.getUser()
     url  = helpers.getUrl(yes)
 
-    teamsLogin = '.TeamsModal--login'
+    teamsLogin        = '.TeamsModal--login'
+    stackCatalogModal = '.StackCatalogModal'
+    closeButton       = "#{stackCatalogModal} .kdmodal-inner .closeModal"
+
 
     browser.url url
     browser.maximizeWindow()
@@ -148,6 +150,14 @@ module.exports =
       else
         @createTeam browser
 
+      browser.pause 3000
+      browser.element 'css selector', stackCatalogModal, (result) ->
+        if result.status is 0
+           browser
+            .waitForElementVisible  stackCatalogModal, 20000
+            .waitForElementVisible  closeButton, 20000
+            .click                  closeButton
+
     return user
 
 
@@ -158,8 +168,7 @@ module.exports =
     companyNameSelector = "#{modalSelector} input[name=companyName]"
     signUpButton        = "#{modalSelector} button[type=submit]"
     user                = utils.getUser()
-
-    invitationLink = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
+    invitationLink      = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
 
     browser
       .url                   invitationLink
@@ -231,20 +240,17 @@ module.exports =
 
   startStackCreate: (browser) ->
 
-    welcomePageSelector = '.content-page.welcome'
-    stackSelector       = 'ul.boxes a[testpath="configure-stack-button"]'
-    overlaySelector     = '.AppModal--admin'
-    getstartedSelector  = "#{overlaySelector} .stack-onboarding.get-started"
-    buttonSelector      = "#{getstartedSelector} .header button"
+    stackCreateButton        = '.activity-sidebar .SidebarTeamSection a[href="/Stacks/Welcome"]'
+    stackCatalogModal        = '.StackCatalogModal'
+    teamStackTemplatesButton = "#{stackCatalogModal} .kdtabhandle-tabs .team-stack-templates"
+    stackPage                = '.stacks .stack-onboarding.get-started'
 
     browser
-      .waitForElementVisible  welcomePageSelector, 20000
-      .waitForElementVisible  stackSelector, 20000
-      .click                  stackSelector
-      .waitForElementVisible  overlaySelector, 20000
-      .waitForElementVisible  getstartedSelector, 20000
-      .waitForElementVisible  buttonSelector, 20000
-      .click                  buttonSelector
+      .waitForElementVisible  stackCreateButton, 20000
+      .click                  stackCreateButton
+      .waitForElementVisible  teamStackTemplatesButton, 20000
+      .click                  teamStackTemplatesButton
+      .waitForElementVisible  stackPage, 20000
 
 
   openInvitationsTab: (browser) ->
