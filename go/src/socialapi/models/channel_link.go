@@ -116,6 +116,30 @@ func (c *ChannelLink) ByRoot() ([]ChannelLink, error) {
 	return cLinks, nil
 }
 
+func (c *ChannelLink) ChannelLinkByLeaf() ([]ChannelLink, error) {
+	if c.RootId == 0 {
+		return nil, ErrRootIsNotSet
+	}
+
+	var cLinks []ChannelLink
+
+	bq := &bongo.Query{
+		Selector: map[string]interface{}{
+			"leaf_id": c.RootId,
+		},
+	}
+
+	if err := c.Some(&cLinks, bq); err != nil {
+		return nil, err
+	}
+
+	if len(cLinks) == 0 {
+		return nil, bongo.RecordNotFound
+	}
+
+	return cLinks, nil
+}
+
 // RemoveLinksWithRoot removes the links of the given root channel
 func (c *ChannelLink) RemoveLinksWithRoot() error {
 	links, err := c.ByRoot()
@@ -126,6 +150,18 @@ func (c *ChannelLink) RemoveLinksWithRoot() error {
 	var errs *multierror.Error
 
 	for _, link := range links {
+		err := link.Delete()
+		if err != nil && err != bongo.RecordNotFound {
+			errs = multierror.Append(errs, err)
+		}
+	}
+
+	leafLinks, err := c.ChannelLinkByLeaf()
+	if err != nil && err != bongo.RecordNotFound {
+		return err
+	}
+
+	for _, link := range leafLinks {
 		err := link.Delete()
 		if err != nil && err != bongo.RecordNotFound {
 			errs = multierror.Append(errs, err)
