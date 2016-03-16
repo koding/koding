@@ -6,6 +6,8 @@ module.exports =
 
   before: utils.beforeCollaborationSuite
 
+  afterEach: utils.afterEachCollaborationTest
+
 
   leaveSessionFromSidebar: (browser) ->
 

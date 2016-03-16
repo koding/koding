@@ -11,6 +11,7 @@ module.exports =
 
   before: utils.beforeCollaborationSuite
 
+  afterEach: utils.afterEachCollaborationTest
 
 
   checkIfInvitedUserCanEditFilesOtherUserVm: (browser) ->

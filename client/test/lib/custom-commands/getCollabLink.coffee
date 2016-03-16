@@ -1,9 +1,10 @@
-fs      = require 'fs'
-tempDir = require 'os-tmpdir'
+fs    = require 'fs'
+utils = require '../utils/utils.js'
+
 
 exports.command = getCollabLink = (browser, callback) ->
 
-  path       = "#{tempDir()}/collabLink.txt"
+  path       = utils.getCollabLinkFilePath()
   isUrlFound = no
 
   getUrl = ->
@@ -13,13 +14,12 @@ exports.command = getCollabLink = (browser, callback) ->
       if url
         clearInterval interval
         clearTimeout timer
-        fs.unlinkSync path
         isUrlFound = yes
-        console.log '>>>>>>>>>> Collaboration URL is', url
+        console.log '>>>>>>>>>> Participant get this collaboration URL', url
         callback? url
 
     catch
-      console.log ' ✔ Checking for collaboration url...'
+      console.log ' ✔ Checking collaboration url...'
 
   interval = setInterval getUrl, 10000
 

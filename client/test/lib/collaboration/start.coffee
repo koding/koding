@@ -10,6 +10,7 @@ module.exports =
 
   before: utils.beforeCollaborationSuite
 
+  afterEach: utils.afterEachCollaborationTest
 
 
   start: (browser) ->
