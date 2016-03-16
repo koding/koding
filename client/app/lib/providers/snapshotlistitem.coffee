@@ -24,7 +24,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   ###
   @notify: (msg = '') ->
 
-    new kd.NotificationView content: msg
+    new kd.NotificationView { content: msg }
 
 
   ###*
@@ -58,7 +58,6 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     @editCancelBtn = new kd.View
       partial  : 'cancel'
       tagName  : 'span'
-      tagName  : 'span'
       cssClass : 'cancel'
       click    : @bound 'toggleEditable'
 
@@ -91,13 +90,13 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     @addSubView @editView = new JView
       cssClass        : 'edit hidden'
       pistachioParams : { @editInput, @editRenameBtn, @editCancelBtn }
-      pistachio       : """
+      pistachio       : '''
         {{> editInput}}
         <div class="buttons">
           {{> editCancelBtn}}
           {{> editRenameBtn}}
         </div>
-        """
+        '''
 
     @addSubView @infoView = new JView
       cssClass        : 'info'
@@ -142,9 +141,9 @@ module.exports = class SnapshotListItem extends kd.ListItemView
 
     computeController       = kd.getSingleton 'computeController'
     kloud                   = computeController.getKloud()
-    {machineId, snapshotId} = @getData()
+    { machineId, snapshotId } = @getData()
 
-    kloud.deleteSnapshot {machineId, snapshotId}
+    kloud.deleteSnapshot { machineId, snapshotId }
       .then =>
         listView = @getDelegate()
         listView.removeItem this
@@ -173,10 +172,10 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   ###
   renameSnapshot: ->
 
-    {JSnapshot}  = remote.api
-    label        = @editInput.getValue()
-    data         = @getData()
-    {snapshotId} = data
+    { JSnapshot }  = remote.api
+    label          = @editInput.getValue()
+    data           = @getData()
+    { snapshotId } = data
 
     if not label? or label is ''
       SnapshotListItem.notify 'Name length must be larger than zero'
@@ -194,7 +193,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     if data instanceof JSnapshot
       rename data
     else
-      JSnapshot.one snapshotId, (err, snapshot) =>
+      JSnapshot.one snapshotId, (err, snapshot) ->
         return kd.warn err  if err
 
         unless snapshot?

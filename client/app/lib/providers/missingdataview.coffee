@@ -10,7 +10,7 @@ module.exports = class MissingDataView extends kd.View
 
   constructor: (options = {}, data) ->
 
-    curryIn options, cssClass: 'stacks step-creds missingdata-view'
+    curryIn options, { cssClass: 'stacks step-creds missingdata-view' }
 
     super options, data
 
@@ -51,9 +51,9 @@ module.exports = class MissingDataView extends kd.View
 
 
     @addSubView new kd.View
-      partial: "Based on the Stack Template which this Stack generated,
+      partial: 'Based on the Stack Template which this Stack generated,
                 you first need to provide some information to build
-                this stack properly."
+                this stack properly.'
 
     mainView = @addSubView new kd.View
       cssClass: 'stacks stacks-v2'
