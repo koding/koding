@@ -99,9 +99,9 @@ func readFile(filePath string, str string) error {
 	return nil
 }
 
-func readFileAt(fi *os.File, offset int64, str string) error {
+func readFileAt(fi *os.File, offset int, str string) error {
 	d := make([]byte, len(str))
-	if _, err := fi.ReadAt(d, offset); err != nil {
+	if _, err := fi.ReadAt(d, int64(offset)); err != nil {
 		return err
 	}
 

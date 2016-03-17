@@ -108,6 +108,34 @@ func (f *Fusetest) TestWriteFile() {
 			So(contents, ShouldEqual, string(newContent))
 		})
 
+		Convey("It should large write content to file in root directory", func() {
+			fi, err := os.OpenFile(filePath, os.O_WRONLY, 0755)
+			So(err, ShouldBeNil)
+
+			newContent := []byte("This file has been modified!\n")
+			for i := 0; i < 1000; i++ {
+				bytesRead, err := fi.Write(newContent)
+				So(err, ShouldBeNil)
+				So(bytesRead, ShouldEqual, len(newContent))
+			}
+
+			So(fi.Close(), ShouldBeNil)
+
+			size, err := f.Remote.Size(filePath)
+			So(size, ShouldEqual, 1000*len(newContent))
+
+			Convey("It should read file in chunks", func() {
+				fi, err := os.OpenFile(filePath, os.O_RDONLY, 0755)
+				So(err, ShouldBeNil)
+
+				for i := 0; i < 1000; i++ {
+					So(readFileAt(fi, i*len(newContent), string(newContent)), ShouldBeNil)
+				}
+
+				So(fi.Close(), ShouldBeNil)
+			})
+		})
+
 		Convey("It should modify a new file inside newly created deeply nested directory", func() {
 			dirPath := path.Join(dirPath, "dir1")
 			So(os.Mkdir(dirPath, 0705), ShouldBeNil)
