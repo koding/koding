@@ -91,55 +91,6 @@ func (c *ChannelLink) FetchRoot() (*Channel, error) {
 	return channel, nil
 }
 
-// ByRoot fetches the links of a channel if exists
-func (c *ChannelLink) ByRoot() ([]ChannelLink, error) {
-	if c.RootId == 0 {
-		return nil, ErrRootIsNotSet
-	}
-
-	var cLinks []ChannelLink
-
-	bq := &bongo.Query{
-		Selector: map[string]interface{}{
-			"root_id": c.RootId,
-		},
-	}
-
-	if err := c.Some(&cLinks, bq); err != nil {
-		return nil, err
-	}
-
-	if len(cLinks) == 0 {
-		return nil, bongo.RecordNotFound
-	}
-
-	return cLinks, nil
-}
-
-func (c *ChannelLink) ChannelLinkByLeaf() ([]ChannelLink, error) {
-	if c.RootId == 0 {
-		return nil, ErrRootIsNotSet
-	}
-
-	var cLinks []ChannelLink
-
-	bq := &bongo.Query{
-		Selector: map[string]interface{}{
-			"leaf_id": c.RootId,
-		},
-	}
-
-	if err := c.Some(&cLinks, bq); err != nil {
-		return nil, err
-	}
-
-	if len(cLinks) == 0 {
-		return nil, bongo.RecordNotFound
-	}
-
-	return cLinks, nil
-}
-
 // ChannelLinksWithRoot fetches the links with root of channel
 func (c *ChannelLink) ChannelLinksWithRoot() ([]ChannelLink, error) {
 	var cLinks []ChannelLink
