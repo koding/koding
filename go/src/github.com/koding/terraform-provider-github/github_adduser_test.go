@@ -38,6 +38,10 @@ func TestGithubAddAndRemoveUser(t *testing.T) {
 
 	teamIDs, err := GetTeamIDs(orgClient, org, teamNames)
 
+	if len(teamIDs) != len(teamNames) {
+		t.Fatalf("Error team name is not found")
+	}
+
 	optAddOrgMembership := &github.OrganizationAddTeamMembershipOptions{
 		Role: role,
 	}

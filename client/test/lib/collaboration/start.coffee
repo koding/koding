@@ -75,6 +75,7 @@ module.exports =
     host                   = utils.getUser no, 0
     hostBrowser            = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     paneSelector           = '.kdsplitview-panel.panel-1 .pane-wrapper .application-tab-handle-holder'
+    lineWidgetSelector     = '.kdtabpaneview.active .ace-line-widget-'
     participantFileName    = 'python.py'
     participantFileContent = 'Hello World from Python by Koding'
 

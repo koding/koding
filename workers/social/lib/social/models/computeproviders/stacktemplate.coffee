@@ -141,6 +141,7 @@ module.exports = class JStackTemplate extends Module
 
       shouldReviveClient   : yes
       shouldReviveProvider : no
+      shouldFetchGroupPlan : yes
 
     , (client, data, callback) ->
 

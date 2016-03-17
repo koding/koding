@@ -21,11 +21,11 @@ TrollButtonView            = require 'app/commonviews/trollbuttonview'
 
 module.exports = class ProfileView extends JView
 
-  {log} = kd
+  { log } = kd
 
   constructor: (options = {}, data) ->
 
-    options.bind = "mouseenter mouseleave"
+    options.bind = 'mouseenter mouseleave'
     super options, data
 
     @memberData = @getData()
@@ -38,11 +38,11 @@ module.exports = class ProfileView extends JView
       return router.handleRoute '/Activity'
 
     @firstName      = new ProfileContentEditableView
-      tagName       : "span"
-      testPath      : "profile-first-name"
+      tagName       : 'span'
+      testPath      : 'profile-first-name'
       pistachio     : "{{#(profile.firstName) or ''}}"
-      cssClass      : "firstName"
-      placeholder   : "First name"
+      cssClass      : 'firstName'
+      placeholder   : 'First name'
       delegate      : this
       tabNavigation : yes
       validate      :
@@ -50,15 +50,15 @@ module.exports = class ProfileView extends JView
           required  : yes
           maxLength : 25
         messages    :
-          required  : "First name is required"
+          required  : 'First name is required'
       , @memberData
 
     @lastName       = new ProfileContentEditableView
-      tagName       : "span"
-      testPath      : "profile-last-name"
+      tagName       : 'span'
+      testPath      : 'profile-last-name'
       pistachio     : "{{#(profile.lastName) or ''}}"
-      cssClass      : "lastName"
-      placeholder   : "Last name"
+      cssClass      : 'lastName'
+      placeholder   : 'Last name'
       delegate      : this
       tabNavigation : yes
       validate      :
@@ -67,10 +67,10 @@ module.exports = class ProfileView extends JView
       , @memberData
 
     @bio            = new ProfileContentEditableView
-      testPath      : "profile-bio"
+      testPath      : 'profile-bio'
       pistachio     : "{{#(profile.about) or ''}}"
-      cssClass      : "location"
-      placeholder   : if isMine @memberData then "Add your location" else ""
+      cssClass      : 'location'
+      placeholder   : if isMine @memberData then 'Add your location' else ''
       delegate      : this
       tabNavigation : yes
     , @memberData
@@ -84,24 +84,24 @@ module.exports = class ProfileView extends JView
       input.focus()
 
     if @memberData.getId() is whoami().getId()
-      @firstName.on "NextTabStop",     => focus @lastName
-      @firstName.on "PreviousTabStop", => focus @bio
-      @lastName.on "NextTabStop",      => focus @bio
-      @lastName.on "PreviousTabStop",  => focus @firstName
-      @bio.on "NextTabStop",           => focus @firstName
-      @bio.on "PreviousTabStop",       => focus @lastName
+      @firstName.on 'NextTabStop',     => focus @lastName
+      @firstName.on 'PreviousTabStop', => focus @bio
+      @lastName.on 'NextTabStop',      => focus @bio
+      @lastName.on 'PreviousTabStop',  => focus @firstName
+      @bio.on 'NextTabStop',           => focus @firstName
+      @bio.on 'PreviousTabStop',       => focus @lastName
 
-      @firstName.on "click", -> @setEditingMode on
-      @lastName.on "click",  -> @setEditingMode on
-      @bio.on "click",       -> @setEditingMode on
+      @firstName.on 'click', -> @setEditingMode on
+      @lastName.on 'click',  -> @setEditingMode on
+      @bio.on 'click',       -> @setEditingMode on
 
-      @firstName.on "EnterPressed", save
-      @lastName.on "EnterPressed", save
-      @bio.on "EnterPressed", save
+      @firstName.on 'EnterPressed', save
+      @lastName.on 'EnterPressed', save
+      @bio.on 'EnterPressed', save
 
-      @firstName.on "BlurHappened", save
-      @lastName.on "BlurHappened", save
-      @bio.on "BlurHappened", save
+      @firstName.on 'BlurHappened', save
+      @lastName.on 'BlurHappened', save
+      @bio.on 'BlurHappened', save
 
     avatarOptions  =
       size            :
@@ -113,7 +113,7 @@ module.exports = class ProfileView extends JView
           left     : @avatar.getBounds().x - 8
 
         @modal = new KDModalView
-          cssClass : "avatar-container"
+          cssClass : 'avatar-container'
           width    : 390
           fx       : yes
           overlay  : yes
@@ -128,47 +128,47 @@ module.exports = class ProfileView extends JView
 
     @avatar = new AvatarStaticView avatarOptions, @memberData
 
-    userDomain = @memberData.profile.nickname + "." + globals.config.userSitesDomain
+    userDomain = @memberData.profile.nickname + '.' + globals.config.userSitesDomain
     @userHomeLink = new JCustomHTMLView
-      tagName     : "a"
-      cssClass    : "user-home-link"
+      tagName     : 'a'
+      cssClass    : 'user-home-link'
       attributes  :
         href      : "http://#{userDomain}"
-        target    : "_blank"
+        target    : '_blank'
       pistachio   : userDomain
       click       : (event) =>
-        kd.utils.stopDOMEvent event unless @memberData.onlineStatus is "online"
+        kd.utils.stopDOMEvent event unless @memberData.onlineStatus is 'online'
 
     nickname = @memberData.profile.nickname
 
     @followers = new JView
       tagName     : 'a'
       attributes  :
-        href      : ""
-      pistachio   : "<span>{{ #(counts.followers) }}</span>Followers"
+        href      : ''
+      pistachio   : '<span>{{ #(counts.followers) }}</span>Followers'
       click       : (event) =>
         event.preventDefault()
-        kd.getSingleton('router').handleRoute "/#{nickname}?filter=followers", {state: @memberData}
+        kd.getSingleton('router').handleRoute "/#{nickname}?filter=followers", { state: @memberData }
     , @memberData
 
     @following = new JView
       tagName     : 'a'
       attributes  :
-        href      : ""
-      pistachio   : "<span>{{ #(counts.following) }}</span>Following"
+        href      : ''
+      pistachio   : '<span>{{ #(counts.following) }}</span>Following'
       click       : (event) =>
         event.preventDefault()
-        kd.getSingleton('router').handleRoute "/#{nickname}?filter=following", {state: @memberData}
+        kd.getSingleton('router').handleRoute "/#{nickname}?filter=following", { state: @memberData }
     , @memberData
 
     @likes = new JView
       tagName     : 'a'
       attributes  :
-        href      : ""
-      pistachio   : "<span>{{ #(counts.likes) }}</span>Likes"
+        href      : ''
+      pistachio   : '<span>{{ #(counts.likes) }}</span>Likes'
       click       : (event) =>
         event.preventDefault()
-        kd.getSingleton('router').handleRoute "/#{nickname}?filter=likes", {state: @memberData}
+        kd.getSingleton('router').handleRoute "/#{nickname}?filter=likes", { state: @memberData }
     , @memberData
 
     @sendMessageLink = new KDCustomHTMLView
@@ -176,11 +176,11 @@ module.exports = class ProfileView extends JView
       @sendMessageLink = new MemberMailLink {}, @memberData
 
     if @sendMessageLink instanceof MemberMailLink
-      @sendMessageLink.on "AutoCompleteNeedsMemberData", (pubInst,event) =>
-        {callback, inputValue, blacklist} = event
+      @sendMessageLink.on 'AutoCompleteNeedsMemberData', (pubInst, event) =>
+        { callback, inputValue, blacklist } = event
         @fetchAutoCompleteForToField inputValue, blacklist, callback
 
-      @sendMessageLink?.on 'MessageShouldBeSent', ({formOutput, callback}) =>
+      @sendMessageLink?.on 'MessageShouldBeSent', ({ formOutput, callback }) =>
         @prepareMessage formOutput, callback
 
 
@@ -200,7 +200,7 @@ module.exports = class ProfileView extends JView
       , data
 
 
-  viewAppended:->
+  viewAppended: ->
     super
     @createExternalProfiles()
     @createBadges()
@@ -210,17 +210,17 @@ module.exports = class ProfileView extends JView
       @lastName.setPlaceholder()   unless @lastName.getValue()
       @bio.setPlaceholder()        unless @bio.getValue()
 
-  uploadAvatar: (avatarData, callback)->
-    FSHelper.s3.upload "avatar.png", avatarData, "user", "", (err, url)=>
+  uploadAvatar: (avatarData, callback) ->
+    FSHelper.s3.upload 'avatar.png', avatarData, 'user', '', (err, url) =>
 
-      @memberData.modify "profile.avatar": [url, +new Date()].join("?"), callback
+      @memberData.modify { 'profile.avatar': [url, +new Date()].join('?') }, callback
 
-  avatarSetGravatar: (callback)->
-    @memberData.modify "profile.avatar": "", callback
+  avatarSetGravatar: (callback) ->
+    @memberData.modify { 'profile.avatar': '' }, callback
 
-  createExternalProfiles:->
+  createExternalProfiles: ->
 
-    {externalProfiles} = globals.config
+    { externalProfiles } = globals.config
 
     for own provider, options of externalProfiles
       @["#{provider}View"]?.destroy()
@@ -231,40 +231,40 @@ module.exports = class ProfileView extends JView
 
       @addSubView view, '.external-profiles'
 
-  createBadges:->
+  createBadges: ->
 
   save: ->
     for input in [@firstName, @lastName]
       unless input.validate() then return
 
     @memberData.modify
-      "profile.firstName" : @firstName.getValue()
-      "profile.lastName"  : @lastName.getValue()
-      "profile.about"     : @bio.getValue()
-    , (err) =>
+      'profile.firstName' : @firstName.getValue()
+      'profile.lastName'  : @lastName.getValue()
+      'profile.about'     : @bio.getValue()
+    , (err) ->
       if err
-        state = "error"
-        message = "There was an error updating your profile"
+        state = 'error'
+        message = 'There was an error updating your profile'
       else
-        state = "success"
-        message = "Your profile is updated"
+        state = 'success'
+        message = 'Your profile is updated'
 
       new KDNotificationView
         title    : message
-        type     : "mini"
+        type     : 'mini'
         cssClass : state
         duration : 2500
 
-  cancel:(event)->
+  cancel: (event) ->
     kd.utils.stopDOMEvent event  if event
-    @memberData.emit "update"
+    @memberData.emit 'update'
 
   fetchAutoCompleteForToField: (inputValue, blacklist, callback) ->
-    remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts) ->
+    remote.api.JAccount.byRelevance inputValue, { blacklist }, (err, accounts) ->
       callback accounts
 
   fetchAutoCompleteDataForTags:(inputValue, blacklist, callback) ->
-    remote.api.JTag.byRelevanceForSkills inputValue, {blacklist}, (err, tags) ->
+    remote.api.JTag.byRelevanceForSkills inputValue, { blacklist }, (err, tags) ->
       unless err
         callback? tags
       else
@@ -272,12 +272,12 @@ module.exports = class ProfileView extends JView
 
   # FIXME: this should be taken to inbox app controller using kd.getSingleton("appManager").tell
   prepareMessage: (formOutput, callback) ->
-    {body, subject, recipients} = formOutput
+    { body, subject, recipients } = formOutput
     to = recipients.join ' '
 
-    @sendMessage {to, body, subject}, (err, message) ->
+    @sendMessage { to, body, subject }, (err, message) ->
       new KDNotificationView
-        title     : if err then "Failure!" else "Success!"
+        title     : if err then 'Failure!' else 'Success!'
         duration  : 1000
       message.mark 'read'
       callback? err, message
@@ -285,7 +285,7 @@ module.exports = class ProfileView extends JView
   sendMessage: (messageDetails, callback) ->
     if isGuest()
       return new KDNotificationView
-        title: "Sending chat message for guests not allowed"
+        title: 'Sending chat message for guests not allowed'
 
     remote.api.JPrivateMessage.create messageDetails, callback
 
@@ -294,22 +294,22 @@ module.exports = class ProfileView extends JView
   updateUserHomeLink: ->
     return  unless @userHomeLink
 
-    if @memberData.onlineStatus is "online"
-      @userHomeLink.unsetClass "offline"
+    if @memberData.onlineStatus is 'online'
+      @userHomeLink.unsetClass 'offline'
       @userHomeLink.tooltip?.destroy()
     else
-      @userHomeLink.setClass "offline"
+      @userHomeLink.setClass 'offline'
 
       @userHomeLink.setTooltip
         title     : "#{@memberData.profile.nickname}'s VM is offline"
-        placement : "right"
+        placement : 'right'
 
   render: ->
     @updateUserHomeLink()
     super
 
   pistachio: ->
-    """
+    '''
       <main>
         {{> @avatar}}
         <h3 class="full-name">{{> @firstName}} {{> @lastName}}</h3>
@@ -322,4 +322,4 @@ module.exports = class ProfileView extends JView
           {{> @likes}}
         </div>
       </main>
-    """
+    '''

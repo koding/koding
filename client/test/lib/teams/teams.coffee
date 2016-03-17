@@ -1,3 +1,4 @@
+utils        = require '../utils/utils.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
 
 
@@ -6,6 +7,7 @@ module.exports =
 
   createTeam: (browser) ->
 
+    utils.getUser(yes)
     teamsHelpers.createTeam(browser)
     browser.end()
 
@@ -43,6 +45,8 @@ module.exports =
 
   stacks: (browser) ->
 
+    stackCreatePage       = '.Group-Stack-Templates .get-started'
+    getStartedButton      = "#{stackCreatePage} .header button.green"
     modalSelector         = '.kdmodal-content .AppModal-content'
     providerSelector      = "#{modalSelector} .stack-onboarding .provider-selection"
     machineSelector       = "#{providerSelector} .providers"
@@ -64,6 +68,9 @@ module.exports =
     teamsHelpers.startStackCreate(browser)
 
     browser
+      .waitForElementVisible  stackCreatePage, 20000
+      .waitForElementVisible  getStartedButton, 20000
+      .click                  getStartedButton
       .waitForElementVisible  providerSelector, 20000
       .waitForElementVisible  awsSelector, 20000
       .waitForElementVisible  "#{machineSelector} .vagrant" , 20000 # Assertion

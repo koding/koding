@@ -7,12 +7,45 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
+	"koding/klient/kiteerrortypes"
+	"koding/klient/util"
 )
+
+var (
+	// ErrSubNotFound is returned from Unsubscribe if the given sub id cannot be found.
+	ErrSubNotFound = util.KiteErrorf(
+		kiteerrortypes.SubNotFound, "The given subscription id cannot be found.",
+	)
+)
+
+// SubscribeResponse is the response type of the `client.Subscribe` method.
+type SubscribeResponse struct {
+	ID int `json:"id"`
+}
+
+// SubscribeRequest is the request type for the `client.Subscribe` method.
+type SubscribeRequest struct {
+	EventName string         `json:"eventName"`
+	OnPublish dnode.Function `json:"onPublish"`
+}
+
+// UnsubscribeRequest is the request type for the `client.Unsubscribe` method.
+type UnsubscribeRequest struct {
+	EventName string `json:"eventName"`
+	ID        int    `json:"id"`
+}
+
+// PublishRequest is request type for the `client.Publish` method.
+type PublishRequest struct {
+	EventName string `json:"eventName"`
+}
 
 func NewPubSub(log kite.Logger) *PubSub {
 	return &PubSub{
 		Subscriptions: make(map[string]map[int]dnode.Function),
 		Log:           log,
+		// start sub count not at zero. So that a zero value unsub can't unsub anything.
+		subCount: 1,
 	}
 }
 
@@ -54,9 +87,7 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 	// Parse the eventName from the incoming data. Note that this method
 	// accepts any data beyond eventName, so that this method is as generic
 	// as possible.
-	var params struct {
-		EventName string `json:"eventName"`
-	}
+	var params PublishRequest
 
 	if r.Args == nil {
 		return nil, errors.New("client.Publish: Arguments are not passed")
@@ -117,15 +148,11 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 //
 // The only response is an error, if any.
 func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
-	var params struct {
-		EventName string         `json:"eventName"`
-		OnPublish dnode.Function `json:"onPublish"`
-	}
-
 	if r.Args == nil {
 		return nil, errors.New("client.Subscribe: Arguments are not passed")
 	}
 
+	var params SubscribeRequest
 	if r.Args.One().Unmarshal(&params) != nil || params.EventName == "" {
 		c.Log.Info(fmt.Sprintf(
 			"client.Subscribe: Unknown param format '%s'\n", r.Args.One()))
@@ -152,23 +179,77 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 	}
 	c.subMu.Unlock()
 
-	removeSubscription := func() {
-		c.subMu.Lock()
-		defer c.subMu.Unlock()
-
-		if _, ok := c.Subscriptions[params.EventName]; ok {
-			delete(c.Subscriptions[params.EventName], subIndex)
-			// Delete the sub map, if there are no more subs in it
-			if len(c.Subscriptions[params.EventName]) == 0 {
-				delete(c.Subscriptions, params.EventName)
-			}
-		} else {
-			c.Log.Info("client.Subscribe:",
-				"Subscriptions could not be found, on Disconnect")
+	r.Client.OnDisconnect(func() {
+		if err := c.removeSubscription(params.EventName, subIndex); err != nil {
+			c.Log.Info(
+				"client.Subscribe: Subscriptions could not be found, on Disconnect. sub:%s, subIndex:%d",
+				params.EventName, subIndex,
+			)
 		}
+	})
+
+	res := SubscribeResponse{
+		ID: subIndex,
+	}
+	return res, nil
+}
+
+// Unubscribe method removes the given subscription.
+//
+// Example:
+//
+// 		{
+// 			"eventName": "openFiles",
+// 			"id": 7,
+// 		}
+//
+// The only response is an error, if any are encountered. If the sub cannot be
+// found, ErrSubNotFound is returned.
+func (c *PubSub) Unsubscribe(r *kite.Request) (interface{}, error) {
+	if r.Args == nil {
+		return nil, errors.New("client.Unsubscribe: Arguments are not passed")
 	}
 
-	r.Client.OnDisconnect(removeSubscription)
+	var params UnsubscribeRequest
+	if r.Args.One().Unmarshal(&params) != nil || params.EventName == "" {
+		c.Log.Info(fmt.Sprintf(
+			"client.Unsubscribe: Unknown param format '%s'\n", r.Args.One()))
+		return nil, errors.New(
+			"client.Unsubscribe: Expected param format " +
+				"{ eventName: [string], ID: [function] }")
+	}
 
-	return nil, nil
+	return nil, c.removeSubscription(params.EventName, params.ID)
+}
+
+func (c *PubSub) removeSubscription(eventName string, subIndex int) error {
+	c.subMu.Lock()
+	defer c.subMu.Unlock()
+
+	subs, ok := c.Subscriptions[eventName]
+	if !ok {
+		return ErrSubNotFound
+	}
+
+	// We still want to remove an error after the func is done if the sub isn't
+	// found, but we first need to clean up the map. So we just check if it exists,
+	// and then deal with it later.
+	_, subWasFound := subs[subIndex]
+
+	if subWasFound {
+		// Technically delete is a noop if the sub isn't found, but it just seems more
+		// readable to put it in an if check.
+		delete(subs, subIndex)
+	}
+
+	// Delete the sub map, if there are no more subs in it
+	if len(subs) == 0 {
+		delete(c.Subscriptions, eventName)
+	}
+
+	if !subWasFound {
+		return ErrSubNotFound
+	}
+
+	return nil
 }

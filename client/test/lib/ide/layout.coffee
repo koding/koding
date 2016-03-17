@@ -39,7 +39,7 @@ module.exports =
     newPaneSelector = '.kdsplitcomboview .kdsplitview-panel.panel-1 .application-tab-handle-holder'
 
     fn = ->
-      browser.elements 'css selector', newPaneSelector, (result) =>
+      browser.elements 'css selector', newPaneSelector, (result) ->
         if result.value.length is 1
           browser
             .waitForElementPresent '.panel-1 .general-handles .close-handle.hidden', 20000 # Assertion

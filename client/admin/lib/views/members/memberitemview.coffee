@@ -1,7 +1,7 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
 isKoding               = require 'app/util/isKoding'
-AvatarView             = require 'app/commonviews/avatarviews/avatarview'
+AvatarStaticView       = require 'app/commonviews/avatarviews/avatarstaticview'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
 
 
@@ -44,7 +44,7 @@ module.exports = class MemberItemView extends kd.ListItemView
     @loggedInUserRole = @getRole data.loggedInUserRoles
     @memberRole       = @getRole data.roles
 
-    @avatar = new AvatarView
+    @avatar = new AvatarStaticView
       size : { width: 40, height : 40 }
     , @getData()
 

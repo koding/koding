@@ -2,13 +2,23 @@ package testutil
 
 import (
 	"io"
+	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/url"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/koding/logging"
 )
+
+var DiscardLogger logging.Logger
+
+func init() {
+	DiscardLogger = logging.NewLogger("DiscardLogger")
+	DiscardLogger.SetHandler(logging.NewWriterHandler(ioutil.Discard))
+}
 
 func init() {
 	rand.Seed(time.Now().UnixNano() + int64(os.Getpid()))

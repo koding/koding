@@ -22,28 +22,28 @@ module.exports = class MembersAppController extends AppController
     name         : 'Members'
     dependencies : [ 'Activity' ]
 
-  {externalProfiles} = globals.config
+  { externalProfiles } = globals.config
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
     options.view    = new KDView
       cssClass      : 'content-page members'
     options.appInfo =
       name          : 'Members'
 
-    @appManager = kd.getSingleton "appManager"
+    @appManager = kd.getSingleton 'appManager'
 
     super options, data
 
-  createContentDisplay:(model, callback=->)->
+  createContentDisplay: (model, callback = -> ) ->
     kd.singletons.appManager.setFrontApp this
-    {JAccount} = remote.api
-    type = if model instanceof JAccount then "profile" else "members"
+    { JAccount } = remote.api
+    type = if model instanceof JAccount then 'profile' else 'members'
 
     contentDisplay = new KDView
       cssClass : 'member content-display'
       type     : type
 
-    contentDisplay.on 'handleQuery', (query)=>
+    contentDisplay.on 'handleQuery', (query) =>
       @ready => @feedController?.handleQuery? query
 
     contentDisplay.once 'KDObjectWillBeDestroyed', ->
@@ -51,7 +51,7 @@ module.exports = class MembersAppController extends AppController
 
     kd.getSingleton('groupsController').ready =>
       contentDisplay.$('div.lazy').remove()
-      if type is "profile"
+      if type is 'profile'
         @createProfileView contentDisplay, model
       else
         @createGroupMembersView contentDisplay
@@ -63,38 +63,38 @@ module.exports = class MembersAppController extends AppController
       @showContentDisplay contentDisplay
       kd.utils.defer -> callback contentDisplay
 
-  createProfileView: (contentDisplay, model)->
-    @prepareProfileView model, (profileView)=>
+  createProfileView: (contentDisplay, model) ->
+    @prepareProfileView model, (profileView) =>
       contentDisplay.addSubView profileView
-      @prepareFeederView model, (feederView)->
+      @prepareFeederView model, (feederView) ->
         contentDisplay.addSubView feederView
 
-  createGroupMembersView: (contentDisplay)->
+  createGroupMembersView: (contentDisplay) ->
     # assuming, not being used - sy
 
     # contentDisplay.addSubView new HeaderViewSection
     #   title    : "Members"
     #   type     : "big"
-    @prepareFeederView whoami(), (feederView)->
+    @prepareFeederView whoami(), (feederView) ->
       contentDisplay.addSubView feederView
 
-  prepareFeederView:(account, callback)->
+  prepareFeederView: (account, callback) ->
 
     if isMine account
-      owner   = "you"
+      owner   = 'you'
       auxVerb =
-        have : "have"
-        be   : "are"
+        have : 'have'
+        be   : 'are'
     else
       owner = getFullnameFromAccount account
       auxVerb =
-        have : "has"
-        be   : "is"
+        have : 'has'
+        be   : 'is'
 
-    kd.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+    kd.getSingleton('appManager').tell 'Feeder', 'createContentFeedController', {
       itemClass             : ActivityListItemView
       listControllerClass   : MemberActivityListController
-      listCssClass          : "activity-related"
+      listCssClass          : 'activity-related'
       limitPerPage          : 8
       useHeaderNav          : yes
       delegate              : this
@@ -102,53 +102,53 @@ module.exports = class MembersAppController extends AppController
       filter                :
         statuses            :
           noItemFoundText   : "#{owner} #{auxVerb.have} not shared any posts yet."
-          dataSource        : (selector, options = {}, callback)=>
+          dataSource        : (selector, options = {}, callback) ->
             options.targetId = account.socialApiId
             kd.singletons.socialapi.channel.fetchProfileFeed options, callback
         followers           :
           loggedInOnly      : yes
           itemClass         : GroupMembersPageListItemView
           listControllerClass: KDListViewController
-          listCssClass      : "member-related"
+          listCssClass      : 'member-related'
           noItemFoundText   : "No one is following #{owner} yet."
-          dataSource        : (selector, options, callback)=>
+          dataSource        : (selector, options, callback) ->
             options.groupId or= getGroup().getId()
             account.fetchFollowersWithRelationship selector, options, callback
         following           :
           loggedInOnly      : yes
           itemClass         : GroupMembersPageListItemView
           listControllerClass: KDListViewController
-          listCssClass      : "member-related"
+          listCssClass      : 'member-related'
           noItemFoundText   : "#{owner} #{auxVerb.be} not following anyone."
-          dataSource        : (selector, options, callback)=>
+          dataSource        : (selector, options, callback) ->
             options.groupId or= getGroup().getId()
             account.fetchFollowingWithRelationship selector, options, callback
         likes               :
           loggedInOnly      : yes
           noItemFoundText   : "#{owner} #{auxVerb.have} not liked any posts yet."
-          dataSource        : (selector, options, callback)->
-            return callback {message: "not impplemented feature"}
+          dataSource        : (selector, options, callback) ->
+            return callback { message: 'not impplemented feature' }
         members              :
-          noItemFoundText    : "There is no member."
+          noItemFoundText    : 'There is no member.'
           itemClass          : GroupMembersPageListItemView
           listControllerClass: KDListViewController
-          listCssClass       : "member-related"
-          title              : ""
-          dataSource         : (selector, options, callback)=>
+          listCssClass       : 'member-related'
+          title              : ''
+          dataSource         : (selector, options, callback) =>
             group = getGroup()
-            group.fetchMembers selector, options, (err, res)=>
-              @emit "MemberListLoaded"  unless err
+            group.fetchMembers selector, options, (err, res) =>
+              @emit 'MemberListLoaded'  unless err
               callback err, res
 
       sort                  :
         'modifiedAt'        :
-          title             : "Latest activity"
+          title             : 'Latest activity'
           direction         : -1
         'counts.followers'  :
-          title             : "Most followers"
+          title             : 'Most followers'
           direction         : -1
         'counts.following'  :
-          title             : "Most following"
+          title             : 'Most following'
           direction         : -1
         'timestamp|new'     :
           title             : 'Latest activity'
@@ -156,56 +156,56 @@ module.exports = class MembersAppController extends AppController
         'timestamp|old'     :
           title             : 'Most activity'
           direction         : 1
-    }, (controller)=>
+    }, (controller) =>
       @feedController = controller
       callback controller.getView()
       @emit 'ready'
 
-  prepareProfileView:(member, callback)->
+  prepareProfileView: (member, callback) ->
     options      =
       tagName    : 'aside'
-      cssClass   : "app-sidebar clearfix"
+      cssClass   : 'app-sidebar clearfix'
 
     if isMine member
-      options.cssClass = kd.utils.curry "own-profile", options.cssClass
+      options.cssClass = kd.utils.curry 'own-profile', options.cssClass
     else
-      options.bind = "mouseenter" unless isMine member
+      options.bind = 'mouseenter' unless isMine member
 
     callback new ProfileView options, member
 
-  showContentDisplay:(contentDisplay)->
+  showContentDisplay: (contentDisplay) ->
 
     view = new ContentDisplayScrollableView
       contentDisplay : contentDisplay
 
     @forwardEvent view, 'LazyLoadThresholdReached'
 
-    kd.singleton('display').emit "ContentDisplayWantsToBeShown", view
+    kd.singleton('display').emit 'ContentDisplayWantsToBeShown', view
     return contentDisplay
 
-  fetchFeedForHomePage:(callback)->
+  fetchFeedForHomePage: (callback) ->
     options  =
       limit  : 6
       skip   : 0
-      sort   : "meta.modifiedAt" : -1
+      sort   : { 'meta.modifiedAt' : -1 }
     selector = {}
     remote.api.JAccount.someWithRelationship selector, options, callback
 
-  fetchSomeMembers:(options = {}, callback)->
+  fetchSomeMembers: (options = {}, callback) ->
 
     options.limit or= 6
     options.skip  or= 0
-    options.sort  or= "meta.modifiedAt" : -1
+    options.sort  or= { 'meta.modifiedAt' : -1 }
     selector        = options.selector or {}
 
-    console.log {selector}
+    console.log { selector }
 
     delete options.selector if options.selector
 
     remote.api.JAccount.byRelevance selector, options, callback
 
 
-  fetchExternalProfiles:(account, callback)->
+  fetchExternalProfiles: (account, callback) ->
 
-    whitelist = Object.keys(externalProfiles).slice().map (a)-> "ext|profile|#{a}"
+    whitelist = Object.keys(externalProfiles).slice().map (a) -> "ext|profile|#{a}"
     account.fetchStorages  whitelist, callback

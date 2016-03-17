@@ -1,7 +1,6 @@
 package repair
 
 import (
-	"errors"
 	"fmt"
 	"koding/klientctl/klient"
 	"koding/klientctl/util"
@@ -31,18 +30,18 @@ func (r *KlientRunningRepair) String() string {
 
 // Status checks if the klient is running via the Klient Service, as well as
 // dialing the klient to ensure that is working..
-func (r *KlientRunningRepair) Status() error {
+func (r *KlientRunningRepair) Status() (bool, error) {
 	if !r.KlientService.IsKlientRunning() {
 		r.Stdout.Printlnf("KD Daemon is not running.")
-		return errors.New("Klient is not running")
+		return false, nil
 	}
 
 	if _, err := klient.NewDialedKlient(r.KlientOptions); err != nil {
 		r.Stdout.Printlnf("Unable to connect to KD Daemon.")
-		return fmt.Errorf("Unable to dial klient. err:%s", err)
+		return false, nil
 	}
 
-	return nil
+	return true, nil
 }
 
 // Repair uses a subprocess of KD with Sudo, to enable the required Service
@@ -58,5 +57,21 @@ func (r *KlientRunningRepair) Repair() error {
 	}
 
 	// Run status again, to confirm it's running as best we can.
-	return r.Status()
+	ok, err := r.Status()
+
+	// If there's an error checking Status, we have no idea what's wrong. The UX
+	// may be vague, but there's nothing we can do.
+	if err != nil {
+		r.Stdout.Printlnf("Unable to determine status of KD Daemon.")
+		return fmt.Errorf("Status returned error after Klient restart. err:%s", err)
+	}
+
+	// If Klient is not okay, inform the user that even after a successful restart,
+	// it is not working properly.
+	if !ok {
+		r.Stdout.Printlnf("KD Daemon is not running properly.")
+		return fmt.Errorf("Status returned not-okay, after Klient restart.")
+	}
+
+	return nil
 }

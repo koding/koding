@@ -20,7 +20,7 @@ module.exports =
         helpers.fillPaymentForm(browser, 'professional')
         environmentHelpers.simplifiedSubmitForm(browser)
       else
-      	browser.url url
+        browser.url url
 
 
   check2AlwaysOnVmProfessionalPlan: (browser, secondVM = no) ->

@@ -64,9 +64,14 @@ func (f *File) TruncateTo(size uint64) error {
 	f.Lock()
 	defer f.Unlock()
 
+	if err := f.content.TruncateTo(size); err != nil {
+		return err
+	}
+
+	// set size after success remote truncate
 	f.Attrs.Size = size
 
-	return f.content.TruncateTo(size)
+	return nil
 }
 
 // Flush saves internal cache to remote.

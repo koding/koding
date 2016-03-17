@@ -75,7 +75,7 @@ module.exports = class SidebarStackSection extends React.Component
 
     { router } = kd.singletons
 
-    router.handleRoute '/Stacks'
+    router.handleRoute '/Stacks/My-Stacks'
 
 
   getStackUnreadCount: ->

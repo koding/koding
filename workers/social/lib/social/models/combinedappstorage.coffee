@@ -31,17 +31,22 @@ module.exports = class JCombinedAppStorage extends JStorage
     unless appId
       return callback new KodingError 'appId is not set!'
 
-    options.accountId = @getAt 'accountId'
+    options.accountId = accountId = @getAt 'accountId'
 
     { connection: { delegate }, context: { group } } = client
-    { nickname } = delegate.profile
+
+    unless accountId.equals delegate.getId()
+      return callback new KodingError 'Access denied'
 
     JCombinedAppStorage.upsert appId, options, (err, storage) ->
+      return callback err  if err
+
       if options.notify and not err
-        options = { group, appId }
+        options      = { group, appId }
+        { nickname } = delegate.profile
         notifyByUsernames [ nickname ], 'StorageUpdated', options
 
-      return callback err, storage
+      return callback null, storage
 
 
   @upsert: (appId, options, callback) ->

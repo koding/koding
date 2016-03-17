@@ -83,7 +83,7 @@ generateConstraints = (planConfig) ->
 
 
   # Add instance limit per user
-  rules.push { 'resource.aws_instance': [
+  rules.push { 'resource.aws_instance?': [
                 { $typeof: 'object' },
                 { $length: { $lte: instancePerMember } }
             ] }

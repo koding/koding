@@ -23,7 +23,7 @@ module.exports =
 
     browser
       .pause   5000
-      .element 'css selector', '[testpath=main-sidebar]', (result) =>
+      .element 'css selector', '[testpath=main-sidebar]', (result) ->
 
         if result.status is 0
           browser.end()

@@ -29,16 +29,16 @@ module.exports =
 
     browser
       .waitForElementVisible '.panel-1', 20000
-      .elements 'css selector', '.panel-1', (result) =>
+      .elements 'css selector', '.panel-1', (result) ->
         oldLength = result.value.length
 
         browser
           .waitForElementVisible    paneSelector, 20000
           .click                    undoSplitSelector
 
-          if shouldAssert
-            browser.elements 'css selector', newPaneSelector, (result) =>
-              assert.equal result.value.length, oldLength - 1
+        if shouldAssert
+          browser.elements 'css selector', newPaneSelector, (result) ->
+            assert.equal result.value.length, oldLength - 1
 
 
   split: (browser, direction) ->
@@ -63,6 +63,6 @@ module.exports =
           @openMenuAndClick(browser, splitButtonSelector)
           browser.pause 2000
 
-          browser.elements 'css selector', splitViewSelector, (result) =>
+          browser.elements 'css selector', splitViewSelector, (result) ->
             assert.equal result.value.length, length + 1
             browser.pause 2000 # wait for snapshot write
