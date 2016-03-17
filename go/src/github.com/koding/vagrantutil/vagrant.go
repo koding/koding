@@ -302,6 +302,9 @@ func (v *Vagrant) runVagrantCommand(args ...string) (string, error) {
 	cmd.Dir = v.VagrantfilePath
 	out, err := cmd.CombinedOutput()
 	if err != nil {
+		if len(out) != 0 {
+			err = fmt.Errorf("%s: %s", err, out)
+		}
 		return "", err
 	}
 

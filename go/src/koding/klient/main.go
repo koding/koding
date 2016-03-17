@@ -72,7 +72,7 @@ func realMain() int {
 	}
 
 	if *flagRegister {
-		if err := registration.Register(*flagKontrolURL, *flagKiteHome, *flagUsername, *flagToken); err != nil {
+		if err := registration.Register(*flagKontrolURL, *flagKiteHome, *flagUsername, *flagToken, *flagDebug); err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			return 1
 		}
