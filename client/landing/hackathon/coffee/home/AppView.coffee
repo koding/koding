@@ -5,7 +5,7 @@ VIDEO_URL        = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro
 VIDEO_URL_MP4    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.mp4'
 VIDEO_URL_OGG    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.ogv'
 
-DAYS             = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY']
+DAYS             = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
 MONTHS           = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
 
 {
@@ -28,7 +28,7 @@ module.exports = class HomeView extends KDView
       isApproved         : no
       isWinner           : no
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.bind = 'mousemove'
 
@@ -52,7 +52,7 @@ module.exports = class HomeView extends KDView
       cssClass  : 'logos'
       tagName   : 'figure'
       bind      : 'mousemove mouseleave mouseenter'
-      partial    : """
+      partial    : '''
         <i class="odesk"></i>
         <i class="kissmetrics"></i>
         <i class="accel"></i>
@@ -68,7 +68,7 @@ module.exports = class HomeView extends KDView
         <i class="deviantart"></i>
         <i class="baincapital"></i>
         <i class="eniac"></i>
-      """
+      '''
 
     logosTitle = new KDCustomHTMLView
       tagName  : 'span'

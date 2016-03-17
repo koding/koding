@@ -226,7 +226,7 @@ RESULTS = [
 
 module.exports = class HomeViewResults extends KDView
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
@@ -239,7 +239,7 @@ module.exports = class HomeViewResults extends KDView
 
   createPartners: ->
 
-    for name, {img, url, prize} of PARTNERS
+    for name, { img, url, prize } of PARTNERS
 
       image = new KDCustomHTMLView
         tagName    : 'a'
@@ -291,10 +291,10 @@ module.exports = class HomeViewResults extends KDView
     rankNames        = ['first', 'second', 'third']
 
     RESULTS.forEach (result) =>
-      {category, teams} = result
+      { category, teams } = result
 
       categorySection = new KDCustomHTMLView
-        cssClass : "category"
+        cssClass : 'category'
 
       categorySection.addSubView new KDCustomHTMLView
         tagName   : 'h3'
@@ -305,7 +305,7 @@ module.exports = class HomeViewResults extends KDView
         rankName      = rankNames[rank]
         nationalities = []
 
-        {previewImage, teamName, description, members, readme, projectUrl} = team
+        { previewImage, teamName, description, members, readme, projectUrl } = team
 
         categorySection.addSubView teamView = new KDCustomHTMLView
           cssClass    : "team #{rankName} clearfix"
@@ -333,7 +333,7 @@ module.exports = class HomeViewResults extends KDView
           cssClass    : 'team-heads'
 
         members.forEach (member) ->
-          {nationality, name, avatar} = member
+          { nationality, name, avatar } = member
 
           if nationalities.indexOf(nationality) is -1
           then nationalities.push nationality

@@ -9,7 +9,7 @@ module.exports = class MainControllerLoggedOut extends KDController
 
   @loginImageIndex = loginImageIndex = KD.utils.getRandomNumber 15
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
@@ -19,13 +19,13 @@ module.exports = class MainControllerLoggedOut extends KDController
 
     @startCachingAssets()
 
-  createSingletons:->
+  createSingletons: ->
 
     KD.registerSingleton 'mainController',            this
     KD.registerSingleton 'router',           router = new KodingRouter
     KD.registerSingleton 'oauthController',           new OAuthController
     KD.registerSingleton 'mainView',             mv = new MainView
-    KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
+    KD.registerSingleton 'mainViewController',  mvc = new MainViewController { view : mv }
 
     @mainViewController = mvc
     mv.appendToDomBody()
@@ -35,7 +35,7 @@ module.exports = class MainControllerLoggedOut extends KDController
     console.timeEnd 'Koding.com loaded'
 
 
-  startCachingAssets:->
+  startCachingAssets: ->
 
     KD.utils.defer ->
 

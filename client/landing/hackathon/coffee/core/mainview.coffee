@@ -3,7 +3,7 @@ MainTabView    = require './maintabview'
 
 module.exports = class MainView extends KDView
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.domId    = 'kdmaincontainer'
     options.cssClass = if KD.isLoggedInOnLoad then 'with-sidebar' else ''
@@ -15,7 +15,7 @@ module.exports = class MainView extends KDView
 
   viewAppended: ->
 
-    {mainController} = KD.singletons
+    { mainController } = KD.singletons
 
     # @createHeader()
     @createPanelWrapper()
@@ -41,7 +41,7 @@ module.exports = class MainView extends KDView
 
   #   @header.addSubView @header.nav = new TopNavigation
 
-  createPanelWrapper:->
+  createPanelWrapper: ->
 
     @addSubView @panelWrapper = new KDView
       tagName  : 'section'
@@ -53,7 +53,7 @@ module.exports = class MainView extends KDView
       click    : => @toggleClass 'collapsed'
 
 
-  createMainTabView:->
+  createMainTabView: ->
 
     @mainTabView = new MainTabView
       domId               : 'main-tab-view'
@@ -65,6 +65,6 @@ module.exports = class MainView extends KDView
 
     @mainTabView.on 'PaneDidShow', (pane) => @emit 'MainTabPaneShown', pane
 
-    @mainTabView.on "AllPanesClosed", -> KD.singletons.router.clear()
+    @mainTabView.on 'AllPanesClosed', -> KD.singletons.router.clear()
 
     @panelWrapper.addSubView @mainTabView

@@ -2,7 +2,7 @@ module.exports = class SubscribeFormView extends KDFormViewWithFields
 
   constructor : (options = {}) ->
 
-    options.cssClass = KD.utils.curry "subscribe-form", options.cssClass
+    options.cssClass = KD.utils.curry 'subscribe-form', options.cssClass
 
     options.fields   =
       description    :
@@ -34,7 +34,7 @@ module.exports = class SubscribeFormView extends KDFormViewWithFields
 
   thankYou : ->
 
-    {email, thankYou} = @fields
+    { email, thankYou } = @fields
 
     email.hide()
     @buttonField.hide()
@@ -43,16 +43,16 @@ module.exports = class SubscribeFormView extends KDFormViewWithFields
 
   subscribe : ->
 
-    {submit} = @buttonField.buttons
+    { submit } = @buttonField.buttons
 
     submit.showLoader()
 
     data = @serializeFormData()
 
     jQuery.ajax
-      url         : "/-/emails/subscribe"
+      url         : '/-/emails/subscribe'
       type        : 'POST'
       data        : data
       success     : => @emit 'subscribeSuccess'
       error       : => @emit 'subscribeError'
-      complete    : => submit.hideLoader()
+      complete    : -> submit.hideLoader()

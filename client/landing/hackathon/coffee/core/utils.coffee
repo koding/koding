@@ -7,11 +7,11 @@ utils.extend utils,
   ###
   generatePassword: do ->
 
-    letter = /[a-zA-Z]$/;
-    vowel = /[aeiouAEIOU]$/;
-    consonant = /[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]$/;
+    letter = /[a-zA-Z]$/
+    vowel = /[aeiouAEIOU]$/
+    consonant = /[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]$/
 
-    (length = 10, memorable = yes, pattern = /\w/, prefix = '')->
+    (length = 10, memorable = yes, pattern = /\w/, prefix = '') ->
 
       return prefix if prefix.length >= length
 
@@ -25,31 +25,31 @@ utils.extend utils,
       unless pattern.test chr
         return utils.generatePassword length, memorable, pattern, prefix
 
-      return utils.generatePassword length, memorable, pattern, "" + prefix + chr
+      return utils.generatePassword length, memorable, pattern, '' + prefix + chr
 
-  getDummyName:->
+  getDummyName: ->
     u  = KD.utils
     gr = u.getRandomNumber
     gp = u.generatePassword
     gp(gr(10), yes)
 
-  generateDummyUserData:->
+  generateDummyUserData: ->
 
     u  = KD.utils
 
-    uniqueness = (Date.now()+"").slice(6)
+    uniqueness = (Date.now() + '').slice(6)
     return formData   =
-      agree           : "on"
+      agree           : 'on'
       email           : "sinanyasar+#{uniqueness}@gmail.com"
       firstName       : u.getDummyName()
       lastName        : u.getDummyName()
       # inviteCode      : "twitterfriends"
-      password        : "123123123"
-      passwordConfirm : "123123123"
+      password        : '123123123'
+      passwordConfirm : '123123123'
       username        : uniqueness
 
 
-  getLocationInfo: do (queue=[])->
+  getLocationInfo: do (queue = []) ->
 
     ip      = null
     country = null
@@ -58,11 +58,11 @@ utils.extend utils,
     fail = ->
 
       for cb in queue
-        cb { message: "Failed to fetch IP info." }
+        cb { message: 'Failed to fetch IP info.' }
 
       queue = []
 
-    (callback = noop)->
+    (callback = noop) ->
 
       if ip? and country? and region?
         callback null, { ip, country, region }
@@ -75,7 +75,7 @@ utils.extend utils,
         error    : fail
         timeout  : 1500
         dataType : 'json'
-        success  : (data)->
+        success  : (data) ->
 
           { ip, country_code, region_code } = data
 
@@ -95,10 +95,10 @@ utils.extend utils,
         delete window.localStorage[kite]
 
 
-  registerDummyUser:->
+  registerDummyUser: ->
 
-    return if location.hostname is "koding.com"
+    return if location.hostname is 'koding.com'
 
     u  = KD.utils
 
-    KD.remote.api.JUser.register u.generateDummyUserData(), => location.reload yes
+    KD.remote.api.JUser.register u.generateDummyUserData(), -> location.reload yes

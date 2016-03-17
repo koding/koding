@@ -7,16 +7,15 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
   USERNAME_VALID = yes
   ENTER          = 13
 
-  constructor:(options={},data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
     @email = new LoginInputView
       inputOptions    :
-        name          : "email"
-        placeholder   : "Email address"
-        testPath      : "register-form-email"
-        keyup         : (event) => @button.click event  if event.which is ENTER
+        name          : 'email'
+        placeholder   : 'Email address'
+        testPath      : 'register-form-email'
         validate      : @getEmailValidator()
         decorateValidation: no
         focus         : => @email.icon.unsetTooltip()
@@ -24,10 +23,10 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
     @password = new LoginInputView
       inputOptions    :
-        name          : "password"
-        type          : "password"
-        testPath      : "recover-password"
-        placeholder   : "Password"
+        name          : 'password'
+        type          : 'password'
+        testPath      : 'recover-password'
+        placeholder   : 'Password'
         keyup         : (event) =>
           if event.which is ENTER
             @password.input.validate()
@@ -39,10 +38,10 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             required  : yes
             minLength : 8
           messages    :
-            required  : "Please enter a password."
-            minLength : "Passwords should be at least 8 characters."
+            required  : 'Please enter a password.'
+            minLength : 'Passwords should be at least 8 characters.'
 
-    {buttonTitle} = @getOptions()
+    { buttonTitle } = @getOptions()
 
     @button = new KDButtonView
       title         : buttonTitle or 'Create account'
@@ -82,14 +81,14 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
   handleBlur: -> @unsetClass 'focused'
 
 
-  reset:->
+  reset: ->
     inputs = KDFormView.findChildInputs this
     input.clearValidationFeedback() for input in inputs
     super
 
   getEmailValidator: (options) ->
 
-    {router} = KD.singletons
+    { router } = KD.singletons
 
     $.extend
       container   : this
@@ -101,7 +100,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         available : (input, event) =>
           return  if event?.which is 9
 
-          {required, email, minLength} = input.validationResults
+          { required, email, minLength } = input.validationResults
 
           return  if required or minLength
 
@@ -113,14 +112,14 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             $.ajax
               url         : "/Validate/Email/#{email}"
               type        : 'POST'
-              data        : password : passInput.getValue()
-              xhrFields   : withCredentials : yes
+              data        : { password : passInput.getValue() }
+              xhrFields   : { withCredentials : yes }
               success     : (res) =>
                 return location.reload()  if res is 'User is logged in!'
                 if res is yes and passInput.valid
                   @getCallback() @getFormData()
 
-              error       : ({responseJSON}) =>
+              error       : ({ responseJSON }) =>
                 router.handleRoute '/Login'
                 @email.icon.unsetTooltip()
                 @password.icon.unsetTooltip()
@@ -142,17 +141,17 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     return @emit 'gravatarInfoFetched', @gravatars[email]  if @gravatars[email]
 
     $.ajax
-      url         : "/Gravatar"
-      data        : {email}
+      url         : '/Gravatar'
+      data        : { email }
       type        : 'POST'
-      xhrFields   : withCredentials : yes
+      xhrFields   : { withCredentials : yes }
       success     : (gravatar) =>
 
-        if gravatar is "User not found"
+        if gravatar is 'User not found'
           gravatar              =
             dummy               : yes
             photos              : [
-              (value            : 'https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.80.png')
+              ({ value            : 'https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.80.png' })
             ]
             preferredUsername   : ''
         else
@@ -161,8 +160,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         @emit 'gravatarInfoFetched', @gravatars[email] = gravatar
 
       error       : (xhr) ->
-        {responseText} = xhr
-        new KDNotificationView title : responseText
+        { responseText } = xhr
+        new KDNotificationView { title : responseText }
 
 
   submitForm: (event) ->
@@ -183,7 +182,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       return no
 
 
-  pistachio:->
+  pistachio: ->
     """
     <section class='main-part'>
       <div class='email'>{{> @email}}</div>

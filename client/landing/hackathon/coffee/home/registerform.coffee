@@ -6,29 +6,28 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
 
   ENTER          = 13
 
-  constructor:(options={},data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
     @email.destroy()
     @email = new LoginInputView
       inputOptions    :
-        name          : "email"
-        placeholder   : "Email address"
-        testPath      : "register-form-email"
-        keyup         : (event) => @button.click event  if event.which is ENTER
+        name          : 'email'
+        placeholder   : 'Email address'
+        testPath      : 'register-form-email'
         validate      : @getEmailValidator()
         decorateValidation: no
         focus         : => @email.icon.unsetTooltip()
-        keyup         : (event) => @submitForm event  if event.which is ENTER
+        keyup         : (event) -> @submitForm event  if event.which is ENTER
 
     @password.destroy()
     @password = new LoginInputView
       inputOptions    :
-        name          : "password"
-        type          : "password"
-        testPath      : "recover-password"
-        placeholder   : "Password"
+        name          : 'password'
+        type          : 'password'
+        testPath      : 'recover-password'
+        placeholder   : 'Password'
         keyup         : (event) =>
           if event.which is ENTER
             @password.input.validate()

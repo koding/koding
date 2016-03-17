@@ -4,11 +4,11 @@ module.exports = class LoginViewInlineForm extends KDFormView
 
   JView.mixin @prototype
 
-  viewAppended:->
+  viewAppended: ->
 
     @setTemplate @pistachio()
     @template.update()
 
     @on 'FormValidationFailed', @button.bound 'hideLoader'
 
-  pistachio:->
+  pistachio: ->
