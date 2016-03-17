@@ -1,3 +1,4 @@
+globals        = require 'globals'
 REMOTE_CACHE   = {}
 
 module.exports = RemoteExtensions =
@@ -35,7 +36,7 @@ module.exports = RemoteExtensions =
         RemoteExtensions.addInstance data._id, this
 
 
-  getCache: -> REMOTE_CACHE
+  getCache: globals._getRemoteCache = -> REMOTE_CACHE
 
 
   getInstances: (instanceId) -> @getCache()[instanceId] ? []
