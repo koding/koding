@@ -1335,6 +1335,7 @@ Configuration = (options={}) ->
           command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
         fi
 
+        scripts/check-node-version.sh
       }
 
       function build_services () {
