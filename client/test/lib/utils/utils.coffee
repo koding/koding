@@ -1,6 +1,8 @@
 fs        = require 'fs'
 faker     = require 'faker'
+tempDir   = require 'os-tmpdir'
 formatter = require 'json-format'
+
 
 module.exports =
 
@@ -72,3 +74,16 @@ module.exports =
       return yes
     catch
       return no
+
+
+
+  getCollabLinkFilePath: -> return "#{tempDir()}/collabLink.txt"
+
+
+  beforeCollaborationSuite: ->
+
+    @getUser()  if process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    @registerSuiteHook 'before'  unless @suiteHookHasRun 'before'
+
+
+  afterEachCollaborationTest: (browser, done) -> browser.deleteCollabLink done

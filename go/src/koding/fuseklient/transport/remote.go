@@ -8,11 +8,18 @@ import (
 	"time"
 
 	"github.com/koding/kite"
+	"github.com/koding/kite/dnode"
 )
+
+// Teller is the interface usually implemented by kite.Client.
+type Teller interface {
+	Tell(string, ...interface{}) (*dnode.Partial, error)
+	TellWithTimeout(string, time.Duration, ...interface{}) (*dnode.Partial, error)
+}
 
 // RemoteTransport is a Transport that uses klient on user VM to communicate.
 type RemoteTransport struct {
-	Client *kite.Client
+	Client Teller
 
 	// RemotePath is the full path to mounted dir on user VM.
 	RemotePath string
@@ -27,7 +34,7 @@ type RemoteTransport struct {
 }
 
 // NewRemoteTransport initializes RemoteTransport with kite connection.
-func NewRemoteTransport(c *kite.Client, t time.Duration, p string) (*RemoteTransport, error) {
+func NewRemoteTransport(c Teller, t time.Duration, p string) (*RemoteTransport, error) {
 	return &RemoteTransport{
 		Client:      c,
 		RemotePath:  p,

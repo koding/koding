@@ -96,8 +96,8 @@ func (r *Remote) restoreMounts() error {
 			"prefetchAll", m.MountFolder.PrefetchAll,
 		)
 
-		fsMountName, err := mountcli.NewMountcli().FindMountNameByPath(m.LocalPath)
-		if err == mountcli.ErrNoMountPath {
+		fsMountName, _ := mountcli.NewMountcli().FindMountNameByPath(m.LocalPath)
+		if fsMountName != "" {
 			failOnUnmount := true
 
 			// Mount path exists, but the name doesn't match our mount name.
@@ -114,7 +114,7 @@ func (r *Remote) restoreMounts() error {
 
 			log.Info("Automatically unmounting")
 
-			m.Log = mount.MountLogger(m, m.Log)
+			m.Log = mount.MountLogger(m, log)
 
 			// Mount path exists, and the names match. Unmount it, so that we
 			// can remount it below.
@@ -144,9 +144,7 @@ func (r *Remote) restoreMounts() error {
 			Options:       m.MountFolder,
 			IP:            remoteMachine.IP,
 			KitePinger:    remoteMachine.KitePinger,
-			Client:        remoteMachine.Client,
-			Dialer:        remoteMachine.Client,
-			Teller:        remoteMachine.Client,
+			Transport:     remoteMachine.Client,
 			PathUnmounter: fuseklient.Unmount,
 		}
 
