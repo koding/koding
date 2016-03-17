@@ -191,5 +191,5 @@ module.exports = class NotificationController extends KDObject
               global.location.reload yes
 
 
-    @on 'InstanceChanged', (change) ->
-      remote_extensions.updateInstance change.id
+    @on 'InstanceChanged', (data) ->
+      remote_extensions.updateInstance data
