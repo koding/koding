@@ -13,7 +13,7 @@ $ = require 'jquery'
 
 module.exports = class GroupsMemberRolesEditView extends JView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super
 
@@ -21,8 +21,8 @@ module.exports = class GroupsMemberRolesEditView extends JView
       size    :
         width : 22
 
-  setRoles:(editorsRoles, allRoles)->
-    allRoles = allRoles.reduce (acc, role)->
+  setRoles: (editorsRoles, allRoles) ->
+    allRoles = allRoles.reduce (acc, role) ->
       acc.push role.title  unless role.title in ['owner', 'guest', 'member']
       return acc
     , []
@@ -33,16 +33,16 @@ module.exports = class GroupsMemberRolesEditView extends JView
       editorsRoles
     }
 
-  setMember:(@member)->
+  setMember: (@member) ->
 
-  setGroup:(@group)->
+  setGroup: (@group) ->
 
-  setStatus:(@status)->
+  setStatus: (@status) ->
 
-  getSelectedRoles:->
+  getSelectedRoles: ->
     @checkboxGroup.getValue()
 
-  addViews:->
+  addViews: ->
 
     @loader.hide()
 
@@ -51,7 +51,7 @@ module.exports = class GroupsMemberRolesEditView extends JView
       name           : 'user-role'
       cssClassPrefix : 'role-'
       defaultValue   : @roles.usersRole
-      checkboxes     : @roles.allRoles.map (role)=>
+      checkboxes     : @roles.allRoles.map (role) =>
         if role is 'admin'
           callback = =>
             isAdmin = 'admin' in @checkboxGroup.getValue()
@@ -79,50 +79,50 @@ module.exports = class GroupsMemberRolesEditView extends JView
       callback : =>
         @getDelegate().emit 'RolesChanged', @getDelegate().getData(), @getSelectedRoles()
         @getDelegate().hideEditMemberRolesView()
-        kd.log "save"
+        kd.log 'save'
     ), '.buttons'
 
     @addSubView (new KDButtonView
-      title    : "Kick"
+      title    : 'Kick'
       style    : 'solid small red'
       callback : => @showKickModal()
     ), '.buttons'
 
     if 'owner' in @roles.editorsRoles
       @addSubView (new KDButtonView
-        title    : "Make Owner"
+        title    : 'Make Owner'
         style    : 'solid small'
         callback : => @showTransferOwnershipModal()
       ), '.buttons'
 
-    if @group.slug is "koding" and @status is "unconfirmed"
+    if @group.slug is 'koding' and @status is 'unconfirmed'
       @addSubView (confirmButton = new KDButtonView
-        title    : "Confirm"
+        title    : 'Confirm'
         style    : 'solid small'
         callback : =>
           remote.api.JAccount.verifyEmailByUsername @member.profile.nickname, (err) =>
             return showError err  if err
-            new KDNotificationView title: 'User confirmed'
-            @status = "confirmed"
+            new KDNotificationView { title: 'User confirmed' }
+            @status = 'confirmed'
             @emit 'UserConfirmed', @member
             confirmButton.destroy()
       ), '.buttons'
 
     @$('.buttons').removeClass 'hidden'
 
-  showTransferOwnershipModal:->
+  showTransferOwnershipModal: ->
     modal = new GroupsDangerModalView
       action     : 'Transfer Ownership'
       longAction : 'transfer the ownership to this user'
       callback   : =>
-        @group.transferOwnership @member.getId(), (err)=>
+        @group.transferOwnership @member.getId(), (err) =>
           return @showErrorMessage err if err
-          new KDNotificationView title:'Ownership transferred!'
+          new KDNotificationView { title: 'Ownership transferred!' }
           @getDelegate().emit 'OwnershipChanged'
           modal.destroy()
     , @group
 
-  showKickModal:->
+  showKickModal: ->
     modal = new KDModalView
       title          : 'Kick Member'
       content        : "<div class='modalformline'>Are you sure you want to kick this member?</div>"
@@ -130,29 +130,29 @@ module.exports = class GroupsMemberRolesEditView extends JView
       overlay        : yes
       buttons        :
         Kick         :
-          style      : "solid red medium"
+          style      : 'solid red medium'
           loader     :
-            color    : "#444444"
+            color    : '#444444'
           callback   : =>
-            @group.kickMember @member.getId(), (err)=>
+            @group.kickMember @member.getId(), (err) =>
               return @showErrorMessage err if err
               @getDelegate().destroy()
               modal.buttons.Kick.hideLoader()
               modal.destroy()
         Cancel       :
-          style      : "solid light-gray medium"
-          callback   : (event)-> modal.destroy()
+          style      : 'solid light-gray medium'
+          callback   : (event) -> modal.destroy()
 
-  showErrorMessage:(err)-> showError err
+  showErrorMessage: (err) -> showError err
 
-  pistachio:->
+  pistachio: ->
     """
     {{> @loader}}
     <div class='checkboxes'/>
     <div class='buttons hidden'/>
     """
 
-  viewAppended:->
+  viewAppended: ->
 
     super
 

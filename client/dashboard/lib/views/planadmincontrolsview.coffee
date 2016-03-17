@@ -9,13 +9,13 @@ module.exports = class PlanAdminControlsView extends ProductAdminControlsView
     plan = @getData()
 
     @addProductsButton = new KDButtonView
-      title    : "Add products"
+      title    : 'Add products'
       callback : => @emit 'AddProductsRequested', plan
 
     super()
 
-  pistachio:->
-    """
+  pistachio: ->
+    '''
     {{> @embedButton}}
     {{> @deleteButton}}
     {{> @clientsButton}}
@@ -23,4 +23,4 @@ module.exports = class PlanAdminControlsView extends ProductAdminControlsView
     {{> @addProductsButton}}
     {{> @sortWeight}}
     {{> @embedView}}
-    """
+    '''

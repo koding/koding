@@ -8,9 +8,9 @@ JView = require 'app/jview'
 
 module.exports = class GroupsBlockedUserView extends JView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
-    options.cssClass = "member-related"
+    options.cssClass = 'member-related'
 
     super options, data
 
@@ -19,7 +19,7 @@ module.exports = class GroupsBlockedUserView extends JView
       lazyLoadThreshold     : .99
     @listWrapper    = @listController.getView()
 
-    @listController.getListView().on 'ItemWasAdded', (view)=>
+    @listController.getListView().on 'ItemWasAdded', (view) =>
       view.on 'RolesChanged', @memberRolesChange.bind this, view
 
     @listController.on 'LazyLoadThresholdReached', @bound 'continueLoadingTeasers'
@@ -30,29 +30,29 @@ module.exports = class GroupsBlockedUserView extends JView
 
     @refresh()
 
-  fetchRoles:(callback=->)->
+  fetchRoles: (callback = -> ) ->
     groupData = @getData()
     list = @listController.getListView()
     list.getOptions().group = groupData
-    groupData.fetchRoles (err, roles)=>
+    groupData.fetchRoles (err, roles) ->
       return kd.warn err if err
       list.getOptions().roles = roles
 
-  fetchSomeMembers:(selector={})->
+  fetchSomeMembers: (selector = {}) ->
     @listController.showLazyLoader no
     options =
       limit : 10
 
-    {JAccount} = remote.api
+    { JAccount } = remote.api
     JAccount.fetchBlockedUsers options, (err, blockedUsers) => @populateBlockedUsers err, blockedUsers
 
-  populateBlockedUsers:(err, users)->
+  populateBlockedUsers: (err, users) ->
     return kd.warn err if err
     @listController.hideLazyLoader()
 
     if users.length > 0
       ids = (member._id for member in users)
-      @getData().fetchUserRoles ids, (err, userRoles)=>
+      @getData().fetchUserRoles ids, (err, userRoles) =>
         return kd.warn err if err
         userRolesHash = {}
         for userRole in userRoles
@@ -68,20 +68,20 @@ module.exports = class GroupsBlockedUserView extends JView
         @timestamp = new Date users.last.timestamp_
         @emit 'teasersLoaded' if users.length is 20
 
-  refresh:->
+  refresh: ->
     @listController.removeAllItems()
     @timestamp = new Date()
     @fetchRoles()
     @fetchSomeMembers()
 
-  continueLoadingTeasers:->
-    @fetchSomeMembers {timestamp: $lt: @timestamp.getTime()}
+  continueLoadingTeasers: ->
+    @fetchSomeMembers { timestamp: { $lt: @timestamp.getTime() } }
 
-  memberRolesChange:(view, member, roles)->
-    @getData().changeMemberRoles member.getId(), roles, (err)=>
+  memberRolesChange: (view, member, roles) ->
+    @getData().changeMemberRoles member.getId(), roles, (err) ->
       view.updateRoles roles  unless err
 
-  pistachio:->
-    """
+  pistachio: ->
+    '''
     {{> @listWrapper}}
-    """
+    '''

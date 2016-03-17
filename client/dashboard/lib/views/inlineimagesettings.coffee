@@ -9,12 +9,12 @@ proxifyUrl = require 'app/util/proxifyUrl'
 module.exports = class InlineImageSettings extends KDView
 
   constructor: (options = {}, data) ->
-    options.cssClass or= "group-logo"
-    options.type     or= "logo"
+    options.cssClass or= 'group-logo'
+    options.type     or= 'logo'
 
     super options, data
 
-    {groupsController} = kd.singletons
+    { groupsController } = kd.singletons
     @group = groupsController.getCurrentGroup()
 
     @imageView = new KDCustomHTMLView
@@ -25,14 +25,14 @@ module.exports = class InlineImageSettings extends KDView
       attributes   : @getImageViewAttributes()
 
     @uploadButton  =  new KDButtonView
-      cssClass     : "upload-button solid green"
-      title        : "Change"
-      callback     : @bound "showUploadView"
+      cssClass     : 'upload-button solid green'
+      title        : 'Change'
+      callback     : @bound 'showUploadView'
 
     @addSubView @imageView
     @addSubView @uploadButton
 
-    @group.on "update", =>
+    @group.on 'update', =>
       customizedField = @getCustomized()
       if customizedField
         resized = proxifyUrl customizedField,
@@ -53,14 +53,14 @@ module.exports = class InlineImageSettings extends KDView
           width       : 120
           height      : 120
 
-    @uploader.on "UploadCancelled", @bound "revealViews"
-    @uploader.on "FileUploadDone",  @bound "handleFileUploadDone"
+    @uploader.on 'UploadCancelled', @bound 'revealViews'
+    @uploader.on 'FileUploadDone',  @bound 'handleFileUploadDone'
 
   revealViews: ->
     @imageView.show()
     @uploadButton.show()
 
-  getImageViewAttributes:->
+  getImageViewAttributes: ->
     fieldToCustomize = @getCustomized()
     if fieldToCustomize
       resized    = proxifyUrl fieldToCustomize,
@@ -69,15 +69,15 @@ module.exports = class InlineImageSettings extends KDView
         height   : 55
 
     else
-      @setClass "default"
+      @setClass 'default'
 
-  getCustomized:->
+  getCustomized: ->
     imageType = @getOptions().type
-    if imageType is "logo"
+    if imageType is 'logo'
       return @group.customize?.logo
 
   handleFileUploadDone: (url) ->
     @revealViews()
     imageType = @getOptions().type
-    if imageType is "logo"
-      @group.modify "customize.logo"    : "#{url}"
+    if imageType is 'logo'
+      @group.modify { 'customize.logo' : "#{url}" }

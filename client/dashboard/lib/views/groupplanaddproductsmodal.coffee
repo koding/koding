@@ -13,7 +13,7 @@ module.exports = class GroupPlanAddProductsModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
-    options.title ?= "Add products"
+    options.title ?= 'Add products'
 
     options.overlay ?= yes
 
@@ -29,9 +29,9 @@ module.exports = class GroupPlanAddProductsModal extends KDModalView
     @planExplanation = new KDCustomHTMLView
       cssClass: 'modalformline'
       partial:
-        """
+        '''
         <h2>Plan</h2>
-        """
+        '''
 
     @planView = new GroupProductView
       cssClass: 'modalformline'
@@ -41,16 +41,16 @@ module.exports = class GroupPlanAddProductsModal extends KDModalView
     @productsExplanation = new KDCustomHTMLView
       cssClass: 'modalformline'
       partial:
-        """
+        '''
         <h2>Products</h2>
         <p>Add some products to this plan</p>
-        """
+        '''
 
     @products = new KDListViewController
       itemClass: GroupAddProductListItem
 
     @buttonField = new KDView
-      cssClass: "formline button-field clearfix"
+      cssClass: 'formline button-field clearfix'
 
     @buttonField.addSubView new KDButtonView
       title     : 'Save'

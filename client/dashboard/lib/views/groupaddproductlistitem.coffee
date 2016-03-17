@@ -21,12 +21,12 @@ module.exports = class GroupAddProductListItem extends KDListItemView
   setQuantity: (qty) ->
     @qtyView.setValue qty
 
-  pistachio:->
-    """
+  pistachio: ->
+    '''
     {strong{ #(title) }}
     {{ formatMoney #(feeAmount) / 100 }}
     <div class="fr">
       <strong>QTY:</strong>
       {{> @qtyView}}
     </div>
-    """
+    '''

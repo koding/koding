@@ -17,12 +17,12 @@ require('./routehandler')()
 
 module.exports = class DashboardAppController extends AppController
 
-  @options = name : 'Dashboard'
+  @options = { name : 'Dashboard' }
 
   constructor: (options = {}, data) ->
 
     options.view = new DashboardAppView
-      testPath   : "groups-dashboard"
+      testPath   : 'groups-dashboard'
 
     data or= kd.getSingleton('groupsController').getCurrentGroup()
 
@@ -58,38 +58,38 @@ module.exports = class DashboardAppController extends AppController
       #     callback   : @bound 'paymentViewAdded'
     ]
 
-    if data.slug is "koding"
+    if data.slug is 'koding'
       @tabData.push
-          name         : 'Products'
-          kodingOnly   : yes
-          viewOptions  :
-            viewClass  : GroupProductSettingsView
-            lazy       : yes
-            callback   : @bound 'productViewAdded'
-        ,
-          name         : 'Blocked users'
-          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-          viewOptions  :
-            viewClass  : GroupsBlockedUserView
-            lazy       : yes
-        ,
-          name         : 'Widgets'
-          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-          viewOptions  :
-            viewClass  : CustomViewsManager
-            lazy       : yes
-        ,
-          name         : 'Onboarding'
-          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-          viewOptions  :
-            viewClass  : OnboardingDashboardView
-            lazy       : yes
-        ,
-          name         : 'Administration'
-          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-          viewOptions  :
-            viewClass  : AdministrationView
-            lazy       : yes
+        name         : 'Products'
+        kodingOnly   : yes
+        viewOptions  :
+          viewClass  : GroupProductSettingsView
+          lazy       : yes
+          callback   : @bound 'productViewAdded'
+      ,
+        name         : 'Blocked users'
+        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+        viewOptions  :
+          viewClass  : GroupsBlockedUserView
+          lazy       : yes
+      ,
+        name         : 'Widgets'
+        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+        viewOptions  :
+          viewClass  : CustomViewsManager
+          lazy       : yes
+      ,
+        name         : 'Onboarding'
+        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+        viewOptions  :
+          viewClass  : OnboardingDashboardView
+          lazy       : yes
+      ,
+        name         : 'Administration'
+        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+        viewOptions  :
+          viewClass  : AdministrationView
+          lazy       : yes
 
       # CURRENTLY DISABLED
 
@@ -112,7 +112,7 @@ module.exports = class DashboardAppController extends AppController
   membersViewAdded: (pane, view) ->
     group = view.getData()
 
-  loadSection: ({title}) ->
+  loadSection: ({ title }) ->
     @getView().nav.ready =>
       @getView().tabs.showPaneByName title
 
@@ -124,15 +124,15 @@ module.exports = class DashboardAppController extends AppController
   productViewAdded: (pane, view) ->
     new GroupProductsController { view }
 
-  loadView: (mainView, firstRun = yes, loadFeed = no)->
+  loadView: (mainView, firstRun = yes, loadFeed = no) ->
     return unless firstRun
-    @on "SearchFilterChanged", (value) =>
+    @on 'SearchFilterChanged', (value) =>
       return if value is @_searchValue
       @_searchValue = Encoder.XSSEncode value
       @getOptions().view.search @_searchValue
       @loadView mainView, no, yes
 
-  handleQuery:(query={})->
+  handleQuery: (query = {}) ->
     @getOptions().view.ready =>
-      {q} = query
-      @emit "SearchFilterChanged", q or ""
+      { q } = query
+      @emit 'SearchFilterChanged', q or ''

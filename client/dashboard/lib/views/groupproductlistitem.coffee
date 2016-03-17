@@ -37,9 +37,9 @@ module.exports = class GroupProductListItem extends KDListItemView
     view.enable?()  for view in @controls.subViews
 
   pistachio: ->
-    """
+    '''
     <div class="product-item">
       {{> @productView}}
       {{> @controls}}
     </div>
-    """
+    '''
