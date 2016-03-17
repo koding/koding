@@ -124,7 +124,8 @@ module.exports =
     console.log ' ✔ Getting collaboration link...'
 
     helpers.beginTest browser, secondUser
-    browser.getCollabLink (url) ->
+    browser.getCollabLink browser, (url) ->
+      console.log '>>>>>>>>>> Participant get the link', url
 
       browser
         .url                       url

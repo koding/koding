@@ -25,7 +25,12 @@ module.exports =
 
   closeAllTabs: (browser) ->
 
-    browser.pause 5000 # wait for snapshot restore
+    # there is a firefox related snapshot restore issue therefore a refresh and
+    # a pause is needed here. it only happens in firefox because firefox has
+    # some serious focus issues this is just a hacky workaround for now.
+    browser
+      .refresh()
+      .pause 7500
 
     handleSelector = '.panel-1 .pane-wrapper .kdtabhandle.kddraggable'
     modalSelector  = '.autoremovepane-confirm'
