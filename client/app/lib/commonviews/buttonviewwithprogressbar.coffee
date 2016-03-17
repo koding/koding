@@ -1,7 +1,6 @@
 kd                = require 'kd'
 KDButtonView      = kd.ButtonView
 KDProgressBarView = kd.ProgressBarView
-KDLoaderView      = kd.LoaderView
 KDCustomHTMLView  = kd.CustomHTMLView
 
 
@@ -11,29 +10,23 @@ module.exports = class ButtonViewWithProgressBar extends KDCustomHTMLView
 
     super options, data
 
-    o               = @getOptions()        or {}
-    buttonOptions   = o.buttonOptions      or {}
-    progressOptions = o.progressOptions    or {}
-    loaderOptions   = o.loaderOptions      or {}
+    o               = @getOptions()     or {}
+    buttonOptions   = o.buttonOptions   or {}
+    progressOptions = o.progressOptions or {}
+    loaderOptions   = o.loaderOptions   or {}
 
-    @button = new KDButtonView buttonOptions
-    @button.setCallback @bound 'handleCallback'
+    buttonOptions.cb         = buttonOptions.callback
+    buttonOptions.callback   = @bound 'handleCallback'
+    progressOptions.cssClass = kd.utils.curry 'hidden', progressOptions.cssClass
 
-    @addSubView @button
-
-    @progressBar = new KDProgressBarView progressOptions
-    @loader      = new KDLoaderView loaderOptions
-
-    @progressBar.hide()
-
-    @progressBar.addSubView @loader, null, yes
-    @addSubView @progressBar
+    @addSubView @button      = new KDButtonView buttonOptions
+    @addSubView @progressBar = new KDProgressBarView progressOptions
 
 
   handleCallback: ->
 
     buttonOptions = @getOption 'buttonOptions' or {}
-    buttonOptions.callback.call()  if buttonOptions.callback
+    buttonOptions.cb?.call()
 
     @startProgress()
 
@@ -41,22 +34,15 @@ module.exports = class ButtonViewWithProgressBar extends KDCustomHTMLView
   startProgress: ->
 
     @button.disable()
-    @button.hide()
-
-    @loader.show()
     @progressBar.show()
 
 
   resetProgress: ->
 
     @show()
-
-    @loader.hide()
     @progressBar.hide()
     @updateProgress 0
-
     @button.enable()
-    @button.show()
 
 
   updateProgress: (value, unit, label) ->

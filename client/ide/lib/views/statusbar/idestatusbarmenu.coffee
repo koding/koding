@@ -14,7 +14,7 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
 
     options.x              ?= delegate.getX() - 5
     options.y              ?= delegate.getY() + 20
-    options.cssClass      or= "status-bar-menu #{paneType}-context-menu"
+    options.cssClass      or= "IDE-StatusBarMenu #{paneType}-context-menu"
     options.treeItemClass or= IDEStatusBarMenuItem
 
     super options, @getItems paneType

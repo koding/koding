@@ -486,14 +486,14 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   click: ->
 
-    super
-
     appManager = kd.getSingleton 'appManager'
 
     appManager.tell 'IDE', 'setActiveTabView', @tabView
     appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
 
     @updateStatusBar()
+
+    super
 
 
   openSavedFile: (file, content) ->
