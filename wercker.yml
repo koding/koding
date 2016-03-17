@@ -36,10 +36,11 @@ build:
           source $HOME/.nvm/nvm.sh
           nvm use 0.10.33
     - script:
-        name: koding node modules
+        name: node modules
         code: |
           scripts/wercker/install-node-modules koding
           npm install
+          scripts/wercker/update-node-modules
     - script:
         name: notify cebeci
         code: |
@@ -69,9 +70,6 @@ build:
     - script:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
-    - script:
-        name: client node modules
-        code: scripts/install-npm.sh -d client -u
     - script:
         name: run coffeelint
         code: scripts/wercker/run-command scripts/lint-coffeescript.sh
