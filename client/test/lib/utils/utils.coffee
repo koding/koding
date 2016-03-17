@@ -1,6 +1,8 @@
 fs        = require 'fs'
 faker     = require 'faker'
+tempDir   = require 'os-tmpdir'
 formatter = require 'json-format'
+
 
 module.exports =
 
@@ -72,6 +74,10 @@ module.exports =
       return yes
     catch
       return no
+
+
+
+  getCollabLinkFilePath: -> return "#{tempDir()}/collabLink.txt"
 
   beforeCollaborationSuite: ->
 

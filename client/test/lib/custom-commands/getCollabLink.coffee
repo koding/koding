@@ -1,9 +1,10 @@
-fs      = require 'fs'
-tempDir = require 'os-tmpdir'
+fs    = require 'fs'
+utils = require '../utils/utils.js'
 
-exports.command = getCollabLink = (callback) ->
 
-  path = "#{tempDir()}/collabLink.txt"
+exports.command = getCollabLink = (browser, callback) ->
+
+  path       = utils.getCollabLinkFilePath()
   isUrlFound = no
 
   getUrl = ->

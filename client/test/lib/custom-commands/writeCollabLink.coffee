@@ -1,9 +1,9 @@
-fs      = require 'fs'
-tempDir = require 'os-tmpdir'
+fs    = require 'fs'
+utils = require '../utils/utils.js'
 
 exports.command = writeCollabLink = (url, callback) ->
 
-  path = "#{tempDir()}/collabLink.txt"
+  path = utils.getCollabLinkFilePath()
 
   try
     fs.writeFileSync path, url
