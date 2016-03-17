@@ -89,6 +89,9 @@ func (f *Fusetest) TestWriteFile() {
 		err := ioutil.WriteFile(filePath, []byte("Hello World!"), 0700)
 		So(err, ShouldBeNil)
 
+		stat, err := os.Stat(filePath)
+		So(err, ShouldBeNil)
+
 		Convey("It should write content to existing file in root directory", func() {
 			fi, err := os.OpenFile(filePath, os.O_WRONLY, 0755)
 			So(err, ShouldBeNil)
@@ -103,6 +106,34 @@ func (f *Fusetest) TestWriteFile() {
 			contents, err := f.Remote.ReadFile(filePath)
 			So(err, ShouldBeNil)
 			So(contents, ShouldEqual, string(newContent))
+		})
+
+		Convey("It should large write content to file in root directory", func() {
+			fi, err := os.OpenFile(filePath, os.O_WRONLY, 0755)
+			So(err, ShouldBeNil)
+
+			newContent := []byte("This file has been modified!\n")
+			for i := 0; i < 1000; i++ {
+				bytesRead, err := fi.Write(newContent)
+				So(err, ShouldBeNil)
+				So(bytesRead, ShouldEqual, len(newContent))
+			}
+
+			So(fi.Close(), ShouldBeNil)
+
+			size, err := f.Remote.Size(filePath)
+			So(size, ShouldEqual, 1000*len(newContent))
+
+			Convey("It should read file in chunks", func() {
+				fi, err := os.OpenFile(filePath, os.O_RDONLY, 0755)
+				So(err, ShouldBeNil)
+
+				for i := 0; i < 1000; i++ {
+					So(readFileAt(fi, i*len(newContent), string(newContent)), ShouldBeNil)
+				}
+
+				So(fi.Close(), ShouldBeNil)
+			})
 		})
 
 		Convey("It should modify a new file inside newly created deeply nested directory", func() {
@@ -126,6 +157,30 @@ func (f *Fusetest) TestWriteFile() {
 			contents, err := f.Remote.ReadFile(filePath)
 			So(err, ShouldBeNil)
 			So(contents, ShouldEqual, string(newContent))
+		})
+
+		Convey("It should truncate file to 0 bytes", func() {
+			So(os.Truncate(filePath, 0), ShouldBeNil)
+
+			size, err := f.Remote.Size(filePath)
+			So(err, ShouldBeNil)
+			So(size, ShouldEqual, 0)
+		})
+
+		Convey("It should truncate file to less than size of file", func() {
+			So(os.Truncate(filePath, stat.Size()-1), ShouldBeNil)
+
+			size, err := f.Remote.Size(filePath)
+			So(err, ShouldBeNil)
+			So(size, ShouldEqual, stat.Size()-1)
+		})
+
+		Convey("It should truncate file to more than size of file", func() {
+			So(os.Truncate(filePath, stat.Size()+1), ShouldBeNil)
+
+			size, err := f.Remote.Size(filePath)
+			So(err, ShouldBeNil)
+			So(size, ShouldEqual, stat.Size()+1)
 		})
 	})
 }

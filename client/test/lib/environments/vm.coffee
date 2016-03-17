@@ -23,7 +23,7 @@ module.exports =
       .waitForElementVisible   vmStateModal + ' .state-label.stopped', 300000
       .waitForElementVisible   vmStateModal + ' .turn-on.state-button', 20000 # Assertion
       .end()
-  
+
 
   turnOnVm: (browser) ->
 
@@ -63,14 +63,14 @@ module.exports =
     helpers.waitForVMRunning(browser)
 
     environmentHelpers.openGeneralSettings(browser)
-    environmentHelpers.nameVM(browser,nickname)
+    environmentHelpers.nameVM(browser, nickname)
 
     browser
       .waitForElementVisible nicknameView, 20000
       .assert.containsText   nicknameView, nickname # Assertion
 
     #Revert Changes for next test to work
-    environmentHelpers.nameVM(browser, "koding-vm-0")
+    environmentHelpers.nameVM(browser, 'koding-vm-0')
     browser.pause 1000 #Doesn't work without it
     browser.end()
 

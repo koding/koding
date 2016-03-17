@@ -16,7 +16,7 @@ module.exports =
 
     browser.pause 5000 # wait to see the modal
 
-    browser.element 'css selector', '.env-modal.paid-plan', (result) =>
+    browser.element 'css selector', '.env-modal.paid-plan', (result) ->
       if result.status is 0
         browser.end()
       else
@@ -32,7 +32,7 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    browser.element 'css selector', vmSelector, (result) =>
+    browser.element 'css selector', vmSelector, (result) ->
       if result.status is 0
         browser.end()
       else
@@ -56,7 +56,7 @@ module.exports =
     helpers.waitForVMRunning(browser)
     environmentHelpers.attemptCreateSnapshot(browser)
 
-    browser.element 'css selector', '.snapshots .add-view', (result) =>
+    browser.element 'css selector', '.snapshots .add-view', (result) ->
       if result.status is 0
         browser.end()
       else

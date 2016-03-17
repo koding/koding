@@ -8,6 +8,7 @@ import (
 	"koding/fuseklient"
 	"koding/klient/remote/mount"
 	"koding/klient/remote/rsync"
+	"koding/mountcli"
 )
 
 const (
@@ -95,13 +96,9 @@ func (r *Remote) restoreMounts() error {
 			"prefetchAll", m.MountFolder.PrefetchAll,
 		)
 
-		// Ignoring the error here, because it is not a problem if there is
-		// no mountName for the given path.
-		fsMountInfo, _ := fuseklient.GetMountByPath(m.LocalPath)
-
-		if fsMountInfo != nil {
+		fsMountName, err := mountcli.NewMountcli().FindMountNameByPath(m.LocalPath)
+		if err == mountcli.ErrNoMountPath {
 			failOnUnmount := true
-			fsMountName := fsMountInfo.FSName
 
 			// Mount path exists, but the name doesn't match our mount name.
 			// This occurs if the folder has been mounted by something else (ie,
@@ -115,10 +112,13 @@ func (r *Remote) restoreMounts() error {
 				failOnUnmount = false
 			}
 
+			log.Info("Automatically unmounting")
+
+			m.Log = mount.MountLogger(m, m.Log)
+
 			// Mount path exists, and the names match. Unmount it, so that we
 			// can remount it below.
-			log.Info("Automatically unmounting")
-			if err := fuseklient.Unmount(m.LocalPath); err != nil {
+			if err := m.Unmount(); err != nil {
 				if failOnUnmount {
 					log.Error("Failed to automatically unmount. err:%s", err)
 					continue
@@ -131,6 +131,7 @@ func (r *Remote) restoreMounts() error {
 		// Mount path has been unmounted, or didn't exist locally.
 		// Remount it, to improve UX.
 		log.Info("Automatically mounting")
+
 		remoteMachine, err := remoteMachines.GetByIP(m.IP)
 		if err != nil {
 			log.Error("Failed to get machine by ip. err:%s", err)
@@ -150,7 +151,9 @@ func (r *Remote) restoreMounts() error {
 		}
 
 		if err := mounter.MountExisting(m); err != nil {
+			m.LastMountError = true
 			log.Error("Mounter returned error. err:%s", err)
+
 			continue
 		}
 

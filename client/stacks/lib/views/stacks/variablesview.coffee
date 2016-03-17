@@ -11,13 +11,13 @@ VariablesEditorView        = require './editors/variableseditorview'
 module.exports = class VariablesView extends StackBaseEditorTabView
 
   STATES    =
-    INITIAL : "You can define your custom variables,
-               and use them in your stack template."
+    INITIAL : 'You can define your custom variables,
+               and use them in your stack template.'
     MISSING : "Please fill the missing variables: <pre>%VARIABLES%</pre>
                that you've used in your stack template."
-    PASSED  : "All the used variable in your stack template defined
-               properly."
-    INVALID : "Please check the syntax. It should be a valid YAML content."
+    PASSED  : 'All the used variable in your stack template defined
+               properly.'
+    INVALID : 'Please check the syntax. It should be a valid YAML content.'
 
 
   constructor: (options = {}, data) ->
@@ -86,12 +86,12 @@ module.exports = class VariablesView extends StackBaseEditorTabView
     if newState is 'MISSING'
       if missings.length
         stateMessage = STATES.MISSING.replace '%VARIABLES%', missings
-        @indicator.setTooltip title: stateMessage
+        @indicator.setTooltip { title: stateMessage }
         @indicator.updatePartial missings.length
     else if newState is 'INVALID'
       @indicator.setClass 'red'
       @indicator.updatePartial '!'
-      @indicator.setTooltip title: STATES.INVALID
+      @indicator.setTooltip { title: STATES.INVALID }
 
 
   isPassed: -> @_state in ['PASSED', 'INITIAL']
@@ -172,6 +172,6 @@ module.exports = class VariablesView extends StackBaseEditorTabView
     @_pinnedWarning = yes
     @indicator.setClass 'red'
     @indicator.updatePartial '!'
-    @indicator.setTooltip title: warning
+    @indicator.setTooltip { title: warning }
     @indicator.setClass 'in'
     @parent.tabHandle.setClass 'notification'

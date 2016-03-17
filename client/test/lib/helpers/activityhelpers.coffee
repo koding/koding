@@ -3,7 +3,7 @@ assert        = require 'assert'
 
 activitySelector            = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 activityInputSelector       = ' [testpath="ActivityInputView"]'
-imageText                   = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.111.png hello world!"
+imageText                   = 'https://koding-cdn.s3.amazonaws.com/images/default.avatar.111.png hello world!'
 firstActivityInputSelector  = "#{activitySelector}#{activityInputSelector}"
 linkSelector                = "#{activitySelector} .activity-content-wrapper article a"
 codeSelector                = "#{activitySelector} .has-markdown code"
@@ -73,7 +73,7 @@ module.exports =
         @editCommentAction(browser, no, no, yes)
 
 
-  editCommentAction: (browser, editWithCode = yes, editWithImage = yes, editWithLink =yes) ->
+  editCommentAction: (browser, editWithCode = yes, editWithImage = yes, editWithLink = yes) ->
 
     imageSelector             = "#{activitySelector} .embed-image-view img"
     firstCommentInputSelector = "#{activitySelector} .comment-input-view"
@@ -120,7 +120,7 @@ module.exports =
         .assert.containsText    commentLinkSelector, finalLink + ' Hello Koding'
 
 
-  editMessageAction: (browser, editWithCode = yes, editImage = yes, editLink =yes) ->
+  editMessageAction: (browser, editWithCode = yes, editImage = yes, editLink = yes) ->
 
     imageSelector               = "#{activitySelector} .link-embed-box .embed-image-view img"
     doneButtonSelector          = "#{activitySelector} button.done-button span.button-title"

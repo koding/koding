@@ -39,10 +39,10 @@ func TestPermDeniedRepair(t *testing.T) {
 		}
 
 		Convey("When Status is run", func() {
-			Convey("It should return a mount permission error", func() {
-				err := r.Status()
-				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "wrong permission")
+			Convey("It should return not okay", func() {
+				ok, err := r.Status()
+				So(ok, ShouldBeFalse)
+				So(err, ShouldBeNil)
 			})
 		})
 
@@ -57,7 +57,7 @@ func TestPermDeniedRepair(t *testing.T) {
 			Convey("It should check the status of the mount again", func() {
 				err := r.Repair()
 				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "wrong permission")
+				So(err.Error(), ShouldContainSubstring, "not-okay")
 			})
 		})
 	})
@@ -88,8 +88,9 @@ func TestPermDeniedRepair(t *testing.T) {
 		}
 
 		Convey("When Status is run", func() {
-			Convey("It should return no error", func() {
-				err := r.Status()
+			Convey("It should return okay", func() {
+				ok, err := r.Status()
+				So(ok, ShouldBeTrue)
 				So(err, ShouldBeNil)
 			})
 		})

@@ -10,7 +10,7 @@ module.exports = class CredentialListView extends kd.View
 
   constructor: (options = {}, data) ->
 
-    curryIn options, cssClass: 'stacks step-creds'
+    curryIn options, { cssClass: 'stacks step-creds' }
 
     super options, data
 

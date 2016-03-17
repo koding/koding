@@ -15,14 +15,14 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    browser.element 'css selector', vmSelector, (result) =>
+    browser.element 'css selector', vmSelector, (result) ->
       if result.status is 0
         browser.end()
       else
         environmentHelpers.clickAddVMButton(browser)
         browser.pause 10000 # wait to see the modal
 
-        browser.element 'css selector', freeModalSelector, (result) =>
+        browser.element 'css selector', freeModalSelector, (result) ->
           if result.status is 0
             browser
               .waitForElementVisible   linkSelector, 20000
@@ -52,7 +52,7 @@ module.exports =
     helpers.beginTest(browser)
     browser.pause  5000 # wait for load koding-vm-1
 
-    browser.element 'css selector', "#{vmSelector} .running", (result) =>
+    browser.element 'css selector', "#{vmSelector} .running", (result) ->
       if result.status is 0
         browser.end()
       else
@@ -73,7 +73,7 @@ module.exports =
 
     environmentHelpers.openVmSettingsModal(browser, 'koding-vm-1')
 
-    browser.element  'css selector', '.AppModal-form.with-fields .alwayson .koding-on-off.on', (result) =>
+    browser.element  'css selector', '.AppModal-form.with-fields .alwayson .koding-on-off.on', (result) ->
       if result.status is 0
         console.log ' ✔ VM is already always on, ending test...'
         browser.end()
@@ -84,7 +84,7 @@ module.exports =
           .click                    '.AppModal-form.with-fields .alwayson .koding-on-off'
           .pause                    1000
           .refresh()
-          .waitForElementVisible    '[testpath=main-sidebar]', 25000, =>
+          .waitForElementVisible    '[testpath=main-sidebar]', 25000, ->
 
             environmentHelpers.openVmSettingsModal(browser, 'koding-vm-1')
 

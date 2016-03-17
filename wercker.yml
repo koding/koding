@@ -1,4 +1,4 @@
-box: koding/base@0.0.29
+box: koding/base@0.0.30
 no-response-timeout: 10
 services:
   - userminddeployer/postgresql9.3@0.0.7-usermind-9.3-1
@@ -257,10 +257,15 @@ deploy:
 
   s3-klientkite-development:
     - script:
-        name: deploy klient
+        name: deploy klient to development channel
+        code: $WERCKER_ROOT/scripts/deploy-klient.sh
+
+  s3-klientkite-managed:
+    - script:
+        name: deploy klient to managed channel
         code: $WERCKER_ROOT/scripts/deploy-klient.sh
 
   s3-klientkite-production:
     - script:
-        name: deploy klient
+        name: deploy klient to production channel
         code: $WERCKER_ROOT/scripts/deploy-klient.sh

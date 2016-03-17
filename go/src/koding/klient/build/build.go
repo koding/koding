@@ -24,12 +24,13 @@ var (
 )
 
 type pkg struct {
-	appName       string
-	importPath    string
-	files         []string
-	version       string
-	upstartScript string
-	ldflags       string
+	appName        string
+	importPath     string
+	files          []string
+	version        string
+	upstartScript  string
+	sysvinitScript string
+	ldflags        string
 }
 
 func main() {
@@ -52,6 +53,7 @@ func buildKlient() error {
 
 	importPath := "koding/klient"
 	upstartPath := filepath.Join(gopath, "src", importPath, "files/klient.conf")
+	sysvinitPath := filepath.Join(gopath, "src", importPath, "files/klient.init")
 
 	symbolvalue := "0.0.1"
 	if *flagBuildNumber != 0 {
@@ -64,11 +66,12 @@ func buildKlient() error {
 	}
 
 	kclient := pkg{
-		appName:       "klient",
-		importPath:    importPath,
-		version:       symbolvalue,
-		upstartScript: upstartPath,
-		ldflags:       ldflags,
+		appName:        "klient",
+		importPath:     importPath,
+		version:        symbolvalue,
+		upstartScript:  upstartPath,
+		sysvinitScript: sysvinitPath,
+		ldflags:        ldflags,
 	}
 
 	return kclient.build()
@@ -83,14 +86,15 @@ func (p *pkg) build() error {
 	}
 
 	deb := &build.Deb{
-		Debug:         *flagDebug,
-		AppName:       p.appName,
-		Version:       p.version,
-		ImportPath:    p.importPath,
-		Files:         strings.Join(p.files, ","),
-		InstallPrefix: "opt/kite",
-		UpstartScript: p.upstartScript,
-		Ldflags:       p.ldflags,
+		Debug:          *flagDebug,
+		AppName:        p.appName,
+		Version:        p.version,
+		ImportPath:     p.importPath,
+		Files:          strings.Join(p.files, ","),
+		InstallPrefix:  "opt/kite",
+		UpstartScript:  p.upstartScript,
+		SysvinitScript: p.sysvinitScript,
+		Ldflags:        p.ldflags,
 	}
 
 	debFile, err := deb.Build()

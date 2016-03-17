@@ -89,9 +89,9 @@ module.exports = [
     { name: 'environments vm' }
   ]
 
-  [
-    { name: 'environments paidaccount' }
-  ]
+  # [
+  #   { name: 'environments paidaccount' }
+  # ]
 
   [
     { name: 'environments domain' }

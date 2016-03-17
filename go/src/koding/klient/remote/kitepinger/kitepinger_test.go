@@ -28,10 +28,12 @@ func TestRegister(t *testing.T) {
 	}
 }
 
-func TestUnregister(t *testing.T) {
+func TestUnsubscribe(t *testing.T) {
 	p := &PingKite{
 		nodata:      struct{}{},
 		subscribers: map[chan<- ChangeSummary]struct{}{},
+		ticker:      time.NewTicker(time.Minute),
+		pinging:     true,
 	}
 
 	// broadcast with no subscribers, to make sure we don't panic/etc
@@ -56,6 +58,24 @@ func TestUnregister(t *testing.T) {
 			"Expected to leave existing channels alone. Wanted %d, have %d",
 			2, len(p.subscribers),
 		)
+	}
+
+	if p.pinging != true {
+		t.Error("Expected Unsubscribe to not call Stop() if there are still subs")
+	}
+
+	p.Unsubscribe(a)
+	p.Unsubscribe(c)
+
+	if len(p.subscribers) != 0 {
+		t.Errorf(
+			"Expected to all subs to be gone. Wanted %d, have %d",
+			0, len(p.subscribers),
+		)
+	}
+
+	if p.pinging != false {
+		t.Error("Expected Unsubscribe to call Stop() if there are no subs")
 	}
 }
 

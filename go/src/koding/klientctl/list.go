@@ -16,6 +16,8 @@ import (
 	"github.com/koding/logging"
 )
 
+var autoUnmountFailed = "Error auto mounting. Please unmount & mount again."
+
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
 func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
@@ -73,12 +75,15 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 		// to a single mount.
 		var formattedMount string
 		if len(info.Mounts) > 0 {
-			// TODO: "fishify" the mount paths.
-			formattedMount = fmt.Sprintf(
-				"%s -> %s",
-				shortenPath(info.Mounts[0].LocalPath),
-				shortenPath(info.Mounts[0].RemotePath),
-			)
+			if info.Mounts[0].LastMountError {
+				formattedMount = autoUnmountFailed
+			} else {
+				formattedMount += fmt.Sprintf(
+					"%s -> %s",
+					shortenPath(info.Mounts[0].LocalPath),
+					shortenPath(info.Mounts[0].RemotePath),
+				)
+			}
 		}
 
 		status := "unknown"

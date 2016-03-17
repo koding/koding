@@ -1,30 +1,16 @@
 package list
 
 import (
+	"koding/klient/remote/restypes"
 	"koding/klientctl/util"
-	"time"
 )
 
 type KiteInfo struct {
-	ConnectedAt  time.Time   `json:"connectedAt"`
-	IP           string      `json:"ip"`
-	VMName       string      `json:"vmName"`
-	Hostname     string      `json:"hostname"`
-	MachineLabel string      `json:"machineLabel"`
-	Mounts       []MountInfo `json:"mounts"`
-	Teams        []string    `json:"teams"`
-
-	// TODO: DEPRECATE
-	MountedPaths []string `json:"mountedPaths"`
+	restypes.ListMachineInfo
 }
 
 // KiteInfos is a slice of KiteInfo with helper methods.
 type KiteInfos []KiteInfo
-
-type MountInfo struct {
-	RemotePath string `json:"remotePath"`
-	LocalPath  string `json:"localPath"`
-}
 
 // FindFromName finds a specific KiteInfo by the name, returning true or false if
 // one was found.

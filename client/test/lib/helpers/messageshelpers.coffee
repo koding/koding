@@ -17,9 +17,9 @@ module.exports =
     messageWithFullCode = "```console.log('123456789')```"
     textSelector        = '.message-pane.privatemessage .message-pane-scroller .kdscrollview .kdlistview-privatemessage .consequent'
     imageSelector       = "#{textSelector} .link-embed-box .embed-image-view img"
-    linkSelector        = "[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView] .link-embed-box .with-image .preview-text a:nth-of-type(2)"
-    messageWithImage    = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png Hello World"
-    messageWithLink     = "http://wikipedia.org Hello World"
+    linkSelector        = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView] .link-embed-box .with-image .preview-text a:nth-of-type(2)'
+    messageWithImage    = 'https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png Hello World'
+    messageWithLink     = 'http://wikipedia.org Hello World'
     sendMessage         = (browser, users, message, purpose) ->
       console.log " ✔ Creating a new message with user #{users[0].username}..."
       browser
@@ -30,65 +30,66 @@ module.exports =
         .waitForElementVisible   '.new-message-form.with-fields' , 20000
         .waitForElementVisible   formSelector, 20000
 
-        for user in users
-          browser
-            .click                   formSelector + ' input[type=text]'
-            .setValue                formSelector + ' input[type=text]', user.username
-            .click                   elementSelector + ' a.add-icon'
-            .click                   formSelector + ' input[type=text]'
-            .waitForElementVisible   itemSelector, 20000
-            .click                   itemSelector
-
-        if purpose
-          browser
-            .waitForElementVisible  '.purpose input[name=purpose]', 20000
-            .setValue               '.purpose input[name=purpose]', purpose
-
+      for user in users
         browser
-          .waitForElementVisible   '.reply-input-widget.private',20000
-          .click                   textareaSelector
-          .setValue                textareaSelector, message
-          .pause                   2000 #in order for the previews to load
-          .setValue                textareaSelector, browser.Keys.ENTER
-          .waitForElementVisible   '.message-pane.privatemessage', 20000
-          .waitForElementVisible   '[testpath=activity-list]', 20000
-          switch message
-            when messageWithFullCode
-              browser
-                .assert.containsText     textSelector, messageWithCode
-            when messageWithImage
-              browser
-                .waitForElementVisible   imageSelector, 20000
+          .click                   formSelector + ' input[type=text]'
+          .setValue                formSelector + ' input[type=text]', user.username
+          .click                   elementSelector + ' a.add-icon'
+          .click                   formSelector + ' input[type=text]'
+          .waitForElementVisible   itemSelector, 20000
+          .click                   itemSelector
 
-              browser.getAttribute imageSelector, 'height', (result) ->
-                height = result.value
-                assert.equal('333', height)
-            when messageWithLink
-              browser
-                .waitForElementVisible    linkSelector, 20000
-                .assert.containsText      linkSelector, 'The Free Encyclopedia'
-            else
-              browser
-                .pause                   7500 # wait for a koding user
-                .assert.containsText     '.message-pane.privatemessage', message # Assertion
-                .waitForElementVisible   '.message-pane.privatemessage .with-parent', 20000
-                if purpose
-                  browser.assert.containsText '.activity-sidebar .messages', purpose # Assertion
-                else
-                  for user in users
-                    browser.waitForElementPresent "#{sidebarTextSelector} [href='/#{user.username}']", 20000
+      if purpose
+        browser
+          .waitForElementVisible  '.purpose input[name=purpose]', 20000
+          .setValue               '.purpose input[name=purpose]', purpose
+
+      browser
+        .waitForElementVisible   '.reply-input-widget.private', 20000
+        .click                   textareaSelector
+        .setValue                textareaSelector, message
+        .pause                   2000 #in order for the previews to load
+        .setValue                textareaSelector, browser.Keys.ENTER
+        .waitForElementVisible   '.message-pane.privatemessage', 20000
+        .waitForElementVisible   '[testpath=activity-list]', 20000
+
+      switch message
+        when messageWithFullCode
+          browser
+            .assert.containsText     textSelector, messageWithCode
+        when messageWithImage
+          browser
+            .waitForElementVisible   imageSelector, 20000
+
+          browser.getAttribute imageSelector, 'height', (result) ->
+            height = result.value
+            assert.equal('333', height)
+        when messageWithLink
+          browser
+            .waitForElementVisible    linkSelector, 20000
+            .assert.containsText      linkSelector, 'The Free Encyclopedia'
+        else
+          browser
+            .pause                   7500 # wait for a koding user
+            .assert.containsText     '.message-pane.privatemessage', message # Assertion
+            .waitForElementVisible   '.message-pane.privatemessage .with-parent', 20000
+          if purpose
+            browser.assert.containsText '.activity-sidebar .messages', purpose # Assertion
+          else
+            for user in users
+              browser.waitForElementPresent "#{sidebarTextSelector} [href='/#{user.username}']", 20000
 
     if purpose
-      browser.element 'css selector', purposeSelector, (result) =>
+      browser.element 'css selector', purposeSelector, (result) ->
         if result.status is 0
-          console.log " ✔ A message thread with the same purpose is already exists. Ending test."
+          console.log ' ✔ A message thread with the same purpose is already exists. Ending test.'
           return yes
         else
           sendMessage browser, users, message, purpose
     else
-      browser.element 'css selector', messageSelector, (result) =>
+      browser.element 'css selector', messageSelector, (result) ->
         if result.status is 0
-          console.log " ✔ A message thread with the same user is already exists. Ending test."
+          console.log ' ✔ A message thread with the same user is already exists. Ending test.'
           return yes
         else
           sendMessage browser, users, message

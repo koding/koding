@@ -68,18 +68,26 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
 
   addForm: ->
 
-    TeamJoinTabFormClass = if @alreadyMember and @wantsToUseDifferentAccount
+    if @alreadyMember and @wantsToUseDifferentAccount
       @hideAvatar()
       @forgotPassword?.show()
-      @getOption 'loginForm'
+      kd.utils.defer => @form.username.input.$().trigger 'focus'
+
+      TeamJoinTabFormClass = @getOption 'loginForm'
+
     else if @alreadyMember
       @showAvatar()
       @forgotPassword?.show()
-      @getOption 'loginFormInvited'
+      kd.utils.defer => @form.password.input.$().trigger 'focus'
+
+      TeamJoinTabFormClass = @getOption 'loginFormInvited'
+
     else
       @forgotPassword?.hide()
       @hideAvatar()
-      @getOption 'signupForm'
+      kd.utils.defer => @form.username.input.$().trigger 'focus'
+
+      TeamJoinTabFormClass = @getOption 'signupForm'
 
     @form?.destroy()
     @form = new TeamJoinTabFormClass { callback: @bound 'submit' }

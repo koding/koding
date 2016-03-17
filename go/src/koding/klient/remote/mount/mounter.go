@@ -108,6 +108,10 @@ func (m *Mounter) IsConfigured() error {
 		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing Unmounter")
 	}
 
+	if m.Log == nil {
+		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing Log")
+	}
+
 	return nil
 }
 
@@ -139,6 +143,8 @@ func (m *Mounter) Mount() (*Mount, error) {
 		IP:               m.IP,
 		SyncIntervalOpts: syncOpts,
 	}
+
+	mount.Log = MountLogger(mount, m.Log)
 
 	if err := m.MountExisting(mount); err != nil {
 		return nil, err

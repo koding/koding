@@ -140,10 +140,8 @@ func (m *Machine) Dial() error {
 		)
 	}
 
-	err := m.Transport.Dial()
-
 	// Log the failure here, because this logger has machine context.
-	if err != nil {
+	if err := m.Transport.Dial(); err != nil {
 		m.Log.Error("Dialer returned error. err:%s", err)
 		return util.NewKiteError(kiteerrortypes.DialingFailed, err)
 	}

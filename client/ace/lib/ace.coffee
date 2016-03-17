@@ -25,7 +25,7 @@ class Ace extends KDView
 
   @registerStaticEmitter()
 
-  getscript globals.acePath, (err) =>
+  getscript globals.acePath, (err) ->
     throw err  if err
 
     for k, v of globals.aceConfig
@@ -72,9 +72,9 @@ class Ace extends KDView
 
     super options, file
 
-    @lastSavedContents     = ''
-    {appStorageController} = kd.singletons
-    @appStorage            = appStorageController.storage 'Ace', '1.0.1'
+    @lastSavedContents       = ''
+    { appStorageController } = kd.singletons
+    @appStorage              = appStorageController.storage 'Ace', '1.0.1'
 
 
   setDomElement: (cssClass) ->
@@ -88,7 +88,7 @@ class Ace extends KDView
 
     @hide()
 
-    @appStorage.fetchStorage (storage)=> # XXX: wtf? -og
+    @appStorage.fetchStorage (storage) -> # XXX: wtf? -og
 
     if ACE_READY
     then @scriptLoaded()
@@ -187,7 +187,7 @@ class Ace extends KDView
     @lastContentsSentForSave = @getContents()
 
 
-  saveFinished:(res)->
+  saveFinished: (res) ->
 
     @lastSavedContents = @lastContentsSentForSave
     @emit 'FileContentRestored'
@@ -205,7 +205,7 @@ class Ace extends KDView
     @setShortcut model
 
 
-  setShortcuts: (removeObsolete=yes) ->
+  setShortcuts: (removeObsolete = yes) ->
 
     # A stupid workaround to keep commands since ace@1.1.4#removeCommand
     # deletes a command's exec ref.
@@ -216,7 +216,7 @@ class Ace extends KDView
 
     { shortcuts } = kd.singletons
 
-    collection = shortcuts.toCollection().find _key: 'editor'
+    collection = shortcuts.toCollection().find { _key: 'editor' }
     names = collection.map (model) -> model.name
 
     if removeObsolete
@@ -306,8 +306,8 @@ class Ace extends KDView
 
   showFindReplaceView: (openReplaceView) ->
 
-    {findAndReplaceView} = @getDelegate()
-    selectedText         = @editor.session.getTextRange @editor.getSelectionRange()
+    { findAndReplaceView } = @getDelegate()
+    selectedText           = @editor.session.getTextRange @editor.getSelectionRange()
 
     findAndReplaceView.show openReplaceView
     findAndReplaceView.setTextIntoFindInput selectedText
@@ -317,13 +317,13 @@ class Ace extends KDView
   isContentChanged: -> @contentChanged
 
 
-  isCurrentContentChanged:-> @getContents() isnt @lastSavedContents
+  isCurrentContentChanged: -> @getContents() isnt @lastSavedContents
 
 
   closeTab: ->
 
-    aceView   = @getDelegate()
-    {tabView} = aceView.getDelegate()
+    aceView     = @getDelegate()
+    { tabView } = aceView.getDelegate()
     tabView.removePane_ tabView.getActivePane()
 
 
@@ -487,7 +487,7 @@ class Ace extends KDView
 
     @editor.setTheme "ace/theme/#{themeName}"
     return  unless save
-    @appStorage.setValue 'theme', themeName, => # do what is necessary here if any - SY
+    @appStorage.setValue 'theme', themeName, -> # do what is necessary here if any - SY
 
 
   setUseSoftTabs: (value, save = yes) ->
@@ -654,7 +654,7 @@ class Ace extends KDView
 
           kd.getSingleton('windowController').addLayer details
 
-          details.on 'ReceivedClickElsewhere', =>
+          details.on 'ReceivedClickElsewhere', ->
             details.destroy()
 
 

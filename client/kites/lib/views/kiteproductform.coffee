@@ -9,7 +9,7 @@ module.exports = class KiteProductForm extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry "kite-plan-product-form", options.cssClass
+    options.cssClass = kd.utils.curry 'kite-plan-product-form', options.cssClass
 
     super options, data
 
@@ -23,12 +23,12 @@ module.exports = class KiteProductForm extends KDView
     kite.fetchPlans (err, plans) =>
       return showError err  if err
 
-      payment = kd.singleton "paymentController"
+      payment = kd.singleton 'paymentController'
       tags = []
       tags = tags.concat plan.tags for plan in plans
-      tags = tags.filter (tag) -> yes  if tag isnt "kite"
+      tags = tags.filter (tag) -> yes  if tag isnt 'kite'
       payment.fetchSubscriptionsWithPlans { tags }, (err, [subscription]) =>
         return showError err  if err
-        @emit "CurrentSubscriptionSet", subscription  if subscription
+        @emit 'CurrentSubscriptionSet', subscription  if subscription
         @listController.addItem item for item in plans
         @addSubView @listController.getView()

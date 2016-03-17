@@ -87,7 +87,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
   updateContentViews: (token) ->
 
     kontrolUrl = if globals.config.environment in ['dev', 'sandbox']
-    then "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; "
+    then "export KONTROLURL=#{KodingKontrol.getKontrolUrl()} CHANNEL=development; "
     else ''
 
     cmd = "#{kontrolUrl}curl -sL https://kodi.ng/s | bash -s #{token}"

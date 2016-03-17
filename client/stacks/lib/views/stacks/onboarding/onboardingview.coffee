@@ -37,9 +37,9 @@ module.exports = class OnboardingView extends JView
   createViews: ->
 
     @getStartedView        = new GetStartedView
-    @codeSetupView         = new CodeSetupView          cssClass: 'hidden'
-    @configurationView     = new ConfigurationView      cssClass: 'hidden'
-    @providerSelectionView = new ProviderSelectionView  cssClass: 'hidden'
+    @codeSetupView         = new CodeSetupView          { cssClass: 'hidden' }
+    @configurationView     = new ConfigurationView      { cssClass: 'hidden' }
+    @providerSelectionView = new ProviderSelectionView  { cssClass: 'hidden' }
 
     @pages       = [ @getStartedView, @providerSelectionView, @configurationView, @codeSetupView ]
     @currentPage = @getStartedView
@@ -129,7 +129,7 @@ module.exports = class OnboardingView extends JView
         @destroy()
         selectedProvider = @providerSelectionView.selected?.getOption 'provider'
         if selectedProvider?
-          options = { selectedProvider, template: content: @stackTemplate }
+          options = { selectedProvider, template: { content: @stackTemplate } }
         @emit 'StackOnboardingCompleted', options
 
 
@@ -137,9 +137,9 @@ module.exports = class OnboardingView extends JView
 
     @stackPreview = new kd.CustomHTMLView
       cssClass : 'stack-preview hidden'
-      partial  : """
+      partial  : '''
         <div class="header">STACK FILE PREVIEW</div>
-      """
+      '''
 
     @stackPreview.addSubView @stackContent = new kd.CustomHTMLView
       cssClass: 'has-markdown'
@@ -168,7 +168,7 @@ module.exports = class OnboardingView extends JView
         instance_type : instanceTypeSelectBox.getValue()
         ami           : ''
         tags          :
-          Name        : "${var.koding_user_username}-${var.koding_group_slug}"
+          Name        : '${var.koding_user_username}-${var.koding_group_slug}'
 
       configurationToggles.forEach (toggle) ->
         selectedServices.push (toggle.getOption 'package' or toggle.getOption 'name')  if toggle.getValue()
@@ -299,12 +299,12 @@ module.exports = class OnboardingView extends JView
         resource            :
           vagrant_instance  :
             localvm         :
-              user_data: """
+              user_data: '''
                 sudo apt-get install sl -y
                 touch /tmp/${var.koding_user_username}.txt
-              """
+              '''
 
-    stackTemplate = stackTemplates[provider] ? error: 'Provider not supported'
+    stackTemplate = stackTemplates[provider] ? { error: 'Provider not supported' }
 
     if format is 'yaml'
       { content, err } = jsonToYaml stackTemplate
@@ -319,13 +319,13 @@ module.exports = class OnboardingView extends JView
 
     selectedProvider = @providerSelectionView.selected?.getOption 'provider'
     @emit 'StackOnboardingCompleted', {
-      selectedProvider, template: content: @stackTemplate
+      selectedProvider, template: { content: @stackTemplate }
     }
 
 
   pistachio: ->
 
-    return """
+    return '''
       {{> @getStartedView}}
       {{> @providerSelectionView}}
       {{> @configurationView}}
@@ -336,4 +336,4 @@ module.exports = class OnboardingView extends JView
         {{> @skipLink}}
       </div>
       {{> @stackPreview}}
-    """
+    '''

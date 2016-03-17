@@ -18,7 +18,7 @@ module.exports = class GetStartedView extends JView
 
   pistachio: ->
 
-    return """
+    return '''
       <div class="header">
         <p class="title">Stacks</p>
         <p class="description">Stacks let you set up a new developer environment in seconds.</p>
@@ -37,4 +37,4 @@ module.exports = class GetStartedView extends JView
           <span>Developers get their enviroment set up for them instantly, so they can start working in seconds.</span>
         </div>
       </div>
-    """
+    '''

@@ -9,5 +9,5 @@ module.exports =
 
 
 openShowcase = (callback) ->
-  {appManager, mainController} = kd.singletons
+  { appManager, mainController } = kd.singletons
   mainController.ready -> appManager.open 'Showcase', callback

@@ -15,10 +15,11 @@ module.exports = updateStackTemplate = (data, callback) ->
     updated = stackTemplate._updated
 
     dataToUpdate = if machines \
-      then { machines, config } else {
-        title, template, credentials, rawContent
-        templateDetails, config, description
-      }
+    then { machines, config }
+    else {
+      title, template, credentials, rawContent
+      templateDetails, config, description
+    }
 
     stackTemplate.update dataToUpdate, (err, _stackTemplate) ->
 

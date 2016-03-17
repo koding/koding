@@ -80,7 +80,7 @@ module.exports =
     hashtag        = helpers.doFollowTopic(browser)
     publicSelector = '#main-sidebar [testpath="public-feed-link/Activity/Topic/public"]'
     topicSelector  = "#main-sidebar [testpath=\"public-feed-link/Activity/Topic/#{hashtag.replace '#', ''}\"]"
-    recentSelector = "[testpath=\"ActivityTabHandle-/Activity/Public/Recent\"]"
+    recentSelector = '[testpath=\"ActivityTabHandle-/Activity/Public/Recent\"]'
 
     browser
       .click                     '[testpath=channel-title] .following'

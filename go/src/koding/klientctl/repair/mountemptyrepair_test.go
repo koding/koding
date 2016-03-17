@@ -33,10 +33,10 @@ func TestMountEmptyRepair(t *testing.T) {
 		}
 
 		Convey("When Status is run", func() {
-			Convey("It should return an empty directory error", func() {
-				err := r.Status()
-				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "Empty directory")
+			Convey("It should be not okay", func() {
+				ok, err := r.Status()
+				So(ok, ShouldBeFalse)
+				So(err, ShouldBeNil)
 			})
 		})
 
@@ -51,7 +51,7 @@ func TestMountEmptyRepair(t *testing.T) {
 			Convey("It should check the status of the mount again", func() {
 				err := r.Repair()
 				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "Empty directory")
+				So(err.Error(), ShouldContainSubstring, "not-okay")
 			})
 		})
 	})
@@ -81,8 +81,10 @@ func TestMountEmptyRepair(t *testing.T) {
 			f.Close()
 
 			Convey("When Status is run", func() {
-				Convey("It should not return an error", func() {
-					So(r.Status(), ShouldBeNil)
+				Convey("It should return okay", func() {
+					ok, err := r.Status()
+					So(ok, ShouldBeTrue)
+					So(err, ShouldBeNil)
 				})
 			})
 		})
@@ -92,7 +94,9 @@ func TestMountEmptyRepair(t *testing.T) {
 
 			Convey("When Status is run", func() {
 				Convey("It should not return an error", func() {
-					So(r.Status(), ShouldBeNil)
+					ok, err := r.Status()
+					So(ok, ShouldBeTrue)
+					So(err, ShouldBeNil)
 				})
 			})
 		})

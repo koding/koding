@@ -40,7 +40,7 @@ module.exports =
 
     environmentHelpers.openDomainSettings(browser)
 
-    browser.elements 'css selector', domainSelector, (result) =>
+    browser.elements 'css selector', domainSelector, (result) ->
       if result.value.length > 1
         console.log ' ✔ Another domain is already added. Ending test...'
       else
@@ -57,13 +57,13 @@ module.exports =
 
     environmentHelpers.openDomainSettings(browser)
 
-    browser.elements 'css selector', domainSelector, (result) =>
+    browser.elements 'css selector', domainSelector, (result) ->
       if result.value.length is 1
         domainName = environmentHelpers.addDomain(browser, user)
         environmentHelpers.deleteDomain(browser, user, domainName)
         browser.end()
       else
-        browser.getText lastDomainItem, (result) =>
+        browser.getText lastDomainItem, (result) ->
           domainName = result.value
           environmentHelpers.deleteDomain(browser, user, domainName)
           browser.end()

@@ -2,11 +2,11 @@ ContentPageSplitBelowHeader = require 'app/commonviews/contentpagesplitbelowhead
 
 module.exports = class FeederSplitView extends ContentPageSplitBelowHeader
 
-  constructor:(options = {})->
+  constructor: (options = {}) ->
 
     options.sizes     or= [139, null]
     options.minimums  or= [10, null]
     options.resizable  ?= no
-    options.bind      or= "mouseenter"
+    options.bind      or= 'mouseenter'
 
     super options

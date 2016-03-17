@@ -51,9 +51,9 @@ module.exports = class ConfigurationView extends JView
     pane.tabHandle.addSubView pane.instanceTypeSelectBox = select = new kd.SelectBox
       defaultValue  : 't2.nano'
       selectOptions : [
-        { title: 't2.nano',   value: 't2.nano'   }
-        { title: 't2.micro',  value: 't2.micro'  }
-        { title: 't2.small',  value: 't2.small'  }
+        { title: 't2.nano',   value: 't2.nano' }
+        { title: 't2.micro',  value: 't2.micro' }
+        { title: 't2.small',  value: 't2.small' }
         { title: 't2.medium', value: 't2.medium' }
       ]
       callback: =>
@@ -71,11 +71,11 @@ module.exports = class ConfigurationView extends JView
 
   pistachio: ->
 
-    return """
+    return '''
       <div class="header">
         <p class="title">What do you want installed?</p>
         <p class="description">You can configure your services or install new ones.</p>
       </div>
       {{> @tabHandleContainer}}
       {{> @tabView}}
-    """
+    '''

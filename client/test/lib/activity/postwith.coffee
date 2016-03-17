@@ -20,7 +20,7 @@ module.exports =
     helpers.beginTest(browser)
 
     activityHelpers.postMessageWithCode(browser)
-    activityHelpers.editAction(browser, "message", yes, no, no)
+    activityHelpers.editAction(browser, 'message', yes, no, no)
     browser.end()
 
 

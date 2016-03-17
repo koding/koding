@@ -4,6 +4,7 @@ crypto      = require 'crypto'
 oauth       = require 'oauth'
 parser      = require 'url'
 KodingError = require '../error'
+JSession    = require './session'
 
 module.exports = class OAuth extends bongo.Base
   @share()
@@ -33,16 +34,20 @@ module.exports = class OAuth extends bongo.Base
         callback null, url
       when 'google'
         { client_id } = KONFIG.google
-        url  = 'https://accounts.google.com/o/oauth2/auth?'
-        url += 'scope=https://www.google.com/m8/feeds '
-        url += 'https://www.googleapis.com/auth/userinfo.profile '
-        url += 'https://www.googleapis.com/auth/userinfo.email&'
-        url += "redirect_uri=#{redirectUri}&"
-        url += 'response_type=code&'
-        url += "client_id=#{client_id}&"
-        url += 'access_type=offline'
+        JSession.one { clientId: client.sessionToken }, (err, session) ->
+          return callback err  if err
+          state = session._id
+          url  = 'https://accounts.google.com/o/oauth2/auth?'
+          url += 'scope=https://www.google.com/m8/feeds '
+          url += 'https://www.googleapis.com/auth/userinfo.profile '
+          url += 'https://www.googleapis.com/auth/userinfo.email&'
+          url += "redirect_uri=#{redirectUri}&"
+          url += 'response_type=code&'
+          url += "client_id=#{client_id}&"
+          url += "state=#{state}&"
+          url += 'access_type=offline'
 
-        callback null, url
+          callback null, url
       when 'linkedin'
         { client_id } = KONFIG.linkedin
         state = crypto.createHash('md5').update((new Date).toString()).digest('hex')
@@ -101,7 +106,6 @@ module.exports = class OAuth extends bongo.Base
       }
 
   @saveTokens = (client, provider, credentials, callback) ->
-    JSession = require './session'
     JSession.one { clientId: client.sessionToken }, (err, session) ->
       return callback err  if err
       return callback new KodingError 'Session not found'  unless session

@@ -61,7 +61,9 @@ func (r *Remote) RunCmd(cmd string, args ...interface{}) ([]byte, error) {
 		return nil, err
 	}
 
-	return session.CombinedOutput(fmt.Sprintf(cmd, args...))
+	return session.CombinedOutput(fmt.Sprintf(
+		"bash -c \"%s\"", fmt.Sprintf(cmd, args...),
+	))
 }
 
 func (r *Remote) CreateDir(dir string) error {
@@ -108,7 +110,7 @@ func (r *Remote) RemoveDir(dir string) error {
 }
 
 func (r *Remote) Size(path string) (int, error) {
-	resp, err := r.RunCmd("ls -l %s | awk '{printf $5}'", r.path(path))
+	resp, err := r.RunCmd("ls -l %s | awk '{printf \\$5}'", r.path(path))
 	if err != nil {
 		return 0, err
 	}

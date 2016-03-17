@@ -140,8 +140,10 @@ func testWriteFile(t *testing.T, mountDir string) {
 
 		Reset(func() { So(os.RemoveAll(dirPath), ShouldBeNil) })
 
-		Convey("It should return error when trying to modify file with wrong flag", func() {
+		stat, err := os.Stat(filePath)
+		So(err, ShouldBeNil)
 
+		Convey("It should return error when trying to modify file with wrong flag", func() {
 			fi, err := os.OpenFile(filePath, os.O_RDONLY, 0755)
 			So(err, ShouldBeNil)
 
@@ -181,6 +183,30 @@ func testWriteFile(t *testing.T, mountDir string) {
 			So(fi.Close(), ShouldBeNil)
 
 			So(readFile(filePath, string(newContent)), ShouldBeNil)
+		})
+
+		Convey("It should truncate file to 0 bytes", func() {
+			So(os.Truncate(filePath, 0), ShouldBeNil)
+
+			newStat, err := os.Stat(filePath)
+			So(err, ShouldBeNil)
+			So(newStat.Size(), ShouldEqual, 0)
+		})
+
+		Convey("It should truncate file to less than size of file", func() {
+			So(os.Truncate(filePath, stat.Size()-1), ShouldBeNil)
+
+			newStat, err := os.Stat(filePath)
+			So(err, ShouldBeNil)
+			So(newStat.Size(), ShouldEqual, stat.Size()-1)
+		})
+
+		Convey("It should truncate file to more than size of file", func() {
+			So(os.Truncate(filePath, stat.Size()+1), ShouldBeNil)
+
+			newStat, err := os.Stat(filePath)
+			So(err, ShouldBeNil)
+			So(newStat.Size(), ShouldEqual, stat.Size()+1)
 		})
 	}))
 }
