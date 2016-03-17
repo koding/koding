@@ -25,7 +25,6 @@ module.exports = RemoteExtensions =
   getCache: -> globals.__remoteCache
 
 
-  updateInstance: (instanceId) -> # , data) ->
   getInstances: (instanceId) -> @getCache()[instanceId] ? []
 
 
@@ -38,3 +37,18 @@ module.exports = RemoteExtensions =
     @getCache()[instanceId].push instance
 
 
+  updateInstance: (data) ->
+
+    { id: instanceId, change, timestamp } = data
+
+    return  if (instances = @getInstances instanceId).length is 0
+
+    instances
+      .filter (instance) -> instance._events?.update?
+      .filter (instance) ->
+        if instance.__lastUpdate?
+          return instance.__lastUpdate < timestamp
+        return yes
+      .map    (instance) ->
+        instance.__lastUpdate = timestamp
+        instance.emit 'updateInstance', change
