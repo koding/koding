@@ -144,9 +144,7 @@ func (r *Remote) restoreMounts() error {
 			Options:       m.MountFolder,
 			IP:            remoteMachine.IP,
 			KitePinger:    remoteMachine.KitePinger,
-			Client:        remoteMachine.Client,
-			Dialer:        remoteMachine.Client,
-			Teller:        remoteMachine.Client,
+			Transport:     remoteMachine.Client,
 			PathUnmounter: fuseklient.Unmount,
 		}
 
