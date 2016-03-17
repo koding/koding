@@ -577,12 +577,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
     @openItem nodeView
 
-<<<<<<< 147944b9cf31ec83cc5ff8930c60e0199687736b
 
-  contextMenu:(nodeView, event)->
-=======
   contextMenu: (nodeView, event) ->
->>>>>>> finder: fixed coffeelint errors under controllers
 
     return  if @isReadOnly
 
