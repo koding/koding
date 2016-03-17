@@ -12,7 +12,8 @@
   "main": "server/index.js",
   "scripts": {
     "preinstall": "./.npm-preinstall.sh",
-    "install": "./.npm-install.sh"
+    "install": "./.npm-install.sh",
+    "postinstall": "./.npm-postinstall.sh"
   },
   "dependencies": {
     "analytics-node": "1.2.2",

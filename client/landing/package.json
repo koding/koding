@@ -13,6 +13,9 @@
       "email": "sinan@koding.com"
     }
   ],
+  "scripts": {
+    "postinstall": "./.npm-postinstall.sh"
+  },
   "dependencies": {
     "geopattern": "1.2.3",
     "indefinite-article": "0.0.2",
