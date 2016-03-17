@@ -19,7 +19,7 @@ import (
 
 // Register registers with the username to the given kontrolURL via the users
 // password or the given token.
-func Register(kontrolURL, kiteHome, username, token string) error {
+func Register(kontrolURL, kiteHome, username, token string, debug bool) error {
 	var err error
 
 	// Open up a prompt if the username is not passed via a flag and it's not a
@@ -40,6 +40,10 @@ func Register(kontrolURL, kiteHome, username, token string) error {
 	k.Config.Environment = protocol.Environment
 	k.Config.Region = protocol.Region
 	k.Config.Username = username
+
+	if debug {
+		k.SetLogLevel(kite.DEBUG)
+	}
 
 	// Production Koding servers are only working over HTTP
 	k.Config.Transport = config.XHRPolling

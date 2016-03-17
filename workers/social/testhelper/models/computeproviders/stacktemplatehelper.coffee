@@ -26,7 +26,7 @@ generateStackTemplateData = (client, data) ->
   data        ?= {}
   { delegate } = client.connection
   details      = 'template details'
-  content      = 'template content'
+  content      = '{}'
   rawContent   = 'template raw content'
 
 

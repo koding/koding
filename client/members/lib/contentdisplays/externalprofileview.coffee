@@ -6,40 +6,40 @@ jspath = require 'jspath'
 
 module.exports = class ExternalProfileView extends JView
 
-  {warn} = kd
+  { warn } = kd
 
   constructor: (options, account) ->
 
     options.tagName  or= 'a'
     options.provider or= ''
     options.cssClass   = kd.utils.curry "external-profile #{options.provider}", options.cssClass
-    options.attributes = href : '#'
+    options.attributes = { href : '#' }
 
     super options, account
 
     @linked        = no
-    {provider}     = @getOptions()
+    { provider }   = @getOptions()
     mainController = kd.getSingleton 'mainController'
 
-    mainController.on "ForeignAuthSuccess.#{provider}", @bound "setLinkedState"
+    mainController.on "ForeignAuthSuccess.#{provider}", @bound 'setLinkedState'
 
 
-  viewAppended:->
+  viewAppended: ->
 
     super
 
-    @setTooltip title : "Click to link your #{@getOption 'nicename'} account"
+    @setTooltip { title : "Click to link your #{@getOption 'nicename'} account" }
     @setLinkedState()
 
-  setLinkedState:->
+  setLinkedState: ->
 
     return  unless @parent
-    account     = @parent.getData()
-    {firstName} = account.profile
+    account       = @parent.getData()
+    { firstName } = account.profile
 
-    {provider, nicename} = @getOptions()
+    { provider, nicename } = @getOptions()
 
-    account.fetchStorage "ext|profile|#{provider}", (err, storage)=>
+    account.fetchStorage "ext|profile|#{provider}", (err, storage) =>
       return warn err  if err
       return           unless storage
       return           unless urlLocation = @getOption 'urlLocation'
@@ -59,18 +59,18 @@ module.exports = class ExternalProfileView extends JView
       else title : "Go to #{firstName}'s #{nicename} profile"
 
 
-  click:(event)->
+  click: (event) ->
 
     return  if @linked
 
-    {provider} = @getOptions()
+    { provider } = @getOptions()
     if isMine @parent.getData()
       kd.utils.stopDOMEvent event
       kd.singletons.oauthController.openPopup provider
 
 
-  pistachio:->
+  pistachio: ->
 
-    """
+    '''
     <span class="icon"></span>
-    """
+    '''

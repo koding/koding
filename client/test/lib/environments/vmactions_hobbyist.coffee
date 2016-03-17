@@ -21,7 +21,7 @@ module.exports =
         helpers.fillPaymentForm(browser, 'hobbyist')
         environmentHelpers.simplifiedSubmitForm(browser)
       else
-      	browser.url url
+        browser.url url
 
 
   createNewVmForHobbyistPlan: (browser) ->
@@ -49,7 +49,7 @@ module.exports =
     diskUsageSelector      = '.disk-usage-info .usage-info span'
     sliderSelector         = '.kdmodal-content .storage-container .sliderbar-container'
 
-    browser.element 'css selector', vmSelector, (result) =>
+    browser.element 'css selector', vmSelector, (result) ->
       if result.status is 0
         browser.end()
       else

@@ -93,26 +93,26 @@ module.exports =
       .url                    helpers.getUrl() + '/Pricing'
       .waitForElementVisible  '.content-page.pricing', 20000
       .pause                  3000 # wait for pricing page load
-      .waitForElementVisible  pricingSelector,20000
+      .waitForElementVisible  pricingSelector, 20000
       .waitForElementVisible  hobbyistSelector, 20000
       .assert.containsText    hobbyistSelector, '9.95' # Assertion
       .assert.containsText    developerSelector, '19.95' # Assertion
       .assert.containsText    professionalSelector, '39.95' # Assertion
 
-      if HUBSPOT
-        browser
-          .waitForElementVisible  selectBox, 20000
-          .waitForElementVisible  selectBoxArrow, 20000
-          .click                  selectBoxArrow
-          .waitForElementVisible  monthOption, 20000
-          .click                  monthOption
-      else
-        browser
-          .waitForElementVisible  buttonSelector, 20000
-          .click                  buttonSelector
-
+    if HUBSPOT
       browser
-        .assert.containsText    hobbyistSelector, '12.50' # Assertion
-        .assert.containsText    developerSelector, '24.50' # Assertion
-        .assert.containsText    professionalSelector, '49.50' # Assertion
-        .end()
+        .waitForElementVisible  selectBox, 20000
+        .waitForElementVisible  selectBoxArrow, 20000
+        .click                  selectBoxArrow
+        .waitForElementVisible  monthOption, 20000
+        .click                  monthOption
+    else
+      browser
+        .waitForElementVisible  buttonSelector, 20000
+        .click                  buttonSelector
+
+    browser
+      .assert.containsText    hobbyistSelector, '12.50' # Assertion
+      .assert.containsText    developerSelector, '24.50' # Assertion
+      .assert.containsText    professionalSelector, '49.50' # Assertion
+      .end()

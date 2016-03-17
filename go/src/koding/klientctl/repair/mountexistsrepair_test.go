@@ -19,8 +19,9 @@ func TestMountExistsRepair(t *testing.T) {
 		}
 
 		Convey("When Status is run", func() {
-			Convey("It should not return an error", func() {
-				err := r.Status()
+			Convey("It should okay", func() {
+				ok, err := r.Status()
+				So(ok, ShouldBeTrue)
 				So(err, ShouldBeNil)
 			})
 		})
@@ -36,8 +37,9 @@ func TestMountExistsRepair(t *testing.T) {
 
 		Convey("When Status is run", func() {
 			Convey("It should return an error", func() {
-				err := r.Status()
-				So(err, ShouldNotBeNil)
+				ok, err := r.Status()
+				So(ok, ShouldBeFalse)
+				So(err, ShouldBeNil)
 			})
 		})
 	})

@@ -60,8 +60,9 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 		m, ok := r.mounts.FindByName(machine.Name)
 		if ok {
 			info.Mounts = []restypes.ListMountInfo{restypes.ListMountInfo{
-				RemotePath: m.RemotePath,
-				LocalPath:  m.LocalPath,
+				RemotePath:     m.RemotePath,
+				LocalPath:      m.LocalPath,
+				LastMountError: m.LastMountError,
 			}}
 			info.MountedPaths = append(info.MountedPaths, m.LocalPath)
 		}

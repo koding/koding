@@ -33,14 +33,18 @@ func (r *KontrolRepair) String() string {
 	return "kontrolrepair"
 }
 
-func (r *KontrolRepair) Status() error {
+func (r *KontrolRepair) Status() (bool, error) {
 	if err := r.remoteStatus(); err == nil {
-		return nil
+		return true, nil
 	}
 
 	fmt.Fprint(r.Stdout, "Unable to connect to koding.com. Waiting..")
 
-	return r.statusLoop()
+	if err := r.statusLoop(); err != nil {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // statusLoop runs the status loop, optionally printing a dot to indicate progress.

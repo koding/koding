@@ -8,6 +8,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"koding/klient/remote/machine"
 	"koding/klient/storage"
 
 	"github.com/koding/kite"
@@ -15,6 +16,13 @@ import (
 	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 )
+
+var discardLogger logging.Logger
+
+func init() {
+	discardLogger = logging.NewLogger("testLogger")
+	discardLogger.SetHandler(logging.NewWriterHandler(ioutil.Discard))
+}
 
 func newMockKiteGetter() *mockKiteGetter {
 	return &mockKiteGetter{}
@@ -42,13 +50,11 @@ func (m *mockKiteGetter) GetKodingKites(_ *protocol.KontrolQuery) ([]*KodingClie
 	return m.Clients, nil
 }
 
-func TestGetKites(t *testing.T) {
+func TestGetMachines(t *testing.T) {
 	kg := newMockKiteGetter()
 	kg.AddByUrl("http://testhost1:56789")
 
-	logger := logging.NewLogger("testLogger")
-	logger.SetHandler(logging.NewWriterHandler(ioutil.Discard))
-
+	store := storage.NewMemoryStorage()
 	r := &Remote{
 		localKite: &kite.Kite{
 			Id: "test id",
@@ -57,66 +63,68 @@ func TestGetKites(t *testing.T) {
 			},
 		},
 		kitesGetter:       kg,
-		log:               logger,
+		log:               discardLogger,
 		machinesCacheMax:  1 * time.Second,
 		machineNamesCache: map[string]string{},
-		storage:           storage.NewMemoryStorage(),
+		machines:          machine.NewMachines(discardLogger, store),
+		storage:           store,
 	}
 
-	machines, err := r.GetKites()
+	machines, err := r.GetMachines()
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Should return all kites
-	if len(machines) != 1 {
+	if machines.Count() != 1 {
 		t.Fatalf(
 			"Expected GetKites to return all current kites. Wanted %d, got %d",
-			1, len(machines),
+			1, machines.Count(),
 		)
 	}
 
 	kg.AddByUrl("http://testhost2:56789")
 
-	machines, err = r.GetKites()
+	machines, err = r.GetMachines()
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Should return only the cached kites
-	if len(machines) != 1 {
+	if machines.Count() != 1 {
 		t.Errorf(
 			"Expected GetKites to cache results. Expected %d, got %d",
-			1, len(machines),
+			1, machines.Count(),
 		)
 	}
 
 	// Wait longer than the kite timeout
 	time.Sleep(2 * time.Second)
 
-	machines, err = r.GetKites()
+	machines, err = r.GetMachines()
 	if err != nil {
 		t.Error(err)
 	}
 
-	// Should clear cache
-	if len(machines) != 2 {
+	// Should not use the cache
+	if machines.Count() != 2 {
 		t.Errorf(
 			"Expected GetKites clear cache. Expected %d results, got %d",
-			2, len(machines),
+			2, machines.Count(),
 		)
 	}
 
 	// Tell the kite getter to fail
 	kg.GetKitesError = errors.New("KitesGetter test error")
+	kg.AddByUrl("http://testhost3:56789")
 
-	machines, err = r.GetKites()
+	machines, err = r.GetMachines()
 
 	// Should return the old results if the KitesGetter returns an error
-	if len(machines) != 2 {
+	if machines.Count() != 2 {
 		t.Errorf(
 			"Expected GetKites return the cache when KitesGetter fails, within the clientsErrCacheMax duration. Expected %d results, got %d",
-			2, len(machines),
+			2, machines.Count(),
 		)
 	}
 
@@ -125,28 +133,84 @@ func TestGetKites(t *testing.T) {
 		t.Errorf("Expected GetKites to not return an error if it is returning a cache. Expected nil, got '%s'", err.Error())
 	}
 
-	kg.AddByUrl("http://testhost2:56789")
-
 	// Sleep past the clientsErrCacheMax duration
 	time.Sleep(3 * time.Second)
 
-	machines, err = r.GetKites()
-
-	// Should not return any results after the clientsErrCacheMax
-	// duration
-	if len(machines) != 0 {
-		t.Errorf(
-			"Expected GetKites not to return the kites cache when KitesGetter failes after clientsErrCacheMax. Expected %d results, got %d",
-			0, len(machines),
-		)
-	}
+	machines, err = r.GetMachines()
 
 	// Should return the error when the clientsErrCacheMax is too old
 	if err == nil {
 		t.Error("Expected GetKites to return an error when after clientsErrCacheMax. Got nil.")
 	}
+
+	// Should not return any results after the clientsErrCacheMax
+	// duration
+	if machines != nil {
+		t.Errorf(
+			"Expected GetMachines not to return the machines cache when KitesGetter failes after clientsErrCacheMax. Expected nil machine",
+		)
+	}
 }
 
-func TestUpdateExistingMachines(t *testing.T) {
-	Convey("", t, nil)
+func TestGetMachinesWithoutCache(t *testing.T) {
+	Convey("Given a new machine", t, func() {
+		kg := newMockKiteGetter()
+		kg.AddByUrl("http://testhost1:56789")
+
+		store := storage.NewMemoryStorage()
+		r := &Remote{
+			localKite: &kite.Kite{
+				Id: "test id",
+				Config: &config.Config{
+					Username: "test user",
+				},
+			},
+			kitesGetter:       kg,
+			log:               discardLogger,
+			machines:          machine.NewMachines(discardLogger, store),
+			machinesCacheMax:  1 * time.Second,
+			machineNamesCache: map[string]string{},
+			storage:           store,
+		}
+
+		// Sanity check our config
+		So(kg.Clients[0].Reconnect, ShouldBeFalse)
+		Convey("It should configure the kite Client", func() {
+			r.GetMachinesWithoutCache()
+			So(kg.Clients[0].Reconnect, ShouldBeTrue)
+		})
+	})
+
+	Convey("Given a pre existing machine", t, func() {
+		kg := newMockKiteGetter()
+		kg.AddByUrl("http://testhost1:56789")
+
+		store := storage.NewMemoryStorage()
+		r := &Remote{
+			localKite: &kite.Kite{
+				Id: "test id",
+				Config: &config.Config{
+					Username: "test user",
+				},
+			},
+			kitesGetter: kg,
+			log:         discardLogger,
+			machines:    machine.NewMachines(discardLogger, store),
+			storage:     store,
+		}
+
+		// Add a machine, with just enough info to serve our needs
+		r.machines.Add(&machine.Machine{
+			MachineMeta: machine.MachineMeta{
+				IP: "localhost1",
+			},
+		})
+
+		// Sanity check our config
+		So(kg.Clients[0].Reconnect, ShouldBeFalse)
+		Convey("It should configure the kite Client", func() {
+			r.GetMachinesWithoutCache()
+			So(kg.Clients[0].Reconnect, ShouldBeTrue)
+		})
+	})
 }

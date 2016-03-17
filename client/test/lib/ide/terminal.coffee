@@ -34,14 +34,14 @@ module.exports =
 
     terminalHelpers.openNewTerminalMenu(browser)
 
-    getSessionData = =>
+    getSessionData = ->
 
       selector = '.kdcontextmenu ul + li.disabled'
       matcher  = /session-(\w+)\S+/
 
       return document.querySelector(selector).getAttribute('class').match(matcher)
 
-    browser.execute getSessionData, [], (result) =>
+    browser.execute getSessionData, [], (result) ->
 
       [cssClass, sessionId] = result.value
       sessionListSelector   = '.kdcontextmenu ul ul:nth-of-type(1).expanded'
@@ -57,7 +57,7 @@ module.exports =
 
         browser
           .pause   1000
-          .getText sessionListSelector, (result) =>
+          .getText sessionListSelector, (result) ->
             assert.equal(result.value.indexOf(sessionId), -1)
 
             browser.end()
@@ -79,7 +79,7 @@ module.exports =
     name            = helpers.getFakeText().split(' ')[0]
     tabSelector     = "#{paneSelector} .kdtabhandle.terminal"
     optionsSelector = "#{tabSelector} .options"
-    renameSelector  = ".kdcontextmenu.terminal-context-menu .rename"
+    renameSelector  = '.kdcontextmenu.terminal-context-menu .rename'
     editSelector    = "#{tabSelector}.edit-mode .hitenterview.tab-handle-input"
     tabNameSelector = "#{tabSelector} .tab-handle-text"
 
@@ -96,7 +96,7 @@ module.exports =
       .click                    renameSelector
       .waitForElementPresent    editSelector, 20000
       .clearValue               editSelector
-      .setValue                 editSelector, [name,browser.Keys.RETURN]
+      .setValue                 editSelector, [name, browser.Keys.RETURN]
       .waitForElementNotPresent editSelector, 20000
       .assert.containsText      tabNameSelector, name #Assertion
       .end()

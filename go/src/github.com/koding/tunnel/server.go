@@ -129,6 +129,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.handleHTTP(w, r); err != nil {
+		s.log.Error("remote %s (%s): %s", r.RemoteAddr, r.RequestURI, err)
 		http.Error(w, err.Error(), 502)
 	}
 }
@@ -146,7 +147,14 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 	// get the identifier associated with this host
 	identifier, ok := s.getIdentifier(host)
 	if !ok {
-		return fmt.Errorf("no virtual host available for %s", host)
+		h, port, err := net.SplitHostPort(host)
+		if err == nil && (port == "80" || port == "443") {
+			identifier, ok = s.getIdentifier(h)
+		}
+
+		if !ok {
+			return fmt.Errorf("no virtual host available for %q", host)
+		}
 	}
 
 	// if someoone hits foo.example.com:8080, this should be proxied to
