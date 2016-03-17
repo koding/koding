@@ -1336,6 +1336,7 @@ Configuration = (options={}) ->
         fi
 
         scripts/check-node-version.sh
+        scripts/check-npm-version.sh
       }
 
       function build_services () {
