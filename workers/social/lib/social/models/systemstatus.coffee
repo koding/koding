@@ -17,8 +17,6 @@ module.exports = class JSystemStatus extends Model
           (signature Object, Function)
         stopCurrentSystemStatus:
           (signature Function)
-        forceReload:
-          (do signature)
         healthCheck  :
           (signature Function)
         checkRealtimeUpdates:
@@ -30,8 +28,8 @@ module.exports = class JSystemStatus extends Model
           (signature Function)
 
     sharedEvents     :
-      static         : ['forceReload', 'restartScheduled']
-      instance       : ['restartCanceled']
+      static         : []
+      instance       : []
 
     schema           :
       title          : String
@@ -60,13 +58,6 @@ module.exports = class JSystemStatus extends Model
 
   { log } = console
 
-  @forceReload = secure (client) ->
-    { connection:{ delegate } } = client
-    unless delegate.checkFlag('super-admin')
-      log 'status: not authorized to stop a system status'
-      return
-    @emit 'forceReload'
-
   @stopCurrentSystemStatus = secure (client, callback = -> ) ->
     { connection:{ delegate } } = client
     unless delegate.checkFlag('super-admin')
@@ -79,11 +70,7 @@ module.exports = class JSystemStatus extends Model
         # log 'no status to stop'
         callback err, status
       else
-        status.update {
-          $set: { status: 'stopped' }
-        }, (err) ->
-          status.emit 'restartCanceled', {}
-          callback err
+        status.update { $set: { status: 'stopped' } }, callback
 
   @getCurrentSystemStatuses = (callback = -> ) ->
     JSystemStatus.some {
@@ -104,7 +91,6 @@ module.exports = class JSystemStatus extends Model
 
     status = new JSystemStatus data
     status.save (err) ->
-      JSystemStatus.emit 'restartScheduled', status  unless err
       callback err, status
 
   cancel: secure (client, callback) ->
@@ -112,9 +98,8 @@ module.exports = class JSystemStatus extends Model
     unless delegate.checkFlag('super-admin')
       return callback new KodingError 'Not authorized to cancel a system status'
 
-    @update { $set : { status : 'stopped' } }, (err) =>
+    @update { $set : { status : 'stopped' } }, (err) ->
       unless err
-        @emit 'restartCanceled'
         callback()
       else
         callback callback new KodingError 'Could not cancel the system status'

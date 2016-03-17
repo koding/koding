@@ -95,24 +95,8 @@ module.exports = class JGroup extends Module
     indexes         :
       slug          : 'unique'
     sharedEvents    :
-      static        : [
-        { name: 'MemberAdded',      filter: -> null }
-        { name: 'MemberRemoved',    filter: -> null }
-        { name: 'MemberRolesChanged' }
-        { name: 'GroupDestroyed' }
-        { name: 'broadcast' }
-        { name: 'updateInstance' }
-        { name: 'RemovedFromCollection' }
-
-      ]
-      instance      : [
-        { name: 'GroupCreated' }
-        { name: 'MemberAdded',      filter: -> null }
-        { name: 'MemberRemoved',    filter: -> null }
-        { name: 'NewInvitationRequest' }
-        { name: 'updateInstance' }
-        { name: 'RemovedFromCollection' }
-      ]
+      static        : []
+      instance      : []
     sharedMethods   :
       static        :
         one:
@@ -378,8 +362,6 @@ module.exports = class JGroup extends Module
           actorType  : 'member'
           subject    : ObjectRef(this).data
           member     : ObjectRef(member).data
-        @broadcast 'MemberJoinedGroup',
-          member : ObjectRef(member).data
 
     @on 'MemberRemoved', (member, requester) ->
       requester ?= member
@@ -390,11 +372,6 @@ module.exports = class JGroup extends Module
           actorType  : 'member'
           subject    : ObjectRef(this).data
           member     : ObjectRef(member).data
-        @broadcast 'MemberLeftGroup',
-          member : ObjectRef(member).data
-
-    @on 'MemberRolesChanged', (member) ->
-      @constructor.emit 'MemberRolesChanged', { group: this, member }
 
   @render        :
     loggedIn     :
@@ -494,9 +471,8 @@ module.exports = class JGroup extends Module
       queue.push (next) ->
         group.createMembershipPolicy groupData.requestType, -> next()
 
-    async.series queue, (err) =>
+    async.series queue, (err) ->
       return callback err  if err
-      @emit 'GroupCreated', { group, creator: owner }
       callback null, group
 
 
@@ -540,37 +516,6 @@ module.exports = class JGroup extends Module
       if err then callback err
       else callback null, "group.secret.#{secretName}",
         if oldSecretName then "group.secret.#{oldSecretName}"
-
-  @cycleChannel = do ->
-    cycleChannel = (groupSlug, callback = -> ) ->
-      JName = require '../name'
-      JName.cycleSecretName groupSlug, (err, oldSecretName, newSecretName) =>
-        if err then callback err
-        else
-          routingKey = "group.secret.#{oldSecretName}.cycleChannel"
-          @emit 'broadcast', routingKey, null
-          callback null
-    return throttle cycleChannel, 5000
-
-  cycleChannel:(callback) -> @constructor.cycleChannel @slug, callback
-
-  @broadcast = (groupSlug, event, message) ->
-    if message?
-      event = ".#{event}"
-    else
-      [message, event] = [event, message]
-      event = ''
-    @fetchSecretChannelName groupSlug, (err, secretChannelName, oldSecretChannelName) =>
-      if err? then console.error err
-      else unless secretChannelName? then console.error 'unknown channel'
-      else
-        @emit 'broadcast', "#{oldSecretChannelName}#{event}", message  if oldSecretChannelName
-        @emit 'broadcast', "#{secretChannelName}#{event}", message
-        @emit 'notification', "#{groupSlug}#{event}", {
-          routingKey  : groupSlug
-          contents    : message
-          event       : 'feed-new'
-        }
 
 
   sendNotification: (event, contents, callback) ->
@@ -1284,7 +1229,6 @@ module.exports = class JGroup extends Module
 
       kallback = (err) =>
         @updateCounts()
-        @cycleChannel()
 
         { profile: { nickname } } = client.connection.delegate
 
@@ -1344,7 +1288,6 @@ module.exports = class JGroup extends Module
             @removeMember account, role, (err) =>
               return fin err  if err
               @updateCounts()
-              @cycleChannel()
               fin()
 
           # add current user into blocked accounts
@@ -1402,7 +1345,6 @@ module.exports = class JGroup extends Module
             return callback err if err
 
             kallback = (err) =>
-              @cycleChannel()
               @updateCounts()
               callback err
 

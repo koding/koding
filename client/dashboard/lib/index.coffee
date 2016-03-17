@@ -111,13 +111,6 @@ module.exports = class DashboardAppController extends AppController
 
   membersViewAdded: (pane, view) ->
     group = view.getData()
-    # pane.on 'PaneDidShow', ->
-    #   view.refresh()  if pane.tabHandle.isDirty
-    #   pane.tabHandle.markDirty no
-    group.on 'MemberAdded', ->
-      kd.log 'MemberAdded'
-      # {tabHandle} = pane
-      # tabHandle.markDirty()
 
   loadSection: ({title}) ->
     @getView().nav.ready =>

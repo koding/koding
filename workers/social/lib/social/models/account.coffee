@@ -46,18 +46,8 @@ module.exports = class JAccount extends jraphical.Module
       isExempt           : 'ascending'
       type               : 'ascending'
     sharedEvents    :
-      static        : [
-        { name : 'AccountAuthenticated' } # TODO: we need to handle this event differently.
-        { name : 'RemovedFromCollection' }
-      ]
-      instance      : [
-        # this is commented-out intentionally
-        # when a user sends a status update, we are sending 7 events
-        # when a user logs-in we are sending 10 events
-        # { name: 'updateInstance' }
-        { name : 'RemovedFromCollection' }
-        { name : 'NewWorkspaceCreated' }
-      ]
+      static        : []
+      instance      : []
     sharedMethods :
       static:
         one: [
@@ -305,12 +295,6 @@ module.exports = class JAccount extends jraphical.Module
 
   constructor: ->
     super
-    @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
-    @notifyGroupWhen 'FollowHappened'
-
-  @sendUpdateInstanceEvent = (obj, op) ->
-    JAccount.bongos.forEach (bongo) ->
-      bongo.handleEvent 'instance', obj, 'updateInstance', [op]
 
   canEditPost: permit 'edit posts'
 
@@ -687,7 +671,6 @@ module.exports = class JAccount extends jraphical.Module
           return callback err
         @isExempt = exempt
 
-        JAccount.sendUpdateInstanceEvent this, op
         callback null, result
 
   markUserAsExemptInSocialAPI: (client, exempt, callback) ->
@@ -824,7 +807,6 @@ module.exports = class JAccount extends jraphical.Module
     if @equals(client.connection.delegate)
       op = { $set: fields }
       @update op, (err) =>
-        JAccount.sendUpdateInstanceEvent this, op  unless err
 
         firstName = fields['profile.firstName']
         lastName  = fields['profile.lastName']

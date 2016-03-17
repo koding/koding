@@ -55,14 +55,6 @@ module.exports = class JMailNotification extends Model
       eventType          : ['LikeIsAdded']
       contentTypes       : @commonActivities
       definition         : 'about likes'
-    followActions        :
-      eventType          : ['FollowHappened']
-      contentTypes       : ['JAccount']
-      definition         : 'about follows'
-    privateMessage       :
-      eventType          : ['ReplyIsAdded', 'PrivateMessageSent']
-      contentTypes       : ['JPrivateMessage']
-      definition         : 'about private messages'
     groupInvite          :
       eventType          : ['Invited']
       contentTypes       : ['JGroup'],
@@ -129,13 +121,9 @@ module.exports = class JMailNotification extends Model
     # console.log "RECEIVER:", receiver
     # console.log "ACTIVITY:", activity
 
-    if event is 'FollowHappened'
-      contentType = 'JAccount'
-      contentId   = receiver
-    else
-      contentType = contents.subject.constructorName
-      contentId   = if activity.content then \
-                       activity.content.id else contents.subject.id
+    contentType = contents.subject.constructorName
+    contentId   = if activity.content then \
+                     activity.content.id else contents.subject.id
 
     # I know that looks sucks. ~ GG
     # Its walking on notification flags and tries to find correct eventFlag

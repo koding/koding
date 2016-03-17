@@ -234,16 +234,6 @@ module.exports = class MainController extends KDController
 
 
   attachListeners:->
-    # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
-    #   log "pageLoaded", isLoggedIn()
-
-    # TODO: this is a kludge we needed.  sorry for this.  Move it someplace better C.T.
-    wc = kd.singleton 'windowController'
-    kd.utils.wait 15000, ->
-      remote.api?.JSystemStatus.on 'forceReload', ->
-        global.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
-        global.location.reload yes
-
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
     cookieChangeHandler = do (cookie = kookies.get 'clientId') => =>

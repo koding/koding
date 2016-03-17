@@ -295,8 +295,6 @@ module.exports = class MainView extends kd.View
 
     {JSystemStatus} = remote.api
 
-    JSystemStatus.on 'restartScheduled', @bound 'handleSystemMessage'
-
     kd.utils.wait 2000, =>
       remote.api.JSystemStatus.getCurrentSystemStatuses (err, statuses)=>
         if err then kd.log 'current system status:',err
@@ -307,9 +305,6 @@ module.exports = class MainView extends kd.View
 
           async.series queue.reverse()
 
-  handleSystemMessage:(message)->
-
-    @createGlobalNotification message  if message.status is 'active'
 
   hideAllNotifications:->
 

@@ -1,16 +1,16 @@
-globals = require 'globals'
-kd      = require 'kd'
-kookies = require 'kookies'
-Bongo   = require '@koding/bongo-client'
-broker  = require 'broker-client'
-async   = require 'async'
-
+globals           = require 'globals'
+kd                = require 'kd'
+kookies           = require 'kookies'
+Bongo             = require '@koding/bongo-client'
+broker            = require 'broker-client'
+async             = require 'async'
+remote_extensions = require './remote-extensions'
 
 getSessionToken = -> kookies.get 'clientId'
 
 createInstance = ->
 
-  new Bongo
+  bongoInstance = new Bongo
     apiEndpoint    : globals.config.socialApiUri
     apiDescriptor  : globals.REMOTE_API
     resourceName   : globals.config.resourceName ? 'koding-social'
@@ -72,6 +72,12 @@ createInstance = ->
       console.log "connecting to:" + globals.config.broker.uri
 
       new broker.Broker "#{globals.config.broker.uri}", options
+
+
+  bongoInstance.once 'ready', ->
+    remote_extensions.initialize bongoInstance
+
+  return bongoInstance
 
 
 instance = null

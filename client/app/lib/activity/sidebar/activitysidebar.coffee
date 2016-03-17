@@ -75,7 +75,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
         .on 'MessageListUpdated',        @bound 'setPostUnreadCount'
         .on 'ParticipantUpdated',        @bound 'handleGlanced'
-        .on 'NewWorkspaceCreated',       @bound 'updateMachines'
         .on 'WorkspaceRemoved',          @bound 'updateMachines'
         # .on 'ReplyRemoved',              (update) -> log update.event, update
         # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
@@ -95,7 +94,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     mainController.ready =>
       environmentDataProvider.ensureDefaultWorkspace @bound 'updateMachines'
-      whoami().on 'NewWorkspaceCreated', @bound 'updateMachines'
+      notificationController.on 'NewWorkspaceCreated', @bound 'updateMachines'
 
 
     @localStorageController = kd.singletons.localStorageController.storage 'Sidebar'

@@ -64,10 +64,8 @@ module.exports = class JCredential extends jraphical.Module
           (signature Function)
 
     sharedEvents      :
-      static          : [ ]
-      instance        : [
-        { name : 'updateInstance' }
-      ]
+      static          : []
+      instance        : []
 
     indexes           :
       identifier      : 'unique'
