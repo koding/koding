@@ -7,7 +7,6 @@ import (
 	"path"
 	"regexp"
 	"strconv"
-	"time"
 
 	"github.com/koding/kite"
 
@@ -20,24 +19,6 @@ import (
 const (
 	// 1024MB
 	recommendedRemoteFolderSize = 1024
-
-	// fuseTellTimout is the timeout that all kite method calls over the network
-	// will take to timeout. This should be large enough as to allow large files to
-	// be send over the kite callback protocol, but also small enough to allow the
-	// network error to be presented to the user in the event of network disruptions.
-	//
-	// If left too large, the Kernel (in OSX, for example) will fail fs ops by printing
-	// "Socket is not connected" to the user. So if that message is seen, this value
-	// likely needs to be lowered.
-	fuseTellTimeout = 55 * time.Second
-
-	// dialingFailedErrType is the kite.Error.Type used for errors encountered when
-	// dialing the remote.
-	dialingFailedErrType = "dialing failed"
-
-	// mountNotFound is the kite.Error.Type used for errors encountered when
-	// the mount name given cannot be found.
-	mountNotFoundErrType = "mount not found"
 )
 
 var (
@@ -102,9 +83,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		IP:            remoteMachine.IP,
 		KitePinger:    remoteMachine.KitePinger,
 		Intervaler:    remoteMachine.Intervaler,
-		Client:        remoteMachine.Client,
-		Dialer:        remoteMachine.Client,
-		Teller:        remoteMachine.Client,
+		Transport:     remoteMachine.Client,
 		PathUnmounter: fuseklient.Unmount,
 		MountAdder:    r,
 	}
