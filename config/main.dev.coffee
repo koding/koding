@@ -1154,11 +1154,13 @@ Configuration = (options={}) ->
           exit 1
         fi
 
+        # Update node modules
+        if ! scripts/check-node_modules.sh; then
+          npm install --silent
+        fi
+
         # Check everything else
         check
-
-        # Do npm i incase of packages.json changes
-        npm i --silent
 
         # Remove old watcher files (do we still need this?)
         rm -rf #{projectRoot}/go/bin/goldorf-main-*
