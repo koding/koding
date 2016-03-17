@@ -99,6 +99,9 @@ build:
         name: check social api code quality
         code: scripts/wercker/run-command scripts/check_socialapi_code_quality.sh
     - script:
+        name: check client code quality
+        code: scripts/wercker/run-command scripts/check_client_code_quality.sh
+    - script:
         name: testing backend started
         code: scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend started" "building" 41
     - script:

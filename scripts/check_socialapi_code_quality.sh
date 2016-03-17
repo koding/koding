@@ -9,6 +9,8 @@ if [ -z "$v" ]; then
     exit 0
 fi
 
+
+
 echo "checking cyclo complexity"
 ./go/bin/gocyclo -top 20 ./go/src/socialapi/*/**/**.go
 
