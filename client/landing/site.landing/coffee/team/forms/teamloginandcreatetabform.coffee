@@ -7,10 +7,10 @@ TeamJoinByLoginForm = require './teamjoinbyloginform'
 
 module.exports = class TeamLoginAndCreateTabForm extends TeamJoinByLoginForm
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass      = 'clearfix login-form'
-    options.buttonTitle or= "Done!"
+    options.buttonTitle or= 'Done!'
 
     super options, data
 

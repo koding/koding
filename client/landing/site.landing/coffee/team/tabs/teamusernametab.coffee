@@ -16,7 +16,7 @@ track = (action) ->
 
 module.exports = class TeamUsernameTab extends TeamJoinTab
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.loginForm        or= TeamLoginAndCreateTabForm
     options.loginFormInvited or= TeamCreateWithMemberAccountForm
@@ -35,21 +35,21 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
 
   getModalTitle: ->
     if @alreadyMember and @wantsToUseDifferentAccount
-      "Sign in"
+      'Sign in'
     else if @alreadyMember
-      ""
+      ''
     else
-      "Create your account"
+      'Create your account'
 
 
   getDescription: ->
 
     if @alreadyMember and @wantsToUseDifferentAccount
-      "Please enter your <i>koding.com</i> username & password."
+      'Please enter your <i>koding.com</i> username & password.'
     else if @alreadyMember
       "<br>It seems that you're already a <i>Koding.com</i> user, please type your password to proceed."
     else
-      "Pick a username and a password to log in with."
+      'Pick a username and a password to log in with.'
 
 
   addForgotPasswordLink: ->
@@ -77,7 +77,7 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
 
     if username is slug
       @form.emit 'FormSubmitFailed'
-      return new kd.NotificationView title : "Sorry, your group domain and your username can not be the same!"
+      return new kd.NotificationView { title : 'Sorry, your group domain and your username can not be the same!' }
 
     success = =>
       utils.storeNewTeamData 'username', formData
@@ -87,7 +87,7 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
           utils.clearTeamData()
           { protocol, host } = location
           location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
-        error : ({responseText}) =>
+        error : ({ responseText }) =>
           @form.emit 'FormSubmitFailed'
 
           if /TwoFactor/.test responseText
@@ -95,7 +95,7 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
             @form.showTwoFactor()
           else
             track 'failed to create a team'
-            new kd.NotificationView title : responseText
+            new kd.NotificationView { title : responseText }
 
 
     unless checkUsername
@@ -105,7 +105,7 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
         success : ->
           track 'entered a valid username'
           success()
-        error   : ({responseJSON}) =>
+        error   : ({ responseJSON }) =>
           track 'entered an invalid username'
 
           @form.emit 'FormSubmitFailed'
@@ -114,9 +114,9 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
             return new kd.NotificationView
               title: 'Something went wrong'
 
-          {forbidden, kodingUser} = responseJSON
+          { forbidden, kodingUser } = responseJSON
           msg = if forbidden then "Sorry, \"#{username}\" is forbidden to use!"
           else if kodingUser then "Sorry, \"#{username}\" is already taken!"
           else                    "Sorry, there is a problem with \"#{username}\"!"
 
-          new kd.NotificationView title : msg
+          new kd.NotificationView { title : msg }
