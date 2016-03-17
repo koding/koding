@@ -15,6 +15,7 @@
 export DEFAULT_START_COMMAND="/opt/kite/klient/klient -kontrol-url https://koding.com/kontrol/kite"
 export START_COMMAND="%START_COMMAND%"
 export USERNAME="%USERNAME%"
+export KITE_HOME=/etc/kite
 
 if [ -z "${START_COMMAND}" ]; then
 	export START_COMMAND=$DEFAULT_START_COMMAND
@@ -31,10 +32,10 @@ do_start() {
 	fi
 
 	echo -n "-- Starting Koding Service Connector..."
-	if [ "$(whoami)" != "${USERNAME}" ]; then
-		sudo -E -u "${USERNAME}" bash -c "${START_COMMAND} >>/var/log/klient.log 2>&1" &
+	if [ "${USERNAME}" = "root" ] && [ "$(whoami)" = "root" ]; then
+		nohup ${START_COMMAND} >>/var/log/klient.log 2>&1 &
 	else
-		bash -c "${START_COMMAND} >>/var/log/klient.log 2>&1" &
+		sudo -E -u "${USERNAME}" nohup ${START_COMMAND} >>/var/log/klient.log 2>&1 &
 	fi
 
 	if [ ${?} -eq 0 ]; then
@@ -49,17 +50,19 @@ do_start() {
 do_stop() {
 	if is_running; then
 		echo -n "-- Stopping Koding Service Connector..."
-		if [ "$(whoami)" != "${USERNAME}" ]; then
-			sudo kill $(pidof klient) >/dev/null 2>&1
-		else
+		if [ "${USERNAME}" = "root" ] && [ "$(whoami)" = "root" ]; then
 			kill $(pidof klient) >/dev/null 2>&1
+		else
+			sudo kill $(pidof klient) >/dev/null 2>&1
 		fi
+
 		for _ in $(seq 1 60); do
 			if ! is_running; then
 				break
 			fi
 			sleep 1
 		done
+
 		if is_running; then
 			echo " failed!"
 			exit 1
