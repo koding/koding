@@ -87,7 +87,6 @@ module.exports = class KodingListController extends KDListViewController
 
       return @hideLazyLoader()  if @filterStates.busy
 
-      @filterStates.busy  = yes
       @filterStates.skip += @getOption 'limit'
 
       @fetch @filterStates.query, (items) =>
@@ -96,7 +95,7 @@ module.exports = class KodingListController extends KDListViewController
       , { skip : @filterStates.skip }
 
 
-  loadItems: (options = {}) ->
+  loadItems: ->
 
     @removeAllItems()
     @showLazyLoader()
@@ -107,10 +106,10 @@ module.exports = class KodingListController extends KDListViewController
       @addListItems items
       @calculateAndFetchMoreIfNeeded()  if items.length is @getOption('limit')
 
-    , options
-
 
   fetch: (query, callback, fetchOptions = {}) ->
+
+    @filterStates.busy = yes
 
     { limit, fetcherMethod, model, sort } = @getOptions()
 
@@ -119,13 +118,13 @@ module.exports = class KodingListController extends KDListViewController
 
     fetcher = fetcherMethod or model.some
 
-    fetcher @filterStates.query, fetchOptions, (err, items) =>
+    fetcher query, fetchOptions, (err, items) =>
 
       @hideLazyLoader()
+      @filterStates.busy = no
 
       if err
         @emit 'FetchProcessFailed', { err }
-        @filterStates.busy = no
         return
 
       @emit 'FetchProcessSucceeded', { items }
