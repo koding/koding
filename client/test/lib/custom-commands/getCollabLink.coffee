@@ -13,13 +13,13 @@ exports.command = getCollabLink = (browser, callback) ->
 
       if url
         clearInterval interval
-        fs.unlinkSync path
         clearTimeout timer
         isUrlFound = yes
+        console.log '>>>>>>>>>> Participant get this collaboration URL', url
         callback? url
 
     catch
-      console.log ' ✔ Checking for collaboration url...'
+      console.log ' ✔ Checking collaboration url...'
 
   interval = setInterval getUrl, 10000
 
