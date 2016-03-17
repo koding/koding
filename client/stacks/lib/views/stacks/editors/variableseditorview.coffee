@@ -5,7 +5,7 @@ module.exports = class VariablesEditorView extends BaseStackEditorView
   constructor: (options = {}, data) ->
 
     unless options.content
-      options.content = """
+      options.content = '''
         # Define custom variables here
         # You can define your custom variables, and use them in your stack template.
         # These variables will not be visible to your non-admins.
@@ -18,7 +18,7 @@ module.exports = class VariablesEditorView extends BaseStackEditorView
         #
         #   ${var.custom_foo}
 
-      """
+      '''
       options.contentType = 'yaml'
 
     super options, data

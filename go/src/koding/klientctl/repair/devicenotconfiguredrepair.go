@@ -1,7 +1,7 @@
 package repair
 
 import (
-	"fmt"
+	"errors"
 	"koding/klient/remote/req"
 	"koding/klientctl/util"
 	"os"
@@ -46,31 +46,27 @@ func (r *DeviceNotConfiguredRepair) getMountPath() (string, error) {
 
 // Status stats the mount directory that klient returns, and if it errors with
 // Permission denied, return an error.
-func (r *DeviceNotConfiguredRepair) Status() error {
+func (r *DeviceNotConfiguredRepair) Status() (bool, error) {
 	path, err := r.getMountPath()
 
 	// If we can't even get the mount dir from klient, return the error
 	// so that repair can fail with the same issue.
-	//
-	// TODO: Fix this behavior by adding bool to Status(), so that errors mean
-	// bad things. ~LO
 	if err != nil {
-		r.Log.Warning("Encountered ignored error. err:%s", err)
-		return nil
+		return false, err
 	}
 
 	f, err := os.Open(path)
 
 	// If open fails with device not configured, we return not okay.
 	if err != nil && strings.HasSuffix(err.Error(), dncSuffix) {
-		return fmt.Errorf("Mount %q at %q not configured", r.MountName, path)
+		return false, nil
 	}
 
 	// If it's another error, log it. In this case there's nothing to do,
 	// we don't know what's wrong.
 	if err != nil {
 		r.Log.Warning("Encountered error not in scope of this repair. err:%s", err)
-		return nil
+		return true, nil
 	}
 
 	// Not returning an error for mount closing failure. Just logging it.
@@ -81,7 +77,7 @@ func (r *DeviceNotConfiguredRepair) Status() error {
 		)
 	}
 
-	return nil
+	return true, nil
 }
 
 // Repair simply remounts the given directory, and then checks the status one more
@@ -94,8 +90,11 @@ func (r *DeviceNotConfiguredRepair) Repair() error {
 		return err
 	}
 
-	if err := r.Status(); err != nil {
+	if ok, err := r.Status(); !ok || err != nil {
 		r.Stdout.Printlnf("Unable to repair mount issue.")
+		if err == nil {
+			err = errors.New("Status returned not-okay after Repair")
+		}
 		return err
 	}
 

@@ -72,7 +72,7 @@ func resourceGithubAddUser() *schema.Resource {
 
 // GetTeamIDs gets the teams id of the organization
 func GetTeamIDs(client *github.Client, org string, teamNames []string) ([]int, error) {
-	currentPage := 1
+	currentPage := 0
 
 	var teamIDs []int
 

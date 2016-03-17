@@ -12,7 +12,7 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
 
     kd.singletons.appManager.require 'IDE'
 
-    curryIn options, cssClass: 'editor-view'
+    curryIn options, { cssClass: 'editor-view' }
 
     { content, contentType, targetContentType } = options
 

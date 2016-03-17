@@ -17,14 +17,14 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
 
   insertHelpText: ->
 
-    position = row: 0, column: 0
-    content  = """
+    position = { row: 0, column: 0 }
+    content  = '''
       # Here is your stack preview
       # You can make advanced changes like modifying your VM,
       # installing packages, and running shell commands.
 
 
-    """
+    '''
 
     ace = @getAce()
 

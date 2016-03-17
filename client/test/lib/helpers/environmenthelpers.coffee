@@ -47,7 +47,7 @@ module.exports =
     @openVmSettingsModal browser, vmName, '.specs'
 
 
-  openGeneralSettings: (browser,vmName) ->
+  openGeneralSettings: (browser, vmName) ->
 
     @openVmSettingsModal browser, vmName
 
@@ -62,7 +62,7 @@ module.exports =
     @openVmSettingsModal browser, vmName, '.advanced'
 
 
-  openSnapshotsSettings: (browser,vmName) ->
+  openSnapshotsSettings: (browser, vmName) ->
 
 
     @openVmSettingsModal browser, vmName, '.snapshots'
@@ -135,7 +135,7 @@ module.exports =
     if openSettings
       @attemptCreateSnapshot(browser)
 
-    browser.element 'css selector',snapshotSelector , (result) =>
+    browser.element 'css selector', snapshotSelector, (result) =>
       if result.status is 0
         console.log '✔ Snapshot exits. Ending test...'
       else
@@ -158,23 +158,23 @@ module.exports =
             .assert.containsText   labelSelector, name #Assertion
 
 
-  assertSnapshotPresent: (browser, name, reverse=false) ->
+  assertSnapshotPresent: (browser, name, reverse = false) ->
 
-    listSelector = ".snapshots .kdlistview"
+    listSelector = '.snapshots .kdlistview'
 
-    browser.elements 'css selector', listSelector+" .kdlistitemview-snapshot.snapshot .label", (elements) ->
+    browser.elements 'css selector', listSelector + ' .kdlistitemview-snapshot.snapshot .label', (elements) ->
       elements.value.map (value) ->
         browser.elementIdText value.ELEMENT, (res) ->
           if name is res
             if reverse
-              assert.notEqual res,name, "Snapshot present when not expected to be"
+              assert.notEqual res, name, 'Snapshot present when not expected to be'
             else
-              assert.equal res,name
+              assert.equal res, name
 
 
   createSnapshotIfNotFound: (browser, callback) ->
 
-    browser.element 'css selector', ".kdlistview .kdlistitemview-snapshot", (result) ->
+    browser.element 'css selector', '.kdlistview .kdlistitemview-snapshot', (result) ->
       name = null
       if result.status is not 0
         name = environmentHelpers.createSnapshot(browser)
@@ -184,9 +184,9 @@ module.exports =
 
   deleteSnapshot: (browser) ->
 
-    elementSelector = ".kdlistview .kdlistitemview-snapshot.snapshot:first-child"
+    elementSelector = '.kdlistview .kdlistitemview-snapshot.snapshot:first-child'
     deleteSelector  = "#{elementSelector} .buttons .delete"
-    confirmSelector = ".kdmodal .kdmodal-buttons .red"
+    confirmSelector = '.kdmodal .kdmodal-buttons .red'
 
     browser
       .waitForElementVisible elementSelector, 20000
@@ -199,7 +199,7 @@ module.exports =
 
   openResizeVmModal: (browser) ->
 
-    resizeSelector  = ".disk-usage-info .footline .resize"
+    resizeSelector  = '.disk-usage-info .footline .resize'
 
     @openDiskUsageSettings(browser)
 
@@ -271,7 +271,7 @@ module.exports =
       .click                     lastDomainItem + ' span.remove'
       .waitForElementVisible     loader, 10000
       .waitForElementNotVisible  loader, 20000
-      .getText                   domainSelector, (result) =>
+      .getText                   domainSelector, (result) ->
         assert.notEqual          result.value, domainName # Assertion
 
 
@@ -305,7 +305,7 @@ module.exports =
     proceedSelector  = '.kdmodal.with-buttons .kdbutton.red'
     vmStateModal     = '.env-machine-state .kdmodal-content'
     vmSelector       = '.sidebar-machine-box'
-    envModalSelector = ".env-modal.env-machine-state"
+    envModalSelector = '.env-modal.env-machine-state'
 
     browser
       .waitForElementVisible     reinitSelector, 20000
@@ -336,7 +336,7 @@ module.exports =
       .waitForElementVisible  vmSelector   + ' .vm.terminating', 200000
       .waitForElementVisible  vmStateModal + ' .terminating', 20000
       .waitForElementVisible  terminatedLabelSelector, 200000
-      .assert.containsText    terminatedLabelSelector, "successfully deleted" #Assertion
+      .assert.containsText    terminatedLabelSelector, 'successfully deleted' #Assertion
 
 
   createNewVMForNonPayingUsers: (browser) ->
@@ -391,17 +391,17 @@ module.exports =
       .waitForElementVisible  addVmButton, 20000
       .click                  addVmButton
 
-      if addNewVmNotAllowed
-        browser
-          .waitForElementVisible  '.computeplan-modal [disabled="disabled"]', 20000
-          .assert.containsText    '.kdmodal-content .kdview.modal-title.warn', remainingSlots
-          .assert.containsText    vmAssert, usedStorage
-      else
-        browser
-          .waitForElementVisible  disabledCreateVmButton, 20000
-          .click                  disabledCreateVmButton
-          .pause                  2000 #for page to finish loading
-          .waitForElementVisible  vmAssert, 20000
+    if addNewVmNotAllowed
+      browser
+        .waitForElementVisible  '.computeplan-modal [disabled="disabled"]', 20000
+        .assert.containsText    '.kdmodal-content .kdview.modal-title.warn', remainingSlots
+        .assert.containsText    vmAssert, usedStorage
+    else
+      browser
+        .waitForElementVisible  disabledCreateVmButton, 20000
+        .click                  disabledCreateVmButton
+        .pause                  2000 #for page to finish loading
+        .waitForElementVisible  vmAssert, 20000
 
 
   setAlwaysOnVm: (browser, secondVM = no) ->

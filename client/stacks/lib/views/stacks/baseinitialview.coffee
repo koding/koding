@@ -56,10 +56,10 @@ module.exports = class BaseInitialView extends kd.View
     { config } = stackTemplate
 
     unless config.verified
-      return @showWarning "
+      return @showWarning '
         This stack template is not verified, please edit and save again
         to verify it. Only a verified stack template can be applied to a Team.
-      "
+      '
 
     { groupsController } = kd.singletons
 

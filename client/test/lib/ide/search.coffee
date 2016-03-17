@@ -97,7 +97,7 @@ module.exports =
 
     browser
       .pause   4000 # wait for file create complete
-      .element 'css selector', fileSelector, (result) =>
+      .element 'css selector', fileSelector, (result) ->
 
         if result.status is 0
           ideHelpers.clickItemInMachineHeaderMenu(browser, '.toggle-invisible-files')

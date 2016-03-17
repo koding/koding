@@ -113,7 +113,7 @@ module.exports = class IndividualsView extends KDView
 
       @plans.setState @state
 
-      @handleToggleChanged planInterval: @state.planInterval
+      @handleToggleChanged { planInterval: @state.planInterval }
 
       callback()
 
@@ -222,7 +222,7 @@ module.exports = class IndividualsView extends KDView
 
   continueFrom: (planTitle, planInterval) ->
 
-    @emit 'IntervalToggleChanged', {planInterval}
+    @emit 'IntervalToggleChanged', { planInterval }
 
     plan = @plans.planViews[planTitle]
     plan.select()
@@ -232,8 +232,8 @@ module.exports = class IndividualsView extends KDView
 
 
   pistachio: ->
-    """
+    '''
       {{> @intervalToggleView}}
       {{> @plans}}
       {{> @noWorries}}
-    """
+    '''

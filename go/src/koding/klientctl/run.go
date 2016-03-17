@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,14 +10,12 @@ import (
 
 	"koding/klient/remote/req"
 	"koding/klientctl/klient"
+	"koding/mountcli"
 
 	"github.com/koding/logging"
 
 	"github.com/codegangsta/cli"
 )
-
-// ErrNotInMount happens when command is run from outside a mount.
-var ErrNotInMount = errors.New("command not run on mount")
 
 // RunCommandFactory is the factory method for RunCommand.
 func RunCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
@@ -48,8 +45,8 @@ func RunCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	)
 
 	res, err := r.runOnRemote(localPath, cmdWithArgsStr)
-	if err != nil && err != ErrNotInMount {
-		log.Error("Error running command. err:%s", err)
+	if err != nil && err != mountcli.ErrNoMountPath {
+		log.Error("Error running command. err:", err)
 		// Note that we're printing the error here to the user. This seems reasonable
 		// since their own command may have failed, and that information is meaningful
 		// to them.
@@ -59,7 +56,7 @@ func RunCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	if err == ErrNotInMount {
+	if err == mountcli.ErrNoMountPath {
 		fmt.Println("Running on local:", cmdWithArgsStr)
 		return r.runOnLocal(cmdWithArgs)
 	}
@@ -111,7 +108,7 @@ func NewRunCommand() (*RunCommand, error) {
 }
 
 func (r *RunCommand) runOnRemote(localPath string, cmdWithArgsStr string) (*ExecRes, error) {
-	machine, err := GetMachineMountedForPath(localPath)
+	machine, err := mountcli.NewMountcli().FindMountNameByPath(localPath)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +143,7 @@ func (r *RunCommand) runOnMachine(machine, fullCmdPath string, cmdWithArgsStr st
 // getCmdRemotePath return the path on remote machine where the command should
 // be run.
 func (r *RunCommand) getCmdRemotePath(machine, localPath string) (string, error) {
-	relativePath, err := GetRelativeMountPath(localPath)
+	relativePath, err := mountcli.NewMountcli().FindRelativeMountPath(localPath)
 	if err != nil {
 		return "", err
 	}
@@ -163,7 +160,7 @@ func (r *RunCommand) getCmdRemotePath(machine, localPath string) (string, error)
 		}
 	}
 
-	return "", ErrNotInMount
+	return "", mountcli.ErrNotInMount
 }
 
 // getMounts returns list of mounts from remote.

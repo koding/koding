@@ -13,7 +13,7 @@ import (
 	"koding/klientctl/list"
 	"koding/klientctl/util"
 	"koding/klientctl/util/exec"
-	"koding/klientctl/util/mountcli"
+	"koding/mountcli"
 
 	"github.com/koding/logging"
 	"github.com/leeola/service"
@@ -383,7 +383,7 @@ func (c *Command) initDefaultRepairers() error {
 		Stdout:    util.NewFprint(c.Stdout),
 		MountName: c.Options.MountName,
 		Klient:    c.Klient,
-		Mountcli:  mountcli.NewMount(),
+		Mountcli:  mountcli.NewMountcli(),
 	}
 
 	permDeniedRepair := &PermDeniedRepair{
@@ -432,15 +432,19 @@ func (c *Command) initDefaultRepairers() error {
 // RetryRepairer) to repeat repair attempts on failures.
 func (c *Command) runRepairers(repairers []Repairer) error {
 	for _, r := range repairers {
-		err := r.Status()
-		if err == nil {
+		ok, err := r.Status()
+		if err != nil {
+			c.Log.Error("Repairer was unable to determine Status. Repairer not configured properly or requirements not met. err:%s", err)
+			return err
+		}
+
+		if ok {
 			// If there is no problem from Status, we can just move onto the next Repairer.
 			continue
 		}
 
 		c.Log.Warning(
-			"Repairer returned a non-ok status. Running its repair. repairer:%s, err:%s",
-			r, err,
+			"Repairer returned a non-ok status. Running its repair. repairer:%s", r,
 		)
 
 		if err := r.Repair(); err != nil {

@@ -9,7 +9,7 @@ postToSlack = (message) ->
     include: true
     method: 'POST'
     data:
-      "payload": '{"channel": "#qa", "username": "crow", "icon_url": "https://koding-cdn.s3.amazonaws.com/images/qa-crow-logo.png", "text": "' + message + '"}'
+      'payload': '{"channel": "#qa", "username": "crow", "icon_url": "https://koding-cdn.s3.amazonaws.com/images/qa-crow-logo.png", "text": "' + message + '"}'
 
   curl.request options, (err, parts) -> console.log err  if err
 

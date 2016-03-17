@@ -76,10 +76,6 @@ type MountCommand struct {
 
 	// homeDirGetter gets the users home directory.
 	homeDirGetter func() (string, error)
-
-	// mount Lock func. Ie, it creates the lock files we currently use to
-	// say what is a mount.
-	mountLocker func(string, string) error
 }
 
 // Help prints help to the caller.
@@ -168,14 +164,6 @@ func (c *MountCommand) Run() (int, error) {
 		cleanupPath = true
 
 		return 1, err
-	}
-
-	// Lock the mount, so that run/etc knows it's a mount folder.
-	if err := c.mountLocker(c.Options.LocalPath, c.Options.Name); err != nil {
-		cleanupPath = true
-
-		c.printfln(FailedToLockMount)
-		return 1, fmt.Errorf("Error locking. err:%s", err)
 	}
 
 	c.printfln("Mount complete.")

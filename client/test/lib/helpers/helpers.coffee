@@ -3,6 +3,8 @@ faker    = require 'faker'
 assert   = require 'assert'
 HUBSPOT  = no
 
+require '../utils/fail.js' # require fail to wrap NW::fail.
+
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
@@ -77,10 +79,10 @@ module.exports =
       .click                  '[testpath=AvatarAreaIconLink]'
       .click                  '[testpath=logout-link]'
       .pause                  3000
-      if HUBSPOT
-        browser.waitForElementVisible  '.hero.block .container', 20000
-      else
-        browser.waitForElementVisible  '.TeamsModal--select', 30000 # Assertion
+    if HUBSPOT
+      browser.waitForElementVisible  '.hero.block .container', 20000
+    else
+      browser.waitForElementVisible  '.TeamsModal--select', 30000 # Assertion
 
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
@@ -335,7 +337,7 @@ module.exports =
       .pause                   2000
       .waitForElementVisible   '.vm-header', 50000
       .click                   '.vm-header .buttons'
-      .waitForElementVisible   '.context-list-wrapper',50000
+      .waitForElementVisible   '.context-list-wrapper', 50000
       .click                   '.context-list-wrapper li.new-folder'
       .waitForElementVisible   'li.selected .rename-container .hitenterview', 50000
       .clearValue              'li.selected .rename-container .hitenterview'
@@ -381,7 +383,7 @@ module.exports =
 
   deleteWorkspace: (browser, workspaceName) ->
 
-    browser.url (data) =>
+    browser.url (data) ->
       url               = data.value
       vmName            = url.split('/IDE/')[1].split('/')[0]
       workspaceSelector = 'a[href="/IDE/' + vmName + '/' + workspaceName + '"]'
@@ -452,7 +454,7 @@ module.exports =
   fillPaymentForm: (browser, planType = 'developer', cardDetails = {}) ->
 
     defaultCard  =
-      cardNumber : cardDetails.cardNumber or "4111 1111 1111 1111"
+      cardNumber : cardDetails.cardNumber or '4111 1111 1111 1111'
       cvc        : cardDetails.cvc        or 123
       month      : cardDetails.month      or 12
       year       : cardDetails.year       or 2019
