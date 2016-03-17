@@ -250,6 +250,48 @@ module.exports =
       .click                  '.kicked-modal .kdmodal-buttons .button-title'
 
 
+  requestPermission: (browser, waitForApproval = yes) ->
+
+    finderPane       = '.kdtabpaneview.files .file-container'
+    notificationView = '.system-notification.ide-warning-view.in'
+    permissionLink   = "#{notificationView} .ask-permission"
+    deniedView       = "#{notificationView}.error"
+    acceptedView     = "#{notificationView}.success"
+
+    browser
+      .waitForElementVisible        finderPane, 20000
+      .click                        finderPane
+      .waitForElementVisible        notificationView, 20000
+      .pause                        500 # wait for animation
+      .waitForElementVisible        permissionLink, 20000
+      .click                        permissionLink
+      .waitForElementNotPresent     notificationView, 20000
+
+    if waitForApproval
+      browser.waitForElementVisible acceptedView, 20000
+    else
+      browser.waitForElementVisible deniedView, 20000
+
+
+  answerPermissionRequest: (browser, shouldAccept = yes) ->
+
+    contextMenu = '.IDE-StatusBarContextMenu'
+    denyLink    = "#{contextMenu} .permission-row .deny"
+    acceptLink  = "#{contextMenu} .permission-row .grant"
+
+    browser
+      .waitForElementVisible contextMenu, 20000
+      .waitForElementVisible denyLink, 20000
+      .waitForElementVisible acceptLink, 20000
+
+    if shouldAccept
+      browser.click acceptLink
+    else
+      browser.click denyLink
+
+    browser.waitForElementNotPresent contextMenu, 20000
+
+
   # This is not an helper method. It is here because of reusability in tests.
   testLeaveSessionFrom_: (browser, where) ->
 
