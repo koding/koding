@@ -4,8 +4,9 @@ module.exports = class Notifiable
 
     @update change, (err) =>
 
-      options?.account?.sendNotification? 'InstanceChanged', {
-        id: @getId(), group: options.group, change, timestamp: Date.now()
-      }
+      unless err
+        options?.account?.sendNotification? 'InstanceChanged', {
+          id: @getId(), group: options.group, change, timestamp: Date.now()
+        }
 
       callback err
