@@ -8,14 +8,14 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
   USERNAME_VALID = yes
   ENTER          = 13
 
-  constructor:(options={},data)->
+  constructor: (options = {}, data) ->
     super options, data
 
     @email = new LoginInputViewWithLoader
       inputOptions    :
-        name          : "email"
-        placeholder   : "email address"
-        testPath      : "register-form-email"
+        name          : 'email'
+        placeholder   : 'email address'
+        testPath      : 'register-form-email'
         validate      : @getEmailValidator()
         decorateValidation: no
         focus         : => @email.icon.unsetTooltip()
@@ -26,10 +26,10 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     @username?.destroy()
     @username = new LoginInputViewWithLoader
       inputOptions       :
-        name             : "username"
-        forceCase        : "lowercase"
-        placeholder      : "username"
-        testPath         : "register-form-username"
+        name             : 'username'
+        forceCase        : 'lowercase'
+        placeholder      : 'username'
+        testPath         : 'register-form-username'
         focus            : => @username.icon.unsetTooltip()
         keyup            : (event) => @submitForm event  if event.which is ENTER
         validate         :
@@ -52,7 +52,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             # finalCheck   : 'blur'
         decorateValidation: no
 
-    {buttonTitle} = @getOptions()
+    { buttonTitle } = @getOptions()
 
     @button?.destroy()
     @button = new KDButtonView
@@ -78,7 +78,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
   usernameCheckTimer = null
 
-  reset:->
+  reset: ->
     inputs = KDFormView.findChildInputs this
     input.clearValidationFeedback() for input in inputs
     super
@@ -157,7 +157,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       return no
 
 
-  pistachio:->
+  pistachio: ->
     """
     <section class='main-part'>
       <div class='email'>{{> @email}}</div>

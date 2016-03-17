@@ -8,7 +8,7 @@ KD.extend
     d.setUTCMinutes 0
     d
 
-  setVersionCookie: ({ meta:{ createdAt }}) ->
+  setVersionCookie: ({ meta:{ createdAt } }) ->
     if (new Date createdAt) > KD.newKodingLaunchDate
       Cookies.set 'koding082014', 'koding082014'
 
@@ -23,13 +23,13 @@ KD.extend
   navItemIndex : {}
   mixpanel     : -> warn 'MIXPANEL DEPRECATED!!! fixen sie @senthil'  if KD.config.environment isnt 'production'
 
-  whoami:-> KD.userAccount
+  whoami: -> KD.userAccount
 
-  isLoggedIn:-> KD.whoami()?.type is 'registered'
+  isLoggedIn: -> KD.whoami()?.type is 'registered'
 
-  registerAppClass:(fn, options = {})->
+  registerAppClass: (fn, options = {}) ->
 
-    return error "AppClass is missing a name!"  unless options.name
+    return error 'AppClass is missing a name!'  unless options.name
 
     if KD.appClasses[options.name]
 
@@ -37,24 +37,24 @@ KD.extend
         return warn "AppClass #{options.name} cannot be used, since its conflicting with an internal Koding App."
       else
         warn "AppClass #{options.name} is already registered or the name is already taken!"
-        warn "Removing the old one. It was ", KD.appClasses[options.name]
+        warn 'Removing the old one. It was ', KD.appClasses[options.name]
         @unregisterAppClass options.name
 
     options.multiple      ?= no           # a Boolean
     options.background    ?= no           # a Boolean
     options.hiddenHandle  ?= no           # a Boolean
-    options.openWith     or= "lastActive" # a String "lastActive","forceNew" or "prompt"
-    options.behavior     or= ""           # a String "application", or ""
+    options.openWith     or= 'lastActive' # a String "lastActive","forceNew" or "prompt"
+    options.behavior     or= ''           # a String "application", or ""
     options.thirdParty    ?= no           # a Boolean
     options.menu         or= null         # <Array<Object{title: string, eventName: string, shortcut: string}>>
     options.navItem      or= {}           # <Object{title: string, eventName: string, shortcut: string}>
     options.labels       or= []           # <Array<string>> list of labels to use as app name
-    options.version       ?= "1.0"        # <string> version
+    options.version       ?= '1.0'        # <string> version
     options.route        or= null         # <string> or <Object{slug: string, handler: function}>
     options.routes       or= null         # <string> or <Object{slug: string, handler: function}>
     options.styles       or= []           # <Array<string>> list of stylesheets
 
-    {routes, route, name}  = options
+    { routes, route, name }  = options
 
     if route
     then @registerRoute name, route
@@ -74,48 +74,48 @@ KD.extend
 
   registerRoute: (appName, route, handler) ->
 
-    slug   = if "string" is typeof route then route else route.slug
+    slug   = if 'string' is typeof route then route else route.slug
     route  =
       slug    : slug ? '/'
       handler : handler or route.handler or null
 
     if route.slug isnt '/' or appName is 'KDMainApp'
 
-      {slug, handler} = route
+      { slug, handler } = route
 
       cb = ->
         router = KD.getSingleton 'router'
-        handler ?= ({params:{name}, query}) ->
+        handler ?= ({ params:{ name }, query }) ->
           router.openSection appName, name, query
         router.addRoute slug, handler
 
       if router = KD.singletons.router then cb()
       else KDRouter.on 'RouterIsReady', cb
 
-  unregisterAppClass :(name)-> delete KD.appClasses[name]
+  unregisterAppClass : (name) -> delete KD.appClasses[name]
 
-  getAppClass        :(name)-> KD.appClasses[name]?.fn or null
+  getAppClass        : (name) -> KD.appClasses[name]?.fn or null
 
-  getAppOptions      :(name)-> KD.appClasses[name]?.options or null
+  getAppOptions      : (name) -> KD.appClasses[name]?.options or null
 
-  getAppVersion      :(name)-> KD.appClasses[name]?.options?.version or null
+  getAppVersion      : (name) -> KD.appClasses[name]?.options?.version or null
 
-  getAppScript       :(name)-> @appScripts[name] or null
+  getAppScript       : (name) -> @appScripts[name] or null
 
-  registerAppScript  :(name, script)-> @appScripts[name] = script
+  registerAppScript  : (name, script) -> @appScripts[name] = script
 
-  unregisterAppScript:(name)-> delete @appScripts[name]
+  unregisterAppScript: (name) -> delete @appScripts[name]
 
-  resetAppScripts    :-> @appScripts = {}
+  resetAppScripts    : -> @appScripts = {}
 
-  disableLogs:->
-    for method in ['log','warn','error','trace','info','time','timeEnd']
+  disableLogs: ->
+    for method in ['log', 'warn', 'error', 'trace', 'info', 'time', 'timeEnd']
       window[method] = noop
       KD[method]     = noop
     delete KD.logsEnabled
-    return "Logs are disabled now."
+    return 'Logs are disabled now.'
 
-  enableLogs:(state = yes)->
+  enableLogs: (state = yes) ->
     return KD.disableLogs()  unless state
     KD.log     = window.log     = console.log.bind     console
     KD.warn    = window.warn    = console.warn.bind    console
@@ -124,7 +124,7 @@ KD.extend
     KD.time    = window.time    = console.time.bind    console
     KD.timeEnd = window.timeEnd = console.timeEnd.bind console
     KD.logsEnabled = yes
-    return "Logs are enabled now."
+    return 'Logs are enabled now.'
 
   runningInFrame: -> window.top isnt window.self
 

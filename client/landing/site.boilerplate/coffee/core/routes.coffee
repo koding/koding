@@ -8,7 +8,7 @@ do ->
     # don't load the root content when we're just consuming a hash fragment
     unless location.hash.length
 
-      {router} = KD.singletons
+      { router } = KD.singletons
 
       router.openSection 'Home'
 

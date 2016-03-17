@@ -3,15 +3,15 @@ JView = require './../core/jview'
 module.exports = class LoginInputView extends JView
 
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
-    {inputOptions}            = options
+    { inputOptions }          = options
     options.cssClass          = KD.utils.curry 'login-input-view', options.cssClass
     inputOptions            or= {}
     inputOptions.cssClass     = KD.utils.curry 'thin medium', inputOptions.cssClass
     inputOptions.decorateValidation = no
 
-    {placeholder, validate}   = inputOptions
+    { placeholder, validate }   = inputOptions
 
     delete inputOptions.placeholder
     delete options.inputOptions
@@ -21,7 +21,7 @@ module.exports = class LoginInputView extends JView
     super options, null
 
     @input       = new KDInputView inputOptions, data
-    @icon        = new KDCustomHTMLView cssClass : 'validation-icon'
+    @icon        = new KDCustomHTMLView { cssClass : 'validation-icon' }
     @placeholder = new KDCustomHTMLView
       cssClass   : 'placeholder-helper'
       partial    : placeholder# or inputOptions.name
@@ -39,36 +39,36 @@ module.exports = class LoginInputView extends JView
 
   setFocus: -> @input.setFocus()
 
-  inputReceivedKeyup:->
+  inputReceivedKeyup: ->
 
     if   @input.getValue().length > 0
     then @placeholder.setClass 'out'
     else @placeholder.unsetClass 'out'
 
 
-  inputReceivedFocus:->
+  inputReceivedFocus: ->
 
     if   @input.getValue().length > 0
     then @placeholder.unsetClass 'puff'
 
 
-  inputReceivedBlur:->
+  inputReceivedBlur: ->
 
     if   @input.getValue().length > 0
     then @placeholder.setClass 'puff'
     else @placeholder.unsetClass 'puff'
 
 
-  resetDecoration:-> @unsetClass "validation-error validation-passed"
+  resetDecoration: -> @unsetClass 'validation-error validation-passed'
 
 
-  decorateValidation: (err)->
+  decorateValidation: (err) ->
 
     @resetDecoration()
 
     return  unless @input.getValue().length
 
-    {stickyTooltip} = @getOptions()
+    { stickyTooltip } = @getOptions()
 
     if err
       @icon.setTooltip
@@ -88,4 +88,4 @@ module.exports = class LoginInputView extends JView
     @setClass if err then 'validation-error' else 'validation-passed'
 
 
-  pistachio:-> "{{> @input}}{{> @placeholder}}{{> @icon}}"
+  pistachio: -> '{{> @input}}{{> @placeholder}}{{> @icon}}'

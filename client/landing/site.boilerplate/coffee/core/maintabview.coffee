@@ -2,11 +2,11 @@ MainTabPane = require './maintabpaneview'
 
 module.exports = class MainTabView extends KDTabView
 
-  constructor:(options,data)->
+  constructor: (options, data) ->
 
     options.hideHandleContainer = yes
 
-    super options,data
+    super options, data
 
     @router = KD.getSingleton 'router'
 
@@ -34,7 +34,7 @@ module.exports = class MainTabView extends KDTabView
     @router.handleRoute @router.currentPath
 
 
-  createTabPane:(options = {}, mainView)->
+  createTabPane: (options = {}, mainView) ->
 
     options.shouldShow ?= yes
 

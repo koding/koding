@@ -10,11 +10,11 @@ module.exports = class HomeView extends KDView
   ORDER     = [ 'prev', 'current', 'next']
   INDEX     = 0
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super
 
-    {router} = KD.singletons
+    { router } = KD.singletons
 
     @signUpForm = new HomeRegisterForm
       cssClass    : 'login-form register no-anim'
@@ -76,7 +76,7 @@ module.exports = class HomeView extends KDView
 
   rotateImagesBy: (n) ->
 
-    {length} = @images
+    { length } = @images
     n += length while length and n < 0
     @images.push.apply @images, @images.splice 0, n
 

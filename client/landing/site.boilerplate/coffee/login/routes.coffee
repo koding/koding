@@ -1,6 +1,6 @@
 do ->
 
-  handler = (callback)-> (options) ->
+  handler = (callback) -> (options) ->
     cb = (app) -> callback app, options
     KD.singletons.router.openSection 'Login', null, null, cb
 
@@ -79,16 +79,16 @@ do ->
   #        do handler()
 
   KD.registerRoutes 'Login',
-    '/Login/:token?'    : handler (app, options)->
+    '/Login/:token?'    : handler (app, options) ->
       app.getView().animateToForm 'login'
       app.handleQuery options
-    '/Register'         : handler (app, options)->
+    '/Register'         : handler (app, options) ->
       app.getView().animateToForm 'register'
       app.handleQuery options
-    '/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
-    '/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
-    '/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
-    '/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
+    '/Redeem'           : handler (app) -> app.getView().animateToForm 'redeem'
+    '/Reset'            : handler (app) -> app.getView().animateToForm 'reset'
+    '/ResendToken'      : handler (app) -> app.getView().animateToForm 'resendEmail'
+    '/Recover'          : handler (app) -> app.getView().animateToForm 'recover'
     # '/:name?/Reset/:token'     : handleResetRoute
     # '/:name?/Confirm/:token'   : handleResetRoute
     # '/:name?/Verify/:token?'   : handleVerifyRoute

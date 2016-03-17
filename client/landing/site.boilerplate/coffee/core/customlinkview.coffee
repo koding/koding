@@ -4,7 +4,7 @@ module.exports = module.exports = class CustomLinkView extends KDCustomHTMLView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data = {})->
+  constructor: (options = {}, data = {}) ->
 
     options.tagName or= 'a'
     options.cssClass  = KD.utils.curry 'custom-link-view', options.cssClass
@@ -27,22 +27,22 @@ module.exports = module.exports = class CustomLinkView extends KDCustomHTMLView
 
       @icon = new KDCustomHTMLView options.icon
 
-  pistachio:->
+  pistachio: ->
 
     options = @getOptions()
     data    = @getData()
 
     data.title ?= options.attributes.href
 
-    tmpl = "{{> @icon}}"
+    tmpl = '{{> @icon}}'
 
     if options.icon and data.title
       if options.icon.placement is 'left'
-        tmpl += "{span.title{ #(title)}}"
+        tmpl += '{span.title{ #(title)}}'
       else
-        tmpl = "{span.title{ #(title)}}" + tmpl
+        tmpl = '{span.title{ #(title)}}' + tmpl
     else if not options.icon and data.title
-      tmpl = "{span.title{ #(title)}}"
+      tmpl = '{span.title{ #(title)}}'
 
     return tmpl
 

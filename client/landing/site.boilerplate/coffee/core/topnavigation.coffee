@@ -3,9 +3,9 @@ CustomLinkView = require './customlinkview'
 module.exports = class TopNavigation extends KDCustomHTMLView
 
   menu = [
-    { title : 'Koding University', href : 'https://koding.com/docs', name : 'about'}
-    { title : 'Features',          href : '/Features',               name : 'features'}
-    { title : 'SIGN IN',           href : '/Login',                  name : 'login'}
+    { title : 'Koding University', href : 'https://koding.com/docs', name : 'about' }
+    { title : 'Features',          href : '/Features',               name : 'features' }
+    { title : 'SIGN IN',           href : '/Login',                  name : 'login' }
   ]
 
   constructor: (options = {}, data) ->
@@ -16,7 +16,7 @@ module.exports = class TopNavigation extends KDCustomHTMLView
 
     @menu = {}
 
-    {mainView} = KD.singletons
+    { mainView } = KD.singletons
     mainView.on 'MainTabPaneShown', @bound 'setActiveItem'
 
 
@@ -36,7 +36,7 @@ module.exports = class TopNavigation extends KDCustomHTMLView
 
     @unsetActiveItems()
 
-    {name} = pane
+    { name } = pane
 
     @menu[name]?.setClass 'active'
 

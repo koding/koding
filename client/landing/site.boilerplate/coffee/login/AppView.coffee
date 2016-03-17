@@ -48,7 +48,7 @@ module.exports = class LoginView extends JView
     }).getElement()
 
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'login-screen login'
 
@@ -58,7 +58,7 @@ module.exports = class LoginView extends JView
       tagName    : 'a'
       cssClass   : 'koding-logo'
       partial    : '<cite></cite>'
-      attributes : href : '/'
+      attributes : { href : '/' }
 
     @backToLoginLink = new CustomLinkView
       title       : 'Sign In'
@@ -76,17 +76,17 @@ module.exports = class LoginView extends JView
       href        : '/Register'
 
     @formHeader = new KDCustomHTMLView
-      tagName     : "h4"
-      cssClass    : "form-header"
-      click       : (event)->
+      tagName     : 'h4'
+      cssClass    : 'form-header'
+      click       : (event) ->
         return  unless $(event.target).is 'a.register'
 
     @github = new KDCustomHTMLView
-      tagName     : "a"
-      cssClass    : "github-login"
-      partial     : "Sign in using <strong>GitHub</strong>"
+      tagName     : 'a'
+      cssClass    : 'github-login'
+      partial     : 'Sign in using <strong>GitHub</strong>'
       click       : ->
-        KD.singletons.oauthController.openPopup "github"
+        KD.singletons.oauthController.openPopup 'github'
 
     @github.setPartial "<span class='button-arrow'></span>"
 
@@ -97,65 +97,65 @@ module.exports = class LoginView extends JView
     #   cssClass : "login-options-holder reg"
 
     @loginForm = new LoginInlineForm
-      cssClass : "login-form"
-      testPath : "login-form"
-      callback : (formData)=>
+      cssClass : 'login-form'
+      testPath : 'login-form'
+      callback : (formData) =>
 
         @doLogin formData
 
     @registerForm = new RegisterInlineForm
-      cssClass : "login-form"
-      testPath : "register-form"
+      cssClass : 'login-form'
+      testPath : 'register-form'
       callback : (formData) =>
 
         @showPasswordModal formData, @registerForm
 
     @redeemForm = new RedeemInlineForm
-      cssClass : "login-form"
-      callback : (formData)=>
+      cssClass : 'login-form'
+      callback : (formData) =>
 
         @doRedeem formData
 
     @recoverForm = new RecoverInlineForm
-      cssClass : "login-form"
-      callback : (formData)=>
+      cssClass : 'login-form'
+      callback : (formData) =>
 
         @doRecover formData
 
     @resendForm = new ResendEmailConfirmationLinkInlineForm
-      cssClass : "login-form"
-      callback : (formData)=>
+      cssClass : 'login-form'
+      callback : (formData) =>
         @resendEmailConfirmationToken formData
 
 
     @resetForm = new ResetInlineForm
-      cssClass : "login-form"
-      callback : (formData)=>
+      cssClass : 'login-form'
+      callback : (formData) =>
         @doReset formData
 
     @headBanner = new KDCustomHTMLView
-      domId    : "invite-recovery-notification-bar"
-      cssClass : "invite-recovery-notification-bar hidden"
-      partial  : "..."
+      domId    : 'invite-recovery-notification-bar'
+      cssClass : 'invite-recovery-notification-bar hidden'
+      partial  : '...'
 
-    setValue = (field, value)=>
+    setValue = (field, value) =>
       @registerForm[field]?.input?.setValue value
       @registerForm[field]?.placeholder?.setClass 'out'
 
-    mainController = KD.getSingleton "mainController"
-    mainController.on "ForeignAuthCompleted", (provider)=>
+    mainController = KD.getSingleton 'mainController'
+    mainController.on 'ForeignAuthCompleted', (provider) =>
       isUserLoggedIn = KD.isLoggedIn()
-      params = {isUserLoggedIn, provider}
+      params = { isUserLoggedIn, provider }
 
-      (KD.getSingleton 'mainController').handleOauthAuth params, (err, resp)=>
+      (KD.getSingleton 'mainController').handleOauthAuth params, (err, resp) =>
         if err
           showError err
 
         else
-          {account, replacementToken, isNewUser, userInfo} = resp
+          { account, replacementToken, isNewUser, userInfo } = resp
           if isNewUser
             KD.getSingleton('router').handleRoute '/Register'
-            @animateToForm "register"
+            @animateToForm 'register'
             for own field, value of userInfo
               setValue field, value
 
@@ -166,35 +166,35 @@ module.exports = class LoginView extends JView
 
               new KDNotificationView
                 title : "Your #{provider.capitalize()} account has been linked."
-                type  : "mini"
+                type  : 'mini'
 
             else
-              @afterLoginCallback err, {account, replacementToken}
+              @afterLoginCallback err, { account, replacementToken }
 
 
 
-  viewAppended:->
+  viewAppended: ->
 
 
     @setTemplate @pistachio()
     @template.update()
 
-    query = KD.utils.parseQuery document.location.search.replace "?", ""
+    query = KD.utils.parseQuery document.location.search.replace '?', ''
 
     if query.warning
-      suffix  = if query.type is "comment" then "post a comment" else "like an activity"
+      suffix  = if query.type is 'comment' then 'post a comment' else 'like an activity'
       message = "You need to be logged in to #{suffix}"
 
-      KD.getSingleton("mainView").createGlobalNotification
+      KD.getSingleton('mainView').createGlobalNotification
         title      : message
-        type       : "yellow"
-        content    : ""
+        type       : 'yellow'
+        content    : ''
         closeTimer : 4000
         container  : this
 
     KD.utils.defer => @setClass 'shown'
 
-  pistachio:->
+  pistachio:  ->
       # {{> @loginOptions}}
       # {{> @registerOptions}}
     """
@@ -229,8 +229,8 @@ module.exports = class LoginView extends JView
     </footer>
     """
 
-  doReset:({recoveryToken, password})->
-    KD.remote.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
+  doReset: ({ recoveryToken, password }) ->
+    KD.remote.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username) =>
       if err
         new KDNotificationView
           title : "An error occurred: #{err.message}"
@@ -238,37 +238,37 @@ module.exports = class LoginView extends JView
         @resetForm.button.hideLoader()
         @resetForm.reset()
         @headBanner.hide()
-        @doLogin {username, password}
+        @doLogin { username, password }
 
-  doRecover:(formData)->
-    KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
+  doRecover: (formData) ->
+    KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err) =>
       @recoverForm.button.hideLoader()
       if err
         new KDNotificationView
           title : "An error occurred: #{err.message}"
       else
         @recoverForm.reset()
-        {entryPoint} = KD.config
-        KD.getSingleton('router').handleRoute '/Login', {entryPoint}
+        { entryPoint } = KD.config
+        KD.getSingleton('router').handleRoute '/Login', { entryPoint }
         new KDNotificationView
-          title     : "Check your email"
+          title     : 'Check your email'
           content   : "We've sent you a password recovery code."
           duration  : 4500
 
 
 
-  resendEmailConfirmationToken:(formData)->
-    KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
+  resendEmailConfirmationToken: (formData) ->
+    KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err) =>
       @resendForm.button.hideLoader()
       if err
         new KDNotificationView
           title : "An error occurred: #{err.message}"
       else
         @resendForm.reset()
-        {entryPoint} = KD.config
-        KD.getSingleton('router').handleRoute '/Login', {entryPoint}
+        { entryPoint } = KD.config
+        KD.getSingleton('router').handleRoute '/Login', { entryPoint }
         new KDNotificationView
-          title     : "Check your email"
+          title     : 'Check your email'
           content   : "We've sent you a confirmation mail."
           duration  : 4500
 
@@ -278,7 +278,7 @@ module.exports = class LoginView extends JView
     if no in [form.email.input.valid, form.username.input.valid]
       return form.button.hideLoader()
 
-    {mainView} = KD.singletons
+    { mainView } = KD.singletons
 
     mainView.setClass 'blur'
 
@@ -309,9 +309,9 @@ module.exports = class LoginView extends JView
                   events              :
                     passwordCheck     : 'keyup'
                   rules               :
-                    passwordCheck     : (input, event)=>
+                    passwordCheck     : (input, event) =>
                       passwordForm  = modal.modalTabs.forms.password
-                      {result, msg} = @checkForPasswords input, passwordForm.inputs.confirm
+                      { result, msg } = @checkForPasswords input, passwordForm.inputs.confirm
                       @changeButtonState passwordForm.buttons.submit, result
                       modal.setTitle msg
                 nextElement           :
@@ -324,9 +324,9 @@ module.exports = class LoginView extends JView
                       events          :
                         passwordCheck : 'keyup'
                       rules           :
-                        passwordCheck : (input, event)=>
-                          passwordForm  = modal.modalTabs.forms.password
-                          {result, msg} = @checkForPasswords input, passwordForm.inputs.password
+                        passwordCheck : (input, event) =>
+                          passwordForm    = modal.modalTabs.forms.password
+                          { result, msg } = @checkForPasswords input, passwordForm.inputs.password
                           @changeButtonState passwordForm.buttons.submit, result
                           modal.setTitle msg
             buttons           :
@@ -355,11 +355,11 @@ module.exports = class LoginView extends JView
     check2 = vals.last.length > 7
     check3 = vals.first is vals.last
 
-    return result : no, msg : "Passwords must match!"  if check1 and not check2
-    return result : no, msg : "Passwords should be at least 8 characters."  if not check1 or not check2
-    return result : no, msg : "Passwords must match!"  unless check3
+    return { result : no, msg : 'Passwords must match!' }  if check1 and not check2
+    return { result : no, msg : 'Passwords should be at least 8 characters.' }  if not check1 or not check2
+    return { result : no, msg : 'Passwords must match!' }  unless check3
 
-    return result : yes, msg : "Looks good, go ahead!"  if check1 and check2 and check3
+    return { result : yes, msg : 'Looks good, go ahead!' }  if check1 and check2 and check3
 
 
   changeButtonState: (button, state) ->
@@ -382,40 +382,40 @@ module.exports = class LoginView extends JView
     form.notificationsDisabled = yes
     form.notification?.destroy()
 
-    {username, redirectTo} = formData
+    { username, redirectTo } = formData
 
     query = ''
     if redirectTo is 'Pricing'
       { planInterval, planTitle } = formData
-      query = KD.utils.stringifyQuery {planTitle, planInterval}
+      query = KD.utils.stringifyQuery { planTitle, planInterval }
       query = "?#{query}"
 
     $.ajax
-      url         : "/Register"
+      url         : '/Register'
       data        : formData
       type        : 'POST'
-      xhrFields   : withCredentials : yes
+      xhrFields   : { withCredentials : yes }
       success     : ->
         expiration = new Date Date.now() + (60 * 60 * 1000) # an hour
         document.cookie = "newRegister=true;expires=#{expiration.toUTCString()}"
         return location.replace "/#{redirectTo}#{query}"
 
       error       : (xhr) ->
-        {responseText} = xhr
+        { responseText } = xhr
         form.button.hideLoader()
         form.notificationsDisabled = no
-        new KDNotificationView title : responseText
+        new KDNotificationView { title : responseText }
         form.emit 'SubmitFailed', responseText
 
 
-  doLogin: (formData)->
+  doLogin: (formData) ->
 
-    {username, password, redirectTo} = formData
+    { username, password, redirectTo } = formData
 
     query = ''
     if redirectTo is 'Pricing'
       { planInterval, planTitle } = formData
-      query = KD.utils.stringifyQuery {planTitle, planInterval}
+      query = KD.utils.stringifyQuery { planTitle, planInterval }
       query = "?#{query}"
 
     KD.utils.clearKiteCaches()
@@ -424,24 +424,24 @@ module.exports = class LoginView extends JView
       url         : '/Login'
       data        : { username, password }
       type        : 'POST'
-      xhrFields   : withCredentials : yes
+      xhrFields   : { withCredentials : yes }
       success     : -> location.replace "/#{redirectTo}#{query}"
       error       : (xhr) =>
-        {responseText} = xhr
-        new KDNotificationView title : responseText
+        { responseText } = xhr
+        new KDNotificationView { title : responseText }
         @loginForm.button.hideLoader()
 
 
-  afterLoginCallback: (err, params={})->
+  afterLoginCallback: (err, params = {}) ->
     @loginForm.button.hideLoader()
-    {entryPoint} = KD.config
+    { entryPoint } = KD.config
     if err
       showError err
       @loginForm.resetDecoration()
       @$('.flex-wrapper').removeClass 'shake'
       KD.utils.defer => @$('.flex-wrapper').addClass 'animate shake'
     else
-      {account} = params
+      { account } = params
       # check and set preferred BE domain for Koding
       # prevent user from seeing the main wiev
       KD.utils.setPreferredDomain account if account
@@ -485,11 +485,11 @@ module.exports = class LoginView extends JView
       #   else
       #     window.location.replace '/Activity'
 
-  doRedeem:({inviteCode})->
+  doRedeem: ({ inviteCode }) ->
     return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
 
-    KD.remote.cacheable KD.config.entryPoint.slug, (err, [group])=>
-      group.redeemInvitation inviteCode, (err)=>
+    KD.remote.cacheable KD.config.entryPoint.slug, (err, [group]) =>
+      group.redeemInvitation inviteCode, (err) =>
         @redeemForm.button.hideLoader()
         return KD.notify_ err.message or err  if err
         KD.notify_ 'Success!'
@@ -500,7 +500,7 @@ module.exports = class LoginView extends JView
   hide: (callback) ->
 
     @$('.flex-wrapper').removeClass 'expanded'
-    @emit "LoginViewHidden"
+    @emit 'LoginViewHidden'
     @setClass 'hidden'
     callback?()
 
@@ -508,7 +508,7 @@ module.exports = class LoginView extends JView
   show: (callback) ->
 
     @unsetClass 'hidden'
-    @emit "LoginViewShown"
+    @emit 'LoginViewShown'
     callback?()
 
   # click:(event)->
@@ -528,7 +528,7 @@ module.exports = class LoginView extends JView
   #           break
   #       router.clear()  unless routed
 
-  setCustomDataToForm: (type, data)->
+  setCustomDataToForm: (type, data) ->
     formName = "#{type}Form"
     @[formName].addCustomData data
     # @resetForm.addCustomData {recoveryToken}
@@ -549,7 +549,7 @@ module.exports = class LoginView extends JView
     link = "/Register#{queryString}"
 
 
-  animateToForm: (name)->
+  animateToForm: (name) ->
 
     @unsetClass 'register recover login reset home resendEmail'
     @emit 'LoginViewAnimated', name
@@ -561,28 +561,28 @@ module.exports = class LoginView extends JView
     @goToRecoverLink.show()
 
     switch name
-      when "register"
+      when 'register'
         @registerForm.email.input.setFocus()
-      when "redeem"
+      when 'redeem'
         @$('.flex-wrapper').addClass 'one'
         @redeemForm.inviteCode.input.setFocus()
-      when "login"
+      when 'login'
         @formHeader.show()
         @formHeader.updatePartial @generateFormHeaderPartial()
         @loginForm.username.input.setFocus()
         @goToRecoverLink.show()
         @github.show()
-      when "recover"
+      when 'recover'
         @$('.flex-wrapper').addClass 'one'
         @github.hide()
         @goToRecoverLink.hide()
         @recoverForm.usernameOrEmail.input.setFocus()
-      when "resendEmail"
+      when 'resendEmail'
         @$('.flex-wrapper').addClass 'one'
         @resendForm.usernameOrEmail.input.setFocus()
-      when "reset"
+      when 'reset'
         @formHeader.show()
-        @formHeader.updatePartial "Set your new password below"
+        @formHeader.updatePartial 'Set your new password below'
         @goToRecoverLink.hide()
         @github.hide()
 
@@ -595,25 +595,25 @@ module.exports = class LoginView extends JView
     @formHeader.updatePartial @generateFormHeaderPartial data
 
 
-  getRouteWithEntryPoint:(route)->
-    {entryPoint} = KD.config
+  getRouteWithEntryPoint: (route) ->
+    { entryPoint } = KD.config
     if entryPoint and entryPoint.slug isnt KD.defaultSlug
       return "/#{entryPoint.slug}/#{route}"
     else
       return "/#{route}"
 
-  showError = (err)->
+  showError = (err) ->
     if err.code and err.code is 403
-      {name, nickname}  = err.data
+      { name, nickname }  = err.data
       KD.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname
 
     else if err.message.length > 50
       new KDModalView
-        title        : "Something is wrong!"
+        title        : 'Something is wrong!'
         width        : 500
         overlay      : yes
-        cssClass     : "new-kdmodal"
-        content      : "<div class='modalformline'>" + err.message + "</div>"
+        cssClass     : 'new-kdmodal'
+        content      : "<div class='modalformline'>" + err.message + '</div>'
     else
       new KDNotificationView
         title   : err.message

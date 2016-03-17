@@ -13,12 +13,12 @@ GLOBAL.SITE_NAME = site
 
 # HELPERS
 
-{watchLogger, log} = req 'helper.logger'
+{ watchLogger, log } = req 'helper.logger'
 
 
 # BUILD SERVER
 
-gulp.task 'serve', ['build'], -> server = nodemon script: SERVER_FILE
+gulp.task 'serve', ['build'], -> server = nodemon { script: SERVER_FILE }
 
 
 # STYLUS COMPILATION
