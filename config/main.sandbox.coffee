@@ -269,7 +269,7 @@ Configuration = (options={}) ->
     twitter                        : {key           : "2RXF9BaTlYbDyRS3DPOrfBJzR"                    , secret        : "KrmmizYhEhu1zd1r0y6sn1XlW9mc1EGZYiqRbBMNQWC1MCarbc" , redirect_uri : "https://sandbox.koding.com/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : "7523x9y261cw0v"                               , client_secret : "VBpMs6tEfs3peYwa"                           , redirect_uri : "https://sandbox.koding.com/-/oauth/linkedin/callback"}
     datadog                        : {api_key       : "1daadb1d4e69d1ae0006b73d404e527b"             , app_key       : "aecf805ae46ec49bdd75e8866e61e382918e2ee5"}
-    sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
+    sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : yes}
     aws                            : {key           : ''                                             , secret        : ''}
     embedly                        : {apiKey        : '537d6a2471864e80b91d9f4a78384873'}
     iframely                       : {apiKey        : "157f8f72ac846689f47865"                       , url           : 'http://iframe.ly/api/oembed'}
