@@ -108,10 +108,6 @@ func (c *UnmountCommand) Run() (int, error) {
 	info, ok := infos.FindFromName(c.Options.MountName)
 	if ok && len(info.MountedPaths) > 0 {
 		c.Options.MountName = info.VMName
-		if err := Unlock(info.MountedPaths[0]); err != nil {
-			c.Log.Warning("Unlocking failed: %s", err)
-			c.printfln("Warning: unlocking failed: %s", err)
-		}
 	}
 
 	// If options path is empty, get the path before we unmount
@@ -211,11 +207,6 @@ func (c *UnmountCommand) removeMountFolder() error {
 
 // Unmount tells klient to unmount the given name and path.
 func (c *UnmountCommand) Unmount(name, path string) error {
-	if err := Unlock(path); err != nil {
-		c.Log.Warning("Failed to unlock mount. err:%s", err)
-		fmt.Println(FailedToUnlockMount)
-	}
-
 	req := req.UnmountFolder{
 		Name:      name,
 		LocalPath: path,
@@ -227,11 +218,6 @@ func (c *UnmountCommand) Unmount(name, path string) error {
 }
 
 func unmount(kite *kite.Client, name, path string, log logging.Logger) error {
-	if err := Unlock(path); err != nil {
-		log.Warning("Failed to unlock mount. err:%s", err)
-		fmt.Println(FailedToUnlockMount)
-	}
-
 	req := req.UnmountFolder{
 		Name:      name,
 		LocalPath: path,

@@ -117,16 +117,6 @@ Please wait a few minutes and try again.`,
 		"Error: Failed to unmount the given directory.\n",
 	)
 
-	// FailedToLockMount instructs the user to unmount and mount again, since the
-	// actual mount likely succeeded, only the locking failed.
-	FailedToLockMount = `Error: Failed to lock the mount.
-Please unmount and try again`
-
-	// FailedToUnlockMount is when we fail to unlock the given directory.
-	//
-	// TODO: What can we instruct the user to do here?
-	FailedToUnlockMount = "Warning: Failed to unlock mount."
-
 	// FailedUninstallingKlientWarn is when the service fails
 	// (connecting or uninstalling)
 	FailedUninstallingKlientWarn = fmt.Sprintf(

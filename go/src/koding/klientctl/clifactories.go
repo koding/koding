@@ -11,7 +11,7 @@ import (
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/repair"
-	"koding/klientctl/util/mountcli"
+	"koding/mountcli"
 	"os"
 
 	"github.com/codegangsta/cli"
@@ -44,7 +44,6 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctl
 		Log:           log,
 		KlientOptions: klient.NewKlientOptions(),
 		helper:        ctlcli.CommandHelper(c, "mount"),
-		mountLocker:   Lock,
 		homeDirGetter: homeDirGetter,
 	}
 }
@@ -69,7 +68,7 @@ func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) c
 		helper:        ctlcli.CommandHelper(c, cmdName),
 		healthChecker: defaultHealthChecker,
 		fileRemover:   os.Remove,
-		mountFinder:   mountcli.NewMount(),
+		mountFinder:   mountcli.NewMountcli(),
 	}
 }
 
