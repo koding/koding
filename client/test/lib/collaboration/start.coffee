@@ -60,7 +60,6 @@ module.exports =
     collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
 
 
-
   openFile: (browser) ->
 
     host                   = utils.getUser no, 0
@@ -73,6 +72,7 @@ module.exports =
     hostCallback = ->
 
       ideHelpers.openFileFromWebFolder browser, host
+      collaborationHelpers.answerPermissionRequest(browser, yes)
       browser.waitForElementVisible "#{paneSelector} .pythonpy",  60000
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
@@ -81,6 +81,7 @@ module.exports =
     participantCallback = ->
 
       browser.waitForElementVisible "#{paneSelector} .indexhtml", 60000
+      collaborationHelpers.requestPermission(browser, yes)
       ideHelpers.openFileFromWebFolder browser, host, participantFileName, participantFileContent
       collaborationHelpers.leaveSession(browser)
       browser.end()
@@ -107,12 +108,14 @@ module.exports =
 
     hostCallback = ->
 
+      collaborationHelpers.answerPermissionRequest(browser, yes)
       commonCallback()
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
 
     participantCallback = ->
 
+      collaborationHelpers.requestPermission(browser, yes)
       terminalHelpers.openNewTerminalMenu(browser)
       terminalHelpers.openTerminal(browser)
 

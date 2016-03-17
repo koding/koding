@@ -31,6 +31,7 @@ module.exports =
       helpers.createFile(browser, host, null, null, fileName)
       ideHelpers.openFile(browser, host, fileName)
       ideHelpers.setTextToEditor(browser, hostContent)
+      collaborationHelpers.answerPermissionRequest(browser, yes)
       browser.waitForTextToContain(editorSelector, participantContent)
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
@@ -43,6 +44,7 @@ module.exports =
         .waitForTextToContain  editorSelector, hostContent
         .pause 3000
 
+      collaborationHelpers.requestPermission(browser, yes)
       ideHelpers.setTextToEditor(browser, participantContent)
 
       collaborationHelpers.leaveSessionFromSidebar(browser)
@@ -58,8 +60,7 @@ module.exports =
     participant = utils.getUser no, 1
     pyContent   = 'Hello World from Python by Koding'
 
-    hostCallback = ->
-
+    if hostBrowser
       helpers.beginTest browser, host
       helpers.waitForVMRunning browser
       ideHelpers.closeAllTabs(browser)
@@ -69,13 +70,12 @@ module.exports =
       terminalHelpers.openNewTerminalMenu(browser)
       terminalHelpers.openTerminal(browser)
 
-      collaborationHelpers.startSessionAndInviteUser_(browser, host, participant, yes)
+      collaborationHelpers.startSessionAndInviteUser(browser, host, participant, null, yes)
 
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
 
-    participantCallback = ->
-
+    else
       collaborationHelpers.joinSession(browser, host, participant)
 
       browser
@@ -85,5 +85,3 @@ module.exports =
 
       collaborationHelpers.leaveSessionFromSidebar(browser)
       browser.end()
-
-    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
