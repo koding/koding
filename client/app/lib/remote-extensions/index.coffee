@@ -1,5 +1,4 @@
-globals = require 'globals'
-globals.__remoteCache = {}
+REMOTE_CACHE   = {}
 
 module.exports = RemoteExtensions =
 
@@ -16,13 +15,27 @@ module.exports = RemoteExtensions =
 
     (Object.keys remote.api).forEach (model) ->
 
+      # overriding ::init on all `remote.api` which is getting called
+      # inside of it's constructor.
       remote.api[model]::init = (data) ->
+
         super
 
+        # on each newlistener add we need to check and cache the instance
+        # if update listener is added. which is used by kd.js to get data
+        # update and redraw the ui components attached to it.
+        @on 'newListener', (listener) =>
+          return  unless listener is 'update'
+          # microemitter fires the `newListener` event before setting
+          # the event itself so we need to wait for it until it's set.
+          process.nextTick => RemoteExtensions.addInstance data._id, this
+
+        # we need to try to cache all instances regardless it's listeners
+        # RemoteExtensions will decide to keep or drop them away.
         RemoteExtensions.addInstance data._id, this
 
 
-  getCache: -> globals.__remoteCache
+  getCache: -> REMOTE_CACHE
 
 
   getInstances: (instanceId) -> @getCache()[instanceId] ? []
@@ -31,10 +44,29 @@ module.exports = RemoteExtensions =
   hasInstances: (instanceId) -> (@getInstances instanceId).length > 0
 
 
+  setInstances: (instanceId, instances) ->
+
+    @getCache()[instanceId] = instances
+    return instances
+
+
   addInstance: (instanceId, instance) ->
 
-    @getCache()[instanceId] ?= []
-    @getCache()[instanceId].push instance
+    return  unless instance._events?.update?
+
+    instances  = @getCache()[instanceId]
+    instances ?= []
+
+    # check for existent instances, if listener added multiple times for
+    # the same instance, it may end up having with duplicate instances in
+    # the cache. ಠ_ಠ is used for id tagging the instances in microemitter
+    # which helps us to compare instances to each other. ~GG
+    for _instance in instances
+      return  if _instance.ಠ_ಠ is instance.ಠ_ಠ
+
+    instances.push instance
+
+    @setInstances instanceId, instances
 
 
   updateInstance: (data) ->
@@ -43,12 +75,22 @@ module.exports = RemoteExtensions =
 
     return  if (instances = @getInstances instanceId).length is 0
 
+    # if there are instances which doesn't have update listeners anymore
+    # we need to drop them from the cache to avoid memory leaks.
+    instances = @setInstances instanceId, \
+      instances.filter (instance) -> instance._events?.update?
+
+    # updateInstance with provided change if it's not updated before
+    # according to the provided timestamp (server time) ~GG
     instances
-      .filter (instance) -> instance._events?.update?
+
       .filter (instance) ->
+
         if instance.__lastUpdate?
           return instance.__lastUpdate < timestamp
         return yes
-      .map    (instance) ->
+
+      .map (instance) ->
+
         instance.__lastUpdate = timestamp
         instance.emit 'updateInstance', change
