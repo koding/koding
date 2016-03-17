@@ -31,6 +31,7 @@ module.exports =
       helpers.createFile(browser, host, null, null, fileName)
       ideHelpers.openFile(browser, host, fileName)
       ideHelpers.setTextToEditor(browser, hostContent)
+      collaborationHelpers.answerPermissionRequest(browser, yes)
       browser.waitForTextToContain(editorSelector, participantContent)
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
@@ -43,6 +44,7 @@ module.exports =
         .waitForTextToContain  editorSelector, hostContent
         .pause 3000
 
+      collaborationHelpers.requestPermission(browser, yes)
       ideHelpers.setTextToEditor(browser, participantContent)
 
       collaborationHelpers.leaveSessionFromSidebar(browser)
