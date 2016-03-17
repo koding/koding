@@ -1337,6 +1337,7 @@ Configuration = (options={}) ->
 
         scripts/check-node-version.sh
         scripts/check-npm-version.sh
+        scripts/check-gulp-version.sh
       }
 
       function build_services () {
