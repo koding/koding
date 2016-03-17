@@ -3,11 +3,9 @@ assert     = require 'assert'
 ideHelpers = require './idehelpers.js'
 utils      = require '../utils/utils.js'
 
-chatBox                  = '.collaboration.message-pane'
-shareButtonSelector      = '.status-bar a.share:not(.loading):not(.appear-in-button)'
-startedButtonSelector    = '.status-bar a.share.active'
-notStartedButtonSelector = '.status-bar a.share.not-started'
-collabLink               = '.collaboration-link'
+startButtonSelector = '.IDE-StatusBar .share.not-started button'
+endButtonSelector   = '.IDE-StatusBar .share.active button'
+collabLink          = '.collaboration-link'
 
 
 module.exports =
@@ -16,51 +14,35 @@ module.exports =
   isSessionActive: (browser, callback) ->
 
     browser
-      .waitForElementVisible   shareButtonSelector, 20000
-      .pause   4000
-      .element 'css selector', notStartedButtonSelector, (result) ->
+      .pause   5000
+      .element 'css selector', startButtonSelector, (result) ->
         isActive = if result.status is 0 then no else yes
-        callback(isActive)
+        callback isActive
 
 
   startSession: (browser) ->
-
-    chatViewSelector         = '.chat-view.onboarding'
-    startButtonSelector      = '.chat-view.onboarding .buttons button.start-session'
-    readOnlySessionButton    = '.chat-settings.active .session-settings .read-only .koding-on-off'
-    readOnlySession          = browser.readOnlySession ?= no
 
     @isSessionActive browser, (isActive) ->
       if isActive
         console.log ' ✔ Session is active'
       else
         console.log ' ✔ Session is not started'
-        browser.click  shareButtonSelector
-
-        if readOnlySession
-          browser
-            .waitForElementVisible  readOnlySessionButton, 20000
-            .waitForElementVisible  "#{readOnlySessionButton}.off", 20000 # Assertion
-            .click                  readOnlySessionButton
-            .waitForElementVisible  "#{readOnlySessionButton}.on", 20000 # Assertion
+        browser.click  startButtonSelector
 
         browser
-          .waitForElementVisible  chatViewSelector, 20000
           .waitForElementVisible  startButtonSelector, 20000
           .click                  startButtonSelector
-          .waitForElementVisible  startedButtonSelector, 200000 # Assertion
+          .waitForElementVisible  endButtonSelector, 200000 # Assertion
 
 
-  leaveSessionFromStatusBar: (browser) ->
-
-    @endSessionFromStatusBar(browser, no)
+  leaveSessionFromStatusBar: (browser) -> @endSessionFromStatusBar(browser, no)
 
 
   endSessionFromStatusBar: (browser, shouldAssert = yes) ->
 
     browser
-      .waitForElementVisible  startedButtonSelector, 20000
-      .click                  startedButtonSelector
+      .waitForElementVisible  endButtonSelector, 20000
+      .click                  endButtonSelector
 
     @endSessionModal(browser, shouldAssert)
 
@@ -76,7 +58,7 @@ module.exports =
       .pause                  5000
 
     if shouldAssert
-      browser.waitForElementVisible  notStartedButtonSelector, 20000 # Assertion
+      browser.waitForElementVisible  startButtonSelector, 20000 # Assertion
 
 
   startSessionAndInviteUser: (browser, firstUser, secondUser, callback) ->
@@ -98,8 +80,8 @@ module.exports =
       @startSession browser
 
       browser
-        .waitForElementVisible  startedButtonSelector, 50000
-        .assert.containsText    startedButtonSelector, 'END COLLABORATION' # Assertion
+        .waitForElementVisible  endButtonSelector, 50000
+        .assert.containsText    endButtonSelector, 'END COLLABORATION' # Assertion
         .getText                collabLink, (result) ->
           console.log ' ✔ Collaboration link is ', result.value
           browser.writeCollabLink result.value, ->
@@ -142,8 +124,8 @@ module.exports =
         .waitForElementNotPresent  sessionLoading, 50000
         .waitForElementVisible     filetree, 50000
         .waitForTextToContain      filetree, firstUserName
-        .waitForElementVisible     shareButtonSelector, 50000
-        .assert.containsText       shareButtonSelector, 'LEAVE SESSION' # Assertion
+        .waitForElementVisible     endButtonSelector, 50000
+        .assert.containsText       endButtonSelector, 'LEAVE SESSION' # Assertion
 
       callback?()
 
