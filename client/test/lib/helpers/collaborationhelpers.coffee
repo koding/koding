@@ -61,15 +61,16 @@ module.exports =
       browser.waitForElementVisible  startButtonSelector, 20000 # Assertion
 
 
-  startSessionAndInviteUser: (browser, firstUser, secondUser, callback) ->
+  startSessionAndInviteUser: (browser, firstUser, secondUser, callback, skipLogin = no) ->
 
     secondUserAvatar       = ".avatars .avatarview[href='/#{secondUser.username}']"
     secondUserOnlineAvatar = "#{secondUserAvatar}.online"
 
-    helpers.beginTest browser, firstUser
-    helpers.waitForVMRunning browser
+    unless skipLogin
+      helpers.beginTest browser, firstUser
+      helpers.waitForVMRunning browser
 
-    ideHelpers.closeAllTabs(browser)
+      ideHelpers.closeAllTabs(browser)
 
     @isSessionActive browser, (isActive) =>
 
@@ -208,12 +209,9 @@ module.exports =
 
   leaveSessionFromSidebar: (browser) ->
 
-    participant  = utils.getUser no, 1
-    hostBrowser  = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-
+    hostBrowser        = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     shareModal         = '.share-modal'
     leaveSessionButton = "#{shareModal} .kdmodal-inner button.red"
-    chatBox            = '.chat-view'
     machineSelector    = '.shared-machines'
 
     unless hostBrowser
@@ -222,8 +220,8 @@ module.exports =
     browser
       .waitForElementVisible     leaveSessionButton, 20000
       .click                     leaveSessionButton
-      .waitForElementPresent     machineSelector, 20000
-      .waitForElementNotPresent  chatBox, 20000
+      .waitForElementNotVisible  machineSelector, 20000
+      .pause                     1500 # wait little bit before leaving
 
 
   kickUser: (browser, user) ->

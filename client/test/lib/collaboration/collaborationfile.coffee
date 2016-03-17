@@ -60,8 +60,7 @@ module.exports =
     participant = utils.getUser no, 1
     pyContent   = 'Hello World from Python by Koding'
 
-    hostCallback = ->
-
+    if hostBrowser
       helpers.beginTest browser, host
       helpers.waitForVMRunning browser
       ideHelpers.closeAllTabs(browser)
@@ -71,13 +70,12 @@ module.exports =
       terminalHelpers.openNewTerminalMenu(browser)
       terminalHelpers.openTerminal(browser)
 
-      collaborationHelpers.startSessionAndInviteUser_(browser, host, participant, yes)
+      collaborationHelpers.startSessionAndInviteUser(browser, host, participant, null, yes)
 
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
 
-    participantCallback = ->
-
+    else
       collaborationHelpers.joinSession(browser, host, participant)
 
       browser
@@ -87,5 +85,3 @@ module.exports =
 
       collaborationHelpers.leaveSessionFromSidebar(browser)
       browser.end()
-
-    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
