@@ -8,18 +8,9 @@ assert               = require 'assert'
 
 module.exports =
 
+  before: (browser) -> utils.beforeCollaborationSuite browser
 
-  before: (browser) ->
-
-    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-
-    if hostBrowser
-      utils.getUser()
-
-    return if utils.suiteHookHasRun 'before'
-
-    utils.registerSuiteHook 'before'
-
+  afterEach: (browser, done) -> utils.afterEachCollaborationTest browser, done
 
   start: (browser) ->
 

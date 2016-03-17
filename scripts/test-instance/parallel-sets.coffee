@@ -21,85 +21,133 @@
 
 module.exports = [
 
-  [
-    { name: 'register' }
-    { name: 'login' }
-    { name: 'logout' }
-    { name: 'environments vmactions_professional' }
-  ]
-
-  [
-    { name: 'pricing payment' }
-    { name: 'collaboration collaborationsingle'}
-  ]
-
-  [
-    { name: 'account accountsettings' }
-    { name: 'environments vmactions_hobbyist' }
-
-  ]
-
-  [
-    { name: 'unittests' }
-    { name: 'environments vmactions_developer' }
-  ]
-
-  [
-    { name: 'ide file' }
-    { name: 'ide folder' }
-  ]
-
-  [
-    { name: 'ide search' }
-    { name: 'ide workspace' }
-  ]
-
-  [
-    { name: 'ide terminal' }
-    { name: 'pricing invalidcarddetails' }
-  ]
-
-  [
-    { name: 'ide general' }
-    { name: 'ide layout' }
-    { name: 'teams inviteteams' }
-  ]
-
-  [
-    { name: 'environments snapshot' }
-  ]
-
   # [
-  #   { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  #   { name: 'register' }
+  #   { name: 'login' }
+  #   { name: 'logout' }
+  #   { name: 'environments vmactions_professional' }
   # ]
 
   # [
-  #   { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  #   { name: 'pricing payment' }
+  #   { name: 'collaboration collaborationsingle'}
   # ]
 
   # [
-  #   { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  #   { name: 'account accountsettings' }
+  #   { name: 'environments vmactions_hobbyist' }
+
+  # ]
+
+  # [
+  #   { name: 'unittests' }
+  #   { name: 'environments vmactions_developer' }
+  # ]
+
+  # [
+  #   { name: 'ide file' }
+  #   { name: 'ide folder' }
+  # ]
+
+  # [
+  #   { name: 'ide search' }
+  #   { name: 'ide workspace' }
+  # ]
+
+  # [
+  #   { name: 'ide terminal' }
+  #   { name: 'pricing invalidcarddetails' }
+  # ]
+
+  # [
+  #   { name: 'ide general' }
+  #   { name: 'ide layout' }
+  #   { name: 'teams inviteteams' }
+  # ]
+
+  # [
+  #   { name: 'environments snapshot' }
   # ]
 
   [
-    { name: 'vmsharing vmsharing', NIGHTWATCH_OPTIONS: '--env host,participant' }
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name: 'environments vm' }
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
+
+  [
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  # [
+  #   { name: 'vmsharing vmsharing', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
+
+  # [
+  #   { name: 'environments vm' }
+  # ]
 
   # [
   #   { name: 'environments paidaccount' }
   # ]
 
-  [
-    { name: 'environments domain' }
-    { name: 'teams teams' }
-  ]
+  # [
+  #   { name: 'environments domain' }
+  #   { name: 'teams teams' }
+  # ]
 
-  [
-    # { name: 'environments vm-advanced' }
-    { name: 'environments paidaccountvm' }
-  ]
+  # [
+  #   # { name: 'environments vm-advanced' }
+  #   { name: 'environments paidaccountvm' }
+  # ]
 ]
