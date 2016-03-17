@@ -16,7 +16,7 @@ GLOBAL.SITE_NAME = site
 
 # HELPERS
 
-{watchLogger, log} = req 'helper.logger'
+{ watchLogger, log } = req 'helper.logger'
 
 
 # STYLUS COMPILATION
