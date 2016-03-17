@@ -11,8 +11,8 @@
   },
   "main": "server/index.js",
   "scripts": {
-    "preinstall": "./scripts/reset-node-modules.sh",
-    "install": "./scripts/patch-node-modules.sh"
+    "preinstall": "./.npm-preinstall.sh",
+    "install": "./.npm-install.sh"
   },
   "dependencies": {
     "analytics-node": "1.2.2",
