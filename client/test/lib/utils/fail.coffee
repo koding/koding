@@ -47,12 +47,13 @@ NW::fail = (result, actual, expected, defaultMsg) ->
 
                   logString += "#{log.level} #{log.message}\n"  for log in logs
 
-                  s3 = new AWS.S3 params:
+                  s3 = new AWS.S3 { params:
                     Key    : "console.log-#{test.module}-#{test.name}-#{Date.now()}.log"
                     Bucket : 'koding-test-data'
+                  }
 
                   if logString.length
-                    s3.upload Body: logString, (err, res) =>
+                    s3.upload { Body: logString }, (err, res) =>
                       NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
                       msg = if err then ' ✖ Unable to write console log to S3.' else " ✔ Console log saved to S3. #{res.Location}"
                       console.log msg
