@@ -270,7 +270,7 @@ Copyright (C) 2012-2016 Koding Inc., all rights reserved.
 EOF
 	fi
 
-	sudo cp /opt/kite/klient/klient.init "${init_file}"
+	sudo cp -f /opt/kite/klient/klient.init "${init_file}"
 
 	if [[ ${is_macosx} -eq 1 ]]; then
 		sudo sed -i "" -e "s|\%USERNAME\%|$(whoami)|g" "${init_file}"
@@ -381,9 +381,8 @@ EOF
 	pushd /tmp &>/dev/null
 
 	# try to stop old upstart klients
-	sudo stop klient &>/dev/null || true
-
-	eval sudo $(get_stop_klient_command) || true
+	sudo stop klient &>/dev/null || true &>/dev/null
+	eval sudo $(get_stop_klient_command) || true &>/dev/null
 
 	if ! download_klient; then
 		exit 2
@@ -405,6 +404,10 @@ EOF
 	if ! do_install_klient "$KONTROLURL"; then
 		exit 2
 	fi
+
+	# ensure klient is stopped after installing the deb
+	sudo stop klient &>/dev/null || true &>/dev/null
+	eval sudo $(get_stop_klient_command) || true &>/dev/null
 
 	# It's ok $1 to be empty, in that case it'll try to register via password input
 	if ! sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token "${1:-}" -username "$KITE_USERNAME" < /dev/tty; then

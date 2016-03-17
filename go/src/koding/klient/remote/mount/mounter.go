@@ -13,7 +13,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/logging"
 )
@@ -30,6 +29,14 @@ const (
 	fuseTellTimeout = 55 * time.Second
 )
 
+// MounterTransport is the transport that the Mounter uses to communicate with
+// the remote machine.
+type MounterTransport interface {
+	Dial() error
+	Tell(string, ...interface{}) (*dnode.Partial, error)
+	TellWithTimeout(string, time.Duration, ...interface{}) (*dnode.Partial, error)
+}
+
 // Mounter is responsible for actually mounting fuse mounts from Klient.
 type Mounter struct {
 	Log logging.Logger
@@ -39,12 +46,6 @@ type Mounter struct {
 
 	// The IP of the remote machine.
 	IP string
-
-	// A remote client, as returned by `kontrolclient.GetKites()`
-	//
-	// TODO: Deprecated. Remove when able. Currently required by:
-	//	-	 fuseklient.NewRemoteTransport
-	Client *kite.Client
 
 	// The KitePinger that the remote machine this Mounter uses, will deal with.
 	KitePinger kitepinger.KitePinger
@@ -56,15 +57,8 @@ type Mounter struct {
 	// so it's unneeded.
 	Intervaler rsync.SyncIntervaler
 
-	// The Dialer to dial the remote machine.
-	Dialer interface {
-		Dial() error
-	}
-
-	// The interface that we use to talk to the remote machine.
-	Teller interface {
-		Tell(string, ...interface{}) (*dnode.Partial, error)
-	}
+	// The transport we will use to mount with.
+	Transport MounterTransport
 
 	// MountAdder stores the new mount in storage, memory, and anywhere else needed.
 	MountAdder interface {
@@ -100,8 +94,8 @@ func (m *Mounter) IsConfigured() error {
 		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing KitePinger")
 	}
 
-	if m.Dialer == nil {
-		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing Dialer")
+	if m.Transport == nil {
+		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing Transport")
 	}
 
 	if m.PathUnmounter == nil {
@@ -163,7 +157,7 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 		return err
 	}
 
-	if err := m.Dialer.Dial(); err != nil {
+	if err := m.Transport.Dial(); err != nil {
 		m.Log.Error("Error dialing remote klient. err:%s", err)
 		return util.NewKiteError(kiteerrortypes.DialingFailed, err)
 	}
@@ -200,7 +194,7 @@ func (m *Mounter) fuseMountFolder(mount *Mount) error {
 		err error
 	)
 
-	t, err = transport.NewRemoteTransport(m.Client, fuseTellTimeout, mount.RemotePath)
+	t, err = transport.NewRemoteTransport(m.Transport, fuseTellTimeout, mount.RemotePath)
 	if err != nil {
 		return err
 	}
