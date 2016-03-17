@@ -43,10 +43,10 @@ module.exports = class TeamsAppView extends kd.CustomHTMLView
     @button = new kd.ButtonView
       title       : 'Sign up for early access'
       style       : 'solid medium green'
-      attributes  : testpath : 'signup-company-button-loggedin'
+      attributes  : { testpath : 'signup-company-button-loggedin' }
       callback    : =>
 
-        {JUser} = remote.api
+        { JUser } = remote.api
 
         JUser.fetchUser (err, user) =>
 
@@ -56,7 +56,7 @@ module.exports = class TeamsAppView extends kd.CustomHTMLView
               duration : 3000
 
           $.ajax
-            url        : "/-/teams/early-access"
+            url        : '/-/teams/early-access'
             data       :
               campaign : 'teams-early-access'
               email    : user.email
@@ -82,7 +82,7 @@ module.exports = class TeamsAppView extends kd.CustomHTMLView
 
 
 
-  earlyAccessFailure: ({responseText}) ->
+  earlyAccessFailure: ({ responseText }) ->
 
     if responseText is 'Already applied!'
       responseText = 'Thank you! We\'ll let you know when we launch it!'
