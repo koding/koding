@@ -11,7 +11,7 @@ module.exports = class KodingListController extends KDListViewController
 
   constructor: (options = {}, data) ->
 
-    options.view                   ?= new KodingListView delegate : this
+    options.view                   ?= new KodingListView
 
     options.useCustomScrollView    ?= yes
     options.lazyLoadThreshold      ?= 10
@@ -20,7 +20,7 @@ module.exports = class KodingListController extends KDListViewController
     options.sort                  or= { '_id' : -1 }
 
     options.model                 or= null
-    options.type                  or= '' # etc. machine, group, account, session
+    options.type                  or= '' # machine, group, account, session etc.
     options.fetcherMethod         or= null
 
     unless options.noItemFoundWidget
@@ -32,10 +32,7 @@ module.exports = class KodingListController extends KDListViewController
     super options, data
 
     if not options.fetcherMethod and not options.model
-      err = new Error 'Model is not found!'
-      @emit 'KodingListControllerCanNotWork', { err }
-      kd.error err
-      return
+      return  throw new Error 'Model or fetcherMethod should be given!'
 
     @filterStates =
       skip        : 0
@@ -69,12 +66,13 @@ module.exports = class KodingListController extends KDListViewController
     confirmOptions =
       type         : type
       callback     : ({status, modal}) =>
-        if status
-          item.getData().remove (err) =>
-            modal.destroy()
-            return showError err  if err
-            listView.removeItem item
-            @emit 'ItemDeleted', item
+        return  unless status
+
+        item.getData().remove (err) =>
+          modal.destroy()
+          return showError err  if err
+          listView.removeItem item
+          @emit 'ItemDeleted', item
 
 
     listView.askForConfirm confirmOptions
@@ -117,9 +115,9 @@ module.exports = class KodingListController extends KDListViewController
     { limit, fetcherMethod, model, sort } = @getOptions()
 
     fetchOptions.limit or= limit
-    fetchOptions.sort  or= sort
+    fetchOptions.sort   ?= sort
 
-    fetcher = if fetcherMethod then fetcherMethod else model.some
+    fetcher = fetcherMethod or model.some
 
     fetcher @filterStates.query, fetchOptions, (err, items) =>
 

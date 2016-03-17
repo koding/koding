@@ -15,11 +15,14 @@ module.exports = class KodingListView extends KDListView
 
   askForConfirm: (options) ->
 
-    { title, description, item, callback, type } = options
+    { title, description, callback, type, cssClass } = options
+
+    if not title or not description
+      return kd.warn 'You should pass title or description for confirm modal'
 
     modal = KDModalView.confirm
-      title       : title       or "Remove #{type.toLowerCase()}"
-      description : description or 'Do you want to remove it?'
+      title       : title
+      description : description
       ok          :
         title     : 'Yes'
         callback  : ->
