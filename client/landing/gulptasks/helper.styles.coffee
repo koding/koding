@@ -16,7 +16,7 @@ module.exports = ->
     .pipe stylus
       compress  : yes
       use       : nib()
-      sourcemap : inline  : yes  if devMode
+      sourcemap : { inline  : yes }  if devMode
     .pipe concat 'main.css'
     .pipe rename 'main.css'
     .pipe gulpif devMode, livereload()

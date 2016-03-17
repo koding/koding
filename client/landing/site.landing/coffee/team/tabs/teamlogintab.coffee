@@ -15,7 +15,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
@@ -26,7 +26,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
       cssClass : 'team'
       navItems : [
         { title : 'Blog',        href : 'http://blog.koding.com',      name : 'blog' }
-        { title : 'Features',    href : 'https://www.koding.com/Features', name : 'features', attributes: target: '_blank' }
+        { title : 'Features',    href : 'https://www.koding.com/Features', name : 'features', attributes: { target: '_blank' } }
       ]
 
     @logo = utils.getGroupLogo()

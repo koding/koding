@@ -7,14 +7,14 @@ module.exports = class MainHeaderView extends kd.View
 
     options.tagName    or= 'header'
     options.cssClass     = kd.utils.curry options.cssClass, 'main-header'
-    options.attributes or= testpath : 'main-header'
+    options.attributes or= { testpath : 'main-header' }
 
     super options, data
 
 
   viewAppended: ->
 
-    @addSubView @mobileMenu = new TopNavigation cssClass : 'mobile-menu'
+    @addSubView @mobileMenu = new TopNavigation { cssClass : 'mobile-menu' }
 
     { navItems, headerLogo } = @getOptions()
     @addSubView new TopNavigation { navItems, cssClass : 'full-menu' }

@@ -9,6 +9,6 @@ module.exports = ->
   gulp.src IMAGE_PATH
     .pipe imagemin
       progressive : on
-      svgoPlugins : [ removeViewBox : off ]
+      svgoPlugins : [ { removeViewBox : off } ]
       use         : [ pngquant() ]
     .pipe gulp.dest BUILD_PATH

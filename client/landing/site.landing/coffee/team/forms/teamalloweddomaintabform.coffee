@@ -11,7 +11,7 @@ module.exports = class TeamAllowedDomainTabForm extends kd.FormView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'clearfix'
 
@@ -45,7 +45,7 @@ module.exports = class TeamAllowedDomainTabForm extends kd.FormView
     @button = new kd.ButtonView
       title      : 'NEXT'
       style      : 'TeamsModal-button TeamsModal-button--green'
-      attributes : testpath : 'allowed-domain-button'
+      attributes : { testpath : 'allowed-domain-button' }
       type       : 'submit'
 
 

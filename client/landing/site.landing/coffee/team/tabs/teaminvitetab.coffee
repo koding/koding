@@ -8,7 +8,7 @@ module.exports = class TeamInviteTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
@@ -27,10 +27,10 @@ module.exports = class TeamInviteTab extends kd.TabPaneView
 
   pistachio: ->
 
-    """
+    '''
     {{> @header }}
     <div class="TeamsModal TeamsModal--groupCreation">
       <h4>Invite Colleagues</h4>
       {{> @form}}
     </div>
-    """
+    '''

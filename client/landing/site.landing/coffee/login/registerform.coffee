@@ -9,7 +9,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
   ENTER = 13
 
-  constructor:(options={},data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
@@ -24,11 +24,11 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     @password?.destroy()
     @password = new LoginInputView
       inputOptions       :
-        name             : "password"
-        type             : "password"
+        name             : 'password'
+        type             : 'password'
         attributes        :
           testpath        : 'register-password'
-        placeholder      : "Password"
+        placeholder      : 'Password'
         focus            : =>
           @password.icon.unsetTooltip()
           return yes
@@ -42,8 +42,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             required      : yes
             minLength     : 8
           messages        :
-            required      : "Please enter a password."
-            minLength     : "Passwords should be at least 8 characters."
+            required      : 'Please enter a password.'
+            minLength     : 'Passwords should be at least 8 characters.'
         decorateValidation: no
 
     @email?.destroy()
@@ -68,7 +68,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         change            : => @emailIsAvailable = no
 
 
-    {buttonTitle} = @getOptions()
+    { buttonTitle } = @getOptions()
 
     @button?.destroy()
     @button = new kd.ButtonView
@@ -152,12 +152,12 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       success : (res) ->
         return location.replace '/'  if res is 'User is logged in!'
 
-      error   : ({responseText}) =>
+      error   : ({ responseText }) =>
         @post2FACodeButton.hideLoader()
         title = if /Bad Request/i.test responseText then 'Access Denied!' else responseText
         new kd.NotificationView { title }
     else
-       @post2FACodeButton.hideLoader()
+      @post2FACodeButton.hideLoader()
 
 
   reset: ->
@@ -181,13 +181,13 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     return @emit 'gravatarInfoFetched', @gravatars[email]  if @gravatars[email]
 
     $.ajax
-      url         : "/-/gravatar"
+      url         : '/-/gravatar'
       data        : { email }
       type        : 'POST'
-      xhrFields   : withCredentials : yes
+      xhrFields   : { withCredentials : yes }
       success     : (gravatar) =>
 
-        if gravatar is "User not found"
+        if gravatar is 'User not found'
           gravatar = @getDummyGravatar()
         else
           gravatar = gravatar.entry.first
@@ -195,7 +195,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         @emit 'gravatarInfoFetched', @gravatars[email] = gravatar
 
       error       : (xhr) =>
-        {responseText} = xhr
+        { responseText } = xhr
         console.log "Error while fetching gravatar data - #{responseText}"
 
         gravatar = @getDummyGravatar()
@@ -207,7 +207,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     gravatar =
       dummy               : yes
       photos              : [
-        (value            : 'https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.80.png')
+        ({ value            : 'https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.80.png' })
       ]
       preferredUsername   : ''
 
@@ -237,7 +237,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
     { username, firstName, lastName } = oauthData
 
-    console.log {oauthData, input}
+    console.log { oauthData, input }
 
     if oauthData.email
       input.setValue oauthData.email
@@ -245,13 +245,13 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       @emailIsAvailable = yes
     else
       modal = new KDModalView
-        cssClass        : "fbauth-failed-modal"
-        title           : "OAuth authentication failed"
-        content         : "Sorry, but we could not get a valid email address from your OAuth provider. Please select another method to register."
+        cssClass        : 'fbauth-failed-modal'
+        title           : 'OAuth authentication failed'
+        content         : 'Sorry, but we could not get a valid email address from your OAuth provider. Please select another method to register.'
         buttons         :
           OK            :
-            cssClass    : "solid green medium"
-            title       : "OK"
+            cssClass    : 'solid green medium'
+            title       : 'OK'
             callback    : -> modal.destroy()
 
     @fetchGravatarInfo input.getValue()
@@ -267,7 +267,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       @parent.showExtraInformation @getFormData(), this
 
 
-  pistachio:->
+  pistachio: ->
     """
     <section class='main-part'>
       <div class='email'>{{> @email}}</div>

@@ -3,7 +3,7 @@ utils = require './../core/utils'
 
 do ->
 
-  handleRoute = ({params, query}) ->
+  handleRoute = ({ params, query }) ->
 
     { router } = kd.singletons
     { token }  = params

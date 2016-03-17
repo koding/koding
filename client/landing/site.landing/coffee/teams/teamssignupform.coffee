@@ -6,7 +6,7 @@ LoginInputViewWithLoader = require './../login/logininputwithloader'
 
 module.exports = class TeamsSignupForm extends LoginViewInlineForm
 
-  constructor:->
+  constructor: ->
 
     super
 
@@ -19,7 +19,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
         name         : 'email'
         placeholder  : 'Email address'
         defaultValue : email  if email
-        attributes   : testpath : 'register-form-email'
+        attributes   : { testpath : 'register-form-email' }
         validate     :
           rules      :
             email    : yes
@@ -31,12 +31,12 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
         name          : 'companyName'
         placeholder   : 'Name your team'
         defaultValue  : companyName  if companyName
-        attributes    : testpath : 'company-name'
+        attributes    : { testpath : 'company-name' }
         validate      :
           rules       :
             required  : yes
           messages    :
-            required  : "Please enter a team name."
+            required  : 'Please enter a team name.'
 
     # make the placeholders go away
     @email.inputReceivedKeyup()        if email
@@ -46,11 +46,11 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
       title       : 'Sign up'
       icon        : yes
       style       : 'TeamsModal-button TeamsModal-button--green'
-      attributes  : testpath : 'signup-company-button'
+      attributes  : { testpath : 'signup-company-button' }
       type        : 'submit'
 
 
-  pistachio:->
+  pistachio: ->
     """
     <div class='email'>{{> @email}}</div>
     <div class='company-name'>{{> @companyName}}</div>

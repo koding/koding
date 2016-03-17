@@ -7,7 +7,7 @@ module.exports = class TeamsSelectorForm extends kd.FormView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'login-form', options.cssClass
 
@@ -38,7 +38,7 @@ module.exports = class TeamsSelectorForm extends kd.FormView
       title       : 'Continue'
       icon        : yes
       style       : 'TeamsModal-button TeamsModal-button--green'
-      attributes  : testpath : 'goto-team-button'
+      attributes  : { testpath : 'goto-team-button' }
       type        : 'submit'
 
     @input.on 'ValidationFeedbackCleared', =>

@@ -4,15 +4,15 @@ JView = require './../core/jview'
 module.exports = class LoginInputView extends JView
 
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
-    {inputOptions}            = options
+    { inputOptions }          = options
     options.cssClass          = kd.utils.curry 'login-input-view', options.cssClass
     inputOptions            or= {}
     inputOptions.cssClass     = kd.utils.curry 'thin medium', inputOptions.cssClass
     inputOptions.decorateValidation = no
 
-    {placeholder, validate}   = inputOptions
+    { placeholder, validate }   = inputOptions
 
     delete inputOptions.placeholder
     delete options.inputOptions
@@ -22,7 +22,7 @@ module.exports = class LoginInputView extends JView
     super options, null
 
     @input       = new kd.InputView inputOptions, data
-    @icon        = new kd.CustomHTMLView cssClass : 'validation-icon'
+    @icon        = new kd.CustomHTMLView { cssClass : 'validation-icon' }
     @placeholder = new kd.CustomHTMLView
       cssClass   : 'placeholder-helper'
       partial    : placeholder# or inputOptions.name
@@ -40,16 +40,16 @@ module.exports = class LoginInputView extends JView
 
   setFocus: -> @input.setFocus()
 
-  inputReceivedKeyup:->
+  inputReceivedKeyup: ->
 
     if   @input.getValue().length > 0
     then @placeholder.setClass 'out'
     else @placeholder.unsetClass 'out'
 
 
-  inputReceivedFocus:-> @placeholder.setClass 'out'
+  inputReceivedFocus: -> @placeholder.setClass 'out'
 
-  inputReceivedBlur:->
+  inputReceivedBlur: ->
 
     if @input.getValue().length > 0
       @placeholder.setClass 'puff'
@@ -58,10 +58,10 @@ module.exports = class LoginInputView extends JView
       @placeholder.unsetClass 'out'
 
 
-  resetDecoration:-> @unsetClass "validation-error validation-passed"
+  resetDecoration: -> @unsetClass 'validation-error validation-passed'
 
 
-  decorateValidation: (err)->
+  decorateValidation: (err) ->
 
     @resetDecoration()
 
@@ -85,4 +85,4 @@ module.exports = class LoginInputView extends JView
     @setClass if err then 'validation-error' else 'validation-passed'
 
 
-  pistachio:-> "{{> @input}}{{> @placeholder}}{{> @icon}}"
+  pistachio: -> '{{> @input}}{{> @placeholder}}{{> @icon}}'

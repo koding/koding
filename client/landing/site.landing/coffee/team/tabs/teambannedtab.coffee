@@ -6,7 +6,7 @@ module.exports = class TeamBannedTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
