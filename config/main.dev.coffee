@@ -985,7 +985,6 @@ Configuration = (options={}) ->
         npm install --unsafe-perm
 
         echo '#---> BUILDING CLIENT <---#'
-        scripts/install-npm.sh -d client -u
         make -C #{projectRoot}/client unit-tests
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
@@ -1065,8 +1064,6 @@ Configuration = (options={}) ->
 
       function checkrunfile () {
 
-        checkpackagejsonfile
-
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/config/main.dev.coffee" ]; then
             echo your run file is older than your config file. doing ./configure.
             sleep 1
@@ -1085,39 +1082,6 @@ Configuration = (options={}) ->
             exit 1;
         fi
       }
-
-      function checkpackagejsonfile () {
-        if [ "#{projectRoot}/run" -ot "#{projectRoot}/package.json" ]; then
-            echo your run file is older than your package json. doing npm i.
-            sleep 1
-            npm i
-
-            echo -e "\n\nPlease do ./configure and  ./run again\n"
-            exit 1;
-        fi
-
-        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/package.json" ]; then
-            sleep 1
-            scripts/install-npm.sh -d client -s
-        fi
-
-        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/builder/package.json" ]; then
-            sleep 1
-            scripts/install-npm.sh -d client/builder -s
-        fi
-
-        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/landing/package.json" ]; then
-            sleep 1
-            scripts/install-npm.sh -d client/landing -s
-        fi
-
-        OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9.15 | wc -l | awk \'{printf "%s", $1}\')
-        if [  $OLD_COOKIE -ne 0 ]; then
-            echo "You have tough-cookie@0.9.15 installed on your system, please remove node_modules directory and do npm i again";
-            exit 1;
-        fi
-      }
-
 
       function testendpoints () {
 
@@ -1190,11 +1154,13 @@ Configuration = (options={}) ->
           exit 1
         fi
 
+        # Update node modules
+        if ! scripts/check-node_modules.sh; then
+          npm install --silent
+        fi
+
         # Check everything else
         check
-
-        # Do npm i incase of packages.json changes
-        npm i --silent
 
         # Remove old watcher files (do we still need this?)
         rm -rf #{projectRoot}/go/bin/goldorf-main-*
@@ -1228,7 +1194,6 @@ Configuration = (options={}) ->
           echo
 
         else
-          scripts/install-npm.sh -d client -u -s
           make -C #{projectRoot}/client
         fi
 
@@ -1370,93 +1335,10 @@ Configuration = (options={}) ->
           command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
         fi
 
-        check_node_version
-        check_npm_version
-        check_go_version
-        check_gulp_version
-      }
-
-      function check_node_version () {
-        VERSION=$(node --version | sed -e 's/^v//')
-
-        while IFS=".", read MAJOR MINOR REVISION; do
-          MISMATCH=1
-          if [[ $MAJOR -eq 0 && $MINOR -eq 10 ]]; then
-            MISMATCH=
-          fi
-        done < <(echo $VERSION)
-
-        if [[ -n "$MISMATCH" ]]; then
-          echo "error: node version is $VERSION, it must be 0.10.x"
-          exit 1
-        fi
-      }
-
-      function check_npm_version () {
-        VERSION=$(npm --version)
-
-        while IFS=".", read MAJOR MINOR REVISION; do
-          if [[ $MAJOR -lt 2 ]]; then
-            MISMATCH=1
-          elif [[ $MAJOR -eq 2 && $MINOR -lt 9 ]]; then
-            MISMATCH=1
-          fi
-        done < <(echo $VERSION)
-
-        if [[ -n "$MISMATCH" ]]; then
-          echo "error: npm version is $VERSION, it must be 2.9.x or greater"
-          exit 1
-        fi
-      }
-
-      function check_gulp_version () {
-           VERSION=$(npm info gulp version 2> /dev/null)
-
-           while IFS=".", read MAJOR MINOR REVISION; do
-              if [[ $MAJOR -lt 3 ]]; then
-                  MISMATCH=1
-              elif [[ $MAJOR -eq 3 && $MINOR -lt 7 ]]; then
-                  MISMATCH=1
-              fi
-          done < <(echo $VERSION)
-
-          if [[ -n $MISMATCH ]]; then
-              echo 'Installed gulp version must be >= 3.7.0'
-              exit 1
-          fi
-      }
-
-      function check_go_version () {
-        VERSION=$(go version 2> /dev/null)
-        VERSION=${VERSION:13:4}
-        MAJOR=`echo $VERSION | cut -d. -f1`
-        MINOR=`echo $VERSION | cut -d. -f2`
-
-        if [[ $MAJOR -lt 1 ]]; then
-            MISMATCH=1
-        elif [[ $MAJOR -eq 1 && $MINOR -lt 4 ]]; then
-            MISMATCH=1
-        fi
-
-        if [[ -n $MISMATCH ]]; then
-          echo "Installed go version must be >= 1.4.0\n"
-
-          echo "You can install new version with"
-          if [[ `uname` == 'Darwin' ]]; then
-            echo "# curl -s https://storage.googleapis.com/golang/go1.4.2.darwin-amd64-osx10.8.pkg >> /tmp/go1.4.2.darwin-amd64-osx10.8.pkg && open /tmp/go1.4.2.darwin-amd64-osx10.8.pkg"
-          elif [[ `uname` == 'Linux' ]]; then
-            echo "curl -s https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz | tar -v -C /usr/local -xz"
-          fi
-
-          echo "\n"
-          echo "(if go is not in your path use this or add it to our path)"
-          echo "sudo ln -sf /usr/local/go/bin/* /usr/local/bin\n"
-          echo "Dont forget to remove ./go/pkg folder hint: rm -rf ./go/pkg"
-
-          exit 1
-        else
-          echo "You are using go $VERSION"
-        fi
+        scripts/check-node-version.sh
+        scripts/check-npm-version.sh
+        scripts/check-gulp-version.sh
+        scripts/check-go-version.sh
       }
 
       function build_services () {
@@ -1635,7 +1517,6 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "buildclient" ]; then
 
-        scripts/install-npm.sh -d client -u -s
         make -C #{projectRoot}/client dist
 
       elif [ "$1" == "services" ]; then
@@ -1754,7 +1635,6 @@ Configuration = (options={}) ->
       elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
 
         checkrunfile
-        sh -c scripts/validate-npm.sh
         run $1
 
       elif [ "$1" == "vmwatchertests" ]; then
