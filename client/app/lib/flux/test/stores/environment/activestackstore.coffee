@@ -11,7 +11,7 @@ describe 'ActiveStackStore', ->
 
   beforeEach ->
     @reactor = new Reactor
-    @reactor.registerStores activeStack : ActiveStackStore
+    @reactor.registerStores { activeStack : ActiveStackStore }
 
   describe '#getInitialState', ->
 

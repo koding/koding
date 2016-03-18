@@ -42,7 +42,7 @@ module.exports = class MachineSettingsCommonView extends KDView
     { headerTitle, headerAddButtonTitle
       addButtonCssClass, loaderOnHeaderButton } = @getOptions()
 
-    @addSubView header = new KDHeaderView title: headerTitle
+    @addSubView header = new KDHeaderView { title: headerTitle }
 
     header.addSubView @headerAddNewButton = new KDButtonView
       title    : headerAddButtonTitle
@@ -56,7 +56,7 @@ module.exports = class MachineSettingsCommonView extends KDView
 
   createAddView: ->
 
-    @addViewContainer = new KDCustomHTMLView cssClass: 'add-view hidden'
+    @addViewContainer = new KDCustomHTMLView { cssClass: 'add-view hidden' }
 
     @createAddInput()
     @createAddNewViewButtons()
@@ -68,13 +68,13 @@ module.exports = class MachineSettingsCommonView extends KDView
 
     @addViewContainer.addSubView @addInputView = new KDHitEnterInputView
       type       : 'text'
-      attributes : spellcheck: no
+      attributes : { spellcheck: no }
       callback   : @bound 'handleAddNew'
 
 
   createAddNewViewButtons: ->
 
-    wrapper = new KDCustomHTMLView cssClass: 'buttons'
+    wrapper = new KDCustomHTMLView { cssClass: 'buttons' }
 
     wrapper.addSubView @addNewButton = new KDButtonView
       cssClass : 'solid green small add'
@@ -123,7 +123,7 @@ module.exports = class MachineSettingsCommonView extends KDView
       startWithLazyLoader   : yes
       lazyLoaderOptions     :
         spinnerOptions      :
-          size              : width: 28
+          size              : { width: 28 }
       viewOptions           :
         wrapper             : yes
         itemClass           : listViewItemClass

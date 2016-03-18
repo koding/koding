@@ -3,10 +3,10 @@ Promise = require 'bluebird'
 
 module.exports = class DummyMachine extends Machine
 
-  constructor: (options = {})->
+  constructor: (options = {}) ->
 
-    @label = "Dummy"
-    @uid   = "dummy"
+    @label = 'Dummy'
+    @uid   = 'dummy'
 
     @kites   =
       klient :

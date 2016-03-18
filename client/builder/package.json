@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "main": "index.coffee",
+  "scripts": {
+    "postinstall": "./.npm-postinstall.sh"
+  },
   "dependencies": {
     "@koding/bant": "0.2.6",
     "@koding/gloh": "0.1.2",

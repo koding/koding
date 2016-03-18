@@ -8,12 +8,12 @@ NotificationListItemView  = require './notificationlistitemview'
 
 module.exports = class NotificationListController extends KDListViewController
 
-  constructor:(options, data)->
+  constructor: (options, data) ->
     options.itemClass           or= NotificationListItemView
     options.listView            or= new KDListView
     options.startWithLazyLoader   = yes
     options.noItemFoundWidget   or= new KDView
-      cssClass: "no-item-found"
+      cssClass: 'no-item-found'
       partial : "<cite>You don't have any notifications.</cite>"
 
     options.lazyLoaderOptions     =
@@ -28,8 +28,8 @@ module.exports = class NotificationListController extends KDListViewController
 
     @forwardEvent @getListView(), 'AvatarPopupShouldBeHidden'
 
-  fetchNotificationTeasers:(callback)->
-    {fetch} = kd.singletons.socialapi.notifications
+  fetchNotificationTeasers: (callback) ->
+    { fetch } = kd.singletons.socialapi.notifications
     fetch {}, (err, notifications) =>
       return showError err if err?
       return showError 'Notifications could not be fetched'  unless notifications

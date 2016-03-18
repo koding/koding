@@ -13,9 +13,9 @@ EnvironmentsProgressModal   = require './environmentsprogressmodal'
 ###
 fetchNewestSnapshot = (machineId, callback = kd.noop) ->
 
-  {JSnapshot} = remote.api
+  { JSnapshot } = remote.api
   JSnapshot.some { machineId }, { sort: { createdAt: -1 }, limit: 1 },
-    (err, snapshots) =>
+    (err, snapshots) ->
       return callback err  if err
       unless snapshots
         return callback new Error 'Cannot find most recent snapshot'
@@ -65,14 +65,14 @@ newVmFromSnapshot = (snapshot, machine, callback = kd.noop) ->
   { region, snapshotId } = snapshot
 
   unless region
-    return kd.error "newVmFromSnapshot: snapshot.region is required"
+    return kd.error 'newVmFromSnapshot: snapshot.region is required'
   unless snapshotId
-    return kd.error "newVmFromSnapshot: snapshot.snapshotId is required"
+    return kd.error 'newVmFromSnapshot: snapshot.snapshotId is required'
 
   computeController = kd.getSingleton 'computeController'
   paymentController = kd.getSingleton 'paymentController'
 
-  paymentController.subscriptions (err, subscription) =>
+  paymentController.subscriptions (err, subscription) ->
     return kd.error  if err
     { planTitle } = subscription
 
@@ -102,14 +102,14 @@ showSnapshottingModal = (machine, container) ->
   modal = new EnvironmentsProgressModal
     container          : container
     actionLabel        : 'Creating a snapshot'
-    customErrorMessage : """
+    customErrorMessage : '''
       <p>Snapshot creation failed.</p>
       <span>
         Please <span class="close">close this message</span> or
         <span class="contact-support">contact support</span> for
         further assistance.
       </span>
-    """
+    '''
     machine
   modal.show()
 

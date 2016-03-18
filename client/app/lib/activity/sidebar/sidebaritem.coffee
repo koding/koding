@@ -12,7 +12,7 @@ module.exports = class SidebarItem extends KDListItemView
     options.type       or= 'sidebar-item'
     options.route        = groupifyLink "/Activity/#{options.route}"
     options.tagName    or= 'a'
-    options.attributes or= href : options.route
+    options.attributes or= { href : options.route }
     options.attributes.testpath = "public-feed-link#{options.route}"
 
     super options, data

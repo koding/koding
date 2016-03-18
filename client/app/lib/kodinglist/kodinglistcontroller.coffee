@@ -3,6 +3,7 @@ KDView                = kd.View
 kookies               = require 'kookies'
 showError             = require 'app/util/showError'
 KodingListView        = require './kodinglistview'
+KDListItemView        = kd.ListItemView
 KDListViewController  = kd.ListViewController
 
 
@@ -11,20 +12,32 @@ module.exports = class KodingListController extends KDListViewController
 
   constructor: (options = {}, data) ->
 
-    options.view                   ?= new KodingListView
+    if options.view and options.itemClass
+      kd.warn 'The view will not be used which you passed! Because you passed view and item class together.'
+      options.view  = null
+    else
+      options.view ?= new KodingListView
+
+    options.itemClass              ?= KDListItemView
 
     options.useCustomScrollView    ?= yes
     options.lazyLoadThreshold      ?= 10
+
+    options.startWithLazyLoader    ?= yes
+
+    options.lazyLoaderOptions     or= {}
+
+    options.lazyLoaderOptions.spinnerOptions      or= {}
+    options.lazyLoaderOptions.spinnerOptions.size or= { width : 28 }
 
     options.limit                  ?= 10
     options.sort                  or= { '_id' : -1 }
 
     options.model                 or= null
-    options.type                  or= '' # machine, group, account, session etc.
     options.fetcherMethod         or= null
 
     unless options.noItemFoundWidget
-      options.noItemFoundText or= "You don't have any #{options.type}"
+      options.noItemFoundText or= "No item found!"
       options.noItemFoundWidget = new KDView
         cssClass  : 'no-item-found'
         partial   : "<cite>#{options.noItemFoundText}</cite>"
@@ -60,12 +73,11 @@ module.exports = class KodingListController extends KDListViewController
 
   removeItem: (item) ->
 
-    { type }  = @getOptions()
-    listView  = @getListView()
+    { actionMethods } = @getOptions()
+    listView          = @getListView()
 
     confirmOptions =
-      type         : type
-      callback     : ({status, modal}) =>
+      callback     : actionMethods?.remove ? ({status, modal}) =>
         return  unless status
 
         item.getData().remove (err) =>
@@ -76,9 +88,6 @@ module.exports = class KodingListController extends KDListViewController
 
 
     listView.askForConfirm confirmOptions
-
-
-  editItem: ->
 
 
   followLazyLoad: ->
@@ -98,7 +107,7 @@ module.exports = class KodingListController extends KDListViewController
   loadItems: ->
 
     @removeAllItems()
-    @showLazyLoader()
+    @showLazyLoader no
 
     @fetch @filterStates.query, (items) =>
       return @showNoItemWidget()  unless items?.length
