@@ -96,7 +96,7 @@ describe 'KodingListController', ->
 
   describe '::followLazyLoad', ->
 
-    it 'should call hideLazyLoader if filterState.busy is yes', ->
+    it 'should call hideLazyLoader if filterState.busy is yes', (done) ->
 
       listController  = new KodingListController { fetcherMethod : kd.noop }
       listController.filterStates.busy = yes
@@ -105,9 +105,11 @@ describe 'KodingListController', ->
 
       listController.emit 'LazyLoadThresholdReached'
 
-      kd.utils.wait 333, -> expect(spy).toHaveBeenCalled()
+      kd.utils.wait 333, ->
+        expect(spy).toHaveBeenCalled()
+        done()
 
-    it 'should increase filterStates.skip value', ->
+    it 'should increase filterStates.skip value', (done) ->
 
       listController  = new KodingListController { fetcherMethod : kd.noop, limit : 20 }
 
@@ -117,8 +119,9 @@ describe 'KodingListController', ->
 
       kd.utils.wait 333, ->
         expect(listController.filterStates.skip).toBe 20
+        done()
 
-    it 'should call fetch with correct options', ->
+    it 'should call fetch with correct options', (done) ->
 
       fetcherMethod   = (query, options, callback) -> callback null, []
       listController  = new KodingListController { fetcherMethod, limit : 20 }
@@ -129,8 +132,9 @@ describe 'KodingListController', ->
       kd.utils.wait 333, ->
         expect(fetchSpy.calls.first.arguments[0]).toEqual listController.filterStates.query
         expect(fetchSpy.calls.first.arguments[2]).toEqual { skip : listController.filterStates.skip }
+        done()
 
-    it 'should call addListItems', ->
+    it 'should call addListItems', (done) ->
 
       fetcherMethod   = (query, options, callback) -> callback null, []
       listController  = new KodingListController { fetcherMethod, limit : 20 }
@@ -141,8 +145,9 @@ describe 'KodingListController', ->
 
       kd.utils.wait 333, ->
         expect(addListItemsSpy).toHaveBeenCalled()
+        done()
 
-    it 'should increase filterStates.page value', ->
+    it 'should increase filterStates.page value', (done) ->
 
       fetcherMethod   = (query, options, callback) -> callback null, []
       listController  = new KodingListController { fetcherMethod, limit : 20 }
@@ -153,6 +158,7 @@ describe 'KodingListController', ->
 
       kd.utils.wait 333, ->
         expect(listController.filterStates.page).toBe 1
+        done()
 
 
   describe '::loadItems', ->
