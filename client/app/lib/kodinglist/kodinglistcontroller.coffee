@@ -3,6 +3,7 @@ KDView                = kd.View
 kookies               = require 'kookies'
 showError             = require 'app/util/showError'
 KodingListView        = require './kodinglistview'
+KDListItemView        = kd.ListItemView
 KDListViewController  = kd.ListViewController
 
 
@@ -11,7 +12,13 @@ module.exports = class KodingListController extends KDListViewController
 
   constructor: (options = {}, data) ->
 
-    options.view                   ?= new KodingListView
+    if options.view and options.itemClass
+      kd.warn 'The view will not be used which you passed! Because you passed view and item class together.'
+      options.view  = null
+    else
+      options.view ?= new KodingListView
+
+    options.itemClass              ?= KDListItemView
 
     options.useCustomScrollView    ?= yes
     options.lazyLoadThreshold      ?= 10

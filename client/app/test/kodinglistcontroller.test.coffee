@@ -1,7 +1,9 @@
 kd      = require 'kd'
 expect  = require 'expect'
 
-KDView  = kd.View
+KDView          = kd.View
+KDListView      = kd.ListView
+KDListItemView  = kd.ListItemView
 
 KodingListView       = require 'app/kodinglist/kodinglistview'
 KodingListController = require 'app/kodinglist/kodinglistcontroller'
@@ -31,6 +33,27 @@ describe 'KodingListController', ->
       expect(startWithLazyLoader).toBeTruthy()
       expect(sort).toEqual { '_id' : -1 }
       expect(lazyLoaderOptions.spinnerOptions.size).toEqual { width : 28 }
+
+    it 'should use KDListView despite of given view option with itemClass', ->
+
+      listController  = new KodingListController
+        view          : new KodingListView
+        itemClass     : KDListItemView
+        fetcherMethod : kd.noop
+
+      viewInstanceCheck = listController.getListView() instanceof KodingListView
+
+      expect(viewInstanceCheck).toBeFalsy()
+
+    it 'should use given view option', ->
+
+      listController  = new KodingListController
+        view          : new KodingListView
+        fetcherMethod : kd.noop
+
+      viewInstanceCheck = listController.getListView() instanceof KodingListView
+
+      expect(viewInstanceCheck).toBeTruthy()
 
     it 'should create default no item found widget', ->
 
