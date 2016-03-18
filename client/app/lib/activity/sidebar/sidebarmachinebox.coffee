@@ -23,7 +23,7 @@ module.exports = class SidebarMachineBox extends KDView
     @machine = data.machine
 
     unless @machine instanceof Machine
-      @machine = new Machine machine: remote.revive data.machine
+      @machine = new Machine { machine: remote.revive data.machine }
 
     @workspaceListItemsById = {}
 

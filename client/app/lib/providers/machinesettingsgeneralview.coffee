@@ -55,7 +55,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
 
         if err.name is 'UsageLimitReached' and plan isnt 'hobbyist'
           @emit 'ModalDestroyRequested'
-          kd.utils.defer => new ComputeErrorUsageModal { plan }
+          kd.utils.defer -> new ComputeErrorUsageModal { plan }
         else
           showError err
 
@@ -162,7 +162,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
       if hasClass target, 'permission'
         return computeController.fixMachinePermissions @machine
 
-      @getStackTemplate (err, template) =>
+      @getStackTemplate (err, template) ->
 
         stackInfoProcess = no
         return  unless template
@@ -190,7 +190,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
     isManaged   = @machine.isManaged()
     logsMessage = if @machine.isRunning() \
       then "<span class='link-view'>show logs</span>"
-      else "Please turn on the machine to see logs"
+      else 'Please turn on the machine to see logs'
 
     publicIpView = new KDView
       partial   : @machine.ipAddress or 'N/A'
@@ -235,7 +235,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
               itemClass : KDHitEnterInputView
               type      : 'text'
               cssClass  : 'hidden'
-              attributes: spellcheck: false
+              attributes: { spellcheck: false }
               callback  : => @handleNicknameUpdate() # bound won't work.
         publicIp        :
           label         : 'Public IP'

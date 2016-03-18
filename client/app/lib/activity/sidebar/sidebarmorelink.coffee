@@ -19,7 +19,7 @@ module.exports = class SidebarMoreLink extends CustomLinkView
   updateCount: (visibleCount) ->
 
     @setOption 'visibleCount', visibleCount  if visibleCount
-    {countSource} = @getOptions()
+    { countSource } = @getOptions()
 
     countSource @bound 'renderCount'  if countSource
 

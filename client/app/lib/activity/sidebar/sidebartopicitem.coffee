@@ -15,7 +15,7 @@ module.exports = class SidebarTopicItem extends SidebarItem
 
   constructor: (options = {}, data) ->
 
-    {name, typeConstant, participantCount} = data
+    { name, typeConstant, participantCount } = data
 
     # rewrite group channel as topic?
     route            = if typeConstant is 'group' then 'topic' else typeConstant
@@ -27,7 +27,7 @@ module.exports = class SidebarTopicItem extends SidebarItem
 
     @followButton = switch
       when typeConstant in SidebarTopicItem.TYPECONSTANT_GROUP.CustomView
-        new KDCustomHTMLView tagName : 'span'
+        new KDCustomHTMLView { tagName : 'span' }
       else
         new TopicFollowButton {}, @getData()
 
@@ -45,10 +45,10 @@ module.exports = class SidebarTopicItem extends SidebarItem
   # since all the previous routes are kept in router.
   click: (event) ->
 
-    {typeConstant} = @getData()
+    { typeConstant } = @getData()
 
-    {router} = kd.singletons
-    {currentPath, visitedRoutes} = router
+    { router } = kd.singletons
+    { currentPath, visitedRoutes } = router
 
     if typeConstant is 'group'
 
@@ -75,8 +75,8 @@ module.exports = class SidebarTopicItem extends SidebarItem
 
   pistachio: ->
 
-    """
+    '''
     <span class="ttag">{em{#(name)}}</span>
     {{> @followButton}}
     {{> @unreadCount}}
-    """
+    '''

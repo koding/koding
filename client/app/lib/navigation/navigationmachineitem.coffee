@@ -16,7 +16,7 @@ SidebarMachineConnectedPopup = require 'app/activity/sidebar/sidebarmachineconne
 
 module.exports = class NavigationMachineItem extends JView
 
-  {Running, Stopped} = Machine.State
+  { Running, Stopped } = Machine.State
 
   stateClasses  = 'reconnecting '
   stateClasses += "#{state.toLowerCase()} " for state in Object.keys Machine.State
@@ -228,7 +228,7 @@ module.exports = class NavigationMachineItem extends JView
 
 
     if invitation = machineShareManager.get @machine.uid
-      {type} = invitation
+      { type } = invitation
 
       options.type = type
 
@@ -260,12 +260,12 @@ module.exports = class NavigationMachineItem extends JView
           else if not options.workspaceId and not workspace.channelId
             continue
 
-          {channelId} = workspace
+          { channelId } = workspace
           break
 
         return  unless options.channelId = channelId
 
-        kd.singletons.socialapi.channel.byId id: channelId, (err, channel) ->
+        kd.singletons.socialapi.channel.byId { id: channelId }, (err, channel) ->
 
           return console.error err  if err
           options.isApproved = channel.isParticipant
@@ -289,7 +289,7 @@ module.exports = class NavigationMachineItem extends JView
 
   subscribeMachineShareEvent: ->
 
-    {machineShareManager} = kd.singletons
+    { machineShareManager } = kd.singletons
     machineShareManager.subscribe @machine.uid, @bound 'showSharePopup'
 
     @once 'KDObjectWillBeDestroyed', =>
@@ -316,9 +316,9 @@ module.exports = class NavigationMachineItem extends JView
 
   pistachio: ->
 
-    return """
+    return '''
       <figure></figure>
       {{> @label}}
       {{> @settingsIcon}}
       {{> @progress}}
-    """
+    '''

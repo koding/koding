@@ -3,7 +3,7 @@ KDSliderBarView = kd.SliderBarView
 KDView = kd.View
 module.exports = class CustomPlanStorageSlider extends KDSliderBarView
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super kd.utils.extend options,
       interval   : 1
@@ -14,14 +14,14 @@ module.exports = class CustomPlanStorageSlider extends KDSliderBarView
       showLabels : yes # [1, 3, 5, 7, 10, 15, 20, 25, 30]
     , data
 
-  createHandles:->
+  createHandles: ->
 
     super
 
     handle = @handles.first
     handle.addSubView handleLabel = new KDView
       partial  : "#{handle.value}GB"
-      cssClass : "handle-label"
+      cssClass : 'handle-label'
 
-    @on "ValueIsChanging", (val)->
+    @on 'ValueIsChanging', (val) ->
       handleLabel.updatePartial "#{val}GB"

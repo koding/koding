@@ -10,7 +10,7 @@ module.exports = class SidebarOwnMachinesList extends SidebarMachineList
     options.title      ?= 'Your VMs'
     options.hasPlusIcon = yes
 
-    curryIn options, cssClass: 'my-machines'
+    curryIn options, { cssClass: 'my-machines' }
 
     super options, data
 
