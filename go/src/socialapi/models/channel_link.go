@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/koding/bongo"
 )
 
@@ -120,16 +119,21 @@ func (c *ChannelLink) RemoveLinksWithRoot() error {
 		return err
 	}
 
-	var errs *multierror.Error
+	var errs error
 
 	for _, link := range links {
+		// ignore all not found errors while deleting links
 		err := link.Delete()
-		if err != nil && err != bongo.RecordNotFound {
-			errs = multierror.Append(errs, err)
+		if err != nil && err != ErrChannelNotFound {
+			errs = err
 		}
 	}
 
-	return errs.ErrorOrNil()
+	if errs != nil {
+		return errs
+	}
+
+	return nil
 }
 
 // Create creates a link between two channels
