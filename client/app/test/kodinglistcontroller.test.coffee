@@ -1,7 +1,9 @@
 kd      = require 'kd'
 expect  = require 'expect'
 
-KDView  = kd.View
+KDView          = kd.View
+KDListView      = kd.ListView
+KDListItemView  = kd.ListItemView
 
 KodingListView       = require 'app/kodinglist/kodinglistview'
 KodingListController = require 'app/kodinglist/kodinglistcontroller'
@@ -17,7 +19,8 @@ describe 'KodingListController', ->
 
       {
         useCustomScrollView, lazyLoadThreshold, limit,
-        sort, model, fetcherMethod, type
+        sort, model, fetcherMethod, startWithLazyLoader,
+        lazyLoaderOptions
       } = listController.getOptions()
 
       viewInstanceCheck = listController.getListView() instanceof KodingListView
@@ -27,19 +30,39 @@ describe 'KodingListController', ->
       expect(lazyLoadThreshold).toBe 10
       expect(limit).toBe 10
       expect(model).toNotExist()
-      expect(type).toEqual ''
+      expect(startWithLazyLoader).toBeTruthy()
       expect(sort).toEqual { '_id' : -1 }
+      expect(lazyLoaderOptions.spinnerOptions.size).toEqual { width : 28 }
+
+    it 'should use KDListView despite of given view option with itemClass', ->
+
+      listController  = new KodingListController
+        view          : new KodingListView
+        itemClass     : KDListItemView
+        fetcherMethod : kd.noop
+
+      viewInstanceCheck = listController.getListView() instanceof KodingListView
+
+      expect(viewInstanceCheck).toBeFalsy()
+
+    it 'should use given view option', ->
+
+      listController  = new KodingListController
+        view          : new KodingListView
+        fetcherMethod : kd.noop
+
+      viewInstanceCheck = listController.getListView() instanceof KodingListView
+
+      expect(viewInstanceCheck).toBeTruthy()
 
     it 'should create default no item found widget', ->
 
-      type = 'machine'
-
-      listController = new KodingListController { type, fetcherMethod : kd.noop }
+      listController = new KodingListController { fetcherMethod : kd.noop }
 
       { noItemFoundWidget, noItemFoundText } = listController.getOptions()
 
       expect(noItemFoundWidget).toExist()
-      expect(noItemFoundText).toEqual "You don't have any #{type}"
+      expect(noItemFoundText).toEqual "No item found!"
 
     it 'should create no item found widget with given text', ->
 
@@ -96,7 +119,7 @@ describe 'KodingListController', ->
 
   describe '::followLazyLoad', ->
 
-    it 'should call hideLazyLoader if filterState.busy is yes', ->
+    it 'should call hideLazyLoader if filterState.busy is yes', (done) ->
 
       listController  = new KodingListController { fetcherMethod : kd.noop }
       listController.filterStates.busy = yes
@@ -105,9 +128,11 @@ describe 'KodingListController', ->
 
       listController.emit 'LazyLoadThresholdReached'
 
-      kd.utils.wait 333, -> expect(spy).toHaveBeenCalled()
+      kd.utils.wait 333, ->
+        expect(spy).toHaveBeenCalled()
+        done()
 
-    it 'should increase filterStates.skip value', ->
+    it 'should increase filterStates.skip value', (done) ->
 
       listController  = new KodingListController { fetcherMethod : kd.noop, limit : 20 }
 
@@ -117,8 +142,9 @@ describe 'KodingListController', ->
 
       kd.utils.wait 333, ->
         expect(listController.filterStates.skip).toBe 20
+        done()
 
-    it 'should call fetch with correct options', ->
+    it 'should call fetch with correct options', (done) ->
 
       fetcherMethod   = (query, options, callback) -> callback null, []
       listController  = new KodingListController { fetcherMethod, limit : 20 }
@@ -129,8 +155,9 @@ describe 'KodingListController', ->
       kd.utils.wait 333, ->
         expect(fetchSpy.calls.first.arguments[0]).toEqual listController.filterStates.query
         expect(fetchSpy.calls.first.arguments[2]).toEqual { skip : listController.filterStates.skip }
+        done()
 
-    it 'should call addListItems', ->
+    it 'should call addListItems', (done) ->
 
       fetcherMethod   = (query, options, callback) -> callback null, []
       listController  = new KodingListController { fetcherMethod, limit : 20 }
@@ -141,8 +168,9 @@ describe 'KodingListController', ->
 
       kd.utils.wait 333, ->
         expect(addListItemsSpy).toHaveBeenCalled()
+        done()
 
-    it 'should increase filterStates.page value', ->
+    it 'should increase filterStates.page value', (done) ->
 
       fetcherMethod   = (query, options, callback) -> callback null, []
       listController  = new KodingListController { fetcherMethod, limit : 20 }
@@ -153,6 +181,7 @@ describe 'KodingListController', ->
 
       kd.utils.wait 333, ->
         expect(listController.filterStates.page).toBe 1
+        done()
 
 
   describe '::loadItems', ->
@@ -342,3 +371,27 @@ describe 'KodingListController', ->
       listController.fetch {}, kd.noop
 
       expect(spy).toHaveBeenCalled()
+
+
+  describe '::calculateAndFetchMoreIfNeeded', ->
+
+    it 'should continue to fetch items', (done) ->
+
+      items           = [ 'kodinguser', 'kodinguser2', 'kodinguser3', 'kodinguser4', 'kodinguser5' ]
+
+      fetcherMethod   = (query, options, callback) ->
+        limit   = if not options.skip then 1 else options.limit + 1
+        result  = items.slice (options.skip or 0), limit
+        callback null, result
+
+      listController  = new KodingListController { fetcherMethod, limit : 1 }
+
+      listController.getView().setHeight 500
+      listController.getListView().setHeight 300
+
+      listController.loadItems()
+
+      kd.utils.wait 333, ->
+        { length } = listController.getListView().items
+        expect(length).toBeGreaterThan 1
+        done()
