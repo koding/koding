@@ -1039,6 +1039,16 @@ func isMessageCrossIndexed(messageId int64) (error, bool) {
 	return nil, count > 0
 }
 
+func (c *Channel) RemoveChannelLinks() error {
+	cl := NewChannelLink()
+	cl.RootId = c.Id
+	if err := cl.RemoveLinksWithRoot(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
 	var errs *multierror.Error
 	messageIds := make([]int64, 0)
