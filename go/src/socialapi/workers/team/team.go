@@ -54,7 +54,7 @@ func (c *Controller) HandleChannel(channel *models.Channel) error {
 
 	for _, ch := range chans {
 		// we'r gonna innore all `not found` errors while deleting datas
-		if err := ch.Delete(); err != nil && (err != models.ErrChannelNotFound || err != bongo.RecordNotFound) {
+		if err := ch.Delete(); err != nil && err != bongo.RecordNotFound {
 			errs = multierror.Append(errs, err)
 		}
 
