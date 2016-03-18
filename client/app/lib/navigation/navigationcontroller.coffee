@@ -6,28 +6,28 @@ globals = require 'globals'
 
 module.exports = class NavigationController extends KDListViewController
 
-  reset:->
+  reset: ->
     previousSelection = @selectedItems.slice()
     @removeAllItems()
     @instantiateListItems @getData().items
-    @selectItemByName name  for {name} in previousSelection
+    @selectItemByName name  for { name } in previousSelection
 
-  getItemByName:(name)->
+  getItemByName: (name) ->
     for navItem in @getListItems() when navItem.getData()?.title is name
       return navItem
 
-  selectItemByName:(name)->
+  selectItemByName: (name) ->
     if item = @getItemByName name
     then @selectItem item
     else @deselectAllItems()
     return item
 
-  removeItemByTitle:(name)->
+  removeItemByTitle: (name) ->
     for navItem in @getListItems() when navItem?.name is name
       @removeItem navItem
 
-  instantiateListItems:(items)->
-    {roles} = globals.config
+  instantiateListItems: (items) ->
+    { roles } = globals.config
 
     for itemData in items
       # if not defined, do not check loggedIn state
