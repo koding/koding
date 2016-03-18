@@ -342,3 +342,27 @@ describe 'KodingListController', ->
       listController.fetch {}, kd.noop
 
       expect(spy).toHaveBeenCalled()
+
+
+  describe '::calculateAndFetchMoreIfNeeded', ->
+
+    it 'should continue to fetch items', (done) ->
+
+      items           = [ 'kodinguser', 'kodinguser2', 'kodinguser3', 'kodinguser4', 'kodinguser5' ]
+
+      fetcherMethod   = (query, options, callback) ->
+        limit   = if not options.skip then 1 else options.limit + 1
+        result  = items.slice (options.skip or 0), limit
+        callback null, result
+
+      listController  = new KodingListController { fetcherMethod, limit : 1 }
+
+      listController.getView().setHeight 500
+      listController.getListView().setHeight 300
+
+      listController.loadItems()
+
+      kd.utils.wait 333, ->
+        { length } = listController.getListView().items
+        expect(length).toBeGreaterThan 1
+        done()
