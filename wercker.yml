@@ -258,6 +258,11 @@ deploy:
         key-secret: $S3_KEY_SECRET
         opts: "--no-mime-magic --guess-mime-type"
 
+  s3-klientkite-production:
+    - script:
+        name: deploy klient to production channel
+        code: $WERCKER_ROOT/scripts/deploy-klient.sh
+
   s3-klientkite-development:
     - script:
         name: deploy klient to development channel
@@ -268,7 +273,7 @@ deploy:
         name: deploy klient to managed channel
         code: $WERCKER_ROOT/scripts/deploy-klient.sh
 
-  s3-klientkite-production:
+  s3-klientkite-devmanaged:
     - script:
-        name: deploy klient to production channel
+        name: deploy klient to devmanaged channel
         code: $WERCKER_ROOT/scripts/deploy-klient.sh

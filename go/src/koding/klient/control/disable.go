@@ -6,9 +6,10 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/koding/kite"
 	"koding/klient/fix"
 	"koding/klient/protocol"
+
+	"github.com/koding/kite"
 )
 
 const (
@@ -33,7 +34,7 @@ const (
 // TODO: Find a way to stop Klient *after* it has safely finished any
 // pre-existing tasks.
 func Disable(r *kite.Request) (interface{}, error) {
-	if protocol.Environment != "managed" {
+	if protocol.Environment != "managed" && protocol.Environment != "devmanaged" {
 		return nil, errors.New(fmt.Sprintf(
 			"klient.disable cannot be run from the '%s' Environment",
 			protocol.Environment,
