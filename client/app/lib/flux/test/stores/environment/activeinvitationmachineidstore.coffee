@@ -13,7 +13,7 @@ describe 'ActiveInvitationMachineIdStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores activeInvitationMachineId : ActiveInvitationMachineIdStore
+    @reactor.registerStores { activeInvitationMachineId : ActiveInvitationMachineIdStore }
 
 
   describe '#getInitialState', ->
