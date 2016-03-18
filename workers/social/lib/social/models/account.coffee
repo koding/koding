@@ -13,6 +13,7 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/filterable'
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/notifying'
+  @trait __dirname, '../traits/notifiable'
   @trait __dirname, '../traits/flaggable'
 
   JTag                = require './tag'
@@ -664,13 +665,16 @@ module.exports = class JAccount extends jraphical.Module
     # mark user as troll in social api
     @markUserAsExemptInSocialAPI client, exempt, (err, data) =>
       return callback new ApiError err  if err
-      op = { $set: { isExempt: exempt } }
-      @update op, (err, result) =>
-        if err
-          console.error 'Could not update user exempt information'
-          return callback err
-        @isExempt = exempt
+      query = { $set: { isExempt: exempt } }
 
+      notifyOptions =
+        account : client?.connection?.delegate
+        group   : client?.context?.group
+        target  : 'account'
+
+      @updateAndNotify notifyOptions, query, (err, result) =>
+        return callback err  if err
+        @isExempt = exempt
         callback null, result
 
   markUserAsExemptInSocialAPI: (client, exempt, callback) ->
@@ -805,8 +809,14 @@ module.exports = class JAccount extends jraphical.Module
         return callback new KodingError 'Modify fields is not valid'
 
     if @equals(client.connection.delegate)
-      op = { $set: fields }
-      @update op, (err) =>
+      query = { $set: fields }
+
+      notifyOptions =
+        account : client.connection.delegate
+        group   : client?.context?.group
+        target  : 'account'
+
+      @updateAndNotify notifyOptions, query, (err) =>
 
         firstName = fields['profile.firstName']
         lastName  = fields['profile.lastName']
