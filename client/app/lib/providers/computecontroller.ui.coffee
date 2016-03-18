@@ -597,3 +597,18 @@ module.exports = class ComputeControllerUI
     else
 
       modal.addSubView errorDetails
+
+
+  @createAdminMessageForStacks = (stacks, message, type) ->
+
+    for stack in stacks
+      config = stack.config ? {}
+      config.adminMessage = { message, type }
+      stack.modify { config }
+
+
+  @deleteStackAdminMessage = (stack) ->
+
+    return  unless config = stack.config
+    config.adminMessage = null
+    stack.modify { config }

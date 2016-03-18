@@ -1312,9 +1312,15 @@ module.exports = class ComputeController extends KDController
       callback null, result
 
 
-  createAdminMessageForStacks: (stacks, message, type) ->
+  fetchStackByMachineId: (machineId, callback = kd.noop) ->
 
-    for stack in stacks
-      config = stack.config ? {}
-      config.adminMessage = { message, type }
-      stack.modify { config }
+    @fetchStacks (err, stacks) ->
+
+      return callback err  if err
+
+      for stack in stacks
+        for machine in stack.machines
+          if machine._id is machineId
+            return callback null, stack
+
+       callback()

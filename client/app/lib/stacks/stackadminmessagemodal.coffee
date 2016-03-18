@@ -32,7 +32,7 @@ module.exports = class StackAdminMessageModal extends kd.ModalView
     { computeController } = kd.singletons
 
     message = this.getOption('view').getValue()
-    computeController.createAdminMessageForStacks stacks, message, type
+    computeController.ui.createAdminMessageForStacks stacks, message, type
     
     showNotification doneMessage, { type : 'main' }
     @destroy()

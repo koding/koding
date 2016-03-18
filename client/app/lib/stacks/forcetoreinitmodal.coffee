@@ -6,7 +6,7 @@ showNotification       = require 'app/util/showNotification'
 module.exports = class ForceToReinitModal extends kd.ModalView
 
   DONE_MESSAGE   = 'Notification is sent'
-  REINIT_MESSAGE = 'Please re-init your stack as soon as possible'
+  REINIT_MESSAGE = 'Please re-init your stack as soon as possible!'
 
   constructor: (options = {}, data) ->
 
@@ -45,7 +45,7 @@ module.exports = class ForceToReinitModal extends kd.ModalView
         @buttons.proceed.hideLoader()
         return showError err
 
-      computeController.createAdminMessageForStacks(
+      computeController.ui.createAdminMessageForStacks(
         stacks,
         REINIT_MESSAGE,
         'forcedReinit'

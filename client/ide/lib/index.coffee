@@ -29,6 +29,7 @@ CollaborationController       = require './collaborationcontroller'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
+StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
 
 
 require('./routes').init()
@@ -93,6 +94,8 @@ class IDEAppController extends AppController
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
     @bindListeners()
 
+    @stackAdminMessage = new StackAdminMessageController()
+
     appManager.on 'AppIsBeingShown', (app) =>
 
       return  unless app is this
@@ -108,6 +111,8 @@ class IDEAppController extends AppController
 
       unless @layoutManager.isSnapshotRestored()
         @layoutManager.restoreSnapshot()
+
+      @stackAdminMessage.showIfNeed @mountedMachine
 
 
   bindListeners: ->
@@ -650,6 +655,8 @@ class IDEAppController extends AppController
 
         @bindMachineEvents machineItem
         @bindWorkspaceDataEvents()
+
+        @stackAdminMessage.showIfNeed machineItem
 
       else
         @createMachineStateModal { state: 'NotFound', container }
