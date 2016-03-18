@@ -8,18 +8,18 @@ NFileItemView = require './nfileitemview'
 
 module.exports = class NMachineItemView extends NFileItemView
 
-  constructor:(options = {},data)->
+  constructor: (options = {}, data) ->
 
-    options.cssClass or= "vm"
+    options.cssClass or= 'vm'
     super options, data
 
-    {@machine} = data
+    { @machine } = data
 
     @changePathButton = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'path-select'
-      delegate : @
-      click    : @bound "createRootContextMenu"
+      delegate : this
+      click    : @bound 'createRootContextMenu'
 
     @machineInfo = new KDCustomHTMLView
       tagName  : 'span'
@@ -28,18 +28,18 @@ module.exports = class NMachineItemView extends NFileItemView
 
     @setClass 'online'  if @machine.status.state is Machine.State.Running
 
-  showLoader:->
+  showLoader: ->
 
     @parent?.isLoading = yes
     @loader.show()
 
-  hideLoader:->
+  hideLoader: ->
 
     @parent?.isLoading = no
     @loader.hide()
 
 
-  createRootContextMenu:->
+  createRootContextMenu: ->
 
     offset = @changePathButton.$().offset()
     currentPath = @getData().path
@@ -51,16 +51,16 @@ module.exports = class NMachineItemView extends NFileItemView
       x           : offset.left - 106
       y           : offset.top + 22
       arrow       :
-        placement : "top"
+        placement : 'top'
         margin    : 108
       lazyLoad    : yes
     , {}
 
     parents = []
     nodes = currentPath.split('/')
-    for x in [0...nodes.length-1]
+    for x in [0...nodes.length - 1]
       nodes = currentPath.split('/')
-      path  = (nodes.splice 1,x).join "/"
+      path  = (nodes.splice 1, x).join '/'
       parents.push "/#{path}"
     parents.reverse()
 
@@ -68,18 +68,18 @@ module.exports = class NMachineItemView extends NFileItemView
     finder  = @getData().treeController.getDelegate()
 
     kd.utils.defer ->
-      parents.forEach (path)->
+      parents.forEach (path) ->
 
         contextMenu.treeController.addNode
           title    : path
           callback : ->
-            finder?.updateMachineRoot uid, path, contextMenu.bound("destroy")
+            finder?.updateMachineRoot uid, path, contextMenu.bound('destroy')
 
       contextMenu.positionContextMenu()
       contextMenu.treeController.selectFirstNode()
 
 
-  pistachio:->
+  pistachio: ->
     path = FSHelper.plainPath @getData().path
 
     """

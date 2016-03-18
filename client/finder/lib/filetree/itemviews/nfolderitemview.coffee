@@ -1,7 +1,7 @@
 NFileItemView = require './nfileitemview'
 module.exports = class NFolderItemView extends NFileItemView
 
-  constructor:(options = {},data)->
+  constructor: (options = {}, data) ->
 
-    options.cssClass  or= "folder"
+    options.cssClass  or= 'folder'
     super options, data

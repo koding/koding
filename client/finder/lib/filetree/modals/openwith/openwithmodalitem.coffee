@@ -2,20 +2,20 @@ getAppIcon = require 'app/util/getAppIcon'
 JView = require 'app/jview'
 module.exports = class OpenWithModalItem extends JView
 
-  constructor: (options= {}, data) ->
+  constructor: (options = {}, data) ->
 
-    options.cssClass = "app"
+    options.cssClass = 'app'
 
     super options, data
 
     @img = getAppIcon @getData()
 
-    @setClass "not-supported" unless @getOptions().supported
+    @setClass 'not-supported' unless @getOptions().supported
 
-    @on "click", =>
+    @on 'click', =>
       delegate = @getDelegate()
-      delegate.selectedApp.unsetClass "selected" if delegate.selectedApp
-      @setClass "selected"
+      delegate.selectedApp.unsetClass 'selected' if delegate.selectedApp
+      @setClass 'selected'
       delegate.selectedApp = this
 
   pistachio: ->

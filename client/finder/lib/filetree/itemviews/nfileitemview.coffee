@@ -12,10 +12,10 @@ module.exports = class NFileItemView extends KDCustomHTMLView
 
   # loaderRequiredEvents = ['job', 'remove', 'save', 'saveAs']
 
-  constructor:(options = {},data)->
+  constructor: (options = {}, data) ->
 
-    options.tagName   or= "div"
-    options.cssClass  or= "file"
+    options.tagName   or= 'div'
+    options.cssClass  or= 'file'
 
     super options, data
 
@@ -25,8 +25,8 @@ module.exports = class NFileItemView extends KDCustomHTMLView
         width       : 16
       loaderOptions :
         # color       : @utils.getRandomHex()
-        color       : "#71BAA2"
-        shape       : "rect"
+        color       : '#71BAA2'
+        shape       : 'rect'
         diameter    : 16
         density     : 12
         range       : 1
@@ -34,14 +34,14 @@ module.exports = class NFileItemView extends KDCustomHTMLView
         FPS         : 24
 
     @icon = new KDCustomHTMLView
-      tagName   : "span"
-      cssClass  : "icon"
+      tagName   : 'span'
+      cssClass  : 'icon'
 
     # for eventName in loaderRequiredEvents
     #   fileData.on "fs.#{eventName}.started",  => @showLoader()
     #   fileData.on "fs.#{eventName}.finished", => @hideLoader()
 
-  destroy:->
+  destroy: ->
 
     # fileData = @getData()
     # for eventName in loaderRequiredEvents
@@ -50,41 +50,41 @@ module.exports = class NFileItemView extends KDCustomHTMLView
 
     super
 
-  decorateItem:->
+  decorateItem: ->
 
     extension = FSHelper.getFileExtension @getData().name
     if extension
       fileType = FSHelper.getFileType extension
-      @icon.$().attr "class", "icon #{extension} #{fileType}"
+      @icon.$().attr 'class', "icon #{extension} #{fileType}"
 
-  render:->
+  render: ->
 
     super
     @decorateItem()
 
-  mouseDown:-> yes
+  mouseDown: -> yes
 
-  viewAppended:->
+  viewAppended: ->
     @setTemplate @pistachio()
     @template.update()
 
     @hideLoader()
     @decorateItem()
 
-  showLoader:->
+  showLoader: ->
 
     @parent?.isLoading = yes
     @icon.hide()
     @loader.show()
 
-  hideLoader:->
+  hideLoader: ->
 
     @parent?.isLoading = no
     @icon.show()
     @loader.hide()
 
 
-  pistachio:->
+  pistachio: ->
     data = @getData()
     path = FSHelper.plainPath data.path
     name = Encoder.XSSEncode data.name

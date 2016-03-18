@@ -10,7 +10,7 @@ module.exports = class NCopyUrlView extends JView
   constructor: ->
     super
 
-    {path}      = @getData()
+    { path }    = @getData()
     hostname    = FSHelper.getVMNameFromPath path
     @publicPath = FSHelper.isPublicPath path
 
@@ -25,7 +25,7 @@ module.exports = class NCopyUrlView extends JView
       attributes    :
         readonly    : yes
 
-    kd.getSingleton('vmController').fetchVMDomains hostname, (err, domains)=>
+    kd.getSingleton('vmController').fetchVMDomains hostname, (err, domains) =>
       if domains?.length > 0 and not err
 
         path  = FSHelper.plainPath path
@@ -34,7 +34,7 @@ module.exports = class NCopyUrlView extends JView
         [rest..., user, pathrest] = match
 
         if /^shared-/.test hostname
-          subdomain = unless user is nick() then "" else "#{user}."
+          subdomain = unless user is nick() then '' else "#{user}."
         else
           subdomain = ''
 
@@ -45,29 +45,29 @@ module.exports = class NCopyUrlView extends JView
 
         unless @newPageLink
           @addSubView @newPageLink = new CustomLinkView
-            cssClass    : "icon-link"
-            title       : ""
+            cssClass    : 'icon-link'
+            title       : ''
             href        : URI
             target      : URI
             icon        :
               cssClass  : 'new-page'
               placement : 'right'
 
-  focusAndSelectAll:->
+  focusAndSelectAll: ->
     @inputUrl.setFocus()
     @inputUrl.selectAll()
 
-  viewAppended:->
-    @setClass "copy-url-wrapper"
+  viewAppended: ->
+    @setClass 'copy-url-wrapper'
     super
 
-  pistachio:->
+  pistachio: ->
     unless @publicPath
       """
       <div class="public-url-warning">This #{@getData().type} can not be reached over a public URL</div>
       """
     else
-      """
+      '''
       {{> @inputUrlLabel}}
       {{> @inputUrl}}
-      """
+      '''

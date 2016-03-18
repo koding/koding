@@ -15,7 +15,7 @@ module.exports = class FinderController extends KDController
 
   constructor: (options, data) ->
 
-    options.appInfo = name : "Finder"
+    options.appInfo = { name : 'Finder' }
 
     super options, data
 
@@ -50,8 +50,8 @@ module.exports = class FinderController extends KDController
   getAppTitleView: ->
 
     new KDCustomHTMLView
-      cssClass : "app-header"
-      partial  : "Ace Editor"
+      cssClass : 'app-header'
+      partial  : 'Ace Editor'
 
 
   createUploader: (controller) ->

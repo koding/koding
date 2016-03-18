@@ -1,7 +1,7 @@
 NFileItemView = require './nfileitemview'
 module.exports = class NBrokenLinkItemView extends NFileItemView
 
-  constructor:(options = {},data)->
+  constructor: (options = {}, data) ->
 
-    options.cssClass  or= "broken"
+    options.cssClass  or= 'broken'
     super options, data
