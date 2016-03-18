@@ -15,8 +15,8 @@ isStarted = false
 
 module.exports = (defaults) ->
 
-  localStorage.sanitize()
-  if isStarted then throw 'already running' else isStarted = true
+  alreadyRunning = 'already running'
+  if isStarted then throw alreadyRunning else isStarted = true
 
   initialize defaults, bootup
 
@@ -75,7 +75,7 @@ bootup = ->
   # CONNECTIVITY EVENTS
   ###
 
-  status.on 'bongoConnected', (account)->
+  status.on 'bongoConnected', (account) ->
     socketConnected()
     mainController.accountChanged account, firstLoad
     firstLoad = no
@@ -89,14 +89,14 @@ bootup = ->
     startAuthenticationInterval()
     kd.log 'kd remote connected'
 
-  status.on 'reconnected', (options={})->
+  status.on 'reconnected', (options = {}) ->
     ConnectionChecker.globalNotification.hide()
     startAuthenticationInterval()
-    kd.log "kd remote re-connected"
+    kd.log 'kd remote re-connected'
 
-  status.on 'disconnected', (options={})->
+  status.on 'disconnected', (options = {}) ->
     stopAuthenticationInterval()
-    kd.log "kd remote disconnected"
+    kd.log 'kd remote disconnected'
 
   remote.connect()
 
@@ -133,7 +133,7 @@ initialize = (defaults, next) ->
     globals.config.mainUri = global.location.origin
     globals.config.apiUri  = global.location.origin
 
-  logsEnabled = (kookies.get 'enableLogs') or !globals.config?.suppressLogs
+  logsEnabled = (kookies.get 'enableLogs') or not globals.config?.suppressLogs
   enableLogs logsEnabled
 
   next()

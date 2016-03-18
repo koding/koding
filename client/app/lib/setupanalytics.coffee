@@ -37,21 +37,21 @@ identifyUser = (account) ->
 setupPageAnalyticsEvent = ->
 
   kd.singletons.router.on 'RouteInfoHandled', (args) ->
-    {path} = args
+    { path } = args
     return  unless path
 
     title = getFirstPartOfpath(path)
-    analytics?.page(title, {title:document.title, path})
+    analytics?.page(title, { title:document.title, path })
 
-getFirstPartOfpath = (path) -> return path.split("/")[1] or path
+getFirstPartOfpath = (path) -> return path.split('/')[1] or path
 
 setupRollbar = ->
 
   Rollbar?.configure
-    payload: client: javascript:
+    payload: { client: { javascript:
       source_map_enabled:    true
       guess_uncaught_frames: true
-      code_version:          globals.config.version
+      code_version:          globals.config.version } }
 
 module.exports = ->
 

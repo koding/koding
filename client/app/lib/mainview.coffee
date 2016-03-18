@@ -20,7 +20,7 @@ doXhrRequest            = require 'app/util/doXhrRequest'
 
 module.exports = class MainView extends kd.View
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     mobileDevices       = /Android|iPhone|iPod/i
     options.domId       = 'kdmaincontainer'
@@ -50,7 +50,7 @@ module.exports = class MainView extends kd.View
       @emit 'ready'
 
 
-  createMobileHeader:->
+  createMobileHeader: ->
 
     @addSubView @header = new kd.View
       tagName    : 'header'
@@ -67,7 +67,7 @@ module.exports = class MainView extends kd.View
         @once 'click', =>
           @toggleClass 'mobile-menu-active'
 
-    {router} = kd.singletons
+    { router } = kd.singletons
     router.on 'RouteInfoHandled', =>
       @unsetClass 'mobile-menu-active'
 
@@ -76,14 +76,14 @@ module.exports = class MainView extends kd.View
 
     logoWrapper.addSubView new kd.CustomHTMLView
       tagName    : 'a'
-      attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
+      attributes : { href : '/' } # so that it shows 'koding.com' on status bar of browser
       partial    : '<figure></figure>'
       click      : (event) -> kd.utils.stopDOMEvent event
 
     @header.addSubView logoWrapper
 
 
-  createHeader:->
+  createHeader: ->
 
     entryPoint = globals.config.entryPoint
 
@@ -99,14 +99,14 @@ module.exports = class MainView extends kd.View
     @header.addSubView new TopNavigation
 
     @header.addSubView @logo = new kd.CustomHTMLView
-      tagName    : "a"
-      attributes : href : '/'
-      domId      : "koding-logo"
+      tagName    : 'a'
+      attributes : { href : '/' }
+      domId      : 'koding-logo'
       cssClass   : if entryPoint?.type is 'group' then 'group' else ''
       partial    : '<cite></cite>'
-      click     : (event)=>
+      click     : (event) ->
         kd.utils.stopDOMEvent event
-        {router} = kd.singletons
+        { router } = kd.singletons
         router.handleRoute router.getDefaultRoute()
 
     @logo.setClass globals.config.environment
@@ -115,9 +115,9 @@ module.exports = class MainView extends kd.View
       cssClass : 'logotype'
       title    : 'Koding'
       href     : '/'
-      click    : (event)=>
+      click    : (event) ->
         kd.utils.stopDOMEvent event
-        {router} = kd.singletons
+        { router } = kd.singletons
         router.handleRoute router.getDefaultRoute()
 
 
@@ -148,14 +148,14 @@ module.exports = class MainView extends kd.View
     if isKoding()
       @logoWrapper.addSubView new kd.CustomHTMLView
         tagName    : 'a'
-        attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
+        attributes : { href : '/' } # so that it shows 'koding.com' on status bar of browser
         partial    : '<figure></figure>'
         click      : (event) -> kd.utils.stopDOMEvent event
     else
       @logoWrapper.addSubView new TeamName {}, getGroup()
 
     @logoWrapper.addSubView closeHandle = new kd.CustomHTMLView
-      cssClass : "sidebar-close-handle"
+      cssClass : 'sidebar-close-handle'
       partial  : "<span class='icon'></span>"
       click    : @bound 'toggleSidebar'
 
@@ -201,7 +201,7 @@ module.exports = class MainView extends kd.View
     @sidebar.on 'ShowCloseHandle', => @aside.setClass 'has-runningMachine'
 
 
-  createPanelWrapper:->
+  createPanelWrapper: ->
 
     @addSubView @panelWrapper = new kd.View
       tagName  : 'section'
@@ -219,7 +219,7 @@ module.exports = class MainView extends kd.View
     then @unsetClass 'hover'
     else @toggleClass 'collapsed'
 
-    @isSidebarCollapsed = !@isSidebarCollapsed
+    @isSidebarCollapsed = not @isSidebarCollapsed
     { frontApp }        = kd.singletons.appManager
 
     if frontApp.getOption('name') is 'IDE'
@@ -240,7 +240,7 @@ module.exports = class MainView extends kd.View
     @toggleSidebar()
 
 
-  createAccountArea:->
+  createAccountArea: ->
 
     @accountArea = new kd.CustomHTMLView { cssClass: 'account-area' }
 
@@ -297,7 +297,7 @@ module.exports = class MainView extends kd.View
         appStorage.setValue 'registrationsClosedDismissed', yes
 
 
-  createMainTabView:->
+  createMainTabView: ->
 
     @mainTabView = new MainTabView
       domId               : 'main-tab-view'
@@ -308,21 +308,21 @@ module.exports = class MainView extends kd.View
 
     @mainTabView.on 'PaneDidShow', (pane) => @emit 'MainTabPaneShown', pane
 
-    @mainTabView.on "AllPanesClosed", ->
-      kd.getSingleton('router').handleRoute "/Activity"
+    @mainTabView.on 'AllPanesClosed', ->
+      kd.getSingleton('router').handleRoute '/Activity'
 
     @panelWrapper.addSubView @mainTabView
 
 
-  setStickyNotification:->
+  setStickyNotification: ->
 
     return if not isLoggedIn() # don't show it to guests
 
-    {JSystemStatus} = remote.api
+    { JSystemStatus } = remote.api
 
     kd.utils.wait 2000, =>
-      remote.api.JSystemStatus.getCurrentSystemStatuses (err, statuses)=>
-        if err then kd.log 'current system status:',err
+      remote.api.JSystemStatus.getCurrentSystemStatuses (err, statuses) =>
+        if err then kd.log 'current system status:', err
         else if statuses and Array.isArray statuses
           queue = statuses.map (status) => (next) =>
             @createGlobalNotification status
@@ -331,7 +331,7 @@ module.exports = class MainView extends kd.View
           async.series queue.reverse()
 
 
-  hideAllNotifications:->
+  hideAllNotifications: ->
 
     notification.hide() for notification in @notifications
 
@@ -340,7 +340,7 @@ module.exports = class MainView extends kd.View
   # and keeps track of existing ones
   # it doesn't broadcast anything
   # a name change might be necessary here - SY
-  createGlobalNotification:(message, options = {})->
+  createGlobalNotification: (message, options = {}) ->
 
     # will get rid of this map
     # once the admin panel counterpart
@@ -355,7 +355,7 @@ module.exports = class MainView extends kd.View
 
     options.type      or= typeMap[message.type]
     options.showTimer  ?= message.type isnt 'restart'  #change this option name creates confusion with the actual timer
-    options.cssClass    = kd.utils.curry "header-notification", options.type
+    options.cssClass    = kd.utils.curry 'header-notification', options.type
     options.cssClass    = kd.utils.curry options.cssClass, 'fx'  if options.animated
 
     @notifications.push notification = new GlobalNotificationView options, message
@@ -370,7 +370,7 @@ module.exports = class MainView extends kd.View
     notification.once 'KDObjectWillBeDestroyed', =>
       for n, i in @notifications
         if n.getId() is notification.getId()
-          @notifications[i-1]?.show()
+          @notifications[i - 1]?.show()
           break
 
     kd.utils.wait 177, notification.bound 'show'
@@ -379,18 +379,18 @@ module.exports = class MainView extends kd.View
 
 
   enableFullscreen: ->
-    @setClass "fullscreen no-anim"
-    @emit "fullscreen", yes
-    kd.getSingleton("windowController").notifyWindowResizeListeners()
+    @setClass 'fullscreen no-anim'
+    @emit 'fullscreen', yes
+    kd.getSingleton('windowController').notifyWindowResizeListeners()
 
 
   disableFullscreen: ->
-    @unsetClass "fullscreen no-anim"
-    @emit "fullscreen", no
-    kd.getSingleton("windowController").notifyWindowResizeListeners()
+    @unsetClass 'fullscreen no-anim'
+    @emit 'fullscreen', no
+    kd.getSingleton('windowController').notifyWindowResizeListeners()
 
 
-  isFullscreen: -> @hasClass "fullscreen"
+  isFullscreen: -> @hasClass 'fullscreen'
 
 
   toggleFullscreen: ->
@@ -404,12 +404,12 @@ module.exports = class MainView extends kd.View
 
   _logoutAnimation: ->
 
-    {body}      = global.document
-    turnOffLine = new kd.CustomHTMLView cssClass : "turn-off-line"
-    turnOffDot  = new kd.CustomHTMLView cssClass : "turn-off-dot"
+    { body }    = global.document
+    turnOffLine = new kd.CustomHTMLView { cssClass : 'turn-off-line' }
+    turnOffDot  = new kd.CustomHTMLView { cssClass : 'turn-off-dot' }
 
     turnOffLine.appendToDomBody()
     turnOffDot.appendToDomBody()
 
-    body.style.background = "#000"
-    @setClass "logout-tv"
+    body.style.background = '#000'
+    @setClass 'logout-tv'

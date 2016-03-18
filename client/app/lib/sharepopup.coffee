@@ -9,26 +9,26 @@ shortenUrl = require 'app/util/shortenUrl'
 
 module.exports = class SharePopup extends JView
 
-  constructor: (options={}, data)->
+  constructor: (options = {}, data) ->
 
-    options.cssClass          ?= "share-popup"
+    options.cssClass          ?= 'share-popup'
     options.shortenURL        ?= true
-    options.url               ?= ""
+    options.url               ?= ''
 
     options.gplus            ?= {}
     options.gplus.enabled    ?= true
 
     options.twitter         ?= {}
     options.twitter.enabled ?= true
-    options.twitter.text    ?= ""
+    options.twitter.text    ?= ''
 
     options.facebook         ?= {}
     options.facebook.enabled ?= true
 
     options.linkedin         ?= {}
     options.linkedin.enabled ?= true
-    options.linkedin.title   ?= "Koding.com"
-    options.linkedin.text    ?= options.url or "The next generation development environment"
+    options.linkedin.title   ?= 'Koding.com'
+    options.linkedin.text    ?= options.url or 'The next generation development environment'
 
     options.newTab          ?= {}
     options.newTab.enabled  ?= true
@@ -37,22 +37,22 @@ module.exports = class SharePopup extends JView
     super options, data
 
     @urlInput = urlInput = new KDInputView
-      cssClass    : "share-input"
-      type        : "text"
-      placeholder : "building url..."
+      cssClass    : 'share-input'
+      type        : 'text'
+      placeholder : 'building url...'
       attributes  :
         readonly  : yes
       width       : 50
 
     if options.shortenURL
-      shortenUrl options.url, (shorten)=>
+      shortenUrl options.url, (shorten) =>
         @urlInput.setValue shorten
         @urlInput.$().select()
     else
       urlInput.setValue options.url
       urlInput.$().select()
 
-    @once "viewAppended", =>
+    @once 'viewAppended', =>
       @urlInput.$().select()
 
 
@@ -61,18 +61,18 @@ module.exports = class SharePopup extends JView
     @facebookShareLink = @buildFacebookShareLink()
     @linkedInShareLink = @buildLinkedInShareLink()
 
-  buildURLInput:()->
+  buildURLInput: ->
     @urlInput = new KDInputView
-      cssClass    : "share-input"
-      type        : "text"
-      placeholder : "building url..."
+      cssClass    : 'share-input'
+      type        : 'text'
+      placeholder : 'building url...'
       attributes  :
         readonly  : yes
       width       : 50
 
     options = @getOptions()
     if options.shortenURL
-      shortenUrl options.url, (shorten)=>
+      shortenUrl options.url, (shorten) =>
         @urlInput.setValue shorten
         @urlInput.$().select()
         return @urlInput
@@ -81,53 +81,53 @@ module.exports = class SharePopup extends JView
       @urlInput.$().select()
       return @urlInput
 
-  buildGPlusShareLink:()->
+  buildGPlusShareLink: ->
     if @getOptions().gplus.enabled
       link = "https://plus.google.com/share?url=#{encodeURIComponent(@getOptions().url)}"
-      return @generateView(link, "gplus")
+      return @generateView(link, 'gplus')
     return new KDView
 
-  buildTwitterShareLink:()->
+  buildTwitterShareLink: ->
     if @getOptions().twitter.enabled
       shareText = @getOptions().twitter.text or @getOptions().text
       link = "https://twitter.com/intent/tweet?text=#{encodeURIComponent shareText}&via=koding&source=koding"
-      return @generateView link, "twitter"
+      return @generateView link, 'twitter'
 
     # if twitter is not provided, do not show
     return new KDView
 
-  buildFacebookShareLink:()->
+  buildFacebookShareLink: ->
     if @getOptions().facebook.enabled
       link = "https://www.facebook.com/sharer/sharer.php?u=#{encodeURIComponent(@getOptions().url)}"
-      return @generateView link, "facebook"
+      return @generateView link, 'facebook'
     return new KDView
 
-  buildLinkedInShareLink:()->
+  buildLinkedInShareLink: ->
     if @getOptions().linkedin.enabled
       link = "http://www.linkedin.com/shareArticle?mini=true&url=#{encodeURIComponent(@getOptions().url)}&title=#{encodeURIComponent(@getOptions().linkedin.title)}&summary=#{encodeURIComponent(@getOptions().linkedin.text)}&source=#{location.origin}"
-      return @generateView(link, "linkedin")
+      return @generateView(link, 'linkedin')
     return new KDView
 
-  generateView:(link, provider)->
+  generateView: (link, provider) ->
     return new KDCustomHTMLView
       tagName   : 'a'
       # todo when adding new icons, replace those two lines
       cssClass  : "share-#{provider} icon-link"
       # cssClass  : "share-twitter icon-link"
       partial   : "<span class='icon'></span>"
-      click     : (event)=>
+      click     : (event) ->
         kd.utils.stopDOMEvent event
         window.open(
           link,
           "#{provider}-share-dialog",
-          "width=626,height=436,left=#{Math.floor (screen.width/2) - (500/2)},top=#{Math.floor (screen.height/2) - (350/2)}"
+          "width=626,height=436,left=#{Math.floor (screen.width / 2) - (500 / 2)},top=#{Math.floor (screen.height / 2) - (350 / 2)}"
         )
 
   pistachio: ->
-    """
+    '''
     {{> @urlInput}}
     {{> @gPlusShareLink}}
     {{> @linkedInShareLink}}
     {{> @facebookShareLink}}
     {{> @twitterShareLink}}
-    """
+    '''

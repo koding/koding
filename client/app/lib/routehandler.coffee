@@ -19,29 +19,29 @@ handleRoot = ->
   # don't load the root content when we're just consuming a hash fragment
   return if global.location.hash.length > 0
 
-  {router}     = kd.singletons
-  {entryPoint} = globals.config
+  { router }     = kd.singletons
+  { entryPoint } = globals.config
 
-  router.handleRoute router.getDefaultRoute(), {entryPoint}
+  router.handleRoute router.getDefaultRoute(), { entryPoint }
 
 
 routerReady = (fn) ->
-  {router} = kd.singletons
+  { router } = kd.singletons
   if router then fn() else KDRouter.on 'RouterIsReady', fn
 
 
 createSectionHandler = (sec) ->
   routerReady ->
-    ({params:{name, slug}, query}) ->
-      {router} = kd.singletons
+    ({ params:{ name, slug }, query }) ->
+      { router } = kd.singletons
       router.openSection slug or sec, name, query
 
 
 createContentDisplayHandler = (section, passOptions = no) ->
 
-  ({params:{name, slug}, query}, models, route)->
+  ({ params:{ name, slug }, query }, models, route) ->
 
-    {router} = kd.singletons
+    { router } = kd.singletons
 
     # don't render profile pages on team contexts.
     return router.handleNotFound()  unless isKoding()
@@ -58,21 +58,21 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 
   switch type
     when 'members'
-      {params, query} = info
+      { params, query } = info
       (createContentDisplayHandler 'Members') info, state, path
 
     when 'logout'
       kd.singletons.mainController.doLogout()
 
     when 'login', 'register'
-      {query:{redirectTo}} = info
+      { query:{ redirectTo } } = info
       if redirectTo
         redirectTo = "/#{redirectTo}"  unless redirectTo[0] is '/'
         kd.singletons.router.handleRoute redirectTo
       else handleRoot()
 
     when 'referrer'
-      {params:{username}} = info
+      { params:{ username } } = info
       # give a notification to tell that this is a referral link here - SY
       handleRoot()
 
@@ -108,11 +108,11 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 
      when 'my-machines'
       { stackId } = info.params
-      new EnvironmentsModal selected: stackId
+      new EnvironmentsModal { selected: stackId }
 
     when 'request-collaboration'
       { nickname, channelId } = info.params
-      requestCollaboration {nickname, channelId}
+      requestCollaboration { nickname, channelId }
 
     when 'machine-settings'
       { uid, state } = info.params
@@ -121,7 +121,7 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       computeController.ready ->
         machine = computeController.findMachineFromMachineUId uid
         unless machine
-          new kd.NotificationView title: 'No machine found'
+          new kd.NotificationView { title: 'No machine found' }
           return router.handleRoute '/IDE'
 
         modal = new MachineSettingsModal {}, machine
@@ -135,7 +135,7 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       router.handleRoute "/Account/Email?unsubscribe=#{opt}"
 
 
-requestCollaboration = ({nickname, channelId})->
+requestCollaboration = ({ nickname, channelId }) ->
 
   kd.singletons.mainController.ready ->
 
@@ -148,7 +148,7 @@ requestCollaboration = ({nickname, channelId})->
     , (err) ->
 
       # FIXME: better error message
-      return new kd.NotificationView title: 'There is an error'  if err
+      return new kd.NotificationView { title: 'There is an error' }  if err
 
       kd.singletons.router.back()
 

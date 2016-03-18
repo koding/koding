@@ -67,9 +67,9 @@ module.exports = class SocialApiController extends KDController
     return no  unless channelId
 
     # super admins can see/post anyting
-    return no  if checkFlag "super-admin"
+    return no  if checkFlag 'super-admin'
 
-    {socialApiAnnouncementChannelId} = getGroup()
+    { socialApiAnnouncementChannelId } = getGroup()
 
     return channelId is socialApiAnnouncementChannelId
 
@@ -83,17 +83,17 @@ module.exports = class SocialApiController extends KDController
 
   leaveChannel = (response) ->
 
-    {first} = response
+    { first } = response
     return  unless first
 
-    {channelId} = first
+    { channelId } = first
 
     removeChannel channelId
 
 
   removeChannel = (channelId) ->
 
-    {socialapi} = kd.singletons
+    { socialapi } = kd.singletons
 
     channel = socialapi.retrieveCachedItemById channelId
 
@@ -104,10 +104,10 @@ module.exports = class SocialApiController extends KDController
     # delete channel data from cache
     delete socialapi.openedChannels[channelName] if socialapi.openedChannels[channelName]?
 
-    {typeConstant, id} = channel
+    { typeConstant, id } = channel
     socialapi.deleteCachedItem typeConstant, id
 
-    {realtime} = kd.singletons
+    { realtime } = kd.singletons
 
     realtime.unsubscribeChannel channel
 
@@ -122,8 +122,8 @@ module.exports = class SocialApiController extends KDController
     return  unless data
     return  unless plain = data.message
 
-    {accountOldId, replies, interactions}           = data
-    {createdAt, deletedAt, updatedAt, typeConstant} = plain
+    { accountOldId, replies, interactions }           = data
+    { createdAt, deletedAt, updatedAt, typeConstant } = plain
 
     cachedItem = kd.singletons.socialapi.retrieveCachedItem typeConstant, plain.id
 
@@ -135,7 +135,7 @@ module.exports = class SocialApiController extends KDController
 
     plain._id = plain.id
 
-    {payload} = plain
+    { payload } = plain
 
     m = new remote.api.SocialMessage plain
 
@@ -169,11 +169,11 @@ module.exports = class SocialApiController extends KDController
     m.clientRequestId = plain.clientRequestId
 
     m.interactions    = interactions or
-      like            :
-        actorsCount   : 0
-        actorsPreview : []
-        isInteracted  : no
-
+    { like            :
+      actorsCount   : 0
+      actorsPreview : []
+      isInteracted  : no
+    }
     if payload
       if payload.link_url
         m.link       =
@@ -209,9 +209,9 @@ module.exports = class SocialApiController extends KDController
 
   getCurrentGroup = (callback) ->
 
-    groupsController = kd.getSingleton "groupsController"
+    groupsController = kd.getSingleton 'groupsController'
     groupsController.ready ->
-      callback  kd.getSingleton("groupsController").getCurrentGroup()
+      callback  kd.getSingleton('groupsController').getCurrentGroup()
 
 
   mapCreatedChannel: mapCreatedChannel
@@ -242,7 +242,7 @@ module.exports = class SocialApiController extends KDController
     accounts = [].concat(accounts)
 
     for account in accounts
-      mappedAccounts.push {_id: account, constructorName : "JAccount"}
+      mappedAccounts.push { _id: account, constructorName : 'JAccount' }
     return mappedAccounts
 
 
@@ -337,7 +337,7 @@ module.exports = class SocialApiController extends KDController
   mapParticipant = (participant) ->
 
     return  unless participant
-    return {_id: participant.accountOldId, constructorName: "JAccount"}
+    return { _id: participant.accountOldId, constructorName: 'JAccount' }
 
   mapBotChannel = (data) ->
     data = data.data
@@ -375,14 +375,14 @@ module.exports = class SocialApiController extends KDController
     # tests. ~Umut
     return no  if globals.isTesting
 
-    {message, channelId} = message  unless message.typeConstant?
+    { message, channelId } = message  unless message.typeConstant?
 
-    {_inScreenMap}  = kd.singletons.socialapi
+    { _inScreenMap }  = kd.singletons.socialapi
 
     # when I am not the message owner, it is obviously from another browser
     return yes  unless message.accountId is whoami().socialApiId
 
-    {clientRequestId} = message
+    { clientRequestId } = message
 
     inside = _inScreenMap[getScreenMapKey(channelId, clientRequestId)]
 
@@ -404,18 +404,18 @@ module.exports = class SocialApiController extends KDController
   forwardMessageEvents : forwardMessageEvents
   forwardMessageEvents = (source, target, events) ->
 
-    events.forEach ({event, mapperFn, validatorFn, filterFn}) ->
+    events.forEach ({ event, mapperFn, validatorFn, filterFn }) ->
       source.on event, (data, rest...) ->
 
         if validatorFn
-          if typeof validatorFn isnt "function"
-            return kd.warn "validator function is not valid"
+          if typeof validatorFn isnt 'function'
+            return kd.warn 'validator function is not valid'
 
           return  unless validatorFn(data)
 
         if filterFn
-          if typeof filterFn isnt "function"
-            return warn "filter function is not valid"
+          if typeof filterFn isnt 'function'
+            return warn 'filter function is not valid'
 
           return  unless filterFn(data)
 
@@ -427,14 +427,14 @@ module.exports = class SocialApiController extends KDController
   # While making retrospective realtime message query, it is possible to fetch an already
   # existing message. This is for preventing the case. - ctf
   filterMessage = (data) ->
-    {message} = data  unless data.typeConstant?
+    { message } = data  unless data.typeConstant?
     if cachedMessage = kd.singletons.socialapi.retrieveCachedItem message.typeConstant, message.id
       return yes  if cachedMessage.isShown
 
     message.isShown = yes
 
   registerAndOpenChannel : registerAndOpenChannel = (group, socialApiChannel, callback) ->
-    {socialapi} = kd.singletons
+    { socialapi } = kd.singletons
 
     channelName = generateChannelName socialApiChannel
 
@@ -452,7 +452,7 @@ module.exports = class SocialApiController extends KDController
     socialapi.cacheItem socialApiChannel
     socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
-    {name, typeConstant, token, id, _originalName} = socialApiChannel
+    { name, typeConstant, token, id, _originalName } = socialApiChannel
 
     subscriptionData =
       group      : group.slug
@@ -465,7 +465,7 @@ module.exports = class SocialApiController extends KDController
 
       return callback err  if err
 
-      registeredChan = {delegate: realtimeChannel, channel: socialApiChannel}
+      registeredChan = { delegate: realtimeChannel, channel: socialApiChannel }
       # add opened channel to the openedChannels list, for later use
       socialapi.openedChannels[channelName] = registeredChan
 
@@ -479,18 +479,18 @@ module.exports = class SocialApiController extends KDController
 
 
   registerAndOpenChannels : registerAndOpenChannels = (socialApiChannels) ->
-    getCurrentGroup (group)->
+    getCurrentGroup (group) ->
       socialApiChannels.forEach (socialApiChannel) ->
         registerAndOpenChannel group, socialApiChannel, kd.noop
 
-  generateChannelName = ({name, typeConstant, groupName, _originalName}) ->
+  generateChannelName = ({ name, typeConstant, groupName, _originalName }) ->
     return "socialapi.#{groupName}-#{typeConstant}-#{_originalName or name}"
 
 
   addToScreenMap = (options) ->
     options = options.message  if options.message?
-    {clientRequestId, channelId} = options
-    {_inScreenMap} = kd.singletons.socialapi
+    { clientRequestId, channelId } = options
+    { _inScreenMap } = kd.singletons.socialapi
 
     _inScreenMap[getScreenMapKey(channelId, clientRequestId)] = yes  if clientRequestId
 
@@ -500,26 +500,26 @@ module.exports = class SocialApiController extends KDController
 
   messageRequesterFn = (options) ->
 
-    options.apiType = "message"
+    options.apiType = 'message'
     return requester options
 
 
   channelRequesterFn = (options) ->
 
-    options.apiType = "channel"
+    options.apiType = 'channel'
     return requester options
 
 
   notificationRequesterFn = (options) ->
 
-    options.apiType = "notification"
+    options.apiType = 'notification'
     return requester options
 
   requester = (req) ->
 
     (options, callback) ->
 
-      {fnName, validate, mapperFn, defaults, apiType, successFn} = req
+      { fnName, validate, mapperFn, defaults, apiType, successFn } = req
       # set default mapperFn
       mapperFn or= (value) -> return value
       if validate?.length > 0
@@ -528,29 +528,29 @@ module.exports = class SocialApiController extends KDController
           errs.push property unless options[property]
         if errs.length > 0
           msg = "#{errs.join(', ')} fields are required for #{fnName}"
-          return callback {message: msg}
+          return callback { message: msg }
 
       _.defaults options, defaults  if defaults
 
       api = {}
       switch apiType
-        when "channel"
+        when 'channel'
           api = remote.api.SocialChannel
-        when "notification"
+        when 'notification'
           api = remote.api.SocialNotification
         else
           api = remote.api.SocialMessage
           addToScreenMap options
 
-      api[fnName] options, (err, result)->
+      api[fnName] options, (err, result) ->
         return callback err if err
-        successFn result if successFn and typeof successFn is "function"
+        successFn result if successFn and typeof successFn is 'function'
         return callback null, mapperFn result
 
 
   cacheItem: (item) ->
 
-    {typeConstant, id} = item
+    { typeConstant, id } = item
 
     @_cache[typeConstant]     ?= {}
     @_cache[typeConstant][id]  = item
@@ -617,33 +617,33 @@ module.exports = class SocialApiController extends KDController
 
     return switch type
       when 'topic'
-        @channel.byName {name: id}, topicChannelKallback
+        @channel.byName { name: id }, topicChannelKallback
       when 'activity'
-        @message.bySlug {slug: id}, kallback
+        @message.bySlug { slug: id }, kallback
       when 'channel', 'privatemessage', 'collaboration'
-        @channel.byId {id}, topicChannelKallback
+        @channel.byId { id }, topicChannelKallback
       when 'post', 'message'
-        @message.byId {id}, kallback
+        @message.byId { id }, kallback
       when 'bot'
         @account.fetchBotChannel kallback
       else callback { message: "#{type} not implemented in revive" }
 
   getMessageEvents = ->
     [
-      {event: "MessageAdded",       mapperFn: mapActivity, validatorFn: isFromOtherBrowser, filterFn: filterMessage}
-      {event: "MessageRemoved",     mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
-      {event: "AddedToChannel",     mapperFn: mapParticipant}
-      {event: "RemovedFromChannel", mapperFn: mapParticipant}
-      {event: "ChannelDeleted",     mapperFn: mapChannel}
-      {event: "ChannelUpdated",     mapperFn: mapUpdatedChannel}
+      { event: 'MessageAdded',       mapperFn: mapActivity, validatorFn: isFromOtherBrowser, filterFn: filterMessage }
+      { event: 'MessageRemoved',     mapperFn: mapActivity, validatorFn: isFromOtherBrowser }
+      { event: 'AddedToChannel',     mapperFn: mapParticipant }
+      { event: 'RemovedFromChannel', mapperFn: mapParticipant }
+      { event: 'ChannelDeleted',     mapperFn: mapChannel }
+      { event: 'ChannelUpdated',     mapperFn: mapUpdatedChannel }
     ]
 
   serialize = (obj) ->
     str = []
     for own p of obj
-      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]))
+      str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]))
 
-    return str.join "&"
+    return str.join '&'
 
 # Handler:  GetWithRelated,
 # Endpoint: "/message/{id}/related", is not set yet.
@@ -706,7 +706,7 @@ module.exports = class SocialApiController extends KDController
       doXhrRequest
         type     : 'POST'
         endPoint : "/api/social/message/#{id}/interaction/like/add"
-        data     : _.omit options ,'id'
+        data     : _.omit options, 'id'
       , callback
 
     unlike : (options, callback) ->
@@ -714,7 +714,7 @@ module.exports = class SocialApiController extends KDController
       doXhrRequest
         type     : 'POST'
         endPoint : "/api/social/message/#{id}/interaction/like/delete"
-        data     : _.omit options ,'id'
+        data     : _.omit options, 'id'
       , callback
 
     listLikers : (options, callback) ->
@@ -728,7 +728,7 @@ module.exports = class SocialApiController extends KDController
       { channelId } = options
       doXhrRequest
         type     : 'POST'
-        endPoint : "/api/social/channel/sendwithparticipants"
+        endPoint : '/api/social/channel/sendwithparticipants'
         data     : options
       , callback
 
@@ -736,7 +736,7 @@ module.exports = class SocialApiController extends KDController
       { channelId } = options
       doXhrRequest
         type     : 'POST'
-        endPoint : "/api/social/privatechannel/init"
+        endPoint : '/api/social/privatechannel/init'
         data     : options
       , callback
 
@@ -744,7 +744,7 @@ module.exports = class SocialApiController extends KDController
       { channelId } = options
       doXhrRequest
         type     : 'POST'
-        endPoint : "/api/social/privatechannel/send"
+        endPoint : '/api/social/privatechannel/send'
         data     : options
       , callback
 
@@ -752,14 +752,14 @@ module.exports = class SocialApiController extends KDController
       { channelId } = options
       doXhrRequest
         type     : 'GET'
-        endPoint : "/api/social/privatechannel/list"
+        endPoint : '/api/social/privatechannel/list'
       , callback
 
     search : (options, callback) ->
       { name } = options
       doXhrRequest
         type     : 'GET'
-        endPoint : "/api/social/privatechannel/search"
+        endPoint : '/api/social/privatechannel/search'
       , callback
 
     revive               : mapActivity
@@ -838,7 +838,7 @@ module.exports = class SocialApiController extends KDController
 
     create               : channelRequesterFn
       fnName             : 'create'
-      validateOptionsWith: ["name"]
+      validateOptionsWith: ['name']
       mapperFn           : mapChannel
 
     revive               : mapActivity
@@ -874,14 +874,14 @@ module.exports = class SocialApiController extends KDController
     list: (options, callback) ->
       doXhrRequest
         type     : 'GET'
-        endPoint : "/api/social/channel"
+        endPoint : '/api/social/channel'
       , callback
 
     delete: (options, callback) ->
       { channelId } = options
       doXhrRequest
         type     : 'POST'
-        endPoint : "/api/social/channel/#{id}/delete"
+        endPoint : '/api/social/channel/#{id}/delete'
         data     : options
       , callback
 
@@ -889,14 +889,14 @@ module.exports = class SocialApiController extends KDController
       { name } = options
       doXhrRequest
         type     : 'GET'
-        endPoint : "/api/social/channel/search"
+        endPoint : '/api/social/channel/search'
       , callback
 
     byParticipants: (options, callback) ->
 
       serialized = options.participants
         .map (id) -> "id=#{id}"
-        .join "&"
+        .join '&'
 
       doXhrRequest
         endPoint: "/api/social/channel/by/participants?#{serialized}"
@@ -910,37 +910,37 @@ module.exports = class SocialApiController extends KDController
       { id } = options
       doXhrRequest
         type     : 'POST'
-        endPoint : "/api/social/channel/initwithparticipants"
+        endPoint : '/api/social/channel/initwithparticipants'
         data     : options
       , callback
 
 
-    fetchActivities      : (options = {}, callback = kd.noop)->
+    fetchActivities      : (options = {}, callback = kd.noop) ->
 
       # show exempt content if only requester is admin or exempt herself
-      showExempt = checkFlag?("super-admin") or whoami()?.isExempt
+      showExempt = checkFlag?('super-admin') or whoami()?.isExempt
 
       options.showExempt or= showExempt
 
-      err = {message: "An error occurred"}
+      err = { message: 'An error occurred' }
 
       endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
-      doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
+      doXhrRequest { type: 'GET', endPoint, async: yes }, (err, response) ->
         return callback err  if err
 
         return callback null, mapActivities response
 
-    fetchActivitiesWithComments : (options = {}, callback = kd.noop)->
+    fetchActivitiesWithComments : (options = {}, callback = kd.noop) ->
 
       # show exempt content if only requester is admin or exempt herself
-      showExempt = checkFlag?("super-admin") or whoami()?.isExempt
+      showExempt = checkFlag?('super-admin') or whoami()?.isExempt
 
       options.showExempt or= showExempt
 
-      err = {message: "An error occurred"}
+      err = { message: 'An error occurred' }
 
       endPoint = "/api/social/channel/#{options.id}/list?#{serialize(options)}"
-      doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
+      doXhrRequest { type: 'GET', endPoint, async: yes }, (err, response) ->
         return callback err  if err
 
         return callback null, mapActivities response
@@ -963,7 +963,7 @@ module.exports = class SocialApiController extends KDController
 
       doXhrRequest
         type     : 'GET'
-        endPoint : "/api/social/activity/pin/list"
+        endPoint : '/api/social/activity/pin/list'
       , callback
 
     # add if control if options have -> accountId & messageId & groupName
@@ -971,7 +971,7 @@ module.exports = class SocialApiController extends KDController
 
       doXhrRequest
         type     : 'POST'
-        endPoint : "/api/social/activity/pin/add"
+        endPoint : '/api/social/activity/pin/add'
         data     : options
       , callback
 
@@ -980,7 +980,7 @@ module.exports = class SocialApiController extends KDController
 
       doXhrRequest
         type     : 'POST'
-        endPoint : "/api/social/activity/pin/remove"
+        endPoint : '/api/social/activity/pin/remove'
         data     : options
       , callback
 
@@ -1076,7 +1076,7 @@ module.exports = class SocialApiController extends KDController
       { accountId, messageId, groupName } = options
       doXhrRequest
         type     : 'POST'
-        endPoint : "/api/social/activity/pin/glance"
+        endPoint : '/api/social/activity/pin/glance'
         data     : options
       , callback
 
@@ -1103,7 +1103,7 @@ module.exports = class SocialApiController extends KDController
 
     update               : channelRequesterFn
       fnName             : 'update'
-      validateOptionsWith: ["id"]
+      validateOptionsWith: ['id']
       mapperFn           : mapChannel
 
     list                 : channelRequesterFn
@@ -1115,17 +1115,17 @@ module.exports = class SocialApiController extends KDController
       validateOptionsWith           : ['body', 'recipients']
       mapperFn                      : mapCreatedChannel
 
-    fetchActivities      : (options = {}, callback = kd.noop)->
+    fetchActivities      : (options = {}, callback = kd.noop) ->
 
       # show exempt content if only requester is admin or exempt herself
-      showExempt = checkFlag?("super-admin") or whoami()?.isExempt
+      showExempt = checkFlag?('super-admin') or whoami()?.isExempt
 
       options.showExempt or= showExempt
 
-      err = {message: "An error occurred"}
+      err = { message: 'An error occurred' }
 
       endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
-      doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
+      doXhrRequest { type: 'GET', endPoint, async: yes }, (err, response) ->
         return callback err  if err
 
         return callback null, mapActivities response
@@ -1135,17 +1135,17 @@ module.exports = class SocialApiController extends KDController
      * Temporary method for activating POC, this endpoint is working for only
      * group channels right now.
     ###
-    fetchActivitiesWithComments : (options = {}, callback = kd.noop)->
+    fetchActivitiesWithComments : (options = {}, callback = kd.noop) ->
 
       # show exempt content if only requester is admin or exempt herself
-      showExempt = checkFlag?("super-admin") or whoami()?.isExempt
+      showExempt = checkFlag?('super-admin') or whoami()?.isExempt
 
       options.showExempt or= showExempt
 
-      err = {message: "An error occurred"}
+      err = { message: 'An error occurred' }
 
       endPoint = "/api/social/channel/#{options.id}/list?#{serialize(options)}"
-      doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
+      doXhrRequest { type: 'GET', endPoint, async: yes }, (err, response) ->
         return callback err  if err
 
         return callback null, mapActivities response
@@ -1154,12 +1154,12 @@ module.exports = class SocialApiController extends KDController
     fetchPopularPosts    : channelRequesterFn
       fnName             : 'fetchPopularPosts'
       validateOptionsWith: ['channelName']
-      defaults           : type: 'weekly'
+      defaults           : { type: 'weekly' }
       mapperFn           : mapActivities
 
     fetchPopularTopics   : channelRequesterFn
       fnName             : 'fetchPopularTopics'
-      defaults           : type: 'weekly'
+      defaults           : { type: 'weekly' }
       mapperFn           : mapChannels
 
     fetchPinnedMessages  : channelRequesterFn
@@ -1189,11 +1189,11 @@ module.exports = class SocialApiController extends KDController
 
     addParticipants      : channelRequesterFn
       fnName             : 'addParticipants'
-      validateOptionsWith: ['channelId', "accountIds"]
+      validateOptionsWith: ['channelId', 'accountIds']
 
     removeParticipants    : channelRequesterFn
       fnName              : 'removeParticipants'
-      validateOptionsWith : ['channelId', "accountIds"]
+      validateOptionsWith : ['channelId', 'accountIds']
 
     leave                 : channelRequesterFn
       fnName              : 'leave'
@@ -1228,15 +1228,15 @@ module.exports = class SocialApiController extends KDController
 
     glancePinnedPost     : channelRequesterFn
       fnName             : 'glancePinnedPost'
-      validateOptionsWith: ["messageId"]
+      validateOptionsWith: ['messageId']
 
     updateLastSeenTime   : channelRequesterFn
       fnName             : 'updateLastSeenTime'
-      validateOptionsWith: ["channelId"]
+      validateOptionsWith: ['channelId']
 
     delete               : channelRequesterFn
       fnName             : 'delete'
-      validateOptionsWith: ["channelId"]
+      validateOptionsWith: ['channelId']
       successFn          : removeChannel
 
     revive               : mapChannel
@@ -1245,7 +1245,7 @@ module.exports = class SocialApiController extends KDController
 
       serialized = options.participants
         .map (id) -> "id=#{id}"
-        .join "&"
+        .join '&'
 
       type = options.type or ''
 
@@ -1275,7 +1275,7 @@ module.exports = class SocialApiController extends KDController
       doXhrRequest
         endPoint : "/api/social/moderation/channel/#{options.rootId}/link?#{serialize(options)}"
         type     : 'GET'
-      , (err, result)->
+      , (err, result) ->
         return callback err if err
         return callback null, mapChannels result
 
@@ -1283,13 +1283,13 @@ module.exports = class SocialApiController extends KDController
       doXhrRequest
         endPoint : "/api/social/moderation/channel/root/#{options.leafId}?#{serialize(options)}"
         type     : 'GET'
-      , (err, result)->
+      , (err, result) ->
         return callback err if err
         return callback null, mapChannel result
 
     blacklist: (options, callback) ->
       doXhrRequest
-        endPoint : "/api/social/moderation/channel/blacklist"
+        endPoint : '/api/social/moderation/channel/blacklist'
         type     : 'POST'
         data     : options
       , callback
@@ -1316,7 +1316,7 @@ module.exports = class SocialApiController extends KDController
 
       doXhrRequest
         type     : 'GET'
-        endPoint : "/api/integration/botchannel"
+        endPoint : '/api/integration/botchannel'
       , (err, response) ->
         return callback err  if err
 
@@ -1326,7 +1326,7 @@ module.exports = class SocialApiController extends KDController
 
       doXhrRequest
         type     : 'GET'
-        endPoint : "/api/social/account/channels"
+        endPoint : '/api/social/account/channels'
       , (err, response) ->
         return callback err  if err
 

@@ -57,7 +57,7 @@ module.exports = class GroupsController extends kd.Controller
         rest = remote.revive rest
         @emit event, rest...
 
-  openGroupChannel: (group, callback = ->) ->
+  openGroupChannel: (group, callback = -> ) ->
     @groupChannel = remote.subscribe "group.#{group.slug}",
       serviceType : 'group'
       group       : group.slug
@@ -75,7 +75,7 @@ module.exports = class GroupsController extends kd.Controller
     @groupChannel.once 'setSecretNames', callback
 
 
-  openSocialGroupChannel: (group, callback = ->) ->
+  openSocialGroupChannel: (group, callback = -> ) ->
     { realtime, socialapi } = kd.singletons
 
     socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) =>
@@ -133,7 +133,7 @@ module.exports = class GroupsController extends kd.Controller
     }
 
   joinGroup: (group, callback) ->
-    group.join (err, response) =>
+    group.join (err, response) ->
       return showError err  if err?
       callback err, response
       kd.getSingleton('mainController').emit 'JoinedGroup'
@@ -141,7 +141,7 @@ module.exports = class GroupsController extends kd.Controller
   acceptInvitation: (group, callback) ->
     whoami().acceptInvitation group, (err, res) =>
       mainController = kd.getSingleton 'mainController'
-      mainController.once "AccountChanged", callback.bind this, err, res
+      mainController.once 'AccountChanged', callback.bind this, err, res
       mainController.accountChanged whoami()
 
   ignoreInvitation: (group, callback) ->

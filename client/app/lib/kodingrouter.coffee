@@ -59,10 +59,10 @@ module.exports = class KodingRouter extends kd.Router
 
   openSection: (app, group, query) ->
 
-    {appManager} = kd.singletons
-    handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
+    { appManager } = kd.singletons
+    handleQuery    = appManager.tell.bind appManager, app, 'handleQuery', query
 
-    appManager.once "AppCreated", handleQuery  unless appWasOpen = appManager.get app
+    appManager.once 'AppCreated', handleQuery  unless appWasOpen = appManager.get app
     appManager.open app
 
     handleQuery()  if appWasOpen
@@ -71,10 +71,10 @@ module.exports = class KodingRouter extends kd.Router
 
     status_404 = kd.Router::handleNotFound.bind this, route
 
-    status_301 = (redirectTarget)=>
-      @handleRoute "/#{redirectTarget}", replaceState: yes
+    status_301 = (redirectTarget) =>
+      @handleRoute "/#{redirectTarget}", { replaceState: yes }
 
-    remote.api.JUrlAlias.resolve route, (err, target)->
+    remote.api.JUrlAlias.resolve route, (err, target) ->
       if err or not target?
       then status_404()
       else status_301 target
@@ -82,8 +82,8 @@ module.exports = class KodingRouter extends kd.Router
 
   getDefaultRoute: ->
 
-    {groupsController} = kd.singletons
-    currentGroup       = groupsController.getCurrentGroup()
+    { groupsController } = kd.singletons
+    currentGroup         = groupsController.getCurrentGroup()
 
     # For koding default route still is /IDE always, for others if there is
     # stack template defined for the active group, it goes again to /IDE but if
@@ -102,7 +102,7 @@ module.exports = class KodingRouter extends kd.Router
 
   setPageTitle: (title = 'Koding') -> kd.singletons.pageTitle.update title
 
-  openContent : (name, section, models, route, query, passOptions=no) ->
+  openContent : (name, section, models, route, query, passOptions = no) ->
     method   = 'createContentDisplay'
     [models] = models  if Array.isArray models
 
@@ -112,10 +112,10 @@ module.exports = class KodingRouter extends kd.Router
     # refactor a lot legacy. For now we do this new thing opt-in
     if passOptions
       method += 'WithOptions'
-      options = {model:models, route, query}
+      options = { model:models, route, query }
 
     callback = ({ name, section, models, route, query, passOptions, options, method }) =>
-      kd.getSingleton("appManager").tell section, method, options ? models, (contentDisplay) =>
+      kd.getSingleton('appManager').tell section, method, options ? models, (contentDisplay) =>
         unless contentDisplay
           console.warn 'no content display'
           return
@@ -129,8 +129,8 @@ module.exports = class KodingRouter extends kd.Router
 
     # change group if necessary
     unless currentGroup
-      groupName = if section is "Groups" then name else "koding"
-      groupsController.changeGroup groupName, (err) =>
+      groupName = if section is 'Groups' then name else 'koding'
+      groupsController.changeGroup groupName, (err) ->
         showError err if err
         callback {
           name, section, models, route,
@@ -146,34 +146,34 @@ module.exports = class KodingRouter extends kd.Router
 
     routeWithoutParams = route.split('?')[0]
 
-    groupName = if section is "Groups" then name else "koding"
+    groupName = if section is 'Groups' then name else 'koding'
     kd.getSingleton('groupsController').changeGroup groupName, (err) =>
       showError err if err
-      onSuccess = (models)=>
+      onSuccess = (models) =>
         @openContent name, section, models, route, query, passOptions
-      onError   = (err)=>
+      onError   = (err) =>
         showError err
         @handleNotFound route
 
       if name and not slug
-        remote.cacheable name, (err, models)=>
+        remote.cacheable name, (err, models) ->
           if models?
           then onSuccess models
           else onError err
       else
         # TEMP FIX: getting rid of the leading slash for the post slugs
         slashlessSlug = routeWithoutParams.slice(1)
-        remote.api.JName.one { name: slashlessSlug }, (err, jName)=>
+        remote.api.JName.one { name: slashlessSlug }, (err, jName) ->
           if err then onError err
           else if jName?
             models = []
-            jName.slugs.forEach (aSlug, i)=>
-              {constructorName, usedAsPath} = aSlug
+            jName.slugs.forEach (aSlug, i) ->
+              { constructorName, usedAsPath } = aSlug
               selector = {}
               konstructor = remote.api[constructorName]
               selector[usedAsPath] = aSlug.slug
               selector.group = aSlug.group if aSlug.group
-              konstructor?.one selector, (err, model)=>
+              konstructor?.one selector, (err, model) ->
                 return onError err if err? or not model
                 models[i] = model
                 if models.length is jName.slugs.length

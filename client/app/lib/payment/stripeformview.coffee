@@ -40,7 +40,7 @@ module.exports = class StripeFormView extends KDFormViewWithFields
           clear      : clearValidationErrors
 
           checkCC    : (input, event) ->
-            val = $.trim input.getValue().replace(/-|\s/g,'')
+            val = $.trim input.getValue().replace(/-|\s/g, '')
             returnResult = result = Stripe.card.validateCardNumber val
             result = if result then no else 'Card number is not valid'
             input.setValidationResult 'checkCC', result
@@ -49,7 +49,7 @@ module.exports = class StripeFormView extends KDFormViewWithFields
             cssClass = null
             return (input, event) =>
               @unsetClass cssClass  if cssClass
-              val = $.trim input.getValue().replace(/-|\s/g,'')
+              val = $.trim input.getValue().replace(/-|\s/g, '')
               cssClass = Stripe.card.cardType(val).toLowerCase()
               cssClass = kd.utils.slugify cssClass
               @setClass cssClass
