@@ -2,13 +2,13 @@ kd            = require 'kd'
 KodingKontrol = require 'app/kite/kodingkontrol'
 
 
-addTo = (parent, views)->
+addTo = (parent, views) ->
   map = {}
   for own key, value of views
     _key  = (key.split '_').first
     value = [value]  unless Array.isArray value
     unless view[_key]?
-      throw message: "No such view with key of #{_key}!"
+      throw { message: "No such view with key of #{_key}!" }
     map[key] = view[_key] value...
     parent.addSubView map[key].__view or map[key]
 
@@ -24,7 +24,7 @@ contents  =
   """
 
 module.exports   = view =
-  message        : ({text, cssClass}) -> new kd.View
+  message        : ({ text, cssClass }) -> new kd.View
     partial      : text
     cssClass     : "message #{cssClass ? ''}"
 
@@ -32,7 +32,7 @@ module.exports   = view =
     partial      : title
     cssClass     : 'view-header'
 
-  loader         : ({show, cssClass})-> new kd.LoaderView
+  loader         : ({ show, cssClass })-> new kd.LoaderView
     showLoader   : show
     cssClass     : cssClass ? ''
     size         :
@@ -59,11 +59,11 @@ module.exports   = view =
     container    = new kd.View
       cssClass   : 'view-waiting'
     addTo container,
-      loader     : show: yes
-      message    : {text}
+      loader     : { show: yes }
+      message    : { text }
     return container
 
-  list           : ({data, itemClass}) ->
+  list           : ({ data, itemClass }) ->
 
     itemClass   ?= require './kiteitem'
     controller   = new kd.ListViewController { selection: yes, itemClass }
@@ -81,18 +81,18 @@ module.exports   = view =
 
     return { __view, controller }
 
-  button         : (options = {})->
+  button         : (options = {}) ->
     unless options.iconOnly
       options.cssClass = kd.utils.curry 'solid medium', options.cssClass
     new kd.ButtonView options
 
-  retry          : ({text, callback})->
+  retry          : ({ text, callback })->
 
     container    = new kd.View
       cssClass   : 'view-waiting'
 
     addTo container,
-      message     : {text}
+      message     : { text }
       button      :
         iconOnly  : yes
         cssClass  : 'retry inline'

@@ -117,8 +117,8 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
         @addNewButton.hideLoader()
 
   hideAddView: ->
-      super
-      @notificationView.hide()
+    super
+    @notificationView.hide()
 
 
   removeDomain: (domainItem) ->
@@ -177,7 +177,7 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
         @revertToggle domainItem, state
         domainItem.setLoadingMode no
 
-      .finally =>
+      .finally ->
         domainItem.setLoadingMode no
 
 

@@ -70,8 +70,8 @@ module.exports = class ManagedKiteChecker extends kd.Object
   ###
   _callListener: (args...) ->
     unless @_listeners.length
-      kd.warn "ManagedKiteChecker: _callListener called without
-        and listeners"
+      kd.warn 'ManagedKiteChecker: _callListener called without
+        and listeners'
       return
 
     @_getListener() args...
@@ -173,8 +173,8 @@ module.exports = class ManagedKiteChecker extends kd.Object
 
     # Be paranoid about duplicating timers.
     if @_delaying or @_ticking
-      return kd.error "ManagedKiteChecker:
-        _startDelay called with pre-existing timer or interval"
+      return kd.error 'ManagedKiteChecker:
+        _startDelay called with pre-existing timer or interval'
 
     @_delaying = yes
     @_timerId  = kd.utils.wait @getOption('delay'), =>
@@ -190,12 +190,12 @@ module.exports = class ManagedKiteChecker extends kd.Object
    * any interval delay. Subsequent ticks will be called at interval rate
    * as expected.
   ###
-  _startTicking: (immediate = no)->
+  _startTicking: (immediate = no) ->
 
     # Be paranoid about duplicating timers.
     if @_delaying or @_ticking
-      return kd.error "ManagedKiteChecker:
-        _startTicking called with pre-existing timer or interval"
+      return kd.error 'ManagedKiteChecker:
+        _startTicking called with pre-existing timer or interval'
 
     @_ticking = yes
     @_timerId = kd.utils.repeat @getOption('interval'), @bound 'tick'
@@ -232,8 +232,8 @@ module.exports = class ManagedKiteChecker extends kd.Object
     # also responsible for checking plan limits on their own.
     @hasManagedAllowances (hasAllowances) =>
       unless hasAllowances
-        return kd.error "ManagedKiteChecker: Listener added, but user is
-          already at maximum allowed Managed Kites"
+        return kd.error 'ManagedKiteChecker: Listener added, but user is
+          already at maximum allowed Managed Kites'
 
       @_listeners.push listener
 
@@ -346,5 +346,5 @@ module.exports = class ManagedKiteChecker extends kd.Object
         @_stop()
         @_startDelay()
 
-    queryPromise.catch (err) =>
+    queryPromise.catch (err) ->
       kd.error err  if err

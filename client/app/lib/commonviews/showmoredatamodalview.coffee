@@ -11,9 +11,9 @@ ModalAppsListItemView = require './modalappslistitemview'
 module.exports = class ShowMoreDataModalView extends KDModalView
 
   titleMap = ->
-    account : "Members"
-    tag     : "Topics"
-    app     : "Applications"
+    account : 'Members'
+    tag     : 'Topics'
+    app     : 'Applications'
 
   listControllerMap = ->
     account : KDListViewController
@@ -24,40 +24,40 @@ module.exports = class ShowMoreDataModalView extends KDModalView
     account : MembersListItemView
     app     : ModalAppsListItemView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     participants = data
 
     if participants[0] instanceof remote.api.JAccount
-      @type = "account"
-      css   = "members-wrapper"
+      @type = 'account'
+      css   = 'members-wrapper'
     else if participants[0] instanceof remote.api.JTag
-      @type = "tag"
-      css   = "modal-topic-wrapper"
+      @type = 'tag'
+      css   = 'modal-topic-wrapper'
     else
-      @type = "app"
-      css   = "modal-applications-wrapper"
+      @type = 'app'
+      css   = 'modal-applications-wrapper'
 
     options.title    or= titleMap()[@type]
-    options.height   = "auto"
+    options.height   = 'auto'
     options.overlay  = yes
     options.width  or= 540
     options.cssClass = css
     options.buttons  =
       Close :
-        style : "solid light-gray medium"
+        style : 'solid light-gray medium'
         callback : =>
           @destroy()
 
     super
 
-  viewAppended:->
+  viewAppended: ->
     @addSubView @loader = new KDLoaderView
       size          :
         width       : 30
       loaderOptions :
-        color       : "#cccccc"
-        shape       : "spiral"
+        color       : '#cccccc'
+        shape       : 'spiral'
         diameter    : 30
         density     : 30
         range       : 0.4
@@ -75,13 +75,13 @@ module.exports = class ShowMoreDataModalView extends KDModalView
       view                : new KDListView
         itemClass         : listItemMap()[@type]
         cssClass          : 'modal-topic-list'
-    , items               : participants
+    , { items             : participants }
 
-    @controller.getListView().on "CloseTopicsModal", =>
+    @controller.getListView().on 'CloseTopicsModal', =>
       @destroy()
 
-    @controller.on "AllItemsAddedToList", =>
-      if @type is "tag"
+    @controller.on 'AllItemsAddedToList', =>
+      if @type is 'tag'
         @reviveFollowButtons (item.getId() for item in participants)
 
       @loader.destroy()
@@ -95,12 +95,12 @@ module.exports = class ShowMoreDataModalView extends KDModalView
         id = button?.getData()?.getId()
         button.setState 'Unfollow' if id and id in followees
 
-  prepareList:->
+  prepareList: ->
 
-    {group} = @getOptions()
+    { group } = @getOptions()
 
     if group
-      remote.cacheable group, (err, participants)=>
+      remote.cacheable group, (err, participants) =>
         if err then kd.warn err
         else
           @putList participants

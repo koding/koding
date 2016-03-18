@@ -16,7 +16,7 @@ module.exports = class ActivitySideView extends JView
 
     super options, data
 
-    {itemClass, headerLink, noItemText, searchLink} = @getOptions()
+    { itemClass, headerLink, noItemText, searchLink } = @getOptions()
     sidebar = @getDelegate()
 
     if noItemText
@@ -37,15 +37,15 @@ module.exports = class ActivitySideView extends JView
       wrapper             : no
       viewOptions         :
         tagName           : options.viewTagName
-        type              : "activities"
+        type              : 'activities'
         itemClass         : @itemClass or itemClass
-        cssClass          : "activities"
+        cssClass          : 'activities'
 
     @header = new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
       partial  : @getOption 'title'
-      click    : (event) =>
+      click    : (event) ->
         kd.utils.stopDOMEvent event
 
         route = if 'add-icon' in event.target.classList
@@ -61,7 +61,7 @@ module.exports = class ActivitySideView extends JView
     if headerLink instanceof KDView
     then @header.addSubView headerLink
     else if 'string' is typeof headerLink
-      @header.on 'click', =>
+      @header.on 'click', ->
         kd.singletons.router.handleRoute headerLink
 
 
@@ -78,7 +78,7 @@ module.exports = class ActivitySideView extends JView
       @listController.selectSingleItem item
       sidebar.selectedItem = item
 
-    {countSource, limit} = @getOptions()
+    { countSource, limit } = @getOptions()
     countSource = kd.utils.debounce 300, countSource  if countSource
 
     @moreLink = @createMoreLink()
@@ -95,8 +95,8 @@ module.exports = class ActivitySideView extends JView
 
   init: ->
 
-    {dataPath}  = @getOptions()
-    {socialapi} = kd.singletons
+    { dataPath }  = @getOptions()
+    { socialapi } = kd.singletons
 
     items = socialapi.getPrefetchedData dataPath
 
@@ -117,13 +117,13 @@ module.exports = class ActivitySideView extends JView
     @listController.removeAllItems()
     @listController.showLazyLoader()
 
-    {dataSource} = @getOptions()
+    { dataSource } = @getOptions()
     dataSource @bound 'renderItems'
 
 
   renderItems: (err, items = []) ->
 
-    {limit} = @getOptions()
+    { limit } = @getOptions()
 
     @listController.hideLazyLoader()
 
@@ -149,15 +149,15 @@ module.exports = class ActivitySideView extends JView
 
 
   pistachio: ->
-    """
+    '''
     {{> @header}}
     {{> @listView}}
     {{> @moreLink}}
-    """
+    '''
 
 
   createMoreLink: ->
 
     { searchLink, countSource, limit } = @getOptions()
 
-    return new SidebarMoreLink {href: searchLink, countSource, limit}
+    return new SidebarMoreLink { href: searchLink, countSource, limit }

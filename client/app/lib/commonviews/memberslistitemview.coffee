@@ -6,7 +6,7 @@ ProfileLinkView = require './linkviews/profilelinkview'
 
 module.exports = class MembersListItemView extends KDListItemView
   constructor: (options = {}, data) ->
-    options.type        = "member"
+    options.type        = 'member'
     options.avatar     ?=
       size              :
         width           : 40
@@ -19,12 +19,12 @@ module.exports = class MembersListItemView extends KDListItemView
     avatarSize = @getOption('avatar').size
 
     @avatar  = new AvatarView
-      size       : width: avatarSize.width, height: avatarSize.height
-      cssClass   : "avatarview"
+      size       : { width: avatarSize.width, height: avatarSize.height }
+      cssClass   : 'avatarview'
     , data
 
     @actor = new ProfileLinkView {}, data
 
-  viewAppended:->
+  viewAppended: ->
     @addSubView @avatar
     @addSubView @actor

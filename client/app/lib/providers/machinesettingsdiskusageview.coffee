@@ -80,14 +80,14 @@ module.exports = class MachineSettingsDiskUsageView extends KDView
 
     @fetchUsageInfo (err, info) =>
 
-        return showError err  if err
+      return showError err  if err
 
-        { plan, plans, usage, reward } = info
+      { plan, plans, usage, reward } = info
 
-        limits  = plans[plan]
-        options = { plan, limits, usage, reward, machine: @getData() }
+      limits  = plans[plan]
+      options = { plan, limits, usage, reward, machine: @getData() }
 
-        new ComputeResizeModal options
+      new ComputeResizeModal options
 
 
   fetchUsageInfo: (callback = kd.noop) ->

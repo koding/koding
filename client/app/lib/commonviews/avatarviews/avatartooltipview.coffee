@@ -6,7 +6,7 @@ MemberMailLink = require '../../members/contentdisplays/membermaillink'
 
 
 module.exports = class AvatarTooltipView extends JView
-  constructor:(options={}, data)->
+  constructor: (options={}, data) ->
 
     super options, data
 
@@ -36,24 +36,24 @@ module.exports = class AvatarTooltipView extends JView
       tagName     : 'a'
       attributes  :
         href      : '#'
-      pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
-      click       : (event)=>
+      pistachio   : '<cite/>{{#(counts.likes) or 0}} <span>Likes</span>'
+      click       : (event) =>
         return if @getData().counts.following is 0
-        kd.getSingleton("appManager").tell "Members", "createLikedContentDisplay", @getData()
+        kd.getSingleton('appManager').tell 'Members', 'createLikedContentDisplay', @getData()
     , @getData()
 
     @sendMessageLink = new MemberMailLink {}, @getData()
 
-  viewAppended:->
+  viewAppended: ->
     super()
     @setTemplate @pistachio()
     @template.update()
 
-  click:(event)->
+  click: (event) ->
     # @getDelegate()?.getTooltip().hide()
 
 
-  updateData:(data={})->
+  updateData: (data={}) ->
 
     # lazy loading data is spoonfed to the individual views
     @setData data
@@ -71,7 +71,7 @@ module.exports = class AvatarTooltipView extends JView
     @likes.render()
     @sendMessageLink.render()
 
-  pistachio:->
+  pistachio: ->
     """
     <div class="leftcol">
       {{> @staticAvatar}}

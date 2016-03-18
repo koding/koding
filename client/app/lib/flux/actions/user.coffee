@@ -17,7 +17,7 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 ###
 loadAccount = (id) ->
 
-  new Promise (resolve, reject)->
+  new Promise (resolve, reject) ->
 
     origin = generateOrigin id
 
@@ -70,7 +70,7 @@ showMarkUserAsTrollSuccess = (account) ->
 
 showMarkUserAsTrollFail = (err, account) ->
 
-  showErrorNotification err, userMessage: "You are not allowed to mark this user as a troll!"
+  showErrorNotification err, { userMessage: 'You are not allowed to mark this user as a troll!' }
 
 
 showUnmarkUserAsTrollSuccess = (account) ->
@@ -80,12 +80,12 @@ showUnmarkUserAsTrollSuccess = (account) ->
 
 showBlockUserFail = (err, account) ->
 
-  showErrorNotification err, userMessage: "You are not allowed to block user!"
+  showErrorNotification err, { userMessage: 'You are not allowed to block user!' }
 
 
 showBlockUserSuccess = (account) ->
 
-  showNotification "User is blocked!"
+  showNotification 'User is blocked!'
 
 
 ###*
@@ -99,7 +99,7 @@ markUserAsTroll = (account) ->
 
   dispatch MARK_USER_AS_TROLL_BEGIN, account
 
-  account.markUserAsExempt yes, (err, res)=>
+  account.markUserAsExempt yes, (err, res) ->
     if err
       dispatch MARK_USER_AS_TROLL_FAIL, { err, account }
       showMarkUserAsTrollFail err, account
@@ -120,7 +120,7 @@ unmarkUserAsTroll = (account) ->
 
   dispatch UNMARK_USER_AS_TROLL_BEGIN, account
 
-  account.markUserAsExempt no, (err, res)=>
+  account.markUserAsExempt no, (err, res) =>
     if err
       dispatch UNMARK_USER_AS_TROLL_FAIL, { err, account }
       showMarkUserAsTrollFail err, account
@@ -139,7 +139,7 @@ blockUser = (account, blockingTime) ->
 
   dispatch BLOCK_USER_BEGIN, account
 
-  whoami().blockUser account._id, blockingTime, (err, res) =>
+  whoami().blockUser account._id, blockingTime, (err, res) ->
 
     if err
       dispatch BLOCK_USER_FAIL, { err, account }
