@@ -5,16 +5,16 @@ ManagedVMBaseModal = require './basemodal'
 
 module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     hasContainer      = options.container?
 
     options           = kd.utils.extend options,
       title           : 'Search for available nodes'
       cssClass        : 'find-nodes'
-      appendToDomBody : !hasContainer
+      appendToDomBody : not hasContainer
       draggable       : no
-      overlay         : !hasContainer
+      overlay         : not hasContainer
 
     if options.reassign
       options.title  ?= "Use different kite for machine #{data.label}"
@@ -56,7 +56,7 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
             cssClass    : 'green'
             callback    : =>
 
-              {message, list} = container
+              { message, list } = container
 
               kite = list.controller.selectedItems.first.getData()
               return message.show()  if kite.machine
@@ -73,7 +73,7 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
             cssClass    : 'retry'
             callback    : =>
 
-              {button_reload, message, loader} = container
+              { button_reload, message, loader } = container
 
               button_reload.hide()
               message.hide()
@@ -87,7 +87,7 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
             text        : 'This kite is in use.'
             cssClass    : 'inline hidden'
 
-        {list, button_assign, message} = container
+        { list, button_assign, message } = container
 
         list.controller
           .on 'ItemDeselectionPerformed', ->
@@ -100,16 +100,16 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
       kd.utils.defer => container.addSubView this
 
 
-  assignKite: (kite)->
+  assignKite: (kite) ->
 
-    {updateMachineData} = require './helpers'
+    { updateMachineData } = require './helpers'
 
     @machine.getBaseKite(createIfNotExists = no).disconnect()
 
-    updateMachineData {@machine, kite}, (err)=>
+    updateMachineData { @machine, kite }, (err) =>
       return if showError err
 
-      {computeController, appManager} = kd.singletons
+      { computeController, appManager } = kd.singletons
       environmentDataProvider = require 'app/userenvironmentdataprovider'
       environmentDataProvider.fetch =>
         @machine.getBaseKite().connect()
