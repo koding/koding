@@ -1,14 +1,14 @@
-kd        = require 'kd'
+kd                = require 'kd'
 
-whoami    = require '../util/whoami'
-kookies   = require 'kookies'
-getGroup  = require '../util/getGroup'
-showError = require '../util/showError'
+whoami            = require '../util/whoami'
+kookies           = require 'kookies'
+getGroup          = require '../util/getGroup'
+showError         = require '../util/showError'
 
-remote    = require('../remote').getInstance()
-globals   = require 'globals'
-GroupData = require './groupdata'
-
+remote            = require('../remote').getInstance()
+globals           = require 'globals'
+GroupData         = require './groupdata'
+remote_extensions = require 'app/remote-extensions'
 
 module.exports = class GroupsController extends kd.Controller
 
@@ -28,11 +28,15 @@ module.exports = class GroupsController extends kd.Controller
       { slug } = entryPoint  if entryPoint?.type is 'group'
       @changeGroup slug
 
-    @ready => @on 'GroupDestroyed', ->
-      # delete client id cookie, which is used for session authentication
-      kookies.expire 'clientId'
-      # send user to home page
-      global.location.href = '/'
+    @ready =>
+      @on 'GroupDestroyed', ->
+        # delete client id cookie, which is used for session authentication
+        kookies.expire 'clientId'
+        # send user to home page
+        global.location.href = '/'
+
+      @on 'InstanceChanged', (data) ->
+        remote_extensions.updateInstance data?.contents
 
 
   getCurrentGroup: ->
@@ -90,6 +94,7 @@ module.exports = class GroupsController extends kd.Controller
 
         @filterXssAndForwardEvents realtimeChan, [
           'StackTemplateChanged'
+          'InstanceChanged'
           'GroupDestroyed'
         ]
 
