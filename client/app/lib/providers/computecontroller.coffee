@@ -1295,3 +1295,26 @@ module.exports = class ComputeController extends KDController
 
     , ->
       callback new Error 'Stack is not reinitialized'
+
+
+  fetchStacksForReinit: (stackTemplate, callback = kd.noop) ->
+
+    { groupsController } = kd.singletons
+    group = groupsController.getCurrentGroup()
+    group.fetchResources { baseStackId : stackTemplate._id }, { limit : 100 }, (err, stacks) =>
+      return callback err  if err
+
+      result = []
+      for stack in stacks
+        if stack.stackRevision isnt stackTemplate.template.sum
+          result.push stack
+
+      callback null, result
+
+
+  createAdminMessageForStacks: (stacks, message, type) ->
+
+    for stack in stacks
+      config = stack.config ? {}
+      config.adminMessage = { message, type }
+      stack.modify { config }

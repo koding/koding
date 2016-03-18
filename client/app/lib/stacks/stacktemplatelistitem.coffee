@@ -4,6 +4,7 @@ showError                 = require 'app/util/showError'
 Tracker                   = require 'app/util/tracker'
 
 BaseStackTemplateListItem = require './basestacktemplatelistitem'
+ForceToReinitModal        = require './forcetoreinitmodal'
 
 
 module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
@@ -121,6 +122,12 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
         listView.emit 'ItemSelectedAsDefault', stackTemplate
 
     super
+
+    if stackTemplate.accessLevel is 'group'
+      @addMenuItem 'Force to Re-init Stacks', ->
+        new ForceToReinitModal {}, stackTemplate
+
+    return @menu
 
 
   pistachio: ->
