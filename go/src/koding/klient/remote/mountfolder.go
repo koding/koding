@@ -81,7 +81,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		Log:           log,
 		Options:       params,
 		IP:            remoteMachine.IP,
-		KitePinger:    remoteMachine.KitePinger,
+		KiteTracker:   remoteMachine.KiteTracker,
 		Intervaler:    remoteMachine.Intervaler,
 		Transport:     remoteMachine.Client,
 		PathUnmounter: fuseklient.Unmount,

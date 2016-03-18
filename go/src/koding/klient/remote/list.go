@@ -40,12 +40,21 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 	infos := make([]restypes.ListMachineInfo, machines.Count())
 	for i, machine := range machines.Machines() {
 		info := restypes.ListMachineInfo{
-			ConnectedAt:  machine.ConnectedAt(),
 			IP:           machine.IP,
 			VMName:       machine.Name,
 			MountedPaths: []string{},
 			MachineLabel: machine.MachineLabel,
 			Teams:        machine.Teams,
+		}
+
+		if machine.KiteTracker != nil && machine.KiteTracker.IsPinging() {
+			if machine.KiteTracker.IsConnected() {
+				info.MachineStatus = restypes.MachineConnected
+			} else {
+				info.MachineStatus = restypes.MachineDisconnected
+			}
+		} else if machine.HTTPTracker != nil && machine.HTTPTracker.IsConnected() {
+			info.MachineStatus = restypes.MachineOnline
 		}
 
 		if machine.Client != nil {
