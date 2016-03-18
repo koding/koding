@@ -30,7 +30,7 @@ module.exports = class EnvironmentListController extends kd.ListViewController
       @hideLazyLoader()
 
       return if showError err, \
-        KodingError : "Failed to fetch stacks, please try again later."
+        { KodingError : 'Failed to fetch stacks, please try again later.' }
 
       @addListItems stacks
 

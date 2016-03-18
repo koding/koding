@@ -16,7 +16,7 @@ module.exports = class StackTemplateContentModal extends kd.ModalView
     options.subtitle = data.modifiedAt
 
     options.overlay  = yes
-    options.overlayOptions = cssClass : 'second-overlay'
+    options.overlayOptions = { cssClass : 'second-overlay' }
 
     super
 
@@ -35,7 +35,7 @@ module.exports = class StackTemplateContentModal extends kd.ModalView
 
   viewAppended: ->
 
-    @addSubView @tabView = new kd.TabView hideHandleContainer: yes
+    @addSubView @tabView = new kd.TabView { hideHandleContainer: yes }
 
-    editorPane = new kd.TabPaneView view: @getEditor()
+    editorPane = new kd.TabPaneView { view: @getEditor() }
     @tabView.addPane editorPane, yes

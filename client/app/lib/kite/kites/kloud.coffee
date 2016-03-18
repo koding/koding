@@ -5,7 +5,7 @@ KiteLogger = require '../../kitelogger'
 globals = require 'globals'
 
 
-module.exports = class KodingKite_KloudKite extends require('../kodingkite')
+module.exports = class KodingKiteKloudKite extends require('../kodingkite')
 
   SUPPORTED_PROVIDERS = ['koding', 'aws', 'softlayer', 'vagrant']
   STACK_PROVIDERS     = ['aws', 'vagrant']
@@ -116,7 +116,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
       if @_disableKlientInfo and not isManaged machineId
         @askInfoFromKloud machineId, currentState
       else
-        @askInfoFromKlient machineId, (klientInfo)=>
+        @askInfoFromKlient machineId, (klientInfo) =>
           if klientInfo?
           then @resolveRequestingInfos machineId, klientInfo
           else @askInfoFromKloud machineId, currentState
@@ -126,7 +126,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
       @requestingInfo[machineId].push { resolve, reject }
 
 
-  resolveRequestingInfos: (machineId, info)->
+  resolveRequestingInfos: (machineId, info) ->
 
     @requestingInfo?[machineId]?.forEach ({ resolve }) ->
       resolve info
@@ -137,9 +137,9 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
   askInfoFromKlient: (machineId, callback) ->
 
-    {kontrol, computeController} = kd.singletons
-    {klient} = kontrol.kites
-    machine  = computeController.findMachineFromMachineId machineId
+    { kontrol, computeController } = kd.singletons
+    { klient } = kontrol.kites
+    machine    = computeController.findMachineFromMachineId machineId
 
     if not machine or not machineId
       return callback null
@@ -158,20 +158,20 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
     klientKite.ping()
 
-      .then (res)->
+      .then (res) ->
 
         if res is 'pong'
-          callback State: Machine.State.Running, via: 'klient'
+          callback { State: Machine.State.Running, via: 'klient' }
         else
           computeController.invalidateCache machineId
           callback null
 
       .timeout if managed then 10000 else 5000
 
-      .catch (err)->
+      .catch (err) ->
 
         if err?.name is 'TimeoutError' and managed
-          callback State: Machine.State.Stopped, via: 'klient'
+          callback { State: Machine.State.Stopped, via: 'klient' }
         else
           KiteLogger.failed 'klient', 'kite.ping'
           callback null
@@ -179,7 +179,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
   askInfoFromKloud: (machineId, currentState) ->
 
-    {kontrol, computeController} = kd.singletons
+    { kontrol, computeController } = kd.singletons
 
     provider  = getMachineProvider machineId
     groupName = getGroupName()
@@ -216,7 +216,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
         # it couldn't find it in Kontrol registry ~ GG FIXME: FA
         else if err.message is 'not found' and currentState is Machine.State.Running
 
-          @resolveRequestingInfos machineId, State: Machine.State.Stopped
+          @resolveRequestingInfos machineId, { State: Machine.State.Stopped }
           KiteLogger.failed 'kloud', 'info'
 
           kd.warn '[kloud:info] failed, Kite not found in Kontrol registry!', err
@@ -224,7 +224,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
           return
 
         kd.warn '[kloud:info] failed, sending current state back:', { currentState, err }
-        @resolveRequestingInfos machineId, State: currentState
+        @resolveRequestingInfos machineId, { State: currentState }
 
 
   ###*
