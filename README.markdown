@@ -138,7 +138,9 @@ When you feel something is wrong, first of all just notify others that you reali
 
 We have chosen [migrate](https://github.com/mattes/migrate) package as database migrator. Instead of adding new sql scripts manually under db/sql/definitions, we are versioning database updates via this package. Whenever you initialize your development environment via `./run` command, changes in migration files are applied automatically, and you do not need to worry about them.
 
-ps: alter type does not work with migrate package
+ps: alter type does not work with migrate package - use manual process for that
+1) run your migrations on dbs by hand
+2) add the same scripts into main.dev.coffee for configuring dev env properly
 
 ### Creating new migration file
 
