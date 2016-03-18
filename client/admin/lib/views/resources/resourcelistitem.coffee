@@ -7,6 +7,7 @@ MachinesList           = require 'app/environment/machineslist'
 ResourceMachineItem    = require './resourcemachineitem'
 ResourceMachineHeader  = require './resourcemachineheader'
 MachinesListController = require 'app/environment/machineslistcontroller'
+StackAdminMessageModal = require 'app/stacks/stackadminmessagemodal'
 
 
 module.exports = class ResourceListItem extends kd.ListItemView
@@ -54,6 +55,11 @@ module.exports = class ResourceListItem extends kd.ListItemView
       cssClass : 'solid small red fr'
       callback : @bound 'handleDelete'
 
+    @details.addSubView new kd.ButtonView
+      title    : 'Admin Message'
+      cssClass : 'solid small green fr'
+      callback : @bound 'handleAdminMessage'
+
     @ownerView = new AvatarView {
       size: { width: 25, height: 25 }
     }, resource.owner
@@ -91,6 +97,14 @@ module.exports = class ResourceListItem extends kd.ListItemView
       return  unless status.confirmed
       resource.maintenance { destroyStack: yes },  (err) ->
         delegate.emit 'ReloadItems'  unless showError err
+
+
+  handleAdminMessage: ->
+
+    new StackAdminMessageModal {}, {
+      stacks : [ @getData() ]
+      type   : 'info'
+    }
 
 
   toggleDetails: ->
