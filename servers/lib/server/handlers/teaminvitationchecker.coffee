@@ -17,5 +17,4 @@ module.exports = (req, res, next) ->
     return res.status(400).send err.message  if err?
     return res.status(400).send()  if not invitation
 
-    res.cookie('team-access', 'true', { path : '/' }, { domain : "#{teamDomain}" })
     return res.status(200).send()
