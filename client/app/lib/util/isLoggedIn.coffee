@@ -1,4 +1,4 @@
 whoami = require './whoami'
 
-module.exports = () ->
+module.exports = ->
   whoami()?.type is 'registered'

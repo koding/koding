@@ -1,6 +1,6 @@
 # Wrapper for pushing events to Rollbar
 module.exports = (msg, args) ->
-  console.warn "Rollbar is temporarily disabled"
+  console.warn 'Rollbar is temporarily disabled'
   return
 
   # return  unless KD.config.logToExternal and _rollbar

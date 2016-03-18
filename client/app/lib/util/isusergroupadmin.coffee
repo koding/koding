@@ -5,9 +5,9 @@ module.exports = (callback) ->
 
   { groupsController } = kd.singletons
 
-  groupsController.ready =>
+  groupsController.ready ->
     currentGroup = groupsController.getCurrentGroup()
-    currentGroup.fetchMyRoles (err, roles) =>
+    currentGroup.fetchMyRoles (err, roles) ->
 
       return callback err  if err
 

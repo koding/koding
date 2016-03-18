@@ -12,7 +12,7 @@ module.exports = class FSItem extends KDObject
   { escapeFilePath, handleStdErr } = FSHelper
 
   # Assign every option to instance
-  constructor:(options, data)->
+  constructor: (options, data) ->
     @[key] = value for own key, value of options
     super
 
@@ -22,13 +22,13 @@ module.exports = class FSItem extends KDObject
   #
   # If requested path already exists, it generates new paths
   # eg, if /tmp/foo then /tmp/foo_1 will be created, and so on.
-  @create = ({ path, type, machine, recursive, samePathOnly }, callback = kd.noop)->
+  @create = ({ path, type, machine, recursive, samePathOnly }, callback = kd.noop) ->
 
     unless path or machine
-      kd.warn message = "pass a path and machine to create a file"
+      kd.warn message = 'pass a path and machine to create a file'
       return callback { message }
 
-    type      ?= "file"
+    type      ?= 'file'
     recursive ?= no
     kite       = machine.getBaseKite()
 
@@ -39,9 +39,9 @@ module.exports = class FSItem extends KDObject
       plainPath = FSHelper.plainPath path
 
       method =
-        if type is "folder"
-        then "fsCreateDirectory"
-        else "fsWriteFile"
+        if type is 'folder'
+        then 'fsCreateDirectory'
+        else 'fsWriteFile'
 
       options = {
         path            : plainPath
@@ -50,7 +50,7 @@ module.exports = class FSItem extends KDObject
         recursive
       }
 
-      kite.fsUniquePath path: plainPath
+      kite.fsUniquePath { path: plainPath }
 
       .then (actualPath) ->
 
@@ -85,9 +85,9 @@ module.exports = class FSItem extends KDObject
   getKite: -> @machine.getBaseKite()# kites.klient
 
   # Copy file instance to provided target folder
-  copy: (folderPath, callback)->
+  copy: (folderPath, callback) ->
 
-    @emit "fs.job.started"
+    @emit 'fs.job.started'
 
     folderPath = folderPath.replace /\/$/, ''
     folderPath = FSHelper.plainPath "#{folderPath}/#{@name}"
@@ -103,7 +103,7 @@ module.exports = class FSItem extends KDObject
 
         command = "cp -R #{ escapeFilePath @getPath() } #{ escapeFilePath actualPath }"
 
-        kite.exec({command})
+        kite.exec({ command })
 
         .then (result) ->
           cb = handleStdErr()
@@ -113,7 +113,7 @@ module.exports = class FSItem extends KDObject
 
     .finally =>
 
-      @emit "fs.job.finished"
+      @emit 'fs.job.finished'
       return file
 
 
@@ -121,9 +121,9 @@ module.exports = class FSItem extends KDObject
   #
   # TODO: add more checks for type
   # TODO: add option for targetPath
-  compress: (type, callback)->
+  compress: (type, callback) ->
 
-    @emit "fs.job.started"
+    @emit 'fs.job.started'
 
     kite = @getKite()
 
@@ -136,7 +136,7 @@ module.exports = class FSItem extends KDObject
     .then (actualPath) =>
 
       command =
-        if type is "tar.gz"
+        if type is 'tar.gz'
           "cd #{escapeFilePath @parentPath};tar -pczf #{escapeFilePath actualPath} #{escapeFilePath @name}"
         else
           "cd #{escapeFilePath @parentPath};zip -r #{escapeFilePath actualPath} #{escapeFilePath @name}"
@@ -150,12 +150,12 @@ module.exports = class FSItem extends KDObject
     .nodeify(callback)
 
     .finally =>
-      @emit "fs.job.finished"
+      @emit 'fs.job.finished'
 
 
-  extract: (callback = ->)->
+  extract: (callback = -> ) ->
 
-    @emit "fs.job.started"
+    @emit 'fs.job.started'
 
     kite = @getKite()
 
@@ -177,7 +177,7 @@ module.exports = class FSItem extends KDObject
     kite.init()
 
     .then ->
-      kite.fsUniquePath(path: "#{ extractFolder }")
+      kite.fsUniquePath({ path: "#{ extractFolder }" })
 
     .then (actualPath) =>
 
@@ -187,7 +187,7 @@ module.exports = class FSItem extends KDObject
         else
           "cd #{escapeFilePath @parentPath};unzip -o #{escapeFilePath @name} -d #{escapeFilePath actualPath}"
 
-      kite.exec({command})
+      kite.exec({ command })
 
     .then (result) ->
       cb = handleStdErr()
@@ -196,13 +196,13 @@ module.exports = class FSItem extends KDObject
     .nodeify(callback)
 
     .finally =>
-      @emit "fs.job.finished"
+      @emit 'fs.job.finished'
 
-  getExtension:-> FSHelper.getFileExtension @name
+  getExtension: -> FSHelper.getFileExtension @name
 
-  getPath:-> FSHelper.plainPath @path
+  getPath: -> FSHelper.plainPath @path
 
-  isHidden:-> FSHelper.isHidden @name
+  isHidden: -> FSHelper.isHidden @name
 
   exists: (callback = kd.noop) ->
 
@@ -210,24 +210,24 @@ module.exports = class FSItem extends KDObject
 
     kite.init().then =>
 
-      kite.fsGetInfo path: @getPath()
-      .then (info)-> info.exists
+      kite.fsGetInfo { path: @getPath() }
+      .then (info) -> info.exists
 
     .nodeify(callback)
 
-  stat:(callback=kd.noop)->
+  stat: (callback = kd.noop) ->
 
     kite = @getKite()
 
     kite.init().then =>
 
-      kite.fsGetInfo path: @getPath()
+      kite.fsGetInfo { path: @getPath() }
 
     .nodeify(callback)
 
-  remove:(callback, recursive=no)->
+  remove: (callback, recursive = no) ->
 
-    @emit "fs.delete.started"
+    @emit 'fs.delete.started'
 
     kite = @getKite()
 
@@ -238,11 +238,11 @@ module.exports = class FSItem extends KDObject
     .nodeify(callback)
 
     .then =>
-      @emit "fs.delete.finished"
+      @emit 'fs.delete.finished'
 
-  moveOrRename: (toPath, callback)->
+  moveOrRename: (toPath, callback) ->
 
-    @emit "fs.job.started"
+    @emit 'fs.job.started'
 
     kite = @getKite()
 
@@ -257,27 +257,27 @@ module.exports = class FSItem extends KDObject
     .nodeify(callback)
 
     .then =>
-      @emit "fs.job.finished"
+      @emit 'fs.job.finished'
 
 
-  rename: (newName, callback)->
+  rename: (newName, callback) ->
 
     @moveOrRename "#{FSHelper.getParentPath @getPath()}/#{newName}", callback
 
-  move: (newPath, callback)->
+  move: (newPath, callback) ->
 
     @moveOrRename "#{FSHelper.plainPath newPath}/#{@name}", callback
 
 
-  chmod:(options, callback)->
+  chmod: (options, callback) ->
 
     { recursive, permissions: mode } = options
 
     @mode = mode
 
-    return callback? new Error "no permissions passed"  unless mode?
+    return callback? new Error 'no permissions passed'  unless mode?
 
-    @emit "fs.job.started"
+    @emit 'fs.job.started'
 
     kite = @getKite()
 
@@ -292,4 +292,4 @@ module.exports = class FSItem extends KDObject
     .nodeify(callback)
 
     .then =>
-      @emit "fs.job.started"
+      @emit 'fs.job.started'

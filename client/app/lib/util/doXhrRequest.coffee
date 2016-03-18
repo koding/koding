@@ -1,21 +1,21 @@
 module.exports = (options = {}, callback) ->
-  {type, endPoint, data, async} = options
+  { type, endPoint, data, async } = options
   type = 'POST'  unless type
 
   async or= yes
 
-  return callback {message: "endPoint not set"}  unless endPoint
+  return callback { message: 'endPoint not set' }  unless endPoint
 
   xhr = new XMLHttpRequest()
   xhr.open type, endPoint, async
-  xhr.setRequestHeader "Content-Type", "application/json;"
-  xhr.onload = (result) =>
+  xhr.setRequestHeader 'Content-Type', 'application/json;'
+  xhr.onload = (result) ->
     return if xhr.readyState isnt 4
 
     # 0 - connection failed
     if xhr.status is 0 or xhr.status >= 500
       return callback {
-        message : "internal server error"
+        message : 'internal server error'
         code    : xhr.status
       }
 
@@ -26,7 +26,7 @@ module.exports = (options = {}, callback) ->
         response = JSON.parse xhr.responseText
       catch e
         return callback {
-          message : "invalid json: could not parse response"
+          message : 'invalid json: could not parse response'
           code    : xhr.status
         }
 

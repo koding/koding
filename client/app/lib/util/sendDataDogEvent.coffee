@@ -3,12 +3,12 @@ parseLogs = require './parseLogs'
 uploadLogs = require './uploadLogs'
 globals = require 'globals'
 
-module.exports = (eventName, options = {})->
+module.exports = (eventName, options = {}) ->
 
   options.eventName = eventName
   options.sendLogs ?= yes
 
-  sendEvent = (logs)->
+  sendEvent = (logs) ->
 
     options.tags ?= {}
     options.tags.version = globals.config.version
@@ -22,7 +22,7 @@ module.exports = (eventName, options = {})->
   # just send them away, first to s3 then datadog
   if kdlogs.length > 100 and options.sendLogs
 
-    uploadLogs (err, publicUrl)->
+    uploadLogs (err, publicUrl) ->
 
       logs = if err? and not publicUrl
       then parseLogs()
@@ -34,4 +34,4 @@ module.exports = (eventName, options = {})->
 
     # Send only events when hostname is koding.com
     # and user enabled logs somehow
-    sendEvent()  if global.location.hostname is "koding.com"
+    sendEvent()  if global.location.hostname is 'koding.com'

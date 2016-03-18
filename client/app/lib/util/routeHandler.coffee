@@ -5,7 +5,7 @@ module.exports = (options) ->
 
   { title, name, homeRoute } = options
 
-  handleSection = (path, callback)->
+  handleSection = (path, callback) ->
 
     { appManager, router, groupsController } = kd.singletons
 
