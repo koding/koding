@@ -92,7 +92,7 @@ func (c *Channel) Delete() error {
 }
 
 func (c *Channel) DeleteHard() error {
-	return bongo.B.DB.Model(c).Unscoped().Delete(c).Error
+	return bongo.B.DB.Model(c).Table(c.BongoName()).Unscoped().Delete(c).Error
 }
 
 func (c *Channel) UnscopedById(id int64) error {
