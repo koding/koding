@@ -17,7 +17,7 @@ describe 'KodingListController', ->
 
       {
         useCustomScrollView, lazyLoadThreshold, limit,
-        sort, model, fetcherMethod, type
+        sort, model, fetcherMethod
       } = listController.getOptions()
 
       viewInstanceCheck = listController.getListView() instanceof KodingListView
@@ -27,19 +27,16 @@ describe 'KodingListController', ->
       expect(lazyLoadThreshold).toBe 10
       expect(limit).toBe 10
       expect(model).toNotExist()
-      expect(type).toEqual ''
       expect(sort).toEqual { '_id' : -1 }
 
     it 'should create default no item found widget', ->
 
-      type = 'machine'
-
-      listController = new KodingListController { type, fetcherMethod : kd.noop }
+      listController = new KodingListController { fetcherMethod : kd.noop }
 
       { noItemFoundWidget, noItemFoundText } = listController.getOptions()
 
       expect(noItemFoundWidget).toExist()
-      expect(noItemFoundText).toEqual "You don't have any #{type}"
+      expect(noItemFoundText).toEqual "No item found!"
 
     it 'should create no item found widget with given text', ->
 
