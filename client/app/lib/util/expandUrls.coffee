@@ -1,6 +1,6 @@
 urlGrabber = require 'app/util/urlGrabber'
 
-module.exports = (text, replaceAndYieldLinks=no) ->
+module.exports = (text, replaceAndYieldLinks = no) ->
   return null unless text
 
   links     = []
@@ -17,7 +17,7 @@ module.exports = (text, replaceAndYieldLinks=no) ->
     hasProtocol = /\w+\:\/\//
 
     # remove protocol and trailing path
-    visibleUrl        = url.replace(hasProtocol,'').replace(/\/.*/,"")
+    visibleUrl        = url.replace(hasProtocol, '').replace(/\/.*/, '')
     checkForPostSlash = /\w*(\/\/)+.*\/.+/.test originalUrl # test for // ... / ...
 
     # url has no protocol

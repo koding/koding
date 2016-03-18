@@ -1,6 +1,6 @@
 whoami = require './whoami'
 
-module.exports = (flagToCheck, account = whoami())->
+module.exports = (flagToCheck, account = whoami()) ->
   if account.globalFlags
     if 'string' is typeof flagToCheck
       return flagToCheck in account.globalFlags

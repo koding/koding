@@ -4,7 +4,7 @@ module.exports = (type) ->
       return 'object'
 
     # this is usually just a single image
-    when 'photo','image'
+    when 'photo', 'image'
       return 'image'
 
     when 'video'
