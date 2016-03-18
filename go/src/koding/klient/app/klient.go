@@ -423,7 +423,7 @@ func (k *Klient) Run() {
 
 	k.startUpdater()
 
-	if protocol.Environment == "managed" && isKoding {
+	if (protocol.Environment == "managed" || protocol.Environment == "devmanaged") && isKoding {
 		k.log.Error("Managed Klient is attempting to run on a Koding provided VM")
 		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
 	}
