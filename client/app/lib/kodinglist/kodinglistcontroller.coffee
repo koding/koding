@@ -20,11 +20,10 @@ module.exports = class KodingListController extends KDListViewController
     options.sort                  or= { '_id' : -1 }
 
     options.model                 or= null
-    options.type                  or= '' # machine, group, account, session etc.
     options.fetcherMethod         or= null
 
     unless options.noItemFoundWidget
-      options.noItemFoundText or= "You don't have any #{options.type}"
+      options.noItemFoundText or= "No item found!"
       options.noItemFoundWidget = new KDView
         cssClass  : 'no-item-found'
         partial   : "<cite>#{options.noItemFoundText}</cite>"
@@ -60,12 +59,11 @@ module.exports = class KodingListController extends KDListViewController
 
   removeItem: (item) ->
 
-    { type }  = @getOptions()
-    listView  = @getListView()
+    { actionMethods } = @getOptions()
+    listView          = @getListView()
 
     confirmOptions =
-      type         : type
-      callback     : ({status, modal}) =>
+      callback     : actionMethods?.remove ? ({status, modal}) =>
         return  unless status
 
         item.getData().remove (err) =>
@@ -76,9 +74,6 @@ module.exports = class KodingListController extends KDListViewController
 
 
     listView.askForConfirm confirmOptions
-
-
-  editItem: ->
 
 
   followLazyLoad: ->
