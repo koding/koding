@@ -4,7 +4,7 @@ LoginInputView      = require './logininputview'
 
 module.exports = class LoginInlineForm extends LoginViewInlineForm
 
-  constructor:->
+  constructor: ->
 
     super
 
@@ -20,7 +20,7 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
           rules       :
             required  : yes
           messages    :
-            required  : "Please enter a username."
+            required  : 'Please enter a username.'
 
     @password = new LoginInputView
       inputOptions    :
@@ -34,7 +34,7 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
           rules       :
             required  : yes
           messages    :
-            required  : "Please enter your password."
+            required  : 'Please enter your password.'
 
     @tfcode = new LoginInputView
       inputOptions    :
@@ -57,15 +57,15 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
   activate: ->
     @username.setFocus()
 
-  resetDecoration:->
+  resetDecoration: ->
     @username.resetDecoration()
     @password.resetDecoration()
     @tfcode.hide()
 
-  pistachio:->
-    """
+  pistachio: ->
+    '''
     <div>{{> @username}}</div>
     <div>{{> @password}}</div>
     <div>{{> @tfcode}}</div>
     <div>{{> @button}}</div>
-    """
+    '''

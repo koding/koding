@@ -18,7 +18,7 @@ track = (action, entry) ->
 module.exports = class TeamSelectorView extends JView
 
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'Team', options.cssClass
 

@@ -7,7 +7,7 @@ module.exports = class LoginViewInlineForm extends kd.FormView
 
   JView.mixin @prototype
 
-  viewAppended:->
+  viewAppended: ->
 
     @setTemplate @pistachio()
     @template.update()
@@ -21,4 +21,4 @@ module.exports = class LoginViewInlineForm extends kd.FormView
         input.emit 'ValidationFeedbackCleared' # Reset the validations
 
 
-  pistachio:->
+  pistachio: ->

@@ -7,7 +7,7 @@ module.exports = class TeamJoinTabForm extends kd.FormView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'clearfix login-form'
 

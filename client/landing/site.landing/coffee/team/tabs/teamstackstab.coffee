@@ -7,7 +7,7 @@ module.exports = class TeamStacksTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
@@ -29,7 +29,7 @@ module.exports = class TeamStacksTab extends kd.TabPaneView
 
   pistachio: ->
 
-    """
+    '''
     {{> @header }}
     <div class="TeamsModal TeamsModal--groupCreation clearfix">
       <h4>Setup your stack</h4>
@@ -37,4 +37,4 @@ module.exports = class TeamStacksTab extends kd.TabPaneView
       <figure></figure>
       {{> @next}}
     </div>
-    """
+    '''

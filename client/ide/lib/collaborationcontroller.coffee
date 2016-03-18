@@ -13,7 +13,6 @@ showError                     = require 'app/util/showError'
 isTeamReactSide               = require 'app/util/isTeamReactSide'
 whoami                        = require 'app/util/whoami'
 RealtimeManager               = require './realtimemanager'
-IDEChatView                   = require './views/chat/idechatview'
 IDEMetrics                    = require './idemetrics'
 doXhrRequest                  = require 'app/util/doXhrRequest'
 realtimeHelpers               = require './collaboration/helpers/realtime'
@@ -28,6 +27,8 @@ actionTypes                   = require 'app/flux/environment/actiontypes'
 generateCollaborationLink     = require 'app/util/generateCollaborationLink'
 isKoding                      = require 'app/util/isKoding'
 Tracker                       = require 'app/util/tracker'
+IDEHelpers                    = require 'ide/idehelpers'
+
 
 {warn} = kd
 
@@ -147,7 +148,6 @@ module.exports = CollaborationController =
 
   handleParticipantKicked: (username) ->
 
-    @chat.emit 'ParticipantLeft', username
     @statusBar.removeParticipantAvatar username
     @removeParticipantCursorWidget username
     # remove participant's all data persisted in realtime appInfo
@@ -195,7 +195,6 @@ module.exports = CollaborationController =
     unless targetUser
       return kd.warn 'Unknown user in collaboration, we should handle this case...'
 
-    @chat.emit 'ParticipantJoined', targetUser
     @statusBar.emit 'ParticipantJoined', targetUser
 
     Tracker.track Tracker.COLLABORATION_STARTED
@@ -217,7 +216,6 @@ module.exports = CollaborationController =
     unless targetUser
       return kd.warn 'Unknown user in collaboration, we should handle this case...'
 
-    @chat?.emit 'ParticipantLeft', targetUser
     @statusBar.emit 'ParticipantLeft', targetUser
     @removeParticipantCursorWidget targetUser
 
@@ -253,16 +251,11 @@ module.exports = CollaborationController =
 
   setWatchMap: ->
 
-    if @myWatchMap.values().length
-      @emit 'WatchMapIsReady'
-      return
+    return @emit 'WatchMapIsReady'  if @amIHost
 
-    @listChatParticipants (accounts) =>
-      accounts.forEach (account) =>
-        { nickname } = account.profile
-        @myWatchMap.set nickname, nickname
-
-      @emit 'WatchMapIsReady'
+    host = @collaborationHost
+    @myWatchMap.set host, host
+    @emit 'WatchMapIsReady'
 
 
   activateRealtimeManagerForHost: ->
@@ -313,11 +306,13 @@ module.exports = CollaborationController =
 
   addParticipant: (account) ->
 
-    {hash, nickname} = account.profile
+    { hash, nickname } = account.profile
 
-    val = {nickname, hash}
+    val   = { nickname, hash }
     index = @participants.indexOf val, (a, b) -> a.nickname is b.nickname
+
     @participants.push val  if index is -1
+    @setMyPermission 'edit' if @amIHost
 
 
   watchParticipant: (nickname) -> @myWatchMap.set nickname, nickname
@@ -411,10 +406,9 @@ module.exports = CollaborationController =
       return  if nickname is nick()
 
       @statusBar.createParticipantAvatar nickname, no
-      @watchParticipant nickname
 
       if @amIHost
-        @setParticipantPermission nickname
+        @setParticipantPermission nickname, 'read'
         @setMachineUser [nickname]
 
 
@@ -597,10 +591,20 @@ module.exports = CollaborationController =
 
         @handleSharedMachine()
 
+      when 'PermissionRequest'
+
+        @statusBar.handlePermissionRequest origin  if @amIHost
+
+      when 'PermissionDenied'
+
+        @handlePermissionDenied data.target
+
+      when 'PermissionGranted'
+
+        @handlePermissionGranted()  if data.target is nick()
+
 
   handlePermissionMapChange: (event) ->
-
-    @chat.settingsPane.emit 'PermissionChanged', event
 
     {property, newValue} = event
 
@@ -661,9 +665,7 @@ module.exports = CollaborationController =
 
   showShareButton: ->
 
-    @ready =>
-      @statusBar.handleCollaborationLoading()
-      @statusBar.share?.show()
+    @ready => @statusBar.handleCollaborationLoading()
 
 
   collectButtonShownMetric: ->
@@ -762,18 +764,17 @@ module.exports = CollaborationController =
     @collectButtonShownMetric()
 
 
-  prepareChatSession: (callbacks) ->
+  prepareSocialChannel: (callbacks) ->
 
     socialHelpers.initChannel (err, channel) =>
       return callbacks.error err  if err
 
       @setSocialChannel channel
-      @createChatPaneView channel
 
       envHelpers.updateWorkspace @workspaceData, { channelId : channel.id }
         .then =>
           @workspaceData.channelId = channel.id
-          @chat.ready => callbacks.success()
+          callbacks.success()
         .error (err) => callbacks.error err
 
 
@@ -785,20 +786,25 @@ module.exports = CollaborationController =
 
   onCollaborationPreparing: ->
 
-    @prepareChatSession
+    @prepareSocialChannel
       success : => @stateMachine.transition 'Prepared'
       error   : => @stateMachine.transition 'ErrorPreparing'
 
 
   onCollaborationPrepared: ->
 
-    @chat.emit 'CollaborationNotInitialized'
+    @startCollaborationSession()
 
 
   startCollaborationSession: ->
 
+    # Show this message while "@stateMachine" is preparing when a session is over just now.
+    # It will be ready in a few seconds.
+    return showError 'Please wait a few seconds.'  unless @stateMachine
+
     switch @stateMachine.state
-      when 'Prepared' then @stateMachine.transition 'Creating'
+      when 'Prepared'   then @stateMachine.transition 'Creating'
+      when 'NotStarted' then @stateMachine.transition 'Preparing'
 
 
   onCollaborationCreating: ->
@@ -815,7 +821,7 @@ module.exports = CollaborationController =
 
     @setInitialSettings()
 
-    @chat.settingsPane.startSession.updateProgress 100
+    @statusBar.share.updateProgress 100
 
     kd.utils.wait 500, => @stateMachine.transition 'Active'
 
@@ -851,7 +857,7 @@ module.exports = CollaborationController =
 
     modal.container.addSubView new kd.CustomHTMLView
       tagName  : 'p'
-      partial  : "<span class='icon'></span> Joining to collaboration session..."
+      partial  : "<span class='icon'></span> Joining collaboration session..."
       cssClass : "state-label running"
 
     modal.container.addSubView modal.progressBar = new kd.ProgressBarView { initial: 10 }
@@ -877,15 +883,13 @@ module.exports = CollaborationController =
     successCb = (channel, doc) =>
       @whenRealtimeReady =>
         @setSocialChannel channel
-        @createChatPaneView channel
-        @chat.ready =>
 
-          @stateMachine.transition 'Active'
-          @updateSessionStartingProgress 90
+        @stateMachine.transition 'Active'
+        @updateSessionStartingProgress 90
 
-          kd.utils.wait 2000, =>
-            @updateSessionStartingProgress 100
-            kd.utils.wait 500, @bound 'destroySessionStartingModal'
+        kd.utils.wait 2000, =>
+          @updateSessionStartingProgress 100
+          kd.utils.wait 500, @bound 'destroySessionStartingModal'
 
       @activateRealtimeManager doc
 
@@ -915,8 +919,6 @@ module.exports = CollaborationController =
 
 
   onCollaborationActive: ->
-
-    @hideChatPane()
 
     @bindAutoInviteHandlers()
 
@@ -963,14 +965,6 @@ module.exports = CollaborationController =
 
   transitionViewsToActive: ->
 
-    @listChatParticipants (accounts) =>
-      @chat.settingsPane.createParticipantsList accounts
-
-    {settingsPane} = @chat
-    settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
-
-    @chat.emit 'CollaborationStarted'
-
     generateCollaborationLink nick(), @socialChannel.id, {}, (url) =>
       @statusBar.emit 'CollaborationStarted',
         channelId: @socialChannel.id
@@ -978,8 +972,6 @@ module.exports = CollaborationController =
 
 
   onCollaborationEnding: ->
-
-    @chat.settingsPane.endSession.disable()
 
     @off 'SetMachineUser'
 
@@ -1046,9 +1038,6 @@ module.exports = CollaborationController =
     return  unless @stateMachine.state in ['Ending']
 
     @rtm.once 'RealtimeManagerWillDispose', =>
-      @chat.emit 'CollaborationEnded'
-      @chat.destroy()
-      @chat = null
       @statusBar.emit 'CollaborationEnded'
 
     @rtm.once 'RealtimeManagerDidDispose', =>
@@ -1083,9 +1072,6 @@ module.exports = CollaborationController =
 
     # TODO: fix implicit emit.
     @rtm.once 'RealtimeManagerWillDispose', =>
-      @chat.emit 'CollaborationEnded'
-      @chat.destroy()
-      @chat = null
       @statusBar.emit 'CollaborationEnded'
       @removeParticipant nick()
       @removeMachineNode()  if not @mountedMachine.isPermanent() and not isTeamReactSide()
@@ -1100,18 +1086,6 @@ module.exports = CollaborationController =
     @cleanupCollaboration()
 
 
-  showChat: ->
-
-    # Show this message while "@stateMachine" is preparing when a session is over just now.
-    # It will be ready in a few seconds.
-    return showError 'Please wait a few seconds.'  unless @stateMachine
-
-    switch @stateMachine.state
-      when 'Active'     then @hideChatPane()
-      when 'Prepared'   then @chat.show()
-      when 'NotStarted' then @stateMachine.transition 'Preparing'
-
-
   stopCollaborationSession: (callback = kd.noop) ->
 
     return callback()  unless @stateMachine
@@ -1120,21 +1094,6 @@ module.exports = CollaborationController =
 
     switch @stateMachine.state
       when 'Active' then @stateMachine.transition 'Ending'
-
-
-  hideChatPane: -> @chat.end()
-
-
-  createChatPaneView: (channel) ->
-
-    unless @rtm
-      @destroySessionStartingModal()
-      return throwError 'RealtimeManager is not set'
-
-    chatViewOptions = { @rtm, @isInSession, @mountedMachineUId }
-    @chat           = new IDEChatView chatViewOptions, channel
-
-    @getView().addSubView @chat
 
 
   prepareCollaboration: ->
@@ -1251,7 +1210,6 @@ module.exports = CollaborationController =
           callback : =>
             @modal.destroy()
 
-    @chat?.end()
     @showModal options
 
 
@@ -1270,7 +1228,6 @@ module.exports = CollaborationController =
           callback : =>
             @modal.destroy()
 
-    @chat?.end()
     @showModal options
     @handleCollaborationEndedForParticipant()
 
@@ -1348,17 +1305,21 @@ module.exports = CollaborationController =
 
   setParticipantPermission: (nickname, permission) ->
 
-    return  if (not permission?) and @permissions.get nickname
-
-    permission ?= if @settings.get 'readOnly' then 'read' else 'edit'
     @permissions.set nickname, permission
 
 
   removeParticipantPermissions: (nickname) ->
 
-    return  unless @permissions.get nickname
-
     @permissions.delete nickname
+
+
+  getMyPermission: -> @permissions?.get nick()
+
+
+  setMyPermission: (permission) ->
+
+    permission = 'edit'  if @amIHost # override for host
+    @setParticipantPermission nick(), permission
 
 
   getMyWatchers: ->
@@ -1401,3 +1362,90 @@ module.exports = CollaborationController =
 
     openFolders = @finderPane.getOpenFolders()
     @rtm.getFromModel('commonStore').set 'openFolders', openFolders
+
+
+  showRequestPermissionView: ->
+
+    return  if @permissionView
+
+    @permissionView = IDEHelpers.showNotificationBanner
+      title   : 'WARNING:'
+      content : "You don't have permission to make changes.
+                 <a href='#' class='ask-permission'>Ask for permission.</a>"
+      click   : (e) =>
+        return  unless e.target.classList.contains 'ask-permission'
+        @requestPermission()
+        @permissionView.hide()
+
+    @permissionView.once 'KDObjectWillBeDestroyed', => @permissionView = null
+
+
+  requestPermission: -> @broadcastMessage { type: 'PermissionRequest' }
+
+
+  denyPermissionRequest: (target) ->
+
+    return  unless @amIHost
+
+    @broadcastMessage { type: 'PermissionDenied', target }
+
+
+  approvePermissionRequest: (target) ->
+
+    return  unless @amIHost
+
+    @broadcastMessage { type: 'PermissionGranted', target }
+    @setParticipantPermission target, 'edit'
+    @applyPermissionFor target, 'edit'
+
+
+  revertPermission: (target) ->
+
+    return  unless @amIHost
+
+    @broadcastMessage { type: 'PermissionDenied', target }
+    @setParticipantPermission target, 'read'
+    @applyPermissionFor target, 'read'
+    @forEachSubViewInIDEViews_ 'editor', (ep) ->
+      ep.removeParticipantCursorWidget target
+
+
+  handlePermissionDenied: (username) ->
+
+    unless username is nick()
+      return @forEachSubViewInIDEViews_ 'editor', (ep) ->
+        ep.removeParticipantCursorWidget username
+
+    @permissionView?.destroy()
+
+    @permissionView = IDEHelpers.showNotificationBanner
+      cssClass : 'error'
+      title    : 'REQUEST DENIED:'
+      content  : "Host has denied your request to make changes!"
+
+    @permissionView.once 'KDObjectWillBeDestroyed', => @permissionView = null
+
+
+  handlePermissionGranted: (nickname) ->
+
+    @permissionView?.destroy()
+
+    @permissionView = IDEHelpers.showNotificationBanner
+      cssClass : 'success'
+      title    : 'ACCESS GRANTED:'
+      content  : "You can make changes now!"
+
+    @permissionView.once 'KDObjectWillBeDestroyed', => @permissionView = null
+
+
+  applyPermissionFor: (nickname, permission) ->
+
+    return if not permission or not @amIHost or not nickname or not @rtm.isReady
+
+    me           = nick()
+    method       = if permission is 'edit' then 'set' else 'delete'
+    participants = @participants.asArray()
+
+    for participant in participants
+      map = @rtm.getFromModel "#{participant.nickname}WatchMap"
+      map[method] nickname, nickname

@@ -66,8 +66,6 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         glancePinnedPost     :
           (signature Object, Function)
-        cycleChannel:
-          (signature Object, Function)
         delete:
           (signature Object, Function)
         update:
@@ -91,9 +89,7 @@ module.exports = class SocialChannel extends Base
       createdAt        : Date
       updatedAt        : Date
     sharedEvents    :
-      static        : [
-        { name: 'broadcast' }
-      ]
+      static        : []
 
   JAccount     = require '../account'
 
@@ -119,25 +115,6 @@ module.exports = class SocialChannel extends Base
       if err then callback err
       else callback null, "socialapi.channelsecret.#{secretName}",
         if oldSecretName then "socialapi.channelsecret.#{oldSecretName}"
-
-  @cycleChannel = do ->
-    cycleChannel = (options, callback = -> ) ->
-      JName = require '../name'
-      name = @generateChannelName options
-      JName.cycleSecretName name, (err, oldSecretName, newSecretName) =>
-        return callback err if err
-        routingKey = "socialapi.channelsecret.#{oldSecretName}.cycleChannel"
-        @emit 'broadcast', routingKey, null
-        return callback null
-    return throttle cycleChannel, 5000
-
-  cycleChannel:(callback) ->
-    options =
-      groupSlug     : @groupName
-      apiChannelType: @typeConstant
-      apiChannelName: @name
-
-    @constructor.cycleChannel options, callback
 
   @checkChannelParticipation = secureRequest
     fnName   : 'checkChannelParticipation'

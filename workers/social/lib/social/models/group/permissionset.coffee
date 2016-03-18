@@ -15,7 +15,7 @@ module.exports = class JPermissionSet extends Module
       'permissions.title'   : 'sparse'
     sharedEvents            :
       static                : []
-      instance              : [ 'updateInstance' ]
+      instance              : []
     schema                  :
       isCustom              :
         type                : Boolean

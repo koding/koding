@@ -133,12 +133,10 @@ func UserData(content string) string {
 
 	// If there's no shebang, execute the script with bash.
 	if !strings.HasPrefix(content, "#!") {
-		fmt.Fprintln(&buf, "#!/bin/bash")
+		fmt.Fprintln(&buf, "#!/bin/sh")
 	}
 
-	fmt.Fprintln(&buf, `echo "==== SCRIPT_STARTED ===="`)
 	fmt.Fprintln(&buf, content)
-	fmt.Fprintln(&buf, `echo "==== SCRIPT_FINISHED ====="`)
 
 	return buf.String()
 }

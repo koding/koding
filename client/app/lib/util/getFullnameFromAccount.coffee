@@ -1,12 +1,13 @@
 htmlencode = require 'htmlencode'
 whoami = require './whoami'
 
-module.exports = (account, justName=no) ->
-  account or= whoami()
-  if account.type is 'unregistered'
-    name = "a guest"
-  else if justName
-    name = account.profile.firstName
+module.exports = (account=whoami(), justName=no) ->
+
+  name = if account.type is 'unregistered'
+    "a guest"
+  else if justName or not account.profile.lastName
+    account.profile.firstName
   else
-    name = "#{account.profile.firstName} #{account.profile.lastName}"
+    "#{account.profile.firstName} #{account.profile.lastName}"
+
   return htmlencode.htmlEncode name.trim() or 'a Koding user'

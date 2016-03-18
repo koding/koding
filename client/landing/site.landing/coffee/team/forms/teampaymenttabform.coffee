@@ -32,7 +32,7 @@ module.exports = class TeamPaymentTabForm extends kd.FormViewWithFields
           clear      : clearValidationErrors
 
           checkCC    : kd.utils.debounce 100, (input, event) ->
-            val = $.trim input.getValue().replace(/-|\s/g,"")
+            val = $.trim input.getValue().replace(/-|\s/g, '')
             returnResult = result = Stripe.card.validateCardNumber val
             result = if result then no else 'Card number is not valid'
             input.setValidationResult 'checkCC', result
@@ -41,7 +41,7 @@ module.exports = class TeamPaymentTabForm extends kd.FormViewWithFields
             cssClass = null
             return (input, event) =>
               @unsetClass cssClass  if cssClass
-              val = $.trim input.getValue().replace(/-|\s/g,"")
+              val = $.trim input.getValue().replace(/-|\s/g, '')
               cssClass = Stripe.card.cardType(val).toLowerCase()
               cssClass = kd.utils.slugify cssClass
               @setClass cssClass
@@ -114,7 +114,7 @@ module.exports = class TeamPaymentTabForm extends kd.FormViewWithFields
         notifications    : notificationOptions
         rules            :
           clear          : clearValidationErrors
-          checkYear      : (yearInput, event) =>
+          checkYear      : (yearInput, event) ->
             yearVal    = $.trim yearInput.getValue().replace(/-|\s/g, '')
             validMonth = (new Date).getMonth() + 1
             returnResult = result = Stripe.card.validateExpiry validMonth, yearVal
@@ -132,15 +132,15 @@ module.exports = class TeamPaymentTabForm extends kd.FormViewWithFields
 
     fields.planTitle =
       defaultValue : planTitle
-      cssClass     : "hidden"
+      cssClass     : 'hidden'
 
     fields.planInterval =
       defaultValue : planInterval
-      cssClass     : "hidden"
+      cssClass     : 'hidden'
 
     fields.currentPlan =
       defaultValue : currentPlan
-      cssClass     : "hidden"
+      cssClass     : 'hidden'
 
     planAmountMap =
       year  : yearPrice
@@ -182,7 +182,7 @@ module.exports = class TeamPaymentTabForm extends kd.FormViewWithFields
       @inputs.cardCVC
       @inputs.cardMonth
       @inputs.cardYear
-    ].forEach (input) -> input.setValue ""
+    ].forEach (input) -> input.setValue ''
 
 
   toggleInputs: (state) ->

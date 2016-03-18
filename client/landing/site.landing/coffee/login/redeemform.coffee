@@ -4,28 +4,28 @@ LoginInputView      = require './logininputview'
 
 module.exports = class RedeemInlineForm extends LoginViewInlineForm
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
     super options, data
 
     @inviteCode = new LoginInputView
       inputOptions    :
-        name          : "inviteCode"
-        placeholder   : "Enter your invite code"
+        name          : 'inviteCode'
+        placeholder   : 'Enter your invite code'
         validate      :
           container   : this
           rules       :
             required  : yes
           messages    :
-            required  : "Please enter your invite code."
+            required  : 'Please enter your invite code.'
 
     @button = new kd.ButtonView
-      title       : "REDEEM"
-      style       : "solid medium green"
+      title       : 'REDEEM'
+      style       : 'solid medium green'
       type        : 'submit'
       loader      : yes
 
-  pistachio:->
-    """
+  pistachio: ->
+    '''
     <div>{{> @inviteCode}}</div>
     <div>{{> @button}}</div>
-    """
+    '''

@@ -32,8 +32,8 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
             utils.storeNewTeamData name, formData
             # removed these steps
             # temp putting these empty values here to not break stuff - SY
-            utils.storeNewTeamData 'email-domains', domains : ''
-            utils.storeNewTeamData 'invite', invitee1 : '', invitee2 : '', invitee3 : ''
+            utils.storeNewTeamData 'email-domains', { domains : '' }
+            utils.storeNewTeamData 'invite', { invitee1 : '', invitee2 : '', invitee3 : '' }
             kd.singletons.router.handleRoute '/Team/Username'
 
           error   : (error) =>
@@ -67,14 +67,14 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
 
   pistachio: ->
 
-    """
+    '''
     {{> @header }}
     <div class="TeamsModal TeamsModal--domain">
       <h4>Your team URL</h4>
       <h5>Your team will use this to access your Koding Teams account.</h5>
       {{> @form}}
     </div>
-    """
+    '''
 
 
 track = (action) ->

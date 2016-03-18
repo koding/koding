@@ -18,7 +18,7 @@ module.exports = class GroupPlanListItem extends GroupProductListItem
         cssClass  : 'plan-child-products'
         itemClass : GroupChildProductListItem
 
-    @details = new KDCustomHTMLView cssClass : 'hidden'
+    @details = new KDCustomHTMLView { cssClass : 'hidden' }
 
     if plan.childProducts.length
 
@@ -33,11 +33,11 @@ module.exports = class GroupPlanListItem extends GroupProductListItem
 
     super()
 
-  pistachio:->
-    """
+  pistachio: ->
+    '''
     <div class="product-item">
       {{> @planView}}
       {{> @details}}
       {{> @controls}}
     </div>
-    """
+    '''

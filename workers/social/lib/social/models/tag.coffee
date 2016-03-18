@@ -35,9 +35,7 @@ module.exports = class JTag extends jraphical.Module
       title         : 'sparse'
       # group         : 'sparse'
     sharedEvents    :
-      static        : [
-        { name: 'FollowHappened' }, { name:'UnfollowHappened' }
-      ]
+      static        : []
       instance      : []
     sharedMethods   :
       instance      :
@@ -155,7 +153,6 @@ module.exports = class JTag extends jraphical.Module
 
   constructor: ->
     super
-    @notifyGroupWhen 'FollowHappened'
 
   modify: permit
     advanced: [

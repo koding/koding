@@ -12,7 +12,7 @@ module.exports = ->
 
   unless exportDir
 
-    log 'yellow', "nothing exported."
+    log 'yellow', 'nothing exported.'
     return
 
   cmds = [
@@ -22,4 +22,4 @@ module.exports = ->
 
   gulp.src ''
     .pipe shell cmds
-    .pipe notify "files exported!"
+    .pipe notify 'files exported!'
