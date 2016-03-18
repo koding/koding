@@ -43,16 +43,16 @@ module.exports = class KodingListController extends KDListViewController
         cssClass  : 'no-item-found'
         partial   : "<cite>#{options.noItemFoundText}</cite>"
 
-    super options, data
-
-    if not options.fetcherMethod and not options.model
-      return  throw new Error 'Model or fetcherMethod should be given!'
-
     @filterStates =
       skip        : 0
       busy        : no
       query       : {}
       page        : 0
+
+    super options, data
+
+    if not options.fetcherMethod and not options.model
+      return  throw new Error 'Model or fetcherMethod should be given!'
 
     @bindEvents()
 
