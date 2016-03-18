@@ -16,7 +16,7 @@ module.exports = class SidebarMessageItemText extends JView
     @init()
 
 
-  pistachio: -> "{{> @text}}"
+  pistachio: -> '{{> @text}}'
 
 
   init: ->
@@ -53,7 +53,7 @@ module.exports = class SidebarMessageItemText extends JView
   createSingle: (origin) ->
 
     origin.id = origin._id  if origin
-    @text  = new ProfileTextView {origin}
+    @text  = new ProfileTextView { origin }
 
 
   getParticipantOrigins: (callback) ->
@@ -88,7 +88,7 @@ module.exports = class SidebarMessageItemText extends JView
       origins.forEach (origin, index) =>
 
         @addProfileElement origin
-        @addTextElement partial: @getSeparatorPartial participantCount, nameCount, index
+        @addTextElement { partial: @getSeparatorPartial participantCount, nameCount, index }
 
       @addPlusMoreElement participantCount, nameCount  if participantCount > nameCount + 1
 
@@ -97,7 +97,7 @@ module.exports = class SidebarMessageItemText extends JView
 
     return  unless participantCount > nameCount + 1
 
-    @addTextElement partial: " #{participantCount - nameCount - 1} more"
+    @addTextElement { partial: " #{participantCount - nameCount - 1} more" }
 
 
   addTextElement: (options = {}, data) ->
@@ -109,7 +109,7 @@ module.exports = class SidebarMessageItemText extends JView
 
     @text.addSubView profileView = new ProfileTextView
       origin    : origin
-      pistachio : "{{ #(profile.firstName)}}"
+      pistachio : '{{ #(profile.firstName)}}'
 
     return profileView
 

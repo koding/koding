@@ -62,7 +62,7 @@ module.exports = class CircularProgressBar extends KDView
 
     { size, lineWidth, strokeCap } = @getOptions()
 
-    percent = Math.min Math.max(0, percent || 1), 1
+    percent = Math.min Math.max(0, percent or 1), 1
     radius  = (size - lineWidth) / 2
 
     @ctx.beginPath()

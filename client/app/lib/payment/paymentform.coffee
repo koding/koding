@@ -207,7 +207,7 @@ module.exports = class PaymentForm extends JView
     formIsValid    = no
     { cardNumber } = @form.inputs
 
-    cardNumber.on "CreditCardTypeIdentified", (type) ->
+    cardNumber.on 'CreditCardTypeIdentified', (type) ->
       cardNumber.setClass type.toLowerCase()
 
     @paypalForm.on 'PaypalTokenLoaded', @bound 'initPaypalClient'
@@ -251,7 +251,7 @@ module.exports = class PaymentForm extends JView
       @$('.summary')
     ].forEach (view) -> view.detach()
 
-    {operation} = @state
+    { operation } = @state
 
     word = switch operation
       when UPGRADE         then 'upgrades'
@@ -293,11 +293,11 @@ module.exports = class PaymentForm extends JView
 
       when PaymentConstants.operation.INTERVAL_CHANGE
 
-        @successMessage.updatePartial "
+        @successMessage.updatePartial '
           Your billing cycle has been successfully updated.
           Please note that this makes no change to your available
           resources.
-        "
+        '
         @successMessage.show()
 
     @submitButton.enable()

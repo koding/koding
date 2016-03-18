@@ -13,7 +13,7 @@ describe 'OwnMachinesStore', ->
 
   beforeEach ->
     @reactor = new Reactor
-    @reactor.registerStores ownMachines : OwnMachinesStore
+    @reactor.registerStores { ownMachines : OwnMachinesStore }
 
 
   describe '#getInitialState', ->

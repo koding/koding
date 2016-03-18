@@ -11,7 +11,7 @@ describe 'ActiveLeavingSharedMachineIdStore', ->
 
   beforeEach ->
     @reactor = new Reactor
-    @reactor.registerStores activeLeavingSharedMachineId : ActiveLeavingSharedMachineIdStore
+    @reactor.registerStores { activeLeavingSharedMachineId : ActiveLeavingSharedMachineIdStore }
 
 
   describe '#getInitialState', ->
@@ -27,7 +27,7 @@ describe 'ActiveLeavingSharedMachineIdStore', ->
 
     it 'should set null for destroy view', ->
 
-      @reactor.dispatch actionTypes.SET_ACTIVE_LEAVING_SHARED_MACHINE_ID, id : null
+      @reactor.dispatch actionTypes.SET_ACTIVE_LEAVING_SHARED_MACHINE_ID, { id : null }
 
       store = @reactor.evaluate(['activeLeavingSharedMachineId'])
 

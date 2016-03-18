@@ -16,7 +16,7 @@ describe 'ConnectedManagedMachineStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores connectedManagedMachine : ConnectedManagedMachineStore
+    @reactor.registerStores { connectedManagedMachine : ConnectedManagedMachineStore }
 
 
   describe '#getInitialState', ->

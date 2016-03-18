@@ -2,7 +2,7 @@ module.exports = (id, nickname, firstName = nickname, lastName = nickname) ->
   timeString = (new Date).toISOString()
   return {
     socialApiId     : '18'
-    systemInfo      : 'defaultToLastUsedEnvironment': true
+    systemInfo      : { 'defaultToLastUsedEnvironment': true }
     counts          :
       followers     : 0
       following     : 0

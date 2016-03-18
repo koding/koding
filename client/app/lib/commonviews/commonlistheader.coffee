@@ -4,14 +4,14 @@ KDView = kd.View
 
 module.exports = class CommonListHeader extends KDView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
-    options.tagName  = "header"
-    options.cssClass = "feeder-header clearfix"
+    options.tagName  = 'header'
+    options.cssClass = 'feeder-header clearfix'
 
     super options, data
 
-  viewAppended:->
+  viewAppended: ->
 
     @setPartial "<p>#{@getOptions().title}</p> <span></span>"
-    @emit "ready"
+    @emit 'ready'

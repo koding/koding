@@ -27,7 +27,7 @@ module.exports = class SidebarSearchModal extends KDModalView
 
     super options, data
 
-    {appManager, router} = kd.singletons
+    { appManager, router } = kd.singletons
 
     { bindModalDestroy } = @getOptions()
 
@@ -40,7 +40,7 @@ module.exports = class SidebarSearchModal extends KDModalView
 
   viewAppended: ->
 
-    {placeholder, noItemText, itemClass, disableSearch} = @getOptions()
+    { placeholder, noItemText, itemClass, disableSearch } = @getOptions()
 
     unless disableSearch
       @addSubView @searchField = new KDInputView
@@ -88,7 +88,6 @@ module.exports = class SidebarSearchModal extends KDModalView
     return  unless items?.length?
 
     @listController.removeAllItems()  unless options.skip
-      
     @listController.addItem itemData for itemData in items
 
 
@@ -110,7 +109,7 @@ module.exports = class SidebarSearchModal extends KDModalView
 
     skip  = @listController.getItemCount()
 
-    return {skip}
+    return { skip }
 
 
   search: ->
@@ -124,7 +123,6 @@ module.exports = class SidebarSearchModal extends KDModalView
 
     options      = @getSearchOptions val
     options.name = val
-    
     @reachedEndOfTheList = no  unless options.limit
 
     @setClass 'search-active'
@@ -142,7 +140,7 @@ module.exports = class SidebarSearchModal extends KDModalView
     then @listController.getItemCount()
     else 0
 
-    return {limit}
+    return {  limit  }
 
 
   reset: ->
@@ -162,7 +160,7 @@ module.exports = class SidebarSearchModal extends KDModalView
     options.name ?= @searchField.getValue()
     @lastTerm     = options.name
 
-    {search} = @getOptions().endpoints
+    { search } = @getOptions().endpoints
 
     return callback() unless search
 
@@ -185,7 +183,7 @@ module.exports = class SidebarSearchModal extends KDModalView
 
     return @fetchForSearch options, callback  if @searchActive
 
-    {fetch} = @getOptions().endpoints
+    { fetch } = @getOptions().endpoints
 
     fetch options, (err, items = []) =>
 

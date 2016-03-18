@@ -15,12 +15,12 @@
 #
 # Structure taken from github.com/koding/kite/protocol/protocol.go
 
-module.exports = (query = "")->
+module.exports = (query = '') ->
 
-  keys = [ "username", "environment", "name",
-           "version", "region", "hostname", "id" ]
+  keys = [ 'username', 'environment', 'name',
+           'version', 'region', 'hostname', 'id' ]
 
-  query = query.replace /^\//, ""
+  query = query.replace /^\//, ''
   if (splitted = query.split '/').length is 7
     res = {}
     for s, i in splitted then res[keys[i]] = s
