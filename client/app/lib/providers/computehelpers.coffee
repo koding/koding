@@ -207,7 +207,7 @@ module.exports = class ComputeHelpers
     for key, value of machine.stack?.config or {}
       envVariables += """export #{key}="#{value}"\n"""
 
-    @reviveProvisioner machine, (err, provisioner) =>
+    @reviveProvisioner machine, (err, provisioner) ->
 
       if err
         return new KDNotificationView
@@ -223,7 +223,7 @@ module.exports = class ComputeHelpers
 
       path = provisioner.slug.replace '/', '-'
       path = "/tmp/init-#{path}"
-      machine.fs.create { path }, (err, file) =>
+      machine.fs.create { path }, (err, file) ->
 
         if err or not file
           return new KDNotificationView
@@ -269,7 +269,7 @@ module.exports = class ComputeHelpers
             machine
           }
 
-          modal.once "terminal.event", (data) ->
+          modal.once 'terminal.event', (data) ->
 
             if data is '0'
               title   = 'Installed successfully!'

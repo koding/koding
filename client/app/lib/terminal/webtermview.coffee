@@ -52,7 +52,7 @@ module.exports = class WebTermView extends KDCustomScrollView
         type      : 'contextmenu'
         delegate  : this
         itemClass : WebtermSettingsView
-        click     : (pubInst, event)-> @contextMenu event
+        click     : (pubInst, event) -> @contextMenu event
         menu      : @getAdvancedSettingsMenuItems.bind this
 
 
@@ -62,7 +62,7 @@ module.exports = class WebTermView extends KDCustomScrollView
     @terminal.flushedCallback = =>
       @emit 'WebTerm.flushed'
 
-    @terminal.on 'command',(param) =>
+    @terminal.on 'command', (param) =>
       @ringBell() if param is 'ring bell'
 
     @listenWindowResize()
@@ -92,13 +92,13 @@ module.exports = class WebTermView extends KDCustomScrollView
         # If machine is stopped we need to invalidate current sessions
         # user can decide to create a new one or destroy this one.
         if event.status is Stopped
-          @messagePane.handleError message: 'ErrNoSession'
+          @messagePane.handleError { message: 'ErrNoSession' }
 
     # Listen for resize events to show an error after a resize has
     # finished. This provides same UX as a stopped machine (above).
     computeController.on "resize-#{machineId}", (event) =>
       if event.percentage is 100
-        @messagePane.handleError message: 'ErrNoSession'
+        @messagePane.handleError { message: 'ErrNoSession' }
 
     @setKeyView()
 
@@ -181,7 +181,7 @@ module.exports = class WebTermView extends KDCustomScrollView
 
       .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-      .catch (err)=>
+      .catch (err) =>
 
         @messagePane.handleError err
 
@@ -215,7 +215,7 @@ module.exports = class WebTermView extends KDCustomScrollView
 
       @updateSettings()
 
-      {mode} = @getOptions()
+      { mode } = @getOptions()
       @webtermConnect mode
 
 
@@ -284,7 +284,7 @@ module.exports = class WebTermView extends KDCustomScrollView
     range = kd.utils.getSelectionRange()
     return  unless range
     return  if range.startOffset is range.endOffset and range.startContainer is range.endContainer
-    kd.utils.defer =>
+    kd.utils.defer ->
       kd.utils.addRange range
 
   keyDown: (event) ->
@@ -305,7 +305,7 @@ module.exports = class WebTermView extends KDCustomScrollView
       view       : new WebtermSettingsView
         delegate : this
 
-  listenFullscreen: (event)->
+  listenFullscreen: (event) ->
     requestFullscreen = (event.metaKey or event.ctrlKey) and event.keyCode is 13
     if requestFullscreen
       mainView = kd.getSingleton 'mainView'
@@ -336,5 +336,5 @@ module.exports = class WebTermView extends KDCustomScrollView
     event?.preventDefault()
 
     if not bell? or @terminal.controlCodeReader.visualBell
-    then new KDNotificationView title: 'Bell!', duration: 100
+    then new KDNotificationView { title: 'Bell!', duration: 100 }
     else bell.play()

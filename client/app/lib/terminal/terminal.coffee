@@ -33,7 +33,7 @@ module.exports = class Terminal extends KDObject
     '\\'     : '\\\\'
     '\u001b' : '\\e'
 
-  constructor: (options)->
+  constructor: (options) ->
 
     { containerView, @readOnly } = options
 
@@ -51,14 +51,14 @@ module.exports = class Terminal extends KDObject
 
     @keyInput = new KDCustomHTMLView
       tagName   : 'input'
-      attributes: type: 'text'
+      attributes: { type: 'text' }
       cssClass  : 'offscreen'
       bind      : 'keydown keyup keypress paste'
       keydown   : @bound 'keyDown'
       keypress  : @bound 'keyPress'
       keyup     : @bound 'keyUp'
     @keyInput.appendToDomBody()
-    @keyInput.on "paste", @bound "paste"
+    @keyInput.on 'paste', @bound 'paste'
 
     containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
 
@@ -68,7 +68,7 @@ module.exports = class Terminal extends KDObject
     @sizeY                    = 24
     @currentStyle             = StyledText.DEFAULT_STYLE
     @currentWhitespaceStyle   = null
-    @currentCharacterSets     = ["B", "A", "A", "A"]
+    @currentCharacterSets     = ['B', 'A', 'A', 'A']
     @currentCharacterSetIndex = 0
 
     @inputHandler      = new InputHandler(this)
@@ -79,62 +79,62 @@ module.exports = class Terminal extends KDObject
     @controlCodeReader = createANSIControlCodeReader(this)
 
     @measurebox = new KDCustomHTMLView
-      partial   : "\xA0"
+      partial   : '\xA0'
       cssClass  : 'offscreen'
 
-    outputboxElement = global.document.createElement "div"
+    outputboxElement = global.document.createElement 'div'
     @outputbox = $ outputboxElement
-    @outputbox.attr "contenteditable", !@readOnly
-    @outputbox.attr "spellcheck", off
-    @outputbox.css "cursor", "text"
+    @outputbox.attr 'contenteditable', not @readOnly
+    @outputbox.attr 'spellcheck', off
+    @outputbox.css 'cursor', 'text'
     @outputbox.append @measurebox.getDomElement()
 
     @container.append @outputbox
 
-    outputboxElement.addEventListener "keydown", do =>
+    outputboxElement.addEventListener 'keydown', do =>
       controlMeta = no
       (event) =>
         range = kd.utils.getSelectionRange()
         return  if range.startOffset is range.endOffset
         if event.ctrlKey or event.metaKey
-          return  controlMeta = yes  if event.keyIdentifier in ["Control", "Meta"]
+          return  controlMeta = yes  if event.keyIdentifier in ['Control', 'Meta']
           char = String.fromCharCode event.which
-          if char is "X" then return @setKeyFocus()
-          else if char in ["C", "V"] then return
+          if char is 'X' then return @setKeyFocus()
+          else if char in ['C', 'V'] then return
           else if controlMeta then @setKeyFocus()
           controlMeta = no
         else
           @setKeyFocus()
 
-    outputboxElement.addEventListener "keypress", (event) =>
+    outputboxElement.addEventListener 'keypress', (event) =>
       kd.utils.stopDOMEvent event  if event.target isnt @keyInput.getElement()
     , yes
 
-    @outputbox.on "keydown", (event) =>
+    @outputbox.on 'keydown', (event) =>
       if @mousedownHappened
         @setKeyFocus() unless event.ctrlKey or event.metaKey
         kd.utils.defer =>
           @mousedownHappened = false
 
-    @outputbox.on "paste", @bound "paste"
+    @outputbox.on 'paste', @bound 'paste'
 
-    @outputbox.on "drop", (event) =>
-      @server.input event.originalEvent.dataTransfer.getData "text/plain"
+    @outputbox.on 'drop', (event) =>
+      @server.input event.originalEvent.dataTransfer.getData 'text/plain'
       kd.utils.stopDOMEvent event
 
     @updateSize()
 
-    @container.on "mousedown mousemove mouseup wheel contextmenu", (event) =>
+    @container.on 'mousedown mousemove mouseup wheel contextmenu', (event) =>
       @inputHandler.mouseEvent event
 
     @clientInterface =
       output: (data) =>
-        kd.log @inspectString(data) if localStorage?["WebTerm.logRawOutput"] is "true"
+        kd.log @inspectString(data) if localStorage?['WebTerm.logRawOutput'] is 'true'
         @controlCodeReader.addData data
-        if localStorage?["WebTerm.slowDrawing"] is "true"
+        if localStorage?['WebTerm.slowDrawing'] is 'true'
           @controlCodeInterval ?= global.setInterval =>
             atEnd = @controlCodeReader.process()
-            if localStorage?["WebTerm.slowDrawing"] isnt "true"
+            if localStorage?['WebTerm.slowDrawing'] isnt 'true'
               atEnd = @controlCodeReader.process() until atEnd
             @screenBuffer.flush()
             if atEnd
@@ -219,7 +219,7 @@ module.exports = class Terminal extends KDObject
     @scrollToBottom()
 
     [@currentWidth, @currentHeight] = [swidth, sheight]
-    {width: charWidth, height: charHeight} = @getCharSizes()
+    { width: charWidth, height: charHeight } = @getCharSizes()
 
     newCols = Math.max 1, Math.floor swidth  / charWidth
     newRows = Math.max 1, Math.floor sheight / charHeight
@@ -230,7 +230,7 @@ module.exports = class Terminal extends KDObject
   updateAppSize: ->
 
     { appView } = @getOptions()
-    {width: charWidth, height: charHeight} = @getCharSizes()
+    { width: charWidth, height: charHeight } = @getCharSizes()
 
     return  unless appView.parent
 
@@ -266,9 +266,9 @@ module.exports = class Terminal extends KDObject
     oldContent = @screenBuffer.getLineContent lineIndex
     newContent = oldContent.substring 0, x
 
-    text = text.replace /[ ]/g, "\xA0" # NBSP
+    text = text.replace /[ ]/g, '\xA0' # NBSP
     switch @currentCharacterSets[@currentCharacterSetIndex]
-      when "0"
+      when '0'
         nonBoldStyle = new Style style
         nonBoldStyle.bold = false
         for i in [0..text.length]
@@ -276,8 +276,8 @@ module.exports = class Terminal extends KDObject
           u = LINE_DRAWING_CHARSET[c - 0x41] ? c
           charStyle = if u >= 0x2300 then nonBoldStyle else style
           newContent.push new StyledText(String.fromCharCode(u), charStyle)
-      when "A"
-        text = text.replace /#/g, "\xA3" # pound sign
+      when 'A'
+        text = text.replace /#/g, '\xA3' # pound sign
         newContent.push new StyledText(text, style)
       else
         newContent.push new StyledText(text, style)
@@ -292,8 +292,8 @@ module.exports = class Terminal extends KDObject
     @currentWhitespaceStyle
     options ?= {}
     options.style = @currentWhitespaceStyle
-    text = ""
-    text += "\xA0" for i in [0...length]
+    text = ''
+    text += '\xA0' for i in [0...length]
     @writeText text, options
 
   deleteCharacters: (count, options) ->
@@ -303,8 +303,8 @@ module.exports = class Terminal extends KDObject
     oldContent = @screenBuffer.getLineContent lineIndex
     newContent = oldContent.substring 0, x
     newContent.pushAll oldContent.substring(x + count)
-    text = ""
-    text += "\xA0" for i in [0...count]
+    text = ''
+    text += '\xA0' for i in [0...count]
     if lastLine = oldContent.get oldContent.length() - 1
       newContent.push new StyledText(text, lastLine.style)
     @screenBuffer.setLineContent lineIndex, newContent
@@ -335,7 +335,7 @@ module.exports = class Terminal extends KDObject
     @container.stop()
 
     if animate
-    then @container.animate { scrollTop : @parent.getScrollHeight() - @parent.getHeight() }, duration : 200
+    then @container.animate { scrollTop : @parent.getScrollHeight() - @parent.getHeight() }, { duration : 200 }
     else @parent.scrollToBottom()
 
 
@@ -349,7 +349,7 @@ module.exports = class Terminal extends KDObject
       special = SPECIAL_CHARS[character]
       return special if special
       hex = character.charCodeAt(0).toString(16).toUpperCase()
-      hex = "0" + hex if hex.length is 1
+      hex = '0' + hex if hex.length is 1
       '\\x' + hex
     '"' + escaped.replace('"', '\\"') + '"'
 
@@ -359,5 +359,5 @@ module.exports = class Terminal extends KDObject
     return  if @isReadOnly
 
     kd.utils.stopDOMEvent event
-    @server.input event.originalEvent.clipboardData.getData "text/plain"
+    @server.input event.originalEvent.clipboardData.getData 'text/plain'
     @setKeyFocus()

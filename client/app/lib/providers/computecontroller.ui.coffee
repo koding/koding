@@ -491,7 +491,7 @@ module.exports = class ComputeControllerUI
 
             if isMine provisioner
 
-              provisioner.update content: { script }, (err, res) ->
+              provisioner.update { content: { script } }, (err, res) ->
                 modal.emit if err then 'SaveFailed' else 'Saved'
 
             else

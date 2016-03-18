@@ -284,7 +284,7 @@ module.exports = class ComputeController extends KDController
 
   queryMachines: (query = {}, callback = kd.noop) ->
 
-    remote.api.JMachine.some query, (err, machines) =>
+    remote.api.JMachine.some query, (err, machines) ->
       if showError err then callback err
       else callback null, (new Machine { machine } for machine in machines)
 
