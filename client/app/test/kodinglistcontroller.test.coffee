@@ -17,7 +17,8 @@ describe 'KodingListController', ->
 
       {
         useCustomScrollView, lazyLoadThreshold, limit,
-        sort, model, fetcherMethod
+        sort, model, fetcherMethod, startWithLazyLoader,
+        lazyLoaderOptions
       } = listController.getOptions()
 
       viewInstanceCheck = listController.getListView() instanceof KodingListView
@@ -27,7 +28,9 @@ describe 'KodingListController', ->
       expect(lazyLoadThreshold).toBe 10
       expect(limit).toBe 10
       expect(model).toNotExist()
+      expect(startWithLazyLoader).toBeTruthy()
       expect(sort).toEqual { '_id' : -1 }
+      expect(lazyLoaderOptions.spinnerOptions.size).toEqual { width : 28 }
 
     it 'should create default no item found widget', ->
 

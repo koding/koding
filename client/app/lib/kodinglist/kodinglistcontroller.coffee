@@ -16,6 +16,13 @@ module.exports = class KodingListController extends KDListViewController
     options.useCustomScrollView    ?= yes
     options.lazyLoadThreshold      ?= 10
 
+    options.startWithLazyLoader    ?= yes
+
+    options.lazyLoaderOptions     or= {}
+
+    options.lazyLoaderOptions.spinnerOptions      or= {}
+    options.lazyLoaderOptions.spinnerOptions.size or= { width : 28 }
+
     options.limit                  ?= 10
     options.sort                  or= { '_id' : -1 }
 
