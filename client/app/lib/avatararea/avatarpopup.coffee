@@ -4,7 +4,7 @@ KDView      = kd.View
 
 module.exports = class AvatarPopup extends KDView
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'avatararea-popup', options.cssClass
 
@@ -15,7 +15,7 @@ module.exports = class AvatarPopup extends KDView
     @listenWindowResize()
 
 
-  show:->
+  show: ->
 
     { mainController, windowController } = kd.singletons
     kd.utils.killWait @loaderTimeout
@@ -27,7 +27,7 @@ module.exports = class AvatarPopup extends KDView
     return this
 
 
-  hide:->
+  hide: ->
 
     { mainController } = kd.singletons
     mainController.emit 'AvatarPopupIsInactive'
@@ -36,7 +36,7 @@ module.exports = class AvatarPopup extends KDView
     return this
 
 
-  _windowDidResize:->
+  _windowDidResize: ->
 
     return  unless @listController
 
