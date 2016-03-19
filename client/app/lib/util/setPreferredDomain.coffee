@@ -2,11 +2,11 @@ kookies = require 'kookies'
 # This function checks current user's preferred domain and
 # set's it to preferredDomainCookie
 
-module.exports = (account)->
+module.exports = (account) ->
   preferredDomainCookieName = 'kdproxy-preferred-domain'
 
-  {preferredKDProxyDomain} = account
-  if preferredKDProxyDomain and preferredKDProxyDomain isnt ""
+  { preferredKDProxyDomain } = account
+  if preferredKDProxyDomain and preferredKDProxyDomain isnt ''
     # if cookie name is already same do nothing
     return  if (kookies.get preferredDomainCookieName) is preferredKDProxyDomain
 
