@@ -5,7 +5,7 @@ KiteCache = require '../kite/kitecache'
 module.exports = (username) ->
   kd.singletons.socialapi.account.impersonate username, (err) ->
     if err
-      options = userMessage: "You are not allowed to impersonate"
+      options = { userMessage: 'You are not allowed to impersonate' }
       showErrorNotification err, options
     else
 
