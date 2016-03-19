@@ -4,7 +4,7 @@ KDModalViewWithForms = kd.ModalViewWithForms
 
 module.exports = class VerifyPINModal extends KDModalViewWithForms
 
-  constructor: (buttonTitle = "Submit", callback) ->
+  constructor: (buttonTitle = 'Submit', callback) ->
 
     options =
       title                       : "Please provide the code that we've emailed"

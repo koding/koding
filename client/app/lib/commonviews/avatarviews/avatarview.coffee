@@ -49,7 +49,7 @@ module.exports = class AvatarView extends LinkView
 
     @dpr              = global.devicePixelRatio ? 1
     { width, height } = options.size
-    @gravatar         = new ErrorlessImageView {width, height}
+    @gravatar         = new ErrorlessImageView { width, height }
     @gravatar.on 'load', =>
       @gravatar.setCss 'opacity', '1'
       @setCss 'background-image', 'none'

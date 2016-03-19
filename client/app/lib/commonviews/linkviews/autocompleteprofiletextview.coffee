@@ -4,7 +4,7 @@ getFullnameFromAccount = require '../../util/getFullnameFromAccount'
 
 module.exports = class AutoCompleteProfileTextView extends ProfileTextView
 
-  highlightMatch: (str, isNick=no) ->
+  highlightMatch: (str, isNick = no) ->
 
     { userInput } = @getOptions()
     unless userInput

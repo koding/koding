@@ -7,7 +7,7 @@ showError = require 'app/util/showError'
 
 module.exports = class VerifyPasswordModal extends KDModalViewWithForms
 
-  constructor: (buttonTitle = "Submit", callback) ->
+  constructor: (buttonTitle = 'Submit', callback) ->
 
     options =
       title                       : 'Please verify your current password '

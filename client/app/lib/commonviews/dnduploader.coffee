@@ -213,7 +213,7 @@ module.exports = class DNDUploader extends KDView
       tagName   : 'a'
       partial   : 'cancel'
       cssClass  : 'cancel'
-      attributes: href: '#'
+      attributes: { href: '#' }
       click     : => @emit 'cancel'
 
   saveFile: (fsFile, data) ->

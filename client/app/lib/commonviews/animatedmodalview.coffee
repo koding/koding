@@ -47,7 +47,7 @@ module.exports = class AnimatedModalView extends KDView
     height = _wind.height()
     width  = _wind.width()
 
-    { x, y, w, h } = @getDelegate().getBounds?() or x:1, y:1, w:1, h:1
+    { x, y, w, h } = @getDelegate().getBounds?() or { x:1, y:1, w:1, h:1 }
     css    = {}
 
     props  = ['webkitTransform', 'MozTransform', 'transform']
