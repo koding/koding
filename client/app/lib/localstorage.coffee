@@ -100,14 +100,11 @@ module.exports = class LocalStorage extends AppStorage
 
   @getStorage = -> storage
 
-  @cleanLocalStorage = ->
+  @sanitizeLocalStorage = ->
 
     try
       storage = global.localStorage
 
-      for k, v of storage
-        if k in blacklist
-          storage.removeItem k
-
+      storage.removeItem k for k of storage when k in blacklist
     catch e
       kd.warn "#{e.name} occurred while getting localStorage:", e.message
