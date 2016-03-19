@@ -112,7 +112,7 @@ module.exports = class PerfectScrollbar extends Component
   render: ->
 
     props = _.assign {}, @props,
-      style: _.assign {position: 'relative', height: '100%'}, @props.style
+      style: _.assign { position: 'relative', height: '100%' }, @props.style
 
     <div ref='container' {...props}>
       {@props.children}
