@@ -42,6 +42,10 @@ func (c *ChannelParticipant) Update() error {
 	return bongo.B.Update(c)
 }
 
+func (c *ChannelParticipant) DeleteForce() error {
+	return bongo.B.Delete(c)
+}
+
 func (c *ChannelParticipant) ById(id int64) error {
 	return bongo.B.ById(c, id)
 }
