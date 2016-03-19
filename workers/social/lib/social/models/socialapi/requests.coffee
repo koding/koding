@@ -425,22 +425,22 @@ dispatchEvent = (eventName, data, callback) ->
   url = "#{socialProxyUrl}/private/dispatcher/#{eventName}"
   post url, data, callback
 
-storeCredential = (pathName, data, callback) ->
-  if not pathName
+storeCredential = (data, callback) ->
+  if not data.pathName
     return callback new KodingError 'Request is not valid for storing credential'
-  url = "#{socialProxyUrl}/credential/#{pathName}"
+  url = "#{socialProxyUrl}/credential/#{data.pathName}"
   post url, data, callback
 
-getCredential = (pathName, data, callback) ->
-  if not pathName
+getCredential = (data, callback) ->
+  if not data.pathName
     return callback new KodingError 'Request is not valid for getting credential'
-  url = "#{socialProxyUrl}/credential/#{pathName}"
+  url = "#{socialProxyUrl}/credential/#{data.pathName}"
   get url, data, callback
 
-deleteCredential = (pathName, data, callback) ->
-  if not pathName
+deleteCredential = (data, callback) ->
+  if not data.pathName
     return callback new KodingError 'Request is not valid for deleting credential'
-  url = "#{socialProxyUrl}/credential/#{pathName}"
+  url = "#{socialProxyUrl}/credential/#{data.pathName}"
   deleteReq url, data, callback
 
 fetchBotChannel = (data, callback) ->
