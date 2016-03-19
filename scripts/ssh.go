@@ -36,7 +36,7 @@ var ELBS = map[string]string{
 	"proxy-us-east-1":      "awseb-e-a-AWSEBLoa-RTLJ62SKJY5G",
 	"proxy-us-west-2":      "awseb-e-7-AWSEBLoa-1V808KG9PDQH5",
 	"proxy-ap-southeast-1": "awseb-e-u-AWSEBLoa-15H1DQTBBUMG",
-	"proxy-dev-us-e-1":     "awseb-e-p-AWSEBLoa-16QIN1OI6WYNK",
+	"proxy-dev-us-e-1":     "awseb-e-e-AWSEBLoa-A6GVWAANHT2N",
 }
 
 var Tags = map[string]string{
@@ -58,7 +58,7 @@ var ELB2Region = map[string]aws.Region{
 	"awseb-e-x-AWSEBLoa-2AG3XORA8JXC":  aws.USEast,
 	"awseb-e-3-AWSEBLoa-1S2VPBAQXDRW9": aws.USEast,
 	"awseb-e-p-AWSEBLoa-1POHSLP6A7STY": aws.USEast,
-	"awseb-e-p-AWSEBLoa-16QIN1OI6WYNK": aws.USEast,
+	"awseb-e-e-AWSEBLoa-A6GVWAANHT2N":  aws.USEast,
 }
 
 func getEC2(elbName string) *ec2.EC2 {

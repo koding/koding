@@ -25,8 +25,10 @@ BUILDER_WATCH_FLAGS?=--watch-js --watch-css --watch-sprites
 BUILDER_MINIFY_FLAGS?=--minify-css --minify-js --collapse-js
 BUILDER_EXT_SOURCEMAPS_FLAGS?=--extract-js-sourcemaps --debug-js
 BUILDER_EXCLUDE_TESTRUNNER_FLAG?=--exclude-testrunner
+CLIENT=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+SCRIPTS=$(CLIENT)/../scripts
 
-all: landing development
+all: development landing
 
 dist: landing production
 
@@ -41,7 +43,7 @@ debug:
 watch:
 	$(BUILDER) -v $(BUILDER_WATCH_FLAGS) $(BUILDER_ARGS)
 
-development: watch
+development: node_modules watch
 
 production:
 	NODE_ENV=production \
@@ -58,10 +60,15 @@ minify-with-unit-tests:
 minify:
 	$(BUILDER) $(BUILDER_MINIFY_FLAGS) $(BUILDER_ARGS) $(BUILDER_EXCLUDE_TESTRUNNER_FLAG)
 
+node_modules:
+	$(SCRIPTS)/check-node_modules.sh $(CLIENT) || $(SCRIPTS)/install-npm.sh
+	$(SCRIPTS)/check-node_modules.sh builder   || $(SCRIPTS)/install-npm.sh -d builder
+	$(SCRIPTS)/check-node_modules.sh landing   || $(SCRIPTS)/install-npm.sh -d landing
+
 landing:
 	$(MAKE) -C landing
 
 test:
 	$(MAKE) -C test
 
-.PHONY: landing test
+.PHONY: node_modules landing test

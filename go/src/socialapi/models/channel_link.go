@@ -90,6 +90,52 @@ func (c *ChannelLink) FetchRoot() (*Channel, error) {
 	return channel, nil
 }
 
+// ChannelLinksWithRoot fetches the links with root of channel
+func (c *ChannelLink) ChannelLinksWithRoot() ([]ChannelLink, error) {
+	var cLinks []ChannelLink
+
+	query := bongo.B.DB.Table(c.BongoName())
+	query = query.Where("root_id = ? or leaf_id = ?", c.RootId, c.RootId)
+
+	if err := query.Find(&cLinks).Error; err != nil && err != bongo.RecordNotFound {
+		return nil, err
+	}
+
+	if cLinks == nil {
+		return nil, nil
+	}
+
+	if len(cLinks) == 0 {
+		return nil, nil
+	}
+
+	return cLinks, nil
+}
+
+// RemoveLinksWithRoot removes the links of the given root channel
+func (c *ChannelLink) RemoveLinksWithRoot() error {
+	links, err := c.ChannelLinksWithRoot()
+	if err != nil && err != bongo.RecordNotFound {
+		return err
+	}
+
+	var errs error
+
+	for _, link := range links {
+		// ignore all not found errors while deleting links
+		err := link.Delete()
+		if err != nil && err != ErrChannelNotFound {
+			errs = err
+		}
+	}
+
+	if errs != nil {
+		return errs
+	}
+
+	return nil
+}
+
 // Create creates a link between two channels
 func (c *ChannelLink) Create() error {
 	return c.create()

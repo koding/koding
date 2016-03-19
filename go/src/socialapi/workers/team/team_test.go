@@ -241,6 +241,7 @@ func TestDeleteGroupChannel(t *testing.T) {
 		Convey("it should create channel, message and dependencies", func() {
 			channel1 := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
 			channel2 := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
+			leafChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
 
 			message1 := models.CreateMessage(channel1.Id, account.Id, models.ChannelMessage_TYPE_POST)
 			message2 := models.CreateMessage(channel2.Id, account.Id, models.ChannelMessage_TYPE_POST)
@@ -259,6 +260,13 @@ func TestDeleteGroupChannel(t *testing.T) {
 			cm, err := message1.AddReply(msg1)
 			So(err, ShouldBeNil)
 			So(cm.MessageId, ShouldEqual, message1.Id)
+
+			cl := models.NewChannelLink()
+			cl.RootId = channel2.Id
+			cl.LeafId = leafChannel.Id
+			err = cl.Create()
+			So(err, ShouldBeNil)
+
 			Convey("it should fetch replies and interactions", func() {
 				cml1, err := channel1.FetchMessageList(message1.Id)
 				So(err, ShouldBeNil)
@@ -276,6 +284,13 @@ func TestDeleteGroupChannel(t *testing.T) {
 				err = icm.ById(msg1.Id)
 				So(err, ShouldBeNil)
 
+			})
+
+			Convey("it should fetch channel links", func() {
+				fetched, err := leafChannel.FetchRoot()
+				So(err, ShouldBeNil)
+				So(fetched, ShouldNotBeNil)
+				So(fetched.Id, ShouldEqual, channel2.Id)
 			})
 			Convey("after deleting group channel", func() {
 				err = groupChannel.Delete()
@@ -299,6 +314,12 @@ func TestDeleteGroupChannel(t *testing.T) {
 					err = icm.ById(message1.Id)
 					So(err, ShouldNotBeNil)
 					So(err, ShouldEqual, bongo.RecordNotFound)
+				})
+				Convey("it should not fetch channel links", func() {
+					fetched, err := leafChannel.FetchRoot()
+					So(err, ShouldNotBeNil)
+					So(err, ShouldEqual, bongo.RecordNotFound)
+					So(fetched, ShouldBeNil)
 				})
 			})
 		})

@@ -5,7 +5,7 @@ KDModalViewWithForms = kd.ModalViewWithForms
 
 module.exports = class VmDangerModalView extends KDModalViewWithForms
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.action    or= 'Danger Zone'
     options.title     or= options.action
@@ -51,7 +51,7 @@ module.exports = class VmDangerModalView extends KDModalViewWithForms
 
     super
 
-  checkVmName:(input, showError=yes)=>
+  checkVmName: (input, showError = yes) =>
 
     if input.getValue() is @getData()
       input.setValidationResult 'slugCheck', null

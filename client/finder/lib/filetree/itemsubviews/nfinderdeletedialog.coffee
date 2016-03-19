@@ -12,7 +12,7 @@ module.exports = class NFinderDeleteDialog extends KDModalView
     callback         = data.callback
     numFiles         = "#{items.length} item#{if items.length > 1 then 's' else ''}"
     options.title    = "Do you really want to delete #{numFiles}"
-    options.content  = ""
+    options.content  = ''
     options.overlay  = yes
     options.cssClass = 'delete-files-modal'
     options.width    = 500
@@ -35,8 +35,8 @@ module.exports = class NFinderDeleteDialog extends KDModalView
 
   viewAppended: ->
 
-    {items} = @getData()
-    @$().css top : 75
+    { items } = @getData()
+    @$().css { top : 75 }
 
     scrollView = new KDScrollView
       cssClass : 'modalformline file-container'

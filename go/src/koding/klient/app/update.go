@@ -9,14 +9,16 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
+
+	"koding/klient/protocol"
 
 	"github.com/hashicorp/go-version"
 	"github.com/inconshreveable/go-update"
 	"github.com/koding/kite"
 	"github.com/mitchellh/osext"
-	"koding/klient/protocol"
 )
 
 type Updater struct {
@@ -24,6 +26,7 @@ type Updater struct {
 	Interval       time.Duration
 	CurrentVersion string
 	Log            kite.Logger
+	Wait           sync.WaitGroup
 }
 
 type UpdateData struct {
@@ -40,20 +43,12 @@ func (u *Updater) ServeKite(r *kite.Request) (interface{}, error) {
 	go func() {
 		r.LocalKite.Log.Info("klient.Update is called. Updating binary via latest version")
 
-		updatingState(true)
 		if err := u.checkAndUpdate(); err != nil {
 			u.Log.Warning("klient.update: %s", err)
 		}
-		updatingState(false)
 	}()
 
 	return true, nil
-}
-
-func updatingState(state bool) {
-	updatingMu.Lock()
-	updating = state
-	updatingMu.Unlock()
 }
 
 func (u *Updater) checkAndUpdate() error {
@@ -107,6 +102,9 @@ func (u *Updater) updateBinary(url string) error {
 	if err != nil {
 		return err
 	}
+
+	u.Wait.Add(1)
+	defer u.Wait.Done()
 
 	u.Log.Info("Replacing new binary with the old one.")
 	err, errRecover := updater.FromStream(bytes.NewBuffer(bin))
@@ -186,13 +184,9 @@ func (u *Updater) Run() {
 		u.Interval, u.Endpoint)
 
 	for _ = range time.Tick(u.Interval) {
-		updatingState(true)
-
 		if err := u.checkAndUpdate(); err != nil {
 			u.Log.Warning("Self-update: %s", err)
 		}
-
-		updatingState(false)
 	}
 }
 

@@ -155,6 +155,13 @@ func (r *Remote) hostFromClient(k *kite.Client) (string, error) {
 
 	host, _, err := net.SplitHostPort(u.Host)
 	if err != nil {
+		// we try if u.Host is just a host without a port and not
+		// e.g. ill-formatted ipv6 address.
+		_, _, e := net.SplitHostPort(net.JoinHostPort(u.Host, "80"))
+		if e == nil {
+			return u.Host, nil
+		}
+
 		return "", err
 	}
 
