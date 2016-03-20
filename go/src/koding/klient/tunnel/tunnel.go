@@ -27,7 +27,7 @@ var (
 
 // Tunnel
 type Tunnel struct {
-	db     Storage
+	db     *Storage
 	opts   *Options
 	client *tunnelproxy.Client
 
@@ -122,7 +122,7 @@ func New(opts *Options) *Tunnel {
 	optsCopy := *opts
 
 	t := &Tunnel{
-		db:   newStorage(&optsCopy),
+		db:   NewStorage(optsCopy.DB),
 		opts: &optsCopy,
 	}
 
