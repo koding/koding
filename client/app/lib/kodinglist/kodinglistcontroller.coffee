@@ -6,7 +6,6 @@ KodingListView        = require './kodinglistview'
 KDListItemView        = kd.ListItemView
 KDListViewController  = kd.ListViewController
 
-
 module.exports = class KodingListController extends KDListViewController
 
 
@@ -17,6 +16,7 @@ module.exports = class KodingListController extends KDListViewController
       options.view  = null
     else
       options.view ?= new KodingListView
+        itemClass   : options.itemClass
 
     options.itemClass              ?= KDListItemView
 
@@ -65,18 +65,20 @@ module.exports = class KodingListController extends KDListViewController
     # 
     # Example usage => listView.emit 'ItemAction', { action : 'RemoveItem', item : this }
     #
-    listView.on 'ItemAction', ({ action, item }) =>
+    listView.on 'ItemAction', ({ action, item, options }) =>
       switch action
         when 'RemoveItem'
-          @removeItem item
+          @removeItem item, options
 
 
-  removeItem: (item) ->
+  removeItem: (item, options = {}) ->
 
     { actionMethods } = @getOptions()
     listView          = @getListView()
 
     confirmOptions =
+      title        : options.title
+      description  : options.description
       callback     : actionMethods?.remove ? ({status, modal}) =>
         return  unless status
 
