@@ -5,7 +5,6 @@ showError             = require 'app/util/showError'
 KodingListView        = require './kodinglistview'
 KDListItemView        = kd.ListItemView
 KDListViewController  = kd.ListViewController
-KDListItemView        = kd.ListItemView
 
 module.exports = class KodingListController extends KDListViewController
 
