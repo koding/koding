@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/boltdb/bolt"
@@ -94,4 +95,57 @@ func (s *Storage) DeleteValue(r *kite.Request) (interface{}, error) {
 	}
 
 	return true, nil
+}
+
+type EncodingStorage struct {
+	Interface
+
+	MarshalFunc   func(interface{}) ([]byte, error)
+	UnmarshalFunc func([]byte, interface{}) error
+}
+
+func NewEncodingStorage(db *bolt.DB, bucketName []byte) *EncodingStorage {
+	if boltdb, err := NewBoltStorageBucket(db, bucketName); err == nil {
+		return &EncodingStorage{
+			Interface: boltdb,
+		}
+	}
+
+	return &EncodingStorage{
+		Interface: NewMemoryStorage(),
+	}
+}
+
+func (es *EncodingStorage) marshal(v interface{}) ([]byte, error) {
+	if es.MarshalFunc != nil {
+		return es.MarshalFunc(v)
+	}
+
+	return json.Marshal(v)
+}
+
+func (es *EncodingStorage) unmarshal(p []byte, v interface{}) error {
+	if es.UnmarshalFunc != nil {
+		return es.UnmarshalFunc(p, v)
+	}
+
+	return json.Unmarshal(p, v)
+}
+
+func (es *EncodingStorage) GetValue(key string, value interface{}) error {
+	v, err := es.Interface.Get(key)
+	if err != nil {
+		return err
+	}
+
+	return es.unmarshal([]byte(v), value)
+}
+
+func (es *EncodingStorage) SetValue(key string, value interface{}) error {
+	v, err := es.marshal(value)
+	if err != nil {
+		return err
+	}
+
+	return es.Interface.Set(key, string(v))
 }
