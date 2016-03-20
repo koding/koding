@@ -15,7 +15,7 @@ isStarted = false
 
 module.exports = (defaults) ->
 
-  localStorage.sanitizeLocalStorage()
+  localStorage.sanitize()
   if isStarted then throw 'already running' else isStarted = true
 
   initialize defaults, bootup

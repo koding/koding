@@ -100,7 +100,7 @@ module.exports = class LocalStorage extends AppStorage
 
   @getStorage = -> storage
 
-  @sanitizeLocalStorage = ->
+  @sanitize = ->
 
     try
       storage = global.localStorage
