@@ -1,7 +1,7 @@
 NFileItemView = require './nfileitemview'
 module.exports = class NSectionItemView extends NFileItemView
 
-  constructor:(options = {},data)->
+  constructor: (options = {}, data) ->
 
-    options.cssClass  or= "section"
+    options.cssClass  or= 'section'
     super options, data

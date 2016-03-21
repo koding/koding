@@ -77,12 +77,10 @@ module.exports = class Payment extends Base
     get url, {}, (err, subscription) ->
       return callback err  if err
 
-      unless isSubscriptionOk group, subscription
-        return callback new KodingError 'Trial period exceeded'
+      # unless isSubscriptionOk group, subscription
+      #   return callback new KodingError 'Trial period exceeded'
 
-      subscription = sanitizeSubscription subscription
-
-      callback null, subscription
+      callback null, sanitizeSubscription subscription
 
 
   @fetchGroupPlan$ = secure (client, callback) ->

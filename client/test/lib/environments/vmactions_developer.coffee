@@ -19,7 +19,7 @@ module.exports =
         helpers.fillPaymentForm(browser)
         environmentHelpers.simplifiedSubmitForm(browser)
       else
-      	browser.url url
+        browser.url url
 
 
   checkAlwaysOnVmForDevelopmentPlan: (browser) ->

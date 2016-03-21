@@ -8,25 +8,25 @@ FSHelper = require 'app/util/fs/fshelper'
 OpenWithModalItem = require './openwithmodalitem'
 module.exports = class OpenWithModal extends KDObject
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
-    {nodeView,apps} = @getData()
+    { nodeView, apps } = @getData()
     # appsController  = kd.getSingleton "kodingAppsController"
-    appManager      = kd.getSingleton "appManager"
+    appManager      = kd.getSingleton 'appManager'
     fileName        = FSHelper.getFileNameFromPath nodeView.getData().path
 
     modal = new KDModalView
       title         : "Choose application to open #{fileName}"
-      cssClass      : "open-with-modal"
+      cssClass      : 'open-with-modal'
       overlay       : yes
       width         : 400
       buttons       :
         Open        :
-          title     : "Open"
-          style     : "solid green medium"
-          callback  : =>
+          title     : 'Open'
+          style     : 'solid green medium'
+          callback  : ->
             appName = modal.selectedApp.getData()
 
             # if @alwaysOpenWith.getValue()
@@ -35,13 +35,13 @@ module.exports = class OpenWithModal extends KDObject
             appManager.openFileWithApplication appName, nodeView.getData()
             modal.destroy()
         Cancel     :
-          title    : "Cancel"
-          style    : "solid light-gray medium"
-          callback : => modal.destroy()
+          title    : 'Cancel'
+          style    : 'solid light-gray medium'
+          callback : -> modal.destroy()
 
     # {extensionToApp} = appsController
     # supportedApps    = extensionToApp[fileExtension] or extensionToApp.txt
-    supportedApps = ["Ace"]
+    supportedApps = ['Ace']
 
     for appName in supportedApps
       modal.addSubView new OpenWithModalItem
@@ -50,17 +50,17 @@ module.exports = class OpenWithModal extends KDObject
       , appName
 
     modal.addSubView new KDView
-      cssClass     : "separator"
+      cssClass     : 'separator'
 
     for own appName, manifest of apps when supportedApps.indexOf(appName) is -1
       modal.addSubView new OpenWithModalItem { delegate: modal }, manifest
 
     label = new KDLabelView
-      title : "Always open with..."
+      title : 'Always open with...'
 
     @alwaysOpenWith = new KDInputView
       label : label
-      type  : "checkbox"
+      type  : 'checkbox'
 
     modal.buttonHolder.addSubView @alwaysOpenWith
     modal.buttonHolder.addSubView label

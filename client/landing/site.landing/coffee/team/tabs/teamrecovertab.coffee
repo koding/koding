@@ -16,7 +16,7 @@ module.exports = class TeamRecoverTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
@@ -27,7 +27,7 @@ module.exports = class TeamRecoverTab extends kd.TabPaneView
       cssClass : 'team'
       navItems : [
         { title : 'Blog',     href : 'http://blog.koding.com',          name : 'blog' }
-        { title : 'Features', href : 'https://www.koding.com/Features', name : 'features', attributes: target: '_blank' }
+        { title : 'Features', href : 'https://www.koding.com/Features', name : 'features', attributes: { target: '_blank' } }
       ]
 
     @logo = utils.getGroupLogo()
@@ -55,8 +55,8 @@ module.exports = class TeamRecoverTab extends kd.TabPaneView
       data        : { email, _csrf : Cookies.get('_csrf'), group, mode }
       type        : 'POST'
       error       : (xhr) =>
-        {responseText} = xhr
-        new kd.NotificationView title : responseText
+        { responseText } = xhr
+        new kd.NotificationView { title : responseText }
         @form.button.hideLoader()
       success     : =>
         @form.button.hideLoader()
@@ -78,7 +78,7 @@ module.exports = class TeamRecoverTab extends kd.TabPaneView
 
   pistachio: ->
 
-    """
+    '''
     {{> @header }}
     <div class="TeamsModal TeamsModal--login">
       {{> @logo}}
@@ -87,4 +87,4 @@ module.exports = class TeamRecoverTab extends kd.TabPaneView
     <footer>
       <a href="https://www.koding.com/Legal" target="_blank">Acceptable user policy</a><a href="https://www.koding.com/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="https://www.koding.com/Legal/Terms" target="_blank">Terms of service</a><a href="https://www.koding.com/Legal/Privacy" target="_blank">Privacy policy</a>
     </footer>
-    """
+    '''

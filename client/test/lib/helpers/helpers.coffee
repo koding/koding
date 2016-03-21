@@ -3,6 +3,8 @@ faker    = require 'faker'
 assert   = require 'assert'
 HUBSPOT  = no
 
+require '../utils/fail.js' # require fail to wrap NW::fail.
+
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
@@ -60,13 +62,30 @@ module.exports =
 
   doLogin: (browser, user) ->
 
-    @attemptLogin(browser, user)
+    sidebarSelector = '[testpath=main-sidebar]'
+    ideSelector     = '#main-tab-view .dark.application-page'
+    loginMessage    = " ✔ Successfully logged in with username: #{user.username} and password: #{user.password}"
+    registerMessage = " ✔ User is not registered yet. Registering... username: #{user.username} and password: #{user.password}"
 
-    browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
+    @attemptLogin browser, user
+
+    browser.element 'css selector', sidebarSelector, (result) =>
       if result.status is 0
-        console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password}"
+        browser.element 'css selector', ideSelector, (result) =>
+          if result.status is 0
+            console.log loginMessage
+          else
+            browser
+              .refresh()
+              .pause   5000 # wait for loading after refresh
+              .element 'css selector', ideSelector, (result) =>
+                if result.status is 0
+                  console.log loginMessage
+                else
+                  console.log registerMessage
+                  @doRegister browser, user
       else
-        console.log " ✔ User is not registered yet. Registering... username: #{user.username} and password: #{user.password}"
+        console.log registerMessage
         @doRegister browser, user
 
 
@@ -77,10 +96,10 @@ module.exports =
       .click                  '[testpath=AvatarAreaIconLink]'
       .click                  '[testpath=logout-link]'
       .pause                  3000
-      if HUBSPOT
-        browser.waitForElementVisible  '.hero.block .container', 20000
-      else
-        browser.waitForElementVisible  '.TeamsModal--select', 30000 # Assertion
+    if HUBSPOT
+      browser.waitForElementVisible  '.hero.block .container', 20000
+    else
+      browser.waitForElementVisible  '.TeamsModal--select', 30000 # Assertion
 
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
@@ -335,7 +354,7 @@ module.exports =
       .pause                   2000
       .waitForElementVisible   '.vm-header', 50000
       .click                   '.vm-header .buttons'
-      .waitForElementVisible   '.context-list-wrapper',50000
+      .waitForElementVisible   '.context-list-wrapper', 50000
       .click                   '.context-list-wrapper li.new-folder'
       .waitForElementVisible   'li.selected .rename-container .hitenterview', 50000
       .clearValue              'li.selected .rename-container .hitenterview'
@@ -381,7 +400,7 @@ module.exports =
 
   deleteWorkspace: (browser, workspaceName) ->
 
-    browser.url (data) =>
+    browser.url (data) ->
       url               = data.value
       vmName            = url.split('/IDE/')[1].split('/')[0]
       workspaceSelector = 'a[href="/IDE/' + vmName + '/' + workspaceName + '"]'
@@ -452,7 +471,7 @@ module.exports =
   fillPaymentForm: (browser, planType = 'developer', cardDetails = {}) ->
 
     defaultCard  =
-      cardNumber : cardDetails.cardNumber or "4111 1111 1111 1111"
+      cardNumber : cardDetails.cardNumber or '4111 1111 1111 1111'
       cvc        : cardDetails.cvc        or 123
       month      : cardDetails.month      or 12
       year       : cardDetails.year       or 2019

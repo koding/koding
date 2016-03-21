@@ -107,6 +107,10 @@ func (r *Remote) UnmountFolder(params req.UnmountFolder) error {
 		)
 	}
 
+	if m.Log == nil {
+		m.Log = r.log
+	}
+
 	// If removeMount encounters an error, we don't want to bail immediately.
 	// Rather, we want to still try to unmount the folder.
 	removeMountErr := r.RemoveMount(m)
@@ -117,25 +121,18 @@ func (r *Remote) UnmountFolder(params req.UnmountFolder) error {
 		)
 	}
 
-	if m.Unmounter != nil {
-		if err := m.Unmounter.Unmount(); err != nil {
-			r.log.Error(
-				"remote.unmountFolder: Unmount failed. name:%s, localPath:%s, err:%s",
-				params.Name, params.LocalPath, err,
-			)
-
-			// Note that we're choosing to return the unmounter error here, rather than
-			// a possible error from removeMount.
-			//
-			// We're using a custom error here, to help KD identify a possibly common
-			// error circumstance and report it to the user.
-			return newKiteErr(systemUnmountFailed, err)
-		}
-	} else {
-		r.log.Warning(
-			"remote.unmountFolder: unmounter was nil. name:%s, localPath:%s",
-			params.Name, params.LocalPath,
+	if err := m.Unmount(); err != nil {
+		r.log.Error(
+			"remote.unmountFolder: Unmount failed. name:%s, localPath:%s, err:%s",
+			params.Name, m.LocalPath, err,
 		)
+
+		// Note that we're choosing to return the unmounter error here, rather than
+		// a possible error from removeMount.
+		//
+		// We're using a custom error here, to help KD identify a possibly common
+		// error circumstance and report it to the user.
+		return newKiteErr(systemUnmountFailed, err)
 	}
 
 	return removeMountErr

@@ -5,6 +5,7 @@ AvatarView                  = require 'app/commonviews/avatarviews/avatarview'
 IDEChatHeadWatchItemView    = require './idechatheadwatchitemview'
 IDEChatHeadReadOnlyItemView = require './idechatheadreadonlyitemview'
 IDELayoutManager            = require '../../workspace/idelayoutmanager'
+getFullnameFromAccount      = require 'app/util/getFullnameFromAccount'
 
 
 module.exports = class IDEStatusBarAvatarView extends AvatarView
@@ -43,108 +44,88 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
   showMenu: ->
 
-    return  if MENU and MENU.getOptions().nickname is @nickname
+    { nickname, amIHost } = @getOptions()
 
-    MENU.destroy()  if MENU
+    return  if MENU and nickname is @nickname
+
+    MENU?.destroy()
 
     { appManager } = kd.singletons
-    { frontApp }   = appManager
+    { frontApp   } = appManager
     { rtm }        = frontApp
-
     menuItems      = {}
-    menuData       =
-      terminals    : []
-      drawings     : []
-      browsers     : []
-      editors      : []
-    menuLabels     =
-      terminal     : 'Terminal'
-      drawing      : 'Drawing Board'
-      browser      : 'Browser'
-      editor       : 'Editor'
+    fullName       = getFullnameFromAccount @getData()
+    disabled       = 'disabled'
+    menuWidth      = 150
 
-    hasChanges = no
+    if @hasRequest
+      menuWidth = 325
+      type      = 'customView'
+      view      = new kd.CustomHTMLView
+        cssClass: 'permission-row'
+        partial : "#{fullName} is asking permission to make changes."
 
-    panes = frontApp.getSnapshotFromDrive @nickname, yes
+      menuItems[fullName] = { type, disabled, view }
+    else
+      menuItems[fullName] = { title: fullName, disabled }
 
-    panes.forEach (pane, i) ->
+    if amIHost
+      menuItems.separator = type: 'separator'
 
-      return  if not pane.context
+    if @hasRequest
+      type = 'customView'
+      view = @createPermissionRequestMenuItem()
 
-      { context: { file, paneType } }             = pane
-      { editors, terminals, drawings, browsers }  = menuData
+      menuItems.actions = { type, view }
 
-      hasChanges = yes
+    else if amIHost
+      permission = rtm.getFromModel('permissions').get @nickname
 
-      switch paneType
-        when 'editor'   then editors.push   { pane, title : FSHelper.getFileNameFromPath file.path }
-        when 'terminal' then terminals.push { pane }
-        when 'drawing'  then drawings.push  { pane }
-        when 'browser'  then browsers.push  { pane }
-
-    for own section, items of menuData
-
-      items.forEach (item, i) ->
-        { context: { paneType } } = item.pane
-        title = item.title or "#{paneType.capitalize()} #{i+1}"
-        label = menuLabels[paneType]
-        menuItems[label] or= children: {}
-        targetObj = menuItems[label].children
-        targetObj[title] = { title }
-        targetObj[title].change = context: item.pane.context
-        targetObj[title].callback = (it) ->
-          appManager.tell 'IDE', 'createPaneFromChange', it.getData().change
-          @destroy()
-
-    menuItems.separator = type: 'separator'  if hasChanges
-
-    appManager.tell 'IDE', 'getCollaborationData', (data) =>
-
-      { amIHost, settings, watchMap, permissions } = data
-
-      isWatching  = watchMap.indexOf(@nickname) > -1
-      permission  = permissions.get @nickname
-
-      menuWidth   = 150
-
-      if settings.unwatch or amIHost
-        @createWatchToggle menuItems, isWatching
-
-      if amIHost and settings.readOnly
-        @createReadOnlyToggle menuItems, permission
-
-      if amIHost
-        menuItems.Kick =
-          title     : 'Kick'
-          callback  : =>
+      if permission is 'edit'
+        menuItems['Revert Permission'] =
+          title    : 'Revert Permission'
+          callback : =>
             MENU?.destroy()
-            kd.singletons.appManager.tell 'IDE', 'kickParticipant', @getData()
+            frontApp.revertPermission @nickname
 
-      MENU = new KDContextMenu
-        nickname    : @nickname
-        cssClass    : 'dark statusbar-files'
-        menuWidth   : menuWidth
-        delegate    : this
-        x           : @getX()
-        y           : @getY()
-        offset      :
-          top       : -5000
-          left      : -82
-        arrow       :
-          placement : 'bottom'
-          margin    : menuWidth / 2
-      , menuItems
+      else if permission is 'read'
+        menuItems['Make Presenter'] =
+          title    : 'Make Presenter'
+          callback : =>
+            MENU?.destroy()
+            frontApp.approvePermissionRequest @nickname
+
+      menuItems.Kick =
+        title     : 'Kick'
+        callback  : =>
+          MENU?.destroy()
+          appManager.tell 'IDE', 'kickParticipant', @getData()
+
+    MENU = new KDContextMenu
+      nickname    : @nickname
+      cssClass    : 'dark IDE-StatusBarContextMenu'
+      menuWidth   : menuWidth
+      delegate    : this
+      x           : @getX()
+      y           : @getY()
+      offset      :
+        top       : -5000
+        left      : -82
+      arrow       :
+        placement : 'bottom'
+        margin    : menuWidth / 2
+    , menuItems
 
 
-      kd.utils.wait 200, =>
-        h = MENU.getHeight()
-        w = MENU.getWidth()
-        top  = -h - 10
-        left = @getWidth()/2 - w/2 - 4 # for an unknown reason - SY
-        MENU.setOption 'offset', {left, top}
-        MENU.positionContextMenu()
+    kd.utils.wait 200, =>
+      h = MENU.getHeight()
+      w = MENU.getWidth()
+      top  = -h - 10
+      left = @getWidth()/2 - w/2 - 4 # for an unknown reason - SY
+      MENU.setOption 'offset', {left, top}
+      MENU.positionContextMenu()
 
-      MENU.once 'KDObjectWillBeDestroyed', => MENU = null
+    MENU.once 'KDObjectWillBeDestroyed', => MENU = null
 
 
   createWatchToggle: (menuItems, isWatching) ->
@@ -195,3 +176,31 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
     MENU?.destroy()
 
     super
+
+
+  showRequestPermissionView: ->
+
+    @hasRequest = yes
+    @showMenu()
+
+
+  createPermissionRequestMenuItem: (item, e) ->
+
+    return new kd.CustomHTMLView
+      cssClass: 'permission-row'
+      partial : """
+        <a href="#" class="deny">DENY</a> -
+        <a href="#" class="grant">GRANT PERMISSION</a>
+      """
+      click   : (e) =>
+        { classList } = e.target
+        frontApp      = kd.singletons.appManager.getFrontApp()
+
+        if isDenied = classList.contains 'deny'
+          frontApp.denyPermissionRequest @nickname
+        else if isApproved = classList.contains 'grant'
+          frontApp.approvePermissionRequest @nickname
+
+        if isDenied or isApproved
+          @hasRequest = null
+          MENU?.destroy()

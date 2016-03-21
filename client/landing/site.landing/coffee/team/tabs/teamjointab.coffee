@@ -16,7 +16,7 @@ track = (action) ->
 
 module.exports = class TeamJoinTab extends kd.TabPaneView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass           = kd.utils.curry 'username', options.cssClass
     options.loginForm        or= TeamJoinByLoginForm
@@ -68,18 +68,26 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
 
   addForm: ->
 
-    TeamJoinTabFormClass = if @alreadyMember and @wantsToUseDifferentAccount
+    if @alreadyMember and @wantsToUseDifferentAccount
       @hideAvatar()
       @forgotPassword?.show()
-      @getOption 'loginForm'
+      kd.utils.defer => @form.username.input.$().trigger 'focus'
+
+      TeamJoinTabFormClass = @getOption 'loginForm'
+
     else if @alreadyMember
       @showAvatar()
       @forgotPassword?.show()
-      @getOption 'loginFormInvited'
+      kd.utils.defer => @form.password.input.$().trigger 'focus'
+
+      TeamJoinTabFormClass = @getOption 'loginFormInvited'
+
     else
       @forgotPassword?.hide()
       @hideAvatar()
-      @getOption 'signupForm'
+      kd.utils.defer => @form.username.input.$().trigger 'focus'
+
+      TeamJoinTabFormClass = @getOption 'signupForm'
 
     @form?.destroy()
     @form = new TeamJoinTabFormClass { callback: @bound 'submit' }
@@ -144,16 +152,16 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
 
     domains = kd.config.group.allowedDomains
     if @alreadyMember and @wantsToUseDifferentAccount
-      "Please enter your <i>koding.com</i> username & password."
+      'Please enter your <i>koding.com</i> username & password.'
     else if @alreadyMember
-      "Please enter your <i>koding.com</i> password."
+      'Please enter your <i>koding.com</i> password.'
     else if domains?.length > 1
       domainsPartial = utils.getAllowedDomainsPartial domains
       "You must have an email address from one of these domains #{domainsPartial} to join"
     else if domains?.length is 1
       "You must have #{articlize domains.first} <i>#{domains.first}</i> email address to join"
     else
-      "Pick a username and password for your new <i>Koding.com</i> account."
+      'Pick a username and password for your new <i>Koding.com</i> account.'
 
 
   addForgotPasswordLink: ->
@@ -172,7 +180,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
       track 'submitted join a team form'
       utils.storeNewTeamData 'join', formData
       utils.joinTeam
-        error : ({responseText}) =>
+        error : ({ responseText }) =>
           @form.emit 'FormSubmitFailed'
 
           if /TwoFactor/.test responseText
@@ -180,7 +188,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
             @form.showTwoFactor()
           else
             track 'failed to join a team'
-            new kd.NotificationView title : responseText
+            new kd.NotificationView { title : responseText }
 
     if @alreadyMember then success()
     else
@@ -188,17 +196,17 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
         success : ->
           track 'entered a valid username'
           success()
-        error   : ({responseJSON}) =>
+        error   : ({ responseJSON }) =>
           track 'entered an invalid username'
 
           unless responseJSON
             return new kd.NotificationView
               title: 'Something went wrong'
 
-          {forbidden, kodingUser} = responseJSON
+          { forbidden, kodingUser } = responseJSON
           msg = if forbidden then "Sorry, \"#{username}\" is forbidden to use!"
           else if kodingUser then "Sorry, \"#{username}\" is already taken!"
           else                    "Sorry, there is a problem with \"#{username}\"!"
 
-          new kd.NotificationView title : msg
+          new kd.NotificationView { title : msg }
           @form.emit 'FormSubmitFailed'

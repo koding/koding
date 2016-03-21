@@ -69,17 +69,17 @@ module.exports = [
     { name: 'environments snapshot' }
   ]
 
-  # [
-  #   { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  # ]
+  [
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
 
-  # [
-  #   { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  # ]
+  [
+    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
 
-  # [
-  #   { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  # ]
+  [
+    { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
 
   [
     { name: 'vmsharing vmsharing', NIGHTWATCH_OPTIONS: '--env host,participant' }
@@ -89,9 +89,9 @@ module.exports = [
     { name: 'environments vm' }
   ]
 
-  [
-    { name: 'environments paidaccount' }
-  ]
+  # [
+  #   { name: 'environments paidaccount' }
+  # ]
 
   [
     { name: 'environments domain' }

@@ -51,15 +51,16 @@ func (r *RetryRepair) String() string {
 // Status returns the eventual (after any given retries needed) status of the
 // Repairer. A failure will only be returned if the number of retries
 // exceeds Options.StatusRetries.
-func (r *RetryRepair) Status() error {
+func (r *RetryRepair) Status() (bool, error) {
 	var (
+		ok  bool
 		err error
 	)
 
 	// The <= check is to ensure we always run once, *plus* the number of retries
 	// specified.
 	for i := uint(0); i <= r.Options.StatusRetries; i++ {
-		if err = r.Repairer.Status(); err == nil {
+		if ok, err = r.Repairer.Status(); ok || err != nil {
 			break
 		}
 
@@ -68,7 +69,7 @@ func (r *RetryRepair) Status() error {
 		}
 	}
 
-	return err
+	return ok, err
 }
 
 // Repair returns the eventual (after any given retries needed) repair result

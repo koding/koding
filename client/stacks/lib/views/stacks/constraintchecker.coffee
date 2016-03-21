@@ -10,7 +10,7 @@ module.exports = constraintChecker = (template, rules) ->
     catch
       return { message: 'Template is not valid JSON' }
 
-  { passed, results } = konstraints template, rules, log: yes
+  { passed, results } = konstraints template, rules, { log: yes }
 
   return results.last[1]  unless passed
   return null

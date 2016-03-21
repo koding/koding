@@ -38,8 +38,8 @@ module.exports =
     webPath        = '/home/' + user.username + '/Web'
     filename       = helpers.createFile(browser, user)
     webSelector    = "span[title='" + webPath + "']"
-    fileSelector   = "span[title='" + webPath + '/' +filename + "']"
-    selectMenuItem = 'li.home'+user.username
+    fileSelector   = "span[title='" + webPath + '/' + filename + "']"
+    selectMenuItem = 'li.home' + user.username
 
     browser
       .waitForElementPresent   fileSelector, 20000 # Assertion
@@ -70,7 +70,7 @@ module.exports =
       .waitForElementVisible    '.kdtabhandle-tabs .settings', 20000
       .waitForElementVisible    '.kdlistview-default.expanded', 50000
       .click                    '.kdtabhandle-tabs .settings'
-      .waitForElementVisible    '.settings-pane .settings-header:first-child',20000 # Assertion
+      .waitForElementVisible    '.settings-pane .settings-header:first-child', 20000 # Assertion
       .end()
 
 

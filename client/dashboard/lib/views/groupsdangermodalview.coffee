@@ -5,7 +5,7 @@ KDModalViewWithForms = kd.ModalViewWithForms
 
 module.exports = class GroupsDangerModalView extends KDModalViewWithForms
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.action or= 'Danger Zone'
     options.longAction or= 'do some danger action'
@@ -30,11 +30,11 @@ module.exports = class GroupsDangerModalView extends KDModalViewWithForms
               type           : 'submit'
               disabled       : yes
               loader         :
-                color        : "#444444"
+                color        : '#444444'
               callback       : -> @showLoader()
             Cancel           :
               style          : 'solid light-gray medium'
-              callback       : (event)=> @destroy()
+              callback       : (event) => @destroy()
           fields             :
             groupSlug        :
               itemClass      : KDInputView
@@ -53,7 +53,7 @@ module.exports = class GroupsDangerModalView extends KDModalViewWithForms
 
     super options, data
 
-  checkGroupSlug:(input, showError=yes)=>
+  checkGroupSlug: (input, showError = yes) =>
 
     if input.getValue() is @getData().slug
       input.setValidationResult 'slugCheck', null

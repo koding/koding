@@ -20,34 +20,36 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
   constructor: (options, data) ->
 
-    options.view or= new KDCustomHTMLView cssClass : 'jtreeview-wrapper'
+    options.view or= new KDCustomHTMLView { cssClass : 'jtreeview-wrapper' }
 
     super options, data
 
     if @getOptions().contextMenu
-      {contextMenuClass} = @getOptions()
+      { contextMenuClass } = @getOptions()
 
       @contextMenuController = new contextMenuClass
 
-      @contextMenuController.on "ContextMenuItemClicked", ({fileView, contextMenuItem})=>
+      @contextMenuController.on 'ContextMenuItemClicked', ({ fileView, contextMenuItem }) =>
         @contextMenuItemSelected fileView, contextMenuItem
     else
-      @getView().setClass "no-context-menu"
+      @getView().setClass 'no-context-menu'
 
-    @appManager    = kd.getSingleton "appManager"
-    mainController = kd.getSingleton "mainController"
+    @appManager    = kd.getSingleton 'appManager'
+    mainController = kd.getSingleton 'mainController'
 
-    mainController.on "NewFileIsCreated", @bound "navigateToNewFile"
-    mainController.on "SelectedFileChanged", @bound "highlightFile"
+    mainController.on 'NewFileIsCreated', @bound 'navigateToNewFile'
+    mainController.on 'SelectedFileChanged', @bound 'highlightFile'
 
-  addNode:(nodeData, index)->
+  addNode: (nodeData, index) ->
     fc = @getDelegate()
-    return if @getOption('foldersOnly') and nodeData.type is "file"
+    return if @getOption('foldersOnly') and nodeData.type is 'file'
     return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.machine.uid
     item = super nodeData, index
 
 
-  highlightFile:(view)->
+  highlightFile: (view) ->
+
+    return  if @isReadOnly
 
     @selectNode @nodes[view.data.path], null, no
 
@@ -62,7 +64,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
     else ace.ready -> editor.focus()
 
 
-  navigateToNewFile:(newFile)->
+  navigateToNewFile: (newFile) ->
 
     @navigateTo newFile.parentPath, =>
       @selectNode @nodes[newFile.path]
@@ -75,55 +77,61 @@ module.exports = class NFinderTreeController extends JTreeViewController
   FINDER OPERATIONS
   ###
 
-  openItem:(nodeView, callback)->
+  openItem: (nodeView, callback) ->
+
+    return  if @isReadOnly
 
     options  = @getOptions()
     nodeData = nodeView.getData()
 
     switch nodeData.type
-      when "folder", "mount", "vm", "machine"
+      when 'folder', 'mount', 'vm', 'machine'
         @toggleFolder nodeView, callback
-      when "file"
+      when 'file'
         @openFile nodeView
-        @emit "file.opened", nodeData
+        @emit 'file.opened', nodeData
         @setBlurState()
 
   openFileWithApp: (nodeView, contextMenuItem) ->
-    return kd.warn "no app passed to open this file"  unless contextMenuItem
+    return kd.warn 'no app passed to open this file'  unless contextMenuItem
     app = contextMenuItem.getData().title
-    kd.getSingleton("appManager").openFileWithApplication app, nodeView.getData()
+    kd.getSingleton('appManager').openFileWithApplication app, nodeView.getData()
 
-  openFile:(nodeView)->
+  openFile: (nodeView) ->
 
+    return  if @isReadOnly
     return unless nodeView
+
     file = nodeView.getData()
     # @appManager.openFile file
-    @getDelegate().emit "FileNeedsToBeOpened", file
+    @getDelegate().emit 'FileNeedsToBeOpened', file
 
   tailFile: (nodeView) ->
 
     return  unless nodeView
+    return  if @isReadOnly
+
     @getDelegate().emit "FileNeedsToBeTailed", { file: nodeView.getData() }
 
 
-  previewFile:(nodeView)->
-    {vmName, path} = nodeView.getData()
-    @appManager.open "Viewer", params: {path, vmName}
+  previewFile: (nodeView) ->
+    { vmName, path } = nodeView.getData()
+    @appManager.open 'Viewer', { params: { path, vmName } }
 
 
-  unmountVm:(nodeView)->
+  unmountVm: (nodeView) ->
     { machine: { uid } } = nodeView.getData()
     @getDelegate().unmountMachine uid
 
   openMachineTerminal: (nodeView) ->
-    {machine}  = nodeView.getData()
-    appManager = kd.getSingleton 'appManager'
-    ideApp     = appManager.get 'IDE'
-    callback   = -> appManager.tell 'IDE', 'openMachineTerminal', machine
+    { machine } = nodeView.getData()
+    appManager  = kd.getSingleton 'appManager'
+    ideApp      = appManager.get 'IDE'
+    callback    = -> appManager.tell 'IDE', 'openMachineTerminal', machine
 
     if ideApp then callback() else appManager.open 'IDE', callback
 
-  toggleDotFiles:(nodeView)->
+  toggleDotFiles: (nodeView) ->
 
     finder = @getDelegate()
     { machine: { uid } } = nodeView.getData()
@@ -132,29 +140,29 @@ module.exports = class NFinderTreeController extends JTreeViewController
     then finder.showDotFiles uid
     else finder.hideDotFiles uid
 
-  makeTopFolder:(nodeView)->
-    {machine, path} = nodeView.getData()
+  makeTopFolder: (nodeView) ->
+    { machine, path } = nodeView.getData()
     finder = @getDelegate()
     finder.updateMachineRoot machine.uid, FSHelper.plainPath path
 
-  refreshFolder:(nodeView, callback)->
+  refreshFolder: (nodeView, callback) ->
 
-    @notify "Refreshing..."
+    @notify 'Refreshing...'
     folder = nodeView.getData()
-    folder.emit "fs.job.finished", [] # in case of refresh to stop the spinner
+    folder.emit 'fs.job.finished', [] # in case of refresh to stop the spinner
 
     @collapseFolder nodeView, =>
-      kd.utils.defer => @expandFolder nodeView, =>
+      kd.utils.defer => @expandFolder nodeView, ->
         notification.destroy()
         callback?()
 
-  toggleFolder:(nodeView, callback)->
+  toggleFolder: (nodeView, callback) ->
     if nodeView.expanded
       @collapseFolder nodeView, callback
     else
       @expandFolder nodeView, callback
 
-  expandFolder:(nodeView, callback, silence=no)->
+  expandFolder: (nodeView, callback, silence = no) ->
 
     return unless nodeView
     return if nodeView.isLoading
@@ -166,42 +174,42 @@ module.exports = class NFinderTreeController extends JTreeViewController
     folder = nodeView.getData()
 
     if folder.depth > 10
-      @notify "Folder is nested deeply, making it top folder"
+      @notify 'Folder is nested deeply, making it top folder'
       @makeTopFolder nodeView
 
-    failCallback = (err)=>
+    failCallback = (err) =>
       unless silence
         if err?.message?.match /permission denied/i
-          message = "Permission denied!"
+          message = 'Permission denied!'
         else
           message = "Couldn't fetch files! Click to retry"
         @notify message, null, \
-                """Sorry, a problem occurred while communicating with servers,
-                   please try again later.""", yes
+                '''Sorry, a problem occurred while communicating with servers,
+                   please try again later.''', yes
         @once 'fs.retry.scheduled', => @expandFolder nodeView, callback
-      folder.emit "fs.job.finished", []
+      folder.emit 'fs.job.finished', []
       callback? err
 
-    folder.fetchContents no, (kd.utils.getTimedOutCallback (err, files)=>
+    folder.fetchContents no, (kd.utils.getTimedOutCallback (err, files) =>
       unless err
         nodeView.expand()
         if files
           @addNodes files
         callback? null, nodeView
-        @emit "folder.expanded", nodeView.getData()  unless silence
+        @emit 'folder.expanded', nodeView.getData()  unless silence
         @emit 'fs.retry.success'
         @hideNotification()
       else
         failCallback err
     , failCallback, globals.config.fileFetchTimeout)
 
-  collapseFolder:(nodeView, callback, silence=no)->
+  collapseFolder: (nodeView, callback, silence = no) ->
 
     return unless nodeView
-    folder = nodeView.getData()
-    {path} = folder
+    folder   = nodeView.getData()
+    { path } = folder
 
-    @emit "folder.collapsed", folder  unless silence
+    @emit 'folder.collapsed', folder  unless silence
 
     if @listControllers[path]
       @listControllers[path].getView().collapse =>
@@ -212,59 +220,59 @@ module.exports = class NFinderTreeController extends JTreeViewController
       nodeView.collapse()
       callback? nodeView
 
-  navigateTo:(path, callback)->
+  navigateTo: (path, callback) ->
 
     return unless path
 
     path = path.split('/')
     path.shift()  if path[0] is ''
-    path.pop()    if path[path.length-1] is ''
+    path.pop()    if path[path.length - 1] is ''
     path[1] = "/#{path[0]}/#{path[1]}"
     path.shift()
 
     index     = 0
     lastPath  = ''
 
-    _expand = (path)=>
+    _expand = (path) =>
       nextPath = path.slice(0, ++index).join('/')
       if lastPath is nextPath
-        @refreshFolder @nodes[nextPath], =>
+        @refreshFolder @nodes[nextPath], ->
           callback?()
         return
 
-      @expandFolder @nodes[nextPath], =>
+      @expandFolder @nodes[nextPath], ->
         lastPath = nextPath
         _expand path
 
     _expand path
 
-  confirmDelete:(nodeView, event)->
+  confirmDelete: (nodeView, event) ->
 
     extension = nodeView.data?.getExtension() or null
 
     if @selectedNodes.length > 1
       new NFinderDeleteDialog {},
         items     : @selectedNodes
-        callback  : (confirmation)=>
+        callback  : (confirmation) =>
           @deleteFiles @selectedNodes if confirmation
           @setKeyView()
     else
       @beingEdited = nodeView
-      nodeView.confirmDelete (confirmation)=>
+      nodeView.confirmDelete (confirmation) =>
         @deleteFiles [nodeView] if confirmation
         @setKeyView()
         @beingEdited = null
 
-  deleteFiles:(nodes, callback)->
+  deleteFiles: (nodes, callback) ->
 
     deletedNodes = []
     results = nodes.map (node) ->
       node.getData().remove().then ->
-        node.emit "ItemBeingDeleted"
+        node.emit 'ItemBeingDeleted'
         deletedNodes.push node
 
     Promise.all(results).then =>
-      @notify "#{deletedNodes.length} item#{if deletedNodes.length > 1 then 's' else ''} deleted!", "success"
+      @notify "#{deletedNodes.length} item#{if deletedNodes.length > 1 then 's' else ''} deleted!", 'success'
       @emit 'NodesRemoved', deletedNodes
       @removeNodeView node for node in deletedNodes
 
@@ -273,7 +281,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
     .nodeify callback
 
-  showRenameDialog:(nodeView)->
+  showRenameDialog: (nodeView) ->
 
     return  unless nodeView
 
@@ -281,26 +289,26 @@ module.exports = class NFinderTreeController extends JTreeViewController
     @beingEdited = nodeView
     nodeData = nodeView.getData()
     oldPath = nodeData.path
-    nodeView.showRenameView (newValue)=>
+    nodeView.showRenameView (newValue) =>
       newValue = Encoder.XSSEncode newValue
       return  if newValue is nodeData.name
       return  unless FSHelper.isValidFileName newValue
 
-      nodeData.rename newValue, (err)=>
+      nodeData.rename newValue, (err) =>
         if err then @notify null, null, err
         @emit 'NodeRenamed', nodeData, newValue
 
       # @setKeyView()
       @beingEdited = null
 
-  createFile:(nodeView, type = "file")->
+  createFile: (nodeView, type = 'file') ->
 
     @notify "creating a new #{type}!"
     nodeData = nodeView.getData()
 
     { machine } = nodeData
 
-    if nodeData.type is "file"
+    if nodeData.type is 'file'
       { parentPath } = nodeData
     else
       parentPath = nodeData.path
@@ -308,12 +316,12 @@ module.exports = class NFinderTreeController extends JTreeViewController
     path = FSHelper.plainPath \
       "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
-    machine.fs.create { path, type, treeController: this }, (err, file)=>
+    machine.fs.create { path, type, treeController: this }, (err, file) =>
       if err
         @notify null, null, err
       else
         kd.utils.defer =>
-          @notify "#{type} created!", "success"
+          @notify "#{type} created!", 'success'
           node = @nodes[file.path]
 
           return @showRenameDialog node  if node
@@ -322,10 +330,10 @@ module.exports = class NFinderTreeController extends JTreeViewController
             @showRenameDialog @nodes[file.path]
 
 
-  moveFiles:(nodesToBeMoved, targetNodeView, callback)->
+  moveFiles: (nodesToBeMoved, targetNodeView, callback) ->
 
     targetItem = targetNodeView.getData()
-    if targetItem.type is "file"
+    if targetItem.type is 'file'
       targetNodeView = @nodes[targetNodeView.getData().parentPath]
       targetItem = targetNodeView.getData()
 
@@ -337,20 +345,20 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
     Promise.all(results).then =>
       @emit 'NodesMoved', movedNodes, targetItem
-      @notify "#{movedNodes.length} item#{if movedNodes.length > 1 then 's' else ''} moved!", "success"
+      @notify "#{movedNodes.length} item#{if movedNodes.length > 1 then 's' else ''} moved!", 'success'
       @removeNodeView node for node in movedNodes
       @refreshFolder targetNodeView
 
     .catch (err) =>
-      kd.warn "Move failed with error:", err
+      kd.warn 'Move failed with error:', err
       @notify null, null, err
 
     .nodeify callback
 
-  copyFiles:(nodesToBeCopied, targetNodeView, callback)->
+  copyFiles: (nodesToBeCopied, targetNodeView, callback) ->
 
     targetItem = targetNodeView.getData()
-    if targetItem.type is "file"
+    if targetItem.type is 'file'
       targetNodeView = @nodes[targetNodeView.getData().parentPath]
       targetItem = targetNodeView.getData()
 
@@ -361,15 +369,15 @@ module.exports = class NFinderTreeController extends JTreeViewController
         copiedNodes.push node
 
     Promise.all(results).then =>
-      @notify "#{copiedNodes.length} item#{if copiedNodes.length > 1 then 's' else ''} copied!", "success"
+      @notify "#{copiedNodes.length} item#{if copiedNodes.length > 1 then 's' else ''} copied!", 'success'
 
     .catch (err) =>
-      kd.warn "Copy failed with error:", err
+      kd.warn 'Copy failed with error:', err
       @notify null, null, err
 
     .nodeify callback
 
-  duplicateFiles:(nodes, callback)->
+  duplicateFiles: (nodes, callback) ->
 
     duplicatedNodes = []
     results = nodes.map (node) =>
@@ -379,43 +387,43 @@ module.exports = class NFinderTreeController extends JTreeViewController
         duplicatedNodes.push node
 
     Promise.all(results).then =>
-      @notify "#{duplicatedNodes.length} item#{if duplicatedNodes.length > 1 then 's' else ''} duplicated!", "success"
+      @notify "#{duplicatedNodes.length} item#{if duplicatedNodes.length > 1 then 's' else ''} duplicated!", 'success'
 
     .catch (err) =>
-      kd.warn "Duplicate file failed with error:", err
+      kd.warn 'Duplicate file failed with error:', err
       @notify null, null, err
 
     .nodeify callback
 
-  compressFiles:(nodeView, type)->
+  compressFiles: (nodeView, type) ->
 
     file = nodeView.getData()
-    file.compress type, (err, response)=>
+    file.compress type, (err, response) =>
       if err then @notify null, null, err
       else
-        @notify "#{file.type.capitalize()} compressed!", "success"
+        @notify "#{file.type.capitalize()} compressed!", 'success'
 
-  extractFiles:(nodeView)->
+  extractFiles: (nodeView) ->
 
     file = nodeView.getData()
-    file.extract (err, response)=>
+    file.extract (err, response) =>
       if err then @notify null, null, err
       else
-        @notify "#{file.type.capitalize()} extracted!", "success"
+        @notify "#{file.type.capitalize()} extracted!", 'success'
         @refreshFolder @nodes[file.parentPath], =>
           @selectNode @nodes[response.path]
 
-  compileApp:(nodeView, callback)->
+  compileApp: (nodeView, callback) ->
 
     folder = nodeView.getData()
-    folder.emit "fs.job.started"
+    folder.emit 'fs.job.started'
 
-    KodingAppsController.compileAppOnServer folder.path, (err, app)=>
+    KodingAppsController.compileAppOnServer folder.path, (err, app) =>
 
-      folder.emit "fs.job.finished"
+      folder.emit 'fs.job.finished'
       return kd.warn err  if err
 
-      @notify "App compiled!", "success"
+      @notify 'App compiled!', 'success'
 
       kd.utils.wait 500, =>
         @refreshFolder nodeView, =>
@@ -424,26 +432,26 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
       callback? err
 
-  publishApp:(nodeView)->
+  publishApp: (nodeView) ->
 
     folder = nodeView.getData()
-    folder.emit "fs.job.started"
+    folder.emit 'fs.job.started'
 
-    KodingAppsController.createJApp path: folder.path, (err, app)->
-      folder.emit "fs.job.finished"
+    KodingAppsController.createJApp { path: folder.path }, (err, app) ->
+      folder.emit 'fs.job.finished'
 
       if err or not app
         kd.warn err
         return new KDNotificationView
-          title : "Failed to publish"
+          title : 'Failed to publish'
 
       new KDNotificationView
-        title: "Published successfully!"
+        title: 'Published successfully!'
 
       kd.singletons
         .router.handleRoute "/Apps/#{app.manifest.authorNick}/#{app.name}"
 
-  makeNewApp:(nodeView)->
+  makeNewApp: (nodeView) ->
     kd.getSingleton('kodingAppsController').makeNewApp()
 
   cloneRepo: (nodeView) ->
@@ -451,14 +459,14 @@ module.exports = class NFinderTreeController extends JTreeViewController
     modal    = new CloneRepoModal
       vmName : folder.vmName
       path   : folder.path
-    modal.on "RepoClonedSuccessfully", => @notify "Repo cloned successfully.", "success"
+    modal.on 'RepoClonedSuccessfully', => @notify 'Repo cloned successfully.', 'success'
 
   openTerminalFromHere: (nodeView) ->
-    @appManager.open "Terminal", (appInstance) =>
-      path          = nodeView.getData().path
-      {terminalView} = @appManager.getFrontApp().getView().tabView.getActivePane().getOptions()
+    @appManager.open 'Terminal', (appInstance) =>
+      path             = nodeView.getData().path
+      { terminalView } = @appManager.getFrontApp().getView().tabView.getActivePane().getOptions()
 
-      terminalView.on "WebTermConnected", (server) =>
+      terminalView.on 'WebTermConnected', (server) ->
         server.input "cd #{path}\n"
 
   ###
@@ -474,12 +482,12 @@ module.exports = class NFinderTreeController extends JTreeViewController
   cmUnmountVm:           (node) -> @unmountVm            node
   cmOpenMachineTerminal: (node) -> @openMachineTerminal  node
   cmCreateFile:          (node) -> @createFile           node
-  cmCreateFolder:        (node) -> @createFile           node, "folder"
+  cmCreateFolder:        (node) -> @createFile           node, 'folder'
   cmRename:              (node) -> @showRenameDialog     node
   cmDelete:              (node) -> @confirmDelete        node
   cmExtract:             (node) -> @extractFiles         node
-  cmZip:                 (node) -> @compressFiles        node, "zip"
-  cmTarball:             (node) -> @compressFiles        node, "tar.gz"
+  cmZip:                 (node) -> @compressFiles        node, 'zip'
+  cmTarball:             (node) -> @compressFiles        node, 'tar.gz'
   cmUpload:              (node) -> @uploadFile           node
   cmOpenFile:            (node) -> @openFile             node
   cmTailFile:            (node) -> @tailFile             node
@@ -501,7 +509,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
   CONTEXT MENU CREATE/MANAGE
   ###
 
-  createContextMenu:(nodeView, event)->
+  createContextMenu: (nodeView, event) ->
 
     event.stopPropagation()
     event.preventDefault()
@@ -514,9 +522,9 @@ module.exports = class NFinderTreeController extends JTreeViewController
       contextMenu = @contextMenuController.getContextMenu [nodeView], event
     no
 
-  contextMenuItemSelected:(nodeView, contextMenuItem)->
+  contextMenuItemSelected: (nodeView, contextMenuItem) ->
 
-    {action} = contextMenuItem.getData()
+    { action } = contextMenuItem.getData()
     if action
       if @["cm#{action.capitalize()}"]?
         @contextMenuController.destroyContextMenu()
@@ -526,11 +534,11 @@ module.exports = class NFinderTreeController extends JTreeViewController
   RESET STATES
   ###
 
-  resetBeingEditedItems:->
+  resetBeingEditedItems: ->
 
     @beingEdited.resetView()
 
-  organizeSelectedNodes:(listController, nodes, event = {})->
+  organizeSelectedNodes: (listController, nodes, event = {}) ->
 
     @resetBeingEditedItems() if @beingEdited
     super
@@ -539,37 +547,40 @@ module.exports = class NFinderTreeController extends JTreeViewController
   DND UI FEEDBACKS
   ###
 
-  showDragOverFeedback:(nodeView, event)-> super
+  showDragOverFeedback: (nodeView, event) -> super
 
-  clearDragOverFeedback:(nodeView, event)-> super
+  clearDragOverFeedback: (nodeView, event) -> super
 
-  clearAllDragFeedback:-> super
+  clearAllDragFeedback: -> super
 
   ###
   HANDLING MOUSE EVENTS
   ###
 
-  click:(nodeView, event)->
+  click: (nodeView, event) ->
 
     return  if @isReadOnly
 
-    if $(event.target).is ".chevron"
+    if $(event.target).is '.chevron'
       @contextMenu nodeView, event
       return no
 
-    if ($(event.target).is ".icon") and nodeView.getData().type is 'folder'
+    if ($(event.target).is '.icon') and nodeView.getData().type is 'folder'
       @openItem nodeView
       return no
 
     super
 
-  dblClick:(nodeView, event)->
+  dblClick: (nodeView, event) ->
 
     return  if @isReadOnly
 
     @openItem nodeView
 
-  contextMenu:(nodeView, event)->
+
+  contextMenu: (nodeView, event) ->
+
+    return  if @isReadOnly
 
     if @getOptions().contextMenu
       @createContextMenu nodeView, event
@@ -578,69 +589,69 @@ module.exports = class NFinderTreeController extends JTreeViewController
   HANDLING DND
   ###
 
-  dragOver: (nodeView, event)->
+  dragOver: (nodeView, event) ->
 
     @showDragOverFeedback nodeView, event
     super
 
-  dragStart: (nodeView, event)->
+  dragStart: (nodeView, event) ->
     super
 
     @internalDragging = yes
 
-    {name, vmName, path} = nodeView.data
+    { name, vmName, path } = nodeView.data
 
     warningText = """
     You should move #{name} file to Web folder to download using drag and drop. -- Koding
     """
 
-    type        = "application/octet-stream"
+    type        = 'application/octet-stream'
     url         = getPublicURLOfPath path
     unless url
       url       = "data:#{type};base64,#{btoa warningText}"
-      name     += ".txt"
+      name     += '.txt'
     dndDownload = "#{type}:#{name}:#{url}"
 
     event.originalEvent.dataTransfer.setData 'DownloadURL', dndDownload
 
   lastEnteredNode = null
-  dragEnter: (nodeView, event)->
+  dragEnter: (nodeView, event) ->
 
     return nodeView if lastEnteredNode is nodeView or nodeView in @selectedNodes
     lastEnteredNode = nodeView
     clearTimeout @expandTimeout
-    if nodeView.getData().type in ["folder","mount","vm"]
+    if nodeView.getData().type in ['folder', 'mount', 'vm']
       @expandTimeout = setTimeout (=> @expandFolder nodeView), 800
     @showDragOverFeedback nodeView, event
     e = event.originalEvent
 
     if @boundaries.top > e.pageY > @boundaries.top + 20
-      kd.log "trigger top scroll"
+      kd.log 'trigger top scroll'
 
     if @boundaries.top + @boundaries.height < e.pageY < @boundaries.top + @boundaries.height + 20
-      kd.log "trigger down scroll"
+      kd.log 'trigger down scroll'
 
     super
 
 
-  dragLeave: (nodeView, event)->
+  dragLeave: (nodeView, event) ->
 
     @clearDragOverFeedback nodeView, event
     super
 
-  dragEnd: (nodeView, event)->
+  dragEnd: (nodeView, event) ->
 
     # log "clear after drag"
     @clearAllDragFeedback()
     @internalDragging = no
     super
 
-  drop: (nodeView, event)->
+  drop: (nodeView, event) ->
 
     return if nodeView in @selectedNodes
     return unless nodeView.getData?().type in ['folder', 'mount', 'machine']
 
-    @selectedNodes = @selectedNodes.filter (node)->
+    @selectedNodes = @selectedNodes.filter (node) ->
       targetPath = nodeView.getData?().path
       sourcePath = node.getData?().parentPath
 
@@ -658,11 +669,12 @@ module.exports = class NFinderTreeController extends JTreeViewController
   HANDLING KEY EVENTS
   ###
 
-  keyEventHappened:(event)->
+  keyEventHappened: (event) ->
 
-    super
+    super  unless @isReadOnly
 
-  performDownKey:(nodeView, event)->
+
+  performDownKey: (nodeView, event) ->
 
     if event.altKey
 
@@ -682,26 +694,26 @@ module.exports = class NFinderTreeController extends JTreeViewController
     else
       super
 
-  performBackspaceKey:(nodeView, event)->
+  performBackspaceKey: (nodeView, event) ->
 
     event.preventDefault()
     event.stopPropagation()
     @confirmDelete nodeView, event
     no
 
-  performEnterKey:(nodeView, event)->
+  performEnterKey: (nodeView, event) ->
 
     @selectNode nodeView
     @openItem nodeView
 
-  performRightKey:(nodeView, event)->
+  performRightKey:( nodeView, event) ->
 
-    {type} = nodeView.getData()
+    { type } = nodeView.getData()
     if /mount|folder|vm/.test type
       @expandFolder nodeView
 
-  performUpKey:(nodeView, event)-> super
-  performLeftKey:(nodeView, event)->
+  performUpKey: (nodeView, event) -> super
+  performLeftKey: (nodeView, event) ->
 
     if nodeView.expanded
       @collapseFolder nodeView
@@ -719,21 +731,21 @@ module.exports = class NFinderTreeController extends JTreeViewController
   hideNotification: ->
     notification.destroy() if notification
 
-  notify:(msg, style, details, reconnect=no)->
+  notify: (msg, style, details, reconnect = no) ->
 
     return unless @getView().parent?
 
     notification.destroy() if notification
 
     if details and not msg and /Permission denied/i.test details?.message
-      msg = "Permission denied!"
+      msg = 'Permission denied!'
 
     style or= 'error' if details
     duration = if reconnect then 0 else if details then 5000 else 2500
 
     notification = new KDNotificationView
-      title     : msg or "Something went wrong"
-      type      : "finder-notification"
+      title     : msg or 'Something went wrong'
+      type      : 'finder-notification'
       cssClass  : "#{style}"
       container : @getView().parent
       # duration  : 0
@@ -746,15 +758,15 @@ module.exports = class NFinderTreeController extends JTreeViewController
           notification.notificationSetPositions()
           notification.setClass 'loading'
 
-          kd.utils.wait 6000, notification.bound "destroy"
-          @once 'fs.retry.success', notification.bound "destroy"
+          kd.utils.wait 6000, notification.bound 'destroy'
+          @once 'fs.retry.success', notification.bound 'destroy'
           return
 
         if notification.getOptions().details
           details = new KDNotificationView
-            title     : "Error details"
+            title     : 'Error details'
             content   : notification.getOptions().details
-            type      : "growl"
+            type      : 'growl'
             duration  : 0
             click     : -> details.destroy()
 
@@ -762,9 +774,9 @@ module.exports = class NFinderTreeController extends JTreeViewController
           details.on 'ReceivedClickElsewhere', ->
             details.destroy()
 
-  refreshTopNode:->
-    {nickname} = whoami().profile
-    @refreshFolder @nodes["/home/#{nickname}"], => @emit "fs.retry.success"
+  refreshTopNode: ->
+    { nickname } = whoami().profile
+    @refreshFolder @nodes["/home/#{nickname}"], => @emit 'fs.retry.success'
 
   # showOpenWithModal: (nodeView) ->
   #   kd.getSingleton("kodingAppsController").fetchApps (err, apps) =>
@@ -780,41 +792,41 @@ module.exports = class NFinderTreeController extends JTreeViewController
     kallback          = ->
       file            = fileItemViews[0]
       if file
-        file.emit "FileNeedsToBeDownloaded", filePath
-        file.on   "FileDownloadDone", ->
+        file.emit 'FileNeedsToBeDownloaded', filePath
+        file.on   'FileDownloadDone', ->
           fileItemViews.shift()
           if fileItemViews.length
             kallback()
           else
             modal.destroy()
             new KDNotificationView
-              title    : "Your download has been completed"
-              type     : "mini"
-              cssClass : "success"
+              title    : 'Your download has been completed'
+              type     : 'mini'
+              cssClass : 'success'
               duration : 4000
 
     Dropbox.choose
-      linkType         : "direct"
+      linkType         : 'direct'
       multiselect      : true
       success          : (files) ->
         modal          = new KDModalView
           overlay      : yes
-          title        : "Download from Dropbox"
+          title        : 'Download from Dropbox'
           buttons      :
             Start      :
-              title    : "Start"
-              cssClass : "solid green medium"
+              title    : 'Start'
+              cssClass : 'solid green medium'
               callback : -> kallback()
             Cancel     :
-              title    : "Cancel"
-              cssClass : "solid light-gray medium"
+              title    : 'Cancel'
+              cssClass : 'solid light-gray medium'
               callback : -> modal.destroy()
 
         for file in files
           fileItemView = modal.addSubView new DropboxDownloadItemView { nodeView }, file
           fileItemViews.push fileItemView
 
-  uploadFile: (nodeView)->
+  uploadFile: (nodeView) ->
     finderController = @getDelegate()
-    {path} = nodeView.data
+    { path } = nodeView.data
     finderController.uploadTo path  if path

@@ -109,7 +109,7 @@ class Haydar extends events.EventEmitter
         opts.assets = false
 
 
-  build: () ->
+  build: ->
     opts = @_options
 
     manifests   = []
@@ -165,7 +165,7 @@ class Haydar extends events.EventEmitter
           , (cb) =>
             if --pending is 0
               @_timeEnd chalk.blue 'manifests'
-              createDirs dirs, =>
+              createDirs dirs, ->
                 opts.manifests = manifests
                 opts.rsManifests = rsManifests
                 getModels()
@@ -174,7 +174,7 @@ class Haydar extends events.EventEmitter
           s.pipe(parse).pipe(tr)
 
 
-  _build: () ->
+  _build: ->
 
     tasks = []
     push = (name, method) =>
@@ -217,7 +217,7 @@ class Haydar extends events.EventEmitter
       return acc
     , {}
 
-    modules = manifests.map (manifest) =>
+    modules = manifests.map (manifest) ->
       name = manifest.name
       if name is 'ide'
         name = manifest.name.toUpperCase()
@@ -292,7 +292,7 @@ class Haydar extends events.EventEmitter
 
     if not opts.watchJs
       # xxx: breaks watchify in watch mode, dedupe fuckup
-      b.require require.resolve('kd.js'), expose: 'kd'
+      b.require require.resolve('kd.js'), { expose: 'kd' }
 
     b.use manifests
 
@@ -306,7 +306,7 @@ class Haydar extends events.EventEmitter
       start = Date.now()
       notify = @_notify.bind this
 
-      b.bundle (err, src) =>
+      b.bundle (err, src) ->
 
         if err
           console.error inspect(err, { colors: true })
@@ -329,7 +329,7 @@ class Haydar extends events.EventEmitter
             ).pipe(s)
 
             s.once 'finish', ->
-              secs = ((Date.now() - start)/1000).toFixed 2
+              secs = ((Date.now() - start) / 1000).toFixed 2
               msg = "written #{outfile} (#{secs} secs)"
               console.log msg
               console.log "extracted source maps to #{opts.jsSourcemapsOutfile}"
@@ -354,7 +354,7 @@ class Haydar extends events.EventEmitter
                   console.error err
 
               else
-                secs = ((Date.now() - start)/1000).toFixed 2
+                secs = ((Date.now() - start) / 1000).toFixed 2
                 msg = "#{pretty(src.length)} written to #{outfile} (#{secs})"
                 console.log msg
 
@@ -410,7 +410,7 @@ class Haydar extends events.EventEmitter
 
       if opts.watchCss and not watchingKd
         watchingKd = yes
-        w = chokidar.watch kdCssFile, persistent: yes
+        w = chokidar.watch kdCssFile, { persistent: yes }
         w.on 'change', copyKd
 
 
@@ -442,7 +442,7 @@ class Haydar extends events.EventEmitter
         timeEnd 'styles: write ' + outfile
 
         if --pending is 0
-          secs = ((Date.now() - start)/1000).toFixed 2
+          secs = ((Date.now() - start) / 1000).toFixed 2
           msg = "written styles to #{opts.stylesOutdir} (#{secs})"
           console.log msg
 
@@ -452,7 +452,7 @@ class Haydar extends events.EventEmitter
             notify 'styles', msg
 
 
-    bundle = (manifest)->
+    bundle = (manifest) ->
       start = Date.now()
       globs = []
       manifest.styles.forEach (glob) ->
@@ -464,7 +464,7 @@ class Haydar extends events.EventEmitter
 
         return  unless file
 
-        if e in ['change','modified','deleted']
+        if e in ['change', 'modified', 'deleted']
           console.log "New '#{e}' event on #{file}"
           start = Date.now()
           styl manifest, globs
@@ -480,7 +480,7 @@ class Haydar extends events.EventEmitter
       if opts.watchCss and not watchedGlobs[globs.join()]
         watchedGlobs[globs.join()] = yes
         globs.forEach (glob) -> console.log "watching #{glob}"
-        w = chokidar.watch files, persistent: yes
+        w = chokidar.watch files, { persistent: yes }
         w.on 'ready', -> w.on 'raw', onRaw
 
 
@@ -495,13 +495,13 @@ class Haydar extends events.EventEmitter
 
       return  unless opts.watchCss
 
-      commonsWatcher = chokidar.watch includes, persistent: yes
+      commonsWatcher = chokidar.watch includes, { persistent: yes }
       commonRaw = (e, file) ->
 
         return  unless file
 
-        if e in ['change','modified','deleted']
-          console.log "updating all styles because common styles has changed!"
+        if e in ['change', 'modified', 'deleted']
+          console.log 'updating all styles because common styles has changed!'
           bunldeAllStyles()
 
       commonsWatcher.on 'ready', -> commonsWatcher.on 'raw', throttle commonRaw, THROTTLE_WAIT
@@ -609,7 +609,8 @@ class Haydar extends events.EventEmitter
           cssVarMap: (sprite) ->
             if /\./.test sprite.name
               console.error chalk.red('sprites') + ': stylus hates it when you have dots in image filenames, fix this: ' + sprite.name
-              throw 'throwing cowardly'
+              throwingCowardly = 'throwing cowardly'
+              throw throwingCowardly
 
             sprite.name = "#{rname}_#{manifest.name}_#{sprite.name}"
             return sprite
@@ -630,7 +631,7 @@ class Haydar extends events.EventEmitter
         imgStream = s.img.pipe vfs.dest opts.spriteImgOutdir
         end_ = ->
           if --pending is 0
-            secs = ((Date.now() - start)/1000).toFixed 2
+            secs = ((Date.now() - start) / 1000).toFixed 2
             msg = 'written sprites to ' + opts.spriteImgOutdir + ' (' + secs + ')'
             console.log msg
             if not opts.watchSprites
@@ -664,7 +665,7 @@ class Haydar extends events.EventEmitter
         smith manifest, dir
 
         if opts.watchSprites
-          w = chokidar.watch dir, persistent: yes
+          w = chokidar.watch dir, { persistent: yes }
           w.on 'ready', ->
             w.on 'raw', onRaw
 

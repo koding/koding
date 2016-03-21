@@ -16,14 +16,12 @@ func (r *fakeRepairer) String() string {
 	return "fakerepairer"
 }
 
-func (r *fakeRepairer) Status() error {
+func (r *fakeRepairer) Status() (bool, error) {
 	r.StatusCount++
 	if r.StatusCount < r.StatusFailUntil {
-		return fmt.Errorf(
-			"Status was set to fail for request %d.", r.StatusCount,
-		)
+		return false, nil
 	}
-	return nil
+	return true, nil
 }
 
 func (r *fakeRepairer) Repair() error {

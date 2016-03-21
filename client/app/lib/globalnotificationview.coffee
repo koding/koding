@@ -52,10 +52,6 @@ module.exports = class GlobalNotificationView extends JView
     else
       @adminClose = new KDCustomHTMLView
 
-    @getData().on? 'restartCanceled', =>
-      kd.log 'remove active restart message ::realtime::'
-      @hideAndDestroy()
-
   hideAndDestroy:->
     @once 'transitionend', @bound 'destroy'
     @hide()

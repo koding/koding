@@ -57,7 +57,7 @@ module.exports = class AceFindAndReplaceView extends JView
 
   setTextIntoFindInput: (text) ->
 
-    return @findInput.setFocus() if text.indexOf("\n") > 0 or text.length is 0
+    return @findInput.setFocus() if text.indexOf('\n') > 0 or text.length is 0
 
     @findInput.setValue text
     @findInput.setFocus()
@@ -103,7 +103,7 @@ module.exports = class AceFindAndReplaceView extends JView
 
     return unless findKeyword or replaceKeyword
 
-    {editor}   = @getDelegate().ace
+    { editor } = @getDelegate().ace
     methodName = if doReplaceAll then 'replaceAll' else 'replace'
 
     editor[methodName] replaceKeyword
@@ -165,7 +165,7 @@ module.exports = class AceFindAndReplaceView extends JView
 
 
   pistachio: ->
-    return """
+    return '''
       <div class="ace-find-replace-settings">
         {{> @choices}}
       </div>
@@ -180,4 +180,4 @@ module.exports = class AceFindAndReplaceView extends JView
         {{> @replaceAllButton}}
       </div>
       {{> @closeButton}}
-    """
+    '''

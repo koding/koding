@@ -6,17 +6,17 @@ ViewerTopBar     = require './viewertopbar'
 
 module.exports = class PreviewerView extends KDView
 
-  constructor:(options = {},data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'previewer-body'
 
     super options, data
 
-  openPath:(path)->
+  openPath: (path) ->
 
     # do not open main koding domains in the iframe
     if /(^(https?:\/\/)?beta\.|^(https?:\/\/)?)koding\.com/.test path
-      @viewerHeader.pageLocation.setClass "validation-error"
+      @viewerHeader.pageLocation.setClass 'validation-error'
       return
 
     initialPath = path
@@ -29,22 +29,22 @@ module.exports = class PreviewerView extends KDView
     @path = path
     @iframe.setAttribute 'src', path
     @viewerHeader.setPath initialPath
-    @emit "ready"
+    @emit 'ready'
 
-  refreshIFrame:->
+  refreshIFrame: ->
     @iframe.setAttribute 'src', "#{@path}"
 
-  isDocumentClean:->
+  isDocumentClean: ->
     @clean
 
   createIframe: ->
     @addSubView @iframe = new KDCustomHTMLView
-      tagName : "iframe"
+      tagName : 'iframe'
 
-  viewAppended:->
+  viewAppended: ->
     @addSubView @viewerHeader = new ViewerTopBar { delegate: this }, @path
     @createIframe()
 
-    {params} = @getOptions()
-    path     = params?.path
+    { params } = @getOptions()
+    path       = params?.path
     if path then kd.utils.defer => @openPath path

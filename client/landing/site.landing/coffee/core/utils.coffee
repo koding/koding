@@ -117,7 +117,7 @@ module.exports = utils = {
 
             container.emit 'EmailValidationPassed'  if res is yes
 
-          error : ({responseText}) ->
+          error : ({ responseText }) ->
 
             return container.emit 'TwoFactorEnabled'  if /TwoFactor/i.test responseText
 
@@ -129,17 +129,17 @@ module.exports = utils = {
   checkedPasswords: {}
   checkPasswordStrength: kd.utils.debounce 300, (password, callback) ->
 
-    return callback msg : 'No password specified!'  unless password
+    return callback { msg : 'No password specified!' }  unless password
     return callback null, res                       if res = utils.checkedPasswords[password]
 
     $.ajax
-      url         : "/-/password-strength"
+      url         : '/-/password-strength'
       type        : 'POST'
       data        : { password }
       success     : (res) ->
         utils.checkedPasswords[res.password] = res
         callback null, res
-      error       : ({responseJSON}) -> callback msg : responseJSON
+      error       : ({ responseJSON }) -> callback { msg : responseJSON }
 
 
   storeNewTeamData: (formName, formData) ->
@@ -199,42 +199,42 @@ module.exports = utils = {
     formData.redirect        = "#{location.protocol}//#{formData.slug}.#{location.host}?username=#{formData.username}"
 
     $.ajax
-      url       : "/-/teams/create"
+      url       : '/-/teams/create'
       data      : formData
       type      : 'POST'
       success   : callbacks.success or ->
         utils.clearTeamData()
         location.href = formData.redirect
-      error     : callbacks.error  or ({responseText}) ->
-        new kd.NotificationView title : responseText
+      error     : callbacks.error  or ({ responseText }) ->
+        new kd.NotificationView { title : responseText }
 
 
   routeIfInvitationTokenIsValid: (token, callbacks) ->
 
     $.ajax
-      url       : "/-/teams/validate-token"
+      url       : '/-/teams/validate-token'
       data      : { token }
       type      : 'POST'
       success   : callbacks.success
       error     : callbacks.error
 
 
-  fetchTeamMembers: ({name, limit, token}, callback) ->
+  fetchTeamMembers: ({ name, limit, token }, callback) ->
 
     $.ajax
       url       : "/-/team/#{name}/members?limit=#{limit ? 4}&token=#{token}"
       type      : 'POST'
       success   : (members) -> callback null, members
-      error     : ({responseText}) -> callback msg : responseText
+      error     : ({ responseText }) -> callback { msg : responseText }
 
 
   validateEmail: (data, callbacks) ->
 
     $.ajax
-      url         : "/-/validate/email"
+      url         : '/-/validate/email'
       type        : 'POST'
       data        : data
-      xhrFields   : withCredentials : yes
+      xhrFields   : { withCredentials : yes }
       success     : callbacks.success
       error       : callbacks.error
 
@@ -260,12 +260,12 @@ module.exports = utils = {
     formData.slug            = kd.config.group.slug
 
     $.ajax
-      url       : "/-/teams/join"
+      url       : '/-/teams/join'
       data      : formData
       type      : 'POST'
       success   : callbacks.success or -> location.href = formData.redirect
-      error     : callbacks.error   or ({responseText}) ->
-        new kd.NotificationView title : responseText
+      error     : callbacks.error   or ({ responseText }) ->
+        new kd.NotificationView { title : responseText }
 
 
   earlyAccess: (data, callbacks = {}) ->
@@ -273,14 +273,14 @@ module.exports = utils = {
     data.campaign = 'teams-early-access'
 
     $.ajax
-      url       : "/-/teams/early-access"
+      url       : '/-/teams/early-access'
       data      : data
       type      : 'POST'
       success   : callbacks.success or ->
         new kd.NotificationView
           title    : "Thank you! We'll let you know when we launch it!"
           duration : 3000
-      error     : callbacks.error   or ({responseText}) ->
+      error     : callbacks.error   or ({ responseText }) ->
         if responseText is 'Already applied!'
           responseText = "Thank you! We'll let you know when we launch it!"
         new kd.NotificationView
@@ -291,7 +291,7 @@ module.exports = utils = {
   usernameCheck : (username, callbacks = {}) ->
 
     $.ajax
-      url         : "/-/validate/username"
+      url         : '/-/validate/username'
       type        : 'POST'
       data        : { username }
       success     : callbacks.success
@@ -307,7 +307,7 @@ module.exports = utils = {
       return callbacks.error 'Domain name is not valid, please try another one.'
 
     $.ajax
-      url         : "/-/teams/verify-domain"
+      url         : '/-/teams/verify-domain'
       type        : 'POST'
       data        : { name }
       success     : callbacks.success
@@ -325,7 +325,7 @@ module.exports = utils = {
   getGroupLogo : ->
 
     { group } = kd.config
-    logo      = new kd.CustomHTMLView tagName : 'figure'
+    logo      = new kd.CustomHTMLView { tagName : 'figure' }
 
     unless group
       logo.hide()

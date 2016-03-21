@@ -6,7 +6,7 @@ TeamSelectorView  = require './teamselectorview'
 module.exports = class TeamsAppController extends kd.ViewController
 
 
-  kd.registerAppClass this, name : 'Teams'
+  kd.registerAppClass this, { name : 'Teams' }
 
 
   constructor: (options = {}, data) ->

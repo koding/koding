@@ -11,12 +11,14 @@ module.exports = class LinkController extends KDController
   handleLinkClick:(link)->
     {JAccount, JGroup} = remote.api
     data = link.getData?()
+
     return  unless data?
+
     options = {}
     route   = switch data.constructor
       when JAccount
-        {slug} = getGroup()
-        {profile: {nickname}} = data
+        { profile : { nickname } } = data
+        "/#{nickname}"
       when JGroup
         "/#{data.slug}"
 

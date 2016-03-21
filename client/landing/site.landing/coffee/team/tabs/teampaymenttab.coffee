@@ -27,7 +27,7 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
       tagName: 'a'
       cssClass: 'use-different-card-link'
       partial: '<div class="use-different-card-label">Do you want to use a different card?</div>'
-      attributes: href: '#'
+      attributes: { href: '#' }
       click: @bound 'cleanupPaymentTeamData'
 
 
@@ -69,7 +69,7 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
             token: response.id
             last4: response.card.last4
 
-          @switchViews {state: 'has-payment-method'}
+          @switchViews { state: 'has-payment-method' }
           kd.singletons.router.handleRoute '/Team/Username'
 
 
@@ -77,20 +77,20 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
     @button = new kd.ButtonView
       title: 'NEXT'
       style: 'TeamsModal-button TeamsModal-button--green'
-      attributes: testpath: 'payment-button'
+      attributes: { testpath: 'payment-button' }
       loader: off
       callback: @bound 'submit'
 
     @backLink = new kd.CustomHTMLView
       tagName      : 'span'
       cssClass     : 'TeamsModal-button-link back'
-      partial      : "<i></i> <a href=\"/Team/Domain\">Back</a>"
+      partial      : '<i></i> <a href=\"/Team/Domain\">Back</a>'
 
 
     @on 'viewAppended', =>
 
       if teamData.payment?.token?
-      then @switchViews {state: 'has-payment-method'}
+      then @switchViews { state: 'has-payment-method' }
       else @cleanupPaymentTeamData()
 
     @loadStripe()
@@ -125,7 +125,7 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
   cleanupPaymentTeamData: ->
 
     utils.storeNewTeamData 'payment', null
-    @switchViews {state: 'form'}
+    @switchViews { state: 'form' }
 
 
   switchViews: (options) ->
@@ -140,13 +140,13 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
         wrapper = @$().find '.has-payment-method-wrapper'
         wrapper.toggleClass 'hidden', off
 
-        {payment: {last4}} = utils.getTeamData()
+        { payment: { last4 } } = utils.getTeamData()
         @hasPaymentLabel.updatePartial "<span>We have **** **** **** #{last4} on file.</span>"
 
 
   pistachio: ->
 
-    """
+    '''
     {{> @header }}
     <div class="TeamsModal TeamsModal--groupCreation">
       <h4>Payment Info</h4>
@@ -158,7 +158,7 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
         {{> @backLink}}
       </div>
     </div>
-    """
+    '''
 
 
 track = (action) ->

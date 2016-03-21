@@ -3,4 +3,4 @@ shell   = require 'gulp-shell'
 
 module.exports = (version) ->
   gulp.src ''
-    .pipe shell "gulp --gulpfile ./site.landing/gulpfile.coffee build --uglify"
+    .pipe shell 'gulp --gulpfile ./site.landing/gulpfile.coffee build --uglify'

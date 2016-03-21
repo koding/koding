@@ -7,7 +7,7 @@ companyNameSelector      = '.login-form input[testpath=company-name]'
 sidebarSectionsSelector  = '.activity-sidebar .SidebarChannelsSection'
 chatItem                 = '.Pane-body .ChatList .ChatItem'
 chatInputSelector        = '.ChatPaneFooter .ChatInputWidget textarea'
-invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+invitationsModalSelector = '.kdmodal-content  .AppModal--admin-tabs .invitations'
 pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
 pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
 
@@ -94,7 +94,6 @@ module.exports =
     user = utils.getUser()
 
     browser
-      .waitForElementVisible  '.content-page.welcome', 20000 # Assertion
       .waitForElementVisible  '[testpath=main-sidebar]', 20000 # Assertion
 
     console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password} to team: #{helpers.getUrl(yes)}"
@@ -111,7 +110,7 @@ module.exports =
 
   congratulationsPage: (browser) ->
 
-     browser
+    browser
       .waitForElementVisible  teamsModalSelector, 20000
       .waitForElementVisible  'button span.button-title', 20000
       .click                  'button span.button-title'
@@ -136,7 +135,10 @@ module.exports =
     user = utils.getUser()
     url  = helpers.getUrl(yes)
 
-    teamsLogin = '.TeamsModal--login'
+    teamsLogin        = '.TeamsModal--login'
+    stackCatalogModal = '.StackCatalogModal'
+    closeButton       = "#{stackCatalogModal} .kdmodal-inner .closeModal"
+
 
     browser.url url
     browser.maximizeWindow()
@@ -148,6 +150,14 @@ module.exports =
       else
         @createTeam browser
 
+      browser.pause 3000
+      browser.element 'css selector', stackCatalogModal, (result) ->
+        if result.status is 0
+           browser
+            .waitForElementVisible  stackCatalogModal, 20000
+            .waitForElementVisible  closeButton, 20000
+            .click                  closeButton
+
     return user
 
 
@@ -158,8 +168,7 @@ module.exports =
     companyNameSelector = "#{modalSelector} input[name=companyName]"
     signUpButton        = "#{modalSelector} button[type=submit]"
     user                = utils.getUser()
-
-    invitationLink = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
+    invitationLink      = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
 
     browser
       .url                   invitationLink
@@ -231,27 +240,24 @@ module.exports =
 
   startStackCreate: (browser) ->
 
-    welcomePageSelector = '.content-page.welcome'
-    stackSelector       = 'ul.boxes a[testpath="configure-stack-button"]'
-    overlaySelector     = '.AppModal--admin'
-    getstartedSelector  = "#{overlaySelector} .stack-onboarding.get-started"
-    buttonSelector      = "#{getstartedSelector} .header button"
+    stackCreateButton        = '.activity-sidebar .SidebarTeamSection a[href="/Stacks/Welcome"]'
+    stackCatalogModal        = '.StackCatalogModal'
+    teamStackTemplatesButton = "#{stackCatalogModal} .kdtabhandle-tabs .team-stack-templates"
+    stackPage                = '.stacks .stack-onboarding.get-started'
 
     browser
-      .waitForElementVisible  welcomePageSelector, 20000
-      .waitForElementVisible  stackSelector, 20000
-      .click                  stackSelector
-      .waitForElementVisible  overlaySelector, 20000
-      .waitForElementVisible  getstartedSelector, 20000
-      .waitForElementVisible  buttonSelector, 20000
-      .click                  buttonSelector
+      .waitForElementVisible  stackCreateButton, 20000
+      .click                  stackCreateButton
+      .waitForElementVisible  teamStackTemplatesButton, 20000
+      .click                  teamStackTemplatesButton
+      .waitForElementVisible  stackPage, 20000
 
 
   openInvitationsTab: (browser) ->
 
-    tabsSelector              = ".kdmodal-content .kdtabhandle-tabs"
+    tabsSelector              = '.kdmodal-content .kdtabhandle-tabs'
     invitationsButtonSelector = "#{tabsSelector} .invitations"
-    invitationsPageSelector   = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+    invitationsPageSelector   = '.kdmodal-content  .AppModal--admin-tabs .invitations'
 
     browser
       .waitForElementVisible  tabsSelector, 20000
@@ -326,7 +332,7 @@ module.exports =
         .assert.containsText    sidebarSectionsSelector, channelName
 
     if purpose
-      browser.assert.containsText '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose',purpose
+      browser.assert.containsText '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose', purpose
 
     return channelName
 
@@ -442,7 +448,7 @@ module.exports =
 
   inviteUser: (browser, addMoreUser = no) ->
 
-    invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+    invitationsModalSelector = '.kdmodal-content  .AppModal--admin-tabs .invitations'
     inviteUserView           = "#{invitationsModalSelector} .invite-view"
     emailInputSelector       = "#{inviteUserView} .invite-inputs input.user-email"
     userEmail                = "#{helpers.getFakeText().split(' ')[0]}#{Date.now()}@kd.io"
@@ -466,7 +472,7 @@ module.exports =
           .click                 confirmButton
 
       successMessage = if addMoreUser
-      then "Invitation is sent to"
+      then 'Invitation is sent to'
       else "Invitation is sent to #{userEmail}"
 
       browser
@@ -547,7 +553,7 @@ module.exports =
 
   likeunlikePost: (browser, likeLikePost = no) ->
 
-    likeContainer       = ".ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer"
+    likeContainer       = '.ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer'
     likeButtonUnpressed = "#{likeContainer} a[class~=ActivityLikeLink]:not(.is-likedByUser)"
     likeButtonPressed   = "#{likeContainer} .ActivityLikeLink.is-likedByUser"
     textSelector        = '.ChatListItem-itemBodyContainer:nth-of-type(1)'
@@ -612,7 +618,7 @@ module.exports =
 
   updateChannelPurpose: (browser) ->
 
-    editedPurposeText  = "edited text on the purpose field"
+    editedPurposeText  = 'edited text on the purpose field'
     menuButtonSelector = '.ChannelThreadPane-content .ChannelThreadPane-header .ButtonWithMenuWrapper button'
     editButtonSelector = '.ButtonWithMenuItemsList.ChannelThreadPane-menuItems li:nth-child(3)'
     inputTextSelector  = '.ThreadHeader.ChannelThreadPane-header .ChannelThreadPane-purposeWrapper.editing input'

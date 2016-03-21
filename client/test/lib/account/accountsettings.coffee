@@ -27,7 +27,7 @@ changePasswordHelper = (browser, newPassword1, newPassword2, currentPassword, no
     browser
       .waitForElementVisible   passwordModalSelector , 20000
       .waitForElementVisible   passwordModalSelector + ' input[name=password]', 20000
-      .setValue                passwordModalSelector + ' input[name=password]', currentPassword, =>
+      .setValue                passwordModalSelector + ' input[name=password]', currentPassword, ->
         browser
           .click                   passwordModalSelector + ' button[type=submit]'
           .waitForElementVisible   '.kdnotification.main', 20000
@@ -95,7 +95,7 @@ module.exports =
     changePasswordHelper(browser, newPassword, newPassword, null, notificationText, fn)
 
 
- toggleNotificationsPopup: (browser) ->
+  toggleNotificationsPopup: (browser) ->
 
     notificationIconSelector = '.avatar-area .acc-notification-icon'
 

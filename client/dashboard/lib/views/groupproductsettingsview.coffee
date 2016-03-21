@@ -18,37 +18,37 @@ module.exports = class GroupProductSettingsView extends JView
       itemClass     : GroupProductListItem
       controlsClass : ProductAdminControlsView
       pistachio     :
-        """
+        '''
         <h2>Products</h2>
         {{> @createButton}}
         {{> @list}}
-        """
+        '''
 
     @packsView = new GroupProductSectionView
       category      : 'pack'
       itemClass     : GroupPlanListItem
       controlsClass : PlanAdminControlsView
       pistachio     :
-        """
+        '''
         <h2>Packs</h2>
         <p>Packs are bundles of products, used for representing larger
            products, for instance, a VM with 1 GB of RAM and 2 cores.</p>
         {{> @createButton}}
         {{> @list}}
-        """
+        '''
 
     @plansView = new GroupProductSectionView
       category      : 'plan'
       itemClass     : GroupPlanListItem
       controlsClass : PlanAdminControlsView
       pistachio     :
-        """
+        '''
         <h2>Plans</h2>
         <p>Plans are bundles of products.  Effectively, the quantities
            you choose will serve as maximum quantities per plan.</p>
         {{> @createButton}}
         {{> @list}}
-        """
+        '''
 
     ['product', 'pack', 'plan'].forEach (category) =>
       categoryView = @getCategoryView category
@@ -70,8 +70,8 @@ module.exports = class GroupProductSettingsView extends JView
     view.setContents contents
 
   pistachio: ->
-    """
+    '''
     {{> @productsView}}
     {{> @packsView}}
     {{> @plansView}}
-    """
+    '''

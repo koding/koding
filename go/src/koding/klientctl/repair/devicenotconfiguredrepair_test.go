@@ -91,8 +91,9 @@ func TestDeviceNotConfiguredRepair(t *testing.T) {
 		Convey("Given a normal dir", func() {
 			Convey("When Status() is called", func() {
 				Convey("It should return okay", func() {
-					err := r.Status()
+					ok, err := r.Status()
 					So(err, ShouldBeNil)
+					So(ok, ShouldBeTrue)
 				})
 			})
 		})
@@ -104,9 +105,9 @@ func TestDeviceNotConfiguredRepair(t *testing.T) {
 
 			Convey("When Status() is called", func() {
 				Convey("It should return not okay", func() {
-					err := r.Status()
-					So(err, ShouldNotBeNil)
-					So(err.Error(), ShouldContainSubstring, "not configured")
+					ok, err := r.Status()
+					So(ok, ShouldBeFalse)
+					So(err, ShouldBeNil)
 				})
 			})
 
@@ -120,7 +121,7 @@ func TestDeviceNotConfiguredRepair(t *testing.T) {
 				Convey("It should run status again", func() {
 					err := r.Repair()
 					So(err, ShouldNotBeNil)
-					So(err.Error(), ShouldContainSubstring, "not configured")
+					So(err.Error(), ShouldContainSubstring, "not-okay")
 				})
 			})
 		})

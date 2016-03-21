@@ -7,7 +7,7 @@ module.exports = class TeamDomainTab extends kd.FormView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'clearfix login-form'
 
@@ -40,12 +40,12 @@ module.exports = class TeamDomainTab extends kd.FormView
     @backLink = new kd.CustomHTMLView
       tagName      : 'span'
       cssClass     : 'TeamsModal-button-link back'
-      partial      : "<i></i> <a href=\"/Teams/Create\">Back</a>"
+      partial      : '<i></i> <a href=\"/Teams/Create\">Back</a>'
 
     @button = new kd.ButtonView
       title        : 'NEXT'
       style        : 'TeamsModal-button TeamsModal-button--green'
-      attributes   : testpath  : 'domain-button'
+      attributes   : { testpath  : 'domain-button' }
       type         : 'submit'
 
 

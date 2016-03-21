@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
-	"sync"
 	"time"
 
 	"koding/klient/client"
@@ -35,12 +34,6 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-)
-
-var (
-	// we also could use an atomic boolean this is simple for now.
-	updating   = false
-	updatingMu sync.Mutex // protects updating
 )
 
 // Klient is the central app which provides all available methods.
@@ -86,6 +79,10 @@ type Klient struct {
 	// connected to, and so on. It is typically called from a local kite,
 	// and is responsible for Klient's `remote.*` methods.
 	remote *remote.Remote
+
+	// updater polls s3://latest-version.txt with config.UpdateInterval
+	// and updates current binary if version is never than config.Version.
+	updater *Updater
 }
 
 // KlientConfig defines a Klient's config
@@ -175,6 +172,11 @@ func NewKlient(conf *KlientConfig) *Klient {
 		Log: k.Log,
 	}
 
+	if conf.UpdateInterval < time.Minute {
+		k.Log.Warning("Update interval can't be less than one minute. Setting to one minute.")
+		conf.UpdateInterval = time.Minute
+	}
+
 	kl := &Klient{
 		kite:    k,
 		collab:  collaboration.New(db), // nil is ok, fallbacks to in memory storage
@@ -187,6 +189,12 @@ func NewKlient(conf *KlientConfig) *Klient {
 		log:      k.Log,
 		config:   conf,
 		remote:   remote.NewRemote(k, k.Log, storage.New(db)),
+		updater: &Updater{
+			Endpoint:       conf.UpdateURL,
+			Interval:       conf.UpdateInterval,
+			CurrentVersion: conf.Version,
+			Log:            k.Log,
+		},
 	}
 
 	// This is important, don't forget it
@@ -210,12 +218,7 @@ func (k *Klient) RegisterMethods() {
 				r.Username, r.Client.Environment, r.Client.Name, r.Method)
 		}
 
-		updatingMu.Lock()
-		defer updatingMu.Unlock()
-
-		if updating {
-			return nil, errors.New("Updating klient. Can't accept any method.")
-		}
+		k.updater.Wait.Wait()
 
 		return true, nil
 	})
@@ -298,6 +301,7 @@ func (k *Klient) RegisterMethods() {
 	ps := client.NewPubSub(k.log)
 	k.kite.HandleFunc("client.Publish", ps.Publish)
 	k.kite.HandleFunc("client.Subscribe", ps.Subscribe)
+	k.kite.HandleFunc("client.Unsubscribe", ps.Unsubscribe)
 
 	k.kite.OnFirstRequest(func(c *kite.Client) {
 		// Koding (kloud) connects to much, don't display it.
@@ -422,7 +426,7 @@ func (k *Klient) Run() {
 
 	k.startUpdater()
 
-	if protocol.Environment == "managed" && isKoding {
+	if (protocol.Environment == "managed" || protocol.Environment == "devmanaged") && isKoding {
 		k.log.Error("Managed Klient is attempting to run on a Koding provided VM")
 		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
 	}
@@ -485,19 +489,8 @@ func (k *Klient) startUpdater() {
 		return
 	}
 
-	if k.config.UpdateInterval < time.Minute {
-		k.log.Warning("Update interval can't be less than one minute. Setting to one minute.")
-		k.config.UpdateInterval = time.Minute
-	}
-
 	// start our updater in the background
-	updater := &Updater{
-		Endpoint:       k.config.UpdateURL,
-		Interval:       k.config.UpdateInterval,
-		CurrentVersion: k.config.Version,
-		Log:            k.log,
-	}
-	go updater.Run()
+	go k.updater.Run()
 }
 
 func (k *Klient) Close() {

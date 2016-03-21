@@ -34,7 +34,7 @@ func (r *MountExistsRepair) String() string {
 	return "MountExistsRepair"
 }
 
-func (r *MountExistsRepair) Status() error {
+func (r *MountExistsRepair) Status() (bool, error) {
 	// TODO: How do we handle the actual error object here? If Mountcli returns
 	// an error, it means the process failed itself. Which means we don't *really*
 	// know if the mount exists or not.
@@ -44,15 +44,16 @@ func (r *MountExistsRepair) Status() error {
 			"Error encountered when trying to find Mountcli MountPath by name. name:%s, err:%s",
 			r.MountName, err,
 		)
+		return false, err
 	}
 
 	// If path is empty, we could not find the mount name.
 	if path == "" {
 		r.Stdout.Printlnf("Unable to find %q on filesystem.", r.MountName)
-		return errors.New("Mount cannot be found on file system")
+		return false, nil
 	}
 
-	return nil
+	return true, nil
 }
 
 func (r *MountExistsRepair) Repair() error {
@@ -71,5 +72,10 @@ func (r *MountExistsRepair) Repair() error {
 	}
 
 	// Status will print additional messages to the user.
-	return r.Status()
+	ok, err := r.Status()
+	if !ok && err == nil {
+		err = errors.New("Status returned not-okay after Repair")
+	}
+
+	return err
 }

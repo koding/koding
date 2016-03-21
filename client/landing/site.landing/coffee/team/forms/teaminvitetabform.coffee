@@ -9,11 +9,11 @@ module.exports = class TeamInviteTabForm extends kd.FormView
   createInput = ->
     count++
     new kd.InputView
-      placeholder : "email@domain.com"
+      placeholder : 'email@domain.com'
       name        : "invitee#{count}"
 
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'clearfix'
 
@@ -41,14 +41,14 @@ module.exports = class TeamInviteTabForm extends kd.FormView
     @button = new kd.ButtonView
       title      : 'NEXT'
       style      : 'TeamsModal-button TeamsModal-button--green'
-      attributes : testpath : 'invite-button'
+      attributes : { testpath : 'invite-button' }
       type       : 'submit'
 
 
   addInvitee: ->
 
     input   = createInput()
-    wrapper = new kd.CustomHTMLView cssClass : 'login-input-view'
+    wrapper = new kd.CustomHTMLView { cssClass : 'login-input-view' }
     wrapper.addSubView input
     @addSubView wrapper, '.additional'
     input.setFocus()

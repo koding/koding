@@ -4,7 +4,7 @@ MainTabView = require './maintabview'
 
 module.exports = class MainView extends kd.View
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.domId    = 'kdmaincontainer'
     options.cssClass = if kd.isLoggedInOnLoad then 'with-sidebar' else ''
@@ -19,7 +19,7 @@ module.exports = class MainView extends kd.View
     @emit 'ready'
 
 
-  createMainTabView:->
+  createMainTabView: ->
 
     @mainTabView = new MainTabView
       domId               : 'main-tab-view'

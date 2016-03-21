@@ -12,35 +12,35 @@ module.exports = class CustomViewsDashboardView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry "custom-views-dashboard", options.cssClass
+    options.cssClass = kd.utils.curry 'custom-views-dashboard', options.cssClass
 
     super options, data
 
-    {cssClass, title} = options
+    { cssClass, title } = options
 
     @title        = new KDCustomHTMLView
-      tagName     : "h3"
+      tagName     : 'h3'
       cssClass    : cssClass
       partial     : title
 
     @addNewButton = new KDButtonView
       iconOnly    : yes
-      cssClass    : "add-new"
+      cssClass    : 'add-new'
       callback    : => @addNew()
 
     @noViewLabel  = new KDCustomHTMLView
-      tagName     : "p"
-      cssClass    : "no-view"
+      tagName     : 'p'
+      cssClass    : 'no-view'
       partial     : "Currently there is no view for this section. Why don't you add new one?"
 
     @loader       = new KDLoaderView
-      cssClass    : "loader"
+      cssClass    : 'loader'
       showLoader  : yes
       size        :
         width     : 32
 
     @container    = new KDCustomHTMLView
-      cssClass    : "views"
+      cssClass    : 'views'
 
     @noViewLabel.hide()
 
@@ -70,12 +70,12 @@ module.exports = class CustomViewsDashboardView extends JView
   addNew: (data) ->
 
     @hideViews()
-    @setClass "edit-mode"
+    @setClass 'edit-mode'
     config     =
       delegate : this
-      viewType : @getOption "viewType"
+      viewType : @getOption 'viewType'
 
-    FormClass = @getOption("formClass") or AddNewCustomViewForm
+    FormClass = @getOption('formClass') or AddNewCustomViewForm
     @addSubView @addNewView = new FormClass config, data
     @addNewView.on 'NewViewAdded',     @bound 'handleNewViewAdded'
     @addNewView.on 'NewViewCancelled', @bound 'handleNewViewCancelled'
@@ -90,7 +90,7 @@ module.exports = class CustomViewsDashboardView extends JView
 
   fetchViews: ->
 
-    query = { partialType: @getOption "viewType" }
+    query = { partialType: @getOption 'viewType' }
 
     CustomPartialHelpers.getPartials query, (err, customViews) =>
       @loader.hide()
@@ -101,7 +101,7 @@ module.exports = class CustomViewsDashboardView extends JView
 
   createList: (customViews) ->
 
-    viewClass = @getOption("itemClass") or CustomViewItem
+    viewClass = @getOption('itemClass') or CustomViewItem
     for customView in customViews
       customViewItem = new viewClass { delegate: this }, customView
       customViewItem.on 'ViewDeleted',       @bound 'handleViewDeleted'
@@ -113,7 +113,7 @@ module.exports = class CustomViewsDashboardView extends JView
 
   handleNewViewAdded: ->
 
-    @unsetClass "edit-mode"
+    @unsetClass 'edit-mode'
     @addNewView.destroy()
     @addNewButton.show()
     @reloadViews()
@@ -130,14 +130,14 @@ module.exports = class CustomViewsDashboardView extends JView
 
   handleNewViewCancelled: ->
 
-    @unsetClass "edit-mode"
+    @unsetClass 'edit-mode'
     @reloadViews()
     @addNewButton.show()
 
 
   pistachio: ->
 
-    """
+    '''
       <div class="clearfix">
         {{> @title}}
         {{> @addNewButton}}
@@ -147,4 +147,4 @@ module.exports = class CustomViewsDashboardView extends JView
         {{> @noViewLabel}}
         {{> @container}}
       </div>
-    """
+    '''

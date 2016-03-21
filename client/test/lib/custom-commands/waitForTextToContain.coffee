@@ -15,7 +15,7 @@ WaitForTextToContain::command = (element, textToContain, timeoutInMilliseconds) 
   @startTimeInMilliseconds = (new Date).getTime()
   self = this
   message = undefined
-  if !timeoutInMilliseconds
+  unless timeoutInMilliseconds
     timeoutInMilliseconds = 20000
 
   checkerFn = (content) ->
@@ -36,7 +36,7 @@ WaitForTextToContain::check = (element, checker, callback, maxTimeInMilliseconds
   self = this
   @api.getText element, (result) ->
     now = (new Date).getTime()
-    if result.status == 0 and checker(result.value)
+    if result.status is 0 and checker(result.value)
       callback true, now
     else if now - (self.startTimeInMilliseconds) < maxTimeInMilliseconds
       setTimeout (->

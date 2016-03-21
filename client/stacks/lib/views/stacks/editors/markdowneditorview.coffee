@@ -33,5 +33,5 @@ module.exports = class MarkdownEditorView extends BaseStackEditorView
       cssClass       : 'has-markdown content-modal'
       height         : 500
       overlay        : yes
-      overlayOptions : cssClass : 'second-overlay'
+      overlayOptions : { cssClass : 'second-overlay' }
       content        : applyMarkdown content

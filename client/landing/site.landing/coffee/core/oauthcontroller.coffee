@@ -13,84 +13,84 @@ module.exports = class OAuthController extends kd.Controller
     @setupOauthListeners()
 
 
-  getUrl: (options, callback)->
+  getUrl: (options, callback) ->
 
     $.ajax
       url         : '/OAuth/url'
       data        : options
       type        : 'GET'
-      xhrFields   : withCredentials : yes
-      success     : (resp)-> callback null, resp
-      error       : (err)-> callback err
+      xhrFields   : { withCredentials : yes }
+      success     : (resp) -> callback null, resp
+      error       : (err) -> callback err
 
 
-  redirectToOauth: (options)->
+  redirectToOauth: (options) ->
 
-    @getUrl options, (err, url)->
+    @getUrl options, (err, url) ->
       return notify err  if err
 
       window.location.replace url
 
 
   # This is called from the popup to indicate the process is complete.
-  authCompleted: (err, provider)->
+  authCompleted: (err, provider) ->
 
     if err then notify err
     else
-      {mainController} = kd.singletons
-      mainController.emit "ForeignAuthPopupClosed", provider
-      mainController.emit "ForeignAuthCompleted", provider
+      { mainController } = kd.singletons
+      mainController.emit 'ForeignAuthPopupClosed', provider
+      mainController.emit 'ForeignAuthCompleted', provider
 
       # @emit "ForeignAuthPopupClosed", provider
       # @emit "ForeignAuthCompleted", provider
 
 
   handleExistingUser: (returnUrl) ->
-    url = returnUrl or "/"
+    url = returnUrl or '/'
     location.replace url
 
 
-  setupOauthListeners:->
+  setupOauthListeners: ->
 
-    {mainController} = kd.singletons
-    mainController.once "ForeignAuthCompleted", (provider)=>
+    { mainController } = kd.singletons
+    mainController.once 'ForeignAuthCompleted', (provider) =>
 
-      params = {isUserLoggedIn: no, provider}
+      params = { isUserLoggedIn: no, provider }
 
-      @doOAuth params, (err, resp)=>
+      @doOAuth params, (err, resp) =>
 
         if err
-          return new kd.NotificationView title: "OAuth integration failed"
+          return new kd.NotificationView { title: 'OAuth integration failed' }
 
-        {isNewUser, userInfo, returnUrl} = resp
+        { isNewUser, userInfo, returnUrl } = resp
 
         if isNewUser then @handleNewUser userInfo
         else @handleExistingUser(returnUrl)
 
 
-  doOAuth: (params, callback)->
+  doOAuth: (params, callback) ->
     $.ajax
       url         : '/OAuth'
       data        : params
       type        : 'POST'
-      xhrFields   : withCredentials : yes
-      success     : (resp)-> callback null, resp
-      error       : ({responseText})-> callback responseText
+      xhrFields   : { withCredentials : yes }
+      success     : (resp) -> callback null, resp
+      error       : ({ responseText }) -> callback responseText
 
 
-  handleNewUser: (userInfo)->
+  handleNewUser: (userInfo) ->
 
     utils.storeLastUsedProvider userInfo.provider
     kd.singletons.router.handleRoute '/Register'
 
-    kd.singletons.router.requireApp 'Login', (loginController)->
+    kd.singletons.router.requireApp 'Login', (loginController) ->
       loginView = loginController.getView()
       { registerForm } = loginView
 
       registerForm.handleOauthData userInfo
 
 
-  notify = (err)->
+  notify = (err) ->
 
-    message = if err then err.message else "Something went wrong"
-    new kd.NotificationView title : message
+    message = if err then err.message else 'Something went wrong'
+    new kd.NotificationView { title : message }

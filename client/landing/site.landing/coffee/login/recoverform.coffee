@@ -5,7 +5,7 @@ LoginInputView      = require './logininputview'
 
 module.exports = class RecoverInlineForm extends LoginViewInlineForm
 
-  constructor:->
+  constructor: ->
 
     super
 
@@ -14,32 +14,32 @@ module.exports = class RecoverInlineForm extends LoginViewInlineForm
 
     @usernameOrEmail = new LoginInputView
       inputOptions    :
-        name          : "email"
-        placeholder   : "Email address"
-        testPath      : "recover-password-input"
+        name          : 'email'
+        placeholder   : 'Email address'
+        testPath      : 'recover-password-input'
         defaultValue  : email
         validate      :
           container   : this
           rules       :
             required  : yes
           messages    :
-            required  : "Please enter your email."
+            required  : 'Please enter your email.'
 
     @button = new kd.ButtonView
-      title       : "RECOVER PASSWORD"
-      style       : "solid medium green"
+      title       : 'RECOVER PASSWORD'
+      style       : 'solid medium green'
       type        : 'submit'
       loader      : yes
 
 
   reset: ->
 
-      super
-      @button.hideLoader()
+    super
+    @button.hideLoader()
 
-  pistachio:->
+  pistachio: ->
 
-    """
+    '''
     <div>{{> @usernameOrEmail}}</div>
     <div>{{> @button}}</div>
-    """
+    '''

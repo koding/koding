@@ -5,33 +5,33 @@ module.exports = class FSWatcher extends KDObject
 
   @watchers = {}
 
-  @registerWatcher = (path, stopWatching)->
-    @watchers[path] = stop: stopWatching
+  @registerWatcher = (path, stopWatching) ->
+    @watchers[path] = { stop: stopWatching }
 
-  @stopAllWatchers:->
+  @stopAllWatchers: ->
     (watcher.stop() for own path, watcher of @watchers)
     @watchers = {}
 
   # /parentPath/also/stops/childrenPaths
-  @stopWatching:(pathToStop)->
+  @stopWatching: (pathToStop) ->
     for own path, watcher of @watchers  when (path.indexOf pathToStop) is 0
       watcher.stop()
       delete @watchers[path]
 
-  constructor:(options={})->
+  constructor: (options = {}) ->
     options.recursive         ?= yes
     options.ignoreTempChanges ?= yes
     super options
 
     @path = @getOption 'path'
 
-  watch:(callback)->
+  watch: (callback) ->
 
     vmController = kd.getSingleton 'vmController'
     @vmName or= (@getOption 'vmName') or vmController.defaultVmName
 
     unless @vmName
-      return callback? {message: "No VM provided!"}
+      return callback? { message: 'No VM provided!' }
 
     FSWatcher.stopWatching @getFullPath()
 
@@ -39,10 +39,10 @@ module.exports = class FSWatcher extends KDObject
       method     : 'fs.readDirectory'
       vmName     : @vmName
       withArgs   :
-        onChange : (change)=> @changeHappened @path, change
+        onChange : (change) => @changeHappened @path, change
         path     : FSHelper.plainPath @path
         watchSubdirectories : @getOption 'recursive'
-    , (err, response)=>
+    , (err, response) =>
 
       if not err and response?.files
         files = FSHelper.parseWatcher {
@@ -55,19 +55,19 @@ module.exports = class FSWatcher extends KDObject
       else
         callback? err, null
 
-  fileAdded:(change)->
+  fileAdded: (change) ->
     # warn "File added:", change.file.fullPath
 
-  folderAdded:(change)->
+  folderAdded: (change) ->
     # warn "Folder added:", change.file.fullPath
 
-  fileRemoved:(change)->
+  fileRemoved: (change) ->
     # warn "File removed:", change.file.fullPath
 
-  fileChanged:(change)->
+  fileChanged: (change) ->
     # warn "File updated:", change.file.fullPath
 
-  changeHappened:(path, change)->
+  changeHappened: (path, change) ->
 
     if @getOption 'ignoreTempChanges'
       return  if /^\.|\~$/.test change.file.name
@@ -83,7 +83,7 @@ module.exports = class FSWatcher extends KDObject
 
     # log "Change happened on #{@path}:", change
 
-  stopWatching:->
+  stopWatching: ->
     FSWatcher.stopWatching @getFullPath()
 
-  getFullPath:-> "[#{@vmName}]#{@path}"
+  getFullPath: -> "[#{@vmName}]#{@path}"

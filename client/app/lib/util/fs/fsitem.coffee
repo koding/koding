@@ -260,9 +260,11 @@ module.exports = class FSItem extends KDObject
       @emit "fs.job.finished"
 
 
+
   rename: (newName, callback)->
 
     @moveOrRename "#{FSHelper.getParentPath @getPath()}/#{newName}", callback
+
 
   move: (newPath, callback)->
 

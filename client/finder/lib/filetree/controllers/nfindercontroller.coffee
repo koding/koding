@@ -15,7 +15,7 @@ NFinderContextMenuController = require './nfindercontextmenucontroller'
 
 module.exports = class NFinderController extends KDViewController
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.view = new KDCustomScrollView
       cssClass   : 'nfinder file-container'
@@ -24,8 +24,8 @@ module.exports = class NFinderController extends KDViewController
     treeOptions  = {}
     treeOptions.treeItemClass     = options.treeItemClass     or= NFinderItem
     treeOptions.contextMenuClass  = options.contextMenuClass  or= NFinderContextMenuController
-    treeOptions.nodeIdPath        = options.nodeIdPath        or= "path"
-    treeOptions.nodeParentIdPath  = options.nodeParentIdPath  or= "parentPath"
+    treeOptions.nodeIdPath        = options.nodeIdPath        or= 'path'
+    treeOptions.nodeParentIdPath  = options.nodeParentIdPath  or= 'parentPath'
     treeOptions.dragdrop          = options.dragdrop           ?= yes
     treeOptions.foldersOnly       = options.foldersOnly        ?= no
     treeOptions.hideDotFiles      = options.hideDotFiles       ?= no
@@ -44,7 +44,7 @@ module.exports = class NFinderController extends KDViewController
     TreeControllerClass = options.treeControllerClass or NFinderTreeController
     @treeController     = new TreeControllerClass treeOptions, []
 
-    {appStorageController} = kd.singletons
+    { appStorageController } = kd.singletons
     @appStorage = appStorageController.storage 'Finder', '2.0'
 
     @watchers = {}
@@ -53,10 +53,10 @@ module.exports = class NFinderController extends KDViewController
 
       @appStorage.ready =>
 
-        @treeController.on "folder.expanded", (folder)=>
+        @treeController.on 'folder.expanded', (folder) =>
           @setRecentFolder folder.path
 
-        @treeController.on "folder.collapsed", ({path})=>
+        @treeController.on 'folder.collapsed', ({ path }) =>
           @unsetRecentFolder path
           @stopWatching path
 
@@ -66,14 +66,14 @@ module.exports = class NFinderController extends KDViewController
 
       { computeController } = kd.singletons
 
-      computeController.on "MachineDestroyed", ({machineId})=>
+      computeController.on 'MachineDestroyed', ({ machineId }) =>
         @unmountMachine machineId
 
-      computeController.on "MachineStopped", ({machineId})=>
+      computeController.on 'MachineStopped', ({ machineId }) =>
         @unmountMachine machineId
 
-      computeController.on "MachineStarted", ({machineId})=>
-        computeController.fetchMachine machineId, (err, machine)=>
+      computeController.on 'MachineStarted', ({ machineId }) =>
+        computeController.fetchMachine machineId, (err, machine) =>
           @mountMachine machine  unless err
 
 
@@ -84,7 +84,7 @@ module.exports = class NFinderController extends KDViewController
     if @getOption 'loadFilesOnInit' then do @reset
 
 
-  reset:->
+  reset: ->
 
     kd.singletons.computeController.ready =>
 
@@ -93,14 +93,14 @@ module.exports = class NFinderController extends KDViewController
       else kd.utils.defer    @bound 'loadMachines'
 
 
-  loadMachines:->
+  loadMachines: ->
 
     if machineToMount = @getOption 'machineToMount'
       return @mountMachine machineToMount
 
     { computeController } = kd.singletons
 
-    computeController.fetchMachines (err, machines)=>
+    computeController.fetchMachines (err, machines) =>
 
       unless showError err
         @mountMachines machines  if machines.length > 0
@@ -128,7 +128,7 @@ module.exports = class NFinderController extends KDViewController
     @machines.push FSHelper.createFileInstance
       name           : path
       path           : "[#{uid}]#{path}"
-      type           : "machine"
+      type           : 'machine'
       machine        : machine
       treeController : @treeController
       parentPath     : 0
@@ -141,7 +141,7 @@ module.exports = class NFinderController extends KDViewController
 
       kd.utils.defer =>
 
-        @treeController.expandFolder machineItem, (err)=>
+        @treeController.expandFolder machineItem, (err) =>
 
           @treeController.selectNode machineItem
 
@@ -157,7 +157,7 @@ module.exports = class NFinderController extends KDViewController
       @mountMachine machine
 
 
-  unmountMachine: (uid)->
+  unmountMachine: (uid) ->
 
     machineItem = @getMachineNode uid
     return kd.warn 'No such Machine!'  unless machineItem
@@ -166,10 +166,10 @@ module.exports = class NFinderController extends KDViewController
     @stopWatching machineItem.data.path
     FSHelper.unregisterMachineFiles uid
     @treeController.removeNodeView machineItem
-    @machines = @machines.filter (vmData)-> vmData isnt machineItem.data
+    @machines = @machines.filter (vmData) -> vmData isnt machineItem.data
 
 
-  updateMachineRoot:(uid, path, callback)->
+  updateMachineRoot: (uid, path, callback) ->
 
     return kd.warn 'Machine uid and new path required!'  unless uid or path
 
@@ -184,12 +184,12 @@ module.exports = class NFinderController extends KDViewController
 
     { computeController } = kd.singletons
 
-    computeController.fetchMachine uid, (err, machine)=>
+    computeController.fetchMachine uid, (err, machine) =>
       return showError err  if err
       @mountMachine machine    if machine?
 
 
-  hideDotFiles:(uid)->
+  hideDotFiles: (uid) ->
 
     return  unless uid
     @setNodesHidden uid, yes
@@ -200,7 +200,7 @@ module.exports = class NFinderController extends KDViewController
         @treeController.removeNodeView node
 
 
-  showDotFiles:(uid)->
+  showDotFiles: (uid) ->
 
     return  unless uid
     @setNodesHidden uid, no
@@ -211,86 +211,86 @@ module.exports = class NFinderController extends KDViewController
         , yes
 
 
-  isNodesHiddenFor:(uid)->
+  isNodesHiddenFor: (uid) ->
 
     return yes  if @getOption 'hideDotFiles'
     return (@appStorage.getValue('machinesDotFileChoices') or {})[uid]
 
 
-  setNodesHidden:(uid, state)->
+  setNodesHidden: (uid, state) ->
 
     prefs = @appStorage.getValue('machinesDotFileChoices') or {}
     prefs[uid] = state
     @appStorage.setValue 'machinesDotFileChoices', prefs
 
 
-  getRecentFolders:->
+  getRecentFolders: ->
 
     recentFolders = @appStorage.getValue('recentFolders')
     recentFolders = []  unless Array.isArray recentFolders
     return recentFolders
 
 
-  setRecentFolder:(folderPath, callback)->
+  setRecentFolder: (folderPath, callback) ->
 
     recentFolders = @getRecentFolders()
     unless folderPath in recentFolders
       recentFolders.push folderPath
-    recentFolders.sort (path)-> if path is folderPath then -1 else 0
+    recentFolders.sort (path) -> if path is folderPath then -1 else 0
     @appStorage.setValue 'recentFolders', recentFolders, callback
 
 
-  unsetRecentFolder:(folderPath, callback)->
+  unsetRecentFolder: (folderPath, callback) ->
 
     recentFolders = @getRecentFolders()
-    recentFolders = recentFolders.filter (path)->
+    recentFolders = recentFolders.filter (path) ->
       path.indexOf(folderPath) isnt 0
-    recentFolders.sort (path)->
+    recentFolders.sort (path) ->
       if path is folderPath then -1 else 0
     @appStorage.setValue 'recentFolders', recentFolders, callback
 
 
-  expandFolder:(folderPath, callback=kd.noop)->
+  expandFolder: (folderPath, callback = kd.noop) ->
 
     return  unless folderPath
     for own path, node of @treeController.nodes
       return @treeController.expandFolder node, callback  if path is folderPath
-    callback {message:"Folder not exists: #{folderPath}"}
+    callback { message:"Folder not exists: #{folderPath}" }
 
 
-  expandFolders: (paths, callback=kd.noop)->
+  expandFolders: (paths, callback = kd.noop) ->
 
     if typeof paths is 'string'
       paths = FSHelper.getPathHierarchy paths
     path = paths.pop()
-    @expandFolder path, (err)=>
+    @expandFolder path, (err) =>
       @unsetRecentFolder path  if err
       if paths.length is 0
       then callback null, @treeController.nodes[path]
       else @expandFolders paths, callback
 
 
-  reloadPreviousState:(uid)->
+  reloadPreviousState: (uid) ->
 
     recentFolders = @getRecentFolders()
     if uid
-      recentFolders = recentFolders.filter (folder)->
+      recentFolders = recentFolders.filter (folder) ->
         folder.indexOf "[#{uid}]" is 0
       if recentFolders.length is 0
         recentFolders = ["[#{uid}]/"]
     @expandFolders recentFolders
 
 
-  uploadTo: (path)->
+  uploadTo: (path) ->
 
-    {uploader, uploaderPlaceholder} = @getDelegate()
+    { uploader, uploaderPlaceholder } = @getDelegate()
     uploader.setPath path
     uploaderPlaceholder.show()
 
 
   # Filetree helpers
   #
-  getMachineNode:(uid)->
+  getMachineNode: (uid) ->
 
     return null  unless uid
 
@@ -306,30 +306,30 @@ module.exports = class NFinderController extends KDViewController
 
   # Settings helpers
   #
-  updateMountState:(uid, state)->
+  updateMountState: (uid, state) ->
 
     return  if isGuest()
 
-    machines = @appStorage.getValue("mountedMachines") or {}
+    machines = @appStorage.getValue('mountedMachines') or {}
     machines[uid] = state
 
-    @appStorage.setValue "mountedMachines", machines
+    @appStorage.setValue 'mountedMachines', machines
 
 
   # FS Watcher helpers
   #
-  registerWatcher:(path, stopWatching)->
+  registerWatcher: (path, stopWatching) ->
 
-    @watchers[path] = stop: stopWatching
+    @watchers[path] = { stop: stopWatching }
 
 
-  stopAllWatchers:->
+  stopAllWatchers: ->
 
     (watcher.stop() for own path, watcher of @watchers)
     @watchers = {}
 
 
-  stopWatching:(pathToStop)->
+  stopWatching: (pathToStop) ->
 
     for own path, watcher of @watchers  when (path.indexOf pathToStop) is 0
       watcher.stop()
@@ -338,7 +338,7 @@ module.exports = class NFinderController extends KDViewController
 
   # Basics
   #
-  cleanup:->
+  cleanup: ->
 
     @treeController.removeAllNodes()
     FSHelper.resetRegistry()

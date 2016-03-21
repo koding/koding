@@ -8,18 +8,9 @@ assert               = require 'assert'
 
 module.exports =
 
+  before: (browser) -> utils.beforeCollaborationSuite browser
 
-  before: (browser) ->
-
-    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-
-    if hostBrowser
-      utils.getUser()
-
-    return if utils.suiteHookHasRun 'before'
-
-    utils.registerSuiteHook 'before'
-
+  afterEach: (browser, done) -> utils.afterEachCollaborationTest browser, done
 
   start: (browser) ->
 
@@ -69,18 +60,19 @@ module.exports =
     collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
 
 
-
   openFile: (browser) ->
 
     host                   = utils.getUser no, 0
     hostBrowser            = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     paneSelector           = '.kdsplitview-panel.panel-1 .pane-wrapper .application-tab-handle-holder'
+    lineWidgetSelector     = '.kdtabpaneview.active .ace-line-widget-'
     participantFileName    = 'python.py'
     participantFileContent = 'Hello World from Python by Koding'
 
     hostCallback = ->
 
       ideHelpers.openFileFromWebFolder browser, host
+      collaborationHelpers.answerPermissionRequest(browser, yes)
       browser.waitForElementVisible "#{paneSelector} .pythonpy",  60000
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
@@ -89,6 +81,7 @@ module.exports =
     participantCallback = ->
 
       browser.waitForElementVisible "#{paneSelector} .indexhtml", 60000
+      collaborationHelpers.requestPermission(browser, yes)
       ideHelpers.openFileFromWebFolder browser, host, participantFileName, participantFileContent
       collaborationHelpers.leaveSession(browser)
       browser.end()
@@ -115,12 +108,14 @@ module.exports =
 
     hostCallback = ->
 
+      collaborationHelpers.answerPermissionRequest(browser, yes)
       commonCallback()
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
 
     participantCallback = ->
 
+      collaborationHelpers.requestPermission(browser, yes)
       terminalHelpers.openNewTerminalMenu(browser)
       terminalHelpers.openTerminal(browser)
 

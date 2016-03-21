@@ -8,11 +8,39 @@ import (
 	"time"
 
 	"github.com/koding/kite"
+	"github.com/koding/kite/dnode"
 )
+
+const (
+	// defaultLongTellTimeout is the default timeout longTellMethods use.
+	defaultLongTellTimeout = 55 * time.Second
+)
+
+var (
+	// longTimeoutMethods is the timeouts that specific kite method calls over
+	// the network will take to timeout. This should be large enough as to allow
+	// long requests to be sent over the kite callback protocol, but also small
+	// enough to allow the network error to be presented to the user in the event
+	// of network disruptions.
+	//
+	// If left too large, the Kernel (in OSX, for example) will fail fs ops by printing
+	// "Socket is not connected" to the user. So if that message is seen, this value
+	// likely needs to be lowered.
+	// The klient methods to use a large timeout for.
+	longTimeoutMethods = map[string]time.Duration{
+		"exec": defaultLongTellTimeout,
+	}
+)
+
+// Teller is the interface usually implemented by kite.Client.
+type Teller interface {
+	Tell(string, ...interface{}) (*dnode.Partial, error)
+	TellWithTimeout(string, time.Duration, ...interface{}) (*dnode.Partial, error)
+}
 
 // RemoteTransport is a Transport that uses klient on user VM to communicate.
 type RemoteTransport struct {
-	Client *kite.Client
+	Client Teller
 
 	// RemotePath is the full path to mounted dir on user VM.
 	RemotePath string
@@ -27,7 +55,7 @@ type RemoteTransport struct {
 }
 
 // NewRemoteTransport initializes RemoteTransport with kite connection.
-func NewRemoteTransport(c *kite.Client, t time.Duration, p string) (*RemoteTransport, error) {
+func NewRemoteTransport(c Teller, t time.Duration, p string) (*RemoteTransport, error) {
 	return &RemoteTransport{
 		Client:      c,
 		RemotePath:  p,
@@ -197,7 +225,11 @@ func (r *RemoteTransport) relativePath(path string) string {
 // If the method timeouts out, then we return syscall.ECONNREFUSED so it'll be
 // shown to user by the kernel.
 func (r *RemoteTransport) trip(methodName string, req interface{}, res interface{}) error {
-	raw, err := r.Client.TellWithTimeout(methodName, r.TellTimeout, req)
+	// Adjust our timeout for specific methods. Some methods always need a long
+	// timeout.
+	timeout := getTellTimout(methodName, r.TellTimeout)
+
+	raw, err := r.Client.TellWithTimeout(methodName, timeout, req)
 	if err != nil {
 		if IsKiteConnectionErr(err) {
 			return syscall.ECONNREFUSED
@@ -206,6 +238,21 @@ func (r *RemoteTransport) trip(methodName string, req interface{}, res interface
 	}
 
 	return raw.Unmarshal(&res)
+}
+
+// getTellTimeout returns the timeout to use for the given method. Some klient methods
+// need a shorter duration, some longer. This function encapsulates that deciding
+// logic into a single function.
+//
+// If the given method is not adjusted by this method, it returns the given default
+// timeout.
+func getTellTimout(methodName string, notLongTimeout time.Duration) time.Duration {
+	timeout, ok := longTimeoutMethods[methodName]
+	if !ok {
+		timeout = notLongTimeout
+	}
+
+	return timeout
 }
 
 ///// Kite error checkers

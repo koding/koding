@@ -14,10 +14,10 @@ NSectionItemView      = require './nsectionitemview'
 
 module.exports = class NFinderItem extends JTreeItemView
 
-  constructor:(options = {},data)->
+  constructor: (options = {}, data) ->
 
-    options.tagName or= "li"
-    options.type    or= "finderitem"
+    options.tagName or= 'li'
+    options.type    or= 'finderitem'
 
     super options, data
 
@@ -28,28 +28,28 @@ module.exports = class NFinderItem extends JTreeItemView
 
     childConstructor = @getChildConstructor data.type
 
-    @childView = new childConstructor delegate: this, data
-    @childView.$().css "margin-left", (data.depth) * 14
+    @childView = new childConstructor { delegate: this }, data
+    @childView.$().css 'margin-left', (data.depth) * 14
 
     if data.name? and data.name.length > 20 - data.depth
-      @childView.setAttribute "title", FSHelper.plainPath data.name
+      @childView.setAttribute 'title', FSHelper.plainPath data.name
 
-    @on "ItemBeingDeleted", =>
+    @on 'ItemBeingDeleted', ->
       data.removeLocalFileInfo()
 
 
   getChildConstructor: (type) ->
     switch type
-      when "machine"    then NMachineItemView
-      when "folder"     then NFolderItemView
-      when "section"    then NSectionItemView
-      when "mount"      then NMountItemView
-      when "brokenLink" then NBrokenLinkItemView
+      when 'machine'    then NMachineItemView
+      when 'folder'     then NFolderItemView
+      when 'section'    then NSectionItemView
+      when 'mount'      then NMountItemView
+      when 'brokenLink' then NBrokenLinkItemView
       else NFileItemView
 
-  mouseDown:-> yes
+  mouseDown: -> yes
 
-  resetView:(view)->
+  resetView: (view) ->
 
     if @deleteView
       @deleteView.destroy()
@@ -69,32 +69,32 @@ module.exports = class NFinderItem extends JTreeItemView
     @beingEdited   = no
     @beingProgress = no
     @callback      = null
-    @unsetClass "being-deleted being-edited progress"
+    @unsetClass 'being-deleted being-edited progress'
     @getDelegate().setKeyView()
 
-  confirmDelete:(callback)->
+  confirmDelete: (callback) ->
 
     @callback = callback
     @showDeleteView()
 
-  showDeleteView:->
+  showDeleteView: ->
 
     return if @deleteView
-    @setClass "being-deleted"
+    @setClass 'being-deleted'
     @beingDeleted = yes
     @childView.hide()
     data = @getData()
     @addSubView @deleteView = new NFinderItemDeleteView {}, data
-    @deleteView.on "FinderDeleteConfirmation", (confirmation)=>
+    @deleteView.on 'FinderDeleteConfirmation', (confirmation) =>
       @callback? confirmation
       @resetView()
     @deleteView.setKeyView()
 
-  showRenameView:(callback)->
+  showRenameView: (callback) ->
 
     return  if @renameView
 
-    @setClass "being-edited"
+    @setClass 'being-edited'
 
     @beingEdited = yes
     @callback    = callback
@@ -103,9 +103,9 @@ module.exports = class NFinderItem extends JTreeItemView
     @childView.hide()
 
     @addSubView @renameView = new NFinderItemRenameView {}, data
-    @renameView.$().css "margin-left", ((data.depth+1)*10)+2
+    @renameView.$().css 'margin-left', ((data.depth + 1) * 10) + 2
 
-    @renameView.on "FinderRenameConfirmation", (newValue)=>
+    @renameView.on 'FinderRenameConfirmation', (newValue) =>
       @callback? newValue
       @resetView()
 
@@ -118,15 +118,15 @@ module.exports = class NFinderItem extends JTreeItemView
     input.setFocus()
 
 
-  showProgressView: (progress, determinate=yes)->
+  showProgressView: (progress, determinate = yes) ->
 
     { loaded, total, percent } = progress
 
     unless @progressView
       @addSubView @progressView = new KDProgressBarView
 
-    @progressView.setOption "determinate", determinate
-    @progressView.updateBar percent, "%", ""
+    @progressView.setOption 'determinate', determinate
+    @progressView.updateBar percent, '%', ''
 
     if loaded? and total?
       title = "#{loaded}mb of #{total}mb uploaded"
@@ -138,10 +138,10 @@ module.exports = class NFinderItem extends JTreeItemView
       @progressView.unsetTooltip()
 
     if 0 <= percent < 100
-    then @setClass "progress"
+    then @setClass 'progress'
     else kd.utils.wait 1000, @bound 'resetView'
 
-  viewAppended:->
+  viewAppended: ->
 
     @addSubView @childView
 
@@ -150,7 +150,7 @@ module.exports = class NFinderItem extends JTreeItemView
 
     if fileInfo.lastUploadedChunk
 
-      {lastUploadedChunk, totalChunks} = fileInfo
+      { lastUploadedChunk, totalChunks } = fileInfo
 
       if lastUploadedChunk is totalChunks
         file.removeLocalFileInfo()

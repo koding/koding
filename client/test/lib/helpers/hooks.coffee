@@ -6,7 +6,7 @@ _        = require 'lodash'
 # s3 put only
 # Access Key ID: AKIAIWO4ZPTLQEYSOLGA
 # Secret Access Key: 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
-AWS.config.update accessKeyId: 'AKIAIWO4ZPTLQEYSOLGA', secretAccessKey: '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'
+AWS.config.update { accessKeyId: 'AKIAIWO4ZPTLQEYSOLGA', secretAccessKey: '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' }
 
 methods =
 
@@ -20,9 +20,9 @@ methods =
 
   beforeEach: (browser) ->
 
-    {name, module} = browser.currentTest
-    {suite}        = browser
-    start          = Date.now()
+    { name, module } = browser.currentTest
+    { suite }        = browser
+    start            = Date.now()
 
     browser.testData[name] = { module, suite, name, start }
 
@@ -66,14 +66,15 @@ methods =
 
     filename = "#{revision}-#{browser.suite}-#{date}.csv"
 
-    s3 = new AWS.S3 params:
+    s3 = new AWS.S3 { params:
       Key    : filename
       Bucket : 'koding-test-data'
+    }
 
     browser.pause 10000
 
     s3.createBucket ->
-      s3.upload Body: string, (err, res) ->
+      s3.upload { Body: string }, (err, res) ->
         if err
           console.log ' ✖ Unable to write test times to S3.'
         else

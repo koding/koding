@@ -62,17 +62,17 @@ module.exports = class GroupProductsController extends KDController
 
     categoryView
 
-      .on("CreateRequested", handleEdit)
+      .on('CreateRequested', handleEdit)
 
-      .on("EditRequested", handleEdit)
+      .on('EditRequested', handleEdit)
 
-      .on("AddProductsRequested", showAddProductsModal)
+      .on('AddProductsRequested', showAddProductsModal)
 
-      .on "DeleteRequested", (data) ->
+      .on 'DeleteRequested', (data) ->
         confirmDelete data, ->
           konstructor.removeByCode data.planCode, handleResponse
 
-      .on "BuyersReportRequested", (data) ->
+      .on 'BuyersReportRequested', (data) ->
         debugger # needs to be implemented
 
   confirmDelete = (data, callback) ->
@@ -82,11 +82,11 @@ module.exports = class GroupProductsController extends KDController
       cssClass  : 'modalformline'
 
     modal = KDModalView.confirm
-      title       : "Warning"
-      description : "Are you sure you want to delete this item?"
+      title       : 'Warning'
+      description : 'Are you sure you want to delete this item?'
       subView     : new GroupProductView productViewOptions, data
       ok          :
-        title     : "Remove"
+        title     : 'Remove'
         callback  : ->
           modal.destroy()
           callback()
@@ -131,8 +131,8 @@ module.exports = class GroupProductsController extends KDController
         showSoldAlone       : no
         showPriceIsVolatile : no
         placeholders        :
-          title             : "VM — extra large"
-          description       : "4 apps, 4 GB RAM, 8 GB disk"
+          title             : 'VM — extra large'
+          description       : '4 apps, 4 GB RAM, 8 GB disk'
 
       when 'plan'
         productType         : 'plan'

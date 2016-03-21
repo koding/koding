@@ -9,19 +9,19 @@ module.exports = class AceAppController extends AppController
 
   @options = require './options'
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.view = new AceAppView
     options.appInfo =
-      name         : "Ace"
-      type         : "application"
-      cssClass     : "ace"
+      name         : 'Ace'
+      type         : 'application'
+      cssClass     : 'ace'
 
     super options, data
 
-    @on "AppDidQuit", -> @getView().emit "AceAppDidQuit"
+    @on 'AppDidQuit', -> @getView().emit 'AceAppDidQuit'
 
 
   openFile: (file) ->
 
-   @getView().openFile file
+    @getView().openFile file

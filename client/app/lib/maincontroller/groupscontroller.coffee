@@ -64,7 +64,6 @@ module.exports = class GroupsController extends kd.Controller
 
     @filterXssAndForwardEvents @groupChannel, [
       'MemberJoinedGroup'
-      'FollowHappened'
       'LikeIsAdded'
       'PostIsCreated'
       'ReplyIsAdded'

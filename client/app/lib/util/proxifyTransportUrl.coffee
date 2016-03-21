@@ -11,9 +11,9 @@ module.exports = (url) ->
 
   # build our new url, example:
   # old: http://54.164.174.218:3000/kite
-  # new: https://koding.com/-/userproxy/54.164.243.111/kite
+  # new: https://koding.com/-/prodproxy/54.164.243.111/kite
   #           or
-  #      http://localhost:8090/-/userproxy/54.164.243.111/kite
+  #      http://localhost:8090/-/prodproxy/54.164.243.111/kite
 
   {protocol} = global.document.location
 
@@ -26,4 +26,4 @@ module.exports = (url) ->
   then 'p'
   else 'dev-p'
 
-  return "#{protocol}//#{subdomain}.koding.com/-/#{proxy}/#{parser.hostname}/kite"
+  return "#{protocol}//#{subdomain}.koding.com/-/#{proxy}/#{parser.hostname}#{parser.pathname}"

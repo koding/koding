@@ -11,7 +11,7 @@ module.exports = class CredentialStatusView extends KDView
 
   constructor: (options = {}, data) ->
 
-    curryIn options, cssClass: 'credential-status'
+    curryIn options, { cssClass: 'credential-status' }
 
     super options, data
 
@@ -24,7 +24,7 @@ module.exports = class CredentialStatusView extends KDView
 
     @waitingView.addSubView @loader  = new kd.LoaderView
       showLoader : yes
-      size       : width : 16
+      size       : { width : 16 }
 
     @waitingView.addSubView @message = new kd.CustomHTMLView
       cssClass   : 'message'
@@ -101,7 +101,7 @@ module.exports = class CredentialStatusView extends KDView
 
 
   pistachio: ->
-    """
+    '''
       {{> @waitingView}}
       {{> @stalledView}}
-    """
+    '''

@@ -31,6 +31,7 @@ type Deb struct {
 	BuildFolder     string
 	Files           string
 	UpstartScript   string
+	SysvinitScript  string
 	DebianTemplates map[string]string
 	Debug           bool
 }
@@ -135,6 +136,14 @@ func (d *Deb) createInstallDir() error {
 			if err != nil {
 				log.Println("copy assets", err)
 			}
+		}
+	}
+
+	if d.SysvinitScript != "" {
+		err := util.Copy(d.SysvinitScript, appFolder)
+
+		if err != nil {
+			log.Println("copy assets", err)
 		}
 	}
 

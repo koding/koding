@@ -39,7 +39,7 @@ module.exports =
       .click                  folderData.selector + ' + .chevron'
       .waitForElementVisible  '.context-list-wrapper', 20000
       .click                  '.context-list-wrapper li.workspace-from-here'
-      .url (data) =>
+      .url (data) ->
         url    = data.value
 
         vmName   = url.split('/IDE/')[1].split('/')[0]

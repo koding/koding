@@ -8,17 +8,17 @@ module.exports = class EmbedCodeView extends KDTabView
 
     { @planCode } = options
 
-    options.cssClass ?= "hidden product-embed"
+    options.cssClass ?= 'hidden product-embed'
     options.hideHandleCloseIcons ?= yes
     options.paneData ?= [
 
-        name    : "Check Subscription"
+        name    : 'Check Subscription'
         partial : "<pre>#{ @getCodeCheckSnippet() }</pre>"
       ,
-        name    : "Get Subscribers"
+        name    : 'Get Subscribers'
         partial : "<pre>#{ @getCodeGetSnippet() }</pre>"
       ,
-        name    : "Subscribe Widget"
+        name    : 'Subscribe Widget'
         partial : "<pre>#{ @getCodeWidgetSnippet() }</pre>"
     ]
 
