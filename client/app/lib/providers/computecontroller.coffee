@@ -202,8 +202,8 @@ module.exports = class ComputeController extends KDController
     (callback = kd.noop, force = no) -> kd.singletons.mainController.ready =>
 
       if @stacks.length > 0 and not force
-        callback null, @stacks
-        kd.info 'Stacks returned from cache.'
+        callback null, @stacks, yes
+        kd.info "Stacks returned from cache."
         return
 
       return  if (queue.push callback) > 1
@@ -248,7 +248,7 @@ module.exports = class ComputeController extends KDController
           globals.userMachines = machines
           @emit 'MachineDataUpdated'
 
-          cb null, stacks  for cb in queue
+          cb null, stacks, no  for cb in queue
           queue = []
 
 
@@ -1312,15 +1312,17 @@ module.exports = class ComputeController extends KDController
       callback null, result
 
 
-  fetchStackByMachineId: (machineId, callback = kd.noop) ->
+  fetchStackByMachineId: (machineId, force, callback = kd.noop) ->
 
-    @fetchStacks (err, stacks) ->
+    @fetchStacks (err, stacks, fromCache) ->
 
       return callback err  if err
 
       for stack in stacks
         for machine in stack.machines
           if machine._id is machineId
-            return callback null, stack
+            return if force and fromCache
+            then remote.api.JComputeStack.one { _id : stack._id }, callback
+            else callback null, stack
 
        callback()

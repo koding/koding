@@ -38,6 +38,10 @@ module.exports = class JComputeStack extends jraphical.Module
       static             :
         create           :
           (signature Object, Function)
+        one              : [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         some             : [
           (signature Object, Function)
           (signature Object, Object, Function)
@@ -254,6 +258,20 @@ module.exports = class JComputeStack extends jraphical.Module
         else
 
           callback null, _stacks
+
+
+  @one$: permit 'list stacks',
+
+    success: (client, selector, options, callback) ->
+
+      [options, callback] = [callback, options]  unless callback
+
+      options ?= {}
+      options.limit = 1
+
+      @some$ client, selector, options, (err, stacks) ->
+        [stack] = stacks ? []
+        callback err, stack
 
 
   revive: (callback) ->
