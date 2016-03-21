@@ -153,6 +153,10 @@ func newCreateReq(d *schema.ResourceData) (*vagrantapi.Create, error) {
 				}
 			}
 
+			if port.HostPort == 0 {
+				port.HostPort = port.GuestPort
+			}
+
 			c.ForwardedPorts = append(c.ForwardedPorts, &port)
 		}
 	}

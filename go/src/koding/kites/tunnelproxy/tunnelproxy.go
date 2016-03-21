@@ -144,6 +144,23 @@ func host(addr string) string {
 	return addr
 }
 
+func parseIP(ip string) string {
+	if ip == "" {
+		return ""
+	}
+
+	host, _, err := net.SplitHostPort(ip)
+	if err == nil {
+		ip = host
+	}
+
+	if net.ParseIP(ip) != nil {
+		return ip
+	}
+
+	return ""
+}
+
 func splitHostPort(addr string) (string, int, error) {
 	host, port, err := net.SplitHostPort(addr)
 	if err != nil {

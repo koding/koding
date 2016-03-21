@@ -44,7 +44,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "{{.Box}}"
   config.vm.hostname = "{{.Hostname}}"
 
-{{range _, $f := {{.ForwardedPorts}}
+{{range $_, $f := .ForwardedPorts}}
   config.vm.network "forwarded_port", guest: {{$f.GuestPort}}, host: {{$f.HostPort}}, auto_correct: true
 {{end}}
 
