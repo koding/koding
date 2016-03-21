@@ -47,15 +47,7 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 			Teams:        machine.Teams,
 		}
 
-		if machine.KiteTracker != nil && machine.KiteTracker.IsPinging() {
-			if machine.KiteTracker.IsConnected() {
-				info.MachineStatus = restypes.MachineConnected
-			} else {
-				info.MachineStatus = restypes.MachineDisconnected
-			}
-		} else if machine.HTTPTracker != nil && machine.HTTPTracker.IsConnected() {
-			info.MachineStatus = restypes.MachineOnline
-		}
+		info.MachineStatus = getMachineStatus(machine)
 
 		if machine.Client != nil {
 			info.Environment = machine.Client.Environment
@@ -80,4 +72,43 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 	}
 
 	return infos, nil
+}
+
+// getMachineStatus returns a machine status for the given machine, based on
+// the given kitepingers/etc.
+func getMachineStatus(machine *machine.Machine) restypes.MachineStatus {
+	// Storing some vars for readability
+	var (
+		// If we have a kitepinger, and are actively pinging, we show
+		// connected/disconnected
+		useConnected bool
+
+		// If we are not showing connected/disconnected, but we are pinging http,
+		// use online/offline
+		useOnline bool
+
+		isConnected bool
+		isOnline    bool
+	)
+
+	if machine.KiteTracker != nil {
+		useConnected = machine.KiteTracker.IsPinging()
+		isConnected = machine.KiteTracker.IsConnected()
+	}
+
+	if machine.HTTPTracker != nil {
+		isOnline = machine.HTTPTracker.IsPinging()
+		useOnline = machine.HTTPTracker.IsConnected()
+	}
+
+	switch {
+	case useConnected && isConnected:
+		return restypes.MachineConnected
+	case useConnected && !isConnected:
+		return restypes.MachineDisconnected
+	case useOnline && isOnline:
+		return restypes.MachineOnline
+	default:
+		return restypes.MachineOffline
+	}
 }
