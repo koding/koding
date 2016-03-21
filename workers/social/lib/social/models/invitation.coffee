@@ -120,27 +120,30 @@ module.exports = class JInvitation extends jraphical.Module
   # some selects result set for invitations, it adds group name automatically
   @some$: permit 'send invitations',
     success: (client, selector, options, callback) ->
-      { groupSlug } = selector
-      groupName     = client.context.group or 'koding'
-      @canFetchInvitationsAsSuperAdmin client, (err, isSuperAdmin) ->
-        selector           or= {}
-        selector.groupName   = groupName # override group name in any case
-        selector.status    or= 'pending'
 
-        # allow only koding super admin to update groupName in query
-        if isSuperAdmin and groupSlug and client.context.group is 'koding'
-          selector.groupName = groupSlug
-
-        # delete groupSlug to prevent suspicious queries
+      { groupSlug }        = selector
+      groupName            = client.context.group or 'koding'
+      selector           or= {}
+      selector.status    or= 'pending'
+      selector.groupName   = groupName # override group name in any case
+      fetchInvitations     = ->
         delete selector.groupSlug
 
         { limit }       = options
         options.sort  or= { createdAt : -1 }
+        options.skip   ?= 0
         options.limit or= 25
         options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
-        options.skip   ?= 0
 
         JInvitation.some selector, options, callback
+
+      if groupSlug and client.context.group is 'koding'
+        @canFetchInvitationsAsSuperAdmin client, (err, isSuperAdmin) ->
+          selector.groupName = groupSlug  if isSuperAdmin
+          fetchInvitations()
+      else
+        fetchInvitations()
+
 
   # search searches database with given query string, adds `starting
   # with regex` around query param
