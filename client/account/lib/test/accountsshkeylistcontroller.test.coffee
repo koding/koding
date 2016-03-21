@@ -3,12 +3,19 @@ mock                        = require '../../../mocks/mockingjay'
 expect                      = require 'expect'
 KDListItemView              = kd.ListItemView
 AccountNewSshKeyView        = require 'account/views/accountnewsshkeyview'
+KodingListController        = require 'app/kodinglist/kodinglistcontroller'
 AccountSshKeyListController = require 'account/views/accountsshkeylistcontroller'
 
 
 describe 'AccountSshKeyListController', ->
 
   describe 'constructor', ->
+
+    it 'should be extended from KodingListController', ->
+
+      listController = new AccountSshKeyListController
+
+      expect(listController instanceof KodingListController).toBeTruthy()
 
     it 'should instantiate with default options', ->
 
