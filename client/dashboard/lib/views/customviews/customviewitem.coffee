@@ -8,7 +8,7 @@ module.exports = class CustomViewItem extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "custom-view-item"
+    options.cssClass = 'custom-view-item'
 
     super options, data
 
@@ -18,37 +18,37 @@ module.exports = class CustomViewItem extends JView
   creteElements: ->
 
     @deleteButton = new KDButtonView
-      cssClass    : "delete"
+      cssClass    : 'delete'
       iconOnly    : yes
       callback    : =>
         @notify => @delete()
 
     @editButton   = new KDButtonView
-      cssClass    : "edit"
+      cssClass    : 'edit'
       iconOnly    : yes
-      callback    : @bound "edit"
+      callback    : @bound 'edit'
 
 
   notify: (callback = kd.noop) ->
 
     modal          = new KDModalView
-      title        : "Are you sure?"
-      content      : "Are you sure you want to delete the item. This cannot be undone."
+      title        : 'Are you sure?'
+      content      : 'Are you sure you want to delete the item. This cannot be undone.'
       overlay      : yes
       buttons      :
         Delete     :
-          title    : "Delete"
-          cssClass : "solid red medium"
-          callback : =>
+          title    : 'Delete'
+          cssClass : 'solid red medium'
+          callback : ->
             callback()
             modal.destroy()
         Cancel     :
-          title    : "Cancel"
-          cssClass : "solid light-gray medium"
+          title    : 'Cancel'
+          cssClass : 'solid light-gray medium'
           callback : -> modal.destroy()
 
 
-  edit: -> @emit "ViewEditRequested", @getData()
+  edit: -> @emit 'ViewEditRequested', @getData()
 
 
   delete: ->
@@ -56,7 +56,7 @@ module.exports = class CustomViewItem extends JView
     viewData = @getData()
     viewData.remove (err, res) =>
       return kd.warn err  if err
-      @emit "ViewDeleted", viewData
+      @emit 'ViewDeleted', viewData
       @destroy()
 
 

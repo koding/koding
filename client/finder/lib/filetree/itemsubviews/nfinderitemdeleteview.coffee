@@ -5,14 +5,14 @@ KDLabelView = kd.LabelView
 JView = require 'app/jview'
 module.exports = class NFinderItemDeleteView extends JView
 
-  constructor:->
+  constructor: ->
 
     super
-    @setClass "delete-container"
+    @setClass 'delete-container'
     @button = new KDButtonView
       title     : 'Delete'
       style     : 'clean-red'
-      callback  : => @emit "FinderDeleteConfirmation", yes
+      callback  : => @emit 'FinderDeleteConfirmation', yes
 
     @cancel = new KDCustomHTMLView
       tagName   : 'a'
@@ -20,31 +20,31 @@ module.exports = class NFinderItemDeleteView extends JView
         href    : '#'
         title   : 'Cancel'
       cssClass  : 'cancel'
-      click     : => @emit "FinderDeleteConfirmation", no
+      click     : => @emit 'FinderDeleteConfirmation', no
 
     @label = new KDLabelView
       title     : 'Are you sure?'
 
-  viewAppended:->
+  viewAppended: ->
 
     super
     @button.$().focus()
 
-  pistachio:->
+  pistachio: ->
 
-    """
+    '''
     {{> @label}}
     {{> @button}}
     {{> @cancel}}
-    """
+    '''
 
-  keyDown:(event)->
+  keyDown: (event) ->
 
     switch event.which
       when 27 #esc
-        @emit "FinderDeleteConfirmation", no
+        @emit 'FinderDeleteConfirmation', no
         no
       when 9
-        unless @button.$().is(":focus")
+        unless @button.$().is(':focus')
           @button.$().focus()
           no

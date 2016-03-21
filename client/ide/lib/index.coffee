@@ -1102,6 +1102,7 @@ class IDEAppController extends AppController
 
     paneView = @getActivePaneView()
     paneType = paneView?.getOptions().paneType or null
+
     delegate = button
     menu     = new IDEStatusBarMenu { paneType, paneView, delegate }
 
@@ -1123,7 +1124,7 @@ class IDEAppController extends AppController
     paneType = paneView?.getOptions().paneType
     tabView  = paneView?.parent
 
-    return  unless paneType is 'terminal'
+    return  unless paneType in ['terminal', 'editor']
 
     tabView.tabHandle.setTitleEditMode yes
 
@@ -1408,7 +1409,10 @@ class IDEAppController extends AppController
 
     return if not context or not origin or (origin is nick() and rtmHash is @rtm.hash)
 
-    mustSyncChanges = [ 'CursorActivity', 'FileSaved' ]
+    mustSyncChanges = [ 'FileSaved' ]
+
+    if @permissions.get(origin) is 'edit'
+      mustSyncChanges.push 'CursorActivity'
 
     if @amIWatchingChangeOwner(origin) or type in mustSyncChanges
       targetPane = @getPaneByChange change
@@ -1648,18 +1652,30 @@ class IDEAppController extends AppController
 
   makeReadOnly: ->
 
+    appView = @getView()
+
     ideView.isReadOnly = yes  for ideView in @ideViews
     @forEachSubViewInIDEViews_ (pane) -> pane.makeReadOnly()
     @finderPane.makeReadOnly()
-    @getView().setClass 'read-only'
+
+    appView.setClass 'read-only'
+    appView.on 'click', @bound 'readOnlyNotifierCallback_'  if @rtm.isReady
+
+
+  readOnlyNotifierCallback_: -> @showRequestPermissionView()
 
 
   makeEditable: ->
 
+    appView = @getView()
+
     ideView.isReadOnly = no  for ideView in @ideViews
     @forEachSubViewInIDEViews_ (pane) -> pane.makeEditable()
     @finderPane.makeEditable()
-    @getView().unsetClass 'read-only'
+
+    appView.unsetClass 'read-only'
+    appView.off 'click', @bound 'readOnlyNotifierCallback_'
+    @requestEditPermissionView?.destroy()
 
 
   deleteWorkspaceRootFolder: (machineUId, rootPath) ->
@@ -1677,7 +1693,9 @@ class IDEAppController extends AppController
 
   handleShortcut: (e) ->
 
-    return  if (not @layoutManager.isRestored and not @initialViewsReady) or not @mountedMachine?.isRunning()
+    return  if not @layoutManager.isRestored and not @initialViewsReady
+    return  unless @mountedMachine?.isRunning()
+    return  if @getMyPermission() is 'read' and not @mountedMachine.isMine()
 
     kd.utils.stopDOMEvent e
 

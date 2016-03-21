@@ -10,9 +10,9 @@ JView = require 'app/jview'
 
 module.exports = class GroupsMemberPermissionsView extends JView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
-    options.cssClass = "member-related"
+    options.cssClass = 'member-related'
     options.itemLimit ?= 10
 
     super options, data
@@ -22,10 +22,10 @@ module.exports = class GroupsMemberPermissionsView extends JView
       cssClass : 'searchbar'
 
     @search = new KDHitEnterInputView
-      placeholder  : "Search..."
-      name         : "searchInput"
-      cssClass     : "header-search-input"
-      type         : "text"
+      placeholder  : 'Search...'
+      name         : 'searchInput'
+      cssClass     : 'header-search-input'
+      type         : 'text'
       callback     : =>
         @emit 'SearchInputChanged', @search.getValue()
         @search.focus()
@@ -37,19 +37,19 @@ module.exports = class GroupsMemberPermissionsView extends JView
     @searchWrapper.addSubView @search
     @searchWrapper.addSubView @searchIcon
 
-    @_searchValue = ""
+    @_searchValue = ''
 
     @listController = new KDListViewController
       itemClass             : GroupsMemberPermissionsListItemView
       lazyLoadThreshold     : .99
       noItemFoundWidget     : new KDCustomHTMLView
-        cssClass : "lazy-loader hidden"
-        partial  : "Member not found"
+        cssClass : 'lazy-loader hidden'
+        partial  : 'Member not found'
     @listWrapper    = @listController.getView()
 
-    @listController.getListView().on 'ItemWasAdded', (view)=>
+    @listController.getListView().on 'ItemWasAdded', (view) =>
       view.on 'RolesChanged', @memberRolesChange.bind this, view
-      view.on 'OwnershipChanged', @bound "refresh"
+      view.on 'OwnershipChanged', @bound 'refresh'
 
     @listController.on 'LazyLoadThresholdReached', @bound 'continueLoadingTeasers'
 
@@ -57,35 +57,35 @@ module.exports = class GroupsMemberPermissionsView extends JView
       unless @listController.scrollView.hasScrollBars()
         @continueLoadingTeasers()
 
-    @on 'SearchInputChanged', (value)=>
+    @on 'SearchInputChanged', (value) =>
       return  if value is @_searchValue
       @_searchValue = value
 
-      if value isnt ""
+      if value isnt ''
         @skip = 0
         @listController.removeAllItems()
         @fetchSomeMembers()
       else
-        @_searchValue = ""
+        @_searchValue = ''
         @refresh()
 
-    kd.singletons.groupsController.on "MemberJoinedGroup", (data) =>
-      @refresh()  unless @getData().slug is "koding"
+    kd.singletons.groupsController.on 'MemberJoinedGroup', (data) =>
+      @refresh()  unless @getData().slug is 'koding'
 
     @once 'viewAppended', @bound '_windowDidResize'
     @listenWindowResize()
 
     @refresh()
 
-  fetchRoles:(callback=->)->
+  fetchRoles: (callback = -> ) ->
     groupData = @getData()
     list = @listController.getListView()
     list.getOptions().group = groupData
-    groupData.fetchRoles (err, roles)=>
+    groupData.fetchRoles (err, roles) ->
       return kd.warn err if err
       list.getOptions().roles = roles
 
-  fetchSomeMembers:->
+  fetchSomeMembers: ->
     @listController.showLazyLoader no
     #some older accounts does not have proper timestamp values
     #because of this skip parameter is used here for lazy loading
@@ -96,12 +96,12 @@ module.exports = class GroupsMemberPermissionsView extends JView
 
     if @_searchValue
       selector = @_searchValue
-      {JAccount} = remote.api
+      { JAccount } = remote.api
     else
-      selector = ""
-    @getData().searchMembers selector, options, (err, members)=> @populateMembers err, members
+      selector = ''
+    @getData().searchMembers selector, options, (err, members) => @populateMembers err, members
 
-  populateMembers:(err, members)->
+  populateMembers: (err, members) ->
     instantiateItems = (err) =>
       return kd.warn err  if err
       @listController.instantiateListItems members
@@ -114,14 +114,14 @@ module.exports = class GroupsMemberPermissionsView extends JView
       @fetchUserRoles members, (err) =>
         return kd.warn err  if err
         #no need to fetch user status for all group admins
-        if @getData().slug is "koding"
+        if @getData().slug is 'koding'
           @fetchUserStatus members, instantiateItems
         else
           instantiateItems()
 
-  fetchUserRoles:(members, callback) ->
+  fetchUserRoles: (members, callback) ->
     ids = (member._id for member in members)
-    @getData().fetchUserRoles ids, (err, userRoles)=>
+    @getData().fetchUserRoles ids, (err, userRoles) =>
       return callback err  if err
       userRolesHash = {}
       for userRole in userRoles
@@ -130,7 +130,7 @@ module.exports = class GroupsMemberPermissionsView extends JView
 
       list = @listController.getListView()
       list.getOptions().userRoles ?= {}
-      {userRoles} = list.getOptions()
+      { userRoles } = list.getOptions()
       userRoles = _.extend(
         userRoles, userRolesHash
       )
@@ -138,7 +138,7 @@ module.exports = class GroupsMemberPermissionsView extends JView
 
   fetchUserStatus: (members, callback) ->
     nicknames = (member.profile.nickname for member in members)
-    @getData().fetchUserStatus nicknames, (err, users)=>
+    @getData().fetchUserStatus nicknames, (err, users) =>
       return callback err  if err
       userStatusHash = {}
       for user in users
@@ -146,26 +146,26 @@ module.exports = class GroupsMemberPermissionsView extends JView
 
       list = @listController.getListView()
       list.getOptions().userStatus ?= {}
-      {userStatus} = list.getOptions()
+      { userStatus } = list.getOptions()
       userStatus = _.extend(userStatus, userStatusHash)
       callback null
 
-  refresh:->
+  refresh: ->
     @listController.removeAllItems()
     @skip = 0
     @fetchRoles()
     @fetchSomeMembers()
 
-  continueLoadingTeasers:->
+  continueLoadingTeasers: ->
     @listController.showLazyLoader no
     @fetchSomeMembers()
 
-  memberRolesChange:(view, member, roles)->
-    @getData().changeMemberRoles member.getId(), roles, (err)=>
+  memberRolesChange: (view, member, roles) ->
+    @getData().changeMemberRoles member.getId(), roles, (err) ->
       view.updateRoles roles  unless err
 
-  pistachio:->
-    """
+  pistachio: ->
+    '''
     {{> @searchWrapper}}
     {{> @listWrapper}}
-    """
+    '''

@@ -180,9 +180,10 @@ EOF
 	return 0
 }
 
-# do_install_klient <KONTROLURL>
+# do_install_klient <KONTROLURL> <KITE_USERNAME>
 do_install_klient() {
 	local kontrolurl=${1:-https://koding.com/kontrol/kite}
+	local username=${2:-}
 
 	if does_service_exist; then
 		if ! remove_service; then
@@ -216,13 +217,11 @@ done
 
 # start klient
 
-export HOME=\$(eval cd ~\${KITE_USERNAME}; pwd)
+export HOME=\$(eval cd ~\${USERNAME}; pwd)
 export KITE_KONTROL_URL=\${KITE_KONTROL_URL:-https://koding.com/kontrol/kite}
 export PATH=\$PATH:/usr/local/bin
 
-env
-
-sudo -E -u "\$KITE_USERNAME" /opt/kite/klient/klient -kontrol-url "\${KITE_KONTROL_URL}"
+sudo -E -u "\$USERNAME" /opt/kite/klient/klient -kontrol-url "\${KITE_KONTROL_URL}"
 EOF
 		cat <<EOF | sudo tee /opt/kite/klient/klient.init &>/dev/null
 <!--
@@ -251,10 +250,12 @@ Copyright (C) 2012-2016 Koding Inc., all rights reserved.
 
 	<key>EnvironmentVariables</key>
 	<dict>
+			<key>USERNAME</key>
+			<string>$(whoami)</string>
 			<key>KITE_USERNAME</key>
-			<string>rjeczalik</string>
+			<string>${username}</string>
 			<key>KITE_KONTROL_URL</key>
-			<string>https://sandbox.koding.com/kontrol/kite</string>
+			<string>${kontrolurl}</string>
 			<key>KITE_HOME</key>
 			<string>/etc/kite</string>
 	</dict>
@@ -401,7 +402,7 @@ EOF
 	export KITE_USERNAME=${2:-}
 	export KONTROLURL=${KONTROLURL:-https://koding.com/kontrol/kite}
 
-	if ! do_install_klient "$KONTROLURL"; then
+	if ! do_install_klient "$KONTROLURL" "$KITE_USERNAME"; then
 		exit 2
 	fi
 

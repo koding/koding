@@ -6,7 +6,7 @@ LoginInputView  = require './../../login/logininputview'
 
 module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.buttonTitle or= "Join #{kd.config.groupName}!"
 

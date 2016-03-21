@@ -23,18 +23,18 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
   removePane_: KDTabView::removePane
 
 
-  removePane: (pane, shouldDetach, quiet = no) ->
+  removePane: (pane, shouldDetach, quiet = no, askforsave = yes) ->
 
     return  unless pane
 
     { aceView }        = pane.getOptions()
     { isFileReadonly } = pane.view
 
-    if quiet or isFileReadonly or not aceView or not aceView.ace.isContentChanged()
+    if quiet or isFileReadonly or not aceView or not aceView.ace.isContentChanged() or not askforsave
       return @removePane_ pane, shouldDetach
 
-    @askForSave pane, aceView
 
+    @askForSave pane, aceView  if askforsave
 
   askForSave: (pane, aceView) ->
 

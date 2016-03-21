@@ -36,10 +36,11 @@ build:
           source $HOME/.nvm/nvm.sh
           nvm use 0.10.33
     - script:
-        name: koding node modules
+        name: node modules
         code: |
           scripts/wercker/install-node-modules koding
           npm install
+          scripts/wercker/update-node-modules
     - script:
         name: notify cebeci
         code: |
@@ -70,9 +71,6 @@ build:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
     - script:
-        name: client node modules
-        code: scripts/install-npm.sh -d client -u
-    - script:
         name: run coffeelint
         code: scripts/wercker/run-command scripts/lint-coffeescript.sh
     - script:
@@ -98,6 +96,9 @@ build:
     - script:
         name: check social api code quality
         code: scripts/wercker/run-command scripts/check_socialapi_code_quality.sh
+    - script:
+        name: check client code quality
+        code: scripts/wercker/run-command scripts/check_client_code_quality.sh
     - script:
         name: testing backend started
         code: scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend started" "building" 41
@@ -255,6 +256,11 @@ deploy:
         key-secret: $S3_KEY_SECRET
         opts: "--no-mime-magic --guess-mime-type"
 
+  s3-klientkite-production:
+    - script:
+        name: deploy klient to production channel
+        code: $WERCKER_ROOT/scripts/deploy-klient.sh
+
   s3-klientkite-development:
     - script:
         name: deploy klient to development channel
@@ -265,7 +271,7 @@ deploy:
         name: deploy klient to managed channel
         code: $WERCKER_ROOT/scripts/deploy-klient.sh
 
-  s3-klientkite-production:
+  s3-klientkite-devmanaged:
     - script:
-        name: deploy klient to production channel
+        name: deploy klient to devmanaged channel
         code: $WERCKER_ROOT/scripts/deploy-klient.sh

@@ -77,3 +77,86 @@ module.exports =
 
     layoutHelpers.waitForSnapshotRestore(browser)
     fn()
+
+
+  collapseExpandFileTree: (browser) ->
+
+    tabSelector             = '.kdtabhandle-tabs.clearfix'
+    fileTabSelector         = "#{tabSelector} .files"
+    settingsTabSelector     = "#{tabSelector} .settings"
+    collapseButton          = '.application-tab-handle-holder .general-handles'
+    collapsedWindowSelector = '.kdview.kdscrollview.kdsplitview-panel.panel-0.floating'
+    settingsHeaderSelector  = '.kdtabhandle-tabs .settings.kddraggable.active'
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    browser
+      .waitForElementVisible        fileTabSelector, 20000
+      .pause                        3000 # wait for file tree to load
+      .moveToElement                fileTabSelector, 5, 5
+      .waitForElementVisible        collapseButton, 20000
+      .click                        collapseButton
+      .pause                        500
+      .waitForElementVisible        collapsedWindowSelector, 20000
+      .click                        fileTabSelector
+      .pause                        500
+      .waitForElementNotPresent     collapsedWindowSelector, 20000
+      .click                        collapseButton
+      .pause                        500
+      .waitForElementVisible        collapsedWindowSelector, 20000
+      .click                        settingsTabSelector
+      .pause                        500
+      .waitForElementNotPresent     collapsedWindowSelector, 20000
+      .waitForElementVisible        settingsHeaderSelector, 20000
+      .end()
+
+
+  collapseExpandSidebar: (browser) ->
+
+    sidebarSelector         = '.kdview.with-sidebar .logo-wrapper'
+    collapseButton          = '.logo-wrapper .sidebar-close-handle'
+    collapsedWindowSelector = '.kdview.with-sidebar#kdmaincontainer.collapsed'
+    hiddenExpandSelector    = '.sidebar-close-handle.hidden .icon'
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    browser
+      .waitForElementVisible     sidebarSelector, 20000
+      .moveToElement             sidebarSelector, 5, 5
+      .waitForElementVisible     collapseButton, 20000
+      .click                     collapseButton
+      .pause                     500
+      .waitForElementVisible     collapsedWindowSelector, 20000
+      .moveToElement             sidebarSelector, 5, 5
+      .pause                     2000 # wait for hidden button to be displayed
+      .click                     hiddenExpandSelector
+      .pause                     500
+      .waitForElementNotPresent  collapsedWindowSelector, 20000
+      .end()
+
+
+  enterExitFullScreenFromIdeHeader: (browser) ->
+
+    ideHeaderSelector           = '.pane-wrapper .kdsplitview-panel.panel-0 .application-tab-handle-holder'
+    enterExitFullScreenSelector = '.kdsplitview-horizontal .panel-0 .idetabhandle-holder .general-handles .fullscreen-handle'
+    collapsedSidebarSelector    = '.kdview.with-sidebar#kdmaincontainer.collapsed'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    browser
+      .waitForElementVisible     ideHeaderSelector, 20000
+      .moveToElement             ideHeaderSelector, 10, 10
+      .waitForElementVisible     enterExitFullScreenSelector, 20000
+      .click                     enterExitFullScreenSelector
+      .pause                     500 #pause for screen animation to finish
+      .waitForElementVisible     collapsedSidebarSelector, 20000
+      .moveToElement             ideHeaderSelector, 10, 10
+      .waitForElementVisible     enterExitFullScreenSelector, 20000
+      .click                     enterExitFullScreenSelector
+      .pause                     500
+      .waitForElementNotPresent  collapsedSidebarSelector, 20000
+      .end()
+

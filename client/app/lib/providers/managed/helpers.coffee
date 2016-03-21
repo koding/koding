@@ -1,5 +1,6 @@
-kd      = require 'kd'
-remote  = require('app/remote').getInstance()
+kd       = require 'kd'
+remote   = require('app/remote').getInstance()
+globals  = require 'globals'
 
 nick     = require 'app/util/nick'
 isKoding = require 'app/util/isKoding'
@@ -17,11 +18,13 @@ queryKites = ->
   { generateQueryString } = require 'app/kite/kitecache'
   { computeController, kontrol } = kd.singletons
 
+  env = if globals.config.environment in ['dev', 'sandbox'] then 'dev' else ''
+
   return kontrol
     .queryKites
       query         :
         username    : nick()
-        environment : 'managed'
+        environment : "#{env}managed" # it's devmanaged on dev env.
     .timeout 5000
     .then (result)->
 

@@ -20,35 +20,35 @@ module.exports = class GroupProductEditForm extends KDFormViewWithFields
 
     options.buttons ?=
       Save        :
-        cssClass  : "solid green medium"
-        type      : "submit"
+        cssClass  : 'solid green medium'
+        type      : 'submit'
       cancel      :
-        cssClass  : "solid light-gray medium"
+        cssClass  : 'solid light-gray medium'
         callback  : => @emit 'CancelRequested'
 
     options.fields ?= {}
 
     options.fields.title ?=
-      label           : "Title"
+      label           : 'Title'
       placeholder     : options.placeholders?.title
       defaultValue    : data.decoded 'title'
       required        : 'Title is required!'
 
     options.fields.description ?=
-      label           : "Description"
-      placeholder     : options.placeholders?.description or "(optional)"
+      label           : 'Description'
+      placeholder     : options.placeholders?.description or '(optional)'
       defaultValue    : data.decoded 'description'
 
     options.fields.subscriptionType ?=
-      label           : "Subscription type"
+      label           : 'Subscription type'
       itemClass       : KDSelectBox
-      defaultValue    : data.subscriptionType ? "mo"
+      defaultValue    : data.subscriptionType ? 'mo'
       selectOptions   : @getSubscriptionTypes options
       callback        : @bound 'subscriptionTypeChanged'
 
     options.fields.feeAmount ?=
-      label           : "Amount"
-      placeholder     : "0.00"
+      label           : 'Amount'
+      placeholder     : '0.00'
       defaultValue    :
         if data.feeAmount
         then (data.feeAmount / 100).toFixed 2
@@ -62,34 +62,34 @@ module.exports = class GroupProductEditForm extends KDFormViewWithFields
 
     if options.showPriceIsVolatile
       options.fields.priceIsVolatile ?=
-        label         : "Price is volatile"
+        label         : 'Price is volatile'
         itemClass     : KDOnOffSwitch
         defaultValue  : data.priceIsVolatile
         callback      : @bound 'priceVolatilityChanged'
 
     if options.showOverage
       options.fields.overageEnabled ?=
-        label         : "Overage enabled"
+        label         : 'Overage enabled'
         itemClass     : KDOnOffSwitch
         defaultValue  : data.overageEnabled
 
     if options.showSoldAlone
       options.fields.soldAlone ?=
-        label         : "Sold alone"
+        label         : 'Sold alone'
         itemClass     : KDOnOffSwitch
         defaultValue  : data.soldAlone
 
     if options.canApplyCoupon
       options.fields.discountCode ?=
-        label         : "Discount code"
+        label         : 'Discount code'
         defaultValue  : data.couponCodes?.discount
 
       options.fields.vmCode ?=
-        label         : "VM code"
+        label         : 'VM code'
         defaultValue  : data.couponCodes?.vm
 
     options.fields.tags ?=
-      label         : "Tags"
+      label         : 'Tags'
       itemClass     : KDDelimitedInputView
       defaultValue  : data.tags
 
@@ -142,16 +142,16 @@ module.exports = class GroupProductEditForm extends KDFormViewWithFields
   getSubscriptionTypes: (options) ->
 
     selectOptions = [
-      { title: "Recurs every month",     value: 'mo' }
-      { title: "Recurs every 3 months",  value: '3 mo' }
-      { title: "Recurs every 6 months",  value: '6 mo' }
-      { title: "Recurs every year",      value: 'yr' }
-      { title: "Recurs every 2 years",   value: '2 yr' }
-      { title: "Recurs every 5 years",   value: '5 yr' }
+      { title: 'Recurs every month',     value: 'mo' }
+      { title: 'Recurs every 3 months',  value: '3 mo' }
+      { title: 'Recurs every 6 months',  value: '6 mo' }
+      { title: 'Recurs every year',      value: 'yr' }
+      { title: 'Recurs every 2 years',   value: '2 yr' }
+      { title: 'Recurs every 5 years',   value: '5 yr' }
     ]
 
     if options.isRecurOptional
-      selectOptions.push { title: "Single payment", value: 'single' }
+      selectOptions.push { title: 'Single payment', value: 'single' }
 
     return selectOptions
 

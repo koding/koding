@@ -9,7 +9,7 @@ utils              = require './utils'
 
 module.exports = class MainControllerLoggedOut extends kd.Controller
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
@@ -22,12 +22,12 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
       # Keep referrer (if available) in memory
       @_referrer = utils.getReferrer()
 
-  createSingletons:->
+  createSingletons: ->
 
     kd.registerSingleton 'mainController',            this
     kd.registerSingleton 'router',           router = new KodingRouter
     kd.registerSingleton 'mainView',             mv = new MainView
-    kd.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
+    kd.registerSingleton 'mainViewController',  mvc = new MainViewController { view : mv }
     kd.registerSingleton 'oauthController',           new OAuthController
 
     @mainViewController = mvc
@@ -38,9 +38,9 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
     console.timeEnd 'Koding.com loaded'
 
 
-  setupPageAnalyticsEvent:->
+  setupPageAnalyticsEvent: ->
 
-    kd.singletons.router.on "RouteInfoHandled", (route) ->
+    kd.singletons.router.on 'RouteInfoHandled', (route) ->
 
       return  unless route
 
@@ -51,7 +51,7 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
 
   login: (formData, callback) ->
 
-    {username, password, tfcode, redirectTo} = formData
+    { username, password, tfcode, redirectTo } = formData
 
     groupName = utils.getGroupNameFromLocation()
     _csrf     = Cookies.get '_csrf'
@@ -61,7 +61,7 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
 
     if redirectTo is 'Pricing'
       { planInterval, planTitle } = formData
-      query = kd.utils.stringifyQuery {planTitle, planInterval}
+      query = kd.utils.stringifyQuery { planTitle, planInterval }
       query = "?#{query}"
 
     utils.clearKiteCaches()
@@ -70,9 +70,9 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
       url         : '/Login'
       data        : { username, password, tfcode, groupName, _csrf }
       type        : 'POST'
-      xhrFields   : withCredentials : yes
+      xhrFields   : { withCredentials : yes }
       success     : -> location.replace "/#{redirectTo}#{query}"
-      error       : ({responseText}) =>
+      error       : ({ responseText }) =>
 
         if /suspension/i.test responseText
           handleBanned responseText
@@ -81,14 +81,14 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
           callback? { err: 'TwoFactorEnabled' }
           return
         else
-          new kd.NotificationView title : responseText
+          new kd.NotificationView { title : responseText }
 
         @emit 'LoginFailed'
 
 
   handleBanned = (responseText) ->
     new kd.ModalView
-      title        : "Account banned due to policy violation(s)."
+      title        : 'Account banned due to policy violation(s).'
       content      : responseText
       overlay      : yes
       cancelable   : no

@@ -55,10 +55,8 @@ module.exports = class JComputeStack extends jraphical.Module
           (signature Function)
 
     sharedEvents         :
-      static             : [ ]
-      instance           : [
-        { name : 'updateInstance' }
-      ]
+      static             : []
+      instance           : []
 
     schema               :
 

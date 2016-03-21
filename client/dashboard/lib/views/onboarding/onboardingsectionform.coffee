@@ -16,12 +16,12 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
     groups = []
     groups.push { title: OnboardingEventName[event], value: event }  for event in OnboardingEvent
 
-    options.cssClass      = "section-form"
+    options.cssClass      = 'section-form'
     @jCustomPartial       = data
     options.fields        =
       event               :
-        name              : "event"
-        label             : "Initiator Event"
+        name              : 'event'
+        label             : 'Initiator Event'
         type              : 'hidden'
         nextElement       :
           event           :
@@ -31,13 +31,13 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
 
     options.buttons       =
       Save                :
-        title             : "SAVE CHANGES"
-        style             : "solid green medium fr"
-        callback          : @bound "save"
+        title             : 'SAVE CHANGES'
+        style             : 'solid green medium fr'
+        callback          : @bound 'save'
       Cancel              :
-        title             : "CANCEL"
-        style             : "solid medium fr cancel"
-        callback          : @bound "cancel"
+        title             : 'CANCEL'
+        style             : 'solid medium fr cancel'
+        callback          : @bound 'cancel'
 
     super options, data
 
@@ -51,13 +51,13 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
   save: ->
 
     data              =
-      partialType     : "ONBOARDING"
+      partialType     : 'ONBOARDING'
       partial         :
         visibility    : no
         overlay       : yes
         items         : @jCustomPartial?.partial.items   or []
-      name            : @inputs.event.getValue()         or ""
-      viewInstance    : @jCustomPartial?.viewInstance    or ""
+      name            : @inputs.event.getValue()         or ''
+      viewInstance    : @jCustomPartial?.viewInstance    or ''
       isActive        : @jCustomPartial?.isActive        or no
       isPreview       : @jCustomPartial?.isPreview       or no
       previewInstance : @jCustomPartial?.previewInstance or no
@@ -65,11 +65,11 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
     if @jCustomPartial
       @jCustomPartial.update data, (err, section) =>
         return kd.warn err  if err
-        @emit "SectionSaved"
+        @emit 'SectionSaved'
         @destroy()
     else
       CustomPartialHelpers.createPartial data, (err, section) =>
-        @emit "SectionSaved"
+        @emit 'SectionSaved'
         @destroy()
 
 
@@ -81,5 +81,5 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
   ###
   cancel: ->
 
-    @emit "SectionCancelled"
+    @emit 'SectionCancelled'
     @destroy()

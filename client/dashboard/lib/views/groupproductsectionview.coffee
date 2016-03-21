@@ -9,10 +9,10 @@ module.exports = class GroupProductSectionView extends JView
   viewAppended: ->
     { category, itemClass, controlsClass } = @getOptions()
 
-    @setClass "payment-settings-view"
+    @setClass 'payment-settings-view'
 
     @createButton = new KDButtonView
-      cssClass    : "cupid-green"
+      cssClass    : 'cupid-green'
       title       : "Create a #{ category }"
       callback    : =>
         @emit 'CreateRequested'
@@ -22,7 +22,7 @@ module.exports = class GroupProductSectionView extends JView
     @list = @listController.getListView()
 
     if controlsClass
-      @list.on "ItemWasAdded", (item) =>
+      @list.on 'ItemWasAdded', (item) =>
         controls = new controlsClass {}, item.getData()
         item.setControls controls
         @forwardEvents controls, [

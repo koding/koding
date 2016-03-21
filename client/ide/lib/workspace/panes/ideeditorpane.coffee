@@ -95,6 +95,32 @@ module.exports = class IDEEditorPane extends IDEPane
       ace.ready @bound 'makeReadOnly'
 
 
+  updateFilePath: (name) ->
+
+    ace = @getAce()
+    parentPath     = @file.getOptions().parentPath
+    deleteFilePath = @file.getOptions().path
+
+    [ node ] = @file.treeController.selectedNodes
+
+    parent            = node.getData()
+    contents          = @getContent()
+    oldCursorPosition = @getCursor()
+    @file.machine     = parent.machine
+
+    @file.path = deleteFilePath
+
+    path = "#{parentPath}/#{name}"
+    newFile = FSHelper.createFileInstance { path, machine: parent.machine }
+
+    { tabView } = @getDelegate()
+
+    return  if tabView.willClose
+
+    tabView.emit 'CloseRequested', this
+    @getDelegate().openSavedFile newFile, contents
+
+
   bindFileSyncEvents: ->
 
     ace = @getAce()
@@ -134,6 +160,7 @@ module.exports = class IDEEditorPane extends IDEPane
         @contentChangedWarning?.destroy()
         @contentChangedWarning = null
 
+    @file.on 'FilePathChanged', @bound 'updateFilePath'
 
   updateContent: (content, isSaved = no) ->
 
@@ -523,8 +550,11 @@ module.exports = class IDEEditorPane extends IDEPane
   destroy: ->
 
     @file.off [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
+    @file.off 'FilePathChanged', @bound 'updateFilePath'
 
     super
 
 
-  updateAceViewDelegate: (ideView) -> @aceView?.setDelegate ideView
+  updateAceViewDelegate: (ideView) ->
+    @aceView?.setDelegate ideView
+    @setDelegate ideView

@@ -3,15 +3,15 @@ LoginView = require './AppView'
 
 module.exports = class LoginAppsController extends kd.ViewController
 
-  kd.registerAppClass this, name  : 'Login'
+  kd.registerAppClass this, { name  : 'Login' }
 
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.view    = new LoginView
-      testPath      : "landing-login"
+      testPath      : 'landing-login'
     options.appInfo =
-      name          : "Login"
+      name          : 'Login'
 
     super options, data
 

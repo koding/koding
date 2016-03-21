@@ -13,21 +13,21 @@ module.exports = class NFinderContextMenuController extends KDController
   CONTEXT MENU CREATION
   ###
 
-  getMenuItems:(fileViews)->
+  getMenuItems: (fileViews) ->
 
     if fileViews.length > 1
       @getMutilpleItemMenu fileViews
     else
       [fileView] = fileViews
       switch fileView.getData().type
-        when "machine"    then @getMachineMenu fileView
-        when "file"       then @getFileMenu fileView
-        when "folder"     then @getFolderMenu fileView
-        when "mount"      then @getMountMenu fileView
-        when "brokenLink" then @getBrokenLinkMenu fileView
+        when 'machine'    then @getMachineMenu fileView
+        when 'file'       then @getFileMenu fileView
+        when 'folder'     then @getFolderMenu fileView
+        when 'mount'      then @getMountMenu fileView
+        when 'brokenLink' then @getBrokenLinkMenu fileView
         # when "section" then @getSectionMenu fileData
 
-  getContextMenu:(fileViews, event)->
+  getContextMenu: (fileViews, event) ->
 
     @contextMenu.destroy() if @contextMenu
     items = @getMenuItems fileViews
@@ -38,20 +38,20 @@ module.exports = class NFinderContextMenuController extends KDController
         delegate : fileView
         cssClass : 'finder'
       , items
-      @contextMenu.on "ContextMenuItemReceivedClick", (contextMenuItem)=>
+      @contextMenu.on 'ContextMenuItemReceivedClick', (contextMenuItem) =>
         @handleContextMenuClick fileView, contextMenuItem
       return @contextMenu
     else
       return no
 
-  destroyContextMenu:->
+  destroyContextMenu: ->
     @contextMenu.destroy()
 
-  handleContextMenuClick:(fileView, contextMenuItem)->
+  handleContextMenuClick: (fileView, contextMenuItem) ->
 
-    @emit 'ContextMenuItemClicked', {fileView, contextMenuItem}
+    @emit 'ContextMenuItemClicked', { fileView, contextMenuItem }
 
-  getFileMenu:(fileView)->
+  getFileMenu: (fileView) ->
 
     fileData = fileView.getData()
 
@@ -111,16 +111,16 @@ module.exports = class NFinderContextMenuController extends KDController
     return items
 
 
-  getFolderMenu:(fileView)->
+  getFolderMenu: (fileView) ->
 
     fileData = fileView.getData()
 
     items =
       Expand                      :
-        action                    : "expand"
+        action                    : 'expand'
         separator                 : yes
       Collapse                    :
-        action                    : "collapse"
+        action                    : 'collapse'
         separator                 : yes
       # 'Open with...'              :
       #   children                  : @getOpenWithMenuItems fileView
@@ -200,7 +200,7 @@ module.exports = class NFinderContextMenuController extends KDController
 
     return items
 
-  getBrokenLinkMenu:(fileView)->
+  getBrokenLinkMenu: (fileView) ->
 
     fileData   = fileView.getData()
     items      =
@@ -209,7 +209,7 @@ module.exports = class NFinderContextMenuController extends KDController
 
     items
 
-  getMachineMenu:(fileView)->
+  getMachineMenu: (fileView) ->
 
     fileData = fileView.getData()
 
@@ -255,7 +255,7 @@ module.exports = class NFinderContextMenuController extends KDController
 
     for x in [ 0...nodes.length ]
       nodes = currentPath.split '/'
-      path  = nodes.splice(1,x).join '/'
+      path  = nodes.splice(1, x).join '/'
       parents.push "/#{path}"
 
     parents  = _.uniq parents.reverse()
@@ -267,13 +267,14 @@ module.exports = class NFinderContextMenuController extends KDController
     parents.forEach (path) =>
       if path
         label = path.replace root, '~/'
-        items[label] = callback : =>
+        items[label] = { callback : =>
           finder?.updateMachineRoot fileData.machine.uid, path
           @contextMenu.destroy()
+        }
 
     return items
 
-  getMountMenu:(fileView)->
+  getMountMenu: (fileView) ->
 
     fileData = fileView.getData()
 
@@ -282,10 +283,10 @@ module.exports = class NFinderContextMenuController extends KDController
         action                    : 'refresh'
         separator                 : yes
       Expand                      :
-        action                    : "expand"
+        action                    : 'expand'
         separator                 : yes
       Collapse                    :
-        action                    : "collapse"
+        action                    : 'collapse'
         separator                 : yes
       'New file'                  :
         action                    : 'createFile'
@@ -301,7 +302,7 @@ module.exports = class NFinderContextMenuController extends KDController
 
     return items
 
-  getMutilpleItemMenu:(fileViews)->
+  getMutilpleItemMenu: (fileViews) ->
 
     types =
       file    : no
@@ -336,14 +337,14 @@ module.exports = class NFinderContextMenuController extends KDController
 
     return items
 
-  getMultipleFolderMenu:(folderViews)->
+  getMultipleFolderMenu: (folderViews) ->
 
     items =
       Expand            :
-        action          : "expand"
+        action          : 'expand'
         separator       : yes
       Collapse          :
-        action          : "collapse"
+        action          : 'collapse'
         separator       : yes
       Delete            :
         action          : 'delete'
@@ -352,7 +353,7 @@ module.exports = class NFinderContextMenuController extends KDController
         action          : 'duplicate'
       'Set permissions' :
         children        :
-          customView    : (new NSetPermissionsView {},{mode : "000", type : "multiple"})
+          customView    : (new NSetPermissionsView {}, { mode : '000', type : 'multiple' })
       Compress          :
         children        :
           'as .zip'     :
@@ -377,7 +378,7 @@ module.exports = class NFinderContextMenuController extends KDController
 
     return items
 
-  getMultipleFileMenu:(fileViews)->
+  getMultipleFileMenu: (fileViews) ->
 
     items =
       'Open files'      :
@@ -389,7 +390,7 @@ module.exports = class NFinderContextMenuController extends KDController
         action          : 'duplicate'
       'Set permissions' :
         children        :
-          customView    : (new NSetPermissionsView {}, {mode : "000"})
+          customView    : (new NSetPermissionsView {}, { mode : '000' })
       Compress          :
         children        :
           'as .zip'     :
@@ -410,7 +411,7 @@ module.exports = class NFinderContextMenuController extends KDController
     items            = {}
     reWebHome        = /// \/home\/#{nick()}\/Web/ ///
 
-    {path, type}     = fileView.getData()
+    { path, type }     = fileView.getData()
     plainPath        = FSHelper.plainPath path
     fileExtension    = FSHelper.getFileExtension path
 
@@ -421,13 +422,13 @@ module.exports = class NFinderContextMenuController extends KDController
     # for appName in possibleApps
     #   items[appName] = action: "openFileWithApp"
 
-    items["Viewer"]               = action   : "previewFile"  if plainPath.match reWebHome
-    if fileExtension is "kdapp" and type is "folder"
-      items["DevTools"]           = action   : "openFileWithApp"
+    items['Viewer']               = { action   : 'previewFile' }  if plainPath.match reWebHome
+    if fileExtension is 'kdapp' and type is 'folder'
+      items['DevTools']           = { action   : 'openFileWithApp' }
 
-    items["separator"]            = type     : "separator"
-    items["Other apps"]           = disabled : yes # action   : "showOpenWithModal", separator : yes
-    items["Search the app store"] = disabled : yes
+    items['separator']            = { type     : 'separator' }
+    items['Other apps']           = { disabled : yes } # action   : "showOpenWithModal", separator : yes
+    items['Search the app store'] = { disabled : yes }
 
     return items
 

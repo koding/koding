@@ -1,5 +1,6 @@
-koding          = require './../bongo'
-{ getClientId } = require './../helpers'
+koding               = require './../bongo'
+{ getClientId
+  setSessionCookie } = require './../helpers'
 
 
 badRequest = (res, message = 'Bad request') -> res.status(400).send message
@@ -31,7 +32,7 @@ generateCheckEmailCallback = (res, email, JUser) ->
     unless info
       return res.status(500).send 'An error occurred'
 
-    res.cookie 'clientId', info.replacementToken, { path : '/' }
+    setSessionCookie res, info.replacementToken
     return res.status(200).send 'User is logged in!'
 
 

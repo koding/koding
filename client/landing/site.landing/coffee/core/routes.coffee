@@ -5,7 +5,7 @@ do ->
 
   KODING = 'koding'
 
-  handleRoot = (options)->
+  handleRoot = (options) ->
 
     # don't load the root content when we're just consuming a hash fragment
     return if location.hash.length
@@ -31,10 +31,10 @@ do ->
       return router.openSection 'Team', null, null, (app) -> app.jumpTo 'login'
 
 
-  handleInvitation = ({params : {token}, query}) ->
+  handleInvitation = ({ params : { token }, query }) ->
 
     utils.routeIfInvitationTokenIsValid token,
-      success   : ({email}) ->
+      success   : ({ email }) ->
         utils.storeNewTeamData 'invitation', { token, email }
         teamData = utils.getTeamData()
 
@@ -55,12 +55,12 @@ do ->
           error   : ->
             formData.alreadyMember = yes
             go()
-      error     : ({responseText}) ->
-        new kd.NotificationView title : responseText
+      error     : ({ responseText }) ->
+        new kd.NotificationView { title : responseText }
         kd.singletons.router.handleRoute '/'
 
 
-  handleTeamOnboardingRoute = (section, {params, query}) ->
+  handleTeamOnboardingRoute = (section, { params, query }) ->
 
     { groupName, group, environment } = kd.config
     { router }                        = kd.singletons
@@ -78,16 +78,16 @@ do ->
       console.warn 'No valid invitation found!'
       return router.handleRoute '/'
 
-    return handleTeamRoute section, {params, query}
+    return handleTeamRoute section, { params, query }
 
 
-  handleTeamRoute = (section, {params, query}) ->
+  handleTeamRoute = (section, { params, query }) ->
 
     # we open the team creation or onboarding section
     return kd.singletons.router.openSection 'Team', null, null, (app) ->
       app.jumpTo section, params, query
 
-  handleOauth = ({params, query}) ->
+  handleOauth = ({ params, query }) ->
 
     return kd.singletons.router.openSection 'Login', null, null, (app) ->
       if query.provider

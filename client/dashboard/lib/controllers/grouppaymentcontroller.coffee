@@ -13,7 +13,7 @@ module.exports = class GroupPaymentController extends KDController
 
     @preparePaymentsView()
 
-  preparePaymentsView:->
+  preparePaymentsView: ->
 
     { view } = @getOptions()
 
@@ -42,7 +42,7 @@ module.exports = class GroupPaymentController extends KDController
     { view } = @getOptions()
 
     group = getGroup()
-    group.fetchPaymentMethod (err, paymentMethod) =>
+    group.fetchPaymentMethod (err, paymentMethod) ->
       return if showError err
 
       view.setPaymentInfo paymentMethod
@@ -67,7 +67,7 @@ module.exports = class GroupPaymentController extends KDController
 
   createPaymentInfoModal: ->
 
-    paymentController = kd.getSingleton "paymentController"
+    paymentController = kd.getSingleton 'paymentController'
     modal = paymentController.createPaymentInfoModal 'group'
 
     group = getGroup()

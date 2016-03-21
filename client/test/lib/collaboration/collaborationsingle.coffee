@@ -1,6 +1,6 @@
 helpers              = require '../helpers/helpers.js'
-collaborationHelpers = require '../helpers/collaborationhelpers.js'
 ideHelpers           = require '../helpers/idehelpers.js'
+collaborationHelpers = require '../helpers/collaborationhelpers.js'
 
 
 module.exports =
@@ -15,10 +15,10 @@ module.exports =
 
     ideHelpers.closeAllTabs(browser)
 
-    fileName     = helpers.createFile(browser, user)
-    fileSelector = "span[title='/home/#{user.username}/Web/#{fileName}']"
+    fileName             = helpers.createFile(browser, user)
+    fileSelector         = "span[title='/home/#{user.username}/Web/#{fileName}']"
+    ideViewSelector      = '.panel-1 .panel-1 .application-tabview'
     activeEditorSelector = '.panel-1 .pane-wrapper .kdtabpaneview.active'
-    ideViewSelector = '.panel-1 .panel-1 .application-tabview'
 
     browser
       .waitForElementVisible ideViewSelector, 20000

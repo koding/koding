@@ -11,32 +11,32 @@ module.exports = class HomePageCustomViewItem extends CustomViewItem
     super
 
     @previewToggle  = new KodingSwitch
-      cssClass      : "dark preview-toggle"
+      cssClass      : 'dark preview-toggle'
       defaultValue  : @getData().isPreview
-      settingType   : "preview"
+      settingType   : 'preview'
       callback      : =>
         @confirmAction @previewToggle, =>
-          @updateState "isPreview"
+          @updateState 'isPreview'
 
     @activateToggle = new KodingSwitch
-      cssClass      : "dark publish"
+      cssClass      : 'dark publish'
       defaultValue  : @getData().isActive
-      settingType   : "activate"
+      settingType   : 'activate'
       callback      : =>
         @confirmAction @activateToggle, =>
-          @updateState "isActive"
+          @updateState 'isActive'
 
     @previewToggle.addSubView new KDCustomHTMLView
-      tagName       : "span"
-      partial       : "Preview"
+      tagName       : 'span'
+      partial       : 'Preview'
 
     @activateToggle.addSubView new KDCustomHTMLView
-      tagName       : "span"
-      partial       : "Publish"
+      tagName       : 'span'
+      partial       : 'Publish'
 
   confirmAction: (button, callback = kd.noop) ->
     isActivated  = button.getValue()
-    isPreview    = button.getOption("settingType") is "preview"
+    isPreview    = button.getOption('settingType') is 'preview'
 
     if isActivated then button.setOff no else button.setOn no # don't update state, wait for confirmation
 
@@ -47,19 +47,19 @@ module.exports = class HomePageCustomViewItem extends CustomViewItem
         if isActivated then messages.enablePublishing else messages.cancelPublising
 
     modal          = new KDModalView
-      title        : "Are you sure?"
+      title        : 'Are you sure?'
       content      : "<p>#{content}</p>"
       overlay      : yes
       buttons      :
         Delete     :
-          title    : "Confirm"
-          cssClass : "solid green medium"
-          callback : =>
+          title    : 'Confirm'
+          cssClass : 'solid green medium'
+          callback : ->
             callback()
             modal.destroy()
         Cancel     :
-          title    : "Cancel"
-          cssClass : "solid light-gray medium"
+          title    : 'Cancel'
+          cssClass : 'solid light-gray medium'
           callback : -> modal.destroy()
 
   updateState: (key) ->
@@ -69,11 +69,11 @@ module.exports = class HomePageCustomViewItem extends CustomViewItem
     for customView in delegate.customViews
       oldActive = customView  if customView.getData()[key] is yes
 
-    toggleState = =>
+    toggleState = ->
       changeSet      = {}
-      changeSet[key] = !data[key]
+      changeSet[key] = not data[key]
 
-      data.update changeSet, (err, res) =>
+      data.update changeSet, (err, res) ->
         return kd.warn err  if err
         delegate.reloadViews()
 
@@ -81,7 +81,7 @@ module.exports = class HomePageCustomViewItem extends CustomViewItem
       changeSet      = {}
       changeSet[key] = no
 
-      oldActive.getData().update changeSet, (err, res) =>
+      oldActive.getData().update changeSet, (err, res) ->
         return kd.warn err  if err
         toggleState()
     else
@@ -111,10 +111,10 @@ module.exports = class HomePageCustomViewItem extends CustomViewItem
       Known issue: If you have a cookie, you will only see the selected preview item.
       Currently we won't show you already published item. Sorry for that :(
     """
-    cancelPublising : """
+    cancelPublising : '''
       Are you sure you want to cancel publishing this item?
-    """
-    enablePublishing: """
+    '''
+    enablePublishing: '''
       Are you sure you want to publish this item?
       It will be visible to ALL Koding members!
-    """
+    '''

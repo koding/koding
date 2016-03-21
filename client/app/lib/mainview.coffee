@@ -15,6 +15,7 @@ isTeamReactSide         = require 'app/util/isTeamReactSide'
 getGroup                = require 'app/util/getGroup'
 isSoloProductLite       = require 'app/util/issoloproductlite'
 TeamName                = require './activity/sidebar/teamname'
+BannerNotificationView  = require 'app/commonviews/bannernotificationview'
 
 module.exports = class MainView extends kd.View
 
@@ -259,22 +260,16 @@ module.exports = class MainView extends kd.View
 
       return  if isDismissed
 
-      @panelWrapper.addSubView warning = new kd.CustomHTMLView
-        cssClass : 'system-notification'
-        partial  : '<p><b>UPDATE: </b>We launched Koding for Teams and there are some important
+      notification = new BannerNotificationView
+        timer   : 10
+        title   : 'UPDATE:'
+        content : 'We launched Koding for Teams and there are some important
                     updates to the solo product.
-                    <a href="http://www.koding.com/blog/goodbye-koding-solo-welcome-koding-for-teams"
-                    target="_blank">Read more...</a></p><a href="#" class="close"></a>'
+                    <a href="https://koding.com/blog/goodbye-koding-solo-welcome-koding-for-teams"
+                    target="_blank">Read more...</a></p>'
 
-        click : (event) ->
-
-          return  unless event.target.classList.contains 'close'
-
-          appStorage.setValue 'registrationsClosedDismissed', yes
-          @unsetClass 'in'
-          kd.utils.wait 1000, -> warning.destroy()
-
-      kd.utils.wait 2000, -> warning.setClass 'in'
+      notification.once 'KDObjectWillBeDestroyed', ->
+        appStorage.setValue 'registrationsClosedDismissed', yes
 
 
   createMainTabView:->
@@ -300,8 +295,6 @@ module.exports = class MainView extends kd.View
 
     {JSystemStatus} = remote.api
 
-    JSystemStatus.on 'restartScheduled', @bound 'handleSystemMessage'
-
     kd.utils.wait 2000, =>
       remote.api.JSystemStatus.getCurrentSystemStatuses (err, statuses)=>
         if err then kd.log 'current system status:',err
@@ -312,9 +305,6 @@ module.exports = class MainView extends kd.View
 
           async.series queue.reverse()
 
-  handleSystemMessage:(message)->
-
-    @createGlobalNotification message  if message.status is 'active'
 
   hideAllNotifications:->
 

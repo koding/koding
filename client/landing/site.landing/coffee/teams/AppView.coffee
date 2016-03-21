@@ -13,7 +13,7 @@ track = (action) ->
 module.exports = class TeamsView extends JView
 
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'Team', options.cssClass
 
@@ -64,7 +64,7 @@ module.exports = class TeamsView extends JView
 
   pistachio: ->
 
-    """
+    '''
     {{> @header }}
     <div class="TeamsModal TeamsModal--create">
       <h4>Create a team</h4>
@@ -73,4 +73,4 @@ module.exports = class TeamsView extends JView
     <footer>
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
     </footer>
-    """
+    '''

@@ -1,26 +1,27 @@
-$                     = require 'jquery'
-kd                    = require 'kd'
-nick                  = require 'app/util/nick'
-FSFile                = require 'app/util/fs/fsfile'
-KDView                = kd.View
-FSHelper              = require 'app/util/fs/fshelper'
-IDEHelpers            = require '../../idehelpers'
-KDModalView           = kd.ModalView
-IDEEditorPane         = require '../../workspace/panes/ideeditorpane'
-IDETailerPane         = require '../../workspace/panes/idetailerpane'
-KDContextMenu         = kd.ContextMenu
-KDTabPaneView         = kd.TabPaneView
-IDEPreviewPane        = require '../../workspace/panes/idepreviewpane'
-IDEDrawingPane        = require '../../workspace/panes/idedrawingpane'
-IDETerminalPane       = require '../../workspace/panes/ideterminalpane'
-generatePassword      = require 'app/util/generatePassword'
-KDCustomHTMLView      = kd.CustomHTMLView
-KDSplitViewPanel      = kd.SplitViewPanel
-ProximityNotifier     = require './splithandleproximitynotifier'
-IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
-IDEApplicationTabView = require './ideapplicationtabview.coffee'
-showErrorNotification = require 'app/util/showErrorNotification'
-
+$                       = require 'jquery'
+kd                      = require 'kd'
+nick                    = require 'app/util/nick'
+FSFile                  = require 'app/util/fs/fsfile'
+KDView                  = kd.View
+Encoder                 = require 'htmlencode'
+FSHelper                = require 'app/util/fs/fshelper'
+IDEHelpers              = require '../../idehelpers'
+KDModalView             = kd.ModalView
+IDEEditorPane           = require '../../workspace/panes/ideeditorpane'
+IDETailerPane           = require '../../workspace/panes/idetailerpane'
+KDContextMenu           = kd.ContextMenu
+KDTabPaneView           = kd.TabPaneView
+IDEPreviewPane          = require '../../workspace/panes/idepreviewpane'
+IDEDrawingPane          = require '../../workspace/panes/idedrawingpane'
+IDETerminalPane         = require '../../workspace/panes/ideterminalpane'
+generatePassword        = require 'app/util/generatePassword'
+KDCustomHTMLView        = kd.CustomHTMLView
+KDSplitViewPanel        = kd.SplitViewPanel
+ProximityNotifier       = require './splithandleproximitynotifier'
+IDEWorkspaceTabView     = require '../../workspace/ideworkspacetabview'
+IDEApplicationTabView   = require './ideapplicationtabview.coffee'
+showErrorNotification   = require 'app/util/showErrorNotification'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 HANDLE_PROXIMITY_DISTANCE   = 100
 DEFAULT_SESSION_NAME_LENGTH = 24
@@ -66,6 +67,10 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @tabView.on 'TabNeedsToBeClosed',       @bound 'closeTabByFile'
     @tabView.on 'GoToLineRequested',        @bound 'goToLine'
 
+    @tabView.on 'CloseRequested', (pane) =>
+      askforsave = no
+      @tabView.removePane pane.parent, null , no, askforsave
+
     @tabView.on 'FileNeedsToBeOpened', (file, contents, callback, emitChange, isActivePane) =>
       @closeUntitledFileIfNotChanged()
       file.initialContents = contents
@@ -89,8 +94,18 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       { options }  = view
       { paneType } = options
 
+
       switch paneType
-        when 'editor' then tabHandle.enableContextMenu()
+        when 'editor'
+          tabHandle.enableContextMenu()
+          tabHandle.on 'RenamingRequested', (newTitle) =>
+            pane.view.file.rename newTitle, (err)=>
+              if err then @notify null, null, err
+              @emit 'NodeRenamed', pane.view.file, newTitle
+
+              pane.view.file.emit 'FilePathChanged', newTitle
+          tabHandle.makeEditable()
+
         when 'terminal'
           tabHandle.enableContextMenu()
 
@@ -105,7 +120,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @tabView.on 'PaneRemoved', ({ pane, handle }) ->
       { options : { paneType } } = pane.view
-      handle.off 'RenamingRequested'  if paneType is 'terminal'
+      handle.off 'RenamingRequested'  if paneType in ['terminal','editor']
 
 
     # This is a custom event for IDEApplicationTabView
@@ -281,6 +296,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       ace.on 'FindAndReplaceViewRequested', (withReplaceMode) ->
         appManager.tell 'IDE', 'showFindReplaceView', withReplaceMode
+
+
 
       ace.editor.scrollToRow 0
       editorPane.goToLine 1
@@ -486,14 +503,14 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   click: ->
 
-    super
-
     appManager = kd.getSingleton 'appManager'
 
     appManager.tell 'IDE', 'setActiveTabView', @tabView
     appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
 
     @updateStatusBar()
+
+    super
 
 
   openSavedFile: (file, content) ->
@@ -768,7 +785,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     unless session.length is DEFAULT_SESSION_NAME_LENGTH
       terminalHandle.setTitle session
 
-
   handleTerminalRenamingRequested: (tabHandle, newTitle) ->
 
     paneView     = tabHandle.getOptions().pane
@@ -802,7 +818,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     .catch (err) ->
       showErrorNotification err
-
 
   renameTerminal: (paneView, machine, newTitle) ->
 

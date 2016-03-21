@@ -7,7 +7,7 @@ module.exports = class TeamAuthenticateTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
@@ -24,9 +24,9 @@ module.exports = class TeamAuthenticateTab extends kd.TabPaneView
 
   pistachio: ->
 
-    """
+    '''
     {{> @header }}
     <div class="TeamsModal onboarding">
       <h4></h4>
     </div>
-    """
+    '''
