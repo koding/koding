@@ -425,6 +425,24 @@ dispatchEvent = (eventName, data, callback) ->
   url = "#{socialProxyUrl}/private/dispatcher/#{eventName}"
   post url, data, callback
 
+storeCredential = (data, callback) ->
+  if not data.pathName
+    return callback new KodingError 'Request is not valid for storing credential'
+  url = "#{socialProxyUrl}/credential/#{data.pathName}"
+  post url, data, callback
+
+getCredential = (data, callback) ->
+  if not data.pathName
+    return callback new KodingError 'Request is not valid for getting credential'
+  url = "#{socialProxyUrl}/credential/#{data.pathName}"
+  get url, data, callback
+
+deleteCredential = (data, callback) ->
+  if not data.pathName
+    return callback new KodingError 'Request is not valid for deleting credential'
+  url = "#{socialProxyUrl}/credential/#{data.pathName}"
+  deleteReq url, data, callback
+
 fetchBotChannel = (data, callback) ->
   url = "#{webhookProxyUrl}/botchannel"
   get url, data, callback
@@ -566,6 +584,9 @@ module.exports = {
   deleteNotificationSetting
   expireSubscription
   dispatchEvent
+  storeCredential
+  getCredential
+  deleteCredential
   fetchBotChannel
   post
   get
