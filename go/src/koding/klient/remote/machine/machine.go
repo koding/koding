@@ -57,9 +57,13 @@ type Machine struct {
 	// TODO: Deprecated. Remove when able.
 	Client *kite.Client `json:"-"`
 
-	// The kitePinger which can be used to handle network interruptions
+	// The underlying KitePinger which can be used to handle network interruptions
 	// on the given machine.
-	KitePinger kitepinger.KitePinger `json:"-"`
+	KiteTracker *kitepinger.PingTracker `json:"-"`
+
+	// The underlying KiteHTTPPinger which can be used to know if the machine itself
+	// is online (vs connected to)
+	HTTPTracker *kitepinger.PingTracker `json:"-"`
 
 	// The intervaler for this machine.
 	//
@@ -86,14 +90,15 @@ func MachineLogger(meta MachineMeta, l logging.Logger) logging.Logger {
 
 // NewMachine initializes a new Machine struct with any internal vars created.
 func NewMachine(meta MachineMeta, log logging.Logger, client *kite.Client,
-	pinger kitepinger.KitePinger) *Machine {
+	kt *kitepinger.PingTracker, ht *kitepinger.PingTracker) *Machine {
 	return &Machine{
 		// Client is mainly a legacy field. See field docs.
 		Client: client,
 
 		MachineMeta: meta,
 		Log:         MachineLogger(meta, log),
-		KitePinger:  pinger,
+		KiteTracker: kt,
+		HTTPTracker: ht,
 		Transport:   client,
 	}
 }
@@ -114,7 +119,7 @@ func (m *Machine) CheckValid() error {
 
 	if m.Client == nil {
 		return util.KiteErrorf(
-			kiteerrortypes.MachineNotValidYet, "Machine.KitePinger is nil",
+			kiteerrortypes.MachineNotValidYet, "Machine.KiteTracker is nil",
 		)
 	}
 
@@ -162,29 +167,32 @@ func (m *Machine) Tell(method string, args ...interface{}) (*dnode.Partial, erro
 	return m.Transport.Tell(method, args...)
 }
 
-// Ping is a convenience method for pinging the given machine. An easy way to
-// determine a valid connection.
-func (m *Machine) Ping() error {
-	_, err := m.Tell("kite.ping")
-	return err
-}
-
 // IsConnected returns the kitepinger's IsConnected result
 func (m *Machine) IsConnected() bool {
 	// If it's nil, this is a not a valid / connected machine.
-	if m.KitePinger == nil {
+	if m.KiteTracker == nil {
 		return false
 	}
 
-	return m.KitePinger.IsConnected()
+	return m.KiteTracker.IsConnected()
+}
+
+// IsOnline returns the httppingers IsConnected result.
+func (m *Machine) IsOnline() bool {
+	// If it's nil, this is a not a valid / connected machine.
+	if m.HTTPTracker == nil {
+		return false
+	}
+
+	return m.HTTPTracker.IsConnected()
 }
 
 // ConnectedAt returns the kitepinger's ConnectedAt result
 func (m *Machine) ConnectedAt() time.Time {
 	// If it's nil, this is a not a valid / connected machine.
-	if m.KitePinger == nil {
+	if m.KiteTracker == nil {
 		return time.Time{} // Zero value time.
 	}
 
-	return m.KitePinger.ConnectedAt()
+	return m.KiteTracker.ConnectedAt()
 }

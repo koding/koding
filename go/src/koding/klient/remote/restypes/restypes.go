@@ -1,12 +1,10 @@
 package restypes
 
-import "time"
-
 // ListMachineInfo is the machine info response from the `remote.list` handler.
 type ListMachineInfo struct {
 	// Whether or not a kite pinger is actively pinging (and most recently succeeding)
 	// this machine.
-	ConnectedAt time.Time `json:"connectedAt"`
+	MachineStatus MachineStatus `json:"machineStatus"`
 
 	// The Ip of the running machine
 	IP string `json:"ip"`
@@ -44,4 +42,38 @@ type ListMountInfo struct {
 	RemotePath     string `json:"remotePath"`
 	LocalPath      string `json:"localPath"`
 	LastMountError bool   `json:"lastMountError"`
+}
+
+// MachineStatus representes our understanding of a machines status. Whether or not
+// we can communicate with it, and etc.
+type MachineStatus int
+
+const (
+	// The machine is not reachable for http
+	MachineOffline MachineStatus = iota
+
+	// The machine & kite server are reachable via http
+	MachineOnline
+
+	// The machine has a kite and/or kitepinger trying to communicate with it,
+	// but is failing.
+	MachineDisconnected
+
+	// The machine has an active and working kite connection.
+	MachineConnected
+)
+
+func (ms MachineStatus) String() string {
+	switch ms {
+	case MachineOffline:
+		return "MachineOffline"
+	case MachineOnline:
+		return "MachineOnline"
+	case MachineDisconnected:
+		return "MachineDisconnected"
+	case MachineConnected:
+		return "MachineConnected"
+	default:
+		return "UnknownMachineConstant"
+	}
 }
