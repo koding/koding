@@ -1,6 +1,8 @@
-helpers  = require '../helpers/helpers.js'
-utils    = require '../utils/utils.js'
-
+helpers    = require '../helpers/helpers.js'
+utils      = require '../utils/utils.js'
+path       = require 'path'
+awsKeyPath = path.resolve __dirname, '../../../../../config/aws/worker_ci_test_key.json'
+awsKey     = require awsKeyPath
 
 teamsModalSelector       = '.TeamsModal--groupCreation'
 companyNameSelector      = '.login-form input[testpath=company-name]'
@@ -15,32 +17,6 @@ pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.p
 module.exports =
 
 
-  openTeamsPage: (browser) ->
-
-    teamsSelector = '[testpath=main-header] .full-menu a.teams'
-
-    browser
-      .waitForElementVisible  '[testpath=main-header]', 20000
-      .waitForElementVisible  teamsSelector, 20000
-      .click                  teamsSelector
-      .waitForElementVisible  '.content-page.teams', 20000
-
-
-  fillSignUpFormOnTeamsHomePage: (browser, user) ->
-
-    emailSelector  = '.login-form input[testpath=register-form-email]'
-    buttonSelector = 'button[testpath=signup-company-button]'
-
-    browser
-      .waitForElementVisible  emailSelector, 20000
-      .setValue               emailSelector, user.email
-      .waitForElementVisible  companyNameSelector, 20000
-      .setValue               companyNameSelector, user.name
-      .waitForElementVisible  buttonSelector, 20000
-      .click                  buttonSelector
-      .pause                  2000 # wait for modal change
-
-
   enterTeamURL: (browser) ->
 
     browser
@@ -48,30 +24,6 @@ module.exports =
       .waitForElementVisible  '.TeamsModal--domain', 20000
       .waitForElementVisible  'input[name=slug]', 20000
       .click                  'button[testpath=domain-button]'
-      .pause                  2000 # wait for modal change
-
-
-  enterEmailDomains: (browser) ->
-
-    browser
-      .waitForElementVisible  '[testpath=main-header]', 20000
-      .waitForElementVisible  teamsModalSelector, 20000
-      .waitForElementVisible  'input[type=checkbox]', 20000
-      .waitForElementVisible  'input[name=domains]', 20000
-      .click                  'button[testpath=allowed-domain-button]'
-      .pause                  2000 # wait for modal change
-
-
-  enterInvites: (browser) ->
-
-    inviteeEmail = "inviteuser#{Date.now()}@kd.io"
-
-    browser
-      .waitForElementVisible  teamsModalSelector, 20000
-      .waitForElementVisible  'input[name=invitee1]', 20000
-      .setValue               'input[name=invitee1]', inviteeEmail
-      .waitForElementVisible  'button[testpath=invite-button]', 2000
-      .click                  'button[testpath=invite-button]'
       .pause                  2000 # wait for modal change
 
 
@@ -97,24 +49,6 @@ module.exports =
       .waitForElementVisible  '[testpath=main-sidebar]', 20000 # Assertion
 
     console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password} to team: #{helpers.getUrl(yes)}"
-
-
-  setupStackPage: (browser) ->
-
-    browser
-      .waitForElementVisible  teamsModalSelector, 20000
-      .waitForElementVisible  'button.TeamsModal-button--green', 20000
-      .click                  'button.TeamsModal-button--green'
-      .pause                  2000 # wait for modal change
-
-
-  congratulationsPage: (browser) ->
-
-    browser
-      .waitForElementVisible  teamsModalSelector, 20000
-      .waitForElementVisible  'button span.button-title', 20000
-      .click                  'button span.button-title'
-      .pause                  2000 # wait for modal change
 
 
   loginToTeam: (browser, user) ->
@@ -288,164 +222,6 @@ module.exports =
         .click                  sidebarSectionsHeaderSelector
 
 
-  createChannel: (browser, user, channelName, isInvalid, purpose) ->
-
-    channelModalSelector             = '.CreateChannel-Modal .CreateChannel-content'
-    createChannelModalNameSelector   = "#{channelModalSelector} .channelName input"
-    purposeSelector                  = "#{channelModalSelector} .channelPurpose input"
-    createChannelModalButtonSelector = '.CreateChannel-Modal .Modal-buttons .Button--danger'
-    channelName                    or= helpers.getFakeText().split(' ')[0] + Date.now()
-    channelName                      = channelName.substring(0, 19)
-    channelLinkOnSidebarSelector     = "#{sidebarSectionsSelector} a[href='/Channels/#{channelName}']"
-
-    @moveToSidebarHeader(browser, yes)
-
-    browser
-      .waitForElementVisible  '.CreateChannel-Modal', 20000
-      .waitForElementVisible  createChannelModalNameSelector, 20000
-      .setValue               createChannelModalNameSelector, channelName
-
-    if purpose
-      browser
-        .waitForElementVisible  purposeSelector, 20000
-        .setValue               purposeSelector, purpose
-
-    browser
-      .waitForElementVisible  createChannelModalButtonSelector, 20000
-      .moveToElement          createChannelModalButtonSelector, 32, 12
-      .click                  createChannelModalButtonSelector
-
-    if isInvalid
-      browser
-        .waitForElementVisible  '.channelName.invalid', 20000
-        .pause                   2000
-        .waitForElementVisible  '.CreateChannel-Modal', 20000
-    else
-      browser
-        .pause                  3000 # wait for page load
-        .waitForElementVisible  chatItem, 20000
-        .pause                  3000
-        .assert.containsText    chatItem, user.username
-        .waitForElementVisible  sidebarSectionsSelector, 20000
-        .pause                  2000 # wait for side bar channel list
-        .waitForElementVisible  channelLinkOnSidebarSelector, 20000
-        .assert.containsText    sidebarSectionsSelector, channelName
-
-    if purpose
-      browser.assert.containsText '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose', purpose
-
-    return channelName
-
-
-  sendComment: (browser, message, messageType) ->
-
-    chatInputSelector     = '.ChatPaneFooter .ChatInputWidget textarea'
-    imageSelector         = '.EmbedBox-container .EmbedBoxImage'
-    imageTextSelector     = '.Pane-body .ChatList .ChatItem .ChatItem-contentBody:nth-of-type(1)'
-    linkTextSelector      = '.EmbedBoxLinkContent .EmbedBoxLinkContent-description'
-    emojiSelector         = '.ChatList .ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer .ChatItem-contentBody '
-    blockSelector         = '.Pane-body .ChatList .ChatItem .ChatListItem-itemBodyContainer .ChatItem-contentBody .MessageBody blockquote'
-    emojiSmileySelector   = "#{emojiSelector} .emoji-smiley"
-    emojiThumbsUpSelector = "#{emojiSelector} .emoji-thumbsup"
-    messageWithShortCode  = "console.log('123456789')"
-    textAreaSelector      = '.Pane-body .ChatList'
-
-    browser
-      .waitForElementVisible  chatItem, 20000
-      .waitForElementVisible  chatInputSelector, 20000
-      .setValue               chatInputSelector, message + '\n'
-      .waitForElementVisible  chatItem, 20000
-
-    if not messageType
-      browser
-        .assert.containsText      textAreaSelector, message
-
-    switch messageType
-      when 'messageWithCode'
-        browser
-          .pause                  3000
-          .assert.containsText    "#{textAreaSelector} .ChatItem .SimpleChatListItem", messageWithShortCode
-      when 'messageWithImage'
-        browser
-          .waitForElementVisible  imageSelector, 20000
-          .assert.containsText    imageTextSelector, message
-      when 'messageWithLink'
-        browser
-          .waitForElementVisible  linkTextSelector, 20000
-          .assert.containsText    linkTextSelector, 'The Free Encyclopedia'
-      when 'messageWithEmoji'
-        browser
-          .waitForElementVisible  emojiSmileySelector, 20000
-          .waitForElementVisible  emojiSmileySelector, 20000
-          .pause                  2000
-          .waitForElementVisible  emojiThumbsUpSelector, 20000
-      when 'messageWithBlockquote'
-        browser
-          .pause                  3000
-          .waitForElementVisible  blockSelector, 20000
-          .assert.containsText    blockSelector, 'Message with blockquote'
-
-
-  createChannelsAndCheckList: (browser, user) ->
-
-    channelHeader     = "#{sidebarSectionsSelector} .SidebarSection-header"
-    channelListModal  = '.ChannelList-Modal'
-    activeTabSelector = "#{channelListModal} .ChannelList-tab.active-tab"
-    listItemSelector  = "#{channelListModal} .ChannelListItem"
-    threadsContainer  = "#{channelListModal} .SidebarModalThreads"
-
-    channelName1 = @createChannel(browser, user)
-    channelName2 = @createChannel(browser, user)
-    channelName3 = @createChannel(browser, user)
-
-    browser
-      .waitForElementVisible  sidebarSectionsSelector, 20000
-      .waitForElementVisible  channelHeader, 20000
-      .click                  channelHeader
-      .waitForElementVisible  channelListModal, 20000
-      .waitForElementVisible  activeTabSelector, 20000
-      .assert.containsText    activeTabSelector, 'Your Channels'
-      .waitForElementVisible  listItemSelector, 20000
-      .assert.containsText    threadsContainer, channelName1
-      .assert.containsText    threadsContainer, channelName2
-      .assert.containsText    threadsContainer, channelName3
-
-    return [ channelName1, channelName2, channelName3 ]
-
-
-  leaveChannel: (browser) ->
-
-    channelHeaderPaneSelector = '.ChannelThreadPane-content .ChannelThreadPane-header'
-    buttonSelector            = "#{channelHeaderPaneSelector} .ButtonWithMenuWrapper"
-    channelActionsSelector    = '.ButtonWithMenuItemsList.ChannelThreadPane-menuItems'
-    leaveChannelSelector      = "#{channelActionsSelector} li:nth-child(2)"
-    followChannelBox          = '.ChannelThreadPane-body .FollowChannelBox'
-
-    browser
-      .waitForElementVisible     channelHeaderPaneSelector, 20000
-      .waitForElementVisible     buttonSelector, 20000
-      .click                     buttonSelector
-      .waitForElementVisible     channelActionsSelector, 20000
-      .moveToElement             leaveChannelSelector, 70, 12
-      .waitForElementVisible     leaveChannelSelector, 20000
-      .click                     leaveChannelSelector
-      .waitForElementVisible     followChannelBox, 20000 # Assertion
-      .waitForElementNotVisible  chatInputSelector, 20000 # Assertion
-
-
-  joinChannel: (browser) ->
-
-    followChannelBox    = '.FollowChannelBox'
-    followChannelButton = "#{followChannelBox} .Button-followChannel"
-
-    @leaveChannel(browser)
-
-    browser
-      .waitForElementVisible     followChannelButton, 20000
-      .click                     followChannelButton
-      .waitForElementNotVisible  followChannelButton, 20000
-
-
   inviteUser: (browser, addMoreUser = no) ->
 
     invitationsModalSelector = '.kdmodal-content  .AppModal--admin-tabs .invitations'
@@ -551,103 +327,131 @@ module.exports =
       .assert.containsText       emailList, userEmail
 
 
-  likeunlikePost: (browser, likeLikePost = no) ->
+  createStack: (browser) ->
 
-    likeContainer       = '.ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer'
-    likeButtonUnpressed = "#{likeContainer} a[class~=ActivityLikeLink]:not(.is-likedByUser)"
-    likeButtonPressed   = "#{likeContainer} .ActivityLikeLink.is-likedByUser"
-    textSelector        = '.ChatListItem-itemBodyContainer:nth-of-type(1)'
+    stackCreatePage       = '.Group-Stack-Templates .get-started'
+    getStartedButton      = "#{stackCreatePage} .header button.green"
+    modalSelector         = '.kdmodal-content .AppModal-content'
+    providerSelector      = "#{modalSelector} .stack-onboarding .provider-selection"
+    machineSelector       = "#{providerSelector} .providers"
+    stackPreview          = "#{modalSelector} .stack-preview"
+    codeSelector          = "#{stackPreview} .has-markdown"
+    footerSelector        = "#{modalSelector} .stacks .footer"
+    nextButtonSelector    = "#{footerSelector} button.next"
+    awsSelector           = "#{machineSelector} .aws"
+    configurationSelector = "#{modalSelector} .configuration .server-configuration"
+    inputSelector         = "#{configurationSelector} .Database"
+    mysqlSelector         = "#{inputSelector} .mysql input.checkbox + label"
+    postgresqlSelector    = "#{inputSelector} .postgresql input.checkbox + label"
+    server1PageSelector   = "#{modalSelector} .code-setup .server-1"
+    githubSelector        = "#{server1PageSelector} .box-wrapper .github"
+    bitbucketSelector     = "#{server1PageSelector} .box-wrapper .bitbucket"
+    editorSelector        = "#{modalSelector} .editor-main"
+
+    @startStackCreate(browser)
 
     browser
+      .waitForElementVisible  stackCreatePage, 20000
+      .waitForElementVisible  getStartedButton, 20000
+      .click                  getStartedButton
+      .waitForElementVisible  providerSelector, 20000
+      .waitForElementVisible  awsSelector, 20000
+      .waitForElementVisible  "#{machineSelector} .vagrant" , 20000 # Assertion
+      .click                  awsSelector
+      .waitForElementVisible  stackPreview, 20000
+      .waitForElementVisible  codeSelector, 20000
+      .assert.containsText    codeSelector, 'koding_group_slug'
+      .waitForElementVisible  footerSelector, 20000
+      .waitForElementVisible  nextButtonSelector, 20000
+      .pause                  2000 # wait for animation
+      .click                  nextButtonSelector
+      .waitForElementVisible  configurationSelector, 20000
+      .pause                  2000 # wait for animation
+      .waitForElementVisible  mysqlSelector, 20000
+      .click                  mysqlSelector
+      .pause                  2000 # wait for animation
+      .waitForElementVisible  postgresqlSelector, 20000
+      .click                  postgresqlSelector
+      .waitForElementVisible  stackPreview, 20000
+      .assert.containsText    codeSelector, 'mysql-server postgresql'
+      .waitForElementVisible  nextButtonSelector, 20000
+      .pause                  2000 # wait for animation
+      .click                  nextButtonSelector
+      .waitForElementVisible  server1PageSelector, 20000
+      .waitForElementVisible  githubSelector, 20000 # Assertion
+      .waitForElementVisible  bitbucketSelector, 20000 # Assertion
+      .waitForElementVisible  nextButtonSelector, 20000
+      .moveToElement          nextButtonSelector, 15, 10
       .pause                  2000
-      .waitForElementVisible  textSelector, 20000
-      .moveToElement          textSelector, 10, 10
-      .waitForElementVisible  likeButtonUnpressed, 20000
-      .click                  likeButtonUnpressed
-      .waitForElementVisible  likeButtonPressed, 20000
-      .assert.visible         likeButtonPressed
-
-    if likeLikePost
-      browser
-        .click                    likeButtonPressed
-        .waitForElementVisible    likeButtonUnpressed, 20000
-        .pause                    3000
-        .assert.elementNotPresent likeButtonPressed
+      .click                  nextButtonSelector
+      .waitForElementVisible  "#{modalSelector} .define-stack-view", 20000
+      .waitForElementVisible  editorSelector, 20000
+      .pause                  1000
+      .assert.containsText    editorSelector, 'aws_instance'
 
 
-  editOrDeletePost: (browser, editPost = no, deletePost = no) ->
+  createCredential: (browser, show = no, remove = no, use = no) ->
 
-    editedmessage       = 'Message after editing'
-    textSelector        = '.ChatItem .SimpleChatListItem.ChatItem-contentWrapper .ChatListItem-itemBodyContainer'
-    menuButton          = '.SimpleChatListItem.ChatItem-contentWrapper:nth-of-type(1) .ButtonWithMenuWrapper button'
-    editButton          = '.ButtonWithMenuItemsList li:nth-child(1)'
-    chatInput           = '.editing .ChatItem-updateMessageForm .ChatInputWidget textarea'
-    editedText          = '.ChatItem .SimpleChatListItem.edited .ChatListItem-itemBodyContainer .ChatItem-contentBody .MessageBody'
-    deleteButton        = '.ButtonWithMenuItemsList li:nth-child(2)'
-    confirmDelete       = '.Modal-DeleteItemPrompt .Modal-buttons .Button--danger'
-    deletedTextSelector = '.Pane-body .ChatList .ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer'
+    credetialTabSelector   = '.team-stack-templates .kdtabview .kdtabhandle-tabs .credentials'
+    credentialsPane        = '.credentials-form-view'
+    saveButtonSelector     = '.button-field button.green'
+    newCredential          = '.step-creds .listview-wrapper .credential-list .credential-item'
+    credentialName         = 'test credential'
+    showCredentialButton   = "#{newCredential} button.show"
+    deleteCredentialButton = "#{newCredential} button.delete"
+
+    { accessKeyId, secretAccessKey } = @getAwsKey()
+
+    keyPart    = accessKeyId.substr accessKeyId.length - 6
+    secretPart = secretAccessKey.substr secretAccessKey.length - 13
 
     browser
-      .waitForElementVisible  textSelector, 20000
-      .moveToElement          textSelector, 10, 10
-      .waitForElementVisible  menuButton, 20000
-      .click                  menuButton
+      .waitForElementVisible  credetialTabSelector, 20000
+      .moveToElement          credetialTabSelector, 50, 21
+      .click                  credetialTabSelector
+      .pause                  2000
 
-    if editPost
-      browser
-        .waitForElementVisible  editButton, 20000
-        .click                  editButton
-        .pause                  3000 # wait for textarea
-        .waitForElementVisible  chatInput, 20000
-        .clearValue             chatInput
-        .setValue               chatInput, editedmessage
-        .setValue               chatInput, browser.Keys.ENTER
-        .waitForElementVisible  editedText, 20000
-        .pause                  2000 # wait for new text
-        .assert.containsText    editedText, editedmessage
+    browser.element 'css selector', newCredential, (result) ->
+      if result.status is -1
+        browser
+          .waitForElementVisible  credentialsPane, 20000
+          .setValue               "#{credentialsPane} .title input", credentialName
+          .pause                  500
+          .setValue               "#{credentialsPane} .access-key input", accessKeyId
+          .pause                  500
+          .setValue               "#{credentialsPane} .secret-key input", secretAccessKey
+          .waitForElementVisible  saveButtonSelector, 20000
+          .click                  saveButtonSelector
+          .pause                  2000 # wait for loade next page
+          .waitForElementVisible  newCredential, 20000
+          .assert.containsText    newCredential, credentialName
 
-    if deletePost
-      browser
-        .waitForElementVisible     deleteButton, 20000
-        .click                     deleteButton
-        .waitForElementVisible     confirmDelete, 20000
-        .click                     confirmDelete
-        .pause                     3000 #for the text to be deleted
-        .assert.elementNotPresent  deletedTextSelector
+      if show
+        browser
+          .waitForElementVisible  newCredential, 20000
+          .moveToElement          newCredential, 300, 20
+          .pause                  1000
+          .waitForElementVisible  showCredentialButton, 20000
+          .click                  showCredentialButton
+          .waitForElementVisible  '.credential-modal', 20000
+          .pause                  2000
+          .assert.containsText    '.credential-modal .kdmodal-title', 'test credential'
+          .assert.containsText    '.credential-modal .kdmodal-content', keyPart
+          .assert.containsText    '.credential-modal .kdmodal-content', secretPart
+
+      if remove
+        browser
+          .waitForElementVisible    newCredential, 20000
+          .moveToElement            newCredential, 300, 20
+          .pause                    1000
+          .waitForElementVisible    deleteCredentialButton, 20000
+          .click                    deleteCredentialButton
+          .pause                    1000
+          .waitForElementVisible    '.remove-credential', 20000
+          .assert.containsText      '.remove-credential', credentialName
+          .click                    '.remove-credential button.red'
+          .pause                    2000
+          .waitForElementNotPresent newCredential, 20000
 
 
-  updateChannelPurpose: (browser) ->
-
-    editedPurposeText  = 'edited text on the purpose field'
-    menuButtonSelector = '.ChannelThreadPane-content .ChannelThreadPane-header .ButtonWithMenuWrapper button'
-    editButtonSelector = '.ButtonWithMenuItemsList.ChannelThreadPane-menuItems li:nth-child(3)'
-    inputTextSelector  = '.ThreadHeader.ChannelThreadPane-header .ChannelThreadPane-purposeWrapper.editing input'
-    editedTextSelector = '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose'
-
-    browser
-      .waitForElementVisible  menuButtonSelector, 20000
-      .click                  menuButtonSelector
-      .waitForElementVisible  editButtonSelector, 20000
-      .click                  editButtonSelector
-      .waitForElementVisible  inputTextSelector, 20000
-      .clearValue             inputTextSelector
-      .setValue               inputTextSelector, editedPurposeText + browser.Keys.ENTER
-      .pause                  3000 #waiting for the text to change
-      .waitForElementVisible  editedTextSelector, 20000
-      .assert.containsText    editedTextSelector, editedPurposeText
-
-
-  createPrivateChat: (browser) ->
-
-    emptyInviteMembersInputText = '.CreateChannel-Modal .CreateChannel-content .channelName input'
-    createChatButton            = '.CreateChannel-Modal .Modal-buttons button:first-child'
-    markedAsInvalidInputText    = '.CreateChannel-content .channelName.invalid'
-
-    @moveToSidebarHeader(browser, yes)
-
-    browser
-      .waitForElementVisible  emptyInviteMembersInputText, 20000
-      .waitForElementVisible  createChatButton, 20000
-      .click                  createChatButton
-      .waitForElementVisible  markedAsInvalidInputText, 20000
-
+  getAwsKey: -> return awsKey
