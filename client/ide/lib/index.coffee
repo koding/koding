@@ -1187,7 +1187,7 @@ class IDEAppController extends AppController
       windowController.notifyWindowResizeListeners()
 
 
-  showFindReplaceView: (withReplaceMode) ->
+  showFindReplaceViewWithMode: (withReplaceMode) ->
     view = @findAndReplaceView
     @setFindAndReplaceViewDelegate()
     @isFindAndReplaceViewVisible = yes
@@ -1195,9 +1195,9 @@ class IDEAppController extends AppController
     view.setTextIntoFindInput '' # FIXME: Set selected text if exists
 
 
-  showFindReplaceViewFindMode: -> @showFindReplaceView no
+  showFindView: -> @showFindReplaceViewWithMode no
 
-  showFindReplaceViewWithReplaceMode: -> @showFindReplaceView yes
+  showFindReplaceView: -> @showFindReplaceViewWithMode yes
 
   hideFindAndReplaceView: ->
 
