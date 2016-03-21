@@ -26,10 +26,11 @@ func resetFakeEmails() {
 }
 
 func createInactiveUserWithWarning(daysInactive int, w string) (*models.User, error) {
+	username := bson.NewObjectId().Hex()
 	user := &models.User{
 		ObjectId:      bson.NewObjectId(),
-		Name:          "inactiveuserwithwarning",
-		Email:         "inactiveuser@koding.com",
+		Name:          username,
+		Email:         username + "@koding.com",
 		LastLoginDate: timeNow().Add(-time.Hour * 24 * time.Duration(daysInactive)),
 		Inactive: &models.UserInactive{
 			Warning:    w,
@@ -49,7 +50,7 @@ func createInactiveUserWithWarning(daysInactive int, w string) (*models.User, er
 }
 
 func createUserWithVM() (*models.User, error) {
-	username := "userWithVms"
+	username := bson.NewObjectId().Hex()
 	user, _, err := modeltesthelper.CreateUser(username)
 	if err != nil {
 		return nil, err
@@ -60,7 +61,7 @@ func createUserWithVM() (*models.User, error) {
 }
 
 func createUserWithManagedVM() (*models.User, error) {
-	username := "userWithManagedVms"
+	username := bson.NewObjectId().Hex()
 	user, _, err := modeltesthelper.CreateUser(username)
 	if err != nil {
 		return nil, err
@@ -71,11 +72,11 @@ func createUserWithManagedVM() (*models.User, error) {
 }
 
 func createInactiveUser(daysInactive int) (*models.User, error) {
-	username := "inactiveuser"
+	username := bson.NewObjectId().Hex()
 	user := &models.User{
 		Name:          username,
 		ObjectId:      bson.NewObjectId(),
-		Email:         "inactiveuser@koding.com",
+		Email:         username + "@koding.com",
 		LastLoginDate: timeNow().Add(-time.Hour * 24 * time.Duration(daysInactive)),
 	}
 
