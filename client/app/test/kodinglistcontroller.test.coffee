@@ -40,6 +40,9 @@ describe 'KodingListController', ->
       expect(sort).toEqual { '_id' : -1 }
       expect(lazyLoaderOptions.spinnerOptions.size).toEqual { width : 28 }
 
+      checkSpinnerCSSClass = lazyLoaderOptions.spinnerOptions.cssClass.indexOf('kodinglist-spinner') > -1
+      expect(checkSpinnerCSSClass).toBeTruthy()
+
     it 'should use KDListView despite of given view option with itemClass', ->
 
       listController  = new KodingListController

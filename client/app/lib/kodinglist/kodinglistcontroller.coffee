@@ -25,11 +25,11 @@ module.exports = class KodingListController extends KDListViewController
     options.lazyLoadThreshold      ?= 10
 
     options.startWithLazyLoader    ?= yes
-
     options.lazyLoaderOptions     or= {}
 
-    options.lazyLoaderOptions.spinnerOptions      or= {}
-    options.lazyLoaderOptions.spinnerOptions.size or= { width : 28 }
+    spinnerOptions            = options.lazyLoaderOptions.spinnerOptions or= {}
+    spinnerOptions.size     or= { width : 28 }
+    spinnerOptions.cssClass   = kd.utils.curry 'kodinglist-spinner', spinnerOptions.cssClass
 
     options.limit                  ?= 10
     options.sort                  or= { '_id' : -1 }
