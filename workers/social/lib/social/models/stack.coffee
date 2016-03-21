@@ -485,6 +485,7 @@ module.exports = class JComputeStack extends jraphical.Module
   modify: permit
 
     advanced: [
+      { permission: 'update stack', validateWith: Validators.group.admin }
       { permission: 'update own stack', validateWith: Validators.own }
     ]
 
