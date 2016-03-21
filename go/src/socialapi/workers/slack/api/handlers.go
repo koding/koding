@@ -22,41 +22,54 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://slack.com/oauth/authorize",
 				TokenURL: "https://slack.com/api/oauth.access",
-			}, // https://slack.com/oauth/authorize
+			},
 			Scopes: []string{
 				// channels.info
 				// channels.list
+				// Provides us to read public channel list of a team
 				"channels:read",
 
 				// chat.postMessage
+				// Provides us to write a message to channel as a bot
 				"chat:write:bot",
 
 				// groups.info
 				// groups.list
+				// Provides us to list group channels of user
 				"groups:read",
 
 				// im.list
+				// Provides us to list im channels of user
 				"im:read",
 
 				// mpim.list
+				// Provides us to list mpim channels of user
 				"mpim:read",
 
 				// team.info
+				// Provides us to get team info while creating a team at koding
 				"team:read",
 
 				// users.getPresence
 				// users.info
+				// Provides us the presence information which we use to list
+				// online users at the top of the users list
 				"users:read",
 
 				// usergroups.list
 				// usergroups.users.list
+				// Provides us the list usergroups of user
 				"usergroups:read",
-				
+
 				// includes bot user functionality. Unlike incoming-webhook and
 				// commands, the bot scope grants your bot user access to a
 				// subset of Web API methods.
 				//
 				// https://api.slack.com/bot-users#bot-methods
+				// Provides us the bot functionality. Even tho bot has most of
+				// the above scopes, slack's api is not consistent and sometimes
+				// they send the response, sometimes they fail with missing
+				// scope error
 				"bot",
 			},
 		},

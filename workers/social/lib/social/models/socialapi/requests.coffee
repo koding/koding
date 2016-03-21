@@ -429,6 +429,10 @@ fetchBotChannel = (data, callback) ->
   url = "#{webhookProxyUrl}/botchannel"
   get url, data, callback
 
+publishMailEvent = (data, callback) ->
+  url = "#{socialProxyUrl}/private/mail/publish"
+  post url, data, callback
+
 post = (url, data, callback) ->
   reqOptions =
     url    : "#{localDomain}#{url}"
@@ -566,4 +570,5 @@ module.exports = {
   post
   get
   deleteReq
+  publishMailEvent
 }
