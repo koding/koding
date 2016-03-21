@@ -77,7 +77,7 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
       'Syntax'                   , @syntaxSelector # Title/Instance
       'workspace.previewfile'    , 'previewFile'
       'editor.find'              , 'showFindView'
-      'editor.replace'           , 'showFindReplaceView'
+      'editor.replace'           , 'showFindAndReplaceView'
       'workspace.searchallfiles' , 'showContentSearch'
       'workspace.findfilebyname' , 'showFileFinder'
       'editor.gotoline'          , 'goToLine'
