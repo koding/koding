@@ -390,31 +390,68 @@ module.exports =
       .assert.containsText    editorSelector, 'aws_instance'
 
 
-  createCredential: (browser) ->
+  createCredential: (browser, show = no, remove = no, use = no) ->
 
-    credetialTabSelector = '.team-stack-templates .kdtabview .kdtabhandle-tabs .credentials'
-    credentialsPane      = '.credentials-form-view'
-    saveButtonSelector   = '.button-field button.green'
-    newCredential        = '.step-creds .listview-wrapper .credential-list .credential-item'
-    credentialName       = 'test credential'
-    awsKey               = @getAwsKey()
+    credetialTabSelector   = '.team-stack-templates .kdtabview .kdtabhandle-tabs .credentials'
+    credentialsPane        = '.credentials-form-view'
+    saveButtonSelector     = '.button-field button.green'
+    newCredential          = '.step-creds .listview-wrapper .credential-list .credential-item'
+    credentialName         = 'test credential'
+    showCredentialButton   = "#{newCredential} button.show"
+    deleteCredentialButton = "#{newCredential} button.delete"
+
+    { accessKeyId, secretAccessKey } = @getAwsKey()
+
+    keyPart    = accessKeyId.substr accessKeyId.length - 6
+    secretPart = secretAccessKey.substr secretAccessKey.length - 13
 
     browser
       .waitForElementVisible  credetialTabSelector, 20000
       .moveToElement          credetialTabSelector, 50, 21
       .click                  credetialTabSelector
-      .waitForElementVisible  credentialsPane, 20000
       .pause                  2000
-      .setValue               "#{credentialsPane} .title input", credentialName
-      .pause                  500
-      .setValue               "#{credentialsPane} .access-key input", awsKey.accessKeyId
-      .pause                  500
-      .setValue               "#{credentialsPane} .secret-key input", awsKey.secretAccessKey
-      .waitForElementVisible  saveButtonSelector, 20000
-      .click                  saveButtonSelector
-      .pause                  2000 # wait for loade next page
-      .waitForElementVisible  newCredential, 20000
-      .assert.containsText    newCredential, credentialName
+
+    browser.element 'css selector', newCredential, (result) ->
+      if result.status is -1
+        browser
+          .waitForElementVisible  credentialsPane, 20000
+          .setValue               "#{credentialsPane} .title input", credentialName
+          .pause                  500
+          .setValue               "#{credentialsPane} .access-key input", accessKeyId
+          .pause                  500
+          .setValue               "#{credentialsPane} .secret-key input", secretAccessKey
+          .waitForElementVisible  saveButtonSelector, 20000
+          .click                  saveButtonSelector
+          .pause                  2000 # wait for loade next page
+          .waitForElementVisible  newCredential, 20000
+          .assert.containsText    newCredential, credentialName
+
+      if show
+        browser
+          .waitForElementVisible  newCredential, 20000
+          .moveToElement          newCredential, 300, 20
+          .pause                  1000
+          .waitForElementVisible  showCredentialButton, 20000
+          .click                  showCredentialButton
+          .waitForElementVisible  '.credential-modal', 20000
+          .pause                  2000
+          .assert.containsText    '.credential-modal .kdmodal-title', 'test credential'
+          .assert.containsText    '.credential-modal .kdmodal-content', keyPart
+          .assert.containsText    '.credential-modal .kdmodal-content', secretPart
+
+      if remove
+        browser
+          .waitForElementVisible    newCredential, 20000
+          .moveToElement            newCredential, 300, 20
+          .pause                    1000
+          .waitForElementVisible    deleteCredentialButton, 20000
+          .click                    deleteCredentialButton
+          .pause                    1000
+          .waitForElementVisible    '.remove-credential', 20000
+          .assert.containsText      '.remove-credential', credentialName
+          .click                    '.remove-credential button.red'
+          .pause                    2000
+          .waitForElementNotPresent newCredential, 20000
 
 
   getAwsKey: -> return awsKey

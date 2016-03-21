@@ -11,3 +11,20 @@ module.exports =
     teamsHelpers.createStack(browser)
     teamsHelpers.createCredential(browser)
     browser.end()
+
+
+  showCredential: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser)
+    teamsHelpers.createCredential(browser, yes)
+    browser.end()
+
+
+  removeCredential: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser)
+    teamsHelpers.createCredential(browser, no, yes)
+    browser.end()
+
