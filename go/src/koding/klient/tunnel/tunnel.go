@@ -4,6 +4,7 @@ package tunnel
 
 import (
 	"errors"
+	"net"
 	"net/url"
 	"strings"
 	"sync"
@@ -11,6 +12,7 @@ import (
 
 	"koding/kites/tunnelproxy"
 	"koding/klient/info/publicip"
+	"koding/klient/vagrant"
 
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
@@ -31,6 +33,10 @@ type Tunnel struct {
 	opts   *Options
 	client *tunnelproxy.Client
 
+	// Cached routes, in case host kite goes down.
+	mu    sync.Mutex // protects ports
+	ports []*vagrant.ForwardedPort
+
 	// Used to wait for first successful
 	// tunnel server registration.
 	register sync.WaitGroup
@@ -44,6 +50,7 @@ type Options struct {
 	LocalAddr     string        `json:"localAddr,omitempty"`
 	VirtualHost   string        `json:"virtualHost,omitempty"`
 	Timeout       time.Duration `json:"timeout,omitempty"`
+	PublicIP      net.IP        `jsob:"publicIP,omitempty"`
 
 	// IP reachability test cache
 	LastAddr      string `json:"lastAddr,omitempty"`
@@ -101,6 +108,10 @@ func (opts *Options) updateEmpty(defaults *Options) {
 		opts.Debug = defaults.Debug
 	}
 
+	if opts.PublicIP == nil {
+		opts.PublicIP = defaults.PublicIP
+	}
+
 	// set defaults
 	if opts.Timeout == 0 {
 		opts.Timeout = 5 * time.Minute
@@ -137,6 +148,7 @@ func (t *Tunnel) clientOptions() *tunnelproxy.ClientOptions {
 		TunnelKiteURL:   t.opts.TunnelKiteURL,
 		LastVirtualHost: t.opts.VirtualHost,
 		LocalAddr:       t.opts.LocalAddr,
+		LocalRoutes:     t.localRoute(),
 		Config:          t.opts.Config,
 		Timeout:         t.opts.Timeout,
 		OnRegister:      t.updateOptions,

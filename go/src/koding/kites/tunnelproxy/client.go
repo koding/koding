@@ -84,6 +84,9 @@ type ClientOptions struct {
 	// port on which it received connection.
 	LocalAddr string
 
+	// LocalRoutes is sent with RegisterRequest.
+	LocalRoutes map[string]string
+
 	Debug  bool           // whether to use debug logging
 	Log    logging.Logger // overwrites logger used with custom one
 	Config *config.Config // configures kite.Kite to connect to tunnelserver
@@ -475,7 +478,8 @@ func (c *Client) tryRegister() error {
 	defer client.Close()
 
 	req := &RegisterRequest{
-		TunnelName: c.opts.TunnelName,
+		TunnelName:  c.opts.TunnelName,
+		LocalRoutes: c.opts.LocalRoutes,
 	}
 	kiteResp, err := client.TellWithTimeout("register", c.opts.timeout(), req)
 	if err != nil {
