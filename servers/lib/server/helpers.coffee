@@ -116,9 +116,7 @@ isTeamPage = (req) ->
   hostname = req?.headers?['x-host']
   return no  unless hostname
 
-  httpPrefix = 'http'
-  hostname = "#{httpPrefix}://#{hostname}" if hostname.indexOf(httpPrefix) < 0
-
+  hostname = "http://#{hostname}" unless /^http/.test hostname
   { hostname } = url.parse hostname
 
   # special case for QA team, sometimes they test on ips
