@@ -20,16 +20,6 @@ module.exports = class AccountSshKeyListController extends KodingListController
     options.fetcherMethod     = (query, options, callback) ->
       remote.api.JUser.getSSHKeys (keys) -> callback null, keys
 
-    options.lazyLoaderOptions =
-      spinnerOptions          :
-        cssClass              : 'AppModal--account-tabSpinner'
-        loaderOptions         :
-          shape               : 'spiral'
-          color               : '#a4a4a4'
-        size                  :
-          width               : 40
-          height              : 40
-
     super options, data
 
 
