@@ -1,10 +1,10 @@
-kd             = require 'kd'
-KDView         = kd.View
-KDHeaderView   = kd.HeaderView
-
-AccountSessionList           = require './accountsessionlist'
-AccountSessionListController = require './views/accountsessionlistcontroller'
-
+kd                     = require 'kd'
+KDView                 = kd.View
+KDHeaderView           = kd.HeaderView
+AccountSessionListItem = require './accountsessionlistitem'
+KodingListController   = require 'app/kodinglist/kodinglistcontroller'
+kookies                = require 'kookies'
+whoami                 = require 'app/util/whoami'
 
 module.exports = class AccountSessionListWrapper extends KDView
 
@@ -18,12 +18,21 @@ module.exports = class AccountSessionListWrapper extends KDView
     @top.addSubView @header = new KDHeaderView
       title : 'Active Sessions'
 
-    @listController = new AccountSessionListController
-      view                    : new AccountSessionList
-      limit                   : 8
-      useCustomScrollView     : yes
-      lazyLoadThreshold       : 8
+    @listController = new KodingListController
+      limit             : 8
+      lazyLoadThreshold : 8
+      noItemFoundText   : 'You have no active session.'
+      itemClass         : AccountSessionListItem
+      fetcherMethod     : (query, options, callback) ->
+        whoami().fetchMySessions options, (err, sessions)  -> callback err, sessions
+
+    @listController.on 'ItemDeleted', (item) ->
+      session  = item.getData()
+      clientId = kookies.get 'clientId'
+
+      # if the deleted session is the current one logout user immediately
+      if clientId is session.clientId
+        kookies.expire 'clientId'
+        global.location.replace '/'
 
     @addSubView @listController.getView()
-
-

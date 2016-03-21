@@ -81,4 +81,5 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
       'workspace.searchallfiles' , 'showContentSearch'
       'workspace.findfilebyname' , 'showFileFinder'
       'editor.gotoline'          , 'goToLine'
+      'Rename'                   , 'showRenameTerminalView'
     ]

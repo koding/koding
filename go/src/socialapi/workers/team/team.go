@@ -62,6 +62,11 @@ func (c *Controller) HandleChannel(channel *models.Channel) error {
 		if err != nil && (err != models.ErrChannelNotFound || err != bongo.RecordNotFound) {
 			errs = multierror.Append(errs, err)
 		}
+
+		if err := ch.DeleteChannelParticipants(); err != nil {
+			return err
+		}
+
 	}
 
 	if errs.ErrorOrNil() != nil {
