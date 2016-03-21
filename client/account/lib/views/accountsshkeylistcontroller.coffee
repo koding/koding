@@ -14,7 +14,7 @@ environmentDataProvider   = require 'app/userenvironmentdataprovider'
 
 module.exports = class AccountSshKeyListController extends KodingListController
 
-  constructor: (options, data) ->
+  constructor: (options = {}, data) ->
 
     options.noItemFoundText   = 'You have no SSH key.'
     options.fetcherMethod     = (query, options, callback) ->
