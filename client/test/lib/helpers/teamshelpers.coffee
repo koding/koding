@@ -1,6 +1,8 @@
-helpers  = require '../helpers/helpers.js'
-utils    = require '../utils/utils.js'
-
+helpers    = require '../helpers/helpers.js'
+utils      = require '../utils/utils.js'
+path       = require 'path'
+awsKeyPath = path.resolve __dirname, '../../../../../config/aws/worker_ci_test_key.json'
+awsKey     = require awsKeyPath
 
 teamsModalSelector       = '.TeamsModal--groupCreation'
 companyNameSelector      = '.login-form input[testpath=company-name]'
@@ -323,3 +325,96 @@ module.exports =
       .pause                     5000 # wait for listing
       .waitForElementVisible     emailList, 20000
       .assert.containsText       emailList, userEmail
+
+
+  createStack: (browser) ->
+
+    stackCreatePage       = '.Group-Stack-Templates .get-started'
+    getStartedButton      = "#{stackCreatePage} .header button.green"
+    modalSelector         = '.kdmodal-content .AppModal-content'
+    providerSelector      = "#{modalSelector} .stack-onboarding .provider-selection"
+    machineSelector       = "#{providerSelector} .providers"
+    stackPreview          = "#{modalSelector} .stack-preview"
+    codeSelector          = "#{stackPreview} .has-markdown"
+    footerSelector        = "#{modalSelector} .stacks .footer"
+    nextButtonSelector    = "#{footerSelector} button.next"
+    awsSelector           = "#{machineSelector} .aws"
+    configurationSelector = "#{modalSelector} .configuration .server-configuration"
+    inputSelector         = "#{configurationSelector} .Database"
+    mysqlSelector         = "#{inputSelector} .mysql input.checkbox + label"
+    postgresqlSelector    = "#{inputSelector} .postgresql input.checkbox + label"
+    server1PageSelector   = "#{modalSelector} .code-setup .server-1"
+    githubSelector        = "#{server1PageSelector} .box-wrapper .github"
+    bitbucketSelector     = "#{server1PageSelector} .box-wrapper .bitbucket"
+    editorSelector        = "#{modalSelector} .editor-main"
+
+    @startStackCreate(browser)
+
+    browser
+      .waitForElementVisible  stackCreatePage, 20000
+      .waitForElementVisible  getStartedButton, 20000
+      .click                  getStartedButton
+      .waitForElementVisible  providerSelector, 20000
+      .waitForElementVisible  awsSelector, 20000
+      .waitForElementVisible  "#{machineSelector} .vagrant" , 20000 # Assertion
+      .click                  awsSelector
+      .waitForElementVisible  stackPreview, 20000
+      .waitForElementVisible  codeSelector, 20000
+      .assert.containsText    codeSelector, 'koding_group_slug'
+      .waitForElementVisible  footerSelector, 20000
+      .waitForElementVisible  nextButtonSelector, 20000
+      .pause                  2000 # wait for animation
+      .click                  nextButtonSelector
+      .waitForElementVisible  configurationSelector, 20000
+      .pause                  2000 # wait for animation
+      .waitForElementVisible  mysqlSelector, 20000
+      .click                  mysqlSelector
+      .pause                  2000 # wait for animation
+      .waitForElementVisible  postgresqlSelector, 20000
+      .click                  postgresqlSelector
+      .waitForElementVisible  stackPreview, 20000
+      .assert.containsText    codeSelector, 'mysql-server postgresql'
+      .waitForElementVisible  nextButtonSelector, 20000
+      .pause                  2000 # wait for animation
+      .click                  nextButtonSelector
+      .waitForElementVisible  server1PageSelector, 20000
+      .waitForElementVisible  githubSelector, 20000 # Assertion
+      .waitForElementVisible  bitbucketSelector, 20000 # Assertion
+      .waitForElementVisible  nextButtonSelector, 20000
+      .moveToElement          nextButtonSelector, 15, 10
+      .pause                  2000
+      .click                  nextButtonSelector
+      .waitForElementVisible  "#{modalSelector} .define-stack-view", 20000
+      .waitForElementVisible  editorSelector, 20000
+      .pause                  1000
+      .assert.containsText    editorSelector, 'aws_instance'
+
+
+  createCredential: (browser) ->
+
+    credetialTabSelector = '.team-stack-templates .kdtabview .kdtabhandle-tabs .credentials'
+    credentialsPane      = '.credentials-form-view'
+    saveButtonSelector   = '.button-field button.green'
+    newCredential        = '.step-creds .listview-wrapper .credential-list .credential-item'
+    credentialName       = 'test credential'
+    awsKey               = @getAwsKey()
+
+    browser
+      .waitForElementVisible  credetialTabSelector, 20000
+      .moveToElement          credetialTabSelector, 50, 21
+      .click                  credetialTabSelector
+      .waitForElementVisible  credentialsPane, 20000
+      .pause                  2000
+      .setValue               "#{credentialsPane} .title input", credentialName
+      .pause                  500
+      .setValue               "#{credentialsPane} .access-key input", awsKey.accessKeyId
+      .pause                  500
+      .setValue               "#{credentialsPane} .secret-key input", awsKey.secretAccessKey
+      .waitForElementVisible  saveButtonSelector, 20000
+      .click                  saveButtonSelector
+      .pause                  2000 # wait for loade next page
+      .waitForElementVisible  newCredential, 20000
+      .assert.containsText    newCredential, credentialName
+
+
+  getAwsKey: -> return awsKey
