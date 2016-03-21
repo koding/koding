@@ -18,9 +18,15 @@ module.exports = class AccountSessionListItem extends KDListItemView
     deleteButtonOptions =
       title    : 'Terminate'
       cssClass : 'solid compact red delete'
-      callback : listView.lazyBound 'deleteItem', this
+      callback : =>
+        listView.emit 'ItemAction',
+          action        : 'RemoveItem'
+          item          : this
+          options       :
+            title       : 'Remove session ?'
+            description : 'Do you want to remove ?'
 
-    if kookies.get('clientId') is data.clientId
+    if data and kookies.get('clientId') is data.clientId
       deleteButtonOptions.tooltip = { title : 'This will log you out!', placement: 'left' }
 
     @deleteButton = new kd.ButtonView deleteButtonOptions
