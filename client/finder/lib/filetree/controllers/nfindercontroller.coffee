@@ -98,19 +98,10 @@ module.exports = class NFinderController extends KDViewController
     if machineToMount = @getOption 'machineToMount'
       return @mountMachine machineToMount
 
-    { computeController } = kd.singletons
-
-    computeController.fetchMachines (err, machines) =>
-
-      unless showError err
-        @mountMachines machines  if machines.length > 0
-
 
   mountMachine: (machine, options = {}) ->
 
-    { frontApp } = kd.singletons['appManager']
-    machineToMount = frontApp.mountedMachine
-    return  unless machine.uid is machineToMount.uid
+    @setOption 'machineToMount', machine
 
     options.fetchContent ?= yes
 
