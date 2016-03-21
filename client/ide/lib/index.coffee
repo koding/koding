@@ -1102,6 +1102,7 @@ class IDEAppController extends AppController
 
     paneView = @getActivePaneView()
     paneType = paneView?.getOptions().paneType or null
+
     delegate = button
     menu     = new IDEStatusBarMenu { paneType, paneView, delegate }
 
@@ -1123,7 +1124,7 @@ class IDEAppController extends AppController
     paneType = paneView?.getOptions().paneType
     tabView  = paneView?.parent
 
-    return  unless paneType is 'terminal'
+    return  unless paneType in ['terminal', 'editor']
 
     tabView.tabHandle.setTitleEditMode yes
 

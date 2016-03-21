@@ -110,11 +110,12 @@ describe 'KodingListController', ->
         }
       }
 
-      spy = expect.spyOn listController, 'removeItem'
+      spy     = expect.spyOn listController, 'removeItem'
+      options = { title: 'Remove item ?'}
 
-      listView.emit 'ItemAction', { action : 'RemoveItem', item }
+      listView.emit 'ItemAction', { action : 'RemoveItem', item, options }
 
-      expect(spy).toHaveBeenCalledWith item
+      expect(spy).toHaveBeenCalledWith item, options
 
 
   describe '::followLazyLoad', ->

@@ -371,6 +371,50 @@ func (c *Channel) FetchParticipants(q *request.Query) ([]Account, error) {
 	return NewAccount().FetchByIds(ids)
 }
 
+func (c *Channel) FetchChannelParticipants() ([]ChannelParticipant, error) {
+	if c.Id == 0 {
+		return nil, ErrChannelIdIsNotSet
+	}
+	var participants []ChannelParticipant
+
+	selector := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": c.Id,
+		},
+	}
+
+	cp := NewChannelParticipant()
+	if err := cp.Some(&participants, selector); err != nil {
+		return nil, err
+	}
+
+	if len(participants) == 0 {
+		return nil, bongo.RecordNotFound
+	}
+
+	return participants, nil
+}
+
+// DeleteChannelParticipants fetches the participants og the channel and
+// deletes all the participant of the channel
+func (c *Channel) DeleteChannelParticipants() error {
+	participants, err := c.FetchChannelParticipants()
+	if err != nil && err != bongo.RecordNotFound {
+		return err
+	}
+
+	var errs *multierror.Error
+
+	for _, participant := range participants {
+		err = participant.DeleteForce()
+		if err != nil && err != bongo.RecordNotFound {
+			errs = multierror.Append(errs, err)
+		}
+	}
+
+	return errs.ErrorOrNil()
+}
+
 // AddMessage adds given message to the channel, if the message is already in the
 // channel, it doesn't add again, this method is idempotent
 // you can call many times, but message will be in the channel list once

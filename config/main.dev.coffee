@@ -14,6 +14,8 @@ Configuration = (options={}) ->
       username : "IBM839677"
       apiKey   : "1664173c843a22d223247837da5cab6d4de7d06f238606e1523458d59eca72d0"
 
+  worker_ci_test = require './aws/worker_ci_test_key.json'
+
   awsKeys =
     # s3 full access
     worker_terraformer:
