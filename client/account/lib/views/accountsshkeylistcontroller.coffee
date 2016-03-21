@@ -1,45 +1,64 @@
 kd                        = require 'kd'
-KDButtonView              = kd.ButtonView
-KDCustomHTMLView          = kd.CustomHTMLView
-AccountListViewController = require '../controllers/accountlistviewcontroller'
-AccountNewSshKeyView      = require './accountnewsshkeyview'
-remote                    = require('app/remote').getInstance()
-KDHeaderView              = kd.HeaderView
-Machine                   = require 'app/providers/machine'
-SshKey                    = require 'app/util/sshkey'
-KDModalView               = kd.ModalView
 nick                      = require 'app/util/nick'
+remote                    = require('app/remote').getInstance()
+SshKey                    = require 'app/util/sshkey'
+Machine                   = require 'app/providers/machine'
+KDModalView               = kd.ModalView
+KDButtonView              = kd.ButtonView
+KDHeaderView              = kd.HeaderView
+KDCustomHTMLView          = kd.CustomHTMLView
+KodingListController      = require 'app/kodinglist/kodinglistcontroller'
+AccountNewSshKeyView      = require './accountnewsshkeyview'
 environmentDataProvider   = require 'app/userenvironmentdataprovider'
 
 
-module.exports = class AccountSshKeyListController extends AccountListViewController
+module.exports = class AccountSshKeyListController extends KodingListController
 
   constructor: (options, data) ->
 
-    options.noItemFoundText = 'You have no SSH key.'
+    options.noItemFoundText   = 'You have no SSH key.'
+    options.fetcherMethod     = (query, options, callback) ->
+      remote.api.JUser.getSSHKeys (keys) -> callback null, keys
+
+    options.lazyLoaderOptions =
+      spinnerOptions          :
+        cssClass              : 'AppModal--account-tabSpinner'
+        loaderOptions         :
+          shape               : 'spiral'
+          color               : '#a4a4a4'
+        size                  :
+          width               : 40
+          height              : 40
+
     super options, data
 
-    @loadItems()
+
+  bindEvents: ->
+
+    super
 
     listView = @getListView()
-    listView.on 'UpdatedItems',     @bound 'saveItems'
-    listView.on 'RemoveItem',       @bound 'deleteItem'
-    listView.on 'NewItemSubmitted', @bound 'submitNewItem'
-    listView.on 'EditItem',         @bound 'editItem'
-    listView.on 'CancelItem',       @bound 'cancelItem'
+
+    listView.on 'ItemAction', ({ action, item }) =>
+      switch action
+        when 'UpdatedItems'
+          @saveItems()
+        when 'RemoveItem'
+          @deleteItem item
+        when 'NewItemSubmitted'
+          @submitNewItem item
+        when 'EditItem'
+          @editItem item
+        when 'CancelItem'
+          @cancelItem item
 
 
-  loadItems: ->
+    listView.on 'ItemWasRemoved', (item) =>
+      kd.utils.defer => @showNoItemWidget()
 
-    @removeAllItems()
-    @showLazyLoader no
-
-    remote.api.JUser.getSSHKeys (keys) =>
-      @instantiateListItems keys
-      @hideLazyLoader()
+    @once 'FetchProcessSucceeded', (keys) =>
 
       @header?.destroy()
-
       @header = new KDHeaderView
         title : 'SSH Keys'
 
@@ -128,6 +147,12 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
     @currentItem = null
     listItem.show() for listItem in @getListItems() when listItem isnt item
     @sshKeyHelpLink?.show()
+
+
+  # Override parent method and use it for different thing.
+  removeItem: (item) ->
+
+    @getListView().removeItem item
 
 
   showNewItemForm: ->
