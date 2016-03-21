@@ -6,7 +6,7 @@ twitter               = require 'twitter-text'
 
 module.exports = (text = '') ->
 
-  {slug} = getGroup()
+  { slug } = getGroup()
 
   skipRanges  = getBlockquoteRanges text
   inSkipRange = (position) ->

@@ -6,58 +6,58 @@ FSHelper = require './fshelper'
 
 module.exports = class FSFile extends FSItem
 
-  constructor:->
+  constructor: ->
     super
 
-    @on "file.requests.saveAs", (contents, name, parentPath)=>
+    @on 'file.requests.saveAs', (contents, name, parentPath) =>
       @saveAs contents, name, parentPath
 
-    @on "file.requests.save", (contents)=>
+    @on 'file.requests.save', (contents) =>
       @save contents
 
-    @localStorage = kd.getSingleton("localStorageController").storage "Finder"
+    @localStorage = kd.getSingleton('localStorageController').storage 'Finder'
     @fileInfo     = @getLocalFileInfo()
 
   getLocalFileInfo: ->
     @localStorage.getValue(btoa kd.utils.utf8Encode FSHelper.plainPath @path) or {}
 
-  setLocalFileInfo: (data={})->
+  setLocalFileInfo: (data = {}) ->
     @fileInfo[key] = value for own key, value of data
     @localStorage.setValue btoa(kd.utils.utf8Encode FSHelper.plainPath @path), @fileInfo
 
   removeLocalFileInfo: ->
     @localStorage.unsetKey btoa kd.utils.utf8Encode FSHelper.plainPath @path
 
-  fetchContentsBinary: (callback)->
+  fetchContentsBinary: (callback) ->
     @fetchContents no, callback
 
-  fetchRawContents: (callback)->
+  fetchRawContents: (callback) ->
     kite = @getKite()
     kite.init().then =>
-      kite.fsReadFile path: FSHelper.plainPath @path
+      kite.fsReadFile { path: FSHelper.plainPath @path }
     .nodeify callback
 
-  fetchContents: (useEncoding, callback)->
+  fetchContents: (useEncoding, callback) ->
     [callback, useEncoding] = [useEncoding, callback]  unless callback
 
     useEncoding ?= yes
 
-    @emit "fs.job.started"
+    @emit 'fs.job.started'
 
-    @fetchRawContents().then (response)=>
+    @fetchRawContents().then (response) =>
 
       content = atob response.content
       content = kd.utils.utf8Decode content  if useEncoding # Convert to String
 
-      @emit "fs.job.finished"
+      @emit 'fs.job.finished'
 
       return content
 
     .nodeify(callback)
 
-  saveAs:(contents, name, parentPath, callback)->
+  saveAs: (contents, name, parentPath, callback) ->
 
-    @emit "fs.saveAs.started"
+    @emit 'fs.saveAs.started'
 
     newPath = FSHelper.plainPath "#{parentPath}/#{name}"
 
@@ -68,7 +68,7 @@ module.exports = class FSFile extends FSItem
     kite.init()
     .then =>
 
-      ok = kite.fsUniquePath(path: "#{newPath}")
+      ok = kite.fsUniquePath({ path: "#{newPath}" })
       .then (actualPath) =>
 
         file = FSHelper.createFileInstance {
@@ -79,15 +79,15 @@ module.exports = class FSFile extends FSItem
         ok = file.save contents, (err, response) =>
           callback err, file, this  if callback
           if err
-            @emit "fs.saveAs.failed", err
+            @emit 'fs.saveAs.failed', err
           else
-            @emit "fs.saveAs.finished", file, this
+            @emit 'fs.saveAs.finished', file, this
 
         return ok
 
 
-  append: (contents, callback)->
-    @emit "fs.append.started"
+  append: (contents, callback) ->
+    @emit 'fs.append.started'
 
     # Convert to base64
     content = btoa contents
@@ -123,39 +123,39 @@ module.exports = class FSFile extends FSItem
         Promise.cast response
 
 
-  saveBinary:(contents, callback)->
+  saveBinary: (contents, callback) ->
 
     info       = @getLocalFileInfo()
     chunkQueue = FSHelper.createChunkQueue contents, info.lastUploadedChunk
     total      = chunkQueue.length
 
-    @setLocalFileInfo totalChunks: total
+    @setLocalFileInfo { totalChunks: total }
 
-    @on "ChunkUploaded", (response)=>
+    @on 'ChunkUploaded', (response) =>
       loaded   = total - chunkQueue.length
       percent  = 100 * loaded / total
-      @setLocalFileInfo lastUploadedChunk: loaded
-      callback? null, response, {total, loaded, percent}
+      @setLocalFileInfo { lastUploadedChunk: loaded }
+      callback? null, response, { total, loaded, percent }
 
-    @once "AllChunksUploaded", =>
-      @off "ChunkUploaded"
+    @once 'AllChunksUploaded', =>
+      @off 'ChunkUploaded'
       @removeLocalFileInfo()
-      callback? null, finished: yes
+      callback? null, { finished: yes }
 
-    @once "AbortRequested", =>
+    @once 'AbortRequested', =>
       @abortRequested = yes
-      callback? null, abort: yes
+      callback? null, { abort: yes }
 
     iterateChunks = =>
 
       unless chunkQueue.length
-        @emit "AllChunksUploaded"
+        @emit 'AllChunksUploaded'
 
       next = chunkQueue.shift()
       return unless next
       return if @abortRequested
 
-      {skip, content, append} = next
+      { skip, content, append } = next
 
       if skip
         callback null, {},
@@ -172,7 +172,7 @@ module.exports = class FSFile extends FSItem
         }
 
       .then (res) =>
-        @emit "ChunkUploaded", res
+        @emit 'ChunkUploaded', res
         iterateChunks()
 
       .catch (err) ->
@@ -181,7 +181,7 @@ module.exports = class FSFile extends FSItem
     iterateChunks()  if chunkQueue.length > 0
 
 
-  abort: -> @emit "AbortRequested"
+  abort: -> @emit 'AbortRequested'
 
 
   isDummyFile: -> return @path.indexOf('localfile:/Untitled') is 0
@@ -189,7 +189,7 @@ module.exports = class FSFile extends FSItem
 
   save: (contents = '', callback = null, useEncoding = yes) ->
 
-    @emit "fs.save.started"
+    @emit 'fs.save.started'
 
     ok = @getKite().init()
     .then =>
@@ -207,13 +207,13 @@ module.exports = class FSFile extends FSItem
     ok
       .then (response) =>
         callback null, response  if callback
-        @emit "fs.save.finished", response
+        @emit 'fs.save.finished', response
 
         return response
 
       .catch (err) =>
         callback err  if callback
-        @emit "fs.save.failed", err
+        @emit 'fs.save.failed', err
 
 
   fetchPermissions: (callback) ->
@@ -224,7 +224,7 @@ module.exports = class FSFile extends FSItem
 
     .then =>
 
-      kite.fsGetInfo path: @getPath()
+      kite.fsGetInfo { path: @getPath() }
 
     .nodeify (err, result) ->
 

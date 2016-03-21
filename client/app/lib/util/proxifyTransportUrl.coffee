@@ -6,7 +6,7 @@ module.exports = (url) ->
   return url  if /p.koding.com/.test url
 
   # let's use DOM for parsing the url
-  parser = global.document.createElement("a")
+  parser = global.document.createElement('a')
   parser.href = url
 
   # build our new url, example:
@@ -15,7 +15,7 @@ module.exports = (url) ->
   #           or
   #      http://localhost:8090/-/prodproxy/54.164.243.111/kite
 
-  {protocol} = global.document.location
+  { protocol } = global.document.location
 
 
   proxy = if globals.config.environment is 'production'

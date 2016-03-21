@@ -5,7 +5,7 @@ troubleshoot = require './troubleshoot'
 # log ping times so we know if failure was due to user's slow
 # internet or our internals timing out
 module.exports = (name, options) ->
-  troubleshoot (times)->
+  troubleshoot (times) ->
     logToExternal "#{name} timed out", {
       options
       pings    : times

@@ -4,7 +4,7 @@ FSHelper = require './fshelper'
 
 module.exports = class FSFolder extends FSFile
 
-  fetchContents:(dontWatch, callback)->
+  fetchContents: (dontWatch, callback) ->
 
     [callback, dontWatch] = [dontWatch, callback]  unless callback?
 
@@ -54,11 +54,11 @@ module.exports = class FSFolder extends FSFile
   #     callback null, response
   #     @emit "fs.save.finished", null, response
 
-  saveAs:(callback)->
+  saveAs: (callback) ->
     kd.log 'Not implemented yet.'
     callback? null
 
-  remove:(callback)->
+  remove: (callback) ->
     @off 'fs.delete.finished'
     @on  'fs.delete.finished', =>
       finder = @treeController.delegate
@@ -66,7 +66,7 @@ module.exports = class FSFolder extends FSFile
 
     super callback, yes
 
-  registerWatcher:(response)->
-    {@stopWatching} = response
+  registerWatcher: (response) ->
+    { @stopWatching } = response
     finder = @treeController.delegate
     finder?.registerWatcher @path, @stopWatching  if @stopWatching
