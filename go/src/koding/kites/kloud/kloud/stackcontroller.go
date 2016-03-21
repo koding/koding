@@ -18,6 +18,20 @@ type TeamRequest struct {
 	Impersonate string `json:"impersonate,omitempty"` // only for kloudctl
 }
 
+func (req *TeamRequest) metricTags() []string {
+	var tags []string
+
+	if req.Provider != "" {
+		tags = append(tags, "provider:"+req.Provider)
+	}
+
+	if req.GroupName != "" {
+		tags = append(tags, "team:"+req.GroupName)
+	}
+
+	return tags
+}
+
 // TeamRequestKey is used to pass group name to stack handler.
 var TeamRequestKey struct {
 	byte `key:"teamRequest"`
@@ -106,6 +120,8 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		return nil, errors.New("error creating stack: " + err.Error())
 	}
 
+	ctx = k.traceRequest(ctx, args.metricTags())
+
 	// Currently only apply method is asynchronous, rest
 	// of the is sync. That's why the fn execution is synchronous here,
 	// and the fn itself emits events if needed.
@@ -123,6 +139,8 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 	if err != nil {
 		k.Log.Debug("method %q for user %q failed: %s", r.Method, r.Username, err)
 	}
+
+	k.send(ctx)
 
 	return resp, err
 }
