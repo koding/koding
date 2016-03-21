@@ -1188,13 +1188,14 @@ class IDEAppController extends AppController
 
 
   showFindReplaceView: (withReplaceMode) ->
-
     view = @findAndReplaceView
     @setFindAndReplaceViewDelegate()
     @isFindAndReplaceViewVisible = yes
     view.show withReplaceMode
     view.setTextIntoFindInput '' # FIXME: Set selected text if exists
 
+
+  showFindReplaceViewFindMode: -> @showFindReplaceView no
 
   showFindReplaceViewWithReplaceMode: -> @showFindReplaceView yes
 
