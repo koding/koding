@@ -418,13 +418,17 @@ module.exports =
 
   createCredential: (browser, show = no, remove = no, use = no) ->
 
-    credetialTabSelector   = '.team-stack-templates .kdtabview .kdtabhandle-tabs .credentials'
+    credetialTabSelector   = '.team-stack-templates .kdtabhandle-tabs .credentials'
+    stackTabSelector       = '.team-stack-templates .kdtabhandle.stack-template.active'
     credentialsPane        = '.credentials-form-view'
-    saveButtonSelector     = '.button-field button.green'
+    editorSelector         = '.editor-main'
+    saveButtonSelector     = '.add-credential-scroll .button-field button.green'
     newCredential          = '.step-creds .listview-wrapper .credential-list .credential-item'
     credentialName         = 'test credential'
     showCredentialButton   = "#{newCredential} button.show"
     deleteCredentialButton = "#{newCredential} button.delete"
+    useCredentialButton    = "#{newCredential} button.verify"
+    inUseLabelSelector     = "#{newCredential} .custom-tag.inuse"
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
@@ -446,17 +450,21 @@ module.exports =
           .setValue               "#{credentialsPane} .access-key input", accessKeyId
           .pause                  500
           .setValue               "#{credentialsPane} .secret-key input", secretAccessKey
-          .waitForElementVisible  saveButtonSelector, 20000
+          .pause                  1000
+          .click                  '.credential-creation-intro'
+          .scrollToElement        saveButtonSelector
           .click                  saveButtonSelector
           .pause                  2000 # wait for loade next page
           .waitForElementVisible  newCredential, 20000
           .assert.containsText    newCredential, credentialName
 
+      browser
+        .waitForElementVisible    newCredential, 20000
+        .moveToElement            newCredential, 300, 20
+        .pause                    1000
+
       if show
-        browser
-          .waitForElementVisible  newCredential, 20000
-          .moveToElement          newCredential, 300, 20
-          .pause                  1000
+       browser
           .waitForElementVisible  showCredentialButton, 20000
           .click                  showCredentialButton
           .waitForElementVisible  '.credential-modal', 20000
@@ -467,9 +475,6 @@ module.exports =
 
       if remove
         browser
-          .waitForElementVisible    newCredential, 20000
-          .moveToElement            newCredential, 300, 20
-          .pause                    1000
           .waitForElementVisible    deleteCredentialButton, 20000
           .click                    deleteCredentialButton
           .pause                    1000
@@ -478,6 +483,17 @@ module.exports =
           .click                    '.remove-credential button.red'
           .pause                    2000
           .waitForElementNotPresent newCredential, 20000
+
+      if use
+        browser
+          .waitForElementVisible    useCredentialButton, 20000
+          .click                    useCredentialButton
+          .waitForElementVisible    stackTabSelector, 20000
+          .waitForElementVisible    editorSelector, 20000
+          .click                    credetialTabSelector
+          .pause                    1000
+          .waitForElementVisible    newCredential, 20000
+          .waitForElementVisible    inUseLabelSelector, 20000
 
 
   getAwsKey: -> return awsKey
