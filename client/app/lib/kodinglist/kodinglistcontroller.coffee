@@ -164,6 +164,16 @@ module.exports = class KodingListController extends KDListViewController
     @filterStates.busy = no
 
 
+  # Override parent class's method.
+  # Don't show no item widget with this method.
+  hideLazyLoader: ->
+
+    return  unless @lazyLoader
+
+    @lazyLoader.spinner.hide()
+    @lazyLoader.hide()
+
+
   calculateAndFetchMoreIfNeeded: ->
 
     viewHeight = @getView().getHeight()

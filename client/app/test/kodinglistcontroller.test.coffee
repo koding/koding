@@ -424,3 +424,15 @@ describe 'KodingListController', ->
         { length } = listController.getListView().items
         expect(length).toBeGreaterThan 1
         done()
+
+
+  describe '::hideLazyLoader', ->
+
+    it 'should not call showNoItemWidget method', ->
+
+      listController  = new KodingListController { fetcherMethod : kd.noop }
+      spy             = expect.spyOn listController, 'showNoItemWidget'
+
+      listController.hideLazyLoader()
+
+      expect(spy).toNotHaveBeenCalled()
