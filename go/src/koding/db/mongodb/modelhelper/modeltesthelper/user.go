@@ -11,6 +11,7 @@ import (
 func CreateUser(username string) (*models.User, *models.Account, error) {
 	user := &models.User{
 		ObjectId: bson.NewObjectId(), Name: username,
+		Email: username + "@" + username + ".com",
 	}
 
 	account, err := CreateUserWithQuery(user)
