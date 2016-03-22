@@ -1029,11 +1029,15 @@ class IDEAppController extends AppController
 
   enableAutoSave: ->
 
+    return  if @autoSaveInterval
     @autoSaveInterval = kd.utils.repeat 1000, =>
       @forEachSubViewInIDEViews_ 'editor', (ep) => ep.handleAutoSave()
 
 
-  disableAutoSave: -> kd.utils.killRepeat @autoSaveInterval
+  disableAutoSave: ->
+
+    kd.utils.killRepeat @autoSaveInterval
+    @autoSaveInterval = null
 
 
   getActivePaneView: ->
