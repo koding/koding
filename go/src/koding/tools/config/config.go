@@ -178,6 +178,11 @@ type Config struct {
 		Port int
 	}
 	SendEventsToSegment bool `json:"sendEventsToSegment"`
+	Mailgun             struct {
+		Domain     string
+		PrivateKey string
+		PublicKey  string
+	}
 }
 
 type RuntimeOptions struct {
