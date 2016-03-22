@@ -118,13 +118,22 @@ module.exports = class ResourceListItem extends kd.ListItemView
   handleDelete: ->
 
     resource              = @getData()
-    delegate              = @getDelegate()
     { computeController } = kd.singletons
 
-    computeController.ui.askFor 'forceDeleteStack', {}, (status) ->
-      return  unless status.confirmed
-      resource.maintenance { destroyStack: yes },  (err) ->
-        @reload()  unless showError err
+    queue = [
+      (next) ->
+        computeController.ui.askFor 'forceDeleteStack', {}, (status) ->
+          err = 'Not confirmed'  unless status.confirmed
+          next err
+      (next) ->
+        resource.maintenance { destroyStack: yes }, next
+      (next) =>
+        @reload()
+        next()
+    ]
+
+    async.series queue, (err) ->
+      showError err  if err and err isnt 'Not confirmed'
 
 
   handleAdminMessage: ->
