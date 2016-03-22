@@ -105,6 +105,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
       (next) ->
         computeController.destroyStack resource, next
       (next) =>
+        @unsetClass 'in-detail'
         @setStatus 'Destroying'
         next()
     ]
