@@ -29,8 +29,10 @@ module.exports = class AccountBilling extends kd.View
     { appStorageController } = kd.singletons
     @accountStorage          = appStorageController.storage 'Account', '1.0'
 
+    @initViews()
 
-  viewAppended: ->
+
+  initViews: ->
 
     @addSubView @subscriptionWrapper = new kd.CustomHTMLView
       tagName  : 'section'
