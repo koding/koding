@@ -24,7 +24,7 @@ describe 'AccountSshKeyListController', ->
       { noItemFoundText, fetcherMethod } = listController.getOptions()
 
       expect(noItemFoundText).toEqual 'You have no SSH key.'
-      expect(fetcherMethod).toExist()
+      expect(fetcherMethod).toBeA 'function'
 
 
   describe '::bindEvents', ->
