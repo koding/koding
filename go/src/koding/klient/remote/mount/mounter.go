@@ -29,7 +29,7 @@ const (
 	// likely needs to be lowered.
 	fuseTellTimeout = 55 * time.Second
 
-	autoRemountFailed = "Error remounting. Please unmount & mount again."
+	autoRemountFailed = "Error auto-mounting. Please unmount & mount again."
 )
 
 // MounterTransport is the transport that the Mounter uses to communicate with
