@@ -10,6 +10,7 @@ ResourceMachineHeader  = require './resourcemachineheader'
 MachinesListController = require 'app/environment/machineslistcontroller'
 StackAdminMessageModal = require 'app/stacks/stackadminmessagemodal'
 async                  = require 'async'
+whoami                 = require 'app/util/whoami'
 
 
 module.exports = class ResourceListItem extends kd.ListItemView
@@ -20,8 +21,11 @@ module.exports = class ResourceListItem extends kd.ListItemView
 
   constructor: (options = {}, data) ->
 
+    isOwn     = data.originId is whoami()._id
+    cssClass  = "resource-item clearfix #{data.status.state}"
+    cssClass += ' own'  if isOwn
+
     options.type   or= 'member'
-    cssClass         = "resource-item clearfix #{data.status.state}"
     options.cssClass = kd.utils.curry cssClass, options.cssClass
 
     super options, data
