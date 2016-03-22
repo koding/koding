@@ -8,7 +8,6 @@ KodingListController = require 'app/kodinglist/kodinglistcontroller'
 
 module.exports = class ResourceListController extends KodingListController
 
-
   constructor: (options = {}, data) ->
 
     options.noItemFoundText   = 'No resource found!'
