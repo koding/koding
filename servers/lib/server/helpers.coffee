@@ -316,6 +316,8 @@ setSessionCookie = (res, sessionId, options = {}) ->
   options.secure  = sessionCookie.secure
   options.expires = new Date(Date.now() + sessionCookie.maxAge)
 
+  # somehow we are sending two clientId cookies in some cases, last writer wins.
+  res.clearCookie 'clientId', options
   res.cookie 'clientId', sessionId, options
 
 
