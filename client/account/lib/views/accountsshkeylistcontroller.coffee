@@ -139,7 +139,9 @@ module.exports = class AccountSshKeyListController extends KodingListController
     @sshKeyHelpLink?.show()
 
 
-  # Override parent method and use it for different thing.
+  # Override parent method.
+  # We don't need to use removeItem method of KodingListController.
+  # Because it shows a confirm dialog and continues to work according to response of confirm.
   removeItem: (item) ->
 
     @getListView().removeItem item
