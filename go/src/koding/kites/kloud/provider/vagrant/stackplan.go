@@ -188,10 +188,12 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 			ports = make([]interface{}, 0)
 		}
 		ports = append(ports, &vagrantapi.ForwardedPort{
+			HostPort:  56790,
 			GuestPort: 56789,
 		})
 
 		box["forwarded_ports"] = ports
+		box["username"] = username
 
 		tunnel := s.newTunnel(resourceName)
 

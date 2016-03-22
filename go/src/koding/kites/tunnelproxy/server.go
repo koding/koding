@@ -146,7 +146,7 @@ type RegisterRequest struct {
 	// If both local server of the tunnel and the client are within the
 	// same network, all HTTP requests are going to be redirected to
 	// use local interfece instead.
-	LocalRoutes map[string]string // maps publicIP to local address
+	LocalRoutes map[string]string `json:"localRoutes,omitempty"` // maps publicIP to local address
 }
 
 // RegisterResult represents response value for register method.
@@ -570,14 +570,15 @@ func (s *Server) localRoute(r *http.Request) string {
 }
 
 func (s *Server) tunnelHandler() http.HandlerFunc {
-	base := forward("/klient", s.Server)
 	return func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/klient")
+
 		if url := s.localRoute(r); url != "" {
 			http.Redirect(w, r, url, 307)
 			return
 		}
 
-		base(w, r)
+		s.Server.ServeHTTP(w, r)
 	}
 }
 
@@ -627,11 +628,4 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	}
 
 	return k, nil
-}
-
-func forward(path string, handler http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, path)
-		handler.ServeHTTP(w, r)
-	}
 }

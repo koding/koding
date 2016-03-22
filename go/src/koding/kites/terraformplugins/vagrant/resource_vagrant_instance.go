@@ -43,6 +43,11 @@ func resourceVagrantBuild() *schema.Resource {
 				Optional:    true,
 				Description: "Hostname of the Vagrant machine. Defaults to klient's username",
 			},
+			"username": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Username of the Vagrant machine.",
+			},
 			"memory": &schema.Schema{
 				Type:        schema.TypeInt,
 				Optional:    true,

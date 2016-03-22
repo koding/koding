@@ -155,8 +155,13 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		optsCopy.Log = common.NewLogger("tunnelclient", optsCopy.Debug)
 	}
 
+	k := kite.New(ClientKiteName, ClientKiteVersion)
+	if optsCopy.Debug {
+		k.SetLogLevel(kite.DEBUG)
+	}
+
 	c := &Client{
-		kite:          kite.New(ClientKiteName, ClientKiteVersion),
+		kite:          k,
 		opts:          &optsCopy,
 		tunnelKiteURL: optsCopy.tunnelKiteURL(),
 		stateChanges:  make(chan *tunnel.ClientStateChange, 128),
@@ -481,6 +486,7 @@ func (c *Client) tryRegister() error {
 		TunnelName:  c.opts.TunnelName,
 		LocalRoutes: c.opts.LocalRoutes,
 	}
+
 	kiteResp, err := client.TellWithTimeout("register", c.opts.timeout(), req)
 	if err != nil {
 		return c.handleReg(nil, err)
