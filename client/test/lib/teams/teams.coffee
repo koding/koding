@@ -48,3 +48,10 @@ module.exports =
     teamsHelpers.loginTeam(browser)
     teamsHelpers.createStack(browser)
     browser.end()
+
+
+  stacksSkipSetupGuide: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    browser.end()
