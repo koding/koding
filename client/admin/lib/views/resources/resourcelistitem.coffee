@@ -34,7 +34,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
       click    : @getDelegate().lazyBound 'toggleDetails', this
 
     @details = new kd.CustomHTMLView
-      cssClass : 'hidden'
+      cssClass : 'hidden details-container'
 
     listView          = new MachinesList
       itemClass       : ResourceMachineItem
