@@ -52,21 +52,6 @@ module.exports =
 
   stacksSkipSetupGuide: (browser) ->
 
-    stackCreatePage       = '.Group-Stack-Templates .get-started'
-    getStartedButton      = "#{stackCreatePage} .header button.green"
-    skipSetupSelector     = '.footer .skip-setup'
-    stackTemplateSelector = '.kdtabhandlecontainer.hide-close-icons .stack-template'
-    saveAndTestButton     = '.buttons button:nth-of-type(5)'
-
     teamsHelpers.loginTeam(browser)
-    teamsHelpers.startStackCreate(browser)
-
-    browser
-      .waitForElementVisible  getStartedButton, 20000
-      .click                  getStartedButton
-      .waitForElementVisible  skipSetupSelector, 20000
-      .click                  skipSetupSelector
-      .waitForElementVisible  stackTemplateSelector, 20000
-      .assert.containsText    stackTemplateSelector, 'Stack Template'
-      .assert.containsText    saveAndTestButton, 'SAVE & TEST'
-
+    teamsHelpers.createStack(browser, yes)
+    browser.end()

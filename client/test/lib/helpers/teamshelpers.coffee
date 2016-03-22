@@ -327,7 +327,7 @@ module.exports =
       .assert.containsText       emailList, userEmail
 
 
-  createStack: (browser) ->
+  createStack: (browser, skipStackSetup = no) ->
 
     stackCreatePage       = '.Group-Stack-Templates .get-started'
     getStartedButton      = "#{stackCreatePage} .header button.green"
@@ -347,6 +347,9 @@ module.exports =
     githubSelector        = "#{server1PageSelector} .box-wrapper .github"
     bitbucketSelector     = "#{server1PageSelector} .box-wrapper .bitbucket"
     editorSelector        = "#{modalSelector} .editor-main"
+    skipSetupSelector     = '.footer .skip-setup'
+    stackTemplateSelector = '.kdtabhandlecontainer.hide-close-icons .stack-template'
+    saveAndTestButton     = '.buttons button:nth-of-type(5)'
 
     @startStackCreate(browser)
 
@@ -354,40 +357,50 @@ module.exports =
       .waitForElementVisible  stackCreatePage, 20000
       .waitForElementVisible  getStartedButton, 20000
       .click                  getStartedButton
-      .waitForElementVisible  providerSelector, 20000
-      .waitForElementVisible  awsSelector, 20000
-      .waitForElementVisible  "#{machineSelector} .vagrant" , 20000 # Assertion
-      .click                  awsSelector
-      .waitForElementVisible  stackPreview, 20000
-      .waitForElementVisible  codeSelector, 20000
-      .assert.containsText    codeSelector, 'koding_group_slug'
-      .waitForElementVisible  footerSelector, 20000
-      .waitForElementVisible  nextButtonSelector, 20000
-      .pause                  2000 # wait for animation
-      .click                  nextButtonSelector
-      .waitForElementVisible  configurationSelector, 20000
-      .pause                  2000 # wait for animation
-      .waitForElementVisible  mysqlSelector, 20000
-      .click                  mysqlSelector
-      .pause                  2000 # wait for animation
-      .waitForElementVisible  postgresqlSelector, 20000
-      .click                  postgresqlSelector
-      .waitForElementVisible  stackPreview, 20000
-      .assert.containsText    codeSelector, 'mysql-server postgresql'
-      .waitForElementVisible  nextButtonSelector, 20000
-      .pause                  2000 # wait for animation
-      .click                  nextButtonSelector
-      .waitForElementVisible  server1PageSelector, 20000
-      .waitForElementVisible  githubSelector, 20000 # Assertion
-      .waitForElementVisible  bitbucketSelector, 20000 # Assertion
-      .waitForElementVisible  nextButtonSelector, 20000
-      .moveToElement          nextButtonSelector, 15, 10
-      .pause                  2000
-      .click                  nextButtonSelector
-      .waitForElementVisible  "#{modalSelector} .define-stack-view", 20000
-      .waitForElementVisible  editorSelector, 20000
-      .pause                  1000
-      .assert.containsText    editorSelector, 'aws_instance'
+
+    if skipStackSetup
+      browser
+        .waitForElementVisible  skipSetupSelector, 20000
+        .click                  skipSetupSelector
+        .waitForElementVisible  stackTemplateSelector, 20000
+        .assert.containsText    stackTemplateSelector, 'Stack Template'
+        .assert.containsText    saveAndTestButton, 'SAVE & TEST'
+    else
+      browser
+        .waitForElementVisible  providerSelector, 20000
+        .waitForElementVisible  awsSelector, 20000
+        .waitForElementVisible  "#{machineSelector} .vagrant" , 20000 # Assertion
+        .click                  awsSelector
+        .waitForElementVisible  stackPreview, 20000
+        .waitForElementVisible  codeSelector, 20000
+        .assert.containsText    codeSelector, 'koding_group_slug'
+        .waitForElementVisible  footerSelector, 20000
+        .waitForElementVisible  nextButtonSelector, 20000
+        .pause                  2000 # wait for animation
+        .click                  nextButtonSelector
+        .waitForElementVisible  configurationSelector, 20000
+        .pause                  2000 # wait for animation
+        .waitForElementVisible  mysqlSelector, 20000
+        .click                  mysqlSelector
+        .pause                  2000 # wait for animation
+        .waitForElementVisible  postgresqlSelector, 20000
+        .click                  postgresqlSelector
+        .waitForElementVisible  stackPreview, 20000
+        .assert.containsText    codeSelector, 'mysql-server postgresql'
+        .waitForElementVisible  nextButtonSelector, 20000
+        .pause                  2000 # wait for animation
+        .click                  nextButtonSelector
+        .waitForElementVisible  server1PageSelector, 20000
+        .waitForElementVisible  githubSelector, 20000 # Assertion
+        .waitForElementVisible  bitbucketSelector, 20000 # Assertion
+        .waitForElementVisible  nextButtonSelector, 20000
+        .moveToElement          nextButtonSelector, 15, 10
+        .pause                  2000
+        .click                  nextButtonSelector
+        .waitForElementVisible  "#{modalSelector} .define-stack-view", 20000
+        .waitForElementVisible  editorSelector, 20000
+        .pause                  1000
+        .assert.containsText    editorSelector, 'aws_instance'
 
 
   createCredential: (browser, show = no, remove = no, use = no) ->
