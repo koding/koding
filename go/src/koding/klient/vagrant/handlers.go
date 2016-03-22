@@ -76,6 +76,7 @@ type ForwardedPort struct {
 }
 
 type VagrantCreateOptions struct {
+	Username       string           `json:"username"`
 	Hostname       string           `json:"hostname"`
 	Box            string           `json:"box,omitempty"`
 	Memory         int              `json:"memory,omitempty"`
@@ -459,7 +460,7 @@ func (h *Handlers) vboxForwardedPorts(name string) (ports []*ForwardedPort, err 
 		}
 
 		if i := strings.IndexRune(line, '='); i != -1 {
-			line = line[:i]
+			line = line[i+1:]
 		}
 
 		if s, err := strconv.Unquote(line); err == nil {

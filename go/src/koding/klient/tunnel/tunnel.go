@@ -213,9 +213,13 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
 		return registerURL, nil
 	}
 
-	t.opts.Log.Debug("starting tunnel client: %# v", opts)
+	clientOpts := t.clientOptions()
 
-	client, err := tunnelproxy.NewClient(t.clientOptions())
+	t.opts.Log.Debug("starting tunnel client")
+	t.opts.Log.Debug("tunnel.Options=%+v", opts)
+	t.opts.Log.Debug("tunnelproxy.ClientOptions=%+v", clientOpts)
+
+	client, err := tunnelproxy.NewClient(clientOpts)
 	if err != nil {
 		return nil, err
 	}

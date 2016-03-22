@@ -108,6 +108,11 @@ func newCreateReq(d *schema.ResourceData) (*vagrantapi.Create, error) {
 		return nil, errors.New("invalid request: hostname field is missing")
 	}
 
+	c.Username, ok = d.Get("username").(string)
+	if !ok {
+		return nil, errors.New("invalid request: hostname field is missing")
+	}
+
 	c.Memory, ok = d.Get("memory").(int)
 	if !ok {
 		return nil, errors.New("invalid request: memory field is missing")
