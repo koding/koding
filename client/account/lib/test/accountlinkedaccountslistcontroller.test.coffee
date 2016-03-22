@@ -21,4 +21,4 @@ describe 'AccountLinkedAccountsListController', ->
       listController    = new AccountLinkedAccountsListController
       { fetcherMethod } = listController.getOptions()
 
-      expect(fetcherMethod).toExist()
+      expect(fetcherMethod).toBeA 'function'
