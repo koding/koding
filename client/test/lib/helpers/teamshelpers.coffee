@@ -499,3 +499,46 @@ module.exports =
 
 
   getAwsKey: -> return awsKey
+
+
+  checkIconsStacks: (browser, notReadyIcon = no, privateIcon = no) ->
+
+    saveAndTestButton           = '.buttons button:nth-of-type(5)'
+    stackTemplateSelector       = '.kdtabhandlecontainer.hide-close-icons .stack-template'
+    stacksLogsSelector          = '.step-define-stack .kdscrollview'
+    myStackTemplatesButton      = '.kdview.kdtabhandle-tabs .my-stack-templates'
+    iconsSelector               = '.kdlistitemview-default.stacktemplate-item .stacktemplate-info'
+    notReadyIconSelector        = "#{iconsSelector} .not-ready"
+    privateIconSelector         = "#{iconsSelector} .private"
+    stackTemplateSettingsButton = '.kdbutton.stack-settings-menu'
+    deleteButton                = '.kdlistview-contextmenu.expanded .delete'
+    confirmDeleteButton         = '.kdview.kdmodal-buttons .solid.red .button-title'
+
+    browser
+      .click                      saveAndTestButton
+      .pause                      2000 #for stack creation logs to appear
+      .waitForElementVisible      stacksLogsSelector, 20000
+      .assert.containsText        stacksLogsSelector, 'An error occured: Required credentials are not provided yet'
+      .click                      myStackTemplatesButton
+
+    if notReadyIcon
+      browser
+        .waitForElementVisible    notReadyIconSelector, 30000
+        .assert.containsText      notReadyIconSelector, 'NOT READY'
+
+    if privateIcon
+      browser
+        .waitForElementVisible    privateIconSelector, 30000
+        .assert.containsText      privateIconSelector, 'PRIVATE'
+
+    browser
+      .waitForElementVisible      stackTemplateSettingsButton, 20000
+      .click                      stackTemplateSettingsButton
+      .waitForElementVisible      deleteButton, 20000
+      .click                      deleteButton
+      .waitForElementVisible      confirmDeleteButton, 20000
+      .click                      confirmDeleteButton
+      .pause                      2000
+      .waitForElementVisible      stackTemplateSelector, 20000
+      .assert.containsText        stackTemplateSelector, 'Stack Template'
+      .assert.containsText        saveAndTestButton, 'SAVE & TEST'
