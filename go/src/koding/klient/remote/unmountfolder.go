@@ -93,13 +93,13 @@ func (r *Remote) UnmountFolder(params req.UnmountFolder) error {
 		)
 	}
 
-	if m.KitePinger != nil {
+	if m.KiteTracker != nil {
 		r.log.Info(
 			"remote.unmountFolder: Unsubscribing from kitePinger. Ip:%s, localPath:%s",
 			m.IP, m.LocalPath,
 		)
 
-		m.KitePinger.Unsubscribe(m.PingerSub)
+		m.KiteTracker.Unsubscribe(m.PingerSub)
 	} else {
 		r.log.Warning(
 			"remote.unmountFolder: Unable to locate kitePinger. remotePath:%s, name:%s",

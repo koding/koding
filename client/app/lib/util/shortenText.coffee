@@ -1,10 +1,10 @@
 module.exports = do ->
-  tryToShorten = (longText, optimalBreak = ' ', suffix)->
+  tryToShorten = (longText, optimalBreak = ' ', suffix) ->
     unless ~ longText.indexOf optimalBreak then no
     else
       "#{longText.split(optimalBreak).slice(0, -1).join optimalBreak}#{suffix ? optimalBreak}"
 
-  (longText, options={})->
+  (longText, options = {}) ->
     return ''  unless longText
     minLength = options.minLength or 450
     maxLength = options.maxLength or 600
@@ -12,8 +12,8 @@ module.exports = do ->
 
 
     tempText = longText.slice 0, maxLength
-    lastClosingTag = tempText.lastIndexOf "]"
-    lastOpeningTag = tempText.lastIndexOf "["
+    lastClosingTag = tempText.lastIndexOf ']'
+    lastOpeningTag = tempText.lastIndexOf '['
 
     if lastOpeningTag <= lastClosingTag
       finalMaxLength = maxLength

@@ -14,7 +14,7 @@ module.exports = class SshKey
     return  unless machines
 
     promises = []
-    request = keys: [ @key ]
+    request = { keys: [ @key ] }
 
     machines.forEach (machine) ->
       return  unless machine.status.state is Machine.State.Running

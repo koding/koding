@@ -9,7 +9,7 @@ module.exports = (text, excludeSelector) ->
 
   replaceFunc = (text, isProfile) ->
     text.replace /\B\@([\w\-]+)/gim, (u) ->
-      username = u.replace "@", ""
+      username = u.replace '@', ''
       return "<a href='/#{username}' class='profile-link'>#{u}</a>"  if isProfile
       return u.link "/#{username}"
 
@@ -19,7 +19,7 @@ module.exports = (text, excludeSelector) ->
 
   # context-sensitive expansion
   else
-    result = ""
+    result = ''
     $(text).each (i, element) ->
       $element = $(element)
       elementCheck = $element.not excludeSelector
@@ -46,5 +46,5 @@ module.exports = (text, excludeSelector) ->
             else
               $child.html replacedText
 
-      result += $element.get(0).outerHTML or "" # in case there is a text-only element
+      result += $element.get(0).outerHTML or '' # in case there is a text-only element
     result

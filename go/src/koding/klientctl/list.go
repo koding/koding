@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"koding/klient/remote/restypes"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
 	"math"
@@ -59,7 +60,7 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tLAST SEEN\tMOUNTED PATHS\n")
+	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tSTATUS\tMOUNTED PATHS\n")
 	for i, info := range infos {
 		// Join multiple teams into a single identifier
 		team := strings.Join(info.Teams, ",")
@@ -86,9 +87,17 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 			}
 		}
 
+		// Defaulting to unknown, in case any weird status is returned.
 		status := "unknown"
-		if !info.ConnectedAt.IsZero() {
-			status = timeToAgo(info.ConnectedAt, time.Now())
+		switch info.MachineStatus {
+		case restypes.MachineOffline:
+			status = "offline"
+		case restypes.MachineOnline:
+			status = "online"
+		case restypes.MachineDisconnected:
+			status = "disconnected"
+		case restypes.MachineConnected:
+			status = "connected"
 		}
 
 		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\t%s\n",

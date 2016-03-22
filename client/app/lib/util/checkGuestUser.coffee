@@ -3,4 +3,4 @@
 
 # This is last guard that we can take for guestuser issue ~ GG
 
-module.exports = (account) -> account.profile?.nickname is "guestuser"
+module.exports = (account) -> account.profile?.nickname is 'guestuser'

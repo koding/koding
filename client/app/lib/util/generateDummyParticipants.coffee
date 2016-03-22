@@ -6,7 +6,7 @@ module.exports = generateParticipants = ({ size }) ->
 
   participants = immutable.Map()
 
-  [0...size].forEach (i)->
+  [0...size].forEach (i) ->
     participant  = toImmutable mockjaccount
     participant  = participant.set '_id', i
     participants = participants.set i, participant

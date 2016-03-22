@@ -6,19 +6,19 @@ uuid = require 'node-uuid'
 
 module.exports = (options, callback = kd.noop) ->
 
-  {name, content, mimeType, timeout} = options
+  { name, content, mimeType, timeout } = options
 
   name      ?= uuid.v4()
   mimeType  ?= 'plain/text'
   timeout   ?= 5000
 
   unless content
-    kd.warn "Content required."
+    kd.warn 'Content required.'
     return
 
   name = htmlencode.htmlDecode name
 
-  remote.api.S3.generatePolicy (err, policy)->
+  remote.api.S3.generatePolicy (err, policy) ->
 
     return callback err  if err?
 
@@ -38,7 +38,7 @@ module.exports = (options, callback = kd.noop) ->
     data.append 'file', content
 
     $.ajax
-      type        : "POST"
+      type        : 'POST'
       url         : policy.req_url
       cache       : no
       contentType : no
@@ -48,10 +48,10 @@ module.exports = (options, callback = kd.noop) ->
       timeout     : timeout
       error       : (xhr) ->
         responseText = xhr.responseText
-        errorCode    = $(responseText).find("Code").text()
+        errorCode    = $(responseText).find('Code').text()
         if errorCode is 'EntityTooLarge'
-            callback message: 'The file you tried to upload is too big'
+          callback { message: 'The file you tried to upload is too big' }
         else
-            callback message: 'Failed to upload'
+          callback { message: 'Failed to upload' }
       success     : ->
         callback null, "#{policy.req_url}/#{policy.upload_url}/#{name}"

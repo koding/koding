@@ -21,6 +21,7 @@ import (
 	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
 	credential "socialapi/workers/credentials/api"
+	emailapi "socialapi/workers/email/api"
 	mailapi "socialapi/workers/email/mailparse/api"
 	"socialapi/workers/helper"
 	topicmoderationapi "socialapi/workers/moderation/topic/api"
@@ -86,6 +87,7 @@ func main() {
 	realtimeapi.AddHandlers(m)
 	slackapi.AddHandlers(m, c)
 	credential.AddHandlers(m, r.Log, c)
+	emailapi.AddHandlers(m)
 
 	// init mongo connection
 	modelhelper.Initialize(c.Mongo)

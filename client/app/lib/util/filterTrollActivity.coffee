@@ -5,4 +5,4 @@ checkFlag = require './checkFlag'
 # Only super-admins and other trolls can see these activities
 module.exports = (account) ->
   return no unless account.isExempt
-  return account._id isnt whoami()._id and not checkFlag "super-admin"
+  return account._id isnt whoami()._id and not checkFlag 'super-admin'

@@ -7,22 +7,22 @@ globals = require 'globals'
 
 module.exports = class FSHelper
 
-  @createFileInstance = (options)->
+  @createFileInstance = (options) ->
 
     if typeof options is 'string'
-      options = path: options
+      options = { path: options }
     else if not options?.path?
-      return kd.warn "pass a path and type to create a file instance"
+      return kd.warn 'pass a path and type to create a file instance'
 
     if options.machine
       unless options.path.indexOf('localfile:/') is 0
         # make sure that we machine and it's uid in path
         options.path = "[#{options.machine.uid}]#{@plainPath options.path}"
     else
-      kd.warn "No machine instance passed, creating dummy file instance"
+      kd.warn 'No machine instance passed, creating dummy file instance'
       options.machine = new DummyMachine
 
-    options.type       ?= "file"
+    options.type       ?= 'file'
     options.name       ?= @getFileNameFromPath options.path
     options.parentPath ?= @getParentPath       options.path
 
@@ -31,11 +31,11 @@ module.exports = class FSHelper
       @updateInstance options
     else
       constructor = switch options.type
-        when "mount"      then require './fsmount'
-        when "folder"     then require './fsfolder'
-        when "symLink"    then require './fsfolder'
-        when "machine"    then require './fsmachine'
-        when "brokenLink" then require './fsbrokenlink'
+        when 'mount'      then require './fsmount'
+        when 'folder'     then require './fsfolder'
+        when 'symLink'    then require './fsfolder'
+        when 'machine'    then require './fsmachine'
+        when 'brokenLink' then require './fsbrokenlink'
         else require './fsfile'
 
       instance = new constructor options
@@ -43,10 +43,10 @@ module.exports = class FSHelper
 
     return instance
 
-  parseWatcherFile = ({ machine, parentPath, file, user, treeController })->
+  parseWatcherFile = ({ machine, parentPath, file, user, treeController }) ->
 
     { uid } = machine
-    {name, size, mode} = file
+    { name, size, mode } = file
 
     type      = if file.isBroken then 'brokenLink' else \
                 if file.isDir then 'folder' else 'file'
@@ -58,7 +58,7 @@ module.exports = class FSHelper
     return { size, user, group, createdAt, mode, type, \
              parentPath, path, name, machine, treeController }
 
-  @parseWatcher = ({ machine, parentPath, files, treeController })->
+  @parseWatcher = ({ machine, parentPath, files, treeController }) ->
 
     data = []
     return data unless files
@@ -74,7 +74,7 @@ module.exports = class FSHelper
     return data
 
 
-  @folderOnChange = ({ machine, path, change, treeController })->
+  @folderOnChange = ({ machine, path, change, treeController }) ->
     return  unless treeController
     [ file ] = @parseWatcher {
       parentPath : path
@@ -82,9 +82,9 @@ module.exports = class FSHelper
       treeController, machine
     }
     switch change.event
-      when "added"
+      when 'added'
         treeController.addNode file
-      when "removed"
+      when 'removed'
         node = treeController.nodes["#{path}/#{change.file.name}"]
         treeController.removeNodeView node  if node
 
@@ -94,10 +94,10 @@ module.exports = class FSHelper
     extension = if extension.length is 0 then '' else extension.last
     return extension
 
-  @plainPath:(path)-> path.replace /^\[.*?\]/, ''
-  @getVMNameFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
+  @plainPath: (path) -> path.replace /^\[.*?\]/, ''
+  @getVMNameFromPath: (path) -> (/^\[([^\]]+)\]/g.exec path)?[1]
 
-  @getUidFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
+  @getUidFromPath: (path) -> (/^\[([^\]]+)\]/g.exec path)?[1]
 
   @handleStdErr = -> (result, action) ->
 
@@ -112,7 +112,7 @@ module.exports = class FSHelper
     return result
 
 
-  @minimizePath: (path)-> @plainPath(path).replace ///^\/home\/#{nick()}///, '~'
+  @minimizePath: (path) -> @plainPath(path).replace ///^\/home\/#{nick()}///, '~'
 
 
   @showInstallRequiredModal: (packageName) ->
@@ -183,41 +183,41 @@ module.exports = class FSHelper
 
   @registry = {}
 
-  @resetRegistry:-> @registry = {}
+  @resetRegistry: -> @registry = {}
 
-  @register = (file)->
+  @register = (file) ->
     @setFileListeners file
     @registry[file.path] = file
 
-  @unregister = (path)->
+  @unregister = (path) ->
     delete @registry[path]
 
-  @unregisterMachineFiles = (uid)->
+  @unregisterMachineFiles = (uid) ->
     for own path, file of @registry  when (path.indexOf "[#{uid}]") is 0
       @unregister path
 
-  @updateInstance = (fileData)->
+  @updateInstance = (fileData) ->
     for own prop, value of fileData
       @registry[fileData.path][prop] = value
 
-  @setFileListeners = (file)->
-    file.on "fs.job.finished", =>
+  @setFileListeners = (file) ->
+    file.on 'fs.job.finished', ->
 
-  @getFileNameFromPath = (path)->
+  @getFileNameFromPath = (path) ->
     return path.split('/').pop()
 
-  @trimExtension = (path)->
+  @trimExtension = (path) ->
     name = FSHelper.getFileName path
     return name.split('.').shift()
 
-  @getParentPath = (path)->
+  @getParentPath = (path) ->
 
     uid = @getUidFromPath path
     if uid? then path = @plainPath path
 
     path   = path.replace /\/$/, ''
     parent = path.split '/'; parent.pop(); parent = parent.join '/'
-    parent = "/"  if parent is ""
+    parent = '/'  if parent is ''
     parent = "[#{uid}]#{parent}"  if uid
 
     return parent
@@ -238,10 +238,10 @@ module.exports = class FSHelper
     return FSHelper.plainPath name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\ /g, '\\ ')
 
   @unescapeFilePath = (name) ->
-    return name.replace(/^(\s\")/g,'').replace(/(\"\s)$/g, '').replace(/\\\'/g,"'").replace(/\\"/g,'"')
+    return name.replace(/^(\s\")/g, '').replace(/(\"\s)$/g, '').replace(/\\\'/g, "'").replace(/\\"/g, '"')
 
-  @convertToRelative = (path)->
-    path.replace(/^\//, "").replace /(.+?)\/?$/, "$1/"
+  @convertToRelative = (path) ->
+    path.replace(/^\//, '').replace /(.+?)\/?$/, '$1/'
 
   @isValidFileName = (name) ->
     return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name
@@ -249,12 +249,12 @@ module.exports = class FSHelper
   @isEscapedPath = (path) ->
     return /^\s\"/.test path
 
-  @isPublicPath = (path)->
+  @isPublicPath = (path) ->
     /^\/home\/.*\/Web\//.test FSHelper.plainPath path
 
-  @isHidden = (name)-> /^\./.test name
+  @isHidden = (name) -> /^\./.test name
 
-  @isUnwanted = (path, isFile=no)->
+  @isUnwanted = (path, isFile = no) ->
 
     dummyFilePatterns = /\.DS_Store|Thumbs.db/
     dummyFolderPatterns = /\.git|__MACOSX/
@@ -263,50 +263,50 @@ module.exports = class FSHelper
     else dummyFolderPatterns.test path
 
   @s3 =
-    get    : (name)->
+    get    : (name) ->
       "#{globals.config.uploadsUri}/#{whoami().getId()}/#{name}"
 
-    getGroupRelated : (group, name)->
+    getGroupRelated : (group, name) ->
       "#{globals.config.uploadsUriForGroup}/#{group}/#{name}"
 
-    upload : (name, content, bucket, path, callback)->
-      args = {name, bucket, path, content}
+    upload : (name, content, bucket, path, callback) ->
+      args = { name, bucket, path, content }
 
       kd.getSingleton('vmController').run
         method    : 's3.store'
         withArgs  : args
-      , (err, res)->
+      , (err, res) ->
         return callback err if err
-        filePath = if bucket is "groups" then FSHelper.s3.getGroupRelated path, name else FSHelper.s3.get name
+        filePath = if bucket is 'groups' then FSHelper.s3.getGroupRelated path, name else FSHelper.s3.get name
         callback null, filePath
 
-    remove : (name, callback)->
+    remove : (name, callback) ->
       vmController = kd.getSingleton 'vmController'
       vmController.run
         method    : 's3.delete'
-        withArgs  : {name}
+        withArgs  : { name }
       , callback
 
-  @getPathHierarchy = (fullPath)->
+  @getPathHierarchy = (fullPath) ->
     # had to require getPathInfo over here to prevent circular dep issues
-    {path, machineUid} = require('../getPathInfo') fullPath
+    { path, machineUid } = require('../getPathInfo') fullPath
     path = path.replace /^~/, "/home/#{nick()}"
-    nodes = path.split("/").filter (node)-> return !!node
+    nodes = path.split('/').filter (node) -> return !!node
     queue = for node in nodes
-      subPath = nodes.join "/"
+      subPath = nodes.join '/'
       nodes.pop()
       "[#{machineUid}]/#{subPath}"
     queue.push "[#{machineUid}]/"
     return queue
 
-  @getFullPath = (file)->
+  @getFullPath = (file) ->
     plainPath = @plainPath file.path
     return "[#{file.machine.uid}]#{plainPath}"
 
   # FS Chunk helpers
   #
 
-  @createChunkQueue = (data = "", skip=0, chunkSize=1024*1024)->
+  @createChunkQueue = (data = '', skip = 0, chunkSize = 1024 * 1024) ->
 
     chunks     = FSHelper.chunkify data, chunkSize
     queue      = []
@@ -320,7 +320,7 @@ module.exports = class FSHelper
 
     return queue
 
-  @chunkify = (data, chunkSize)->
+  @chunkify = (data, chunkSize) ->
     chunks = []
     while data
       if data.length < chunkSize
@@ -335,37 +335,37 @@ module.exports = class FSHelper
   # Extension helpers
   #
 
-  @getFileType = (extension)->
+  @getFileType = (extension) ->
 
     fileType = null
 
     _extension_sets =
       code    : [
-        "php", "pl", "py", "jsp", "asp", "htm","html", "phtml","shtml"
-        "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml"
-        "js","json","coffee", "css","styl","sass", "erb"
+        'php', 'pl', 'py', 'jsp', 'asp', 'htm', 'html', 'phtml', 'shtml'
+        'sh', 'cgi', 'htaccess', 'fcgi', 'wsgi', 'mvc', 'xml', 'sql', 'rhtml'
+        'js', 'json', 'coffee', 'css', 'styl', 'sass', 'erb'
       ]
       text    : [
-        "txt", "doc", "rtf", "csv", "docx", "pdf"
+        'txt', 'doc', 'rtf', 'csv', 'docx', 'pdf'
       ]
       archive : [
-        "zip","gz","bz2","tar","7zip","rar","gzip","bzip2","arj","cab"
-        "chm","cpio","deb","dmg","hfs","iso","lzh","lzma","msi","nsis"
-        "rpm","udf","wim","xar","z","jar","ace","7z","uue"
+        'zip', 'gz', 'bz2', 'tar', '7zip', 'rar', 'gzip', 'bzip2', 'arj', 'cab'
+        'chm', 'cpio', 'deb', 'dmg', 'hfs', 'iso', 'lzh', 'lzma', 'msi', 'nsis'
+        'rpm', 'udf', 'wim', 'xar', 'z', 'jar', 'ace', '7z', 'uue'
       ]
       image   : [
-        "png","gif","jpg","jpeg","bmp","svg","psd","qt","qtif","qif"
-        "qti","tif","tiff","aif","aiff"
+        'png', 'gif', 'jpg', 'jpeg', 'bmp', 'svg', 'psd', 'qt', 'qtif', 'qif'
+        'qti', 'tif', 'tiff', 'aif', 'aiff'
       ]
       video   : [
-        "avi","mp4","h264","mov","mpg","ra","ram","mpg","mpeg","m4a"
-        "3gp","wmv","flv","swf","wma","rm","rpm","rv","webm"
+        'avi', 'mp4', 'h264', 'mov', 'mpg', 'ra', 'ram', 'mpg', 'mpeg', 'm4a'
+        '3gp', 'wmv', 'flv', 'swf', 'wma', 'rm', 'rpm', 'rv', 'webm'
       ]
-      sound   : ["aac","au","gsm","mid","midi","snd","wav","3g2","mp3","asx","asf"]
-      app     : ["kdapp"]
+      sound   : ['aac', 'au', 'gsm', 'mid', 'midi', 'snd', 'wav', '3g2', 'mp3', 'asx', 'asf']
+      app     : ['kdapp']
 
 
-    for own type,set of _extension_sets
+    for own type, set of _extension_sets
       for ext in set when extension is ext
         fileType = type
         break

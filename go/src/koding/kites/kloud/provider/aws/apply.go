@@ -44,6 +44,10 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		return nil, fmt.Errorf("State is currently %s. Please try again later", stack.State())
 	}
 
+	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
+		rt.Hijack()
+	}
+
 	if arg.Destroy {
 		s.Eventer.Push(&eventer.Event{
 			Message: s.Req.Method + " started",
@@ -125,6 +129,10 @@ func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string
 	req, ok := request.FromContext(ctx)
 	if !ok {
 		return errors.New("request context is not passed")
+	}
+
+	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
+		defer rt.Send()
 	}
 
 	ev.Push(&eventer.Event{
@@ -238,6 +246,10 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 	req, ok := request.FromContext(ctx)
 	if !ok {
 		return errors.New("internal server error (err: session context is not available)")
+	}
+
+	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
+		defer rt.Send()
 	}
 
 	ev.Push(&eventer.Event{

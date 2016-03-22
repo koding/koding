@@ -1,10 +1,10 @@
 htmlencode = require 'htmlencode'
 whoami = require './whoami'
 
-module.exports = (account=whoami(), justName=no) ->
+module.exports = (account = whoami(), justName = no) ->
 
   name = if account.type is 'unregistered'
-    "a guest"
+    'a guest'
   else if justName or not account.profile.lastName
     account.profile.firstName
   else

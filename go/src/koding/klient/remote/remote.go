@@ -179,7 +179,7 @@ func (r *Remote) hostFromClient(k *kite.Client) (string, error) {
 // results are not too old, we return the cached results rather than giving
 // the user a bad UX.
 func (r *Remote) GetMachines() (*machine.Machines, error) {
-	log := r.log.New("GetMachinesWithoutCache")
+	log := r.log.New("GetMachines")
 
 	// For readability
 	haveMachines := r.machines.Count() > 0
@@ -291,10 +291,24 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 				Teams:        k.Teams,
 			}
 
-			err = r.machines.Add(machine.NewMachine(
-				machineMeta, r.log, k.Client, kitepinger.NewKitePinger(k.Client),
-			))
+			var httpPinger *kitepinger.KiteHTTPPinger
+			// TODO: Use a full url for the passed around host.
+			httpPinger, err = kitepinger.NewKiteHTTPPinger(k.Client.URL)
 			if err != nil {
+				log.Error("Unable to create HTTPPinger from host. host:%s, err:%s", host, err)
+				break
+			}
+
+			newMachine := machine.NewMachine(
+				machineMeta, r.log, k.Client,
+				kitepinger.NewPingTracker(kitepinger.NewKitePinger(k.Client)),
+				kitepinger.NewPingTracker(httpPinger),
+			)
+
+			// Start our http pinger, to give online/offline statuses for all machines.
+			newMachine.HTTPTracker.Start()
+
+			if err = r.machines.Add(newMachine); err != nil {
 				log.Error("Unable to Add new machine to *machine.Machines. err:%s", err)
 				break
 			}
@@ -346,9 +360,27 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 			existingMachine.Log = machine.MachineLogger(existingMachine.MachineMeta, log)
 		}
 
-		if existingMachine.KitePinger == nil {
-			log.Debug("existingMachine missing kitepinger.KitePinger, adding..")
-			existingMachine.KitePinger = kitepinger.NewKitePinger(k.Client)
+		if existingMachine.HTTPTracker == nil {
+			log.Debug("existingMachine missing HTTPTracker, adding..")
+			// TODO: Use a full url for the passed around host.
+			httpPinger, err := kitepinger.NewKiteHTTPPinger(k.Client.URL)
+			if err != nil {
+				log.Error(
+					"Unable to create HTTPTracker from host. host:%s, err:%s",
+					k.Client.URL, err,
+				)
+			} else {
+				existingMachine.HTTPTracker = kitepinger.NewPingTracker(httpPinger)
+				// Start our http pinger, to give online/offline statuses for all machines.
+				existingMachine.HTTPTracker.Start()
+			}
+		}
+
+		if existingMachine.KiteTracker == nil {
+			log.Debug("existingMachine missing KiteTracker, adding..")
+			existingMachine.KiteTracker = kitepinger.NewPingTracker(
+				kitepinger.NewKitePinger(k.Client),
+			)
 		}
 	}
 

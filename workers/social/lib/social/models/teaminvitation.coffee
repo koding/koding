@@ -6,6 +6,7 @@ KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 jraphical   = require 'jraphical'
 shortid     = require 'shortid'
 Bongo       = require 'bongo'
+async       = require 'async'
 Tracker     = require './tracker'
 KodingError = require '../error'
 { extend }  = require 'underscore'
@@ -128,12 +129,8 @@ module.exports = class JTeamInvitation extends jraphical.Module
               invitee  : invitation.email
               link     : "#{protocol}//#{hostname}/Teams/#{encodeURIComponent invitation.code}"
 
-            Tracker.identifyAndTrack invitation.email, { subject: Tracker.types.INVITED_CREATE_TEAM }, properties
+            Tracker.identifyAndTrack invitation.email, { subject: Tracker.types.INVITED_CREATE_TEAM }, properties, (err) ->
+              fin err, invitation
 
-            invitations.push invitation
 
-            fin()
-
-      async.parallel queue, (err) ->
-        return callback err  if err
-        callback null, invitations
+      async.parallel queue, callback
