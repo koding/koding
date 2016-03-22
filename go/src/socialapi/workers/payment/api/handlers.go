@@ -71,6 +71,15 @@ func AddHandlers(m *mux.Mux) {
 		},
 	)
 
+	m.AddHandler(
+		handler.Request{
+			Handler:  AccountCancelSubscriptionRequest,
+			Name:     "payment-account-subscription-cancel",
+			Type:     handler.PostRequest,
+			Endpoint: "/payments/account/subscriptions/cancel",
+		},
+	)
+
 	//----------------------------------------------------------
 	// Customers
 	//----------------------------------------------------------

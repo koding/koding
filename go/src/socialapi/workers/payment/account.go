@@ -116,6 +116,10 @@ func (a *AccountRequest) Expire() (interface{}, error) {
 	return nil, subscription.Expire()
 }
 
+func (a *AccountRequest) CancelSubscription() (interface{}, error) {
+	return nil, nil
+}
+
 //----------------------------------------------------------
 // AccountUpdateCreditCard
 //----------------------------------------------------------
