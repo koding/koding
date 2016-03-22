@@ -193,7 +193,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
     resource              = @getData()
     { computeController } = kd.singletons
     computeController.off "apply-#{resource._id}", @bound 'handleProgressEvent'
-    computeController.off "stateChanged-#{resource._id}", @bound 'handleProgressEvent'
+    computeController.off "stateChanged-#{resource._id}", @bound 'handleStateChangedEvent'
 
     super
 
