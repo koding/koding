@@ -43,7 +43,8 @@ module.exports = class IDEStatusBar extends kd.View
     @addSubView @collaborationLinkContainer = new kd.CustomHTMLView
       cssClass: 'collaboration-link-container'
 
-    superKey = if globals.os is 'mac' then '⌘' else 'CTRL'
+    superKey  = if globals.os is 'mac' then '⌘' else 'CTRL'
+    shareCopy = 'This is your collaboration link. You can share this link to invite someone to your session. Click here to copy!'
 
     @collaborationLinkContainer.addSubView @collaborationLink = new kd.CustomHTMLView
       cssClass   : 'collaboration-link'
@@ -51,7 +52,7 @@ module.exports = class IDEStatusBar extends kd.View
       bind       : 'mouseenter mouseleave'
       mouseleave : -> @tooltip.hide()
       mouseenter : ->
-        @tooltip.setTitle 'Click to share!'
+        @tooltip.setTitle shareCopy
         @tooltip.show()
         @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'hide'
 
@@ -71,7 +72,7 @@ module.exports = class IDEStatusBar extends kd.View
         @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'hide'
 
     @collaborationLink.setTooltip
-      title     : 'Click to share!'
+      title     : shareCopy
       placement : 'above'
       sticky    : yes
 
@@ -291,6 +292,7 @@ module.exports = class IDEStatusBar extends kd.View
   updateCollaborationLink: (collaborationLink) ->
 
     @collaborationLink.updatePartial collaborationLink
+    @collaborationLink.tooltip.show()  if collaborationLink and @amIHost_()
 
 
   handleSessionEnd: ->
