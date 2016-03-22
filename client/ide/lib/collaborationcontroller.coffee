@@ -595,9 +595,9 @@ module.exports = CollaborationController =
 
         @statusBar.handlePermissionRequest origin  if @amIHost
 
-      when 'PermissionDenied'
+      when 'PermissionDenied', 'PermissionRevoked'
 
-        @handlePermissionDenied data.target
+        @handlePermissionRevert data.target, type is 'PermissionRevoked'
 
       when 'PermissionGranted'
 
@@ -1399,18 +1399,18 @@ module.exports = CollaborationController =
     @applyPermissionFor target, 'edit'
 
 
-  revertPermission: (target) ->
+  revokePermission: (target) ->
 
     return  unless @amIHost
 
-    @broadcastMessage { type: 'PermissionDenied', target }
+    @broadcastMessage { type: 'PermissionRevoked', target }
     @setParticipantPermission target, 'read'
     @applyPermissionFor target, 'read'
     @forEachSubViewInIDEViews_ 'editor', (ep) ->
       ep.removeParticipantCursorWidget target
 
 
-  handlePermissionDenied: (username) ->
+  handlePermissionRevert: (username, isRevoked = no) ->
 
     unless username is nick()
       return @forEachSubViewInIDEViews_ 'editor', (ep) ->
@@ -1418,11 +1418,15 @@ module.exports = CollaborationController =
 
     @permissionView?.destroy()
 
-    @permissionView = IDEHelpers.showNotificationBanner
-      cssClass : 'error'
-      title    : 'REQUEST DENIED:'
-      content  : "Host has denied your request to make changes!"
+    cssClass = 'error'
+    title    = 'REQUEST DENIED:'
+    content  = "Host has denied your request to make changes!"
 
+    if isRevoked
+      title    = 'ACCESS REVOKED:'
+      content  = "Host revoked your access to control their session!"
+
+    @permissionView = IDEHelpers.showNotificationBanner { cssClass, title, content }
     @permissionView.once 'KDObjectWillBeDestroyed', => @permissionView = null
 
 
