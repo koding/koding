@@ -139,22 +139,24 @@ module.exports =
 
   enterExitFullScreenFromIdeHeader: (browser) ->
 
-    ideHeaderSelector           = '.pane-wrapper .kdsplitview-panel.panel-0 .application-tab-handle-holder'
-    enterExitFullScreenSelector = '.kdsplitview-horizontal .panel-0 .idetabhandle-holder .general-handles .fullscreen-handle'
+    ideHeaderSelector           = '.panel-1 .pane-wrapper .application-tab-handle-holder'
+    enterExitFullScreenSelector = "#{ideHeaderSelector} .general-handles .fullscreen-handle"
     collapsedSidebarSelector    = '.kdview.with-sidebar#kdmaincontainer.collapsed'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
+    layoutHelpers.waitForSnapshotRestore(browser)
 
     browser
       .waitForElementVisible     ideHeaderSelector, 20000
       .moveToElement             ideHeaderSelector, 10, 10
       .waitForElementVisible     enterExitFullScreenSelector, 20000
       .click                     enterExitFullScreenSelector
-      .pause                     500 #pause for screen animation to finish
-      .waitForElementVisible     collapsedSidebarSelector, 20000
+      .pause                     1500 #pause for screen animation to finish
       .moveToElement             ideHeaderSelector, 10, 10
+      .pause                     1000
       .waitForElementVisible     enterExitFullScreenSelector, 20000
+      .waitForElementVisible     collapsedSidebarSelector, 20000
       .click                     enterExitFullScreenSelector
       .pause                     500
       .waitForElementNotPresent  collapsedSidebarSelector, 20000
