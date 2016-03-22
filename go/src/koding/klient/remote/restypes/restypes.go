@@ -45,7 +45,6 @@ type ListMachineInfo struct {
 
 // ListMountInfo is the machine info response from the `remote.list` handler.
 type ListMountInfo struct {
-	RemotePath     string `json:"remotePath"`
-	LocalPath      string `json:"localPath"`
-	LastMountError bool   `json:"lastMountError"`
+	RemotePath string `json:"remotePath"`
+	LocalPath  string `json:"localPath"`
 }

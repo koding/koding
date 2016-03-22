@@ -6,6 +6,7 @@ import (
 	"koding/fuseklient/transport"
 	"koding/klient/kiteerrortypes"
 	"koding/klient/remote/kitepinger"
+	"koding/klient/remote/machine"
 	"koding/klient/remote/req"
 	"koding/klient/remote/rsync"
 	"koding/klient/util"
@@ -27,6 +28,8 @@ const (
 	// "Socket is not connected" to the user. So if that message is seen, this value
 	// likely needs to be lowered.
 	fuseTellTimeout = 55 * time.Second
+
+	autoRemountFailed = "Error remounting. Please unmount & mount again."
 )
 
 // MounterTransport is the transport that the Mounter uses to communicate with
@@ -43,6 +46,9 @@ type Mounter struct {
 
 	// The options for this Mounter, such as LocalFolder, etc.
 	Options req.MountFolder
+
+	// The machine we'll be mounting to.
+	Machine *machine.Machine
 
 	// The IP of the remote machine.
 	IP string
@@ -88,6 +94,10 @@ func (m *Mounter) IsConfigured() error {
 	if m.Options.PrefetchAll && m.Options.CachePath == "" {
 		return util.KiteErrorf(kiteerrortypes.MissingArgument,
 			"Using PrefetchAll but missing CachePath")
+	}
+
+	if m.Machine == nil {
+		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing Machine")
 	}
 
 	if m.KiteTracker == nil {
@@ -269,11 +279,13 @@ func (m *Mounter) handleChangeSummary(mount *Mount, summary kitepinger.ChangeSum
 		// Log error and return to exit loop, since something is broke
 		if err := m.PathUnmounter(mount.LocalPath); err != nil {
 			log.Error("Failed to unmount. err:%s", err)
+			m.Machine.SetStatus(machine.MachineError, autoRemountFailed)
 			return err
 		}
 
 		if err := m.fuseMountFolder(mount); err != nil {
 			log.Error("Failed to mount. err:%s", err)
+			m.Machine.SetStatus(machine.MachineError, autoRemountFailed)
 			return err
 		}
 	}

@@ -17,8 +17,6 @@ import (
 	"github.com/koding/logging"
 )
 
-var autoUnmountFailed = "Error auto mounting. Please unmount & mount again."
-
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
 func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
