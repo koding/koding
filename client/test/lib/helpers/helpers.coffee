@@ -1,5 +1,6 @@
-utils    = require '../utils/utils.js'
+curl     = require 'curlrequest'
 faker    = require 'faker'
+utils    = require '../utils/utils.js'
 assert   = require 'assert'
 HUBSPOT  = no
 
@@ -570,6 +571,28 @@ module.exports =
     browser
       .cookie    'POST', { name, value, domain }
       .refresh()
+
+
+  postToSlack: (options = {}) ->
+
+    if typeof options is 'string'
+      options = text: options
+
+    options.text     or= ''
+    options.channel  or= 'qa'
+    options.username or= 'crow'
+    options.icon_url or= 'https://koding-cdn.s3.amazonaws.com/images/qa-crow-logo.png'
+
+    { channel, username, icon_url, text } = options
+
+    data        =
+      url       : 'https://hooks.slack.com/services/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'
+      include   : yes
+      method    : 'POST'
+      data      :
+        payload : '{"channel": "#' + channel + '", "username": "' + username + '", "icon_url": "' + icon_url + '", "text": "' + text + '"}'
+
+    curl.request data, (err, parts) -> console.log err  if err
 
 
   getUrl: (teamsUrl) ->
