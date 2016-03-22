@@ -1,5 +1,6 @@
 kd         = require 'kd'
 IDEHelpers = require 'ide/idehelpers'
+remote     = require('app/remote').getInstance()
 
 module.exports = class StackAdminMessageController extends kd.Controller
 
@@ -15,11 +16,15 @@ module.exports = class StackAdminMessageController extends kd.Controller
     return  unless machine
 
     { computeController } = kd.singletons
-    computeController.fetchStackByMachineId machine._id, yes, (err, stack) =>
-      return  unless stack
-      return  unless adminMessage = stack.config?.adminMessage
 
-      @showBanner { adminMessage, stack }
+    stack = computeController.findStackFromMachineId machine._id
+    return  unless stack
+
+    remote.api.JComputeStack.one { _id : stack._id }, (err, _stack) =>
+      return  unless _stack
+      return  unless adminMessage = _stack.config?.adminMessage
+
+      @showBanner { adminMessage, stack : _stack }
 
 
   showBanner: (data) ->

@@ -1310,19 +1310,3 @@ module.exports = class ComputeController extends KDController
           result.push stack
 
       callback null, result
-
-
-  fetchStackByMachineId: (machineId, force, callback = kd.noop) ->
-
-    @fetchStacks (err, stacks, fromCache) ->
-
-      return callback err  if err
-
-      for stack in stacks
-        for machine in stack.machines
-          if machine._id is machineId
-            return if force and fromCache
-            then remote.api.JComputeStack.one { _id : stack._id }, callback
-            else callback null, stack
-
-       callback()
