@@ -695,15 +695,16 @@ Admin main styles
 
     .role
       right                 10px
+
     .avatarview
       background            none
       top                   5px
+      fl()
 
     .status
       font-size             12px
       font-style            italic
-      left                  48px
-      abs                   28px
+      line-height           normal
 
     .machines-list
       border-bottom         1px solid #ccc
@@ -712,6 +713,39 @@ Admin main styles
     &.in-detail
       background            #eee
 
+    .percentage
+      invisible()
+
+    .progressbar-container
+      invisible()
+      abs()
+      width                 250px
+      right                 100px
+      top                   22px
+      border                none
+      rounded               4px
+      bg                    image, none
+      bg                    color, #D8D8D8
+
+      .bar
+        bg                  image, none
+        bg                  color, #5dc45a
+        vendor              box-shadow, none
+        rounded             4px
+        vendor              transition, width .3s ease
+
+    &.Destroying
+
+      .progressbar-container, .percentage
+        visibility          visible
+
+      .progressbar-container .bar
+        bg                  color, #e94835
+
+    &.Building
+
+      .progressbar-container, .percentage
+        visibility          visible
 
 .AppModal--admin .general-settings-view
 
