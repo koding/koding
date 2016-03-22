@@ -8,12 +8,14 @@ ConnectionChecker      = require './connectionchecker'
 lazyrouter             = require './lazyrouter'
 setupAnalytics         = require './setupanalytics'
 os                     = require 'os'
+localStorage           = require './localstorage'
 
 isStarted = false
 
 
 module.exports = (defaults) ->
 
+  localStorage.sanitize()
   if isStarted then throw 'already running' else isStarted = true
 
   initialize defaults, bootup
