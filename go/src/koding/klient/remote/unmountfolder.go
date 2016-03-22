@@ -6,6 +6,7 @@ import (
 
 	"github.com/koding/kite"
 
+	"koding/klient/remote/machine"
 	"koding/klient/remote/req"
 )
 
@@ -42,9 +43,22 @@ func (r *Remote) UnmountFolderHandler(kreq *kite.Request) (interface{}, error) {
 
 // UnmountFolder implements klient's remote.unmountFolder method. Unmounting
 // the given local folder.
-func (r *Remote) UnmountFolder(params req.UnmountFolder) error {
+func (r *Remote) UnmountFolder(params req.UnmountFolder) (err error) {
 	if params.Name == "" && params.LocalPath == "" {
 		return errors.New("Missing required argument `name` or `localPath`.")
+	}
+
+	if params.Name != "" {
+		// Get the machine, if it exists. We only need this currently to clear
+		// the machine status on success, so if we find an error here, we can ignore it.
+		if remoteMachine, machErr := r.GetMachine(params.Name); machErr == nil {
+			defer func() {
+				// If the returned error value is nil, clear the machine status.
+				if err == nil {
+					remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
+				}
+			}()
+		}
 	}
 
 	m, ok := r.mounts.FindByName(params.Name)

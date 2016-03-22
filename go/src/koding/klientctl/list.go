@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"koding/klient/remote/restypes"
+	"koding/klient/remote/machine"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
 	"math"
@@ -16,8 +16,6 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 )
-
-var autoUnmountFailed = "Error auto mounting. Please unmount & mount again."
 
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
@@ -76,28 +74,32 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 		// to a single mount.
 		var formattedMount string
 		if len(info.Mounts) > 0 {
-			if info.Mounts[0].LastMountError {
-				formattedMount = autoUnmountFailed
-			} else {
-				formattedMount += fmt.Sprintf(
-					"%s -> %s",
-					shortenPath(info.Mounts[0].LocalPath),
-					shortenPath(info.Mounts[0].RemotePath),
-				)
-			}
+			formattedMount += fmt.Sprintf(
+				"%s -> %s",
+				shortenPath(info.Mounts[0].LocalPath),
+				shortenPath(info.Mounts[0].RemotePath),
+			)
 		}
 
 		// Defaulting to unknown, in case any weird status is returned.
 		status := "unknown"
 		switch info.MachineStatus {
-		case restypes.MachineOffline:
+		case machine.MachineOffline:
 			status = "offline"
-		case restypes.MachineOnline:
+		case machine.MachineOnline:
 			status = "online"
-		case restypes.MachineDisconnected:
+		case machine.MachineDisconnected:
 			status = "disconnected"
-		case restypes.MachineConnected:
+		case machine.MachineConnected:
 			status = "connected"
+		case machine.MachineError:
+			status = "error"
+		}
+
+		// Currently we are displaying the status message over the formattedMount,
+		// if it exists.
+		if info.StatusMessage != "" {
+			formattedMount = info.StatusMessage
 		}
 
 		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\t%s\n",

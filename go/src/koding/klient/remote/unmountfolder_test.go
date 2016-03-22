@@ -7,9 +7,11 @@ import (
 	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
 
+	"koding/klient/remote/machine"
 	"koding/klient/storage"
 
 	"github.com/koding/kite"
+	"github.com/koding/kite/config"
 	"github.com/koding/logging"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -31,9 +33,18 @@ func (um *unmountMocker) Unmount() error {
 
 func TestUnmountFolder(t *testing.T) {
 	Convey("Given a Remote with no mounts", t, func() {
+		kg := newMockKiteGetter()
 		r := Remote{
-			log:    logging.NewLogger("testing"),
-			mounts: mount.Mounts{},
+			log:         discardLogger,
+			mounts:      mount.Mounts{},
+			kitesGetter: kg,
+			machines:    machine.NewMachines(discardLogger, storage.NewMemoryStorage()),
+			localKite: &kite.Kite{
+				Id: "test id",
+				Config: &config.Config{
+					Username: "test user",
+				},
+			},
 		}
 
 		Convey("When requesting a mount name and no path", func() {
@@ -62,9 +73,13 @@ func TestUnmountFolder(t *testing.T) {
 			Error: errors.New("bad mount error"),
 		}
 
+		kg := newMockKiteGetter()
+		store := storage.NewMemoryStorage()
 		r := Remote{
-			log:     logging.NewLogger("testing"),
-			storage: storage.NewMemoryStorage(),
+			log:         logging.NewLogger("testing"),
+			kitesGetter: kg,
+			storage:     store,
+			machines:    machine.NewMachines(discardLogger, store),
 			mounts: mount.Mounts{
 				&mount.Mount{
 					MountName: goodUnmountMocker.Name,
@@ -73,6 +88,12 @@ func TestUnmountFolder(t *testing.T) {
 				&mount.Mount{
 					MountName: badUnmountMocker.Name,
 					Unmounter: badUnmountMocker,
+				},
+			},
+			localKite: &kite.Kite{
+				Id: "test id",
+				Config: &config.Config{
+					Username: "test user",
 				},
 			},
 		}
