@@ -29,16 +29,30 @@ module.exports =
 
   fillUsernamePasswordForm: (browser, user) ->
 
-    browser
-      .waitForElementVisible  teamsModalSelector, 20000
-      .waitForElementVisible  'input[name=username]', 20000
-      .clearValue             'input[name=username]'
-      .setValue               'input[name=username]', user.username
-      .setValue               'input[name=password]', user.password
-      .click                  'button.TeamsModal-button--green'
-      .pause                  2000 # wait for modal change
+    doneButton         = "#{teamsModalSelector} button.TeamsModal-button--green"
+    usernameInput      = "#{teamsModalSelector} input[name=username]"
+    passwordInput      = "#{teamsModalSelector} input[name=password]"
+    alreadyMemberModal = "#{teamsModalSelector}.alreadyMember"
 
-    @loginAssertion(browser)
+    browser
+      .waitForElementVisible   teamsModalSelector, 20000
+      .element 'css selector', alreadyMemberModal, (result) =>
+        if result.status is 0
+          browser
+            .waitForElementVisible  passwordInput, 20000
+            .setValue               passwordInput, user.password
+        else
+          browser
+            .waitForElementVisible  usernameInput, 20000
+            .clearValue             usernameInput
+            .setValue               usernameInput, user.username
+            .setValue               passwordInput, user.password
+
+        browser
+          .click doneButton
+          .pause 2000 # wait for modal change
+
+        @loginAssertion(browser)
 
 
   loginAssertion: (browser) ->
@@ -72,7 +86,6 @@ module.exports =
     teamsLogin        = '.TeamsModal--login'
     stackCatalogModal = '.StackCatalogModal'
     closeButton       = "#{stackCatalogModal} .kdmodal-inner .closeModal"
-
 
     browser.url url
     browser.maximizeWindow()

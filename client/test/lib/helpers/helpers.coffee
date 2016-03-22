@@ -7,8 +7,6 @@ HUBSPOT  = no
 require '../utils/fail.js' # require fail to wrap NW::fail.
 
 
-activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
-
 module.exports =
 
   beginTest: (browser, user, url) ->
@@ -143,126 +141,6 @@ module.exports =
     @attemptEnterUsernameOnRegister(browser, user)
 
     browser.waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
-
-
-  postActivity: (browser, shouldBeginTest = yes) ->
-
-    if shouldBeginTest
-      @beginTest(browser)
-
-    post = @getFakeText()
-
-    @doPostActivity(browser, post)
-
-    return post
-
-
-  postComment: (browser, shouldPostActivity = yes, shouldAssert = yes) ->
-
-    if shouldPostActivity
-      @postActivity(browser)
-
-    comment = @getFakeText()
-
-    @doPostComment(browser, comment, shouldAssert)
-
-    return comment
-
-
-  doPostComment: (browser, comment, shouldAssert = yes, hasEmbeddable = no) ->
-
-    browser
-      .click                    activitySelector + ' [testpath=CommentInputView]'
-      .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
-      .waitForElementVisible    activitySelector + ' .comment-container .comment-input-wrapper', 20000
-      .click                    activitySelector + ' .has-markdown' # blur
-      .pause                    3000 # content preview
-
-    if hasEmbeddable
-      browser
-        .waitForElementVisible  '.comment-input-widget .link-embed-box', 20000
-
-    browser
-      .click                    activitySelector + ' .comment-container button[testpath=post-activity-button]'
-
-
-    if shouldAssert
-      browser
-        .pause               6000 # required
-        .assert.containsText '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
-
-
-  doPostActivity: (browser, post, shouldAssert = yes, hasEmbeddable = no) ->
-
-    browser
-      .waitForElementVisible    '[testpath="public-feed-link/Activity/Topic/public"]', 20000
-      .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
-      .pause                    3000 # for page load
-      .waitForElementVisible    '[testpath=ActivityInputView]', 30000
-      .click                    '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
-      .waitForElementVisible    '.most-recent [testpath=activity-list]', 30000
-      .click                    '[testpath=ActivityInputView]'
-      .setValue                 '[testpath=ActivityInputView]', post
-      .click                    '.channel-title'
-
-    if hasEmbeddable
-      browser
-        .waitForElementVisible  '[testpath=ActivityInputWidget] .link-embed-box', 20000
-
-    browser
-      .click                    '[testpath=post-activity-button]'
-      .pause                    6000 # required
-
-    if shouldAssert
-      browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
-
-
-  doFollowTopic: (browser) ->
-
-    hashtag      = @sendHashtagActivity(browser)
-    selector     = activitySelector + ' .has-markdown p a:first-child'
-    topicLink    = '[testpath=main-sidebar] [testpath="public-feed-link/Activity/Topic/' + hashtag.replace('#', '') + '"]'
-    channelTitle = '[testpath=channel-title]'
-
-    browser
-      .waitForElementVisible   selector, 25000
-      .click                   selector
-      .waitForElementVisible   topicLink, 25000
-      .waitForElementVisible   channelTitle, 25000
-      .assert.containsText     channelTitle, hashtag # Assertion
-      .waitForElementVisible   channelTitle + ' .follow', 25000
-      .click                   channelTitle + ' .follow'
-      .waitForElementVisible   channelTitle + ' .following', 25000 # Assertion
-
-    return hashtag
-
-
-  likePost: (browser, user) ->
-
-    post = @postActivity(browser, no)
-    selector    = activitySelector + ' [testpath=activity-like-link]'
-    likeElement = activitySelector + ' .like-summary'
-
-    browser
-      .waitForElementVisible selector, 25000
-      .click                 selector
-      .waitForElementVisible likeElement, 25000
-      .assert.containsText   likeElement, user.username + ' liked this.'
-
-    return post
-
-
-  sendHashtagActivity: (browser) ->
-
-    paragraph = @getFakeText()
-    hashtag   = '#' + paragraph.split(' ')[0] + Date.now()
-    post      = paragraph + ' ' + hashtag
-
-    @doPostActivity(browser, post)
-
-    browser.assert.containsText activitySelector + ' .has-markdown p a:first-child', hashtag # Assertion
-
-    return hashtag
 
 
   getFakeText: ->
@@ -551,6 +429,7 @@ module.exports =
           browser.end()
         else
           browser.end()
+
 
   runCommandOnTerminal: (browser, text) ->
 
