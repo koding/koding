@@ -4,9 +4,11 @@ import "koding/klient/remote/machine"
 
 // ListMachineInfo is the machine info response from the `remote.list` handler.
 type ListMachineInfo struct {
-	// Whether or not a kite pinger is actively pinging (and most recently succeeding)
-	// this machine.
+	// The machines last known status.
 	MachineStatus machine.MachineStatus `json:"machineStatus"`
+
+	// The message (if any) associated with the machine status.
+	StatusMessage string `json:"statusMessage"`
 
 	// The Ip of the running machine
 	IP string `json:"ip"`
@@ -25,6 +27,9 @@ type ListMachineInfo struct {
 	// TODO DEPRECATE
 	MountedPaths []string `json:"mountedPaths"`
 
+	// Used by kd ssh to determine ssh user
+	Hostname string `json:"hostname"`
+
 	// Kite identifying values. For reference, see:
 	// https://github.com/koding/kite/blob/master/protocol/protocol.go#L18
 	//
@@ -35,7 +40,6 @@ type ListMachineInfo struct {
 	Environment string
 	Region      string
 	Version     string
-	Hostname    string `json:"hostname"`
 	Username    string
 }
 
