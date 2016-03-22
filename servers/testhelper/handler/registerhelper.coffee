@@ -52,7 +52,9 @@ withRegisteredUser = (opts, callback) ->
     expect(err).to.not.exist
     expect(res.statusCode).to.be.equal 200
     expect(body).to.be.empty
-    callback opts.body
+
+    extraParams = { headers: res.headers }
+    callback opts.body, extraParams
 
 
 module.exports = {
