@@ -20,6 +20,7 @@ module.exports = class KodingListController extends KDListViewController
 
     options.itemClass              ?= KDListItemView
 
+    options.loadWithScroll         ?= yes
     options.useCustomScrollView    ?= yes
     options.lazyLoadThreshold      ?= 10
 
@@ -58,7 +59,7 @@ module.exports = class KodingListController extends KDListViewController
 
   bindEvents: ->
 
-    @followLazyLoad()
+    @followLazyLoad()  if @getOption 'loadWithScroll'
 
     listView = @getListView()
 
