@@ -76,7 +76,7 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 
 // getMachineStatus returns a machine status for the given machine, based on
 // the given kitepingers/etc.
-func getMachineStatus(machine *machine.Machine) restypes.MachineStatus {
+func getMachineStatus(m *machine.Machine) machine.MachineStatus {
 	// Storing some vars for readability
 	var (
 		// If we have a kitepinger, and are actively pinging, we show
@@ -91,24 +91,24 @@ func getMachineStatus(machine *machine.Machine) restypes.MachineStatus {
 		isOnline    bool
 	)
 
-	if machine.KiteTracker != nil {
-		useConnected = machine.KiteTracker.IsPinging()
-		isConnected = machine.KiteTracker.IsConnected()
+	if m.KiteTracker != nil {
+		useConnected = m.KiteTracker.IsPinging()
+		isConnected = m.KiteTracker.IsConnected()
 	}
 
-	if machine.HTTPTracker != nil {
-		isOnline = machine.HTTPTracker.IsPinging()
-		useOnline = machine.HTTPTracker.IsConnected()
+	if m.HTTPTracker != nil {
+		isOnline = m.HTTPTracker.IsPinging()
+		useOnline = m.HTTPTracker.IsConnected()
 	}
 
 	switch {
 	case useConnected && isConnected:
-		return restypes.MachineConnected
+		return machine.MachineConnected
 	case useConnected && !isConnected:
-		return restypes.MachineDisconnected
+		return machine.MachineDisconnected
 	case useOnline && isOnline:
-		return restypes.MachineOnline
+		return machine.MachineOnline
 	default:
-		return restypes.MachineOffline
+		return machine.MachineOffline
 	}
 }

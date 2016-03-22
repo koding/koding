@@ -14,6 +14,31 @@ import (
 	"github.com/koding/kite/dnode"
 )
 
+// MachineStatus representes our understanding of a machines status. Whether or not
+// we can communicate with it, and etc.
+type MachineStatus int
+
+const (
+	// Zero value, status is unknown
+	MachineStatusUnknown MachineStatus = iota
+
+	// The machine is not reachable for http
+	MachineOffline
+
+	// The machine & kite server are reachable via http
+	MachineOnline
+
+	// The machine has a kite and/or kitepinger trying to communicate with it,
+	// but is failing.
+	MachineDisconnected
+
+	// The machine has an active and working kite connection.
+	MachineConnected
+
+	// The machine encountered an error
+	MachineError
+)
+
 var (
 	// Returned by various methods if the requested machine cannot be found.
 	ErrMachineNotFound error = util.KiteErrorf(
@@ -51,6 +76,12 @@ type Machine struct {
 	// The embedded static MachineMeta. Embedded, so we can save this struct
 	// directly to the database.
 	MachineMeta
+
+	// The given machine status
+	status MachineStatus `json:"-"`
+
+	// The message (if any) associated with the given status.
+	statusMessage string `json:"-"`
 
 	// A remote client, as returned by `kontrolclient.GetKites()`
 	//
@@ -101,6 +132,64 @@ func NewMachine(meta MachineMeta, log logging.Logger, client *kite.Client,
 		HTTPTracker: ht,
 		Transport:   client,
 	}
+}
+
+// GetStatus returns the currently set machine status and status message, if any.
+//
+// This is safe to call for any Machine instance, valid or not.
+func (m *Machine) GetStatus() (MachineStatus, string) {
+	if m.status == MachineStatusUnknown {
+		return m.getConnStatus(), ""
+	}
+
+	return m.status, m.statusMessage
+}
+
+// getConnStatus returns online/offline/connected/disconnected based on the
+// given statuses.
+//
+// This is safe to call for any Machine instance, valid or not.
+func (m *Machine) getConnStatus() MachineStatus {
+	// Storing some vars for readability
+	var (
+		// If we have a kitepinger, and are actively pinging, we show
+		// connected/disconnected
+		useConnected bool
+
+		// If we are not showing connected/disconnected, but we are pinging http,
+		// use online/offline
+		useOnline bool
+
+		isConnected bool
+		isOnline    bool
+	)
+
+	if m.KiteTracker != nil {
+		useConnected = m.KiteTracker.IsPinging()
+		isConnected = m.KiteTracker.IsConnected()
+	}
+
+	if m.HTTPTracker != nil {
+		isOnline = m.HTTPTracker.IsPinging()
+		useOnline = m.HTTPTracker.IsConnected()
+	}
+
+	switch {
+	case useConnected && isConnected:
+		return MachineConnected
+	case useConnected && !isConnected:
+		return MachineDisconnected
+	case useOnline && isOnline:
+		return MachineOnline
+	default:
+		return MachineOffline
+	}
+}
+
+// SetStatus sets the machines status, along with an optional message.
+func (m *Machine) SetStatus(s MachineStatus, msg string) {
+	m.status = s
+	m.statusMessage = msg
 }
 
 // CheckValid checks if this Machine is missing any required fields. Fields can be
@@ -195,4 +284,23 @@ func (m *Machine) ConnectedAt() time.Time {
 	}
 
 	return m.KiteTracker.ConnectedAt()
+}
+
+func (ms MachineStatus) String() string {
+	switch ms {
+	case MachineStatusUnknown:
+		return "MachineStatusUnknown"
+	case MachineOffline:
+		return "MachineOffline"
+	case MachineOnline:
+		return "MachineOnline"
+	case MachineDisconnected:
+		return "MachineDisconnected"
+	case MachineConnected:
+		return "MachineConnected"
+	case MachineError:
+		return "MachineError"
+	default:
+		return "UnknownMachineConstant"
+	}
 }
