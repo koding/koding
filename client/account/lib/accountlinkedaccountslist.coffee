@@ -1,9 +1,10 @@
 kd                            = require 'kd'
 KDListView                    = kd.ListView
+KodingListView                = require 'app/kodinglist/kodinglistview'
 AccountLinkedAccountsListItem = require './accountlinkedaccountslistitem'
 
 
-module.exports = class AccountLinkedAccountsList extends KDListView
+module.exports = class AccountLinkedAccountsList extends KodingListView
 
   constructor: (options = {}, data) ->
 
