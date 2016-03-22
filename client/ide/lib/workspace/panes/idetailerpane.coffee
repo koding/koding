@@ -162,3 +162,9 @@ module.exports = class IDETailerPane extends IDEPane
     ace.editor.resize()
 
     @scrollToBottom()
+
+
+  makeEditable: ->
+
+
+  makeReadOnly: ->
