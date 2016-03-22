@@ -14,7 +14,7 @@ getCookiesFromHeader = (headers) ->
   if headers['set-cookie'] instanceof Array
     return headers['set-cookie'].map Cookie.parse
   else
-    return [Cookie.parse(headers['set-cookie'])];
+    return [Cookie.parse(headers['set-cookie'])]
 
 describe 'server.handlers.unregister', ->
 
@@ -47,7 +47,7 @@ describe 'server.handlers.unregister', ->
         url : generateUrl { route : 'Unregister' }
 
       opts =
-        clientId: clientCookees[clientCookees.length-1].value
+        clientId: clientCookees[clientCookees.length - 1].value
 
       requestParams = generateRequestParamsEncodeBody params, opts
 

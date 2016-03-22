@@ -7,7 +7,7 @@ module.exports = (req, res) ->
     return res.status(500).send err  if err
 
     { nickname } = client?.connection?.delegate?.profile
-    return res.status(400).send "nickname is not set"  unless nickname
+    return res.status(400).send 'nickname is not set'  unless nickname
 
     { JUser } = bongo.models
     JUser.unregister client, nickname, (err) ->
