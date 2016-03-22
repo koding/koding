@@ -11,6 +11,11 @@ KodingListController = require 'app/kodinglist/kodinglistcontroller'
 
 describe 'KodingListController', ->
 
+  afterEach ->
+
+    expect.restoreSpies()
+
+
   describe 'constructor', ->
 
     it 'should instantiate with default options', ->
@@ -20,13 +25,14 @@ describe 'KodingListController', ->
       {
         useCustomScrollView, lazyLoadThreshold, limit,
         sort, model, fetcherMethod, startWithLazyLoader,
-        lazyLoaderOptions
+        lazyLoaderOptions, loadWithScroll
       } = listController.getOptions()
 
       viewInstanceCheck = listController.getListView() instanceof KodingListView
 
       expect(viewInstanceCheck).toBeTruthy()
       expect(useCustomScrollView).toBeTruthy()
+      expect(loadWithScroll).toBeTruthy()
       expect(lazyLoadThreshold).toBe 10
       expect(limit).toBe 10
       expect(model).toNotExist()
@@ -144,6 +150,25 @@ describe 'KodingListController', ->
       kd.utils.wait 333, ->
         expect(listController.filterStates.skip).toBe 20
         done()
+
+    it 'should call followLazyLoad if loadWithScroll is yes', ->
+
+      expect.spyOn KodingListController.prototype, 'followLazyLoad'
+
+      listController  = new KodingListController
+        fetcherMethod  : kd.noop
+
+      expect(listController.followLazyLoad).toHaveBeenCalled()
+
+    it 'should not call followLazyLoad if loadWithScroll is no', ->
+
+      expect.spyOn KodingListController.prototype, 'followLazyLoad'
+
+      listController  = new KodingListController
+        fetcherMethod  : kd.noop
+        loadWithScroll : no
+
+      expect(listController.followLazyLoad).toNotHaveBeenCalled()
 
     it 'should call fetch with correct options', (done) ->
 
