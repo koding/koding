@@ -30,7 +30,7 @@ EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatem
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
-
+StackProgressModal            = require 'ide/views/modals/stackprogressmodal'
 
 require('./routes').init()
 
@@ -1268,7 +1268,9 @@ class IDEAppController extends AppController
       else
         mainView.activitySidebar.selectWorkspace data
 
-      computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET  if initial
+      if initial
+        computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET
+        @showStackProgressModalIfNeeded()
 
       @emit 'IDEReady'
 
@@ -1988,3 +1990,24 @@ class IDEAppController extends AppController
 
     @activePaneView?.webtermView?.on 'ScreenSizeChanged', (size) =>
       @updateStatusBar null, "Screen size changed to (#{size.w}, #{size.h})"
+
+
+  showStackProgressModalIfNeeded: ->
+
+    return  unless @mountedMachine
+
+    { computeController } = kd.singletons
+    stack = computeController.findStackFromMachineId @mountedMachine._id
+    return  unless stack
+
+    remote.api.JStackTemplate.one { _id : stack.baseStackId }, (err, stackTemplate) =>
+      return kd.log err  if err
+
+      { config } = stackTemplate
+      return  unless config
+
+      { buildDuration } = config
+      if buildDuration
+        new StackProgressModal
+          duration  : buildDuration
+          container : @getView()

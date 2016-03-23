@@ -9,15 +9,19 @@ module.exports = class StackProgressModal extends KDModalView
 
   constructor: (options, data) ->
 
-    options.title   ?= 'Stack building progress'
-    options.cssClass = kd.utils.curry 'stack-progress-modal', options.cssClass
-    options.view     = progressBar = new KDProgressBarView()
+    options.title          ?= 'Stack building progress'
+    options.cssClass        = kd.utils.curry 'stack-progress-modal', options.cssClass
+    options.appendToDomBody = no
+    options.view            = progressBar = new KDProgressBarView()
     
     super options, data
 
     @startTime   = new Date().getTime()
     @progressBar = progressBar
     @progressBar.once 'viewAppended', @bound 'updateProgress'
+
+    { container } = @getOptions()
+    container.addSubView this
 
 
   updateProgress: ->
@@ -27,7 +31,13 @@ module.exports = class StackProgressModal extends KDModalView
     timeSpent    = (new Date().getTime() - @startTime) / 1000
     percentage   = Math.min 100, timeSpent * 100 / duration
 
-    console.log "timeSpent = #{timeSpent}; percentage = #{percentage}; interval = #{interval}"
     @progressBar.updateBar percentage
 
-    kd.utils.wait interval * 1000, @bound 'updateProgress'  if percentage < 100
+    @timer = kd.utils.wait interval * 1000, @bound 'updateProgress'  if percentage < 100
+
+
+  completeProgress: ->
+
+    @timer = kd.utils.killWait @timer
+    @progressBar.updateBar 100
+    kd.utils.wait 500, @bound 'destroy'
