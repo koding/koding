@@ -178,3 +178,4 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
     cc = kd.singletons.computeController
     cc.managedKiteChecker.removeListener @bound 'machineFoundCallback'
+    kd.singletons.router.back()
