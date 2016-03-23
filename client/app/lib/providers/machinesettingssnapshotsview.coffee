@@ -1,12 +1,11 @@
-kd                          = require 'kd'
-remote                      = require('app/remote').getInstance()
-snapshotHelpers             = require './snapshothelpers'
-openIdeByMachine            = require '../util/openIdeByMachine'
-JView                       = require '../jview'
-ComputeErrorUsageModal      = require './computeerrorusagemodal'
-MachineSettingsCommonView   = require './machinesettingscommonview'
-SnapshotListItem            = require './snapshotlistitem'
-
+kd                                 = require 'kd'
+remote                             = require('app/remote').getInstance()
+snapshotHelpers                    = require './snapshothelpers'
+openIdeByMachine                   = require '../util/openIdeByMachine'
+JView                              = require '../jview'
+ComputeErrorUsageModal             = require './computeerrorusagemodal'
+MachineSettingsCommonView          = require './machinesettingscommonview'
+MachineSettingsSnapshotsController = require './controllers/machinesettingssnapshotscontroller'
 
 module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommonView
 
@@ -16,10 +15,6 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     options.headerTitle          = 'Snapshots'
     options.addButtonTitle       = 'ADD SNAPSHOT'
     options.headerAddButtonTitle = 'ADD NEW SNAPSHOT'
-    options.listViewItemClass    = SnapshotListItem
-    options.noItemFoundWidget    = new kd.CustomHTMLView
-      cssClass : 'no-item'
-      partial  : 'You do not have any Snapshots.'
 
     # Trigger the snapshotsLimits fetch, so that we can cache it ahead of time.
     @snapshotsLimit()
@@ -34,6 +29,23 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       machine = @getData()
       snapshotHelpers.newVmFromSnapshot snapshot, machine, =>
         @emit 'ModalDestroyRequested'
+
+
+  createListView: ->
+
+    itemOptions = @getOptions().listViewItemOptions or {}
+    itemOptions.machineId = @machine._id
+
+    options =
+      viewOptions   :
+        wrapper     : yes
+        itemOptions : itemOptions
+
+    @listController = new MachineSettingsSnapshotsController options
+
+    @listView = @listController.getView()
+
+    @addSubView @listView
 
 
   ###*
@@ -213,18 +225,6 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     super
 
     @listController.showNoItemWidget()
-
-
-  ###*
-   * Populate the listController with snapshots fetched from jSnapshot.
-  ###
-  initList: ->
-
-    { JSnapshot } = remote.api
-    JSnapshot.some {}, {}, (err, snapshots = []) =>
-      kd.warn err  if err
-      @listController.lazyLoader?.hide()
-      @listController.replaceAllItems snapshots
 
 
   ###*
