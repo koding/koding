@@ -63,13 +63,15 @@ module.exports = class KodingListController extends KDListViewController
 
     listView = @getListView()
 
-    # 
-    # Example usage => listView.emit 'ItemAction', { action : 'RemoveItem', item : this }
-    #
-    listView.on 'ItemAction', ({ action, item, options }) =>
-      switch action
-        when 'RemoveItem'
-          @removeItem item, options
+    listView
+      .on 'ItemAction', ({ action, item, options }) =>
+        switch action
+          when 'RemoveItem'
+            @removeItem item, options
+
+          when 'ItemRemoved'
+            listView.removeItem item
+            @showNoItemWidget()
 
 
   removeItem: (item, options = {}) ->

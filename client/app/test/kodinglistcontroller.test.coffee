@@ -126,6 +126,25 @@ describe 'KodingListController', ->
 
       expect(spy).toHaveBeenCalledWith item, options
 
+    it 'should call showNoItemWidget method when ItemDeleted event is emitted', ->
+
+      listController  = new KodingListController { fetcherMethod : kd.noop }
+      spy             = expect.spyOn listController, 'showNoItemWidget'
+
+      listController.getListView().emit 'ItemAction', { action : 'ItemRemoved' }
+
+      expect(spy).toHaveBeenCalled()
+
+    it 'should remove item from list view when ItemDeleted event is emitted', ->
+
+      listController  = new KodingListController { fetcherMethod : kd.noop }
+      listView        = listController.getListView()
+      spy             = expect.spyOn listView, 'removeItem'
+
+      listController.getListView().emit 'ItemAction', { action : 'ItemRemoved' }
+
+      expect(spy).toHaveBeenCalled()
+
 
   describe '::followLazyLoad', ->
 
