@@ -1,0 +1,12 @@
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+. "${DIR}/docker"
+
+buildContainer
+
+MONGO_CID=$(runMongo)
+runAndForget /bin/bash --
+
+evictContainer $MONGO_CID
+
