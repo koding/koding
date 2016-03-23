@@ -12,9 +12,8 @@ describe 'AccountLinkedAccountsListController', ->
     it 'should be extended from KodingListController', ->
 
       listController  = new AccountLinkedAccountsListController
-      instanceCheck   = listController instanceof KodingListController
 
-      expect(instanceCheck).toBeTruthy()
+      expect(listController).toBeA KodingListController
 
     it 'should has fetcherMethod option', ->
 

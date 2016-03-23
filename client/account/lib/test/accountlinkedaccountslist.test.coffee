@@ -10,10 +10,9 @@ describe 'AccountLinkedAccountsList', ->
 
     it 'should be extended from KodingListView', ->
 
-      listView      = new AccountLinkedAccountsList
-      instanceCheck = listView instanceof KodingListView
+      listView  = new AccountLinkedAccountsList
 
-      expect(instanceCheck).toBeTruthy()
+      expect(listView).toBeA KodingListView
 
     it 'should be a <ul> HTML element', ->
 
