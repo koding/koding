@@ -14,10 +14,10 @@ module.exports = class IDEFinderContextMenuController extends NFinderContextMenu
 
     items =
       Expand                      :
-        action                    : "expand"
+        action                    : 'expand'
         separator                 : yes
       Collapse                    :
-        action                    : "collapse"
+        action                    : 'collapse'
         separator                 : yes
       'Change top folder'         :
         separator                 : yes

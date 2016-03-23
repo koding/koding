@@ -11,7 +11,7 @@ getNick = require 'app/util/nick'
 ###
 fetchCollaborationFile = (manager, fileName, callback) ->
 
-  isSessionActive manager, fileName, (isActive, file) =>
+  isSessionActive manager, fileName, (isActive, file) ->
     if isActive
     then callback null, file
     else callback 'trying to fetch file from inactive session'
@@ -148,14 +148,14 @@ getReferences = (manager, channelId, initialSnapshot) ->
     pingTime          : getFromManager manager, 'pingTime', 'list', []
     commonStore       : getFromManager manager, 'commonStore', 'map', {}
     watchMap          : getFromManager manager, watchMapName, 'map', {}
-    snapshot          : getFromManager manager, snapshotName, 'map', layout: initialSnapshot
+    snapshot          : getFromManager manager, snapshotName, 'map', { layout: initialSnapshot }
 
   manager.bindRealtimeListeners refs.changes, 'list'
   manager.bindRealtimeListeners refs.broadcastMessages, 'list'
   manager.bindRealtimeListeners refs.watchMap, 'map'
   manager.bindRealtimeListeners refs.permissions, 'map'
 
-  manager.once 'RealtimeManagerWillDispose', =>
+  manager.once 'RealtimeManagerWillDispose', ->
     refs.snapshot.clear()
     manager.unbindRealtimeListeners refs.changes, 'list'
     manager.unbindRealtimeListeners refs.broadcastMessages, 'list'
