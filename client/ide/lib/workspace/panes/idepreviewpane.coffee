@@ -24,6 +24,6 @@ module.exports = class IDEPreviewPane extends IDEPane
       @emit 'LocationChanged', newLocation
 
   serialize: ->
-    {url, paneType} = @getOptions()
+    { url, paneType } = @getOptions()
 
     return { url, paneType, @hash }

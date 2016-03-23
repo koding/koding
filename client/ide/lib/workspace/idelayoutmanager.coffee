@@ -127,7 +127,7 @@ module.exports = class IDELayoutManager extends KDObject
       return  unless target.view.serialize
       return  unless target.parent
 
-      pane = context : target.view.serialize()
+      pane = { context : target.view.serialize() }
       pane.context.isActivePane = target.parent.getActivePane() is target
 
       last = @findLastSplitView @subViews

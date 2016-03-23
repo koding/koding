@@ -149,7 +149,7 @@ module.exports = class IDETailerPane extends IDEPane
     content = @getContent()
     line    = (content.split '\n').length
 
-    @setCursor row: line, column: 0
+    @setCursor { row: line, column: 0 }
     @getAce().editor.scrollPageDown()
 
 
