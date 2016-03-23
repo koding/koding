@@ -11,13 +11,15 @@ AccountListViewController   = require 'account/controllers/accountlistviewcontro
 MemberAutoCompleteItemView  = require 'app/commonviews/memberautocompleteitemview'
 MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemview'
 
+KodingListController        = require 'app/kodinglist/kodinglistcontroller'
+
 remote                      = require('app/remote').getInstance()
 globals                     = require 'globals'
 showError                   = require 'app/util/showError'
 Tracker                     = require 'app/util/tracker'
 
 
-module.exports = class AccountCredentialListController extends AccountListViewController
+module.exports = class AccountCredentialListController extends KodingListController
 
 
   constructor: (options = {}, data) ->
