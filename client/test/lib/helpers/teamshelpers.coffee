@@ -429,6 +429,7 @@ module.exports =
     deleteCredentialButton = "#{newCredential} button.delete"
     useCredentialButton    = "#{newCredential} button.verify"
     inUseLabelSelector     = "#{newCredential} .custom-tag.inuse"
+    secretKeyInput         = "#{credentialsPane} .secret-key input"
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
@@ -449,7 +450,8 @@ module.exports =
           .pause                  500
           .setValue               "#{credentialsPane} .access-key input", accessKeyId
           .pause                  500
-          .setValue               "#{credentialsPane} .secret-key input", secretAccessKey
+          .scrollToElement        secretKeyInput
+          .setValue               secretKeyInput, secretAccessKey
           .pause                  1000
           .click                  '.credential-creation-intro'
           .scrollToElement        saveButtonSelector
