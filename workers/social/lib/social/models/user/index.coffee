@@ -9,6 +9,8 @@ KodingError      = require '../../error'
 emailsanitize    = require './emailsanitize'
 { extend, uniq } = require 'underscore'
 
+{ protocol, hostname } = KONFIG
+
 module.exports = class JUser extends jraphical.Module
 
   { v4: createId }      = require 'node-uuid'
@@ -995,11 +997,13 @@ module.exports = class JUser extends jraphical.Module
         group.approveMember account, roles, (err) ->
           return callback err  if err
 
-          Tracker.identifyAndTrack email, {
-              groupName : slug
-              email     : email
-              subject   : Tracker.types.TEAMS_ACCEPTED_INVITATION
-          }
+          groupLink  = "#{protocol}//#{invitation.groupName}.#{hostname}/"
+
+          properties =
+            groupName    : invitation.groupName
+            link         : groupLink + "Invitation/#{encodeURIComponent invitation.code}"
+
+          Tracker.identifyAndTrack email, { subject : Tracker.types.TEAMS_ACCEPTED_INVITATION }, properties
 
           # do not forget to redeem invitation
           redeemInvitation {
