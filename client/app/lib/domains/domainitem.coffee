@@ -43,7 +43,7 @@ module.exports = class DomainItem extends KDListItemView
         @getDelegate().emit 'DomainStateChanged', this, state
 
     @addSubView @loader = new KDLoaderView
-      size     : width : 16
+      size     : { width : 16 }
       cssClass : 'hidden'
 
 

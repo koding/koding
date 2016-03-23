@@ -19,43 +19,43 @@ module.exports = class WidgetController extends KDController
 
   fetchWidgets: ->
     query =
-      partialType : "WIDGET"
-      "$or"       : [
-        { isActive: yes  }
+      partialType : 'WIDGET'
+      '$or'       : [
+        { isActive: yes }
         { isPreview: yes }
       ]
 
     remote.api.JCustomPartials.some query, {}, (err, widgets) =>
       return  unless widgets or err
       for widget in widgets
-        target   = "published"
-        key      = "viewInstance"
+        target   = 'published'
+        key      = 'viewInstance'
 
         if widget.isPreview
-          target = "preview"
-          key    = "previewInstance"
+          target = 'preview'
+          key    = 'previewInstance'
 
         @widgets[target][widget[key]] = widget
 
   registerPlaceholders: ->
-    @placeholders.ActivityTop  = { title: "Activity Top",  key: "ActivityTop"  }
-    @placeholders.ActivityLeft = { title: "Activity Left", key: "ActivityLeft" }
+    @placeholders.ActivityTop  = { title: 'Activity Top',  key: 'ActivityTop' }
+    @placeholders.ActivityLeft = { title: 'Activity Left', key: 'ActivityLeft' }
 
   getPlaceholders: ->
     return @placeholders
 
   showWidgets: (widgets) ->
-    isPreviewMode = kookies.get "custom-partials-preview-mode"
-    targetKey     = if isPreviewMode then "preview" else "published"
+    isPreviewMode = kookies.get 'custom-partials-preview-mode'
+    targetKey     = if isPreviewMode then 'preview' else 'published'
 
     for widget in widgets
-      {view, key}    = widget
-      widgetData     = @widgets[targetKey][key]
-      hasPlaceholder = @placeholders[key]
+      { view, key }    = widget
+      widgetData       = @widgets[targetKey][key]
+      hasPlaceholder   = @placeholders[key]
 
       if view and key and widgetData and hasPlaceholder
         try
-          {css, js}  = widgetData.partial
+          { css, js }  = widgetData.partial
           @evalJS    view, js  if js
           @appendCSS css, key  if css
         catch
@@ -70,7 +70,7 @@ module.exports = class WidgetController extends KDController
     oldElement    = global.document.getElementById domId
     global.document.head.removeChild oldElement  if oldElement
 
-    tag           = global.document.createElement "style"
+    tag           = global.document.createElement 'style'
     tag.id        = domId
     tag.innerHTML = htmlencode.htmlDecode css
 

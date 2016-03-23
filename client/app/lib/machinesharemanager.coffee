@@ -50,15 +50,15 @@ module.exports = class MachineShareManager extends kd.Object
 
   handleSharedMachineInvitation: (data) ->
 
-    @set data.uid, type: 'shared machine'
+    @set data.uid, { type: 'shared machine' }
 
 
   handleCollaborationInvitation: (data) ->
 
-    {machineUId, workspaceId} = data
+    { machineUId, workspaceId } = data
 
     type = 'collaboration'
-    @set machineUId, {type, workspaceId}
+    @set machineUId, { type, workspaceId }
 
 
   registerChannelEvent: (channelId, callback = kd.noop) ->

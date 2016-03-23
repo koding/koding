@@ -140,7 +140,7 @@ module.exports = class SidebarSearchModal extends KDModalView
     then @listController.getItemCount()
     else 0
 
-    return {  limit  }
+    return { limit }
 
 
   reset: ->

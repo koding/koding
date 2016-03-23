@@ -17,7 +17,7 @@ module.exports = class UserItem extends KDListItemView
 
   viewAppended: ->
 
-    { profile: { firstName, lastName, nickname} } = @getData()
+    { profile: { firstName, lastName, nickname } } = @getData()
 
     { size, justFirstName } = @getOptions()
 
@@ -25,7 +25,7 @@ module.exports = class UserItem extends KDListItemView
 
     @avatar    = new AvatarView
       origin   : nickname
-      size     : size or width: 22, height: 22
+      size     : size or { width: 22, height: 22 }
 
     @name      = new KDCustomHTMLView
       cssClass : 'name'
@@ -41,7 +41,7 @@ module.exports = class UserItem extends KDListItemView
         @getDelegate().emit 'KickUserRequested', this
 
     @addSubView @loader = new KDLoaderView
-      size     : width : 16
+      size     : { width : 16 }
       cssClass : 'hidden'
 
 

@@ -6,7 +6,7 @@ module.exports =
 
 class AppController extends KDViewController
 
-  constructor:->
+  constructor: ->
 
     super
 
@@ -16,18 +16,18 @@ class AppController extends KDViewController
       # defer should be removed, this should be listening to a different event - SY
       kd.utils.defer  =>
         { appStorageController } = kd.singletons
-        @appStorage = appStorageController.storage name, version or "1.0.1"
+        @appStorage = appStorageController.storage name, version or '1.0.1'
 
 
   getConfig: ->
     return globals.config.apps[@getOption('name')]
 
 
-  handleQuery:(query)->
+  handleQuery: (query) ->
     @ready => @feedController?.handleQuery? query
 
 
-  createContentDisplay: (models, callback)->
+  createContentDisplay: (models, callback) ->
     console.warn @id + '#createContentDisplay not implemented'
 
 

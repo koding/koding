@@ -62,9 +62,9 @@ module.exports = class MainController extends KDController
 
   ###
 
-  connectedState = connected : no
+  connectedState = { connected : no }
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.failWait = 10000            # duration in miliseconds to show a connection failed modal
 
@@ -80,7 +80,7 @@ module.exports = class MainController extends KDController
     @setTeamCookie()
 
 
-  createSingletons:->
+  createSingletons: ->
 
     kd.registerSingleton 'mainController',            this
     kd.registerSingleton 'kontrol',                   new KodingKontrol
@@ -101,7 +101,7 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'appStorageController',      new AppStorageController
     kd.registerSingleton 'localSync',                 new LocalSyncController
     kd.registerSingleton 'mainView',             mv = new MainView
-    kd.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
+    kd.registerSingleton 'mainViewController',  mvc = new MainViewController { view : mv }
     kd.registerSingleton 'kodingAppsController',      new KodingAppsController
     kd.registerSingleton 'socialapi',                 new SocialApiController
     kd.registerSingleton 'realtime',                  new RealtimeController
@@ -133,13 +133,13 @@ module.exports = class MainController extends KDController
     @forwardEvents remote, ['disconnected', 'reconnected']
 
 
-  isFeatureDisabled: (name, callback) -> @ready => callback do ->
+  isFeatureDisabled: (name, callback) -> @ready -> callback do ->
 
     return no  unless name
     return no  if checkFlag 'super-admin'
 
-    {roles}            = globals.config
-    {disabledFeatures} = getGroup()
+    { roles }            = globals.config
+    { disabledFeatures } = getGroup()
 
     return no  unless disabledFeatures
 
@@ -153,7 +153,7 @@ module.exports = class MainController extends KDController
     return no
 
 
-  accountChanged: (account, firstLoad = no)->
+  accountChanged: (account, firstLoad = no) ->
 
     unless account instanceof remote.api.JAccount
       account = remote.revive account
@@ -183,11 +183,11 @@ module.exports = class MainController extends KDController
 
       tzOffset = (new Date()).getTimezoneOffset()
 
-      account.setLastLoginTimezoneOffset lastLoginTimezoneOffset: tzOffset, (err) ->
+      account.setLastLoginTimezoneOffset { lastLoginTimezoneOffset: tzOffset }, (err) ->
 
         kd.warn err  if err
 
-      @ready @emit.bind this, "AccountChanged", account, firstLoad
+      @ready @emit.bind this, 'AccountChanged', account, firstLoad
 
       @emit 'ready'
 
@@ -196,8 +196,8 @@ module.exports = class MainController extends KDController
       # -> "pageLoaded.as.loggedOut"
       # -> "accountChanged.to.loggedIn"
       # -> "accountChanged.to.loggedOut"
-      eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
-      eventSuffix = if isLoggedIn() then "loggedIn" else "loggedOut"
+      eventPrefix = if firstLoad then 'pageLoaded.as' else 'accountChanged.to'
+      eventSuffix = if isLoggedIn() then 'loggedIn' else 'loggedOut'
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
 
@@ -228,15 +228,15 @@ module.exports = class MainController extends KDController
       wc.clearUnloadListeners()
 
       kd.utils.wait 1000, =>
-        @swapAccount replacementAccount: null
+        @swapAccount { replacementAccount: null }
         storage.setValue 'loggingOut', '1'
         global.location.href = '/'
 
 
-  attachListeners:->
+  attachListeners: ->
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
-    cookieChangeHandler = do (cookie = kookies.get 'clientId') => =>
+    cookieChangeHandler = do (cookie = kookies.get 'clientId') -> ->
       cookieExists      = cookie?
       cookieMatches     = cookie is (kookies.get 'clientId')
 
@@ -259,7 +259,7 @@ module.exports = class MainController extends KDController
 
     if replacementToken and replacementToken isnt kookies.get 'clientId'
       kookies.set 'clientId', replacementToken, { maxAge, secure }
-      global.location.href= '/'
+      global.location.href = '/'
 
     if account
       @accountChanged account
@@ -267,7 +267,7 @@ module.exports = class MainController extends KDController
         @once 'AccountChanged', (account) -> callback null, options
 
 
-  handleOauthAuth : (formData, callback)->
+  handleOauthAuth : (formData, callback) ->
     { JUser } = remote.api
 
     @isLoggingIn on
@@ -294,14 +294,14 @@ module.exports = class MainController extends KDController
       @_isLoggingIn ? no
 
 
-  setFailTimer: do->
+  setFailTimer: do ->
     notification = null
     fail  = ->
 
       notification = new KDNotificationView
         title         : "Couldn't connect to backend!"
         cssClass      : 'disconnected'
-        type          : "tray"
+        type          : 'tray'
         closeManually : no
         content       : """We don't know why, but your browser couldn't reach our server.
                            <br>Still trying but if you want you can click here to refresh the page."""
@@ -311,16 +311,16 @@ module.exports = class MainController extends KDController
     useChrome = ->
 
       notification = new KDNotificationView
-        title         : "Please use Google Chrome"
-        type          : "tray"
+        title         : 'Please use Google Chrome'
+        type          : 'tray'
         closeManually : no
-        content       : """Since Safari 8.0.5 update we are having difficulties connecting to our backend.
-                           <br>Please use another browser until we fix the ongoing issue."""
+        content       : '''Since Safari 8.0.5 update we are having difficulties connecting to our backend.
+                           <br>Please use another browser until we fix the ongoing issue.'''
         duration      : 0
 
     checkConnectionState = ->
       unless connectedState.connected
-        logToExternalWithTime "Connect to backend"
+        logToExternalWithTime 'Connect to backend'
 
         if bowser.safari
         then useChrome()
@@ -328,7 +328,7 @@ module.exports = class MainController extends KDController
 
     return ->
       kd.utils.wait @getOptions().failWait, checkConnectionState
-      @on "AccountChanged", -> notification.destroy()  if notification
+      @on 'AccountChanged', -> notification.destroy()  if notification
 
 
   detectIdleUser: (threshold = globals.config.userIdleMs) ->

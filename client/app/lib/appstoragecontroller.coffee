@@ -20,7 +20,8 @@ class AppStorageController extends kd.Controller
         name    : name
         version : version or AppStorage.DEFAULT_VERSION
 
-    throw 'storage name must be provided'  unless 'string' is typeof opts.name
+    throwString = 'storage name must be provided'
+    throw throwString  unless 'string' is typeof opts.name
 
     key = "#{opts.name}-#{opts.version}"
 

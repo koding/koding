@@ -120,7 +120,7 @@ unmarkUserAsTroll = (account) ->
 
   dispatch UNMARK_USER_AS_TROLL_BEGIN, account
 
-  account.markUserAsExempt no, (err, res) =>
+  account.markUserAsExempt no, (err, res) ->
     if err
       dispatch UNMARK_USER_AS_TROLL_FAIL, { err, account }
       showMarkUserAsTrollFail err, account
