@@ -89,9 +89,7 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
 
     @form.buttons.remove.show()
     @swappable.swapViews()
-    @getDelegate().emit 'ItemAction',
-      action  : 'EditItem'
-      item    : this
+    @getDelegate().sendItemAction 'EditItem', { item : this }
 
 
   cancelItem: (skipEvent) ->
@@ -99,9 +97,7 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
     { key } = @getData()
     if key
       unless skipEvent
-        @getDelegate().emit 'ItemAction',
-          action  : 'CancelItem'
-          item    : this
+        @getDelegate().sendItemAction 'CancelItem', { item : this }
       @swappable.swapViews()
     else
       @deleteItem()
@@ -109,9 +105,7 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
 
   deleteItem: ->
 
-    @getDelegate().emit 'ItemAction',
-      action        : 'RemoveItem'
-      item          : this
+    @getDelegate().sendItemAction 'RemoveItem', { item : this }
 
 
   saveItem: ->
@@ -127,7 +121,7 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
       @info.$('span.title').text title
       @info.$('span.key').text "#{key.substr(0, 45)} . . . #{key.substr(-25)}"
       @swappable.swapViews()
-      @getDelegate().emit 'ItemAction', action : 'UpdatedItems'
+      @getDelegate().sendItemAction 'UpdatedItems'
     else unless key
       new KDNotificationView
         title : "Key shouldn't be empty."
