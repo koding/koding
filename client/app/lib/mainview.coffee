@@ -16,6 +16,7 @@ getGroup                = require 'app/util/getGroup'
 isSoloProductLite       = require 'app/util/issoloproductlite'
 TeamName                = require './activity/sidebar/teamname'
 BannerNotificationView  = require 'app/commonviews/bannernotificationview'
+doXhrRequest            = require 'app/util/doXhrRequest'
 
 module.exports = class MainView extends kd.View
 
@@ -39,6 +40,8 @@ module.exports = class MainView extends kd.View
     @createHeader()
     @createPanelWrapper()
     @showRegistrationsClosedWarning()  if isSoloProductLite() and isKoding()
+    @checkVersion()
+    kd.utils.repeat (5 * 60 * 1000), @bound 'checkVersion'
     @createMainTabView()
 
     kd.singletons.mainController.ready =>
@@ -247,6 +250,28 @@ module.exports = class MainView extends kd.View
 
     @accountArea.destroySubViews()
     @accountArea.addSubView @avatarArea  = new AvatarArea {}, whoami()
+
+
+  checkVersion: ->
+
+    return  if @updateBanner
+
+    currentVersion = globals.config.version
+
+    endPoint = '/-/version'
+    type = 'GET'
+
+    doXhrRequest { endPoint, type }, (err, res) =>
+
+      return  if err
+      return  if res.version is currentVersion
+
+      kd.utils.wait 2000, =>
+        @updateBanner = new BannerNotificationView
+          content  : 'Koding has been updated, please reload the page to get the latest features and bug fixes.'
+          cssClass : 'success'
+
+        @updateBanner.once 'KDObjectWillBeDestroyed', => @updateBanner = null
 
 
   showRegistrationsClosedWarning: ->
