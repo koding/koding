@@ -683,7 +683,7 @@ module.exports = class ComputeController extends KDController
     unless state is 'NotInitialized'
       if state is 'Building'
         @eventListener.addListener 'apply', stack._id
-        Tracker.track Tracker.STACKS_SETUP
+        Tracker.track Tracker.STACKS_BUILD
       else
         kd.warn 'Stack already initialized, skipping.', stack
       return

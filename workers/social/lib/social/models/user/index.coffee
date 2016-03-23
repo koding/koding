@@ -1001,7 +1001,7 @@ module.exports = class JUser extends jraphical.Module
 
           properties =
             groupName    : slug
-            link         : groupLink + "Invitation/#{encodeURIComponent invitation.code}"
+            link         : groupLink + "Invitation/#{encodeURIComponent invitation?.code}"
 
           Tracker.identifyAndTrack email, { subject : Tracker.types.TEAMS_ACCEPTED_INVITATION }, properties
 
