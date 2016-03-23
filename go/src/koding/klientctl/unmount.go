@@ -9,6 +9,7 @@ import (
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
+	"koding/klientctl/metrics"
 	"koding/klientctl/util"
 
 	"github.com/koding/kite/dnode"
@@ -213,8 +214,14 @@ func (c *UnmountCommand) Unmount(name, path string) error {
 	}
 
 	// currently there's no return response to care about
-	_, err := c.Klient.Tell("remote.unmountFolder", req)
-	return err
+	if _, err := c.Klient.Tell("remote.unmountFolder", req); err != nil {
+		return err
+	}
+
+	// track metrics
+	metrics.TrackUnmount(name)
+
+	return nil
 }
 
 func unmount(kite *kite.Client, name, path string, log logging.Logger) error {

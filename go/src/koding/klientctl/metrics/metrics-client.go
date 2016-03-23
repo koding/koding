@@ -70,40 +70,6 @@ func (m *MetricClient) StartMountStatusTicker() error {
 	return nil
 }
 
-func (m *MetricClient) TrackRun(mn string) error {
-	mc := &Metric{
-		Name: EventRun,
-		Properties: map[string]interface{}{
-			"machine": mn,
-		},
-	}
-
-	return m.SendMetric(mc)
-}
-
-func (m *MetricClient) TrackRepair(mn string) error {
-	mc := &Metric{
-		Name: EventRepair,
-		Properties: map[string]interface{}{
-			"machine": mn,
-		},
-	}
-
-	return m.SendMetric(mc)
-}
-
-func (m *MetricClient) TrackRepairError(mn, errStr string) error {
-	mc := &Metric{
-		Name: EventRepairFailed,
-		Properties: map[string]interface{}{
-			"machine": mn,
-			"error":   errStr,
-		},
-	}
-
-	return m.SendMetric(mc)
-}
-
 func (m *MetricClient) randomId() string {
 	bites := make([]byte, 10)
 	if _, err := rand.Read(bites); err != nil {

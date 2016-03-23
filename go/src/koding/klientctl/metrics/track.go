@@ -57,6 +57,29 @@ func TrackRun(machine string) error {
 	return sendMetric(mc)
 }
 
+func TrackRepair(machine string) error {
+	mc := &Metric{
+		Name: EventRepair,
+		Properties: map[string]interface{}{
+			"machine": machine,
+		},
+	}
+
+	return sendMetric(mc)
+}
+
+func TrackRepairError(machine, errStr string) error {
+	mc := &Metric{
+		Name: EventRepairFailed,
+		Properties: map[string]interface{}{
+			"machine": machine,
+			"error":   errStr,
+		},
+	}
+
+	return sendMetric(mc)
+}
+
 func sendMetric(mc *Metric) error {
 	return NewDefaultClient().SendMetric(mc)
 }

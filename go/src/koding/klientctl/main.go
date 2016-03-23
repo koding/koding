@@ -204,6 +204,12 @@ func main() {
 			Usage:  "Repair the given mount",
 			Action: ctlcli.FactoryAction(RepairCommandFactory, log, "repair"),
 		},
+		cli.Command{
+			Name:     "metrics",
+			Usage:    fmt.Sprintf("Internal use only."),
+			HideHelp: true,
+			Action:   ctlcli.ExitAction(MetricsCommand, log, "metrics"),
+		},
 	}
 
 	app.Run(os.Args)
