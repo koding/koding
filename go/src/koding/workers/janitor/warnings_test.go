@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"testing"
 	"time"
@@ -133,6 +134,62 @@ func TestWarningsFull(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(user.Inactive.Warning, ShouldEqual, warning.ID)
 			})
+		})
+
+		Reset(func() {
+			deleteUserWithUsername(user)
+		})
+	})
+}
+
+func TestWarningsDeleteUser(t *testing.T) {
+
+	warning := DeleteInactiveUsers
+	warning.Throttled = false
+	warning.ExemptCheckers = []*ExemptChecker{}
+
+	Convey("Given user who is inactive for more than 45 days", t, func() {
+		// if user's machines are deleted and 45 days has passed since last
+		// login, delete user.
+		mtime := time.Now().Add(-time.Hour * 24)
+		user, err := createInactiveUserWithWarningAndModificationTime(46, DeleteInactiveUserVM.ID, mtime)
+		So(err, ShouldBeNil)
+		resetFakeEmails()
+
+		var deletedUser *models.User
+		warning.Action = func(user *models.User, _ string) error {
+			deletedUser = user
+			return nil
+		}
+
+		warning.Run()
+
+		Convey("should deleted users be set", func() {
+			So(deletedUser, ShouldNotBeNil)
+			So(deletedUser.Email, ShouldEqual, user.Email)
+		})
+
+		Reset(func() {
+			deleteUserWithUsername(user)
+		})
+	})
+
+	Convey("Given user who is inactive for LTE 45 days", t, func() {
+		// if user's machines are deleted and 45 days has passed, delete user.
+		mtime := time.Now().Add(-time.Hour * 24)
+		user, err := createInactiveUserWithWarningAndModificationTime(45, DeleteInactiveUserVM.ID, mtime)
+		So(err, ShouldBeNil)
+		resetFakeEmails()
+
+		var deletedUser *models.User
+		warning.Action = func(user *models.User, _ string) error {
+			deletedUser = user
+			return nil
+		}
+		warning.Run()
+
+		Convey("deletedUser should be empty", func() {
+			So(deletedUser, ShouldBeNil)
 		})
 
 		Reset(func() {
