@@ -56,7 +56,7 @@ module.exports = class OnboardingController extends KDController
     account           = whoami()
     @registrationDate = new Date(account.meta.createdAt)
     @appStorage       = kd.getSingleton('appStorageController').storage STORAGE_NAME, STORAGE_VERSION
-    query             = partialType : 'ONBOARDING'
+    query             = { partialType : 'ONBOARDING' }
 
     if @isPreviewMode()
     then query.isPreview = yes

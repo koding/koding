@@ -15,7 +15,7 @@ describe 'StacksStore', ->
 
   beforeEach ->
     @reactor = new Reactor
-    @reactor.registerStores stacks : StacksStore
+    @reactor.registerStores { stacks : StacksStore }
 
 
   describe '#getInitialState', ->

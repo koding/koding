@@ -54,10 +54,10 @@ module.exports = class MachineSettingsAdvancedView extends KDView
         when 'terminate'
           Tracker.track Tracker.VM_TERMINATED
           computeController.destroy @machine
-        when 'reassign'  then new FindManagedNodesModal reassign: yes, @machine
+        when 'reassign'  then new FindManagedNodesModal { reassign: yes }, @machine
         when 'reinit'
           if @machine.provider is 'aws'
-            return new kd.NotificationView title: 'Coming soon', duration: 4500
+            return new kd.NotificationView { title: 'Coming soon', duration: 4500 }
 
           computeController.reinit  @machine
 

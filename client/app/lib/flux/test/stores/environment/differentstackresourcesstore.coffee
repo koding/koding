@@ -9,7 +9,7 @@ describe 'DifferentStackResourcesStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores differentStackResources : DifferentStackResourcesStore
+    @reactor.registerStores { differentStackResources : DifferentStackResourcesStore }
 
 
   describe '#getInitialState', ->

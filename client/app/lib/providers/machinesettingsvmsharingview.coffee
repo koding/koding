@@ -24,7 +24,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     options.listViewOptions      =
       useCustomScrollView        : yes
     options.loaderOnHeaderButton = yes
-    options.listViewItemOptions  = { justFirstName: no, size: width: 32, height: 32 }
+    options.listViewItemOptions  = { justFirstName: no, size: { width: 32, height: 32 } }
     options.noItemFoundWidget    = new KDCustomHTMLView
       cssClass : 'no-item'
       partial  : 'This VM has not yet been shared with anyone.'
@@ -44,7 +44,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
 
     return no  if @getData().status.state isnt Machine.State.Running
 
-    @machine.jMachine.reviveUsers permanentOnly: yes, (err, users = []) =>
+    @machine.jMachine.reviveUsers { permanentOnly: yes }, (err, users = []) =>
 
       kd.warn err  if err
 
@@ -108,7 +108,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
       itemDataPath        : 'profile.nickname'
       listWrapperCssClass : 'private-message vm-sharing hidden'
       itemClass           : ActivityAutoCompleteUserItemView
-      outputWrapper       : new KDView cssClass: 'hidden'
+      outputWrapper       : new KDView { cssClass: 'hidden' }
       submitValuesAsText  : yes
       dataSource          : @bound 'fetchAccounts'
 
@@ -127,14 +127,14 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
       @autoComplete.selectedItemData    = []
 
 
-  fetchAccounts: ({inputValue}, callback) ->
+  fetchAccounts: ({ inputValue }, callback) ->
 
     kd.singletons.search.searchAccounts inputValue
       .filter (it) => it.profile.nickname not in @_users
       .then callback
       .timeout 1e4
       .catch (err) ->
-        console.warn "Error while autoComplete: ", err
+        console.warn 'Error while autoComplete: ', err
         callback []
 
 

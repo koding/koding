@@ -48,10 +48,10 @@ module.exports = class CreditCardModal extends PaymentBaseModal
 
     @addSubView @securityNote = new KDCustomHTMLView
       cssClass  : 'security-note'
-      partial   : "
+      partial   : '
         <span>Secure credit card payments</span>
         Koding.com uses 128 Bit SSL Encrypted Transactions
-      "
+      '
 
 
   initEvents: ->

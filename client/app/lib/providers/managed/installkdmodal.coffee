@@ -44,7 +44,7 @@ module.exports = class InstallKdModal extends kd.ModalView
       cssClass : 'code'
 
     @code.addSubView @loader = new kd.LoaderView
-      size: width : 16
+      size: { width : 16 }
       showLoader  : yes
 
 
@@ -86,7 +86,7 @@ module.exports = class InstallKdModal extends kd.ModalView
     if navigator.userAgent.indexOf('Mac OS X') > -1
       shortcut = 'Cmd+C'
 
-    @input.setTooltip title: "Press #{shortcut} to copy", placement: 'above'
+    @input.setTooltip { title: "Press #{shortcut} to copy", placement: 'above' }
     @input.tooltip.show()
 
     kd.singletons.windowController.addLayer @input

@@ -12,7 +12,7 @@ describe 'AddWorkspaceViewStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores addWorkspaceView : AddWorkspaceViewStore
+    @reactor.registerStores { addWorkspaceView : AddWorkspaceViewStore }
 
 
   describe '#getInitialState', ->
