@@ -8,11 +8,15 @@ import (
 )
 
 var (
-	IsUserPaid           = NewChecker("IsUserPaid", IsUserPaidFn)
-	IsUserVMsEmpty       = NewChecker("IsUserVMsEmpty", IsUserVMsEmptyFn)
-	IsTooSoon            = NewChecker("IsTooSoon", IsTooSoonFn)
-	IsUserNotConfirmed   = NewChecker("IsUserNotConfirmed", IsUserNotConfirmedFn)
-	IsUserKodingEmployee = NewChecker("IsKodingEmployee", IsUserKodingEmployeeFn)
+	IsUserPaid             = NewChecker("IsUserPaid", IsUserPaidFn)
+	IsUserVMsEmpty         = NewChecker("IsUserVMsEmpty", IsUserVMsEmptyFn)
+	IsTooSoon              = NewChecker("IsTooSoon", IsTooSoonFn)
+	IsUserNotConfirmed     = NewChecker("IsUserNotConfirmed", IsUserNotConfirmedFn)
+	IsUserKodingEmployee   = NewChecker("IsKodingEmployee", IsUserKodingEmployeeFn)
+	HasMultipleMemberships = NewChecker("HasMultipleMemberships", HasMultipleMembershipsFn)
+
+	// could be overriden in test suites
+	kodingGroupName = "koding"
 )
 
 type ExemptChecker struct {
@@ -79,4 +83,27 @@ func IsTooSoonFn(user *models.User, w *Warning) (bool, error) {
 // IsUserKodingEmployee checks if user is a Koding employee based on email.
 func IsUserKodingEmployeeFn(user *models.User, w *Warning) (bool, error) {
 	return strings.HasSuffix(user.Email, "@koding.com"), nil
+}
+
+// HasMultipleMemberships checks if user is only Koding group member.
+func HasMultipleMembershipsFn(user *models.User, w *Warning) (bool, error) {
+	groups, err := modelhelper.FetchAccountGroups(user.Name)
+	if err != nil {
+		return false, err
+	}
+
+	switch len(groups) {
+	case 0: // where user is in limbo! delete it
+		return false, nil
+	case 1: // if belongs only to one group, that should be koding
+		if groups[0] != kodingGroupName {
+			return true, nil
+		}
+
+		return false, nil
+	default:
+		return true, nil
+	}
+
+	return len(groups) > 1, nil
 }
