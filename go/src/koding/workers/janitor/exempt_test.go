@@ -214,7 +214,7 @@ func TestIsTooSoon(t *testing.T) {
 func TestIsUserKodingEmployee(t *testing.T) {
 	warning := &Warning{}
 
-	Convey("Given user who has koding email", t, func() {
+	Convey("Given user who has not koding email", t, func() {
 		username := bson.NewObjectId().Hex()
 		user := &models.User{
 			Name: username, ObjectId: bson.NewObjectId(), Status: "confirmed",
@@ -254,5 +254,129 @@ func TestIsUserKodingEmployee(t *testing.T) {
 		Reset(func() {
 			deleteUserWithUsername(user)
 		})
+	})
+}
+
+func TestHasMultipleMembershipsFn(t *testing.T) {
+	warning := &Warning{}
+
+	Convey("Given a user", t, func() {
+		acc, err := createAccount()
+		So(err, ShouldBeNil)
+		So(acc, ShouldNotBeNil)
+
+		user, err := createUser(acc.Profile.Nickname)
+		So(err, ShouldBeNil)
+		So(user, ShouldNotBeNil)
+
+		group, err := createGroup()
+		So(err, ShouldBeNil)
+		So(group, ShouldNotBeNil)
+
+		group2, err := createGroup()
+		So(err, ShouldBeNil)
+		So(group, ShouldNotBeNil)
+
+		Convey("Who is only one group member", func() {
+			if err := addRelationship(acc.Id, group.Id, "admin"); err != nil {
+				t.Error(err)
+			}
+
+			if err := addRelationship(acc.Id, group.Id, "member"); err != nil {
+				t.Error(err)
+			}
+
+			Convey("Then it returns true when group is not koding", func() {
+				has, err := HasMultipleMembershipsFn(user, warning)
+				So(err, ShouldBeNil)
+				So(has, ShouldBeTrue)
+			})
+
+			Convey("Then it returns false when group is koding", func() {
+				groupName := kodingGroupName
+				defer func() { kodingGroupName = groupName }() //be a good citizen
+				kodingGroupName = group.Slug
+
+				has, err := HasMultipleMembershipsFn(user, warning)
+				So(err, ShouldBeNil)
+				So(has, ShouldBeFalse)
+			})
+			Convey("Who is member of multiple group", func() {
+				if err := addRelationship(acc.Id, group2.Id, "admin"); err != nil {
+					t.Error(err)
+				}
+
+				Convey("Then it returns true for check", func() {
+					groupName := kodingGroupName
+					defer func() { kodingGroupName = groupName }() //be a good citizen
+					kodingGroupName = group.Slug
+
+					has, err := HasMultipleMembershipsFn(user, warning)
+					So(err, ShouldBeNil)
+					So(has, ShouldBeTrue)
+				})
+
+				Reset(func() {
+					deleteUserWithUsername(user)
+				})
+			})
+		})
+	})
+
+}
+
+func createGroup() (*models.Group, error) {
+	g := &models.Group{
+		Id:                             bson.NewObjectId(),
+		Body:                           bson.NewObjectId().Hex(),
+		Title:                          bson.NewObjectId().Hex(),
+		Slug:                           bson.NewObjectId().Hex(),
+		Privacy:                        "private",
+		Visibility:                     "hidden",
+		SocialApiChannelId:             "0",
+		SocialApiAnnouncementChannelId: "0",
+		// DefaultChannels holds the default channels for a group, when a user joins
+		// to this group, participants will be automatically added to regarding
+		// channels
+		DefaultChannels: []string{"0"},
+	}
+
+	return g, modelhelper.CreateGroup(g)
+}
+
+func createUser(username string) (*models.User, error) {
+	id := bson.NewObjectId()
+	user := &models.User{
+		ObjectId: id,
+		Name:     username,
+		Status:   "confirmed",
+		Email:    username + "@" + username + ".com",
+	}
+
+	return user, modelhelper.CreateUser(user)
+}
+
+func createAccount() (*models.Account, error) {
+	acc := &models.Account{
+		Id: bson.NewObjectId(),
+		Profile: models.AccountProfile{
+			Nickname:  bson.NewObjectId().Hex(), // random username
+			FirstName: bson.NewObjectId().Hex(),
+			LastName:  bson.NewObjectId().Hex(),
+		},
+		Type: "registered",
+	}
+
+	return acc, modelhelper.CreateAccount(acc)
+}
+
+func addRelationship(accId, groupId bson.ObjectId, rel string) error {
+	return modelhelper.AddRelationship(&models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   accId,
+		TargetName: "JAccount",
+		SourceId:   groupId,
+		SourceName: "JGroup",
+		As:         "admin",
 	})
 }
