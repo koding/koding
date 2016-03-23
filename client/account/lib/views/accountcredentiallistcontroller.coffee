@@ -74,7 +74,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
             listView.showCredentialEditModal { provider, credential, data }
 
 
-    @on 'FetchProcessSucceeded', (params) ->
+    @once 'FetchProcessSucceeded', (params) ->
       { items } = params
       if provider and items?.length is 0
         @showAddCredentialFormFor provider
