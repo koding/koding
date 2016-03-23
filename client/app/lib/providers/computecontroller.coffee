@@ -683,7 +683,6 @@ module.exports = class ComputeController extends KDController
     unless state is 'NotInitialized'
       if state is 'Building'
         @eventListener.addListener 'apply', stack._id
-        Tracker.track Tracker.STACKS_BUILD
       else
         kd.warn 'Stack already initialized, skipping.', stack
       return
@@ -699,6 +698,8 @@ module.exports = class ComputeController extends KDController
 
     stackId = stack._id
     call    = @getKloud().buildStack { stackId }
+
+    Tracker.track Tracker.STACKS_BUILD
 
     .then (res) =>
 
