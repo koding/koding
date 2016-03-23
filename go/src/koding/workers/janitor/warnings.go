@@ -71,6 +71,29 @@ var DeleteInactiveUserVM = &Warning{
 	Throttled: true,
 }
 
+var DeleteInactiveUsers = &Warning{
+	ID: "deleteInactiveUsers",
+
+	Description: "Find users inactive for > 45 days, deleted ALL their vms",
+
+	PreviousWarning: DeleteInactiveUserVM,
+
+	IntervalSinceLastWarning: time.Hour * 24 * 15, // 15 days since last warning
+
+	Select: []bson.M{
+		bson.M{"lastLoginDate": dayRangeQuery(45, DefaultRangeForQuery)},
+		bson.M{"inactive.warning": DeleteInactiveUserVM.ID},
+	},
+
+	ExemptCheckers: []*ExemptChecker{
+		IsTooSoon, IsUserPaid, HasMultipleMemberships, IsUserKodingEmployee,
+	},
+
+	Action: DeleteUser,
+
+	Throttled: true,
+}
+
 var DeleteBlockedUserVM = &Warning{
 	ID: "deleteBlockedUserVm",
 
