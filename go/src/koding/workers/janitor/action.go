@@ -79,3 +79,8 @@ func DeleteVMs(user *models.User, _ string) error {
 
 	return topErr
 }
+
+// DeleteUser deletes the user from koding
+func DeleteUser(user *models.User, _ string) error {
+	return nil
+}
