@@ -3,6 +3,7 @@ package main
 import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"testing"
 	"time"
 
@@ -143,8 +144,10 @@ func TestWarningsFull(t *testing.T) {
 }
 
 func TestWarningsDeleteUser(t *testing.T) {
+	j.initializeRunner()
+	conf := config.MustRead(j.runner.Conf.Path)
 
-	warning := DeleteInactiveUsers
+	warning := newDeleteInactiveUsersWarning(conf)
 	warning.Throttled = false
 	warning.ExemptCheckers = []*ExemptChecker{}
 
