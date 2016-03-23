@@ -70,12 +70,20 @@ func (s *Server) Start() error {
 			return
 		}
 
-		path := req.FormValue("path")
-		fmt.Fprintf(w, path)
+		mount := req.FormValue("mount")
+		if mount == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("`mount`is empty"))
+			return
+		}
 
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("true"))
+
+		// start in goroutine so http request exists
 		go func() {
 			m := NewDefaultClient()
-			m.StartMountStatusTicker()
+			m.StartMountStatusTicker(mount)
 		}()
 	})
 
