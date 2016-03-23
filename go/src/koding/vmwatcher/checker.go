@@ -57,6 +57,8 @@ func checkerHTTP(w http.ResponseWriter, r *http.Request) {
 // iterate through each metric, check if user is over limit for that
 // metric, return true if yes, go onto next metric if not
 func checker(username string) *LimitResponse {
+	var AllowedUsage float64
+	var CurrentUsage float64
 	for _, metric := range metricsToSave {
 		response, err := metric.IsUserOverLimit(username, StopLimitKey)
 		if err != nil {
@@ -67,9 +69,17 @@ func checker(username string) *LimitResponse {
 		if !response.CanStart {
 			return response
 		}
+
+		if metric.GetName() == NetworkOut {
+			AllowedUsage = NetworkOutLimit
+			CurrentUsage, err = storage.GetScore(metric.GetName(), username)
+			if err != nil {
+				return response
+			}
+		}
 	}
 
-	return &LimitResponse{CanStart: true}
+	return &LimitResponse{CanStart: true, AllowedUsage: AllowedUsage, CurrentUsage: CurrentUsage}
 }
 
 func writeError(w http.ResponseWriter, accountId, err string) {
