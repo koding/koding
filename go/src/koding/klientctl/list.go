@@ -94,6 +94,8 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 			status = "connected"
 		case machine.MachineError:
 			status = "error"
+		case machine.MachineRemounting:
+			status = "remounting"
 		}
 
 		// Currently we are displaying the status message over the formattedMount,
