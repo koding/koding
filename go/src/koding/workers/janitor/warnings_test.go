@@ -167,7 +167,7 @@ func TestWarningsDeleteUser(t *testing.T) {
 
 		warning.Run()
 
-		Convey("should deleted users be set", func() {
+		Convey("deletedUser should be set", func() {
 			So(deletedUser, ShouldNotBeNil)
 			So(deletedUser.Email, ShouldEqual, user.Email)
 		})
