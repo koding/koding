@@ -9,7 +9,7 @@ module.exports = class ModalAppsListItemView extends KDListItemView
 
   JView.mixin @prototype
 
-  constructor: (options,data) ->
+  constructor: (options, data) ->
     options.cssClass = 'topic-item'
 
     super options, data

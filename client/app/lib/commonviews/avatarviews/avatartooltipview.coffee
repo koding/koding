@@ -6,7 +6,7 @@ MemberMailLink = require '../../members/contentdisplays/membermaillink'
 
 
 module.exports = class AvatarTooltipView extends JView
-  constructor: (options={}, data) ->
+  constructor: (options = {}, data) ->
 
     super options, data
 
@@ -53,7 +53,7 @@ module.exports = class AvatarTooltipView extends JView
     # @getDelegate()?.getTooltip().hide()
 
 
-  updateData: (data={}) ->
+  updateData: (data = {}) ->
 
     # lazy loading data is spoonfed to the individual views
     @setData data

@@ -34,7 +34,7 @@ namelessAccount = (nickname) ->
 
 getGravatarUri = (account, size) ->
 
-  {hash} = account.profile
+  { hash } = account.profile
 
   # make sure we are fetching an image with a non-decimal size.
   size = Math.round size
@@ -43,7 +43,7 @@ getGravatarUri = (account, size) ->
     https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png
   """
 
-  {protocol} = global.location
+  { protocol } = global.location
 
   return "#{protocol}//gravatar.com/avatar/#{hash}?size=#{size}&d=#{defaultUri}&r=g"
 

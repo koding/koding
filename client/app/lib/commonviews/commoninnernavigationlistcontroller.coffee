@@ -6,7 +6,7 @@ CommonInnerNavigationList = require './commoninnernavigationlist'
 
 module.exports = class CommonInnerNavigationListController extends NavigationController
 
-  constructor: (options={}, data) ->
+  constructor: (options = {}, data) ->
 
     options.viewOptions or=
       itemClass           : options.itemClass or CommonInnerNavigationListItem
