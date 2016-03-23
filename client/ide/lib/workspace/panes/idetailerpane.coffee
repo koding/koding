@@ -18,6 +18,7 @@ module.exports = class IDETailerPane extends IDEPane
 
     @hash = @file.paneHash  if @file.paneHash
     @ideViewHash = options.ideViewHash
+    @lineParser = new IDETailerPaneLineParser @file
 
     @createEditor()
 
@@ -26,7 +27,7 @@ module.exports = class IDETailerPane extends IDEPane
 
     @scrollToBottom()
     @getEditor().insert "\n#{newLine}"
-    IDETailerPaneLineParser.process newLine
+    @lineParser.process newLine
 
 
   createEditor: ->

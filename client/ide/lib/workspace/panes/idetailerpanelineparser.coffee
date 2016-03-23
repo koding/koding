@@ -1,30 +1,36 @@
 kd                 = require 'kd'
+KDObject           = kd.Object
 KDNotificationView = kd.NotificationView
 
-showDoneNotification = -> showNotification 'Provisioning Completed'
+module.exports = class IDETailerPaneLineParser extends KDObject
 
+  constructor: (file) ->
 
-showNotification = (message, duration = 2000) ->
+    @file = file
+    @config = [
+      { template : '_KD_DONE_', method : @bound 'showDoneNotification' }
+      { template : /^_KD_NOTIFY_@(.+)@$/, method : @bound 'showNotification' }
+    ]
 
-  new KDNotificationView
-    title    : message
-    duration : duration
-
-
-config = [
-  { template : '_KD_DONE_', fn : showDoneNotification }
-  { template : /^_KD_NOTIFY_@(.+)@$/, fn : showNotification }
-]
-
-
-module.exports = IDETailerPaneLineParser =
-
-  process: (line) ->
+  process: (line, file) ->
 
     line = line.trim()
-    for { template, fn } in config
+    for { template, method } in @config
       if template instanceof RegExp
         match = line.match template
-        return fn.apply null, match.slice 1  if match
+        return method.apply null, match.slice(1)  if match
       else if line is template
-        return fn()
+        return method()
+
+
+  showDoneNotification: ->
+
+    @showNotification 'Provisioning Completed'
+    kd.singletons.computeController.emit 'StackBuildDone', @file.machine._id
+
+
+  showNotification: (message, duration = 2000) ->
+
+    new KDNotificationView
+      title    : message
+      duration : duration

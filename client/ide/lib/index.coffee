@@ -86,13 +86,15 @@ class IDEAppController extends AppController
     @layout    = ndpane 16
     @layoutMap = new Array 16 * 16
 
-    { windowController, appManager } = kd.singletons
+    { windowController, appManager, computeController } = kd.singletons
     windowController.addFocusListener @bound 'handleWindowFocus'
 
     @layoutManager = new IDELayoutManager { delegate : this }
 
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
     @bindListeners()
+
+    computeController.on 'StackBuildDone', @bound 'handleStackBuildDone'
 
     appManager.on 'AppIsBeingShown', (app) =>
 
@@ -2008,6 +2010,13 @@ class IDEAppController extends AppController
 
       { buildDuration } = config
       if buildDuration
-        new StackProgressModal
+        @stackProgressModal = new StackProgressModal
           duration  : buildDuration
           container : @getView()
+        @stackProgressModal.on 'KDObjectWillBeDestroyed', => @stackProgressModal = null
+
+
+  handleStackBuildDone: (machineId) ->
+
+    if @mountedMachine?._id = machineId
+      @stackProgressModal?.completeProgress()
