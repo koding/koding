@@ -6,10 +6,9 @@ KDButtonView         = kd.ButtonView
 KDListItemView       = kd.ListItemView
 KDCustomHTMLView     = kd.CustomHTMLView
 KDHitEnterInputView  = kd.HitEnterInputView
-KDListViewController = kd.ListViewController
+KodingListController = require 'app/kodinglist/kodinglistcontroller'
 
 module.exports = class MachineSettingsCommonView extends KDView
-
 
   constructor: (options = {}, data) ->
 
@@ -27,7 +26,6 @@ module.exports = class MachineSettingsCommonView extends KDView
     @machine = @getData()
 
     @createElements()
-    @initList()
 
 
   createElements: ->
@@ -120,17 +118,13 @@ module.exports = class MachineSettingsCommonView extends KDView
     listViewOptions = @getOption('listViewOptions') or {}
 
     options = _.extend listViewOptions,
-      startWithLazyLoader   : yes
-      lazyLoaderOptions     :
-        spinnerOptions      :
-          size              : { width: 28 }
       viewOptions           :
         wrapper             : yes
-        itemClass           : listViewItemClass
         itemOptions         : itemOptions
+      itemClass             : listViewItemClass
       noItemFoundWidget     : noItemFoundWidget
 
-    @listController  = new KDListViewController options
+    @listController  = new KodingListController options
 
     @addSubView @listController.getView()
 
