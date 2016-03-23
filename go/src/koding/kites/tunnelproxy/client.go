@@ -87,6 +87,9 @@ type ClientOptions struct {
 	// LocalRoutes is sent with RegisterRequest.
 	LocalRoutes map[string]string
 
+	// StateChanges, when non-nil, listens on tunnel connection state transtions.
+	StateChanges chan<- *tunnel.ClientStateChange
+
 	Debug  bool           // whether to use debug logging
 	Log    logging.Logger // overwrites logger used with custom one
 	Config *config.Config // configures kite.Kite to connect to tunnelserver
@@ -301,6 +304,10 @@ func (c *Client) eventloop() {
 	for {
 		select {
 		case ch := <-c.stateChanges:
+			if c.opts.StateChanges != nil {
+				c.opts.StateChanges <- ch
+			}
+
 			c.opts.Log.Debug("handling transition: %s", ch)
 
 			switch ch.Current {

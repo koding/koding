@@ -17,6 +17,7 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
+	"github.com/koding/tunnel"
 )
 
 var (
@@ -30,17 +31,21 @@ var (
 // Tunnel
 type Tunnel struct {
 	db     *Storage
-	opts   *Options
 	client *tunnelproxy.Client
 
 	// Cached routes, in case host kite goes down.
-	mu    sync.Mutex // protects ports
+	mu    sync.Mutex // protects ports and opts
 	ports []*vagrant.ForwardedPort
+	opts  *Options
 
 	// Used to wait for first successful
 	// tunnel server registration.
 	register sync.WaitGroup
 	once     sync.Once
+
+	state        tunnel.ClientState
+	stateChanges chan *tunnel.ClientStateChange
+	isVagrant    bool
 }
 
 // Options
@@ -133,9 +138,12 @@ func New(opts *Options) *Tunnel {
 	optsCopy := *opts
 
 	t := &Tunnel{
-		db:   NewStorage(optsCopy.DB),
-		opts: &optsCopy,
+		db:           NewStorage(optsCopy.DB),
+		opts:         &optsCopy,
+		stateChanges: make(chan *tunnel.ClientStateChange),
 	}
+
+	go t.eventloop()
 
 	t.register.Add(1)
 
@@ -153,12 +161,35 @@ func (t *Tunnel) clientOptions() *tunnelproxy.ClientOptions {
 		Timeout:         t.opts.Timeout,
 		OnRegister:      t.updateOptions,
 		Debug:           t.opts.Debug,
+		StateChanges:    t.stateChanges,
+	}
+}
+
+func (t *Tunnel) eventloop() {
+	for ch := range t.stateChanges {
+		t.mu.Lock()
+		t.state = ch.Current
+		t.mu.Unlock()
 	}
 }
 
 func (t *Tunnel) updateOptions(reg *tunnelproxy.RegisterResult) {
+	t.mu.Lock()
 	t.opts.VirtualHost = reg.VirtualHost
 	t.opts.TunnelName = guessTunnelName(reg.VirtualHost)
+
+	// if we're a vagrant vm, update forwarded ports
+	if t.isVagrant {
+		ports, err := t.forwardedPorts()
+		if err == nil {
+			t.ports = ports
+		} else {
+			t.opts.Log.Error("failed to update forwarded port list: %s", err)
+
+			t.ports = nil
+		}
+	}
+	t.mu.Unlock()
 
 	if err := t.db.SetOptions(t.opts); err != nil {
 		t.opts.Log.Warning("tunnel: unable to update options: %s", err)

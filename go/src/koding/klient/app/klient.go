@@ -320,7 +320,6 @@ func (k *Klient) RegisterMethods() {
 
 	// Tunnel
 	k.kite.HandleFunc("tunnel.info", k.tunnel.Info)
-	k.kite.HandleFunc("tunnel.route", k.tunnel.Route)
 
 	// Docker
 	// k.kite.HandleFunc("docker.create", k.docker.Create)
