@@ -1,3 +1,4 @@
+_                                = require 'lodash'
 kd                               = require 'kd'
 nick                             = require 'app/util/nick'
 remote                           = require('app/remote').getInstance()
@@ -21,13 +22,15 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     options.addButtonTitle       = 'INVITE'
     options.headerAddButtonTitle = 'ADD SOMEONE'
     options.listViewItemClass    = UserItem
-    options.listViewOptions      =
-      useCustomScrollView        : yes
     options.loaderOnHeaderButton = yes
     options.listViewItemOptions  = { justFirstName: no, size: { width: 32, height: 32 } }
     options.noItemFoundWidget    = new KDCustomHTMLView
       cssClass : 'no-item'
       partial  : 'This VM has not yet been shared with anyone.'
+    options.listViewOptions      =
+      fetcherMethod              : (query, options, callback) =>
+        options = _.extend options, { permanentOnly: yes }
+        @machine.jMachine.reviveUsers options, (err, users = [])  -> callback err, users
 
     @machine = data
 
