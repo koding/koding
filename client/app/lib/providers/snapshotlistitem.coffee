@@ -1,9 +1,6 @@
-kd                        = require 'kd'
-remote                    = require('app/remote').getInstance()
-JView                     = require '../jview'
-nicetime                  = require '../util/nicetime'
-
-
+kd       = require 'kd'
+JView    = require '../jview'
+nicetime = require '../util/nicetime'
 
 module.exports = class SnapshotListItem extends kd.ListItemView
 
@@ -43,17 +40,26 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   ###
   initViews: ->
 
+    listView = @getDelegate()
+
     data = @getData()
+
     @editInput = new kd.HitEnterInputView
       type        : 'text'
       placeholder : 'Snapshot Name'
       cssClass    : 'label'
-      callback    : @bound 'renameSnapshot'
+      callback    : =>
+        listView.emit 'ItemAction',
+          action        : 'RenameSnapshot'
+          item          : this
 
     @editRenameBtn = new kd.ButtonView
       title    : 'rename'
       cssClass : 'solid green small rename'
-      callback : @bound 'renameSnapshot'
+      callback    : =>
+        listView.emit 'ItemAction',
+          action        : 'RenameSnapshot'
+          item          : this
 
     @editCancelBtn = new kd.View
       partial  : 'cancel'
@@ -76,16 +82,25 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     @infoDeleteBtn = new kd.ButtonView
       iconOnly : true
       cssClass : 'delete'
-      callback : @bound 'confirmDeleteSnapshot'
       tooltip  :
         title  : 'Delete Snapshot'
+      callback : =>
+        listView.emit 'ItemAction',
+          action        : 'DeleteSnapshot'
+          item          : this
+          options       :
+            title       : 'Delete snapshot?'
+            description : 'Do you want to remove ?'
 
     @infoNewVmBtn = new kd.ButtonView
       iconOnly : true
       cssClass : 'new-vm'
-      callback : @bound 'vmFromSnapshot'
       tooltip  :
         title  : 'Create VM from Snapshot'
+      callback : =>
+        listView.emit 'ItemAction',
+          action        : 'VMFromSnapshot'
+          item          : this
 
     @addSubView @editView = new JView
       cssClass        : 'edit hidden'
