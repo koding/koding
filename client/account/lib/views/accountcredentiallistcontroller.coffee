@@ -117,7 +117,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
     credential = item.getData()
 
     credential.delete (err) =>
-      @getListView().emit 'ItemDeleted', item  unless showError err
+      @getListView().emit 'ItemAction', { action : 'ItemRemoved', item }  unless showError err
       callback err
 
 
