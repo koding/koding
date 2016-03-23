@@ -536,13 +536,11 @@ func (s *Server) vhostRoutes(vhost string) map[string]string {
 }
 
 func (s *Server) localRoute(r *http.Request) string {
-	ips := map[string]struct{}{
-		parseIP(r.RemoteAddr):                    {},
-		parseIP(r.Header.Get("X-Real-IP")):       {},
-		parseIP(r.Header.Get("X-Forwarded-For")): {},
+	if isWebsocketConn(r) {
+		return ""
 	}
 
-	delete(ips, "")
+	ips := extractIPs(r)
 
 	if len(ips) == 0 {
 		return ""

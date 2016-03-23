@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
@@ -173,6 +175,39 @@ func splitHostPort(addr string) (string, int, error) {
 	}
 
 	return host, int(n), nil
+}
+
+func extractIPs(r *http.Request) map[string]struct{} {
+	ips := map[string]struct{}{
+		parseIP(r.RemoteAddr):              {},
+		parseIP(r.Header.Get("X-Real-IP")): {},
+	}
+
+	for _, ip := range r.Header["X-Forwarded-For"] {
+		ips[parseIP(ip)] = struct{}{}
+	}
+
+	delete(ips, "")
+
+	return ips
+}
+
+func isWebsocketConn(r *http.Request) bool {
+	return r.Method == "GET" && headerContains(r.Header["Connection"], "upgrade") &&
+		headerContains(r.Header["Upgrade"], "websocket")
+}
+
+// headerContains is a copy of tokenListContainsValue from gorilla/websocket/util.go
+func headerContains(header []string, value string) bool {
+	for _, h := range header {
+		for _, v := range strings.Split(h, ",") {
+			if strings.EqualFold(strings.TrimSpace(v), value) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 type callbacks struct {
