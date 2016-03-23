@@ -29,16 +29,30 @@ module.exports =
 
   fillUsernamePasswordForm: (browser, user) ->
 
-    browser
-      .waitForElementVisible  teamsModalSelector, 20000
-      .waitForElementVisible  'input[name=username]', 20000
-      .clearValue             'input[name=username]'
-      .setValue               'input[name=username]', user.username
-      .setValue               'input[name=password]', user.password
-      .click                  'button.TeamsModal-button--green'
-      .pause                  2000 # wait for modal change
+    doneButton         = "#{teamsModalSelector} button.TeamsModal-button--green"
+    usernameInput      = "#{teamsModalSelector} input[name=username]"
+    passwordInput      = "#{teamsModalSelector} input[name=password]"
+    alreadyMemberModal = "#{teamsModalSelector}.alreadyMember"
 
-    @loginAssertion(browser)
+    browser
+      .waitForElementVisible   teamsModalSelector, 20000
+      .element 'css selector', alreadyMemberModal, (result) =>
+        if result.status is 0
+          browser
+            .waitForElementVisible  passwordInput, 20000
+            .setValue               passwordInput, user.password
+        else
+          browser
+            .waitForElementVisible  usernameInput, 20000
+            .clearValue             usernameInput
+            .setValue               usernameInput, user.username
+            .setValue               passwordInput, user.password
+
+        browser
+          .click doneButton
+          .pause 2000 # wait for modal change
+
+        @loginAssertion(browser)
 
 
   loginAssertion: (browser) ->
@@ -72,7 +86,6 @@ module.exports =
     teamsLogin        = '.TeamsModal--login'
     stackCatalogModal = '.StackCatalogModal'
     closeButton       = "#{stackCatalogModal} .kdmodal-inner .closeModal"
-
 
     browser.url url
     browser.maximizeWindow()
@@ -327,7 +340,7 @@ module.exports =
       .assert.containsText       emailList, userEmail
 
 
-  createStack: (browser) ->
+  createStack: (browser, skipStackSetup = no) ->
 
     stackCreatePage       = '.Group-Stack-Templates .get-started'
     getStartedButton      = "#{stackCreatePage} .header button.green"
@@ -347,6 +360,9 @@ module.exports =
     githubSelector        = "#{server1PageSelector} .box-wrapper .github"
     bitbucketSelector     = "#{server1PageSelector} .box-wrapper .bitbucket"
     editorSelector        = "#{modalSelector} .editor-main"
+    skipSetupSelector     = '.footer .skip-setup'
+    stackTemplateSelector = '.kdtabhandlecontainer.hide-close-icons .stack-template'
+    saveAndTestButton     = '.buttons button:nth-of-type(5)'
 
     @startStackCreate(browser)
 
@@ -354,51 +370,66 @@ module.exports =
       .waitForElementVisible  stackCreatePage, 20000
       .waitForElementVisible  getStartedButton, 20000
       .click                  getStartedButton
-      .waitForElementVisible  providerSelector, 20000
-      .waitForElementVisible  awsSelector, 20000
-      .waitForElementVisible  "#{machineSelector} .vagrant" , 20000 # Assertion
-      .click                  awsSelector
-      .waitForElementVisible  stackPreview, 20000
-      .waitForElementVisible  codeSelector, 20000
-      .assert.containsText    codeSelector, 'koding_group_slug'
-      .waitForElementVisible  footerSelector, 20000
-      .waitForElementVisible  nextButtonSelector, 20000
-      .pause                  2000 # wait for animation
-      .click                  nextButtonSelector
-      .waitForElementVisible  configurationSelector, 20000
-      .pause                  2000 # wait for animation
-      .waitForElementVisible  mysqlSelector, 20000
-      .click                  mysqlSelector
-      .pause                  2000 # wait for animation
-      .waitForElementVisible  postgresqlSelector, 20000
-      .click                  postgresqlSelector
-      .waitForElementVisible  stackPreview, 20000
-      .assert.containsText    codeSelector, 'mysql-server postgresql'
-      .waitForElementVisible  nextButtonSelector, 20000
-      .pause                  2000 # wait for animation
-      .click                  nextButtonSelector
-      .waitForElementVisible  server1PageSelector, 20000
-      .waitForElementVisible  githubSelector, 20000 # Assertion
-      .waitForElementVisible  bitbucketSelector, 20000 # Assertion
-      .waitForElementVisible  nextButtonSelector, 20000
-      .moveToElement          nextButtonSelector, 15, 10
-      .pause                  2000
-      .click                  nextButtonSelector
-      .waitForElementVisible  "#{modalSelector} .define-stack-view", 20000
-      .waitForElementVisible  editorSelector, 20000
-      .pause                  1000
-      .assert.containsText    editorSelector, 'aws_instance'
+
+    if skipStackSetup
+      browser
+        .waitForElementVisible  skipSetupSelector, 20000
+        .click                  skipSetupSelector
+        .waitForElementVisible  stackTemplateSelector, 20000
+        .assert.containsText    stackTemplateSelector, 'Stack Template'
+        .assert.containsText    saveAndTestButton, 'SAVE & TEST'
+    else
+      browser
+        .waitForElementVisible  providerSelector, 20000
+        .waitForElementVisible  awsSelector, 20000
+        .waitForElementVisible  "#{machineSelector} .vagrant" , 20000 # Assertion
+        .click                  awsSelector
+        .waitForElementVisible  stackPreview, 20000
+        .waitForElementVisible  codeSelector, 20000
+        .assert.containsText    codeSelector, 'koding_group_slug'
+        .waitForElementVisible  footerSelector, 20000
+        .waitForElementVisible  nextButtonSelector, 20000
+        .pause                  2000 # wait for animation
+        .click                  nextButtonSelector
+        .waitForElementVisible  configurationSelector, 20000
+        .pause                  2000 # wait for animation
+        .waitForElementVisible  mysqlSelector, 20000
+        .click                  mysqlSelector
+        .pause                  2000 # wait for animation
+        .waitForElementVisible  postgresqlSelector, 20000
+        .click                  postgresqlSelector
+        .waitForElementVisible  stackPreview, 20000
+        .assert.containsText    codeSelector, 'mysql-server postgresql'
+        .waitForElementVisible  nextButtonSelector, 20000
+        .pause                  2000 # wait for animation
+        .click                  nextButtonSelector
+        .waitForElementVisible  server1PageSelector, 20000
+        .waitForElementVisible  githubSelector, 20000 # Assertion
+        .waitForElementVisible  bitbucketSelector, 20000 # Assertion
+        .waitForElementVisible  nextButtonSelector, 20000
+        .moveToElement          nextButtonSelector, 15, 10
+        .pause                  2000
+        .click                  nextButtonSelector
+        .waitForElementVisible  "#{modalSelector} .define-stack-view", 20000
+        .waitForElementVisible  editorSelector, 20000
+        .pause                  1000
+        .assert.containsText    editorSelector, 'aws_instance'
 
 
   createCredential: (browser, show = no, remove = no, use = no) ->
 
-    credetialTabSelector   = '.team-stack-templates .kdtabview .kdtabhandle-tabs .credentials'
+    credetialTabSelector   = '.team-stack-templates .kdtabhandle-tabs .credentials'
+    stackTabSelector       = '.team-stack-templates .kdtabhandle.stack-template.active'
     credentialsPane        = '.credentials-form-view'
-    saveButtonSelector     = '.button-field button.green'
+    editorSelector         = '.editor-main'
+    saveButtonSelector     = '.add-credential-scroll .button-field button.green'
     newCredential          = '.step-creds .listview-wrapper .credential-list .credential-item'
     credentialName         = 'test credential'
     showCredentialButton   = "#{newCredential} button.show"
     deleteCredentialButton = "#{newCredential} button.delete"
+    useCredentialButton    = "#{newCredential} button.verify"
+    inUseLabelSelector     = "#{newCredential} .custom-tag.inuse"
+    secretKeyInput         = "#{credentialsPane} .secret-key input"
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
@@ -419,18 +450,23 @@ module.exports =
           .pause                  500
           .setValue               "#{credentialsPane} .access-key input", accessKeyId
           .pause                  500
-          .setValue               "#{credentialsPane} .secret-key input", secretAccessKey
-          .waitForElementVisible  saveButtonSelector, 20000
+          .scrollToElement        secretKeyInput
+          .setValue               secretKeyInput, secretAccessKey
+          .pause                  1000
+          .click                  '.credential-creation-intro'
+          .scrollToElement        saveButtonSelector
           .click                  saveButtonSelector
           .pause                  2000 # wait for loade next page
           .waitForElementVisible  newCredential, 20000
           .assert.containsText    newCredential, credentialName
 
+      browser
+        .waitForElementVisible    newCredential, 20000
+        .moveToElement            newCredential, 300, 20
+        .pause                    1000
+
       if show
-        browser
-          .waitForElementVisible  newCredential, 20000
-          .moveToElement          newCredential, 300, 20
-          .pause                  1000
+       browser
           .waitForElementVisible  showCredentialButton, 20000
           .click                  showCredentialButton
           .waitForElementVisible  '.credential-modal', 20000
@@ -441,9 +477,6 @@ module.exports =
 
       if remove
         browser
-          .waitForElementVisible    newCredential, 20000
-          .moveToElement            newCredential, 300, 20
-          .pause                    1000
           .waitForElementVisible    deleteCredentialButton, 20000
           .click                    deleteCredentialButton
           .pause                    1000
@@ -452,6 +485,17 @@ module.exports =
           .click                    '.remove-credential button.red'
           .pause                    2000
           .waitForElementNotPresent newCredential, 20000
+
+      if use
+        browser
+          .waitForElementVisible    useCredentialButton, 20000
+          .click                    useCredentialButton
+          .waitForElementVisible    stackTabSelector, 20000
+          .waitForElementVisible    editorSelector, 20000
+          .click                    credetialTabSelector
+          .pause                    1000
+          .waitForElementVisible    newCredential, 20000
+          .waitForElementVisible    inUseLabelSelector, 20000
 
 
   getAwsKey: -> return awsKey

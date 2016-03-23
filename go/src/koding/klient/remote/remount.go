@@ -63,6 +63,7 @@ func (r *Remote) RemountHandler(kreq *kite.Request) (interface{}, error) {
 	mounter := &mount.Mounter{
 		Log:           log,
 		Options:       existingMount.MountFolder,
+		Machine:       remoteMachine,
 		IP:            existingMount.IP,
 		KiteTracker:   existingMount.KiteTracker,
 		Intervaler:    existingMount.Intervaler,

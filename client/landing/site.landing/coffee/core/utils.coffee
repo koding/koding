@@ -248,6 +248,15 @@ module.exports = utils = {
       error       : callbacks.error
 
 
+  unsubscribeEmail: (token, email, callbacks) ->
+
+    $.ajax
+      url         : "/-/unsubscribe/#{token}/#{email}"
+      type        : 'GET'
+      success     : callbacks.success
+      error       : callbacks.error
+
+
   joinTeam: (callbacks = {}) ->
 
     formData = createFormData()

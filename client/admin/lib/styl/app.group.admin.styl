@@ -551,6 +551,8 @@ Admin main styles
 
 // members, teams tab styling
 .AppModal--admin .member-related
+  &.apitokens .lazy-loader
+    hidden()
 
   .kdtabpaneview
     kalc                    height, (100% \- 62px)
@@ -1113,7 +1115,7 @@ Admin main styles
       abs                   10px 10px
       z-index               1
 
-    .kdinput
+    .kdinput.text
       border-color          #DDDCDD
       size                  30%, 40px
       margin-right          0

@@ -57,8 +57,6 @@ type Mount struct {
 	Unmounter interface {
 		Unmount() error
 	} `json:"-"`
-
-	LastMountError bool
 }
 
 func (m *Mount) Unmount() error {

@@ -71,6 +71,7 @@ app.get  '/-/teams/check-team-invitation'        , require './handlers/teaminvit
 app.all  '/-/team/:name/members'                 , require './handlers/getteammembers'
 app.all  '/-/team/:name'                         , require './handlers/getteam'
 app.all  '/-/profile/:email'                     , require './handlers/getprofile'
+app.all  '/-/unsubscribe/:token/:email'          , require './handlers/unsubscribe'
 # temp endpoints ends
 
 app.post '/-/analytics/track'                    , require './handlers/analytics/track'

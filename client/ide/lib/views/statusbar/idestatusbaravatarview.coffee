@@ -82,11 +82,11 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       permission = rtm.getFromModel('permissions').get @nickname
 
       if permission is 'edit'
-        menuItems['Revert Permission'] =
-          title    : 'Revert Permission'
+        menuItems['Revoke Permission'] =
+          title    : 'Revoke Permission'
           callback : =>
             MENU?.destroy()
-            frontApp.revertPermission @nickname
+            frontApp.revokePermission @nickname
 
       else if permission is 'read'
         menuItems['Make Presenter'] =

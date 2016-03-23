@@ -1,6 +1,6 @@
-fs          = require 'fs'
-NW          = require '../../../../node_modules/nightwatch/lib/api/element-commands/_waitForElement.js'
-AWS         = require 'aws-sdk'
+fs  = require 'fs'
+NW  = require '../../../../node_modules/nightwatch/lib/api/element-commands/_waitForElement.js'
+AWS = require 'aws-sdk'
 
 require 'coffee-script/register' # require coffee to parse main.dev
 
@@ -39,46 +39,67 @@ NW::fail = (result, actual, expected, defaultMsg) ->
 
             try
 
-              logString = ''
+              { CI, WERCKER_STARTED_BY, WERCKER_GIT_BRANCH, WERCKER_BUILD_URL } = process.env
 
-              @client.api.getLog 'browser', (logs) =>
+              if CI
 
-                try
+                helpers = require '../helpers/helpers.js'
 
-                  logString += "#{log.level} #{log.message}\n"  for log in logs
+                { selector, ms, _stackTrace } = this
+                message     = "#{defaultMsg.replace('%s', selector).replace('%d', ms)} - expected: #{expected} but got: #{actual}"
+                information = "Test *#{test.name}* in *#{test.module}* suite failed on #{WERCKER_STARTED_BY}'s *#{WERCKER_GIT_BRANCH}* branch. Build url is #{WERCKER_BUILD_URL}"
 
-                  s3 = new AWS.S3 { params:
-                    Key    : "console.log-#{test.module}-#{test.name}-#{Date.now()}.log"
-                    Bucket : 'koding-test-data'
-                  }
+                helpers.postToSlack
+                  text    : "#{information} ```#{message}``` ```#{_stackTrace}``` #{s3path}"
+                  channel : 'failed-tests'
 
-                  if logString.length
-                    s3.upload { Body: logString }, (err, res) =>
+              try
+
+                logString = ''
+
+                @client.api.getLog 'browser', (logs) =>
+
+                  try
+
+                    logString += "#{log.level} #{log.message}\n"  for log in logs
+
+                    s3 = new AWS.S3 { params:
+                      Key    : "console.log-#{test.module}-#{test.name}-#{Date.now()}.log"
+                      Bucket : 'koding-test-data'
+                    }
+
+                    if logString.length
+                      s3.upload { Body: logString }, (err, res) =>
+                        NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
+                        msg = if err then ' ✖ Unable to write console log to S3.' else " ✔ Console log saved to S3. #{res.Location}"
+                        console.log msg
+                    else
+                      console.log ' ✖ There was no browser log available...'
                       NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
-                      msg = if err then ' ✖ Unable to write console log to S3.' else " ✔ Console log saved to S3. #{res.Location}"
-                      console.log msg
-                  else
-                    console.log ' ✖ There was no browser log available...'
+
+                  catch e
+
+                    console.log ' ✖ Failed to upload browser logs to s3.', e
                     NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
 
-                catch
+              catch e
 
-                  console.log ' ✖ Failed to upload browser logs to s3.'
-                  NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
+                console.log ' ✖ Failed to get browser logs.', e
+                NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
 
-            catch
+            catch e
 
-              console.log ' ✖ Failed to get browser logs.'
+              console.log ' ✖ Failed to post a Slack message.', e
               NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
 
 
-      catch
+      catch e
 
-        console.log ' ✖ Failed to upload test screenshot to s3.'
+        console.log ' ✖ Failed to upload test screenshot to s3.', e
         NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
 
 
-  catch
+  catch e
 
-    console.log ' ✖ Failed to take screenshot from selenium driver.'
+    console.log ' ✖ Failed to take screenshot from selenium driver.', e
     NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
