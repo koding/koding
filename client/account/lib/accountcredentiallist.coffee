@@ -8,11 +8,13 @@ KDModalView                 = kd.ModalView
 showError                   = require 'app/util/showError'
 applyMarkdown               = require 'app/util/applyMarkdown'
 
+KodingListView              = require 'app/kodinglist/kodinglistview'
+
 AccountCredentialListItem   = require './accountcredentiallistitem'
 AccountCredentialEditModal  = require './accountcredentialeditmodal'
 
 
-module.exports = class AccountCredentialList extends KDListView
+module.exports = class AccountCredentialList extends KodingListView
 
   constructor: (options = {}, data) ->
 
