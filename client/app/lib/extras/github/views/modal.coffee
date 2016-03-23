@@ -13,21 +13,21 @@ RepoItem = require './repoitem'
 
 module.exports = class Modal extends KDModalView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options = $.extend
-      title    : "GitHub repositories"
-      cssClass : "github-modal"
+      title    : 'GitHub repositories'
+      cssClass : 'github-modal'
       width    : 540
       overlay  : yes
     , options
 
     super options, data
 
-  viewAppended:->
+  viewAppended: ->
 
     @addSubView @loader = new KDLoaderView
-      cssClass    : "loader"
+      cssClass    : 'loader'
       showLoader  : yes
       size        :
         width     : 16
@@ -55,7 +55,7 @@ module.exports = class Modal extends KDModalView
           buttonTitle   : 'publish'
       noItemFoundWidget : new KDView
         cssClass        : 'noitem-warning'
-        partial         : "There is no repository to show."
+        partial         : 'There is no repository to show.'
 
     @container.addSubView \
       @repoListView = @repoController.getView()
@@ -64,11 +64,11 @@ module.exports = class Modal extends KDModalView
 
     @checkLinkStatus()
 
-  showRepos:(username, force)->
+  showRepos: (username, force) ->
 
     @message.updatePartial "Fetching repositories from #{GitHub.makeLink username}..."
 
-    GitHub.fetchUserRepos username, (err, repos)=>
+    GitHub.fetchUserRepos username, (err, repos) =>
 
       if err
         @loader.hide()
@@ -77,7 +77,7 @@ module.exports = class Modal extends KDModalView
           An error occurred while fetching
           repos from #{GitHub.makeLink username}...
         """
-        new KDNotificationView title: err.message  if err.message?
+        new KDNotificationView { title: err.message  if err.message? }
 
         kd.utils.defer =>
           @_windowDidResize()
@@ -97,14 +97,14 @@ module.exports = class Modal extends KDModalView
 
     , force
 
-  checkLinkStatus:(force)->
+  checkLinkStatus: (force) ->
 
-    @message.updatePartial "Checking GitHub account status..."
+    @message.updatePartial 'Checking GitHub account status...'
     @refreshButton.hide()
     @loader.show()
 
     me = whoami()
-    me.fetchOAuthInfo (err, oauth)=>
+    me.fetchOAuthInfo (err, oauth) =>
 
       return callback err  if err?
 
@@ -113,16 +113,16 @@ module.exports = class Modal extends KDModalView
       unless oauth?.github?
 
         @loader.hide()
-        @message.updatePartial """
+        @message.updatePartial '''
           To fetch GitHub repositories you need to link your Koding account
           with your GitHub account. Click <span>here</span> to link now.
-        """
+        '''
 
         @container.hide()
         @message.on 'click', =>
           @loader.show()
-          @message.updatePartial "Waiting for authentication..."
-          GitHub.link (err)=>
+          @message.updatePartial 'Waiting for authentication...'
+          GitHub.link (err) =>
             @checkLinkStatus()  unless err
 
       else
