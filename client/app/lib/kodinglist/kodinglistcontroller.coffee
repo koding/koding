@@ -87,7 +87,6 @@ module.exports = class KodingListController extends KDListViewController
           modal.destroy()
           return showError err  if err
           listView.removeItem item
-          @emit 'ItemDeleted', item
 
 
     listView.askForConfirm confirmOptions
