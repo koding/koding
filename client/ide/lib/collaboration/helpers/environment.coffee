@@ -14,8 +14,8 @@ userEnvironmentDataProvider = require 'app/userenvironmentdataprovider'
 detachSocialChannel = (workspaceData, callback) ->
 
   { _id } = workspaceData
-  options = { $unset: channelId: 1 }
-  remote.api.JWorkspace.update _id, options, (err) =>
+  options = { $unset: { channelId: 1 } }
+  remote.api.JWorkspace.update _id, options, (err) ->
     return callback err  if err
 
     workspaceData.channelId = null
@@ -54,7 +54,7 @@ setMachineUser = (machine, workspace, usernames, share, callback) ->
 
     queue = usernames.map (username) ->
       (fin) ->
-        kite[method]({username})
+        kite[method]({ username })
         .then -> fin()
         .error (err) ->
           return  if err.message is 'User not found' and not share
@@ -79,9 +79,9 @@ fetchMissingParticipants = (machine, usernames, callback) ->
 
   kite.klientShared null
 
-    .then (response) =>
+    .then (response) ->
       participants = response.split ','
-      missing = usernames.filter (username) =>
+      missing = usernames.filter (username) ->
         participants.indexOf(username) is -1
 
       return callback null, missing
@@ -111,7 +111,7 @@ isUserStillParticipantOnMachine = (options, callback) ->
         anyActiveSession = no
 
         workspaces.forEach (w) ->
-          channel = _.find channels, _id : w.channelId
+          channel = _.find channels, { _id : w.channelId }
           anyActiveSession = yes  if channel
 
         callback anyActiveSession

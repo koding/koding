@@ -29,7 +29,7 @@ module.exports = class IDEWorkspaceTabView extends JView
       closeAppWhenAllTabsClosed : no
 
   pistachio: ->
-    """
+    '''
       {{> @holderView}}
       {{> @tabView}}
-    """
+    '''

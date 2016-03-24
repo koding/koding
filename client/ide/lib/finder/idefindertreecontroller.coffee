@@ -34,9 +34,9 @@ module.exports = class IDEFinderTreeController extends NFinderTreeController
 
   createTerminal: (node) ->
 
-    {path, machine} = node.getData()
-    appManager      = kd.getSingleton 'appManager'
-    path            = FSHelper.plainPath path
+    { path, machine } = node.getData()
+    appManager        = kd.getSingleton 'appManager'
+    path              = FSHelper.plainPath path
 
     appManager.tell 'IDE', 'createNewTerminal', { machine, path }
 
@@ -84,6 +84,6 @@ module.exports = class IDEFinderTreeController extends NFinderTreeController
 
     IDEHelpers.createWorkspace options
 
-    {activitySidebar} = kd.singletons.mainView
+    { activitySidebar } = kd.singletons.mainView
 
     @once 'WorkspaceCreated', activitySidebar.bound 'addWorkspace'

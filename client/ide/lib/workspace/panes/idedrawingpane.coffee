@@ -40,14 +40,14 @@ module.exports = class IDEDrawingPane extends IDEPane
 
   createToolbar: ->
 
-    @toolbar  = new KDCustomHTMLView cssClass: 'drawing-board-toolbar'
+    @toolbar  = new KDCustomHTMLView { cssClass: 'drawing-board-toolbar' }
     commands  =
-      undo    : action : 'undo'
-      redo    : action : 'redo'
-      clear   : action : 'clear'
-      penSize : action : 'showPenSizes'
-      color   : action : 'showColors'
-      save    : action : 'save'
+      undo    : { action : 'undo' }
+      redo    : { action : 'redo' }
+      clear   : { action : 'clear' }
+      penSize : { action : 'showPenSizes' }
+      color   : { action : 'showColors' }
+      save    : { action : 'save' }
 
 
     for command, config of commands
@@ -77,7 +77,7 @@ module.exports = class IDEDrawingPane extends IDEPane
     penSizes.forEach (size) =>
       items.push new KDCustomHTMLView
         cssClass : 'item pen-size'
-        partial  : "<div style='width: #{size}px; height: #{size}px; margin: -#{size/2}px 0 0 -#{size/2}px'></div>"
+        partial  : "<div style='width: #{size}px; height: #{size}px; margin: -#{size / 2}px 0 0 -#{size / 2}px'></div>"
         click    : => @handlePenSizeChange size
 
     @createToolbarMenu items

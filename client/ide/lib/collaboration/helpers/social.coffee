@@ -70,8 +70,8 @@ fetchChannel = (id, callback) ->
 ###
 destroyChannel = (channel, callback) ->
 
-  {id} = channel
-  kd.singletons.socialapi.channel.delete {channelId: id}, callback
+  { id } = channel
+  kd.singletons.socialapi.channel.delete { channelId: id }, callback
 
 
 ###*
@@ -84,7 +84,7 @@ acceptChannel = (channel, callback) ->
   return callback()  if channel.isParticipant
 
   channelId = channel.id
-  kd.singletons.socialapi.channel.acceptInvite {channelId}, callback
+  kd.singletons.socialapi.channel.acceptInvite { channelId }, callback
 
 
 ###*
@@ -98,12 +98,12 @@ acceptChannel = (channel, callback) ->
 ###
 fetchParticipants = (id, callback) ->
 
-  {socialapi} = kd.singletons
+  { socialapi } = kd.singletons
 
-  socialapi.channel.listParticipants {channelId: id}, (err, participants) ->
+  socialapi.channel.listParticipants { channelId: id }, (err, participants) ->
     return callback err  if err
 
-    idList = participants.map ({accountId}) -> accountId
+    idList = participants.map ({ accountId }) -> accountId
     query  = { socialApiId: { $in: idList } }
 
     remote.api.JAccount.some query, {}, callback
@@ -130,8 +130,8 @@ leaveChannel = (channel, callback) ->
 ###
 initChannel = (callback) ->
 
-  {message} = kd.singletons.socialapi
-  nickname  = getNick()
+  { message } = kd.singletons.socialapi
+  nickname    = getNick()
 
   options =
     type       : 'collaboration'
@@ -140,7 +140,7 @@ initChannel = (callback) ->
 
   message.initPrivateMessage options, (err, channels) ->
     return callback err  if err
-    return callback {message: 'error'}  unless channels?.length
+    return callback { message: 'error' }  unless channels?.length
     return callback null, channels[0]
 
 
@@ -152,13 +152,13 @@ initChannel = (callback) ->
 ###
 sendActivationMessage = (channel, callback) ->
 
-  {message} = kd.singletons.socialapi
-  nickname  = getNick()
+  { message } = kd.singletons.socialapi
+  nickname    = getNick()
 
   options =
     body       : "@#{nickname} activated collaboration."
     channelId  : channel.id
-    payload    : 'system-message': 'start'
+    payload    : { 'system-message': 'start' }
 
   message.sendPrivateMessage options, callback
 
