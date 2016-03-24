@@ -35,9 +35,18 @@ module.exports = class KlientEventManager extends kd.Object
    * @param {Function()} callback - Called with whatever data the given
    *  eventName responds with.
   ###
-  subscribe: (eventName, callback) ->
+  subscribe: (eventName, publishCallback, subscribeCallback) ->
 
-    @kite.clientSubscribe { eventName, onPublish: callback }
+    options = { eventName, onPublish: publishCallback }
+    @kite.clientSubscribe options, subscribeCallback
+
+    # Return this, to match the EventEmitter's self return.
+    return this
+
+
+  unsubscribe: (eventName, eventId) ->
+
+    @kite.clientUnsubscribe { eventName, id: eventId }
 
     # Return this, to match the EventEmitter's self return.
     return this
