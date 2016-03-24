@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/RangelReale/osin"
+	"github.com/osin-mongo-storage/mgostore"
 	"gopkg.in/mgo.v2"
 )
 
@@ -18,12 +19,16 @@ func (o *Oauth) AuthorizeClientAuthorizeClient(w http.ResponseWriter, r *http.Re
 	server := oauth.server
 	resp := server.NewResponse()
 	if ar := server.HandleAuthorizeRequest(resp, r); ar != nil {
-		if !example.HandleLoginPage(ar, w, r) {
-			return
-		}
-		ar.UserData = UserData{"Login": "test"}
-		ar.Authorized = true
-		server.FinishAuthorizeRequest(resp, r, ar)
+		// if !example.HandleLoginPage(ar, w, r) {
+		// 	return
+		// }
+		// ar.UserData = UserData{"Login": "test"}
+		// ar.Authorized = true
+		// server.FinishAuthorizeRequest(resp, r, ar)
+
+		//
+		// HANDLE LOGIN PAGE HERE !!!
+		//
 	}
 	if resp.IsError && resp.InternalError != nil {
 		fmt.Printf("ERROR: %s\n", resp.InternalError)
