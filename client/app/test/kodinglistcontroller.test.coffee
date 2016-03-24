@@ -40,6 +40,9 @@ describe 'KodingListController', ->
       expect(sort).toEqual { '_id' : -1 }
       expect(lazyLoaderOptions.spinnerOptions.size).toEqual { width : 28 }
 
+      checkSpinnerCSSClass = lazyLoaderOptions.spinnerOptions.cssClass.indexOf('kodinglist-spinner') > -1
+      expect(checkSpinnerCSSClass).toBeTruthy()
+
     it 'should use KDListView despite of given view option with itemClass', ->
 
       listController  = new KodingListController
@@ -122,6 +125,25 @@ describe 'KodingListController', ->
       listView.emit 'ItemAction', { action : 'RemoveItem', item, options }
 
       expect(spy).toHaveBeenCalledWith item, options
+
+    it 'should call showNoItemWidget method when ItemDeleted event is emitted', ->
+
+      listController  = new KodingListController { fetcherMethod : kd.noop }
+      spy             = expect.spyOn listController, 'showNoItemWidget'
+
+      listController.getListView().emit 'ItemAction', { action : 'ItemRemoved' }
+
+      expect(spy).toHaveBeenCalled()
+
+    it 'should remove item from list view when ItemDeleted event is emitted', ->
+
+      listController  = new KodingListController { fetcherMethod : kd.noop }
+      listView        = listController.getListView()
+      spy             = expect.spyOn listView, 'removeItem'
+
+      listController.getListView().emit 'ItemAction', { action : 'ItemRemoved' }
+
+      expect(spy).toHaveBeenCalled()
 
 
   describe '::followLazyLoad', ->
@@ -421,3 +443,15 @@ describe 'KodingListController', ->
         { length } = listController.getListView().items
         expect(length).toBeGreaterThan 1
         done()
+
+
+  describe '::hideLazyLoader', ->
+
+    it 'should not call showNoItemWidget method', ->
+
+      listController  = new KodingListController { fetcherMethod : kd.noop }
+      spy             = expect.spyOn listController, 'showNoItemWidget'
+
+      listController.hideLazyLoader()
+
+      expect(spy).toNotHaveBeenCalled()
