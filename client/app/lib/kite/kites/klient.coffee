@@ -11,7 +11,6 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
     ping               : 'kite.ping'
     systemInfo         : 'kite.systemInfo'
 
-    clientSubscribe    : 'client.Subscribe'
 
     fsReadDirectory    : 'fs.readDirectory'
     fsGlob             : 'fs.glob'
@@ -76,6 +75,12 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
     super
 
     kd.singletons.kontrol.kites?.klient?[@getOption 'correlationName'] = null
+
+
+  clientSubscribe: (options, subscribeCallback) ->
+
+    @tell 'client.Subscribe', options
+      .then ({ id }) -> subscribeCallback? id
 
 
   webtermConnect: (options) ->
