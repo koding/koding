@@ -26,7 +26,7 @@ Tracker                       = require 'app/util/tracker'
 IDEHelpers                    = require 'ide/idehelpers'
 
 
-{warn} = kd
+{ warn } = kd
 
 # Attn!!
 #
@@ -93,7 +93,7 @@ module.exports = CollaborationController =
 
     id = @getSocialChannelId()
 
-    socialHelpers.fetchParticipants id, (err, accounts) =>
+    socialHelpers.fetchParticipants id, (err, accounts) ->
       return throwError err  if err
 
       callback accounts
@@ -196,7 +196,7 @@ module.exports = CollaborationController =
     Tracker.track Tracker.COLLABORATION_STARTED
 
     if @amIHost and targetUser isnt nick()
-      @ensureMachineShare [targetUser], (err) =>
+      @ensureMachineShare [targetUser], (err) ->
         return throwError err  if err
 
 
@@ -204,9 +204,9 @@ module.exports = CollaborationController =
 
     return  unless @stateMachine?.state is 'Active'
 
-    {sessionId} = data.collaborator
+    { sessionId } = data.collaborator
 
-    {targetUser, targetIndex} =
+    { targetUser, targetIndex } =
       realtimeHelpers.getTargetUser @participants, 'sessionId', sessionId
 
     unless targetUser
@@ -304,7 +304,7 @@ module.exports = CollaborationController =
 
     { hash, nickname } = account.profile
 
-    val   = { nickname, hash }
+    val = { nickname, hash }
     index = @participants.indexOf val, (a, b) -> a.nickname is b.nickname
 
     @participants.push val  if index is -1
@@ -329,7 +329,7 @@ module.exports = CollaborationController =
 
     modal = new KDModalView
       title         : "Host's layout is updated since you last watched his changes."
-      cssClass      : "modal-with-text layout-changed-modal"
+      cssClass      : 'modal-with-text layout-changed-modal'
       content       : """
         If you click yes below we'll change your tabs layout to match host's layout.
         You won't lose your changes, if you have any.<br/><br/>
@@ -337,14 +337,14 @@ module.exports = CollaborationController =
       """
       overlay       : yes
       buttons       :
-        "Yes"       :
-          cssClass  : "solid medium red"
+        'Yes'       :
+          cssClass  : 'solid medium red'
           callback  : =>
             modal.destroy()
             @applyHostLayoutToParticipant()
-        "Cancel"    :
-          cssClass  : "solid medium light-gray"
-          callback  : => modal.destroy()
+        'Cancel'    :
+          cssClass  : 'solid medium light-gray'
+          callback  : -> modal.destroy()
 
 
   applyHostLayoutToParticipant: ->
@@ -397,7 +397,7 @@ module.exports = CollaborationController =
       return throwError err  if err
       return  unless account
 
-      {nickname} = account.profile
+      { nickname } = account.profile
 
       return  if nickname is nick()
 
@@ -507,7 +507,7 @@ module.exports = CollaborationController =
 
   sendPing: ->
 
-    {channelId} = @workspaceData
+    { channelId } = @workspaceData
 
     doXhrRequest
       endPoint : '/api/social/collaboration/ping'
@@ -522,7 +522,7 @@ module.exports = CollaborationController =
 
       if err.code is 400
         kd.utils.killRepeat @pingInterval # graceful stop
-        throwError "bad request, err: %s", err.message
+        throwError 'bad request, err: %s', err.message
       else
         throwError "#{err}: %s", JSON.stringify response
 
@@ -551,7 +551,7 @@ module.exports = CollaborationController =
 
   handleBroadcastMessage: (data) ->
 
-    {origin, type} = data
+    { origin, type } = data
 
     if origin is nick()
       switch type
@@ -602,7 +602,7 @@ module.exports = CollaborationController =
 
   handlePermissionMapChange: (event) ->
 
-    {property, newValue} = event
+    { property, newValue } = event
 
     return  unless property is nick()
 
@@ -612,7 +612,7 @@ module.exports = CollaborationController =
 
   handleWatchMapChange: (event) ->
 
-    {property, newValue, oldValue} = event
+    { property, newValue, oldValue } = event
 
     if newValue is property
       @statusBar.emit 'ParticipantWatched', property
@@ -625,7 +625,7 @@ module.exports = CollaborationController =
 
     type = "#{if state then 'Set' else 'Unset'}MachineUser"
 
-    @broadcastMessage {type, participants}
+    @broadcastMessage { type, participants }
 
 
   handleSharedMachine: ->
@@ -771,7 +771,7 @@ module.exports = CollaborationController =
         .then =>
           @workspaceData.channelId = channel.id
           callbacks.success()
-        .error (err) => callbacks.error err
+        .error (err) -> callbacks.error err
 
 
   onCollaborationErrorCreating: ->
@@ -836,7 +836,7 @@ module.exports = CollaborationController =
 
         socialHelpers.sendActivationMessage @socialChannel, kd.noop
 
-        @setMachineSharingStatus on, (err) =>
+        @setMachineSharingStatus on, (err) ->
           return callbacks.error err  if err
           callbacks.success doc
 
@@ -853,8 +853,8 @@ module.exports = CollaborationController =
 
     modal.container.addSubView new kd.CustomHTMLView
       tagName  : 'p'
-      partial  : "<span class='icon'></span> Joining collaboration session..."
-      cssClass : "state-label running"
+      partial  : "<span class='icon'></span> Joining to collaboration session..."
+      cssClass : 'state-label running'
 
     modal.container.addSubView modal.progressBar = new kd.ProgressBarView { initial: 10 }
 
@@ -940,8 +940,8 @@ module.exports = CollaborationController =
 
   bindAutoInviteHandlers: ->
 
-    {actions} = require 'activity/flux'
-    {notificationController, mainController, socialapi} = kd.singletons
+    { actions } = require 'activity/flux'
+    { notificationController, mainController, socialapi } = kd.singletons
 
     channel = @socialChannel
 
@@ -952,7 +952,7 @@ module.exports = CollaborationController =
 
             return if notification.channelId isnt channel.id
 
-            {channelId, senderUserId, senderAccountId, sender} = notification
+            { channelId, senderUserId, senderAccountId, sender } = notification
             accountIds = [senderAccountId]
 
             socialapi.channel.addParticipants { channelId, accountIds }, (err) ->
@@ -1048,7 +1048,7 @@ module.exports = CollaborationController =
       throwError err  if err
 
     @removeWorkspaceSnapshot()
-    @broadcastMessage type: 'ParticipantWantsToLeave'
+    @broadcastMessage { type: 'ParticipantWantsToLeave' }
     callback()
 
 
@@ -1139,7 +1139,7 @@ module.exports = CollaborationController =
 
   ensureMachineShare: (usernames, callback) ->
 
-    {fetchMissingParticipants} = envHelpers
+    { fetchMissingParticipants } = envHelpers
 
     fetchMissingParticipants @mountedMachine, usernames, (err, missing) =>
       return callback err  if err
@@ -1152,7 +1152,7 @@ module.exports = CollaborationController =
     getUsernames = (accounts) ->
 
       accounts
-        .map ({profile: {nickname}}) -> nickname
+        .map ({ profile: { nickname } }) -> nickname
         .filter (nickname) -> nickname isnt nick()
 
     if @amIHost
@@ -1171,7 +1171,7 @@ module.exports = CollaborationController =
     # lines would be executed as well. attn to @szkl.
     return callback null  unless usernames.length
 
-    {setMachineUser} = envHelpers
+    { setMachineUser } = envHelpers
 
     setMachineUser @mountedMachine, @workspaceData, usernames, share, (err) =>
       return callback err  if err
@@ -1240,10 +1240,10 @@ module.exports = CollaborationController =
   throwError: throwError = (err, args...) ->
 
     format = JSON.stringify \
-      switch typeof err
-        when 'string' then err
-        when 'object' then err.message or err.description
-        else args.join ' '
+    switch typeof err
+      when 'string' then err
+      when 'object' then err.message or err.description
+      else args.join ' '
 
     argIndex = 0
     console.error """
@@ -1256,7 +1256,7 @@ module.exports = CollaborationController =
 
     return  unless @stateMachine
 
-    {channelId} = @workspaceData
+    { channelId } = @workspaceData
 
     if channelId and typeof channelId is 'string' and channelId.length
       return  unless @stateMachine.state is 'NotStarted'
@@ -1268,11 +1268,11 @@ module.exports = CollaborationController =
 
   attendWorkspaceChannel: ->
 
-    {notificationController} = kd.singletons
+    { notificationController } = kd.singletons
 
     notificationController.on 'AddedToChannel', (update) =>
 
-      {channelId} = @workspaceData
+      { channelId } = @workspaceData
 
       return  unless update.channel.id is channelId
 
@@ -1334,9 +1334,9 @@ module.exports = CollaborationController =
 
   getHostSnapshot: (callback = kd.noop) ->
 
-    @fetchSnapshot (snapshot) =>
+    @fetchSnapshot (snapshot) ->
       callback snapshot
-    ,@getCollaborationHost()
+    , @getCollaborationHost()
 
 
   handleSnapshotUpdated: ->
@@ -1416,11 +1416,11 @@ module.exports = CollaborationController =
 
     cssClass = 'error'
     title    = 'REQUEST DENIED:'
-    content  = "Host has denied your request to make changes!"
+    content  = 'Host has denied your request to make changes!'
 
     if isRevoked
       title    = 'ACCESS REVOKED:'
-      content  = "Host revoked your access to control their session!"
+      content  = 'Host revoked your access to control their session!'
 
     @permissionView = IDEHelpers.showNotificationBanner { cssClass, title, content }
     @permissionView.once 'KDObjectWillBeDestroyed', => @permissionView = null
@@ -1433,7 +1433,7 @@ module.exports = CollaborationController =
     @permissionView = IDEHelpers.showNotificationBanner
       cssClass : 'success'
       title    : 'ACCESS GRANTED:'
-      content  : "You can make changes now!"
+      content  : 'You can make changes now!'
 
     @permissionView.once 'KDObjectWillBeDestroyed', => @permissionView = null
 

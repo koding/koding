@@ -158,9 +158,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     modal = new KDModalView
       title         : 'Would you like us to remove the pane when there are no tabs left?'
       cssClass      : 'autoremovepane-confirm'
-      content       : """
+      content       : '''
         <p>You can always change this setting on preferences.</p>
-      """
+      '''
       overlay       : yes
       buttons       :
         'Yes'       :
@@ -402,7 +402,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     change.origin = nick()
 
     if type in [ 'PaneRemoved', 'TabChanged' ] and pane.file
-      change.context.file = path: pane.file.path
+      change.context.file = { path: pane.file.path }
 
     @emit 'ChangeHappened', change
 
@@ -412,7 +412,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     drawingPane = new IDEDrawingPane { hash: paneHash }
     @createPane_ drawingPane, { name: 'Drawing' }
 
-    @emitChange  drawingPane, context: {}  unless paneHash
+    @emitChange  drawingPane, { context: {} }  unless paneHash
 
 
   createPreview: (url) ->
@@ -423,7 +423,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     previewPane.on 'LocationChanged', (newLocation) =>
       @updateStatusBar 'preview', newLocation
 
-    @emitChange previewPane, context: { url }
+    @emitChange previewPane, { context: { url } }
 
 
   showView: (view, name = 'Search Result') -> @createPane_ view, { name }
@@ -439,9 +439,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     unless data
       if paneType is 'editor'
-        {file} = subView.getOptions()
-        {ace}  = subView.aceView
-        cursor = if ace.editor? then ace.editor.getCursorPosition() else row: 0, column: 0
+        { file } = subView.getOptions()
+        { ace }  = subView.aceView
+        cursor   = if ace.editor? then ace.editor.getCursorPosition() else row: 0, column: 0
 
         file.name = @trimUntitledFileName file.name
 
@@ -462,7 +462,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         data = "Watching changes on #{file.getPath()}"
 
       else if paneType is 'searchResult'
-        {stats, searchText} = subView.getOptions()
+        { stats, searchText } = subView.getOptions()
         data = { stats, searchText }
 
     appManager.tell 'IDE', 'updateStatusBar', paneType, data
@@ -479,9 +479,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     pane = @getActivePaneView()
     return unless pane
 
-    kd.utils.defer =>
-      {paneType} = pane.getOptions()
-      appManager = kd.getSingleton 'appManager'
+    kd.utils.defer ->
+      { paneType } = pane.getOptions()
+      appManager   = kd.getSingleton 'appManager'
 
       pane.setFocus? yes
 
@@ -492,7 +492,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         appManager.tell 'IDE', 'hideFindAndReplaceView'
 
     if not @suppressChangeHandlers and not @isReadOnly
-      @emitChange pane, context: {}, 'TabChanged'
+      @emitChange pane, { context: {} }, 'TabChanged'
 
 
   goToLine: -> @getActivePaneView().aceView.ace.showGotoLine()
@@ -553,7 +553,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       @setClass fullscreen
       frontApp.getView().toggleClass fullscreen
 
-    @isFullScreen     = !@isFullScreen
+    @isFullScreen     = not @isFullScreen
     dontToggleSidebar = dontToggleSidebar or (@isFullScreen and mainView.isSidebarCollapsed)
 
     @holderView.setFullscreenHandleState @isFullScreen
@@ -569,13 +569,13 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     file = pane.getData()
     @openFiles.splice @openFiles.indexOf(file), 1
-    @emitChange pane.view, context: {}, 'PaneRemoved'
+    @emitChange pane.view, { context: {} }, 'PaneRemoved'
     @emit 'PaneRemoved', pane
 
 
   getDummyFilePath: (uniquePath = yes) ->
 
-    filePath = "localfile:/Untitled.txt"
+    filePath = 'localfile:/Untitled.txt'
     filePath += "@#{Date.now()}"  if uniquePath
 
     return filePath
@@ -614,7 +614,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   getPlusMenuItems: ->
 
-    {appManager} = kd.singletons
+    { appManager } = kd.singletons
 
     frontApp = appManager.getFrontApp()
     machine  = frontApp.mountedMachine
@@ -626,7 +626,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     inActiveSessions = []
 
     # Collect active sessions
-    frontApp.forEachSubViewInIDEViews_ 'terminal', (pane) =>
+    frontApp.forEachSubViewInIDEViews_ 'terminal', (pane) ->
       activeSessions.push pane.remote.session  if pane.remote?
 
     sessions.forEach (session, i) =>
@@ -647,7 +647,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     canTerminateSessions  = sessions.length > 0 and frontApp.amIHost
 
-    terminalSessions["New Session"] =
+    terminalSessions['New Session'] =
       callback            : => @createTerminal { machine }
       separator           : (canTerminateSessions or inActiveSessions.length)
 
@@ -656,14 +656,14 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         callback          : => @openAllSessions { machine, sessions : inActiveSessions }
 
     if canTerminateSessions
-      terminalSessions["Terminate all"] =
+      terminalSessions['Terminate all'] =
         callback          : => @terminateSessions machine
 
     items =
-      'New File'          : callback : =>
-         newFile = FSHelper.createFileInstance { path: @getDummyFilePath(), machine }
-         kd.singletons.appManager.tell 'IDE', 'openFile', file: newFile
-      'New Terminal'      : children : terminalSessions
+      'New File'          : { callback : =>
+        newFile = FSHelper.createFileInstance { path: @getDummyFilePath(), machine }
+        kd.singletons.appManager.tell 'IDE', 'openFile', { file: newFile } }
+      'New Terminal'      : { children : terminalSessions }
       # 'New Browser'       : callback : => @createPreview()
       'New Drawing Board' :
         callback          : => @createDrawingBoard()
@@ -718,19 +718,19 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     frontApp.mergeSplitView()
 
 
-  terminateSessions: (machine)->
+  terminateSessions: (machine) ->
 
     machine.getBaseKite().webtermKillSessions()
 
-    .catch (err)->
-      kd.warn "Failed to terminate sessions", err
+    .catch (err) ->
+      kd.warn 'Failed to terminate sessions', err
 
 
   terminateSession: (machine, session) ->
 
-    machine.getBaseKite().webtermKillSession {session}
+    machine.getBaseKite().webtermKillSession { session }
 
-    .catch (err)->
+    .catch (err) ->
       kd.warn "Failed to terminate session, possibly it's already dead.", err
 
 

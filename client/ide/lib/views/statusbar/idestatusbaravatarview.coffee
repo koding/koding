@@ -103,7 +103,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     MENU = new KDContextMenu
       nickname    : @nickname
-      cssClass    : 'dark IDE-StatusBarContextMenu'
+      cssClass    : 'dark statusbar-files'
       menuWidth   : menuWidth
       delegate    : this
       x           : @getX()
@@ -121,11 +121,11 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       h = MENU.getHeight()
       w = MENU.getWidth()
       top  = -h - 10
-      left = @getWidth()/2 - w/2 - 4 # for an unknown reason - SY
-      MENU.setOption 'offset', {left, top}
+      left = @getWidth() / 2 - w / 2 - 4 # for an unknown reason - SY
+      MENU.setOption 'offset', { left, top }
       MENU.positionContextMenu()
 
-    MENU.once 'KDObjectWillBeDestroyed', => MENU = null
+    MENU.once 'KDObjectWillBeDestroyed', -> MENU = null
 
 
   createWatchToggle: (menuItems, isWatching) ->
