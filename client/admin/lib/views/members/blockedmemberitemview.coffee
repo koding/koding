@@ -44,9 +44,8 @@ module.exports = class BlockedMemberItemView extends kd.ListItemView
 
     currentGroup = kd.singletons.groupsController.getCurrentGroup()
     id = @getData().getId()
-    invitations = []
     { profile : { email, firstName, lastName } } = @getData()
-    invitations.push { email, firstName, lastName, role : 'member' }
+    invitations = [ { email, firstName, lastName, role : 'member' } ]
 
     remote.api.JInvitation.create
       invitations : invitations
@@ -55,19 +54,22 @@ module.exports = class BlockedMemberItemView extends kd.ListItemView
     , (err, res) =>
         if err or not res
           return new kd.NotificationView { title : 'Something went wrong, please try again!' }
-        res = res[0]
-        res.status = 'accepted'
-        res.accept()
+        invite = res[0]
+        invite.status = 'accepted'
+        invite.accept().then (response) =>
 
-        currentGroup.unblockMember id, (err) =>
+          currentGroup.unblockMember id, (err) =>
 
-          if err
-            customErr = new Error 'Failed to unblock user. Please try again.'
-            return @handleError @unblockButton, customErr
+            if err
+              customErr = new Error 'Failed to unblock user. Please try again.'
+              return @handleError @unblockButton, customErr
 
-          @emit 'UserUnblocked'
-          @destroy()
-          @emit 'NewMemberJoinedToGroup'
+            @emit 'UserUnblocked'
+            @destroy()
+            @emit 'NewMemberJoinedToGroup'
+
+        .error (err) ->
+          return new kd.NotificationView { title : 'Something went wrong, please try again!' }
 
 
   toggleSettings: ->
