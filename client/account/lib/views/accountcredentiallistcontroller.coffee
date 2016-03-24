@@ -181,7 +181,6 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
   loadView: (mainView) ->
 
-    @listView.on 'ShowShareCredentialFormFor', @bound 'showShareCredentialFormFor'
     super mainView
 
     { provider, requiredFields, dontShowCredentialMenu } = @getOptions()
