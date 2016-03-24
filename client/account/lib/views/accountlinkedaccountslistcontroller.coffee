@@ -1,12 +1,18 @@
-kd                   = require 'kd'
-KDListViewController = kd.ListViewController
-globals              = require 'globals'
+kd                    = require 'kd'
+globals               = require 'globals'
+KodingListController  = require 'app/kodinglist/kodinglistcontroller'
 
 
-module.exports = class AccountLinkedAccountsListController extends KDListViewController
+module.exports = class AccountLinkedAccountsListController extends KodingListController
 
   constructor: (options = {}, data) ->
 
-    super options, data
+    options.fetcherMethod = (query, options, callback) ->
 
-    @instantiateListItems ({ title : nicename, provider } for own provider, { nicename } of globals.config.externalProfiles)
+      items = []
+      for own provider, { nicename } of globals.config.externalProfiles
+        items.push { title : nicename, provider }
+
+      callback null, items
+
+    super options, data
