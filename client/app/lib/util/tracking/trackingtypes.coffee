@@ -25,7 +25,7 @@ module.exports = {
   VM_TURNED_ON    : 'turn on vm'
 
   # KD
-  KD_INSTALLED    : 'installed kd'
+  KD_START_INSTALL : 'started kd install'
 
   # STACKS
   STACKS_ADDED_AWS_KEYS : 'added aws keys'
