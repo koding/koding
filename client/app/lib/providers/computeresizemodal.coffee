@@ -11,7 +11,7 @@ module.exports = class ComputeResizeModal extends ComputePlansModal
   constructor: (options = {}, data) ->
 
     options.cssClass = 'resize-modal'
-    options.height   = 320
+    options.height   = 280
 
     super options, data
 
@@ -69,10 +69,6 @@ module.exports = class ComputeResizeModal extends ComputePlansModal
       loader   : yes
       callback : @bound 'resizeVM'
       disabled : newPossibleStorage <= @machineCurrentStorage
-
-    content.addSubView new CustomLinkView
-      title    : 'Upgrade your account for more storage'
-      href     : '/Pricing'
 
     @updateUsageText newPossibleStorage, usage, maxStorage
 

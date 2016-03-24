@@ -34,7 +34,6 @@ module.exports = class MachineSettingsSpecsView extends KDView
         @createMoreView()
         return showError err
 
-      @createMoreView()  unless subscription.planTitle is 'professional'
 
 
   createIcon: (title, spec) ->
