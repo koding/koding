@@ -29,7 +29,7 @@ module.exports = {
 
   # STACKS
   STACKS_ADDED_AWS_KEYS : 'added aws keys'
-  STACKS_BUILD          : 'build stack'
+  STACKS_START_BUILD    : 'started stack build'
   STACKS_EDIT           : 'edit stack'
   STACKS_REINIT         : 'reinitialized stack'
   STACKS_DELETE         : 'deleted stack'

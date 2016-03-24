@@ -696,7 +696,7 @@ module.exports = class ComputeController extends KDController
 
       machine.getBaseKite( no ).disconnect()
 
-    Tracker.track Tracker.STACKS_BUILD
+    Tracker.track Tracker.STACKS_START_BUILD
 
     stackId = stack._id
     call    = @getKloud().buildStack { stackId }
