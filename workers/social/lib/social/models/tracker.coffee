@@ -37,7 +37,7 @@ module.exports = class Tracker extends bongo.Base
     CHANGED_PASSWORD     : 'changed their password'
     REQUEST_EMAIL_CHANGE : 'requested pin to change email'
     CHANGED_EMAIL        : 'changed their email'
-    INVITED_GROUP        : 'was invited to a group'
+    INVITED_TEAM         : 'was invited to a team'
     INVITED_CREATE_TEAM  : 'was invited to create a team'
     SENT_FEEDBACK        : 'sent feedback'
     TEAMS_JOINED_TEAM    : 'joined team'

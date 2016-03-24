@@ -322,7 +322,7 @@ module.exports = class JInvitation extends jraphical.Module
       inviterImage : imgURL
       link         : groupLink + "Invitation/#{encodeURIComponent invitation.code}"
 
-    Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.INVITED_GROUP }, properties, callback
+    Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.INVITED_TEAM }, properties, callback
 
   getName = (delegate) ->
 
