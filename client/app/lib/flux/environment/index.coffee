@@ -23,4 +23,3 @@ module.exports =
   ]
 
   register: (reactor) -> reactor.registerStores @stores
-  

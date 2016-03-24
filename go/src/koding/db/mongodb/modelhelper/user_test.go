@@ -100,16 +100,21 @@ func TestGetAnyUserTokenFromGroup(t *testing.T) {
 	initMongoConn()
 	defer Close()
 
-	username := "testuser"
+	id := bson.NewObjectId()
+	username := id.Hex()
 	user := &models.User{
-		Name: username, ObjectId: bson.NewObjectId(),
+		ObjectId: id,
+		Name:     username,
+		Email:    username + "@" + username + ".com",
 	}
 
 	err := CreateUser(user)
 	if err != nil {
 		t.Error(err)
 	}
-	groupName := "groupName"
+
+	groupName := bson.NewObjectId().Hex()
+
 	key := fmt.Sprintf("foreignAuth.slack.%s.token", groupName)
 	token := "token-123qwe"
 	selector := bson.M{"username": username}
@@ -119,16 +124,20 @@ func TestGetAnyUserTokenFromGroup(t *testing.T) {
 		t.Error("Error while updating user")
 	}
 
-	username2 := "testuser2"
+	id2 := bson.NewObjectId()
+	username2 := id2.Hex()
 	user2 := &models.User{
-		Name: username2, ObjectId: bson.NewObjectId(),
+		ObjectId: id2,
+		Name:     username2,
+		Email:    username2 + "@" + username2 + ".com",
 	}
 
 	err = CreateUser(user2)
 	if err != nil {
 		t.Error(err)
 	}
-	groupName2 := "groupName2"
+
+	groupName2 := bson.NewObjectId().Hex()
 	key2 := fmt.Sprintf("foreignAuth.slack.%s.token", groupName2)
 	token2 := "token-123qwe11"
 	selector2 := bson.M{"username": username2}

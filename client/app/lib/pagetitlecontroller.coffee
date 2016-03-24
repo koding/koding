@@ -33,7 +33,7 @@ module.exports = class PageTitleController extends KDObject
 
     { socialapi } = kd.singletons
 
-    socialapi.message.byId {id}, (err, message) =>
+    socialapi.message.byId { id }, (err, message) =>
       id              = message.account._id
       constructorName = message.account.constructorName
       remote.cacheable constructorName, id, (err, account) =>
@@ -51,7 +51,7 @@ module.exports = class PageTitleController extends KDObject
       unless defaultState
       then @update "(#{@count}) #{@getAppTitle()}"
       else @update title
-      defaultState = !defaultState
+      defaultState = not defaultState
 
 
   resetCount: ->
@@ -76,7 +76,7 @@ module.exports = class PageTitleController extends KDObject
 
   reset: -> @update @defaultTitle
 
-  get: -> return global.document.title or ""
+  get: -> return global.document.title or ''
 
   getRaw: -> return @get().replace /\([0-9]+\)\s(.*)/, '$1'
 

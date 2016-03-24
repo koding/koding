@@ -188,14 +188,14 @@ module.exports = class PaymentWorkflow extends BaseWorkFlow
 
     @subscribeToPlanWithCallback planTitle, planInterval, token, options, (err, result) =>
 
-        @modal.form.submitButton.hideLoader()
+      @modal.form.submitButton.hideLoader()
 
-        if err
-          @modal.emit 'PaymentFailed', err
-          @increaseFailedAttemptCount()
-        else
-          @modal.emit 'PaymentSucceeded'
-          @trackPaymentSucceeded()
+      if err
+        @modal.emit 'PaymentFailed', err
+        @increaseFailedAttemptCount()
+      else
+        @modal.emit 'PaymentSucceeded'
+        @trackPaymentSucceeded()
 
 
   subscribeToPlanWithCallback: (planTitle, planInterval, token, options, callback = kd.noop) ->
@@ -218,7 +218,7 @@ module.exports = class PaymentWorkflow extends BaseWorkFlow
     unless @startingState.currentPlan is PaymentConstants.planTitle.FREE
       return
 
-    {planTitle, provider, planInterval} = @state
+    { planTitle, provider, planInterval } = @state
     planId  = "#{planTitle}-#{planInterval}"
 
     userId = whoami().getId()
@@ -264,7 +264,7 @@ module.exports = class PaymentWorkflow extends BaseWorkFlow
       return @modal.emit 'PaymentFailed', err  if err
 
       @modal.emit 'DowngradingStarted'
-      @subscribeToPlanWithCallback planTitle, planInterval, 'a', { }, (err, result) =>
+      @subscribeToPlanWithCallback planTitle, planInterval, 'a', {}, (err, result) =>
         return @modal.emit 'PaymentFailed', err  if err
 
         options =

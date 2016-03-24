@@ -18,14 +18,14 @@ MachineSettingsSnapshotsView = require './machinesettingssnapshotsview'
 
 
 PANE_CONFIG = [
-  { title: 'General',       viewClass: MachineSettingsGeneralView   }
-  { title: 'Specs',         viewClass: MachineSettingsSpecsView     }
+  { title: 'General',       viewClass: MachineSettingsGeneralView }
+  { title: 'Specs',         viewClass: MachineSettingsSpecsView }
   { title: 'Disk Usage',    viewClass: MachineSettingsDiskUsageView }
-  { title: 'Domains',       viewClass: MachineSettingsDomainsView   }
+  { title: 'Domains',       viewClass: MachineSettingsDomainsView }
   { title: 'VM Sharing',    viewClass: MachineSettingsVMSharingView }
   { title: 'Snapshots',     viewClass: MachineSettingsSnapshotsView }
-  { title: 'Advanced',      viewClass: MachineSettingsAdvancedView  }
-  { title: 'Common guides', viewClass: MachineSettingsGuidesView    }
+  { title: 'Advanced',      viewClass: MachineSettingsAdvancedView }
+  { title: 'Common guides', viewClass: MachineSettingsGuidesView }
 ]
 
 hiddenTabsForSolo = [
@@ -60,7 +60,7 @@ module.exports = class MachineSettingsModal extends KDModalView
 
   createTabView: ->
 
-    tabHandleContainer = new KDTabHandleContainer cssClass: 'AppModal-nav'
+    tabHandleContainer = new KDTabHandleContainer { cssClass: 'AppModal-nav' }
 
     @addSubView tabHandleContainer
 

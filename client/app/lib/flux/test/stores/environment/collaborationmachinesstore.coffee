@@ -14,7 +14,7 @@ describe 'CollaborationMachinesStore', ->
 
   beforeEach ->
     @reactor = new Reactor
-    @reactor.registerStores collaborationMachines : CollaborationMachinesStore
+    @reactor.registerStores { collaborationMachines : CollaborationMachinesStore }
 
 
   describe '#getInitialState', ->

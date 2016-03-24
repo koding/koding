@@ -73,7 +73,8 @@ func (r *MountEmptyRepair) Status() (bool, error) {
 	// of this repairer.
 	empty, err := r.isDirEmpty(path)
 	if err != nil {
-		return false, err
+		r.Log.Warning("Encountered error not in scope of this repairer. err:%s", err)
+		return true, nil
 	}
 
 	if empty {

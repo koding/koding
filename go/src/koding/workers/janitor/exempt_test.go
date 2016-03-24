@@ -19,7 +19,7 @@ import (
 
 func TestIsUserPaid(t *testing.T) {
 	Convey("Given user who is paid", t, func() {
-		username := "paiduser"
+		username := bson.NewObjectId().Hex()
 		user, _, err := modeltesthelper.CreateUser(username)
 		So(err, ShouldBeNil)
 
@@ -78,9 +78,12 @@ func TestIsUserNotConfirmed(t *testing.T) {
 	warning := &Warning{}
 
 	Convey("Given user who is unconfirmed", t, func() {
-		username := "unconfirmed"
+		username := bson.NewObjectId().Hex()
 		user := &models.User{
-			Name: username, ObjectId: bson.NewObjectId(), Status: "unconfirmed",
+			ObjectId: bson.NewObjectId(),
+			Name:     username,
+			Status:   "unconfirmed",
+			Email:    username + "@" + username + ".com",
 		}
 
 		err := modelhelper.CreateUser(user)
@@ -102,7 +105,7 @@ func TestIsUserVMsEmpty(t *testing.T) {
 	warning := &Warning{}
 
 	Convey("Given user who has no vms", t, func() {
-		username := "emptyVmUser"
+		username := bson.NewObjectId().Hex()
 		user, _, err := modeltesthelper.CreateUser(username)
 
 		So(err, ShouldBeNil)
@@ -120,8 +123,8 @@ func TestIsUserVMsEmpty(t *testing.T) {
 
 	Convey("Given user who has vms", t, func() {
 		user, err := createUserWithVM()
-
 		So(err, ShouldBeNil)
+
 		Convey("Then it returns false for 'no vm' exempt", func() {
 			noVms, err := IsUserVMsEmptyFn(user, warning)
 
@@ -212,10 +215,10 @@ func TestIsUserKodingEmployee(t *testing.T) {
 	warning := &Warning{}
 
 	Convey("Given user who has koding email", t, func() {
-		username := "not-employee"
+		username := bson.NewObjectId().Hex()
 		user := &models.User{
 			Name: username, ObjectId: bson.NewObjectId(), Status: "confirmed",
-			Email: "indiana@gmail.com",
+			Email: username + "@gmail.com",
 		}
 
 		err := modelhelper.CreateUser(user)
@@ -233,10 +236,10 @@ func TestIsUserKodingEmployee(t *testing.T) {
 	})
 
 	Convey("Given user who has koding email", t, func() {
-		username := "koding-employee"
+		username := bson.NewObjectId().Hex()
 		user := &models.User{
 			Name: username, ObjectId: bson.NewObjectId(), Status: "confirmed",
-			Email: "indiana@koding.com",
+			Email: username + "@koding.com",
 		}
 
 		err := modelhelper.CreateUser(user)

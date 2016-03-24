@@ -151,6 +151,12 @@ Configuration = (options={}) ->
     clientSecret : "b72e2576926a5d67119d5b440107639c6499ed42"
     redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback"
 
+  mailgun =
+    domain        : "koding.com"
+    privateKey    : "key-6d4a0c191866434bf958aed924512758"
+    publicKey     : "pubkey-dabf6c392b39cce9bce12e9a582ad051"
+    unsubscribeURL: "https://api.mailgun.net/v3/koding.com/unsubscribes"
+
   slack  =
     clientId          : "2155583316.22363498641"
     clientSecret      : "fc61c7db5a3acd2dfbe808ba73b1002a"
@@ -209,6 +215,7 @@ Configuration = (options={}) ->
     segment                 : segment
     disabledFeatures        : disabledFeatures
     janitor                 : { port: "6700", secretKey: "janitorsecretkey-dev" }
+    mailgun                 : mailgun
 
   userSitesDomain     = "dev.koding.io"
   hubspotPageURL      = "http://www.koding.com"
@@ -303,6 +310,7 @@ Configuration = (options={}) ->
     jwt                            : {secret: "71c25e4dc728431b88f82bd3e7a600c9"                     , confirmExpiresInMinutes: 10080  } # 7 days
     papertrail                     : {destination: 'logs3.papertrailapp.com:13734'                   , groupId: 2199093                                              , token: '4p4KML0UeU4ijb0swx' }
     sendEventsToSegment            : options.sendEventsToSegment
+    mailgun                        : mailgun
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   # NOTE: when you add to runtime options below, be sure to modify

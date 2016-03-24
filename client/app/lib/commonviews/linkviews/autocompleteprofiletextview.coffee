@@ -4,17 +4,17 @@ getFullnameFromAccount = require '../../util/getFullnameFromAccount'
 
 module.exports = class AutoCompleteProfileTextView extends ProfileTextView
 
-  highlightMatch:(str, isNick=no)->
+  highlightMatch: (str, isNick = no) ->
 
-    {userInput} = @getOptions()
+    { userInput } = @getOptions()
     unless userInput
       str
     else if str
-      str = str.replace RegExp(userInput, 'gi'), (match)=>
+      str = str.replace RegExp(userInput, 'gi'), (match) =>
         if isNick then @setClass 'nick-matches'
         return "<b>#{match}</b>"
 
-  pistachio:->
+  pistachio: ->
 
     name = getFullnameFromAccount @getData()
     "#{@highlightMatch name}" +

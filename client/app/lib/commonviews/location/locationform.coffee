@@ -33,7 +33,7 @@ module.exports = class LocationForm extends KDFormViewWithFields
     options.fields.address1 ?=
       label             : 'Address & ZIP'
       placeholder       : 'Address'
-      required          : "Address is required"
+      required          : 'Address is required'
       defaultValue      : data.address1
 
       nextElementFlat   :
@@ -41,19 +41,19 @@ module.exports = class LocationForm extends KDFormViewWithFields
           placeholder   : 'ZIP'
           defaultValue  : data.zip
           keyup         : @bound 'handleZipCode'
-          required      : "Zip is required"
+          required      : 'Zip is required'
 
     options.fields.city ?=
       label             : 'City & State'
       placeholder       : 'City'
       defaultValue      : data.city
-      required          : "City is required"
+      required          : 'City is required'
       nextElementFlat   :
         state           :
           placeholder   : 'State'
           itemClass     : KDSelectBox
           defaultValue  : data.state
-          required      : "State is required"
+          required      : 'State is required'
 
     options.fields.country ?=
       label             : 'Country'
@@ -69,7 +69,7 @@ module.exports = class LocationForm extends KDFormViewWithFields
         defaultValue      : data.phone
 
       if requirePhone
-        options.fields.phone.required = "Phone number is required."
+        options.fields.phone.required = 'Phone number is required.'
 
     if options.buttons is no
       delete options.buttons
@@ -84,7 +84,7 @@ module.exports = class LocationForm extends KDFormViewWithFields
 
     return options
 
-  handleZipCode:->
+  handleZipCode: ->
 
     { JLocation } = remote.api
 
@@ -112,20 +112,20 @@ module.exports = class LocationForm extends KDFormViewWithFields
         state.setValue actualState
 
   setLocation: (location) ->
-      ['city', 'stateCode', 'countryCode'].forEach (field) =>
-        value = location[field]
-        inputName = switch field
-          when 'city' then 'city'
+    ['city', 'stateCode', 'countryCode'].forEach (field) =>
+      value = location[field]
+      inputName = switch field
+        when 'city' then 'city'
 
-          when 'stateCode'
-            @addCustomData 'actualState', value
-            'state'
+        when 'stateCode'
+          @addCustomData 'actualState', value
+          'state'
 
-          when 'countryCode' then 'country'
+        when 'countryCode' then 'country'
 
-        input = @inputs[inputName]
+      input = @inputs[inputName]
 
-        input.setValue value  if input? # TODO: `and not input.isDirty()` or something like that C.T.
+      input.setValue value  if input? # TODO: `and not input.isDirty()` or something like that C.T.
 
   setCountryData: ({ countries, countryOfIp }) ->
     { country } = @inputs

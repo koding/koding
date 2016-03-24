@@ -15,7 +15,7 @@ module.exports = class AvatarArea extends KDCustomHTMLView
 
   JView.mixin @prototype
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass or= 'avatar-area'
 
@@ -147,7 +147,7 @@ module.exports = class AvatarArea extends KDCustomHTMLView
 
   bindNotificationsPopupEvents: ->
 
-    @notificationsPopup.on 'NotificationCountDidChange', (count)=>
+    @notificationsPopup.on 'NotificationCountDidChange', (count) =>
       kd.utils.killWait @notificationsPopup.loaderTimeout
       @notificationsIcon.updateCount count
 
@@ -155,20 +155,20 @@ module.exports = class AvatarArea extends KDCustomHTMLView
   pistachio: ->
 
     if isKoding() and isSoloProductLite()
-      """
+      '''
       {{> @avatar}}
       {{> @profileName}}
       {{> @accountIcon}}
-      """
+      '''
     else if isKoding()
-      """
+      '''
       {{> @avatar}}
       {{> @profileName}}
       {{> @notificationsIcon}}
       {{> @accountIcon}}
-      """
+      '''
     else
-      """
+      '''
       {{> @avatar}}
       {{> @notificationsIcon}}
-      """
+      '''

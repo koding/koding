@@ -14,7 +14,7 @@ module.exports = ->
       line = "[#{dateFormat Date.now(), "HH:MM:ss"}][#{method[0]}] "
       for arg in arguments
         if typeof arg is 'object'
-          arg = objectToString arg, maxDepth: 6
+          arg = objectToString arg, { maxDepth: 6 }
         line += "#{arg} "
 
       unless line is globals.__logs.last
@@ -22,17 +22,17 @@ module.exports = ->
 
       return line
 
-  global.onerror = (err, url, line)->
+  global.onerror = (err, url, line) ->
     (_log 'error') "#{err} at #{url} line #{line}"
     return true
 
-  for method in ['trace','time','timeEnd']
+  for method in ['trace', 'time', 'timeEnd']
     global[method] = kd.noop
 
-  for method in ['warn','log','error','info','debug']
+  for method in ['warn', 'log', 'error', 'info', 'debug']
     global.konsole[method] ?= global.console[method]
     global.console[method] = global[method] = _log method
 
   delete globals.logsEnabled
 
-  return "Logs are disabled now."
+  return 'Logs are disabled now.'

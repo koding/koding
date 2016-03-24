@@ -15,24 +15,24 @@ module.exports = class CredentialListItem extends kd.ListItemView
     { identifier, owner, title, verified } = credential = @getData()
 
     @deleteButton = new kd.ButtonView
-      cssClass : 'solid compact outline red secondary'
+      cssClass : 'solid compact outline red secondary delete'
       title    : 'DELETE'
       callback : delegate.lazyBound 'deleteItem', this
 
     @showCredentialButton = new kd.ButtonView
-      cssClass : 'solid compact outline secondary'
+      cssClass : 'solid compact outline secondary show'
       title    : 'SHOW'
       callback : delegate.lazyBound 'showItemContent', this
 
     @verifyButton = new kd.ButtonView
-      cssClass : 'solid compact outline'
+      cssClass : 'solid compact outline verify'
       title    : 'USE THIS & CONTINUE'
       loader   :
         color  : '#666'
       callback : @bound 'verifyCredential'
 
     @inuseView = new kd.CustomHTMLView
-      cssClass : 'custom-tag hidden'
+      cssClass : 'custom-tag hidden inuse'
       partial  : 'IN USE'
       tooltip  :
         title  : 'This stack template currently using this credential'
@@ -74,7 +74,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
   verifyCredential: ->
 
-    {identifier} = @getData()
+    { identifier } = @getData()
 
     @warningView.hide()
 

@@ -22,6 +22,10 @@ ssh -o 'StrictHostKeyChecking no' \
     ubuntu@$HOST \
     IGNORED_TEST_CASES="'$IGNORED_TEST_CASES'" \
     NIGHTWATCH_OPTIONS="'$NIGHTWATCH_OPTIONS'" \
+    CI="'$CI'" \
+    WERCKER_BUILD_URL="'$WERCKER_BUILD_URL'" \
+    WERCKER_GIT_BRANCH="'$WERCKER_GIT_BRANCH'" \
+    WERCKER_STARTED_BY="'$WERCKER_STARTED_BY'" \
     "sudo -E /opt/koding/client/test/run.sh $OPTIONS" &
 
 PID=$!

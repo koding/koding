@@ -6,7 +6,7 @@ module.exports =
   componentDidMount: ->
 
     @scrollerAction = null
-    window.addEventListener "resize", @bound 'onWindowResize'
+    window.addEventListener 'resize', @bound 'onWindowResize'
 
 
   componentWillUpdate: ->
@@ -27,7 +27,7 @@ module.exports =
 
   componentWillUnmount: ->
 
-    window.removeEventListener "resize", @bound 'onWindowResize'
+    window.removeEventListener 'resize', @bound 'onWindowResize'
 
 
   shouldScrollToBottom: ->

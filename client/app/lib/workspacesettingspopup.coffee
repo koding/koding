@@ -12,33 +12,33 @@ envDataProvider = require 'app/userenvironmentdataprovider'
 
 module.exports = class WorkspaceSettingsPopup extends KDModalViewWithForms
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options         = kd.utils.extend options,
-      title         : "Workspace settings"
+      title         : 'Workspace settings'
       cssClass      : 'activity-modal ws-settings'
-      content       : ""
+      content       : ''
       overlay       : yes
       width         : 268
       height        : 'auto'
       arrowTop      : no
-      tabs          : forms: Settings: fields:
+      tabs          : { forms: { Settings: { fields:
         guides      :
-          label     : "Related Guides"
+          label     : 'Related Guides'
           itemClass : GuidesLinksView
-          links     : "Understanding Workspaces" : "https://koding.com/docs/getting-started-workspaces"
-
+          links     : { 'Understanding Workspaces' : 'https://koding.com/docs/getting-started-workspaces' }
+      } } }
     super options, data
 
-  viewAppended:->
+  viewAppended: ->
 
     navItem   = @getDelegate()
     workspace = navItem.getData()
     deleteRelatedFiles = no
 
-    @addSubView @buttonContainer = new KDCustomHTMLView tagName : 'ul'
+    @addSubView @buttonContainer = new KDCustomHTMLView { tagName : 'ul' }
 
-    @buttonContainer.addSubView button = new KDCustomHTMLView tagName : 'li'
+    @buttonContainer.addSubView button = new KDCustomHTMLView { tagName : 'li' }
     button.addSubView @deleteButton = new KDButtonView
       style    : 'solid compact red delete-ws-modal'
       title    : 'Delete Workspace'
@@ -47,12 +47,12 @@ module.exports = class WorkspaceSettingsPopup extends KDModalViewWithForms
         @deleteButton.showLoader()
 
         wsId = workspace.getId()
-        remote.api.JWorkspace.deleteById wsId, (err)=>
+        remote.api.JWorkspace.deleteById wsId, (err) =>
 
           return  if showError err
 
           { machineUId, rootPath } = workspace
-          { router, appManager   } = kd.singletons
+          { router, appManager }   = kd.singletons
 
           if deleteRelatedFiles
             methodName = 'deleteWorkspaceRootFolder'
@@ -67,18 +67,18 @@ module.exports = class WorkspaceSettingsPopup extends KDModalViewWithForms
           router.handleRoute "/IDE/#{workspace.machineLabel}/my-workspace"
 
     @buttonContainer.addSubView field = new KDCustomHTMLView
-        tagName : 'li'
-        cssClass : 'delete-files'
+      tagName : 'li'
+      cssClass : 'delete-files'
 
     title = new KDCustomHTMLView
-        tagName  : 'label'
-        partial  : 'also delete its files'
-        cssClass : "kdlabel"
+      tagName  : 'label'
+      partial  : 'also delete its files'
+      cssClass : 'kdlabel'
 
     fieldSwitch = new KodingSwitch
-        defaultValue  : deleteRelatedFiles
-        cssClass      : 'tiny'
-        callback      : (state) -> deleteRelatedFiles = state
+      defaultValue  : deleteRelatedFiles
+      cssClass      : 'tiny'
+      callback      : (state) -> deleteRelatedFiles = state
 
     field.addSubView title
     field.addSubView fieldSwitch
@@ -87,4 +87,4 @@ module.exports = class WorkspaceSettingsPopup extends KDModalViewWithForms
 
     _addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
-      position : top : 40
+      position : { top : 40 }

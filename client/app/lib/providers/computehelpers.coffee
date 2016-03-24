@@ -1,17 +1,17 @@
-kd                    = require 'kd'
-KDNotificationView    = kd.NotificationView
+kd                     = require 'kd'
+KDNotificationView     = kd.NotificationView
 
-globals               = require 'globals'
-Promise               = require 'bluebird'
+globals                = require 'globals'
+Promise                = require 'bluebird'
 
-remote                = require('app/remote').getInstance()
-nick                  = require 'app/util/nick'
-showError             = require 'app/util/showError'
+remote                 = require('app/remote').getInstance()
+nick                   = require 'app/util/nick'
+showError              = require 'app/util/showError'
 
-Machine               = require './machine'
-ComputePlansModalPaid = require './computeplansmodalpaid'
-ComputePlansModalFree = require './computeplansmodalfree'
-AddManagedMachineModal= require './managed/addmanagedmachinemodal'
+Machine                = require './machine'
+ComputePlansModalPaid  = require './computeplansmodalpaid'
+ComputePlansModalFree  = require './computeplansmodalfree'
+AddManagedMachineModal = require './managed/addmanagedmachinemodal'
 
 
 module.exports = class ComputeHelpers
@@ -55,7 +55,7 @@ module.exports = class ComputeHelpers
 
     { computeController } = kd.singletons
 
-    computeController.fetchMachines (err, machines)->
+    computeController.fetchMachines (err, machines) ->
 
       return callback err  if err?
 
@@ -112,7 +112,7 @@ module.exports = class ComputeHelpers
     return result
 
 
-  @handleNewMachineRequest = (options = {}, callback = kd.noop)->
+  @handleNewMachineRequest = (options = {}, callback = kd.noop) ->
 
     cc = kd.singletons.computeController
     redirectAfterCreation = options.redirectAfterCreation ? yes
@@ -187,52 +187,52 @@ module.exports = class ComputeHelpers
             kd.singletons.router.handleRoute route
 
 
-  @reviveProvisioner = (machine, callback)->
+  @reviveProvisioner = (machine, callback) ->
 
     provisioner = machine.provisioners?.first
     return callback null  unless provisioner
 
     remote = require('app/remote').getInstance()
-    remote.api.JProvisioner.one slug: provisioner, callback
+    remote.api.JProvisioner.one { slug: provisioner }, callback
 
 
-  @runInitScript = (machine, inTerminal = yes)->
+  @runInitScript = (machine, inTerminal = yes) ->
 
     { status: { state } } = machine
     unless state is Machine.State.Running
       return new KDNotificationView
-        title : "Machine is not running."
+        title : 'Machine is not running.'
 
-    envVariables = ""
+    envVariables = ''
     for key, value of machine.stack?.config or {}
       envVariables += """export #{key}="#{value}"\n"""
 
-    @reviveProvisioner machine, (err, provisioner)=>
+    @reviveProvisioner machine, (err, provisioner) =>
 
       if err
         return new KDNotificationView
-          title : "Failed to fetch build script."
+          title : 'Failed to fetch build script.'
       else if not provisioner
         return new KDNotificationView
-          title : "Provision script is not set."
+          title : 'Provision script is not set.'
 
-      {content: {script}} = provisioner
+      { content: { script } } = provisioner
 
       htmlencode = require 'htmlencode'
       script = htmlencode.htmlDecode script
 
-      path = provisioner.slug.replace "/", "-"
+      path = provisioner.slug.replace '/', '-'
       path = "/tmp/init-#{path}"
-      machine.fs.create { path }, (err, file)=>
+      machine.fs.create { path }, (err, file) =>
 
         if err or not file
           return new KDNotificationView
-            title : "Failed to upload build script."
+            title : 'Failed to upload build script.'
 
         script  = "#{envVariables}\n\n#{script}\n"
         script += "\necho $?|kdevent;rm -f #{path};exit"
 
-        file.save script, (err)->
+        file.save script, (err) ->
           return if showError err
 
           command = "bash #{path};exit"
@@ -240,22 +240,22 @@ module.exports = class ComputeHelpers
           if not inTerminal
 
             new KDNotificationView
-              title: "Init script running in background..."
+              title: 'Init script running in background...'
 
             machine.getBaseKite().exec { command }
-              .then (res)->
+              .then (res) ->
 
                 new KDNotificationView
-                  title: "Init script executed"
+                  title: 'Init script executed'
 
-                kd.info  "Init script executed : ", res.stdout  if res.stdout
-                kd.error "Init script failed   : ", res.stderr  if res.stderr
+                kd.info  'Init script executed : ', res.stdout  if res.stdout
+                kd.error 'Init script failed   : ', res.stderr  if res.stderr
 
-              .catch (err)->
+              .catch (err) ->
 
                 new KDNotificationView
-                  title: "Init script executed successfully"
-                kd.error "Init script failed:", err
+                  title: 'Init script executed successfully'
+                kd.error 'Init script failed:', err
 
             return
 
@@ -269,19 +269,19 @@ module.exports = class ComputeHelpers
             machine
           }
 
-          modal.once "terminal.event", (data)->
+          modal.once "terminal.event", (data) ->
 
-            if data is "0"
-              title   = "Installed successfully!"
-              content = "You can now safely close this Terminal."
+            if data is '0'
+              title   = 'Installed successfully!'
+              content = 'You can now safely close this Terminal.'
             else
-              title   = "An error occurred."
-              content = """Something went wrong while running build script.
-                           Please try again."""
+              title   = 'An error occurred.'
+              content = '''Something went wrong while running build script.
+                           Please try again.'''
 
             new KDNotificationView {
               title, content
-              type          : "tray"
+              type          : 'tray'
               duration      : 0
               container     : modal
               closeManually : no
@@ -291,19 +291,19 @@ module.exports = class ComputeHelpers
   # This method is not used in any place, I put it here until
   # we have a valid test suit for client side modular tests. ~ GG
   #
-  @infoTest = (count = 5)->
+  @infoTest = (count = 5) ->
 
-    {log} = kd
-    cc    = kd.singletons.computeController
+    { log } = kd
+    cc      = kd.singletons.computeController
 
-    kloud = cc.getKloud()
-    {now} = Date
+    kloud   = cc.getKloud()
+    { now } = Date
 
     machine      = cc.machines.first
     machineId    = machine._id
     currentState = machine.status.state
 
-    tester = (cb)->
+    tester = (cb) ->
 
       i      = 0
       res    = {}
@@ -330,7 +330,7 @@ module.exports = class ComputeHelpers
           console.timeEnd "kl_#{i}"
           i++
 
-          if i == count then cb res, failed else info()
+          if i is count then cb res, failed else info()
 
       info()
 
@@ -338,7 +338,7 @@ module.exports = class ComputeHelpers
 
     log "Starting to test `info` for #{count} times with klient.info enabled"
     console.time 'via klient.info'
-    tester (res, failed)->
+    tester (res, failed) ->
       console.timeEnd 'via klient.info'
       log 'All completed:', res, failed
 
@@ -346,6 +346,6 @@ module.exports = class ComputeHelpers
 
       log "Starting to test `info` for #{count} times with klient.info disabled"
       console.time 'via kloud.info'
-      tester (res, failed)->
+      tester (res, failed) ->
         console.timeEnd 'via kloud.info'
         log 'All completed:', res, failed

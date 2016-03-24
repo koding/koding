@@ -48,4 +48,5 @@ const (
 	SlackOauthCallback = "slack-oauth-callback"
 	SlackOauthSuccess  = "slack-oauth-succeess"
 	SlackOauthSend     = "slack-oauth-send"
+	MailPublishEvent   = "mail-publish-event"
 )

@@ -18,12 +18,12 @@ module.exports = class KlientEventManager extends kd.Object
     super options, machine
 
     unless machine
-      throw new Error kd.err "KlientEventManager requires a Machine"
+      throw new Error kd.err 'KlientEventManager requires a Machine'
 
     @kite = machine.getBaseKite()
 
     if @kite.isDisconnected
-      throw new Error "KlientEventManager requires an active Kite connection"
+      throw new Error 'KlientEventManager requires an active Kite connection'
 
     @subscribe eventName, callback  for eventName, callback of options
 

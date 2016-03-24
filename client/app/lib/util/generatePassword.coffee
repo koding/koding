@@ -22,6 +22,6 @@ fn = (length = 10, memorable = yes, pattern = /\w/, prefix = '') ->
   unless pattern.test chr
     return fn length, memorable, pattern, prefix
 
-  return fn length, memorable, pattern, "" + prefix + chr
+  return fn length, memorable, pattern, '' + prefix + chr
 
 module.exports = fn

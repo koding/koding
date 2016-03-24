@@ -59,7 +59,7 @@ class ShortcutsController extends events.EventEmitter
   # This also exposes convenience proxy methods to the underlying keyconfig
   # instance, and persists the state of a keyconfig#Collection to the app storage.
   #
-  constructor: (options={}, data) ->
+  constructor: (options = {}, data) ->
 
     @_store  = null
     @_buffer = null
@@ -68,9 +68,9 @@ class ShortcutsController extends events.EventEmitter
       @shortcuts = options.shortcuts
     else
       @shortcuts = new Shortcuts _.keys(defaults).reduce (acc, key) ->
-          acc[key] = defaults[key].data
-          return acc
-        , {}
+        acc[key] = defaults[key].data
+        return acc
+      , {}
 
     @_flushBuffer()
 
@@ -148,7 +148,7 @@ class ShortcutsController extends events.EventEmitter
       _.each buffer, (objs, collectionName) =>
         collection = @get collectionName
         _.each objs, (value) =>
-          @emit 'change', collection, collection.find name: value.name
+          @emit 'change', collection, collection.find { name: value.name }
 
     return
 
@@ -162,7 +162,8 @@ class ShortcutsController extends events.EventEmitter
   restore: (cb) ->
 
     unless @_store.isReady
-      throw 'store is not ready'
+      storeIsNotReady = 'store is not ready'
+      throw storeIsNotReady
 
     appId = @_store._applicationID
     pack  = {}
@@ -178,7 +179,7 @@ class ShortcutsController extends events.EventEmitter
       @shortcuts.config.each (collection) =>
 
         collection.each (model) =>
-          raw = _.find defaults[collection.name].data, name: model.name
+          raw = _.find defaults[collection.name].data, { name: model.name }
           return  if raw.options?.hidden
 
           binding = raw.binding[klass._bindingPlatformIndex()]
@@ -186,7 +187,7 @@ class ShortcutsController extends events.EventEmitter
 
           @shortcuts.update collection.name, model.name, {
             binding: klass._replacePlatformBinding model, binding
-            options: enabled: enabled
+            options: { enabled: enabled }
           },
             klass._isCustomShortcut raw
 
@@ -205,7 +206,7 @@ class ShortcutsController extends events.EventEmitter
   _handleShortcutsChange: (collection, model) ->
 
     queue   = @_buffer[collection.name]
-    obj     = name: model.name
+    obj     = { name: model.name }
     binding = klass._getPlatformBinding model
 
     if (_.isArray binding) and  (not _.isEmpty binding)
@@ -217,7 +218,7 @@ class ShortcutsController extends events.EventEmitter
     # appstorage. Defaults may change, but user overrides should stay.
     obj.enabled = if model.options?.enabled is no then no else yes
 
-    idx = _.findIndex queue, name: model.name
+    idx = _.findIndex queue, { name: model.name }
     idx = if ~idx then idx else queue.length
 
     queue[idx] = obj
@@ -236,7 +237,7 @@ class ShortcutsController extends events.EventEmitter
       collection = @shortcuts.get collectionName
 
       _.each objs, (override) =>
-        model = collection.find name: override.name
+        model = collection.find { name: override.name }
         return  unless model
 
         enabled = if model.options?.enabled is no then no else yes
@@ -248,7 +249,7 @@ class ShortcutsController extends events.EventEmitter
           @emit 'change', collection,
             @shortcuts.update collection.name, model.name, {
               binding: klass._replacePlatformBinding model, override.binding
-              options: enabled: override.enabled
+              options: { enabled: override.enabled }
             },
               klass._isCustomShortcut model
 
@@ -299,16 +300,19 @@ class ShortcutsController extends events.EventEmitter
   #
   update: (collectionName, modelName, value) ->
 
-    throw 'value must be an object'  unless _.isObject value
+    objectValue = 'value must be an object'
+    throw objectValue  unless _.isObject value
 
     overrides = _.pick value, 'binding', 'options'
 
-    throw 'missing \'binding\' and/or \'options\' props'  if _.isEmpty overrides
+    emptyOverrides = 'missing \'binding\' and/or \'options\' props'
+    throw emptyOverrides  if _.isEmpty overrides
     console.warn 'changes won\'t be persisted, storage is not ready yet'  unless @_store.isReady
 
     model = @shortcuts.get collectionName, modelName
 
-    throw "#{modelName} not found"  unless model
+    notFoundModel = "#{modelName} not found"
+    throw notFoundModel  unless model
 
     # lodash#pick returns a shallow copy; make sure we don't override the given value.
     overrides = _.clone overrides, yes
@@ -368,7 +372,7 @@ class ShortcutsController extends events.EventEmitter
       , []
 
     _.each extended, (value, key) ->
-      if ~(idx = _.findIndex(repr, _key: key))
+      if ~(idx = _.findIndex(repr, { _key: key }))
         repr[idx].models = repr[idx].models.concat value
 
     return repr
@@ -500,7 +504,8 @@ class ShortcutsController extends events.EventEmitter
 
     if _.isString keys then keys = keys.split '+'
 
-    renderBinding keys:
+    renderBinding { keys:
       if globals.os isnt 'mac'
       then _.map keys, (value) -> convertCase value
       else _.map keys, (value) -> MAC_UNICODE[value] or convertCase value
+    }

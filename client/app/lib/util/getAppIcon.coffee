@@ -2,7 +2,7 @@ kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 globals = require 'globals'
 
-module.exports = (name)->
+module.exports = (name) ->
 
   # resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
 
@@ -15,14 +15,14 @@ module.exports = (name)->
   #     thumb = "#{resourceRoot}/#{icns[String size]}"
   #     break
 
-  image  = if name is "Ace" then "icn-ace" else "default.app.thumb"
+  image  = if name is 'Ace' then 'icn-ace' else 'default.app.thumb'
   thumb  = "#{globals.config.apiUri}/a/images/#{image}.png"
 
   img = new KDCustomHTMLView
-    tagName     : "img"
-    bind        : "error"
+    tagName     : 'img'
+    bind        : 'error'
     error       : ->
-      @getElement().setAttribute "src", "/a/images/default.app.thumb.png"
+      @getElement().setAttribute 'src', '/a/images/default.app.thumb.png'
     attributes  :
       src       : thumb
 

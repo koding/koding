@@ -15,12 +15,12 @@ class ConnectionChecker extends kd.Object
         type          : 'tray'
         closeManually : yes
         duration      : 0
-        content       : """
+        content       : '''
           <p>Koding will continue trying to reconnect but while your
           connection is down, <br>
           no changes you make will be saved back to your VM.
           Please save your work locally as well.</p>
-        """
+        '''
 
     hide: ->
       notification?.destroy()

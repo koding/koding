@@ -1,6 +1,8 @@
-jspath = require 'jspath'
-kd = require 'kd'
+jspath     = require 'jspath'
+kd         = require 'kd'
 AppStorage = require './appstorage'
+blacklist  = require './util/blacklistforlocalstorage'
+globals    = require 'globals'
 
 
 module.exports = class LocalStorage extends AppStorage
@@ -35,10 +37,10 @@ module.exports = class LocalStorage extends AppStorage
 
 
   fetchStorage: ->
-    kd.utils.defer => @emit "ready"
+    kd.utils.defer => @emit 'ready'
 
 
-  getValue: (key)->
+  getValue: (key) ->
     data = @_storageData[key]
     return data  if data
     data = storage[@getSignature key]
@@ -50,7 +52,7 @@ module.exports = class LocalStorage extends AppStorage
     return data
 
 
-  getAt: (path)->
+  getAt: (path) ->
     return  unless path
     keys = path.split '.'
     data = @getValue keys.shift()
@@ -59,7 +61,7 @@ module.exports = class LocalStorage extends AppStorage
     jspath.getAt data, keys.join '.'
 
 
-  setAt: (path, value, callback)->
+  setAt: (path, value, callback) ->
     return  unless path and value
     keys = path.split '.'
     key  = keys.shift()
@@ -69,31 +71,35 @@ module.exports = class LocalStorage extends AppStorage
       @setValue key, (jspath.setAt {}, (keys.join '.'), value), callback
 
 
-  fetchValue: (key, callback)->
+  fetchValue: (key, callback) ->
     callback? @getValue key
 
 
-  setValue: (key, value, callback)->
+  setValue: (key, value, callback) ->
     @_storageData[key] = value or ''
     try storage[@getSignature key] = (JSON.stringify value) or ''
-    kd.utils.defer => callback? null
+    kd.utils.defer -> callback? null
 
 
-  unsetKey: (key)->
+  unsetKey: (key) ->
     delete storage[@getSignature key]
     delete @_storageData[key]
 
 
-  getSignature:(key)->
+  getSignature: (key) ->
     "koding-#{@_applicationID}-#{@_applicationVersion}-#{key}"
 
 
-  getLocalStorageKeys:->
+  getLocalStorageKeys: ->
     return Object.keys storage
 
 
-  @setValue = (key, value)->
+  @setValue = (key, value) ->
     try storage[key] = value
 
 
   @getStorage = -> storage
+
+  @sanitize = ->
+    storage = @getStorage()
+    storage.removeItem k for k of storage when k in blacklist

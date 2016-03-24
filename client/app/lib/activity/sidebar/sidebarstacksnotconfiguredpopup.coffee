@@ -22,7 +22,7 @@ module.exports = class SidebarStacksNotConfiguredPopup extends kd.ModalView
 
     arrow = new kd.CustomHTMLView
       cssClass  : 'modal-arrow'
-      position  : top : 20
+      position  : { top : 20 }
 
     @addSubView arrow, ''
 

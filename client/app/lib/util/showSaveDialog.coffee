@@ -11,32 +11,32 @@ envDataProvider = require 'app/userenvironmentdataprovider'
 module.exports = (container, callback = kd.noop, options = {}) ->
 
   container.addSubView dialog = new KDDialogView
-    cssClass      : kd.utils.curry "save-as-dialog", options.cssClass
+    cssClass      : kd.utils.curry 'save-as-dialog', options.cssClass
     overlay       : yes
     container     : container
-    height        : "auto"
+    height        : 'auto'
     buttons       :
       Save        :
-        style     : "solid green medium"
-        callback  : => callback input, finderController, dialog
+        style     : 'solid green medium'
+        callback  : -> callback input, finderController, dialog
       Cancel      :
-        style     : "solid medium nobg"
-        callback  : =>
+        style     : 'solid medium nobg'
+        callback  : ->
           finderController.stopAllWatchers()
           finderController.destroy()
           dialog.hide()
 
   dialog.addSubView wrapper = new KDView
-    cssClass : "kddialog-wrapper"
+    cssClass : 'kddialog-wrapper'
 
   wrapper.addSubView form = new KDFormView
 
   form.addSubView label = new KDLabelView
-    title : options.inputLabelTitle or "Filename:"
+    title : options.inputLabelTitle or 'Filename:'
 
   form.addSubView input = new KDInputView
     label        : label
-    defaultValue : options.inputDefaultValue or ""
+    defaultValue : options.inputDefaultValue or ''
     keydown      : (event) ->
       dialog.buttons.Save.click()  if event.which is 13
 
@@ -46,7 +46,7 @@ module.exports = (container, callback = kd.noop, options = {}) ->
     input.off 'keydown'
 
   form.addSubView new KDLabelView
-    title : options.finderLabel or "Select a folder:"
+    title : options.finderLabel or 'Select a folder:'
 
   dialog.show()
   input.setFocus()
@@ -63,7 +63,7 @@ module.exports = (container, callback = kd.noop, options = {}) ->
 
   finderController.reset()
 
-  form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog save-file-container", null
+  form.addSubView finderWrapper = new KDView { cssClass : 'save-as-dialog save-file-container' }, null
   finderWrapper.addSubView finderController.getView()
   finderWrapper.setHeight 200
 

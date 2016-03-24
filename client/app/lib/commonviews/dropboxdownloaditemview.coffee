@@ -9,23 +9,23 @@ module.exports = class DropboxDownloadItemView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "dropbox-download-item"
+    options.cssClass = 'dropbox-download-item'
 
     super options, data
 
     fileData = @getData()
 
     @thumbnail   = new KDCustomHTMLView
-      tagName    : "image"
+      tagName    : 'image'
       attributes :
-        src      : fileData.thumbnails["64x64"] or fileData.icon
+        src      : fileData.thumbnails['64x64'] or fileData.icon
 
     @fileName    = new KDCustomHTMLView
-      cssClass   : "file-name"
+      cssClass   : 'file-name'
       partial    : fileData.name
 
     @fileSize    = new KDCustomHTMLView
-      cssClass   : "file-size"
+      cssClass   : 'file-size'
       partial    : formatBytesToHumanReadable fileData.bytes
 
     @loader      = new KDLoaderView
@@ -33,13 +33,13 @@ module.exports = class DropboxDownloadItemView extends JView
         width    : 24
 
     @success     = new KDCustomHTMLView
-      cssClass   : "done"
+      cssClass   : 'done'
 
     @success.hide()
 
-    @on "FileNeedsToBeDownloaded", (path) ->
+    @on 'FileNeedsToBeDownloaded', (path) ->
       @loader.show()
-      kd.getSingleton("vmController").run
+      kd.getSingleton('vmController').run
         withArgs: "cd #{path} ; wget #{fileData.link}"
         vmName  : @getOptions().nodeView.getData().vmName
       , (err, res) =>
@@ -48,10 +48,10 @@ module.exports = class DropboxDownloadItemView extends JView
 
         @loader.hide()
         @success.show()
-        @emit "FileDownloadDone"
+        @emit 'FileDownloadDone'
 
   pistachio: ->
-    """
+    '''
       {{> @thumbnail}}
       <div class="details">
         {{> @fileName}}
@@ -61,4 +61,4 @@ module.exports = class DropboxDownloadItemView extends JView
         {{> @loader}}
         {{> @success}}
       </div>
-    """
+    '''

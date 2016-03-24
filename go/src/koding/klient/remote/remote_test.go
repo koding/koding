@@ -172,12 +172,35 @@ func TestGetMachinesWithoutCache(t *testing.T) {
 			machineNamesCache: map[string]string{},
 			storage:           store,
 		}
+		// Sanity check our count.
+		So(r.machines.Count(), ShouldEqual, 0)
 
 		// Sanity check our config
 		So(kg.Clients[0].Reconnect, ShouldBeFalse)
 		Convey("It should configure the kite Client", func() {
 			r.GetMachinesWithoutCache()
 			So(kg.Clients[0].Reconnect, ShouldBeTrue)
+		})
+
+		Convey("It should add the new machine", func() {
+			machines, err := r.GetMachinesWithoutCache()
+			So(err, ShouldBeNil)
+			So(machines, ShouldNotBeNil)
+			So(machines.Count(), ShouldEqual, 1)
+		})
+
+		Convey("It should create the HTTPTracker", func() {
+			machines, err := r.GetMachinesWithoutCache()
+			So(err, ShouldBeNil)
+			So(machines, ShouldNotBeNil)
+
+			mach := machines.Machines()[0]
+			So(mach, ShouldNotBeNil)
+			So(mach.HTTPTracker, ShouldNotBeNil)
+
+			Convey("It should start the HTTPTracker", func() {
+				So(mach.HTTPTracker.IsPinging(), ShouldBeTrue)
+			})
 		})
 	})
 
@@ -202,7 +225,7 @@ func TestGetMachinesWithoutCache(t *testing.T) {
 		// Add a machine, with just enough info to serve our needs
 		r.machines.Add(&machine.Machine{
 			MachineMeta: machine.MachineMeta{
-				IP: "localhost1",
+				IP: "testhost1",
 			},
 		})
 
@@ -211,6 +234,27 @@ func TestGetMachinesWithoutCache(t *testing.T) {
 		Convey("It should configure the kite Client", func() {
 			r.GetMachinesWithoutCache()
 			So(kg.Clients[0].Reconnect, ShouldBeTrue)
+		})
+
+		Convey("It should not add a new machine for the kite", func() {
+			machines, err := r.GetMachinesWithoutCache()
+			So(err, ShouldBeNil)
+			So(machines, ShouldNotBeNil)
+			So(machines.Count(), ShouldEqual, 1)
+		})
+
+		Convey("It should create the HTTPTracker", func() {
+			machines, err := r.GetMachinesWithoutCache()
+			So(err, ShouldBeNil)
+			So(machines, ShouldNotBeNil)
+
+			mach := machines.Machines()[0]
+			So(mach, ShouldNotBeNil)
+			So(mach.HTTPTracker, ShouldNotBeNil)
+
+			Convey("It should start the HTTPTracker", func() {
+				So(mach.HTTPTracker.IsPinging(), ShouldBeTrue)
+			})
 		})
 	})
 }

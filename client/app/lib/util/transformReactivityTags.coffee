@@ -20,9 +20,9 @@ module.exports = (text = '', callback) ->
   # return a fetcher promise for every occurence of every hashtag. so that we
   # can be sure that all the hashtags are ready before passing down to
   # callback.
-  promises = hashtagsWithIndices.map ({hashtag}) ->
+  promises = hashtagsWithIndices.map ({ hashtag }) ->
     new Promise (resolve, reject) ->
-      socialapi.channel.byName {name: hashtag}, (err, channel) ->
+      socialapi.channel.byName { name: hashtag }, (err, channel) ->
         # resolve null for error cases, so that we can filter them
         # down, when we want to use it.
         if err then resolve null else resolve channel

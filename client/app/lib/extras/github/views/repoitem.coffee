@@ -8,7 +8,7 @@ module.exports = class RepoItem extends KDListItemView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
     options.type = 'repo'
     options.buttonTitle or= 'clone'
     super options, data
@@ -17,14 +17,14 @@ module.exports = class RepoItem extends KDListItemView
       title    : @getOption 'buttonTitle'
       cssClass : 'solid green mini action-button'
       callback : =>
-        @getDelegate().emit "RepoSelected", @getData()
+        @getDelegate().emit 'RepoSelected', @getData()
       disabled : data._disabled
 
     @setClass 'disabled'  if data._disabled
 
-  pistachio:->
+  pistachio: ->
 
-    {name, description, html_url} = @getData()
+    { name, description, html_url } = @getData()
 
     """
     <h1>

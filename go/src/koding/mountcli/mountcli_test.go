@@ -31,12 +31,12 @@ func TestMount(t *testing.T) {
 		"Darwin": &Mountcli{
 			binRunner: generateBinRunner(inputDarwin),
 			matcher:   regexp.MustCompile("^(.*?) on (.*?) \\(osxfusefs,"),
-			tag:       "osxfusefs",
+			filterTag: "osxfusefs",
 		},
 		"Linux": &Mountcli{
 			binRunner: generateBinRunner(inputLinux),
 			matcher:   regexp.MustCompile("^(.*?) on (.*?) type fuse"),
-			tag:       "fuse",
+			filterTag: "fuse",
 		},
 	}
 

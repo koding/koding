@@ -8,7 +8,7 @@ LocationForm = require './commonviews/location/locationform'
 
 module.exports = class LocationController extends KDController
 
-  fetchCountryData:(callback)->
+  fetchCountryData: (callback) ->
 
     { JPayment } = remote.api
 
@@ -24,7 +24,7 @@ module.exports = class LocationController extends KDController
   createLocationForm: (options, data) ->
     form = new LocationForm options, data
 
-    @fetchCountryData (err, { countries, countryOfIp })->
+    @fetchCountryData (err, { countries, countryOfIp }) ->
       return if showError err
 
       form.setCountryData { countries, countryOfIp }

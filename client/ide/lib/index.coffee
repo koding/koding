@@ -1029,11 +1029,15 @@ class IDEAppController extends AppController
 
   enableAutoSave: ->
 
+    return  if @autoSaveInterval
     @autoSaveInterval = kd.utils.repeat 1000, =>
       @forEachSubViewInIDEViews_ 'editor', (ep) => ep.handleAutoSave()
 
 
-  disableAutoSave: -> kd.utils.killRepeat @autoSaveInterval
+  disableAutoSave: ->
+
+    kd.utils.killRepeat @autoSaveInterval
+    @autoSaveInterval = null
 
 
   getActivePaneView: ->
@@ -1188,7 +1192,6 @@ class IDEAppController extends AppController
 
 
   showFindReplaceView: (withReplaceMode) ->
-
     view = @findAndReplaceView
     @setFindAndReplaceViewDelegate()
     @isFindAndReplaceViewVisible = yes
@@ -1196,7 +1199,9 @@ class IDEAppController extends AppController
     view.setTextIntoFindInput '' # FIXME: Set selected text if exists
 
 
-  showFindReplaceViewWithReplaceMode: -> @showFindReplaceView yes
+  showFindView: -> @showFindReplaceView no
+
+  showFindAndReplaceView: -> @showFindReplaceView yes
 
   hideFindAndReplaceView: ->
 

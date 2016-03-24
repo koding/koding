@@ -22,7 +22,7 @@ module.exports = class SidebarMachineConnectedPopup extends kd.ModalView
 
     _addSubview new kd.CustomHTMLView
       cssClass  : 'modal-arrow'
-      position  : top : 20
+      position  : { top : 20 }
 
 
   createElements: ->

@@ -52,7 +52,7 @@ module.exports = class DesktopNotificationsController extends kd.Controller
 
       notification = new Notification options.title, { body: options.message, icon: options.iconUrl }
 
-      notification.onclick = options.onClick || focusToRoute
+      notification.onclick = options.onClick or focusToRoute
       setTimeout  ->
         notification.close()
       , options.timeout

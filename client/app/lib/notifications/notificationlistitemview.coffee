@@ -20,28 +20,28 @@ module.exports = class NotificationListItemView extends KDListItemView
   JView.mixin @prototype
 
   activityNameMap =
-    comment : "status."
-    like    : "status."
-    follow  : "started following you."
-    join    : "your group"
-    leave   : "your group"
-    mention : "status."
+    comment : 'status.'
+    like    : 'status.'
+    follow  : 'started following you.'
+    join    : 'your group'
+    leave   : 'your group'
+    mention : 'status.'
 
   actionPhraseMap =
-    comment  : "commented on"
-    reply    : "replied to"
-    like     : "liked"
-    follow   : ""
-    share    : "shared"
-    commit   : "committed"
-    member   : "joined"
-    join     : "joined"
-    leave    : "left"
-    mention  : "mentioned you in"
+    comment  : 'commented on'
+    reply    : 'replied to'
+    like     : 'liked'
+    follow   : ''
+    share    : 'shared'
+    commit   : 'committed'
+    member   : 'joined'
+    join     : 'joined'
+    leave    : 'left'
+    mention  : 'mentioned you in'
 
   constructor: (options = {}, data) ->
 
-    options.tagName        or= "a"
+    options.tagName        or= 'a'
     options.linkGroupClass or= LinkGroup
     options.avatarClass    or= AvatarView
     options.cssClass         = kd.utils.curry 'clearfix', options.cssClass
@@ -52,7 +52,7 @@ module.exports = class NotificationListItemView extends KDListItemView
 
     @participants = new KDCustomHTMLView
     @avatar       = new KDCustomHTMLView
-    @activityPlot = new KDCustomHTMLView tagName: "span"
+    @activityPlot = new KDCustomHTMLView { tagName: 'span' }
     @timeAgoView  = new KDTimeAgoView null, @getLatestTimeStamp @getData().dummy
 
     @initializeReadState()
@@ -92,7 +92,7 @@ module.exports = class NotificationListItemView extends KDListItemView
 
     kd.utils.stopDOMEvent event
 
-    showPost = (err, post)->
+    showPost = (err, post) ->
       return kd.warn err if err
       if post
         # TODO group slug must be prepended after groups are implemented
@@ -102,18 +102,18 @@ module.exports = class NotificationListItemView extends KDListItemView
         else kd.singletons.router.handleRoute "/Activity/Post/#{post.slug}", { state: post }
       else
         new KDNotificationView
-          title : "This post has been deleted!"
+          title : 'This post has been deleted!'
           duration : 1000
 
     popupList = @getDelegate()
     popupList.emit 'AvatarPopupShouldBeHidden'
 
     switch @getData().type
-      when "comment", "like", "mention"
-        {message} = kd.singletons.socialapi
-        message.byId {id: @getData().targetId}, showPost
-      when "follow"        then kd.singletons.router.handleRoute "/#{@actors[0].profile.nickname}"
-      when "join", "leave" then return
+      when 'comment', 'like', 'mention'
+        { message } = kd.singletons.socialapi
+        message.byId { id: @getData().targetId }, showPost
+      when 'follow'        then kd.singletons.router.handleRoute "/#{@actors[0].profile.nickname}"
+      when 'join', 'leave' then return
 
 
   initializeReadState: ->
@@ -125,17 +125,17 @@ module.exports = class NotificationListItemView extends KDListItemView
 
   fetchActors: ->
 
-    @actors         = []
-    options         = @getOptions()
-    {latestActors}  = @getData()
-    constructorName = 'JAccount'
-    origins         = latestActors.map (id) -> {id, constructorName}
+    @actors          = []
+    options          = @getOptions()
+    { latestActors } = @getData()
+    constructorName  = 'JAccount'
+    origins          = latestActors.map (id) -> { id, constructorName }
 
     new Promise (resolve, reject) =>
       remote.cacheable origins, (err, actors) =>
         return reject err if err?
         @actors = actors
-        @participants = new options.linkGroupClass {group: actors}
+        @participants = new options.linkGroupClass { group: actors }
         @avatar       = new options.avatarClass
           size     :
             width  : 30
@@ -157,10 +157,10 @@ module.exports = class NotificationListItemView extends KDListItemView
 
     new Promise (resolve, reject) =>
       data = @getData()
-      adjective = ""
+      adjective = ''
       if data.type in ['comment', 'like', 'mention']
-        {message} = kd.singletons.socialapi
-        message.byId {id: data.targetId}, (err, message) =>
+        { message } = kd.singletons.socialapi
+        message.byId { id: data.targetId }, (err, message) =>
 
           return reject err  if err or not message
 
@@ -170,8 +170,8 @@ module.exports = class NotificationListItemView extends KDListItemView
             isMine     = message.account._id is whoami().getId()
             isTheirOwn = @actors.length is 1 and @actors[0].getId() is origin.getId()
 
-            adjective = if isMine then "your"
-            else if isTheirOwn then "their own"
+            adjective = if isMine then 'your'
+            else if isTheirOwn then 'their own'
             else "#{getFullnameFromAccount origin}'s"
 
             @activityPlot.updatePartial "#{adjective} #{@getActivityName()}"

@@ -27,7 +27,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     super
 
     @kite.on 'close', (reason) ->
-      kd.log "Kontrol disconnected because ", reason
+      kd.log 'Kontrol disconnected because ', reason
 
 
   LATEST_URL = 'latest.koding.com'
@@ -72,7 +72,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
         KontrolJS::renewToken.call this, kite, query
 
 
-  reauthenticate: (initial)->
+  reauthenticate: (initial) ->
 
     if @_lastUsedKey?
       if (kookies.get 'clientId') isnt @_lastUsedKey
@@ -83,7 +83,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     @authenticate @getAuthOptions()
 
 
-  fetchKite: Promise.promisify (args, callback)->
+  fetchKite: Promise.promisify (args, callback) ->
 
     if (cachedKite = KiteCache.get args.query)?
       return callback null, @createKite cachedKite, args.query
@@ -93,10 +93,10 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
   fetchKites: Promise.promisify (args, callback) ->
 
-    {query} = args
+    { query } = args
 
     @queryKites args
-      .then (result)=>
+      .then (result) =>
         if query? and result.kites.length > 0
           KiteCache.cache query, result.kites.first
 
@@ -164,17 +164,17 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     return kite
 
 
-  createKite: (options, query)->
+  createKite: (options, query) ->
 
-    {computeController} = kd.singletons
+    { computeController } = kd.singletons
 
-    {kite} = options
+    { kite } = options
     kiteName = kite.name
 
     # If its trying to create a klient kite instance
     # allow to use websockets by emptying the protocols_whitelist
     if kiteName is 'klient'
-      options.transportOptions = protocols_whitelist: []
+      options.transportOptions = { protocols_whitelist: [] }
     else if kiteName is 'kloud'
       options.autoReconnect = no
 
@@ -204,7 +204,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     return kite
 
 
-  followConnectionStates: (kite, machineUId)->
+  followConnectionStates: (kite, machineUId) ->
 
     # Machine.uid is kite correlation name
     cc = kd.singletons.computeController
@@ -226,7 +226,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
     # If no `correlationName` is defined assume this kite instance
     # is a singleton kite instance and keep track of it with this keyword
-    correlationName ?= "singleton"
+    correlationName ?= 'singleton'
 
     # If queryString provided try to split it first
     # and if successful, use it as query
@@ -250,10 +250,10 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
           [resolve, args] = promise
           resolve (
             kite.transport?.tell args...
-              .then (res)->
+              .then (res) ->
                 KiteLogger.success name, args.first
                 return res
-              .catch (err)->
+              .catch (err) ->
                 KiteLogger.failed name, args.first
                 throw err
           )
@@ -266,13 +266,13 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     .then(kite.bound 'setTransport')
 
     # Report error
-    .catch (err)=>
+    .catch (err) =>
 
-      kd.warn "[KodingKontrol] ", err
+      kd.warn '[KodingKontrol] ', err
 
       # Instead parsing message we need to define a code or different
       # name for `No kite found` error in kite.js ~ FIXME GG
-      if err and err.name is "KiteError" and /^No kite found/.test err.message
+      if err and err.name is 'KiteError' and /^No kite found/.test err.message
         @setCachedKite name, correlationName
         kite.invalid = err
 

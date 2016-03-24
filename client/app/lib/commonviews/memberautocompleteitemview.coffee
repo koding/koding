@@ -8,11 +8,11 @@ module.exports = class MemberAutoCompleteItemView extends KDAutoCompleteListItem
 
   JView.mixin @prototype
 
-  constructor:(options, data)->
-    options.cssClass = "clearfix member-suggestion-item"
+  constructor: (options, data) ->
+    options.cssClass = 'clearfix member-suggestion-item'
     super options, data
 
     userInput = options.userInput or @getDelegate().userInput
 
     @addSubView @profileLink = \
-      new AutoCompleteProfileTextView {userInput, shouldShowNick: yes}, data
+      new AutoCompleteProfileTextView { userInput, shouldShowNick: yes }, data
