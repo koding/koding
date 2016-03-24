@@ -536,6 +536,7 @@ func (s *Server) vhostRoutes(vhost string) map[string]string {
 }
 
 func (s *Server) localRoute(r *http.Request) string {
+	// do not route websocket handshakes
 	if isWebsocketConn(r) {
 		return ""
 	}
@@ -543,12 +544,16 @@ func (s *Server) localRoute(r *http.Request) string {
 	ips := extractIPs(r)
 
 	if len(ips) == 0 {
+		s.opts.Log.Debug("%s: no IPs extracted", r.RemoteAddr)
+
 		return ""
 	}
 
 	routes := s.vhostRoutes(strings.ToLower(r.Host))
 
 	if len(routes) == 0 {
+		s.opts.Log.Debug("%s: no routes found for %q", r.RemoteAddr, r.Host)
+
 		return ""
 	}
 
@@ -558,10 +563,9 @@ func (s *Server) localRoute(r *http.Request) string {
 			continue
 		}
 
-		r.URL.Scheme = "http"
-		r.URL.Host = route
+		s.opts.Log.Debug("%s: found local route for %s: %s", r.RemoteAddr, ip, route)
 
-		return r.URL.String()
+		return route
 	}
 
 	return ""
@@ -569,14 +573,33 @@ func (s *Server) localRoute(r *http.Request) string {
 
 func (s *Server) tunnelHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/klient")
-
-		if url := s.localRoute(r); url != "" {
-			http.Redirect(w, r, url, 307)
+		// skip requests from localhost
+		if r.Host == "localhost" {
+			w.WriteHeader(200)
 			return
 		}
 
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/klient")
+
 		s.Server.ServeHTTP(w, r)
+	}
+}
+
+func (s *Server) resolveHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = ""
+		if r.URL.Host == "" {
+			r.URL.Host = r.Host
+		}
+
+		url := s.localRoute(r)
+		if url == "" {
+			url = r.URL.Host
+		}
+
+		s.opts.Log.Debug("%s: resolved for %# v: %s", r.RemoteAddr, r.URL, url)
+
+		fmt.Fprintln(w, url)
 	}
 }
 
@@ -619,6 +642,7 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	k.HandleFunc("registerServices", s.RegisterServices)
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
+	k.HandleHTTP("/resolve", s.resolveHandler())
 	k.HandleHTTP("/{rest:.*}", s.tunnelHandler())
 
 	if s.opts.RegisterURL == nil {
