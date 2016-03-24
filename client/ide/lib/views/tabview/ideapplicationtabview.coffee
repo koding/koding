@@ -57,13 +57,13 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
   getMyWatchersContentForModal: (myWatchers) ->
 
-    more = ""
+    more = ''
 
     if myWatchers.length > 3
       more = " and <strong>#{myWatchers.length - 3}</strong> others"
 
     return """
-      Also #{(myWatchers.slice(0,3).map (w) -> '<strong>@'+w+'</strong>').join(', ')}
+      Also #{(myWatchers.slice(0, 3).map (w) -> '<strong>@'+w+'</strong>').join(', ')}
       #{more} may have some changes here.
     """
 
@@ -76,14 +76,14 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
     @askForSaveModal?.destroy()
     @askForSaveModal = new KDModalView
       width         : 620
-      cssClass      : "modal-with-text"
-      title         : "Do you want to save your changes?"
+      cssClass      : 'modal-with-text'
+      title         : 'Do you want to save your changes?'
       content       : "<p>#{content}</p>"
       overlay       : yes
       buttons       :
-        "SaveClose" :
-          cssClass  : "solid green medium"
-          title     : "Save and Close"
+        'SaveClose' :
+          cssClass  : 'solid green medium'
+          title     : 'Save and Close'
           callback  : =>
             if file.isDummyFile()
               @willClose = yes
@@ -96,16 +96,16 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
               @parent.handleCloseSplitView pane
 
             @askForSaveModal.destroy()
-        "DontSave"  :
-          cssClass  : "solid red medium"
+        'DontSave'  :
+          cssClass  : 'solid red medium'
           title     : "Don't Save"
           callback  : =>
             @removePane_ pane
             @parent.handleCloseSplitView pane
             @askForSaveModal.destroy()
-        "Cancel"    :
-          cssClass  : "solid light-gray medium"
-          title     : "Cancel"
+        'Cancel'    :
+          cssClass  : 'solid light-gray medium'
+          title     : 'Cancel'
           callback  : =>
             @askForSaveModal.destroy()
 

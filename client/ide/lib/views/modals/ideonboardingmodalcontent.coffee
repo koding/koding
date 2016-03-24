@@ -15,7 +15,7 @@ module.exports = class IDEOnboardingModalContent extends JView
       callback : => @emit 'GetStartedButtonClicked'
 
   pistachio: ->
-    return """
+    return '''
       <div class="top-container">
         <div class="video-placeholder"></div>
       </div>
@@ -25,4 +25,4 @@ module.exports = class IDEOnboardingModalContent extends JView
         </div>
         {{> @getStartedButton }}
       </div>
-    """
+    '''

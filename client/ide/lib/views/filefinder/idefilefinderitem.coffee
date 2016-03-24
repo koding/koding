@@ -5,7 +5,7 @@ FSHelper = require 'app/util/fs/fshelper'
 module.exports = class IDEFileFinderItem extends KDListItemView
 
   partial: ->
-    {path}   = @getData()
+    { path } = @getData()
     nicePath = path.replace "/home/#{nick()}", '~'
     fileName = FSHelper.getFileNameFromPath path
 
