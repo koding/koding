@@ -4,15 +4,21 @@ import (
 	"errors"
 	"testing"
 
-	"koding/klientctl/util"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+type fakeAdminChecker struct {
+	ReturnIsAdmin bool
+	ReturnError   error
+}
+
+func (c *fakeAdminChecker) IsAdmin() (bool, error) {
+	return c.ReturnIsAdmin, c.ReturnError
+}
+
 func TestAdminRequired(t *testing.T) {
 	Convey("Given the user has permissions", t, func() {
-		p := &util.Permissions{
-			AdminChecker: func() (bool, error) { return true, nil },
-		}
+		p := &fakeAdminChecker{ReturnIsAdmin: true}
 
 		Convey("When the user gave no args", func() {
 			Convey("Then don't return an error", func() {
@@ -40,9 +46,7 @@ func TestAdminRequired(t *testing.T) {
 	})
 
 	Convey("Given the user does not have permission", t, func() {
-		p := &util.Permissions{
-			AdminChecker: func() (bool, error) { return false, nil },
-		}
+		p := &fakeAdminChecker{ReturnIsAdmin: false}
 
 		Convey("When the bin has no args", func() {
 			Convey("Then don't return an error", func() {
@@ -70,11 +74,7 @@ func TestAdminRequired(t *testing.T) {
 	})
 
 	Convey("Given the admin checker errors", t, func() {
-		p := &util.Permissions{
-			AdminChecker: func() (bool, error) {
-				return false, errors.New("Fake error")
-			},
-		}
+		p := &fakeAdminChecker{ReturnError: errors.New("Fake error")}
 
 		Convey("Then allow the user to run the command", func() {
 			args := []string{"kd", "stop"}

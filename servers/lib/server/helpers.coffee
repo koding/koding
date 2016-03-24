@@ -3,6 +3,7 @@ koding = require './bongo'
 { argv } = require 'optimist'
 KONFIG  = require('koding-config-manager').load "main.#{argv.c}"
 request = require 'request'
+url     = require 'url'
 
 error_messages =
   404: 'Page not found'
@@ -115,8 +116,11 @@ isTeamPage = (req) ->
   hostname = req?.headers?['x-host']
   return no  unless hostname
 
+  hostname = "http://#{hostname}" unless /^http/.test hostname
+  { hostname } = url.parse hostname
+
   # special case for QA team, sometimes they test on ips
-  return yes  if isV4Format hostname
+  return no  if isV4Format hostname
 
   for i, env of ['dev', 'sandbox', 'latest']
     if hostname.indexOf(env) is 0 # damn nodejs doesnt have startsWith
@@ -312,6 +316,8 @@ setSessionCookie = (res, sessionId, options = {}) ->
   options.secure  = sessionCookie.secure
   options.expires = new Date(Date.now() + sessionCookie.maxAge)
 
+  # somehow we are sending two clientId cookies in some cases, last writer wins.
+  res.clearCookie 'clientId', options
   res.cookie 'clientId', sessionId, options
 
 

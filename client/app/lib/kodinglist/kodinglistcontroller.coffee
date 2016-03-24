@@ -20,15 +20,16 @@ module.exports = class KodingListController extends KDListViewController
 
     options.itemClass              ?= KDListItemView
 
+    options.loadWithScroll         ?= yes
     options.useCustomScrollView    ?= yes
     options.lazyLoadThreshold      ?= 10
 
     options.startWithLazyLoader    ?= yes
-
     options.lazyLoaderOptions     or= {}
 
-    options.lazyLoaderOptions.spinnerOptions      or= {}
-    options.lazyLoaderOptions.spinnerOptions.size or= { width : 28 }
+    spinnerOptions            = options.lazyLoaderOptions.spinnerOptions or= {}
+    spinnerOptions.size     or= { width : 28 }
+    spinnerOptions.cssClass   = kd.utils.curry 'kodinglist-spinner', spinnerOptions.cssClass
 
     options.limit                  ?= 10
     options.sort                  or= { '_id' : -1 }
@@ -42,33 +43,35 @@ module.exports = class KodingListController extends KDListViewController
         cssClass  : 'no-item-found'
         partial   : "<cite>#{options.noItemFoundText}</cite>"
 
-    super options, data
-
-    if not options.fetcherMethod and not options.model
-      return  throw new Error 'Model or fetcherMethod should be given!'
-
     @filterStates =
       skip        : 0
       busy        : no
       query       : {}
       page        : 0
 
+    super options, data
+
+    if not options.fetcherMethod and not options.model
+      return  throw new Error 'Model or fetcherMethod should be given!'
+
     @bindEvents()
 
 
   bindEvents: ->
 
-    @followLazyLoad()
+    @followLazyLoad()  if @getOption 'loadWithScroll'
 
     listView = @getListView()
 
-    # 
-    # Example usage => listView.emit 'ItemAction', { action : 'RemoveItem', item : this }
-    #
-    listView.on 'ItemAction', ({ action, item, options }) =>
-      switch action
-        when 'RemoveItem'
-          @removeItem item, options
+    listView
+      .on 'ItemAction', ({ action, item, options }) =>
+        switch action
+          when 'RemoveItem'
+            @removeItem item, options
+
+          when 'ItemRemoved'
+            listView.removeItem item
+            @showNoItemWidget()
 
 
   removeItem: (item, options = {}) ->
@@ -86,7 +89,6 @@ module.exports = class KodingListController extends KDListViewController
           modal.destroy()
           return showError err  if err
           listView.removeItem item
-          @emit 'ItemDeleted', item
 
 
     listView.askForConfirm confirmOptions
@@ -161,6 +163,16 @@ module.exports = class KodingListController extends KDListViewController
 
     @instantiateListItems items  if items.length
     @filterStates.busy = no
+
+
+  # Override parent class's method.
+  # Don't show no item widget with this method.
+  hideLazyLoader: ->
+
+    return  unless @lazyLoader
+
+    @lazyLoader.spinner.hide()
+    @lazyLoader.hide()
 
 
   calculateAndFetchMoreIfNeeded: ->

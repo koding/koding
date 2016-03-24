@@ -22,7 +22,7 @@ module.exports = class MachineSettingsSpecsView extends KDView
     disk = if size? then "#{size}GB" else 'N/A'
     cpu  = '1x'
 
-    @addSubView @iconWrapper = new KDCustomHTMLView cssClass: 'icons'
+    @addSubView @iconWrapper = new KDCustomHTMLView { cssClass: 'icons' }
 
     @createIcon 'RAM',   ram
     @createIcon 'DISK',  disk

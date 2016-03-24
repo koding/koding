@@ -48,7 +48,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
       cssClass : 'code'
 
     @code.addSubView @loader = new kd.LoaderView
-      size: width : 16
+      size: { width : 16 }
       showLoader  : yes
 
 
@@ -116,7 +116,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     computeController.managedKiteChecker.addListener @bound 'machineFoundCallback'
 
     kd.utils.wait 20000, =>
-      @addSubView new kd.LoaderView showLoader: yes, size: width: 26
+      @addSubView new kd.LoaderView { showLoader: yes, size: { width: 26 } }
       @setClass 'polling'
 
 
@@ -133,7 +133,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     console.warn "Couldn't fetch otatoken:", err  if err
 
     if err.message.indexOf('confirm your email address') > -1
-      new kd.NotificationView title : err.message
+      new kd.NotificationView { title : err.message }
       return @destroy()
 
     @loader.destroy()
@@ -145,12 +145,12 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     @setTitle 'Uh oh! You already have a managed machine!'
 
     @code.destroy()
-    @content.updatePartial """
+    @content.updatePartial '''
       <p>
         Free Koding accounts are limited to adding one external machine and
         you already have one connected. Paid accounts are allowed to add unlimited external machines.
       </p>
-    """
+    '''
 
     @content.addSubView new kd.CustomHTMLView
       tagName : 'p'
@@ -163,7 +163,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
         ComputeHelpers  = require '../computehelpers'
 
         kd.singletons.paymentController.once 'PaymentWorkflowFinishedSuccessfully', ->
-          ComputeHelpers.handleNewMachineRequest provider: 'managed'
+          ComputeHelpers.handleNewMachineRequest { provider: 'managed' }
 
         @destroy()
 
@@ -178,3 +178,4 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
     cc = kd.singletons.computeController
     cc.managedKiteChecker.removeListener @bound 'machineFoundCallback'
+    kd.singletons.router.back()

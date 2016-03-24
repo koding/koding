@@ -9,7 +9,7 @@ module.exports = class MemberMailLink extends KDCustomHTMLView
 
   JView.mixin @prototype
 
-  constructor:(options, data)->
+  constructor: (options, data) ->
     options = $.extend
       tagName     : 'a'
       attributes  :
@@ -17,13 +17,13 @@ module.exports = class MemberMailLink extends KDCustomHTMLView
     , options
     super options, data
 
-  pistachio:->
+  pistachio: ->
     name = getFullnameFromAccount @getData(), yes
     "<cite/><span>Contact #{name}</span>"
 
-  click:(event)->
+  click: (event) ->
 
     event.preventDefault()
-    {profile} = member = @getData()
+    { profile } = member = @getData()
 
-    kd.getSingleton("appManager").tell "Inbox", "createNewMessageModal", [member]
+    kd.getSingleton('appManager').tell 'Inbox', 'createNewMessageModal', [member]

@@ -6,6 +6,7 @@ import (
 	"koding/fuseklient"
 	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
+	"strings"
 
 	"github.com/koding/kite"
 )
@@ -52,10 +53,13 @@ func (r *Remote) RemountHandler(kreq *kite.Request) (interface{}, error) {
 
 		// TODO: Remove this hack once fuseklient is fixed to not return unmount failures
 		// for already unmounted directories.
-		if err.Error() != "system-unmount-failed: exit status 1" {
+		//
+		// This ignores the error:
+		// system-unmount-failed: unmount /foo/bar/baz: invalid argument
+		if !strings.HasSuffix(err.Error(), "invalid argument") {
 			return nil, err
 		} else {
-			log.Warning("Ignoring unmount error from fuseklient.")
+			log.Warning("Ignoring unmount error from fuseklient. err:%s", err)
 		}
 	}
 
@@ -63,8 +67,9 @@ func (r *Remote) RemountHandler(kreq *kite.Request) (interface{}, error) {
 	mounter := &mount.Mounter{
 		Log:           log,
 		Options:       existingMount.MountFolder,
+		Machine:       remoteMachine,
 		IP:            existingMount.IP,
-		KitePinger:    existingMount.KitePinger,
+		KiteTracker:   existingMount.KiteTracker,
 		Intervaler:    existingMount.Intervaler,
 		Transport:     remoteMachine.Client,
 		PathUnmounter: fuseklient.Unmount,

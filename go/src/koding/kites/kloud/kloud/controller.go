@@ -86,8 +86,6 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		return nil, NewError(ErrProviderIsMissing)
 	}
 
-	k.track(args.Provider, args.MachineId, r.Method)
-
 	// Lock the machine id so no one else can access it. It means this
 	// kloud instance is now responsible for this machine id. Its basically
 	// a distributed lock. It's unlocked when there is an error or if the
@@ -172,6 +170,13 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		return nil, fmt.Errorf("no state pair available for %s", r.Method)
 	}
 
+	tags := []string{
+		"instanceId:" + args.MachineId,
+		"provider:" + args.Provider,
+	}
+
+	ctx = k.traceRequest(ctx, tags)
+
 	ev.Push(&eventer.Event{
 		Message: r.Method + " started",
 		Status:  pair.start,
@@ -213,6 +218,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 
 		ev.Push(finalEvent)
 		k.Locker.Unlock(args.MachineId)
+		k.send(ctx)
 	}()
 
 	return ControlResult{

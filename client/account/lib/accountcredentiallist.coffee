@@ -82,7 +82,7 @@ module.exports = class AccountCredentialList extends KDListView
       modal            = new KDModalView
         title          : 'Remove credential'
         content        : "<div class='modalformline'>#{description}</div>"
-        cssClass       : 'has-markdown'
+        cssClass       : 'has-markdown remove-credential'
         overlay        : yes
         overlayOptions :
           cssClass     : 'second-overlay'
@@ -147,7 +147,7 @@ module.exports = class AccountCredentialList extends KDListView
       new KDModalView
         title          : credential.title
         subtitle       : credential.provider
-        cssClass       : 'has-markdown'
+        cssClass       : 'has-markdown credential-modal'
         overlay        : yes
         overlayOptions : { cssClass : 'second-overlay' }
         content        : "<pre><code>#{cred}</code></pre>"

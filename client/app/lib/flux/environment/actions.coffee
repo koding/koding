@@ -72,10 +72,10 @@ _bindStackEvents = ->
 
 handleMemberWarning = (message) ->
 
-  console.warn "[member:warning]", message
+  console.warn '[member:warning]', message
 
 
-handleSharedMachineInvitation = (sharedMachine)->
+handleSharedMachineInvitation = (sharedMachine) ->
 
   # Inconsistent property definition.
   { machineUId, uid } = sharedMachine
@@ -88,14 +88,14 @@ handleSharedMachineInvitation = (sharedMachine)->
 
 fetchMachineByUId = (machineUId, callback) ->
 
-  remote.api.JMachine.one machineUId, (err, machine)->
+  remote.api.JMachine.one machineUId, (err, machine) ->
     if err
       showError err
     else if machine?
       callback machine
 
 
-loadMachines = do (isPayloadUsed = no) ->->
+loadMachines = do (isPayloadUsed = no) -> ->
 
   { reactor } = kd.singletons
 
@@ -241,7 +241,7 @@ acceptInvitation = (machine) ->
 
     if invitation?.type is 'collaboration' or machine.get('type') is 'collaboration'
       _getInvitationChannelId { uid, invitation }, (channelId) ->
-        require('activity/flux/actions/channel').loadChannel(channelId).then ({channel}) ->
+        require('activity/flux/actions/channel').loadChannel(channelId).then ({ channel }) ->
           if channel.isParticipant
             return kallback "/IDE/#{channelId}", ->
               reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
@@ -346,9 +346,9 @@ hideDeleteWorkspaceWidget = ->
 showManagedMachineAddedModal = (info, id) ->
 
   kd.singletons.reactor.dispatch actions.SHOW_MANAGED_MACHINE_ADDED_MODAL, {
-      id
-      info
-    }
+    id
+    info
+  }
 
 
 hideManagedMachineAddedModal = (id) ->
@@ -382,17 +382,17 @@ setMachineListItem = (id, machineListItem) ->
 
   { reactor } = kd.singletons
 
-  reactor.dispatch actions.MACHINE_LIST_ITEM_CREATED, { id ,machineListItem }
+  reactor.dispatch actions.MACHINE_LIST_ITEM_CREATED, { id, machineListItem }
 
 
 unsetMachineListItem = (id, machineListItem) ->
 
   { reactor } = kd.singletons
 
-  reactor.dispatch actions.MACHINE_LIST_ITEM_DELETED, { id ,machineListItem }
+  reactor.dispatch actions.MACHINE_LIST_ITEM_DELETED, { id, machineListItem }
 
 
-setActiveInvitationMachineId = (options={}) ->
+setActiveInvitationMachineId = (options = {}) ->
 
   { machine, forceUpdate }  = options
   { reactor }               = kd.singletons

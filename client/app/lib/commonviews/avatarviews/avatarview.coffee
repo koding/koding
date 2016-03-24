@@ -47,9 +47,9 @@ module.exports = class AvatarView extends LinkView
       #options.tooltip.placement    or= 'top'
       #options.tooltip.direction    or= 'right'
 
-    @dpr            = global.devicePixelRatio ? 1
-    {width, height} = options.size
-    @gravatar       = new ErrorlessImageView {width, height}
+    @dpr              = global.devicePixelRatio ? 1
+    { width, height } = options.size
+    @gravatar         = new ErrorlessImageView { width, height }
     @gravatar.on 'load', =>
       @gravatar.setCss 'opacity', '1'
       @setCss 'background-image', 'none'
@@ -80,10 +80,10 @@ module.exports = class AvatarView extends LinkView
       @gravatar.setAttribute 'src', src
 
   getGravatarUri: ->
-    {profile} = @getData()
+    { profile } = @getData()
     return no  unless profile?.hash?
 
-    {width} = @getOptions().size
+    { width } = @getOptions().size
     size    = Math.round width * @dpr
 
     # We have 16-512 all versions of avatar on our CDN ~ GG
@@ -103,39 +103,39 @@ module.exports = class AvatarView extends LinkView
 
     return  unless account = @getData()
 
-    {profile, type} = account
+    { profile, type } = account
 
     return  if type is 'unregistered'
 
-    {width, height} = @getOptions().size
-    height          = width unless height
-    avatarURI       = @getGravatarUri()
+    { width, height } = @getOptions().size
+    height            = width unless height
+    avatarURI         = @getGravatarUri()
 
     width         = width * @dpr
     height        = height * @dpr
     minAvatarSize = 30 * @dpr
 
     if profile.avatar?.match regexps.webProtocolRegExp
-      resizedAvatar = proxifyUrl profile.avatar, {crop: yes, width, height}
+      resizedAvatar = proxifyUrl profile.avatar, { crop: yes, width, height }
       avatarURI     = resizedAvatar
 
-    {payload} = @getOptions()
+    { payload } = @getOptions()
     if payload?.integrationIconPath
-      avatarURI = proxifyUrl payload.integrationIconPath, {crop: yes, width, height}
+      avatarURI = proxifyUrl payload.integrationIconPath, { crop: yes, width, height }
 
     @setAvatar avatarURI
 
     flags = if account.globalFlags
       if Array.isArray account.globalFlags
-      then account.globalFlags.join(" ")
-      else (value for own __, value of account.globalFlags).join(" ")
-    else ""
+      then account.globalFlags.join(' ')
+      else (value for own __, value of account.globalFlags).join(' ')
+    else ''
 
     @cite.setClass flags
 
     @cite.hide() if height < minAvatarSize
 
-    kd.getSingleton("groupsController").ready =>
+    kd.getSingleton('groupsController').ready =>
 
       nickname = @getData().profile?.nickname
 
@@ -144,9 +144,9 @@ module.exports = class AvatarView extends LinkView
       else
         if isKoding() and nickname
         then "/#{nickname}"
-        else "/#"
+        else '/#'
 
-      @setAttribute "href", href
+      @setAttribute 'href', href
 
     @showStatus()  if @getOptions().showStatus
 
@@ -158,29 +158,29 @@ module.exports = class AvatarView extends LinkView
     onlineStatus = account.onlineStatus or 'offline'
 
     if @statusAttr? and onlineStatus isnt @statusAttr
-      @setClass "animate"
+      @setClass 'animate'
 
     @statusAttr = onlineStatus
 
-    if @statusAttr is "online"
-      @unsetClass "offline"
-      @setClass   "online"
+    if @statusAttr is 'online'
+      @unsetClass 'offline'
+      @setClass   'online'
     else
-      @unsetClass "online"
-      @setClass   "offline"
+      @unsetClass 'online'
+      @setClass   'offline'
 
 
   viewAppended: ->
 
     JView::viewAppended.call this
 
-    {width, height} = @getOptions().size
-    @setCss "background-size", "#{width}px #{height}px"
+    { width, height } = @getOptions().size
+    @setCss 'background-size', "#{width}px #{height}px"
 
     @render() if @getData()
 
     if @getOptions().showStatus
-      {statusDiameter} = @getOptions()
+      { statusDiameter } = @getOptions()
 
       @addSubView @statusIndicator = new KDCustomHTMLView
         cssClass : 'statusIndicator hidden'
@@ -189,7 +189,7 @@ module.exports = class AvatarView extends LinkView
 
 
   pistachio: ->
-    """
+    '''
     {{> @gravatar}}
     {{> @cite}}
-    """
+    '''

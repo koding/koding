@@ -35,7 +35,7 @@ describe 'kd.singletons.appManager', ->
     it 'should have appControllers with registered app name', ->
 
       isRegistered = no
-      appInstance  = new AppController name: 'FooApp'
+      appInstance  = new AppController { name: 'FooApp' }
       expect.spyOn appManager, 'setListeners'
 
       appManager.on 'AppRegistered', -> isRegistered = yes
@@ -87,7 +87,7 @@ describe 'kd.singletons.appManager', ->
 
 
     it 'should return app', ->
-      appManager.register fooApp = new AppController name: 'FooApp'
+      appManager.register fooApp = new AppController { name: 'FooApp' }
       expect(appManager.get('FooApp')).toEqual fooApp
 
 
@@ -213,7 +213,7 @@ describe 'kd.singletons.appManager', ->
 
     it 'should load app', (done) ->
 
-      globals.config.apps.InternalApp = name: 'InternalApp'
+      globals.config.apps.InternalApp = { name: 'InternalApp' }
       expect.spyOn KodingAppsController, 'loadInternalApp'
 
       appManager.create 'InternalApp', {}

@@ -11,15 +11,15 @@ module.exports = class MetaInfoButtonView extends KDButtonView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'troll-button', options.cssClass
-    options.title    = "Info"
+    options.title    = 'Info'
     options.callback = ->
 
-      data.fetchMetaInformation (err, info)->
+      data.fetchMetaInformation (err, info) ->
 
         return if showError err
 
         info = objectToString info,
-          separator : "  "
+          separator : '  '
           maxDepth  : 100
 
         colorized = applyMarkdown "```json \n#{info}\n```"

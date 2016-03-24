@@ -15,10 +15,18 @@ module.exports = class APITokenItemView extends kd.ListItemView
 
     listView = @getDelegate()
 
-    @deleteButton = new kd.ButtonView
+    deleteButtonOptions =
       title    : 'Delete'
       cssClass : 'solid compact red delete'
-      callback : listView.lazyBound 'deleteItem', this
+      callback : =>
+        listView.emit 'ItemAction',
+          action        : 'RemoveItem'
+          item          : this
+          options       :
+            title       : 'Remove API Token'
+            description : 'Do you want to remove ?'
+
+    @deleteButton = new kd.ButtonView deleteButtonOptions
 
 
   pistachio: ->

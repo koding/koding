@@ -1,14 +1,16 @@
 $                     = require 'jquery'
 kd                    = require 'kd'
-KDListView            = kd.ListView
+KodingListView        = require 'app/kodinglist/kodinglistview'
 AccountSshKeyListItem = require './accountsshkeylistitem'
 
 
-module.exports = class AccountSshKeyList extends KDListView
+module.exports = class AccountSshKeyList extends KodingListView
 
   constructor: (options, data) ->
+
     options = $.extend
-      tagName       : 'ul'
+      tagName    : 'ul'
       itemClass  : AccountSshKeyListItem
     , options
+
     super options, data

@@ -61,10 +61,10 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	fmt.Println("Waiting until started...")
-	if err := WaitUntilStarted(config.KlientAddress, 5, 1*time.Second); err != nil {
+	if err := WaitUntilStarted(config.KlientAddress, 15, 1*time.Second); err != nil {
 		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
-			5, err,
+			15, err,
 		)
 		fmt.Println(FailedStartKlient)
 		return 1

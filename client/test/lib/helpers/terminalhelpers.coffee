@@ -15,14 +15,24 @@ module.exports =
       .moveToElement           '.context-list-wrapper li.new-terminal', 25, 20
 
 
-  openTerminal: (browser) ->
+  openTerminal: (browser, openSessionTerminal = no) ->
 
-    browser
-      .waitForElementVisible   'li.new-session', 20000
-      .moveToElement           'li.new-session', 25, 20
-      .click                   'li.new-session'
-      .pause 6000 # required
+    sessionLink     = '.kdlistview-contextmenu ul:nth-of-type(1) .has-sub-items'
+    openNewTerminal = '.kdlistview-contextmenu.default .open'
 
+    browser.waitForElementVisible   'li.new-session', 20000
+
+    if not openSessionTerminal
+      browser
+        .moveToElement           'li.new-session', 25, 20
+        .click                   'li.new-session'
+        .pause 6000 # required
+    else
+      browser
+        .moveToElement           sessionLink, 5, 5
+        .waitForElementVisible   openNewTerminal, 20000
+        .click                   openNewTerminal
+        .pause                   2500 #wait for terminal to be displayed
 
   createTerminalSession: (browser, user) ->
 

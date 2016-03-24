@@ -15,7 +15,7 @@ module.exports = class MainViewController extends KDViewController
     logViewByElement el.parentNode  unless el.parentNode is global.document.body
 
 
-  constructor:->
+  constructor: ->
 
     super
 
@@ -35,17 +35,17 @@ module.exports = class MainViewController extends KDViewController
       (view) => @setBodyClass type  if type = view.getOption 'type'
 
     if globals.config?.environment isnt 'production'
-      global.addEventListener 'click', (event) =>
+      global.addEventListener 'click', (event) ->
         if event.metaKey and event.altKey
           logViewByElement event.target
       , yes
 
 
-  loadView:(mainView)->
+  loadView: (mainView) ->
 
-    mainView.ready =>
+    mainView.ready ->
 
-      {body} = global.document
+      { body } = global.document
       if checkFlag 'super-admin'
       then KDView.setElementClass body, 'add', 'super'
       else KDView.setElementClass body, 'remove', 'super'
@@ -55,18 +55,18 @@ module.exports = class MainViewController extends KDViewController
 
     previousClass = null
 
-    (name)->
+    (name) ->
 
-      {body} = global.document
+      { body } = global.document
       KDView.setElementClass body, 'remove', previousClass  if previousClass
       KDView.setElementClass body, 'add', name
       previousClass = name
 
 
-  mainTabPaneChanged:(mainView, pane)->
+  mainTabPaneChanged: (mainView, pane) ->
 
     appManager      = kd.getSingleton 'appManager'
-    {mainTabView}   = mainView
+    { mainTabView } = mainView
 
     # warn 'set active nav item by route change, not by maintabpane change'
     # kd.singleton('display').emit "ContentDisplaysShouldBeHidden"
@@ -79,7 +79,7 @@ module.exports = class MainViewController extends KDViewController
 
   setViewState: (options = {}) ->
 
-    {behavior, name} = options
+    { behavior, name } = options
 
     html     = global.document.documentElement
     mainView = @getView()

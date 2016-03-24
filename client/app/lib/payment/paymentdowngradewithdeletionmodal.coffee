@@ -43,7 +43,7 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
       partial  : @buildDescriptionPartial()
 
     @addSubView @loaderLabel  = new KDCustomHTMLView
-      cssClass : "loader-label"
+      cssClass : 'loader-label'
       partial  : ''
     @loaderLabel.hide()
 
@@ -121,4 +121,4 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
 
   handleError: (err) ->
 
-    showError err?.description or err?.message or "Something went wrong."
+    showError err?.description or err?.message or 'Something went wrong.'

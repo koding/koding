@@ -7,14 +7,14 @@ showError = require 'app/util/showError'
 
 module.exports = class VerifyPasswordModal extends KDModalViewWithForms
 
-  constructor:(buttonTitle = "Submit", callback) ->
+  constructor: (buttonTitle = 'Submit', callback) ->
 
     options =
-      title                       : "Please verify your current password "
+      title                       : 'Please verify your current password '
       overlay                     : yes
       overlayClick                : no
       width                       : 605
-      height                      : "auto"
+      height                      : 'auto'
       tabs                        :
         navigable                 : yes
         forms                     :
@@ -25,11 +25,11 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
             buttons               :
               Submit              :
                 title             : buttonTitle
-                style             : "solid green medium"
-                type              : "submit"
+                style             : 'solid green medium'
+                type              : 'submit'
               Forgot              :
-                style             : "solid light-gray medium"
-                title             : "Forgot Password?"
+                style             : 'solid light-gray medium'
+                title             : 'Forgot Password?'
                 callback          : =>
                   account = whoami()
                   account.fetchEmail (err, email) =>
@@ -39,27 +39,27 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
 
             fields                :
               password            :
-                name              : "password"
-                placeholder       : "current password"
-                type              : "password"
+                name              : 'password'
+                placeholder       : 'current password'
+                type              : 'password'
                 validate          :
                   rules           :
                     required      : yes
                   messages        :
-                    required      : "Current Password required!"
+                    required      : 'Current Password required!'
 
     super options
 
-  doRecover:(email)->
+  doRecover: (email) ->
     $.ajax
       url         : '/Recover'
       data        : { email, _csrf : Cookies.get '_csrf' }
       type        : 'POST'
-      error       : (xhr) =>
-        {responseText} = xhr
-        new KDNotificationView title : responseText
-      success     : =>
+      error       : (xhr) ->
+        { responseText } = xhr
+        new KDNotificationView { title : responseText }
+      success     : ->
         new KDNotificationView
-          title     : "Check your email"
+          title     : 'Check your email'
           content   : "We've sent you a password recovery code."
           duration  : 4500

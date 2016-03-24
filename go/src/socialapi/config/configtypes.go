@@ -66,6 +66,8 @@ type (
 
 		// SneakerS3 encrypts the credentials and stores these values in S3 storage system
 		SneakerS3 SneakerS3
+
+		Mailgun Mailgun
 	}
 
 	// Email holds Email Workers' config
@@ -204,5 +206,11 @@ type (
 		SneakerMasterKey string `env:"key=KONFIG_SOCIALAPI_SNEAKER_MASTER_KEY"`
 		// AWS_REGION
 		AwsRegion string `env:"key=KONFIG_SOCIALAPI_AWS_REGION"`
+	}
+
+	Mailgun struct {
+		Domain     string `env:"key=KONFIG_SOCIALAPI_MAILGUN_DOMAIN"`
+		PrivateKey string `env:"key=KONFIG_SOCIALAPI_MAILGUN_PRIVATEKEY"`
+		PublicKey  string `env:"key=KONFIG_SOCIALAPI_SLACK_PUBLICKEY"`
 	}
 )

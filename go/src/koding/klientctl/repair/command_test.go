@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"koding/klient/remote/restypes"
 	"koding/klientctl/list"
 	"koding/klientctl/util/testutil"
 	"testing"
@@ -56,11 +57,11 @@ func TestRepairCommandRun(t *testing.T) {
 			Repairers:      []Repairer{repairerA, repairerB},
 			KlientService:  &testutil.FakeService{},
 			Klient: &testutil.FakeKlient{
-				ReturnInfos: []list.KiteInfo{list.KiteInfo{
+				ReturnInfos: []list.KiteInfo{list.KiteInfo{restypes.ListMachineInfo{
 					VMName: "foo",
 					// Content doesn't matter, just length
-					Mounts: []list.MountInfo{list.MountInfo{}}}},
-			},
+					Mounts: []restypes.ListMountInfo{restypes.ListMountInfo{}}}},
+				}},
 		}
 
 		Convey("It should call all of the repairers status, but not Repair", func() {
@@ -91,12 +92,11 @@ func TestRepairCommandRun(t *testing.T) {
 			Repairers:      []Repairer{repairerA, repairerB, repairerC},
 			KlientService:  &testutil.FakeService{},
 			Klient: &testutil.FakeKlient{
-				ReturnInfos: []list.KiteInfo{list.KiteInfo{
+				ReturnInfos: []list.KiteInfo{list.KiteInfo{restypes.ListMachineInfo{
 					VMName: "foo",
 					// Content doesn't matter, just length
-					Mounts: []list.MountInfo{list.MountInfo{}},
+					Mounts: []restypes.ListMountInfo{restypes.ListMountInfo{}}}},
 				}},
-			},
 		}
 
 		Convey("It should call all of the repairers status, and repair the status that fails", func() {

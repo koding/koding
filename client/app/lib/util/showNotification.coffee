@@ -1,7 +1,7 @@
 kd = require 'kd'
 KDNotificationView = kd.NotificationView
 module.exports = (message, options = {}) ->
-  return  if not message or message is ""
+  return  if not message or message is ''
 
   # TODO these css/type parameters will be changed according to error type
   type = 'growl'

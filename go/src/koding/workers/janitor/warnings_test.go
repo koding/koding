@@ -18,10 +18,9 @@ func TestWarningsQuery(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it should fetch the user", func() {
-			newuser, err := modelhelper.GetUserByQuery(warning.Select[0])
+			count, err := modelhelper.CountUsersByQuery(warning.Select[0])
 			So(err, ShouldBeNil)
-
-			So(newuser.ObjectId, ShouldEqual, user.ObjectId)
+			So(count, ShouldBeGreaterThan, 0)
 		})
 
 		Reset(func() {

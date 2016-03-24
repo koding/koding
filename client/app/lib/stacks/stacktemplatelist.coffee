@@ -31,7 +31,7 @@ module.exports = class StackTemplateList extends KDListView
     # Since KDModalView.confirm not passing overlay options
     # to the base class (KDModalView) I had to do this hack
     # Remove this when issue fixed in Framework ~ GG
-    overlay = new KDOverlayView cssClass: 'second-overlay'
+    overlay = new KDOverlayView { cssClass: 'second-overlay' }
 
     modal   = KDModalView.confirm
       title       : 'Remove stack template ?'

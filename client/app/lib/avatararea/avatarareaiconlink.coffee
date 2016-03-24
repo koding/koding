@@ -12,7 +12,7 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
     options.tagName  = 'a'
     options.cssClass = kd.utils.curry 'acc-icon', options.cssClass
 
-    super options,data
+    super options, data
 
     @count = 0
 
@@ -23,8 +23,8 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
     @count = newCount
 
     if newCount is 0
-    then @$('.count').addClass "hidden"
-    else @$('.count').removeClass "hidden"
+    then @$('.count').addClass 'hidden'
+    else @$('.count').removeClass 'hidden'
 
 
   pistachio: ->

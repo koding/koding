@@ -1,6 +1,6 @@
 module.exports = (activity) ->
 
-  {body} = activity
+  { body } = activity
   tagMap = {}
   activity.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
 
@@ -8,6 +8,6 @@ module.exports = (activity) ->
     [prefix, constructorName, id, name] = tokenString.split /:/
 
     switch prefix
-      when "#" then token = tagMap?[id]
+      when '#' then token = tagMap?[id]
 
     return "#{prefix}#{if token then token.name else name or ''}"

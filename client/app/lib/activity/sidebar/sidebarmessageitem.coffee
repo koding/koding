@@ -48,8 +48,8 @@ module.exports = class SidebarMessageItem extends SidebarItem
 
   pistachio: ->
 
-    """
+    '''
     {{> @text}}
     {{> @endButton}}
     {{> @unreadCount}}
-    """
+    '''

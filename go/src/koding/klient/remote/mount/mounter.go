@@ -6,6 +6,7 @@ import (
 	"koding/fuseklient/transport"
 	"koding/klient/kiteerrortypes"
 	"koding/klient/remote/kitepinger"
+	"koding/klient/remote/machine"
 	"koding/klient/remote/req"
 	"koding/klient/remote/rsync"
 	"koding/klient/util"
@@ -27,6 +28,8 @@ const (
 	// "Socket is not connected" to the user. So if that message is seen, this value
 	// likely needs to be lowered.
 	fuseTellTimeout = 55 * time.Second
+
+	autoRemountFailed = "Error auto-mounting. Please unmount & mount again."
 )
 
 // MounterTransport is the transport that the Mounter uses to communicate with
@@ -44,11 +47,14 @@ type Mounter struct {
 	// The options for this Mounter, such as LocalFolder, etc.
 	Options req.MountFolder
 
+	// The machine we'll be mounting to.
+	Machine *machine.Machine
+
 	// The IP of the remote machine.
 	IP string
 
-	// The KitePinger that the remote machine this Mounter uses, will deal with.
-	KitePinger kitepinger.KitePinger
+	// The KiteTracker that the remote machine this Mounter uses, will deal with.
+	KiteTracker *kitepinger.PingTracker
 
 	// The intervaler for this machine.
 	//
@@ -90,8 +96,12 @@ func (m *Mounter) IsConfigured() error {
 			"Using PrefetchAll but missing CachePath")
 	}
 
-	if m.KitePinger == nil {
-		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing KitePinger")
+	if m.Machine == nil {
+		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing Machine")
+	}
+
+	if m.KiteTracker == nil {
+		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing KiteTracker")
 	}
 
 	if m.Transport == nil {
@@ -162,8 +172,8 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 		return util.NewKiteError(kiteerrortypes.DialingFailed, err)
 	}
 
-	if mount.KitePinger == nil {
-		mount.KitePinger = m.KitePinger
+	if mount.KiteTracker == nil {
+		mount.KiteTracker = m.KiteTracker
 	}
 
 	if mount.Intervaler == nil {
@@ -243,8 +253,8 @@ func (m *Mounter) fuseMountFolder(mount *Mount) error {
 func (m *Mounter) watchClientAndReconnect(mount *Mount, changeSummaries chan kitepinger.ChangeSummary) error {
 	m.Log.Info("Monitoring Klient connection..")
 
-	m.KitePinger.Subscribe(changeSummaries)
-	m.KitePinger.Start()
+	m.KiteTracker.Subscribe(changeSummaries)
+	m.KiteTracker.Start()
 	mount.PingerSub = changeSummaries
 
 	for summary := range changeSummaries {
@@ -269,11 +279,13 @@ func (m *Mounter) handleChangeSummary(mount *Mount, summary kitepinger.ChangeSum
 		// Log error and return to exit loop, since something is broke
 		if err := m.PathUnmounter(mount.LocalPath); err != nil {
 			log.Error("Failed to unmount. err:%s", err)
+			m.Machine.SetStatus(machine.MachineError, autoRemountFailed)
 			return err
 		}
 
 		if err := m.fuseMountFolder(mount); err != nil {
 			log.Error("Failed to mount. err:%s", err)
+			m.Machine.SetStatus(machine.MachineError, autoRemountFailed)
 			return err
 		}
 	}

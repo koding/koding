@@ -13,7 +13,7 @@ module.exports =
   fetch: (callback, ensureDefaultWorkspace = no) ->
 
     remote.api.Sidebar.fetchEnvironment (err, data) =>
-      return new KDNotificationView title : "Couldn't fetch your VMs"  if err
+      return new KDNotificationView { title : "Couldn't fetch your VMs" }  if err
 
       data = @setDefaults_ data
       globals.userEnvironmentData = data
@@ -183,7 +183,7 @@ module.exports =
 
     for item in @getAllMachines()
 
-      {machine, workspaces} = item
+      { machine, workspaces } = item
 
       slugMatches  = machineLabel is machine.slug
       labelMatches = machineLabel is machine.label
@@ -222,7 +222,7 @@ module.exports =
     remote.api.JWorkspace.createDefault machine.uid, (err, workspace) ->
 
       if err
-        console.error "User Environment Data Provider:", JSON.stringify err
+        console.error 'User Environment Data Provider:', JSON.stringify err
 
       delete inProgress[machine.uid]
 
@@ -237,7 +237,7 @@ module.exports =
 
     queue = @getMyMachines().concat @getSharedMachines()
 
-      .map ({machine, workspaces}) => (fin) =>
+      .map ({ machine, workspaces }) => (fin) =>
 
         kd.utils.defer =>
 

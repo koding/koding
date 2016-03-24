@@ -11,13 +11,17 @@ MachineSettingsCommonView = require './machinesettingscommonview'
 
 module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonView
 
-
   constructor: (options = {}, data) ->
 
     options.headerTitle          = 'Domains'
     options.addButtonTitle       = 'ADD DOMAIN'
     options.headerAddButtonTitle = 'ADD NEW DOMAIN'
     options.listViewItemClass    = DomainItem
+    options.listViewOptions      =
+      fetcherMethod              : (query, options, callback) =>
+        return no  if @getData().status.state isnt Machine.State.Running
+        kd.singletons.computeController.fetchDomains (err, domains = []) =>
+          callback err, domains
 
     super options, data
 
@@ -45,17 +49,6 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
       partial  : @domainSuffix
 
     kd.utils.defer @addInputView.bound 'setFocus'
-
-
-  initList: ->
-
-    return no  if @getData().status.state isnt Machine.State.Running
-
-    kd.singletons.computeController.fetchDomains (err, domains = []) =>
-      kd.warn err  if err
-
-      @listController.lazyLoader?.hide()
-      @listController.replaceAllItems domains
 
 
   showAddView: ->
@@ -117,8 +110,8 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
         @addNewButton.hideLoader()
 
   hideAddView: ->
-      super
-      @notificationView.hide()
+    super
+    @notificationView.hide()
 
 
   removeDomain: (domainItem) ->
@@ -177,7 +170,7 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
         @revertToggle domainItem, state
         domainItem.setLoadingMode no
 
-      .finally =>
+      .finally ->
         domainItem.setLoadingMode no
 
 

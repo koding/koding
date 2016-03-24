@@ -46,11 +46,11 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   createButtons: ->
 
-    @reinitButton         = new kd.CustomHTMLView cssClass: 'hidden'
-    @addVMButton          = new kd.CustomHTMLView cssClass: 'hidden'
-    @addManagedButton     = new kd.CustomHTMLView cssClass: 'hidden'
-    @deleteStackButton    = new kd.CustomHTMLView cssClass: 'hidden'
-    @addSoftlayerVMButton = new kd.CustomHTMLView cssClass: 'hidden'
+    @reinitButton         = new kd.CustomHTMLView { cssClass: 'hidden' }
+    @addVMButton          = new kd.CustomHTMLView { cssClass: 'hidden' }
+    @addManagedButton     = new kd.CustomHTMLView { cssClass: 'hidden' }
+    @deleteStackButton    = new kd.CustomHTMLView { cssClass: 'hidden' }
+    @addSoftlayerVMButton = new kd.CustomHTMLView { cssClass: 'hidden' }
 
     { title } = stack = @getData()
 
@@ -72,7 +72,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     if isKoding()
       @addVMButton = new kd.ButtonView
         title     : 'Add a Koding VM'
-        loader    : diameter : 20
+        loader    : { diameter : 20 }
         cssClass  : 'add-vm-button solid green compact'
         callback  : => @handleMachineRequest 'koding'
 
@@ -302,7 +302,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
 
   pistachio: ->
-    """
+    '''
       {{> @header}}
       {{> @machinesList}}
       {{> @updateNotification}}
@@ -319,4 +319,4 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
           {{> @addVMButton}}
         </div>
       </div>
-    """
+    '''

@@ -39,7 +39,9 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
     @on 'FormSaved', @bound 'save'
     @on 'SubmitFailed', @bound 'errorHandled'
 
-    @getDelegate().emit 'EditItem', this
+    @getDelegate().emit 'ItemAction',
+      action  : 'EditItem'
+      item    : this
 
 
   decorateNoMachineState: (formWrapper) ->
@@ -113,7 +115,9 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
 
   cancel: ->
 
-    @getDelegate().emit 'RemoveItem', this
+    @getDelegate().emit 'ItemAction',
+      action  : 'RemoveItem'
+      item    : this
 
 
   save: ->
@@ -140,7 +144,9 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
         showError 'VM(s) should be selected for SSH key'
       else
         @setData { title, key, machines }
-        @getDelegate().emit 'NewItemSubmitted', this
+        @getDelegate().emit 'ItemAction',
+          action : 'NewItemSubmitted'
+          item   : this
 
     @buttonsBar.buttons.save.hideLoader()
 

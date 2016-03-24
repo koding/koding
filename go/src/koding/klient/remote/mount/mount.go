@@ -44,7 +44,7 @@ type Mount struct {
 
 	// A kitepinger reference from the parent machine, so that Mounts can unsub as
 	// needed.
-	KitePinger kitepinger.KitePinger `json:"-"`
+	KiteTracker *kitepinger.PingTracker `json:"-"`
 
 	MountedFS fuseklient.FS `json:"-"`
 
@@ -57,8 +57,6 @@ type Mount struct {
 	Unmounter interface {
 		Unmount() error
 	} `json:"-"`
-
-	LastMountError bool
 }
 
 func (m *Mount) Unmount() error {
