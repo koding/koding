@@ -1,0 +1,94 @@
+@css {
+/*
+Home Nav styles
+*/
+}
+
+$green                      = #00B057
+$gray                       = #B0B0B0
+
+.HomeAppView-Nav
+  bg                        color, #FAFAFA
+  size                      245px, 100%
+  padding                   25px
+  font-family               SoleilFamily
+  borderBox()
+  rel()
+  fl()
+
+.HomeAppView-Nav--Item
+  display                   block
+  height                    36px
+  line-height               26px
+  padding                   5px 25px
+  margin-bottom             16px
+  rounded                   18px
+  color                     $gray
+  letter-spacing            .3px
+  font-size                 14px
+  font-weight               300
+  vendor                    transition, transform .099s ease-in
+  vendor                    transform, translateX(0px)
+  borderBox()
+  noTextDeco()
+  pointer()
+  rel()
+  &:after
+    content                 ''
+    vendor                  transition, transform .099s .099s ease-in
+    margin-right            -28px
+    abs                     0px 0px
+    size                    4px 100%
+    bg                      color, $green
+    vendor                  transform, translateX(3px)
+  &.active
+    vendor                  transform, translateX(-3px)
+    color                   $green
+    &:after
+      vendor                transform, translateX(0px)
+
+
+.HomeAppView-Nav--Title
+  color                     $green
+  line-height               25px
+  font-size                 17px
+  margin                    31px 0 13px 2px
+  letter-spacing            .7px
+
+.HomeAppView-Nav--AvatarArea
+  size                      100%, 64px
+  border-bottom             1px solid #D9D9D9
+  rel()
+
+
+.HomeAppView-Nav--fullname
+.HomeAppView-Nav--teamName
+  display                   block
+  letter-spacing            .6px
+  noTextDeco()
+  &:hover
+    noTextDeco()
+
+.HomeAppView-Nav--fullname
+  color                     #6B6B6B
+  font-size                 15px
+  letter-spacing            .8px
+  line-height               22px
+
+.HomeAppView-Nav--teamName
+  color                     #BEBEBE
+  font-weight               300
+  font-size                 14px
+  line-height               23px
+
+.HomeAppView-Nav--avatar
+  abs                       3px 0px
+  rounded                   50%
+  bg                        color #CACACA
+  overflow                  hidden
+  size                      40px 40px
+  padding                   1px
+  borderBox()
+
+  > img
+    rounded                 50%
