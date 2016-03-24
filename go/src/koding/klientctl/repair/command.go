@@ -407,6 +407,13 @@ func (c *Command) initDefaultRepairers() error {
 		Klient:    c.Klient,
 	}
 
+	writeReadRepair := &WriteReadRepair{
+		Log:       c.Log.New("WriteReadRepair"),
+		Stdout:    util.NewFprint(c.Stdout),
+		MountName: c.Options.MountName,
+		Klient:    c.Klient,
+	}
+
 	// A collection of Repairers responsible for actually repairing a given mount.
 	// Executed in the order they are defined, the effectiveness of the Repairers
 	// may depend on the order they are run in. An example being TokenNotValidYetRepair
@@ -421,6 +428,7 @@ func (c *Command) initDefaultRepairers() error {
 		permDeniedRepair,
 		mountEmptyRepair,
 		deviceNotConfiguredRepair,
+		writeReadRepair,
 	}
 
 	return nil
