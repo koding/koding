@@ -689,7 +689,7 @@ module.exports = class ComputeProvider extends Base
       return callback()  unless stacks.length
 
       queue = []
-      for stack in stacks
+      stacks.forEach (stack) ->
         checkResult = stack.checkRevisionByTemplate template
         if checkResult is stackRevisionErrors.TEMPLATEDIFFERENT
           queue.push (next) ->
