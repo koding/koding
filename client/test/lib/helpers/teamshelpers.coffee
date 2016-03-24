@@ -554,6 +554,63 @@ module.exports =
           .waitForElementVisible    inUseLabelSelector, 20000
 
 
+  saveTemplate: (browser) ->
+
+    saveAndTestButton    = '.template-title-form .buttons .save-test'
+    editorSelector       = '.stack-template .output .output-view'
+    loaderIconNotVisible = "#{saveAndTestButton} .kdloader.hidden"
+    stackModal           = '.stack-modal'
+    closeButton          = "#{stackModal} .gray"
+    stackTabSelector     = '.team-stack-templates .kdtabhandle.stack-template.active'
+    closeStackPageButton = '.StackCatalogModal .close-icon'
+    sidebarSelector      = '.activity-sidebar .SidebarTeamSection'
+    sidebarStackSection  = "#{sidebarSelector} .SidebarStackSection.active"
+    finalizeStepsButton  = "#{sidebarSelector} a[href='/Stacks/Welcome']:not(.SidebarSection-headerTitle)"
+    envMachineStateModal = '.env-machine-state .has-markdown'
+
+    browser
+      .waitForElementVisible     saveAndTestButton, 20000
+      .scrollToElement           saveAndTestButton
+      .click                     saveAndTestButton
+      .waitForElementVisible     editorSelector, 35000
+      .waitForElementVisible     '.template-title-form .buttons .save-test .kdloader', 20000
+      .waitForElementNotVisible  loaderIconNotVisible, 500000
+      .pause                     3000
+
+    browser.element 'css selector', stackModal, (result) ->
+      if result.status is 0
+        browser
+          .assert.containsText    stackModal, 'Your stack script has been successfully saved'
+          .waitForElementVisible  closeButton, 20000
+          .click                  closeButton
+
+    browser
+      .waitForElementVisible     stackTabSelector, 20000
+      .waitForElementVisible     closeStackPageButton, 20000
+      .click                     closeStackPageButton
+      .waitForElementVisible     sidebarStackSection, 20000
+      .waitForElementNotPresent  finalizeStepsButton, 20000
+      .waitForElementVisible     envMachineStateModal, 20000
+
+
+  buildStack: (browser) ->
+
+    envMachineStateModal = '.env-machine-state'
+    buildStackButton     = "#{envMachineStateModal} .content-container .state-button"
+    progressbarContainer = "#{envMachineStateModal} .progressbar-container"
+    sidebarSelector      = '.activity-sidebar .SidebarTeamSection'
+    sidebarStackSection  = "#{sidebarSelector} .SidebarStackSection.active"
+    stackMachine         = "#{sidebarStackSection} .SidebarMachinesListItem.Running.active"
+
+    browser
+      .waitForElementVisible     buildStackButton, 20000
+      .click                     buildStackButton
+      .waitForElementVisible     progressbarContainer, 20000
+      .waitForElementNotPresent  progressbarContainer,500000
+      .pause                     3000 # wait for machine
+      .waitForElementVisible     stackMachine, 20000
+
+
   getAwsKey: -> return awsKey
 
 
