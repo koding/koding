@@ -997,13 +997,16 @@ module.exports = class JUser extends jraphical.Module
         group.approveMember account, roles, (err) ->
           return callback err  if err
 
-          groupLink  = "#{protocol}//#{slug}.#{hostname}/"
+          if code = invitation?.code
+            groupUrl   = "#{protocol}//#{slug}.#{hostname}"
+            properties =
+              groupName : slug
+              link      : "#{groupUrl}/Invitation/#{encodeURIComponent code}"
 
-          properties =
-            groupName    : slug
-            link         : groupLink + "Invitation/#{encodeURIComponent invitation?.code}"
+            options    =
+              subject   : Tracker.types.TEAMS_ACCEPTED_INVITATION
 
-          Tracker.identifyAndTrack email, { subject : Tracker.types.TEAMS_ACCEPTED_INVITATION }, properties
+            Tracker.identifyAndTrack email, options, properties
 
           # do not forget to redeem invitation
           redeemInvitation {
