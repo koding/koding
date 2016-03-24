@@ -28,11 +28,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     options.limit            or= 30
     options.noItemFoundText   ?= "You don't have any credentials"
-
-    # Implement it with options.model
-    options.fetcherMethod     ?= (query, options, callback) ->
-      remote.api.JCredential.some query, options, (err, items) ->
-        callback err, items
+    options.model             ?= remote.api.JCredential
 
     super options, data
 
