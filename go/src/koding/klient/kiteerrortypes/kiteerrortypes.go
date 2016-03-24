@@ -44,4 +44,7 @@ const (
 
 	// Used in klient/client.ErrSubNotFound
 	SubNotFound = "SubNotFound"
+
+	// Used in klient/remote/mount.Mounter
+	RemotePathDoesNotExist = "RemotePathDoesNotExist"
 )

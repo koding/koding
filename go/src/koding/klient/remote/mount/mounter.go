@@ -2,8 +2,10 @@ package mount
 
 import (
 	"errors"
+	"fmt"
 	"koding/fuseklient"
 	"koding/fuseklient/transport"
+	"koding/klient/command"
 	"koding/klient/kiteerrortypes"
 	"koding/klient/remote/kitepinger"
 	"koding/klient/remote/machine"
@@ -30,6 +32,15 @@ const (
 	fuseTellTimeout = 55 * time.Second
 
 	autoRemountFailed = "Error auto-mounting. Please unmount & mount again."
+)
+
+var (
+	// ErrRemotePathDoesNotExist is returned when the remote path does not exist,
+	// or is not a dir.
+	ErrRemotePathDoesNotExist = util.KiteErrorf(
+		kiteerrortypes.RemotePathDoesNotExist,
+		"The RemotePath either does not exist, or is not a dir",
+	)
 )
 
 // MounterTransport is the transport that the Mounter uses to communicate with
@@ -74,6 +85,9 @@ type Mounter struct {
 	// PathUnmounter is responsible for unmounting the given path. Usually implemented
 	// by fuseklient.Unmount(path)
 	PathUnmounter func(string) error
+
+	// If true, Mount() will not check if the remote dir exists.
+	DoNotCheckRemoteDirExists bool
 }
 
 // IsConfigured checks the Mounter fields to ensure (as best as it can) that
@@ -124,6 +138,12 @@ func (m *Mounter) IsMountPathTaken() error {
 }
 
 func (m *Mounter) Mount() (*Mount, error) {
+	// remoteDirExistsCheck checks it's own configured requirements. It can be
+	// run before IsConfigured.
+	if err := m.remoteDirExistsCheck(); err != nil {
+		return nil, err
+	}
+
 	if err := m.IsConfigured(); err != nil {
 		m.Log.Error("Mounter improperly configured. err:%s", err)
 		return nil, err
@@ -192,6 +212,36 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 	}
 
 	go m.watchClientAndReconnect(mount, changeSummaries)
+
+	return nil
+}
+
+// remoteDirExistsCheck checks if the remote dir exists, returning an error if not.
+func (m *Mounter) remoteDirExistsCheck() error {
+	if m.Transport == nil {
+		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing Teller")
+	}
+
+	if err := m.Transport.Dial(); err != nil {
+		m.Log.Error("Error dialing remote klient. err:%s", err)
+		return util.NewKiteError(kiteerrortypes.DialingFailed, err)
+	}
+
+	// A bash command to test if the directory exists
+	cmd := fmt.Sprintf(`bash -c "[ -d %s ]"`, m.Options.RemotePath)
+	res, err := m.Transport.Tell("exec", struct{ Command string }{cmd})
+	if err != nil {
+		return err
+	}
+
+	var output command.Output
+	if err := res.Unmarshal(&output); err != nil {
+		return err
+	}
+
+	if output.ExitStatus != 0 {
+		return ErrRemotePathDoesNotExist
+	}
 
 	return nil
 }

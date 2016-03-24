@@ -415,6 +415,10 @@ func (c *MountCommand) mountFolder(r req.MountFolder) error {
 			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
 			return fmt.Errorf("Machine is not valid yet. err:%s", err)
 
+		case klientctlerrors.IsRemotePathNotExistErr(err):
+			c.printfln(RemotePathDoesNotExist)
+			return fmt.Errorf("Remote path does not exist. err:%s", err)
+
 		default:
 			// catch any remaining errors
 			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))

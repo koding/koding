@@ -178,6 +178,12 @@ remote machine is running & accessible and try again.`,
 	// for now.
 	MachineNotValidYet = FailedDialingRemote
 
+	// RemotePathDoesNotExist is printed when the user supplies a directory to mount,
+	// that does not exist on the remote side.
+	RemotePathDoesNotExist = fmt.Sprintf(
+		`Error: The given path does not exist on the remote machine.`,
+	)
+
 	// AttemptedRemoveRestrictedPath is when the user unmounts a path, but
 	// the path cannot be removed because it is an important path.
 	AttemptedRemoveRestrictedPath = fmt.Sprintf(
