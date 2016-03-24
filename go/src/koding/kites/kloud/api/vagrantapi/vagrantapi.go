@@ -34,16 +34,25 @@ const (
 	StateSaved      = State("saved")
 )
 
+// ForwardedPort represents a single config.vm.network "forwarded_port" rule
+// in a Vagrantfile.
+type ForwardedPort struct {
+	GuestPort int `json:"guest,omitempty"`
+	HostPort  int `json:"host,omitempty"`
+}
+
 // Create represents vagrant.create request and response.
 type Create struct {
-	FilePath      string // always absolute for response values
-	ProvisionData string // base64-json-encoded userdata.Value
-	Hostname      string // hostname of the box
-	Box           string // box type
-	Memory        int    // memory in MiB
-	Cpus          int    // number of cores
-	CustomScript  string // custom sh script, plain text
-	HostURL       string // host kite URL
+	FilePath       string           // always absolute for response values
+	ProvisionData  string           // base64-json-encoded userdata.Value
+	Hostname       string           // hostname of the box
+	Username       string           // owner of the box
+	Box            string           // box type
+	Memory         int              // memory in MiB
+	Cpus           int              // number of cores
+	CustomScript   string           // custom sh script, plain text
+	HostURL        string           // host kite URL
+	ForwardedPorts []*ForwardedPort `json:"forwarded_ports,omitempty"`
 }
 
 // Command represents vagrant.{up,halt,destroy} requests.
@@ -183,6 +192,20 @@ func (k *Klient) cmd(queryString, method, boxPath string) error {
 // Create calls vagrant.create method on a kite given by the queryString.
 func (k *Klient) Create(queryString string, req *Create) (resp *Create, err error) {
 	resp = &Create{}
+
+	// Share the host kite with quest kite.
+	if req.Username != "" {
+		share := map[string]interface{}{
+			"username":  req.Username,
+			"permanent": true,
+		}
+
+		if _, err := k.send(queryString, "klient.share", share, nil); err != nil {
+			if !strings.Contains(err.Error(), "user is already in the shared list") {
+				k.Log.Error("failed to share %q with %q: %s", queryString, req.Username, err)
+			}
+		}
+	}
 
 	url, err := k.send(queryString, "vagrant.create", req, resp)
 	if err != nil {

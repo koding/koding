@@ -84,6 +84,12 @@ type ClientOptions struct {
 	// port on which it received connection.
 	LocalAddr string
 
+	// LocalRoutes is sent with RegisterRequest.
+	LocalRoutes map[string]string
+
+	// StateChanges, when non-nil, listens on tunnel connection state transtions.
+	StateChanges chan<- *tunnel.ClientStateChange
+
 	Debug  bool           // whether to use debug logging
 	Log    logging.Logger // overwrites logger used with custom one
 	Config *config.Config // configures kite.Kite to connect to tunnelserver
@@ -152,8 +158,13 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		optsCopy.Log = common.NewLogger("tunnelclient", optsCopy.Debug)
 	}
 
+	k := kite.New(ClientKiteName, ClientKiteVersion)
+	if optsCopy.Debug {
+		k.SetLogLevel(kite.DEBUG)
+	}
+
 	c := &Client{
-		kite:          kite.New(ClientKiteName, ClientKiteVersion),
+		kite:          k,
 		opts:          &optsCopy,
 		tunnelKiteURL: optsCopy.tunnelKiteURL(),
 		stateChanges:  make(chan *tunnel.ClientStateChange, 128),
@@ -293,6 +304,10 @@ func (c *Client) eventloop() {
 	for {
 		select {
 		case ch := <-c.stateChanges:
+			if c.opts.StateChanges != nil {
+				c.opts.StateChanges <- ch
+			}
+
 			c.opts.Log.Debug("handling transition: %s", ch)
 
 			switch ch.Current {
@@ -475,8 +490,10 @@ func (c *Client) tryRegister() error {
 	defer client.Close()
 
 	req := &RegisterRequest{
-		TunnelName: c.opts.TunnelName,
+		TunnelName:  c.opts.TunnelName,
+		LocalRoutes: c.opts.LocalRoutes,
 	}
+
 	kiteResp, err := client.TellWithTimeout("register", c.opts.timeout(), req)
 	if err != nil {
 		return c.handleReg(nil, err)

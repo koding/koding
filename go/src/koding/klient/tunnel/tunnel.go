@@ -4,6 +4,7 @@ package tunnel
 
 import (
 	"errors"
+	"net"
 	"net/url"
 	"strings"
 	"sync"
@@ -11,10 +12,12 @@ import (
 
 	"koding/kites/tunnelproxy"
 	"koding/klient/info/publicip"
+	"koding/klient/vagrant"
 
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
+	"github.com/koding/tunnel"
 )
 
 var (
@@ -27,14 +30,22 @@ var (
 
 // Tunnel
 type Tunnel struct {
-	db     Storage
-	opts   *Options
+	db     *Storage
 	client *tunnelproxy.Client
+
+	// Cached routes, in case host kite goes down.
+	mu    sync.Mutex // protects ports and opts
+	ports []*vagrant.ForwardedPort
+	opts  *Options
 
 	// Used to wait for first successful
 	// tunnel server registration.
 	register sync.WaitGroup
 	once     sync.Once
+
+	state        tunnel.ClientState
+	stateChanges chan *tunnel.ClientStateChange
+	isVagrant    bool
 }
 
 // Options
@@ -44,6 +55,7 @@ type Options struct {
 	LocalAddr     string        `json:"localAddr,omitempty"`
 	VirtualHost   string        `json:"virtualHost,omitempty"`
 	Timeout       time.Duration `json:"timeout,omitempty"`
+	PublicIP      net.IP        `jsob:"publicIP,omitempty"`
 
 	// IP reachability test cache
 	LastAddr      string `json:"lastAddr,omitempty"`
@@ -101,6 +113,10 @@ func (opts *Options) updateEmpty(defaults *Options) {
 		opts.Debug = defaults.Debug
 	}
 
+	if opts.PublicIP == nil {
+		opts.PublicIP = defaults.PublicIP
+	}
+
 	// set defaults
 	if opts.Timeout == 0 {
 		opts.Timeout = 5 * time.Minute
@@ -122,9 +138,12 @@ func New(opts *Options) *Tunnel {
 	optsCopy := *opts
 
 	t := &Tunnel{
-		db:   newStorage(&optsCopy),
-		opts: &optsCopy,
+		db:           NewStorage(optsCopy.DB),
+		opts:         &optsCopy,
+		stateChanges: make(chan *tunnel.ClientStateChange),
 	}
+
+	go t.eventloop()
 
 	t.register.Add(1)
 
@@ -137,16 +156,40 @@ func (t *Tunnel) clientOptions() *tunnelproxy.ClientOptions {
 		TunnelKiteURL:   t.opts.TunnelKiteURL,
 		LastVirtualHost: t.opts.VirtualHost,
 		LocalAddr:       t.opts.LocalAddr,
+		LocalRoutes:     t.localRoute(),
 		Config:          t.opts.Config,
 		Timeout:         t.opts.Timeout,
 		OnRegister:      t.updateOptions,
 		Debug:           t.opts.Debug,
+		StateChanges:    t.stateChanges,
+	}
+}
+
+func (t *Tunnel) eventloop() {
+	for ch := range t.stateChanges {
+		t.mu.Lock()
+		t.state = ch.Current
+		t.mu.Unlock()
 	}
 }
 
 func (t *Tunnel) updateOptions(reg *tunnelproxy.RegisterResult) {
+	t.mu.Lock()
 	t.opts.VirtualHost = reg.VirtualHost
 	t.opts.TunnelName = guessTunnelName(reg.VirtualHost)
+
+	// if we're a vagrant vm, update forwarded ports
+	if t.isVagrant {
+		ports, err := t.forwardedPorts()
+		if err == nil {
+			t.ports = ports
+		} else {
+			t.opts.Log.Error("failed to update forwarded port list: %s", err)
+
+			t.ports = nil
+		}
+	}
+	t.mu.Unlock()
 
 	if err := t.db.SetOptions(t.opts); err != nil {
 		t.opts.Log.Warning("tunnel: unable to update options: %s", err)
@@ -201,9 +244,13 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
 		return registerURL, nil
 	}
 
-	t.opts.Log.Debug("starting tunnel client: %# v", opts)
+	clientOpts := t.clientOptions()
 
-	client, err := tunnelproxy.NewClient(t.clientOptions())
+	t.opts.Log.Debug("starting tunnel client")
+	t.opts.Log.Debug("tunnel.Options=%+v", opts)
+	t.opts.Log.Debug("tunnelproxy.ClientOptions=%+v", clientOpts)
+
+	client, err := tunnelproxy.NewClient(clientOpts)
 	if err != nil {
 		return nil, err
 	}

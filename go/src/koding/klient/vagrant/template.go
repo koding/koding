@@ -29,7 +29,7 @@ date > /etc/vagrant_provisioned_at
 wget -q --retry-connrefused --tries 5 https://s3.amazonaws.com/kodingdev-provision/provisionklient.gz || die "downloading provisionklient failed"
 gzip -d -f provisionklient.gz || die "unarchiving provisionklient failed"
 chmod +x provisionklient
-./provisionklient -data '{{ .ProvisionData }}'
+./provisionklient -data '{{.ProvisionData}}'
 
 cat >user-script.sh <<EOF
 {{ .CustomScript }}
@@ -41,12 +41,16 @@ chmod +x user-script.sh
 SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "{{ .Box }}"
-  config.vm.hostname = "{{ .Hostname }}"
+  config.vm.box = "{{.Box}}"
+  config.vm.hostname = "{{.Hostname}}"
+
+{{range $_, $f := .ForwardedPorts}}
+  config.vm.network "forwarded_port", guest: {{$f.GuestPort}}, host: {{$f.HostPort}}, auto_correct: true
+{{end}}
 
   config.vm.provider "virtualbox" do |vb|
     # Use VBoxManage to customize the VM. For example to change memory:
-    vb.customize ["modifyvm", :id, "--memory", "{{ .Memory }}", "--cpus", "{{ .Cpus }}"]
+    vb.customize ["modifyvm", :id, "--memory", "{{.Memory}}", "--cpus", "{{.Cpus}}"]
   end
 
   config.vm.provision "shell", inline: $script

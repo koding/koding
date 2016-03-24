@@ -4,8 +4,14 @@
 package vagrant
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
+	"fmt"
+	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -64,14 +70,21 @@ type Info struct {
 	Error    string `json:"error,omitempty"`
 }
 
+type ForwardedPort struct {
+	GuestPort int `json:"guest,omitempty"`
+	HostPort  int `json:"host,omitempty"`
+}
+
 type VagrantCreateOptions struct {
-	Hostname      string
-	Box           string
-	Memory        int
-	Cpus          int
-	ProvisionData string
-	CustomScript  string
-	FilePath      string
+	Username       string           `json:"username"`
+	Hostname       string           `json:"hostname"`
+	Box            string           `json:"box,omitempty"`
+	Memory         int              `json:"memory,omitempty"`
+	Cpus           int              `json:"cpus,omitempty"`
+	ProvisionData  string           `json:"provisionData"`
+	CustomScript   string           `json:"customScript,omitempty"`
+	FilePath       string           `json:"filePath"`
+	ForwardedPorts []*ForwardedPort `json:"forwarded_ports,omitempty"`
 }
 
 type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error)
@@ -267,12 +280,52 @@ func (h *Handlers) Status(r *kite.Request) (interface{}, error) {
 	return h.withPath(r, fn)
 }
 
-// Version retursn the Vagrant version of the system
+// Version returns the Vagrant version of the system
 func (h *Handlers) Version(r *kite.Request) (interface{}, error) {
 	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
 		return v.Version()
 	}
 	return h.withPath(r, fn)
+}
+
+type ForwardedPortsRequest struct {
+	Name string `json:"name"`
+}
+
+func (req *ForwardedPortsRequest) Valid() error {
+	if req.Name == "" {
+		return errors.New("box name is empty")
+	}
+
+	return nil
+}
+
+// ForwardedPorts lists all forwarded port rules for the given box.
+func (h *Handlers) ForwardedPorts(r *kite.Request) (interface{}, error) {
+	if r.Args == nil {
+		return nil, errors.New("no arguments")
+	}
+
+	var req ForwardedPortsRequest
+	if err := r.Args.One().Unmarshal(&req); err != nil {
+		return nil, err
+	}
+
+	if err := req.Valid(); err != nil {
+		return nil, err
+	}
+
+	name, err := h.vboxLookupName(req.Name)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find box %q: %s", req.Name, err)
+	}
+
+	ports, err := h.vboxForwardedPorts(name)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read forwarded ports for box %q: %s", name, err)
+	}
+
+	return ports, nil
 }
 
 func (h *Handlers) boxAdd(v *vagrantutil.Vagrant, box, filePath string) {
@@ -358,6 +411,92 @@ func (h *Handlers) boxWait(filePath string) error {
 	return <-wait
 }
 
+func (h *Handlers) vboxLookupName(partial string) (fullName string, err error) {
+	p, err := exec.Command("VBoxManage", "list", "vms").Output()
+	if err != nil {
+		return "", err
+	}
+
+	scanner := bufio.NewScanner(bytes.NewReader(p))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if i := strings.IndexRune(line, ' '); i != -1 {
+			line = line[:i]
+		}
+		if s, err := strconv.Unquote(line); err == nil {
+			line = s
+		}
+
+		if strings.HasPrefix(line, partial) {
+			if fullName != "" {
+				return "", fmt.Errorf("multiple boxes found for %q: %q, %q", partial, fullName, line)
+			}
+
+			fullName = line
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	if fullName == "" {
+		return "", fmt.Errorf("no box found for %q", partial)
+	}
+
+	return fullName, nil
+}
+
+func (h *Handlers) vboxForwardedPorts(name string) (ports []*ForwardedPort, err error) {
+	p, err := exec.Command("VBoxManage", "showvminfo", name, "--machinereadable").Output()
+	if err != nil {
+		return nil, err
+	}
+
+	scanner := bufio.NewScanner(bytes.NewReader(p))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if !strings.HasPrefix(line, "Forwarding") {
+			continue
+		}
+
+		if i := strings.IndexRune(line, '='); i != -1 {
+			line = line[i+1:]
+		}
+
+		if s, err := strconv.Unquote(line); err == nil {
+			line = s
+		}
+
+		// forwarding rule is in format "tcp56788,tcp,,56788,,56789", where
+		// 56788 is host port and 56789 a guest one.
+		v := strings.Split(line, ",")
+
+		if len(v) != 6 || v[3] == "" || v[5] == "" {
+			h.log.Debug("forwarding rule is ill-formatted: %s", line)
+			continue
+		}
+
+		hostPort, err := strconv.Atoi(v[3])
+		if err != nil {
+			h.log.Debug("forwarding rule: parsing host port error: %s", err)
+			continue
+		}
+
+		guestPort, err := strconv.Atoi(v[5])
+		if err != nil {
+			h.log.Debug("forwarding rule: parsing guest port error: %s", err)
+			continue
+		}
+
+		ports = append(ports, &ForwardedPort{GuestPort: guestPort, HostPort: hostPort})
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return ports, nil
+}
+
 func (h *Handlers) init() {
 	v, err := vagrantutil.NewVagrant(".") // "vagrant box" commands does not require working dir
 	if err != nil {
@@ -396,7 +535,9 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 	}
 
 	var verr error
-	parseErr := func(line string) {
+	var fns OutputFuncs
+
+	fns = append(fns, func(line string) {
 		i := strings.Index(strings.ToLower(line), "error:")
 		if i == -1 {
 			return
@@ -408,20 +549,19 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 			msg = unquoter.Replace(msg)
 			verr = multierror.Append(verr, errors.New(msg))
 		}
-	}
-
-	w := &vagrantutil.Waiter{
-		OutputFunc: parseErr,
-	}
+	})
 
 	if params.Output.IsValid() {
 		h.log.Debug("sending output to %q for %q", r.Username, r.Method)
 
-		w.OutputFunc = func(line string) {
+		fns = append(fns, func(line string) {
 			h.log.Debug("%s: %s", r.Method, line)
-			parseErr(line)
 			params.Output.Call(line)
-		}
+		})
+	}
+
+	w := &vagrantutil.Waiter{
+		OutputFunc: fns.Output,
 	}
 
 	out, err := fn()
@@ -447,4 +587,58 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 	}()
 
 	return true, nil
+}
+
+type OutputFuncs []func(string)
+
+func (fns OutputFuncs) Output(line string) {
+	for _, fn := range fns {
+		fn(line)
+	}
+}
+
+var vboxModules = []string{
+	"vboxguest",
+	"vboxsf",
+	"vboxvideo",
+}
+
+func IsVagrant() (bool, error) {
+	if runtime.GOOS != "linux" {
+		return false, nil // TODO(rjeczalik): Windows support
+	}
+
+	p, err := exec.Command("lsmod").Output()
+	if err != nil {
+		return false, errors.New("IsVagrant error: " + err.Error())
+	}
+
+	for {
+		// a single line of lsmod output is in format:
+		//
+		//  module             249035  2 modules
+		//
+		// if at least one VirtualBox module is loaded into kernel,
+		// it means it's a vagrant box.
+		i := bytes.IndexByte(p, ' ')
+		if i == -1 {
+			break
+		}
+
+		module := string(p[:i])
+
+		for _, vboxModule := range vboxModules {
+			if module == vboxModule {
+				return true, nil
+			}
+		}
+
+		if i = bytes.IndexByte(p, '\n'); i == -1 {
+			break
+		}
+
+		p = p[i+1:]
+	}
+
+	return false, nil
 }
