@@ -1004,7 +1004,7 @@ module.exports = class JUser extends jraphical.Module
               link      : "#{groupUrl}/Invitation/#{encodeURIComponent code}"
 
             options    =
-              subject   : Tracker.types.TEAMS_ACCEPTED_INVITATION
+              subject   : Tracker.types.TEAMS_JOINED_TEAM
 
             Tracker.identifyAndTrack email, options, properties
 
