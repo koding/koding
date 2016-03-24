@@ -6,7 +6,6 @@ import (
 
 	"github.com/RangelReale/osin"
 	"github.com/osin-mongo-storage/mgostore"
-	"gopkg.in/mgo.v2"
 )
 
 type Oauth struct {
@@ -60,25 +59,6 @@ func (o *Oauth) GenerateToken(w http.ResponseWriter, r *http.Request) {
 		resp.Output["custom_parameter"] = 19923
 	}
 	osin.OutputJSON(resp, w, r)
-}
-
-func NewOAuthHandler(session *mgo.Session, dbName string) *Oauth {
-	sconfig := osin.NewServerConfig()
-	sconfig.AllowedAuthorizeTypes = osin.AllowedAuthorizeType{osin.CODE, osin.TOKEN}
-	sconfig.AllowedAccessTypes = osin.AllowedAccessType{osin.AUTHORIZATION_CODE,
-		osin.REFRESH_TOKEN, osin.PASSWORD, osin.CLIENT_CREDENTIALS, osin.ASSERTION}
-	sconfig.AllowGetAccessRequest = true
-	storage := mgostore.New(session, dbName)
-	server := osin.NewServer(sconfig, storage)
-
-	// return &Oauth{sconfig, server, storage}
-
-	return &Oauth{
-		sconfig: sconfig,
-		server:  server,
-		Storage: storage,
-	}
-
 }
 
 ///////
