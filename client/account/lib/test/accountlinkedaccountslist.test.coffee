@@ -23,6 +23,6 @@ describe 'AccountLinkedAccountsList', ->
     it 'should use custom css class', ->
 
       listView  = new AccountLinkedAccountsList
-      hasClass  = listView.getDomElement().hasClass 'AppModal--account-switchList'
+      hasClass  = listView.hasClass 'AppModal--account-switchList'
 
       expect(hasClass).toBeTruthy()
