@@ -51,10 +51,10 @@ getLatestWorkspace = (machine) ->
 
 loadIDENotFound = ->
 
-  {appManager} = kd.singletons
+  { appManager } = kd.singletons
   appManager.open 'IDE', { forceNew: yes }, (app) ->
     app.amIHost = yes
-    appManager.tell 'IDE', 'createMachineStateModal', state: 'NotFound'
+    appManager.tell 'IDE', 'createMachineStateModal', { state: 'NotFound' }
 
 
 loadIDE = (data) ->
@@ -140,8 +140,8 @@ routeToMachineWorkspace = (machine) ->
     machine = new Machine { machine }
 
   if latestWorkspace
-  then {workspaceSlug} = latestWorkspace
-  else workspaceSlug   = 'my-workspace'
+  then { workspaceSlug } = latestWorkspace
+  else workspaceSlug     = 'my-workspace'
 
   identifier = machine.slug
 
@@ -170,12 +170,12 @@ routeToLatestWorkspace = ->
         storage.unsetKey 'LatestWorkspace'
         return routeToFallback()
 
-      dataProvider.fetchMachineAndWorkspaceByChannelId channelId, (machine, ws) =>
+      dataProvider.fetchMachineAndWorkspaceByChannelId channelId, (machine, ws) ->
         if machine and ws then router.handleRoute "/IDE/#{channelId}"
         else routeToFallback()
 
   else if machineLabel and workspaceSlug
-    dataProvider.fetchMachineByLabel machineLabel, (machine, workspace) =>
+    dataProvider.fetchMachineByLabel machineLabel, (machine, workspace) ->
       if machine and workspace
         actions.setSelectedWorkspaceId workspace._id
         router.handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
@@ -199,12 +199,12 @@ loadCollaborativeIDE = (id) ->
 
     try
 
-      dataProvider.fetchMachineAndWorkspaceByChannelId id, (machine, workspace) =>
+      dataProvider.fetchMachineAndWorkspaceByChannelId id, (machine, workspace) ->
         return routeToLatestWorkspace()  unless workspace
 
-        query = socialApiId: channel.creatorId
+        query = { socialApiId: channel.creatorId }
 
-        remote.api.JAccount.some query, {}, (err, account) =>
+        remote.api.JAccount.some query, {}, (err, account) ->
           if err
             routeToLatestWorkspace()
             return throw new Error err
@@ -251,9 +251,9 @@ routeHandler = (type, info, state, path, ctx) ->
 
           if machine
             username = machine.getOwner()
-            data = machineUId: machine.uid, workspaceSlug: params.workspaceSlug
+            data = { machineUId: machine.uid, workspaceSlug: params.workspaceSlug }
 
-            dataProvider.fetchWorkspaceByMachineUId data, (workspace) =>
+            dataProvider.fetchWorkspaceByMachineUId data, (workspace) ->
               if workspace then loadIDE { machine, workspace, username }
               else
                 routeToMachineWorkspace machine

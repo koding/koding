@@ -50,7 +50,7 @@ module.exports = class RealtimeManager extends KDObject
 
     options      =
       resource   :
-        mimeType : "application/vnd.google-apps.drive-sdk"
+        mimeType : 'application/vnd.google-apps.drive-sdk'
         title    : title
 
     gapi.client.drive.files.insert(options).execute (file) =>
@@ -143,15 +143,15 @@ module.exports = class RealtimeManager extends KDObject
       @emit 'FileInitialized', model
 
     errorCallback = (error) =>
-      {ErrorType} = gapi.drive.realtime
+      { ErrorType } = gapi.drive.realtime
       eventName = \
-        switch error.type
-          when ErrorType.NOT_FOUND              then 'ErrorRealtimeFileMissing'
-          when ErrorType.SERVER_ERROR           then 'ErrorRealtimeServer'
-          when ErrorType.FORBIDDEN              then 'ErrorRealtimeUserForbidden'
-          when ErrorType.CLIENT_ERROR           then 'ErrorGoogleDriveApiClient'
-          when ErrorType.TOKEN_REFRESH_REQUIRED then 'ErrorRealtimeTokenExpired'
-          else 'ErrorHappened'
+      switch error.type
+        when ErrorType.NOT_FOUND              then 'ErrorRealtimeFileMissing'
+        when ErrorType.SERVER_ERROR           then 'ErrorRealtimeServer'
+        when ErrorType.FORBIDDEN              then 'ErrorRealtimeUserForbidden'
+        when ErrorType.CLIENT_ERROR           then 'ErrorGoogleDriveApiClient'
+        when ErrorType.TOKEN_REFRESH_REQUIRED then 'ErrorRealtimeTokenExpired'
+        else 'ErrorHappened'
 
       @emit eventName, error
 
@@ -301,7 +301,7 @@ module.exports = class RealtimeManager extends KDObject
   binder: (collaborativeObj, type, callback) ->
 
     # all kind of collaborativeObjs have id
-    throw new Error "id is not set" if not collaborativeObj.id
+    throw new Error 'id is not set' if not collaborativeObj.id
 
     listeners = @collaborativeEventListeners[collaborativeObj.id] or= {}
     return listeners[type] or= (v) => callback.call this, collaborativeObj, v

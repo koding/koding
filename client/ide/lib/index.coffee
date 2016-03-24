@@ -48,7 +48,7 @@ class IDEAppController extends AppController
     Starting, Building, Stopping, Rebooting, Terminating, Updating
   } = Machine.State
 
-  {noop, warn} = kd
+  { noop, warn } = kd
 
   INITIAL_BUILD_LOGS_TAIL_OFFSET = 15
 
@@ -56,7 +56,7 @@ class IDEAppController extends AppController
 
   constructor: (options = {}, data) ->
 
-    options.view    = new kd.View cssClass: 'dark'
+    options.view    = new kd.View { cssClass: 'dark' }
     options.appInfo =
       type          : 'application'
       name          : 'IDE'
@@ -91,7 +91,7 @@ class IDEAppController extends AppController
     { windowController, appManager } = kd.singletons
     windowController.addFocusListener @bound 'handleWindowFocus'
 
-    @layoutManager = new IDELayoutManager delegate : this
+    @layoutManager = new IDELayoutManager { delegate : this }
 
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
     @bindListeners()
@@ -149,7 +149,7 @@ class IDEAppController extends AppController
     @createInitialView withFakeViews
     @bindCollapseEvents()
 
-    {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
+    { @finderPane, @settingsPane } = @workspace.panel.getPaneByName 'filesPane'
 
     @finderPane.on 'ChangeHappened', @bound 'syncChange'
     @finderPane.mountedMachine = @mountedMachine
@@ -161,9 +161,9 @@ class IDEAppController extends AppController
 
   bindRouteHandler: ->
 
-    {router, mainView} = kd.singletons
+    { router, mainView } = kd.singletons
 
-    router.on 'RouteInfoHandled', (routeInfo) =>
+    router.on 'RouteInfoHandled', (routeInfo) ->
       if routeInfo.path.indexOf('/IDE') is -1
         if mainView.isSidebarCollapsed
           mainView.toggleSidebar()
@@ -423,7 +423,7 @@ class IDEAppController extends AppController
   openFiles: (filePaths) ->
 
     unless filePaths
-      return kd.error "IDEAppController::openFiles: Called with empty files"
+      return kd.error 'IDEAppController::openFiles: Called with empty files'
 
     filePaths.forEach (path) =>
       file = FSHelper.createFileInstance { path, machine: @mountedMachine }
@@ -468,7 +468,7 @@ class IDEAppController extends AppController
 
     return @openReadme()  if layout.length is 0
 
-    hasReadme  = (layout.filter ({context}) ->
+    hasReadme  = (layout.filter ({ context }) ->
       path = context.file?.path
       path and FSHelper.plainPath(path) is readmePath).length > 0
 
@@ -539,13 +539,13 @@ class IDEAppController extends AppController
           machineLabel = machine.slug or machine.label
           splashes     = splashMarkups
 
-          @splitTabView type: 'horizontal', dontSave: yes
+          @splitTabView { type: 'horizontal', dontSave: yes }
 
           @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
-          fakeTerminalView  = new kd.CustomHTMLView partial: splashes.getTerminal nickname
+          fakeTerminalView  = new kd.CustomHTMLView { partial: splashes.getTerminal nickname }
           @fakeTerminalPane = @fakeTabView.parent.createPane_ fakeTerminalView, { name: 'Terminal' }
-          @fakeFinderView   = new kd.CustomHTMLView partial: splashes.getFileTree nickname, machineLabel
+          @fakeFinderView   = new kd.CustomHTMLView { partial: splashes.getFileTree nickname }, machineLabel
 
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
           @fakeEditor.once 'EditorIsReady', => kd.utils.wait 1500, => @fakeEditor.setFocus no
@@ -566,7 +566,7 @@ class IDEAppController extends AppController
             # After that, get participant's snapshot from collaboration data and build workspace.
             @silent = yes  if @isInSession and not @amIHost and not @mountedMachine.isPermanent()
 
-            @splitTabView type: 'horizontal', dontSave: yes
+            @splitTabView { type: 'horizontal', dontSave: yes }
 
             @addInitialViews()
 
@@ -610,14 +610,14 @@ class IDEAppController extends AppController
         return @createMachineStateModal { state: 'NotFound', container }
 
       unless machineItem instanceof Machine
-        machineItem = new Machine machine: machineItem
+        machineItem = new Machine { machine: machineItem }
 
       # Don't run these lines on `Teams` scope.
       # Because `Teams` uses new Sidebar with React + Flux
       if not isTeamReactSide() and not machineItem.isMine() and not machineItem.isApproved()
         { activitySidebar } = kd.singletons.mainView
         box = activitySidebar.getMachineBoxByMachineUId machineItem.uid
-        box.machineItem.showSharePopup sticky: yes, workspaceId: @workspaceData.getId()
+        box.machineItem.showSharePopup { sticky: yes, workspaceId: @workspaceData.getId() }
 
         withFakeViews = yes
 
@@ -680,7 +680,7 @@ class IDEAppController extends AppController
   handleMachineTerminated: ->
 
 
-  handleMachineReinit: ({status}) ->
+  handleMachineReinit: ({ status }) ->
 
     switch status
       when 'Building'
@@ -705,7 +705,7 @@ class IDEAppController extends AppController
 
       @machineStateModal.updateStatus event
     else
-      {state}   = machineItem.status
+      { state }   = machineItem.status
       container = @getView()
       @createMachineStateModal { state, container, machineItem }
 
@@ -740,7 +740,7 @@ class IDEAppController extends AppController
     splitView    = panel.layout.getSplitViewByName 'BaseSplit'
     floatedPanel = splitView.panels.first
     filesPane    = panel.getPaneByName 'filesPane'
-    {tabView}    = filesPane
+    { tabView }  = filesPane
     desiredSize  = 250
 
     splitView.resizePanel 39, 0
@@ -781,12 +781,12 @@ class IDEAppController extends AppController
 
   splitVertically: ->
 
-    @splitTabView type: 'vertical'
+    @splitTabView { type: 'vertical' }
 
 
   splitHorizontally: ->
 
-    @splitTabView type: 'horizontal'
+    @splitTabView { type: 'horizontal' }
 
   createNewFile: do ->
     newFileSeed = 1
@@ -979,7 +979,7 @@ class IDEAppController extends AppController
 
   registerPane: (pane) ->
 
-    {view} = pane
+    { view } = pane
     unless view?.hash?
       return warn 'view.hash not found, returning'
 
@@ -1021,7 +1021,7 @@ class IDEAppController extends AppController
 
   initiateAutoSave: ->
 
-    {editorSettingsView} = @settingsPane
+    { editorSettingsView } = @settingsPane
 
     editorSettingsView.on 'SettingsFetched', =>
       @enableAutoSave()  if editorSettingsView.settings.useAutosave
@@ -1031,7 +1031,7 @@ class IDEAppController extends AppController
 
     return  if @autoSaveInterval
     @autoSaveInterval = kd.utils.repeat 1000, =>
-      @forEachSubViewInIDEViews_ 'editor', (ep) => ep.handleAutoSave()
+      @forEachSubViewInIDEViews_ 'editor', (ep) -> ep.handleAutoSave()
 
 
   disableAutoSave: ->
@@ -1063,8 +1063,8 @@ class IDEAppController extends AppController
 
   previewFile: ->
 
-    view   = @getActivePaneView()
-    {file} = view.getOptions()
+    view     = @getActivePaneView()
+    { file } = view.getOptions()
     return unless file
 
     if FSHelper.isPublicPath file.path
@@ -1077,7 +1077,7 @@ class IDEAppController extends AppController
 
   updateStatusBar: (component, data) ->
 
-    {status} = @statusBar
+    { status } = @statusBar
 
     text = if component is 'editor'
       { cursor, file } = data
@@ -1114,11 +1114,11 @@ class IDEAppController extends AppController
 
     menu.on 'viewAppended', ->
       if paneType is 'editor' and paneView
-        {syntaxSelector} = menu
-        {ace}            = paneView.aceView
+        { syntaxSelector } = menu
+        { ace }            = paneView.aceView
 
         syntaxSelector.select.setValue ace.getSyntax() or 'text'
-        syntaxSelector.on 'SelectionMade', (value) =>
+        syntaxSelector.on 'SelectionMade', (value) ->
           ace.setSyntax value
 
 
@@ -1157,7 +1157,7 @@ class IDEAppController extends AppController
 
     return @contentSearch.findInput.setFocus()  if @contentSearch
 
-    data = machine: @mountedMachine, workspace: @workspaceData
+    data = { machine: @mountedMachine, workspace: @workspaceData }
     @contentSearch = new IDEContentSearch {}, data
     @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
     @contentSearch.once 'ViewNeedsToBeShown', (view) =>
@@ -1281,7 +1281,7 @@ class IDEAppController extends AppController
   addInitialViews: ->
 
     @ideViews.first.createEditor()  unless @isNewRegister
-    @ideViews.last.createTerminal machine: @mountedMachine
+    @ideViews.last.createTerminal { machine: @mountedMachine }
     @setActiveTabView @ideViews.first.tabView
     @initialViewsReady = yes
 
@@ -1297,7 +1297,7 @@ class IDEAppController extends AppController
   doResize: kd.utils.debounce 100, ->
 
     @forEachSubViewInIDEViews_ (pane) =>
-      {paneType} = pane.options
+      { paneType } = pane.options
       switch paneType
         when 'terminal'
           { webtermView } = pane
@@ -1312,8 +1312,8 @@ class IDEAppController extends AppController
                 webtermView.triggerFitToWindow()
 
         when 'editor', 'tailer'
-          height = pane.getHeight()
-          {ace}  = pane.aceView
+          height   = pane.getHeight()
+          { ace }  = pane.aceView
 
           pane.ready ->
             ace.setHeight height
@@ -1373,7 +1373,7 @@ class IDEAppController extends AppController
 
         if change.type is 'NewPaneCreated'
 
-          {content, path} = context.file
+          { content, path } = context.file
           string = @rtm.getFromModel path
 
           unless string
@@ -1381,7 +1381,7 @@ class IDEAppController extends AppController
 
         else if change.type is 'ContentChange'
 
-          {content, path} = context.file
+          { content, path } = context.file
 
           return  unless content?
 
@@ -1518,7 +1518,7 @@ class IDEAppController extends AppController
     { paneType }  = context
     paneHash      = context.paneHash or context.hash
 
-    @forEachSubViewInIDEViews_ paneType, (pane) =>
+    @forEachSubViewInIDEViews_ paneType, (pane) ->
 
       if paneType in [ 'editor', 'tailer' ]
         isSameFilePath  = pane.getFile()?.path is context.file?.path
@@ -1690,10 +1690,10 @@ class IDEAppController extends AppController
 
   getActiveInstance: ->
 
-    {appControllers} = kd.singletons.appManager
+    { appControllers } = kd.singletons.appManager
     instance = appControllers.IDE.instances[appControllers.IDE.lastActiveIndex]
 
-    return {instance, isActive: instance is this}
+    return { instance, isActive: instance is this }
 
 
   handleShortcut: (e) ->
@@ -1765,7 +1765,7 @@ class IDEAppController extends AppController
     @isNewRegister = yes
 
     @machineStateModal?.once 'MachineTurnOnStarted', =>
-      kookies.expire 'newRegister', path: '/'
+      kookies.expire 'newRegister', { path: '/' }
       kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
       # open README.md for the first time for newly registered users.
@@ -1811,11 +1811,11 @@ class IDEAppController extends AppController
 
   switchToPane: (options = {}) ->
 
-    {context} = options
+    { context } = options
 
     return  unless context
 
-    {hash} = context
+    { hash } = context
 
     @forEachSubViewInIDEViews_ (view) ->
 

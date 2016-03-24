@@ -6,7 +6,7 @@ $ = require 'jquery'
 
 module.exports = class GoogleApiClient extends KDObject
 
-  {noop} = kd
+  { noop } = kd
   @_e = {}
 
 
@@ -56,7 +56,7 @@ module.exports = class GoogleApiClient extends KDObject
 
     error = noop
 
-    $.ajax {url, dataType, success, error}
+    $.ajax { url, dataType, success, error }
 
 
   @metric = (name, state, count = 1, callback = noop) ->
@@ -79,6 +79,6 @@ module.exports = class GoogleApiClient extends KDObject
 
     identifier = 'google-api-client'
     url = 'https://apis.google.com/js/client.js?onload=handleGoogleApiLoaded'
-    KodingAppsController.appendHeadElement 'script', {identifier, url}
+    KodingAppsController.appendHeadElement 'script', { identifier, url }
 
     GoogleApiClient.metric null, 'load_request'
