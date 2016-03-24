@@ -434,7 +434,7 @@ func (c *Command) runRepairers(repairers []Repairer) error {
 	for _, r := range repairers {
 		ok, err := r.Status()
 		if err != nil {
-			c.Log.Error("Repairer was unable to determine Status. Repairer not configured properly or requirements not met. err:%s", err)
+			c.Log.Error("Repairer was unable to determine Status. Repairer not configured properly or requirements not met. repairer:%s, err:%s", r, err)
 			return err
 		}
 

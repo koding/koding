@@ -10,13 +10,13 @@ module.exports = class CustomViews
     view      : (options, data) ->
       new kd.CustomHTMLView options, data
     text      : (text, cssClass) =>
-      @views.view partial: text, cssClass: "text #{cssClass ? ''}"
+      @views.view { partial: text, cssClass: "text #{cssClass ? ''}" }
     container : (options, cssClass) =>
 
       if typeof options is 'string'
-        return @views.view cssClass: options
+        return @views.view { cssClass: options }
 
-      container = @views.view {cssClass}
+      container = @views.view { cssClass }
       @addTo container, options
       return container
 

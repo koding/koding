@@ -10,27 +10,27 @@ module.exports = class Status extends KDController
   constructor: ->
     super
 
-    @registerSingleton "status", this
+    @registerSingleton 'status', this
 
     @state = NOTSTARTED
     @connectionState = DOWN
 
     @remote = remote
 
-    @remote.on "connected", @bound "connected"
-    @remote.on "disconnected", @bound "disconnected"
-    @remote.on "sessionTokenChanged", @bound "sessionTokenChanged"
-    @remote.on "loggedInStateChanged", @bound "loggedInStateChanged"
+    @remote.on 'connected', @bound 'connected'
+    @remote.on 'disconnected', @bound 'disconnected'
+    @remote.on 'sessionTokenChanged', @bound 'sessionTokenChanged'
+    @remote.on 'loggedInStateChanged', @bound 'loggedInStateChanged'
 
-  resetLocals:-> delete @disconnectOptions
+  resetLocals: -> delete @disconnectOptions
 
   connect: -> @remote.connect()
 
-  disconnect: (options={}) ->
-    if "boolean" is typeof options
-      options = autoReconnect : options
+  disconnect: (options = {}) ->
+    if 'boolean' is typeof options
+      options = { autoReconnect : options }
 
-    kd.log "status", options
+    kd.log 'status', options
 
     autoReconnect = options.autoReconnect
     @remote.disconnect(autoReconnect)
@@ -43,18 +43,18 @@ module.exports = class Status extends KDController
 
     if @state is NOTSTARTED
       @state = CONNECTED
-      @emit "connected"
+      @emit 'connected'
     else
       @state = RECONNECTED
-      @emit "reconnected", @disconnectOptions
+      @emit 'reconnected', @disconnectOptions
       @resetLocals()
 
   disconnected: ->
-    return "already disconnected"  if @connectionState is DOWN
+    return 'already disconnected'  if @connectionState is DOWN
 
     @connectionState = DOWN
     @state = DISCONNECTED
-    @emit "disconnected", @disconnectOptions
+    @emit 'disconnected', @disconnectOptions
 
 
   internetUp: ->
@@ -62,10 +62,10 @@ module.exports = class Status extends KDController
 
   internetDown: ->
     if @connectionState is UP
-      @disconnect autoReconnect:true, reason:"internetDown"
+      @disconnect { autoReconnect: true, reason: 'internetDown' }
 
   loggedInStateChanged: (account) ->
-    @emit "bongoConnected", account
+    @emit 'bongoConnected', account
 
   sessionTokenChanged: (token) ->
-    @emit "sessionTokenChanged", token
+    @emit 'sessionTokenChanged', token

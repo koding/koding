@@ -10,7 +10,7 @@ describe 'SharedMachineListItemsStore', ->
 
   beforeEach ->
     @reactor = new Reactor
-    @reactor.registerStores sharedMachineListItems : SharedMachineListItemsStore
+    @reactor.registerStores { sharedMachineListItems : SharedMachineListItemsStore }
 
 
   describe '#getInitialState', ->

@@ -74,7 +74,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
   verifyCredential: ->
 
-    {identifier} = @getData()
+    { identifier } = @getData()
 
     @warningView.hide()
 

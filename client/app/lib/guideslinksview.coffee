@@ -15,7 +15,7 @@ module.exports = class GuidesLinksView extends KDView
 
     unless options.partial?
 
-      partial = ""
+      partial = ''
       for title, link of (options.links ? Links)
         partial += "<a href='#{link}' title='#{title}' target='_blank'>#{title}</a>, "
       partial = partial[...-2]

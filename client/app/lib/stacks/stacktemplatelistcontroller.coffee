@@ -11,7 +11,7 @@ module.exports = class StackTemplateListController extends AccountListViewContro
 
   constructor: (options = {}, data) ->
 
-    options.noItemFoundText ?= "You currently have no stack template"
+    options.noItemFoundText ?= 'You currently have no stack template'
     super options, data
 
     @loadItems()
@@ -22,7 +22,7 @@ module.exports = class StackTemplateListController extends AccountListViewContro
     @showLazyLoader()
 
     { JStackTemplate } = remote.api
-    { viewType  }      = @getOptions()
+    { viewType }       = @getOptions()
 
     currentGroup = getGroup()
     query        = { group: currentGroup.slug }
@@ -43,7 +43,7 @@ module.exports = class StackTemplateListController extends AccountListViewContro
     @hideLazyLoader()
 
     return if showError err, \
-      KodingError : "Failed to fetch stackTemplates, try again later."
+      { KodingError : 'Failed to fetch stackTemplates, try again later.' }
 
     currentGroup = getGroup()
     { viewType } = @getOptions()

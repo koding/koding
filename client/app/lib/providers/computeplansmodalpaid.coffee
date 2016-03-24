@@ -16,7 +16,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
    * @param {String} options.snapshotId - The snapshot to automatically
    *  select in the snapshot list.
   ###
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'paid-plan'
     options.position =
@@ -24,7 +24,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     super options, data
 
-  viewAppended:->
+  viewAppended: ->
 
     { usage, limits, plan, region } = @getOptions()
 
@@ -34,7 +34,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
     remaining = Math.max 0, limits.total - usage.total
 
     content.addSubView title = new KDView
-      cssClass : "modal-title"
+      cssClass : 'modal-title'
       partial  : """
         Remaining VM slots:
           <strong>
@@ -45,19 +45,19 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
     title.setClass 'warn'  if usage.total >= limits.total
 
     content.addSubView regionContainer = new KDView
-      cssClass : "regions-container"
+      cssClass : 'regions-container'
 
     regionContainer.addSubView new KDView
-      cssClass : "container-title"
-      partial  : "choose vms region"
+      cssClass : 'container-title'
+      partial  : 'choose vms region'
 
     regionContainer.addSubView @regionSelector = new KDSelectBox
-      name          : "region"
+      name          : 'region'
       selectOptions : [
-        { title: "United States (North Virginia)", value: "us-east-1" }
-        { title: "United States (Oregon)",         value: "us-west-2" }
-        { title: "Singapore",                      value: "ap-southeast-1" }
-        { title: "Ireland",                        value: "eu-west-1" }
+        { title: 'United States (North Virginia)', value: 'us-east-1' }
+        { title: 'United States (Oregon)',         value: 'us-west-2' }
+        { title: 'Singapore',                      value: 'ap-southeast-1' }
+        { title: 'Ireland',                        value: 'eu-west-1' }
       ]
 
     # Set the default region passed in as an option
@@ -76,7 +76,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     @snapshotsContainer.addSubView @snapshotsSelector = new KDSelectBox
       name          : 'snapshots'
-      selectOptions : [ title: 'None', value: "" ]
+      selectOptions : [ title: 'None', value: '' ]
       callback      : (snapshotId) =>
 
         # If the selected snapshot has a value (not empty), disable the
@@ -98,11 +98,11 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
         @updateSnapshotUsageText @storageSlider.handles.first.value
 
     content.addSubView storageContainer = new KDView
-      cssClass : "storage-container"
+      cssClass : 'storage-container'
 
     storageContainer.addSubView new KDView
-      cssClass : "container-title"
-      partial  : "allocate storage for your new vm"
+      cssClass : 'container-title'
+      partial  : 'allocate storage for your new vm'
 
     storageContainer.addSubView @storageSlider = new CustomPlanStorageSlider
       cssClass : 'storage-slider'
@@ -115,10 +115,10 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       cssClass : 'warn hidden'
 
     content.addSubView @createVMButton = new KDButtonView
-      title    : "Create your VM"
+      title    : 'Create your VM'
       style    : 'solid medium green'
       loader   : yes
-      callback : @bound "createVM"
+      callback : @bound 'createVM'
       disabled : usage.total >= limits.total
 
     unless plan in ['professional', 'super']
@@ -138,7 +138,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       @updateCreateVMBtnEnabled val
 
     @updateRegionText()
-    @regionSelector.on "change", @bound 'updateRegionText'
+    @regionSelector.on 'change', @bound 'updateRegionText'
 
     @setPositions()
 
@@ -177,7 +177,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       @snapshotsSelector.setSelectOptions formatted
       # Set the selected option to the Modal's option.snapshotId,
       # defaulting to the None item ("" value)
-      @snapshotsSelector.setValue defaultSnapshotId ? ""
+      @snapshotsSelector.setValue defaultSnapshotId ? ''
       @updateStorageSliderValue @snapshots[defaultSnapshotId].storageSize  if defaultSnapshotId
       @snapshotsContainer.show()
 
@@ -251,7 +251,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       @snapshotUsageTextView.hide()
 
 
-  updateStorageUsageText: (val, usage, limits)->
+  updateStorageUsageText: (val, usage, limits) ->
 
     newUsage = usage.storage + val
 
@@ -263,7 +263,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       You will be using <strong>#{newUsage}GB/#{limits.storage}GB</strong> storage
     """
 
-  createVM:->
+  createVM: ->
 
     { computeController } = kd.singletons
 
@@ -273,7 +273,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
     snapshotId = @snapshotsSelector.getValue() ? null
 
     computeController.create {
-      provider : "koding", stack, storage, region, snapshotId
+      provider : 'koding', stack, storage, region, snapshotId
     }, (err, machine) =>
 
       return  if showError err

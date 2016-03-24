@@ -10,10 +10,10 @@ module.exports = class KiteCache
 
   @generateQueryString = (options) ->
 
-    keys = [ "username", "environment", "name",
-             "version", "region", "hostname", "id" ]
+    keys = [ 'username', 'environment', 'name',
+             'version', 'region', 'hostname', 'id' ]
 
-    query = ""
+    query = ''
 
     for key in keys
       query += "/#{options[key] ? ""}"
@@ -30,9 +30,9 @@ module.exports = class KiteCache
     return no  unless body
 
     try
-      {exp} = JSON.parse atob body
+      { exp } = JSON.parse atob body
     catch e
-      kd.warn "Failed to parse token:", e
+      kd.warn 'Failed to parse token:', e
       return no
 
     exp = +new Date exp * 1000
@@ -65,8 +65,8 @@ module.exports = class KiteCache
     if typeof query is 'object'
       query = @generateQueryString query
 
-    ltr = ""
-    rtl = ""
+    ltr = ''
+    rtl = ''
 
     # It may look crpytic but what it does is very simple;
     # It generates all possible version of given Kite query and removes
@@ -96,7 +96,7 @@ module.exports = class KiteCache
     for part, i in queryA = (query.split '/')[1..]
       ltr += "/#{part}"
       delete storage[signature + ltr + ('/' for x in [i...6]).join '']
-      rtl = "/" + queryA[queryA.length - i - 1] + rtl
+      rtl = '/' + queryA[queryA.length - i - 1] + rtl
       delete storage[signature + (('/' for [i...6]).join '') + rtl]
 
     return
@@ -105,7 +105,7 @@ module.exports = class KiteCache
   @cache = (query, kite) ->
 
     unless kite?
-      return kd.warn "[KiteCache] KITE NOT PROVIDED, IGNORING TO CACHE"
+      return kd.warn '[KiteCache] KITE NOT PROVIDED, IGNORING TO CACHE'
 
     queryString = @generateQueryString query
     kite = proxifyTransport kite
@@ -125,17 +125,17 @@ module.exports = class KiteCache
       kite = JSON.parse kite
 
     catch e
-      kd.warn "[KiteCache] PARSE ERROR", e
+      kd.warn '[KiteCache] PARSE ERROR', e
       return @unset query
 
     if kite.cachedAt?
-      kd.warn "[KiteCache] CACHE FOUND WITH OLD STYLE TIMESTAMP, REMOVING..."
+      kd.warn '[KiteCache] CACHE FOUND WITH OLD STYLE TIMESTAMP, REMOVING...'
       return @unset queryString
 
     else
 
       unless isKiteValid kite
-        kd.warn "[KiteCache] CACHE FOUND BUT ITS OUTDATED, REMOVING..."
+        kd.warn '[KiteCache] CACHE FOUND BUT ITS OUTDATED, REMOVING...'
         return @unset queryString
 
     return kite

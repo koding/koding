@@ -100,6 +100,7 @@ app.post '/:name?/Recover'                       , csrf,   require './handlers/r
 app.post '/:name?/Reset'                         , csrf,   require './handlers/reset'
 app.post '/:name?/Optout'                        , require './handlers/optout'
 app.all  '/:name?/Logout'                        , csrf,   require './handlers/logout'
+app.post '/:name?/Unregister'                    , require './handlers/unregister'
 app.get  '/humans.txt'                           , generateHumanstxt
 app.get  '/members/:username?*'                  , (req, res) -> res.redirect 301, "/#{req.params.username}"
 app.get  '/w/members/:username?*'                , (req, res) -> res.redirect 301, "/#{req.params.username}"

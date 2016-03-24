@@ -33,7 +33,7 @@ module.exports = class KodingKite extends kd.Object
       @_state = CONNECTED
 
     @on 'close', (reason) =>
-      kd.log "Disconnected with reason:", reason
+      kd.log 'Disconnected with reason:', reason
       @_state = DISCONNECTED
 
       return  unless @transport?
@@ -46,7 +46,7 @@ module.exports = class KodingKite extends kd.Object
     @waitingPromises = []
 
     @_kiteInvalidError =
-      name    : "KiteInvalid"
+      name    : 'KiteInvalid'
       message : "Kite is invalid. This kite (#{name}) not exists
                  or there is a problem with connection."
 
@@ -119,7 +119,7 @@ module.exports = class KodingKite extends kd.Object
 
     else
 
-      console.warn "[KITE][INVALID]", this
+      console.warn '[KITE][INVALID]', this
 
       KiteLogger.failed name, rpcMethod
       Promise.reject @_kiteInvalidError
@@ -131,7 +131,7 @@ module.exports = class KodingKite extends kd.Object
 
   @createApiMapping = (api) ->
     for own method, rpcMethod of api
-      @::[method] = @createMethod @prototype, { method, rpcMethod }
+      this::[method] = @createMethod @prototype, { method, rpcMethod }
 
 
   connect: ->
@@ -146,7 +146,7 @@ module.exports = class KodingKite extends kd.Object
 
     if @transport
     then @transport.disconnect()
-    else @emit 'close', reason: 'user action'
+    else @emit 'close', { reason: 'user action' }
 
 
   reconnect: ->
@@ -165,7 +165,7 @@ module.exports = class KodingKite extends kd.Object
 
     { name } = @getOptions()
 
-    new Promise (resolve, reject)=>
+    new Promise (resolve, reject) =>
       return resolve args if @_state is CONNECTED
       if @waitingCalls.length >= MAX_QUEUE_SIZE
         kd.warn "Call rejected for #{name} kite, queue has #{MAX_QUEUE_SIZE} items."

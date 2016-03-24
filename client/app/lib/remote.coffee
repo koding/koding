@@ -18,15 +18,15 @@ createInstance = ->
 
     getUserArea    : ->
 
-      {groupsController} = kd.singletons
+      { groupsController } = kd.singletons
       groupsController?.getUserArea()
 
     fetchName      : do ->
       cache = {}
-      (nameStr, callback)->
+      (nameStr, callback) ->
         if cache[nameStr]?
           return callback null, cache[nameStr], name
-        @api.JName.one {name: nameStr}, (err, name) =>
+        @api.JName.one { name: nameStr }, (err, name) =>
           if err then return callback err
           else unless name?
             return callback new Error "Unknown name: #{nameStr}"
@@ -45,7 +45,7 @@ createInstance = ->
           queue = name.slugs.map (slug) => (fin) =>
             selector = {}
             selector[slug.usedAsPath] = slug.slug
-            @api[slug.constructorName].one? selector, (err, model)->
+            @api[slug.constructorName].one? selector, (err, model) ->
               if err then callback err
               else
                 unless model?
@@ -56,12 +56,12 @@ createInstance = ->
                 fin()
 
           async.parallel queue, =>
-            @emit "modelsReady"
+            @emit 'modelsReady'
             cache[nameStr] = models
             callback err, models, name
 
     mq: do ->
-      {authExchange} = globals.config
+      { authExchange } = globals.config
 
       options = {
         authExchange
@@ -69,7 +69,7 @@ createInstance = ->
         getSessionToken
       }
 
-      console.log "connecting to:" + globals.config.broker.uri
+      console.log 'connecting to:' + globals.config.broker.uri
 
       new broker.Broker "#{globals.config.broker.uri}", options
 

@@ -11,16 +11,16 @@ registerAppClass = require './util/registerAppClass'
 
 module.exports = class KodingAppsController extends KDController
 
-  name    = "KodingAppsController"
-  version = "0.1"
+  name    = 'KodingAppsController'
+  version = '0.1'
 
-  registerAppClass this, {name, version, background: yes}
+  registerAppClass this, { name, version, background: yes }
 
   @loadInternalApp = (name, callback) ->
 
     unless globals.config.apps[name]
       kd.warn message = "#{name} is not available to run!"
-      return callback {message}
+      return callback { message }
 
     if name.capitalize() in Object.keys globals.appClasses
       kd.warn "#{name} is already imported"
@@ -50,7 +50,7 @@ module.exports = class KodingAppsController extends KDController
 
   ## This is the most important method to put & run additional apps on Koding
   ## Please make sure about your changes on it.
-  @putAppScript = (app, callback = kd.noop)->
+  @putAppScript = (app, callback = kd.noop) ->
 
     if app.style
       cb = if app.script then kd.noop else callback
@@ -63,17 +63,17 @@ module.exports = class KodingAppsController extends KDController
 
     return
 
-  @unloadAppScript = (app, callback = kd.noop)->
+  @unloadAppScript = (app, callback = kd.noop) ->
 
     identifier = app.identifier.replace /\./g, '_'
 
-    @destroyScriptElement "style", identifier
-    @destroyScriptElement "script", identifier
+    @destroyScriptElement 'style', identifier
+    @destroyScriptElement 'script', identifier
 
     kd.utils.defer -> callback()
 
 
-  @appendHeadElement = Promise.promisify (type, {app, identifier, url, force}, callback = (->)) ->
+  @appendHeadElement = Promise.promisify (type, { app, identifier, url, force }, callback = (->)) ->
 
     identifier  = identifier.replace /\./g, '_'
     domId       = "internal-#{type}-#{identifier}"
@@ -83,11 +83,11 @@ module.exports = class KodingAppsController extends KDController
     # Which means this is an invm-app
     if vmName
 
-      file = FSHelper.createFileInstance path: url
-      file.fetchContents (err, partial)=>
+      file = FSHelper.createFileInstance { path: url }
+      file.fetchContents (err, partial) =>
         return  if err
 
-        obj = new KDCustomHTMLView {domId, tagName}
+        obj = new KDCustomHTMLView { domId, tagName }
         obj.getElement().textContent = partial
 
         @destroyScriptElement type, identifier  if force
@@ -108,14 +108,14 @@ module.exports = class KodingAppsController extends KDController
         attributes =
           rel      : 'stylesheet'
           href     : url
-        bind       = "load"
-        load       = -> callback null, {app, type, url}
+        bind       = 'load'
+        load       = -> callback null, { app, type, url }
       else
         attributes =
-          type     : "text/javascript"
+          type     : 'text/javascript'
           src      : url
-        bind       = "load"
-        load       = -> callback null, {app, type, url}
+        bind       = 'load'
+        load       = -> callback null, { app, type, url }
 
       @destroyScriptElement type, identifier  if force
 
@@ -123,13 +123,13 @@ module.exports = class KodingAppsController extends KDController
         domId, tagName, attributes, bind, load
       }).getElement()
 
-  @destroyScriptElement = (type, identifier)->
+  @destroyScriptElement = (type, identifier) ->
     (global.document.getElementById "internal-#{type}-#{identifier}")?.remove()
 
-  @appendHeadElements = (options, callback)->
-    {items, identifier} = options
+  @appendHeadElements = (options, callback) ->
+    { items, identifier } = options
 
-    Promise.reduce(items, (acc, {url, type}, index) =>
+    Promise.reduce(items, (acc, { url, type }, index) ->
       KodingAppsController.appendHeadElement type, {
         identifier : "#{identifier}-#{index}"
         url
@@ -140,4 +140,4 @@ module.exports = class KodingAppsController extends KDController
     # .catch(warn)
     .nodeify callback
 
-  getVMNameFromPath = (path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
+  getVMNameFromPath = (path) -> (/^\[([^\]]+)\]/g.exec path)?[1]

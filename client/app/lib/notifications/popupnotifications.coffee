@@ -54,9 +54,9 @@ module.exports = class PopupNotifications extends AvatarPopup
       tagName  : 'ul'
       cssClass : 'popup-settings'
       click    : (event) =>
-          if event.target.tagName is 'A' then @hide()
-          if event.target.parentElement.className is 'logout'
-          then Tracker.track Tracker.USER_LOGGED_OUT
+        if event.target.tagName is 'A' then @hide()
+        if event.target.parentElement.className is 'logout'
+        then Tracker.track Tracker.USER_LOGGED_OUT
       partial  : """
         <li class='account'><a href='/Account'>Account</a></li>
         <li class='admin hidden'><a href='/Admin'>Team Settings</a></li>
@@ -78,14 +78,14 @@ module.exports = class PopupNotifications extends AvatarPopup
     super
 
     if isLoggedIn()
-      {notifications} = kd.singletons.socialapi
+      { notifications } = kd.singletons.socialapi
       notifications.glance {}, (err) =>
         return kd.warn err.error, err.description  if err
 
         @listController.emit 'NotificationCountDidChange', 0
 
 
-  accountChanged:(account)->
+  accountChanged: (account) ->
     super
 
     @updateItems()
@@ -97,18 +97,18 @@ module.exports = class PopupNotifications extends AvatarPopup
 
     if isLoggedIn()
       # Fetch Notifications
-      @listController.fetchNotificationTeasers (err, notifications)=>
-        return kd.warn "Notifications cannot be received", err  if err
+      @listController.fetchNotificationTeasers (err, notifications) =>
+        return kd.warn 'Notifications cannot be received', err  if err
         @listController.instantiateListItems notifications
 
   attachListeners: ->
-    {notificationController} = kd.singletons
+    { notificationController } = kd.singletons
     notificationController.off 'NotificationHasArrived'
-    notificationController.on 'NotificationHasArrived', ({event})=>
+    notificationController.on 'NotificationHasArrived', ({ event }) =>
     #   # No need the following
     #   # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
       if event is 'NotificationAdded'
-        @listController.fetchNotificationTeasers (err, notifications)=>
-          return kd.warn "Notifications cannot be received", err  if err
+        @listController.fetchNotificationTeasers (err, notifications) =>
+          return kd.warn 'Notifications cannot be received', err  if err
           @listController.removeAllItems()
           @listController.instantiateListItems notifications

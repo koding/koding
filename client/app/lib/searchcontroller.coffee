@@ -54,13 +54,13 @@ module.exports = class SearchController extends KDObject
     # this is just a workaround, and if possible solve this issue and remove these lines
     return callback null, currentGroupId  if currentGroupId
 
-    remote.api.JGroup.one {slug: globals.currentGroup.slug}, (err, group) ->
+    remote.api.JGroup.one { slug: globals.currentGroup.slug }, (err, group) ->
 
       return callback err  if err
 
       return callback null, group.socialApiChannelId  if group?.socialApiChannelId
 
-      return callback {message: "socialApiChannelId not found"}
+      return callback { message: 'socialApiChannelId not found' }
 
 
   fetchApiKey: (callback) ->
@@ -68,19 +68,19 @@ module.exports = class SearchController extends KDObject
       initialDelay: 700
       maxDelay    : 15000
 
-    bo.on 'fail', -> callback {message: "Authentication failed."}
+    bo.on 'fail', -> callback { message: 'Authentication failed.' }
     bo.failAfter 15
 
     bo.on 'ready', -> bo.backoff()
 
     requestFn = ->
-      doXhrRequest {endPoint: "/api/social/search-key", type: "GET"}, (err, res) ->
+      doXhrRequest { endPoint: '/api/social/search-key', type: 'GET' }, (err, res) ->
         if err
           kd.warn "Could not fetch search api key: #{err.message}"
           return
 
         unless res?.apiKey
-          kd.warn "Empty search api key response"
+          kd.warn 'Empty search api key response'
           return
 
         bo.reset()
@@ -138,7 +138,7 @@ module.exports = class SearchController extends KDObject
       remote.api.JAccount.one(query)
         # first try with full value
         .then (account) ->
-          throw new Error "No account found"  unless account
+          throw new Error 'No account found'  unless account
           return handleResult group, account, nickname, resolve, reject
         # if account was not found try with regexp
         .catch (err) ->
@@ -163,7 +163,7 @@ module.exports = class SearchController extends KDObject
 
     @search 'accounts', seed, opts
       .then (data) ->
-        throw new Error "No data!" if data.length is 0
+        throw new Error 'No data!' if data.length is 0
         return data
       .filter (account) ->
         return yes  if showCurrentUser
@@ -192,13 +192,13 @@ module.exports = class SearchController extends KDObject
           kd.singletons.socialapi.message.byId { id }, (err, message) ->
             if err
               # NOTE: intentionally not rejecting here:
-              console.warn "social api error:", err
+              console.warn 'social api error:', err
             resolve itemResultFunc(message, highlightResult)
       .filter Boolean
       .catch (e) ->
         kd.error "Search error: #{e}"
         return new KDNotificationView
-          title: "Search error!"
+          title: 'Search error!'
 
 
   searchChannel: (seed, channelId, options) ->
@@ -219,7 +219,7 @@ module.exports = class SearchController extends KDObject
     unless @indexes[indexName]?
       index = @algolia.initIndex indexName
       # this is for clearing the query cache every 10 seconds
-      setInterval =>
+      setInterval ->
         index.clearCache()
       , 10000
       # index.setSettings attributesForFaceting: 'channel'

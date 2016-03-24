@@ -27,7 +27,7 @@ module.exports = class Machine extends KDObject
   }
 
 
-  constructor: (options = {})->
+  constructor: (options = {}) ->
 
     { machine } = options
     unless machine?.bongo_?.constructorName is 'JMachine'
@@ -45,23 +45,23 @@ module.exports = class Machine extends KDObject
         options.machine = this
         require('../util/fs/fsitem').create options, callback
 
-    {computeController} = kd.singletons
+    { computeController } = kd.singletons
 
-    computeController.on "public-#{machine._id}", (event)=>
+    computeController.on "public-#{machine._id}", (event) =>
 
       unless event.status is @jMachine.status.state
 
-        @jMachine.setAt? "status.state", event.status
+        @jMachine.setAt? 'status.state', event.status
         @updateLocalData()
 
-    computeController.on "revive-#{machine._id}", (machine)=>
+    computeController.on "revive-#{machine._id}", (machine) =>
 
       if machine?
         # update machine data
         @jMachine = machine
         @updateLocalData()
       else
-        @status = state: Machine.State.Terminated
+        @status = { state: Machine.State.Terminated }
         @queryString = null
         computeController.reset yes
 
@@ -72,11 +72,11 @@ module.exports = class Machine extends KDObject
     @alwaysOn = @jMachine.meta.alwaysOn ? no
 
 
-  setLabel:(label, callback)->
+  setLabel: (label, callback) ->
 
-    {computeController} = kd.singletons
+    { computeController } = kd.singletons
 
-    @jMachine.setLabel label, (err, newSlug)=>
+    @jMachine.setLabel label, (err, newSlug) =>
 
       unless err?
         computeController.triggerReviveFor this._id
@@ -87,7 +87,7 @@ module.exports = class Machine extends KDObject
 
   getName: ->
 
-    {uid, label, ipAddress} = this
+    { uid, label, ipAddress } = this
 
     return label or ipAddress or uid or "one of #{nick()}'s machines"
 
@@ -100,7 +100,7 @@ module.exports = class Machine extends KDObject
     kd.singletons.computeController.invalidateCache @_id
 
 
-  getBaseKite: (createIfNotExists = yes)->
+  getBaseKite: (createIfNotExists = yes) ->
 
     { kontrol } = kd.singletons
 
@@ -109,7 +109,7 @@ module.exports = class Machine extends KDObject
 
     if createIfNotExists and doesQueryStringValid @queryString
 
-      kontrol.getKite { name: "klient", @queryString, correlationName: @uid }
+      kontrol.getKite { name: 'klient', @queryString, correlationName: @uid }
 
     else
 

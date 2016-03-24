@@ -6,7 +6,7 @@ nick     = require 'app/util/nick'
 isKoding = require 'app/util/isKoding'
 
 # Not exported
-getIp = (url)->
+getIp = (url) ->
   el = global.document.createElement 'a'
   el.href = url
 
@@ -26,11 +26,11 @@ queryKites = ->
         username    : nick()
         environment : "#{env}managed" # it's devmanaged on dev env.
     .timeout 5000
-    .then (result)->
+    .then (result) ->
 
       if result?.kites?.length
-        {kites} = result
-        kites.forEach (kite)->
+        { kites } = result
+        kites.forEach (kite) ->
           kite.queryString = generateQueryString kite.kite
           kite.machine     = computeController
             .findMachineFromQueryString kite.queryString
@@ -56,7 +56,7 @@ fetchStack = (callback) ->
   remote.api.JComputeStack.create options, callback
 
 
-createMachine = (kite, callback)->
+createMachine = (kite, callback) ->
 
   fetchStack (err, stack) ->
 
@@ -73,11 +73,11 @@ createMachine = (kite, callback)->
     }, callback
 
 
-updateMachineData = ({machine, kite}, callback)->
+updateMachineData = ({ machine, kite }, callback) ->
 
   { queryString, ipAddress } = kite
   { computeController } = kd.singletons
-  computeController.update machine, {queryString, ipAddress}, callback
+  computeController.update machine, { queryString, ipAddress }, callback
 
 
 module.exports = {

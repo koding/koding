@@ -3,7 +3,7 @@ kd = require 'kd'
 proxifyTransportUrl = require '../../util/proxifyTransportUrl'
 
 
-module.exports = class KodingKite_KlientKite extends require('../kodingkite')
+module.exports = class KodingKiteKlientKite extends require('../kodingkite')
 
   @createApiMapping
 
@@ -42,7 +42,7 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
     sshKeysAdd         : 'sshkeys.add'
 
 
-  constructor:->
+  constructor: ->
 
     super
 
@@ -65,7 +65,7 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
   # Kite can go over our internal userproxy
   setTransport: (@transport) ->
 
-    {url} = @transport.options
+    { url } = @transport.options
     @transport.options.url = proxifyTransportUrl url
 
     # now call @connect in super, which will connect to our new URL
@@ -78,7 +78,7 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
     kd.singletons.kontrol.kites?.klient?[@getOption 'correlationName'] = null
 
 
-  webtermConnect: (options)->
+  webtermConnect: (options) ->
 
     @tell 'webterm.connect', options
 
@@ -95,16 +95,16 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
         return remote
 
 
-  _removeSession: (session)->
+  _removeSession: (session) ->
 
     @removeFromActiveSessions session
-    @terminalSessions = @terminalSessions.filter (currentSession)->
+    @terminalSessions = @terminalSessions.filter (currentSession) ->
       session isnt currentSession
 
 
-  webtermKillSession: (options)->
+  webtermKillSession: (options) ->
 
-    {session} = options
+    { session } = options
 
     @tell 'webterm.killSession', options
 
@@ -113,7 +113,7 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
       @_removeSession session
       return state
 
-    .catch (err)=>
+    .catch (err) =>
 
       if err.name is 'KiteError' and /No screen session found/i.test err.message
         @_removeSession session
@@ -121,7 +121,7 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
       throw err
 
 
-  fetchTerminalSessions: (session)->
+  fetchTerminalSessions: (session) ->
 
     return Promise.resolve()  if @_fetchingSessions
 
@@ -129,7 +129,7 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
 
     @webtermGetSessions()
 
-    .then (sessions)=>
+    .then (sessions) =>
 
       @terminalSessions = sessions
 
@@ -142,7 +142,7 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
 
     .timeout 10000
 
-    .catch (err)=>
+    .catch (err) =>
 
       # Reset current sessions if fails
       if err.message is 'no sessions available'
@@ -162,7 +162,7 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
 
     value = (JSON.stringify value) or ''
 
-    @tell 'storage.set', {key, value}
+    @tell 'storage.set', { key, value }
 
   # Queueing is required for client side calls to get requests
   # in order correctly. So if you need to set different value
@@ -188,9 +188,9 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
         return  if queue.length is 0 or locked
         locked = yes
 
-        {key, value, resolve, reject} = queue.shift()
+        { key, value, resolve, reject } = queue.shift()
 
-        @tell 'storage.set', {key, value}
+        @tell 'storage.set', { key, value }
 
           .then (res) ->
             locked = no
@@ -203,7 +203,7 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
             reject err
 
       new Promise (resolve, reject) ->
-        queue.push {key, value, resolve, reject}
+        queue.push { key, value, resolve, reject }
         consume()  if queue.length is 1
 
 
@@ -211,30 +211,30 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
 
     return  Promise.reject 'key required'  unless key
 
-    @tell 'storage.get', {key}
+    @tell 'storage.get', { key }
 
-    .then (value)->
+    .then (value) ->
       try value = JSON.parse value
       return value
-    .catch (err)->
+    .catch (err) ->
       return null
 
 
-  storageDelete: (key)->
+  storageDelete: (key) ->
 
     return  Promise.reject 'key required'  unless key
 
-    @tell 'storage.delete', {key}
+    @tell 'storage.delete', { key }
 
 
-  setActiveSessions: (sessions)->
+  setActiveSessions: (sessions) ->
     @storageSet 'activeSessions', sessions
 
 
   getActiveSessions: ->
 
     @storageGet 'activeSessions'
-    .then (sessions)-> sessions or []
+    .then (sessions) -> sessions or []
     .catch          -> []
 
 
@@ -245,14 +245,14 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
         session in @terminalSessions
 
 
-  addToActiveSessions: (session)->
+  addToActiveSessions: (session) ->
 
     @getActiveSessions().then (activeSessions) =>
       activeSessions.push session  unless session in activeSessions
       @setActiveSessions activeSessions
 
 
-  removeFromActiveSessions: (session)->
+  removeFromActiveSessions: (session) ->
 
     @getActiveSessions().then (sessions) =>
-      @setActiveSessions sessions.filter (old)-> session isnt old
+      @setActiveSessions sessions.filter (old) -> session isnt old

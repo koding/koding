@@ -11,7 +11,7 @@ module.exports = class ProfileLinkView extends LinkView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
     options.noTooltip ?= yes
 
     # this needs to be pre-super
@@ -19,7 +19,7 @@ module.exports = class ProfileLinkView extends LinkView
       @avatarPreview =
         constructorName : AvatarTooltipView
         options         :
-          delegate      : @
+          delegate      : this
           origin        : options.origin
         data            : data
 
@@ -39,7 +39,7 @@ module.exports = class ProfileLinkView extends LinkView
     @troll = new KDCustomHTMLView
       tagName   : 'span'
 
-    @setClass "profile"
+    @setClass 'profile'
     @updateHref()
 
 
@@ -50,29 +50,29 @@ module.exports = class ProfileLinkView extends LinkView
     href = if payload?.channelIntegrationId
       "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
     else if isSoloProductLite() or not nickname or not isKoding()
-      "/#"
+      '/#'
     else
       "/#{nickname}"
 
-    @setAttribute "href", href  if href
+    @setAttribute 'href', href  if href
 
 
   render: (fields) ->
     @updateHref()
 
     # only admin can see troll users
-    if checkFlag "super-admin"
-      trollField = if @getData().isExempt then " (T)" else ""
+    if checkFlag 'super-admin'
+      trollField = if @getData().isExempt then ' (T)' else ''
       @troll.updatePartial trollField  if @troll
 
     super fields
 
-  pistachio:->
-    {payload} = @getOptions()
-    {profile} = @getData()
+  pistachio: ->
+    { payload } = @getOptions()
+    { profile } = @getData()
     JView::pistachio.call this,
       if payload?.integrationTitle
       then "#{payload.integrationTitle}"
-      else if profile.firstName is "" and profile.lastName is ""
-      then "{{#(profile.nickname)}} {{> @troll}}"
+      else if profile.firstName is '' and profile.lastName is ''
+      then '{{#(profile.nickname)}} {{> @troll}}'
       else "{{#(profile.firstName)+' '+#(profile.lastName)}} {{> @troll}}"

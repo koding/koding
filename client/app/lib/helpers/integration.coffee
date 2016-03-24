@@ -9,7 +9,7 @@ list = (callback) ->
 
   doXhrRequest
     type     : 'GET'
-    endPoint : "/api/integration/"
+    endPoint : '/api/integration/'
   , (err, response) ->
 
     return callback err  if err
@@ -29,7 +29,7 @@ find = (query, callback) ->
 
     return callback { message: 'Not found' }  unless integration
 
-    fetchChannels (err, channels) =>
+    fetchChannels (err, channels) ->
       return callback err  if err
 
       integration.channels = channels
@@ -83,7 +83,7 @@ fetchChannelIntegration = (options, callback) ->
 create = (options, callback) ->
 
   doXhrRequest
-    endPoint : "/api/integration/channelintegration"
+    endPoint : '/api/integration/channelintegration'
     type     : 'POST'
     data     : options
   , (err, response) ->
@@ -114,7 +114,7 @@ remove = (id, callback) ->
 listChannelIntegrations = (callback) ->
 
   doXhrRequest
-    endPoint : "/api/integration/channelintegration"
+    endPoint : '/api/integration/channelintegration'
     type     : 'GET'
   , (err, response) ->
     return callback err  if err
@@ -125,7 +125,7 @@ listChannelIntegrations = (callback) ->
 regenerateToken = (options, callback) ->
 
   doXhrRequest
-    endPoint : "/api/integration/channelintegration/token"
+    endPoint : '/api/integration/channelintegration/token'
     type     : 'POST'
     data     : options
   , (err, response) ->
@@ -141,7 +141,7 @@ fetchAllGithubRepos = (callback) ->
 
   fetch = ->
     _options =
-      method     : "repos.getAll"
+      method     : 'repos.getAll'
       pluck      : ['full_name', 'permissions.admin']
       options    :
         per_page : 100

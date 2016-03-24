@@ -24,7 +24,7 @@ module.exports = helpers =
       popup.once 'AvatarPopupShouldBeHidden', (event) ->
         popupIsHidden = yes
 
-      popup.once 'ReceivedClickElsewhere', (event) =>
+      popup.once 'ReceivedClickElsewhere', (event) ->
         skipNextClick = if popupIsHidden
         then no
         else helpers.containsOrEqual view.getElement(), event.target

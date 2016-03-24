@@ -6,13 +6,13 @@ LocalStorage = require './localstorage'
 
 module.exports = class LocalStorageController extends KDController
 
-  constructor:->
+  constructor: ->
     super
     @localStorages = {}
 
-  storage:(appName, version)->
+  storage: (appName, version) ->
 
-    version ?= (getAppVersion appName) or "1.0"
+    version ?= (getAppVersion appName) or '1.0'
 
     key = "#{appName}-#{version}"
     return @localStorages[key] or= new LocalStorage appName, version

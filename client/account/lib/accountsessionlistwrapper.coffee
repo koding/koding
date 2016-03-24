@@ -26,7 +26,7 @@ module.exports = class AccountSessionListWrapper extends KDView
       fetcherMethod     : (query, options, callback) ->
         whoami().fetchMySessions options, (err, sessions)  -> callback err, sessions
 
-    @listController.on 'ItemDeleted', (item) ->
+    @listController.getListView().on 'ItemWasRemoved', (item) ->
       session  = item.getData()
       clientId = kookies.get 'clientId'
 

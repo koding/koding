@@ -29,7 +29,7 @@ module.exports = class StacksModal extends kd.ModalView
       title      : 'Create New Stack'
       cssClass   : 'solid compact green create-stack'
       callback   : ->
-        new kd.NotificationView title: 'Coming soon.'
+        new kd.NotificationView { title: 'Coming soon.' }
 
     # Hack to add button outside of modal container
     @addSubView createButton, '.kdmodal-inner'

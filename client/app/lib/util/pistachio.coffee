@@ -2,15 +2,15 @@ module.exports = class Pistachio
 
   @createId = do ->
     counter = 0
-    (prefix)-> "#{prefix}el-#{counter++}"
+    (prefix) -> "#{prefix}el-#{counter++}"
 
-  @getAt =(ref, path)->
+  @getAt = (ref, path) ->
     if 'function' is typeof path.split # ^1
       path = path.split '.'
     else
       path = path.slice()
     while ref? and prop = path.shift()
-     ref = ref[prop]
+      ref = ref[prop]
     ref
 
   ###
@@ -72,29 +72,29 @@ module.exports = class Pistachio
     \}                  # closing } (ends symbol)
     ///g
 
-  constructor:(@view, @template, @options={})->
-    {@prefix, @params}   = @options
-    @params            or= {}
-    @symbols             = {}
-    @symbolsByDataPath   = {}
-    @symbolsBySubViewName= {}
-    @dataPaths           = {}
-    @subViewNames        = {}
-    @prefix            or= ''
-    @html                = @init()
+  constructor: (@view, @template, @options = {}) ->
+    { @prefix, @params }  = @options
+    @params             or= {}
+    @symbols              = {}
+    @symbolsByDataPath    = {}
+    @symbolsBySubViewName = {}
+    @dataPaths            = {}
+    @subViewNames         = {}
+    @prefix             or= ''
+    @html                 = @init()
 
   createId: @createId
 
-  toString:-> @template
+  toString: -> @template
 
   init: do ->
 
-    dataGetter = (prop)->
+    dataGetter = (prop) ->
       data = @getData?()
       return data.getAt?(prop) or Pistachio.getAt data, prop  if data?
 
-    getEmbedderFn =(pistachio, view, id, symbol)->
-      (childView)->
+    getEmbedderFn = (pistachio, view, id, symbol) ->
+      (childView) ->
         view.embedChild id, childView, symbol.isCustom
         unless symbol.isCustom
           symbol.id      = childView.id
@@ -102,9 +102,9 @@ module.exports = class Pistachio
           delete pistachio.symbols[id]
           pistachio.symbols[childView.id] = symbol
 
-    init =->
+    init = ->
       { prefix, view, createId } = this
-      @template.replace pistachios, (_, tagName, id, classes, attrs, expression)=>
+      @template.replace pistachios, (_, tagName, id, classes, attrs, expression) =>
 
         id = id?.split('#')[1]
         classNames = classes?.split('.').slice(1) or []
@@ -118,10 +118,10 @@ module.exports = class Pistachio
         subViewNames = []
 
         expression = expression
-          .replace /#\(([^)]*)\)/g, (_, dataPath)->
+          .replace /#\(([^)]*)\)/g, (_, dataPath) ->
             dataPaths.push dataPath
             "data('#{dataPath}')"
-          .replace /^(?:> ?|embedChild )(.+)/, (_, subViewName)->
+          .replace /^(?:> ?|embedChild )(.+)/, (_, subViewName) ->
             subViewNames.push subViewName.replace /\@\.?|this\./, ''
             "embedChild(#{subViewName})"
 
@@ -135,7 +135,7 @@ module.exports = class Pistachio
           tagName = 'span'
 
         paramKeys     = Object.keys @params
-        paramValues   = paramKeys.map (key)=> @params[key]
+        paramValues   = paramKeys.map (key) => @params[key]
 
         formalParams = ['data', 'embedChild', paramKeys...]
 
@@ -162,22 +162,22 @@ module.exports = class Pistachio
 
         @addSymbolInternal symbol
 
-        embedChild = getEmbedderFn @, view, id, symbol
+        embedChild = getEmbedderFn this, view, id, symbol
 
         dataPathsAttr =
           if dataPaths.length
             " data-#{prefix}paths='#{dataPaths.join ' '}'"
-          else ""
+          else ''
 
         subViewNamesAttr =
           if subViewNames.length
             classNames.push "#{prefix}subview"
             " data-#{prefix}subviews='#{cleanSubviewNames(subViewNames.join ' ')}'"
-          else ""
+          else ''
 
         classAttr =
           if classNames.length then " class='#{classNames.join ' '}'"
-          else ""
+          else ''
 
         "<#{tagName}#{classAttr}#{dataPathsAttr}#{subViewNamesAttr} #{attrs} id='#{id}'></#{tagName}>"
 
@@ -188,7 +188,7 @@ module.exports = class Pistachio
 
     for dataPath in dataPaths
       @symbolsByDataPath[dataPath] ?= []
-      @symbolsByDataPath[dataPath].push symbol         
+      @symbolsByDataPath[dataPath].push symbol
 
     for subViewName in subViewNames
       @symbolsBySubViewName[subViewName] ?= []
@@ -196,31 +196,31 @@ module.exports = class Pistachio
 
     return symbol
 
-  addSymbol:(childView)->
+  addSymbol: (childView) ->
     @symbols[childView.id] = {
       id      : childView.id
       tagName : childView.getTagName?()
     }
 
-  appendChild:(childView)->
+  appendChild: (childView) ->
     @addAdhocSymbol childView
 
-  prependChild:(childView)->
+  prependChild: (childView) ->
     @addAdhocSymbol childView
 
-  registerDataPaths:(paths)->
+  registerDataPaths: (paths) ->
     @dataPaths[path] = yes for path in paths
 
-  registerSubViewNames:(subViewNames)->
+  registerSubViewNames: (subViewNames) ->
     @subViewNames[subViewName] = yes for subViewName in subViewNames
 
-  getDataPaths:-> Object.keys @dataPaths
+  getDataPaths: -> Object.keys @dataPaths
 
-  getSubViewNames:-> Object.keys @subViewNames
+  getSubViewNames: -> Object.keys @subViewNames
 
-  cleanSubviewNames =(name)-> name.replace /(this\["|\"])/g, ''
+  cleanSubviewNames = (name) -> name.replace /(this\["|\"])/g, ''
 
-  symbolKeys = 
+  symbolKeys =
     subview : 'symbolsBySubViewName'
     path    : 'symbolsByDataPath'
 
@@ -228,11 +228,11 @@ module.exports = class Pistachio
     unique = {}
 
     for item in items
-      
+
       symbols = @[symbolKeys[childType]][item]
 
       continue  unless symbols?
-      
+
       for symbol in symbols
 
         unique[symbol.id] = symbol
@@ -244,8 +244,8 @@ module.exports = class Pistachio
       out = symbol?.render()
       forEach.call el, out  if out
 
-  embedSubViews:(subviews=@getSubViewNames())->
+  embedSubViews: (subviews = @getSubViewNames()) ->
     @refreshChildren 'subview', subviews
 
-  update:(paths = @getDataPaths())->
-    @refreshChildren 'path', paths, (html)-> @innerHTML = html
+  update: (paths = @getDataPaths()) ->
+    @refreshChildren 'path', paths, (html) -> @innerHTML = html
