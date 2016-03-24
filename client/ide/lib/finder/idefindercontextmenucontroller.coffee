@@ -1,8 +1,6 @@
-kd        = require 'kd'
-isKoding  = require 'app/util/isKoding'
-
+isKoding                     = require 'app/util/isKoding'
 NFinderContextMenuController = require 'finder/filetree/controllers/nfindercontextmenucontroller'
-NSetPermissionsView = require 'finder/filetree/itemsubviews/nsetpermissionsview'
+NSetPermissionsView          = require 'finder/filetree/itemsubviews/nsetpermissionsview'
 
 
 module.exports = class IDEFinderContextMenuController extends NFinderContextMenuController

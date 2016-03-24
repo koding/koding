@@ -1,13 +1,10 @@
 kd              = require 'kd'
 nick            = require 'app/util/nick'
-whoami          = require 'app/util/whoami'
 remote          = require('app/remote').getInstance()
 actions         = require 'app/flux/environment/actions'
-globals         = require 'globals'
 Machine         = require 'app/providers/machine'
 lazyrouter      = require 'app/lazyrouter'
 dataProvider    = require 'app/userenvironmentdataprovider'
-registerRoutes  = require 'app/util/registerRoutes'
 isTeamReactSide = require 'app/util/isTeamReactSide'
 
 

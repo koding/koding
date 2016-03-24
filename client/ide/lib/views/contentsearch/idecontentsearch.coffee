@@ -1,6 +1,5 @@
 _                          = require 'lodash'
 kd                         = require 'kd'
-nick                       = require 'app/util/nick'
 keycode                    = require 'keycode'
 Encoder                    = require 'htmlencode'
 editorSettings             = require '../../workspace/panes/settings/editorsettings'

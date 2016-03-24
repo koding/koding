@@ -2,7 +2,6 @@ kd                           = require 'kd'
 KDViewController             = kd.ViewController
 KDCustomScrollView           = kd.CustomScrollView
 
-nick                         = require 'app/util/nick'
 isGuest                      = require 'app/util/isGuest'
 Machine                      = require 'app/providers/machine'
 FSHelper                     = require 'app/util/fs/fshelper'

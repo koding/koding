@@ -1,14 +1,12 @@
-kd                     = require 'kd'
-remote                 = require('app/remote').getInstance()
-globals                = require 'globals'
-actions                = require 'app/flux/environment/actions'
-FSHelper               = require 'app/util/fs/fshelper'
-showError              = require 'app/util/showError'
-actiontypes            = require 'app/flux/environment/actiontypes'
-dataProvider           = require 'app/userenvironmentdataprovider'
-isTeamReactSide        = require 'app/util/isTeamReactSide'
-FilePermissionsModal   = require './views/modals/filepermissionsmodal'
-BannerNotificationView = require 'app/commonviews/bannernotificationview'
+kd                    = require 'kd'
+remote                = require('app/remote').getInstance()
+actions               = require 'app/flux/environment/actions'
+FSHelper              = require 'app/util/fs/fshelper'
+showError             = require 'app/util/showError'
+actiontypes           = require 'app/flux/environment/actiontypes'
+dataProvider          = require 'app/userenvironmentdataprovider'
+isTeamReactSide       = require 'app/util/isTeamReactSide'
+FilePermissionsModal  = require './views/modals/filepermissionsmodal'
 
 
 WORKSPACE_WELCOME_TXT = """

@@ -1,10 +1,6 @@
 _                             = require 'lodash'
-remote                        = require('app/remote').getInstance()
-dateFormat                    = require 'dateformat'
 sinkrow                       = require 'sinkrow'
-globals                       = require 'globals'
 kd                            = require 'kd'
-KDNotificationView            = kd.NotificationView
 KDModalView                   = kd.ModalView
 FSFile                        = require 'app/util/fs/fsfile'
 nick                          = require 'app/util/nick'
