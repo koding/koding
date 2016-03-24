@@ -21,8 +21,9 @@ module.exports = {
   USER_LEFT_TEAM  : 'leave team'
 
   # VM ACTIONS
-  VM_TERMINATED   : 'terminated vm'
-  VM_TURNED_ON    : 'turn on vm'
+  VM_TERMINATED    : 'terminated vm'
+  VM_TURNED_ON     : 'turn on vm'
+  VM_SET_ALWAYS_ON : 'set vm to always on'
 
   # KD
   KD_START_INSTALL : 'started kd install'

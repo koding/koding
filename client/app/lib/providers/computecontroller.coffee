@@ -810,6 +810,8 @@ module.exports = class ComputeController extends KDController
     if err = methodNotSupportedBy machine
       return callback err
 
+    Tracker.track Tracker.VM_SET_ALWAYS_ON
+
     @update machine, { alwaysOn: state }, callback
 
 
