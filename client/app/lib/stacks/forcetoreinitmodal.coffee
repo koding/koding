@@ -39,17 +39,11 @@ module.exports = class ForceToReinitModal extends kd.ModalView
 
     @buttons.proceed.showLoader()
 
-    { computeController } = kd.singletons
-    computeController.fetchStacksForReinit @getData(), (err, stacks) =>
+    stackTemplate = @getData()
+    stackTemplate.forceStacksToReinit REINIT_MESSAGE, (err) =>
       if err
         @buttons.proceed.hideLoader()
         return showError err
-
-      computeController.ui.createAdminMessageForStacks(
-        stacks,
-        REINIT_MESSAGE,
-        'forcedReinit'
-      )
 
       showNotification DONE_MESSAGE, { type : 'main' }
       @destroy()
@@ -57,16 +51,10 @@ module.exports = class ForceToReinitModal extends kd.ModalView
 
   doProceedWithMessage: ->
 
-    @buttons.proceedWithMessage.showLoader()
+    stackTemplate = @getData()
+    new StackAdminMessageModal
+      doneMessage : DONE_MESSAGE
+      doneFn      : (message, callback) ->
+        stackTemplate.forceStacksToReinit message, callback
 
-    { computeController } = kd.singletons
-    computeController.fetchStacksForReinit @getData(), (err, stacks) =>
-      if err
-        @buttons.proceedWithMessage.hideLoader()
-        return showError err
-
-      new StackAdminMessageModal(
-        { doneMessage : DONE_MESSAGE },
-        { stacks, type : 'forcedReinit' }
-      )
-      @destroy()
+    @destroy()

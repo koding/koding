@@ -124,7 +124,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     super
 
     if stackTemplate.accessLevel is 'group'
-      @addMenuItem 'Force to Re-init Stacks', ->
+      @addMenuItem 'Force Stacks to Re-init', ->
         new ForceToReinitModal {}, stackTemplate
 
     return @menu

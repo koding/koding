@@ -1,5 +1,6 @@
 kd               = require 'kd'
 showNotification = require 'app/util/showNotification'
+showError        = require 'app/util/showError'
 
 module.exports = class StackAdminMessageModal extends kd.ModalView
 
@@ -27,12 +28,13 @@ module.exports = class StackAdminMessageModal extends kd.ModalView
 
     @buttons.send.showLoader()
 
-    { stacks, type }      = @getData()
-    { doneMessage, view } = @getOptions()
-    { computeController } = kd.singletons
+    { doneMessage, doneFn, view } = @getOptions()
 
     message = this.getOption('view').getValue()
-    computeController.ui.createAdminMessageForStacks stacks, message, type
+    doneFn message, (err) =>
+      @buttons.send.hideLoader()
+
+      return showError err  if err
     
-    showNotification doneMessage, { type : 'main' }
-    @destroy()
+      showNotification doneMessage, { type : 'main' }
+      @destroy()

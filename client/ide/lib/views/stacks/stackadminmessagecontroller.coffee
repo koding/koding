@@ -1,6 +1,7 @@
 kd         = require 'kd'
 IDEHelpers = require 'ide/idehelpers'
 remote     = require('app/remote').getInstance()
+showError  = require 'app/util/showError'
 
 module.exports = class StackAdminMessageController extends kd.Controller
 
@@ -41,7 +42,7 @@ module.exports = class StackAdminMessageController extends kd.Controller
         return  unless e.target.classList.contains 'reinit-stack-now'
         computeController.reinitStack stack
     else
-      onClose = -> computeController.ui.deleteStackAdminMessage stack
+      onClose = -> stack.deleteAdminMessage (err) -> showError err  if err
 
     @banner = IDEHelpers.showNotificationBanner {
       cssClass : 'stack-admin-message'

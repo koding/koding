@@ -1,6 +1,7 @@
 async     = require 'async'
 jraphical = require 'jraphical'
 
+stackRevisionErrors = require './stackrevisionerrors'
 
 module.exports = class JComputeStack extends jraphical.Module
 
@@ -20,72 +21,76 @@ module.exports = class JComputeStack extends jraphical.Module
 
   @set
 
-    softDelete           : yes
+    softDelete             : yes
 
-    permissions          :
+    permissions            :
 
-      'create stack'     : ['member']
+      'create stack'       : ['member']
 
-      'update stack'     : []
-      'update own stack' : ['member']
+      'update stack'       : []
+      'update own stack'   : ['member']
 
-      'delete stack'     : []
-      'delete own stack' : ['member']
+      'delete stack'       : []
+      'delete own stack'   : ['member']
 
-      'list stacks'      : ['member']
+      'list stacks'        : ['member']
 
-    sharedMethods        :
-      static             :
-        create           :
+    sharedMethods          :
+      static               :
+        create             :
           (signature Object, Function)
-        one              : [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
-        some             : [
+        one                : [
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
-      instance           :
-        delete           :
-          (signature Function)
-        maintenance      :
+        some               : [
           (signature Object, Function)
-        destroy          :
+          (signature Object, Object, Function)
+        ]
+      instance             :
+        delete             :
           (signature Function)
-        modify           :
+        maintenance        :
           (signature Object, Function)
-        checkRevision    :
+        destroy            :
+          (signature Function)
+        modify             :
+          (signature Object, Function)
+        checkRevision      :
+          (signature Function)
+        createAdminMessage :
+          (signature String, String, Function)
+        deleteAdminMessage :
           (signature Function)
 
-    sharedEvents         :
-      static             : []
-      instance           : []
+    sharedEvents           :
+      static               : []
+      instance             : []
 
-    schema               :
+    schema                 :
 
-      title              :
-        type             : String
-        required         : yes
+      title                :
+        type               : String
+        required           : yes
 
-      originId           :
-        type             : ObjectId
-        required         : yes
+      originId             :
+        type               : ObjectId
+        required           : yes
 
-      group              :
-        type             : String
-        required         : yes
+      group                :
+        type               : String
+        required           : yes
 
-      baseStackId        : ObjectId
-      stackRevision      : String
+      baseStackId          : ObjectId
+      stackRevision        : String
 
-      machines           :
-        type             : Object
-        default          : -> []
+      machines             :
+        type               : Object
+        default            : -> []
 
-      config             : Object
+      config               : Object
 
-      meta               : require 'bongo/bundles/meta'
+      meta                 : require 'bongo/bundles/meta'
 
       # Identifiers of JCredentials
       # structured like following;
@@ -95,19 +100,19 @@ module.exports = class JComputeStack extends jraphical.Module
       #    aws: [123123, 123124]
       #    github: [234234]
       #  }
-      credentials        :
-        type             : Object
-        default          : -> {}
+      credentials          :
+        type               : Object
+        default            : -> {}
 
-      status             :
+      status               :
 
-        modifiedAt       : Date
-        reason           : String
+        modifiedAt         : Date
+        reason             : String
 
-        state            :
-          type           : String
-          default        : -> 'NotInitialized'
-          enum           : ['Wrong type specified!', [
+        state              :
+          type             : String
+          default          : -> 'NotInitialized'
+          enum             : ['Wrong type specified!', [
             # Unknown is a state that needs to be resolved manually
             'Unknown'
 
@@ -485,7 +490,6 @@ module.exports = class JComputeStack extends jraphical.Module
   modify: permit
 
     advanced: [
-      { permission: 'update stack', validateWith: Validators.group.admin }
       { permission: 'update own stack', validateWith: Validators.own }
     ]
 
@@ -516,21 +520,6 @@ module.exports = class JComputeStack extends jraphical.Module
         callback null
 
 
-  stackRevisionErrors =
-    TEMPLATESAME      :
-      message         : 'Base stack template is same'
-      code            : 0
-    TEMPLATEDIFFERENT :
-      message         : 'Base stack template is different'
-      code            : 1
-    NOTFROMTEMPLATE   :
-      message         : 'This stack is not created from a template'
-      code            : 2
-    INVALIDTEMPLATE   :
-      message         : 'This stack has no revision or template is not valid.'
-      code            : 3
-
-
   checkRevision: permit
 
     advanced: [
@@ -547,12 +536,59 @@ module.exports = class JComputeStack extends jraphical.Module
         return callback err  if err
         return callback new KodingError 'Template not valid'  unless template
 
-        status =
-          if not template?.template?.sum or not @stackRevision
-            stackRevisionErrors.INVALIDTEMPLATE
-          else if template.template.sum is @stackRevision
-            stackRevisionErrors.TEMPLATESAME
-          else
-            stackRevisionErrors.TEMPLATEDIFFERENT
+        status = @checkRevisionByTemplate template
 
         callback null, { status, machineCount: template.machines.length }
+
+
+  checkRevisionByTemplate: (template) ->
+
+    if not @baseStackId
+      return callback null, stackRevisionErrors.NOTFROMTEMPLATE
+
+    if @baseStackId isnt template._id
+      return stackRevisionErrors.TEMPLATEDIFFERENT
+
+    if not template?.template?.sum or not @stackRevision
+      return stackRevisionErrors.INVALIDTEMPLATE
+
+    if template.template.sum is @stackRevision
+      return stackRevisionErrors.TEMPLATESAME
+
+    return stackRevisionErrors.TEMPLATEDIFFERENT
+
+
+  createAdminMessage: (message, type, callback) ->
+
+    { config }          = this
+    config.adminMessage = { message, type }
+    @update { $set : { config } }, callback
+
+
+  createAdminMessage$: permit
+
+    advanced: [
+      { permission: 'update stack', validateWith: Validators.group.admin }
+    ]
+
+    success: (client, message, type, callback) ->
+
+      @createAdminMessage message, type, callback
+
+
+  deleteAdminMessage: (callback) ->
+
+    { config }          = this
+    config.adminMessage = null
+    @update { $set : { config } }, callback
+
+
+  deleteAdminMessage$: permit
+
+    advanced: [
+      { permission: 'update own stack', validateWith: Validators.own }
+    ]
+
+    success: (client, callback) ->
+
+      @deleteAdminMessage callback
