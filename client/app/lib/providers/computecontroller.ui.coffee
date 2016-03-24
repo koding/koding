@@ -44,7 +44,7 @@ module.exports = class ComputeControllerUI
       title           : 'Please save private key content'
       subtitle        : applyMarkdown "
                          This stack only requires public key which means
-                         private key of this public key is not goint to be
+                         private key of this public key is not going to be
                          stored, please take a copy of following private key.
                          \n
                          **You won't be able to access this private key later**
