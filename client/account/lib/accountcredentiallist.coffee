@@ -116,6 +116,7 @@ module.exports = class AccountCredentialList extends KodingListView
     new AccountCredentialEditModal { provider, credential }, data
 
 
+  # Move this method to controller.
   verify: (item) ->
 
     credential  = item.getData()
