@@ -163,7 +163,6 @@ module.exports = class AccountCredentialListController extends KodingListControl
     credential.fetchData (err, data) -> callback err, data
 
 
-  # It can be redudant
   filterByProvider: (query = {}) ->
 
     @filterStates.skip  = 0
