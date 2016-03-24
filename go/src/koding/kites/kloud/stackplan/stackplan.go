@@ -16,6 +16,7 @@ import (
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/koding/kite"
 	"golang.org/x/net/context"
 )
 
@@ -138,7 +139,7 @@ func (m *Machines) WithLabel(label string) (Machine, error) {
 func UserData(content string) string {
 	var buf bytes.Buffer
 
-	// If there's no shebang, execute the script with bash.
+	// If there's no shebang, execute the script with sh.
 	if !strings.HasPrefix(content, "#!") {
 		fmt.Fprintln(&buf, "#!/bin/sh")
 	}
@@ -162,6 +163,10 @@ type Planner struct {
 	ResourceType string // Terraform resource type
 
 	KlientTimeout time.Duration // when zero-value, DefaultKlientTimeout is used
+
+	// OnKlient, when non-nil, is called to perform additional check
+	// for CheckKlients method.
+	OnKlient func(*kite.Client) error
 
 	// SessionFunc is used to build a session value from the context.
 	//
@@ -289,6 +294,12 @@ func (p *Planner) CheckKlients(ctx context.Context, kiteIDs KiteMap) (map[string
 
 		if err := klientRef.Ping(); err != nil {
 			return "", err
+		}
+
+		if p.OnKlient != nil {
+			if err := p.OnKlient(klientRef.Client); err != nil {
+				return "", err
+			}
 		}
 
 		return klientRef.Client.URL, nil

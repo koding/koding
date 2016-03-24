@@ -55,13 +55,22 @@ type InfoResponse struct {
 	Ports map[string]*Port `json:"ports,omitempty"`
 }
 
+const (
+	StateNotStarted   = "NotStarted"
+	StateStarted      = "Started"
+	StateConnecting   = "Connecting"
+	StateConnected    = "Connected"
+	StateDisconnected = "Disconnected"
+	StateClosed       = "Closed"
+)
+
 var stateNames = map[tunnel.ClientState]string{
-	tunnel.ClientUnknown:      "NotStarted",
-	tunnel.ClientStarted:      "Started",
-	tunnel.ClientConnecting:   "Connecting",
-	tunnel.ClientConnected:    "Connected",
-	tunnel.ClientDisconnected: "Disconnected",
-	tunnel.ClientClosed:       "Closed",
+	tunnel.ClientUnknown:      StateNotStarted,
+	tunnel.ClientStarted:      StateStarted,
+	tunnel.ClientConnecting:   StateConnected,
+	tunnel.ClientConnected:    StateConnected,
+	tunnel.ClientDisconnected: StateDisconnected,
+	tunnel.ClientClosed:       StateClosed,
 }
 
 func (t *Tunnel) Info(r *kite.Request) (interface{}, error) {
