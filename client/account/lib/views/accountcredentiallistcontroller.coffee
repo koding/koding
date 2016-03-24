@@ -177,6 +177,10 @@ module.exports = class AccountCredentialListController extends KodingListControl
     @showLazyLoader no
 
     @fetch @filterStates.query, (credentials) =>
+      unless credentials?.length
+        @showNoItemWidget()
+        return
+
       @addListItems credentials
 
 
