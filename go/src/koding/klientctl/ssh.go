@@ -38,6 +38,8 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println(FailedGetSSHKey)
 	case ssh.ErrMachineNotValidYet:
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
+	case ssh.ErrDialingFailed:
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedDialingRemote))
 	}
 
 	log.Error("SSHCommand.Run returned err:%s", err)
