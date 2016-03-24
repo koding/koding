@@ -44,6 +44,8 @@ module.exports = class AccountCredentialListController extends KodingListControl
     { provider } = @getOptions()
     listView     = @getListView()
 
+    listView.on 'ItemDeleted', @bound 'showNoItemWidget'
+
     listView.on 'ItemAction', ({ action, item, options }) =>
 
       credential    = item.getData()
@@ -115,9 +117,10 @@ module.exports = class AccountCredentialListController extends KodingListControl
   removeCredential: (item, callback) ->
 
     credential = item.getData()
+    listView   = @getListView()
 
     credential.delete (err) =>
-      @getListView().emit 'ItemAction', { action : 'ItemRemoved', item }  unless showError err
+      listView.emit 'ItemDeleted', item  unless showError err
       callback err
 
 

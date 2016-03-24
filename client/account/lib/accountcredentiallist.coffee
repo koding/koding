@@ -21,6 +21,8 @@ module.exports = class AccountCredentialList extends KodingListView
 
     super options, data
 
+    @on 'ItemDeleted', @bound 'removeItem'
+
 
   showCredential: (options = {}) ->
 
