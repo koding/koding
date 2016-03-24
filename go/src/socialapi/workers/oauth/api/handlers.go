@@ -1,7 +1,7 @@
 package api
 
 import (
-	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
@@ -18,9 +18,9 @@ const (
 
 // AddHandlers adds handlers for slack integration
 func AddHandlers(m *mux.Mux, config *config.Config) {
-	mgo = mongodb.NewMongoDB(config.Mongo)
-	session := mgo.Session
-	dbName := ""
+	session := modelhelper.Mongo.Session
+	// probably this name is gonna be changed after implemetation is done.
+	dbName := "oauthMongo"
 
 	oauth := NewOAuthHandler(session, dbName)
 	m.AddUnscopedHandler(
