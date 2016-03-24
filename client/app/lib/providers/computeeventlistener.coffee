@@ -1,6 +1,7 @@
 kd      = require 'kd'
 globals = require 'globals'
 Machine = require './machine'
+Tracker = require 'app/util/tracker'
 
 
 module.exports = class ComputeEventListener extends kd.Object
@@ -148,9 +149,11 @@ module.exports = class ComputeEventListener extends kd.Object
           computeController.emit ev.public, { machineId: eventId }
           computeController.emit "stateChanged-#{eventId}", ev.private
           computeController.stateChecker.watch eventId
+          Tracker.track Tracker.STACKS_BUILD_SUCCESSFULLY
           # For `apply` event revive all the machines in a stack ~ GG
           computeController.triggerReviveFor eventId, type is 'apply'
         else if event.error and event.percentage is 100 and type is 'apply'
+          Tracker.track Tracker.STACKS_BUILD_FAILED
           # If a stack `apply` is failed we need to revive it from DB ~ GG
           computeController.triggerReviveFor eventId, yes
         else
