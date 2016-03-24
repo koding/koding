@@ -3,7 +3,7 @@ globals = require 'globals'
 module.exports = (url) ->
 
   return url  if globals.config.environment is 'dev'
-  return url  if /p.koding.com/.test url
+  return url  if /p\.koding\.com/.test url
 
   # let's use DOM for parsing the url
   parser = global.document.createElement('a')
@@ -17,10 +17,14 @@ module.exports = (url) ->
 
   { protocol } = global.document.location
 
-
-  proxy = if globals.config.environment is 'production'
-  then 'prodproxy'
-  else 'devproxy'
+  if /\.koding\.me$/.test parser.hostname
+    proxy = 'devtunnel'
+    if globals.config.environment is 'production'
+      proxy = 'prodtunnel'
+  else
+    proxy = if globals.config.environment is 'production'
+    then 'prodproxy'
+    else 'devproxy'
 
   subdomain = if globals.config.environment is 'production'
   then 'p'
