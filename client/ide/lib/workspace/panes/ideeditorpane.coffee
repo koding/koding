@@ -249,25 +249,16 @@ module.exports = class IDEEditorPane extends IDEPane
 
   checkForContentChange: ->
 
-    return if @contentChangedWarning or @rtm?.isReady or @isCheckingContentChange
+    return  if @contentChangedWarning or @rtm?.isReady or @isCheckingContentChange
 
     @isCheckingContentChange = yes
 
     @getFileModifiedDate (time) =>
       if time isnt @lastModifiedDate
-        @getAce().prepend @contentChangedWarning = view = new kd.View
-          cssClass : 'description-view editor'
-          partial  : '<div>This file has changed on disk. Do you want to reload it?</div>'
-
-        view.addSubView new kd.ButtonView
-          title    : 'No'
-          cssClass : 'solid compact red'
-          callback : => @handleContentChangeWarningAction()
-
-        view.addSubView new kd.ButtonView
-          title    : 'Yes'
-          cssClass : 'solid compact green'
-          callback : => @handleContentChangeWarningAction yes
+        @getAce().prepend @contentChangedWarning = @createWarningView {
+          title     : 'This file has changed on disk. Do you want to reload it?'
+          callback  : (status) => @handleContentChangeWarningAction status
+        }
 
       @isCheckingContentChange = no
 
@@ -433,18 +424,26 @@ module.exports = class IDEEditorPane extends IDEPane
 
     return  if @rtm.isDisposed
 
-    {path} = @getFile()
+    { path }  = @getFile()
+    ace       = @getAce()
 
     unless string = @rtm.getFromModel path
       return @rtm.create 'string', path, @getContent()
 
-    ace = @getAce()
-
     ace.ready =>
-      @setContent string.getText(), no
+      return  if string.getText() is @getContent()
 
-      if ace.contentChanged = ace.isCurrentContentChanged()
-        ace.emit 'FileContentChanged'
+      ace.prepend warningView = @createWarningView {
+        title     : 'There is an updated version of this file for this collaboration session. Would you like to update it?'
+        callback  : (status) =>
+          warningView.destroy()
+
+          if status
+            @setContent string.getText(), no
+
+            if ace.contentChanged = ace.isCurrentContentChanged()
+              ace.emit 'FileContentChanged'
+      }
 
 
   listenCollaborativeStringChanges: ->
@@ -558,3 +557,24 @@ module.exports = class IDEEditorPane extends IDEPane
   updateAceViewDelegate: (ideView) ->
     @aceView?.setDelegate ideView
     @setDelegate ideView
+
+
+  createWarningView: (options) ->
+
+    { title, callback } = options
+
+    view = new kd.View
+      cssClass : 'warning-view editor'
+      partial  : "<div>#{title}</div>"
+
+    view.addSubView new kd.ButtonView
+      title    : 'No'
+      cssClass : 'solid compact red'
+      callback : => callback no
+
+    view.addSubView new kd.ButtonView
+      title    : 'Yes'
+      cssClass : 'solid compact green'
+      callback : => callback yes
+
+    return view
