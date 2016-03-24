@@ -24,6 +24,13 @@ module.exports = {
   VM_TERMINATED    : 'terminated vm'
   VM_TURNED_ON     : 'turn on vm'
   VM_SET_ALWAYS_ON : 'set vm to always on'
+  VM_TERMINATED      : 'terminated vm'
+  VM_TURNED_ON       : 'turn on vm'
+  VM_SHARED          : 'shared vm with team member'
+  VM_KICKED_SHARED   : 'removed user from shared vm'
+  VM_ACCEPTED_SHARED : 'accepted shared vm'
+  VM_REJECTED_SHARED : 'rejected shared vm'
+  VM_LEFT_SHARED     : 'left shared vm'
 
   # KD
   KD_START_INSTALL : 'started kd install'
