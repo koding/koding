@@ -202,7 +202,7 @@ module.exports = class ComputeController extends KDController
     (callback = kd.noop, force = no) -> kd.singletons.mainController.ready =>
 
       if @stacks.length > 0 and not force
-        callback null, @stacks, yes
+        callback null, @stacks
         kd.info "Stacks returned from cache."
         return
 
@@ -248,7 +248,7 @@ module.exports = class ComputeController extends KDController
           globals.userMachines = machines
           @emit 'MachineDataUpdated'
 
-          cb null, stacks, no  for cb in queue
+          cb null, stacks  for cb in queue
           queue = []
 
 
