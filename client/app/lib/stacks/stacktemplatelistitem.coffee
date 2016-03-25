@@ -123,7 +123,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     super
 
-    if stackTemplate.accessLevel is 'group'
+    if stackTemplate.canForcedReinit
       @addMenuItem 'Force Stacks to Re-init', ->
         new ForceToReinitModal {}, stackTemplate
 

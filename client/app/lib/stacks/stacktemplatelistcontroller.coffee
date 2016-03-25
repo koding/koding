@@ -4,6 +4,7 @@ whoami                      = require 'app/util/whoami'
 getGroup                    = require 'app/util/getGroup'
 showError                   = require 'app/util/showError'
 AccountListViewController   = require 'account/controllers/accountlistviewcontroller'
+async                       = require 'async'
 
 
 module.exports = class StackTemplateListController extends AccountListViewController
@@ -24,20 +25,28 @@ module.exports = class StackTemplateListController extends AccountListViewContro
     { JStackTemplate } = remote.api
     { viewType }       = @getOptions()
 
-    currentGroup = getGroup()
-    query        = { group: currentGroup.slug }
-
+    currentGroup   = getGroup()
+    query          = { group: currentGroup.slug }
     query.originId = whoami()._id  unless viewType is 'group'
 
-    # TODO Add Pagination here ~ GG
-    # TMS-1919: This is TODO needs to be done ~ GG
-    JStackTemplate.some query, { limit: 30 }, (err, stackTemplates) =>
+    queue = [
+      (next) ->
+        currentGroup.canEditGroup (err, success) -> next null, success
+      (next) ->
+        # TODO Add Pagination here ~ GG
+        # TMS-1919: This is TODO needs to be done ~ GG
+        JStackTemplate.some query, { limit: 30 }, next
+      (next) ->
+        kd.singletons.computeController.fetchStacks next
+    ]
+
+    async.series queue, (err, results) =>
       return @onItemsLoaded err  if err
-      kd.singletons.computeController.fetchStacks (err, stacks) =>
-        @onItemsLoaded err, stackTemplates, stacks
+      [canEditGroup, stackTemplates, stacks] = results
+      @onItemsLoaded null, stackTemplates, stacks, canEditGroup
 
 
-  onItemsLoaded: (err, stackTemplates = [], stacks = []) ->
+  onItemsLoaded: (err, stackTemplates = [], stacks = [], canEditGroup) ->
 
     @removeAllItems()
     @hideLazyLoader()
@@ -49,8 +58,9 @@ module.exports = class StackTemplateListController extends AccountListViewContro
     { viewType } = @getOptions()
 
     stackTemplates.map (template) ->
-      template.isDefault = template._id in (currentGroup.stackTemplates or [])
-      template.inUse     = Boolean stacks.find (stack) -> stack.baseStackId is template._id
+      template.isDefault       = template._id in (currentGroup.stackTemplates or [])
+      template.inUse           = Boolean stacks.find (stack) -> stack.baseStackId is template._id
+      template.canForcedReinit = canEditGroup and template.accessLevel is 'group'
 
     if viewType is 'group'
       stackTemplates = stackTemplates.filter (template) -> template.accessLevel is 'group'
