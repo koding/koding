@@ -10,7 +10,6 @@ PrivacyPolicyView                   = require './views/privacypolicyview'
 DeleteAccountView                   = require './views/deleteaccountview'
 TermsOfServiceView                  = require './views/termsofserviceview'
 AccountEditUsername                 = require './views/accounteditusername'
-AccountEditSecurity                 = require './views/accounteditsecurity'
 AccountTwoFactorAuth                = require './accounttwofactorauth'
 AccountEditShortcuts                = require './views/accounteditshortcuts'
 AccountKodingKeyList                = require './accountkodingkeylist'
@@ -29,7 +28,6 @@ module.exports = class AccountListWrapper extends KDView
 
   listClasses =
     username                   : AccountEditUsername
-    security                   : AccountEditSecurity
     emailNotifications         : AccountEmailNotifications
     billing                    : AccountBilling
     linkedAccountsController   : AccountLinkedAccountsListController
