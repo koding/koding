@@ -100,11 +100,8 @@ func (c *Command) printfln(f string, i ...interface{}) {
 }
 
 // Run the Mount command
-func (c *Command) Run() (int, error) {
-	var (
-		err       error
-		mountName = c.Options.MountName
-	)
+func (c *Command) Run() (_ int, err error) {
+	var mountName = c.Options.MountName
 
 	defer func() {
 		if err != nil {
@@ -116,23 +113,23 @@ func (c *Command) Run() (int, error) {
 		metrics.TrackRepair(mountName)
 	}()
 
-	if err = c.handleOptions(); err != nil {
+	if err := c.handleOptions(); err != nil {
 		return exitcodes.RepairHandleOptionsErr, err
 	}
 
-	if err = c.initService(); err != nil {
+	if err := c.initService(); err != nil {
 		return exitcodes.RepairInitServiceErr, err
 	}
 
-	if err = c.initSetupRepairers(); err != nil {
+	if err := c.initSetupRepairers(); err != nil {
 		return exitcodes.RepairInitSetupRepairersErr, err
 	}
 
-	if err = c.runRepairers(c.SetupRepairers); err != nil {
+	if err := c.runRepairers(c.SetupRepairers); err != nil {
 		return exitcodes.RepairRunSetupRepairersErr, err
 	}
 
-	if err = c.setupKlient(); err != nil {
+	if err := c.setupKlient(); err != nil {
 		return exitcodes.RepairSetupKlientErr, err
 	}
 
@@ -160,22 +157,22 @@ func (c *Command) Run() (int, error) {
 		// TODO: Remove this. Currently this exists because we're manually running it
 		// before the checkMachineExist() call. This is to ensure we check kontrol
 		// before running remote.list inside of klient (which requires kontrol)
-		if err = c.runRepairers(kontrolRepair); err != nil {
+		if err := c.runRepairers(kontrolRepair); err != nil {
 			return exitcodes.RepairRunSetupRepairersErr, err
 		}
 	}
 
 	// Check for the existence of the machine *after* we run the repairers. That
 	// way the setup repairers can check for the health of klient, start it, etc.
-	if err = c.checkMachineExist(); err != nil {
+	if err := c.checkMachineExist(); err != nil {
 		return exitcodes.RepairCheckMachineExistErr, err
 	}
 
-	if err = c.initDefaultRepairers(); err != nil {
+	if err := c.initDefaultRepairers(); err != nil {
 		return exitcodes.RepairInitDefaultRepairersErr, err
 	}
 
-	if err = c.runRepairers(c.Repairers); err != nil {
+	if err := c.runRepairers(c.Repairers); err != nil {
 		return exitcodes.RepairRunDefaultRepairersErr, err
 	}
 
