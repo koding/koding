@@ -93,6 +93,9 @@ Please wait a few minutes and try again.`,
 	// exists.
 	CannotMountPathExists = "Error: given path already exists. Please remove and try again."
 
+	// MachineNotFound is a generic machine not found message.
+	MachineNotFound = "Error: Machine not found. Please enter a valid machine name as shown in kd list."
+
 	// given path. A possible example might be that the user asked to mount to
 	// /root/foo and kd doesn't have permission to even look in that directory.
 	//
