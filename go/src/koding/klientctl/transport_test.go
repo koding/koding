@@ -9,11 +9,27 @@ import (
 
 // fakeTransport implements Transport interface and is to be used in tests.
 type fakeTransport struct {
-	TripResponses map[string]interface{}
+	TripResponses map[string]*dnode.Partial
+	TripErrors    map[string]error
 }
 
-func (f *fakeTransport) Tell(methodName string, reqs ...interface{}) (*dnode.Partial, error) {
-	return nil, nil
+func newFakeTransport() *fakeTransport {
+	return &fakeTransport{
+		TripResponses: map[string]*dnode.Partial{},
+		TripErrors:    map[string]error{},
+	}
+}
+
+func (f *fakeTransport) Tell(methodName string, reqs ...interface{}) (res *dnode.Partial, err error) {
+	if f.TripErrors != nil {
+		err, _ = f.TripErrors[methodName]
+	}
+
+	if f.TripResponses != nil {
+		res, _ = f.TripResponses[methodName]
+	}
+
+	return res, err
 }
 
 func TestTransport(t *testing.T) {
