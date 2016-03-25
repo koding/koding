@@ -750,6 +750,42 @@ module.exports =
 
 
 
+  # possible values of tabName variable is 'stack', 'variables' or 'readme'
+  switchTabOnStackCatalog: (browser, tabName) ->
+
+    selector    =
+      template  : '.stack-template'
+      variables : '.custom-variables'
+      readme    : '.readme'
+
+    tabSelector = "#{stackCatalogModal} .kdtabhandle#{selector[tabName]}"
+
+    browser
+      .waitForElementVisible stackCatalogModal, 20000
+      .waitForElementVisible tabSelector, 20000
+      .click                 tabSelector
+
+
+  # possible values of tabName variable is 'stack', 'variables' or 'readme'
+  setTextToEditor: (browser, tabName, text) ->
+
+    viewNames   =
+      template  : 'stackTemplateView'
+      variables : 'variablesView'
+      readme    : 'readmeView'
+
+    viewName = viewNames[tab]
+    params   = [ viewName, text ]
+
+    fn = (viewName, text) ->
+      _kd.singletons.appManager.appControllers.Stacks.instances.first
+        .mainView.tabs.activePane.mainView.defineStackView[viewName]
+        .editorView.setContent text
+
+    browser.execute fn, params
+
+
+
   fillJoinForm: (browser, userData, assertLoggedIn = yes) ->
 
     loginForm     = '.TeamsModal.TeamsModal--groupCreation.join'
