@@ -76,7 +76,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     @snapshotsContainer.addSubView @snapshotsSelector = new KDSelectBox
       name          : 'snapshots'
-      selectOptions : [ title: 'None', value: '' ]
+      selectOptions : [ { title: 'None', value: '' } ]
       callback      : (snapshotId) =>
 
         # If the selected snapshot has a value (not empty), disable the
