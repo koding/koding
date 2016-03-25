@@ -18,16 +18,18 @@ func (o *Oauth) AuthorizeClientAuthorizeClient(w http.ResponseWriter, r *http.Re
 	server := oauth.server
 	resp := server.NewResponse()
 	if ar := server.HandleAuthorizeRequest(resp, r); ar != nil {
+
+		// Handle the login page
+
 		// if !example.HandleLoginPage(ar, w, r) {
-		// 	return
+		// return
 		// }
-		// ar.UserData = UserData{"Login": "test"}
-		// ar.Authorized = true
+
+		// ~to-do , needs to be added users data
+		ar.UserData = UserData{"Login": "test"}
+		ar.Authorized = true
 		server.FinishAuthorizeRequest(resp, r, ar)
 
-		//
-		// HANDLE LOGIN PAGE HERE !!!
-		//
 	}
 	if resp.IsError && resp.InternalError != nil {
 		fmt.Printf("ERROR: %s\n", resp.InternalError)
