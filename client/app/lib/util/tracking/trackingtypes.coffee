@@ -17,8 +17,10 @@ module.exports = {
   LABEL_MODAL_SUCCESS : 'ModalSuccess'
 
   # USER ACTIONS
-  USER_LOGGED_OUT : 'logged out'
-  USER_LEFT_TEAM  : 'leave team'
+  USER_LOGGED_OUT         : 'logged out'
+  USER_LEFT_TEAM          : 'leave team'
+  USER_EDIT_CREDENTIALS   : 'modified credentials'
+  USER_DELETE_CREDENTIALS : 'deleted credentials'
 
   # VM ACTIONS
   VM_TERMINATED    : 'terminated vm'
@@ -41,6 +43,25 @@ module.exports = {
   IDE_TERMINATE_ALL_TERMINALS    : 'terminated all terminal sessions'
   IDE_NEW_DRAWING_BOARD          : 'created new drawing board'
   IDE_ENTERED_FULLSCREEN         : 'used ide in fullscreen'
+
+  # FILETREE ACTIONS
+  FILETREE_NEW_FILE              : 'filetree created new file'
+  FILETREE_NEW_FOLDER            : 'filetree created new folder'
+  FILETREE_FILE_COMPRESS_ZIP     : 'filetree compressed file to zip'
+  FILETREE_FILE_COMPRESS_TARGZ   : 'filetree compressed file to targz'
+  FILETREE_FOLDER_COMPRESS_ZIP   : 'filetree compressed folder to zip'
+  FILETREE_FOLDER_COMPRESS_TARGZ : 'filetree compressed folder to targz'
+  FILTREEE_EXTRACT_FILE          : 'filetree extracted file'
+  FILETREE_REFRESH               : 'filetree refreshed'
+  FILETREE_TERMINAL_HERE         : 'filetree terminal from folder'
+  FILETREE_DELETE_FILE           : 'filetree deleted file'
+  FILTREEE_DELETE_FOLDER         : 'filetree deleted folder'
+  FILETREE_RENAME_FILE           : 'filetree renamed file'
+  FILETREE_RENAME_FOLDER         : 'filetree renamed folder'
+  FILETREE_DUPLICATE_FILE        : 'filetree duplicated file'
+  FILETREE_DUPLICATE_FOLDER      : 'filetree duplicated folder'
+  FILETREE_OPENED_FILE           : 'filetree opened file'
+  FILETREE_UPLOAD_FILES          : 'uploaded files'
 
   # KD
   KD_START_INSTALL : 'started kd install'
