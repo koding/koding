@@ -1,19 +1,22 @@
 kd                         = require 'kd'
-HomeTopNav                 = require '../commons/hometopnav'
 HomeAccountEditProfile     = require './homeaccounteditprofile'
 HomeAccountChangePassword  = require './homeaccountchangepassword'
-HomeAccountChangePassword  = require './homeaccountchangepassword'
+HomeAccountSecurityView    = require './homeaccountsecurityview'
+HomeAccountSessionsView    = require './homeaccountsessionsview'
 HomeAccountCredentialsView = require './credentials/homeaccountcredentialsview'
+
 
 SECTIONS =
   Profile     : HomeAccountEditProfile
   Password    : HomeAccountChangePassword
+  Security    : HomeAccountSecurityView
   Credentials : HomeAccountCredentialsView
+  Sessions    : HomeAccountSessionsView
 
 section = (name) ->
   new (SECTIONS[name] or kd.View)
     tagName  : 'section'
-    cssClass : "HomeAppView--section #{name}"
+    cssClass : "HomeAppView--section #{kd.utils.slugify name}"
 
 
 module.exports = class HomeAccountView extends kd.View
@@ -22,11 +25,6 @@ module.exports = class HomeAccountView extends kd.View
 
     super options, data
 
-    @addSubView topNav     = new HomeTopNav
-      cssClass : 'HomeAppView--topNav'
-      route    : '/Home/My-Account'
-      items    : Object.keys SECTIONS
-
     @addSubView scrollView = new kd.CustomScrollView
       cssClass : 'HomeAppView--scroller'
 
@@ -34,4 +32,6 @@ module.exports = class HomeAccountView extends kd.View
 
     wrapper.addSubView profile     = section 'Profile'
     wrapper.addSubView password    = section 'Password'
+    wrapper.addSubView security    = section 'Security'
     wrapper.addSubView credentials = section 'Credentials'
+    wrapper.addSubView sessions    = section 'Sessions'
