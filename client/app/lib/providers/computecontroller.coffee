@@ -49,6 +49,7 @@ module.exports = class ComputeController extends KDController
       @on 'MachineDestroyed', => do @reset
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
+      groupsController.on 'StackAdminMessageReceived', @bound 'handleStackAdminMessageReceived'
 
       @fetchStacks =>
 
@@ -1295,3 +1296,15 @@ module.exports = class ComputeController extends KDController
 
     , ->
       callback new Error 'Stack is not reinitialized'
+
+
+  handleStackAdminMessageReceived: (data) ->
+
+    { stackIds, message, type } = data.contents
+    for stackId in stackIds
+      stack = @stacksById[stackId]
+      continue  unless stack
+      stack.config ?= {}
+      stack.config.adminMessage = { message, type }
+
+    @emit 'StackAdminMessageReceived'

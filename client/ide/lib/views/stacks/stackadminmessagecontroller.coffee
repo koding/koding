@@ -5,34 +5,36 @@ showError  = require 'app/util/showError'
 
 module.exports = class StackAdminMessageController extends kd.Controller
 
-  constructor: ->
+  constructor: (options) ->
 
-    super
+    super options
+
     @banner = null
 
+    { computeController } = kd.singletons
+    computeController.on 'StackAdminMessageReceived', @bound 'showIfNeeded'
 
-  showIfNeed: (machine) ->
 
-    @banner.destroy()  if @banner
+  showIfNeeded: ->
+
+    { machine } = @getOptions()
     return  unless machine
 
     { computeController } = kd.singletons
-
     stack = computeController.findStackFromMachineId machine._id
     return  unless stack
+    return  unless adminMessage = stack.config?.adminMessage
 
-    remote.api.JComputeStack.one { _id : stack._id }, (err, _stack) =>
-      return  unless _stack
-      return  unless adminMessage = _stack.config?.adminMessage
-
-      @showBanner { adminMessage, stack : _stack }
+    { message, type } = adminMessage
+    @showBanner stack, message, type
 
 
-  showBanner: (data) ->
+  showBanner: (stack, message, type) ->
 
-    { stack, adminMessage } = data
-    { message, type }       = adminMessage
-    { computeController }   = kd.singletons
+    @banner.destroy()  if @banner
+
+    { computeController } = kd.singletons
+    { container }         = @getOptions()
 
     content = message
     if type is 'forcedReinit'
@@ -46,6 +48,7 @@ module.exports = class StackAdminMessageController extends kd.Controller
 
     @banner = IDEHelpers.showNotificationBanner {
       cssClass : 'stack-admin-message'
+      container
       content
       click
       hideCloseButton

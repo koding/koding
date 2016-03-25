@@ -96,6 +96,7 @@ module.exports = class GroupsController extends kd.Controller
           'StackTemplateChanged'
           'InstanceChanged'
           'GroupDestroyed'
+          'StackAdminMessageReceived'
         ]
 
         callback null
