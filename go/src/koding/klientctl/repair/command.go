@@ -6,6 +6,7 @@ import (
 	"io"
 	"time"
 
+	"koding/klient/command"
 	"koding/klient/remote/req"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/exitcodes"
@@ -49,6 +50,7 @@ type Command struct {
 		RemoteStatus(req.Status) error
 		RemoteMountInfo(string) (req.MountInfoResponse, error)
 		RemoteRemount(string) error
+		RemoteExec(string, string) (command.Output, error)
 	}
 
 	// The options to use if this struct needs to dial Klient.

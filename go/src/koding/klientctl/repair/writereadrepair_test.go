@@ -3,6 +3,7 @@ package repair
 import (
 	"io"
 	"io/ioutil"
+	"koding/klient/command"
 	"koding/klient/remote/req"
 	"koding/klientctl/util"
 	"koding/klientctl/util/testutil"
@@ -32,6 +33,7 @@ func TestWriteReadRepair(t *testing.T) {
 					LocalPath: mountDir,
 				},
 			}
+			fakeKlient.ReturnRemoteExec = command.Output{Stdout: testFileContent}
 
 			Convey("When Status() is called", func() {
 				Convey("It should return okay", func() {
@@ -100,6 +102,70 @@ func TestWriteReadRepair(t *testing.T) {
 					// instead checking if MountInfo is called - which is only called
 					// from status at the moment.
 					So(fakeKlient.GetCallCount("RemoteMountInfo"), ShouldEqual, 1)
+				})
+			})
+		})
+
+		Convey("When the remote file does not exist", func() {
+			fakeKlient.ReturnMountInfo = req.MountInfoResponse{
+				MountFolder: req.MountFolder{
+					LocalPath: mountDir,
+				},
+			}
+			fakeKlient.ReturnRemoteExec = command.Output{ExitStatus: 1}
+
+			Convey("When Status() is called", func() {
+				Convey("It should return not okay", func() {
+					ok, err := r.Status()
+					So(err, ShouldBeNil)
+					So(ok, ShouldBeFalse)
+				})
+
+				Convey("It should not remove the MountDir", func() {
+					r.Status()
+					exists, err := doesDirExists(mountDir)
+					So(err, ShouldBeNil)
+					So(exists, ShouldBeTrue)
+				})
+
+				Convey("It should cleanup the test dir after it's done", func() {
+					r.Status()
+					// The mount dir should be empty, just like it started with
+					empty, err := isDirEmpty(mountDir)
+					So(err, ShouldBeNil)
+					So(empty, ShouldBeTrue)
+				})
+			})
+		})
+
+		Convey("When the remote files contents do not match", func() {
+			fakeKlient.ReturnMountInfo = req.MountInfoResponse{
+				MountFolder: req.MountFolder{
+					LocalPath: mountDir,
+				},
+			}
+			fakeKlient.ReturnRemoteExec = command.Output{Stdout: "badcontents"}
+
+			Convey("When Status() is called", func() {
+				Convey("It should return not okay", func() {
+					ok, err := r.Status()
+					So(err, ShouldBeNil)
+					So(ok, ShouldBeFalse)
+				})
+
+				Convey("It should not remove the MountDir", func() {
+					r.Status()
+					exists, err := doesDirExists(mountDir)
+					So(err, ShouldBeNil)
+					So(exists, ShouldBeTrue)
+				})
+
+				Convey("It should cleanup the test dir after it's done", func() {
+					r.Status()
+					// The mount dir should be empty, just like it started with
+					empty, err := isDirEmpty(mountDir)
+					So(err, ShouldBeNil)
+					So(empty, ShouldBeTrue)
 				})
 			})
 		})

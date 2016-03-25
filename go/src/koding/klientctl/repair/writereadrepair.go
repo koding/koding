@@ -2,7 +2,9 @@ package repair
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"koding/klient/command"
 	"koding/klient/remote/req"
 	"koding/klientctl/util"
 	"os"
@@ -12,7 +14,7 @@ import (
 )
 
 const (
-	testDirName     = ".kd.repairtest"
+	tmpDirPrefix    = ".kd.repairtest"
 	testFileName    = "write-test"
 	testFileContent = "content"
 )
@@ -30,6 +32,7 @@ type WriteReadRepair struct {
 	Klient interface {
 		RemoteMountInfo(string) (req.MountInfoResponse, error)
 		RemoteRemount(string) error
+		RemoteExec(string, string) (command.Output, error)
 	}
 }
 
@@ -45,16 +48,16 @@ func (r *WriteReadRepair) Status() (bool, error) {
 	}
 
 	mountPath := info.LocalPath
-	testDir, err := ioutil.TempDir(mountPath, ".kd.repairtest")
+	tmpDir, err := ioutil.TempDir(mountPath, tmpDirPrefix)
 	if err != nil {
 		r.Log.Warning("Failed to create directory. Status is not-okay. err:%s", err)
 		return false, nil
 	}
 
 	// Because of the nature of Status, removing the testdir may fail, but that is okay.
-	defer os.RemoveAll(testDir)
+	defer os.RemoveAll(tmpDir)
 
-	testFile := filepath.Join(testDir, testFileName)
+	testFile := filepath.Join(tmpDir, testFileName)
 	if err := ioutil.WriteFile(testFile, []byte(testFileContent), 0644); err != nil {
 		r.Log.Warning(
 			"Failed to create and write file. Status is not-okay. err:%s", err,
@@ -71,8 +74,39 @@ func (r *WriteReadRepair) Status() (bool, error) {
 	s := string(b)
 	if s != testFileContent {
 		r.Log.Warning(
-			"Unexpected file contents. Status is not-okay. wanted:%s, got:%s",
+			"Unexpected local file contents. Status is not-okay. wanted:%s, got:%s",
 			testFileContent, s,
+		)
+		return false, nil
+	}
+
+	// We have to get the testDirName, because our testDir is the full path - created
+	// by ioutil.
+	_, tmpDirName := filepath.Split(tmpDir)
+	remoteFile := filepath.Join(info.RemotePath, tmpDirName, testFileName)
+	output, err := r.Klient.RemoteExec(r.MountName, fmt.Sprintf("cat %s", remoteFile))
+
+	// If there is an error from exec, we couldn't successfully make the kite request.
+	// Cat failing will not return an error.
+	if err != nil {
+		return false, err
+	}
+
+	// if cat exits with non-zero, we were unable to get the file contents. Likely
+	// doesn't exist.
+	if output.ExitStatus != 0 {
+		r.Log.Warning(
+			"The contents of the remote file %q could not be read. Status not-okay. exitStatus:%d",
+			remoteFile, output.ExitStatus,
+		)
+		return false, nil
+	}
+
+	// If the content does not match on remote, we're not okay.
+	if output.Stdout != testFileContent {
+		r.Log.Warning(
+			"Remote file contents did not match. Status not-okay. wanted:%s, got:%s",
+			testFileContent, output.Stdout,
 		)
 		return false, nil
 	}
