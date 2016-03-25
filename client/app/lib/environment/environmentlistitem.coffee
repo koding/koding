@@ -125,7 +125,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       @sendItemAction 'StackDeleteRequested', { item : this }
 
 
-  sendItemAction: (action, params) ->
+  sendItemAction: (action, params = {}) ->
 
     params.action = action
 
