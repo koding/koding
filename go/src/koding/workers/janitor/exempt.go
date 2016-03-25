@@ -104,6 +104,4 @@ func HasMultipleMembershipsFn(user *models.User, w *Warning) (bool, error) {
 	default:
 		return true, nil
 	}
-
-	return len(groups) > 1, nil
 }

@@ -151,7 +151,7 @@ func TestWarningsDeleteUser(t *testing.T) {
 	warning.Throttled = false
 	warning.ExemptCheckers = []*ExemptChecker{}
 
-	Convey("Given user who is inactive for more than 45 days", t, func() {
+	Convey("Given user who is inactive for more than GT 45 days", t, func() {
 		// if user's machines are deleted and 45 days has passed since last
 		// login, delete user.
 		mtime := time.Now().Add(-time.Hour * 24)
@@ -164,7 +164,6 @@ func TestWarningsDeleteUser(t *testing.T) {
 			deletedUser = user
 			return nil
 		}
-
 		warning.Run()
 
 		Convey("deletedUser should be set", func() {

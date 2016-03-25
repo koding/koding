@@ -214,7 +214,7 @@ func TestIsTooSoon(t *testing.T) {
 func TestIsUserKodingEmployee(t *testing.T) {
 	warning := &Warning{}
 
-	Convey("Given user who has not koding email", t, func() {
+	Convey("Given user who does not have koding email", t, func() {
 		username := bson.NewObjectId().Hex()
 		user := &models.User{
 			Name: username, ObjectId: bson.NewObjectId(), Status: "confirmed",
@@ -261,11 +261,8 @@ func TestHasMultipleMembershipsFn(t *testing.T) {
 	warning := &Warning{}
 
 	Convey("Given a user", t, func() {
-		acc, err := createAccount()
-		So(err, ShouldBeNil)
-		So(acc, ShouldNotBeNil)
-
-		user, err := createUser(acc.Profile.Nickname)
+		username := bson.NewObjectId().Hex()
+		user, acc, err := modeltesthelper.CreateUser(username)
 		So(err, ShouldBeNil)
 		So(user, ShouldNotBeNil)
 
@@ -301,6 +298,7 @@ func TestHasMultipleMembershipsFn(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(has, ShouldBeFalse)
 			})
+
 			Convey("Who is member of multiple group", func() {
 				if err := addRelationship(acc.Id, group2.Id, "admin"); err != nil {
 					t.Error(err)
