@@ -73,6 +73,8 @@ var DeleteInactiveUserVM = &Warning{
 }
 
 func newDeleteInactiveUsersWarning(conf *config.Config) *Warning {
+	unregisterURL := conf.Protocol + "//" + conf.Hostname + "/" + "-/Unregister"
+
 	return &Warning{
 		ID: "deleteInactiveUsers",
 
@@ -91,7 +93,7 @@ func newDeleteInactiveUsersWarning(conf *config.Config) *Warning {
 			IsTooSoon, IsUserPaid, HasMultipleMemberships, IsUserKodingEmployee,
 		},
 
-		Action: newDeleteUser(conf),
+		Action: newDeleteUserFunc(unregisterURL),
 
 		Throttled: true,
 	}
