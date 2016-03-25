@@ -2,10 +2,8 @@ package mount
 
 import (
 	"errors"
-	"fmt"
 	"koding/fuseklient"
 	"koding/fuseklient/transport"
-	"koding/klient/command"
 	"koding/klient/kiteerrortypes"
 	"koding/klient/remote/kitepinger"
 	"koding/klient/remote/machine"
@@ -85,9 +83,6 @@ type Mounter struct {
 	// PathUnmounter is responsible for unmounting the given path. Usually implemented
 	// by fuseklient.Unmount(path)
 	PathUnmounter func(string) error
-
-	// If true, Mount() will not check if the remote dir exists.
-	DoNotCheckRemoteDirExists bool
 }
 
 // IsConfigured checks the Mounter fields to ensure (as best as it can) that
@@ -138,12 +133,6 @@ func (m *Mounter) IsMountPathTaken() error {
 }
 
 func (m *Mounter) Mount() (*Mount, error) {
-	// remoteDirExistsCheck checks it's own configured requirements. It can be
-	// run before IsConfigured.
-	if err := m.remoteDirExistsCheck(); err != nil {
-		return nil, err
-	}
-
 	if err := m.IsConfigured(); err != nil {
 		m.Log.Error("Mounter improperly configured. err:%s", err)
 		return nil, err
@@ -216,36 +205,6 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 	return nil
 }
 
-// remoteDirExistsCheck checks if the remote dir exists, returning an error if not.
-func (m *Mounter) remoteDirExistsCheck() error {
-	if m.Transport == nil {
-		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing Teller")
-	}
-
-	if err := m.Transport.Dial(); err != nil {
-		m.Log.Error("Error dialing remote klient. err:%s", err)
-		return util.NewKiteError(kiteerrortypes.DialingFailed, err)
-	}
-
-	// A bash command to test if the directory exists
-	cmd := fmt.Sprintf(`bash -c "[ -d %s ]"`, m.Options.RemotePath)
-	res, err := m.Transport.Tell("exec", struct{ Command string }{cmd})
-	if err != nil {
-		return err
-	}
-
-	var output command.Output
-	if err := res.Unmarshal(&output); err != nil {
-		return err
-	}
-
-	if output.ExitStatus != 0 {
-		return ErrRemotePathDoesNotExist
-	}
-
-	return nil
-}
-
 // fuseMountFolder uses the fuseklient library to mount the given
 // folder.
 func (m *Mounter) fuseMountFolder(mount *Mount) error {
@@ -282,7 +241,9 @@ func (m *Mounter) fuseMountFolder(mount *Mount) error {
 	}
 
 	f, err := fuseklient.New(t, cf)
-	if err != nil {
+	if isRemotePathError(err) {
+		return ErrRemotePathDoesNotExist
+	} else if err != nil {
 		return err
 	}
 
@@ -359,4 +320,16 @@ func changeSummaryToBool(s chan kitepinger.ChangeSummary) <-chan bool {
 		close(b)
 	}()
 	return b
+}
+
+func isRemotePathError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	if err.Error() == "no such file or directory" {
+		return true
+	}
+
+	return false
 }
