@@ -208,7 +208,7 @@ func main() {
 			Name:     "metrics",
 			Usage:    fmt.Sprintf("Internal use only."),
 			HideHelp: true,
-			Action:   ctlcli.ExitAction(MetricsCommand, log, "metrics"),
+			Action:   ctlcli.ExitAction(MetricsCommandFactory, log, "metrics"),
 		},
 	}
 

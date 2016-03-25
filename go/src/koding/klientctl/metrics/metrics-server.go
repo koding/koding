@@ -40,7 +40,7 @@ func NewDefaultServer(configFolder string, pid int) *Server {
 	return s
 }
 
-func (s *Server) StartUnlessRunnning() error {
+func (s *Server) ForkServer() error {
 	if s.IsRunning() {
 		return nil
 	}
