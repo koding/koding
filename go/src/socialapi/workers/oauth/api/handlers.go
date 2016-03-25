@@ -13,13 +13,12 @@ import (
 const (
 	OauthAuthorization = "oauth-authorization"
 	GenerateToken      = "generate-token"
+	dbName             = "koding"
 )
 
-// AddHandlers adds handlers for slack integration
+// AddHandlers add oauth for koding api
 func AddHandlers(m *mux.Mux, config *config.Config) {
 	session := modelhelper.Mongo.Session
-	// probably this name is gonna be changed after implemetation is done.
-	dbName := "oauthMongo"
 
 	oauth := NewOAuthHandler(session, dbName)
 	m.AddUnscopedHandler(
@@ -47,7 +46,6 @@ func NewOAuthHandler(session *mgo.Session, dbName string) *Oauth {
 	sconfig.AllowedAccessTypes = osin.AllowedAccessType{osin.AUTHORIZATION_CODE,
 		osin.REFRESH_TOKEN, osin.PASSWORD, osin.CLIENT_CREDENTIALS, osin.ASSERTION}
 	sconfig.AllowGetAccessRequest = true
-	// storage := mgostore.New(session, dbName)
 	storage := modelhelper.NewOauthStore(session, dbName)
 	server := osin.NewServer(sconfig, storage)
 
