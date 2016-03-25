@@ -164,7 +164,7 @@ func (t *Tunnel) clientOptions() *tunnelproxy.ClientOptions {
 		TunnelKiteURL:   t.opts.TunnelKiteURL,
 		LastVirtualHost: t.opts.VirtualHost,
 		LocalAddr:       t.opts.LocalAddr,
-		LocalRoutes:     t.localRoute(),
+		Services:        t.services(),
 		Config:          t.opts.Config,
 		Timeout:         t.opts.Timeout,
 		OnRegister:      t.updateOptions,

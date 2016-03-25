@@ -192,8 +192,9 @@ func NewKlient(conf *KlientConfig) *Klient {
 	}
 
 	tunOpts := &tunnel.Options{
-		DB:  db,
-		Log: k.Log,
+		DB:     db,
+		Log:    k.Log,
+		Config: k.Config.Copy(),
 	}
 
 	t, err := tunnel.New(tunOpts)

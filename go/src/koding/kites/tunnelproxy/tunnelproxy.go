@@ -13,6 +13,8 @@ import (
 	"github.com/koding/ec2dynamicdata"
 )
 
+// TODO(rjeczalik): forward ports on host klient for TCP services
+
 type Service struct {
 	LocalAddr  string `json:"localAddr"`
 	RemoteAddr string `json:"remoteAddr"`
@@ -20,13 +22,16 @@ type Service struct {
 
 type Services map[string]*Service
 
-// Tunnel
 type Tunnel struct {
 	Name        string `json:"name,omitempty"`
 	Port        int    `json:"port,omitempty"` // tries to use fixed port number or restore
 	VirtualHost string `json:"virtualHost,omitempty"`
 	Error       string `json:"error,omitempty"`
 	Restore     bool   `json:"restore,omitempty"`
+
+	// Local routing.
+	PublicIP  string `json:"publicIP,omitempty"`
+	LocalAddr string `json:"localAddr,omitempty"` // either local port or forwarded one (related to package TODO)
 }
 
 func (t *Tunnel) Err() error {
@@ -46,7 +51,7 @@ var errAlreadyExists = errors.New("already exists")
 
 // Tunnels
 type Tunnels struct {
-	m map[string]map[string]*Tunnel
+	m map[string]map[string]*Tunnel // maps ident to service name to service desc
 }
 
 func newTunnels() *Tunnels {
