@@ -397,6 +397,8 @@ module.exports = class ComputeControllerUI
     modal = new kd.ModalView
       title          : title ? 'Remove?'
       cssClass       : 'has-markdown'
+      attributes     :
+        testpath     : action
       content        : """
         <div class='modalformline'>
           <p>#{message ? "Do you want to remove ?"}</p>
