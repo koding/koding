@@ -18,6 +18,8 @@ sidebarSelector          = '.activity-sidebar .SidebarTeamSection'
 sidebarStackSection      = "#{sidebarSelector} .SidebarStackSection.active"
 stackMachineItem         = "#{sidebarStackSection} .SidebarMachinesListItem"
 stackMachine             = "#{stackMachineItem}.Running.active"
+stackTemplateList        = "#{stackCatalogModal} .stack-template-list"
+stackModalCloseButton    = '.StackCatalogModal .close-icon'
 envMachineStateModal     = '.env-machine-state.env-modal'
 
 
@@ -254,7 +256,6 @@ module.exports =
     teamStackTemplatesButton = "#{stackCatalogModal} .kdtabhandle-tabs .team-stack-templates"
     stackOnboardingPage      = '.stacks .stack-onboarding.get-started'
     getStartedButton         = "#{stackOnboardingPage} .header button.green"
-    stackTemplateList        = "#{stackCatalogModal} .stack-template-list"
     createNewStackButton     = "#{stackCatalogModal} .top .green.action"
 
     browser.element 'css selector', stackCreateButton, (result) ->
@@ -594,7 +595,6 @@ module.exports =
     stackModal           = '.stack-modal'
     closeButton          = "#{stackModal} .gray"
     stackTabSelector     = '.team-stack-templates .kdtabhandle.stack-template.active'
-    closeStackPageButton = '.StackCatalogModal .close-icon'
     finalizeStepsButton  = "#{sidebarSelector} a[href='/Stacks/Welcome']:not(.SidebarSection-headerTitle)"
 
     browser
@@ -615,11 +615,31 @@ module.exports =
 
     browser
       .waitForElementVisible     stackTabSelector, 20000
-      .waitForElementVisible     closeStackPageButton, 20000
-      .click                     closeStackPageButton
+      .waitForElementVisible     stackModalCloseButton, 20000
+      .click                     stackModalCloseButton
       .waitForElementVisible     sidebarStackSection, 20000
       .waitForElementNotPresent  finalizeStepsButton, 20000
       .waitForElementVisible     envMachineStateModal, 20000
+
+    @checkStackTemplateTags(browser)
+
+
+  checkStackTemplateTags: (browser) ->
+
+    inUseTag   = "#{stackCatalogModal} [testpath=StackInUseTag]"
+    defaultTag = "#{stackCatalogModal} [testpath=StackDefaultTag]"
+    accessTag  = "#{stackCatalogModal} [testpath=StackAccessLevelTag]"
+
+    @openStackCatalog(browser, no)
+
+    browser
+      .waitForElementVisible  stackTemplateList, 20000
+      .waitForElementVisible  inUseTag, 20000
+      .waitForElementVisible  defaultTag, 20000
+      .waitForElementVisible  accessTag, 20000
+      .assert.containsText    accessTag, 'GROUP'
+      .waitForElementVisible  stackModalCloseButton, 20000
+      .click                  stackModalCloseButton
 
 
   buildStack: (browser) ->
