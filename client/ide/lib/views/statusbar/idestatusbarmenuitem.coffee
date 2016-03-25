@@ -2,7 +2,7 @@ kd = require 'kd'
 JContextMenuItem = kd.JContextMenuItem
 module.exports = class IDEStatusBarMenuItem extends JContextMenuItem
 
-  viewAppended:->
+  viewAppended: ->
 
     { title, type, shortcut } = @getData()
 

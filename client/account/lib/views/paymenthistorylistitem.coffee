@@ -1,6 +1,7 @@
 kd             = require 'kd'
-KDListItemView = kd.ListItemView
 dateFormat     = require 'dateformat'
+KDListItemView = kd.ListItemView
+
 
 module.exports = class PaymentHistoryListItem extends KDListItemView
 
@@ -13,9 +14,7 @@ module.exports = class PaymentHistoryListItem extends KDListItemView
 
   partial: (data) ->
 
-    status = if data.paid
-    then 'success'
-    else ''
+    status = if data.paid then 'success' else ''
 
     """
       <div class='#{status} status-icon'><span></span></div>

@@ -54,7 +54,7 @@ module.exports = class IDETerminalPane extends IDEPane
 
     @webtermView.connectToTerminal()
 
-    @webtermView.once "WebTerm.terminated", =>
+    @webtermView.once 'WebTerm.terminated', =>
 
       return  unless @parent
 
@@ -115,10 +115,10 @@ module.exports = class IDETerminalPane extends IDEPane
 
   setEditMode: (state) ->
 
-    {terminal} = @webtermView
+    { terminal } = @webtermView
     return  unless terminal
 
-    {cursor} = terminal
+    { cursor } = terminal
     return  unless cursor
 
     if state

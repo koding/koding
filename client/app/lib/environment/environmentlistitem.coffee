@@ -174,7 +174,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @stackStateToggle = new kd.CustomHTMLView
       cssClass : 'stack-state-toggle'
 
-    if isKoding() or title is 'Managed VMs'
+    if isKoding() or /^Managed\ VMs/.test title
       @infoIcon = new kd.CustomHTMLView
     else
       @createInfoIcon()

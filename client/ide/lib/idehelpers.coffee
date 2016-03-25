@@ -1,14 +1,12 @@
-kd                     = require 'kd'
-remote                 = require('app/remote').getInstance()
-globals                = require 'globals'
-actions                = require 'app/flux/environment/actions'
-FSHelper               = require 'app/util/fs/fshelper'
-showError              = require 'app/util/showError'
-actiontypes            = require 'app/flux/environment/actiontypes'
-dataProvider           = require 'app/userenvironmentdataprovider'
-isTeamReactSide        = require 'app/util/isTeamReactSide'
-FilePermissionsModal   = require './views/modals/filepermissionsmodal'
-BannerNotificationView = require 'app/commonviews/bannernotificationview'
+kd                    = require 'kd'
+remote                = require('app/remote').getInstance()
+actions               = require 'app/flux/environment/actions'
+FSHelper              = require 'app/util/fs/fshelper'
+showError             = require 'app/util/showError'
+actiontypes           = require 'app/flux/environment/actiontypes'
+dataProvider          = require 'app/userenvironmentdataprovider'
+isTeamReactSide       = require 'app/util/isTeamReactSide'
+FilePermissionsModal  = require './views/modals/filepermissionsmodal'
 
 
 WORKSPACE_WELCOME_TXT = """
@@ -47,7 +45,7 @@ module.exports = helpers =
     eventObj or= { emit: kd.noop }
 
     if not name or not machineUId
-      err = message: 'Missing options to create a new workspace'
+      err = { message: 'Missing options to create a new workspace' }
       return helpers.handleWorkspaceCreateError_ eventObj, err
 
     machine = m for m in computeController.machines when m.uid is machineUId
@@ -55,7 +53,7 @@ module.exports = helpers =
     data    = { name, machineUId, machineLabel, rootPath, layout }
 
     unless machine
-      err = mesage: "Machine not found."
+      err = { mesage: 'Machine not found.' }
       return helpers.handleWorkspaceCreateError_ eventObj, err
 
     dataProvider.fetchMachineByUId machineUId, (m, workspaces) ->
@@ -85,7 +83,7 @@ module.exports = helpers =
 
           kite.init().then ->
 
-            kite.fsUniquePath path: filePath
+            kite.fsUniquePath { path: filePath }
 
           .then (actualPath) ->
 
@@ -158,9 +156,9 @@ module.exports = helpers =
     searchPath = FSHelper.plainPath node.path
     targetPath = FSHelper.plainPath target if target
 
-    dataProvider.fetchMachineByUId node.machine.uid, (machine, workspaces) =>
+    dataProvider.fetchMachineByUId node.machine.uid, (machine, workspaces) ->
 
-      callback = (err) =>
+      callback = (err) ->
 
         return kd.warn 'Failed to update workspace', err  if err
 

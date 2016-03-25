@@ -7,7 +7,6 @@ FSFile                = require 'app/util/fs/fsfile'
 FSHelper              = require 'app/util/fs/fshelper'
 IDEView               = require 'ide/views/tabview/ideview'
 IDEHelpers            = require '../../../lib/idehelpers'
-WebTermView           = require 'app/terminal/webtermview'
 AppController         = require 'app/appcontroller'
 IDEEditorPane         = require 'ide/workspace/panes/ideeditorpane'
 IDETailerPane         = require 'ide/workspace/panes/idetailerpane'
@@ -41,7 +40,7 @@ createFile = (path = 'foo/path') ->
 
 createEditorPane = (paneClass) ->
 
-  file    = FSHelper.createFileInstance path: '/foo/bar'
+  file    = FSHelper.createFileInstance { path: '/foo/bar' }
   content = 'Foo bar baz waz here'
   options = { name: 'Foo Bar' }
 
@@ -58,7 +57,7 @@ createEditorPane = (paneClass) ->
 
 createTerminalPane = (options = {}) ->
 
-  app = new AppController { name: "FooApp#{Date.now()}"}
+  app = new AppController { name: "FooApp#{Date.now()}" }
   app.workspaceData = { rootPath: '/root/path' }
 
   mock.appManager.getFrontApp.toReturnPassedParam app
@@ -216,7 +215,7 @@ describe 'IDEView', ->
 
     it 'should showErrorNotification if file.fetchPermissions returns error', ->
 
-      err = message: 'Everything is something happened.'
+      err = { message: 'Everything is something happened.' }
       mock.fsFile.fetchPermissions.toReturnError err
       ideView.createEditor createFile()
 
@@ -236,7 +235,7 @@ describe 'IDEView', ->
       emitChange    = yes
       isReadOnly    = no
       isActivePane  = yes
-      change        = context: file: { content, path, machine: { uid } }
+      change        = { context: { file: { content, path, machine: { uid } } } }
 
       createPaneSpy = expect.spyOn ideView, 'createPane_'
       emitChangeSpy = expect.spyOn ideView, 'emitChange'
@@ -270,7 +269,7 @@ describe 'IDEView', ->
 
     it 'should listen for EditorIsReady event and handle the cases', ->
 
-      obj            = callback: ->
+      obj            = { callback: -> }
       file           = createFile()
       content        = 'foo bar'
       cursor         = { row: 1, column: 2 }
@@ -322,7 +321,7 @@ describe 'IDEView', ->
       hash     = '1F9B0F7B'
       paneType = 'FooPane'
       pane     = { hash, options: { paneType } }
-      change   = { context: foo: 'bar' }
+      change   = { context: { foo: 'bar' } }
 
       ideView.on 'ChangeHappened', (change) ->
         expect(change.type).toBe  'MyChangeType'
@@ -649,7 +648,7 @@ describe 'IDEView', ->
 
       expect.spyOn pane.view, 'setSession'
       expect.spyOn handle, 'setTitle'
-      expect.spyOn(machine, 'getBaseKite').andReturn fetchTerminalSessions: spy
+      expect.spyOn(machine, 'getBaseKite').andReturn { fetchTerminalSessions: spy }
 
       ideView.renameTerminal pane, machine, newTitle
 

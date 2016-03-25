@@ -138,7 +138,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
 
   pistachio: ->
 
-    """
+    '''
       <div class="settings-header">Editor Settings</div>
       <ul>
         <li>Enable autosave                        {{> @useAutosave}}</li>
@@ -170,4 +170,4 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
         <li class="with-select">Theme       {{> @theme}}</li>
         <li class="with-select">Tab size    {{> @tabSize}}</li>
       <ul>
-    """
+    '''
