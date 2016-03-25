@@ -544,10 +544,7 @@ module.exports = class JComputeStack extends jraphical.Module
   checkRevisionByTemplate: (template) ->
 
     if not @baseStackId
-      return callback null, stackRevisionErrors.NOTFROMTEMPLATE
-
-    if @baseStackId isnt template._id
-      return stackRevisionErrors.TEMPLATEDIFFERENT
+      return stackRevisionErrors.NOTFROMTEMPLATE
 
     if not template?.template?.sum or not @stackRevision
       return stackRevisionErrors.INVALIDTEMPLATE
