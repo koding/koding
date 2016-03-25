@@ -45,8 +45,9 @@ module.exports = class ComputeController extends KDController
 
     mainController.ready =>
 
-      @on 'MachineBuilt',     => do @reset
-      @on 'MachineDestroyed', => do @reset
+      @on 'MachineBuilt',             => do @reset
+      @on 'MachineDestroyed',         => do @reset
+      @on 'StackAdminMessageDeleted', @bound 'handleStackAdminMessageDeleted'
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
@@ -1308,3 +1309,11 @@ module.exports = class ComputeController extends KDController
       stack.config.adminMessage = { message, type }
 
     @emit 'StackAdminMessageReceived'
+
+
+  handleStackAdminMessageDeleted: (stackId) ->
+
+    stack = @stacksById[stackId]
+    return  if not stack or not stack.config
+
+    delete stack.config.adminMessage

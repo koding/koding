@@ -44,7 +44,7 @@ module.exports = class StackAdminMessageController extends kd.Controller
         return  unless e.target.classList.contains 'reinit-stack-now'
         computeController.reinitStack stack
     else
-      onClose = -> stack.deleteAdminMessage (err) -> showError err  if err
+      onClose = @lazyBound 'handleDeleteAdminMessage', stack
 
     @banner = IDEHelpers.showNotificationBanner {
       cssClass : 'stack-admin-message'
@@ -55,3 +55,11 @@ module.exports = class StackAdminMessageController extends kd.Controller
       onClose
     }
     @banner.on 'KDObjectWillBeDestroyed', => @banner = null
+
+
+  handleDeleteAdminMessage: (stack) ->
+
+    { computeController } = kd.singletons
+    stack.deleteAdminMessage (err) ->
+      showError err  if err
+      computeController.emit 'StackAdminMessageDeleted', stack._id
