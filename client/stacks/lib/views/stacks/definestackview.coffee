@@ -11,6 +11,7 @@ KDFormViewWithFields = kd.FormViewWithFields
 
 whoami               = require 'app/util/whoami'
 curryIn              = require 'app/util/curryIn'
+Tracker              = require 'app/util/tracker'
 { yamlToJson }       = require './yamlutils'
 providersParser      = require './providersparser'
 
@@ -629,6 +630,7 @@ module.exports = class DefineStackView extends KDView
 
       if not err and stackTemplate
 
+        Tracker.track Tracker.STACKS_DEFAULT_NAME if title is 'Default stack template'
         @setData { stackTemplate }
         @emit 'Reload'
 

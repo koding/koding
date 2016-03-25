@@ -32,6 +32,16 @@ module.exports = {
   VM_REJECTED_SHARED : 'rejected shared vm'
   VM_LEFT_SHARED     : 'left shared vm'
 
+  # IDE ACTIONS
+  IDE_NEW_FILE                   : 'created new file'
+  IDE_OPEN_TERMINAL_SESSION      : 'opened existing terminal session'
+  IDE_TERMINATE_TERMINAL_SESSION : 'terminated terminal session'
+  IDE_NEW_TERMINAL_SESSION       : 'created new terminal session'
+  IDE_OPEN_ALL_TERMINAL_SESSIONS : 'opened all terminal sessions'
+  IDE_TERMINATE_ALL_TERMINALS    : 'terminated all terminal sessions'
+  IDE_NEW_DRAWING_BOARD          : 'created new drawing board'
+  IDE_ENTERED_FULLSCREEN         : 'used ide in fullscreen'
+
   # KD
   KD_START_INSTALL : 'started kd install'
 
@@ -43,6 +53,7 @@ module.exports = {
   STACKS_EDIT               : 'edit stack'
   STACKS_REINIT             : 'reinitialized stack'
   STACKS_DELETE             : 'deleted stack'
+  STACKS_DEFAULT_NAME   : 'used default stack name'
 
   # PROVIDERS
   STACKS_WIZARD_SELECTED_AWS          : 'selected aws provider'

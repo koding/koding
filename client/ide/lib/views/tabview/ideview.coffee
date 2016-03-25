@@ -18,6 +18,7 @@ ProximityNotifier     = require './splithandleproximitynotifier'
 IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
 showErrorNotification = require 'app/util/showErrorNotification'
+Tracker               = require 'app/util/tracker'
 
 
 HANDLE_PROXIMITY_DISTANCE   = 100
@@ -641,32 +642,45 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         children          :
           'Open'          :
             disabled      : isActive
-            callback      : => @createTerminal { machine, session }
+            callback      : =>
+              Tracker.track Tracker.IDE_OPEN_TERMINAL_SESSION
+              @createTerminal { machine, session }
           'Terminate'     :
-            callback      : => @terminateSession machine, session
+            callback      : =>
+              Tracker.track Tracker.IDE_TERMINATE_TERMINAL_SESSION
+              @terminateSession machine, session
 
     canTerminateSessions  = sessions.length > 0 and frontApp.amIHost
 
     terminalSessions['New Session'] =
-      callback            : => @createTerminal { machine }
+      callback            : =>
+        Tracker.track Tracker.IDE_NEW_TERMINAL_SESSION
+        @createTerminal { machine }
       separator           : (canTerminateSessions or inActiveSessions.length)
 
     if inActiveSessions.length
       terminalSessions['Open All']  =
-        callback          : => @openAllSessions { machine, sessions : inActiveSessions }
+        callback          : =>
+          Tracker.track Tracker.IDE_OPEN_ALL_TERMINAL_SESSIONS
+          @openAllSessions { machine, sessions : inActiveSessions }
 
     if canTerminateSessions
       terminalSessions['Terminate all'] =
-        callback          : => @terminateSessions machine
+        callback          : =>
+          Tracker.track Tracker.IDE_TERMINATE_ALL_TERMINALS
+          @terminateSessions machine
 
     items =
       'New File'          : { callback : =>
         newFile = FSHelper.createFileInstance { path: @getDummyFilePath(), machine }
-        kd.singletons.appManager.tell 'IDE', 'openFile', { file: newFile } }
+        kd.singletons.appManager.tell 'IDE', 'openFile', { file: newFile }
+        Tracker.track Tracker.IDE_NEW_FILE }
       'New Terminal'      : { children : terminalSessions }
       # 'New Browser'       : callback : => @createPreview()
       'New Drawing Board' :
-        callback          : => @createDrawingBoard()
+        callback          : =>
+          Tracker.track Tracker.IDE_NEW_DRAWING_BOARD
+          @createDrawingBoard()
         separator         : yes
       'Split Vertically'  :
         callback          : -> frontApp.splitVertically()
@@ -678,7 +692,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     label                 = if @isFullScreen then 'Exit Fullscreen' else 'Enter Fullscreen'
     items[label]          =
-      callback            : => @toggleFullscreen()
+      callback            : =>
+        Tracker.track Tracker.IDE_ENTERED_FULLSCREEN unless @isFullScreen
+        @toggleFullscreen()
 
     return items
 
