@@ -196,6 +196,11 @@ func NewKlient(conf *KlientConfig) *Klient {
 		Log: k.Log,
 	}
 
+	t, err := tunnel.New(tunOpts)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if conf.UpdateInterval < time.Minute {
 		k.Log.Warning("Update interval can't be less than one minute. Setting to one minute.")
 		conf.UpdateInterval = time.Minute
@@ -205,7 +210,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		kite:    k,
 		collab:  collaboration.New(db), // nil is ok, fallbacks to in memory storage
 		storage: storage.New(db),       // nil is ok, fallbacks to in memory storage
-		tunnel:  tunnel.New(tunOpts),
+		tunnel:  t,
 		vagrant: vagrant.NewHandlers(vagrantOpts),
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,

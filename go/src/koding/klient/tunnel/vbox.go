@@ -82,23 +82,16 @@ func (t *Tunnel) Info(r *kite.Request) (interface{}, error) {
 
 	// Build tunnel information.
 	info.Ports = map[string]*Port{
-		"kite": {Remote: 80},
+		"kite":  {Remote: 80},  // HTTP kite server
+		"kites": {Remote: 443}, // HTTPS kite server (actually TLS reverse proxy)
 	}
 
-	if info.IsVagrant {
-		info.Ports["kite"].NAT = t.opts.Config.Port
+	t.setLocalOrNAT(&info, "kite", t.opts.Config.Port)
+	t.setLocalOrNAT(&info, "kites", 56790)
 
-		// Find forwarded port
-		for _, p := range t.ports {
-			if p.GuestPort == t.opts.Config.Port {
-				info.Ports["kite"].Local = p.HostPort
-				break
-			}
-		}
-	} else {
-		info.Ports["kite"].Local = t.opts.Config.Port
-	}
-
+	// Update kite tunnel (public endpoint) remote port, it may be
+	// needed when run against custom tunnelserver, which listens
+	// on different port than default 80.
 	if _, port, err := parseHostPort(info.VirtualHost); err == nil && port != 0 {
 		info.Ports["kite"].Remote = port
 	}
@@ -106,9 +99,25 @@ func (t *Tunnel) Info(r *kite.Request) (interface{}, error) {
 	return info, nil
 }
 
-type Ports []*vagrant.ForwardedPort
+func (t *Tunnel) setLocalOrNAT(info *InfoResponse, name string, localOrNAT int) {
+	if info.IsVagrant {
+		info.Ports[name].NAT = localOrNAT
 
-func (p Ports) String() string {
+		// Find forwarded port
+		for _, p := range t.ports {
+			if p.GuestPort == localOrNAT {
+				info.Ports[name].Local = p.HostPort
+				break
+			}
+		}
+	} else {
+		info.Ports[name].Local = localOrNAT
+	}
+}
+
+type PrintablePorts []*vagrant.ForwardedPort
+
+func (p PrintablePorts) String() string {
 	if len(p) == 0 {
 		return "[]"
 	}
@@ -160,7 +169,7 @@ func (t *Tunnel) localRoute() map[string]string {
 		return nil
 	}
 
-	t.opts.Log.Debug("forwarded ports: %+v", Ports(ports))
+	t.opts.Log.Debug("forwarded ports: %+v", PrintablePorts(ports))
 	t.ports = ports
 
 	var localAddr string
