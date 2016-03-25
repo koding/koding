@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"koding/klient/command"
 	"koding/klient/remote/req"
 	"koding/klientctl/list"
 )
@@ -14,6 +15,9 @@ type FakeKlient struct {
 	ReturnMountInfoErr error
 
 	ReturnRemountErr error
+
+	ReturnRemoteExec    command.Output
+	ReturnRemoteExecErr error
 }
 
 func (k *FakeKlient) incrementCallCount(method string) {
@@ -55,4 +59,9 @@ func (k *FakeKlient) RemoteMountInfo(string) (req.MountInfoResponse, error) {
 func (k *FakeKlient) RemoteRemount(string) error {
 	k.incrementCallCount("RemoteRemount")
 	return k.ReturnRemountErr
+}
+
+func (k *FakeKlient) RemoteExec(string, string) (command.Output, error) {
+	k.incrementCallCount("RemoteExec")
+	return k.ReturnRemoteExec, k.ReturnRemoteExecErr
 }
