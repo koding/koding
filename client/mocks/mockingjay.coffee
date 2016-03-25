@@ -338,6 +338,8 @@ module.exports =
 
   getMockJComputeStack: -> return mockjcomputestack
 
+  getMockComputeStack: -> remote.revive mockjcomputestack
+
   getMockMessage: (args...) -> return mockMessage(args...)
 
   getMockChannel: (args...) -> return mockChannel(args...)
