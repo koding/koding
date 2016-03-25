@@ -25,11 +25,9 @@ module.exports = {
   USER_DELETE_CREDENTIALS : 'deleted credentials'
 
   # VM ACTIONS
-  VM_TERMINATED    : 'terminated vm'
-  VM_TURNED_ON     : 'turn on vm'
-  VM_SET_ALWAYS_ON : 'set vm to always on'
   VM_TERMINATED      : 'terminated vm'
   VM_TURNED_ON       : 'turn on vm'
+  VM_SET_ALWAYS_ON   : 'set vm to always on'
   VM_SHARED          : 'shared vm with team member'
   VM_KICKED_SHARED   : 'removed user from shared vm'
   VM_ACCEPTED_SHARED : 'accepted shared vm'
@@ -76,7 +74,7 @@ module.exports = {
   STACKS_EDIT               : 'edit stack'
   STACKS_REINIT             : 'reinitialized stack'
   STACKS_DELETE             : 'deleted stack'
-  STACKS_DEFAULT_NAME   : 'used default stack name'
+  STACKS_DEFAULT_NAME       : 'used default stack name'
 
   # PROVIDERS
   STACKS_WIZARD_SELECTED_AWS          : 'selected aws provider'
