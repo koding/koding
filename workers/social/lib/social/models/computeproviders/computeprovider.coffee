@@ -690,22 +690,22 @@ module.exports = class ComputeProvider extends Base
 
       queue    = []
       stackIds = []
+      type     = 'forcedReinit'
       stacks.forEach (stack) ->
         checkResult = stack.checkRevisionByTemplate template
         if checkResult is stackRevisionErrors.TEMPLATEDIFFERENT
           stackIds.push stack._id
           queue.push (next) ->
-            stack.createAdminMessage message, 'forcedReinit', next
+            stack.createAdminMessage message, type, next
 
       queue.push (next) ->
         JGroup = require '../group'
-        JGroup.one { slug: template.group }, (err, group) ->
-          next err  if err
-          group.sendNotification(
-            'StackAdminMessageReceived',
-            { stackIds, message, type : 'forcedReinit' }
-            next
-          )
+        JGroup.sendStackAdminMessageNotification {
+          slug : template.group
+          stackIds
+          message
+          type
+        }, next
 
       async.series queue, (err) -> callback err
 

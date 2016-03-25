@@ -1643,3 +1643,16 @@ module.exports = class JGroup extends Module
             apiToken.username = account.profile.nickname
 
       return callback null, apiTokens
+
+
+  @sendStackAdminMessageNotification: (data, callback) ->
+
+    { slug, stackIds, message, type } = data
+
+    JGroup.one { slug }, (err, group) ->
+      callback err  if err
+      group.sendNotification(
+        'StackAdminMessageCreated',
+        { stackIds, message, type }
+        callback
+      )

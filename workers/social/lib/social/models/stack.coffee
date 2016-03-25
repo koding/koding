@@ -573,7 +573,16 @@ module.exports = class JComputeStack extends jraphical.Module
 
     success: (client, message, type, callback) ->
 
-      @createAdminMessage message, type, callback
+      @createAdminMessage message, type, (err) =>
+        callback err  if err
+
+        JGroup = require './group'
+        JGroup.sendStackAdminMessageNotification {
+          slug     : @group
+          stackIds : [ @_id ]
+          message
+          type
+        }, callback
 
 
   deleteAdminMessage: (callback) ->
