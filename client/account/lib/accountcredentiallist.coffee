@@ -81,32 +81,32 @@ module.exports = class AccountCredentialList extends KodingListView
       removeButtonTitle = 'Remove Access'
 
     modal              = new KDModalView
-        title          : 'Remove credential'
-        content        : "<div class='modalformline'>#{description}</div>"
-        cssClass       : 'has-markdown remove-credential'
-        overlay        : yes
-        overlayOptions :
-          cssClass     : 'second-overlay'
-          overlayClick : yes
-        buttons        :
-          Remove       :
-            title      : removeButtonTitle ? 'Remove Credential'
-            style      : 'solid red medium'
-            loader     : yes
-            callback   : ->
-              callback { action : 'Remove', modal }
-          DestroyAll   :
-            title      : 'Destroy Everything'
-            style      : "solid red medium #{unless bootstrapped then 'hidden'}"
-            loader     : yes
-            callback   : ->
-              callback { action : 'DestroyAll', modal }
-          cancel       :
-            title      : 'Cancel'
-            style      : 'solid light-gray medium'
-            callback   : ->
-              modal.destroy()
-              callback { action : 'Cancel', modal }
+      title          : 'Remove credential'
+      content        : "<div class='modalformline'>#{description}</div>"
+      cssClass       : 'has-markdown remove-credential'
+      overlay        : yes
+      overlayOptions :
+        cssClass     : 'second-overlay'
+        overlayClick : yes
+      buttons        :
+        Remove       :
+          title      : removeButtonTitle ? 'Remove Credential'
+          style      : 'solid red medium'
+          loader     : yes
+          callback   : ->
+            callback { action : 'Remove', modal }
+        DestroyAll   :
+          title      : 'Destroy Everything'
+          style      : "solid red medium #{unless bootstrapped then 'hidden'}"
+          loader     : yes
+          callback   : ->
+            callback { action : 'DestroyAll', modal }
+        cancel       :
+          title      : 'Cancel'
+          style      : 'solid light-gray medium'
+          callback   : ->
+            modal.destroy()
+            callback { action : 'Cancel', modal }
 
 
   showCredentialEditModal: (options = {}) ->
