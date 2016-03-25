@@ -13,6 +13,12 @@ invitationsModalSelector = '.kdmodal-content  .AppModal--admin-tabs .invitations
 pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
 pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
 teamsLoginModal          = '.TeamsModal--login'
+stackCatalogModal        = '.StackCatalogModal'
+sidebarSelector          = '.activity-sidebar .SidebarTeamSection'
+sidebarStackSection      = "#{sidebarSelector} .SidebarStackSection.active"
+stackMachineItem         = "#{sidebarStackSection} .SidebarMachinesListItem"
+stackMachine             = "#{stackMachineItem}.Running.active"
+envMachineStateModal     = '.env-machine-state.env-modal'
 
 
 module.exports =
@@ -241,19 +247,40 @@ module.exports =
     @openTeamSettingsModal(browser)
 
 
-  startStackCreate: (browser) ->
+  openStackCatalog: (browser, clickStartButton = yes) ->
 
     stackCreateButton        = '.activity-sidebar .SidebarTeamSection a[href="/Stacks/Welcome"]'
-    stackCatalogModal        = '.StackCatalogModal'
+    stacksHeader             = '.activity-sidebar .SidebarSection-headerTitle[href="/Stacks"]'
     teamStackTemplatesButton = "#{stackCatalogModal} .kdtabhandle-tabs .team-stack-templates"
-    stackPage                = '.stacks .stack-onboarding.get-started'
+    stackOnboardingPage      = '.stacks .stack-onboarding.get-started'
+    getStartedButton         = "#{stackOnboardingPage} .header button.green"
+    stackTemplateList        = "#{stackCatalogModal} .stack-template-list"
+    createNewStackButton     = "#{stackCatalogModal} .top .green.action"
 
-    browser
-      .waitForElementVisible  stackCreateButton, 20000
-      .click                  stackCreateButton
-      .waitForElementVisible  teamStackTemplatesButton, 20000
-      .click                  teamStackTemplatesButton
-      .waitForElementVisible  stackPage, 20000
+    browser.element 'css selector', stackCreateButton, (result) ->
+      buttonSelector = if result.status is 0 then stackCreateButton else stacksHeader
+
+      browser
+        .waitForElementVisible  buttonSelector, 20000
+        .click                  buttonSelector
+        .waitForElementVisible  teamStackTemplatesButton, 20000
+        .click                  teamStackTemplatesButton
+        .pause                  1000
+        .element                'css selector', stackMachineItem, (result) ->
+          if result.status is 0
+            browser
+              .waitForElementVisible  stackTemplateList, 20000
+              .waitForElementVisible  createNewStackButton, 20000
+
+            if clickStartButton
+              browser.click           createNewStackButton
+          else
+            browser
+              .waitForElementVisible  stackOnboardingPage, 20000
+              .waitForElementVisible  getStartedButton, 20000
+
+            if clickStartButton
+              browser.click           getStartedButton
 
 
   openInvitationsTab: (browser) ->
@@ -398,8 +425,6 @@ module.exports =
 
   createStack: (browser, skipStackSetup = no) ->
 
-    stackCreatePage       = '.Group-Stack-Templates .get-started'
-    getStartedButton      = "#{stackCreatePage} .header button.green"
     modalSelector         = '.kdmodal-content .AppModal-content'
     providerSelector      = "#{modalSelector} .stack-onboarding .provider-selection"
     machineSelector       = "#{providerSelector} .providers"
@@ -420,12 +445,7 @@ module.exports =
     stackTemplateSelector = '.kdtabhandlecontainer.hide-close-icons .stack-template'
     saveAndTestButton     = '.buttons button:nth-of-type(5)'
 
-    @startStackCreate(browser)
-
-    browser
-      .waitForElementVisible  stackCreatePage, 20000
-      .waitForElementVisible  getStartedButton, 20000
-      .click                  getStartedButton
+    @openStackCatalog(browser)
 
     if skipStackSetup
       browser
@@ -474,18 +494,22 @@ module.exports =
 
   createCredential: (browser, show = no, remove = no, use = no) ->
 
-    credetialTabSelector   = '.team-stack-templates .kdtabhandle-tabs .credentials'
-    stackTabSelector       = '.team-stack-templates .kdtabhandle.stack-template.active'
-    credentialsPane        = '.credentials-form-view'
-    editorSelector         = '.editor-main'
-    saveButtonSelector     = '.add-credential-scroll .button-field button.green'
-    newCredential          = '.step-creds .listview-wrapper .credential-list .credential-item'
-    credentialName         = 'test credential'
-    showCredentialButton   = "#{newCredential} button.show"
-    deleteCredentialButton = "#{newCredential} button.delete"
-    useCredentialButton    = "#{newCredential} button.verify"
-    inUseLabelSelector     = "#{newCredential} .custom-tag.inuse"
-    secretKeyInput         = "#{credentialsPane} .secret-key input"
+    credetialTabSelector     = '.team-stack-templates .kdtabhandle-tabs .credentials'
+    stackTabSelector         = '.team-stack-templates .kdtabhandle.stack-template.active'
+    credentialsPane          = '.credentials-form-view'
+    editorSelector           = '.editor-main'
+    saveButtonSelector       = '.add-credential-scroll .button-field button.green'
+    newCredential            = '.step-creds .listview-wrapper .credential-list .credential-item'
+    credentialName           = 'test credential'
+    showCredentialButton     = "#{newCredential} button.show"
+    deleteCredentialButton   = "#{newCredential} button.delete"
+    useCredentialButton      = "#{newCredential} button.verify"
+    inUseLabelSelector       = "#{newCredential} .custom-tag.inuse"
+    secretKeyInput           = "#{credentialsPane} .secret-key input"
+    destroyCredentialModal   = '.kdmodal[testpath=destroyCredentialModal]'
+    removeCredentialModal    = '.kdmodal[testpath=removeCredentialModal]'
+    destroyCredentialsButton = '.kdbutton[testpath=destroyAll]'
+    removeCredentialButton   = '.kdbutton[testpath=removeCredential]'
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
@@ -535,12 +559,20 @@ module.exports =
         browser
           .waitForElementVisible    deleteCredentialButton, 20000
           .click                    deleteCredentialButton
-          .pause                    1000
-          .waitForElementVisible    '.remove-credential', 20000
-          .assert.containsText      '.remove-credential', credentialName
-          .click                    '.remove-credential button.red'
           .pause                    2000
-          .waitForElementNotPresent newCredential, 20000
+          .element                  'css selector', destroyCredentialModal, (result) ->
+            buttonSelector = removeCredentialButton
+            modalSelector  = removeCredentialModal
+
+            if result.status is 0
+              buttonSelector = destroyCredentialsButton
+              modalSelector  = destroyCredentialModal
+
+            browser
+              .assert.containsText      modalSelector, credentialName
+              .click                    buttonSelector
+              .waitForElementNotPresent modalSelector, 60000
+              .waitForElementNotPresent newCredential, 20000
 
       if use
         browser
@@ -563,10 +595,7 @@ module.exports =
     closeButton          = "#{stackModal} .gray"
     stackTabSelector     = '.team-stack-templates .kdtabhandle.stack-template.active'
     closeStackPageButton = '.StackCatalogModal .close-icon'
-    sidebarSelector      = '.activity-sidebar .SidebarTeamSection'
-    sidebarStackSection  = "#{sidebarSelector} .SidebarStackSection.active"
     finalizeStepsButton  = "#{sidebarSelector} a[href='/Stacks/Welcome']:not(.SidebarSection-headerTitle)"
-    envMachineStateModal = '.env-machine-state .has-markdown'
 
     browser
       .waitForElementVisible     saveAndTestButton, 20000
@@ -595,12 +624,8 @@ module.exports =
 
   buildStack: (browser) ->
 
-    envMachineStateModal = '.env-machine-state'
     buildStackButton     = "#{envMachineStateModal} .content-container .state-button"
     progressbarContainer = "#{envMachineStateModal} .progressbar-container"
-    sidebarSelector      = '.activity-sidebar .SidebarTeamSection'
-    sidebarStackSection  = "#{sidebarSelector} .SidebarStackSection.active"
-    stackMachine         = "#{sidebarStackSection} .SidebarMachinesListItem.Running.active"
 
     browser
       .waitForElementVisible     buildStackButton, 20000
@@ -609,6 +634,39 @@ module.exports =
       .waitForElementNotPresent  progressbarContainer,500000
       .pause                     3000 # wait for machine
       .waitForElementVisible     stackMachine, 20000
+
+    browser.isStackBuilt = yes
+
+
+  reinitStack: (browser) ->
+
+    myStacksLink  = '.AppModal-navItem.my-stacks'
+    stackItem     = '.kdlistitemview.environment-item'
+    reinitButton  = "#{stackItem} .button-container .red"
+    reinitModal   = ".kdmodal[testpath=reinitStack]"
+    proceedButton = "#{reinitModal} .red"
+    notification  = '.kdnotification.main'
+
+    @openStackCatalog(browser, no)
+
+    browser
+      .waitForElementVisible    myStacksLink, 20000
+      .click                    myStacksLink
+      .waitForElementVisible    stackItem, 20000
+      .click                    reinitButton
+      .waitForElementVisible    reinitModal, 20000
+      .click                    proceedButton
+      .waitForElementNotPresent stackCatalogModal, 30000
+      .waitForElementVisible    envMachineStateModal, 20000
+
+
+  destroyEverything: (browser) ->
+
+    if browser.isStackBuilt
+      @reinitStack(browser)
+      browser.pause 10000 # wait before credential destroy
+      @createStack(browser, yes)
+      @createCredential(browser, no, yes)
 
 
   getAwsKey: -> return awsKey

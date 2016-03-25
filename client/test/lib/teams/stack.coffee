@@ -8,7 +8,7 @@ module.exports =
   setCredential: (browser) ->
 
     teamsHelpers.loginTeam(browser)
-    teamsHelpers.createStack(browser)
+    teamsHelpers.createStack(browser, yes)
     teamsHelpers.createCredential(browser)
     browser.end()
 
@@ -44,4 +44,5 @@ module.exports =
     teamsHelpers.createCredential(browser, no, no, yes)
     teamsHelpers.saveTemplate(browser)
     teamsHelpers.buildStack(browser)
+    teamsHelpers.destroyEverything(browser)
     browser.end()
