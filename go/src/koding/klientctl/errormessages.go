@@ -96,6 +96,9 @@ Please wait a few minutes and try again.`,
 	// MachineNotFound is a generic machine not found message.
 	MachineNotFound = "Error: Machine not found. Please enter a valid machine name as shown in kd list."
 
+	// MountNotFound is a generic mount not found message.
+	MountNotFound = "Error: Mount not found."
+
 	// given path. A possible example might be that the user asked to mount to
 	// /root/foo and kd doesn't have permission to even look in that directory.
 	//
