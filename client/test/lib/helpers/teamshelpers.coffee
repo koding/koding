@@ -597,6 +597,8 @@ module.exports =
     stackTabSelector     = '.team-stack-templates .kdtabhandle.stack-template.active'
     finalizeStepsButton  = "#{sidebarSelector} a[href='/Stacks/Welcome']:not(.SidebarSection-headerTitle)"
 
+    @seeTemplatePreview(browser)
+
     browser
       .waitForElementVisible     saveAndTestButton, 20000
       .scrollToElement           saveAndTestButton
@@ -687,6 +689,27 @@ module.exports =
       browser.pause 10000 # wait before credential destroy
       @createStack(browser, yes)
       @createCredential(browser, no, yes)
+
+
+  seeTemplatePreview: (browser) ->
+
+    templatePreviewButton     = '.stack-template .template-preview-button'
+    stackTemplatePreviewModal = '.stack-template-preview'
+    tabsSelector              = "#{stackTemplatePreviewModal} .kdmodal-content .kdtabhandle-tabs"
+    yamlTabSelector           = "#{tabsSelector} .yaml"
+    jsonTabSelector           = "#{tabsSelector} .json"
+    stackTabSelector          = '.team-stack-templates .kdtabhandle.stack-template'
+
+    browser
+      .waitForElementVisible  stackTabSelector, 20000
+      .click                  stackTabSelector
+      .waitForElementVisible  templatePreviewButton, 20000
+      .click                  templatePreviewButton
+      .waitForElementVisible  stackTemplatePreviewModal, 20000
+      .waitForElementVisible  yamlTabSelector, 20000
+      .waitForElementVisible  jsonTabSelector, 20000
+      .waitForElementVisible  stackModalCloseButton, 20000
+      .click                  stackModalCloseButton
 
 
   getAwsKey: -> return awsKey
