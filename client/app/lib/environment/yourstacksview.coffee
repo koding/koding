@@ -4,7 +4,6 @@ isKoding                  = require 'app/util/isKoding'
 showError                 = require 'app/util/showError'
 checkFlag                 = require 'app/util/checkFlag'
 StacksModal               = require 'app/stacks/stacksmodal'
-EnvironmentList           = require './environmentlist'
 KDCustomScrollView        = kd.CustomScrollView
 EnvironmentListController = require './environmentlistcontroller'
 
@@ -20,15 +19,8 @@ module.exports = class YourStacksView extends KDCustomScrollView
 
     super options, data
 
-    listView     = new EnvironmentList
-    controller   = new EnvironmentListController
-      view              : listView
-      wrapper           : no
-      selected          : options.selected
-      scrollView        : no
-      noItemFoundWidget : new kd.CustomHTMLView
-        cssClass        : 'no-item-found'
-        partial         : "You don't have any #{if isKoding() then 'machines' else 'stacks'}."
+    controller  = new EnvironmentListController { selected : options.selected }
+    listView    = controller.getListView()
 
     if checkFlag 'super-admin' and isKoding()
 
@@ -44,29 +36,10 @@ module.exports = class YourStacksView extends KDCustomScrollView
 
     listView.on 'ModalDestroyRequested', @bound 'destroyModal'
 
-    { computeController, appManager, router } = kd.singletons
-
-    listView.on 'StackDeleteRequested', (stack) =>
-
-      computeController.destroyStack stack, (err) =>
-        return  if showError err
-
-        new kd.NotificationView
-          title : 'Stack deleted'
-
-        computeController.reset yes, -> router.handleRoute '/IDE'
-        @destroy()
-
-
-    listView.on 'StackReinitRequested', (stack) =>
-      computeController.once 'RenderStacks', => @destroyModal yes, yes
-
     whoami().isEmailVerified? (err, verified) ->
       if err or not verified
         for item in controller.getListItems()
           item.emit 'ManagedMachineIsNotAllowed'
-
-    computeController.on 'RenderStacks', controller.bound 'loadItems'
 
 
   destroyModal: (goBack = yes, dontChangeRoute = no) ->
