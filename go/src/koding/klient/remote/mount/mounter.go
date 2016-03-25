@@ -32,6 +32,15 @@ const (
 	autoRemountFailed = "Error auto-mounting. Please unmount & mount again."
 )
 
+var (
+	// ErrRemotePathDoesNotExist is returned when the remote path does not exist,
+	// or is not a dir.
+	ErrRemotePathDoesNotExist = util.KiteErrorf(
+		kiteerrortypes.RemotePathDoesNotExist,
+		"The RemotePath either does not exist, or is not a dir",
+	)
+)
+
 // MounterTransport is the transport that the Mounter uses to communicate with
 // the remote machine.
 type MounterTransport interface {
@@ -232,7 +241,9 @@ func (m *Mounter) fuseMountFolder(mount *Mount) error {
 	}
 
 	f, err := fuseklient.New(t, cf)
-	if err != nil {
+	if isRemotePathError(err) {
+		return ErrRemotePathDoesNotExist
+	} else if err != nil {
 		return err
 	}
 
@@ -309,4 +320,16 @@ func changeSummaryToBool(s chan kitepinger.ChangeSummary) <-chan bool {
 		close(b)
 	}()
 	return b
+}
+
+func isRemotePathError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	if err.Error() == "no such file or directory" {
+		return true
+	}
+
+	return false
 }
