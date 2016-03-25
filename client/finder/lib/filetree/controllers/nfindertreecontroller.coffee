@@ -14,6 +14,7 @@ CloneRepoModal            = require 'app/commonviews/clonerepomodal'
 NFinderDeleteDialog       = require '../itemsubviews/nfinderdeletedialog'
 DropboxDownloadItemView   = require 'app/commonviews/dropboxdownloaditemview'
 Encoder                   = require 'htmlencode'
+Tracker                   = require 'app/util/tracker'
 
 
 module.exports = class NFinderTreeController extends JTreeViewController
@@ -150,6 +151,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
     @notify 'Refreshing...'
     folder = nodeView.getData()
     folder.emit 'fs.job.finished', [] # in case of refresh to stop the spinner
+
+    Tracker.track Tracker.FILETREE_REFRESH
 
     @collapseFolder nodeView, =>
       kd.utils.defer => @expandFolder nodeView, ->
@@ -401,6 +404,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
     file.compress type, (err, response) =>
       if err then @notify null, null, err
       else
+        Tracker.track Tracker.FILETREE_FILE_COMPRESS_ZIP if type is 'zip'
+        Tracker.track Tracker.FILETREE_FILE_COMPRESS_TARGZ if type is 'tar.gz'
         @notify "#{file.type.capitalize()} compressed!", 'success'
 
   extractFiles: (nodeView) ->
@@ -409,6 +414,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
     file.extract (err, response) =>
       if err then @notify null, null, err
       else
+        Tracker.track Tracker.FILTREEE_EXTRACT_FILE
         @notify "#{file.type.capitalize()} extracted!", 'success'
         @refreshFolder @nodes[file.parentPath], =>
           @selectNode @nodes[response.path]

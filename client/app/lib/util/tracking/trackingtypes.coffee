@@ -21,6 +21,7 @@ module.exports = {
   USER_LEFT_TEAM          : 'leave team'
   USER_EDIT_CREDENTIALS   : 'modified credentials'
   USER_DELETE_CREDENTIALS : 'deleted credentials'
+  USER_DELETE_SESSION     : 'terminate logged in session'
 
   # VM ACTIONS
   VM_TERMINATED      : 'terminated vm'
@@ -47,11 +48,9 @@ module.exports = {
   FILETREE_NEW_FOLDER            : 'filetree created new folder'
   FILETREE_FILE_COMPRESS_ZIP     : 'filetree compressed file to zip'
   FILETREE_FILE_COMPRESS_TARGZ   : 'filetree compressed file to targz'
-  FILETREE_FOLDER_COMPRESS_ZIP   : 'filetree compressed folder to zip'
-  FILETREE_FOLDER_COMPRESS_TARGZ : 'filetree compressed folder to targz'
   FILTREEE_EXTRACT_FILE          : 'filetree extracted file'
   FILETREE_REFRESH               : 'filetree refreshed'
-  FILETREE_TERMINAL_HERE         : 'filetree terminal from folder'
+  FILETREE_TERMINAL_HERE         : 'filetree opened terminal from path'
   FILETREE_DELETE_FILE           : 'filetree deleted file'
   FILTREEE_DELETE_FOLDER         : 'filetree deleted folder'
   FILETREE_RENAME_FILE           : 'filetree renamed file'
