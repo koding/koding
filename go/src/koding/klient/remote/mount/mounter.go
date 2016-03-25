@@ -10,6 +10,7 @@ import (
 	"koding/klient/remote/req"
 	"koding/klient/remote/rsync"
 	"koding/klient/util"
+	"syscall"
 	"time"
 
 	"github.com/jacobsa/fuse"
@@ -255,7 +256,7 @@ func (m *Mounter) fuseMountFolder(mount *Mount, retry bool) error {
 		f  fuseklient.FS
 		fs *fuse.MountedFileSystem
 	)
-	err = retryOnErr(retryMounterCount, retryMounterPause, func() error {
+	err = retryOnConnErr(retryMounterCount, retryMounterPause, func() error {
 		f, err = fuseklient.New(t, cf)
 		if isRemotePathError(err) {
 			return ErrRemotePathDoesNotExist
@@ -367,13 +368,13 @@ func isRemotePathError(err error) bool {
 	return false
 }
 
-func retryOnErr(count int, delay time.Duration, f func() error) error {
+func retryOnConnErr(count int, delay time.Duration, f func() error) error {
 	var (
 		err error
 	)
 
 	for i := 0; i < count; i++ {
-		if err = f(); err == nil {
+		if err = f(); err == nil || err != syscall.ECONNREFUSED {
 			break
 		}
 	}

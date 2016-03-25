@@ -2,6 +2,7 @@ package mount
 
 import (
 	"errors"
+	"syscall"
 	"testing"
 	"time"
 
@@ -102,6 +103,58 @@ func TestHandleChangeSummary(t *testing.T) {
 				err := mounter.handleChangeSummary(fakeMount, changeSum, remountFunc)
 				So(err, ShouldBeNil)
 			})
+		})
+	})
+}
+
+func TestRetryOnConnErr(t *testing.T) {
+	Convey("Given a function that returns a conn error", t, func() {
+		retryCount := 0
+		retry := func() error {
+			retryCount++
+			return syscall.ECONNREFUSED
+		}
+		retryUntil3 := func() error {
+			retryCount++
+			if retryCount >= 3 {
+				return nil
+			}
+			return syscall.ECONNREFUSED
+		}
+
+		Convey("It should retry the specified number of times", func() {
+			retryOnConnErr(3, 1, retry)
+			So(retryCount, ShouldEqual, 3)
+		})
+
+		Convey("It should return the error after max attempts", func() {
+			So(retryOnConnErr(3, 1, retry), ShouldEqual, syscall.ECONNREFUSED)
+		})
+
+		Convey("It should stop once the func succeeds", func() {
+			retryOnConnErr(4, 1, retryUntil3)
+			So(retryCount, ShouldEqual, 3)
+		})
+
+		Convey("It should not return an error if the func eventually succeeds", func() {
+			So(retryOnConnErr(4, 1, retryUntil3), ShouldBeNil)
+		})
+	})
+
+	Convey("Given a function that does not return a conn error", t, func() {
+		retryCount := 0
+		retry := func() error {
+			retryCount++
+			return nil
+		}
+
+		Convey("It should try once", func() {
+			retryOnConnErr(3, 1, retry)
+			So(retryCount, ShouldEqual, 1)
+		})
+
+		Convey("It should not return an error", func() {
+			So(retryOnConnErr(3, 1, retry), ShouldBeNil)
 		})
 	})
 }
