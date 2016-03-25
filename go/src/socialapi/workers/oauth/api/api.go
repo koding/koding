@@ -23,7 +23,7 @@ func (o *Oauth) AuthorizeClientAuthorizeClient(w http.ResponseWriter, r *http.Re
 		// }
 		// ar.UserData = UserData{"Login": "test"}
 		// ar.Authorized = true
-		// server.FinishAuthorizeRequest(resp, r, ar)
+		server.FinishAuthorizeRequest(resp, r, ar)
 
 		//
 		// HANDLE LOGIN PAGE HERE !!!

@@ -7,7 +7,6 @@ import (
 	"socialapi/workers/common/mux"
 
 	"github.com/RangelReale/osin"
-	"github.com/osin-mongo-storage/mgostore"
 	"gopkg.in/mgo.v2"
 )
 
@@ -48,7 +47,8 @@ func NewOAuthHandler(session *mgo.Session, dbName string) *Oauth {
 	sconfig.AllowedAccessTypes = osin.AllowedAccessType{osin.AUTHORIZATION_CODE,
 		osin.REFRESH_TOKEN, osin.PASSWORD, osin.CLIENT_CREDENTIALS, osin.ASSERTION}
 	sconfig.AllowGetAccessRequest = true
-	storage := mgostore.New(session, dbName)
+	// storage := mgostore.New(session, dbName)
+	storage := modelhelper.NewOauthStore(session, dbName)
 	server := osin.NewServer(sconfig, storage)
 
 	return &Oauth{
