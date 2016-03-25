@@ -97,10 +97,11 @@ module.exports = class InviteSomeoneView extends KDView
       invites.push invite = view.serialize()
       admins.push invite.email  if invite.role is 'admin'
 
-    Tracker.track Tracker.TEAMS_INVITED_TEAMMEMBERS, {
-      invitesCount : invites.length
-      adminsCount  : admins.length
-    }
+    if invites.length
+      Tracker.track Tracker.TEAMS_INVITED_TEAMMEMBERS, {
+        invitesCount : invites.length
+        adminsCount  : admins.length
+      }
 
     if admins.length
       @notifyAdminInvites invites, admins
@@ -268,7 +269,7 @@ module.exports = class InviteSomeoneView extends KDView
         title    : title
         duration : 5000
 
-      Tracker.track Tracker.TEAMS_SENT_INVITATION for invite in invites
+      Tracker.track Tracker.TEAMS_SENT_INVITATION, { email : invite.email } for invite in invites
 
       @closeConfirmModals()
       @emit 'NewInvitationsAdded'

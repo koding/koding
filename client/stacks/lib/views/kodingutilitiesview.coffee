@@ -74,4 +74,4 @@ module.exports = class KodingUtilitiesView extends kd.CustomScrollView
 
     new kd.NotificationView { title: notification }
 
-    Tracker.track Tracker.KD_INSTALLED
+    Tracker.track Tracker.KD_START_INSTALL
