@@ -27,6 +27,7 @@ module.exports = class ResourceListController extends KodingListController
 
     listView = @getListView()
     listView.on 'ReloadItems', @bound 'reloadItems'
+    listView.on 'ItemStatusUpdateNeeded', @bound 'updateItemStatus'
 
     @on 'FetchProcessFailed', ->
       showError err, { KodingError: 'Failed to fetch data, try again later.' }
@@ -42,3 +43,13 @@ module.exports = class ResourceListController extends KodingListController
 
     @filterStates.query = query
     @loadItems()
+
+
+  updateItemStatus: (item) ->
+
+    resource = item.getData()
+    remote.api.JComputeStack.some { _id : resource._id }, (err, stacks) ->
+      return showError err  if err
+      return item.destroy()  unless stack = stacks[0]
+      resource.status = stack.status
+      item.setData resource

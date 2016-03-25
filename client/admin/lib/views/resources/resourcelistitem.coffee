@@ -89,6 +89,13 @@ module.exports = class ResourceListItem extends kd.ListItemView
     computeController.on "apply-#{resource._id}", @bound 'handleProgressEvent'
     computeController.on "stateChanged-#{resource._id}", @bound 'handleStateChangedEvent'
 
+    @prevStatus = resource.status.state
+
+
+  render: (fields) ->
+
+    @updateStatus()
+
 
   handleDestroy: ->
 
@@ -104,16 +111,11 @@ module.exports = class ResourceListItem extends kd.ListItemView
         resource.maintenance { prepareForDestroy: yes }, next
       (next) ->
         computeController.destroyStack resource, next
-      (next) =>
-        @unsetClass 'in-detail'
-        @setStatus 'Destroying'
-        next()
     ]
 
     async.series queue, (err) =>
       return  if not err or err is 'Not confirmed'
       showError err
-      @reload()
 
 
   handleDelete: ->
@@ -129,7 +131,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
       (next) ->
         resource.maintenance { destroyStack: yes }, next
       (next) =>
-        @reload()
+        @destroy()
         next()
     ]
 
@@ -161,15 +163,18 @@ module.exports = class ResourceListItem extends kd.ListItemView
 
   handleStateChangedEvent: (event) ->
 
-    kd.utils.wait 100, @bound 'reload'
+    # delay is needed to show 100% in progress bar
+    # when build/destroy process is completed
+    kd.utils.wait 100, =>
+      @getDelegate().emit 'ItemStatusUpdateNeeded', this
 
 
-  setStatus: (state) ->
+  updateStatus: ->
 
-    resource = @getData()
-    @unsetClass resource.status.state
-    resource.status = { state }
+    { state } = @getData().status
+    @unsetClass @prevStatus
     @setClass state
+    @prevStatus = state
 
     @status.updatePartial state
     @updatePercentage()
@@ -184,9 +189,6 @@ module.exports = class ResourceListItem extends kd.ListItemView
   updateProgressBar: (percentage = INITIAL_PROGRESS_VALUE) ->
 
     @progressBar.updateBar percentage
-
-
-  reload: -> @getDelegate().emit 'ReloadItems'
 
 
   destroy: ->

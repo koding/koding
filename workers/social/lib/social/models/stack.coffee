@@ -16,6 +16,7 @@ module.exports = class JComputeStack extends jraphical.Module
   { PROVIDERS, reviveGroupPlan } = require './computeproviders/computeutils'
 
   @trait __dirname, '../traits/protected'
+  @trait __dirname, '../traits/notifiable'
 
   @share()
 
@@ -340,12 +341,13 @@ module.exports = class JComputeStack extends jraphical.Module
     }, callback
 
 
-  destroy: (callback) ->
+  destroy: (callback, notificationOptions) ->
 
     @fetchGroup (err, group) =>
       return callback err  if err
 
-      @update { $set: { status: { state: 'Destroying' } } }, (err) =>
+      change = { $set: { status: { state: 'Destroying' } } }
+      @updateAndNotify notificationOptions, change, (err) =>
         return callback err  if err
 
         JMachine = require './computeproviders/machine'
@@ -482,7 +484,9 @@ module.exports = class JComputeStack extends jraphical.Module
 
     success: (client, callback) ->
 
-      @destroy callback
+      { delegate } = client.connection
+      { group }    = client.context
+      @destroy callback, { account : delegate, group }
 
 
   SUPPORTED_CREDS = (Object.keys PROVIDERS).concat ['userInput', 'custom']
