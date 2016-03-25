@@ -28,7 +28,7 @@ module.exports = class EnvironmentListController extends KodingListController
 
     super
 
-    { computeController, appManager, router } = kd.singletons
+    { computeController } = kd.singletons
 
     listView = @getListView()
 
