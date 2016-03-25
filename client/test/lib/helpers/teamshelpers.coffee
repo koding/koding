@@ -501,7 +501,7 @@ module.exports =
   getAwsKey: -> return awsKey
 
 
-  checkIconsStacks: (browser, notReadyIcon = no, privateIcon = no) ->
+  checkIconsStacks: (browser) ->
 
     saveAndTestButton           = '.buttons button:nth-of-type(5)'
     stackTemplateSelector       = '.kdtabhandlecontainer.hide-close-icons .stack-template'
@@ -520,18 +520,9 @@ module.exports =
       .waitForElementVisible      stacksLogsSelector, 20000
       .assert.containsText        stacksLogsSelector, 'An error occured: Required credentials are not provided yet'
       .click                      myStackTemplatesButton
-
-    if notReadyIcon
-      browser
-        .waitForElementVisible    notReadyIconSelector, 30000
-        .assert.containsText      notReadyIconSelector, 'NOT READY'
-
-    if privateIcon
-      browser
-        .waitForElementVisible    privateIconSelector, 30000
-        .assert.containsText      privateIconSelector, 'PRIVATE'
-
-    browser
+      .waitForElementVisible      notReadyIconSelector, 30000
+      .assert.containsText        notReadyIconSelector, 'NOT READY'
+      .assert.containsText        privateIconSelector, 'PRIVATE'
       .waitForElementVisible      stackTemplateSettingsButton, 20000
       .click                      stackTemplateSettingsButton
       .waitForElementVisible      deleteButton, 20000

@@ -57,18 +57,10 @@ module.exports =
     browser.end()
 
 
-  checkNotReadyIconDisplayedForStacks: (browser) ->
+  checkNotReadyAndPrivateIconsDisplayedForStacks: (browser) ->
 
     teamsHelpers.loginTeam(browser)
     teamsHelpers.createStack(browser, yes)
-    teamsHelpers.checkIconsStacks(browser, yes)
-    browser.end()
-
-
-  checkPrivateIconDisplayedForStacks: (browser) ->
-
-    teamsHelpers.loginTeam(browser)
-    teamsHelpers.createStack(browser, yes)
-    teamsHelpers.checkIconsStacks(browser, no, yes)
+    teamsHelpers.checkIconsStacks(browser)
     browser.end()
 
