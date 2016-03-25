@@ -12,6 +12,7 @@ import (
 	"koding/klientctl/exitcodes"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
+	"koding/klientctl/metrics"
 	"koding/klientctl/util"
 	"koding/klientctl/util/exec"
 	"koding/mountcli"
@@ -99,7 +100,19 @@ func (c *Command) printfln(f string, i ...interface{}) {
 }
 
 // Run the Mount command
-func (c *Command) Run() (int, error) {
+func (c *Command) Run() (_ int, err error) {
+	var mountName = c.Options.MountName
+
+	defer func() {
+		if err != nil {
+			metrics.TrackRepairError(mountName, err.Error())
+		}
+	}()
+
+	go func() {
+		metrics.TrackRepair(mountName)
+	}()
+
 	if err := c.handleOptions(); err != nil {
 		return exitcodes.RepairHandleOptionsErr, err
 	}

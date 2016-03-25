@@ -82,8 +82,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	// Create the installation dir, if needed.
-	err = os.MkdirAll(KlientDirectory, 0755)
-	if err != nil {
+	if err := os.MkdirAll(KlientDirectory, 0755); err != nil {
 		log.Error(
 			"Error creating klient binary directory(s). path:%s, err:%s",
 			KlientDirectory, err,

@@ -17,6 +17,7 @@ import (
 	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
 	"koding/klientctl/list"
+	"koding/klientctl/metrics"
 	"koding/klientctl/ssh"
 	"koding/klientctl/util"
 
@@ -165,6 +166,15 @@ func (c *MountCommand) Run() (int, error) {
 
 		return 1, err
 	}
+
+	// track metrics
+	o := map[string]interface{}{
+		"no-ignore":        c.Options.NoIgnore,
+		"no-prefetch-meta": c.Options.NoPrefetchMeta,
+		"prefetch-all":     c.Options.PrefetchAll,
+		"no-watch":         c.Options.NoWatch,
+	}
+	metrics.TrackMount(c.Options.Name, c.Options.LocalPath, o)
 
 	c.printfln("Mount complete.")
 
