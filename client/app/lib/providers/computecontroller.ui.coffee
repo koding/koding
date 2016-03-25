@@ -441,6 +441,8 @@ module.exports = class ComputeControllerUI
       title          : 'Build Requirements'
       width          : 630
       overlay        : yes
+      attributes     :
+        testpath     : 'BuildRequirementsModal'
       view           : missingDataView
       overlayClick   : no
       overlayOptions : { cssClass: 'second-overlay' }

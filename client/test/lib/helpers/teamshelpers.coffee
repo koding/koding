@@ -1,9 +1,9 @@
-helpers    = require '../helpers/helpers.js'
-utils      = require '../utils/utils.js'
-path       = require 'path'
-awsKeyPath = path.resolve __dirname, '../../../../../config/aws/worker_ci_test_key.json'
-awsKey     = require awsKeyPath
-
+helpers                  = require '../helpers/helpers.js'
+utils                    = require '../utils/utils.js'
+staticContents           = require '../helpers/staticContents.js'
+path                     = require 'path'
+awsKeyPath               = path.resolve __dirname, '../../../../../config/aws/worker_ci_test_key.json'
+awsKey                   = require awsKeyPath
 teamsModalSelector       = '.TeamsModal--groupCreation'
 companyNameSelector      = '.login-form input[testpath=company-name]'
 sidebarSectionsSelector  = '.activity-sidebar .SidebarChannelsSection'
@@ -598,6 +598,7 @@ module.exports =
     finalizeStepsButton  = "#{sidebarSelector} a[href='/Stacks/Welcome']:not(.SidebarSection-headerTitle)"
 
     @seeTemplatePreview(browser)
+    @defineCustomVariables(browser)
 
     browser
       .waitForElementVisible     saveAndTestButton, 20000
@@ -648,16 +649,66 @@ module.exports =
 
     buildStackButton     = "#{envMachineStateModal} .content-container .state-button"
     progressbarContainer = "#{envMachineStateModal} .progressbar-container"
+    credentialsModal     = '.kdmodal[testpath=BuildRequirementsModal]'
+    addedCredential      = "#{credentialsModal} .credential-item"
+    titleInput           = "#{credentialsModal} input[name=title]"
+    usernameInput        = "#{credentialsModal} input[name=username]"
+    passwordInput        = "#{credentialsModal} input[name=password]"
+    credentialSaveButton = "#{credentialsModal} button.green"
+    useCredentialButton  = "#{addedCredential} .kdbutton:not(.secondary)"
 
     browser
       .waitForElementVisible     buildStackButton, 20000
       .click                     buildStackButton
-      .waitForElementVisible     progressbarContainer, 20000
-      .waitForElementNotPresent  progressbarContainer,500000
-      .pause                     3000 # wait for machine
-      .waitForElementVisible     stackMachine, 20000
+      .pause                     3500 # wait for credentials modal
+
+    browser.element 'css selector', credentialsModal, (result) ->
+      if result.status is 0
+
+        browser.element 'css selector', addedCredential, (result) ->
+          if result.status isnt 0
+            browser
+              .waitForElementVisible   titleInput, 20000
+              .waitForElementVisible   usernameInput, 20000
+              .waitForElementVisible   passwordInput, 20000
+              .setValue                titleInput, 'Build requirement data for testing'
+              .setValue                usernameInput, 'FOO'
+              .setValue                passwordInput, 'BAR'
+              .click                   credentialSaveButton
+              .waitForElementVisible   addedCredential, 20000
+
+          browser
+            .waitForElementVisible     useCredentialButton, 20000
+            .click                     useCredentialButton
+
+      browser
+        .waitForElementVisible     progressbarContainer, 20000
+        .waitForElementNotPresent  progressbarContainer, 500000
+        .pause                     3000 # wait for machine
+        .waitForElementVisible     stackMachine, 20000
 
     browser.isStackBuilt = yes
+
+
+  defineCustomVariables: (browser) ->
+
+    wrongCustomVariable    = "foo: '"
+    correctCustomVariable  = "foo: 'bar'"
+    errorIndicator         = '.kdtabhandle.custom-variables .indicator.red.in'
+
+    @switchTabOnStackCatalog browser, 'variables'
+    @setTextToEditor browser, 'variables', wrongCustomVariable
+    browser
+      .waitForElementVisible errorIndicator, 20000
+      .pause 1000
+
+    @setTextToEditor browser, 'variables', correctCustomVariable
+    browser
+      .waitForElementNotVisible errorIndicator, 20000
+      .pause 1000
+
+    @switchTabOnStackCatalog browser, 'template'
+    @setTextToEditor browser, 'template', staticContents.stackTemplate
 
 
   reinitStack: (browser) ->
@@ -766,7 +817,7 @@ module.exports =
       .click                 tabSelector
 
 
-  # possible values of tabName variable is 'stack', 'variables' or 'readme'
+  # possible values of tabName variable is 'template', 'variables' or 'readme'
   setTextToEditor: (browser, tabName, text) ->
 
     viewNames   =
@@ -774,7 +825,7 @@ module.exports =
       variables : 'variablesView'
       readme    : 'readmeView'
 
-    viewName = viewNames[tab]
+    viewName = viewNames[tabName]
     params   = [ viewName, text ]
 
     fn = (viewName, text) ->
