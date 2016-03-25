@@ -19,6 +19,8 @@ module.exports = {
   # USER ACTIONS
   USER_LOGGED_OUT         : 'logged out'
   USER_LEFT_TEAM          : 'leave team'
+  USER_ENABLED_2FA        : 'enabled 2-factor auth'
+  USER_DISABLED_2FA       : 'disabled 2-factor auth'
   USER_EDIT_CREDENTIALS   : 'modified credentials'
   USER_DELETE_CREDENTIALS : 'deleted credentials'
 
