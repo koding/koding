@@ -9,9 +9,9 @@ import (
 
 // collection names for the entities
 const (
-	CLIENT_COL    = "JOauthClients"
-	AUTHORIZE_COL = "JOauthAuthorizations"
-	ACCESS_COL    = "JOauthAccesses"
+	CLIENT_COL    = "jOauthClients"
+	AUTHORIZE_COL = "jOauthAuthorizations"
+	ACCESS_COL    = "jOauthAccesses"
 )
 
 const REFRESHTOKEN = "refreshtoken"
