@@ -1,45 +1,85 @@
-kd = require 'kd'
+kd                    = require 'kd'
+isKoding              = require 'app/util/isKoding'
+showError             = require 'app/util/showError'
+sortStacks            = require 'app/util/sortEnvironmentStacks'
+ComputeHelpers        = require '../providers/computehelpers'
+KDNotificationView    = kd.NotificationView
+EnvironmentListItem   = require './environmentlistitem'
+KodingListController  = require 'app/kodinglist/kodinglistcontroller'
 
-showError  = require 'app/util/showError'
-sortStacks = require 'app/util/sortEnvironmentStacks'
 
+module.exports = class EnvironmentListController extends KodingListController
 
-module.exports = class EnvironmentListController extends kd.ListViewController
 
   constructor: (options = {}, data) ->
 
+    options.wrapper         ?= no
+    options.itemClass       ?= EnvironmentListItem
+    options.scrollView      ?= no
+    options.noItemFoundText ?= "You don't have any #{if isKoding() then 'machines' else 'stacks'}."
+
+    options.fetcherMethod    = (query, options, callback) ->
+      kd.singletons.computeController.fetchStacks (err, stacks) -> callback err, stacks
+
     super options, data
 
-    @loadItems()
+
+  bindEvents: ->
+
+    super
+
+    { computeController, appManager, router } = kd.singletons
+
+    listView = @getListView()
+
+    computeController.on 'RenderStacks', @bound 'loadItems'
+
+    listView.on 'ItemAction', ({ action, item, options }) =>
+
+      switch action
+        when 'StackReinitRequested' then @handleStackReinitRequest  item
+        when 'StackDeleteRequested' then @handleStackDeleteRequest  item
+        when 'NewMachineRequest'    then @handleNewMachineRequest   item
 
 
-  loadItems: (stacks) ->
+  handleNewMachineRequest: (provider) ->
 
-    @removeAllItems()
+    ComputeHelpers.handleNewMachineRequest { provider }, (machineCreated) =>
+      @getListView().emit 'ModalDestroyRequested', not machineCreated
 
-    if stacks
-      @addListItems stacks
-      return
 
-    @showLazyLoader()
+  handleStackDeleteRequest: (item) ->
+
+    { computeController, router } = kd.singletons
+    listView = @getListView()
+
+    stack = item.getData()
+    computeController.destroyStack stack, (err) =>
+      return  if showError err
+
+      new KDNotificationView title : 'Stack deleted'
+
+      computeController.reset yes, -> router.handleRoute '/IDE'
+      @emit 'DestroyYourStacksView'
+
+
+  handleStackReinitRequest: (item) ->
 
     { computeController } = kd.singletons
 
-    computeController.fetchStacks (err, stacks) =>
+    stack = item.getData()
+    computeController.reinitStack stack, ->
+      item.reinitButton.hideLoader()
 
-      @hideLazyLoader()
-
-      return if showError err, \
-        { KodingError : 'Failed to fetch stacks, please try again later.' }
-
-      @addListItems stacks
+    computeController.once 'RenderStacks', =>
+      @getListView().emit 'ModalDestroyRequested', yes, yes
 
 
   addListItems: (stacks) ->
 
     stacks = sortStacks stacks
 
-    @instantiateListItems stacks
+    super stacks
 
     return  if stacks.length is 1
 
