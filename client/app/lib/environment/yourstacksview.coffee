@@ -35,7 +35,6 @@ module.exports = class YourStacksView extends KDCustomScrollView
     @wrapper.addSubView controller.getView()
 
     listView.on 'ModalDestroyRequested', @bound 'destroyModal'
-    listView.on 'DestroyYourStacksView', @bound 'destroy'
 
     whoami().isEmailVerified? (err, verified) ->
       if err or not verified

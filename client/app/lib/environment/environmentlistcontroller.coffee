@@ -60,7 +60,6 @@ module.exports = class EnvironmentListController extends KodingListController
       new KDNotificationView title : 'Stack deleted'
 
       computeController.reset yes, -> router.handleRoute '/IDE'
-      @emit 'DestroyYourStacksView'
 
 
   handleStackReinitRequest: (item) ->
