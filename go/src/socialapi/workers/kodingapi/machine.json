@@ -10,45 +10,6 @@
       "description": "Config represents the required options for this module to work",
       "definitions": {},
       "properties": {
-        "Postgres": {
-          "type": "object",
-          "title": "Postgres",
-          "description": "Postgres holds the all credentials for postgres db connection.",
-          "properties": {
-            "Port": {
-              "description": "The port number for postgres config",
-              "type": "number",
-              "format": "int64",
-              "minimum": 1024
-            },
-            "Host": {
-              "description": "Host holds the hostname for the postgres",
-              "type": "string",
-              "minLength": 4,
-              "maxLength": 24
-            },
-            "Username": {
-              "description": "Username holds the username for the postgres",
-              "type": "string",
-              "minLength": 4,
-              "maxLength": 24
-            },
-            "Password": {
-              "description": "Password holds the password for the postgres",
-              "type": "string",
-              "minLength": 4,
-              "maxLength": 24
-            },
-            "DBName": {
-              "description": "DBName holds the database name for the postgres",
-              "type": "string",
-              "minLength": 4,
-              "maxLength": 24
-            }
-          },
-          "definitions": {}
-        }
-      }
     },
     "Machine": {
       "type": "object",
