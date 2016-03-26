@@ -3,26 +3,25 @@ package modelhelper
 import (
 	"github.com/RangelReale/osin"
 
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // collection names for the entities
 const (
-	CLIENT_COL    = "jOauthClients"
-	AUTHORIZE_COL = "jOauthAuthorizations"
-	ACCESS_COL    = "jOauthAccesses"
+	ClientColl    = "jOauthClients"
+	AuthorizeColl = "jOauthAuthorizations"
+	AccessColl    = "jOauthAccesses"
+
+	REFRESHTOKEN = "refreshtoken"
 )
 
-const REFRESHTOKEN = "refreshtoken"
-
 type MongoStorage struct {
-	dbName  string
 	session *mgo.Session
 }
 
-func NewOauthStore(session *mgo.Session, dbName string) *MongoStorage {
-	storage := &MongoStorage{dbName, session}
+func NewOauthStore(session *mgo.Session) *MongoStorage {
+	storage := &MongoStorage{session}
 	index := mgo.Index{
 		Key:        []string{REFRESHTOKEN},
 		Unique:     false, // refreshtoken is sometimes empty
@@ -30,94 +29,119 @@ func NewOauthStore(session *mgo.Session, dbName string) *MongoStorage {
 		Background: true,
 		Sparse:     true,
 	}
-	accesses := storage.session.DB(dbName).C(ACCESS_COL)
-	err := accesses.EnsureIndex(index)
+
+	err := Mongo.EnsureIndex(AccessColl, index)
 	if err != nil {
 		panic(err)
 	}
+
 	return storage
 }
 
 func (store *MongoStorage) GetClient(id string) (*osin.Client, error) {
-	session := store.session.Copy()
-	defer session.Close()
-	clients := session.DB(store.dbName).C(CLIENT_COL)
 	client := new(osin.Client)
-	err := clients.FindId(id).One(client)
-	return client, err
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"ID": id}).One(&client)
+	}
+
+	err := Mongo.Run(ClientColl, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func (store *MongoStorage) SetClient(id string, client *osin.Client) error {
-	session := store.session.Copy()
-	defer session.Close()
-	clients := session.DB(store.dbName).C(CLIENT_COL)
-	_, err := clients.UpsertId(id, client)
-	return err
+	query := updateQuery(Selector{"ID": id}, client)
+	return Mongo.Run(ClientColl, query)
 }
 
 func (store *MongoStorage) SaveAuthorize(data *osin.AuthorizeData) error {
-	session := store.session.Copy()
-	defer session.Close()
-	authorizations := session.DB(store.dbName).C(AUTHORIZE_COL)
-	_, err := authorizations.UpsertId(data.Code, data)
-	return err
+	query := updateQuery(Selector{"CODE": data.Code}, data)
+	return Mongo.Run(AuthorizeColl, query)
 }
 
 func (store *MongoStorage) LoadAuthorize(code string) (*osin.AuthorizeData, error) {
-	session := store.session.Copy()
-	defer session.Close()
-	authorizations := session.DB(store.dbName).C(AUTHORIZE_COL)
-	authData := new(osin.AuthorizeData)
-	err := authorizations.FindId(code).One(authData)
-	return authData, err
+	client := new(osin.AuthorizeData)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"CODE": code}).One(&client)
+	}
+
+	err := Mongo.Run(AuthorizeColl, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func (store *MongoStorage) RemoveAuthorize(code string) error {
-	session := store.session.Copy()
-	defer session.Close()
-	authorizations := session.DB(store.dbName).C(AUTHORIZE_COL)
-	return authorizations.RemoveId(code)
+	selector := bson.M{"CODE": code}
+
+	query := func(c *mgo.Collection) error {
+		err := c.Remove(selector)
+		return err
+	}
+
+	return Mongo.Run(AuthorizeColl, query)
 }
 
 func (store *MongoStorage) SaveAccess(data *osin.AccessData) error {
-	session := store.session.Copy()
-	defer session.Close()
-	accesses := session.DB(store.dbName).C(ACCESS_COL)
-	_, err := accesses.UpsertId(data.AccessToken, data)
-	return err
+	query := updateQuery(Selector{"ACCESSTOKEN": data.AccessToken}, data)
+	return Mongo.Run(AccessColl, query)
 }
 
 func (store *MongoStorage) LoadAccess(token string) (*osin.AccessData, error) {
-	session := store.session.Copy()
-	defer session.Close()
-	accesses := session.DB(store.dbName).C(ACCESS_COL)
-	accData := new(osin.AccessData)
-	err := accesses.FindId(token).One(accData)
-	return accData, err
+	client := new(osin.AccessData)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"ACCESSTOKEN": token}).One(&client)
+	}
+
+	err := Mongo.Run(AccessColl, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func (store *MongoStorage) RemoveAccess(token string) error {
-	session := store.session.Copy()
-	defer session.Close()
-	accesses := session.DB(store.dbName).C(ACCESS_COL)
-	return accesses.RemoveId(token)
+	selector := bson.M{"ACCESSTOKEN": token}
+
+	query := func(c *mgo.Collection) error {
+		err := c.Remove(selector)
+		return err
+	}
+
+	return Mongo.Run(AccessColl, query)
 }
 
 func (store *MongoStorage) LoadRefresh(token string) (*osin.AccessData, error) {
-	session := store.session.Copy()
-	defer session.Close()
-	accesses := session.DB(store.dbName).C(ACCESS_COL)
-	accData := new(osin.AccessData)
-	err := accesses.Find(bson.M{REFRESHTOKEN: token}).One(accData)
-	return accData, err
+	client := new(osin.AccessData)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{REFRESHTOKEN: token}).One(&client)
+	}
+
+	err := Mongo.Run(AccessColl, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func (store *MongoStorage) RemoveRefresh(token string) error {
-	session := store.session.Copy()
-	defer session.Close()
-	accesses := session.DB(store.dbName).C(ACCESS_COL)
-	return accesses.Update(bson.M{REFRESHTOKEN: token}, bson.M{
-		"$unset": bson.M{
-			REFRESHTOKEN: 1,
-		}})
+	selector := bson.M{REFRESHTOKEN: token}
+
+	query := func(c *mgo.Collection) error {
+		err := c.Remove(selector)
+		return err
+	}
+
+	return Mongo.Run(AccessColl, query)
 }
