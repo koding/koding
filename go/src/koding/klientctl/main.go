@@ -104,15 +104,15 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "remotepath, r",
-					Usage: "Full path of remote folder in machine to mount.",
+					Usage: "Full path of remote folder in machine to mount to local.",
 				},
 				cli.BoolFlag{
 					Name:  "noignore, i",
-					Usage: "Disable ignoring of default remote folders.",
+					Usage: "Retrieve all files and folders, including ignored folders like .git & .svn.",
 				},
 				cli.BoolFlag{
 					Name:  "noprefetch-meta, p",
-					Usage: "Disable prefetching of folder metadata.",
+					Usage: "Retrieve only top level folder/files. Rest is fetched on request (fastest).",
 				},
 				cli.BoolFlag{
 					Name:  "nowatch, w",
@@ -120,7 +120,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "prefetch-all, a",
-					Usage: "Enable prefetching contents of the remote directory.",
+					Usage: "Prefetch all contents of the remote directory up front (best performance/slow bootup).",
 				},
 				cli.IntFlag{
 					Name:  "prefetch-interval",
