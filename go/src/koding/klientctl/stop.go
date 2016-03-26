@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"koding/klientctl/config"
-	"koding/klientctl/metrics"
 	"time"
 
 	"github.com/codegangsta/cli"
@@ -40,9 +39,6 @@ func StopCommand(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println(FailedStopKlient)
 		return 1
 	}
-
-	m := metrics.NewDefaultServer(ConfigFolder)
-	m.Close()
 
 	fmt.Printf("Successfully stopped %s\n", config.KlientName)
 	return 0

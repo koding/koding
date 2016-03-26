@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"koding/klientctl/config"
-	"koding/klientctl/metrics"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -72,9 +71,6 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println(FailedStartKlient)
 		return 1
 	}
-
-	m := metrics.NewDefaultServer(ConfigFolder)
-	m.Close()
 
 	fmt.Printf("Successfully restarted %s\n", config.KlientName)
 	return 0
