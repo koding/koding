@@ -3,6 +3,7 @@ JView                  = require 'app/jview'
 remote                 = require('app/remote').getInstance()
 AvatarView             = require 'app/commonviews/avatarviews/avatarview'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
+invitationWithNoEmail  = require 'app/util/invitationWithNoEmail'
 
 
 module.exports = class BlockedMemberItemView extends kd.ListItemView
@@ -43,33 +44,15 @@ module.exports = class BlockedMemberItemView extends kd.ListItemView
   unblockUser: ->
 
     currentGroup = kd.singletons.groupsController.getCurrentGroup()
-    id = @getData().getId()
-    { profile : { email, firstName, lastName } } = @getData()
-    invitations = [ { email, firstName, lastName, role : 'member' } ]
 
-    remote.api.JInvitation.create
-      invitations : invitations
-      noEmail     : yes
-      returnCodes : yes
-    , (err, res) =>
-        if err or not res
-          return new kd.NotificationView { title : 'Something went wrong, please try again!' }
-        invite = res[0]
-        invite.status = 'accepted'
-        invite.accept().then (response) =>
+    invitationWithNoEmail @getData(), currentGroup,  (err, result) ->
 
-          currentGroup.unblockMember id, (err) =>
+      if err
+        customErr = new Error 'Failed to unblock user. Please try again.'
+        return @handleError @unblockButton, customErr
 
-            if err
-              customErr = new Error 'Failed to unblock user. Please try again.'
-              return @handleError @unblockButton, customErr
-
-            @emit 'UserUnblocked'
-            @destroy()
-            @emit 'NewMemberJoinedToGroup'
-
-        .error (err) ->
-          return new kd.NotificationView { title : 'Something went wrong, please try again!' }
+      kd.singletons.notificationController.emit 'NewMemberJoinedToGroup'
+      @destroy()
 
 
   toggleSettings: ->
