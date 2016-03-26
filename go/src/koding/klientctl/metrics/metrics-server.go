@@ -26,10 +26,9 @@ type Server struct {
 	HTTPClient   *http.Client
 }
 
-func NewDefaultServer(configFolder string, pid int) *Server {
+func NewDefaultServer(configFolder string) *Server {
 	s := &Server{
 		ConfigFolder: configFolder,
-		CurrentPid:   pid,
 		Port:         DefaultPort,
 		Timeout:      DefaultTimeout,
 		HTTPClient: &http.Client{
@@ -40,17 +39,12 @@ func NewDefaultServer(configFolder string, pid int) *Server {
 	return s
 }
 
-func (s *Server) ForkServer() error {
-	c := exec.Command("kd", "metrics", "force")
-	return c.Start()
-}
-
-func (s *Server) Start() error {
+func (s *Server) Start(currentPid int) error {
 	if s.IsRunning() {
 		return nil
 	}
 
-	p := []byte(fmt.Sprintf("%d", s.CurrentPid))
+	p := []byte(fmt.Sprintf("%d", currentPid))
 	if err := ioutil.WriteFile(s.PidPath(), p, 0644); err != nil {
 		return err
 	}
@@ -140,9 +134,5 @@ func (s *Server) Addr() string {
 
 func forkAndStart() error {
 	c := exec.Command("kd", "metrics", "force")
-	if err := c.Start(); err != nil {
-		return err
-	}
-
-	return nil
+	return c.Start()
 }
