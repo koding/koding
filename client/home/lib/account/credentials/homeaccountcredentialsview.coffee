@@ -9,7 +9,7 @@ AccountCredentialList           = require 'account/accountcredentiallist'
 AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
 
-module.exports = class HomeAccountCredentialsView extends KDView
+module.exports = class HomeAccountCredentialsView extends kd.CustomHTMLView
 
 
   DEFAULT_LIST_TEXT = '''
@@ -20,7 +20,7 @@ module.exports = class HomeAccountCredentialsView extends KDView
 
     super options, data
 
-    @addSubView @top = new KDView
+    @addSubView @top = new kd.CustomHTMLView
       cssClass : 'top'
 
     @top.addSubView @header = new KDHeaderView
@@ -31,8 +31,9 @@ module.exports = class HomeAccountCredentialsView extends KDView
     @listController = new AccountCredentialListController
       view                    : new AccountCredentialList
       limit                   : 15
-      useCustomScrollView     : yes
-      lazyLoadThreshold       : 15
+      wrapper                 : no
+      scrollView              : no
+      useCustomScrollView     : no
       dontShowCredentialMenu  : yes
 
     @addSubView @listController.getView()
