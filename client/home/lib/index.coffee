@@ -1,7 +1,9 @@
 kd                 = require 'kd'
 AppController      = require 'app/appcontroller'
 HomeAppView        = require './homeappview'
-HomeAccountView    = require './account/homeaccountview'
+HomeAccountView    = require './account'
+HomeUtilitiesView  = require './utilities'
+HomeTeamView       = require './team'
 
 do require './routehandler'
 
@@ -14,11 +16,11 @@ module.exports = class HomeAppController extends AppController
   NAV_ITEMS  = [
     { title : 'Welcome',          viewClass : kd.CustomHTMLView, role: 'member' }
     { title : 'Stacks',           viewClass : kd.CustomHTMLView, role: 'member' }
-    { title : 'My Team',          viewClass : kd.CustomHTMLView                 }
-    { title : 'Koding Utilities', viewClass : kd.CustomHTMLView                 }
-    { title : 'Support',          viewClass : kd.CustomHTMLView                 }
-    { title : 'My Account',       viewClass : HomeAccountView                   }
-    { title : 'Logout',           viewClass : kd.CustomHTMLView                 }
+    { title : 'My Team',          viewClass : HomeTeamView,      role: 'member' }
+    { title : 'Koding Utilities', viewClass : HomeUtilitiesView, role: 'member' }
+    { title : 'Support',          viewClass : kd.CustomHTMLView, role: 'member' }
+    { title : 'My Account',       viewClass : HomeAccountView,   role: 'member' }
+    { title : 'Logout',           viewClass : kd.CustomHTMLView, role: 'member' }
   ]
 
 
