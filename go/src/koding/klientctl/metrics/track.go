@@ -16,8 +16,12 @@ func TrackMount(machine, mountPath string, opts map[string]interface{}) error {
 		Name:       EventMount,
 		Properties: opts,
 	}
+	c := NewDefaultClient()
+	if err := c.SendMetric(mc); err != nil {
+		return err
+	}
 
-	return sendMetric(mc)
+	return c.TriggerMountStatusStart(machine)
 }
 
 func TrackUnmount(machine string) error {
@@ -27,8 +31,12 @@ func TrackUnmount(machine string) error {
 			"machine": machine,
 		},
 	}
+	c := NewDefaultClient()
+	if err := c.SendMetric(mc); err != nil {
+		return err
+	}
 
-	return sendMetric(mc)
+	return c.TriggerMountStatusStop(machine)
 }
 
 func TrackSSH(machine string) error {
@@ -82,6 +90,17 @@ func TrackRepairError(machine, errStr string) error {
 		Properties: map[string]interface{}{
 			"machine": machine,
 			"error":   errStr,
+		},
+	}
+
+	return sendMetric(mc)
+}
+
+func TrackMountCheckSuccess(machine string) error {
+	mc := &Metric{
+		Name: EventMountCheckSuccess,
+		Properties: map[string]interface{}{
+			"machine": machine,
 		},
 	}
 

@@ -2,9 +2,12 @@ package metrics
 
 import (
 	"crypto/rand"
+	"fmt"
 	"io/ioutil"
 	"koding/mountcli"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"os/user"
 	"time"
@@ -36,7 +39,7 @@ type MetricClient struct {
 
 func NewDefaultClient() *MetricClient {
 	client := analytics.New(SegmentKey)
-	client.Interval = 10 * time.Second
+	client.Interval = DefaultInterval
 	client.Size = 0
 	client.Logger = log.New(ioutil.Discard, "", 0)
 
@@ -72,24 +75,59 @@ func (m *MetricClient) SendMetric(mc *Metric) error {
 	return m.client.Close()
 }
 
-func (m *MetricClient) StartMountStatusTicker(machine string) (err error) {
+func (m *MetricClient) TriggerMountStatusStart(mount string) error {
+	return m.triggerMountStatus("start", mount)
+}
+
+func (m *MetricClient) TriggerMountStatusStop(mount string) error {
+	return m.triggerMountStatus("stop", mount)
+}
+
+func (m *MetricClient) triggerMountStatus(action, mount string) error {
+	if err := forkAndStart(); err != nil {
+		return err
+	}
+
+	u, err := url.Parse(fmt.Sprintf("http://localhost:%s", DefaultPort))
+
+	if err != nil {
+		return err
+	}
+
+	q := u.Query()
+	q.Set("machine", mount)
+	q.Set("action", action)
+
+	u.RawQuery = q.Encode()
+
+	resp, err := http.Post(u.String(), "", nil)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Expected 200, but received %s", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func (m *MetricClient) StartMountStatusTicker(mount string) (err error) {
 	var (
 		i        int
 		failures int
 	)
 
 	// stop previous tickers if any
-	if ticker, ok := m.tickers[machine]; ok {
-		ticker.Stop()
-	}
+	m.StopMountStatusTicker(mount)
 
 	// start new ticker and save for future use
 	ticker := time.NewTicker(m.Interval)
-	m.tickers[machine] = ticker
+	m.tickers[mount] = ticker
 
-	path, err := mountcli.NewMountcli().FindMountNameByPath(machine)
+	path, err := mountcli.NewMountcli().FindMountedPathByName(mount)
 	if err != nil {
-		TrackMountCheckFailure(machine, err.Error())
+		TrackMountCheckFailure(mount, err.Error())
 		return err
 	}
 
@@ -107,8 +145,10 @@ func (m *MetricClient) StartMountStatusTicker(machine string) (err error) {
 
 		// we only care about failures and not success
 		if err != nil {
-			TrackMountCheckFailure(machine, err.Error())
+			TrackMountCheckFailure(mount, err.Error())
 			failures += 1
+		} else {
+			TrackMountCheckSuccess(mount)
 		}
 
 		// if it errors more than twice, there's no point in continuing
@@ -122,12 +162,12 @@ func (m *MetricClient) StartMountStatusTicker(machine string) (err error) {
 	return nil
 }
 
-func (m *MetricClient) StopMountStatusTicker(machine string) {
-	if ticker, ok := m.tickers[machine]; ok {
+func (m *MetricClient) StopMountStatusTicker(mount string) {
+	if ticker, ok := m.tickers[mount]; ok {
 		ticker.Stop()
 	}
 
-	delete(m.tickers, machine)
+	delete(m.tickers, mount)
 }
 
 ///// helpers

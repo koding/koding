@@ -41,16 +41,8 @@ func NewDefaultServer(configFolder string, pid int) *Server {
 }
 
 func (s *Server) ForkServer() error {
-	if s.IsRunning() {
-		return nil
-	}
-
 	c := exec.Command("kd", "metrics", "force")
-	if err := c.Start(); err != nil {
-		return err
-	}
-
-	return nil
+	return c.Start()
 }
 
 func (s *Server) Start() error {
@@ -63,6 +55,8 @@ func (s *Server) Start() error {
 		return err
 	}
 
+	m := NewDefaultClient()
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		if req.URL.Path != "/" {
@@ -70,10 +64,16 @@ func (s *Server) Start() error {
 			return
 		}
 
-		mount := req.FormValue("mount")
-		if mount == "" {
+		machine, action := req.FormValue("machine"), req.FormValue("action")
+		if machine == "" || action == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("`mount`is empty"))
+			w.Write([]byte("machine|action param is empty."))
+			return
+		}
+
+		if action != "start" && action != "stop" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("only 'start|stop' actions are accepted"))
 			return
 		}
 
@@ -82,8 +82,12 @@ func (s *Server) Start() error {
 
 		// start in goroutine so http request exists
 		go func() {
-			m := NewDefaultClient()
-			m.StartMountStatusTicker(mount)
+			switch action {
+			case "start":
+				m.StartMountStatusTicker(machine)
+			case "stop":
+				m.StopMountStatusTicker(machine)
+			}
 		}()
 	})
 
@@ -91,7 +95,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) IsRunning() bool {
-	resp, err := s.HTTPClient.Get(s.addr())
+	resp, err := s.HTTPClient.Get(s.Addr())
 	if err != nil {
 		return false
 	}
@@ -130,6 +134,15 @@ func (s *Server) Close() error {
 	return os.Remove(s.PidPath())
 }
 
-func (s *Server) addr() string {
+func (s *Server) Addr() string {
 	return fmt.Sprintf("http://localhost:%s", s.Port)
+}
+
+func forkAndStart() error {
+	c := exec.Command("kd", "metrics", "force")
+	if err := c.Start(); err != nil {
+		return err
+	}
+
+	return nil
 }
