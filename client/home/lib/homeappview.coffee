@@ -1,7 +1,8 @@
 kd                = require 'kd'
 globals           = require 'globals'
 HomeAppAvatarView = require './commons/homeappavatarview'
-
+# HomeTabView       = require './commons/hometabview'
+HomeTabHandle     = require './commons/hometabhandle'
 
 module.exports = class HomeAppView extends kd.ModalView
 
@@ -9,7 +10,7 @@ module.exports = class HomeAppView extends kd.ModalView
 
     options.testPath         = 'dashboard'
     options.checkRoles      ?= yes
-    options.cssClass       or= kd.utils.curry '.HomeAppView', options.cssClass
+    options.cssClass       or= kd.utils.curry 'HomeAppView', options.cssClass
     options.width           ?= 1000
     options.height          ?= '90%'
     options.overlay         ?= yes
@@ -17,7 +18,6 @@ module.exports = class HomeAppView extends kd.ModalView
     super options, data
 
     @addSubView @nav = new kd.TabHandleContainer { cssClass: 'HomeAppView-Nav' }
-
 
     @avatarArea = new HomeAppAvatarView
     @title      = new kd.CustomHTMLView
@@ -31,6 +31,7 @@ module.exports = class HomeAppView extends kd.ModalView
       maxHandleWidth     : 245
       cssClass           : 'HomeAppView-TabView'
       tabHandleContainer : @nav
+      tabHandleClass     : HomeTabHandle
     , data
 
     @tabs.unsetClass 'kdscrollview'
