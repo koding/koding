@@ -348,7 +348,7 @@ module.exports = class IDEEditorPane extends IDEPane
     return data
 
 
-  setLineWidgets: (row, col, username) ->
+  setLineWidgets: kd.utils.debounce 500, (row, col, username) ->
 
     return  unless editor = @getEditor()
     return  if username is nick()
