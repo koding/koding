@@ -598,6 +598,7 @@ module.exports =
     finalizeStepsButton  = "#{sidebarSelector} a[href='/Stacks/Welcome']:not(.SidebarSection-headerTitle)"
 
     @seeTemplatePreview(browser)
+    @updateStackReadme(browser)
     @defineCustomVariables(browser)
 
     browser
@@ -656,9 +657,15 @@ module.exports =
     passwordInput        = "#{credentialsModal} input[name=password]"
     credentialSaveButton = "#{credentialsModal} button.green"
     useCredentialButton  = "#{addedCredential} .kdbutton:not(.secondary)"
+    readmeMarkdown       = "#{envMachineStateModal} .content-readme"
+    readmeHeader         = "#{readmeMarkdown} #test-stack-readme"
+    readmeLink           = "#{readmeMarkdown} a"
 
     browser
       .waitForElementVisible     buildStackButton, 20000
+      .waitForElementVisible     readmeMarkdown, 20000
+      .waitForElementVisible     readmeHeader, 20000
+      .waitForElementVisible     readmeLink, 20000
       .click                     buildStackButton
       .pause                     3500 # wait for credentials modal
 
@@ -759,6 +766,25 @@ module.exports =
       .waitForElementVisible  stackTemplatePreviewModal, 20000
       .waitForElementVisible  yamlTabSelector, 20000
       .waitForElementVisible  jsonTabSelector, 20000
+      .waitForElementVisible  stackModalCloseButton, 20000
+      .click                  stackModalCloseButton
+
+
+  updateStackReadme: (browser) ->
+
+    @switchTabOnStackCatalog(browser, 'readme')
+    @setTextToEditor(browser, 'readme', staticContents.readme)
+
+    previewButton = '.editor-pane .preview-button'
+    previewModal  = '[testpath=ReadmePreviewModal]'
+    readmeLink    = 'https://koding.com/docs/creating-an-aws-stack'
+
+    browser
+      .waitForElementVisible  previewButton, 20000
+      .click                  previewButton
+      .waitForElementVisible  previewModal, 20000
+      .assert.containsText    "#{previewModal} h3", 'Test stack readme'
+      .waitForElementVisible  "#{previewModal} a[href='#{readmeLink}']", 20000
       .waitForElementVisible  stackModalCloseButton, 20000
       .click                  stackModalCloseButton
 
