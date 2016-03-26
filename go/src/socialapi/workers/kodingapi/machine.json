@@ -3,21 +3,6 @@
   "type": "object",
   "title": "Koding",
   "description": "This is not koding",
-  "generators": [
-    {
-      "sql-definition": {
-        "roleName": "koding_role",
-        "grants": [
-          "SELECT",
-          "INSERT",
-          "DELETE",
-          "UPDATE"
-        ],
-        "databaseName": "koding_db",
-        "schemaName": "koding_schema"
-      }
-    }
-  ],
   "definitions": {
     "Config": {
       "type": "config",
@@ -69,20 +54,6 @@
       "type": "object",
       "title": "Machine",
       "description": "Machine represents a registered Account's Machine Info",
-      "generators": [
-        {
-          "sql-definition": {
-            "grants": [
-              "SELECT",
-              "INSERT",
-              "UPDATE"
-            ],
-            "primaryKey": [
-              "Id"
-            ]
-          }
-        }
-      ],
       "properties": {
         "Id": {
           "description": "The unique identifier for a Machine",
