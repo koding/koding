@@ -121,7 +121,11 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
       @info.$('span.title').text title
       @info.$('span.key').text "#{key.substr(0, 45)} . . . #{key.substr(-25)}"
       @swappable.swapViews()
+<<<<<<< HEAD
       @getDelegate().sendItemAction 'UpdatedItems'
+=======
+      @getDelegate().emit 'ItemAction', { action : 'UpdatedItems' }
+>>>>>>> fixed coffelint errors after merge
     else unless key
       new KDNotificationView
         title : "Key shouldn't be empty."

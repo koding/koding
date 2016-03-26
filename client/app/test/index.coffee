@@ -6,7 +6,10 @@ require './applicationmanager.test'
 require './kodinglistcontroller.test'
 require './kodinglistview.test'
 require './environmentlistcontroller.test'
+<<<<<<< HEAD
 require './commonviews/bannernotificationview.test'
 require './util/stripHTMLtoText.test'
 require './util/proxifier.test'
 require './stacktemplatelistcontroller.test'
+=======
+>>>>>>> fixed coffelint errors after merge

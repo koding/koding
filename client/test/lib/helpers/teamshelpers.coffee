@@ -135,7 +135,7 @@ module.exports =
       browser.pause 3000
       browser.element 'css selector', stackCatalogModal, (result) ->
         if result.status is 0
-           browser
+          browser
             .waitForElementVisible  stackCatalogModal, 20000
             .waitForElementVisible  stackCloseButton, 20000
             .click                  stackCloseButton

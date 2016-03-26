@@ -56,9 +56,10 @@ module.exports = class EnvironmentListController extends KodingListController
     listView = @getListView()
 
     stack = item.getData()
-    computeController.destroyStack stack, (err) =>
+    computeController.destroyStack stack, (err) ->
       return  if showError err
 
+<<<<<<< HEAD
       Tracker.track Tracker.STACKS_DELETE, {
         customEvent :
           stackId   : stack._id
@@ -66,6 +67,9 @@ module.exports = class EnvironmentListController extends KodingListController
       }
 
       new KDNotificationView title : 'Stack deleted'
+=======
+      new KDNotificationView { title : 'Stack deleted' }
+>>>>>>> fixed coffelint errors after merge
 
       computeController.reset yes, -> router.handleRoute '/IDE'
 

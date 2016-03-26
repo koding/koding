@@ -67,7 +67,8 @@ module.exports = class KodingUtilitiesView extends kd.CustomScrollView
 
     try
       copied = document.execCommand 'copy'
-      throw 'couldn\'t copy'  unless copied
+      couldntCopy = 'couldn\'t copy'
+      throw couldntCopy  unless copied
     catch
       key          = if globals.os is 'mac' then '⌘ + C' else 'Ctrl + C'
       notification = "Hit #{key} to copy!"
