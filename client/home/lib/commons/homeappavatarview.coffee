@@ -44,14 +44,11 @@ module.exports = class HomeAppAvatarArea extends kd.CustomHTMLView
     , groupsController.getCurrentGroup()
 
 
-    # helpers.makePopupButton @accountIcon, @accountPopup
-    # @once 'viewAppended', -> mainView.addSubView @accountPopup
-
 
   pistachio: ->
 
     """
-    {{> @profileName}}
     {{> @teamName}}
+    {{> @profileName}}
     {{> @avatar}}
     """
