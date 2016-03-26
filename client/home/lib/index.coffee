@@ -1,7 +1,6 @@
 kd                 = require 'kd'
 AppController      = require 'app/appcontroller'
 HomeAppView        = require './homeappview'
-AdminAppController = require 'admin'
 HomeAccountView    = require './account/homeaccountview'
 
 do require './routehandler'
@@ -69,6 +68,17 @@ module.exports = class HomeAppController extends AppController
         handle.setClass 'active'
 
 
-  loadView: AdminAppController::loadView
+  loadView: (modal) ->
+
+    modal.once 'KDObjectWillBeDestroyed', =>
+
+      return  if modal.dontChangeRoute
+
+      { router } = kd.singletons
+      previousRoutes = router.visitedRoutes.filter (route) => not @checkRoute route
+      if previousRoutes.length > 0
+      then router.handleRoute previousRoutes.last
+      else router.handleRoute router.getDefaultRoute()
+
 
   fetchNavItems: (cb) -> cb NAV_ITEMS
