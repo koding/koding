@@ -1,4 +1,4 @@
-kd              = require 'kd.js'
+kd              = require 'kd'
 utils           = require './../../core/utils'
 TeamJoinTabForm = require './../forms/teamjointabform'
 LoginInputView  = require './../../login/logininputview'

@@ -1,5 +1,5 @@
 $       = require 'jquery'
-kd      = require 'kd.js'
+kd      = require 'kd'
 kookies = require 'kookies'
 
 createFormData = (teamData) ->

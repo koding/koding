@@ -1,5 +1,5 @@
 $                        = require 'jquery'
-kd                       = require 'kd.js'
+kd                       = require 'kd'
 utils                    = require './../core/utils'
 LoginViewInlineForm      = require './loginviewinlineform'
 LoginInputView           = require './logininputview'

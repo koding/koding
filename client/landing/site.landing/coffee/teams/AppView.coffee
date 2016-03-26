@@ -1,4 +1,4 @@
-kd              = require 'kd.js'
+kd              = require 'kd'
 utils           = require './../core/utils'
 MainHeaderView  = require './../core/mainheaderview'
 JView           = require './../core/jview'

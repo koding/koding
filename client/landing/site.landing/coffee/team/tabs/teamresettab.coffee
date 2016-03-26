@@ -1,4 +1,4 @@
-kd              = require 'kd.js'
+kd              = require 'kd'
 $               = require 'jquery'
 utils           = require './../../core/utils'
 JView           = require './../../core/jview'

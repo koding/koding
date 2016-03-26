@@ -1,4 +1,4 @@
-kd = require 'kd.js'
+kd = require 'kd'
 JView = require './../core/jview'
 
 module.exports = class LoginInputView extends JView

@@ -1,6 +1,6 @@
 console.time 'Koding.com loaded'
 
-kd    = require 'kd.js'
+kd    = require 'kd'
 utils = require './core/utils'
 
 require './core/kd.extend.coffee'
