@@ -103,3 +103,39 @@ module.exports =
     teamsHelpers.enableAndDisableApiAccess(browser, yes)
     teamsHelpers.addNewApiToken(browser)
     browser.end()
+
+
+  editStackName: (browser) ->
+
+    stackTemplateSettingsButton = '.kdbutton.stack-settings-menu'
+    saveAndTestButton           = '.buttons button:nth-of-type(5)'
+    cancelButton                = '.buttons button:nth-of-type(2)'
+    stacksLogsSelector          = '.step-define-stack .kdscrollview'
+    myStackTemplatesButton      = '.kdview.kdtabhandle-tabs .my-stack-templates'
+    templateInputSelector       = '.template-title-form .template-title .input-wrapper input'
+    editedText                  = 'Edit stack name'
+    stackNameSelector           = '.stacktemplate-info.clearfix .title'
+    editButtonSelector          = '.kdbuttonmenu .context-list-wrapper .edit'
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    teamsHelpers.checkIconsStacks(browser, no)
+
+    browser
+      .waitForElementVisible      stackTemplateSettingsButton, 20000
+      .click                      stackTemplateSettingsButton
+      .waitForElementVisible      editButtonSelector, 20000
+      .click                      editButtonSelector
+      .waitForElementVisible      templateInputSelector, 20000
+      .clearValue                 templateInputSelector
+      .setValue                   templateInputSelector, editedText
+      .click                      saveAndTestButton
+      .pause                      2000 #for stack creation logs to appear
+      .waitForElementVisible      stacksLogsSelector, 20000
+      .assert.containsText        stacksLogsSelector, 'An error occured: Required credentials are not provided yet'
+      .click                      myStackTemplatesButton
+      .waitForElementVisible      templateInputSelector, 20000
+      .click                      cancelButton
+      .waitForElementVisible      stackNameSelector, 20000
+      .assert.containsText        stackNameSelector, editedText
+      .end()

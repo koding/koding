@@ -943,7 +943,7 @@ module.exports =
   getAwsKey: -> return awsKey
 
 
-  checkIconsStacks: (browser) ->
+  checkIconsStacks: (browser, removeNewStack = yes) ->
 
     saveAndTestButton           = '.buttons button:nth-of-type(5)'
     stackTemplateSelector       = '.kdtabhandlecontainer.hide-close-icons .stack-template'
@@ -964,17 +964,19 @@ module.exports =
       .waitForElementVisible      notReadyIconSelector, 30000
       .assert.containsText        notReadyIconSelector, 'NOT READY'
       .assert.containsText        privateIconSelector, 'PRIVATE'
-      .waitForElementVisible      stackTemplateSettingsButton, 20000
-      .click                      stackTemplateSettingsButton
-      .waitForElementVisible      deleteButton, 20000
-      .click                      deleteButton
-      .waitForElementVisible      confirmDeleteButton, 20000
-      .click                      confirmDeleteButton
-      .pause                      2000
-      .waitForElementVisible      stackTemplateSelector, 20000
-      .assert.containsText        stackTemplateSelector, 'Stack Template'
-      .assert.containsText        saveAndTestButton, 'SAVE & TEST'
 
+    if removeNewStack
+      browser
+        .waitForElementVisible      stackTemplateSettingsButton, 20000
+        .click                      stackTemplateSettingsButton
+        .waitForElementVisible      deleteButton, 20000
+        .click                      deleteButton
+        .waitForElementVisible      confirmDeleteButton, 20000
+        .click                      confirmDeleteButton
+        .pause                      2000
+        .waitForElementVisible      stackTemplateSelector, 20000
+        .assert.containsText        stackTemplateSelector, 'Stack Template'
+        .assert.containsText        saveAndTestButton, 'SAVE & TEST'
 
   # possible values of tabName variable is 'stack', 'variables' or 'readme'
   switchTabOnStackCatalog: (browser, tabName) ->
