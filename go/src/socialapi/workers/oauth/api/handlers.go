@@ -13,14 +13,13 @@ import (
 const (
 	OauthAuthorization = "oauth-authorization"
 	GenerateToken      = "generate-token"
-	dbName             = "koding"
 )
 
 // AddHandlers add oauth for koding api
 func AddHandlers(m *mux.Mux, config *config.Config) {
 	session := modelhelper.Mongo.Session
 
-	oauth := NewOAuthHandler(session, dbName)
+	oauth := NewOAuthHandler(session)
 	m.AddUnscopedHandler(
 		handler.Request{
 			Handler:  oauth.AuthorizeClient,
@@ -40,13 +39,13 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 
 }
 
-func NewOAuthHandler(session *mgo.Session, dbName string) *Oauth {
+func NewOAuthHandler(session *mgo.Session) *Oauth {
 	sconfig := osin.NewServerConfig()
 	sconfig.AllowedAuthorizeTypes = osin.AllowedAuthorizeType{osin.CODE, osin.TOKEN}
 	sconfig.AllowedAccessTypes = osin.AllowedAccessType{osin.AUTHORIZATION_CODE,
 		osin.REFRESH_TOKEN, osin.PASSWORD, osin.CLIENT_CREDENTIALS, osin.ASSERTION}
 	sconfig.AllowGetAccessRequest = true
-	storage := modelhelper.NewOauthStore(session, dbName)
+	storage := modelhelper.NewOauthStore(session)
 	server := osin.NewServer(sconfig, storage)
 
 	return &Oauth{
