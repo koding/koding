@@ -76,7 +76,7 @@ func Init() error {
 		return nonil(err, fr.Close(), fw.Close(), os.Remove(fw.Name()))
 	}
 
-	if err := nonil(fw.Sync(), fw.Close()); err != nil {
+	if err := nonil(fw.Sync(), fw.Close(), os.Chmod(fw.Name(), 0644)); err != nil {
 		return nonil(err, fr.Close(), os.Remove(fw.Name()))
 	}
 
