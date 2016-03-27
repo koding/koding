@@ -191,10 +191,14 @@ func NewKlient(conf *KlientConfig) *Klient {
 		Debug: conf.Debug,
 	}
 
+	// use websocket connection for tunnelserver
+	tunCfg := k.Config.Copy()
+	tunCfg.Transport = config.WebSocket
+
 	tunOpts := &tunnel.Options{
 		DB:     db,
 		Log:    k.Log,
-		Config: k.Config.Copy(),
+		Config: tunCfg,
 	}
 
 	t, err := tunnel.New(tunOpts)
