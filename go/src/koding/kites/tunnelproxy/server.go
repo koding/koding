@@ -711,7 +711,7 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	k.HandleHTTPFunc("/-/discover/{service}", s.discoverHandler())
 
 	// Route all the rest requests (match all paths that does not begin with /-/).
-	k.HandleHTTP(`/{rest:^(.?$|[^\/].+|\/[^-].+|\/-[^\/].*)}`, s.serverHandler())
+	k.HandleHTTP(`/{rest:.?$|[^\/].+|\/[^-].+|\/-[^\/].*}`, s.serverHandler())
 
 	if s.opts.RegisterURL == nil {
 		s.opts.RegisterURL = k.RegisterURL(false)
