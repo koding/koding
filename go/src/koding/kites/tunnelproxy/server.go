@@ -1,6 +1,7 @@
 package tunnelproxy
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -17,6 +18,7 @@ import (
 	"koding/kites/kloud/utils"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -550,12 +552,17 @@ func (s *Server) listen(network, addr string) (net.Listener, error) {
 	return nil, errors.New("unable to find available port")
 }
 
-func (s *Server) discover(r *http.Request) (string, error) {
-	service := strings.ToLower(strings.TrimPrefix(r.URL.Path, "/-/discover/"))
-	if service == "" {
-		return "", errors.New("empty service name")
+func isLocal(tun *Tunnel, r *http.Request) bool {
+	if tun.LocalAddr == "" {
+		return false
 	}
+	_, ok := extractIPs(r)[tun.PublicIP]
+	return ok
+}
 
+// TOOD(rjeczalik): make it possible for services to register custom
+// protocol type.
+func (s *Server) discover(service string, r *http.Request) ([]*Endpoint, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -567,63 +574,64 @@ func (s *Server) discover(r *http.Request) (string, error) {
 		}
 
 		if !ok {
-			return "", errors.New("virtual host not registered: " + r.Host)
+			return nil, errors.New("virtual host not registered: " + r.Host)
 		}
+	}
+
+	if service == "kite" || service == "kites" {
+		return s.discoverKite(ident, r)
 	}
 
 	tun := s.tunnels.tunnel(ident, service)
 	if tun == nil {
-		return "", errors.New("service not found: " + service)
+		return nil, errors.New("service not found: " + service)
 	}
 
-	s.opts.Log.Debug("discovered tunnel for %s: %+v", r.Host, tun)
+	s.opts.Log.Debug("%s: discovered tunnel for %s: %+v", ident, r.Host, tun)
 
-	remoteAddr := tun.VirtualHost
-	if tun.Port != 0 {
-		remoteAddr = net.JoinHostPort(tun.VirtualHost, strconv.Itoa(tun.Port))
+	if isLocal(tun, r) {
+		s.opts.Log.Debug("%s: found local route for %s: %s", ident, tun.PublicIP, tun.LocalAddr)
+
+		return []*Endpoint{
+			tun.localEndpoint("tcp"),
+			tun.remoteEndpoint("tcp"),
+		}, nil
+
 	}
 
-	// do not route websocket handshakes locally or if there's no
-	// forwarded port
-	if tun.LocalAddr == "" || isWebsocketConn(r) {
-		return remoteAddr, nil
-	}
-
-	ips := extractIPs(r)
-
-	for ip := range ips {
-		if tun.PublicIP == ip {
-			s.opts.Log.Debug("%s: found local route for %s: %s", r.RemoteAddr, ip, tun.LocalAddr)
-
-			return tun.LocalAddr, nil
-		}
-	}
-
-	return remoteAddr, nil
+	return []*Endpoint{tun.remoteEndpoint("tcp")}, nil
 }
 
-func (s *Server) tunnelHandler(discover http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// skip requests from localhost
-		if r.Host == "localhost" {
-			w.WriteHeader(200)
-			return
-		}
-
-		if strings.HasPrefix(r.URL.Path, "/-/discover/") {
-			discover.ServeHTTP(w, r)
-			return
-		}
-
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/klient")
-
-		s.Server.ServeHTTP(w, r)
+func (s *Server) discoverKite(ident string, r *http.Request) ([]*Endpoint, error) {
+	tun := s.tunnels.tunnel(ident, "kite")
+	if tun == nil {
+		return nil, errors.New("service not found: kite")
 	}
+
+	s.opts.Log.Debug("%s: discovered tunnel for %s: %+v", ident, r.Host, tun)
+
+	var endpoints []*Endpoint
+
+	if tuns := s.tunnels.tunnel(ident, "kites"); tuns != nil && isLocal(tuns, r) {
+		s.opts.Log.Debug("%s: found local route for %s: %s", ident, tuns.PublicIP, tuns.LocalAddr)
+
+		endpoints = append(endpoints, tuns.localEndpoint("https"))
+	}
+
+	if isLocal(tun, r) {
+		s.opts.Log.Debug("%s: found local route for %s: %s", ident, tun.PublicIP, tun.LocalAddr)
+
+		endpoints = append(endpoints, tun.localEndpoint("http"))
+	}
+
+	endpoints = append(endpoints, tun.remoteEndpoint("http"))
+
+	return endpoints, nil
 }
 
 func (s *Server) discoverHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		addr, err := s.discover(r)
+		endpoints, err := s.discover(strings.ToLower(mux.Vars(r)["service"]), r)
 		if err != nil {
 			s.opts.Log.Error("%s: discover failed for %s (%s): %s", r.RemoteAddr, r.Host, r.URL, err)
 
@@ -631,9 +639,31 @@ func (s *Server) discoverHandler() http.HandlerFunc {
 			return
 		}
 
-		s.opts.Log.Debug("%s: resolved for %s: %s", r.RemoteAddr, r.URL, addr)
+		p, err := json.Marshal(endpoints)
+		if err != nil {
+			s.opts.Log.Error("%s: discover failed for %s (%s): %s", r.RemoteAddr, r.Host, r.URL, err)
 
-		fmt.Fprintln(w, addr)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Length", strconv.Itoa(len(p)))
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(p)
+	}
+}
+
+func (s *Server) serverHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// skip requests from localhost
+		if r.Host == "localhost" {
+			w.WriteHeader(200)
+			return
+		}
+
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/klient")
+
+		s.Server.ServeHTTP(w, r)
 	}
 }
 
@@ -676,7 +706,12 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	k.HandleFunc("registerServices", s.RegisterServices)
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
-	k.HandleHTTP("/{rest:.*}", s.tunnelHandler(s.discoverHandler()))
+
+	// Tunnel helper methods, like ports, stats etc.
+	k.HandleHTTPFunc("/-/discover/{service}", s.discoverHandler())
+
+	// Route all the rest requests (match all paths that does not begin with /-/).
+	k.HandleHTTP(`/{rest:^(.?$|[^\/].+|\/[^-].+|\/-[^\/].*)}`, s.serverHandler())
 
 	if s.opts.RegisterURL == nil {
 		s.opts.RegisterURL = k.RegisterURL(false)

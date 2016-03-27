@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
@@ -21,6 +20,12 @@ type Service struct {
 }
 
 type Services map[string]*Service
+
+type Endpoint struct {
+	Addr     string `json:"addr"`
+	Protocol string `json:"protocol"`
+	Local    bool   `json:"local"`
+}
 
 type Tunnel struct {
 	Name        string `json:"name,omitempty"`
@@ -39,6 +44,27 @@ func (t *Tunnel) Err() error {
 		return errors.New(t.Error)
 	}
 	return nil
+}
+
+func (t *Tunnel) remoteEndpoint(proto string) *Endpoint {
+	e := &Endpoint{
+		Addr:     t.VirtualHost,
+		Protocol: proto,
+	}
+
+	if t.Port != 0 {
+		e.Addr = net.JoinHostPort(t.VirtualHost, strconv.Itoa(t.Port))
+	}
+
+	return e
+}
+
+func (t *Tunnel) localEndpoint(proto string) *Endpoint {
+	return &Endpoint{
+		Addr:     t.LocalAddr,
+		Protocol: proto,
+		Local:    true,
+	}
 }
 
 type TunnelsByName []*Tunnel
@@ -195,24 +221,6 @@ func extractIPs(r *http.Request) map[string]struct{} {
 	delete(ips, "")
 
 	return ips
-}
-
-func isWebsocketConn(r *http.Request) bool {
-	return r.Method == "GET" && headerContains(r.Header["Connection"], "upgrade") &&
-		headerContains(r.Header["Upgrade"], "websocket")
-}
-
-// headerContains is a copy of tokenListContainsValue from gorilla/websocket/util.go
-func headerContains(header []string, value string) bool {
-	for _, h := range header {
-		for _, v := range strings.Split(h, ",") {
-			if strings.EqualFold(strings.TrimSpace(v), value) {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 type callbacks struct {
