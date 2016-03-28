@@ -24,17 +24,18 @@ module.exports = class JComputeStack extends jraphical.Module
 
     softDelete           : yes
 
-    permissions          :
+    permissions              :
 
-      'create stack'     : ['member']
+      'create stack'         : ['member']
 
-      'update stack'     : []
-      'update own stack' : ['member']
+      'update stack'         : []
+      'update own stack'     : ['member']
 
-      'delete stack'     : []
-      'delete own stack' : ['member']
+      'delete stack'         : []
+      'delete own stack'     : ['member']
 
-      'list stacks'      : ['member']
+      'list stacks'          : ['member']
+      'list stacks as admin' : []
 
     sharedMethods        :
       static             :
@@ -45,6 +46,14 @@ module.exports = class JComputeStack extends jraphical.Module
           (signature Object, Object, Function)
         ]
         some             : [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        one              : [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        oneAsAdmin       : [
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
@@ -244,10 +253,45 @@ module.exports = class JComputeStack extends jraphical.Module
 
     success: (client, selector, options, callback) ->
 
+      selector = @getSelector client, selector
+      @someWithSelector client, selector, options, callback
+
+
+  @one$ = permit 'list stacks',
+
+    success: (client, selector, options, callback) ->
+
       [options, callback] = [callback, options]  unless callback
+
       options ?= {}
+      options.limit = 1
+
+      @some$ client, selector, options, (err, stacks) ->
+        [stack] = stacks ? []
+        callback err, stack
+
+
+  @oneAsAdmin = permit 'list stacks as admin',
+
+    success: (client, selector, options, callback) ->
+
+      [options, callback] = [callback, options]  unless callback
+
+      options ?= {}
+      options.limit = 1
 
       selector = @getSelector client, selector
+      delete selector.originId
+
+      @someWithSelector client, selector, options, (err, stacks) ->
+        [stack] = stacks ? []
+        callback err, stack
+
+
+  @someWithSelector = (client, selector, options, callback) ->
+
+      [options, callback] = [callback, options]  unless callback
+      options ?= {}
 
       JComputeStack.some selector, options, (err, _stacks) ->
 

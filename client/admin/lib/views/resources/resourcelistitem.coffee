@@ -21,9 +21,8 @@ module.exports = class ResourceListItem extends kd.ListItemView
 
   constructor: (options = {}, data) ->
 
-    isOwn     = data.originId is whoami()._id
-    cssClass  = "resource-item clearfix #{data.status.state}"
-    cssClass += ' own'  if isOwn
+    { state } = data.status
+    cssClass  = "resource-item clearfix #{state}"
 
     options.type   or= 'member'
     options.cssClass = kd.utils.curry cssClass, options.cssClass
@@ -89,7 +88,12 @@ module.exports = class ResourceListItem extends kd.ListItemView
     computeController.on "apply-#{resource._id}", @bound 'handleProgressEvent'
     computeController.on "stateChanged-#{resource._id}", @bound 'handleStateChangedEvent'
 
-    @prevStatus = resource.status.state
+    if state in ['Building', 'Destroying']
+      { eventListener } = computeController
+      eventListener.addListener 'apply', resource._id
+      eventListener.addListener 'stateChanged', resource._id
+
+    @prevStatus = state
 
 
   render: (fields) ->

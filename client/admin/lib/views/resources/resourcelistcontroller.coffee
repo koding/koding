@@ -48,8 +48,9 @@ module.exports = class ResourceListController extends KodingListController
   updateItemStatus: (item) ->
 
     resource = item.getData()
-    remote.api.JComputeStack.some { _id : resource._id }, (err, stacks) ->
+    remote.api.JComputeStack.oneAsAdmin { _id : resource._id }, (err, stack) ->
       return showError err  if err
-      return item.destroy()  unless stack = stacks[0]
+      return item.destroy()  unless stack
+
       resource.status = stack.status
       item.setData resource
