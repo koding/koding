@@ -1,10 +1,11 @@
 kd               = require 'kd'
 showError        = require 'app/util/showError'
 
+KodingListView   = require 'app/kodinglist/kodinglistview'
 ResourceListItem = require './resourcelistitem'
 
 
-module.exports = class ResourceList extends kd.ListView
+module.exports = class ResourceList extends KodingListView
 
   constructor: (options = {}, data) ->
 
