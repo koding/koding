@@ -12,9 +12,9 @@ module.exports = class IDESettingsView extends JView
 
     @unsetClass 'kdview'
 
-    {name, version} = @getStorageInformation()
-    controller      = kd.getSingleton 'appStorageController'
-    @appStorage     = controller.storage name, version
+    { name, version } = @getStorageInformation()
+    controller        = kd.getSingleton 'appStorageController'
+    @appStorage       = controller.storage name, version
 
     kd.singletons.notificationController.on 'StorageUpdated', =>
       @getSettings yes, no

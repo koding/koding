@@ -1,9 +1,9 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDSelectBox = kd.SelectBox
+kd           = require 'kd'
+KDSelectBox  = kd.SelectBox
 KodingSwitch = require 'app/commonviews/kodingswitch'
-JView = require 'app/jview'
-settings = require './settings'
+JView        = require 'app/jview'
+settings     = require './settings'
+
 
 module.exports = class AceSettingsView extends JView
 

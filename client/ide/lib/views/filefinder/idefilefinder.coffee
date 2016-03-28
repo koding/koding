@@ -75,7 +75,7 @@ class IDEFileFinder extends KDCustomHTMLView
     files = res.stdout.split '\n'
     items = []
 
-    items.push path: file  for file in files when file
+    items.push { path: file }  for file in files when file
 
     listOptions        =
       itemChildClass   : IDEFileFinderItem

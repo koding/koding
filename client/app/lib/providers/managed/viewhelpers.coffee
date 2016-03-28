@@ -32,7 +32,7 @@ module.exports   = view =
     partial      : title
     cssClass     : 'view-header'
 
-  loader         : ({ show, cssClass })-> new kd.LoaderView
+  loader         : ({ show, cssClass }) -> new kd.LoaderView
     showLoader   : show
     cssClass     : cssClass ? ''
     size         :
@@ -86,7 +86,7 @@ module.exports   = view =
       options.cssClass = kd.utils.curry 'solid medium', options.cssClass
     new kd.ButtonView options
 
-  retry          : ({ text, callback })->
+  retry          : ({ text, callback }) ->
 
     container    = new kd.View
       cssClass   : 'view-waiting'

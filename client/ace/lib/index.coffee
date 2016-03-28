@@ -1,7 +1,6 @@
-kd = require 'kd'
-isLoggedIn = require 'app/util/isLoggedIn'
+isLoggedIn    = require 'app/util/isLoggedIn'
 AppController = require 'app/appcontroller'
-AceAppView = require './aceappview'
+AceAppView    = require './aceappview'
 require('./routehandler')()
 
 

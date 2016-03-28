@@ -8,7 +8,7 @@ module.exports = class TerminalWrapper extends KDCustomScrollViewWrapper
 
     lastPosition = 0
 
-    ({speed, velocity})->
+    ({ speed, velocity }) ->
 
       return  unless @parent?.terminal
 

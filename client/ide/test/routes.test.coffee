@@ -237,7 +237,7 @@ describe 'IDE.routes', ->
 
       expect(fakeApp.amIHost).toBe yes
       expect(appManager.open).toHaveBeenCalled()
-      expect(appManager.tell).toHaveBeenCalledWith 'IDE', 'createMachineStateModal', state: 'NotFound'
+      expect(appManager.tell).toHaveBeenCalledWith 'IDE', 'createMachineStateModal', { state: 'NotFound' }
 
 
   describe '.routeToFallback', ->

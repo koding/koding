@@ -21,7 +21,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
     { pane } = options
 
     if pane?.view instanceof IDEEditorPane and not pane.data.isDummyFile()
-      options.attributes = title : FSHelper.plainPath pane.data.path
+      options.attributes = { title : FSHelper.plainPath pane.data.path }
 
     super options, data
 

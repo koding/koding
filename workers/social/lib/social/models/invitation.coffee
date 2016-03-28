@@ -43,6 +43,10 @@ module.exports = class JInvitation extends jraphical.Module
           (signature Function)
           (signature Object, Function)
         ]
+        accept:[
+          (signature Function)
+          (signature Object, Function)
+        ]
       static:
         some:[
           (signature Object, Object, Function)
@@ -99,9 +103,10 @@ module.exports = class JInvitation extends jraphical.Module
         type        : String
         default     : -> 'member'
 
-  accept$: secure (client, callback) ->
-    { delegate } = client.connection
-    @accept delegate, callback
+  accept$: permit 'send invitations',
+    success: (client, callback) ->
+      { delegate } = client.connection
+      @accept delegate, callback
 
   accept: (account, callback) ->
     operation = { $set : { status: 'accepted' } }
@@ -201,15 +206,16 @@ module.exports = class JInvitation extends jraphical.Module
     inviteInfo = null
 
     queue = [
-      (fin) -> JInvitation.one { email, groupName }, fin
+      (fin) ->
+        JInvitation.one { email, groupName }, fin
 
     , (invite, fin) ->
       [fin, invite] = paramSwapper invite, fin
 
       return fin null, no  unless invite
       return invite.remove fin  if forceInvite
-
-      inviteInfo = { email, code: invite.code, alreadyInvited: yes }
+      invite.alreadyInvited = yes
+      inviteInfo = invite
       return fin null, yes
 
     , (alreadyInvited, fin) ->
@@ -226,7 +232,7 @@ module.exports = class JInvitation extends jraphical.Module
 
     , (invite, fin) ->
       [fin, invite] = paramSwapper invite, fin
-      inviteInfo = { email, code: invite.code }  if invite
+      inviteInfo = invite
 
       return fin()  if noEmail or not invite
       JInvitation.sendInvitationEmail client, invite, fin
@@ -322,7 +328,7 @@ module.exports = class JInvitation extends jraphical.Module
       inviterImage : imgURL
       link         : groupLink + "Invitation/#{encodeURIComponent invitation.code}"
 
-    Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.INVITED_GROUP }, properties, callback
+    Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.INVITED_TEAM }, properties, callback
 
   getName = (delegate) ->
 

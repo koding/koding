@@ -7,8 +7,8 @@ IDEBaseSplitView  = require '../views/idebasesplitview'
 module.exports = class IDEWorkspaceLayoutBuilder extends KDSplitComboView
 
   init: ->
-    @splitViews    = {}
-    {splitOptions} = @getOptions()
+    @splitViews      = {}
+    { splitOptions } = @getOptions()
 
     @addSubView @createSplitView splitOptions
 
@@ -21,7 +21,7 @@ module.exports = class IDEWorkspaceLayoutBuilder extends KDSplitComboView
         @splitViews[config.name] = splitView
         views.push splitView
       else
-        wrapper = new KDView cssClass : 'pane-wrapper'
+        wrapper = new KDView { cssClass : 'pane-wrapper' }
         views.push wrapper
         wrapper.once 'viewAppended', =>
           wrapper.addSubView @getDelegate().createPane config

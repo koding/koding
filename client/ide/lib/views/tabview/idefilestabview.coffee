@@ -40,9 +40,9 @@ module.exports = class IDEFilesTabView extends IDEWorkspaceTabView
 
       # hijack close handle for files pane and change it to toggle the file tree.
       @tabView.tabHandleContainer.closeHandle.off 'click'
-      @tabView.tabHandleContainer.closeHandle.on 'click', (event) =>
+      @tabView.tabHandleContainer.closeHandle.on 'click', (event) ->
         kd.utils.stopDOMEvent event
-        {frontApp} = kd.singletons.appManager
+        { frontApp } = kd.singletons.appManager
         frontApp.toggleSidebar()
 
 
@@ -114,7 +114,7 @@ module.exports = class IDEFilesTabView extends IDEWorkspaceTabView
     handle       = new KDCustomHTMLView
       tagName    : 'a'
       cssClass   : 'koding-sidebar-handle'
-      attributes : alt: 'Double-click to toggle main sidebar'
+      attributes : { alt: 'Double-click to toggle main sidebar' }
       dblclick   : (event) ->
         kd.utils.stopDOMEvent event
         mainView.toggleSidebar()

@@ -24,7 +24,7 @@ module.exports = class IDEPanel extends KDView
     @createLayout()
 
   createLayout: ->
-    {layoutOptions}  = @getOptions()
+    { layoutOptions }  = @getOptions()
 
     unless layoutOptions
       throw new Error 'You should pass layoutOptions to create a panel'

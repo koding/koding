@@ -2,10 +2,10 @@ kd                        = require 'kd'
 showError                 = require 'app/util/showError'
 SubscriptionView          = require 'app/payment/subscriptionview'
 PaymentMethodView         = require 'app/payment/paymentmethodview'
+PaymentConstants          = require 'app/payment/paymentconstants'
+KodingListController      = require 'app/kodinglist/kodinglistcontroller'
 PaymentHistoryListItem    = require './paymenthistorylistitem'
 UpdateCreditCardWorkflow  = require 'app/payment/updatecreditcardworkflow'
-AccountListViewController = require '../controllers/accountlistviewcontroller'
-PaymentConstants          = require 'app/payment/paymentconstants'
 
 
 module.exports = class AccountBilling extends kd.View
@@ -29,8 +29,10 @@ module.exports = class AccountBilling extends kd.View
     { appStorageController } = kd.singletons
     @accountStorage          = appStorageController.storage 'Account', '1.0'
 
+    @initViews()
 
-  viewAppended: ->
+
+  initViews: ->
 
     @addSubView @subscriptionWrapper = new kd.CustomHTMLView
       tagName  : 'section'
@@ -143,10 +145,10 @@ module.exports = class AccountBilling extends kd.View
         invoice.paymentMethod = { last4: '1234' }
         return invoice
 
-      @listController = new AccountListViewController
-        itemClass: PaymentHistoryListItem
-        noItemFoundText: 'You have no payment history'
-      , { items: invoices }
+      @listController = new KodingListController
+        itemClass       : PaymentHistoryListItem
+        fetcherMethod   : (query, options, callback) -> callback null, invoices
+        noItemFoundText : 'You have no payment history'
 
       @paymentHistoryWrapper.addSubView @listController.getView()
 

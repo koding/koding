@@ -3,6 +3,7 @@ package klient
 import (
 	"errors"
 	"io/ioutil"
+	"koding/klient/command"
 	"koding/klient/remote/req"
 	"koding/klientctl/config"
 	"koding/klientctl/list"
@@ -222,4 +223,16 @@ func (k *Klient) RemoteRemount(mountName string) error {
 	r := req.Remount{MountName: mountName}
 	_, err := k.Tell("remote.remount", r)
 	return err
+}
+
+// RemoteExec calls the `remote.exec` method.
+func (k *Klient) RemoteExec(machineName, c string) (command.Output, error) {
+	var res command.Output
+	req := req.Exec{Machine: machineName, Command: c}
+	kRes, err := k.Tell("remote.exec", req)
+	if err != nil {
+		return res, err
+	}
+
+	return res, kRes.Unmarshal(&res)
 }

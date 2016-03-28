@@ -1,6 +1,9 @@
 package testutil
 
 import (
+	"github.com/koding/kite"
+	"github.com/koding/kite/dnode"
+	"koding/klient/command"
 	"koding/klient/remote/req"
 	"koding/klientctl/list"
 )
@@ -8,12 +11,25 @@ import (
 type FakeKlient struct {
 	callCounts map[string]int
 
+	ReturnClient *kite.Client
+
 	ReturnInfos list.KiteInfos
 
 	ReturnMountInfo    req.MountInfoResponse
 	ReturnMountInfoErr error
 
 	ReturnRemountErr error
+
+	ReturnRemoteExec    command.Output
+	ReturnRemoteExecErr error
+
+	ReturnRemoteCacheErr error
+
+	ReturnRemoteMountFolderWarning string
+	ReturnRemoteMountFolderErr     error
+
+	ReturnTellPartial *dnode.Partial
+	ReturnTellErr     error
 }
 
 func (k *FakeKlient) incrementCallCount(method string) {
@@ -47,6 +63,10 @@ func (k *FakeKlient) RemoteList() (list.KiteInfos, error) {
 	return k.ReturnInfos, nil
 }
 
+func (k *FakeKlient) GetClient() *kite.Client {
+	return k.ReturnClient
+}
+
 func (k *FakeKlient) RemoteMountInfo(string) (req.MountInfoResponse, error) {
 	k.incrementCallCount("RemoteMountInfo")
 	return k.ReturnMountInfo, k.ReturnMountInfoErr
@@ -55,4 +75,21 @@ func (k *FakeKlient) RemoteMountInfo(string) (req.MountInfoResponse, error) {
 func (k *FakeKlient) RemoteRemount(string) error {
 	k.incrementCallCount("RemoteRemount")
 	return k.ReturnRemountErr
+}
+
+func (k *FakeKlient) RemoteExec(string, string) (command.Output, error) {
+	k.incrementCallCount("RemoteExec")
+	return k.ReturnRemoteExec, k.ReturnRemoteExecErr
+}
+
+func (k *FakeKlient) RemoteCache(req.Cache, func(par *dnode.Partial)) error {
+	return k.ReturnRemoteCacheErr
+}
+
+func (k *FakeKlient) RemoteMountFolder(req.MountFolder) (string, error) {
+	return k.ReturnRemoteMountFolderWarning, k.ReturnRemoteMountFolderErr
+}
+
+func (k *FakeKlient) Tell(string, ...interface{}) (*dnode.Partial, error) {
+	return k.ReturnTellPartial, k.ReturnTellErr
 }

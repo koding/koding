@@ -61,13 +61,6 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
     super
 
 
-  hideAddView: ->
-
-    return no  if @isInProgress
-
-    super
-
-
   handleAddNew: ->
 
     domainName = @addInputView.getValue().trim()

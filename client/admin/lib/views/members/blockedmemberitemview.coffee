@@ -1,7 +1,9 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
+remote                 = require('app/remote').getInstance()
 AvatarView             = require 'app/commonviews/avatarviews/avatarview'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
+invitationWithNoEmail  = require 'app/util/invitationWithNoEmail'
 
 
 module.exports = class BlockedMemberItemView extends kd.ListItemView
@@ -42,13 +44,14 @@ module.exports = class BlockedMemberItemView extends kd.ListItemView
   unblockUser: ->
 
     currentGroup = kd.singletons.groupsController.getCurrentGroup()
-    currentGroup.unblockMember @getData().getId(), (err) =>
+
+    invitationWithNoEmail @getData(), currentGroup,  (err, result) ->
 
       if err
         customErr = new Error 'Failed to unblock user. Please try again.'
         return @handleError @unblockButton, customErr
 
-      @emit 'UserUnblocked'
+      kd.singletons.notificationController.emit 'NewMemberJoinedToGroup'
       @destroy()
 
 
