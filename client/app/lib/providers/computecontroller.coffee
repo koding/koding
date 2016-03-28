@@ -715,7 +715,7 @@ module.exports = class ComputeController extends KDController
       (@errorHandler call, 'buildStack', stack) err
 
 
-  destroyStack: (stack, callback) ->
+  destroyStack: (stack, callback, followEvents = yes) ->
 
     # TMS-1919: This only takes a stack instance so it's ok
     # for multiple stacks ~ GG
@@ -729,7 +729,7 @@ module.exports = class ComputeController extends KDController
         name    : 'InProgress'
         message : "This stack is currently #{state.toLowerCase()}."
 
-    stack.machines.forEach (machineId) =>
+    if followEvents then stack.machines.forEach (machineId) =>
       return  unless machine = @findMachineFromMachineId machineId
 
       @eventListener.triggerState machine,
@@ -745,7 +745,7 @@ module.exports = class ComputeController extends KDController
 
       stack.destroy callback
       actions.reinitStack stack._id
-      @eventListener.addListener 'apply', stackId
+      @eventListener.addListener 'apply', stackId  if followEvents
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
@@ -1289,5 +1289,8 @@ module.exports = class ComputeController extends KDController
           if template and not groupStack
           then @createDefaultStack no, template
           else @createDefaultStack()
+
+        , followEvents = no
+
     , ->
       callback new Error 'Stack is not reinitialized'
