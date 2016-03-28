@@ -9,20 +9,23 @@ module.exports = class CredentialListItem extends kd.ListItemView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'credential-item clearfix', options.cssClass
+
     super options, data
 
     delegate = @getDelegate()
     { identifier, owner, title, verified } = credential = @getData()
 
     @deleteButton = new kd.ButtonView
-      cssClass : 'solid compact outline red secondary delete'
-      title    : 'DELETE'
-      callback : delegate.lazyBound 'deleteItem', this
+      cssClass  : 'solid compact outline red secondary delete'
+      title     : 'DELETE'
+      callback  : =>
+        delegate.emit 'ItemAction', { action : 'RemoveItem', item : this }
 
     @showCredentialButton = new kd.ButtonView
-      cssClass : 'solid compact outline secondary show'
-      title    : 'SHOW'
-      callback : delegate.lazyBound 'showItemContent', this
+      cssClass  : 'solid compact outline secondary show'
+      title     : 'SHOW'
+      callback  : =>
+        delegate.emit 'ItemAction', { action : 'ShowItem', item : this }
 
     @verifyButton = new kd.ButtonView
       cssClass : 'solid compact outline verify'
