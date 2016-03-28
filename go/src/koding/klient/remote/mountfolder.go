@@ -98,7 +98,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 	res, err := checkSizeOfRemoteFolder(remoteMachine.Client, params.RemotePath)
 
 	// If there's no error, clear the machine status.
-	if err != nil {
+	if err == nil {
 		remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
 	}
 

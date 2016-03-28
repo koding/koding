@@ -4,7 +4,11 @@ import (
 	"errors"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"net"
+	"net/http"
+	"socialapi/config"
 	"socialapi/workers/email/emailsender"
+	"time"
 )
 
 var subjects = map[string]string{
@@ -78,4 +82,20 @@ func DeleteVMs(user *models.User, _ string) error {
 	}
 
 	return topErr
+}
+
+var defClient = &http.Client{
+	Transport: &http.Transport{
+		Dial: func(network, addr string) (net.Conn, error) {
+			return net.DialTimeout(network, addr, time.Second*5)
+		},
+	},
+	Timeout: time.Second * 30,
+}
+
+// newDeleteUser creates a function that deletes the user from koding
+func newDeleteUser(conf *config.Config) Action {
+	return func(user *models.User, _ string) error {
+		return nil
+	}
 }

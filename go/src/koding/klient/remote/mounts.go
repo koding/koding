@@ -15,7 +15,9 @@ import (
 const (
 	mountsStorageKey = "mounted_folders"
 
+	// Messages displayed to the user about the machines status.
 	autoRemountFailed = "Error remounting during restart. Please unmount & mount again."
+	autoRemounting    = "Remounting after restart. Please wait..."
 )
 
 // MountsHandler lists all of the locally mounted folders
@@ -105,6 +107,9 @@ func (r *Remote) restoreMounts() error {
 			continue
 		}
 
+		// Set the machine status so that the user knows it's in progress.
+		remoteMachine.SetStatus(machine.MachineRemounting, autoRemounting)
+
 		fsMountName, _ := mountcli.NewMountcli().FindMountNameByPath(m.LocalPath)
 		if fsMountName != "" {
 			failOnUnmount := true
@@ -171,6 +176,8 @@ func (r *Remote) restoreMounts() error {
 				remoteMachine.Name,
 			)
 		}
+
+		remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
 	}
 
 	return nil

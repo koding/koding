@@ -6,7 +6,7 @@ KDCustomScrollView = kd.CustomScrollView
 module.exports = class WebTermMessagePane extends KDCustomScrollView
 
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry \
       'message-pane console ubuntu-mono green-on-black', options.cssClass
@@ -47,7 +47,7 @@ module.exports = class WebTermMessagePane extends KDCustomScrollView
       partial: 'Connecting'
 
 
-  setMessage: (message, signal)->
+  setMessage: (message, signal) ->
 
     @message.updatePartial message
 
@@ -59,35 +59,35 @@ module.exports = class WebTermMessagePane extends KDCustomScrollView
     @show()
 
 
-  handleError: (err)->
+  handleError: (err) ->
 
     kd.utils.killRepeat @loader.repeater
     @loader.hide()
 
-    if err.message in ["ErrNoSession", "session doesn't exists"]
+    if err.message in ['ErrNoSession', "session doesn't exists"]
 
       @setMessage \
-        "This session is not valid anymore,
-        click here to create a new one.", 'RequestNewSession'
+        'This session is not valid anymore,
+        click here to create a new one.', 'RequestNewSession'
 
-    else if err.name is "TimeoutError"
-
-      @setMessage \
-        "Failed to connect to terminal,
-        click here to try again.", 'RequestReconnect'
-
-      sendDataDogEvent "TerminalConnectionFailed"
-
-    else if err.message is "session limit has reached"
+    else if err.name is 'TimeoutError'
 
       @setMessage \
-        "You have too many sessions opened,
-        click here to dismiss.", "DiscardSession"
+        'Failed to connect to terminal,
+        click here to try again.', 'RequestReconnect'
+
+      sendDataDogEvent 'TerminalConnectionFailed'
+
+    else if err.message is 'session limit has reached'
+
+      @setMessage \
+        'You have too many sessions opened,
+        click here to dismiss.', 'DiscardSession'
 
     else
 
       @setMessage \
-        "An unknown error occured, please open a new tab.
-        Click here to dismiss this one.", "DiscardSession"
+        'An unknown error occured, please open a new tab.
+        Click here to dismiss this one.', 'DiscardSession'
 
-      kd.warn "[Webterm]", err
+      kd.warn '[Webterm]', err

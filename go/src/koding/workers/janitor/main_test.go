@@ -26,6 +26,10 @@ func resetFakeEmails() {
 }
 
 func createInactiveUserWithWarning(daysInactive int, w string) (*models.User, error) {
+	return createInactiveUserWithWarningAndModificationTime(daysInactive, w, timeNow())
+}
+
+func createInactiveUserWithWarningAndModificationTime(daysInactive int, w string, mtime time.Time) (*models.User, error) {
 	username := bson.NewObjectId().Hex()
 	user := &models.User{
 		ObjectId:      bson.NewObjectId(),
@@ -34,7 +38,7 @@ func createInactiveUserWithWarning(daysInactive int, w string) (*models.User, er
 		LastLoginDate: timeNow().Add(-time.Hour * 24 * time.Duration(daysInactive)),
 		Inactive: &models.UserInactive{
 			Warning:    w,
-			ModifiedAt: timeNow(),
+			ModifiedAt: mtime,
 			Warnings: map[string]time.Time{
 				w: timeNow(),
 			},

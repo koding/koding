@@ -498,7 +498,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
                                            # for unknown routes.
 
     stackBasedStates =
-      NotInitialized : 'is not build yet.'
+      NotInitialized : 'is not built yet.'
 
     stackText = stateTexts[@state]
 

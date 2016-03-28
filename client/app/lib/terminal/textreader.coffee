@@ -1,7 +1,7 @@
 module.exports = class TextReader
 
   constructor: (@terminal) ->
-    @data = ""
+    @data = ''
 
   addData: (newData) ->
     @data += newData
@@ -16,5 +16,5 @@ module.exports = class TextReader
       @data = @data.substring remaining
     @terminal.writeText @data
     @terminal.cursor.move @data.length, 0
-    @data = ""
+    @data = ''
     true

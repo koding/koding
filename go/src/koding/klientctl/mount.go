@@ -17,6 +17,7 @@ import (
 	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
 	"koding/klientctl/list"
+	"koding/klientctl/metrics"
 	"koding/klientctl/ssh"
 	"koding/klientctl/util"
 
@@ -117,27 +118,14 @@ func (c *MountCommand) Run() (int, error) {
 		return exit, err
 	}
 
-	// create the mount dir if needed
-	if err := c.createMountDir(); err != nil {
+	// Get the machine name from a partial name, if needed.
+	if err := c.findMachineName(); err != nil {
 		return 1, err
 	}
 
-	// TODO: Try out using Cache Only here, we don't need a new VM list.
-	infos, err := c.Klient.RemoteList()
-	if err != nil {
-		cleanupPath = true
-
-		// Using internal error here, because a list error would be confusing to the
-		// user.
-		//
-		// TODO: Healthcheck here!
-		c.printfln(GenericInternalError)
-		return 1, fmt.Errorf("Failed to get list of machines on mount. err:%s", err)
-	}
-
-	// Find the machine by a name, even if partial.
-	if info, ok := infos.FindFromName(c.Options.Name); ok {
-		c.Options.Name = info.VMName
+	// create the mount dir if needed
+	if err := c.createMountDir(); err != nil {
+		return 1, err
 	}
 
 	if c.Options.PrefetchAll {
@@ -165,6 +153,15 @@ func (c *MountCommand) Run() (int, error) {
 
 		return 1, err
 	}
+
+	// track metrics
+	o := map[string]interface{}{
+		"no-ignore":        c.Options.NoIgnore,
+		"no-prefetch-meta": c.Options.NoPrefetchMeta,
+		"prefetch-all":     c.Options.PrefetchAll,
+		"no-watch":         c.Options.NoWatch,
+	}
+	metrics.TrackMount(c.Options.Name, c.Options.LocalPath, o)
 
 	c.printfln("Mount complete.")
 
@@ -243,6 +240,32 @@ func (c *MountCommand) createMountDir() error {
 	if err := os.MkdirAll(path, 0755); err != nil {
 		return fmt.Errorf("Error creating mount dir. err:%s", err)
 	}
+
+	return nil
+}
+
+// findMachineName gets the machine list and matches the users entry to a valid
+// machine. Printing otherwise if unable to do so.
+func (c *MountCommand) findMachineName() error {
+	// TODO: Try out using Cache Only here, we don't need a new VM list.
+	infos, err := c.Klient.RemoteList()
+	if err != nil {
+		// Using internal error here, because a list error would be confusing to the
+		// user.
+		//
+		// TODO: Healthcheck here!
+		c.printfln(GenericInternalError)
+		return fmt.Errorf("Failed to get list of machines on mount. err:%s", err)
+	}
+
+	// Find the machine by a name, even if partial.
+	info, ok := infos.FindFromName(c.Options.Name)
+	if !ok {
+		c.printfln(MachineNotFound)
+		return errors.New("Machine not found")
+	}
+
+	c.Options.Name = info.VMName
 
 	return nil
 }
@@ -414,6 +437,10 @@ func (c *MountCommand) mountFolder(r req.MountFolder) error {
 		case klientctlerrors.IsMachineNotValidYetErr(err):
 			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
 			return fmt.Errorf("Machine is not valid yet. err:%s", err)
+
+		case klientctlerrors.IsRemotePathNotExistErr(err):
+			c.printfln(RemotePathDoesNotExist)
+			return fmt.Errorf("Remote path does not exist. err:%s", err)
 
 		default:
 			// catch any remaining errors

@@ -37,6 +37,12 @@ const (
 
 	// The machine encountered an error
 	MachineError
+
+	// The machine is remounting
+	//
+	// TODO: Move this type to a mount specific status, once we support multiple
+	// mounts.
+	MachineRemounting
 )
 
 var (
@@ -300,6 +306,8 @@ func (ms MachineStatus) String() string {
 		return "MachineConnected"
 	case MachineError:
 		return "MachineError"
+	case MachineRemounting:
+		return "MachineRemounting"
 	default:
 		return "UnknownMachineConstant"
 	}

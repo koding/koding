@@ -21,18 +21,21 @@ module.exports = {
   USER_LEFT_TEAM  : 'leave team'
 
   # VM ACTIONS
-  VM_TERMINATED   : 'terminated vm'
-  VM_TURNED_ON    : 'turn on vm'
+  VM_TERMINATED    : 'terminated vm'
+  VM_TURNED_ON     : 'turn on vm'
+  VM_SET_ALWAYS_ON : 'set vm to always on'
 
   # KD
-  KD_INSTALLED    : 'installed kd'
+  KD_START_INSTALL : 'started kd install'
 
   # STACKS
-  STACKS_ADDED_AWS_KEYS : 'added aws keys'
-  STACKS_SETUP          : 'setup stack'
-  STACKS_EDIT           : 'edit stack'
-  STACKS_REINIT         : 'reinitialized stack'
-  STACKS_DELETE         : 'deleted stack'
+  STACKS_ADDED_AWS_KEYS     : 'added aws keys'
+  STACKS_START_BUILD        : 'started stack build'
+  STACKS_BUILD_SUCCESSFULLY : 'stack build successfully'
+  STACKS_BUILD_FAILED       : 'stack build failed'
+  STACKS_EDIT               : 'edit stack'
+  STACKS_REINIT             : 'reinitialized stack'
+  STACKS_DELETE             : 'deleted stack'
 
   # PROVIDERS
   STACKS_WIZARD_SELECTED_AWS          : 'selected aws provider'

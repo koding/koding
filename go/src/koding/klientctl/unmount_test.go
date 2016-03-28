@@ -10,6 +10,12 @@ import (
 
 	"github.com/koding/logging"
 
+	"koding/klient/remote/restypes"
+	//"koding/klientctl/klientctlerrors"
+	"koding/klientctl/list"
+	"koding/klientctl/util/testutil"
+	"koding/mountcli"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -138,6 +144,65 @@ func TestUnmountRemoveMountFolder(t *testing.T) {
 		Convey("It should warn the user", func() {
 			c.removeMountFolder()
 			So(stdout.String(), ShouldContainSubstring, UnmountFailedRemoveMountPath)
+		})
+	})
+}
+
+func TestUnmountFindMountAndPath(t *testing.T) {
+	Convey("Given an UnmountCommand", t, func() {
+		fakeKlient := &testutil.FakeKlient{}
+		var stdout bytes.Buffer
+		c := &UnmountCommand{
+			Klient: fakeKlient,
+			Log:    discardLogger,
+			Stdout: &stdout,
+			mountFinder: &testutil.FakeMountcli{
+				ReturnMountByPathErr: mountcli.ErrNoMountName,
+			},
+		}
+
+		Convey("Given a machine name that does not exist", func() {
+			c.Options.MountName = "bar"
+			fakeKlient.ReturnInfos = []list.KiteInfo{list.KiteInfo{restypes.ListMachineInfo{
+				VMName: "foo",
+			}},
+			}
+
+			Convey("It should fail and inform the user", func() {
+				err := c.findMountAndPath()
+				So(err, ShouldNotBeNil)
+				So(stdout.String(), ShouldContainSubstring, MachineNotFound)
+			})
+		})
+
+		Convey("Given a machine that has mounts", func() {
+			c.Options.MountName = "foo"
+			fakeKlient.ReturnInfos = []list.KiteInfo{list.KiteInfo{restypes.ListMachineInfo{
+				VMName: "foo",
+				// Content doesn't matter, just length
+				Mounts: []restypes.ListMountInfo{restypes.ListMountInfo{}},
+			}},
+			}
+
+			Convey("It should not return an error", func() {
+				So(c.findMountAndPath(), ShouldBeNil)
+			})
+		})
+
+		Convey("Given a machine that has no mounts", func() {
+			c.Options.MountName = "foo"
+			fakeKlient.ReturnInfos = []list.KiteInfo{list.KiteInfo{restypes.ListMachineInfo{
+				VMName: "foo",
+				// Content doesn't matter, just length
+				Mounts: []restypes.ListMountInfo{},
+			}},
+			}
+
+			Convey("It should fail and inform the user", func() {
+				err := c.findMountAndPath()
+				So(err, ShouldNotBeNil)
+				So(stdout.String(), ShouldContainSubstring, MountNotFound)
+			})
 		})
 	})
 }

@@ -6,6 +6,8 @@ import (
 	"github.com/koding/kite/dnode"
 )
 
+var kitePingTimeout = 2 * time.Second
+
 // KiteTransport implements the Kite methods that the KitePinger uses.
 type KiteTransport interface {
 	TellWithTimeout(string, time.Duration, ...interface{}) (*dnode.Partial, error)
@@ -34,7 +36,7 @@ func (p *KitePinger) Ping() Status {
 	// Default to success
 	status := Success
 
-	_, err := p.transport.TellWithTimeout("kite.ping", time.Second*1)
+	_, err := p.transport.TellWithTimeout("kite.ping", kitePingTimeout)
 	// If there is any error getting the response we consider it a failed ping. As such,
 	// we set the status to false.
 	if err != nil {

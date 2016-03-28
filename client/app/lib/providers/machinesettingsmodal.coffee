@@ -90,13 +90,12 @@ module.exports = class MachineSettingsModal extends KDModalView
 
       subView    = new item.viewClass item.viewOptions, machine
       isDisabled = not isMachineRunning and disabledTabsForNotRunningVM.indexOf(item.title) > -1
-      isManaged  = machine.isManaged()
+      managedAndNotKoding = not isKoding() and machine.isManaged()
 
-      if disabledTabs = disabledTabsForProviders[machine.provider]
-        isDisabled = disabledTabs.indexOf(item.title) > -1
-
-      unless isKoding()
-        isDisabled = disabledTabsForTeams.indexOf(item.title) > -1 and not isManaged
+      if disabledTabs = disabledTabsForProviders[machine.provider] or managedAndNotKoding
+        isDisabled = item.title in disabledTabs
+      else
+        isDisabled = item.title in disabledTabsForTeams
 
       @tabView.addPane pane = new KDTabPaneView
         name     : item.title

@@ -12,9 +12,7 @@ remote                    = require('app/remote').getInstance()
 
 MachinesList              = require './machineslist'
 MachinesListController    = require './machineslistcontroller'
-
 KodingSwitch              = require 'app/commonviews/kodingswitch'
-ComputeHelpers            = require '../providers/computehelpers'
 StackTemplateContentModal = require 'app/stacks/stacktemplatecontentmodal'
 
 
@@ -109,13 +107,9 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleStackReinit: ->
 
-    stack = @getData()
-
-    @getDelegate().emit 'StackReinitRequested', stack
+    @sendItemAction 'StackReinitRequested', { item : this }
 
     Tracker.track Tracker.STACKS_REINIT
-
-    kd.singletons.computeController.reinitStack stack, => @reinitButton.hideLoader()
 
 
   handleStackDelete: ->
@@ -128,13 +122,19 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
       Tracker.track Tracker.STACKS_DELETE
 
-      @getDelegate().emit 'StackDeleteRequested', @getData()
+      @sendItemAction 'StackDeleteRequested', { item : this }
+
+
+  sendItemAction: (action, params = {}) ->
+
+    params.action = action
+
+    @getDelegate().emit 'ItemAction', params
 
 
   handleMachineRequest: (provider) ->
 
-    ComputeHelpers.handleNewMachineRequest { provider }, (machineCreated) =>
-      @destroyModal not machineCreated
+   @sendItemAction 'NewMachineRequest', { item : provider }
 
 
   destroyModal: (goBack = yes) ->

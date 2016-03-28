@@ -1,6 +1,7 @@
 package main
 
 import (
+	"socialapi/config"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -69,6 +70,31 @@ var DeleteInactiveUserVM = &Warning{
 	Action: DeleteVMs,
 
 	Throttled: true,
+}
+
+func newDeleteInactiveUsersWarning(conf *config.Config) *Warning {
+	return &Warning{
+		ID: "deleteInactiveUsers",
+
+		Description: "Find users inactive for > 45 days, deleted ALL their vms",
+
+		PreviousWarning: DeleteInactiveUserVM,
+
+		IntervalSinceLastWarning: time.Hour * 24 * 15, // 15 days since last warning
+
+		Select: []bson.M{
+			bson.M{"lastLoginDate": dayRangeQuery(45, DefaultRangeForQuery)},
+			bson.M{"inactive.warning": DeleteInactiveUserVM.ID},
+		},
+
+		ExemptCheckers: []*ExemptChecker{
+			IsTooSoon, IsUserPaid, HasMultipleMemberships, IsUserKodingEmployee,
+		},
+
+		Action: newDeleteUser(conf),
+
+		Throttled: true,
+	}
 }
 
 var DeleteBlockedUserVM = &Warning{

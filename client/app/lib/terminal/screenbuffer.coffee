@@ -61,22 +61,22 @@ module.exports = class ScreenBuffer
 
     linesToAdd = maxLineIndex - @lineDivOffset - @lineDivs.length + 1
     if linesToAdd > 0
-      scrolledToBottom = @terminal.isScrolledToBottom() or @terminal.container.queue().length != 0
+      scrolledToBottom = @terminal.isScrolledToBottom() or @terminal.container.queue().length isnt 0
       newDivs = []
       for i in [0...linesToAdd]
-        div = global.document.createElement("div")
-        $(div).text "\xA0"
+        div = global.document.createElement('div')
+        $(div).text '\xA0'
         newDivs.push div
         @lineDivs.push div
       @terminal.outputbox.append newDivs
 
       linesToDelete = @lineDivs.length - @scrollbackLimit
       if linesToDelete > 0
-        scrollOffset = @terminal.container.prop("scrollHeight") - @terminal.container.scrollTop()
+        scrollOffset = @terminal.container.prop('scrollHeight') - @terminal.container.scrollTop()
         $(@lineDivs.slice(0, linesToDelete)).remove()
         @lineDivs = @lineDivs.slice linesToDelete
         @lineDivOffset += linesToDelete
-        @terminal.container.scrollTop(@terminal.container.prop("scrollHeight") - scrollOffset)
+        @terminal.container.scrollTop(@terminal.container.prop('scrollHeight') - scrollOffset)
 
       @terminal.scrollToBottom() if scrolledToBottom
 
@@ -87,7 +87,7 @@ module.exports = class ScreenBuffer
       div = $(@lineDivs[index - @lineDivOffset])
       div.empty()
       div.append content.getNodes()
-      div.text "\xA0" if content.getNodes().length is 0
+      div.text '\xA0' if content.getNodes().length is 0
 
     @linesToUpdate = []
 
@@ -136,8 +136,8 @@ module.exports = class ScreenBuffer
 
       missing = (endIndex - beginIndex) - length
       if missing > 0
-        text = ""
-        text += "\xA0" for [0...missing]
+        text = ''
+        text += '\xA0' for [0...missing]
         content.push new StyledText(text, StyledText.DEFAULT_STYLE)
 
       content

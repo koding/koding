@@ -9,6 +9,7 @@ import (
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
+	"koding/klientctl/metrics"
 	"koding/klientctl/util"
 
 	"github.com/koding/kite/dnode"
@@ -97,32 +98,9 @@ func (c *UnmountCommand) Run() (int, error) {
 		return 1, err
 	}
 
-	infos, err := c.Klient.RemoteList()
-	if err != nil {
-		// Using internal error here, because a list error would be confusing to the
-		// user.
-		c.printfln(GenericInternalError)
-		return 1, fmt.Errorf("Failed to get list of machines on mount. err:%s", err)
-	}
-
-	info, ok := infos.FindFromName(c.Options.MountName)
-	if ok && len(info.MountedPaths) > 0 {
-		c.Options.MountName = info.VMName
-	}
-
-	// If options path is empty, get the path before we unmount
-	if c.Options.Path == "" {
-		p, err := c.mountFinder.FindMountedPathByName(c.Options.MountName)
-		if err != nil {
-			// An removeMountFolder will give the user feedback if path is empty, so
-			// we'll just log an error here so we know internally what went wrong. No UX
-			// is needed here, yet. We can still unmount successfully.
-			c.Log.Error("Failed to FindMountedPath. err:%s", err)
-		} else {
-			// It's unlikely that p and an error are both returned, but just to be safe,
-			// only write a path to Path options if no error was returned.
-			c.Options.Path = p
-		}
+	// Find the mount name and path
+	if err := c.findMountAndPath(); err != nil {
+		return 1, err
 	}
 
 	// unmount using mount name
@@ -135,7 +113,7 @@ func (c *UnmountCommand) Run() (int, error) {
 	//
 	// Note that if there is an error, we still successfully unmounted - we just
 	// failed to remove the folder. So go ahead and print success.
-	err = c.removeMountFolder()
+	err := c.removeMountFolder()
 
 	// make sure to print success *after* removeMountFolder. Even though we're
 	// ignoring removal errors, we don't want to print success and then a warning.
@@ -171,6 +149,55 @@ func (c *UnmountCommand) setupKlient() error {
 	}
 
 	c.Klient = k
+
+	return nil
+}
+
+func (c *UnmountCommand) findMountAndPath() error {
+	infos, err := c.Klient.RemoteList()
+	if err != nil {
+		// Using internal error here, because a list error would be confusing to the
+		// user.
+		c.printfln(GenericInternalError)
+		return fmt.Errorf("Failed to get list of machines on mount. err:%s", err)
+	}
+
+	info, machineFound := infos.FindFromName(c.Options.MountName)
+
+	// if the machine is found, set the machinename field so that we can correct
+	// typos/etc from user input.
+	if machineFound {
+		c.Options.MountName = info.VMName
+	}
+
+	// If options path is empty, get the path before we unmount
+	if c.Options.Path == "" {
+		p, err := c.mountFinder.FindMountedPathByName(c.Options.MountName)
+		if err != nil {
+			// removeMountFolder will give the user feedback if path is empty, so
+			// we'll just log an error here so we know internally what went wrong. No UX
+			// is needed here, yet. We can still unmount successfully.
+			c.Log.Error("Failed to FindMountedPath. err:%s", err)
+		} else {
+			// It's unlikely that p and an error are both returned, but just to be safe,
+			// only write a path to Path options if no error was returned.
+			c.Options.Path = p
+		}
+	}
+
+	// If we cannot find the path, or machine, then the there is nothing we can
+	// unmount.  Inform the user.
+	if !machineFound && c.Options.Path == "" {
+		c.printfln(MachineNotFound)
+		return errors.New("Unable to unmount, machine not found")
+	}
+
+	// if there are no mounts for the given name, and no path was found, then
+	// the machine there is nothing we can unmount. Inform the user.
+	if len(info.Mounts) == 0 && c.Options.Path == "" {
+		c.printfln(MountNotFound)
+		return errors.New("Unable to unmount, no mounts found")
+	}
 
 	return nil
 }
@@ -213,8 +240,14 @@ func (c *UnmountCommand) Unmount(name, path string) error {
 	}
 
 	// currently there's no return response to care about
-	_, err := c.Klient.Tell("remote.unmountFolder", req)
-	return err
+	if _, err := c.Klient.Tell("remote.unmountFolder", req); err != nil {
+		return err
+	}
+
+	// track metrics
+	metrics.TrackUnmount(name)
+
+	return nil
 }
 
 func unmount(kite *kite.Client, name, path string, log logging.Logger) error {

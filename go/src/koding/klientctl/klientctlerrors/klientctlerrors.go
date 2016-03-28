@@ -87,7 +87,7 @@ func IsListReconnectingErr(err error) bool {
 // It does so by checking both the kite.Error type, and the message - to be as sure
 // as possible.
 func IsSessionNotEstablishedFailure(err error) bool {
-	return isKiteOfTypeErr(
+	return isKiteOfTypeOrPrefixErr(
 		err, "sendError",
 		`can't send, session is not established yet`,
 	)
@@ -99,13 +99,17 @@ func IsSessionNotEstablishedFailure(err error) bool {
 // Note that this is explicitly checking GetKodingKites, as that is the only method
 // remote.list and kd list uses.
 func IsGetKitesFailure(err error) bool {
-	return isKiteOfTypeErr(
+	return isKiteOfTypeOrPrefixErr(
 		err, "timeout",
 		`No response to "getKodingKites"`,
 	)
 }
 
-func isKiteOfTypeErr(err error, t, m string) bool {
+func IsRemotePathNotExistErr(err error) bool {
+	return isKiteOfTypeErr(err, kiteerrortypes.RemotePathDoesNotExist)
+}
+
+func isKiteOfTypeErr(err error, t string) bool {
 	if err == nil {
 		return false
 	}
@@ -116,7 +120,23 @@ func isKiteOfTypeErr(err error, t, m string) bool {
 		return false
 	case kiteErr.Type != t:
 		return false
-	case !strings.HasPrefix(kiteErr.Message, m):
+	default:
+		return true
+	}
+}
+
+func isKiteOfTypeOrPrefixErr(err error, t, p string) bool {
+	if err == nil {
+		return false
+	}
+
+	kiteErr, ok := err.(*kite.Error)
+	switch {
+	case !ok:
+		return false
+	case kiteErr.Type != t:
+		return false
+	case !strings.HasPrefix(kiteErr.Message, p):
 		return false
 	default:
 		return true

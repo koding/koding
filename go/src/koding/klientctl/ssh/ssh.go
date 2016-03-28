@@ -30,7 +30,9 @@ var (
 
 	ErrFailedToGetSSHKey = errors.New("Failed to get ssh key.")
 
-	ErrMachineNotValidYet = errors.New("Machine not valid yet")
+	ErrMachineNotValidYet = errors.New("Machine not valid yet.")
+
+	ErrDialingFailed = errors.New("Dialing failed.")
 )
 
 // SSHCommand is the command that lets users ssh into a remote machine.  It
@@ -101,6 +103,10 @@ func (s *SSHCommand) Run(machine string) error {
 		// updated to the new (final) format. Fix this.
 		if klientctlerrors.IsMachineNotValidYetErr(err) {
 			return ErrMachineNotValidYet
+		}
+
+		if klientctlerrors.IsDialFailedErr(err) {
+			return ErrDialingFailed
 		}
 
 		return ErrFailedToGetSSHKey

@@ -114,7 +114,7 @@ module.exports = class Cursor
       @element = new StyledText ' ', @terminal.currentStyle
 
     @element.spanForced     = yes
-    @element.style.outlined = !@focused
+    @element.style.outlined = not @focused
     @element.style.inverse  =  @focused and @inversed
 
     newContent.push @element
@@ -127,7 +127,7 @@ module.exports = class Cursor
 
     return  unless @element?
 
-    @element.style.outlined = !@focused
+    @element.style.outlined = not @focused
     @element.style.inverse  =  @focused and @inversed
 
     @element.updateNode()

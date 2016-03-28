@@ -284,7 +284,7 @@ module.exports = class ComputeController extends KDController
 
   queryMachines: (query = {}, callback = kd.noop) ->
 
-    remote.api.JMachine.some query, (err, machines) =>
+    remote.api.JMachine.some query, (err, machines) ->
       if showError err then callback err
       else callback null, (new Machine { machine } for machine in machines)
 
@@ -683,7 +683,6 @@ module.exports = class ComputeController extends KDController
     unless state is 'NotInitialized'
       if state is 'Building'
         @eventListener.addListener 'apply', stack._id
-        Tracker.track Tracker.STACKS_SETUP
       else
         kd.warn 'Stack already initialized, skipping.', stack
       return
@@ -696,6 +695,8 @@ module.exports = class ComputeController extends KDController
         percentage  : 0
 
       machine.getBaseKite( no ).disconnect()
+
+    Tracker.track Tracker.STACKS_START_BUILD
 
     stackId = stack._id
     call    = @getKloud().buildStack { stackId }
@@ -808,6 +809,8 @@ module.exports = class ComputeController extends KDController
 
     if err = methodNotSupportedBy machine
       return callback err
+
+    Tracker.track Tracker.VM_SET_ALWAYS_ON
 
     @update machine, { alwaysOn: state }, callback
 
