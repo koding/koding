@@ -37,9 +37,9 @@ module.exports = class BaseStackTemplateListItem extends kd.ListItemView
     listView  = @getDelegate()
     @menu    ?= {}
 
-    @addMenuItem 'Show', listView.lazyBound 'showItemContent', this
-    @addMenuItem 'Edit', @bound 'editStackTemplate'
+    @addMenuItem 'Show', => listView.emit 'ItemAction', { action : 'ShowItem', item : this }
+    @addMenuItem 'Edit', => listView.emit 'ItemAction', { action : 'EditItem', item : this }
     @addMenuItem 'Generate Stack', @bound 'generateStackFromTemplate'
-    @addMenuItem 'Delete', listView.lazyBound 'deleteItem', this
+    @addMenuItem 'Delete', => listView.emit 'ItemAction', { action : 'RemoveItem', item : this }
 
     return @menu
