@@ -1,7 +1,6 @@
 kd                        = require 'kd'
 timeago                   = require 'timeago'
 showError                 = require 'app/util/showError'
-Tracker                   = require 'app/util/tracker'
 
 BaseStackTemplateListItem = require './basestacktemplatelistitem'
 ForceToReinitModal        = require './forcetoreinitmodal'
@@ -61,54 +60,6 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
         new kd.NotificationView { title: 'Stack generated successfully' }
 
 
-  editStackTemplate: ->
-
-    stackTemplate = @getData()
-
-    if stackTemplate.isDefault
-
-      modal = new kd.ModalView
-        title          : 'Editing default stack template ?'
-        overlay        : yes
-        overlayOptions :
-          cssClass     : 'second-overlay'
-          overlayClick : yes
-        content        : '
-          This stack template is currently used by your team. If you continue
-          to edit, all of your changes will be applied to all team members directly.
-          We highly recommend you to clone this stack template
-          first and work on the cloned version. Once you finish your work,
-          you can easily apply your changes for all team members.
-        '
-        buttons      :
-
-          'Clone and Open Editor':
-            style    : 'solid medium green'
-            loader   : yes
-            callback : =>
-              stackTemplate.clone (err, cloneStackTemplate) =>
-                unless showError err
-                  @_itemCloned()
-                  @_itemSelected cloneStackTemplate
-                  Tracker.track Tracker.STACKS_CLONED_TEMPLATE
-                modal.destroy()
-
-          "I know what I'm doing, Open Editor":
-            style    : 'solid medium red'
-            callback : =>
-              @_itemSelected()
-              modal.destroy()
-              Tracker.track Tracker.STACKS_STARTED_EDIT_DEFAULT
-
-    else
-      @_itemSelected()
-      Tracker.track Tracker.STACKS_STARTED_EDIT
-
-
-  _itemCloned: (data) ->
-    @getDelegate().emit 'ItemCloned', data ? @getData()
-
-
   _itemSelected: (data) ->
     @getDelegate().emit 'ItemSelected', data ? @getData()
 
@@ -120,7 +71,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     if not stackTemplate.isDefault and stackTemplate.config.verified
       @addMenuItem 'Apply to Team', ->
-        listView.emit 'ItemSelectedAsDefault', stackTemplate
+        listView.emit 'ItemAction', { action : 'ItemSelectedAsDefault', item : this }
 
     # temporary comment until stack admin message design is ready
     # if stackTemplate.canForcedReinit
