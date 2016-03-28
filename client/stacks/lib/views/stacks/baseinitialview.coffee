@@ -28,11 +28,6 @@ module.exports = class BaseInitialView extends kd.View
       .on 'ItemSelected', (stackTemplate) =>
         @emit 'EditStack', stackTemplate
 
-      .on 'ItemDeleted', =>
-        kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
-
-      .on 'ItemCloned', @bound 'reload'
-
       .on 'ItemSelectedAsDefault', @bound 'setDefaultTemplate'
 
       .on 'StackGenerated', @bound 'reload'
