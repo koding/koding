@@ -1,10 +1,27 @@
 package tunnel
 
 import (
-	"koding/klient/storage"
+	"encoding/json"
+	"errors"
 
 	"github.com/boltdb/bolt"
 )
+
+type Storage interface {
+	Options() (*Options, error)
+	SetOptions(*Options) error
+}
+
+func newStorage(opts *Options) Storage {
+	b, err := newBoltStorage(opts.DB)
+	if err == nil {
+		return b
+	}
+
+	opts.Log.Warning("tunnel: unable to open BoltDB: %s", err)
+
+	return newMemStorage()
+}
 
 var (
 	// dbBucket is the bucket name used to retrieve and store the resolved
@@ -13,25 +30,78 @@ var (
 	dbOptions = []byte("options")
 )
 
-type Storage struct {
-	db *storage.EncodingStorage
+type boltStorage struct {
+	db *bolt.DB
 }
 
-func NewStorage(db *bolt.DB) *Storage {
-	return &Storage{
-		db: storage.NewEncodingStorage(db, dbBucket),
+func newBoltStorage(db *bolt.DB) (*boltStorage, error) {
+	if db == nil {
+		return nil, errors.New("no local database")
 	}
+	b := &boltStorage{
+		db: db,
+	}
+
+	if err := b.init(); err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
 
-func (s *Storage) Options() (*Options, error) {
+func (b *boltStorage) init() error {
+	return b.db.Update(func(tx *bolt.Tx) (err error) {
+		if tx.Bucket(dbBucket) == nil {
+			_, err = tx.CreateBucket(dbBucket)
+		}
+		return err
+	})
+}
+
+func (b *boltStorage) Options() (*Options, error) {
 	var opts Options
-	if err := s.db.GetValue("options", &opts); err != nil {
+	err := b.db.View(func(tx *bolt.Tx) error {
+		p := tx.Bucket(dbBucket).Get(dbOptions)
+		if len(p) == 0 {
+			return errors.New("not found")
+		}
+
+		return json.Unmarshal(p, &opts)
+	})
+
+	if err != nil {
 		return nil, err
 	}
 
 	return &opts, nil
 }
 
-func (s *Storage) SetOptions(opts *Options) error {
-	return s.db.SetValue("options", opts)
+func (b *boltStorage) SetOptions(opts *Options) error {
+	p, err := json.Marshal(opts)
+	if err != nil {
+		return err
+	}
+
+	return b.db.Update(func(tx *bolt.Tx) error {
+		return tx.Bucket(dbBucket).Put(dbOptions, p)
+	})
+}
+
+type memStorage struct {
+	opts *Options
+}
+
+func newMemStorage() *memStorage {
+	return &memStorage{
+		opts: &Options{},
+	}
+}
+
+func (m *memStorage) Options() (*Options, error) {
+	return m.opts.copy(), nil
+}
+
+func (m *memStorage) SetOptions(opts *Options) error {
+	m.opts = opts.copy()
+	return nil
 }

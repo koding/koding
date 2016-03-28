@@ -34,24 +34,16 @@ const (
 	StateSaved      = State("saved")
 )
 
-// ForwardedPort represents a single config.vm.network "forwarded_port" rule
-// in a Vagrantfile.
-type ForwardedPort struct {
-	GuestPort int
-	HostPort  int
-}
-
 // Create represents vagrant.create request and response.
 type Create struct {
-	FilePath       string // always absolute for response values
-	ProvisionData  string // base64-json-encoded userdata.Value
-	Hostname       string // hostname of the box
-	Box            string // box type
-	Memory         int    // memory in MiB
-	Cpus           int    // number of cores
-	CustomScript   string // custom sh script, plain text
-	HostURL        string // host kite URL
-	ForwardedPorts []*ForwardedPort
+	FilePath      string // always absolute for response values
+	ProvisionData string // base64-json-encoded userdata.Value
+	Hostname      string // hostname of the box
+	Box           string // box type
+	Memory        int    // memory in MiB
+	Cpus          int    // number of cores
+	CustomScript  string // custom sh script, plain text
+	HostURL       string // host kite URL
 }
 
 // Command represents vagrant.{up,halt,destroy} requests.
