@@ -11,7 +11,7 @@ module.exports = class HomeTeamSendInvites extends kd.CustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass or= kd.utils.curry 'invite-view', options.cssClass
+    options.cssClass = kd.utils.curry 'invite-view', options.cssClass
 
     super options, data
 
