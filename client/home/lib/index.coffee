@@ -1,9 +1,9 @@
 kd                 = require 'kd'
 AppController      = require 'app/appcontroller'
 HomeAppView        = require './homeappview'
-HomeAccountView    = require './account'
 HomeUtilitiesView  = require './utilities'
 HomeTeamView       = require './team'
+HomeAccount     = require './account'
 
 do require './routehandler'
 
@@ -19,8 +19,8 @@ module.exports = class HomeAppController extends AppController
     { title : 'My Team',          viewClass : HomeTeamView,      role: 'member' }
     { title : 'Koding Utilities', viewClass : HomeUtilitiesView, role: 'member' }
     { title : 'Support',          viewClass : kd.CustomHTMLView, role: 'member' }
-    { title : 'My Account',       viewClass : HomeAccountView,   role: 'member' }
     { title : 'Logout',           viewClass : kd.CustomHTMLView, role: 'member' }
+    { title : 'My Account',       viewClass : HomeAccount,       role: 'member' }
   ]
 
 
