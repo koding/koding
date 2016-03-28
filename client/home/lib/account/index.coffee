@@ -19,19 +19,16 @@ section = (name) ->
     cssClass : "HomeAppView--section #{kd.utils.slugify name}"
 
 
-module.exports = class HomeAccount extends kd.View
+module.exports = class HomeAccount extends kd.CustomScrollView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass = kd.utils.curry 'HomeAppView--scroller', options.cssClass
+
     super options, data
 
-    @addSubView scrollView = new kd.CustomScrollView
-      cssClass : 'HomeAppView--scroller'
-
-    { wrapper } = scrollView
-
-    wrapper.addSubView profile     = section 'Profile'
-    wrapper.addSubView password    = section 'Password'
-    wrapper.addSubView security    = section 'Security'
-    wrapper.addSubView credentials = section 'Credentials'
-    wrapper.addSubView sessions    = section 'Sessions'
+    @wrapper.addSubView profile     = section 'Profile'
+    @wrapper.addSubView password    = section 'Password'
+    @wrapper.addSubView security    = section 'Security'
+    @wrapper.addSubView credentials = section 'Credentials'
+    @wrapper.addSubView sessions    = section 'Sessions'

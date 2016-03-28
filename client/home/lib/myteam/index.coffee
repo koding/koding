@@ -16,22 +16,18 @@ section = (name, options, data) ->
   }, data
 
 
-module.exports = class HomeMyTeam extends kd.View
+module.exports = class HomeMyTeam extends kd.CustomScrollView
 
   constructor: (options = {}, data) ->
+
+    options.cssClass = kd.utils.curry 'HomeAppView--scroller', options.cssClass
 
     super options, data
 
     { groupsController } = kd.singletons
 
-    @addSubView scrollView = new kd.CustomScrollView
-      cssClass : 'HomeAppView--scroller'
-
-    groupsController.ready ->
+    groupsController.ready =>
       team = groupsController.getCurrentGroup()
-
-      { wrapper } = scrollView
-
-      wrapper.addSubView section 'Invite Using Slack'
-      wrapper.addSubView section 'Send Invites'
-      wrapper.addSubView section 'Teammates', null, team
+      @wrapper.addSubView section 'Invite Using Slack'
+      @wrapper.addSubView section 'Send Invites'
+      @wrapper.addSubView section 'Teammates', null, team

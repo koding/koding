@@ -13,16 +13,13 @@ section = (name) ->
     cssClass : "HomeAppView--section #{kd.utils.slugify name}"
 
 
-module.exports = class HomeUtilities extends kd.View
+module.exports = class HomeUtilities extends kd.CustomScrollView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass = kd.utils.curry 'HomeAppView--scroller', options.cssClass
+
     super options, data
 
-    @addSubView scrollView = new kd.CustomScrollView
-      cssClass : 'HomeAppView--scroller'
-
-    { wrapper } = scrollView
-
-    wrapper.addSubView section 'KD CLI'
-    wrapper.addSubView section 'Koding OS X App'
+    @wrapper.addSubView section 'KD CLI'
+    @wrapper.addSubView section 'Koding OS X App'
