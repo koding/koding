@@ -67,6 +67,24 @@ module.exports = class StackTemplateListController extends KodingListController
       showError err, { KodingError : 'Failed to fetch stackTemplates, try again later.' }
 
 
+  applyToTeam: (item) ->
+
+    stackTemplate = item.getData()
+    { config }    = stackTemplate
+
+    unless config.verified
+      return @emit 'StackIsNotVerified', stackTemplate
+
+    { groupsController, appManager } = kd.singletons
+
+    groupsController.setDefaultTemplate stackTemplate, (err) =>
+      if err
+        @emit 'FailedToSetTemplate', err
+      else
+        @reload()
+        appManager.tell 'Stacks', 'reloadStackTemplatesList'
+
+
   generateStack: (item) ->
 
     stackTemplate = item.getData()

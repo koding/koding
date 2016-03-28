@@ -28,14 +28,18 @@ module.exports = class BaseInitialView extends kd.View
       .on 'ItemSelected', (stackTemplate) =>
         @emit 'EditStack', stackTemplate
 
-      .on 'ItemSelectedAsDefault', @bound 'setDefaultTemplate'
-
-      .on 'StackGenerated', @bound 'reload'
-
-    @stackTemplateList.listController.on 'ItemsLoaded', (stackTemplates) =>
-      @emit 'NoTemplatesFound'  if stackTemplates.length is 0
-      @button?.show()
-      @emit 'ready'
+    @stackTemplateList.listController
+      .on 'ItemsLoaded', (stackTemplates) =>
+        @emit 'NoTemplatesFound'  if stackTemplates.length is 0
+        @button?.show()
+        @emit 'ready'
+      .on 'StackIsNotVerified', =>
+        @showWarning '
+          This stack template is not verified, please edit and save again
+          to verify it. Only a verified stack template can be applied to a Team.
+        '
+      .on 'FailedToSetTemplate', (err) =>
+        @showWarning "Failed to set template: \n#{err.message}"
 
 
   reload: ->
