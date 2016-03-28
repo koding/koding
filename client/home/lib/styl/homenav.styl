@@ -33,6 +33,7 @@ $gray                       = #B0B0B0
   noTextDeco()
   pointer()
   rel()
+
   &:after
     content                 ''
     vendor                  transition, transform .099s .099s ease-in
@@ -41,11 +42,15 @@ $gray                       = #B0B0B0
     size                    4px 100%
     bg                      color, $green
     vendor                  transform, translateX(3px)
+
   &.active
     vendor                  transform, translateX(-3px)
     color                   $green
     &:after
       vendor                transform, translateX(0px)
+
+  &.my-account
+    hidden()
 
 
 .HomeAppView-Nav--Title
