@@ -47,7 +47,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
             'Only you can use this template'
 
     @isDefaultView.hide() unless isDefault
-    @inUseView.hide()  unless inUse
+    @inUseView.hide()     unless inUse
     @notReadyView.hide()  if config.verified
 
 
