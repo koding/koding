@@ -30,7 +30,7 @@ module.exports = class HomeTeamConnectSlack extends kd.CustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass or= kd.utils.curry 'slack-invite-view', options.cssClass
+    options.cssClass = kd.utils.curry 'slack-invite-view', options.cssClass
 
     super options, data
 
