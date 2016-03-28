@@ -65,20 +65,47 @@ module.exports =
     console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password} to team: #{helpers.getUrl(yes)}"
 
 
-  loginToTeam: (browser, user) ->
+  loginToTeam: (browser, user, invalidCredentials = no) ->
+
+    inputUserName        = 'input[name=username]'
+    inputPassword        = 'input[name=password]'
+    notificationSelector = '.team .kdnotification.main'
+    loginButton          = 'button[testpath=login-button]'
 
     browser
       .pause                  2000 # wait for login page
       .waitForElementVisible  '.TeamsModal--login', 20000
       .waitForElementVisible  'form.login-form', 20000
-      .setValue               'input[name=username]', user.username
-      .setValue               'input[name=password]', user.password
-      .click                  'button[testpath=login-button]'
 
-    @loginAssertion(browser)
+    if invalidCredentials
+      browser
+        .setValue               inputUserName, "a@b.com"
+        .setValue               inputPassword, "password"
+        .click                  loginButton
+        .waitForElementVisible  notificationSelector, 20000
+        .assert.containsText    notificationSelector, 'Unrecognized email'
+        .pause                  2000 # wait for notification to disappear
+        .clearValue             inputUserName
+        .setValue               inputUserName, "testUserName"
+        .click                  loginButton
+        .waitForElementVisible  notificationSelector, 20000
+        .assert.containsText    notificationSelector, 'Unknown user name'
+        .pause                  2000 # wait for notification to disappear
+        .clearValue             inputUserName
+        .setValue               inputUserName, user.username
+        .click                  loginButton
+        .waitForElementVisible  notificationSelector, 20000
+        .assert.containsText    notificationSelector, 'Access denied'
+    else
+      browser
+        .setValue               inputUserName, user.username
+        .setValue               inputPassword, user.password
+        .click                  loginButton
+
+      @loginAssertion(browser)
 
 
-  loginTeam: (browser) ->
+  loginTeam: (browser, invalidCredentials = no) ->
 
     user = utils.getUser()
     url  = helpers.getUrl(yes)
@@ -93,7 +120,10 @@ module.exports =
     browser.pause  3000
     browser.element 'css selector', teamsLogin, (result) =>
       if result.status is 0
-        @loginToTeam browser, user
+        if invalidCredentials
+          @loginToTeam browser, user, yes
+        else
+          @loginToTeam browser, user
       else
         @createTeam browser
 
