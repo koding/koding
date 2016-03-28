@@ -495,6 +495,7 @@ module.exports = class DefineStackView extends KDView
             if response
               @outputView.add 'Bootstrap completed successfully'
               showCredentialContent credential
+              Tracker.track Tracker.STACKS_AWS_KEYS_PASSED
             else
               @outputView.add 'Bootstrapping completed but something went wrong.'
               callback null

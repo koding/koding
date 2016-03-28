@@ -62,7 +62,8 @@ module.exports = {
   KD_START_INSTALL : 'started kd install'
 
   # STACKS
-  STACKS_ADDED_AWS_KEYS     : 'added aws keys'
+  STACKS_AWS_KEYS_PASSED    : 'added aws keys passed'
+  STACKS_AWS_KEYS_FAILED    : 'added aws keys failed'
   STACKS_START_BUILD        : 'started stack build'
   STACKS_BUILD_SUCCESSFULLY : 'stack build successfully'
   STACKS_BUILD_FAILED       : 'stack build failed'

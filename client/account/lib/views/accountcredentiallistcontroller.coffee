@@ -288,8 +288,6 @@ module.exports = class AccountCredentialListController extends KodingListControl
       view.form.destroy()
       @addItem credential
 
-      if provider is 'aws'
-        Tracker.track Tracker.STACKS_ADDED_AWS_KEYS
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
     # The KDCustomScroll was hidden while Stacks screen is rendering.
