@@ -109,7 +109,7 @@ module.exports = class JInvitation extends jraphical.Module
       @accept delegate, callback
 
   accept: (account, callback) ->
-    operation = { $set : { status: 'accepted' } }
+    operation = { $set : { status: 'accepted', 'modifiedAt': new Date() } }
     @update operation, callback
 
   # validTypes holds states that can still redeemable
