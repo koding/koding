@@ -33,5 +33,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	f.RunAllTests()
+	if err := f.RunAllTests(); err != nil {
+		log.Fatal(err)
+	}
 }
