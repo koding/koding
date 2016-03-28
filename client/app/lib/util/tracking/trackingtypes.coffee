@@ -58,7 +58,6 @@ module.exports = {
   FILETREE_UPLOAD_FILES          : 'filetree uploaded files'
   FILETREE_WATCH_FILE            : 'filetree watched file'
 
-
   # KD
   KD_START_INSTALL : 'started kd install'
 

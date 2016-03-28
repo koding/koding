@@ -66,6 +66,8 @@ module.exports = class AccountCredentialListController extends KodingListControl
           @fetchCredentialData credential, (err, data) =>
             return  if showError err
 
+            Tracker.track Tracker.USER_EDIT_CREDENTIALS
+
             data.meta  = helper.prepareCredentialMeta data.meta
             data.title = credential.title
 
@@ -117,6 +119,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     credential.delete (err) =>
       listView.emit 'ItemDeleted', item  unless showError err
+      Tracker.track Tracker.USER_DELETE_CREDENTIALS
       callback err
 
 
