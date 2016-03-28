@@ -1,14 +1,15 @@
 kd                        = require 'kd'
-KDListView                = kd.ListView
 KDModalView               = kd.ModalView
 KDOverlayView             = kd.OverlayView
 showError                 = require 'app/util/showError'
+KodingListView            = require 'app/kodinglist/kodinglistview'
 StackTemplateListItem     = require './stacktemplatelistitem'
 StackTemplateContentModal = require './stacktemplatecontentmodal'
 Tracker                   = require 'app/util/tracker'
 
 
-module.exports = class StackTemplateList extends KDListView
+module.exports = class StackTemplateList extends KodingListView
+
 
   constructor: (options = {}, data) ->
 
