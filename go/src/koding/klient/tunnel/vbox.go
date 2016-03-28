@@ -171,11 +171,11 @@ func (t *Tunnel) hostPort(guestPort int) int {
 	return 0
 }
 
-// serices gives route infromation of tunnelclient kite services.
+// buildServices gives route infromation of tunnelclient kite services.
 //
 // If the kite server runs inside a VirtualBox machine, localRoute
 // returns a route to the forwarded port on the host network.
-func (t *Tunnel) services() map[string]*tunnelproxy.Tunnel {
+func (t *Tunnel) buildServices() map[string]*tunnelproxy.Tunnel {
 	ok, err := vagrant.IsVagrant()
 	if err != nil {
 		t.opts.Log.Error("failure checking local route: %s", err)

@@ -1,6 +1,8 @@
 package tunnelproxy
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -15,8 +17,10 @@ import (
 // TODO(rjeczalik): forward ports on host klient for TCP services
 
 type Service struct {
-	LocalAddr  string `json:"localAddr"`
-	RemoteAddr string `json:"remoteAddr"`
+	Name          string `json:"name"`
+	LocalAddr     string `json:"localAddr"`
+	RemoteAddr    string `json:"remoteAddr"`              // tunnel.Port
+	ForwardedPort int    `json:"forwardedPort,omitempty"` // tunnel.LocalAddr
 }
 
 type Services map[string]*Service
@@ -37,6 +41,15 @@ type Tunnel struct {
 	// Local routing.
 	PublicIP  string `json:"publicIP,omitempty"`
 	LocalAddr string `json:"localAddr,omitempty"` // either local port or forwarded one (related to package TODO)
+}
+
+func (t *Tunnel) String() string {
+	p, err := json.Marshal(t)
+	if err != nil {
+		return fmt.Sprintf("%+v", t)
+	}
+
+	return string(p)
 }
 
 func (t *Tunnel) Err() error {
@@ -72,6 +85,24 @@ type TunnelsByName []*Tunnel
 func (t TunnelsByName) Len() int           { return len(t) }
 func (t TunnelsByName) Less(i, j int) bool { return t[i].Name < t[j].Name }
 func (t TunnelsByName) Swap(i, j int)      { t[i], t[j] = t[j], t[i] }
+
+func (t TunnelsByName) String() string {
+	if len(t) == 0 {
+		return "[]"
+	}
+
+	var buf bytes.Buffer
+
+	fmt.Fprintf(&buf, "[%s", t[0])
+
+	for _, t := range t {
+		fmt.Fprintf(&buf, ",%s", t)
+	}
+
+	buf.WriteRune(']')
+
+	return buf.String()
+}
 
 var errAlreadyExists = errors.New("already exists")
 
@@ -129,6 +160,10 @@ func (t *Tunnels) tunnel(ident, name string) *Tunnel {
 
 func publicIP() (string, error) {
 	return ec2dynamicdata.GetMetadata(ec2dynamicdata.PublicIPv4)
+}
+
+func privateIP() (string, error) {
+	return ec2dynamicdata.GetMetadata(ec2dynamicdata.LocalIPv4)
 }
 
 func instanceID() (string, error) {
