@@ -14,6 +14,7 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/machinestate"
 	puser "koding/kites/kloud/scripts/provisionklient/userdata"
@@ -181,6 +182,16 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		if _, ok := box["box"]; !ok {
 			box["box"] = "${var.vagrant_box}"
 		}
+
+		ports, ok := box["forwarded_ports"].([]interface{})
+		if !ok {
+			ports = make([]interface{}, 0)
+		}
+		ports = append(ports, &vagrantapi.ForwardedPort{
+			GuestPort: 56789,
+		})
+
+		box["forwarded_ports"] = ports
 
 		tunnel := s.newTunnel(resourceName)
 
