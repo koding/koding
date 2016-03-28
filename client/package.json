@@ -25,6 +25,7 @@
     "htmlencode": "0.0.4",
     "immutable": "3.7.4",
     "indefinite-article": "0.0.2",
+    "inputmask-core": "2.1.1",
     "jquery": "2.1.3",
     "js-yaml": "3.3.1",
     "kd-shim-algoliasearch": "2.9.2-commonjs",
