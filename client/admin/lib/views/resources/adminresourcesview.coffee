@@ -44,6 +44,7 @@ module.exports = class AdminResourcesView extends kd.View
 
 
   clearSearch: ->
+
     @lastQuery = null
     @searchInput.setValue ''
     @searchClear.hide()
@@ -58,11 +59,11 @@ module.exports = class AdminResourcesView extends kd.View
 
     if isQueryEmpty or isQueryChanged
       @searchClear.hide()
-      return @controller.loadItems()  if isQueryEmpty
+      return @controller.search()  if isQueryEmpty
 
     return  if @lastQuery and not isQueryChanged
 
     @lastQuery = query
     @searchClear.show()
 
-    @controller.loadItems query
+    @controller.search query
