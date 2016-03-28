@@ -12,8 +12,9 @@ module.exports = class LogsListController extends KodingListController
     options.noItemFoundText     or= 'No logs found!'
     options.fetcherMethod         = (query, fetchOptions, callback) =>
       doXhrRequest @getXHROptions(), (err, res) ->
+        return callback err  if err
         { data: { logs } } = res
-        callback err, logs
+        callback null, logs
 
     super options, data
 
