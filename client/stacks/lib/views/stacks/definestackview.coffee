@@ -728,6 +728,8 @@ module.exports = class DefineStackView extends KDView
         @setAsDefaultButton.hideLoader()
         return
 
+      Tracker.track Tracker.STACKS_MAKE_DEFAULT
+
       stackTemplate.isDefault = yes
 
       @emit 'Reload'

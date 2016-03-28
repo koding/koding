@@ -50,12 +50,9 @@ module.exports = {
   FILETREE_COMPRESS_TARGZ        : 'filetree compressed file / folder to targz'
   FILTREEE_EXTRACT_FILE          : 'filetree extracted file'
   FILETREE_REFRESH               : 'filetree refreshed'
-  FILETREE_TERMINAL_HERE         : 'filetree opened terminal from path'
   FILETREE_DELETE_FILE_FOLDER    : 'filetree deleted file / folder'
   FILETREE_RENAME_FILE_FOLDER    : 'filetree renamed file / folder'
   FILETREE_DUPLICATE_FILE_FOLDER : 'filetree duplicated file / folder'
-  FILETREE_OPENED_FILE           : 'filetree opened file'
-  FILETREE_UPLOAD_FILES          : 'filetree uploaded files'
   FILETREE_WATCH_FILE            : 'filetree watched file'
 
   # KD
@@ -68,8 +65,10 @@ module.exports = {
   STACKS_BUILD_SUCCESSFULLY : 'stack build successfully'
   STACKS_BUILD_FAILED       : 'stack build failed'
   STACKS_EDIT               : 'edit stack'
-  STACKS_REINIT             : 'reinitialized stack'
   STACKS_DELETE             : 'deleted stack'
+  STACKS_DELETE_TEMPLATE    : 'deleted stack template'
+  STACKS_REINIT             : 'reinitialized stack'
+  STACKS_MAKE_DEFAULT       : 'made stack default'
   STACKS_DEFAULT_NAME       : 'used default stack name'
 
   # PROVIDERS
