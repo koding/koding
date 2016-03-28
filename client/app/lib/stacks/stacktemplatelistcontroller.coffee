@@ -81,7 +81,6 @@ module.exports = class StackTemplateListController extends KodingListController
       if err
         @emit 'FailedToSetTemplate', err
       else
-        @reload()
         appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
 

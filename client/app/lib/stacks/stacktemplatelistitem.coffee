@@ -70,7 +70,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     stackTemplate = @getData()
 
     if not stackTemplate.isDefault and stackTemplate.config.verified
-      @addMenuItem 'Apply to Team', ->
+      @addMenuItem 'Apply to Team', =>
         listView.emit 'ItemAction', { action : 'ItemSelectedAsDefault', item : this }
 
     # temporary comment until stack admin message design is ready
