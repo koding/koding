@@ -553,6 +553,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     else
       @setClass fullscreen
       frontApp.getView().toggleClass fullscreen
+      Tracker.track Tracker.IDE_ENTERED_FULLSCREEN
 
     @isFullScreen     = not @isFullScreen
     dontToggleSidebar = dontToggleSidebar or (@isFullScreen and mainView.isSidebarCollapsed)
@@ -643,32 +644,32 @@ module.exports = class IDEView extends IDEWorkspaceTabView
           'Open'          :
             disabled      : isActive
             callback      : =>
-              Tracker.track Tracker.IDE_OPEN_TERMINAL_SESSION
               @createTerminal { machine, session }
+              Tracker.track Tracker.IDE_OPEN_TERMINAL_SESSION
           'Terminate'     :
             callback      : =>
-              Tracker.track Tracker.IDE_TERMINATE_TERMINAL_SESSION
               @terminateSession machine, session
+              Tracker.track Tracker.IDE_TERMINATE_TERMINAL_SESSION
 
     canTerminateSessions  = sessions.length > 0 and frontApp.amIHost
 
     terminalSessions['New Session'] =
       callback            : =>
-        Tracker.track Tracker.IDE_NEW_TERMINAL_SESSION
         @createTerminal { machine }
+        Tracker.track Tracker.IDE_NEW_TERMINAL_SESSION
       separator           : (canTerminateSessions or inActiveSessions.length)
 
     if inActiveSessions.length
       terminalSessions['Open All']  =
         callback          : =>
-          Tracker.track Tracker.IDE_OPEN_ALL_TERMINAL_SESSIONS
           @openAllSessions { machine, sessions : inActiveSessions }
+          Tracker.track Tracker.IDE_OPEN_ALL_TERMINAL_SESSIONS
 
     if canTerminateSessions
       terminalSessions['Terminate all'] =
         callback          : =>
-          Tracker.track Tracker.IDE_TERMINATE_ALL_TERMINALS
           @terminateSessions machine
+          Tracker.track Tracker.IDE_TERMINATE_ALL_TERMINALS
 
     items =
       'New File'          : { callback : =>
@@ -679,8 +680,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       # 'New Browser'       : callback : => @createPreview()
       'New Drawing Board' :
         callback          : =>
-          Tracker.track Tracker.IDE_NEW_DRAWING_BOARD
           @createDrawingBoard()
+          Tracker.track Tracker.IDE_NEW_DRAWING_BOARD
         separator         : yes
       'Split Vertically'  :
         callback          : -> frontApp.splitVertically()
@@ -692,9 +693,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     label                 = if @isFullScreen then 'Exit Fullscreen' else 'Enter Fullscreen'
     items[label]          =
-      callback            : =>
-        Tracker.track Tracker.IDE_ENTERED_FULLSCREEN unless @isFullScreen
-        @toggleFullscreen()
+      callback            : => @toggleFullscreen()
 
     return items
 
