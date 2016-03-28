@@ -13,7 +13,7 @@ section = (name) ->
     cssClass : "HomeAppView--section #{kd.utils.slugify name}"
 
 
-module.exports = class HomeUtilitiesView extends kd.View
+module.exports = class HomeUtilities extends kd.View
 
   constructor: (options = {}, data) ->
 
