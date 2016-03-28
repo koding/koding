@@ -665,14 +665,14 @@ module.exports = class JAccount extends jraphical.Module
     # mark user as troll in social api
     @markUserAsExemptInSocialAPI client, exempt, (err, data) =>
       return callback new ApiError err  if err
-      query = { $set: { isExempt: exempt } }
+      op = { $set: { isExempt: exempt } }
 
       notifyOptions =
-        account : client?.connection?.delegate
-        group   : client?.context?.group
+        account : client.connection.delegate
+        group   : client.context.group
         target  : 'account'
 
-      @updateAndNotify notifyOptions, query, (err, result) =>
+      @updateAndNotify notifyOptions, op, (err, result) =>
         return callback err  if err
         @isExempt = exempt
         callback null, result
@@ -809,14 +809,14 @@ module.exports = class JAccount extends jraphical.Module
         return callback new KodingError 'Modify fields is not valid'
 
     if @equals(client.connection.delegate)
-      query = { $set: fields }
+      op = { $set: fields }
 
       notifyOptions =
         account : client.connection.delegate
         group   : client?.context?.group
         target  : 'account'
 
-      @updateAndNotify notifyOptions, query, (err) =>
+      @updateAndNotify notifyOptions, op, (err) =>
 
         firstName = fields['profile.firstName']
         lastName  = fields['profile.lastName']
