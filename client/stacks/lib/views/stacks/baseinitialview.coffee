@@ -14,8 +14,6 @@ module.exports = class BaseInitialView extends kd.View
 
     super options, data
 
-    @_stackTemplatesLength = 0
-
     @button = new kd.ButtonView
       title    : 'Create new Stack'
       cssClass : 'solid compact green action hidden'
@@ -31,7 +29,6 @@ module.exports = class BaseInitialView extends kd.View
         @emit 'EditStack', stackTemplate
 
       .on 'ItemDeleted', =>
-        @_stackTemplatesLength = @stackTemplateList.listView.items.length - 1
         kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
       .on 'ItemCloned', @bound 'reload'
@@ -42,7 +39,6 @@ module.exports = class BaseInitialView extends kd.View
 
     @stackTemplateList.listController.on 'ItemsLoaded', (stackTemplates) =>
       @emit 'NoTemplatesFound'  if stackTemplates.length is 0
-      @_stackTemplatesLength = stackTemplates.length
       @button?.show()
       @emit 'ready'
 
