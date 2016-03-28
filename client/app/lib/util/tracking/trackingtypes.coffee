@@ -46,19 +46,18 @@ module.exports = {
   # FILETREE ACTIONS
   FILETREE_NEW_FILE              : 'filetree created new file'
   FILETREE_NEW_FOLDER            : 'filetree created new folder'
-  FILETREE_FILE_COMPRESS_ZIP     : 'filetree compressed file to zip'
-  FILETREE_FILE_COMPRESS_TARGZ   : 'filetree compressed file to targz'
+  FILETREE_COMPRESS_ZIP          : 'filetree compressed file / folder to zip'
+  FILETREE_COMPRESS_TARGZ        : 'filetree compressed file / folder to targz'
   FILTREEE_EXTRACT_FILE          : 'filetree extracted file'
   FILETREE_REFRESH               : 'filetree refreshed'
   FILETREE_TERMINAL_HERE         : 'filetree opened terminal from path'
-  FILETREE_DELETE_FILE           : 'filetree deleted file'
-  FILTREEE_DELETE_FOLDER         : 'filetree deleted folder'
-  FILETREE_RENAME_FILE           : 'filetree renamed file'
-  FILETREE_RENAME_FOLDER         : 'filetree renamed folder'
-  FILETREE_DUPLICATE_FILE        : 'filetree duplicated file'
-  FILETREE_DUPLICATE_FOLDER      : 'filetree duplicated folder'
+  FILETREE_DELETE_FILE_FOLDER    : 'filetree deleted file / folder'
+  FILETREE_RENAME_FILE_FOLDER    : 'filetree renamed file / folder'
+  FILETREE_DUPLICATE_FILE_FOLDER : 'filetree duplicated file / folder'
   FILETREE_OPENED_FILE           : 'filetree opened file'
-  FILETREE_UPLOAD_FILES          : 'uploaded files'
+  FILETREE_UPLOAD_FILES          : 'filetree uploaded files'
+  FILETREE_WATCH_FILE            : 'filetree watched file'
+
 
   # KD
   KD_START_INSTALL : 'started kd install'
