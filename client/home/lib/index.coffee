@@ -1,9 +1,10 @@
-kd                 = require 'kd'
-AppController      = require 'app/appcontroller'
-HomeAppView        = require './homeappview'
-HomeUtilitiesView  = require './utilities'
-HomeTeamView       = require './team'
+kd              = require 'kd'
+AppController   = require 'app/appcontroller'
+HomeAppView     = require './homeappview'
 HomeAccount     = require './account'
+HomeUtilities   = require './utilities'
+HomeMyTeam      = require './myteam'
+HomeTeamBilling = require './billing'
 
 do require './routehandler'
 
@@ -13,13 +14,13 @@ module.exports = class HomeAppController extends AppController
     name       : 'Home'
     background : yes
 
-  NAV_ITEMS  = [
+  TABS = [
     { title : 'Welcome',          viewClass : kd.CustomHTMLView, role: 'member' }
     { title : 'Stacks',           viewClass : kd.CustomHTMLView, role: 'member' }
-    { title : 'My Team',          viewClass : HomeTeamView,      role: 'member' }
-    { title : 'Koding Utilities', viewClass : HomeUtilitiesView, role: 'member' }
-    { title : 'Support',          viewClass : kd.CustomHTMLView, role: 'member' }
-    { title : 'Logout',           viewClass : kd.CustomHTMLView, role: 'member' }
+    { title : 'Virtual Machines', viewClass : kd.CustomHTMLView, role: 'member' }
+    { title : 'My Team',          viewClass : HomeMyTeam,        role: 'member' }
+    { title : 'Team Billing',     viewClass : HomeTeamBilling                   }
+    { title : 'Koding Utilities', viewClass : HomeUtilities,     role: 'member' }
     { title : 'My Account',       viewClass : HomeAccount,       role: 'member' }
   ]
 
@@ -27,7 +28,7 @@ module.exports = class HomeAppController extends AppController
   constructor: (options = {}, data) ->
 
     data          ?= kd.singletons.groupsController.getCurrentGroup()
-    options.view  ?= new HomeAppView { tabData: { items: NAV_ITEMS } }, data
+    options.view  ?= new HomeAppView { tabData: { items: TABS } }, data
 
     super options, data
 
@@ -83,4 +84,4 @@ module.exports = class HomeAppController extends AppController
       else router.handleRoute router.getDefaultRoute()
 
 
-  fetchNavItems: (cb) -> cb NAV_ITEMS
+  fetchNavItems: (cb) -> cb TABS
