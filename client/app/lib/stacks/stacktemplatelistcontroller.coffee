@@ -3,11 +3,11 @@ remote                      = require('app/remote').getInstance()
 whoami                      = require 'app/util/whoami'
 getGroup                    = require 'app/util/getGroup'
 showError                   = require 'app/util/showError'
-AccountListViewController   = require 'account/controllers/accountlistviewcontroller'
 async                       = require 'async'
+KodingListController        = require 'app/kodinglist/kodinglistcontroller'
 
 
-module.exports = class StackTemplateListController extends AccountListViewController
+module.exports = class StackTemplateListController extends KodingListController
 
 
   constructor: (options = {}, data) ->
