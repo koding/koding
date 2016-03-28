@@ -3,46 +3,42 @@ package fusetest
 import (
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func (f *Fusetest) TestMkDir() {
-	f.setupConvey("MkDir", func(dirPath string) {
+	f.setupConvey("MkDir", func(dirName string) {
 		Convey("It should create dir inside mount", func() {
-			fi, err := statDirCheck(dirPath)
-			So(err, ShouldBeNil)
+			// check if file was created on local/cache
+			So(f.CheckLocalEntry(dirName), ShouldBeNil)
 
-			So(fi.Name(), ShouldEqual, "MkDir")
-
-			exists, err := f.Remote.DirExists(dirPath)
+			// check if file was created remote
+			exists, err := f.Remote.DirExists(dirName)
 			So(err, ShouldBeNil)
 			So(exists, ShouldBeTrue)
 
 			Convey("It should create nested dir inside new dir", func() {
+				nestedPath := filepath.Join(f.fullMountPath(dirName), "dir1")
+				nestedName := filepath.Join(dirName, "dir1")
+
 				// create /MkDir/dir1
-				nestedPath := path.Join(dirPath, "dir1")
 				So(os.Mkdir(nestedPath, 0700), ShouldBeNil)
 
-				fi, err := statDirCheck(nestedPath)
-				So(err, ShouldBeNil)
+				// check if file was created on local/cache
+				So(f.CheckLocalEntry(nestedName), ShouldBeNil)
 
-				So(fi.Name(), ShouldEqual, "dir1")
-
-				exists, err := f.Remote.DirExists(nestedPath)
+				// check if file was created remote
+				exists, err := f.Remote.DirExists(nestedName)
 				So(err, ShouldBeNil)
 				So(exists, ShouldBeTrue)
 			})
 
 			Convey("It should create with given permissions", func() {
-				fi, err := os.Stat(dirPath)
-				So(err, ShouldBeNil)
+				So(f.CheckLocalEntryIsDir(dirName, 0705|os.ModeDir), ShouldBeNil)
 
-				So(fi.IsDir(), ShouldBeTrue)
-				So(fi.Mode(), ShouldEqual, 0705|os.ModeDir)
-
-				// TODO: fix difffering modes
+				// TODO: fix difffering modes on remote and local
 				//samePerms, err := f.Remote.DirPerms(dirPath, 0705|os.ModeDir)
 				//So(err, ShouldBeNil)
 				//So(samePerms, ShouldBeTrue)
@@ -52,25 +48,22 @@ func (f *Fusetest) TestMkDir() {
 }
 
 func (f *Fusetest) TestReadDir() {
-	f.setupConvey("ReadDir", func(dirPath string) {
-		dp := path.Join(dirPath, "dir1")
-		So(os.MkdirAll(dp, 0700), ShouldBeNil)
+	f.setupConvey("ReadDir", func(dirName string) {
+		// create dir inside dir
+		nestedDirName := filepath.Join(dirName, "dir1")
+		So(os.MkdirAll(f.fullMountPath(nestedDirName), 0700), ShouldBeNil)
 
-		filePath := path.Join(dirPath, "file1")
-		_, err := os.Create(filePath)
+		// create file inside dir
+		nestedFilePath := filepath.Join(dirName, "file1")
+		_, err := os.Create(f.fullMountPath(nestedFilePath))
 		So(err, ShouldBeNil)
 
 		Convey("It should return entries of dir", func() {
-			localEntries, err := ioutil.ReadDir(dirPath)
-			So(err, ShouldBeNil)
+			// check local/cache for above created dir & file are there
+			So(f.CheckDirContents(dirName, []string{"dir1", "file1"}), ShouldBeNil)
 
-			So(len(localEntries), ShouldEqual, 2)
-
-			// lexical ordering should ensure dir1 will always return before file1
-			So(localEntries[0].Name(), ShouldEqual, "dir1")
-			So(localEntries[1].Name(), ShouldEqual, "file1")
-
-			remoteEntries, err := f.Remote.GetEntries(dirPath)
+			// check remote for above created dir & file are there
+			remoteEntries, err := f.Remote.GetEntries(dirName)
 			So(err, ShouldBeNil)
 
 			So(len(remoteEntries), ShouldEqual, 2)
@@ -82,12 +75,13 @@ func (f *Fusetest) TestReadDir() {
 }
 
 func (f *Fusetest) TestRmDir() {
-	f.setupConvey("RmDir", func(dirPath string) {
-		nestedDir := path.Join(dirPath, "dir1")
-		So(os.MkdirAll(nestedDir, 0705), ShouldBeNil)
+	f.setupConvey("RmDir", func(dir string) {
+		nestedDir := filepath.Join(dir, "dir1")
+
+		So(os.MkdirAll(f.fullMountPath(nestedDir), 0705), ShouldBeNil)
 
 		Convey("It should remove directory in root dir", func() {
-			So(os.RemoveAll(nestedDir), ShouldBeNil)
+			So(os.RemoveAll(f.fullMountPath(nestedDir)), ShouldBeNil)
 
 			exists, err := f.Remote.DirExists(nestedDir)
 			So(err, ShouldBeNil)
@@ -95,34 +89,33 @@ func (f *Fusetest) TestRmDir() {
 		})
 
 		Convey("It should remove all entries inside specified directory", func() {
-			dirPath2 := path.Join(nestedDir, "dir2")
+			deepNestedDir := filepath.Join(nestedDir, "dir2")
+			nestedFile := filepath.Join(nestedDir, "file")
 
-			So(os.MkdirAll(dirPath2, 0700), ShouldBeNil)
+			// create RmDir/dir1/dir2
+			So(os.MkdirAll(f.fullMountPath(deepNestedDir), 0700), ShouldBeNil)
 
-			filePath := path.Join(nestedDir, "file")
-			err := ioutil.WriteFile(filePath, []byte("Hello World!"), 0500)
+			// create RmDir/dir1/file
+			err := ioutil.WriteFile(f.fullMountPath(nestedFile), []byte("Hello World!"), 0500)
 			So(err, ShouldBeNil)
 
-			err = os.RemoveAll(nestedDir)
+			// delete RmDir/dir1/dir2
+			err = os.RemoveAll(f.fullMountPath(nestedDir))
 			So(err, ShouldBeNil)
 
-			_, err = os.Stat(dirPath2)
-			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldContainSubstring, "no such file or directory")
+			// check loca/cache RmDir/dir1/dir2
+			So(f.CheckLocalEntryNotExists(deepNestedDir), ShouldBeNil)
 
-			exists, err := f.Remote.DirExists(dirPath2)
+			// check remote RmDir/dir1/dir2
+			exists, err := f.Remote.DirExists(deepNestedDir)
 			So(err, ShouldBeNil)
 			So(exists, ShouldBeFalse)
 
-			_, err = os.Stat(nestedDir)
-			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldContainSubstring, "no such file or directory")
+			//check local/cache RmDir/dir1/file
+			So(f.CheckLocalEntryNotExists(nestedFile), ShouldBeNil)
 
-			_, err = os.Stat(filePath)
-			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldContainSubstring, "no such file or directory")
-
-			exists, err = f.Remote.DirExists(filePath)
+			// check remote RmDir/dir1/file
+			exists, err = f.Remote.DirExists(nestedFile)
 			So(err, ShouldBeNil)
 			So(exists, ShouldBeFalse)
 		})
