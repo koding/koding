@@ -5,6 +5,7 @@ Tracker                     = require 'app/util/tracker'
 getGroup                    = require 'app/util/getGroup'
 showError                   = require 'app/util/showError'
 async                       = require 'async'
+KDNotificationView          = kd.NotificationView
 KodingListController        = require 'app/kodinglist/kodinglistcontroller'
 StackTemplateListItem       = require './stacktemplatelistitem'
 StackTemplateContentModal   = require './stacktemplatecontentmodal'
@@ -56,13 +57,24 @@ module.exports = class StackTemplateListController extends KodingListController
 
     listView.on 'ItemAction', ({action, item, options}) =>
       switch action
-        when 'RemoveItem'            then @removeItem item
-        when 'ShowItem'              then @showItem item
-        when 'EditItem'              then @editItem item
-        when 'ItemSelectedAsDefault' then @applyToTeam item
+        when 'RemoveItem'            then @removeItem     item
+        when 'ShowItem'              then @showItem       item
+        when 'EditItem'              then @editItem       item
+        when 'ItemSelectedAsDefault' then @applyToTeam    item
+        when 'GenerateStack'         then @generateStack  item
 
     @on 'FetchProcessFailed', ({ err }) =>
       showError err, { KodingError : 'Failed to fetch stackTemplates, try again later.' }
+
+
+  generateStack: (item) ->
+
+    stackTemplate = item.getData()
+    stackTemplate.generateStack (err, stack) =>
+
+      unless showError err
+        kd.singletons.computeController.reset yes, @bound 'reload'
+        new kd.NotificationView { title: 'Stack generated successfully' }
 
 
   editItem: (item) ->
