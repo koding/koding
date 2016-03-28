@@ -1,13 +1,12 @@
 kd                   = require 'kd'
 KDView               = kd.View
-whoami               = require 'app/util/whoami'
 KDSelectBox          = kd.SelectBox
-MemberItemView       = require './memberitemview'
 KDCustomHTMLView     = kd.CustomHTMLView
-KDListViewController = kd.ListViewController
 KDHitEnterInputView  = kd.HitEnterInputView
+whoami               = require 'app/util/whoami'
+MemberItemView       = require './memberitemview'
 remote               = require('app/remote').getInstance()
-
+KodingListController = require 'app/kodinglist/kodinglistcontroller'
 
 module.exports = class TeamMembersCommonView extends KDView
 
@@ -16,9 +15,8 @@ module.exports = class TeamMembersCommonView extends KDView
     options.cssClass                 = 'members-commonview'
     options.itemLimit               ?= 10
     options.fetcherMethod          or= 'fetchMembersWithEmail'
-    options.noItemFoundWidget      or= new KDCustomHTMLView
-    options.listViewItemClass      or= MemberItemView
     options.listViewItemOptions    or= {}
+    options.listViewItemClass      or= null
     options.searchInputPlaceholder or= 'Find by name/username'
     options.showSearchFieldAtFirst or= no
     options.sortOptions            or= [
@@ -33,7 +31,6 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @createSearchView()
     @createListController()
-    @fetchMembers()
 
 
   createSearchView: ->
@@ -54,15 +51,15 @@ module.exports = class TeamMembersCommonView extends KDView
       callback      : @bound 'search'
 
     @searchContainer.addSubView @searchInput = new KDHitEnterInputView
-      type        : 'text'
-      placeholder : @getOptions().searchInputPlaceholder
-      callback    : @bound 'search'
+      type          : 'text'
+      placeholder   : @getOptions().searchInputPlaceholder
+      callback      : @bound 'search'
 
     @searchContainer.addSubView @searchClear = new KDCustomHTMLView
-      tagName     : 'span'
-      partial     : 'clear'
-      cssClass    : 'clear-search hidden'
-      click       : =>
+      tagName       : 'span'
+      partial       : 'clear'
+      cssClass      : 'clear-search hidden'
+      click         : =>
         @searchInput.setValue ''
         @search()
         @searchClear.hide()
@@ -70,20 +67,21 @@ module.exports = class TeamMembersCommonView extends KDView
 
   createListController: ->
 
-    { listViewItemClass, noItemFoundWidget, listViewItemOptions } = @getOptions()
+    { noItemFoundText, listViewItemOptions, fetcherMethod, listViewItemClass } = @getOptions()
+    group = @getData()
 
-    @listController       = new KDListViewController
+    @listController       = new KodingListController
+      noItemFoundText     : noItemFoundText
+      lazyLoadThreshold   : .99
+      sort                : { timestamp: -1 }
+      itemClass           : listViewItemClass or MemberItemView
       viewOptions         :
         wrapper           : yes
-        itemClass         : listViewItemClass
         itemOptions       : listViewItemOptions
-      noItemFoundWidget   : noItemFoundWidget
-      useCustomScrollView : yes
-      startWithLazyLoader : yes
-      lazyLoadThreshold   : .99
-      lazyLoaderOptions   :
-        spinnerOptions    :
-          size            : { width: 28 }
+      fetcherMethod       : (query, fetchOptions, callback) =>
+        group[fetcherMethod] query, fetchOptions, (err, members) -> callback err, members
+
+    @listController.addListItems = @bound 'listMembers'
 
     @addSubView @listController.getView()
 
@@ -255,7 +253,6 @@ module.exports = class TeamMembersCommonView extends KDView
 
 
   handleSearchResult: (accounts) ->
-
 
     usernames = (profile.nickname for { profile } in accounts)
 
