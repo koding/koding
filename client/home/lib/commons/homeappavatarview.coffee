@@ -33,7 +33,7 @@ module.exports = class HomeAppAvatarArea extends kd.CustomHTMLView
     @profileName = new JCustomHTMLView
       tagName    : 'a'
       cssClass   : 'HomeAppView-Nav--fullname'
-      attributes : { href: '/Home/Account' }
+      attributes : { href: '/Home/My-Account' }
       pistachio  : '{{ #(profile.firstName)}} {{ #(profile.lastName)}}'
     , account
 
