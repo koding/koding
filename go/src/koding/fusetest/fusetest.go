@@ -16,14 +16,14 @@ import (
 type Fusetest struct {
 	Machine  string
 	MountDir string
-	Opts     req.MountFolderOpts
+	Opts     req.MountFolder
 
 	T *testing.T
 
 	*Remote
 }
 
-func NewFusetest(machine string, opts req.MountFolderOpts) (*Fusetest, error) {
+func NewFusetest(machine string, opts req.MountFolder) (*Fusetest, error) {
 	r, err := NewRemote(machine)
 	if err != nil {
 		return nil, err

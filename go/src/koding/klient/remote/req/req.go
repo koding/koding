@@ -15,13 +15,9 @@ const (
 
 // MountFolder is the request struct for remote.mountFolder method.
 type MountFolder struct {
-	Name       string `json:"name"`
-	LocalPath  string `json:"localPath"`
-	RemotePath string `json:"remotePath"`
-	MountFolderOpts
-}
-
-type MountFolderOpts struct {
+	Name           string `json:"name"`
+	LocalPath      string `json:"localPath"`
+	RemotePath     string `json:"remotePath"`
 	NoIgnore       bool   `json:"noIgnore"`
 	NoPrefetchMeta bool   `json:"noPrefetchMeta"`
 	PrefetchAll    bool   `json:"prefetchAll"`

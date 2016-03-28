@@ -12,7 +12,7 @@ func main() {
 		log.Fatal("Pass machine name as arguments to run tests.")
 	}
 
-	opts := req.MountFolderOpts{
+	opts := req.MountFolder{
 		NoIgnore:       false,
 		NoPrefetchMeta: false,
 		PrefetchAll:    false,
