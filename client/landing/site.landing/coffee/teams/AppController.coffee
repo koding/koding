@@ -1,4 +1,4 @@
-kd                = require 'kd.js'
+kd                = require 'kd'
 TeamsView         = require './AppView'
 TeamSelectorView  = require './teamselectorview'
 

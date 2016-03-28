@@ -1,4 +1,4 @@
-kd = require 'kd.js'
+kd = require 'kd'
 LoginView = require './AppView'
 
 module.exports = class LoginAppsController extends kd.ViewController

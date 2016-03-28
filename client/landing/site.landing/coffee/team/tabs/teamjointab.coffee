@@ -1,4 +1,4 @@
-kd                             = require 'kd.js'
+kd                             = require 'kd'
 _                              = require 'lodash'
 articlize                      = require 'indefinite-article'
 utils                          = require './../../core/utils'

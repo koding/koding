@@ -1,4 +1,4 @@
-kd = require 'kd.js'
+kd = require 'kd'
 TopNavigation  = require './topnavigation'
 
 module.exports = class MainHeaderView extends kd.View
