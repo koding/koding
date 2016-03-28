@@ -16,7 +16,7 @@ section = (name, options, data) ->
   }, data
 
 
-module.exports = class HomeTeamView extends kd.View
+module.exports = class HomeMyTeam extends kd.View
 
   constructor: (options = {}, data) ->
 
