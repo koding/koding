@@ -91,7 +91,7 @@ module.exports = class StackTemplateListController extends KodingListController
 
             when 'CloseAndOpen'
               stackTemplate.clone (err, cloneStackTemplate) =>
-                @loadItems() # It means reload
+                @reload()
                 @_itemSelected stackTemplate
                 modal.destroy()
 
@@ -101,6 +101,9 @@ module.exports = class StackTemplateListController extends KodingListController
 
     else
       @_itemSelected stackTemplate
+
+
+  reload: -> @loadItems()
 
 
   _itemSelected: (data) ->
