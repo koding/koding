@@ -1,7 +1,6 @@
 kd                = require 'kd'
 globals           = require 'globals'
 HomeAppAvatarView = require './commons/homeappavatarview'
-# HomeTabView       = require './commons/hometabview'
 HomeTabHandle     = require './commons/hometabhandle'
 
 module.exports = class HomeAppView extends kd.ModalView
