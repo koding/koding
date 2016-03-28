@@ -121,11 +121,6 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       callback : @bound 'createVM'
       disabled : usage.total >= limits.total
 
-    unless plan in ['professional', 'super']
-      content.addSubView new CustomLinkView
-        title : 'Upgrade your account for more VMs RAM and Storage'
-        href  : '/Pricing'
-
     @populateSnapshotsSelector()
 
     @updateStorageUsageText 5, usage, limits
