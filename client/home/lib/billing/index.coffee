@@ -1,31 +1,12 @@
-kd                   = require 'kd'
+kd                  = require 'kd'
+HomeTeamBillingForm = require './hometeambillingform'
 
-
-# SECTIONS =
-#   'Invite Using Slack' : HomeTeamConnectSlack
-#   'Send Invites'       : HomeTeamSendInvites
-#   Teammates            : HomeTeamTeammates
-
-# section = (name, options, data) ->
-#   new (SECTIONS[name] or kd.View) options or {
-#     tagName  : 'section'
-#     cssClass : "HomeAppView--section #{kd.utils.slugify name}"
-#   }, data
-
-
-module.exports = class HomeTeamBilling extends kd.View
+module.exports = class HomeTeamBilling extends kd.CustomScrollView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass = kd.utils.curry 'HomeAppView--scroller', options.cssClass
+
     super options, data
 
-    { groupsController } = kd.singletons
-
-    @addSubView scrollView = new kd.CustomScrollView
-      cssClass : 'HomeAppView--scroller'
-
-    { wrapper } = scrollView
-
-    # wrapper.addSubView section 'Invite Using Slack'
-    # wrapper.addSubView section 'Send Invites'
-    # wrapper.addSubView section 'Teammates', null, team
+    @wrapper.addSubView new HomeTeamBillingForm
