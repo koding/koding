@@ -3,6 +3,7 @@ StackTemplateList           = require 'app/stacks/stacktemplatelist'
 StackTemplateListController = require 'app/stacks/stacktemplatelistcontroller'
 
 
+# Are we still using this class?
 module.exports = class StacksModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
