@@ -94,8 +94,10 @@ module.exports = class ComputeStateChecker extends KDObject
         computeController.eventListener
           .triggerState machine, { status: response.State }
 
-        computeController.eventListener.followUpcomingEvents
-          _id: machineId, { status: { state: response.State } }
+        computeController.eventListener.followUpcomingEvents {
+          _id    : machineId
+          status : { state: response.State }
+        }
 
         unless machine.status.state is response.State
           kd.info "csc: machine (#{machineId}) state changed: ", response.State
