@@ -45,7 +45,7 @@ module.exports = class BlockedMemberItemView extends kd.ListItemView
 
     currentGroup = kd.singletons.groupsController.getCurrentGroup()
 
-    invitationWithNoEmail @getData(), currentGroup,  (err, result) =>
+    invitationWithNoEmail @getData(), currentGroup,  (err, result) ->
 
       if err
         customErr = new Error 'Failed to unblock user. Please try again.'

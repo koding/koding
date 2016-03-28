@@ -31,19 +31,25 @@ module.exports = class AdminMembersView extends kd.View
     all.addSubView @allView = new TeamMembersCommonView
       fetcherMethod          : 'fetchMembersWithEmail'
       showSearchFieldAtFirst : yes
-      noItemFoundText        : 'No members found!'
+      noItemFoundWidget      : new kd.CustomHTMLView
+        partial              : 'No members found!'
+        cssClass             : 'no-item-view hidden'
     , data
 
     admins.addSubView @adminsView = new TeamMembersCommonView
       fetcherMethod     : 'fetchAdminsWithEmail'
       defaultMemberRole : 'admin'
-      noItemFoundText   : 'No admins found!'
+      noItemFoundWidget : new kd.CustomHTMLView
+        partial         : 'No admins found!'
+        cssClass        : 'no-item-view'
     , data
 
     mods.addSubView @modsView = new TeamMembersCommonView
       fetcherMethod     : 'fetchModeratorsWithEmail'
       defaultMemberRole : 'moderator'
-      noItemFoundText   : 'No moderators found!'
+      noItemFoundWidget : new kd.CustomHTMLView
+        partial         : 'No moderators found!'
+        cssClass        : 'no-item-view'
     , data
 
 
@@ -53,7 +59,9 @@ module.exports = class AdminMembersView extends kd.View
       blocked.addSubView @blockedView = new TeamMembersCommonView
         fetcherMethod     : 'fetchBlockedAccountsWithEmail'
         listViewItemClass : BlockedMemberItemView
-        noItemFoundText   : 'No disabled user found!'
+        noItemFoundWidget : new kd.CustomHTMLView
+          partial         : 'No disabled user found!'
+          cssClass        : 'no-item-view'
       , data
 
       @blockedView.listController.getListView().on 'ItemWasAdded', (item) =>
