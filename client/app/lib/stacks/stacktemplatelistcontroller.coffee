@@ -27,7 +27,7 @@ module.exports = class StackTemplateListController extends KodingListController
 
       queue = [
         (next) ->
-          currentGroup.canEditGroup (err, success) -> next null, success
+          getGroup().canEditGroup (err, success) -> next null, success
         (next) ->
           # TODO Add Pagination here ~ GG
           # TMS-1919: This is TODO needs to be done ~ GG
