@@ -64,14 +64,20 @@ type Info struct {
 	Error    string `json:"error,omitempty"`
 }
 
+type ForwardedPort struct {
+	GuestPort int `json:"guestPort"`
+	HostPort  int `json:"hostPort"`
+}
+
 type VagrantCreateOptions struct {
-	Hostname      string
-	Box           string
-	Memory        int
-	Cpus          int
-	ProvisionData string
-	CustomScript  string
-	FilePath      string
+	Hostname       string           `json:"hostname"`
+	Box            string           `json:"box,omitempty"`
+	Memory         int              `json:"memory,omitempty"`
+	Cpus           int              `json:"cpus,omitempty"`
+	ProvisionData  string           `json:"provisionData"`
+	CustomScript   string           `json:"customScript,omitempty"`
+	FilePath       string           `json:"filePath"`
+	ForwardedPorts []*ForwardedPort `json:"forwardedPorts,omitempty"`
 }
 
 type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error)
@@ -396,7 +402,9 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 	}
 
 	var verr error
-	parseErr := func(line string) {
+	var fns OutputFuncs
+
+	fns = append(fns, func(line string) {
 		i := strings.Index(strings.ToLower(line), "error:")
 		if i == -1 {
 			return
@@ -408,20 +416,19 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 			msg = unquoter.Replace(msg)
 			verr = multierror.Append(verr, errors.New(msg))
 		}
-	}
-
-	w := &vagrantutil.Waiter{
-		OutputFunc: parseErr,
-	}
+	})
 
 	if params.Output.IsValid() {
 		h.log.Debug("sending output to %q for %q", r.Username, r.Method)
 
-		w.OutputFunc = func(line string) {
+		fns = append(fns, func(line string) {
 			h.log.Debug("%s: %s", r.Method, line)
-			parseErr(line)
 			params.Output.Call(line)
-		}
+		})
+	}
+
+	w := &vagrantutil.Waiter{
+		OutputFunc: fns.Output,
 	}
 
 	out, err := fn()
@@ -447,4 +454,12 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 	}()
 
 	return true, nil
+}
+
+type OutputFuncs []func(string)
+
+func (fns OutputFuncs) Output(line string) {
+	for _, fn := range fns {
+		fn(line)
+	}
 }

@@ -2,6 +2,7 @@ package vagrant
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"koding/kites/common"
@@ -120,6 +121,40 @@ func newCreateReq(d *schema.ResourceData) (*vagrantapi.Create, error) {
 	c.CustomScript, ok = d.Get("user_data").(string)
 	if !ok {
 		return nil, errors.New("invalid request: user_data field is missing")
+	}
+
+	if d.HasChange("forwarded_ports") {
+		rawPorts := d.Get("forwarded_ports").([]interface{})
+
+		for i, v := range rawPorts {
+			m, ok := v.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("invalid request: forwarded_ports #%d is not an object", i)
+			}
+
+			var port vagrantapi.ForwardedPort
+
+			for k, v := range m {
+				switch k {
+				case "guest":
+					n, ok := v.(int)
+					if !ok {
+						return nil, fmt.Errorf("invalid request: forwarded_ports #%d guest is not a number", i)
+					}
+
+					port.GuestPort = n
+				case "host":
+					n, ok := v.(int)
+					if !ok {
+						return nil, fmt.Errorf("invalid request: forwarded_ports #%d host is not a number", i)
+					}
+
+					port.HostPort = n
+				}
+			}
+
+			c.ForwardedPorts = append(c.ForwardedPorts, &port)
+		}
 	}
 
 	return &c, nil
