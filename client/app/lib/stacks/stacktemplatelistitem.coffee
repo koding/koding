@@ -65,8 +65,6 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     stackTemplate = @getData()
 
-    Tracker.track Tracker.STACKS_STARTED_EDIT
-
     if stackTemplate.isDefault
 
       modal = new kd.ModalView
@@ -92,6 +90,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
                 unless showError err
                   @_itemCloned()
                   @_itemSelected cloneStackTemplate
+                  Tracker.track Tracker.STACKS_CLONED_TEMPLATE
                 modal.destroy()
 
           "I know what I'm doing, Open Editor":
@@ -99,9 +98,11 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
             callback : =>
               @_itemSelected()
               modal.destroy()
+              Tracker.track Tracker.STACKS_STARTED_EDIT_DEFAULT
 
     else
       @_itemSelected()
+      Tracker.track Tracker.STACKS_STARTED_EDIT
 
 
   _itemCloned: (data) ->
