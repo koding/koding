@@ -625,14 +625,16 @@ module.exports =
       .waitForElementNotPresent  finalizeStepsButton, 20000
       .waitForElementVisible     envMachineStateModal, 20000
 
-    @checkStackTemplateTags(browser)
+    @checkStackTemplateTags(browser, yes)
 
 
-  checkStackTemplateTags: (browser) ->
+  checkStackTemplateTags: (browser, deleteStack) ->
 
-    inUseTag   = "#{stackCatalogModal} [testpath=StackInUseTag]"
-    defaultTag = "#{stackCatalogModal} [testpath=StackDefaultTag]"
-    accessTag  = "#{stackCatalogModal} [testpath=StackAccessLevelTag]"
+    inUseTag              = "#{stackCatalogModal} [testpath=StackInUseTag]"
+    defaultTag            = "#{stackCatalogModal} [testpath=StackDefaultTag]"
+    accessTag             = "#{stackCatalogModal} [testpath=StackAccessLevelTag]"
+    stackSettingsMenuIcon = '.stacktemplates .stack-template-list .stack-settings-menu .chevron'
+    deleteMenuItem        = ".kdbuttonmenu .context-list-wrapper .delete"
 
     @openStackCatalog(browser, no)
 
@@ -642,6 +644,18 @@ module.exports =
       .waitForElementVisible  defaultTag, 20000
       .waitForElementVisible  accessTag, 20000
       .assert.containsText    accessTag, 'GROUP'
+
+    if deleteStack
+      browser
+        .waitForElementVisible    stackSettingsMenuIcon, 20000
+        .click                    stackSettingsMenuIcon
+        .pause                    2000
+        .waitForElementVisible    deleteMenuItem, 20000
+        .click                    deleteMenuItem
+        .assert.containsText      '.kdnotification.main', 'This template currently in use by the Team'
+        .waitForElementNotVisible '.kdnotification.main', 30000
+
+    browser
       .waitForElementVisible  stackModalCloseButton, 20000
       .click                  stackModalCloseButton
 
