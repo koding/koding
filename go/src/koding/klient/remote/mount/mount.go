@@ -71,7 +71,7 @@ func (m *Mount) Unmount() error {
 	// Ignoring this error, since this fails when it's unable to find mount on
 	// path, ie. we're already at the desired state we want to be in.
 	if err != nil {
-		m.Log.Warning("Mount#Unmount on %s failed: %s", m.LocalPath, err)
+		m.Log.Warning("Mount#Unmount on %s failed: %s...ignoring error.", m.LocalPath, err)
 	}
 
 	return nil
