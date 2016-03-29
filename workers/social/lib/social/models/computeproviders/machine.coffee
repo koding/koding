@@ -11,6 +11,7 @@ module.exports = class JMachine extends Module
   { ObjectId, signature, secure } = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
+  @trait __dirname, '../../traits/notifiable'
 
   { slugify } = require '../../traits/slugifiable'
   { permit }  = require '../group/permissionset'
@@ -698,6 +699,16 @@ module.exports = class JMachine extends Module
       else
 
         JMachine::shareWith.call this, options, callback
+
+  update$: secure (client, query, callback) ->
+
+    { group }    = client.r
+    { delegate } = client.connection
+
+    @updateAndNotify {
+      account : delegate
+      group   : group.slug
+    }, query, callback
 
 
   share: secure (client, users, callback) ->
