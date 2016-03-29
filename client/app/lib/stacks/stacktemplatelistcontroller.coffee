@@ -23,7 +23,7 @@ module.exports = class StackTemplateListController extends KodingListController
     options.scrollView        = no
 
     options.noItemFoundText  ?= 'You currently have no stack template'
-    options.fetcherMethod     = (query, options, callback) =>
+    options.fetcherMethod    ?= (query, options, callback) =>
 
       queue = [
         (next) ->
