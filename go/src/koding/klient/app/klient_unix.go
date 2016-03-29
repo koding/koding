@@ -1,3 +1,4 @@
+// +build darwin,linux
 package app
 
 func (k *Klient) addRemoteHandlers() {
