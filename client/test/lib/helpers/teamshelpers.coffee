@@ -67,10 +67,12 @@ module.exports =
 
   loginToTeam: (browser, user, invalidCredentials = no) ->
 
-    inputUserName        = 'input[name=username]'
-    inputPassword        = 'input[name=password]'
-    notificationSelector = '.team .kdnotification.main'
-    loginButton          = 'button[testpath=login-button]'
+    incorrectEmailAddress = 'a@b.com'
+    incorrectUserName     = 'testUserName'
+    wrongPassword         = 'password'
+    unrecognizedMessage   = 'Unrecognized email'
+    unknownUserMessage    = 'Unknown user name'
+    wrongPasswordMessage  = 'Access denied'
 
     browser
       .pause                  2000 # wait for login page
@@ -78,24 +80,9 @@ module.exports =
       .waitForElementVisible  'form.login-form', 20000
 
     if invalidCredentials
-      browser
-        .setValue               inputUserName, "a@b.com"
-        .setValue               inputPassword, "password"
-        .click                  loginButton
-        .waitForElementVisible  notificationSelector, 20000
-        .assert.containsText    notificationSelector, 'Unrecognized email'
-        .pause                  2000 # wait for notification to disappear
-        .clearValue             inputUserName
-        .setValue               inputUserName, "testUserName"
-        .click                  loginButton
-        .waitForElementVisible  notificationSelector, 20000
-        .assert.containsText    notificationSelector, 'Unknown user name'
-        .pause                  2000 # wait for notification to disappear
-        .clearValue             inputUserName
-        .setValue               inputUserName, user.username
-        .click                  loginButton
-        .waitForElementVisible  notificationSelector, 20000
-        .assert.containsText    notificationSelector, 'Access denied'
+      @insertInvalidCredentials(browser, incorrectEmailAddress, user.password, unrecognizedMessage)
+      @insertInvalidCredentials(browser, incorrectUserName, user.password, unknownUserMessage)
+      @insertInvalidCredentials(browser, user.username, wrongPassword, wrongPasswordMessage)
     else
       browser
         .setValue               inputUserName, user.username
@@ -103,6 +90,23 @@ module.exports =
         .click                  loginButton
 
       @loginAssertion(browser)
+
+
+  insertInvalidCredentials: (browser, usernameOrEmail, password, errorMessage) ->
+
+    inputUserName        = 'input[name=username]'
+    inputPassword        = 'input[name=password]'
+    notificationSelector = '.team .kdnotification.main'
+    loginButton          = 'button[testpath=login-button]'
+
+    browser
+      .setValue               inputUserName, usernameOrEmail
+      .setValue               inputPassword, password
+      .click                  loginButton
+      .waitForElementVisible  notificationSelector, 20000
+      .assert.containsText    notificationSelector, errorMessage
+      .pause                  2000 # wait for notification to disappear
+      .clearValue             inputUserName
 
 
   loginTeam: (browser, invalidCredentials = no) ->
