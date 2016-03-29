@@ -94,8 +94,6 @@ class IDEAppController extends AppController
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
     @bindListeners()
 
-    computeController.on 'StackBuildDone', @bound 'handleStackBuildDone'
-
     appManager.on 'AppIsBeingShown', (app) =>
 
       return  unless app is this
@@ -440,14 +438,16 @@ class IDEAppController extends AppController
   ###
   tailFile: (options, callback = kd.noop) ->
 
-    { file, contents, targetTabView, description, emitChange, isActivePane, tailOffset } = options
+    { file, contents, targetTabView, description,
+      emitChange, isActivePane, tailOffset, buildDuration } = options
 
     targetTabView = @ideViews.first.tabView  unless targetTabView
 
     @setActiveTabView targetTabView
 
     @activeTabView.emit 'FileNeedsToBeTailed', {
-      file, contents, description, callback, emitChange, isActivePane, tailOffset
+      file, contents, description, callback, emitChange,
+      isActivePane, tailOffset, buildDuration
     }
 
 
@@ -1271,8 +1271,7 @@ class IDEAppController extends AppController
         mainView.activitySidebar.selectWorkspace data
 
       if initial
-        computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET
-        @showStackProgressModalIfNeeded()
+        computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET, yes
 
       @emit 'IDEReady'
 
@@ -1992,31 +1991,3 @@ class IDEAppController extends AppController
 
     @activePaneView?.webtermView?.on 'ScreenSizeChanged', (size) =>
       @updateStatusBar null, "Screen size changed to (#{size.w}, #{size.h})"
-
-
-  showStackProgressModalIfNeeded: ->
-
-    return  unless @mountedMachine
-
-    { computeController } = kd.singletons
-    stack = computeController.findStackFromMachineId @mountedMachine._id
-    return  unless stack
-
-    remote.api.JStackTemplate.one { _id : stack.baseStackId }, (err, stackTemplate) =>
-      return kd.log err  if err
-
-      { config } = stackTemplate
-      return  unless config
-
-      { buildDuration } = config
-      if buildDuration
-        @stackProgressModal = new StackProgressModal
-          duration  : buildDuration
-          container : @getView()
-        @stackProgressModal.on 'KDObjectWillBeDestroyed', => @stackProgressModal = null
-
-
-  handleStackBuildDone: (machineId) ->
-
-    if @mountedMachine?._id = machineId
-      @stackProgressModal?.completeProgress()

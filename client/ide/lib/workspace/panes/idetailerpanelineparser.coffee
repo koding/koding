@@ -4,15 +4,17 @@ KDNotificationView = kd.NotificationView
 
 module.exports = class IDETailerPaneLineParser extends KDObject
 
-  constructor: (file) ->
+  constructor: ->
 
-    @file = file
+    super
+
     @config = [
       { template : '_KD_DONE_', method : @bound 'showDoneNotification' }
       { template : /^_KD_NOTIFY_@(.+)@$/, method : @bound 'showNotification' }
     ]
 
-  process: (line, file) ->
+
+  process: (line) ->
 
     line = line.trim()
     for { template, method } in @config
@@ -26,7 +28,7 @@ module.exports = class IDETailerPaneLineParser extends KDObject
   showDoneNotification: ->
 
     @showNotification 'Provisioning Completed'
-    kd.singletons.computeController.emit 'StackBuildDone', @file.machine._id
+    @emit 'BuildDone'
 
 
   showNotification: (message, duration = 2000) ->

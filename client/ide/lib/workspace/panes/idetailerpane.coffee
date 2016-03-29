@@ -1,9 +1,10 @@
-kd                      = require 'kd'
-FSFile                  = require 'app/util/fs/fsfile'
-IDEPane                 = require './idepane'
-AceView                 = require 'ace/aceview'
-IDEAce                  = require '../../views/ace/ideace'
-IDETailerPaneLineParser = require './idetailerpanelineparser'
+kd                       = require 'kd'
+FSFile                   = require 'app/util/fs/fsfile'
+IDEPane                  = require './idepane'
+AceView                  = require 'ace/aceview'
+IDEAce                   = require '../../views/ace/ideace'
+IDETailerPaneLineParser  = require './idetailerpanelineparser'
+IDETailerPaneProgressBar = require './idetailerpaneprogressbar'
 
 
 module.exports = class IDETailerPane extends IDEPane
@@ -18,7 +19,9 @@ module.exports = class IDETailerPane extends IDEPane
 
     @hash = @file.paneHash  if @file.paneHash
     @ideViewHash = options.ideViewHash
-    @lineParser = new IDETailerPaneLineParser @file
+
+    @lineParser = new IDETailerPaneLineParser()
+    @lineParser.on 'BuildDone', @bound 'handleBuildDone'
 
     @createEditor()
 
@@ -52,7 +55,7 @@ module.exports = class IDETailerPane extends IDEPane
       ace.setReadOnly      yes
       ace.setScrollPastEnd no
 
-      { descriptionView, description } = @getOptions()
+      { descriptionView, description, buildDuration } = @getOptions()
       file = @getData()
 
       ace.descriptionView = descriptionView ? new kd.View
@@ -67,6 +70,11 @@ module.exports = class IDETailerPane extends IDEPane
           @resize()
 
       ace.descriptionView.setClass 'description-view'
+
+      if buildDuration
+        ace.progressBar = new IDETailerPaneProgressBar { duration : buildDuration }
+        ace.prepend ace.progressBar
+
       ace.prepend ace.descriptionView
 
       @emit 'EditorIsReady'
@@ -169,3 +177,11 @@ module.exports = class IDETailerPane extends IDEPane
 
 
   makeReadOnly: ->
+
+
+  handleBuildDone: ->
+
+    { progressBar } = @aceView.ace
+    return  unless progressBar
+
+    progressBar.completeProgress()
