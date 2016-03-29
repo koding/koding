@@ -304,7 +304,7 @@ module.exports = class JComputeStack extends jraphical.Module
       sourceId   : @originId
       sourceName : 'JAccount'
       as         : 'user'
-    , callback
+    , (err) -> callback err
 
 
   updateGroupResourceUsage = (stack, group, change, callback) ->
