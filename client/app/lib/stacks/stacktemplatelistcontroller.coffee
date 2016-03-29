@@ -125,7 +125,7 @@ module.exports = class StackTemplateListController extends KodingListController
 
   _itemSelected: (data) ->
 
-    @getListView().emit 'ItemSelected', data
+    @emit 'ItemSelected', data
 
 
   showItem: (item) ->
