@@ -23,7 +23,7 @@ module.exports = class SidebarDifferentStackResources extends React.Component
           Team admin has changed the default stack.
           Please save your changes and go to Stack Catalog, and reinitialize.
         </p>
-        <Link href='/Stacks'>
+        <Link href='/Stacks/My-Stacks'>
           Stack Catalog
         </Link>
       </div>
