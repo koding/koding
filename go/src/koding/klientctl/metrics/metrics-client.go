@@ -50,6 +50,10 @@ func (m *MetricClient) SendMetric(mc *Metric) error {
 		id = m.randomId()
 	}
 
+	if mc.Properties == nil {
+		mc.Properties = map[string]interface{}{}
+	}
+
 	mc.Properties["timestamp"] = time.Now().UTC()
 
 	err = m.client.Track(&analytics.Track{
