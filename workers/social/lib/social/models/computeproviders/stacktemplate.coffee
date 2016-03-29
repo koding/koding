@@ -380,10 +380,15 @@ module.exports = class JStackTemplate extends Module
 
         data['meta.modifiedAt'] = new Date
 
-      @updateAndNotify {
+      query = { $set: data }
+
+      notifyOptions =
         account : delegate
         group   : group.slug
-      }, { $set: data }, (err) => callback err, this
+        target  : 'account'
+
+      @updateAndNotify notifyOptions, query, (err) =>
+        callback err, this
 
 
   cloneCustomCredentials = (client, credentials, callback) ->
