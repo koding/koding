@@ -114,6 +114,7 @@ module.exports = class KodingListController extends KDListViewController
     @showLazyLoader no
 
     @fetch @filterStates.query, (items) =>
+      @emit 'ItemsLoaded', items
       return @showNoItemWidget()  unless items?.length
 
       @addListItems items
