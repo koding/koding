@@ -54,7 +54,7 @@ module.exports = class ForceToReinitModal extends kd.ModalView
     stackTemplate = @getData()
     new StackAdminMessageModal
       doneMessage : DONE_MESSAGE
-      doneFn      : (message, callback) ->
-        stackTemplate.forceStacksToReinit message, callback
+      callback    : (message, _callback) ->
+        stackTemplate.forceStacksToReinit message, _callback
 
     @destroy()

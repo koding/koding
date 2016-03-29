@@ -21,76 +21,76 @@ module.exports = class JComputeStack extends jraphical.Module
 
   @set
 
-    softDelete             : yes
+    softDelete           : yes
 
-    permissions            :
+    permissions          :
 
-      'create stack'       : ['member']
+      'create stack'     : ['member']
 
-      'update stack'       : []
-      'update own stack'   : ['member']
+      'update stack'     : []
+      'update own stack' : ['member']
 
-      'delete stack'       : []
-      'delete own stack'   : ['member']
+      'delete stack'     : []
+      'delete own stack' : ['member']
 
-      'list stacks'        : ['member']
+      'list stacks'      : ['member']
 
-    sharedMethods          :
-      static               :
-        create             :
+    sharedMethods        :
+      static             :
+        create           :
           (signature Object, Function)
-        one                : [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
-        some               : [
+        one              : [
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
-      instance             :
-        delete             :
-          (signature Function)
-        maintenance        :
+        some             : [
           (signature Object, Function)
-        destroy            :
+          (signature Object, Object, Function)
+        ]
+      instance           :
+        delete           :
           (signature Function)
-        modify             :
+        maintenance      :
           (signature Object, Function)
-        checkRevision      :
+        destroy          :
+          (signature Function)
+        modify           :
+          (signature Object, Function)
+        checkRevision    :
           (signature Function)
         createAdminMessage :
           (signature String, String, Function)
         deleteAdminMessage :
           (signature Function)
 
-    sharedEvents           :
-      static               : []
-      instance             : []
+    sharedEvents         :
+      static             : []
+      instance           : []
 
-    schema                 :
+    schema               :
 
-      title                :
-        type               : String
-        required           : yes
+      title              :
+        type             : String
+        required         : yes
 
-      originId             :
-        type               : ObjectId
-        required           : yes
+      originId           :
+        type             : ObjectId
+        required         : yes
 
-      group                :
-        type               : String
-        required           : yes
+      group              :
+        type             : String
+        required         : yes
 
-      baseStackId          : ObjectId
-      stackRevision        : String
+      baseStackId        : ObjectId
+      stackRevision      : String
 
-      machines             :
-        type               : Object
-        default            : -> []
+      machines           :
+        type             : Object
+        default          : -> []
 
-      config               : Object
+      config             : Object
 
-      meta                 : require 'bongo/bundles/meta'
+      meta               : require 'bongo/bundles/meta'
 
       # Identifiers of JCredentials
       # structured like following;
@@ -100,19 +100,19 @@ module.exports = class JComputeStack extends jraphical.Module
       #    aws: [123123, 123124]
       #    github: [234234]
       #  }
-      credentials          :
-        type               : Object
-        default            : -> {}
+      credentials        :
+        type             : Object
+        default          : -> {}
 
-      status               :
+      status             :
 
-        modifiedAt         : Date
-        reason             : String
+        modifiedAt       : Date
+        reason           : String
 
-        state              :
-          type             : String
-          default          : -> 'NotInitialized'
-          enum             : ['Wrong type specified!', [
+        state            :
+          type           : String
+          default        : -> 'NotInitialized'
+          enum           : ['Wrong type specified!', [
             # Unknown is a state that needs to be resolved manually
             'Unknown'
 
@@ -557,7 +557,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
   createAdminMessage: (message, type, callback) ->
 
-    { config }          = this
+    config              = @getAt 'config'
     config.adminMessage = { message, type }
     @update { $set : { config } }, callback
 
@@ -584,7 +584,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
   deleteAdminMessage: (callback) ->
 
-    { config }          = this
+    config              = @getAt 'config'
     config.adminMessage = null
     @update { $set : { config } }, callback
 

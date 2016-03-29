@@ -103,8 +103,8 @@ module.exports = class ResourceListItem extends kd.ListItemView
 
     stack = @getData()
     new StackAdminMessageModal
-      doneFn : (message, callback) ->
-        stack.createAdminMessage message, 'info', callback
+      callback : (message, _callback) ->
+        stack.createAdminMessage message, 'info', _callback
 
 
   toggleDetails: ->

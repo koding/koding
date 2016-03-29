@@ -205,7 +205,7 @@ module.exports = class ComputeController extends KDController
 
       if @stacks.length > 0 and not force
         callback null, @stacks
-        kd.info "Stacks returned from cache."
+        kd.info 'Stacks returned from cache.'
         return
 
       return  if (queue.push callback) > 1
@@ -1302,9 +1302,7 @@ module.exports = class ComputeController extends KDController
   handleStackAdminMessageCreated: (data) ->
 
     { stackIds, message, type } = data.contents
-    for stackId in stackIds
-      stack = @stacksById[stackId]
-      continue  unless stack
+    for stackId in stackIds when stack = @stacksById[stackId]
       stack.config ?= {}
       stack.config.adminMessage = { message, type }
 

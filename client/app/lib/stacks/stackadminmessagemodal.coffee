@@ -28,10 +28,10 @@ module.exports = class StackAdminMessageModal extends kd.ModalView
 
     @buttons.send.showLoader()
 
-    { doneMessage, doneFn, view } = @getOptions()
+    { doneMessage, callback, view } = @getOptions()
 
-    message = this.getOption('view').getValue()
-    doneFn message, (err) =>
+    message = view.getValue()
+    callback message, (err) =>
       @buttons.send.hideLoader()
 
       return showError err  if err

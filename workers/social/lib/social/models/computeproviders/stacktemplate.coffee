@@ -18,9 +18,9 @@ module.exports = class JStackTemplate extends Module
 
   @set
 
-    softDelete              : yes
+    softDelete        : yes
 
-    permissions             :
+    permissions       :
 
       'create stack template'     : ['member', 'moderator']
       'list stack templates'      : ['member', 'moderator']
@@ -31,73 +31,73 @@ module.exports = class JStackTemplate extends Module
       'delete stack template'     : []
       'update stack template'     : []
 
-      'force stacks to reinit'    : ['admin']
+      'force stacks to reinit'    : []
 
-    sharedMethods           :
+    sharedMethods     :
 
-      static                :
-        create              :
+      static          :
+        create        :
           (signature Object, Function)
-        one                 : [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
-        some                : [
+        one           : [
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        some          : [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
 
-      instance              :
-        delete              :
+      instance        :
+        delete        :
           (signature Function)
-        setAccess           :
+        setAccess     :
           (signature String, Function)
-        update              :
+        update        :
           (signature Object, Function)
-        clone               :
+        clone         :
           (signature Function)
-        generateStack       :
+        generateStack :
           (signature Function)
         forceStacksToReinit :
           (signature String, Function)
 
-    sharedEvents            :
-      static                : []
-      instance              : []
+    sharedEvents      :
+      static          : []
+      instance        : []
 
-    schema                  :
+    schema            :
 
-      machines              : [ Object ]
+      machines        : [ Object ]
 
-      title                 :
-        type                : String
-        required            : yes
+      title           :
+        type          : String
+        required      : yes
 
-      description           : String
-      config                : Object
+      description     : String
+      config          : Object
 
-      accessLevel           :
-        type                : String
-        enum                : ['Wrong level specified!',
+      accessLevel     :
+        type          : String
+        enum          : ['Wrong level specified!',
           ['private', 'group', 'public']
         ]
-        default             : 'private'
+        default       : 'private'
 
-      originId              :
-        type                : ObjectId
-        required            : yes
+      originId        :
+        type          : ObjectId
+        required      : yes
 
-      meta                  : require 'bongo/bundles/meta'
+      meta            : require 'bongo/bundles/meta'
 
-      group                 :
-        type                : String
-        required            : yes
+      group           :
+        type          : String
+        required      : yes
 
-      template              :
-        content             : String
-        sum                 : String
-        details             : Object
-        rawContent          : String
+      template        :
+        content       : String
+        sum           : String
+        details       : Object
+        rawContent    : String
 
       # Identifiers of JCredentials
       # structured like following;
@@ -107,9 +107,9 @@ module.exports = class JStackTemplate extends Module
       #    aws: [123123, 123124]
       #    github: [234234]
       #  }
-      credentials           :
-        type                : Object
-        default             : -> {}
+      credentials     :
+        type          : Object
+        default       : -> {}
 
 
   generateTemplateObject = (content, rawContent, details) ->
@@ -452,11 +452,7 @@ module.exports = class JStackTemplate extends Module
         JStackTemplate.create client, cloneData, callback
 
 
-  forceStacksToReinit: permit
-
-    advanced : [
-      { permission : 'force stacks to reinit' }
-    ]
+  forceStacksToReinit: permit 'force stacks to reinit',
 
     success: (client, message, callback) ->
 
