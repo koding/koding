@@ -128,8 +128,6 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     super
 
-    return @menu
-
 
   pistachio: ->
 
