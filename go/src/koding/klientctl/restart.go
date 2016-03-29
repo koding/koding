@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"koding/klientctl/config"
-	"time"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -41,7 +40,8 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		s.Stop()
 	}
 
-	if err := WaitUntilStopped(config.KlientAddress, 5, 1*time.Second); err != nil {
+	err = WaitUntilStopped(config.KlientAddress, CommandAttempts, CommandWaitTime)
+	if err != nil {
 		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			5, err,
@@ -61,7 +61,9 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	fmt.Println("Waiting until started...")
-	if err := WaitUntilStarted(config.KlientAddress, 15, 1*time.Second); err != nil {
+
+	err = WaitUntilStarted(config.KlientAddress, CommandAttempts, CommandWaitTime)
+	if err != nil {
 		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			15, err,
