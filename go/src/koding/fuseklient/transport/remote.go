@@ -13,7 +13,7 @@ import (
 
 const (
 	// defaultLongTellTimeout is the default timeout longTellMethods use.
-	defaultLongTellTimeout = 55 * time.Second
+	defaultLongTellTimeout = 5 * time.Second
 )
 
 var (
