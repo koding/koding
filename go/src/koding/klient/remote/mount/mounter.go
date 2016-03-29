@@ -328,7 +328,7 @@ func (m *Mounter) handleChangeSummary(mount *Mount, summary kitepinger.ChangeSum
 func (mounter *Mounter) remount(mount *Mount) error {
 	// Log error and return to exit loop, since something is broke
 	if err := mounter.PathUnmounter(mount.LocalPath); err != nil {
-		return err
+		mounter.Log.Warning("Mounter#remount unmount on %s failed: %s", mount.MountName, err)
 	}
 
 	if err := mounter.fuseMountFolder(mount, true); err != nil {

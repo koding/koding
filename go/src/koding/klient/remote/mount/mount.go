@@ -65,14 +65,16 @@ func (m *Mount) Unmount() error {
 	if m.Unmounter != nil {
 		err = m.Unmounter.Unmount()
 	} else {
-		// Ignoring this error, since this fails when it's unable to find mount on
-		// path, ie. we're already at the desired state we want to be in.
-		if err := fuseklient.Unmount(m.LocalPath); err != nil {
-			m.Log.Warning("fuseklient.Unmount on %s failed: %s", m.LocalPath, err)
-		}
+		err = fuseklient.Unmount(m.LocalPath)
 	}
 
-	return err
+	// Ignoring this error, since this fails when it's unable to find mount on
+	// path, ie. we're already at the desired state we want to be in.
+	if err != nil {
+		m.Log.Warning("Mount#Unmount on %s failed: %s", m.LocalPath, err)
+	}
+
+	return nil
 }
 
 func MountLogger(m *Mount, l logging.Logger) logging.Logger {
