@@ -61,7 +61,7 @@ module.exports = class ComputeControllerUI
   hasStackRequiredField = (requiredFields, field) ->
 
     return yes  if field in requiredFields
-    return requiredFields.filter((item) -> item.name is field).length > 0
+    return (item for item in requiredFields when item.name is field).length > 0
 
 
   injectCustomActions = (requiredFields, buttons, callback) ->
