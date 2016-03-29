@@ -55,10 +55,11 @@ module.exports = class ResourceListItem extends kd.ListItemView
       cssClass : 'solid small red fr'
       callback : @bound 'handleDelete'
 
-    @details.addSubView new kd.ButtonView
-      title    : 'Admin Message'
-      cssClass : 'solid small green fr'
-      callback : @bound 'handleAdminMessage'
+    # temporary comment until stack admin message design is ready
+    # @details.addSubView new kd.ButtonView
+    #   title    : 'Admin Message'
+    #   cssClass : 'solid small green fr'
+    #   callback : @bound 'handleAdminMessage'
 
     @ownerView = new AvatarView {
       size: { width: 25, height: 25 }

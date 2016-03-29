@@ -121,11 +121,12 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
       @addMenuItem 'Apply to Team', ->
         listView.emit 'ItemSelectedAsDefault', stackTemplate
 
-    super
+    # temporary comment until stack admin message design is ready
+    # if stackTemplate.canForcedReinit
+    #   @addMenuItem 'Force Stacks to Re-init', ->
+    #     new ForceToReinitModal {}, stackTemplate
 
-    if stackTemplate.canForcedReinit
-      @addMenuItem 'Force Stacks to Re-init', ->
-        new ForceToReinitModal {}, stackTemplate
+    super
 
     return @menu
 
