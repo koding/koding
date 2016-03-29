@@ -58,9 +58,15 @@ module.exports = class ComputeControllerUI
         cssClass      : 'second-overlay'
 
 
+  hasStackRequiredField = (requiredFields, field) ->
+
+    return yes  if field in requiredFields
+    return requiredFields.filter((item) -> item.name is field).length > 0
+
+
   injectCustomActions = (requiredFields, buttons, callback) ->
 
-    if 'ssh_public_key' in requiredFields
+    if hasStackRequiredField requiredFields, 'ssh_public_key'
 
       buttons['Auto Generate SSH Keys'] =
         style    : 'solid medium green'
@@ -79,7 +85,7 @@ module.exports = class ComputeControllerUI
             @hideLoader()
             return  if showError err, { KodingError: 'Service not available' }
 
-            unless 'ssh_private_key' in requiredFields
+            unless hasStackRequiredField requiredFields, 'ssh_private_key'
               showPrivateKeyWarning res.private
 
             callback
