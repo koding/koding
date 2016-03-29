@@ -365,9 +365,12 @@ module.exports = class JMachine extends Module
     @remove callback
 
 
-  addUsers: (options, callback) ->
+  addUsers: secure (client, options, callback) ->
 
     { targets, asOwner, permanent, group } = options
+
+    { group }    = client.r
+    { delegate } = client.connection
 
     users = @users.slice 0
 
@@ -378,7 +381,10 @@ module.exports = class JMachine extends Module
       callback new KodingError \
         'Machine sharing is limited up to 50 users.'
     else
-      @update { $set: { users } }, (err) =>
+      @updateAndNotify {
+        account : delegate
+        group   : group.slug
+      }, { $set: { users } }, (err) =>
         informAccounts
           users       : targets
           machineUId  : @getAt('uid')
@@ -388,16 +394,22 @@ module.exports = class JMachine extends Module
         callback err
 
 
-  removeUsers: (options, callback) ->
+  removeUsers: secure (client, options, callback) ->
 
     { targets, permanent, inform, force, group } = options
+
+    { group }    = client.r
+    { delegate } = client.connection
 
     users = @users.slice 0
 
     for user in targets
       users = excludeUser { users, user, permanent, force }
 
-    @update { $set: { users } }, (err) =>
+    @updateAndNotify {
+      account : delegate
+      group   : group.slug
+    }, { $set: { users } }, (err) =>
       if inform
         informAccounts {
           users       : targets
@@ -551,7 +563,7 @@ module.exports = class JMachine extends Module
 
     , (client, provisioner, callback) ->
 
-      { r: { user } } = client
+      { r: { user, group }, connection: { delegate } } = client
 
       unless isOwner user, this
         return callback new KodingError 'Access denied'
@@ -561,7 +573,10 @@ module.exports = class JMachine extends Module
         if err or not provision?
           callback new KodingError 'Provisioner not found'
         else
-          @update { $set: { provisioners: [ provision.slug ] } }, callback
+          @updateAndNotify {
+            account : delegate
+            group   : group.slug
+          }, { $set: { provisioners: [ provision.slug ] } }, callback
 
 
   reviveUsers: permit 'populate users',
@@ -609,7 +624,7 @@ module.exports = class JMachine extends Module
 
     , (client, label, callback) ->
 
-      { r: { user, group } } = client
+      { r: { user, group }, connection: { delegate } } = client
 
       unless isOwner user, this
         return callback new KodingError 'Access denied'
@@ -627,9 +642,15 @@ module.exports = class JMachine extends Module
       if slug isnt @slug
         generateSlugFromLabel { user, group, label }, (err, { slug, label }) =>
           return callback err  if err?
-          @update { $set: { slug , label } }, (err) -> kallback err, slug
+          @updateAndNotify {
+            account : delegate
+            group   : group.slug
+          }, { $set: { slug , label } }, (err) -> kallback err, slug
       else
-        @update { $set: { label } }, (err) -> kallback err, slug
+        @updateAndNotify {
+          account : delegate
+          group   : group.slug
+        }, { $set: { label } }, (err) -> kallback err, slug
 
 
   # .shareWith can be used like this:
