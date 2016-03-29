@@ -65,6 +65,7 @@ module.exports = {
   STACKS_BUILD_SUCCESSFULLY : 'stack build successfully'
   STACKS_BUILD_FAILED       : 'stack build failed'
   STACKS_EDIT               : 'edit stack'
+  STACKS_CANCEL_SETUP       : 'canceled stack setup'
   STACKS_DELETE             : 'deleted stack'
   STACKS_DELETE_TEMPLATE    : 'deleted stack template'
   STACKS_REINIT             : 'reinitialized stack'
