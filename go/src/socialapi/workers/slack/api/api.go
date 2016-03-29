@@ -98,6 +98,12 @@ func (s *Slack) Callback(u *url.URL, h http.Header, _ interface{}, context *mode
 //
 // We need this for handling the internal redirection of team requests
 func (s *Slack) Success(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	errMessage := u.Query().Get("error")
+	if len(errMessage) > 0 {
+		h.Set("Location", "/Admin/Invitations/Slack?error="+url.QueryEscape(errMessage))
+		return http.StatusTemporaryRedirect, h, nil, nil
+	}
+
 	// get session data from state
 	state := u.Query().Get("state")
 	if state == "" {
