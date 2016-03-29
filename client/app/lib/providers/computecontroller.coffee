@@ -1024,6 +1024,7 @@ module.exports = class ComputeController extends KDController
       return kd.warn 'No such Group!'  unless _currentGroup
 
       currentGroup.stackTemplates = _currentGroup.stackTemplates
+      @emit 'GroupStackTemplatesUpdated'
 
       # TMS-1919: This can stay as is, but this time it will create the first
       # avaiable stacktemplate for who has no stacks yet. ~ GG
