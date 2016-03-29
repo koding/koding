@@ -20,8 +20,10 @@ module.exports = class HomeAppView extends kd.ModalView
 
     @avatarArea = new HomeAppAvatarView
     @title      = new kd.CustomHTMLView
-      cssClass : 'HomeAppView-Nav--Title'
-      partial  : 'Dashboard'
+      tagName    : 'a'
+      attributes : { href: '/Home/Welcome' }
+      cssClass   : 'HomeAppView-Nav--Title'
+      partial    : 'Dashboard'
 
     @nav.addSubView @title, null, yes
     @nav.addSubView @avatarArea, null, yes
