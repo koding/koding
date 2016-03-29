@@ -6,6 +6,7 @@ package vagrant
 import (
 	"errors"
 	"fmt"
+	"koding/kites/common"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -19,9 +20,10 @@ import (
 
 // Options are used to alternate default behavior of Handlers.
 type Options struct {
-	Home string
-	DB   *bolt.DB
-	Log  kite.Logger
+	Home  string
+	DB    *bolt.DB
+	Log   kite.Logger
+	Debug bool
 }
 
 // Handlers define a set of kite handlers which is responsible of managing
@@ -43,7 +45,8 @@ type Handlers struct {
 	boxPaths map[string]chan<- (chan error) // queue of listeners mapped by a box filePath
 	boxMu    sync.Mutex                     // protects boxNames and boxPaths
 
-	once sync.Once
+	once  sync.Once
+	debug bool
 }
 
 // NewHandlers returns a new instance of Handlers.
@@ -55,6 +58,7 @@ func NewHandlers(opts *Options) *Handlers {
 		paths:    make(map[string]*vagrantutil.Vagrant),
 		boxNames: make(map[string]chan<- (chan error)),
 		boxPaths: make(map[string]chan<- (chan error)),
+		debug:    opts.Debug,
 	}
 }
 
@@ -94,6 +98,7 @@ func (h *Handlers) withPath(r *kite.Request, fn vagrantFunc) (interface{}, error
 
 	var params struct {
 		FilePath string
+		Debug    bool
 	}
 
 	if r.Args == nil {
@@ -109,14 +114,14 @@ func (h *Handlers) withPath(r *kite.Request, fn vagrantFunc) (interface{}, error
 		return nil, errors.New("[filePath] is missing")
 	}
 
-	v, err := h.vagrantutil(params.FilePath)
+	v, err := h.vagrantutil(params.FilePath, params.Debug)
 	if err != nil {
 		return nil, err
 	}
 
 	h.log.Info("Calling %q on %q", r.Method, v.VagrantfilePath)
 
-	h.log.Debug("vagrant: calling %q by %q with %v", r.Method, r.Username, r.Args)
+	h.log.Debug("vagrant: calling %q by %q with %s", r.Method, r.Username, r.Args.Raw)
 
 	resp, err := fn(r, v)
 
@@ -127,7 +132,7 @@ func (h *Handlers) withPath(r *kite.Request, fn vagrantFunc) (interface{}, error
 
 // check if it was added previously, if not create a new vagrantUtil
 // instance
-func (h *Handlers) vagrantutil(path string) (*vagrantutil.Vagrant, error) {
+func (h *Handlers) vagrantutil(path string, debug bool) (*vagrantutil.Vagrant, error) {
 	path = h.absolute(path)
 
 	h.pathsMu.Lock()
@@ -139,6 +144,10 @@ func (h *Handlers) vagrantutil(path string) (*vagrantutil.Vagrant, error) {
 		v, err = vagrantutil.NewVagrant(path)
 		if err != nil {
 			return nil, err
+		}
+
+		if debug || h.debug {
+			v.Log = common.NewLogger("vagrantutil", true)
 		}
 
 		h.paths[path] = v
