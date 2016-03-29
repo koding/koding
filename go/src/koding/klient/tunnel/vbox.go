@@ -14,14 +14,96 @@ import (
 	"koding/tools/util"
 
 	"github.com/koding/kite"
+	"github.com/koding/tunnel"
 )
 
-func (t *Tunnel) Info(r *kite.Request) (interface{}, error) {
-	return nil, nil // TODO
+// Port describes port numbers of a tunnel connection.
+type Port struct {
+	// Local is a port number of the local server (private end of the tunnel).
+	// It is non-0 for tunnel clients which run directly on a host network
+	// (no VirtualBox, Docker etc. NAT).
+	//
+	// It may be 0 when tunnel is created for a Vagrant box, which does
+	// not have its port forwarded to the host - in this case the NAT
+	// field is the local server port inside the vm.
+	//
+	// This end of a tunnel is accessible under 127.0.0.1:<Local>.
+	Local int `json:"local,omitempty"`
+
+	// NAT is a port number of the local server which runs inside
+	// a Vagrant box.
+	//
+	// It is 0 when tunnel client runs directly on the host network.
+	NAT int `json:"nat,omitempty"`
+
+	// Remote is a port number of public end of the tunnel. It is
+	// always non-0.
+	//
+	// This end of a tunnel is accessuble under <VirtualHost>:<Remote>.
+	Remote int `json:"remote"`
 }
 
-func (t *Tunnel) Route(r *kite.Request) (interface{}, error) {
-	return nil, nil // TODO
+type InfoResponse struct {
+	Name        string `json:"name"`      // tunnel name, e.g.62ee1f899a4e
+	VirtualHost string `json:"vhost"`     // tunenl vhost, e.g. 62ee1f899a4e.rafal.koding.me
+	PublicIP    string `json:"publicIp"`  // public IP of the tunnel client
+	State       string `json:"state"`     // state of the tunnel
+	IsVagrant   bool   `json:"isVagrant"` // whether we NATed behind Vagrant network
+
+	Ports map[string]*Port `json:"ports,omitempty"`
+}
+
+var stateNames = map[tunnel.ClientState]string{
+	tunnel.ClientUnknown:      "NotStarted",
+	tunnel.ClientStarted:      "Started",
+	tunnel.ClientConnecting:   "Connecting",
+	tunnel.ClientConnected:    "Connected",
+	tunnel.ClientDisconnected: "Disconnected",
+	tunnel.ClientClosed:       "Closed",
+}
+
+func (t *Tunnel) Info(r *kite.Request) (interface{}, error) {
+	var info InfoResponse
+
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	info.State = stateNames[t.state]
+
+	// If tunnel is not connected, then no tunnels are available.
+	if t.state != tunnel.ClientConnected {
+		return info, nil
+	}
+
+	info.Name = t.opts.TunnelName
+	info.VirtualHost = t.opts.VirtualHost
+	info.PublicIP = t.opts.PublicIP.String()
+	info.IsVagrant = t.isVagrant
+
+	// Build tunnel information.
+	info.Ports = map[string]*Port{
+		"kite": {Remote: 80},
+	}
+
+	if info.IsVagrant {
+		info.Ports["kite"].NAT = t.opts.Config.Port
+
+		// Find forwarded port
+		for _, p := range t.ports {
+			if p.GuestPort == t.opts.Config.Port {
+				info.Ports["kite"].Local = p.HostPort
+				break
+			}
+		}
+	} else {
+		info.Ports["kite"].Local = t.opts.Config.Port
+	}
+
+	if _, port, err := parseHostPort(info.VirtualHost); err == nil && port != 0 {
+		info.Ports["kite"].Remote = port
+	}
+
+	return info, nil
 }
 
 type Ports []*vagrant.ForwardedPort
@@ -62,6 +144,8 @@ func (t *Tunnel) localRoute() map[string]string {
 		}
 	}
 
+	t.isVagrant = true
+
 	_, port, err := parseHostPort(t.opts.LocalAddr)
 	if err != nil {
 		t.opts.Log.Error("ill-formed local address: %s", err)
@@ -77,14 +161,9 @@ func (t *Tunnel) localRoute() map[string]string {
 	}
 
 	t.opts.Log.Debug("forwarded ports: %+v", Ports(ports))
-
-	// cache forwarded ports
-	t.mu.Lock()
 	t.ports = ports
-	t.mu.Unlock()
 
 	var localAddr string
-
 	for _, p := range ports {
 		if p.GuestPort == port {
 			localAddr = net.JoinHostPort("127.0.0.1", strconv.Itoa(p.HostPort))

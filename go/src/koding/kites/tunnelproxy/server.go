@@ -146,7 +146,7 @@ type RegisterRequest struct {
 	// If both local server of the tunnel and the client are within the
 	// same network, all HTTP requests are going to be redirected to
 	// use local interfece instead.
-	LocalRoutes map[string]string // maps publicIP to local address
+	LocalRoutes map[string]string `json:"localRoutes,omitempty"` // maps publicIP to local address
 }
 
 // RegisterResult represents response value for register method.
@@ -536,21 +536,24 @@ func (s *Server) vhostRoutes(vhost string) map[string]string {
 }
 
 func (s *Server) localRoute(r *http.Request) string {
-	ips := map[string]struct{}{
-		parseIP(r.RemoteAddr):                    {},
-		parseIP(r.Header.Get("X-Real-IP")):       {},
-		parseIP(r.Header.Get("X-Forwarded-For")): {},
+	// do not route websocket handshakes
+	if isWebsocketConn(r) {
+		return ""
 	}
 
-	delete(ips, "")
+	ips := extractIPs(r)
 
 	if len(ips) == 0 {
+		s.opts.Log.Debug("%s: no IPs extracted", r.RemoteAddr)
+
 		return ""
 	}
 
 	routes := s.vhostRoutes(strings.ToLower(r.Host))
 
 	if len(routes) == 0 {
+		s.opts.Log.Debug("%s: no routes found for %q", r.RemoteAddr, r.Host)
+
 		return ""
 	}
 
@@ -560,24 +563,43 @@ func (s *Server) localRoute(r *http.Request) string {
 			continue
 		}
 
-		r.URL.Scheme = "http"
-		r.URL.Host = route
+		s.opts.Log.Debug("%s: found local route for %s: %s", r.RemoteAddr, ip, route)
 
-		return r.URL.String()
+		return route
 	}
 
 	return ""
 }
 
 func (s *Server) tunnelHandler() http.HandlerFunc {
-	base := forward("/klient", s.Server)
 	return func(w http.ResponseWriter, r *http.Request) {
-		if url := s.localRoute(r); url != "" {
-			http.Redirect(w, r, url, 307)
+		// skip requests from localhost
+		if r.Host == "localhost" {
+			w.WriteHeader(200)
 			return
 		}
 
-		base(w, r)
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/klient")
+
+		s.Server.ServeHTTP(w, r)
+	}
+}
+
+func (s *Server) resolveHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = ""
+		if r.URL.Host == "" {
+			r.URL.Host = r.Host
+		}
+
+		url := s.localRoute(r)
+		if url == "" {
+			url = r.URL.Host
+		}
+
+		s.opts.Log.Debug("%s: resolved for %# v: %s", r.RemoteAddr, r.URL, url)
+
+		fmt.Fprintln(w, url)
 	}
 }
 
@@ -620,6 +642,7 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	k.HandleFunc("registerServices", s.RegisterServices)
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
+	k.HandleHTTP("/resolve", s.resolveHandler())
 	k.HandleHTTP("/{rest:.*}", s.tunnelHandler())
 
 	if s.opts.RegisterURL == nil {
@@ -627,11 +650,4 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	}
 
 	return k, nil
-}
-
-func forward(path string, handler http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, path)
-		handler.ServeHTTP(w, r)
-	}
 }

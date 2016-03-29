@@ -71,6 +71,7 @@ type ForwardedPort struct {
 }
 
 type VagrantCreateOptions struct {
+	Username       string           `json:"username"`
 	Hostname       string           `json:"hostname"`
 	Box            string           `json:"box,omitempty"`
 	Memory         int              `json:"memory,omitempty"`
