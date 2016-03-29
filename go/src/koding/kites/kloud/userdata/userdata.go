@@ -96,9 +96,6 @@ disable_root: false
 disable_ec2_metadata: {{.DisableEC2MetaData}}
 hostname: '{{.Hostname}}'
 
-bootcmd:
-  - [sh, -c, 'echo "127.0.0.1 {{.Hostname}}" >> /etc/hosts']
-
 users:
   - default
   - name: '{{.Username}}'
@@ -174,6 +171,8 @@ write_files:
 {{end}}
 
 runcmd:
+  - [sh, -c, 'echo "127.0.0.1 {{.Hostname}}" >> /etc/hosts']
+
   # Install & Configure klient
   - [wget, "{{.LatestKlientURL}}", --retry-connrefused, --tries, 5, -O, /tmp/latest-klient.deb]
   - [dpkg, -i, /tmp/latest-klient.deb]
