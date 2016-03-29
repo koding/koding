@@ -86,7 +86,7 @@ class IDEAppController extends AppController
     @layout    = ndpane 16
     @layoutMap = new Array 16 * 16
 
-    { windowController, appManager, computeController } = kd.singletons
+    { windowController, appManager } = kd.singletons
     windowController.addFocusListener @bound 'handleWindowFocus'
 
     @layoutManager = new IDELayoutManager { delegate : this }
