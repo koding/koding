@@ -95,14 +95,18 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 	}
 
 	// Check the remote size, so we can print a warning to the user if needed.
-	res, err := checkSizeOfRemoteFolder(remoteMachine.Client, params.RemotePath)
+	if !params.NoPrefetchMeta || !params.PrefetchAll {
+		res, err := checkSizeOfRemoteFolder(remoteMachine.Client, params.RemotePath)
 
-	// If there's no error, clear the machine status.
-	if err == nil {
-		remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
+		// If there's no error, clear the machine status.
+		if err == nil {
+			remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
+		}
+
+		return res, err
 	}
 
-	return res, err
+	return nil, err
 }
 
 // checkIfUserHasFolderPerms checks if user can at least open the directory
