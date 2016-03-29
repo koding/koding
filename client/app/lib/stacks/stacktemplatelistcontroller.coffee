@@ -133,7 +133,7 @@ module.exports = class StackTemplateListController extends KodingListController
     new StackTemplateContentModal {}, item.getData()
 
 
-  removeItem: (item, options) ->
+  removeItem: (item) ->
 
     { groupsController, computeController, appManager }  = kd.singletons
     currentGroup  = groupsController.getCurrentGroup()
