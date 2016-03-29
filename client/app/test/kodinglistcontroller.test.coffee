@@ -328,9 +328,7 @@ describe 'KodingListController', ->
 
     it 'should emit "ItemsLoaded" event', ->
 
-      items = [ 'kodinguser', 'kodinguser2', 'kodinguser3' ]
-
-      fetcherMethod = (query, options, callback) -> callback null, items
+      fetcherMethod = (query, options, callback) -> callback null, []
 
       listController = new KodingListController { fetcherMethod }
       emitSpy        = expect.spyOn listController, 'emit'
