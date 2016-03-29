@@ -15,7 +15,9 @@ module.exports = class HomeAppAvatarArea extends kd.CustomHTMLView
 
   constructor: (options = {}, data)->
 
+    options.tagName    = 'a'
     options.cssClass   = 'HomeAppView-Nav--AvatarArea'
+    options.attributes = { href: '/Home/My-Account' }
     data             or= whoami()
 
     super options, data
@@ -26,19 +28,16 @@ module.exports = class HomeAppAvatarArea extends kd.CustomHTMLView
     # @accountPopup = new AccountPopup
 
     @avatar = new AvatarStaticView
-      cssClass : 'HomeAppView-Nav--avatar'
-      size     : { width: 38, height: 38 }
+      cssClass   : 'HomeAppView-Nav--avatar'
+      size       : { width: 38, height: 38 }
     , account
 
     @profileName = new JCustomHTMLView
-      tagName    : 'a'
       cssClass   : 'HomeAppView-Nav--fullname'
-      attributes : { href: '/Home/My-Account' }
       pistachio  : '{{ #(profile.firstName)}} {{ #(profile.lastName)}}'
     , account
 
     @teamName = new JCustomHTMLView
-      tagName    : 'a'
       cssClass   : 'HomeAppView-Nav--teamName'
       pistachio  : '{{ #(title)}}'
     , groupsController.getCurrentGroup()
