@@ -4,6 +4,7 @@ showError                 = require 'app/util/showError'
 Tracker                   = require 'app/util/tracker'
 
 BaseStackTemplateListItem = require './basestacktemplatelistitem'
+ForceToReinitModal        = require './forcetoreinitmodal'
 
 
 module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
@@ -119,6 +120,11 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     if not stackTemplate.isDefault and stackTemplate.config.verified
       @addMenuItem 'Apply to Team', ->
         listView.emit 'ItemSelectedAsDefault', stackTemplate
+
+    # temporary comment until stack admin message design is ready
+    # if stackTemplate.canForcedReinit
+    #   @addMenuItem 'Force Stacks to Re-init', ->
+    #     new ForceToReinitModal {}, stackTemplate
 
     super
 

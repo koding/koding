@@ -1,6 +1,7 @@
 async     = require 'async'
 jraphical = require 'jraphical'
 
+stackRevisionErrors = require './stackrevisionerrors'
 
 module.exports = class JComputeStack extends jraphical.Module
 
@@ -38,6 +39,10 @@ module.exports = class JComputeStack extends jraphical.Module
       static             :
         create           :
           (signature Object, Function)
+        one              : [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         some             : [
           (signature Object, Function)
           (signature Object, Object, Function)
@@ -52,6 +57,10 @@ module.exports = class JComputeStack extends jraphical.Module
         modify           :
           (signature Object, Function)
         checkRevision    :
+          (signature Function)
+        createAdminMessage :
+          (signature String, String, Function)
+        deleteAdminMessage :
           (signature Function)
 
     sharedEvents         :
@@ -254,6 +263,20 @@ module.exports = class JComputeStack extends jraphical.Module
         else
 
           callback null, _stacks
+
+
+  @one$: permit 'list stacks',
+
+    success: (client, selector, options, callback) ->
+
+      [options, callback] = [callback, options]  unless callback
+
+      options ?= {}
+      options.limit = 1
+
+      @some$ client, selector, options, (err, stacks) ->
+        [stack] = stacks ? []
+        callback err, stack
 
 
   revive: (callback) ->
@@ -497,21 +520,6 @@ module.exports = class JComputeStack extends jraphical.Module
         callback null
 
 
-  stackRevisionErrors =
-    TEMPLATESAME      :
-      message         : 'Base stack template is same'
-      code            : 0
-    TEMPLATEDIFFERENT :
-      message         : 'Base stack template is different'
-      code            : 1
-    NOTFROMTEMPLATE   :
-      message         : 'This stack is not created from a template'
-      code            : 2
-    INVALIDTEMPLATE   :
-      message         : 'This stack has no revision or template is not valid.'
-      code            : 3
-
-
   checkRevision: permit
 
     advanced: [
@@ -528,12 +536,65 @@ module.exports = class JComputeStack extends jraphical.Module
         return callback err  if err
         return callback new KodingError 'Template not valid'  unless template
 
-        status =
-          if not template?.template?.sum or not @stackRevision
-            stackRevisionErrors.INVALIDTEMPLATE
-          else if template.template.sum is @stackRevision
-            stackRevisionErrors.TEMPLATESAME
-          else
-            stackRevisionErrors.TEMPLATEDIFFERENT
+        status = @checkRevisionByTemplate template
 
         callback null, { status, machineCount: template.machines.length }
+
+
+  checkRevisionByTemplate: (template) ->
+
+    if not @baseStackId
+      return stackRevisionErrors.NOTFROMTEMPLATE
+
+    if not template?.template?.sum or not @stackRevision
+      return stackRevisionErrors.INVALIDTEMPLATE
+
+    if template.template.sum is @stackRevision
+      return stackRevisionErrors.TEMPLATESAME
+
+    return stackRevisionErrors.TEMPLATEDIFFERENT
+
+
+  createAdminMessage: (message, type, callback) ->
+
+    config              = @getAt 'config'
+    config.adminMessage = { message, type }
+    @update { $set : { config } }, callback
+
+
+  createAdminMessage$: permit
+
+    advanced: [
+      { permission: 'update stack', validateWith: Validators.group.admin }
+    ]
+
+    success: (client, message, type, callback) ->
+
+      @createAdminMessage message, type, (err) =>
+        callback err  if err
+
+        JGroup = require './group'
+        JGroup.sendStackAdminMessageNotification {
+          slug     : @group
+          stackIds : [ @_id ]
+          message
+          type
+        }, callback
+
+
+  deleteAdminMessage: (callback) ->
+
+    config              = @getAt 'config'
+    config.adminMessage = null
+    @update { $set : { config } }, callback
+
+
+  deleteAdminMessage$: permit
+
+    advanced: [
+      { permission: 'update own stack', validateWith: Validators.own }
+    ]
+
+    success: (client, callback) ->
+
+      @deleteAdminMessage callback

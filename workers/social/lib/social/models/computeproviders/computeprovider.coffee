@@ -680,6 +680,36 @@ module.exports = class ComputeProvider extends Base
       callback err, createdStack
 
 
+  @forceStacksToReinit = (template, message, callback) ->
+
+    JComputeStack       = require '../stack'
+    stackRevisionErrors = require '../stackrevisionerrors'
+    JComputeStack.some { baseStackId : template._id }, {}, (err, stacks) ->
+      return callback err  if err
+      return callback()  unless stacks.length
+
+      queue    = []
+      stackIds = []
+      type     = 'forcedReinit'
+      stacks.forEach (stack) ->
+        checkResult = stack.checkRevisionByTemplate template
+        if checkResult is stackRevisionErrors.TEMPLATEDIFFERENT
+          stackIds.push stack._id
+          queue.push (next) ->
+            stack.createAdminMessage message, type, next
+
+      queue.push (next) ->
+        JGroup = require '../group'
+        JGroup.sendStackAdminMessageNotification {
+          slug : template.group
+          stackIds
+          message
+          type
+        }, next
+
+      async.series queue, (err) -> callback err
+
+
   do ->
 
     JGroup   = require '../group'
