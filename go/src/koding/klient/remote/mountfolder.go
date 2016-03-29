@@ -90,7 +90,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		MountAdder:    r,
 	}
 
-	if _, err = mounter.Mount(); err != nil {
+	if _, err := mounter.Mount(); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,9 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return res, err
 	}
 
-	return nil, err
+	remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
+
+	return nil, nil
 }
 
 // checkIfUserHasFolderPerms checks if user can at least open the directory

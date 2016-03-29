@@ -54,6 +54,8 @@ func (m *MetricClient) SendMetric(mc *Metric) error {
 		return err
 	}
 
+	mc.Properties["timestamp"] = time.Now().UTC()
+
 	err = m.client.Track(&analytics.Track{
 		Event:      string(mc.Name),
 		UserId:     id,
