@@ -1,6 +1,7 @@
 package metrics
 
 const (
+	EventInstall      EventName = "installed kd"
 	EventMount        EventName = "mounted machine"
 	EventUnmount      EventName = "unmounted machine"
 	EventRun          EventName = "ran command on mount"

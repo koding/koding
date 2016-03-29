@@ -137,16 +137,14 @@ func (c *MountCommand) Run() (int, error) {
 	}
 
 	mountRequest := req.MountFolder{
-		Name:       c.Options.Name,
-		LocalPath:  c.Options.LocalPath,
-		RemotePath: c.Options.RemotePath,
-		MountFolderOpts: req.MountFolderOpts{
-			NoIgnore:       c.Options.NoIgnore,
-			NoPrefetchMeta: c.Options.NoPrefetchMeta,
-			PrefetchAll:    c.Options.PrefetchAll,
-			NoWatch:        c.Options.NoWatch,
-			CachePath:      getCachePath(c.Options.Name),
-		},
+		Name:           c.Options.Name,
+		LocalPath:      c.Options.LocalPath,
+		RemotePath:     c.Options.RemotePath,
+		NoIgnore:       c.Options.NoIgnore,
+		NoPrefetchMeta: c.Options.NoPrefetchMeta,
+		PrefetchAll:    c.Options.PrefetchAll,
+		NoWatch:        c.Options.NoWatch,
+		CachePath:      getCachePath(c.Options.Name),
 	}
 
 	// Actually mount the folder. Errors are printed by the mountFolder func to the user.
