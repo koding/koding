@@ -72,11 +72,11 @@ func checker(username string) *LimitResponse {
 		}
 
 		if metric.GetName() == NetworkOut {
-			AllowedUsage = NetworkOutLimit
-			CurrentUsage, err = storage.GetScore(metric.GetName(), username)
+			AllowedUsage, err = storage.GetUserLimit(username)
 			if err != nil {
-				return response
+			    AllowedUsage = NetworkOutLimit
 			}
+			CurrentUsage, _ = storage.GetScore(metric.GetName(), username)
 		}
 	}
 
