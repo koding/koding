@@ -422,7 +422,7 @@ module.exports = class JMachine extends Module
       callback err
 
 
-  shareWith: (options, callback) ->
+  shareWith: (client, options, callback) ->
 
     { target, asUser, asOwner, permanent, inform, group } = options
 
@@ -448,16 +448,16 @@ module.exports = class JMachine extends Module
       if target instanceof JUser
 
         if asUser
-        then @addUsers { targets, asOwner, permanent, group }, callback
-        else @removeUsers { targets, permanent, inform, group }, callback
+        then @addUsers client, { targets, asOwner, permanent, group }, callback
+        else @removeUsers client, { targets, permanent, inform, group }, callback
 
       else
-        @removeInvalidUsers { group }, callback
+        @removeInvalidUsers client, { group }, callback
 
 
   # Fetch machine's shared users and fetch those users' JUser document
   # and remove the user from machine share list if the user.status is deleted
-  removeInvalidUsers: (options, callback) ->
+  removeInvalidUsers: (client, options, callback) ->
 
     JUser = require '../user'
     queue = []
@@ -478,7 +478,7 @@ module.exports = class JMachine extends Module
       if usersToBeRemoved.length is 0
         next new KodingError 'Target does not support machines.'
       else
-        @removeUsers { targets: usersToBeRemoved, force: yes, group }, (err) ->
+        @removeUsers client, { targets: usersToBeRemoved, force: yes, group }, (err) ->
           next err
 
     async.series queue, callback
@@ -696,7 +696,7 @@ module.exports = class JMachine extends Module
       # If it's a call for unshare then no need to check
       # any other state for it
       if asUser is no
-        JMachine::shareWith.call this, options, callback
+        JMachine::shareWith.call this, client, options, callback
 
         return
 
@@ -714,11 +714,11 @@ module.exports = class JMachine extends Module
             return callback \
               new KodingError "You don't have a paid subscription!"
 
-          JMachine::shareWith.call this, options, callback
+          JMachine::shareWith.call this, client, options, callback
 
       else
 
-        JMachine::shareWith.call this, options, callback
+        JMachine::shareWith.call this, client, options, callback
 
 
   share: secure (client, users, callback) ->
@@ -735,7 +735,7 @@ module.exports = class JMachine extends Module
     { profile:{ nickname } }    = delegate
 
     if users.length is 1 and users[0] is nickname
-    then @shareWith options, callback
+    then @shareWith client, options, callback
     else @shareWith$ client, options, callback
 
 
@@ -796,7 +796,7 @@ module.exports = class JMachine extends Module
       inform    : no
       permanent : yes
 
-    @shareWith options, (err) =>
+    @shareWith client, options, (err) =>
       options               = { action: 'deny', @uid, group: group.slug, machineId: @getId() }
       [ owner ]             = @users.filter (user) -> return user.owner
       { notifyByUsernames } = require '../notify'
