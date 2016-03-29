@@ -2,6 +2,8 @@ package metrics
 
 import (
 	"crypto/rand"
+	"io/ioutil"
+	"log"
 	"os"
 	"os/user"
 	"time"
@@ -33,6 +35,7 @@ func NewDefaultClient() *MetricClient {
 	client := analytics.New(SegmentKey)
 	client.Interval = 10 * time.Second
 	client.Size = 0
+	client.Logger = log.New(ioutil.Discard, "", 0)
 
 	return &MetricClient{
 		Interval: DefaultInterval,
