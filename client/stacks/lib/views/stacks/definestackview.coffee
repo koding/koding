@@ -271,7 +271,8 @@ module.exports = class DefineStackView extends KDView
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'
-        Tracker.track Tracker.STACKS_CANCEL_SETUP
+        Tracker.track Tracker.STACKS_CANCEL_SETUP if @cancelButton.buttonTitle is 'Cancel'
+        Tracker.track Tracker.STACKS_FINISHED_EDIT if @cancelButton.buttonTitle is 'Ok'
         @emit 'Cancel'
 
     # let's remove this button from here, or

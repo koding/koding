@@ -65,7 +65,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     stackTemplate = @getData()
 
-    Tracker.track Tracker.STACKS_EDIT
+    Tracker.track Tracker.STACKS_STARTED_EDIT
 
     if stackTemplate.isDefault
 
