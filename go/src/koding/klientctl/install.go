@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/klientctl/config"
+	"koding/klientctl/metrics"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -197,6 +198,9 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
+
+	// track metrics
+	metrics.TrackInstall()
 
 	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", config.KlientName)
 

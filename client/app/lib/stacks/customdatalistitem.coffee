@@ -17,21 +17,23 @@ module.exports = class CustomDataListItem extends kd.ListItemView
     { title, fields } = @getData()
 
     @deleteButton = new kd.ButtonView
-      cssClass : 'solid compact outline red secondary'
-      title    : 'DELETE'
-      callback : delegate.lazyBound 'deleteItem', this
+      cssClass  : 'solid compact outline red secondary'
+      title     : 'DELETE'
+      callback  : =>
+        delegate.emit 'ItemAction', { action : 'RemoveItem', item : this }
 
     @showButton = new kd.ButtonView
-      cssClass : 'solid compact outline secondary'
-      title    : 'SHOW'
-      callback : delegate.lazyBound 'showItemContent', this
+      cssClass  : 'solid compact outline secondary'
+      title     : 'SHOW'
+      callback  : =>
+        delegate.emit 'ItemAction', { action : 'ShowItem', item : this }
 
     @selectButton = new kd.ButtonView
-      cssClass : 'solid compact outline'
-      title    : 'USE THIS'
-      loader   :
-        color  : '#666'
-      callback : @getDelegate().lazyBound 'emit', 'ItemSelected', @getData()
+      cssClass  : 'solid compact outline'
+      title     : 'USE THIS'
+      loader    :
+        color   : '#666'
+      callback  : => delegate.emit 'ItemSelected', @getData()
 
 
   pistachio: ->

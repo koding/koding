@@ -28,14 +28,6 @@ module.exports = class MachineSettingsSpecsView extends KDView
     @createIcon 'DISK',  disk
     @createIcon 'CORES', cpu
 
-    kd.singletons.paymentController.subscriptions (err, subscription) =>
-
-      if err
-        @createMoreView()
-        return showError err
-
-      @createMoreView()  unless subscription.planTitle is 'professional'
-
 
   createIcon: (title, spec) ->
 

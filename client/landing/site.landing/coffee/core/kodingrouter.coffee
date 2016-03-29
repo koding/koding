@@ -1,4 +1,4 @@
-kd = require 'kd.js'
+kd = require 'kd'
 module.exports = class KodingRouter extends kd.Router
 
   constructor: (@defaultRoute) ->

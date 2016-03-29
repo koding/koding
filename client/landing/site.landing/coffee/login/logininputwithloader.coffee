@@ -1,4 +1,4 @@
-kd = require 'kd.js'
+kd = require 'kd'
 LoginInputView = require './logininputview'
 
 module.exports = class LoginInputViewWithLoader extends LoginInputView

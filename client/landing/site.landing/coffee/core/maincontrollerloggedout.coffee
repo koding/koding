@@ -1,5 +1,5 @@
 $                  = require 'jquery'
-kd                 = require 'kd.js'
+kd                 = require 'kd'
 utils              = require './utils'
 KodingRouter       = require './kodingrouter'
 OAuthController    = require './oauthcontroller'

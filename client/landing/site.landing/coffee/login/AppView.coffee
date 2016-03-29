@@ -1,5 +1,5 @@
 $                                     = require 'jquery'
-kd                                    = require 'kd.js'
+kd                                    = require 'kd'
 utils                                 = require './../core/utils'
 JView                                 = require './../core/jview'
 CustomLinkView                        = require './../core/customlinkview'

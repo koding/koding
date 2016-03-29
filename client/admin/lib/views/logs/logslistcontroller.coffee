@@ -1,36 +1,25 @@
-kd           = require 'kd'
-showError    = require 'app/util/showError'
-doXhrRequest = require 'app/util/doXhrRequest'
+kd                   = require 'kd'
+LogsItemView         = require './logsitemview'
+doXhrRequest         = require 'app/util/doXhrRequest'
+KodingListController = require 'app/kodinglist/kodinglistcontroller'
 
-
-module.exports = class LogsListController extends kd.ListViewController
+module.exports = class LogsListController extends KodingListController
 
   constructor: (options = {}, data) ->
 
-    options.startWithLazyLoader or= yes
-    options.noItemFoundWidget   or= new kd.CustomHTMLView
-      partial  : 'No logs found!'
-      cssClass : 'no-item-view'
+    options.itemClass           or= LogsItemView
+    options.viewOptions         or= { wrapper : yes }
+    options.noItemFoundText     or= 'No logs found!'
+    options.fetcherMethod         = (query, fetchOptions, callback) =>
+      doXhrRequest @getXHROptions(), (err, res) ->
+        return callback err  if err
+        { data: { logs } } = res
+        callback null, logs
 
     super options, data
 
 
-  fetchLogs: (options = {}) ->
-
-    return if @isFetching
-
-    @removeAllItems()
-    @showLazyLoader()
-
-    @isFetching = yes
-
-    @fetchLogsFromAPI options, (err, logs) =>
-      return  if showError err
-      @listLogs logs
-      @isFetching = no
-
-
-  fetchLogsFromAPI: (options, callback) ->
+  getXHROptions: (options = {}) ->
 
     type     = 'GET'
     endPoint = '/-/api/logs'
@@ -40,34 +29,9 @@ module.exports = class LogsListController extends kd.ListViewController
       args.push "scope=#{scope}"
 
     if q = options.query
-      args.push "q=#{query}"
+      args.push "q=#{options.query}"
 
     if args.length > 0
       endPoint = "#{endPoint}?#{args.join ','}"
 
-    doXhrRequest { endPoint, type }, (err, res) ->
-
-      return callback err  if err
-
-      { data: { logs } } = res
-      logs.reverse()
-
-      callback null, logs
-
-
-  listLogs: (logs) ->
-
-    if logs.length is 0 and @getItemCount() is 0
-      @lazyLoader.hide()
-      @showNoItemWidget()
-      return
-
-    @addItem log  for log in logs
-    @lazyLoader.hide()
-
-
-  loadView: ->
-
-    super
-
-    @hideNoItemWidget()
+    return { endPoint, type }

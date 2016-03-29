@@ -3,6 +3,7 @@ package fusetest
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"testing"
@@ -43,13 +44,13 @@ func createDir(mountDir, name string, fn func(string)) func() {
 	return func() {
 		dirPath := path.Join(mountDir, name)
 		if err := os.Mkdir(dirPath, 0705); err != nil {
-			panic(err)
+			log.Fatal(dirPath, "exists")
 		}
 
 		fn(dirPath)
 
 		if err := os.RemoveAll(dirPath); err != nil {
-			panic(err)
+			log.Fatal("unable to remove", dirPath)
 		}
 	}
 }
