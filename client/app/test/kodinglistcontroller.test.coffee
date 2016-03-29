@@ -106,6 +106,17 @@ describe 'KodingListController', ->
       expect(query).toEqual {}
       expect(page).toEqual 0
 
+    it 'should pass view options to KodingListView\'s view', ->
+
+      viewOptions     =
+        cssClass      : 'test-listview'
+
+      listController  = new KodingListController { fetcherMethod : kd.noop, viewOptions }
+      listView        = listController.getListView()
+
+      expect(listView.hasClass('test-listview')).toBeTruthy()
+
+
     it 'should thrown an error for ungiven model and fetcherMethod', ->
 
       expect(-> new KodingListController).toThrow /Model or fetcherMethod should be given!/
@@ -314,6 +325,21 @@ describe 'KodingListController', ->
 
       expect(fetchSpy).toHaveBeenCalled()
       expect(calculateAndFetchMoreIfNeededSpy).toHaveBeenCalled()
+
+    it 'should emit "ItemsLoaded" event', ->
+
+      items = [ 'kodinguser', 'kodinguser2', 'kodinguser3' ]
+
+      fetcherMethod = (query, options, callback) -> callback null, items
+
+      listController = new KodingListController { fetcherMethod }
+      emitSpy        = expect.spyOn listController, 'emit'
+
+      listController.loadItems()
+
+      targetEvent    = emitSpy.calls.filter (c) -> c.arguments.first is 'ItemsLoaded'
+
+      expect(targetEvent.length).toBe 1
 
 
   describe '::showNoItemWidget', ->
