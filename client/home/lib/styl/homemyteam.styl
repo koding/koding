@@ -1,0 +1,119 @@
+.HomeAppView--section.invite-using-slack
+  rel()
+  bg                        color, transparent
+  border-width              0 0 1px 0
+
+  .slack-oauth
+    abs()
+    right                   30px
+    top                     20px
+
+.HomeAppView--section.send-invites
+  overflow                  hidden
+
+  .information
+    .invite-labels
+      label
+        margin              30px auto 10px
+        width               152px
+        dIBlock()
+
+        &:first-child
+          width             242px
+        &:last-child
+          width             198px
+
+          span
+            fr()
+  .input-wrapper
+    margin-bottom           30px
+  .invite-inputs
+    width                   592px
+    border                  1px solid #D9D9D9
+    rounded                 3px
+    margin-bottom           10px
+    color                   #6B6B6B
+    borderBox()
+
+    .kdcustomcheckbox
+      top                   4px
+      rel()
+      dIBlock()
+
+    input
+      border-bottom         none
+      borderBox()
+
+    .user-email
+      width                 242px
+      border-right          1px solid #D9D9D9
+
+    .firstname
+      width                 152px
+      border-right          1px solid #D9D9D9
+
+    .lastname
+      width                 150px
+
+  .invite-members
+    fr()
+
+.HomeAppView--section.teammates
+  .search
+    margin-bottom           30px
+
+    > .label
+      margin-right          15px
+      font-size             14px
+      color                 #727272
+      line-height           40px
+
+    .kdselectbox
+      size                  180px 40px
+      margin-right          15px
+
+      .title
+        line-height         40px
+
+      .arrows
+        top                 13px
+
+    input
+      border                1px solid #d7d7d7
+      vertical-align        top
+      rounded               4px !important
+      height                42px
+      width                 230px !important
+      borderBox()
+
+  .kdlistview
+    padding                 0 0 0 8px
+
+  .kdlistitemview-member
+    height                  44px
+    padding-bottom          18px
+    margin-bottom           20px
+    border-bottom           1px solid #EBEBEB
+
+    .avatarview
+      padding               0
+      margin-right          17px
+      border                1px solid #EBEBEB
+      margin-left           -8px
+      rel()
+      dIBlock()
+
+    p
+      color                 #5F5F5F
+      dInline()
+
+    p.email
+      abs()
+      bottom                17px
+      left                  55px
+
+    .role
+      abs()
+      color                 #AFAFAF
+      right                 16px
+      top                   14px
