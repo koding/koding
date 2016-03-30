@@ -11,12 +11,12 @@ module.exports = class HomeUtilitiesDesktopApp extends kd.CustomHTMLView
     super options, data
 
     @guide  = new CustomLinkView
-      cssClass : 'HomeAppView--button'
+      cssClass : 'HomeAppView--button action-link gray'
       title    : 'VIEW GUIDE'
       href     : 'https://www.koding.com/docs/desktop-app'
 
     @download  = new CustomLinkView
-      cssClass : 'HomeAppView--button primary'
+      cssClass : 'HomeAppView--button primary action-link blue'
       title    : 'DOWNLOAD'
       href     : 'https://www.koding.com/docs/desktop-app/download'
 
@@ -34,7 +34,7 @@ module.exports = class HomeUtilitiesDesktopApp extends kd.CustomHTMLView
       <li>Requires 34MB of disk space</li>
     </ul>
     <div class='link-holder'>
-      {{> @guide}}
       {{> @download}}
+      {{> @guide}}
     </div>
     """

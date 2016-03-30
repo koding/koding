@@ -283,7 +283,9 @@ module.exports = class HomeTeamSendInvites extends kd.CustomHTMLView
       cssClass : 'information'
       partial  : '''
         <p>Invite other teammates to your team. You can change admin rights for your teammates in the Members tab once they accept your invitation.</p>
-        <label>Email</label><label>First Name</label><label>Last Name<span>Admin</span></label>
+        <div class='invite-labels'>
+          <label>Email</label><label>First Name</label><label>Last Name<span>Admin</span></label>
+        </div>
         '''
 
 

@@ -30,8 +30,8 @@ module.exports = class HomeUtilitiesKD extends kd.CustomHTMLView
           <p>Once installed, you can use <code>kd list</code> to list your Koding VMs and
           <code>kd mount</code> to mount your VM to a local folder in your computer.
           For detailed instructions:
-          <a href='https://www.koding.com/docs/connect-your-machine' target='_blank'>https://www.koding.com/docs/connect-your-machine</a>
           </p>
+          <a class='action-link blue view-guide' href='https://www.koding.com/docs/connect-your-machine' target='_blank'>VIEW GUIDE</a>
           """
 
       @cmd?.destroy()

@@ -12,12 +12,12 @@ module.exports = class HomeTeamBillingForm extends kd.FormView
 
     super options, data
 
-    @ccNumber     = new kd.InputView
-    @ccMonth      = new kd.InputView
-    @ccYear       = new kd.InputView
+    @ccNumber     = new kd.InputView { cssClass : 'card-number', placeholder : '0000 - 0000 - 0000 - 0000' }
+    @ccMonth      = new kd.InputView { cssClass : 'expiration-month' }
+    @ccYear       = new kd.InputView { cssClass : 'expiration-year' }
     @ccCvc        = new kd.InputView
-    @ccName       = new kd.InputView
-    @ccNameChange = new kd.InputView
+    @ccName       = new kd.InputView { defaultValue : 'Koding Visa' }
+    @ccNameChange = new kd.InputView { cssClass : 'hidden'}
     @fullName     = new kd.InputView
     @address      = new kd.InputView
     @unit         = new kd.InputView
@@ -57,18 +57,18 @@ module.exports = class HomeTeamBillingForm extends kd.FormView
         <label>Full Name:</label>
         {{> @fullName}}
       </fieldset>
-      <fieldset>
+      <fieldset class='address'>
         <label>Address:</label>
         {{> @address}}
         {{> @unit}}
       </fieldset>
-      <fieldset>
+      <fieldset class='zipCode'>
         <label>Zip Code:</label>
         {{> @zip}}
         {{> @city}}
         {{> @state}}
       </fieldset>
-      <fieldset>
+      <fieldset class='phone'>
         <label>Phone number:</label>
         {{> @phone}}
       </fieldset>
