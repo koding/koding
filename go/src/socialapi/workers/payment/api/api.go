@@ -39,13 +39,11 @@ func AccountSubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, 
 	)
 }
 
-func AccountCancelSubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	subscriptionRequest := &payment.AccountRequest{
-		AccountId: u.Query().Get("account_id"),
-	}
+func AccountCancelSubscriptionRequest(u *url.URL, h http.Header, req *payment.AccountRequest) (int, http.Header, interface{}, error) {
+	req.AccountId = u.Query().Get("account_id")
 
 	return response.HandleResultAndClientError(
-		subscriptionRequest.CancelSubscription(),
+		req.CancelSubscription(),
 	)
 }
 
