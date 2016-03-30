@@ -633,7 +633,10 @@ module.exports = class DefineStackView extends KDView
 
       if not err and stackTemplate
 
-        Tracker.track Tracker.STACKS_DEFAULT_NAME if title is 'Default stack template'
+        if title is 'Default stack template'
+          Tracker.track Tracker.STACKS_DEFAULT_NAME
+        else Tracker.track Tracker.STACKS_CUSTOM_NAME
+
         @setData { stackTemplate }
         @emit 'Reload'
 

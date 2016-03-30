@@ -74,6 +74,7 @@ module.exports = {
   STACKS_REINIT               : 'reinitialized stack'
   STACKS_MAKE_DEFAULT         : 'made stack default'
   STACKS_DEFAULT_NAME         : 'used default stack name'
+  STACKS_CUSTOM_NAME          : 'used custom stack name'
 
   # PROVIDERS
   STACKS_WIZARD_SELECTED_AWS          : 'selected aws provider'
@@ -82,6 +83,12 @@ module.exports = {
   STACKS_WIZARD_SELECTED_DIGITALOCEAN : 'selected digitalocean provider'
   STACKS_WIZARD_SELECTED_GOOGLECLOUD  : 'selected googlecloud provider'
   STACKS_WIZARD_SELECTED_RACKSPACE    : 'selected rackspace provider'
+
+  # DATABASE
+
+  # LANGUAGE
+
+  # WEB SERVER
 
   # SERVICES
   STACKS_WIZARD_SELECTED_GITHUB        : 'selected github service'
