@@ -21,6 +21,7 @@ stackMachine             = "#{stackMachineItem}.Running.active"
 stackTemplateList        = "#{stackCatalogModal} .stack-template-list"
 stackModalCloseButton    = '.StackCatalogModal .close-icon'
 envMachineStateModal     = '.env-machine-state.env-modal'
+stackSettingsMenuIcon    = '.stacktemplates .stack-template-list .stack-settings-menu .chevron'
 
 
 module.exports =
@@ -547,7 +548,7 @@ module.exports =
         .pause                    1000
 
       if show
-       browser
+        browser
           .waitForElementVisible  showCredentialButton, 20000
           .click                  showCredentialButton
           .waitForElementVisible  '.credential-modal', 20000
@@ -587,19 +588,11 @@ module.exports =
           .waitForElementVisible    inUseLabelSelector, 20000
 
 
-  saveTemplate: (browser) ->
+  clickSaveAndTestButton: (browser) ->
 
     saveAndTestButton    = '.template-title-form .buttons .save-test'
     editorSelector       = '.stack-template .output .output-view'
     loaderIconNotVisible = "#{saveAndTestButton} .kdloader.hidden"
-    stackModal           = '.stack-modal'
-    closeButton          = "#{stackModal} .gray"
-    stackTabSelector     = '.team-stack-templates .kdtabhandle.stack-template.active'
-    finalizeStepsButton  = "#{sidebarSelector} a[href='/Stacks/Welcome']:not(.SidebarSection-headerTitle)"
-
-    @seeTemplatePreview(browser)
-    @updateStackReadme(browser)
-    @defineCustomVariables(browser)
 
     browser
       .waitForElementVisible     saveAndTestButton, 20000
@@ -609,6 +602,19 @@ module.exports =
       .waitForElementVisible     '.template-title-form .buttons .save-test .kdloader', 20000
       .waitForElementNotVisible  loaderIconNotVisible, 500000
       .pause                     3000
+
+
+  saveTemplate: (browser, deleteStack = yes) ->
+
+    stackModal           = '.stack-modal'
+    closeButton          = "#{stackModal} .gray"
+    stackTabSelector     = '.team-stack-templates .kdtabhandle.stack-template.active'
+    finalizeStepsButton  = "#{sidebarSelector} a[href='/Stacks/Welcome']:not(.SidebarSection-headerTitle)"
+
+    @seeTemplatePreview(browser)
+    @updateStackReadme(browser)
+    @defineCustomVariables(browser)
+    @clickSaveAndTestButton(browser)
 
     browser.element 'css selector', stackModal, (result) ->
       if result.status is 0
@@ -621,20 +627,20 @@ module.exports =
       .waitForElementVisible     stackTabSelector, 20000
       .waitForElementVisible     stackModalCloseButton, 20000
       .click                     stackModalCloseButton
+      .pause                     3000
       .waitForElementVisible     sidebarStackSection, 20000
       .waitForElementNotPresent  finalizeStepsButton, 20000
       .waitForElementVisible     envMachineStateModal, 20000
 
-    @checkStackTemplateTags(browser, yes)
+    @checkStackTemplateTags(browser, deleteStack)
 
 
   checkStackTemplateTags: (browser, deleteStack) ->
 
-    inUseTag              = "#{stackCatalogModal} [testpath=StackInUseTag]"
-    defaultTag            = "#{stackCatalogModal} [testpath=StackDefaultTag]"
-    accessTag             = "#{stackCatalogModal} [testpath=StackAccessLevelTag]"
-    stackSettingsMenuIcon = '.stacktemplates .stack-template-list .stack-settings-menu .chevron'
-    deleteMenuItem        = ".kdbuttonmenu .context-list-wrapper .delete"
+    inUseTag       = "#{stackCatalogModal} [testpath=StackInUseTag]"
+    defaultTag     = "#{stackCatalogModal} [testpath=StackDefaultTag]"
+    accessTag      = "#{stackCatalogModal} [testpath=StackAccessLevelTag]"
+    deleteMenuItem = ".kdbuttonmenu .context-list-wrapper .delete"
 
     @openStackCatalog(browser, no)
 
@@ -658,6 +664,45 @@ module.exports =
     browser
       .waitForElementVisible  stackModalCloseButton, 20000
       .click                  stackModalCloseButton
+
+
+  editStack: (browser) ->
+
+    editMenuItem          = ".kdbuttonmenu .context-list-wrapper .edit"
+    openEditorButton      = '.kdmodal-inner .kdmodal-buttons .red'
+    stackTemplatePage     = '.define-stack-view .stack-template'
+    stackEditorSelector   = "#{stackTemplatePage} .editor-pane"
+    numberNotification    = "#{sidebarStackSection} .SidebarListItem-unreadCount"
+    myStacksPage          = '.environments-modal.My-Stacks'
+    stackItems            = "#{myStacksPage} .environment-item"
+
+    browser.pause  3000
+    @openStackCatalog(browser, no)
+
+    browser
+      .waitForElementVisible  stackTemplateList, 20000
+      .waitForElementVisible  stackSettingsMenuIcon, 20000
+      .click                  stackSettingsMenuIcon
+      .pause                  2000
+      .waitForElementVisible  editMenuItem, 20000
+      .click                  editMenuItem
+      .pause                  2000
+      .waitForElementVisible  openEditorButton, 20000
+      .click                  openEditorButton
+      .waitForElementVisible  stackTemplatePage, 20000
+      .waitForElementVisible  stackEditorSelector, 20000
+
+    @setTextToEditor browser, 'template', staticContents.multiMachineStackTemplate
+    @clickSaveAndTestButton(browser)
+
+    browser
+      .waitForElementVisible  stackModalCloseButton, 20000
+      .click                  stackModalCloseButton
+      .waitForElementVisible  numberNotification, 20000
+      .click                  numberNotification
+      .waitForElementVisible  stackItems, 20000
+      .waitForElementVisible  "#{stackItems} .update-notification", 20000
+      .assert.containsText    "#{stackItems} .update-notification", 'has updated this stack'
 
 
   buildStack: (browser) ->
