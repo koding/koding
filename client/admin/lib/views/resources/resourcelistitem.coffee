@@ -88,10 +88,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
     computeController.on "apply-#{resource._id}", @bound 'handleProgressEvent'
     computeController.on "stateChanged-#{resource._id}", @bound 'handleStateChangedEvent'
 
-    if state in ['Building', 'Destroying']
-      { eventListener } = computeController
-      eventListener.addListener 'apply', resource._id
-      eventListener.addListener 'stateChanged', resource._id
+    @subscribeToKloudEvents()
 
     @prevStatus = state
 
@@ -99,6 +96,17 @@ module.exports = class ResourceListItem extends kd.ListItemView
   render: (fields) ->
 
     @updateStatus()
+    @subscribeToKloudEvents()
+
+
+  subscribeToKloudEvents: ->
+
+    resource  = @getData()
+    { state } = resource.status
+    if state in ['Building', 'Destroying']
+      { eventListener } = kd.singletons.computeController
+      eventListener.addListener 'apply', resource._id
+      eventListener.addListener 'stateChanged', resource._id
 
 
   handleDestroy: ->

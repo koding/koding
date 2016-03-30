@@ -16,7 +16,6 @@ module.exports = class JComputeStack extends jraphical.Module
   { PROVIDERS, reviveGroupPlan } = require './computeproviders/computeutils'
 
   @trait __dirname, '../traits/protected'
-  @trait __dirname, '../traits/notifiable'
 
   @share()
 
@@ -24,18 +23,17 @@ module.exports = class JComputeStack extends jraphical.Module
 
     softDelete           : yes
 
-    permissions              :
+    permissions          :
 
-      'create stack'         : ['member']
+      'create stack'     : ['member']
 
-      'update stack'         : []
-      'update own stack'     : ['member']
+      'update stack'     : []
+      'update own stack' : ['member']
 
-      'delete stack'         : []
-      'delete own stack'     : ['member']
+      'delete stack'     : []
+      'delete own stack' : ['member']
 
-      'list stacks'          : ['member']
-      'list stacks as admin' : []
+      'list stacks'      : ['member']
 
     sharedMethods        :
       static             :
@@ -46,14 +44,6 @@ module.exports = class JComputeStack extends jraphical.Module
           (signature Object, Object, Function)
         ]
         some             : [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
-        one              : [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
-        oneAsAdmin       : [
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
@@ -253,45 +243,10 @@ module.exports = class JComputeStack extends jraphical.Module
 
     success: (client, selector, options, callback) ->
 
-      selector = @getSelector client, selector
-      @someWithSelector client, selector, options, callback
-
-
-  @one$ = permit 'list stacks',
-
-    success: (client, selector, options, callback) ->
-
       [options, callback] = [callback, options]  unless callback
-
       options ?= {}
-      options.limit = 1
-
-      @some$ client, selector, options, (err, stacks) ->
-        [stack] = stacks ? []
-        callback err, stack
-
-
-  @oneAsAdmin = permit 'list stacks as admin',
-
-    success: (client, selector, options, callback) ->
-
-      [options, callback] = [callback, options]  unless callback
-
-      options ?= {}
-      options.limit = 1
 
       selector = @getSelector client, selector
-      delete selector.originId
-
-      @someWithSelector client, selector, options, (err, stacks) ->
-        [stack] = stacks ? []
-        callback err, stack
-
-
-  @someWithSelector = (client, selector, options, callback) ->
-
-      [options, callback] = [callback, options]  unless callback
-      options ?= {}
 
       JComputeStack.some selector, options, (err, _stacks) ->
 
@@ -385,14 +340,14 @@ module.exports = class JComputeStack extends jraphical.Module
     }, callback
 
 
-  destroy: (callback, notificationOptions) ->
+  destroy: (callback) ->
 
     @fetchGroup (err, group) =>
       return callback err  if err
 
-      change = { $set: { status: { state: 'Destroying' } } }
-      @updateAndNotify notificationOptions, change, (err) =>
+      @update { $set: { status: { state: 'Destroying' } } }, (err) =>
         return callback err  if err
+        @sendStatusChangedNotification group
 
         JMachine = require './computeproviders/machine'
 
@@ -424,7 +379,9 @@ module.exports = class JComputeStack extends jraphical.Module
       return callback new KodingError \
         'Stacks generated from templates can only be destroyed by Kloud.'
 
-    @update { $set: { status: { state: 'Destroying' } } }
+    @update { $set: { status: { state: 'Destroying' } } }, (err) =>
+      return console.log err  if err
+      @sendStatusChangedNotification()
 
     JProposedDomain  = require './domain'
     JMachine = require './computeproviders/machine'
@@ -528,9 +485,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
     success: (client, callback) ->
 
-      { delegate } = client.connection
-      { group }    = client.context
-      @destroy callback, { account : delegate, group }
+      @destroy callback
 
 
   SUPPORTED_CREDS = (Object.keys PROVIDERS).concat ['userInput', 'custom']
@@ -646,3 +601,19 @@ module.exports = class JComputeStack extends jraphical.Module
     success: (client, callback) ->
 
       @deleteAdminMessage callback
+
+
+  sendStatusChangedNotification: (group) ->
+
+    callback = (err, group) =>
+      return console.log err  if err
+
+      { notifyAdmins } = require './notify'
+      notifyAdmins group, 'StackStatusChanged',
+        id     : @_id
+        status : @status
+        group  : group.slug
+
+    if group
+    then callback null, group
+    else @fetchGroup callback
