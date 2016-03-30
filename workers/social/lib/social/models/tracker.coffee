@@ -43,6 +43,7 @@ module.exports = class Tracker extends bongo.Base
     TEAMS_JOINED_TEAM    : 'joined team'
     USER_ENABLED_2FA     : 'enabled 2-factor auth'
     USER_DISABLED_2FA    : 'disabled 2-factor auth'
+    STACKS_START_BUILD   : 'started stack build'
 
   @properties = {}
 
@@ -86,6 +87,11 @@ module.exports = class Tracker extends bongo.Base
     { profile: { nickname } } = account
 
     event = { subject }
+
+    { customParams } = options
+    if customParams
+      @handleCustomParams subject, customParams
+      delete options.customParams
 
     @track nickname, event, options
 
@@ -146,3 +152,18 @@ module.exports = class Tracker extends bongo.Base
     opts['env']      = KONFIG.environment
     opts['hostname'] = KONFIG.hostname
     opts
+
+
+  @handleCustomParams = (subject, params) ->
+
+    return  unless subject is @types.STACKS_START_BUILD
+
+    { stackId, group } = params
+    JGroup = require './group'
+    JGroup.one { slug : group }, (err, group) ->
+      return console.log err  if err
+      { notifyAdmins } = require './notify'
+      notifyAdmins group, 'StackStatusChanged',
+        id     : stackId
+        status : { state : 'Building' }
+        group  : group.slug

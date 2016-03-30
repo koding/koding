@@ -21,6 +21,7 @@ ComputeController_UI = require './computecontroller.ui'
 ManagedKiteChecker   = require './managed/managedkitechecker'
 envDataProvider      = require 'app/userenvironmentdataprovider'
 Tracker              = require 'app/util/tracker'
+getGroup             = require 'app/util/getGroup'
 
 require './config'
 
@@ -698,10 +699,12 @@ module.exports = class ComputeController extends KDController
 
       machine.getBaseKite( no ).disconnect()
 
-    Tracker.track Tracker.STACKS_START_BUILD
-
     stackId = stack._id
-    call    = @getKloud().buildStack { stackId }
+    Tracker.track Tracker.STACKS_START_BUILD, {
+      customParams : { stackId, group : getGroup().slug }
+    }
+
+    call = @getKloud().buildStack { stackId }
 
     .then (res) =>
 
