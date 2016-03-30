@@ -196,7 +196,13 @@ class IDEAppController extends AppController
     kite = machine.getBaseKite()
     kite.ready =>
       kem = new KlientEventManager {}, machine
-      kem.subscribe 'openFiles', @bound 'handleKlientOpenFiles'
+
+      if @klientOpenFilesSubscriberId?
+        kem.unsubscribe 'openFiles', @klientOpenFilesSubscriberId
+
+      kem
+        .subscribe 'openFiles', @bound 'handleKlientOpenFiles'
+        .then ({ id }) => @klientOpenFilesSubscriberId = id
 
 
   bindWorkspaceDataEvents: ->
