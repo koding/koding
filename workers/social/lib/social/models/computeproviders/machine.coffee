@@ -11,6 +11,7 @@ module.exports = class JMachine extends Module
   { ObjectId, signature, secure } = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
+  @trait __dirname, '../../traits/notifiable'
 
   { slugify } = require '../../traits/slugifiable'
   { permit }  = require '../group/permissionset'
@@ -369,7 +370,6 @@ module.exports = class JMachine extends Module
 
     { targets, asOwner, permanent, group } = options
 
-    { group }    = client.r
     { delegate } = client.connection
 
     users = @users.slice 0
@@ -381,10 +381,15 @@ module.exports = class JMachine extends Module
       callback new KodingError \
         'Machine sharing is limited up to 50 users.'
     else
-      @updateAndNotify {
+
+      query = { $set: { users } }
+
+      notifyOptions =
         account : delegate
-        group   : group.slug
-      }, { $set: { users } }, (err) =>
+        group   : client?.context?.group
+        target  : 'group'
+
+      @updateAndNotify notifyOptions, query,  (err) =>
         informAccounts
           users       : targets
           machineUId  : @getAt('uid')
@@ -398,18 +403,20 @@ module.exports = class JMachine extends Module
 
     { targets, permanent, inform, force, group } = options
 
-    { group }    = client.r
     { delegate } = client.connection
 
     users = @users.slice 0
 
     for user in targets
       users = excludeUser { users, user, permanent, force }
+    query = { $set: { users } }
 
-    @updateAndNotify {
+    notifyOptions =
       account : delegate
-      group   : group.slug
-    }, { $set: { users } }, (err) =>
+      group   : client?.context?.group
+      target  : 'group'
+
+    @updateAndNotify notifyOptions, query, (err) =>
       if inform
         informAccounts {
           users       : targets
@@ -573,10 +580,15 @@ module.exports = class JMachine extends Module
         if err or not provision?
           callback new KodingError 'Provisioner not found'
         else
-          @updateAndNotify {
+
+          query = { $set: { provisioners: [ provision.slug ] } }
+
+          notifyOptions =
             account : delegate
             group   : group.slug
-          }, { $set: { provisioners: [ provision.slug ] } }, callback
+            target  : 'account'
+
+          @updateAndNotify notifyOptions, query, callback
 
 
   reviveUsers: permit 'populate users',
@@ -636,21 +648,23 @@ module.exports = class JMachine extends Module
 
       slug = slugify label
 
+      notifyOptions =
+        account : delegate
+        group   : group.slug
+        target  : 'account'
+
       if slug is ''
         return callback new KodingError 'Nickname cannot be empty'
 
       if slug isnt @slug
         generateSlugFromLabel { user, group, label }, (err, { slug, label }) =>
           return callback err  if err?
-          @updateAndNotify {
-            account : delegate
-            group   : group.slug
-          }, { $set: { slug , label } }, (err) -> kallback err, slug
+          query = { $set: { slug , label } }
+
+          @updateAndNotify notifyOptions, query, (err) -> kallback err, slug
       else
-        @updateAndNotify {
-          account : delegate
-          group   : group.slug
-        }, { $set: { label } }, (err) -> kallback err, slug
+        query = { $set: { label } }
+        @updateAndNotify notifyOptions, query, (err) -> kallback err, slug
 
 
   # .shareWith can be used like this:
