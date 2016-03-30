@@ -1,3 +1,4 @@
+$                 = require 'jquery'
 kd                = require 'kd'
 globals           = require 'globals'
 HomeAppAvatarView = require './commons/homeappavatarview'
