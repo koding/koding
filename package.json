@@ -45,6 +45,7 @@
     "faker": "1.1.0",
     "geoip-lite": "1.1.6",
     "git-rev": "0.2.1",
+    "github": "0.2.4",
     "googleapis": "1.1.5",
     "gulp": "3.8.11",
     "hat": "0.0.3",
@@ -102,7 +103,6 @@
     "chai": "2.2.0",
     "coffeelint": "1.11.1",
     "crypto": "0.0.3",
-    "github": "0.2.4",
     "mocha": "2.2.4",
     "ngrok": "0.1.97",
     "which": "1.0.5"
