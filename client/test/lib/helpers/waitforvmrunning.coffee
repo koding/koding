@@ -1,3 +1,5 @@
+generateStopInterval = (interval) -> -> clearInterval interval
+
 module.exports = (browser, machineName) ->
 
   unless machineName
