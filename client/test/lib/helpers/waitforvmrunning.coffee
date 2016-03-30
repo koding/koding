@@ -22,6 +22,10 @@ module.exports = (browser, machineName) ->
           if result.status is 0
             console.log ' ✔ VM is building, waiting to finish'
 
+            browser
+              .waitForElementNotPresent  modalSelector, 600000
+              .pause                     5000 # wait for sidebar redraw
+
             logProgress = setInterval ->
               console.log '   VM is still building'
             , 30000
@@ -29,13 +33,15 @@ module.exports = (browser, machineName) ->
             stopInterval = generateStopInterval logProgress
 
             browser
-              .waitForElementNotPresent  modalSelector, 600000, stopInterval
-              .pause                     5000 # wait for sidebar redraw
-              .waitForElementVisible     vmSelector, 20000, stopInterval
+              .waitForElementVisible vmSelector, 20000, stopInterval
               .pause 10000, stopInterval
 
           else
             console.log ' ✔ VM turn on button is clicked, waiting to turn on'
+
+            browser
+              .waitForElementVisible     turnOnButtonSelector, 100000
+              .click                     turnOnButtonSelector
 
             logProgress = setInterval ->
               console.log '   VM is still turning on'
@@ -44,8 +50,6 @@ module.exports = (browser, machineName) ->
             stopInterval = generateStopInterval logProgress
 
             browser
-              .waitForElementVisible     turnOnButtonSelector, 100000, stopInterval
-              .click                     turnOnButtonSelector
               .waitForElementNotPresent  modalSelector, 600000, stopInterval
               .pause                     5000 # wait for sidebar redraw
               .waitForElementVisible     vmSelector, 20000, stopInterval
