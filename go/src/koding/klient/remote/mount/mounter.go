@@ -56,7 +56,6 @@ var (
 // MounterTransport is the transport that the Mounter uses to communicate with
 // the remote machine.
 type MounterTransport interface {
-	Dial() error
 	Tell(string, ...interface{}) (*dnode.Partial, error)
 	TellWithTimeout(string, time.Duration, ...interface{}) (*dnode.Partial, error)
 }
@@ -188,7 +187,7 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 		return err
 	}
 
-	if err := m.Transport.Dial(); err != nil {
+	if err := m.Machine.DialOnce(); err != nil {
 		m.Log.Error("Error dialing remote klient. err:%s", err)
 		return util.NewKiteError(kiteerrortypes.DialingFailed, err)
 	}
