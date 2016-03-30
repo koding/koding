@@ -6,10 +6,12 @@ package vagrant
 import (
 	"errors"
 	"fmt"
-	"koding/kites/common"
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"koding/kites/common"
+	"koding/klient/tunnel/tlsproxy/pem"
 
 	"github.com/boltdb/bolt"
 	"github.com/hashicorp/go-multierror"
@@ -75,15 +77,16 @@ type ForwardedPort struct {
 }
 
 type VagrantCreateOptions struct {
-	Username       string           `json:"username"`
-	Hostname       string           `json:"hostname"`
-	Box            string           `json:"box,omitempty"`
-	Memory         int              `json:"memory,omitempty"`
-	Cpus           int              `json:"cpus,omitempty"`
-	ProvisionData  string           `json:"provisionData"`
-	CustomScript   string           `json:"customScript,omitempty"`
-	FilePath       string           `json:"filePath"`
-	ForwardedPorts []*ForwardedPort `json:"forwarded_ports,omitempty"`
+	Username         string           `json:"username"`
+	Hostname         string           `json:"hostname"`
+	Box              string           `json:"box,omitempty"`
+	Memory           int              `json:"memory,omitempty"`
+	Cpus             int              `json:"cpus,omitempty"`
+	ProvisionData    string           `json:"provisionData"`
+	CustomScript     string           `json:"customScript,omitempty"`
+	FilePath         string           `json:"filePath"`
+	ForwardedPorts   []*ForwardedPort `json:"forwarded_ports,omitempty"`
+	TLSProxyHostname string           `json:"tlsProxyHostname,omitempty"`
 }
 
 type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error)
@@ -213,6 +216,10 @@ func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 
 		if params.Cpus == 0 {
 			params.Cpus = 1
+		}
+
+		if params.TLSProxyHostname == "" {
+			params.TLSProxyHostname = pem.Hostname
 		}
 
 		vagrantFile, err := createTemplate(&params)
