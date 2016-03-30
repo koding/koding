@@ -6,6 +6,7 @@ HomeUtilities   = require './utilities'
 HomeMyTeam      = require './myteam'
 HomeTeamBilling = require './billing'
 HomeWelcome     = require './welcome'
+HomeStacks      = require './stacks'
 
 do require './routehandler'
 
@@ -17,7 +18,7 @@ module.exports = class HomeAppController extends AppController
 
   TABS = [
     { title : 'Welcome',          viewClass : HomeWelcome,       role: 'member' }
-    { title : 'Stacks',           viewClass : kd.CustomHTMLView, role: 'member' }
+    { title : 'Stacks',           viewClass : HomeStacks,        role: 'member' }
     { title : 'Virtual Machines', viewClass : kd.CustomHTMLView, role: 'member' }
     { title : 'My Team',          viewClass : HomeMyTeam,        role: 'member' }
     { title : 'Team Billing',     viewClass : HomeTeamBilling                   }
