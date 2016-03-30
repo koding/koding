@@ -127,6 +127,8 @@ class IDEAppController extends AppController
     @layoutManager.once 'LayoutSizesApplied', @bound 'doResize'
     @on 'InstallationRequired', (command) => @createNewTerminal { command }
 
+    kd.singletons.status.on 'reconnected', @bound 'bindKlientEvents'
+
 
   prepareIDE: (withFakeViews = no) ->
 
