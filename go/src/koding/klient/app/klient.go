@@ -185,9 +185,10 @@ func NewKlient(conf *KlientConfig) *Klient {
 	}
 
 	vagrantOpts := &vagrant.Options{
-		Home: conf.VagrantHome,
-		DB:   db, // nil is ok, fallbacks to in-memory storage
-		Log:  k.Log,
+		Home:  conf.VagrantHome,
+		DB:    db, // nil is ok, fallbacks to in-memory storage
+		Log:   k.Log,
+		Debug: conf.Debug,
 	}
 
 	tunOpts := &tunnel.Options{
