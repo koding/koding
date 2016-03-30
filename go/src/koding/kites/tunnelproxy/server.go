@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"koding/artifact"
 	"koding/kites/common"
@@ -46,6 +47,7 @@ type ServerOptions struct {
 	ServerAddr   string `json:"serverAddr,omitempty"` // public IP
 	Debug        bool   `json:"debug,omitempty"`
 	Test         bool   `json:"test,omitempty"`
+	NoCNAME      bool   `json:"noCNAME,omitempty"`
 
 	Log     logging.Logger     `json:"-"`
 	Metrics *metrics.DogStatsD `json:"-"`
@@ -113,6 +115,45 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 	dns, err := dnsclient.NewRoute53Client(dnsOpts)
 	if err != nil {
 		return nil, err
+	}
+
+	if !optsCopy.NoCNAME {
+		id, err := instanceID()
+		if err != nil {
+			return nil, err
+		}
+
+		optsCopy.BaseVirtualHost = strings.TrimPrefix(id, "i-") + "." + optsCopy.BaseVirtualHost
+
+		ip := host(optsCopy.ServerAddr)
+		base := host(optsCopy.BaseVirtualHost)
+
+		tunnelRec := &dnsclient.Record{
+			Name: base,
+			IP:   ip,
+			Type: "A",
+			TTL:  300,
+		}
+
+		allRec := &dnsclient.Record{
+			Name: "\\052." + base,
+			IP:   base,
+			Type: "CNAME",
+			TTL:  300,
+		}
+
+		// TODO(rjeczalik): add retries to pkg/dnsclient (TMS-2052)
+		for i := 0; i < 5; i++ {
+			if err = dns.UpsertRecords(tunnelRec, allRec); err == nil {
+				break
+			}
+
+			time.Sleep(time.Duration(i) * time.Second) // linear backoff, overall time: 30s
+		}
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	optsCopy.Log.Debug("Server options: %# v", &optsCopy)
@@ -453,8 +494,13 @@ func (s *Server) Register(r *kite.Request) (interface{}, error) {
 
 	vhost := s.vhost(&req)
 
-	if err := s.upsert(vhost); err != nil {
-		return nil, err
+	// By default all addresses are routed by default with wildcard
+	// CNAME. If it is disabled explicitly, we're inserting A records
+	// for each tunnel instead.
+	if s.opts.NoCNAME {
+		if err := s.upsert(vhost); err != nil {
+			return nil, err
+		}
 	}
 
 	res := &RegisterResult{

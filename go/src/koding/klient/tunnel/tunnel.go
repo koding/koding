@@ -277,19 +277,7 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
 }
 
 func guessTunnelName(vhost string) string {
-	// If vhost is <tunnelName>.<user>.koding.me return the
-	// <tunnelName> part (production environment).
-	//
-	// Example: 62ee1f899a4e.rafal.koding.me
-	i := strings.LastIndex(vhost, ".koding.me")
-	if i != -1 {
-		i = strings.LastIndex(vhost[:i], ".")
-		if i != -1 {
-			return vhost[:i]
-		}
-	}
-
-	// If vhost is <tunnelName>.<customBaseVirtualHost> return the
+	// If vhost is <tunnelName>.<BaseVirtualHost> return the
 	// <tunnelName> part (development environment).
 	//
 	// Example: macbook.rafal.t.dev.koding.io:8081

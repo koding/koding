@@ -131,6 +131,10 @@ func publicIP() (string, error) {
 	return ec2dynamicdata.GetMetadata(ec2dynamicdata.PublicIPv4)
 }
 
+func instanceID() (string, error) {
+	return ec2dynamicdata.GetMetadata(ec2dynamicdata.InstanceId)
+}
+
 // customPort adds a port part to the given address. If port is a zero-value,
 // or the addr parameter already has a port set - this function is a nop.
 func customPort(addr string, port int, ignore ...int) string {
