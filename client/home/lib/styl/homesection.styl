@@ -5,6 +5,7 @@ Home Section styles
 }
 
 .HomeAppView--section
+  font-weight               100
   margin                    0 48px 22px
   border                    1px solid #D0D0D0
   bg                        color, white
@@ -23,3 +24,29 @@ Home Section styles
 
   .filter-view
     hidden()
+
+.HomeAppView--section
+  &.payment
+    > fieldset
+      padding-top           30px
+
+  &.billing
+    .address
+      input
+        width               326px
+        margin-right        20px
+        &:last-child
+          width             112px
+          margin            0
+
+    .zipCode
+      input
+        width               151px
+        margin-right        20px
+
+        &:last-child
+          margin-right      0
+          width             112px
+    .phone input
+      width                 300px
+

@@ -6,6 +6,49 @@ Home styles
 
 .HomeAppView
   font-family               SoleilFamily
+  color                     #9f9f9f
+
+  ul
+    list-style-type         disc
+    list-style-position     inside
+    font-size               14px
+    line-height             28px
+    font-weight             100
+
+  .action-link
+    font-size               14px
+    font-weight             100
+    padding-right           2px
+    noTextDeco()
+    dIBlock()
+
+    &.blue
+      color                 #769ECC
+    &.gray
+      color                 #ABABAB
+
+  .HomeAppView--section
+    p
+      line-height           25px
+      color                 #9F9F9F
+      font-weight           300
+      font-size             14px
+      width                 90%
+      letter-spacing        .2px
+    input
+      kalc                  width, 100% \- 130px
+      border                none
+      border-bottom         1px solid #D1D1D1
+      bg                    color, transparent
+      display               inline-block
+      rounded               0 !important
+
+      &:hover
+      &:focus
+        border              none
+        border-bottom       1px solid #D1D1D1
+        outline             none
+        box-shadow          none
 
 .HomeAppView-TabView
   bg                        color, #F4F3F3
@@ -14,5 +57,69 @@ Home styles
   border-left               1px solid #E4E4E4
   borderBox()
 
+  .team-billing
+    .HomeAppView--billing-form
+      margin-top            20px
+
+      h2
+        margin              35px 0 35px 48px
+        color               #747474 !important
+        &:first-child
+          margin            0 0 0 48px
+
+      label
+        color               #747474 !important
+        font-size           16px !important
+        width               126px
+        font-size           14px
+        font-weight         100
+        margin-bottom       10px
+        dIBlock()
+
+      input
+        height              57px
+        font-size           14px
+        rounded             3px
+        bg                  color, #fff
+        color               #A59999
+
+      .HomeAppView--cc
+        size                410px 222px
+        bg                  color, #42488E
+        margin              0 auto
+        rounded             10px
+        padding             25px
+        top                 45px
+        borderBox()
+        rel()
+
+        label
+          width             auto
+          font-size         14px !important
+          color             #fff !important
+          dBlock()
+
+        input
+          height            42px !important
+          width             100%
+
+        .card-number
+          width             100%
+          letter-spacing    4px
+          margin-bottom     30px
+
+        .wrapper--expiration
+          margin-right      14px
+          fl()
+
+          .expiration-month
+            width           138px
+            margin-right    10px
+          .expiration-year
+            width           80px
+          .wrapper--cvc
+            fl()
+
 .HomeAppView--scroller
   styleScrollBars           rgba(0,0,0,.15)
+

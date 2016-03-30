@@ -8,19 +8,16 @@ welcome.styl
 .HomeAppView--section.kd-cli
   font-family               SoleilFamily
 
+  .view-guide
+    text-align              right
+    margin                  20px auto 0
+    dBlock()
+
   h2
     margin                  40px 0 20px 0
     font-weight             bold
     color                   #545454
     font-size               17px
-
-  p
-    line-height             25px
-    color                   #9F9F9F
-    font-weight             300
-    font-size               14px
-    width                   90%
-    letter-spacing          .2px
 
   code
     bg                      color #F7F7F7
@@ -53,4 +50,11 @@ welcome.styl
         display             block
         abs                 15px 15px
 
-
+.HomeAppView--section.koding-os-x-app
+  .link-holder
+    overflow                hidden
+    .action-link
+      fr()
+      margin-left             50px
+  ul
+    margin                  30px
