@@ -68,6 +68,7 @@ module.exports = {
   STACKS_STARTED_EDIT_DEFAULT : 'started editing default stack'
   STACKS_FINISHED_EDIT        : 'finished editing stack'
   STACKS_CANCEL_SETUP         : 'canceled stack setup'
+  STACKS_SKIP_SETUP           : 'skipped stack setup guide'
   STACKS_CLONED_TEMPLATE      : 'cloned stack template'
   STACKS_DELETE               : 'deleted stack'
   STACKS_DELETE_TEMPLATE      : 'deleted stack template'
