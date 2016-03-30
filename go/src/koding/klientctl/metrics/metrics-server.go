@@ -75,9 +75,7 @@ func (s *Server) Start() error {
 
 		go func() {
 			m := NewDefaultClient()
-			if err := m.StartMountStatusTicker(); err != nil {
-				fmt.Println(err)
-			}
+			m.StartMountStatusTicker()
 		}()
 	})
 

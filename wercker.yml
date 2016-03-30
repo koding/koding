@@ -205,7 +205,7 @@ deploy:
 
           ./configure --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
 
-          ./scripts/install-npm.sh -d client -u
+          ./scripts/install-npm.sh -d client -u --production
 
           make -C client dist
     - script:

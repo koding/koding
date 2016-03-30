@@ -23,6 +23,7 @@ AWS.config.update
 EC2  = new AWS.EC2()
 
 {environment} = argv
+argv.network ?= process.env.KODING_NETWORK
 
 params =
   Filters: [
@@ -39,4 +40,8 @@ params =
 EC2.describeInstances params, (err, data) ->
   data.Reservations.forEach (reservation) ->
     reservation.Instances.forEach (instance) ->
-      console.log instance.PublicDnsName
+      switch argv.network
+        when "private", "vpn"
+          console.log instance.PrivateIpAddress
+        else
+          console.log instance.PublicIpAddress

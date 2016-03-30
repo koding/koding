@@ -72,6 +72,8 @@ module.exports = RemoteExtensions =
 
   updateInstance: (data) ->
 
+    return  unless data
+
     { id: instanceId, change, timestamp } = data
 
     return  if (instances = @getInstances instanceId).length is 0

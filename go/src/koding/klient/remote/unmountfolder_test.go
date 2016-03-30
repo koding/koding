@@ -117,8 +117,7 @@ func TestUnmountFolder(t *testing.T) {
 
 		Convey("When called with a mount that fails to unmount", func() {
 			Convey("It should still remove the mount from the Mounts slice", func() {
-				err := r.UnmountFolder(req.UnmountFolder{Name: badUnmountMocker.Name})
-				So(err, ShouldNotBeNil)
+				r.UnmountFolder(req.UnmountFolder{Name: badUnmountMocker.Name})
 				So(len(r.mounts), ShouldEqual, 1)
 				// only the good unmounter should be left
 				So(r.mounts[0].MountName, ShouldEqual, goodUnmountMocker.Name)

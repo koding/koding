@@ -87,7 +87,7 @@ module.exports = class InvitedItemView extends KDListItemView
       attributes :
         src      : "//gravatar.com/avatar/#{hash}?s=#{size}&d=#{defaultAvatarUri}"
 
-    @timeAgoView  = new KDTimeAgoView { click: @bound 'showSettings' }, modifiedAt or createdAt
+    @timeAgoView  = new KDTimeAgoView { click: @bound 'showSettings' }, createdAt or modifiedAt
 
     if statusType is 'pending'
       @settingsIcon = new KDCustomHTMLView

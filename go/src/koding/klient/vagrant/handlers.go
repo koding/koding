@@ -5,6 +5,7 @@ package vagrant
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -64,14 +65,21 @@ type Info struct {
 	Error    string `json:"error,omitempty"`
 }
 
+type ForwardedPort struct {
+	GuestPort int `json:"guest,omitempty"`
+	HostPort  int `json:"host,omitempty"`
+}
+
 type VagrantCreateOptions struct {
-	Hostname      string
-	Box           string
-	Memory        int
-	Cpus          int
-	ProvisionData string
-	CustomScript  string
-	FilePath      string
+	Username       string           `json:"username"`
+	Hostname       string           `json:"hostname"`
+	Box            string           `json:"box,omitempty"`
+	Memory         int              `json:"memory,omitempty"`
+	Cpus           int              `json:"cpus,omitempty"`
+	ProvisionData  string           `json:"provisionData"`
+	CustomScript   string           `json:"customScript,omitempty"`
+	FilePath       string           `json:"filePath"`
+	ForwardedPorts []*ForwardedPort `json:"forwarded_ports,omitempty"`
 }
 
 type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error)
@@ -267,12 +275,52 @@ func (h *Handlers) Status(r *kite.Request) (interface{}, error) {
 	return h.withPath(r, fn)
 }
 
-// Version retursn the Vagrant version of the system
+// Version returns the Vagrant version of the system
 func (h *Handlers) Version(r *kite.Request) (interface{}, error) {
 	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
 		return v.Version()
 	}
 	return h.withPath(r, fn)
+}
+
+type ForwardedPortsRequest struct {
+	Name string `json:"name"`
+}
+
+func (req *ForwardedPortsRequest) Valid() error {
+	if req.Name == "" {
+		return errors.New("box name is empty")
+	}
+
+	return nil
+}
+
+// ForwardedPorts lists all forwarded port rules for the given box.
+func (h *Handlers) ForwardedPorts(r *kite.Request) (interface{}, error) {
+	if r.Args == nil {
+		return nil, errors.New("no arguments")
+	}
+
+	var req ForwardedPortsRequest
+	if err := r.Args.One().Unmarshal(&req); err != nil {
+		return nil, err
+	}
+
+	if err := req.Valid(); err != nil {
+		return nil, err
+	}
+
+	name, err := h.vboxLookupName(req.Name)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find box %q: %s", req.Name, err)
+	}
+
+	ports, err := h.vboxForwardedPorts(name)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read forwarded ports for box %q: %s", name, err)
+	}
+
+	return ports, nil
 }
 
 func (h *Handlers) boxAdd(v *vagrantutil.Vagrant, box, filePath string) {
@@ -396,7 +444,9 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 	}
 
 	var verr error
-	parseErr := func(line string) {
+	var fns OutputFuncs
+
+	fns = append(fns, func(line string) {
 		i := strings.Index(strings.ToLower(line), "error:")
 		if i == -1 {
 			return
@@ -408,20 +458,19 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 			msg = unquoter.Replace(msg)
 			verr = multierror.Append(verr, errors.New(msg))
 		}
-	}
-
-	w := &vagrantutil.Waiter{
-		OutputFunc: parseErr,
-	}
+	})
 
 	if params.Output.IsValid() {
 		h.log.Debug("sending output to %q for %q", r.Username, r.Method)
 
-		w.OutputFunc = func(line string) {
+		fns = append(fns, func(line string) {
 			h.log.Debug("%s: %s", r.Method, line)
-			parseErr(line)
 			params.Output.Call(line)
-		}
+		})
+	}
+
+	w := &vagrantutil.Waiter{
+		OutputFunc: fns.Output,
 	}
 
 	out, err := fn()

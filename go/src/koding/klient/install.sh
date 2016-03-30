@@ -131,6 +131,8 @@ download_klient() {
 	CHANNEL=${CHANNEL:-managed}
 	VERSION=$(curl -sSL https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
 
+	sudo mkdir -p /opt/kite/klient
+
 	cat << EOF
 Downloading Koding Service Connector 0.1.${VERSION}...
 
@@ -269,6 +271,8 @@ Copyright (C) 2012-2016 Koding Inc., all rights reserved.
 </dict>
 </plist>
 EOF
+
+		sudo chmod +x  /opt/kite/klient/klient.sh
 	fi
 
 	sudo cp -f /opt/kite/klient/klient.init "${init_file}"
