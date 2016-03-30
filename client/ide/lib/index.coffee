@@ -30,7 +30,6 @@ EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatem
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
-StackProgressModal            = require 'ide/views/modals/stackprogressmodal'
 
 require('./routes').init()
 
