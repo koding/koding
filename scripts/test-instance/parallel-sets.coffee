@@ -34,7 +34,6 @@ module.exports = [
   ]
 
   [
-    { name: 'account accountsettings' }
     { name: 'environments vmactions_hobbyist' }
 
   ]
@@ -42,11 +41,12 @@ module.exports = [
   [
     { name: 'unittests' }
     { name: 'environments vmactions_developer' }
+    { name: 'ide folder' }
+    { name: 'account accountsettings' }
   ]
 
   [
     { name: 'ide file' }
-    { name: 'ide folder' }
   ]
 
   [
