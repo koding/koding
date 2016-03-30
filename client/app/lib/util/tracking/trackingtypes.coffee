@@ -26,6 +26,7 @@ module.exports = {
   # VM ACTIONS
   VM_TERMINATED      : 'terminated vm'
   VM_TURNED_ON       : 'turn on vm'
+  VM_TURNED_OFF      : 'turned off vm'
   VM_SET_ALWAYS_ON   : 'set vm to always on'
   VM_SHARED          : 'shared vm with team member'
   VM_KICKED_SHARED   : 'removed user from shared vm'
@@ -86,10 +87,20 @@ module.exports = {
   STACKS_WIZARD_SELECTED_RACKSPACE    : 'selected rackspace provider'
 
   # DATABASE
+  STACKS_WIZARD_SELECTED_MYSQL      : 'selected mysql database'
+  STACKS_WIZARD_SELECTED_MONGODB    : 'selected mongodb database'
+  STACKS_WIZARD_SELECTED_POSTGRESQL : 'selected postgresql database'
+  STACKS_WIZARD_SELECTED_SQLITE     : 'selected sqlite database'
 
   # LANGUAGE
+  STACKS_WIZARD_SELECTED_NODE   : 'selected nodejs language'
+  STACKS_WIZARD_SELECTED_RUBY   : 'selected ruby language'
+  STACKS_WIZARD_SELECTED_PYTHON : 'selected python language'
+  STACKS_WIZARD_SELECTED_PHP    : 'selected php language'
 
   # WEB SERVER
+  STACKS_WIZARD_SELECTED_APACHE : 'selected apache server'
+  STACKS_WIZARD_SELECTED_NGINX  : 'selected nginx server'
 
   # SERVICES
   STACKS_WIZARD_SELECTED_GITHUB        : 'selected github service'
