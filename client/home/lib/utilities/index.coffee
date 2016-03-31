@@ -7,6 +7,12 @@ SECTIONS =
   'KD CLI'          : HomeUtilitiesKD
   'Koding OS X App' : HomeUtilitiesDesktopApp
 
+header = (title) ->
+  new kd.CustomHTMLView
+    tagName  : 'header'
+    cssClass : 'HomeAppView--sectionHeader'
+    partial  : title
+
 section = (name) ->
   new (SECTIONS[name] or kd.View)
     tagName  : 'section'
@@ -21,5 +27,8 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
 
     super options, data
 
+    @wrapper.addSubView header  'KD CLI'
     @wrapper.addSubView section 'KD CLI'
+
+    @wrapper.addSubView header  'Koding OS X App'
     @wrapper.addSubView section 'Koding OS X App'
