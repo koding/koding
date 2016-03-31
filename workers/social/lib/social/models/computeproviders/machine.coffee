@@ -11,6 +11,7 @@ module.exports = class JMachine extends Module
   { ObjectId, signature, secure } = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
+  @trait __dirname, '../../traits/notifiable'
 
   { slugify } = require '../../traits/slugifiable'
   { permit }  = require '../group/permissionset'
@@ -609,7 +610,7 @@ module.exports = class JMachine extends Module
 
     , (client, label, callback) ->
 
-      { r: { user, group } } = client
+      { r: { user, group }, connection: { delegate } } = client
 
       unless isOwner user, this
         return callback new KodingError 'Access denied'
@@ -624,12 +625,18 @@ module.exports = class JMachine extends Module
       if slug is ''
         return callback new KodingError 'Nickname cannot be empty'
 
+      notifyOptions =
+        account : delegate
+        group   : client?.context?.group
+        target  : 'group'
+
       if slug isnt @slug
         generateSlugFromLabel { user, group, label }, (err, { slug, label }) =>
           return callback err  if err?
-          @update { $set: { slug , label } }, (err) -> kallback err, slug
+          @updateAndNotify notifyOptions, { $set: { slug , label } }, (err) -> kallback err, slug
       else
-        @update { $set: { label } }, (err) -> kallback err, slug
+        console.log 'label ', label
+        @updateAndNotify notifyOptions, { $set: { label } }, (err) -> kallback err, slug
 
 
   # .shareWith can be used like this:
