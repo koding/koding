@@ -77,3 +77,12 @@ module.exports = class ResourceListController extends KodingListController
       resource = item.getData()
       resource.status = stack.status
       item.setData resource
+
+
+  destroy: ->
+
+    { notificationController } = kd.singletons
+    notificationController.off 'StackStatusChanged', @bound 'updateItemStatus'
+    notificationController.off 'StackCreated', @bound 'handleStackCreated'
+
+    super
