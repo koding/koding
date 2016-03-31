@@ -4,6 +4,42 @@ Home My Team styles
 */
 }
 
+.HomeAppView--section.team-settings
+  .hor-flex
+    display                 flex
+    flex-flow               row nowrap
+    justify-content         space-around
+
+  fieldset
+    rel()
+    &.TeamUrl
+      &:after
+        content             ''
+        r-sprite            'home' 'lock'
+        abs                 33px 17px
+      input.kdinput
+        opacity             .5
+
+    label
+      display               block
+      font-weight           300
+      font-size             12px
+      margin-bottom         10px
+
+    input.kdinput
+      font-size             14px
+      display               block
+      size                  100%, 40px
+      border                1px solid #D9D9D9
+      rounded               3px
+      shadow                0 0 2px rgba(70, 70, 70, .15) inset
+
+  fieldset.half
+    flex                    1 0 auto
+    &:first-child
+      padding-right         20px
+
+
 
 .HomeAppView--uploadLogo
   size                      auto, 47px
