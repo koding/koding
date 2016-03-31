@@ -90,9 +90,10 @@ type ClientOptions struct {
 	// StateChanges, when non-nil, listens on tunnel connection state transtions.
 	StateChanges chan<- *tunnel.ClientStateChange
 
-	Debug  bool           // whether to use debug logging
-	Log    logging.Logger // overwrites logger used with custom one
-	Config *config.Config // configures kite.Kite to connect to tunnelserver
+	Debug   bool           // whether to use debug logging
+	NoProxy bool           // whether to not start TLS proxy
+	Log     logging.Logger // overwrites logger used with custom one
+	Config  *config.Config // configures kite.Kite to connect to tunnelserver
 }
 
 // Valid validates the ClientOptions, returning non-nil error when

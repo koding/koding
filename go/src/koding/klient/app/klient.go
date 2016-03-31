@@ -131,7 +131,9 @@ type KlientConfig struct {
 
 	TunnelName    string
 	TunnelKiteURL string
-	NoTunnel      bool
+
+	NoTunnel bool
+	NoProxy  bool
 }
 
 // NewKlient returns a new Klient instance
@@ -196,9 +198,10 @@ func NewKlient(conf *KlientConfig) *Klient {
 	tunCfg.Transport = config.WebSocket
 
 	tunOpts := &tunnel.Options{
-		DB:     db,
-		Log:    k.Log,
-		Config: tunCfg,
+		DB:      db,
+		Log:     k.Log,
+		Config:  tunCfg,
+		NoProxy: conf.NoProxy,
 	}
 
 	t, err := tunnel.New(tunOpts)
@@ -480,6 +483,7 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 		PublicIP:      ip,
 		Debug:         k.config.Debug,
 		Config:        k.kite.Config.Copy(),
+		NoProxy:       k.config.NoProxy,
 	}
 
 	if k.config.Port != 0 {

@@ -66,7 +66,9 @@ type Options struct {
 	DB     *bolt.DB       `json:"-"`
 	Log    kite.Logger    `json:"-"`
 	Config *config.Config `json:"-"`
-	Debug  bool           `json:"-"`
+
+	Debug   bool `json:"-"`
+	NoProxy bool `json:"-"`
 }
 
 // updateEmpty overwrites each zero-value field of opts with defaults (merge-in).
@@ -139,16 +141,22 @@ func New(opts *Options) (*Tunnel, error) {
 	optsCopy := *opts
 
 	target := net.JoinHostPort("127.0.0.1", strconv.Itoa(optsCopy.Config.Port))
-	p, err := tlsproxy.NewProxy("127.0.0.1:56790", target)
-	if err != nil {
-		return nil, err
-	}
 
 	t := &Tunnel{
 		db:           NewStorage(optsCopy.DB),
 		opts:         &optsCopy,
 		stateChanges: make(chan *tunnel.ClientStateChange),
-		proxy:        p,
+	}
+
+	if !optsCopy.NoProxy {
+		optsCopy.Log.Debug("starting tlsproxy for %q target", target)
+
+		p, err := tlsproxy.NewProxy("127.0.0.1:56790", target)
+		if err != nil {
+			return nil, err
+		}
+
+		t.proxy = p
 	}
 
 	go t.eventloop()
@@ -169,6 +177,7 @@ func (t *Tunnel) clientOptions() *tunnelproxy.ClientOptions {
 		Timeout:         t.opts.Timeout,
 		OnRegister:      t.updateOptions,
 		Debug:           t.opts.Debug,
+		NoProxy:         t.opts.NoProxy,
 		StateChanges:    t.stateChanges,
 	}
 }
