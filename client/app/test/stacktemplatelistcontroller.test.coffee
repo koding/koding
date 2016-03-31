@@ -53,7 +53,7 @@ describe 'StackTemplateListController', ->
     it 'should set originId to filterStates.query if viewType is not group', ->
 
       listView       = new StackTemplateList
-      listController = new StackTemplateListController { view : listView }
+      listController = new StackTemplateListController { view : listView, viewType : 'foo' }
 
       expect(listController.filterStates.query.originId).toExist()
 
@@ -68,7 +68,7 @@ describe 'StackTemplateListController', ->
 
       listView.emit 'ItemAction', { action : 'RemoveItem', item }
 
-      expect(spy).toHaveBeenCalled()
+      expect(spy).toHaveBeenCalledWith item
 
     it 'should handle ShowItem event', ->
 
