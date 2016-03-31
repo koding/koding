@@ -6,6 +6,8 @@ showError           = require 'app/util/showError'
 InvitationInputView = require 'admin/views/invitations/invitationinputview'
 whoami              = require 'app/util/whoami'
 Tracker             = require 'app/util/tracker'
+CustomLinkView      = require 'app/customlinkview'
+
 
 module.exports = class HomeTeamSendInvites extends kd.CustomHTMLView
 
@@ -58,12 +60,21 @@ module.exports = class HomeTeamSendInvites extends kd.CustomHTMLView
 
   createMainButtons: ->
 
-    @addSubView new kd.ButtonView
-      title    : 'INVITE MEMBERS'
-      cssClass : 'solid medium green invite-members'
-      callback :  =>
-        whoami().fetchEmail (err, email) =>
-          @inviteMembers email
+    @addSubView actionBar = new kd.CustomHTMLView
+      tagName : 'fieldset'
+      cssClass : 'HomeAppView--ActionBar'
+
+    actionBar.addSubView new CustomLinkView
+      cssClass : 'HomeAppView--button primary fr'
+      title    : 'SEND INVITES'
+      click    : =>
+        whoami().fetchEmail (err, email) => @inviteMembers email
+
+    actionBar.addSubView new CustomLinkView
+      cssClass : 'HomeAppView--button fr'
+      title    : 'UPOLAD CSV'
+      click    : => new kd.NotificationView { title: 'Coming soon!' }
+
 
 
   inviteMembers: (ownEmail) ->
@@ -282,7 +293,6 @@ module.exports = class HomeTeamSendInvites extends kd.CustomHTMLView
     @addSubView new kd.CustomHTMLView
       cssClass : 'information'
       partial  : '''
-        <p>Invite other teammates to your team. You can change admin rights for your teammates in the Members tab once they accept your invitation.</p>
         <div class='invite-labels'>
           <label>Email</label><label>First Name</label><label>Last Name<span>Admin</span></label>
         </div>
