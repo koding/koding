@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
@@ -74,12 +75,14 @@ func ListMachines(u *url.URL, h http.Header, _ interface{}, context *models.Cont
 
 	//TODO We need to write a func to get userId with incoming user token
 	// ~Mehmet Ali
-
+	userId := ""
 	machines, err := modelhelper.GetMachinesByUsername(userId)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
+	// will be removed this line.
+	fmt.Println(machines)
 	return response.NewOK(token)
 }
 
