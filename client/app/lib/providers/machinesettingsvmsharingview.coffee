@@ -11,6 +11,7 @@ ComputeErrorUsageModal           = require './computeerrorusagemodal'
 KDAutoCompleteController         = kd.AutoCompleteController
 MachineSettingsCommonView        = require './machinesettingscommonview'
 ActivityAutoCompleteUserItemView = require 'activity/views/activityautocompleteuseritemview'
+Tracker                          = require 'app/util/tracker'
 
 
 module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommonView
@@ -66,12 +67,16 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     @_users = [nick()].concat (user.profile.nickname for user in users)
 
 
-  addUser: (user) -> @modifyUsers user, 'add'
+  addUser: (user) ->
+
+    Tracker.track Tracker.VM_SHARED
+    @modifyUsers user, 'add'
 
 
   kickUser: (userItem) ->
 
     userItem.setLoadingMode yes
+    Tracker.track Tracker.VM_KICKED_SHARED
     @modifyUsers userItem.getData(), 'kick', userItem
 
 

@@ -14,6 +14,7 @@ CloneRepoModal            = require 'app/commonviews/clonerepomodal'
 NFinderDeleteDialog       = require '../itemsubviews/nfinderdeletedialog'
 DropboxDownloadItemView   = require 'app/commonviews/dropboxdownloaditemview'
 Encoder                   = require 'htmlencode'
+Tracker                   = require 'app/util/tracker'
 
 
 module.exports = class NFinderTreeController extends JTreeViewController
@@ -111,6 +112,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
     return  unless nodeView
     return  if @isReadOnly
 
+    Tracker.track Tracker.FILETREE_WATCH_FILE
+
     @getDelegate().emit "FileNeedsToBeTailed", { file: nodeView.getData() }
 
 
@@ -150,6 +153,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
     @notify 'Refreshing...'
     folder = nodeView.getData()
     folder.emit 'fs.job.finished', [] # in case of refresh to stop the spinner
+
+    Tracker.track Tracker.FILETREE_REFRESH
 
     @collapseFolder nodeView, =>
       kd.utils.defer => @expandFolder nodeView, ->
@@ -272,6 +277,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
         deletedNodes.push node
 
     Promise.all(results).then =>
+      Tracker.track Tracker.FILETREE_DELETE_FILE_FOLDER
       @notify "#{deletedNodes.length} item#{if deletedNodes.length > 1 then 's' else ''} deleted!", 'success'
       @emit 'NodesRemoved', deletedNodes
       @removeNodeView node for node in deletedNodes
@@ -297,6 +303,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
       nodeData.rename newValue, (err) =>
         if err then @notify null, null, err
         @emit 'NodeRenamed', nodeData, newValue
+        Tracker.track Tracker.FILETREE_RENAME_FILE_FOLDER
 
       # @setKeyView()
       @beingEdited = null
@@ -322,6 +329,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
       else
         kd.utils.defer =>
           @notify "#{type} created!", 'success'
+          Tracker.track Tracker.FILETREE_NEW_FILE if type is 'file'
+          Tracker.track Tracker.FILETREE_NEW_FOLDER if type is 'folder'
           node = @nodes[file.path]
 
           return @showRenameDialog node  if node
@@ -387,6 +396,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
         duplicatedNodes.push node
 
     Promise.all(results).then =>
+      Tracker.track Tracker.FILETREE_DUPLICATE_FILE_FOLDER
       @notify "#{duplicatedNodes.length} item#{if duplicatedNodes.length > 1 then 's' else ''} duplicated!", 'success'
 
     .catch (err) =>
@@ -401,6 +411,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
     file.compress type, (err, response) =>
       if err then @notify null, null, err
       else
+        Tracker.track Tracker.FILETREE_COMPRESS_ZIP if type is 'zip'
+        Tracker.track Tracker.FILETREE_COMPRESS_TARGZ if type is 'tar.gz'
         @notify "#{file.type.capitalize()} compressed!", 'success'
 
   extractFiles: (nodeView) ->
@@ -409,6 +421,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
     file.extract (err, response) =>
       if err then @notify null, null, err
       else
+        Tracker.track Tracker.FILTREEE_EXTRACT_FILE
         @notify "#{file.type.capitalize()} extracted!", 'success'
         @refreshFolder @nodes[file.parentPath], =>
           @selectNode @nodes[response.path]
@@ -776,7 +789,9 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
   refreshTopNode: ->
     { nickname } = whoami().profile
-    @refreshFolder @nodes["/home/#{nickname}"], => @emit 'fs.retry.success'
+    @refreshFolder @nodes["/home/#{nickname}"], =>
+      Tracker.track Tracker.FILETREE_REFRESH
+      @emit 'fs.retry.success'
 
   # showOpenWithModal: (nodeView) ->
   #   kd.getSingleton("kodingAppsController").fetchApps (err, apps) =>

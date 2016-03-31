@@ -41,6 +41,8 @@ module.exports = class Tracker extends bongo.Base
     INVITED_CREATE_TEAM  : 'was invited to create a team'
     SENT_FEEDBACK        : 'sent feedback'
     TEAMS_JOINED_TEAM    : 'joined team'
+    USER_ENABLED_2FA     : 'enabled 2-factor auth'
+    USER_DISABLED_2FA    : 'disabled 2-factor auth'
 
   @properties = {}
 

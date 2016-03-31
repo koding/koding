@@ -7,6 +7,7 @@ CodeSetupView         = require './codesetupview'
 GetStartedView        = require './getstartedview'
 ConfigurationView     = require './configurationview'
 ProviderSelectionView = require './providerselectionview'
+Tracker               = require 'app/util/tracker'
 CLONE_REPO_TEMPLATES  =
   github              : 'git clone git@github.com:your-organization/reponame.git'
   bitbucket           : 'git clone git@bitbucket.org/your-organization/reponame.git'
@@ -130,6 +131,7 @@ module.exports = class OnboardingView extends JView
         selectedProvider = @providerSelectionView.selected?.getOption 'provider'
         if selectedProvider?
           options = { selectedProvider, template: { content: @stackTemplate } }
+        Tracker.track Tracker.STACKS_SKIP_SETUP
         @emit 'StackOnboardingCompleted', options
 
 

@@ -66,6 +66,8 @@ module.exports = class AccountCredentialListController extends KodingListControl
           @fetchCredentialData credential, (err, data) =>
             return  if showError err
 
+            Tracker.track Tracker.USER_EDIT_CREDENTIALS
+
             data.meta  = helper.prepareCredentialMeta data.meta
             data.title = credential.title
 
@@ -117,6 +119,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     credential.delete (err) =>
       listView.emit 'ItemDeleted', item  unless showError err
+      Tracker.track Tracker.USER_DELETE_CREDENTIALS
       callback err
 
 
@@ -285,8 +288,6 @@ module.exports = class AccountCredentialListController extends KodingListControl
       view.form.destroy()
       @addItem credential
 
-      if provider is 'aws'
-        Tracker.track Tracker.STACKS_ADDED_AWS_KEYS
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
     # The KDCustomScroll was hidden while Stacks screen is rendering.

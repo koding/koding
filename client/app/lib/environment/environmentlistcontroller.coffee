@@ -6,6 +6,7 @@ ComputeHelpers        = require '../providers/computehelpers'
 KDNotificationView    = kd.NotificationView
 EnvironmentListItem   = require './environmentlistitem'
 KodingListController  = require 'app/kodinglist/kodinglistcontroller'
+Tracker               = require 'app/util/tracker'
 
 
 module.exports = class EnvironmentListController extends KodingListController
@@ -56,6 +57,8 @@ module.exports = class EnvironmentListController extends KodingListController
     stack = item.getData()
     computeController.destroyStack stack, (err) =>
       return  if showError err
+
+      Tracker.track Tracker.STACKS_DELETE
 
       new KDNotificationView title : 'Stack deleted'
 

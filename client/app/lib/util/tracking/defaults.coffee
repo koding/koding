@@ -5,7 +5,10 @@
 # Mapping data structure consists of event action as key and and
 # Object literal as values.
 
+globals       = require 'globals'
 TrackingTypes = require './trackingtypes'
+
+groupName  = globals.currentGroup.slug
 
 options    = {}
 properties = {}
@@ -17,5 +20,9 @@ properties[TrackingTypes.BUTTON_CLICKED] = {
 properties[TrackingTypes.MODAL_DISPLAYED] = {
   label: TrackingTypes.LABEL_MODAL_SUCCESS
 }
+
+Object.keys(TrackingTypes).forEach (key) ->
+  properties[TrackingTypes[key]] =
+    groupName: groupName
 
 module.exports = { options, properties }
