@@ -2,12 +2,14 @@ kd                   = require 'kd'
 HomeTeamConnectSlack = require './hometeamconnectslack'
 HomeTeamSendInvites  = require './hometeamsendinvites'
 HomeTeamTeammates    = require './hometeamteammates'
+HomeTeamSettings     = require './hometeamsettings'
 
 
 SECTIONS =
   'Invite Using Slack' : HomeTeamConnectSlack
   'Send Invites'       : HomeTeamSendInvites
   Teammates            : HomeTeamTeammates
+  'Team Settings'      : HomeTeamSettings
 
 header = (title) ->
   new kd.CustomHTMLView
