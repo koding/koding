@@ -41,7 +41,6 @@ func GetMachine(u *url.URL, h http.Header, _ interface{}, context *models.Contex
 		return response.NewBadRequest(err)
 	}
 
-	// return response.New(userinfo)
 	return response.HandleResultAndError(machine, err)
 }
 
@@ -59,8 +58,29 @@ func GetMachineStatus(u *url.URL, h http.Header, _ interface{}, context *models.
 
 	status := machine.State()
 
-	// return response.New(userinfo)
 	return response.HandleResultAndError(status, err)
+}
+
+// GetMachineStatus gets status of the  machine
+func ListMachines(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	token, err := getAuthorization(h)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// TODO
+	// PROCESS TOKEN HERE
+	// GET USER FROM DB W/ TOKEN & LIST MACHINES OF USER
+
+	//TODO We need to write a func to get userId with incoming user token
+	// ~Mehmet Ali
+
+	machines, err := modelhelper.GetMachinesByUsername(userId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(token)
 }
 
 func getAuthorization(h http.Header) (string, error) {
