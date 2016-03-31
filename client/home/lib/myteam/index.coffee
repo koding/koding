@@ -32,16 +32,24 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
     super options, data
 
+    kd.singletons.groupsController.ready @bound 'putViews'
+
+
+  putViews: ->
+
     { groupsController } = kd.singletons
+    team = groupsController.getCurrentGroup()
 
-    groupsController.ready =>
+    @wrapper.addSubView header  'Team Settings'
+    @wrapper.addSubView section 'Team Settings', null, team
 
-      @wrapper.addSubView header  'Invite Using Slack'
-      @wrapper.addSubView section 'Invite Using Slack'
+    @wrapper.addSubView header  'Send Invites'
+    @wrapper.addSubView section 'Send Invites'
 
-      @wrapper.addSubView header  'Send Invites'
-      @wrapper.addSubView section 'Send Invites'
+    @wrapper.addSubView header  'Invite Using Slack'
+    @wrapper.addSubView section 'Invite Using Slack'
 
-      team = groupsController.getCurrentGroup()
-      @wrapper.addSubView header  'Teammates'
-      @wrapper.addSubView section 'Teammates', null, team
+    @wrapper.addSubView header  'Teammates'
+    @wrapper.addSubView section 'Teammates', null, team
+
+
