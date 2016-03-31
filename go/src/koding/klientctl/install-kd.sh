@@ -128,6 +128,7 @@ if which kd > /dev/null; then
 fi
 
 
+platform=`uname | tr '[:upper:]' '[:lower:]'`
 case "$platform" in
   darwin|linux)
     installDir="/usr/local/bin"

@@ -3,7 +3,6 @@ package machine
 import (
 	"time"
 
-	"github.com/koding/kite"
 	"github.com/koding/logging"
 
 	"koding/klient/kiteerrortypes"
@@ -62,18 +61,29 @@ type Transport interface {
 // MachineMeta is used to separate the static data from the Machine constructor
 // fields. Easing creation.
 type MachineMeta struct {
+	// The kite url for the given machine.
+	URL string `json:"url"`
+
+	// The ip/host, as extracted from the client's URL field.
+	IP string `json:"ip"`
+
 	// The machine label, as seen on the Koding UI
 	MachineLabel string `json:"machineLabel"`
 
 	// The team name that the machine belongs to, if any.
 	Teams []string `json:"teams"`
 
-	// The ip/host, as extracted from the client's URL field.
-	IP string `json:"ip"`
-
 	// The human friendly name that is mainly used to locate the
 	// given client.
 	Name string `json:"name"`
+
+	// The hostname of the remote machine.
+	//
+	// TODO: Deprecate once SSH no longer needs the remote hostname.
+	Hostname string `json:"hostname"`
+
+	// The username for the koding user.
+	Username string `json:"username"`
 }
 
 // Machine represents a remote machine, with accompanying kite client and
@@ -88,11 +98,6 @@ type Machine struct {
 
 	// The message (if any) associated with the given status.
 	statusMessage string `json:"-"`
-
-	// A remote client, as returned by `kontrolclient.GetKites()`
-	//
-	// TODO: Deprecated. Remove when able.
-	Client *kite.Client `json:"-"`
 
 	// The underlying KitePinger which can be used to handle network interruptions
 	// on the given machine.
@@ -126,18 +131,31 @@ func MachineLogger(meta MachineMeta, l logging.Logger) logging.Logger {
 }
 
 // NewMachine initializes a new Machine struct with any internal vars created.
-func NewMachine(meta MachineMeta, log logging.Logger, client *kite.Client,
-	kt *kitepinger.PingTracker, ht *kitepinger.PingTracker) *Machine {
-	return &Machine{
-		// Client is mainly a legacy field. See field docs.
-		Client: client,
+func NewMachine(meta MachineMeta, log logging.Logger, t Transport) (*Machine, error) {
+	log = MachineLogger(meta, log)
 
-		MachineMeta: meta,
-		Log:         MachineLogger(meta, log),
-		KiteTracker: kt,
-		HTTPTracker: ht,
-		Transport:   client,
+	// Create our Pingers, to be used in the PingTrackers
+	kitePinger := kitepinger.NewKitePinger(t)
+	httpPinger, err := kitepinger.NewKiteHTTPPinger(meta.URL)
+	if err != nil {
+		log.Error(
+			"Unable to create HTTPPinger from meta.URL. url:%s, err:%s", meta.URL, err,
+		)
+		return nil, err
 	}
+
+	m := &Machine{
+		MachineMeta: meta,
+		Log:         log,
+		KiteTracker: kitepinger.NewPingTracker(kitePinger),
+		HTTPTracker: kitepinger.NewPingTracker(httpPinger),
+		Transport:   t,
+	}
+
+	// Start our http pinger, to give online/offline statuses for all machines.
+	m.HTTPTracker.Start()
+
+	return m, nil
 }
 
 // GetStatus returns the currently set machine status and status message, if any.
@@ -208,19 +226,15 @@ func (m *Machine) SetStatus(s MachineStatus, msg string) {
 //
 // This is a common check, and should be performed before using a machine.
 func (m *Machine) CheckValid() error {
-	if m.Client == nil {
-		return util.KiteErrorf(kiteerrortypes.MachineNotValidYet, "Machine.Client is nil")
-	}
-
-	if m.Client == nil {
-		return util.KiteErrorf(
-			kiteerrortypes.MachineNotValidYet, "Machine.KiteTracker is nil",
-		)
-	}
-
 	if m.Transport == nil {
 		return util.KiteErrorf(
 			kiteerrortypes.MachineNotValidYet, "Machine.Transport is nil",
+		)
+	}
+
+	if m.KiteTracker == nil {
+		return util.KiteErrorf(
+			kiteerrortypes.MachineNotValidYet, "Machine.KiteTracker is nil",
 		)
 	}
 
@@ -260,6 +274,19 @@ func (m *Machine) Tell(method string, args ...interface{}) (*dnode.Partial, erro
 	}
 
 	return m.Transport.Tell(method, args...)
+}
+
+// TellWithTimeout uses the Kite protocol (with a dnode response) to communicate
+// with this machine.
+func (m *Machine) TellWithTimeout(method string, timeout time.Duration, args ...interface{}) (*dnode.Partial, error) {
+	if m.Transport == nil {
+		m.Log.Error("TellWithTimeout was attempted with a nil Transport")
+		return nil, util.KiteErrorf(
+			kiteerrortypes.MachineNotValidYet, "Machine.Transport is nil",
+		)
+	}
+
+	return m.Transport.TellWithTimeout(method, timeout, args...)
 }
 
 // IsConnected returns the kitepinger's IsConnected result
