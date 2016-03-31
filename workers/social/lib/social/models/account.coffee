@@ -1373,6 +1373,8 @@ module.exports = class JAccount extends jraphical.Module
   ###
   setup2FactorAuth: secure (client, options, callback) ->
 
+    username = @profile.nickname
+
     _fetchUser client, (err, user) ->
       return callback err  if err
 
@@ -1386,6 +1388,9 @@ module.exports = class JAccount extends jraphical.Module
 
       if disable
         user.update { $unset: { twofactorkey: '' } }, (err) ->
+          options =
+            subject : Tracker.types.USER_DISABLED_2FA
+          Tracker.identifyAndTrack username, options
           callback err
 
         return
@@ -1400,6 +1405,9 @@ module.exports = class JAccount extends jraphical.Module
           'Verification failed for provided code.', 'INVALID_TOKEN'
 
       user.update { $set: { twofactorkey: key } }, (err) ->
+        options =
+          subject : Tracker.types.USER_ENABLED_2FA
+        Tracker.identifyAndTrack username, options
         callback err
 
 

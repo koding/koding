@@ -1,5 +1,6 @@
-kd    = require 'kd'
-JView = require 'app/jview'
+kd      = require 'kd'
+JView   = require 'app/jview'
+Tracker = require 'app/util/tracker'
 
 StackTemplateListView = require './stacktemplatelistview'
 
@@ -72,6 +73,7 @@ module.exports = class BaseInitialView extends kd.View
         computeController.once 'GroupStackTemplatesUpdated', =>
           @reload()
           kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
+          Tracker.track Tracker.STACKS_MAKE_DEFAULT
 
 
   showWarning: (content) ->

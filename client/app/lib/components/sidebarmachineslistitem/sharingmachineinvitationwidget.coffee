@@ -3,6 +3,7 @@ ReactDOM                 = require 'react-dom'
 actions                  = require 'app/flux/environment/actions'
 SidebarWidget            = require './sidebarwidget'
 InvitationWidgetUserPart = require './invitationwidgetuserpart'
+Tracker                  = require 'app/util/tracker'
 
 module.exports = class SharingMachineInvitationWidget extends React.Component
 
@@ -14,12 +15,14 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
 
     actions.setActiveInvitationMachineId { machine: null }
     actions.rejectInvitation @props.machine
+    Tracker.track Tracker.VM_REJECTED_SHARED
 
 
   onAcceptClicked: ->
 
     actions.setActiveInvitationMachineId { machine: null }
     actions.acceptInvitation @props.machine
+    Tracker.track Tracker.VM_ACCEPTED_SHARED
 
 
   componentDidUpdate: -> @setCoordinates()
