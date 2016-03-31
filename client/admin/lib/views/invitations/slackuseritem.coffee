@@ -17,17 +17,29 @@ module.exports = class SlackUserItem extends kd.ListItemView
 
   viewAppended: ->
 
-    { real_name, name, profile } = @getData()
+    { real_name, name, profile, status } = @getData()
+
+    status = switch status
+      when 'pending'  then 'already invited'
+      when 'accepted' then 'already member'
+      else null
 
     @addSubView @checkBox = new kd.CustomCheckBox
       defaultValue : on
       click        : => @emitItemValueChanged()
 
+    if status
+      @checkBox.input.makeDisabled()
+      partial = "<img src='#{profile.image_24}'/> @#{name} <cite>#{real_name}</cite> <span >#{status}</span>"
+    else
+      partial = "<img src='#{profile.image_24}'/> @#{name} <cite>#{real_name}</cite>"
+
     @addSubView new kd.CustomHTMLView
       tagName  : 'a'
       href     : '#'
       cssClass : 'name'
-      partial  : "<img src='#{profile.image_24}'/> @#{name} <cite>#{real_name}</cite>"
+      partial  : partial
       click    : =>
+        return  if status
         @checkBox.setValue not @checkBox.getValue()
         @emitItemValueChanged()
