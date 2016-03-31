@@ -701,7 +701,7 @@ module.exports = class ComputeController extends KDController
 
     stackId = stack._id
     Tracker.track Tracker.STACKS_START_BUILD, {
-      customParams : { stackId, group : getGroup().slug }
+      customEvent : { stackId, group : getGroup().slug }
     }
 
     call = @getKloud().buildStack { stackId }

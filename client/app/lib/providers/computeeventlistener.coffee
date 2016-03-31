@@ -1,7 +1,8 @@
-kd      = require 'kd'
-globals = require 'globals'
-Machine = require './machine'
-Tracker = require 'app/util/tracker'
+kd       = require 'kd'
+globals  = require 'globals'
+Machine  = require './machine'
+Tracker  = require 'app/util/tracker'
+getGroup = require 'app/util/getGroup'
 
 
 module.exports = class ComputeEventListener extends kd.Object
@@ -145,16 +146,29 @@ module.exports = class ComputeEventListener extends kd.Object
 
         kd.info "#{event.eventId}", event
 
+        isMyStack = computeController.findStackFromStackId(eventId)?
         if not event.error and event.percentage is 100 and ev = TypeStateMap[type]
           computeController.emit ev.public, { machineId: eventId }
           computeController.emit "stateChanged-#{eventId}", ev.private
           computeController.stateChecker.watch eventId
-          Tracker.track Tracker.STACKS_BUILD_SUCCESSFULLY if type is 'apply'
+          # Perform tracker only if stack is mine.
+          # It avoids tracking when admin listens to member's stack process
+          if isMyStack and type is 'apply'
+            Tracker.track Tracker.STACKS_BUILD_SUCCESSFULLY, {
+              customEvent :
+                stackId   : eventId
+                group     : getGroup().slug
+            }
           Tracker.track Tracker.VM_TURNED_OFF if event.status is 'Stopped'
           # For `apply` event revive all the machines in a stack ~ GG
           computeController.triggerReviveFor eventId, type is 'apply'
         else if event.error and event.percentage is 100 and type is 'apply'
-          Tracker.track Tracker.STACKS_BUILD_FAILED
+          if isMyStack
+            Tracker.track Tracker.STACKS_BUILD_FAILED, {
+              customEvent :
+                stackId   : eventId
+                group     : getGroup().slug
+            }
           # If a stack `apply` is failed we need to revive it from DB ~ GG
           computeController.triggerReviveFor eventId, yes
         else

@@ -93,7 +93,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
     @prevStatus = state
 
 
-  render: (fields) ->
+  render: ->
 
     @updateStatus()
     @subscribeToKloudEvents()
@@ -123,6 +123,10 @@ module.exports = class ResourceListItem extends kd.ListItemView
         resource.maintenance { prepareForDestroy: yes }, next
       (next) ->
         computeController.destroyStack resource, next
+      (next) =>
+        delegate = @getDelegate()
+        delegate.emit 'ItemStatusUpdateNeeded', { id : @getData()._id }
+        next()
     ]
 
     async.series queue, (err) =>
@@ -143,7 +147,8 @@ module.exports = class ResourceListItem extends kd.ListItemView
       (next) ->
         resource.maintenance { destroyStack: yes }, next
       (next) =>
-        @destroy()
+        delegate = @getDelegate()
+        delegate.emit 'ItemStatusUpdateNeeded', { id : @getData()._id }
         next()
     ]
 
@@ -176,9 +181,10 @@ module.exports = class ResourceListItem extends kd.ListItemView
   handleStateChangedEvent: (event) ->
 
     # delay is needed to show 100% in progress bar
-    # when build/destroy process is completed
+    # when destroy process is completed
     kd.utils.wait 100, =>
-      @getDelegate().emit 'ItemStatusUpdateNeeded', this
+      resource = @getData()
+      @destroy()  if resource.status.state is 'Destroying'
 
 
   updateStatus: ->

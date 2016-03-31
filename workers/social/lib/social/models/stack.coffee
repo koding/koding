@@ -16,7 +16,6 @@ module.exports = class JComputeStack extends jraphical.Module
   { PROVIDERS, reviveGroupPlan } = require './computeproviders/computeutils'
 
   @trait __dirname, '../traits/protected'
-  @trait __dirname, '../traits/notifiable'
 
   @share()
 
@@ -212,7 +211,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
     stack.save (err) ->
       return callback err  if err?
-      JComputeStack.sendAdminNotification stack, 'StackCreated'
+      stack.notifyAdmins 'StackCreated'
       callback null, stack
 
 
@@ -347,9 +346,7 @@ module.exports = class JComputeStack extends jraphical.Module
     @fetchGroup (err, group) =>
       return callback err  if err
 
-      change        = { $set: { status: { state: 'Destroying' } } }
-      notifyOptions = { group : group.slug, target : 'group' }
-      @updateAndNotify notifyOptions, change, (err) =>
+      @update { $set: { status: { state: 'Destroying' } } }, (err) =>
         return callback err  if err
 
         JMachine = require './computeproviders/machine'
@@ -382,9 +379,7 @@ module.exports = class JComputeStack extends jraphical.Module
       return callback new KodingError \
         'Stacks generated from templates can only be destroyed by Kloud.'
 
-    change        = { $set: { status: { state: 'Destroying' } } }
-    notifyOptions = { group : @group, target : 'group' }
-    @updateAndNotify notifyOptions, change, (err) =>
+    @update { $set: { status: { state: 'Destroying' } } }, (err) =>
       return console.log err  if err
 
     JProposedDomain  = require './domain'
@@ -607,12 +602,12 @@ module.exports = class JComputeStack extends jraphical.Module
       @deleteAdminMessage callback
 
 
-  @sendAdminNotification = (stack, subject) ->
+  notifyAdmins: (subject) ->
 
-    stack.fetchGroup (err, group) =>
+    @fetchGroup (err, group) =>
       return console.log err  if err
 
       { notifyAdmins } = require './notify'
       notifyAdmins group, subject,
-        id    : stack._id
+        id    : @_id
         group : group.slug

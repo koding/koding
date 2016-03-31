@@ -1,5 +1,6 @@
-bongo       = require 'bongo'
-KodingError = require '../error'
+bongo        = require 'bongo'
+KodingError  = require '../error'
+KodingLogger = require './kodinglogger'
 
 { secure, signature } = bongo
 
@@ -29,21 +30,25 @@ module.exports = class Tracker extends bongo.Base
   EVENT_TYPE = 'api.mail_send'
 
   @types =
-    START_REGISTER       : 'started to register'
-    FINISH_REGISTER      : 'finished register'
-    LOGGED_IN            : 'logged in'
-    CONFIRM_USING_TOKEN  : 'confirmed & logged in using token'
-    REQUEST_NEW_PASSWORD : 'requested a new password'
-    CHANGED_PASSWORD     : 'changed their password'
-    REQUEST_EMAIL_CHANGE : 'requested pin to change email'
-    CHANGED_EMAIL        : 'changed their email'
-    INVITED_TEAM         : 'was invited to a team'
-    INVITED_CREATE_TEAM  : 'was invited to create a team'
-    SENT_FEEDBACK        : 'sent feedback'
-    TEAMS_JOINED_TEAM    : 'joined team'
-    USER_ENABLED_2FA     : 'enabled 2-factor auth'
-    USER_DISABLED_2FA    : 'disabled 2-factor auth'
-    STACKS_START_BUILD   : 'started stack build'
+    START_REGISTER            : 'started to register'
+    FINISH_REGISTER           : 'finished register'
+    LOGGED_IN                 : 'logged in'
+    CONFIRM_USING_TOKEN       : 'confirmed & logged in using token'
+    REQUEST_NEW_PASSWORD      : 'requested a new password'
+    CHANGED_PASSWORD          : 'changed their password'
+    REQUEST_EMAIL_CHANGE      : 'requested pin to change email'
+    CHANGED_EMAIL             : 'changed their email'
+    INVITED_TEAM              : 'was invited to a team'
+    INVITED_CREATE_TEAM       : 'was invited to create a team'
+    SENT_FEEDBACK             : 'sent feedback'
+    TEAMS_JOINED_TEAM         : 'joined team'
+    USER_ENABLED_2FA          : 'enabled 2-factor auth'
+    USER_DISABLED_2FA         : 'disabled 2-factor auth'
+    STACKS_START_BUILD        : 'started stack build'
+    STACKS_BUILD_SUCCESSFULLY : 'stack build successfully'
+    STACKS_BUILD_FAILED       : 'stack build failed'
+    STACKS_REINIT             : 'reinitialized stack'
+    STACKS_DELETE             : 'deleted stack'
 
   @properties = {}
 
@@ -88,16 +93,18 @@ module.exports = class Tracker extends bongo.Base
 
     event = { subject }
 
-    { customParams } = options
-    if customParams
-      @handleCustomParams subject, customParams
-      delete options.customParams
+    { customEvent } = options
+    if customEvent
+      @handleCustomEvent subject, customEvent, nickname
+      delete options.customEvent
 
     @track nickname, event, options
 
     callback()
 
   @track = (username, event, options = {}, callback = -> ) ->
+
+    console.log "username = #{username}; subject = #{event.subject}; sendEventsToSegment = #{KONFIG.sendEventsToSegment}"
 
     return callback null  unless KONFIG.sendEventsToSegment
 
@@ -154,16 +161,28 @@ module.exports = class Tracker extends bongo.Base
     opts
 
 
-  @handleCustomParams = (subject, params) ->
+  @handleCustomEvent = (subject, params, nickname) ->
 
-    return  unless subject is @types.STACKS_START_BUILD
+    { STACKS_START_BUILD, STACKS_BUILD_SUCCESSFULLY,
+     STACKS_BUILD_FAILED, STACKS_REINIT, STACKS_DELETE } = @types
+
+    return  unless subject in [
+      STACKS_START_BUILD, STACKS_BUILD_SUCCESSFULLY
+      STACKS_BUILD_FAILED, STACKS_REINIT, STACKS_DELETE
+    ]
 
     { stackId, group } = params
     JGroup = require './group'
     JGroup.one { slug : group }, (err, group) ->
       return console.log err  if err
+
       { notifyAdmins } = require './notify'
       notifyAdmins group, 'StackStatusChanged',
-        id     : stackId
-        status : { state : 'Building' }
-        group  : group.slug
+        id    : stackId
+        group : group.slug
+
+      if subject in [ STACKS_BUILD_SUCCESSFULLY, STACKS_BUILD_FAILED ]
+        message = "#{nickname}'s #{subject}"
+      else
+        message = "#{nickname} #{subject}"
+      KodingLogger.log group, message

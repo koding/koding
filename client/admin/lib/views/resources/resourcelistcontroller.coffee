@@ -28,11 +28,10 @@ module.exports = class ResourceListController extends KodingListController
     @filterStates.query = null
 
     listView = @getListView()
-    listView.on 'ReloadItems', @bound 'reloadItems'
-    listView.on 'ItemStatusUpdateNeeded', @bound 'requestItemStatus'
+    listView.on 'ItemStatusUpdateNeeded', @bound 'updateItemStatus'
 
     { notificationController } = kd.singletons
-    notificationController.on 'StackStatusChanged', @bound 'handleStackStatusChanged'
+    notificationController.on 'StackStatusChanged', @bound 'updateItemStatus'
     notificationController.on 'StackCreated', @bound 'handleStackCreated'
 
     @on 'FetchProcessFailed', ->
@@ -51,34 +50,30 @@ module.exports = class ResourceListController extends KodingListController
     @loadItems()
 
 
-  handleStackStatusChanged: (data) ->
-
-    { id, status } = data
-    item = do =>
-      for _item in @getListItems()
-         data = _item.getData()
-         return _item  if data._id is id
-
-    return  unless item
-
-    resource = item.getData()
-    resource.status = status
-    item.setData resource
-
-
   handleStackCreated: ->
 
     showNotification 'A new stack has been created', { type : 'main' }
     @reloadItems()
 
 
-  requestItemStatus: (item) ->
+  findItemById: (id) ->
 
-    resource = item.getData()
-    group    = getGroup()
-    group.fetchResources { _id : resource._id }, (err, stacks) ->
+    for item in @getListItems()
+      data = item.getData()
+      return item  if data._id is id
+
+
+  updateItemStatus: (params) ->
+
+    { id } = params
+    group  = getGroup()
+    group.fetchResources { _id : id }, (err, stacks) =>
       return showError err  if err
+
+      item = @findItemById id
+      return  unless item
       return item.destroy()  unless stack = stacks[0]
 
+      resource = item.getData()
       resource.status = stack.status
       item.setData resource
