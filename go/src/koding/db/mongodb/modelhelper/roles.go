@@ -65,7 +65,7 @@ func IsAdmin(username, groupName string) (bool, error) {
 func FetchAccountGroups(username string) ([]string, error) {
 	account, err := GetAccount(username)
 	if err != nil {
-		return nil, fmt.Errorf("getAccount(%s) err: %s", username, err)
+		return nil, err
 	}
 
 	selector := Selector{
