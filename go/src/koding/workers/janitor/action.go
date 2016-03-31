@@ -123,7 +123,11 @@ func newDeleteUserFunc(url string) Action {
 			return err
 		}
 
-		req.Header.Add("clientId", ses.ClientId)
+		req.AddCookie(&http.Cookie{
+			Name:  "clientId",
+			Value: ses.ClientId,
+		})
+
 		_, err = defClient.Do(req)
 		return err
 	}
