@@ -1102,7 +1102,7 @@ module.exports = class ComputeController extends KDController
           showError err, 'Failed to fix permissions'
 
 
-  checkMachinePermissions: (machine) ->
+  checkMachinePermissions: ->
 
     { groupsController } = kd.singletons
 
