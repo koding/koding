@@ -9,6 +9,12 @@ SECTIONS =
   'Send Invites'       : HomeTeamSendInvites
   Teammates            : HomeTeamTeammates
 
+header = (title) ->
+  new kd.CustomHTMLView
+    tagName  : 'header'
+    cssClass : 'HomeAppView--sectionHeader'
+    partial  : title
+
 section = (name, options, data) ->
   new (SECTIONS[name] or kd.View) options or {
     tagName  : 'section'
@@ -27,7 +33,13 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
     { groupsController } = kd.singletons
 
     groupsController.ready =>
-      team = groupsController.getCurrentGroup()
+
+      @wrapper.addSubView header  'Invite Using Slack'
       @wrapper.addSubView section 'Invite Using Slack'
+
+      @wrapper.addSubView header  'Send Invites'
       @wrapper.addSubView section 'Send Invites'
+
+      team = groupsController.getCurrentGroup()
+      @wrapper.addSubView header  'Teammates'
       @wrapper.addSubView section 'Teammates', null, team
