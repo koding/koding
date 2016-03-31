@@ -246,7 +246,7 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 
 		file2 := newEntry.(*File)
 		file2.Entry.Parent = newDir
-		file2.Attrs = file1.Attrs
+		file2.SetAttrs(file1.Attrs)
 
 		if err := file2.ResetAndRead(); err != nil {
 			return nil, err

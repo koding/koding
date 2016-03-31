@@ -3,6 +3,7 @@ package fuseklient
 import (
 	"fmt"
 
+	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 )
 
@@ -128,6 +129,14 @@ func (f *File) Reset() error {
 	f.content.Reset()
 
 	return nil
+}
+
+func (f *File) SetAttrs(attrs fuseops.InodeAttributes) {
+	f.Lock()
+	defer f.Unlock()
+
+	f.Attrs = attrs
+	f.content.Size = int64(attrs.Size)
 }
 
 func (f *File) ResetAndRead() error {
