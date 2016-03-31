@@ -116,7 +116,7 @@ func (f *File) ToString() string {
 	eToS := f.Entry.ToString()
 	return fmt.Sprintf(
 		"%s\nfile: size=%d memSize=%d isDirty=%v",
-		eToS, f.Attrs.Size, len(f.GetContent()), f.content.isDirty,
+		eToS, f.Attrs.Size, len(f.content.content), f.content.isDirty,
 	)
 }
 
@@ -138,10 +138,16 @@ func (f *File) ResetAndRead() error {
 }
 
 func (f *File) GetContent() []byte {
+	f.RLock()
+	defer f.RUnlock()
+
 	return f.content.content
 }
 
 func (f *File) SetContent(content []byte) {
+	f.Lock()
+	defer f.Unlock()
+
 	n := make([]byte, len(content))
 	copy(n, content)
 
