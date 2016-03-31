@@ -14,7 +14,7 @@ type Oauth struct {
 	Storage *mgostore.MongoStorage
 }
 
-func (o *Oauth) AuthorizeClientAuthorizeClient(w http.ResponseWriter, r *http.Request) {
+func (o *Oauth) AuthorizeClient(w http.ResponseWriter, r *http.Request) {
 	server := oauth.server
 	resp := server.NewResponse()
 	if ar := server.HandleAuthorizeRequest(resp, r); ar != nil {
