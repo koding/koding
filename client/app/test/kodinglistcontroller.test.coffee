@@ -328,7 +328,8 @@ describe 'KodingListController', ->
 
     it 'should emit "ItemsLoaded" event', ->
 
-      fetcherMethod = (query, options, callback) -> callback null, []
+      items         = [ 'kodinguser', 'kodinguser2' ]
+      fetcherMethod = (query, options, callback) -> callback null, items
 
       listController = new KodingListController { fetcherMethod }
       emitSpy        = expect.spyOn listController, 'emit'
@@ -337,7 +338,8 @@ describe 'KodingListController', ->
 
       targetEvent    = emitSpy.calls.filter (c) -> c.arguments.first is 'ItemsLoaded'
 
-      expect(targetEvent.length).toBe 1
+      expect(targetEvent[0].arguments[0]).toEqual 'ItemsLoaded'
+      expect(targetEvent[0].arguments[1]).toEqual items
 
 
   describe '::showNoItemWidget', ->
