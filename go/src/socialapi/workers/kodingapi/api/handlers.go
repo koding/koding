@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	UserInfo      = "user-info"
-	MachineGet    = "machine-get"
-	MachineStatus = "machine-status"
+	UserInfo         = "user-info"
+	MachineGet       = "machine-get"
+	MachineStatus    = "machine-status"
+	ListMachineItems = "list-items"
 )
 
 func AddHandlers(m *mux.Mux, config *config.Config) {
@@ -38,6 +39,15 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 			Name:     MachineStatus,
 			Type:     handler.GetRequest,
 			Endpoint: "/machine/{id}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  ListMachines,
+			Name:     ListMachineItems,
+			Type:     handler.GetRequest,
+			Endpoint: "/machines",
 		},
 	)
 
