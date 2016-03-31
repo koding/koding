@@ -16,6 +16,7 @@ module.exports = class JComputeStack extends jraphical.Module
   { PROVIDERS, reviveGroupPlan } = require './computeproviders/computeutils'
 
   @trait __dirname, '../traits/protected'
+  @trait __dirname, '../traits/notifiable'
 
   @share()
 
@@ -211,6 +212,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
     stack.save (err) ->
       return callback err  if err?
+      JComputeStack.sendAdminNotification stack, 'StackCreated'
       callback null, stack
 
 
@@ -345,9 +347,10 @@ module.exports = class JComputeStack extends jraphical.Module
     @fetchGroup (err, group) =>
       return callback err  if err
 
-      @update { $set: { status: { state: 'Destroying' } } }, (err) =>
+      change        = { $set: { status: { state: 'Destroying' } } }
+      notifyOptions = { group : group.slug, target : 'group' }
+      @updateAndNotify notifyOptions, change, (err) =>
         return callback err  if err
-        @sendStatusChangedNotification group
 
         JMachine = require './computeproviders/machine'
 
@@ -379,9 +382,10 @@ module.exports = class JComputeStack extends jraphical.Module
       return callback new KodingError \
         'Stacks generated from templates can only be destroyed by Kloud.'
 
-    @update { $set: { status: { state: 'Destroying' } } }, (err) =>
+    change        = { $set: { status: { state: 'Destroying' } } }
+    notifyOptions = { group : @group, target : 'group' }
+    @updateAndNotify notifyOptions, change, (err) =>
       return console.log err  if err
-      @sendStatusChangedNotification()
 
     JProposedDomain  = require './domain'
     JMachine = require './computeproviders/machine'
@@ -603,17 +607,12 @@ module.exports = class JComputeStack extends jraphical.Module
       @deleteAdminMessage callback
 
 
-  sendStatusChangedNotification: (group) ->
+  @sendAdminNotification = (stack, subject) ->
 
-    callback = (err, group) =>
+    stack.fetchGroup (err, group) =>
       return console.log err  if err
 
       { notifyAdmins } = require './notify'
-      notifyAdmins group, 'StackStatusChanged',
-        id     : @_id
-        status : @status
-        group  : group.slug
-
-    if group
-    then callback null, group
-    else @fetchGroup callback
+      notifyAdmins group, subject,
+        id    : stack._id
+        group : group.slug

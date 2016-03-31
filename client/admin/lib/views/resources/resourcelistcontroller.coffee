@@ -1,7 +1,8 @@
-kd        = require 'kd'
-remote    = require('app/remote').getInstance()
-showError = require 'app/util/showError'
-getGroup  = require 'app/util/getGroup'
+kd               = require 'kd'
+remote           = require('app/remote').getInstance()
+showError        = require 'app/util/showError'
+getGroup         = require 'app/util/getGroup'
+showNotification = require 'app/util/showNotification'
 
 KodingListController = require 'app/kodinglist/kodinglistcontroller'
 { yamlToJson }       = require 'stacks/views/stacks/yamlutils'
@@ -31,7 +32,8 @@ module.exports = class ResourceListController extends KodingListController
     listView.on 'ItemStatusUpdateNeeded', @bound 'requestItemStatus'
 
     { notificationController } = kd.singletons
-    notificationController.on 'StackStatusChanged', @bound 'handleStackNotification'
+    notificationController.on 'StackStatusChanged', @bound 'handleStackStatusChanged'
+    notificationController.on 'StackCreated', @bound 'handleStackCreated'
 
     @on 'FetchProcessFailed', ->
       showError err, { KodingError: 'Failed to fetch data, try again later.' }
@@ -49,7 +51,7 @@ module.exports = class ResourceListController extends KodingListController
     @loadItems()
 
 
-  handleStackNotification: (data) ->
+  handleStackStatusChanged: (data) ->
 
     { id, status } = data
     item = do =>
@@ -62,6 +64,12 @@ module.exports = class ResourceListController extends KodingListController
     resource = item.getData()
     resource.status = status
     item.setData resource
+
+
+  handleStackCreated: ->
+
+    showNotification 'A new stack has been created', { type : 'main' }
+    @reloadItems()
 
 
   requestItemStatus: (item) ->
