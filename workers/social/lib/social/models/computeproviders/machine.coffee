@@ -367,9 +367,10 @@ module.exports = class JMachine extends Module
 
   addUsers: (options, callback) ->
 
-    { targets, asOwner, permanent, group } = options
+    { targets, asOwner, permanent, group, inform } = options
 
-    users = @users.slice 0
+    users   = @users.slice 0
+    inform ?= yes
 
     for user in targets
       users = addUser users, { user, asOwner, permanent }
@@ -379,7 +380,8 @@ module.exports = class JMachine extends Module
         'Machine sharing is limited up to 50 users.'
     else
       @update { $set: { users } }, (err) =>
-        informAccounts
+
+        if inform then informAccounts
           users       : targets
           machineUId  : @getAt('uid')
           action      : 'added'
