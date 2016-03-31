@@ -80,17 +80,13 @@ func newDeleteInactiveUsersWarning(conf *config.Config) *Warning {
 
 		Description: "Find users inactive for > 45 days, deleted ALL their vms",
 
-		PreviousWarning: DeleteInactiveUserVM,
-
-		IntervalSinceLastWarning: time.Hour * 24 * 15, // 15 days since last warning
-
 		Select: []bson.M{
 			bson.M{"lastLoginDate": dayRangeQuery(45, DefaultRangeForQuery)},
 			bson.M{"inactive.warning": DeleteInactiveUserVM.ID},
 		},
 
 		ExemptCheckers: []*ExemptChecker{
-			IsTooSoon, IsUserPaid, HasMultipleMemberships, IsUserKodingEmployee,
+			IsUserPaid, HasMultipleMemberships, IsUserKodingEmployee,
 		},
 
 		Action: newDeleteUserFunc(unregisterURL),
