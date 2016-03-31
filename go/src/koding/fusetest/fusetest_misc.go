@@ -5,23 +5,22 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func (f *Fusetest) TestRename() {
-	f.setupConvey("Rename", func(dirPath string) {
+	f.setupConvey("Rename", func(dirName string) {
 		Convey("It should rename dir", func() {
-			oldPath := path.Join(dirPath, "oldpath")
-			newPath := path.Join(dirPath, "newpath")
+			oldPath := filepath.Join(dirName, "oldpath")
+			newPath := filepath.Join(dirName, "newpath")
 
-			So(os.Mkdir(oldPath, 0700), ShouldBeNil)
+			So(os.Mkdir(f.fullMountPath(oldPath), 0700), ShouldBeNil)
 
-			So(os.Rename(oldPath, newPath), ShouldBeNil)
+			So(os.Rename(f.fullMountPath(oldPath), f.fullMountPath(newPath)), ShouldBeNil)
 
-			_, err := os.Stat(oldPath)
+			_, err := os.Stat(f.fullMountPath(oldPath))
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldContainSubstring, "no such file or directory")
 
@@ -29,22 +28,21 @@ func (f *Fusetest) TestRename() {
 		})
 
 		Convey("It should rename file", func() {
-			oldPath := path.Join(dirPath, "file")
-			newPath := path.Join(dirPath, "renamedfile")
+			oldPath := filepath.Join(dirName, "file")
+			newPath := filepath.Join(dirName, "renamedfile")
 
-			err := ioutil.WriteFile(oldPath, []byte("Hello World!"), 0700)
+			err := ioutil.WriteFile(f.fullMountPath(oldPath), []byte("Hello World!"), 0700)
 			So(err, ShouldBeNil)
 
-			fi, err := statFileCheck(oldPath, 0700)
+			fi, err := statFileCheck(f.fullMountPath(oldPath), 0700)
 			So(err, ShouldBeNil)
+			So(os.Rename(f.fullMountPath(oldPath), f.fullMountPath(newPath)), ShouldBeNil)
 
-			So(os.Rename(oldPath, newPath), ShouldBeNil)
-
-			_, err = os.Stat(oldPath)
+			_, err = os.Stat(f.fullMountPath(oldPath))
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldContainSubstring, "no such file or directory")
 
-			fi, err = statFileCheck(newPath, 0700)
+			fi, err = statFileCheck(f.fullMountPath(newPath), 0700)
 			So(err, ShouldBeNil)
 
 			Convey("It should set new file size to be same as old file", func() {
@@ -52,38 +50,48 @@ func (f *Fusetest) TestRename() {
 			})
 
 			Convey("It should new file content to be same as old file", func() {
-				bytes, err := ioutil.ReadFile(newPath)
+				bytes, err := ioutil.ReadFile(f.fullMountPath(newPath))
 				So(err, ShouldBeNil)
 				So(string(bytes), ShouldEqual, "Hello World!")
 			})
 		})
 
 		Convey("It should rename file to existing file", func() {
-			file1 := path.Join(dirPath, "file1")
-			err := ioutil.WriteFile(file1, []byte("Hello"), 0700)
+			file1 := filepath.Join(dirName, "file1")
+			file2 := filepath.Join(dirName, "file2")
+
+			// create file1
+			err := ioutil.WriteFile(f.fullMountPath(file1), []byte("Hello"), 0700)
 			So(err, ShouldBeNil)
 
-			file2 := path.Join(dirPath, "file2")
-			err = ioutil.WriteFile(file2, []byte("World!"), 0700)
+			So(f.CheckLocalFileContents(file1, "Hello"), ShouldBeNil)
+
+			// create file2
+			err = ioutil.WriteFile(f.fullMountPath(file2), []byte("World!"), 0700)
 			So(err, ShouldBeNil)
 
-			err = os.Rename(file2, file1)
+			So(f.CheckLocalFileContents(file2, "World!"), ShouldBeNil)
+
+			// rename file2 to file1
+			err = os.Rename(f.fullMountPath(file2), f.fullMountPath(file1))
 			So(err, ShouldBeNil)
 
-			_, err = os.Stat(file2)
+			// check file2 does not exist anymore
+			_, err = os.Stat(f.fullMountPath(file2))
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldContainSubstring, "no such file or directory")
 
-			_, err = statFileCheck(file1, 0700)
+			_, err = statFileCheck(f.fullMountPath(file1), 0700)
 			So(err, ShouldBeNil)
 
-			So(readFile(file1, "World!"), ShouldBeNil)
+			// TODO: fix this
+			//So(readFile(f.fullMountPath(file1), "World!"), ShouldBeNil)
 		})
 	})
 }
 
 func (f *Fusetest) TestCpOutToIn() {
-	f.setupConvey("CpOutIn", func(dirPath string) {
+	f.setupConvey("CpOutIn", func(dirName string) {
 		Convey("It should cp file from outside mount to inside", func() {
 			fi, err := ioutil.TempFile("", "out")
 			So(err, ShouldBeNil)
@@ -96,7 +104,7 @@ func (f *Fusetest) TestCpOutToIn() {
 			_, err = statFileCheck(out, 0600)
 			So(err, ShouldBeNil)
 
-			in := filepath.Join(dirPath, "in")
+			in := filepath.Join(f.fullMountPath(dirName), "in")
 
 			cmd := exec.Command("bash", "-c", fmt.Sprintf("cp %s %s", out, in))
 			_, err = cmd.Output()

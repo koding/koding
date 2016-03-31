@@ -1,4 +1,4 @@
-kd = require 'kd.js'
+kd = require 'kd'
 LoginViewInlineForm = require './loginviewinlineform'
 LoginInputView      = require './logininputview'
 

@@ -1,5 +1,4 @@
 kd                 = require 'kd'
-LogsList           = require './logslist'
 LogsListController = require './logslistcontroller'
 
 
@@ -14,16 +13,10 @@ module.exports = class LogsListView extends kd.View
 
   viewAppended: ->
 
-    @list           = new LogsList
-    @listController = new LogsListController
-      view    : @list
-      wrapper : yes
-      scope   : @getOption 'scope'
-
-    @listView = @listController.getView()
-    @listController.fetchLogs()
+    @listController = new LogsListController { scope : @getOption 'scope' }
+    @listView       = @listController.getView()
 
     @addSubView @listView
 
 
-  reload: -> @listController.fetchLogs()
+  reload: -> @listController.fetch()

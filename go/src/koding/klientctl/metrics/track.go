@@ -1,5 +1,13 @@
 package metrics
 
+func TrackInstall() error {
+	mc := &Metric{
+		Name: EventInstall,
+	}
+
+	return sendMetric(mc)
+}
+
 func TrackMount(machine, mountPath string, opts map[string]interface{}) error {
 	// don't track user owned info info like mountPath
 	opts["machine"] = machine

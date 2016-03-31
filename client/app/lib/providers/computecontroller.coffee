@@ -45,10 +45,12 @@ module.exports = class ComputeController extends KDController
 
     mainController.ready =>
 
-      @on 'MachineBuilt',     => do @reset
-      @on 'MachineDestroyed', => do @reset
+      @on 'MachineBuilt',             => do @reset
+      @on 'MachineDestroyed',         => do @reset
+      @on 'StackAdminMessageDeleted', @bound 'handleStackAdminMessageDeleted'
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
+      groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
 
       @fetchStacks =>
 
@@ -715,7 +717,7 @@ module.exports = class ComputeController extends KDController
       (@errorHandler call, 'buildStack', stack) err
 
 
-  destroyStack: (stack, callback) ->
+  destroyStack: (stack, callback, followEvents = yes) ->
 
     # TMS-1919: This only takes a stack instance so it's ok
     # for multiple stacks ~ GG
@@ -729,7 +731,7 @@ module.exports = class ComputeController extends KDController
         name    : 'InProgress'
         message : "This stack is currently #{state.toLowerCase()}."
 
-    stack.machines.forEach (machineId) =>
+    if followEvents then stack.machines.forEach (machineId) =>
       return  unless machine = @findMachineFromMachineId machineId
 
       @eventListener.triggerState machine,
@@ -745,7 +747,7 @@ module.exports = class ComputeController extends KDController
 
       stack.destroy callback
       actions.reinitStack stack._id
-      @eventListener.addListener 'apply', stackId
+      @eventListener.addListener 'apply', stackId  if followEvents
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
@@ -1024,6 +1026,7 @@ module.exports = class ComputeController extends KDController
       return kd.warn 'No such Group!'  unless _currentGroup
 
       currentGroup.stackTemplates = _currentGroup.stackTemplates
+      @emit 'GroupStackTemplatesUpdated'
 
       # TMS-1919: This can stay as is, but this time it will create the first
       # avaiable stacktemplate for who has no stacks yet. ~ GG
@@ -1289,5 +1292,26 @@ module.exports = class ComputeController extends KDController
           if template and not groupStack
           then @createDefaultStack no, template
           else @createDefaultStack()
+
+        , followEvents = no
+
     , ->
       callback new Error 'Stack is not reinitialized'
+
+
+  handleStackAdminMessageCreated: (data) ->
+
+    { stackIds, message, type } = data.contents
+    for stackId in stackIds when stack = @stacksById[stackId]
+      stack.config ?= {}
+      stack.config.adminMessage = { message, type }
+
+    @emit 'StackAdminMessageReceived'
+
+
+  handleStackAdminMessageDeleted: (stackId) ->
+
+    stack = @stacksById[stackId]
+    return  if not stack or not stack.config
+
+    delete stack.config.adminMessage

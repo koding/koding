@@ -335,7 +335,7 @@ module.exports.create = (KONFIG, environment)->
         proxy_pass http://webserver;
       }
 
-      location ~ /(blog|docs)(.*) {
+      location ~ ^/(blog|docs)(.*) {
         return 301 https://www.koding.com/$1$2$is_args$args;
       }
 

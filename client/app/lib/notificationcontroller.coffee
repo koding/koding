@@ -180,7 +180,7 @@ module.exports = class NotificationController extends KDObject
         content       :
           """
           <div class="modalformline">
-            @#{adminNick} made you #{articlize role} <strong font-weight="bold">#{role}</strong>, please refresh your browser to changes take effect.
+            @#{adminNick} made you #{articlize role} <strong font-weight="bold">#{role}</strong>, please refresh your browser for changes to take effect.
           </div>
           """
         buttons       :

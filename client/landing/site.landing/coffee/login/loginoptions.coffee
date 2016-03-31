@@ -1,4 +1,4 @@
-kd = require 'kd.js'
+kd = require 'kd'
 module.exports = class LoginOptions extends kd.View
   viewAppended: ->
 

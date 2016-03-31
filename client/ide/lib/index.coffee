@@ -29,6 +29,7 @@ CollaborationController       = require './collaborationcontroller'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
+StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
 
 
 require('./routes').init()
@@ -650,6 +651,12 @@ class IDEAppController extends AppController
 
         @bindMachineEvents machineItem
         @bindWorkspaceDataEvents()
+
+        adminMessage = new StackAdminMessageController {
+          container
+          machine : machineItem
+        }
+        adminMessage.showIfNeeded()
 
       else
         @createMachineStateModal { state: 'NotFound', container }

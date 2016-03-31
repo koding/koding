@@ -2,6 +2,8 @@ package metrics
 
 import (
 	"crypto/rand"
+	"io/ioutil"
+	"log"
 	"os"
 	"os/user"
 	"time"
@@ -33,6 +35,7 @@ func NewDefaultClient() *MetricClient {
 	client := analytics.New(SegmentKey)
 	client.Interval = 10 * time.Second
 	client.Size = 0
+	client.Logger = log.New(ioutil.Discard, "", 0)
 
 	return &MetricClient{
 		Interval: DefaultInterval,
@@ -47,12 +50,11 @@ func (m *MetricClient) SendMetric(mc *Metric) error {
 		id = m.randomId()
 	}
 
-	err = m.client.Identify(&analytics.Identify{
-		UserId: id,
-	})
-	if err != nil {
-		return err
+	if mc.Properties == nil {
+		mc.Properties = map[string]interface{}{}
 	}
+
+	mc.Properties["timestamp"] = time.Now().UTC()
 
 	err = m.client.Track(&analytics.Track{
 		Event:      string(mc.Name),
