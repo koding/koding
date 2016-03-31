@@ -30,7 +30,8 @@ func (o *Oauth) AuthorizeClient(w http.ResponseWriter, r *http.Request) {
 
 		session, err := getSession(r)
 		if err != nil {
-			return w.Write([]byte(err))
+			w.WriteHeader(http.StatusNotFound)
+			return
 		}
 
 		// Handle the login page
