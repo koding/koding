@@ -23,7 +23,6 @@ module.exports = class HomeUtilitiesKD extends kd.CustomHTMLView
       @kdInstallView?.destroy()
       @addSubView @kdInstallView = new kd.CustomHTMLView
         partial : """
-          <h2>KD: Koding + Your Localhost!</h2>
           <p><code>kd</code>  is a command line program that allows you to use your local
           IDE with your VMs. Copy and paste the command below into your terminal.</p>
           <code class="block"><cite>#{key}</cite></code>
