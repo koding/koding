@@ -65,6 +65,21 @@ generateDummyClient = (context, callback) ->
 
     callback null, client
 
+generateClientForAccount = (account, callback) ->
+
+  data = { groupName: 'koding', username: account.profile.nickname }
+  JSession.createNewSession data, (err, session) ->
+    { clientIP, clientId } = session
+
+    # setting client data
+    client =
+      sessionToken : clientId
+      context      : context
+      clientIP     : clientIP
+      connection   :
+        delegate   : account
+
+    callback null, client
 
 withDummyClient = (context, callback) ->
 
@@ -274,5 +289,6 @@ module.exports = {
   checkBongoConnectivity
   generateRandomUsername
   generateRandomUserArray
+  generateClientForAccount
   generateDummyUserFormData
 }

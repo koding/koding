@@ -11,7 +11,9 @@ JMachine                      = require './machine'
   expect
   withDummyClient
   generateUserInfo
+  generateClientForAccount
   withConvertedUser
+  generateDummyClient
   generateRandomString
   checkBongoConnectivity
   generateRandomUserArray
@@ -196,7 +198,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         userInfo      = generateUserInfo()
         userCount     = 0
         anotherUser   = {}
-
+        client        = {}
         queue = [
 
           (next) ->
@@ -210,7 +212,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             JUser.createUser generateUserInfo(), (err, user_, account_) ->
               expect(err).to.not.exist
               anotherUser = user_
-              next()
+              generateClientForAccount account_, (err, client_) ->
+                client = client_
+                next()
 
           (next) ->
             # expecting another user to be added
@@ -219,7 +223,8 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               asOwner   : yes
               permanent : yes
 
-            machine.addUsers params, (err) ->
+            # pass client here
+            machine.addUsers client, params, (err) ->
               expect(err).to.not.exist
               expect(machine.users.length).to.be.equal userCount + 1
               next()
@@ -237,12 +242,19 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue         = []
         targets       = []
         machine       = {}
+        client        = {}
 
         queue.push (next) ->
           createUserAndMachine generateUserInfo(), (err, data) ->
             expect(err).to.not.exist
             { machine } = data
-            next()
+            generateClientForAccount data.account, (err, client_) ->
+              client = client_
+              next()
+
+            # generateDummyClient { group : 'koding' }, (err, client_) ->
+            #   client = client_
+            #   next()
 
         queue.push (next) ->
           generateRandomUserArray limit, (userArray) ->
@@ -256,7 +268,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             permanent : yes
 
           expectedError = "Machine sharing is limited up to #{limit} users."
-          machine.addUsers params, (err) ->
+          machine.addUsers client, params, (err) ->
             expect(err?.message).to.be.equal expectedError
             next()
 
@@ -275,13 +287,16 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         userCount        = 0
         addedUserCount   = 5
         removedUserCount = 2
+        client           = {}
 
         queue.push (next) ->
           createUserAndMachine generateUserInfo(), (err, data) ->
             expect(err).to.not.exist
             { machine } = data
             userCount   = machine.users.length
-            next()
+            generateClientForAccount data.account, (err, client_) ->
+              client = client_
+              next()
 
         queue.push (next) ->
           generateRandomUserArray addedUserCount, (userArray) ->
@@ -295,8 +310,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             asOwner   : yes
             permanent : yes
 
-          machine.addUsers params, (err) ->
+          machine.addUsers client, params, (err) ->
             expect(err).to.not.exist
+            console.log 'addedUserCount ', addedUserCount, userCount, machine.users.length
             expect(machine.users.length).to.be.equal userCount + addedUserCount
             next()
 
@@ -308,10 +324,14 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             permanent : yes
 
           expectedUserCount = userCount + addedUserCount - removedUserCount
-          machine.removeUsers params, (err) ->
+          machine.removeUsers client, params, (err) ->
+            console.log 'expectedUserCount ', expectedUserCount
+            console.log 'machine.users.length ', machine.users.length, machine.users
             expect(err).to.not.exist
-            expect(machine.users.length).to.be.equal expectedUserCount
-            next()
+            JMachine.one { _id : machine.getId() }, (err, machine_) ->
+              expect(err).to.not.exist
+              expect(machine_.users.length).to.be.equal expectedUserCount
+              next()
 
         async.series queue, done
 
@@ -324,6 +344,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         machine       = {}
         userInfo      = generateUserInfo()
+        client        = {}
 
         queue = [
 
@@ -331,12 +352,15 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
               { machine } = data
-              next()
+              generateClientForAccount data.account, (err, client_) ->
+                client = client_
+                next()
+
 
           (next) ->
             # expecting error when target is not specified
             params = { target : null }
-            machine.shareWith params, (err, machine_) ->
+            machine.shareWith client, params, (err, machine_) ->
               expect(err?.message).to.be.equal 'Target required.'
               next()
 
@@ -349,19 +373,22 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         machine       = {}
         userInfo      = generateUserInfo()
-
+        client        = {}
         queue = [
 
           (next) ->
             createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
               { machine } = data
-              next()
+              generateDummyClient { group : 'koding' }, (err, client_) ->
+                client = client_
+                next()
+
 
           (next) ->
             # expecting error when target is invalid
             params = { target : ['invalidTarget'] }
-            machine.shareWith params, (err, machine_) ->
+            machine.shareWith client, params, (err, machine_) ->
               expect(err?.message).to.be.equal 'Target does not support machines.'
               next()
 
@@ -377,6 +404,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         userInfo      = generateUserInfo()
         userCount     = 0
         anotherUser   = {}
+        client        = {}
 
         queue = [
 
@@ -391,12 +419,14 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             JUser.createUser generateUserInfo(), (err, user_) ->
               expect(err).to.not.exist
               anotherUser = user_
-              next()
+              generateDummyClient { group : 'koding' }, (err, client_) ->
+                client = client_
+                next()
 
           (next) ->
             # expecting user to be added when asUser is yes
             params = { target : [anotherUser.username], asUser : yes }
-            machine.shareWith params, (err) ->
+            machine.shareWith client, params, (err) ->
               expect(err).to.not.exist
               expect(machine.users.length).to.be.equal userCount + 1
               next()
@@ -404,7 +434,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
           (next) ->
             # expecting user to be removed when asUser is no
             params = { target : [anotherUser.username], asUser : no }
-            machine.shareWith params, (err) ->
+            machine.shareWith client, params, (err) ->
               expect(err).to.not.exist
               expect(machine.users.length).to.be.equal userCount
               next()
@@ -773,6 +803,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       machineId          = null
       anotherUser        = {}
       anotherUserAccount = {}
+      client             = {}
 
       queue = [
 
@@ -789,12 +820,14 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             expect(err).to.not.exist
             anotherUser        = user_
             anotherUserAccount = account_
-            next()
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              client = client_
+              next()
 
         (next) ->
           # sharing maching with another user
           params = { target : [anotherUser.username], asUser : yes }
-          machine.shareWith params, (err) ->
+          machine.shareWith client, params, (err) ->
             expect(err).to.not.exist
             next()
 
@@ -830,6 +863,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       userCount          = 0
       anotherUser        = {}
       anotherUserAccount = {}
+      client             = {}
 
       queue = [
 
@@ -846,12 +880,14 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             expect(err).to.not.exist
             anotherUser        = user_
             anotherUserAccount = account_
-            next()
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              client = client_
+              next()
 
         (next) ->
           # sharing machine with another user
           params = { target : [anotherUser.username], asUser : yes }
-          machine.shareWith params, (err) ->
+          machine.shareWith client, params, (err) ->
             expect(err).to.not.exist
             expect(machine.users.length).to.be.equal userCount + 1
             next()

@@ -11,6 +11,7 @@ module.exports = class JMachine extends Module
   { ObjectId, signature, secure } = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
+  @trait __dirname, '../../traits/notifiable'
 
   { slugify } = require '../../traits/slugifiable'
   { permit }  = require '../group/permissionset'
@@ -365,9 +366,11 @@ module.exports = class JMachine extends Module
     @remove callback
 
 
-  addUsers: (options, callback) ->
+  addUsers: secure (client, options, callback) ->
 
     { targets, asOwner, permanent, group } = options
+
+    { delegate } = client.connection
 
     users = @users.slice 0
 
@@ -378,7 +381,15 @@ module.exports = class JMachine extends Module
       callback new KodingError \
         'Machine sharing is limited up to 50 users.'
     else
-      @update { $set: { users } }, (err) =>
+
+      query = { $set: { users } }
+
+      notifyOptions =
+        account : delegate
+        group   : client?.context?.group
+        target  : 'group'
+
+      @updateAndNotify notifyOptions, query,  (err) =>
         informAccounts
           users       : targets
           machineUId  : @getAt('uid')
@@ -388,16 +399,24 @@ module.exports = class JMachine extends Module
         callback err
 
 
-  removeUsers: (options, callback) ->
+  removeUsers: secure (client, options, callback) ->
 
     { targets, permanent, inform, force, group } = options
+
+    { delegate } = client.connection
 
     users = @users.slice 0
 
     for user in targets
       users = excludeUser { users, user, permanent, force }
+    query = { $set: { users } }
 
-    @update { $set: { users } }, (err) =>
+    notifyOptions =
+      account : delegate
+      group   : client?.context?.group
+      target  : 'group'
+
+    @updateAndNotify notifyOptions, query, (err) =>
       if inform
         informAccounts {
           users       : targets
@@ -410,7 +429,7 @@ module.exports = class JMachine extends Module
       callback err
 
 
-  shareWith: (options, callback) ->
+  shareWith: (client, options, callback) ->
 
     { target, asUser, asOwner, permanent, inform, group } = options
 
@@ -436,16 +455,16 @@ module.exports = class JMachine extends Module
       if target instanceof JUser
 
         if asUser
-        then @addUsers { targets, asOwner, permanent, group }, callback
-        else @removeUsers { targets, permanent, inform, group }, callback
+        then @addUsers client, { targets, asOwner, permanent, group }, callback
+        else @removeUsers client, { targets, permanent, inform, group }, callback
 
       else
-        @removeInvalidUsers { group }, callback
+        @removeInvalidUsers client, { group }, callback
 
 
   # Fetch machine's shared users and fetch those users' JUser document
   # and remove the user from machine share list if the user.status is deleted
-  removeInvalidUsers: (options, callback) ->
+  removeInvalidUsers: (client, options, callback) ->
 
     JUser = require '../user'
     queue = []
@@ -466,7 +485,7 @@ module.exports = class JMachine extends Module
       if usersToBeRemoved.length is 0
         next new KodingError 'Target does not support machines.'
       else
-        @removeUsers { targets: usersToBeRemoved, force: yes, group }, (err) ->
+        @removeUsers client, { targets: usersToBeRemoved, force: yes, group }, (err) ->
           next err
 
     async.series queue, callback
@@ -551,7 +570,7 @@ module.exports = class JMachine extends Module
 
     , (client, provisioner, callback) ->
 
-      { r: { user } } = client
+      { r: { user, group }, connection: { delegate } } = client
 
       unless isOwner user, this
         return callback new KodingError 'Access denied'
@@ -561,7 +580,15 @@ module.exports = class JMachine extends Module
         if err or not provision?
           callback new KodingError 'Provisioner not found'
         else
-          @update { $set: { provisioners: [ provision.slug ] } }, callback
+
+          query = { $set: { provisioners: [ provision.slug ] } }
+
+          notifyOptions =
+            account : delegate
+            group   : group.slug
+            target  : 'account'
+
+          @updateAndNotify notifyOptions, query, callback
 
 
   reviveUsers: permit 'populate users',
@@ -609,7 +636,7 @@ module.exports = class JMachine extends Module
 
     , (client, label, callback) ->
 
-      { r: { user, group } } = client
+      { r: { user, group }, connection: { delegate } } = client
 
       unless isOwner user, this
         return callback new KodingError 'Access denied'
@@ -621,15 +648,23 @@ module.exports = class JMachine extends Module
 
       slug = slugify label
 
+      notifyOptions =
+        account : delegate
+        group   : group.slug
+        target  : 'account'
+
       if slug is ''
         return callback new KodingError 'Nickname cannot be empty'
 
       if slug isnt @slug
         generateSlugFromLabel { user, group, label }, (err, { slug, label }) =>
           return callback err  if err?
-          @update { $set: { slug , label } }, (err) -> kallback err, slug
+          query = { $set: { slug , label } }
+
+          @updateAndNotify notifyOptions, query, (err) -> kallback err, slug
       else
-        @update { $set: { label } }, (err) -> kallback err, slug
+        query = { $set: { label } }
+        @updateAndNotify notifyOptions, query, (err) -> kallback err, slug
 
 
   # .shareWith can be used like this:
@@ -675,7 +710,7 @@ module.exports = class JMachine extends Module
       # If it's a call for unshare then no need to check
       # any other state for it
       if asUser is no
-        JMachine::shareWith.call this, options, callback
+        JMachine::shareWith.call this, client, options, callback
 
         return
 
@@ -693,11 +728,11 @@ module.exports = class JMachine extends Module
             return callback \
               new KodingError "You don't have a paid subscription!"
 
-          JMachine::shareWith.call this, options, callback
+          JMachine::shareWith.call this, client, options, callback
 
       else
 
-        JMachine::shareWith.call this, options, callback
+        JMachine::shareWith.call this, client, options, callback
 
 
   share: secure (client, users, callback) ->
@@ -714,7 +749,7 @@ module.exports = class JMachine extends Module
     { profile:{ nickname } }    = delegate
 
     if users.length is 1 and users[0] is nickname
-    then @shareWith options, callback
+    then @shareWith client, options, callback
     else @shareWith$ client, options, callback
 
 
@@ -775,7 +810,7 @@ module.exports = class JMachine extends Module
       inform    : no
       permanent : yes
 
-    @shareWith options, (err) =>
+    @shareWith client, options, (err) =>
       options               = { action: 'deny', @uid, group: group.slug, machineId: @getId() }
       [ owner ]             = @users.filter (user) -> return user.owner
       { notifyByUsernames } = require '../notify'
