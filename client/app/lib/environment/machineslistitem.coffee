@@ -87,7 +87,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
         return  unless err
 
         if err.name is 'UsageLimitReached' and plan isnt 'hobbyist'
-          kd.utils.defer => new ComputeErrorUsageModal { plan }
+          kd.utils.defer -> new ComputeErrorUsageModal { plan }
         else
           showError err
 
@@ -151,18 +151,18 @@ module.exports = class MachinesListItem extends kd.ListItemView
     """
 
   PROVIDERS         =
-    Azure           : url: 'https://azure.microsoft.com/en-us'
-    HPCloud         : url: 'http://www.hpcloud.com'
-    Joyent          : url: 'https://www.joyent.com/'
-    SoftLayer       : url: 'http://www.softlayer.com'
-    Rackspace       : url: 'http://www.rackspace.com'
-    GoogleCloud     : url: 'https://cloud.google.com'
-    DigitalOcean    : url: 'https://www.digitalocean.com'
-    AWS             : url: 'http://aws.amazon.com'
+    Azure           : { url: 'https://azure.microsoft.com/en-us' }
+    HPCloud         : { url: 'http://www.hpcloud.com' }
+    Joyent          : { url: 'https://www.joyent.com/' }
+    SoftLayer       : { url: 'http://www.softlayer.com' }
+    Rackspace       : { url: 'http://www.rackspace.com' }
+    GoogleCloud     : { url: 'https://cloud.google.com' }
+    DigitalOcean    : { url: 'https://www.digitalocean.com' }
+    AWS             : { url: 'http://aws.amazon.com' }
     UnknownProvider : {}
 
     # handle `jMachine.provider` field.
-    aws             : url: 'http://aws.amazon.com'
-    koding          : url: 'http://aws.amazon.com', logo: 'aws'
-    softlayer       : url: 'http://softlayer.com',  logo: 'softlayer'
-    vagrant         : url: 'http://vagrantup.com',  logo: 'vagrant'
+    aws             : { url: 'http://aws.amazon.com' }
+    koding          : { url: 'http://aws.amazon.com', logo: 'aws' }
+    softlayer       : { url: 'http://softlayer.com',  logo: 'softlayer' }
+    vagrant         : { url: 'http://vagrantup.com',  logo: 'vagrant' }

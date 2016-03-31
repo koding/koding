@@ -12,7 +12,7 @@ PubnubChannel = require './pubnubchannel'
 
 module.exports = class RealtimeController extends KDController
 
-  {noop} = kd
+  { noop } = kd
 
   constructor: (options = {}, data) ->
 
@@ -44,7 +44,7 @@ module.exports = class RealtimeController extends KDController
 
 
   initPubNub: ->
-    {subscribekey, ssl} = globals.config.pubnub
+    { subscribekey, ssl } = globals.config.pubnub
 
     options =
       subscribe_key : subscribekey
@@ -72,7 +72,7 @@ module.exports = class RealtimeController extends KDController
 
 
   initLocalStorage: ->
-    @localStorage  = kd.getSingleton("localStorageController").storage "realtime"
+    @localStorage  = kd.getSingleton('localStorageController').storage 'realtime'
 
     # TODO we can remove this later on
     @localStorage.unsetKey 'isPubnubEnabled'
@@ -86,7 +86,7 @@ module.exports = class RealtimeController extends KDController
   initAuthentication: ->
     @authenticated = false
 
-    realtimeToken = kookies.get("realtimeToken")
+    realtimeToken = kookies.get('realtimeToken')
 
     if realtimeToken?
       @setAuthToken realtimeToken
@@ -95,7 +95,7 @@ module.exports = class RealtimeController extends KDController
       return
 
     # in case of realtime token does not exist, fetch it from Gatekeeper
-    options = { endPoint : "/api/gatekeeper/token", data: { id: whoami().socialApiId } }
+    options = { endPoint : '/api/gatekeeper/token', data: { id: whoami().socialApiId } }
     @authenticate options, (err) =>
 
       return kd.warn err  if err
@@ -116,28 +116,28 @@ module.exports = class RealtimeController extends KDController
     return callback null  unless options?
 
     { endPoint, data } = options
-    return callback { message : "endPoint is not set"}  unless endPoint
+    return callback { message : 'endPoint is not set' }  unless endPoint
 
     bo = backoff.exponential
       initialDelay: 700
       maxDelay    : 15000
 
-    bo.on 'fail', -> callback {message: "Authentication failed."}
+    bo.on 'fail', -> callback { message: 'Authentication failed.' }
     bo.failAfter 15
 
     bo.on 'ready', -> bo.backoff()
 
     requestFn = =>
-      doXhrRequest {endPoint, data}, (err) =>
+      doXhrRequest { endPoint, data }, (err) =>
         if err
-          return callback {message: "Channel authentication failed: #{err.message}"}
+          return callback { message: "Channel authentication failed: #{err.message}" }
 
         # when we make an authentication request, server responses with realtimeToken
         # in cookie here. If it is not set, then there is no need to subscription attempt
         # to pubnub
-        realtimeToken = kookies.get("realtimeToken")
+        realtimeToken = kookies.get('realtimeToken')
 
-        return callback { message : 'Could not find realtime token'}  unless realtimeToken
+        return callback { message : 'Could not find realtime token' }  unless realtimeToken
 
         @setAuthToken realtimeToken
 
@@ -166,9 +166,9 @@ module.exports = class RealtimeController extends KDController
     options = { channelName: pubnubChannelName, channelId }
 
     # authentication needed for private message channels
-    if group isnt "koding" or typeConstant in ['privatemessage', 'collaboration', 'bot']
+    if group isnt 'koding' or typeConstant in ['privatemessage', 'collaboration', 'bot']
       options.authenticate =
-        endPoint : "/api/gatekeeper/subscribe/channel"
+        endPoint : '/api/gatekeeper/subscribe/channel'
         data     : { name: channelName, typeConstant, groupName: group }
 
     options.pbInstance = @pubnub
@@ -181,7 +181,7 @@ module.exports = class RealtimeController extends KDController
 
     return  unless channel
 
-    {token} = channel
+    { token } = channel
     channelName = "channel-#{token}"
     @pubnub.unsubscribe({
       channel : channelName,
@@ -194,14 +194,14 @@ module.exports = class RealtimeController extends KDController
   # message channels do not need any authentication
   subscribeMessage: (message, callback) ->
 
-    {token} = message
+    { token } = message
 
     channelName = "instance-#{token}"
 
     return callback null, @channels[channelName]  if @channels[channelName]
 
     # just create a channel for instance event reception
-    channelInstance = new PubnubChannel name: channelName
+    channelInstance = new PubnubChannel { name: channelName }
 
     @channels[channelName] = channelInstance
 
@@ -215,7 +215,7 @@ module.exports = class RealtimeController extends KDController
     channelName = "notification-#{environment}-#{nickname}"
     options = { channelName }
     options.authenticate =
-      endPoint : "/api/gatekeeper/subscribe/notification"
+      endPoint : '/api/gatekeeper/subscribe/notification'
       data     : { id: whoami().socialApiId }
 
     options.pbInstance = @pbNotification
@@ -231,7 +231,7 @@ module.exports = class RealtimeController extends KDController
 
 
   subscribeHelper: (options = {}, callback) ->
-    {channelName: pubnubChannelName, channelId} = options
+    { channelName: pubnubChannelName, channelId } = options
 
     # return channel if it already exists
     return callback null, @channels[pubnubChannelName]  if @channels[pubnubChannelName]
@@ -240,7 +240,7 @@ module.exports = class RealtimeController extends KDController
 
       return callback err  if err
 
-      channelInstance = new PubnubChannel name: pubnubChannelName, channelId: channelId
+      channelInstance = new PubnubChannel { name: pubnubChannelName, channelId: channelId }
 
       callbackCalled = no
 
@@ -284,12 +284,12 @@ module.exports = class RealtimeController extends KDController
       if @lastSeenOnline < serverTimestamp - 864000000000
         return window.location.reload()
 
-      @fetchHistory {channel, timestamp: @lastSeenOnline, pbInstance}
+      @fetchHistory { channel, timestamp: @lastSeenOnline, pbInstance }
 
 
   fetchHistory: (options) ->
 
-    {channel, timestamp, pbInstance} = options
+    { channel, timestamp, pbInstance } = options
 
     return  unless timestamp
 
@@ -325,10 +325,10 @@ module.exports = class RealtimeController extends KDController
         # since the maximum message limit is 100, we are making a recursive call here
         if messages.length is limit
           historyOptions.start = end
-          @fetchHistory {channel, timestamp: end}
+          @fetchHistory { channel, timestamp: end }
       err: (err) -> kd.warn "Could not fetch history #{err.message}"  unless err
 
-    bo.on 'backoff', => pb.history historyOptions
+    bo.on 'backoff', -> pb.history historyOptions
 
     bo.backoff()
 
@@ -337,7 +337,7 @@ module.exports = class RealtimeController extends KDController
 
     return  unless message
 
-    {eventName, body, eventId} = message
+    { eventName, body, eventId } = message
 
     return  unless eventName and body
 
@@ -353,11 +353,11 @@ module.exports = class RealtimeController extends KDController
     # if an event name includes "instance-", update the related message channel
     # An instance event format is like "instance-5dc4ce55-b159-11e4-8329-c485b673ee34.ReplyAdded" - ctf
 
-    if eventName.indexOf("instance-") < 0
+    if eventName.indexOf('instance-') < 0
       body.channelId = @channels[channel].channelId
       return @channels[channel].emit eventName, body
 
-    events = eventName.split "."
+    events = eventName.split '.'
     if events.length < 2
       warn 'could not parse event name', eventName
       return
@@ -379,14 +379,14 @@ module.exports = class RealtimeController extends KDController
 
     return  unless err
 
-    {message, payload} = err
+    { message, payload } = err
 
     if @isDisconnected err
       @lastSeenOnline = @serverTimestamp
 
     return kd.warn err  unless payload?.channels
 
-    {channels} = payload
+    { channels } = payload
 
     forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
 
@@ -394,12 +394,12 @@ module.exports = class RealtimeController extends KDController
       # if somehow we are not able to subscribe to a channel (public access is not granted etc.)
       # unsubscribe from that channel. Otherwise user will not be able to receive
       # further realtime events
-      @pubnub.unsubscribe {channel}
+      @pubnub.unsubscribe { channel }
       unless forbiddenChannels[channel]
-        channelToken = channel.replace "channel-", ""
+        channelToken = channel.replace 'channel-', ''
         forbiddenChannels[channel] = yes
         @localStorage.setValue 'ForbiddenChannels', forbiddenChannels
-        sendDataDogEvent "ForbiddenChannel", tags: {channelToken}, sendLogs: no
+        sendDataDogEvent 'ForbiddenChannel', { tags: { channelToken }, sendLogs: no }
 
 
   removeFromForbiddenChannels: (channelName) ->

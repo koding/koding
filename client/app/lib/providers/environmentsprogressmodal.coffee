@@ -65,11 +65,11 @@ module.exports = class EnvironmentsProgressModal extends BaseModalView
     @container.addSubView @errorMessage = new JView
       cssClass        : 'error-container hidden'
       pistachioParams : { message }
-      pistachio       : """
+      pistachio       : '''
         <div>
           {{> message}}
         </div>
-        """
+        '''
 
 
   ###*
@@ -77,10 +77,10 @@ module.exports = class EnvironmentsProgressModal extends BaseModalView
   ###
   createActionLabel: ->
 
-    {actionLabel} = @getOptions()
+    { actionLabel } = @getOptions()
     @container.addSubView @actionLabel = new kd.CustomHTMLView
       tagName  : 'p'
-      cssClass : "state-label"
+      cssClass : 'state-label'
       partial  : """
         <span class='icon'></span>
         #{actionLabel} for <strong>#{@machineName or 'your vm'}</strong>
@@ -100,7 +100,7 @@ module.exports = class EnvironmentsProgressModal extends BaseModalView
   ###
   initViews: ->
 
-    @container = new kd.CustomHTMLView cssClass: 'content-container'
+    @container = new kd.CustomHTMLView { cssClass: 'content-container' }
     @addSubView @container
 
     @createActionLabel()

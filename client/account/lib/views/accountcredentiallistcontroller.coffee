@@ -1,4 +1,7 @@
+_                           = require 'lodash'
 kd                          = require 'kd'
+hljs                        = require 'highlight.js'
+
 KDView                      = kd.View
 KDButtonView                = kd.ButtonView
 KDContextMenu               = kd.ContextMenu
@@ -7,9 +10,10 @@ KDNotificationView          = kd.NotificationView
 KDFormViewWithFields        = kd.FormViewWithFields
 
 KodingSwitch                = require 'app/commonviews/kodingswitch'
-AccountListViewController   = require 'account/controllers/accountlistviewcontroller'
 MemberAutoCompleteItemView  = require 'app/commonviews/memberautocompleteitemview'
 MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemview'
+
+KodingListController        = require 'app/kodinglist/kodinglistcontroller'
 
 remote                      = require('app/remote').getInstance()
 globals                     = require 'globals'
@@ -17,103 +21,170 @@ showError                   = require 'app/util/showError'
 Tracker                     = require 'app/util/tracker'
 
 
-module.exports = class AccountCredentialListController extends AccountListViewController
+module.exports = class AccountCredentialListController extends KodingListController
 
 
   constructor: (options = {}, data) ->
 
-    options.limit               or= 30
-    options.noItemFoundText      ?= "You don't have any credentials"
+    options.limit            or= 30
+    options.noItemFoundText   ?= "You don't have any credentials"
+    options.model             ?= remote.api.JCredential
 
     super options, data
 
-    @filterStates =
-      skip  : 0
-      busy  : no
-      query : {}
+
+  bindEvents: ->
+
+    super
+
+    { provider } = @getOptions()
+    listView     = @getListView()
+
+    listView.on 'ItemDeleted', @bound 'showNoItemWidget'
+
+    listView.on 'ItemAction', ({ action, item, options }) =>
+
+      credential    = item.getData()
+      { provider }  = credential
+
+      switch action
+
+        when 'ShowItem'
+          @fetchCredentialData credential, (err, data) =>
+            return  if showError err
+
+            { meta }        = data
+            meta            = helper.prepareCredentialMeta meta
+            meta.identifier = credential.identifier
+
+            cred = JSON.stringify meta, null, 2
+            cred = hljs.highlight('json', cred).value
+
+            listView.showCredential { credential, cred }
+
+        when 'EditItem'
+          @fetchCredentialData credential, (err, data) =>
+            return  if showError err
+
+            Tracker.track Tracker.USER_EDIT_CREDENTIALS
+
+            data.meta  = helper.prepareCredentialMeta data.meta
+            data.title = credential.title
+
+            listView.showCredentialEditModal { provider, credential, data }
 
 
-  followLazyLoad: ->
+    @once 'FetchProcessSucceeded', (params) ->
+      { items } = params
+      if provider and items?.length is 0
+        @showAddCredentialFormFor provider
 
-    @on 'LazyLoadThresholdReached', kd.utils.debounce 300, =>
 
-      return  @hideLazyLoader()  if @filterStates.busy
+  # Override parent method and show different confirm modal.
+  removeItem: (item, options = {}) ->
 
-      @filterStates.busy  = yes
-      @filterStates.skip += @getOption 'limit'
+    listView    = @getListView()
+    credential  = item.getData()
 
-      @fetch @filterStates.query, (err, credentials) =>
-        @hideLazyLoader()
+    if credential.inuse
+      new kd.NotificationView title: 'This credential is currently in-use'
+      return
 
-        if err or not credentials
-          return @filterStates.busy = no
+    credential.isBootstrapped (err, bootstrapped) =>
 
-        @instantiateListItems credentials
-        @filterStates.busy = no
-      , { skip : @filterStates.skip }
+      kd.warn 'Bootstrap check failed:', { credential, err }  if err
+
+      listView.askForConfirm { credential, bootstrapped }, ({action, modal}) =>
+
+        modal?.buttons.Remove.disable()
+
+        switch action
+
+          when 'Remove'
+            @removeCredential item, (err) -> modal.destroy()
+
+          when 'DestroyAll'
+            @destroyResources credential, (err) =>
+              if err
+                  modal.buttons.DestroyAll.hideLoader()
+                  modal.buttons.Remove.enable()
+              else
+                @removeCredential item, -> modal.destroy()
+
+
+  removeCredential: (item, callback) ->
+
+    credential = item.getData()
+    listView   = @getListView()
+
+    credential.delete (err) =>
+      listView.emit 'ItemDeleted', item  unless showError err
+      Tracker.track Tracker.USER_DELETE_CREDENTIALS
+      callback err
+
+
+  destroyResources: (credential, callback) ->
+
+    identifiers = [ credential.identifier ]
+
+    kd.singletons.computeController.getKloud()
+      .bootstrap { identifiers, destroy: yes }
+      .then -> callback null
+      .catch (err) ->
+        kd.singletons.computeController.ui.showComputeError
+          title   : 'An error occured while destroying resources'
+          message : "
+            Some errors occurred while destroying resources that are created
+            with this credential.
+            <br/>
+            You can either visit
+            <a href='http://console.aws.amazon.com/' target=_blank>
+            console.aws.amazon.com
+            </a> to clear the EC2 instances and try this again, or go ahead
+            and delete this credential here but you will need to destroy your
+            resources manually from AWS console later.
+          "
+          errorMessage : err?.message ? err
+
+        callback err
 
 
   loadItems: ->
 
-    @removeAllItems()
-    @showLazyLoader()
-
     { query, provider, requiredFields } = @getOptions()
 
     @filterStates.query.provider ?= provider  if provider
+
     if requiredFields
       @filterStates.query.fields ?= requiredFields.map (field) -> field.name ? field
 
-    @fetch @filterStates.query, (err, credentials) =>
-
-      if provider? and credentials?.length is 0
-        @showAddCredentialFormFor provider
-
-      @hideLazyLoader()
-      @instantiateListItems credentials
+    super
 
 
-  fetch: (query, callback, options = {}) ->
+  fetchCredentialData: (credential, callback) ->
 
-    { JCredential } = remote.api
-
-    options.limit or= @getOption 'limit'
-    options.sort    = { 'meta.modifiedAt' : -1 }
-
-    JCredential.some @filterStates.query, options, (err, credentials) =>
-
-      if err
-        @hideLazyLoader()
-        showError err, \
-          { KodingError : 'Failed to fetch data, try again later.' }
-        return
-
-      callback err, credentials
+    credential.fetchData (err, data) -> callback err, data
 
 
   filterByProvider: (query = {}) ->
 
-    @filterStates.skip = 0
+    @filterStates.skip  = 0
+    @filterStates.query = query
 
     @removeAllItems()
     @showLazyLoader no
 
-    @filterStates.query = query
+    @fetch @filterStates.query, (credentials) =>
+      unless credentials?.length
+        @showNoItemWidget()
+        return
 
-    @fetch @filterStates.query, (err, credentials) =>
-
-      @hideLazyLoader()
-      @instantiateListItems credentials
+      @addListItems credentials
 
 
-  loadView: ->
+  loadView: (mainView) ->
 
-    super
-
-    @listView.on 'ShowShareCredentialFormFor', @bound 'showShareCredentialFormFor'
-    @listView.on 'ItemDeleted', (item) =>
-      @removeItem item
-      @noItemView.show()  if @listView.items.length is 0
+    super mainView
 
     { provider, requiredFields, dontShowCredentialMenu } = @getOptions()
 
@@ -121,9 +192,6 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       @createAddDataButton()
     else
       @createAddCredentialMenu()  unless dontShowCredentialMenu
-
-    @loadItems()
-    @followLazyLoad()
 
 
   createAddDataButton: ->
@@ -163,6 +231,14 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
         , providerList
 
         @_addButtonMenu.setCss { 'z-index': 10002 }
+
+
+  helper =
+
+    prepareCredentialMeta: (meta) ->
+
+      delete meta.__rawContent
+      return _.mapValues meta, (val) -> _.unescape val
 
 
   showAddCredentialFormFor: (provider) ->
@@ -212,8 +288,6 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       view.form.destroy()
       @addItem credential
 
-      if provider is 'aws'
-        Tracker.track Tracker.STACKS_ADDED_AWS_KEYS
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
     # The KDCustomScroll was hidden while Stacks screen is rendering.
@@ -221,97 +295,3 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     view.scrollView.wrapper.addSubView view.form
     view.addSubView view.scrollView
-
-
-  showShareCredentialFormFor: (credential) ->
-
-    view = @getView().parent
-    view.form?.destroy()
-
-    view.setClass 'share-open'
-
-    view.form           = new KDFormViewWithFields
-      cssClass          : 'form-view'
-      fields            :
-        username        :
-          label         : 'User'
-          placeholder   : 'Enter group slug or username'
-          # type          : "hidden"
-          # nextElement   :
-          #   userWrapper :
-          #     itemClass : KDView
-          #     cssClass  : "completed-items"
-        owner           :
-          label         : 'Give ownership'
-          itemClass     : KodingSwitch
-          defaultValue  : no
-      buttons           :
-        Save            :
-          title         : 'Share credential'
-          type          : 'submit'
-          style         : 'solid green medium'
-          loader        :
-            color       : '#444444'
-          callback      : -> @hideLoader()
-        Cancel          :
-          type          : 'cancel'
-          style         : 'solid medium'
-          callback      : =>
-            view.form.destroy()
-
-            @getView().emit 'sharingFormDestroyed'
-            view.unsetClass 'share-open'
-
-
-      callback          : (data) =>
-
-        { username, owner } = data
-        target = username#s.first
-
-        unless target
-          return new KDNotificationView
-            title : 'A user required to share credential with'
-
-        { Save } = view.form.buttons
-        Save.showLoader()
-
-        credential.shareWith { target, owner }, (err) =>
-
-          Save.hideLoader()
-          view.emit 'sharingFormDestroyed'
-          view.unsetClass 'share-open'
-
-          unless showError err
-            view.form.destroy()
-            @loadItems()
-
-
-    # {fields, inputs, buttons} = view.form
-
-    # @userController       = new KDAutoCompleteController
-    #   form                : view.form
-    #   name                : "username"
-    #   itemClass           : MemberAutoCompleteItemView
-    #   itemDataPath        : "profile.nickname"
-    #   outputWrapper       : fields.userWrapper
-    #   selectedItemClass   : MemberAutoCompletedItemView
-    #   listWrapperCssClass : "users"
-    #   submitValuesAsText  : yes
-    #   dataSource          : (args, callback) =>
-    #     {inputValue} = args
-    #     if /^@/.test inputValue
-    #       query = 'profile.nickname': inputValue.replace /^@/, ''
-    #       remote.api.JAccount.one query, (err, account) =>
-    #         if not account
-    #           @userController.showNoDataFound()
-    #         else
-    #           callback [account]
-    #     else
-    #       remote.api.JAccount.byRelevance inputValue, {}, (err, accounts) ->
-    #         callback accounts
-
-    # fields.username.addSubView userRequestLineEdit = @userController.getView()
-    # @userController.on "ItemListChanged", (count) ->
-    #   userRequestLineEdit[if count is 0 then 'show' else 'hide']()
-
-    view.addSubView view.form

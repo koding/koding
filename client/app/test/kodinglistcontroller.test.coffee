@@ -11,6 +11,11 @@ KodingListController = require 'app/kodinglist/kodinglistcontroller'
 
 describe 'KodingListController', ->
 
+  afterEach ->
+
+    expect.restoreSpies()
+
+
   describe 'constructor', ->
 
     it 'should instantiate with default options', ->
@@ -20,19 +25,27 @@ describe 'KodingListController', ->
       {
         useCustomScrollView, lazyLoadThreshold, limit,
         sort, model, fetcherMethod, startWithLazyLoader,
-        lazyLoaderOptions
+        lazyLoaderOptions, loadWithScroll
       } = listController.getOptions()
 
       viewInstanceCheck = listController.getListView() instanceof KodingListView
 
       expect(viewInstanceCheck).toBeTruthy()
       expect(useCustomScrollView).toBeTruthy()
+      expect(loadWithScroll).toBeTruthy()
       expect(lazyLoadThreshold).toBe 10
       expect(limit).toBe 10
       expect(model).toNotExist()
       expect(startWithLazyLoader).toBeTruthy()
       expect(sort).toEqual { '_id' : -1 }
       expect(lazyLoaderOptions.spinnerOptions.size).toEqual { width : 28 }
+
+    it 'should create lazyLoader with kodinglist-spinner css class', ->
+
+      listController = new KodingListController { fetcherMethod : kd.noop }
+      listController.createLazyLoader()
+
+      expect(listController.lazyLoader.spinner.hasClass 'kodinglist-spinner').toBeTruthy()
 
     it 'should use KDListView despite of given view option with itemClass', ->
 
@@ -117,6 +130,26 @@ describe 'KodingListController', ->
 
       expect(spy).toHaveBeenCalledWith item, options
 
+    it 'should call showNoItemWidget method when ItemDeleted event is emitted', ->
+
+      listController  = new KodingListController { fetcherMethod : kd.noop }
+      listView        = listController.getListView()
+      spy             = expect.spyOn listController, 'showNoItemWidget'
+
+      listView.emit 'ItemAction', { action : 'ItemRemoved' }
+
+      expect(spy).toHaveBeenCalled()
+
+    it 'should remove item from list view when ItemDeleted event is emitted', ->
+
+      listController  = new KodingListController { fetcherMethod : kd.noop }
+      listView        = listController.getListView()
+      spy             = expect.spyOn listView, 'removeItem'
+
+      listView.emit 'ItemAction', { action : 'ItemRemoved' }
+
+      expect(spy).toHaveBeenCalled()
+
 
   describe '::followLazyLoad', ->
 
@@ -144,6 +177,25 @@ describe 'KodingListController', ->
       kd.utils.wait 333, ->
         expect(listController.filterStates.skip).toBe 20
         done()
+
+    it 'should call followLazyLoad if loadWithScroll is yes', ->
+
+      expect.spyOn KodingListController.prototype, 'followLazyLoad'
+
+      listController  = new KodingListController
+        fetcherMethod  : kd.noop
+
+      expect(listController.followLazyLoad).toHaveBeenCalled()
+
+    it 'should not call followLazyLoad if loadWithScroll is no', ->
+
+      expect.spyOn KodingListController.prototype, 'followLazyLoad'
+
+      listController  = new KodingListController
+        fetcherMethod  : kd.noop
+        loadWithScroll : no
+
+      expect(listController.followLazyLoad).toNotHaveBeenCalled()
 
     it 'should call fetch with correct options', (done) ->
 
@@ -396,3 +448,15 @@ describe 'KodingListController', ->
         { length } = listController.getListView().items
         expect(length).toBeGreaterThan 1
         done()
+
+
+  describe '::hideLazyLoader', ->
+
+    it 'should not call showNoItemWidget method', ->
+
+      listController  = new KodingListController { fetcherMethod : kd.noop }
+      spy             = expect.spyOn listController, 'showNoItemWidget'
+
+      listController.hideLazyLoader()
+
+      expect(spy).toNotHaveBeenCalled()

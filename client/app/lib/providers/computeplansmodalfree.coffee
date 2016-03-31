@@ -6,20 +6,18 @@ ComputePlansModalFooterLink = require './computeplansmodalfooterlink'
 
 module.exports = class ComputePlansModalFree extends ComputePlansModal
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'free-plan'
+    options.height   = 80
     super options, data
 
 
-  viewAppended:->
+  viewAppended: ->
 
     @addSubView new KDView
       cssClass     : 'message'
       partial      : {
-        'free'     : "Free users are restricted to one VM.<br/>"
-        'hobbyist' : "Hobbyist plan is restricted to only one VM. <br/>"
+        'free'     : 'Free users are restricted to one VM.<br/>'
+        'hobbyist' : 'Hobbyist plan is restricted to only one VM. <br/>'
       }[@getOption 'plan']
-
-    @addSubView new ComputePlansModalFooterLink
-      title : 'Upgrade your account for more VMs RAM and Storage'

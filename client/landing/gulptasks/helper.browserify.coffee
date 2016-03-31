@@ -9,5 +9,6 @@ module.exports = (options = {}) ->
   options.debug        = devMode
 
   b = browserify options
+  b.require require.resolve('kd.js'), { expose: 'kd' }
   b.transform coffeeify
   b.bundle()

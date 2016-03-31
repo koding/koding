@@ -14,7 +14,7 @@ module.exports  = class IDEWorkspace extends KDController
   createPanel: ->
     options    = @getOptions()
     panelClass = options.panelClass or IDEPanel
-    @panel     = new panelClass layoutOptions: options.layoutOptions
+    @panel     = new panelClass { layoutOptions: options.layoutOptions }
 
     kd.utils.defer => @emit 'ready'
 

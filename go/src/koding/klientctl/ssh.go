@@ -5,6 +5,7 @@ import (
 
 	"github.com/koding/logging"
 
+	"koding/klientctl/metrics"
 	"koding/klientctl/ssh"
 
 	"github.com/codegangsta/cli"
@@ -28,7 +29,14 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	err = cmd.Run(c.Args()[0])
+	mountName := c.Args()[0]
+
+	// track metrics
+	go func() {
+		metrics.TrackSSH(mountName)
+	}()
+
+	err = cmd.Run(mountName)
 	switch err {
 	case nil:
 		return 0
@@ -38,6 +46,13 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println(FailedGetSSHKey)
 	case ssh.ErrMachineNotValidYet:
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
+	case ssh.ErrDialingFailed:
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedDialingRemote))
+	}
+
+	// track metrics
+	if err != nil {
+		metrics.TrackSSHFailed(mountName, err.Error())
 	}
 
 	log.Error("SSHCommand.Run returned err:%s", err)

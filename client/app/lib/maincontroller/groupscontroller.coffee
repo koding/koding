@@ -1,25 +1,25 @@
-kd        = require 'kd'
+kd                = require 'kd'
 
-whoami    = require '../util/whoami'
-kookies   = require 'kookies'
-getGroup  = require '../util/getGroup'
-showError = require '../util/showError'
+whoami            = require '../util/whoami'
+kookies           = require 'kookies'
+getGroup          = require '../util/getGroup'
+showError         = require '../util/showError'
 
-remote    = require('../remote').getInstance()
-globals   = require 'globals'
-GroupData = require './groupdata'
-
+remote            = require('../remote').getInstance()
+globals           = require 'globals'
+GroupData         = require './groupdata'
+remote_extensions = require 'app/remote-extensions'
 
 module.exports = class GroupsController extends kd.Controller
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     super options, data
 
     @isReady = no
 
     mainController    = kd.getSingleton 'mainController'
-    {entryPoint}      = globals.config
+    { entryPoint }      = globals.config
     @groups           = {}
     @currentGroupData = new GroupData
     @currentGroupData.setGroup globals.currentGroup
@@ -28,21 +28,26 @@ module.exports = class GroupsController extends kd.Controller
       { slug } = entryPoint  if entryPoint?.type is 'group'
       @changeGroup slug
 
-    @ready => @on 'GroupDestroyed', ->
-      # delete client id cookie, which is used for session authentication
-      kookies.expire 'clientId'
-      # send user to home page
-      global.location.href = '/'
+    @ready =>
+      @on 'GroupDestroyed', ->
+        # delete client id cookie, which is used for session authentication
+        kookies.expire 'clientId'
+        # send user to home page
+        global.location.href = '/'
+
+      @on 'InstanceChanged', (data) ->
+        remote_extensions.updateInstance data?.contents
 
 
-  getCurrentGroup:->
-    throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
+  getCurrentGroup: ->
+    FIXME = 'FIXME: array should never be passed'
+    throw FIXME  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
 
 
   currentGroupHasStack: ->
 
-    {stackTemplates} = @getCurrentGroup()
+    { stackTemplates } = @getCurrentGroup()
 
     return stackTemplates?.length > 0
 
@@ -56,7 +61,7 @@ module.exports = class GroupsController extends kd.Controller
         rest = remote.revive rest
         @emit event, rest...
 
-  openGroupChannel:(group, callback=->)->
+  openGroupChannel: (group, callback = -> ) ->
     @groupChannel = remote.subscribe "group.#{group.slug}",
       serviceType : 'group'
       group       : group.slug
@@ -74,8 +79,8 @@ module.exports = class GroupsController extends kd.Controller
     @groupChannel.once 'setSecretNames', callback
 
 
-  openSocialGroupChannel:(group, callback=->) ->
-    {realtime, socialapi} = kd.singletons
+  openSocialGroupChannel: (group, callback = -> ) ->
+    { realtime, socialapi } = kd.singletons
 
     socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) =>
       return callback err  if err
@@ -85,11 +90,13 @@ module.exports = class GroupsController extends kd.Controller
 
         realtimeChan = registeredChan?.delegate
 
-        return callback "realtime chan is not set"  unless realtimeChan
+        return callback 'realtime chan is not set'  unless realtimeChan
 
         @filterXssAndForwardEvents realtimeChan, [
           'StackTemplateChanged'
+          'InstanceChanged'
           'GroupDestroyed'
+          'StackAdminMessageCreated'
         ]
 
         callback null
@@ -100,7 +107,7 @@ module.exports = class GroupsController extends kd.Controller
 
     @currentGroupName   = groupName
 
-    remote.cacheable groupName, (err, models)=>
+    remote.cacheable groupName, (err, models) =>
       if err then callback err
       else if models?
         [group] = models
@@ -114,46 +121,46 @@ module.exports = class GroupsController extends kd.Controller
           @openSocialGroupChannel getGroup()
           @emit 'ready'
 
-  getUserArea:->
-    @userArea ? group:
+  getUserArea: ->
+    @userArea ? { group:
       if globals.config.entryPoint?.type is 'group'
       then globals.config.entryPoint.slug
-      else (kd.getSingleton 'groupsController').currentGroupName
+      else (kd.getSingleton 'groupsController').currentGroupName }
 
-  setUserArea:(userArea)->
+  setUserArea: (userArea) ->
     @userArea = userArea
 
-  getGroupSlug:-> @currentGroupName
+  getGroupSlug: -> @currentGroupName
 
-  setGroup:(groupName)->
+  setGroup: (groupName) ->
     @currentGroupName = groupName
     @setUserArea {
       group: groupName, user: whoami().profile.nickname
     }
 
-  joinGroup:(group, callback)->
-    group.join (err, response)=>
+  joinGroup: (group, callback) ->
+    group.join (err, response) ->
       return showError err  if err?
       callback err, response
       kd.getSingleton('mainController').emit 'JoinedGroup'
 
-  acceptInvitation:(group, callback)->
-    whoami().acceptInvitation group, (err, res)=>
-      mainController = kd.getSingleton "mainController"
-      mainController.once "AccountChanged", callback.bind this, err, res
+  acceptInvitation: (group, callback) ->
+    whoami().acceptInvitation group, (err, res) =>
+      mainController = kd.getSingleton 'mainController'
+      mainController.once 'AccountChanged', callback.bind this, err, res
       mainController.accountChanged whoami()
 
-  ignoreInvitation:(group, callback)->
+  ignoreInvitation: (group, callback) ->
     whoami().ignoreInvitation group, callback
 
-  cancelGroupRequest:(group, callback)->
+  cancelGroupRequest: (group, callback) ->
     whoami().cancelRequest group.slug, callback
 
-  cancelMembershipPolicyChange:(policy, membershipPolicyView, modal)->
+  cancelMembershipPolicyChange: (policy, membershipPolicyView, modal) ->
     membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled
 
-  updateMembershipPolicy:(group, policy, formData, membershipPolicyView, callback)->
-    group.modifyMembershipPolicy formData, (err)->
+  updateMembershipPolicy: (group, policy, formData, membershipPolicyView, callback) ->
+    group.modifyMembershipPolicy formData, (err) ->
       unless err
         policy.emit 'MembershipPolicyChangeSaved'
         new kd.NotificationView { title: 'Membership policy has been updated.' }
@@ -186,7 +193,7 @@ module.exports = class GroupsController extends kd.Controller
       # TMS-1919: Needs to be changed to update stackTemplates list
       # instead of setting it as is for the given stacktemplate ~ GG
 
-      currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) ->
+      currentGroup.modify { stackTemplates: [ stackTemplate._id ] }, (err) ->
         return callback err  if err
 
         new kd.NotificationView

@@ -40,13 +40,15 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 	infos := make([]restypes.ListMachineInfo, machines.Count())
 	for i, machine := range machines.Machines() {
 		info := restypes.ListMachineInfo{
-			ConnectedAt:  machine.ConnectedAt(),
 			IP:           machine.IP,
 			VMName:       machine.Name,
 			MountedPaths: []string{},
 			MachineLabel: machine.MachineLabel,
 			Teams:        machine.Teams,
 		}
+
+		// Set the machines status and message.
+		info.MachineStatus, info.StatusMessage = machine.GetStatus()
 
 		if machine.Client != nil {
 			info.Environment = machine.Client.Environment
@@ -60,9 +62,8 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 		m, ok := r.mounts.FindByName(machine.Name)
 		if ok {
 			info.Mounts = []restypes.ListMountInfo{restypes.ListMountInfo{
-				RemotePath:     m.RemotePath,
-				LocalPath:      m.LocalPath,
-				LastMountError: m.LastMountError,
+				RemotePath: m.RemotePath,
+				LocalPath:  m.LocalPath,
 			}}
 			info.MountedPaths = append(info.MountedPaths, m.LocalPath)
 		}

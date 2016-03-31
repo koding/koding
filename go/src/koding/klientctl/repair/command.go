@@ -6,11 +6,13 @@ import (
 	"io"
 	"time"
 
+	"koding/klient/command"
 	"koding/klient/remote/req"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/exitcodes"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
+	"koding/klientctl/metrics"
 	"koding/klientctl/util"
 	"koding/klientctl/util/exec"
 	"koding/mountcli"
@@ -49,6 +51,7 @@ type Command struct {
 		RemoteStatus(req.Status) error
 		RemoteMountInfo(string) (req.MountInfoResponse, error)
 		RemoteRemount(string) error
+		RemoteExec(string, string) (command.Output, error)
 	}
 
 	// The options to use if this struct needs to dial Klient.
@@ -97,7 +100,19 @@ func (c *Command) printfln(f string, i ...interface{}) {
 }
 
 // Run the Mount command
-func (c *Command) Run() (int, error) {
+func (c *Command) Run() (_ int, err error) {
+	var mountName = c.Options.MountName
+
+	defer func() {
+		if err != nil {
+			metrics.TrackRepairError(mountName, err.Error())
+		}
+	}()
+
+	go func() {
+		metrics.TrackRepair(mountName)
+	}()
+
 	if err := c.handleOptions(); err != nil {
 		return exitcodes.RepairHandleOptionsErr, err
 	}
@@ -407,6 +422,13 @@ func (c *Command) initDefaultRepairers() error {
 		Klient:    c.Klient,
 	}
 
+	writeReadRepair := &WriteReadRepair{
+		Log:       c.Log.New("WriteReadRepair"),
+		Stdout:    util.NewFprint(c.Stdout),
+		MountName: c.Options.MountName,
+		Klient:    c.Klient,
+	}
+
 	// A collection of Repairers responsible for actually repairing a given mount.
 	// Executed in the order they are defined, the effectiveness of the Repairers
 	// may depend on the order they are run in. An example being TokenNotValidYetRepair
@@ -421,6 +443,7 @@ func (c *Command) initDefaultRepairers() error {
 		permDeniedRepair,
 		mountEmptyRepair,
 		deviceNotConfiguredRepair,
+		writeReadRepair,
 	}
 
 	return nil
@@ -434,7 +457,7 @@ func (c *Command) runRepairers(repairers []Repairer) error {
 	for _, r := range repairers {
 		ok, err := r.Status()
 		if err != nil {
-			c.Log.Error("Repairer was unable to determine Status. Repairer not configured properly or requirements not met. err:%s", err)
+			c.Log.Error("Repairer was unable to determine Status. Repairer not configured properly or requirements not met. repairer:%s, err:%s", r, err)
 			return err
 		}
 

@@ -29,7 +29,7 @@ module.exports = class IDETerminalSettingsView extends IDESettingsView
       callback      : (state) => @emit 'SettingsChanged', 'scrollback', state
 
     @visualBell     = new KodingSwitch
-      size          : "tiny settings-on-off"
+      size          : 'tiny settings-on-off'
       callback      : (state) => @emit 'SettingsChanged', 'visualBell', state
 
     @blinkingCursor = new KodingSwitch
@@ -50,7 +50,7 @@ module.exports = class IDETerminalSettingsView extends IDESettingsView
     blinkingCursor : yes
 
   pistachio: ->
-    """
+    '''
       <div class="settings-header">Terminal Settings</div>
       <ul>
         <li class="with-select">Font        {{> @font}}</li>
@@ -60,4 +60,4 @@ module.exports = class IDETerminalSettingsView extends IDESettingsView
         <li>Use visual bell                 {{> @visualBell}}</li>
         <li>Blinking cursor                 {{> @blinkingCursor}}</li>
       </ul>
-    """
+    '''

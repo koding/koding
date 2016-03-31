@@ -45,64 +45,22 @@ module.exports =
 
   stacks: (browser) ->
 
-    stackCreatePage       = '.Group-Stack-Templates .get-started'
-    getStartedButton      = "#{stackCreatePage} .header button.green"
-    modalSelector         = '.kdmodal-content .AppModal-content'
-    providerSelector      = "#{modalSelector} .stack-onboarding .provider-selection"
-    machineSelector       = "#{providerSelector} .providers"
-    stackPreview          = "#{modalSelector} .stack-preview"
-    codeSelector          = "#{stackPreview} .has-markdown"
-    footerSelector        = "#{modalSelector} .stacks .footer"
-    nextButtonSelector    = "#{footerSelector} button.next"
-    awsSelector           = "#{machineSelector} .aws"
-    configurationSelector = "#{modalSelector} .configuration .server-configuration"
-    inputSelector         = "#{configurationSelector} .Database"
-    mysqlSelector         = "#{inputSelector} .mysql input.checkbox + label"
-    postgresqlSelector    = "#{inputSelector} .postgresql input.checkbox + label"
-    server1PageSelector   = "#{modalSelector} .code-setup .server-1"
-    githubSelector        = "#{server1PageSelector} .box-wrapper .github"
-    bitbucketSelector     = "#{server1PageSelector} .box-wrapper .bitbucket"
-    editorSelector        = "#{modalSelector} .editor-main"
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser)
+    browser.end()
+
+
+  stacksSkipSetupGuide: (browser) ->
 
     teamsHelpers.loginTeam(browser)
-    teamsHelpers.startStackCreate(browser)
+    teamsHelpers.createStack(browser, yes)
+    browser.end()
 
-    browser
-      .waitForElementVisible  stackCreatePage, 20000
-      .waitForElementVisible  getStartedButton, 20000
-      .click                  getStartedButton
-      .waitForElementVisible  providerSelector, 20000
-      .waitForElementVisible  awsSelector, 20000
-      .waitForElementVisible  "#{machineSelector} .vagrant" , 20000 # Assertion
-      .click                  awsSelector
-      .waitForElementVisible  stackPreview, 20000
-      .waitForElementVisible  codeSelector, 20000
-      .assert.containsText    codeSelector, 'koding_group_slug'
-      .waitForElementVisible  footerSelector, 20000
-      .waitForElementVisible  nextButtonSelector, 20000
-      .pause                  2000 # wait for animation
-      .click                  nextButtonSelector
-      .waitForElementVisible  configurationSelector, 20000
-      .pause                  2000 # wait for animation
-      .waitForElementVisible  mysqlSelector, 20000
-      .click                  mysqlSelector
-      .pause                  2000 # wait for animation
-      .waitForElementVisible  postgresqlSelector, 20000
-      .click                  postgresqlSelector
-      .waitForElementVisible  stackPreview, 20000
-      .assert.containsText    codeSelector, 'mysql-server postgresql'
-      .waitForElementVisible  nextButtonSelector, 20000
-      .pause                  2000 # wait for animation
-      .click                  nextButtonSelector
-      .waitForElementVisible  server1PageSelector, 20000
-      .waitForElementVisible  githubSelector, 20000 # Assertion
-      .waitForElementVisible  bitbucketSelector, 20000 # Assertion
-      .waitForElementVisible  nextButtonSelector, 20000
-      .moveToElement          nextButtonSelector, 15, 10
-      .pause                  2000
-      .click                  nextButtonSelector
-      .waitForElementVisible  "#{modalSelector} .define-stack-view", 20000
-      .waitForElementVisible  editorSelector, 20000
-      .pause                  1000
-      .assert.containsText    editorSelector, 'aws_instance'
-      .end()
+
+  checkNotReadyAndPrivateIconsDisplayedForStacks: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    teamsHelpers.checkIconsStacks(browser)
+    browser.end()
+

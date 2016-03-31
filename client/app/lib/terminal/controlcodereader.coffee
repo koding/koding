@@ -1,10 +1,10 @@
 module.exports = class ControlCodeReader
 
   constructor: (@terminal, @handler, @nextReader) ->
-    @data = ""
+    @data = ''
     @pos = 0
     @controlCodeOffset = null
-    @regexp = new RegExp Object.keys(@handler.map).join("|")
+    @regexp = new RegExp Object.keys(@handler.map).join('|')
 
   skip: (length) ->
     @pos += length
@@ -52,7 +52,7 @@ module.exports = class ControlCodeReader
         false
       else
         @nextReader.addData @data.substring(@pos)
-        @data = ""
+        @data = ''
         @pos = 0
         @nextReader.process()
 

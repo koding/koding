@@ -71,6 +71,7 @@ app.get  '/-/teams/check-team-invitation'        , require './handlers/teaminvit
 app.all  '/-/team/:name/members'                 , require './handlers/getteammembers'
 app.all  '/-/team/:name'                         , require './handlers/getteam'
 app.all  '/-/profile/:email'                     , require './handlers/getprofile'
+app.all  '/-/unsubscribe/:token/:email'          , require './handlers/unsubscribe'
 # temp endpoints ends
 
 app.post '/-/analytics/track'                    , require './handlers/analytics/track'
@@ -99,6 +100,7 @@ app.post '/:name?/Recover'                       , csrf,   require './handlers/r
 app.post '/:name?/Reset'                         , csrf,   require './handlers/reset'
 app.post '/:name?/Optout'                        , require './handlers/optout'
 app.all  '/:name?/Logout'                        , csrf,   require './handlers/logout'
+app.post '/:name?/Unregister'                    , require './handlers/unregister'
 app.get  '/humans.txt'                           , generateHumanstxt
 app.get  '/members/:username?*'                  , (req, res) -> res.redirect 301, "/#{req.params.username}"
 app.get  '/w/members/:username?*'                , (req, res) -> res.redirect 301, "/#{req.params.username}"
@@ -152,11 +154,6 @@ koding.once 'dbClientReady', ->
   # start monitoring nodejs metrics (memory, gc, cpu etc...)
   nodejsProfiler = new NodejsProfiler 'nodejs.webserver'
   nodejsProfiler.startMonitoring()
-
-  # init rabbitmq client for Email to use to queue emails
-  mqClient = require './amqp'
-  Tracker    = require '../../../workers/social/lib/social/models/tracker.coffee'
-  Tracker.setMqClient mqClient
 
   # NOTE: in the event of errors, send 500 to the client rather
   #       than the stack trace.

@@ -14,7 +14,7 @@ import (
 
 func TestReleaseUser(t *testing.T) {
 	Convey("Given user", t, func() {
-		username := "releaseuser"
+		username := bson.NewObjectId().Hex()
 		user, _, err := modeltesthelper.CreateUser(username)
 
 		warning := &Warning{
@@ -47,7 +47,7 @@ func TestReleaseUser(t *testing.T) {
 
 func TestLockAndReleaseUser(t *testing.T) {
 	Convey("Given user", t, func() {
-		username := "releaseuser"
+		username := bson.NewObjectId().Hex()
 		user, _, err := modeltesthelper.CreateUser(username)
 		So(err, ShouldBeNil)
 
@@ -107,7 +107,7 @@ func TestLockAndReleaseUser(t *testing.T) {
 
 func TestIsUserExempt(t *testing.T) {
 	Convey("Given exempt conditions", t, func() {
-		username := "exempt"
+		username := bson.NewObjectId().Hex()
 		user, _, err := modeltesthelper.CreateUser(username)
 		So(err, ShouldBeNil)
 
@@ -180,7 +180,7 @@ func TestIsUserExempt(t *testing.T) {
 func TestAct(t *testing.T) {
 	Convey("Given action", t, func() {
 		Convey("Then it should call action function", func() {
-			username := "actionuser"
+			username := bson.NewObjectId().Hex()
 			user, _, err := modeltesthelper.CreateUser(username)
 			So(err, ShouldBeNil)
 
@@ -223,7 +223,7 @@ func TestGetCount(t *testing.T) {
 			sleepTime, err := warning.getSleepTime()
 			So(err, ShouldBeNil)
 
-			So(sleepTime, ShouldEqual, 20*time.Second)
+			So(sleepTime, ShouldEqual, 120*time.Second)
 
 			Reset(func() {
 				deleteUserWithUsername(user1)

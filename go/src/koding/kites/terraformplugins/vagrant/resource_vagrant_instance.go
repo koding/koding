@@ -43,6 +43,11 @@ func resourceVagrantBuild() *schema.Resource {
 				Optional:    true,
 				Description: "Hostname of the Vagrant machine. Defaults to klient's username",
 			},
+			"username": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Username of the Vagrant machine.",
+			},
 			"memory": &schema.Schema{
 				Type:        schema.TypeInt,
 				Optional:    true,
@@ -58,7 +63,29 @@ func resourceVagrantBuild() *schema.Resource {
 				Optional:    true,
 				Description: "Custom script to be executed inside the Vagrant box after the main provisioning is finished.",
 			},
-
+			"debug": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Enables debug logging of the vagrant commands.",
+			},
+			"forwarded_ports": &schema.Schema{
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"host": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: "Host value of the forwarded port.",
+						},
+						"guest": {
+							Type:        schema.TypeInt,
+							Required:    true,
+							Description: "Guest port to forward.",
+						},
+					},
+				},
+			},
 			"registerURL": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,

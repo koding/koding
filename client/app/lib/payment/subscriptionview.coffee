@@ -18,6 +18,6 @@ module.exports = class SubscriptionView extends JView
 
 
   pistachio: ->
-    """
+    '''
       <h4>{{#(planTitle).capitalize()}}</h4>
-    """
+    '''

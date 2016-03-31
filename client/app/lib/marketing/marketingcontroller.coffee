@@ -36,7 +36,7 @@ module.exports = class MarketingController extends KDController
 
     $.ajax
       url      : @buildUrl 'config.json'
-      dataType : "json"
+      dataType : 'json'
       success  : @bound 'configLoaded'
       error    : ->
         kd.warn 'MarketingController: Couldn\'t load config. Snippets are not available'
@@ -60,7 +60,7 @@ module.exports = class MarketingController extends KDController
       try
         @shownSnippets = JSON.parse cookieValue
       catch e
-      	return kd.warn 'MarketingController: error while parsing cookie value', e
+        return kd.warn 'MarketingController: error while parsing cookie value', e
 
     @emit 'ready'
 
@@ -146,7 +146,7 @@ module.exports = class MarketingController extends KDController
   ###
   show: (name) ->
 
-    return kd.log "MarketingController: snippets are not available"  unless @snippets? and @isEnabled()
+    return kd.log 'MarketingController: snippets are not available'  unless @snippets? and @isEnabled()
     return kd.log "MarketingController: couldn't show unknown snippet '#{name}'"  unless @snippets[name]
 
     @getSnippet name, (snippet) => @emit 'SnippetNeedsToBeShown', snippet

@@ -6,15 +6,12 @@ checkFlag                 = require 'app/util/checkFlag'
 showNotification          = require 'app/util/showNotification'
 isManagedVMStack          = require 'app/util/isManagedVMStack'
 hasManagedVMStack         = require 'app/util/hasManagedVMStack'
-Tracker                   = require 'app/util/tracker'
 
 remote                    = require('app/remote').getInstance()
 
 MachinesList              = require './machineslist'
 MachinesListController    = require './machineslistcontroller'
-
 KodingSwitch              = require 'app/commonviews/kodingswitch'
-ComputeHelpers            = require '../providers/computehelpers'
 StackTemplateContentModal = require 'app/stacks/stacktemplatecontentmodal'
 
 
@@ -46,11 +43,11 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   createButtons: ->
 
-    @reinitButton         = new kd.CustomHTMLView cssClass: 'hidden'
-    @addVMButton          = new kd.CustomHTMLView cssClass: 'hidden'
-    @addManagedButton     = new kd.CustomHTMLView cssClass: 'hidden'
-    @deleteStackButton    = new kd.CustomHTMLView cssClass: 'hidden'
-    @addSoftlayerVMButton = new kd.CustomHTMLView cssClass: 'hidden'
+    @reinitButton         = new kd.CustomHTMLView { cssClass: 'hidden' }
+    @addVMButton          = new kd.CustomHTMLView { cssClass: 'hidden' }
+    @addManagedButton     = new kd.CustomHTMLView { cssClass: 'hidden' }
+    @deleteStackButton    = new kd.CustomHTMLView { cssClass: 'hidden' }
+    @addSoftlayerVMButton = new kd.CustomHTMLView { cssClass: 'hidden' }
 
     { title } = stack = @getData()
 
@@ -72,7 +69,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     if isKoding()
       @addVMButton = new kd.ButtonView
         title     : 'Add a Koding VM'
-        loader    : diameter : 20
+        loader    : { diameter : 20 }
         cssClass  : 'add-vm-button solid green compact'
         callback  : => @handleMachineRequest 'koding'
 
@@ -109,13 +106,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleStackReinit: ->
 
-    stack = @getData()
-
-    @getDelegate().emit 'StackReinitRequested', stack
-
-    Tracker.track Tracker.STACKS_REINIT
-
-    kd.singletons.computeController.reinitStack stack, => @reinitButton.hideLoader()
+    @sendItemAction 'StackReinitRequested', { item : this }
 
 
   handleStackDelete: ->
@@ -126,15 +117,19 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     computeController.ui.askFor 'deleteStack', {}, (status) =>
       return  unless status.confirmed
 
-      Tracker.track Tracker.STACKS_DELETE
+      @sendItemAction 'StackDeleteRequested', { item : this }
 
-      @getDelegate().emit 'StackDeleteRequested', @getData()
+
+  sendItemAction: (action, params = {}) ->
+
+    params.action = action
+
+    @getDelegate().emit 'ItemAction', params
 
 
   handleMachineRequest: (provider) ->
 
-    ComputeHelpers.handleNewMachineRequest { provider }, (machineCreated) =>
-      @destroyModal not machineCreated
+   @sendItemAction 'NewMachineRequest', { item : provider }
 
 
   destroyModal: (goBack = yes) ->
@@ -174,7 +169,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @stackStateToggle = new kd.CustomHTMLView
       cssClass : 'stack-state-toggle'
 
-    if isKoding() or title is 'Managed VMs'
+    if isKoding() or /^Managed\ VMs/.test title
       @infoIcon = new kd.CustomHTMLView
     else
       @createInfoIcon()
@@ -302,7 +297,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
 
   pistachio: ->
-    """
+    '''
       {{> @header}}
       {{> @machinesList}}
       {{> @updateNotification}}
@@ -319,4 +314,4 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
           {{> @addVMButton}}
         </div>
       </div>
-    """
+    '''

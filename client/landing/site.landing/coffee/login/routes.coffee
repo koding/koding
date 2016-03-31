@@ -1,4 +1,4 @@
-kd    = require 'kd.js'
+kd    = require 'kd'
 utils = require './../core/utils'
 
 do ->
@@ -28,6 +28,13 @@ do ->
       app.getView().setCustomDataToForm('reset', { recoveryToken:token })
       app.getView().animateToForm('reset')
 
+  handleUnsubscribeEmail = ({params:{token, email}}) ->
+    utils.unsubscribeEmail token, email,
+      error   : ->
+      success : ->
+    new kd.NotificationView title: "You are unsubscribed from all email notifications."
+    @clear()
+
 
   kd.registerRoutes 'Login',
 
@@ -51,3 +58,5 @@ do ->
     '/Verified'     : handleVerified
 
     '/VerificationFailed' : handleVerificationFailed
+
+    '/Unsubscribe/:token/:email' : handleUnsubscribeEmail

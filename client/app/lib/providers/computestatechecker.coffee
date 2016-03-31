@@ -5,7 +5,7 @@ globals = require 'globals'
 
 module.exports = class ComputeStateChecker extends KDObject
 
-  constructor:(options = {})->
+  constructor: (options = {}) ->
 
     super
       interval : options.interval ? 10000
@@ -16,10 +16,10 @@ module.exports = class ComputeStateChecker extends KDObject
     @running         = no
     @timer           = null
 
-    kd.singletons.windowController.addFocusListener (state)=>
+    kd.singletons.windowController.addFocusListener (state) =>
       if state then @start() else @stop()
 
-  start:->
+  start: ->
 
     return  if @running
     @running = yes
@@ -28,7 +28,7 @@ module.exports = class ComputeStateChecker extends KDObject
     @timer = kd.utils.repeat @getOption('interval'), @bound 'tick'
 
 
-  stop:->
+  stop: ->
 
     return  unless @running
     @running = no
@@ -36,7 +36,7 @@ module.exports = class ComputeStateChecker extends KDObject
     kd.utils.killWait @timer
 
 
-  addMachine:(machine)->
+  addMachine: (machine) ->
 
     for m in @machines
       return  if machine.uid is m.uid
@@ -44,13 +44,13 @@ module.exports = class ComputeStateChecker extends KDObject
     @machines.push machine
 
 
-  ignore: (machineId)->
+  ignore: (machineId) ->
 
     unless machineId in @ignoredMachines
       @ignoredMachines.push machineId
 
 
-  watch: (machineId)->
+  watch: (machineId) ->
 
     @ignoredMachines = (m for m in @ignoredMachines when m isnt machineId)
 
@@ -61,7 +61,7 @@ module.exports = class ComputeStateChecker extends KDObject
     return  if @tickInProgress
     @tickInProgress = yes
 
-    {computeController, kontrol} = kd.singletons
+    { computeController, kontrol } = kd.singletons
 
     # kd.info "Checking all machine states..."  if checkAll
 
@@ -74,10 +74,10 @@ module.exports = class ComputeStateChecker extends KDObject
         return
 
       if currentState isnt Machine.State.Running \
-        and not machine.provider is 'managed'
-          return  if not checkAll
+      and not machine.provider is 'managed'
+        return  if not checkAll
       else
-        {klient}   = kontrol.kites
+        { klient }   = kontrol.kites
         machineUid = (computeController.findMachineFromMachineId machineId)?.uid
         if not (machineUid? and klient? and klient[machineUid])
           # Managed VMs needs to be checked even there is no klient kite
@@ -92,10 +92,12 @@ module.exports = class ComputeStateChecker extends KDObject
         return  if machineId in @ignoredMachines
 
         computeController.eventListener
-          .triggerState machine, status: response.State
+          .triggerState machine, { status: response.State }
 
-        computeController.eventListener.followUpcomingEvents
-          _id: machineId, status: state: response.State
+        computeController.eventListener.followUpcomingEvents {
+          _id    : machineId
+          status : { state: response.State }
+        }
 
         unless machine.status.state is response.State
           kd.info "csc: machine (#{machineId}) state changed: ", response.State
@@ -106,7 +108,7 @@ module.exports = class ComputeStateChecker extends KDObject
       .catch (err) ->
 
         # Ignore pending event and timeout errors but log others
-        unless (err?.code in ['107', '500']) or (err?.name is "TimeoutError")
-          kd.log "csc: info error happened:", err
+        unless (err?.code in ['107', '500']) or (err?.name is 'TimeoutError')
+          kd.log 'csc: info error happened:', err
 
     @tickInProgress = no

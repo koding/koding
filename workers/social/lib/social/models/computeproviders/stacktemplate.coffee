@@ -31,6 +31,8 @@ module.exports = class JStackTemplate extends Module
       'delete stack template'     : []
       'update stack template'     : []
 
+      'force stacks to reinit'    : []
+
     sharedMethods     :
 
       static          :
@@ -56,6 +58,8 @@ module.exports = class JStackTemplate extends Module
           (signature Function)
         generateStack :
           (signature Function)
+        forceStacksToReinit :
+          (signature String, Function)
 
     sharedEvents      :
       static          : []
@@ -380,10 +384,15 @@ module.exports = class JStackTemplate extends Module
 
         data['meta.modifiedAt'] = new Date
 
-      @updateAndNotify {
+      query = { $set: data }
+
+      notifyOptions =
         account : delegate
         group   : group.slug
-      }, { $set: data }, (err) => callback err, this
+        target  : 'account'
+
+      @updateAndNotify notifyOptions, query, (err) =>
+        callback err, this
 
 
   cloneCustomCredentials = (client, credentials, callback) ->
@@ -442,6 +451,13 @@ module.exports = class JStackTemplate extends Module
       else
         JStackTemplate.create client, cloneData, callback
 
+
+  forceStacksToReinit: permit 'force stacks to reinit',
+
+    success: (client, message, callback) ->
+
+      ComputeProvider = require './computeprovider'
+      ComputeProvider.forceStacksToReinit this, message, callback
 
 # Base StackTemplate example for koding group
 ###

@@ -6,15 +6,15 @@ module.exports = (groupName, callback) ->
   return callback null unless groupName
   user = whoami()
 
-  user.checkGroupMembership groupName, (err, isMember) =>
+  user.checkGroupMembership groupName, (err, isMember) ->
     return callback err  if err
     return callback null if isMember
 
     #join to group
-    remote.api.JGroup.one { slug: groupName }, (err, currentGroup) =>
+    remote.api.JGroup.one { slug: groupName }, (err, currentGroup) ->
       return callback err if err
       return callback null unless currentGroup
-      currentGroup.join (err)=>
+      currentGroup.join (err) ->
         return callback err if err
-        notify_ "You have joined to #{groupName} group!", "success"
+        notify_ "You have joined to #{groupName} group!", 'success'
         return callback null

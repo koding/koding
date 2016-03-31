@@ -9,19 +9,19 @@
 # If fails, returns [Object object]
 #
 
-module.exports = (object, options = {})->
+module.exports = (object, options = {}) ->
 
   { maxDepth, separator } = options
 
   maxDepth  ?= 24
-  separator ?= "\t"
+  separator ?= '\t'
 
   stringify = ->
 
     depth  = 0
     ccache = []
 
-    (key, value)->
+    (key, value) ->
 
       return if depth > maxDepth
       return 'undefined'  unless value?
@@ -39,7 +39,7 @@ module.exports = (object, options = {})->
   try
     s = JSON.stringify object, stringify(), separator
   catch e
-    console.warn "Failed to stringify:", e, object
-    s = "[Object object]"
+    console.warn 'Failed to stringify:', e, object
+    s = '[Object object]'
 
   return s

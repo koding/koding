@@ -11,7 +11,7 @@ fn = (err, messages) ->
 
   if 'string' is typeof err
     message = err
-    err     = {message}
+    err     = { message }
 
   defaultMessages =
     AccessDenied : 'Permission denied'
@@ -30,15 +30,15 @@ fn = (err, messages) ->
     if 'string' is typeof errMessage
       title = errMessage
     else if errMessage.title? and errMessage.content?
-      {title, content} = errMessage
+      { title, content } = errMessage
 
   duration = errMessage.duration or 2500
   title  or= err.message
 
-  new KDNotificationView {title, content, duration}
+  new KDNotificationView { title, content, duration }
 
   unless err.name is 'AccessDenied'
-    kd.warn "KodingError:", err.message
+    kd.warn 'KodingError:', err.message
     kd.error err
   err?
 

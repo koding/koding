@@ -4,6 +4,7 @@ import (
 	"errors"
 	"koding/klient/remote/req"
 	"koding/klientctl/util"
+	"koding/mountcli"
 
 	"github.com/koding/logging"
 )
@@ -38,19 +39,19 @@ func (r *MountExistsRepair) Status() (bool, error) {
 	// TODO: How do we handle the actual error object here? If Mountcli returns
 	// an error, it means the process failed itself. Which means we don't *really*
 	// know if the mount exists or not.
-	path, err := r.Mountcli.FindMountedPathByName(r.MountName)
+	_, err := r.Mountcli.FindMountedPathByName(r.MountName)
+
+	if err == mountcli.ErrNoMountName {
+		r.Stdout.Printlnf("Unable to find %q on filesystem.", r.MountName)
+		return false, nil
+	}
+
 	if err != nil {
 		r.Log.Error(
 			"Error encountered when trying to find Mountcli MountPath by name. name:%s, err:%s",
 			r.MountName, err,
 		)
 		return false, err
-	}
-
-	// If path is empty, we could not find the mount name.
-	if path == "" {
-		r.Stdout.Printlnf("Unable to find %q on filesystem.", r.MountName)
-		return false, nil
 	}
 
 	return true, nil

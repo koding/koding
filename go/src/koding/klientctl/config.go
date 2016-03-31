@@ -5,6 +5,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"time"
 )
 
 const (
@@ -33,6 +34,14 @@ const (
 	// S3KlientctlPath is publically accessible url for latest version of
 	// klientctl. Each OS has its own version of binary, identifiable by suffix.
 	S3KlientctlPath = "https://koding-kd.s3.amazonaws.com/klientctl-" + osName
+
+	// CommandAttempts is the number of attempts to try commands like start, stop
+	// etc.
+	CommandAttempts = 30
+
+	// CommandWaitTime is how long to wait for commands like start, stop to
+	// complete
+	CommandWaitTime = 1 * time.Second
 )
 
 var (

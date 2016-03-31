@@ -112,10 +112,10 @@ validationRed = rgba(217, 58, 55, 0.65)
   &:hover
     border          none
     .icon
-      r-sprite      activity 'check-gray'
+      r-sprite      activity 'check_gray'
 
   .icon
-    r-sprite        activity 'check-gray'
+    r-sprite        activity 'check_gray'
     margin          0 6px 0 0
     padding         0
     fr()
@@ -128,13 +128,13 @@ validationRed = rgba(217, 58, 55, 0.65)
     border-color    transparent
 
     .icon
-      r-sprite      activity 'check-green'
+      r-sprite      activity 'check_green'
 
     &:hover
       border        1px solid #b1b1b1
 
       .icon
-        r-sprite    activity 'check-green'
+        r-sprite    activity 'check_green'
         opacity     .6
 
 
@@ -151,7 +151,7 @@ validationRed = rgba(217, 58, 55, 0.65)
     rounded                 3px
 
   cite.staff
-    r-sprite                app 'staff-badge-16'
+    r-sprite                app 'staff_badge_16'
     abs                     0 -6px -8px 0
     border                  2px solid #fff
     rounded                 3px
@@ -258,16 +258,16 @@ a.custom-link-view.border-only-green
     font-size           12px
     line-height         24px
     cursor              pointer
-    padding             0 0 0 12px
+    padding             0 12px
 
     .icon
       margin            0 7px 0 0
       display           inline-block
       vertical-align    sub
       &.edit
-        r-sprite        app "edit-icon"
+        r-sprite        app "edit_icon"
       &.delete
-        r-sprite        app "delete-icon"
+        r-sprite        app "delete_icon"
 
   .chevron-ghost-wrapper
     opacity           0
@@ -322,7 +322,7 @@ a.custom-link-view.border-only-green
       top                   8px
       right                 8px
       bg                    color, transparent
-      r-sprite                app '20-close-tab'
+      r-sprite                app '20_close_tab'
       opacity               0
 
     &.plus
@@ -331,7 +331,7 @@ a.custom-link-view.border-only-green
       width                 37px
       padding               0
       .icon
-        r-sprite              app '20-tab-plus'
+        r-sprite              app '20_tab_plus'
         margin              8px 9px 9px 8px
         display             block
     &.active
@@ -341,7 +341,7 @@ a.custom-link-view.border-only-green
         top                 8px
         right               8px
         bg                  color, transparent
-        r-sprite              app '20-close-tab'
+        r-sprite              app '20_close_tab'
 
     &.modified:before
       content               ""
@@ -385,7 +385,7 @@ a.custom-link-view.border-only-green
       top                   4px
       right                 0
       display               block
-      r-sprite              app '20-chevron-orange'
+      r-sprite              app '20_chevron_orange'
       size                  16px 20px
 
 div.copy-url-wrapper
@@ -434,7 +434,7 @@ button.app-settings-menu
   .icon
     padding           0
     bg                color, red
-    r-sprite            app 'global-app-settings'
+    r-sprite            app 'global_app_settings'
   &:focus
     border            none
     shadow            none
@@ -731,7 +731,7 @@ button.app-settings-menu
       shadow                none
       outline               none
       padding               0
-      r-sprite              'app', '16-cog'
+      r-sprite              'app', '16_cog'
       margin-top            8px
       fr()
 
@@ -966,12 +966,12 @@ button.app-settings-menu
     margin              15px 25px 25px
 
     .close-icon
-      r-sprite          app, "modal-close-icon"
+      r-sprite          app, "modal_close_icon"
       top               10px
       right             10px
 
       &:hover
-        r-sprite          app, "modal-close-icon"
+        r-sprite          app, "modal_close_icon"
 
   .kdmodal-title
     cursor              move
@@ -1046,7 +1046,7 @@ button.app-settings-menu
   .kdnotification-close
     background          none
     size                16px !important, 16px !important
-    r-sprite            app, "notification-close"
+    r-sprite            app, "notification_close"
 
   .avatarview
     fl()
@@ -1147,7 +1147,7 @@ a.action-link.verify-email
     noAnim()
 
   .close-icon
-    r-sprite            app, "modal-close-icon"
+    r-sprite            app, "modal_close_icon"
     top                 14px
     right               14px
 
@@ -1205,7 +1205,7 @@ a.action-link.verify-email
       borderBox()
 
       span.icon
-        r-sprite                  app '25-warning'
+        r-sprite                  app '25_warning'
         margin                    4px 20px 0 100px
         fl()
 
@@ -1401,7 +1401,7 @@ a.action-link.verify-email
       margin          0
       border          none
       visibility      visible
-      r-sprite        app '30-refresh-icon-green'
+      r-sprite        app '30_refresh_icon_green'
 
   .kdlistitemview-repo
     height        32px
@@ -1523,7 +1523,7 @@ a.action-link.verify-email
 
   .close-icon
     abs()
-    r-sprite              'app', 'tooltip-close-icon'
+    r-sprite              'app', 'tooltip_close_icon'
     top                   4px
     right                 4px
 
@@ -1679,7 +1679,7 @@ account, group dashboard and payment pages.
     margin                  0 12px 0 0
     display                 inline-block
     float                   none
-    r-sprite                'account', 'plus-10'
+    r-sprite                'account', 'plus_10'
 
 .payment-method
   height                    62px
@@ -1709,10 +1709,10 @@ account, group dashboard and payment pages.
       fr()
 
       &.edit
-        r-sprite            'app', 'edit-gray-16'
+        r-sprite            'app', 'edit_gray_16'
 
       &.remove
-        r-sprite            'app', 'delete-gray-16'
+        r-sprite            'app', 'delete_gray_16'
 
 
 
@@ -2266,3 +2266,10 @@ footer.main-footer
 
 .AppModal-sectionToggle
   abs                       -4px 0px 0 0
+
+.lazy-loader
+  .kdloader.kodinglist-spinner
+    margin                  10px 0
+
+    .canvas-loader
+      text-align            center

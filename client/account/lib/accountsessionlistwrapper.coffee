@@ -5,6 +5,7 @@ AccountSessionListItem = require './accountsessionlistitem'
 KodingListController   = require 'app/kodinglist/kodinglistcontroller'
 kookies                = require 'kookies'
 whoami                 = require 'app/util/whoami'
+Tracker                = require 'app/util/tracker'
 
 module.exports = class AccountSessionListWrapper extends KDView
 
@@ -26,9 +27,11 @@ module.exports = class AccountSessionListWrapper extends KDView
       fetcherMethod     : (query, options, callback) ->
         whoami().fetchMySessions options, (err, sessions)  -> callback err, sessions
 
-    @listController.on 'ItemDeleted', (item) ->
+    @listController.getListView().on 'ItemWasRemoved', (item) ->
       session  = item.getData()
       clientId = kookies.get 'clientId'
+
+      Tracker.track Tracker.USER_DELETE_SESSION
 
       # if the deleted session is the current one logout user immediately
       if clientId is session.clientId

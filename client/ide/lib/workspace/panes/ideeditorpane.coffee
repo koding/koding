@@ -17,7 +17,7 @@ module.exports = class IDEEditorPane extends IDEPane
     options.cssClass = kd.utils.curry 'editor-pane', options.cssClass
     options.paneType = 'editor'
 
-    {file}       = options
+    { file }     = options
     @file        = file
     @lineWidgets = {}
 
@@ -144,7 +144,7 @@ module.exports = class IDEEditorPane extends IDEPane
         @updateContent content
         @aceView.showModifiedIconOnTabHandle()
 
-    @file.on 'FileContentRestored', => ace.removeModifiedFromTab()
+    @file.on 'FileContentRestored', -> ace.removeModifiedFromTab()
 
     @file.on 'fs.save.finished', =>
       ace.removeModifiedFromTab()
@@ -179,7 +179,7 @@ module.exports = class IDEEditorPane extends IDEPane
     return  if @errorOnSave
 
     if @getAce().isContentChanged()
-      @save ignoreActiveLineOnTrim: yes
+      @save { ignoreActiveLineOnTrim: yes }
 
 
   save: (options = {}) -> @getAce().requestSave options
@@ -294,7 +294,7 @@ module.exports = class IDEEditorPane extends IDEPane
     change          =
       origin        : nick()
       context       :
-        file        : path: @file.path
+        file        : { path: @file.path }
         paneType    : @getOptions().paneType
         paneHash    : @hash
         ideViewHash : @ideViewHash
@@ -348,13 +348,13 @@ module.exports = class IDEEditorPane extends IDEPane
     return data
 
 
-  setLineWidgets: (row, col, username) ->
+  setLineWidgets: kd.utils.debounce 500, (row, col, username) ->
 
     return  unless editor = @getEditor()
     return  if username is nick()
 
     oldWidget      = @lineWidgets[username]
-    {renderer}     = editor
+    { renderer }   = editor
     widgetManager  = @getAce().lineWidgetManager
     lineHeight     = renderer.lineHeight
     charWidth      = renderer.characterWidth
@@ -362,7 +362,7 @@ module.exports = class IDEEditorPane extends IDEPane
     widgetStyle    = "border-bottom:2px solid #{color};height:#{lineHeight}px;margin-top:-#{lineHeight+2}px;line-height:#{lineHeight+2}px"
     userWidgetCss  = "ace-line-widget-#{username}"
     lineCssClass   = "ace-line-widget #{userWidgetCss}"
-    cursorStyle    = "background-color:#{color};height:#{lineHeight}px;margin-left:#{charWidth*col+3}px"
+    cursorStyle    = "background-color:#{color};height:#{lineHeight}px;margin-left:#{charWidth * col + 3}px"
     usernameStyle  = "background-color:#{color}"
     lineWidgetHTML = """
       <div class='#{lineCssClass}' style='#{widgetStyle}'>
@@ -414,13 +414,13 @@ module.exports = class IDEEditorPane extends IDEPane
 
   handleChange: (change) ->
 
-    {context, type, origin} = change
+    { context, type, origin } = change
 
     switch type
 
       when 'CursorActivity'
 
-        {row, column} = context.cursor
+        { row, column } = context.cursor
         @setLineWidgets row, column, origin
 
       when 'FileSaved'
@@ -433,7 +433,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
     return  if @rtm.isDisposed
 
-    {path} = @getFile()
+    { path } = @getFile()
 
     unless string = @rtm.getFromModel path
       return @rtm.create 'string', path, @getContent()
@@ -482,11 +482,11 @@ module.exports = class IDEEditorPane extends IDEPane
 
     start   = index
     end     = index + length
-    lines   = str.split "\n"
+    lines   = str.split '\n'
     read    = 0
     points  =
-      start : row: 0, column: 0
-      end   : row: 0, column: 0
+      start : { row: 0, column: 0 }
+      end   : { row: 0, column: 0 }
 
     for line in lines when read <= index
       read                += line.length + 1

@@ -14,6 +14,37 @@ import (
 	"github.com/koding/kite/dnode"
 )
 
+// MachineStatus representes our understanding of a machines status. Whether or not
+// we can communicate with it, and etc.
+type MachineStatus int
+
+const (
+	// Zero value, status is unknown
+	MachineStatusUnknown MachineStatus = iota
+
+	// The machine is not reachable for http
+	MachineOffline
+
+	// The machine & kite server are reachable via http
+	MachineOnline
+
+	// The machine has a kite and/or kitepinger trying to communicate with it,
+	// but is failing.
+	MachineDisconnected
+
+	// The machine has an active and working kite connection.
+	MachineConnected
+
+	// The machine encountered an error
+	MachineError
+
+	// The machine is remounting
+	//
+	// TODO: Move this type to a mount specific status, once we support multiple
+	// mounts.
+	MachineRemounting
+)
+
 var (
 	// Returned by various methods if the requested machine cannot be found.
 	ErrMachineNotFound error = util.KiteErrorf(
@@ -52,14 +83,24 @@ type Machine struct {
 	// directly to the database.
 	MachineMeta
 
+	// The given machine status
+	status MachineStatus `json:"-"`
+
+	// The message (if any) associated with the given status.
+	statusMessage string `json:"-"`
+
 	// A remote client, as returned by `kontrolclient.GetKites()`
 	//
 	// TODO: Deprecated. Remove when able.
 	Client *kite.Client `json:"-"`
 
-	// The kitePinger which can be used to handle network interruptions
+	// The underlying KitePinger which can be used to handle network interruptions
 	// on the given machine.
-	KitePinger kitepinger.KitePinger `json:"-"`
+	KiteTracker *kitepinger.PingTracker `json:"-"`
+
+	// The underlying KiteHTTPPinger which can be used to know if the machine itself
+	// is online (vs connected to)
+	HTTPTracker *kitepinger.PingTracker `json:"-"`
 
 	// The intervaler for this machine.
 	//
@@ -86,16 +127,75 @@ func MachineLogger(meta MachineMeta, l logging.Logger) logging.Logger {
 
 // NewMachine initializes a new Machine struct with any internal vars created.
 func NewMachine(meta MachineMeta, log logging.Logger, client *kite.Client,
-	pinger kitepinger.KitePinger) *Machine {
+	kt *kitepinger.PingTracker, ht *kitepinger.PingTracker) *Machine {
 	return &Machine{
 		// Client is mainly a legacy field. See field docs.
 		Client: client,
 
 		MachineMeta: meta,
 		Log:         MachineLogger(meta, log),
-		KitePinger:  pinger,
+		KiteTracker: kt,
+		HTTPTracker: ht,
 		Transport:   client,
 	}
+}
+
+// GetStatus returns the currently set machine status and status message, if any.
+//
+// This is safe to call for any Machine instance, valid or not.
+func (m *Machine) GetStatus() (MachineStatus, string) {
+	if m.status == MachineStatusUnknown {
+		return m.getConnStatus(), ""
+	}
+
+	return m.status, m.statusMessage
+}
+
+// getConnStatus returns online/offline/connected/disconnected based on the
+// given statuses.
+//
+// This is safe to call for any Machine instance, valid or not.
+func (m *Machine) getConnStatus() MachineStatus {
+	// Storing some vars for readability
+	var (
+		// If we have a kitepinger, and are actively pinging, we show
+		// connected/disconnected
+		useConnected bool
+
+		// If we are not showing connected/disconnected, but we are pinging http,
+		// use online/offline
+		useOnline bool
+
+		isConnected bool
+		isOnline    bool
+	)
+
+	if m.KiteTracker != nil {
+		useConnected = m.KiteTracker.IsPinging()
+		isConnected = m.KiteTracker.IsConnected()
+	}
+
+	if m.HTTPTracker != nil {
+		isOnline = m.HTTPTracker.IsPinging()
+		useOnline = m.HTTPTracker.IsConnected()
+	}
+
+	switch {
+	case useConnected && isConnected:
+		return MachineConnected
+	case useConnected && !isConnected:
+		return MachineDisconnected
+	case useOnline && isOnline:
+		return MachineOnline
+	default:
+		return MachineOffline
+	}
+}
+
+// SetStatus sets the machines status, along with an optional message.
+func (m *Machine) SetStatus(s MachineStatus, msg string) {
+	m.status = s
+	m.statusMessage = msg
 }
 
 // CheckValid checks if this Machine is missing any required fields. Fields can be
@@ -114,7 +214,7 @@ func (m *Machine) CheckValid() error {
 
 	if m.Client == nil {
 		return util.KiteErrorf(
-			kiteerrortypes.MachineNotValidYet, "Machine.KitePinger is nil",
+			kiteerrortypes.MachineNotValidYet, "Machine.KiteTracker is nil",
 		)
 	}
 
@@ -162,29 +262,53 @@ func (m *Machine) Tell(method string, args ...interface{}) (*dnode.Partial, erro
 	return m.Transport.Tell(method, args...)
 }
 
-// Ping is a convenience method for pinging the given machine. An easy way to
-// determine a valid connection.
-func (m *Machine) Ping() error {
-	_, err := m.Tell("kite.ping")
-	return err
-}
-
 // IsConnected returns the kitepinger's IsConnected result
 func (m *Machine) IsConnected() bool {
 	// If it's nil, this is a not a valid / connected machine.
-	if m.KitePinger == nil {
+	if m.KiteTracker == nil {
 		return false
 	}
 
-	return m.KitePinger.IsConnected()
+	return m.KiteTracker.IsConnected()
+}
+
+// IsOnline returns the httppingers IsConnected result.
+func (m *Machine) IsOnline() bool {
+	// If it's nil, this is a not a valid / connected machine.
+	if m.HTTPTracker == nil {
+		return false
+	}
+
+	return m.HTTPTracker.IsConnected()
 }
 
 // ConnectedAt returns the kitepinger's ConnectedAt result
 func (m *Machine) ConnectedAt() time.Time {
 	// If it's nil, this is a not a valid / connected machine.
-	if m.KitePinger == nil {
+	if m.KiteTracker == nil {
 		return time.Time{} // Zero value time.
 	}
 
-	return m.KitePinger.ConnectedAt()
+	return m.KiteTracker.ConnectedAt()
+}
+
+func (ms MachineStatus) String() string {
+	switch ms {
+	case MachineStatusUnknown:
+		return "MachineStatusUnknown"
+	case MachineOffline:
+		return "MachineOffline"
+	case MachineOnline:
+		return "MachineOnline"
+	case MachineDisconnected:
+		return "MachineDisconnected"
+	case MachineConnected:
+		return "MachineConnected"
+	case MachineError:
+		return "MachineError"
+	case MachineRemounting:
+		return "MachineRemounting"
+	default:
+		return "UnknownMachineConstant"
+	}
 }

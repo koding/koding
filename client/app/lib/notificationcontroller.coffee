@@ -15,7 +15,7 @@ module.exports = class NotificationController extends KDObject
 
   deleteUserCookie = -> kookies.expire 'clientId'
 
-  displayEmailConfirmedNotification = (modal)->
+  displayEmailConfirmedNotification = (modal) ->
     modal.off 'KDObjectWillBeDestroyed'
     new KDNotificationView
       title    : 'Thanks for confirming your e-mail address'
@@ -24,7 +24,7 @@ module.exports = class NotificationController extends KDObject
     return modal.destroy()
 
 
-  constructor:->
+  constructor: ->
 
     super
 
@@ -37,18 +37,18 @@ module.exports = class NotificationController extends KDObject
     @subscribeToRealtimeUpdates()
 
 
-  subscribeToRealtimeUpdates:->
+  subscribeToRealtimeUpdates: ->
 
     @notificationChannel = null
 
-    {realtime} = kd.singletons
+    { realtime } = kd.singletons
     realtime.subscribeNotification (err, notificationChannel) =>
 
       @notificationChannel = notificationChannel
 
       return kd.warn 'notification subscription error', err  if err
 
-      @notificationChannel.on 'message', (notification)=>
+      @notificationChannel.on 'message', (notification) =>
         # sample notification content
         #
         # contents: {Object}
@@ -79,7 +79,7 @@ module.exports = class NotificationController extends KDObject
         @emit event, contents  if event
 
 
-  setListeners:->
+  setListeners: ->
 
     @on 'GuestTimePeriodHasEnded', deleteUserCookie
 
@@ -93,12 +93,12 @@ module.exports = class NotificationController extends KDObject
         deleteUserCookie()
 
     @once 'EmailShouldBeConfirmed', ->
-      {firstName, nickname} = whoami().profile
-      kd.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal)=>
+      { firstName, nickname } = whoami().profile
+      kd.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal) =>
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
-        modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
+        modal.on 'KDObjectWillBeDestroyed', deleteUserCookie.bind this
 
-    @on 'MachineListUpdated', ({machineUId, action, permanent}) ->
+    @on 'MachineListUpdated', ({ machineUId, action, permanent }) ->
       switch action
         when 'removed'
           if (ideInstance = envDataProvider.getIDEFromUId machineUId) and permanent
@@ -106,12 +106,12 @@ module.exports = class NotificationController extends KDObject
 
       kd.singletons.computeController.reset yes
 
-    @on 'UsernameChanged', ({username, oldUsername}) ->
+    @on 'UsernameChanged', ({ username, oldUsername }) ->
       # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
       deleteUserCookie()
 
       new KDModalView
-        title         : "Your username was changed"
+        title         : 'Your username was changed'
         overlay       : yes
         content       :
           """
@@ -124,14 +124,14 @@ module.exports = class NotificationController extends KDObject
           </div>
           """
         buttons       :
-          "Refresh":
-            style     : "solid red medium"
+          'Refresh':
+            style     : 'solid red medium'
             callback  : (event) -> location.replace '/Login'
-          "Close"     :
-            style     : "solid light-gray medium"
+          'Close'     :
+            style     : 'solid light-gray medium'
             callback  : (event) -> modal.destroy()
 
-    @on 'UserBlocked', ({blockedDate}) ->
+    @on 'UserBlocked', ({ blockedDate }) ->
       modal = new KDModalView
         title         : "Permission denied. You've been banned."
         overlay       : yes
@@ -149,15 +149,15 @@ module.exports = class NotificationController extends KDObject
           </div>
           """
         buttons       :
-          "Ok"        :
-            style     : "solid light-gray medium"
+          'Ok'        :
+            style     : 'solid light-gray medium'
             callback  : (event) ->
               kookies.expire 'clientId'
               modal.destroy()
               global.location.reload yes
 
       # If not clicked on "Ok", kick him out after 10 seconds
-      kd.utils.wait 10000, =>
+      kd.utils.wait 10000, ->
         kookies.expire 'clientId'
         global.location.reload yes
 
@@ -169,23 +169,23 @@ module.exports = class NotificationController extends KDObject
       global.location.href = '/Banned'
 
 
-    @on 'MembershipRoleChanged', ({role, group, adminNick}) ->
+    @on 'MembershipRoleChanged', ({ role, group, adminNick }) ->
       # check if the notification is sent for current group
       return  unless group is getGroup().slug
 
       modal = new KDModalView
-        title         : "Your team role has been changed!"
+        title         : 'Your team role has been changed!'
         overlay       : yes
         width         : 500
         content       :
           """
           <div class="modalformline">
-            @#{adminNick} made you #{articlize role} <strong font-weight="bold">#{role}</strong>, please refresh your browser to changes take effect.
+            @#{adminNick} made you #{articlize role} <strong font-weight="bold">#{role}</strong>, please refresh your browser for changes to take effect.
           </div>
           """
         buttons       :
-          "Reload page"        :
-            style     : "solid green medium"
+          'Reload page'        :
+            style     : 'solid green medium'
             callback  : (event) ->
               modal.destroy()
               global.location.reload yes

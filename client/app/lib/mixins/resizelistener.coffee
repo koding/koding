@@ -4,7 +4,8 @@ module.exports =
 
   componentDidMount: ->
 
-    throw 'This mixin requires EventEmitter mixin first!'  unless @on and @off and @emit
+    eventEmitter = 'This mixin requires EventEmitter mixin first!'
+    throw eventEmitter  unless @on and @off and @emit
 
     kd.singletons.windowController.registerWindowResizeListener this
 

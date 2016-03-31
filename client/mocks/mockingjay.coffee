@@ -7,6 +7,7 @@ ideRoutes                 = require 'ide/routes.coffee'
 mockjgroup                = require './mock.jgroup'
 mockjmachine              = require './mock.jmachine'
 mockjaccount              = require './mock.jaccount'
+mockjcredential           = require './mock.jcredential'
 dataProvider              = require 'app/userenvironmentdataprovider'
 mockMessage               = require 'app/util/generateDummyMessage'
 toImmutable               = require 'app/util/toImmutable'
@@ -330,6 +331,10 @@ module.exports =
 
   getMockGroup: ->     return mockGroup
 
+  getMockJCredential: -> return mockjcredential
+
+  getMockCredential: -> return remote.revive mockjcredential
+
   getMockImmutableMachine : -> return toImmutable mockMachine
 
   getMockImmutableWorkspace : -> return toImmutable mockjworkspace
@@ -337,6 +342,8 @@ module.exports =
   getMockCollaborationChannel : -> return mockcollaborationchannel
 
   getMockJComputeStack: -> return mockjcomputestack
+
+  getMockComputeStack: -> remote.revive mockjcomputestack
 
   getMockMessage: (args...) -> return mockMessage(args...)
 

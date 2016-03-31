@@ -23,6 +23,7 @@ while getopts ":d:us" OPTION; do
     d) WORKING_DIR=$OPTARG ;;
     u) NPM_ARGS+=" --unsafe-perm" ;;
     s) NPM_ARGS+=" --silent" ;;
+    *) NPM_ARGS+=" $OPTION" ;;
   esac
 done
 

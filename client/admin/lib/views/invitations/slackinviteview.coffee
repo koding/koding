@@ -77,8 +77,39 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
     $.ajax
       method  : 'GET'
       url     : USERS_URL
-      success : (res) => @createIndividualInviter res
+      success : (res) =>
+        @fetchAllInvitations (err, result) =>
+          return  if err or not result
+          @createIndividualInviter @updateInvitationStatus res, result
       error   : @bound 'reset'
+
+  updateInvitationStatus: (users, allInvitations) ->
+
+    for user in users
+      for invitation in allInvitations
+        if user.profile.email is invitation.email
+          user.status = invitation.status
+
+    return users
+
+
+  fetchAllInvitations: (callback) ->
+
+    allInvitations = []
+    options  = {}
+    selector = { status: 'pending' }
+
+    remote.api.JInvitation.some selector, options, (err, invitations) ->
+      callback err, null  if err
+      allInvitations = allInvitations.concat invitations
+
+      selector = { status: 'accepted' }
+
+      remote.api.JInvitation.some selector, options, (err, invitations) ->
+        callback err, null  if err
+        allInvitations = allInvitations.concat invitations
+
+        callback null, allInvitations
 
 
   createChangerView: ->

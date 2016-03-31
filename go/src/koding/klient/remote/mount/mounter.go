@@ -6,11 +6,14 @@ import (
 	"koding/fuseklient/transport"
 	"koding/klient/kiteerrortypes"
 	"koding/klient/remote/kitepinger"
+	"koding/klient/remote/machine"
 	"koding/klient/remote/req"
 	"koding/klient/remote/rsync"
 	"koding/klient/util"
+	"syscall"
 	"time"
 
+	"github.com/jacobsa/fuse"
 	"golang.org/x/net/context"
 
 	"github.com/koding/kite/dnode"
@@ -27,6 +30,27 @@ const (
 	// "Socket is not connected" to the user. So if that message is seen, this value
 	// likely needs to be lowered.
 	fuseTellTimeout = 55 * time.Second
+
+	// Messages displayed to the user about the machines status.
+	autoRemountFailed = "Error auto-mounting. Please unmount & mount again."
+	autoRemounting    = "Remounting after extended disconnect. Please wait..."
+
+	// retryMounterCount and retryMounterPause is the number of times
+	// fuseMountFolder will try a failing mount.
+	//
+	// TODO: Move this into the Mounter, once Mounter is refactored per design
+	// mtg spec.
+	retryMounterCount = 10
+	retryMounterPause = 5 * time.Second
+)
+
+var (
+	// ErrRemotePathDoesNotExist is returned when the remote path does not exist,
+	// or is not a dir.
+	ErrRemotePathDoesNotExist = util.KiteErrorf(
+		kiteerrortypes.RemotePathDoesNotExist,
+		"The RemotePath either does not exist, or is not a dir",
+	)
 )
 
 // MounterTransport is the transport that the Mounter uses to communicate with
@@ -44,11 +68,14 @@ type Mounter struct {
 	// The options for this Mounter, such as LocalFolder, etc.
 	Options req.MountFolder
 
+	// The machine we'll be mounting to.
+	Machine *machine.Machine
+
 	// The IP of the remote machine.
 	IP string
 
-	// The KitePinger that the remote machine this Mounter uses, will deal with.
-	KitePinger kitepinger.KitePinger
+	// The KiteTracker that the remote machine this Mounter uses, will deal with.
+	KiteTracker *kitepinger.PingTracker
 
 	// The intervaler for this machine.
 	//
@@ -90,8 +117,12 @@ func (m *Mounter) IsConfigured() error {
 			"Using PrefetchAll but missing CachePath")
 	}
 
-	if m.KitePinger == nil {
-		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing KitePinger")
+	if m.Machine == nil {
+		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing Machine")
+	}
+
+	if m.KiteTracker == nil {
+		return util.KiteErrorf(kiteerrortypes.MissingArgument, "Missing KiteTracker")
 	}
 
 	if m.Transport == nil {
@@ -162,8 +193,8 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 		return util.NewKiteError(kiteerrortypes.DialingFailed, err)
 	}
 
-	if mount.KitePinger == nil {
-		mount.KitePinger = m.KitePinger
+	if mount.KiteTracker == nil {
+		mount.KiteTracker = m.KiteTracker
 	}
 
 	if mount.Intervaler == nil {
@@ -177,7 +208,7 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 	// TODO: Uncomment this once fuseklient can accept a change channel.
 	//changes := changeSummaryToBool(changeSummaries)
 	//if err := fuseMountFolder(mount, changes); err != nil {
-	if err := m.fuseMountFolder(mount); err != nil {
+	if err := m.fuseMountFolder(mount, true); err != nil {
 		return err
 	}
 
@@ -188,7 +219,7 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 
 // fuseMountFolder uses the fuseklient library to mount the given
 // folder.
-func (m *Mounter) fuseMountFolder(mount *Mount) error {
+func (m *Mounter) fuseMountFolder(mount *Mount, retry bool) error {
 	var (
 		t   transport.Transport
 		err error
@@ -221,15 +252,27 @@ func (m *Mounter) fuseMountFolder(mount *Mount) error {
 		Debug:          true, // turn on debug permanently till v1
 	}
 
-	f, err := fuseklient.New(t, cf)
-	if err != nil {
-		return err
-	}
+	var (
+		f  fuseklient.FS
+		fs *fuse.MountedFileSystem
+	)
+	err = retryOnConnErr(retryMounterCount, retryMounterPause, func() error {
+		f, err = fuseklient.New(t, cf)
+		if isRemotePathError(err) {
+			return ErrRemotePathDoesNotExist
+		} else if err != nil {
+			return err
+		}
 
-	mount.MountedFS = f
-	mount.Unmounter = f
+		mount.MountedFS = f
+		mount.Unmounter = f
 
-	fs, err := f.Mount()
+		if fs, err = f.Mount(); err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return err
 	}
@@ -243,12 +286,12 @@ func (m *Mounter) fuseMountFolder(mount *Mount) error {
 func (m *Mounter) watchClientAndReconnect(mount *Mount, changeSummaries chan kitepinger.ChangeSummary) error {
 	m.Log.Info("Monitoring Klient connection..")
 
-	m.KitePinger.Subscribe(changeSummaries)
-	m.KitePinger.Start()
+	m.KiteTracker.Subscribe(changeSummaries)
+	m.KiteTracker.Start()
 	mount.PingerSub = changeSummaries
 
 	for summary := range changeSummaries {
-		if err := m.handleChangeSummary(mount, summary); err != nil {
+		if err := m.handleChangeSummary(mount, summary, m.remount); err != nil {
 			return err
 		}
 	}
@@ -256,10 +299,12 @@ func (m *Mounter) watchClientAndReconnect(mount *Mount, changeSummaries chan kit
 	return nil
 }
 
-func (m *Mounter) handleChangeSummary(mount *Mount, summary kitepinger.ChangeSummary) error {
+func (m *Mounter) handleChangeSummary(mount *Mount, summary kitepinger.ChangeSummary, remountFunc func(*Mount) error) error {
 	log := m.Log.New("handleChangeSummary")
 
 	if summary.OldStatus == kitepinger.Failure && summary.OldStatusDur > time.Minute*30 {
+		m.Machine.SetStatus(machine.MachineRemounting, autoRemounting)
+
 		// Using warning here, because although this is good, it's an important
 		// event and could have UX ramifications.
 		log.Warning(
@@ -267,15 +312,27 @@ func (m *Mounter) handleChangeSummary(mount *Mount, summary kitepinger.ChangeSum
 		)
 
 		// Log error and return to exit loop, since something is broke
-		if err := m.PathUnmounter(mount.LocalPath); err != nil {
-			log.Error("Failed to unmount. err:%s", err)
+		if err := remountFunc(mount); err != nil {
+			log.Error("Failed to remount. err:%s", err)
+			m.Machine.SetStatus(machine.MachineError, autoRemountFailed)
 			return err
 		}
 
-		if err := m.fuseMountFolder(mount); err != nil {
-			log.Error("Failed to mount. err:%s", err)
-			return err
-		}
+		m.Machine.SetStatus(machine.MachineStatusUnknown, "")
+	}
+
+	return nil
+}
+
+// remount is an abstraction around fuseMountFolder
+func (mounter *Mounter) remount(mount *Mount) error {
+	// Log error and return to exit loop, since something is broke
+	if err := mounter.PathUnmounter(mount.LocalPath); err != nil {
+		mounter.Log.Warning("Mounter#remount unmount on %s failed: %s...ignoring error", mount.MountName, err)
+	}
+
+	if err := mounter.fuseMountFolder(mount, true); err != nil {
+		return err
 	}
 
 	return nil
@@ -297,4 +354,30 @@ func changeSummaryToBool(s chan kitepinger.ChangeSummary) <-chan bool {
 		close(b)
 	}()
 	return b
+}
+
+func isRemotePathError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	if err.Error() == "no such file or directory" {
+		return true
+	}
+
+	return false
+}
+
+func retryOnConnErr(count int, delay time.Duration, f func() error) error {
+	var (
+		err error
+	)
+
+	for i := 0; i < count; i++ {
+		if err = f(); err == nil || err != syscall.ECONNREFUSED {
+			break
+		}
+	}
+
+	return err
 }

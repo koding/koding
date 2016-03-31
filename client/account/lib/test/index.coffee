@@ -1,1 +1,8 @@
 require './accountsessionlistwrapper.test'
+require './accountsshkeylistcontroller.test'
+require './accountsshkeylist.test'
+require './accountlinkedaccountslistcontroller.test'
+require './accountlinkedaccountslist.test'
+require './accountbilling.test'
+require './accountcredentiallistcontroller.test'
+require './accountcredentiallist.test'

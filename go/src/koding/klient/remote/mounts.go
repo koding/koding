@@ -6,6 +6,7 @@ import (
 	"github.com/koding/kite"
 
 	"koding/fuseklient"
+	"koding/klient/remote/machine"
 	"koding/klient/remote/mount"
 	"koding/klient/remote/rsync"
 	"koding/mountcli"
@@ -13,6 +14,10 @@ import (
 
 const (
 	mountsStorageKey = "mounted_folders"
+
+	// Messages displayed to the user about the machines status.
+	autoRemountFailed = "Error remounting during restart. Please unmount & mount again."
+	autoRemounting    = "Remounting after restart. Please wait..."
 )
 
 // MountsHandler lists all of the locally mounted folders
@@ -96,6 +101,15 @@ func (r *Remote) restoreMounts() error {
 			"prefetchAll", m.MountFolder.PrefetchAll,
 		)
 
+		remoteMachine, err := remoteMachines.GetByIP(m.IP)
+		if err != nil {
+			log.Error("Failed to get machine by ip. err:%s", err)
+			continue
+		}
+
+		// Set the machine status so that the user knows it's in progress.
+		remoteMachine.SetStatus(machine.MachineRemounting, autoRemounting)
+
 		fsMountName, _ := mountcli.NewMountcli().FindMountNameByPath(m.LocalPath)
 		if fsMountName != "" {
 			failOnUnmount := true
@@ -121,6 +135,7 @@ func (r *Remote) restoreMounts() error {
 			if err := m.Unmount(); err != nil {
 				if failOnUnmount {
 					log.Error("Failed to automatically unmount. err:%s", err)
+					remoteMachine.SetStatus(machine.MachineError, autoRemountFailed)
 					continue
 				} else {
 					log.Error("Failed to automatically unmount, but ignoring unmount error. Continuing. err:%s", err)
@@ -132,26 +147,20 @@ func (r *Remote) restoreMounts() error {
 		// Remount it, to improve UX.
 		log.Info("Automatically mounting")
 
-		remoteMachine, err := remoteMachines.GetByIP(m.IP)
-		if err != nil {
-			log.Error("Failed to get machine by ip. err:%s", err)
-			continue
-		}
-
 		// Construct our mounter
 		mounter := &mount.Mounter{
 			Log:           log,
 			Options:       m.MountFolder,
+			Machine:       remoteMachine,
 			IP:            remoteMachine.IP,
-			KitePinger:    remoteMachine.KitePinger,
+			KiteTracker:   remoteMachine.KiteTracker,
 			Transport:     remoteMachine.Client,
 			PathUnmounter: fuseklient.Unmount,
 		}
 
 		if err := mounter.MountExisting(m); err != nil {
-			m.LastMountError = true
 			log.Error("Mounter returned error. err:%s", err)
-
+			remoteMachine.SetStatus(machine.MachineError, autoRemountFailed)
 			continue
 		}
 
@@ -167,6 +176,8 @@ func (r *Remote) restoreMounts() error {
 				remoteMachine.Name,
 			)
 		}
+
+		remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
 	}
 
 	return nil

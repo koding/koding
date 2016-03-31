@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"koding/klientctl/util"
 	"koding/klientctl/util/testutil"
+	"koding/mountcli"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -29,10 +30,12 @@ func TestMountExistsRepair(t *testing.T) {
 
 	Convey("Given klient mount exists but fs mount does not", t, func() {
 		r := &MountExistsRepair{
-			Log:      discardLogger,
-			Stdout:   util.NewFprint(ioutil.Discard),
-			Klient:   &testutil.FakeKlient{},
-			Mountcli: &testutil.FakeMountcli{},
+			Log:    discardLogger,
+			Stdout: util.NewFprint(ioutil.Discard),
+			Klient: &testutil.FakeKlient{},
+			Mountcli: &testutil.FakeMountcli{
+				ReturnMountByPathErr: mountcli.ErrNoMountName,
+			},
 		}
 
 		Convey("When Status is run", func() {

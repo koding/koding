@@ -4,13 +4,14 @@ showError                 = require 'app/util/showError'
 Tracker                   = require 'app/util/tracker'
 
 BaseStackTemplateListItem = require './basestacktemplatelistitem'
+ForceToReinitModal        = require './forcetoreinitmodal'
 
 
 module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry "stacktemplate-item clearfix", options.cssClass
+    options.cssClass = kd.utils.curry 'stacktemplate-item clearfix', options.cssClass
     super options, data
 
     { isDefault, inUse, accessLevel, config } = @getData()
@@ -57,14 +58,12 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
       unless showError err
         kd.singletons.computeController.reset yes, => @getDelegate().emit 'StackGenerated'
-        new kd.NotificationView title: 'Stack generated successfully'
+        new kd.NotificationView { title: 'Stack generated successfully' }
 
 
   editStackTemplate: ->
 
     stackTemplate = @getData()
-
-    Tracker.track Tracker.STACKS_EDIT
 
     if stackTemplate.isDefault
 
@@ -74,16 +73,16 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
         overlayOptions :
           cssClass     : 'second-overlay'
           overlayClick : yes
-        content        : "
+        content        : '
           This stack template is currently used by your team. If you continue
           to edit, all of your changes will be applied to all team members directly.
           We highly recommend you to clone this stack template
           first and work on the cloned version. Once you finish your work,
           you can easily apply your changes for all team members.
-        "
+        '
         buttons      :
 
-          "Clone and Open Editor":
+          'Clone and Open Editor':
             style    : 'solid medium green'
             loader   : yes
             callback : =>
@@ -91,6 +90,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
                 unless showError err
                   @_itemCloned()
                   @_itemSelected cloneStackTemplate
+                  Tracker.track Tracker.STACKS_CLONED_TEMPLATE
                 modal.destroy()
 
           "I know what I'm doing, Open Editor":
@@ -98,9 +98,11 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
             callback : =>
               @_itemSelected()
               modal.destroy()
+              Tracker.track Tracker.STACKS_STARTED_EDIT_DEFAULT
 
     else
       @_itemSelected()
+      Tracker.track Tracker.STACKS_STARTED_EDIT
 
 
   _itemCloned: (data) ->
@@ -119,6 +121,11 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     if not stackTemplate.isDefault and stackTemplate.config.verified
       @addMenuItem 'Apply to Team', ->
         listView.emit 'ItemSelectedAsDefault', stackTemplate
+
+    # temporary comment until stack admin message design is ready
+    # if stackTemplate.canForcedReinit
+    #   @addMenuItem 'Force Stacks to Re-init', ->
+    #     new ForceToReinitModal {}, stackTemplate
 
     super
 

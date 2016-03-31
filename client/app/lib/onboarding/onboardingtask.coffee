@@ -18,7 +18,7 @@ module.exports = class OnboardingTask extends KDObject
     @startTime  = new Date()
 
     kd.utils.defer => @processItems items, itemMethod
-    
+
 
   ###*
    * Executes itemMethod for each item in items.

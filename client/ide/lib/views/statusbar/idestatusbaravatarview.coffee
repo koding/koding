@@ -82,11 +82,11 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       permission = rtm.getFromModel('permissions').get @nickname
 
       if permission is 'edit'
-        menuItems['Revert Permission'] =
-          title    : 'Revert Permission'
+        menuItems['Revoke Permission'] =
+          title    : 'Revoke Permission'
           callback : =>
             MENU?.destroy()
-            frontApp.revertPermission @nickname
+            frontApp.revokePermission @nickname
 
       else if permission is 'read'
         menuItems['Make Presenter'] =
@@ -121,11 +121,11 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       h = MENU.getHeight()
       w = MENU.getWidth()
       top  = -h - 10
-      left = @getWidth()/2 - w/2 - 4 # for an unknown reason - SY
-      MENU.setOption 'offset', {left, top}
+      left = @getWidth() / 2 - w / 2 - 4 # for an unknown reason - SY
+      MENU.setOption 'offset', { left, top }
       MENU.positionContextMenu()
 
-    MENU.once 'KDObjectWillBeDestroyed', => MENU = null
+    MENU.once 'KDObjectWillBeDestroyed', -> MENU = null
 
 
   createWatchToggle: (menuItems, isWatching) ->

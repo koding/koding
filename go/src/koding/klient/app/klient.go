@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"sync"
 	"time"
 
 	"koding/klient/client"
@@ -34,6 +37,22 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
+	"github.com/koding/kite/sockjsclient"
+)
+
+const (
+	// The default timeout to use for Klient's http.Client
+	defaultXHRTimeout = 30 * time.Second
+)
+
+var (
+	// we also could use an atomic boolean this is simple for now.
+	updating   = false
+	updatingMu sync.Mutex // protects updating
+
+	// the implementation of New() doesn't have any error to be returned yet it
+	// returns, so it's totally safe to neglect the error
+	cookieJar, _ = cookiejar.New(nil)
 )
 
 // Klient is the central app which provides all available methods.
@@ -61,7 +80,8 @@ type Klient struct {
 	// that return those informations
 	usage *usage.Usage
 
-	// tunnel establishes TODO
+	// tunnel establishes a tunnel connection when we have no public IP
+	// addresses or the connection is behind a firewall.
 	tunnel *tunnel.Tunnel
 
 	log kite.Logger
@@ -83,6 +103,9 @@ type Klient struct {
 	// updater polls s3://latest-version.txt with config.UpdateInterval
 	// and updates current binary if version is never than config.Version.
 	updater *Updater
+
+	// publicIP is a cached public IP address of the klient.
+	publicIP net.IP
 }
 
 // KlientConfig defines a Klient's config
@@ -162,9 +185,10 @@ func NewKlient(conf *KlientConfig) *Klient {
 	}
 
 	vagrantOpts := &vagrant.Options{
-		Home: conf.VagrantHome,
-		DB:   db, // nil is ok, fallbacks to in-memory storage
-		Log:  k.Log,
+		Home:  conf.VagrantHome,
+		DB:    db, // nil is ok, fallbacks to in-memory storage
+		Log:   k.Log,
+		Debug: conf.Debug,
 	}
 
 	tunOpts := &tunnel.Options{
@@ -201,6 +225,21 @@ func NewKlient(conf *KlientConfig) *Klient {
 	kl.RegisterMethods()
 
 	return kl
+}
+
+// An implementation of the kite xhr dialer that uses a set http timeout,
+// and not the zero timeout value that kite.Dial() will pass to DialOptions.
+//
+// https://github.com/koding/kite/blob/master/sockjsclient/xhr.go#L28
+func klientXHRClientFunc(opts *sockjsclient.DialOptions) *http.Client {
+	if opts.Timeout == 0 {
+		opts.Timeout = defaultXHRTimeout
+	}
+
+	return &http.Client{
+		Timeout: opts.Timeout,
+		Jar:     cookieJar,
+	}
 }
 
 // Kite retursn the underlying Kite instance
@@ -278,6 +317,10 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("vagrant.destroy", k.vagrant.Destroy)
 	k.kite.HandleFunc("vagrant.status", k.vagrant.Status)
 	k.kite.HandleFunc("vagrant.version", k.vagrant.Version)
+	k.kite.HandleFunc("vagrant.listForwardedPorts", k.vagrant.ForwardedPorts)
+
+	// Tunnel
+	k.kite.HandleFunc("tunnel.info", k.tunnel.Info)
 
 	// Docker
 	// k.kite.HandleFunc("docker.create", k.docker.Create)
@@ -377,6 +420,19 @@ func (k *Klient) RegisterMethods() {
 	})
 }
 
+func (k *Klient) PublicIP() (net.IP, error) {
+	if k.publicIP == nil {
+		ip, err := publicip.PublicIPRetry(10, 5*time.Second, k.log)
+		if err != nil {
+			return nil, err
+		}
+
+		k.publicIP = ip
+	}
+
+	return k.publicIP, nil
+}
+
 func (k *Klient) registerURL() (u *url.URL, err error) {
 	if k.config.RegisterURL != "" {
 		return url.Parse(k.config.RegisterURL)
@@ -384,7 +440,7 @@ func (k *Klient) registerURL() (u *url.URL, err error) {
 
 	// Attempt to get the IP, and retry up to 10 times with 5 second pauses between
 	// retries.
-	ip, err := publicip.PublicIPRetry(10, 5*time.Second, k.log)
+	ip, err := k.PublicIP()
 	if err != nil {
 		return nil, err
 	}
@@ -402,10 +458,16 @@ func (k *Klient) registerURL() (u *url.URL, err error) {
 	return u, nil
 }
 
-func (k *Klient) tunnelOptions() *tunnel.Options {
+func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
+	ip, err := k.PublicIP()
+	if err != nil {
+		return nil, err
+	}
+
 	opts := &tunnel.Options{
 		TunnelName:    k.config.TunnelName,
 		TunnelKiteURL: k.config.TunnelKiteURL,
+		PublicIP:      ip,
 		Debug:         k.config.Debug,
 		Config:        k.kite.Config.Copy(),
 	}
@@ -414,7 +476,7 @@ func (k *Klient) tunnelOptions() *tunnel.Options {
 		opts.LocalAddr = net.JoinHostPort("127.0.0.1", strconv.Itoa(k.config.Port))
 	}
 
-	return opts
+	return opts, nil
 }
 
 // Run registers klient to Kontrol and starts the kite server. It also runs any
@@ -437,10 +499,15 @@ func (k *Klient) Run() {
 	}
 
 	if !isKoding && !k.config.NoTunnel {
+		opts, err := k.tunnelOptions()
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		// If tunnel has started, the returned url overwrites registerURL
 		// pointing at public end of the tunnel. Otherwise it's a nop
 		// and returns registerURL.
-		registerURL, err = k.tunnel.Start(k.tunnelOptions(), registerURL)
+		registerURL, err = k.tunnel.Start(opts, registerURL)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -513,6 +580,7 @@ func newKite(kconf *KlientConfig) *kite.Kite {
 	k.Id = conf.Id // always boot up with the same id in the kite.key
 	// Set klient to use XHR Polling, since Prod Koding only supports XHR
 	k.Config.Transport = config.XHRPolling
+	k.ClientFunc = klientXHRClientFunc
 	return k
 }
 

@@ -8,16 +8,16 @@ CustomPlanStorageSlider = require './customplanstorageslider'
 
 module.exports = class ComputeResizeModal extends ComputePlansModal
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'resize-modal'
-    options.height   = 320
+    options.height   = 280
 
     super options, data
 
-    {@machine} = @getOptions()
+    { @machine } = @getOptions()
 
-  viewAppended:->
+  viewAppended: ->
 
     { usage, limits, plan, reward } = @getOptions()
 
@@ -70,17 +70,13 @@ module.exports = class ComputeResizeModal extends ComputePlansModal
       callback : @bound 'resizeVM'
       disabled : newPossibleStorage <= @machineCurrentStorage
 
-    content.addSubView new CustomLinkView
-      title    : 'Upgrade your account for more storage'
-      href     : '/Pricing'
-
     @updateUsageText newPossibleStorage, usage, maxStorage
 
-    @storageSlider.on 'ValueIsChanging', (val)=>
+    @storageSlider.on 'ValueIsChanging', (val) =>
       @updateUsageText val, usage, maxStorage
 
 
-  updateUsageText: (val, usage, maxStorage)->
+  updateUsageText: (val, usage, maxStorage) ->
 
     newUsage = (usage.storage + val) - @machineCurrentStorage
 

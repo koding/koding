@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/klientctl/config"
+	"koding/klientctl/metrics"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/koding/logging"
 
@@ -82,8 +82,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	// Create the installation dir, if needed.
-	err = os.MkdirAll(KlientDirectory, 0755)
-	if err != nil {
+	if err := os.MkdirAll(KlientDirectory, 0755); err != nil {
 		log.Error(
 			"Error creating klient binary directory(s). path:%s, err:%s",
 			KlientDirectory, err,
@@ -189,7 +188,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	s.Start()
 
 	fmt.Println("Verifying installation...")
-	err = WaitUntilStarted(config.KlientAddress, 5, 1*time.Second)
+	err = WaitUntilStarted(config.KlientAddress, CommandAttempts, CommandWaitTime)
 
 	// After X times, if err != nil we failed to connect to klient.
 	// Inform the user.
@@ -198,6 +197,9 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
+
+	// track metrics
+	metrics.TrackInstall()
 
 	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", config.KlientName)
 

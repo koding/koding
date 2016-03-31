@@ -1,6 +1,5 @@
 _                          = require 'lodash'
 kd                         = require 'kd'
-nick                       = require 'app/util/nick'
 keycode                    = require 'keycode'
 Encoder                    = require 'htmlencode'
 editorSettings             = require '../../workspace/panes/settings/editorsettings'
@@ -203,10 +202,10 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
 
     super
 
-    @addSubView new kd.CustomHTMLView cssClass: 'icon'
+    @addSubView new kd.CustomHTMLView { cssClass: 'icon' }
 
     searchForm        = @modalTabs.forms.Search
-    { @warningView  } = searchForm.fields
+    { @warningView }  = searchForm.fields
     { @searchButton } = searchForm.buttons
     { @findInput,  @whereInput } = searchForm.inputs
     { @caseToggle, @regExpToggle, @wholeWordToggle } = searchForm.inputs

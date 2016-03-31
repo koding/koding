@@ -4,12 +4,12 @@ kd = require 'kd'
 KDController = kd.Controller
 module.exports = class LinkController extends KDController
 
-  constructor:->
+  constructor: ->
     super
     @linkHandlers = {}
 
-  handleLinkClick:(link)->
-    {JAccount, JGroup} = remote.api
+  handleLinkClick: (link) ->
+    { JAccount, JGroup } = remote.api
     data = link.getData?()
 
     return  unless data?
@@ -24,14 +24,14 @@ module.exports = class LinkController extends KDController
 
     return  unless route
 
-    kd.getSingleton('router').handleRoute route, {state : data}  if route?
+    kd.getSingleton('router').handleRoute route, { state : data }  if route?
 
-  registerLink:(link)->
+  registerLink: (link) ->
     id = link.getId()
     link.on 'LinkClicked', handler = => @handleLinkClick link
     @linkHandlers[id] = handler
 
-  unregisterLink:(link)->
+  unregisterLink: (link) ->
     id = link.getId()
     link.off @linkHandlers[id]
     delete @linkHandlers[id]

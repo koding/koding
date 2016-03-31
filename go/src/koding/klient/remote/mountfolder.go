@@ -12,6 +12,7 @@ import (
 
 	"koding/fuseklient"
 	"koding/klient/remote/kitepinger"
+	"koding/klient/remote/machine"
 	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
 )
@@ -80,20 +81,34 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 	mounter := &mount.Mounter{
 		Log:           log,
 		Options:       params,
+		Machine:       remoteMachine,
 		IP:            remoteMachine.IP,
-		KitePinger:    remoteMachine.KitePinger,
+		KiteTracker:   remoteMachine.KiteTracker,
 		Intervaler:    remoteMachine.Intervaler,
 		Transport:     remoteMachine.Client,
 		PathUnmounter: fuseklient.Unmount,
 		MountAdder:    r,
 	}
 
-	if _, err = mounter.Mount(); err != nil {
+	if _, err := mounter.Mount(); err != nil {
 		return nil, err
 	}
 
 	// Check the remote size, so we can print a warning to the user if needed.
-	return checkSizeOfRemoteFolder(remoteMachine.Client, params.RemotePath)
+	if !params.NoPrefetchMeta || !params.PrefetchAll {
+		res, err := checkSizeOfRemoteFolder(remoteMachine.Client, params.RemotePath)
+
+		// If there's no error, clear the machine status.
+		if err == nil {
+			remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
+		}
+
+		return res, err
+	}
+
+	remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
+
+	return nil, nil
 }
 
 // checkIfUserHasFolderPerms checks if user can at least open the directory

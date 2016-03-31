@@ -2,7 +2,6 @@ package awsprovider
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -10,8 +9,6 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/contexthelper/request"
-	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
@@ -24,7 +21,19 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// Apply
+// Apply builds and expands compute stack template for the given ID and
+// sends an apply request to terraformer.
+//
+// When destroy=false, building and expanding the stack prior to
+// terraformer request is done asynchronously, and the result of
+// that operation is communicated back with eventer.
+//
+// When destroy=true, fetching machines from DB is done synchronously, as
+// as soon as Apply method returns, allowed user list for each machine
+// is zeroed, which could make the destroy oepration to fail - we
+// first build machines and rest of the destroy is perfomed asynchronously.
+//
+// TODO(rjeczalik): move to *provider.BaseStack
 func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 	var arg kloud.ApplyRequest
 	if err := s.Req.Args.One().Unmarshal(&arg); err != nil {
@@ -44,17 +53,32 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		return nil, fmt.Errorf("State is currently %s. Please try again later", stack.State())
 	}
 
-	if arg.Destroy {
-		s.Eventer.Push(&eventer.Event{
-			Message: s.Req.Method + " started",
-			Status:  machinestate.Terminating,
-		})
-	} else {
-		s.Eventer.Push(&eventer.Event{
-			Message: s.Req.Method + " started",
-			Status:  machinestate.Building,
-		})
+	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
+		rt.Hijack()
 	}
+
+	if arg.Destroy {
+		err = s.destroy(ctx, &arg)
+	} else {
+		err = s.apply(ctx, &arg)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return kloud.ControlResult{
+		EventId: s.Eventer.ID(),
+	}, nil
+}
+
+func (s *Stack) apply(ctx context.Context, req *kloud.ApplyRequest) error {
+	log := s.Log.New(req.StackID)
+
+	s.Eventer.Push(&eventer.Event{
+		Message: s.Req.Method + " started",
+		Status:  machinestate.Building,
+	})
 
 	go func() {
 		finalEvent := &eventer.Event{
@@ -65,75 +89,49 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 
 		start := time.Now()
 
-		var err error
-		if arg.Destroy {
-			modelhelper.SetStackState(arg.StackID, "Stack destroying started",
-				stackstate.Destroying)
+		modelhelper.SetStackState(req.StackID, "Stack building started", stackstate.Building)
+		log.Info("======> %s started <======", strings.ToUpper(s.Req.Method))
 
-			s.Log.New(arg.StackID).Info("======> %s (destroy) started <======",
-				strings.ToUpper(s.Req.Method))
-			finalEvent.Status = machinestate.Terminated
-			err = s.destroy(ctx, s.Req.Username, arg.GroupName, arg.StackID)
-		} else {
-			modelhelper.SetStackState(arg.StackID, "Stack building started", stackstate.Building)
+		if err := s.applyAsync(ctx, req); err != nil {
+			modelhelper.SetStackState(req.StackID, "Stack building failed", stackstate.NotInitialized)
+			finalEvent.Status = machinestate.NotInitialized
 
-			s.Log.New(arg.StackID).Info("======> %s started <======", strings.ToUpper(s.Req.Method))
-			err = s.apply(ctx, s.Req.Username, arg.GroupName, arg.StackID)
-			if err != nil {
-				modelhelper.SetStackState(arg.StackID, "Stack building failed",
-					stackstate.NotInitialized)
-				finalEvent.Status = machinestate.NotInitialized
-			} else {
-				modelhelper.SetStackState(arg.StackID, "Stack building finished",
-					stackstate.Initialized)
-			}
-
-		}
-
-		if err != nil {
 			// don't pass the error directly to the eventer, mask it to avoid
 			// error leaking to the client. We just log it here.
-			s.Log.New(arg.StackID).Error("%s error: %s", s.Req.Method, err)
-
 			finalEvent.Error = err.Error()
-			s.Log.New(arg.StackID).Error("======> %s finished with error (time: %s): '%s' <======",
+			log.Error("======> %s finished with error (time: %s): '%s' <======",
 				strings.ToUpper(s.Req.Method), time.Since(start), err.Error())
 		} else {
-			s.Log.New(arg.StackID).Info("======> %s finished (time: %s) <======",
-				strings.ToUpper(s.Req.Method), time.Since(start))
+			modelhelper.SetStackState(req.StackID, "Stack building finished", stackstate.Initialized)
+			log.Info("======> %s finished (time: %s) <======", strings.ToUpper(s.Req.Method), time.Since(start))
 		}
 
 		s.Eventer.Push(finalEvent)
 	}()
 
-	return kloud.ControlResult{
-		EventId: s.Eventer.ID(),
-	}, nil
+	return nil
 }
 
-func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string) error {
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return errors.New("session context is not passed")
-	}
+func (s *Stack) destroy(ctx context.Context, req *kloud.ApplyRequest) error {
+	log := s.Log.New(req.StackID)
 
-	ev, ok := eventer.FromContext(ctx)
-	if !ok {
-		return errors.New("eventer context is not passed")
-	}
-
-	req, ok := request.FromContext(ctx)
-	if !ok {
-		return errors.New("request context is not passed")
-	}
-
-	ev.Push(&eventer.Event{
-		Message:    "Fetching and validating machines",
-		Percentage: 20,
-		Status:     machinestate.Building,
+	s.Eventer.Push(&eventer.Event{
+		Message: s.Req.Method + " started",
+		Status:  machinestate.Terminating,
 	})
 
-	if err := s.Builder.BuildStack(stackID); err != nil {
+	start := time.Now()
+
+	modelhelper.SetStackState(req.StackID, "Stack destroying started", stackstate.Destroying)
+	log.Info("======> %s (destroy) started <======", strings.ToUpper(s.Req.Method))
+
+	s.Eventer.Push(&eventer.Event{
+		Message:    "Fetching and validating machines",
+		Percentage: 20,
+		Status:     machinestate.Terminating,
+	})
+
+	if err := s.Builder.BuildStack(req.StackID); err != nil {
 		return err
 	}
 
@@ -141,30 +139,60 @@ func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string
 		return err
 	}
 
-	ev.Push(&eventer.Event{
+	// This part is done asynchronously.
+	go func() {
+		finalEvent := &eventer.Event{
+			Message:    s.Req.Method + " finished",
+			Percentage: 100,
+			Status:     machinestate.Terminated,
+		}
+
+		err := s.destroyAsync(ctx, req)
+		if err != nil {
+			// don't pass the error directly to the eventer, mask it to avoid
+			// error leaking to the client. We just log it here.
+			finalEvent.Error = err.Error()
+			log.Error("======> %s finished with error (time: %s): '%s' <======",
+				strings.ToUpper(s.Req.Method), time.Since(start), err)
+		} else {
+			log.Info("======> %s finished (time: %s) <======", strings.ToUpper(s.Req.Method), time.Since(start))
+		}
+
+		s.Eventer.Push(finalEvent)
+	}()
+
+	return nil
+}
+
+func (s *Stack) destroyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
+	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
+		defer rt.Send()
+	}
+
+	s.Eventer.Push(&eventer.Event{
 		Message:    "Fetching and validating credentials",
 		Percentage: 30,
-		Status:     machinestate.Building,
+		Status:     machinestate.Terminating,
 	})
 
 	credIDs := stackplan.FlattenValues(s.Builder.Stack.Credentials)
 
-	s.Log.Debug("Fetching '%d' credentials from user '%s'", len(credIDs), username)
+	s.Log.Debug("Fetching '%d' credentials from user '%s'", len(credIDs), s.Req.Username)
 
-	if err := s.Builder.BuildCredentials(req.Method, username, groupname, credIDs); err != nil {
+	if err := s.Builder.BuildCredentials(s.Req.Method, s.Req.Username, req.GroupName, credIDs); err != nil {
 		return err
 	}
 
 	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
 	s.Log.Debug("Connection to Terraformer")
 
-	tfKite, err := terraformer.Connect(sess.Kite)
+	tfKite, err := terraformer.Connect(s.Session.Kite)
 	if err != nil {
 		return err
 	}
 	defer tfKite.Close()
 
-	contentID := groupname + "-" + stackID
+	contentID := req.GroupName + "-" + req.StackID
 	s.Log.Debug("Building template %s", contentID)
 
 	if err := s.Builder.BuildTemplate(s.Builder.Stack.Template, contentID); err != nil {
@@ -189,7 +217,7 @@ func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string
 		}
 	}
 
-	if _, err := s.InjectAWSData(ctx, username, false); err != nil {
+	if _, err := s.InjectAWSData(ctx, s.Req.Username, false); err != nil {
 		return err
 	}
 
@@ -221,32 +249,21 @@ func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string
 		}
 	}
 
-	return modelhelper.DeleteComputeStack(stackID)
+	return modelhelper.DeleteComputeStack(req.StackID)
 }
 
-func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) error {
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return errors.New("session context is not passed")
+func (s *Stack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
+	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
+		defer rt.Send()
 	}
 
-	ev, ok := eventer.FromContext(ctx)
-	if !ok {
-		return errors.New("eventer context is not passed")
-	}
-
-	req, ok := request.FromContext(ctx)
-	if !ok {
-		return errors.New("internal server error (err: session context is not available)")
-	}
-
-	ev.Push(&eventer.Event{
+	s.Eventer.Push(&eventer.Event{
 		Message:    "Fetching and validating machines",
 		Percentage: 20,
 		Status:     machinestate.Building,
 	})
 
-	if err := s.Builder.BuildStack(stackID); err != nil {
+	if err := s.Builder.BuildStack(req.StackID); err != nil {
 		return err
 	}
 
@@ -254,7 +271,7 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 		return err
 	}
 
-	ev.Push(&eventer.Event{
+	s.Eventer.Push(&eventer.Event{
 		Message:    "Fetching and validating credentials",
 		Percentage: 30,
 		Status:     machinestate.Building,
@@ -262,22 +279,22 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 
 	credIDs := stackplan.FlattenValues(s.Builder.Stack.Credentials)
 
-	s.Log.Debug("Fetching '%d' credentials from user '%s'", len(credIDs), username)
+	s.Log.Debug("Fetching '%d' credentials from user '%s'", len(credIDs), s.Req.Username)
 
-	if err := s.Builder.BuildCredentials(req.Method, username, groupname, credIDs); err != nil {
+	if err := s.Builder.BuildCredentials(s.Req.Method, s.Req.Username, req.GroupName, credIDs); err != nil {
 		return err
 	}
 
 	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
 	s.Log.Debug("Connection to Terraformer")
 
-	tfKite, err := terraformer.Connect(sess.Kite)
+	tfKite, err := terraformer.Connect(s.Session.Kite)
 	if err != nil {
 		return err
 	}
 	defer tfKite.Close()
 
-	contentID := groupname + "-" + stackID
+	contentID := req.GroupName + "-" + req.StackID
 	s.Log.Debug("Building template: %s", contentID)
 
 	if err := s.Builder.BuildTemplate(s.Builder.Stack.Template, contentID); err != nil {
@@ -315,7 +332,7 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 		}
 	}
 
-	kiteIDs, err := s.InjectAWSData(ctx, username, true)
+	kiteIDs, err := s.InjectAWSData(ctx, s.Req.Username, true)
 	if err != nil {
 		return err
 	}
@@ -344,7 +361,7 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 					start += 5
 				}
 
-				ev.Push(&eventer.Event{
+				s.Eventer.Push(&eventer.Event{
 					Message:    "Building stack resources",
 					Percentage: start,
 					Status:     machinestate.Building,
@@ -372,7 +389,7 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 
 	close(done)
 
-	ev.Push(&eventer.Event{
+	s.Eventer.Push(&eventer.Event{
 		Message:    "Checking VM connections",
 		Percentage: 70,
 		Status:     machinestate.Building,
@@ -404,7 +421,7 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 	s.Log.Debug("Updated machines\n%s", string(d))
 	s.Log.Debug("Updating and syncing terraform output to jMachine documents")
 
-	ev.Push(&eventer.Event{
+	s.Eventer.Push(&eventer.Event{
 		Message:    "Updating machine settings",
 		Percentage: 90,
 		Status:     machinestate.Building,

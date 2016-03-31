@@ -1,5 +1,6 @@
-kd    = require 'kd'
-JView = require 'app/jview'
+kd      = require 'kd'
+JView   = require 'app/jview'
+Tracker = require 'app/util/tracker'
 
 StackTemplateListView = require './stacktemplatelistview'
 
@@ -61,15 +62,18 @@ module.exports = class BaseInitialView extends kd.View
         to verify it. Only a verified stack template can be applied to a Team.
       '
 
-    { groupsController } = kd.singletons
+    { groupsController, computeController } = kd.singletons
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
       if err
         @showWarning "Failed to set template: \n#{err.message}"
         console.warn err
       else
-        @reload()
-        kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
+        # wait until stack template list is updated in current group
+        computeController.once 'GroupStackTemplatesUpdated', =>
+          @reload()
+          kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
+          Tracker.track Tracker.STACKS_MAKE_DEFAULT
 
 
   showWarning: (content) ->

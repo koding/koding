@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-version"
+	"github.com/koding/logging"
 )
 
 const testVagrantFile = `# -*- mode: ruby -*-
@@ -36,6 +37,12 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	vg.Log = logging.NewLogger("vagrantutil_test")
+	vg.Log.SetLevel(logging.DEBUG)
+	h := logging.NewWriterHandler(os.Stderr)
+	h.SetLevel(logging.DEBUG)
+	vg.Log.SetHandler(h)
 
 	ret := m.Run()
 	os.RemoveAll(vagrantName)
@@ -238,13 +245,9 @@ func TestStatus(t *testing.T) {
 }
 
 func testOutput(t *testing.T, cmd string, out <-chan *CommandOutput) {
-	log.Printf("Starting to read the stream output of %q:\n\n", cmd)
 	for res := range out {
 		if res.Error != nil {
 			t.Error(res.Error)
 		}
-		log.Println(res.Line)
 	}
-
-	log.Printf("\n\nStreaming is finished for %q command", cmd)
 }

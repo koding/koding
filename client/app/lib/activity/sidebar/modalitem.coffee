@@ -14,7 +14,7 @@ module.exports = class ModalItem extends KDListItemView
 
     super options, data
 
-    {href, title} = @getOptions()
+    { href, title } = @getOptions()
 
     @addSubView new KDCustomHTMLView
       tagName    : 'a'

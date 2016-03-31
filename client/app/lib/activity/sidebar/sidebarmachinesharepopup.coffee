@@ -45,7 +45,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
     _addSubview new KDCustomHTMLView
       cssClass  : 'modal-arrow'
-      position  : top : 20
+      position  : { top : 20 }
 
 
   createOverlay: ->
@@ -107,14 +107,14 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
     userView.addSubView new AvatarView
       origin : nickname
-      size   : width: 30, height: 30
+      size   : { width: 30, height: 30 }
 
     userView.addSubView userDetails = new KDCustomHTMLView
       cssClass : 'user-details'
 
 
     # FIXME: cacheable is actually not cacheable, must be fixed before deploy.
-    remote.cacheable nickname, (err, accounts) =>
+    remote.cacheable nickname, (err, accounts) ->
 
       return showError err  if err
 
@@ -139,7 +139,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
       return showError err  if err
 
-      {router, mainView, socialapi} = kd.singletons
+      { router, mainView, socialapi } = kd.singletons
 
       doNavigation = =>
         if machine.isPermanent()
@@ -159,13 +159,13 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
         return @destroy()  if wasApproved
 
-        envDataProvider.fetch =>
+        envDataProvider.fetch ->
           doNavigation()
 
       { channelId } = @getOptions()
 
       if channelId
-        socialapi.channel.byId {id: channelId}, (err, channel) ->
+        socialapi.channel.byId { id: channelId }, (err, channel) ->
           return showError err  if err
           return callback()  if channel.isParticipant
           socialapi.channel.acceptInvite { channelId }, (err) ->
@@ -183,7 +183,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
     @denyButton.showLoader()
 
-    {type, isApproved, channelId} = @getOptions()
+    { type, isApproved, channelId } = @getOptions()
     isPermanent = machine.isPermanent()
 
     denyMachine = switch type
@@ -205,7 +205,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
         { channel } = kd.singletons.socialapi
         method      = if isApproved then 'leave' else 'rejectInvite'
 
-        channel[method] {channelId}, (err) ->
+        channel[method] { channelId }, (err) ->
           showError err
           callback()
 

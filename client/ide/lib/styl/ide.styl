@@ -33,7 +33,7 @@ body.ide
       .icon
         display             block
         margin-top          3px
-        r-sprite            ide, nav-collapse
+        r-sprite            ide, nav_collapse
         cursor              pointer
 
 
@@ -74,7 +74,7 @@ body.ide
         right               4px
 
         span
-          r-sprite          'ide', 'tab-close'
+          r-sprite          'ide', 'tab_close'
           display           block
           left              8px
           rel()
@@ -192,7 +192,7 @@ body.ide .dark
     background              rgba(0, 0, 0, .6)
 
   .kdtabhandle.plus
-    r-sprite                'ide', 'tab-plus'
+    r-sprite                'ide', 'tab_plus'
     border-left             none
     margin                  4px
 
@@ -234,7 +234,7 @@ body.ide .dark
 
   .kdtabhandle.close-handle
     .icon
-      r-sprite              'ide', 'tab-close'
+      r-sprite              'ide', 'tab_close'
       width                 9px
 
   .kdtabhandle.fullscreen-handle .icon
@@ -448,7 +448,7 @@ body.ide .dark
   overflow                  hidden
 
 body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
-  r-sprite                  ide, nav-collapse
+  r-sprite                  ide, nav_collapse
 
 .ide-files-tab .general-handles .fullscreen-handle
   hidden()
@@ -465,22 +465,22 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
       text-indent           -1000px
 
     &.files
-      r-sprite              'ide', 'files-off'
+      r-sprite              'ide', 'files_off'
 
       &.active
-        r-sprite            'ide', 'files-on'
+        r-sprite            'ide', 'files_on'
 
     &.vms
-      r-sprite              'ide', 'vms-off'
+      r-sprite              'ide', 'vms_off'
 
       &.active
-        r-sprite            'ide', 'vms-on'
+        r-sprite            'ide', 'vms_on'
 
     &.settings
-      r-sprite              'ide', 'settings-off'
+      r-sprite              'ide', 'settings_off'
 
       &.active
-        r-sprite            'ide', 'settings-on'
+        r-sprite            'ide', 'settings_on'
 
   .toggle
     display                 inline-block
@@ -558,7 +558,7 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     .actions-menu
       border                none
       display               inline-block
-      r-sprite              'ide', 'horizontal-dots'
+      r-sprite              'ide', 'horizontal_dots'
       pointer()
       abs()
       right                 12px
@@ -583,7 +583,7 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
 
     .icon
       display               inline-block
-      r-sprite              'ide', 'add-vm'
+      r-sprite              'ide', 'add_vm'
       float                 none
       vertical-align        sub
       margin-right          4px
@@ -995,11 +995,11 @@ body.ide .kddialogview.save-as-dialog
       p
         margin-left         -8px !important
     &.undo p
-      r-sprite              'ide', 'arrow-left'
+      r-sprite              'ide', 'arrow_left'
       margin                -5px 0 0 -5px
 
     &.redo p
-      r-sprite              'ide', 'arrow-right'
+      r-sprite              'ide', 'arrow_right'
       margin                -5px 0 0 -5px
 
     &.clear p
@@ -1224,7 +1224,7 @@ body.ide .kddialogview.save-as-dialog
 
   .tail-icon
     display                 inline-block
-    r-sprite                'ide', 'collab-eye'
+    r-sprite                'ide', 'collab_eye'
     top                     12px
     right                   7px
     opacity                 .5

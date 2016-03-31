@@ -1,12 +1,11 @@
-kd                          = require 'kd'
-remote                      = require('app/remote').getInstance()
-snapshotHelpers             = require './snapshothelpers'
-openIdeByMachine            = require '../util/openIdeByMachine'
-JView                       = require '../jview'
-ComputeErrorUsageModal      = require './computeerrorusagemodal'
-MachineSettingsCommonView   = require './machinesettingscommonview'
-SnapshotListItem            = require './snapshotlistitem'
-
+kd                                 = require 'kd'
+remote                             = require('app/remote').getInstance()
+snapshotHelpers                    = require './snapshothelpers'
+openIdeByMachine                   = require '../util/openIdeByMachine'
+JView                              = require '../jview'
+ComputeErrorUsageModal             = require './computeerrorusagemodal'
+MachineSettingsCommonView          = require './machinesettingscommonview'
+MachineSettingsSnapshotsController = require './controllers/machinesettingssnapshotscontroller'
 
 module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommonView
 
@@ -16,10 +15,6 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     options.headerTitle          = 'Snapshots'
     options.addButtonTitle       = 'ADD SNAPSHOT'
     options.headerAddButtonTitle = 'ADD NEW SNAPSHOT'
-    options.listViewItemClass    = SnapshotListItem
-    options.noItemFoundWidget    = new kd.CustomHTMLView
-      cssClass : 'no-item'
-      partial  : 'You do not have any Snapshots.'
 
     # Trigger the snapshotsLimits fetch, so that we can cache it ahead of time.
     @snapshotsLimit()
@@ -36,12 +31,29 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
         @emit 'ModalDestroyRequested'
 
 
+  createListView: ->
+
+    itemOptions = @getOptions().listViewItemOptions or {}
+    itemOptions.machineId = @machine._id
+
+    options =
+      viewOptions   :
+        wrapper     : yes
+        itemOptions : itemOptions
+
+    @listController = new MachineSettingsSnapshotsController options
+
+    @listView = @listController.getView()
+
+    @addSubView @listView
+
+
   ###*
    * Display a simple Notification to the user.
   ###
   @notify: (msg = '') ->
 
-    new kd.NotificationView content: msg
+    new kd.NotificationView { content: msg }
 
 
   ###*
@@ -66,10 +78,10 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     @createListView()
     @addSubView new kd.CustomHTMLView
       cssClass : 'learn-more'
-      partial  : """
+      partial  : '''
         <a target="_blank" href="https://koding.com/docs/vm-snapshot">Learn more about
         Snapshots</a>
-      """
+      '''
 
 
   ###*
@@ -90,12 +102,12 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       tagName         : 'h4'
       cssClass        : 'kdview kdheaderview'
       pistachioParams : { @headerAddNewButton }
-      pistachio       : """
+      pistachio       : '''
         <span class="column label">Name</span>
         <span class="column created-at">Created at</span>
         <span class="column size">Size</span>
         {{> headerAddNewButton}}
-        """
+        '''
 
     @addSubView @notificationView = new kd.CustomHTMLView
       cssClass : 'notification hidden'
@@ -115,7 +127,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     eventId           = "createSnapshot-#{machineId}"
 
     monitorProgress = (event) =>
-      {error, percentage} = event
+      { error, percentage } = event
       @emit 'SnapshotProgress', percentage
       return  if percentage < 100
       # Remove the subscriber if the percent is >= 100
@@ -135,7 +147,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
    * MachineSettingsCommonView's method to swap the button order.
   ###
   createAddNewViewButtons: ->
-    wrapper = new kd.CustomHTMLView cssClass: 'buttons'
+    wrapper = new kd.CustomHTMLView { cssClass: 'buttons' }
 
     wrapper.addSubView new kd.CustomHTMLView
       tagName  : 'span'
@@ -174,16 +186,16 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     openIdeByMachine machine, (err, ideController) =>
       if err
         @addNewButton.hideLoader()
-        @showNotification "Error, unable to create snapshot.", 'error'
-        kd.error "Unable to create snapshot, IDE Could not be found", err
+        @showNotification 'Error, unable to create snapshot.', 'error'
+        kd.error 'Unable to create snapshot, IDE Could not be found', err
         return
 
       container = ideController?.getView()
 
       unless container?
         @addNewButton.hideLoader()
-        @showNotification "Error, unable to create snapshot.", 'error'
-        return kd.error "Unable to create snapshot, IDE View could not be found"
+        @showNotification 'Error, unable to create snapshot.', 'error'
+        return kd.error 'Unable to create snapshot, IDE View could not be found'
 
       @emit 'ModalDestroyRequested'
       modal = snapshotHelpers.showSnapshottingModal machine, container
@@ -213,18 +225,6 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     super
 
     @listController.showNoItemWidget()
-
-
-  ###*
-   * Populate the listController with snapshots fetched from jSnapshot.
-  ###
-  initList: ->
-
-    {JSnapshot} = remote.api
-    JSnapshot.some {}, {}, (err, snapshots = []) =>
-      kd.warn err  if err
-      @listController.lazyLoader?.hide()
-      @listController.replaceAllItems snapshots
 
 
   ###*

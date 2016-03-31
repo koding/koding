@@ -14,7 +14,7 @@ module.exports = class BaseModalView extends KDBlockingModalView
     super options, data
 
   show: ->
-    {container} = @getOptions()
+    { container } = @getOptions()
     @overlay    = new KDOverlayView
       appendToDomBody : no
       isRemovable     : no

@@ -2,7 +2,6 @@ kd                           = require 'kd'
 KDViewController             = kd.ViewController
 KDCustomScrollView           = kd.CustomScrollView
 
-nick                         = require 'app/util/nick'
 isGuest                      = require 'app/util/isGuest'
 Machine                      = require 'app/providers/machine'
 FSHelper                     = require 'app/util/fs/fshelper'
@@ -98,15 +97,11 @@ module.exports = class NFinderController extends KDViewController
     if machineToMount = @getOption 'machineToMount'
       return @mountMachine machineToMount
 
-    { computeController } = kd.singletons
-
-    computeController.fetchMachines (err, machines) =>
-
-      unless showError err
-        @mountMachines machines  if machines.length > 0
-
 
   mountMachine: (machine, options = {}) ->
+
+    @setOption 'machineToMount', machine
+
     options.fetchContent ?= yes
 
     unless machine.status.state is Machine.State.Running

@@ -8,4 +8,4 @@ module.exports = class ChannelActivitySideView extends ActivitySideView
 
     { searchLink, countSource, limit } = @getOptions()
 
-    return new ChannelSidebarMoreLink {href: searchLink, countSource, limit}
+    return new ChannelSidebarMoreLink { href: searchLink, countSource, limit }

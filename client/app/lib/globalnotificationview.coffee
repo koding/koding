@@ -10,7 +10,7 @@ JView = require './jview'
 
 module.exports = class GlobalNotificationView extends JView
 
-  constructor:->
+  constructor: ->
 
     super
 
@@ -18,13 +18,13 @@ module.exports = class GlobalNotificationView extends JView
       title      : ''
       icon       :
         cssClass : 'close'
-      click      : (event)=>
+      click      : (event) =>
         kd.utils.stopDOMEvent event
         @hideAndDestroy()
 
     @bindTransitionEnd()
 
-    {scheduledAt, closeTimer} = @getData()
+    { scheduledAt, closeTimer } = @getData()
 
     scheduledAt = (new Date(scheduledAt)).getTime()
 
@@ -46,7 +46,7 @@ module.exports = class GlobalNotificationView extends JView
         cssClass : 'solid red mini cancel'
         title    : 'ADMIN: Cancel Notification'
         callback : =>
-          @getData().cancel (err)=>
+          @getData().cancel (err) =>
             if err then notify_ err
             else @hideAndDestroy()
     else
@@ -56,22 +56,22 @@ module.exports = class GlobalNotificationView extends JView
     @once 'transitionend', @bound 'destroy'
     @hide()
 
-  destroy:->
+  destroy: ->
 
     kd.utils.killRepeat @repeater
     super
 
 
-  timerPartial:(time)-> "#{nicetime (time - Date.now()) / 1000}."
+  timerPartial: (time) -> "#{nicetime (time - Date.now()) / 1000}."
 
-  show:-> @setClass 'in'
+  show: -> @setClass 'in'
 
-  hide:-> @unsetClass 'in'
+  hide: -> @unsetClass 'in'
 
-  pistachio:->
-    """
+  pistachio: ->
+    '''
     <div>
     {{ #(title)}} {{> @timer}} {cite{ #(content)}}
     {{> @close}}{{> @adminClose}}
     </div>
-    """
+    '''

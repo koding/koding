@@ -1,4 +1,5 @@
 assert   = require 'assert'
+helpers  = require '../helpers/helpers.js'
 
 environmentHelpers = require '../helpers/environmenthelpers.js'
 helpers            = require '../helpers/helpers.js'
@@ -94,9 +95,9 @@ module.exports =
             callback()
 
 
-  handleInvitation: (browser, host, participant, accept) ->
+  handleInvitation: (browser, host, participant, accept, endSessionAfterAcceptingInvite = yes) ->
 
-    sharedMachineSelector  = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
+    sharedMachineSelector = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
 
     helpers.beginTest(browser, participant)
 
@@ -113,7 +114,9 @@ module.exports =
         @acceptOrRejectInvitation(browser, host, participant, accept)
 
         browser.pause 5000
-        browser.end()
+
+        if endSessionAfterAcceptingInvite
+          browser.end()
 
 
   handleInvite: (browser, host, participant, callback) ->

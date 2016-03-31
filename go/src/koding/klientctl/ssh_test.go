@@ -6,6 +6,8 @@ import (
 	"path"
 	"testing"
 
+	"koding/klient/kiteerrortypes"
+	"koding/klient/util"
 	"koding/klientctl/klient"
 	"koding/klientctl/ssh"
 
@@ -17,16 +19,30 @@ func TestSSHCommand(t *testing.T) {
 		tempSSHDir, err := ioutil.TempDir("", "")
 		So(err, ShouldBeNil)
 
+		teller := newFakeTransport()
 		s := ssh.SSHCommand{
 			SSHKey: &ssh.SSHKey{
 				KeyPath: tempSSHDir,
 				KeyName: "key",
 				// Create a klient, with the fake transport to satisfy the Teller interface.
 				Klient: &klient.Klient{
-					Teller: &fakeTransport{},
+					Teller: teller,
 				},
 			},
 		}
+
+		Convey("Given PrepareForSSH is called", func() {
+			Convey("When it returns a dialing error", func() {
+				kiteErr := util.KiteErrorf(
+					kiteerrortypes.DialingFailed, "Failed to dial.",
+				)
+				teller.TripErrors["remote.sshKeysAdd"] = kiteErr
+
+				Convey("It should return ErrDialingFailed", func() {
+					So(s.PrepareForSSH("foo"), ShouldEqual, kiteErr)
+				})
+			})
+		})
 
 		Convey("It should return public key path", func() {
 			key := s.PublicKeyPath()

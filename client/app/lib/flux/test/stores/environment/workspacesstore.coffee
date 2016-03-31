@@ -19,7 +19,7 @@ describe 'WorkspacesStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores workspacesStore : WorkspacesStore
+    @reactor.registerStores { workspacesStore : WorkspacesStore }
 
 
   describe '#getInitialState', ->
@@ -63,7 +63,7 @@ describe 'WorkspacesStore', ->
 
       expect(store.get '_id').toBe _id
 
-      @reactor.dispatch actionTypes.WORKSPACE_DELETED, workspaceId : _id
+      @reactor.dispatch actionTypes.WORKSPACE_DELETED, { workspaceId : _id }
 
       store = @reactor.evaluate(['workspacesStore']).get _id
 

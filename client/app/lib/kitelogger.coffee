@@ -23,7 +23,7 @@ module.exports = class KiteLogger
     @buffer[key] ?= 0
     @buffer[key]++
 
-  ['failed', 'success', 'queued', 'started'].forEach (helper)=>
+  ['failed', 'success', 'queued', 'started'].forEach (helper) =>
     @[helper] = (kiteName, rpcCall, err) ->
       @log kiteName, rpcCall, helper, err
 
@@ -43,7 +43,7 @@ module.exports = class KiteLogger
       return
 
     remote.api.DataDog.sendMetrics data, (err) =>
-      kd.warn "[KiteLogger] failed:", err  if err?
+      kd.warn '[KiteLogger] failed:', err  if err?
       @consumeInProgress = no
 
 

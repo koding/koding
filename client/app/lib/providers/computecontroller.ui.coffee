@@ -24,9 +24,9 @@ MissingDataView      = require './missingdataview'
 { jsonToYaml }       = require 'stacks/views/stacks/yamlutils'
 
 
-module.exports = class ComputeController_UI
+module.exports = class ComputeControllerUI
 
-  do -> ({ message }, fn) -> (args...)->
+  do -> ({ message }, fn) -> (args...) ->
 
     return unless isLoggedIn()
       new KDNotificationView
@@ -41,10 +41,10 @@ module.exports = class ComputeController_UI
   showPrivateKeyWarning = (privateKey) ->
 
     new kd.ModalView
-      title           : "Please save private key content"
+      title           : 'Please save private key content'
       subtitle        : applyMarkdown "
                          This stack only requires public key which means
-                         private key of this public key is not goint to be
+                         private key of this public key is not going to be
                          stored, please take a copy of following private key.
                          \n
                          **You won't be able to access this private key later**
@@ -58,17 +58,23 @@ module.exports = class ComputeController_UI
         cssClass      : 'second-overlay'
 
 
+  hasStackRequiredField = (requiredFields, field) ->
+
+    return yes  if field in requiredFields
+    return (item for item in requiredFields when item.name is field).length > 0
+
+
   injectCustomActions = (requiredFields, buttons, callback) ->
 
-    if 'ssh_public_key' in requiredFields
+    if hasStackRequiredField requiredFields, 'ssh_public_key'
 
       buttons['Auto Generate SSH Keys'] =
         style    : 'solid medium green'
         type     : 'button'
         loader   : yes
         tooltip  :
-          title  : "This stack requires SSH keys that you
-                    can automatically create one from here"
+          title  : 'This stack requires SSH keys that you
+                    can automatically create one from here'
         callback : ->
 
           endPoint = '/api/social/sshkeys'
@@ -77,9 +83,9 @@ module.exports = class ComputeController_UI
           doXhrRequest { endPoint, type }, (err, res) =>
 
             @hideLoader()
-            return  if showError err, KodingError: 'Service not available'
+            return  if showError err, { KodingError: 'Service not available' }
 
-            unless 'ssh_private_key' in requiredFields
+            unless hasStackRequiredField requiredFields, 'ssh_private_key'
               showPrivateKeyWarning res.private
 
             callback
@@ -97,8 +103,8 @@ module.exports = class ComputeController_UI
 
     fields           =
       title          :
-        label        : "Title"
-        placeholder  : "title for this credential"
+        label        : 'Title'
+        placeholder  : 'title for this credential'
         defaultValue : defaultTitle or ''
 
     if provider in ['custom', 'userInput'] and requiredFields
@@ -143,10 +149,10 @@ module.exports = class ComputeController_UI
 
     buttons      =
       Save       :
-        title    : "Save"
-        type     : "submit"
-        style    : "solid green medium"
-        loader   : color : "#444444"
+        title    : 'Save'
+        type     : 'submit'
+        style    : 'solid green medium'
+        loader   : { color : '#444444' }
         callback : -> @hideLoader()
 
     if requiredFields
@@ -155,9 +161,9 @@ module.exports = class ComputeController_UI
           input.setValue data  if data = generatedKeys[field]
 
     buttons.Cancel =
-      style        : "solid medium"
-      type         : "button"
-      callback     : -> form.emit "Cancel"
+      style        : 'solid medium'
+      type         : 'button'
+      callback     : -> form.emit 'Cancel'
 
 
     # Add advanced fields into form
@@ -172,14 +178,14 @@ module.exports = class ComputeController_UI
 
 
       buttons['Advanced Mode'] =
-        style    : "solid medium"
-        type     : "button"
+        style    : 'solid medium'
+        type     : 'button'
         callback : ->
           form.toggleClass 'in-advanced-mode'
           @toggleClass 'green'
 
     form = new KDFormViewWithFields
-      cssClass     : "form-view"
+      cssClass     : 'form-view'
       fields       : fields
       buttons      : buttons
       callback     : (data) ->
@@ -202,7 +208,7 @@ module.exports = class ComputeController_UI
             @buttons.Save.hideLoader()
 
             unless showError err
-              @emit "CredentialAdded", credential
+              @emit 'CredentialAdded', credential
 
 
     selectOptions.forEach (select) ->
@@ -216,35 +222,35 @@ module.exports = class ComputeController_UI
 
     form = new KDFormViewWithFields
 
-      cssClass          : "form-view"
+      cssClass          : 'form-view'
 
       fields            :
 
         title           :
-          label         : "Title"
-          placeholder   : "title for this instance"
+          label         : 'Title'
+          placeholder   : 'title for this instance'
           validate      :
             rules       :
               required  : yes
             messages    :
-              required  : "Title is required"
+              required  : 'Title is required'
 
       buttons           :
 
         Save            :
-          title         : "Create Instance"
-          type          : "submit"
-          style         : "solid green medium"
-          loader        : color : "#444444"
+          title         : 'Create Instance'
+          type          : 'submit'
+          style         : 'solid green medium'
+          loader        : { color : '#444444' }
           callback      : -> @hideLoader()
 
         Cancel          :
-          style         : "solid light-gray medium"
-          type          : "button"
-          callback      : -> form.emit "Cancel"
+          style         : 'solid light-gray medium'
+          type          : 'button'
+          callback      : -> form.emit 'Cancel'
 
-      callback          : (data)->
-        form.emit "Submit", data
+      callback          : (data) ->
+        form.emit 'Submit', data
 
 
   @askFor: (action, options, callback) ->
@@ -268,31 +274,31 @@ module.exports = class ComputeController_UI
     tasks         =
       default     :
         resize    :
-          title   : "Resize VM?"
-          message : "
+          title   : 'Resize VM?'
+          message : '
             If you choose to proceed, this VM will be resized #{resizeDetails}.
             During the resize process, you will not be able to use your VM.
             No need to worry, your files, workspaces and your data therein will be safe.
-          "
-          button  : "Proceed"
+          '
+          button  : 'Proceed'
         reinit    :
-          title   : "Reinitialize VM?"
-          message : "
+          title   : 'Reinitialize VM?'
+          message : '
             If you choose to proceed, this VM will be reset to its default state.
             That means you will lose all of its data i.e. your files, workspaces, collaboration
             sessions. Your VM settings however, (VM aliases, sub-domains etc.) will not be lost.
-          "
-          button  : "Proceed"
+          '
+          button  : 'Proceed'
         reinitStack :
-          title   : "Reinitialize Stack?"
-          message : "
+          title   : 'Reinitialize Stack?'
+          message : '
             If you choose to proceed, this stack and all of its VMs will be
             re-initialized from the latest revision of this stack.
             You will lose all of your existing VMs, workspaces and your data therein.
-          "
-          button  : "Proceed"
+          '
+          button  : 'Proceed'
         deleteStack :
-          title   : "Destroy Stack?"
+          title   : 'Destroy Stack?'
           message : "
             <p>If you choose to proceed, this stack and all the VMs will be
             destroyed, and you won't be able to revert this.</p>
@@ -300,7 +306,7 @@ module.exports = class ComputeController_UI
             <p>Any existing data will be lost including existing files,
             workspaces, VMs and anything provided by this stack.</p>
           "
-          button  : "Proceed"
+          button  : 'Proceed'
         permissionFix  :
           title        : "Permission fix required for #{machineName}"
           message      : "
@@ -314,7 +320,7 @@ module.exports = class ComputeController_UI
           buttonColor  : 'green'
           dontAskAgain : dontAskAgain ? yes
         forceDeleteStack :
-          title   : "Delete Stack data?"
+          title   : 'Delete Stack data?'
           message : "
             <p>If you choose to proceed, all of the meta data and related
             information for this stack will be removed from Koding.</p>
@@ -330,10 +336,10 @@ module.exports = class ComputeController_UI
 
             <p>Do you want to continue?</p>
           "
-          button  : "Proceed"
+          button  : 'Proceed'
         reinitNoSnapshot :
-          title   : "Cannot proceed with reinitialization!"
-          message : "
+          title   : 'Cannot proceed with reinitialization!'
+          message : '
             <p>The snapshot on which this VM was originally based has been
             deleted, so the system cannot reinitialize this VM.</p>
 
@@ -341,11 +347,11 @@ module.exports = class ComputeController_UI
             Note: reinitializing will erase all files and folders on the VM
             right now but your VM settings (VM aliases, sub-domains etc.)
             will not be lost.</p>
-          "
-          button  : "Proceed"
+          '
+          button  : 'Proceed'
         destroy   :
-          title   : "Remove VM?"
-          message : "
+          title   : 'Remove VM?'
+          message : '
             <p>Terminating this VM will destroy all of its:</p>
               <br/>
               <li> files and data </li>
@@ -357,12 +363,12 @@ module.exports = class ComputeController_UI
               <br/>
             <p>This action cannot be reversed!
             Are you sure you want to proceed?</p>
-          "
-          button  : "Yes, remove"
+          '
+          button  : 'Yes, remove'
       managed     :
         destroy   :
-          title   : "Delete Machine from Koding?"
-          message : applyMarkdown "
+          title   : 'Delete Machine from Koding?'
+          message : applyMarkdown '
             Deleting this machine here will only remove its connection to
             your Koding account. All files and data will still be available
             on the actual machine.\n\n
@@ -376,12 +382,12 @@ module.exports = class ComputeController_UI
             sudo dpkg -P klient\n
             ```\n
 
-            Are you sure you want to proceed?"
-          button  : "Yes"
+            Are you sure you want to proceed?'
+          button  : 'Yes'
 
     task = tasks[provider]?[action] ? tasks.default[action]
 
-    throw message: "Failed to find action #{action}"  unless task
+    throw { message: "Failed to find action #{action}" }  unless task
 
     { title, message, button, buttonColor, dontAskAgain } = task
 
@@ -389,7 +395,7 @@ module.exports = class ComputeController_UI
     dontAskAgain = 'hidden'  if not dontAskAgain
 
     modal = new kd.ModalView
-      title          : title ? "Remove?"
+      title          : title ? 'Remove?'
       cssClass       : 'has-markdown'
       content        : """
         <div class='modalformline'>
@@ -399,7 +405,7 @@ module.exports = class ComputeController_UI
       overlay        : yes
       buttons        :
         ok           :
-          title      : button ? "Yes, remove"
+          title      : button ? 'Yes, remove'
           style      : "solid #{buttonColor} medium"
           callback   : ->
             modal.destroy()
@@ -435,7 +441,7 @@ module.exports = class ComputeController_UI
       overlay        : yes
       view           : missingDataView
       overlayClick   : no
-      overlayOptions : cssClass: 'second-overlay'
+      overlayOptions : { cssClass: 'second-overlay' }
 
     modal.overlay.on 'click', ->
       lc = missingDataView.listController
@@ -450,7 +456,7 @@ module.exports = class ComputeController_UI
 
     information = null
 
-    (provisioner, modal)->
+    (provisioner, modal) ->
 
       if provisioner?
         message = "Build script <strong>#{provisioner.slug}</strong> loaded. "
@@ -458,54 +464,54 @@ module.exports = class ComputeController_UI
           message += """When you edit it, it won't change the original,
                         it will create your own copy of this build script."""
       else
-        message = """This is a new build script. This bash script will be
-                     executed as root when the machine is rebuilt."""
+        message = '''This is a new build script. This bash script will be
+                     executed as root when the machine is rebuilt.'''
 
       information?.destroy?()
       information = new KDNotificationView
         container     : modal
-        type          : "tray"
+        type          : 'tray'
         content       : message
         duration      : 0
         closeManually : no
 
 
-  @showBuildScriptEditorModal = (machine)->
+  @showBuildScriptEditorModal = (machine) ->
 
     return  unless machine?
 
     ComputeHelpers = require './computehelpers'
-    ComputeHelpers.reviveProvisioner machine, (err, provisioner)->
+    ComputeHelpers.reviveProvisioner machine, (err, provisioner) ->
 
       return  if showError err
 
       modal   = new EditorModal
 
         editor              :
-          title             : "Build Script Editor"
-          content           : provisioner?.content?.script or ""
-          saveMessage       : "Build script saved"
+          title             : 'Build Script Editor'
+          content           : provisioner?.content?.script or ''
+          saveMessage       : 'Build script saved'
           saveFailedMessage : "Couldn't save build script"
 
-          saveCallback      : (script, modal)->
+          saveCallback      : (script, modal) ->
 
             if isMine provisioner
 
-              provisioner.update content: { script }, (err, res)->
-                modal.emit if err then "SaveFailed" else "Saved"
+              provisioner.update { content: { script } }, (err, res) ->
+                modal.emit if err then 'SaveFailed' else 'Saved'
 
             else
 
-              {JProvisioner} = remote.api
+              { JProvisioner } = remote.api
               JProvisioner.create
-                type    : "shell"
+                type    : 'shell'
                 content : { script }
-              , (err, newProvisioner)->
+              , (err, newProvisioner) ->
 
                 return  if showError err
 
-                machine.jMachine.setProvisioner newProvisioner.slug, (err)->
-                  modal.emit if err then "SaveFailed" else "Saved"
+                machine.jMachine.setProvisioner newProvisioner.slug, (err) ->
+                  modal.emit if err then 'SaveFailed' else 'Saved'
 
                   unless showError err
                     machine.provisioners = [ newProvisioner.slug ]
@@ -533,8 +539,8 @@ module.exports = class ComputeController_UI
     message   = if message then "<div class='message'>#{message}</div>" else ''
 
     modal     = new kd.ModalView
-      title          : title    ? "An error occured"
-      subtitle       : subtitle ? ""
+      title          : title    ? 'An error occured'
+      subtitle       : subtitle ? ''
       draggable      : no
       height         : 600
       cssClass       : "AppModal AppModal--admin has-markdown
@@ -562,7 +568,7 @@ module.exports = class ComputeController_UI
 
     if stack
 
-      modal.addSubView tabView = new kd.TabView hideHandleCloseIcons: yes
+      modal.addSubView tabView = new kd.TabView { hideHandleCloseIcons: yes }
 
       tabView.addPane new kd.TabPaneView
         name : 'Error Details'
@@ -574,7 +580,7 @@ module.exports = class ComputeController_UI
 
         return kd.warn err  if err or not template
 
-        {content} = template.template
+        { content } = template.template
         content   = Encoder.htmlDecode content or ''
         content   = (hljs.highlight 'coffee', (jsonToYaml content).content).value
 

@@ -50,8 +50,8 @@ module.exports = class PaymentModal extends PaymentBaseModal
     { PAYPAL } = PaymentConstants.provider
     { FREE }   = PaymentConstants.planTitle
 
-    @addSubView @errors = new KDCustomHTMLView {cssClass : 'errors hidden'}
-    @addSubView @form   = new PaymentForm {@state}
+    @addSubView @errors = new KDCustomHTMLView { cssClass : 'errors hidden' }
+    @addSubView @form   = new PaymentForm { @state }
 
     if provider is PAYPAL
       if subscriptionState isnt 'expired'
@@ -121,7 +121,7 @@ module.exports = class PaymentModal extends PaymentBaseModal
 
   handleError: (error) ->
 
-    msg = error?.description or error?.message or "Something went wrong."
+    msg = error?.description or error?.message or 'Something went wrong.'
     showError msg
 
 

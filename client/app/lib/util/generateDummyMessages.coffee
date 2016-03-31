@@ -6,7 +6,7 @@ module.exports = generateDummyMessages = ({ size }) ->
 
   messages = immutable.Map()
 
-  [0...size].forEach (i)->
+  [0...size].forEach (i) ->
     message  = toImmutable generateDummyMessage()
     message  = message.set 'id', i
     message  = message.set '_id', i

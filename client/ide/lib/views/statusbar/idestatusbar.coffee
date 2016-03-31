@@ -38,12 +38,13 @@ module.exports = class IDEStatusBar extends kd.View
 
     { mainController, router, appManager } = kd.singletons
 
-    @addSubView @status = new kd.CustomHTMLView cssClass : 'status'
+    @addSubView @status = new kd.CustomHTMLView { cssClass : 'status' }
 
     @addSubView @collaborationLinkContainer = new kd.CustomHTMLView
       cssClass: 'collaboration-link-container'
 
-    superKey = if globals.os is 'mac' then '⌘' else 'CTRL'
+    superKey  = if globals.os is 'mac' then '⌘' else 'CTRL'
+    shareCopy = 'This is your collaboration link. You can share this link to invite someone to your session. Click here to copy!'
 
     @collaborationLinkContainer.addSubView @collaborationLink = new kd.CustomHTMLView
       cssClass   : 'collaboration-link'
@@ -51,7 +52,7 @@ module.exports = class IDEStatusBar extends kd.View
       bind       : 'mouseenter mouseleave'
       mouseleave : -> @tooltip.hide()
       mouseenter : ->
-        @tooltip.setTitle 'Click to share!'
+        @tooltip.setTitle shareCopy
         @tooltip.show()
         @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'hide'
 
@@ -61,7 +62,8 @@ module.exports = class IDEStatusBar extends kd.View
 
         try
           copied = document.execCommand 'copy'
-          throw "couldn't copy"  unless copied
+          couldntCopy = "couldn't copy"
+          throw couldntCopy  unless copied
           tooltipPartial = 'Copied to clipboard!'
         catch
           tooltipPartial = "Hit #{superKey} + C to copy!"
@@ -71,7 +73,7 @@ module.exports = class IDEStatusBar extends kd.View
         @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'hide'
 
     @collaborationLink.setTooltip
-      title     : 'Click to share!'
+      title     : shareCopy
       placement : 'above'
       sticky    : yes
 
@@ -83,7 +85,7 @@ module.exports = class IDEStatusBar extends kd.View
     @addSubView new kd.CustomHTMLView
       tagName  : 'i'
       cssClass : 'icon shortcuts'
-      click    : (event) =>
+      click    : (event) ->
         kd.utils.stopDOMEvent event
         router.handleRoute '/Account/Shortcuts'
 
@@ -110,7 +112,7 @@ module.exports = class IDEStatusBar extends kd.View
         target   : '_blank'
         title    : 'Start a video chat using appear.in'
 
-    @addSubView @avatars = new kd.CustomHTMLView cssClass : 'avatars fr hidden'
+    @addSubView @avatars = new kd.CustomHTMLView { cssClass : 'avatars fr hidden' }
 
     mainController.isFeatureDisabled 'collaboration', (collabDisabled) =>
       @_collabDisable = collabDisabled
@@ -160,7 +162,7 @@ module.exports = class IDEStatusBar extends kd.View
 
     view       = new IDEStatusBarAvatarView
       origin   : nickname
-      size     : width: 24, height: 24
+      size     : { width: 24, height: 24 }
       cssClass : if isOnline then 'online' else 'offline'
       amIHost  : @amIHost_()
 
@@ -185,8 +187,8 @@ module.exports = class IDEStatusBar extends kd.View
     onlineUsers = (user.nickname for user in currentlyOnline)
 
     for account in accounts
-      {nickname} = account.profile
-      isOnline   = onlineUsers.indexOf(nickname) > -1
+      { nickname } = account.profile
+      isOnline     = onlineUsers.indexOf(nickname) > -1
 
       unless nickname is myNickname
         @createParticipantAvatar nickname, isOnline
@@ -291,6 +293,7 @@ module.exports = class IDEStatusBar extends kd.View
   updateCollaborationLink: (collaborationLink) ->
 
     @collaborationLink.updatePartial collaborationLink
+    @collaborationLink.tooltip.show()  if collaborationLink and @amIHost_()
 
 
   handleSessionEnd: ->

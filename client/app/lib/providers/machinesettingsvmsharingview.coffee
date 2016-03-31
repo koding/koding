@@ -1,3 +1,4 @@
+_                                = require 'lodash'
 kd                               = require 'kd'
 nick                             = require 'app/util/nick'
 remote                           = require('app/remote').getInstance()
@@ -10,6 +11,7 @@ ComputeErrorUsageModal           = require './computeerrorusagemodal'
 KDAutoCompleteController         = kd.AutoCompleteController
 MachineSettingsCommonView        = require './machinesettingscommonview'
 ActivityAutoCompleteUserItemView = require 'activity/views/activityautocompleteuseritemview'
+Tracker                          = require 'app/util/tracker'
 
 
 module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommonView
@@ -21,13 +23,15 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     options.addButtonTitle       = 'INVITE'
     options.headerAddButtonTitle = 'ADD SOMEONE'
     options.listViewItemClass    = UserItem
-    options.listViewOptions      =
-      useCustomScrollView        : yes
     options.loaderOnHeaderButton = yes
-    options.listViewItemOptions  = { justFirstName: no, size: width: 32, height: 32 }
+    options.listViewItemOptions  = { justFirstName: no, size: { width: 32, height: 32 } }
     options.noItemFoundWidget    = new KDCustomHTMLView
       cssClass : 'no-item'
       partial  : 'This VM has not yet been shared with anyone.'
+    options.listViewOptions      =
+      fetcherMethod              : (query, options, callback) =>
+        options = _.extend options, { permanentOnly: yes }
+        @machine.jMachine.reviveUsers options, (err, users = [])  -> callback err, users
 
     @machine = data
 
@@ -44,7 +48,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
 
     return no  if @getData().status.state isnt Machine.State.Running
 
-    @machine.jMachine.reviveUsers permanentOnly: yes, (err, users = []) =>
+    @machine.jMachine.reviveUsers { permanentOnly: yes }, (err, users = []) =>
 
       kd.warn err  if err
 
@@ -63,12 +67,16 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     @_users = [nick()].concat (user.profile.nickname for user in users)
 
 
-  addUser: (user) -> @modifyUsers user, 'add'
+  addUser: (user) ->
+
+    Tracker.track Tracker.VM_SHARED
+    @modifyUsers user, 'add'
 
 
   kickUser: (userItem) ->
 
     userItem.setLoadingMode yes
+    Tracker.track Tracker.VM_KICKED_SHARED
     @modifyUsers userItem.getData(), 'kick', userItem
 
 
@@ -108,7 +116,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
       itemDataPath        : 'profile.nickname'
       listWrapperCssClass : 'private-message vm-sharing hidden'
       itemClass           : ActivityAutoCompleteUserItemView
-      outputWrapper       : new KDView cssClass: 'hidden'
+      outputWrapper       : new KDView { cssClass: 'hidden' }
       submitValuesAsText  : yes
       dataSource          : @bound 'fetchAccounts'
 
@@ -127,14 +135,14 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
       @autoComplete.selectedItemData    = []
 
 
-  fetchAccounts: ({inputValue}, callback) ->
+  fetchAccounts: ({ inputValue }, callback) ->
 
     kd.singletons.search.searchAccounts inputValue
       .filter (it) => it.profile.nickname not in @_users
       .then callback
       .timeout 1e4
       .catch (err) ->
-        console.warn "Error while autoComplete: ", err
+        console.warn 'Error while autoComplete: ', err
         callback []
 
 

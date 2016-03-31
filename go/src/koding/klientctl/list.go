@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"koding/klient/remote/machine"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
 	"math"
@@ -15,8 +16,6 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 )
-
-var autoUnmountFailed = "Error auto mounting. Please unmount & mount again."
 
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
@@ -59,7 +58,7 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tLAST SEEN\tMOUNTED PATHS\n")
+	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tSTATUS\tMOUNTED PATHS\n")
 	for i, info := range infos {
 		// Join multiple teams into a single identifier
 		team := strings.Join(info.Teams, ",")
@@ -75,20 +74,34 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 		// to a single mount.
 		var formattedMount string
 		if len(info.Mounts) > 0 {
-			if info.Mounts[0].LastMountError {
-				formattedMount = autoUnmountFailed
-			} else {
-				formattedMount += fmt.Sprintf(
-					"%s -> %s",
-					shortenPath(info.Mounts[0].LocalPath),
-					shortenPath(info.Mounts[0].RemotePath),
-				)
-			}
+			formattedMount += fmt.Sprintf(
+				"%s -> %s",
+				shortenPath(info.Mounts[0].LocalPath),
+				shortenPath(info.Mounts[0].RemotePath),
+			)
 		}
 
+		// Defaulting to unknown, in case any weird status is returned.
 		status := "unknown"
-		if !info.ConnectedAt.IsZero() {
-			status = timeToAgo(info.ConnectedAt, time.Now())
+		switch info.MachineStatus {
+		case machine.MachineOffline:
+			status = "offline"
+		case machine.MachineOnline:
+			status = "online"
+		case machine.MachineDisconnected:
+			status = "disconnected"
+		case machine.MachineConnected:
+			status = "connected"
+		case machine.MachineError:
+			status = "error"
+		case machine.MachineRemounting:
+			status = "remounting"
+		}
+
+		// Currently we are displaying the status message over the formattedMount,
+		// if it exists.
+		if info.StatusMessage != "" {
+			formattedMount = info.StatusMessage
 		}
 
 		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\t%s\n",

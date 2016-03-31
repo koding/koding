@@ -18,14 +18,14 @@ MachineSettingsSnapshotsView = require './machinesettingssnapshotsview'
 
 
 PANE_CONFIG = [
-  { title: 'General',       viewClass: MachineSettingsGeneralView   }
-  { title: 'Specs',         viewClass: MachineSettingsSpecsView     }
+  { title: 'General',       viewClass: MachineSettingsGeneralView }
+  { title: 'Specs',         viewClass: MachineSettingsSpecsView }
   { title: 'Disk Usage',    viewClass: MachineSettingsDiskUsageView }
-  { title: 'Domains',       viewClass: MachineSettingsDomainsView   }
+  { title: 'Domains',       viewClass: MachineSettingsDomainsView }
   { title: 'VM Sharing',    viewClass: MachineSettingsVMSharingView }
   { title: 'Snapshots',     viewClass: MachineSettingsSnapshotsView }
-  { title: 'Advanced',      viewClass: MachineSettingsAdvancedView  }
-  { title: 'Common guides', viewClass: MachineSettingsGuidesView    }
+  { title: 'Advanced',      viewClass: MachineSettingsAdvancedView }
+  { title: 'Common guides', viewClass: MachineSettingsGuidesView }
 ]
 
 hiddenTabsForSolo = [
@@ -60,7 +60,7 @@ module.exports = class MachineSettingsModal extends KDModalView
 
   createTabView: ->
 
-    tabHandleContainer = new KDTabHandleContainer cssClass: 'AppModal-nav'
+    tabHandleContainer = new KDTabHandleContainer { cssClass: 'AppModal-nav' }
 
     @addSubView tabHandleContainer
 
@@ -90,13 +90,12 @@ module.exports = class MachineSettingsModal extends KDModalView
 
       subView    = new item.viewClass item.viewOptions, machine
       isDisabled = not isMachineRunning and disabledTabsForNotRunningVM.indexOf(item.title) > -1
-      isManaged  = machine.isManaged()
+      managedAndNotKoding = not isKoding() and machine.isManaged()
 
-      if disabledTabs = disabledTabsForProviders[machine.provider]
-        isDisabled = disabledTabs.indexOf(item.title) > -1
-
-      unless isKoding()
-        isDisabled = disabledTabsForTeams.indexOf(item.title) > -1 and not isManaged
+      if disabledTabs = disabledTabsForProviders[machine.provider] or managedAndNotKoding
+        isDisabled = item.title in disabledTabs
+      else
+        isDisabled = item.title in disabledTabsForTeams
 
       @tabView.addPane pane = new KDTabPaneView
         name     : item.title

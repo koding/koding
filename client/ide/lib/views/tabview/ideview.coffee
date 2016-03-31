@@ -1,27 +1,25 @@
-$                       = require 'jquery'
-kd                      = require 'kd'
-nick                    = require 'app/util/nick'
-FSFile                  = require 'app/util/fs/fsfile'
-KDView                  = kd.View
-Encoder                 = require 'htmlencode'
-FSHelper                = require 'app/util/fs/fshelper'
-IDEHelpers              = require '../../idehelpers'
-KDModalView             = kd.ModalView
-IDEEditorPane           = require '../../workspace/panes/ideeditorpane'
-IDETailerPane           = require '../../workspace/panes/idetailerpane'
-KDContextMenu           = kd.ContextMenu
-KDTabPaneView           = kd.TabPaneView
-IDEPreviewPane          = require '../../workspace/panes/idepreviewpane'
-IDEDrawingPane          = require '../../workspace/panes/idedrawingpane'
-IDETerminalPane         = require '../../workspace/panes/ideterminalpane'
-generatePassword        = require 'app/util/generatePassword'
-KDCustomHTMLView        = kd.CustomHTMLView
-KDSplitViewPanel        = kd.SplitViewPanel
-ProximityNotifier       = require './splithandleproximitynotifier'
-IDEWorkspaceTabView     = require '../../workspace/ideworkspacetabview'
-IDEApplicationTabView   = require './ideapplicationtabview.coffee'
-showErrorNotification   = require 'app/util/showErrorNotification'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
+$                     = require 'jquery'
+kd                    = require 'kd'
+nick                  = require 'app/util/nick'
+FSFile                = require 'app/util/fs/fsfile'
+KDView                = kd.View
+FSHelper              = require 'app/util/fs/fshelper'
+IDEHelpers            = require '../../idehelpers'
+KDModalView           = kd.ModalView
+IDEEditorPane         = require '../../workspace/panes/ideeditorpane'
+IDETailerPane         = require '../../workspace/panes/idetailerpane'
+KDContextMenu         = kd.ContextMenu
+KDTabPaneView         = kd.TabPaneView
+IDEPreviewPane        = require '../../workspace/panes/idepreviewpane'
+IDEDrawingPane        = require '../../workspace/panes/idedrawingpane'
+IDETerminalPane       = require '../../workspace/panes/ideterminalpane'
+generatePassword      = require 'app/util/generatePassword'
+ProximityNotifier     = require './splithandleproximitynotifier'
+IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
+IDEApplicationTabView = require './ideapplicationtabview.coffee'
+showErrorNotification = require 'app/util/showErrorNotification'
+Tracker               = require 'app/util/tracker'
+
 
 HANDLE_PROXIMITY_DISTANCE   = 100
 DEFAULT_SESSION_NAME_LENGTH = 24
@@ -161,9 +159,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     modal = new KDModalView
       title         : 'Would you like us to remove the pane when there are no tabs left?'
       cssClass      : 'autoremovepane-confirm'
-      content       : """
+      content       : '''
         <p>You can always change this setting on preferences.</p>
-      """
+      '''
       overlay       : yes
       buttons       :
         'Yes'       :
@@ -405,7 +403,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     change.origin = nick()
 
     if type in [ 'PaneRemoved', 'TabChanged' ] and pane.file
-      change.context.file = path: pane.file.path
+      change.context.file = { path: pane.file.path }
 
     @emit 'ChangeHappened', change
 
@@ -415,7 +413,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     drawingPane = new IDEDrawingPane { hash: paneHash }
     @createPane_ drawingPane, { name: 'Drawing' }
 
-    @emitChange  drawingPane, context: {}  unless paneHash
+    @emitChange  drawingPane, { context: {} }  unless paneHash
 
 
   createPreview: (url) ->
@@ -426,7 +424,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     previewPane.on 'LocationChanged', (newLocation) =>
       @updateStatusBar 'preview', newLocation
 
-    @emitChange previewPane, context: { url }
+    @emitChange previewPane, { context: { url } }
 
 
   showView: (view, name = 'Search Result') -> @createPane_ view, { name }
@@ -442,9 +440,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     unless data
       if paneType is 'editor'
-        {file} = subView.getOptions()
-        {ace}  = subView.aceView
-        cursor = if ace.editor? then ace.editor.getCursorPosition() else row: 0, column: 0
+        { file } = subView.getOptions()
+        { ace }  = subView.aceView
+        cursor   = if ace.editor? then ace.editor.getCursorPosition() else row: 0, column: 0
 
         file.name = @trimUntitledFileName file.name
 
@@ -465,7 +463,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         data = "Watching changes on #{file.getPath()}"
 
       else if paneType is 'searchResult'
-        {stats, searchText} = subView.getOptions()
+        { stats, searchText } = subView.getOptions()
         data = { stats, searchText }
 
     appManager.tell 'IDE', 'updateStatusBar', paneType, data
@@ -482,9 +480,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     pane = @getActivePaneView()
     return unless pane
 
-    kd.utils.defer =>
-      {paneType} = pane.getOptions()
-      appManager = kd.getSingleton 'appManager'
+    kd.utils.defer ->
+      { paneType } = pane.getOptions()
+      appManager   = kd.getSingleton 'appManager'
 
       pane.setFocus? yes
 
@@ -495,7 +493,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         appManager.tell 'IDE', 'hideFindAndReplaceView'
 
     if not @suppressChangeHandlers and not @isReadOnly
-      @emitChange pane, context: {}, 'TabChanged'
+      @emitChange pane, { context: {} }, 'TabChanged'
 
 
   goToLine: -> @getActivePaneView().aceView.ace.showGotoLine()
@@ -555,8 +553,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     else
       @setClass fullscreen
       frontApp.getView().toggleClass fullscreen
+      Tracker.track Tracker.IDE_ENTERED_FULLSCREEN
 
-    @isFullScreen     = !@isFullScreen
+    @isFullScreen     = not @isFullScreen
     dontToggleSidebar = dontToggleSidebar or (@isFullScreen and mainView.isSidebarCollapsed)
 
     @holderView.setFullscreenHandleState @isFullScreen
@@ -572,13 +571,13 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     file = pane.getData()
     @openFiles.splice @openFiles.indexOf(file), 1
-    @emitChange pane.view, context: {}, 'PaneRemoved'
+    @emitChange pane.view, { context: {} }, 'PaneRemoved'
     @emit 'PaneRemoved', pane
 
 
   getDummyFilePath: (uniquePath = yes) ->
 
-    filePath = "localfile:/Untitled.txt"
+    filePath = 'localfile:/Untitled.txt'
     filePath += "@#{Date.now()}"  if uniquePath
 
     return filePath
@@ -617,7 +616,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   getPlusMenuItems: ->
 
-    {appManager} = kd.singletons
+    { appManager } = kd.singletons
 
     frontApp = appManager.getFrontApp()
     machine  = frontApp.mountedMachine
@@ -629,7 +628,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     inActiveSessions = []
 
     # Collect active sessions
-    frontApp.forEachSubViewInIDEViews_ 'terminal', (pane) =>
+    frontApp.forEachSubViewInIDEViews_ 'terminal', (pane) ->
       activeSessions.push pane.remote.session  if pane.remote?
 
     sessions.forEach (session, i) =>
@@ -644,32 +643,45 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         children          :
           'Open'          :
             disabled      : isActive
-            callback      : => @createTerminal { machine, session }
+            callback      : =>
+              @createTerminal { machine, session }
+              Tracker.track Tracker.IDE_OPEN_TERMINAL_SESSION
           'Terminate'     :
-            callback      : => @terminateSession machine, session
+            callback      : =>
+              @terminateSession machine, session
+              Tracker.track Tracker.IDE_TERMINATE_TERMINAL_SESSION
 
     canTerminateSessions  = sessions.length > 0 and frontApp.amIHost
 
-    terminalSessions["New Session"] =
-      callback            : => @createTerminal { machine }
+    terminalSessions['New Session'] =
+      callback            : =>
+        @createTerminal { machine }
+        Tracker.track Tracker.IDE_NEW_TERMINAL_SESSION
       separator           : (canTerminateSessions or inActiveSessions.length)
 
     if inActiveSessions.length
       terminalSessions['Open All']  =
-        callback          : => @openAllSessions { machine, sessions : inActiveSessions }
+        callback          : =>
+          @openAllSessions { machine, sessions : inActiveSessions }
+          Tracker.track Tracker.IDE_OPEN_ALL_TERMINAL_SESSIONS
 
     if canTerminateSessions
-      terminalSessions["Terminate all"] =
-        callback          : => @terminateSessions machine
+      terminalSessions['Terminate all'] =
+        callback          : =>
+          @terminateSessions machine
+          Tracker.track Tracker.IDE_TERMINATE_ALL_TERMINALS
 
     items =
-      'New File'          : callback : =>
-         newFile = FSHelper.createFileInstance { path: @getDummyFilePath(), machine }
-         kd.singletons.appManager.tell 'IDE', 'openFile', file: newFile
-      'New Terminal'      : children : terminalSessions
+      'New File'          : { callback : =>
+        newFile = FSHelper.createFileInstance { path: @getDummyFilePath(), machine }
+        kd.singletons.appManager.tell 'IDE', 'openFile', { file: newFile }
+        Tracker.track Tracker.IDE_NEW_FILE }
+      'New Terminal'      : { children : terminalSessions }
       # 'New Browser'       : callback : => @createPreview()
       'New Drawing Board' :
-        callback          : => @createDrawingBoard()
+        callback          : =>
+          @createDrawingBoard()
+          Tracker.track Tracker.IDE_NEW_DRAWING_BOARD
         separator         : yes
       'Split Vertically'  :
         callback          : -> frontApp.splitVertically()
@@ -721,19 +733,19 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     frontApp.mergeSplitView()
 
 
-  terminateSessions: (machine)->
+  terminateSessions: (machine) ->
 
     machine.getBaseKite().webtermKillSessions()
 
-    .catch (err)->
-      kd.warn "Failed to terminate sessions", err
+    .catch (err) ->
+      kd.warn 'Failed to terminate sessions', err
 
 
   terminateSession: (machine, session) ->
 
-    machine.getBaseKite().webtermKillSession {session}
+    machine.getBaseKite().webtermKillSession { session }
 
-    .catch (err)->
+    .catch (err) ->
       kd.warn "Failed to terminate session, possibly it's already dead.", err
 
 

@@ -49,21 +49,21 @@ app.settings.styl
       r-sprite              'account' 'editprofile'
 
     &.selected:before
-      r-sprite              'account' 'editprofile-active'
+      r-sprite              'account' 'editprofile_active'
 
   .AppModal-navItem.email
     &:before
       r-sprite              'account' 'notifications'
 
     &.selected:before
-      r-sprite              'account' 'notifications-active'
+      r-sprite              'account' 'notifications_active'
 
   .AppModal-navItem.externals
     &:before
       r-sprite              'account' 'linkedacc'
 
     &.selected:before
-      r-sprite              'account' 'linkedacc-active'
+      r-sprite              'account' 'linkedacc_active'
 
   .AppModal-navItem.billing
     &:before
@@ -71,21 +71,21 @@ app.settings.styl
       r-sprite              'account' 'billing'
 
     &.selected:before
-      r-sprite              'account' 'billing-active'
+      r-sprite              'account' 'billing_active'
 
   .AppModal-navItem.ssh
     &:before
       r-sprite              'account' 'sshkeys'
 
     &.selected:before
-      r-sprite              'account' 'sshkeys-active'
+      r-sprite              'account' 'sshkeys_active'
 
   .AppModal-navItem.sessions
     &:before
       r-sprite              'account' 'twofactor'
 
     &.selected:before
-      r-sprite              'account' 'twofactor-active'
+      r-sprite              'account' 'twofactor_active'
 
   // FIXME credentials icon ~ GG
   .AppModal-navItem.credentials
@@ -93,7 +93,7 @@ app.settings.styl
       r-sprite              'account' 'sshkeys'
 
     &.selected:before
-      r-sprite              'account' 'sshkeys-active'
+      r-sprite              'account' 'sshkeys_active'
 
   .AppModal-navItem.twofactorauth
     margin-left             3px
@@ -103,14 +103,14 @@ app.settings.styl
       r-sprite              'account' 'twofactor'
 
     &.selected:before
-      r-sprite              'account' 'twofactor-active'
+      r-sprite              'account' 'twofactor_active'
 
   .AppModal-navItem.referral
     &:before
       r-sprite              'account' 'referrals'
 
     &.selected:before
-      r-sprite              'account' 'referrals-active'
+      r-sprite              'account' 'referrals_active'
 
   .AppModal-navItem.delete
   .AppModal-navItem.leave
@@ -119,7 +119,7 @@ app.settings.styl
       r-sprite              'account' 'terminate'
 
     &.selected:before
-      r-sprite              'account' 'terminate-active'
+      r-sprite              'account' 'terminate_active'
 
   .AppModal-navItem.shortcuts
     &:before
@@ -127,7 +127,7 @@ app.settings.styl
       r-sprite              'account' 'shortcuts'
 
     &.selected:before
-      r-sprite              'account' 'shortcuts-active'
+      r-sprite              'account' 'shortcuts_active'
 
   .AppModal-content
     min-height              590px
@@ -255,22 +255,22 @@ app.settings.styl
     margin-right            19px
 
   &.google .icon
-    r-sprite                'account' 'ext-gplus'
+    r-sprite                'account' 'ext_gplus'
 
   &.linkedin .icon
-    r-sprite                'account' 'ext-linkedin'
+    r-sprite                'account' 'ext_linkedin'
 
   &.twitter .icon
-    r-sprite                'account' 'ext-twitter'
+    r-sprite                'account' 'ext_twitter'
 
   &.odesk .icon
-    r-sprite                'account' 'ext-upwork'
+    r-sprite                'account' 'ext_upwork'
 
   &.facebook .icon
-    r-sprite                'account' 'ext-facebook'
+    r-sprite                'account' 'ext_facebook'
 
   &.github .icon
-    r-sprite                'account' 'ext-github'
+    r-sprite                'account' 'ext_github'
 
 .AppModal--account .settings-list-wrapper
 
@@ -375,10 +375,10 @@ app.settings.styl
         display             inline-block
 
       .delete .icon
-        r-sprite            'account', 'ssh-delete'
+        r-sprite            'account', 'ssh_delete'
 
       .edit .icon
-        r-sprite            'account', 'ssh-edit'
+        r-sprite            'account', 'ssh_edit'
 
     &:hover .buttons
       opacity               1
@@ -579,19 +579,19 @@ app.settings.styl
         size                26px, 26px
 
       .google
-        r-sprite            'account' 'ext-gplus'
+        r-sprite            'account' 'ext_gplus'
 
       .linkedin
-        r-sprite            'account' 'ext-linkedin'
+        r-sprite            'account' 'ext_linkedin'
 
       .twitter
-        r-sprite            'account' 'ext-twitter'
+        r-sprite            'account' 'ext_twitter'
 
       .facebook
-        r-sprite            'account' 'ext-facebook'
+        r-sprite            'account' 'ext_facebook'
 
       .mail
-        r-sprite            'account' 'ext-mail'
+        r-sprite            'account' 'ext_mail'
 
   .bottom
     margin                  25px 0
@@ -880,7 +880,7 @@ app.settings.styl
     .icon.visa
       r-sprite              'pricing', 'visa'
     .icon.american-express
-      r-sprite              'pricing', 'american-express'
+      r-sprite              'pricing', 'american_express'
     .icon.mastercard
       r-sprite              'pricing', 'mastercard'
     .icon.discover
@@ -923,7 +923,7 @@ app.settings.styl
       margin-bottom         20px
 
       cite
-        r-sprite            'account', 'twofactor-badge'
+        r-sprite            'account', 'twofactor_badge'
         fr()
 
     .enabled-intro > div
@@ -936,7 +936,7 @@ app.settings.styl
 
       cite
         text-align          center
-        r-sprite            'account', 'twofactor-badge'
+        r-sprite            'account', 'twofactor_badge'
         display             block
         margin              20px auto 0
 
@@ -992,7 +992,7 @@ app.settings.styl
         fr()
 
         .icon
-          r-sprite          app, '16-reload'
+          r-sprite          app, '16_reload'
 
     // Shame on you Safari! ~ GG
     input

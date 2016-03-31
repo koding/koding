@@ -15,9 +15,9 @@ module.exports = class ManagedVMBaseModal extends kd.ModalView
 
     @states  =
       initial: (data) =>
-        view.addTo @container, message: text: 'Override this state first.'
+        view.addTo @container, { message: { text: 'Override this state first.' } }
 
-  switchTo: (state, data)->
+  switchTo: (state, data) ->
 
     @container.destroySubViews()
 
@@ -31,7 +31,7 @@ module.exports = class ManagedVMBaseModal extends kd.ModalView
 
   viewAppended: ->
 
-    view.addTo @container, waiting: ''
+    view.addTo @container, { waiting: '' }
 
     @fetchOtaToken (err, token) =>
 
@@ -46,7 +46,7 @@ module.exports = class ManagedVMBaseModal extends kd.ModalView
 
   fetchKites: ->
 
-    {queryKites} = require './helpers'
+    { queryKites } = require './helpers'
 
     queryKites()
       .then (kites) =>
@@ -54,7 +54,7 @@ module.exports = class ManagedVMBaseModal extends kd.ModalView
         then @switchTo 'listKites', kites
         else @switchTo 'retry', 'No kite instance found'
       .catch (err) =>
-        console.warn "Error:", err
+        console.warn 'Error:', err
         @switchTo 'retry', 'Failed to query kites'
 
 
@@ -63,9 +63,9 @@ module.exports = class ManagedVMBaseModal extends kd.ModalView
    *
    * @param {Function(err, token)} callback
   ###
-  fetchOtaToken: (callback)->
+  fetchOtaToken: (callback) ->
 
-    kd.singletons.mainController.ready =>
-      whoami().fetchOtaToken (err, token) =>
+    kd.singletons.mainController.ready ->
+      whoami().fetchOtaToken (err, token) ->
         if err then callback err
         else callback null, token

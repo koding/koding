@@ -6,11 +6,11 @@ CustomLinkView = require './customlinkview'
 module.exports = class TopNavigation extends KDCustomHTMLView
 
   menu = [
-    { title : 'EDUCATION', href : '/Education', appName : 'Education'}
-    { title : 'BUSINESS',  href : '/Business',  appName : 'Business'}
-    { title : 'ABOUT',     href : '/About',     appName : 'About'}
-    { title : 'PRICING',   href : '/Pricing',   appName : 'Pricing'}
-    { title : 'SIGN IN',   href : '/Login',     appName : 'Login', attributes: testpath: 'login-link'}
+    { title : 'EDUCATION', href : '/Education', appName : 'Education' }
+    { title : 'BUSINESS',  href : '/Business',  appName : 'Business' }
+    { title : 'ABOUT',     href : '/About',     appName : 'About' }
+    { title : 'PRICING',   href : '/Pricing',   appName : 'Pricing' }
+    { title : 'SIGN IN',   href : '/Login',     appName : 'Login', attributes: { testpath: 'login-link' } }
   ]
 
   constructor: (options = {}, data) ->
@@ -21,7 +21,7 @@ module.exports = class TopNavigation extends KDCustomHTMLView
 
     @menu = {}
 
-    appManager = kd.singleton "appManager"
+    appManager = kd.singleton 'appManager'
 
     appManager.on 'AppIsBeingShown', @bound 'setActiveItem'
 

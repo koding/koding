@@ -243,6 +243,8 @@ module.exports.create = (KONFIG, environment)->
 
     #{createHttpsRedirector(KONFIG)}
 
+    #{createHealthcheck(KONFIG)}
+
     # start server
     server {
       # we should not timeout on proxy connections
@@ -260,7 +262,9 @@ module.exports.create = (KONFIG, environment)->
       # There is another service listening on 80, tunnelserver, that one is
       # reached from outside directly, not over ELB
       #
-      listen #{if isProxy KONFIG.ebEnvName then 79 else KONFIG.publicPort};
+
+      #{createListenDirective(KONFIG, environment)}
+
       # root /usr/share/nginx/html;
       index index.html index.htm;
       location = /healthcheck {
@@ -331,7 +335,7 @@ module.exports.create = (KONFIG, environment)->
         proxy_pass http://webserver;
       }
 
-      location ~ /(blog|docs)(.*) {
+      location ~ ^/(blog|docs)(.*) {
         return 301 https://www.koding.com/$1$2$is_args$args;
       }
 
@@ -382,6 +386,34 @@ createRedirections = (KONFIG) ->
        server_name "~^old.koding.com" ;
        return 301 $scheme://koding.com$request_uri ;
     }"""
+
+createHealthcheck = (KONFIG) ->
+  return "" if not isProxy KONFIG.ebEnvName
+
+  return """
+    # ELB healthcheck with proxy_protocol disabled
+    server {
+      listen 78;
+
+      location = /healthcheck {
+        return 200;
+        access_log off;
+      }
+    }
+  """
+
+createListenDirective = (KONFIG, env) ->
+  return "listen #{KONFIG.publicPort};" if not isProxy KONFIG.ebEnvName
+
+  # TODO(rjeczalik): remove after ProxyProtocol policy is enabled for prodproxy
+  return "listen 79;" if not env is 'sandbox'
+
+  return """
+    listen 79 proxy_protocol;
+    real_ip_header proxy_protocol;
+    set_real_ip_from 10.0.0.0/24;
+    set_real_ip_from 10.0.1.0/24;
+  """
 
 createHttpsRedirector = (KONFIG) ->
   return "" if isProxy KONFIG.ebEnvName

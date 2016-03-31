@@ -1,7 +1,6 @@
 package awsprovider
 
 import (
-	"errors"
 	"fmt"
 
 	"koding/db/mongodb/modelhelper"
@@ -29,17 +28,22 @@ func (s *Stack) Authenticate(ctx context.Context) (interface{}, error) {
 
 	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
 
-	result := make(map[string]bool, 0)
+	resp := make(kloud.AuthenticateResponse)
 
 	for _, cred := range s.Builder.Credentials {
+		res := &kloud.AuthenticateResult{}
+		resp[cred.Identifier] = res
+
 		if cred.Provider != "aws" {
-			return nil, errors.New("unable to authenticate non-aws credential: " + cred.Provider)
+			res.Message = "unable to authenticate non-aws credential: " + cred.Provider
+			continue
 		}
 
 		meta := cred.Meta.(*AwsMeta)
 
 		if err := meta.Valid(); err != nil {
-			return nil, fmt.Errorf("validating %q credential: %s", cred.Identifier, err)
+			res.Message = fmt.Sprintf("validating %q credential: %s", cred.Identifier, err)
+			continue
 		}
 
 		opts := &amazon.ClientOptions{
@@ -49,16 +53,21 @@ func (s *Stack) Authenticate(ctx context.Context) (interface{}, error) {
 		}
 
 		_, err := amazon.NewClient(opts)
-		verified := err == nil // verified says whether client was successfully authenticated
 
-		if err := modelhelper.SetCredentialVerified(cred.Identifier, verified); err != nil {
-			return nil, err
+		if err != nil {
+			res.Message = err.Error()
+			continue
 		}
 
-		result[cred.Identifier] = verified
+		if err := modelhelper.SetCredentialVerified(cred.Identifier, true); err != nil {
+			res.Message = err.Error()
+			continue
+		}
+
+		res.Verified = true
 	}
 
-	s.Log.Debug("Authenticate credentials result: %+v", result)
+	s.Log.Debug("Authenticate credentials result: %+v", resp)
 
-	return result, nil
+	return resp, nil
 }

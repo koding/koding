@@ -35,7 +35,7 @@ module.exports = class AccountPopup extends AvatarPopup
     @avatarPopupContent.addSubView new CustomLinkView
       title      : 'Account Settings'
       href       : '/Account'
-      attributes : testpath : 'AccountSettingsLink'
+      attributes : { testpath : 'AccountSettingsLink' }
       cssClass   : 'bottom-separator'
       click      : @bound 'goToAccountSettings'
 
@@ -54,7 +54,7 @@ module.exports = class AccountPopup extends AvatarPopup
     @avatarPopupContent.addSubView new CustomLinkView
       title      : 'Logout'
       href       : '/Logout'
-      attributes : testpath : 'logout-link'
+      attributes : { testpath : 'logout-link' }
 
     # FIXME:
     groupsController.ready =>
@@ -99,7 +99,7 @@ module.exports = class AccountPopup extends AvatarPopup
       @paymentActionLabel.updatePartial title
 
 
-  hide:->
+  hide: ->
 
     super
 
@@ -130,12 +130,12 @@ module.exports = class AccountPopup extends AvatarPopup
   goToDashboard: (event) ->
 
     kd.utils.stopDOMEvent event
-    kd.singletons.router.handleRoute "/Dashboard"
+    kd.singletons.router.handleRoute '/Dashboard'
     @hide()
 
 
   goToTeamSettings: (event) =>
 
     kd.utils.stopDOMEvent event
-    kd.singletons.router.handleRoute "/Admin"
+    kd.singletons.router.handleRoute '/Admin'
     @hide()

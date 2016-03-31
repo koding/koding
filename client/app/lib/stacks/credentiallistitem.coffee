@@ -1,5 +1,6 @@
-kd    = require 'kd'
-JView = require 'app/jview'
+kd      = require 'kd'
+JView   = require 'app/jview'
+Tracker = require 'app/util/tracker'
 
 
 module.exports = class CredentialListItem extends kd.ListItemView
@@ -9,30 +10,33 @@ module.exports = class CredentialListItem extends kd.ListItemView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'credential-item clearfix', options.cssClass
+
     super options, data
 
     delegate = @getDelegate()
     { identifier, owner, title, verified } = credential = @getData()
 
     @deleteButton = new kd.ButtonView
-      cssClass : 'solid compact outline red secondary'
-      title    : 'DELETE'
-      callback : delegate.lazyBound 'deleteItem', this
+      cssClass  : 'solid compact outline red secondary delete'
+      title     : 'DELETE'
+      callback  : =>
+        delegate.emit 'ItemAction', { action : 'RemoveItem', item : this }
 
     @showCredentialButton = new kd.ButtonView
-      cssClass : 'solid compact outline secondary'
-      title    : 'SHOW'
-      callback : delegate.lazyBound 'showItemContent', this
+      cssClass  : 'solid compact outline secondary show'
+      title     : 'SHOW'
+      callback  : =>
+        delegate.emit 'ItemAction', { action : 'ShowItem', item : this }
 
     @verifyButton = new kd.ButtonView
-      cssClass : 'solid compact outline'
+      cssClass : 'solid compact outline verify'
       title    : 'USE THIS & CONTINUE'
       loader   :
         color  : '#666'
       callback : @bound 'verifyCredential'
 
     @inuseView = new kd.CustomHTMLView
-      cssClass : 'custom-tag hidden'
+      cssClass : 'custom-tag hidden inuse'
       partial  : 'IN USE'
       tooltip  :
         title  : 'This stack template currently using this credential'
@@ -62,6 +66,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
       @getDelegate().emit 'ItemSelected', this
     else
       @setClass 'failed'
+      Tracker.track Tracker.STACKS_AWS_KEYS_FAILED
       @warningView.updatePartial if reason
         "Failed to verify: #{reason}"
       else
@@ -74,7 +79,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
   verifyCredential: ->
 
-    {identifier} = @getData()
+    { identifier } = @getData()
 
     @warningView.hide()
 
@@ -82,8 +87,12 @@ module.exports = class CredentialListItem extends kd.ListItemView
       .verify this
       .timeout 10000
       .then (response) =>
-        @setVerified response?[identifier]
-
+        if status = response?[identifier]
+          if message = status.message
+            message = message.split('\n')[..-2].join ''
+          @setVerified status.verified, message
+        else
+          @setVerified no
       .catch (err) =>
         @setVerified no, err.message
 

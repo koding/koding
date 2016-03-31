@@ -45,10 +45,12 @@ module.exports = class ComputeController extends KDController
 
     mainController.ready =>
 
-      @on "MachineBuilt",     => do @reset
-      @on "MachineDestroyed", => do @reset
+      @on 'MachineBuilt',             => do @reset
+      @on 'MachineDestroyed',         => do @reset
+      @on 'StackAdminMessageDeleted', @bound 'handleStackAdminMessageDeleted'
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
+      groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
 
       @fetchStacks =>
 
@@ -84,13 +86,13 @@ module.exports = class ComputeController extends KDController
   getKloud: ->
 
     kd.singletons.kontrol.getKite
-      name         : "kloud"
+      name         : 'kloud'
       environment  : globals.config.environment
       version      : globals.config.kites.kloud.version
       username     : globals.config.kites.kontrol.username
 
 
-  reset: (render = no, callback = ->)->
+  reset: (render = no, callback = -> ) ->
 
     @stacks       = []
     @machines     = []
@@ -104,15 +106,15 @@ module.exports = class ComputeController extends KDController
       environmentDataProvider.fetch =>
         @fetchStacks =>
           @info machine for machine in @machines
-          @emit "RenderMachines", @machines
-          @emit "RenderStacks",   @stacks
+          @emit 'RenderMachines', @machines
+          @emit 'RenderStacks',   @stacks
           callback null
       , yes
 
     return this
 
 
-  _clearTrialCounts: (machine)->
+  _clearTrialCounts: (machine) ->
     @_trials[machine.uid] = {}
 
 
@@ -137,11 +139,11 @@ module.exports = class ComputeController extends KDController
 
 
 
-  errorHandler: (call, task, machine)->
+  errorHandler: (call, task, machine) ->
 
     { timeout, Error } = ComputeController
 
-    retryIfNeeded = kd.utils.throttle 500, (task, machine)=>
+    retryIfNeeded = kd.utils.throttle 500, (task, machine) =>
 
       return  if task in ['info', 'buildStack']
 
@@ -175,7 +177,7 @@ module.exports = class ComputeController extends KDController
           if err.code is Error.Pending
             safeToSuspend = yes
           else
-            kd.warn "[CC] error:", err
+            kd.warn '[CC] error:', err
 
         when Error.NotSupported
 
@@ -184,7 +186,7 @@ module.exports = class ComputeController extends KDController
 
 
       unless safeToSuspend
-        @emit "error", { task, err, machine }
+        @emit 'error', { task, err, machine }
         @emit "error-#{machine._id}", { task, err, machine }
 
       kd.warn "#{task} failed:", err, this
@@ -197,13 +199,13 @@ module.exports = class ComputeController extends KDController
   # Fetchers most of these methods has internal
   # caches with in ComputeController
 
-  fetchStacks: do (queue=[]) ->
+  fetchStacks: do (queue = []) ->
 
     (callback = kd.noop, force = no) -> kd.singletons.mainController.ready =>
 
       if @stacks.length > 0 and not force
         callback null, @stacks
-        kd.info "Stacks returned from cache."
+        kd.info 'Stacks returned from cache.'
         return
 
       return  if (queue.push callback) > 1
@@ -246,25 +248,25 @@ module.exports = class ComputeController extends KDController
           @stateChecker?.start()
 
           globals.userMachines = machines
-          @emit "MachineDataUpdated"
+          @emit 'MachineDataUpdated'
 
           cb null, stacks  for cb in queue
           queue = []
 
 
 
-  fetchMachines: do (queue=[])->
+  fetchMachines: do (queue = []) ->
 
-    (callback = kd.noop)-> kd.singletons.mainController.ready =>
+    (callback = kd.noop) -> kd.singletons.mainController.ready =>
 
       if @machines.length > 0
         callback null, @machines
-        kd.info "Machines returned from cache."
+        kd.info 'Machines returned from cache.'
         return
 
       return  if (queue.push callback) > 1
 
-      @fetchStacks (err)=>
+      @fetchStacks (err) =>
 
         if err?
           cb err  for cb in queue
@@ -275,16 +277,16 @@ module.exports = class ComputeController extends KDController
         queue = []
 
 
-  fetchMachine: (idOrUid, callback = kd.noop)->
+  fetchMachine: (idOrUid, callback = kd.noop) ->
 
-    remote.api.JMachine.one idOrUid, (err, machine)->
+    remote.api.JMachine.one idOrUid, (err, machine) ->
       if showError err then callback err
       else if machine? then callback null, new Machine { machine }
 
 
-  queryMachines: (query = {}, callback = kd.noop)->
+  queryMachines: (query = {}, callback = kd.noop) ->
 
-    remote.api.JMachine.some query, (err, machines)=>
+    remote.api.JMachine.some query, (err, machines) ->
       if showError err then callback err
       else callback null, (new Machine { machine } for machine in machines)
 
@@ -317,39 +319,39 @@ module.exports = class ComputeController extends KDController
       return machine  if machine.queryString in [queryString, kiteIdOnly]
 
 
-  fetchAvailable: (options, callback)->
+  fetchAvailable: (options, callback) ->
     remote.api.ComputeProvider.fetchAvailable options, callback
 
 
-  fetchUsage: (options, callback)->
+  fetchUsage: (options, callback) ->
     remote.api.ComputeProvider.fetchUsage options, callback
 
 
-  fetchUserPlan: (callback = kd.noop)->
+  fetchUserPlan: (callback = kd.noop) ->
 
     if @lastKnownUserPlan?
       return callback @lastKnownUserPlan
 
-    kd.singletons.paymentController.subscriptions (err, subscription)=>
+    kd.singletons.paymentController.subscriptions (err, subscription) =>
 
-      kd.warn "Failed to fetch subscription:", err  if err?
+      kd.warn 'Failed to fetch subscription:', err  if err?
 
       if err? or not subscription?
       then callback 'free'
       else callback @lastKnownUserPlan = subscription.planTitle
 
 
-  fetchPlans: (callback = kd.noop)->
+  fetchPlans: (callback = kd.noop) ->
 
     if @plans
       kd.utils.defer => callback @plans
     else
-      remote.api.ComputeProvider.fetchPlans (err, plans)=>
+      remote.api.ComputeProvider.fetchPlans (err, plans) =>
         # If there is an error at least return a simple plan
         # which includes only 'free' plan
         if err? or not plans?
           kd.warn err
-          callback { free: total: 1, alwaysOn: 0, storage: 3 }
+          callback { free: { total: 1, alwaysOn: 0, storage: 3 } }
         else
           @plans = plans
           callback plans
@@ -389,15 +391,15 @@ module.exports = class ComputeController extends KDController
           callback plans
 
 
-  fetchRewards: (options, callback)->
+  fetchRewards: (options, callback) ->
 
-    {unit} = options
+    { unit } = options
 
     options =
       unit  : 'MB'
       type  : 'disk'
 
-    remote.api.JReward.fetchEarnedAmount options, (err, amount)->
+    remote.api.JReward.fetchEarnedAmount options, (err, amount) ->
 
       if err
         amount = 0
@@ -408,14 +410,14 @@ module.exports = class ComputeController extends KDController
       callback null, amount
 
 
-  fetchPlanCombo: (provider, callback)->
+  fetchPlanCombo: (provider, callback) ->
 
     [callback, provider] = [provider, callback]  unless callback?
-    provider ?= "koding"
+    provider ?= 'koding'
 
-    @fetchUserPlan (plan)=> @fetchPlans (plans)=>
-      @fetchUsage { provider }, (err, usage)=>
-        @fetchRewards { unit: 'GB' }, (err, reward)->
+    @fetchUserPlan (plan) => @fetchPlans (plans) =>
+      @fetchUsage { provider }, (err, usage) =>
+        @fetchRewards { unit: 'GB' }, (err, reward) ->
           # If there is an invalid plan set for user
           # or plans failed to fetch, then fallback to 'free' plan
           plan = 'free'  unless plans[plan]?
@@ -464,7 +466,7 @@ module.exports = class ComputeController extends KDController
 
 
   # remote.ComputeProvider and Kloud kite public methods
-  info: (machine)->
+  info: (machine) ->
 
     if @eventListener.followUpcomingEvents machine, yes
       return Promise.resolve()
@@ -478,9 +480,9 @@ module.exports = class ComputeController extends KDController
 
     call = @getKloud().info { machineId, currentState }
 
-    .then (response)=>
+    .then (response) =>
 
-      kd.log "info response:", response
+      kd.log 'info response:', response
       @_clearTrialCounts machine
       @eventListener.triggerState machine,
         status      : response.State
@@ -490,14 +492,14 @@ module.exports = class ComputeController extends KDController
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-    .catch (err)=>
+    .catch (err) =>
 
       (@errorHandler call, 'info', machine) err
 
 
-  destroy: (machine, force)->
+  destroy: (machine, force) ->
 
-    destroy = (machine)=>
+    destroy = (machine) =>
 
       baseKite = machine.getBaseKite( no )
       if machine?.provider is 'managed' and baseKite.klientDisable?
@@ -510,13 +512,13 @@ module.exports = class ComputeController extends KDController
           machineId : machine._id
           provider  : machine.provider
 
-        remote.api.ComputeProvider.remove options, (err)=>
+        remote.api.ComputeProvider.remove options, (err) =>
           return  if err
 
           @_clearTrialCounts machine
 
           # we don't need to wait for deletion of workspace here ~ GG
-          remote.api.JWorkspace.deleteByUid machine.uid, (err)->
+          remote.api.JWorkspace.deleteByUid machine.uid, (err) ->
             console.warn "couldn't delete workspace:", err  if err
 
           @reset yes, ->
@@ -531,24 +533,24 @@ module.exports = class ComputeController extends KDController
 
       call = @getKloud().destroy { machineId: machine._id }
 
-      .then (res)=>
+      .then (res) =>
 
         @_force = no
 
-        kd.log "destroy res:", res
-        @emit "MachineBeingDestroyed", machine
+        kd.log 'destroy res:', res
+        @emit 'MachineBeingDestroyed', machine
         @_clearTrialCounts machine
         @eventListener.addListener 'destroy', machine._id
 
       .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-      .catch (err)=>
+      .catch (err) =>
 
         (@errorHandler call, 'destroy', machine) err
 
     return destroy machine  if force or @_force
 
-    @ui.askFor 'destroy', {machine, force}, (status) ->
+    @ui.askFor 'destroy', { machine, force }, (status) ->
       return  unless status.confirmed
       destroy machine
 
@@ -563,24 +565,24 @@ module.exports = class ComputeController extends KDController
 
       call = @getKloud().reinit { machineId: machine._id, snapshotId }
 
-      .then (res)=>
+      .then (res) =>
 
         @_force = no
 
-        kd.log "reinit res:", res
-        @emit "MachineBeingDestroyed", machine
+        kd.log 'reinit res:', res
+        @emit 'MachineBeingDestroyed', machine
         @_clearTrialCounts machine
         @eventListener.addListener 'reinit', machine._id
 
       .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-      .catch (err)=>
+      .catch (err) =>
 
         (@errorHandler call, 'reinit', machine) err
 
     # A shorthand for ComputeController_UI Askfor
     askFor = (action, callback = kd.noop) =>
-      @ui.askFor action, {machine, force: @_force}, (status) ->
+      @ui.askFor action, { machine, force: @_force }, (status) ->
         return  unless status.confirmed
         callback status
 
@@ -621,7 +623,7 @@ module.exports = class ComputeController extends KDController
 
       return  unless status.confirmed
 
-      @update machine, resize: resizeTo, (err) =>
+      @update machine, { resize: resizeTo }, (err) =>
 
         if err and err.name isnt 'SameValueForResize'
           return  showError err
@@ -634,22 +636,22 @@ module.exports = class ComputeController extends KDController
 
         call = @getKloud().resize { machineId: machine._id }
 
-        .then (res)=>
+        .then (res) =>
 
           @_force = no
 
-          kd.log "resize res:", res
+          kd.log 'resize res:', res
           @_clearTrialCounts machine
           @eventListener.addListener 'resize', machine._id
 
         .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-        .catch (err)=>
+        .catch (err) =>
 
           (@errorHandler call, 'resize', machine) err
 
 
-  build: (machine)->
+  build: (machine) ->
 
     return  if methodNotSupportedBy machine
 
@@ -661,15 +663,15 @@ module.exports = class ComputeController extends KDController
 
     call = @getKloud().build { machineId: machine._id }
 
-    .then (res)=>
+    .then (res) =>
 
-      kd.log "build res:", res
+      kd.log 'build res:', res
       @_clearTrialCounts machine
       @eventListener.addListener 'build', machine._id
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-    .catch (err)=>
+    .catch (err) =>
 
       (@errorHandler call, 'build', machine) err
 
@@ -683,7 +685,6 @@ module.exports = class ComputeController extends KDController
     unless state is 'NotInitialized'
       if state is 'Building'
         @eventListener.addListener 'apply', stack._id
-        Tracker.track Tracker.STACKS_SETUP
       else
         kd.warn 'Stack already initialized, skipping.', stack
       return
@@ -697,6 +698,8 @@ module.exports = class ComputeController extends KDController
 
       machine.getBaseKite( no ).disconnect()
 
+    Tracker.track Tracker.STACKS_START_BUILD
+
     stackId = stack._id
     call    = @getKloud().buildStack { stackId }
 
@@ -704,7 +707,7 @@ module.exports = class ComputeController extends KDController
 
       (@findStackFromStackId stackId)?.status.state = 'Building'
 
-      kd.log "build stack res:", res
+      kd.log 'build stack res:', res
       @eventListener.addListener 'apply', stackId
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
@@ -714,7 +717,7 @@ module.exports = class ComputeController extends KDController
       (@errorHandler call, 'buildStack', stack) err
 
 
-  destroyStack: (stack, callback) ->
+  destroyStack: (stack, callback, followEvents = yes) ->
 
     # TMS-1919: This only takes a stack instance so it's ok
     # for multiple stacks ~ GG
@@ -728,7 +731,7 @@ module.exports = class ComputeController extends KDController
         name    : 'InProgress'
         message : "This stack is currently #{state.toLowerCase()}."
 
-    stack.machines.forEach (machineId) =>
+    if followEvents then stack.machines.forEach (machineId) =>
       return  unless machine = @findMachineFromMachineId machineId
 
       @eventListener.triggerState machine,
@@ -744,12 +747,12 @@ module.exports = class ComputeController extends KDController
 
       stack.destroy callback
       actions.reinitStack stack._id
-      @eventListener.addListener 'apply', stackId
+      @eventListener.addListener 'apply', stackId  if followEvents
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
     .catch (err) ->
-      console.error "Destroy stack failed:", err
+      console.error 'Destroy stack failed:', err
       callback err
 
 
@@ -767,7 +770,7 @@ module.exports = class ComputeController extends KDController
 
     .then (res) =>
 
-      kd.log "start res:", res
+      kd.log 'start res:', res
       @_clearTrialCounts machine
       @eventListener.addListener 'start', machine._id
 
@@ -793,7 +796,7 @@ module.exports = class ComputeController extends KDController
 
     .then (res) =>
 
-      kd.log "stop res:", res
+      kd.log 'stop res:', res
       @_clearTrialCounts machine
       @eventListener.addListener 'stop', machine._id
 
@@ -804,12 +807,14 @@ module.exports = class ComputeController extends KDController
       (@errorHandler call, 'stop', machine) err
 
 
-  setAlwaysOn: (machine, state, callback = kd.noop)->
+  setAlwaysOn: (machine, state, callback = kd.noop) ->
 
     if err = methodNotSupportedBy machine
       return callback err
 
-    @update machine, alwaysOn: state, callback
+    Tracker.track Tracker.VM_SET_ALWAYS_ON
+
+    @update machine, { alwaysOn: state }, callback
 
 
   update: (machine, options, callback = kd.noop) ->
@@ -895,7 +900,7 @@ module.exports = class ComputeController extends KDController
 
       .then (res) =>
 
-        kd.log "createSnapshot res:", res
+        kd.log 'createSnapshot res:', res
         @eventListener.addListener 'createSnapshot', machine._id
 
       .timeout globals.COMPUTECONTROLLER_TIMEOUT
@@ -908,22 +913,22 @@ module.exports = class ComputeController extends KDController
   # Domain management
   #
 
-  fetchDomains: do (queue=[])->
+  fetchDomains: do (queue = []) ->
 
-    (callback = kd.noop)-> kd.singletons.mainController.ready =>
+    (callback = kd.noop) -> kd.singletons.mainController.ready =>
 
       @domains ?= []
 
       if @domains.length > 0
         callback null, @domains
-        kd.info "Domains returned from cache."
+        kd.info 'Domains returned from cache.'
         return
 
       return  if (queue.push callback) > 1
 
       topDomain = "#{nick()}.#{globals.config.userSitesDomain}"
 
-      remote.api.JDomainAlias.some {}, (err, domains)=>
+      remote.api.JDomainAlias.some {}, (err, domains) =>
 
         if err?
           cb err  for cb in queue
@@ -973,7 +978,7 @@ module.exports = class ComputeController extends KDController
         kd.info "Revive triggered for #{machineId}", machine
 
 
-  invalidateCache: (machineId)->
+  invalidateCache: (machineId) ->
 
     machine = @findMachineFromMachineId machineId
 
@@ -981,7 +986,7 @@ module.exports = class ComputeController extends KDController
       return kd.warn \
         "Unable to invalidate cache, machine not found with #{machineId}"
 
-    {kontrol} = kd.singletons
+    { kontrol } = kd.singletons
 
     KiteCache.unset machine.queryString
     delete kontrol.kites?.klient?[machine.uid]
@@ -1021,6 +1026,7 @@ module.exports = class ComputeController extends KDController
       return kd.warn 'No such Group!'  unless _currentGroup
 
       currentGroup.stackTemplates = _currentGroup.stackTemplates
+      @emit 'GroupStackTemplatesUpdated'
 
       # TMS-1919: This can stay as is, but this time it will create the first
       # avaiable stacktemplate for who has no stacks yet. ~ GG
@@ -1075,23 +1081,23 @@ module.exports = class ComputeController extends KDController
         new kd.NotificationView
           title    : "We won't bother you again for this machine"
           duration : 5000
-          content  : "You can fix permissions anytime you want from
-                      settings panel of this machine."
+          content  : 'You can fix permissions anytime you want from
+                      settings panel of this machine.'
 
         return
 
       return  if not state.confirmed
 
       notification = new kd.NotificationView
-        title    : "Fixing permissions..."
+        title    : 'Fixing permissions...'
         duration : 15000
 
       kloud = @getKloud()
-      kloud.addAdmin machineId: machine._id
+      kloud.addAdmin { machineId: machine._id }
         .finally ->
           notification.destroy()
         .then (shared) ->
-          new kd.NotificationView title: 'Permissions fixed'
+          new kd.NotificationView { title: 'Permissions fixed' }
         .catch (err) ->
           showError err, 'Failed to fix permissions'
 
@@ -1184,10 +1190,10 @@ module.exports = class ComputeController extends KDController
 
     ideApp.tailFile {
       file
-      description : "
+      description : '
         Your Koding Stack has successfully been initialized. The log here
         describes each executed step of the Stack creation process.
-      "
+      '
       tailOffset
     }
 
@@ -1280,11 +1286,33 @@ module.exports = class ComputeController extends KDController
 
             .once 'RenderStacks', (stacks = []) ->
               notification.destroy()
-              new kd.NotificationView title : 'Stack reinitialized'
+              Tracker.track Tracker.STACKS_REINIT
+              new kd.NotificationView { title : 'Stack reinitialized' }
               callback()
 
           if template and not groupStack
           then @createDefaultStack no, template
           else @createDefaultStack()
+
+        , followEvents = no
+
     , ->
       callback new Error 'Stack is not reinitialized'
+
+
+  handleStackAdminMessageCreated: (data) ->
+
+    { stackIds, message, type } = data.contents
+    for stackId in stackIds when stack = @stacksById[stackId]
+      stack.config ?= {}
+      stack.config.adminMessage = { message, type }
+
+    @emit 'StackAdminMessageReceived'
+
+
+  handleStackAdminMessageDeleted: (stackId) ->
+
+    stack = @stacksById[stackId]
+    return  if not stack or not stack.config
+
+    delete stack.config.adminMessage

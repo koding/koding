@@ -1,6 +1,6 @@
 module.exports = do ->
 
-  niceify = (duration)->
+  niceify = (duration) ->
 
     past = no
 
@@ -16,19 +16,19 @@ module.exports = do ->
     day      = hour * 24
 
     durstr = if duration < minute then 'less than a minute'
-    else if duration < minute * 2 then 'about a minute';
+    else if duration < minute * 2 then 'about a minute'
     else if duration < hour       then Math.floor(duration / minute) + ' minutes'
     else if duration < hour * 2   then 'about an hour'
-    else if duration < day        then 'about ' + Math.floor(duration / hour) + ' hours';
+    else if duration < day        then 'about ' + Math.floor(duration / hour) + ' hours'
     else if duration < day * 2    then '1 day'
-    else if duration < day * 365  then Math.floor(duration / day) + ' days';
+    else if duration < day * 365  then Math.floor(duration / day) + ' days'
     else 'over a year'
 
     durstr += ' ago'  if past
 
     return durstr
 
-  (duration, to)->
+  (duration, to) ->
 
     if not to
       niceify duration

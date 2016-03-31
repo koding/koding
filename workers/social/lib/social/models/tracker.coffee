@@ -10,12 +10,10 @@ _ = require 'lodash'
 KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
 { socialapi } = KONFIG
 exchangeName  = "#{socialapi.eventExchangeName}:0"
-exchangeOpts  = { autoDelete: no, durable:yes, type :'fanout' }
+exchangeOpts  = { autoDelete: no, durable:yes, type :'fanout', confirm: true }
 
 Analytics = require('analytics-node')
 analytics = new Analytics(KONFIG.segment)
-
-mqClient = null
 
 module.exports = class Tracker extends bongo.Base
 
@@ -31,18 +29,20 @@ module.exports = class Tracker extends bongo.Base
   EVENT_TYPE = 'api.mail_send'
 
   @types =
-    START_REGISTER            : 'started to register'
-    FINISH_REGISTER           : 'finished register'
-    LOGGED_IN                 : 'logged in'
-    CONFIRM_USING_TOKEN       : 'confirmed & logged in using token'
-    REQUEST_NEW_PASSWORD      : 'requested a new password'
-    CHANGED_PASSWORD          : 'changed their password'
-    REQUEST_EMAIL_CHANGE      : 'requested pin to change email'
-    CHANGED_EMAIL             : 'changed their email'
-    INVITED_GROUP             : 'was invited to a group'
-    INVITED_CREATE_TEAM       : 'was invited to create a team'
-    SENT_FEEDBACK             : 'sent feedback'
-    TEAMS_ACCEPTED_INVITATION : 'accepted invitation'
+    START_REGISTER       : 'started to register'
+    FINISH_REGISTER      : 'finished register'
+    LOGGED_IN            : 'logged in'
+    CONFIRM_USING_TOKEN  : 'confirmed & logged in using token'
+    REQUEST_NEW_PASSWORD : 'requested a new password'
+    CHANGED_PASSWORD     : 'changed their password'
+    REQUEST_EMAIL_CHANGE : 'requested pin to change email'
+    CHANGED_EMAIL        : 'changed their email'
+    INVITED_TEAM         : 'was invited to a team'
+    INVITED_CREATE_TEAM  : 'was invited to create a team'
+    SENT_FEEDBACK        : 'sent feedback'
+    TEAMS_JOINED_TEAM    : 'joined team'
+    USER_ENABLED_2FA     : 'enabled 2-factor auth'
+    USER_DISABLED_2FA    : 'disabled 2-factor auth'
 
   @properties = {}
 
@@ -50,13 +50,16 @@ module.exports = class Tracker extends bongo.Base
     category: 'NewAccount', label: 'VerifyAccount'
   }
 
-  @identifyAndTrack = (username, event, eventProperties = {}) ->
-    @identify username
-    @track username, event, eventProperties
+  @identifyAndTrack = (username, event, eventProperties = {}, callback = -> ) ->
+    @identify username, {}, (err) =>
+      return callback err  if err
+
+      @track username, event, eventProperties, callback
 
 
-  @identify = (username, traits = {}) ->
-    return  unless KONFIG.sendEventsToSegment
+  @identify = (username, traits = {}, callback = -> ) ->
+
+    return callback null  unless KONFIG.sendEventsToSegment
 
     # use `forcedRecipientEmail` for both username and email
     if forcedRecipientEmail
@@ -70,6 +73,7 @@ module.exports = class Tracker extends bongo.Base
     # from Go/other systems are being sent
     analytics.flush (err, batch) ->
       console.error "flushing identify failed: #{err} @sent-hil"  if err
+      callback err
 
 
   @track$ = secure (client, subject, options = {}, callback) ->
@@ -87,9 +91,9 @@ module.exports = class Tracker extends bongo.Base
 
     callback()
 
+  @track = (username, event, options = {}, callback = -> ) ->
 
-  @track = (username, event, options = {}) ->
-    return  unless KONFIG.sendEventsToSegment
+    return callback null  unless KONFIG.sendEventsToSegment
 
     _.extend options, @properties[event.subject]
 
@@ -101,19 +105,8 @@ module.exports = class Tracker extends bongo.Base
     event.from       or= defaultFromMail
     event.properties   = @addDefaults { options, username }
 
-    unless mqClient
-      return console.error 'Tracker: RabbitMQ client not set'
-
-    sendMessage = ->
-      mqClient.exchange "#{exchangeName}", exchangeOpts, (exchange) ->
-        unless exchange
-          return console.error "Tracker: Exchange not found to queue: #{exchangeName}"
-
-        exchange.publish '', event, { type: EVENT_TYPE }
-        exchange.close()
-
-    if mqClient.readyEmitted then sendMessage()
-    else mqClient.on 'ready', -> sendMessage()
+    require('./socialapi/requests').publishMailEvent event, (err) ->
+      callback err # do not cause trailing parameters
 
 
   @page = (userId, name, category, properties) ->
@@ -153,6 +146,3 @@ module.exports = class Tracker extends bongo.Base
     opts['env']      = KONFIG.environment
     opts['hostname'] = KONFIG.hostname
     opts
-
-
-  @setMqClient = (m) -> mqClient = m

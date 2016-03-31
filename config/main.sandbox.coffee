@@ -140,6 +140,12 @@ Configuration = (options={}) ->
     clientSecret  : "8eb80af7589972328022e80c02a53f3e2e39a323"
     redirectUri   : "https://sandbox.koding.com/-/oauth/github/callback"
 
+  mailgun =
+    domain        : "koding.com"
+    privateKey    : "key-6d4a0c191866434bf958aed924512758"
+    publicKey     : "pubkey-dabf6c392b39cce9bce12e9a582ad051"
+    unsubscribeURL: "https://api.mailgun.net/v3/koding.com/unsubscribes"
+
   slack  =
     clientId          : "2155583316.22364273143"
     clientSecret      : "6ee269042087643b311214d2dc3527e4"
@@ -188,6 +194,7 @@ Configuration = (options={}) ->
     github                  : github
     slack                   : slack
     sneakerS3               : sneakerS3
+    mailgun                 : mailgun
 
 
   userSitesDomain     = "sandbox.koding.io"
@@ -287,6 +294,7 @@ Configuration = (options={}) ->
     jwt                            : {secret: "ac25b4e6009c1b6ba336a3eb17fbc3b7"                     , confirmExpiresInMinutes: 10080  } # 7 days
     papertrail                     : {destination: 'logs3.papertrailapp.com:13734'                   , groupId: 2199093                                             , token: '4p4KML0UeU4ijb0swx' }
     sendEventsToSegment            : options.sendEventsToSegment
+    mailgun                        : mailgun
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   # NOTE: when you add to runtime options below, be sure to modify

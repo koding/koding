@@ -29,12 +29,13 @@ module.exports = class AccountCredentialListItem extends BaseStackTemplateListIt
     delegate            = @getDelegate()
     @menu               = {}
 
-    @addMenuItem 'Show', delegate.lazyBound 'showItemContent', this  if owner
+    if owner
+      @addMenuItem 'Show', => delegate.emit 'ItemAction', { action : 'ShowItem', item : this }
 
-    # Don't show the edit button for aws credentials in list. Gokmen'll on it.
-    @addMenuItem 'Edit', delegate.lazyBound 'editItem', this  unless provider is 'aws'
+    if not provider is 'aws' or @getData().fields?
+      @addMenuItem 'Edit', => delegate.emit 'ItemAction', { action : 'EditItem', item : this }
 
-    @addMenuItem 'Delete', delegate.lazyBound 'deleteItem', this
+    @addMenuItem 'Delete', => delegate.emit 'ItemAction', { action : 'RemoveItem', item : this }
 
     return @menu
 

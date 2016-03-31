@@ -19,8 +19,8 @@ module.exports = class SplitRegionView extends KDCustomHTMLView
 
     directions      = [ 'top', 'right', 'bottom', 'left' ]
 
-    @addSubView @representation = new KDCustomHTMLView cssClass : 'representation'
-    @addSubView @handler        = new KDCustomHTMLView cssClass : 'handler'
+    @addSubView @representation = new KDCustomHTMLView { cssClass : 'representation' }
+    @addSubView @handler        = new KDCustomHTMLView { cssClass : 'handler' }
 
     for direction in directions
       # Create representation view.

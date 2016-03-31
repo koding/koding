@@ -9,7 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"koding/klient/remote/restypes"
 	"koding/klientctl/klientctlerrors"
+	"koding/klientctl/list"
+	"koding/klientctl/util/testutil"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -259,6 +262,37 @@ func TestMountCreateMountDir(t *testing.T) {
 		Convey("It should inform the user", func() {
 			c.createMountDir()
 			So(stdout.String(), ShouldContainSubstring, CannotMountPathExists)
+		})
+	})
+}
+
+func TestMountFindMachineName(t *testing.T) {
+	Convey("Given a machine is not found", t, func() {
+		var stdout bytes.Buffer
+		c := &MountCommand{
+			Klient: &testutil.FakeKlient{
+				ReturnInfos: []list.KiteInfo{list.KiteInfo{restypes.ListMachineInfo{
+					VMName: "foo",
+				}},
+				},
+			},
+			Options: MountOptions{
+				Name:      "bar", // the name we're looking for
+				LocalPath: "foo", // fake folder name
+			},
+			Log:    discardLogger,
+			Stdout: &stdout,
+		}
+
+		Convey("It should inform the user", func() {
+			// Note that if, for some reason, findMachineName does not properly return
+			// an error, this call will likely panic. The reason is that we do not have
+			// the entirety of the command mocked/setup here. Rsync, Progress,
+			// healthchecker, path cleanup, listing, etc.
+			exit, err := c.Run()
+			So(err, ShouldNotBeNil)
+			So(exit, ShouldNotEqual, 0)
+			So(stdout.String(), ShouldContainSubstring, MachineNotFound)
 		})
 	})
 }

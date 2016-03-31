@@ -1,5 +1,5 @@
 $       = require 'jquery'
-kd      = require 'kd.js'
+kd      = require 'kd'
 kookies = require 'kookies'
 
 createFormData = (teamData) ->
@@ -243,6 +243,15 @@ module.exports = utils = {
 
     $.ajax
       url         : "/-/profile/#{email}"
+      type        : 'GET'
+      success     : callbacks.success
+      error       : callbacks.error
+
+
+  unsubscribeEmail: (token, email, callbacks) ->
+
+    $.ajax
+      url         : "/-/unsubscribe/#{token}/#{email}"
       type        : 'GET'
       success     : callbacks.success
       error       : callbacks.error

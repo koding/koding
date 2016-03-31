@@ -8,16 +8,16 @@ module.exports = class IDEMachineItemView extends NFileItemView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass or= "vm"
+    options.cssClass or= 'vm'
 
     super options, data
 
-    {@machine}   = @getData()
+    { @machine } = @getData()
     plainPath    = FSHelper.plainPath @getData().path
     nickWithRoot = "/home/#{nick()}"
 
     if plainPath isnt nickWithRoot
-      plainPath  = plainPath.replace nickWithRoot, "~"
+      plainPath  = plainPath.replace nickWithRoot, '~'
 
     @machineInfo = new KDCustomHTMLView
       tagName    : 'span'
@@ -25,7 +25,7 @@ module.exports = class IDEMachineItemView extends NFileItemView
       partial    : plainPath
 
 
-  pistachio:->
+  pistachio: ->
     return """
       <div class="vm-header">
         {{> @machineInfo}}

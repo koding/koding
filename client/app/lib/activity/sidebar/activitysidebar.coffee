@@ -34,7 +34,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   revive = (data) ->
 
     return switch data.typeConstant
-      when 'post'  then kd.singletons.socialapi.message.revive message: data  #mapActivity
+      when 'post'  then kd.singletons.socialapi.message.revive { message: data }  #mapActivity
       when 'topic' then kd.singletons.socialapi.channel.revive data
       else data
 
@@ -63,7 +63,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     # @appsList = new DockController
 
     router
-      .on "RouteInfoHandled",          @bound 'deselectAllItems'
+      .on 'RouteInfoHandled',          @bound 'deselectAllItems'
 
     if isKoding()
       notificationController
@@ -109,7 +109,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   messageRemovedFromChannel: (update) ->
 
-    {id} = update.channelMessage
+    { id } = update.channelMessage
 
     @removeItem id
 
@@ -156,9 +156,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     # when a new PRIVATE MESSAGE is posted (because of above i think)
     # when an ACTIVITY is posted to a FOLLOWED TOPIC
 
-    {socialapi}   = kd.singletons
-    {unreadCount} = update
-    {id}          = update.channel
+    { socialapi }   = kd.singletons
+    { unreadCount } = update
+    { id }          = update.channel
 
     socialapi.cacheable 'channel', id, (err, data) =>
 
@@ -181,10 +181,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   # when a comment is added to a post
   replyAdded: (update) ->
 
-    {socialapi}   = kd.singletons
-    {unreadCount} = update
-    {id}          = update.channelMessage
-    type          = 'post'
+    { socialapi }   = kd.singletons
+    { unreadCount } = update
+    { id }          = update.channelMessage
+    type            = 'post'
 
     # so we fetch respectively
     socialapi.cacheable type, id, (err, data) =>
@@ -208,9 +208,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     # when a new PRIVATE MESSAGE is posted
     # when a TOPIC is followed
 
-    {socialapi}                     = kd.singletons
-    {unreadCount, participantCount} = update
-    {id, typeConstant}              = update.channel
+    { socialapi }                     = kd.singletons
+    { unreadCount, participantCount } = update
+    { id, typeConstant }              = update.channel
 
     socialapi.cacheable typeConstant, id, (err, channel) =>
 
@@ -233,9 +233,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   accountRemovedFromChannel: (update) ->
 
-    {id, typeConstant} = update.channel
-    {unreadCount, participantCount} = update
-    {socialapi}                     = kd.singletons
+    { id, typeConstant } = update.channel
+    { unreadCount, participantCount } = update
+    { socialapi }                     = kd.singletons
 
     return  if update.isParticipant
 
@@ -263,10 +263,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   setPostUnreadCount: (data) ->
 
-    {unreadCount, channelMessage} = data
+    { unreadCount, channelMessage } = data
     return  unless channelMessage
 
-    {typeConstant, id} = channelMessage
+    { typeConstant, id } = channelMessage
 
     listController = @getListController typeConstant
     item = listController.itemForId id
@@ -294,7 +294,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     section = switch type
       when 'topic', 'announcement'  then @sections.channels
-      when 'privatemessage','bot'   then @sections.messages
+      when 'privatemessage', 'bot'   then @sections.messages
       else {}
 
     return section.listController
@@ -399,12 +399,12 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     type       = 'group'           if slug_ is 'public'
     candidates = []
 
-    for own __, {listController} of @sections
+    for own __, { listController } of @sections
 
       for item in listController.getListItems()
 
         data = item.getData()
-        {typeConstant, id, name , slug} = data
+        { typeConstant, id, name, slug } = data
 
         if typeConstant is type and slug_ in [id, name, slug]
           candidates.push item
@@ -420,7 +420,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @selectedItem = null
 
-    for own name, {listController} of @sections
+    for own name, { listController } of @sections
       listController.deselectAllItems()
 
 
@@ -462,7 +462,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   fetchEnvironmentData: (callback) ->
 
-    environmentDataProvider.fetch (data) => callback data
+    environmentDataProvider.fetch (data) -> callback data
 
 
   hideGroupStacksChangedWarning: ->

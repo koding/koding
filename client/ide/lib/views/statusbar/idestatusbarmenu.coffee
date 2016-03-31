@@ -1,10 +1,10 @@
-kd = require 'kd'
-KDContextMenu = kd.ContextMenu
-KDCustomHTMLView = kd.CustomHTMLView
-IDEStatusBarMenuItem = require './idestatusbarmenuitem'
+_                         = require 'lodash'
+kd                        = require 'kd'
+KDContextMenu             = kd.ContextMenu
+IDEStatusBarMenuItem      = require './idestatusbarmenuitem'
 IDESyntaxSelectorMenuItem = require './idesyntaxselectormenuitem'
-{ presentBinding } = require 'app/shortcutscontroller'
-_ = require 'lodash'
+{ presentBinding }        = require 'app/shortcutscontroller'
+
 
 module.exports = class IDEStatusBarMenu extends KDContextMenu
 
@@ -30,8 +30,8 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
     collection = shortcuts.toCollection()
 
     subcollections =
-      editor: collection.find _key: 'editor'
-      workspace: collection.find _key: 'workspace'
+      editor: collection.find { _key: 'editor' }
+      workspace: collection.find { _key: 'workspace' }
 
     itemsData = @getItemsData paneType
     _
@@ -46,7 +46,7 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
             obj.title = key
           else #shortcut menu items
             [ collectionName, modelName ] = key.split '.'
-            { description, binding } = subcollections[collectionName].find name: modelName
+            { description, binding } = subcollections[collectionName].find { name: modelName }
             obj.shortcut = presentBinding _.first binding
         else
           obj =
@@ -76,8 +76,8 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
       'workspace.saveallfiles'   , 'saveAllFiles'
       'Syntax'                   , @syntaxSelector # Title/Instance
       'workspace.previewfile'    , 'previewFile'
-      'editor.find'              , 'showFindReplaceView'
-      'editor.replace'           , 'showFindReplaceViewWithReplaceMode'
+      'editor.find'              , 'showFindView'
+      'editor.replace'           , 'showFindAndReplaceView'
       'workspace.searchallfiles' , 'showContentSearch'
       'workspace.findfilebyname' , 'showFileFinder'
       'editor.gotoline'          , 'goToLine'

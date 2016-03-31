@@ -1,4 +1,4 @@
-kd = require 'kd.js'
+kd = require 'kd'
 module.exports = class MainTabPane extends kd.TabPaneView
 
   constructor: (options, data) ->

@@ -2,11 +2,12 @@
 
 package main
 
-import (
-	"errors"
+import "errors"
 
-	"koding/klientctl/util"
-)
+// AdminChecker is a simple interface used to determine if admin is required.
+type AdminChecker interface {
+	IsAdmin() (bool, error)
+}
 
 // AdminRequired parses through an arg list and requires an admin (sudo)
 // for the specified commands.
@@ -14,7 +15,7 @@ import (
 // Note that if the command is required, *and* we failed to get admin
 // permission information, let the user run the command anyway.
 // Better UX than failing for a possible non-issue.
-func AdminRequired(args, reqs []string, p *util.Permissions) error {
+func AdminRequired(args, reqs []string, p AdminChecker) error {
 	// Ignore the permErr in the beginning. If the arg command
 	isAdmin, permErr := p.IsAdmin()
 

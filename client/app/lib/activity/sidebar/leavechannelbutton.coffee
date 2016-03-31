@@ -39,5 +39,5 @@ module.exports = class LeaveChannelButton extends KDButtonView
       .then =>
         @deleteModal.destroy()
         kd.singletons.router.handleRoute '/Activity/Public'
-      .catch (args...) =>
+      .catch (args...) ->
         showError args...

@@ -43,6 +43,10 @@ module.exports = class JInvitation extends jraphical.Module
           (signature Function)
           (signature Object, Function)
         ]
+        accept:[
+          (signature Function)
+          (signature Object, Function)
+        ]
       static:
         some:[
           (signature Object, Object, Function)
@@ -99,12 +103,13 @@ module.exports = class JInvitation extends jraphical.Module
         type        : String
         default     : -> 'member'
 
-  accept$: secure (client, callback) ->
-    { delegate } = client.connection
-    @accept delegate, callback
+  accept$: permit 'send invitations',
+    success: (client, callback) ->
+      { delegate } = client.connection
+      @accept delegate, callback
 
   accept: (account, callback) ->
-    operation = { $set : { status: 'accepted' } }
+    operation = { $set : { status: 'accepted', 'modifiedAt': new Date() } }
     @update operation, callback
 
   # validTypes holds states that can still redeemable
@@ -120,27 +125,30 @@ module.exports = class JInvitation extends jraphical.Module
   # some selects result set for invitations, it adds group name automatically
   @some$: permit 'send invitations',
     success: (client, selector, options, callback) ->
-      { groupSlug } = selector
-      groupName     = client.context.group or 'koding'
-      @canFetchInvitationsAsSuperAdmin client, (err, isSuperAdmin) ->
-        selector           or= {}
-        selector.groupName   = groupName # override group name in any case
-        selector.status    or= 'pending'
 
-        # allow only koding super admin to update groupName in query
-        if isSuperAdmin and groupSlug and client.context.group is 'koding'
-          selector.groupName = groupSlug
-
-        # delete groupSlug to prevent suspicious queries
+      { groupSlug }        = selector
+      groupName            = client.context.group or 'koding'
+      selector           or= {}
+      selector.status    or= 'pending'
+      selector.groupName   = groupName # override group name in any case
+      fetchInvitations     = ->
         delete selector.groupSlug
 
         { limit }       = options
         options.sort  or= { createdAt : -1 }
+        options.skip   ?= 0
         options.limit or= 25
         options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
-        options.skip   ?= 0
 
         JInvitation.some selector, options, callback
+
+      if groupSlug and client.context.group is 'koding'
+        @canFetchInvitationsAsSuperAdmin client, (err, isSuperAdmin) ->
+          selector.groupName = groupSlug  if isSuperAdmin
+          fetchInvitations()
+      else
+        fetchInvitations()
+
 
   # search searches database with given query string, adds `starting
   # with regex` around query param
@@ -198,15 +206,16 @@ module.exports = class JInvitation extends jraphical.Module
     inviteInfo = null
 
     queue = [
-      (fin) -> JInvitation.one { email, groupName }, fin
+      (fin) ->
+        JInvitation.one { email, groupName }, fin
 
     , (invite, fin) ->
       [fin, invite] = paramSwapper invite, fin
 
       return fin null, no  unless invite
       return invite.remove fin  if forceInvite
-
-      inviteInfo = { email, code: invite.code, alreadyInvited: yes }
+      invite.alreadyInvited = yes
+      inviteInfo = invite
       return fin null, yes
 
     , (alreadyInvited, fin) ->
@@ -223,7 +232,7 @@ module.exports = class JInvitation extends jraphical.Module
 
     , (invite, fin) ->
       [fin, invite] = paramSwapper invite, fin
-      inviteInfo = { email, code: invite.code }  if invite
+      inviteInfo = invite if invite
 
       return fin()  if noEmail or not invite
       JInvitation.sendInvitationEmail client, invite, fin
@@ -319,10 +328,7 @@ module.exports = class JInvitation extends jraphical.Module
       inviterImage : imgURL
       link         : groupLink + "Invitation/#{encodeURIComponent invitation.code}"
 
-    Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.INVITED_GROUP }, properties
-
-    callback null
-
+    Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.INVITED_TEAM }, properties, callback
 
   getName = (delegate) ->
 
