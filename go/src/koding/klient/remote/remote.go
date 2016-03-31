@@ -532,7 +532,7 @@ func (r *Remote) GetDialedMachine(name string) (*machine.Machine, error) {
 		return nil, err
 	}
 
-	if err := machine.Dial(); err != nil {
+	if err := machine.DialOnce(); err != nil {
 		return nil, err
 	}
 

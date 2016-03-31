@@ -9,6 +9,7 @@ import (
 	"koding/klient/remote/kitepinger"
 	"koding/klient/remote/rsync"
 	"koding/klient/util"
+	"sync"
 
 	"github.com/koding/kite/dnode"
 )
@@ -120,6 +121,11 @@ type Machine struct {
 	// Transport is an interface that Machine.Dial, Machine.Tell, and any method that
 	// communicates with the remote kite uses.
 	Transport Transport `json:"-"`
+
+	// Have we dialed the current transport, or not
+	hasDialed bool
+
+	dialLock sync.Mutex
 }
 
 // MachineLogger returns a new logger with the context of the given MachineMeta
@@ -246,7 +252,16 @@ func (m *Machine) CheckValid() error {
 }
 
 // Dial dials the internal dialer.
-func (m *Machine) Dial() error {
+func (m *Machine) Dial() (err error) {
+	// set the resulting dial based on the success of the Dial method.
+	// Note that repeated calls to Dial creates a new XHR transport, so failing
+	// dial on an existing sets a new local client transport session.
+	// In otherwords, a failed dial will result in a not-connected sessuin. Due to
+	// this, we track the state of the dialed by result, regardless of original state.
+	defer func() {
+		m.hasDialed = err == nil
+	}()
+
 	if m.Transport == nil {
 		m.Log.Error("Dial was attempted with a nil Transport")
 		return util.KiteErrorf(
@@ -263,6 +278,19 @@ func (m *Machine) Dial() error {
 	return nil
 }
 
+// DialOnce dials the machine once, and repeated dials do not trigger a dial.
+func (m *Machine) DialOnce() error {
+	m.dialLock.Lock()
+	defer m.dialLock.Unlock()
+
+	// If we've already dialed, don't dial again.
+	if m.hasDialed {
+		return nil
+	}
+
+	return m.Dial()
+}
+
 // Tell uses the Kite protocol (with a dnode response) to communicate with this
 // machine.
 func (m *Machine) Tell(method string, args ...interface{}) (*dnode.Partial, error) {
@@ -271,6 +299,10 @@ func (m *Machine) Tell(method string, args ...interface{}) (*dnode.Partial, erro
 		return nil, util.KiteErrorf(
 			kiteerrortypes.MachineNotValidYet, "Machine.Transport is nil",
 		)
+	}
+
+	if err := m.DialOnce(); err != nil {
+		return nil, err
 	}
 
 	return m.Transport.Tell(method, args...)
@@ -284,6 +316,10 @@ func (m *Machine) TellWithTimeout(method string, timeout time.Duration, args ...
 		return nil, util.KiteErrorf(
 			kiteerrortypes.MachineNotValidYet, "Machine.Transport is nil",
 		)
+	}
+
+	if err := m.DialOnce(); err != nil {
+		return nil, err
 	}
 
 	return m.Transport.TellWithTimeout(method, timeout, args...)
