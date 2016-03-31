@@ -50,9 +50,6 @@ If you wish to develop kd you'll need the following depedencies.
     # only do this if you've installed kd before
     sudo kd uninstall
 
-    # this'll create required folders and dependencies
-    ./bootstrap
-
 ### Klient
 
     # Builds, installs and restarts Klient daemon:
