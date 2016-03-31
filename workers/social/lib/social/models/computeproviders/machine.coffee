@@ -610,7 +610,7 @@ module.exports = class JMachine extends Module
 
     , (client, label, callback) ->
 
-      { r: { user, group }, connection: { delegate } } = client
+      { r: { user, group } } = client
 
       unless isOwner user, this
         return callback new KodingError 'Access denied'
@@ -626,7 +626,6 @@ module.exports = class JMachine extends Module
         return callback new KodingError 'Nickname cannot be empty'
 
       notifyOptions =
-        account : delegate
         group   : client?.context?.group
         target  : 'group'
 
@@ -635,7 +634,6 @@ module.exports = class JMachine extends Module
           return callback err  if err?
           @updateAndNotify notifyOptions, { $set: { slug , label } }, (err) -> kallback err, slug
       else
-        console.log 'label ', label
         @updateAndNotify notifyOptions, { $set: { label } }, (err) -> kallback err, slug
 
 
