@@ -1,11 +1,20 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 
 	"github.com/RangelReale/osin"
 	"github.com/osin-mongo-storage/mgostore"
+)
+
+var (
+	ErrClientIdNotFound    = errors.New("client id is not found")
+	ErrCookieValueNotFound = errors.New("cookie value is not found")
+	ErrSessionNotFound     = errors.New("session is not found")
 )
 
 type Oauth struct {
@@ -19,6 +28,11 @@ func (o *Oauth) AuthorizeClient(w http.ResponseWriter, r *http.Request) {
 	resp := server.NewResponse()
 	if ar := server.HandleAuthorizeRequest(resp, r); ar != nil {
 
+		session, err := getSession(r)
+		if err != nil {
+			return w.Write([]byte(err))
+		}
+
 		// Handle the login page
 
 		// if !example.HandleLoginPage(ar, w, r) {
@@ -26,7 +40,7 @@ func (o *Oauth) AuthorizeClient(w http.ResponseWriter, r *http.Request) {
 		// }
 
 		// ~to-do , needs to be added users data
-		ar.UserData = UserData{"Login": "test"}
+		ar.UserData = session.Username
 		ar.Authorized = true
 		server.FinishAuthorizeRequest(resp, r, ar)
 
@@ -61,4 +75,22 @@ func (o *Oauth) GenerateToken(w http.ResponseWriter, r *http.Request) {
 		resp.Output["custom_parameter"] = 19923
 	}
 	osin.OutputJSON(resp, w, r)
+}
+
+func getSession(r *http.Request) (*models.Session, error) {
+	cookie, err := r.Cookie("clientId")
+	if err != nil {
+		return "", ErrClientIdNotFound
+	}
+
+	if cookie.Value == "" {
+		return "", ErrCookieValueNotFound
+	}
+
+	session, err := modelhelper.GetSession(cookie.Value)
+	if err != nil {
+		return "", ErrSessionNotFound
+	}
+
+	return session, nil
 }
