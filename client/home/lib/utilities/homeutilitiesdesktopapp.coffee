@@ -11,12 +11,12 @@ module.exports = class HomeUtilitiesDesktopApp extends kd.CustomHTMLView
     super options, data
 
     @guide  = new CustomLinkView
-      cssClass : 'HomeAppView--button action-link gray'
+      cssClass : 'HomeAppView--button'
       title    : 'VIEW GUIDE'
       href     : 'https://www.koding.com/docs/desktop-app'
 
     @download  = new CustomLinkView
-      cssClass : 'HomeAppView--button primary action-link blue'
+      cssClass : 'HomeAppView--button primary'
       title    : 'DOWNLOAD'
       href     : 'https://www.koding.com/docs/desktop-app/download'
 
