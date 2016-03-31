@@ -1,5 +1,6 @@
-kd    = require 'kd'
-JView = require 'app/jview'
+kd      = require 'kd'
+JView   = require 'app/jview'
+Tracker = require 'app/util/tracker'
 
 
 module.exports = class CredentialListItem extends kd.ListItemView
@@ -65,6 +66,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
       @getDelegate().emit 'ItemSelected', this
     else
       @setClass 'failed'
+      Tracker.track Tracker.STACKS_AWS_KEYS_FAILED
       @warningView.updatePartial if reason
         "Failed to verify: #{reason}"
       else

@@ -5,6 +5,7 @@ KDOverlayView             = kd.OverlayView
 showError                 = require 'app/util/showError'
 StackTemplateListItem     = require './stacktemplatelistitem'
 StackTemplateContentModal = require './stacktemplatecontentmodal'
+Tracker                   = require 'app/util/tracker'
 
 
 module.exports = class StackTemplateList extends KDListView
@@ -41,6 +42,7 @@ module.exports = class StackTemplateList extends KDListView
         callback  :  => template.delete (err) =>
           modal.destroy()
           @emit 'ItemDeleted', item  unless showError err
+          Tracker.track Tracker.STACKS_DELETE_TEMPLATE
 
     modal.once   'KDObjectWillBeDestroyed', overlay.bound 'destroy'
     overlay.once 'click',                   modal.bound   'destroy'

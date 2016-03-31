@@ -2,6 +2,7 @@ React                     = require 'kd-react'
 actions                   = require 'app/flux/environment/actions'
 SidebarWidget             = require './sidebarwidget'
 InvitationWidgetUserPart  = require './invitationwidgetuserpart'
+Tracker                   = require 'app/util/tracker'
 
 module.exports = class LeaveSharedMachineWidget extends React.Component
 
@@ -12,6 +13,7 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
   onLeaveClicked: ->
 
     actions.rejectInvitation @props.machine
+    Tracker.track Tracker.VM_LEFT_SHARED
 
 
   render: ->

@@ -11,6 +11,7 @@ KDFormViewWithFields = kd.FormViewWithFields
 
 whoami               = require 'app/util/whoami'
 curryIn              = require 'app/util/curryIn'
+Tracker              = require 'app/util/tracker'
 { yamlToJson }       = require './yamlutils'
 providersParser      = require './providersparser'
 
@@ -270,6 +271,8 @@ module.exports = class DefineStackView extends KDView
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'
+        Tracker.track Tracker.STACKS_CANCEL_SETUP if @cancelButton.buttonTitle is 'Cancel'
+        Tracker.track Tracker.STACKS_FINISHED_EDIT if @cancelButton.buttonTitle is 'Ok'
         @emit 'Cancel'
 
     # let's remove this button from here, or
@@ -494,6 +497,7 @@ module.exports = class DefineStackView extends KDView
             if response
               @outputView.add 'Bootstrap completed successfully'
               showCredentialContent credential
+              Tracker.track Tracker.STACKS_AWS_KEYS_PASSED
             else
               @outputView.add 'Bootstrapping completed but something went wrong.'
               callback null
@@ -629,6 +633,10 @@ module.exports = class DefineStackView extends KDView
 
       if not err and stackTemplate
 
+        if title is 'Default stack template'
+          Tracker.track Tracker.STACKS_DEFAULT_NAME
+        else Tracker.track Tracker.STACKS_CUSTOM_NAME
+
         @setData { stackTemplate }
         @emit 'Reload'
 
@@ -724,6 +732,8 @@ module.exports = class DefineStackView extends KDView
       if @outputView.handleError err
         @setAsDefaultButton.hideLoader()
         return
+
+      Tracker.track Tracker.STACKS_MAKE_DEFAULT
 
       stackTemplate.isDefault = yes
 
