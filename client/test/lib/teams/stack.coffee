@@ -54,5 +54,15 @@ module.exports =
     teamsHelpers.createStack(browser, yes)
     teamsHelpers.createCredential(browser, no, no, yes)
     teamsHelpers.saveTemplate(browser, no)
-    teamsHelpers.editStack(browser)
+    teamsHelpers.editStack(browser, no)
+    browser.end()
+
+
+  openAndCloneStack: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    teamsHelpers.createCredential(browser, no, no, yes)
+    teamsHelpers.saveTemplate(browser, no)
+    teamsHelpers.editStack(browser, yes)
     browser.end()

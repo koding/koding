@@ -666,15 +666,20 @@ module.exports =
       .click                  stackModalCloseButton
 
 
-  editStack: (browser) ->
+  editStack: (browser, openEditorAndClone = no) ->
 
-    editMenuItem          = ".kdbuttonmenu .context-list-wrapper .edit"
-    openEditorButton      = '.kdmodal-inner .kdmodal-buttons .red'
-    stackTemplatePage     = '.define-stack-view .stack-template'
-    stackEditorSelector   = "#{stackTemplatePage} .editor-pane"
-    numberNotification    = "#{sidebarStackSection} .SidebarListItem-unreadCount"
-    myStacksPage          = '.environments-modal.My-Stacks'
-    stackItems            = "#{myStacksPage} .environment-item"
+    editMenuItem             = ".kdbuttonmenu .context-list-wrapper .edit"
+    openEditorButton         = '.kdmodal-inner .kdmodal-buttons .red'
+    openEditorAndCloneButton = '.kdmodal-inner .kdmodal-buttons .green'
+    stackTemplatePage        = '.define-stack-view .stack-template'
+    stackEditorSelector      = "#{stackTemplatePage} .editor-pane"
+    numberNotification       = "#{sidebarStackSection} .SidebarListItem-unreadCount"
+    myStacksPage             = '.environments-modal.My-Stacks'
+    stackItems               = "#{myStacksPage} .environment-item"
+    makeTeamDefaultButton    = '.stacks .template-title-form .set-default'
+    makeTeamDefaultLoader    = "#{makeTeamDefaultButton} .kdloader.hidden"
+    newStackTemplate         = '.stacktemplates .stack-template-list .stacktemplate-item:last-child .title'
+    newStackInSidebar        = '.SidebarStackSection .SidebarMachinesListItem .SidebarMachinesListItem--MainLink'
 
     browser.pause  3000
     @openStackCatalog(browser, no)
@@ -687,22 +692,46 @@ module.exports =
       .waitForElementVisible  editMenuItem, 20000
       .click                  editMenuItem
       .pause                  2000
-      .waitForElementVisible  openEditorButton, 20000
-      .click                  openEditorButton
+
+    if openEditorAndClone
+      browser
+        .waitForElementVisible  openEditorAndCloneButton, 20000
+        .click                  openEditorAndCloneButton
+    else
+      browser
+        .waitForElementVisible  openEditorButton, 20000
+        .click                  openEditorButton
+
+    browser
       .waitForElementVisible  stackTemplatePage, 20000
       .waitForElementVisible  stackEditorSelector, 20000
 
     @setTextToEditor browser, 'template', staticContents.multiMachineStackTemplate
     @clickSaveAndTestButton(browser)
 
+    if openEditorAndClone
+      browser
+        .waitForElementVisible  makeTeamDefaultButton, 20000
+        .click                  makeTeamDefaultButton
+        .pause                  3000
+        .waitForElementVisible  '.stacktemplates', 20000
+        .assert.containsText    newStackTemplate, 'clone'
+
     browser
       .waitForElementVisible  stackModalCloseButton, 20000
       .click                  stackModalCloseButton
-      .waitForElementVisible  numberNotification, 20000
-      .click                  numberNotification
-      .waitForElementVisible  stackItems, 20000
-      .waitForElementVisible  "#{stackItems} .update-notification", 20000
-      .assert.containsText    "#{stackItems} .update-notification", 'has updated this stack'
+
+    if openEditorAndClone
+      browser
+        .pause                  2000 # wait for sidebar loading
+        .waitForElementVisible  newStackInSidebar, 20000
+    else
+      browser
+        .waitForElementVisible  numberNotification, 20000
+        .click                  numberNotification
+        .waitForElementVisible  stackItems, 20000
+        .waitForElementVisible  "#{stackItems} .update-notification", 20000
+        .assert.containsText    "#{stackItems} .update-notification", 'has updated this stack'
 
 
   buildStack: (browser) ->
