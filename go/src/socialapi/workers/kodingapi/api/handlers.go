@@ -1,7 +1,6 @@
 package api
 
 import (
-	"socialapi/config"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
 )
@@ -13,7 +12,7 @@ const (
 	ListMachineItems = "list-items"
 )
 
-func AddHandlers(m *mux.Mux, config *config.Config) {
+func AddHandlers(m *mux.Mux) {
 	// These handlers's full path is gonna be changed
 	m.AddHandler(
 		handler.Request{
@@ -38,7 +37,7 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 			Handler:  GetMachineStatus,
 			Name:     MachineStatus,
 			Type:     handler.GetRequest,
-			Endpoint: "/machine/{id}",
+			Endpoint: "/machine/{id}/status",
 		},
 	)
 
