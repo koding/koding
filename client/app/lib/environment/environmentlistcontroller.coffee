@@ -75,7 +75,6 @@ module.exports = class EnvironmentListController extends KodingListController
 
     computeController.once 'RenderStacks', =>
       @getListView().emit 'ModalDestroyRequested', yes, yes
-      Tracker.track Tracker.STACKS_REINIT
 
 
   addListItems: (stacks) ->

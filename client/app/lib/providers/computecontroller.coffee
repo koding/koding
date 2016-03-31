@@ -1286,6 +1286,7 @@ module.exports = class ComputeController extends KDController
 
             .once 'RenderStacks', (stacks = []) ->
               notification.destroy()
+              Tracker.track Tracker.STACKS_REINIT
               new kd.NotificationView { title : 'Stack reinitialized' }
               callback()
 
