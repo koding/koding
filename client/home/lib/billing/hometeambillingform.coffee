@@ -30,7 +30,7 @@ module.exports = class HomeTeamBillingForm extends kd.FormView
   pistachio: ->
 
     """
-    <h2>Payment Information</h2>
+    <header class='HomeAppView--sectionHeader'>Payment Information</header>
     <figure class='HomeAppView--cc'>
       <label>Card Number</label>
       {{> @ccNumber}}
@@ -51,7 +51,7 @@ module.exports = class HomeTeamBillingForm extends kd.FormView
         {{> @ccNameChange}}
       </fieldset>
     </section>
-    <h2>Billing Information</h2>
+    <header class='HomeAppView--sectionHeader'>Billing Information</header>
     <section class='HomeAppView--section billing'>
       <fieldset>
         <label>Full Name:</label>
