@@ -33,7 +33,6 @@ module.exports = class HomeTeamSettings extends kd.CustomHTMLView
 
     @teamName = new kd.InputView
       name         : 'title'
-      cssClass     : 'name'
       defaultValue : Encoder.htmlDecode team.title ? ''
 
     @teamDomain = new kd.InputView
@@ -47,8 +46,8 @@ module.exports = class HomeTeamSettings extends kd.CustomHTMLView
     #   defaultValue : Encoder.htmlDecode team.allowedDomains?.join(', ') ? ''
 
     @save  = new CustomLinkView
-      cssClass : "HomeAppView--button primary#{unless @canEditGroup then ' hidden' else ''}"
-      title    : 'SAVE'
+      cssClass : "HomeAppView--button primary fr#{unless @_canEdit then ' hidden' else ''}"
+      title    : 'SAVE CHANGES'
       click    : @bound 'update'
 
     @delete  = new CustomLinkView
@@ -137,10 +136,10 @@ module.exports = class HomeTeamSettings extends kd.CustomHTMLView
 
     team         = @getData()
     dataToUpdate = {}
-    # newDomains   = separateCommas domains
+    title        = @teamName.getValue()
+    # newDomains = separateCommas domains
 
-    unless @teamName.getValue() is team.title
-      dataToUpdate.title = formData.title
+    dataToUpdate.title = title  unless title is team.title
 
     # unless _.isEqual newDomains, team.allowedDomains
     #   for domain in newDomains when not validator.isURL domain
@@ -171,15 +170,17 @@ module.exports = class HomeTeamSettings extends kd.CustomHTMLView
       </div>
     </div>
     <form>
-      <fieldset class='half'>
-        <label>Team Name</label>
-        {{> @teamName}}
-      </fieldset>
-      <fieldset class='half'>
-        <label>Koding URL</label>
-        {{> @teamDomain }}
-      </fieldset>
-      <fieldset>
+      <div class='hor-flex'>
+        <fieldset class='half'>
+          <label>Team Name</label>
+          {{> @teamName}}
+        </fieldset>
+        <fieldset class='half TeamUrl'>
+          <label>Koding URL</label>
+          {{> @teamDomain }}
+        </fieldset>
+      </div>
+      <fieldset class='HomeAppView--ActionBar'>
         {{> @delete}}
         {{> @save}}
       </fieldset>
