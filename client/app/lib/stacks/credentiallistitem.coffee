@@ -85,8 +85,12 @@ module.exports = class CredentialListItem extends kd.ListItemView
       .verify this
       .timeout 10000
       .then (response) =>
-        @setVerified response?[identifier]
-
+        if status = response?[identifier]
+          if message = status.message
+            message = message.split('\n')[..-2].join ''
+          @setVerified status.verified, message
+        else
+          @setVerified no
       .catch (err) =>
         @setVerified no, err.message
 

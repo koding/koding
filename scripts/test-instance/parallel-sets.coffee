@@ -25,23 +25,8 @@ module.exports = [
     { name: 'register' }
     { name: 'login' }
     { name: 'logout' }
-    { name: 'environments vmactions_professional' }
-  ]
-
-  [
-    { name: 'pricing payment' }
-    { name: 'collaboration collaborationsingle'}
-  ]
-
-  [
-    { name: 'account accountsettings' }
-    { name: 'environments vmactions_hobbyist' }
-
-  ]
-
-  [
     { name: 'unittests' }
-    { name: 'environments vmactions_developer' }
+    { name: 'account accountsettings' }
   ]
 
   [
@@ -50,23 +35,24 @@ module.exports = [
   ]
 
   [
-    { name: 'ide search' }
     { name: 'ide workspace' }
+    { name: 'ide layout' }
+  ]
+
+  [
+    { name: 'ide search' }
   ]
 
   [
     { name: 'ide terminal' }
-    { name: 'pricing invalidcarddetails' }
   ]
 
   [
     { name: 'ide general' }
-    { name: 'ide layout' }
-    { name: 'teams inviteteams' }
   ]
 
   [
-    { name: 'environments snapshot' }
+    { name: 'collaboration collaborationsingle'}
   ]
 
   [
@@ -86,21 +72,33 @@ module.exports = [
   ]
 
   [
+    { name: 'teams teams' }
+    { name: 'teams stack' }
+    { name: 'teams inviteteams' }
+  ]
+
+  [
     { name: 'environments vm' }
   ]
 
   [
+    { name: 'environments snapshot' }
+  ]
+
+  [
     # { name: 'environments paidaccount' }
-      { name: 'teams stack' }
-  ]
-
-  [
-    { name: 'environments domain' }
-    { name: 'teams teams' }
-  ]
-
-  [
     # { name: 'environments vm-advanced' }
     { name: 'environments paidaccountvm' }
+    { name: 'environments domain' }
   ]
+
+  [
+    { name: 'environments vmactions_hobbyist' }
+  ]
+
+  [
+    { name: 'environments vmactions_developer' }
+    { name: 'environments vmactions_professional' }
+  ]
+
 ]
