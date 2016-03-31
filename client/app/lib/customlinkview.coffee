@@ -30,6 +30,25 @@ module.exports = class CustomLinkView extends KDCustomHTMLView
 
       @icon = new KDCustomHTMLView options.icon
 
+
+  setTitle: (title) ->
+
+    @setOption 'title', title
+
+    @render()
+
+
+  disable: -> @disabled = yes
+  enable: -> @disabled = no
+
+
+  click: (event) ->
+
+    return no  if @disabled
+
+    super
+
+
   pistachio: ->
 
     options              = @getOptions()
