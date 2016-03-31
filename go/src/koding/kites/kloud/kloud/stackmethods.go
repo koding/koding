@@ -57,6 +57,13 @@ type AuthenticateRequest struct {
 	GroupName string `json:"groupName"`
 }
 
+type AuthenticateResult struct {
+	Verified bool   `json:"verified"`
+	Message  string `json:"message,omitempty"`
+}
+
+type AuthenticateResponse map[string]*AuthenticateResult
+
 // Valid implements the Validator interface.
 func (req *AuthenticateRequest) Valid() error {
 	if len(req.Identifiers) == 0 {

@@ -1,7 +1,6 @@
 package vagrant
 
 import (
-	"errors"
 	"fmt"
 
 	"koding/db/mongodb/modelhelper"
@@ -25,31 +24,46 @@ func (s *Stack) Authenticate(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	result := make(map[string]bool, len(arg.Identifiers))
+	resp := make(kloud.AuthenticateResponse)
 
 	for _, cred := range s.Builder.Credentials {
+		res := &kloud.AuthenticateResult{}
+		resp[cred.Identifier] = res
+
 		if cred.Provider != "vagrant" {
-			return nil, errors.New("unable to authenticate non-vagrant credential: " + cred.Provider)
+			res.Message = "unable to authenticate non-vagrant credential: " + cred.Provider
+			continue
 		}
 
 		meta := cred.Meta.(*VagrantMeta)
 
 		if err := meta.Valid(); err != nil {
-			return nil, fmt.Errorf("validating %q credential: %s", cred.Identifier, err)
+			res.Message = fmt.Sprintf("validating %q credential: %s", cred.Identifier, err)
+			continue
 		}
 
 		version, err := s.api.Version(meta.QueryString)
 		s.Log.Debug("Auth response from %q: version=%q, err=%v", meta.QueryString, version, err)
-		verified := err == nil && version != ""
 
-		if err := modelhelper.SetCredentialVerified(cred.Identifier, verified); err != nil {
-			return nil, err
+		if err != nil {
+			res.Message = err.Error()
+			continue
 		}
 
-		s.Log.Debug("authenticate %q credential: version=%q, err=%v", cred.Identifier, version, err)
+		if version == "" {
+			res.Message = "vagrant version is empty"
+			continue
+		}
 
-		result[cred.Identifier] = verified
+		if err := modelhelper.SetCredentialVerified(cred.Identifier, true); err != nil {
+			res.Message = err.Error()
+			continue
+		}
+
+		res.Verified = true
 	}
 
-	return result, nil
+	s.Log.Debug("authenticate response: %v", resp)
+
+	return resp, nil
 }
