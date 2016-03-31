@@ -48,9 +48,11 @@ func (o *Oauth) AuthorizeClient(w http.ResponseWriter, r *http.Request) {
 	}
 	if resp.IsError && resp.InternalError != nil {
 		fmt.Printf("ERROR: %s\n", resp.InternalError)
+		return
 	}
 	if !resp.IsError {
 		resp.Output["custom_parameter"] = 187723
+		return
 	}
 	osin.OutputJSON(resp, w, r)
 }
