@@ -59,8 +59,6 @@ Home My Team styles
     .HomeAppView--button
       line-height           21px
       fr()
-      &.primary
-        margin-left         30px
 
     .kdinput.file
       z-index               0
@@ -70,13 +68,123 @@ Home My Team styles
 
 .HomeAppView--section.invite-using-slack
   rel()
-  bg                        color, transparent
-  border-width              0 0 1px 0
 
   .slack-oauth
     abs()
     right                   30px
     top                     20px
+
+  .HomeAppView--button
+    text-transform          uppercase
+    &.inviteChannel
+      margin                12px 0 0
+    &.inviteIndividual
+      abs                   12px 0px 0
+    &.changeTeam
+      abs                   0px 0px 0
+
+  h3
+    line-height             22px
+    font-size               14px
+    font-weight             300
+    margin                  20px 0
+    rel()
+
+  .listview-wrapper
+    kalc                    height, (100% \- 51px)
+
+  .kdtabhandle
+    cite.slack
+      r-sprite              welcome slack_small
+      display               inline-block
+      vertical-align        text-bottom
+
+  .kdbutton.slack-oauth
+    .button-title
+      cite
+        r-sprite            admin slack_monochrome_white
+        display             inline-block
+        vertical-align      sub
+
+  .slack-user-list
+    .kdbutton.invite-members
+      abs                   0px 0px 0 0
+
+  .slack-user-item
+    line-height             40px
+    height                  40px
+
+    a
+      color                 #5F5F5F
+      font-weight           400
+      font-size             14px
+      noTextDeco()
+
+    .kdcustomcheckbox
+      display               inline-block
+      height                20px
+      margin-right          10px
+      margin-top            6px
+
+    .name
+      display               inline-block
+      vertical-align        top
+      img
+        vertical-align      middle
+        size                24px 24px
+        rounded             2px
+
+      cite
+        font-style          italic
+        color               #7B7B7B
+
+  .invite-view
+  .members-commonview
+    height                  calc(100% \- 40px)
+
+    main
+      padding               5px 25px 5px 5px
+      borderBox()
+
+  .kdlistitemview-member
+    height                  40px
+
+    &.settings-visible
+      height                85px
+
+  .kdbutton
+
+    &.invite-members
+      margin-right          25px
+      fr()
+      &[disabled=disabled]
+        bg                  color #7B7B7B
+
+  .kdcustomscrollview.slack-invite-view
+    font-size               14px
+    color                   #3E3E3E
+
+    h3
+      color                 #7B7B7B
+      font-size             15px
+      line-height           3em
+      margin                0 0 25px
+      text-rendering        geometricPrecision
+      shadow                inset 0 -3px 0 #f2f2f2
+      margin-top            15px
+      rel()
+      &:not(:first-of-type)
+        margin-top          25px
+
+    .information
+      color                 #7b7b7b
+      .kdbutton.slack-oauth
+        margin              25px 0
+        display             block
+
+    .use-different-team
+      padding-bottom        50px
+
 
 .HomeAppView--section.send-invites
   overflow                  hidden
@@ -86,6 +194,8 @@ Home My Team styles
       label
         margin              30px auto 10px
         width               152px
+        font-size           12px
+        font-weight         300
         dIBlock()
 
         &:first-child
@@ -95,8 +205,10 @@ Home My Team styles
 
           span
             fr()
+
   .input-wrapper
     margin-bottom           30px
+
   .invite-inputs
     width                   592px
     border                  1px solid #D9D9D9
@@ -106,19 +218,25 @@ Home My Team styles
     borderBox()
 
     .kdcustomcheckbox
-      top                   4px
-      rel()
+      top                   5px
+      size                  20px, 20px
+      abs                   11px 13px
       dIBlock()
+      input.kdinput
+        font-size           0
 
-    input
-      border-bottom         none
+    input.kdinput
+      border                none
+      rounded               0
+      font-weight           300
+      font-size             12px
       borderBox()
 
-    .user-email
+    input.kdinput.user-email
       width                 242px
       border-right          1px solid #D9D9D9
 
-    .firstname
+    input.kdinput.firstname
       width                 152px
       border-right          1px solid #D9D9D9
 

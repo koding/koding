@@ -1,10 +1,11 @@
-$             = require 'jquery'
-kd            = require 'kd'
-async         = require 'async'
-remote        = require('app/remote').getInstance()
-whoami        = require 'app/util/whoami'
-Tracker       = require 'app/util/tracker'
-SlackUserItem = require 'admin/views/invitations/slackuseritem'
+$              = require 'jquery'
+kd             = require 'kd'
+async          = require 'async'
+remote         = require('app/remote').getInstance()
+whoami         = require 'app/util/whoami'
+Tracker        = require 'app/util/tracker'
+SlackUserItem  = require 'admin/views/invitations/slackuseritem'
+CustomLinkView = require 'app/customlinkview'
 
 titleDecorator = (channel) -> if channel.is_group then channel.name else "##{channel.name}"
 
@@ -86,19 +87,14 @@ module.exports = class HomeTeamConnectSlack extends kd.CustomHTMLView
     @addSubView changerView = new kd.CustomHTMLView
       cssClass : 'hidden'
 
-    changerView.addSubView new kd.CustomHTMLView
-      tagName : 'h3'
-      partial : 'Use a different Slack team:'
+    changerView.addSubView header = new kd.CustomHTMLView
+      tagName  : 'h3'
+      partial  : 'Use a different Slack team:'
 
-    changerView.addSubView info = new kd.CustomHTMLView
-      tagName  : 'p'
-      cssClass : 'information use-different-team'
-      partial  : 'You can change the Slack team you previously authorized.'
-
-    info.addSubView new kd.ButtonView
-      cssClass : 'solid medium red invite-members fr'
-      title    : 'Change team'
-      callback : -> location.assign OAUTH_URL
+    header.addSubView new CustomLinkView
+      cssClass : 'HomeAppView--button primary changeTeam'
+      title    : 'CHANGE SLACK TEAM'
+      click    : -> location.assign OAUTH_URL
 
     @on 'ListAdded', -> changerView.show()
 
@@ -131,10 +127,10 @@ module.exports = class HomeTeamConnectSlack extends kd.CustomHTMLView
       cssClass      : 'fl'
       selectOptions : selectOptions
 
-    wrapper.addSubView @inviteChannel = new kd.ButtonView
-      cssClass : 'solid medium green invite-members'
+    wrapper.addSubView @inviteChannel = new CustomLinkView
+      cssClass : 'HomeAppView--button primary fr inviteChannel'
       title    : titleHelper @counts.general, '#general'
-      callback : =>
+      click    : =>
 
         return  unless @users
 
@@ -168,11 +164,10 @@ module.exports = class HomeTeamConnectSlack extends kd.CustomHTMLView
 
     @mainSection.addSubView list = listController.getView()
 
-    list.addSubView @inviteIndividual = new kd.ButtonView
-      cssClass : 'solid medium green invite-members fr'
+    list.addSubView @inviteIndividual = new CustomLinkView
+      cssClass : 'HomeAppView--button primary fr inviteIndividual'
       title    : 'Invite selected members'
-      disabled : yes
-      callback : => @sendMessages getSelectedMembers listController
+      click    : => @sendMessages getSelectedMembers listController
 
     list.on 'ItemValueChanged', =>
       selected = getSelectedMembers listController
