@@ -122,6 +122,8 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 		//
 		// See https://goo.gl/Db7T6Q.
 		EnableVnodeCaching: false,
+
+		Options: map[string]string{"allow_root": ""},
 	}
 
 	// setup fuse library logging
