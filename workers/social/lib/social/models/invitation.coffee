@@ -232,7 +232,7 @@ module.exports = class JInvitation extends jraphical.Module
 
     , (invite, fin) ->
       [fin, invite] = paramSwapper invite, fin
-      inviteInfo = invite
+      inviteInfo = invite if invite
 
       return fin()  if noEmail or not invite
       JInvitation.sendInvitationEmail client, invite, fin
