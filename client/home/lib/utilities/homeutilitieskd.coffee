@@ -31,7 +31,9 @@ module.exports = class HomeUtilitiesKD extends kd.CustomHTMLView
           <code>kd mount</code> to mount your VM to a local folder in your computer.
           For detailed instructions:
           </p>
-          <a class='action-link blue view-guide' href='https://www.koding.com/docs/connect-your-machine' target='_blank'>VIEW GUIDE</a>
+          <p class='view-guide'>
+            <a class='HomeAppView--button primary' href='https://www.koding.com/docs/connect-your-machine' target='_blank'>VIEW GUIDE</a>
+          </p>
           """
 
       @cmd?.destroy()
