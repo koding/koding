@@ -104,8 +104,6 @@ module.exports = class Tracker extends bongo.Base
 
   @track = (username, event, options = {}, callback = -> ) ->
 
-    console.log "username = #{username}; subject = #{event.subject}; sendEventsToSegment = #{KONFIG.sendEventsToSegment}"
-
     return callback null  unless KONFIG.sendEventsToSegment
 
     _.extend options, @properties[event.subject]
