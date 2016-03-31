@@ -128,6 +128,8 @@ func newCreateReq(d *schema.ResourceData) (*vagrantapi.Create, error) {
 		return nil, errors.New("invalid request: user_data field is missing")
 	}
 
+	c.Debug, _ = d.Get("debug").(bool)
+
 	if d.HasChange("forwarded_ports") {
 		rawPorts := d.Get("forwarded_ports").([]interface{})
 

@@ -53,6 +53,7 @@ type Create struct {
 	CustomScript   string           // custom sh script, plain text
 	HostURL        string           // host kite URL
 	ForwardedPorts []*ForwardedPort `json:"forwarded_ports,omitempty"`
+	Debug          bool             // enable klient/vagrant debug logging
 }
 
 // Command represents vagrant.{up,halt,destroy} requests.

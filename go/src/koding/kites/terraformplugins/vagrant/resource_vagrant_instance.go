@@ -63,6 +63,11 @@ func resourceVagrantBuild() *schema.Resource {
 				Optional:    true,
 				Description: "Custom script to be executed inside the Vagrant box after the main provisioning is finished.",
 			},
+			"debug": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Enables debug logging of the vagrant commands.",
+			},
 			"forwarded_ports": &schema.Schema{
 				Type:     schema.TypeList,
 				Optional: true,
@@ -81,7 +86,6 @@ func resourceVagrantBuild() *schema.Resource {
 					},
 				},
 			},
-
 			"registerURL": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
