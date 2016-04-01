@@ -8,6 +8,7 @@ import (
 	"koding/klientctl/list"
 	"math"
 	"os"
+	"sort"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -44,6 +45,9 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println(getListErrRes(err, defaultHealthChecker))
 		return 1
 	}
+
+	// Sort our infos
+	sort.Sort(infos)
 
 	if c.Bool("json") {
 		jsonBytes, err := json.MarshalIndent(infos, "", "  ")
@@ -113,7 +117,7 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 	return 0
 }
 
-func getListOfMachines(kite *kite.Client) ([]list.KiteInfo, error) {
+func getListOfMachines(kite *kite.Client) (list.KiteInfos, error) {
 	res, err := kite.Tell("remote.list")
 	if err != nil {
 		return nil, err
