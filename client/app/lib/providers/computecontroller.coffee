@@ -1203,7 +1203,7 @@ module.exports = class ComputeController extends KDController
     stack = @findStackFromMachineId machine._id
     return callback()  unless stack
 
-    remote.api.JStackTemplate.one { _id : stack.baseStackId }, (err, stackTemplate) =>
+    @fetchBaseStackTemplate stack, (err, stackTemplate) =>
       if err
         kd.log err
         return callback()

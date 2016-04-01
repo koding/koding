@@ -1270,7 +1270,7 @@ class IDEAppController extends AppController
         mainView.activitySidebar.selectWorkspace data
 
       if initial
-        computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET, yes
+        computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET, showProgress = yes
 
       @emit 'IDEReady'
 
