@@ -17,6 +17,7 @@ import (
 	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils"
+	"koding/tools/util"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/gorilla/mux"
@@ -677,13 +678,7 @@ func (s *Server) discoverKite(ident string, r *http.Request) ([]*Endpoint, error
 
 func (s *Server) discoverHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		if r.Method == "OPTIONS" {
-			w.Header().Set("Access-Control-Allow-Methods", "HEAD, CONNECT, GET, POST, PUT, DELETE")
-			if v := r.Header.Get("Access-Control-Request-Headers"); v != "" {
-				w.Header().Set("Access-Control-Allow-Headers", v)
-			}
-			w.WriteHeader(204)
+		if util.HandleCORS(w, r) {
 			return
 		}
 
