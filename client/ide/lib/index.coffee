@@ -31,7 +31,6 @@ KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
 
-
 require('./routes').init()
 
 
@@ -438,14 +437,16 @@ class IDEAppController extends AppController
   ###
   tailFile: (options, callback = kd.noop) ->
 
-    { file, contents, targetTabView, description, emitChange, isActivePane, tailOffset } = options
+    { file, contents, targetTabView, description,
+      emitChange, isActivePane, tailOffset, buildDuration } = options
 
     targetTabView = @ideViews.first.tabView  unless targetTabView
 
     @setActiveTabView targetTabView
 
     @activeTabView.emit 'FileNeedsToBeTailed', {
-      file, contents, description, callback, emitChange, isActivePane, tailOffset
+      file, contents, description, callback, emitChange,
+      isActivePane, tailOffset, buildDuration
     }
 
 
@@ -1268,7 +1269,8 @@ class IDEAppController extends AppController
       else
         mainView.activitySidebar.selectWorkspace data
 
-      computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET  if initial
+      if initial
+        computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET, showProgress = yes
 
       @emit 'IDEReady'
 

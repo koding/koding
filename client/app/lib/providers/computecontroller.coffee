@@ -1177,7 +1177,7 @@ module.exports = class ComputeController extends KDController
       return callback null, template
 
 
-  showBuildLogs: (machine, tailOffset) ->
+  showBuildLogs: (machine, tailOffset, showProgress) ->
 
     # Not supported for Koding Group
     return  if isKoding()
@@ -1188,14 +1188,27 @@ module.exports = class ComputeController extends KDController
 
     return  unless ideApp = envDataProvider.getIDEFromUId machine.uid
 
-    ideApp.tailFile {
+    callback = (buildDuration) -> ideApp.tailFile {
       file
       description : '
         Your Koding Stack has successfully been initialized. The log here
         describes each executed step of the Stack creation process.
       '
       tailOffset
+      buildDuration
     }
+
+    return callback()  unless showProgress
+
+    stack = @findStackFromMachineId machine._id
+    return callback()  unless stack
+
+    @fetchBaseStackTemplate stack, (err, stackTemplate) =>
+      if err
+        kd.log err
+        return callback()
+
+      callback stackTemplate.config?.buildDuration
 
 
   ###*
