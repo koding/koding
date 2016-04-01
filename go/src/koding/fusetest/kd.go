@@ -1,10 +1,10 @@
 package fusetest
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 // KD is a simple struct for simplifying calling KD commands as a subprocess.
@@ -28,29 +28,30 @@ func (kd *KD) run(args ...string) error {
 	cmd.Stdout = kd.Stdout
 	cmd.Stderr = kd.Stderr
 	cmd.Stdin = kd.Stdin
-	if err := cmd.Run(); err != nil {
-		return err
-	}
 
-	return nil
+	return cmd.Run()
 }
 
 func (kd *KD) Mount(machine, remoteDir, localDir string) error {
-	return kd.run("mount", fmt.Sprintf("%s:%s", machine, remoteDir), localDir)
+	return kd.run("mount", joinWithColon(machine, remoteDir), localDir)
 }
 
 func (kd *KD) MountWithNoPrefetch(machine, remoteDir, localDir string) error {
 	return kd.run(
-		"mount", "--noprefetch-meta", fmt.Sprintf("%s:%s", machine, remoteDir), localDir,
+		"mount", "--noprefetch-meta", joinWithColon(machine, remoteDir), localDir,
 	)
 }
 
 func (kd *KD) MountWithPrefetchAll(machine, remoteDir, localDir string) error {
 	return kd.run(
-		"mount", "--prefetch-all", fmt.Sprintf("%s:%s", machine, remoteDir), localDir,
+		"mount", "--prefetch-all", joinWithColon(machine, remoteDir), localDir,
 	)
 }
 
 func (kd *KD) Unmount(machine string) error {
 	return kd.run("unmount", machine)
+}
+
+func joinWithColon(s ...string) string {
+	return strings.Join(s, ":")
 }
