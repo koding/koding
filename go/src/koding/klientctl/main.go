@@ -139,9 +139,9 @@ func main() {
 		cli.Command{
 			Name:        "remount",
 			ShortName:   "r",
-			Usage:       "Remount previously mounted machine.",
+			Usage:       "Remount previously mounted machine using same settings.",
 			Description: cmdDescriptions["remount"],
-			Action:      ctlcli.ExitAction(RemountCommand, log, "remount"),
+			Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
 		},
 		cli.Command{
 			Name:        "ssh",
