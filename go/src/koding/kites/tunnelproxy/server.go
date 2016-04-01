@@ -677,6 +677,16 @@ func (s *Server) discoverKite(ident string, r *http.Request) ([]*Endpoint, error
 
 func (s *Server) discoverHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Methods", "HEAD, CONNECT, GET, POST, PUT, DELETE")
+			if v := r.Header.Get("Access-Control-Request-Headers"); v != "" {
+				w.Header().Set("Access-Control-Allow-Headers", v)
+			}
+			w.WriteHeader(204)
+			return
+		}
+
 		endpoints, err := s.discover(strings.ToLower(mux.Vars(r)["service"]), r)
 		if err != nil {
 			s.opts.Log.Error("%s: discover failed for %s (%s): %s", r.RemoteAddr, r.Host, r.URL, err)
