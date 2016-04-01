@@ -16,10 +16,16 @@ import (
 // Fusetest runs common file & dir operations on already mounted folder
 // then checks if local mount and remote VM are synchronized using ssh.
 type Fusetest struct {
-	Machine  string
+	Machine string
+
+	// The path of the local mount directory on the users system.
 	MountDir string
-	TestDir  string
-	Opts     req.MountFolder
+
+	// The temporary directory within the Mount directory, where test operations
+	// are run.
+	TestDir string
+
+	Opts req.MountFolder
 
 	T *testing.T
 
@@ -170,7 +176,7 @@ func (f *Fusetest) RunOperationTests() error {
 
 func (f *Fusetest) setupConvey(name string, fn func(string)) {
 	Convey(name, f.T, createDir(f.TestDir, name, func(dirPath string) {
-		m := filepath.Base(f.MountDir)
+		m := filepath.Base(f.TestDir)
 		d := filepath.Base(dirPath)
 
 		fn(filepath.Join(m, d))
@@ -178,7 +184,7 @@ func (f *Fusetest) setupConvey(name string, fn func(string)) {
 }
 
 func (f *Fusetest) checkCacheEntry(name string) (os.FileInfo, error) {
-	fi, err := statDirCheck(filepath.Join(f.Opts.CachePath, name))
+	fi, err := statDirCheck(f.fullCachePath(name))
 	if err != nil {
 		return nil, err
 	}
@@ -295,12 +301,12 @@ func (f *Fusetest) CheckLocalFileContents(file, contents string) error {
 }
 
 func (f *Fusetest) fullCachePath(entry string) string {
-	return filepath.Join(f.Opts.CachePath, entry)
+	return filepath.Join(f.Opts.CachePath, filepath.Base(f.TestDir), entry)
 }
 
 func (f *Fusetest) fullMountPath(entry string) string {
 	// TODO: this is hack, added by trial and error; fix root cause
-	p := filepath.Dir(f.MountDir)
+	p := filepath.Dir(f.TestDir)
 	return filepath.Join(p, entry)
 }
 
