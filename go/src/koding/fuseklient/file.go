@@ -3,6 +3,7 @@ package fuseklient
 import (
 	"fmt"
 
+	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 )
 
@@ -116,7 +117,7 @@ func (f *File) ToString() string {
 	eToS := f.Entry.ToString()
 	return fmt.Sprintf(
 		"%s\nfile: size=%d memSize=%d isDirty=%v",
-		eToS, f.Attrs.Size, len(f.GetContent()), f.content.isDirty,
+		eToS, f.Attrs.Size, len(f.content.content), f.content.isDirty,
 	)
 }
 
@@ -130,6 +131,14 @@ func (f *File) Reset() error {
 	return nil
 }
 
+func (f *File) SetAttrs(attrs fuseops.InodeAttributes) {
+	f.Lock()
+	defer f.Unlock()
+
+	f.Attrs = attrs
+	f.content.Size = int64(attrs.Size)
+}
+
 func (f *File) ResetAndRead() error {
 	f.Lock()
 	defer f.Unlock()
@@ -138,10 +147,16 @@ func (f *File) ResetAndRead() error {
 }
 
 func (f *File) GetContent() []byte {
+	f.RLock()
+	defer f.RUnlock()
+
 	return f.content.content
 }
 
 func (f *File) SetContent(content []byte) {
+	f.Lock()
+	defer f.Unlock()
+
 	n := make([]byte, len(content))
 	copy(n, content)
 
