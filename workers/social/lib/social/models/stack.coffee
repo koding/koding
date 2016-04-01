@@ -379,8 +379,7 @@ module.exports = class JComputeStack extends jraphical.Module
       return callback new KodingError \
         'Stacks generated from templates can only be destroyed by Kloud.'
 
-    @update { $set: { status: { state: 'Destroying' } } }, (err) ->
-      return console.log err  if err
+    @update { $set: { status: { state: 'Destroying' } } }
 
     JProposedDomain  = require './domain'
     JMachine = require './computeproviders/machine'
