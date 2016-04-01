@@ -143,7 +143,7 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
 
       @_fetchingSessions = no
 
-    .timeout 10000
+    .timeout 15000
 
     .catch (err) =>
 
