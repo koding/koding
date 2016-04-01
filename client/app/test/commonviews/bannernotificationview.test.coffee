@@ -10,7 +10,9 @@ describe 'Banner notification', ->
       content : 'BannerContent'
     banner = new BannerNotificationView options
 
-    expect(banner.domElement[0].innerHTML).toEqual('<p title="BannerTitle BannerContent"><b>BannerTitle</b> <span>BannerContent</span></p><a class="close" href="#"></a>')
+    expect(banner.domElement[0].innerHTML).toEqual('<p title="BannerTitle \
+     BannerContent"><b>BannerTitle</b> <span>BannerContent</span></p>\
+     <a class="close" href="#"></a>')
 
   it 'should produce correct pistachio', ->
     options =
@@ -18,4 +20,6 @@ describe 'Banner notification', ->
       content : 'Banner Content <p> banner content </p>'
     banner = new BannerNotificationView options
 
-    expect(banner.domElement[0].innerHTML).toEqual('<p title="BannerTitle Banner Content  banner content "><b>BannerTitle</b> <span>Banner Content <p> banner content </p></span></p><a class="close" href="#"></a>')
+    expect(banner.domElement[0].innerHTML).toEqual('<p title="BannerTitle \
+      Banner Content  banner content "><b>BannerTitle</b> <span>Banner Content <p> \
+      banner content </p></span></p><a class="close" href="#"></a>')
