@@ -11,9 +11,6 @@ KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 validate = ({ ipAddress, queryString, storage }) ->
 
-  if ipAddress? and (ipAddress.split '.').length isnt 4
-    return { err : new KodingError 'Provided IP is not valid', 'WrongParameter' }
-
   if queryString? and (queryString.split '/').length isnt 8
     return { err : new KodingError 'Provided queryString is not valid', 'WrongParameter' }
 
