@@ -13,7 +13,7 @@ const (
 	AuthorizeColl = "jOauthAuthorizations"
 	AccessColl    = "jOauthAccesses"
 
-	REFRESHTOKEN = "refreshtoken"
+	RefreshToken = "refreshtoken"
 )
 
 type MongoStorage struct {
@@ -23,7 +23,7 @@ type MongoStorage struct {
 func NewOauthStore(session *mgo.Session) *MongoStorage {
 	storage := &MongoStorage{session}
 	index := mgo.Index{
-		Key:        []string{REFRESHTOKEN},
+		Key:        []string{RefreshToken},
 		Unique:     false, // refreshtoken is sometimes empty
 		DropDups:   false,
 		Background: true,
@@ -42,7 +42,7 @@ func (store *MongoStorage) GetClient(id string) (*osin.Client, error) {
 	client := new(osin.Client)
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"ID": id}).One(&client)
+		return c.Find(bson.M{"id": id}).One(&client)
 	}
 
 	err := Mongo.Run(ClientColl, query)
@@ -54,12 +54,12 @@ func (store *MongoStorage) GetClient(id string) (*osin.Client, error) {
 }
 
 func (store *MongoStorage) SetClient(id string, client *osin.Client) error {
-	query := updateQuery(Selector{"ID": id}, client)
+	query := updateQuery(Selector{"id": id}, client)
 	return Mongo.Run(ClientColl, query)
 }
 
 func (store *MongoStorage) SaveAuthorize(data *osin.AuthorizeData) error {
-	query := updateQuery(Selector{"CODE": data.Code}, data)
+	query := updateQuery(Selector{"code": data.Code}, data)
 	return Mongo.Run(AuthorizeColl, query)
 }
 
@@ -67,7 +67,7 @@ func (store *MongoStorage) LoadAuthorize(code string) (*osin.AuthorizeData, erro
 	client := new(osin.AuthorizeData)
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"CODE": code}).One(&client)
+		return c.Find(bson.M{"code": code}).One(&client)
 	}
 
 	err := Mongo.Run(AuthorizeColl, query)
@@ -79,7 +79,7 @@ func (store *MongoStorage) LoadAuthorize(code string) (*osin.AuthorizeData, erro
 }
 
 func (store *MongoStorage) RemoveAuthorize(code string) error {
-	selector := bson.M{"CODE": code}
+	selector := bson.M{"code": code}
 
 	query := func(c *mgo.Collection) error {
 		err := c.Remove(selector)
@@ -90,7 +90,7 @@ func (store *MongoStorage) RemoveAuthorize(code string) error {
 }
 
 func (store *MongoStorage) SaveAccess(data *osin.AccessData) error {
-	query := updateQuery(Selector{"ACCESSTOKEN": data.AccessToken}, data)
+	query := updateQuery(Selector{"accesstoken": data.AccessToken}, data)
 	return Mongo.Run(AccessColl, query)
 }
 
@@ -98,7 +98,7 @@ func (store *MongoStorage) LoadAccess(token string) (*osin.AccessData, error) {
 	client := new(osin.AccessData)
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"ACCESSTOKEN": token}).One(&client)
+		return c.Find(bson.M{"accesstoken": token}).One(&client)
 	}
 
 	err := Mongo.Run(AccessColl, query)
@@ -110,7 +110,7 @@ func (store *MongoStorage) LoadAccess(token string) (*osin.AccessData, error) {
 }
 
 func (store *MongoStorage) RemoveAccess(token string) error {
-	selector := bson.M{"ACCESSTOKEN": token}
+	selector := bson.M{"accesstoken": token}
 
 	query := func(c *mgo.Collection) error {
 		err := c.Remove(selector)
@@ -124,7 +124,7 @@ func (store *MongoStorage) LoadRefresh(token string) (*osin.AccessData, error) {
 	client := new(osin.AccessData)
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{REFRESHTOKEN: token}).One(&client)
+		return c.Find(bson.M{RefreshToken: token}).One(&client)
 	}
 
 	err := Mongo.Run(AccessColl, query)
@@ -136,7 +136,7 @@ func (store *MongoStorage) LoadRefresh(token string) (*osin.AccessData, error) {
 }
 
 func (store *MongoStorage) RemoveRefresh(token string) error {
-	selector := bson.M{REFRESHTOKEN: token}
+	selector := bson.M{RefreshToken: token}
 
 	query := func(c *mgo.Collection) error {
 		err := c.Remove(selector)
