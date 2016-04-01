@@ -84,15 +84,16 @@ type ClientOptions struct {
 	// port on which it received connection.
 	LocalAddr string
 
-	// LocalRoutes is sent with RegisterRequest.
-	LocalRoutes map[string]string
+	// Services is sent with RegisterRequest.
+	Services map[string]*Tunnel
 
 	// StateChanges, when non-nil, listens on tunnel connection state transtions.
 	StateChanges chan<- *tunnel.ClientStateChange
 
-	Debug  bool           // whether to use debug logging
-	Log    logging.Logger // overwrites logger used with custom one
-	Config *config.Config // configures kite.Kite to connect to tunnelserver
+	Debug   bool           // whether to use debug logging
+	NoProxy bool           // whether to not start TLS proxy
+	Log     logging.Logger // overwrites logger used with custom one
+	Config  *config.Config // configures kite.Kite to connect to tunnelserver
 }
 
 // Valid validates the ClientOptions, returning non-nil error when
@@ -490,8 +491,8 @@ func (c *Client) tryRegister() error {
 	defer client.Close()
 
 	req := &RegisterRequest{
-		TunnelName:  c.opts.TunnelName,
-		LocalRoutes: c.opts.LocalRoutes,
+		TunnelName: c.opts.TunnelName,
+		Services:   c.opts.Services,
 	}
 
 	kiteResp, err := client.TellWithTimeout("register", c.opts.timeout(), req)

@@ -55,6 +55,7 @@ var (
 	flagTunnelName    = flag.String("tunnel-name", "", "Enable tunneling by setting non-empty tunnel name")
 	flagTunnelKiteURL = flag.String("tunnel-kite-url", "", "Change default tunnel server kite URL")
 	flagNoTunnel      = flag.Bool("no-tunnel", defaultNoTunnel(), "Force tunnel connection off")
+	flagNoProxy       = flag.Bool("no-proxy", false, "Force TLS proxy for tunneled connection off")
 )
 
 func main() {
@@ -114,6 +115,8 @@ func realMain() int {
 		VagrantHome:    vagrantHome,
 		TunnelName:     *flagTunnelName,
 		TunnelKiteURL:  *flagTunnelKiteURL,
+		NoTunnel:       *flagNoTunnel,
+		NoProxy:        *flagNoProxy,
 	}
 
 	a := app.NewKlient(conf)
