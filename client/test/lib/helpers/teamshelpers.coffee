@@ -22,6 +22,7 @@ stackTemplateList        = "#{stackCatalogModal} .stack-template-list"
 stackModalCloseButton    = '.StackCatalogModal .close-icon'
 envMachineStateModal     = '.env-machine-state.env-modal'
 stackSettingsMenuIcon    = '.stacktemplates .stack-template-list .stack-settings-menu .chevron'
+myStackTemplatesButton   = '.kdview.kdtabhandle-tabs .my-stack-templates'
 
 
 module.exports =
@@ -604,7 +605,7 @@ module.exports =
       .pause                     3000
 
 
-  saveTemplate: (browser, deleteStack = yes) ->
+  saveTemplate: (browser, deleteStack = yes, checkTags = yes) ->
 
     stackModal           = '.stack-modal'
     closeButton          = "#{stackModal} .gray"
@@ -632,7 +633,8 @@ module.exports =
       .waitForElementNotPresent  finalizeStepsButton, 20000
       .waitForElementVisible     envMachineStateModal, 20000
 
-    @checkStackTemplateTags(browser, deleteStack)
+    if checkTags
+      @checkStackTemplateTags(browser, deleteStack)
 
 
   checkStackTemplateTags: (browser, deleteStack) ->
@@ -680,6 +682,7 @@ module.exports =
     makeTeamDefaultLoader    = "#{makeTeamDefaultButton} .kdloader.hidden"
     newStackTemplate         = '.stacktemplates .stack-template-list .stacktemplate-item:last-child .title'
     newStackInSidebar        = '.SidebarStackSection .SidebarMachinesListItem .SidebarMachinesListItem--MainLink'
+
 
     browser.pause  3000
     @openStackCatalog(browser, no)
@@ -732,6 +735,40 @@ module.exports =
         .waitForElementVisible  stackItems, 20000
         .waitForElementVisible  "#{stackItems} .update-notification", 20000
         .assert.containsText    "#{stackItems} .update-notification", 'has updated this stack'
+
+
+  deleteStack: (browser) ->
+
+    deleteMenuItem = ".kdbuttonmenu .context-list-wrapper .delete"
+    stackTemplate  = '.stacktemplates .stack-template-list [testpath=privateStackListItem]'
+    stackMenuIcon  = "#{stackTemplate} .stack-settings-menu"
+    deleteModal    = '.kdmodal[testpath=RemoveStackModal]'
+    deleteButton   = "#{deleteModal} .red"
+
+
+    browser.element 'css selector', stackCatalogModal, (result) ->
+      if result.status is 0
+         browser
+          .waitForElementVisible  stackCatalogModal, 20000
+          .waitForElementVisible  closeButton, 20000
+          .click                  closeButton
+
+    @openStackCatalog(browser)
+
+    browser
+      .waitForElementVisible  myStackTemplatesButton, 20000
+      .click                  myStackTemplatesButton
+      .waitForElementVisible  stackTemplate, 20000
+      .pause                  3000
+      .waitForElementVisible  stackMenuIcon, 20000
+      .click                  stackMenuIcon
+      .waitForElementVisible  deleteMenuItem, 20000
+      .click                  deleteMenuItem
+      .pause                  3000
+      .waitForElementVisible  deleteModal, 20000
+      .assert.containsText    "#{deleteModal} .kdmodal-title", 'Remove stack template ?'
+      .waitForElementVisible  deleteButton, 20000
+      .click                  deleteButton
 
 
   buildStack: (browser) ->
@@ -885,7 +922,6 @@ module.exports =
     saveAndTestButton           = '.buttons button:nth-of-type(5)'
     stackTemplateSelector       = '.kdtabhandlecontainer.hide-close-icons .stack-template'
     stacksLogsSelector          = '.step-define-stack .kdscrollview'
-    myStackTemplatesButton      = '.kdview.kdtabhandle-tabs .my-stack-templates'
     iconsSelector               = '.kdlistitemview-default.stacktemplate-item .stacktemplate-info'
     notReadyIconSelector        = "#{iconsSelector} .not-ready"
     privateIconSelector         = "#{iconsSelector} .private"

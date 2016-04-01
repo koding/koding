@@ -66,3 +66,13 @@ module.exports =
     teamsHelpers.saveTemplate(browser, no)
     teamsHelpers.editStack(browser, yes)
     browser.end()
+
+
+  deleteStackTemplate: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    teamsHelpers.createCredential(browser, no, no, yes)
+    teamsHelpers.saveTemplate(browser, no, no)
+    teamsHelpers.deleteStack(browser)
+    browser.end()

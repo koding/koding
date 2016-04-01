@@ -11,9 +11,12 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'stacktemplate-item clearfix', options.cssClass
+
     super options, data
 
     { isDefault, inUse, accessLevel, config } = @getData()
+
+    @setAttribute 'testpath', "#{accessLevel}StackListItem"
 
     @isDefaultView = new kd.CustomHTMLView
       cssClass   : 'custom-tag'
