@@ -137,6 +137,13 @@ func main() {
 			Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
 		},
 		cli.Command{
+			Name:        "remount",
+			ShortName:   "r",
+			Usage:       "Remount previously mounted machine using same settings.",
+			Description: cmdDescriptions["remount"],
+			Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
+		},
+		cli.Command{
 			Name:        "ssh",
 			ShortName:   "s",
 			Usage:       "SSH into the machine.",

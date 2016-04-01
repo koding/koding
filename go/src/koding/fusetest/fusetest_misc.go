@@ -85,7 +85,7 @@ func (f *Fusetest) TestRename() {
 			So(err, ShouldBeNil)
 
 			// TODO: fix this
-			//So(readFile(f.fullMountPath(file1), "World!"), ShouldBeNil)
+			So(readFile(f.fullMountPath(file1), "World!"), ShouldBeNil)
 		})
 	})
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"koding/fuseklient"
-	"koding/klient/remote/kitepinger"
 	"koding/klient/remote/machine"
 	"koding/klient/remote/mount"
 	"koding/klient/storage"
@@ -234,6 +233,8 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 	// Loop through each of the kites, creating machines for any missing
 	// kites or updating existing machines with the new kite info.
 	// TODO: Use host-kiteId to locate machine.
+	//
+	// TODO: Make this loop retry any failed kites.
 	for _, k := range kites {
 		// If the kite is our local kite, skip it.
 		if k.ID == r.localKite.Id {
@@ -255,132 +256,49 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 			break
 		}
 
-		var existingMachine *machine.Machine
-		existingMachine, err = r.machines.GetByIP(host)
+		existingMachine, err := r.machines.GetByIP(host)
 
 		// If the machine is not found, create a new one.
 		if err == machine.ErrMachineNotFound {
-			// For backwards compatibility, check if the host already has a name
-			// in the cache.
-			//
-			// If the name does not exist in the host the string will be empty, and
-			// Machines.Add() will create a new unique name.
-			//
-			// If the string *does* exist then we use that, remove it from the map,
-			// and save the map to avoid dealing with this next time.
-			name, ok := r.machineNamesCache[host]
-			if ok {
-				log.Info(
-					"Using legacy name, and removing it from database. name:%s, host:%s",
-					name, host,
-				)
-				delete(r.machineNamesCache, host)
-				// Should't bother exiting here, not a terrible error.. but not good, either.
-				// Log it for knowledge, and move on.
-				if err := r.saveMachinesNames(); err != nil {
-					log.Error("Failed to save machine names. err:%s", err)
-				}
-			}
-
-			// Name can be empty here, since Machines.Add() will handle creation
-			// of the name.
-			machineMeta := machine.MachineMeta{
-				Name:         name,
-				MachineLabel: k.MachineLabel,
-				IP:           host,
-				Teams:        k.Teams,
-			}
-
-			var httpPinger *kitepinger.KiteHTTPPinger
-			// TODO: Use a full url for the passed around host.
-			httpPinger, err = kitepinger.NewKiteHTTPPinger(k.Client.URL)
-			if err != nil {
-				log.Error("Unable to create HTTPPinger from host. host:%s, err:%s", host, err)
-				break
-			}
-
-			newMachine := machine.NewMachine(
-				machineMeta, r.log, k.Client,
-				kitepinger.NewPingTracker(kitepinger.NewKitePinger(k.Client)),
-				kitepinger.NewPingTracker(httpPinger),
-			)
-
-			// Start our http pinger, to give online/offline statuses for all machines.
-			newMachine.HTTPTracker.Start()
-
-			if err = r.machines.Add(newMachine); err != nil {
-				log.Error("Unable to Add new machine to *machine.Machines. err:%s", err)
-				break
+			if err := r.createNewMachineFromKite(k, log); err != nil {
+				log.Error("Unable to create a new machine from kite. err:%s", err)
+				continue
 			}
 
 			// Set this so we know to save after the loop
 			saveMachines = true
-
 			// We've added our machine. Move onto the next.
+			continue
+		} else if err != nil {
+			// Unknown error was returned from r.machines.GetByIP, move onto next
+			// machine.
+			log.Error("Unknown/unhandled error from machines.GetByIP. err:%s", err)
 			continue
 		}
 
-		// Unknown error, return it.
-		if err != nil {
-			break
-		}
-
-		log := log.New(
-			"name", existingMachine.Name,
-		)
-
-		// Update the label. If they're the same, the update has no affect.
-		if existingMachine.MachineLabel != k.MachineLabel {
-			log.Debug(
-				"existing MachineLabel %q doesn't match remote kite's MachineLabel %q. Updating.",
-				existingMachine.MachineLabel, k.MachineLabel,
-			)
-			existingMachine.MachineLabel = k.MachineLabel
-
-			// Set this so we know to save after the loop
-			saveMachines = true
-		}
-
-		// In the event that this machine was previously offline, or if klient was
-		// restarted, the machine will be lacking many instance fields. If we have
-		// a kite for the machine, populate those fields so the machine is
-		// usable again.
-		if existingMachine.Client == nil {
-			log.Debug("existingMachine missing *kite.Client, adding..")
-			existingMachine.Client = k.Client
-		}
-
-		if existingMachine.Transport == nil {
-			log.Debug("existingMachine missing machine.Transport, adding..")
-			existingMachine.Transport = k.Client
-		}
-
-		if existingMachine.Log == nil {
-			log.Debug("existingMachine missing logging.Logger, adding..")
-			existingMachine.Log = machine.MachineLogger(existingMachine.MachineMeta, log)
-		}
-
-		if existingMachine.HTTPTracker == nil {
-			log.Debug("existingMachine missing HTTPTracker, adding..")
-			// TODO: Use a full url for the passed around host.
-			httpPinger, err := kitepinger.NewKiteHTTPPinger(k.Client.URL)
+		var shouldSave bool
+		if err := existingMachine.CheckValid(); err == nil {
+			shouldSave, err = r.updateValidMachineFromKite(k, existingMachine, log)
 			if err != nil {
-				log.Error(
-					"Unable to create HTTPTracker from host. host:%s, err:%s",
-					k.Client.URL, err,
-				)
-			} else {
-				existingMachine.HTTPTracker = kitepinger.NewPingTracker(httpPinger)
-				// Start our http pinger, to give online/offline statuses for all machines.
-				existingMachine.HTTPTracker.Start()
+				log.Error("Unable to update existing machine from kite")
+				continue
+			}
+		} else {
+			shouldSave, err = r.restoreLoadedMachineFromKite(k, existingMachine, log)
+			if err != nil {
+				log.Error("Unable to restore loaded machine from kite")
+				continue
 			}
 		}
 
-		if existingMachine.KiteTracker == nil {
-			log.Debug("existingMachine missing KiteTracker, adding..")
-			existingMachine.KiteTracker = kitepinger.NewPingTracker(
-				kitepinger.NewKitePinger(k.Client),
-			)
+		// If either a restored machine or existing machine has changed, set save
+		// to true. It's done this way, so that a non-changed machine doesn't
+		//
+		// Note that we aren't assigning this in the above methods directly
+		// because we don't want to set saveMachines to false if a machine
+		// did not change.
+		if shouldSave {
+			saveMachines = true
 		}
 	}
 
@@ -395,6 +313,133 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 	}
 
 	return r.machines, nil
+}
+
+func (r *Remote) createNewMachineFromKite(c *KodingClient, log logging.Logger) error {
+	var host string
+	host, err := r.hostFromClient(c.Client)
+	if err != nil {
+		log.Error("Unable to extract host from *kite.Client. err:%s", err)
+		return err
+	}
+
+	// For backwards compatibility, check if the host already has a name
+	// in the cache.
+	//
+	// If the name does not exist in the host the string will be empty, and
+	// Machines.Add() will create a new unique name.
+	//
+	// If the string *does* exist then we use that, remove it from the map,
+	// and save the map to avoid dealing with this next time.
+	name, ok := r.machineNamesCache[host]
+	if ok {
+		log.Info(
+			"Using legacy name, and removing it from database. name:%s, host:%s",
+			name, host,
+		)
+		delete(r.machineNamesCache, host)
+		// Should't bother exiting here, not a terrible error.. but not good, either.
+		// Log it for knowledge, and move on.
+		if err := r.saveMachinesNames(); err != nil {
+			log.Error("Failed to save machine names. err:%s", err)
+		}
+	}
+
+	// Name can be empty here, since Machines.Add() will handle creation
+	// of the name.
+	machineMeta := machine.MachineMeta{
+		URL:          c.URL,
+		IP:           host,
+		Hostname:     c.Hostname,
+		Name:         name,
+		MachineLabel: c.MachineLabel,
+		Teams:        c.Teams,
+	}
+
+	newMachine, err := machine.NewMachine(machineMeta, r.log, c.Client)
+	if err != nil {
+		return err
+	}
+
+	if err = r.machines.Add(newMachine); err != nil {
+		log.Error("Unable to Add new machine to *machine.Machines. err:%s", err)
+		return err
+	}
+
+	return nil
+}
+
+// updateValidMachineFromKite takes an existing valid machine and updates it
+// with any simple meta that might have changed. Ie, if you change a
+// machines label on Koding, this method updates the Machine's label field.
+func (r *Remote) updateValidMachineFromKite(c *KodingClient, validMachine *machine.Machine, log logging.Logger) (bool, error) {
+	var metaChanged bool
+
+	if validMachine.MachineLabel != c.MachineLabel {
+		validMachine.MachineLabel = c.MachineLabel
+		metaChanged = true
+	}
+
+	return metaChanged, nil
+}
+
+// restoreLoadedMachineFromKite takes an old loaded machine and applies meta
+// changes to it, while also creating a valid machine instance with a proper
+// transport/etc.
+func (r *Remote) restoreLoadedMachineFromKite(c *KodingClient, loadedMachine *machine.Machine, log logging.Logger) (bool, error) {
+	// metaChanged is our return value, which lets the caller know if any of the meta
+	// for this machine changed from the given kite. If it does, the caller will
+	// want to save the machines to the local db.
+	var metaChanged bool
+
+	host, err := r.hostFromClient(c.Client)
+	if err != nil {
+		log.Error("Unable to extract host from *kite.Client. err:%s", err)
+		return false, err
+	}
+
+	// Get our old machine meta, loaded from the DB
+	machineMeta := loadedMachine.MachineMeta
+	if machineMeta.MachineLabel != c.MachineLabel {
+		machineMeta.MachineLabel = c.MachineLabel
+		metaChanged = true
+	}
+
+	if machineMeta.URL != c.URL {
+		machineMeta.URL = c.URL
+		metaChanged = true
+	}
+
+	if machineMeta.IP != host {
+		machineMeta.IP = host
+		metaChanged = true
+	}
+
+	if machineMeta.Hostname != c.Hostname {
+		machineMeta.Hostname = c.Hostname
+		metaChanged = true
+	}
+
+	// Remove the machine, because we're going to be creating a new machine instance
+	// below.
+	err = r.machines.Remove(loadedMachine)
+	if err != nil && err != machine.ErrMachineNotFound {
+		log.Error("Unable to Remove old machine from *machine.Machines. err:%s", err)
+		return false, err
+	}
+
+	restoredMachine, err := machine.NewMachine(machineMeta, r.log, c.Client)
+	if err != nil {
+		return false, err
+	}
+
+	// Add our newly created machine instance.
+	if err = r.machines.Add(restoredMachine); err != nil {
+		log.Error("Unable to Add new machine to *machine.Machines. err:%s", err)
+		return false, err
+	}
+
+	return metaChanged, nil
 }
 
 // GetCacheOrMachines returns the existing machines without querying from
@@ -487,7 +532,7 @@ func (r *Remote) GetDialedMachine(name string) (*machine.Machine, error) {
 		return nil, err
 	}
 
-	if err := machine.Dial(); err != nil {
+	if err := machine.DialOnce(); err != nil {
 		return nil, err
 	}
 

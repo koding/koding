@@ -10,7 +10,6 @@ import (
 	"koding/klient/remote/req"
 	"koding/klient/remote/rsync"
 	"koding/klient/util"
-	"syscall"
 	"time"
 
 	"github.com/jacobsa/fuse"
@@ -40,7 +39,7 @@ const (
 	//
 	// TODO: Move this into the Mounter, once Mounter is refactored per design
 	// mtg spec.
-	retryMounterCount = 10
+	retryMounterCount = 30
 	retryMounterPause = 5 * time.Second
 )
 
@@ -56,7 +55,6 @@ var (
 // MounterTransport is the transport that the Mounter uses to communicate with
 // the remote machine.
 type MounterTransport interface {
-	Dial() error
 	Tell(string, ...interface{}) (*dnode.Partial, error)
 	TellWithTimeout(string, time.Duration, ...interface{}) (*dnode.Partial, error)
 }
@@ -188,7 +186,7 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 		return err
 	}
 
-	if err := m.Transport.Dial(); err != nil {
+	if err := m.Machine.DialOnce(); err != nil {
 		m.Log.Error("Error dialing remote klient. err:%s", err)
 		return util.NewKiteError(kiteerrortypes.DialingFailed, err)
 	}
@@ -224,6 +222,7 @@ func (m *Mounter) fuseMountFolder(mount *Mount, retry bool) error {
 		t   transport.Transport
 		err error
 	)
+	log := m.Log.New("fuseMountFolder")
 
 	t, err = transport.NewRemoteTransport(m.Transport, fuseTellTimeout, mount.RemotePath)
 	if err != nil {
@@ -256,7 +255,8 @@ func (m *Mounter) fuseMountFolder(mount *Mount, retry bool) error {
 		f  fuseklient.FS
 		fs *fuse.MountedFileSystem
 	)
-	err = retryOnConnErr(retryMounterCount, retryMounterPause, func() error {
+
+	retryFn := func() error {
 		f, err = fuseklient.New(t, cf)
 		if isRemotePathError(err) {
 			return ErrRemotePathDoesNotExist
@@ -272,7 +272,15 @@ func (m *Mounter) fuseMountFolder(mount *Mount, retry bool) error {
 		}
 
 		return nil
-	})
+	}
+
+	// by "Blacklisting" ErrRemotePathDoesNotExist, the retryOnErr func will
+	// not retry if the remote path does not exist.
+	retryBlacklist := []error{ErrRemotePathDoesNotExist}
+	err = retryOnErr(
+		retryMounterCount, retryMounterPause, retryBlacklist, log.New("retryMounting"),
+		retryFn,
+	)
 	if err != nil {
 		return err
 	}
@@ -284,41 +292,25 @@ func (m *Mounter) fuseMountFolder(mount *Mount, retry bool) error {
 }
 
 func (m *Mounter) watchClientAndReconnect(mount *Mount, changeSummaries chan kitepinger.ChangeSummary) error {
-	m.Log.Info("Monitoring Klient connection..")
+	// TODO: Move this monitoring log into the KiteTracker itself
+	log := m.Log.New("Kite Monitor")
+	log.Info("Monitoring Klient connection..")
 
 	m.KiteTracker.Subscribe(changeSummaries)
 	m.KiteTracker.Start()
 	mount.PingerSub = changeSummaries
 
 	for summary := range changeSummaries {
-		if err := m.handleChangeSummary(mount, summary, m.remount); err != nil {
-			return err
+		wasFailure := summary.OldStatus == kitepinger.Failure
+		wasLongAgo := summary.OldStatusDur > time.Minute*5
+		if wasFailure && wasLongAgo {
+			// Using notice here, because although this is good, it's an important
+			// event and could have UX ramifications.
+			log.Notice(
+				"Kite connected after extended disconnect. Disconnected for:%s",
+				summary.OldStatusDur,
+			)
 		}
-	}
-
-	return nil
-}
-
-func (m *Mounter) handleChangeSummary(mount *Mount, summary kitepinger.ChangeSummary, remountFunc func(*Mount) error) error {
-	log := m.Log.New("handleChangeSummary")
-
-	if summary.OldStatus == kitepinger.Failure && summary.OldStatusDur > time.Minute*30 {
-		m.Machine.SetStatus(machine.MachineRemounting, autoRemounting)
-
-		// Using warning here, because although this is good, it's an important
-		// event and could have UX ramifications.
-		log.Warning(
-			"Remounting directory after reconnect. Disconnected for:%s", summary.OldStatusDur,
-		)
-
-		// Log error and return to exit loop, since something is broke
-		if err := remountFunc(mount); err != nil {
-			log.Error("Failed to remount. err:%s", err)
-			m.Machine.SetStatus(machine.MachineError, autoRemountFailed)
-			return err
-		}
-
-		m.Machine.SetStatus(machine.MachineStatusUnknown, "")
 	}
 
 	return nil
@@ -368,15 +360,37 @@ func isRemotePathError(err error) bool {
 	return false
 }
 
-func retryOnConnErr(count int, delay time.Duration, f func() error) error {
+// retryOnErr will retry calling f() a number of times, ignoring any errors that
+// are returned. If a returned error is in the blacklisted slice, it is *not*
+// ignored, and *is* returned.
+func retryOnErr(count int, delay time.Duration, blacklist []error, log logging.Logger, f func() error) error {
 	var (
 		err error
 	)
 
 	for i := 0; i < count; i++ {
-		if err = f(); err == nil || err != syscall.ECONNREFUSED {
-			break
+		if err = f(); err == nil {
+			return nil
 		}
+
+		for _, ignore := range blacklist {
+			if err == ignore {
+				return err
+			}
+		}
+
+		if log != nil && i+1 < count {
+			log.Notice("Ignoring retry error, retrying in %s. err:%s", delay, blacklist)
+		}
+
+		time.Sleep(delay)
+	}
+
+	if log != nil {
+		log.Notice(
+			"Retry failures exceeded max count. count:%d, delay:%s, lastErr:%s",
+			count, delay, err,
+		)
 	}
 
 	return err

@@ -24,7 +24,7 @@ Currently only OSX and Linux are supported. Once it's done installing, `kd` shou
 
 * `kd help <command>` to see help for that command.
 * `kd list` to see list of your vms.
-* `kd mount <alias> <local folder> --remotepath “/home/<username>/koding”` to mount your remote koding to your local folder. Remote path needs to be a full path to the folder on your VM.
+* `kd mount <alias>:/home/<username>/koding <local folder>` to mount your remote koding to your local folder. Remote path needs to be a full path to the folder on your VM.
 * `kd ssh <machine name>` to ssh into the machine.
 * `kd run <command>` to run command on remote machine when inside mounted folder.
 * Alias common commands like `git` to `kd run`, ie `alias git="kd run git"`.
