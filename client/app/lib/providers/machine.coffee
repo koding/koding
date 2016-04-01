@@ -65,6 +65,16 @@ module.exports = class Machine extends KDObject
         @queryString = null
         computeController.reset yes
 
+    @jMachine.on 'update', =>
+
+      { reactor } = kd.singletons
+      actions     = require 'app/flux/environment/actiontypes'
+      reactor.dispatch actions.MACHINE_UPDATED, {
+        id: @_id, machine: @jMachine
+      }
+
+      @updateLocalData()
+
 
   updateLocalData: ->
     { @label, @ipAddress, @_id, @provisioners, @provider, @credential
