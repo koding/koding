@@ -127,6 +127,8 @@ class IDEAppController extends AppController
     @layoutManager.once 'LayoutSizesApplied', @bound 'doResize'
     @on 'InstallationRequired', (command) => @createNewTerminal { command }
 
+    kd.singletons.status.on 'reconnected', @bound 'bindKlientEvents'
+
 
   prepareIDE: (withFakeViews = no) ->
 
@@ -196,7 +198,13 @@ class IDEAppController extends AppController
     kite = machine.getBaseKite()
     kite.ready =>
       kem = new KlientEventManager {}, machine
-      kem.subscribe 'openFiles', @bound 'handleKlientOpenFiles'
+
+      if @klientOpenFilesSubscriberId?
+        kem.unsubscribe 'openFiles', @klientOpenFilesSubscriberId
+
+      kem
+        .subscribe 'openFiles', @bound 'handleKlientOpenFiles'
+        .then ({ id }) => @klientOpenFilesSubscriberId = id
 
 
   bindWorkspaceDataEvents: ->
