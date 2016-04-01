@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -101,10 +100,6 @@ func (f *Fusetest) RunPrefetchTests() error {
 		return err
 	}
 
-	// Pausing, because the instant remount is giving me resource is busy every
-	// time.
-	time.Sleep(5 * time.Second)
-
 	return NewKD().Unmount(f.Machine)
 }
 
@@ -122,10 +117,6 @@ func (f *Fusetest) RunNoPrefetchTests() error {
 		return err
 	}
 
-	// Pausing, because the instant remount is giving me resource is busy every
-	// time.
-	time.Sleep(5 * time.Second)
-
 	return NewKD().Unmount(f.Machine)
 }
 
@@ -142,10 +133,6 @@ func (f *Fusetest) RunPrefetchAllTests() error {
 	if err := f.RunOperationTests(); err != nil {
 		return err
 	}
-
-	// Pausing, because the instant remount is giving me resource is busy every
-	// time.
-	time.Sleep(5 * time.Second)
 
 	return NewKD().Unmount(f.Machine)
 }
