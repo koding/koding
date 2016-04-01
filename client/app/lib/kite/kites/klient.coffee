@@ -67,10 +67,12 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
   setTransport: (@transport) ->
 
     { url } = @transport.options
-    @transport.options.url = proxifyTransportUrl url
+    proxifyTransportUrl url, (newurl) =>
 
-    # now call @connect in super, which will connect to our new URL
-    super @transport
+      @transport.options.url = newurl
+
+      # now call @connect in super, which will connect to our new URL
+      super @transport
 
 
   disconnect: ->
