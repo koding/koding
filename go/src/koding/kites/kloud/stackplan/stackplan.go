@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"koding/db/models"
+	"koding/kites/common"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/utils"
@@ -16,6 +18,8 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"golang.org/x/net/context"
 )
+
+var defaultLog = common.NewLogger("stackplan", false)
 
 // credPermissions defines the permission grid for the given method
 var (
@@ -52,6 +56,9 @@ type Stack struct {
 
 	// Template is a raw Terraform template.
 	Template string
+
+	// Stack is a jComputeStack value.
+	Stack *models.ComputeStack
 }
 
 // Machines is a list of machines.

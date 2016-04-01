@@ -44,19 +44,19 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	stack, err := modelhelper.GetComputeStack(arg.StackID)
-	if err != nil {
+	if err := s.Builder.BuildStack(arg.StackID); err != nil {
 		return nil, err
 	}
 
-	if stack.State().InProgress() {
-		return nil, fmt.Errorf("State is currently %s. Please try again later", stack.State())
+	if state := s.Builder.Stack.Stack.State(); state.InProgress() {
+		return nil, fmt.Errorf("State is currently %s. Please try again later", state)
 	}
 
 	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
 		rt.Hijack()
 	}
 
+	var err error
 	if arg.Destroy {
 		err = s.destroy(ctx, &arg)
 	} else {
@@ -131,11 +131,11 @@ func (s *Stack) destroy(ctx context.Context, req *kloud.ApplyRequest) error {
 		Status:     machinestate.Terminating,
 	})
 
-	if err := s.Builder.BuildStack(req.StackID); err != nil {
+	if err := s.Builder.BuildMachines(ctx); err != nil {
 		return err
 	}
 
-	if err := s.Builder.BuildMachines(ctx); err != nil {
+	if err := s.Builder.Database.Detach(); err != nil {
 		return err
 	}
 
@@ -243,13 +243,7 @@ func (s *Stack) destroyAsync(ctx context.Context, req *kloud.ApplyRequest) error
 		return err
 	}
 
-	for _, m := range s.Builder.Machines {
-		if err := modelhelper.DeleteMachine(m.ObjectId); err != nil {
-			return err
-		}
-	}
-
-	return modelhelper.DeleteComputeStack(req.StackID)
+	return s.Builder.Database.Destroy()
 }
 
 func (s *Stack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
@@ -262,10 +256,6 @@ func (s *Stack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
 		Percentage: 20,
 		Status:     machinestate.Building,
 	})
-
-	if err := s.Builder.BuildStack(req.StackID); err != nil {
-		return err
-	}
 
 	if err := s.Builder.BuildMachines(ctx); err != nil {
 		return err
