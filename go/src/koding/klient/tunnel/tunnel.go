@@ -151,7 +151,7 @@ func New(opts *Options) (*Tunnel, error) {
 	if !optsCopy.NoProxy {
 		optsCopy.Log.Debug("starting tlsproxy for %q target", target)
 
-		p, err := tlsproxy.NewProxy("127.0.0.1:56790", target)
+		p, err := tlsproxy.NewProxy("0.0.0.0:56790", target)
 		if err != nil {
 			return nil, err
 		}
