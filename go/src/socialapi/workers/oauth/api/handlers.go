@@ -41,9 +41,12 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 
 func NewOAuthHandler(session *mgo.Session) *Oauth {
 	sconfig := osin.NewServerConfig()
+	// AllowedAccessType is a collection of allowed access request types
 	sconfig.AllowedAuthorizeTypes = osin.AllowedAuthorizeType{osin.CODE, osin.TOKEN}
+	// AccessRequestType is the type for OAuth param `grant_type`
 	sconfig.AllowedAccessTypes = osin.AllowedAccessType{osin.AUTHORIZATION_CODE,
 		osin.REFRESH_TOKEN, osin.PASSWORD, osin.CLIENT_CREDENTIALS, osin.ASSERTION}
+	// If true allows access request using GET, else only POST - default false
 	sconfig.AllowGetAccessRequest = true
 	storage := modelhelper.NewOauthStore(session)
 	server := osin.NewServer(sconfig, storage)
