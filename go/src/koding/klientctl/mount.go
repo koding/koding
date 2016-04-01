@@ -181,11 +181,6 @@ func (c *MountCommand) handleOptions() (int, error) {
 		c.Log.Info("Setting interval to default, %d", c.Options.PrefetchInterval)
 	}
 
-	// temporarily disable watcher
-	// TODO: Re-enable
-	c.Options.NoWatch = true
-	c.Log.Warning("Manually disabling Watcher")
-
 	if c.Options.NoPrefetchMeta && c.Options.PrefetchAll {
 		c.printfln(PrefetchAllAndMetaTogether)
 		return 1, fmt.Errorf("noPrefetchMeta and prefetchAll were both supplied")

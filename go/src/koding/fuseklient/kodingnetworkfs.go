@@ -147,7 +147,7 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 
 	// create root directory
 	rootDir := NewDir(rootEntry, NewIDGen())
-	watcher := NewFindWatcher(t, rootEntry.Path)
+	watcher := NewFindWatcher(t, t.GetRemotePath())
 
 	// update entries for root directory
 	if err := rootDir.Expire(); err != nil {
@@ -206,9 +206,9 @@ func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
 // this process and needs to be cleaned up.
 func (k *KodingNetworkFS) Unmount() error {
 	// watcher can be nil if Config.NoWatch was set to true
-	//if k.Watcher != nil {
-	//  k.Watcher.Close()
-	//}
+	if k.Watcher != nil {
+		k.Watcher.Close()
+	}
 
 	return Unmount(k.MountPath)
 }
