@@ -26,6 +26,8 @@ module.exports = (url, callback) ->
   parser = global.document.createElement 'a'
   parser.href = url
 
+  baseURL = "#{protocol}//#{subdomain}.koding.com/-"
+
   # if it's a tunnel given domain we need to do one more check
   # for tunnels since production tunnel proxy is different
   if /\.koding\.me$/.test host = parser.hostname
@@ -33,13 +35,27 @@ module.exports = (url, callback) ->
     # for tunneled connections default tunnel is `devtunnel`
     proxy = if isInProduction then 'prodtunnel' else 'devtunnel'
 
+    endPoint = "#{baseURL}/#{proxy}/#{host}/-/discover/kite"
+    type     = 'GET'
+
+    current  = "#{baseURL}/#{proxy}/#{host}#{parser.pathname}"
+
+    doXhrRequest { endPoint, type }, (err, res) ->
+      return callback current  if err
+
+      for alt in res
+        if ///^#{alt.protocol}///.test protocol
+          return callback "#{protocol}//#{alt.addr}/kite"
+
+      callback current
+
     # for now return the url as-is in dev environment
-    return callback url  if globals.config.environment is 'dev'
+    # return callback url  if globals.config.environment is 'dev'
 
   # proxy support for not tunneled direct connections for each environment
   else
 
     proxy = if isInProduction then 'prodproxy' else 'devproxy'
 
-  # generated proxyfied url for connecting to kite
-  callback "#{protocol}//#{subdomain}.koding.com/-/#{proxy}/#{parser.hostname}#{parser.pathname}"
+    # generated proxyfied url for connecting to kite
+    callback "#{baseURL}/#{proxy}/#{host}#{parser.pathname}"
