@@ -3,13 +3,12 @@ package metrics
 import (
 	"errors"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 )
 
 var (
 	DefaultFileName = ".kd"
-	DefaultFileText = []byte("this is a test file...please ignore")
+	DefaultFileText = []byte(".kd")
 
 	ErrDiffContent = errors.New("file content is not what was expected")
 )
@@ -20,9 +19,9 @@ type MountStatus struct {
 	FileText  []byte
 }
 
-func NewDefaultMountStatus(p string) *MountStatus {
+func NewDefaultMountStatus(path string) *MountStatus {
 	return &MountStatus{
-		MountPath: p,
+		MountPath: path,
 		FileName:  DefaultFileName,
 		FileText:  DefaultFileText,
 	}
@@ -43,10 +42,6 @@ func (m *MountStatus) CheckContents() error {
 	}
 
 	return nil
-}
-
-func (m *MountStatus) Remove() error {
-	return os.Remove(m.filepath())
 }
 
 func (m *MountStatus) filepath() string {
