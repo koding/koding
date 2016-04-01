@@ -104,7 +104,7 @@ func (c *UnmountCommand) Run() (int, error) {
 	}
 
 	// unmount using mount name
-	if err := c.Unmount(c.Options.MountName, ""); err != nil {
+	if err := c.Unmount(c.Options.MountName, c.Options.Path); err != nil {
 		c.printfln(c.healthChecker.CheckAllFailureOrMessagef(FailedToUnmount))
 		return 1, err
 	}
