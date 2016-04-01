@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"net/http"
@@ -47,7 +46,7 @@ func (o *Oauth) AuthorizeClient(w http.ResponseWriter, r *http.Request) {
 
 	}
 	if resp.IsError && resp.InternalError != nil {
-		fmt.Printf("ERROR: %s\n", resp.InternalError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if !resp.IsError {
@@ -72,10 +71,12 @@ func (o *Oauth) GenerateToken(w http.ResponseWriter, r *http.Request) {
 		server.FinishAccessRequest(resp, r, ar)
 	}
 	if resp.IsError && resp.InternalError != nil {
-		fmt.Printf("ERROR: %s\n", resp.InternalError)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	if !resp.IsError {
 		resp.Output["custom_parameter"] = 19923
+		return
 	}
 	osin.OutputJSON(resp, w, r)
 }
