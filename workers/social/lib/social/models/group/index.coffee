@@ -645,6 +645,8 @@ module.exports = class JGroup extends Module
 
     return no  unless @allowedDomains?.length > 0
 
+    return yes if '*' in @allowedDomains
+
     # even if incoming email doesnt have a @ in it, whole string will be taken
     # into consideration as domain name
     domain = email.substring email.indexOf('@') + 1 # get the part after @
