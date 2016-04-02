@@ -1,6 +1,8 @@
 package modelhelper
 
 import (
+	"koding/db/models"
+
 	"github.com/RangelReale/osin"
 
 	"gopkg.in/mgo.v2"
@@ -144,4 +146,43 @@ func (store *MongoStorage) RemoveRefresh(token string) error {
 	}
 
 	return Mongo.Run(AccessColl, query)
+}
+
+// GetAccessDataByAccessToken fetches the user data given access token
+func GetAccessDataByAccessToken(token string) (*osin.AccessData, error) {
+	user := new(osin.AccessData)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"token": token}).One(&user)
+	}
+
+	err := Mongo.Run(AccessColl, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// GetUserByAccessToken fetches the user with given access token
+func GetUserByAccessToken(token string) (*models.User, error) {
+	accessData, err := GetAccessDataByAccessToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	user := new(models.User)
+
+	userName := accessData.UserData.(string)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"username": userName}).One(&user)
+	}
+
+	err = Mongo.Run("jUsers", query)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
