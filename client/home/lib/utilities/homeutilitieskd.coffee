@@ -24,11 +24,11 @@ module.exports = class HomeUtilitiesKD extends kd.CustomHTMLView
       @kdInstallView?.destroy()
       @addSubView @kdInstallView = new kd.CustomHTMLView
         partial : """
-          <p><code>kd</code>  is a command line program that allows you to use your local
+          <p><code class="HomeAppView--code">kd</code>  is a command line program that allows you to use your local
           IDE with your VMs. Copy and paste the command below into your terminal.</p>
-          <code class="block"><cite>#{key}</cite></code>
-          <p>Once installed, you can use <code>kd list</code> to list your Koding VMs and
-          <code>kd mount</code> to mount your VM to a local folder in your computer.
+          <code class="HomeAppView--code block"><cite>#{key}</cite></code>
+          <p>Once installed, you can use <code class="HomeAppView--code">kd list</code> to list your Koding VMs and
+          <code class="HomeAppView--code">kd mount</code> to mount your VM to a local folder in your computer.
           For detailed instructions:
           </p>
           <p class='view-guide'>
