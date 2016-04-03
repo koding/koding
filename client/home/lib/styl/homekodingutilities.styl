@@ -64,20 +64,52 @@ welcome.styl
 .HomeAppView--section.customer-feedback
   z-index                   1
   rel()
-  p
-    rel()
 
+  .kdinput.koding-on-off
+    abs                     47px 36px
+
+  p.primary
+    visible()
+
+  p.secondary
+    hidden()
+
+  &.on
+    p.primary
+      hidden()
+
+    p.secondary
+      visible()
+
+  p
     strong
       font-weight           bold
       color                 #545454
       font-size             14px
       display               block
 
-    .kdinput.koding-on-off
-      abs                   14px 0px
-
     cite
       font-style            italic
+
+    .HomeAppView--button
+      margin-bottom         10px
+
+    .HomeAppView--code
+      margin                40px 0
+      padding               0
+      height                112px
+
+      textarea
+        overflow            hidden
+        bg                  color transparent
+        border              none
+        margin              15px 25px
+        kalc                width, (100% \- 30px)
+        kalc                height, (100% \- 30px)
+        resize              none
+        outline             none
+        &:active
+          outline           none
 
 
 .TryOnKodingButton
