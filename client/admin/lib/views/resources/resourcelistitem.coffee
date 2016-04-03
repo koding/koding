@@ -82,6 +82,12 @@ module.exports = class ResourceListItem extends kd.ListItemView
       cssClass : 'percentage'
     @updatePercentage()
 
+    { code, message } = resource.checkRevisionResult ? {}
+    @revisionStatus = new kd.CustomHTMLView
+      cssClass : 'revision-status'
+      partial  : message
+    @revisionStatus.setClass if code > 0 then 'warning' else 'hidden'
+
     @progressBar = new KDProgressBarView { initial : INITIAL_PROGRESS_VALUE }
 
     { computeController } = kd.singletons
@@ -225,10 +231,13 @@ module.exports = class ResourceListItem extends kd.ListItemView
       {{> @detailsToggle}}
       {{> @progressBar}}
       {{> @ownerView}}
-      {div{#(title)}}
-      <div class='status'>
-        {{> @status}}
-        {{> @percentage}}
+      <div class='general-info'>
+        {div{#(title)}}
+        <div class='status'>
+          {{> @status}}
+          {{> @percentage}}
+          {{> @revisionStatus}}
+        </div>
       </div>
       <div class='clear'></div>
       {{> @details}}
