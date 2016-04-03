@@ -1,7 +1,8 @@
-kd      = require 'kd'
-globals = require 'globals'
-whoami  = require 'app/util/whoami'
-Tracker = require 'app/util/tracker'
+kd              = require 'kd'
+globals         = require 'globals'
+whoami          = require 'app/util/whoami'
+Tracker         = require 'app/util/tracker'
+copyToClipboard = require 'app/util/copyToClipboard'
 
 module.exports = class HomeUtilitiesKD extends kd.CustomHTMLView
 
@@ -50,17 +51,6 @@ module.exports = class HomeUtilitiesKD extends kd.CustomHTMLView
       @putKd()
       return
 
-    kd.utils.selectText @cmd.getElement()
-
-    notification = 'Copied to clipboard!'
-
-    try
-      copied = document.execCommand 'copy'
-      throw 'couldn\'t copy'  unless copied
-    catch
-      key          = if globals.os is 'mac' then '⌘ + C' else 'Ctrl + C'
-      notification = "Hit #{key} to copy!"
-
-    new kd.NotificationView { title: notification }
+    copyToClipboard @cmd.getElement()
 
     Tracker.track Tracker.KD_INSTALLED
