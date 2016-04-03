@@ -1060,6 +1060,7 @@ module.exports =
         callback invitationUrl
 
 
+<<<<<<< a6d32c916b0de8cbfc77b4824869220d8aac3fe3
   enableAndDisableApiAccess: (browser, enableApi = no, disableApi = no) ->
 
     apiAccessSelector       = '.kdtabhandle-tabs .api-access.AppModal-navItem'
@@ -1106,3 +1107,34 @@ module.exports =
       .waitForElementVisible     deleteButton, 20000
       .click                     confirmDelete
       .waitForElementNotVisible  tokenTimeStamp, 20000
+
+
+  editStackName: (browser) ->
+
+    stackTemplateSettingsButton = '.kdbutton.stack-settings-menu'
+    saveAndTestButton           = '.buttons button:nth-of-type(5)'
+    cancelButton                = '.buttons button:nth-of-type(2)'
+    stacksLogsSelector          = '.step-define-stack .kdscrollview'
+    myStackTemplatesButton      = '.kdview.kdtabhandle-tabs .my-stack-templates'
+    templateInputSelector       = '.template-title-form .template-title .input-wrapper input'
+    editedText                  = 'Edit stack name'
+    stackNameSelector           = '.stacktemplate-info.clearfix .title'
+    editButtonSelector          = '.kdbuttonmenu .context-list-wrapper .edit'
+
+    browser
+      .waitForElementVisible      stackTemplateSettingsButton, 20000
+      .click                      stackTemplateSettingsButton
+      .waitForElementVisible      editButtonSelector, 20000
+      .click                      editButtonSelector
+      .waitForElementVisible      templateInputSelector, 20000
+      .clearValue                 templateInputSelector
+      .setValue                   templateInputSelector, editedText
+      .click                      saveAndTestButton
+      .pause                      2000 #for stack creation logs to appear
+      .waitForElementVisible      stacksLogsSelector, 20000
+      .assert.containsText        stacksLogsSelector, 'An error occured: Required credentials are not provided yet'
+      .click                      myStackTemplatesButton
+      .waitForElementVisible      templateInputSelector, 20000
+      .click                      cancelButton
+      .waitForElementVisible      stackNameSelector, 20000
+      .assert.containsText        stackNameSelector, editedText
