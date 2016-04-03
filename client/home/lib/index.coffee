@@ -1,12 +1,13 @@
-kd              = require 'kd'
-AppController   = require 'app/appcontroller'
-HomeAppView     = require './homeappview'
-HomeAccount     = require './account'
-HomeUtilities   = require './utilities'
-HomeMyTeam      = require './myteam'
-HomeTeamBilling = require './billing'
-HomeWelcome     = require './welcome'
-HomeStacks      = require './stacks'
+kd                  = require 'kd'
+AppController       = require 'app/appcontroller'
+HomeAppView         = require './homeappview'
+HomeAccount         = require './account'
+HomeUtilities       = require './utilities'
+HomeVirtualMachines = require './virtualmachines'
+HomeMyTeam          = require './myteam'
+HomeTeamBilling     = require './billing'
+HomeWelcome         = require './welcome'
+HomeStacks          = require './stacks'
 
 do require './routehandler'
 
@@ -17,13 +18,13 @@ module.exports = class HomeAppController extends AppController
     background : yes
 
   TABS = [
-    { title : 'Welcome',          viewClass : HomeWelcome,       role: 'member' }
-    { title : 'Stacks',           viewClass : HomeStacks,        role: 'member' }
-    { title : 'Virtual Machines', viewClass : kd.CustomHTMLView, role: 'member' }
-    { title : 'My Team',          viewClass : HomeMyTeam,        role: 'member' }
+    { title : 'Welcome',          viewClass : HomeWelcome,         role: 'member' }
+    { title : 'Stacks',           viewClass : HomeStacks,          role: 'member' }
+    { title : 'Virtual Machines', viewClass : HomeVirtualMachines, role: 'member' }
+    { title : 'My Team',          viewClass : HomeMyTeam,          role: 'member' }
     { title : 'Team Billing',     viewClass : HomeTeamBilling                   }
-    { title : 'Koding Utilities', viewClass : HomeUtilities,     role: 'member' }
-    { title : 'My Account',       viewClass : HomeAccount,       role: 'member' }
+    { title : 'Koding Utilities', viewClass : HomeUtilities,       role: 'member' }
+    { title : 'My Account',       viewClass : HomeAccount,         role: 'member' }
   ]
 
 
