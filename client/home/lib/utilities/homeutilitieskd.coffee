@@ -47,10 +47,6 @@ module.exports = class HomeUtilitiesKD extends kd.CustomHTMLView
 
   copyCommand: (event) ->
 
-    if event.target.tagName is 'A'
-      @putKd()
-      return
-
     copyToClipboard @cmd.getElement()
 
     Tracker.track Tracker.KD_INSTALLED
