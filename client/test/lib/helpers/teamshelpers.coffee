@@ -85,9 +85,9 @@ module.exports =
       @insertInvalidCredentials(browser, user.username, wrongPassword, wrongPasswordMessage)
     else
       browser
-        .setValue               inputUserName, user.username
-        .setValue               inputPassword, user.password
-        .click                  loginButton
+        .setValue  inputUserName, user.username
+        .setValue  inputPassword, user.password
+        .click     loginButton
 
       @loginAssertion(browser)
 
