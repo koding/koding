@@ -32,7 +32,5 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
     @wrapper.addSubView chatlio
     @wrapper.addSubView chatlioSecondary
 
-    chatlio.on 'ChatlioActivated', =>
-      chatlioSecondary.show()
-      @wrapper.scrollToBottom 177
+    chatlio.on 'ChatlioActivated',   -> chatlioSecondary.show()
     chatlio.on 'ChatlioDeactivated', -> chatlioSecondary.hide()
