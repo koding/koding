@@ -1,23 +1,8 @@
-kd                      = require 'kd'
-HomeUtilitiesKD         = require './homeutilitieskd'
-HomeUtilitiesDesktopApp = require './homeutilitiesdesktopapp'
-
-
-SECTIONS =
-  'KD CLI'          : HomeUtilitiesKD
-  'Koding OS X App' : HomeUtilitiesDesktopApp
-
-header = (title) ->
-  new kd.CustomHTMLView
-    tagName  : 'header'
-    cssClass : 'HomeAppView--sectionHeader'
-    partial  : title
-
-section = (name) ->
-  new (SECTIONS[name] or kd.View)
-    tagName  : 'section'
-    cssClass : "HomeAppView--section #{kd.utils.slugify name}"
-
+kd                                     = require 'kd'
+sectionize                             = require '../commons/sectionize'
+headerize                              = require '../commons/headerize'
+HomeUtilitiesKD                        = require './homeutilitieskd'
+HomeUtilitiesDesktopApp                = require './homeutilitiesdesktopapp'
 
 module.exports = class HomeUtilities extends kd.CustomScrollView
 
@@ -27,8 +12,13 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
 
     super options, data
 
-    @wrapper.addSubView header  'KD CLI'
-    @wrapper.addSubView section 'KD CLI'
+    @wrapper.addSubView headerize  'KD CLI'
+    @wrapper.addSubView sectionize 'KD CLI', HomeUtilitiesKD
 
-    @wrapper.addSubView header  'Koding OS X App'
-    @wrapper.addSubView section 'Koding OS X App'
+    @wrapper.addSubView headerize  'Koding OS X App'
+    @wrapper.addSubView sectionize 'Koding OS X App', HomeUtilitiesDesktopApp
+
+
+
+
+
