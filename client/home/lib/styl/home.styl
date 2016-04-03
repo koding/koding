@@ -15,6 +15,27 @@ Home styles
     line-height             28px
     font-weight             100
 
+  .koding-on-off.small
+    size                    42px 22px
+    border-radius           19px
+    background              #D8D8D8
+    padding                 4px 6px
+
+    &:before
+      abs                   -1px 0 0 -35px
+      content               'OFF'
+
+    a.knob
+      background            #fff
+      size                  14px 14px
+
+    &.on
+      background            #52A840
+      &:before
+        content             'ON'
+
+    &.on a.knob
+      vendor                transform, translateX(16px)
 
 .HomeAppView-TabView
   bg                        color, #F4F3F3
@@ -37,3 +58,4 @@ Home styles
 
   &.primary
     color                   #769ECC
+
