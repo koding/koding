@@ -3,7 +3,6 @@ sectionize                             = require '../commons/sectionize'
 headerize                              = require '../commons/headerize'
 HomeUtilitiesKD                        = require './homeutilitieskd'
 HomeUtilitiesTryOnKoding               = require './homeutilitiestryonkoding'
-HomeUtilitiesTryOnKodingSecondary      = require './homeutilitiestryonkodingsecondary'
 HomeUtilitiesDesktopApp                = require './homeutilitiesdesktopapp'
 HomeUtilitiesCustomerFeedback          = require './homeutilitiescustomerfeedback'
 HomeUtilitiesCustomerFeedbackSecondary = require './homeutilitiescustomerfeedbacksecondary'
@@ -23,13 +22,7 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
     @wrapper.addSubView sectionize 'Koding OS X App', HomeUtilitiesDesktopApp
 
     @wrapper.addSubView headerize  'Koding Button'
-
-    tryOn          = sectionize 'Koding Button', HomeUtilitiesTryOnKoding
-    tryOnSecondary = sectionize 'Koding Button Secondary', HomeUtilitiesTryOnKodingSecondary, { cssClass: 'hidden' }
-
-    @wrapper.addSubView tryOn
-    @wrapper.addSubView tryOnSecondary
-
+    @wrapper.addSubView sectionize 'Koding Button', HomeUtilitiesTryOnKoding
 
     @wrapper.addSubView headerize  'Integrations'
 
@@ -38,11 +31,6 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
 
     @wrapper.addSubView chatlio
     @wrapper.addSubView chatlioSecondary
-
-    tryOn.on 'TryOnKodingActivated', =>
-      tryOnSecondary.show()
-      @wrapper.scrollToBottom 177
-    tryOn.on 'TryOnKodingDeactivated', -> tryOnSecondary.hide()
 
     chatlio.on 'ChatlioActivated', =>
       chatlioSecondary.show()
