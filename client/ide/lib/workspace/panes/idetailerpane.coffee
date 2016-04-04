@@ -86,7 +86,7 @@ module.exports = class IDETailerPane extends IDEPane
         watch      : @bound 'handleFileUpdate'
         lineOffset : tailOffset
 
-      ace.editor.renderer.setScrollMargin 0, 15, 0, 0
+      @setScrollMarginTop 15
 
       @resize()
 
