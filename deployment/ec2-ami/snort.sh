@@ -25,8 +25,6 @@ make
 make install
 popd
 
-echo PATH=$PATH
-
 pushd snort-$SNORT_VERSION
 ./configure --enable-gre \
             --enable-mpls \
@@ -61,7 +59,6 @@ curl --silent --location $SNORT_REGISTERED_RULES_URL?oinkcode=$SNORT_OINKCODE | 
   tar --extract --gunzip --directory /etc/snort/ --file -
 
 mv --no-clobber etc/* $PWD
-rmdir etc
 
 groupadd snort
 
