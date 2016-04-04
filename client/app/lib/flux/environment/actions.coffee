@@ -8,6 +8,7 @@ remote                  = require('app/remote').getInstance()
 Promise                 = require 'bluebird'
 showError               = require 'app/util/showError'
 toImmutable             = require 'app/util/toImmutable'
+getGroup                = require 'app/util/getGroup'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -421,6 +422,24 @@ setActiveLeavingSharedMachineId = (id) ->
   reactor.dispatch actions.SET_ACTIVE_LEAVING_SHARED_MACHINE_ID, { id }
 
 
+loadTeamStackTemplates = ->
+
+  { reactor } = kd.singletons
+
+  query = { group: getGroup().slug }
+
+  reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_BEGIN, { query }
+
+  remote.api.JStackTemplate.some query, { limit: 30 }, (err, templates) ->
+
+    if err
+      reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_FAIL, { query, err }
+
+    templates = templates.filter (t) -> t.accessLevel is 'group'
+
+    reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_SUCCESS, { query, templates }
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -447,4 +466,5 @@ module.exports = {
   setActiveStackId
   dispatchCollaborationInvitationRejected
   dispatchSharedVMInvitationRejected
+  loadTeamStackTemplates
 }
