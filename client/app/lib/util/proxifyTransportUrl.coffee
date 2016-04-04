@@ -3,8 +3,13 @@ doXhrRequest = require 'app/util/doXhrRequest'
 
 module.exports = (url, callback) ->
 
+  # parse url
+  parser = global.document.createElement 'a'
+  parser.href = url
+
   # if url is already proxyfied return it as is
   return callback url  if /p\.koding\.com/.test url
+  return callback url  if parser.hostname in ['127.0.0.1', 'dev.kodi.ng']
 
   # check if running under production environment
   isInProduction = globals.config.environment is 'production'
@@ -22,10 +27,7 @@ module.exports = (url, callback) ->
   # one for development the other for production
   subdomain = if isInProduction then 'p' else 'dev-p'
 
-  # parse url
-  parser = global.document.createElement 'a'
-  parser.href = url
-
+  # create the base url
   baseURL = "#{protocol}//#{subdomain}.koding.com/-"
 
   # if it's a tunnel given domain we need to do one more check
