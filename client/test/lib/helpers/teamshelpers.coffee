@@ -66,20 +66,51 @@ module.exports =
     console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password} to team: #{helpers.getUrl(yes)}"
 
 
-  loginToTeam: (browser, user) ->
+  loginToTeam: (browser, user, invalidCredentials = no) ->
+
+    incorrectEmailAddress = 'a@b.com'
+    incorrectUserName     = 'testUserName'
+    wrongPassword         = 'password'
+    unrecognizedMessage   = 'Unrecognized email'
+    unknownUserMessage    = 'Unknown user name'
+    wrongPasswordMessage  = 'Access denied'
 
     browser
       .pause                  2000 # wait for login page
       .waitForElementVisible  teamsLoginModal, 20000
       .waitForElementVisible  'form.login-form', 20000
-      .setValue               'input[name=username]', user.username
-      .setValue               'input[name=password]', user.password
-      .click                  'button[testpath=login-button]'
 
-    @loginAssertion(browser)
+    if invalidCredentials
+      @insertInvalidCredentials(browser, incorrectEmailAddress, user.password, unrecognizedMessage)
+      @insertInvalidCredentials(browser, incorrectUserName, user.password, unknownUserMessage)
+      @insertInvalidCredentials(browser, user.username, wrongPassword, wrongPasswordMessage)
+    else
+      browser
+        .setValue  inputUserName, user.username
+        .setValue  inputPassword, user.password
+        .click     loginButton
+
+      @loginAssertion(browser)
 
 
-  loginTeam: (browser) ->
+  insertInvalidCredentials: (browser, usernameOrEmail, password, errorMessage) ->
+
+    inputUserName        = 'input[name=username]'
+    inputPassword        = 'input[name=password]'
+    notificationSelector = '.team .kdnotification.main'
+    loginButton          = 'button[testpath=login-button]'
+
+    browser
+      .setValue               inputUserName, usernameOrEmail
+      .setValue               inputPassword, password
+      .click                  loginButton
+      .waitForElementVisible  notificationSelector, 20000
+      .assert.containsText    notificationSelector, errorMessage
+      .pause                  2000 # wait for notification to disappear
+      .clearValue             inputUserName
+
+
+  loginTeam: (browser, invalidCredentials = no) ->
 
     user = utils.getUser()
     url  = helpers.getUrl(yes)
@@ -93,7 +124,10 @@ module.exports =
     browser.pause  3000
     browser.element 'css selector', teamsLoginModal, (result) =>
       if result.status is 0
-        @loginToTeam browser, user
+        if invalidCredentials
+          @loginToTeam browser, user, yes
+        else
+          @loginToTeam browser, user
       else
         @createTeam browser
 
