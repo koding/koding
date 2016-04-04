@@ -21,6 +21,17 @@ const (
 	// The key used to store machine names in the database, allowing machine names
 	// to persist between Klient restarts.
 	machineNamesStorageKey = "machine_names"
+
+	// The max attempts that the Remote.restoreMounts() will loop. This should be
+	// a very large number, and exists simply to allow testing to control the max
+	// loops.
+	//
+	// 5760 is roughly 4 days of repeated attempts at 1 minute pauses between each
+	// attempt. Basically forever.
+	defaultMaxRestoreRetries = 5760
+
+	// The length in time that restoreMounts() will pause between each repeated attempt.
+	defaultRestoreFailuresPause = time.Minute
 )
 
 // KodingKitesGetter is an interface to allow easily mockable getKodingKites calls.
@@ -75,17 +86,28 @@ type Remote struct {
 
 	log logging.Logger
 
+	// The max attempts that the Remote.restoreMounts() will loop. This should be
+	// a very large number, and exists simply to allow testing to control the max
+	// loops.
+	maxRestoreRetries int
+
+	// The length in time that restoreMounts() will pause between each repeated attempt.
+	restoreFailuresPause time.Duration
+
 	// mockable interfaces and types, used for testing and abstracting the environment
 	// away.
 
 	// unmountPath unmounts the given path via the system call, implemented usually
 	// by fuseklient.Unmount
 	unmountPath func(string) error
+
+	// The mocked<methodName> fields provide a way to mock especially complex methods,
+	// simplfying the testing requirements.
+	mockedRestoreMount func(*mount.Mount) error
 }
 
 // NewRemote creates a new Remote instance.
 func NewRemote(k *kite.Kite, log kite.Logger, s storage.Interface) *Remote {
-
 	// TODO: Improve this usage. Basically i want a proper koding/logging struct,
 	// but we need to create it from somewhere. klient is always uses kite.Logger,
 	// which **should** always be implemented by a koding/logging.Logger.. but in
@@ -101,15 +123,17 @@ func NewRemote(k *kite.Kite, log kite.Logger, s storage.Interface) *Remote {
 	kodingLog = kodingLog.New("remote")
 
 	r := &Remote{
-		localKite:           k,
-		kitesGetter:         &KodingKite{Kite: k},
-		storage:             s,
-		log:                 kodingLog,
-		machinesErrCacheMax: 5 * time.Minute,
-		machinesCacheMax:    10 * time.Second,
-		machineNamesCache:   map[string]string{},
-		unmountPath:         fuseklient.Unmount,
-		machines:            machine.NewMachines(kodingLog, s),
+		localKite:            k,
+		kitesGetter:          &KodingKite{Kite: k},
+		storage:              s,
+		log:                  kodingLog,
+		machinesErrCacheMax:  5 * time.Minute,
+		machinesCacheMax:     10 * time.Second,
+		machineNamesCache:    map[string]string{},
+		unmountPath:          fuseklient.Unmount,
+		machines:             machine.NewMachines(kodingLog, s),
+		maxRestoreRetries:    defaultMaxRestoreRetries,
+		restoreFailuresPause: defaultRestoreFailuresPause,
 	}
 
 	return r
