@@ -1,6 +1,5 @@
-proxifyTransportUrl = require '../util/proxifyTransportUrl'
+kd           = require 'kd'
 LocalStorage = require '../localstorage'
-kd = require 'kd'
 
 
 module.exports = class KiteCache
@@ -42,16 +41,6 @@ module.exports = class KiteCache
 
 
   signed = (queryString) -> "#{signature}#{queryString}"
-
-
-  proxifyTransport = (kite, callback) ->
-
-    if kite.kite.name is 'klient'
-      proxifyTransportUrl kite.url, (url) ->
-        kite.url = url
-        callback kite
-    else
-      callback kite
 
 
   @clearAll = ->
@@ -110,8 +99,8 @@ module.exports = class KiteCache
       return kd.warn '[KiteCache] KITE NOT PROVIDED, IGNORING TO CACHE'
 
     queryString = @generateQueryString query
-    proxifyTransport kite, (kite) ->
-      LocalStorage.setValue (signed queryString), (JSON.stringify kite)
+
+    LocalStorage.setValue (signed queryString), (JSON.stringify kite)
 
 
   @get = (query) ->
