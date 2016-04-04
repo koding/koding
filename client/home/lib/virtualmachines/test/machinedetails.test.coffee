@@ -7,9 +7,12 @@ mock               = require '../../../../mocks/mockingjay'
 toImmutable        = require 'app/util/toImmutable'
 
 
-describe.only 'MachineDetails', ->
+describe 'MachineDetails', ->
 
-  { Simulate, createRenderer, renderIntoDocument, findRenderedDOMComponentWithClass, scryRenderedDOMComponentsWithTag } = TestUtils
+  { createRenderer,
+    renderIntoDocument,
+    findRenderedDOMComponentWithClass } = TestUtils
+
   machine = toImmutable mock.getMockJMachine()
 
   describe '::render', ->
@@ -22,7 +25,7 @@ describe.only 'MachineDetails', ->
       machinedetails = shallowRenderer.getRenderOutput()
 
 
-      expect(machinedetails.props.className).toEqual 'MachineDetails'
+      expect(machinedetails.props.className).toInclude 'MachineDetails'
       expect(machinedetails.props.children.length).toEqual 4
 
 
