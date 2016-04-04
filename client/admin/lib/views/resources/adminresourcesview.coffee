@@ -1,5 +1,6 @@
 kd                     = require 'kd'
 
+ResourceSearchView     = require './resourcesearchview'
 ResourceList           = require './resourcelist'
 ResourceListController = require './resourcelistcontroller'
 
@@ -19,19 +20,8 @@ module.exports = class AdminResourcesView extends kd.View
 
   createSearchView: ->
 
-    @addSubView @searchContainer = new kd.CustomHTMLView
-      cssClass : 'search'
-
-    @searchContainer.addSubView @searchInput = new kd.HitEnterInputView
-      type        : 'text'
-      placeholder : 'Search in resources...'
-      callback    : @bound 'search'
-
-    @searchContainer.addSubView @searchClear = new kd.CustomHTMLView
-      tagName     : 'span'
-      partial     : 'clear'
-      cssClass    : 'clear-search hidden'
-      click       : @bound 'clearSearch'
+    @addSubView @searchView = new ResourceSearchView()
+    @searchView.on 'SearchRequested', @bound 'search'
 
 
   createResourceListView: ->
@@ -43,27 +33,6 @@ module.exports = class AdminResourcesView extends kd.View
     @addSubView @controller.getView()
 
 
-  clearSearch: ->
-
-    @lastQuery = null
-    @searchInput.setValue ''
-    @searchClear.hide()
-    @search()
-
-
-  search: ->
-
-    query = @searchInput.getValue()
-    isQueryEmpty   = query is ''
-    isQueryChanged = query isnt @lastQuery
-
-    if isQueryEmpty or isQueryChanged
-      @searchClear.hide()
-      return @controller.search()  if isQueryEmpty
-
-    return  if @lastQuery and not isQueryChanged
-
-    @lastQuery = query
-    @searchClear.show()
+  search: (query) ->
 
     @controller.search query

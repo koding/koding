@@ -685,6 +685,34 @@ Admin main styles
 
 .AppModal--admin .resource-management
 
+  .advanced-search-link
+    font-size               13px
+    color                   #8d8d8d
+    pointer()
+    padding-left            5px
+
+  .advanced-search-container
+    hidden()
+
+  .advanced-search-mode
+    .simple-search-container
+      hidden()
+
+    .advanced-search-container
+      visible()
+
+  .formline
+    fl()
+
+    &:nth-child(odd)
+      clear                 both
+
+  .button-field
+    margin-top              0px !important
+
+    .kdbutton
+      fl()
+
   .listview-wrapper
     kalc                    height, (100% \- 100px)
 
