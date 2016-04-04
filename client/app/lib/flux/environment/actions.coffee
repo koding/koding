@@ -9,6 +9,7 @@ Promise                 = require 'bluebird'
 showError               = require 'app/util/showError'
 toImmutable             = require 'app/util/toImmutable'
 getGroup                = require 'app/util/getGroup'
+whoami                  = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -440,6 +441,24 @@ loadTeamStackTemplates = ->
     reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_SUCCESS, { query, templates }
 
 
+loadPrivateStackTemplates = ->
+
+  { reactor } = kd.singletons
+
+  query = { group: getGroup().slug, originId: whoami()._id }
+
+  reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_BEGIN, { query }
+
+  remote.api.JStackTemplate.some query, { limit: 30 }, (err, templates) ->
+
+    if err
+      reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_FAIL, { query, err }
+
+    templates = templates.filter (t) -> t.accessLevel is 'private'
+
+    reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_SUCCESS, { query, templates }
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -467,4 +486,5 @@ module.exports = {
   dispatchCollaborationInvitationRejected
   dispatchSharedVMInvitationRejected
   loadTeamStackTemplates
+  loadPrivateStackTemplates
 }
