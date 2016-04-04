@@ -11,6 +11,7 @@ import (
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/metrics"
+	"koding/klientctl/remount"
 	"koding/klientctl/repair"
 	"koding/mountcli"
 	"os"
@@ -99,4 +100,23 @@ func RepairCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ct
 
 func MetricsCommandFactory(c *cli.Context, log logging.Logger, cmdName string) int {
 	return metrics.MetricsCommand(c, log, ConfigFolder)
+}
+
+func RemountCommandFactory(c *cli.Context, _ logging.Logger, _ string) int {
+	if len(c.Args()) != 1 {
+		cli.ShowCommandHelp(c, "remount")
+		return 1
+	}
+
+	cmd := remount.RemountCommand{
+		MountName:     c.Args()[0],
+		KlientOptions: klient.NewKlientOptions(),
+	}
+
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Error: %s", err)
+		return 1
+	}
+
+	return 0
 }

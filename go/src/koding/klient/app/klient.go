@@ -131,7 +131,9 @@ type KlientConfig struct {
 
 	TunnelName    string
 	TunnelKiteURL string
-	NoTunnel      bool
+
+	NoTunnel bool
+	NoProxy  bool
 }
 
 // NewKlient returns a new Klient instance
@@ -191,9 +193,20 @@ func NewKlient(conf *KlientConfig) *Klient {
 		Debug: conf.Debug,
 	}
 
+	// use websocket connection for tunnelserver
+	tunCfg := k.Config.Copy()
+	tunCfg.Transport = config.WebSocket
+
 	tunOpts := &tunnel.Options{
-		DB:  db,
-		Log: k.Log,
+		DB:      db,
+		Log:     k.Log,
+		Config:  tunCfg,
+		NoProxy: conf.NoProxy,
+	}
+
+	t, err := tunnel.New(tunOpts)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	if conf.UpdateInterval < time.Minute {
@@ -205,7 +218,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		kite:    k,
 		collab:  collaboration.New(db), // nil is ok, fallbacks to in memory storage
 		storage: storage.New(db),       // nil is ok, fallbacks to in memory storage
-		tunnel:  tunnel.New(tunOpts),
+		tunnel:  t,
 		vagrant: vagrant.NewHandlers(vagrantOpts),
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
@@ -470,6 +483,7 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 		PublicIP:      ip,
 		Debug:         k.config.Debug,
 		Config:        k.kite.Config.Copy(),
+		NoProxy:       k.config.NoProxy,
 	}
 
 	if k.config.Port != 0 {

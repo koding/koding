@@ -211,6 +211,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
     stack.save (err) ->
       return callback err  if err?
+      stack.notifyAdmins 'StackCreated'
       callback null, stack
 
 
@@ -598,3 +599,14 @@ module.exports = class JComputeStack extends jraphical.Module
     success: (client, callback) ->
 
       @deleteAdminMessage callback
+
+
+  notifyAdmins: (subject) ->
+
+    @fetchGroup (err, group) =>
+      return console.log err  if err
+
+      { notifyAdmins } = require './notify'
+      notifyAdmins group, subject,
+        id    : @_id
+        group : group.slug

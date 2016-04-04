@@ -105,7 +105,7 @@ REMOTE_SYSLOG_TARBALL_URL="$REMOTE_SYSLOG_GITHUB_URL/releases/download/$REMOTE_S
 
 curl --silent --location $REMOTE_SYSLOG_TARBALL_URL | tar --verbose --extract --gzip --directory=/usr/local
 
-chkconfig remote_syslog on
+chkconfig --add remote_syslog
 
 
 # File variables

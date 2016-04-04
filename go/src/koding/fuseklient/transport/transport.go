@@ -38,4 +38,7 @@ type Transport interface {
 
 	// GetInfo returns info about the entry at specified path.
 	GetInfo(string) (*GetInfoRes, error)
+
+	// GetRemotePath is a helper method that returns the remote mounted path.
+	GetRemotePath() string
 }

@@ -254,12 +254,6 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
               next()
 
           (next) ->
-            options = generateDefaultOptions { ipAddress : 'invalidIP' }
-            Managed.update client, options, (err) ->
-              expect(err?.message).to.be.equal 'Provided IP is not valid'
-              next()
-
-          (next) ->
             options = generateDefaultOptions { queryString : '/1/2/3' }
             Managed.update client, options, (err) ->
               expect(err?.message).to.be.equal 'Provided queryString is not valid'

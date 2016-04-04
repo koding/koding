@@ -21,6 +21,7 @@ ComputeController_UI = require './computecontroller.ui'
 ManagedKiteChecker   = require './managed/managedkitechecker'
 envDataProvider      = require 'app/userenvironmentdataprovider'
 Tracker              = require 'app/util/tracker'
+getGroup             = require 'app/util/getGroup'
 
 require './config'
 
@@ -698,10 +699,12 @@ module.exports = class ComputeController extends KDController
 
       machine.getBaseKite( no ).disconnect()
 
-    Tracker.track Tracker.STACKS_START_BUILD
-
     stackId = stack._id
-    call    = @getKloud().buildStack { stackId }
+    Tracker.track Tracker.STACKS_START_BUILD, {
+      customEvent : { stackId, group : getGroup().slug }
+    }
+
+    call = @getKloud().buildStack { stackId }
 
     .then (res) =>
 
@@ -1102,7 +1105,7 @@ module.exports = class ComputeController extends KDController
           showError err, 'Failed to fix permissions'
 
 
-  checkMachinePermissions: (machine) ->
+  checkMachinePermissions: ->
 
     { groupsController } = kd.singletons
 
@@ -1177,7 +1180,7 @@ module.exports = class ComputeController extends KDController
       return callback null, template
 
 
-  showBuildLogs: (machine, tailOffset) ->
+  showBuildLogs: (machine, tailOffset, showProgress) ->
 
     # Not supported for Koding Group
     return  if isKoding()
@@ -1188,14 +1191,27 @@ module.exports = class ComputeController extends KDController
 
     return  unless ideApp = envDataProvider.getIDEFromUId machine.uid
 
-    ideApp.tailFile {
+    callback = (buildDuration) -> ideApp.tailFile {
       file
       description : '
         Your Koding Stack has successfully been initialized. The log here
         describes each executed step of the Stack creation process.
       '
       tailOffset
+      buildDuration
     }
+
+    return callback()  unless showProgress
+
+    stack = @findStackFromMachineId machine._id
+    return callback()  unless stack
+
+    @fetchBaseStackTemplate stack, (err, stackTemplate) =>
+      if err
+        kd.log err
+        return callback()
+
+      callback stackTemplate.config?.buildDuration
 
 
   ###*
@@ -1286,7 +1302,11 @@ module.exports = class ComputeController extends KDController
 
             .once 'RenderStacks', (stacks = []) ->
               notification.destroy()
-              Tracker.track Tracker.STACKS_REINIT
+              Tracker.track Tracker.STACKS_REINIT, {
+                customEvent :
+                  stackId   : stack._id
+                  group     : getGroup().slug
+              }
               new kd.NotificationView { title : 'Stack reinitialized' }
               callback()
 

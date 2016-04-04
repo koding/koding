@@ -597,20 +597,39 @@ module.exports = class ComputeProvider extends Base
     options ?= {}
     options.limit = Math.min 20, options.limit
 
-    JComputeStack = require '../stack'
-    JComputeStack.some selector, options, (err, stacks) ->
+    mainQueue = [
+      (next) ->
+        JComputeStack = require '../stack'
+        JComputeStack.some selector, options, (err, stacks) ->
+          return next err  if err
 
-      return callback err  if err
+          if stacks?.length > 0
+            reviveQueue = []
+            stacks.forEach (stack) ->
+              reviveQueue.push (next) -> stack.revive next
+            async.parallel reviveQueue, -> next null, stacks
+          else
+            next null, []
+      (stacks, next) ->
+        return next null, []  unless stacks.length
 
-      if stacks?.length > 0
-        queue = []
-        stacks.forEach (stack) ->
-          queue.push (next) -> stack.revive next
+        templateIds = stacks.map (stack) -> stack.baseStackId
 
-        async.series queue, -> callback null, stacks
+        JStackTemplate = require './stacktemplate'
+        JStackTemplate.some { _id: { $in: templateIds } }, {}, (err, templates) ->
+          return next err  if err
 
-      else
-        callback null, []
+          for stack in stacks
+            template = templates.filter(
+              (template) -> template._id.toString() is stack.baseStackId.toString()
+            )[0]
+            continue  unless template
+            stack.checkRevisionResult = stack.checkRevisionByTemplate template
+
+          next null, stacks
+    ]
+
+    async.waterfall mainQueue, callback
 
 
   @createGroupStack = (client, options, callback) ->

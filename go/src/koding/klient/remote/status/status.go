@@ -117,7 +117,7 @@ func (s *Status) MachineStatus(name string) error {
 		)
 	}
 
-	if err := machine.Dial(); err != nil {
+	if err := machine.DialOnce(); err != nil {
 		return s.handleKiteErr(err)
 	}
 

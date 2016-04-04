@@ -12,6 +12,7 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
     systemInfo         : 'kite.systemInfo'
 
     clientSubscribe    : 'client.Subscribe'
+    clientUnsubscribe  : 'client.Unsubscribe'
 
     fsReadDirectory    : 'fs.readDirectory'
     fsGlob             : 'fs.glob'

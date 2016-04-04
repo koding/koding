@@ -60,9 +60,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		log.Error("Error getting dialed, valid machine. err:%s", err)
 		return nil, err
 	}
-	kiteClient := remoteMachine.Client
-
-	remoteSize, err := getSizeOfRemoteFolder(kiteClient, params.RemotePath)
+	remoteSize, err := getSizeOfRemoteFolder(remoteMachine, params.RemotePath)
 	if err != nil {
 		return nil, err
 	}
