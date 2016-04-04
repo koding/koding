@@ -1,14 +1,14 @@
-kd      = require 'kd'
-mock    = require '../../mocks/mockingjay'
-expect  = require 'expect'
-
+kd                          = require 'kd'
+mock                        = require '../../mocks/mockingjay'
+expect                      = require 'expect'
+showError                   = require 'app/util/showError'
 KodingListView              = require 'app/kodinglist/kodinglistview'
 KodingListController        = require 'app/kodinglist/kodinglistcontroller'
-
 StackTemplateList           = require 'app/stacks/stacktemplatelist'
 StackTemplateListItem       = require 'app/stacks/stacktemplatelistitem'
 StackTemplateContentModal   = require 'app/stacks/stacktemplatecontentmodal'
 StackTemplateListController = require 'app/stacks/stacktemplatelistcontroller'
+
 
 item          = new StackTemplateListItem {}, mock.getMockStack()
 fetcherMethod = (query, options, callback) -> callback null, [ mock.getMockJComputeStack() ]
@@ -261,11 +261,12 @@ describe 'StackTemplateListController', ->
 
       expect.spyOn(groupsController, 'getCurrentGroup').andReturn group
 
-      findStackFromTemplateIdSpy = expect.spyOn computeController, 'findStackFromTemplateId'
+      showErrorSpy    = expect.createSpy()
+      revertShowError = StackTemplateListController.__set__ 'showError', showErrorSpy
 
       listController.removeItem item
 
-      expect(findStackFromTemplateIdSpy).toNotHaveBeenCalled()
+      expect(showErrorSpy).toHaveBeenCalled()
 
     it 'should show an error if it is already generated', ->
 
@@ -274,13 +275,14 @@ describe 'StackTemplateListController', ->
       listView       = new StackTemplateList
       listController = new StackTemplateListController { view : listView, fetcherMethod }
 
-      expect.spyOn(groupsController, 'getCurrentGroup').andReturn mock.getMockGroup()
+      showErrorSpy    = expect.createSpy()
+      revertShowError = StackTemplateListController.__set__ 'showError', showErrorSpy
 
-      findStackFromTemplateIdSpy = expect.spyOn computeController, 'findStackFromTemplateId'
+      expect.spyOn(groupsController, 'getCurrentGroup').andReturn mock.getMockGroup()
 
       listController.removeItem item
 
-      expect(findStackFromTemplateIdSpy).toNotHaveBeenCalled()
+      expect(showErrorSpy).toHaveBeenCalledWith 'This template currently in use by the Team.'
 
     it 'should call askForConfirm method of listView with given options', ->
 

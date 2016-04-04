@@ -1,10 +1,10 @@
 kd                          = require 'kd'
+async                       = require 'async'
 remote                      = require('app/remote').getInstance()
 whoami                      = require 'app/util/whoami'
 Tracker                     = require 'app/util/tracker'
 getGroup                    = require 'app/util/getGroup'
 showError                   = require 'app/util/showError'
-async                       = require 'async'
 KDNotificationView          = kd.NotificationView
 KodingListController        = require 'app/kodinglist/kodinglistcontroller'
 StackTemplateListItem       = require './stacktemplatelistitem'
@@ -144,10 +144,10 @@ module.exports = class StackTemplateListController extends KodingListController
     listView      = @getListView()
 
     if template._id in (currentGroup.stackTemplates ? [])
-      return showError 'This template currently in use by the Team'
+      return showError 'This template currently in use by the Team.'
 
     if computeController.findStackFromTemplateId template._id
-      return showError 'You currently have a stack generated from this template'
+      return showError 'You currently have a stack generated from this template.'
 
     listView.askForConfirm
       title       : 'Remove stack template ?'
