@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"koding/klient/remote/req"
+	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
@@ -160,6 +161,7 @@ func (c *MountCommand) Run() (int, error) {
 		"no-prefetch-meta": c.Options.NoPrefetchMeta,
 		"prefetch-all":     c.Options.PrefetchAll,
 		"no-watch":         c.Options.NoWatch,
+		"version":          config.Version,
 	}
 	metrics.TrackMount(c.Options.Name, c.Options.LocalPath, o)
 
