@@ -1,7 +1,7 @@
 globals      = require 'globals'
 doXhrRequest = require 'app/util/doXhrRequest'
 
-module.exports = (url, callback) ->
+module.exports = (url, checkAlternatives = yes, callback) ->
 
   # parse url
   parser = global.document.createElement 'a'
@@ -32,27 +32,31 @@ module.exports = (url, callback) ->
 
   # if it's a tunnel given domain we need to do one more check
   # for tunnels since production tunnel proxy is different
-  if /\.koding\.me$/.test host = parser.hostname
+  if (/\.koding\.me$/.test host = parser.hostname)
 
     # for tunneled connections default tunnel is `devtunnel`
-    proxy = if isInProduction then 'prodtunnel' else 'devtunnel'
+    proxy    = if isInProduction then 'prodtunnel' else 'devtunnel'
+    current  = "#{baseURL}/#{proxy}/#{host}#{parser.pathname}"
+
+    return callback current  unless checkAlternatives
 
     endPoint = "#{baseURL}/#{proxy}/#{host}/-/discover/kite"
     type     = 'GET'
+    timeout  = 2000
 
-    current  = "#{baseURL}/#{proxy}/#{host}#{parser.pathname}"
+    doXhrRequest { endPoint, type, timeout }, (err, res) ->
 
-    doXhrRequest { endPoint, type }, (err, res) ->
-      return callback current  if err
+      if err
+        console.warn '[tunnel] failed to look for alternatives:', err
+        return callback current
 
+      # walk over alternatives for local and send
+      # it back if found a match with the protocol
       for alt in res
-        if ///^#{alt.protocol}///.test protocol
+        if ///^#{alt.protocol}///.test(protocol) and alt.local
           return callback "#{protocol}//#{alt.addr}/kite"
 
       callback current
-
-    # for now return the url as-is in dev environment
-    # return callback url  if globals.config.environment is 'dev'
 
   # proxy support for not tunneled direct connections for each environment
   else
