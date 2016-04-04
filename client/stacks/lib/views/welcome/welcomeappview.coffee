@@ -1,8 +1,9 @@
-kd                 = require 'kd'
-collectCredentials = require 'app/util/collectCredentials'
-{ BULLETS }        = require './boxes'
+kd                  = require 'kd'
+{ BULLETS }         = require './boxes'
+collectCredentials  = require 'app/util/collectCredentials'
 
-module.exports = class WelcomeAppView extends kd.CustomScrollView
+
+module.exports      = class WelcomeAppView extends kd.CustomScrollView
 
   constructor: (options = {}, data) ->
 
@@ -28,20 +29,28 @@ module.exports = class WelcomeAppView extends kd.CustomScrollView
       cssClass : 'bullets clearfix'
 
     { groupsController, computeController } = kd.singletons
-    { stacks }                              = computeController
 
-    view  = this
+    { stacks }  = computeController
+    @isAdmin    = no
 
-    groupsController.ready -> computeController.ready ->
+    groupsController.ready => computeController.ready =>
 
       { providers, variables } = collectCredentials()
 
-      groupsController.getCurrentGroup().fetchMyRoles (err, roles) ->
+      groupsController.getCurrentGroup().fetchMyRoles (err, roles) =>
         return  kd.warn err  if err
-        isAdmin = 'admin' in (roles ? [])
-        if isAdmin
-        then view.putAdminBullets()
-        else view.putUserBullets()
+        @isAdmin = 'admin' in (roles ? [])
+        @putBullets()
+
+    unless stacks.length
+      computeController.on 'RenderStacks', @bound 'putBullets'
+
+
+  putBullets: ->
+
+    if @isAdmin
+    then @putAdminBullets()
+    else @putUserBullets()
 
 
   putAdminBullets: ->
