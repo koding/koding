@@ -8,7 +8,7 @@ import (
 	"koding/db/models"
 	"time"
 
-	"gopkg.in/mgo.v2"
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 

@@ -26,9 +26,6 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		// AWS. Probably it was deleted and the state was not updated (possible
 		// due a human interaction or a non kloud interaction done somewhere
 		// else.)
-		if err := m.MarkAsNotInitialized(); err != nil {
-			return err
-		}
 
 		return errors.New("instance is not available anymore.")
 	}

@@ -2,11 +2,13 @@ package fusetest
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-multierror"
 	"io/ioutil"
 	"koding/klient/remote/req"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -14,9 +16,16 @@ import (
 // Fusetest runs common file & dir operations on already mounted folder
 // then checks if local mount and remote VM are synchronized using ssh.
 type Fusetest struct {
-	Machine  string
+	Machine string
+
+	// The path of the local mount directory on the users system.
 	MountDir string
-	Opts     req.MountFolder
+
+	// The temporary directory within the Mount directory, where test operations
+	// are run.
+	TestDir string
+
+	Opts req.MountFolder
 
 	T *testing.T
 
@@ -29,14 +38,9 @@ func NewFusetest(machine string, opts req.MountFolder) (*Fusetest, error) {
 		return nil, err
 	}
 
-	mountDir, err := ioutil.TempDir(r.local, "tests")
-	if err != nil {
-		return nil, err
-	}
-
 	return &Fusetest{
 		Machine:  machine,
-		MountDir: mountDir,
+		MountDir: r.local,
 		T:        &testing.T{},
 		Remote:   r,
 		Opts:     opts,
@@ -47,7 +51,112 @@ func (f *Fusetest) checkCachePath() bool {
 	return f.Opts.CachePath != "" && f.Opts.PrefetchAll
 }
 
-func (f *Fusetest) RunAllTests() {
+func (f *Fusetest) RunAllTests() (testErrs error) {
+	fmt.Println("Testing pre-existing mount...")
+	if err := f.RunOperationTests(); err != nil {
+		testErrs = multierror.Append(testErrs, err)
+	}
+
+	// Unmount so we can mount with various settings below.
+	if err := NewKD().Unmount(f.Machine); err != nil {
+		testErrs = multierror.Append(testErrs, err)
+	}
+
+	// Run our various test types
+	if err := f.RunPrefetchTests(); err != nil {
+		testErrs = multierror.Append(testErrs, err)
+	}
+
+	if err := f.RunNoPrefetchTests(); err != nil {
+		testErrs = multierror.Append(testErrs, err)
+	}
+
+	if err := f.RunPrefetchAllTests(); err != nil {
+		testErrs = multierror.Append(testErrs, err)
+	}
+
+	// Remount test folder.
+	//
+	// TODO: Perhaps store the current mount settings, so we can mount after we're
+	// done with the same settings?
+	err := NewKD().MountWithPrefetchAll(f.Machine, f.Remote.remote, f.MountDir)
+	if err != nil {
+		testErrs = multierror.Append(testErrs, err)
+	}
+
+	return testErrs
+}
+
+func (f *Fusetest) RunPrefetchTests() error {
+	fmt.Println("Mounting with Prefetch...")
+
+	// TODO: Add the fusetest dir to Fusetest.RemoteDir. I haven't yet, because
+	// i want to make it the full abs path, rather than just a local path as seen here.
+	err := NewKD().Mount(f.Machine, f.Remote.remote, f.MountDir)
+	if err != nil {
+		return err
+	}
+
+	if err := f.RunOperationTests(); err != nil {
+		return err
+	}
+
+	// Pausing, because the instant remount is giving me resource is busy every
+	// time.
+	time.Sleep(5 * time.Second)
+
+	return NewKD().Unmount(f.Machine)
+}
+
+func (f *Fusetest) RunNoPrefetchTests() error {
+	fmt.Println("Mounting with NoPrefetch...")
+
+	// TODO: Add the fusetest dir to Fusetest.RemoteDir. I haven't yet, because
+	// i want to make it the full abs path, rather than just a local path as seen here.
+	err := NewKD().Mount(f.Machine, f.Remote.remote, f.MountDir)
+	if err != nil {
+		return err
+	}
+
+	if err := f.RunOperationTests(); err != nil {
+		return err
+	}
+
+	// Pausing, because the instant remount is giving me resource is busy every
+	// time.
+	time.Sleep(5 * time.Second)
+
+	return NewKD().Unmount(f.Machine)
+}
+
+func (f *Fusetest) RunPrefetchAllTests() error {
+	fmt.Println("Mounting with PrefetchAll...")
+
+	// TODO: Add the fusetest dir to Fusetest.RemoteDir. I haven't yet, because
+	// i want to make it the full abs path, rather than just a local path as seen here.
+	err := NewKD().MountWithPrefetchAll(f.Machine, f.Remote.remote, f.MountDir)
+	if err != nil {
+		return err
+	}
+
+	if err := f.RunOperationTests(); err != nil {
+		return err
+	}
+
+	// Pausing, because the instant remount is giving me resource is busy every
+	// time.
+	time.Sleep(5 * time.Second)
+
+	return NewKD().Unmount(f.Machine)
+}
+
+func (f *Fusetest) RunOperationTests() error {
+	testDir, err := ioutil.TempDir(f.MountDir, "tests")
+	if err != nil {
+		return err
+	}
+	f.TestDir = testDir
+
 	// dir ops
 	f.TestMkDir()
 	f.TestReadDir()
@@ -62,12 +171,12 @@ func (f *Fusetest) RunAllTests() {
 	f.TestRename()
 	f.TestCpOutToIn()
 
-	os.RemoveAll(f.MountDir)
+	return os.RemoveAll(f.TestDir)
 }
 
 func (f *Fusetest) setupConvey(name string, fn func(string)) {
-	Convey(name, f.T, createDir(f.MountDir, name, func(dirPath string) {
-		m := filepath.Base(f.MountDir)
+	Convey(name, f.T, createDir(f.TestDir, name, func(dirPath string) {
+		m := filepath.Base(f.TestDir)
 		d := filepath.Base(dirPath)
 
 		fn(filepath.Join(m, d))
@@ -75,7 +184,7 @@ func (f *Fusetest) setupConvey(name string, fn func(string)) {
 }
 
 func (f *Fusetest) checkCacheEntry(name string) (os.FileInfo, error) {
-	fi, err := statDirCheck(filepath.Join(f.Opts.CachePath, name))
+	fi, err := statDirCheck(f.fullCachePath(name))
 	if err != nil {
 		return nil, err
 	}
@@ -192,12 +301,12 @@ func (f *Fusetest) CheckLocalFileContents(file, contents string) error {
 }
 
 func (f *Fusetest) fullCachePath(entry string) string {
-	return filepath.Join(f.Opts.CachePath, entry)
+	return filepath.Join(f.Opts.CachePath, filepath.Base(f.TestDir), entry)
 }
 
 func (f *Fusetest) fullMountPath(entry string) string {
 	// TODO: this is hack, added by trial and error; fix root cause
-	p := filepath.Dir(f.MountDir)
+	p := filepath.Dir(f.TestDir)
 	return filepath.Join(p, entry)
 }
 

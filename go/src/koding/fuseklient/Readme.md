@@ -9,10 +9,10 @@ Library that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https
     curl -L kodi.ng/d/kd | bash -s <token>
 
     # Mount the remote machine on `folder1`
-    kd mount <machine name> ./folder1 --remotepath=...
+    kd mount <machine name> ./folder
 
     # Mounted folder is now available. Open a terminal:
-    ls -alh ./folder1
+    ls -alh ./folder
 
 ## Following commands work on a mounted folder:
 
@@ -33,8 +33,8 @@ Library that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https
 
 ## Notes:
 
-  * Mounting on an existing folder won't overwrite contents, but they won't be visible while Fuse is running.
-  * If you get `Device not configured` when trying to access mount when daemon is not running: do `diskutil unmount force <folder>`.
+  * If you get `Device not configured` when trying to access mount when daemon
+    is not running: do `diskutil unmount force <folder>`.
   * If you get `mount point <folder> is itself on a OSXFUSE volume`, do `diskutil unmount force <folder>`.
   * See https://github.com/jacobsa/fuse for more information.
 

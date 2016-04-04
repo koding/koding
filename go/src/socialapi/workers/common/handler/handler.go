@@ -40,6 +40,9 @@ const (
 
 	// DeleteRequest represents a "DELETE" http request
 	DeleteRequest = "DELETE"
+
+	// PutRequest represents a "PUT" http request
+	PutRequest = "PUT"
 )
 
 var (

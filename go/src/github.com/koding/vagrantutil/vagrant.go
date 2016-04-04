@@ -6,13 +6,10 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/koding/logging"
 )
@@ -93,19 +90,19 @@ func (v *Vagrant) Create(vagrantFile string) error {
 
 // Version returns the current installed vagrant version
 func (v *Vagrant) Version() (string, error) {
-	out, err := v.runVagrantCommand("version", "--machine-readable")
+	out, err := v.vagrantCommand().run("version", "--machine-readable")
 	if err != nil {
 		return "", err
 	}
 
-	records, err := v.parseRecords(out)
+	records, err := parseRecords(out)
 	if err != nil {
-		return "", err
+		return "", v.error(err)
 	}
 
-	versionInstalled, err := v.parseData(records, "version-installed")
+	versionInstalled, err := parseData(records, "version-installed")
 	if err != nil {
-		return "", err
+		return "", v.error(err)
 	}
 
 	return versionInstalled, nil
@@ -117,19 +114,34 @@ func (v *Vagrant) Status() (s Status, err error) {
 		v.State = s.String()
 	}()
 
-	out, err := v.runVagrantCommand("status", "--machine-readable")
+	var notCreated bool
+	cmd := v.vagrantCommand()
+	cmd.ignoreErr = func(err error) bool {
+		if isNotCreated(err) {
+			notCreated = true
+			return true
+		}
+
+		return false
+	}
+
+	out, err := cmd.run("status", "--machine-readable")
 	if err != nil {
 		return Unknown, err
 	}
 
-	records, err := v.parseRecords(out)
-	if err != nil {
-		return Unknown, err
+	if notCreated {
+		return NotCreated, nil
 	}
 
-	status, err := v.parseData(records, "state")
+	records, err := parseRecords(out)
 	if err != nil {
-		return Unknown, err
+		return Unknown, v.error(err)
+	}
+
+	status, err := parseData(records, "state")
+	if err != nil {
+		return Unknown, v.error(err)
 	}
 
 	s, err = toStatus(status)
@@ -141,23 +153,34 @@ func (v *Vagrant) Status() (s Status, err error) {
 }
 
 func (v *Vagrant) Provider() (string, error) {
-	out, err := v.runVagrantCommand("status", "--machine-readable")
+	out, err := v.vagrantCommand().run("status", "--machine-readable")
 	if err != nil {
 		return "", err
 	}
 
-	records, err := v.parseRecords(out)
+	records, err := parseRecords(out)
 	if err != nil {
-		return "", err
+		return "", v.error(err)
 	}
 
-	return v.parseData(records, "provider-name")
+	provider, err := parseData(records, "provider-name")
+	if err != nil {
+		return "", v.error(err)
+	}
+
+	return provider, nil
 }
 
 // List returns all available boxes on the system. Under the hood it calls
 // "global-status" and parses the output.
 func (v *Vagrant) List() ([]*Vagrant, error) {
-	out, err := v.runVagrantCommand("global-status")
+	// Refresh box status cache. So it does not report that aborted
+	// box is running etc.
+	_, err := v.vagrantCommand().run("global-status", "--prune")
+	if err != nil {
+		return nil, err
+	}
+	out, err := v.vagrantCommand().run("global-status")
 	if err != nil {
 		return nil, err
 	}
@@ -206,24 +229,63 @@ func (v *Vagrant) List() ([]*Vagrant, error) {
 // contains the output stream. At the end of the output, the error is put into
 // the Error field if there is any.
 func (v *Vagrant) Up() (<-chan *CommandOutput, error) {
-	cmd := v.vagrantCommand("up")
-	return v.startCommand(cmd)
+	return v.vagrantCommand().start("up")
 }
 
 // Halt executes "vagrant halt". The returned reader contains the output
 // stream. The client is responsible of calling the Close method of the
 // returned reader.
 func (v *Vagrant) Halt() (<-chan *CommandOutput, error) {
-	cmd := v.vagrantCommand("halt")
-	return v.startCommand(cmd)
+	return v.vagrantCommand().start("halt")
 }
 
 // Destroy executes "vagrant destroy". The returned reader contains the output
 // stream. The client is responsible of calling the Close method of the
 // returned reader.
 func (v *Vagrant) Destroy() (<-chan *CommandOutput, error) {
-	cmd := v.vagrantCommand("destroy", "--force")
-	return v.startCommand(cmd)
+	if _, err := os.Stat(v.VagrantfilePath); os.IsNotExist(err) {
+		// Makes Destroy idempotent if called consecutively multiple times on
+		// the same path.
+		//
+		// Returning closed channel to not make existing like the one
+		// below hang:
+		//
+		//   ch, err := vg.Destroy()
+		//   if err != nil {
+		//     ...
+		//   }
+		//   for line := range ch {
+		//     ...
+		//   }
+		//
+		ch := make(chan *CommandOutput)
+		close(ch)
+
+		return ch, nil
+	}
+
+	cmd := v.vagrantCommand()
+	cmd.onSuccess = func() {
+		// cleanup vagrant directory on success, as it's no longer needed;
+		// after destroy it should be not possible to call vagrant up
+		// again, call to Create is required first
+		if err := os.RemoveAll(v.VagrantfilePath); err != nil {
+			v.debugf("failed to cleanup %q after destroy: %s", v.VagrantfilePath, err)
+		}
+
+		// We leave empty directory to not make other commands fail
+		// due to missing cwd.
+		//
+		// TODO(rjeczalik): rework lookup to use box id instead
+		if err := os.MkdirAll(v.VagrantfilePath, 0755); err != nil {
+			v.debugf("failed to create empty dir %q after destroy: %s", v.VagrantfilePath, err)
+		}
+	}
+	// if vagrant box is not created, return success - the destroy
+	// should be effectively a nop
+	cmd.ignoreErr = isNotCreated
+
+	return cmd.start("destroy", "--force")
 }
 
 var stripFmt = strings.NewReplacer("(", "", ",", "", ")", "")
@@ -231,7 +293,7 @@ var stripFmt = strings.NewReplacer("(", "", ",", "", ")", "")
 // BoxList executes "vagrant box list", parses the output and returns all
 // available base boxes.
 func (v *Vagrant) BoxList() ([]*Box, error) {
-	out, err := v.runVagrantCommand("box", "list")
+	out, err := v.vagrantCommand().run("box", "list")
 	if err != nil {
 		return nil, err
 	}
@@ -271,8 +333,7 @@ func (v *Vagrant) BoxList() ([]*Box, error) {
 // from files.
 func (v *Vagrant) BoxAdd(box *Box) (<-chan *CommandOutput, error) {
 	args := append([]string{"box", "add"}, toArgs(box)...)
-	cmd := v.vagrantCommand(args...)
-	return v.startCommand(cmd)
+	return v.vagrantCommand().start(args...)
 }
 
 // BoxRemove executes "vagrant box remove" for the given box. The returned channel
@@ -280,8 +341,7 @@ func (v *Vagrant) BoxAdd(box *Box) (<-chan *CommandOutput, error) {
 // the Error field if there is any.
 func (v *Vagrant) BoxRemove(box *Box) (<-chan *CommandOutput, error) {
 	args := append([]string{"box", "remove"}, toArgs(box)...)
-	cmd := v.vagrantCommand(args...)
-	return v.startCommand(cmd)
+	return v.vagrantCommand().start(args...)
 }
 
 // vagrantfile returns the Vagrantfile path
@@ -300,31 +360,8 @@ func (v *Vagrant) vagrantfileExists() error {
 
 // vagrantCommand creates a command which is setup to be run next to
 // Vagrantfile
-func (v *Vagrant) vagrantCommand(args ...string) *exec.Cmd {
-	cmd := exec.Command("vagrant", args...)
-	cmd.Dir = v.VagrantfilePath
-	return cmd
-}
-
-// runVagrantCommand is a helper function which runs the given subcommands and
-// arguments with vagrant and returns the output
-func (v *Vagrant) runVagrantCommand(args ...string) (string, error) {
-	cmd := v.vagrantCommand(args...)
-	cmd.Dir = v.VagrantfilePath
-
-	v.debugf("executing: %v", cmd.Args)
-
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		if len(out) != 0 {
-			err = fmt.Errorf("%s: %s", err, out)
-		}
-		return "", v.error(err)
-	}
-
-	v.debugf("%s", out)
-
-	return string(out), nil
+func (v *Vagrant) vagrantCommand() *command {
+	return newCommand(v.VagrantfilePath, v.Log)
 }
 
 func (v *Vagrant) debugf(format string, args ...interface{}) {
@@ -344,58 +381,6 @@ func (v *Vagrant) error(err error) error {
 		v.debugf("%s", err)
 	}
 	return err
-}
-
-// startCommand starts the command and sends back both the stdout and stderr to
-// the returned channel. Any error happened during the streaming is passed to
-// the Error field.
-func (v *Vagrant) startCommand(cmd *exec.Cmd) (<-chan *CommandOutput, error) {
-	stdoutPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-
-	stderrPipe, err := cmd.StderrPipe()
-	if err != nil {
-		return nil, err
-	}
-
-	v.debugf("executing: %v", cmd.Args)
-
-	if err := cmd.Start(); err != nil {
-		return nil, err
-	}
-
-	var wg sync.WaitGroup
-	out := make(chan *CommandOutput)
-
-	output := func(r io.Reader) {
-		wg.Add(1)
-		scanner := bufio.NewScanner(r)
-		for scanner.Scan() {
-			v.debugf("%s", scanner.Text())
-			out <- &CommandOutput{Line: scanner.Text(), Error: nil}
-		}
-
-		if err := scanner.Err(); err != nil {
-			out <- &CommandOutput{Line: "", Error: v.error(err)}
-		}
-		wg.Done()
-	}
-
-	go output(stdoutPipe)
-	go output(stderrPipe)
-
-	go func() {
-		wg.Wait()
-		if err := cmd.Wait(); err != nil {
-			out <- &CommandOutput{Line: "", Error: v.error(err)}
-		}
-
-		close(out)
-	}()
-
-	return out, nil
 }
 
 // toArgs converts the given box to argument list for `vagrant box add/remove`

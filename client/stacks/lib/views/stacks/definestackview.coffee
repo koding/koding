@@ -619,7 +619,9 @@ module.exports = class DefineStackView extends KDView
       if convertedDoc.err
         return callback 'Failed to convert YAML to JSON, fix document and try again.'
 
-      addUserInputOptions convertedDoc.contentObject, requiredData
+      { contentObject } = convertedDoc
+      addUserInputOptions contentObject, requiredData
+      config.buildDuration = contentObject.koding?.buildDuration
 
       templateContent = convertedDoc.content
 

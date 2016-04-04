@@ -301,6 +301,23 @@ runTests = -> describe 'workers.social.group.index', ->
         expect(group.isInAllowedDomain allowedDomainEmail).to.be.ok
         done()
 
+    it 'should return true if allowedDomains contains *', (done) ->
+
+      groupSlug = generateRandomString()
+
+      groupData =
+        slug           : groupSlug
+        title          : generateRandomString()
+        visibility     : 'visible'
+        allowedDomains : ['*']
+
+      allowedDomainEmail = generateRandomEmail 'example.com'
+
+      options = { createGroup : yes, context : { group : groupSlug }, groupData }
+      withConvertedUser options, ({ client, account, group }) ->
+        expect(group.isInAllowedDomain allowedDomainEmail).to.be.ok
+        done()
+
 
   describe '#create()', ->
 

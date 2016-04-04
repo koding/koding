@@ -120,6 +120,10 @@ func (d *DiskTransport) GetInfo(path string) (*GetInfoRes, error) {
 	return res, nil
 }
 
+func (d *DiskTransport) GetRemotePath() string {
+	return d.DiskPath
+}
+
 // fullPath prefixes internal root disk path with the specified path. This is
 // used to specify the path in requests.
 func (d *DiskTransport) fullPath(path string) string {

@@ -70,7 +70,11 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 	}
 
 	if params.RemotePath == "" {
-		params.RemotePath = path.Join("/home", remoteMachine.Client.Username)
+		// TODO: Deprecate in favor of a more robust way to identify the home dir.
+		// This assumes that the username klient is running under has a home
+		// at /home/username. Not true for root, if the user isn't the same user
+		// as klient is running under, and not true if the homedir isn't /home.
+		params.RemotePath = path.Join("/home", remoteMachine.Username)
 	}
 
 	if r.mounts.IsDuplicate(remoteMachine.IP, params.RemotePath, params.LocalPath) {
@@ -85,7 +89,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		IP:            remoteMachine.IP,
 		KiteTracker:   remoteMachine.KiteTracker,
 		Intervaler:    remoteMachine.Intervaler,
-		Transport:     remoteMachine.Client,
+		Transport:     remoteMachine,
 		PathUnmounter: fuseklient.Unmount,
 		MountAdder:    r,
 	}
@@ -96,7 +100,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 
 	// Check the remote size, so we can print a warning to the user if needed.
 	if !params.NoPrefetchMeta || !params.PrefetchAll {
-		res, err := checkSizeOfRemoteFolder(remoteMachine.Client, params.RemotePath)
+		res, err := checkSizeOfRemoteFolder(remoteMachine, params.RemotePath)
 
 		// If there's no error, clear the machine status.
 		if err == nil {
@@ -120,7 +124,7 @@ func checkIfUserHasFolderPerms(folderPath string) error {
 
 // getSizeOfRemoteFolder asks remote machine for size of specified remote folder
 // and returns it in bytes.
-func getSizeOfRemoteFolder(kiteClient *kite.Client, remotePath string) (int, error) {
+func getSizeOfRemoteFolder(m *machine.Machine, remotePath string) (int, error) {
 	var (
 		kreq = struct{ Command string }{"du -sb " + remotePath}
 		kres struct {
@@ -129,7 +133,7 @@ func getSizeOfRemoteFolder(kiteClient *kite.Client, remotePath string) (int, err
 			ExitStatus int    `json:"exitStatus"`
 		}
 	)
-	raw, err := kiteClient.Tell("exec", kreq)
+	raw, err := m.Tell("exec", kreq)
 	if err != nil {
 		return 0, err
 	}
@@ -146,8 +150,8 @@ func getSizeOfRemoteFolder(kiteClient *kite.Client, remotePath string) (int, err
 //
 // Note we return a warning since you can technically mount any size you want,
 // however the performance will degrade.
-func checkSizeOfRemoteFolder(kiteClient *kite.Client, remotePath string) (interface{}, error) {
-	sizeInB, err := getSizeOfRemoteFolder(kiteClient, remotePath)
+func checkSizeOfRemoteFolder(remoteMachine *machine.Machine, remotePath string) (interface{}, error) {
+	sizeInB, err := getSizeOfRemoteFolder(remoteMachine, remotePath)
 	if err != nil {
 		return nil, err
 	}
