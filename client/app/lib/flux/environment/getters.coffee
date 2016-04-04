@@ -163,6 +163,13 @@ inUsePrivateStackTemplates = [
   (templates) -> templates.filter (t) -> t.get('inUse')
 ]
 
+draftStackTemplates = [
+  teamStackTemplates
+  privateStackTemplates
+  (teamTemplates, privateTemplates) ->
+    teamTemplates.merge(privateTemplates).filter (t) -> not t.get('inUse')
+]
+
 module.exports = {
   stacks
   ownMachines
@@ -184,4 +191,5 @@ module.exports = {
   privateStackTemplates
   inUseTeamStackTemplates
   inUsePrivateStackTemplates
+  draftStackTemplates
 }
