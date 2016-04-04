@@ -5,6 +5,8 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/payment/paymentapi"
 	"strings"
+
+	"gopkg.in/mgo.v2"
 )
 
 var (
@@ -34,6 +36,10 @@ func NewChecker(name string, fn func(*models.User, *Warning) (bool, error)) *Exe
 // IsUserPaidFn checks if user is paid or not. All paid users are exempt.
 func IsUserPaidFn(user *models.User, _ *Warning) (bool, error) {
 	account, err := modelhelper.GetAccount(user.Name)
+	if err == mgo.ErrNotFound {
+		return false, nil
+	}
+
 	if err != nil {
 		return false, err
 	}
@@ -88,6 +94,10 @@ func IsUserKodingEmployeeFn(user *models.User, w *Warning) (bool, error) {
 // HasMultipleMemberships checks if user is only Koding group member.
 func HasMultipleMembershipsFn(user *models.User, w *Warning) (bool, error) {
 	groups, err := modelhelper.FetchAccountGroups(user.Name)
+	if err == mgo.ErrNotFound {
+		return false, nil
+	}
+
 	if err != nil {
 		return false, err
 	}

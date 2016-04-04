@@ -20,8 +20,8 @@ func MetricsCommand(c *cli.Context, log logging.Logger, configFolder string) int
 		return 1
 	}
 
-	m := NewDefaultServer(configFolder, os.Getpid())
-	if err := m.Start(); err != nil {
+	m := NewDefaultServer(configFolder)
+	if err := m.Start(os.Getpid()); err != nil {
 		fmt.Println("Error starting server:", err)
 		return 1
 	}

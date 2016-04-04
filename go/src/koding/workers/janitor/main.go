@@ -63,7 +63,7 @@ func main() {
 		VMDeletionWarning2,
 		DeleteInactiveUserVM,
 		DeleteBlockedUserVM,
-		// newDeleteInactiveUsersWarning(conf),
+		newDeleteInactiveUsersWarning(conf),
 	}
 
 	c := cron.New()

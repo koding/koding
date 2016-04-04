@@ -6,12 +6,14 @@ import (
 	"errors"
 	"net"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"koding/kites/tunnelproxy"
 	"koding/klient/info/publicip"
+	"koding/klient/tunnel/tlsproxy"
 	"koding/klient/vagrant"
 
 	"github.com/boltdb/bolt"
@@ -28,7 +30,6 @@ var (
 	ErrNoDatabase = errors.New("local database is not available")
 )
 
-// Tunnel
 type Tunnel struct {
 	db     *Storage
 	client *tunnelproxy.Client
@@ -46,9 +47,10 @@ type Tunnel struct {
 	state        tunnel.ClientState
 	stateChanges chan *tunnel.ClientStateChange
 	isVagrant    bool
+
+	proxy *tlsproxy.Proxy
 }
 
-// Options
 type Options struct {
 	TunnelName    string        `json:"tunnelName,omitempty"`
 	TunnelKiteURL string        `json:"tunnelKiteURL,omitempty"`
@@ -64,7 +66,9 @@ type Options struct {
 	DB     *bolt.DB       `json:"-"`
 	Log    kite.Logger    `json:"-"`
 	Config *config.Config `json:"-"`
-	Debug  bool           `json:"-"`
+
+	Debug   bool `json:"-"`
+	NoProxy bool `json:"-"`
 }
 
 // updateEmpty overwrites each zero-value field of opts with defaults (merge-in).
@@ -133,9 +137,10 @@ func (opts *Options) copy() *Options {
 	return &optsCopy
 }
 
-// New
-func New(opts *Options) *Tunnel {
+func New(opts *Options) (*Tunnel, error) {
 	optsCopy := *opts
+
+	target := net.JoinHostPort("127.0.0.1", strconv.Itoa(optsCopy.Config.Port))
 
 	t := &Tunnel{
 		db:           NewStorage(optsCopy.DB),
@@ -143,11 +148,22 @@ func New(opts *Options) *Tunnel {
 		stateChanges: make(chan *tunnel.ClientStateChange),
 	}
 
+	if !optsCopy.NoProxy {
+		optsCopy.Log.Debug("starting tlsproxy for %q target", target)
+
+		p, err := tlsproxy.NewProxy("0.0.0.0:56790", target)
+		if err != nil {
+			return nil, err
+		}
+
+		t.proxy = p
+	}
+
 	go t.eventloop()
 
 	t.register.Add(1)
 
-	return t
+	return t, nil
 }
 
 func (t *Tunnel) clientOptions() *tunnelproxy.ClientOptions {
@@ -156,11 +172,12 @@ func (t *Tunnel) clientOptions() *tunnelproxy.ClientOptions {
 		TunnelKiteURL:   t.opts.TunnelKiteURL,
 		LastVirtualHost: t.opts.VirtualHost,
 		LocalAddr:       t.opts.LocalAddr,
-		LocalRoutes:     t.localRoute(),
+		Services:        t.services(),
 		Config:          t.opts.Config,
 		Timeout:         t.opts.Timeout,
 		OnRegister:      t.updateOptions,
 		Debug:           t.opts.Debug,
+		NoProxy:         t.opts.NoProxy,
 		StateChanges:    t.stateChanges,
 	}
 }
@@ -269,19 +286,7 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
 }
 
 func guessTunnelName(vhost string) string {
-	// If vhost is <tunnelName>.<user>.koding.me return the
-	// <tunnelName> part (production environment).
-	//
-	// Example: 62ee1f899a4e.rafal.koding.me
-	i := strings.LastIndex(vhost, ".koding.me")
-	if i != -1 {
-		i = strings.LastIndex(vhost[:i], ".")
-		if i != -1 {
-			return vhost[:i]
-		}
-	}
-
-	// If vhost is <tunnelName>.<customBaseVirtualHost> return the
+	// If vhost is <tunnelName>.<BaseVirtualHost> return the
 	// <tunnelName> part (development environment).
 	//
 	// Example: macbook.rafal.t.dev.koding.io:8081

@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"net"
 	"net/http"
-	"socialapi/config"
 	"socialapi/workers/email/emailsender"
 	"time"
 )
@@ -93,9 +95,40 @@ var defClient = &http.Client{
 	Timeout: time.Second * 30,
 }
 
+type usernameReq struct {
+	Username string `json:"username"`
+}
+
 // newDeleteUser creates a function that deletes the user from koding
-func newDeleteUser(conf *config.Config) Action {
+func newDeleteUserFunc(url string) Action {
 	return func(user *models.User, _ string) error {
-		return nil
+		if user.Name == "" {
+			return fmt.Errorf("Username is empty. User -> %+v", user)
+		}
+
+		ses, err := modelhelper.CreateSessionForAccount(user.Name, kodingGroupName)
+		if err != nil {
+			return err
+		}
+
+		b, err := json.Marshal(usernameReq{
+			Username: user.Name,
+		})
+		if err != nil {
+			return err
+		}
+
+		req, err := http.NewRequest("POST", url, bytes.NewReader(b))
+		if err != nil {
+			return err
+		}
+
+		req.AddCookie(&http.Cookie{
+			Name:  "clientId",
+			Value: ses.ClientId,
+		})
+
+		_, err = defClient.Do(req)
+		return err
 	}
 }
