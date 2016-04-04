@@ -5,7 +5,7 @@ export PATH=/usr/local/bin:/usr/bin:$PATH
 yum --assumeyes install --enablerepo=epel \
     libpcap libpcap-devel \
     libdnet libdnet-devel \
-    bison bison-devel
+    bison bison-devel flex flex-devel
 
 pushd /usr/local/src
 
