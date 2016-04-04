@@ -12,12 +12,11 @@ module.exports = class HomeUtilitiesTryOnKoding extends kd.CustomHTMLView
 
     super options, data
 
+
     @switch  = new KodingSwitch
       cssClass: 'small'
-      callback: (state) =>
-        if state
-        then @setClass 'on'
-        else @unsetClass 'on'
+      callback: @bound 'handleSwitch'
+
 
     @guide  = new CustomLinkView
       cssClass : 'HomeAppView--button'
@@ -28,6 +27,37 @@ module.exports = class HomeUtilitiesTryOnKoding extends kd.CustomHTMLView
       cssClass : 'TryOnKodingButton fr'
       title    : ''
       callback : kd.noop
+
+    team               = kd.singletons.groupsController.getCurrentGroup()
+    { allowedDomains } = team
+
+    # set initial state
+    if '*' in allowedDomains
+      withCallback = no
+      @switch.setOn withCallback
+      @setClass 'on'
+
+
+  handleSwitch: (state) ->
+
+    team               = kd.singletons.groupsController.getCurrentGroup()
+    { allowedDomains } = team
+
+    if state
+      newDomains = _.clone allowedDomains
+      newDomains.push '*'
+    else
+      _.remove newDomains, (domain) -> domain is '*'
+
+    team.modify { allowedDomains: newDomains }, (err) ->
+      if err
+        withCallback = no
+        @switch.setOn !state
+        return
+
+      if state
+      then @setClass 'on'
+      else @unsetClass 'on'
 
 
   click: (event) ->
