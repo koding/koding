@@ -1,5 +1,5 @@
 module.exports = (options = {}, callback) ->
-  { type, endPoint, data, async } = options
+  { type, endPoint, data, async, timeout } = options
   type = 'POST'  unless type
 
   async or= yes
@@ -39,6 +39,14 @@ module.exports = (options = {}, callback) ->
       }
 
     return callback null, response
+
+  if timeout?
+    xhr.timeout   = timeout
+    xhr.ontimeout = ->
+      return callback {
+        message : 'operation timed out'
+        code    : xhr.status
+      }
 
   requestData = JSON.stringify data  if data
 
