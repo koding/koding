@@ -24,6 +24,7 @@ ActiveLeavingSharedMachineIdStore = ['ActiveLeavingSharedMachineIdStore']
 DifferentStackResourcesStore      = ['DifferentStackResourcesStore']
 ActiveStackStore                  = ['ActiveStackStore']
 TeamStackTemplatesStore           = ['TeamStackTemplatesStore']
+PrivateStackTemplatesStore        = ['PrivateStackTemplatesStore']
 
 
 workspacesWithChannels = [
@@ -141,8 +142,24 @@ teamStackTemplates = [
         .set 'isDefault', template.get('_id') in (getGroup().stackTemplates or [])
 ]
 
+privateStackTemplates = [
+  PrivateStackTemplatesStore
+  stacks
+  (templates, _stacks) ->
+    baseStackIds = _stacks.toList().toArray().map (s) -> s.get 'baseStackId'
+    templates.map (template) ->
+      template
+        .set 'inUse', template.get('_id') in baseStackIds
+        .set 'isDefault', template.get('_id') in (getGroup().stackTemplates or [])
+]
+
 inUseTeamStackTemplates = [
   teamStackTemplates
+  (templates) -> templates.filter (t) -> t.get('inUse')
+]
+
+inUsePrivateStackTemplates = [
+  privateStackTemplates
   (templates) -> templates.filter (t) -> t.get('inUse')
 ]
 
@@ -164,5 +181,7 @@ module.exports = {
   activeLeavingSharedMachineId: ActiveLeavingSharedMachineIdStore
   differentStackResourcesStore : DifferentStackResourcesStore
   teamStackTemplates
+  privateStackTemplates
   inUseTeamStackTemplates
+  inUsePrivateStackTemplates
 }
