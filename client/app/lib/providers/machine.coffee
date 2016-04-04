@@ -65,7 +65,7 @@ module.exports = class Machine extends KDObject
         @queryString = null
         computeController.reset yes
 
-    @jMachine.on 'update', =>
+    @jMachine.on? 'update', =>
 
       { reactor } = kd.singletons
       actions     = require 'app/flux/environment/actiontypes'
