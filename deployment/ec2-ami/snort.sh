@@ -2,8 +2,9 @@
 
 export PATH=/usr/local/bin:/usr/bin:$PATH
 
-yum --assumeyes install libpcap libpcap-devel
-yum --assumeyes install --enablerepo=epel libdnet libdnet-devel
+yum --assumeyes install --enablerepo=epel \
+    libpcap libpcap-devel \
+    libdnet libdnet-devel \
 
 pushd /usr/local/src
 
