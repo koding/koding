@@ -55,10 +55,10 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
         machineUId = @getOption 'correlationName'
         machine    = cc.findMachineFromMachineUId(machineUId)
 
-        if not machine or not machine.isRunning()
-          @disconnect()
+        @transport.options.url = @_baseURL  if @_baseURL
+        @disconnect()  if not machine or not machine.isRunning()
 
-    @terminalSessions = []
+    @terminalSessions   = []
 
 
   # setTransport is used to override the setTransport method in KodingKite
@@ -66,8 +66,13 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
   # Kite can go over our internal userproxy
   setTransport: (@transport) ->
 
-    { url } = @transport.options
-    proxifyTransportUrl url, (newurl) =>
+    { url, checkAlternatives } = @transport.options
+
+    # keep a local copy of proxified version
+    proxifyTransportUrl url, no,  (newurl) => @_baseURL = newurl
+
+    # ask for the alternatives or proxified version
+    proxifyTransportUrl url, checkAlternatives, (newurl) =>
 
       @transport.options.url = newurl
 
