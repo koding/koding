@@ -8,7 +8,10 @@ GenericToggler     = require '../components/machineslist/generictoggler'
 
 describe 'GenericToggler', ->
 
-  { Simulate, createRenderer, renderIntoDocument, findRenderedDOMComponentWithClass } = TestUtils
+  { Simulate,
+    createRenderer,
+    renderIntoDocument,
+    findRenderedDOMComponentWithClass } = TestUtils
 
 
   describe '::render', ->
@@ -21,7 +24,7 @@ describe 'GenericToggler', ->
       generictoggler = shallowRenderer.getRenderOutput()
 
 
-      expect(generictoggler.props.className).toEqual ' GenericToggler'
+      expect(generictoggler.props.className).toInclude ' GenericToggler'
       expect(generictoggler.props.children.length).toEqual 2
 
 
@@ -34,10 +37,10 @@ describe 'GenericToggler', ->
         onToggle={onToggle}/>)
 
       title = findRenderedDOMComponentWithClass generictoggler, 'GenericToggler-title'
-      expect(title.innerHTML).toEqual 'title'
+      expect(title.innerHTML).toInclude 'title'
 
       description = findRenderedDOMComponentWithClass generictoggler, 'GenericToggler-description'
-      expect(description.innerHTML).toEqual 'description'
+      expect(description.innerHTML).toInclude 'description'
 
       toggle = generictoggler.refs.toggle
       toggle = ReactDOM.findDOMNode(toggle)
