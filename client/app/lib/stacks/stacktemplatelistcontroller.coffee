@@ -106,10 +106,10 @@ module.exports = class StackTemplateListController extends KodingListController
         callback  : ({ action, modal }) =>
           switch action
 
-            when 'CloseAndOpen'
+            when 'CloneAndOpen'
               stackTemplate.clone (err, cloneStackTemplate) =>
                 @reload()
-                @_itemSelected stackTemplate
+                @_itemSelected cloneStackTemplate
                 Tracker.track Tracker.STACKS_CLONED_TEMPLATE
                 modal.destroy()
 
