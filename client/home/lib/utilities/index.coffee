@@ -1,11 +1,10 @@
-kd                                     = require 'kd'
-sectionize                             = require '../commons/sectionize'
-headerize                              = require '../commons/headerize'
-HomeUtilitiesKD                        = require './homeutilitieskd'
-HomeUtilitiesTryOnKoding               = require './homeutilitiestryonkoding'
-HomeUtilitiesDesktopApp                = require './homeutilitiesdesktopapp'
-HomeUtilitiesCustomerFeedback          = require './homeutilitiescustomerfeedback'
-HomeUtilitiesCustomerFeedbackSecondary = require './homeutilitiescustomerfeedbacksecondary'
+kd                            = require 'kd'
+sectionize                    = require '../commons/sectionize'
+headerize                     = require '../commons/headerize'
+HomeUtilitiesKD               = require './homeutilitieskd'
+HomeUtilitiesTryOnKoding      = require './homeutilitiestryonkoding'
+HomeUtilitiesDesktopApp       = require './homeutilitiesdesktopapp'
+HomeUtilitiesCustomerFeedback = require './homeutilitiescustomerfeedback'
 
 module.exports = class HomeUtilities extends kd.CustomScrollView
 
@@ -26,11 +25,4 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
 
     @wrapper.addSubView headerize  'Integrations'
 
-    chatlio          = sectionize 'Customer Feedback', HomeUtilitiesCustomerFeedback
-    chatlioSecondary = sectionize 'Customer Feedback Secondary', HomeUtilitiesCustomerFeedbackSecondary, { cssClass: 'hidden' }
-
-    @wrapper.addSubView chatlio
-    @wrapper.addSubView chatlioSecondary
-
-    chatlio.on 'ChatlioActivated',   -> chatlioSecondary.show()
-    chatlio.on 'ChatlioDeactivated', -> chatlioSecondary.hide()
+    @wrapper.addSubView sectionize 'Customer Feedback', HomeUtilitiesCustomerFeedback
