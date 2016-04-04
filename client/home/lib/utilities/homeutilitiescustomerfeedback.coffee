@@ -29,3 +29,17 @@ module.exports = class HomeUtilitiesCustomerFeedback extends kd.CustomHTMLView
     {{> @switch}}
     </p>
     """
+
+    # @switch  = new KodingSwitch
+    #   cssClass: 'small'
+    #   callback: (state) =>
+    #     if state
+    #     then @setClass 'on'
+    #     else @unsetClass 'on'
+
+    # {{> @switch}}
+    # <p class='primary'>
+    # <strong>Customer Feedback</strong>
+    # Enable Chatlio.com for real-time customer feedback
+    # </p>
+    # <p class='secondary'>
