@@ -31,19 +31,19 @@ func CreateCounters(counters ...*models.Counter) error {
 }
 
 func CountersByNamespace(group string) ([]*models.Counter, error) {
-	var c []*models.Counter
+	var counters []*models.Counter
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"namespace": group}).All(&c)
+		return c.Find(bson.M{"namespace": group}).All(&counters)
 	}
 
 	if err := Mongo.Run(CountersColl, query); err != nil {
 		return nil, err
 	}
 
-	sort.Sort(models.Counters(c))
+	sort.Sort(models.Counters(counters))
 
-	return c, nil
+	return counters, nil
 }
 
 func CounterByID(id bson.ObjectId) (*models.Counter, error) {
@@ -62,8 +62,17 @@ func CounterByID(id bson.ObjectId) (*models.Counter, error) {
 
 func DecrementOrCreateCounter(group, typ string, n int) error {
 	query := func(c *mgo.Collection) error {
-		// Try to decrement the counter only if it won't go negative.
-		err := c.Update(
+		change := mgo.Change{
+			Update: bson.M{
+				"$inc": bson.M{
+					"current": -n,
+				},
+			},
+			Upsert:    true,
+			ReturnNew: true,
+		}
+
+		_, err := c.Find(
 			bson.M{
 				"namespace": group,
 				"type":      typ,
@@ -71,37 +80,7 @@ func DecrementOrCreateCounter(group, typ string, n int) error {
 					"$gte": n,
 				},
 			},
-			bson.M{
-				"$inc": bson.M{
-					"current": -n,
-				},
-			},
-		)
-
-		// Most likely n is larger than current counter value, set it to 0.
-		if err == mgo.ErrNotFound {
-			err = c.Update(
-				bson.M{
-					"namespace": group,
-					"type":      typ,
-				},
-				bson.M{
-					"$set": bson.M{
-						"current": 0,
-					},
-				},
-			)
-		}
-
-		// Most likely counter for given team does not exist, create it.
-		if err == mgo.ErrNotFound {
-			err = c.Insert(&models.Counter{
-				ID:        bson.NewObjectId(),
-				Namespace: group,
-				Type:      typ,
-				Current:   0,
-			})
-		}
+		).Apply(change, nil)
 
 		return err
 	}

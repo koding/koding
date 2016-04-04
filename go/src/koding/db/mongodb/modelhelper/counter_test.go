@@ -31,6 +31,10 @@ func allCounters() ([]*models.Counter, error) {
 func delCounters() error {
 	query := func(c *mgo.Collection) error {
 		_, err := c.RemoveAll(nil)
+		if err == mgo.ErrNotFound {
+			return nil
+		}
+
 		return err
 	}
 
@@ -40,7 +44,10 @@ func delCounters() error {
 func TestCounter(t *testing.T) {
 	initMongoConn()
 	defer Close()
-	defer delCounters()
+
+	if err := delCounters(); err != nil {
+		t.Fatalf("delCounters()=%s", err)
+	}
 
 	counters := []*models.Counter{{
 		ID:        bson.NewObjectId(),
@@ -56,7 +63,7 @@ func TestCounter(t *testing.T) {
 		ID:        bson.NewObjectId(),
 		Namespace: "bar",
 		Type:      "member_instances",
-		Current:   0,
+		Current:   2,
 	}, {
 		ID:        bson.NewObjectId(),
 		Namespace: "bar",
@@ -83,10 +90,10 @@ func TestCounter(t *testing.T) {
 		n    int
 		want int
 	}{
-		{7, 3},  // i=0
-		{2, 0},  // i=1
-		{1, 0},  // i=2
-		{20, 0}, // i=3
+		{7, 3}, // i=0
+		{1, 0}, // i=1
+		{2, 0}, // i=2
+		{3, 2}, // i=3
 	}
 
 	for i, cas := range decCases {
@@ -107,5 +114,30 @@ func TestCounter(t *testing.T) {
 		if got.Current != cas.want {
 			t.Errorf("%d (%s): got %d, want %d", i, c.ID.Hex(), got.Current, cas.want)
 		}
+	}
+
+	newCases := []struct {
+		namespace string
+		typ       string
+		n         int
+	}{
+		{"qux", "member_stacks", 1},    // i=0
+		{"qux", "member_instances", 3}, // i=0
+	}
+
+	for i, cas := range newCases {
+		err := DecrementOrCreateCounter(cas.namespace, cas.typ, cas.n)
+		if err != nil {
+			t.Errorf("%d: DecrementOrCreateCounter()=%s", i, err)
+		}
+	}
+
+	c, err = CountersByNamespace("qux")
+	if err != nil {
+		t.Fatalf("CountersByNamespace()=%s", err)
+	}
+
+	if len(c) != 2 {
+		t.Fatalf("got len(c)=%d, want len(c)=2", len(c))
 	}
 }
