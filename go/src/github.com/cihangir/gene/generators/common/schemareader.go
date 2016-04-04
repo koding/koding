@@ -6,19 +6,30 @@ import (
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
-	"github.com/cihangir/gene/helpers"
+	"github.com/cihangir/gene/utils"
 	"github.com/cihangir/schema"
 	"gopkg.in/yaml.v2"
 )
 
-// NewFromFile reads the given file and creates a new module out of it
+// Read reads the given file and creates a new module out of it
 func Read(path string) (*schema.Schema, error) {
-	fileContent, err := helpers.ReadFile(path)
+	fileContent, err := utils.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	return unmarshall(path, fileContent)
+}
+
+// ReadJSON reads the given file and returns it as json string
+func ReadJSON(path string) (string, error) {
+	s, err := Read(path)
+	if err != nil {
+		return "", err
+	}
+
+	b, err := json.Marshal(s)
+	return string(b), err
 }
 
 func unmarshall(path string, fileContent []byte) (*schema.Schema, error) {

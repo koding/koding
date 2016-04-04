@@ -9,7 +9,7 @@ ADD . /go/src
 # (You may fetch or manage dependencies here,
 # either manually or with a tool like "godep".)
 
-RUN go install ./src/github.com/cihangir/gene/example/tinder/workers/cmd/account
+RUN go install ./bin/account
 
 # Run the outyet command by default when the container starts.
 ENTRYPOINT /go/bin/account
@@ -19,7 +19,7 @@ ENTRYPOINT /go/bin/account
 # TODO make this configurable
 
 # to build the docker machine
-# docker build -t account -f ./src/github.com/cihangir/gene/example/tinder/workers/cmd/dockerfiles/account/Dockerfile ./src/
+# docker build -t account -f ./bin/dockerfiles/account/Dockerfile ./src/
 
 # to run the built docker machine
 # docker run -it account

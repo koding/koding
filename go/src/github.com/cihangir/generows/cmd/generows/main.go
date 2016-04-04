@@ -43,12 +43,17 @@ func main() {
 
 	s = s.Resolve(s)
 
-	output, err := conf.Rows.Generate(c, s)
+	req := &common.Req{
+		Schema:  s,
+		Context: c,
+	}
+	res := &common.Res{}
+	err = conf.Rows.Generate(req, res)
 	if err != nil {
 		log.Fatalf("err while generating rows", err.Error())
 	}
 
-	if err := common.WriteOutput(output); err != nil {
+	if err := common.WriteOutput(res.Output); err != nil {
 		log.Fatal("output write err: %s", err.Error())
 	}
 

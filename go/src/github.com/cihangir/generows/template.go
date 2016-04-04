@@ -4,16 +4,16 @@ package generows
 var RowScannerTemplate = `
 {{$schema := .Schema}}
 {{$title := $schema.Title}}
-package models
+package rows
 
-func ({{Pointerize $title}} *{{$title}}) RowsScan(rows *sql.Rows, dest interface{}) error {
+func {{$title}}RowsScan(rows *sql.Rows, dest interface{}) error {
     if rows == nil {
         return nil
     }
 
-    var records []*{{ToUpperFirst $title}}
+    var records []*models.{{ToUpperFirst $title}}
     for rows.Next() {
-        m := New{{ToUpperFirst $title}}()
+        m := models.New{{ToUpperFirst $title}}()
         err := rows.Scan(
         {{range $n, $p := SortedSchema $schema.Properties}} &m.{{DepunctWithInitialUpper $p.Title}},
         {{end}} )
@@ -27,7 +27,7 @@ func ({{Pointerize $title}} *{{$title}}) RowsScan(rows *sql.Rows, dest interface
         return err
     }
 
-    *(dest.(*[]*{{ToUpperFirst $title}})) = records
+    *(dest.(*[]*models.{{ToUpperFirst $title}})) = records
 
     return nil
 }

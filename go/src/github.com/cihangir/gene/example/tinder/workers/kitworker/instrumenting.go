@@ -13,7 +13,7 @@ import (
 
 // DefaultMiddlewares provides bare bones for default middlewares with
 // requestLatency, requestCount and requestLogging
-func DefaultMiddlewares(method string, requestCount metrics.Counter, requestLatency metrics.TimeHistogram, logger log.Logger) endpoint.Middleware {
+func DefaultMiddlewares(method string, requestCount metrics.Counter, requestLatency metrics.Histogram, logger log.Logger) endpoint.Middleware {
 	return endpoint.Chain(
 		RequestLatencyMiddleware(method, requestLatency),
 		RequestCountMiddleware(method, requestCount),
@@ -40,13 +40,13 @@ func RequestCountMiddleware(method string, requestCount metrics.Counter) endpoin
 
 // RequestLatencyMiddleware prepares a request latency calculator
 // endpoint.Middleware for package wide usage
-func RequestLatencyMiddleware(method string, requestLatency metrics.TimeHistogram) endpoint.Middleware {
+func RequestLatencyMiddleware(method string, requestLatency metrics.Histogram) endpoint.Middleware {
 	return func(next endpoint.Endpoint) endpoint.Endpoint {
 		return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 			defer func(begin time.Time) {
 				methodField := metrics.Field{Key: "method", Value: method}
 				errorField := metrics.Field{Key: "error", Value: fmt.Sprintf("%v", err)}
-				requestLatency.With(methodField).With(errorField).Observe(time.Since(begin))
+				requestLatency.With(methodField).With(errorField).Observe(int64(time.Since(begin)))
 			}(time.Now())
 
 			response, err = next(ctx, request)

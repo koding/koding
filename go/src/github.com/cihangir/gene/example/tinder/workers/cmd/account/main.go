@@ -8,14 +8,12 @@ import (
 
 	"github.com/cihangir/gene/example/tinder/workers/account"
 	"github.com/cihangir/gene/example/tinder/workers/kitworker"
-	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/context"
 
 	"github.com/go-kit/kit/loadbalancer"
 	"github.com/go-kit/kit/loadbalancer/static"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics"
-	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 )
 
 func main() {
@@ -45,20 +43,10 @@ func main() {
 		_ = zipkinLogger.Log("err", err)
 	}
 
-	fieldKeys := []string{"method", "error"}
-	requestCount := kitprometheus.NewCounter(stdprometheus.CounterOpts{
-		Namespace: "tinder_api",
-		Subsystem: "account_service",
-		Name:      "request_count",
-		Help:      "Number of requests received.",
-	}, fieldKeys)
-
-	requestLatency := metrics.NewTimeHistogram(time.Microsecond, kitprometheus.NewSummary(stdprometheus.SummaryOpts{
-		Namespace: "tinder_api",
-		Subsystem: "account_service",
-		Name:      "request_latency_microseconds",
-		Help:      "Total duration of requests in microseconds.",
-	}, fieldKeys))
+	m, err := kitworker.NewMetric("127.0.0.1:8125", metrics.Field{Key: "key", Value: "value"})
+	if err != nil {
+		panic(err)
+	}
 
 	serverOpts := &kitworker.ServerOption{
 		Host:            "localhost:3000",
@@ -67,8 +55,8 @@ func main() {
 		LogErrors:   true,
 		LogRequests: true,
 
-		Latency: requestLatency,
-		Counter: requestCount,
+		Latency: m.Histogram("tinder_api_account_service_request_histogram"),
+		Counter: m.Counter("tinder_api_account_service_request_count"),
 	}
 
 	profileApiEndpoints := []string{
@@ -108,8 +96,6 @@ func main() {
 	svc := account.NewAccount()
 
 	account.RegisterHandlers(ctx, svc, serverOpts, logger)
-
-	http.Handle("/metrics", stdprometheus.Handler())
 
 	_ = logger.Log("msg", "HTTP", "addr", *listen)
 	_ = logger.Log("err", http.ListenAndServe(*listen, nil))

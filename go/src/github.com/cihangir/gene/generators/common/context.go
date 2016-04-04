@@ -1,32 +1,23 @@
 package common
 
-import (
-	"strings"
-	"text/template"
+import "github.com/cihangir/gene/config"
 
-	"github.com/cihangir/gene/config"
-	"github.com/cihangir/stringext"
-)
-
+// Context holds contextual information for ongoing operations.
 type Context struct {
 	Config *config.Config
-
-	// Funcs
-	ModuleNameFunc func(string) string
-	FileNameFunc   func(string) string
-	FieldNameFunc  func(string) string
-
-	// TemplateFuncs
-	TemplateFuncs template.FuncMap
 }
 
+// NewContext creates a new context with sane defaults.
 func NewContext() *Context {
 	return &Context{
-		// Funcs
-		ModuleNameFunc: strings.ToLower,
-		FileNameFunc:   strings.ToLower,
-		FieldNameFunc:  stringext.ToFieldName,
-		Config:         &config.Config{},
-		TemplateFuncs:  TemplateFuncs,
+		Config: &config.Config{
+			Target: "./",
+			Generators: []string{
+				"ddl", "rows", "kit", "errors",
+				"dockerfiles", "clients", "tests",
+				"functions", "models", "js",
+				// "tests-funcs", "tests",
+			},
+		},
 	}
 }

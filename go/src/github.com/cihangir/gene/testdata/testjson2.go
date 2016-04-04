@@ -1,5 +1,6 @@
 package testdata
 
+// TestDataFull provides a fully fledged test data.
 var TestDataFull = `{
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
@@ -8,7 +9,7 @@ var TestDataFull = `{
     "description": "Account module handles all the operations regarding Account management.",
     "generators": [
         {
-            "sql-definition": {
+            "ddl": {
                 "roleName": "social",
                 "grants": [
                     "SELECT",
@@ -16,6 +17,9 @@ var TestDataFull = `{
                 ],
                 "databaseName": "mydatabase",
                 "schemaName": "account"
+            },
+            "dockerfiles": {
+                "CMDPath": "./bin/"
             }
         }
     ],
@@ -74,7 +78,7 @@ var TestDataFull = `{
             "description": "Profile represents a registered Account's Public Info",
             "generators": [
                 {
-                    "sql-definition": {
+                    "ddl": {
                         "grants": [
                             "SELECT",
                             "UPDATE"

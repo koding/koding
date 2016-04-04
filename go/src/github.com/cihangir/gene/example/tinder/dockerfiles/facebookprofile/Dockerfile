@@ -9,7 +9,7 @@ ADD . /go/src
 # (You may fetch or manage dependencies here,
 # either manually or with a tool like "godep".)
 
-RUN go install ./src/github.com/cihangir/gene/example/tinder/workers/cmd/facebookprofile
+RUN go install ./bin/facebookprofile
 
 # Run the outyet command by default when the container starts.
 ENTRYPOINT /go/bin/facebookprofile
@@ -19,7 +19,7 @@ ENTRYPOINT /go/bin/facebookprofile
 # TODO make this configurable
 
 # to build the docker machine
-# docker build -t facebookprofile -f ./src/github.com/cihangir/gene/example/tinder/workers/cmd/dockerfiles/facebookprofile/Dockerfile ./src/
+# docker build -t facebookprofile -f ./bin/dockerfiles/facebookprofile/Dockerfile ./src/
 
 # to run the built docker machine
 # docker run -it facebookprofile

@@ -5,6 +5,7 @@ import (
 	"github.com/cihangir/schema"
 )
 
+// GenerateService generates service for kit system.
 func GenerateService(context *common.Context, s *schema.Schema) ([]common.Output, error) {
 	outputs, err := generate(context, s, ServiceTemplate, "service")
 	if err != nil {

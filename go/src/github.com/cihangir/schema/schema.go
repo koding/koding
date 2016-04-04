@@ -13,6 +13,7 @@ type Schema struct {
 	Example  interface{} `json:"example,omitempty"`
 	Format   string      `json:"format,omitempty"`
 
+	Tags string      `json:"tags,omitempty"`
 	Type interface{} `json:"type,omitempty"`
 
 	Ref    *Reference `json:"$ref,omitempty"`
@@ -79,6 +80,7 @@ type Schema struct {
 	Paths map[string]map[string]*Path `json:"paths,omitempty"`
 }
 
+// Path holds path data
 type Path struct {
 	Consumes    []string              `json:"consumes,omitempty"`
 	Description string                `json:"description,omitempty"`
@@ -91,6 +93,7 @@ type Path struct {
 	Tags        []string              `json:"tags,omitempty"`
 }
 
+// Parameter holds parameter data
 type Parameter struct {
 	Description string `json:"description,omitempty"`
 	Format      string `json:"format,omitempty"`
@@ -102,66 +105,4 @@ type Parameter struct {
 	Name     string  `json:"name,omitempty"`
 	Required bool    `json:"required,omitempty"`
 	Schema   *Schema `json:"schema,omitempty"`
-}
-
-// Link represents a Link description.
-type Link struct {
-	Title        string  `json:"title,omitempty"`
-	Description  string  `json:"description,omitempty"`
-	HRef         *HRef   `json:"href,omitempty"`
-	Rel          string  `json:"rel,omitempty"`
-	Method       string  `json:"method,omitempty"`
-	Schema       *Schema `json:"schema,omitempty"`
-	TargetSchema *Schema `json:"targetSchema,omitempty"`
-}
-
-type Generator map[string]interface{}
-
-func (g *Generator) Get(key string) interface{} {
-	d, ok := (*g)[key]
-	if !ok {
-		return nil
-	}
-
-	return d
-}
-
-func (g *Generator) GetWithDefault(key string, def interface{}) interface{} {
-	d, ok := (*g)[key]
-	if !ok {
-		return def
-	}
-
-	return d
-}
-
-func (g *Generator) SetNX(key string, val interface{}) {
-	_, ok := (*g)[key]
-	if !ok {
-		g.Set(key, val)
-	}
-}
-
-func (g *Generator) Set(key string, val interface{}) {
-	if *g == nil {
-		*g = make(map[string]interface{})
-	}
-	(*g)[key] = val
-}
-
-type Generators []map[string]Generator
-
-func (g Generators) Has(s string) bool {
-	_, has := g.Get(s)
-	return has
-}
-
-func (g *Generators) Get(s string) (Generator, bool) {
-	for _, m := range *g {
-		if d, ok := m[s]; ok {
-			return d, ok
-		}
-	}
-
-	return nil, false
 }
