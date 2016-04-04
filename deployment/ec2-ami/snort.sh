@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PATH=/usr/local/bin:/usr/bin:$PATH
+export PATH=/usr/local/bin:/usr/bin:$PATH
 
 yum --assumeyes install libpcap libpcap-devel
 yum --assumeyes install --enablerepo=epel libdnet libdnet-devel
