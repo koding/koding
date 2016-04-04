@@ -1,5 +1,6 @@
 machineRuleChecker = require 'app/util/machinerulechecker'
 getMachineOwner    = require 'app/util/getMachineOwner'
+getGroup           = require 'app/util/getGroup'
 
 { allChannels }    = require 'activity/flux/getters'
 
@@ -22,6 +23,7 @@ ActiveInvitationMachineIdStore    = ['ActiveInvitationMachineIdStore']
 ActiveLeavingSharedMachineIdStore = ['ActiveLeavingSharedMachineIdStore']
 DifferentStackResourcesStore      = ['DifferentStackResourcesStore']
 ActiveStackStore                  = ['ActiveStackStore']
+TeamStackTemplatesStore           = ['TeamStackTemplatesStore']
 
 
 workspacesWithChannels = [
@@ -128,6 +130,22 @@ stacks = [
               .set 'isApproved', yes
 ]
 
+teamStackTemplates = [
+  TeamStackTemplatesStore
+  stacks
+  (templates, _stacks) ->
+    baseStackIds = _stacks.toList().toArray().map (s) -> s.get 'baseStackId'
+    templates.map (template) ->
+      template
+        .set 'inUse', template.get('_id') in baseStackIds
+        .set 'isDefault', template.get('_id') in (getGroup().stackTemplates or [])
+]
+
+inUseTeamStackTemplates = [
+  teamStackTemplates
+  (templates) -> templates.filter (t) -> t.get('inUse')
+]
+
 module.exports = {
   stacks
   ownMachines
@@ -145,4 +163,6 @@ module.exports = {
   activeInvitationMachineId: ActiveInvitationMachineIdStore
   activeLeavingSharedMachineId: ActiveLeavingSharedMachineIdStore
   differentStackResourcesStore : DifferentStackResourcesStore
+  teamStackTemplates
+  inUseTeamStackTemplates
 }
