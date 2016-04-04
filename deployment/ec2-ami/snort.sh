@@ -75,3 +75,5 @@ chown --recursive snort:snort \
       /var/log/snort
 
 chkconfig --add snort
+
+exit 0
