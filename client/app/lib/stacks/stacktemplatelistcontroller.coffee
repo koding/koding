@@ -110,14 +110,17 @@ module.exports = class StackTemplateListController extends KodingListController
               stackTemplate.clone (err, cloneStackTemplate) =>
                 @reload()
                 @_itemSelected stackTemplate
+                Tracker.track Tracker.STACKS_CLONED_TEMPLATE
                 modal.destroy()
 
             when 'OpenEditor'
               @_itemSelected stackTemplate
               modal.destroy()
+              Tracker.track Tracker.STACKS_STARTED_EDIT_DEFAULT
 
     else
       @_itemSelected stackTemplate
+      Tracker.track Tracker.STACKS_STARTED_EDIT
 
 
   reload: -> @loadItems()
@@ -154,6 +157,7 @@ module.exports = class StackTemplateListController extends KodingListController
         template.delete (err) ->
           listView.removeItem item
           modal.destroy()
+          Tracker.track Tracker.STACKS_DELETE_TEMPLATE
           appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
 
