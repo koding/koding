@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"koding/klient/remote/req"
+	"koding/klientctl/config"
 	"koding/klientctl/klient"
 	"koding/klientctl/metrics"
 	"koding/mountcli"
@@ -120,7 +121,7 @@ func (r *RunCommand) runOnRemote(localPath string, cmdWithArgsStr string) (*Exec
 	}
 
 	// track metrics
-	metrics.TrackRun(machine)
+	metrics.TrackRun(machine, config.Version)
 
 	return r.runOnMachine(machine, fullCmdPath, cmdWithArgsStr)
 }
