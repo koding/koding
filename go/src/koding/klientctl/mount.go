@@ -334,7 +334,7 @@ func (c *MountCommand) prefetchAll() error {
 		return fmt.Errorf("Error getting ssh key. err:%s", err)
 	}
 
-	c.printfln("Prefetching remote path...Please don't stop while in progress.")
+	c.printfln("Prefetching remote path...Please don't interrupt this process while in progress.")
 
 	// doneErr is used to wait until the cache progress is done, and also send
 	// any error encountered. We simply send nil if there is no error.
