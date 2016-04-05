@@ -197,8 +197,6 @@ func (t *Tunnel) updateOptions(reg *tunnelproxy.RegisterResult) {
 			t.ports = ports
 		} else {
 			t.opts.Log.Error("failed to update forwarded port list: %s", err)
-
-			t.ports = nil
 		}
 	}
 
@@ -222,6 +220,7 @@ func (t *Tunnel) initServices() {
 	if err == storage.ErrKeyNotFound {
 		s = tunnelproxy.Services{
 			"ssh": &tunnelproxy.Service{
+				Name:      "ssh",
 				LocalAddr: "127.0.0.1:22",
 			},
 		}
@@ -275,12 +274,14 @@ func (t *Tunnel) restoreServices() {
 		return
 	}
 
+	t.opts.Log.Debug("going to restore services: %s (without forwarded ports)", services)
+
 	// update forwarded ports if there are any
 	if len(t.ports) != 0 {
 		t.opts.Log.Debug("updating forwarded ports for services: %+v", t.ports)
 
 		for _, s := range services {
-			_, localPort, err := splitHostPort(s.RemoteAddr)
+			_, localPort, err := splitHostPort(s.LocalAddr)
 			if err != nil || localPort <= 0 {
 				t.opts.Log.Warning("tunne: skipping %+v service, missing local address: %s", s, err)
 				continue
@@ -298,6 +299,8 @@ func (t *Tunnel) restoreServices() {
 			}
 		}
 	}
+
+	t.opts.Log.Debug("going to restore services: %s (with forwarded ports)", services)
 
 	// TODO(rjeczalik): add vagrant.forwardPort to host klient and call
 	// it for each services that does not have forwarded port; required
