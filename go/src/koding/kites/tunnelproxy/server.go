@@ -19,6 +19,7 @@ import (
 	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils"
+	"koding/tools/util"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/gorilla/mux"
@@ -733,6 +734,10 @@ func (s *Server) discoverKite(ident string, r *http.Request) ([]*Endpoint, error
 
 func (s *Server) discoverHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if util.HandleCORS(w, r) {
+			return
+		}
+
 		endpoints, err := s.discover(strings.ToLower(mux.Vars(r)["service"]), r)
 		if err != nil {
 			s.opts.Log.Error("%s: discover failed for %s (%s): %s", r.RemoteAddr, r.Host, r.URL, err)
