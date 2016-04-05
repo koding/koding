@@ -37,7 +37,6 @@ func newConfig() error {
 
 	config.Environment = Environment
 	config.Region = Region
-	config.Transport = kiteconfig.XHRPolling
 
 	return nil
 }
@@ -64,10 +63,16 @@ func NewClient() (*Client, error) {
 	k := kite.New(Name, Version)
 	k.Config = config.Copy()
 
+	if debug {
+		k.SetLogLevel(kite.DEBUG)
+	}
+
 	c := &Client{
 		Kite: k,
 		Log:  common.NewLogger(Name, debug),
 	}
+
+	c.Log.Debug("starting provider-vagrant in debug mode")
 
 	c.Vagrant = &vagrantapi.Klient{
 		Kite:  k,

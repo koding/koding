@@ -55,13 +55,22 @@ type InfoResponse struct {
 	Ports map[string]*Port `json:"ports,omitempty"`
 }
 
+const (
+	StateNotStarted   = "NotStarted"
+	StateStarted      = "Started"
+	StateConnecting   = "Connecting"
+	StateConnected    = "Connected"
+	StateDisconnected = "Disconnected"
+	StateClosed       = "Closed"
+)
+
 var stateNames = map[tunnel.ClientState]string{
-	tunnel.ClientUnknown:      "NotStarted",
-	tunnel.ClientStarted:      "Started",
-	tunnel.ClientConnecting:   "Connecting",
-	tunnel.ClientConnected:    "Connected",
-	tunnel.ClientDisconnected: "Disconnected",
-	tunnel.ClientClosed:       "Closed",
+	tunnel.ClientUnknown:      StateNotStarted,
+	tunnel.ClientStarted:      StateStarted,
+	tunnel.ClientConnecting:   StateConnected,
+	tunnel.ClientConnected:    StateConnected,
+	tunnel.ClientDisconnected: StateDisconnected,
+	tunnel.ClientClosed:       StateClosed,
 }
 
 func (t *Tunnel) Info(r *kite.Request) (interface{}, error) {
@@ -162,11 +171,11 @@ func (t *Tunnel) hostPort(guestPort int) int {
 	return 0
 }
 
-// serices gives route infromation of tunnelclient kite services.
+// buildServices gives route infromation of tunnelclient kite services.
 //
 // If the kite server runs inside a VirtualBox machine, localRoute
 // returns a route to the forwarded port on the host network.
-func (t *Tunnel) services() map[string]*tunnelproxy.Tunnel {
+func (t *Tunnel) buildServices() map[string]*tunnelproxy.Tunnel {
 	ok, err := vagrant.IsVagrant()
 	if err != nil {
 		t.opts.Log.Error("failure checking local route: %s", err)
