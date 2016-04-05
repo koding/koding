@@ -504,7 +504,7 @@ func UpdateMachines(update bson.M, ids ...bson.ObjectId) error {
 	query := func(c *mgo.Collection) error {
 		_, err := c.UpdateAll(
 			bson.M{
-				"_in": bson.M{"$in": ids},
+				"_id": bson.M{"$in": ids},
 			},
 			update,
 		)
