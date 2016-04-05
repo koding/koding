@@ -1,7 +1,6 @@
-// mountcli is a little package for interacting with the local "mount" command.
+// mountcli is a package for interacting with the local "mount" command.
 //
-// A typical osxfusefs mount entry looks like:
-//  mount_name1 on /path/to/mount1 (osxfusefs, nodev, nosuid, synchronous, mounted by user1)
+// See mount_<os>.go for examples.
 package mountcli
 
 import (
@@ -13,8 +12,8 @@ import (
 )
 
 var (
-	// ErrNotInMount happens when command is run from outside a mount.
-	ErrNotInMount = errors.New("command not run on mount")
+	// ErrNotInMount happens when path is not inside/at root level of mount.
+	ErrNotInMount = errors.New("Path not run in mount.")
 
 	// ErrNoMountName happens when no mount with given name.
 	ErrNoMountName = errors.New("No mount found with given name.")

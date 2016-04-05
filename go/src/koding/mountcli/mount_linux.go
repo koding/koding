@@ -14,5 +14,5 @@ var (
 	// mountname on /mountfolder type fuse (rw,nosuid,nodev,allow_other)
 	FuseTag = "fuse"
 
-	FuseMatcher = regexp.MustCompile(fmt.Sprintf("^(.*?) on (.*?) %s ", FuseTag))
+	FuseMatcher = regexp.MustCompile(fmt.Sprintf("^(.*?) on (.*?) type %s ", FuseTag))
 )
