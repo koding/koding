@@ -2,13 +2,9 @@ kd    = require 'kd'
 JView = require 'app/jview'
 nick  = require 'app/util/nick'
 
-ActivityAutoCompleteUserItemView         = require 'activity/views/activityautocompleteuseritemview'
-ChatHead                                 = require 'activity/views/chathead'
-FetchingActivityAutoCompleteUserItemView = require 'activity/views/fetchingactivityautocompleteuseritemview'
+ResourceSearchAccountsView = require './resourcesearchaccountsview'
 
 module.exports = class ResourceSearchView extends kd.CustomHTMLView
-
-  ENTER = 13
 
   JView.mixin @prototype
 
@@ -39,80 +35,65 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
 
   createAdvancedForm: ->
 
-    @advancedForm   = new kd.FormViewWithFields
-      fields        :
-        title       :
-          label     : 'Title'
-        status      :
-          label     : 'Status'
-          itemClass : kd.SelectBox
-        accounts    :
-          label     : 'Accounts'
-          itemClass : kd.View
-        isGroup     :
-          label     : 'Is group stack?'
-          type      : 'checkbox'
-      buttons       :
-        search      :
-          title     : 'Search'
-          type      : 'submit'
-          style     : 'solid green medium'
-        clear       :
-          title     : 'Clear'
-          style     : 'solid light-gray medium'
-          callback  : @bound 'clearAdvancedSearch'
-      callback      : @bound 'doAdvancedSearch'
+    @advancedForm     = new kd.FormViewWithFields
+      fields          :
+        title         :
+          label       : 'Title'
+          placeholder : 'Type a title...'
+        status        :
+          label       : 'Status'
+          itemClass   : kd.SelectBox
+        accounts      :
+          label       : 'Accounts'
+          itemClass   : ResourceSearchAccountsView
+        type          :
+          label       : 'Stack template type'
+          itemClass   : kd.SelectBox
+      buttons         :
+        search        :
+          title       : 'Search'
+          type        : 'submit'
+          style       : 'solid green medium'
+        clear         :
+          title       : 'Clear'
+          style       : 'solid light-gray medium'
+          callback    : @bound 'clearAdvancedSearch'
+      callback        : @bound 'doAdvancedSearch'
 
-    { status, accounts } = @advancedForm.inputs
+    { status, type, accounts } = @advancedForm.inputs
+
     status.setSelectOptions [
       { title : 'Any',            value : '' }
-      { title : 'NotInitialized', value : 'NotInitialized' }
-      { title : 'Building',       value : 'Building' }
-      { title : 'Initialized',    value : 'Initialized' }
-      { title : 'Destroying',     value : 'Destroying' }
+      { title : 'NotInitialized', value : 'status.state: NotInitialized' }
+      { title : 'Building',       value : 'status.state: Building' }
+      { title : 'Initialized',    value : 'status.state: Initialized' }
+      { title : 'Destroying',     value : 'status.state: Destroying' }
     ]
 
-    accountHeads          = new kd.View { cssClass : 'autocomplete-heads' }
-    @accountAutoComplete  = new kd.AutoCompleteController
-      form                : @advancedForm
-      name                : 'userController'
-      placeholder         : 'Type a username...'
-      itemClass           : ActivityAutoCompleteUserItemView
-      fetchingItemClass   : FetchingActivityAutoCompleteUserItemView
-      outputWrapper       : accountHeads
-      itemDataPath        : 'profile.nickname'
-      listWrapperCssClass : 'resource-management-search'
-      outputWrapper       : accountHeads
-      selectedItemClass   : ChatHead
-      submitValuesAsText  : yes
-      dataSource          : @bound 'fetchAccounts'
+    type.setSelectOptions [
+      { title : 'Any',     value : '' }
+      { title : 'Group',   value : 'config.groupStack: true' }
+      { title : 'Private', value : 'config.groupStack: false' }
+    ]
 
-    accountAutoCompleteView = @accountAutoComplete.getView()
-    accountAutoCompleteView.on 'keydown', (event) ->
-      return event.preventDefault()  if event.which is ENTER
-
-    accounts.addSubView accountAutoCompleteView
-    accounts.addSubView accountHeads
+    accounts.setForm @advancedForm
 
 
   doAdvancedSearch: (data) ->
 
-    dataProps =
-      'title'             : 'title'
-      'status.state'      : 'status'
-      'config.groupStack' : 'isGroup'
+    dataFormats =
+      title     : (value) -> "title: '#{value}'"
+      accounts  : (value) ->
+        return  unless value.length
+        accountIds = value.map (item) -> item.id
+        return "originId: { $in: [#{accountIds.join ','}] }"
 
-    pairs = []
-    for prop, field of dataProps when value = data[field]
-      value = "'#{value}'"  if typeof value is 'string'
-      pairs.push "#{prop}: #{data[field]}"
+    conditions = []
+    for name, value of data when value
+      value = dataFormat value  if dataFormat = dataFormats[name]
+      conditions.push value
 
-    { selectedItemData } = @accountAutoComplete
-    if selectedItemData.length
-      accountIds = selectedItemData.map (item) -> item._id
-      pairs.push "originId: { $in: [#{accountIds.join ','}] }"
-
-    query = "{#{pairs.join ','}}"  if pairs.length
+    query = "{#{conditions.join ','}}"  if conditions.length
 
     @emitSearch query
 
@@ -120,8 +101,11 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
   clearAdvancedSearch: ->
 
     @advancedForm.reset()
-    @advancedForm.inputs.status.setValue ''
-    @accountAutoComplete.reset()
+
+    { status, type, accounts } = @advancedForm.inputs
+    status.setValue ''
+    type.setValue ''
+    accounts.reset()
 
     @emitSearch()
 
@@ -157,16 +141,6 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
   switchToAdvancedMode: ->
 
     @setClass 'advanced-search-mode'
-
-
-  fetchAccounts: ({ inputValue }, callback) ->
-
-    { search } = kd.singletons
-    search.searchAccounts inputValue, { showCurrentUser: yes }
-      .then callback
-      .catch (err) ->
-        console.warn 'Error while autoComplete: ', err
-        callback []
 
 
   pistachio: ->
