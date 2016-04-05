@@ -25,6 +25,15 @@ type Service struct {
 
 type Services map[string]*Service
 
+func (s Services) String() string {
+	p, err := json.Marshal(s)
+	if err != nil {
+		return fmt.Sprintf("%+v", s)
+	}
+
+	return string(p)
+}
+
 type Endpoint struct {
 	Addr     string `json:"addr"`
 	Protocol string `json:"protocol"`
