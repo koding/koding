@@ -147,8 +147,6 @@ func (m *MetricClient) StartMountStatusTicker(mount string) (err error) {
 		if err != nil {
 			TrackMountCheckFailure(mount, err.Error())
 			failures += 1
-		} else {
-			TrackMountCheckSuccess(mount)
 		}
 
 		// if it errors more than twice, there's no point in continuing
