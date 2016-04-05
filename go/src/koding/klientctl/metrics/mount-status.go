@@ -8,7 +8,7 @@ import (
 
 var (
 	DefaultFileName = ".kd"
-	DefaultFileText = []byte(".kd")
+	DefaultFileText = []byte("This is a test file for checking mount status. please don't remove.")
 
 	ErrDiffContent = errors.New("file content is not what was expected")
 )
