@@ -58,7 +58,7 @@ SNORT_REGISTERED_RULES_URL="https://www.snort.org/rules/snortrules-snapshot-$SNO
 curl --silent --location $SNORT_REGISTERED_RULES_URL?oinkcode=$SNORT_OINKCODE | \
   tar --extract --gunzip --directory /etc/snort/ --file -
 
-mv --no-clobber etc/* $PWD
+mv --no-clobber /etc/snort/etc/* /etc/snort/
 
 groupadd snort
 
