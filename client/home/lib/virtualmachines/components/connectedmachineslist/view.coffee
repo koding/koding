@@ -9,11 +9,9 @@ module.exports = class ConnectedMachinesListView extends React.Component
 
 
   numberOfRowsInSection: ->
-    console.log {a:@props.stacks}
     @props.stacks
       .toList()
       .filter (stack) ->
-        console.log "? ", { stack }
         stack.get('title').toLowerCase() is 'managed vms'
       .size
 
@@ -22,7 +20,6 @@ module.exports = class ConnectedMachinesListView extends React.Component
 
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
-    console.log 'aaaaa', @props.stacks
     stack = @props.stacks.toList().get rowIndex
 
     stack.get 'machines'
