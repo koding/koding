@@ -24,7 +24,8 @@ func TrackMount(machine, mountPath string, opts map[string]interface{}) error {
 		return err
 	}
 
-	return c.TriggerMountStatusStart(machine)
+	return nil
+	//return c.TriggerMountStatusStart(machine)
 }
 
 func TrackUnmount(machine string, version int) error {
@@ -40,7 +41,8 @@ func TrackUnmount(machine string, version int) error {
 		return err
 	}
 
-	return c.TriggerMountStatusStop(machine)
+	//return c.TriggerMountStatusStop(machine)
+	return nil
 }
 
 func TrackSSH(machine string, version int) error {
