@@ -47,6 +47,13 @@ func (opts *DestroyOptions) Valid() error {
 
 // Database describes an interface for stack's database operations.
 //
+// The stack deletion operation consist of two phases - removing metadata and
+// removing actual resources. The first phase is referred to as detach and
+// the second - destroy. Removing metadata is removing jRelationships,
+// jMachine.users docs and setting proper states on both jMachine and
+// jComputeStack. Removing resources is destroying them on terraform part and
+// then removing corresponding docs from mongo.
+//
 // TODO(rjeczalik): move updateMachines from {aws,vagrant}/stackplan.go here
 // and merge them to single, generic Update(*UpdateOptions) method.
 type Database interface {
