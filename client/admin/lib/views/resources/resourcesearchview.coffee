@@ -8,6 +8,8 @@ FetchingActivityAutoCompleteUserItemView = require 'activity/views/fetchingactiv
 
 module.exports = class ResourceSearchView extends kd.CustomHTMLView
 
+  ENTER = 13
+
   JView.mixin @prototype
 
   constructor: (options = {}, data) ->
@@ -70,8 +72,8 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
       { title : 'Destroying',     value : 'Destroying' }
     ]
 
-    accountHeads        = new kd.View { cssClass : 'autocomplete-heads' }
-    accountAutoComplete = new kd.AutoCompleteController
+    accountHeads          = new kd.View { cssClass : 'autocomplete-heads' }
+    @accountAutoComplete  = new kd.AutoCompleteController
       form                : @advancedForm
       name                : 'userController'
       placeholder         : 'Type a username...'
@@ -79,13 +81,17 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
       fetchingItemClass   : FetchingActivityAutoCompleteUserItemView
       outputWrapper       : accountHeads
       itemDataPath        : 'profile.nickname'
-      listWrapperCssClass : 'private-message'
+      listWrapperCssClass : 'resource-management-search'
       outputWrapper       : accountHeads
       selectedItemClass   : ChatHead
       submitValuesAsText  : yes
       dataSource          : @bound 'fetchAccounts'
 
-    accounts.addSubView accountAutoComplete.getView()
+    accountAutoCompleteView = @accountAutoComplete.getView()
+    accountAutoCompleteView.on 'keydown', (event) ->
+      return event.preventDefault()  if event.which is ENTER
+
+    accounts.addSubView accountAutoCompleteView
     accounts.addSubView accountHeads
 
 
@@ -101,6 +107,11 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
       value = "'#{value}'"  if typeof value is 'string'
       pairs.push "#{prop}: #{data[field]}"
 
+    { selectedItemData } = @accountAutoComplete
+    if selectedItemData.length
+      accountIds = selectedItemData.map (item) -> item._id
+      pairs.push "originId: { $in: [#{accountIds.join ','}] }"
+
     query = "{#{pairs.join ','}}"  if pairs.length
 
     @emitSearch query
@@ -110,6 +121,7 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
 
     @advancedForm.reset()
     @advancedForm.inputs.status.setValue ''
+    @accountAutoComplete.reset()
 
     @emitSearch()
 
@@ -150,8 +162,7 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
   fetchAccounts: ({ inputValue }, callback) ->
 
     { search } = kd.singletons
-    search.searchAccounts inputValue
-      #.filter (it) => it.profile.nickname isnt nick()
+    search.searchAccounts inputValue, { showCurrentUser: yes }
       .then callback
       .catch (err) ->
         console.warn 'Error while autoComplete: ', err
