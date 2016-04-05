@@ -9,6 +9,10 @@ os         = require 'os'
 request    = require 'request'
 git        = require 'git-rev'
 
+# check if dev environment is avaliable
+defaultEnv = 'default'
+try fs.statSync './config/main.dev.coffee'; defaultEnv = 'dev'
+
 log "-------------------------"
 log ""
 log "# ./configure assumes development environment - comes bundled with options below."
@@ -19,20 +23,20 @@ version = undefined
 
 options = o =
   projectRoot      : argv.projectRoot    or __dirname
-  config           : argv.config         or "dev"
-  region           : argv.region         or "dev"
+  config           : argv.config         or defaultEnv
+  region           : argv.region         or defaultEnv
   branch           : argv.branch         or "cake-rewrite"
   build            : argv.build          or 1
   version          : argv.version
   tag              : argv.tag
-  environment      : argv.environment    or "dev"
+  environment      : argv.environment    or defaultEnv
   publicPort       : argv.publicPort     or "8090"
   target           : argv.target         or "localhost"
   onlyconfigure    : argv.onlyconfigure  or no
   runGoWatcher     : argv.hasOwnProperty 'with-go-watcher'
   deploy           : argv.deploy         or no
   host             : argv.host
-  ebEnvName        : argv.ebEnvName      or "dev"
+  ebEnvName        : argv.ebEnvName      or defaultEnv
   tunnelUrl        : argv.tunnelUrl
   sendEventsToSegment : if argv['disable-segment'] then off else on
 
@@ -52,7 +56,7 @@ rest = ->
   equals = (x1, x2, whitelist)->
     for key of x1 when key not in whitelist
       if typeof (x2[key]) is "undefined"
-        console.log "#{key} is undefined, but exists in 'dev'"
+        console.log "#{key} is undefined, but exists in '#{defaultEnv}'"
         return false
 
       if x1[key] and typeof (x1[key]) is "object"
@@ -63,9 +67,9 @@ rest = ->
     return true
 
 
-  configMatchesDev = (config)->
+  configMatchesDefault = (config)->
 
-    dev     = require("./config/main.dev.coffee")(options)
+    dev     = require("./config/main.#{defaultEnv}.coffee")(options)
     devKeys = JSON.parse(dev.JSON)
     keys    = JSON.parse config.JSON
 
@@ -93,7 +97,7 @@ rest = ->
     log "3) brew install mongodb nginx"
     log "4) do './run install' "
     log "5) do './run buildservices' to create backend service containers after installing docker."
-    log "6) you can then type './run' to run Koding and see it on #{o.hostname} and on koding-#{process.env.USER}.ngrok.com"
+    log "6) you can then type './run' to run Koding and see it on #{o.hostname}"
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
 
@@ -108,13 +112,14 @@ rest = ->
   createRunFile KONFIG
   writeVersion KONFIG
 
+  return  unless defaultEnv is 'default'
+
   # check 'prod', 'sandbox' config schema against 'dev'
   for c in ["sandbox", "prod"]
     if fs.existsSync("./config/main.#{c}.coffee")
       config = require("./config/main.#{c}.coffee")(options)
+      process.exit(1)  unless configMatchesDefault(config)
 
-      unless configMatchesDev(config)
-        process.exit(1)
 
 git.long (str) ->
   if str != ""
@@ -123,7 +128,7 @@ git.long (str) ->
     version = try (fs.readFileSync path.join(__dirname, './VERSION'), 'utf-8').trim()
 
   if argv.hostname
-    options.hostname       = argv.hostname
+    options.hostname = argv.hostname
     rest()
   else if os.type() is "Darwin"
     options.hostname = "dev.koding.com"
