@@ -83,6 +83,7 @@ func RepairCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ct
 	// the command struct is responsible for verifying valid opts.
 	opts := repair.Options{
 		MountName: c.Args().First(),
+		Version:   config.Version,
 	}
 
 	return &repair.Command{

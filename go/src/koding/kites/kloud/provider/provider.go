@@ -65,7 +65,11 @@ func NewBaseStack(ctx context.Context, log logging.Logger) (*BaseStack, error) {
 		bs.Eventer = ev
 	}
 
-	bs.Builder = stackplan.NewBuilder(bs.Log.New("stackplan"))
+	builderOpts := &stackplan.BuilderOptions{
+		Log: bs.Log.New("stackplan"),
+	}
+
+	bs.Builder = stackplan.NewBuilder(builderOpts)
 
 	return bs, nil
 }

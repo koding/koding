@@ -1,9 +1,11 @@
 #!/bin/bash
 
-PATH=/usr/local/bin:/usr/bin:$PATH
+export PATH=/usr/local/bin:/usr/bin:$PATH
 
-yum --assumeyes install libpcap libpcap-devel
-yum --assumeyes install --enablerepo=epel libdnet libdnet-devel
+yum --assumeyes install --enablerepo=epel \
+    libpcap libpcap-devel \
+    libdnet libdnet-devel \
+    bison bison-devel flex flex-devel
 
 pushd /usr/local/src
 
@@ -22,8 +24,6 @@ pushd daq-$DAQ_VERSION
 make
 make install
 popd
-
-echo PATH=$PATH
 
 pushd snort-$SNORT_VERSION
 ./configure --enable-gre \
@@ -58,8 +58,7 @@ SNORT_REGISTERED_RULES_URL="https://www.snort.org/rules/snortrules-snapshot-$SNO
 curl --silent --location $SNORT_REGISTERED_RULES_URL?oinkcode=$SNORT_OINKCODE | \
   tar --extract --gunzip --directory /etc/snort/ --file -
 
-mv --no-clobber etc/* $PWD
-rmdir etc
+mv --no-clobber /etc/snort/etc/* /etc/snort/
 
 groupadd snort
 
@@ -76,3 +75,5 @@ chown --recursive snort:snort \
       /var/log/snort
 
 chkconfig --add snort
+
+exit 0

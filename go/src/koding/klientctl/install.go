@@ -199,7 +199,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	// track metrics
-	metrics.TrackInstall()
+	metrics.TrackInstall(config.Version)
 
 	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", config.KlientName)
 

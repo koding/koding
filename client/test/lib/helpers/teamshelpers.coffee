@@ -12,6 +12,7 @@ chatInputSelector        = '.ChatPaneFooter .ChatInputWidget textarea'
 invitationsModalSelector = '.kdmodal-content  .AppModal--admin-tabs .invitations'
 pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
 pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
+teamsLoginModal          = '.TeamsModal--login'
 
 
 module.exports =
@@ -65,25 +66,55 @@ module.exports =
     console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password} to team: #{helpers.getUrl(yes)}"
 
 
-  loginToTeam: (browser, user) ->
+  loginToTeam: (browser, user, invalidCredentials = no) ->
+
+    incorrectEmailAddress = 'a@b.com'
+    incorrectUserName     = 'testUserName'
+    wrongPassword         = 'password'
+    unrecognizedMessage   = 'Unrecognized email'
+    unknownUserMessage    = 'Unknown user name'
+    wrongPasswordMessage  = 'Access denied'
 
     browser
       .pause                  2000 # wait for login page
-      .waitForElementVisible  '.TeamsModal--login', 20000
+      .waitForElementVisible  teamsLoginModal, 20000
       .waitForElementVisible  'form.login-form', 20000
-      .setValue               'input[name=username]', user.username
-      .setValue               'input[name=password]', user.password
-      .click                  'button[testpath=login-button]'
 
-    @loginAssertion(browser)
+    if invalidCredentials
+      @insertInvalidCredentials(browser, incorrectEmailAddress, user.password, unrecognizedMessage)
+      @insertInvalidCredentials(browser, incorrectUserName, user.password, unknownUserMessage)
+      @insertInvalidCredentials(browser, user.username, wrongPassword, wrongPasswordMessage)
+    else
+      browser
+        .setValue  inputUserName, user.username
+        .setValue  inputPassword, user.password
+        .click     loginButton
+
+      @loginAssertion(browser)
 
 
-  loginTeam: (browser) ->
+  insertInvalidCredentials: (browser, usernameOrEmail, password, errorMessage) ->
+
+    inputUserName        = 'input[name=username]'
+    inputPassword        = 'input[name=password]'
+    notificationSelector = '.team .kdnotification.main'
+    loginButton          = 'button[testpath=login-button]'
+
+    browser
+      .setValue               inputUserName, usernameOrEmail
+      .setValue               inputPassword, password
+      .click                  loginButton
+      .waitForElementVisible  notificationSelector, 20000
+      .assert.containsText    notificationSelector, errorMessage
+      .pause                  2000 # wait for notification to disappear
+      .clearValue             inputUserName
+
+
+  loginTeam: (browser, invalidCredentials = no) ->
 
     user = utils.getUser()
     url  = helpers.getUrl(yes)
 
-    teamsLogin        = '.TeamsModal--login'
     stackCatalogModal = '.StackCatalogModal'
     closeButton       = "#{stackCatalogModal} .kdmodal-inner .closeModal"
 
@@ -91,9 +122,12 @@ module.exports =
     browser.maximizeWindow()
 
     browser.pause  3000
-    browser.element 'css selector', teamsLogin, (result) =>
+    browser.element 'css selector', teamsLoginModal, (result) =>
       if result.status is 0
-        @loginToTeam browser, user
+        if invalidCredentials
+          @loginToTeam browser, user, yes
+        else
+          @loginToTeam browser, user
       else
         @createTeam browser
 
@@ -106,6 +140,28 @@ module.exports =
             .click                  closeButton
 
     return user
+
+
+  closeTeamSettingsModal: (browser) ->
+
+    adminModal  = '.AppModal.AppModal--admin.team-settings'
+    closeButton = "#{adminModal} .closeModal"
+
+    browser
+      .waitForElementVisible adminModal, 20000
+      .click                 closeButton
+
+
+  logoutTeam: (browser) ->
+
+    logoutLink = '.avatararea-popup.team a[href="/Logout"]'
+
+    helpers.openAvatarAreaModal(browser, yes)
+
+    browser
+      .waitForElementVisible logoutLink, 20000
+      .click                 logoutLink
+      .waitForElementVisible teamsLoginModal, 20000
 
 
   createTeam: (browser, user, callback) ->
@@ -533,3 +589,51 @@ module.exports =
       .waitForElementVisible      stackTemplateSelector, 20000
       .assert.containsText        stackTemplateSelector, 'Stack Template'
       .assert.containsText        saveAndTestButton, 'SAVE & TEST'
+
+
+
+  fillJoinForm: (browser, userData, assertLoggedIn = yes) ->
+
+    loginForm     = '.TeamsModal.TeamsModal--groupCreation.join'
+    emailInput    = "#{loginForm} input[name=email]"
+    usernameInput = "#{loginForm} input[name=username]"
+    passwordInput = "#{loginForm} input[name=password]"
+    joinButton    = "#{loginForm} .TeamsModal-button--green"
+
+
+    browser
+      .waitForElementVisible loginForm, 20000
+      .waitForElementVisible emailInput, 20000
+      .waitForElementVisible usernameInput, 20000
+      .waitForElementVisible passwordInput, 20000
+      .waitForElementVisible joinButton, 20000
+      .setValue              usernameInput, userData.username
+      .setValue              passwordInput, userData.password
+      .click                 joinButton
+
+    if assertLoggedIn
+      @loginAssertion(browser)
+
+
+  getInvitationUrl: (browser, email, callback) ->
+
+    fn = (email, done) ->
+      options  =
+        query  : email
+        status : 'pending'
+
+      _remote.api.JInvitation.search options, {}, (err, invitations) ->
+        done { err, invitation: invitations[0] }
+
+    browser
+      .timeoutsAsyncScript 10000
+      .executeAsync fn, [ email ], (result) ->
+        { status, value } = result
+
+        if status is -1 or value.err or not value.invitation
+          helpers.notifyTestFailure browser, 'inviteUserAndJoinTeam'
+
+        teamUrl       = helpers.getUrl yes
+        invitationUrl = "#{teamUrl}/Invitation/#{value.invitation.code}"
+
+        callback invitationUrl
