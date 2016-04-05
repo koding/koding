@@ -56,6 +56,7 @@ module.exports = utils = {
 
     { hostname } = location
     return 'koding'  if hostname.match kodingGroupPattern
+    return hostname.split('.').first
 
 
   checkIfGroupExists: (groupName, callback) ->
