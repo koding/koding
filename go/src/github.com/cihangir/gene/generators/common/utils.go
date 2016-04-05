@@ -21,8 +21,9 @@ func IsIn(s string, ts ...string) bool {
 	return false
 }
 
+// SortedObjectSchemas filters object schemas and sorts them
 func SortedObjectSchemas(m map[string]*schema.Schema) []*schema.Schema {
-	objectSchemas := make([]*schema.Schema, 0)
+	var objectSchemas []*schema.Schema
 	for _, def := range schema.SortedSchema(m) {
 		if def.Type != nil {
 			if t, ok := def.Type.(string); ok {
@@ -36,6 +37,7 @@ func SortedObjectSchemas(m map[string]*schema.Schema) []*schema.Schema {
 	return objectSchemas
 }
 
+// TestEquals checks if the exp and act is deeply equal
 func TestEquals(tb testing.TB, exp, act interface{}) {
 	if !reflect.DeepEqual(exp, act) {
 		_, file, line, _ := runtime.Caller(1)

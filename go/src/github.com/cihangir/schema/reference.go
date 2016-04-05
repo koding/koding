@@ -20,6 +20,20 @@ var href = regexp.MustCompile(`({\([^\)]+)\)}`)
 // Reference represents a JSON Reference.
 type Reference string
 
+// HRef represents a Link href.
+type HRef struct {
+	href    string
+	Order   []string
+	Schemas map[string]*Schema
+}
+
+// NewHRef creates a new HRef struct based on a href value.
+func NewHRef(href string) *HRef {
+	return &HRef{
+		href: href,
+	}
+}
+
 // Resolve resolves reference inside a Schema.
 func (rf Reference) Resolve(r *Schema) *Schema {
 	if !strings.HasPrefix(string(rf), fragment) {
@@ -64,37 +78,6 @@ func (rf Reference) Resolve(r *Schema) *Schema {
 	return node.(*Schema)
 }
 
-func encode(t string) (encoded string) {
-	encoded = strings.Replace(t, "/", "~1", -1)
-	return strings.Replace(encoded, "~", "~0", -1)
-}
-
-func decode(t string) (decoded string) {
-	decoded = strings.Replace(t, "~1", "/", -1)
-	return strings.Replace(decoded, "~0", "~", -1)
-}
-
-func parseTag(tag string) string {
-	if i := strings.Index(tag, ","); i != -1 {
-		return tag[:i]
-	}
-	return tag
-}
-
-// HRef represents a Link href.
-type HRef struct {
-	href    string
-	Order   []string
-	Schemas map[string]*Schema
-}
-
-// NewHRef creates a new HRef struct based on a href value.
-func NewHRef(href string) *HRef {
-	return &HRef{
-		href: href,
-	}
-}
-
 // Resolve resolves a href inside a Schema.
 func (h *HRef) Resolve(r *Schema) {
 	h.Order = make([]string, 0)
@@ -131,4 +114,16 @@ func (h *HRef) String() string {
 	return href.ReplaceAllStringFunc(string(h.href), func(v string) string {
 		return "%v"
 	})
+}
+
+func decode(t string) (decoded string) {
+	decoded = strings.Replace(t, "~1", "/", -1)
+	return strings.Replace(decoded, "~0", "~", -1)
+}
+
+func parseTag(tag string) string {
+	if i := strings.Index(tag, ","); i != -1 {
+		return tag[:i]
+	}
+	return tag
 }
