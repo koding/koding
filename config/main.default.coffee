@@ -7,89 +7,89 @@ path                  = require 'path'
 
 Configuration = (options={}) ->
 
-  boot2dockerbox      = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
+  defaultEmail =
 
+  boot2dockerbox = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
+
+  # Softlayer Provider Keys
   slKeys       =
     vm_kloud   :
-      username : "IBM839677"
-      apiKey   : "1664173c843a22d223247837da5cab6d4de7d06f238606e1523458d59eca72d0"
+      username : ''
+      apiKey   : ''
 
-  worker_ci_test = require './aws/worker_ci_test_key.json'
-
+  # AWS Keys that is required for Kloud
   awsKeys =
     # s3 full access
     worker_terraformer:
-      accessKeyId     : "AKIAICCV3GMNBL4ECN5Q"
-      secretAccessKey : "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"
+      accessKeyId     : ''
+      secretAccessKey : ''
 
     # s3 put only to koding-client bucket
     worker_koding_client_s3_put_only:
-      accessKeyId     : "AKIAJCUG42THBT4LBQEQ"
-      secretAccessKey : "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"
+      accessKeyId     : ''
+      secretAccessKey : ''
 
     # admin
     worker_test:
-      accessKeyId     : "AKIAIQESD65KKYRYAWDA"
-      secretAccessKey : "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"
+      accessKeyId     : ''
+      secretAccessKey : ''
 
     # s3 put only
     worker_test_data_exporter:
-      accessKeyId     : "AKIAIWO4ZPTLQEYSOLGA"
-      secretAccessKey : "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"
+      accessKeyId     : ''
+      secretAccessKey : ''
 
     # AmazonRDSReadOnlyAccess
     worker_rds_log_parser:
-      accessKeyId     : "AKIAJX6IPI3PQCS3GJ6Q"
-      secretAccessKey : "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"
+      accessKeyId     : ''
+      secretAccessKey : ''
 
     # ELB & EC2 -> AmazonEC2ReadOnlyAccess
     worker_multi_ssh:
-      accessKeyId     : "AKIAI7CKP5SNHCBUEDXQ"
-      secretAccessKey : "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"
+      accessKeyId     : ''
+      secretAccessKey : ''
 
     # AmazonEC2FullAccess
     worker_test_instance_launcher:
-      accessKeyId     : "AKIAJDR2J6W5AT4KWS4A"
-      secretAccessKey : "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"
+      accessKeyId     : ''
+      secretAccessKey : ''
 
     # CloudWatchReadOnlyAccess
     vm_vmwatcher:     # vm_vmwatcher_dev
-      accessKeyId     : "AKIAJ3OZKOIQUTV2GCBQ"
-      secretAccessKey : "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"
+      accessKeyId     : ''
+      secretAccessKey : ''
 
     # KloudPolicy
     vm_kloud:         # vm_kloud_dev
-      accessKeyId     : "AKIAJRNT55RTV2MHD4VA"
-      secretAccessKey : "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"
+      accessKeyId     : ''
+      secretAccessKey : ''
 
     # TunnelProxyPolicy
     worker_tunnelproxymanager: # Name worker_tunnelproxymanager_dev
-      accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
-      secretAccessKey : "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"
+      accessKeyId     : ''
+      secretAccessKey : ''
 
-    #Encryption and Storage on S3
-    worker_sneakerS3 :
-      accessKeyId     : "AKIAJV2BZT3DBCEUOIXQ"
-      secretAccessKey : "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"
-
-
+    # Encryption and Storage on S3
+    worker_sneakerS3  :
+      accessKeyId     : ''
+      secretAccessKey : ''
 
   publicPort          = options.publicPort     or "8090"
   hostname            = options.hostname       or "dev.koding.com"
   protocol            = options.protocol       or "http:"
   publicHostname      = options.publicHostname or "#{protocol}//#{hostname}"
-  region              = options.region         or "dev"
-  configName          = options.configName     or "dev"
-  environment         = options.environment    or "dev"
+  region              = options.region         or 'default'
+  configName          = options.configName     or 'default'
+  environment         = options.environment    or 'default'
   projectRoot         = options.projectRoot    or path.join __dirname, '/..'
   version             = options.version        or "2.0" # TBD
   branch              = options.branch         or "cake-rewrite"
   build               = options.build          or "1111"
-  tunnelUrl           = options.tunnelUrl      or "http://devtunnelproxy.koding.com"
+  tunnelUrl           = options.tunnelUrl      or "http://devtunnelproxy.koding.com" # this is ok for now
   githubapi           =
     debug             : yes
     timeout           : 5000
-    userAgent         : 'Koding-Bridge'
+    userAgent         : 'Koding-Bridge-Dev'
 
   mongo               = "#{boot2dockerbox}:27017/koding"
   etcd                = "#{boot2dockerbox}:4001"
@@ -100,14 +100,9 @@ Configuration = (options={}) ->
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       10           , vhost:        "#{rabbitmq.vhost}" }
 
-  if options.ngrok
-    scheme = 'http'
-  # host   = "koding-#{process.env.USER}.ngrok.com"
-    host   = "koding-#{process.env.USER}.oud.cc:4480"
-  else
-    scheme = 'http'
-    _port  = if publicPort is '80' then '' else publicPort
-    host   = options.host or "#{options.hostname}:#{_port}"
+  scheme = 'http'
+  _port  = if publicPort is '80' then '' else publicPort
+  host   = options.host or "#{options.hostname}:#{_port}"
 
   local = "127.0.0.1"
   if publicPort isnt '80'
@@ -115,61 +110,61 @@ Configuration = (options={}) ->
 
   customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://#{hostname}", port: 8090 }
 
-  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , forcedRecipientEmail: "#{process.env.USER}@koding.com", forcedRecipientUsername: "#{process.env.USER}"                      }
+  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    defaultEmail                            , defaultFromName:    'Koding'                    , forcedRecipientEmail: defaultEmail                    , forcedRecipientUsername: "admin" }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               3000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
-  algolia             = { appId:    'DYVV81J2S1'                                  , indexSuffix:        ".#{ os.hostname() }"                   }
-  algoliaSecret       = { appId:    "#{algolia.appId}"                            , indexSuffix:        algolia.indexSuffix                     , apiSecretKey:       '682e02a34e2a65dc774f5ec355ceca33'                                                  , apiSearchOnlyKey: "8dc0b0dc39282effe9305981d427fec7" }
+  algolia             = { appId:    ''                                            , indexSuffix:        ".#{ os.hostname() }"                   }
+  algoliaSecret       = { appId:    "#{algolia.appId}"                            , indexSuffix:        algolia.indexSuffix                     , apiSecretKey:       ''                          , apiSearchOnlyKey: '' }
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               "5432"                                  , username:           "socialapp201506"           , password:        "socialapp201506"                    , dbname:   "social"                  }
   kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapp201506"          , password:        "kontrolapp201506"                   , dbname:   "social"                    , connecttimeout: 20 }
   kiteHome            = "#{projectRoot}/kite_home/koding"
-  pubnub              = { publishkey: "pub-c-5b987056-ef0f-457a-aadf-87b0488c1da1", subscribekey:       "sub-c-70ab5d36-0b13-11e5-8104-0619f8945a4f"  , secretkey: "sec-c-MWFhYTAzZWUtYzg4My00ZjAyLThiODEtZmI0OTFkOTk0YTE0"                               , serverAuthKey: "46fae3cc-9344-4edb-b152-864ba567980c7960b1d8-31dd-4722-b0a1-59bf878bd551"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
-  gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                        , pubnub: pubnub                                }
-  integration         = { host:     "localhost"                                   , port:               "7300"                                        , url: "#{customDomain.public}/api/integration" }
-  webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                        , url: "#{customDomain.public}/api/webhook"     }
-  paymentwebhook      = { port:     "6600"                                        , debug:              false                                         , secretKey: "paymentwebhooksecretkey-dev"      }
-  tokbox              = { apiKey:   "45253342"                                    , apiSecret:          "e834f7f61bd2b3fafc36d258da92413cebb5ce6e" }
+  pubnub              = { publishkey: ""                                          , subscribekey:       ""                                      , secretkey: ""                                   , serverAuthKey: ""                                     , origin: "pubsub.pubnub.com"           , enabled: no }
+  gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                  , pubnub: pubnub                                }
+  integration         = { host:     "localhost"                                   , port:               "7300"                                  , url: "#{customDomain.public}/api/integration" }
+  webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  , url: "#{customDomain.public}/api/webhook"     }
+  paymentwebhook      = { port:     "6600"                                        , debug:              false                                   , secretKey: "paymentwebhooksecretkey-dev"      }
+  tokbox              = { apiKey:   ""                                            , apiSecret:          "" }
   recaptcha           = { enabled: no }
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
 
   kloudPort           = 5500
-  kloud               = { port : kloudPort, userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem", userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub",  privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite", tunnelUrl : "#{tunnelUrl}"}
-  terraformer         = { port : 2300     , bucket         : "koding-terraformer-state-#{configName}"  ,    localstorepath:  "#{projectRoot}/go/data/terraformer"  }
+  kloud               = { port : kloudPort, userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem",    userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub",  privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "", address : "http://localhost:#{kloudPort}/kite", tunnelUrl : "#{tunnelUrl}"}
+  terraformer         = { port : 2300     , bucket:             "koding-terraformer-state-#{configName}", localstorepath: "#{projectRoot}/go/data/terraformer" }
 
   googleapiServiceAccount =
-    clientId              : "1044469742845-kaqlodvc8me89f5r6ljfjvp5deku4ee0.apps.googleusercontent.com"
-    clientSecret          : "8-gOw1ckGNW2bDgdxPHGdQh7"
-    serviceAccountEmail   : "1044469742845-kaqlodvc8me89f5r6ljfjvp5deku4ee0@developer.gserviceaccount.com"
-    serviceAccountKeyFile : "#{projectRoot}/keys/KodingCollaborationDev201506.pem"
+    clientId              : ''
+    clientSecret          : ''
+    serviceAccountEmail   : ''
+    serviceAccountKeyFile : ''
 
-  segment = 'kb2hfdgf20'
+  segment = ''
 
   github =
-    clientId     : "f8e440b796d953ea01e5"
-    clientSecret : "b72e2576926a5d67119d5b440107639c6499ed42"
-    redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback"
+    clientId     : ''
+    clientSecret : ''
+    redirectUri  : ''
 
   mailgun =
-    domain        : "koding.com"
-    privateKey    : "key-6d4a0c191866434bf958aed924512758"
-    publicKey     : "pubkey-dabf6c392b39cce9bce12e9a582ad051"
-    unsubscribeURL: "https://api.mailgun.net/v3/koding.com/unsubscribes"
+    domain        : ''
+    privateKey    : ''
+    publicKey     : ''
+    unsubscribeURL: ''
 
   slack  =
-    clientId          : "2155583316.22363498641"
-    clientSecret      : "fc61c7db5a3acd2dfbe808ba73b1002a"
-    redirectUri       : "http://dev.koding.com:8090/api/social/slack/oauth/callback"
-    verificationToken : "jldPRk6HmOL2FjeXZYwUdW6B"
+    clientId          : ''
+    clientSecret      : ''
+    redirectUri       : ''
+    verificationToken : ''
 
   sneakerS3 =
-    awsSecretAccessKey  : "#{awsKeys.worker_sneakerS3.secretAccessKey}"
-    awsAccessKeyId      : "#{awsKeys.worker_sneakerS3.accessKeyId}"
-    sneakerS3Path       : "s3://kodingdev-credential/"
-    sneakerMasterKey    : "fecea2c8-e569-4d87-9179-8e7c93253072"
-    awsRegion           : "us-east-1"
+    awsSecretAccessKey  : ''
+    awsAccessKeyId      : ''
+    sneakerS3Path       : ''
+    sneakerMasterKey    : ''
+    awsRegion           : ''
 
   # if you want to disable a feature add here with "true" value do not forget to
   # add corresponding go struct properties
@@ -187,7 +182,7 @@ Configuration = (options={}) ->
     configFilePath          : "#{projectRoot}/go/src/socialapi/config/dev.toml"
     postgres                : postgres
     mq                      : mq
-    redis                   :  url: redis.url
+    redis                   : url: redis.url
     mongo                   : mongo
     environment             : environment
     region                  : region
@@ -200,8 +195,8 @@ Configuration = (options={}) ->
     eventExchangeName       : "BrokerMessageBus"
     disableCaching          : no
     debug                   : no
-    stripe                  : { secretToken : "sk_test_LLE4fVGK2zY3By3gccUYCLCw" }
-    paypal                  : { username: 'senthil+1_api1.koding.com', password: 'EUUPDYXX5EBZFGPN', signature: 'APp0PS-Ty0EAKx39nQi9zq9l6qgIAWb9YAF9AgXPK4-XeR7EAeeJSvnM', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
+    stripe                  : { secretToken : '' }
+    paypal                  : { username: '', password: '', signature: '', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
     gatekeeper              : gatekeeper
     integration             : integration
     webhookMiddleware       : webhookMiddleware
@@ -215,7 +210,7 @@ Configuration = (options={}) ->
     geoipdbpath             : "#{projectRoot}/go/data/geoipdb"
     segment                 : segment
     disabledFeatures        : disabledFeatures
-    janitor                 : { port: "6700", secretKey: "janitorsecretkey-dev" }
+    janitor                 : { port: "6700", secretKey: '' }
     mailgun                 : mailgun
 
   userSitesDomain     = "dev.koding.io"
@@ -256,19 +251,19 @@ Configuration = (options={}) ->
     monitoringRedis                : redis.url
     misc                           : {claimGlobalNamesForUsers: no , debugConnectionErrors: yes}
     githubapi                      : githubapi
-    recaptcha                      : {enabled : recaptcha.enabled  , url : "https://www.google.com/recaptcha/api/siteverify", secret : "6Ld8wwkTAAAAAJoSJ07Q_6ysjQ54q9sJwC5w4xP_" }
+    recaptcha                      : {enabled : recaptcha.enabled  , url : "https://www.google.com/recaptcha/api/siteverify", secret : '' }
     # TODO: average request count per hour for a user should be measured and a reasonable limit should be set
     nodejsRateLimiter              : {enabled : no, guestRules : [{ interval: 3600, limit: 5000 }], userRules : [{ interval: 3600, limit: 10000 }]} # limit: request limit per rate limit window, interval: rate limit window duration in seconds
 
     # -- WORKER CONFIGURATION -- #
 
-    vmwatcher                      : {port          : "6400"              , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: false, debug: false, mongo: mongo, redis: redis.url, secretKey: "vmwatchersecretkey-dev" }
+    vmwatcher                      : {port          : "6400"              , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: false, debug: false, mongo: mongo, redis: redis.url, secretKey: '' }
     gowebserver                    : {port          : 6500}
     gatheringestor                 : {port          : 6800}
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
     mq                             : mq
-    emailWorker                    : {cronInstant   : '*/10 * * * * *'    , cronDaily : '0 10 0 * * *'             , run               : no                                      , forcedRecipientEmail: email.forcedRecipientEmail         , forcedRecipientUsername: email.forcedRecipientUsername               , maxAge: 3      , port  : 9540 }
+    emailWorker                    : {cronInstant   : '*/10 * * * * *'    , cronDaily : '0 10 0 * * *'             , run               : no                                      , forcedRecipientEmail: email.forcedRecipientEmail, forcedRecipientUsername: email.forcedRecipientUsername               , maxAge: 3      , port  : 9540 }
     elasticSearch                  : {host          : "#{boot2dockerbox}" , port      : 9200                       , enabled           : no                                      , queue           : "elasticSearchFeederQueue"}
     social                         : {port          : 3030                , login     : "#{rabbitmq.login}"        , queueName         : socialQueueName                         , kitePort        : 8760 }
     email                          : email
@@ -283,33 +278,33 @@ Configuration = (options={}) ->
     gatekeeper                     : gatekeeper
 
     # -- MISC SERVICES --#
-    recurly                        : {apiKey        : "4a0b7965feb841238eadf94a46ef72ee"             , loggedRequests: "/^(subscriptions|transactions)/"}
+    recurly                        : {apiKey        : "", loggedRequests: "/^(subscriptions|transactions)/"}
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : github
-    odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.upwork.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.upwork.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.upwork.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
-    facebook                       : {clientId      : "1408510959475637"                             , clientSecret  : "bf837bc719dc63c870ac77f9c76fe26d"           , redirectUri  : "http://dev.koding.com:8090/-/oauth/facebook/callback"}
+    odesk                          : {key           : ""             , secret        : ''           , request_url : "https://www.upwork.com/api/auth/v1/oauth/token/request", access_url: "https://www.upwork.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.upwork.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
+    facebook                       : {clientId      : ""             , clientSecret  : ''           , redirectUri : "http://dev.koding.com:8090/-/oauth/facebook/callback"}
     slack                          : slack
     sneakerS3                      : sneakerS3
-    google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "http://dev.koding.com:8090/-/oauth/google/callback" }
-    twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "http://dev.koding.com:8090/-/oauth/twitter/callback"                  , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
-    linkedin                       : {client_id     : "7523x9y261cw0v"                               , client_secret : "VBpMs6tEfs3peYwa"                           , redirect_uri : "http://dev.koding.com:8090/-/oauth/linkedin/callback"}
-    datadog                        : {api_key       : "1daadb1d4e69d1ae0006b73d404e527b"             , app_key       : "aecf805ae46ec49bdd75e8866e61e382918e2ee5"}
+    google                         : {client_id     : ""                                    , client_secret : ""                                                    , redirect_uri : "http://dev.koding.com:8090/-/oauth/google/callback" }
+    twitter                        : {key           : ""                                             , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "http://dev.koding.com:8090/-/oauth/twitter/callback"                  , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
+    linkedin                       : {client_id     : ""                               , client_secret : ""                           , redirect_uri : "http://dev.koding.com:8090/-/oauth/linkedin/callback"}
+    datadog                        : {api_key       : ""             , app_key       : ""}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
     aws                            : {key           : ""                                             , secret        : ''}
-    embedly                        : {apiKey        : "537d6a2471864e80b91d9f4a78384873" }
-    iframely                       : {apiKey        : "157f8f72ac846689f47865"                       , url           : 'http://iframe.ly/api/oembed'}
-    troubleshoot                   : {recipientEmail: "can@koding.com" }
-    rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
+    embedly                        : {apiKey        : "" }
+    iframely                       : {apiKey        : ""                       , url           : 'http://iframe.ly/api/oembed'}
+    troubleshoot                   : {recipientEmail: defaultEmail }
+    rollbar                        : ""
     segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
-    siftScience                    : '2b62c0cbea188dc6'
+    siftScience                    : ''
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
     contentRotatorUrl              : 'http://koding.github.io'
     collaboration                  : {timeout: 1 * 60 * 1000}
     client                         : {watch: yes                                                     , version: version                                              , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
-    jwt                            : {secret: "71c25e4dc728431b88f82bd3e7a600c9"                     , confirmExpiresInMinutes: 10080  } # 7 days
-    papertrail                     : {destination: 'logs3.papertrailapp.com:13734'                   , groupId: 2199093                                              , token: '4p4KML0UeU4ijb0swx' }
+    jwt                            : {secret: ""                     , confirmExpiresInMinutes: 10080  } # 7 days
+    papertrail                     : {destination: ''                   , groupId: 2199093                                              , token: '' }
     sendEventsToSegment            : options.sendEventsToSegment
     mailgun                        : mailgun
 
@@ -340,7 +335,7 @@ Configuration = (options={}) ->
     newkontrol           : {url          : "#{kontrol.url}"}
     sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60           , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    stripe               : { token: 'pk_test_2x9UxMl1EBdFtwT5BRfOHxtN' }
+    stripe               : { token: '' }
     externalProfiles     :
       google             : {nicename: 'Google'  }
       linkedin           : {nicename: 'LinkedIn'}
@@ -349,7 +344,7 @@ Configuration = (options={}) ->
       facebook           : {nicename: 'Facebook', urlLocation: 'link'             }
       github             : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
     entryPoint           : {slug:'koding'       , type:'group'}
-    siftScience          : '91f469711c'
+    siftScience          : ''
     paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
     pubnub               : { subscribekey: pubnub.subscribekey , ssl: no,  enabled: yes     }
     collaboration        : KONFIG.collaboration
@@ -358,8 +353,8 @@ Configuration = (options={}) ->
     disabledFeatures     : disabledFeatures
     integration          : { url: "#{integration.url}" }
     webhookMiddleware    : { url: "#{webhookMiddleware.url}" }
-    google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
-    recaptcha            : { enabled : recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax"}
+    google               : apiKey: ''
+    recaptcha            : { enabled : recaptcha.enabled, key : ""}
     sendEventsToSegment  : KONFIG.sendEventsToSegment
 
     # NOTE: when you add to runtime options above, be sure to modify
@@ -835,7 +830,7 @@ Configuration = (options={}) ->
     tunnelproxymanager  :
       group             : "proxy"
       supervisord       :
-        command         : "#{GOBIN}/tunnelproxymanager -ebenvname #{options.ebEnvName} -accesskeyid #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{awsKeys.worker_tunnelproxymanager.secretAccessKey} -hostedzone-name devtunnelproxy.koding.com -hostedzone-callerreference devtunnelproxy_hosted_zone_v0"
+        command         : "#{GOBIN}/tunnelproxymanager -ebenvname #{options.ebEnvName} -accesskeyid #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{awsKeys.worker_tunnelproxymanager.secretAccessKey} -hostedzone-name #{tunnelUrl} -hostedzone-callerreference devtunnelproxy_hosted_zone_v0"
 
     tunnelserver        :
       group             : "proxy"
@@ -897,11 +892,6 @@ Configuration = (options={}) ->
           }
         ]
 
-  if os.type() is 'Darwin'
-    KONFIG.workers.ngrokProxy =
-      group       : "environment"
-      supervisord :
-        command   : "coffee #{projectRoot}/ngrokProxy --user #{process.env.USER}"
 
 
   KONFIG.supervisord =
