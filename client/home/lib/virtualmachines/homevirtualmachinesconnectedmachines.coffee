@@ -7,6 +7,6 @@ ConnectedMachinesList = require './components/connectedmachineslist'
 module.exports = class HomeVirtualMachinesConnectedMachines extends ReactView
 
   renderReact: ->
-    <ConnectedMachinesList />
+    <ConnectedMachinesList.Container />
 
 
