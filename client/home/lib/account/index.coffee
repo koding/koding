@@ -1,4 +1,5 @@
 kd                         = require 'kd'
+headerize                  = require '../commons/headerize'
 HomeAccountEditProfile     = require './homeaccounteditprofile'
 HomeAccountChangePassword  = require './homeaccountchangepassword'
 HomeAccountSecurityView    = require './homeaccountsecurityview'
@@ -27,8 +28,18 @@ module.exports = class HomeAccount extends kd.CustomScrollView
 
     super options, data
 
+    @wrapper.addSubView headerize 'My Account'
     @wrapper.addSubView profile     = section 'Profile'
+
+    @wrapper.addSubView headerize 'Password'
     @wrapper.addSubView password    = section 'Password'
+
+    @wrapper.addSubView headerize 'Security'
     @wrapper.addSubView security    = section 'Security'
+
+    @wrapper.addSubView headerize 'Credentials'
     @wrapper.addSubView credentials = section 'Credentials'
+
+    @wrapper.addSubView headerize 'Sessions'
     @wrapper.addSubView sessions    = section 'Sessions'
+

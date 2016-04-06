@@ -72,7 +72,7 @@ module.exports = class HomeTeamSendInvites extends kd.CustomHTMLView
 
     actionBar.addSubView new CustomLinkView
       cssClass : 'HomeAppView--button fr'
-      title    : 'UPOLAD CSV'
+      title    : 'UPLOAD CSV'
       click    : => new kd.NotificationView { title: 'Coming soon!' }
 
 
