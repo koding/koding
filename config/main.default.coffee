@@ -179,7 +179,7 @@ Configuration = (options={}) ->
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
     port                    : "7000"
-    configFilePath          : "#{projectRoot}/go/src/socialapi/config/dev.toml"
+    configFilePath          : "#{projectRoot}/go/src/socialapi/config/default.toml"
     postgres                : postgres
     mq                      : mq
     redis                   : url: redis.url
@@ -286,7 +286,7 @@ Configuration = (options={}) ->
     slack                          : slack
     sneakerS3                      : sneakerS3
     google                         : {client_id     : ""                                    , client_secret : ""                                                    , redirect_uri : "http://dev.koding.com:8090/-/oauth/google/callback" }
-    twitter                        : {key           : ""                                             , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "http://dev.koding.com:8090/-/oauth/twitter/callback"                  , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
+    twitter                        : {key           : ""                                             , secret        : "" , redirect_uri : "http://dev.koding.com:8090/-/oauth/twitter/callback"                  , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : ""                               , client_secret : ""                           , redirect_uri : "http://dev.koding.com:8090/-/oauth/linkedin/callback"}
     datadog                        : {api_key       : ""             , app_key       : ""}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
@@ -1062,7 +1062,7 @@ Configuration = (options={}) ->
 
       function checkrunfile () {
 
-        if [ "#{projectRoot}/run" -ot "#{projectRoot}/config/main.dev.coffee" ]; then
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/config/main.default.coffee" ]; then
             echo your run file is older than your config file. doing ./configure.
             sleep 1
             ./configure
@@ -1412,7 +1412,7 @@ Configuration = (options={}) ->
       function importusers () {
 
         cd #{projectRoot}
-        node #{projectRoot}/scripts/user-importer -c dev
+        node #{projectRoot}/scripts/user-importer -c default
 
         migrateusers
 
@@ -1453,7 +1453,7 @@ Configuration = (options={}) ->
 
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @gokmen) <---#'
         cd #{projectRoot}
-        node #{projectRoot}/scripts/permission-updater -c dev --reset
+        node #{projectRoot}/scripts/permission-updater -c default --reset
 
       }
 
