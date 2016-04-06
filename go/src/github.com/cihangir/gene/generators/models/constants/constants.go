@@ -6,7 +6,7 @@ import (
 	"text/template"
 
 	"github.com/cihangir/gene/generators/common"
-	"github.com/cihangir/gene/writers"
+	"github.com/cihangir/gene/utils"
 	"github.com/cihangir/schema"
 )
 
@@ -29,7 +29,7 @@ func Generate(s *schema.Schema) ([]byte, error) {
 		return nil, err
 	}
 
-	return writers.Clear(buf)
+	return utils.Clear(buf)
 }
 
 // ConstantsTemplate holds the template for the constant generation

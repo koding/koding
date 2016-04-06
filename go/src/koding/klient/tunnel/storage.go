@@ -1,6 +1,7 @@
 package tunnel
 
 import (
+	"koding/kites/tunnelproxy"
 	"koding/klient/storage"
 
 	"github.com/boltdb/bolt"
@@ -9,8 +10,7 @@ import (
 var (
 	// dbBucket is the bucket name used to retrieve and store the resolved
 	// address
-	dbBucket  = []byte("klienttunnel")
-	dbOptions = []byte("options")
+	dbBucket = []byte("klienttunnel")
 )
 
 type Storage struct {
@@ -34,4 +34,17 @@ func (s *Storage) Options() (*Options, error) {
 
 func (s *Storage) SetOptions(opts *Options) error {
 	return s.db.SetValue("options", opts)
+}
+
+func (s *Storage) Services() (tunnelproxy.Services, error) {
+	srvc := make(tunnelproxy.Services)
+	if err := s.db.GetValue("services", &srvc); err != nil {
+		return nil, err
+	}
+
+	return srvc, nil
+}
+
+func (s *Storage) SetServices(srvc tunnelproxy.Services) error {
+	return s.db.SetValue("services", srvc)
 }

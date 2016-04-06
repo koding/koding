@@ -87,6 +87,7 @@ type VagrantCreateOptions struct {
 	FilePath         string           `json:"filePath"`
 	ForwardedPorts   []*ForwardedPort `json:"forwarded_ports,omitempty"`
 	TLSProxyHostname string           `json:"tlsProxyHostname,omitempty"`
+	Dirty            bool             `json:"forceDestroy,omitempty"`
 }
 
 type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error)
@@ -220,6 +221,14 @@ func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 
 		if params.TLSProxyHostname == "" {
 			params.TLSProxyHostname = pem.Hostname
+		}
+
+		if !params.Dirty {
+			// Ensure vagrant working dir has no machine provisioned.
+			err := vagrantutil.Wait(v.Destroy())
+			if err != nil {
+				h.log.Debug("unable to destroy before create: %s", err)
+			}
 		}
 
 		vagrantFile, err := createTemplate(&params)

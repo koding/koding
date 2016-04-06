@@ -3,7 +3,6 @@
 package tunnel
 
 import (
-	"errors"
 	"net"
 	"net/url"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 
 	"koding/kites/tunnelproxy"
 	"koding/klient/info/publicip"
+	"koding/klient/storage"
 	"koding/klient/tunnel/tlsproxy"
 	"koding/klient/vagrant"
 
@@ -22,27 +22,20 @@ import (
 	"github.com/koding/tunnel"
 )
 
-var (
-	// ErrKeyNotFound
-	ErrKeyNotFound = errors.New("key not found")
-
-	// ErrNoDatabase
-	ErrNoDatabase = errors.New("local database is not available")
-)
-
 type Tunnel struct {
 	db     *Storage
 	client *tunnelproxy.Client
 
 	// Cached routes, in case host kite goes down.
-	mu    sync.Mutex // protects ports and opts
-	ports []*vagrant.ForwardedPort
-	opts  *Options
+	mu       sync.Mutex // protects ports, opts and services
+	ports    []*vagrant.ForwardedPort
+	opts     *Options
+	services tunnelproxy.Services
 
-	// Used to wait for first successful
-	// tunnel server registration.
-	register sync.WaitGroup
-	once     sync.Once
+	// Used to wait for first successful tunnel server registration.
+	register     sync.WaitGroup
+	once         sync.Once
+	onceServices sync.Once
 
 	state        tunnel.ClientState
 	stateChanges chan *tunnel.ClientStateChange
@@ -168,17 +161,19 @@ func New(opts *Options) (*Tunnel, error) {
 
 func (t *Tunnel) clientOptions() *tunnelproxy.ClientOptions {
 	return &tunnelproxy.ClientOptions{
-		TunnelName:      t.opts.TunnelName,
-		TunnelKiteURL:   t.opts.TunnelKiteURL,
-		LastVirtualHost: t.opts.VirtualHost,
-		LocalAddr:       t.opts.LocalAddr,
-		Services:        t.services(),
-		Config:          t.opts.Config,
-		Timeout:         t.opts.Timeout,
-		OnRegister:      t.updateOptions,
-		Debug:           t.opts.Debug,
-		NoProxy:         t.opts.NoProxy,
-		StateChanges:    t.stateChanges,
+		TunnelName:         t.opts.TunnelName,
+		TunnelKiteURL:      t.opts.TunnelKiteURL,
+		LastVirtualHost:    t.opts.VirtualHost,
+		LocalAddr:          t.opts.LocalAddr,
+		Services:           t.buildServices(),
+		Config:             t.opts.Config,
+		Timeout:            t.opts.Timeout,
+		OnRegister:         t.updateOptions,
+		OnRegisterServices: t.updateServices,
+		PublicIP:           t.opts.PublicIP.String(),
+		Debug:              t.opts.Debug,
+		NoProxy:            t.opts.NoProxy,
+		StateChanges:       t.stateChanges,
 	}
 }
 
@@ -202,10 +197,11 @@ func (t *Tunnel) updateOptions(reg *tunnelproxy.RegisterResult) {
 			t.ports = ports
 		} else {
 			t.opts.Log.Error("failed to update forwarded port list: %s", err)
-
-			t.ports = nil
 		}
 	}
+
+	t.onceServices.Do(t.initServices)
+	t.restoreServices()
 	t.mu.Unlock()
 
 	if err := t.db.SetOptions(t.opts); err != nil {
@@ -213,6 +209,112 @@ func (t *Tunnel) updateOptions(reg *tunnelproxy.RegisterResult) {
 	}
 
 	t.once.Do(t.register.Done)
+}
+
+func (t *Tunnel) initServices() {
+	if !t.isVagrant {
+		return // no ssh service for non-vagrant kites (e.g. managed ones)
+	}
+
+	s, err := t.db.Services()
+	if err == storage.ErrKeyNotFound {
+		s = tunnelproxy.Services{
+			"ssh": &tunnelproxy.Service{
+				Name:      "ssh",
+				LocalAddr: "127.0.0.1:22",
+			},
+		}
+
+		err = t.db.SetServices(s)
+	}
+
+	if err != nil {
+		t.opts.Log.Warning("tunnel: unable to init services: %s", err)
+		return
+	}
+}
+
+func (t *Tunnel) updateServices(reg *tunnelproxy.RegisterServicesResult) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if err := reg.Err(); err != nil {
+		t.opts.Log.Debug("failed to register all of the services: %s", err)
+	}
+
+	var updated int
+	for name, tun := range reg.Services {
+		if tun.Err() != nil {
+			continue
+		}
+
+		service, ok := t.services[name]
+		if !ok {
+			service = &tunnelproxy.Service{}
+			t.services[name] = service
+		}
+
+		service.RemoteAddr = net.JoinHostPort(host(tun.VirtualHost), strconv.Itoa(tun.Port))
+
+		updated++
+	}
+
+	// ignore nop updates
+	if updated != 0 {
+		if err := t.db.SetServices(t.services); err != nil {
+			t.opts.Log.Warning("tunnel: unable to update services: %s", err)
+		}
+	}
+}
+
+func (t *Tunnel) restoreServices() {
+	services, err := t.db.Services()
+	if err != nil {
+		t.opts.Log.Warning("tunnel: unable to read services: %s", err)
+		return
+	}
+
+	t.opts.Log.Debug("going to restore services: %s (without forwarded ports)", services)
+
+	// update forwarded ports if there are any
+	if len(t.ports) != 0 {
+		t.opts.Log.Debug("updating forwarded ports for services: %+v", t.ports)
+
+		for _, s := range services {
+			_, localPort, err := splitHostPort(s.LocalAddr)
+			if err != nil || localPort <= 0 {
+				t.opts.Log.Warning("tunne: skipping %+v service, missing local address: %s", s, err)
+				continue
+			}
+
+			t.opts.Log.Debug("updating forwarded ports for %q service", s.Name)
+
+			for _, p := range t.ports {
+				if p.GuestPort == localPort {
+					t.opts.Log.Debug("found forwarded port for %q service: %+v", s.Name, p)
+
+					s.ForwardedPort = p.HostPort
+					break
+				}
+			}
+		}
+	}
+
+	t.opts.Log.Debug("going to restore services: %s (with forwarded ports)", services)
+
+	// TODO(rjeczalik): add vagrant.forwardPort to host klient and call
+	// it for each services that does not have forwarded port; required
+	// in order to add tunnel.add
+
+	if err := t.client.RestoreServices(services); err != nil {
+		t.opts.Log.Error("tunnel: unable to restore %d services: %s", len(services), err)
+	}
+
+	t.services = services
+
+	if err := t.db.SetServices(services); err != nil {
+		t.opts.Log.Warning("tunnel: unable to update services: %s", err)
+	}
 }
 
 // buildOptions finalizes build of tunnel options; the contructed options
@@ -257,11 +359,11 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
 		}
 	}
 
-	if t.opts.LastReachable {
+	clientOpts := t.clientOptions()
+
+	if t.opts.LastReachable && !t.isVagrant {
 		return registerURL, nil
 	}
-
-	clientOpts := t.clientOptions()
 
 	t.opts.Log.Debug("starting tunnel client")
 	t.opts.Log.Debug("tunnel.Options=%+v", opts)
@@ -283,6 +385,28 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
 	t.opts.Log.Info("tunnel: connected as %q", u.Host)
 
 	return &u, nil
+}
+
+func host(hostport string) string {
+	if host, _, err := net.SplitHostPort(hostport); err == nil {
+		return host
+	}
+
+	return hostport
+}
+
+func splitHostPort(addr string) (string, int, error) {
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return "", 0, err
+	}
+
+	n, err := strconv.ParseUint(port, 10, 16)
+	if err != nil {
+		return "", 0, err
+	}
+
+	return host, int(n), nil
 }
 
 func guessTunnelName(vhost string) string {

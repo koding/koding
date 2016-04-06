@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -185,6 +186,32 @@ func (p *Proxy) serveConn(conn net.Conn) {
 	req, err := http.ReadRequest(bufio.NewReader(conn))
 	if err != nil {
 		p.Log.Error("%s: error reading initial request: %s", conn.RemoteAddr(), err)
+
+		conn.Close()
+		return
+	}
+
+	rec := httptest.NewRecorder()
+
+	if util.HandleCORS(rec, req) {
+		resp := &http.Response{
+			Status:     http.StatusText(rec.Code),
+			StatusCode: rec.Code,
+			Proto:      "HTTP/1.1",
+			ProtoMajor: 1,
+			ProtoMinor: 1,
+			Header:     rec.HeaderMap,
+			Close:      true,
+		}
+
+		if rec.Body != nil {
+			resp.Body = ioutil.NopCloser(rec.Body)
+			resp.ContentLength = int64(rec.Body.Len())
+		}
+
+		if err := resp.Write(conn); err != nil {
+			p.Log.Error("%s: error writing CORS reply: %s", conn.RemoteAddr(), err)
+		}
 
 		conn.Close()
 		return
