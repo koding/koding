@@ -307,10 +307,10 @@ func TestPing(t *testing.T) {
 
 	// Allow for a 10ms variation in reported runtime.
 	msDur := p.GetSummary().StatusDur.Nanoseconds() / 1000000
-	if msDur < 95 || msDur > 105 {
+	if msDur < 90 || msDur > 120 {
 		t.Errorf(
 			"Expected CurrentSummary.StatusDur to be similar to the elapsed time. Wanted larger than %d and less than %d, Got %d",
-			95, 105, msDur,
+			90, 120, msDur,
 		)
 	}
 
