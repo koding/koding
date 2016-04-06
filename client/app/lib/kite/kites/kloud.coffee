@@ -166,7 +166,7 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
           computeController.invalidateCache machineId
           callback null
 
-      .timeout if managed then 10000 else 5000
+      .timeout if managed then 15000 else 5000
 
       .catch (err) ->
 

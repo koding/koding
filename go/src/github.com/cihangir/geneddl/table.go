@@ -1,70 +1,49 @@
 package geneddl
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"strings"
-	"text/template"
 
 	"github.com/cihangir/gene/generators/common"
 	"github.com/cihangir/schema"
+	"github.com/cihangir/stringext"
 )
 
-// DefineSequence creates definition for sequences
-func DefineTable(context *common.Context, settings schema.Generator, s *schema.Schema) ([]byte, error) {
-	context.TemplateFuncs["GenerateSQLField"] = GenerateSQLField
+// DefineTable creates definition for sequences
+func DefineTable(settings schema.Generator, s *schema.Schema) ([]byte, error) {
+	common.TemplateFuncs["GenerateSQLField"] = GenerateSQLField
 
-	temp := template.New("create_table.tmpl").Funcs(context.TemplateFuncs)
-	if _, err := temp.Parse(TableTemplate); err != nil {
-		return nil, err
-	}
-
-	var buf bytes.Buffer
-
-	data := struct {
-		Context    *common.Context
-		Schema     *schema.Schema
-		Properties []*schema.Schema
-		Settings   schema.Generator
-	}{
-		Context:    context,
-		Schema:     s,
-		Properties: schema.SortedSchema(s.Properties),
-		Settings:   settings,
-	}
-
-	if err := temp.ExecuteTemplate(&buf, "create_table.tmpl", data); err != nil {
-		return nil, err
-	}
-
-	return clean(buf.Bytes()), nil
+	return common.ProcessSingle(&common.Op{
+		Template:       TableTemplate,
+		PostProcessors: []common.PostProcessor{clean},
+	}, s, settings)
 }
 
 // TableTemplate holds the template for sequences
-var TableTemplate = `{{$settings := .Settings}}{{$context := .Context}}-- ----------------------------
+var TableTemplate = `{{$settings := .Settings}}-- ----------------------------
 --  Table structure for {{$settings.schemaName}}.{{$settings.tableName}}
 -- ----------------------------
 DROP TABLE IF EXISTS "{{$settings.schemaName}}"."{{$settings.tableName}}";
 CREATE TABLE "{{$settings.schemaName}}"."{{$settings.tableName}}" (
 {{range $key, $value := .Properties}}
-    {{GenerateSQLField $context $settings $value}}
+    {{GenerateSQLField $settings $value}}
 {{end}}
 ) WITH (OIDS = FALSE);-- end schema creation
 GRANT {{Join $settings.grants ", "}} ON "{{$settings.schemaName}}"."{{$settings.tableName}}" TO "{{$settings.roleName}}";
 `
 
-// DefineTable creates a definition line for a given coloumn
-func GenerateSQLField(context *common.Context, settings schema.Generator, s *schema.Schema) (res string) {
+// GenerateSQLField creates a definition line for a given coloumn
+func GenerateSQLField(settings schema.Generator, s *schema.Schema) (res string) {
 	propertyName := s.Title
 	schemaName := settings.Get("schemaName").(string)
 	tableName := settings.Get("tableName").(string)
 
 	property := s
 
-	fieldName := context.FieldNameFunc(propertyName) // transpiled version of property
+	fieldName := stringext.ToFieldName(propertyName) // transpiled version of property
 	if property.Title != "" {
-		fieldName = context.FieldNameFunc(property.Title)
+		fieldName = stringext.ToFieldName(property.Title)
 	}
 
 	fieldType := "" // will hold the type for coloumn
@@ -122,8 +101,8 @@ func GenerateSQLField(context *common.Context, settings schema.Generator, s *sch
 		fieldType = fmt.Sprintf(
 			"%q.\"%s_%s_enum\"",
 			schemaName,
-			context.FieldNameFunc(tableName),
-			context.FieldNameFunc(propertyName),
+			stringext.ToFieldName(tableName),
+			stringext.ToFieldName(propertyName),
 		)
 	}
 

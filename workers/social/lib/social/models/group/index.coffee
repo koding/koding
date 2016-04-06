@@ -37,6 +37,7 @@ module.exports = class JGroup extends Module
   @trait __dirname, '../../traits/joinable'
   @trait __dirname, '../../traits/slugifiable'
   @trait __dirname, '../../traits/notifying'
+  @trait __dirname, '../../traits/notifiable'
 
   @share()
 
@@ -1042,6 +1043,10 @@ module.exports = class JGroup extends Module
       blacklist  = ['slug', 'slug_', 'config', '_activePlan']
       data[item] = null  for item in blacklist when data[item]?
 
+      notifyOptions =
+        group   : client?.context?.group
+        target  : 'group'
+
       { reviveGroupPlan } = require '../computeproviders/computeutils'
 
       reviveGroupPlan this, (err, group) =>
@@ -1053,10 +1058,9 @@ module.exports = class JGroup extends Module
           ComputeProvider = require '../computeproviders/computeprovider'
           ComputeProvider.validateTemplates client, templates, group, (err) =>
             return callback err  if err
-            @update { $set: data }, callback
-
+            @updateAndNotify notifyOptions, { $set: data }, callback
         else
-          @update { $set: data }, callback
+          @updateAndNotify notifyOptions, { $set: data }, callback
 
 
   setPlan    : permit

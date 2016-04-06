@@ -748,9 +748,11 @@ module.exports = class ComputeController extends KDController
 
     .then (res) =>
 
-      stack.destroy callback
       actions.reinitStack stack._id
       @eventListener.addListener 'apply', stackId  if followEvents
+      callback? null
+
+      return res
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 

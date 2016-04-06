@@ -18,9 +18,10 @@ import (
 type EventName string
 
 const (
-	DefaultTimeout  = 5 * time.Second
-	DefaultInterval = 1 * time.Minute
-	SegmentKey      = "2hPHGxJfgsqJ2snTQHL81oDYEYsPAQkK"
+	DefaultTimeout       = 5 * time.Second
+	DefaultInterval      = 1 * time.Minute
+	DefaultLimitFailures = 5
+	SegmentKey           = "2hPHGxJfgsqJ2snTQHL81oDYEYsPAQkK"
 )
 
 type Metric struct {
@@ -29,9 +30,10 @@ type Metric struct {
 }
 
 type MetricClient struct {
-	Destination string
-	Interval    time.Duration
-	GetId       func() (string, error)
+	Destination   string
+	Interval      time.Duration
+	GetId         func() (string, error)
+	LimitFailures int
 
 	client  *analytics.Client
 	tickers map[string]*time.Ticker
@@ -44,10 +46,11 @@ func NewDefaultClient() *MetricClient {
 	client.Logger = log.New(ioutil.Discard, "", 0)
 
 	return &MetricClient{
-		Interval: DefaultInterval,
-		GetId:    getId,
-		client:   client,
-		tickers:  map[string]*time.Ticker{},
+		Interval:      DefaultInterval,
+		GetId:         getId,
+		LimitFailures: DefaultLimitFailures,
+		client:        client,
+		tickers:       map[string]*time.Ticker{},
 	}
 }
 
@@ -147,12 +150,10 @@ func (m *MetricClient) StartMountStatusTicker(mount string) (err error) {
 		if err != nil {
 			TrackMountCheckFailure(mount, err.Error())
 			failures += 1
-		} else {
-			TrackMountCheckSuccess(mount)
 		}
 
-		// if it errors more than twice, there's no point in continuing
-		if failures > 2 {
+		// if it errors more than limit, return from ticker
+		if failures > m.LimitFailures {
 			return nil
 		}
 

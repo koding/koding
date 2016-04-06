@@ -9,7 +9,7 @@ ADD . /go/src
 # (You may fetch or manage dependencies here,
 # either manually or with a tool like "godep".)
 
-RUN go install ./src/github.com/cihangir/gene/example/tinder/workers/cmd/profile
+RUN go install ./bin/profile
 
 # Run the outyet command by default when the container starts.
 ENTRYPOINT /go/bin/profile
@@ -19,7 +19,7 @@ ENTRYPOINT /go/bin/profile
 # TODO make this configurable
 
 # to build the docker machine
-# docker build -t profile -f ./src/github.com/cihangir/gene/example/tinder/workers/cmd/dockerfiles/profile/Dockerfile ./src/
+# docker build -t profile -f ./bin/dockerfiles/profile/Dockerfile ./src/
 
 # to run the built docker machine
 # docker run -it profile

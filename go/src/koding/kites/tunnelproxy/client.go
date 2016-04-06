@@ -87,6 +87,9 @@ type ClientOptions struct {
 	// Services is sent with RegisterRequest.
 	Services map[string]*Tunnel
 
+	// PublicIP of the client.
+	PublicIP string
+
 	// StateChanges, when non-nil, listens on tunnel connection state transtions.
 	StateChanges chan<- *tunnel.ClientStateChange
 
@@ -140,10 +143,10 @@ type Client struct {
 
 	stateChanges chan *tunnel.ClientStateChange
 	regserv      chan map[string]*Tunnel
-	services     map[string]*Service // maps service name to a service
-	routes       map[int]string      // maps tcp tunnel remote port to local addr
-	ident        string              // TODO: use c.connected when tryRegister is moved to eventloop
-	mu           sync.Mutex          // protets ident, services and routes
+	services     Services       // maps service name to a service
+	routes       map[int]string // maps tcp tunnel remote port to local addr
+	ident        string         // TODO: use c.connected when tryRegister is moved to eventloop
+	mu           sync.Mutex     // protects ident, services and routes
 }
 
 // NewClient gives new, unstarted tunnel client for the given options.
@@ -170,7 +173,7 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		tunnelKiteURL: optsCopy.tunnelKiteURL(),
 		stateChanges:  make(chan *tunnel.ClientStateChange, 128),
 		regserv:       make(chan map[string]*Tunnel, 1),
-		services:      make(map[string]*Service),
+		services:      make(Services),
 		routes:        make(map[int]string),
 	}
 
@@ -237,15 +240,19 @@ func (c *Client) RestoreServices(services Services) error {
 			return fmt.Errorf("invalid local address for %q service: %s", name, err)
 		}
 
-		_, remotePort, err := splitHostPort(srv.RemoteAddr)
-		if err != nil {
-			return fmt.Errorf("invalid remote address for %q service: %s", name, err)
+		t := &Tunnel{}
+
+		if _, remotePort, err := splitHostPort(srv.RemoteAddr); err == nil && remotePort != 0 {
+			t.Port = remotePort
+			t.Restore = true
 		}
 
-		regserv[name] = &Tunnel{
-			Port:    remotePort,
-			Restore: true,
+		if srv.ForwardedPort != 0 {
+			t.PublicIP = c.opts.PublicIP
+			t.LocalAddr = net.JoinHostPort("127.0.0.1", strconv.Itoa(srv.ForwardedPort))
 		}
+
+		regserv[name] = t
 	}
 
 	c.mu.Lock()
@@ -255,7 +262,9 @@ func (c *Client) RestoreServices(services Services) error {
 		// took that port (unlikely, but possible), we're going to be
 		// assigned a different port.
 		c.services[name] = &Service{
-			LocalAddr: srv.LocalAddr,
+			Name:          name,
+			LocalAddr:     srv.LocalAddr,
+			ForwardedPort: srv.ForwardedPort,
 		}
 	}
 	c.mu.Unlock()
@@ -266,18 +275,29 @@ func (c *Client) RestoreServices(services Services) error {
 }
 
 // RegisterService
-func (c *Client) RegisterService(name, localAddr string) error {
-	if _, _, err := splitHostPort(localAddr); err != nil {
-		return fmt.Errorf("invalid local address for %q service: %s", name, err)
+func (c *Client) RegisterService(srvc *Service) error {
+	if _, _, err := splitHostPort(srvc.LocalAddr); err != nil {
+		return fmt.Errorf("invalid local address for %q service: %s", srvc.Name, err)
 	}
 
 	c.mu.Lock()
-	c.services[name] = &Service{
-		LocalAddr: localAddr,
+	c.services[srvc.Name] = &Service{
+		Name:          srvc.Name,
+		LocalAddr:     srvc.LocalAddr,
+		ForwardedPort: srvc.ForwardedPort,
 	}
 	c.mu.Unlock()
 
-	c.regserv <- map[string]*Tunnel{name: {}}
+	t := &Tunnel{
+		Name: srvc.Name,
+	}
+
+	if srvc.ForwardedPort != 0 {
+		t.PublicIP = c.opts.PublicIP
+		t.LocalAddr = net.JoinHostPort("127.0.0.1", strconv.Itoa(srvc.ForwardedPort))
+	}
+
+	c.regserv <- map[string]*Tunnel{t.Name: t}
 
 	return nil
 }

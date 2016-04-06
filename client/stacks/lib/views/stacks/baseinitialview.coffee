@@ -14,8 +14,6 @@ module.exports = class BaseInitialView extends kd.View
 
     super options, data
 
-    @_stackTemplatesLength = 0
-
     @button = new kd.ButtonView
       title    : 'Create new Stack'
       cssClass : 'solid compact green action hidden'
@@ -26,25 +24,20 @@ module.exports = class BaseInitialView extends kd.View
 
     @stackTemplateList = new StackTemplateListView listViewOptions
 
-    @stackTemplateList.listView
+    @stackTemplateList.listController
       .on 'ItemSelected', (stackTemplate) =>
         @emit 'EditStack', stackTemplate
-
-      .on 'ItemDeleted', =>
-        @_stackTemplatesLength = @stackTemplateList.listView.items.length - 1
-        kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
-
-      .on 'ItemCloned', @bound 'reload'
-
-      .on 'ItemSelectedAsDefault', @bound 'setDefaultTemplate'
-
-      .on 'StackGenerated', @bound 'reload'
-
-    @stackTemplateList.listController.on 'ItemsLoaded', (stackTemplates) =>
-      @emit 'NoTemplatesFound'  if stackTemplates.length is 0
-      @_stackTemplatesLength = stackTemplates.length
-      @button?.show()
-      @emit 'ready'
+      .on 'ItemsLoaded', (stackTemplates) =>
+        @emit 'NoTemplatesFound'  if stackTemplates.length is 0
+        @button?.show()
+        @emit 'ready'
+      .on 'StackIsNotVerified', =>
+        @showWarning '
+          This stack template is not verified, please edit and save again
+          to verify it. Only a verified stack template can be applied to a Team.
+        '
+      .on 'FailedToSetTemplate', (err) =>
+        @showWarning "Failed to set template: \n#{err.message}"
 
 
   reload: ->

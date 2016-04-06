@@ -7,25 +7,27 @@ import (
 	"text/template"
 
 	"github.com/cihangir/gene/generators/common"
-	"github.com/cihangir/gene/writers"
+	"github.com/cihangir/gene/utils"
 	"github.com/cihangir/geneddl"
 	"github.com/cihangir/schema"
+	"github.com/cihangir/stringext"
 )
 
+// Generator generates the basic CRUD statements.
 type Generator struct{}
 
 // Generate generates the basic CRUD statements for the models
 func (g *Generator) Generate(context *common.Context, s *schema.Schema) ([]common.Output, error) {
-	outputs := make([]common.Output, 0)
-
-	moduleName := context.FieldNameFunc(s.Title)
+	var outputs []common.Output
+	
+	moduleName := stringext.ToFieldName(s.Title)
 
 	settings := geneddl.GenerateSettings(geneddl.GeneratorName, moduleName, s)
 
 	for _, def := range common.SortedObjectSchemas(s.Definitions) {
 
 		settingsDef := geneddl.SetDefaultSettings(geneddl.GeneratorName, settings, def)
-		settingsDef.Set("tableName", context.FieldNameFunc(def.Title))
+		settingsDef.Set("tableName", stringext.ToFieldName(def.Title))
 
 		f, err := GenerateModelStatements(context, settingsDef, def)
 		if err != nil {
@@ -86,7 +88,7 @@ func GenerateModelStatements(context *common.Context, settings schema.Generator,
 	buf.Write(selectStatements)
 	buf.Write(tableName)
 
-	return writers.Clear(buf)
+	return utils.Clear(buf)
 }
 
 // GeneratePackage generates the imports according to the schema.

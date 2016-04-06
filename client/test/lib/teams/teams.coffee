@@ -18,6 +18,12 @@ module.exports =
     browser.end()
 
 
+  loginTeamWithInvalidCredentials: (browser) ->
+
+    teamsHelpers.loginTeam(browser, yes)
+    browser.end()
+
+
   openTeamSettings: (browser) ->
 
     teamsHelpers.loginTeam(browser)

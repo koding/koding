@@ -621,7 +621,7 @@ module.exports = class ComputeProvider extends Base
 
           for stack in stacks
             template = templates.filter(
-              (template) -> template._id.toString() is stack.baseStackId.toString()
+              (template) -> template._id.equals stack.baseStackId
             )[0]
             continue  unless template
             stack.checkRevisionResult = stack.checkRevisionByTemplate template

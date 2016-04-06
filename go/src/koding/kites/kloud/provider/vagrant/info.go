@@ -27,7 +27,9 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		return toObject(dbState), nil
 	}
 
-	defer m.fixInconsistentState(resultState, dbState, reason)
+	defer func() {
+		m.fixInconsistentState(resultState, dbState, reason)
+	}()
 
 	// Test klient connectivity, return the result of the test if:
 	//
@@ -46,12 +48,13 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	case err == klient.ErrDialingFailed || err == kite.ErrNoKitesAvailable:
 		m.Log.Debug("Klient is not registered to Kontrol. Err: %s", err)
 
-		if dbState == machinestate.Stopped {
-			m.Log.Debug("Info result: Returning db state '%s' because the klient"+
-				" is not available. Username: %s", dbState, m.User.Name)
+		reason = "Klient is stopped."
+		resultState = machinestate.Stopped
 
-			return toObject(machinestate.Stopped), nil
-		}
+		m.Log.Debug("Info result: Returning db state '%s' because the klient"+
+			" is not available. Username: %s", dbState, m.User.Name)
+
+		return toObject(resultState), nil
 	}
 
 	reason = "Klient is not reachable"
@@ -61,7 +64,7 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	case nil: // ok
 	case errNotFound:
 		reason = "Machine was not found"
-		resultState = machinestate.NotInitialized
+		resultState = machinestate.Terminated
 	default:
 		return nil, err
 	}
@@ -70,11 +73,6 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	case machinestate.Terminating, machinestate.Terminated:
 		reason = "Machine was terminated in last one hour span"
 		resultState = machinestate.Terminated
-
-		err := modelhelper.ChangeMachineState(m.ObjectId, reason, resultState)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return toObject(resultState), nil
@@ -82,6 +80,8 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 }
 
 func (m *Machine) fixInconsistentState(actual, db machinestate.State, reason string) {
+	m.Log.Debug("%s: fixing inconsistent state: %s vs %s, reason: %s", m.QueryString, actual, db, reason)
+
 	// Update db state if the up-to-date state is different than the db.
 	if actual != db {
 		m.Log.Info("Info decision: Inconsistent state between the machine and db document."+
@@ -99,6 +99,10 @@ func (m *Machine) status() (machinestate.State, error) {
 	// TODO(rjeczalik): We're using list instead of status to workaround
 	// TMS-2106.
 	list, err := m.api.List(m.Meta.HostQueryString)
+	if err == kite.ErrNoKitesAvailable || err == klient.ErrDialingFailed {
+		return machinestate.Stopped, nil
+	}
+
 	if err != nil {
 		return 0, err
 	}

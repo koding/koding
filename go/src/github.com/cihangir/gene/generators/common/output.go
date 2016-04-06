@@ -1,10 +1,10 @@
 package common
 
 import (
-	"github.com/cihangir/gene/helpers"
-	"github.com/cihangir/gene/writers"
+	"github.com/cihangir/gene/utils"
 )
 
+// Output holds response data for a plugin request.
 type Output struct {
 	Content       []byte
 	Path          string
@@ -22,17 +22,17 @@ func WriteOutput(output []Output) error {
 
 		if file.DoNotOverride {
 			// if file exists, just skip this operation
-			if _, err := helpers.ReadFile(file.Path); err == nil {
+			if _, err := utils.ReadFile(file.Path); err == nil {
 				continue
 			}
 		}
 
 		if file.DoNotFormat {
-			if err := writers.Write(file.Path, file.Content); err != nil {
+			if err := utils.Write(file.Path, file.Content); err != nil {
 				return err
 			}
 		} else {
-			if err := writers.WriteFormattedFile(file.Path, file.Content); err != nil {
+			if err := utils.WriteFormattedFile(file.Path, file.Content); err != nil {
 				return err
 			}
 		}

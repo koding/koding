@@ -1,3 +1,5 @@
+utils        = require '../utils/utils.js'
+helpers      = require '../helpers/helpers.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
 
 
@@ -46,3 +48,19 @@ module.exports =
     browser.pause 5000 # Wait for notification remove
     teamsHelpers.searchPendingInvitation(browser, email2)
     browser.end()
+
+
+  inviteUserAndJoinTeam: (browser) ->
+
+    targetUser = utils.getUser yes, 1
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.clickTeamSettings(browser)
+    teamsHelpers.openInvitationsTab(browser)
+    targetUser.email = teamsHelpers.inviteUser(browser)
+
+    teamsHelpers.getInvitationUrl browser, targetUser.email, (url) =>
+      teamsHelpers.closeTeamSettingsModal(browser)
+      teamsHelpers.logoutTeam(browser)
+      browser.url url
+      teamsHelpers.fillJoinForm(browser, targetUser)
+      browser.end()

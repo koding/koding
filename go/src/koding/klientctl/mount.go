@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"koding/klient/remote/req"
+	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
@@ -160,6 +161,7 @@ func (c *MountCommand) Run() (int, error) {
 		"no-prefetch-meta": c.Options.NoPrefetchMeta,
 		"prefetch-all":     c.Options.PrefetchAll,
 		"no-watch":         c.Options.NoWatch,
+		"version":          config.Version,
 	}
 	metrics.TrackMount(c.Options.Name, c.Options.LocalPath, o)
 
@@ -288,7 +290,6 @@ func (c *MountCommand) setupKlient() (int, error) {
 // prefetchAll
 func (c *MountCommand) prefetchAll() error {
 	c.Log.Info("Executing prefetch...")
-	c.printfln("Prefetch All feature is currently in beta.")
 
 	//func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, machineName, localPath, remotePath string, interval int) int {
 	homeDir, err := c.homeDirGetter()
@@ -333,7 +334,7 @@ func (c *MountCommand) prefetchAll() error {
 		return fmt.Errorf("Error getting ssh key. err:%s", err)
 	}
 
-	c.printfln("Prefetching remote path...")
+	c.printfln("Prefetching remote path...Please don't interrupt this process while in progress.")
 
 	// doneErr is used to wait until the cache progress is done, and also send
 	// any error encountered. We simply send nil if there is no error.

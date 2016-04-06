@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"koding/klient/remote/req"
+	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
@@ -245,7 +246,7 @@ func (c *UnmountCommand) Unmount(name, path string) error {
 	}
 
 	// track metrics
-	metrics.TrackUnmount(name)
+	metrics.TrackUnmount(name, config.Version)
 
 	return nil
 }
