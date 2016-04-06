@@ -180,11 +180,6 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 		return r.mockedRestoreMount(m)
 	}
 
-	remoteMachines, err := r.GetMachines()
-	if err != nil {
-		return err
-	}
-
 	// The two New methods is to tweak how the log is displayed.
 	log := r.log.New("restoreMount").New(
 		"mountName", m.MountName,
@@ -192,9 +187,8 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 		"prefetchAll", m.MountFolder.PrefetchAll,
 	)
 
-	remoteMachine, err := remoteMachines.GetByIP(m.IP)
+	remoteMachine, err := r.GetDialedMachine(m.MountName)
 	if err != nil {
-		log.Error("Failed to get machine by ip. err:%s", err)
 		return err
 	}
 
