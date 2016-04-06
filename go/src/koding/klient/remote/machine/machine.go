@@ -172,6 +172,12 @@ func (m *Machine) GetStatus() (MachineStatus, string) {
 		return m.getConnStatus(), ""
 	}
 
+	return m.GetRawStatus()
+}
+
+// GetRawStatus gets the plain status value, without checking any active statuses
+// such as Connectivity.
+func (m *Machine) GetRawStatus() (MachineStatus, string) {
 	return m.status, m.statusMessage
 }
 

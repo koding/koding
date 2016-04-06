@@ -100,7 +100,7 @@ func (r *Remote) restoreMounts() error {
 
 	// Loop until there are no more mounts in the remountQueue.
 	var m *mount.Mount
-	for attempt := 0; len(remountQueue) > 0 && attempt < r.maxRestoreRetries; attempt++ {
+	for attempt := 0; len(remountQueue) > 0 && attempt < r.maxRestoreAttempts; attempt++ {
 		// To prevent spamming remount attempts,
 		if attempt >= totalMounts {
 			time.Sleep(r.restoreFailuresPause)
@@ -255,6 +255,7 @@ func (r *Remote) restoreMount(m *mount.Mount) error {
 		}
 	}
 
+	// If there's no errors, clear the status.
 	remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
 	return nil
 }

@@ -28,7 +28,7 @@ const (
 	//
 	// 5760 is roughly 4 days of repeated attempts at 1 minute pauses between each
 	// attempt. Basically forever.
-	defaultMaxRestoreRetries = 5760
+	defaultMaxRestoreAttempts = 5760
 
 	// The length in time that restoreMounts() will pause between each repeated attempt.
 	defaultRestoreFailuresPause = time.Minute
@@ -89,7 +89,7 @@ type Remote struct {
 	// The max attempts that the Remote.restoreMounts() will loop. This should be
 	// a very large number, and exists simply to allow testing to control the max
 	// loops.
-	maxRestoreRetries int
+	maxRestoreAttempts int
 
 	// The length in time that restoreMounts() will pause between each repeated attempt.
 	restoreFailuresPause time.Duration
@@ -132,7 +132,7 @@ func NewRemote(k *kite.Kite, log kite.Logger, s storage.Interface) *Remote {
 		machineNamesCache:    map[string]string{},
 		unmountPath:          fuseklient.Unmount,
 		machines:             machine.NewMachines(kodingLog, s),
-		maxRestoreRetries:    defaultMaxRestoreRetries,
+		maxRestoreAttempts:   defaultMaxRestoreAttempts,
 		restoreFailuresPause: defaultRestoreFailuresPause,
 	}
 

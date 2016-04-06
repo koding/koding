@@ -6,13 +6,13 @@ import (
 
 	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
+	"koding/klient/testutil"
 
 	"koding/klient/remote/machine"
 	"koding/klient/storage"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-	"github.com/koding/logging"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -76,7 +76,7 @@ func TestUnmountFolder(t *testing.T) {
 		kg := newMockKiteGetter()
 		store := storage.NewMemoryStorage()
 		r := Remote{
-			log:         logging.NewLogger("testing"),
+			log:         testutil.DiscardLogger,
 			kitesGetter: kg,
 			storage:     store,
 			machines:    machine.NewMachines(discardLogger, store),
