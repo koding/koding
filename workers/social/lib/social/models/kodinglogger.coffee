@@ -8,7 +8,11 @@ LOG_DESTINATION  = KONFIG.papertrail.destination
 DEFAULT_GROUP_ID = KONFIG.papertrail.groupId
 token            = KONFIG.papertrail.token
 
-Papertrail       = new (require 'papertrail') { token }
+try
+  Papertrail = new (require 'papertrail') { token }
+catch e
+  PAPERTRAIL_DISABLED = new Error \
+    'Papertrail config is missing, feature disabled'
 
 stripcolorcodes  = require 'stripcolorcodes'
 winston          = require 'winston'
@@ -72,6 +76,7 @@ module.exports = class KodingLogger
 
   @connect = ->
 
+    return  if PAPERTRAIL_DISABLED
     return @logger  if @logger
 
     require('winston-papertrail').Papertrail
@@ -86,6 +91,8 @@ module.exports = class KodingLogger
 
 
   @processMessage = (scope, group, message...) ->
+
+    return  if PAPERTRAIL_DISABLED
 
     scope   = 'log' if scope not in SCOPES
     message = "#{@getIdentifier scope, group} #{message}"
@@ -109,6 +116,8 @@ module.exports = class KodingLogger
 
 
   @search = (options = {}, callback) ->
+
+    return callback PAPERTRAIL_DISABLED  if PAPERTRAIL_DISABLED
 
     { query, from, limit } = options
 
