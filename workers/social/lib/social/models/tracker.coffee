@@ -13,8 +13,11 @@ KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
 exchangeName  = "#{socialapi.eventExchangeName}:0"
 exchangeOpts  = { autoDelete: no, durable:yes, type :'fanout', confirm: true }
 
-Analytics = require('analytics-node')
-analytics = new Analytics(KONFIG.segment)
+try
+  Analytics = require('analytics-node')
+  analytics = new Analytics(KONFIG.segment)
+catch e
+  console.warn "Segment disabled because of missing configuration"
 
 module.exports = class Tracker extends bongo.Base
 
@@ -73,7 +76,9 @@ module.exports = class Tracker extends bongo.Base
       traits.email = forcedRecipientEmail
 
     traits = @addDefaults traits
-    analytics.identify { userId: username, traits }
+    analytics?.identify { userId: username, traits }
+
+    return  callback null  unless analytics
 
     # force flush so identify call doesn't sit in queue, while events
     # from Go/other systems are being sent
@@ -128,7 +133,7 @@ module.exports = class Tracker extends bongo.Base
 
     options = { userId, name, category, properties }
     @addDefaults options
-    analytics.page options
+    analytics?.page options
 
 
   @alias = (previousId, userId) ->
@@ -139,7 +144,7 @@ module.exports = class Tracker extends bongo.Base
 
     options = { previousId, userId }
     @addDefaults options
-    analytics.alias options
+    analytics?.alias options
 
 
   @group = (groupId, userId) ->
@@ -150,7 +155,7 @@ module.exports = class Tracker extends bongo.Base
 
     options = { groupId, userId }
     @addDefaults options
-    analytics.group options
+    analytics?.group options
 
 
   @addDefaults = (opts) ->
