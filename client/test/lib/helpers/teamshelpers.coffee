@@ -90,7 +90,6 @@ module.exports =
     inputPassword         = 'input[name=password]'
     loginButton           = 'button[testpath=login-button]'
 
-
     browser
       .pause                  2000 # wait for login page
       .waitForElementVisible  teamsLoginModal, 20000
@@ -1059,3 +1058,30 @@ module.exports =
         invitationUrl = "#{teamUrl}/Invitation/#{value.invitation.code}"
 
         callback invitationUrl
+
+
+  enableAndDisableApiAccess: (browser) ->
+
+    apiAccessSelector       = '.kdtabhandle-tabs .api-access.AppModal-navItem'
+    toggleSwitch            = '.settings-row .koding-on-off.small.'
+    toggledOffSwitch        = "#{toggleSwitch}off"
+    toggledOnSwitch         = "#{toggleSwitch}on"
+    addNewApiDisabledButton = '.kdtabhandlecontainer.hide-close-icons [disabled="disabled"]'
+    addnewApiButton         = '.kdtabhandlecontainer.hide-close-icons .add-new'
+
+    browser
+      .waitForElementVisible     apiAccessSelector, 20000
+      .click                     apiAccessSelector
+      .element 'css selector', toggledOffSwitch, (result) ->
+        if result.status is 0
+          browser
+            .waitForElementVisible     toggledOffSwitch, 20000
+            .pause                     2000
+            .waitForElementVisible     addNewApiDisabledButton, 20000
+            .click                     toggledOffSwitch
+            .pause                     2000
+            .waitForElementVisible     toggledOnSwitch, 20000
+            .waitForElementVisible     addnewApiButton, 20000
+            .click                     toggledOnSwitch
+            .pause                     2000
+            .waitForElementVisible     addNewApiDisabledButton, 20000
