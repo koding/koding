@@ -283,6 +283,7 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 		}
 	}
 
+	// If there's no errors, clear the status.
 	remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
 	return nil
 }
