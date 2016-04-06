@@ -8,6 +8,6 @@ DraftsList = require './components/draftslist'
 module.exports = class HomeStacksDrafts extends ReactView
 
   renderReact: ->
-    <DraftsList />
+    <DraftsList.Container />
 
 

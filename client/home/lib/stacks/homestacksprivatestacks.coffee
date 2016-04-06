@@ -8,6 +8,6 @@ PrivateStacksList = require './components/privatestackslist'
 module.exports = class HomeStacksPrivateStacks extends ReactView
 
   renderReact: ->
-    <PrivateStacksList />
+    <PrivateStacksList.Container />
 
 

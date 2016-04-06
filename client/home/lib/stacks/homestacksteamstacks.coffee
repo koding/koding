@@ -8,6 +8,6 @@ TeamStackList = require './components/teamstackslist'
 module.exports = class HomeStacksTeamStacks extends ReactView
 
   renderReact: ->
-    <TeamStackList />
+    <TeamStackList.Container />
 
 
