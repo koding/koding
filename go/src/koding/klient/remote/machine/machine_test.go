@@ -5,12 +5,21 @@ import (
 	"testing"
 	"time"
 
+	"koding/klient/remote/kitepinger"
 	"koding/klient/testutil"
 
 	"github.com/koding/kite/dnode"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+type fakePinger struct {
+	ReturnStatus kitepinger.Status
+}
+
+func (p *fakePinger) Ping() kitepinger.Status {
+	return p.ReturnStatus
+}
 
 type fakeTransport struct {
 	DialError error
@@ -146,6 +155,67 @@ func TestMachineDialOnce(tt *testing.T) {
 			So(t.DialCount, ShouldEqual, 3)
 			So(m.DialOnce(), ShouldBeNil)
 			So(t.DialCount, ShouldEqual, 3)
+		})
+	})
+}
+
+func TestWaitUntilOnline(tt *testing.T) {
+	Convey("Give a Machine", tt, func() {
+		m := &Machine{}
+
+		Convey("That is online", func() {
+			m.HTTPTracker = kitepinger.NewPingTracker(&fakePinger{
+				ReturnStatus: kitepinger.Success,
+			})
+			m.HTTPTracker.Start()
+
+			Convey("It should send immediately", func() {
+				start := time.Now()
+				select {
+				case <-m.WaitUntilOnline():
+				case <-time.After(50 * time.Millisecond):
+				}
+				So(time.Now(), ShouldHappenWithin, 10*time.Millisecond, start)
+			})
+		})
+
+		Convey("That is offline", func() {
+			m.HTTPTracker = kitepinger.NewPingTracker(&fakePinger{
+				ReturnStatus: kitepinger.Failure,
+			})
+			m.HTTPTracker.Start()
+
+			Convey("It should block", func() {
+				start := time.Now()
+				select {
+				case <-m.WaitUntilOnline():
+				case <-time.After(50 * time.Millisecond):
+				}
+				So(time.Now(), ShouldNotHappenWithin, 10*time.Millisecond, start)
+			})
+		})
+
+		Convey("That is eventually online", func() {
+			p := &fakePinger{
+				ReturnStatus: kitepinger.Failure,
+			}
+			m.HTTPTracker = kitepinger.NewPingTracker(p)
+			m.HTTPTracker.Start()
+
+			// Wait for 25ms, then set it to success
+			time.AfterFunc(25*time.Millisecond, func() {
+				p.ReturnStatus = kitepinger.Success
+			})
+
+			Convey("It should block until online", func() {
+				start := time.Now()
+				select {
+				case <-m.WaitUntilOnline():
+				case <-time.After(50 * time.Millisecond):
+				}
+				// It should block for 25ms, with an additional 10ms for runtime to be safe.
+				So(time.Now(), ShouldNotHappenWithin, 35*time.Millisecond, start)
+			})
 		})
 	})
 }
