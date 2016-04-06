@@ -165,7 +165,7 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 				// the apply method.
 				uid = resourceName + "-" + utils.RandString(6)
 			}
-			box["filePath"] = "${var.koding_group_slug}/" + uid
+			box["filePath"] = "koding/${var.koding_group_slug}/" + uid
 		}
 
 		// set default CPU number
