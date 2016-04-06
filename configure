@@ -11,7 +11,8 @@ git        = require 'git-rev'
 
 # check if dev environment is avaliable
 defaultEnv = 'default'
-try fs.statSync './config/main.dev.coffee'; defaultEnv = 'dev'
+unless process.env.KODINGENV is defaultEnv
+  try fs.existsSync './config/main.dev.coffee'; defaultEnv = 'dev'
 
 log "-------------------------"
 log ""
@@ -136,8 +137,8 @@ git.long (str) ->
     rest()
   else
     log "lemme find your IP"
-    request "http://echoip.net",(err,res,body)->
-        ip = body
-        options.hostname = ip
-        log "my ip is #{ip}"
-        rest()
+    request "http://echoip.net", (err, res, body) ->
+      ip = body
+      options.hostname = ip
+      log "my ip is #{ip}"
+      rest()
