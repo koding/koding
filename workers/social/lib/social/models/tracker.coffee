@@ -17,7 +17,7 @@ try
   Analytics = require('analytics-node')
   analytics = new Analytics(KONFIG.segment)
 catch e
-  console.warn "Segment disabled because of missing configuration"
+  console.warn 'Segment disabled because of missing configuration'
 
 module.exports = class Tracker extends bongo.Base
 
