@@ -2,7 +2,6 @@ kd                   = require 'kd'
 AppFlux              = require 'app/flux'
 actions              = require '../actiontypes'
 isPublicChannel      = require 'app/util/isPublicChannel'
-desktopNotifications = require './desktopnotifications'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -18,9 +17,6 @@ bindChannelEvents = (channel) ->
   kd.singletons.socialapi.onChannelReady channel, ->
 
     channel.on 'MessageAdded', (message) ->
-
-      unless _isChannelInitiationEvent message
-        desktopNotifications.postMessageReceivedNotification message, channel
 
       bindMessageEvents message
 
@@ -95,10 +91,6 @@ bindNotificationEvents = ->
   kd.singletons.notificationController
     .on 'MessageAddedToChannel', (payload) ->
       { channel : { id, name, typeConstant }, channelMessage, unreadCount } = payload
-      if _isChannelInitiationEvent payload.channelMessage
-        { addedBy } = channelMessage.payload
-
-        desktopNotifications.postAddedToChannelNotification name, addedBy, typeConstant
 
       # TODO: FIXME
       # The reason we are doing these extra fetches is that right now backend
@@ -148,15 +140,6 @@ bindNotificationEvents = ->
       _dispatchFn { unreadCount, channel }
 
       { message } = options.lastMessage
-
-      if _isChannelInitiationEvent message
-        { addedBy } = message.payload
-        desktopNotifications.postAddedToChannelNotification channel.name, addedBy, channel.typeConstant
-
-    .on 'NotificationAdded', (options)->
-
-      if options.type is 'mention'
-        desktopNotifications.postMentionedNotification options
 
 
 _isChannelInitiationEvent = (message) ->
