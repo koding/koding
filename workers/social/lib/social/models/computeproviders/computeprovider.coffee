@@ -606,6 +606,7 @@ module.exports = class ComputeProvider extends Base
           if stacks?.length > 0
             reviveQueue = []
             stacks.forEach (stack) ->
+              stack.createdAt = stack._id.getTimestamp()
               reviveQueue.push (next) -> stack.revive next
             async.parallel reviveQueue, -> next null, stacks
           else

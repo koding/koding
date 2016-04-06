@@ -11,6 +11,7 @@ MachinesListController = require 'app/environment/machineslistcontroller'
 StackAdminMessageModal = require 'app/stacks/stackadminmessagemodal'
 async                  = require 'async'
 whoami                 = require 'app/util/whoami'
+timeago                = require 'timeago'
 
 
 module.exports = class ResourceListItem extends kd.ListItemView
@@ -87,6 +88,16 @@ module.exports = class ResourceListItem extends kd.ListItemView
       cssClass : 'revision-status'
       partial  : message
     @revisionStatus.setClass if code > 0 then 'warning' else 'hidden'
+
+    try
+      creationDate = new Date resource.createdAt
+    catch e
+
+    @createdAt = new kd.CustomHTMLView
+      partial  : if creationDate then "Created #{timeago creationDate}" else ''
+      cssClass : 'created-at'
+    @createdAt.setClass 'hidden'  unless creationDate
+
 
     @progressBar = new KDProgressBarView { initial : INITIAL_PROGRESS_VALUE }
 
@@ -238,6 +249,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
           {{> @percentage}}
           {{> @revisionStatus}}
         </div>
+        {{> @createdAt}}
       </div>
       <div class='clear'></div>
       {{> @details}}
