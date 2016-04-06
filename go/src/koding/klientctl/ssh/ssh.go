@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"net"
 	"os"
 	"os/exec"
 	"os/user"
 	"path"
 	"strings"
 
+	"koding/kites/tunnelproxy/discover"
 	"koding/klient/remote/req"
 	"koding/klientctl/config"
 	"koding/klientctl/klient"
@@ -88,7 +90,7 @@ func (s *SSHCommand) Run(machine string) error {
 		util.MustConfirm("'ssh' command needs to create public/private rsa key pair. Continue? [Y|n]")
 	}
 
-	sshKey, err := s.GetSSHIp(machine)
+	userhost, port, err := s.GetSSHAddr(machine)
 	if err != nil {
 		return err
 	}
@@ -112,7 +114,18 @@ func (s *SSHCommand) Run(machine string) error {
 		return ErrFailedToGetSSHKey
 	}
 
-	cmd := exec.Command("ssh", "-i", s.PrivateKeyPath(), sshKey, "-o", "ServerAliveInterval=300", "-o", "ServerAliveCountMax=3")
+	args := []string{
+		"-i", s.PrivateKeyPath(),
+		"-o", "ServerAliveInterval=300",
+		"-o", "ServerAliveCountMax=3",
+		userhost,
+	}
+
+	if port != "" {
+		args = append(args, "-p", port)
+	}
+
+	cmd := exec.Command("ssh", args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -149,21 +162,50 @@ type SSHKey struct {
 		RemoteList() (list.KiteInfos, error)
 		Tell(string, ...interface{}) (*dnode.Partial, error)
 	}
+
+	// Discover is used to resolve SSH address if klient connection is tunneled.
+	Discover discover.Client
 }
 
-// GetSSHIp returns the username and the hostname of the remove machine to ssh.
+// GetSSHAddr returns the username and the hostname of the remove machine to ssh.
+//
 // It assume user exists on the remove machine with the same Koding username.
-func (s *SSHKey) GetSSHIp(name string) (string, error) {
+// It may also return a custom port number, if other than a default should
+// be used.
+func (s *SSHKey) GetSSHAddr(name string) (userhost, port string, err error) {
 	infos, err := s.Klient.RemoteList()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	if info, ok := infos.FindFromName(name); ok {
-		return fmt.Sprintf("%s@%s", info.Hostname, info.IP), nil
+	info, ok := infos.FindFromName(name)
+
+	if !ok {
+		return "", "", fmt.Errorf("No machine found with specified name: `%s`", name)
 	}
 
-	return "", fmt.Errorf("No machine found with specified name: `%s`", name)
+	endpoints, err := s.Discover.Discover(info.IP, "ssh")
+	if err != nil {
+		return fmt.Sprintf("%s@%s", info.Hostname, info.IP), "", nil
+	}
+
+	addr := endpoints[0].Addr
+
+	// We prefer local routes to use first, if there's none, we use first
+	// discovered route.
+	if e := endpoints.Filter(discover.ByLocal(true)); len(e) != 0 {
+
+		// All local routes will do, typically there's only one,
+		// we use the first one and ignore the rest.
+		addr = e[0].Addr
+	}
+
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		host = addr
+	}
+
+	return fmt.Sprintf("%s@%s", info.Hostname, host), port, nil
 }
 
 // GetUsername returns the username of the remote machine.

@@ -5,6 +5,7 @@ import (
 
 	"github.com/koding/logging"
 
+	"koding/kites/tunnelproxy/discover"
 	"koding/klient/kiteerrortypes"
 	"koding/klient/remote/kitepinger"
 	"koding/klient/remote/rsync"
@@ -126,6 +127,11 @@ type Machine struct {
 	hasDialed bool
 
 	dialLock sync.Mutex
+
+	// discover is used to query for SSH endpoint information of tunnelled
+	// machines; it is also used to return local route if kd was invoked
+	// from the same host as machine.
+	discover *discover.Client
 }
 
 // MachineLogger returns a new logger with the context of the given MachineMeta
@@ -156,7 +162,10 @@ func NewMachine(meta MachineMeta, log logging.Logger, t Transport) (*Machine, er
 		KiteTracker: kitepinger.NewPingTracker(kitePinger),
 		HTTPTracker: kitepinger.NewPingTracker(httpPinger),
 		Transport:   t,
+		discover:    discover.NewClient(),
 	}
+
+	m.discover.Log = m.Log.New("discover")
 
 	// Start our http pinger, to give online/offline statuses for all machines.
 	m.HTTPTracker.Start()
