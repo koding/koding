@@ -132,7 +132,7 @@ Configuration = (options={}) ->
 
   kloudPort           = 5500
   kloud               = { port : kloudPort, userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem",    userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub",  privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "", address : "http://localhost:#{kloudPort}/kite", tunnelUrl : "#{tunnelUrl}"}
-  terraformer         = { port : 2300     , bucket:             "koding-terraformer-state-#{configName}", localstorepath: "#{projectRoot}/go/data/terraformer" }
+  terraformer         = { port : 2300     , bucket:             "koding-terraformer-state-dev", localstorepath: "#{projectRoot}/go/data/terraformer" }
 
   googleapiServiceAccount =
     clientId              : ''
@@ -373,7 +373,7 @@ Configuration = (options={}) ->
   disabledWorkers = [
     "algoliaconnector"
     "paymentwebhook"
-    "terraformer"
+  # "terraformer"
   # "gatekeeper"
     "vmwatcher"
   # "webhook"
