@@ -11,8 +11,9 @@ SUGGESTED_USERNAME_MAX_LENGTH = 15
 
 sendApiError = (res, error) ->
 
-  response = { error }
-  return res.status(error.status).send response
+  response  = { error }
+  response ?= 'API Error'
+  return res.status(error.status ? 403).send response
 
 
 sendApiResponse = (res, data) ->
