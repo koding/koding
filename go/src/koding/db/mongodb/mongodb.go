@@ -111,3 +111,9 @@ func (m *MongoDB) Iter(cl string, q func(*mgo.Collection) *mgo.Query, i func(*mg
 
 	return nil
 }
+
+func (m *MongoDB) EnsureIndex(collection string, index mgo.Index) error {
+	session := m.GetSession()
+	defer session.Close()
+	return session.DB("").C(collection).EnsureIndex(index)
+}
