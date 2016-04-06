@@ -1,10 +1,12 @@
-kd                        = require 'kd'
-KDCustomHTMLView          = kd.CustomHTMLView
-globals                   = require 'globals'
-BaseStackTemplateListItem = require 'app/stacks/basestacktemplatelistitem'
+kd               = require 'kd'
+JView            = require 'app/jview'
+KDCustomHTMLView = kd.CustomHTMLView
+globals          = require 'globals'
+CustomLinkView   = require 'app/customlinkview'
 
+module.exports = class AccountCredentialListItem extends kd.ListItemView
 
-module.exports = class AccountCredentialListItem extends BaseStackTemplateListItem
+  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -22,28 +24,34 @@ module.exports = class AccountCredentialListItem extends BaseStackTemplateListIt
 
     @providerTag.setCss 'background-color', providers[provider].color
 
+    @credentialLinks = new KDCustomHTMLView
+      cssClass : 'HomeAppView--credential-links'
 
-  settingsMenu: ->
+    @credentialLinks.addSubView new CustomLinkView
+      title    : 'REMOVE'
+      item     : this
+      cssClass : 'HomeAppView--link'
+      click    : => delegate.emit 'ItemAction', { action : 'RemoveItem', item : this }
 
-    { owner, provider } = @getData()
-    delegate            = @getDelegate()
-    @menu               = {}
+    if provider isnt 'aws' or @getData().fields?
+      @credentialLinks.addSubView new CustomLinkView
+        title    : 'EDIT'
+        item     : this
+        cssClass : 'HomeAppView--link'
+        click    : => delegate.emit 'ItemAction', { action : 'EditItem', item : this }
 
     if owner
-      @addMenuItem 'Show', => delegate.emit 'ItemAction', { action : 'ShowItem', item : this }
-
-    if not provider is 'aws' or @getData().fields?
-      @addMenuItem 'Edit', => delegate.emit 'ItemAction', { action : 'EditItem', item : this }
-
-    @addMenuItem 'Delete', => delegate.emit 'ItemAction', { action : 'RemoveItem', item : this }
-
-    return @menu
+      @credentialLinks.addSubView new CustomLinkView
+        title    : 'SHOW'
+        item     : this
+        cssClass : 'HomeAppView--link blue'
+        click    : => delegate.emit 'ItemAction', { action : 'ShowItem', item : this }
 
 
   pistachio: ->
     '''
     <div class="credential-info">
-      {{> @providerTag}} {div.title{#(title)}}
+      {div.title{#(title)}} {{> @providerTag}}
     </div>
-    <div class="buttons">{{> @settings}}</div>
+    {{> @credentialLinks}}
     '''
