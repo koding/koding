@@ -17,10 +17,11 @@ module.exports = class DataDog extends Base
         sendMetrics    : (signature Object, Function)
 
 
-  { api_key, app_key }   = KONFIG.datadog
-  DogApi                 = new dogapi {
-    api_key, app_key
-  }
+  try
+    { api_key, app_key }   = KONFIG.datadog
+    DogApi = new dogapi { api_key, app_key }
+  catch
+    console.warn 'DataDog disabled because of missing configuration'
 
 
   Events =
@@ -118,6 +119,8 @@ module.exports = class DataDog extends Base
       Tracker  = require './tracker'
       Tracker.track nickname, { subject : ev.text }, data.tags
 
+    return callback null  unless DogApi
+
     DogApi.add_event { title, text, tags }, (err, res, status) ->
 
       if err?
@@ -162,6 +165,8 @@ module.exports = class DataDog extends Base
       points = [[now, points]]
 
       metrics.push { metric, tags, points }
+
+    return callback null  unless DogApi
 
     DogApi.add_metrics { series: metrics }, (err) ->
 
