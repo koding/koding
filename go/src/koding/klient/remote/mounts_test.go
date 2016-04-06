@@ -96,6 +96,7 @@ func TestRestoreMounts(t *testing.T) {
 		})
 
 		Convey("With a mount that succeeds and another that fails", func() {
+			fakeErr := errors.New("Fake error")
 			r.mounts = []*mount.Mount{
 				&mount.Mount{IP: "foo"},
 				&mount.Mount{IP: "bar"},
@@ -105,27 +106,31 @@ func TestRestoreMounts(t *testing.T) {
 				callCounts[m.IP]++
 				callOrder = append(callOrder, m.IP)
 				if m.IP == "bar" {
-					return errors.New("Fake error")
+					return fakeErr
 				}
 				return nil
 			}
 
+			Convey("It should return the error after giving max attempts", func() {
+				So(r.restoreMounts(), ShouldEqual, fakeErr)
+			})
+
 			Convey("It should only attempt the successful mount once", func() {
-				So(r.restoreMounts(), ShouldBeNil)
+				r.restoreMounts()
 				calls, ok := callCounts["foo"]
 				So(ok, ShouldBeTrue) // prevent panics
 				So(calls, ShouldEqual, 1)
 			})
 
 			Convey("It should repeat attempts for the failure", func() {
-				So(r.restoreMounts(), ShouldBeNil)
+				r.restoreMounts()
 				calls, ok := callCounts["bar"]
 				So(ok, ShouldBeTrue) // prevent panics
 				So(calls, ShouldEqual, 3)
 			})
 
 			Convey("It should call in the expected order", func() {
-				So(r.restoreMounts(), ShouldBeNil)
+				r.restoreMounts()
 				So(callOrder, ShouldResemble, []string{
 					"foo",
 					"bar",

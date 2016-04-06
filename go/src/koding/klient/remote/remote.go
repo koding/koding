@@ -26,9 +26,9 @@ const (
 	// a very large number, and exists simply to allow testing to control the max
 	// loops.
 	//
-	// 5760 is roughly 4 days of repeated attempts at 1 minute pauses between each
-	// attempt. Basically forever.
-	defaultMaxRestoreAttempts = 5760
+	// 60*24*4 (5760) is roughly 4 days of repeated attempts at 1 minute pauses between
+	// each attempt. Basically forever.
+	defaultMaxRestoreAttempts = 60 * 24 * 4
 
 	// The length in time that restoreMounts() will pause between each repeated attempt.
 	defaultRestoreFailuresPause = time.Minute

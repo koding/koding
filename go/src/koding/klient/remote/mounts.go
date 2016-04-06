@@ -18,7 +18,12 @@ const (
 
 	// Messages displayed to the user about the machines status.
 	autoRemountFailed = "Error remounting during restart. Please unmount & mount again."
-	autoRemounting    = "Remounting after restart. Please wait..."
+
+	// The first autoremount message.
+	autoRemounting = "Remounting after restart. Please wait..."
+
+	// The message displayed after an auto remount failed, but we are retrying.
+	autoRemountingAgain = "Remounting failed, retrying in a moment."
 )
 
 // MountsHandler lists all of the locally mounted folders
@@ -99,8 +104,12 @@ func (r *Remote) restoreMounts() error {
 	r.markMountsAsRemounting(remountQueue)
 
 	// Loop until there are no more mounts in the remountQueue.
-	var m *mount.Mount
-	for attempt := 0; len(remountQueue) > 0 && attempt < r.maxRestoreAttempts; attempt++ {
+	var (
+		mountErr error
+		m        *mount.Mount
+		attempt  int
+	)
+	for ; len(remountQueue) > 0 && attempt < r.maxRestoreAttempts; attempt++ {
 		// To prevent spamming remount attempts,
 		if attempt >= totalMounts {
 			time.Sleep(r.restoreFailuresPause)
@@ -115,10 +124,10 @@ func (r *Remote) restoreMounts() error {
 			"prefetchAll", m.MountFolder.PrefetchAll,
 		)
 
-		if err := r.restoreMount(m); err != nil {
+		if mountErr = r.restoreMount(m); mountErr != nil {
 			log.Error(
 				"Failed to restore mount, attempt #%d. Retrying after queue. err:%s",
-				attempt, err,
+				attempt, mountErr,
 			)
 
 			// Push it back to the end of the queue, because this mount failed.
@@ -126,8 +135,13 @@ func (r *Remote) restoreMounts() error {
 		}
 	}
 
-	log.Info("Remounting successfully done.")
-	return nil
+	if mountErr != nil {
+		log.Info("Remounting gave up after %d total attempts.", attempt)
+	} else {
+		log.Info("Remounting successfully.")
+	}
+
+	return mountErr
 }
 
 // Mark all the machines as remounting. Note that because restoreMounts should not
@@ -161,7 +175,7 @@ func (r *Remote) markMountsAsRemounting(mounts []*mount.Mount) {
 	}
 }
 
-func (r *Remote) restoreMount(m *mount.Mount) error {
+func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 	if r.mockedRestoreMount != nil {
 		return r.mockedRestoreMount(m)
 	}
@@ -183,6 +197,20 @@ func (r *Remote) restoreMount(m *mount.Mount) error {
 		log.Error("Failed to get machine by ip. err:%s", err)
 		return err
 	}
+
+	// Update the status based on the return value. Note that it's possible to
+	// return before this call, if we can't get the machine, but that's a non-issue
+	// for updating the machine status, since we failed to get the machine, and
+	// can't possible update the status.
+	defer func() {
+		if err != nil {
+			// Update the user that we failed, and are retrying.
+			remoteMachine.SetStatus(machine.MachineRemounting, autoRemountingAgain)
+		} else {
+			// If there's no errors, clear the status.
+			remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
+		}
+	}()
 
 	fsMountName, _ := mountcli.NewMountcli().FindMountNameByPath(m.LocalPath)
 	if fsMountName != "" {
@@ -255,7 +283,5 @@ func (r *Remote) restoreMount(m *mount.Mount) error {
 		}
 	}
 
-	// If there's no errors, clear the status.
-	remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
 	return nil
 }
