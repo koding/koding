@@ -1,21 +1,17 @@
 {
-  "variables": {
-    "aws_access_key": "AKIAJTAPKSDXI4FIXGJA",
-    "aws_secret_key": "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"
-  },
   "builders": [
     {
       "type": "amazon-ebs",
       "access_key": "{{user `aws_access_key`}}",
       "secret_key": "{{user `aws_secret_key`}}",
-      "region": "us-west-1",
-      "vpc_id": "vpc-ef62eb8b",
-      "subnet_id": "subnet-6444f43d",
-      "security_group_id": "sg-27022f42",
-      "source_ami": "ami-f898f698",
-      "instance_type": "m4.large",
-      "ssh_username": "ubuntu",
-      "ami_name": "test-{{timestamp}}",
+      "region": "{{user `aws_region`}}",
+      "vpc_id": "{{user `aws_vpc_id`}}",
+      "subnet_id": "{{user `aws_subnet_id`}}",
+      "security_group_id": "{{user `aws_security_group_id`}}",
+      "source_ami": "{{user `aws_source_ami`}}",
+      "instance_type": "{{user `aws_instance_type`}}",
+      "ssh_username": "{{user `ssh_username`}}",
+      "ami_name": "{{user `aws_ami_name`}}-{{timestamp}}",
       "launch_block_device_mappings": [
         {
           "device_name": "/dev/sda1",
@@ -35,6 +31,13 @@
       "type": "file",
       "source": ".ssh/",
       "destination": "/home/ubuntu/.ssh/"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "echo access_key = {{user `aws_access_key`}} >> /home/ubuntu/.s3cfg",
+        "echo secret_key = {{user `aws_secret_key`}} >> /home/ubuntu/.s3cfg"
+      ]
     },
     {
       "type": "shell",

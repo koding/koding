@@ -1,0 +1,11 @@
+{
+  "aws_access_key": "",
+  "aws_secret_key": "",
+  "aws_region": "",
+  "aws_vpc_id": "",
+  "aws_subnet_id": "",
+  "aws_source_ami": "",
+  "aws_instance_type": "m4.large",
+  "ssh_username": "ubuntu",
+  "aws_ami_name": "test"
+}
