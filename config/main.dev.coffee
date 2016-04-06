@@ -311,6 +311,7 @@ Configuration = (options={}) ->
     papertrail                     : {destination: 'logs3.papertrailapp.com:13734'                   , groupId: 2199093                                              , token: '4p4KML0UeU4ijb0swx' }
     sendEventsToSegment            : options.sendEventsToSegment
     mailgun                        : mailgun
+    helpscout                      : {apiKey: 'b041e4da61c0934cb73d47e1626098430738b049'             , baseUrl: 'https://api.helpscout.net/v1'}
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   # NOTE: when you add to runtime options below, be sure to modify

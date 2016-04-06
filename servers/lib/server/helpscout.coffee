@@ -1,11 +1,19 @@
-request = require 'request'
-
-baseUrl = 'https://api.helpscout.net/v1'
-key     = 'b041e4da61c0934cb73d47e1626098430738b049'
+request  = require 'request'
+{ argv } = require 'optimist'
+KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = (account, req, res) ->
 
   Payment = require '../../../workers/social/lib/social/models/payment'
+
+  { apiKey, baseUrl } = KONFIG.helpscout  if KONFIG.helpscout
+
+  if not apiKey or not baseUrl
+    errorText = 'HelpScout is disabled because of missing configuration'
+    console.warn errorText
+    return res.status(400).send
+      description : errorText
+      error       : 'bad_request'
 
   account.fetchUser (err, user) ->
 
