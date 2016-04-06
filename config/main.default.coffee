@@ -1022,8 +1022,8 @@ Configuration = (options={}) ->
 
       SERVICES="mongo redis postgres rabbitmq"
 
-      NGINX_CONF="#{projectRoot}/.dev.nginx.conf"
-      NGINX_PID="#{projectRoot}/.dev.nginx.pid"
+      NGINX_CONF="#{projectRoot}/.default.nginx.conf"
+      NGINX_PID="#{projectRoot}/.default.nginx.pid"
 
       #{envvars()}
 

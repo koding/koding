@@ -84,7 +84,7 @@ rest = ->
 
     fs.writeFileSync "./deployment/generated_files/supervisord.conf", KONFIG.supervisorConf
     fs.writeFileSync "./deployment/generated_files/nginx.conf", KONFIG.nginxConf
-    fs.writeFileSync "./.dev.nginx.conf", KONFIG.nginxConf
+    fs.writeFileSync "./.#{defaultEnv}.nginx.conf", KONFIG.nginxConf
 
     if KONFIG.supervisord.output_path
       fs.writeFileSync KONFIG.supervisord.output_path, KONFIG.supervisorConf
