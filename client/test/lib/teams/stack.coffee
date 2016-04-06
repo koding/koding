@@ -53,18 +53,22 @@ module.exports =
     teamsHelpers.loginTeam(browser)
     teamsHelpers.createStack(browser, yes)
     teamsHelpers.createCredential(browser, no, no, yes)
-    teamsHelpers.saveTemplate(browser, no)
-    teamsHelpers.editStack(browser, no)
+    teamsHelpers.saveTemplate(browser, no, no, no)
+    teamsHelpers.editStack(browser)
+    browser.isStackBuilt = yes
+    teamsHelpers.destroyEverything(browser)
     browser.end()
 
 
-  openAndCloneStack: (browser) ->
+  cloneStack: (browser) ->
 
     teamsHelpers.loginTeam(browser)
     teamsHelpers.createStack(browser, yes)
     teamsHelpers.createCredential(browser, no, no, yes)
-    teamsHelpers.saveTemplate(browser, no)
+    teamsHelpers.saveTemplate(browser, no, no, no)
     teamsHelpers.editStack(browser, yes)
+    browser.isStackBuilt = yes
+    teamsHelpers.destroyEverything(browser)
     browser.end()
 
 
@@ -73,6 +77,8 @@ module.exports =
     teamsHelpers.loginTeam(browser)
     teamsHelpers.createStack(browser, yes)
     teamsHelpers.createCredential(browser, no, no, yes)
-    teamsHelpers.saveTemplate(browser, no, no)
+    teamsHelpers.saveTemplate(browser, no, no, no)
     teamsHelpers.deleteStack(browser)
+    browser.isStackBuilt = yes
+    teamsHelpers.destroyEverything(browser)
     browser.end()

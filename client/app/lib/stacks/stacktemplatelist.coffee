@@ -25,8 +25,6 @@ module.exports = class StackTemplateList extends KodingListView
     modal = new KDModalView
       title          : 'Editing default stack template ?'
       overlay        : yes
-      attributes     :
-        testpath     : 'RemoveStackModal'
       overlayOptions :
         cssClass     : 'second-overlay'
         overlayClick : yes
@@ -45,3 +43,5 @@ module.exports = class StackTemplateList extends KodingListView
         "I know what I'm doing, Open Editor":
           style    : 'solid medium red'
           callback : => callback { action : 'OpenEditor', modal, item : this}
+
+    modal.setAttribute 'testpath', 'RemoveStackModal'
