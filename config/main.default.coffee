@@ -143,9 +143,9 @@ Configuration = (options={}) ->
   segment = ''
 
   github =
-    clientId     : ''
-    clientSecret : ''
-    redirectUri  : ''
+    clientId     : "f8e440b796d953ea01e5"
+    clientSecret : "b72e2576926a5d67119d5b440107639c6499ed42"
+    redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback"
 
   mailgun =
     domain        : ''
