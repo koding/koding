@@ -1,4 +1,5 @@
 kd                   = require 'kd'
+KDCustomHTMLView     = kd.CustomHTMLView
 Encoder              = require 'htmlencode'
 async                = require 'async'
 remote               = require('app/remote').getInstance()
@@ -9,12 +10,12 @@ showError            = require 'app/util/showError'
 VerifyPINModal       = require 'app/commonviews/verifypinmodal'
 VerifyPasswordModal  = require 'app/commonviews/verifypasswordmodal'
 AvatarStaticView     = require 'app/commonviews/avatarviews/avatarstaticview'
-
+CustomLinkView       = require 'app/customlinkview'
 
 notify = (title, duration = 2000) -> new kd.NotificationView { title, duration }
 
 
-module.exports = class HomeAccountEditProfile extends kd.CustomHTMLView
+module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
 
   JView.mixin @prototype
 
@@ -26,34 +27,33 @@ module.exports = class HomeAccountEditProfile extends kd.CustomHTMLView
 
     @avatar = new AvatarStaticView @getAvatarOptions(), @account
 
-    @uploadAvatarBtn  = new kd.ButtonView
-      style    : 'solid small green'
-      cssClass : 'upload-avatar'
-      title    : 'Upload Image'
-      loader   : yes
+    @changeAvatarLink  = new CustomLinkView
+      cssClass : 'HomeAppView--link blue'
+      title    : 'CHANGE AVATAR'
 
     @uploadAvatarInput = new kd.InputView
       type       : 'file'
-      cssClass   : 'HomeAppView--account-avatarArea-buttons-upload'
+      cssClass   : 'HomeAppView--account-avatarArea-links-upload'
       change     : @bound 'uploadInputChange'
       attributes :
         accept   : 'image/*'
 
-    @useGravatarBtn  = new kd.ButtonView
-      style    : 'solid small gray'
-      cssClass : 'use-gravatar'
-      title    : 'Use Gravatar'
-      loader   : yes
-      callback : =>
+    @useGravatarLink  = new CustomLinkView
+      cssClass : 'HomeAppView--link'
+      title    : 'USE GRAVATAR'
+      click    : =>
         @account.modify { 'profile.avatar' : '' }, (err) =>
           console.warn err  if err
-          @useGravatarBtn.hideLoader()
+
+    @avatarButtons = new KDCustomHTMLView
+      cssClass : 'HomeAppView--account-avatarArea-links'
+
+    @avatarButtons.addSubView @useGravatarLink
+    @avatarButtons.addSubView @changeAvatarLink
+    @avatarButtons.addSubView @uploadAvatarInput
+
 
     fields =
-      accountHeader  :
-        itemClass    : kd.CustomHTMLView
-        partial      : 'My Account'
-        cssClass     : 'HomeAppView--sectionHeader'
       username       :
         cssClass     : 'hidden'
         placeholder  : 'username'
@@ -79,17 +79,20 @@ module.exports = class HomeAccountEditProfile extends kd.CustomHTMLView
         testPath     : 'account-email-input'
         label        : 'Email Address'
 
+    @submitButton = new kd.ButtonView
+      type     : 'submit'
+      loader   : yes
+      style    : 'solid green small'
+      title    : 'Save Changes'
+      callback : @bound 'update'
 
     @userProfileForm = new kd.FormViewWithFields
       cssClass   : 'HomeAppView--form'
       fields     : fields
-      buttons    :
-        Save     :
-          title  : 'Save Changes'
-          type   : 'submit'
-          style  : 'solid green small'
-          loader : yes
-      callback   : @bound 'update'
+
+    @userProfileForm.addSubView @avatar
+    @userProfileForm.addSubView @avatarButtons
+    @userProfileForm.addSubView @submitButton
 
     @once 'viewAppended', @bound 'init'
 
@@ -116,11 +119,9 @@ module.exports = class HomeAccountEditProfile extends kd.CustomHTMLView
 
   uploadInputChange: ->
 
-    @uploadAvatarBtn.showLoader()
-
     file = @uploadAvatarInput.getElement().files[0]
 
-    return @uploadAvatarBtn.hideLoader()  unless file
+    return unless file
 
     mimeType      = file.type
     reader        = new FileReader
@@ -131,8 +132,6 @@ module.exports = class HomeAccountEditProfile extends kd.CustomHTMLView
       @uploadAvatar
         mimeType : mimeType
         content  : file
-      , =>
-        @uploadAvatarBtn.hideLoader()
 
     reader.readAsDataURL file
 
@@ -147,8 +146,6 @@ module.exports = class HomeAccountEditProfile extends kd.CustomHTMLView
       mimeType: mimeType
       timeout : 30000
     , (err, url) =>
-
-      @uploadAvatarBtn.hideLoader()
 
       return showError err  if err
 
@@ -239,8 +236,8 @@ module.exports = class HomeAccountEditProfile extends kd.CustomHTMLView
     tagName       : 'figure'
     cssClass      : 'HomeAppView--account-avatar'
     size          :
-      width       : 95
-      height      : 95
+      width       : 132
+      height      : 132
 
 
   hideSaveButtonLoader: -> @userProfileForm.buttons.Save.hideLoader()
@@ -248,13 +245,5 @@ module.exports = class HomeAccountEditProfile extends kd.CustomHTMLView
 
   pistachio: ->
     """
-    <div class='HomeAppView--account-avatarArea clearfix'>
-      {{> @avatar}}
-      <div class="HomeAppView--account-avatarArea-buttons">
-        {{> @uploadAvatarBtn}}
-        {{> @uploadAvatarInput}}
-        {{> @useGravatarBtn}}
-      </div>
-    </div>
     {{> @userProfileForm}}
     """
