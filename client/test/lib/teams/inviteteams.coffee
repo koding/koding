@@ -62,5 +62,7 @@ module.exports =
       teamsHelpers.closeTeamSettingsModal(browser)
       teamsHelpers.logoutTeam(browser)
       browser.url url
+      browser.pause 2000
+      teamsHelpers.checkForgotPassword(browser)
       teamsHelpers.fillJoinForm(browser, targetUser)
       browser.end()

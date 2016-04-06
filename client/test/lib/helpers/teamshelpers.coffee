@@ -38,6 +38,7 @@ module.exports =
       .click                  'button[testpath=domain-button]'
       .pause                  2000 # wait for modal change
 
+    console.log 'enterTeamURL'
 
   fillUsernamePasswordForm: (browser, user, invalidUserName = no) ->
 
@@ -144,7 +145,47 @@ module.exports =
     return user
 
 
+<<<<<<< 9413b625f788f04e1890a59942389cb9412d3e5a
   createTeam: (browser, user, inviteOrCreateLink, invalidCredentials = no, callback) ->
+=======
+  closeTeamSettingsModal: (browser) ->
+
+    adminModal  = '.AppModal.AppModal--admin.team-settings'
+    closeButton = "#{adminModal} .closeModal"
+
+    browser
+      .waitForElementVisible adminModal, 20000
+      .click                 closeButton
+
+
+  logoutTeam: (browser) ->
+
+    logoutLink = '.avatararea-popup.team a[href="/Logout"]'
+
+    helpers.openAvatarAreaModal(browser, yes)
+
+    browser
+      .waitForElementVisible logoutLink, 20000
+      .click                 logoutLink
+      .waitForElementVisible teamsLoginModal, 20000
+
+
+  checkForgotPassword: (browser, user, callback) ->
+
+    modalSelector   = '.kdview.kdtabpaneview.username'
+    sectionSelector = "#{modalSelector} section"
+    browser
+      .waitForElementVisible modalSelector, 20000
+      .click                 '.TeamsModal-button-link a'
+      .pause                 2000
+      .waitForElementVisible sectionSelector, 20000
+      .pause                 2000
+      .click                 '.TeamsModal-button-link a'
+      .pause                 2000
+
+
+  createTeam: (browser, user, callback) ->
+>>>>>>> added integration test to check forgot pasword
 
     modalSelector       = '.TeamsModal.TeamsModal--create'
     emailSelector       = "#{modalSelector} input[name=email]"
