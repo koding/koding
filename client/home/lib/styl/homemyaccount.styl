@@ -4,6 +4,196 @@ Home My Account styles
 */
 }
 
+.HomeAppView .my-account
+  font-size                 14px
+
+.my-account .HomeAppView--section
+  rel()
+
+  label
+    color                   #9F9F9F
+
+  .kdlistitemview
+    overflow              hidden
+    height                70px
+    border-bottom         1px solid #d0d0d0
+
+  .HomeAppView--form
+    overflow                hidden
+    padding-top             0
+
+    .firstname
+      width                 184px
+      padding               0 10px
+
+    .lastname
+      width                 220px
+      padding               0
+
+    .email
+      padding               0 0 0 10px
+      width                 404px
+
+    input.kdinput
+      padding               10px 14px
+      width                 100%
+
+    .HomeAppView--account-avatar
+      top                   60px
+      right                 29px
+      size                  132px 132px
+
+    button[type=submit]
+      height                37px
+      fr()
+      .button-title
+        font-size           14px
+
+  &.password
+    .HomeAppView--form
+      div.Formline--half
+        padding             0 10px
+        width               auto
+
+        &.confirmpassword
+          padding           0
+
+      .formline.button-field
+        border              none !important
+
+      input.kdinput
+        width               212px
+
+      a
+        right               66px
+        bottom              58px
+        abs()
+
+  &.security
+    overflow                hidden
+
+    .AppModal-form
+      size                  224px 267px
+      border                1px solid #d0d0d0
+      rounded               4px
+      fr()
+      rel()
+      borderBox()
+
+      input
+        width               100%
+
+      .button-field
+        border-top          none !important
+        bottom              32px
+
+        button
+          float             none
+          rounded           4px
+          height            42px
+
+    .qrcode-view
+      size                  132px 132px
+      padding               8px
+      margin                70px 35px 0 15px
+      border                1px solid #d0d0d0
+      z-index: 1;
+      rel()
+      fr()
+      borderBox()
+
+      img
+        size                115px 115px
+
+      .HomeAppView--link
+        margin              15px auto
+        width               100px
+        text-align          center
+        dBlock()
+
+    .instructions
+      top                   30px
+      abs()
+
+      .intro
+        width               357px
+        line-height         24px
+
+      ul
+        margin              30px 0 60px
+        width               210px
+
+        li
+          line-height       normal
+          margin-bottom     15px
+
+      .learn-link
+        margin-right        50px
+
+  &.credentials
+    .credential-item
+      .credential-info
+        margin              10px 0 0 20px
+        fl()
+
+        .title, .tag
+          rel()
+          fl()
+          top               0
+          margin-right      20px
+
+      .HomeAppView--link
+        fr()
+
+    .HomeAppView--credential-links
+      margin-top            20px
+
+      a
+        margin-left         20px
+
+
+  &.sessions
+    .session-info
+      fl()
+
+      p
+        margin              20px 0 0 60px
+        fl()
+
+        &:first-child
+          margin-left       0
+
+    .delete-button
+      fr()
+
+      button
+        margin-top          20px
+        bg                  color, transparent
+
+      .button-title
+        color               #9f9f9f !important
+
+  .HomeAppView--account-avatarArea-links
+    clear                   both
+    text-align              right
+    overflow                hidden
+    margin-bottom           20px
+    padding-right           20px
+    rel()
+
+    .HomeAppView--link
+      margin-left           40px
+
+  .HomeAppView--account-avatarArea-links-upload
+    size                    112px 26px !important
+    margin-top              -7px
+    right                   20px
+    z-index                 2
+    opacity                 0
+    abs()
+    pointer()
+    borderBox()
+
 .HomeAppView--section.credentials
 
   .filter-view
