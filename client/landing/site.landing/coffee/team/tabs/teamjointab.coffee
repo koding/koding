@@ -43,8 +43,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
 
     teamData       = utils.getTeamData()
     @alreadyMember = teamData.signup?.alreadyMember
-    unless @alreadyMember
-      delete @forgotPassword  if @forgotPassword?
+    delete @forgotPassword  if @forgotPassword?
 
     @addSubView new MainHeaderView { cssClass: 'team', navItems: [] }
 
