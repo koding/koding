@@ -15,7 +15,7 @@ func TestServer(t *testing.T) {
 		t, err := ioutil.TempDir("", "")
 		So(err, ShouldBeNil)
 
-		s := NewDefaultServer(t, os.Getpid())
+		s := NewDefaultServer(t)
 
 		Convey("Pid", func() {
 			Convey("It should return err when trying to find pid", func() {
@@ -35,9 +35,9 @@ func TestServer(t *testing.T) {
 		t, err := ioutil.TempDir("", "")
 		So(err, ShouldBeNil)
 
-		s := NewDefaultServer(t, os.Getpid())
+		s := NewDefaultServer(t)
 
-		go s.Start()
+		go s.Start(os.Getpid())
 
 		Convey("Pid", func() {
 			Convey("It should return pid of process", func() {

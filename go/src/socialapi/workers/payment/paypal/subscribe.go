@@ -52,9 +52,9 @@ func subscribe(token, accId string, plan *paymentmodels.Plan) error {
 
 	switch status {
 	case paymentstatus.NewSub, paymentstatus.ExpiredSub:
-		err = handleNewSubscription(token, accId, plan)
+		err = paymenterrors.ErrNotImplemented
 	case paymentstatus.ExistingUserHasNoSub:
-		err = handleExistingUser(token, accId, plan)
+		err = paymenterrors.ErrNotImplemented
 	case paymentstatus.AlreadySubscribedToPlan:
 		err = paymenterrors.ErrCustomerAlreadySubscribedToPlan
 	case paymentstatus.DowngradeToFreePlan:
@@ -62,7 +62,7 @@ func subscribe(token, accId string, plan *paymentmodels.Plan) error {
 	case paymentstatus.DowngradeToNonFreePlan:
 		err = handleDowngrade(customer, plan, subscription)
 	case paymentstatus.UpgradeFromExistingSub:
-		err = handleUpgrade(token, customer, plan)
+		err = paymenterrors.ErrNotImplemented
 	default:
 		Log.Error("User: %s fell into default case when subscribing: %s", customer.Username, plan.Title)
 		// user should never come here

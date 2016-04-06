@@ -195,8 +195,8 @@ fi
 
 
 cat << EOF
-Success! kd has been successfully installed. Please run the
-following command for more information:
+Success! kd (beta) has been successfully installed. Please run
+the following command for more information:
 
     kd -h
 

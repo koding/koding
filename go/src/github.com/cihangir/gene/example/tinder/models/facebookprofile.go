@@ -1,4 +1,4 @@
-// Generated struct for FacebookProfile.
+// Package models holds generated struct for FacebookProfile.
 package models
 
 import "github.com/cihangir/govalidator"

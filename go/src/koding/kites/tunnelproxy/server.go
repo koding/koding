@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"os/user"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,6 +19,7 @@ import (
 	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils"
+	"koding/tools/util"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/gorilla/mux"
@@ -62,6 +65,7 @@ type Server struct {
 	opts      *ServerOptions
 	record    *dnsclient.Record
 	callbacks *callbacks
+	privateIP string
 
 	mu       sync.Mutex        // protects idents, services and tunnels
 	idents   map[string]string // maps vhost to ident
@@ -81,6 +85,7 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		optsCopy.ServerAddr = ip
 	}
 
@@ -120,7 +125,16 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 	if !optsCopy.NoCNAME {
 		id, err := instanceID()
 		if err != nil {
-			return nil, err
+			if optsCopy.Test {
+				username := os.Getenv("USER")
+				if u, err := user.Current(); err == nil {
+					username = u.Username
+				}
+
+				id = "koding-" + username
+			} else {
+				return nil, err
+			}
 		}
 
 		optsCopy.BaseVirtualHost = strings.TrimPrefix(id, "i-") + "." + optsCopy.BaseVirtualHost
@@ -159,13 +173,21 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 	optsCopy.Log.Debug("Server options: %# v", &optsCopy)
 
 	s := &Server{
-		Server:   server,
-		DNS:      dns,
-		opts:     &optsCopy,
-		record:   dnsclient.ParseRecord("", optsCopy.ServerAddr),
-		idents:   make(map[string]string),
-		services: make(map[int]net.Listener),
-		tunnels:  newTunnels(),
+		Server:    server,
+		DNS:       dns,
+		opts:      &optsCopy,
+		privateIP: "0.0.0.0",
+		record:    dnsclient.ParseRecord("", optsCopy.ServerAddr),
+		idents:    make(map[string]string),
+		services:  make(map[int]net.Listener),
+		tunnels:   newTunnels(),
+	}
+
+	// Do not bind to private address for testing.
+	if !s.opts.Test {
+		if ip, err := privateIP(); err == nil {
+			s.privateIP = ip
+		}
 	}
 
 	return s, nil
@@ -266,6 +288,10 @@ func (s *Server) addClient(ident, name, vhost string, services map[string]*Tunne
 
 	err := new(multierror.Error)
 	for _, tun := range toList(services, vhost) {
+		if tun.Name != "kite" && tun.Name != "kites" {
+			s.opts.Log.Warning("unsupported %q service added during initial registration", tun.Name)
+		}
+
 		e := s.tunnels.addClientService(ident, tun)
 		if e != nil {
 			e = multierror.Append(e, err)
@@ -399,11 +425,22 @@ func (s *Server) delClientService(ident, name string) {
 }
 
 func (s *Server) addr(port int) string {
-	return net.JoinHostPort(host(s.opts.ServerAddr), strconv.Itoa(port))
+	return net.JoinHostPort(s.privateIP, strconv.Itoa(port))
 }
 
-// RegisterServices
+// RegisterServices creates a port-routed TCP tunnel for each requested service.
 func (s *Server) RegisterServices(r *kite.Request) (interface{}, error) {
+	resp, err := s.registerServices(r)
+	if err != nil {
+		s.opts.Log.Error("error serving RegisterServices for %q: %s", r.Username, err)
+
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (s *Server) registerServices(r *kite.Request) (interface{}, error) {
 	var req RegisterServicesRequest
 
 	if r.Args == nil {
@@ -426,6 +463,9 @@ func (s *Server) RegisterServices(r *kite.Request) (interface{}, error) {
 		VirtualHost: vhost,
 		Services:    make(map[string]*Tunnel, len(services)),
 	}
+
+	s.opts.Log.Debug("received RegisterServices request for %q: %+v", r.Username, services)
+
 	for _, service := range services {
 		// During initial registration klient sends details about port
 		// (and eventual forwarded ports) for kite and kites services,
@@ -458,6 +498,8 @@ func (s *Server) RegisterServices(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	s.opts.Log.Debug("registered services for %q: %+v", r.Username, res)
+
 	return res, nil
 }
 
@@ -467,6 +509,17 @@ func (s *Server) vhost(req *RegisterRequest) string {
 
 // Register creates a virtual host and DNS record for the user.
 func (s *Server) Register(r *kite.Request) (interface{}, error) {
+	resp, err := s.register(r)
+	if err != nil {
+		s.opts.Log.Error("error serving Register for %q: %s", r.Username, err)
+
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (s *Server) register(r *kite.Request) (interface{}, error) {
 	var req RegisterRequest
 
 	if r.Args != nil {
@@ -490,9 +543,9 @@ func (s *Server) Register(r *kite.Request) (interface{}, error) {
 		req.TunnelName = utils.RandString(12)
 	}
 
-	s.opts.Log.Debug("received register request: %# v", &req)
-
 	vhost := s.vhost(&req)
+
+	s.opts.Log.Debug("received register request: %s", TunnelsByName(toList(req.Services, vhost)))
 
 	// By default all addresses are routed by default with wildcard
 	// CNAME. If it is disabled explicitly, we're inserting A records
@@ -583,13 +636,17 @@ func (s *Server) listen(network, addr string) (net.Listener, error) {
 			port = from
 		}
 
-		l, err := net.Listen(network, net.JoinHostPort(host, strconv.Itoa(port)))
+		addr := net.JoinHostPort(host, strconv.Itoa(port))
+
+		l, err := net.Listen(network, addr)
 		if err == nil {
 			s.lastMu.Lock()
 			s.last = port
 			s.lastMu.Unlock()
 
 			return l, nil
+		} else {
+			s.opts.Log.Debug("unable to listen on %q: %s", addr, err)
 		}
 
 		port++
@@ -677,6 +734,10 @@ func (s *Server) discoverKite(ident string, r *http.Request) ([]*Endpoint, error
 
 func (s *Server) discoverHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if util.HandleCORS(w, r) {
+			return
+		}
+
 		endpoints, err := s.discover(strings.ToLower(mux.Vars(r)["service"]), r)
 		if err != nil {
 			s.opts.Log.Error("%s: discover failed for %s (%s): %s", r.RemoteAddr, r.Host, r.URL, err)

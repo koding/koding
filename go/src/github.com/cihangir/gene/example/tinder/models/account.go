@@ -1,4 +1,4 @@
-// Generated struct for Account.
+// Package models holds generated struct for Account.
 package models
 
 import (

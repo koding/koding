@@ -3,16 +3,17 @@ package vagrant
 import (
 	"errors"
 	"net/url"
+	"time"
 
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/provider"
 	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/utils"
+	"koding/klient/tunnel"
 
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
-	"github.com/koding/kite/config"
 	"golang.org/x/net/context"
 )
 
@@ -69,6 +70,42 @@ type Stack struct {
 	p   *stackplan.Planner
 }
 
+func (s *Stack) checkTunnel(c *kite.Client) error {
+	resp, err := c.TellWithTimeout("tunnel.info", 2*time.Minute)
+	if err != nil {
+		return err
+	}
+
+	var info tunnel.InfoResponse
+	if err := resp.Unmarshal(&info); err != nil {
+		return err
+	}
+
+	s.Log.Debug("received tunnel.info response: %+v", &info)
+
+	if info.State != tunnel.StateConnected {
+		// We do not fail here, as the tunnel can be recovering
+		// and we might hit the window when it's not yet done.
+		// However we log, to show kloud observed problems with
+		// connection.
+		s.Log.Warning("%s: want tunnel to be %q, was %q instead", c.ID, tunnel.StateConnected, info.State)
+
+		return nil
+	}
+
+	if _, ok := info.Ports["kite"]; !ok {
+		// Every klient has its connection to kontrol tunneled, thus
+		// tunnel.info should report ports for kite. Warn if there're
+		// none to show kloud observed unexpected behavior.
+		// However it is not critical though, as we were able to
+		// kite.ping the klient, it means the klient may have some
+		// other problems (connection with host kite etc.).
+		s.Log.Warning("%s: no ports for kite", c.ID)
+	}
+
+	return nil
+}
+
 // Ensure Provider implements the kloud.StackProvider interface.
 //
 // StackProvider is an interface for team kloud API.
@@ -92,7 +129,7 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 		Debug: p.Debug || bs.TraceID != "",
 	}
 
-	return &Stack{
+	s := &Stack{
 		BaseStack: bs,
 		TunnelURL: tunnelURL,
 		api:       api,
@@ -100,13 +137,9 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 			Provider:     "vagrant",
 			ResourceType: "instance",
 		},
-	}, nil
-}
+	}
 
-func newKite(k *kite.Kite) *kite.Kite {
-	cfg := k.Config.Copy()
-	cfg.Transport = config.XHRPolling
-	kCopy := kite.New(kloud.NAME, kloud.VERSION)
-	kCopy.Config = cfg
-	return kCopy
+	s.p.OnKlient = s.checkTunnel
+
+	return s, nil
 }
