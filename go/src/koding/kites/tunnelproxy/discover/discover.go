@@ -78,7 +78,7 @@ func (c *Client) Discover(addr, service string) (Endpoints, error) {
 	log := c.log().New("addr", addr, "service", service)
 
 	if net.ParseIP(addr) != nil {
-		log.Debugf("%s", ErrNoTunnel)
+		log.Debug("%s", ErrNoTunnel)
 
 		return nil, ErrNoTunnel
 	}
