@@ -16,13 +16,28 @@ describe 'PrivateStacksList', ->
 
  describe '::render', ->
 
-   it 'should render correct children', ->
+  it 'should render correct children', ->
 
     templates={}
-
+    template = mock.getPrivateStackTemplate()
+    templates[template._id] = toImmutable template
+    templates = toImmutable templates
 
     listitem = renderIntoDocument(<PrivateStacksList.Container />)
     listitem.setState {templates}
 
     result = findRenderedDOMComponentWithClass listitem, 'StackTemplateItem'
     expect(result).toExist()
+
+  it 'should render correct machine title ', ->
+
+    templates={}
+    template = mock.getPrivateStackTemplate()
+    templates[template._id] = toImmutable template
+    templates = toImmutable templates
+
+    listitem = renderIntoDocument(<PrivateStacksList.Container />)
+    listitem.setState {templates}
+
+    result = findRenderedDOMComponentWithClass listitem, 'StackTemplateItem-label'
+    expect(result.innerHTML).toEqual template.title

@@ -16,16 +16,28 @@ describe 'DraftsList', ->
 
  describe '::render', ->
 
-   it 'should render correct children', ->
+  it 'should render correct children', ->
 
     templates={}
-    template = mock.getDraftStackTemplates # check template title
+    template = mock.getDraftStackTemplate() # check template title
     templates[template._id] = toImmutable template
     templates = toImmutable templates
-
 
     listitem = renderIntoDocument(<DraftsList.Container />)
     listitem.setState {templates}
 
     result = findRenderedDOMComponentWithClass listitem, 'StackTemplateItem'
     expect(result).toExist()
+
+  it 'should render correct machine title ', ->
+
+    templates={}
+    template = mock.getDraftStackTemplate() # check template title
+    templates[template._id] = toImmutable template
+    templates = toImmutable templates
+
+    listitem = renderIntoDocument(<DraftsList.Container />)
+    listitem.setState {templates}
+
+    result = findRenderedDOMComponentWithClass listitem, 'StackTemplateItem-label'
+    expect(result.innerHTML).toEqual template.title
