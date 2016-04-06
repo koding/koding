@@ -160,6 +160,8 @@ rejectInvitation = (machine) ->
     when 'shared'         then isPermanent
     when 'collaboration'  then not isPermanent
 
+  ideApp = environmentDataProvider.getIDEFromUId machine.get('uid')
+
   async.series([
     (callback) ->
 
@@ -173,6 +175,12 @@ rejectInvitation = (machine) ->
     (callback) ->
 
       return callback()  unless machine.get('type') is 'collaboration'
+
+      # Do not call social api from here if there is an ide app instance.
+      # Because it will be called it in next queue item by "quit()" method instead of this queue.
+      # You can check "stopCollaborationSession" method of collaborationcontroller.coffee
+      # ~TURUNC
+      return callback()  if ideApp and denyMachine
 
       { channel } = kd.singletons.socialapi
       workspace   = machine.get('workspaces').first()
@@ -205,8 +213,7 @@ rejectInvitation = (machine) ->
 
     (callback) ->
 
-      if denyMachine
-        environmentDataProvider.getIDEFromUId(machine.get('uid'))?.quit()
+      ideApp?.quit()  if denyMachine
 
       actionType = if machine.get('type') is 'collaboration'
       then 'COLLABORATION_INVITATION_REJECTED'
