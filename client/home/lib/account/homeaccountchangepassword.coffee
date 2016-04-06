@@ -3,6 +3,7 @@ remote               = require('app/remote').getInstance()
 JView                = require 'app/jview'
 whoami               = require 'app/util/whoami'
 VerifyPasswordModal  = require 'app/commonviews/verifypasswordmodal'
+CustomLinkView       = require 'app/customlinkview'
 
 notify = (title, duration = 2000) -> new kd.NotificationView { title, duration }
 
@@ -23,10 +24,6 @@ module.exports = class HomeAccountChangePassword extends kd.CustomHTMLView
     super options, data
 
     fields =
-      passwordHeader  :
-        itemClass     : kd.CustomHTMLView
-        partial       : 'CHANGE PASSWORD'
-        cssClass      : 'HomeAppView--sectionHeader'
       password        :
         cssClass      : 'Formline--half'
         name          : 'password'
@@ -43,17 +40,16 @@ module.exports = class HomeAccountChangePassword extends kd.CustomHTMLView
         type          : 'password'
         label         : 'Current Password'
 
+    @updatePasswordLink  = new CustomLinkView
+      cssClass : 'HomeAppView--link blue'
+      title    : 'UPDATE'
+      click    : @bound 'update'
 
-    @userProfileForm = new kd.FormViewWithFields
+    @changePasswordForm = new kd.FormViewWithFields
       cssClass   : 'HomeAppView--form'
       fields     : fields
-      buttons    :
-        Save     :
-          title  : 'Change Password'
-          type   : 'submit'
-          style  : 'solid green small'
-          loader : yes
-      callback   : @bound 'update'
+
+    @changePasswordForm.addSubView @updatePasswordLink
 
 
   update: (formData) ->
@@ -63,7 +59,6 @@ module.exports = class HomeAccountChangePassword extends kd.CustomHTMLView
     skipConfirmation = no
 
     notify_ = (msg) =>
-      @hideSaveButtonLoader()
       notify msg
 
     return notify_ WARNINGS.noMatch   if password isnt confirmPassword
@@ -99,15 +94,12 @@ module.exports = class HomeAccountChangePassword extends kd.CustomHTMLView
 
   clearForm: ->
 
-    @userProfileForm.inputs.password.setValue ''
-    @userProfileForm.inputs.confirm.setValue ''
-    @userProfileForm.inputs.currentPassword.setValue ''
-
-
-  hideSaveButtonLoader: -> @userProfileForm.buttons.Save.hideLoader()
+    @changePasswordForm.inputs.password.setValue ''
+    @changePasswordForm.inputs.confirm.setValue ''
+    @changePasswordForm.inputs.currentPassword.setValue ''
 
 
   pistachio: ->
     """
-    {{> @userProfileForm}}
+    {{> @changePasswordForm}}
     """
