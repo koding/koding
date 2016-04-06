@@ -7,6 +7,6 @@ SharedMachinesList = require './components/sharedmachineslist'
 module.exports = class HomeVirtualMachinesSharedMachines extends ReactView
 
   renderReact: ->
-    <SharedMachinesList />
+    <SharedMachinesList.Container />
 
 
