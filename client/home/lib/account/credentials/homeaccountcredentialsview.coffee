@@ -11,20 +11,12 @@ AccountCredentialListController = require 'account/views/accountcredentiallistco
 
 module.exports = class HomeAccountCredentialsView extends kd.CustomHTMLView
 
-
-  DEFAULT_LIST_TEXT = '''
-    Credentials may include arbitrary data that you collect for third party integrations.
-  '''
-
   constructor: (options = {}, data) ->
 
     super options, data
 
     @addSubView @top = new kd.CustomHTMLView
       cssClass : 'top'
-
-    @top.addSubView @header = new KDHeaderView
-      title : DEFAULT_LIST_TEXT
 
     @createFilterView()
 
@@ -93,9 +85,3 @@ module.exports = class HomeAccountCredentialsView extends kd.CustomHTMLView
     filter.provider = value  if value
     @listController.filterByProvider filter
 
-    if provider = providers[value]
-      { listText } = provider
-
-    listText = DEFAULT_LIST_TEXT unless listText
-
-    @header.updateTitle listText
