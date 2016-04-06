@@ -13,9 +13,6 @@ module.exports = class HomeAccountSessionsView extends kd.CustomHTMLView
     @addSubView @top = new kd.CustomHTMLView
       cssClass : 'top'
 
-    @top.addSubView @header = new kd.HeaderView
-      title : 'Active Sessions'
-
     @listController = new KodingListController
       limit               : 8
       lazyLoadThreshold   : 8
