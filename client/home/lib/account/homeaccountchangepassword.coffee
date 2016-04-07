@@ -41,7 +41,7 @@ module.exports = class HomeAccountChangePassword extends kd.CustomHTMLView
         label         : 'Current Password'
 
     @updatePasswordLink  = new CustomLinkView
-      cssClass : 'HomeAppView--link blue'
+      cssClass : 'HomeAppView--link primary'
       title    : 'UPDATE'
       click    : @bound 'update'
 
