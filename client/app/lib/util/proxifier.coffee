@@ -1,67 +1,69 @@
 globals      = require 'globals'
 doXhrRequest = require 'app/util/doXhrRequest'
 
-module.exports = (url, checkAlternatives = yes, callback) ->
+module.exports = class Proxifier
 
-  # parse url
-  parser = global.document.createElement 'a'
-  parser.href = url
+  @proxify = (url, checkAlternatives = yes, callback) ->
 
-  # if url is already proxyfied return it as is
-  return callback url  if /p\.koding\.com/.test url
-  return callback url  if parser.hostname in ['127.0.0.1', 'dev.kodi.ng']
+    # parse url
+    parser = global.document.createElement 'a'
+    parser.href = url
 
-  # check if running under production environment
-  isInProduction = globals.config.environment is 'production'
+    # if url is already proxyfied return it as is
+    return callback url  if /p\.koding\.com/.test url
+    return callback url  if parser.hostname in ['127.0.0.1', 'dev.kodi.ng']
 
-  # get the current protocol
-  { protocol } = global.document.location
+    # check if running under production environment
+    isInProduction = globals.config.environment is 'production'
 
-  # build our new url, example:
-  # old: http://54.164.174.218:3000/kite
-  # new: https://koding.com/-/prodproxy/54.164.243.111/kite
-  #           or
-  #      http://localhost:8090/-/prodproxy/54.164.243.111/kite
+    # get the current protocol
+    { protocol } = global.document.location
 
-  # subdomain is for different proxy environments
-  # one for development the other for production
-  subdomain = if isInProduction then 'p' else 'dev-p'
+    # build our new url, example:
+    # old: http://54.164.174.218:3000/kite
+    # new: https://koding.com/-/prodproxy/54.164.243.111/kite
+    #           or
+    #      http://localhost:8090/-/prodproxy/54.164.243.111/kite
 
-  # create the base url
-  baseURL = "#{protocol}//#{subdomain}.koding.com/-"
+    # subdomain is for different proxy environments
+    # one for development the other for production
+    subdomain = if isInProduction then 'p' else 'dev-p'
 
-  # if it's a tunnel given domain we need to do one more check
-  # for tunnels since production tunnel proxy is different
-  if (/\.koding\.me$/.test host = parser.hostname)
+    # create the base url
+    baseURL = "#{protocol}//#{subdomain}.koding.com/-"
 
-    # for tunneled connections default tunnel is `devtunnel`
-    proxy    = if isInProduction then 'prodtunnel' else 'devtunnel'
-    current  = "#{baseURL}/#{proxy}/#{host}#{parser.pathname}"
+    # if it's a tunnel given domain we need to do one more check
+    # for tunnels since production tunnel proxy is different
+    if (/\.koding\.me$/.test host = parser.hostname)
 
-    return callback current  unless checkAlternatives
+      # for tunneled connections default tunnel is `devtunnel`
+      proxy    = if isInProduction then 'prodtunnel' else 'devtunnel'
+      current  = "#{baseURL}/#{proxy}/#{host}#{parser.pathname}"
 
-    endPoint = "#{baseURL}/#{proxy}/#{host}/-/discover/kite"
-    type     = 'GET'
-    timeout  = 2000
+      return callback current  unless checkAlternatives
 
-    doXhrRequest { endPoint, type, timeout }, (err, res) ->
+      endPoint = "#{baseURL}/#{proxy}/#{host}/-/discover/kite"
+      type     = 'GET'
+      timeout  = 2000
 
-      if err
-        console.warn '[tunnel] failed to look for alternatives:', err
-        return callback current
+      doXhrRequest { endPoint, type, timeout }, (err, res) ->
 
-      # walk over alternatives for local and send
-      # it back if found a match with the protocol
-      for alt in res
-        if ///^#{alt.protocol}///.test(protocol) and alt.local
-          return callback "#{protocol}//#{alt.addr}/kite"
+        if err
+          console.warn '[tunnel] failed to look for alternatives:', err
+          return callback current
 
-      callback current
+        # walk over alternatives for local and send
+        # it back if found a match with the protocol
+        for alt in res
+          if ///^#{alt.protocol}///.test(protocol) and alt.local
+            return callback "#{protocol}//#{alt.addr}/kite"
 
-  # proxy support for not tunneled direct connections for each environment
-  else
+        callback current
 
-    proxy = if isInProduction then 'prodproxy' else 'devproxy'
+    # proxy support for not tunneled direct connections for each environment
+    else
 
-    # generated proxyfied url for connecting to kite
-    callback "#{baseURL}/#{proxy}/#{host}#{parser.pathname}"
+      proxy = if isInProduction then 'prodproxy' else 'devproxy'
+
+      # generated proxyfied url for connecting to kite
+      callback "#{baseURL}/#{proxy}/#{host}#{parser.pathname}"
