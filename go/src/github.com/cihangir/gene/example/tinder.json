@@ -5,7 +5,8 @@
   "description": "This is not your tinder.",
   "generators": [
     {
-      "sql-definition": {
+      "ddl": {
+        "rootPathPrefix": "db",
         "roleName": "tinder_role",
         "grants": [
           "SELECT",
@@ -15,6 +16,9 @@
         ],
         "databaseName": "tinder_db",
         "schemaName": "tinder_schema"
+      },
+      "dockerfiles": {
+        "CMDPath": "./bin/"
       }
     }
   ],
@@ -71,7 +75,7 @@
       "description": "Profile represents a registered Account's Public Info",
       "generators": [
         {
-          "sql-definition": {
+          "ddl": {
             "grants": [
               "SELECT",
               "INSERT",
@@ -89,7 +93,8 @@
           "type": "number",
           "format": "int64",
           "minimum": 1,
-          "propertyOrder": 10
+          "propertyOrder": 10,
+          "tags": "json:\"_id,string\" bson:\"_id,string\""
         },
         "ScreenName": {
           "description": "Full name associated with the profile. Maximum of 20 characters.",
@@ -226,7 +231,7 @@
       "description": "Account represents a registered User",
       "generators": [
         {
-          "sql-definition": {
+          "ddl": {
             "grants": [
               "SELECT",
               "INSERT",
@@ -457,7 +462,7 @@
       "description": "Holds Facebook Profiles",
       "generators": [
         {
-          "sql-definition": {
+          "ddl": {
             "roleName": "twitter_db_role",
             "grants": [
               "SELECT",
@@ -575,7 +580,7 @@
       "description": "Holds Facebook Friendship Status",
       "generators": [
         {
-          "sql-definition": {
+          "ddl": {
             "roleName": "twitter_db_role",
             "grants": [
               "SELECT",

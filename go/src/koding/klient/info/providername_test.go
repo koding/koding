@@ -3,6 +3,7 @@ package info
 import (
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -53,20 +54,31 @@ func runRegexCheckTest(t *testing.T, checker ProviderChecker,
 // WhoisQuery has very basic behavior currently - so we're just
 // running a couple simple query tests.
 func TestWhoisQuery(t *testing.T) {
-	res, err := WhoisQuery("koding.com", "whois.arin.net", 6*time.Second)
-	if err != nil {
-		t.Fatal(err)
+	// Retry WhoisQuery up to 3 times for network timeout errors.
+	for i := 0; i < 3; i++ {
+		res, err := WhoisQuery("koding.com", "whois.arin.net", 5*time.Second)
+		if e, ok := err.(net.Error); ok && e.Timeout() {
+			continue
+		}
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if res == "" {
+			t.Fatal("Whois response empty.")
+		}
+
+		// Use a the street name to validate the response
+		if regexp.MustCompile(`(?i)brannan`).MatchString(res) != true {
+			t.Fatal("Response does not match as expected." +
+				`Wanted the regexp "brannan" to match`)
+		}
+
+		return
 	}
 
-	if res == "" {
-		t.Error("Whois response empty.")
-	}
-
-	// Use a the street name to validate the response
-	if regexp.MustCompile(`(?i)brannan`).MatchString(res) != true {
-		t.Error("Response does not match as expected." +
-			`Wanted the regexp "brannan" to match`)
-	}
+	t.Fatal("exceeded max retry attempts for WhoisQuery")
 }
 
 func TestCheckDigitalOcean(t *testing.T) {

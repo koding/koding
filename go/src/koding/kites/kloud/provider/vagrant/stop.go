@@ -1,8 +1,12 @@
 package vagrant
 
 import (
+	"errors"
 	"time"
 
+	"github.com/koding/kite"
+
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 
 	"golang.org/x/net/context"
@@ -18,8 +22,14 @@ func (m *Machine) Stop(ctx context.Context) (err error) {
 	}
 
 	if !origState.In(machinestate.Stopping, machinestate.Stopped) {
-		if err = m.api.Halt(m.Meta.HostQueryString, m.Meta.FilePath); err != nil {
-			m.updateState(origState) // bring back original state
+		err = m.api.Halt(m.Meta.HostQueryString, m.Meta.FilePath)
+		if err == kite.ErrNoKitesAvailable || err == klient.ErrDialingFailed {
+			m.updateState(origState)
+			return errors.New("unable to connect to host klient, is it down?")
+		}
+
+		if err != nil {
+			m.updateState(origState)
 			return err
 		}
 	}
@@ -28,7 +38,6 @@ func (m *Machine) Stop(ctx context.Context) (err error) {
 		return c.UpdateId(
 			m.ObjectId,
 			bson.M{"$set": bson.M{
-				"ipAddress":         "",
 				"status.state":      machinestate.Stopped.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     "Machine is stopped",

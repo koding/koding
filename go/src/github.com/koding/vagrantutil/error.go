@@ -2,8 +2,20 @@ package vagrantutil
 
 import (
 	"errors"
+	"os"
 	"strings"
 )
+
+// List of errors ignored by Destroy / Status methods:
+const (
+	errNotCreated    = "A Vagrant environment or target machine is required to run this"
+	errRubyNotExists = "No such file or directory - getcwd (Errno::ENOENT)"
+)
+
+func isNotCreated(err error) bool {
+	return os.IsNotExist(err) || strings.Contains(err.Error(), errNotCreated) ||
+		strings.Contains(err.Error(), errRubyNotExists)
+}
 
 // The following errors are returned by the Wait function:
 var (

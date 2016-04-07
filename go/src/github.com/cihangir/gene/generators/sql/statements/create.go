@@ -12,7 +12,7 @@ import (
 
 // GenerateCreate generates the create sql statement for the given schema
 func GenerateCreate(context *common.Context, settings schema.Generator, s *schema.Schema) ([]byte, error) {
-	temp := template.New("create_statement.tmpl").Funcs(context.TemplateFuncs)
+	temp := template.New("create_statement.tmpl").Funcs(common.TemplateFuncs)
 
 	if _, err := temp.Parse(CreateStatementTemplate); err != nil {
 		return nil, err

@@ -205,6 +205,10 @@ func (r *RemoteTransport) SetIgnoreDirs(dirs []string) {
 	r.IgnoreDirs = dirs
 }
 
+func (r *RemoteTransport) GetRemotePath() string {
+	return r.RemotePath
+}
+
 ///// Helpers
 
 // fullPath prefixes remoate path with the specified path. This is used to

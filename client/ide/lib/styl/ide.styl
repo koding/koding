@@ -1284,3 +1284,25 @@ body.ide .kddialogview.save-as-dialog
 .kdlistitemview-contextitem.actions a
   color                     #F0F0F0
   text-decoration           none
+
+.tailer-pane-progress-bar
+  background                none
+  bg                        color transparent
+  border                    none
+  height                    3px
+  width                     100%
+  overflow                  hidden
+  rounded                   2px
+  vendor                    transition, color .1s ease
+
+  > cite
+    bg                      color $green
+    border                  none
+    display                 block
+    height                  100%
+    width                   0
+    max-width               100%
+    rounded                 2px
+    shadow                  none
+    vendor                  transition, width .3s ease .05s\,\
+                                        margin .3s ease

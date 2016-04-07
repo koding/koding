@@ -4,26 +4,19 @@ package main
 import (
 	"log"
 
-	"github.com/cihangir/gene/generators/clients"
 	"github.com/cihangir/gene/generators/common"
-	"github.com/cihangir/gene/generators/dockerfiles"
-	gerr "github.com/cihangir/gene/generators/errors"
 	"github.com/cihangir/gene/generators/functions"
-	"github.com/cihangir/gene/generators/kit"
 	"github.com/cihangir/gene/generators/mainfile"
-	"github.com/cihangir/gene/generators/models"
 	"github.com/cihangir/gene/generators/sql/statements"
-	"github.com/cihangir/geneddl"
-	"github.com/cihangir/generows"
 	"github.com/koding/multiconfig"
 
 	_ "github.com/cihangir/govalidator"
 	_ "github.com/cihangir/stringext"
-	_ "github.com/koding/logging"
 	_ "github.com/lann/squirrel"
 	_ "golang.org/x/net/context"
 )
 
+// Config holds configuration data for gene
 type Config struct {
 	// Schema holds the given schema file
 	Schema string `required:"true"`
@@ -31,23 +24,22 @@ type Config struct {
 	// Target holds the target folder
 	Target string `required:"true" default:"./"`
 
-	DDL    geneddl.Generator
-	Models models.Generator
+	// Generators holds the generator names for processing
+	Generators []string `default:"ddl,rows,kit,errors,dockerfiles,clients,functions,models,js"`
 
-	Rows        generows.Generator
-	Statements  statements.Generator
-	Errors      gerr.Generator
-	Mainfile    mainfile.Generator
-	Clients     clients.Generator
-	Functions   functions.Generator
-	Dockerfiles dockerfiles.Generator
+	Statements statements.Generator
+	Mainfile   mainfile.Generator
+	Functions  functions.Generator
 	// Js         js.Generator
-	// Server     server.Generator
-	Kit kit.Generator
 }
 
 func main() {
 	conf := &Config{}
+	g, err := common.Discover("gene-*")
+	if err != nil {
+		log.Fatalf("err %s", err.Error())
+	}
+	defer g.Shutdown()
 
 	loader := multiconfig.MultiLoader(
 		&multiconfig.TagLoader{},  // assign default values
@@ -55,7 +47,7 @@ func main() {
 	)
 
 	if err := loader.Load(conf); err != nil {
-		log.Fatalf("config read err:", err.Error())
+		log.Fatalf("config read err: %s", err.Error())
 	}
 
 	if err := (&multiconfig.RequiredValidator{}).Validate(conf); err != nil {
@@ -63,54 +55,43 @@ func main() {
 	}
 
 	c := common.NewContext()
-	c.Config.Schema = conf.Schema
 	c.Config.Target = conf.Target
-	c.FieldNameFunc = geneddl.GetFieldNameFunc(conf.DDL.FieldNameCase)
+	c.Config.Generators = conf.Generators
 
-	s, err := common.Read(c.Config.Schema)
+	str, err := common.ReadJSON(conf.Schema)
 	if err != nil {
 		log.Fatalf("schema read err: %s", err.Error())
 	}
 
-	s.Resolve(s)
+	for name, client := range g.Clients {
+		log.Print("generating for ", name)
 
-	//
-	// generate sql definitions
-	//
-	c.Config.Target = conf.Target + "db" + "/"
-	output, err := conf.DDL.Generate(c, s)
-	if err != nil {
-		log.Fatal("geneddl err: %s", err.Error())
-	}
+		rpcClient, err := client.Client()
+		if err != nil {
+			log.Fatalf("couldnt start client: %s", err)
+		}
+		defer rpcClient.Close()
 
-	if err := common.WriteOutput(output); err != nil {
-		log.Fatal("output write err: %s", err.Error())
-	}
+		raw, err := rpcClient.Dispense("generate")
+		if err != nil {
+			log.Fatalf("couldnt get the client: %s", err.Error())
+		}
 
-	//
-	// generate models
-	//
-	c.Config.Target = conf.Target + "models" + "/"
-	output, err = conf.Models.Generate(c, s)
-	if err != nil {
-		log.Fatalf("err while generating models", err.Error())
-	}
+		gene := (raw).(common.Generator)
+		req := &common.Req{
+			SchemaStr: str,
+			Context:   c,
+		}
 
-	if err := common.WriteOutput(output); err != nil {
-		log.Fatal("output write err: %s", err.Error())
-	}
+		res := &common.Res{}
+		err = gene.Generate(req, res)
+		if err != nil {
+			log.Fatalf("err while generating content for %s, err: %# v", name, err)
+		}
 
-	//
-	// generate rowsscanner
-	//
-	c.Config.Target = conf.Target + "models" + "/"
-	output, err = conf.Rows.Generate(c, s)
-	if err != nil {
-		log.Fatalf("err while generating rows", err.Error())
-	}
-
-	if err := common.WriteOutput(output); err != nil {
-		log.Fatal("output write err: %s", err.Error())
+		if err := common.WriteOutput(res.Output); err != nil {
+			log.Fatalf("output write err: %s", err.Error())
+		}
 	}
 
 	//
@@ -127,38 +108,12 @@ func main() {
 	// }
 
 	//
-	// generate errors
-	//
-	c.Config.Target = conf.Target + "errors" + "/"
-	output, err = conf.Errors.Generate(c, s)
-	if err != nil {
-		log.Fatalf("err while generating errors", err.Error())
-	}
-
-	if err := common.WriteOutput(output); err != nil {
-		log.Fatal("output write err: %s", err.Error())
-	}
-
-	//
 	// generate main file
 	//
 	// c.Config.Target = conf.Target + "cmd" + "/"
 	// output, err = conf.Mainfile.Generate(c, s)
 	// if err != nil {
 	// 	log.Fatalf("err while generating main file", err.Error())
-	// }
-
-	// if err := common.WriteOutput(output); err != nil {
-	// 	log.Fatal("output write err: %s", err.Error())
-	// }
-
-	//
-	// generate clients
-	//
-	// c.Config.Target = conf.Target + "workers" + "/"
-	// output, err = conf.Clients.Generate(c, s)
-	// if err != nil {
-	// 	log.Fatalf("err while generating clients", err.Error())
 	// }
 
 	// if err := common.WriteOutput(output); err != nil {
@@ -190,50 +145,6 @@ func main() {
 	// if err := common.WriteOutput(output); err != nil {
 	// 	log.Fatal("output write err: %s", err.Error())
 	// }
-
-	//
-	// generate api server handlers
-	//
-	// c.Config.Target = conf.Target + "api" + "/"
-	// output, err = conf.Server.Generate(c, s)
-	// if err != nil {
-	// 	log.Fatalf("err while generating api server", err.Error())
-	// }
-
-	// if err := common.WriteOutput(output); err != nil {
-	// 	log.Fatal("api output write err: %s", err.Error())
-	// }
-
-	//
-	// generate kit server handlers
-	//
-
-	workersPath := conf.Target + "workers" + "/"
-	c.Config.Target = workersPath
-	output, err = conf.Kit.Generate(c, s)
-	if err != nil {
-		log.Fatalf("err while generating kit server", err.Error())
-	}
-
-	if err := common.WriteOutput(output); err != nil {
-		log.Fatal("kit output write err: %s", err.Error())
-	}
-
-	//
-	// generate dockerfiles
-	//
-	c.Config.Target = conf.Target + "dockerfiles" + "/"
-
-	conf.Dockerfiles.CMDPath = workersPath + "cmd/"
-
-	output, err = conf.Dockerfiles.Generate(c, s)
-	if err != nil {
-		log.Fatalf("err while generating dockerfiles", err.Error())
-	}
-
-	if err := common.WriteOutput(output); err != nil {
-		log.Fatal("dockerfiles output write err: %s", err.Error())
-	}
 
 	log.Println("module created with success")
 }

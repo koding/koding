@@ -2,6 +2,7 @@ package geneddl
 
 import (
 	"encoding/json"
+	"strings"
 
 	"testing"
 
@@ -18,11 +19,8 @@ func TestExtensions(t *testing.T) {
 	}
 
 	s = s.Resolve(s)
-	g := New()
-
-	context := common.NewContext()
-	moduleName := context.ModuleNameFunc(s.Title)
-	settings := GenerateSettings(g.Name(), moduleName, s)
+	moduleName := strings.ToLower(s.Title)
+	settings := GenerateSettings(GeneratorName, moduleName, s)
 
 	index := 0
 	for _, def := range s.Definitions {
@@ -32,15 +30,15 @@ func TestExtensions(t *testing.T) {
 			continue
 		}
 
-		settingsDef := SetDefaultSettings(g.Name(), settings, def)
+		settingsDef := SetDefaultSettings(GeneratorName, settings, def)
 		settingsDef.Set("tableName", stringext.ToFieldName(def.Title))
 
-		sts, err := DefineExtensions(context, settingsDef, def)
+		sts, err := DefineExtensions(settingsDef, def)
 		if err != nil {
 			t.Fatal(err.Error())
 		}
 
-		equals(t, expectedExtensions[index], string(sts))
+		common.TestEquals(t, expectedExtensions[index], string(sts))
 		index++
 	}
 }

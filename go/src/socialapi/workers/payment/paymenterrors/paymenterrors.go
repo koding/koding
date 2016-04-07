@@ -53,4 +53,6 @@ var (
 	ErrCustomerEmailIsEmpty = func(oldId string) error {
 		return fmt.Errorf("customer: %s has no email", oldId)
 	}
+
+	ErrNotImplemented = errors.New("Requested action is not implemented for this provider.")
 )

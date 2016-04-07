@@ -89,6 +89,8 @@ module.exports = class IDEEditorPane extends IDEPane
       @emit 'EditorIsReady'
       @emit 'ready'
 
+      @setScrollMarginTop 15
+
     @on 'RealtimeManagerSet', =>
       myPermission = @rtm.getFromModel('permissions').get nick()
       return  if myPermission isnt 'read'

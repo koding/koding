@@ -8,7 +8,7 @@ import (
 
 	"github.com/jinzhu/now"
 
-	"gopkg.in/mgo.v2"
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -49,6 +49,8 @@ func (w *Warning) Run() (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	j.log.Info("Will sleep for %s", sleepInSec)
 
 	for {
 		if w.Throttled {
@@ -203,6 +205,7 @@ func (w *Warning) getSleepTime() (time.Duration, error) {
 		return 0, err
 	}
 
+	j.log.Info("Totally, will process %d items", count)
 	now := time.Now()
 
 	timeToWork := now.Add(23*time.Hour).UnixNano() - now.UnixNano()

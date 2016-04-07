@@ -15,7 +15,7 @@ module.exports = class KodingListView extends KDListView
 
   askForConfirm: (options) ->
 
-    { title, description, callback, cssClass } = options
+    { title, description, callback } = options
 
     if not title or not description
       return kd.warn 'You should pass title or description for confirm modal'

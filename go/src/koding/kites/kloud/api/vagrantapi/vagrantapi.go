@@ -121,13 +121,17 @@ func (k *Klient) send(queryString, method string, req, resp interface{}) (string
 
 	kref, err := klient.ConnectTimeout(k.Kite, queryString, k.dialTimeout())
 	if err != nil {
-		return "", errors.New("connecting to klient failed: " + err.Error())
+		k.Log.Debug("connecting to %q klient failed: %s", queryString, err)
+
+		return "", err
 	}
 	defer kref.Close()
 
 	r, err := kref.Client.TellWithTimeout(method, k.timeout(), req)
 	if err != nil {
-		return "", errors.New("sending request to klient failed: " + err.Error())
+		k.Log.Debug("sending request to %q klient failed: %s", queryString, err)
+
+		return "", err
 	}
 
 	if err := r.Unmarshal(resp); err != nil {
@@ -146,7 +150,9 @@ func (k *Klient) cmd(queryString, method, boxPath string) error {
 
 	kref, err := klient.ConnectTimeout(k.Kite, queryString, k.dialTimeout())
 	if err != nil {
-		return errors.New("connecting to klient failed: " + err.Error())
+		k.Log.Debug("connecting to %q klient failed: %s", queryString, err)
+
+		return err
 	}
 
 	done := make(chan error, 1)

@@ -91,6 +91,18 @@ does_service_exist() {
 	return 1
 }
 
+stop_klient() {
+	if [ ${is_macosx} -eq 1 ]; then
+		# try to stop old klient.plist
+		sudo launchctl unload -w "${init_dir}/klient.plist" &>/dev/null || true
+	else
+		# try to stop old upstart klient
+		sudo stop klient &>/dev/null || true
+	fi
+
+	eval sudo $(get_stop_klient_command) &>/dev/null || true
+}
+
 install_service() {
 	case "${init_tool}" in
 		update-rc.d)
@@ -298,22 +310,13 @@ EOF
 do_install_screen() {
 	if ! which screen &>/dev/null; then
 		if [[ ${is_macosx} -eq 1 ]]; then
-			# If Homebrew is not available, inform the user to install screen
-			# themselves.
-			if ! which brew &>/dev/null &&
-				brew tap homebrew/dupes &>/dev/null &&
-				brew install screen &>/dev/null &&
-				brew untap homebrew/dupes &>/dev/null; then
-
-				cat <<EOF
+			# screen from homebrew is not compatible with klient
+			cat <<EOF
 Error: The Unix command 'screen' must be installed prior to installing
 the Koding Service connector. Please install it, and retry this
 installation.
 EOF
-				return 1
-			fi
-
-			return 0
+			return 1
 		fi
 
 		# If apt-get is not available, inform the user to install screen
@@ -385,9 +388,7 @@ EOF
 
 	pushd /tmp &>/dev/null
 
-	# try to stop old upstart klients
-	sudo stop klient &>/dev/null || true &>/dev/null
-	eval sudo $(get_stop_klient_command) || true &>/dev/null
+	stop_klient
 
 	if ! download_klient; then
 		exit 2
@@ -411,8 +412,7 @@ EOF
 	fi
 
 	# ensure klient is stopped after installing the deb
-	sudo stop klient &>/dev/null || true &>/dev/null
-	eval sudo $(get_stop_klient_command) || true &>/dev/null
+	stop_klient
 
 	# It's ok $1 to be empty, in that case it'll try to register via password input
 	if ! sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token "${1:-}" -username "$KITE_USERNAME" < /dev/tty; then

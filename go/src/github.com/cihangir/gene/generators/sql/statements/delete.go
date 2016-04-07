@@ -12,7 +12,7 @@ import (
 
 // GenerateDelete generates the delete sql statement for the given schema
 func GenerateDelete(context *common.Context, settings schema.Generator, s *schema.Schema) ([]byte, error) {
-	temp := template.New("delete_statement.tmpl").Funcs(context.TemplateFuncs)
+	temp := template.New("delete_statement.tmpl").Funcs(common.TemplateFuncs)
 
 	if _, err := temp.Parse(DeleteStatementTemplate); err != nil {
 		return nil, err

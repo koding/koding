@@ -1,5 +1,6 @@
 kd    = require 'kd'
 JView = require 'app/jview'
+strip = require 'app/util/stripHTMLtoText'
 
 module.exports = class BannerNotificationView extends kd.CustomHTMLView
 
@@ -55,4 +56,4 @@ module.exports = class BannerNotificationView extends kd.CustomHTMLView
     @unsetClass 'in'
 
 
-  pistachio: -> "<p>{{> @title}} {{> @content}}</p>{{> @close}}"
+  pistachio: -> "<p title='#{@getOption 'title'} #{strip @getOption 'content'}'>{{> @title}} {{> @content}}</p>{{> @close}}"

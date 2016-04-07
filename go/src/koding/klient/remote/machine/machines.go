@@ -49,6 +49,34 @@ func (ms *Machines) Add(m *Machine) error {
 	return nil
 }
 
+// Remove removes the given machine from this Machines struct.
+//
+// It does *not* save the resulting machines to the database. This must be done
+// manually by calling Machines.Save()
+func (ms *Machines) Remove(m *Machine) error {
+	var (
+		found bool
+		i     int
+		mach  *Machine
+	)
+
+	// Iterate through the machines, to find the index we want to remove
+	for i, mach = range ms.machines {
+		if mach == m {
+			found = true
+			break
+		}
+	}
+
+	// If it's not found, there's nothing we need to do.
+	if !found {
+		return ErrMachineNotFound
+	}
+
+	ms.machines = append(ms.machines[:i], ms.machines[i+1:]...)
+	return nil
+}
+
 // Count simply returns the total machines under this struct.
 func (ms *Machines) Count() int {
 	return len(ms.machines)

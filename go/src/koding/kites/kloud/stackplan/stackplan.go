@@ -8,14 +8,19 @@ import (
 	"sync"
 	"time"
 
+	"koding/db/models"
+	"koding/kites/common"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/utils"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/koding/kite"
 	"golang.org/x/net/context"
 )
+
+var defaultLog = common.NewLogger("stackplan", false)
 
 // credPermissions defines the permission grid for the given method
 var (
@@ -52,6 +57,9 @@ type Stack struct {
 
 	// Template is a raw Terraform template.
 	Template string
+
+	// Stack is a jComputeStack value.
+	Stack *models.ComputeStack
 }
 
 // Machines is a list of machines.
@@ -131,7 +139,7 @@ func (m *Machines) WithLabel(label string) (Machine, error) {
 func UserData(content string) string {
 	var buf bytes.Buffer
 
-	// If there's no shebang, execute the script with bash.
+	// If there's no shebang, execute the script with sh.
 	if !strings.HasPrefix(content, "#!") {
 		fmt.Fprintln(&buf, "#!/bin/sh")
 	}
@@ -155,6 +163,10 @@ type Planner struct {
 	ResourceType string // Terraform resource type
 
 	KlientTimeout time.Duration // when zero-value, DefaultKlientTimeout is used
+
+	// OnKlient, when non-nil, is called to perform additional check
+	// for CheckKlients method.
+	OnKlient func(*kite.Client) error
 
 	// SessionFunc is used to build a session value from the context.
 	//
@@ -282,6 +294,12 @@ func (p *Planner) CheckKlients(ctx context.Context, kiteIDs KiteMap) (map[string
 
 		if err := klientRef.Ping(); err != nil {
 			return "", err
+		}
+
+		if p.OnKlient != nil {
+			if err := p.OnKlient(klientRef.Client); err != nil {
+				return "", err
+			}
 		}
 
 		return klientRef.Client.URL, nil

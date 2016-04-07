@@ -15,8 +15,10 @@ module.exports = class KodingListController extends KDListViewController
       kd.warn 'The view will not be used which you passed! Because you passed view and item class together.'
       options.view  = null
     else
-      options.view ?= new KodingListView
-        itemClass   : options.itemClass
+      options.viewOptions           ?= {}
+      options.viewOptions.itemClass ?= options.itemClass
+
+      options.view  ?= new KodingListView options.viewOptions
 
     options.itemClass              ?= KDListItemView
 
@@ -110,10 +112,15 @@ module.exports = class KodingListController extends KDListViewController
 
   loadItems: ->
 
+    return  if @_inprogress
+    @_inprogress = yes
+
     @removeAllItems()
     @showLazyLoader no
 
     @fetch @filterStates.query, (items) =>
+      @_inprogress = no
+      @emit 'ItemsLoaded', items
       return @showNoItemWidget()  unless items?.length
 
       @addListItems items

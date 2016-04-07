@@ -58,10 +58,31 @@ func metaFunc(provider string) func() interface{} {
 	return genericMetaFunc
 }
 
+// BuilderOptions alternates the default behavior of the builder.
+type BuilderOptions struct {
+	Log      logging.Logger
+	Database Database
+}
+
+func (opts *BuilderOptions) defaults() *BuilderOptions {
+	optsCopy := *opts
+
+	if optsCopy.Log == nil {
+		optsCopy.Log = defaultLog
+	}
+
+	if optsCopy.Database == nil {
+		optsCopy.Database = defaultDatabase
+	}
+
+	return &optsCopy
+}
+
 // Builder is used for building Terraform template.
 type Builder struct {
-	Object *object.Builder
-	Log    logging.Logger
+	Database *DatabaseBuilder
+	Object   *object.Builder
+	Log      logging.Logger
 
 	// Fields being built:
 	Stack       *Stack
@@ -72,15 +93,24 @@ type Builder struct {
 }
 
 // NewBuilder gives new *Builder value.
-func NewBuilder(log logging.Logger) *Builder {
-	return &Builder{
-		Log: log,
+func NewBuilder(opts *BuilderOptions) *Builder {
+	opts = opts.defaults()
+
+	b := &Builder{
+		Log: opts.Log,
 		Object: &object.Builder{
 			Tag:       "hcl",
 			Sep:       "_",
 			Recursive: true,
 		},
 	}
+
+	b.Database = &DatabaseBuilder{
+		Database: opts.Database,
+		Builder:  b,
+	}
+
+	return b
 }
 
 // BuildStack fetches stack details from MongoDB.
@@ -123,6 +153,7 @@ func (b *Builder) BuildStack(stackID string) error {
 		Machines:    machineIDs,
 		Credentials: credentials,
 		Template:    stackTemplate.Template.Content,
+		Stack:       computeStack,
 	}
 
 	return nil

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cihangir/gene/generators/common"
 	"github.com/cihangir/schema"
+	"github.com/cihangir/stringext"
 )
 
 // DefineConstraints creates constraints definition for tables
-func DefineConstraints(context *common.Context, settings schema.Generator, s *schema.Schema) ([]byte, error) {
+func DefineConstraints(settings schema.Generator, s *schema.Schema) ([]byte, error) {
 	primaryKeyConstraint := ""
 	primaryKey := settings.Get("primaryKey")
 	if primaryKey != nil {
@@ -17,7 +17,7 @@ func DefineConstraints(context *common.Context, settings schema.Generator, s *sc
 		if len(pmi) > 0 {
 			sl := make([]string, len(pmi))
 			for i, pm := range pmi {
-				sl[i] = context.FieldNameFunc(pm.(string))
+				sl[i] = stringext.ToFieldName(pm.(string))
 			}
 
 			primaryKeyConstraint = fmt.Sprintf(
@@ -42,12 +42,12 @@ func DefineConstraints(context *common.Context, settings schema.Generator, s *sc
 				ukcs := ukc.([]interface{})
 				ukcsps := make([]string, len(ukcs))
 				for i, ukc := range ukcs {
-					ukcsps[i] = context.FieldNameFunc(ukc.(string))
+					ukcsps[i] = stringext.ToFieldName(ukc.(string))
 				}
 				keyName := fmt.Sprintf(
 					"%s_%s_%s",
-					context.FieldNameFunc("key"),
-					context.FieldNameFunc(settings.Get("tableName").(string)),
+					stringext.ToFieldName("key"),
+					stringext.ToFieldName(settings.Get("tableName").(string)),
 					strings.Join(ukcsps, "_"),
 				)
 				uniqueKeyConstraints += fmt.Sprintf(
@@ -74,15 +74,15 @@ func DefineConstraints(context *common.Context, settings schema.Generator, s *sc
 		if len(fkci) > 0 {
 			for _, fkc := range fkci {
 				fkcs := fkc.([]interface{})
-				localField := context.FieldNameFunc(fkcs[0].(string))
+				localField := stringext.ToFieldName(fkcs[0].(string))
 				refFields := strings.Split(fkcs[1].(string), ".")
 				if len(refFields) != 3 {
 					return nil, fmt.Errorf("need schemaName.tableName.fieldName")
 				}
 				keyName := fmt.Sprintf(
 					"%s_%s_%s",
-					context.FieldNameFunc("fkey"),
-					context.FieldNameFunc(settings.Get("tableName").(string)),
+					stringext.ToFieldName("fkey"),
+					stringext.ToFieldName(settings.Get("tableName").(string)),
 					localField,
 				)
 
@@ -92,9 +92,9 @@ func DefineConstraints(context *common.Context, settings schema.Generator, s *sc
 					settings.Get("tableName"),
 					keyName,
 					localField,
-					context.FieldNameFunc(refFields[0]), // first item schema name
-					context.FieldNameFunc(refFields[1]), // second item table name
-					context.FieldNameFunc(refFields[2]), // third item field name
+					stringext.ToFieldName(refFields[0]), // first item schema name
+					stringext.ToFieldName(refFields[1]), // second item table name
+					stringext.ToFieldName(refFields[2]), // third item field name
 
 				)
 

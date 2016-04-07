@@ -8,8 +8,10 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"koding/klient/remote/kitepinger"
 	"koding/klient/remote/machine"
 	"koding/klient/storage"
+	"koding/klient/testutil"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -153,10 +155,8 @@ func TestGetMachines(t *testing.T) {
 }
 
 func TestGetMachinesWithoutCache(t *testing.T) {
-	Convey("Given a new machine", t, func() {
+	Convey("Given a Remote", t, func() {
 		kg := newMockKiteGetter()
-		kg.AddByUrl("http://testhost1:56789")
-
 		store := storage.NewMemoryStorage()
 		r := &Remote{
 			localKite: &kite.Kite{
@@ -175,85 +175,120 @@ func TestGetMachinesWithoutCache(t *testing.T) {
 		// Sanity check our count.
 		So(r.machines.Count(), ShouldEqual, 0)
 
-		// Sanity check our config
-		So(kg.Clients[0].Reconnect, ShouldBeFalse)
-		Convey("It should configure the kite Client", func() {
-			r.GetMachinesWithoutCache()
-			So(kg.Clients[0].Reconnect, ShouldBeTrue)
-		})
+		Convey("Given a new machine", func() {
+			kg.AddByUrl("http://testhost1:56789")
 
-		Convey("It should add the new machine", func() {
-			machines, err := r.GetMachinesWithoutCache()
-			So(err, ShouldBeNil)
-			So(machines, ShouldNotBeNil)
-			So(machines.Count(), ShouldEqual, 1)
-		})
+			// Sanity check our config
+			So(kg.Clients[0].Reconnect, ShouldBeFalse)
+			Convey("It should configure the kite Client", func() {
+				r.GetMachinesWithoutCache()
+				So(kg.Clients[0].Reconnect, ShouldBeTrue)
+			})
 
-		Convey("It should create the HTTPTracker", func() {
-			machines, err := r.GetMachinesWithoutCache()
-			So(err, ShouldBeNil)
-			So(machines, ShouldNotBeNil)
+			Convey("It should add the new machine", func() {
+				machines, err := r.GetMachinesWithoutCache()
+				So(err, ShouldBeNil)
+				So(machines, ShouldNotBeNil)
+				So(machines.Count(), ShouldEqual, 1)
+			})
 
-			mach := machines.Machines()[0]
-			So(mach, ShouldNotBeNil)
-			So(mach.HTTPTracker, ShouldNotBeNil)
+			Convey("It should create the HTTPTracker", func() {
+				machines, err := r.GetMachinesWithoutCache()
+				So(err, ShouldBeNil)
+				So(machines, ShouldNotBeNil)
 
-			Convey("It should start the HTTPTracker", func() {
-				So(mach.HTTPTracker.IsPinging(), ShouldBeTrue)
+				mach := machines.Machines()[0]
+				So(mach, ShouldNotBeNil)
+				So(mach.HTTPTracker, ShouldNotBeNil)
+
+				Convey("It should start the HTTPTracker", func() {
+					So(mach.HTTPTracker.IsPinging(), ShouldBeTrue)
+				})
 			})
 		})
-	})
 
-	Convey("Given a pre existing machine", t, func() {
-		kg := newMockKiteGetter()
-		kg.AddByUrl("http://testhost1:56789")
-
-		store := storage.NewMemoryStorage()
-		r := &Remote{
-			localKite: &kite.Kite{
-				Id: "test id",
-				Config: &config.Config{
-					Username: "test user",
+		Convey("Given a loaded but not yet valid machine", func() {
+			kg.AddByUrl("http://testhost1:56789")
+			// Add a machine, with just enough info to serve our needs
+			r.machines.Add(&machine.Machine{
+				MachineMeta: machine.MachineMeta{
+					IP: "testhost1",
 				},
-			},
-			kitesGetter: kg,
-			log:         discardLogger,
-			machines:    machine.NewMachines(discardLogger, store),
-			storage:     store,
-		}
+			})
 
-		// Add a machine, with just enough info to serve our needs
-		r.machines.Add(&machine.Machine{
-			MachineMeta: machine.MachineMeta{
-				IP: "testhost1",
-			},
+			// Sanity check our config
+			So(kg.Clients[0].Reconnect, ShouldBeFalse)
+			Convey("It should configure the kite Client", func() {
+				r.GetMachinesWithoutCache()
+				So(kg.Clients[0].Reconnect, ShouldBeTrue)
+			})
+
+			Convey("It should not add a new machine for the kite", func() {
+				machines, err := r.GetMachinesWithoutCache()
+				So(err, ShouldBeNil)
+				So(machines, ShouldNotBeNil)
+				So(machines.Count(), ShouldEqual, 1)
+			})
+
+			Convey("It should create the HTTPTracker", func() {
+				machines, err := r.GetMachinesWithoutCache()
+				So(err, ShouldBeNil)
+				So(machines, ShouldNotBeNil)
+
+				mach := machines.Machines()[0]
+				So(mach, ShouldNotBeNil)
+				So(mach.HTTPTracker, ShouldNotBeNil)
+
+				Convey("It should start the HTTPTracker", func() {
+					So(mach.HTTPTracker.IsPinging(), ShouldBeTrue)
+				})
+			})
 		})
 
-		// Sanity check our config
-		So(kg.Clients[0].Reconnect, ShouldBeFalse)
-		Convey("It should configure the kite Client", func() {
-			r.GetMachinesWithoutCache()
-			So(kg.Clients[0].Reconnect, ShouldBeTrue)
-		})
+		Convey("Given an pre existing valid machine", func() {
+			kg.AddByUrl("http://testhost1:56789")
+			// Add a machine, with just enough info to serve our needs
+			validMachine := &machine.Machine{
+				MachineMeta: machine.MachineMeta{
+					IP: "testhost1",
+				},
+				Log:         testutil.DiscardLogger,
+				KiteTracker: kitepinger.NewPingTracker(nil), // Invalid ping trackers, but
+				HTTPTracker: kitepinger.NewPingTracker(nil), // okay for this test currently
+				// a bit of a trick, Machine implements Transport, so we're using an empty
+				// machine here to implement transport, and thus make the validMachine instance
+				// "valid". Both this and the pingtrackers above are not usable, but satisfy
+				// the checkvalid requirements.
+				Transport: &machine.Machine{},
+			}
+			So(r.machines.Add(validMachine), ShouldBeNil)
+			// sanity check, to make sure it's valid
+			So(validMachine.CheckValid(), ShouldBeNil)
 
-		Convey("It should not add a new machine for the kite", func() {
-			machines, err := r.GetMachinesWithoutCache()
-			So(err, ShouldBeNil)
-			So(machines, ShouldNotBeNil)
-			So(machines.Count(), ShouldEqual, 1)
-		})
+			Convey("It should be the same machine instance", func() {
+				machines, err := r.GetMachinesWithoutCache()
+				So(err, ShouldBeNil)
+				returnedMachine := machines.Machines()[0]
+				So(returnedMachine, ShouldEqual, validMachine)
+			})
 
-		Convey("It should create the HTTPTracker", func() {
-			machines, err := r.GetMachinesWithoutCache()
-			So(err, ShouldBeNil)
-			So(machines, ShouldNotBeNil)
+			Convey("It should only return 1 machine", func() {
+				machines, err := r.GetMachinesWithoutCache()
+				So(err, ShouldBeNil)
+				So(machines.Count(), ShouldEqual, 1)
+			})
 
-			mach := machines.Machines()[0]
-			So(mach, ShouldNotBeNil)
-			So(mach.HTTPTracker, ShouldNotBeNil)
+			Convey("With a label that does not match the local label", func() {
+				kg.Clients[0].MachineLabel = "foobarbaz"
+				// Sanity check
+				So(kg.Clients[0].MachineLabel, ShouldNotEqual, validMachine.MachineLabel)
 
-			Convey("It should start the HTTPTracker", func() {
-				So(mach.HTTPTracker.IsPinging(), ShouldBeTrue)
+				Convey("It should update the machine label", func() {
+					machines, err := r.GetMachinesWithoutCache()
+					So(err, ShouldBeNil)
+					returnedMachine := machines.Machines()[0]
+					So(returnedMachine.MachineLabel, ShouldEqual, validMachine.MachineLabel)
+				})
 			})
 		})
 	})

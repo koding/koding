@@ -25,13 +25,13 @@ func TestParseRecordsAndData(t *testing.T) {
 	}
 
 	for i, cas := range cases {
-		rec, err := vg.parseRecords(cas.raw)
+		rec, err := parseRecords(cas.raw)
 		if err != nil {
 			t.Errorf("%d: parseRecords()=%s", i, err)
 			continue
 		}
 
-		ver, err := vg.parseData(rec, "version-installed")
+		ver, err := parseData(rec, "version-installed")
 		if err != nil {
 			t.Errorf("%d: parseData()=%d", i, err)
 			continue

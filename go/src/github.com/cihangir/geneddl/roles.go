@@ -1,37 +1,16 @@
 package geneddl
 
 import (
-	"bytes"
-	"text/template"
-
 	"github.com/cihangir/gene/generators/common"
 	"github.com/cihangir/schema"
 )
 
 // DefineRole creates definition for types
-func DefineRole(context *common.Context, settings schema.Generator, s *schema.Schema) ([]byte, error) {
-	temp := template.New("create_role.tmpl").Funcs(context.TemplateFuncs)
-	if _, err := temp.Parse(RoleTemplate); err != nil {
-		return nil, err
-	}
-
-	var buf bytes.Buffer
-
-	data := struct {
-		Context  *common.Context
-		Schema   *schema.Schema
-		Settings schema.Generator
-	}{
-		Context:  context,
-		Schema:   s,
-		Settings: settings,
-	}
-
-	if err := temp.ExecuteTemplate(&buf, "create_role.tmpl", data); err != nil {
-		return nil, err
-	}
-
-	return clean(buf.Bytes()), nil
+func DefineRole(settings schema.Generator, s *schema.Schema) ([]byte, error) {
+	return common.ProcessSingle(&common.Op{
+		Template:       RoleTemplate,
+		PostProcessors: []common.PostProcessor{clean},
+	}, s, settings)
 }
 
 // RoleTemplate holds the template for types

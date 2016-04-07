@@ -4,6 +4,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/koding/kite"
+
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 
 	"golang.org/x/net/context"
@@ -47,7 +50,12 @@ func (m *Machine) start(states ...machinestate.State) (err error) {
 	m.push("Starting machine", 25, machinestate.Starting)
 
 	if origState.In(states...) {
-		if err = m.api.Up(m.Meta.HostQueryString, m.Meta.FilePath); err != nil {
+		err = m.api.Up(m.Meta.HostQueryString, m.Meta.FilePath)
+		if err == kite.ErrNoKitesAvailable || err == klient.ErrDialingFailed {
+			return errors.New("unable to connect to host klient, is it down?")
+		}
+
+		if err != nil {
 			return err
 		}
 	}

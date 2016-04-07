@@ -26,10 +26,9 @@ type Server struct {
 	HTTPClient   *http.Client
 }
 
-func NewDefaultServer(configFolder string, pid int) *Server {
+func NewDefaultServer(configFolder string) *Server {
 	s := &Server{
 		ConfigFolder: configFolder,
-		CurrentPid:   pid,
 		Port:         DefaultPort,
 		Timeout:      DefaultTimeout,
 		HTTPClient: &http.Client{
@@ -40,28 +39,17 @@ func NewDefaultServer(configFolder string, pid int) *Server {
 	return s
 }
 
-func (s *Server) ForkServer() error {
+func (s *Server) Start(currentPid int) error {
 	if s.IsRunning() {
 		return nil
 	}
 
-	c := exec.Command("kd", "metrics", "force")
-	if err := c.Start(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *Server) Start() error {
-	if s.IsRunning() {
-		return nil
-	}
-
-	p := []byte(fmt.Sprintf("%d", s.CurrentPid))
+	p := []byte(fmt.Sprintf("%d", currentPid))
 	if err := ioutil.WriteFile(s.PidPath(), p, 0644); err != nil {
 		return err
 	}
+
+	m := NewDefaultClient()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
@@ -70,12 +58,30 @@ func (s *Server) Start() error {
 			return
 		}
 
-		path := req.FormValue("path")
-		fmt.Fprintf(w, path)
+		machine, action := req.FormValue("machine"), req.FormValue("action")
+		if machine == "" || action == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("machine|action param is empty."))
+			return
+		}
 
+		if action != "start" && action != "stop" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("only 'start|stop' actions are accepted"))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("true"))
+
+		// start in goroutine so http request exists
 		go func() {
-			m := NewDefaultClient()
-			m.StartMountStatusTicker()
+			switch action {
+			case "start":
+				m.StartMountStatusTicker(machine)
+			case "stop":
+				m.StopMountStatusTicker(machine)
+			}
 		}()
 	})
 
@@ -83,7 +89,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) IsRunning() bool {
-	resp, err := s.HTTPClient.Get(s.addr())
+	resp, err := s.HTTPClient.Get(s.Addr())
 	if err != nil {
 		return false
 	}
@@ -122,6 +128,11 @@ func (s *Server) Close() error {
 	return os.Remove(s.PidPath())
 }
 
-func (s *Server) addr() string {
+func (s *Server) Addr() string {
 	return fmt.Sprintf("http://localhost:%s", s.Port)
+}
+
+func forkAndStart() error {
+	c := exec.Command("kd", "metrics", "force")
+	return c.Start()
 }

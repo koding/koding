@@ -73,25 +73,30 @@ var DeleteInactiveUserVM = &Warning{
 }
 
 func newDeleteInactiveUsersWarning(conf *config.Config) *Warning {
+	unregisterURL := conf.Protocol + "//" + conf.Hostname + "/" + "-/Unregister"
+
+	// this will cause deletion of 17495 accounts, will update this query once
+	// we delete all the account till last month ~1.2M
+	t, err := time.Parse("Jan 2 15:04:05 -0700 MST 2006", "Jan 1 00:00:00 -0000 MST 2013")
+	if err != nil {
+		panic(err.Error())
+	}
+
 	return &Warning{
 		ID: "deleteInactiveUsers",
 
 		Description: "Find users inactive for > 45 days, deleted ALL their vms",
 
-		PreviousWarning: DeleteInactiveUserVM,
-
-		IntervalSinceLastWarning: time.Hour * 24 * 15, // 15 days since last warning
-
 		Select: []bson.M{
-			bson.M{"lastLoginDate": dayRangeQuery(45, DefaultRangeForQuery)},
-			bson.M{"inactive.warning": DeleteInactiveUserVM.ID},
+			bson.M{"lastLoginDate": bson.M{"$lt": t}},
+			bson.M{"status": bson.M{"$nin": []string{"deleted"}}},
 		},
 
 		ExemptCheckers: []*ExemptChecker{
-			IsTooSoon, IsUserPaid, HasMultipleMemberships, IsUserKodingEmployee,
+			IsUserPaid, HasMultipleMemberships, IsUserKodingEmployee,
 		},
 
-		Action: newDeleteUser(conf),
+		Action: newDeleteUserFunc(unregisterURL),
 
 		Throttled: true,
 	}

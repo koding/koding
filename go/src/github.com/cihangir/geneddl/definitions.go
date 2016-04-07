@@ -1,19 +1,22 @@
+// Package geneddl provides DDL generation for json schema
 package geneddl
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/cihangir/gene/generators/common"
-	"github.com/cihangir/gene/writers"
+	"github.com/cihangir/gene/utils"
 	"github.com/cihangir/schema"
 	"github.com/cihangir/stringext"
 )
 
-const GeneratorName = "sql-definition"
+// GeneratorName holds generator name
+const GeneratorName = "ddl"
 
+// Generator provides DDL generation
 type Generator struct {
 	DatabaseName  string
 	SchemaName    string
@@ -22,78 +25,103 @@ type Generator struct {
 	FieldNameCase string `default:"snake"`
 }
 
-func New() *Generator {
-	return &Generator{}
-}
-
-func (g *Generator) Name() string {
-	return GeneratorName
-}
+// New is the constructor for generator struct
 
 // Generate generates the basic CRUD statements for the models
-func (g *Generator) Generate(context *common.Context, s *schema.Schema) ([]common.Output, error) {
-	outputs := make([]common.Output, 0)
+func (g *Generator) Generate(req *common.Req, res *common.Res) error {
+	context := req.Context
 
-	if s.Title == "" {
-		return outputs, errors.New("Title should be set")
+	if context == nil || context.Config == nil || !common.IsIn(GeneratorName, context.Config.Generators...) {
+		return nil
 	}
 
-	moduleName := context.FieldNameFunc(s.Title)
+	if req.Schema == nil {
+		if req.SchemaStr == "" {
+			return errors.New("both schema and string schema is not set")
+		}
 
-	settings := GenerateSettings(g.Name(), moduleName, s)
+		s := &schema.Schema{}
+		if err := json.Unmarshal([]byte(req.SchemaStr), s); err != nil {
+			return err
+		}
 
-	for _, name := range schema.SortedKeys(s.Definitions) {
-		def := s.Definitions[name]
+		req.Schema = s.Resolve(nil)
+	}
+
+	if req.Schema.Title == "" {
+		return errors.New("Title should be set")
+	}
+
+	outputs := make([]common.Output, 0)
+
+	moduleName := stringext.ToFieldName(req.Schema.Title)
+
+	settings := GenerateSettings(GeneratorName, moduleName, req.Schema)
+	settings.SetNX("rootPathPrefix", "db")
+	rootPathPrefix := settings.Get("rootPathPrefix").(string)
+	fullPathPrefix := req.Context.Config.Target + rootPathPrefix + "/"
+	settings.Set("fullPathPrefix", fullPathPrefix)
+
+	for _, name := range schema.SortedKeys(req.Schema.Definitions) {
+		def := req.Schema.Definitions[name]
 
 		// schema should have our generator
-		if !def.Generators.Has(g.Name()) {
+		if !def.Generators.Has(GeneratorName) {
 			continue
 		}
 
-		settingsDef := SetDefaultSettings(g.Name(), settings, def)
-		settingsDef.Set("tableName", context.FieldNameFunc(def.Title))
+		settingsDef := SetDefaultSettings(GeneratorName, settings, def)
+		settingsDef.Set("tableName", stringext.ToFieldName(def.Title))
 
 		//
 		// generate roles
 		//
-		role, err := DefineRole(context, settingsDef, def)
+		role, err := DefineRole(settingsDef, def)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		outputs = append(outputs, common.Output{
-			Content:     role,
-			Path:        fmt.Sprintf("%s/001-%s_roles.sql", context.Config.Target, settingsDef.Get("databaseName").(string)),
+			Content: role,
+			Path: fmt.Sprintf(
+				"%s/001-%s_roles.sql",
+				fullPathPrefix,
+				settingsDef.Get("databaseName").(string),
+			),
 			DoNotFormat: true,
 		})
 
 		//
 		// generate database
 		//
-		db, err := DefineDatabase(context, settingsDef, def)
+		db, err := DefineDatabase(settingsDef, def)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		outputs = append(outputs, common.Output{
-			Content:     db,
-			Path:        fmt.Sprintf("%s/002-%s_database.sql", context.Config.Target, settingsDef.Get("databaseName").(string)),
+			Content: db,
+			Path: fmt.Sprintf(
+				"%s/002-%s_database.sql",
+				fullPathPrefix,
+				settingsDef.Get("databaseName").(string),
+			),
 			DoNotFormat: true,
 		})
 
 		//
 		// generate extenstions
 		//
-		extenstions, err := DefineExtensions(context, settingsDef, def)
+		extenstions, err := DefineExtensions(settingsDef, def)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		outputs = append(outputs, common.Output{
 			Content: extenstions,
 			Path: fmt.Sprintf(
 				"%s/003-%s_extensions.sql",
-				context.Config.Target,
+				fullPathPrefix,
 				settingsDef.Get("databaseName").(string)),
 			DoNotFormat: true,
 		})
@@ -101,16 +129,16 @@ func (g *Generator) Generate(context *common.Context, s *schema.Schema) ([]commo
 		//
 		// generate schema
 		//
-		sc, err := DefineSchema(context, settingsDef, def)
+		sc, err := DefineSchema(settingsDef, def)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		outputs = append(outputs, common.Output{
 			Content: sc,
 			Path: fmt.Sprintf(
 				"%s/%s/004-schema.sql",
-				context.Config.Target,
+				fullPathPrefix,
 				settingsDef.Get("schemaName").(string),
 			),
 			DoNotFormat: true,
@@ -119,16 +147,16 @@ func (g *Generator) Generate(context *common.Context, s *schema.Schema) ([]commo
 		//
 		// generate sequences
 		//
-		sequence, err := DefineSequence(context, settingsDef, def)
+		sequence, err := DefineSequence(settingsDef, def)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		outputs = append(outputs, common.Output{
 			Content: sequence,
 			Path: fmt.Sprintf(
 				"%s/%s/005-%s-sequence.sql",
-				context.Config.Target,
+				fullPathPrefix,
 				settingsDef.Get("schemaName").(string),
 				settingsDef.Get("tableName").(string),
 			),
@@ -138,16 +166,16 @@ func (g *Generator) Generate(context *common.Context, s *schema.Schema) ([]commo
 		//
 		// generate types
 		//
-		types, err := DefineTypes(context, settingsDef, def)
+		types, err := DefineTypes(settingsDef, def)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		outputs = append(outputs, common.Output{
 			Content: types,
 			Path: fmt.Sprintf(
 				"%s/%s/006-%s-types.sql",
-				context.Config.Target,
+				fullPathPrefix,
 				settingsDef.Get("schemaName").(string),
 				settingsDef.Get("tableName").(string),
 			),
@@ -157,16 +185,16 @@ func (g *Generator) Generate(context *common.Context, s *schema.Schema) ([]commo
 		//
 		// generate tables
 		//
-		table, err := DefineTable(context, settingsDef, def)
+		table, err := DefineTable(settingsDef, def)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		outputs = append(outputs, common.Output{
 			Content: table,
 			Path: fmt.Sprintf(
 				"%s/%s/007-%s-table.sql",
-				context.Config.Target,
+				fullPathPrefix,
 				settingsDef.Get("schemaName").(string),
 				settingsDef.Get("tableName").(string),
 			),
@@ -176,16 +204,16 @@ func (g *Generator) Generate(context *common.Context, s *schema.Schema) ([]commo
 		//
 		// generate constraints
 		//
-		constraints, err := DefineConstraints(context, settingsDef, def)
+		constraints, err := DefineConstraints(settingsDef, def)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		outputs = append(outputs, common.Output{
 			Content: constraints,
 			Path: fmt.Sprintf(
 				"%s/%s/008-%s-constraints.sql",
-				context.Config.Target,
+				fullPathPrefix,
 				settingsDef.Get("schemaName").(string),
 				settingsDef.Get("tableName").(string),
 			),
@@ -193,30 +221,11 @@ func (g *Generator) Generate(context *common.Context, s *schema.Schema) ([]commo
 		})
 	}
 
-	return outputs, nil
+	res.Output = outputs
+	return nil
 }
 
-// CreateStatementTemplate holds the template for the create sql statement generator
-var CreateStatementTemplate = `{{DefineSQLSchema .Context .Settings .Schema}}
-
-{{DefineSQLSequnce .Context .Settings .Schema}}
-
-{{DefineSQLExtensions .Context .Settings .Schema}}
-
-{{DefineSQLTypes .Context .Settings .Schema}}
-
-{{DefineSQLTable .Context .Settings .Schema}}
-`
-
-func GetFieldNameFunc(name string) func(string) string {
-	switch name {
-	case "lower":
-		return strings.ToLower
-	default:
-		return stringext.ToFieldName
-	}
-}
-
+// GenerateSettings generates settings for the ddl package
 func GenerateSettings(genName string, moduleName string, s *schema.Schema) schema.Generator {
 	settings, ok := s.Generators.Get(genName)
 	if !ok {
@@ -245,6 +254,7 @@ func GenerateSettings(genName string, moduleName string, s *schema.Schema) schem
 	return settings
 }
 
+// SetDefaultSettings sets the default values for the settings
 func SetDefaultSettings(genName string, defaultSettings schema.Generator, s *schema.Schema) schema.Generator {
 	settings, _ := s.Generators.Get(genName)
 
@@ -272,7 +282,7 @@ func SetDefaultSettings(genName string, defaultSettings schema.Generator, s *sch
 }
 
 func clean(b []byte) []byte {
-	b = writers.NewLinesRegex.ReplaceAll(b, []byte(""))
+	b = utils.NewLinesRegex.ReplaceAll(b, []byte(""))
 
 	// convert tabs to 4 spaces
 	b = bytes.Replace(b, []byte("\t"), []byte("    "), -1)

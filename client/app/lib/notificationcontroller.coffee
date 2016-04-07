@@ -98,7 +98,10 @@ module.exports = class NotificationController extends KDObject
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
         modal.on 'KDObjectWillBeDestroyed', deleteUserCookie.bind this
 
-    @on 'MachineListUpdated', ({ machineUId, action, permanent }) ->
+    @on 'MachineListUpdated', (data = {}) ->
+
+      { machineUId, action, permanent } = data
+
       switch action
         when 'removed'
           if (ideInstance = envDataProvider.getIDEFromUId machineUId) and permanent

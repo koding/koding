@@ -74,7 +74,11 @@ func JSONTag(n string, required bool) string {
 	return fmt.Sprintf("`json:\"%s\"`", strings.Join(tags, ","))
 }
 
-func JSONTagWithIgnored(n string, required bool, ignored bool, fieldType string) string {
+func JSONTagWithIgnored(n string, required bool, ignored bool, fieldType string, forceTags string) string {
+	if forceTags != "" {
+		return fmt.Sprintf("`%s`", forceTags)
+	}
+
 	modified := ToLowerFirst(Normalize(n))
 
 	tags := []string{modified}

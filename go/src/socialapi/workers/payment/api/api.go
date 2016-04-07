@@ -39,6 +39,14 @@ func AccountSubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, 
 	)
 }
 
+func AccountCancelSubscriptionRequest(u *url.URL, h http.Header, req *payment.AccountRequest) (int, http.Header, interface{}, error) {
+	req.AccountId = u.Query().Get("account_id")
+
+	return response.HandleResultAndClientError(
+		req.CancelSubscription(),
+	)
+}
+
 func GroupSubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	subscriptionRequest := &payment.GroupRequest{
 		GroupId: u.Query().Get("group_id"),

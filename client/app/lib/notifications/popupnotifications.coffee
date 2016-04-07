@@ -1,9 +1,6 @@
 kd                          = require 'kd'
 isLoggedIn                  = require '../util/isLoggedIn'
 AvatarPopup                 = require '../avatararea/avatarpopup'
-NotificationListController  = require './notificationlistcontroller'
-NotificationListItemView    = require './notificationlistitemview'
-PopupList                   = require '../avatararea/popuplist'
 isKoding                    = require 'app/util/isKoding'
 Tracker                     = require '../util/tracker'
 
@@ -24,28 +21,7 @@ module.exports = class PopupNotifications extends AvatarPopup
 
     super
 
-    @_popupList = new PopupList
-      itemClass : NotificationListItemView
-      delegate  : this
-
-    @listController = new NotificationListController
-      view         : @_popupList
-      maxItems     : 5
-
-    @listController.on 'AvatarPopupShouldBeHidden', @bound 'hide'
-
-    @forwardEvent @listController, 'NotificationCountDidChange'
-    @forwardEvent @listController, 'AvatarPopupShouldBeHidden'
-
-    @avatarPopupContent.addSubView @listController.getView()
     @addAccountMenu()  unless isKoding()
-
-    @updateItems()
-
-    @attachListeners()
-
-    { mainController } = kd.singletons
-    mainController.on 'AccountChanged', @bound 'attachListeners'
 
 
   addAccountMenu: ->
@@ -74,41 +50,8 @@ module.exports = class PopupNotifications extends AvatarPopup
 
 
   hide: ->
-
     super
-
-    if isLoggedIn()
-      { notifications } = kd.singletons.socialapi
-      notifications.glance {}, (err) =>
-        return kd.warn err.error, err.description  if err
-
-        @listController.emit 'NotificationCountDidChange', 0
 
 
   accountChanged: (account) ->
     super
-
-    @updateItems()
-
-  updateItems: ->
-    return unless @listController
-
-    @listController.removeAllItems()
-
-    if isLoggedIn()
-      # Fetch Notifications
-      @listController.fetchNotificationTeasers (err, notifications) =>
-        return kd.warn 'Notifications cannot be received', err  if err
-        @listController.instantiateListItems notifications
-
-  attachListeners: ->
-    { notificationController } = kd.singletons
-    notificationController.off 'NotificationHasArrived'
-    notificationController.on 'NotificationHasArrived', ({ event }) =>
-    #   # No need the following
-    #   # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
-      if event is 'NotificationAdded'
-        @listController.fetchNotificationTeasers (err, notifications) =>
-          return kd.warn 'Notifications cannot be received', err  if err
-          @listController.removeAllItems()
-          @listController.instantiateListItems notifications

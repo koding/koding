@@ -6,14 +6,15 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/cihangir/gene/writers"
+	"github.com/cihangir/gene/utils"
 	"github.com/cihangir/schema"
 	"github.com/cihangir/stringext"
 )
 
 // Generate generates the validators for the the given schema
 func Generate(s *schema.Schema) ([]byte, error) {
-	validators := make([]string, 0)
+	var validators []string
+
 	// schemaName := p.Title
 	schemaFirstChar := stringext.Pointerize(s.Title)
 
@@ -97,5 +98,5 @@ func (%s *%s) Validate() error {
 		strings.Join(sslice, ",\n"),
 	)
 
-	return writers.Clear(*bytes.NewBufferString(res))
+	return utils.Clear(*bytes.NewBufferString(res))
 }

@@ -5,6 +5,7 @@ FSFile                    = require 'app/util/fs/fsfile'
 Machine                   = require 'app/providers/machine'
 ideRoutes                 = require 'ide/routes.coffee'
 mockjgroup                = require './mock.jgroup'
+mockjstack                = require './mock.jstack'
 mockjmachine              = require './mock.jmachine'
 mockjaccount              = require './mock.jaccount'
 mockjcredential           = require './mock.jcredential'
@@ -344,6 +345,10 @@ module.exports =
   getMockJComputeStack: -> return mockjcomputestack
 
   getMockComputeStack: -> remote.revive mockjcomputestack
+
+  getMockJStack: -> mockjstack
+
+  getMockStack: -> remote.revive mockjstack
 
   getMockMessage: (args...) -> return mockMessage(args...)
 

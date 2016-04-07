@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"koding/klient/protocol"
+	"koding/klient/tunnel/tlsproxy"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -63,6 +64,13 @@ func Register(kontrolURL, kiteHome, username, token string, debug bool) error {
 
 	kontrol := k.NewClient(kontrolURL)
 	if err := kontrol.Dial(); err != nil {
+		return err
+	}
+	defer kontrol.Close()
+
+	// Register is always called with sudo, so Init should have enough
+	// permissions.
+	if err := tlsproxy.Init(); err != nil {
 		return err
 	}
 

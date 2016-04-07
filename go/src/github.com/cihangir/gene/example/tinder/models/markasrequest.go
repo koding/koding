@@ -1,4 +1,4 @@
-// Generated struct for MarkAsRequest.
+// Package models holds generated struct for MarkAsRequest.
 package models
 
 import "github.com/cihangir/govalidator"

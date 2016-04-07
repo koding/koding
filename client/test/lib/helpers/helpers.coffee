@@ -474,6 +474,14 @@ module.exports =
     curl.request data, (err, parts) -> console.log err  if err
 
 
+  notifyTestFailure: (browser, testName) ->
+
+    message = "#{testName} test failed, please check the test..."
+
+    @postToSlack message
+    browser.pause(2500).end()
+
+
   getUrl: (teamsUrl) ->
 
     url = 'dev.koding.com:8090'

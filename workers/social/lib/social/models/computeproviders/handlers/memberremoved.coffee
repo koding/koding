@@ -17,7 +17,10 @@ checkOwnership = (machine, user) ->
 
   return owner
 
-setOwnerOfStack = (stack, newOwnerId, oldOwner) ->
+
+setOwnerOfStack = (stack, newOwner, oldOwner, group) ->
+
+  newOwnerId = newOwner.getId()
 
   stack.unuseStackTemplate (err) ->
     log 'Failed to mark as unused stack:', err  if err
@@ -28,14 +31,16 @@ setOwnerOfStack = (stack, newOwnerId, oldOwner) ->
         'config.oldOwner' : oldOwner
       }
     }, (err) ->
-      log 'Failed to change ownership of stack:', err  if err
+      if err
+      then log 'Failed to change ownership of stack:', err
+      else newOwner.sendNotification 'MachineListUpdated', { group }
 
 
-updateStacks = ({ reason, stacks, oldOwner, requesterId }) ->
+updateStacks = ({ reason, stacks, oldOwner, requester, group }) ->
 
   if reason is 'kick'
     stacks.forEach (stack) ->
-      setOwnerOfStack stack, requesterId, oldOwner
+      setOwnerOfStack stack, requester, oldOwner, group
   else
     stacks.forEach (stack) ->
       stack.delete (err) ->
@@ -46,7 +51,7 @@ setOwnerOfMachine = (machine, { account, user, oldOwner, group }) ->
 
   # Update machine ownership to the admin who kicked the member
   machine.addUsers {
-    targets: [ user ], asOwner: yes, sudo: yes, group: group.slug
+    targets: [ user ], asOwner: yes, sudo: yes, group: group.slug, inform: no
   }, (err) ->
     log 'Failed to change ownership of machine:', err  if err
 
@@ -178,7 +183,8 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
       updateStacks {
         stacks   : memberStacks
         oldOwner : memberJUser.getAt 'username'
-        requesterId, reason
+        group    : group.slug
+        requester, reason
       }
       next()
 

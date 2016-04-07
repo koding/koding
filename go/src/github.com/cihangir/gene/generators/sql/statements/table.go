@@ -12,7 +12,7 @@ import (
 
 // GenerateTableName generates a simple table name getter function
 func GenerateTableName(context *common.Context, settings schema.Generator, s *schema.Schema) ([]byte, error) {
-	temp := template.New("table_name_statement.tmpl").Funcs(context.TemplateFuncs)
+	temp := template.New("table_name_statement.tmpl").Funcs(common.TemplateFuncs)
 
 	if _, err := temp.Parse(TableNameTemplate); err != nil {
 		return nil, err

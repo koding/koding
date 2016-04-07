@@ -2,12 +2,13 @@ package vagrantutil
 
 import (
 	"bufio"
+	"fmt"
 	"strings"
 )
 
 // parseData parses the given vagrant type field from the machine readable
 // output (records).
-func (v *Vagrant) parseData(records [][]string, typeName string) (string, error) {
+func parseData(records [][]string, typeName string) (string, error) {
 	data := ""
 	for _, record := range records {
 		// first three are defined, after that data is variadic, it contains
@@ -17,22 +18,20 @@ func (v *Vagrant) parseData(records [][]string, typeName string) (string, error)
 			continue
 		}
 
-		if typeName == record[2] {
+		if typeName == record[2] && record[3] != "" {
 			data = record[3]
-			if data != "" {
-				break
-			}
+			break
 		}
 	}
 
 	if data == "" {
-		return "", v.errorf("couldn't parse data for vagrant type: %q", typeName)
+		return "", fmt.Errorf("couldn't parse data for vagrant type: %q", typeName)
 	}
 
 	return data, nil
 }
 
-func (v *Vagrant) parseRecords(out string) (recs [][]string, err error) {
+func parseRecords(out string) (recs [][]string, err error) {
 	scanner := bufio.NewScanner(strings.NewReader(out))
 
 	for scanner.Scan() {
@@ -41,12 +40,12 @@ func (v *Vagrant) parseRecords(out string) (recs [][]string, err error) {
 			continue
 		}
 
-		row := strings.Split(scanner.Text(), ",")
+		row := strings.Split(line, ",")
 		recs = append(recs, row)
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, v.error(err)
+		return nil, err
 	}
 
 	return recs, nil

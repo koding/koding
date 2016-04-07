@@ -12,7 +12,7 @@ import (
 
 // GenerateUpdate generates the update sql statement for the given schema
 func GenerateUpdate(context *common.Context, settings schema.Generator, s *schema.Schema) ([]byte, error) {
-	temp := template.New("update_statement.tmpl").Funcs(context.TemplateFuncs)
+	temp := template.New("update_statement.tmpl").Funcs(common.TemplateFuncs)
 	if _, err := temp.Parse(UpdateStatementTemplate); err != nil {
 		return nil, err
 	}

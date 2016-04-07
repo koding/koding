@@ -266,11 +266,11 @@ func TestHasMultipleMembershipsFn(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(user, ShouldNotBeNil)
 
-		group, err := createGroup()
+		group, err := modeltesthelper.CreateGroup()
 		So(err, ShouldBeNil)
 		So(group, ShouldNotBeNil)
 
-		group2, err := createGroup()
+		group2, err := modeltesthelper.CreateGroup()
 		So(err, ShouldBeNil)
 		So(group, ShouldNotBeNil)
 
@@ -321,51 +321,6 @@ func TestHasMultipleMembershipsFn(t *testing.T) {
 		})
 	})
 
-}
-
-func createGroup() (*models.Group, error) {
-	g := &models.Group{
-		Id:                             bson.NewObjectId(),
-		Body:                           bson.NewObjectId().Hex(),
-		Title:                          bson.NewObjectId().Hex(),
-		Slug:                           bson.NewObjectId().Hex(),
-		Privacy:                        "private",
-		Visibility:                     "hidden",
-		SocialApiChannelId:             "0",
-		SocialApiAnnouncementChannelId: "0",
-		// DefaultChannels holds the default channels for a group, when a user joins
-		// to this group, participants will be automatically added to regarding
-		// channels
-		DefaultChannels: []string{"0"},
-	}
-
-	return g, modelhelper.CreateGroup(g)
-}
-
-func createUser(username string) (*models.User, error) {
-	id := bson.NewObjectId()
-	user := &models.User{
-		ObjectId: id,
-		Name:     username,
-		Status:   "confirmed",
-		Email:    username + "@" + username + ".com",
-	}
-
-	return user, modelhelper.CreateUser(user)
-}
-
-func createAccount() (*models.Account, error) {
-	acc := &models.Account{
-		Id: bson.NewObjectId(),
-		Profile: models.AccountProfile{
-			Nickname:  bson.NewObjectId().Hex(), // random username
-			FirstName: bson.NewObjectId().Hex(),
-			LastName:  bson.NewObjectId().Hex(),
-		},
-		Type: "registered",
-	}
-
-	return acc, modelhelper.CreateAccount(acc)
 }
 
 func addRelationship(accId, groupId bson.ObjectId, rel string) error {

@@ -101,7 +101,7 @@ describe 'EnvironmentListController', ->
 
       expect.spyOn(computeController, 'destroyStack').andCall (stack, callback) -> callback null
 
-      item            = { getData : kd.noop }
+      item            = { getData : -> { _id : 'mock data' } }
       spy             = expect.spyOn computeController, 'reset'
       listController  = new EnvironmentListController
 

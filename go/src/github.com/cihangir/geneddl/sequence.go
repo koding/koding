@@ -1,37 +1,16 @@
 package geneddl
 
 import (
-	"bytes"
-	"text/template"
-
 	"github.com/cihangir/gene/generators/common"
 	"github.com/cihangir/schema"
 )
 
 // DefineSequence creates definition for sequences
-func DefineSequence(context *common.Context, settings schema.Generator, s *schema.Schema) ([]byte, error) {
-	temp := template.New("create_sequences.tmpl").Funcs(context.TemplateFuncs)
-	if _, err := temp.Parse(SequenceTemplate); err != nil {
-		return nil, err
-	}
-
-	var buf bytes.Buffer
-
-	data := struct {
-		Context  *common.Context
-		Schema   *schema.Schema
-		Settings schema.Generator
-	}{
-		Context:  context,
-		Schema:   s,
-		Settings: settings,
-	}
-
-	if err := temp.ExecuteTemplate(&buf, "create_sequences.tmpl", data); err != nil {
-		return nil, err
-	}
-
-	return clean(buf.Bytes()), nil
+func DefineSequence(settings schema.Generator, s *schema.Schema) ([]byte, error) {
+	return common.ProcessSingle(&common.Op{
+		Template:       SequenceTemplate,
+		PostProcessors: []common.PostProcessor{clean},
+	}, s, settings)
 }
 
 // SequenceTemplate holds the template for sequences

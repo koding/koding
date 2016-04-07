@@ -28,6 +28,10 @@ var cmdDescriptions = map[string]string{
 		"<alias>",
 		"Unmount folder which was previously mounted.",
 	),
+	"remount": fmtDesc(
+		"<alias>",
+		"Remount machine which was previously mounted using the same settings.",
+	),
 	"run": fmtDesc(
 		"<command> <arguments>",
 		fmt.Sprintf(`Run command on remote or local machine depending on the location

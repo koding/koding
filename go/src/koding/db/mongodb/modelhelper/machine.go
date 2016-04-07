@@ -499,3 +499,18 @@ func UnsetKlientMissingAt(userId bson.ObjectId) error {
 
 	return Mongo.Run(MachinesColl, query)
 }
+
+func UpdateMachines(update bson.M, ids ...bson.ObjectId) error {
+	query := func(c *mgo.Collection) error {
+		_, err := c.UpdateAll(
+			bson.M{
+				"_id": bson.M{"$in": ids},
+			},
+			update,
+		)
+
+		return err
+	}
+
+	return Mongo.Run(MachinesColl, query)
+}

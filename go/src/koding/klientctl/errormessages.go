@@ -187,7 +187,7 @@ remote machine is running & accessible and try again.`,
 	// RemotePathDoesNotExist is printed when the user supplies a directory to mount,
 	// that does not exist on the remote side.
 	RemotePathDoesNotExist = fmt.Sprintf(
-		`Error: The given path does not exist on the remote machine.`,
+		`Error: The given remote folder path does not exist on the remote machine.`,
 	)
 
 	// AttemptedRemoveRestrictedPath is when the user unmounts a path, but

@@ -12,7 +12,7 @@ import (
 
 // GenerateSelect generates the select sql statement for the given schema
 func GenerateSelect(context *common.Context, settings schema.Generator, s *schema.Schema) ([]byte, error) {
-	temp := template.New("select_statement.tmpl").Funcs(context.TemplateFuncs)
+	temp := template.New("select_statement.tmpl").Funcs(common.TemplateFuncs)
 
 	if _, err := temp.Parse(SelectStatementTemplate); err != nil {
 		return nil, err

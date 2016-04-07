@@ -8,8 +8,9 @@ import (
 	"github.com/cihangir/schema"
 )
 
+// GenerateKitWorker generates the worker system for base kit
 func GenerateKitWorker(context *common.Context, s *schema.Schema) ([]common.Output, error) {
-	outputs := make([]common.Output, 0)
+	var outputs []common.Output
 
 	for name, template := range templates {
 		path := fmt.Sprintf(
@@ -49,7 +50,7 @@ import (
 
 // DefaultMiddlewares provides bare bones for default middlewares with
 // requestLatency, requestCount and requestLogging
-func DefaultMiddlewares(method string, requestCount metrics.Counter, requestLatency metrics.TimeHistogram, logger log.Logger) endpoint.Middleware {
+func DefaultMiddlewares(method string, requestCount metrics.Counter, requestLatency metrics.Histogram, logger log.Logger) endpoint.Middleware {
     return endpoint.Chain(
         RequestLatencyMiddleware(method, requestLatency),
         RequestCountMiddleware(method, requestCount),
@@ -76,13 +77,13 @@ func RequestCountMiddleware(method string, requestCount metrics.Counter) endpoin
 
 // RequestLatencyMiddleware prepares a request latency calculator
 // endpoint.Middleware for package wide usage
-func RequestLatencyMiddleware(method string, requestLatency metrics.TimeHistogram) endpoint.Middleware {
+func RequestLatencyMiddleware(method string, requestLatency metrics.Histogram) endpoint.Middleware {
     return func(next endpoint.Endpoint) endpoint.Endpoint {
         return func(ctx context.Context, request interface{}) (response interface{}, err error) {
             defer func(begin time.Time) {
                 methodField := metrics.Field{Key: "method", Value: method}
                 errorField := metrics.Field{Key: "error", Value: fmt.Sprintf("%v", err)}
-                requestLatency.With(methodField).With(errorField).Observe(time.Since(begin))
+                requestLatency.With(methodField).With(errorField).Observe(int64(time.Since(begin)))
             }(time.Now())
 
             response, err = next(ctx, request)
@@ -271,9 +272,9 @@ type ServerOption struct {
     // LogRequests configures if the server should log incoming requests or not
     LogRequests bool
 
-    // Latency holds the TimeHistogram metric for request latency metric
-    // collection, if not set LatencyMetrics will not be collected
-    Latency metrics.TimeHistogram
+    // Latency holds the metric metric for request latency metric collection, if
+    // not set Latency metrics will not be collected
+    Latency metrics.Histogram
 
     // Counter holds the metrics.Counter metric for request count metric
     // collection, if not set RequestCountMetrics will not be collected
@@ -416,6 +417,116 @@ func (c loggingCollector) Collect(s *zipkin.Span) error {
         "annotations", strings.Join(values, " "),
     )
     return nil
+}
+`,
+	"metrics": `package kitworker
+
+import (
+    "io"
+    "net"
+    "sync"
+    "time"
+
+    "github.com/go-kit/kit/metrics"
+    kitdogstatsd "github.com/go-kit/kit/metrics/dogstatsd"
+)
+
+var ReportInterval = time.Second * 30
+
+func NewUDPWriter(addr string) (io.Writer, error) {
+    udpAddr, err := net.ResolveUDPAddr("udp", addr)
+    if err != nil {
+        return nil, err
+    }
+    conn, err := net.DialUDP("udp", nil, udpAddr)
+    if err != nil {
+        return nil, err
+    }
+
+    return conn, nil
+}
+
+type metric struct {
+    w            io.Writer
+    tags         []metrics.Field
+    reportTicker <-chan time.Time
+
+    // metrics registry
+    counters   map[string]metrics.Counter
+    gauges     map[string]metrics.Gauge
+    histograms map[string]metrics.Histogram
+    mu         sync.Mutex
+}
+
+func NewMetric(addr string, tags ...metrics.Field) (*metric, error) {
+    w, err := NewUDPWriter(addr)
+    if err != nil {
+        return nil, err
+    }
+
+    return &metric{
+        w:            w,
+        tags:         tags,
+        reportTicker: time.Tick(ReportInterval),
+
+        counters:   make(map[string]metrics.Counter),
+        gauges:     make(map[string]metrics.Gauge),
+        histograms: make(map[string]metrics.Histogram),
+    }, nil
+}
+
+func (m *metric) Counter(key string, tags ...metrics.Field) metrics.Counter {
+    m.mu.Lock()
+    counter, ok := m.counters[key]
+    if !ok {
+        counter = kitdogstatsd.NewCounterTick(m.w, key, m.reportTicker, append(m.tags, tags...))
+        m.counters[key] = counter
+    }
+    m.mu.Unlock()
+
+    return counter
+}
+
+func (m *metric) DeleteCounter(key string) {
+    m.mu.Lock()
+    delete(m.counters, key)
+    m.mu.Unlock()
+}
+
+func (m *metric) Gauge(key string, tags ...metrics.Field) metrics.Gauge {
+    m.mu.Lock()
+    gauge, ok := m.gauges[key]
+    if !ok {
+        gauge = kitdogstatsd.NewGaugeTick(m.w, key, m.reportTicker, append(m.tags, tags...))
+        m.gauges[key] = gauge
+    }
+    m.mu.Unlock()
+
+    return gauge
+}
+
+func (m *metric) DeleteGauge(key string) {
+    m.mu.Lock()
+    delete(m.gauges, key)
+    m.mu.Unlock()
+}
+
+func (m *metric) Histogram(key string, tags ...metrics.Field) metrics.Histogram {
+    m.mu.Lock()
+    histogram, ok := m.histograms[key]
+    if !ok {
+        histogram = kitdogstatsd.NewHistogramTick(m.w, key, m.reportTicker, append(m.tags, tags...))
+        m.histograms[key] = histogram
+    }
+    m.mu.Unlock()
+
+    return histogram
+}
+
+func (m *metric) DeleteHistogram(key string) {
+    m.mu.Lock()
+    delete(m.histograms, key)
+    m.mu.Unlock()
 }
 `,
 }

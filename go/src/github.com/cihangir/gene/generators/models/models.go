@@ -3,6 +3,8 @@ package models
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"text/template"
@@ -11,19 +13,57 @@ import (
 	"github.com/cihangir/gene/generators/models/constants"
 	"github.com/cihangir/gene/generators/models/constructors"
 	"github.com/cihangir/gene/generators/models/validators"
-	"github.com/cihangir/gene/writers"
+	"github.com/cihangir/gene/utils"
 	"github.com/cihangir/schema"
 )
 
+// Generator for models
 type Generator struct{}
 
-func (g *Generator) Generate(context *common.Context, schema *schema.Schema) ([]common.Output, error) {
-	outputs := make([]common.Output, 0)
+// Generate generates models for schema
+func (g *Generator) Generate(req *common.Req, res *common.Res) error {
+	context := req.Context
 
-	for _, def := range common.SortedObjectSchemas(schema.Definitions) {
+	if context == nil || context.Config == nil {
+		return nil
+	}
+
+	if !common.IsIn("models", context.Config.Generators...) {
+		return nil
+	}
+
+	if req.Schema == nil {
+		if req.SchemaStr == "" {
+			return errors.New("both schema and string schema is not set")
+		}
+
+		s := &schema.Schema{}
+		if err := json.Unmarshal([]byte(req.SchemaStr), s); err != nil {
+			return err
+		}
+
+		req.Schema = s.Resolve(nil)
+	}
+
+	settings, ok := req.Schema.Generators.Get("models")
+	if !ok {
+		settings = schema.Generator{}
+	}
+
+	settings.SetNX("rootPathPrefix", "models")
+	rootPathPrefix := settings.Get("rootPathPrefix").(string)
+	fullPathPrefix := req.Context.Config.Target + rootPathPrefix + "/"
+	settings.Set("fullPathPrefix", fullPathPrefix)
+
+	// TODO(cihangir) remove this statement when Process transition is complete
+	req.Context.Config.Target = fullPathPrefix
+
+	var outputs []common.Output
+	
+	for _, def := range common.SortedObjectSchemas(req.Schema.Definitions) {
 		f, err := GenerateModel(def)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		path := fmt.Sprintf(
@@ -39,10 +79,14 @@ func (g *Generator) Generate(context *common.Context, schema *schema.Schema) ([]
 
 		for _, funcDef := range def.Functions {
 			if incoming, ok := funcDef.Properties["incoming"]; ok {
+				if incoming.Type == nil {
+					return fmt.Errorf("Type should be set on %+v", incoming)
+				}
+
 				if incoming.Type.(string) == "object" {
 					f, err := GenerateModel(incoming)
 					if err != nil {
-						return nil, err
+						return err
 					}
 
 					path := fmt.Sprintf(
@@ -59,11 +103,14 @@ func (g *Generator) Generate(context *common.Context, schema *schema.Schema) ([]
 			}
 
 			if outgoing, ok := funcDef.Properties["outgoing"]; ok {
+				if outgoing.Type == nil {
+					return fmt.Errorf("Type should be set on %+v", outgoing)
+				}
 
 				if outgoing.Type.(string) == "object" {
 					f, err := GenerateModel(outgoing)
 					if err != nil {
-						return nil, err
+						return err
 					}
 
 					path := fmt.Sprintf(
@@ -81,7 +128,8 @@ func (g *Generator) Generate(context *common.Context, schema *schema.Schema) ([]
 		}
 	}
 
-	return outputs, nil
+	res.Output = outputs
+	return nil
 }
 
 // GenerateModel generates the model itself
@@ -120,7 +168,7 @@ func GenerateModel(s *schema.Schema) ([]byte, error) {
 		buf.Write(validators)
 	}
 
-	return writers.Clear(buf)
+	return utils.Clear(buf)
 }
 
 // GeneratePackage generates the imports according to the schema.
@@ -171,5 +219,5 @@ func GenerateSchema(s *schema.Schema) ([]byte, error) {
 		return nil, err
 	}
 
-	return writers.Clear(buf)
+	return utils.Clear(buf)
 }

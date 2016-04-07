@@ -220,6 +220,7 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		Name: newName,
 		Type: child.GetType(),
 		Mode: child.GetAttrs().Mode,
+		Size: child.GetAttrs().Size,
 	}
 
 	newEntry, err := newDir.initializeChild(e)
@@ -245,6 +246,7 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 
 		file2 := newEntry.(*File)
 		file2.Entry.Parent = newDir
+		file2.SetAttrs(file1.Attrs)
 
 		if err := file2.ResetAndRead(); err != nil {
 			return nil, err

@@ -3,6 +3,7 @@ package remote
 import (
 	"errors"
 	"fmt"
+	"koding/klient/remote/machine"
 	"net/http/httptest"
 	"testing"
 
@@ -47,7 +48,7 @@ func TestCheckSizeOfRemotefolder(t *testing.T) {
 		Stdout: "1200000000", // Sumulating response from du -sb /foo
 	}
 
-	res, err := checkSizeOfRemoteFolder(c, "/foo")
+	res, err := checkSizeOfRemoteFolder(&machine.Machine{Transport: c}, "/foo")
 	if err != nil {
 		t.Error(err)
 	}

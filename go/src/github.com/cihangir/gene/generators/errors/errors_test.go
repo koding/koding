@@ -1,29 +1,14 @@
 package errors
 
 import (
-	"encoding/json"
-
 	"testing"
 
 	"github.com/cihangir/gene/generators/common"
 	"github.com/cihangir/gene/testdata"
-	"github.com/cihangir/schema"
 )
 
 func TestErrors(t *testing.T) {
-	s := &schema.Schema{}
-	if err := json.Unmarshal([]byte(testdata.JSON1), s); err != nil {
-		t.Fatal(err.Error())
-	}
-
-	s = s.Resolve(s)
-
-	sts, err := (&Generator{}).Generate(common.NewContext(), s)
-	common.TestEquals(t, nil, err)
-
-	for i, s := range sts {
-		common.TestEquals(t, expecteds[i], string(s.Content))
-	}
+	common.RunTest(t, &Generator{}, testdata.JSON1, expecteds)
 }
 
 var expecteds = []string{`package errs

@@ -22,9 +22,9 @@ type ServerOption struct {
 	// LogRequests configures if the server should log incoming requests or not
 	LogRequests bool
 
-	// Latency holds the TimeHistogram metric for request latency metric
-	// collection, if not set LatencyMetrics will not be collected
-	Latency metrics.TimeHistogram
+	// Latency holds the metric metric for request latency metric collection, if
+	// not set Latency metrics will not be collected
+	Latency metrics.Histogram
 
 	// Counter holds the metrics.Counter metric for request count metric
 	// collection, if not set RequestCountMetrics will not be collected

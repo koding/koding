@@ -1,14 +1,14 @@
 kd                        = require 'kd'
-KDListView                = kd.ListView
 KDModalView               = kd.ModalView
 KDOverlayView             = kd.OverlayView
 showError                 = require 'app/util/showError'
+KodingListView            = require 'app/kodinglist/kodinglistview'
 StackTemplateListItem     = require './stacktemplatelistitem'
 StackTemplateContentModal = require './stacktemplatecontentmodal'
-Tracker                   = require 'app/util/tracker'
 
 
-module.exports = class StackTemplateList extends KDListView
+module.exports = class StackTemplateList extends KodingListView
+
 
   constructor: (options = {}, data) ->
 
@@ -18,38 +18,28 @@ module.exports = class StackTemplateList extends KDListView
     super options, data
 
 
-  deleteItem: (item) ->
+  askForEdit: (options) ->
 
-    template = item.getData()
+    { callback } = options
 
-    currentGroup = kd.singletons.groupsController.getCurrentGroup()
-    if template._id in (currentGroup.stackTemplates ? [])
-      return showError 'This template currently in use by the Team'
-
-    if kd.singletons.computeController.findStackFromTemplateId template._id
-      return showError 'You currently have a stack generated from this template'
-
-    # Since KDModalView.confirm not passing overlay options
-    # to the base class (KDModalView) I had to do this hack
-    # Remove this when issue fixed in Framework ~ GG
-    overlay = new KDOverlayView { cssClass: 'second-overlay' }
-
-    modal   = KDModalView.confirm
-      title       : 'Remove stack template ?'
-      description : 'Do you want to remove this stack template ?'
-      ok          :
-        title     : 'Yes'
-        callback  :  => template.delete (err) =>
-          modal.destroy()
-          @emit 'ItemDeleted', item  unless showError err
-          Tracker.track Tracker.STACKS_DELETE_TEMPLATE
-
-    modal.once   'KDObjectWillBeDestroyed', overlay.bound 'destroy'
-    overlay.once 'click',                   modal.bound   'destroy'
-
-    return modal
-
-
-  showItemContent: (item) ->
-
-    new StackTemplateContentModal {}, item.getData()
+    modal = new KDModalView
+      title          : 'Editing default stack template ?'
+      overlay        : yes
+      overlayOptions :
+        cssClass     : 'second-overlay'
+        overlayClick : yes
+      content        : '
+        This stack template is currently used by your team. If you continue
+        to edit, all of your changes will be applied to all team members directly.
+        We highly recommend you to clone this stack template
+        first and work on the cloned version. Once you finish your work,
+        you can easily apply your changes for all team members.
+      '
+      buttons      :
+        'Clone and Open Editor':
+          style    : 'solid medium green'
+          loader   : yes
+          callback : => callback { action : 'CloneAndOpen', modal, item : this}
+        "I know what I'm doing, Open Editor":
+          style    : 'solid medium red'
+          callback : => callback { action : 'OpenEditor', modal, item : this}

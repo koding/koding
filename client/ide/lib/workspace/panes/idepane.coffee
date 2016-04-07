@@ -16,3 +16,6 @@ module.exports = class IDEPane extends JView
 
 
   setFocus: (state) ->
+
+
+  setScrollMarginTop: (top) -> @aceView?.ace?.editor.renderer.setScrollMargin 0, top, 0, 0

@@ -1,7 +1,7 @@
 package models
 
 // PackageTemplate holds the template for the packages of the models
-var PackageTemplate = `// Generated struct for {{.Schema.Title}}.
+var PackageTemplate = `// Package models holds generated struct for {{.Schema.Title}}.
 package models
 `
 

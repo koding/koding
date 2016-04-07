@@ -23,6 +23,7 @@ import (
 
 type Options struct {
 	MountName string
+	Version   int
 }
 
 // Command implements the klientctl.Command interface for KD Repair
@@ -105,12 +106,12 @@ func (c *Command) Run() (_ int, err error) {
 
 	defer func() {
 		if err != nil {
-			metrics.TrackRepairError(mountName, err.Error())
+			metrics.TrackRepairError(mountName, err.Error(), c.Options.Version)
 		}
 	}()
 
 	go func() {
-		metrics.TrackRepair(mountName)
+		metrics.TrackRepair(mountName, c.Options.Version)
 	}()
 
 	if err := c.handleOptions(); err != nil {

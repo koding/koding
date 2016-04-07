@@ -37,6 +37,7 @@ module.exports = class JGroup extends Module
   @trait __dirname, '../../traits/joinable'
   @trait __dirname, '../../traits/slugifiable'
   @trait __dirname, '../../traits/notifying'
+  @trait __dirname, '../../traits/notifiable'
 
   @share()
 
@@ -529,10 +530,11 @@ module.exports = class JGroup extends Module
         contents : contents
     }
 
-    require('../socialapi/requests').dispatchEvent 'dispatcher_notify_group', message, (err) ->
-      console.error '[dispatchEvent][notify_group]', err if err
-      # do not cause trailing parameters
-      callback err
+    socialapi = require '../socialapi/requests'
+    socialapi.dispatchEvent 'dispatcher_notify_group', message, (err) ->
+      console.error '[dispatchEvent][notify_group]', err  if err
+      callback? err # do not cause trailing parameters
+
 
   sendNotification$: permit
     advanced: [
@@ -643,6 +645,8 @@ module.exports = class JGroup extends Module
     return yes if @slug is 'koding'
 
     return no  unless @allowedDomains?.length > 0
+
+    return yes if '*' in @allowedDomains
 
     # even if incoming email doesnt have a @ in it, whole string will be taken
     # into consideration as domain name
@@ -1039,6 +1043,10 @@ module.exports = class JGroup extends Module
       blacklist  = ['slug', 'slug_', 'config', '_activePlan']
       data[item] = null  for item in blacklist when data[item]?
 
+      notifyOptions =
+        group   : client?.context?.group
+        target  : 'group'
+
       { reviveGroupPlan } = require '../computeproviders/computeutils'
 
       reviveGroupPlan this, (err, group) =>
@@ -1050,10 +1058,9 @@ module.exports = class JGroup extends Module
           ComputeProvider = require '../computeproviders/computeprovider'
           ComputeProvider.validateTemplates client, templates, group, (err) =>
             return callback err  if err
-            @update { $set: data }, callback
-
+            @updateAndNotify notifyOptions, { $set: data }, callback
         else
-          @update { $set: data }, callback
+          @updateAndNotify notifyOptions, { $set: data }, callback
 
 
   setPlan    : permit

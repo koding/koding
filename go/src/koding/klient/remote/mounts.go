@@ -154,7 +154,7 @@ func (r *Remote) restoreMounts() error {
 			Machine:       remoteMachine,
 			IP:            remoteMachine.IP,
 			KiteTracker:   remoteMachine.KiteTracker,
-			Transport:     remoteMachine.Client,
+			Transport:     remoteMachine,
 			PathUnmounter: fuseklient.Unmount,
 		}
 

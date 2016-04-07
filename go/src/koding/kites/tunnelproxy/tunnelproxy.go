@@ -1,32 +1,64 @@
 package tunnelproxy
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/koding/ec2dynamicdata"
 )
 
+// TODO(rjeczalik): forward ports on host klient for TCP services
+
 type Service struct {
-	LocalAddr  string `json:"localAddr"`
-	RemoteAddr string `json:"remoteAddr"`
+	Name          string `json:"name"`
+	LocalAddr     string `json:"localAddr"`
+	RemoteAddr    string `json:"remoteAddr"`              // tunnel.Port
+	ForwardedPort int    `json:"forwardedPort,omitempty"` // tunnel.LocalAddr
 }
 
 type Services map[string]*Service
 
-// Tunnel
+func (s Services) String() string {
+	p, err := json.Marshal(s)
+	if err != nil {
+		return fmt.Sprintf("%+v", s)
+	}
+
+	return string(p)
+}
+
+type Endpoint struct {
+	Addr     string `json:"addr"`
+	Protocol string `json:"protocol"`
+	Local    bool   `json:"local"`
+}
+
 type Tunnel struct {
 	Name        string `json:"name,omitempty"`
 	Port        int    `json:"port,omitempty"` // tries to use fixed port number or restore
 	VirtualHost string `json:"virtualHost,omitempty"`
 	Error       string `json:"error,omitempty"`
 	Restore     bool   `json:"restore,omitempty"`
+
+	// Local routing.
+	PublicIP  string `json:"publicIP,omitempty"`
+	LocalAddr string `json:"localAddr,omitempty"` // either local port or forwarded one (related to package TODO)
+}
+
+func (t *Tunnel) String() string {
+	p, err := json.Marshal(t)
+	if err != nil {
+		return fmt.Sprintf("%+v", t)
+	}
+
+	return string(p)
 }
 
 func (t *Tunnel) Err() error {
@@ -36,17 +68,56 @@ func (t *Tunnel) Err() error {
 	return nil
 }
 
+func (t *Tunnel) remoteEndpoint(proto string) *Endpoint {
+	e := &Endpoint{
+		Addr:     t.VirtualHost,
+		Protocol: proto,
+	}
+
+	if t.Port != 0 {
+		e.Addr = net.JoinHostPort(t.VirtualHost, strconv.Itoa(t.Port))
+	}
+
+	return e
+}
+
+func (t *Tunnel) localEndpoint(proto string) *Endpoint {
+	return &Endpoint{
+		Addr:     t.LocalAddr,
+		Protocol: proto,
+		Local:    true,
+	}
+}
+
 type TunnelsByName []*Tunnel
 
 func (t TunnelsByName) Len() int           { return len(t) }
 func (t TunnelsByName) Less(i, j int) bool { return t[i].Name < t[j].Name }
 func (t TunnelsByName) Swap(i, j int)      { t[i], t[j] = t[j], t[i] }
 
+func (t TunnelsByName) String() string {
+	if len(t) == 0 {
+		return "[]"
+	}
+
+	var buf bytes.Buffer
+
+	fmt.Fprintf(&buf, "[%s", t[0])
+
+	for _, t := range t {
+		fmt.Fprintf(&buf, ",%s", t)
+	}
+
+	buf.WriteRune(']')
+
+	return buf.String()
+}
+
 var errAlreadyExists = errors.New("already exists")
 
 // Tunnels
 type Tunnels struct {
-	m map[string]map[string]*Tunnel
+	m map[string]map[string]*Tunnel // maps ident to service name to service desc
 }
 
 func newTunnels() *Tunnels {
@@ -98,6 +169,14 @@ func (t *Tunnels) tunnel(ident, name string) *Tunnel {
 
 func publicIP() (string, error) {
 	return ec2dynamicdata.GetMetadata(ec2dynamicdata.PublicIPv4)
+}
+
+func privateIP() (string, error) {
+	return ec2dynamicdata.GetMetadata(ec2dynamicdata.LocalIPv4)
+}
+
+func instanceID() (string, error) {
+	return ec2dynamicdata.GetMetadata(ec2dynamicdata.InstanceId)
 }
 
 // customPort adds a port part to the given address. If port is a zero-value,
@@ -190,24 +269,6 @@ func extractIPs(r *http.Request) map[string]struct{} {
 	delete(ips, "")
 
 	return ips
-}
-
-func isWebsocketConn(r *http.Request) bool {
-	return r.Method == "GET" && headerContains(r.Header["Connection"], "upgrade") &&
-		headerContains(r.Header["Upgrade"], "websocket")
-}
-
-// headerContains is a copy of tokenListContainsValue from gorilla/websocket/util.go
-func headerContains(header []string, value string) bool {
-	for _, h := range header {
-		for _, v := range strings.Split(h, ",") {
-			if strings.EqualFold(strings.TrimSpace(v), value) {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 type callbacks struct {

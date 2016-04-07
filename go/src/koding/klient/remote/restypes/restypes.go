@@ -24,10 +24,15 @@ type ListMachineInfo struct {
 
 	Mounts []ListMountInfo `json:"mounts"`
 
+	// The username of the koding user.
+	Username string
+
 	// TODO DEPRECATE
 	MountedPaths []string `json:"mountedPaths"`
 
 	// Used by kd ssh to determine ssh user
+	//
+	// TODO: Deprecate once ssh no longer needs this.
 	Hostname string `json:"hostname"`
 
 	// Kite identifying values. For reference, see:
@@ -40,7 +45,6 @@ type ListMachineInfo struct {
 	Environment string
 	Region      string
 	Version     string
-	Username    string
 }
 
 // ListMountInfo is the machine info response from the `remote.list` handler.

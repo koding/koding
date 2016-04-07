@@ -187,10 +187,20 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		if !ok {
 			ports = make([]interface{}, 0)
 		}
-		ports = append(ports, &vagrantapi.ForwardedPort{
-			HostPort:  56790,
+
+		// klient kite port
+		kitePort := &vagrantapi.ForwardedPort{
+			HostPort:  2200,
 			GuestPort: 56789,
-		})
+		}
+
+		// tlsproxy port
+		kitesPort := &vagrantapi.ForwardedPort{
+			HostPort:  2201,
+			GuestPort: 56790,
+		}
+
+		ports = append(ports, kitePort, kitesPort)
 
 		box["forwarded_ports"] = ports
 		box["username"] = username

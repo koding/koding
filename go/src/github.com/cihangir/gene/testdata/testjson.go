@@ -103,7 +103,7 @@ const JSON1 = `
       "description": "Profile represents a registered Account's Public Info",
       "generators": [
           {
-              "sql-definition": {
+              "ddl": {
                   "roleName": "social",
                   "grants": [ "SELECT", "INSERT", "UPDATE" ]
               }

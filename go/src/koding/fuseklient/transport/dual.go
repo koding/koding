@@ -94,3 +94,8 @@ func (d *DualTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
 func (d *DualTransport) GetInfo(path string) (*GetInfoRes, error) {
 	return d.CacheTransport.GetInfo(path)
 }
+
+// GetRemotePath is sent to RemoteTransport only.
+func (d *DualTransport) GetRemotePath() string {
+	return d.RemoteTransport.GetRemotePath()
+}

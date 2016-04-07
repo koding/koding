@@ -1,4 +1,5 @@
 kd                     = require 'kd'
+KDProgressBarView      = kd.ProgressBarView
 JView                  = require 'app/jview'
 Machine                = require 'app/providers/machine'
 showError              = require 'app/util/showError'
@@ -8,28 +9,35 @@ ResourceMachineItem    = require './resourcemachineitem'
 ResourceMachineHeader  = require './resourcemachineheader'
 MachinesListController = require 'app/environment/machineslistcontroller'
 StackAdminMessageModal = require 'app/stacks/stackadminmessagemodal'
+async                  = require 'async'
+whoami                 = require 'app/util/whoami'
 
 
 module.exports = class ResourceListItem extends kd.ListItemView
+
+  INITIAL_PROGRESS_VALUE = 10
 
   JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
+    { state } = data.status
+    cssClass  = "resource-item clearfix #{state}"
+
     options.type   or= 'member'
-    options.cssClass = kd.utils.curry 'resource-item clearfix', options.cssClass
+    options.cssClass = kd.utils.curry cssClass, options.cssClass
 
     super options, data
+
+    resource = @getData()
 
     @detailsToggle = new kd.CustomHTMLView
       cssClass : 'role'
       partial  : "Details <span class='settings-icon'></span>"
       click    : @getDelegate().lazyBound 'toggleDetails', this
 
-    resource = @getData()
-
     @details = new kd.CustomHTMLView
-      cssClass : 'hidden'
+      cssClass : 'hidden details-container'
 
     listView          = new MachinesList
       itemClass       : ResourceMachineItem
@@ -65,39 +73,93 @@ module.exports = class ResourceListItem extends kd.ListItemView
       size: { width: 25, height: 25 }
     }, resource.owner
 
+    @status = new kd.CustomHTMLView
+      tagName  : 'span'
+      partial  : resource.status.state
+
+    @percentage = new kd.CustomHTMLView
+      tagName  : 'span'
+      cssClass : 'percentage'
+    @updatePercentage()
+
+    { code, message } = resource.checkRevisionResult ? {}
+    @revisionStatus = new kd.CustomHTMLView
+      cssClass : 'revision-status'
+      partial  : message
+    @revisionStatus.setClass if code > 0 then 'warning' else 'hidden'
+
+    @progressBar = new KDProgressBarView { initial : INITIAL_PROGRESS_VALUE }
+
+    { computeController } = kd.singletons
+    computeController.on "apply-#{resource._id}", @bound 'handleProgressEvent'
+    computeController.on "stateChanged-#{resource._id}", @bound 'handleStateChangedEvent'
+
+    @subscribeToKloudEvents()
+
+    @prevStatus = state
+
+
+  render: ->
+
+    @updateStatus()
+    @subscribeToKloudEvents()
+
+
+  subscribeToKloudEvents: ->
+
+    resource  = @getData()
+    { state } = resource.status
+    if state in ['Building', 'Destroying']
+      { eventListener } = kd.singletons.computeController
+      eventListener.addListener 'apply', resource._id
+      eventListener.addListener 'stateChanged', resource._id
+
 
   handleDestroy: ->
 
     resource              = @getData()
-    delegate              = @getDelegate()
     { computeController } = kd.singletons
 
-    computeController.ui.askFor 'deleteStack', {}, (status) ->
-      return  unless status.confirmed
+    queue = [
+      (next) ->
+        computeController.ui.askFor 'deleteStack', {}, (status) ->
+          err = 'Not confirmed'  unless status.confirmed
+          next err
+      (next) ->
+        resource.maintenance { prepareForDestroy: yes }, next
+      (next) ->
+        computeController.destroyStack resource, next
+      (next) =>
+        delegate = @getDelegate()
+        delegate.emit 'ItemStatusUpdateNeeded', { id : @getData()._id }
+        next()
+    ]
 
-      resource.maintenance { prepareForDestroy: yes }, (err) ->
-        return  if showError err
-
-        computeController.destroyStack resource, (err) ->
-          return  if showError err
-
-          # FIXME ~GG this reload mechanism needs to be
-          #           replaced with auto instance update instead
-          delegate.emit 'ReloadItems'
-          computeController.once "stateChanged-#{resource._id}", ->
-            delegate.emit 'ReloadItems'
+    async.series queue, (err) =>
+      return  if not err or err is 'Not confirmed'
+      showError err
 
 
   handleDelete: ->
 
     resource              = @getData()
-    delegate              = @getDelegate()
     { computeController } = kd.singletons
 
-    computeController.ui.askFor 'forceDeleteStack', {}, (status) ->
-      return  unless status.confirmed
-      resource.maintenance { destroyStack: yes },  (err) ->
-        delegate.emit 'ReloadItems'  unless showError err
+    queue = [
+      (next) ->
+        computeController.ui.askFor 'forceDeleteStack', {}, (status) ->
+          err = 'Not confirmed'  unless status.confirmed
+          next err
+      (next) ->
+        resource.maintenance { destroyStack: yes }, next
+      (next) =>
+        delegate = @getDelegate()
+        delegate.emit 'ItemStatusUpdateNeeded', { id : @getData()._id }
+        next()
+    ]
+
+    async.series queue, (err) ->
+      showError err  if err and err isnt 'Not confirmed'
 
 
   handleAdminMessage: ->
@@ -115,13 +177,68 @@ module.exports = class ResourceListItem extends kd.ListItemView
     @toggleClass 'in-detail'
 
 
+  handleProgressEvent: (event) ->
+
+    { percentage } = event
+    @updatePercentage percentage
+    @updateProgressBar percentage
+
+
+  handleStateChangedEvent: (event) ->
+
+    # delay is needed to show 100% in progress bar
+    # when destroy process is completed
+    kd.utils.wait 100, =>
+      resource = @getData()
+      @destroy()  if resource.status.state is 'Destroying'
+
+
+  updateStatus: ->
+
+    { state } = @getData().status
+    @unsetClass @prevStatus
+    @setClass state
+    @prevStatus = state
+
+    @status.updatePartial state
+    @updatePercentage()
+    @updateProgressBar()
+
+
+  updatePercentage: (percentage = INITIAL_PROGRESS_VALUE) ->
+
+    @percentage.updatePartial ": #{percentage}%"
+
+
+  updateProgressBar: (percentage = INITIAL_PROGRESS_VALUE) ->
+
+    @progressBar.updateBar percentage
+
+
+  destroy: ->
+
+    resource              = @getData()
+    { computeController } = kd.singletons
+    computeController.off "apply-#{resource._id}", @bound 'handleProgressEvent'
+    computeController.off "stateChanged-#{resource._id}", @bound 'handleStateChangedEvent'
+
+    super
+
+
   pistachio: ->
 
     """
       {{> @detailsToggle}}
+      {{> @progressBar}}
       {{> @ownerView}}
-      {div.details{#(title)}}
-      {div.status{#(status.state)}}
+      <div class='general-info'>
+        {div{#(title)}}
+        <div class='status'>
+          {{> @status}}
+          {{> @percentage}}
+          {{> @revisionStatus}}
+        </div>
+      </div>
       <div class='clear'></div>
       {{> @details}}
     """

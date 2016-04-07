@@ -329,7 +329,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   tailFile: (options) ->
 
-    { file, content, callback, emitChange, description, isActivePane, tailOffset } = options
+    { file, content, callback, emitChange, description,
+      isActivePane, tailOffset, buildDuration } = options
 
     callback   ?= kd.noop
     emitChange ?= yes
@@ -345,7 +346,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       content   or= ''
       tailerPane  = new IDETailerPane {
-        file, content, description, delegate: this, ideViewHash: @hash, tailOffset
+        file, content, description, delegate: this,
+        ideViewHash: @hash, tailOffset, buildDuration
       }
 
       paneOptions = {

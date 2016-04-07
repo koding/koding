@@ -179,11 +179,21 @@ func testTunnelserverTCP(t *testing.T, serverURL *url.URL) {
 		t.Fatal("expected virtualHost to be non-empty")
 	}
 
-	if err := client.RegisterService("echo1", echo1.Addr().String()); err != nil {
+	echo1service := &tunnelproxy.Service{
+		Name:      "echo1",
+		LocalAddr: echo1.Addr().String(),
+	}
+
+	if err := client.RegisterService(echo1service); err != nil {
 		t.Fatalf("RegisterService(echo1)=%s", err)
 	}
 
-	if err := client.RegisterService("echo2", echo2.Addr().String()); err != nil {
+	echo2service := &tunnelproxy.Service{
+		Name:      "echo2",
+		LocalAddr: echo2.Addr().String(),
+	}
+
+	if err := client.RegisterService(echo2service); err != nil {
 		t.Fatalf("RegisterService(echo2)=%s", err)
 	}
 
@@ -260,10 +270,11 @@ func testWithTunnelserver(t *testing.T, test func(*testing.T, *url.URL)) {
 		Config:          serverCfg,
 		ServerAddr:      serverURL.Host,
 		RegisterURL:     serverURL,
-		TCPRangeFrom:    30000,
-		TCPRangeTo:      30100,
+		TCPRangeFrom:    10000,
+		TCPRangeTo:      50000,
 		Log:             Test.Log.New("tunnelserver"),
 		Debug:           true,
+		Test:            true,
 	}
 
 	server, err := tunnelproxy.NewServer(serverOpts)

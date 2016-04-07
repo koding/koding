@@ -166,7 +166,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
   createKite: (options, query) ->
 
-    { computeController } = kd.singletons
+    cc = kd.singletons.computeController
 
     { kite } = options
     kiteName = kite.name
@@ -191,15 +191,22 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
         kite.options.autoReconnect = no
         KiteCache.unset query
 
-        kiteInstance = @kites[kiteName]?['singleton'] or {}
-        { waitingPromises } = kiteInstance
+        if kiteInstance = @kites[kiteName]?['singleton']
+          { waitingPromises } = kiteInstance
+          delete @kites[kiteName]['singleton']
 
-        delete @kites[kiteName]['singleton']
-
-        if machine = computeController.findMachineFromQueryString queryString
+        else if machine = cc.findMachineFromQueryString queryString
+          kiteInstance = @kites[kiteName][machine.uid]
+          { waitingPromises } = kiteInstance
           delete @kites[kiteName][machine.uid]
 
-        @getKite { name: kiteName, queryString, waitingPromises }
+          correlationName  = machine.uid
+          transportOptions = { checkAlternatives: no }
+
+        kiteInstance?.disconnect?()
+
+        @getKite { name: kiteName, queryString, transportOptions
+                   correlationName, waitingPromises }
 
     return kite
 
