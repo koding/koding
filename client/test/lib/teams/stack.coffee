@@ -5,6 +5,28 @@ teamsHelpers = require '../helpers/teamshelpers.js'
 module.exports =
 
 
+  stacks: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser)
+    browser.end()
+
+
+  stacksSkipSetupGuide: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    browser.end()
+
+
+  checkNotReadyAndPrivateIconsDisplayedForStacks: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    teamsHelpers.checkIconsStacks(browser)
+    browser.end()
+
+
   buildStack: (browser) ->
 
     teamsHelpers.loginTeam(browser)
@@ -50,3 +72,4 @@ module.exports =
     browser.isStackBuilt = yes
     teamsHelpers.destroyEverything(browser)
     browser.end()
+
