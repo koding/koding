@@ -171,7 +171,26 @@ module.exports = class Sidebar extends React.Component
       threads={@state.privateChannels} />
 
 
+  renderLogo: ->
+
+    team = kd.singletons.groupsController.getCurrentGroup()
+    logo = team.customize?.logo
+
+    if logo
+      <img
+        src="#{logo}"
+        className='Sidebar-footer-logo'
+      />
+    else
+      <object
+        type='image/svg+xml'
+        data="#{logo or '/a/images/logos/sidebar_footer_logo.svg'}"
+        className='Sidebar-footer-logo'>
+        Koding Logo
+      </object>
+
   render: ->
+
 
     <Scroller className={kd.utils.curry 'activity-sidebar', @props.className}>
       <div className='Sidebar-section-wrapper'>
@@ -181,12 +200,7 @@ module.exports = class Sidebar extends React.Component
         {@renderInvitationWidget()}
       </div>
       <div className='Sidebar-logo-wrapper'>
-        <object
-          type='image/svg+xml'
-          data='/a/images/logos/sidebar_footer_logo.svg'
-          className='Sidebar-footer-logo'>
-          Koding Logo
-        </object>
+        {@renderLogo()}
       </div>
     </Scroller>
 
