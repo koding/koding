@@ -28,7 +28,7 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
     @avatar = new AvatarStaticView @getAvatarOptions(), @account
 
     @changeAvatarLink  = new CustomLinkView
-      cssClass : 'HomeAppView--link blue'
+      cssClass : 'HomeAppView--link primary'
       title    : 'CHANGE AVATAR'
 
     @uploadAvatarInput = new kd.InputView

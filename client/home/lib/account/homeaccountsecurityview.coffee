@@ -191,7 +191,7 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
 
   getLearnLink: ->
     "
-      <a class='learn-link HomeAppView--link blue' href='https://koding.com/docs/2-factor-auth/' target=_blank>
+      <a class='learn-link HomeAppView--link primary' href='https://koding.com/docs/2-factor-auth/' target=_blank>
       LEARN MORE</a>
     "
 

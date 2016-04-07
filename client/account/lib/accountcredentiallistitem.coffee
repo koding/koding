@@ -44,7 +44,7 @@ module.exports = class AccountCredentialListItem extends kd.ListItemView
       @credentialLinks.addSubView new CustomLinkView
         title    : 'SHOW'
         item     : this
-        cssClass : 'HomeAppView--link blue'
+        cssClass : 'HomeAppView--link primary'
         click    : => delegate.emit 'ItemAction', { action : 'ShowItem', item : this }
 
 
