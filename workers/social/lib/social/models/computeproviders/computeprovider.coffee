@@ -192,7 +192,9 @@ module.exports = class ComputeProvider extends Base
 
   @fetchTeamPlans = permit 'create machines',
     success: (client, callback) ->
-      callback null, teamutils.TEAMPLANS
+      callback null, if KONFIG.environment is 'default'
+      then { unlimited: teamutils.TEAMPLANS.unlimited }
+      else teamutils.TEAMPLANS
 
 
   @update = secure revive

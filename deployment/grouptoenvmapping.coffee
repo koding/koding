@@ -8,6 +8,7 @@ proxies =  [
 
 envs =  [
   "dev"
+  "default"
   "koding-latest"
   "koding-monitor"
   "koding-prod"

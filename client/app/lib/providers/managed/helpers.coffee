@@ -18,7 +18,9 @@ queryKites = ->
   { generateQueryString } = require 'app/kite/kitecache'
   { computeController, kontrol } = kd.singletons
 
-  env = if globals.config.environment in ['dev', 'sandbox'] then 'dev' else ''
+  # Not sure about this `default` environment as `defaultmanaged` env conv. ~GG
+  env = if globals.config.environment in ['dev', 'default', 'sandbox']
+  then 'dev' else ''
 
   return kontrol
     .queryKites
