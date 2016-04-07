@@ -24,7 +24,11 @@ module.exports = class SearchController extends KDObject
 
   initAlgolia: ->
 
-    { appId } = globals.config.algolia
+    { appId } = globals.config.algolia ? {}
+
+    unless appId
+      kd.warn 'Algolia search is disabled because of missing configuration'
+      return @ready = yes
 
     @ready = no
 
@@ -97,7 +101,7 @@ module.exports = class SearchController extends KDObject
     new Promise (resolve, reject) =>
 
       return reject new Error 'Search not ready yet'  unless @ready
-
+      return reject new Error 'Algolia search is disabled'  unless @algolia
       return reject new Error 'Illegal input'  if seed is ''
 
       index = @getIndex "#{ indexName }#{ globals.config.algolia.indexSuffix }"
@@ -160,6 +164,8 @@ module.exports = class SearchController extends KDObject
 
     { showCurrentUser } = opts
     delete opts.showCurrentUser
+
+    return @searchAccountsMongo seed, { showCurrentUser }  if @ready and not @algolia
 
     @search 'accounts', seed, opts
       .then (data) ->
