@@ -1,0 +1,15 @@
+#!/bin/bash
+
+SCRIPTS=$(dirname $0)/..
+
+PULL_REQUEST_NUMBER=$($SCRIPTS/find-pull-request)
+[ -z "$PULL_REQUEST_NUMBER" ] && exit 0
+
+GITHUB_API="https://api.github.com"
+GITHUB_REPOSITORY_OWNER=$WERCKER_GIT_OWNER
+GITHUB_REPOSITORY_NAME=$WERCKER_GIT_REPOSITORY
+
+curl --header "Authorization: token $CI_STATUS_ACCESS_TOKEN" \
+     --request POST \
+     --data "{ \"body\": \"[Build]($WERCKER_BUILD_URL) has $WERCKER_RESULT.\" }" \
+     $GITHUB_API/repos/$GITHUB_REPOSITORY_OWNER/$GITHUB_REPOSITORY_NAME/issues/$PULL_REQUEST_NUMBER/comments
