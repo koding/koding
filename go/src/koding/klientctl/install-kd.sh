@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+readonly releaseChannel="%RELEASE_CHANNEL%"
+
 installFuseOnDarwinOnly () {
   if [ ! "$(uname -s)" = "Darwin" ]; then
     return
@@ -127,6 +129,7 @@ if which kd > /dev/null; then
   sudo kd uninstall > /dev/null 2>&1
 fi
 
+version=$(curl -sSL https://koding-kd.s3.amazonaws.com/${releaseChannel}/latest-version.txt)
 
 platform=`uname | tr '[:upper:]' '[:lower:]'`
 case "$platform" in
@@ -147,7 +150,8 @@ case "$platform" in
     echo ""
     echo "Downloading kd..."
 
-    sudo curl -SLo /usr/local/bin/kd "https://koding-kd.s3.amazonaws.com/klientctl-$platform"
+
+	sudo curl -SLo /usr/local/bin/kd.gz "https://koding-kd.s3.amazonaws.com/${releaseChannel}/klientctl-0.1.${version}.${platform}_amd64.gz"
     err=$?; if [ "$err" -ne 0 ]; then
       cat << EOF
 Error: Failed to download kd binary. Please check your internet
@@ -156,6 +160,12 @@ EOF
       exit 1
     fi
 
+	if ! sudo gzip -d -f /usr/local/bin/kd.gz; then
+		echo "Error: Failed to extract kd binary." 2>&1
+		exit 1
+	fi
+
+	sudo rm -f /usr/local/bin/kd.gz
     sudo chmod +x /usr/local/bin/kd
 
     echo "Created /usr/local/bin/kd"
@@ -188,15 +198,14 @@ fi
 # No need to print Creating foo... because kd install handles that.
 
 # Install klient, piping stdin (the tty) to kd
-sudo kd install $kontrolFlag "$1" < /dev/tty
-err=$?; if [ "$err" -ne 0 ]; then
+if ! sudo kd install $kontrolFlag "$1" < /dev/tty; then
   exit $err
 fi
 
 
 cat << EOF
-Success! kd (beta) has been successfully installed. Please run
-the following command for more information:
+Success! kd (version ${version}, channel ${releaseChannel}) has been successfully installed.
+Please run the following command for more information:
 
     kd -h
 

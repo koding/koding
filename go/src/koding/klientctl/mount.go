@@ -161,7 +161,7 @@ func (c *MountCommand) Run() (int, error) {
 		"no-prefetch-meta": c.Options.NoPrefetchMeta,
 		"prefetch-all":     c.Options.PrefetchAll,
 		"no-watch":         c.Options.NoWatch,
-		"version":          config.Version,
+		"version":          config.VersionNum(),
 	}
 	metrics.TrackMount(c.Options.Name, c.Options.LocalPath, o)
 
