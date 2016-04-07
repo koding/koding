@@ -98,8 +98,19 @@ pre
           font-size         13px
           text-transform    capitalize
           width             100%
+          background        none
+          cursor            pointer
+          noTextDeco()
           ellipsis()
           dIBlock()
+          &:after
+            content         ''
+            r-sprite        'app' '20_chevron_gray'
+            margin-left     1px
+            margin-top      -3px
+            opacity         .7
+            vertical-align  top
+            dIBlock()
 
         a
           vendor            transition, width .3s ease
