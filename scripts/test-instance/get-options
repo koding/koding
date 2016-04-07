@@ -2,20 +2,13 @@
 
 cd $(dirname $0)
 
+SCRIPTS=$(pwd)/..
+
 OPTIONS=''
+PULL_REQUEST_NUMBER=$($SCRIPTS/find-pull-request)
 
-HEADS=$(git branch -r --contains ${REVISION:0:7})
-
-for HEAD in $HEADS; do
-  if [ -n "$(echo $HEAD | grep '/pull/')" ]; then
-    PR_HEAD=$HEAD
-    break
-  fi
-done
-
-if [ -n "$PR_HEAD" ]; then
-  PR_NR=$(echo $PR_HEAD | awk -F '/' '{print $NF}')
-  OPTIONS="--pull-request $PR_NR --commit $REVISION $OPTIONS"
+if [ -n "$PULL_REQUEST_NUMBER" ]; then
+  OPTIONS="--pull-request $PULL_REQUEST_NUMBER --commit $REVISION $OPTIONS"
 else
   OPTIONS="--commit $REVISION $OPTIONS"
 fi
