@@ -88,16 +88,13 @@ module.exports = class ResourceListItem extends kd.ListItemView
       partial  : message
     @revisionStatus.setClass if code > 0 then 'warning' else 'hidden'
 
-    try
-      creationDate = new Date resource.createdAt
-    catch e
-
-    { nickname } = resource.owner.profile
+    { nickname }  = resource.owner.profile
+    timestamp     = resource._id.substring 0, 8
+    createdAt     = new Date parseInt(timestamp, 16) * 1000
     @creationInfo = new kd.CustomHTMLView
       partial  : "Created by <strong>#{nickname}</strong> "
       cssClass : 'creation-info'
-    if creationDate
-      @creationInfo.addSubView new kd.TimeAgoView {}, creationDate
+    @creationInfo.addSubView new kd.TimeAgoView {}, createdAt
 
     @progressBar = new KDProgressBarView { initial : INITIAL_PROGRESS_VALUE }
 
