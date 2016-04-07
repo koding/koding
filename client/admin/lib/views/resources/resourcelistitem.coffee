@@ -11,7 +11,6 @@ MachinesListController = require 'app/environment/machineslistcontroller'
 StackAdminMessageModal = require 'app/stacks/stackadminmessagemodal'
 async                  = require 'async'
 whoami                 = require 'app/util/whoami'
-timeago                = require 'timeago'
 
 
 module.exports = class ResourceListItem extends kd.ListItemView
@@ -91,14 +90,14 @@ module.exports = class ResourceListItem extends kd.ListItemView
 
     try
       creationDate = new Date resource.createdAt
-      creationDate = timeago creationDate
     catch e
 
     { nickname } = resource.owner.profile
     @creationInfo = new kd.CustomHTMLView
-      partial  : "Created by <strong>#{nickname}</strong> #{creationDate ? ''}"
+      partial  : "Created by <strong>#{nickname}</strong> "
       cssClass : 'creation-info'
-
+    if creationDate
+      @creationInfo.addSubView new kd.TimeAgoView {}, creationDate
 
     @progressBar = new KDProgressBarView { initial : INITIAL_PROGRESS_VALUE }
 
