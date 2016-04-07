@@ -21,58 +21,58 @@ Configuration = (options={}) ->
   awsKeys =
     # s3 full access
     worker_terraformer:
-      accessKeyId     : ''
-      secretAccessKey : ''
+      accessKeyId     : "AKIAICCV3GMNBL4ECN5Q"
+      secretAccessKey : "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"
 
     # s3 put only to koding-client bucket
     worker_koding_client_s3_put_only:
-      accessKeyId     : ''
-      secretAccessKey : ''
+      accessKeyId     : "AKIAJCUG42THBT4LBQEQ"
+      secretAccessKey : "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"
 
     # admin
     worker_test:
-      accessKeyId     : ''
-      secretAccessKey : ''
+      accessKeyId     : "AKIAIQESD65KKYRYAWDA"
+      secretAccessKey : "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"
 
     # s3 put only
     worker_test_data_exporter:
-      accessKeyId     : ''
-      secretAccessKey : ''
+      accessKeyId     : "AKIAIWO4ZPTLQEYSOLGA"
+      secretAccessKey : "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"
 
     # AmazonRDSReadOnlyAccess
     worker_rds_log_parser:
-      accessKeyId     : ''
-      secretAccessKey : ''
+      accessKeyId     : "AKIAJX6IPI3PQCS3GJ6Q"
+      secretAccessKey : "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"
 
     # ELB & EC2 -> AmazonEC2ReadOnlyAccess
     worker_multi_ssh:
-      accessKeyId     : ''
-      secretAccessKey : ''
+      accessKeyId     : "AKIAI7CKP5SNHCBUEDXQ"
+      secretAccessKey : "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"
 
     # AmazonEC2FullAccess
     worker_test_instance_launcher:
-      accessKeyId     : ''
-      secretAccessKey : ''
+      accessKeyId     : "AKIAJDR2J6W5AT4KWS4A"
+      secretAccessKey : "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"
 
     # CloudWatchReadOnlyAccess
     vm_vmwatcher:     # vm_vmwatcher_dev
-      accessKeyId     : ''
-      secretAccessKey : ''
+      accessKeyId     : "AKIAJ3OZKOIQUTV2GCBQ"
+      secretAccessKey : "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"
 
     # KloudPolicy
     vm_kloud:         # vm_kloud_dev
-      accessKeyId     : ''
-      secretAccessKey : ''
+      accessKeyId     : "AKIAJRNT55RTV2MHD4VA"
+      secretAccessKey : "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"
 
     # TunnelProxyPolicy
     worker_tunnelproxymanager: # Name worker_tunnelproxymanager_dev
-      accessKeyId     : ''
-      secretAccessKey : ''
+      accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
+      secretAccessKey : "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"
 
     # Encryption and Storage on S3
-    worker_sneakerS3  :
-      accessKeyId     : ''
-      secretAccessKey : ''
+    worker_sneakerS3 :
+      accessKeyId     : "AKIAJV2BZT3DBCEUOIXQ"
+      secretAccessKey : "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"
 
   publicPort          = options.publicPort     or "8090"
   hostname            = options.hostname       or "dev.koding.com"
@@ -119,7 +119,7 @@ Configuration = (options={}) ->
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               "5432"                                  , username:           "socialapp201506"           , password:        "socialapp201506"                    , dbname:   "social"                  }
   kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapp201506"          , password:        "kontrolapp201506"                   , dbname:   "social"                    , connecttimeout: 20 }
   kiteHome            = "#{projectRoot}/kite_home/koding"
-  pubnub              = { publishkey: ""                                          , subscribekey:       ""                                      , secretkey: ""                                   , serverAuthKey: ""                                     , origin: "pubsub.pubnub.com"           , enabled: no }
+  pubnub              = { publishkey: "pub-c-5b987056-ef0f-457a-aadf-87b0488c1da1", subscribekey:       "sub-c-70ab5d36-0b13-11e5-8104-0619f8945a4f"  , secretkey: "sec-c-MWFhYTAzZWUtYzg4My00ZjAyLThiODEtZmI0OTFkOTk0YTE0"                               , serverAuthKey: "46fae3cc-9344-4edb-b152-864ba567980c7960b1d8-31dd-4722-b0a1-59bf878bd551"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
   gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                  , pubnub: pubnub                                }
   integration         = { host:     "localhost"                                   , port:               "7300"                                  , url: "#{customDomain.public}/api/integration" }
   webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  , url: "#{customDomain.public}/api/webhook"     }
@@ -132,7 +132,7 @@ Configuration = (options={}) ->
 
   kloudPort           = 5500
   kloud               = { port : kloudPort, userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem",    userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub",  privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "", address : "http://localhost:#{kloudPort}/kite", tunnelUrl : "#{tunnelUrl}"}
-  terraformer         = { port : 2300     , bucket:             "koding-terraformer-state-#{configName}", localstorepath: "#{projectRoot}/go/data/terraformer" }
+  terraformer         = { port : 2300     , bucket:             "koding-terraformer-state-dev", localstorepath: "#{projectRoot}/go/data/terraformer" }
 
   googleapiServiceAccount =
     clientId              : ''
@@ -143,9 +143,9 @@ Configuration = (options={}) ->
   segment = ''
 
   github =
-    clientId     : ''
-    clientSecret : ''
-    redirectUri  : ''
+    clientId     : "f8e440b796d953ea01e5"
+    clientSecret : "b72e2576926a5d67119d5b440107639c6499ed42"
+    redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback"
 
   mailgun =
     domain        : ''
@@ -373,11 +373,11 @@ Configuration = (options={}) ->
   disabledWorkers = [
     "algoliaconnector"
     "paymentwebhook"
-    "terraformer"
+  # "terraformer"
   # "gatekeeper"
     "vmwatcher"
   # "webhook"
-    "kloud"
+  # "kloud"
   ]
 
   KONFIG.workers =
