@@ -42,15 +42,12 @@ module.exports = class Proxifier
 
       # for tunneled connections default tunnel is `devtunnel`
       proxy    = if isInProduction then 'prodtunnel' else 'devtunnel'
-      current  = "#{baseURL}/#{proxy}/#{host}#{parser.pathname}"
+      baseURL  = "#{baseURL}/#{proxy}/#{host}"
+      current  = "#{baseURL}#{parser.pathname}"
 
       return callback current  unless checkAlternatives
 
-      endPoint = "#{baseURL}/#{proxy}/#{host}/-/discover/kite"
-      type     = 'GET'
-      timeout  = 2000
-
-      doXhrRequest { endPoint, type, timeout }, (err, res) ->
+      Proxifier.checkAlternative protocol, baseURL, (err, res) ->
 
         if err
           console.warn '[tunnel] failed to look for alternatives:', err
@@ -71,3 +68,12 @@ module.exports = class Proxifier
 
       # generated proxyfied url for connecting to kite
       callback "#{baseURL}/#{proxy}/#{host}#{parser.pathname}"
+
+
+  @checkAlternative = (protocol, baseURL, callback) ->
+
+    endPoint = "#{baseURL}/-/discover/kite"
+    type     = 'GET'
+    timeout  = 2000
+
+    doXhrRequest { endPoint, type, timeout }, callback
