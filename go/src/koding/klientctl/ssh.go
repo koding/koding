@@ -19,6 +19,8 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
+	mountName := c.Args()[0]
+
 	cmd, err := ssh.NewSSHCommand(log, true)
 
 	// TODO: Refactor SSHCommand instance to require no initialization,
@@ -34,11 +36,9 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 			fmt.Println(GenericInternalError)
 		}
 
-		metrics.TrackSSHFailed(mountName, err.Error(), config.Version)
+		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 		return 1
 	}
-
-	mountName := c.Args()[0]
 
 	// track metrics
 	go func() {

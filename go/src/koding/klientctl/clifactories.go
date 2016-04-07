@@ -18,6 +18,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	"github.com/koding/service"
 )
 
 // MountCommandFactory creates a mount.Command instance and runs it with
@@ -95,7 +96,7 @@ func RepairCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ct
 		Helper:        ctlcli.CommandHelper(c, cmdName),
 		// Used to create our KlientService instance. Really needs to be improved in
 		// the future, once it has proper access to a config package
-		ServiceConstructor: newService,
+		ServiceConstructor: func() (service.Service, error) { return newService(nil) },
 	}
 }
 

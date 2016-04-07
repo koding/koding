@@ -151,7 +151,7 @@ case "$platform" in
     echo "Downloading kd..."
 
 
-	sudo curl -SLo /usr/local/bin/kd.gz "https://koding-kd.s3.amazonaws.com/${releaseChannel}/klientctl-0.1.${version}.${platform}_amd64.gz"
+	sudo curl -SLo /usr/local/bin/kd.gz "https://koding-kd.s3.amazonaws.com/${releaseChannel}/kd-0.1.${version}.${platform}_amd64.gz"
     err=$?; if [ "$err" -ne 0 ]; then
       cat << EOF
 Error: Failed to download kd binary. Please check your internet

@@ -16,7 +16,7 @@ func StartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	s, err := newService()
+	s, err := newService(nil)
 	if err != nil {
 		log.Error("Error creating Service. err:%s", err)
 		fmt.Println(GenericInternalNewCodeError)

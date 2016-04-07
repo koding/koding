@@ -34,7 +34,7 @@ get_init_dir() {
 get_init_file() {
 	case "${init_tool}" in
 		launchctl)
-			echo "${init_dir}/com.koding.klient.plist"
+			echo "${init_dir}/klient.plist"
 			;;
 		*)
 			echo "${init_dir}/klient"
@@ -83,7 +83,7 @@ does_service_exist() {
 			sudo chkconfig --list "klient" &>/dev/null && return 0
 			;;
 		launchctl)
-			sudo launchctl list "com.koding.klient" &>/dev/null && return 0
+			sudo launchctl list "klient" &>/dev/null && return 0
 			;;
 		*)
 			;;
@@ -94,7 +94,7 @@ does_service_exist() {
 stop_klient() {
 	if [ ${is_macosx} -eq 1 ]; then
 		# try to stop old klient.plist
-		sudo launchctl unload -w "${init_dir}/klient.plist" &>/dev/null || true
+		sudo launchctl unload -w "${init_dir}/com.koding.klient.plist" &>/dev/null || true
 	else
 		# try to stop old upstart klient
 		sudo stop klient &>/dev/null || true
@@ -248,7 +248,7 @@ Copyright (C) 2012-2016 Koding Inc., all rights reserved.
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.koding.klient</string>
+	<string>klient</string>
 
 	<key>WorkingDirectory</key>
 	<string>/opt/kite/klient</string>

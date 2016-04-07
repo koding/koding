@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"fmt"
 	"io"
 	"koding/klientctl/config"
@@ -45,7 +46,7 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 0
 	}
 
-	s, err := newService()
+	s, err := newService(nil)
 	if err != nil {
 		log.Error("Error creating Service. err:%s", err)
 		fmt.Println(GenericInternalError)
@@ -102,21 +103,6 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	klientSh := klientSh{
-		User:          sudoUserFromEnviron(os.Environ()),
-		KiteHome:      config.KiteHome,
-		KlientBinPath: filepath.Join(KlientDirectory, "klient"),
-		KontrolURL:    config.KontrolURL,
-	}
-
-	// BUG(rjeczalik): If kontrolURL was overwritten with -k during install,
-	// the update will reset it to default value.
-	if err := klientSh.Create(filepath.Join(KlientDirectory, "klient.sh")); err != nil {
-		log.Error("Error writing klient.sh file. err:%s", err)
-		fmt.Println(FailedInstallingKlient)
-		return 1
-	}
-
 	fmt.Printf("Successfully updated to latest version of %s.\n", config.Name)
 	return 0
 }
@@ -145,8 +131,16 @@ func downloadRemoteToLocal(remotePath, destPath string) error {
 	}
 	defer res.Body.Close()
 
+	var body io.Reader = res.Body
+	if r, err := gzip.NewReader(res.Body); err == nil {
+		// If body contains gzip header, it means the payload was compressed.
+		// Relying solely on Content-Type == "application/gzip" check
+		// was not reliable.
+		body = r
+	}
+
 	// copy remote file to destination path
-	if _, err := io.Copy(binFile, res.Body); err != nil {
+	if _, err := io.Copy(binFile, body); err != nil {
 		return err
 	}
 

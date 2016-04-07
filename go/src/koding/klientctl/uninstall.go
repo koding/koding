@@ -143,7 +143,7 @@ func (u *Uninstall) Uninstall() (string, int) {
 func UninstallCommand(c *cli.Context, log logging.Logger, _ string) (string, int) {
 	warnings := []string{}
 
-	s, err := newService()
+	s, err := newService(nil)
 	if err != nil {
 		log.Warning("Failed creating Service for uninstall. err:%s", err)
 		warnings = append(warnings, FailedUninstallingKlientWarn)
