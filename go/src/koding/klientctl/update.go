@@ -62,13 +62,27 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
+	klientVersion, err := latestVersion(config.S3KlientLatest)
+	if err != nil {
+		log.Error("Error checking if update is available. err: %s", err)
+		fmt.Println(FailedCheckingUpdateAvailable)
+		return 1
+	}
+
+	klientctlVersion, err := latestVersion(config.S3KlientctlLatest)
+	if err != nil {
+		log.Error("Error checking if update is available. err: %s", err)
+		fmt.Println(FailedCheckingUpdateAvailable)
+		return 1
+	}
+
 	// download klient and kd to approprite place
 	dlPaths := map[string]string{
 		// /opt/kite/klient/klient
-		filepath.Join(KlientDirectory, "klient"): S3KlientPath,
+		filepath.Join(KlientDirectory, "klient"): config.S3Klient(klientVersion),
 
 		// /usr/local/bin/kd
-		filepath.Join(KlientctlDirectory, "kd"): S3KlientctlPath,
+		filepath.Join(KlientctlDirectory, "kd"): config.S3Klientctl(klientctlVersion),
 	}
 
 	fmt.Println("Updating...")
@@ -92,9 +106,11 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		User:          sudoUserFromEnviron(os.Environ()),
 		KiteHome:      config.KiteHome,
 		KlientBinPath: filepath.Join(KlientDirectory, "klient"),
-		KontrolURL:    KontrolURL,
+		KontrolURL:    config.KontrolURL,
 	}
 
+	// BUG(rjeczalik): If kontrolURL was overwritten with -k during install,
+	// the update will reset it to default value.
 	if err := klientSh.Create(filepath.Join(KlientDirectory, "klient.sh")); err != nil {
 		log.Error("Error writing klient.sh file. err:%s", err)
 		fmt.Println(FailedInstallingKlient)

@@ -24,8 +24,8 @@ func init() {
 			Timeout: 4 * time.Second,
 		},
 		LocalKiteAddress:  config.KlientAddress,
-		RemoteKiteAddress: KontrolURL,
-		RemoteHTTPAddress: S3UpdateLocation,
+		RemoteKiteAddress: config.KontrolURL,
+		RemoteHTTPAddress: config.S3KlientctlLatest,
 	}
 }
 

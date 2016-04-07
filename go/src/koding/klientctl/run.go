@@ -14,6 +14,7 @@ import (
 	"koding/klientctl/metrics"
 	"koding/mountcli"
 
+	_ "github.com/coreos/go-log/log"
 	"github.com/koding/logging"
 
 	"github.com/codegangsta/cli"
@@ -121,7 +122,7 @@ func (r *RunCommand) runOnRemote(localPath string, cmdWithArgsStr string) (*Exec
 	}
 
 	// track metrics
-	metrics.TrackRun(machine, config.Version)
+	metrics.TrackRun(machine, config.VersionNum())
 
 	return r.runOnMachine(machine, fullCmdPath, cmdWithArgsStr)
 }

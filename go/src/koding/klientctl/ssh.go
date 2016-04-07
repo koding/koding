@@ -42,7 +42,7 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 
 	// track metrics
 	go func() {
-		metrics.TrackSSH(mountName, config.Version)
+		metrics.TrackSSH(mountName, config.VersionNum())
 	}()
 
 	err = cmd.Run(mountName)
@@ -61,7 +61,7 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 
 	// track metrics
 	if err != nil {
-		metrics.TrackSSHFailed(mountName, err.Error(), config.Version)
+		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	}
 
 	log.Error("SSHCommand.Run returned err:%s", err)

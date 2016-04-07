@@ -1,13 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"koding/klientctl/config"
 	"koding/klientctl/metrics"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/koding/logging"
@@ -46,6 +49,26 @@ func (p *serviceProgram) Stop(s service.Service) error {
 	return nil
 }
 
+func latestVersion(url string) (int, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	p, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	version, err := strconv.ParseUint(string(bytes.TrimSpace(p)), 10, 32)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(version), nil
+}
+
 // InstallCommandFactory is the factory method for InstallCommand.
 func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 1 {
@@ -78,7 +101,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	kontrolURL := strings.TrimSpace(c.String("kontrol"))
 	if kontrolURL == "" {
 		// Default to the config's url
-		kontrolURL = KontrolURL
+		kontrolURL = config.KontrolURL
 	}
 
 	// Create the installation dir, if needed.
@@ -110,8 +133,15 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 
 	fmt.Println("Downloading...")
 
-	if err = downloadRemoteToLocal(S3KlientPath, klientBinPath); err != nil {
-		log.Error("Error downloading klient binary. err:%s", err)
+	version, err := latestVersion(config.S3KlientLatest)
+	if err != nil {
+		log.Error("Error downloading klient binary. err: %s", err)
+		fmt.Printf(FailedDownloadingKlient)
+		return 1
+	}
+
+	if err = downloadRemoteToLocal(config.S3Klient(version), klientBinPath); err != nil {
+		log.Error("Error downloading klient binary. err: %s", err)
 		fmt.Printf(FailedDownloadingKlient)
 		return 1
 	}
@@ -199,7 +229,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	// track metrics
-	metrics.TrackInstall(config.Version)
+	metrics.TrackInstall(config.VersionNum())
 
 	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", config.KlientName)
 
