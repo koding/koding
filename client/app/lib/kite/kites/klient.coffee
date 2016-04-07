@@ -69,10 +69,12 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
     { url, checkAlternatives } = @transport.options
 
     # keep a local copy of proxified version
-    Proxifier.proxify url, no,  (newurl) => @_baseURL = newurl
+    Proxifier.proxify { url, checkAlternatives: no }, (newurl) =>
+
+      @_baseURL = newurl
 
     # ask for the alternatives or proxified version
-    Proxifier.proxify url, checkAlternatives, (newurl) =>
+    Proxifier.proxify { url, checkAlternatives }, (newurl) =>
 
       @transport.options.url = newurl
 

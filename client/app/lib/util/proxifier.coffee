@@ -3,7 +3,11 @@ doXhrRequest = require 'app/util/doXhrRequest'
 
 module.exports = class Proxifier
 
-  @proxify = (url, checkAlternatives = yes, callback) ->
+  @proxify = (options, callback) ->
+
+    # take options for url
+    { url, checkAlternatives } = options
+    checkAlternatives         ?= yes
 
     # parse url
     parser = global.document.createElement 'a'
