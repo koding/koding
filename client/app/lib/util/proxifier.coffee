@@ -25,7 +25,7 @@ module.exports = class Proxifier
 
     # build our new url, example:
     # old: http://54.164.174.218:3000/kite
-    # new: https://koding.com/-/prodproxy/54.164.243.111/kite
+    # new: https://p.koding.com/-/prodproxy/54.164.243.111/kite
     #           or
     #      http://localhost:8090/-/prodproxy/54.164.243.111/kite
 
