@@ -18,10 +18,10 @@ module.exports = class Proxifier
     return callback url  if parser.hostname in ['127.0.0.1', 'dev.kodi.ng']
 
     # check if running under production environment
-    isInProduction = globals.config.environment is 'production'
+    isInProduction = @isInProduction()
 
     # get the current protocol
-    { protocol } = global.document.location
+    protocol = @getProtocol()
 
     # build our new url, example:
     # old: http://54.164.174.218:3000/kite
@@ -77,3 +77,12 @@ module.exports = class Proxifier
     timeout  = 2000
 
     doXhrRequest { endPoint, type, timeout }, callback
+
+
+  @getProtocol = ->
+    { protocol } = global.document.location
+    return protocol
+
+
+  @isInProduction = ->
+    return globals.config.environment is 'production'
