@@ -13,4 +13,5 @@ module.exports = {
   'originId': '567852fe0d8a462dfae4ff9f',
   'layout': {},
   '_id': '567852fe0d8a462dfae4ffa6'
+  getId: -> @_id
 }
