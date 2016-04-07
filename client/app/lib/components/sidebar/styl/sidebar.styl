@@ -21,7 +21,43 @@
   align-self                flex-end
   padding                   0 0 40px
   text-align                center
+  size                      112px auto
 
 .Sidebar-footer-logo
   width                     112px
   margin-left               -15px
+
+img.Sidebar-footer-logo
+  opacity                   .3
+
+.TeamAccountMenu.kdcontextmenu
+  .kdlistview-contextmenu.default
+    width                   228px
+    border-top              6px solid #D8D8D8
+    rounded                 0
+    padding                 0
+
+  .kdlistitemview-contextitem.default
+    bg                      color, #FBFBFB
+    color                   #2B2B2B
+    rounded                 0
+    border-bottom           1px solid #EEEEEE
+    height                  48px
+    line-height             20px
+    font-family             SoleilFamily
+    font-weight             300
+    font-size               14px
+    padding                 14px 45px
+    borderBox()
+
+    &:first-of-type
+      rounded               0
+
+    &:last-of-type
+      rounded               0
+      border-bottom         none
+
+    &:hover
+      bg                    color, #F3F3F3
+      color                 #4BAF60
+      text-shadow           none
