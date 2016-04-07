@@ -46,7 +46,7 @@ bootup = ->
     globals.userAccount            = remote.revive globals.userAccount
     globals.config.entryPoint.slug = globals.currentGroup.slug
 
-    setupAnalytics()
+    setupAnalytics()  unless globals.config.environment is 'default'
 
   MainController = require './maincontroller'
   Status = require './status'
@@ -65,7 +65,7 @@ bootup = ->
 
   require('./routehandler')()
 
-  firstLoad    = yes
+  firstLoad = yes
 
   mainController.tempStorage = {}
 
