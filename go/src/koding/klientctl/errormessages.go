@@ -195,6 +195,12 @@ remote machine is running & accessible and try again.`,
 	// for now.
 	MachineNotValidYet = FailedDialingRemote
 
+	// MachineMountActionIsLocked is used when the machine's mount(s) have been locked
+	// by another kd call or auto mounting process. Ie, two calls to `kd mount` at
+	// the same time for the same machine.
+	MachineMountActionIsLocked = `Error: %s is currently busy with another mounting process.
+Please try again in a moment.`
+
 	// RemotePathDoesNotExist is printed when the user supplies a directory to mount,
 	// that does not exist on the remote side.
 	RemotePathDoesNotExist = fmt.Sprintf(
