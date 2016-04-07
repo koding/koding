@@ -34,7 +34,7 @@ bootup = ->
   globals.keymapType = do ->
     if globals.os is 'mac' then globals.os else 'win'
 
-  if globals.config.environment in ['dev', 'sandbox']
+  if globals.config.environment in ['dev', 'default', 'sandbox']
     global._kd      = kd
     global._remote  = remote
 

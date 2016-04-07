@@ -58,7 +58,7 @@ module.exports = class InstallKdModal extends kd.ModalView
 
   updateContentViews: (token) ->
 
-    kontrolUrl = if globals.config.environment in ['dev', 'sandbox']
+    kontrolUrl = if globals.config.environment in ['dev', 'default', 'sandbox']
     then "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; "
     else ''
 
