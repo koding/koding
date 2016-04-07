@@ -1,5 +1,6 @@
-remote = require('../remote').getInstance()
-kd     = require 'kd'
+kd      = require 'kd'
+remote  = require('../remote').getInstance()
+globals = require 'globals'
 
 
 module.exports = class PaymentController extends kd.Controller
@@ -26,8 +27,17 @@ module.exports = class PaymentController extends kd.Controller
       callback err, result
 
 
-  subscriptions : (callback) -> @api().subscriptions {}, callback
-  invoices      : (callback) -> @api().invoices {}, callback
+  subscriptions: (callback) ->
+
+    # return plan as 'koding' on default environment
+    if globals.config.environment is 'default'
+      # checkout servers/models/computeproviders/plans.coffee
+      return callback null, { planTitle: 'koding' }
+
+    @api().subscriptions {}, callback
+
+
+  invoices: (callback) -> @api().invoices {}, callback
 
 
   creditCard: (callback) ->
