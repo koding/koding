@@ -31,7 +31,7 @@ module.exports = class TeamDomainTab extends kd.FormView
 
     @inputView.addSubView @suffix = new kd.View
       tagName      : 'span'
-      partial      : '.koding.com'
+      partial      : ".#{kd.config.domains.main}"
 
     @inputView.addSubView @fakeView = new kd.CustomHTMLView
       tagName      : 'div'
