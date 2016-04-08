@@ -36,5 +36,6 @@ module.exports = {
         "member",
         "admin",
         "owner"
-    ]
+    ],
+    getId: -> @_id
 }
