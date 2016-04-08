@@ -5,7 +5,7 @@ module.exports = (options, callback) ->
   getTitle        = require './../title'
   getGraphMeta    = require './../graphmeta'
   { argv }          = require 'optimist'
-  { uri }           = require('koding-config-manager').load("main.#{argv.c}")
+  { uri, domains }  = require('koding-config-manager').load("main.#{argv.c}")
 
   entryPoint         = { slug : 'koding', type: 'group' }
   options.entryPoint = entryPoint
@@ -21,7 +21,7 @@ module.exports = (options, callback) ->
         summary  = body.slice(0, 80)
         title    = "#{summary} | Koding Community"
 
-      url = if uri?.address then uri.address else 'https://koding.com/'
+      url = if uri?.address then uri.address else "https://#{domains.base}/"
       shareUrl = "#{url}/#{slug}"
 
     """

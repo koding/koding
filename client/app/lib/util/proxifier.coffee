@@ -34,7 +34,7 @@ module.exports = class Proxifier
     subdomain = if isInProduction then 'p' else 'dev-p'
 
     # create the base url
-    baseURL = "#{protocol}//#{subdomain}.koding.com/-"
+    baseURL = "#{protocol}//#{subdomain}.#{globals.config.domains.base}/-"
 
     # if it's a tunnel given domain we need to do one more check
     # for tunnels since production tunnel proxy is different

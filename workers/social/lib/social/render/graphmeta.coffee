@@ -1,5 +1,5 @@
 { argv } = require 'optimist'
-{ uri, client:{ version } } = require('koding-config-manager').load("main.#{argv.c}")
+{ uri, domains, client:{ version } } = require('koding-config-manager').load("main.#{argv.c}")
 encoder      = require 'htmlencode'
 
 module.exports = (options = {}) ->
@@ -42,7 +42,7 @@ module.exports = (options = {}) ->
   <meta name="twitter:card" content="summary"/>
   <meta name="twitter:image" content="#{options.image}"/>
   <meta name="twitter:description" content="#{encoder.XSSEncode options.body}"/>
-  <meta name="twitter:domain" content="koding.com">
+  <meta name="twitter:domain" content="#{domains.base}">
 
 
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
