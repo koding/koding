@@ -22,8 +22,7 @@ module.exports = class InvitationsListController extends KodingListController
       method          = if selector.query then 'search' else 'some'
       selector.status = options.statusType
 
-      remote.api.JInvitation[method] selector, fetchOptions, (err, invitations) ->
-        callback err, invitations
+      remote.api.JInvitation[method] selector, fetchOptions, callback
 
     super options, data
 
