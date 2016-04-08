@@ -1,3 +1,4 @@
+AWS = require 'aws-sdk'
 unless process.env.TEST_AWS_REGION
   console.error 'error: TEST_AWS_REGION is not set'
   process.exit 1
