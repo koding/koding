@@ -685,6 +685,67 @@ Admin main styles
 
 .AppModal--admin .resource-management
 
+  .advanced-search-link
+    font-size               13px
+    color                   #8d8d8d
+    pointer()
+    padding-left            5px
+
+  .advanced-search-container
+    hidden()
+
+  .advanced-search-mode
+    .simple-search-container
+      hidden()
+
+    .advanced-search-container
+      visible()
+
+    .formline
+      fl()
+
+      &:nth-child(odd)
+        clear               both
+
+    .button-field
+      margin-top            0px !important
+
+      .kdbutton
+        fl()
+
+    .kdinput.checkbox
+      width                 auto !important
+      height                auto !important
+
+    .kdautocompletewrapper
+      bg                    color, transparent
+
+    .account-heads
+      max-width             230px
+
+    .chat-head
+      white-space           nowrap
+      line-height           25px
+      margin                1px 2px 1px 0
+      padding               5px
+      padding-right         30px
+      padding-bottom        0px
+      fl()
+      rel()
+
+      .avatarview
+        height              25px
+        margin              0 7px 0 0
+
+      > span
+        display             inline-block
+        font-size           14px
+        color               #8b8b8b
+
+      .close-icon
+        top                 8px
+        right               7px
+
   .listview-wrapper
     kalc                    height, (100% \- 100px)
 
@@ -765,6 +826,44 @@ Admin main styles
 
       strong
         font-weight         bold
+
+.resource-management-search.kdautocomplete.listview-wrapper
+    border                  dropdownBorder
+    border-top-color        transparent
+    rounded                 0
+    shadow                  dropdownShadow
+    margin-top              0
+    margin-left             0
+    min-width               229px
+    fix()
+
+  .kdautocompletelist
+    padding                 0 !important
+
+  .kdautocompletelistitem
+    font-size               14px
+    padding                 5px 10px 5px 5px
+    border                  none
+    cursor                  pointer
+    line-height             27px
+    bg                      color transparent
+    color                   #6D6D6D
+    borderBox()
+
+    .avatarview
+      display               inline-block
+      margin                1px 10px 1px 5px
+      size                  25px, 25px
+
+    &.fetching
+    &.no-result
+      width                 207px
+      color                 #888
+      text-align            center
+
+    &.active
+      color                 white
+      bg                    color #7a7a7a
 
 .AppModal--admin .general-settings-view
 
