@@ -41,14 +41,11 @@ module.exports = [
 
   [
     { name: 'ide search' }
+    { name: 'ide general' }
   ]
 
   [
     { name: 'ide terminal' }
-  ]
-
-  [
-    { name: 'ide general' }
   ]
 
   [
@@ -86,19 +83,21 @@ module.exports = [
   ]
 
   [
-    # { name: 'environments paidaccount' }
+    { name: 'environments paidaccount' }
     # { name: 'environments vm-advanced' }
-    { name: 'environments paidaccountvm' }
+  ]
+
+  [
     { name: 'environments domain' }
   ]
 
-  [
-    { name: 'environments vmactions_hobbyist' }
-  ]
+  # [
+  #   { name: 'environments vmactions_hobbyist' }
+  # ]
 
-  [
-    { name: 'environments vmactions_developer' }
-    { name: 'environments vmactions_professional' }
-  ]
+  # [
+  #   { name: 'environments vmactions_developer' }
+  #   { name: 'environments vmactions_professional' }
+  # ]
 
 ]
