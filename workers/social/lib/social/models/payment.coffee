@@ -65,7 +65,7 @@ module.exports = class Payment extends Base
 
             SiftScience = require './siftscience'
             SiftScience.transaction client, data, (err) ->
-              log 'logging to SiftScience failed', err  if err
+              console.warn 'logging to SiftScience failed', err  if err
 
 
   @fetchGroupPlan = (group, callback) ->
