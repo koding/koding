@@ -287,3 +287,4 @@ module.exports = class TeamMembersCommonView extends KDView
   refresh: ->
 
     @resetListItems()
+    @fetchMembers()
