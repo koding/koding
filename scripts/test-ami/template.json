@@ -29,7 +29,7 @@
     },
     {
       "type": "file",
-      "source": ".ssh/",
+      "source": "{{user `dot_ssh_folder_path`}}",
       "destination": "/home/ubuntu/.ssh/"
     },
     {
