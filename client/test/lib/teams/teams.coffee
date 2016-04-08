@@ -112,3 +112,31 @@ module.exports =
     teamsHelpers.checkIconsStacks(browser, no)
     teamsHelpers.editStackName(browser)
     browser.end()
+
+
+  tryToLeaveTeamForAdminUser: (browser) ->
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.clickTeamSettings(browser, 'accountSettings')
+
+    leaveTeamItem    = '.AppModal--account .leave'
+    leaveTeamButton  = '.AppModal-content .delete-account'
+    inputSelector    = '.kdmodal .formline.username input.text'
+    leaveButton      = '.kdmodal .formline.button-field .red'
+    notification     = '.kdnotification'
+    notificationText = 'transfer ownership of team'
+
+    browser
+      .waitForElementVisible  leaveTeamItem, 20000
+      .click                  leaveTeamItem
+      .waitForElementVisible  leaveTeamButton, 20000
+      .click                  leaveTeamButton
+      .pause                  2000 # wait for modal
+      .setValue               inputSelector, user.username
+      .waitForElementVisible  leaveButton, 20000
+      .click                  leaveButton
+      .waitForElementVisible  notification, 20000
+      .assert.containsText    notification, notificationText
+      .end()
+
+
