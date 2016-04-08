@@ -12,9 +12,9 @@ module.exports = class InvitationsListController extends KodingListController
     options.noItemFoundText            ?= 'There is no pending invitation.'
     options.statusType                or= 'pending'
     options.itemClass                 or= InvitedItemView
-    options.lazyLoadThreshold         or= .99
+    options.lazyLoadThreshold          ?= .99
     options.viewOptions               or= {}
-    options.viewOptions.wrapper       or= yes
+    options.viewOptions.wrapper        ?= yes
     options.viewOptions.itemOptions   or= options.listViewItemOptions
 
     options.fetcherMethod             or= (selector, fetchOptions, callback) ->
