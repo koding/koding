@@ -138,7 +138,7 @@ createStubLocation = (env)->
       }
   \n"""
 
-  if env is "dev"
+  if env in ["dev", "default"]
     stub = ""
 
   return stub
@@ -147,7 +147,7 @@ createRootLocation = (KONFIG) ->
   return "" if isProxy KONFIG.ebEnvName
 
   proxy = KONFIG.hubspotPageURL
-  if KONFIG.environment in ["dev", "sandbox"]
+  if KONFIG.environment in ["dev", "default", "sandbox"]
     proxy = "http://gowebserver"
 
   return """
@@ -159,7 +159,7 @@ createRootLocation = (KONFIG) ->
           proxy_next_upstream   error timeout   invalid_header http_500;
           proxy_connect_timeout 30;
 
-          if ($host !~* ^(dev|sandbox|latest|www)) {
+          if ($host !~* ^(dev|default|sandbox|latest|www)) {
              return 301 /;
           }
 
@@ -175,21 +175,23 @@ module.exports.create = (KONFIG, environment)->
     when 'linux'  then 'use epoll;'
     else ''
 
+  inDevEnvironment = environment in ['dev', 'default']
+
   for path in ['/etc/nginx/mime.types', '/usr/local/etc/nginx/mime.types']
     continue  unless fs.existsSync path
     mime_types = "include #{path};"
     break
 
   config = """
-  worker_processes #{if environment is "dev" then 1 else 16};
-  master_process #{if environment is "dev" then "off" else "on"};
+  worker_processes #{if inDevEnvironment then 1 else 16};
+  master_process #{if inDevEnvironment then "off" else "on"};
 
 
   #error_log  logs/error.log;
   #error_log  logs/error.log  notice;
   #error_log  logs/error.log  info;
 
-  #{if environment is 'dev' then '' else 'pid /var/run/nginx.pid;'}
+  #{if inDevEnvironment then '' else 'pid /var/run/nginx.pid;'}
 
   events {
     worker_connections  1024;
@@ -204,7 +206,7 @@ module.exports.create = (KONFIG, environment)->
 
     # log how long requests take
     log_format timed_combined 'RA: $remote_addr H: $host R: "$request" S: $status RS: $body_bytes_sent R: "$http_referer" UA: "$http_user_agent" RT: $request_time URT: $upstream_response_time';
-    #{if environment is 'dev' then '' else 'access_log /var/log/nginx/access.log timed_combined;'}
+    #{if inDevEnvironment then '' else 'access_log /var/log/nginx/access.log timed_combined;'}
 
     proxy_buffer_size  128k; # default 8k;
     proxy_buffers   4 256k; # default 8 8k;
@@ -215,7 +217,7 @@ module.exports.create = (KONFIG, environment)->
     client_header_buffer_size 4k;
     client_max_body_size 10m;
 
-    #{if environment is 'dev' then 'client_body_temp_path /tmp;' else ''}
+    #{if inDevEnvironment then 'client_body_temp_path /tmp;' else ''}
 
     sendfile on;
 
@@ -285,7 +287,7 @@ module.exports.create = (KONFIG, environment)->
       # serve static content from nginx
       location /a/ {
 
-        #{if environment is 'dev' then '' else "
+        #{if inDevEnvironment then '' else "
           location ~* \.(map)$ {
             return 404;
             access_log off;

@@ -21,3 +21,17 @@ describe 'AccountSSHKeyList', ->
       listView = new AccountSshKeyList
 
       expect(listView.getOptions().tagName).toEqual 'ul'
+
+
+  describe '::sendItemAction', ->
+
+    it 'should emit an event with given parameters', ->
+
+      listView = new AccountSshKeyList
+      spy      = expect.spyOn listView, 'emit'
+
+      listView.sendItemAction 'EditItem', { item : 'test' }
+
+      expect(spy.calls.first.arguments[0]).toEqual        'ItemAction'
+      expect(spy.calls.first.arguments[1].item).toEqual   'test'
+      expect(spy.calls.first.arguments[1].action).toEqual 'EditItem'

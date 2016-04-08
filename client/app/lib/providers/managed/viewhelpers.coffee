@@ -15,7 +15,7 @@ addTo = (parent, views) ->
   return map
 
 globals    = require 'globals'
-kontrolUrl = if globals.config.environment in ['dev', 'sandbox'] \
+kontrolUrl = if globals.config.environment in ['dev', 'default', 'sandbox'] \
              then "\n$ export KONTROLURL=#{KodingKontrol.getKontrolUrl()}" else ''
 
 contents  =
