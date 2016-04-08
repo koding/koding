@@ -42,7 +42,7 @@ func (m *machine) GetMachineStatus(ctx context.Context, req *string) (*models.Ma
 	// status := machine.State()
 
 	return &models.Machine{
-		Machine: machine,
+		Status: &machine.Status,
 	}, nil
 }
 
