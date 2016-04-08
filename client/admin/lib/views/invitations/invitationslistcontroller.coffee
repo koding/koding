@@ -64,5 +64,6 @@ module.exports = class InvitationsListController extends KodingListController
       if err
         title  = 'Unable to resend the invitation. Please try again.'
 
-      item.timeAgoView.setData new Date
+      item.timeAgoView.setData new Date  unless err
+
       return new KDNotificationView { title, duration }
