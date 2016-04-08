@@ -100,6 +100,13 @@ func main() {
 
 	fmt.Println("MACHINE IS HERE:", machine)
 
+	status, err := machineClient.GetMachineStatus(ctx, &machineId)
+	if err != nil {
+		fmt.Println("ERR IS HERE-GETMACHINESTATUS:", err)
+		return
+	}
+	fmt.Println("MACHINE STATUS IS :",status)
+
 	// ctx = context.WithValue(ctx, "machineService", machineClient)
 	//
 	// svc := machine.NewMachine()

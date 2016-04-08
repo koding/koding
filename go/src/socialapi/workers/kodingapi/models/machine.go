@@ -9,6 +9,7 @@ type Machine struct {
 	Machine *models.Machine
 	Status *models.MachineStatus
 }
+
 //
 // // Machine represents a registered Account's Machine Info
 // type Machine struct {
