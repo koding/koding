@@ -6,9 +6,12 @@ import (
 	"path"
 	"testing"
 
+	"koding/kites/tunnelproxy/discover/discovertest"
 	"koding/klient/kiteerrortypes"
+	"koding/klient/remote/restypes"
 	"koding/klient/util"
 	"koding/klientctl/klient"
+	"koding/klientctl/list"
 	"koding/klientctl/ssh"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -18,6 +21,7 @@ func TestSSHCommand(t *testing.T) {
 	Convey("", t, func() {
 		tempSSHDir, err := ioutil.TempDir("", "")
 		So(err, ShouldBeNil)
+		defer os.Remove(tempSSHDir)
 
 		teller := newFakeTransport()
 		s := ssh.SSHCommand{
@@ -89,7 +93,71 @@ func TestSSHCommand(t *testing.T) {
 				So(string(firstContents), ShouldEqual, string(secondContents))
 			})
 		})
+	})
+}
 
-		defer os.Remove(tempSSHDir)
+func TestSSHKey(t *testing.T) {
+	Convey("It should discover remote IP for tunneled connection", t, func() {
+		srv := discovertest.Server{
+			"ssh": {{
+				Addr:  "apple.rafal.grape.koding.me:2222",
+				Local: false,
+			}},
+		}
+
+		l, err := srv.Start()
+		So(err, ShouldBeNil)
+		defer l.Close()
+
+		k := &fakeKlient{
+			Remotes: list.KiteInfos{{
+				ListMachineInfo: restypes.ListMachineInfo{
+					Hostname: "root",
+					VMName:   "remote",
+					IP:       l.Addr().String(),
+				},
+			}},
+		}
+
+		s := ssh.SSHKey{
+			Klient: k,
+		}
+
+		userhost, port, err := s.GetSSHAddr("remote")
+		So(err, ShouldBeNil)
+		So(userhost, ShouldEqual, "root@apple.rafal.grape.koding.me")
+		So(port, ShouldEqual, "2222")
+	})
+
+	Convey("It should discover local IP for tunneled connection", t, func() {
+		srv := discovertest.Server{
+			"ssh": {{
+				Addr:  "127.0.0.1:2222",
+				Local: true,
+			}},
+		}
+
+		l, err := srv.Start()
+		So(err, ShouldBeNil)
+		defer l.Close()
+
+		k := &fakeKlient{
+			Remotes: list.KiteInfos{{
+				ListMachineInfo: restypes.ListMachineInfo{
+					Hostname: "root",
+					VMName:   "local",
+					IP:       l.Addr().String(),
+				},
+			}},
+		}
+
+		s := ssh.SSHKey{
+			Klient: k,
+		}
+
+		userhost, port, err := s.GetSSHAddr("local")
+		So(err, ShouldBeNil)
+		So(userhost, ShouldEqual, "root@127.0.0.1")
+		So(port, ShouldEqual, "2222")
 	})
 }
