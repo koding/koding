@@ -225,7 +225,9 @@ module.exports = class JUser extends jraphical.Module
     # -rm was intentional otherwise we are exceeding the max username length
     username = "#{username}-rm"
 
+    # Why we do have such thing? ~ GG
     email = "#{username}@koding.com"
+
     @one { username: toBeDeletedUsername }, (err, user) ->
       return callback err  if err?
 
