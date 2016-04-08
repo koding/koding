@@ -62,6 +62,10 @@ module.exports = class SiftScience
 
 
   @send = (client, event, data, callback) ->
+    unless KONFIG.siftScience
+      return callback new KodingError \
+        'SiftScience is disabled because of missing configuration'
+
     siftScience = require('yield-siftscience') KONFIG.siftScience
 
     @fetchUserInfo client, (err, userInfo) ->
