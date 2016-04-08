@@ -1,7 +1,6 @@
 package machine
 
 import (
-	// "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/kodingapi/models"
 
@@ -25,7 +24,7 @@ func (m *machine) GetMachine(ctx context.Context, req *string) (*models.Machine,
 	}
 
 	return &models.Machine{
-		Machine: machine,
+		Owner: machine.Owner().Owner,
 	}, nil
 }
 
@@ -42,14 +41,14 @@ func (m *machine) GetMachineStatus(ctx context.Context, req *string) (*models.Ma
 	// status := machine.State()
 
 	return &models.Machine{
-		Status: &machine.Status,
+		Owner: machine.Owner().Owner,
+		State: machine.Status.State,
 	}, nil
 }
 
 // ListMachines returns the machine list of the user.
 func (m *machine) ListMachines(ctx context.Context, req *string) (*[]*models.Machine, error) {
 	auth := ctx.Value("auth")
-
 
 	userModel, err := modelhelper.GetUserByAccessToken(auth.(string))
 	if err != nil {
@@ -62,10 +61,9 @@ func (m *machine) ListMachines(ctx context.Context, req *string) (*[]*models.Mac
 		return nil, err
 	}
 
-	for _,mac :=range machines{
-		macs = append(macs, &models.Machine{Machine:mac})
+	for _, mac := range machines {
+		macs = append(macs, &models.Machine{State: mac.Status.State})
 	}
-
 
 	return &macs, nil
 }
