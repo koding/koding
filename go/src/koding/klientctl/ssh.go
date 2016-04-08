@@ -19,14 +19,22 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	cmd, err := ssh.NewSSHCommand(true)
+	cmd, err := ssh.NewSSHCommand(log, true)
 
 	// TODO: Refactor SSHCommand instance to require no initialization,
 	// and thus avoid needing to log an error in a weird place.
 	if err != nil {
 		log.Error("Error initializing ssh: %s", err)
-		fmt.Println(GenericInternalError)
+		switch err {
+		case ssh.ErrLocalDialingFailed:
+			fmt.Println(
+				defaultHealthChecker.CheckAllFailureOrMessagef(KlientIsntRunning),
+			)
+		default:
+			fmt.Println(GenericInternalError)
+		}
 
+		metrics.TrackSSHFailed(mountName, err.Error(), config.Version)
 		return 1
 	}
 
@@ -47,7 +55,7 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println(FailedGetSSHKey)
 	case ssh.ErrMachineNotValidYet:
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
-	case ssh.ErrDialingFailed:
+	case ssh.ErrRemoteDialingFailed:
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedDialingRemote))
 	}
 

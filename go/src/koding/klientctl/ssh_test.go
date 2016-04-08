@@ -42,7 +42,7 @@ func TestSSHCommand(t *testing.T) {
 				)
 				teller.TripErrors["remote.sshKeysAdd"] = kiteErr
 
-				Convey("It should return ErrDialingFailed", func() {
+				Convey("It should return ErrRemoteDialingFailed", func() {
 					So(s.PrepareForSSH("foo"), ShouldEqual, kiteErr)
 				})
 			})
