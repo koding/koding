@@ -34,6 +34,7 @@ do ->
   kd.config.groupName     = groupName = utils.getGroupNameFromLocation()
   kd.config.recaptcha     = window._runtimeOptions.recaptcha
   kd.config.google        = window._runtimeOptions.google
+  kd.config.domains       = window._runtimeOptions.domains
 
   if groupName is 'koding'
   then setGroup()
