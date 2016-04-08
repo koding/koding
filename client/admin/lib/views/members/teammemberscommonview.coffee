@@ -78,7 +78,7 @@ module.exports = class TeamMembersCommonView extends KDView
       viewOptions         :
         wrapper           : yes
         itemOptions       : listViewItemOptions
-      fetcherMethod       : (query, fetchOptions, callback) =>
+      fetcherMethod       : (query, fetchOptions, callback) ->
         group[fetcherMethod] query, fetchOptions, (err, members) -> callback err, members
 
     @buildListController()

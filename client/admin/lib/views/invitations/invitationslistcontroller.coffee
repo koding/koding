@@ -43,7 +43,7 @@ module.exports = class InvitationsListController extends KodingListController
 
     listView = @getListView()
 
-    item.getData().remove (err) =>
+    item.getData().remove (err) ->
       unless err
         listView.emit 'ItemAction', { action : 'ItemRemoved', item }
         return
@@ -57,7 +57,7 @@ module.exports = class InvitationsListController extends KodingListController
 
   resend: (item) ->
 
-    remote.api.JInvitation.sendInvitationByCode item.getData().code, (err) =>
+    remote.api.JInvitation.sendInvitationByCode item.getData().code, (err) ->
       item.resendButton.hideLoader()
       title    = 'Invitation is resent.'
       duration = 5000
