@@ -47,8 +47,3 @@ module.exports =
       .assert.valueContains   'input[name=url]', user.teamSlug
       .waitForElementVisible  '.avatar-upload .avatar', 20000
       .end()
-
-
-  tryToLeaveTeam: (browser) ->
-
-
