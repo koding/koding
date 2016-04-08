@@ -62,6 +62,7 @@ module.exports = class OutputView extends kd.ScrollView
 
     modal = new kd.ModalView
       title          : ''
+      cssClass       : 'stack-modal'
       content        : content
       overlay        : yes
       overlayOptions :

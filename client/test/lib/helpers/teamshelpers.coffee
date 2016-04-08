@@ -1,9 +1,9 @@
-helpers    = require '../helpers/helpers.js'
-utils      = require '../utils/utils.js'
-path       = require 'path'
-awsKeyPath = path.resolve __dirname, '../../../../../config/aws/worker_ci_test_key.json'
-awsKey     = require awsKeyPath
-
+helpers                  = require '../helpers/helpers.js'
+utils                    = require '../utils/utils.js'
+staticContents           = require '../helpers/staticContents.js'
+path                     = require 'path'
+awsKeyPath               = path.resolve __dirname, '../../../../../config/aws/worker_ci_test_key.json'
+awsKey                   = require awsKeyPath
 teamsModalSelector       = '.TeamsModal--groupCreation'
 companyNameSelector      = '.login-form input[testpath=company-name]'
 sidebarSectionsSelector  = '.activity-sidebar .SidebarChannelsSection'
@@ -13,6 +13,18 @@ invitationsModalSelector = '.kdmodal-content  .AppModal--admin-tabs .invitations
 pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
 pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
 teamsLoginModal          = '.TeamsModal--login'
+stackCatalogModal        = '.StackCatalogModal'
+sidebarSelector          = '.activity-sidebar .SidebarTeamSection'
+sidebarStackSection      = "#{sidebarSelector} .SidebarStackSection.active"
+stackMachineItem         = "#{sidebarStackSection} .SidebarMachinesListItem"
+stackMachine             = "#{stackMachineItem}.Running.active"
+stackTemplateList        = "#{stackCatalogModal} .stack-template-list"
+stackModalCloseButton    = '.StackCatalogModal .close-icon'
+envMachineStateModal     = '.env-machine-state.env-modal'
+stackSettingsMenuIcon    = '.stacktemplates .stack-template-list .stack-settings-menu .chevron'
+myStackTemplatesButton   = '.kdview.kdtabhandle-tabs .my-stack-templates'
+closeButton              = "#{stackCatalogModal} .kdmodal-inner .closeModal"
+
 
 
 module.exports =
@@ -74,6 +86,10 @@ module.exports =
     unrecognizedMessage   = 'Unrecognized email'
     unknownUserMessage    = 'Unknown user name'
     wrongPasswordMessage  = 'Access denied'
+    inputUserName         = 'input[name=username]'
+    inputPassword         = 'input[name=password]'
+    loginButton           = 'button[testpath=login-button]'
+
 
     browser
       .pause                  2000 # wait for login page
@@ -116,7 +132,7 @@ module.exports =
     url  = helpers.getUrl(yes)
 
     stackCatalogModal = '.StackCatalogModal'
-    closeButton       = "#{stackCatalogModal} .kdmodal-inner .closeModal"
+    stackCloseButton  = "#{stackCatalogModal} .kdmodal-inner .closeModal"
 
     browser.url url
     browser.maximizeWindow()
@@ -124,10 +140,7 @@ module.exports =
     browser.pause  3000
     browser.element 'css selector', teamsLoginModal, (result) =>
       if result.status is 0
-        if invalidCredentials
-          @loginToTeam browser, user, yes
-        else
-          @loginToTeam browser, user
+        @loginToTeam browser, user, invalidCredentials
       else
         @createTeam browser
 
@@ -136,8 +149,8 @@ module.exports =
         if result.status is 0
            browser
             .waitForElementVisible  stackCatalogModal, 20000
-            .waitForElementVisible  closeButton, 20000
-            .click                  closeButton
+            .waitForElementVisible  stackCloseButton, 20000
+            .click                  stackCloseButton
 
     return user
 
@@ -241,19 +254,39 @@ module.exports =
     @openTeamSettingsModal(browser)
 
 
-  startStackCreate: (browser) ->
+  openStackCatalog: (browser, clickStartButton = yes) ->
 
     stackCreateButton        = '.activity-sidebar .SidebarTeamSection a[href="/Stacks/Welcome"]'
-    stackCatalogModal        = '.StackCatalogModal'
+    stacksHeader             = '.activity-sidebar .SidebarSection-headerTitle[href="/Stacks"]'
     teamStackTemplatesButton = "#{stackCatalogModal} .kdtabhandle-tabs .team-stack-templates"
-    stackPage                = '.stacks .stack-onboarding.get-started'
+    stackOnboardingPage      = '.stacks .stack-onboarding.get-started'
+    getStartedButton         = "#{stackOnboardingPage} .header button.green"
+    createNewStackButton     = "#{stackCatalogModal} .top .green.action"
 
-    browser
-      .waitForElementVisible  stackCreateButton, 20000
-      .click                  stackCreateButton
-      .waitForElementVisible  teamStackTemplatesButton, 20000
-      .click                  teamStackTemplatesButton
-      .waitForElementVisible  stackPage, 20000
+    browser.element 'css selector', stackCreateButton, (result) ->
+      buttonSelector = if result.status is 0 then stackCreateButton else stacksHeader
+
+      browser
+        .waitForElementVisible  buttonSelector, 20000
+        .click                  buttonSelector
+        .waitForElementVisible  teamStackTemplatesButton, 20000
+        .click                  teamStackTemplatesButton
+        .pause                  1000
+        .element                'css selector', stackMachineItem, (result) ->
+          if result.status is 0
+            browser
+              .waitForElementVisible  stackTemplateList, 20000
+              .waitForElementVisible  createNewStackButton, 20000
+
+            if clickStartButton
+              browser.click           createNewStackButton
+          else
+            browser
+              .waitForElementVisible  stackOnboardingPage, 20000
+              .waitForElementVisible  getStartedButton, 20000
+
+            if clickStartButton
+              browser.click           getStartedButton
 
 
   openInvitationsTab: (browser) ->
@@ -287,8 +320,7 @@ module.exports =
         .waitForElementVisible  channelPlusSelector, 20000
         .click                  channelPlusSelector
     else if channelHeader
-      browser
-        .click                  sidebarSectionsHeaderSelector
+      browser.click             sidebarSectionsHeaderSelector
 
 
   inviteUser: (browser, addMoreUser = no) ->
@@ -398,8 +430,6 @@ module.exports =
 
   createStack: (browser, skipStackSetup = no) ->
 
-    stackCreatePage       = '.Group-Stack-Templates .get-started'
-    getStartedButton      = "#{stackCreatePage} .header button.green"
     modalSelector         = '.kdmodal-content .AppModal-content'
     providerSelector      = "#{modalSelector} .stack-onboarding .provider-selection"
     machineSelector       = "#{providerSelector} .providers"
@@ -420,12 +450,7 @@ module.exports =
     stackTemplateSelector = '.kdtabhandlecontainer.hide-close-icons .stack-template'
     saveAndTestButton     = '.buttons button:nth-of-type(5)'
 
-    @startStackCreate(browser)
-
-    browser
-      .waitForElementVisible  stackCreatePage, 20000
-      .waitForElementVisible  getStartedButton, 20000
-      .click                  getStartedButton
+    @openStackCatalog(browser)
 
     if skipStackSetup
       browser
@@ -474,18 +499,22 @@ module.exports =
 
   createCredential: (browser, show = no, remove = no, use = no) ->
 
-    credetialTabSelector   = '.team-stack-templates .kdtabhandle-tabs .credentials'
-    stackTabSelector       = '.team-stack-templates .kdtabhandle.stack-template.active'
-    credentialsPane        = '.credentials-form-view'
-    editorSelector         = '.editor-main'
-    saveButtonSelector     = '.add-credential-scroll .button-field button.green'
-    newCredential          = '.step-creds .listview-wrapper .credential-list .credential-item'
-    credentialName         = 'test credential'
-    showCredentialButton   = "#{newCredential} button.show"
-    deleteCredentialButton = "#{newCredential} button.delete"
-    useCredentialButton    = "#{newCredential} button.verify"
-    inUseLabelSelector     = "#{newCredential} .custom-tag.inuse"
-    secretKeyInput         = "#{credentialsPane} .secret-key input"
+    credetialTabSelector     = '.team-stack-templates .kdtabhandle-tabs .credentials'
+    stackTabSelector         = '.team-stack-templates .kdtabhandle.stack-template.active'
+    credentialsPane          = '.credentials-form-view'
+    editorSelector           = '.editor-main'
+    saveButtonSelector       = '.add-credential-scroll .button-field button.green'
+    newCredential            = '.step-creds .listview-wrapper .credential-list .credential-item'
+    credentialName           = 'test credential'
+    showCredentialButton     = "#{newCredential} button.show"
+    deleteCredentialButton   = "#{newCredential} button.delete"
+    useCredentialButton      = "#{newCredential} button.verify"
+    inUseLabelSelector       = "#{newCredential} .custom-tag.inuse"
+    secretKeyInput           = "#{credentialsPane} .secret-key input"
+    destroyCredentialModal   = '.kdmodal[testpath=destroyCredentialModal]'
+    removeCredentialModal    = '.kdmodal[testpath=removeCredentialModal]'
+    destroyCredentialsButton = '.kdbutton[testpath=destroyAll]'
+    removeCredentialButton   = '.kdbutton[testpath=removeCredential]'
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
@@ -522,7 +551,7 @@ module.exports =
         .pause                    1000
 
       if show
-       browser
+        browser
           .waitForElementVisible  showCredentialButton, 20000
           .click                  showCredentialButton
           .waitForElementVisible  '.credential-modal', 20000
@@ -535,12 +564,20 @@ module.exports =
         browser
           .waitForElementVisible    deleteCredentialButton, 20000
           .click                    deleteCredentialButton
-          .pause                    1000
-          .waitForElementVisible    '.remove-credential', 20000
-          .assert.containsText      '.remove-credential', credentialName
-          .click                    '.remove-credential button.red'
           .pause                    2000
-          .waitForElementNotPresent newCredential, 20000
+          .element                  'css selector', destroyCredentialModal, (result) ->
+            buttonSelector = removeCredentialButton
+            modalSelector  = removeCredentialModal
+
+            if result.status is 0
+              buttonSelector = destroyCredentialsButton
+              modalSelector  = destroyCredentialModal
+
+            browser
+              .assert.containsText      modalSelector, credentialName
+              .click                    buttonSelector
+              .waitForElementNotPresent modalSelector, 60000
+              .waitForElementNotPresent newCredential, 20000
 
       if use
         browser
@@ -554,6 +591,356 @@ module.exports =
           .waitForElementVisible    inUseLabelSelector, 20000
 
 
+  clickSaveAndTestButton: (browser) ->
+
+    saveAndTestButton    = '.template-title-form .buttons .save-test'
+    editorSelector       = '.stack-template .output .output-view'
+    loaderIconNotVisible = "#{saveAndTestButton} .kdloader.hidden"
+
+    browser
+      .waitForElementVisible     saveAndTestButton, 20000
+      .scrollToElement           saveAndTestButton
+      .click                     saveAndTestButton
+      .waitForElementVisible     editorSelector, 35000
+      .waitForElementVisible     '.template-title-form .buttons .save-test .kdloader', 20000
+      .waitForElementNotVisible  loaderIconNotVisible, 500000
+      .pause                     3000
+
+
+  saveTemplate: (browser, deleteStack = yes, checkTags = yes, doExtra = yes) ->
+
+    stackModal           = '.stack-modal'
+    modalCloseButton     = "#{stackModal} .gray"
+    stackTabSelector     = '.team-stack-templates .kdtabhandle.stack-template.active'
+    finalizeStepsButton  = "#{sidebarSelector} a[href='/Stacks/Welcome']:not(.SidebarSection-headerTitle)"
+
+    if doExtra
+      @seeTemplatePreview(browser)
+      @updateStackReadme(browser)
+      @defineCustomVariables(browser)
+
+    @clickSaveAndTestButton(browser)
+
+    browser.element 'css selector', stackModal, (result) ->
+      if result.status is 0
+        browser
+          .assert.containsText    stackModal, 'Your stack script has been successfully saved'
+          .waitForElementVisible  modalCloseButton, 20000
+          .click                  modalCloseButton
+
+    browser
+      .waitForElementVisible     stackTabSelector, 20000
+      .waitForElementVisible     stackModalCloseButton, 20000
+      .click                     stackModalCloseButton
+      .pause                     3000
+      .waitForElementVisible     sidebarStackSection, 20000
+      .waitForElementNotPresent  finalizeStepsButton, 20000
+      .waitForElementVisible     envMachineStateModal, 20000
+
+    if checkTags
+      @checkStackTemplateTags(browser, deleteStack)
+
+
+  checkStackTemplateTags: (browser, deleteStack) ->
+
+    inUseTag       = "#{stackCatalogModal} [testpath=StackInUseTag]"
+    defaultTag     = "#{stackCatalogModal} [testpath=StackDefaultTag]"
+    accessTag      = "#{stackCatalogModal} [testpath=StackAccessLevelTag]"
+    deleteMenuItem = ".kdbuttonmenu .context-list-wrapper .delete"
+
+    @openStackCatalog(browser, no)
+
+    browser
+      .waitForElementVisible  stackTemplateList, 20000
+      .waitForElementVisible  inUseTag, 20000
+      .waitForElementVisible  defaultTag, 20000
+      .waitForElementVisible  accessTag, 20000
+      .assert.containsText    accessTag, 'GROUP'
+
+    if deleteStack
+      browser
+        .waitForElementVisible    stackSettingsMenuIcon, 20000
+        .click                    stackSettingsMenuIcon
+        .pause                    2000
+        .waitForElementVisible    deleteMenuItem, 20000
+        .click                    deleteMenuItem
+        .assert.containsText      '.kdnotification.main', 'This template currently in use by the Team'
+        .waitForElementNotVisible '.kdnotification.main', 30000
+
+    browser
+      .waitForElementVisible  stackModalCloseButton, 20000
+      .click                  stackModalCloseButton
+
+
+  editStack: (browser, openEditorAndClone = no) ->
+
+    editMenuItem             = ".kdbuttonmenu .context-list-wrapper .edit"
+    openEditorButton         = '.kdmodal-inner .kdmodal-buttons .red'
+    openEditorAndCloneButton = '.kdmodal-inner .kdmodal-buttons .green'
+    stackTemplatePage        = '.define-stack-view .stack-template'
+    stackEditorSelector      = "#{stackTemplatePage} .editor-pane"
+    numberNotification       = "#{sidebarStackSection} .SidebarListItem-unreadCount"
+    myStacksPage             = '.environments-modal.My-Stacks'
+    stackItems               = "#{myStacksPage} .environment-item"
+    makeTeamDefaultButton    = '.stacks .template-title-form .set-default'
+    makeTeamDefaultLoader    = "#{makeTeamDefaultButton} .kdloader.hidden"
+    newStackTemplate         = '.stacktemplates .stack-template-list .stacktemplate-item:last-child .title'
+    newStackInSidebar        = '.SidebarStackSection .SidebarMachinesListItem .SidebarMachinesListItem--MainLink'
+    updateNotification       = "#{stackItems} .update-notification"
+    updateStackButton        = "#{updateNotification} .reinit-stack"
+    reinitModal              = ".kdmodal[testpath=reinitStack]"
+    proceedButton            = "#{reinitModal} .red"
+    sidebarStackWidget       = ".SidebarStackWidgets"
+
+
+    browser.pause  3000
+    @openStackCatalog(browser, no)
+
+    browser
+      .waitForElementVisible  stackTemplateList, 20000
+      .waitForElementVisible  stackSettingsMenuIcon, 20000
+      .click                  stackSettingsMenuIcon
+      .pause                  2000
+      .waitForElementVisible  editMenuItem, 20000
+      .click                  editMenuItem
+      .pause                  2000
+
+    if openEditorAndClone
+      browser
+        .waitForElementVisible  openEditorAndCloneButton, 20000
+        .click                  openEditorAndCloneButton
+    else
+      browser
+        .waitForElementVisible  openEditorButton, 20000
+        .click                  openEditorButton
+
+    browser
+      .waitForElementVisible  stackTemplatePage, 20000
+      .waitForElementVisible  stackEditorSelector, 20000
+
+    @setTextToEditor browser, 'template', staticContents.multiMachineStackTemplate
+
+    if openEditorAndClone
+      @createCredential(browser, no, no, yes)
+
+    @clickSaveAndTestButton(browser)
+
+    if openEditorAndClone
+      browser
+        .waitForElementVisible  makeTeamDefaultButton, 20000
+        .click                  makeTeamDefaultButton
+        .pause                  3000
+        .waitForElementVisible  '.stacktemplates', 20000
+
+    browser
+      .waitForElementVisible  stackModalCloseButton, 20000
+      .click                  stackModalCloseButton
+
+    if openEditorAndClone
+      browser
+        .waitForElementVisible  sidebarStackWidget, 20000
+        .waitForTextToContain   sidebarStackWidget, 'Team admin has changed the default stack'
+        .click                  "#{sidebarStackWidget} a"
+        .waitForElementVisible  stackItems, 20000
+        .click                  "#{stackItems} .red"
+
+    else
+      browser
+        .waitForElementVisible  newStackInSidebar, 20000
+        .waitForElementVisible  numberNotification, 20000
+        .click                  numberNotification
+        .waitForElementVisible  stackItems, 20000
+        .waitForElementVisible  updateNotification, 20000
+        .assert.containsText    updateNotification, 'has updated this stack'
+        .waitForElementVisible  updateStackButton, 20000
+        .click                  updateStackButton
+
+    browser
+      .waitForElementVisible  reinitModal, 20000
+      .click                  proceedButton
+      .waitForTextToContain   sidebarSelector, 'mexample'
+
+
+  deleteStack: (browser) ->
+
+    deleteMenuItem = ".kdbuttonmenu .context-list-wrapper .delete"
+    stackTemplate  = '.stacktemplates .stack-template-list [testpath=privateStackListItem]'
+    stackMenuIcon  = "#{stackTemplate} .stack-settings-menu"
+    deleteModal    = '.kdmodal[testpath=RemoveStackModal]'
+    deleteButton   = "#{deleteModal} .red"
+
+
+    browser.element 'css selector', stackCatalogModal, (result) ->
+      if result.status is 0
+         browser
+          .waitForElementVisible  stackCatalogModal, 20000
+          .waitForElementVisible  closeButton, 20000
+          .click                  closeButton
+
+    @openStackCatalog(browser)
+
+    browser
+      .waitForElementVisible    myStackTemplatesButton, 20000
+      .click                    myStackTemplatesButton
+      .waitForElementVisible    stackTemplate, 20000
+      .pause                    3000
+      .waitForElementVisible    stackMenuIcon, 20000
+      .click                    stackMenuIcon
+      .waitForElementVisible    deleteMenuItem, 20000
+      .click                    deleteMenuItem
+      .pause                    3000
+      .waitForElementVisible    deleteModal, 20000
+      .assert.containsText      "#{deleteModal} .kdmodal-title", 'Remove stack template ?'
+      .waitForElementVisible    deleteButton, 20000
+      .click                    deleteButton
+      .waitForElementNotPresent deleteModal, 20000
+      .waitForElementVisible    closeButton, 20000
+      .click                    closeButton
+
+
+  buildStack: (browser) ->
+
+    buildStackButton     = "#{envMachineStateModal} .content-container .state-button"
+    progressbarContainer = "#{envMachineStateModal} .progressbar-container"
+    credentialsModal     = '.kdmodal[testpath=BuildRequirementsModal]'
+    addedCredential      = "#{credentialsModal} .credential-item"
+    titleInput           = "#{credentialsModal} input[name=title]"
+    usernameInput        = "#{credentialsModal} input[name=username]"
+    passwordInput        = "#{credentialsModal} input[name=password]"
+    credentialSaveButton = "#{credentialsModal} button.green"
+    useCredentialButton  = "#{addedCredential} .kdbutton:not(.secondary)"
+    readmeMarkdown       = "#{envMachineStateModal} .content-readme"
+    readmeHeader         = "#{readmeMarkdown} #test-stack-readme"
+    readmeLink           = "#{readmeMarkdown} a"
+
+    browser
+      .waitForElementVisible     buildStackButton, 20000
+      .waitForElementVisible     readmeMarkdown, 20000
+      .waitForElementVisible     readmeHeader, 20000
+      .waitForElementVisible     readmeLink, 20000
+      .click                     buildStackButton
+      .pause                     3500 # wait for credentials modal
+
+    browser.element 'css selector', credentialsModal, (result) ->
+      if result.status is 0
+
+        browser.element 'css selector', addedCredential, (result) ->
+          if result.status isnt 0
+            browser
+              .waitForElementVisible   titleInput, 20000
+              .waitForElementVisible   usernameInput, 20000
+              .waitForElementVisible   passwordInput, 20000
+              .setValue                titleInput, 'Build requirement data for testing'
+              .setValue                usernameInput, 'FOO'
+              .setValue                passwordInput, 'BAR'
+              .click                   credentialSaveButton
+              .waitForElementVisible   addedCredential, 20000
+
+          browser
+            .waitForElementVisible     useCredentialButton, 20000
+            .click                     useCredentialButton
+
+      browser
+        .waitForElementVisible     progressbarContainer, 20000
+        .waitForElementNotPresent  progressbarContainer, 500000
+        .pause                     3000 # wait for machine
+        .waitForElementVisible     stackMachine, 20000
+
+    browser.isStackBuilt = yes
+
+
+  defineCustomVariables: (browser) ->
+
+    wrongCustomVariable    = "foo: '"
+    correctCustomVariable  = "foo: 'bar'"
+    errorIndicator         = '.kdtabhandle.custom-variables .indicator.red.in'
+
+    @switchTabOnStackCatalog browser, 'variables'
+    @setTextToEditor browser, 'variables', wrongCustomVariable
+    browser
+      .waitForElementVisible errorIndicator, 20000
+      .pause 1000
+
+    @setTextToEditor browser, 'variables', correctCustomVariable
+    browser
+      .waitForElementNotVisible errorIndicator, 20000
+      .pause 1000
+
+    @switchTabOnStackCatalog browser, 'template'
+    @setTextToEditor browser, 'template', staticContents.stackTemplate
+
+
+  reinitStack: (browser) ->
+
+    myStacksLink  = '.AppModal-navItem.my-stacks'
+    stackItem     = '.kdlistitemview.environment-item'
+    reinitButton  = "#{stackItem} .button-container .red"
+    reinitModal   = ".kdmodal[testpath=reinitStack]"
+    proceedButton = "#{reinitModal} .red"
+    notification  = '.kdnotification.main'
+
+    @openStackCatalog(browser, no)
+
+    browser
+      .waitForElementVisible    myStacksLink, 20000
+      .click                    myStacksLink
+      .waitForElementVisible    stackItem, 20000
+      .click                    reinitButton
+      .waitForElementVisible    reinitModal, 20000
+      .click                    proceedButton
+      .waitForElementNotPresent stackCatalogModal, 30000
+      .waitForElementVisible    envMachineStateModal, 20000
+
+
+  destroyEverything: (browser) ->
+
+    if browser.isStackBuilt
+      @reinitStack(browser)
+      browser.pause 10000 # wait before credential destroy
+      @createStack(browser, yes)
+      @createCredential(browser, no, yes)
+
+
+  seeTemplatePreview: (browser) ->
+
+    templatePreviewButton     = '.stack-template .template-preview-button'
+    stackTemplatePreviewModal = '.stack-template-preview'
+    tabsSelector              = "#{stackTemplatePreviewModal} .kdmodal-content .kdtabhandle-tabs"
+    yamlTabSelector           = "#{tabsSelector} .yaml"
+    jsonTabSelector           = "#{tabsSelector} .json"
+    stackTabSelector          = '.team-stack-templates .kdtabhandle.stack-template'
+
+    browser
+      .waitForElementVisible  stackTabSelector, 20000
+      .click                  stackTabSelector
+      .waitForElementVisible  templatePreviewButton, 20000
+      .click                  templatePreviewButton
+      .waitForElementVisible  stackTemplatePreviewModal, 20000
+      .waitForElementVisible  yamlTabSelector, 20000
+      .waitForElementVisible  jsonTabSelector, 20000
+      .waitForElementVisible  stackModalCloseButton, 20000
+      .click                  stackModalCloseButton
+
+
+  updateStackReadme: (browser) ->
+
+    @switchTabOnStackCatalog(browser, 'readme')
+    @setTextToEditor(browser, 'readme', staticContents.readme)
+
+    previewButton = '.editor-pane .preview-button'
+    previewModal  = '[testpath=ReadmePreviewModal]'
+    readmeLink    = 'https://koding.com/docs/creating-an-aws-stack'
+
+    browser
+      .waitForElementVisible  previewButton, 20000
+      .click                  previewButton
+      .waitForElementVisible  previewModal, 20000
+      .assert.containsText    "#{previewModal} h3", 'Test stack readme'
+      .waitForElementVisible  "#{previewModal} a[href='#{readmeLink}']", 20000
+      .waitForElementVisible  stackModalCloseButton, 20000
+      .click                  stackModalCloseButton
+
+
   getAwsKey: -> return awsKey
 
 
@@ -562,7 +949,6 @@ module.exports =
     saveAndTestButton           = '.buttons button:nth-of-type(5)'
     stackTemplateSelector       = '.kdtabhandlecontainer.hide-close-icons .stack-template'
     stacksLogsSelector          = '.step-define-stack .kdscrollview'
-    myStackTemplatesButton      = '.kdview.kdtabhandle-tabs .my-stack-templates'
     iconsSelector               = '.kdlistitemview-default.stacktemplate-item .stacktemplate-info'
     notReadyIconSelector        = "#{iconsSelector} .not-ready"
     privateIconSelector         = "#{iconsSelector} .private"
@@ -589,6 +975,42 @@ module.exports =
       .waitForElementVisible      stackTemplateSelector, 20000
       .assert.containsText        stackTemplateSelector, 'Stack Template'
       .assert.containsText        saveAndTestButton, 'SAVE & TEST'
+
+
+
+  # possible values of tabName variable is 'stack', 'variables' or 'readme'
+  switchTabOnStackCatalog: (browser, tabName) ->
+
+    selector    =
+      template  : '.stack-template'
+      variables : '.custom-variables'
+      readme    : '.readme'
+
+    tabSelector = "#{stackCatalogModal} .kdtabhandle#{selector[tabName]}"
+
+    browser
+      .waitForElementVisible stackCatalogModal, 20000
+      .waitForElementVisible tabSelector, 20000
+      .click                 tabSelector
+
+
+  # possible values of tabName variable is 'template', 'variables' or 'readme'
+  setTextToEditor: (browser, tabName, text) ->
+
+    viewNames   =
+      template  : 'stackTemplateView'
+      variables : 'variablesView'
+      readme    : 'readmeView'
+
+    viewName = viewNames[tabName]
+    params   = [ viewName, text ]
+
+    fn = (viewName, text) ->
+      _kd.singletons.appManager.appControllers.Stacks.instances.first
+        .mainView.tabs.activePane.mainView.defineStackView[viewName]
+        .editorView.setContent text
+
+    browser.execute fn, params
 
 
 

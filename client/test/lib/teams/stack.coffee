@@ -5,34 +5,71 @@ teamsHelpers = require '../helpers/teamshelpers.js'
 module.exports =
 
 
-  setCredential: (browser) ->
+  stacks: (browser) ->
 
     teamsHelpers.loginTeam(browser)
     teamsHelpers.createStack(browser)
-    teamsHelpers.createCredential(browser)
     browser.end()
 
 
-  showCredential: (browser) ->
+  stacksSkipSetupGuide: (browser) ->
 
     teamsHelpers.loginTeam(browser)
     teamsHelpers.createStack(browser, yes)
-    teamsHelpers.createCredential(browser, yes)
     browser.end()
 
 
-  removeCredential: (browser) ->
+  checkNotReadyAndPrivateIconsDisplayedForStacks: (browser) ->
 
     teamsHelpers.loginTeam(browser)
     teamsHelpers.createStack(browser, yes)
-    teamsHelpers.createCredential(browser, no, yes)
+    teamsHelpers.checkIconsStacks(browser)
     browser.end()
 
 
-  useCredential: (browser) ->
+  buildStack: (browser) ->
 
     teamsHelpers.loginTeam(browser)
     teamsHelpers.createStack(browser, yes)
     teamsHelpers.createCredential(browser, no, no, yes)
+    teamsHelpers.saveTemplate(browser)
+    teamsHelpers.buildStack(browser)
+    teamsHelpers.destroyEverything(browser)
+    browser.end()
+
+
+  editStack: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    teamsHelpers.createCredential(browser, no, no, yes)
+    teamsHelpers.saveTemplate(browser, no, no, no)
+    teamsHelpers.editStack(browser)
+    browser.isStackBuilt = yes
+    teamsHelpers.destroyEverything(browser)
+    browser.end()
+
+
+  cloneStack: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    teamsHelpers.createCredential(browser, no, no, yes)
+    teamsHelpers.saveTemplate(browser, no, no, no)
+    teamsHelpers.editStack(browser, yes)
+    browser.isStackBuilt = yes
+    teamsHelpers.destroyEverything(browser)
+    browser.end()
+
+
+  deleteStackTemplate: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    teamsHelpers.createCredential(browser, no, no, yes)
+    teamsHelpers.saveTemplate(browser, no, no, no)
+    teamsHelpers.deleteStack(browser)
+    browser.isStackBuilt = yes
+    teamsHelpers.destroyEverything(browser)
     browser.end()
 
