@@ -1089,3 +1089,20 @@ module.exports =
               .click                     toggledOnSwitch
               .pause                     2000
               .waitForElementVisible     addNewApiDisabledButton, 20000
+
+
+  addNewApiToken: (browser) ->
+
+    addnewApiButton = '.kdtabhandlecontainer.hide-close-icons .add-new'
+    confirmDelete   = '.kddraggable.with-buttons .clearfix .solid.red'
+    deleteButton    = '.kdlistitemview-member .role.subview .delete'
+    tokenTimeStamp  = '.kdlistitemview-member .details .time'
+
+    browser
+      .click                     addnewApiButton
+      .waitForElementVisible     deleteButton, 20000
+      .assert.containsText       tokenTimeStamp, 'Created less than a minute ago by'
+      .click                     deleteButton
+      .waitForElementVisible     deleteButton, 20000
+      .click                     confirmDelete
+      .waitForElementNotVisible  tokenTimeStamp, 20000

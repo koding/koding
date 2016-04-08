@@ -77,3 +77,12 @@ module.exports =
     teamsHelpers.clickTeamSettings(browser)
     teamsHelpers.enableAndDisableApiAccess(browser, yes, yes)
     browser.end()
+
+
+  createAndDeleteApiToken: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.clickTeamSettings(browser)
+    teamsHelpers.enableAndDisableApiAccess(browser, yes)
+    teamsHelpers.addNewApiToken(browser)
+    browser.end()
