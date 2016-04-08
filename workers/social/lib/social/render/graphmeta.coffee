@@ -4,7 +4,7 @@ encoder      = require 'htmlencode'
 
 module.exports = (options = {}) ->
   options.title ?= 'Koding | Say goodbye to your localhost and write code in the cloud.'
-  options.shareUrl ?= 'https://koding.com'
+  options.shareUrl ?= "https://#{domains.base}"
   options.image ?= "#{uri.address}/a/images/logos/share_logo.png"
   options.body ?= 'Koding is a developer community and cloud development environment where developers come together and code in the browser.'
 
