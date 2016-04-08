@@ -33,6 +33,8 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		default:
 			fmt.Println(GenericInternalError)
 		}
+
+		metrics.TrackSSHFailed(mountName, err.Error(), config.Version)
 		return 1
 	}
 
@@ -53,7 +55,7 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println(FailedGetSSHKey)
 	case ssh.ErrMachineNotValidYet:
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
-	case ssh.ErrDialingFailed:
+	case ssh.ErrRemoteDialingFailed:
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedDialingRemote))
 	}
 

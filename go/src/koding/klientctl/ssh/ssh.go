@@ -33,7 +33,7 @@ var (
 
 	ErrMachineNotValidYet = errors.New("Machine not valid yet.")
 
-	ErrDialingFailed = errors.New("Dialing failed.")
+	ErrRemoteDialingFailed = errors.New("Dialing remote failed.")
 
 	// Dialing the local klient failed, ie klient is not running or accepting
 	// connections.
@@ -112,7 +112,7 @@ func (s *SSHCommand) Run(machine string) error {
 		}
 
 		if klientctlerrors.IsDialFailedErr(err) {
-			return ErrDialingFailed
+			return ErrRemoteDialingFailed
 		}
 
 		return ErrFailedToGetSSHKey
