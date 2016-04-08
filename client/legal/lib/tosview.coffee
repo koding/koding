@@ -1,3 +1,4 @@
+kd = require 'kd'
 JView = require 'app/jview'
 
 
@@ -21,7 +22,7 @@ module.exports = class TosView extends JView
 
       <p class='p2'>
         <b>Eligibility and Assent to Terms:</b> The following Terms
-        of Service are for the koding.com website, software applications made
+        of Service are for the #{kd.config.domains.main} website, software applications made
         available by Koding from the website or via a third party ('Software'), and
         any application programming interface ('API') or other technology or
         services made available by Koding via the website or Software
@@ -80,13 +81,13 @@ module.exports = class TosView extends JView
           <b>Modification:</b> We reserve the right, at our discretion, to
           change these Terms on a going-forward basis at any time. Please check
           these Terms periodically for changes. We may notify you of changes to
-          these Terms by a notice posted on www.koding.com, by e-mail, upon
+          these Terms by a notice posted on #{kd.config.domains.main}, by e-mail, upon
           login to your account on the Service, or by other reasonable means.
           If a change to these Terms materially modifies your rights or
           obligations, you will be required to accept the change in order to
           continue to use the Service. Material changes are effective upon your
           acceptance of the modified Terms. Immaterial changes are effective
-          upon publication on www.koding.com. For the avoidance of doubt,
+          upon publication on #{kd.config.domains.main}. For the avoidance of doubt,
           disputes arising under these Terms will be resolved in accordance
           with these Terms in effect that the time the dispute arose.
         </li>
@@ -238,7 +239,7 @@ module.exports = class TosView extends JView
         </li>
 
         <li class='li2'>
-          <b>User Accounts:</b> You may browse the koding.com
+          <b>User Accounts:</b> You may browse the #{kd.config.domains.main}
           website without creating an account, subject to these Terms. In order to
           use the full features of the Koding Service, you must register for an
           account or log into the Koding Service using another third party platform

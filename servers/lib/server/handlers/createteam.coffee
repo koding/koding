@@ -125,10 +125,7 @@ createGroupKallback = (client, req, res, body) ->
     # for the default and other subdomains
     # need to find another way - SY
 
-    teamDomain = switch environment
-      when 'production'  then '.koding.com'
-      when 'development' then '.dev.koding.com'
-      else ".#{environment}.koding.com"
+    teamDomain = ".#{KONFIG.domains.main}"
 
     # set session token for later usage down the line
     owner                      = result.account
