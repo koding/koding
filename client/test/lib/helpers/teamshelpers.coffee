@@ -1060,7 +1060,7 @@ module.exports =
         callback invitationUrl
 
 
-  enableAndDisableApiAccess: (browser) ->
+  enableAndDisableApiAccess: (browser, enableApi = no, disableApi = no) ->
 
     apiAccessSelector       = '.kdtabhandle-tabs .api-access.AppModal-navItem'
     toggleSwitch            = '.settings-row .koding-on-off.small.'
@@ -1074,14 +1074,18 @@ module.exports =
       .click                     apiAccessSelector
       .element 'css selector', toggledOffSwitch, (result) ->
         if result.status is 0
-          browser
-            .waitForElementVisible     toggledOffSwitch, 20000
-            .pause                     2000
-            .waitForElementVisible     addNewApiDisabledButton, 20000
-            .click                     toggledOffSwitch
-            .pause                     2000
-            .waitForElementVisible     toggledOnSwitch, 20000
-            .waitForElementVisible     addnewApiButton, 20000
-            .click                     toggledOnSwitch
-            .pause                     2000
-            .waitForElementVisible     addNewApiDisabledButton, 20000
+          if enableApi
+            browser
+              .waitForElementVisible     toggledOffSwitch, 20000
+              .pause                     2000
+              .waitForElementVisible     addNewApiDisabledButton, 20000
+              .click                     toggledOffSwitch
+              .pause                     2000
+
+          if disableApi
+            browser
+              .waitForElementVisible     toggledOnSwitch, 20000
+              .waitForElementVisible     addnewApiButton, 20000
+              .click                     toggledOnSwitch
+              .pause                     2000
+              .waitForElementVisible     addNewApiDisabledButton, 20000

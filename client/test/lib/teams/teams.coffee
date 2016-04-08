@@ -75,5 +75,5 @@ module.exports =
 
     teamsHelpers.loginTeam(browser)
     teamsHelpers.clickTeamSettings(browser)
-    teamsHelpers.enableAndDisableApiAccess(browser)
+    teamsHelpers.enableAndDisableApiAccess(browser, yes, yes)
     browser.end()
