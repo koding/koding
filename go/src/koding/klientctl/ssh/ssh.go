@@ -19,6 +19,7 @@ import (
 	"koding/klientctl/util"
 
 	"github.com/koding/kite/dnode"
+	"github.com/koding/logging"
 
 	"github.com/koding/sshkey"
 
@@ -33,6 +34,10 @@ var (
 	ErrMachineNotValidYet = errors.New("Machine not valid yet.")
 
 	ErrDialingFailed = errors.New("Dialing failed.")
+
+	// Dialing the local klient failed, ie klient is not running or accepting
+	// connections.
+	ErrLocalDialingFailed = errors.New("Local dialing failed.")
 )
 
 // SSHCommand is the command that lets users ssh into a remote machine.  It
@@ -58,7 +63,7 @@ type SSHCommand struct {
 }
 
 // NewSSHCommand is the required initializer for SSHCommand.
-func NewSSHCommand(ask bool) (*SSHCommand, error) {
+func NewSSHCommand(log logging.Logger, ask bool) (*SSHCommand, error) {
 	usr, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -70,7 +75,8 @@ func NewSSHCommand(ask bool) (*SSHCommand, error) {
 	}
 
 	if err := klientKite.Dial(); err != nil {
-		return nil, err
+		log.Error("Dialing local klient failed. err:%s", err)
+		return nil, ErrLocalDialingFailed
 	}
 
 	return &SSHCommand{
