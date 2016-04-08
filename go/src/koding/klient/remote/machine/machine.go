@@ -1,11 +1,13 @@
 package machine
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/koding/logging"
 
 	"koding/kites/tunnelproxy/discover"
+	"koding/klient/command"
 	"koding/klient/kiteerrortypes"
 	"koding/klient/remote/kitepinger"
 	"koding/klient/remote/rsync"
@@ -49,6 +51,9 @@ const (
 const (
 	// The duration between IsConnected() checks performed by WaitUntilOnline()
 	waitUntilOnlinePause = 5 * time.Second
+
+	// The command fed to the remote Klient to check whether a remote dir exists.
+	remoteDirExistsBashCmd = `bash -c "[ -d %s ]"`
 )
 
 var (
@@ -420,6 +425,28 @@ func (m *Machine) LockMounting() {
 // UnlockMounting locks Mount related actions with this machine.
 func (m *Machine) UnlockMounting() {
 	m.mountLocker.Unlock()
+}
+
+// DoesRemotePathExist checks if the given remote path exists for this
+// machine.
+func (m *Machine) DoesRemoteDirExist(p string) (bool, error) {
+	params := struct {
+		Command string
+	}{
+		Command: fmt.Sprintf(remoteDirExistsBashCmd, p),
+	}
+
+	kRes, err := m.TellWithTimeout("exec", 4*time.Second, params)
+	if err != nil {
+		return false, err
+	}
+
+	var res command.Output
+	if err := kRes.Unmarshal(&res); err != nil {
+		return false, err
+	}
+
+	return res.ExitStatus == 0, nil
 }
 
 func (ms MachineStatus) String() string {

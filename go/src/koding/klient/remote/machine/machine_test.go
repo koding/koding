@@ -2,6 +2,8 @@ package machine
 
 import (
 	"errors"
+	"fmt"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -24,14 +26,19 @@ func (p *fakePinger) Ping() kitepinger.Status {
 type fakeTransport struct {
 	DialError error
 	DialCount int
+
+	TellWithTimeoutRequest     []interface{}
+	ReturnTellWithTimeout      *dnode.Partial
+	ReturnTellWithTimeoutError error
 }
 
 func (t *fakeTransport) Tell(string, ...interface{}) (*dnode.Partial, error) {
 	return nil, nil
 }
 
-func (t *fakeTransport) TellWithTimeout(string, time.Duration, ...interface{}) (*dnode.Partial, error) {
-	return nil, nil
+func (t *fakeTransport) TellWithTimeout(_ string, _ time.Duration, req ...interface{}) (*dnode.Partial, error) {
+	t.TellWithTimeoutRequest = req
+	return t.ReturnTellWithTimeout, t.ReturnTellWithTimeoutError
 }
 
 func (t *fakeTransport) Dial() error {
@@ -215,6 +222,73 @@ func TestWaitUntilOnline(tt *testing.T) {
 				}
 				// It should block for 25ms, with an additional 10ms for runtime to be safe.
 				So(time.Now(), ShouldNotHappenWithin, 35*time.Millisecond, start)
+			})
+		})
+	})
+}
+
+func TestDoesRemoteDirExist(tt *testing.T) {
+	Convey("Given a machine", tt, func() {
+		t := &fakeTransport{}
+		m := &Machine{
+			Transport: t,
+		}
+
+		Convey("With a remote dir that exists", func() {
+			t.ReturnTellWithTimeout = &dnode.Partial{Raw: []byte(`{"exitStatus":0}`)}
+
+			Convey("It should return true", func() {
+				exists, err := m.DoesRemoteDirExist("foo")
+				So(err, ShouldBeNil)
+				So(exists, ShouldBeTrue)
+			})
+		})
+
+		Convey("With a remote dir that does not exist", func() {
+			t.ReturnTellWithTimeout = &dnode.Partial{Raw: []byte(`{"exitStatus":1}`)}
+
+			Convey("It should return true", func() {
+				exists, err := m.DoesRemoteDirExist("foo")
+				So(err, ShouldBeNil)
+				So(exists, ShouldBeFalse)
+			})
+		})
+	})
+
+	// A bit weird, but lets test the bash command locally, to ensure there's
+	// no mistakes in the script.
+	Convey("Given the bash command is run locally", tt, func() {
+		Convey("On a file", func() {
+			bashCmd := fmt.Sprintf(remoteDirExistsBashCmd, "./machine.go")
+
+			Convey("It should return an error", func() {
+				// using bash -c to use the same as klient behavior
+				cmd := exec.Command("bash", "-c", bashCmd)
+				_, err := cmd.CombinedOutput()
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldEqual, "exit status 1")
+			})
+		})
+
+		Convey("On a dir", func() {
+			bashCmd := fmt.Sprintf(remoteDirExistsBashCmd, "../machine")
+
+			Convey("It should not return an error", func() {
+				cmd := exec.Command("bash", "-c", bashCmd)
+				_, err := cmd.CombinedOutput()
+				So(err, ShouldBeNil)
+			})
+		})
+
+		Convey("On a path that doesn't exist", func() {
+			bashCmd := fmt.Sprintf(remoteDirExistsBashCmd, "./fakedir")
+
+			Convey("It should return an error", func() {
+				// using bash -c to use the same as klient behavior
+				cmd := exec.Command("bash", "-c", bashCmd)
+				_, err := cmd.CombinedOutput()
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldEqual, "exit status 1")
 			})
 		})
 	})
