@@ -1114,7 +1114,7 @@ module.exports = class TosView extends JView
 
       <p class='p3'>
         <span class='s2'>Email:</span> <span class=
-        's1'>legal@koding.com</span><span class='s2'>&nbsp;</span>
+        's1'>legal@#{kd.config.domains.mail}</span><span class='s2'>&nbsp;</span>
       </p>
     </div>
     """
