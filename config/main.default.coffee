@@ -7,7 +7,13 @@ path                  = require 'path'
 
 Configuration = (options={}) ->
 
-  defaultEmail =
+  domains =
+    base  : 'koding.com'
+    mail  : 'koding.com'
+    main  : 'dev.koding.com'
+    port  : '8090'
+
+  defaultEmail = "hello@#{domains.mail}"
 
   boot2dockerbox = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
 
@@ -307,6 +313,7 @@ Configuration = (options={}) ->
     papertrail                     : {destination: ''                   , groupId: 2199093                                              , token: '' }
     sendEventsToSegment            : options.sendEventsToSegment
     mailgun                        : mailgun
+    domains                        : domains
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   # NOTE: when you add to runtime options below, be sure to modify
@@ -356,6 +363,7 @@ Configuration = (options={}) ->
     google               : apiKey: ''
     recaptcha            : { enabled : recaptcha.enabled, key : ""}
     sendEventsToSegment  : KONFIG.sendEventsToSegment
+    domains              : domains
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
