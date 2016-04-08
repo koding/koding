@@ -1,5 +1,6 @@
-kd          = require 'kd'
-origin      = kd.config.domains.base
+{ argv }    = require 'optimist'
+{ domains } = require('koding-config-manager').load("main.#{argv.c}")
+origin      = domains.base
 title       = 'Koding | Say goodbye to your localhost and write code in the cloud'
 shareUrl    = "https://#{origin}/"
 description = 'Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc.'
@@ -39,5 +40,5 @@ module.exports =
   <meta name="twitter:card"            content="summary_large_image"/>
   <meta name="twitter:image"           content="http://#{twImage}"/>
   <meta name="twitter:description"     content="#{description}"/>
-  <meta name="twitter:domain"          content="#{kd.config.domains.base}">
+  <meta name="twitter:domain"          content="#{domains.base}">
   """
