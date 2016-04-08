@@ -30,15 +30,15 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
       kd.log 'Kontrol disconnected because ', reason
 
 
-  LATEST_URL = 'latest.koding.com'
+  getLatestURL = -> "latest.#{globals.config.domains.base}"
 
   isLatest = ->
-    location.hostname.indexOf(LATEST_URL) > -1
+    location.hostname.indexOf(getLatestURL()) > -1
 
   @getKontrolUrl = ->
 
     if isLatest()
-    then "https://#{LATEST_URL}/kontrol/kite"
+    then "https://#{getLatestURL()}/kontrol/kite"
     else globals.config.newkontrol.url
 
 
@@ -118,7 +118,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
       if isLatest()
         result.kites = result.kites.map (kite) ->
           if args.query.name is 'kloud'
-            kite.url = "https://#{LATEST_URL}/kloud/kite"
+            kite.url = "https://#{getLatestURL()}/kloud/kite"
           kite
 
       callback null, result
