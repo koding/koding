@@ -21,5 +21,5 @@ module.exports = class CreditCard extends React.Component
     </figure>
 
 
-inputClass = (name) -> ['kdinput', 'text', name].filter(Boolean).join ' '
+inputClass = (name) -> ['HomeAppView-input', name].filter(Boolean).join ' '
 

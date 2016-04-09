@@ -27,4 +27,4 @@ module.exports = class BillingInformation extends React.Component
     </section>
 
 
-inputClass = (name) -> ['kdinput', 'text', name].filter(Boolean).join ' '
+inputClass = (name) -> ['HomeAppView-input', name].filter(Boolean).join ' '
