@@ -46,6 +46,11 @@ const (
 	MachineRemounting
 )
 
+const (
+	// The duration between IsConnected() checks performed by WaitUntilOnline()
+	waitUntilOnlinePause = 5 * time.Second
+)
+
 var (
 	// Returned by various methods if the requested machine cannot be found.
 	ErrMachineNotFound error = util.KiteErrorf(
@@ -368,6 +373,23 @@ func (m *Machine) ConnectedAt() time.Time {
 	}
 
 	return m.KiteTracker.ConnectedAt()
+}
+
+// WaitUntilOnline returns a channel allowing the caller to be notified once
+// the Machine is online.
+func (m *Machine) WaitUntilOnline() <-chan struct{} {
+	c := make(chan struct{})
+	go func() {
+		for !m.IsOnline() {
+			time.Sleep(waitUntilOnlinePause)
+		}
+
+		// Notify the caller that the we're connected
+		c <- struct{}{}
+		close(c)
+		return
+	}()
+	return c
 }
 
 func (ms MachineStatus) String() string {

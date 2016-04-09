@@ -101,6 +101,7 @@ func TestRestoreMounts(t *testing.T) {
 				&mount.Mount{IP: "foo"},
 				&mount.Mount{IP: "bar"},
 			}
+
 			r.maxRestoreAttempts = 4
 			r.mockedRestoreMount = func(m *mount.Mount) error {
 				callCounts[m.IP]++
