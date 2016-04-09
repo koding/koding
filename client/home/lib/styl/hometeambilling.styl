@@ -7,6 +7,12 @@ Home Team Billing styles
 .HomeAppView--billing-form
   margin-top                20px
 
+  fieldset
+    padding-top             30px
+
+    &:first-child
+      padding-top           0
+
   label
     color                   #747474 !important
     font-size               16px !important
@@ -15,13 +21,6 @@ Home Team Billing styles
     font-weight             100
     margin-bottom           10px
     dIBlock()
-
-  input.kdinput
-    height                  57px
-    font-size               14px
-    rounded                 3px
-    bg                      color, #fff
-    color                   #A59999
 
   .HomeAppView--cc
     size                    410px 222px
@@ -41,8 +40,7 @@ Home Team Billing styles
       color                 #fff !important
       dBlock()
 
-    input
-      height                42px !important
+    .HomeAppView-input
       width                 100%
 
     .card-number
@@ -70,22 +68,39 @@ Home Team Billing styles
 
 .HomeAppView--section.billing
   .address
-    input.kdinput
+    .HomeAppView-input
       width                 326px
-      margin-right          20px
+      margin-right          24px
       &:last-child
         width               112px
         margin              0
 
   .zipCode
-    input.kdinput
+    .HomeAppView-input
       width                 151px
-      margin-right          20px
+      margin-right          24px
 
       &:last-child
         margin-right        0
         width               112px
 
-  .phone input.kdinput
+  .phone .HomeAppView-input
     width                   300px
+
+
+.HomeAppView-input
+  height                    42px
+  font-size                 14px
+  rounded                   3px
+  bg                        color, #fff
+  color                     #A59999
+  kalc                      width, (100% \- 130px)
+  display                   inline-block
+  padding                   10px 14px
+  line-height               22px
+  font-weight               300
+  border                    1px solid #d7d7d7
+  outline                   0
+  borderBox()
+
 
