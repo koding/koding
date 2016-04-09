@@ -14,4 +14,4 @@ module.exports = class PaymentInformation extends React.Component
     </section>
 
 
-inputClass = (name) -> ['kdinput', 'text', name].filter(Boolean).join ' '
+inputClass = (name) -> ['HomeAppView-input', 'HomeAppView-input--cc-form', name].filter(Boolean).join ' '
