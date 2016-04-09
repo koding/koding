@@ -1,7 +1,6 @@
 package machine
 
 import (
-	"fmt"
 	"io"
 	// "koding/db/models"
 	"socialapi/workers/kodingapi/models"
@@ -44,14 +43,11 @@ func NewMachineClient(clientOpts *kitworker.ClientOption, logger log.Logger) *Ma
 func (m *MachineClient) GetMachine(ctx context.Context, req *string) (*models.Machine, error) {
 	endpoint, err := m.GetMachineLoadBalancer.Endpoint()
 	if err != nil {
-		fmt.Println("ERR WHILE GETMACHINELOADBALANCER")
 		return nil, err
 	}
-	fmt.Println("CONTEXT IS :",ctx)
-	fmt.Println("REQUEST IS IS :",req)
+
 	res, err := endpoint(ctx, req)
 	if err != nil {
-		fmt.Println("WEE WHILE ENDPOINTS")
 		return nil, err
 	}
 

@@ -1,3 +1,4 @@
+// NOTE for usage
 // This file is created for testing
 package main
 
@@ -23,24 +24,6 @@ var (
 	// Name holds the worker name
 	Name = "KodingApi"
 )
-
-// func main() {
-// 	r := runner.New(Name)
-// 	if err := r.Init(); err != nil {
-// 		fmt.Println(err)
-// 		return
-// 	}
-// 	// init mongo connection
-// 	appConfig := config.MustRead(r.Conf.Path)
-// 	modelhelper.Initialize(appConfig.Mongo)
-// 	defer modelhelper.Close()
-//
-// 	cliOpt := &kitworker.ClientOption{}
-//
-// 	machineClient := machine.NewMachineClient(cliOpt, nil)
-//
-// 	machineClient.GetMachine()
-// }
 
 func main() {
 
@@ -82,39 +65,25 @@ func main() {
 		logger,
 	)
 
-	// need machine
-	// need authorizated user
 	machineAndUser, err := getMachineAndUser()
 	if err != nil {
-
+		fmt.Errorf("err while getting machine and user: %v",err)
+		return
 	}
 
 	machineId := machineAndUser.ObjectId.Hex()
-	fmt.Println("Machine ID is :", machineId)
 
-	machine, err := machineClient.GetMachine(ctx, &machineId)
+	_, err = machineClient.GetMachine(ctx, &machineId)
 	if err != nil {
-		fmt.Println("ERR IS HERE:", err)
+		fmt.Errorf("err while getting machine : %v",err)
 		return
 	}
 
-	fmt.Println("MACHINE IS HERE:", machine)
-
-	status, err := machineClient.GetMachineStatus(ctx, &machineId)
+	_, err = machineClient.GetMachineStatus(ctx, &machineId)
 	if err != nil {
-		fmt.Println("ERR IS HERE-GETMACHINESTATUS:", err)
+		fmt.Errorf("err while getting machine : %v",err)
 		return
 	}
-	fmt.Println("MACHINE STATUS IS :",status)
-
-	// ctx = context.WithValue(ctx, "machineService", machineClient)
-	//
-	// svc := machine.NewMachine()
-	//
-	// machine.RegisterHandlers(ctx, svc, serverOpts, logger)
-	//
-	// _ = logger.Log("msg", "HTTP", "addr", *listen)
-	// _ = logger.Log("err", http.ListenAndServe(*listen, nil))
 }
 
 func getMachineAndUser() (*models.Machine, error) {
