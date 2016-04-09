@@ -56,6 +56,11 @@ var (
 	ErrMachineNotFound error = util.KiteErrorf(
 		kiteerrortypes.MachineNotFound, "Machine not found",
 	)
+
+	// Returned by various methods if the requested action is locked.
+	ErrMachineActionIsLocked error = util.KiteErrorf(
+		kiteerrortypes.MachineActionIsLocked, "Machine action is locked",
+	)
 )
 
 // Transport is a Kite compatible interface for Machines.
@@ -131,12 +136,19 @@ type Machine struct {
 	// Have we dialed the current transport, or not
 	hasDialed bool
 
+	// protects the hasDialed value.
 	dialLock sync.Mutex
 
 	// discover is used to query for SSH endpoint information of tunnelled
 	// machines; it is also used to return local route if kd was invoked
 	// from the same host as machine.
 	discover *discover.Client
+
+	// the mutexWithState values implement a locking mechanism for logical parts of
+	// the Machine, such as mount actions - while also allowing the API caller to
+	// check ahead of time if the action is locked. This enables Klient methods to
+	// fail, rather than block, for long running processes.
+	mountLocker *util.MutexWithState
 }
 
 // MachineLogger returns a new logger with the context of the given MachineMeta
@@ -168,6 +180,7 @@ func NewMachine(meta MachineMeta, log logging.Logger, t Transport) (*Machine, er
 		HTTPTracker: kitepinger.NewPingTracker(httpPinger),
 		Transport:   t,
 		discover:    discover.NewClient(),
+		mountLocker: util.NewMutexWithState(),
 	}
 
 	m.discover.Log = m.Log.New("discover")
@@ -390,6 +403,23 @@ func (m *Machine) WaitUntilOnline() <-chan struct{} {
 		return
 	}()
 	return c
+}
+
+// IsMountingLocked returns whether or not mount actions (unmount included) are
+// locked for this machine. Allowing the caller to fail instead of blocking for
+// an unknown period of time.
+func (m *Machine) IsMountingLocked() bool {
+	return m.mountLocker.IsLocked()
+}
+
+// LockMounting locks Mount related actions with this machine.
+func (m *Machine) LockMounting() {
+	m.mountLocker.Lock()
+}
+
+// UnlockMounting locks Mount related actions with this machine.
+func (m *Machine) UnlockMounting() {
+	m.mountLocker.Unlock()
 }
 
 func (ms MachineStatus) String() string {

@@ -124,6 +124,15 @@ func (r *Remote) restoreMounts() error {
 			"prefetchAll", m.MountFolder.PrefetchAll,
 		)
 
+		// Check if the current mount is still in the original mount queue. If it's
+		// not, the mount has been unmounted, skip it.
+		if !r.mounts.ContainsMount(m) {
+			log.Info("Mount was removed from Mounts queue, likely Unmounted by user.")
+			// By continuing, the mount will not be added back to the list,
+			// effectively removing it from queue.
+			continue
+		}
+
 		if mountErr = r.restoreMount(m); mountErr != nil {
 			log.Error(
 				"Failed to restore mount, attempt #%d. Retrying after queue. err:%s",
@@ -136,7 +145,7 @@ func (r *Remote) restoreMounts() error {
 	}
 
 	if mountErr != nil {
-		log.Info("Remounting gave up after %d total attempts.", attempt)
+		log.Warning("Remounting failed after %d total attempts.", attempt)
 	} else {
 		log.Info("Remounting successfully.")
 	}
@@ -191,6 +200,15 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 	if err != nil {
 		return err
 	}
+
+	if remoteMachine.IsMountingLocked() {
+		log.Warning("Restore mount was attempted but the machine is mount locked")
+		return machine.ErrMachineActionIsLocked
+	}
+
+	// Lock and defer unlock the machine mount actions
+	remoteMachine.LockMounting()
+	defer remoteMachine.UnlockMounting()
 
 	// Update the status based on the return value. Note that it's possible to
 	// return before this call, if we can't get the machine, but that's a non-issue

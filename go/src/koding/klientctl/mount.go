@@ -438,6 +438,10 @@ func (c *MountCommand) mountFolder(r req.MountFolder) error {
 			c.printfln(RemotePathDoesNotExist)
 			return fmt.Errorf("Remote path does not exist. err:%s", err)
 
+		case klientctlerrors.IsMachineActionLockedErr(err):
+			c.printfln(MachineMountActionIsLocked, r.Name)
+			return fmt.Errorf("Machine is locked. err:%s", err)
+
 		default:
 			// catch any remaining errors
 			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
