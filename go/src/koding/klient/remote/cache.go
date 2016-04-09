@@ -9,6 +9,7 @@ import (
 	"github.com/koding/logging"
 
 	"koding/klient/remote/machine"
+	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
 	"koding/klient/remote/rsync"
 )
@@ -61,6 +62,16 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		log.Error("Error getting dialed, valid machine. err:%s", err)
 		return nil, err
 	}
+
+	exists, err := remoteMachine.DoesRemoteDirExist(params.RemotePath)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return nil, mount.ErrRemotePathDoesNotExist
+	}
+
 	remoteSize, err := getSizeOfRemoteFolder(remoteMachine, params.RemotePath)
 	if err != nil {
 		return nil, err
