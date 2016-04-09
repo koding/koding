@@ -190,6 +190,7 @@ deploy:
         name: create version file
         code: |
           $WERCKER_ROOT/scripts/create_version.sh
+          echo $ROLLBAR_TOKEN > ROLLBAR_TOKEN
     - script:
         name: setup nvm
         code: |
