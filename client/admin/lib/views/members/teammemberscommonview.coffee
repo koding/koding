@@ -1,12 +1,14 @@
-kd                   = require 'kd'
-KDView               = kd.View
-KDSelectBox          = kd.SelectBox
-KDCustomHTMLView     = kd.CustomHTMLView
-KDHitEnterInputView  = kd.HitEnterInputView
-whoami               = require 'app/util/whoami'
-MemberItemView       = require './memberitemview'
-remote               = require('app/remote').getInstance()
-KodingListController = require 'app/kodinglist/kodinglistcontroller'
+kd                        = require 'kd'
+KDView                    = kd.View
+KDSelectBox               = kd.SelectBox
+KDCustomHTMLView          = kd.CustomHTMLView
+KDHitEnterInputView       = kd.HitEnterInputView
+whoami                    = require 'app/util/whoami'
+remote                    = require('app/remote').getInstance()
+MemberItemView            = require './memberitemview'
+KodingListController      = require 'app/kodinglist/kodinglistcontroller'
+TeamMembersListController = require './teammemberslistcontroller'
+
 
 module.exports = class TeamMembersCommonView extends KDView
 
@@ -67,26 +69,25 @@ module.exports = class TeamMembersCommonView extends KDView
 
   createListController: ->
 
-    { noItemFoundText, listViewItemOptions, fetcherMethod, listViewItemClass } = @getOptions()
+    { noItemFoundText, listViewItemOptions, fetcherMethod, listViewItemClass, memberType, defaultMemberRole } = @getOptions()
     group = @getData()
 
-    @listController       = new KodingListController
+    @listController       = new TeamMembersListController
+      memberType          : memberType
+      defaultMemberRole   : defaultMemberRole
       noItemFoundText     : noItemFoundText
-      lazyLoadThreshold   : .99
-      sort                : { timestamp: -1 }
       itemClass           : listViewItemClass or MemberItemView
       viewOptions         :
         wrapper           : yes
         itemOptions       : listViewItemOptions
       fetcherMethod       : (query, fetchOptions, callback) ->
-        group[fetcherMethod] query, fetchOptions, (err, members) -> callback err, members
+        group[fetcherMethod] query, fetchOptions, callback
+    , group
 
     @buildListController()
 
 
   buildListController: ->
-
-    @listController.addListItems = @bound 'listMembers'
 
     @addSubView @listController.getView()
 
@@ -98,6 +99,12 @@ module.exports = class TeamMembersCommonView extends KDView
           @search no, yes
       else
         @fetchMembers()
+
+    @listController
+      .on 'CalculateAndFetchMoreIfNeeded',  @bound 'calculateAndFetchMoreIfNeeded'
+      .on 'ShowSearchContainer',            @searchContainer.bound 'show'
+      .on 'HideSearchContainer',            @searchContainer.bound 'hide'
+      .on 'ErrorHappened',                  @bound 'handleError'
 
 
   fetchMembers: ->
@@ -119,40 +126,8 @@ module.exports = class TeamMembersCommonView extends KDView
 
       return @handleError err  if err
 
-      @listMembers members
+      @listController.addListItems members
       @isFetching = no
-
-
-  fetchUserRoles: (members, callback) ->
-
-    # collect account ids to fetch user roles
-    ids = members.map (member) -> return member.getId()
-
-    myAccountId = whoami().getId()
-    ids.push myAccountId
-
-    @getData().fetchUserRoles ids, (err, roles) =>
-      return @handleError err  if err
-
-      # create account id and roles map
-      userRoles = {}
-
-      # roles array is a flat array which means when you query for an account
-      # the response would be 3 items array which contains different roles for
-      # the same user. create an array by user and collect all roles belong
-      # to that user.
-      for role in roles
-        list = userRoles[role.targetId] or= []
-        list.push role.as
-
-      # save user role array into jAccount as jAccount.role
-      for member in members
-        roles = userRoles[member.getId()]
-        member.roles = roles  if roles
-
-      @loggedInUserRoles = userRoles[myAccountId] ? ['owner', 'admin', 'member']
-
-      callback members
 
 
   handleError: (err) ->
@@ -164,43 +139,6 @@ module.exports = class TeamMembersCommonView extends KDView
     else
       @listController.lazyLoader.hide()
       kd.warn err
-
-
-  listMembers: (members, filterForDefaultRole) ->
-
-    { memberType, itemLimit, defaultMemberRole } = @getOptions()
-
-    group = @getData()
-    member._currentGroup = group for member in members
-
-    if members.length is 0 and @listController.getItemCount() is 0
-      @listController.lazyLoader.hide()
-      @listController.showNoItemWidget()
-      return
-
-    @skip += members.length
-
-    if memberType is 'Blocked'
-      @listController.addItem member  for member in members
-      @calculateAndFetchMoreIfNeeded()  if members.length is itemLimit
-    else
-      @fetchUserRoles members, (members) =>
-
-        if filterForDefaultRole and defaultMemberRole
-          members = members.filter (member) ->
-            return defaultMemberRole in member.roles
-
-        if members.length
-          members.forEach (member) =>
-            member.loggedInUserRoles = @loggedInUserRoles # FIXME
-            item = @listController.addItem member
-
-          @calculateAndFetchMoreIfNeeded()  if members.length is itemLimit
-        else
-          @listController.showNoItemWidget()
-
-    @listController.lazyLoader.hide()
-    @searchContainer.show()
 
 
   calculateAndFetchMoreIfNeeded: ->
@@ -272,7 +210,7 @@ module.exports = class TeamMembersCommonView extends KDView
         profile.email = emails[profile.nickname]
 
       @resetListItems no  if @page is 0
-      @listMembers accounts, yes
+      @listController.addListItems accounts, yes
       @isFetching = no
 
 

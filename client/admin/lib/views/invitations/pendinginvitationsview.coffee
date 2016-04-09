@@ -53,7 +53,7 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
       selector.groupSlug = groupSlug
 
     @listController.fetch selector, (invitations) =>
-      @listMembers invitations
+      @listController.addListItems invitations
       @isFetching = no
     , options
 

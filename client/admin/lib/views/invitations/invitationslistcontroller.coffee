@@ -27,6 +27,14 @@ module.exports = class InvitationsListController extends KodingListController
     super options, data
 
 
+  addListItems: (items = []) ->
+
+    super
+
+    @emit 'ShowSearchContainer'
+    @showNoItemWidget()           unless items.length
+
+
   bindEvents: ->
 
     super
