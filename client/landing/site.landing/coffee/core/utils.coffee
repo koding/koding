@@ -53,10 +53,14 @@ module.exports = utils = {
   getGroupNameFromLocation: ->
 
     kodingGroupPattern = /^(?:(?:dev|sandbox|latest|prod)\.)?koding\.com$/
-
     { hostname } = location
-    return 'koding'  if hostname.match kodingGroupPattern
-    return hostname.split('.').first
+
+    subdomains = hostname.split('.').slice 0, -2
+
+    switch
+      when hostname.match kodingGroupPattern then "koding"
+      when subdomains.length is 1 then "koding"
+      else subdomains.first
 
 
   checkIfGroupExists: (groupName, callback) ->
