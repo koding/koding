@@ -15,8 +15,6 @@ func NewMachine() MachineService {
 
 // GetMachine returns the machine.
 func (m *machine) GetMachine(ctx context.Context, req *string) (*models.Machine, error) {
-	// auth := ctx.Value("auth")
-
 	machineId := req
 	machine, err := modelhelper.GetMachine(*machineId)
 	if err != nil {
@@ -30,8 +28,6 @@ func (m *machine) GetMachine(ctx context.Context, req *string) (*models.Machine,
 
 // GetMachineStatus returns the machine's current status.
 func (m *machine) GetMachineStatus(ctx context.Context, req *string) (*models.Machine, error) {
-	// auth := ctx.Value("auth")
-
 	machineId := req
 	machine, err := modelhelper.GetMachine(*machineId)
 	if err != nil {
