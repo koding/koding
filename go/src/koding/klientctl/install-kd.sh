@@ -211,7 +211,7 @@ Please run the following command for more information:
 
 EOF
 
-isVirtualbox=$(VBoxManage -h 2>&1 | grep -c 'Oracle VM VirtualBox Headless Interface')
+isVirtualbox=$(VBoxHeadless -h 2>&1 | grep -c 'Oracle VM VirtualBox Headless Interface')
 isVagrant=$(vagrant version 2>&1 | grep -c 'Installed Version:')
 
 if [[ $isVirtualbox -eq 0 && $isVagrant -eq 0 ]]; then
