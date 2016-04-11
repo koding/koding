@@ -1,12 +1,12 @@
-origin      = 'koding.com'
+{ argv }    = require 'optimist'
+{ domains } = require('koding-config-manager').load("main.#{argv.c}")
+origin      = domains.base
 title       = 'Koding | Say goodbye to your localhost and write code in the cloud'
 shareUrl    = "https://#{origin}/"
 description = 'Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc.'
 gpImage     = "#{origin}/a/site.landing/images/share.g+.jpg?#{KONFIG.version}"
 fbImage     = "#{origin}/a/site.landing/images/share.fb.jpg?#{KONFIG.version}"
 twImage     = "#{origin}/a/site.landing/images/share.tw.jpg?#{KONFIG.version}"
-
-
 
 module.exports =
 
@@ -40,5 +40,5 @@ module.exports =
   <meta name="twitter:card"            content="summary_large_image"/>
   <meta name="twitter:image"           content="http://#{twImage}"/>
   <meta name="twitter:description"     content="#{description}"/>
-  <meta name="twitter:domain"          content="koding.com">
+  <meta name="twitter:domain"          content="#{domains.base}">
   """

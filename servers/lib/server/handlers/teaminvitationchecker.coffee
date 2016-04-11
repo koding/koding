@@ -1,13 +1,8 @@
-Bongo             = require 'bongo'
-koding            = require './../bongo'
-{ argv }          = require 'optimist'
-KONFIG            = require('koding-config-manager').load "main.#{argv.c}"
-{ environment }   = KONFIG
-
-teamDomain = switch environment
-  when 'production'  then '.koding.com'
-  when 'development' then '.dev.koding.com'
-  else ".#{environment}.koding.com"
+Bongo      = require 'bongo'
+koding     = require './../bongo'
+{ argv }   = require 'optimist'
+KONFIG     = require('koding-config-manager').load "main.#{argv.c}"
+teamDomain = ".#{KONFIG.domains.main}"
 
 module.exports = (req, res, next) ->
   { code } = req.query

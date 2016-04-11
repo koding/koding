@@ -1,6 +1,6 @@
 module.exports = (options, callback) ->
   { argv } = require 'optimist'
-  { uri } = require('koding-config-manager').load("main.#{argv.c}")
+  { uri, domains } = require('koding-config-manager').load("main.#{argv.c}")
 
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
@@ -15,7 +15,7 @@ module.exports = (options, callback) ->
 
   if uri?.address and slug
     shareUrl = uri.address + '/' + slug
-  shareUrl or= 'https://koding.com'
+  shareUrl or= "https://#{domains.base}"
 
   prepareHTML  = (scripts) ->
     """

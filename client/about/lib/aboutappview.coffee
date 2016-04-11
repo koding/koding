@@ -14,6 +14,9 @@ module.exports = class AboutAppView extends JView
     @footer = new FooterView
 
   pistachio : ->
+
+    mailDomain = globals.config.domains.mail
+
     """
     <section class='introduction'>
       <h2>About Koding</h2>
@@ -48,9 +51,9 @@ module.exports = class AboutAppView extends JView
     <section class='contact'>
       <div class='inner-container clearfix'>
         <h3>Get in touch with us</h3>
-        <a href="mailto:business@koding.com" class='contact-item sales'>business@koding.com</a>
-        <a href="mailto:support@koding.com" class='contact-item support'>support@koding.com</a>
-        <a href="mailto:apply@koding.com" class='contact-item careers'>apply@koding.com</a>
+        <a href="mailto:business@#{mailDomain}" class='contact-item sales'>business@#{mailDomain}</a>
+        <a href="mailto:support@#{mailDomain}" class='contact-item support'>support@#{mailDomain}</a>
+        <a href="mailto:apply@#{mailDomain}" class='contact-item careers'>apply@#{mailDomain}</a>
       </div>
     </section>
     <section class='where'>

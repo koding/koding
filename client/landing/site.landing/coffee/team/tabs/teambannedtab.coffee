@@ -13,8 +13,8 @@ module.exports = class TeamBannedTab extends kd.TabPaneView
     @header = new MainHeaderView
       cssClass : 'team'
       navItems : [
-        { title : 'Blog',        href : 'http://blog.koding.com', name : 'blog' }
-        { title : 'Koding Home', href : 'http://koding.com',      name : 'koding' }
+        { title : 'Blog',        href : 'http://blog.koding.com',           name : 'blog' }
+        { title : 'Koding Home', href : "http://#{kd.config.domains.main}", name : 'koding' }
       ]
 
 

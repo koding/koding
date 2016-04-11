@@ -6,6 +6,14 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "10.0.0.136"
 
+  domains =
+    base  : 'koding.com'
+    mail  : 'koding.com'
+    main  : 'sandbox.koding.com'
+    port  : '80'
+
+  defaultEmail = "hello@#{domains.mail}"
+
   slKeys       =
     vm_kloud   :
       username : "IBM839677"
@@ -296,6 +304,7 @@ Configuration = (options={}) ->
     sendEventsToSegment            : options.sendEventsToSegment
     mailgun                        : mailgun
     helpscout                      : {apiKey: 'b041e4da61c0934cb73d47e1626098430738b049'             , baseUrl: 'https://api.helpscout.net/v1'}
+    domains                        : domains
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   # NOTE: when you add to runtime options below, be sure to modify
@@ -345,6 +354,7 @@ Configuration = (options={}) ->
     google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
     recaptcha            : { enabled : recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax"}
     sendEventsToSegment  : KONFIG.sendEventsToSegment
+    domains              : domains
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`

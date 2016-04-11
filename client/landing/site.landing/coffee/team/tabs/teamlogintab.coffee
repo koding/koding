@@ -57,7 +57,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
 
     @inviteDesc = new kd.CustomHTMLView
       tagName : 'p'
-      partial : "<p>To be able to login to <a href='/'>#{kd.config.groupName}.koding.com</a>, you need to be invited by team administrators.</p>"
+      partial : "<p>To be able to login to <a href='/'>#{kd.config.groupName}.#{kd.config.domains.main}</a>, you need to be invited by team administrators.</p>"
 
     domains = group.allowedDomains
 

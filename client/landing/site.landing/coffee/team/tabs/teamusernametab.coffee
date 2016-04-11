@@ -45,9 +45,9 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
   getDescription: ->
 
     if @alreadyMember and @wantsToUseDifferentAccount
-      'Please enter your <i>koding.com</i> username & password.'
+      "Please enter your <i>#{kd.config.domains.main}</i> username & password."
     else if @alreadyMember
-      "<br>It seems that you're already a <i>Koding.com</i> user, please type your password to proceed."
+      "<br>It seems that you're already a <i>#{kd.config.domains.main}</i> user, please type your password to proceed."
     else
       'Pick a username and a password to log in with.'
 
