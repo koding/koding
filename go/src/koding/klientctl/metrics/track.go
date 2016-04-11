@@ -70,6 +70,22 @@ func TrackSSHFailed(machine, errStr string, version int) error {
 	return sendMetric(mc)
 }
 
+func TrackSSHEnd(machine, errStr string, dur float64, version int) error {
+	mc := &Metric{
+		Name: EventSSH,
+		Properties: map[string]interface{}{
+			"machine": machine,
+			"version": version,
+		},
+	}
+
+	if errStr != "" {
+		mc.Properties["error"] = errStr
+	}
+
+	return sendMetric(mc)
+}
+
 func TrackRun(machine string, version int) error {
 	mc := &Metric{
 		Name: EventRun,

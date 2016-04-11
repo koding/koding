@@ -235,7 +235,8 @@ export HOME=\$(eval cd ~\${USERNAME}; pwd)
 export KITE_KONTROL_URL=\${KITE_KONTROL_URL:-https://koding.com/kontrol/kite}
 export PATH=\$PATH:/usr/local/bin
 
-sudo -E -u "\$USERNAME" /opt/kite/klient/klient -kontrol-url "\${KITE_KONTROL_URL}"
+ulimit -n 5000
+sudo -E -u "\$USERNAME" /opt/kite/klient/klient"
 EOF
 		cat <<EOF | sudo tee /opt/kite/klient/klient.init &>/dev/null
 <!--
