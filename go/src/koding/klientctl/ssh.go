@@ -20,8 +20,6 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	mountName := c.Args()[0]
-
 	cmd, err := ssh.NewSSHCommand(log, true)
 	mountName := c.Args()[0]
 
@@ -53,14 +51,19 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 0
 	case ssh.ErrManagedMachineNotSupported:
 		fmt.Println(CannotSSHManaged)
+		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	case ssh.ErrFailedToGetSSHKey:
 		fmt.Println(FailedGetSSHKey)
+		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	case ssh.ErrMachineNotValidYet:
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
+		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	case ssh.ErrRemoteDialingFailed:
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedDialingRemote))
+		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	case shortcut.ErrMachineNotFound:
 		fmt.Println(MachineNotFound)
+		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	}
 
 	// track metrics
