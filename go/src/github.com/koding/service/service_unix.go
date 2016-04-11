@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log/syslog"
 	"os/exec"
+	"strings"
 )
 
 func newSysLogger(name string, errs chan<- error) (Logger, error) {
@@ -55,7 +56,7 @@ func run(command string, arguments ...string) error {
 	cmd := exec.Command(command, arguments...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("%q failed: %v, %s", command, err, out)
+		return fmt.Errorf(`"%s %s" failed: %s, %s`, command, strings.Join(arguments, " "), err, out)
 	}
 	return nil
 }
