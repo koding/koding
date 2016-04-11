@@ -60,3 +60,14 @@ cp -f "${REPO_PATH}/go/src/koding/klientctl/install-kd.sh" install-kd.sh
 sed -i -e "s|\%RELEASE_CHANNEL\%|${CHANNEL}|g" install-kd.sh
 s3cmd del $S3DIR/install-kd.sh
 s3cmd -P put install-kd.sh $S3DIR/install-kd.sh
+
+# Update production bucket - koding-dl
+# TODO(rjeczalik): remove koding-dl and add routes:
+#
+#   - kodi.ng/d/kd -> koding-kd/development/install-kd.sh
+#   - kodi.ng/p/kd -> koding-kd/production/install-kd.sh
+#
+if [[ "$CHANNEL" == "production" ]]; then
+	s3cmd del "s3://koding-dl/kd"
+	s3cmd -P put install-kd.sh "s3://koding-dl/kd"
+fi
