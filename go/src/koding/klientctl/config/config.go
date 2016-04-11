@@ -4,6 +4,7 @@ package config
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -59,6 +60,19 @@ var (
 	// S3KlientctlLatest is URL to the latest version of the klientctl.
 	S3KlientctlLatest = "https://koding-kd.s3.amazonaws.com/" + Environment + "/latest-version.txt"
 )
+
+func init() {
+	if os.Getenv("KD_DEBUG") == "1" {
+		// For debugging kd build.
+		fmt.Println("Version", Version)
+		fmt.Println("Environment", Environment)
+		fmt.Println("KiteVersion", KiteVersion)
+		fmt.Println("KiteKeyPath", KiteKeyPath)
+		fmt.Println("KontrolURL", KontrolURL)
+		fmt.Println("S3KlientLatest", S3KlientLatest)
+		fmt.Println("S3KlientctlLatest", S3KlientctlLatest)
+	}
+}
 
 func dirURL(s string) string {
 	u, err := url.Parse(s)
