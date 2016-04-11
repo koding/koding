@@ -210,3 +210,36 @@ Please run the following command for more information:
     kd -h
 
 EOF
+
+isVirtualbox=$(VBoxManage -h 2>&1 | grep -c 'Oracle VM VirtualBox Headless Interface')
+isVagrant=$(vagrant version 2>&1 | grep -c 'Installed Version:')
+
+if [[ $isVirtualbox -eq 0 && $isVagrant -eq 0 ]]; then
+	cat << EOF
+No VirtualBox nor Vagrant is present on your system. In order to use local provisioning
+with Vagrant provider ensure they are installed:
+
+  * VirtualBox 5.0+ (https://www.virtualbox.org/wiki/Downloads)
+  * Vagrant 1.7.4+ (https://www.vagrantup.com/downloads.html)
+
+EOF
+
+elif [[ $isVirtualbox -eq 0 ]]; then
+	cat << EOF
+No VirtualBox is present on your system. In order to use local provisioning
+with Vagrant provider ensure it is installed:
+
+  * VirtualBox 5.0+ (https://www.virtualbox.org/wiki/Downloads)
+
+EOF
+
+elif [[ $isVagrant -eq 0 ]]; then
+	cat << EOF
+No Vagrant is present on your system. In order to use local provisioning
+with Vagrant provider ensure it is installed:
+
+  * Vagrant 1.7.4+ (https://www.vagrantup.com/downloads.html)
+
+EOF
+
+fi
