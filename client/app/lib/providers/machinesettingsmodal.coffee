@@ -95,7 +95,7 @@ module.exports = class MachineSettingsModal extends KDModalView
         disabledTabs = disabledTabsForProviders[machine.provider]
         isDisabled = disabledTabs.indexOf(item.title) > -1
 
-        # 'Advanced' tab should enable for managed VMs
+        # 'Advanced' tab should be enable for managed VMs
         isDisabled = no  if item.title is 'Advanced'
 
       @tabView.addPane pane = new KDTabPaneView
