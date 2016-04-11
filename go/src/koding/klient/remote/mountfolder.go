@@ -74,8 +74,17 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		// This assumes that the username klient is running under has a home
 		// at /home/username. Not true for root, if the user isn't the same user
 		// as klient is running under, and not true if the homedir isn't /home.
-		params.RemotePath = path.Join("/home", remoteMachine.Hostname)
+		params.RemotePath = path.Join("/home", remoteMachine.Username)
 	}
+
+	if remoteMachine.IsMountingLocked() {
+		log.Warning("Mount was attempted but the machine is mount locked")
+		return nil, machine.ErrMachineActionIsLocked
+	}
+
+	// Lock and defer unlock the machine mount actions
+	remoteMachine.LockMounting()
+	defer remoteMachine.UnlockMounting()
 
 	if r.mounts.IsDuplicate(remoteMachine.IP, params.RemotePath, params.LocalPath) {
 		return nil, ErrExistingMount

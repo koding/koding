@@ -14,3 +14,10 @@ module.exports = class AccountSshKeyList extends KodingListView
     , options
 
     super options, data
+
+
+  sendItemAction: (action, params = {}) ->
+
+    params.action = action
+
+    @emit 'ItemAction', params

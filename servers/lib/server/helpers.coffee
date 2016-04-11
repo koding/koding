@@ -172,7 +172,7 @@ serveHome = (req, res, next) ->
         return res.redirect 307, '/Login'
 
       # but if we are in dev or sandbox env, serve content as we used to
-      if KONFIG.environment in ['dev', 'sandbox']
+      if KONFIG.environment in ['dev', 'default', 'sandbox']
         return serveKodingHome()  if isLoggedIn
 
         return res.redirect 307, '/Teams'

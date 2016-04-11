@@ -1,10 +1,13 @@
 package machine
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/koding/logging"
 
+	"koding/kites/tunnelproxy/discover"
+	"koding/klient/command"
 	"koding/klient/kiteerrortypes"
 	"koding/klient/remote/kitepinger"
 	"koding/klient/remote/rsync"
@@ -45,10 +48,23 @@ const (
 	MachineRemounting
 )
 
+const (
+	// The duration between IsConnected() checks performed by WaitUntilOnline()
+	waitUntilOnlinePause = 5 * time.Second
+
+	// The command fed to the remote Klient to check whether a remote dir exists.
+	remoteDirExistsBashCmd = `bash -c "[ -d %s ]"`
+)
+
 var (
 	// Returned by various methods if the requested machine cannot be found.
 	ErrMachineNotFound error = util.KiteErrorf(
 		kiteerrortypes.MachineNotFound, "Machine not found",
+	)
+
+	// Returned by various methods if the requested action is locked.
+	ErrMachineActionIsLocked error = util.KiteErrorf(
+		kiteerrortypes.MachineActionIsLocked, "Machine action is locked",
 	)
 )
 
@@ -125,7 +141,19 @@ type Machine struct {
 	// Have we dialed the current transport, or not
 	hasDialed bool
 
+	// protects the hasDialed value.
 	dialLock sync.Mutex
+
+	// discover is used to query for SSH endpoint information of tunnelled
+	// machines; it is also used to return local route if kd was invoked
+	// from the same host as machine.
+	discover *discover.Client
+
+	// the mutexWithState values implement a locking mechanism for logical parts of
+	// the Machine, such as mount actions - while also allowing the API caller to
+	// check ahead of time if the action is locked. This enables Klient methods to
+	// fail, rather than block, for long running processes.
+	mountLocker *util.MutexWithState
 }
 
 // MachineLogger returns a new logger with the context of the given MachineMeta
@@ -156,7 +184,11 @@ func NewMachine(meta MachineMeta, log logging.Logger, t Transport) (*Machine, er
 		KiteTracker: kitepinger.NewPingTracker(kitePinger),
 		HTTPTracker: kitepinger.NewPingTracker(httpPinger),
 		Transport:   t,
+		discover:    discover.NewClient(),
+		mountLocker: util.NewMutexWithState(),
 	}
+
+	m.discover.Log = m.Log.New("discover")
 
 	// Start our http pinger, to give online/offline statuses for all machines.
 	m.HTTPTracker.Start()
@@ -172,6 +204,12 @@ func (m *Machine) GetStatus() (MachineStatus, string) {
 		return m.getConnStatus(), ""
 	}
 
+	return m.GetRawStatus()
+}
+
+// GetRawStatus gets the plain status value, without checking any active statuses
+// such as Connectivity.
+func (m *Machine) GetRawStatus() (MachineStatus, string) {
 	return m.status, m.statusMessage
 }
 
@@ -353,6 +391,62 @@ func (m *Machine) ConnectedAt() time.Time {
 	}
 
 	return m.KiteTracker.ConnectedAt()
+}
+
+// WaitUntilOnline returns a channel allowing the caller to be notified once
+// the Machine is online.
+func (m *Machine) WaitUntilOnline() <-chan struct{} {
+	c := make(chan struct{})
+	go func() {
+		for !m.IsOnline() {
+			time.Sleep(waitUntilOnlinePause)
+		}
+
+		// Notify the caller that the we're connected
+		c <- struct{}{}
+		close(c)
+		return
+	}()
+	return c
+}
+
+// IsMountingLocked returns whether or not mount actions (unmount included) are
+// locked for this machine. Allowing the caller to fail instead of blocking for
+// an unknown period of time.
+func (m *Machine) IsMountingLocked() bool {
+	return m.mountLocker.IsLocked()
+}
+
+// LockMounting locks Mount related actions with this machine.
+func (m *Machine) LockMounting() {
+	m.mountLocker.Lock()
+}
+
+// UnlockMounting locks Mount related actions with this machine.
+func (m *Machine) UnlockMounting() {
+	m.mountLocker.Unlock()
+}
+
+// DoesRemotePathExist checks if the given remote path exists for this
+// machine.
+func (m *Machine) DoesRemoteDirExist(p string) (bool, error) {
+	params := struct {
+		Command string
+	}{
+		Command: fmt.Sprintf(remoteDirExistsBashCmd, p),
+	}
+
+	kRes, err := m.TellWithTimeout("exec", 4*time.Second, params)
+	if err != nil {
+		return false, err
+	}
+
+	var res command.Output
+	if err := kRes.Unmarshal(&res); err != nil {
+		return false, err
+	}
+
+	return res.ExitStatus == 0, nil
 }
 
 func (ms MachineStatus) String() string {

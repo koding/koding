@@ -1,9 +1,10 @@
-Bongo = require 'bongo'
-{ secure, signature, Base } = Bongo
+{ secure, signature, Base } = require 'bongo'
+{ argv }    = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+{ extend }  = require 'underscore'
 KodingError = require '../error'
-{ extend } = require 'underscore'
 
-TEAM_PLANS = require '../models/computeproviders/teamplans'
+TEAM_PLANS  = require '../models/computeproviders/teamplans'
 
 module.exports = class Payment extends Base
   @share()
@@ -65,13 +66,15 @@ module.exports = class Payment extends Base
 
             SiftScience = require './siftscience'
             SiftScience.transaction client, data, (err) ->
-              log 'logging to SiftScience failed', err  if err
+              console.warn 'logging to SiftScience failed', err  if err
 
 
   @fetchGroupPlan = (group, callback) ->
 
     return callback new KodingError 'No such group'   unless group
-    return callback null, { planTitle: 'unlimited' }  if group.slug is 'koding'
+
+    if group.slug is 'koding' or KONFIG.environment is 'default'
+      return callback null, { planTitle: 'unlimited' }
 
     url = "#{socialProxyUrl}/payments/group/subscriptions?group_id=#{group._id}"
     get url, {}, (err, subscription) ->

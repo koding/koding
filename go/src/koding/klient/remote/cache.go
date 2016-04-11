@@ -6,8 +6,10 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
+	"github.com/koding/logging"
 
 	"koding/klient/remote/machine"
+	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
 	"koding/klient/remote/rsync"
 )
@@ -60,6 +62,16 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		log.Error("Error getting dialed, valid machine. err:%s", err)
 		return nil, err
 	}
+
+	exists, err := remoteMachine.DoesRemoteDirExist(params.RemotePath)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return nil, mount.ErrRemotePathDoesNotExist
+	}
+
 	remoteSize, err := getSizeOfRemoteFolder(remoteMachine, params.RemotePath)
 	if err != nil {
 		return nil, err
@@ -125,7 +137,9 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 
 // startIntervaler starts the given rsync interval, logs any errors, and adds the
 // resulting Intervaler to the Mount struct for later Stoppage.
-func startIntervaler(log kite.Logger, remoteMachine *machine.Machine, c *rsync.Client, opts rsync.SyncIntervalOpts) {
+func startIntervaler(log logging.Logger, remoteMachine *machine.Machine, c *rsync.Client, opts rsync.SyncIntervalOpts) {
+	log = log.New("startIntervaler")
+
 	if opts.Interval <= 0 {
 		log.Warning(
 			"startIntervaler() called with interval:%d. Cannot start Intervaler",
@@ -134,6 +148,7 @@ func startIntervaler(log kite.Logger, remoteMachine *machine.Machine, c *rsync.C
 		return
 	}
 
+	log.Info("Creating and starting RSync SyncInterval")
 	intervaler, err := c.SyncInterval(opts)
 	if err != nil {
 		log.Error("rsync SyncInterval returned an error:%s", err)

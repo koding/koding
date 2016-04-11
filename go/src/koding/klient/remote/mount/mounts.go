@@ -5,6 +5,17 @@ import "errors"
 // Mounts is a basic slice of Mount, providing convenience sorting methods.
 type Mounts []*Mount
 
+// ContainsMount returns whether the givne mount is in the Mounts slice.
+func (ms Mounts) ContainsMount(containsMount *Mount) bool {
+	for _, sliceMount := range ms {
+		if containsMount == sliceMount {
+			return true
+		}
+	}
+
+	return false
+}
+
 // FindByName sorts through the Mounts, returning the first Mount with a
 // matching name.
 //

@@ -460,12 +460,17 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 		return nil, err
 	}
 
-	if !params.Success.IsValid() {
-		return nil, errors.New("invalid request: missing success callback")
+	fail := func(err error) error {
+		params.Failure.Call(err.Error())
+		return err
 	}
 
 	if !params.Failure.IsValid() {
 		return nil, errors.New("invalid request: missing failure callback")
+	}
+
+	if !params.Success.IsValid() {
+		return nil, fail(errors.New("invalid request: missing success callback"))
 	}
 
 	var verr error
@@ -500,7 +505,7 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 
 	out, err := fn()
 	if err != nil {
-		return nil, err
+		return nil, fail(err)
 	}
 
 	go func() {
@@ -512,7 +517,7 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 			verr = multierror.Append(verr, err)
 
 			h.log.Error("Klient %q error for %q: %s", r.Method, filePath, verr)
-			params.Failure.Call(verr.Error())
+			fail(verr)
 			return
 		}
 

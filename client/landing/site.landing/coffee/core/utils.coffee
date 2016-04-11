@@ -50,22 +50,29 @@ module.exports = utils = {
     return "#{domain}#{if port then ':'+port else ''}"
 
 
-  getGroupNameFromLocation: ->
+  getGroupNameFromLocation: (hostname) ->
 
-    { hostname } = location
-    mainDomains = ['dev.koding.com', 'sandbox.koding.com', 'latest.koding.com', 'prod.koding.com']
-    groupName = if hostname in mainDomains then 'koding'
-    else if hostname.indexOf('.dev.koding.com') isnt -1
-    then hostname.replace('.dev.koding.com', '').split('.').last
-    else if hostname.indexOf('.sandbox.koding.com') isnt -1
-    then hostname.replace('.sandbox.koding.com', '').split('.').last
-    else if hostname.indexOf('.latest.koding.com') isnt -1
-    then hostname.replace('.latest.koding.com', '').split('.').last
-    else if hostname.indexOf('.koding.com') isnt -1
-    then hostname.replace('.koding.com', '').split('.').last
-    else 'koding'
+    { hostname }     = location  unless hostname
+    ipV4Pattern      = "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.xip\.io$"
+    subDomainPattern = "[A-Za-z0-9_]{1}[A-Za-z0-9_-]+"
+    kodingDomains    = "(?:dev|sandbox|latest|prod)"
 
-    return groupName
+    # e.g. [teamName.]dev|sandbox|latest|prod.koding.com
+    teamPattern = if ///#{kodingDomains}\.koding\.com$///.test hostname
+    then ///(?:^(#{subDomainPattern})\.)?#{kodingDomains}\.koding\.com$///
+    # e.g. [teamName.]koding.com
+    else if /koding\.com$/.test hostname
+    then ///(?:^(#{subDomainPattern})\.)?koding\.com$///
+    # e.g. [teamName.]<teamMember>.koding.team
+    else if /koding\.team$/.test hostname
+    then ///(?:^(#{subDomainPattern})\.)?(?:#{subDomainPattern}\.)koding\.team$///
+    # e.g. [teamName.]<vm-ip>.xip.io
+    else ///(?:^(#{subDomainPattern})\.)?#{ipV4Pattern}///
+
+    matches  = hostname.match teamPattern
+    teamName = matches?[1] or 'koding'
+
+    return teamName
 
 
   checkIfGroupExists: (groupName, callback) ->

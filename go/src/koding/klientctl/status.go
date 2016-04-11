@@ -219,13 +219,7 @@ func (c *HealthChecker) CheckAllWithResponse() (res string, ok bool) {
 	if err := defaultHealthChecker.CheckLocal(); err != nil {
 		switch err.(type) {
 		case ErrHealthNoHTTPReponse:
-			res = fmt.Sprintf(
-				`Error: The %s does not appear to be running. Please run
-the following command to start it:
-
-    sudo kd start
-`,
-				config.KlientName)
+			res = KlientIsntRunning
 
 		case ErrHealthUnexpectedResponse:
 			res = fmt.Sprintf(`Error: The %s is not running properly. Please run the

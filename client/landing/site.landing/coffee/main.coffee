@@ -29,7 +29,6 @@ do ->
     # BIG BANG
     new MainController group
 
-
   kd.config             or= {}
   kd.config.environment   = if location.hostname is 'koding.com' then 'production' else 'development'
   kd.config.groupName     = groupName = utils.getGroupNameFromLocation()
