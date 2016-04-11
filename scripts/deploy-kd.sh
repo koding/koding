@@ -27,15 +27,17 @@ if [[ "$CHANNEL" == "development" ]]; then
 	KONTROL_URL="https://sandbox.koding.com/kontrol/kite"
 fi
 
+# NOTE(rjeczalik): kd expects the version to be a single digit, while klient
+# expect semver - making a note until this is made consistent.
 kd-build() {
-	GOOS="${1:-}" GOARCH=amd64 go build -v -ldflags "-X koding/klientctl/config.Version 0.1.$NEWBUILDNO -X koding/klientctl/config.Environment $CHANNEL -X koding/klientctl/config.KontrolURL $KONTROL_URL" -o kd koding/klientctl
+	GOOS="${1:-}" GOARCH=amd64 go build -v -ldflags "-X koding/klientctl/config.Version $NEWBUILDNO -X koding/klientctl/config.Environment $CHANNEL -X koding/klientctl/config.KontrolURL $KONTROL_URL" -o kd koding/klientctl
 }
 
 # build klient binary for linux
 kd-build
 
 # validate klient version
-[[ $(./kd -version) == "kd version 0.1.$NEWBUILDNO" ]]
+[[ $(./kd -version) == "kd version $NEWBUILDNO" ]]
 
 # prepare klient.gz
 gzip -9 -N kd
