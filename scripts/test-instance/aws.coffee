@@ -1,7 +1,19 @@
-AWS               = require 'aws-sdk'
-AWS.config.region = 'us-west-1'
+AWS = require 'aws-sdk'
+unless process.env.TEST_AWS_REGION
+  console.error 'error: TEST_AWS_REGION is not set'
+  process.exit 1
+
+unless process.env.TEST_AWS_ACCESS_KEY
+  console.error 'error: TEST_AWS_ACCESS_KEY is not set'
+  process.exit 1
+
+unless process.env.TEST_AWS_SECRET_KEY
+  console.error 'error: TEST_AWS_SECRET_KEY is not set'
+  process.exit 1
+
+AWS.config.region = process.env.TEST_AWS_REGION
 AWS.config.update
-  accessKeyId     : 'AKIAJTAPKSDXI4FIXGJA'
-  secretAccessKey : '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'
+  accessKeyId     : process.env.TEST_AWS_ACCESS_KEY
+  secretAccessKey : process.env.TEST_AWS_SECRET_KEY
 
 module.exports = AWS

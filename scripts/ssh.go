@@ -17,8 +17,8 @@ import (
 var (
 	// these keys are already on main.dev.coffee
 	// ELB & EC2 -> AmazonEC2ReadOnlyAccess
-	flagAWSSecret = flag.String("awsSecret", "/IQR6Y9Oo06TsQql0GSkmU5EG6Ks7hUOabxUh5OK", "aws secret key")
-	flagAWSAccess = flag.String("awsAccess", "AKIAI7CKP5SNHCBUEDXQ", "aws access key")
+	flagAWSSecret = flag.String("awsSecret", "", "aws secret key")
+	flagAWSAccess = flag.String("awsAccess", "", "aws access key")
 
 	flagHost       = flag.String("env", "prod", "env name")
 	flagFiltered   = flag.Bool("filtered", false, "filter by ec2 tags")
@@ -31,6 +31,7 @@ var ELBS = map[string]string{
 	"latest":     "awseb-e-3-AWSEBLoa-1S2VPBAQXDRW9",
 	"sandbox":    "awseb-e-p-AWSEBLoa-1POHSLP6A7STY",
 	"monitoring": "awseb-e-j-AWSEBLoa-AQBHUYZM5ZX6",
+
 	// proxy
 	"proxy-eu-west-1":      "awseb-e-s-AWSEBLoa-1LOTB5BKTJJBW",
 	"proxy-us-east-1":      "awseb-e-a-AWSEBLoa-RTLJ62SKJY5G",
