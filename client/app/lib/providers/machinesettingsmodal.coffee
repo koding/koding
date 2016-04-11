@@ -80,7 +80,6 @@ module.exports = class MachineSettingsModal extends KDModalView
     disabledTabsForTeams        = [ 'Domains', 'Advanced', 'Snapshots' ]
     disabledTabsForProviders    =
       managed                   : [ 'Specs', 'Domains', 'Snapshots' ]
-      softlayer                 : [ 'Snapshots' ]
 
     if isSoloProductLite()
       for item in hiddenTabsForSolo
@@ -90,12 +89,14 @@ module.exports = class MachineSettingsModal extends KDModalView
 
       subView    = new item.viewClass item.viewOptions, machine
       isDisabled = not isMachineRunning and disabledTabsForNotRunningVM.indexOf(item.title) > -1
-      managedAndNotKoding = not isKoding() and machine.isManaged()
+      isDisabled = disabledTabsForTeams.indexOf(item.title) > -1  unless isKoding()
 
-      if disabledTabs = disabledTabsForProviders[machine.provider] or managedAndNotKoding
-        isDisabled = item.title in disabledTabs
-      else
-        isDisabled = item.title in disabledTabsForTeams
+      if machine.isManaged()
+        disabledTabs = disabledTabsForProviders[machine.provider]
+        isDisabled = disabledTabs.indexOf(item.title) > -1
+
+        # 'Advanced' tab should enable for managed VMs
+        isDisabled = no  if item.title is 'Advanced'
 
       @tabView.addPane pane = new KDTabPaneView
         name     : item.title
