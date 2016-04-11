@@ -75,3 +75,14 @@ func (c *Client) ReadAndUpload() error {
 
 	return c.Uploader.Upload(b)
 }
+
+func (c *Client) Truncate(files ...string) {
+	for _, name := range files {
+		file, err := os.OpenFile(name, os.O_TRUNC, 0)
+		if err != nil {
+			continue
+		}
+
+		file.Close()
+	}
+}

@@ -80,6 +80,20 @@ func TestS3LogRotate(t *testing.T) {
 
 		Convey("Then it should upload them to S3", func() {
 		})
+
+		Convey("Then it should truncate the files", func() {
+			file1, err := createFileSized("file1", 10)
+			So(err, ShouldBeNil)
+			defer os.Remove(file1.Name())
+
+			c := New(10, nil, file1.Name())
+
+			c.Truncate(file1.Name())
+
+			stat, err := os.Stat(file1.Name())
+			So(err, ShouldBeNil)
+			So(stat.Size(), ShouldEqual, 0)
+		})
 	})
 }
 
