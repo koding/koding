@@ -105,6 +105,10 @@ func IsGetKitesFailure(err error) bool {
 	)
 }
 
+func IsMachineActionLockedErr(err error) bool {
+	return isKiteOfTypeErr(err, kiteerrortypes.MachineActionIsLocked)
+}
+
 func IsRemotePathNotExistErr(err error) bool {
 	return isKiteOfTypeErr(err, kiteerrortypes.RemotePathDoesNotExist)
 }

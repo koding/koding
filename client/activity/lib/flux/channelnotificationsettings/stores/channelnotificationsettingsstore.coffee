@@ -37,10 +37,13 @@ module.exports = class ChannelNotificationSettingsStore extends KodingFluxStore
 
   handleLoadFail: (notificationSettings, { channelId, groupChannelId }) ->
 
-    channelNotificationSettings = notificationSettings.get groupChannelId
-    channelNotificationSettings = channelNotificationSettings.set '_newlyCreated', yes
+    defaultSettings = notificationSettings.get groupChannelId
 
-    notificationSettings.set channelId, channelNotificationSettings
+    return notificationSettings  unless defaultSettings
+
+    newSettings = defaultSettings.set '_newlyCreated', yes
+
+    notificationSettings.set channelId, newSettings
 
 
   deleteSettings: (notificationSettings, { channelId }) ->

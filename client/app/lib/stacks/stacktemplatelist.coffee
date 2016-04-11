@@ -43,3 +43,5 @@ module.exports = class StackTemplateList extends KodingListView
         "I know what I'm doing, Open Editor":
           style    : 'solid medium red'
           callback : => callback { action : 'OpenEditor', modal, item : this}
+
+    modal.setAttribute 'testpath', 'RemoveStackModal'

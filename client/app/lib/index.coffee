@@ -34,7 +34,7 @@ bootup = ->
   globals.keymapType = do ->
     if globals.os is 'mac' then globals.os else 'win'
 
-  if globals.config.environment in ['dev', 'sandbox']
+  if globals.config.environment in ['dev', 'default', 'sandbox']
     global._kd      = kd
     global._remote  = remote
 
@@ -46,7 +46,7 @@ bootup = ->
     globals.userAccount            = remote.revive globals.userAccount
     globals.config.entryPoint.slug = globals.currentGroup.slug
 
-    setupAnalytics()
+    setupAnalytics()  unless globals.config.environment is 'default'
 
   MainController = require './maincontroller'
   Status = require './status'
@@ -65,7 +65,7 @@ bootup = ->
 
   require('./routehandler')()
 
-  firstLoad    = yes
+  firstLoad = yes
 
   mainController.tempStorage = {}
 

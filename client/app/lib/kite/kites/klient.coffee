@@ -1,6 +1,6 @@
-Promise = require 'bluebird'
-kd = require 'kd'
-proxifyTransportUrl = require '../../util/proxifyTransportUrl'
+kd        = require 'kd'
+Promise   = require 'bluebird'
+Proxifier = require '../../util/proxifier'
 
 
 module.exports = class KodingKiteKlientKite extends require('../kodingkite')
@@ -69,10 +69,12 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
     { url, checkAlternatives } = @transport.options
 
     # keep a local copy of proxified version
-    proxifyTransportUrl url, no,  (newurl) => @_baseURL = newurl
+    Proxifier.proxify { url, checkAlternatives: no }, (newurl) =>
+
+      @_baseURL = newurl
 
     # ask for the alternatives or proxified version
-    proxifyTransportUrl url, checkAlternatives, (newurl) =>
+    Proxifier.proxify { url, checkAlternatives }, (newurl) =>
 
       @transport.options.url = newurl
 

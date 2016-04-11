@@ -11,33 +11,44 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'stacktemplate-item clearfix', options.cssClass
+
     super options, data
 
     { isDefault, inUse, accessLevel, config } = @getData()
 
-    @isDefaultView = new kd.CustomHTMLView
-      cssClass : 'custom-tag'
-      partial  : 'DEFAULT'
-      tooltip  :
-        title  : 'This group currently using this template'
+    @setAttribute 'testpath', "#{accessLevel}StackListItem"
 
-    @inUseView = new kd.CustomHTMLView
-      cssClass : 'custom-tag'
-      partial  : 'IN USE'
-      tooltip  :
-        title  : 'This template is in use'
+    @isDefaultView = new kd.CustomHTMLView
+      cssClass   : 'custom-tag'
+      partial    : 'DEFAULT'
+      attributes :
+        testpath : 'StackDefaultTag'
+      tooltip    :
+        title    : 'This group currently using this template'
+
+    @inUseView   = new kd.CustomHTMLView
+      cssClass   : 'custom-tag'
+      partial    : 'IN USE'
+      attributes :
+        testpath : 'StackInUseTag'
+      tooltip    :
+        title    : 'This template is in use'
 
     @notReadyView = new kd.CustomHTMLView
-      cssClass : 'custom-tag not-ready'
-      partial  : 'NOT READY'
-      tooltip  :
-        title  : 'Template is not verified or credential data is missing'
+      cssClass   : 'custom-tag not-ready'
+      partial    : 'NOT READY'
+      attributes :
+        testpath : 'StackNotReadyTag'
+      tooltip    :
+        title    : 'Template is not verified or credential data is missing'
 
     @accessLevelView = new kd.CustomHTMLView
-      cssClass : "custom-tag #{accessLevel}"
-      partial  : accessLevel.toUpperCase()
-      tooltip  :
-        title  : switch accessLevel
+      cssClass   : "custom-tag #{accessLevel}"
+      partial    : accessLevel.toUpperCase()
+      attributes :
+        testpath : 'StackAccessLevelTag'
+      tooltip    :
+        title    : switch accessLevel
           when 'public'
             'This group currently using this template'
           when 'group'

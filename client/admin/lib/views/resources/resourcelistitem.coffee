@@ -70,7 +70,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
     #   callback : @bound 'handleAdminMessage'
 
     @ownerView = new AvatarView {
-      size: { width: 25, height: 25 }
+      size: { width: 40, height: 40 }
     }, resource.owner
 
     @status = new kd.CustomHTMLView
@@ -87,6 +87,14 @@ module.exports = class ResourceListItem extends kd.ListItemView
       cssClass : 'revision-status'
       partial  : message
     @revisionStatus.setClass if code > 0 then 'warning' else 'hidden'
+
+    { nickname }  = resource.owner.profile
+    timestamp     = resource._id.substring 0, 8
+    createdAt     = new Date parseInt(timestamp, 16) * 1000
+    @creationInfo = new kd.CustomHTMLView
+      partial  : "Created by <strong>#{nickname}</strong> "
+      cssClass : 'creation-info'
+    @creationInfo.addSubView new kd.TimeAgoView {}, createdAt
 
     @progressBar = new KDProgressBarView { initial : INITIAL_PROGRESS_VALUE }
 
@@ -238,6 +246,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
           {{> @percentage}}
           {{> @revisionStatus}}
         </div>
+        {{> @creationInfo}}
       </div>
       <div class='clear'></div>
       {{> @details}}

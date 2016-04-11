@@ -1,10 +1,9 @@
 package main
 
 import (
-	"testing"
+	"koding/klientctl/list"
 
 	"github.com/koding/kite/dnode"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 // fakeTransport implements Transport interface and is to be used in tests.
@@ -12,6 +11,8 @@ type fakeTransport struct {
 	TripResponses map[string]*dnode.Partial
 	TripErrors    map[string]error
 }
+
+var _ Transport = (*fakeTransport)(nil)
 
 func newFakeTransport() *fakeTransport {
 	return &fakeTransport{
@@ -21,21 +22,16 @@ func newFakeTransport() *fakeTransport {
 }
 
 func (f *fakeTransport) Tell(methodName string, reqs ...interface{}) (res *dnode.Partial, err error) {
-	if f.TripErrors != nil {
-		err, _ = f.TripErrors[methodName]
-	}
-
-	if f.TripResponses != nil {
-		res, _ = f.TripResponses[methodName]
-	}
-
-	return res, err
+	return f.TripResponses[methodName], f.TripErrors[methodName]
 }
 
-func TestTransport(t *testing.T) {
-	Convey("fakeTransport", t, func() {
-		Convey("It should implement Transport", func() {
-			var _ Transport = (*fakeTransport)(nil)
-		})
-	})
+// fakeKlient implements the unnamed (SSHKey).Klient interface.
+type fakeKlient struct {
+	Transport
+
+	Remotes list.KiteInfos
+}
+
+func (f *fakeKlient) RemoteList() (list.KiteInfos, error) {
+	return f.Remotes, nil
 }

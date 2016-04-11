@@ -149,7 +149,7 @@ module.exports = class StackTemplateListController extends KodingListController
     if computeController.findStackFromTemplateId template._id
       return showError 'You currently have a stack generated from this template.'
 
-    listView.askForConfirm
+    modal = listView.askForConfirm
       title       : 'Remove stack template ?'
       description : 'Do you want to remove this stack template ?'
       callback    : ({ status, modal }) ->
@@ -159,6 +159,8 @@ module.exports = class StackTemplateListController extends KodingListController
           modal.destroy()
           Tracker.track Tracker.STACKS_DELETE_TEMPLATE
           appManager.tell 'Stacks', 'reloadStackTemplatesList'
+
+    modal.setAttribute 'testpath', 'RemoveStackModal'
 
 
   prepareData: (stackTemplates = [], stacks = [], canEditGroup) ->

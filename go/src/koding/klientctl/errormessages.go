@@ -17,6 +17,17 @@ var (
 		"Error: Encountered an internal error.\n%s",
 	)
 
+	// KlientIsntRunning is an error printed to the user if klient is not running.
+	// Usually from the health checker.
+	KlientIsntRunning = fmt.Sprintf(
+		`Error: The %s does not appear to be running. Please run
+the following command to start it:
+
+    sudo kd start
+`,
+		config.KlientName,
+	)
+
 	// GenericInternalNewCodeError is a generic error message. Typically used when we
 	// don't want to reveal what exactly went wrong, like confusing implementation
 	// details.
@@ -183,6 +194,12 @@ remote machine is running & accessible and try again.`,
 	// Since the above DialingRemote error is generic enough, we're just using that
 	// for now.
 	MachineNotValidYet = FailedDialingRemote
+
+	// MachineMountActionIsLocked is used when the machine's mount(s) have been locked
+	// by another kd call or auto mounting process. Ie, two calls to `kd mount` at
+	// the same time for the same machine.
+	MachineMountActionIsLocked = `Error: %s is currently busy with another mounting process.
+Please try again in a moment.`
 
 	// RemotePathDoesNotExist is printed when the user supplies a directory to mount,
 	// that does not exist on the remote side.
