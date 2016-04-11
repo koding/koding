@@ -97,7 +97,7 @@ func (u *Updater) checkAndUpdate() error {
 	latestKlientURL := &url.URL{
 		Scheme: "https",
 		Host:   "s3.amazonaws.com",
-		Path:   path.Join("/koding-klient", protocol.Environment, latestVer, file),
+		Path:   path.Join("/koding-klient", protocol.Environment, l, file),
 	}
 
 	return u.updateBinary(latestKlientURL.String())
