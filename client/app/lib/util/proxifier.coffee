@@ -14,7 +14,8 @@ module.exports = class Proxifier
     parser.href = url
 
     # if url is already proxyfied return it as is
-    return callback url  if /p\.koding\.com/.test url
+    baseDomain = "#{globals.config.domains.base}".replace '.', '\\.'
+    return callback url  if ///p\.#{baseDomain}///.test url
     return callback url  if parser.hostname in ['127.0.0.1', 'dev.kodi.ng']
 
     # check if running under production environment
