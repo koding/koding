@@ -7,7 +7,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
+	"path"
+	"runtime"
 	"strings"
 	"sync"
 	"syscall"
@@ -79,10 +82,25 @@ func (u *Updater) checkAndUpdate() error {
 
 	u.Log.Info("Current version: %s is old. Going to update to: %s", u.CurrentVersion, latestVer)
 
-	basePath := "https://s3.amazonaws.com/koding-klient/" + protocol.Environment + "/latest"
-	latestKlientURL := basePath + "/klient-" + latestVer + ".gz"
+	var file string
+	if runtime.GOOS != "linux" {
+		// Backward-compatibility - linux uploads of klient are not suffixed
+		// with a platform_arch string.
+		//
+		// TODO(rjeczalik): Remove when we ensure all klients in the wild
+		// use new urls.
+		file = fmt.Sprintf("klient-%s.%s_%s.gz", latestVer, runtime.GOOS, runtime.GOARCH)
+	} else {
+		file = fmt.Sprintf("klient-%s.gz", latestVer)
+	}
 
-	return u.updateBinary(latestKlientURL)
+	latestKlientURL := &url.URL{
+		Scheme: "https",
+		Host:   "s3.amazonaws.com",
+		Path:   path.Join("/koding-klient", protocol.Environment, latestVer, file),
+	}
+
+	return u.updateBinary(latestKlientURL.String())
 }
 
 func (u *Updater) updateBinary(url string) error {
