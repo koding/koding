@@ -378,18 +378,9 @@ func (c *MountCommand) prefetchAll() error {
 		SSHPrivateKeyPath: sshKey.PrivateKeyPath(),
 	}
 
-	if err := c.Klient.RemoteCache(cacheReq, cacheProgressCallback); err != nil {
-		c.printfln("") // newline to ensure the progress bar ends
-		switch {
-		case klientctlerrors.IsRemotePathNotExistErr(err):
-			c.printfln(RemotePathDoesNotExist)
-			return fmt.Errorf("Remote path does not exist. err:%s", err)
-		default:
-			c.printfln(
-				defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
-			)
-			return fmt.Errorf("remote.cacheFolder returned an error. err:%s", err)
-		}
+	// c.remoteCache handles UX
+	if err := c.remoteCache(cacheReq, cacheProgressCallback); err != nil {
+		return err
 	}
 
 	if err := <-doneErr; err != nil {
@@ -403,6 +394,30 @@ func (c *MountCommand) prefetchAll() error {
 	}
 
 	bar.FinishPrint("Prefetching complete.")
+
+	return nil
+}
+
+// remoteCache performs a Klient.RemoteCache request while ignoring
+func (c *MountCommand) remoteCache(r req.Cache, progressCb func(par *dnode.Partial)) error {
+	if err := c.Klient.RemoteCache(r, progressCb); err != nil {
+		// Because we have a progress bar in the UX currently, we need to add a
+		// newline if there's an error.
+		c.printfln("")
+		switch {
+		case klientctlerrors.IsRemotePathNotExistErr(err):
+			c.printfln(RemotePathDoesNotExist)
+			return fmt.Errorf("Remote path does not exist. err:%s", err)
+		case klientctlerrors.IsProcessError(err):
+			c.printfln(RemoteProcessFailed, err)
+			return err
+		default:
+			c.printfln(
+				defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
+			)
+			return fmt.Errorf("remote.cacheFolder returned an error. err:%s", err)
+		}
+	}
 
 	return nil
 }
