@@ -261,7 +261,7 @@ module.exports = class DefineStackView extends KDView
 
     @buttons.addSubView @reinitButton = new kd.ButtonView
       title          : 'Re-Init'
-      cssClass       : 'solid compact nav hidden'
+      cssClass       : 'solid compact nav hidden reinit'
       tooltip        :
         title        : 'Destroys the existing stack and re-creates it.'
       callback       : @bound 'handleReinit'
@@ -279,7 +279,7 @@ module.exports = class DefineStackView extends KDView
     # only display when no default-stack is in use.
     @buttons.addSubView @setAsDefaultButton = new kd.ButtonView
       title          : 'Make Team Default'
-      cssClass       : 'solid compact green nav next hidden'
+      cssClass       : 'solid compact green nav next hidden set-default'
       loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'
@@ -287,7 +287,7 @@ module.exports = class DefineStackView extends KDView
 
     @buttons.addSubView @generateStackButton = new kd.ButtonView
       title          : 'Provision Stack'
-      cssClass       : 'solid compact green nav next hidden'
+      cssClass       : 'solid compact green nav next hidden provision'
       loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'
@@ -295,7 +295,7 @@ module.exports = class DefineStackView extends KDView
 
     @buttons.addSubView @saveButton = new kd.ButtonView
       title          : 'Save & Test'
-      cssClass       : 'solid compact green nav next'
+      cssClass       : 'solid compact green nav next save-test'
       loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'

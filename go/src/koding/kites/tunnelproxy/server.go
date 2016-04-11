@@ -102,6 +102,14 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 	optsCopy.BaseVirtualHost = customPort(optsCopy.BaseVirtualHost, opts.Port, 80, 443)
 	optsCopy.ServerAddr = customPort(optsCopy.ServerAddr, opts.Port)
 
+	if optsCopy.TCPRangeFrom == 0 {
+		optsCopy.TCPRangeFrom = 20000
+	}
+
+	if optsCopy.TCPRangeTo == 0 {
+		optsCopy.TCPRangeTo = 50000
+	}
+
 	tunnelCfg := &tunnel.ServerConfig{
 		Debug: optsCopy.Debug,
 		Log:   optsCopy.Log,

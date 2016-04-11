@@ -16,7 +16,7 @@ type KiteInfos []KiteInfo
 // FindFromName finds a specific KiteInfo by the name, returning true or false if
 // one was found.
 func (infos KiteInfos) FindFromName(name string) (KiteInfo, bool) {
-	infoNames := make([]string, len(infos), len(infos))
+	infoNames := make([]string, 0, len(infos))
 	for _, info := range infos {
 		infoNames = append(infoNames, info.VMName)
 	}

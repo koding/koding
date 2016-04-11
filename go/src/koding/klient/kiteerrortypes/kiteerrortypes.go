@@ -42,9 +42,13 @@ const (
 	// fails, or generic (non-instanced) unmount fails.
 	SystemUnmountFailed = "system-unmount-failed"
 
-	// Used in klient/client.ErrSubNotFound
+	// SubNotFound is used in klient/client.ErrSubNotFound
 	SubNotFound = "SubNotFound"
 
-	// Used in klient/remote/mount.Mounter
+	// RemotePathDoesNotExist is used in klient/remote/mount.Mounter
 	RemotePathDoesNotExist = "RemotePathDoesNotExist"
+
+	// MachineActionIsLocked is used when the requested actions (such as mount related
+	// actions) are locked.
+	MachineActionIsLocked = "MachineActionIsLocked"
 )

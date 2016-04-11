@@ -407,14 +407,10 @@ createHealthcheck = (KONFIG) ->
 createListenDirective = (KONFIG, env) ->
   return "listen #{KONFIG.publicPort};" if not isProxy KONFIG.ebEnvName
 
-  # TODO(rjeczalik): remove after ProxyProtocol policy is enabled for prodproxy
-  return "listen 79;" if not env is 'sandbox'
-
   return """
     listen 79 proxy_protocol;
     real_ip_header proxy_protocol;
-    set_real_ip_from 10.0.0.0/24;
-    set_real_ip_from 10.0.1.0/24;
+    set_real_ip_from 10.0.0.0/16;
   """
 
 createHttpsRedirector = (KONFIG) ->

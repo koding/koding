@@ -385,13 +385,21 @@ func (c *MountCommand) prefetchAll() error {
 	}
 
 	if err := c.Klient.RemoteCache(cacheReq, cacheProgressCallback); err != nil {
-		c.printfln(
-			defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
-		)
-		return fmt.Errorf("remote.cacheFolder returned an error. err:%s", err)
+		c.printfln("") // newline to ensure the progress bar ends
+		switch {
+		case klientctlerrors.IsRemotePathNotExistErr(err):
+			c.printfln(RemotePathDoesNotExist)
+			return fmt.Errorf("Remote path does not exist. err:%s", err)
+		default:
+			c.printfln(
+				defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
+			)
+			return fmt.Errorf("remote.cacheFolder returned an error. err:%s", err)
+		}
 	}
 
 	if err := <-doneErr; err != nil {
+		c.printfln("") // newline to ensure the progress bar ends
 		c.printfln(
 			defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
 		)
@@ -437,6 +445,10 @@ func (c *MountCommand) mountFolder(r req.MountFolder) error {
 		case klientctlerrors.IsRemotePathNotExistErr(err):
 			c.printfln(RemotePathDoesNotExist)
 			return fmt.Errorf("Remote path does not exist. err:%s", err)
+
+		case klientctlerrors.IsMachineActionLockedErr(err):
+			c.printfln(MachineMountActionIsLocked, r.Name)
+			return fmt.Errorf("Machine is locked. err:%s", err)
 
 		default:
 			// catch any remaining errors
