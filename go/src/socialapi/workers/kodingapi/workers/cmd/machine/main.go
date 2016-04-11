@@ -70,10 +70,6 @@ func main() {
 	logger := log.NewLogfmtLogger(os.Stderr)
 	logger = log.NewContext(logger).With("listen", *listen).With("caller", log.DefaultCaller)
 
-	// transportLogger := log.NewContext(logger).With("transport", "HTTP/JSON")
-	// tracingLogger := log.NewContext(transportLogger).With("component", "tracing")
-	// zipkinLogger := log.NewContext(tracingLogger).With("component", "zipkin")
-
 	ctx := context.Background()
 
 	_, err := kitworker.NewMetric("127.0.0.1:8125", metrics.Field{Key: "key", Value: "value"})
@@ -92,16 +88,9 @@ func main() {
 
 		LogErrors:   true,
 		LogRequests: true,
-
-		// Latency: m.Histogram("tinder_api_account_service_request_histogram"),
-		// Counter: m.Counter("tinder_api_account_service_request_count"),
 	}
 
 	serverOpts.ServerOptions = append(serverOpts.ServerOptions, before)
-	// hostName, err := os.Hostname()
-	// if err != nil {
-	// 	hostName = "localhost"
-	// }
 
 	svc := machine.NewMachine()
 

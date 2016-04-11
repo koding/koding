@@ -2,7 +2,6 @@ package machine
 
 import (
 	"io"
-	// "koding/db/models"
 	"socialapi/workers/kodingapi/models"
 	"socialapi/workers/kodingapi/workers/kitworker"
 

@@ -1,7 +1,6 @@
 package machine
 
 import (
-	// "koding/db/models"
 	"socialapi/workers/kodingapi/models"
 
 	"golang.org/x/net/context"
