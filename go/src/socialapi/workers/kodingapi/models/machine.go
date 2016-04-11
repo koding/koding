@@ -2,7 +2,7 @@
 package models
 
 import "github.com/cihangir/govalidator"
-// import "koding/db/models"
+
 
 // Machine represents a registered Account's Machine Info
 type Machine struct {
@@ -25,7 +25,6 @@ func NewMachine() *Machine {
 func (m *Machine) Validate() error {
 	return govalidator.NewMulti(govalidator.MaxLength(m.State, 30),
 		govalidator.MaxLength(m.Username, 20),
-		// govalidator.Min(float64(m.ID), 1.000000),
+		govalidator.Min(float64(m.ID), 1.000000),
 		govalidator.MinLength(m.Username, 4)).Validate()
 }
-//
