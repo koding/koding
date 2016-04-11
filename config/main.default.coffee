@@ -945,8 +945,14 @@ Configuration = (options={}) ->
 
       return str
 
-    envvars = (options={})->
-      options.exclude or= []
+    envvars = (options = {}) ->
+
+      options.exclude ?= []
+      options.exclude  = options.exclude.concat \
+        Object.keys(process.env).filter (v) -> /^KONFIG_/.test v
+
+      if options.print and options.exclude.length > 0
+        console.log ">>> FOLLOWING ENVIRONMENT VARIABLES WILL BE USED: \n", options.exclude.join ', '
 
       env = """
       export GOPATH=#{projectRoot}/go
@@ -1043,7 +1049,7 @@ Configuration = (options={}) ->
       NGINX_CONF="#{projectRoot}/.default.nginx.conf"
       NGINX_PID="#{projectRoot}/.default.nginx.pid"
 
-      #{envvars()}
+      #{envvars({ print: yes })}
 
       trap ctrl_c INT
 
