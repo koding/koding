@@ -73,7 +73,13 @@ func (c *Client) ReadAndUpload() error {
 		return err
 	}
 
-	return c.Uploader.Upload(b)
+	if err := c.Uploader.Upload(b); err != nil {
+		return nil
+	}
+
+	c.Truncate(c.Files...)
+
+	return nil
 }
 
 func (c *Client) Truncate(files ...string) {
