@@ -1,0 +1,126 @@
+#! dbbbe0b3-dbe7-4a47-8664-1c8649d0191a
+# title: TEAM CREATION with existing account, Stacks
+# start_uri: /
+# tags: team creation, stacks, multiple stacks
+# browsers: osx_chrome
+#
+ 
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see 'Sign in to your team' form in the center of the page with a green 'Continue' button? Do you see 'Click here to get started.' text below that form?
+
+Click on 'Click here' link
+Do you see 'Create a team' form and a green 'Sign up' button?
+
+Enter 'rainforestqa99@koding.com' in the email and '{{ random.last_name }}{{ random.number }}' in the team name fields and click on 'Sign Up' button
+Do you see 'Your team URL' form with URL field prefilled?
+
+Click on 'Next' button
+Do you see 'Sign in' form with only password input field? Do you see 'Hey rainforestqa99' text?
+
+Enter 'rainforestqa99' in the password field and click on 'Done!' button, then enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in' (on the Authentication Required form)
+Do you see 'Stack Catalog' modal with 'Welcome', 'My Stacks', 'My Stack Templates', 'Team Stack Templates' and 'Koding Utilities' tabs? Do you see 'Create a Stack for Your Team', 'Invite your team' and 'Install KD' sections?
+
+Click on 'Create a Stack for Your Team' section and then click on 'Get Started!' button
+Do you see 'What provider do you want to use' title? Do you see 'amazon web services' and other 'coming soon labeled' providers? Do you see 'Skip setup guide' link in the bottom?
+
+Click on 'Skip setup guide' and then click on 'Credentials' text having a red (!) next to it
+Do you see 'rainforestqa99's AWS keys' text with 'aws' label under it? Do you see 'Use This & Continue' button next to it?
+
+Click on 'Use This & Continue' button (next to 'rainforestqa99's AWS keys') and wait for a second for process to be completed and then click on 'Save & Test' button and wait for a second for process to be completed
+Do you see 'Your stack script has been successfully saved..' overlay? Do you see 'Close' buttton?
+
+Click on 'Close' button and click on 'OK' button on top right of the page
+Do you see 'Team Stack Templates' title? Do you see 'Create New Stack' button on the right? Do you see 'Default stack template' and 'default', 'in use' and 'group' labels next to it?
+
+Click on (X) on top right corner of this modal
+Do you see 'Readme text for this stack template' and 'example is not build yet.' texts in the center and 'Build Stack' button under it?
+
+Click on 'Build Stack' button
+Do you see 'example is building now.' text? Do you see green progress bar in the center and in the left sidebar below the 'example' label?
+
+Click on the default profile image next to '{{ random.last_name }}{{ random.number }}' label on top left and then click on 'Team Settings'
+Do you see 'Team Settings' modal opened with 'General', 'Members', 'Invitations', 'API Access' and 'Team Logs' sections? Do you see '{{ random.last_name }}{{ random.number }}' in 'Name' and 'URL' fields?
+
+Click on 'Invitations' from left vertical menu and then enter 'rainforestqa25@koding.com' in the 'Email' field of the first row and uncheck 'Admin' checkbox and click on 'Invite Members' button
+Have you seen 'Invitation is sent to rainforestqa25@koding.com' message?
+
+Open an incognito window (by clicking on the 3lined button from top right corner of the browser and selecting 'New Incognito Window' - screenshot here:http://take.ms/2hxOf) and go to '{{ random.last_name }}{{ random.number }}.sandbox.koding.com'
+Do you see 'Authentication Required' form?
+
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' login form? Do you see green 'Sign in' button?
+
+Enter 'rainforestqa25' in both username/email and password fields and click on 'Sign in' button
+Do you see {{ random.last_name }}{{ random.number }} label at the top left corner? Do you see 'Default Stack Template' under 'Stacks' title in the left sidebar? Do you see green 'Build Stack' button in the center of the page?
+
+Click on 'Stacks' from left sidebar and click on 'Create a Personal Stack' section (2nd section on Stack Catalog's Welcome tab)
+Do you see 'Stacks' title? Do you see 'Get Started!' button?
+
+Click on 'Get Started!' button and click on 'Skip setup guide' link on the bottom
+Do you see 'New Stack' title and 'Default stack template' stack name under that title? Do you see 'Cancel' and 'Save&Test' buttons?
+
+Click on 'Credentials' tab and click on 'Use This & Continue' button next to 'rainforestqa25's AWS keys' and then type 'rainforestqa25 stack' in the 'Stack Name' field instead of the 'Default stack template'
+Do you see 'rainforestqa25 stack' in the 'Stack Name' field?
+
+Click on 'Save & Test' button
+Do you see 'OK', 'Provision Stack'  and 'Save & Test' buttons?
+
+Click on 'Provision Stack' button and then click on 'OK' button
+Do you see 'rainforestqa25 stack' under 'Compute Stack Templates' title? Do you see 'in use' and 'private' labels next to it?
+
+Return to the first browser and close 'Team Settings' modal by clicking (x) icon on top right corner
+Do you see 'cloud-init' file on top and 'Terminal' tab on the bottom pane (wait for the green progress bar to be completed if it's still visible)? Do you see 'Default Stack Template' under 'Stacks' title in the left sidebar? Do you see a green square next to 'example'?
+
+Click on 'Stacks' title form left sidebar and click on 'Team Stack Templates', then click on the little down arrow next to 'Default stack template'
+Do you see 'Show', 'Edit' and 'Generate Stack' options?
+
+Click on 'Edit' and then click on 'I Know What I'm Doing, Open Editor' button
+Do you see 'Edit Stack' title?
+
+Click on 'Credentials' tab and mouse over 'rainforestqa99's AWS keys' that's in use and click on 'Delete' button appearing
+Have you seen 'This credential is currently in-use' warning?
+
+Click on '+ Create New' above the listed keys
+Do you see 'Add Your AWS credentials'? Do you see 'Advanced Mode', 'Cancel' and 'Save' buttons?
+
+Enter '{{ random.first_name }}' in Title, '{{ random.number }}' in 'Access Key ID' and 'Secret Access Key' fields and click on 'Save'
+Is it added to the list?
+
+Mouse over '{{ random.first_name }}' and click on 'Delete' button
+Do you see 'Remove credential' overlay? Do you see 'Cancel' and 'Remove Credential' buttons?
+
+Click on 'Remove Credential' button
+Is it removed from the list?
+
+Click on 'Cancel' button and click on the little down arrow next to 'Default stack template' and  after selecting 'Edit' from the menu, click on 'Clone and Open Editor' button this time 
+Do you see 'Default stack template - clone' in 'Stack Name' field?
+
+Click on 'Save & Test' button
+Do you see 'Make Team Default' button between 'OK' and 'Save & Test' buttons?
+
+Click on 'Make Team Default' button
+Is it added to the 'Team Stack Templates' list? Do you see 'in use' and 'group' labels next to 'Default stack template' and 'default' and 'group' labels next to 'Default stack template - clone'? Are there only these two items in the list? (reload the page if 'default' label is in the wrong row)
+
+Click on 'My Stack Templates' from the vertical menu
+Is the list same as 'Team Stack Templates' list?
+
+Return to the incognito window and click on the little down arrow next to 'rainforestqa25 stack' and then select 'Edit'
+Do you see 'Edit Stack' title?
+
+Edit 'Stack Name' as 'My Stack' and type '{{ random.first_name }}' instead of 'example' in line 11 and click on 'Save & Test' button
+Do you see 'You can now close the stack editor or continue editing your stack.' on the last line of the logs? 
+
+Click on 'OK' and then close this modal by clicking (x) icon on top right corner
+Do you see 'Team admin has changed the default stack...' text on top of left sidebar? Do you see 'Stack Catalog' button below it? Do you see 'Rainforestqa25 Stack' and a red (1) next to it?
+
+Click on that red (1)
+Do you see 'rainforestqa25 has updated this stack (see details).' text and 'Update Your Machines' button next to it?
+
+Click on 'Update Your Machines' button and then click on 'Proceed' button
+Have you seen 'Reinitializing stack...' and 'Stack Reinitialized' messages? Do you see '{{ random.first_name }} is not build yet.' and 'Build Stack' button? Do you see 'My Stack' and '{{ random.first_name }} label under it?
+
+Click on 'Stacks' title from left sidebar and click on 'My Stack Templates' from the vertical menu
+Do you see only 'My Stack' in this list?
+
+Click on 'Team Stack Templates' from the vertical menu
+Do you see only 'Default stack template' and 'Default stack template - clone' in this list?
