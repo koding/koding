@@ -313,7 +313,7 @@ module.exports.create = (KONFIG, environment)->
       }
 
       # redirect /d/kd to KD installer for development channel
-      location /d/kd {
+      location ~ ^/d/kd$ {
         proxy_pass            "https://s3.amazonaws.com/koding-kd/development/install-kd.sh";
         proxy_set_header      X-Host          $host;
         proxy_set_header      X-Real-IP       $remote_addr;
@@ -324,7 +324,7 @@ module.exports.create = (KONFIG, environment)->
       }
 
       # redirect /p/kd to KD installer for production channel
-      location /p/kd {
+      location ~ ^/p/kd$ {
         proxy_pass            "https://s3.amazonaws.com/koding-kd/production/install-kd.sh";
         proxy_set_header      X-Host          $host;
         proxy_set_header      X-Real-IP       $remote_addr;
