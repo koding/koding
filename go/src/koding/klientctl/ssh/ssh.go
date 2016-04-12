@@ -41,6 +41,9 @@ var (
 	// Dialing the local klient failed, ie klient is not running or accepting
 	// connections.
 	ErrLocalDialingFailed = errors.New("Local dialing failed.")
+
+	// ErrMachineNotFound is when the requested machine is not found.
+	ErrMachineNotFound = errors.New("Machine not found.")
 )
 
 // SSHCommand is the command that lets users ssh into a remote machine.  It
@@ -59,6 +62,8 @@ var (
 // integer to end of comment this command can be used by multiple computers.
 type SSHCommand struct {
 	*SSHKey
+
+	Log logging.Logger
 
 	// Ask is flag for user interaction, ie should we ask user to generate new
 	// SSH key if it doesn't exist.
@@ -85,7 +90,7 @@ func NewSSHCommand(log logging.Logger, ask bool) (*SSHCommand, error) {
 	}
 
 	if err := klientKite.Dial(); err != nil {
-		log.Error("Dialing local klient failed. err:%s", err)
+		log.New("NewSSHCommand").Error("Dialing local klient failed. err:%s", err)
 		return nil, ErrLocalDialingFailed
 	}
 
@@ -93,8 +98,10 @@ func NewSSHCommand(log logging.Logger, ask bool) (*SSHCommand, error) {
 
 	return &SSHCommand{
 		Klient: k,
+		Log:    log.New("SSHCommand"),
 		Ask:    ask,
 		SSHKey: &SSHKey{
+			Log:     log.New("SSHKey"),
 			KeyPath: path.Join(usr.HomeDir, config.SSHDefaultKeyDir),
 			KeyName: config.SSHDefaultKeyName,
 			Klient:  k,
@@ -170,6 +177,8 @@ func (s *SSHCommand) PrepareForSSH(name string) error {
 // SSHKey implements methods for dealing with creating a KD local and remote ssh key,
 // and adding it to the remote via klient's remote.sshKeysAdd
 type SSHKey struct {
+	Log logging.Logger
+
 	// KeyPath is the directory that stores the ssh keys pairs. It's defaults
 	// to `.ssh/` in the user's home directory.
 	KeyPath string
@@ -203,7 +212,8 @@ func (s *SSHKey) GetSSHAddr(name string) (userhost, port string, err error) {
 	info, ok := infos.FindFromName(name)
 
 	if !ok {
-		return "", "", fmt.Errorf("No machine found with specified name: `%s`", name)
+		s.Log.Error("No machine found with specified name: `%s`", name)
+		return "", "", ErrMachineNotFound
 	}
 
 	endpoints, err := s.Discover.Discover(info.IP, "ssh")
@@ -242,7 +252,8 @@ func (s *SSHKey) GetUsername(name string) (string, error) {
 		return info.Hostname, nil
 	}
 
-	return "", fmt.Errorf("No machine found with specified name: `%s`", name)
+	s.Log.Error("No machine found with specified name: `%s`", name)
+	return "", ErrMachineNotFound
 }
 
 // GenerateAndSaveKey generates a new SSH key pair and saves it to local.
