@@ -9,7 +9,7 @@ services:
 build:
   steps:
     - add-ssh-key:
-        keyname: DEPLOYMENT_KEY
+        keyname: DEPLOYMENT_KEY_V2
     - script:
         name: setup git identity
         code: |
@@ -181,7 +181,7 @@ build:
 deploy:
   steps:
     - add-ssh-key:
-        keyname: DEPLOYMENT_KEY
+        keyname: DEPLOYMENT_KEY_V2
     - script:
         name: deploy started
         code: |
