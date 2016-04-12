@@ -110,7 +110,6 @@ module.exports = class ResourceListItem extends kd.ListItemView
 
     { computeController } = kd.singletons
     computeController.on "apply-#{resource._id}", @bound 'handleProgressEvent'
-    computeController.on "stateChanged-#{resource._id}", @bound 'handleStateChangedEvent'
 
     @subscribeToKloudEvents()
 
@@ -130,7 +129,6 @@ module.exports = class ResourceListItem extends kd.ListItemView
     if state in ['Building', 'Destroying']
       { eventListener } = kd.singletons.computeController
       eventListener.addListener 'apply', resource._id
-      eventListener.addListener 'stateChanged', resource._id
 
 
   handleDestroy: ->
@@ -201,8 +199,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
     @updatePercentage percentage
     @updateProgressBar percentage
 
-
-  handleStateChangedEvent: (event) ->
+    return  unless percentage is 100
 
     # delay is needed to show 100% in progress bar
     # when destroy process is completed
@@ -253,7 +250,6 @@ module.exports = class ResourceListItem extends kd.ListItemView
     resource              = @getData()
     { computeController } = kd.singletons
     computeController.off "apply-#{resource._id}", @bound 'handleProgressEvent'
-    computeController.off "stateChanged-#{resource._id}", @bound 'handleStateChangedEvent'
 
     super
 
