@@ -190,39 +190,39 @@ func testRename(t *testing.T, mountDir string) {
 			So(os.IsNotExist(err), ShouldBeTrue)
 
 			statDirCheck(newPath)
+		})
 
-			Convey("It should update path of contents inside old dir", func() {
-				file1 := path.Join(oldPath, "file1")
-				err := ioutil.WriteFile(file1, []byte("Hello World!"), 0700)
-				So(err, ShouldBeNil)
+		Convey("It should update path of contents inside old dir", func() {
+			file1 := path.Join(oldPath, "file1")
+			err := ioutil.WriteFile(file1, []byte("Hello World!"), 0700)
+			So(err, ShouldBeNil)
 
-				dir1 := path.Join(oldPath, "dir1")
-				So(os.Mkdir(dir1, 0700), ShouldBeNil)
+			dir1 := path.Join(oldPath, "dir1")
+			So(os.Mkdir(dir1, 0700), ShouldBeNil)
 
-				file2 := path.Join(dir1, "file2")
-				err = ioutil.WriteFile(file2, []byte("Hello World!"), 0700)
-				So(err, ShouldBeNil)
+			file2 := path.Join(dir1, "file2")
+			err = ioutil.WriteFile(file2, []byte("Hello World!"), 0700)
+			So(err, ShouldBeNil)
 
-				dir2 := path.Join(dir1, "dir2")
-				So(os.Mkdir(dir2, 0700), ShouldBeNil)
+			dir2 := path.Join(dir1, "dir2")
+			So(os.Mkdir(dir2, 0700), ShouldBeNil)
 
-				So(os.Rename(oldPath, newPath), ShouldBeNil)
+			So(os.Rename(oldPath, newPath), ShouldBeNil)
 
-				_, err = os.Stat(oldPath)
-				So(os.IsNotExist(err), ShouldBeTrue)
+			_, err = os.Stat(oldPath)
+			So(os.IsNotExist(err), ShouldBeTrue)
 
-				_, err = os.Stat(path.Join(newPath, "dir1"))
-				So(err, ShouldBeNil)
+			_, err = os.Stat(path.Join(newPath, "dir1"))
+			So(err, ShouldBeNil)
 
-				_, err = os.Stat(path.Join(newPath, "file1"))
-				So(err, ShouldBeNil)
+			_, err = os.Stat(path.Join(newPath, "file1"))
+			So(err, ShouldBeNil)
 
-				_, err = os.Stat(path.Join(newPath, "dir1", "dir2"))
-				So(err, ShouldBeNil)
+			_, err = os.Stat(path.Join(newPath, "dir1", "dir2"))
+			So(err, ShouldBeNil)
 
-				_, err = os.Stat(path.Join(newPath, "dir1", "file2"))
-				So(err, ShouldBeNil)
-			})
+			_, err = os.Stat(path.Join(newPath, "dir1", "file2"))
+			So(err, ShouldBeNil)
 		})
 
 		Convey("It should update path of contents inside old dir", func() {
