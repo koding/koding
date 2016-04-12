@@ -239,8 +239,7 @@ func testRename(t *testing.T, mountDir string) {
 			So(os.Rename(oldPath, newPath), ShouldBeNil)
 
 			_, err = os.Stat(oldPath)
-			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldContainSubstring, "no such file or directory")
+			So(os.IsNotExist(err), ShouldBeTrue)
 
 			Convey("It should set new file size to be same as old file", func() {
 				fi, err := statFileCheck(newPath, 0700)
@@ -268,8 +267,7 @@ func testRename(t *testing.T, mountDir string) {
 			So(err, ShouldBeNil)
 
 			_, err = os.Stat(file2)
-			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldContainSubstring, "no such file or directory")
+			So(os.IsNotExist(err), ShouldBeTrue)
 
 			_, err = statFileCheck(file1, 0700)
 			So(err, ShouldBeNil)
