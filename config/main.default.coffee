@@ -7,7 +7,13 @@ path                  = require 'path'
 
 Configuration = (options={}) ->
 
-  defaultEmail =
+  domains =
+    base  : 'koding.com'
+    mail  : 'koding.com'
+    main  : 'dev.koding.com'
+    port  : '8090'
+
+  defaultEmail = "hello@#{domains.mail}"
 
   boot2dockerbox = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
 
@@ -303,10 +309,11 @@ Configuration = (options={}) ->
     contentRotatorUrl              : 'http://koding.github.io'
     collaboration                  : {timeout: 1 * 60 * 1000}
     client                         : {watch: yes                                                     , version: version                                              , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
-    jwt                            : {secret: ""                     , confirmExpiresInMinutes: 10080  } # 7 days
+    jwt                            : {secret: 'somesecretkeyhere'       , confirmExpiresInMinutes: 10080  } # 7 days
     papertrail                     : {destination: ''                   , groupId: 2199093                                              , token: '' }
     sendEventsToSegment            : options.sendEventsToSegment
     mailgun                        : mailgun
+    domains                        : domains
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   # NOTE: when you add to runtime options below, be sure to modify
@@ -356,6 +363,7 @@ Configuration = (options={}) ->
     google               : apiKey: ''
     recaptcha            : { enabled : recaptcha.enabled, key : ""}
     sendEventsToSegment  : KONFIG.sendEventsToSegment
+    domains              : domains
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
@@ -937,8 +945,14 @@ Configuration = (options={}) ->
 
       return str
 
-    envvars = (options={})->
-      options.exclude or= []
+    envvars = (options = {}) ->
+
+      options.exclude ?= []
+      options.exclude  = options.exclude.concat \
+        Object.keys(process.env).filter (v) -> /^KONFIG_/.test v
+
+      if options.print and options.exclude.length > 0
+        console.log ">>> FOLLOWING ENVIRONMENT VARIABLES WILL BE USED: \n", options.exclude.join ', '
 
       env = """
       export GOPATH=#{projectRoot}/go
@@ -1035,7 +1049,7 @@ Configuration = (options={}) ->
       NGINX_CONF="#{projectRoot}/.default.nginx.conf"
       NGINX_PID="#{projectRoot}/.default.nginx.pid"
 
-      #{envvars()}
+      #{envvars({ print: yes })}
 
       trap ctrl_c INT
 

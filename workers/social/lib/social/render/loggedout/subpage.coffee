@@ -21,20 +21,20 @@ putSplash = (name, section, model) ->
   return content
   # coffeelint: enable=cyclomatic_complexity
 
-generateShareUrl = (model, uri) ->
+generateShareUrl = (model, uri, defaultDomain) ->
   slug = if model?.bongo_?.constructorName and model?.slug
     switch model.bongo_.constructorName
       when 'SocialMessage'
         '/Activity/' + model.slug
       else ''
 
-  url = if uri?.address then uri.address else 'https://koding.com'
+  url = if uri?.address then uri.address else "https://#{defaultDomain}"
   shareUrl = url + slug
   shareUrl
 
 module.exports = (options, callback) ->
   { argv } = require 'optimist'
-  { uri } = require('koding-config-manager').load("main.#{argv.c}")
+  { uri, domains } = require('koding-config-manager').load("main.#{argv.c}")
 
   { name, section, models, bongoModels, client } = options
 
@@ -47,7 +47,7 @@ module.exports = (options, callback) ->
   title = if model?.title then model.title else section
   body = if model?.body then model.body else title
 
-  shareUrl = generateShareUrl model, uri
+  shareUrl = generateShareUrl model, uri, domains.base
 
   prepareHTML  = (scripts, title, shareUrl) ->
     """

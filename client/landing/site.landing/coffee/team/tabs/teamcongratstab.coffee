@@ -21,7 +21,7 @@ module.exports = class TeamCongratzTab extends kd.TabPaneView
     { slug } = teamData.domain
 
     @button = new kd.ButtonView
-      title      : "Sign in to #{slug}.koding.com"
+      title      : "Sign in to #{slug}.#{kd.config.domains.main}"
       style      : 'TeamsModal-button TeamsModal-button--green'
       callback   : ->
         utils.clearTeamData()

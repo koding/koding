@@ -1,10 +1,10 @@
 { argv } = require 'optimist'
-{ uri, client:{ version } } = require('koding-config-manager').load("main.#{argv.c}")
+{ uri, domains, client:{ version } } = require('koding-config-manager').load("main.#{argv.c}")
 encoder      = require 'htmlencode'
 
 module.exports = (options = {}) ->
   options.title ?= 'Koding | Say goodbye to your localhost and write code in the cloud.'
-  options.shareUrl ?= 'https://koding.com'
+  options.shareUrl ?= "https://#{domains.base}"
   options.image ?= "#{uri.address}/a/images/logos/share_logo.png"
   options.body ?= 'Koding is a developer community and cloud development environment where developers come together and code in the browser.'
 
@@ -42,7 +42,7 @@ module.exports = (options = {}) ->
   <meta name="twitter:card" content="summary"/>
   <meta name="twitter:image" content="#{options.image}"/>
   <meta name="twitter:description" content="#{encoder.XSSEncode options.body}"/>
-  <meta name="twitter:domain" content="koding.com">
+  <meta name="twitter:domain" content="#{domains.base}">
 
 
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">

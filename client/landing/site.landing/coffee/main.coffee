@@ -31,9 +31,10 @@ do ->
 
   kd.config             or= {}
   kd.config.environment   = if location.hostname is 'koding.com' then 'production' else 'development'
-  kd.config.groupName     = groupName = utils.getGroupNameFromLocation()
   kd.config.recaptcha     = window._runtimeOptions.recaptcha
   kd.config.google        = window._runtimeOptions.google
+  kd.config.domains       = window._runtimeOptions.domains
+  kd.config.groupName     = groupName = utils.getGroupNameFromLocation()
 
   if groupName is 'koding'
   then setGroup()

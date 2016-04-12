@@ -15,7 +15,7 @@ var cmdDescriptions = map[string]string{
 		fmt.Sprintf("Install the %s. sudo is required.", config.KlientName),
 	),
 	"mount": fmtDesc(
-		"<alias> <local folder>",
+		"<optional args> <alias:remote_path> <local folder>",
 		fmt.Sprintf(`Mount folder from remote machine to local folder.
     Alias is the local identifer for machine in 'kd list'.
     Local folder can be relative or absolute path, if

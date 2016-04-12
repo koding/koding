@@ -56,13 +56,14 @@ module.exports = utils = {
     ipV4Pattern      = "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.xip\.io$"
     subDomainPattern = "[A-Za-z0-9_]{1}[A-Za-z0-9_-]+"
     kodingDomains    = "(?:dev|sandbox|latest|prod)"
+    baseDomain       = "#{kd.config.domains.base}".replace '.', '\\.'
 
     # e.g. [teamName.]dev|sandbox|latest|prod.koding.com
-    teamPattern = if ///#{kodingDomains}\.koding\.com$///.test hostname
-    then ///(?:^(#{subDomainPattern})\.)?#{kodingDomains}\.koding\.com$///
+    teamPattern = if ///#{kodingDomains}\.#{baseDomain}$///.test hostname
+    then ///(?:^(#{subDomainPattern})\.)?#{kodingDomains}\.#{baseDomain}$///
     # e.g. [teamName.]koding.com
-    else if /koding\.com$/.test hostname
-    then ///(?:^(#{subDomainPattern})\.)?koding\.com$///
+    else if ///#{baseDomain}$///.test hostname
+    then ///(?:^(#{subDomainPattern})\.)?#{baseDomain}$///
     # e.g. [teamName.]<teamMember>.koding.team
     else if /koding\.team$/.test hostname
     then ///(?:^(#{subDomainPattern})\.)?(?:#{subDomainPattern}\.)koding\.team$///

@@ -26,7 +26,7 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
   USERS_URL     = "#{location.origin}/api/social/slack/users"
   CHANNELS_URL  = "#{location.origin}/api/social/slack/channels"
   MESSAGING_URL = "#{location.origin}/api/social/slack/message"
-  ICON_URL      = 'https://koding.com/a/images/logos/notify_logo.png'
+  ICON_URL      = "#{location.origin}/a/images/logos/notify_logo.png"
 
   constructor: (options = {}, data) ->
 

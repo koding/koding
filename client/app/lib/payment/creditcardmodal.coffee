@@ -1,4 +1,5 @@
 kd                = require 'kd'
+globals           = require 'globals'
 KDCustomHTMLView  = kd.CustomHTMLView
 KDButtonView      = kd.ButtonView
 PaymentBaseModal  = require './paymentbasemodal'
@@ -111,8 +112,8 @@ module.exports = class CreditCardModal extends PaymentBaseModal
       Your access to upgrades has been locked for 24 hours
       due to too many failed attempts. Please try again in 24 hours.
       If you believe this is an error on our end, please send us a note at
-      <a href='mailto:support@koding.com?subject=#{subject}'>
-      support@koding.com</a> with
+      <a href='mailto:support@#{globals.config.domains.mail}?subject=#{subject}'>
+      support@#{globals.config.domains.mail}</a> with
       relevant details (your username,
       plan you want to purchase, etc.).
     "

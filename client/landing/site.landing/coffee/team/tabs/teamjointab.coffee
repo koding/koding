@@ -152,16 +152,16 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
 
     domains = kd.config.group.allowedDomains
     if @alreadyMember and @wantsToUseDifferentAccount
-      'Please enter your <i>koding.com</i> username & password.'
+      "Please enter your <i>#{kd.config.domains.main}</i> username & password."
     else if @alreadyMember
-      'Please enter your <i>koding.com</i> password.'
+      "Please enter your <i>#{kd.config.domains.main}</i> password."
     else if domains?.length > 1
       domainsPartial = utils.getAllowedDomainsPartial domains
       "You must have an email address from one of these domains #{domainsPartial} to join"
     else if domains?.length is 1
       "You must have #{articlize domains.first} <i>#{domains.first}</i> email address to join"
     else
-      'Pick a username and password for your new <i>Koding.com</i> account.'
+      "Pick a username and password for your new <i>#{kd.config.domains.main}</i> account."
 
 
   addForgotPasswordLink: ->

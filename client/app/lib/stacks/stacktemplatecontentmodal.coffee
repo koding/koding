@@ -1,4 +1,5 @@
 kd = require 'kd'
+timeago = require 'timeago'
 
 Encoder = require 'htmlencode'
 
@@ -13,7 +14,9 @@ module.exports = class StackTemplateContentModal extends kd.ModalView
     options.width    = 800
 
     options.title    = data.title
-    options.subtitle = data.modifiedAt
+
+    modifiedAt       = data.meta?.modifiedAt
+    options.subtitle = "Updated #{timeago new Date modifiedAt}"  if modifiedAt
 
     options.overlay  = yes
     options.overlayOptions = { cssClass : 'second-overlay' }
