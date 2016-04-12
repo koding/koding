@@ -86,7 +86,7 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
   doAdvancedSearch: (data) ->
 
     dataFormats =
-      title     : (value) -> "title: '#{value}'"
+      title     : (value) -> "searchFor: '#{value}'"
       accounts  : (value) ->
         return  unless value.length
         accountIds = value.map (item) -> item.id
