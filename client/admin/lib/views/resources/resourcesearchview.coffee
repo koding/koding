@@ -56,8 +56,12 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
           style       : 'solid green medium'
         clear         :
           title       : 'Clear'
-          style       : 'solid light-gray medium'
+          style       : 'solid medium'
           callback    : @bound 'clearAdvancedSearch'
+        cancel        :
+          title       : 'Cancel'
+          style       : 'solid light-gray medium'
+          callback    : @bound 'switchToSimpleMode'
       callback        : @bound 'doAdvancedSearch'
 
     { status, type, accounts } = @advancedForm.inputs
@@ -127,12 +131,12 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
     @emitSearch query
 
 
-  clearSimpleSearch: ->
+  clearSimpleSearch: (skipEvent) ->
 
     @lastQuery = null
     @searchInput.setValue ''
 
-    @emitSearch()
+    @emitSearch()  unless skipEvent
 
 
   emitSearch: (query) -> @emit 'SearchRequested', query
@@ -141,6 +145,13 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
   switchToAdvancedMode: ->
 
     @setClass 'advanced-search-mode'
+
+
+  switchToSimpleMode: ->
+
+    @clearSimpleSearch yes
+    @clearAdvancedSearch()
+    @unsetClass 'advanced-search-mode'
 
 
   pistachio: ->
