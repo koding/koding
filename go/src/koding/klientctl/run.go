@@ -14,7 +14,6 @@ import (
 	"koding/klientctl/metrics"
 	"koding/mountcli"
 
-	_ "github.com/coreos/go-log/log"
 	"github.com/koding/logging"
 
 	"github.com/codegangsta/cli"

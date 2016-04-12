@@ -9,9 +9,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	"github.com/koding/service"
 )
 
 // UpdateCommand updates this binary if there's an update available.
@@ -93,6 +95,39 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		if err := downloadRemoteToLocal(remotePath, localPath); err != nil {
 			log.Error("Error updating. err:%s", err)
 			fmt.Println(FailedDownloadUpdate)
+			return 1
+		}
+	}
+
+	klientScript := filepath.Join(KlientDirectory, "klient.sh")
+
+	// try to migrate from old managed klient to new kd-installed klient
+	switch runtime.GOOS {
+	case "darwin":
+		oldS, err := service.New(&serviceProgram{}, &service.Config{
+			Name:       "com.koding.klient",
+			Executable: klientScript,
+		})
+
+		if err != nil {
+			break
+		}
+
+		oldS.Stop()
+		oldS.Uninstall()
+	}
+
+	if _, err := os.Stat(klientScript); os.IsNotExist(err) {
+		klientSh := klientSh{
+			User:          sudoUserFromEnviron(os.Environ()),
+			KiteHome:      config.KiteHome,
+			KlientBinPath: filepath.Join(KlientDirectory, "klient"),
+			KontrolURL:    config.KontrolURL,
+		}
+
+		if err := klientSh.Create(klientScript); err != nil {
+			log.Error("Error writing klient.sh file. err:%s", err)
+			fmt.Println(FailedInstallingKlient)
 			return 1
 		}
 	}

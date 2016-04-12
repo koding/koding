@@ -94,7 +94,7 @@ does_service_exist() {
 stop_klient() {
 	if [ ${is_macosx} -eq 1 ]; then
 		# try to stop old klient.plist
-		sudo launchctl unload -w "${init_dir}/com.koding.klient.plist" &>/dev/null || true
+		sudo launchctl unload -w "${init_dir}/com.koding.klient.plist" &>/dev/null && rm -v "${init_dir}/com.koding.klient.plist" || true
 	else
 		# try to stop old upstart klient
 		sudo stop klient &>/dev/null || true

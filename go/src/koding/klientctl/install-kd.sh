@@ -3,10 +3,6 @@
 readonly releaseChannel="%RELEASE_CHANNEL%"
 
 installFuseOnDarwinOnly () {
-  if [ ! "$(uname -s)" = "Darwin" ]; then
-    return
-  fi
-
   # check if osxfuse is installed already
   if [ -d "/Library/Filesystems/osxfusefs.fs" ]; then
     return
@@ -151,7 +147,7 @@ case "$platform" in
     echo "Downloading kd..."
 
 
-	sudo curl -SLo /usr/local/bin/kd.gz "https://koding-kd.s3.amazonaws.com/${releaseChannel}/kd-0.1.${version}.${platform}_amd64.gz"
+  sudo curl -SLo /usr/local/bin/kd.gz "https://koding-kd.s3.amazonaws.com/${releaseChannel}/kd-0.1.${version}.${platform}_amd64.gz"
     err=$?; if [ "$err" -ne 0 ]; then
       cat << EOF
 Error: Failed to download kd binary. Please check your internet
@@ -160,20 +156,27 @@ EOF
       exit 1
     fi
 
-	if ! sudo gzip -d -f /usr/local/bin/kd.gz; then
-		echo "Error: Failed to extract kd binary." 2>&1
-		exit 1
-	fi
+  if ! sudo gzip -d -f /usr/local/bin/kd.gz; then
+    echo "Error: Failed to extract kd binary." 2>&1
+    exit 1
+  fi
 
-	sudo rm -f /usr/local/bin/kd.gz
-    sudo chmod +x /usr/local/bin/kd
+  sudo rm -f /usr/local/bin/kd.gz
+  sudo chmod +x /usr/local/bin/kd
 
-    echo "Created /usr/local/bin/kd"
+  echo "Created /usr/local/bin/kd"
+
+  if [[ "$platform" == "darwin" ]]; then
+    # Ensure old klient is not running.
+    sudo launchctl unload -w /Library/LaunchDaemons/com.koding.klient &>/dev/null || true
+    rm -f /Library/LaunchDaemons/com.koding.klient &>/dev/null || true
 
     # Check if fuse is needed, and install it if it is.
     installFuseOnDarwinOnly
-    echo ""
-    ;;
+  fi
+
+  echo
+  ;;
   windows|linux)
     cat << EOF
 Error: This platform is not supported at this time.
@@ -215,7 +218,7 @@ isVirtualbox=$(VBoxHeadless -h 2>&1 | grep -c 'Oracle VM VirtualBox Headless Int
 isVagrant=$(vagrant version 2>&1 | grep -c 'Installed Version:')
 
 if [[ $isVirtualbox -eq 0 && $isVagrant -eq 0 ]]; then
-	cat << EOF
+  cat << EOF
 No VirtualBox nor Vagrant is present on your system. In order to use local provisioning
 with Vagrant provider ensure they are installed:
 
@@ -225,7 +228,7 @@ with Vagrant provider ensure they are installed:
 EOF
 
 elif [[ $isVirtualbox -eq 0 ]]; then
-	cat << EOF
+  cat << EOF
 No VirtualBox is present on your system. In order to use local provisioning
 with Vagrant provider ensure it is installed:
 
@@ -234,7 +237,7 @@ with Vagrant provider ensure it is installed:
 EOF
 
 elif [[ $isVagrant -eq 0 ]]; then
-	cat << EOF
+  cat << EOF
 No Vagrant is present on your system. In order to use local provisioning
 with Vagrant provider ensure it is installed:
 
