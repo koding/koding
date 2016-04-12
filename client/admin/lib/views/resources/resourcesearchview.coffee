@@ -16,13 +16,13 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
     @searchInput = new kd.HitEnterInputView
       type        : 'text'
       placeholder : 'Search in resources...'
-      callback    : @bound 'doSimpleSearch'
+      callback    : @bound 'doRegularSearch'
 
     @searchClear = new kd.CustomHTMLView
       tagName     : 'span'
       partial     : 'clear'
       cssClass    : 'clear-search hidden'
-      click       : @bound 'clearSimpleSearch'
+      click       : @bound 'clearRegularSearch'
 
     @advancedModeLink = new kd.CustomHTMLView
       tagName     : 'span'
@@ -43,12 +43,12 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
         status        :
           label       : 'Status'
           itemClass   : kd.SelectBox
-        accounts      :
-          label       : 'Accounts'
-          itemClass   : ResourceSearchAccountsView
         type          :
           label       : 'Stack template type'
           itemClass   : kd.SelectBox
+        accounts      :
+          label       : 'Accounts'
+          itemClass   : ResourceSearchAccountsView
       buttons         :
         search        :
           title       : 'Search'
@@ -61,7 +61,7 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
         cancel        :
           title       : 'Cancel'
           style       : 'solid light-gray medium'
-          callback    : @bound 'switchToSimpleMode'
+          callback    : @bound 'switchToRegularMode'
       callback        : @bound 'doAdvancedSearch'
 
     { status, type, accounts } = @advancedForm.inputs
@@ -114,7 +114,7 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
     @emitSearch()
 
 
-  doSimpleSearch: ->
+  doRegularSearch: ->
 
     query          = @searchInput.getValue()
     isQueryEmpty   = query is ''
@@ -131,7 +131,7 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
     @emitSearch query
 
 
-  clearSimpleSearch: (skipEvent) ->
+  clearRegularSearch: (skipEvent) ->
 
     @lastQuery = null
     @searchInput.setValue ''
@@ -144,20 +144,20 @@ module.exports = class ResourceSearchView extends kd.CustomHTMLView
 
   switchToAdvancedMode: ->
 
-    @setClass 'advanced-search-mode'
+    @emit 'AdvancedSearchMode'
 
 
-  switchToSimpleMode: ->
+  switchToRegularMode: ->
 
-    @clearSimpleSearch yes
+    @clearRegularSearch yes
     @clearAdvancedSearch()
-    @unsetClass 'advanced-search-mode'
+    @emit 'RegularSearchMode'
 
 
   pistachio: ->
 
     """
-      <div class='simple-search-container'>
+      <div class='regular-search-container'>
         {{> @searchInput}}
         {{> @searchClear}}
         {{> @advancedModeLink}}

@@ -685,6 +685,9 @@ Admin main styles
 
 .AppModal--admin .resource-management
 
+  .listview-wrapper
+    kalc                    height, (100% \- 100px)
+
   .advanced-search-link
     font-size               13px
     color                   #8d8d8d
@@ -694,8 +697,12 @@ Admin main styles
   .advanced-search-container
     hidden()
 
-  .advanced-search-mode
-    .simple-search-container
+  &.advanced-search-mode
+
+    .listview-wrapper
+      kalc                  height, (100% \- 250px)
+
+    .regular-search-container
       hidden()
 
     .advanced-search-container
@@ -704,8 +711,10 @@ Admin main styles
     .formline
       fl()
 
-      &:nth-child(odd)
+      &.accounts
         clear               both
+        height              90px
+        margin-bottom       0px
 
     .button-field
       margin-top            0px !important
@@ -721,7 +730,9 @@ Admin main styles
       bg                    color, transparent
 
     .account-heads
-      max-width             230px
+      display               inline-block
+      width                 auto
+      max-width             450px
 
     .chat-head
       white-space           nowrap
@@ -745,9 +756,6 @@ Admin main styles
       .close-icon
         top                 8px
         right               7px
-
-  .listview-wrapper
-    kalc                    height, (100% \- 100px)
 
   .resource-item
     overflow                hidden
