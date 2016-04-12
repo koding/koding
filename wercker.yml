@@ -18,6 +18,7 @@ build:
     - script:
         name: fetch pull requests
         code: |
+          ./scripts/inject_credentials.sh
           git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
           git fetch --force --quiet origin
     - script:
