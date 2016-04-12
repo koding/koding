@@ -38,10 +38,14 @@ var (
 	// Version is the current version of klientctl. This number is used
 	// by CheckUpdate to determine if current version is behind or equal to latest
 	// version on S3 bucket.
+	//
+	// Version is overwritten during deploy via linker flag.
 	Version = "35"
 
 	// Environment is the target channel of klientctl. This value is used
 	// to register with Kontrol and to install klient.
+	//
+	// Environment is overwritten during deploy via linker flag.
 	Environment = "production"
 
 	// KiteVersion is the version identifier used to connect to Kontrol.
@@ -52,6 +56,8 @@ var (
 
 	// KontrolURL is the url to connect to authenticate local klient and get
 	// list of machines.
+	//
+	// KontrolURL is overwritten during deploy via linker flag.
 	KontrolURL = "https://koding.com/kontrol/kite"
 
 	// S3KlientLatest is URL to the latest version of the klient.

@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -544,8 +545,13 @@ func (k *Klient) Run() {
 
 	k.log.Info("Using version: '%s' querystring: '%s'", k.config.Version, k.kite.Id)
 
-	// start our updater in the background
-	go k.updater.Run()
+	// TODO(rjeczalik): enable updater control with TMS-2816
+	if runtime.GOOS != "darwin" {
+		// start our updater in the background
+		go k.updater.Run()
+	} else {
+		k.log.Warning("automatic updates are disabled on darwin")
+	}
 
 	k.kite.Run()
 }
