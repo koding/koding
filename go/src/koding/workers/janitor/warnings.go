@@ -77,7 +77,7 @@ func newDeleteInactiveUsersWarning(conf *config.Config) *Warning {
 
 	// this will cause deletion of 17495 accounts, will update this query once
 	// we delete all the account till last month ~1.2M
-	t, err := time.Parse("Jan 2 15:04:05 -0700 MST 2006", "Jan 1 00:00:00 -0000 MST 2013")
+	t, err := time.Parse("Jan 2 15:04:05 -0700 MST 2006", "Oct 1 00:00:00 -0000 MST 2013")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -85,7 +85,7 @@ func newDeleteInactiveUsersWarning(conf *config.Config) *Warning {
 	return &Warning{
 		ID: "deleteInactiveUsers",
 
-		Description: "Find users inactive for > 45 days, deleted ALL their vms",
+		Description: "Find users inactive for > 45 days, deleted ALL of them!",
 
 		Select: []bson.M{
 			bson.M{"lastLoginDate": bson.M{"$lt": t}},
