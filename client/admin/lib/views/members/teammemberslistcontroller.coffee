@@ -50,7 +50,7 @@ module.exports = class TeamMembersListController extends KodingListController
     @emit 'ShowSearchContainer'
 
 
-  fetchUserRoles: (members, callback) ->
+  fetchUserRoles: (members, callback = kd.noop) ->
 
     # collect account ids to fetch user roles
     ids = members.map (member) -> return member.getId()
