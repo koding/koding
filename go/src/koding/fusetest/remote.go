@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/koding/logging"
+
 	"golang.org/x/crypto/ssh"
 )
 
@@ -25,7 +27,9 @@ type Remote struct {
 }
 
 func NewRemote(machine string) (*Remote, error) {
-	s, err := sshCmd.NewSSHCommand(false)
+	log := logging.NewLogger("fusetest")
+
+	s, err := sshCmd.NewSSHCommand(log, false)
 	if err != nil {
 		return nil, err
 	}

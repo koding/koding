@@ -70,6 +70,10 @@ func (f *fakeTransport) Trip(methodName string, req interface{}, res interface{}
 	return json.Unmarshal(bytes, &res)
 }
 
+func (f *fakeTransport) GetRemotePath() string {
+	return ""
+}
+
 func (f *fakeTransport) CreateDir(path string, mode os.FileMode) error {
 	return nil
 }
