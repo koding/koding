@@ -10,7 +10,7 @@ describe 'LogsListController', ->
   afterEach -> expect.restoreSpies()
 
 
-  describe '::constructor', ->
+  describe 'constructor', ->
 
     it 'should instantiate with default options', ->
 
