@@ -312,8 +312,20 @@ module.exports.create = (KONFIG, environment)->
         proxy_connect_timeout 1;
       }
 
+      # redirect /d/* to koding-dl S3 bucket; used to distributed
+      # // kd/klient installers
+      location ~^/d/(.*)$ {
+        proxy_pass            "https://s3.amazonaws.com/koding-dl/$1";
+        proxy_set_header      X-Host          $host; # for customisation
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 1;
+
+        resolver 8.8.8.8;
+      }
+
       # redirect /d/kd to KD installer for development channel
-      location ~ ^/d/kd$ {
+      location ~ ^/c/d/kd$ {
         proxy_pass            "https://s3.amazonaws.com/koding-kd/development/install-kd.sh";
         proxy_set_header      X-Host          $host;
         proxy_set_header      X-Real-IP       $remote_addr;
@@ -324,7 +336,7 @@ module.exports.create = (KONFIG, environment)->
       }
 
       # redirect /p/kd to KD installer for production channel
-      location ~ ^/p/kd$ {
+      location ~ ^/c/p/kd$ {
         proxy_pass            "https://s3.amazonaws.com/koding-kd/production/install-kd.sh";
         proxy_set_header      X-Host          $host;
         proxy_set_header      X-Real-IP       $remote_addr;

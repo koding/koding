@@ -34,7 +34,7 @@ module.exports = class KodingUtilitiesView extends kd.CustomScrollView
           kontrolUrl = "export KONTROLURL=#{globals.config.newkontrol.url}; "
           channel = 'd'
 
-        "#{kontrolUrl}curl -sL https://kodi.ng/#{channel}/kd | bash -s #{token}"
+        "#{kontrolUrl}curl -sL https://kodi.ng/c/#{channel}/kd | bash -s #{token}"
 
       @kdInstallView?.destroy()
       @wrapper.addSubView @kdInstallView = new kd.CustomHTMLView
