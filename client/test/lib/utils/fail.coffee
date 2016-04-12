@@ -23,7 +23,7 @@ NW::fail = (result, actual, expected, defaultMsg) ->
       s3 = new AWS.S3
         params   :
           Key    : filename
-          Bucket : 'koding-test-data'
+          Bucket : 'kodingdev-test-data'
 
       options       =
         Key         : filename
@@ -34,7 +34,7 @@ NW::fail = (result, actual, expected, defaultMsg) ->
 
         s3.createBucket =>
           s3.putObject options, (err, data) =>
-            s3path = "https://koding-test-data.s3.amazonaws.com/#{filename}"
+            s3path = "https://kodingdev-test-data.s3.amazonaws.com/#{filename}"
             console.log ' ✔ Test screenshot uploaded to', s3path
 
             try
@@ -65,7 +65,7 @@ NW::fail = (result, actual, expected, defaultMsg) ->
 
                     s3 = new AWS.S3 { params:
                       Key    : "console.log-#{test.module}-#{test.name}-#{Date.now()}.log"
-                      Bucket : 'koding-test-data'
+                      Bucket : 'kodingdev-test-data'
                     }
 
                     if logString.length
