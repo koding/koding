@@ -88,7 +88,7 @@ module.exports = class AvatarView extends LinkView
     { profile } = @getData()
     return no  unless profile?.hash?
 
-    size = @getSize()
+    size = @getUriSize()
 
     # We have 16-512 all versions of avatar on our CDN ~ GG
     # If you need to update them; after creating a largest version of avatar
@@ -105,11 +105,11 @@ module.exports = class AvatarView extends LinkView
 
 
   getDefaultAvatarUri: ->
-    size = @getSize()
+    size = @getUriSize()
     return "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
 
 
-  getSize: ->
+  getUriSize: ->
 
     { width } = @getOptions().size
     return Math.round width * @dpr
