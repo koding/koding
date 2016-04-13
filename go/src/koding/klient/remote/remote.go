@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net"
 	"net/url"
+	"sync"
 	"time"
 
 	"koding/fuseklient"
@@ -85,6 +86,11 @@ type Remote struct {
 	mounts mount.Mounts
 
 	log logging.Logger
+
+	// getMachinesWithoutCache is responsible for actually creating locks, as
+	// well as uniquely creating new machines. This lock ensures that creation
+	// and updating of machines.
+	getMachinesWithoutCacheLock sync.Mutex
 
 	// The max attempts that the Remote.restoreMounts() will loop. This should be
 	// a very large number, and exists simply to allow testing to control the max
@@ -250,6 +256,20 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Locking here, rather than at the begining of the function, allows the
+	// lock to only exist during the faster and racey operations within
+	// GetMachinesWithoutCache. The only downside with locking here, rather
+	// than at the top of the method, is that we're hitting Kontrol X times
+	// during a race - but that is a UX/cost tradeoff, otherwise we would be
+	// locking during the entire getKites request - potentially lagging the
+	// UX and forcing the user to put up with X number of timeouts before
+	// they get UX feedback.
+	//
+	// If Kontrol querying ends up too costly, we should lock at the top of the
+	// func.
+	r.getMachinesWithoutCacheLock.Lock()
+	defer r.getMachinesWithoutCacheLock.Unlock()
 
 	// If this ends up true, call Machines.Save() after the loop.
 	var saveMachines bool
