@@ -764,7 +764,8 @@ class IDEAppController extends AppController
 
     @isSidebarCollapsed = yes
 
-    splitView.emit 'ResizeFirstSplitView'
+    splitView.emit 'ResizeFirstSplitView' # It references to main wrapper split view.
+    @resizeAllSplitViews() # Also resize all split views.
 
     tabView.on 'PaneDidShow', (pane) ->
       return if pane.options.name is 'Dummy'
@@ -785,6 +786,15 @@ class IDEAppController extends AppController
     filesPane.tabView.showPaneByName @activeFilesPaneName
 
     splitView.emit 'ResizeFirstSplitView'
+    @resizeAllSplitViews()
+    
+
+  resizeAllSplitViews: ->
+      
+    parents = []
+    @ideViews.forEach (view) -> parents.push view.parent?.parent
+    
+    _.uniq(parents, 'id').forEach (p) -> p._windowDidResize()
 
 
   toggleSidebar: ->
