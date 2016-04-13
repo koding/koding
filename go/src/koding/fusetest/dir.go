@@ -189,7 +189,8 @@ func testRename(t *testing.T, mountDir string) {
 			_, err := os.Stat(oldPath)
 			So(os.IsNotExist(err), ShouldBeTrue)
 
-			statDirCheck(newPath)
+			_, err = statDirCheck(newPath)
+			So(err, ShouldBeNil)
 		})
 
 		Convey("It should update path of contents inside old dir", func() {

@@ -320,7 +320,7 @@ func (f *Fusetest) CheckLocalFileContents(file, contents string) error {
 }
 
 func (f *Fusetest) fullCachePath(entry string) string {
-	return filepath.Join(f.Opts.CachePath, filepath.Base(f.TestDir), entry)
+	return filepath.Join(f.Opts.CachePath, entry)
 }
 
 func (f *Fusetest) fullMountPath(entry string) string {

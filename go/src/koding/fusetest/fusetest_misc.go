@@ -21,10 +21,40 @@ func (f *Fusetest) TestRename() {
 			So(os.Rename(f.fullMountPath(oldPath), f.fullMountPath(newPath)), ShouldBeNil)
 
 			_, err := os.Stat(f.fullMountPath(oldPath))
-			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldContainSubstring, "no such file or directory")
+			So(os.IsExist(err), ShouldBeFalse)
 
-			statDirCheck(newPath)
+			_, err = statDirCheck(f.fullMountPath(newPath))
+			So(err, ShouldBeNil)
+		})
+
+		Convey("It should update path of entries inside dir", func() {
+			oldPath := filepath.Join(dirName, "oldpath")
+			newPath := filepath.Join(dirName, "newpath")
+
+			// create top dir
+			So(os.Mkdir(f.fullMountPath(oldPath), 0700), ShouldBeNil)
+
+			// create nested file
+			file1 := filepath.Join(oldPath, "file1")
+			err := ioutil.WriteFile(f.fullMountPath(file1), []byte("Hello"), 0700)
+			So(err, ShouldBeNil)
+
+			// create 2 level nested dir
+			dir1 := filepath.Join(oldPath, "dir1")
+			So(os.Mkdir(f.fullMountPath(dir1), 0700), ShouldBeNil)
+
+			// create 2 level nested file
+			file2 := filepath.Join(dir1, "file2")
+			err = ioutil.WriteFile(f.fullMountPath(file2), []byte("Hello"), 0700)
+			So(err, ShouldBeNil)
+
+			So(os.Rename(f.fullMountPath(oldPath), f.fullMountPath(newPath)), ShouldBeNil)
+
+			newFile1 := filepath.Join(newPath, "file1")
+			So(f.CheckLocalFileContents(newFile1, "Hello"), ShouldBeNil)
+
+			newFile2 := filepath.Join(newPath, "dir1", "file2")
+			So(f.CheckLocalFileContents(newFile2, "Hello"), ShouldBeNil)
 		})
 
 		Convey("It should rename file", func() {
@@ -78,13 +108,11 @@ func (f *Fusetest) TestRename() {
 
 			// check file2 does not exist anymore
 			_, err = os.Stat(f.fullMountPath(file2))
-			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldContainSubstring, "no such file or directory")
+			So(os.IsExist(err), ShouldBeFalse)
 
 			_, err = statFileCheck(f.fullMountPath(file1), 0700)
 			So(err, ShouldBeNil)
 
-			// TODO: fix this
 			So(readFile(f.fullMountPath(file1), "World!"), ShouldBeNil)
 		})
 	})
