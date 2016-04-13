@@ -37,7 +37,7 @@ module.exports = class HomeTeamSettingsView extends React.Component
     
   renderSaveButton: ->
     
-    className = @props.canEdit ? 'hidden' : ''
+    className = unless @props.canEdit then 'hidden' else ''
     className = kd.utils.curry 'custom-link-view primary fr', className
     @renderButton className, 'SAVE CHANGES', @props.onUpdate 
     
@@ -50,13 +50,14 @@ module.exports = class HomeTeamSettingsView extends React.Component
   renderTeamDomain: ->
     
     value = "#{Encoder.htmlDecode @props.team.get 'slug'}.koding.com" ? ''
-    <input type='text' name='url', className='kdinput text' disabled value={value} />
+    <input ref='teamDomain' type='text' name='url', className='kdinput text' disabled value={value} />
     
 
   renderTeamName: ->
     
-    value = Encoder.htmlDecode @props.team.get 'title' ? ''
-    <input type='text' name='title' className='kdinput text' value={@props.teamName} onChange={@props.onTeamNameChanged}/>
+    value = @props.teamName or Encoder.htmlDecode @props.team.get 'title' ? ''
+    
+    <input ref='teamName' type='text' name='title' className='kdinput text' value={value} onChange={@props.onTeamNameChanged}/>
 
 
   render: ->
