@@ -14,14 +14,15 @@ module.exports = class TeamMembersCommonView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass                 = 'members-commonview'
-    options.itemLimit               ?= 10
-    options.fetcherMethod          or= 'fetchMembersWithEmail'
-    options.listViewItemOptions    or= {}
-    options.listViewItemClass      or= null
-    options.searchInputPlaceholder or= 'Find by name/username'
-    options.showSearchFieldAtFirst or= no
-    options.sortOptions            or= [
+    options.cssClass                    = 'members-commonview'
+    options.itemLimit                  ?= 10
+    options.fetcherMethod             or= 'fetchMembersWithEmail'
+    options.listViewItemOptions       or= {}
+    options.listViewItemClass         or= null
+    options.searchInputPlaceholder    or= 'Find by name/username'
+    options.showSearchFieldAtFirst    or= no
+    options.useCustomThresholdHandler  ?= yes
+    options.sortOptions               or= [
       { title: 'Screen name',   value: 'fullname' }
       { title: 'Nickname',      value: 'nickname' }
     ]
@@ -62,8 +63,8 @@ module.exports = class TeamMembersCommonView extends KDView
       cssClass    : 'clear-search hidden'
       click       : =>
         @searchInput.setValue ''
-        @search()
         @searchClear.hide()
+        @search()
 
 
   createListController: ->
@@ -88,16 +89,19 @@ module.exports = class TeamMembersCommonView extends KDView
 
   buildListController: ->
 
+    { useCustomThresholdHandler } = @getOptions()
+
     @addSubView @listController.getView()
 
-    @listController.on 'LazyLoadThresholdReached', =>
-      if @searchInput.getValue()
-        unless @isFetching
-          @isFetching = yes
-          @page++
-          @search no, yes
-      else
-        @fetchMembers()
+    if useCustomThresholdHandler
+      @listController.on 'LazyLoadThresholdReached', =>
+        if @searchInput.getValue()
+          unless @isFetching
+            @isFetching = yes
+            @page++
+            @search no, yes
+        else
+          @fetchMembers()
 
     @listController
       .on 'CalculateAndFetchMoreIfNeeded',  @bound 'calculateAndFetchMoreIfNeeded'

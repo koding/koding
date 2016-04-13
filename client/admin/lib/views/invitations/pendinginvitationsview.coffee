@@ -56,20 +56,15 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
     return  if @isFetching
 
-    @isFetching    = yes
-    query          = @searchInput.getValue()
-    options        = { @skip, sort: @getSortOptions() }
-    method         = 'some'
-    selector       = { }
-    isSuperAdmin   = checkFlag 'super-admin'
+    @isFetching = yes
 
-    if query
+    options     = { skip: @listController.filterStates.skip }
+    method      = 'some'
+    selector    = { }
+
+    if query = @searchInput.getValue()
       method = 'search'
       selector.query = query
-
-    groupSlug = @getData().slug
-    if isSuperAdmin and groupSlug isnt 'koding'
-      selector.groupSlug = groupSlug
 
     @listController.fetch selector, (invitations) =>
       @listController.addListItems invitations
