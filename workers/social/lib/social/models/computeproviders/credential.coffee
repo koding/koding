@@ -445,7 +445,7 @@ module.exports = class JCredential extends jraphical.Module
 
         if rel.data.as is 'owner'
 
-          @fetchData (err, credentialData) =>
+          @fetchData client, (err, credentialData) =>
             return callback err  if err
             credentialData.remove (err) =>
               return callback err  if err
@@ -475,7 +475,7 @@ module.exports = class JCredential extends jraphical.Module
         title    : @getAt 'title'
         provider : @getAt 'provider'
 
-      @fetchData (err, data) ->
+      @fetchData client, (err, data) ->
 
         return callback err  if err
 
@@ -492,13 +492,13 @@ module.exports = class JCredential extends jraphical.Module
     return "*#{Array(r c).join '*'}#{c[(r c)..]}"
 
 
-  fetchData: (callback, shadowSensitiveData = yes) ->
+  fetchData: (client, callback, shadowSensitiveData = yes) ->
 
     sensitiveKeys = PROVIDERS[@provider]?.sensitiveKeys or []
 
-    JCredentialData.one { @identifier }, (err, data) ->
+    CredentialStore.fetch client, @identifier, (err, data) ->
+
       return callback err  if err
-      return callback new KodingError 'No data found'  unless data
 
       if shadowSensitiveData
         meta = data?.data?.meta or {}
@@ -521,7 +521,7 @@ module.exports = class JCredential extends jraphical.Module
 
     success: (client, callback) ->
 
-      @fetchData callback
+      @fetchData client, callback
 
 
   update$: permit
@@ -552,7 +552,7 @@ module.exports = class JCredential extends jraphical.Module
 
         if meta?
 
-          @fetchData (err, credData) ->
+          @fetchData client, (err, credData) ->
             return callback err  if err?
             credData.update { $set : { meta } }, callback
 
@@ -581,7 +581,7 @@ module.exports = class JCredential extends jraphical.Module
       if bootstrapKeys.length is 0
         return callback null, no
 
-      @fetchData (err, data) ->
+      @fetchData client, (err, data) ->
         return callback err  if err
         return callback new KodingError 'Failed to fetch data'  unless data
 

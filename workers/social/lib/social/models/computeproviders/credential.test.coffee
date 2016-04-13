@@ -448,11 +448,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
     testFetchDataFailure = (method, done) ->
       withConvertedUserAndCredential ({ client, credential }) ->
 
-        # adding client to args array, if method is for remote api
-        # a client argument will be passed before callback
-        args  = [client]  if method.slice(-1) is '$'
-        args ?= []
-
+        args  = [client]
         queue = [
 
           (next) ->
@@ -480,9 +476,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           expect(credData.identifier).to.be.equal credential.identifier
           done()
 
-        if   method.slice(-1) is '$'
-        then credential[method] client, checkCredData
-        else credential[method] checkCredData
+        credential[method] client, checkCredData
 
 
     describe 'fetchData()', ->
