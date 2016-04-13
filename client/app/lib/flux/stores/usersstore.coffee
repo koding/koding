@@ -32,7 +32,12 @@ module.exports = class UsersStore extends KodingFluxStore
     @on actions.FETCH_TEAM_MEMBERS_SUCCESS, @handleLoadListSuccess
 
     @on actions.UPDATE_TEAM_MEMBER, @handleUpdateTeamMember
-
+    @on actions.DELETE_TEAM_MEMBER, @handleDeleteTeamMember
+    
+    
+  handleDeleteTeamMember: (users, userId) ->
+    debugger
+    return users.delete userId
 
   ###*
    * Handler for UPDATE_TEAM_MEMBER action.
@@ -42,7 +47,7 @@ module.exports = class UsersStore extends KodingFluxStore
    * @param {object} user
   ###
   handleUpdateTeamMember: (users, user) ->
-    debugger
+    
     return users.set user.get('id'), user
 
 

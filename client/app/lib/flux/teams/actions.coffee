@@ -9,6 +9,7 @@ getters     = require './getters'
 Promise     = require 'bluebird'
 immutable   = require 'immutable'
 Tracker     = require 'app/util/tracker'
+isKoding    = require 'app/util/isKoding'
 
 
 loadTeam = ->
@@ -67,11 +68,11 @@ inviteMembers = (inviteInputs) ->
 
         if email.toLowerCase() is ownEmail
 
-          return resolve { message: 'You can not invite yourself!'}
+          return reject { message: 'You can not invite yourself!'}
 
         if email and not validatedEmail
 
-          return resolve { message: 'That doesn\'t seem like a valid email address.'}
+          return reject { message: 'That doesn\'t seem like a valid email address.'}
 
         invites.push invite = inviteInput.toJS()
         admins.push invite.email  if invite.role is 'admin'
@@ -246,8 +247,23 @@ handleRoleChange = (newRole, member) ->
       team.fetchUserRoles [memberId], (err, roles) ->
         unless err
           roles = (role.as for role in roles)
-          member = member.set 'role', roles
+          member = member.set 'role', roles   #send all roles for that user but we save only one
           reactor.dispatch actions.UPDATE_TEAM_MEMBER, member
+
+
+handleKickMember = (member) ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+
+  return  if isKoding team
+
+  memberId = member.get '_id'
+
+  team.kickMember memberId, (err) ->
+    # handle, what if there is error
+    unless err
+      reactor.dispatch actions.DELETE_TEAM_MEMBER, memberId
 
 
 module.exports = {
@@ -265,4 +281,5 @@ module.exports = {
   resendInvitations
   setSearchInputValue
   handleRoleChange
+  handleKickMember
 }
