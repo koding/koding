@@ -38,8 +38,6 @@ module.exports = class HomeStacksCreate extends kd.CustomHTMLView
       kd.utils.killRepeat repeater
 
 
-
-
   pistachio: ->
 
     """

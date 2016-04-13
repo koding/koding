@@ -1,10 +1,11 @@
 kd              = require 'kd'
 React           = require 'kd-react'
+
 EnvironmentFlux = require 'app/flux/environment'
 KDReactorMixin  = require 'app/flux/base/reactormixin'
 
-List = require 'app/components/list'
-TimeAgo = require 'app/components/common/timeago'
+List            = require 'app/components/list'
+TimeAgo         = require 'app/components/common/timeago'
 
 
 module.exports = class TeamStacksListView extends React.Component
