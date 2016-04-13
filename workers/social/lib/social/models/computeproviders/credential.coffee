@@ -126,11 +126,6 @@ module.exports = class JCredential extends jraphical.Module
         ]
         default       : -> ACCESSLEVEL.PRIVATE
 
-    relationships     :
-
-      data            :
-        targetType    : JCredentialData
-        as            : 'data'
 
   @getName = -> 'JCredential'
 
@@ -209,9 +204,6 @@ module.exports = class JCredential extends jraphical.Module
           delegate.addCredential credential, { as: 'owner' }, (err) ->
             return  if failed err, callback, credential, credData
 
-            credential.addData credData, (err) ->
-              return  if failed err, callback, credential, credData
-              callback null, credential
 
 
   @fetchByIdentifier = (client, identifier, callback) ->

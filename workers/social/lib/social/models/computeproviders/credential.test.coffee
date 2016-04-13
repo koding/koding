@@ -96,18 +96,6 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
             expectRelation.toExist options, ->
               next()
 
-          (next) ->
-            # expecting credential and credential data relation to be created
-            options =
-              as         : 'data'
-              targetId   : credentialData._id
-              sourceId   : credential._id
-              targetName : 'JCredentialData'
-              sourceName : 'JCredential'
-
-            expectRelation.toExist options, ->
-              next()
-
         ]
 
         async.series queue, done
