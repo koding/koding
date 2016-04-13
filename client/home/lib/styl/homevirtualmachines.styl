@@ -1,0 +1,160 @@
+@css {
+/*
+Home Virtual Machines stylesheet
+homevirtualmachines.styl
+*/
+}
+
+$transGreen                 = rgba(26, 175, 93, .25)
+$transRed                   = rgba(233, 72, 53, .25)
+$titleColor                 = #424242
+$borderColor                = #CACACA
+
+.MachinesListItem
+  border                    1px solid $borderColor
+  padding                   25px
+  margin-bottom             15px
+
+  &.expanded
+    rounded                 4px
+
+  &:last-of-type
+    margin-bottom           0
+
+  header
+    display                 flex
+    flex-flow               row wrap
+    justify-content         space-around
+    align-content           flex-start
+
+    > div
+      flex                  0 0 auto
+      margin                0 40px 0 0
+      padding               6px 0 0 26px
+      &:last-of-type
+        margin-right        0
+
+    .MachinesListItem-machineLabel
+      flex                  1 0 auto
+
+
+.MachinesListItem-stackLabel
+  text-transform            uppercase
+
+.MachinesListItem-detailToggle
+  size                      25px 25px
+  padding                   0 !important
+  rel()
+
+  &:after
+    content                 ''
+    r-sprite                home expand_arrow
+    abs                     9px 5px
+    z-index                 0
+
+
+  &.expanded:after
+    r-sprite                home collapsed_line
+    abs                     12px 5px
+
+  button
+  button:hover
+  button:active
+    z-index                 1
+    cursor                  pointer
+    size                    100% 100%
+    border                  none
+    background              transparent
+    outline                 none
+    abs()
+
+
+.MachinesListItem-machineLabel
+  color                     $titleColor
+  font-size                 16px
+  font-weight               600
+  letter-spacing            .2px
+  padding                   3px 0 0 26px
+  rel()
+
+  &:before
+    content                 ''
+    abs                     50% 0 0 0px
+    bg                      color transparent
+    border                  3px solid $gray-14
+    display                 block
+    rounded                 3px
+    size                    16px 16px
+    vendor                  transform, translateY(-50%)
+    borderBox()
+
+  &.Unknown:before
+  &.Stopped:before
+  &.NotInitialized:before
+    border-color            $gray-14
+
+  &.Running:before
+  &.Starting:before
+    border-color            $green
+
+  &.Building:before
+  &.Rebooting:before
+    border-color            $yellow
+
+  &.Stopping:before
+  &.Terminating:before
+  &.Terminated:before
+    border-color            $red
+
+  &.Starting
+    .SidebarListItem-progressbar
+      bg                    color $transGreen
+
+  &.Stopping
+    .SidebarListItem-progressbar
+      bg                    color $transRed
+      > cite
+        bg                  color $red
+
+.MachineDetails-SpecsList
+  margin                    25px 0 0
+  padding-bottom            25px
+
+  .SingleSpecItem
+    bg                      color #E8F5F9
+    border                  1px solid #9ECFE3
+    letter-spacing          .5px
+    font-size               14px
+    font-style              italic
+    padding                 8px 13px 4px
+    display                 inline-block
+    margin-right            11px
+    rounded                 13px
+    color                   #999999
+
+.GenericToggler
+  border-top                1px solid $borderColor
+
+.GenericToggler-top
+  padding                   25px 0
+  display                   flex
+  flex-flow                 row wrap
+  justify-content           space-around
+  align-content             flex-start
+  rel()
+
+  .pull-right
+    flex                    0 0 auto
+
+  .pull-left
+    flex                    1 0 auto
+
+.GenericToggler-toggle
+  .react-toggle-track
+    size                    42px 22px
+  .react-toggle-thumb
+    abs                     4px 0 0 4px
+    size                    14px 14px
+  .react-toggle--checked
+    .react-toggle-thumb
+      left                  24px
