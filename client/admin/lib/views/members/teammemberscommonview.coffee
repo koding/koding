@@ -28,7 +28,6 @@ module.exports = class TeamMembersCommonView extends KDView
 
     super options, data
 
-    @skip = 0
     @page = 0
 
     @createSearchView()
@@ -119,7 +118,7 @@ module.exports = class TeamMembersCommonView extends KDView
     options =
       limit : itemLimit
       sort  : { timestamp: -1 } # timestamp is at relationship collection
-      skip  : @skip
+      skip  : @listController.filterStates.skip
 
     # fetch members as jAccount
     group[fetcherMethod] {}, options, (err, members) =>
@@ -167,7 +166,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
     if isQueryEmpty or isQueryChanged
       @page = 0
-      @skip = 0
+      @listController.filterStates.skip = 0
       @searchClear.hide()
       return @fetchMembers()  if isQueryEmpty
 
@@ -216,7 +215,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
   resetListItems: (showLoader = yes) ->
 
-    @skip = 0
+    @listController.filterStates.skip = 0
     @listController.removeAllItems()
     @listController.hideNoItemWidget()
     @listController.lazyLoader.show()

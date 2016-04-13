@@ -79,9 +79,7 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
   search: ->
 
-    @skip  = 0
-    @query = @searchInput.getValue()
-
+    @listController.filterStates.skip = 0
     @refresh()
 
     if @query.length then @searchClear.show() else @searchClear.hide()
