@@ -59,6 +59,24 @@ func TestList(t *testing.T) {
             "gateway_ip": "192.0.0.1",
             "cidr": "192.0.0.0/8",
             "id": "54d6f61d-db07-451c-9ab3-b9609b6b6f0b"
+        },
+        {
+            "name": "my_gatewayless_subnet",
+            "enable_dhcp": true,
+            "network_id": "d32019d3-bc6e-4319-9c1d-6722fc136a23",
+            "tenant_id": "4fd44f30292945e481c7b8a0c8908869",
+            "dns_nameservers": [],
+            "allocation_pools": [
+                {
+                    "start": "192.168.1.2",
+                    "end": "192.168.1.254"
+                }
+            ],
+            "host_routes": [],
+            "ip_version": 4,
+            "gateway_ip": null,
+            "cidr": "192.168.1.0/24",
+            "id": "54d6f61d-db07-451c-9ab3-b9609b6b6f0c"
         }
     ]
 }
@@ -111,6 +129,24 @@ func TestList(t *testing.T) {
 				GatewayIP:  "192.0.0.1",
 				CIDR:       "192.0.0.0/8",
 				ID:         "54d6f61d-db07-451c-9ab3-b9609b6b6f0b",
+			},
+			Subnet{
+				Name:           "my_gatewayless_subnet",
+				EnableDHCP:     true,
+				NetworkID:      "d32019d3-bc6e-4319-9c1d-6722fc136a23",
+				TenantID:       "4fd44f30292945e481c7b8a0c8908869",
+				DNSNameservers: []string{},
+				AllocationPools: []AllocationPool{
+					AllocationPool{
+						Start: "192.168.1.2",
+						End:   "192.168.1.254",
+					},
+				},
+				HostRoutes: []HostRoute{},
+				IPVersion:  4,
+				GatewayIP:  "",
+				CIDR:       "192.168.1.0/24",
+				ID:         "54d6f61d-db07-451c-9ab3-b9609b6b6f0c",
 			},
 		}
 
@@ -268,6 +304,145 @@ func TestCreate(t *testing.T) {
 	th.AssertEquals(t, s.GatewayIP, "192.168.199.1")
 	th.AssertEquals(t, s.CIDR, "192.168.199.0/24")
 	th.AssertEquals(t, s.ID, "3b80198d-4f7b-4f77-9ef5-774d54e17126")
+}
+
+func TestCreateNoGateway(t *testing.T) {
+	th.SetupHTTP()
+	defer th.TeardownHTTP()
+
+	th.Mux.HandleFunc("/v2.0/subnets", func(w http.ResponseWriter, r *http.Request) {
+		th.TestMethod(t, r, "POST")
+		th.TestHeader(t, r, "X-Auth-Token", fake.TokenID)
+		th.TestHeader(t, r, "Content-Type", "application/json")
+		th.TestHeader(t, r, "Accept", "application/json")
+		th.TestJSONRequest(t, r, `
+{
+    "subnet": {
+        "network_id": "d32019d3-bc6e-4319-9c1d-6722fc136a23",
+        "ip_version": 4,
+        "cidr": "192.168.1.0/24",
+				"gateway_ip": null,
+				"allocation_pools": [
+						{
+								"start": "192.168.1.2",
+								"end": "192.168.1.254"
+						}
+				]
+    }
+}
+			`)
+
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+
+		fmt.Fprintf(w, `
+{
+    "subnet": {
+        "name": "",
+        "enable_dhcp": true,
+        "network_id": "d32019d3-bc6e-4319-9c1d-6722fc136a23",
+        "tenant_id": "4fd44f30292945e481c7b8a0c8908869",
+        "allocation_pools": [
+            {
+                "start": "192.168.1.2",
+                "end": "192.168.1.254"
+            }
+        ],
+        "host_routes": [],
+        "ip_version": 4,
+        "gateway_ip": null,
+        "cidr": "192.168.1.0/24",
+        "id": "54d6f61d-db07-451c-9ab3-b9609b6b6f0c"
+    }
+}
+		`)
+	})
+
+	opts := CreateOpts{
+		NetworkID: "d32019d3-bc6e-4319-9c1d-6722fc136a23",
+		IPVersion: 4,
+		CIDR:      "192.168.1.0/24",
+		NoGateway: true,
+		AllocationPools: []AllocationPool{
+			AllocationPool{
+				Start: "192.168.1.2",
+				End:   "192.168.1.254",
+			},
+		},
+		DNSNameservers: []string{},
+	}
+	s, err := Create(fake.ServiceClient(), opts).Extract()
+	th.AssertNoErr(t, err)
+
+	th.AssertEquals(t, s.Name, "")
+	th.AssertEquals(t, s.EnableDHCP, true)
+	th.AssertEquals(t, s.NetworkID, "d32019d3-bc6e-4319-9c1d-6722fc136a23")
+	th.AssertEquals(t, s.TenantID, "4fd44f30292945e481c7b8a0c8908869")
+	th.AssertDeepEquals(t, s.AllocationPools, []AllocationPool{
+		AllocationPool{
+			Start: "192.168.1.2",
+			End:   "192.168.1.254",
+		},
+	})
+	th.AssertDeepEquals(t, s.HostRoutes, []HostRoute{})
+	th.AssertEquals(t, s.IPVersion, 4)
+	th.AssertEquals(t, s.GatewayIP, "")
+	th.AssertEquals(t, s.CIDR, "192.168.1.0/24")
+	th.AssertEquals(t, s.ID, "54d6f61d-db07-451c-9ab3-b9609b6b6f0c")
+}
+
+func TestCreateInvalidGatewayConfig(t *testing.T) {
+	th.SetupHTTP()
+	defer th.TeardownHTTP()
+
+	th.Mux.HandleFunc("/v2.0/subnets", func(w http.ResponseWriter, r *http.Request) {
+		th.TestMethod(t, r, "POST")
+		th.TestHeader(t, r, "X-Auth-Token", fake.TokenID)
+		th.TestHeader(t, r, "Content-Type", "application/json")
+		th.TestHeader(t, r, "Accept", "application/json")
+		th.TestJSONRequest(t, r, `
+{
+    "subnet": {
+        "network_id": "d32019d3-bc6e-4319-9c1d-6722fc136a23",
+        "ip_version": 4,
+        "cidr": "192.168.1.0/24",
+				"gateway_ip": "192.168.1.1",
+				"allocation_pools": [
+						{
+								"start": "192.168.1.2",
+								"end": "192.168.1.254"
+						}
+				]
+    }
+}
+			`)
+
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+	})
+
+	opts := CreateOpts{
+		NetworkID: "d32019d3-bc6e-4319-9c1d-6722fc136a23",
+		IPVersion: 4,
+		CIDR:      "192.168.1.0/24",
+		NoGateway: true,
+		GatewayIP: "192.168.1.1",
+		AllocationPools: []AllocationPool{
+			AllocationPool{
+				Start: "192.168.1.2",
+				End:   "192.168.1.254",
+			},
+		},
+		DNSNameservers: []string{},
+	}
+	_, err := Create(fake.ServiceClient(), opts).Extract()
+	if err == nil {
+		t.Fatalf("Expected an error, got none")
+	}
+
+	if err != errInvalidGatewayConfig {
+		t.Fatalf("Exected errInvalidGateway but got: %s", err)
+	}
 }
 
 func TestRequiredCreateOpts(t *testing.T) {

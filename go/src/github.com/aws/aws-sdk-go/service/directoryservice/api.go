@@ -97,6 +97,35 @@ func (c *DirectoryService) CreateComputer(input *CreateComputerInput) (*CreateCo
 	return out, err
 }
 
+const opCreateConditionalForwarder = "CreateConditionalForwarder"
+
+// CreateConditionalForwarderRequest generates a request for the CreateConditionalForwarder operation.
+func (c *DirectoryService) CreateConditionalForwarderRequest(input *CreateConditionalForwarderInput) (req *request.Request, output *CreateConditionalForwarderOutput) {
+	op := &request.Operation{
+		Name:       opCreateConditionalForwarder,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateConditionalForwarderInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &CreateConditionalForwarderOutput{}
+	req.Data = output
+	return
+}
+
+// Creates a conditional forwarder associated with your AWS directory. Conditional
+// forwarders are required in order to set up a trust relationship with another
+// domain. The conditional forwarder points to the trusted domain.
+func (c *DirectoryService) CreateConditionalForwarder(input *CreateConditionalForwarderInput) (*CreateConditionalForwarderOutput, error) {
+	req, out := c.CreateConditionalForwarderRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opCreateDirectory = "CreateDirectory"
 
 // CreateDirectoryRequest generates a request for the CreateDirectory operation.
@@ -171,7 +200,7 @@ func (c *DirectoryService) CreateSnapshotRequest(input *CreateSnapshotInput) (re
 	return
 }
 
-// Creates a snapshot of a Simple AD directory.
+// Creates a snapshot of a Simple AD or Microsoft AD directory in the AWS cloud.
 //
 //  You cannot take snapshots of AD Connector directories.
 func (c *DirectoryService) CreateSnapshot(input *CreateSnapshotInput) (*CreateSnapshotOutput, error) {
@@ -210,6 +239,33 @@ func (c *DirectoryService) CreateTrustRequest(input *CreateTrustInput) (req *req
 // between a Microsoft AD in the AWS cloud and an external domain.
 func (c *DirectoryService) CreateTrust(input *CreateTrustInput) (*CreateTrustOutput, error) {
 	req, out := c.CreateTrustRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opDeleteConditionalForwarder = "DeleteConditionalForwarder"
+
+// DeleteConditionalForwarderRequest generates a request for the DeleteConditionalForwarder operation.
+func (c *DirectoryService) DeleteConditionalForwarderRequest(input *DeleteConditionalForwarderInput) (req *request.Request, output *DeleteConditionalForwarderOutput) {
+	op := &request.Operation{
+		Name:       opDeleteConditionalForwarder,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteConditionalForwarderInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DeleteConditionalForwarderOutput{}
+	req.Data = output
+	return
+}
+
+// Deletes a conditional forwarder that has been set up for your AWS directory.
+func (c *DirectoryService) DeleteConditionalForwarder(input *DeleteConditionalForwarderInput) (*DeleteConditionalForwarderOutput, error) {
+	req, out := c.DeleteConditionalForwarderRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -296,6 +352,63 @@ func (c *DirectoryService) DeleteTrust(input *DeleteTrustInput) (*DeleteTrustOut
 	return out, err
 }
 
+const opDeregisterEventTopic = "DeregisterEventTopic"
+
+// DeregisterEventTopicRequest generates a request for the DeregisterEventTopic operation.
+func (c *DirectoryService) DeregisterEventTopicRequest(input *DeregisterEventTopicInput) (req *request.Request, output *DeregisterEventTopicOutput) {
+	op := &request.Operation{
+		Name:       opDeregisterEventTopic,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeregisterEventTopicInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DeregisterEventTopicOutput{}
+	req.Data = output
+	return
+}
+
+// Removes the specified directory as a publisher to the specified SNS topic.
+func (c *DirectoryService) DeregisterEventTopic(input *DeregisterEventTopicInput) (*DeregisterEventTopicOutput, error) {
+	req, out := c.DeregisterEventTopicRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opDescribeConditionalForwarders = "DescribeConditionalForwarders"
+
+// DescribeConditionalForwardersRequest generates a request for the DescribeConditionalForwarders operation.
+func (c *DirectoryService) DescribeConditionalForwardersRequest(input *DescribeConditionalForwardersInput) (req *request.Request, output *DescribeConditionalForwardersOutput) {
+	op := &request.Operation{
+		Name:       opDescribeConditionalForwarders,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeConditionalForwardersInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DescribeConditionalForwardersOutput{}
+	req.Data = output
+	return
+}
+
+// Obtains information about the conditional forwarders for this account.
+//
+// If no input parameters are provided for RemoteDomainNames, this request
+// describes all conditional forwarders for the specified directory ID.
+func (c *DirectoryService) DescribeConditionalForwarders(input *DescribeConditionalForwardersInput) (*DescribeConditionalForwardersOutput, error) {
+	req, out := c.DescribeConditionalForwardersRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opDescribeDirectories = "DescribeDirectories"
 
 // DescribeDirectoriesRequest generates a request for the DescribeDirectories operation.
@@ -330,6 +443,37 @@ func (c *DirectoryService) DescribeDirectoriesRequest(input *DescribeDirectories
 // You can also specify a maximum number of return results with the Limit parameter.
 func (c *DirectoryService) DescribeDirectories(input *DescribeDirectoriesInput) (*DescribeDirectoriesOutput, error) {
 	req, out := c.DescribeDirectoriesRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opDescribeEventTopics = "DescribeEventTopics"
+
+// DescribeEventTopicsRequest generates a request for the DescribeEventTopics operation.
+func (c *DirectoryService) DescribeEventTopicsRequest(input *DescribeEventTopicsInput) (req *request.Request, output *DescribeEventTopicsOutput) {
+	op := &request.Operation{
+		Name:       opDescribeEventTopics,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeEventTopicsInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DescribeEventTopicsOutput{}
+	req.Data = output
+	return
+}
+
+// Obtains information about which SNS topics receive status messages from the
+// specified directory.
+//
+// If no input parameters are provided, such as DirectoryId or TopicName, this
+// request describes all of the associations in the account.
+func (c *DirectoryService) DescribeEventTopics(input *DescribeEventTopicsInput) (*DescribeEventTopicsOutput, error) {
+	req, out := c.DescribeEventTopicsRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -562,6 +706,38 @@ func (c *DirectoryService) GetSnapshotLimits(input *GetSnapshotLimitsInput) (*Ge
 	return out, err
 }
 
+const opRegisterEventTopic = "RegisterEventTopic"
+
+// RegisterEventTopicRequest generates a request for the RegisterEventTopic operation.
+func (c *DirectoryService) RegisterEventTopicRequest(input *RegisterEventTopicInput) (req *request.Request, output *RegisterEventTopicOutput) {
+	op := &request.Operation{
+		Name:       opRegisterEventTopic,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &RegisterEventTopicInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &RegisterEventTopicOutput{}
+	req.Data = output
+	return
+}
+
+// Associates a directory with an SNS topic. This establishes the directory
+// as a publisher to the specified SNS topic. You can then receive email or
+// text (SMS) messages when the status of your directory changes. You get notified
+// if your directory goes from an Active status to an Impaired or Inoperable
+// status. You also receive a notification when the directory returns to an
+// Active status.
+func (c *DirectoryService) RegisterEventTopic(input *RegisterEventTopicInput) (*RegisterEventTopicOutput, error) {
+	req, out := c.RegisterEventTopicRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opRestoreFromSnapshot = "RestoreFromSnapshot"
 
 // RestoreFromSnapshotRequest generates a request for the RestoreFromSnapshot operation.
@@ -593,6 +769,33 @@ func (c *DirectoryService) RestoreFromSnapshotRequest(input *RestoreFromSnapshot
 // value changes to Active, the restore operation is complete.
 func (c *DirectoryService) RestoreFromSnapshot(input *RestoreFromSnapshotInput) (*RestoreFromSnapshotOutput, error) {
 	req, out := c.RestoreFromSnapshotRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opUpdateConditionalForwarder = "UpdateConditionalForwarder"
+
+// UpdateConditionalForwarderRequest generates a request for the UpdateConditionalForwarder operation.
+func (c *DirectoryService) UpdateConditionalForwarderRequest(input *UpdateConditionalForwarderInput) (req *request.Request, output *UpdateConditionalForwarderOutput) {
+	op := &request.Operation{
+		Name:       opUpdateConditionalForwarder,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateConditionalForwarderInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &UpdateConditionalForwarderOutput{}
+	req.Data = output
+	return
+}
+
+// Updates a conditional forwarder that has been set up for your AWS directory.
+func (c *DirectoryService) UpdateConditionalForwarder(input *UpdateConditionalForwarderInput) (*UpdateConditionalForwarderOutput, error) {
+	req, out := c.UpdateConditionalForwarderRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -699,6 +902,37 @@ func (s Computer) String() string {
 
 // GoString returns the string representation
 func (s Computer) GoString() string {
+	return s.String()
+}
+
+// Points to a remote domain with which you are setting up a trust relationship.
+// Conditional forwarders are required in order to set up a trust relationship
+// with another domain.
+type ConditionalForwarder struct {
+	_ struct{} `type:"structure"`
+
+	// The IP addresses of the remote DNS server associated with RemoteDomainName.
+	// This is the IP address of the DNS server that your conditional forwarder
+	// points to.
+	DnsIpAddrs []*string `type:"list"`
+
+	// The fully qualified domain name (FQDN) of the remote domains pointed to by
+	// the conditional forwarder.
+	RemoteDomainName *string `type:"string"`
+
+	// The replication scope of the conditional forwarder. The only allowed value
+	// is Domain, which will replicate the conditional forwarder to all of the domain
+	// controllers for your AWS directory.
+	ReplicationScope *string `type:"string" enum:"ReplicationScope"`
+}
+
+// String returns the string representation
+func (s ConditionalForwarder) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConditionalForwarder) GoString() string {
 	return s.String()
 }
 
@@ -850,6 +1084,48 @@ func (s CreateComputerOutput) GoString() string {
 	return s.String()
 }
 
+// Initiates the creation of a conditional forwarder for your AWS Directory
+// Service for Microsoft Active Directory. Conditional forwarders are required
+// in order to set up a trust relationship with another domain.
+type CreateConditionalForwarderInput struct {
+	_ struct{} `type:"structure"`
+
+	// The directory ID of the AWS directory for which you are creating the conditional
+	// forwarder.
+	DirectoryId *string `type:"string" required:"true"`
+
+	// The IP addresses of the remote DNS server associated with RemoteDomainName.
+	DnsIpAddrs []*string `type:"list" required:"true"`
+
+	// The fully qualified domain name (FQDN) of the remote domain with which you
+	// will set up a trust relationship.
+	RemoteDomainName *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateConditionalForwarderInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateConditionalForwarderInput) GoString() string {
+	return s.String()
+}
+
+type CreateConditionalForwarderOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateConditionalForwarderOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateConditionalForwarderOutput) GoString() string {
+	return s.String()
+}
+
 // Contains the inputs for the CreateDirectory operation.
 type CreateDirectoryInput struct {
 	_ struct{} `type:"structure"`
@@ -960,7 +1236,7 @@ func (s CreateMicrosoftADOutput) GoString() string {
 type CreateSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
-	// The identifier of the directory to take a snapshot of.
+	// The identifier of the directory of which to take a snapshot.
 	DirectoryId *string `type:"string" required:"true"`
 
 	// The descriptive name to apply to the snapshot.
@@ -1006,6 +1282,8 @@ func (s CreateSnapshotOutput) GoString() string {
 type CreateTrustInput struct {
 	_ struct{} `type:"structure"`
 
+	ConditionalForwarderIpAddrs []*string `type:"list"`
+
 	// The Directory ID of the Microsoft AD in the AWS cloud for which to establish
 	// the trust relationship.
 	DirectoryId *string `type:"string" required:"true"`
@@ -1049,6 +1327,41 @@ func (s CreateTrustOutput) String() string {
 
 // GoString returns the string representation
 func (s CreateTrustOutput) GoString() string {
+	return s.String()
+}
+
+type DeleteConditionalForwarderInput struct {
+	_ struct{} `type:"structure"`
+
+	// The directory ID for which you are deleting the conditional forwarder.
+	DirectoryId *string `type:"string" required:"true"`
+
+	// The fully qualified domain name (FQDN) of the remote domain with which you
+	// are deleting the conditional forwarder.
+	RemoteDomainName *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteConditionalForwarderInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteConditionalForwarderInput) GoString() string {
+	return s.String()
+}
+
+type DeleteConditionalForwarderOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteConditionalForwarderOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteConditionalForwarderOutput) GoString() string {
 	return s.String()
 }
 
@@ -1129,6 +1442,8 @@ func (s DeleteSnapshotOutput) GoString() string {
 type DeleteTrustInput struct {
 	_ struct{} `type:"structure"`
 
+	DeleteAssociatedConditionalForwarder *bool `type:"boolean"`
+
 	// The Trust ID of the trust relationship to be deleted.
 	TrustId *string `type:"string" required:"true"`
 }
@@ -1157,6 +1472,81 @@ func (s DeleteTrustOutput) String() string {
 
 // GoString returns the string representation
 func (s DeleteTrustOutput) GoString() string {
+	return s.String()
+}
+
+// Removes the specified directory as a publisher to the specified SNS topic.
+type DeregisterEventTopicInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Directory ID to remove as a publisher. This directory will no longer
+	// send messages to the specified SNS topic.
+	DirectoryId *string `type:"string" required:"true"`
+
+	// The name of the SNS topic from which to remove the directory as a publisher.
+	TopicName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeregisterEventTopicInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeregisterEventTopicInput) GoString() string {
+	return s.String()
+}
+
+type DeregisterEventTopicOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeregisterEventTopicOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeregisterEventTopicOutput) GoString() string {
+	return s.String()
+}
+
+type DescribeConditionalForwardersInput struct {
+	_ struct{} `type:"structure"`
+
+	// The directory ID for which to get the list of associated conditional forwarders.
+	DirectoryId *string `type:"string" required:"true"`
+
+	// The fully qualified domain names (FQDN) of the remote domains for which to
+	// get the list of associated conditional forwarders. If this member is null,
+	// all conditional forwarders are returned.
+	RemoteDomainNames []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeConditionalForwardersInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeConditionalForwardersInput) GoString() string {
+	return s.String()
+}
+
+type DescribeConditionalForwardersOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The list of conditional forwarders that have been created.
+	ConditionalForwarders []*ConditionalForwarder `type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeConditionalForwardersOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeConditionalForwardersOutput) GoString() string {
 	return s.String()
 }
 
@@ -1215,6 +1605,48 @@ func (s DescribeDirectoriesOutput) String() string {
 
 // GoString returns the string representation
 func (s DescribeDirectoriesOutput) GoString() string {
+	return s.String()
+}
+
+type DescribeEventTopicsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Directory ID for which to get the list of associated SNS topics. If this
+	// member is null, associations for all Directory IDs are returned.
+	DirectoryId *string `type:"string"`
+
+	// A list of SNS topic names for which to obtain the information. If this member
+	// is null, all associations for the specified Directory ID are returned.
+	//
+	// An empty list results in an InvalidParameterException being thrown.
+	TopicNames []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeEventTopicsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEventTopicsInput) GoString() string {
+	return s.String()
+}
+
+type DescribeEventTopicsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of SNS topic names that receive status messages from the specified
+	// Directory ID.
+	EventTopics []*EventTopic `type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeEventTopicsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEventTopicsOutput) GoString() string {
 	return s.String()
 }
 
@@ -1746,6 +2178,37 @@ func (s EnableSsoOutput) GoString() string {
 	return s.String()
 }
 
+// Information about SNS topic and AWS Directory Service directory associations.
+type EventTopic struct {
+	_ struct{} `type:"structure"`
+
+	// The date and time of when you associated your directory with the SNS topic.
+	CreatedDateTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+
+	// The Directory ID of an AWS Directory Service directory that will publish
+	// status messages to an SNS topic.
+	DirectoryId *string `type:"string"`
+
+	// The topic registration status.
+	Status *string `type:"string" enum:"TopicStatus"`
+
+	// The SNS topic ARN (Amazon Resource Name).
+	TopicArn *string `type:"string"`
+
+	// The name of an AWS SNS topic the receives status messages from the directory.
+	TopicName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s EventTopic) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EventTopic) GoString() string {
+	return s.String()
+}
+
 // Contains the inputs for the GetDirectoryLimits operation.
 type GetDirectoryLimitsInput struct {
 	_ struct{} `type:"structure"`
@@ -1859,6 +2322,41 @@ func (s RadiusSettings) String() string {
 
 // GoString returns the string representation
 func (s RadiusSettings) GoString() string {
+	return s.String()
+}
+
+type RegisterEventTopicInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Directory ID that will publish status messages to the SNS topic.
+	DirectoryId *string `type:"string" required:"true"`
+
+	// The SNS topic name to which the directory will publish status messages. This
+	// SNS topic must be in the same region as the specified Directory ID.
+	TopicName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s RegisterEventTopicInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RegisterEventTopicInput) GoString() string {
+	return s.String()
+}
+
+type RegisterEventTopicOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s RegisterEventTopicOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RegisterEventTopicOutput) GoString() string {
 	return s.String()
 }
 
@@ -1982,6 +2480,9 @@ type Trust struct {
 	// The trust relationship state.
 	TrustState *string `type:"string" enum:"TrustState"`
 
+	// The reason for the TrustState.
+	TrustStateReason *string `type:"string"`
+
 	// The trust relationship type.
 	TrustType *string `type:"string" enum:"TrustType"`
 }
@@ -1993,6 +2494,46 @@ func (s Trust) String() string {
 
 // GoString returns the string representation
 func (s Trust) GoString() string {
+	return s.String()
+}
+
+type UpdateConditionalForwarderInput struct {
+	_ struct{} `type:"structure"`
+
+	// The directory ID of the AWS directory for which to update the conditional
+	// forwarder.
+	DirectoryId *string `type:"string" required:"true"`
+
+	// The updated IP addresses of the remote DNS server associated with the conditional
+	// forwarder.
+	DnsIpAddrs []*string `type:"list" required:"true"`
+
+	// The fully qualified domain name (FQDN) of the remote domain with which you
+	// will set up a trust relationship.
+	RemoteDomainName *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateConditionalForwarderInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateConditionalForwarderInput) GoString() string {
+	return s.String()
+}
+
+type UpdateConditionalForwarderOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateConditionalForwarderOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateConditionalForwarderOutput) GoString() string {
 	return s.String()
 }
 
@@ -2130,6 +2671,11 @@ const (
 )
 
 const (
+	// @enum ReplicationScope
+	ReplicationScopeDomain = "Domain"
+)
+
+const (
 	// @enum SnapshotStatus
 	SnapshotStatusCreating = "Creating"
 	// @enum SnapshotStatus
@@ -2143,6 +2689,17 @@ const (
 	SnapshotTypeAuto = "Auto"
 	// @enum SnapshotType
 	SnapshotTypeManual = "Manual"
+)
+
+const (
+	// @enum TopicStatus
+	TopicStatusRegistered = "Registered"
+	// @enum TopicStatus
+	TopicStatusTopicnotfound = "Topic not found"
+	// @enum TopicStatus
+	TopicStatusFailed = "Failed"
+	// @enum TopicStatus
+	TopicStatusDeleted = "Deleted"
 )
 
 const (
