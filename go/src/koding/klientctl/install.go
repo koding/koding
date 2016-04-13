@@ -280,6 +280,10 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
+	// try to uninstall first, otherwise Install may fail if
+	// klient.plist or klient init script already exist
+	s.Uninstall()
+
 	// Install the klient binary as a OS service
 	if err = s.Install(); err != nil {
 		log.Error("Error installing Service. err:%s", err)
