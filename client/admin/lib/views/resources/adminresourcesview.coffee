@@ -42,6 +42,8 @@ module.exports = class AdminResourcesView extends kd.View
     else
       @unsetClass 'advanced-search-mode'
 
+    @controller.customScrollView.wrapper.emit 'MutationHappened'
+
 
   search: (query) ->
 
