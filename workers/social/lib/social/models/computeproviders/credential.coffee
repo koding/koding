@@ -495,20 +495,16 @@ module.exports = class JCredential extends jraphical.Module
 
     sensitiveKeys = PROVIDERS[@provider]?.sensitiveKeys or []
 
-    Relationship.one { sourceId: @getId(), as: 'data' }, (err, rel) ->
-
+    JCredentialData.one { @identifier }, (err, data) ->
       return callback err  if err
-      return callback new KodingError 'No data found'  unless rel
+      return callback new KodingError 'No data found'  unless data
 
-      rel.fetchTarget (err, data) ->
-        return callback err  if err
+      if shadowSensitiveData
+        meta = data?.data?.meta or {}
+        sensitiveKeys.forEach (key) ->
+          meta[key] = shadowed meta[key]
 
-        if shadowSensitiveData
-          meta = data?.data?.meta or {}
-          sensitiveKeys.forEach (key) ->
-            meta[key] = shadowed meta[key]
-
-        callback null, data
+      callback null, data
 
 
   fetchData$: permit
