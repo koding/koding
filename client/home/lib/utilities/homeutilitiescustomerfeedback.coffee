@@ -15,7 +15,7 @@ module.exports = class HomeUtilitiesCustomerFeedback extends kd.CustomHTMLView
 
     team          = kd.singletons.groupsController.getCurrentGroup()
     { customize } = team
-    id            = customize.chatlioId
+    id            = customize?.chatlioId
 
     @input = new kd.InputView
       defaultValue : id  if id
