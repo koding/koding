@@ -95,7 +95,7 @@ module.exports = class CredentialStore
 
             console.log "Data couldn't found on sneaker, uploading..."
             storeOnSneaker client, data, (err) ->
-              console.log "Data sync with sneaker:", if err
+              console.log 'Data sync with sneaker:', if err
               then err else 'success'
 
           callback null, data
