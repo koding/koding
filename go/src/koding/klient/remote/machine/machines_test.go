@@ -32,3 +32,39 @@ func TestGetByURL(t *testing.T) {
 		})
 	})
 }
+
+func TestMachinesAdd(t *testing.T) {
+	Convey("Given a Machines struct", t, func() {
+		ms := &Machines{}
+		Convey("With a machine", func() {
+			m := &Machine{
+				MachineMeta: MachineMeta{
+					Name: "foo",
+					IP:   "bar",
+					URL:  "http://bar",
+				},
+			}
+			// Sanity check, make sure the machine is added
+			So(ms.Add(m), ShouldBeNil)
+
+			Convey("It should not allow the same machine to be added", func() {
+				So(ms.Add(m), ShouldEqual, ErrMachineAlreadyAdded)
+			})
+
+			Convey("It should not allow a machine with the same name to be added", func() {
+				similarM := &Machine{MachineMeta: MachineMeta{Name: "foo"}}
+				So(ms.Add(similarM), ShouldEqual, ErrMachineDuplicate)
+			})
+
+			Convey("It should not allow a machine with the same ip to be added", func() {
+				similarM := &Machine{MachineMeta: MachineMeta{IP: "bar"}}
+				So(ms.Add(similarM), ShouldEqual, ErrMachineDuplicate)
+			})
+
+			Convey("It should not allow a machine with the same url to be added", func() {
+				similarM := &Machine{MachineMeta: MachineMeta{URL: "http://bar"}}
+				So(ms.Add(similarM), ShouldEqual, ErrMachineDuplicate)
+			})
+		})
+	})
+}
