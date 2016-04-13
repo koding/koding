@@ -3,6 +3,7 @@ HomeTeamConnectSlack = require './hometeamconnectslack'
 HomeTeamSendInvites  = require './hometeamsendinvites'
 HomeTeamTeammates    = require './hometeamteammates'
 HomeTeamSettings     = require './hometeamsettings'
+TeamFlux             = require 'app/flux/teams'
 
 
 SECTIONS =
@@ -39,6 +40,10 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
     { groupsController } = kd.singletons
     team = groupsController.getCurrentGroup()
+
+    TeamFlux.actions.loadTeam() #make it load
+    # CHANNELS_URL = "https://kiskis.dev.koding.com:8090/api/social/slack/channels"
+    # TeamFlux.actions.fetchTeamChannels CHANNELS_URL
 
     @wrapper.addSubView header  'Team Settings'
     @wrapper.addSubView section 'Team Settings', null, team
