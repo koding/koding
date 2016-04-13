@@ -57,3 +57,51 @@ module.exports = class CredentialStore
 
   # STORE ENDS ----------------------------------------------------------------
 
+
+  # FETCH BEGINS --------------------------------------------------------------
+
+  fetchFromSneaker = (client, pathName, callback) ->
+
+    SocialCredential.get client, { pathName }, (err, data) ->
+      return callback err  if err
+      callback null, { meta: data.data, identifier: pathName }
+
+
+  fetchFromMongo = (identifier, callback) ->
+
+    JCredentialData.one { identifier }, (err, data) ->
+      return callback err  if err
+      return callback new KodingError 'No data found'  unless data
+      callback null, data
+
+
+  @fetch = (client, identifier, callback) ->
+
+    if @SNEAKER_SUPPORTED
+
+      fetchFromSneaker client, identifier, (err, data) ->
+
+        if err
+          failedToFetchFromSneaker = yes
+          return callback err  unless /^NoSuchKey/.test err.description
+
+        if data
+          return callback null, data
+
+        fetchFromMongo identifier, (err, data) ->
+          return callback err  if err
+
+          if failedToFetchFromSneaker
+
+            console.log "Data couldn't found on sneaker, uploading..."
+            storeOnSneaker client, data, (err) ->
+              console.log "Data sync with sneaker:", if err
+              then err else 'success'
+
+          callback null, data
+
+    else
+
+      fetchFromMongo identifier, callback
+
+  # FETCH ENDS ----------------------------------------------------------------
