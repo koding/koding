@@ -17,6 +17,7 @@ selenium-debug.log
 .vagrant
 .runningpids
 .imagesrc
+.agignore
 /.build
 /vault
 /generated
