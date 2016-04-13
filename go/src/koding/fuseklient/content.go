@@ -36,7 +36,7 @@ type ContentReadWriter struct {
 
 	// Path is the full path on locally mounted folder. Note it does not contain.
 	// the remote path prefix, that's in transport.
-	Path string
+	Path *string
 
 	// Size is the size of file on local. Note this can differ from remote if
 	// file was written to, but not yet synced to remote.
@@ -55,7 +55,7 @@ type ContentReadWriter struct {
 }
 
 // NewContentReadWriter is the required initializer for ContentReadWriter.
-func NewContentReadWriter(t remote, path string, size int64) *ContentReadWriter {
+func NewContentReadWriter(t remote, path *string, size int64) *ContentReadWriter {
 	return &ContentReadWriter{
 		remote:    t,
 		Path:      path,
@@ -91,7 +91,7 @@ func (c *ContentReadWriter) ReadAt(p []byte, offset int64) (int, error) {
 		return copied, nil
 	}
 
-	resp, err := c.remote.ReadFileAt(c.Path, offset, c.BlockSize)
+	resp, err := c.remote.ReadFileAt(*c.Path, offset, c.BlockSize)
 	if err != nil {
 		return 0, err
 	}
@@ -118,7 +118,7 @@ func (c *ContentReadWriter) ReadAll() error {
 
 	var offset int64 = 0
 	for offset < c.Size {
-		resp, err := c.remote.ReadFileAt(c.Path, offset, c.BlockSize)
+		resp, err := c.remote.ReadFileAt(*c.Path, offset, c.BlockSize)
 		if err != nil {
 			return err
 		}
@@ -219,5 +219,5 @@ func (c *ContentReadWriter) writeAt(content []byte, offset int64) int {
 // writeContentToRemote saves specified byte slice to remote.
 func (c *ContentReadWriter) writeContentToRemote(content []byte) error {
 	c.isDirty = false
-	return c.remote.WriteFile(c.Path, content)
+	return c.remote.WriteFile(*c.Path, content)
 }
