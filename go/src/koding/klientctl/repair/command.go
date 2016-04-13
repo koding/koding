@@ -18,7 +18,7 @@ import (
 	"koding/mountcli"
 
 	"github.com/koding/logging"
-	"github.com/leeola/service"
+	"github.com/koding/service"
 )
 
 type Options struct {

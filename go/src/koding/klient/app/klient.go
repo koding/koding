@@ -500,8 +500,6 @@ func (k *Klient) Run() {
 	// are not interested in it
 	isKoding, _ := info.CheckKoding()
 
-	k.startUpdater()
-
 	if (protocol.Environment == "managed" || protocol.Environment == "devmanaged") && isKoding {
 		k.log.Error("Managed Klient is attempting to run on a Koding provided VM")
 		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
@@ -547,6 +545,14 @@ func (k *Klient) Run() {
 
 	k.log.Info("Using version: '%s' querystring: '%s'", k.config.Version, k.kite.Id)
 
+	// TODO(rjeczalik): enable updater control with TMS-2816
+	if runtime.GOOS != "darwin" {
+		// start our updater in the background
+		go k.updater.Run()
+	} else {
+		k.log.Warning("automatic updates are disabled on darwin")
+	}
+
 	k.kite.Run()
 }
 
@@ -561,17 +567,6 @@ func (k *Klient) register(registerURL *url.URL) error {
 	k.kite.RegisterHTTPForever(registerURL)
 
 	return nil
-}
-
-func (k *Klient) startUpdater() {
-	// TODO: Re-enable
-	if runtime.GOOS == "darwin" {
-		k.log.Warning("Updater is disabled on darwin")
-		return
-	}
-
-	// start our updater in the background
-	go k.updater.Run()
 }
 
 func (k *Klient) Close() {

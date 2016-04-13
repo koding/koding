@@ -11,6 +11,10 @@ access_key=$S3_KEY_ID
 secret_key=$S3_KEY_SECRET
 EOF
 
+if [[ -z "$KLIENT_CHANNEL" ]]; then
+	KLIENT_CHANNEL=${CHANNEL:-}
+fi
+
 export S3DIR="s3://koding-klient/$KLIENT_CHANNEL"
 
 # fetch the latest build number since wercker doesn't provide one

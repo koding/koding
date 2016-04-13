@@ -143,7 +143,7 @@ func TestDTRename(t *testing.T) {
 
 		Convey("It should remove old entry", func() {
 			_, err = os.Stat(dt.fullPath("file"))
-			So(err.Error(), ShouldContainSubstring, "no such file or directory")
+			So(os.IsNotExist(err), ShouldBeTrue)
 		})
 	})
 }
@@ -161,7 +161,7 @@ func TestDTRemove(t *testing.T) {
 
 		Convey("It should remove old entry", func() {
 			_, err = os.Stat(dt.fullPath("file"))
-			So(err.Error(), ShouldContainSubstring, "no such file or directory")
+			So(os.IsNotExist(err), ShouldBeTrue)
 		})
 	})
 }

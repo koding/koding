@@ -1,24 +1,93 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"io/ioutil"
-	"koding/klientctl/config"
-	"koding/klientctl/metrics"
+	"net/http"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 
-	"github.com/koding/logging"
+	"koding/klientctl/config"
+	"koding/klientctl/metrics"
 
 	"github.com/codegangsta/cli"
-	"github.com/leeola/service"
+	"github.com/koding/logging"
+	"github.com/koding/service"
 )
+
+type ServiceOptions struct {
+	Username   string
+	KontrolURL string
+}
+
+var defaultServiceOpts = &ServiceOptions{
+	Username:   username(),
+	KontrolURL: config.KontrolURL,
+}
+
+var klientShTmpl = template.Must(template.New("").Parse(`#!/bin/bash
+
+# Koding Service Connector
+# Copyright (C) 2012-2016 Koding Inc., all rights reserved.
+
+# source environment
+for src in /etc/{environment,profile,bashrc}; do
+	[[ -f ${src} ]] && source ${src}
+done
+
+isOSX=$(uname -v | grep -Ec '^Darwin Kernel.*')
+
+if [[ ${isOSX} -ne 0 ]]; then
+	# wait under OS-X till network is ready
+	. /etc/rc.common
+
+	CheckForNetwork
+
+	while [ "${NETWORKUP}" != "-YES-" ]; do
+		sleep 5
+		NETWORKUP=
+		CheckForNetwork
+	done
+fi
+
+# configure environment
+
+ulimit -n 5000
+
+# start klient
+
+{{if .KontrolURL}}
+export KITE_KONTROL_URL=${KITE_KONTROL_URL:-{{.KontrolURL}}}
+{{else}}
+export KITE_KONTROL_URL=${KITE_KONTROL_URL:-https://koding.com/kontrol/kite}
+{{end}}
+{{if .User}}
+export USERNAME=${USERNAME:-{{.User}}}
+{{end}}
+{{if .KlientBinPath}}
+export KLIENT_BIN=${KLIENT_BIN:-{{.KlientBinPath}}}
+{{else}}
+export KLIENT_BIN=${KLIENT_BIN:-/opt/kite/klient/klient}
+{{end}}
+export HOME=$(eval cd ~${USERNAME}; pwd)
+export PATH=$PATH:/usr/local/bin
+
+sudo -E -u "${USERNAME}" ${KLIENT_BIN} -kontrol-url "${KITE_KONTROL_URL}"
+`))
 
 // newService provides a preconfigured (based on klientctl's config)
 // service object to install, uninstall, start and stop Klient.
-func newService() (service.Service, error) {
+func newService(opts *ServiceOptions) (service.Service, error) {
+	if opts == nil {
+		opts = defaultServiceOpts
+	}
+
 	// TODO: Add hosts's username
 	svcConfig := &service.Config{
 		Name:        "klient",
@@ -26,8 +95,16 @@ func newService() (service.Service, error) {
 		Description: "Koding Service Connector",
 		Executable:  filepath.Join(KlientDirectory, "klient.sh"),
 		Option: map[string]interface{}{
-			"LogStderr": true,
-			"LogStdout": true,
+			"LogStderr":     true,
+			"LogStdout":     true,
+			"After":         "network.target",
+			"RequiredStart": "$network",
+			"Environment": map[string]string{
+				"USERNAME":         opts.Username,
+				"KITE_USERNAME":    "",
+				"KITE_KONTROL_URL": opts.KontrolURL,
+				"KITE_HOME":        config.KiteHome,
+			},
 		},
 	}
 
@@ -44,6 +121,26 @@ func (p *serviceProgram) Start(s service.Service) error {
 func (p *serviceProgram) Stop(s service.Service) error {
 	fmt.Println("Error: serviceProgram Stop called")
 	return nil
+}
+
+func latestVersion(url string) (int, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	p, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	version, err := strconv.ParseUint(string(bytes.TrimSpace(p)), 10, 32)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(version), nil
 }
 
 // InstallCommandFactory is the factory method for InstallCommand.
@@ -78,7 +175,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	kontrolURL := strings.TrimSpace(c.String("kontrol"))
 	if kontrolURL == "" {
 		// Default to the config's url
-		kontrolURL = KontrolURL
+		kontrolURL = config.KontrolURL
 	}
 
 	// Create the installation dir, if needed.
@@ -96,7 +193,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	// TODO: Accept `kd install --user foo` flag to replace the
 	// environ checking.
 	klientSh := klientSh{
-		User:          sudoUserFromEnviron(os.Environ()),
+		User:          username(),
 		KiteHome:      config.KiteHome,
 		KlientBinPath: klientBinPath,
 		KontrolURL:    kontrolURL,
@@ -110,8 +207,15 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 
 	fmt.Println("Downloading...")
 
-	if err = downloadRemoteToLocal(S3KlientPath, klientBinPath); err != nil {
-		log.Error("Error downloading klient binary. err:%s", err)
+	version, err := latestVersion(config.S3KlientLatest)
+	if err != nil {
+		log.Error("Error downloading klient binary. err: %s", err)
+		fmt.Printf(FailedDownloadingKlient)
+		return 1
+	}
+
+	if err = downloadRemoteToLocal(config.S3Klient(version), klientBinPath); err != nil {
+		log.Error("Error downloading klient binary. err: %s", err)
 		fmt.Printf(FailedDownloadingKlient)
 		return 1
 	}
@@ -163,8 +267,13 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
+	opts := &ServiceOptions{
+		Username:   klientSh.User,
+		KontrolURL: klientSh.KontrolURL,
+	}
+
 	// Create our interface to the OS specific service
-	s, err := newService()
+	s, err := newService(opts)
 	if err != nil {
 		log.Error("Error creating Service. err:%s", err)
 		fmt.Println(GenericInternalNewCodeError)
@@ -185,7 +294,11 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	// Note that the service may error if it is already running, so
 	// we're ignoring any starting errors here. We will verify the
 	// connection below, anyway.
-	s.Start()
+	if err = s.Start(); err != nil {
+		log.Error("Error starting %s: %s", config.KlientName, err)
+		fmt.Println(FailedStartKlient)
+		return 1
+	}
 
 	fmt.Println("Verifying installation...")
 	err = WaitUntilStarted(config.KlientAddress, CommandAttempts, CommandWaitTime)
@@ -199,7 +312,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	// track metrics
-	metrics.TrackInstall(config.Version)
+	metrics.TrackInstall(config.VersionNum())
 
 	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", config.KlientName)
 
@@ -244,34 +357,30 @@ type klientSh struct {
 }
 
 // Format returns the klient.sh struct formatted for the actual file.
-func (k klientSh) Format() string {
-	// sudoCmd is used to run the bin as the given user. However,
-	// we only do that if the user value of klientSh is non-zeroed.
-	var sudoCmd string
+func (k klientSh) Format() (string, error) {
+	var buf bytes.Buffer
 
-	if k.User != "" {
-		sudoCmd = fmt.Sprintf("sudo -u %s ", k.User)
+	if err := klientShTmpl.Execute(&buf, &k); err != nil {
+		return "", nil
 	}
 
-	return fmt.Sprintf(
-		`#!/bin/sh
-ulimit -n 5000
-%sKITE_HOME=%s %s --kontrol-url=%s
-`,
-		sudoCmd, k.KiteHome, k.KlientBinPath, k.KontrolURL,
-	)
+	return buf.String(), nil
 }
 
 // Create writes the result of Format() to the given path.
-func (k klientSh) Create(p string) error {
+func (k klientSh) Create(file string) error {
+	p, err := k.Format()
+	if err != nil {
+		return err
+	}
+
 	// perm -rwr-xr-x, same as klient
-	return ioutil.WriteFile(p, []byte(k.Format()), 0755)
+	return ioutil.WriteFile(file, []byte(p), 0755)
 }
 
 // sudoUserFromEnviron extracts the SUDO_USER environment variable value from
 // the given slice, if any.
 func sudoUserFromEnviron(envs []string) string {
-	var user string
 	for _, s := range envs {
 		env := strings.Split(s, "=")
 
@@ -280,9 +389,21 @@ func sudoUserFromEnviron(envs []string) string {
 		}
 
 		if env[0] == "SUDO_USER" {
-			user = env[1]
-			break
+			return env[1]
 		}
 	}
-	return user
+
+	return ""
+}
+
+func username() string {
+	if s := sudoUserFromEnviron(os.Environ()); s != "" {
+		return s
+	}
+
+	if u, err := user.Current(); err == nil {
+		return u.Username
+	}
+
+	return ""
 }

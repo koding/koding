@@ -324,6 +324,28 @@ module.exports.create = (KONFIG, environment)->
         resolver 8.8.8.8;
       }
 
+      # redirect /d/kd to KD installer for development channel
+      location /c/d/kd {
+        proxy_pass            "https://s3.amazonaws.com/koding-kd/development/install-kd.sh";
+        proxy_set_header      X-Host          $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 1;
+
+        resolver 8.8.8.8;
+      }
+
+      # redirect /p/kd to KD installer for production channel
+      location /c/p/kd {
+        proxy_pass            "https://s3.amazonaws.com/koding-kd/production/install-kd.sh";
+        proxy_set_header      X-Host          $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 1;
+
+        resolver 8.8.8.8;
+      }
+
       # Hackathon2014 is the old hackathon page and served via webserver
       # todo(cihangir) remove after hubspot integration
       location = /Hackathon2014 {

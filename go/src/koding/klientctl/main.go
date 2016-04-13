@@ -74,7 +74,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = config.Name
-	app.Version = fmt.Sprintf("%d", config.Version)
+	app.Version = config.Version
 
 	app.Commands = []cli.Command{
 		cli.Command{
