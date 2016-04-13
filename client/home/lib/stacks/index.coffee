@@ -1,29 +1,12 @@
 kd                      = require 'kd'
+sectionize              = require '../commons/sectionize'
+headerize               = require '../commons/headerize'
 HomeStacksCreate        = require './homestackscreate'
 HomeStacksTeamStacks    = require './homestacksteamstacks'
 HomeStacksPrivateStacks = require './homestacksprivatestacks'
 HomeStacksDrafts        = require './homestacksdrafts'
 
-EnvironmentFlux = require 'app/flux/environment'
-
-
-SECTIONS =
-  'Team Stacks'    : HomeStacksTeamStacks
-  'Private Stacks' : HomeStacksPrivateStacks
-  'Drafts'         : HomeStacksDrafts
-
-
-header = (title) ->
-  new kd.CustomHTMLView
-    tagName  : 'header'
-    cssClass : 'HomeAppView--sectionHeader'
-    partial  : title
-
-
-section = (name) ->
-  new (SECTIONS[name] or kd.View)
-    tagName  : 'section'
-    cssClass : "HomeAppView--section #{kd.utils.slugify name}"
+EnvironmentFlux         = require 'app/flux/environment'
 
 
 module.exports = class HomeStacks extends kd.CustomScrollView
@@ -39,11 +22,13 @@ module.exports = class HomeStacks extends kd.CustomScrollView
       EnvironmentFlux.actions.loadTeamStackTemplates()
       EnvironmentFlux.actions.loadPrivateStackTemplates()
 
-      @wrapper.addSubView header 'Team Stacks'
-      @wrapper.addSubView section 'Team Stacks'
+      @wrapper.addSubView new HomeStacksCreate
 
-      @wrapper.addSubView header 'Private Stacks'
-      @wrapper.addSubView section 'Private Stacks'
+      @wrapper.addSubView headerize 'Team Stacks'
+      @wrapper.addSubView sectionize 'Team Stacks', HomeStacksTeamStacks
 
-      @wrapper.addSubView header 'Drafts'
-      @wrapper.addSubView section 'Drafts'
+      @wrapper.addSubView headerize 'Private Stacks'
+      @wrapper.addSubView sectionize 'Private Stacks', HomeStacksPrivateStacks
+
+      @wrapper.addSubView headerize 'Drafts'
+      @wrapper.addSubView sectionize 'Drafts', HomeStacksDrafts
