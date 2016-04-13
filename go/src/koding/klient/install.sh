@@ -269,8 +269,6 @@ Copyright (C) 2012-2016 Koding Inc., all rights reserved.
 			<string>$(whoami)</string>
 			<key>KITE_USERNAME</key>
 			<string>${username}</string>
-			<key>KITE_KONTROL_URL</key>
-			<string>${kontrolurl}</string>
 			<key>KITE_HOME</key>
 			<string>/etc/kite</string>
 	</dict>
