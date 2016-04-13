@@ -1,4 +1,5 @@
-jraphical      = require 'jraphical'
+hat       = require 'hat'
+jraphical = require 'jraphical'
 
 module.exports = class JCredential extends jraphical.Module
 
@@ -7,6 +8,7 @@ module.exports = class JCredential extends jraphical.Module
   JGroup             = require '../group'
   JCredentialData    = require './credentialdata'
   { PROVIDERS }      = require './computeutils'
+  CredentialStore    = require './credentialstore'
 
   KodingError        = require '../../error'
 
@@ -185,12 +187,10 @@ module.exports = class JCredential extends jraphical.Module
         callback new KodingError 'Provider is not supported'
         return
 
-      credData = new JCredentialData { meta, originId }
-      credData.save (err) ->
+      CredentialStore.create client, { meta, originId }, (err, identifier) ->
         return  if failed err, callback
 
-        { identifier }   = credData
-        _data            = { provider, title, identifier, originId }
+        _data = { provider, title, identifier, originId }
 
         if provider in ['custom', 'userInput']
           _data.fields   = (Object.keys meta) or []
@@ -199,11 +199,12 @@ module.exports = class JCredential extends jraphical.Module
         credential = new JCredential _data
 
         credential.save (err) ->
-          return  if failed err, callback, credData
+          return  if failed err, callback
 
           delegate.addCredential credential, { as: 'owner' }, (err) ->
-            return  if failed err, callback, credential, credData
+            return  if failed err, callback, credential
 
+            callback null, credential
 
 
   @fetchByIdentifier = (client, identifier, callback) ->
