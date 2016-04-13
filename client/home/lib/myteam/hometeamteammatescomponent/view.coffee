@@ -2,7 +2,6 @@ kd              = require 'kd'
 React           = require 'kd-react'
 Member          = require './member'
 List            = require 'app/components/list'
-Select          = require 'react-select'
 
 
 module.exports = class HomeTeamTeamMatesView extends React.Component
