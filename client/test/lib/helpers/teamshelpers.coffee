@@ -1060,7 +1060,6 @@ module.exports =
         callback invitationUrl
 
 
-<<<<<<< a6d32c916b0de8cbfc77b4824869220d8aac3fe3
   enableAndDisableApiAccess: (browser, enableApi = no, disableApi = no) ->
 
     apiAccessSelector       = '.kdtabhandle-tabs .api-access.AppModal-navItem'
