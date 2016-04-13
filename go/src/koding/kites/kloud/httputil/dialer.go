@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"koding/kites/common"
 	"net"
-	"os"
-	"runtime"
-	"strings"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -69,8 +67,10 @@ func (d *Dialer) dial(network, addr string) (net.Conn, error) {
 
 	c := &Conn{
 		Connected:  time.Now(),
-		Stacktrace: stacktrace(10),
+		Stacktrace: string(debug.Stack()),
 		Conn:       conn,
+		network:    network,
+		addr:       addr,
 	}
 
 	c.close = func() {
@@ -78,7 +78,7 @@ func (d *Dialer) dial(network, addr string) (net.Conn, error) {
 		delete(d.conns, c)
 		d.mu.Unlock()
 
-		d.log().Debug("connection closed: %s", c)
+		d.log().Debug("connection closed: %s", c.ShortString())
 	}
 
 	d.mu.Lock()
@@ -89,7 +89,7 @@ func (d *Dialer) dial(network, addr string) (net.Conn, error) {
 }
 
 func (d *Dialer) process() {
-	d.log().Debug("starting processing goroutine")
+	d.log().Debug("starting processing goroutine (%p)", d)
 
 	for range d.tick.C {
 		d.mu.Lock()
@@ -106,14 +106,9 @@ func (d *Dialer) process() {
 		for i, c := range conns {
 			c := &c
 
-			d.log().Debug("(%d/%d) active connection: %s", i+1, len(conns), c)
+			d.log().Debug("(%d/%d) active connection: %s", i+1, len(conns), c.ShortString())
 
-			last := c.LastRead
-			if c.LastWrite.After(last) {
-				last = c.LastWrite
-			}
-
-			if dur := now.Sub(last); dur > 10*time.Minute {
+			if dur := c.Since(now); dur > 10*time.Minute {
 				// To be accurate each HTTP client can hold multiple idle
 				// conections per host (2 by default); if number of idle
 				// connections per host greatly exceeds that number then
@@ -129,57 +124,69 @@ func (d *Dialer) process() {
 }
 
 type Conn struct {
-	Connected  time.Time
-	LastRead   time.Time
-	LastWrite  time.Time
-	Stacktrace []string
+	Connected    time.Time
+	LastRead     time.Time
+	LastWrite    time.Time
+	BytesRead    int64
+	BytesWritten int64
+	Stacktrace   string
 
-	mu    sync.Mutex // protects Last{Read,Write}
-	close func()
+	network string
+	addr    string
+	mu      sync.Mutex // protects Last{Read,Write} and Bytes{Read,Written}
+	close   func()
 	net.Conn
 }
 
+func (c *Conn) Since(now time.Time) time.Duration {
+	if now.IsZero() {
+		now = time.Now()
+	}
+
+	last := c.LastRead
+	if c.LastWrite.After(last) {
+		last = c.LastWrite
+	}
+
+	return now.Sub(last)
+}
+
+func (c *Conn) ShortString() string {
+	return fmt.Sprintf("%s->%s (%q, %q): BytesRead=%d, BytesWritten=%d, Duration=%s",
+		c.Conn.LocalAddr(), c.Conn.RemoteAddr(), c.network, c.addr, c.BytesRead,
+		c.BytesWritten, c.Since(time.Now()))
+}
+
 func (c *Conn) String() string {
-	return fmt.Sprintf("%s->%s: Connected=%s, LastRead=%s, LastWrite=%s, Stacktrace=%v",
-		c.Conn.LocalAddr(), c.Conn.RemoteAddr(), c.Connected, c.LastRead,
+	return fmt.Sprintf("%s->%s (%q, %q): Connected=%s, BytesRead=%d, LastRead=%s, BytesWritten=%d, LastWrite=%s, Stacktrace=%s",
+		c.Conn.LocalAddr(), c.Conn.RemoteAddr(), c.network, c.addr, c.Connected, c.BytesRead, c.LastRead, c.BytesWritten,
 		c.LastWrite, c.Stacktrace)
 }
 
 func (c *Conn) Read(p []byte) (int, error) {
+	n, err := c.Conn.Read(p)
+
 	c.mu.Lock()
 	c.LastRead = time.Now()
+	c.BytesRead += int64(n)
 	c.mu.Unlock()
 
-	return c.Conn.Read(p)
+	return n, err
 }
 
 func (c *Conn) Write(p []byte) (int, error) {
+	n, err := c.Conn.Write(p)
+
 	c.mu.Lock()
 	c.LastWrite = time.Now()
+	c.BytesWritten += int64(n)
 	c.mu.Unlock()
 
-	return c.Conn.Write(p)
+	return n, err
 }
 
 func (c *Conn) Close() error {
 	c.close()
 
 	return c.Conn.Close()
-}
-
-func stacktrace(max int) []string {
-	pc, stack := make([]uintptr, max), make([]string, 0, max)
-	runtime.Callers(2, pc)
-	for _, pc := range pc {
-		if f := runtime.FuncForPC(pc); f != nil {
-			fname := f.Name()
-			idx := strings.LastIndex(fname, string(os.PathSeparator))
-			if idx != -1 {
-				stack = append(stack, fname[idx+1:])
-			} else {
-				stack = append(stack, fname)
-			}
-		}
-	}
-	return stack
 }
