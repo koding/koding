@@ -30,14 +30,14 @@ module.exports = class MachinesListItem extends React.Component
     return null  unless @props.shouldRenderDetails
     return null  unless @state.isDetailOpen
 
-    <div className="MachinesListItem-machineDetails">
+    <main className="MachinesListItem-machineDetails">
       <MachineDetails
         machine={@props.machine}
         shouldRenderSpecs={@props.shouldRenderSpecs}
         shouldRenderPower={@props.shouldRenderPower}
         shouldRenderAlwaysOn={@props.shouldRenderAlwaysOn}
         shouldRenderSharing={@props.shouldRenderSharing} />
-    </div>
+    </main>
 
 
   renderDetailToggle: ->
@@ -46,24 +46,22 @@ module.exports = class MachinesListItem extends React.Component
 
     toggleOpen = (machineId) => (event) => @setState { isDetailOpen: not @state.isDetailOpen }
 
-    <div className="MachinesListItem-detailToggle">
-      <button className="MachinesListItem-detailToggleIcon" onClick={toggleOpen @props.machine.get 'id'}>></button>
+    <div className="MachinesListItem-detailToggle#{if @state.isDetailOpen then ' expanded' else ''}">
+      <button onClick={toggleOpen @props.machine.get 'id'}></button>
     </div>
 
 
   render: ->
 
-    <div className="MachinesListItem">
-      <div className="MachinesListItem-machineLabel">
-        {@props.machine.get 'label'}
-      </div>
-      <div className="MachinesListItem-hostName">
-        {@props.machine.get 'ipAddress'}
-      </div>
-      <div className="MachinesListItem-stackLabel">
-        {@props.stack.get 'title'}
-      </div>
-      {@renderDetailToggle()}
+    <div className="MachinesListItem#{if @state.isDetailOpen then ' expanded' else ''}">
+      <header>
+        <div className="MachinesListItem-machineLabel">{@props.machine.get 'label'}</div>
+        <div className="MachinesListItem-hostName">{@props.machine.get 'ipAddress'}</div>
+        <div className="MachinesListItem-stackLabel">
+          <a href="#" className="HomeAppView--button primary">{@props.stack.get 'title'}</a>
+        </div>
+        {@renderDetailToggle()}
+      </header>
       {@renderMachineDetails()}
     </div>
 
