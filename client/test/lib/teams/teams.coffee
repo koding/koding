@@ -47,3 +47,42 @@ module.exports =
       .assert.valueContains   'input[name=url]', user.teamSlug
       .waitForElementVisible  '.avatar-upload .avatar', 20000
       .end()
+
+
+  stacks: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser)
+    browser.end()
+
+
+  stacksSkipSetupGuide: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    browser.end()
+
+
+  checkNotReadyAndPrivateIconsDisplayedForStacks: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    teamsHelpers.checkIconsStacks(browser)
+    browser.end()
+
+
+  enableApiAccess: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.clickTeamSettings(browser)
+    teamsHelpers.enableAndDisableApiAccess(browser, yes, yes)
+    browser.end()
+
+
+  createAndDeleteApiToken: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.clickTeamSettings(browser)
+    teamsHelpers.enableAndDisableApiAccess(browser, yes)
+    teamsHelpers.addNewApiToken(browser)
+    browser.end()
