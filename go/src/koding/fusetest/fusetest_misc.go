@@ -144,6 +144,8 @@ func (f *Fusetest) TestCpOutToIn() {
 			contents, err := f.Remote.ReadFile(in)
 			So(err, ShouldBeNil)
 			So(contents, ShouldEqual, "Hello World!")
+
+			So(f.CheckLocalFileContents(filepath.Join(dirName, "in"), string("Hello World!")), ShouldBeNil)
 		})
 	})
 }
