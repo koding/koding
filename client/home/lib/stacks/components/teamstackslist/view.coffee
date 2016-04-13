@@ -30,11 +30,9 @@ module.exports = class TeamStacksListView extends React.Component
       <div className='StackTemplateItem-description'>
         Last updated <TimeAgo from={template.getIn ['meta', 'modifiedAt']} />
       </div>
-      <div className="StackTemplateItem-secondaryButton">
-        <button onClick={kd.noop}>RE-INITIALIZE</button>
-      </div>
-      <div className="StackTemplateItem-primaryButton">
-        <button onClick={kd.noop}>LAUNCH</button>
+      <div className='StackTemplateItem-ButtonContainer'>
+        <a href="#" className="HomeAppView--button" onClick={kd.noop}>RE-INITIALIZE</a>
+        <a href="#" className="HomeAppView--button primary" onClick={kd.noop}>LAUNCH</a>
       </div>
     </div>
 
