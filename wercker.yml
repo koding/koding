@@ -18,7 +18,6 @@ build:
     - script:
         name: fetch pull requests
         code: |
-          ./scripts/inject_credentials.sh
           git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
           git fetch --force --quiet origin
     - script:
@@ -47,8 +46,10 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
     - script:
-        name: copy prod creds
-        code: ./scripts/copy-prod-creds.sh
+        name: inject credentials
+        code: |
+          ./scripts/copy-prod-creds.sh
+          ./scripts/inject_credentials.sh
     - script:
         name: change mod of test instace private key
         code: chmod 600 ./scripts/test-instance/koding-test-instances-2015-06.pem
