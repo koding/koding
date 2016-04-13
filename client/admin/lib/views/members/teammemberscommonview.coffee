@@ -136,7 +136,7 @@ module.exports = class TeamMembersCommonView extends KDView
     if err?.message?.indexOf('No account found') > -1
       @search yes
     else
-      @listController.lazyLoader.hide()
+      @listController.hideLazyLoader()
       kd.warn err
 
 
