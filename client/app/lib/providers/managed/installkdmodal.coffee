@@ -57,12 +57,14 @@ module.exports = class InstallKdModal extends kd.ModalView
 
 
   updateContentViews: (token) ->
+    kontrolUrl = ''
+    channel = 'p'
 
-    kontrolUrl = if globals.config.environment in ['dev', 'default', 'sandbox']
-    then "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; "
-    else ''
+    if globals.config.environment in ['dev', 'default', 'sandbox']
+      kontrolUrl = "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; "
+      channel = 'd'
 
-    cmd = "#{kontrolUrl}curl -sL https://kodi.ng/d/kd | bash -s #{token}"
+    cmd = "#{kontrolUrl}curl -sL https://kodi.ng/c/#{channel}/kd | bash -s #{token}"
 
     @loader.destroy()
     @code.addSubView @input = new kd.InputView

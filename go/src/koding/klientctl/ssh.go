@@ -7,6 +7,7 @@ import (
 
 	"koding/klientctl/config"
 	"koding/klientctl/metrics"
+	"koding/klientctl/shortcut"
 	"koding/klientctl/ssh"
 
 	"github.com/codegangsta/cli"
@@ -19,7 +20,10 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
+	mountName := c.Args()[0]
+
 	cmd, err := ssh.NewSSHCommand(log, true)
+	mountName := c.Args()[0]
 
 	// TODO: Refactor SSHCommand instance to require no initialization,
 	// and thus avoid needing to log an error in a weird place.
@@ -34,15 +38,13 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 			fmt.Println(GenericInternalError)
 		}
 
-		metrics.TrackSSHFailed(mountName, err.Error(), config.Version)
+		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 		return 1
 	}
 
-	mountName := c.Args()[0]
-
 	// track metrics
 	go func() {
-		metrics.TrackSSH(mountName, config.Version)
+		metrics.TrackSSH(mountName, config.VersionNum())
 	}()
 
 	err = cmd.Run(mountName)
@@ -57,11 +59,13 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
 	case ssh.ErrRemoteDialingFailed:
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedDialingRemote))
+	case shortcut.ErrMachineNotFound:
+		fmt.Println(MachineNotFound)
 	}
 
 	// track metrics
 	if err != nil {
-		metrics.TrackSSHFailed(mountName, err.Error(), config.Version)
+		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	}
 
 	log.Error("SSHCommand.Run returned err:%s", err)

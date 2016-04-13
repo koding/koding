@@ -63,8 +63,8 @@ type CheckUpdate struct {
 // NewCheckUpdate is the required initializer for CheckUpdate.
 func NewCheckUpdate() *CheckUpdate {
 	return &CheckUpdate{
-		LocalVersion:       config.Version,
-		Location:           S3UpdateLocation,
+		LocalVersion:       config.VersionNum(),
+		Location:           config.S3KlientctlLatest,
 		RandomSeededNumber: rand.Intn(3),
 		ForceCheck:         false,
 	}
