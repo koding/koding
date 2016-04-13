@@ -55,9 +55,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
     inviteInputs = @state.inviteInputs
 
-    TeamFlux.actions.inviteMembers(inviteInputs).then ({ message, invites, admins }) =>
-
-      return showError message  if message
+    TeamFlux.actions.inviteMembers(inviteInputs).then ({ invites, admins }) ->
 
       if invites
         TeamFlux.actions.loadPendingInvites(invites).then ({ pendingInvitations }) ->
@@ -65,6 +63,11 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
             notifyAdminInvites invites, admins, pendingInvitations
           else
             handleInvitationRequest invites, pendingInvitations
+
+    .catch ({ message }) ->
+
+      return showError message  if message
+
 
   sendInvitations = (invites, pendingInvites) ->
 
