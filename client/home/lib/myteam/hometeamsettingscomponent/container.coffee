@@ -21,13 +21,13 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
   constructor: (props) ->
 
     super props
-
+    
 
   componentDidMount: ->
-
+    
     canEdit = kd.singletons.groupsController.canEditGroup()
     teamName = Encoder.htmlDecode @state.team?.get 'title' ? ''
-
+    
     @setState
       logopath : '/a/images/logos/sidebar_footer_logo.svg'
       canEdit : canEdit
