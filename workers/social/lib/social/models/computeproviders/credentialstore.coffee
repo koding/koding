@@ -4,18 +4,22 @@ jraphical = require 'jraphical'
 { argv }  = require 'optimist'
 KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
 
-SNEAKER_SUPPORTED = do ->
-
-  for key, val of KONFIG.sneakerS3
-    return no  if not val or val is ''
-
-  return yes
-
 
 module.exports = class CredentialStore
 
+  KodingError      = require '../../error'
   JCredentialData  = require './credentialdata'
   SocialCredential = require '../socialapi/credential'
+
+  @SNEAKER_SUPPORTED = do ->
+
+    for key, val of KONFIG.sneakerS3
+      return no  if not val or val is ''
+
+    return yes
+
+
+  # STORE BEGINS --------------------------------------------------------------
 
 
   storeOnSneaker = (client, data, callback) ->
@@ -41,7 +45,7 @@ module.exports = class CredentialStore
     identifier ?= hat()
     data = { meta, originId, identifier }
 
-    if SNEAKER_SUPPORTED
+    if @SNEAKER_SUPPORTED
       storeOnSneaker client, data, (err) ->
         # This part can be removed once kloud is ready
         # to use sneaker by default ~ GG cc/ RJ
@@ -49,3 +53,7 @@ module.exports = class CredentialStore
         storeOnMongo data, callback
     else
       storeOnMongo data, callback
+
+
+  # STORE ENDS ----------------------------------------------------------------
+

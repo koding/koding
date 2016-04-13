@@ -1,5 +1,6 @@
 JCredential      = require './credential'
 JCredentialData  = require './credentialdata'
+CredentialStore  = require './credentialstore'
 { async
   expect
   expectRelation
@@ -23,6 +24,9 @@ beforeTests = -> before (done) ->
 
 # here we have actual tests
 runTests = -> describe 'workers.social.models.computeproviders.credential', ->
+
+  # Forcing CredentialStore to not use SNEAKER for tests
+  CredentialStore.SNEAKER_SUPPORTED = no
 
   describe '#getName()', ->
 
