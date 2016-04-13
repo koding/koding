@@ -27,7 +27,7 @@ filteredMembersWithRole = [
   membersWithRole
   searchInputValue
   (ids, members, value) ->
-    console.log '******'
+
     return members  if value is ''
 
     filteredMembers = immutable.Map()

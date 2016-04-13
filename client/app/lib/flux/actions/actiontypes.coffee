@@ -27,4 +27,5 @@ module.exports = {
   'FETCH_TEAM_MEMBERS_SUCCESS'
 
   'UPDATE_TEAM_MEMBER'
+  'DELETE_TEAM_MEMBER'
 }
