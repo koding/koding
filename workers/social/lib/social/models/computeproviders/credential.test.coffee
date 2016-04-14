@@ -10,6 +10,7 @@ CredentialStore  = require './credentialstore'
   generateRandomString
   checkBongoConnectivity } = require '../../../../testhelper'
 { generateMetaData
+  removeGeneratedCredentials
   withConvertedUserAndCredential } = require \
   '../../../../testhelper/models/computeproviders/credentialhelper'
 { withConvertedUserAnd } = require \
@@ -572,6 +573,10 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           done()
 
 
+afterTests = -> after removeGeneratedCredentials
+
 beforeTests()
 
 runTests()
+
+afterTests()

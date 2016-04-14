@@ -1,12 +1,12 @@
 ProviderInterface = require './providerinterface'
-CredentialStore   = require './credentialstore'
 
 { async
   expect
-  checkBongoConnectivity }         = require '../../../../testhelper'
-{ withConvertedUserAndCredential } = require '../../../../testhelper/models/computeproviders/credentialhelper'
+  checkBongoConnectivity } = require '../../../../testhelper'
 
-CREDENTIALS = []
+{ removeGeneratedCredentials
+  withConvertedUserAndCredential
+} = require '../../../../testhelper/models/computeproviders/credentialhelper'
 
 # this function will be called once before running any test
 beforeTests = -> before (done) ->
@@ -23,8 +23,6 @@ runTests = -> describe 'workers.social.models.computeproviders.providerinterface
 
       withConvertedUserAndCredential ({ client, credential }) ->
 
-        CREDENTIALS.push [client, credential.identifier]
-
         ProviderInterface.fetchCredentialData client, credential, (err, credData) ->
           expect(err).to.not.exist
           expect(credData).to.be.an 'object'
@@ -33,19 +31,7 @@ runTests = -> describe 'workers.social.models.computeproviders.providerinterface
           done()
 
 
-afterTests = ->
-
-  after (done) ->
-
-    queue = [ ]
-
-    CREDENTIALS.forEach ([client, identifier]) -> queue.push (next) ->
-      CredentialStore.remove client, identifier, (err) ->
-        expect(err).to.not.exist
-        next()
-
-    async.series queue, done
-
+afterTests = -> after removeGeneratedCredentials
 
 beforeTests()
 

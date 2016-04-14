@@ -1,4 +1,5 @@
-{ expect
+{ async
+  expect
   withConvertedUser
   generateRandomEmail
   generateRandomString } = require '../../index'
@@ -46,6 +47,7 @@ createCredential = (client, options, callback) ->
   JCredential.create client, options, (err, credential) ->
     callback err, { credential }
 
+CREDENTIALS = []
 
 withConvertedUserAndCredential = (options, callback) ->
 
@@ -58,11 +60,29 @@ withConvertedUserAndCredential = (options, callback) ->
     createCredential client, options, (err, { credential }) ->
       expect(err).to.not.exist
       data.credential = credential
+
+      CREDENTIALS.push [client, credential.identifier]
+
       callback data
+
+
+removeGeneratedCredentials = (callback) ->
+
+  CredentialStore = require '../../../lib/social/models/computeproviders/credentialstore'
+
+  queue = [ ]
+
+  CREDENTIALS.forEach ([client, identifier]) -> queue.push (next) ->
+    CredentialStore.remove client, identifier, (err) ->
+      expect(err).to.not.exist
+      next()
+
+  async.series queue, callback
 
 
 module.exports = {
   createCredential
   generateMetaData
+  removeGeneratedCredentials
   withConvertedUserAndCredential
 }
