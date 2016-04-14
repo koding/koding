@@ -13,10 +13,6 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
       seachInput: TeamFlux.getters.searchInputValue
     }
 
-  constructor: (props) ->
-
-    super props
-
 
   componentWillMount: ->
 
@@ -36,7 +32,7 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
 
 
   render: ->
-
+    console.log 'memebrts', @state.members
     <View
       members={@state.members}
       searchInputValue={@state.searchInputValue}
