@@ -38,6 +38,9 @@ generateMetaData = (provider) ->
   return meta
 
 
+CREDENTIALS = {}
+
+
 createCredential = (client, options, callback) ->
 
   options.provider ?= 'aws'
@@ -45,9 +48,11 @@ createCredential = (client, options, callback) ->
   options.title    ?= 'koding'
 
   JCredential.create client, options, (err, credential) ->
+
+    addToRemoveList client, credential.identifier
+
     callback err, { credential }
 
-CREDENTIALS = []
 
 withConvertedUserAndCredential = (options, callback) ->
 
@@ -60,9 +65,6 @@ withConvertedUserAndCredential = (options, callback) ->
     createCredential client, options, (err, { credential }) ->
       expect(err).to.not.exist
       data.credential = credential
-
-      addToRemoveList client, credential.identifier
-
       callback data
 
 
@@ -72,8 +74,8 @@ removeGeneratedCredentials = (callback) ->
 
   queue = [ ]
 
-  CREDENTIALS.forEach ([client, identifier]) -> queue.push (next) ->
-    CredentialStore.remove client, identifier, (err) ->
+  (Object.keys CREDENTIALS).forEach (identifier) -> queue.push (next) ->
+    CredentialStore.remove CREDENTIALS[identifier], identifier, (err) ->
       expect(err).to.not.exist
       next()
 
@@ -82,7 +84,7 @@ removeGeneratedCredentials = (callback) ->
 
 addToRemoveList = (client, identifier) ->
 
-  CREDENTIALS.push [client, identifier]
+  CREDENTIALS[identifier] = client
 
 
 module.exports = {

@@ -7,7 +7,8 @@
   generateRandomString
   checkBongoConnectivity
   generateDummyUserFormData } = require '../../../../testhelper'
-{ withConvertedUserAndCredential } = require \
+{ removeGeneratedCredentials
+  withConvertedUserAndCredential } = require \
   '../../../../testhelper/models/computeproviders/credentialhelper'
 { forEachProvider
   withConvertedUserAnd } = require  \
@@ -597,7 +598,10 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
+afterTests = -> after removeGeneratedCredentials
 
 beforeTests()
 
 runTests()
+
+afterTests()
