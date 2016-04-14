@@ -26,7 +26,7 @@ if [ 0 -eq "$(echo "${LOAD} < ${CPU_THRESHOLD}" | bc)" ] ; then
   MESSAGE="I have restarted *$NAME* at <$SSH_LINK|$HOSTNAME> with *PID:$PID* because of extensive *(% $LOAD) CPU* usage."
 
   PAYLOAD="payload={\"channel\": \"#reports\", \"username\": \"assassin\", \"text\": \"$MESSAGE\", \"icon_emoji\": \":ghost:\"}"
-  curl -X POST --data-urlencode "$PAYLOAD" https://hooks.slack.com/services/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
+  curl -X POST --data-urlencode "$PAYLOAD" $SLACK_REPORTS_CHANNEL
 
 else
  echo

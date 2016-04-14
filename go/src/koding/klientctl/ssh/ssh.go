@@ -18,6 +18,7 @@ import (
 	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
 	"koding/klientctl/list"
+	"koding/klientctl/shortcut"
 	"koding/klientctl/util"
 
 	"github.com/koding/kite/dnode"
@@ -62,6 +63,13 @@ type SSHCommand struct {
 	// Ask is flag for user interaction, ie should we ask user to generate new
 	// SSH key if it doesn't exist.
 	Ask bool
+
+	// Klient is communication layer between this and local klient. This is
+	// used to add SSH public key to `~/.ssh/authorized_keys` on the remote
+	// machine.
+	Klient interface {
+		RemoteList() (list.KiteInfos, error)
+	}
 }
 
 // NewSSHCommand is the required initializer for SSHCommand.
@@ -81,12 +89,15 @@ func NewSSHCommand(log logging.Logger, ask bool) (*SSHCommand, error) {
 		return nil, ErrLocalDialingFailed
 	}
 
+	k := klient.NewKlient(klientKite)
+
 	return &SSHCommand{
-		Ask: ask,
+		Klient: k,
+		Ask:    ask,
 		SSHKey: &SSHKey{
 			KeyPath: path.Join(usr.HomeDir, config.SSHDefaultKeyDir),
 			KeyName: config.SSHDefaultKeyName,
-			Klient:  klient.NewKlient(klientKite),
+			Klient:  k,
 		},
 	}, nil
 }
@@ -94,6 +105,11 @@ func NewSSHCommand(log logging.Logger, ask bool) (*SSHCommand, error) {
 func (s *SSHCommand) Run(machine string) error {
 	if !s.KeysExist() && s.Ask {
 		util.MustConfirm("'ssh' command needs to create public/private rsa key pair. Continue? [Y|n]")
+	}
+
+	machine, err := shortcut.NewMachineShortcut(s.Klient).GetNameFromShortcut(machine)
+	if err != nil {
+		return err
 	}
 
 	userhost, port, err := s.GetSSHAddr(machine)

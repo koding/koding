@@ -122,7 +122,7 @@ isTeamPage = (req) ->
   # special case for QA team, sometimes they test on ips
   return no  if isV4Format hostname
 
-  for i, env of ['dev', 'sandbox', 'latest']
+  for i, env of ['dev', 'sandbox', 'default', 'latest']
     if hostname.indexOf(env) is 0 # damn nodejs doesnt have startsWith
       return no
 
@@ -292,17 +292,17 @@ isMainDomain = (req) ->
 
   { headers } = req
 
-
   return no  unless headers
 
   { host } = headers
 
   mainDomains = [
-    'koding.com'
-    'dev.koding.com'
-    'prod.koding.com'
-    'latest.koding.com'
-    'sandbox.koding.com'
+    KONFIG.domains.base
+    KONFIG.domains.main
+    "dev.#{KONFIG.domains.base}"
+    "prod.#{KONFIG.domains.base}"
+    "latest.#{KONFIG.domains.base}"
+    "sandbox.#{KONFIG.domains.base}"
   ]
 
   return host in mainDomains

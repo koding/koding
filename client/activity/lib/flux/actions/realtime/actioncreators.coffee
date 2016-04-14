@@ -149,6 +149,9 @@ _isChannelInitiationEvent = (message) ->
 
 bindAppBadgeNotifiers = ->
 
+  # removed badge notifications
+  # until we bind stack notifications - SY
+  return
   return  unless window.nodeRequire
 
   { ipcRenderer } = nodeRequire 'electron'

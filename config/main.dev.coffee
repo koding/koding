@@ -7,7 +7,15 @@ path                  = require 'path'
 
 Configuration = (options={}) ->
 
-  boot2dockerbox      = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
+  domains =
+    base  : 'koding.com'
+    mail  : 'koding.com'
+    main  : 'dev.koding.com'
+    port  : '8090'
+
+  defaultEmail = "hello@#{domains.mail}"
+
+  boot2dockerbox = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
 
   slKeys       =
     vm_kloud   :
@@ -114,7 +122,7 @@ Configuration = (options={}) ->
 
   customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://#{hostname}", port: 8090 }
 
-  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , forcedRecipientEmail: "#{process.env.USER}@koding.com", forcedRecipientUsername: "#{process.env.USER}"                      }
+  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    defaultEmail                            , defaultFromName:    'Koding'                    , forcedRecipientEmail: "#{process.env.USER}@koding.com", forcedRecipientUsername: "#{process.env.USER}"                      }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               3000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
@@ -312,6 +320,7 @@ Configuration = (options={}) ->
     sendEventsToSegment            : options.sendEventsToSegment
     mailgun                        : mailgun
     helpscout                      : {apiKey: 'b041e4da61c0934cb73d47e1626098430738b049'             , baseUrl: 'https://api.helpscout.net/v1'}
+    domains                        : domains
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   # NOTE: when you add to runtime options below, be sure to modify
@@ -361,6 +370,7 @@ Configuration = (options={}) ->
     google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
     recaptcha            : { enabled : recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax"}
     sendEventsToSegment  : KONFIG.sendEventsToSegment
+    domains              : domains
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`

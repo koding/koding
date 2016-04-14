@@ -1,12 +1,12 @@
 globals = require 'globals'
 isProd  = globals.config.environment is 'production'
-
+baseURL = globals.config.domains.base
 
 module.exports = globals.config.providers =
 
   custom                   :
     name                   : 'Custom'
-    link                   : 'https://koding.com'
+    link                   : "https://#{baseURL}"
     title                  : 'Custom Credential'
     color                  : '#b9c0b8'
     description            : '''Custom credentials can include meta
@@ -71,7 +71,7 @@ module.exports = globals.config.providers =
 
   managed                  :
     name                   : 'Managed VMs'
-    link                   : 'https://koding.com'
+    link                   : "https://#{baseURL}"
     title                  : 'Managed VM'
     color                  : '#6d119e'
     description            : 'Use your power.'

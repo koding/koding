@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
-installFuseOnDarwinOnly () {
-  if [ ! "$(uname -s)" = "Darwin" ]; then
-    return
-  fi
+readonly releaseChannel="%RELEASE_CHANNEL%"
 
+installFuseOnDarwinOnly () {
   # check if osxfuse is installed already
   if [ -d "/Library/Filesystems/osxfusefs.fs" ]; then
     return
@@ -127,6 +125,7 @@ if which kd > /dev/null; then
   sudo kd uninstall > /dev/null 2>&1
 fi
 
+version=$(curl -sSL https://koding-kd.s3.amazonaws.com/${releaseChannel}/latest-version.txt)
 
 platform=`uname | tr '[:upper:]' '[:lower:]'`
 case "$platform" in
@@ -147,7 +146,8 @@ case "$platform" in
     echo ""
     echo "Downloading kd..."
 
-    sudo curl -SLo /usr/local/bin/kd "https://koding-kd.s3.amazonaws.com/klientctl-$platform"
+
+  sudo curl -SLo /usr/local/bin/kd.gz "https://koding-kd.s3.amazonaws.com/${releaseChannel}/kd-0.1.${version}.${platform}_amd64.gz"
     err=$?; if [ "$err" -ne 0 ]; then
       cat << EOF
 Error: Failed to download kd binary. Please check your internet
@@ -156,14 +156,27 @@ EOF
       exit 1
     fi
 
-    sudo chmod +x /usr/local/bin/kd
+  if ! sudo gzip -d -f /usr/local/bin/kd.gz; then
+    echo "Error: Failed to extract kd binary." 2>&1
+    exit 1
+  fi
 
-    echo "Created /usr/local/bin/kd"
+  sudo rm -f /usr/local/bin/kd.gz
+  sudo chmod +x /usr/local/bin/kd
+
+  echo "Created /usr/local/bin/kd"
+
+  if [[ "$platform" == "darwin" ]]; then
+    # Ensure old klient is not running.
+    sudo launchctl unload -w /Library/LaunchDaemons/com.koding.klient &>/dev/null || true
+    rm -f /Library/LaunchDaemons/com.koding.klient &>/dev/null || true
 
     # Check if fuse is needed, and install it if it is.
     installFuseOnDarwinOnly
-    echo ""
-    ;;
+  fi
+
+  echo
+  ;;
   windows|linux)
     cat << EOF
 Error: This platform is not supported at this time.
@@ -188,16 +201,48 @@ fi
 # No need to print Creating foo... because kd install handles that.
 
 # Install klient, piping stdin (the tty) to kd
-sudo kd install $kontrolFlag "$1" < /dev/tty
-err=$?; if [ "$err" -ne 0 ]; then
+if ! sudo kd install $kontrolFlag "$1" < /dev/tty; then
   exit $err
 fi
 
 
 cat << EOF
-Success! kd (beta) has been successfully installed. Please run
-the following command for more information:
+Success! kd (version ${version}, channel ${releaseChannel}) has been successfully installed.
+Please run the following command for more information:
 
     kd -h
 
 EOF
+
+isVirtualbox=$(VBoxHeadless -h 2>&1 | grep -c 'Oracle VM VirtualBox Headless Interface')
+isVagrant=$(vagrant version 2>&1 | grep -c 'Installed Version:')
+
+if [[ $isVirtualbox -eq 0 && $isVagrant -eq 0 ]]; then
+  cat << EOF
+No VirtualBox nor Vagrant is present on your system. In order to use local provisioning
+with Vagrant provider ensure they are installed:
+
+  * VirtualBox 5.0+ (https://www.virtualbox.org/wiki/Downloads)
+  * Vagrant 1.7.4+ (https://www.vagrantup.com/downloads.html)
+
+EOF
+
+elif [[ $isVirtualbox -eq 0 ]]; then
+  cat << EOF
+No VirtualBox is present on your system. In order to use local provisioning
+with Vagrant provider ensure it is installed:
+
+  * VirtualBox 5.0+ (https://www.virtualbox.org/wiki/Downloads)
+
+EOF
+
+elif [[ $isVagrant -eq 0 ]]; then
+  cat << EOF
+No Vagrant is present on your system. In order to use local provisioning
+with Vagrant provider ensure it is installed:
+
+  * Vagrant 1.7.4+ (https://www.vagrantup.com/downloads.html)
+
+EOF
+
+fi

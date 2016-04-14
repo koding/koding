@@ -62,6 +62,9 @@ type KlientOptions struct {
 
 	// Version, as passed to the second argument to `kite.New()`.
 	Version string
+
+	// Environment for the kite.Config.Environemnt.
+	Environment string
 }
 
 // NewKlientOptions returns KlientOptions initialized to default values.
@@ -71,6 +74,7 @@ func NewKlientOptions() KlientOptions {
 		KiteKeyPath: filepath.Join(config.KiteHome, "kite.key"),
 		Name:        config.Name,
 		Version:     config.KiteVersion,
+		Environment: config.Environment,
 	}
 }
 
@@ -92,7 +96,8 @@ func CreateKlientClient(opts KlientOptions) (*kite.Client, error) {
 		return nil, errors.New("CreateKlientClient: Address is required")
 	}
 
-	k := kite.New("klientctl", opts.Version)
+	k := kite.New(opts.Name, opts.Version)
+	k.Config.Environment = opts.Environment
 	c := k.NewClient(opts.Address)
 
 	// If a key path is declared, load it and setup auth.

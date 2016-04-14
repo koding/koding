@@ -76,7 +76,7 @@ module.exports = class MainView extends kd.View
 
     logoWrapper.addSubView new kd.CustomHTMLView
       tagName    : 'a'
-      attributes : { href : '/' } # so that it shows 'koding.com' on status bar of browser
+      attributes : { href : '/' } # so that it shows base url on status bar of browser
       partial    : '<figure></figure>'
       click      : (event) -> kd.utils.stopDOMEvent event
 
@@ -148,7 +148,7 @@ module.exports = class MainView extends kd.View
     if isKoding()
       @logoWrapper.addSubView new kd.CustomHTMLView
         tagName    : 'a'
-        attributes : { href : '/' } # so that it shows 'koding.com' on status bar of browser
+        attributes : { href : '/' } # so that it shows base url on status bar of browser
         partial    : '<figure></figure>'
         click      : (event) -> kd.utils.stopDOMEvent event
     else

@@ -9,6 +9,7 @@ ResourceMachineItem    = require './resourcemachineitem'
 ResourceMachineHeader  = require './resourcemachineheader'
 MachinesListController = require 'app/environment/machineslistcontroller'
 StackAdminMessageModal = require 'app/stacks/stackadminmessagemodal'
+StackTemplateModal     = require 'app/stacks/stacktemplatecontentmodal'
 async                  = require 'async'
 whoami                 = require 'app/util/whoami'
 
@@ -82,11 +83,20 @@ module.exports = class ResourceListItem extends kd.ListItemView
       cssClass : 'percentage'
     @updatePercentage()
 
+    { stackRevision } = resource
     { code, message } = resource.checkRevisionResult ? {}
+    @revision = new kd.CustomHTMLView
+      tagName  : 'span'
+      cssClass : 'revision'
+      partial  : stackRevision?.substring stackRevision.length - 8
+      click    : @bound 'openStackTemplate'
     @revisionStatus = new kd.CustomHTMLView
+      tagName  : 'span'
       cssClass : 'revision-status'
-      partial  : message
-    @revisionStatus.setClass if code > 0 then 'warning' else 'hidden'
+      partial  : "(#{message})"
+    isRevisionWarning = code > 0
+    @revision.setClass 'warning' if isRevisionWarning
+    @revisionStatus.setClass if isRevisionWarning then 'warning' else 'hidden'
 
     { nickname }  = resource.owner.profile
     timestamp     = resource._id.substring 0, 8
@@ -100,7 +110,6 @@ module.exports = class ResourceListItem extends kd.ListItemView
 
     { computeController } = kd.singletons
     computeController.on "apply-#{resource._id}", @bound 'handleProgressEvent'
-    computeController.on "stateChanged-#{resource._id}", @bound 'handleStateChangedEvent'
 
     @subscribeToKloudEvents()
 
@@ -120,7 +129,6 @@ module.exports = class ResourceListItem extends kd.ListItemView
     if state in ['Building', 'Destroying']
       { eventListener } = kd.singletons.computeController
       eventListener.addListener 'apply', resource._id
-      eventListener.addListener 'stateChanged', resource._id
 
 
   handleDestroy: ->
@@ -191,8 +199,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
     @updatePercentage percentage
     @updateProgressBar percentage
 
-
-  handleStateChangedEvent: (event) ->
+    return  unless percentage is 100
 
     # delay is needed to show 100% in progress bar
     # when destroy process is completed
@@ -223,12 +230,26 @@ module.exports = class ResourceListItem extends kd.ListItemView
     @progressBar.updateBar percentage
 
 
+  openStackTemplate: ->
+
+    resource              = @getData()
+    { stackRevision }     = resource
+    { computeController } = kd.singletons
+
+    computeController.fetchBaseStackTemplate resource, (err, stackTemplate) ->
+
+      isPrivate = err and not resource.config?.groupStack
+      return showError 'Base stack template is private'  if isPrivate
+      return showError err  if err
+
+      new StackTemplateModal {}, stackTemplate
+
+
   destroy: ->
 
     resource              = @getData()
     { computeController } = kd.singletons
     computeController.off "apply-#{resource._id}", @bound 'handleProgressEvent'
-    computeController.off "stateChanged-#{resource._id}", @bound 'handleStateChangedEvent'
 
     super
 
@@ -244,7 +265,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
         <div class='status'>
           {{> @status}}
           {{> @percentage}}
-          {{> @revisionStatus}}
+          <div>Revision: {{> @revision}} {{> @revisionStatus}}</div>
         </div>
         {{> @creationInfo}}
       </div>

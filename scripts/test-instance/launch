@@ -3,6 +3,18 @@
 fs   = require 'fs'
 argv = require('minimist')(process.argv.slice(2))
 
+unless subnetId = process.env.TEST_AWS_SUBNET_ID
+  console.error 'error: TEST_AWS_SUBNET_ID is not set'
+  process.exit 1
+
+unless securityGroupId = process.env.TEST_AWS_SECURITY_GROUP_ID
+  console.error 'error: TEST_AWS_SECURITY_GROUP_ID is not set'
+  process.exit 1
+
+unless keyName = process.env.TEST_AWS_KEY_NAME
+  console.error 'error: TEST_AWS_KEY_NAME is not set'
+  process.exit 1
+
 AWS = require './aws'
 EC2 = new AWS.EC2()
 
@@ -43,9 +55,9 @@ params =
   InstanceType     : 'm4.large'
   MinCount         : argv.count
   MaxCount         : argv.count
-  SubnetId         : 'subnet-6444f43d'
-  SecurityGroupIds : ['sg-27022f42']
-  KeyName          : 'koding-test-instances-2015-06'
+  SubnetId         : subnetId
+  SecurityGroupIds : [securityGroupId]
+  KeyName          : keyName
   UserData         : new Buffer(userData).toString 'base64'
 
 InstanceIds = []

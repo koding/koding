@@ -319,6 +319,12 @@ type RuntimeOptions struct {
 		Enabled bool   `json:"enabled"`
 	} `json:"recaptcha"`
 	SendEventsToSegment bool `json:"sendEventsToSegment"`
+	Domains             struct {
+		Base string `json:"base"`
+		Mail string `json:"mail"`
+		Main string `json:"main"`
+		Port string `json:"port"`
+	} `json:"domains"`
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN

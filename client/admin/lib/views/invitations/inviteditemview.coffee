@@ -42,13 +42,7 @@ module.exports = class InvitedItemView extends KDListItemView
 
     @revokeButton.showLoader()
 
-    @getData().remove (err) =>
-      return @destroy()  unless err
-
-      @revokeButton.hideLoader()
-      new KDNotificationView
-        title    : 'Unable to revoke invitation. Please try again.'
-        duration : 5000
+    @getDelegate().emit 'ItemAction', { action : 'RemoveItem', item : this }
 
 
   resend: ->
@@ -57,16 +51,7 @@ module.exports = class InvitedItemView extends KDListItemView
 
     @resendButton.showLoader()
 
-    remote.api.JInvitation.sendInvitationByCode @getData().code, (err) =>
-      @resendButton.hideLoader()
-      title    = 'Invitation is resent.'
-      duration = 5000
-
-      if err
-        title  = 'Unable to resend the invitation. Please try again.'
-
-      @timeAgoView.setData new Date
-      return new KDNotificationView { title, duration }
+    @getDelegate().emit 'ItemAction', { action : 'Resend', item : this }
 
 
   isPendingView: ->

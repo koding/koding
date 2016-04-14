@@ -46,6 +46,9 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
     - script:
+        name: copy prod creds
+        code: ./scripts/copy-prod-creds.sh
+    - script:
         name: change mod of test instace private key
         code: chmod 600 ./scripts/test-instance/koding-test-instances-2015-06.pem
     - mktemp:
@@ -56,9 +59,6 @@ build:
     - script:
         name: launch test hosts
         code: scripts/wercker/run-command scripts/wercker/launch-test-hosts
-    - script:
-        name: copy prod creds
-        code: ./scripts/copy-prod-creds.sh
     - script:
         name: check configs
         code: |
@@ -190,6 +190,7 @@ deploy:
         name: create version file
         code: |
           $WERCKER_ROOT/scripts/create_version.sh
+          echo $ROLLBAR_TOKEN > ROLLBAR_TOKEN
     - script:
         name: setup nvm
         code: |
@@ -256,22 +257,32 @@ deploy:
         key-secret: $S3_KEY_SECRET
         opts: "--no-mime-magic --guess-mime-type"
 
-  s3-klientkite-production:
+  s3-klient-production:
     - script:
         name: deploy klient to production channel
         code: $WERCKER_ROOT/scripts/deploy-klient.sh
 
-  s3-klientkite-development:
+  s3-klient-development:
     - script:
         name: deploy klient to development channel
         code: $WERCKER_ROOT/scripts/deploy-klient.sh
 
-  s3-klientkite-managed:
+  s3-kd-production:
+    - script:
+        name: deploy kd to production channel
+        code: $WERCKER_ROOT/scripts/deploy-kd.sh
+
+  s3-kd-development:
+    - script:
+        name: deploy kd to development channel
+        code: $WERCKER_ROOT/scripts/deploy-kd.sh
+
+  s3-klient-managed:
     - script:
         name: deploy klient to managed channel
         code: $WERCKER_ROOT/scripts/deploy-klient.sh
 
-  s3-klientkite-devmanaged:
+  s3-klient-devmanaged:
     - script:
         name: deploy klient to devmanaged channel
         code: $WERCKER_ROOT/scripts/deploy-klient.sh

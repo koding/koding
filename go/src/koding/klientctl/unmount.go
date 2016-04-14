@@ -246,7 +246,7 @@ func (c *UnmountCommand) Unmount(name, path string) error {
 	}
 
 	// track metrics
-	metrics.TrackUnmount(name, config.Version)
+	metrics.TrackUnmount(name, config.VersionNum())
 
 	return nil
 }

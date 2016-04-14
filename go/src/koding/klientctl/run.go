@@ -121,7 +121,7 @@ func (r *RunCommand) runOnRemote(localPath string, cmdWithArgsStr string) (*Exec
 	}
 
 	// track metrics
-	metrics.TrackRun(machine, config.Version)
+	metrics.TrackRun(machine, config.VersionNum())
 
 	return r.runOnMachine(machine, fullCmdPath, cmdWithArgsStr)
 }
