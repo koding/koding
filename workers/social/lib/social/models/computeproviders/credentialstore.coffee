@@ -134,3 +134,29 @@ module.exports = class CredentialStore
       updateOnMongo identifier, meta, callback
 
   # UPDATE ENDS ---------------------------------------------------------------
+
+
+  # REMOVE BEGINS -------------------------------------------------------------
+
+  removeFromSneaker = (client, pathName, callback) ->
+
+    SocialCredential.delete client, { pathName }, callback
+
+
+  removeFromMongo = (identifier, callback) ->
+
+    JCredentialData.remove { identifier }, callback
+
+
+  @remove = (client, identifier, callback) ->
+
+    if @SNEAKER_SUPPORTED
+
+      removeFromSneaker client, identifier, (err) ->
+        removeFromMongo identifier, callback
+
+    else
+
+      removeFromMongo identifier, callback
+
+  # REMOVE ENDS ---------------------------------------------------------------

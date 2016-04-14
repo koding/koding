@@ -445,11 +445,9 @@ module.exports = class JCredential extends jraphical.Module
 
         if rel.data.as is 'owner'
 
-          @fetchData client, (err, credentialData) =>
+          CredentialStore.remove client, @identifier, (err) =>
             return callback err  if err
-            credentialData.remove (err) =>
-              return callback err  if err
-              @remove callback
+            @remove (err) -> callback err
 
         else
 
