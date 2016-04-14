@@ -25,6 +25,7 @@ mockChannels              = require 'app/util/generateDummyChannels'
 draftStackTemplate        = require './mock.draftStackTemplate'
 teamStackTemplate         = require './mock.teamStackTemplate'
 privateStackTemplate      = require './mock.privateStackTemplate'
+teamMemberWithRole        = require './mock.teamMembersWithRole'
 
 
 mockMachine = new Machine { machine: mockjmachine }
@@ -377,3 +378,5 @@ module.exports =
   getTeamStackTemplate: -> return teamStackTemplate
 
   getPrivateStackTemplate: -> return privateStackTemplate
+  
+  getTeamMembersWithRole: -> return teamMemberWithRole
