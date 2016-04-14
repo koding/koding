@@ -2,13 +2,16 @@ package fusetest
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-multierror"
 	"io/ioutil"
+	"koding/fusetest/internet"
 	"koding/klient/remote/req"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
+
+	"github.com/hashicorp/go-multierror"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -57,6 +60,17 @@ func (f *Fusetest) RunAllTests() (testErrs error) {
 		testErrs = multierror.Append(testErrs, err)
 	}
 
+	reconnectOpts := internet.ReconnectOpts{
+		// The disconnect time, large enough for kite to lose the connection
+		PauseAfterDisconnect: 8 * time.Minute,
+		// The reconnect time. Large enough for kite to reconnect.
+		PauseAfterConnect: 2 * time.Minute,
+	}
+
+	if err := f.RunReconnectTests(reconnectOpts); err != nil {
+		testErrs = multierror.Append(testErrs, err)
+	}
+
 	// Unmount so we can mount with various settings below.
 	if err := NewKD().Unmount(f.Machine); err != nil {
 		testErrs = multierror.Append(testErrs, err)
@@ -101,10 +115,6 @@ func (f *Fusetest) RunPrefetchTests() error {
 		return err
 	}
 
-	// Pausing, because the instant remount is giving me resource is busy every
-	// time.
-	time.Sleep(5 * time.Second)
-
 	return NewKD().Unmount(f.Machine)
 }
 
@@ -121,10 +131,6 @@ func (f *Fusetest) RunNoPrefetchTests() error {
 	if err := f.RunOperationTests(); err != nil {
 		return err
 	}
-
-	// Pausing, because the instant remount is giving me resource is busy every
-	// time.
-	time.Sleep(5 * time.Second)
 
 	return NewKD().Unmount(f.Machine)
 }
@@ -143,11 +149,24 @@ func (f *Fusetest) RunPrefetchAllTests() error {
 		return err
 	}
 
-	// Pausing, because the instant remount is giving me resource is busy every
-	// time.
-	time.Sleep(5 * time.Second)
-
 	return NewKD().Unmount(f.Machine)
+}
+
+// TODO: Add the ability for the Op tests to return errors, so that we can
+// programmatically expect them to fail. Ensuring that ops during disconnect
+// fail as expected.
+func (f *Fusetest) RunReconnectTests(reconnectOpts internet.ReconnectOpts) error {
+	if runtime.GOOS != "darwin" {
+		fmt.Println("RunReconnectTests is disabled for non-darwin currently.")
+		return nil
+	}
+
+	fmt.Printf("Testing reconnect, pausing for %s.\n", reconnectOpts.TotalDur())
+	if err := internet.ToggleInternet(reconnectOpts); err != nil {
+		return err
+	}
+
+	return f.RunOperationTests()
 }
 
 func (f *Fusetest) RunOperationTests() error {
