@@ -792,7 +792,10 @@ class IDEAppController extends AppController
   resizeAllSplitViews: ->
       
     parents = []
-    @ideViews.forEach (view) -> parents.push view.parent?.parent
+    @ideViews.forEach (view) -> 
+      parent = view.parent?.parent
+      if parent and parent instanceof kd.SplitView
+        parents.push parent
     
     _.uniq(parents, 'id').forEach (p) -> p._windowDidResize()
 
