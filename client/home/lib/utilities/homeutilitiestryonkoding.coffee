@@ -43,14 +43,14 @@ module.exports = class HomeUtilitiesTryOnKoding extends kd.CustomHTMLView
 
     team               = kd.singletons.groupsController.getCurrentGroup()
     { allowedDomains } = team
+    allowedDomains     = _.clone allowedDomains or []
 
     if state
-      newDomains = _.clone allowedDomains
-      newDomains.push '*'
+      allowedDomains.push '*'
     else
-      _.remove newDomains, (domain) -> domain is '*'
+      _.remove allowedDomains, (domain) -> domain is '*'
 
-    team.modify { allowedDomains: newDomains }, (err) ->
+    team.modify { allowedDomains }, (err) =>
       if err
         withCallback = no
         @switch.setOn !state
