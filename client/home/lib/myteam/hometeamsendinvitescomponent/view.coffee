@@ -18,7 +18,7 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    inviteInput = @props.inviteInputs.get(rowIndex)
+    inviteInput = @props.inviteInputs.toList().get(rowIndex)
     checked = inviteInput.get('role') is 'admin'
 
     <div className='kdview invite-inputs'>

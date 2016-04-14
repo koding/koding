@@ -142,7 +142,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
         modal.destroy()
 
   render: ->
-
+    console.log 'State ', @state.inviteInputs
     <View
       inviteInputs={@state.inviteInputs}
       hidden={@state.hidden}
