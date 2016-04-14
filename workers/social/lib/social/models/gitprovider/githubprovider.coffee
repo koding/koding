@@ -33,14 +33,20 @@ module.exports = GitHubProvider =
 
     { repos } = gh
     { TEMPLATE_PATH, README_PATH } = Constants
-    repos.getContent { user, repo, path: TEMPLATE_PATH }, (err, templateData) ->
-      return callback err  if err
+    queue = [
+      (next) ->
+        repos.getContent { user, repo, path: TEMPLATE_PATH }, (err, data) ->
+          return next err  if err
+          next null, helpers.decodeContent data
+      (next) ->
+        repos.getContent { user, repo, path: README_PATH }, (err, data) ->
+          return next()  if err
+          next null, helpers.decodeContent data
+    ]
 
-      template = helpers.decodeContent templateData
-
-      repos.getContent { user, repo, path: README_PATH }, (err, readmeData) ->
-        readme = helpers.decodeContent readmeData  unless err
-        callback null, { template, readme }
+    return async.series queue, (err, results) ->
+      [ template, readme ] = results
+      callback err, { template, readme }
 
 
   importStackTemplateWithRawUrl: (user, repo, path, callback) ->
@@ -49,18 +55,18 @@ module.exports = GitHubProvider =
 
     queue = [
       (next) ->
-        templateOptions =
+        options =
           host   : RAW_GITHUB_HOST
           path   : "/#{user}/#{repo}/master/#{TEMPLATE_PATH}"
           method : 'GET'
-        helpers.loadRawContent templateOptions, (template) ->
+        helpers.loadRawContent options, (template) ->
             next null, template
         (next) ->
-          readmeOptions =
+          options =
             host   : RAW_GITHUB_HOST
             path   : "/#{user}/#{repo}/master/#{README_PATH}"
             method : 'GET'
-          helpers.loadRawContent readmeOptions, (readme) ->
+          helpers.loadRawContent options, (readme) ->
             next null, readme
       ]
 
