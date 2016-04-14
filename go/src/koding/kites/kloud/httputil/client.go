@@ -1,6 +1,7 @@
 package httputil
 
 import (
+	"net"
 	"net/http"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 
 // ClientConfig describes underlying TCP transport properties of the HTTP client.
 type ClientConfig struct {
+	// Client options.
 	DialTimeout           time.Duration  // maximum time spend dialing the remote endpoint
 	RoundTripTimeout      time.Duration  // maximum time awaiting full request+response
 	TLSHandshakeTimeout   time.Duration  // maximum time awaiting TLS handshake
@@ -16,8 +18,12 @@ type ClientConfig struct {
 	KeepAlive             time.Duration  // TCP KeepAlive interval for long-running connections
 	MaxIdleConnsPerHost   int            // maximum idle connections per host
 	Jar                   http.CookieJar // a cookie jar for http.Client
-	Log                   logging.Logger
-	DebugTCP              bool
+
+	// Dialer options.
+	Director     func(net.Conn) // when non-nil called by dialer after each successful Dial
+	TickInterval time.Duration  // interval between connection checks
+	Log          logging.Logger // used for logging
+	DebugTCP     bool           // prints stack trace of Dial for each misbehaving connection
 }
 
 // NewClient gives new HTTP client created for the given configuration.

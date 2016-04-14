@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/kites/common"
 	"net"
+	"net/http"
 	"runtime/debug"
 	"sync"
 	"time"
@@ -15,13 +16,12 @@ var defaultLog = common.NewLogger("dialer", false)
 
 type Dialer struct {
 	*net.Dialer
-	Log   logging.Logger
-	Debug bool
 
 	mu    sync.Mutex // protects conns
 	once  sync.Once
 	conns map[*Conn]struct{}
 	tick  *time.Ticker
+	opts  *ClientConfig
 }
 
 func NewDialer(cfg *ClientConfig) *Dialer {
@@ -30,14 +30,13 @@ func NewDialer(cfg *ClientConfig) *Dialer {
 			Timeout:   cfg.DialTimeout,
 			KeepAlive: cfg.KeepAlive,
 		},
-		Log:   cfg.Log,
-		Debug: cfg.DebugTCP,
+		opts: cfg,
 	}
 }
 
 func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
-	if !d.Debug {
-		return d.Dialer.Dial(network, addr)
+	if !d.opts.DebugTCP {
+		d.Dialer.Dial(network, addr)
 	}
 
 	return d.dial(network, addr)
@@ -45,16 +44,32 @@ func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
 
 func (d *Dialer) init() {
 	d.conns = make(map[*Conn]struct{})
-	d.tick = time.NewTicker(5 * time.Minute)
+	d.tick = time.NewTicker(d.tickInterval())
 	go d.process()
 }
 
 func (d *Dialer) log() logging.Logger {
-	if d.Log != nil {
-		return d.Log
+	if d.opts.Log != nil {
+		return d.opts.Log
 	}
 
 	return defaultLog
+}
+
+func (d *Dialer) tickInterval() time.Duration {
+	if d.opts.TickInterval != 0 {
+		return d.opts.TickInterval
+	}
+
+	return 5 * time.Minute
+}
+
+func (d *Dialer) maxIdle() int {
+	if d.opts.MaxIdleConnsPerHost != 0 {
+		return d.opts.MaxIdleConnsPerHost
+	}
+
+	return http.DefaultMaxIdleConnsPerHost
 }
 
 func (d *Dialer) dial(network, addr string) (net.Conn, error) {
@@ -63,6 +78,10 @@ func (d *Dialer) dial(network, addr string) (net.Conn, error) {
 	conn, err := d.Dialer.Dial(network, addr)
 	if err != nil {
 		return nil, err
+	}
+
+	if d.opts.Director != nil {
+		d.opts.Director(conn)
 	}
 
 	c := &Conn{
@@ -101,6 +120,7 @@ func (d *Dialer) process() {
 		}
 		d.mu.Unlock()
 
+		counter := make(map[string]int, len(conns))
 		now := time.Now()
 
 		for i, c := range conns {
@@ -109,15 +129,17 @@ func (d *Dialer) process() {
 			d.log().Debug("(%d/%d) active connection: %s", i+1, len(conns), c.ShortString())
 
 			if dur := c.Since(now); dur > 10*time.Minute {
-				// To be accurate each HTTP client can hold multiple idle
-				// conections per host (2 by default); if number of idle
-				// connections per host greatly exceeds that number then
-				// it may be a leak.
-				d.log().Error("(%d/%d) possible leak, idle connection was active %s ago: %s", i+1, len(conns), dur, c)
+				counter[c.addr]++
+
+				if n := counter[c.addr]; n > d.maxIdle() {
+					d.log().Warning("(%d/%d) idle connection (active %s ago): %s", i+1, len(conns), dur, c)
+				} else {
+					d.log().Error("(%d/%d - %d) leaked connection (idle for %s): %s", i+1, len(conns), n, dur, c)
+				}
 			}
 
 			if dur := now.Sub(c.Connected); dur > 15*time.Minute {
-				d.log().Warning("(%d/%d) long-running connection %s: %s", i+1, len(conns), dur, c)
+				d.log().Debug("(%d/%d) long-running connection (for %s): %s", i+1, len(conns), dur, c)
 			}
 		}
 	}
