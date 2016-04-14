@@ -105,3 +105,32 @@ module.exports = class CredentialStore
       fetchFromMongo identifier, callback
 
   # FETCH ENDS ----------------------------------------------------------------
+
+
+  # UPDATE BEGINS -------------------------------------------------------------
+
+  updateOnMongo = (identifier, meta, callback) ->
+
+    JCredentialData.one { identifier }, (err, data) ->
+      return callback err  if err
+      return callback new KodingError 'No data found'  unless data
+
+      data.update { $set : { meta } }, callback
+
+
+  @update = (client, data, callback) ->
+
+    { identifier, meta } = data
+
+    if @SNEAKER_SUPPORTED
+
+      storeOnSneaker client, data, (err) ->
+        return callback err  if err
+
+        updateOnMongo identifier, meta, callback
+
+    else
+
+      updateOnMongo identifier, meta, callback
+
+  # UPDATE ENDS ---------------------------------------------------------------

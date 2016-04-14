@@ -501,7 +501,7 @@ module.exports = class JCredential extends jraphical.Module
       return callback err  if err
 
       if shadowSensitiveData
-        meta = data?.data?.meta or {}
+        meta = data?.meta or {}
         sensitiveKeys.forEach (key) ->
           meta[key] = shadowed meta[key]
 
@@ -551,11 +551,7 @@ module.exports = class JCredential extends jraphical.Module
         return callback err  if err?
 
         if meta?
-
-          @fetchData client, (err, credData) ->
-            return callback err  if err?
-            credData.update { $set : { meta } }, callback
-
+          CredentialStore.update client, { @identifier, meta } , callback
         else
           callback null
 
