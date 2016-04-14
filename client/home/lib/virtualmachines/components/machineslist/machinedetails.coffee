@@ -85,12 +85,12 @@ generateSpecs = (machine) ->
   specs.push provider = jMachine.provider
   specs.push type = jMachine.meta?.instance_type ? 't2.micro'
   specs.push ram  = {
-    't2.nano'   : '512M'
-    't2.micro'  : '1GB'
-    't2.medium' : '4GB'
-  }[type] ? '1GB'
-  specs.push cpu = '1x'
-  specs.push disk = if size? then "#{size}GB" else 'N/A'
+    't2.nano'   : '512MB RAM'
+    't2.micro'  : '1GB RAM'
+    't2.medium' : '4GB RAM'
+  }[type] ? '1GB RAM'
+  specs.push cpu = '1x CPU'
+  specs.push disk = if size? then "#{size}GB HDD" else 'N/A'
 
   return specs
 
