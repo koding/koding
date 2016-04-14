@@ -1641,16 +1641,16 @@ class IDEAppController extends AppController
       delete @modal
 
 
-  quit: (destroy = yes) ->
+  quit: (destroy = yes, stopCollaborationSession = yes) ->
 
     return  if @getView().isDestroyed
 
     @emit 'IDEWillQuit'  if destroy
 
     @mountedMachine?.getBaseKite(createIfNotExists = no).disconnect()
-    @stopCollaborationSession()
 
     if destroy
+      @stopCollaborationSession()  if stopCollaborationSession
       kd.singletons.appManager.quit this, =>
         # fetch data to ensure target workspace is still exist
         environmentDataProvider.fetch =>
