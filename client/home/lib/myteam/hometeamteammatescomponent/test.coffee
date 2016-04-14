@@ -21,9 +21,9 @@ describe 'HomeTeamTeammates', ->
     
     it 'should render search box', ->
       
-       teamMates = renderIntoDocument <TeamTeammates />
-       searchbox = findRenderedDOMComponentWithClass teamMates, 'search'
-       expect(searchbox).toExist()
+      teamMates = renderIntoDocument <TeamTeammates />
+      searchbox = findRenderedDOMComponentWithClass teamMates, 'search'
+      expect(searchbox).toExist()
        
        
     it 'should render any row for members', ->
