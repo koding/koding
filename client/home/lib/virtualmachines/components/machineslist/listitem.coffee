@@ -1,4 +1,4 @@
-React = require 'react'
+React = require 'kd-react'
 MachineDetails = require './machinedetails'
 immutable = require 'immutable'
 
