@@ -4,9 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
-
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/vagrantapi"
@@ -81,40 +78,6 @@ func (m *Machine) push(msg string, n int, s machinestate.State) {
 			Status:     s,
 		})
 	}
-}
-
-func (m *Machine) markAsNotInitialized() error {
-	m.Log.Warning("Instance is not available. Marking it as NotInitialized")
-
-	if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			m.ObjectId,
-			bson.M{"$set": bson.M{
-				"ipAddress":           "",
-				"queryString":         "",
-				"meta.filePath":       "",
-				"meta.klientGuestURL": "",
-				"meta.cpu":            0,
-				"meta.memory":         0,
-				"status.state":        machinestate.NotInitialized.String(),
-				"status.modifiedAt":   time.Now().UTC(),
-				"status.reason":       "Machine is marked as NotInitialized",
-			}},
-		)
-	}); err != nil {
-		return err
-	}
-
-	m.IpAddress = ""
-	m.QueryString = ""
-	m.Machine.Meta["filePath"] = ""
-	m.Machine.Meta["klientGuestURL"] = ""
-	m.Machine.Meta["cpu"] = 0
-	m.Machine.Meta["memory"] = 0
-
-	// so any State() method can return the correct status
-	m.Status.State = machinestate.NotInitialized.String()
-	return nil
 }
 
 func (m *Machine) waitKlientReady() bool {

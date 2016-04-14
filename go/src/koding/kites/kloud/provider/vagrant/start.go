@@ -42,10 +42,6 @@ func (m *Machine) start(states ...machinestate.State) (err error) {
 	state, err := m.status()
 
 	if err == errNotFound || (!state.In(states...) && state.In(machinestate.Terminating, machinestate.Terminated)) {
-		if err = m.markAsNotInitialized(); err != nil {
-			return err
-		}
-
 		return errors.New("box is not available anymore")
 	}
 	if err != nil {
