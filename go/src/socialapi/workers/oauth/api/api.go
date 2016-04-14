@@ -2,11 +2,13 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 
 	"github.com/RangelReale/osin"
+	"github.com/RangelReale/osincli"
 	"github.com/osin-mongo-storage/mgostore"
 )
 
@@ -79,6 +81,27 @@ func (o *Oauth) GenerateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	osin.OutputJSON(resp, w, r)
+}
+
+func (o *Oauth) Callback(w http.ResponseWriter, r *http.Request) {
+	areq := client.NewAuthorizeRequest(osincli.CODE)
+
+	if areqdata, err := areq.HandleRequest(r); err == nil {
+		treq := client.NewAccessRequest(osincli.AUTHORIZATION_CODE, areqdata)
+
+		// exchange the authorize token for the access token
+		ad, er := treq.GetToken()
+		if er == nil {
+			w.Write([]byte(fmt.Sprintf("Access token: %+v\n\n", ad)))
+
+			// use the token in ad.AccessToken
+		} else {
+			w.Write([]byte(fmt.Sprintf("ERROR: %s\n", err)))
+		}
+	} else {
+		w.Write([]byte(fmt.Sprintf("ERROR: %s\n", err)))
+	}
+
 }
 
 func getSession(r *http.Request) (*models.Session, error) {
