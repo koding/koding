@@ -93,6 +93,12 @@ func main() {
 					Name:   "mounts",
 					Usage:  "List the mounted machines.",
 					Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format",
+						},
+					},
 				},
 			},
 		},
