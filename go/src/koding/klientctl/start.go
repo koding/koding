@@ -53,7 +53,7 @@ func WaitUntilStarted(address string, attempts int, pauseIntv time.Duration) err
 	var err error
 	// Try multiple times to connect to Klient, and return the final error
 	// if needed.
-	for i := 0; i < 5; i++ {
+	for i := 0; i < attempts; i++ {
 		time.Sleep(pauseIntv)
 
 		if err = defaultHealthChecker.CheckLocal(); err == nil {
