@@ -110,28 +110,94 @@ func TestRetryJoin(t *testing.T) {
 }
 
 func TestReadCliConfig(t *testing.T) {
-
-	shutdownCh := make(chan struct{})
-	defer close(shutdownCh)
-
 	tmpDir, err := ioutil.TempDir("", "consul")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
+	defer os.RemoveAll(tmpDir)
 
-	cmd := &Command{
-		args: []string{
-			"-data-dir", tmpDir,
-			"-node", `"a"`,
-			"-advertise-wan", "1.2.3.4",
-		},
-		ShutdownCh: shutdownCh,
-		Ui:         new(cli.MockUi),
+	shutdownCh := make(chan struct{})
+	defer close(shutdownCh)
+
+	// Test config parse
+	{
+		cmd := &Command{
+			args: []string{
+				"-data-dir", tmpDir,
+				"-node", `"a"`,
+				"-advertise-wan", "1.2.3.4",
+			},
+			ShutdownCh: shutdownCh,
+			Ui:         new(cli.MockUi),
+		}
+
+		config := cmd.readConfig()
+		if config.AdvertiseAddrWan != "1.2.3.4" {
+			t.Fatalf("expected -advertise-addr-wan 1.2.3.4 got %s", config.AdvertiseAddrWan)
+		}
 	}
 
-	config := cmd.readConfig()
-	if config.AdvertiseAddrWan != "1.2.3.4" {
-		t.Fatalf("expected -advertise-addr-wan 1.2.3.4 got %s", config.AdvertiseAddrWan)
+	// Test SkipLeaveOnInt default for server mode
+	{
+		ui := new(cli.MockUi)
+		cmd := &Command{
+			args: []string{
+				"-node", `"server1"`,
+				"-server",
+				"-data-dir", tmpDir,
+			},
+			ShutdownCh: shutdownCh,
+			Ui:         ui,
+		}
+
+		config := cmd.readConfig()
+		if config == nil {
+			t.Fatalf(`Expected non-nil config object: %s`, ui.ErrorWriter.String())
+		}
+		if config.Server != true {
+			t.Errorf(`Expected -server to be true`)
+		}
+		if (*config.SkipLeaveOnInt) != true {
+			t.Errorf(`Expected SkipLeaveOnInt to be true in server mode`)
+		}
+	}
+
+	// Test SkipLeaveOnInt default for client mode
+	{
+		ui := new(cli.MockUi)
+		cmd := &Command{
+			args: []string{
+				"-data-dir", tmpDir,
+				"-node", `"client"`,
+			},
+			ShutdownCh: shutdownCh,
+			Ui:         ui,
+		}
+
+		config := cmd.readConfig()
+		if config == nil {
+			t.Fatalf(`Expected non-nil config object: %s`, ui.ErrorWriter.String())
+		}
+		if config.Server != false {
+			t.Errorf(`Expected server to be false`)
+		}
+		if *config.SkipLeaveOnInt != false {
+			t.Errorf(`Expected SkipLeaveOnInt to be false in client mode`)
+		}
+	}
+
+	// Test empty node name
+	{
+		cmd := &Command{
+			args:       []string{"-node", `""`},
+			ShutdownCh: shutdownCh,
+			Ui:         new(cli.MockUi),
+		}
+
+		config := cmd.readConfig()
+		if config != nil {
+			t.Errorf(`Expected -node="" to fail`)
+		}
 	}
 }
 
@@ -335,5 +401,31 @@ func TestProtectDataDir(t *testing.T) {
 	}
 	if out := ui.ErrorWriter.String(); !strings.Contains(out, dir) {
 		t.Fatalf("expected mdb dir error, got: %s", out)
+	}
+}
+
+func TestBadDataDirPermissions(t *testing.T) {
+	dir, err := ioutil.TempDir("", "consul")
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	defer os.RemoveAll(dir)
+
+	dataDir := filepath.Join(dir, "mdb")
+	if err := os.MkdirAll(dataDir, 0400); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	defer os.RemoveAll(dataDir)
+
+	ui := new(cli.MockUi)
+	cmd := &Command{
+		Ui:   ui,
+		args: []string{"-data-dir=" + dataDir, "-server=true"},
+	}
+	if conf := cmd.readConfig(); conf != nil {
+		t.Fatalf("Should fail with bad data directory permissions")
+	}
+	if out := ui.ErrorWriter.String(); !strings.Contains(out, "Permission denied") {
+		t.Fatalf("expected permission denied error, got: %s", out)
 	}
 }

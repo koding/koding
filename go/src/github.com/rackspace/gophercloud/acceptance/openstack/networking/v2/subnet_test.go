@@ -11,7 +11,7 @@ import (
 	th "github.com/rackspace/gophercloud/testhelper"
 )
 
-func TestList(t *testing.T) {
+func TestSubnetList(t *testing.T) {
 	Setup(t)
 	defer Teardown()
 
@@ -32,7 +32,7 @@ func TestList(t *testing.T) {
 	th.CheckNoErr(t, err)
 }
 
-func TestCRUD(t *testing.T) {
+func TestSubnetCRUD(t *testing.T) {
 	Setup(t)
 	defer Teardown()
 
@@ -61,6 +61,7 @@ func TestCRUD(t *testing.T) {
 	th.AssertEquals(t, s.IPVersion, 4)
 	th.AssertEquals(t, s.Name, "my_subnet")
 	th.AssertEquals(t, s.EnableDHCP, false)
+	th.AssertEquals(t, s.GatewayIP, "192.168.199.1")
 	subnetID := s.ID
 
 	// Get subnet
@@ -79,6 +80,60 @@ func TestCRUD(t *testing.T) {
 	t.Log("Delete subnet")
 	res := subnets.Delete(Client, subnetID)
 	th.AssertNoErr(t, res.Err)
+
+	// Create subnet with no gateway
+	t.Log("Create subnet with no gateway")
+	opts = subnets.CreateOpts{
+		NetworkID:  networkID,
+		CIDR:       "192.168.199.0/24",
+		IPVersion:  subnets.IPv4,
+		Name:       "my_subnet",
+		EnableDHCP: &enable,
+		NoGateway:  true,
+	}
+	s, err = subnets.Create(Client, opts).Extract()
+	th.AssertNoErr(t, err)
+
+	th.AssertEquals(t, s.NetworkID, networkID)
+	th.AssertEquals(t, s.CIDR, "192.168.199.0/24")
+	th.AssertEquals(t, s.IPVersion, 4)
+	th.AssertEquals(t, s.Name, "my_subnet")
+	th.AssertEquals(t, s.EnableDHCP, false)
+	th.AssertEquals(t, s.GatewayIP, "")
+	subnetID = s.ID
+
+	// Get subnet
+	t.Log("Getting subnet with no gateway")
+	s, err = subnets.Get(Client, subnetID).Extract()
+	th.AssertNoErr(t, err)
+	th.AssertEquals(t, s.ID, subnetID)
+
+	// Update subnet
+	t.Log("Update subnet with no gateway")
+	s, err = subnets.Update(Client, subnetID, subnets.UpdateOpts{Name: "new_subnet_name"}).Extract()
+	th.AssertNoErr(t, err)
+	th.AssertEquals(t, s.Name, "new_subnet_name")
+
+	// Delete subnet
+	t.Log("Delete subnet with no gateway")
+	res = subnets.Delete(Client, subnetID)
+	th.AssertNoErr(t, res.Err)
+
+	// Create subnet with invalid gateway configuration
+	t.Log("Create subnet with invalid gateway configuration")
+	opts = subnets.CreateOpts{
+		NetworkID:  networkID,
+		CIDR:       "192.168.199.0/24",
+		IPVersion:  subnets.IPv4,
+		Name:       "my_subnet",
+		EnableDHCP: &enable,
+		NoGateway:  true,
+		GatewayIP:  "192.168.199.1",
+	}
+	_, err = subnets.Create(Client, opts).Extract()
+	if err == nil {
+		t.Fatalf("Expected an error, got none")
+	}
 }
 
 func TestBatchCreate(t *testing.T) {

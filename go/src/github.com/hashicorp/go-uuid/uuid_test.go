@@ -49,3 +49,9 @@ func TestParseUUID(t *testing.T) {
 		t.Fatalf("mismatched buffers")
 	}
 }
+
+func BenchmarkGenerateUUID(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		_, _ = GenerateUUID()
+	}
+}

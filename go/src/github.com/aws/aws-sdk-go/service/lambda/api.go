@@ -911,6 +911,8 @@ type AddPermissionInput struct {
 	// permission for all AWS Lambda actions.
 	Action *string `type:"string" required:"true"`
 
+	EventSourceToken *string `type:"string"`
+
 	// Name of the Lambda function whose resource policy you are updating by adding
 	// a new permission.
 	//
@@ -1341,6 +1343,8 @@ type FunctionCode struct {
 	// AWS CLI, the SDKs or CLI will do the encoding for you). For more information
 	// about creating a .zip file, go to Execution Permissions (http://docs.aws.amazon.com/lambda/latest/dg/intro-permission-model.html#lambda-intro-execution-role.html)
 	// in the AWS Lambda Developer Guide.
+	//
+	// ZipFile is automatically base64 encoded/decoded by the SDK.
 	ZipFile []byte `type:"blob"`
 }
 
@@ -2126,6 +2130,8 @@ type UpdateFunctionCodeInput struct {
 	S3ObjectVersion *string `min:"1" type:"string"`
 
 	// Based64-encoded .zip file containing your packaged source code.
+	//
+	// ZipFile is automatically base64 encoded/decoded by the SDK.
 	ZipFile []byte `type:"blob"`
 }
 
@@ -2170,6 +2176,8 @@ type UpdateFunctionConfigurationInput struct {
 	// The Amazon Resource Name (ARN) of the IAM role that Lambda will assume when
 	// it executes your function.
 	Role *string `type:"string"`
+
+	Runtime *string `type:"string" enum:"Runtime"`
 
 	// The function execution time at which AWS Lambda should terminate the function.
 	// Because the execution time has cost implications, we recommend you set this
@@ -2267,6 +2275,8 @@ const (
 const (
 	// @enum Runtime
 	RuntimeNodejs = "nodejs"
+	// @enum Runtime
+	RuntimeNodejs43 = "nodejs4.3"
 	// @enum Runtime
 	RuntimeJava8 = "java8"
 	// @enum Runtime

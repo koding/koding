@@ -133,12 +133,12 @@ shell.Close()
 ```
 
 ### Pluggable authentication example: Negotiate/NTLM authentication
-Using the winrm.Parameters.TransportDecorator, it is possible to wrap or completely replace the outgoing http.RoundTripper. For example, use github.com/paulmey/go-ntlmssp to plug in Negotiate/NTLM authentication :
+Using the winrm.Parameters.TransportDecorator, it is possible to wrap or completely replace the outgoing http.RoundTripper. For example, use github.com/Azure/go-ntlmssp to plug in Negotiate/NTLM authentication :
 
 ```go
 import (
   "github.com/masterzen/winrm/winrm"
-  "github.com/paulmey/go-ntlmssp"
+  "github.com/Azure/go-ntlmssp"
 )
 
 params := winrm.DefaultParameters()
