@@ -94,7 +94,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
 
   render: ->
-
+    
     <View
       ref='view'
       team={@state.team}
