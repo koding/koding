@@ -1,3 +1,4 @@
+_               = require 'lodash'
 kd              = require 'kd'
 JView           = require 'app/jview'
 KodingSwitch    = require 'app/commonviews/kodingswitch'
