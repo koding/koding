@@ -30,16 +30,23 @@ $borderColor                = #CACACA
     > div
       flex                  0 0 auto
       margin                0 40px 0 0
-      padding               6px 0 0 26px
+      padding               6px 0 0
+
       &:last-of-type
         margin-right        0
 
+      .HomeAppView--button
+        margin-left         0
+
     .MachinesListItem-machineLabel
       flex                  1 0 auto
+      padding               6px 0 0 26px
+      pointer()
 
+    .MachinesListItem-stackLabel
+      text-transform        uppercase
+      margin                0 30px 0 0
 
-.MachinesListItem-stackLabel
-  text-transform            uppercase
 
 .MachinesListItem-detailToggle
   size                      25px 25px
