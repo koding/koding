@@ -10,7 +10,7 @@ SOCKET_PORT = 1777
 module.exports = -> lazyrouter.bind 'testrunner', (type, info, state, path, ctx) ->
 
   switch type
-    when 10 then runTests()
+    when 10 then kd.singletons.mainController.ready runTests
 
 
 appendScripts = (callback) ->
