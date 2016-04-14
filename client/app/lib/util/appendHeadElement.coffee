@@ -16,5 +16,5 @@ module.exports = ({ type, url }, callback) ->
       load       = -> callback null, { type, url }
 
   global.document.head.appendChild (new kd.CustomHTMLView {
-    domId, tagName, attributes, bind, load
+    tagName, attributes, bind, load
   }).getElement()
