@@ -7,6 +7,7 @@ import (
 	"github.com/koding/kite"
 
 	"koding/kites/kloud/klient"
+	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 
 	"golang.org/x/net/context"
@@ -14,7 +15,16 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func (m *Machine) Stop(ctx context.Context) (err error) {
+func (m *Machine) Stop(ctx context.Context) error {
+	err := m.stop(ctx)
+	if err != nil {
+		return kloud.NewEventerError(err)
+	}
+
+	return nil
+}
+
+func (m *Machine) stop(ctx context.Context) (err error) {
 	origState := m.State()
 
 	if err = m.updateState(machinestate.Stopping); err != nil {

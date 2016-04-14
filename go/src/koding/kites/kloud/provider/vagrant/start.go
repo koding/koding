@@ -4,11 +4,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/koding/kite"
-
 	"koding/kites/kloud/klient"
+	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 
+	"github.com/koding/kite"
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -17,7 +17,12 @@ import (
 func (m *Machine) Start(ctx context.Context) error {
 	// Since vagrant up builds also the machine, start it only
 	// when its state is effectively stopped.
-	return m.start(machinestate.Stopped, machinestate.Stopping)
+	err := m.start(machinestate.Stopped, machinestate.Stopping)
+	if err != nil {
+		return kloud.NewEventerError(err)
+	}
+
+	return nil
 }
 
 func (m *Machine) start(states ...machinestate.State) (err error) {

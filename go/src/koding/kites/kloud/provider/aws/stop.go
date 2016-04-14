@@ -1,17 +1,27 @@
 package awsprovider
 
 import (
-	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/machinestate"
 	"time"
 
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/machinestate"
 
 	"golang.org/x/net/context"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
-func (m *Machine) Stop(ctx context.Context) (err error) {
+func (m *Machine) Stop(ctx context.Context) error {
+	err := m.stop(ctx)
+	if err != nil {
+		return kloud.NewEventerError(err)
+	}
+
+	return nil
+}
+
+func (m *Machine) stop(ctx context.Context) (err error) {
 	// update the state to intiial state if something goes wrong, we are going
 	// to change latestate to a more safe state if we passed a certain step
 	// below
