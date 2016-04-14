@@ -42,6 +42,14 @@ module.exports = class MachinesListItem extends React.Component
   toggle: (event) -> @setState { isDetailOpen: not @state.isDetailOpen }
 
 
+  renderIpAddress: ->
+
+    hasIp = @props.machine.get 'ipAddress'
+    ip    = hasIp or '0.0.0.0'
+    title = if hasIp then '' else 'Actual IP address will appear here when this VM is powered on.'
+
+    <div title={title} className="MachinesListItem-hostName">{ip}</div>
+
 
   renderDetailToggle: ->
 
@@ -56,12 +64,12 @@ module.exports = class MachinesListItem extends React.Component
 
     <div className="MachinesListItem#{if @state.isDetailOpen then ' expanded' else ''}">
       <header>
-        <div className="MachinesListItem-hostName">{@props.machine.get 'ipAddress'}</div>
         <div
           className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}"
           onClick={@bound 'toggle'}>
           {@props.machine.get 'label'}
         </div>
+        {@renderIpAddress()}
         <div className="MachinesListItem-stackLabel">
           <a href="#" className="HomeAppView--button primary">{@props.stack.get 'title'}</a>
         </div>
