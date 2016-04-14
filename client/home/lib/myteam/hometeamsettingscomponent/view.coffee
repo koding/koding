@@ -27,7 +27,7 @@ module.exports = class HomeTeamSettingsView extends React.Component
   
   renderRemoveLogo: ->
     
-    @renderButton 'custom-link-view', 'REMOVE', @props.onRemoveLogo
+    @renderButton 'custom-link-view remove', 'REMOVE', @props.onRemoveLogo
   
     
   renderUploadLogo: ->

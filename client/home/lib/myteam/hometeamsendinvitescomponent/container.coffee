@@ -140,13 +140,19 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       cancel : ->
         sendInvitations newInvitations
         modal.destroy()
+        
+        
+  onUploadCsv: ->
+     return new kd.NotificationView
+        title    : 'Coming Soon!'
+        duration : 2000
+
 
   render: ->
-    console.log 'State ', @state.inviteInputs
+    
     <View
       inviteInputs={@state.inviteInputs}
-      hidden={@state.hidden}
-      modalTitle={@state.modalTitle}
+      onUploadCsv={@bound 'onUploadCsv'}
       onInputChange={@bound 'onInputChange'}
       onSendInvites={@bound 'onSendInvites'} />
 

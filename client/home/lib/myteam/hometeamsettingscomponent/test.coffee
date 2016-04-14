@@ -6,23 +6,26 @@ TeamSettings       = require './index'
 TestUtils          = require 'react-addons-test-utils'
 toImmutable        = require 'app/util/toImmutable'
 Encoder            = require 'htmlencode'
+mock               = require '../../../../mocks/mockingjay'
+immutable          = require 'immutable'
 
 
 describe 'HomeTeamSettings', ->
   
-  { createRenderer, 
+  { Simulate,
+  createRenderer, 
   renderIntoDocument,
   findRenderedDOMComponentWithClass,
+  scryRenderedDOMComponentsWithClass,
   scryRenderedDOMComponentsWithTag } = TestUtils
   
   describe '::render', ->
     
     it 'should render with correct team name and team domain', ->
       
-      { groupsController } = kd.singletons
-
-      team = groupsController.getCurrentGroup()
-      team = toImmutable team
+      team = mock.getTeam()
+      team = immutable.fromJS team
+      
       
       teamSettings = renderIntoDocument(<TeamSettings.Container />)
       teamSettings.setState {team}
@@ -56,12 +59,11 @@ describe 'HomeTeamSettings', ->
       expect(buttons.length).toEqual 3  unless canEdit
       
       
+  
     it 'should render correct team logo path', ->
       
-      { groupsController } = kd.singletons
-
-      team = groupsController.getCurrentGroup()
-      team = toImmutable team
+      team = mock.getTeam()
+      team = immutable.fromJS team
       
       teamSettings = renderIntoDocument(<TeamSettings.Container />)
       teamSettings.setState {team}
