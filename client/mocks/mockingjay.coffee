@@ -26,6 +26,7 @@ draftStackTemplate        = require './mock.draftStackTemplate'
 teamStackTemplate         = require './mock.teamStackTemplate'
 privateStackTemplate      = require './mock.privateStackTemplate'
 teamMemberWithRole        = require './mock.teamMembersWithRole'
+teamSendInvites           = require './mock.teamSendInvites'
 
 
 mockMachine = new Machine { machine: mockjmachine }
@@ -380,3 +381,6 @@ module.exports =
   getPrivateStackTemplate: -> return privateStackTemplate
   
   getTeamMembersWithRole: -> return teamMemberWithRole
+  
+  getTeamSendInvites: -> return teamSendInvites
+  
