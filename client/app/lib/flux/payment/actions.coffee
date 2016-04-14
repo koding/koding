@@ -43,6 +43,8 @@ createStripeToken = ({dispatch, evaluate}) -> (options) ->
           reject err
           return
 
+        token = response.id
+
         dispatch actionTypes.CREATE_STRIPE_TOKEN_SUCCESS, { token }
         resolve { token }
 
