@@ -94,6 +94,18 @@ func (machines *Machines) GetByIP(i string) (*Machine, error) {
 	return nil, ErrMachineNotFound
 }
 
+// GetByURL iterates through the Machines, returning the first one with a
+// matching URL.
+func (machines *Machines) GetByURL(u string) (*Machine, error) {
+	for _, m := range machines.machines {
+		if m.URL == u {
+			return m, nil
+		}
+	}
+
+	return nil, ErrMachineNotFound
+}
+
 // GetByName iterates through the Machine names and returns the first matching
 // machine.
 func (machines *Machines) GetByName(n string) (*Machine, error) {

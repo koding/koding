@@ -273,14 +273,7 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 			log.Error("GetKodingKites returned a kite without a Client!")
 		}
 
-		var host string
-		host, err = r.hostFromClient(k.Client)
-		if err != nil {
-			log.Error("Unable to extract host from *kite.Client. err:%s", err)
-			break
-		}
-
-		existingMachine, err := r.machines.GetByIP(host)
+		existingMachine, err := r.matchMachineToKite(k.Client)
 
 		// If the machine is not found, create a new one.
 		if err == machine.ErrMachineNotFound {
@@ -339,6 +332,43 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 	return r.machines, nil
 }
 
+// matchMachineToKite iterates through the machines, returning the first one with
+// a matching URL. If the machines URL is empty, it might be an old Machine from
+// the DB, so it then extracts the Ip from the URL and attempts to match based
+// on that.
+//
+// Devnote: that this method matches machines, but is not on the Machines struct
+// because of the domain specific requirement (legacy machine matching). It felt
+// out of place on the Machines struct.
+func (r *Remote) matchMachineToKite(c *kite.Client) (*machine.Machine, error) {
+	log := r.log.New("matchMachineToKite")
+
+	for _, m := range r.machines.Machines() {
+		// For legacy support, the machine may not have a filled URL field. If this is
+		// the case, match it based on IP.
+		//
+		// Also, check this first - that way we don't match an empty kite url... not
+		// like that should happen.
+		if m.URL == "" {
+			host, err := r.hostFromClient(c)
+			if err != nil {
+				log.Error("Unable to extract host from *kite.Client. err:%s", err)
+				return nil, err
+			}
+
+			if m.IP == host {
+				return m, nil
+			}
+		}
+
+		if m.URL == c.URL {
+			return m, nil
+		}
+	}
+
+	return nil, machine.ErrMachineNotFound
+}
+
 func (r *Remote) createNewMachineFromKite(c *KodingClient, log logging.Logger) error {
 	var host string
 	host, err := r.hostFromClient(c.Client)
@@ -375,6 +405,7 @@ func (r *Remote) createNewMachineFromKite(c *KodingClient, log logging.Logger) e
 		URL:          c.URL,
 		IP:           host,
 		Hostname:     c.Hostname,
+		Username:     c.Username,
 		Name:         name,
 		MachineLabel: c.MachineLabel,
 		Teams:        c.Teams,
@@ -429,18 +460,25 @@ func (r *Remote) restoreLoadedMachineFromKite(c *KodingClient, loadedMachine *ma
 		metaChanged = true
 	}
 
-	if machineMeta.URL != c.URL {
+	if machineMeta.URL == "" && c.URL != "" {
+		log.Warning("Machine missing MachineMeta.URL, updating it to %q", c.URL)
 		machineMeta.URL = c.URL
 		metaChanged = true
 	}
 
-	if machineMeta.IP != host {
+	if machineMeta.IP == "" && host != "" {
+		log.Warning("Machine missing MachineMeta.IP, updating it to %q", host)
 		machineMeta.IP = host
 		metaChanged = true
 	}
 
 	if machineMeta.Hostname != c.Hostname {
 		machineMeta.Hostname = c.Hostname
+		metaChanged = true
+	}
+
+	if machineMeta.Username != c.Username {
+		machineMeta.Username = c.Username
 		metaChanged = true
 	}
 
