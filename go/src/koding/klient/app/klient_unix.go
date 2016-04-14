@@ -38,7 +38,7 @@ func (k *Klient) initRemote() {
 		k.log.Error("Failed to initialize Remote. Error: %s", err.Error())
 	}
 
-	go sendLogsOnInterval(k.log, logLocations())
+	go sendLogsOnInterval(k.log, LogLocations())
 }
 
 // sendLogsOnInterval sends klient and kd logs files to write only s3 bucket
@@ -60,7 +60,7 @@ func sendLogsOnInterval(log kite.Logger, logLocs []string) error {
 	return nil
 }
 
-func logLocations() []string {
+func LogLocations() []string {
 	if runtime.GOOS == "darwin" {
 		return []string{"/Library/Logs/klient.log", "/Library/Logs/kd.log"}
 	}
