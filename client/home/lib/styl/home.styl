@@ -45,6 +45,27 @@ Home styles
     &.on a.knob
       vendor                transform, translateX(16px)
 
+  .GenericToggler-toggle
+
+    .react-toggle:before
+      abs                   5px 0 0 -39px
+      content               'OFF'
+
+    .react-toggle-track
+      size                  42px 22px
+
+    .react-toggle-thumb
+      abs                   4px 0 0 4px
+      size                  14px 14px
+
+    .react-toggle--checked
+
+      &:before
+        content             'ON'
+
+      .react-toggle-thumb
+        left                24px
+
 .HomeAppView-TabView
   bg                        color, #F4F3F3
   overflow                  hidden
