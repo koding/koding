@@ -39,15 +39,16 @@ module.exports = class MachinesListItem extends React.Component
         shouldRenderSharing={@props.shouldRenderSharing} />
     </main>
 
+  toggle: (event) -> @setState { isDetailOpen: not @state.isDetailOpen }
+
+
 
   renderDetailToggle: ->
 
     return null  unless @props.shouldRenderDetails
 
-    toggleOpen = (machineId) => (event) => @setState { isDetailOpen: not @state.isDetailOpen }
-
     <div className="MachinesListItem-detailToggle#{if @state.isDetailOpen then ' expanded' else ''}">
-      <button onClick={toggleOpen @props.machine.get 'id'}></button>
+      <button onClick={@bound 'toggle'}></button>
     </div>
 
 
@@ -55,8 +56,12 @@ module.exports = class MachinesListItem extends React.Component
 
     <div className="MachinesListItem#{if @state.isDetailOpen then ' expanded' else ''}">
       <header>
-        <div className="MachinesListItem-machineLabel">{@props.machine.get 'label'}</div>
         <div className="MachinesListItem-hostName">{@props.machine.get 'ipAddress'}</div>
+        <div
+          className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}"
+          onClick={@bound 'toggle'}>
+          {@props.machine.get 'label'}
+        </div>
         <div className="MachinesListItem-stackLabel">
           <a href="#" className="HomeAppView--button primary">{@props.stack.get 'title'}</a>
         </div>
