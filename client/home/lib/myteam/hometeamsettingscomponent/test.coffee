@@ -8,7 +8,7 @@ toImmutable        = require 'app/util/toImmutable'
 Encoder            = require 'htmlencode'
 
 
-describe.only 'HomeTeamSettings', ->
+describe 'HomeTeamSettings', ->
   
   { createRenderer, 
   renderIntoDocument,
