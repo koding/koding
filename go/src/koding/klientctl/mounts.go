@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"koding/klient/remote/req"
 	"koding/klientctl/config"
 	"koding/klientctl/klient"
 	"os"
@@ -17,6 +19,8 @@ type kiteMounts struct {
 	RemotePath string `json:"remotePath"`
 	LocalPath  string `json:"localPath"`
 	MountName  string `json:"mountName"`
+
+	req.MountFolder
 }
 
 // MountsCommand returns list of previously mounted folders.
@@ -40,6 +44,18 @@ func MountsCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 
 	var mounts []kiteMounts
 	res.Unmarshal(&mounts)
+
+	if c.Bool("json") {
+		jsonBytes, err := json.MarshalIndent(mounts, "", "  ")
+		if err != nil {
+			log.Error("Marshalling mounts to json failed. err:%s", err)
+			fmt.Println(GenericInternalError)
+			return 1
+		}
+
+		fmt.Println(string(jsonBytes))
+		return 0
+	}
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	fmt.Fprintf(w, "\tNAME\tMACHINE IP\tLOCAL PATH\tREMOTE PATH\n")
