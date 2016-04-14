@@ -25,9 +25,6 @@ beforeTests = -> before (done) ->
 # here we have actual tests
 runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
-  # Forcing CredentialStore to not use SNEAKER for tests
-  CredentialStore.SNEAKER_SUPPORTED = no
-
   describe '#getName()', ->
 
     it 'should return name of the JCredential class', ->
@@ -80,7 +77,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
           (next) ->
             # expecting credential data to be created as well
-            JCredentialData.one { originId }, (err, credentialData_) ->
+            CredentialStore.fetch client, credential.identifier, (err, credentialData_) ->
               expect(err).to.not.exist
               credentialData = credentialData_
               expect(credentialData).to.exist
@@ -453,7 +450,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
           (next) ->
             credential[method] args..., (err, credData) ->
-              credData.remove (err) ->
+              CredentialStore.remove client, credData.identifier, (err) ->
                 expect(err).to.not.exist
                 next()
 
@@ -548,8 +545,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               next()
 
           (next) ->
-            options = { identifier : credential.identifier }
-            JCredentialData.one options, (err, credData) ->
+            CredentialStore.fetch client, credential.identifier, (err, credData) ->
               expect(err).to.not.exist
               expect(credData.meta).to.be.deep.equal { data : 'newMeta' }
               next()

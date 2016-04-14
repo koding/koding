@@ -14,9 +14,6 @@ beforeTests = -> before (done) ->
 # here we have actual tests
 runTests = -> describe 'workers.social.models.computeproviders.providerinterface', ->
 
-  # Forcing CredentialStore to not use SNEAKER for tests
-  CredentialStore.SNEAKER_SUPPORTED = no
-
   describe '#fetchCredentialData()', ->
 
     it 'it should be able fetch credential data ', (done) ->
