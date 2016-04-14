@@ -685,6 +685,9 @@ Admin main styles
 
 .AppModal--admin .resource-management
 
+  .listview-wrapper
+    kalc                    height, (100% \- 100px)
+
   .advanced-search-link
     font-size               13px
     color                   #8d8d8d
@@ -694,8 +697,12 @@ Admin main styles
   .advanced-search-container
     hidden()
 
-  .advanced-search-mode
-    .simple-search-container
+  &.advanced-search-mode
+
+    .listview-wrapper
+      kalc                  height, (100% \- 250px)
+
+    .regular-search-container
       hidden()
 
     .advanced-search-container
@@ -704,31 +711,41 @@ Admin main styles
     .formline
       fl()
 
-      &:nth-child(odd)
+      &.accounts
         clear               both
 
-    .button-field
-      margin-top            0px !important
+        .input-wrapper
+          border            1px solid #dbdbdb
+          rounded           3px
+          bg                color, #fff
+          width             659px
+          padding           0px 13px
+          borderBox()
 
-      .kdbutton
-        fl()
+        .kdinput.text
+          box-shadow        none !important
+          bg                color, transparent
+          rounded           0
+          border            0
+          margin            0
+          padding           8px 0 10px 0
 
-    .kdinput.checkbox
-      width                 auto !important
-      height                auto !important
-
-    .kdautocompletewrapper
-      bg                    color, transparent
+    .kdautocompletewrapper.delete-mode
+      .kdinput.text::-webkit-input-placeholder
+        color               rgba(217, 58, 55, 0.9)
+      .kdinput.text:-moz-input-placeholder
+        color               rgba(217, 58, 55, 0.9)
 
     .account-heads
-      max-width             230px
+      display               inline-block
+      width                 auto
 
     .chat-head
       white-space           nowrap
       line-height           25px
       margin                1px 2px 1px 0
-      padding               5px
-      padding-right         30px
+      padding               5px 0px
+      padding-right         10px
       padding-bottom        0px
       fl()
       rel()
@@ -743,11 +760,24 @@ Admin main styles
         color               #8b8b8b
 
       .close-icon
-        top                 8px
-        right               7px
+        hidden()
 
-  .listview-wrapper
-    kalc                    height, (100% \- 100px)
+      &.selected > span
+        text-decoration     line-through
+        color               rgba(217,58,55,0.9)
+
+    .button-field
+      margin-top            6px !important
+
+      .kdbutton
+        fl()
+
+    .kdinput.checkbox
+      width                 auto !important
+      height                auto !important
+
+    .kdautocompletewrapper
+      bg                    color, transparent
 
   .resource-item
     overflow                hidden
@@ -799,16 +829,12 @@ Admin main styles
         vendor              transition, width .3s ease
 
     &.Destroying
-      bg                    color, transparent
 
       .progressbar-container, .percentage
         visibility          visible
 
       .progressbar-container .bar
         bg                  color, #e94835
-
-      .details-container, .role
-        hidden()
 
     &.Building
 
@@ -818,6 +844,12 @@ Admin main styles
     .general-info
       padding-left          52px
 
+    .revision
+      color                 #52a840
+      text-decoration       underline
+      pointer()
+
+    .revision.warning,
     .revision-status.warning
       color                 $color-danger
 
@@ -1124,8 +1156,7 @@ Admin main styles
 
 .AppModal--admin
 
-  .no-item-view
-    text-align              center
+  .no-item-found
     margin-top              70px
     font-size               15px
     color                   #a1a1a1

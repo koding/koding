@@ -1,0 +1,54 @@
+#! 3542b3cc-0656-4e61-bdd8-14b929104ffc
+# title: IDE: Terminal settings
+# start_uri: /
+# tags: 
+# browsers: chrome, osx_chrome
+#
+ 
+Enter '{{rainqa1.username}}' in the 'Username or Email' field, enter 'qatester' in the 'Password' field and click 'Sign In'
+Do you see 'example_1 is not build yet' modal with green 'BUILD STACK' button or 'example_1 is turned off' modal with green 'TURN IT ON' button or 'You don't have any VMs' modal with 'SHOW STACKS' button or file tree and some editor/terminal active (like on screenshot http://snag.gy/2oIRb.jpg)?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'. Close the form with 'no found' message if displayed.
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?
+
+Click 'BUILD STACK' button (or  'TURN IT ON' button) and wait until process finished (it may take 1-3 minutes). 
+Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg)? 
+
+Click any terminal tab
+Do you see an active terminal area?
+
+Type 'sudo' in the terminal and press Enter
+Do you see command and it results in the terminal?
+
+Click settings icon at the top of the file tree
+Do you see 'Editor Settings' and 'Terminal Settings' instead of file tree?
+
+Change 'Font' option in Terminal Settings
+Is font in the terminal changed according to selected value?
+
+Change 'Font size' option in Terminal Settings
+Is font size in the terminal changed according to selected value?
+
+Change 'Theme' option in Terminal Settings
+Is color theme for terminal changed?
+
+Toggle on/off 'Blinking cursor' option in the Terminal Settings and select the terminal tab
+Is cursor blinking/not in the terminal?
+
+Select '50' value for the Scrollback option in the 'Terminal Settings', type 'man -?' command in the terminal and press Enter
+Do you see only 50 rows of results in the terminal and other results are cut off?
+
+Select '100' value for the Scrollback option in the 'Terminal Settings', type 'sudo' in the terminal and press Enter, type 'man -?' in the terminal and press Enter
+Do you see only 100 rows of results in the terminal and other results are cut off?
+
+Select '10000' value for the Scrollback option in the 'Terminal Settings', type 'man -?' in the terminal and press Enter and repeat several times
+Do you see all results (up to 10000 rows) in the terminal?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?

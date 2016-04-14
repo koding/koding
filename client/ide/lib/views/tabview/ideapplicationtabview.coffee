@@ -102,6 +102,7 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
             @removePane_ pane
             @parent.handleCloseSplitView pane
             @askForSaveModal.destroy()
+            file.emit 'FileContentsNeedsToBeRefreshed'
         'Cancel'    :
           cssClass  : 'solid light-gray medium'
           title     : 'Cancel'

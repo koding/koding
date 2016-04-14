@@ -491,5 +491,3 @@ module.exports =
       return "http://#{user.teamSlug}.#{url}"
     else
       return "http://#{url}"
-      # return 'http://54.152.13.1:8090'
-      # return 'https://koding:1q2w3e4r@sandbox.koding.com/'

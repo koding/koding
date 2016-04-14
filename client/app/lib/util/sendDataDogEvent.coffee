@@ -32,6 +32,6 @@ module.exports = (eventName, options = {}) ->
 
   else
 
-    # Send only events when hostname is koding.com
+    # Send only events on production
     # and user enabled logs somehow
-    sendEvent()  if global.location.hostname is 'koding.com'
+    sendEvent()  if globals.config.environment is 'production'

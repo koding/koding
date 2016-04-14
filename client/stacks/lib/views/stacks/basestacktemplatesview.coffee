@@ -126,5 +126,6 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
     @defineStackView.on [ 'Cancel', 'Completed' ], =>
       @defineStackView.destroy()
+      @initialView.reload()
       @initialView.show()
       @setRoute()

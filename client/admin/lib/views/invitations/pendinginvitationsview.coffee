@@ -1,22 +1,19 @@
-kd                    = require 'kd'
-remote                = require('app/remote').getInstance()
-checkFlag             = require 'app/util/checkFlag'
-InvitedItemView       = require './inviteditemview'
-KDCustomHTMLView      = kd.CustomHTMLView
-TeamMembersCommonView = require '../members/teammemberscommonview'
+kd                        = require 'kd'
+checkFlag                 = require 'app/util/checkFlag'
+InvitedItemView           = require './inviteditemview'
+KDCustomHTMLView          = kd.CustomHTMLView
+KodingListController      = require 'app/kodinglist/kodinglistcontroller'
+TeamMembersCommonView     = require '../members/teammemberscommonview'
+InvitationsListController = require './invitationslistcontroller'
 
 
 module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
   constructor: (options = {}, data) ->
 
-    options.listViewItemClass        = InvitedItemView
     options.searchInputPlaceholder   = 'Find by email or first name'
     options.listViewItemOptions    or= { statusType: 'pending' }
     options.statusType             or= 'pending'
-    options.noItemFoundWidget      or= new KDCustomHTMLView
-      partial  : 'There is no pending invitation.'
-      cssClass : 'hidden no-item-view'
     options.sortOptions            or= [
       { title: 'Send date',  value: 'modifiedAt' } # sort by -1
       { title: 'Email',      value: 'email' }      # sort by  1
@@ -27,16 +24,24 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
     super options, data
 
 
+  createListController: ->
+
+    { statusType, listViewItemOptions, noItemFoundText } = @getOptions()
+
+    @listController = new InvitationsListController { statusType, listViewItemOptions, noItemFoundText }
+
+    @buildListController()
+
+
   fetchMembers: ->
 
-    return if @isFetching
+    return  if @isFetching
 
     @isFetching    = yes
-    { statusType } = @getOptions()
     query          = @searchInput.getValue()
     options        = { @skip, sort: @getSortOptions() }
     method         = 'some'
-    selector       = { status: statusType }
+    selector       = { }
     isSuperAdmin   = checkFlag 'super-admin'
 
     if query
@@ -47,14 +52,10 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
     if isSuperAdmin and groupSlug isnt 'koding'
       selector.groupSlug = groupSlug
 
-    remote.api.JInvitation[method] selector, options, (err, invitations) =>
-
-      if err
-        @listController.lazyLoader.hide()
-        return kd.warn err
-
-      @listMembers invitations
+    @listController.fetch selector, (invitations) =>
+      @listController.addListItems invitations
       @isFetching = no
+    , options
 
 
   search: ->

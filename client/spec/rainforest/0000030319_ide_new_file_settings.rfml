@@ -1,0 +1,90 @@
+#! 74cfbd77-4cf1-4cf1-8aae-41513c7b2057
+# title: IDE: new file, settings
+# start_uri: /
+# tags: ide, settings
+# browsers: chrome, osx_chrome
+#
+ 
+Enter '{{rainqa1.username}}' in the 'Username or Email' field, enter 'qatester' in the 'Password' field and click 'Sign In'
+Do you see 'example_1 is not build yet' modal with green 'BUILD STACK' button or 'example_1 is turned off' modal with green 'TURN IT ON' button or 'You don't have any VMs' modal with 'SHOW STACKS' button or file tree and some editor/terminal active (like on screenshot http://snag.gy/2oIRb.jpg)?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'. Close the form with 'no found' message if displayed.
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?
+
+Click 'BUILD STACK' button (or  'TURN IT ON' button) and wait until process finished (it may take 1-3 minutes). 
+Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg)? 
+
+Click '+' icon in the header at the right of tabs and click 'New File' in menu ( http://snag.gy/TxUAk.jpg ) 
+Do you see a new editor tab named 'Untitled.txt'?
+
+Enter 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum {{random.number}}' text in the editor
+Do you see a dot displayed at the left of 'Untitled.txt' name in the editor header  (like on screenshot http://snag.gy/1sJCy.jpg )?
+
+Mouse over the editor header where the file 'Untitled.txt' is opened, click down arrow icon and click 'Save' in the menu ( http://snag.gy/7yOOm.jpg )
+Do you see a new modal with 'Filename', 'Select a folder' fields and 'Save' and 'Cancel' buttons?
+
+Enter 'testfile{{random.number}}.txt' in the 'Filename' field and click 'Save'
+Is modal closed? Do you see 'testfile{{random.number}}.txt' title of the opened file instead of 'Untitled.txt'? Do you see a new 'testfile{{random.number}}.txt' file in the file tree?
+
+Mouse over the editor header where the file 'testfile{{random.number}}.txt' is opened and click down 'x' icon
+Is editor tab closed?
+
+Double click the 'testfile{{random.number}}.txt' file in the file tree
+Do you see a new editor tab opened? Do you see the same file content you saved on previous step?
+
+Set cursor to the end of last row in the editor, hit Enter and enter 'new row'
+Do you see a new row added with text you entered?
+
+Mouse over the editor header where the file  'testfile{{random.number}}.txt' is opened, click down arrow icon and click 'Save As' in the menu
+Do you see a new modal with 'Filename', 'Select a folder' fields and 'Save' and 'Cancel' buttons? Is filename field pre-filled with 'testfile{{random.number}}.txt'?
+
+Enter 'testfile{{random.number}}_renamed.txt' title and click 'Save'
+Do you see a new editor tab with  'testfile{{random.number}}_renamed.txt'  file opened? Do you see a new 'testfile{{random.number}}_renamed.txt' file in the file tree?
+
+Mouse over the editor tab where the 'testfile{{random.number}}_renamed.txt' file is opened
+Do you see a hint with the full file name and path displayed ( http://snag.gy/xHcfv.jpg )?
+
+Mouse over the editor header where the file 'testfile{{random.number}}_renamed.txt' is opened and click 'x' icon
+Is editor tab closed?
+
+Mouse over the editor header where the file 'testfile{{random.number}}.txt' is opened, click down arrow icon and click 'Search in all files' in the menu
+Do you see a 'Find' form opened with 'Find' search criteria, 'Where' path, 'Case sensitive', 'Whole word', 'Use regexp' checkboxes and 'Close' and 'Search' buttons?
+
+Enter '{{random.number}}' in the 'Find' field and click 'Search'
+Do you see a new tab 'Search Results' opened'? Do you see at least 2 results: 'testfile{{random.number}}.txt' and 'testfile{{random.number}}_renamed.txt' with full path displayed?
+
+Double click '/home/{{rainqa1.username}}/testfile{{random.number}}_renamed.txt' row in the search results
+Do you see a new editor tab with 'testfile{{random.number}}_renamed.txt' opened?
+
+Click settings icon at the top of the file tree
+Do you see 'Editor Settings' and 'Terminal Settings' instead of file tree?
+
+Toggle 'Line numbers' option on/off in Editor Settings
+Are line numbers displayed/hidden in editor tabs?
+
+Toggle 'Use word wrapping' option on/off in Editor Settings
+Are long lines word wrapped (displayed on multiline within the screen) in editor tabs?
+
+Toggle 'Show print margin' option on/off in Editor Settings
+Are lines showing the print margin displayed/hidden in editor tabs?
+
+Toggle 'Highlight active line' option on/off in Editor Settings
+Is the line where the cursor highlighted/not in editor tabs?
+
+Toggle 'Use scroll past end' option on/off in Editor Settings and try to scroll any file in the editor
+Is scrolling past the last row allowed / not-allowed?
+
+Change 'Font size' option in Editor Settings (try different settings and return to the 12px as result)
+Is font size in the editor changed according to selected value?
+
+Change 'Theme' option in Editor Settings
+Is color theme for editor changed?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?

@@ -16,6 +16,7 @@ mockThread                = require 'app/util/generateDummyThread'
 mockChannel               = require 'app/util/generateDummyChannel'
 mockjworkspace            = require './mock.jworkspace'
 mockjcomputestack         = require './mock.jcomputestack'
+mockjinvitation           = require './mock.jinvitation'
 mockParticipants          = require 'app/util/generateDummyParticipants'
 mockReactComponent        = require './mock.reactComponent'
 mockcollaborationchannel  = require './mock.collaborationchannel'
@@ -349,6 +350,10 @@ module.exports =
   getMockJStack: -> mockjstack
 
   getMockStack: -> remote.revive mockjstack
+
+  getMockJInvitation: -> mockjinvitation
+
+  getMockInvitation: -> remote.revive mockjinvitation
 
   getMockMessage: (args...) -> return mockMessage(args...)
 

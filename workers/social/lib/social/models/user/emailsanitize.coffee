@@ -1,3 +1,6 @@
+{ argv } = require 'optimist'
+KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
+
 sanitize = (email, options = {}) ->
 
   options.excludeDots or= no
@@ -27,7 +30,7 @@ sanitize = (email, options = {}) ->
 checkGmail = (email) -> /^(.)+@(gmail|googlemail).com/.test email
 
 
-checkKoding = (email) -> /^(.)+@koding.com/.test email
+checkBaseMail = (email) -> ///^(.)+@#{KONFIG.domains.mail}///.test email
 
 
 excludeDots = (username) -> username.replace /\./g, ''
@@ -43,6 +46,6 @@ module.exports = (email, options = {}) ->
 
   email = email.trim().toLowerCase()
 
-  if checkKoding email
+  if checkBaseMail email
   then email
   else sanitize email, options

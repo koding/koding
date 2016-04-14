@@ -90,7 +90,6 @@ module.exports =
     inputPassword         = 'input[name=password]'
     loginButton           = 'button[testpath=login-button]'
 
-
     browser
       .pause                  2000 # wait for login page
       .waitForElementVisible  teamsLoginModal, 20000
@@ -1059,3 +1058,51 @@ module.exports =
         invitationUrl = "#{teamUrl}/Invitation/#{value.invitation.code}"
 
         callback invitationUrl
+
+
+  enableAndDisableApiAccess: (browser, enableApi = no, disableApi = no) ->
+
+    apiAccessSelector       = '.kdtabhandle-tabs .api-access.AppModal-navItem'
+    toggleSwitch            = '.settings-row .koding-on-off.small.'
+    toggledOffSwitch        = "#{toggleSwitch}off"
+    toggledOnSwitch         = "#{toggleSwitch}on"
+    addNewApiDisabledButton = '.kdtabhandlecontainer.hide-close-icons [disabled="disabled"]'
+    addnewApiButton         = '.kdtabhandlecontainer.hide-close-icons .add-new'
+
+    browser
+      .waitForElementVisible     apiAccessSelector, 20000
+      .click                     apiAccessSelector
+      .element 'css selector', toggledOffSwitch, (result) ->
+        if result.status is 0
+          if enableApi
+            browser
+              .waitForElementVisible     toggledOffSwitch, 20000
+              .pause                     2000
+              .waitForElementVisible     addNewApiDisabledButton, 20000
+              .click                     toggledOffSwitch
+              .pause                     2000
+
+          if disableApi
+            browser
+              .waitForElementVisible     toggledOnSwitch, 20000
+              .waitForElementVisible     addnewApiButton, 20000
+              .click                     toggledOnSwitch
+              .pause                     2000
+              .waitForElementVisible     addNewApiDisabledButton, 20000
+
+
+  addNewApiToken: (browser) ->
+
+    addnewApiButton = '.kdtabhandlecontainer.hide-close-icons .add-new'
+    confirmDelete   = '.kddraggable.with-buttons .clearfix .solid.red'
+    deleteButton    = '.kdlistitemview-member .role.subview .delete'
+    tokenTimeStamp  = '.kdlistitemview-member .details .time'
+
+    browser
+      .click                     addnewApiButton
+      .waitForElementVisible     deleteButton, 20000
+      .assert.containsText       tokenTimeStamp, 'Created less than a minute ago by'
+      .click                     deleteButton
+      .waitForElementVisible     deleteButton, 20000
+      .click                     confirmDelete
+      .waitForElementNotVisible  tokenTimeStamp, 20000

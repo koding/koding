@@ -14,6 +14,6 @@ if [ ! -n "$EB_ENV_NAME" ]; then
   ENV_NAME=$EB_ENV_NAME
 fi
 
-curl -s --connect-timeout 2 -X POST -d "name=$NAME&sha=$SHA&message=$MESSAGE&status=$STATUS&percentage=$PERCENTAGE&branch=$BRANCH&env=$ENV_NAME" http://cebeci.koding.com/cebeci/hook/wercker/incoming >> /dev/null
+curl -s --connect-timeout 2 -X POST -d "name=$NAME&sha=$SHA&message=$MESSAGE&status=$STATUS&percentage=$PERCENTAGE&branch=$BRANCH&env=$ENV_NAME" $CEBECI_WERCKER_ENDPOINT >> /dev/null
 
 exit 0

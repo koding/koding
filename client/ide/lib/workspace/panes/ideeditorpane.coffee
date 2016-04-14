@@ -161,6 +161,13 @@ module.exports = class IDEEditorPane extends IDEPane
         @updateFileModifiedTime()
         @contentChangedWarning?.destroy()
         @contentChangedWarning = null
+        
+        # Sync session content with original content
+        return  unless @rtm?.isReady
+        return  if @rtm?.isDisposed
+        
+        string = @rtm.getFromModel @file.path
+        string.setText content  if string
 
     @file.on 'FilePathChanged', @bound 'updateFilePath'
 

@@ -31,7 +31,7 @@ registered to koding.com
 
     # ----- Download kd from <your team>.koding.com -----
     # kd is the cli to interact with klient and fuseklient
-    curl -L kodi.ng/d/kd | bash -s <token>
+    curl -L kodi.ng/c/p/kd | bash -s <token>
 
     # Mount the remote VM on `folder`
     kd mount <name> ./folder

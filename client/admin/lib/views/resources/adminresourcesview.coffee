@@ -22,6 +22,8 @@ module.exports = class AdminResourcesView extends kd.View
 
     @addSubView @searchView = new ResourceSearchView()
     @searchView.on 'SearchRequested', @bound 'search'
+    @searchView.on 'AdvancedSearchMode', @lazyBound 'changeSearchMode', yes
+    @searchView.on 'RegularSearchMode', @lazyBound 'changeSearchMode', no
 
 
   createResourceListView: ->
@@ -31,6 +33,16 @@ module.exports = class AdminResourcesView extends kd.View
       view      : @listView
 
     @addSubView @controller.getView()
+
+
+  changeSearchMode: (isAdvanced) ->
+
+    if isAdvanced
+      @setClass 'advanced-search-mode'
+    else
+      @unsetClass 'advanced-search-mode'
+
+    @controller.customScrollView.wrapper.emit 'MutationHappened'
 
 
   search: (query) ->
