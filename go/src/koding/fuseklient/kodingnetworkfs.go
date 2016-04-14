@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -664,8 +665,9 @@ func (k *KodingNetworkFS) deleteEntry(id fuseops.InodeID) {
 
 func (k *KodingNetworkFS) entryChanged(e Node) {
 	file, ok := e.(*File)
+	p := filepath.Join(file.Transport.GetRemotePath(), file.Path)
 	if ok {
-		k.Watcher.AddTimedIgnore(file.Path, 1*time.Minute)
+		k.Watcher.AddTimedIgnore(p, 1*time.Minute)
 	}
 }
 
