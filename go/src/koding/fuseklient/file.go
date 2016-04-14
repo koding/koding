@@ -108,6 +108,7 @@ func (f *File) Expire() error {
 	// doesn't invalidate the local cache, so we replace the InodeId.
 	f.ID = f.Parent.IDGen.Next()
 
+	// fetch the updated attrs
 	attrs, err := f.getAttrsFromRemote()
 	if err != nil {
 		return err
