@@ -56,14 +56,9 @@ func (m *Machine) start(ctx context.Context) (err error) {
 		}
 	}()
 
-	m.push("Starting machine", 25, machinestate.Starting)
+	m.PushEvent("Starting machine", 25, machinestate.Starting)
 
 	infoState := amazon.StatusToState(aws.StringValue(instance.State.Name))
-
-	meta, err := m.GetMeta()
-	if err != nil {
-		return err
-	}
 
 	// only start if the machine is stopped, stopping
 	if infoState.In(machinestate.Stopped, machinestate.Stopping) {
@@ -78,12 +73,12 @@ func (m *Machine) start(ctx context.Context) (err error) {
 		}
 
 		m.IpAddress = aws.StringValue(instance.PublicIpAddress)
-		meta.InstanceType = aws.StringValue(instance.InstanceType)
+		m.Meta.InstanceType = aws.StringValue(instance.InstanceType)
 	}
 
-	m.push("Checking remote machine", 75, machinestate.Starting)
-	if !m.IsKlientReady() {
-		return errors.New("klient is not ready")
+	m.PushEvent("Checking remote machine", 75, machinestate.Starting)
+	if err := m.WaitKlientReady(); err != nil {
+		return err
 	}
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
@@ -91,9 +86,9 @@ func (m *Machine) start(ctx context.Context) (err error) {
 			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"ipAddress":          m.IpAddress,
-				"meta.instanceName":  meta.InstanceName,
-				"meta.instanceId":    meta.InstanceId,
-				"meta.instance_type": meta.InstanceType,
+				"meta.instanceName":  m.Meta.InstanceName,
+				"meta.instanceId":    m.Meta.InstanceId,
+				"meta.instance_type": m.Meta.InstanceType,
 				"status.state":       machinestate.Running.String(),
 				"status.modifiedAt":  time.Now().UTC(),
 				"status.reason":      "Machine is running",

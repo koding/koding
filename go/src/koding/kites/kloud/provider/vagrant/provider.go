@@ -2,33 +2,18 @@ package vagrant
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 
-	"koding/db/mongodb"
-	"koding/db/mongodb/modelhelper"
-	"koding/kites/common"
-	"koding/kites/kloud/api/vagrantapi"
-	"koding/kites/kloud/contexthelper/request"
-	"koding/kites/kloud/contexthelper/session"
-	"koding/kites/kloud/dnsstorage"
-	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/provider/helpers"
-	"koding/kites/kloud/userdata"
+	"github.com/mitchellh/mapstructure"
 
-	"github.com/koding/kite"
-	"github.com/koding/logging"
+	"koding/kites/kloud/api/vagrantapi"
+	"koding/kites/kloud/provider"
+
 	"golang.org/x/net/context"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 )
 
 // TODO(rjeczalik): kloud refactoring notes:
 //
-//   - create provider.BaseProvider, provider.BaseMachine
-//     complementary to existing provider.BaseStack
 //   - create provider.MetaFunc for custom machine metadata handling
 //   - create modelhelpers.DB and move function helpers to methods,
 //     so it's posible to use it with non-global *mongodb.MongoDB
@@ -37,101 +22,43 @@ import (
 
 // Provider implements machine management operations.
 type Provider struct {
-	DB         *mongodb.MongoDB
-	Log        logging.Logger
-	Kite       *kite.Kite
-	DNSClient  *dnsclient.Route53
-	DNSStorage *dnsstorage.MongodbStorage
-	Userdata   *userdata.Userdata
-	TunnelURL  string
-	Debug      bool
+	*provider.BaseProvider
+
+	TunnelURL string
 }
 
 func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
-	if !bson.IsObjectIdHex(id) {
-		return nil, fmt.Errorf("Invalid machine id: %q", id)
-	}
-
-	machine, err := modelhelper.GetMachine(id)
-	if err == mgo.ErrNotFound {
-		return nil, kloud.NewError(kloud.ErrMachineNotFound)
-	}
+	bm, err := p.BaseMachine(ctx, id)
 	if err != nil {
-		return nil, errors.New("unable to get machine: " + err.Error())
-	}
-	m := &Machine{
-		Machine: machine,
-	}
-
-	req, ok := request.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("request context is not available")
-	}
-
-	meta, err := m.GetMeta()
-	if err != nil {
-		return nil, errors.New("unable to get meta: +" + err.Error())
-	}
-
-	m.Meta = meta
-
-	if err := p.AttachSession(ctx, m); err != nil {
 		return nil, err
 	}
 
-	if err := helpers.ValidateUser(m.User, m.Users, req); err != nil {
+	// TODO(rjeczalik): move decoding provider-specific metadata to BaseMachine.
+	var mt Meta
+	if err := mapstructure.Decode(bm.Meta, &mt); err != nil {
 		return nil, err
 	}
 
-	return m, nil
-}
-
-func (p *Provider) AttachSession(ctx context.Context, m *Machine) error {
-	if len(m.Users) == 0 {
-		return errors.New("permitted users list is empty")
+	if err := mt.Valid(); err != nil {
+		return nil, err
 	}
 
-	var reqUser string
-	req, ok := request.FromContext(ctx)
-	if ok {
-		reqUser = req.Username
+	// TODO(rjeczalik): move decoding provider-specific credential to BaseMachine.
+	var cred VagrantMeta
+	if err := p.CredStore.Get(bm.Credential, &cred); err != nil {
+		return nil, err
 	}
 
-	user, err := modelhelper.GetPermittedUser(reqUser, m.Users)
-	if err != nil {
-		return err
-	}
-
-	m.User = user
-	m.Log = p.Log.New(m.ObjectId.Hex())
-
-	debug := p.Debug
-	if traceID, ok := kloud.TraceFromContext(ctx); ok {
-		m.Log = common.NewLogger("kloud-vagrant", true).New(m.ObjectId.Hex()).New(traceID)
-		debug = true
-	}
-
-	m.Session = &session.Session{
-		DB:         p.DB,
-		Kite:       p.Kite,
-		DNSClient:  p.DNSClient,
-		DNSStorage: p.DNSStorage,
-		Userdata:   p.Userdata,
-		Log:        m.Log,
-	}
-
-	m.api = &vagrantapi.Klient{
-		Kite:  p.Kite,
-		Log:   m.Log.New("vagrantapi"),
-		Debug: debug,
-	}
-
-	ev, ok := eventer.FromContext(ctx)
-	if ok {
-		m.Session.Eventer = ev
-	}
-
-	return nil
+	return &Machine{
+		BaseMachine: bm,
+		Meta:        &mt,
+		Cred:        &cred,
+		Vagrant: &vagrantapi.Klient{
+			Kite:  bm.Kite,
+			Log:   bm.Log.New("vagrantapi"),
+			Debug: bm.Debug,
+		},
+	}, nil
 }
 
 func (p *Provider) tunnelURL() (*url.URL, error) {

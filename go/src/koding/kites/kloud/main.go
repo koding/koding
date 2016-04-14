@@ -29,11 +29,13 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/plans"
+	"koding/kites/kloud/provider"
 	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/provider/vagrant"
 	"koding/kites/kloud/queue"
+	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/userdata"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -312,28 +314,32 @@ func newKite(conf *Config) *kite.Kite {
 
 	go kodingProvider.RunCleaners(time.Minute * 60)
 
-	/// AWS PROVIDER ///
+	/// BASE PROVIDER ///
 
-	awsProvider := &awsprovider.Provider{
+	bp := &provider.BaseProvider{
 		DB:         db,
-		Log:        common.NewLogger("kloud-aws", conf.DebugMode),
+		Log:        common.NewLogger("kloud", conf.DebugMode),
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		Kite:       k,
 		Userdata:   userdata,
+		Debug:      conf.DebugMode,
+		CredStore: &stackplan.MongoCredStore{
+			MongoDB: db,
+		},
+	}
+
+	/// AWS PROVIDER ///
+
+	awsProvider := &awsprovider.Provider{
+		BaseProvider: bp.New("aws"),
 	}
 
 	/// VAGRANT PROVIDER ///
 
 	vagrantProvider := &vagrant.Provider{
-		DB:         db,
-		Log:        common.NewLogger("kloud-vagrant", conf.DebugMode),
-		DNSClient:  dnsInstance,
-		DNSStorage: dnsStorage,
-		Kite:       k,
-		Userdata:   userdata,
-		TunnelURL:  conf.TunnelURL,
-		Debug:      conf.DebugMode,
+		BaseProvider: bp.New("vagrant"),
+		TunnelURL:    conf.TunnelURL,
 	}
 
 	/// SOFTLAYER PROVIDER ///

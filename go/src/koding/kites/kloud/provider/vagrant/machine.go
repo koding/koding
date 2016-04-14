@@ -2,102 +2,38 @@ package vagrant
 
 import (
 	"errors"
-	"time"
 
-	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/vagrantapi"
-	"koding/kites/kloud/contexthelper/session"
-	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
-
-	"github.com/koding/logging"
-	"github.com/mitchellh/mapstructure"
+	"koding/kites/kloud/provider"
 )
 
 type Meta struct {
-	AlwaysOn        bool   `bson:"alwaysOn"`
-	StorageSize     int    `bson:"storage_size"`
-	FilePath        string `bson:"filePath"`
-	HostQueryString string `bson:"hostQueryString"`
-	Memory          int    `bson:"memory"`
-	CPU             int    `bson:"cpus"`
-	Hostname        string `bson:"hostname"`
-	KlientHostURL   string `bson:"klientHostURL"`
-	KlientGuestURL  string `bson:"klientGuestURL"`
+	AlwaysOn       bool   `bson:"alwaysOn"`
+	StorageSize    int    `bson:"storage_size"`
+	FilePath       string `bson:"filePath"`
+	Memory         int    `bson:"memory"`
+	CPU            int    `bson:"cpus"`
+	Hostname       string `bson:"hostname"`
+	KlientHostURL  string `bson:"klientHostURL"`
+	KlientGuestURL string `bson:"klientGuestURL"`
 }
 
 func (meta *Meta) Valid() error {
 	if meta.FilePath == "" {
 		return errors.New("vagrant's FilePath metadata is empty")
 	}
-	if meta.HostQueryString == "" {
-		return errors.New("vagrant's HostQueryString metadata is empty")
-	}
+
 	return nil
 }
 
 type Machine struct {
-	*models.Machine
+	*provider.BaseMachine
 
-	Meta    *Meta            `bson:"-"`
-	User    *models.User     `bson:"-"`
-	Session *session.Session `bson:"-"`
-	Log     logging.Logger   `bson:"-"`
-
-	api *vagrantapi.Klient
-}
-
-func (m *Machine) GetMeta() (*Meta, error) {
-	var mt Meta
-
-	if err := mapstructure.Decode(m.Machine.Meta, &mt); err != nil {
-		return nil, err
-	}
-
-	return &mt, nil
-}
-
-// State returns the machinestate of the machine.
-func (m *Machine) State() machinestate.State {
-	return machinestate.States[m.Status.State]
-}
-
-// ProviderName gives the jMachine.provider field.
-func (m *Machine) ProviderName() string {
-	return m.Provider
-}
-
-// push pushes the given message to the eventer
-func (m *Machine) push(msg string, n int, s machinestate.State) {
-	if m.Session.Eventer != nil {
-		m.Session.Eventer.Push(&eventer.Event{
-			Message:    msg,
-			Percentage: n,
-			Status:     s,
-		})
-	}
-}
-
-func (m *Machine) waitKlientReady() bool {
-	m.Log.Debug("All finished, testing for klient connection IP [%s]", m.IpAddress)
-
-	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, time.Minute*5)
-	if err != nil {
-		m.Log.Warning("Connecting to remote Klient instance err: %s", err)
-		return false
-	}
-	defer klientRef.Close()
-
-	m.Log.Debug("Sending a ping message ot %q", m.QueryString)
-
-	if err := klientRef.Ping(); err != nil {
-		m.Log.Debug("Sending a ping message err: %s", err)
-		return false
-	}
-
-	return true
+	Meta    *Meta              `bson:"-"`
+	Cred    *VagrantMeta       `bson:"-"`
+	Vagrant *vagrantapi.Klient `bson:"-"`
 }
 
 func (m *Machine) updateState(s machinestate.State) error {
