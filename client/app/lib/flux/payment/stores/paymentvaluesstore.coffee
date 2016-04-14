@@ -1,18 +1,17 @@
-KodingFluxStore = require 'app/flux/base/store'
 actionTypes     = require '../actiontypes'
 toImmutable     = require 'app/util/toImmutable'
 immutable       = require 'immutable'
 
-module.exports = class PaymentValuesStore extends KodingFluxStore
-
-  @getterPath = 'PaymentValuesStore'
+module.exports =
 
   getInitialState: -> toImmutable { isStripeClientLoaded: no }
 
   initialize: ->
-
     @on actionTypes.LOAD_STRIPE_CLIENT_SUCCESS, handleStripeCLientLoad
+    @on actionTypes.CREATE_STRIPE_TOKEN_SUCCESS, handleStripeTokenLoad
 
 
-handleStripeCLientLoad = (flags) -> flags.set 'isStripeClientLoaded', yes
+handleStripeCLientLoad = (values) -> values.set 'isStripeClientLoaded', yes
+
+handleStripeTokenLoad = (values, { token }) -> values.set 'stripeToken', token
 
