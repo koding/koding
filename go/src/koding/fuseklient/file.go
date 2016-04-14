@@ -22,7 +22,7 @@ type File struct {
 func NewFile(n *Entry) *File {
 	return &File{
 		Entry:   n,
-		content: NewContentReadWriter(n.Transport, n.Path, int64(n.Attrs.Size)),
+		content: NewContentReadWriter(n.Transport, &n.Path, int64(n.Attrs.Size)),
 	}
 }
 

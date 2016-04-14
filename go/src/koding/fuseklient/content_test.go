@@ -27,7 +27,7 @@ func TestContentReadWriterCreate(t *testing.T) {
 
 			So(cr.Create(), ShouldBeNil)
 
-			resp, err := rt.ReadFile(cr.Path)
+			resp, err := rt.ReadFile(*cr.Path)
 			So(err, ShouldBeNil)
 
 			So(resp.Content, ShouldResemble, []byte("Hello"))
@@ -64,7 +64,7 @@ func TestContentReadWriterSave(t *testing.T) {
 			So(cr.WriteAt(dftCnt, 0), ShouldBeNil)
 			So(cr.Save(false), ShouldBeNil)
 
-			resp, err := rt.ReadFile(cr.Path)
+			resp, err := rt.ReadFile(*cr.Path)
 			So(err, ShouldBeNil)
 
 			So(resp.Content, ShouldResemble, dftCnt)
@@ -198,7 +198,8 @@ func newContentReader() (*ContentReadWriter, transport.Transport, error) {
 		return nil, nil, err
 	}
 
-	cr := NewContentReadWriter(rt, "1", int64(len(dftCnt)))
+	sz := "1"
+	cr := NewContentReadWriter(rt, &sz, int64(len(dftCnt)))
 	rt, ok := cr.remote.(*transport.RemoteTransport)
 	if !ok {
 		return nil, nil, fmt.Errorf(
