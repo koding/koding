@@ -49,3 +49,9 @@ createStripeToken = ({dispatch, evaluate}) -> (options) ->
         resolve { token }
 
 
+module.exports = {
+  loadStripeClient
+  createStripeToken
+}
+
+
