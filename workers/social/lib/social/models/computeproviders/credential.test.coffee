@@ -9,7 +9,8 @@ CredentialStore  = require './credentialstore'
   expectAccessDenied
   generateRandomString
   checkBongoConnectivity } = require '../../../../testhelper'
-{ generateMetaData
+{ addToRemoveList
+  generateMetaData
   removeGeneratedCredentials
   withConvertedUserAndCredential } = require \
   '../../../../testhelper/models/computeproviders/credentialhelper'
@@ -48,7 +49,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           done()
 
 
-    it 'should be able to ocreate credential when the data is valid', (done) ->
+    it 'should be able to create credential when the data is valid', (done) ->
 
       withConvertedUser ({ client, account }) ->
 
@@ -70,6 +71,9 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
             JCredential.create client, options, (err, credential_) ->
               expect(err).to.not.exist
               credential = credential_
+
+              addToRemoveList client, credential.identifier
+
               expect(credential.provider).to.be.equal provider
               expect(credential.title).to.be.equal title
               expect(credential.identifier).to.exist

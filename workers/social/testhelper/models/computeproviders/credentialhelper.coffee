@@ -61,7 +61,7 @@ withConvertedUserAndCredential = (options, callback) ->
       expect(err).to.not.exist
       data.credential = credential
 
-      CREDENTIALS.push [client, credential.identifier]
+      addToRemoveList client, credential.identifier
 
       callback data
 
@@ -80,7 +80,13 @@ removeGeneratedCredentials = (callback) ->
   async.series queue, callback
 
 
+addToRemoveList = (client, identifier) ->
+
+  CREDENTIALS.push [client, identifier]
+
+
 module.exports = {
+  addToRemoveList
   createCredential
   generateMetaData
   removeGeneratedCredentials
