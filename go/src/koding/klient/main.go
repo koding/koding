@@ -61,7 +61,7 @@ var (
 	flagLogBucketRegion   = flag.String("log-bucket-region", "us-west-1", "Change bucket region to upload logs")
 	flagLogBucketName     = flag.String("log-bucket-name", "koding-klient-logs", "Change bucket name to upload logs")
 	flagLogUploadLimit    = flag.Int("log-upload-limit", 1024*400, "Change file size of logs")
-	flagLogUploadInterval = flag.Duration("log-upload-limit", time.Minute*3, "Change interval to upload logs")
+	flagLogUploadInterval = flag.Duration("log-upload-interval", time.Minute*3*60, "Change interval of upload logs")
 )
 
 func main() {
