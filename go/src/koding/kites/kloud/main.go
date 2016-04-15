@@ -326,6 +326,7 @@ func newKite(conf *Config) *kite.Kite {
 		Debug:      conf.DebugMode,
 		CredStore: &stackplan.MongoCredStore{
 			MongoDB: db,
+			Log:     common.NewLogger("mongocred", conf.DebugMode),
 		},
 	}
 

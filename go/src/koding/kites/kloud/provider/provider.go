@@ -109,5 +109,7 @@ func (bp *BaseProvider) BaseMachine(ctx context.Context, id string) (*BaseMachin
 		bm.Eventer = ev
 	}
 
+	bp.Log.Debug("BaseMachine: %+v", bm)
+
 	return bm, nil
 }

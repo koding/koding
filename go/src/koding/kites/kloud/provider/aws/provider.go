@@ -37,6 +37,8 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, err
 	}
 
+	p.Log.Debug("aws credential: %+v", cred)
+
 	if mt.Region != cred.Region {
 		return nil, fmt.Errorf("region mismatch: machine is %q, credential is %q", mt.Region, cred.Region)
 	}

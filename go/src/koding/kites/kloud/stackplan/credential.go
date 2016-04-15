@@ -7,6 +7,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/kloud"
 
+	"github.com/koding/logging"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/mgo.v2"
 )
@@ -19,9 +20,10 @@ type CredStore interface {
 
 type MongoCredStore struct {
 	MongoDB *mongodb.MongoDB // TODO(rjeczalik): refactor modelhelper functions to not use global MongoDB
+	Log     logging.Logger
 }
 
-func (*MongoCredStore) Get(identifier string, cred interface{}) error {
+func (db *MongoCredStore) Get(identifier string, cred interface{}) error {
 	creds, err := modelhelper.GetCredentialDatasFromIdentifiers(identifier)
 	if err == mgo.ErrNotFound {
 		return ErrCredNotFound
@@ -34,9 +36,13 @@ func (*MongoCredStore) Get(identifier string, cred interface{}) error {
 		return ErrCredNotFound
 	}
 
-	if err := mapstructure.Decode(creds[0].Meta, cred); err != nil {
+	db.Log.Debug("fetch credentials from mongo: %+v", creds[0])
+
+	if err := db.decode(creds[0].Meta, cred); err != nil {
 		return err
 	}
+
+	db.Log.Debug("decoded credentials: %# v", cred)
 
 	if v, ok := cred.(kloud.Validator); ok {
 		if err := v.Valid(); err != nil {
@@ -44,5 +50,19 @@ func (*MongoCredStore) Get(identifier string, cred interface{}) error {
 		}
 	}
 
-	return nil // TODO
+	return nil
+}
+
+func (db *MongoCredStore) decode(m, cred interface{}) error {
+	config := &mapstructure.DecoderConfig{
+		Result:  cred,
+		TagName: "bson",
+	}
+
+	decoder, err := mapstructure.NewDecoder(config)
+	if err != nil {
+		return err
+	}
+
+	return decoder.Decode(m)
 }
