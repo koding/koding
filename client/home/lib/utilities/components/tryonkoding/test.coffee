@@ -6,7 +6,7 @@ TryOnKoding        = require './view'
 TestUtils          = require 'react-addons-test-utils'
 
 
-describe.only 'HomeUtilitiesTryOnKoding', ->
+describe 'HomeUtilitiesTryOnKoding', ->
   
   { createRenderer, 
   renderIntoDocument,
@@ -36,12 +36,12 @@ describe.only 'HomeUtilitiesTryOnKoding', ->
       
     it 'should render buttons', ->
       
-      tryOnKoding = renderIntoDocument(<TryOnKoding checked={yes} secondaryClassName='secondary' value={value}/>)
+      tryOnKoding = renderIntoDocument(<TryOnKoding checked={yes} secondaryClassName='secondary'/>)
       
       guideButton = findRenderedDOMComponentWithClass tryOnKoding, 'custom-link-view HomeAppView--button'
       
-      tryOnKodingButton = findRenderedDOMComponentWithClass tryOnKodingButton, 'custom-link-view TryOnKodingButton fr'
+      tryOnKodingButton = findRenderedDOMComponentWithClass tryOnKoding, 'TryOnKodingButton'
       
       expect(guideButton).toExist()
-      expect(TryOnKodingButton).toExist()
+      expect(tryOnKodingButton).toExist()
       

@@ -6,7 +6,7 @@ DesktopApp         = require './view'
 TestUtils          = require 'react-addons-test-utils'
 
 
-describe.only 'HomeUtilitiesDesktopApp', ->
+describe 'HomeUtilitiesDesktopApp', ->
   
   { createRenderer, 
   renderIntoDocument,
