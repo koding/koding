@@ -10,6 +10,7 @@ Promise     = require 'bluebird'
 immutable   = require 'immutable'
 Tracker     = require 'app/util/tracker'
 isKoding    = require 'app/util/isKoding'
+isEmailValid = require 'app/util/isEmailValid'
 
 
 loadTeam = ->
@@ -36,69 +37,6 @@ updateTeam = (dataToUpdate) ->
       return reject { message: 'Couldn\'t update team settings. Please try again' }  if err
 
       resolve { message }
-
-
-validateEmail = (email) ->
-  emailPattern = /// ^ #begin of line
-   ([\w.-]+)         #one or more letters, numbers, _ . or -
-   @                 #followed by an @ sign
-   ([\w.-]+)         #then one or more letters, numbers, _ . or -
-   \.                #followed by a period
-   ([a-zA-Z.]{2,6})  #followed by 2 to 6 letters or periods
-   $ ///i            #end of line and ignore case
-
-  return emailPattern.test email
-
-
-inviteMembers = (inviteInputs) ->
-
-  { reactor } = kd.singletons
-  reactor.dispatch actions.RESET_TEAM_INVITES
-  invites = []
-  admins  = []
-
-  new Promise (resolve, reject) ->
-    whoami().fetchEmail (err, ownEmail) =>
-
-      inviteInputs.forEach (inviteInput) ->
-        email = inviteInput.get('email').trim()
-
-        return  unless email
-
-        validatedEmail = validateEmail email
-
-        if email.toLowerCase() is ownEmail
-
-          return reject { message: 'You can not invite yourself!'}
-
-        if email and not validatedEmail
-
-          return reject { message: 'That doesn\'t seem like a valid email address.'}
-
-        invites.push invite = inviteInput.toJS()
-        admins.push invite.email  if invite.role is 'admin'
-
-      Tracker.track Tracker.TEAMS_INVITED_TEAMMEMBERS, {
-        invitesCount : invites.length
-        adminsCount  : admins.length
-      }
-
-      if admins.length
-        resolve { invites, admins }
-      else
-        resolve { invites }
-
-
-getNewInvitations = (invites, pendingInvitations) ->
-  new Promise (resolve, reject) ->
-    pendingEmails=[]
-
-    pendingInvitations.map (invite) ->
-      pendingEmails.push invite.get('email')
-
-    newInvitations = (invite for invite, i in invites when invite.email not in pendingEmails)
-    resolve { newInvitations }
-
 
 
 updateInviteInput = (index, inputType, value) ->
@@ -129,12 +67,52 @@ fetchMembersRole = ->
 
   myId = whoami().getId()
   teamMemberIds = reactor.evaluate getters.TeamMembersIdStore
-  
+
   ids = teamMemberIds.toArray()
   ids.push myId
-  
+
   team.fetchUserRoles ids, (err, roles) ->
     reactor.dispatch actions.FETCH_TEAM_MEMBERS_ROLES_SUCCESS, roles
+
+
+inviteMembers = (inviteInputs) ->
+
+  { reactor } = kd.singletons
+  reactor.dispatch actions.RESET_TEAM_INVITES
+  invites = []
+  admins  = []
+
+  new Promise (resolve, reject) ->
+
+    whoami().fetchEmail (err, ownEmail) =>
+
+      inviteInputs.forEach (inviteInput) ->
+
+        email = inviteInput.get('email').trim()
+        return  unless email
+
+        validEmail = isEmailValid email
+
+        if email.toLowerCase() is ownEmail
+
+          return reject { message: 'You can not invite yourself!'}
+
+        if email and not validEmail
+
+          return reject { message: 'That doesn\'t seem like a valid email address.'}
+
+        invites.push invite = inviteInput.toJS()
+        admins.push invite.email  if invite.role is 'admin'
+
+      Tracker.track Tracker.TEAMS_INVITED_TEAMMEMBERS, {
+        invitesCount : invites.length
+        adminsCount  : admins.length
+      }
+
+      if admins.length
+        resolve { invites, admins }
+      else
+        resolve { invites }
 
 
 loadPendingInvites = (invites) ->
@@ -161,7 +139,7 @@ loadPendingInvites = (invites) ->
 sendInvitations = (invites, pendingInvites) ->
 
   new Promise (resolve, reject) ->
-    # return resolve { title: 'There is no body new to send invitation' }  if invites.length is 0
+
     remote.api.JInvitation.create { invitations: invites }, (err) =>
       if err
         return reject { title }
@@ -195,6 +173,18 @@ resendInvitations = (pendingInvitations, newInvitations) ->
         title  = "Invitation is resent to <strong>#{pendingInvitations.get(0).get('email')}</strong>"
         title  = 'All invitations are resent.'  if pendingInvitations.size > 1
         resolve { title }
+
+
+getNewInvitations = (invites, pendingInvitations) ->
+
+  new Promise (resolve, reject) ->
+    pendingEmails=[]
+
+    pendingInvitations.map (invite) ->
+      pendingEmails.push invite.get('email')
+
+    newInvitations = (invite for invite, i in invites when invite.email not in pendingEmails)
+    resolve { newInvitations }
 
 
 setSearchInputValue = (value) ->
