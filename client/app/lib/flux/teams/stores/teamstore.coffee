@@ -14,12 +14,6 @@ module.exports = class TeamStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_TEAM_SUCCESS, @load
-    @on actions.UPDATE_TEAM_MEMBER, @updateTeamMember
-    @on actions.DELETE_TEAM_MEMBER, @deleteTeamMember
 
 
   load: (oldTeam, team) -> toImmutable team
-
-  updateTeamMember: (oldTeam, member) -> oldTeam.set member.get('id'), member
-  
-  deleteTeamMember: (oldTeam, memberId) -> oldTeam.delete memberId
