@@ -27,14 +27,10 @@ module.exports = class KodingUtilitiesView extends kd.CustomScrollView
       cmd = if err
         "<a href='#'>Failed to generate your command, click to try again!</a>"
       else
-        kontrolUrl = ''
-        channel = 'p'
-
         if globals.config.environment in ['dev', 'default', 'sandbox']
-          kontrolUrl = "export KONTROLURL=#{globals.config.newkontrol.url}; "
-          channel = 'd'
-
-        "#{kontrolUrl}curl -sL https://kodi.ng/c/#{channel}/kd | bash -s #{token}"
+          "export KONTROLURL=#{globals.config.newkontrol.url}; curl -sL https://sandbox.kodi.ng/c/d/kd | bash -s #{token}"
+        else
+          "curl -sL https://kodi.ng/c/p/kd | bash -s #{token}"
 
       @kdInstallView?.destroy()
       @wrapper.addSubView @kdInstallView = new kd.CustomHTMLView
