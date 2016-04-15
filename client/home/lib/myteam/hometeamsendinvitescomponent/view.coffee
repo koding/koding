@@ -35,36 +35,10 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
   renderEmptySectionAtIndex: -> <div> No data found</div>
 
 
-  renderSendInvites: ->
-
-    <a className='custom-link-view HomeAppView--button primary fr' href='#' onClick={@props.onSendInvites}>
-      <span className='title'>SEND INVITES</span>
-    </a>
-
-
-  renderUploadCsv: ->
-
-    <a className='custom-link-view HomeAppView--button ft' href='#' onClick={@props.onUploadCsv}>
-      <span className='title'>UPLOAD CSV</span>
-    </a>
-
-
-  renderInformation: ->
-    lastname = 'Last Name'
-    <div className='information'>
-      <div className='invite-labels'>
-        <label>Email</label>
-        <label>First Name</label>
-        <label>Last Name<span>Admin</span>
-        </label>
-      </div>
-    </div>
-
-
   render: ->
 
     <div>
-      {@renderInformation()}
+      <InformationLabel />
       <div className='input-wrapper'>
         <List
           numberOfSections={@bound 'numberOfSections'}
@@ -75,7 +49,33 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
         />
       </div>
       <fieldset className='HomeAppView--ActionBar'>
-        {@renderSendInvites()}
-        {@renderUploadCsv()}
+        <RenderButton
+          title={'SEND INVITES'}
+          className={'custom-link-view HomeAppView--button primary fr'}
+          callback={@props.onSendInvites}/>
+        <RenderButton
+          title={'UPLOAD CSV'}
+          className={'custom-link-view HomeAppView--button ft'}
+          callback={@props.onUploadCsv} />
       </fieldset>
     </div>
+
+
+InformationLabel =  ->
+
+  lastname = 'Last Name'
+  <div className='information'>
+    <div className='invite-labels'>
+      <label>Email</label>
+      <label>First Name</label>
+      <label>Last Name<span>Admin</span>
+      </label>
+    </div>
+  </div>
+
+
+RenderButton = ({ className, title, callback }) ->
+
+  <a className={className} href='#' onClick={callback}>
+    <span className='title'>{title}</span>
+  </a>

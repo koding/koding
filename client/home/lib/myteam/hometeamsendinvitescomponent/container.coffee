@@ -20,12 +20,10 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     }
 
 
-  constructor: (props) ->
-
-    super props
-    @state =
-      hidden : 'notHidden'
-      modalTitle: 'titleee'
+  onUploadCsv: ->
+    return new kd.NotificationView
+      title    : 'Coming Soon!'
+      duration : 2000
 
 
   onInputChange: (index, inputType, event) ->
@@ -38,28 +36,16 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     TeamFlux.actions.updateInviteInput index, inputType, value
 
 
-  notifyAdminInvites = (invites, admins, pendingInvitations) ->
-
-    title = if admins.length > 1 then "You're adding admins" else "You're adding an admin"
-    modal = new AdminInviteModalView
-      admins: admins
-      title : title
-      success: ->
-        handleInvitationRequest invites, pendingInvitations
-        modal.destroy()
-      cancel: ->
-        modal.destroy()
-
-
   onSendInvites: ->
 
     inviteInputs = @state.inviteInputs
 
     TeamFlux.actions.inviteMembers(inviteInputs).then ({ invites, admins }) ->
 
-      if invites
+      if invites.length
         TeamFlux.actions.loadPendingInvites(invites).then ({ pendingInvitations }) ->
-          if admins
+
+          if admins?.length
             notifyAdminInvites invites, admins, pendingInvitations
           else
             handleInvitationRequest invites, pendingInvitations
@@ -75,24 +61,6 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       return new kd.NotificationView
         title    : title
         duration : 5000
-
-
-  prepareEmailsText = (pendingInvites) ->
-
-    len = pendingInvites.size
-
-    state = [0...len].reduce (state, invitation, index) ->
-      email = pendingInvites.get(index).get('email')
-      state += "<strong>#{email}</strong>"
-      if index + 2 is len
-        state += ', and '
-      else if index + 1 is len
-        state += ''
-      else
-        state += ', '
-    , ''
-
-    return state
 
 
   handleInvitationRequest = (invites, pendingInvitations) ->
@@ -111,11 +79,21 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
         title    : title
         duration : 5000
 
-    if newInvitations.length > 0
-      TeamFlux.actions.sendInvitations(newInvitations, pendingInvitations).then ({ title }) ->
-        return new kd.NotificationView
-          title    : title
-          duration : 5000
+    if newInvitations.length
+      sendInvitations newInvitations, pendingInvitations
+
+
+  notifyAdminInvites = (invites, admins, pendingInvitations) ->
+
+    title = if admins.length > 1 then "You're adding admins" else "You're adding an admin"
+    modal = new AdminInviteModalView
+      admins: admins
+      title : title
+      success: ->
+        handleInvitationRequest invites, pendingInvitations
+        modal.destroy()
+      cancel: ->
+        modal.destroy()
 
 
   notifyPendingInvites = (pendingInvitations, { newInvitations }) ->
@@ -140,16 +118,28 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       cancel : ->
         sendInvitations newInvitations
         modal.destroy()
-        
-        
-  onUploadCsv: ->
-     return new kd.NotificationView
-        title    : 'Coming Soon!'
-        duration : 2000
+
+
+  prepareEmailsText = (pendingInvites) ->
+
+    len = pendingInvites.size
+
+    state = [0...len].reduce (state, invitation, index) ->
+      email = pendingInvites.get(index).get('email')
+      state += "<strong>#{email}</strong>"
+      if index + 2 is len
+        state += ', and '
+      else if index + 1 is len
+        state += ''
+      else
+        state += ', '
+    , ''
+
+    return state
 
 
   render: ->
-    
+
     <View
       inviteInputs={@state.inviteInputs}
       onUploadCsv={@bound 'onUploadCsv'}
@@ -157,6 +147,4 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       onSendInvites={@bound 'onSendInvites'} />
 
 
-
 HomeTeamSendInvitesContainer.include [KDReactorMixin]
-
