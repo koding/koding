@@ -1,11 +1,10 @@
-kd              = require 'kd'
-React           = require 'kd-react'
-
+kd = require 'kd'
+React = require 'kd-react'
 EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin  = require 'app/flux/base/reactormixin'
-
-List            = require 'app/components/list'
-TimeAgo         = require 'app/components/common/timeago'
+KDReactorMixin = require 'app/flux/base/reactormixin'
+List = require 'app/components/list'
+TimeAgo = require 'app/components/common/timeago'
+showStackEditor = require 'app/util/showStackEditor'
 
 
 module.exports = class TeamStacksListView extends React.Component
@@ -24,7 +23,9 @@ module.exports = class TeamStacksListView extends React.Component
     template = @props.templates.toList().get(rowIndex)
 
     <div className='StackTemplateItem'>
-      <div className='StackTemplateItem-label'>
+      <div
+        className='StackTemplateItem-label'
+        onClick={showStackEditor.bind null, template.get '_id'}>
         {template.get 'title'}
       </div>
       <div className='StackTemplateItem-description'>
