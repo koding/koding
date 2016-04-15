@@ -32,7 +32,7 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
 
 
   render: ->
-    
+
     <View
       members={@state.members}
       searchInputValue={@state.searchInputValue}
