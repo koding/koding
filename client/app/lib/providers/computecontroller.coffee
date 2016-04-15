@@ -1292,6 +1292,9 @@ module.exports = class ComputeController extends KDController
 
       @fetchBaseStackTemplate stack, (err, template) =>
 
+        if err or not template
+          console.warn 'The base template of the stack has been removed:', stack.baseStackId
+
         groupStack = stack.config?.groupStack
 
         @destroyStack stack, (err) =>

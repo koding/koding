@@ -5,6 +5,7 @@ package terraformer
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"strings"
@@ -186,7 +187,13 @@ func (t *Terraformer) apply(r *kite.Request, destroy bool) (*terraform.State, er
 	// set variables if sent
 	c.Variables = args.Variables
 
-	return c.Apply(strings.NewReader(args.Content), destroy)
+	// set content if non-empty
+	var content io.Reader
+	if args.Content != "" {
+		content = strings.NewReader(args.Content)
+	}
+
+	return c.Apply(content, destroy)
 }
 
 func (t *Terraformer) handleState(r *kite.Request) (interface{}, error) {
