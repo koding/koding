@@ -29,14 +29,16 @@ func NewDiskTransport(diskPath string) (*DiskTransport, error) {
 	}
 
 	return &DiskTransport{
-		DiskPath: diskPath,
+		DiskPath:  diskPath,
+		BlockSize: 1024 ^ 3,
 	}, nil
 }
 
 // DiskTransport is an implementation of Transport that reads files and dirs
 // from disk.
 type DiskTransport struct {
-	DiskPath string
+	DiskPath  string
+	BlockSize int64
 }
 
 func (d *DiskTransport) CreateDir(path string, mode os.FileMode) error {
