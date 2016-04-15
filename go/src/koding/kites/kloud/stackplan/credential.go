@@ -3,12 +3,12 @@ package stackplan
 import (
 	"errors"
 	"fmt"
+
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/kloud"
 
 	"github.com/koding/logging"
-	"github.com/mitchellh/mapstructure"
 	"gopkg.in/mgo.v2"
 )
 
@@ -38,7 +38,7 @@ func (db *MongoCredStore) Get(identifier string, cred interface{}) error {
 
 	db.Log.Debug("fetch credentials from mongo: %+v", creds[0])
 
-	if err := db.decode(creds[0].Meta, cred); err != nil {
+	if err := modelhelper.BsonDecode(creds[0].Meta, cred); err != nil {
 		return err
 	}
 
@@ -51,18 +51,4 @@ func (db *MongoCredStore) Get(identifier string, cred interface{}) error {
 	}
 
 	return nil
-}
-
-func (db *MongoCredStore) decode(m, cred interface{}) error {
-	config := &mapstructure.DecoderConfig{
-		Result:  cred,
-		TagName: "bson",
-	}
-
-	decoder, err := mapstructure.NewDecoder(config)
-	if err != nil {
-		return err
-	}
-
-	return decoder.Decode(m)
 }

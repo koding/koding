@@ -3,11 +3,11 @@ package awsprovider
 import (
 	"fmt"
 
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/provider"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 )
 
@@ -23,7 +23,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 
 	// TODO(rjeczalik): move decoding provider-specific metadata to BaseMachine.
 	var mt Meta
-	if err := mapstructure.Decode(bm.Meta, &mt); err != nil {
+	if err := modelhelper.BsonDecode(bm.Meta, &mt); err != nil {
 		return nil, err
 	}
 

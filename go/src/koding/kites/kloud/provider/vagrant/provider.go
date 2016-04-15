@@ -4,8 +4,7 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/mitchellh/mapstructure"
-
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/provider"
 
@@ -35,7 +34,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 
 	// TODO(rjeczalik): move decoding provider-specific metadata to BaseMachine.
 	var mt Meta
-	if err := mapstructure.Decode(bm.Meta, &mt); err != nil {
+	if err := modelhelper.BsonDecode(bm.Meta, &mt); err != nil {
 		return nil, err
 	}
 
