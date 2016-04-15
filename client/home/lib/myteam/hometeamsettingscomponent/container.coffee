@@ -21,13 +21,13 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
   constructor: (props) ->
 
     super props
-    
+
 
   componentDidMount: ->
-    
+
     canEdit = kd.singletons.groupsController.canEditGroup()
     teamName = Encoder.htmlDecode @state.team?.get 'title' ? ''
-    
+
     @setState
       logopath : '/a/images/logos/sidebar_footer_logo.svg'
       canEdit : canEdit
@@ -67,9 +67,6 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
   onUpdate: ->
 
-    { groupsController, reactor } = kd.singletons
-    team = groupsController.getCurrentGroup()
-
     title = @state.teamName
     dataToUpdate = {}
     dataToUpdate.title = title  unless title is @state.team.get 'title'
@@ -85,7 +82,8 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
     TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) ->
       notify message
-
+    .catch ({ message }) ->
+      notify message
 
   onTeamNameChanged: (event)->
 
@@ -94,7 +92,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
 
   render: ->
-    
+
     <View
       ref='view'
       team={@state.team}
