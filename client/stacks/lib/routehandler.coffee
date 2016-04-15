@@ -6,6 +6,6 @@ module.exports = ->
   options =
     name      : 'stacks'
     title     : 'Stacks'
-    homeRoute : '/Stacks/Welcome'
+    homeRoute : '/Stacks/My-Stacks'
 
   routeHandler options
