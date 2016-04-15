@@ -132,6 +132,10 @@ func main() {
 					Name:  "prefetch-interval",
 					Usage: "Sets how frequently folder will sync with remote, in seconds. Zero disables syncing.",
 				},
+				cli.BoolFlag{
+					Name:  "trace, t",
+					Usage: "Turn on trace logs.",
+				},
 			},
 			Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
 		},

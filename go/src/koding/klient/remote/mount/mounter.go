@@ -248,7 +248,7 @@ func (m *Mounter) fuseMountFolder(mount *Mount, retry bool) error {
 		NoIgnore:       mount.NoIgnore,
 		NoPrefetchMeta: mount.NoPrefetchMeta,
 		NoWatch:        mount.NoWatch,
-		Debug:          true, // turn on debug permanently till v1
+		Trace:          mount.Trace,
 	}
 
 	var (
