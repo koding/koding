@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 	"testing"
 )
@@ -152,6 +153,49 @@ func TestCLIRun_default(t *testing.T) {
 	}
 }
 
+func TestCLIRun_helpNested(t *testing.T) {
+	helpCalled := false
+	buf := new(bytes.Buffer)
+	cli := &CLI{
+		Args: []string{"--help"},
+		Commands: map[string]CommandFactory{
+			"foo sub42": func() (Command, error) {
+				return new(MockCommand), nil
+			},
+		},
+		HelpFunc: func(m map[string]CommandFactory) string {
+			helpCalled = true
+
+			var keys []string
+			for k, _ := range m {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+
+			expected := []string{"foo"}
+			if !reflect.DeepEqual(keys, expected) {
+				return fmt.Sprintf("error: contained sub: %#v", keys)
+			}
+
+			return ""
+		},
+		HelpWriter: buf,
+	}
+
+	code, err := cli.Run()
+	if err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+
+	if code != 1 {
+		t.Fatalf("Code: %d", code)
+	}
+
+	if !helpCalled {
+		t.Fatal("help not called")
+	}
+}
+
 func TestCLIRun_nested(t *testing.T) {
 	command := new(MockCommand)
 	cli := &CLI{
@@ -233,8 +277,15 @@ func TestCLIRun_printHelp(t *testing.T) {
 				},
 			},
 			HelpFunc: func(m map[string]CommandFactory) string {
-				if len(m) != 1 || m["foo"] == nil {
-					return fmt.Sprintf("error: contained sub: %#v", m)
+				var keys []string
+				for k, _ := range m {
+					keys = append(keys, k)
+				}
+				sort.Strings(keys)
+
+				expected := []string{"foo"}
+				if !reflect.DeepEqual(keys, expected) {
+					return fmt.Sprintf("error: contained sub: %#v", keys)
 				}
 
 				return helpText
@@ -300,6 +351,43 @@ func TestCLIRun_printCommandHelp(t *testing.T) {
 	}
 }
 
+func TestCLIRun_printCommandHelpNested(t *testing.T) {
+	testCases := [][]string{
+		{"--help", "foo", "bar"},
+		{"-h", "foo", "bar"},
+	}
+
+	for _, args := range testCases {
+		command := &MockCommand{
+			HelpText: "donuts",
+		}
+
+		buf := new(bytes.Buffer)
+		cli := &CLI{
+			Args: args,
+			Commands: map[string]CommandFactory{
+				"foo bar": func() (Command, error) {
+					return command, nil
+				},
+			},
+			HelpWriter: buf,
+		}
+
+		exitCode, err := cli.Run()
+		if err != nil {
+			t.Fatalf("err: %s", err)
+		}
+
+		if exitCode != 1 {
+			t.Fatalf("bad exit code: %d", exitCode)
+		}
+
+		if buf.String() != (command.HelpText + "\n") {
+			t.Fatalf("bad: %#v", buf.String())
+		}
+	}
+}
+
 func TestCLIRun_printCommandHelpSubcommands(t *testing.T) {
 	testCases := [][]string{
 		{"--help", "foo"},
@@ -319,6 +407,15 @@ func TestCLIRun_printCommandHelpSubcommands(t *testing.T) {
 					return command, nil
 				},
 				"foo bar": func() (Command, error) {
+					return &MockCommand{SynopsisText: "hi!"}, nil
+				},
+				"foo zip": func() (Command, error) {
+					return &MockCommand{SynopsisText: "hi!"}, nil
+				},
+				"foo zap": func() (Command, error) {
+					return &MockCommand{SynopsisText: "hi!"}, nil
+				},
+				"foo banana": func() (Command, error) {
 					return &MockCommand{SynopsisText: "hi!"}, nil
 				},
 				"foo longer": func() (Command, error) {
@@ -420,6 +517,7 @@ func TestCLISubcommand_nested(t *testing.T) {
 		{[]string{"foo", "bar", "-h"}, "foo bar"},
 		{[]string{"foo", "bar", "baz", "-h"}, "foo bar"},
 		{[]string{"foo", "bar", "-h", "baz"}, "foo bar"},
+		{[]string{"-h", "foo", "bar"}, "foo bar"},
 	}
 
 	for _, testCase := range testCases {
@@ -452,7 +550,10 @@ const testCommandHelpSubcommandsOutput = `donuts
 
 Subcommands:
 
+    banana    hi!
     bar       hi!
     longer    hi!
+    zap       hi!
+    zip       hi!
 
 `

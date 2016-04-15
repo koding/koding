@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -164,15 +163,37 @@ func (c *Command) readConfig() *Config {
 	if config.NodeName == "" {
 		hostname, err := os.Hostname()
 		if err != nil {
-			c.Ui.Error(fmt.Sprintf("Error determining hostname: %s", err))
+			c.Ui.Error(fmt.Sprintf("Error determining node name: %s", err))
 			return nil
 		}
 		config.NodeName = hostname
+	}
+	config.NodeName = strings.TrimSpace(config.NodeName)
+	if config.NodeName == "" {
+		c.Ui.Error("Node name can not be empty")
+		return nil
+	}
+
+	// Make sure SkipLeaveOnInt is set to the right default based on the
+	// agent's mode (client or server)
+	if config.SkipLeaveOnInt == nil {
+		config.SkipLeaveOnInt = new(bool)
+		if config.Server {
+			*config.SkipLeaveOnInt = true
+		} else {
+			*config.SkipLeaveOnInt = false
+		}
 	}
 
 	// Ensure we have a data directory
 	if config.DataDir == "" && !dev {
 		c.Ui.Error("Must specify data directory using -data-dir")
+		return nil
+	}
+
+	// Ensure all endpoints are unique
+	if err := config.verifyUniqueListeners(); err != nil {
+		c.Ui.Error(fmt.Sprintf("All listening endpoints must be unique: %s", err))
 		return nil
 	}
 
@@ -182,11 +203,22 @@ func (c *Command) readConfig() *Config {
 	if config.Server {
 		mdbPath := filepath.Join(config.DataDir, "mdb")
 		if _, err := os.Stat(mdbPath); !os.IsNotExist(err) {
+			if os.IsPermission(err) {
+				c.Ui.Error(fmt.Sprintf("CRITICAL: Permission denied for data folder at %q!", mdbPath))
+				c.Ui.Error("Consul will refuse to boot without access to this directory.")
+				c.Ui.Error("Please correct permissions and try starting again.")
+				return nil
+			}
 			c.Ui.Error(fmt.Sprintf("CRITICAL: Deprecated data folder found at %q!", mdbPath))
 			c.Ui.Error("Consul will refuse to boot with this directory present.")
 			c.Ui.Error("See https://www.consul.io/docs/upgrade-specific.html for more information.")
 			return nil
 		}
+	}
+
+	// Verify DNS settings
+	if config.DNSConfig.UDPAnswerLimit < 1 {
+		c.Ui.Error(fmt.Sprintf("dns_config.udp_answer_limit %d too low, must always be greater than zero", config.DNSConfig.UDPAnswerLimit))
 	}
 
 	if config.EncryptKey != "" {
@@ -267,17 +299,56 @@ func (c *Command) readConfig() *Config {
 		c.Ui.Error("WARNING: Bootstrap mode enabled! Do not enable unless necessary")
 	}
 
-	// Warn if using windows as a server
-	if config.Server && runtime.GOOS == "windows" {
-		c.Ui.Error("WARNING: Windows is not recommended as a Consul server. Do not use in production.")
-	}
-
 	// Set the version info
 	config.Revision = c.Revision
 	config.Version = c.Version
 	config.VersionPrerelease = c.VersionPrerelease
 
 	return config
+}
+
+// verifyUniqueListeners checks to see if an address was used more than once in
+// the config
+func (config *Config) verifyUniqueListeners() error {
+	listeners := []struct {
+		host  string
+		port  int
+		descr string
+	}{
+		{config.Addresses.RPC, config.Ports.RPC, "RPC"},
+		{config.Addresses.DNS, config.Ports.DNS, "DNS"},
+		{config.Addresses.HTTP, config.Ports.HTTP, "HTTP"},
+		{config.Addresses.HTTPS, config.Ports.HTTPS, "HTTPS"},
+		{config.AdvertiseAddr, config.Ports.Server, "Server RPC"},
+		{config.AdvertiseAddr, config.Ports.SerfLan, "Serf LAN"},
+		{config.AdvertiseAddr, config.Ports.SerfWan, "Serf WAN"},
+	}
+
+	type key struct {
+		host string
+		port int
+	}
+	m := make(map[key]string, len(listeners))
+
+	for _, l := range listeners {
+		if l.host == "" {
+			l.host = "0.0.0.0"
+		} else if strings.HasPrefix(l.host, "unix") {
+			// Don't compare ports on unix sockets
+			l.port = 0
+		}
+		if l.host == "0.0.0.0" && l.port <= 0 {
+			continue
+		}
+
+		k := key{l.host, l.port}
+		v, ok := m[k]
+		if ok {
+			return fmt.Errorf("%s address already configured for %s", l.descr, v)
+		}
+		m[k] = l.descr
+	}
+	return nil
 }
 
 // setupLoggers is used to setup the logGate, logWriter, and our logOutput
@@ -800,7 +871,7 @@ WAIT:
 
 	// Check if we should do a graceful leave
 	graceful := false
-	if sig == os.Interrupt && !config.SkipLeaveOnInt {
+	if sig == os.Interrupt && !(*config.SkipLeaveOnInt) {
 		graceful = true
 	} else if sig == syscall.SIGTERM && config.LeaveOnTerm {
 		graceful = true
@@ -978,6 +1049,7 @@ Options:
                            as configuration in this directory in alphabetical
                            order. This can be specified multiple times.
   -data-dir=path           Path to a data directory to store agent state
+  -dev                     Starts the agent in development mode.
   -recursor=1.2.3.4        Address of an upstream DNS server.
                            Can be specified multiple times.
   -dc=east-aws             Datacenter of the agent

@@ -173,12 +173,6 @@ func resourceAwsSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 			_, err := conn.DeleteSubnet(req)
 			if err != nil {
 				if apiErr, ok := err.(awserr.Error); ok {
-					if apiErr.Code() == "DependencyViolation" {
-						// There is some pending operation, so just retry
-						// in a bit.
-						return 42, "pending", nil
-					}
-
 					if apiErr.Code() == "InvalidSubnetID.NotFound" {
 						return 42, "destroyed", nil
 					}

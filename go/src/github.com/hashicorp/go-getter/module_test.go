@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	urlhelper "github.com/hashicorp/go-getter/helper/url"
-	"github.com/hashicorp/terraform/config"
 )
 
 const fixtureDir = "./test-fixtures"
@@ -29,15 +28,6 @@ func tempDir(t *testing.T) string {
 func tempFile(t *testing.T) string {
 	dir := tempDir(t)
 	return filepath.Join(dir, "foo")
-}
-
-func testConfig(t *testing.T, n string) *config.Config {
-	c, err := config.LoadDir(filepath.Join(fixtureDir, n))
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-
-	return c
 }
 
 func testModule(n string) string {

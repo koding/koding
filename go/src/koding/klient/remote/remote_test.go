@@ -293,3 +293,71 @@ func TestGetMachinesWithoutCache(t *testing.T) {
 		})
 	})
 }
+
+func TestMatchMachineToKite(t *testing.T) {
+	Convey("Given a Remote", t, func() {
+		kg := newMockKiteGetter()
+		store := storage.NewMemoryStorage()
+		r := &Remote{
+			log:         discardLogger,
+			kitesGetter: kg,
+			machines:    machine.NewMachines(discardLogger, store),
+		}
+
+		Convey("Given a machine with a URL of http://foo.url", func() {
+			m := &machine.Machine{MachineMeta: machine.MachineMeta{
+				URL: "http://foo.url",
+				IP:  "foo.url",
+			}}
+			So(r.machines.Add(m), ShouldBeNil)
+
+			Convey("With a kite for http://foo.url", func() {
+				kg.AddByUrl("http://foo.url")
+
+				Convey("It should match", func() {
+					match, err := r.matchMachineToKite(kg.Clients[0].Client)
+					So(err, ShouldBeNil)
+					So(match, ShouldEqual, m)
+				})
+			})
+
+			Convey("With a kite for http://foo.url:8080", func() {
+				kg.AddByUrl("http://foo.url:8080")
+
+				Convey("It should not match", func() {
+					match, err := r.matchMachineToKite(kg.Clients[0].Client)
+					So(err, ShouldEqual, machine.ErrMachineNotFound)
+					So(match, ShouldBeNil)
+				})
+			})
+		})
+
+		Convey("Given a machine with a blank URL and an IP of foo.url", func() {
+			m := &machine.Machine{MachineMeta: machine.MachineMeta{
+				URL: "",
+				IP:  "foo.url",
+			}}
+			So(r.machines.Add(m), ShouldBeNil)
+
+			Convey("With a kite for http://foo.url", func() {
+				kg.AddByUrl("http://foo.url")
+
+				Convey("It should match", func() {
+					match, err := r.matchMachineToKite(kg.Clients[0].Client)
+					So(err, ShouldBeNil)
+					So(match, ShouldEqual, m)
+				})
+			})
+
+			Convey("With a kite for http://foo.url:8080", func() {
+				kg.AddByUrl("http://foo.url:8080")
+
+				Convey("It should match", func() {
+					match, err := r.matchMachineToKite(kg.Clients[0].Client)
+					So(err, ShouldBeNil)
+					So(match, ShouldEqual, m)
+				})
+			})
+		})
+	})
+}

@@ -74,8 +74,8 @@ func TestDecodeConfig(t *testing.T) {
 		t.Fatalf("bad: %#v", config)
 	}
 
-	if config.SkipLeaveOnInt != DefaultConfig().SkipLeaveOnInt {
-		t.Fatalf("bad: %#v", config)
+	if config.SkipLeaveOnInt != nil {
+		t.Fatalf("bad: expected nil SkipLeaveOnInt")
 	}
 
 	if config.LeaveOnTerm != DefaultConfig().LeaveOnTerm {
@@ -290,7 +290,7 @@ func TestDecodeConfig(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	if config.SkipLeaveOnInt != true {
+	if *config.SkipLeaveOnInt != true {
 		t.Fatalf("bad: %#v", config)
 	}
 
@@ -521,19 +521,28 @@ func TestDecodeConfig(t *testing.T) {
 	}
 
 	// DNS node ttl, max stale
-	input = `{"dns_config": {"node_ttl": "5s", "max_stale": "15s", "allow_stale": true}}`
+	input = `{"dns_config": {"allow_stale": true, "enable_truncate": false, "max_stale": "15s", "node_ttl": "5s", "only_passing": true, "udp_answer_limit": 6}}`
 	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
 
-	if config.DNSConfig.NodeTTL != 5*time.Second {
+	if !config.DNSConfig.AllowStale {
+		t.Fatalf("bad: %#v", config)
+	}
+	if config.DNSConfig.EnableTruncate {
 		t.Fatalf("bad: %#v", config)
 	}
 	if config.DNSConfig.MaxStale != 15*time.Second {
 		t.Fatalf("bad: %#v", config)
 	}
-	if !config.DNSConfig.AllowStale {
+	if config.DNSConfig.NodeTTL != 5*time.Second {
+		t.Fatalf("bad: %#v", config)
+	}
+	if !config.DNSConfig.OnlyPassing {
+		t.Fatalf("bad: %#v", config)
+	}
+	if config.DNSConfig.UDPAnswerLimit != 6 {
 		t.Fatalf("bad: %#v", config)
 	}
 
@@ -980,6 +989,42 @@ func TestDecodeConfig_Services(t *testing.T) {
 	}
 }
 
+func TestDecodeConfig_verifyUniqueListeners(t *testing.T) {
+	tests := []struct {
+		name string
+		cfg  string
+		pass bool
+	}{
+		{
+			"http_rpc1",
+			`{"addresses": {"http": "0.0.0.0", "rpc": "127.0.0.1"}, "ports": {"rpc": 8000, "dns": 8000}}`,
+			true,
+		},
+		{
+			"http_rpc IP identical",
+			`{"addresses": {"http": "0.0.0.0", "rpc": "0.0.0.0"}, "ports": {"rpc": 8000, "dns": 8000}}`,
+			false,
+		},
+		{
+			"http_rpc unix identical (diff ports)",
+			`{"addresses": {"http": "unix:///tmp/.consul.sock", "rpc": "unix:///tmp/.consul.sock"}, "ports": {"rpc": 8000, "dns": 8001}}`,
+			false,
+		},
+	}
+
+	for _, test := range tests {
+		config, err := DecodeConfig(bytes.NewReader([]byte(test.cfg)))
+		if err != nil {
+			t.Fatalf("err: %s %s", test.name, err)
+		}
+
+		err = config.verifyUniqueListeners()
+		if (err != nil && test.pass) || (err == nil && !test.pass) {
+			t.Errorf("err: %s should have %v: %v: %v", test.name, test.pass, test.cfg, err)
+		}
+	}
+}
+
 func TestDecodeConfig_Checks(t *testing.T) {
 	input := `{
 		"checks": [
@@ -1230,7 +1275,7 @@ func TestMergeConfig(t *testing.T) {
 		AdvertiseAddr:          "127.0.0.1",
 		Server:                 false,
 		LeaveOnTerm:            false,
-		SkipLeaveOnInt:         false,
+		SkipLeaveOnInt:         new(bool),
 		EnableDebug:            false,
 		CheckUpdateIntervalRaw: "8m",
 		RetryIntervalRaw:       "10s",
@@ -1252,13 +1297,14 @@ func TestMergeConfig(t *testing.T) {
 		DataDir:         "/tmp/bar",
 		DNSRecursors:    []string{"127.0.0.2:1001"},
 		DNSConfig: DNSConfig{
-			NodeTTL: 10 * time.Second,
+			AllowStale:     false,
+			EnableTruncate: true,
+			MaxStale:       30 * time.Second,
+			NodeTTL:        10 * time.Second,
 			ServiceTTL: map[string]time.Duration{
 				"api": 10 * time.Second,
 			},
-			AllowStale:     true,
-			MaxStale:       30 * time.Second,
-			EnableTruncate: true,
+			UDPAnswerLimit: 4,
 		},
 		Domain:           "other",
 		LogLevel:         "info",
@@ -1284,7 +1330,7 @@ func TestMergeConfig(t *testing.T) {
 		},
 		Server:                 true,
 		LeaveOnTerm:            true,
-		SkipLeaveOnInt:         true,
+		SkipLeaveOnInt:         new(bool),
 		EnableDebug:            true,
 		VerifyIncoming:         true,
 		VerifyOutgoing:         true,
@@ -1358,6 +1404,7 @@ func TestMergeConfig(t *testing.T) {
 		},
 		Reap: Bool(true),
 	}
+	*b.SkipLeaveOnInt = true
 
 	c := MergeConfig(a, b)
 

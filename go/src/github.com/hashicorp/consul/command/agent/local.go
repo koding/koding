@@ -394,9 +394,12 @@ func (l *localState) setSyncState() error {
 			continue
 		}
 
-		// If our definition is different, we need to update it
+		// If our definition is different, we need to update it. Make a
+		// copy so that we don't retain a pointer to any actual state
+		// store info for in-memory RPCs.
 		if existing.EnableTagOverride {
-			existing.Tags = service.Tags
+			existing.Tags = make([]string, len(service.Tags))
+			copy(existing.Tags, service.Tags)
 		}
 		equal := existing.IsSame(service)
 		l.serviceStatus[id] = syncStatus{inSync: equal}
@@ -434,11 +437,26 @@ func (l *localState) setSyncState() error {
 		if l.config.CheckUpdateInterval == 0 {
 			equal = existing.IsSame(check)
 		} else {
-			eCopy := new(structs.HealthCheck)
-			*eCopy = *existing
-			eCopy.Output = ""
-			check.Output = ""
-			equal = eCopy.IsSame(check)
+			// Copy the existing check before potentially modifying
+			// it before the compare operation.
+			eCopy := existing.Clone()
+
+			// Copy the server's check before modifying, otherwise
+			// in-memory RPCs will have side effects.
+			cCopy := check.Clone()
+
+			// If there's a defer timer active then we've got a
+			// potentially spammy check so we don't sync the output
+			// during this sweep since the timer will mark the check
+			// out of sync for us. Otherwise, it is safe to sync the
+			// output now. This is especially important for checks
+			// that don't change state after they are created, in
+			// which case we'd never see their output synced back ever.
+			if _, ok := l.deferCheck[id]; ok {
+				eCopy.Output = ""
+				cCopy.Output = ""
+			}
+			equal = eCopy.IsSame(cCopy)
 		}
 
 		// Update the status
@@ -499,6 +517,8 @@ func (l *localState) syncChanges() error {
 		if err := l.syncNodeInfo(); err != nil {
 			return err
 		}
+	} else {
+		l.logger.Printf("[DEBUG] agent: Node info in sync")
 	}
 
 	return nil

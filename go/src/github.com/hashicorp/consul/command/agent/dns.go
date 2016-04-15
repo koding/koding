@@ -12,12 +12,17 @@ import (
 	"github.com/armon/go-metrics"
 	"github.com/hashicorp/consul/consul"
 	"github.com/hashicorp/consul/consul/structs"
+	"github.com/hashicorp/consul/lib"
 	"github.com/miekg/dns"
 )
 
 const (
-	maxServiceResponses = 3 // For UDP only
-	maxRecurseRecords   = 5
+	// UDP can fit ~25 A records in a 512B response, and ~14 AAAA
+	// records.  Limit further to prevent unintentional configuration
+	// abuse that would have a negative effect on application response
+	// times.
+	maxUDPAnswerLimit = 8
+	maxRecurseRecords = 5
 )
 
 // DNSServer is used to wrap an Agent and expose various
@@ -487,6 +492,26 @@ func (d *DNSServer) formatNodeRecord(node *structs.Node, addr, qName string, qTy
 	return records
 }
 
+// trimUDPAnswers makes sure a UDP response is not longer than allowed by RFC
+// 1035.  Enforce an arbitrary limit that can be further ratcheted down by
+// config, and then make sure the response doesn't exceed 512 bytes.
+func trimUDPAnswers(config *DNSConfig, resp *dns.Msg) (trimmed bool) {
+	numAnswers := len(resp.Answer)
+
+	// This cuts UDP responses to a useful but limited number of responses.
+	maxAnswers := lib.MinInt(maxUDPAnswerLimit, config.UDPAnswerLimit)
+	if numAnswers > maxAnswers {
+		resp.Answer = resp.Answer[:maxAnswers]
+	}
+
+	// This enforces the hard limit of 512 bytes per the RFC.
+	for len(resp.Answer) > 0 && resp.Len() > 512 {
+		resp.Answer = resp.Answer[:len(resp.Answer)-1]
+	}
+
+	return len(resp.Answer) < numAnswers
+}
+
 // serviceLookup is used to handle a service query
 func (d *DNSServer) serviceLookup(network, datacenter, service, tag string, req, resp *dns.Msg) {
 	// Make an RPC request
@@ -547,17 +572,17 @@ RPC:
 	}
 
 	// If the network is not TCP, restrict the number of responses
-	if network != "tcp" && len(resp.Answer) > maxServiceResponses {
-		resp.Answer = resp.Answer[:maxServiceResponses]
+	if network != "tcp" {
+		wasTrimmed := trimUDPAnswers(d.config, resp)
 
 		// Flag that there are more records to return in the UDP response
-		if d.config.EnableTruncate {
+		if wasTrimmed && d.config.EnableTruncate {
 			resp.Truncated = true
 		}
 	}
 
-	// If the answer is empty, return not found
-	if len(resp.Answer) == 0 {
+	// If the answer is empty and the response isn't truncated, return not found
+	if len(resp.Answer) == 0 && !resp.Truncated {
 		d.addSOA(d.domain, resp)
 		return
 	}
@@ -580,7 +605,7 @@ func (d *DNSServer) preparedQueryLookup(network, datacenter, query string, req, 
 	// match the previous behavior. We can optimize by pushing more filtering
 	// into the query execution, but for now I think we need to get the full
 	// response. We could also choose a large arbitrary number that will
-	// likely work in practice, like 10*maxServiceResponses which should help
+	// likely work in practice, like 10*maxUDPAnswerLimit which should help
 	// reduce bandwidth if there are thousands of nodes available.
 
 	endpoint := d.agent.getEndpoint(preparedQueryEndpoint)
@@ -642,18 +667,17 @@ RPC:
 	}
 
 	// If the network is not TCP, restrict the number of responses.
-	if network != "tcp" && len(resp.Answer) > maxServiceResponses {
-		resp.Answer = resp.Answer[:maxServiceResponses]
+	if network != "tcp" {
+		wasTrimmed := trimUDPAnswers(d.config, resp)
 
-		// Flag that there are more records to return in the UDP
-		// response.
-		if d.config.EnableTruncate {
+		// Flag that there are more records to return in the UDP response
+		if wasTrimmed && d.config.EnableTruncate {
 			resp.Truncated = true
 		}
 	}
 
-	// If the answer is empty, return not found.
-	if len(resp.Answer) == 0 {
+	// If the answer is empty and the response isn't truncated, return not found
+	if len(resp.Answer) == 0 && !resp.Truncated {
 		d.addSOA(d.domain, resp)
 		return
 	}
@@ -664,6 +688,7 @@ func (d *DNSServer) serviceNodeRecords(dc string, nodes structs.CheckServiceNode
 	qName := req.Question[0].Name
 	qType := req.Question[0].Qtype
 	handled := make(map[string]struct{})
+
 	for _, node := range nodes {
 		// Start with the translated address but use the service address,
 		// if specified.
