@@ -39,11 +39,9 @@ func (c *KodingContext) run(cmd cli.Command, content io.Reader, destroy bool, ar
 		)
 	}
 
-	if !destroy {
-		// copy all contents from local to remote for later operating
-		if err := c.LocalStorage.Clone(c.ContentID, c.RemoteStorage); err != nil {
-			return nil, err
-		}
+	// copy all contents from local to remote for later operating
+	if err := c.LocalStorage.Clone(c.ContentID, c.RemoteStorage); err != nil {
+		return nil, err
 	}
 
 	return paths, nil
