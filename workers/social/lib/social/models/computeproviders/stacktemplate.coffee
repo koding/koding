@@ -3,6 +3,12 @@
 KodingError              = require '../../error'
 helpers                  = require './helpers'
 async                    = require 'async'
+_                        = require 'lodash'
+
+requirementsParser       = require './utils/requirementsParser'
+providersParser          = require './utils/providersParser'
+addUserInputOptions      = require './utils/addUserInputOptions'
+{ yamlToJson }           = require './utils/yamlutils'
 
 
 module.exports = class JStackTemplate extends Module
@@ -38,6 +44,8 @@ module.exports = class JStackTemplate extends Module
       static          :
         create        :
           (signature Object, Function)
+        createFromContent :
+          (signature String, String, String, Function)
         one           : [
           (signature Object, Function)
           (signature Object, Object, Function)
@@ -139,9 +147,12 @@ module.exports = class JStackTemplate extends Module
     return ComputeProvider.validateTemplateContent template, planConfig
 
 
-  @create = permit 'create stack template',
+  @create$ = permit 'create stack template', success: @create
 
-    success: revive
+
+  @create =
+
+    revive
 
       shouldReviveClient   : yes
       shouldReviveProvider : no
@@ -177,6 +188,31 @@ module.exports = class JStackTemplate extends Module
         if err
         then callback new KodingError 'Failed to save stack template', err
         else callback null, stackTemplate
+
+
+  @createFromContent = permit 'create stack template',
+
+    success: (client, rawContent, title, description, callback) ->
+
+      rawContent = _.unescape rawContent
+
+      requiredProviders = providersParser rawContent
+      requiredData      = requirementsParser rawContent
+      config            = { requiredData, requiredProviders }
+
+      convertedDoc = yamlToJson rawContent
+      if convertedDoc.err
+        return callback new KodingError 'Failed to convert YAML to JSON'
+
+      { contentObject } = convertedDoc
+      addUserInputOptions contentObject, requiredData
+      config.buildDuration = contentObject.koding?.buildDuration
+
+      template = convertedDoc.content
+      title  or= 'Default stack template'
+
+      data = { rawContent, template, title, description, config }
+      @create client, data, callback
 
 
   @some$: permit 'list stack templates',
