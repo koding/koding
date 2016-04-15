@@ -12,10 +12,3 @@ module.exports = class ErrorlessImageView extends KDCustomHTMLView
         height         : options.height
 
     super options, data
-
-
-  error: ->
-
-    @hide()
-
-    return no
