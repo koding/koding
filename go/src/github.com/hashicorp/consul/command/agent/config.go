@@ -77,6 +77,21 @@ type DNSConfig struct {
 	// returned by default for UDP.
 	EnableTruncate bool `mapstructure:"enable_truncate"`
 
+	// UDPAnswerLimit is used to limit the maximum number of DNS Resource
+	// Records returned in the ANSWER section of a DNS response. This is
+	// not normally useful and will be limited based on the querying
+	// protocol, however systems that implemented §6 Rule 9 in RFC3484
+	// may want to set this to `1` in order to subvert §6 Rule 9 and
+	// re-obtain the effect of randomized resource records (i.e. each
+	// answer contains only one IP, but the IP changes every request).
+	// RFC3484 sorts answers in a deterministic order, which defeats the
+	// purpose of randomized DNS responses.  This RFC has been obsoleted
+	// by RFC6724 and restores the desired behavior of randomized
+	// responses, however a large number of Linux hosts using glibc(3)
+	// implemented §6 Rule 9 and may need this option (e.g. CentOS 5-6,
+	// Debian Squeeze, etc).
+	UDPAnswerLimit int `mapstructure:"udp_answer_limit"`
+
 	// MaxStale is used to bound how stale of a result is
 	// accepted for a DNS lookup. This can be used with
 	// AllowStale to limit how old of a value is served up.
@@ -212,9 +227,10 @@ type Config struct {
 	// the TERM signal. Defaults false. This can be changed on reload.
 	LeaveOnTerm bool `mapstructure:"leave_on_terminate"`
 
-	// SkipLeaveOnInt controls if Serf skips a graceful leave when receiving
-	// the INT signal. Defaults false. This can be changed on reload.
-	SkipLeaveOnInt bool `mapstructure:"skip_leave_on_interrupt"`
+	// SkipLeaveOnInt controls if Serf skips a graceful leave when
+	// receiving the INT signal. Defaults false on clients, true on
+	// servers. This can be changed on reload.
+	SkipLeaveOnInt *bool `mapstructure:"skip_leave_on_interrupt"`
 
 	Telemetry Telemetry `mapstructure:"telemetry"`
 
@@ -360,7 +376,7 @@ type Config struct {
 	//   * deny - Deny all requests
 	//   * extend-cache - Ignore the cache expiration, and allow cached
 	//                    ACL's to be used to service requests. This
-	//	                  is the default. If the ACL is not in the cache,
+	//                    is the default. If the ACL is not in the cache,
 	//                    this acts like deny.
 	ACLDownPolicy string `mapstructure:"acl_down_policy"`
 
@@ -527,7 +543,8 @@ func DefaultConfig() *Config {
 			Server:  8300,
 		},
 		DNSConfig: DNSConfig{
-			MaxStale: 5 * time.Second,
+			UDPAnswerLimit: 3,
+			MaxStale:       5 * time.Second,
 		},
 		Telemetry: Telemetry{
 			StatsitePrefix: "consul",
@@ -562,6 +579,7 @@ func DevConfig() *Config {
 	conf.EnableDebug = true
 	conf.DisableAnonymousSignature = true
 	conf.EnableUi = true
+	conf.BindAddr = "127.0.0.1"
 	return conf
 }
 
@@ -1002,8 +1020,8 @@ func MergeConfig(a, b *Config) *Config {
 	if b.LeaveOnTerm == true {
 		result.LeaveOnTerm = true
 	}
-	if b.SkipLeaveOnInt == true {
-		result.SkipLeaveOnInt = true
+	if b.SkipLeaveOnInt != nil {
+		result.SkipLeaveOnInt = b.SkipLeaveOnInt
 	}
 	if b.Telemetry.DisableHostname == true {
 		result.Telemetry.DisableHostname = true
@@ -1126,6 +1144,9 @@ func MergeConfig(a, b *Config) *Config {
 	}
 	if b.DNSConfig.AllowStale {
 		result.DNSConfig.AllowStale = true
+	}
+	if b.DNSConfig.UDPAnswerLimit != 0 {
+		result.DNSConfig.UDPAnswerLimit = b.DNSConfig.UDPAnswerLimit
 	}
 	if b.DNSConfig.EnableTruncate {
 		result.DNSConfig.EnableTruncate = true

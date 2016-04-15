@@ -13,17 +13,17 @@ dev: fmtcheck generate
 	@TF_DEV=1 sh -c "'$(CURDIR)/scripts/build.sh'"
 
 quickdev: generate
-	@TF_QUICKDEV=1 TF_DEV=1 sh -c "'$(CURDIR)/scripts/build.sh'"
+	@TF_DEV=1 sh -c "'$(CURDIR)/scripts/build.sh'"
 
 # Shorthand for quickly building the core of Terraform. Note that some
 # changes will require a rebuild of everything, in which case the dev
 # target should be used.
-core-dev: fmtcheck generate
+core-dev: generate
 	go install github.com/hashicorp/terraform
 
 # Shorthand for quickly testing the core of Terraform (i.e. "not providers")
 core-test: generate
-	@echo "Testing core packages..." && go test $(shell go list ./... | grep -v builtin)
+	@echo "Testing core packages..." && go test $(shell go list ./... | grep -v -E 'builtin|vendor')
 
 # Shorthand for building and installing just one plugin for local testing.
 # Run as (for example): make plugin-dev PLUGIN=provider-aws

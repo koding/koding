@@ -2,6 +2,7 @@ package agent
 
 import (
 	"fmt"
+	"math/rand"
 	"net"
 	"os"
 	"strings"
@@ -9,8 +10,21 @@ import (
 	"time"
 
 	"github.com/hashicorp/consul/consul/structs"
+	"github.com/hashicorp/consul/lib"
 	"github.com/hashicorp/consul/testutil"
 	"github.com/miekg/dns"
+)
+
+const (
+	configUDPAnswerLimit   = 4
+	defaultNumUDPResponses = 3
+	testUDPTruncateLimit   = 8
+
+	pctNodesWithIPv6 = 0.5
+
+	// generateNumNodes is the upper bounds for the number of hosts used
+	// in testing below.  Generate an arbitrarily large number of hosts.
+	generateNumNodes = testUDPTruncateLimit * defaultNumUDPResponses * configUDPAnswerLimit
 )
 
 func makeDNSServer(t *testing.T) (string, *DNSServer) {
@@ -26,7 +40,7 @@ func makeDNSServerConfig(
 	if agentFn != nil {
 		agentFn(agentConf)
 	}
-	dnsConf := &DNSConfig{}
+	dnsConf := &DefaultConfig().DNSConfig
 	if dnsFn != nil {
 		dnsFn(dnsConf)
 	}
@@ -1808,8 +1822,8 @@ func TestDNS_ServiceLookup_Randomize(t *testing.T) {
 
 	testutil.WaitForLeader(t, srv.agent.RPC, "dc1")
 
-	// Register a large set of nodes.
-	for i := 0; i < 3*maxServiceResponses; i++ {
+	// Register a large number of nodes.
+	for i := 0; i < generateNumNodes; i++ {
 		args := &structs.RegisterRequest{
 			Datacenter: "dc1",
 			Node:       fmt.Sprintf("foo%d", i),
@@ -1856,7 +1870,7 @@ func TestDNS_ServiceLookup_Randomize(t *testing.T) {
 			m := new(dns.Msg)
 			m.SetQuestion(question, dns.TypeANY)
 
-			c := new(dns.Client)
+			c := &dns.Client{Net: "udp"}
 			in, _, err := c.Exchange(m, addr.String())
 			if err != nil {
 				t.Fatalf("err: %v", err)
@@ -1864,7 +1878,7 @@ func TestDNS_ServiceLookup_Randomize(t *testing.T) {
 
 			// Response length should be truncated and we should get
 			// an A record for each response.
-			if len(in.Answer) != maxServiceResponses {
+			if len(in.Answer) != defaultNumUDPResponses {
 				t.Fatalf("Bad: %#v", len(in.Answer))
 			}
 
@@ -1902,8 +1916,8 @@ func TestDNS_ServiceLookup_Truncate(t *testing.T) {
 
 	testutil.WaitForLeader(t, srv.agent.RPC, "dc1")
 
-	// Register nodes a large number of nodes.
-	for i := 0; i < 3*maxServiceResponses; i++ {
+	// Register a large number of nodes.
+	for i := 0; i < generateNumNodes; i++ {
 		args := &structs.RegisterRequest{
 			Datacenter: "dc1",
 			Node:       fmt.Sprintf("foo%d", i),
@@ -1961,26 +1975,27 @@ func TestDNS_ServiceLookup_Truncate(t *testing.T) {
 	}
 }
 
-func TestDNS_ServiceLookup_MaxResponses(t *testing.T) {
-	dir, srv := makeDNSServer(t)
+func TestDNS_ServiceLookup_LargeResponses(t *testing.T) {
+	dir, srv := makeDNSServerConfig(t, nil, func(c *DNSConfig) {
+		c.EnableTruncate = true
+	})
 	defer os.RemoveAll(dir)
 	defer srv.agent.Shutdown()
 
 	testutil.WaitForLeader(t, srv.agent.RPC, "dc1")
 
-	// Register a large number of nodes.
-	for i := 0; i < 6*maxServiceResponses; i++ {
-		nodeAddress := fmt.Sprintf("127.0.0.%d", i+1)
-		if i > 3 {
-			nodeAddress = fmt.Sprintf("fe80::%d", i+1)
-		}
+	longServiceName := "this-is-a-very-very-very-very-very-long-name-for-a-service"
+
+	// Register 3 nodes
+	for i := 0; i < 3; i++ {
 		args := &structs.RegisterRequest{
 			Datacenter: "dc1",
 			Node:       fmt.Sprintf("foo%d", i),
-			Address:    nodeAddress,
+			Address:    fmt.Sprintf("127.0.0.%d", i+1),
 			Service: &structs.NodeService{
-				Service: "web",
-				Port:    8000,
+				Service: longServiceName,
+				Tags:    []string{"master"},
+				Port:    12345,
 			},
 		}
 
@@ -1991,17 +2006,19 @@ func TestDNS_ServiceLookup_MaxResponses(t *testing.T) {
 	}
 
 	// Register an equivalent prepared query.
-	var id string
 	{
 		args := &structs.PreparedQueryRequest{
 			Datacenter: "dc1",
 			Op:         structs.PreparedQueryCreate,
 			Query: &structs.PreparedQuery{
+				Name: longServiceName,
 				Service: structs.ServiceQuery{
-					Service: "web",
+					Service: longServiceName,
+					Tags:    []string{"master"},
 				},
 			},
 		}
+		var id string
 		if err := srv.agent.RPC("PreparedQuery.Apply", args, &id); err != nil {
 			t.Fatalf("err: %v", err)
 		}
@@ -2009,42 +2026,177 @@ func TestDNS_ServiceLookup_MaxResponses(t *testing.T) {
 
 	// Look up the service directly and via prepared query.
 	questions := []string{
-		"web.service.consul.",
-		id + ".query.consul.",
+		"_" + longServiceName + "._master.service.consul.",
+		longServiceName + ".query.consul.",
 	}
 	for _, question := range questions {
 		m := new(dns.Msg)
-		m.SetQuestion(question, dns.TypeANY)
+		m.SetQuestion(question, dns.TypeSRV)
+
+		c := new(dns.Client)
+		addr, _ := srv.agent.config.ClientListener("", srv.agent.config.Ports.DNS)
+		in, _, err := c.Exchange(m, addr.String())
+		if err != nil && err != dns.ErrTruncated {
+			t.Fatalf("err: %v", err)
+		}
+
+		// Make sure the response size is RFC 1035-compliant for UDP messages
+		if in.Len() > 512 {
+			t.Fatalf("Bad: %#v", in.Len())
+		}
+
+		// We should only have two answers now
+		if len(in.Answer) != 2 {
+			t.Fatalf("Bad: %#v", len(in.Answer))
+		}
+
+		// Check for the truncate bit
+		if !in.Truncated {
+			t.Fatalf("should have truncate bit")
+		}
+	}
+}
+
+func testDNS_ServiceLookup_responseLimits(t *testing.T, answerLimit int, qType uint16,
+	expectedService, expectedQuery, expectedQueryID int) (bool, error) {
+	dir, srv := makeDNSServerConfig(t, nil, func(c *DNSConfig) {
+		c.UDPAnswerLimit = answerLimit
+	})
+	defer os.RemoveAll(dir)
+	defer srv.agent.Shutdown()
+
+	testutil.WaitForLeader(t, srv.agent.RPC, "dc1")
+
+	for i := 0; i < generateNumNodes; i++ {
+		nodeAddress := fmt.Sprintf("127.0.0.%d", i+1)
+		if rand.Float64() < pctNodesWithIPv6 {
+			nodeAddress = fmt.Sprintf("fe80::%d", i+1)
+		}
+		args := &structs.RegisterRequest{
+			Datacenter: "dc1",
+			Node:       fmt.Sprintf("foo%d", i),
+			Address:    nodeAddress,
+			Service: &structs.NodeService{
+				Service: "api-tier",
+				Port:    8080,
+			},
+		}
+
+		var out struct{}
+		if err := srv.agent.RPC("Catalog.Register", args, &out); err != nil {
+			return false, fmt.Errorf("err: %v", err)
+		}
+	}
+	var id string
+	{
+		args := &structs.PreparedQueryRequest{
+			Datacenter: "dc1",
+			Op:         structs.PreparedQueryCreate,
+			Query: &structs.PreparedQuery{
+				Name: "api-tier",
+				Service: structs.ServiceQuery{
+					Service: "api-tier",
+				},
+			},
+		}
+
+		if err := srv.agent.RPC("PreparedQuery.Apply", args, &id); err != nil {
+			return false, fmt.Errorf("err: %v", err)
+		}
+	}
+
+	// Look up the service directly and via prepared query.
+	questions := []string{
+		"api-tier.service.consul.",
+		"api-tier.query.consul.",
+		id + ".query.consul.",
+	}
+	for idx, question := range questions {
+		m := new(dns.Msg)
+		m.SetQuestion(question, qType)
 
 		addr, _ := srv.agent.config.ClientListener("", srv.agent.config.Ports.DNS)
-		c := new(dns.Client)
+		c := &dns.Client{Net: "udp"}
 		in, _, err := c.Exchange(m, addr.String())
 		if err != nil {
-			t.Fatalf("err: %v", err)
+			return false, fmt.Errorf("err: %v", err)
 		}
 
-		if len(in.Answer) != 3 {
-			t.Fatalf("should receive 3 answers for ANY")
+		switch idx {
+		case 0:
+			if (expectedService > 0 && len(in.Answer) != expectedService) ||
+				(expectedService < -1 && len(in.Answer) < lib.AbsInt(expectedService)) {
+				return false, fmt.Errorf("%d/%d answers received for type %v for %s", len(in.Answer), answerLimit, qType, question)
+			}
+		case 1:
+			if (expectedQuery > 0 && len(in.Answer) != expectedQuery) ||
+				(expectedQuery < -1 && len(in.Answer) < lib.AbsInt(expectedQuery)) {
+				return false, fmt.Errorf("%d/%d answers received for type %v for %s", len(in.Answer), answerLimit, qType, question)
+			}
+		case 2:
+			if (expectedQueryID > 0 && len(in.Answer) != expectedQueryID) ||
+				(expectedQueryID < -1 && len(in.Answer) < lib.AbsInt(expectedQueryID)) {
+				return false, fmt.Errorf("%d/%d answers received for type %v for %s", len(in.Answer), answerLimit, qType, question)
+			}
+		default:
+			panic("abort")
+		}
+	}
+
+	return true, nil
+}
+
+func TestDNS_ServiceLookup_AnswerLimits(t *testing.T) {
+	// Build a matrix of config parameters (udpAnswerLimit), and the
+	// length of the response per query type and question.  Negative
+	// values imply the test must return at least the abs(value) number
+	// of records in the answer section.  This is required because, for
+	// example, on OS-X and Linux, the number of answers returned in a
+	// 512B response is different even though both platforms are x86_64
+	// and using the same version of Go.
+	//
+	// TODO(sean@): Why is it not identical everywhere when using the
+	// same compiler?
+	tests := []struct {
+		name                string
+		udpAnswerLimit      int
+		expectedAService    int
+		expectedAQuery      int
+		expectedAQueryID    int
+		expectedAAAAService int
+		expectedAAAAQuery   int
+		expectedAAAAQueryID int
+		expectedANYService  int
+		expectedANYQuery    int
+		expectedANYQueryID  int
+	}{
+		{"0", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{"1", 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{"2", 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+		{"3", 3, 3, 3, 3, 3, 3, 3, 3, 3, 3},
+		{"4", 4, 4, 4, 4, 4, 4, 4, 4, 4, 4},
+		{"5", 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
+		{"6", 6, 6, 6, 6, 6, 6, 5, 6, 6, -5},
+		{"7", 7, 7, 7, 6, 7, 7, 5, 7, 7, -5},
+		{"8", 8, 8, 8, 6, 8, 8, 5, 8, 8, -5},
+		{"9", 9, 8, 8, 6, 8, 8, 5, 8, 8, -5},
+		{"20", 20, 8, 8, 6, 8, 8, 5, 8, -5, -5},
+		{"30", 30, 8, 8, 6, 8, 8, 5, 8, -5, -5},
+	}
+	for _, test := range tests {
+		ok, err := testDNS_ServiceLookup_responseLimits(t, test.udpAnswerLimit, dns.TypeA, test.expectedAService, test.expectedAQuery, test.expectedAQueryID)
+		if !ok {
+			t.Errorf("Expected service A lookup %s to pass: %v", test.name, err)
 		}
 
-		m.SetQuestion(question, dns.TypeA)
-		in, _, err = c.Exchange(m, addr.String())
-		if err != nil {
-			t.Fatalf("err: %v", err)
+		ok, err = testDNS_ServiceLookup_responseLimits(t, test.udpAnswerLimit, dns.TypeAAAA, test.expectedAAAAService, test.expectedAAAAQuery, test.expectedAAAAQueryID)
+		if !ok {
+			t.Errorf("Expected service AAAA lookup %s to pass: %v", test.name, err)
 		}
 
-		if len(in.Answer) != 3 {
-			t.Fatalf("should receive 3 answers for A")
-		}
-
-		m.SetQuestion(question, dns.TypeAAAA)
-		in, _, err = c.Exchange(m, addr.String())
-		if err != nil {
-			t.Fatalf("err: %v", err)
-		}
-
-		if len(in.Answer) != 3 {
-			t.Fatalf("should receive 3 answers for AAAA")
+		ok, err = testDNS_ServiceLookup_responseLimits(t, test.udpAnswerLimit, dns.TypeANY, test.expectedANYService, test.expectedANYQuery, test.expectedANYQueryID)
+		if !ok {
+			t.Errorf("Expected service ANY lookup %s to pass: %v", test.name, err)
 		}
 	}
 }

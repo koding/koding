@@ -241,6 +241,8 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		dir2.Entries = dir1.Entries
 		dir2.EntriesList = dir1.EntriesList
 		dir2.Entry.Parent = newDir
+
+		dir2.ChangePathRecursive(oldName, newName)
 	case fuseutil.DT_File:
 		file1 := removedEntry.(*File)
 
@@ -319,6 +321,34 @@ func (d *Dir) FindEntryRecursive(path string) (Node, error) {
 	}
 
 	return last, nil
+}
+
+func (d *Dir) findAllEntriesRecursive() (entries []*Entry) {
+	queue := []*Dir{d}
+
+	for len(queue) != 0 {
+		var p *Dir
+		p, queue = queue[0], queue[1:]
+
+		for _, node := range p.EntriesList {
+			if f, ok := node.(*File); ok {
+				entries = append(entries, f.Entry)
+			}
+			if dd, ok := node.(*Dir); ok {
+				entries = append(entries, dd.Entry)
+				queue = append(queue, dd)
+			}
+		}
+	}
+
+	return entries
+}
+
+func (d *Dir) ChangePathRecursive(oldName, newName string) {
+	entries := d.findAllEntriesRecursive()
+	for _, n := range entries {
+		n.Path = strings.Replace(n.Path, oldName, newName, 1)
+	}
 }
 
 // Reset removes internal cache of files and directories.
