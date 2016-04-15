@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"koding/klient/remote/machine"
 	"koding/klient/remote/req"
+	"koding/klient/remote/restypes"
 	"os"
 	"os/exec"
 	"strings"
@@ -43,7 +45,31 @@ func (kd *KD) GetMountOptions(mountName string) (req.MountFolder, error) {
 	}
 
 	return req.MountFolder{}, errors.New("Mount not found.")
+}
 
+func (kd *KD) GetMachineInfo(machineName string) (restypes.ListMachineInfo, error) {
+	b, err := exec.Command("kd", "list", "--json").CombinedOutput()
+	if err != nil {
+		return restypes.ListMachineInfo{}, err
+	}
+
+	var infos []restypes.ListMachineInfo
+	if err := json.Unmarshal(b, &infos); err != nil {
+		return restypes.ListMachineInfo{}, err
+	}
+
+	for _, info := range infos {
+		if machineName == info.VMName {
+			return info, nil
+		}
+	}
+
+	return restypes.ListMachineInfo{}, errors.New("Mount not found.")
+}
+
+func (kd *KD) GetMachineStatus(machineName string) (machine.MachineStatus, error) {
+	info, err := kd.GetMachineInfo(machineName)
+	return info.MachineStatus, err
 }
 
 func (kd *KD) run(args ...string) error {
