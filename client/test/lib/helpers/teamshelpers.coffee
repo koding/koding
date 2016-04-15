@@ -103,6 +103,7 @@ module.exports =
     inputPassword         = 'input[name=password]'
     loginButton           = 'button[testpath=login-button]'
 
+
     browser
       .pause                  2000 # wait for login page
       .waitForElementVisible  '.TeamsModal--login', 20000
@@ -273,7 +274,7 @@ module.exports =
 
   openStackCatalog: (browser, clickStartButton = yes) ->
 
-    stackCreateButton        = '.activity-sidebar .SidebarTeamSection a[href="/Stacks/Welcome"]'
+    stackCreateButton        = '.activity-sidebar .SidebarTeamSection a[href="/Home/Welcome"]'
     stacksHeader             = '.activity-sidebar .SidebarSection-headerTitle[href="/Stacks"]'
     teamStackTemplatesButton = "#{stackCatalogModal} .kdtabhandle-tabs .team-stack-templates"
     stackOnboardingPage      = '.stacks .stack-onboarding.get-started'
@@ -629,7 +630,7 @@ module.exports =
     stackModal           = '.stack-modal'
     modalCloseButton     = "#{stackModal} .gray"
     stackTabSelector     = '.team-stack-templates .kdtabhandle.stack-template.active'
-    finalizeStepsButton  = "#{sidebarSelector} a[href='/Stacks/Welcome']:not(.SidebarSection-headerTitle)"
+    finalizeStepsButton  = "#{sidebarSelector} a[href='/Home/Welcome']:not(.SidebarSection-headerTitle)"
 
     if doExtra
       @seeTemplatePreview(browser)
