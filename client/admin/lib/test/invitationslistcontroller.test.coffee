@@ -12,6 +12,7 @@ mockInvitation    = mock.getMockInvitation()
 item              = new InvitedItemView {}, mockInvitation
 item.revokeButton = new KDButtonView
 item.resendButton = new KDButtonView
+fetcherMethod     = kd.noop
 
 
 describe 'InvitationsListController', ->
@@ -22,7 +23,7 @@ describe 'InvitationsListController', ->
 
     it 'should instantiate with default options', ->
 
-      listController = new InvitationsListController
+      listController = new InvitationsListController { fetcherMethod }
       listView       = listController.getListView()
 
       { noItemFoundText, statusType, lazyLoadThreshold, viewOptions, fetcherMethod } = listController.getOptions()
@@ -39,7 +40,7 @@ describe 'InvitationsListController', ->
 
     it 'should handle Resend event', ->
 
-      listController = new InvitationsListController
+      listController = new InvitationsListController { fetcherMethod }
       listView       = listController.getListView()
       spy            = expect.spyOn listController, 'resend'
 
@@ -49,7 +50,7 @@ describe 'InvitationsListController', ->
 
     it 'should handle Revoke (RemoveItem) event', ->
 
-      listController = new InvitationsListController
+      listController = new InvitationsListController { fetcherMethod }
       listView       = listController.getListView()
       spy            = expect.spyOn listController, 'removeItem'
 
@@ -62,7 +63,7 @@ describe 'InvitationsListController', ->
 
     it 'should remove item completely if no error', ->
 
-      listController = new InvitationsListController
+      listController = new InvitationsListController { fetcherMethod }
       listView       = listController.getListView()
 
       removeSpy      = expect.spyOn(mockInvitation, 'remove').andCall (callback) -> callback null
@@ -76,7 +77,7 @@ describe 'InvitationsListController', ->
 
     it 'should hide lazy loader of button if err', ->
 
-      listController = new InvitationsListController
+      listController = new InvitationsListController { fetcherMethod }
       listView       = listController.getListView()
 
       removeSpy      = expect.spyOn(mockInvitation, 'remove').andCall (callback) -> callback new Error 'error!'
@@ -91,7 +92,7 @@ describe 'InvitationsListController', ->
 
     it 'should call sendInvitationByCode with given code', ->
 
-      listController = new InvitationsListController
+      listController = new InvitationsListController { fetcherMethod }
       listView       = listController.getListView()
 
       spy            = expect.spyOn remote.api.JInvitation, 'sendInvitationByCode'
@@ -102,7 +103,7 @@ describe 'InvitationsListController', ->
 
     it 'should hide loader of resend button', ->
 
-      listController = new InvitationsListController
+      listController = new InvitationsListController { fetcherMethod }
       listView       = listController.getListView()
 
       remoteSpy      = expect.spyOn(remote.api.JInvitation, 'sendInvitationByCode').andCall (code, callback) -> callback null
