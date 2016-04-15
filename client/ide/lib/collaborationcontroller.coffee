@@ -128,7 +128,7 @@ module.exports = CollaborationController =
     # methods. IMO, it makes it easier to read. ~Umut
     callbacks =
       success: =>
-        @broadcastMessage { target, type: 'ParticipantKicked', doNotTryToStopCollaboration : yes }
+        @broadcastMessage { target, type: 'ParticipantKicked', params: { forceStop: no } }
       error: (err) ->
         # TODO: better error handling.
         showError err
@@ -550,7 +550,7 @@ module.exports = CollaborationController =
 
   handleBroadcastMessage: (data) ->
 
-    { origin, type, doNotTryToStopCollaboration } = data
+    { origin, type, params } = data
 
     if origin is nick()
       switch type
@@ -576,7 +576,7 @@ module.exports = CollaborationController =
 
         if data.target is nick()
           @once 'IDEDidQuit', @bound 'showKickedModal'
-          @quit yes, !doNotTryToStopCollaboration
+          @quit yes, params.forceStop
         else
           @handleParticipantKicked data.target
 
