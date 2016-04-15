@@ -17,6 +17,7 @@ loadTeam = ->
   { groupsController, reactor } = kd.singletons
 
   team = groupsController.getCurrentGroup()
+
   canEditGroup = groupsController.canEditGroup()
   reactor.dispatch actions.LOAD_TEAM_SUCCESS, team
 
@@ -63,7 +64,7 @@ inviteMembers = (inviteInputs) ->
         email = inviteInput.get('email').trim()
 
         return  unless email
-        console.log 'validateEmail', validateEmail email
+
         validatedEmail = validateEmail email
 
         if email.toLowerCase() is ownEmail
@@ -128,13 +129,10 @@ fetchMembersRole = ->
 
   myId = whoami().getId()
   teamMemberIds = reactor.evaluate getters.TeamMembersIdStore
-
-  ids = []
+  
+  ids = teamMemberIds.toArray()
   ids.push myId
-
-  teamMemberIds.map (id) ->
-    ids.push id
-
+  
   team.fetchUserRoles ids, (err, roles) ->
     reactor.dispatch actions.FETCH_TEAM_MEMBERS_ROLES_SUCCESS, roles
 
@@ -151,37 +149,13 @@ loadPendingInvites = (invites) ->
       if err
         reject err
       invites = invites.map (invite) -> invite.email
-      pendingInvitations = pendings.reduce (pendingInvitations, invitation, index) ->
-        i = pendingInvitations.size
-        return pendingInvitations.set i, toImmutable(invitation)  if invitation.email in invites
+      pendingInvitations = pendings.reduce (pendingInvitations, invitation) ->
+        index = pendingInvitations.size
+        return pendingInvitations.set index, toImmutable(invitation)  if invitation.email in invites
         return pendingInvitations
       , immutable.Map()
 
       resolve { pendingInvitations }
-
-
-fetchTeamChannels = (channelUrl) ->
-
-  $.ajax
-    method : 'GET'
-    url : channelUrl
-    success : (res) ->
-      debugger
-      console.log 'res *', res
-    error: (err) ->
-
-      console.log 'err* ', err
-
-
-fetchUsersFromChannel = (usersUrl) ->
-
-  $.ajax
-    method : 'GET'
-    url : usersUrl
-    success : (res) ->
-      console.log 'res'
-    error: (err) ->
-      console.log 'err ', err
 
 
 sendInvitations = (invites, pendingInvites) ->
@@ -207,7 +181,6 @@ resendInvitations = (pendingInvitations, newInvitations) ->
   new Promise (resolve, reject) ->
     title    = 'Invitation is resent.'
     title    = 'Invitations are resent.'  if pendingInvitations.size > 1
-    console.log 'pendingInvitations ', pendingInvitations
 
     queue = pendingInvitations.toArray().map (invite) -> (next) ->
 
@@ -266,6 +239,7 @@ handleKickMember = (member) ->
       reactor.dispatch actions.DELETE_TEAM_MEMBER, memberId
 
 
+
 module.exports = {
   loadTeam
   updateTeam
@@ -274,8 +248,6 @@ module.exports = {
   fetchMembers
   fetchMembersRole
   loadPendingInvites
-  fetchTeamChannels
-  fetchUsersFromChannel
   getNewInvitations
   sendInvitations
   resendInvitations
