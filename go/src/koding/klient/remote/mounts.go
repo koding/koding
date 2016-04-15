@@ -147,7 +147,7 @@ func (r *Remote) restoreMounts() error {
 	if mountErr != nil {
 		log.Warning("Remounting failed after %d total attempts.", attempt)
 	} else {
-		log.Info("Remounting successfully.")
+		log.Info("Remounted successfully.")
 	}
 
 	return mountErr
