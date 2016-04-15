@@ -2,6 +2,7 @@
 URL                 = require 'url'
 Constants           = require './constants'
 GitHubProvider      = require './githubprovider'
+GitLabProvider      = require './gitlabprovider'
 
 module.exports = class GitProvider extends Base
 
@@ -31,7 +32,10 @@ module.exports = class GitProvider extends Base
 
         { hostname, pathname } = URL.parse url
         { user } = client.r
-        { GITHUB_HOST } = Constants
+        { GITHUB_HOST, GITLAB_HOST } = Constants
 
-        if hostname is GITHUB_HOST
-          GitHubProvider.importStackTemplate user, pathname, callback  
+        switch hostname
+          when GITHUB_HOST
+            GitHubProvider.importStackTemplate user, pathname, callback
+          when GITLAB_HOST
+            GitLabProvider.importStackTemplate user, pathname, callback

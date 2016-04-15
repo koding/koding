@@ -17,5 +17,6 @@ module.exports = helpers =
     r = http.request options, (response) ->
       result = ''
       response.on 'data', (chunk) -> result += chunk
-      response.on 'end', -> callback result
+      response.on 'end', -> callback null, result
+      response.on 'error', (err) -> callback err
     r.end()
