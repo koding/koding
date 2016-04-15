@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/cookiejar"
 	_ "net/http/pprof"
 	"net/url"
 	"os"
@@ -23,6 +24,7 @@ import (
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
+	"koding/kites/kloud/httputil"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/pkg/dnsclient"
@@ -37,6 +39,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
+	"github.com/koding/kite/sockjsclient"
 	"github.com/koding/multiconfig"
 )
 
@@ -182,6 +185,21 @@ func newKite(conf *Config) *kite.Kite {
 	k.Config = kiteconfig.MustGet()
 	k.Config.Port = conf.Port
 
+	jar, _ := cookiejar.New(nil)
+	httpClient := httputil.NewClient(&httputil.ClientConfig{
+		DialTimeout:           10 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 60 * time.Second,
+		KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
+		Jar:                   jar,
+		DebugTCP:              conf.DebugMode,
+		Log:                   common.NewLogger("dialer", conf.DebugMode),
+	})
+
+	k.ClientFunc = func(*sockjsclient.DialOptions) *http.Client {
+		return httpClient
+	}
+
 	if conf.DebugMode {
 		k.SetLogLevel(kite.DEBUG)
 	}
@@ -237,6 +255,7 @@ func newKite(conf *Config) *kite.Kite {
 		Creds:      c,
 		HostedZone: conf.HostedZone,
 		Log:        common.NewLogger("kloud-dns", conf.DebugMode),
+		Debug:      conf.DebugMode,
 	}
 	dnsInstance, err := dnsclient.NewRoute53Client(dnsOpts)
 	if err != nil {
@@ -258,6 +277,7 @@ func newKite(conf *Config) *kite.Kite {
 		Regions:     amazon.ProductionRegions,
 		Log:         common.NewLogger("kloud-koding", conf.DebugMode),
 		MaxResults:  int64(conf.MaxResults),
+		Debug:       conf.DebugMode,
 	}
 	ec2clients, err := amazon.NewClients(opts)
 	if err != nil {
