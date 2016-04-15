@@ -1433,7 +1433,7 @@ class IDEAppController extends AppController
     if @permissions.get(origin) is 'edit'
       mustSyncChanges.push 'CursorActivity'
 
-    if @amIWatchingChangeOwner(origin) or type in mustSyncChanges
+    if @amIWatchingChangeOwner(origin) or (type in mustSyncChanges) or (origin is nick())
       targetPane = @getPaneByChange change
 
       if type is 'NewPaneCreated'
@@ -1567,7 +1567,7 @@ class IDEAppController extends AppController
       return tabView.showPane paneView
 
 
-    if ideViewHash and @amIWatchingChangeOwner origin
+    if ideViewHash and @amIWatchingChangeOwner(origin) or origin is nick()
       targetTabView = @getTabViewByIDEViewHash ideViewHash
       @setActiveTabView targetTabView  if targetTabView
 

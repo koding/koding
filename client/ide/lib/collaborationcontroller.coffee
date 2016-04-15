@@ -557,6 +557,8 @@ module.exports = CollaborationController =
       switch type
         when 'ParticipantKicked'
           return @handleParticipantKicked data.target
+        when 'PermissionDenied', 'PermissionGranted'
+          return @destoryPermissionRequestMenuItem data.target
         else return
 
     switch type
@@ -600,6 +602,11 @@ module.exports = CollaborationController =
         @handlePermissionGranted()  if data.target is nick()
 
 
+  destoryPermissionRequestMenuItem: (target) ->
+      
+    @statusBar.participantAvatars[target]?.emit 'DestroyMenu'
+  
+  
   handlePermissionMapChange: (event) ->
 
     { property, newValue } = event
