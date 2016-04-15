@@ -29,21 +29,13 @@ module.exports = class HomeTeamTeamMatesView extends React.Component
   renderEmptySectionAtIndex: -> <div> No data found</div>
 
 
-  renderSearchBox: ->
-    <div className='search'>
-      <span className='label'>Filter</span>
-      <input
-        type='text'
-        className='kdinput text hitenterview'
-        onChange={@props.onSearchInputChange}
-        placeholder='Find by name/username'
-        value={@props.searchInputValue} />
-    </div>
-
-
   render: ->
+
     <div>
-      {@renderSearchBox()}
+      <SearchBox
+        onSearchInputChange={@props.onSearchInputChange}
+        searchInputValue={@props.searchInputValue} />
+
       <div className='kdview kdlistview kdlistview-default'>
         <List
           numberOfSections={@bound 'numberOfSections'}
@@ -54,3 +46,17 @@ module.exports = class HomeTeamTeamMatesView extends React.Component
         />
       </div>
     </div>
+
+
+SearchBox = ({ onSearchInputChange, searchInputValue }) ->
+
+  <div className='search'>
+    <span className='label'>Filter</span>
+    <input
+      type='text'
+      className='kdinput text hitenterview'
+      onChange={onSearchInputChange}
+      placeholder='Find by name/username'
+      value={searchInputValue} />
+  </div>
+
