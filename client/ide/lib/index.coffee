@@ -798,6 +798,7 @@ class IDEAppController extends AppController
         parents.push parent
     
     _.uniq(parents, 'id').forEach (p) -> p._windowDidResize()
+    @doResize()
 
 
   toggleSidebar: ->
