@@ -12,6 +12,7 @@ import (
 	"runtime"
 
 	"github.com/codegangsta/cli"
+	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/logging"
 	"github.com/koding/service"
 )
@@ -49,10 +50,27 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 0
 	}
 
-	s, err := newService(nil)
+	kontrolURL := config.KontrolURL
+	if c, err := kiteconfig.NewFromKiteKey(config.KiteKeyPath); err == nil && c.KontrolURL != "" {
+		kontrolURL = c.KontrolURL
+	}
+
+	klientSh := klientSh{
+		User:          sudoUserFromEnviron(os.Environ()),
+		KiteHome:      config.KiteHome,
+		KlientBinPath: filepath.Join(KlientDirectory, "klient"),
+		KontrolURL:    kontrolURL,
+	}
+
+	opts := &ServiceOptions{
+		Username:   klientSh.User,
+		KontrolURL: klientSh.KontrolURL,
+	}
+
+	s, err := newService(opts)
 	if err != nil {
 		log.Error("Error creating Service. err:%s", err)
-		fmt.Println(GenericInternalError)
+		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
@@ -101,6 +119,12 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 
 	klientScript := filepath.Join(KlientDirectory, "klient.sh")
 
+	if err := klientSh.Create(klientScript); err != nil {
+		log.Error("Error writing klient.sh file. err:%s", err)
+		fmt.Println(FailedInstallingKlient)
+		return 1
+	}
+
 	// try to migrate from old managed klient to new kd-installed klient
 	switch runtime.GOOS {
 	case "darwin":
@@ -117,19 +141,15 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		oldS.Uninstall()
 	}
 
-	if _, err := os.Stat(klientScript); os.IsNotExist(err) {
-		klientSh := klientSh{
-			User:          sudoUserFromEnviron(os.Environ()),
-			KiteHome:      config.KiteHome,
-			KlientBinPath: filepath.Join(KlientDirectory, "klient"),
-			KontrolURL:    config.KontrolURL,
-		}
+	// try to uninstall first, otherwise Install may fail if
+	// klient.plist or klient init script already exist
+	s.Uninstall()
 
-		if err := klientSh.Create(klientScript); err != nil {
-			log.Error("Error writing klient.sh file. err:%s", err)
-			fmt.Println(FailedInstallingKlient)
-			return 1
-		}
+	// Install the klient binary as a OS service
+	if err = s.Install(); err != nil {
+		log.Error("Error installing Service. err:%s", err)
+		fmt.Println(GenericInternalNewCodeError)
+		return 1
 	}
 
 	// start klient now that it's done updating
