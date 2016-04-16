@@ -2,9 +2,9 @@ kd      = require 'kd'
 mock    = require '../../../mocks/mockingjay'
 expect  = require 'expect'
 remote  = require('app/remote').getInstance()
-Promise = require 'bluebird'
-
 KDView  = kd.View
+Promise = require 'bluebird'
+Tracker = require 'app/util/tracker'
 
 KodingListController            = require 'app/kodinglist/kodinglistcontroller'
 AccountCredentialList           = require 'account/accountcredentiallist'
@@ -12,8 +12,19 @@ AccountCredentialListController = require 'account/views/accountcredentiallistco
 
 mockCredential  = mock.getMockCredential()
 
-modelWithData   = some  : (query, options, callback) -> callback null, [ mockCredential ]
-modelWithNoData = some  : (query, options, callback) -> callback null, [ ]
+modelWithData   = some : (query, options, callback) -> callback null, [ mockCredential ]
+modelWithNoData = some : (query, options, callback) -> callback null, [ ]
+
+modal           = new kd.ModalView
+  buttons       :
+    Remove      :
+      title     : 'Remove'
+      loader    : yes
+    DestroyAll  :
+      title     : 'Destroy Everything'
+      loader    : yes
+    Cancel      :
+      title     : 'Cancel'
 
 
 describe 'AccountCredentialListController', ->
@@ -92,6 +103,7 @@ describe 'AccountCredentialListController', ->
         callback null, mockCredential
 
       showCredentialEditModalSpy  = expect.spyOn listView, 'showCredentialEditModal'
+      trackerSpy                  = expect.spyOn Tracker, 'track'
 
       listController.loadItems()
 
@@ -101,10 +113,9 @@ describe 'AccountCredentialListController', ->
 
       expect(fetchCredentialDataSpy).toHaveBeenCalled()
       expect(showCredentialEditModalSpy).toHaveBeenCalled()
+      expect(trackerSpy).toHaveBeenCalledWith Tracker.USER_EDIT_CREDENTIALS
 
     it 'should handle EditItem event and not call showCredentialEditModal method of listView', ->
-
-
 
       listView       = new AccountCredentialList
       listController = new AccountCredentialListController { model : modelWithData, view : listView }
@@ -122,6 +133,18 @@ describe 'AccountCredentialListController', ->
 
       expect(fetchCredentialDataSpy).toHaveBeenCalled()
       expect(showCredentialEditModalSpy).toNotHaveBeenCalled()
+
+    it 'should show add form if there is no item', ->
+
+      provider       = 'aws'
+      listView       = new AccountCredentialList
+      listController = new AccountCredentialListController { model : modelWithData, view : listView, provider }
+
+      spy = expect.spyOn listController, 'showAddCredentialFormFor'
+
+      listController.emit 'FetchProcessSucceeded', { items: [] }
+
+      expect(spy).toHaveBeenCalledWith provider
 
 
   describe '::removeItem', ->
@@ -169,6 +192,122 @@ describe 'AccountCredentialListController', ->
 
       expect(askForConfirmSpy).toHaveBeenCalled()
 
+    it 'should call removeCredential method if answer is Remove', ->
+
+      listView       = new AccountCredentialList
+      listController = new AccountCredentialListController { model : modelWithData, view : listView }
+
+      listController.loadItems()
+
+      item        = listController.getListItems().first
+      credential  = item.getData()
+
+      credential.inuse = no
+
+      item.setData credential
+
+      askForConfirmSpy  = expect.spyOn(listView, 'askForConfirm').andCall (params, callback) ->
+        modal.hide()
+        callback { action : 'Remove', modal }
+
+      removeCredentialSpy = expect.spyOn listController, 'removeCredential'
+
+      expect.spyOn(credential, 'isBootstrapped').andCall (callback) -> callback null, yes
+
+      listController.removeItem item
+
+      expect(removeCredentialSpy.calls.first.arguments.first).toBe item
+
+    it 'should call destroyResources method if answer is DestroyAll', ->
+
+      listView       = new AccountCredentialList
+      listController = new AccountCredentialListController { model : modelWithData, view : listView }
+
+      listController.loadItems()
+
+      item        = listController.getListItems().first
+      credential  = item.getData()
+
+      credential.inuse = no
+
+      item.setData credential
+
+      askForConfirmSpy  = expect.spyOn(listView, 'askForConfirm').andCall (params, callback) ->
+        modal.hide()
+        callback { action : 'DestroyAll', modal }
+
+      destroyResourcesSpy = expect.spyOn listController, 'destroyResources'
+
+      expect.spyOn(credential, 'isBootstrapped').andCall (callback) -> callback null, yes
+
+      listController.removeItem item
+
+      expect(destroyResourcesSpy.calls.first.arguments.first).toBe credential
+
+    it 'should hide loader of DestroyAll button and enable Remove button', ->
+
+      listView       = new AccountCredentialList
+      listController = new AccountCredentialListController { model : modelWithData, view : listView }
+
+      listController.loadItems()
+
+      item        = listController.getListItems().first
+      credential  = item.getData()
+
+      credential.inuse = no
+
+      item.setData credential
+
+      askForConfirmSpy  = expect.spyOn(listView, 'askForConfirm').andCall (params, callback) ->
+        modal.hide()
+        callback { action : 'DestroyAll', modal }
+
+      destroyResourcesSpy = expect.spyOn(listController, 'destroyResources').andCall (credential, callback) ->
+        callback new Error 'error!'
+
+      expect.spyOn(credential, 'isBootstrapped').andCall (callback) -> callback null, yes
+
+      hideLoaderSpy = expect.spyOn modal.buttons.DestroyAll, 'hideLoader'
+      enableSpy     = expect.spyOn modal.buttons.Remove, 'enable'
+
+      listController.removeItem item
+
+      expect(destroyResourcesSpy).toHaveBeenCalled()
+      expect(hideLoaderSpy).toHaveBeenCalled()
+      expect(enableSpy).toHaveBeenCalled()
+
+    it 'should call removeCredential method with given item if answer is DestroyAll', ->
+
+      listView       = new AccountCredentialList
+      listController = new AccountCredentialListController { model : modelWithData, view : listView }
+
+      listController.loadItems()
+
+      item        = listController.getListItems().first
+      credential  = item.getData()
+
+      credential.inuse = no
+
+      item.setData credential
+
+      askForConfirmSpy  = expect.spyOn(listView, 'askForConfirm').andCall (params, callback) ->
+        modal.hide()
+        callback { action : 'DestroyAll', modal }
+
+      destroyResourcesSpy = expect.spyOn(listController, 'destroyResources').andCall (credential, callback) ->
+        callback null
+
+      removeCredentialSpy = expect.spyOn listController, 'removeCredential'
+
+      expect.spyOn(credential, 'isBootstrapped').andCall (callback) -> callback null, yes
+
+      hideLoaderSpy = expect.spyOn modal.buttons.DestroyAll, 'hideLoader'
+      enableSpy     = expect.spyOn modal.buttons.Remove, 'enable'
+
+      listController.removeItem item
+
+      expect(removeCredentialSpy.calls.first.arguments.first).toBe item
+
 
   describe '::removeCredential', ->
 
@@ -179,17 +318,18 @@ describe 'AccountCredentialListController', ->
 
       listController.loadItems()
 
-      kallback  = expect.createSpy()
-      item      = listController.getListItems().first
-      spy       = expect.spyOn listView, 'emit'
+      item        = listController.getListItems().first
+      kallback    = expect.createSpy()
+      emitSpy     = expect.spyOn listView, 'emit'
+      trackerSpy  = expect.spyOn Tracker, 'track'
 
       expect.spyOn(mockCredential, 'delete').andCall (callback) -> callback null
 
       listController.removeCredential item, kallback
 
       expect(kallback).toHaveBeenCalled()
-      expect(spy.calls.first.arguments.first).toEqual 'ItemDeleted'
-
+      expect(emitSpy.calls.first.arguments.first).toEqual 'ItemDeleted'
+      expect(trackerSpy).toHaveBeenCalledWith Tracker.USER_DELETE_CREDENTIALS
 
     it 'should not emit an event if any error', ->
 
