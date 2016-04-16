@@ -2,14 +2,19 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"koding/klient/remote/req"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/koding/kite/dnode"
+	"koding/klient/kiteerrortypes"
 	"koding/klient/remote/restypes"
+	"koding/klient/util"
 	"koding/klientctl/klientctlerrors"
 	"koding/klientctl/list"
 	"koding/klientctl/util/testutil"
@@ -293,6 +298,42 @@ func TestMountFindMachineName(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(exit, ShouldNotEqual, 0)
 			So(stdout.String(), ShouldContainSubstring, MachineNotFound)
+		})
+	})
+}
+
+func TestMountCommandRemoteCache(t *testing.T) {
+	Convey("Given a process error is returned", t, func() {
+		fakeKlient := &testutil.FakeKlient{
+			ReturnRemoteCacheErr: util.KiteErrorf(kiteerrortypes.ProcessError, "Err msg"),
+		}
+		var b bytes.Buffer
+		c := MountCommand{
+			Stdout: &b,
+			Klient: fakeKlient,
+		}
+
+		Convey("It should print RemoteProcessFailed", func() {
+			err := c.remoteCache(req.Cache{}, func(*dnode.Partial) {})
+			So(err, ShouldNotBeNil)
+			So(b.String(), ShouldContainSubstring, "A requested process on the remote")
+		})
+	})
+
+	Convey("Given a non-process error is returned", t, func() {
+		fakeKlient := &testutil.FakeKlient{
+			ReturnRemoteCacheErr: errors.New("Err msg"),
+		}
+		var b bytes.Buffer
+		c := MountCommand{
+			Stdout: &b,
+			Klient: fakeKlient,
+		}
+
+		Convey("It should not print RemoteProcessFailed", func() {
+			err := c.remoteCache(req.Cache{}, func(*dnode.Partial) {})
+			So(err, ShouldNotBeNil)
+			So(b.String(), ShouldNotContainSubstring, "A requested process on the remote")
 		})
 	})
 }

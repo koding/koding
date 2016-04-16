@@ -113,6 +113,10 @@ func IsRemotePathNotExistErr(err error) bool {
 	return isKiteOfTypeErr(err, kiteerrortypes.RemotePathDoesNotExist)
 }
 
+func IsProcessError(err error) bool {
+	return isKiteOfTypeErr(err, kiteerrortypes.ProcessError)
+}
+
 func isKiteOfTypeErr(err error, t string) bool {
 	if err == nil {
 		return false

@@ -60,4 +60,8 @@ const (
 	// MachineAlreadyAdded is used if a machine instance was added to a Machines
 	// struct twice.
 	MachineAlreadyAdded = "MachineAlreadyAdded"
+
+	// Returned from a klient/command.Command when running the command fails in a
+	// non-exit status way.
+	ProcessError = "ProcessError"
 )

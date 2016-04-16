@@ -168,6 +168,16 @@ Please wait a few minutes and try again.`,
 		"Error: Failed to prefetch the requested folder.\n",
 	)
 
+	// RemoteProcessFailed is used when a command was run on the remote, but the
+	// process itself failed to execute properly. *Not* an exit code, but more like
+	// a no memory.
+	//
+	// The %s arg is intended to be the full error.
+	RemoteProcessFailed = `A requested process on the remote Machine was unable to run properly,
+and exited with the following issue:
+
+%s`
+
 	// PrefetchAllAndMetaTogether is used when the user supplies both --prefetchall
 	// and --noprefetchmeta, as they are incompatible flags.
 	PrefetchAllAndMetaTogether = `Error: Cannot use both noprefetchmeta and prefetchall flags at the same time.
