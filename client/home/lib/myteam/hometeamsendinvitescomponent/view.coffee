@@ -10,7 +10,7 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
 
   numberOfRowsInSection: ->
 
-    @props.inviteInputs?.size or 0
+    @props.inputValues?.size or 0
 
 
   renderSectionHeaderAtIndex: -> null
@@ -18,7 +18,7 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    inviteInput = @props.inviteInputs.toList().get(rowIndex)
+    inviteInput = @props.inputValues.toList().get(rowIndex)
     checked = inviteInput.get('role') is 'admin'
 
     <div className='kdview invite-inputs'>
@@ -49,11 +49,11 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
         />
       </div>
       <fieldset className='HomeAppView--ActionBar'>
-        <RenderButton
+        <GenericButton
           title={'SEND INVITES'}
           className={'custom-link-view HomeAppView--button primary fr'}
           callback={@props.onSendInvites}/>
-        <RenderButton
+        <GenericButton
           title={'UPLOAD CSV'}
           className={'custom-link-view HomeAppView--button ft'}
           callback={@props.onUploadCsv} />
@@ -74,7 +74,7 @@ InformationLabel =  ->
   </div>
 
 
-RenderButton = ({ className, title, callback }) ->
+GenericButton = ({ className, title, callback }) ->
 
   <a className={className} href='#' onClick={callback}>
     <span className='title'>{title}</span>

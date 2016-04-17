@@ -9,6 +9,7 @@ showError       = require 'app/util/showError'
 remote          = require('app/remote').getInstance()
 AdminInviteModalView = require './admininvitemodalview'
 ResendInvitationConfirmModal = require './resendinvitationconfirmmodal'
+isEmailValid = require 'app/util/isEmailValid'
 
 
 module.exports = class HomeTeamSendInvitesContainer extends React.Component
@@ -16,7 +17,12 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
   getDataBindings: ->
 
     return {
-      inviteInputs: TeamFlux.getters.inviteInputs
+      inputValues: TeamFlux.getters.invitationInputValues
+      invitations: TeamFlux.getters.invitations
+      adminInvitations: TeamFlux.getters.adminInvitations
+      pendingInvitations: TeamFlux.getters.pendingInvitations
+      newInvitations: TeamFlux.getters.newInvitations
+      resendInvitations: TeamFlux.getters.resendInvitations
     }
 
 
@@ -26,79 +32,101 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       duration : 2000
 
 
-  onInputChange: (index, inputType, event) ->
+  onInputChange: (index, inputName, event) ->
 
     value = event.target.value
 
-    if inputType is 'role'
+    if inputName is 'role'
       value = if value then 'admin' else 'member'
 
-    TeamFlux.actions.updateInviteInput index, inputType, value
+    TeamFlux.actions.updateInvitationInputValue index, inputName, value
 
 
   onSendInvites: ->
 
-    inviteInputs = @state.inviteInputs
+    adminInvitations = @state.adminInvitations
+    resendInvitations = @state.resendInvitations
+    newInvitations = @state.newInvitations
+    invitations = @state.invitations
+    inputValues = @state.inputValues
+    ownEmail = kd.singletons.reactor.evaluate(['LoggedInUserEmailStore'])
+    title=''
+    inputValues = inputValues.toArray()
+    for value in inputValues
+      email = value.get('email')
 
-    TeamFlux.actions.inviteMembers(inviteInputs).then ({ invites, admins }) ->
+      if email is ownEmail
+        title = 'You can not invite yourself!'
+        break
+      else unless isEmailValid email
+        title = 'That doesn\'t seem like a valid email address.'
+        break
 
-      if invites.length
-        TeamFlux.actions.loadPendingInvites(invites).then ({ pendingInvitations }) ->
-
-          if admins?.length
-            notifyAdminInvites invites, admins, pendingInvitations
-          else
-            handleInvitationRequest invites, pendingInvitations
-
-    .catch ({ message }) ->
-
-      return showError message  if message
-
-
-  sendInvitations = (invites, pendingInvites) ->
-
-    TeamFlux.actions.sendInvitations(invites, pendingInvites).then ({ title }) ->
+    if title isnt ''
       return new kd.NotificationView
-        title    : title
-        duration : 5000
+          title    : title
+          duration : 5000
 
-
-  handleInvitationRequest = (invites, pendingInvitations) ->
-
-    if pendingInvitations?.size
-      TeamFlux.actions.getNewInvitations(invites, pendingInvitations).then ({ newInvitations }) ->
-        notifyPendingInvites pendingInvitations, { newInvitations }
+    if adminInvitations.size
+      notifyAdminInvites newInvitations, adminInvitations, resendInvitations
     else
-      sendInvitations invites
+      handleInvitationRequest newInvitations, resendInvitations
 
 
-  handleResendInvitations = (pendingInvitations, newInvitations) ->
+  sendInvitations = (invitations) ->
 
-    TeamFlux.actions.resendInvitations(pendingInvitations, newInvitations).then ({ title }) ->
+    return  unless invitations.size
+    TeamFlux.actions.sendInvitations().then ({ title }) ->
+      return new kd.NotificationView
+        title    : title
+        duration : 5000
+    .catch ({ title }) ->
       return new kd.NotificationView
         title    : title
         duration : 5000
 
-    if newInvitations.length
-      sendInvitations newInvitations, pendingInvitations
+
+  handleInvitationRequest = (invitations, resendInvitations) =>
+
+    if resendInvitations?.size
+      notifyPendingInvites resendInvitations, invitations
+    else
+      sendInvitations invitations
 
 
-  notifyAdminInvites = (invites, admins, pendingInvitations) ->
+  handleResendInvitations = (invitations) ->
 
-    title = if admins.length > 1 then "You're adding admins" else "You're adding an admin"
+    TeamFlux.actions.resendInvitations().then ({ title }) ->
+      new kd.NotificationView
+        title    : title
+        duration : 5000
+    .catch ({ title }) ->
+      new kd.NotificationView
+          title    : title
+          duration : 5000
+
+
+  notifyAdminInvites = (invitations, admins, resendInvitations) ->
+
+    admins = admins
+      .map (admin) ->
+        admin.get 'email'
+      .toArray()
+
+    title = if admins.size > 1 then "You're adding admins" else "You're adding an admin"
     modal = new AdminInviteModalView
       admins: admins
       title : title
       success: ->
-        handleInvitationRequest invites, pendingInvitations
+        handleInvitationRequest invitations, resendInvitations
         modal.destroy()
       cancel: ->
         modal.destroy()
 
 
-  notifyPendingInvites = (pendingInvitations, { newInvitations }) ->
-
-    partial = "<strong>#{pendingInvitations.get(0).get 'email'}</strong> has already been invited. Are you sure you want to resend invitation?"
+  notifyPendingInvites = (pendingInvitations, invitations) ->
+    pendingInvitations = pendingInvitations.toArray()
+    partial = "<strong>#{pendingInvitations[0].get 'email'}</strong> has already been invited. Are you sure you want to resend invitation?"
     resendButtonText = 'Resend Invitation'
     cancelButtonText = 'Cancel'
 
@@ -106,17 +134,17 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       emailsText = prepareEmailsText pendingInvitations
       partial = "#{emailsText} have already been invited. Are you sure you want to resend invitations?"
       resendButtonText = 'Resend Invitations'
-      cancelButtonText = 'Just send the new ones' if newInvitations.length
+      cancelButtonText = 'Just send the new ones' if invitations.size
 
     modal = new ResendInvitationConfirmModal
       partial : partial
       resendButtonText : resendButtonText
       cancelButtonText : cancelButtonText
       success : ->
-        handleResendInvitations pendingInvitations, newInvitations
+        handleResendInvitations pendingInvitations, invitations
         modal.destroy()
       cancel : ->
-        sendInvitations newInvitations
+        sendInvitations invitations
         modal.destroy()
 
 
@@ -141,7 +169,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
   render: ->
 
     <View
-      inviteInputs={@state.inviteInputs}
+      inputValues={@state.inputValues}
       onUploadCsv={@bound 'onUploadCsv'}
       onInputChange={@bound 'onInputChange'}
       onSendInvites={@bound 'onSendInvites'} />
