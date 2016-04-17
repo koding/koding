@@ -10,36 +10,45 @@ mock               = require '../../../../mocks/mockingjay'
 immutable          = require 'immutable'
 
 
-describe 'HomeTeamSettings', ->
+describe.only 'HomeTeamSettings', ->
 
   { Simulate,
   createRenderer,
   renderIntoDocument,
   findRenderedDOMComponentWithClass,
-  scryRenderedDOMComponentsWithClass,
   scryRenderedDOMComponentsWithTag } = TestUtils
 
   describe '::render', ->
 
     it 'should render with correct team name and team domain', ->
 
-      team = mock.getTeam()
-      team = immutable.fromJS team
-
+      team = immutable.fromJS mock.getTeam()
 
       teamSettings = renderIntoDocument(<TeamSettings.Container />)
       teamSettings.setState {team}
 
-      teamDomain = teamSettings.refs.view.refs.teamDomain.value
-      teamName = teamSettings.refs.view.refs.teamName.value
+      teamName = findRenderedDOMComponentWithClass teamSettings, 'kdinput text js-teamName'
 
-      actualTeamDomain = "#{Encoder.htmlDecode team.get 'slug'}.koding.com" ? ''
       actualTeamName = Encoder.htmlDecode team.get 'title' ? ''
 
-      expect(teamDomain).toEqual actualTeamDomain
-      expect(teamName).toEqual actualTeamName
+      expect(teamName.value).toEqual actualTeamName
 
 
+    it 'should render with correct team domain', ->
+
+      team = immutable.fromJS mock.getTeam()
+
+      teamSettings = renderIntoDocument(<TeamSettings.Container />)
+      teamSettings.setState {team}
+
+      teamDomain = findRenderedDOMComponentWithClass teamSettings, 'kdinput text js-teamDomain'
+
+      actualTeamDomain = "#{Encoder.htmlDecode team.get 'slug'}.koding.com" ? ''
+
+      expect(teamDomain.value).toEqual actualTeamDomain
+
+
+      # split to to 2
     it 'should render correct buttons', ->
 
       { groupsController } = kd.singletons
@@ -60,6 +69,7 @@ describe 'HomeTeamSettings', ->
 
 
 
+    # split into 2
     it 'should render correct team logo path', ->
 
       team = mock.getTeam()
