@@ -113,7 +113,7 @@ module.exports =
     @loginAssertion(browser)
 
 
-  loginTeam: (browser) ->
+  loginTeam: (browser, invalidCredentials = no) ->
 
     user = utils.getUser()
     url  = helpers.getUrl(yes)
