@@ -178,6 +178,12 @@ unmarkParticipantMayBeDeleted = (accountId) ->
   dispatch UNSET_CREATE_CHANNEL_PARTICIPANT_DELETE_FLAG, { accountId }
 
 
+loadLoggedInUserEmail = ->
+
+  { reactor } = kd.singletons
+  whoami().fetchEmail (err, email) =>
+    reactor.dispatch actions.LOAD_LOGGED_IN_USER_EMAIL_SUCCESS, { email }
+
 
 module.exports = {
   loadAccount
@@ -188,4 +194,5 @@ module.exports = {
   impersonateUser
   markParticipantMayBeDeleted
   unmarkParticipantMayBeDeleted
+  loadLoggedInUserEmail
 }
