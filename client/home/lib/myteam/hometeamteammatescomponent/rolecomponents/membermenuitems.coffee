@@ -19,9 +19,9 @@ module.exports = class MemberMenuItems extends React.Component
   render: ->
 
     <div>
-      <MakeOwner member={@props.member}/>
-      <MakeAdmin member={@props.member}/>
-      <MakeModerator member={@props.member}/>
-      <DisableUser member={@props.member}/>
+      <MakeOwner account={@props.account}/>
+      <MakeAdmin account={@props.account}/>
+      <MakeModerator account={@props.account}/>
+      <DisableUser account={@props.account}/>
     </div>
 

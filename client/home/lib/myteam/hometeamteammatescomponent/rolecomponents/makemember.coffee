@@ -6,14 +6,9 @@ KDReactorMixin  = require 'app/flux/base/reactormixin'
 
 module.exports = class MakeMember extends React.Component
 
-  constructor: (props) ->
+  changeRole: ->
 
-    super props
-
-
-  changeRole: () ->
-
-    TeamFlux.actions.handleRoleChange 'member', @props.member
+    TeamFlux.actions.handleRoleChange @props.account, 'member'
 
 
   render: ->

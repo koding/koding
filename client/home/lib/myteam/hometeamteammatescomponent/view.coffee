@@ -31,8 +31,8 @@ module.exports = class HomeTeamTeamMatesView extends React.Component
 
     <div>
       <SearchBox
-        onSearchInputChange={@props.onSearchInputChange}
-        searchInputValue={@props.searchInputValue} />
+        onChange={@props.onSearchInputChange}
+        value={@props.searchInputValue} />
 
       <div className='kdview kdlistview kdlistview-default'>
         <List
@@ -46,15 +46,14 @@ module.exports = class HomeTeamTeamMatesView extends React.Component
     </div>
 
 
-SearchBox = ({ onSearchInputChange, searchInputValue }) ->
+SearchBox = ({ onChange, value }) ->
 
   <div className='search'>
     <span className='label'>Filter</span>
     <input
       type='text'
       className='kdinput text hitenterview'
-      onChange={onSearchInputChange}
+      onChange={onChange}
       placeholder='Find by name/username'
-      value={searchInputValue} />
+      value={value} />
   </div>
-
