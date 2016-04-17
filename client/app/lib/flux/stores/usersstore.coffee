@@ -42,10 +42,10 @@ module.exports = class UsersStore extends KodingFluxStore
    * @param {Immutable.Map} users
    * @param {object} user
   ###
-
   handleDeleteTeamMember: (users, userId) ->
 
     return users.delete userId
+
 
   ###*
    * Handler for UPDATE_TEAM_MEMBER action.
@@ -54,9 +54,9 @@ module.exports = class UsersStore extends KodingFluxStore
    * @param {Immutable.Map} users
    * @param {object} user
   ###
-  handleUpdateTeamMember: (users, user) ->
+  handleUpdateTeamMember: (users, { account }) ->
 
-    return users.set user.get('id'), user
+    return users.set account.get('id'), account
 
 
   ###*
