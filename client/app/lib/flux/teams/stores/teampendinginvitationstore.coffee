@@ -13,7 +13,11 @@ module.exports = class TeamPendingInvitationStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actions.LOAD_PENDING_INVITATION, @load
+    @on actions.LOAD_PENDING_INVITATION_SUCCESS, @load
 
 
-  load: (oldPendingInvitations, pendingInvitations) -> pendingInvitations
+  load: (pendingInvitations, { invitations }) ->
+
+    pendingInvitations.withMutations (pendingInvitations) ->
+      invitations.forEach (invitation) ->
+        pendingInvitations.set invitation._id, toImmutable invitation
