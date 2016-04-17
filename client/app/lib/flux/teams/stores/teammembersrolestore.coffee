@@ -30,16 +30,16 @@ module.exports = class TeamMembersRoleStore extends KodingFluxStore
         memberRoles.set role.targetId, role.as #userRoles[role.targetId]
 
 
-  updateTeamMember: (memberRoles, roles ) ->
-    id = roles.get '_id'
-    value = roles.get 'role'
+  updateTeamMember: (memberRoles, { account } ) ->
+    id = account.get '_id'
+    value = account.get 'role'
     hasOwner = 'owner' in value
     hasAdmin = 'admin' in value
 
     value = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
     memberRoles.set id, value
-    
-  
+
+
   deleteTeamMember: (memberRoles, memberId) ->
     debugger
     memberRoles.delete memberId

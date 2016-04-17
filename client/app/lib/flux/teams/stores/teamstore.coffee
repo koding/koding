@@ -16,4 +16,4 @@ module.exports = class TeamStore extends KodingFluxStore
     @on actions.LOAD_TEAM_SUCCESS, @load
 
 
-  load: (oldTeam, team) -> toImmutable team
+  load: (oldTeam, { team }) -> toImmutable team
