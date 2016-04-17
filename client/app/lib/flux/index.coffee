@@ -3,6 +3,7 @@ module.exports =
     user: require './actions/user'
   stores: [
     require './stores/usersstore'
+    require './stores/loggedinuseremailstore'
   ]
 
   register: (reactor) ->
