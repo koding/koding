@@ -14,7 +14,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
   getDataBindings: ->
     return {
-      team: TeamFlux.getters.loadTeam
+      team: TeamFlux.getters.team
     }
 
 
@@ -22,19 +22,21 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
     super props
 
+    canEdit = kd.singletons.groupsController.canEditGroup()
+
+    @state =
+      logopath: '/a/images/logos/sidebar_footer_logo.svg'
+      canEdit: canEdit
+
 
   componentDidMount: ->
 
-    canEdit = kd.singletons.groupsController.canEditGroup()
     teamName = Encoder.htmlDecode @state.team?.get 'title' ? ''
-
     @setState
-      logopath : '/a/images/logos/sidebar_footer_logo.svg'
-      canEdit : canEdit
-      teamName : teamName
+      teamName: teamName
 
 
-  upload: (content, mimeType ) ->
+  upload: (content, mimeType) ->
 
     timeout = 3e4
 
@@ -44,19 +46,19 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
       return showError err   if err
 
-      team = @state.team.updateIn(['customize', 'logo'], -> url)
+      team = @state.team.setIn ['customize', 'logo'], url
       @setState {team}
 
 
   onUploadInput: ->
 
-    [file] = @refs.view.refs.uploadInput.files
+    [file] = @refs.view.input.files
     @upload file, file.type
 
 
   onClickLogo: ->
 
-    @refs.view.refs.uploadInput.click()
+    @refs.view.input.click()
 
 
   onRemoveLogo: ->
@@ -67,18 +69,17 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
   onUpdate: ->
 
+    dataToUpdate =
+      customize:
+        logo: @state.logopath
+
     title = @state.teamName
-    dataToUpdate = {}
-    dataToUpdate.title = title  unless title is @state.team.get 'title'
 
-    logo = @state.team.getIn(['customize', 'logo'])
-    dataToUpdate.customize = {}
-    if logo
+    if title isnt @state.team.get 'title'
+      dataToUpdate.title = title
+
+    if logo = @state.team.getIn(['customize', 'logo'])
       dataToUpdate.customize.logo = logo
-    else
-      dataToUpdate.customize.logo = @state.logopath
-
-    return  if _.isEmpty dataToUpdate
 
     TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) ->
       notify message
