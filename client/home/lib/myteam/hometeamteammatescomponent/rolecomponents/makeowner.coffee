@@ -13,7 +13,7 @@ module.exports = class MakeOwner extends React.Component
 
   changeRole: () ->
 
-    TeamFlux.actions.handleRoleChange 'owner', @props.member
+    TeamFlux.actions.handleRoleChange @props.account, 'owner'
 
 
   render: ->

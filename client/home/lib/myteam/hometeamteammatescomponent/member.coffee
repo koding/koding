@@ -21,11 +21,11 @@ module.exports = class Member extends React.Component
   renderRoleSettings: (role) ->
 
     if role is 'owner'
-      <MakeMember member={@props.member} />
+      <MakeMember account={@props.member} />
     else if role is 'admin'
-      <AdminMenuItems member={@props.member} />
+      <AdminMenuItems account={@props.member} />
     else # member
-      <MemberMenuItems member={@props.member} />
+      <MemberMenuItems account={@props.member} />
 
   render: ->
 

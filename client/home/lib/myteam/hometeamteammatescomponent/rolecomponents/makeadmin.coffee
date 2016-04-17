@@ -13,7 +13,7 @@ module.exports = class MakeAdmin extends React.Component
 
   changeRole: () ->
 
-    TeamFlux.actions.handleRoleChange 'admin', @props.member
+    TeamFlux.actions.handleRoleChange @props.account, 'admin'
 
 
   render: ->

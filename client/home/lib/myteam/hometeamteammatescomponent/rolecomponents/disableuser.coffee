@@ -13,7 +13,7 @@ module.exports = class DisableUser extends React.Component
 
   changeRole: () ->
 
-    TeamFlux.actions.handleKickMember @props.member
+    TeamFlux.actions.handleKickMember @props.account
 
 
   render: ->

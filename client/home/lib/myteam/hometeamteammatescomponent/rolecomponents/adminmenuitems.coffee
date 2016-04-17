@@ -12,17 +12,12 @@ DisableUser = require './disableuser'
 
 module.exports = class AdminMenuItems extends React.Component
 
-  constructor: (props) ->
-
-    super props
-
-
   render: ->
 
     <div>
-      <MakeOwner member={@props.member}/>
-      <MakeMember member={@props.member}/>
-      <MakeModerator member={@props.member}/>
-      <DisableUser member={@props.member}/>
+      <MakeOwner account={@props.account}/>
+      <MakeMember account={@props.account}/>
+      <MakeModerator account={@props.account}/>
+      <DisableUser account={@props.account}/>
     </div>
 
