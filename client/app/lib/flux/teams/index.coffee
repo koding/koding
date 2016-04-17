@@ -6,7 +6,7 @@ module.exports =
     require './stores/teamstore'
     require './stores/teammembersidstore'
     require './stores/teammembersrolestore'
-    require './stores/teaminviteinputsstore'
+    require './stores/teaminvitationinputvaluesstore'
     require './stores/teampendinginvitationstore'
     require './stores/teamsearchinputvaluestore'
   ]
