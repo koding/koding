@@ -5,7 +5,6 @@ TeamFlux        = require 'app/flux/teams'
 KDReactorMixin  = require 'app/flux/base/reactormixin'
 View            = require './view'
 Encoder         = require 'htmlencode'
-s3upload        = require 'app/util/s3upload'
 showError       = require 'app/util/showError'
 
 notify = (title, duration = 5000) -> new kd.NotificationView { title, duration }
@@ -34,6 +33,9 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
     teamName = Encoder.htmlDecode @state.team?.get 'title' ? ''
     @setState
       teamName: teamName
+      file: null
+      fileType: null
+      fileName: null
 
 
   upload: (content, mimeType) ->
@@ -53,7 +55,15 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
   onUploadInput: ->
 
     [file] = @refs.view.input.files
-    @upload file, file.type
+
+    reader = new FileReader
+    reader.onload = (reader, event) =>
+      team = @state.team.setIn ['customize', 'logo'], reader.target.result
+      fileName = "#{@state.team.get 'slug'}-logo-#{Date.now()}.png"
+      fileType = file.type
+      @setState { team, file, fileType, fileName }
+
+    reader.readAsDataURL file
 
 
   onClickLogo: ->
@@ -78,13 +88,21 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
     if title isnt @state.team.get 'title'
       dataToUpdate.title = title
 
-    if logo = @state.team.getIn(['customize', 'logo'])
-      dataToUpdate.customize.logo = logo
+    name = @state.fileName
+    content = @state.file
+    mimeType = @state.fileType
 
-    TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) ->
-      notify message
-    .catch ({ message }) ->
-      notify message
+    if _.isEmpty dataToUpdate.title
+      unless name or content or mimeType
+        return
+
+    TeamFlux.actions.uploads3({ name, content, mimeType }).then ({ url }) ->
+      dataToUpdate.customize.logo = url
+      updateTeam { dataToUpdate }
+    .catch ({ err }) ->
+      showError err  if err
+      updateTeam { dataToUpdate }
+
 
   onTeamNameChanged: (event)->
 
@@ -105,6 +123,14 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       onRemoveLogo={@bound 'onRemoveLogo'}
       onUpdate={@bound 'onUpdate'}
       onTeamNameChanged={@bound 'onTeamNameChanged'}/>
+
+
+updateTeam = ({ dataToUpdate }) ->
+
+  TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) ->
+    notify message
+  .catch ({ message }) ->
+    notify message
 
 
 HomeTeamSettingsContainer.include [KDReactorMixin]

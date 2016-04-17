@@ -11,6 +11,7 @@ immutable   = require 'immutable'
 Tracker     = require 'app/util/tracker'
 isKoding    = require 'app/util/isKoding'
 isEmailValid = require 'app/util/isEmailValid'
+s3upload = require 'app/util/s3upload'
 
 
 loadTeam = ->
@@ -192,6 +193,15 @@ handleKickMember = (member) ->
       reactor.dispatch actions.DELETE_TEAM_MEMBER, memberId
 
 
+uploads3 = ({ name, content, mimeType }) ->
+
+  timeout = 3e4
+  new Promise (resolve, reject) ->
+    s3upload { name, content, mimeType, timeout }, (err, url) ->
+      return reject {} unless name or content or mimeType
+      if err then reject { err } else resolve { url }
+
+
 module.exports = {
   loadTeam
   updateTeam
@@ -204,4 +214,5 @@ module.exports = {
   setSearchInputValue
   handleRoleChange
   handleKickMember
+  uploads3
 }
