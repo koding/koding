@@ -85,6 +85,9 @@ build:
         name: test klient
         code: scripts/wercker/run-command scripts/test-klient.sh
     - script:
+        name: test kd
+        code: scripts/wercker/run-command scripts/test-kd.sh
+    - script:
         name: test kites
         code: scripts/wercker/run-command go/src/koding/kites/e2etest/e2etest.sh
     - script:
