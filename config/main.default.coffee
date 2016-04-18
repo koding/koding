@@ -27,58 +27,58 @@ Configuration = (options={}) ->
   awsKeys =
     # s3 full access
     worker_terraformer:
-      accessKeyId     : "AKIAICCV3GMNBL4ECN5Q"
-      secretAccessKey : "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"
+      accessKeyId     : ""
+      secretAccessKey : ""
 
     # s3 put only to koding-client bucket
     worker_koding_client_s3_put_only:
-      accessKeyId     : "AKIAJCUG42THBT4LBQEQ"
-      secretAccessKey : "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"
+      accessKeyId     : ""
+      secretAccessKey : ""
 
     # admin
     worker_test:
-      accessKeyId     : "AKIAIQESD65KKYRYAWDA"
-      secretAccessKey : "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"
+      accessKeyId     : ""
+      secretAccessKey : ""
 
     # s3 put only
     worker_test_data_exporter:
-      accessKeyId     : "AKIAIWO4ZPTLQEYSOLGA"
-      secretAccessKey : "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"
+      accessKeyId     : ""
+      secretAccessKey : ""
 
     # AmazonRDSReadOnlyAccess
     worker_rds_log_parser:
-      accessKeyId     : "AKIAJX6IPI3PQCS3GJ6Q"
-      secretAccessKey : "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"
+      accessKeyId     : ""
+      secretAccessKey : ""
 
     # ELB & EC2 -> AmazonEC2ReadOnlyAccess
     worker_multi_ssh:
-      accessKeyId     : "AKIAI7CKP5SNHCBUEDXQ"
-      secretAccessKey : "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"
+      accessKeyId     : ""
+      secretAccessKey : ""
 
     # AmazonEC2FullAccess
     worker_test_instance_launcher:
-      accessKeyId     : "AKIAJDR2J6W5AT4KWS4A"
-      secretAccessKey : "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"
+      accessKeyId     : ""
+      secretAccessKey : ""
 
     # CloudWatchReadOnlyAccess
     vm_vmwatcher:     # vm_vmwatcher_dev
-      accessKeyId     : "AKIAJ3OZKOIQUTV2GCBQ"
-      secretAccessKey : "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"
+      accessKeyId     : ""
+      secretAccessKey : ""
 
     # KloudPolicy
     vm_kloud:         # vm_kloud_dev
-      accessKeyId     : "AKIAJRNT55RTV2MHD4VA"
-      secretAccessKey : "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"
+      accessKeyId     : ""
+      secretAccessKey : ""
 
     # TunnelProxyPolicy
     worker_tunnelproxymanager: # Name worker_tunnelproxymanager_dev
-      accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
-      secretAccessKey : "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"
+      accessKeyId     : ""
+      secretAccessKey : ""
 
     # Encryption and Storage on S3
     worker_sneakerS3 :
-      accessKeyId     : "AKIAJV2BZT3DBCEUOIXQ"
-      secretAccessKey : "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"
+      accessKeyId     : ""
+      secretAccessKey : ""
 
   publicPort          = options.publicPort     or "8090"
   hostname            = options.hostname       or "dev.koding.com"
@@ -149,8 +149,8 @@ Configuration = (options={}) ->
   segment = ''
 
   github =
-    clientId     : "f8e440b796d953ea01e5"
-    clientSecret : "b72e2576926a5d67119d5b440107639c6499ed42"
+    clientId     : ""
+    clientSecret : ""
     redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback"
 
   mailgun =
