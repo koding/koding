@@ -34,13 +34,13 @@ module.exports = class TeamInvitationInputValuesStore extends KodingFluxStore
   *   value
   *   value
   *   ----
-
+  *
   * User typed `v` to the empty input area
   *   value
   *   value
   *   v
   *   ----
-
+  *
   * User typed `a` to the new input area
   *   value
   *   value

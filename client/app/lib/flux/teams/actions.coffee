@@ -20,6 +20,8 @@ loadTeam = ->
 
   team = groupsController.getCurrentGroup()
 
+  console.log 'team ', team
+
   reactor.dispatch actions.LOAD_TEAM_SUCCESS, { team }
 
 
@@ -52,7 +54,7 @@ fetchMembers = (options = {}) ->
   { groupsController, reactor } = kd.singletons
 
   team = groupsController.getCurrentGroup()
-  reactor.dispatch actions.FETCH_TEAM_MEMBERS_BEGIN, { team }
+  reactor.dispatch actions.LOAD_TEAM_MEMBERS_BEGIN, { team }
 
   team.fetchMembersWithEmail {}, options, (err, users) ->
     reactor.dispatch actions.FETCH_TEAM_MEMBERS_SUCCESS, { users }
