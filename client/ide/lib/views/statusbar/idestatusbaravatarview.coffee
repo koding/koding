@@ -48,6 +48,8 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     return  if MENU and nickname is @nickname
 
+    @once 'DestroyMenu', -> MENU?.destroy()
+
     MENU?.destroy()
 
     { appManager } = kd.singletons

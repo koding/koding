@@ -53,6 +53,8 @@ type Fusetest struct {
 
 	Opts FusetestOpts
 
+	OriginalMountOpts req.MountFolder
+
 	T *testing.T
 
 	*Remote
@@ -64,11 +66,18 @@ type FusetestOpts struct {
 	// tests. Rather brittle.
 	req.MountFolder
 
+	// The main fuse operation tests. If false, no fuseop tests will be run.
+	// (useful if you just want to check klient list recovery, etc.)
+	FuseOpsTests bool
+
 	// The depth (if any) to run reconnect tests
 	ReconnectDepth uint
 
 	// Whether or not to run the op tests on various mount settings.
-	MountTests bool
+	MountSettingTests bool
+
+	// General kd tests, outside of mount/unmount. Ie, kd list, kd ssh, etc.
+	MiscTests bool
 }
 
 func NewFusetest(machine string, opts FusetestOpts) (*Fusetest, error) {
@@ -77,13 +86,23 @@ func NewFusetest(machine string, opts FusetestOpts) (*Fusetest, error) {
 		return nil, err
 	}
 
-	return &Fusetest{
+	f := &Fusetest{
 		Machine:  machine,
 		MountDir: r.local,
 		T:        &testing.T{},
 		Remote:   r,
 		Opts:     opts,
-	}, nil
+	}
+
+	origMountOpts, err := NewKD().GetMountOptions(f.Machine)
+	if err != nil {
+		fmt.Println("Unable to get your mount settings.")
+		return nil, err
+	}
+	f.OriginalMountOpts = origMountOpts
+	f.Opts.MountFolder = origMountOpts
+
+	return f, nil
 }
 
 func (f *Fusetest) checkCachePath() bool {
@@ -91,48 +110,73 @@ func (f *Fusetest) checkCachePath() bool {
 }
 
 func (f *Fusetest) RunTests() (testErrs error) {
-	kd := NewKD()
-	origMountOpts, err := kd.GetMountOptions(f.Machine)
-	if err != nil {
-		return err
-	}
-	f.Opts.MountFolder = origMountOpts
-
 	fmt.Println("Testing pre-existing mount...")
 	if err := f.RunOperationTests(); err != nil {
 		testErrs = multierror.Append(testErrs, err)
 	}
 
+	// Run the --reconnect-depth tests on the original mount.
 	if err := f.RunReconnectDepths(); err != nil {
 		testErrs = multierror.Append(testErrs, err)
 	}
 
-	if f.Opts.MountTests {
-		// Unmount so we can mount with various settings below.
+	// If any of below test are true, we need to unmount the users mount so that
+	// tests can unmount and remount as they need. We'll remount at the
+	// end of this func.
+	remountUserMount := f.Opts.MountSettingTests || f.Opts.MiscTests
+	if remountUserMount {
 		if err := NewKD().Unmount(f.Machine); err != nil {
 			testErrs = multierror.Append(testErrs, err)
 		}
+	}
 
-		// Run our various test types
-		if err := f.RunPrefetchTests(); err != nil {
+	// Run our --mount-settings tests
+	if f.Opts.MountSettingTests {
+		if err := f.RunMountSettingTests(); err != nil {
 			testErrs = multierror.Append(testErrs, err)
 		}
+	}
 
-		if err := f.RunNoPrefetchTests(); err != nil {
+	// Run our --misc tests
+	if f.Opts.MiscTests {
+		if err := f.RunMiscTests(); err != nil {
 			testErrs = multierror.Append(testErrs, err)
 		}
+	}
 
-		if err := f.RunPrefetchAllTests(); err != nil {
-			testErrs = multierror.Append(testErrs, err)
-		}
-
+	// If we unmounted the users mount, restore it.
+	if remountUserMount {
 		// Remount test folder.
-		if err := kd.MountWithOpts(f.Machine, origMountOpts); err != nil {
+		if err := NewKD().MountWithOpts(f.Machine, f.OriginalMountOpts); err != nil {
 			testErrs = multierror.Append(testErrs, err)
 		}
 	}
 
 	return testErrs
+}
+
+// Run our --mount-settings tests
+func (f *Fusetest) RunMountSettingTests() (testErrs error) {
+	// Run our various test types
+	if err := f.RunPrefetchTests(); err != nil {
+		testErrs = multierror.Append(testErrs, err)
+	}
+
+	if err := f.RunNoPrefetchTests(); err != nil {
+		testErrs = multierror.Append(testErrs, err)
+	}
+
+	if err := f.RunPrefetchAllTests(); err != nil {
+		testErrs = multierror.Append(testErrs, err)
+	}
+
+	return testErrs
+}
+
+// Run our --kd tests
+func (f *Fusetest) RunMiscTests() error {
+	f.TestKDListMachineStatus()
+	return nil
 }
 
 func (f *Fusetest) RunPrefetchTests() error {
@@ -245,6 +289,10 @@ func (f *Fusetest) RunReconnectTests(reconnectOpts internet.ReconnectOpts) error
 }
 
 func (f *Fusetest) RunOperationTests() error {
+	if !f.Opts.FuseOpsTests {
+		return nil
+	}
+
 	testDir, err := ioutil.TempDir(f.MountDir, "tests")
 	if err != nil {
 		return err
@@ -275,6 +323,10 @@ func (f *Fusetest) setupConvey(name string, fn func(string)) {
 
 		fn(filepath.Join(m, d))
 	}))
+}
+
+func (f *Fusetest) setupConveyWithoutDir(name string, fn func()) {
+	Convey(name, f.T, fn)
 }
 
 func (f *Fusetest) checkCacheEntry(name string) (os.FileInfo, error) {

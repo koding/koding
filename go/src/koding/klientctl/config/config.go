@@ -34,6 +34,11 @@ const (
 	SSHDefaultKeyName = "kd-ssh-key"
 )
 
+var kd2klient = map[string]string{
+	"production":  "managed",
+	"development": "devmanaged",
+}
+
 var (
 	// Version is the current version of klientctl. This number is used
 	// by CheckUpdate to determine if current version is behind or equal to latest
@@ -61,7 +66,7 @@ var (
 	KontrolURL = "https://koding.com/kontrol/kite"
 
 	// S3KlientLatest is URL to the latest version of the klient.
-	S3KlientLatest = "https://koding-klient.s3.amazonaws.com/" + Environment + "/latest-version.txt"
+	S3KlientLatest = "https://koding-klient.s3.amazonaws.com/" + kd2klient[Environment] + "/latest-version.txt"
 
 	// S3KlientctlLatest is URL to the latest version of the klientctl.
 	S3KlientctlLatest = "https://koding-kd.s3.amazonaws.com/" + Environment + "/latest-version.txt"

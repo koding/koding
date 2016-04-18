@@ -53,6 +53,8 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	case nil:
 		metrics.TrackSSHEnd(mountName, "", -now.Sub(now).Minutes(), config.VersionNum())
 		return 0
+	case ssh.ErrMachineNotFound:
+		fmt.Println(MachineNotFound)
 	case ssh.ErrManagedMachineNotSupported:
 		fmt.Println(CannotSSHManaged)
 		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())

@@ -50,6 +50,7 @@ module.exports = [
 
   [
     { name: 'collaboration collaborationsingle'}
+    { name: 'collaboration collaborationpermission', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [

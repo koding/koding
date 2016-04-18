@@ -44,13 +44,13 @@ func createDir(mountDir, name string, fn func(string)) func() {
 	return func() {
 		dirPath := path.Join(mountDir, name)
 		if err := os.Mkdir(dirPath, 0705); err != nil {
-			log.Fatal(dirPath, "exists")
+			log.Fatalf("Failed to create test dir. dir:%s", dirPath)
 		}
 
 		fn(dirPath)
 
 		if err := os.RemoveAll(dirPath); err != nil {
-			log.Fatal("unable to remove", dirPath)
+			log.Fatalf("Failed to remove test dir. dir:%s", dirPath)
 		}
 	}
 }

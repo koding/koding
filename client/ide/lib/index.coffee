@@ -798,6 +798,7 @@ class IDEAppController extends AppController
         parents.push parent
     
     _.uniq(parents, 'id').forEach (p) -> p._windowDidResize()
+    @doResize()
 
 
   toggleSidebar: ->
@@ -1446,7 +1447,7 @@ class IDEAppController extends AppController
     if @permissions.get(origin) is 'edit'
       mustSyncChanges.push 'CursorActivity'
 
-    if @amIWatchingChangeOwner(origin) or type in mustSyncChanges
+    if @amIWatchingChangeOwner(origin) or (type in mustSyncChanges) or (origin is nick())
       targetPane = @getPaneByChange change
 
       if type is 'NewPaneCreated'
@@ -1580,7 +1581,7 @@ class IDEAppController extends AppController
       return tabView.showPane paneView
 
 
-    if ideViewHash and @amIWatchingChangeOwner origin
+    if ideViewHash and @amIWatchingChangeOwner(origin) or origin is nick()
       targetTabView = @getTabViewByIDEViewHash ideViewHash
       @setActiveTabView targetTabView  if targetTabView
 
@@ -1654,16 +1655,16 @@ class IDEAppController extends AppController
       delete @modal
 
 
-  quit: (destroy = yes) ->
+  quit: (destroy = yes, stopCollaborationSession = yes) ->
 
     return  if @getView().isDestroyed
 
     @emit 'IDEWillQuit'  if destroy
 
     @mountedMachine?.getBaseKite(createIfNotExists = no).disconnect()
-    @stopCollaborationSession()
 
     if destroy
+      @stopCollaborationSession()  if stopCollaborationSession
       kd.singletons.appManager.quit this, =>
         # fetch data to ensure target workspace is still exist
         environmentDataProvider.fetch =>
