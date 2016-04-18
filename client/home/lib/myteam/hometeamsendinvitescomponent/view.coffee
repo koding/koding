@@ -50,11 +50,11 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
       </div>
       <fieldset className='HomeAppView--ActionBar'>
         <GenericButton
-          title={'SEND INVITES'}
+          title='SEND INVITES'
           className={'custom-link-view HomeAppView--button primary fr'}
           callback={@props.onSendInvites}/>
         <GenericButton
-          title={'UPLOAD CSV'}
+          title='UPLOAD CSV'
           className={'custom-link-view HomeAppView--button ft'}
           callback={@props.onUploadCsv} />
       </fieldset>
