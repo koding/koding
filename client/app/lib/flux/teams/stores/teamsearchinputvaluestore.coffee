@@ -13,7 +13,7 @@ module.exports = class TeamSearchInputValueStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actions.SET_SEARCH_INPUT_VALUE, @load
+    @on actions.SET_SEARCH_INPUT_VALUE, @setValue
 
 
-  load: (value, newValue) -> newValue
+  setValue: (value, { newValue }) -> newValue

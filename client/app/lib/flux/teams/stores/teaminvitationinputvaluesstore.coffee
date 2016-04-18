@@ -27,6 +27,26 @@ module.exports = class TeamInvitationInputValuesStore extends KodingFluxStore
     , immutable.Map()
 
 
+  ###
+  * When you start to add a new value with only one empty input, it will
+  * add one more empty input so there is always an empty input for users.
+  * Initial State:
+  *   value
+  *   value
+  *   ----
+
+  * User typed `v` to the empty input area
+  *   value
+  *   value
+  *   v
+  *   ----
+
+  * User typed `a` to the new input area
+  *   value
+  *   value
+  *   va
+  *   ----
+  ###
   handleChange: (state, {index, inputType, value}) ->
 
     state = state.setIn [index, inputType], value
