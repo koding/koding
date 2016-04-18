@@ -10,7 +10,7 @@ mock               = require '../../../../mocks/mockingjay'
 immutable          = require 'immutable'
 
 
-describe.only 'HomeTeamSettings', ->
+describe 'HomeTeamSettings', ->
 
   { Simulate,
   createRenderer,

@@ -8,8 +8,11 @@ MemberMenuItems = require './rolecomponents/membermenuitems'
 
 module.exports = class Member extends React.Component
 
-  componentWillMount: ->
-    @setState
+  constructor: (props) ->
+
+    super props
+
+    @state =
       isRoleSettingsHidden: yes
 
 
