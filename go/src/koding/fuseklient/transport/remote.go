@@ -194,7 +194,7 @@ func (r *RemoteTransport) GetInfo(path string) (*GetInfoRes, error) {
 		return nil, err
 	}
 
-	// remove disk path prefix
+	// remove remote path prefix
 	res.FullPath = r.relativePath(res.FullPath)
 
 	return res, nil

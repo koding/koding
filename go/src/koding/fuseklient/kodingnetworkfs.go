@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 	"sync"
-	"time"
 
 	"golang.org/x/net/context"
 	"golang.org/x/net/trace"
@@ -665,7 +664,7 @@ func (k *KodingNetworkFS) deleteEntry(id fuseops.InodeID) {
 func (k *KodingNetworkFS) entryChanged(e Node) {
 	file, ok := e.(*File)
 	if ok {
-		k.Watcher.AddTimedIgnore(file.Path, 1*time.Minute)
+		k.Watcher.AddTimedIgnore(file.GetRemotePath())
 	}
 }
 

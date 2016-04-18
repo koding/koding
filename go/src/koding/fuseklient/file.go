@@ -2,6 +2,7 @@ package fuseklient
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
@@ -107,7 +108,19 @@ func (f *File) Expire() error {
 	// doesn't invalidate the local cache, so we replace the InodeId.
 	f.ID = f.Parent.IDGen.Next()
 
+	// fetch the updated attrs
+	attrs, err := f.getAttrsFromRemote()
+	if err != nil {
+		return err
+	}
+
+	f.setAttrs(attrs)
+
 	return f.content.ReadAll()
+}
+
+func (f *File) GetRemotePath() string {
+	return filepath.Join(f.Transport.GetRemotePath(), f.Path)
 }
 
 func (f *File) ToString() string {
@@ -135,6 +148,10 @@ func (f *File) SetAttrs(attrs fuseops.InodeAttributes) {
 	f.Lock()
 	defer f.Unlock()
 
+	f.setAttrs(attrs)
+}
+
+func (f *File) setAttrs(attrs fuseops.InodeAttributes) {
 	f.Attrs = attrs
 	f.content.Size = int64(attrs.Size)
 }
