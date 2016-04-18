@@ -7,7 +7,7 @@ KDReactorMixin  = require 'app/flux/base/reactormixin'
 module.exports = class MakeModerator extends React.Component
 
 
-  changeRole: () ->
+  changeRole: ->
     console.log 'MODERATOR'
 
 

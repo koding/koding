@@ -11,11 +11,6 @@ DisableUser = require './disableuser'
 
 module.exports = class MemberMenuItems extends React.Component
 
-  constructor: (props) ->
-
-    super props
-
-
   render: ->
 
     <div>

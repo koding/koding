@@ -6,12 +6,7 @@ KDReactorMixin  = require 'app/flux/base/reactormixin'
 
 module.exports = class MakeAdmin extends React.Component
 
-  constructor: (props) ->
-
-    super props
-
-
-  changeRole: () ->
+  changeRole: ->
 
     TeamFlux.actions.handleRoleChange @props.account, 'admin'
 
