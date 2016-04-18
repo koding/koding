@@ -10,36 +10,33 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
     exec               : 'exec'
     ping               : 'kite.ping'
     systemInfo         : 'kite.systemInfo'
-
     clientSubscribe    : 'client.Subscribe'
+<<<<<<< HEAD
     clientUnsubscribe  : 'client.Unsubscribe'
 
+=======
+>>>>>>> coffeelint: apply new rules to client folder
     fsReadDirectory    : 'fs.readDirectory'
     fsGlob             : 'fs.glob'
     fsReadFile         : 'fs.readFile'
     fsGetInfo          : 'fs.getInfo'
     fsSetPermissions   : 'fs.setPermissions'
     fsRemove           : 'fs.remove'
-
     fsUniquePath       : 'fs.uniquePath'
     fsWriteFile        : 'fs.writeFile'
     fsRename           : 'fs.rename'
     fsMove             : 'fs.move'
     fsCreateDirectory  : 'fs.createDirectory'
-
     tail               : 'log.tail'
-
     webtermKillSessions: 'webterm.killSessions'
     webtermGetSessions : 'webterm.getSessions'
     webtermPing        : 'webterm.ping'
     webtermRename      : 'webterm.rename'
-
     klientDisable      : 'klient.disable'
     klientInfo         : 'klient.info'
     klientShare        : 'klient.share'
     klientUnshare      : 'klient.unshare'
     klientShared       : 'klient.shared'
-
     sshKeysAdd         : 'sshkeys.add'
 
 

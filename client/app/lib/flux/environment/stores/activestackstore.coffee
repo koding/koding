@@ -13,5 +13,4 @@ module.exports = class ActiveStackStore extends KodingFluxStore
 
     @on actions.STACK_IS_ACTIVE, @setStackId
 
-
   setStackId: (activeStackId, id) -> id

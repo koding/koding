@@ -44,5 +44,4 @@ module.exports = class MainViewController extends kd.ViewController
       kd.View.setElementClass body, 'add', name
       previousClass = name
 
-
   mainTabPaneChanged: (mainView, pane) ->

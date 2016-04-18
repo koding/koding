@@ -102,4 +102,3 @@ module.exports = class EnvironmentListController extends KodingListController
       if stackId = @getOption 'selected'
         unless stackId is view.getData().getId()
           view.setClass 'collapsed'
-

@@ -14,7 +14,6 @@ module.exports = class IDEPane extends JView
 
     @hash = options.hash or generatePassword 64, no
 
-
   setFocus: (state) ->
 
 

@@ -11,4 +11,3 @@ module.exports = ({ channelId, channel, messages, flags }) ->
     flags     : flags or {}
     messages  : [ dummyMessage() ]
   }
-

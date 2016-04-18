@@ -17,7 +17,10 @@ require './stores/environment/sharedmachinesstore'
 require './stores/environment/machinesstore'
 require './stores/environment/machinesworkspacesstore'
 require './stores/environment/connectedmanagedmachinestore'
+<<<<<<< HEAD
 
 require '../payment/test'
 
 
+=======
+>>>>>>> coffeelint: apply new rules to client folder
