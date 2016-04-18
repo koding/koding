@@ -1,3 +1,3 @@
-require '../hometeamsendinvitescomponent/test.coffee'
-require '../hometeamsettingscomponent/test.coffee'
-require '../hometeamteammatescomponent/test.coffee'
+require '../components/hometeamsendinvites/test.coffee'
+require '../components/hometeamsettings/test.coffee'
+require '../components/hometeamteammates/test.coffee'
