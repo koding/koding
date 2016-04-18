@@ -20,8 +20,6 @@ loadTeam = ->
 
   team = groupsController.getCurrentGroup()
 
-  console.log 'team ', team
-
   reactor.dispatch actions.LOAD_TEAM_SUCCESS, { team }
 
 
