@@ -151,11 +151,11 @@ resendInvitations = ->
       reactor.dispatch actions.RESET_TEAM_INVITES
 
 
-setSearchInputValue = (value) ->
+setSearchInputValue = (newValue) ->
 
   { reactor } = kd.singletons
 
-  reactor.dispatch actions.SET_SEARCH_INPUT_VALUE, value
+  reactor.dispatch actions.SET_SEARCH_INPUT_VALUE, { newValue }
 
 
 handleRoleChange = (account, newRole) ->
