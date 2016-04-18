@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
@@ -65,15 +66,36 @@ type TerraformRequest struct {
 func New(conf *Config, log logging.Logger) (*Terraformer, error) {
 	ls, err := storage.NewFile(conf.LocalStorePath, log)
 	if err != nil {
-		return nil, fmt.Errorf("err while creating local store %s", err)
+		return nil, fmt.Errorf("error while creating local store: %s", err)
 	}
 
-	rs, err := storage.NewS3(conf.AWS.Key, conf.AWS.Secret, conf.AWS.Bucket, log)
-	if err != nil {
-		return nil, fmt.Errorf("err while creating remote store %s", err)
+	var rs storage.Interface
+	if conf.AWS.Key != "" && conf.AWS.Secret != "" && conf.AWS.Bucket != "" {
+		s3, err := storage.NewS3(conf.AWS.Key, conf.AWS.Secret, conf.AWS.Bucket, log)
+		if err != nil {
+			return nil, fmt.Errorf("error while creating remote store: %s", err)
+		}
+
+		rs = s3
+	} else {
+		remotePath := filepath.Dir(conf.LocalStorePath)
+		if conf.AWS.Bucket != "" {
+			remotePath = filepath.Join(remotePath, conf.AWS.Bucket)
+		} else {
+			remotePath = filepath.Join(remotePath, filepath.Base(conf.LocalStorePath)+".remote")
+		}
+
+		local, err := storage.NewFile(remotePath, log)
+		if err != nil {
+			return nil, fmt.Errorf("error while creating remote store on local: %s", err)
+		}
+
+		log.Info("no S3 credentials, using local storage: %s", remotePath)
+
+		rs = local
 	}
 
-	c, err := kodingcontext.New(ls, rs, log)
+	c, err := kodingcontext.New(ls, rs, log, conf.Debug)
 	if err != nil {
 		return nil, err
 	}

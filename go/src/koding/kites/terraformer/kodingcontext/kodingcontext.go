@@ -25,6 +25,7 @@ func (c *context) newKodingContext(sc <-chan struct{}, contentID, traceID string
 		Buffer:       errorBuf,
 		ui:           NewUI(errorBuf, traceID),
 		ShutdownChan: sc,
+		debug:        c.debug,
 	}
 
 	return kc
@@ -40,6 +41,8 @@ type KodingContext struct {
 	Variables    map[string]string
 	ShutdownChan <-chan struct{}
 	ContentID    string
+
+	debug bool
 }
 
 // TerraformContextOpts creates a basic context options for terraform itself
@@ -79,6 +82,10 @@ func (c *KodingContext) Close() error {
 	delete(shutdownChans, c.ContentID)
 	shutdownChansWG.Done()
 	shutdownChansMu.Unlock()
+
+	if c.debug {
+		return nil // don't remove local tf files in debug mode
+	}
 
 	return c.LocalStorage.Remove(c.ContentID)
 }
