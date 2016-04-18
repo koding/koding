@@ -27,21 +27,21 @@ module.exports = class GitProvider extends Base
 
   @importStackTemplate = permit 'import stack template',
     success: revive {
-        shouldReviveClient   : yes
-        shouldReviveProvider : no
-      }, (client, url, callback) ->
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+    }, (client, url, callback) ->
 
-        { hostname, pathname } = URL.parse url
-        { user } = client.r
-        { GITHUB_HOST, GITLAB_HOST } = Constants
+      { hostname, pathname } = URL.parse url
+      { user } = client.r
+      { GITHUB_HOST, GITLAB_HOST } = Constants
 
-        _callback = (err, result) ->
-          return callback err  if err
-          result = _.extend { originalUrl : url }, result
-          callback null, result
+      _callback = (err, result) ->
+        return callback err  if err
+        result = _.extend { originalUrl : url }, result
+        callback null, result
 
-        switch hostname
-          when GITHUB_HOST
-            GitHubProvider.importStackTemplate user, pathname, _callback
-          when GITLAB_HOST
-            GitLabProvider.importStackTemplate user, pathname, _callback
+      switch hostname
+        when GITHUB_HOST
+          GitHubProvider.importStackTemplate user, pathname, _callback
+        when GITLAB_HOST
+          GitLabProvider.importStackTemplate user, pathname, _callback
