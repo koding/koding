@@ -6,12 +6,7 @@ KDReactorMixin  = require 'app/flux/base/reactormixin'
 
 module.exports = class DisableUser extends React.Component
 
-  constructor: (props) ->
-
-    super props
-
-
-  changeRole: () ->
+  changeRole: ->
 
     TeamFlux.actions.handleKickMember @props.account
 
