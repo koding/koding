@@ -221,6 +221,11 @@ func (t *Tunnel) initServices() {
 			},
 		}
 
+		// if we are a host managed kite, the 127.0.0.1:22 is always accessible
+		if !t.isVagrant {
+			s["ssh"].ForwardedPort = 22
+		}
+
 		err = t.db.SetServices(s)
 	}
 
