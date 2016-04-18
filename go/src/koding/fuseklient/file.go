@@ -33,7 +33,7 @@ func (f *File) ReadAt(p []byte, offset int64) (int, error) {
 	f.Lock()
 	defer f.Unlock()
 
-	return f.content.ReadAt(p, offset)
+	return f.content.ReadAt(&p, offset)
 }
 
 // Create creates a new file on remote with in memory content.
@@ -144,7 +144,7 @@ func (f *File) Reset() error {
 	return nil
 }
 
-func (f *File) SetAttrs(attrs fuseops.InodeAttributes) {
+func (f *File) SetAttrs(attrs *fuseops.InodeAttributes) {
 	f.Lock()
 	defer f.Unlock()
 
