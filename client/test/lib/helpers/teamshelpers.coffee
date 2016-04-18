@@ -115,8 +115,9 @@ module.exports =
 
   loginTeam: (browser, invalidCredentials = no) ->
 
-    user = utils.getUser()
-    url  = helpers.getUrl(yes)
+    user       = utils.getUser()
+    url        = helpers.getUrl(yes)
+    inviteLink = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
 
     teamsLogin        = '.TeamsModal--login'
     stackCatalogModal = '.StackCatalogModal'
@@ -130,7 +131,7 @@ module.exports =
       if result.status is 0
         @loginToTeam browser, user, invalidCredentials
       else
-        @createTeam browser
+        @createTeam browser, user, inviteLink
 
       browser.pause 3000
       browser.element 'css selector', stackCatalogModal, (result) ->
