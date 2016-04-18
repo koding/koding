@@ -10,8 +10,14 @@ TeamMembersRoleStore = ['TeamMembersRoleStore']
 searchInputValue = ['TeamSearchInputValueStore']
 invitationInputValues = ['TeamInvitationInputValuesStore']
 loggedInUserEmail = ['LoggedInUserEmailStore']
-pendingInvitations = ['TeamPendingInvitationStore']
+teamInvitations = ['TeamInvitationStore']
 
+pendingInvitations = [
+  teamInvitations
+  (invitations) ->
+    invitations.filter (invitation) ->
+      invitation.get('status') is 'pending'
+]
 
 membersWithRole = [
   TeamMembersIdStore
@@ -40,7 +46,7 @@ filteredMembersWithRole = [
 ]
 
 
-invitations = [
+allInvitations = [
   invitationInputValues
   loggedInUserEmail
   (inputValues, ownEmail) ->
@@ -51,29 +57,29 @@ invitations = [
 
 
 adminInvitations = [
-  invitations
-  (invitations) ->
-    invitations.filter (value) -> value.get('role') is 'admin'
+  allInvitations
+  (allInvitations) ->
+    allInvitations.filter (value) -> value.get('role') is 'admin'
 ]
 
 newInvitations = [
-  invitations
+  allInvitations
   pendingInvitations
-  (invitations, pendingInvitations) ->
+  (allInvitations, pendingInvitations) ->
     pendingEmails = pendingInvitations
       .map (i) -> i.get 'email'
       .toArray()
 
-    invitations = invitations.filter (invitation) ->
+    allInvitations = allInvitations.filter (invitation) ->
       invitation.get('email')  not in pendingEmails
 ]
 
 resendInvitations = [
-  invitations
+  allInvitations
   pendingInvitations
-  (invitations, pendingInvitations) ->
+  (allInvitations, pendingInvitations) ->
 
-    invitationEmails = invitations
+    invitationEmails = allInvitations
       .map (i) -> i.get 'email'
       .toArray()
 
@@ -90,7 +96,7 @@ module.exports = {
   searchInputValue
   filteredMembersWithRole
   adminInvitations
-  invitations
+  allInvitations
   newInvitations
   pendingInvitations
   resendInvitations
