@@ -29,27 +29,12 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
 
   componentDidMount: ->
-
-    teamName = Encoder.htmlDecode @state.team?.get 'title' ? ''
+    teamName = if @state.team? then Encoder.htmlDecode @state.team.get 'title' else ''
     @setState
       teamName: teamName
       file: null
       fileType: null
       fileName: null
-
-
-  upload: (content, mimeType) ->
-
-    timeout = 3e4
-
-    name = "#{@state.team.get 'slug'}-logo-#{Date.now()}.png"
-
-    s3upload { name, content, mimeType, timeout }, (err, url) =>
-
-      return showError err   if err
-
-      team = @state.team.setIn ['customize', 'logo'], url
-      @setState {team}
 
 
   onUploadInput: ->

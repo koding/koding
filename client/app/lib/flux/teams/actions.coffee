@@ -198,8 +198,8 @@ uploads3 = ({ name, content, mimeType }) ->
 
   timeout = 3e4
   new Promise (resolve, reject) ->
+    return reject {} unless name or content or mimeType
     s3upload { name, content, mimeType, timeout }, (err, url) ->
-      return reject {} unless name or content or mimeType
       if err then reject { err } else resolve { url }
 
 
