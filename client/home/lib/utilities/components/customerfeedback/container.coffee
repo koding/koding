@@ -15,15 +15,17 @@ module.exports = class CustomerFeedBackContainer extends React.Component
       team: TeamFlux.getters.team
     }
 
-  compenentDidMount: ->
+  constructor: (props) ->
+
+    super props
 
     defaultValue = ''
-    team = @state.team?
+    team = @state?.team
     if team
       id = @state.team.get('customize')?.chatlioId
       defaultValue = id
 
-    @setState =
+    @state =
       defaultValue: defaultValue
 
 
