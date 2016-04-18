@@ -12,52 +12,51 @@ module.exports = class CustomerFeedBackContainer extends React.Component
 
   getDataBindings: ->
     return {
-      team: TeamFlux.getters.loadTeam
+      team: TeamFlux.getters.team
     }
-  
-  
-  componentDidMount: ->
+
+  compenentDidMount: ->
 
     defaultValue = ''
-    team = @state.team
+    team = @state.team?
     if team
       id = @state.team.get('customize')?.chatlioId
       defaultValue = id
-        
-    @setState 
+
+    @setState =
       defaultValue: defaultValue
-  
-  
+
+
   handleSaveButton: ->
-    
+
     value = @state.defaultValue
     dataToUpdate = {}
     dataToUpdate.customize = {}
     dataToUpdate.customize.chatlioId = value
-    
+
     TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) ->
-      
+
       if value
       then notify { title: 'Chatlio id successfully saved!' }
       else notify { title: 'Chatlio integration successfully turned off!' }
-      
+
     .catch ({ message }) ->
       notify { title: 'There was an error, please try again!' }
 
-  
+
   onInputAreaChange: (event) ->
-    
+
     @setState
       defaultValue : event.target.value
-  
-    
+
+
   render: ->
-    
-    <View 
+
+    <View
       defaultValue={@state.defaultValue}
       onInputAreaChange={@bound 'onInputAreaChange'}
       handleSaveButton={@bound 'handleSaveButton'}
       />
-    
-    
+
+
 CustomerFeedBackContainer.include [KDReactorMixin]

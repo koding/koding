@@ -4,30 +4,8 @@ React            = require 'kd-react'
 
 module.exports = class CustomerFeedBackView extends React.Component
 
-  renderInputArea: ->
-    
-    <input 
-      type="text" 
-      className="kdinput text " 
-      value={@props.defaultValue} 
-      onChange={@props.onInputAreaChange}/>
-  
-
-  renderSaveButton: ->
-    
-    <a className="custom-link-view HomeAppView--button primary fr" href="#" onClick={@props.handleSaveButton}>
-      <span className="title">SAVE</span>
-    </a>
-  
-  renderGuildeButton: ->
-    
-    <a className="custom-link-view HomeAppView--button" href="https://www.koding.com/docs/chatlio">
-      <span className="title">VIEW GUIDE</span>
-    </a>
-    
-    
   render: ->
-    
+
     <p>
       <strong>Customer Feedback</strong>
       Enable Chatlio.com for real-time customer feedback
@@ -42,9 +20,30 @@ module.exports = class CustomerFeedBackView extends React.Component
       </cite>
       <filedset>
         <label>Chatlio.com <code className='HomeAppView--code'>data-widget-id</code></label>
-        {@renderInputArea()}
-        {@renderSaveButton()}
-        {@renderGuildeButton()}
+        <InputArea value={@props.defaultValue} callback={@props.onInputAreaChange} />
+        <SaveButton callback={@props.handleSaveButton} />
+        <GuideButton />
       </filedset>
     </p>
-    
+
+
+InputArea = ({ value, callback }) ->
+
+   <input type="text"
+    className="kdinput text "
+    value={value}
+    onChange={callback}/>
+
+
+SaveButton = ({ callback }) ->
+
+  <a className="custom-link-view HomeAppView--button primary fr" href="#" onClick={callback}>
+    <span className="title">SAVE</span>
+  </a>
+
+
+GuideButton = ->
+
+  <a className="custom-link-view HomeAppView--button" href="https://www.koding.com/docs/chatlio">
+    <span className="title">VIEW GUIDE</span>
+  </a>

@@ -11,25 +11,25 @@ module.exports = class TryOnKodingContainer extends React.Component
 
   getDataBindings: ->
     return {
-      team: TeamFlux.getters.loadTeam
+      team: TeamFlux.getters.team
     }
-  
+
 
   componentDidMount: ->
 
     team = @state.team
     value = ''
     checked = no
-    
+
     if team
       value = """
           <a href="https://#{team.get('slug')}.koding.com/Join">
             <img src="https://koding.com/a/img/try_on_koding.png" srcset="https://koding.com/a/img/try_on_koding@1x.png 1x, https://koding.com/a/img/try_on_koding@2x.png 2x" />
           </a>
           """
-          
+
       allowedDomains = @state.team.get 'allowedDomains'
-      
+
       if '*' in allowedDomains.toJS()
         @setState
           primaryClassName : 'primary'
@@ -42,47 +42,47 @@ module.exports = class TryOnKodingContainer extends React.Component
           secondaryClassName : 'secondary'
           value : value
           checked: not checked
-  
-  
+
+
   handleSwitch: (state) ->
 
     allowedDomains = @state.team.get 'allowedDomains'
     allowedDomains = allowedDomains.toJS()
     allowedDomains = _.clone allowedDomains or []
-    
-    if state 
+
+    if state
       allowedDomains.push '*'
     else
       _.remove allowedDomains, (domain) -> domain is '*'
-    
+
     dataToUpdate = {}
     dataToUpdate.allowedDomains = allowedDomains
-    
+
     TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) =>
       if state
         @setState
           primaryClassName : 'primary hidden'
           secondaryClassName : 'secondary'
-      else 
+      else
         @setState
           primaryClassName : 'primary'
           secondaryClassName : 'secondary hidden'
-      
+
       @setState
         checked: state
-    .catch ({ message }) -> 
+    .catch ({ message }) ->
       @setState
         checked: not state
-  
-    
+
+
   handleCodeBlockClick: ->
-    
+
     copyContent = @refs.view.refs.textarea
     copyToClipboard copyContent
-    
-    
+
+
   render: ->
-    
+
     <View
       ref='view'
       value={@state.value}
@@ -91,6 +91,6 @@ module.exports = class TryOnKodingContainer extends React.Component
       primaryClassName={@state.primaryClassName}
       secondaryClassName={@state.secondaryClassName}
       handleSwitch={@bound 'handleSwitch'}/>
-    
-    
+
+
 TryOnKodingContainer.include [KDReactorMixin]
