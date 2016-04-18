@@ -118,6 +118,6 @@ func S3Klient(version int) string {
 }
 
 func S3Klientctl(version int) string {
-	return fmt.Sprintf("%s/klientctl-0.1.%d.%s_%s.gz", dirURL(S3KlientctlLatest),
+	return fmt.Sprintf("%s/kd-0.1.%d.%s_%s.gz", dirURL(S3KlientctlLatest),
 		version, runtime.GOOS, runtime.GOARCH)
 }

@@ -187,6 +187,10 @@ func downloadRemoteToLocal(remotePath, destPath string) error {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("%s: %s", remotePath, http.StatusText(res.StatusCode))
+	}
+
 	var buf bytes.Buffer // to restore begining of a response body consumed by gzip.NewReader
 	var body io.Reader = io.MultiReader(&buf, res.Body)
 
