@@ -29,7 +29,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to create stack template', (done) ->
 
-        expectAccessDenied StackTemplate, 'create', {}, done
+        expectAccessDenied StackTemplate, 'create$', {}, done
 
 
     describe 'when user has the permission', ->

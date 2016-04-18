@@ -3,6 +3,7 @@ URL                 = require 'url'
 Constants           = require './constants'
 GitHubProvider      = require './githubprovider'
 GitLabProvider      = require './gitlabprovider'
+_                   = require 'lodash'
 
 module.exports = class GitProvider extends Base
 
@@ -34,8 +35,13 @@ module.exports = class GitProvider extends Base
         { user } = client.r
         { GITHUB_HOST, GITLAB_HOST } = Constants
 
+        _callback = (err, result) ->
+          return callback err  if err
+          result = _.extend { originalUrl : url }, result
+          callback null, result
+
         switch hostname
           when GITHUB_HOST
-            GitHubProvider.importStackTemplate user, pathname, callback
+            GitHubProvider.importStackTemplate user, pathname, _callback
           when GITLAB_HOST
-            GitLabProvider.importStackTemplate user, pathname, callback
+            GitLabProvider.importStackTemplate user, pathname, _callback

@@ -35,40 +35,43 @@ module.exports = GitHubProvider =
     gh.authenticate { type: 'oauth', token }
 
     { repos } = gh
+    branch   ?= 'master'
     { TEMPLATE_PATH, README_PATH } = Constants
     queue = [
       (next) ->
-        options = { user, repo, path: TEMPLATE_PATH, ref: branch ? 'master' }
+        options = { user, repo, path: TEMPLATE_PATH, ref: branch }
         repos.getContent options, (err, data) ->
           return next err  if err
           next null, helpers.decodeContent data
       (next) ->
-        options = { user, repo, path: README_PATH, ref: branch ? 'master' }
+        options = { user, repo, path: README_PATH, ref: branch }
         repos.getContent options, (err, data) ->
           return next()  if err
           next null, helpers.decodeContent data
     ]
 
     return async.series queue, (err, results) ->
-      [ template, readme ] = results
-      callback err, { template, readme }
+      return callback err  if err
+      [ rawContent, description ] = results
+      callback null, { rawContent, description, user, repo, branch }
 
 
   importStackTemplateWithRawUrl: (user, repo, branch, callback) ->
 
     { RAW_GITHUB_HOST, TEMPLATE_PATH, README_PATH } = Constants
+    branch ?= 'master'
 
     queue = [
       (next) ->
         options =
           host   : RAW_GITHUB_HOST
-          path   : "/#{user}/#{repo}/#{branch ? 'master'}/#{TEMPLATE_PATH}"
+          path   : "/#{user}/#{repo}/#{branch}/#{TEMPLATE_PATH}"
           method : 'GET'
         helpers.loadRawContent options, next
       (next) ->
         options =
           host   : RAW_GITHUB_HOST
-          path   : "/#{user}/#{repo}/#{branch ? 'master'}/#{README_PATH}"
+          path   : "/#{user}/#{repo}/#{branch}/#{README_PATH}"
           method : 'GET'
         helpers.loadRawContent options, (err, readme) ->
           next null, readme
@@ -76,5 +79,5 @@ module.exports = GitHubProvider =
 
     return async.series queue, (err, results) ->
       return callback err  if err
-      [ template, readme ] = results
-      callback null, { template, readme }
+      [ rawContent, description ] = results
+      callback null, { rawContent, description, user, repo, branch }

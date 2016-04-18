@@ -18,18 +18,19 @@ module.exports = GitHubProvider =
   importStackTemplateWithRawUrl: (user, repo, branch, callback) ->
 
     { GITLAB_HOST, TEMPLATE_PATH, README_PATH } = Constants
+    branch ?= 'master'
 
     queue = [
       (next) ->
         options =
           host   : GITLAB_HOST
-          path   : "/#{user}/#{repo}/raw/#{branch ? 'master'}/#{TEMPLATE_PATH}"
+          path   : "/#{user}/#{repo}/raw/#{branch}/#{TEMPLATE_PATH}"
           method : 'GET'
         helpers.loadRawContent options, next
       (next) ->
         options =
           host   : GITLAB_HOST
-          path   : "/#{user}/#{repo}/raw/#{branch ? 'master'}/#{README_PATH}"
+          path   : "/#{user}/#{repo}/raw/#{branch}/#{README_PATH}"
           method : 'GET'
         helpers.loadRawContent options, (err, readme) ->
           next null, readme
@@ -37,5 +38,5 @@ module.exports = GitHubProvider =
 
     return async.series queue, (err, results) ->
       return callback err  if err
-      [ template, readme ] = results
-      callback null, { template, readme }
+      [ rawContent, description ] = results
+      callback null, { rawContent, description, user, repo, branch }

@@ -44,8 +44,8 @@ module.exports = class JStackTemplate extends Module
       static          :
         create        :
           (signature Object, Function)
-        createFromContent :
-          (signature String, String, String, Function)
+        createImportedTemplate :
+          (signature String, Object, Function)
         one           : [
           (signature Object, Function)
           (signature Object, Object, Function)
@@ -147,9 +147,6 @@ module.exports = class JStackTemplate extends Module
     return ComputeProvider.validateTemplateContent template, planConfig
 
 
-  @create$ = permit 'create stack template', success: @create
-
-
   @create =
 
     revive
@@ -190,15 +187,22 @@ module.exports = class JStackTemplate extends Module
         else callback null, stackTemplate
 
 
-  @createFromContent = permit 'create stack template',
+  @create$ = permit 'create stack template', { success: @create }
 
-    success: (client, rawContent, title, description, callback) ->
+
+  @createImportedTemplate = permit 'create stack template',
+
+    success: (client, title, importData, callback) ->
+
+      { rawContent, description } = importData
+      delete importData.rawContent
+      delete importData.description
 
       rawContent = _.unescape rawContent
 
       requiredProviders = providersParser rawContent
       requiredData      = requirementsParser rawContent
-      config            = { requiredData, requiredProviders }
+      config            = { requiredData, requiredProviders, importData }
 
       convertedDoc = yamlToJson rawContent
       if convertedDoc.err
