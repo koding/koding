@@ -14,7 +14,10 @@ module.exports = class KodingFluxReactor extends Nuclear.Reactor
     if Array.isArray storeClasses
       storeClasses = mapWithClassName storeClasses
 
-    stores = _.mapValues storeClasses, (StoreClass) -> new StoreClass
+    stores = _.mapValues storeClasses, (StoreClass) ->
+      if 'function' is typeof StoreClass
+      then new StoreClass
+      else StoreClass
 
     # we injected reactor instance to our stores,
     # leave the rest to Nuclear.

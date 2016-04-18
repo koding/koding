@@ -6,6 +6,7 @@ import (
 
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -14,7 +15,16 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func (m *Machine) Start(ctx context.Context) (err error) {
+func (m *Machine) Start(ctx context.Context) error {
+	err := m.start(ctx)
+	if err != nil {
+		return kloud.NewEventerError(err)
+	}
+
+	return nil
+}
+
+func (m *Machine) start(ctx context.Context) (err error) {
 	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is starting", machinestate.Starting); err != nil {
 		return err
 	}

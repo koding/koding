@@ -11,9 +11,13 @@ type EventerError struct {
 	Msg string
 }
 
-func NewEventerError(msg string) *EventerError {
+func NewEventerError(err error) *EventerError {
+	if e, ok := err.(*EventerError); ok {
+		return e
+	}
+
 	return &EventerError{
-		Msg: msg,
+		Msg: err.Error(),
 	}
 }
 

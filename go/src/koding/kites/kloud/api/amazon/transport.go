@@ -4,6 +4,7 @@ import (
 	"net"
 	"time"
 
+	"koding/kites/common"
 	"koding/kites/kloud/httputil"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -13,17 +14,32 @@ import (
 	"github.com/koding/logging"
 )
 
-var transportParams = &httputil.ClientConfig{
+var httpClient = httputil.NewClient(&httputil.ClientConfig{
 	DialTimeout:           10 * time.Second,
 	RoundTripTimeout:      60 * time.Second,
 	TLSHandshakeTimeout:   10 * time.Second,
 	ResponseHeaderTimeout: 60 * time.Second,
 	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
-}
+})
+
+var httpDebugClient = httputil.NewClient(&httputil.ClientConfig{
+	DialTimeout:           10 * time.Second,
+	RoundTripTimeout:      60 * time.Second,
+	TLSHandshakeTimeout:   10 * time.Second,
+	ResponseHeaderTimeout: 60 * time.Second,
+	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
+	Log:                   common.NewLogger("dialer", true),
+	DebugTCP:              true,
+})
 
 // NewTransport gives new resilient transport for the given ClientOptions.
 func NewTransport(opts *ClientOptions) *aws.Config {
-	cfg := aws.NewConfig().WithHTTPClient(httputil.NewClient(transportParams))
+	cfg := aws.NewConfig()
+	if opts.Debug {
+		cfg = cfg.WithHTTPClient(httpClient)
+	} else {
+		cfg = cfg.WithHTTPClient(httpDebugClient)
+	}
 	retryer := &transportRetryer{
 		MaxTries: 3,
 	}

@@ -46,6 +46,30 @@ func TestZipDecompressor(t *testing.T) {
 			nil,
 			"",
 		},
+
+		{
+			"subdir.zip",
+			true,
+			false,
+			[]string{"file1", "subdir/", "subdir/child"},
+			"",
+		},
+
+		{
+			"subdir_empty.zip",
+			true,
+			false,
+			[]string{"file1", "subdir/"},
+			"",
+		},
+
+		{
+			"subdir_missing_dir.zip",
+			true,
+			false,
+			[]string{"file1", "subdir/", "subdir/child"},
+			"",
+		},
 	}
 
 	for i, tc := range cases {

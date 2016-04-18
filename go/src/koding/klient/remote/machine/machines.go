@@ -3,7 +3,9 @@ package machine
 import (
 	"encoding/json"
 	"fmt"
+	"koding/klient/kiteerrortypes"
 	"koding/klient/storage"
+	"koding/klient/util"
 
 	"github.com/koding/logging"
 )
@@ -19,6 +21,21 @@ var sourceMachineNames = []string{
 	"apple", "orange", "banana", "grape", "coconut", "peach", "mango", "date",
 	"kiwi", "lemon", "squash", "jackfruit", "raisin", "tomato", "quince",
 }
+
+var (
+	// ErrMachineAlreadyAdded is returned if the given machine instance is already
+	// added to this Machines struct.
+	ErrMachineAlreadyAdded = util.KiteErrorf(
+		kiteerrortypes.MachineAlreadyAdded, "Machine already added.",
+	)
+
+	// ErrMachineDuplicate is returned if the given machine has unique fields
+	// matching the given machine, such as kite url or name, meaning that the
+	// machines could get confused in future usage.
+	ErrMachineDuplicate error = util.KiteErrorf(
+		kiteerrortypes.MachineDuplicate, "Machine has unique fields that match another machine.",
+	)
+)
 
 // Machines is responsible for storing and querying the *Machine(s)
 type Machines struct {
@@ -40,6 +57,14 @@ func NewMachines(log logging.Logger, s storage.Interface) *Machines {
 
 // Add adds the given machine to this Machines struct.
 func (ms *Machines) Add(m *Machine) error {
+	if ms.HasMachine(m) {
+		return ErrMachineAlreadyAdded
+	}
+
+	if ms.IsMachineDuplicate(m) {
+		return ErrMachineDuplicate
+	}
+
 	if m.Name == "" {
 		m.Name = ms.CreateUniqueName()
 		ms.Log.Debug("Created name for new Machine. name:%s", m.Name)
@@ -47,6 +72,36 @@ func (ms *Machines) Add(m *Machine) error {
 
 	ms.machines = append(ms.machines, m)
 	return nil
+}
+
+// HasMachine checks if the given machine instance is in this Machines struct. It
+// only compares instances directly, so if a more general, field comparison is
+// needed see IsMachineDuplicate.
+func (ms *Machines) HasMachine(m *Machine) bool {
+	for _, internalM := range ms.machines {
+		if internalM == m {
+			return true
+		}
+	}
+
+	return false
+}
+
+// IsMachineDuplicate checks if a machine has duplicate field values that must be
+// unique within the struct, such as Name or Kite.
+func (ms *Machines) IsMachineDuplicate(m *Machine) bool {
+	for _, internalM := range ms.machines {
+		switch {
+		case internalM.Name == m.Name:
+			return true
+		case internalM.IP == m.IP:
+			return true
+		case internalM.URL == m.URL:
+			return true
+		}
+	}
+
+	return false
 }
 
 // Remove removes the given machine from this Machines struct.
@@ -87,6 +142,18 @@ func (ms *Machines) Count() int {
 func (machines *Machines) GetByIP(i string) (*Machine, error) {
 	for _, m := range machines.machines {
 		if m.IP == i {
+			return m, nil
+		}
+	}
+
+	return nil, ErrMachineNotFound
+}
+
+// GetByURL iterates through the Machines, returning the first one with a
+// matching URL.
+func (machines *Machines) GetByURL(u string) (*Machine, error) {
+	for _, m := range machines.machines {
+		if m.URL == u {
 			return m, nil
 		}
 	}

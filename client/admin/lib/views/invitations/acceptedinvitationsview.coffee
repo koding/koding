@@ -7,8 +7,9 @@ module.exports = class AcceptedInvitationsView extends PendingInvitationsView
 
   constructor: (options = {}, data) ->
 
-    options.statusType          = 'accepted'
-    options.listViewItemOptions = { statusType: 'accepted' }
-    options.noItemFoundText     = 'There is no accepted invitation.'
+    options.statusType                  or= 'accepted'
+    options.listViewItemOptions         or= { statusType: 'accepted' }
+    options.noItemFoundText             or= 'There is no accepted invitation.'
+    options.useCustomThresholdHandler    ?= no
 
     super options, data

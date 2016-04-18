@@ -31,6 +31,9 @@ type ClientOptions struct {
 
 	// MaxResults sets the limit for Describe* calls.
 	MaxResults int64
+
+	// Debug enables debug transport.
+	Debug bool
 }
 
 // Clients provides wrappers for a EC2 client per region.
@@ -57,6 +60,7 @@ func NewClients(opts *ClientOptions) (*Clients, error) {
 			Region:      region,
 			Log:         opts.Log.New(region),
 			MaxResults:  opts.MaxResults,
+			Debug:       opts.Debug,
 		}
 		client, err := NewClient(opts)
 		if err != nil {

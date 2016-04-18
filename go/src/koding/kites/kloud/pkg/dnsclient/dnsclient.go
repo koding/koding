@@ -55,6 +55,7 @@ func NewRoute53Client(opts *Options) (*Route53, error) {
 		Credentials: opts.Creds,
 		Region:      "us-east-1", // our route53 is based on this region, so we use it
 		Log:         optsCopy.log(),
+		Debug:       opts.Debug,
 	}
 	dns := route53.New(amazon.NewSession(awsOpts))
 

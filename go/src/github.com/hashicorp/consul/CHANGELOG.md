@@ -1,16 +1,79 @@
-## 0.6.4 (UNRELEASED)
+## 0.7.0 (UNRELEASED)
 
 BACKWARDS INCOMPATIBILITIES:
 
-* The Consul API client is now configured to disable connection reuse and idle
-  connections to the Consul server, meaning it can potentially make a new connection
-  for every API method that's called. Previously, idle connections were supported
-  and their lifetime was managed by a finalizer, but this wasn't reliable in certain
-  situations. If you don't reuse your API client object, then there's nothing to do.
-  If you have a long-lived API client object, you may want to configure it using the
-  `DefaultPooledTransport` so it will reuse a single connection to Consul. Here's an
-  [example from Vault](https://github.com/hashicorp/vault) showing how to do this.
-  [GH-1731]
+* `skip_leave_on_interrupt`'s default behavior is now dependent on whether or
+  not the agent is acting as a server or client.  When Consul is started as a
+  server the default is `true` and `false` when a client. [GH-1909]
+
+IMPROVEMENTS:
+
+* Consul agents will now periodically reconnect to available Consul servers
+  in order to redistribute their RPC query load.  Consul clients will, by
+  default, attempt to establish a new connection every 120s to 180s unless
+  the size of the cluster is sufficiently large.  The rate at which agents
+  begin to query new servers is proportional to the size of the Consul
+  cluster (servers should never receive more than 64 new connections per
+  second per Consul server as a result of rebalancing).  Clusters in stable
+  environments who use `allow_stale` should see a more even distribution of
+  query load across all of their Consul servers. [GH-1743]
+* Consul agents can now limit the number of UDP answers returned via the DNS
+  interface. The default number of UDP answers is `3`, however by adjusting
+  the `dns_config.udp_answer_limit` configuration parameter, it is now
+  possible to limit the results down to `1`.  This tunable provides
+  environments where RFC3484 section 6, rule 9 is enforced with an important
+  workaround in order to preserve the desired behavior of randomized DNS
+  results.  Most modern environments will not need to adjust this setting as
+  this RFC was made obsolete by RFC 6724.  See the
+  [agent options](https://www.consul.io/docs/agent/options.html#udp_answer_limit)
+  documentation for additional details for when this should be
+  used. [GH-1712]
+* Consul will now refuse to start with a helpful message if the same UNIX
+  socket is used for more than one listening endpoint. [GH-1910]
+* Removed an obsolete warning message when Consul starts on Windows. [GH-1920]
+* Defaults bind address to 127.0.0.1 when running in `-dev` mode. [GH-1878]
+* Builds Consul releases with Go 1.6.1. [GH-1948]
+
+BUG FIXES:
+
+* Fixed an issue where a health check's output never updates if the check
+  status doesn't change after the Consul agent starts. [GH-1934]
+
+## 0.6.4 (March 16, 2016)
+
+BACKWARDS INCOMPATIBILITIES:
+
+* Added a new `query` ACL type to manage prepared query names, and stopped capturing
+  ACL tokens by default when prepared queries are created. This won't affect existing
+  queries and how they are executed, but this will affect how they are managed. Now
+  management of prepared queries can be delegated within an organization. If you use
+  prepared queries, you'll need to read the
+  [Consul 0.6.4 upgrade instructions](https://www.consul.io/docs/upgrade-specific.html)
+  before upgrading to this version of Consul. [GH-1748]
+* Consul's Go API client now pools connections by default, and requires you to manually
+  opt-out of this behavior. Previously, idle connections were supported and their
+  lifetime was managed by a finalizer, but this wasn't reliable in certain situations.
+  If you reuse an API client object during the lifetime of your application, then there's
+  nothing to do. If you have short-lived API client objects, you may need to configure them
+  using the new `api.DefaultNonPooledConfig()` method to avoid leaking idle connections. [GH-1825]
+* Consul's Go API client's `agent.UpdateTTL()` function was updated in a way that will
+  only work with Consul 0.6.4 and later. The `agent.PassTTL()`, `agent.WarnTTL()`, and
+  `agent.FailTTL()` functions were not affected and will continue work with older
+  versions of Consul. [GH-1794]
+
+FEATURES:
+
+* Added new template prepared queries which allow you to define a prefix (possibly even
+  an empty prefix) to apply prepared query features like datacenter failover to multiple
+  services with a single query definition. This makes it easy to apply a common policy to
+  multiple services without having to manage many prepared queries. See
+  [Prepared Query Templates](https://www.consul.io/docs/agent/http/query.html#templates)
+  for more details. [GH-1764]
+* Added a new ability to translate address lookups when doing queries of nodes in
+  remote datacenters via DNS using a new `translate_wan_addrs` configuration
+  option. This allows the node to be reached within its own datacenter using its
+  local address, and reached from other datacenters using its WAN address, which is
+  useful in hybrid setups with mixed networks. [GH-1698]
 
 IMPROVEMENTS:
 
@@ -18,18 +81,27 @@ IMPROVEMENTS:
   runtime telemetry gets prepended with the host name. All of the telemetry
   configuration has also been moved to a `telemetry` nested structure, but the old
   format is currently still supported. [GH-1284]
-* Added a new ability to translate address lookups when doing queries of nodes in
-  remote datacenters via DNS using a new `translate_wan_addrs` configuration
-  option. This allows the node to be reached within its own datacenter using its
-  local address, and reached from other datacenters using its WAN address, which is
-  useful in hybrid setups with mixed networks. [GH-1698]
+* Consul's Go dependencies are now vendored using Godep. [GH-1714]
+* Added support for `EnableTagOverride` for the catalog in the Go API client. [GH-1726]
+* Consul now ships built from Go 1.6. [GH-1735]
+* Added a new `/v1/agent/check/update/<check id>` API for updating TTL checks which
+  makes it easier to send large check output as part of a PUT body and not a query
+  parameter. [GH-1785].
+* Added a default set of `Accept` headers for HTTP checks. [GH-1819]
+* Added support for RHEL7/Systemd in Terraform example. [GH-1629]
 
 BUG FIXES:
 
-* Updated the internal web ui (`-ui` option) to latest released build, fixing
-  an ACL-related issue and the broken settings icon [GH-1619]
+* Updated the internal web UI (`-ui` option) to latest released build, fixing
+  an ACL-related issue and the broken settings icon. [GH-1619]
 * Fixed an issue where blocking KV reads could miss updates and return stale data
-  when another key whose name is a prefix of the watched key was updated [GH-1632]
+  when another key whose name is a prefix of the watched key was updated. [GH-1632]
+* Fixed the redirect from `/` to `/ui` when the internal web UI (`-ui` option) is
+  enabled. [GH-1713]
+* Updated memberlist to pull in a fix for leaking goroutines when performing TCP
+  fallback pings. This affected users with frequent UDP connectivity problems. [GH-1802]
+* Added a fix to trim UDP DNS responses so they don't exceed 512 bytes. [GH-1813]
+* Updated go-dockerclient to fix Docker health checks with Docker 1.10. [GH-1706]
 
 ## 0.6.3 (January 15, 2016)
 

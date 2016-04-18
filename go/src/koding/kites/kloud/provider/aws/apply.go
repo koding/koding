@@ -195,43 +195,8 @@ func (s *Stack) destroyAsync(ctx context.Context, req *kloud.ApplyRequest) error
 	contentID := req.GroupName + "-" + req.StackID
 	s.Log.Debug("Building template %s", contentID)
 
-	if err := s.Builder.BuildTemplate(s.Builder.Stack.Template, contentID); err != nil {
-		return err
-	}
-
-	s.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
-
-	for _, cred := range s.Builder.Credentials {
-		// rest is aws related
-		if cred.Provider != "aws" {
-			continue
-		}
-
-		meta := cred.Meta.(*AwsMeta)
-		if meta.Region == "" {
-			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
-		}
-
-		if err := s.SetAwsRegion(meta.Region); err != nil {
-			return err
-		}
-	}
-
-	if _, err := s.InjectAWSData(ctx, s.Req.Username, false); err != nil {
-		return err
-	}
-
-	out, err := s.Builder.Template.JsonOutput()
-	if err != nil {
-		return err
-	}
-
-	s.Builder.Stack.Template = out
-
 	tfReq := &tf.TerraformRequest{
-		Content:   s.Builder.Stack.Template,
 		ContentID: contentID,
-		Variables: nil,
 		TraceID:   s.TraceID,
 	}
 

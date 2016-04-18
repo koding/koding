@@ -105,13 +105,13 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 			// special case `NetworkOut` error since client relies on this
 			// to show a modal
 			if strings.Contains(err.Error(), "NetworkOut") {
-				err = NewEventerError(err.Error())
+				err = NewEventerError(err)
 			}
 
 			// special case `plan is expired` error since client relies on this to
 			// show a modal
 			if strings.Contains(strings.ToLower(err.Error()), "plan is expired") {
-				err = NewEventerError(err.Error())
+				err = NewEventerError(err)
 			}
 		}
 

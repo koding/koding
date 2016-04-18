@@ -61,6 +61,7 @@ func resourceAwsEip() *schema.Resource {
 
 			"private_ip": &schema.Schema{
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 		},
@@ -180,10 +181,15 @@ func resourceAwsEipUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		// more unique ID conditionals
 		if domain == "vpc" {
+			var privateIpAddress *string
+			if v := d.Get("private_ip").(string); v != "" {
+				privateIpAddress = aws.String(v)
+			}
 			assocOpts = &ec2.AssociateAddressInput{
 				NetworkInterfaceId: aws.String(networkInterfaceId),
 				InstanceId:         aws.String(instanceId),
 				AllocationId:       aws.String(d.Id()),
+				PrivateIpAddress:   privateIpAddress,
 			}
 		}
 
@@ -243,7 +249,7 @@ func resourceAwsEipDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	domain := resourceAwsEipDomain(d)
-	return resource.Retry(3*time.Minute, func() error {
+	return resource.Retry(3*time.Minute, func() *resource.RetryError {
 		var err error
 		switch domain {
 		case "vpc":
@@ -264,10 +270,10 @@ func resourceAwsEipDelete(d *schema.ResourceData, meta interface{}) error {
 			return nil
 		}
 		if _, ok := err.(awserr.Error); !ok {
-			return resource.RetryError{Err: err}
+			return resource.NonRetryableError(err)
 		}
 
-		return err
+		return resource.RetryableError(err)
 	})
 }
 
