@@ -7,7 +7,7 @@ TestUtils          = require 'react-addons-test-utils'
 toImmutable        = require 'app/util/toImmutable'
 Encoder            = require 'htmlencode'
 getters            = require 'app/flux/teams/getters'
-mock               = require '../../../../mocks/mockingjay'
+mock               = require '../../../../../mocks/mockingjay'
 immutable          = require 'immutable'
 
 describe 'HomeTeamTeammates', ->

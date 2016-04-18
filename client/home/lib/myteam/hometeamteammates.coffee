@@ -2,9 +2,9 @@ kd = require 'kd'
 React = require 'kd-react'
 ReactView = require 'app/react/reactview'
 
-HomeTeamTeamMates = require './hometeamteammatescomponent'
+TeamMates = require './components/hometeamteammates'
 
 module.exports = class HomeTeamTeammates extends ReactView
 
   renderReact: ->
-    <HomeTeamTeamMates.Container />
+    <TeamMates.Container />

@@ -6,7 +6,7 @@ TeamSettings       = require './index'
 TestUtils          = require 'react-addons-test-utils'
 toImmutable        = require 'app/util/toImmutable'
 Encoder            = require 'htmlencode'
-mock               = require '../../../../mocks/mockingjay'
+mock               = require '../../../../../mocks/mockingjay'
 immutable          = require 'immutable'
 
 
