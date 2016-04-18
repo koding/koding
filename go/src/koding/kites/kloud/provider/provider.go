@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
@@ -13,7 +14,6 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/provider/helpers"
 	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/userdata"
 
@@ -25,11 +25,12 @@ import (
 )
 
 type BaseProvider struct {
-	Name  string
-	DB    *mongodb.MongoDB
-	Log   logging.Logger
-	Kite  *kite.Kite
-	Debug bool
+	Name           string
+	DB             *mongodb.MongoDB
+	Log            logging.Logger
+	Kite           *kite.Kite
+	KloudSecretKey string
+	Debug          bool
 
 	DNSClient  *dnsclient.Route53
 	DNSStorage *dnsstorage.MongodbStorage
@@ -93,7 +94,7 @@ func (bp *BaseProvider) BaseMachine(ctx context.Context, id string) (*BaseMachin
 			return nil, err
 		}
 
-		if err := helpers.ValidateUser(bm.User, bm.Users, req); err != nil {
+		if err := bp.ValidateUser(bm.User, bm.Users, req); err != nil {
 			return nil, err
 		}
 	}
@@ -112,4 +113,39 @@ func (bp *BaseProvider) BaseMachine(ctx context.Context, id string) (*BaseMachin
 	bp.Log.Debug("BaseMachine: %+v", bm)
 
 	return bm, nil
+}
+
+func (bp *BaseProvider) ValidateUser(user *models.User, users []models.MachineUser, r *kite.Request) error {
+	// give access to kloudctl immediately
+	if kloud.IsKloudctlAuth(r, bp.KloudSecretKey) {
+		return nil
+	}
+
+	if r.Username != user.Name {
+		return errors.New("username is not permitted to make any action")
+	}
+
+	// check for user permissions
+	if err := checkUser(user.ObjectId, users); err != nil {
+		return err
+	}
+
+	if user.Status != "confirmed" {
+		return kloud.NewError(kloud.ErrUserNotConfirmed)
+	}
+
+	return nil
+}
+
+// checkUser checks whether the given username is available in the users list
+// and has permission
+func checkUser(userId bson.ObjectId, users []models.MachineUser) error {
+	// check if the incoming user is in the list of permitted user list
+	for _, u := range users {
+		if userId == u.Id && (u.Owner || (u.Permanent && u.Approved)) {
+			return nil // ok he/she is good to go!
+		}
+	}
+
+	return fmt.Errorf("permission denied. user not in the list of permitted users")
 }
