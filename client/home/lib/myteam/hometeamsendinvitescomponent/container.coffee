@@ -18,7 +18,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
     return {
       inputValues: TeamFlux.getters.invitationInputValues
-      invitations: TeamFlux.getters.invitations
+      invitations: TeamFlux.getters.allInvitations
       adminInvitations: TeamFlux.getters.adminInvitations
       pendingInvitations: TeamFlux.getters.pendingInvitations
       newInvitations: TeamFlux.getters.newInvitations
@@ -54,7 +54,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     inputValues = inputValues.toArray()
     for value in inputValues
       email = value.get('email')
-
+      break  unless email
       if email is ownEmail
         title = 'You can not invite yourself!'
         break
@@ -102,8 +102,8 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
         duration : 5000
     .catch ({ title }) ->
       new kd.NotificationView
-          title    : title
-          duration : 5000
+        title    : title
+        duration : 5000
 
 
   notifyAdminInvites = (invitations, admins, resendInvitations) ->
