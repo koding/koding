@@ -151,7 +151,7 @@ func (f *File) SetAttrs(attrs *fuseops.InodeAttributes) {
 	f.setAttrs(attrs)
 }
 
-func (f *File) setAttrs(attrs fuseops.InodeAttributes) {
+func (f *File) setAttrs(attrs *fuseops.InodeAttributes) {
 	f.Attrs = attrs
 	f.content.Size = int64(attrs.Size)
 }
