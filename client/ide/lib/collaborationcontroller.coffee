@@ -1196,7 +1196,9 @@ module.exports = CollaborationController =
       title      : 'Are you sure?'
       content    : 'This will end your session and all participants will be removed from this session.'
 
-    @showModal modalOptions, => @stopCollaborationSession callback
+    modal = @showModal modalOptions, => @stopCollaborationSession callback
+    modal.once 'KDObjectWillBeDestroyed', =>
+      @statusBar.share.button.enable()
 
 
   showKickedModal: ->
