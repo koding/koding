@@ -14,3 +14,4 @@ client/app/lib/socialapicontroller.coffee
 client/app/lib/util/showError.coffee
 client/admin/lib/views/invitations/admininvitationsview.coffee
 client/app/lib/terminal/inputhandler.coffee
+client/app/lib/providers/computeeventlistener.coffee
