@@ -320,8 +320,6 @@ func newKite(conf *Config) *kite.Kite {
 	bp := &provider.BaseProvider{
 		DB:             db,
 		Log:            common.NewLogger("kloud", conf.DebugMode),
-		DNSClient:      dnsInstance,
-		DNSStorage:     dnsStorage,
 		Kite:           k,
 		Userdata:       userdata,
 		KloudSecretKey: conf.KloudSecretKey,

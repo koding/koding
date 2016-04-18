@@ -10,10 +10,8 @@ import (
 	"koding/kites/common"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
-	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/userdata"
 
@@ -32,10 +30,8 @@ type BaseProvider struct {
 	KloudSecretKey string
 	Debug          bool
 
-	DNSClient  *dnsclient.Route53
-	DNSStorage *dnsstorage.MongodbStorage
-	Userdata   *userdata.Userdata
-	CredStore  stackplan.CredStore
+	Userdata  *userdata.Userdata
+	CredStore stackplan.CredStore
 }
 
 func (bp *BaseProvider) New(name string) *BaseProvider {
@@ -67,12 +63,10 @@ func (bp *BaseProvider) BaseMachine(ctx context.Context, id string) (*BaseMachin
 	bm := &BaseMachine{
 		Machine: m,
 		Session: &session.Session{
-			DB:         bp.DB,
-			Kite:       bp.Kite,
-			DNSClient:  bp.DNSClient,
-			DNSStorage: bp.DNSStorage,
-			Userdata:   bp.Userdata,
-			Log:        bp.Log.New(m.ObjectId.Hex()),
+			DB:       bp.DB,
+			Kite:     bp.Kite,
+			Userdata: bp.Userdata,
+			Log:      bp.Log.New(m.ObjectId.Hex()),
 		},
 		Provider: bp.Name,
 		Debug:    bp.Debug,

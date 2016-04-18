@@ -29,7 +29,7 @@ var httpDebugClient = httputil.NewClient(&httputil.ClientConfig{
 	ResponseHeaderTimeout: 60 * time.Second,
 	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
 	Log:                   common.NewLogger("dialer", true),
-	DebugTCP:              true,
+	TraceLeakedConn:       true,
 })
 
 // NewTransport gives new resilient transport for the given ClientOptions.
