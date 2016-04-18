@@ -88,6 +88,14 @@ module.exports = class AceFindAndReplaceView extends JView
     methodName = if direction is 'prev' then 'findPrevious' else 'find'
     @getDelegate().ace.editor[methodName] @findInput.getValue(), @getSearchOptions()
     @findInput.focus()
+    @highlight()
+
+
+  highlight: ->
+
+    { editor } = @getDelegate().ace
+    editor.session.highlight editor.$search.$options.re
+    editor.renderer.updateBackMarkers()
 
 
   replace:    -> @replaceHelper no
