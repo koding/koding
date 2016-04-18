@@ -15,4 +15,10 @@ klientctl:
 	@echo "$(OK_COLOR)==> Installing kd $(NO_COLOR)"
 	@mv ./klientctl /usr/local/bin/kd
 
+fusetest:
+	@echo "$(OK_COLOR)==> Building fusetest $(NO_COLOR)"
+	@`which go` build -v ../fusetest/cmd/fusetest
+	@echo "$(OK_COLOR)==> Installing fusetest $(NO_COLOR)"
+	@mv ./fusetest /usr/local/bin
+
 .PHONY: klient klientctl kd
