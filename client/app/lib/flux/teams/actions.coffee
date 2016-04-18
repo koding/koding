@@ -191,6 +191,7 @@ handleKickMember = (member) ->
     # handle, what if there is error
     unless err
       reactor.dispatch actions.DELETE_TEAM_MEMBER, memberId
+      reactor.dispatch actions.SAVE_DISABLED_TEAM_MEMBER, { member }
 
 
 uploads3 = ({ name, content, mimeType }) ->

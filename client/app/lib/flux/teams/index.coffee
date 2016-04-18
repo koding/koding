@@ -9,6 +9,7 @@ module.exports =
     require './stores/teaminvitationinputvaluesstore'
     require './stores/teampendinginvitationstore'
     require './stores/teamsearchinputvaluestore'
+    require './stores/teamdisabledmembersstore'
   ]
 
   register: (reactor) -> reactor.registerStores @stores
