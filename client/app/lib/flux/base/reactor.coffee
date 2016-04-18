@@ -14,15 +14,10 @@ module.exports = class KodingFluxReactor extends Nuclear.Reactor
     if Array.isArray storeClasses
       storeClasses = mapWithClassName storeClasses
 
-<<<<<<< HEAD
     stores = _.mapValues storeClasses, (StoreClass) ->
       if 'function' is typeof StoreClass
       then new StoreClass
       else StoreClass
-
-=======
-    stores = _.mapValues storeClasses, (StoreClass) -> new StoreClass
->>>>>>> coffeelint: apply new rules to client folder
     # we injected reactor instance to our stores,
     # leave the rest to Nuclear.
     super stores

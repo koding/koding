@@ -112,14 +112,9 @@ module.exports = class NFinderTreeController extends JTreeViewController
     return  unless nodeView
     return  if @isReadOnly
 
-<<<<<<< HEAD
     Tracker.track Tracker.FILETREE_WATCH_FILE
 
-    @getDelegate().emit "FileNeedsToBeTailed", { file: nodeView.getData() }
-=======
     @getDelegate().emit 'FileNeedsToBeTailed', { file: nodeView.getData() }
->>>>>>> fixed coffelint errors after merge
-
 
   previewFile: (nodeView) ->
     { vmName, path } = nodeView.getData()

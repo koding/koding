@@ -11,11 +11,7 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
     ping               : 'kite.ping'
     systemInfo         : 'kite.systemInfo'
     clientSubscribe    : 'client.Subscribe'
-<<<<<<< HEAD
     clientUnsubscribe  : 'client.Unsubscribe'
-
-=======
->>>>>>> coffeelint: apply new rules to client folder
     fsReadDirectory    : 'fs.readDirectory'
     fsGlob             : 'fs.glob'
     fsReadFile         : 'fs.readFile'

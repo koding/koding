@@ -67,11 +67,11 @@ module.exports =
               .waitForElementVisible    passwordInput, 20000
               .setValue                 passwordInput, user.password
           else
-              browser
-                .waitForElementVisible  usernameInput, 20000
-                .clearValue             usernameInput
-                .setValue               usernameInput, user.username
-                .setValue               passwordInput, user.password
+            browser
+              .waitForElementVisible  usernameInput, 20000
+              .clearValue             usernameInput
+              .setValue               usernameInput, user.username
+              .setValue               passwordInput, user.password
 
           browser
             .click doneButton
@@ -198,7 +198,7 @@ module.exports =
           .setValue               passwordInput, user.password
           .click                  doneButton
           .waitForElementVisible  errorMessage, 20000
-          .assert.containsText    errorMessage, "Sorry, "#{user.username}" is already taken!"
+          .assert.containsText    errorMessage, "Sorry, #{user.username} is already taken!"
 
 
   createInvitation: (browser, user, callback) ->
@@ -645,7 +645,7 @@ module.exports =
     inUseTag       = "#{stackCatalogModal} [testpath=StackInUseTag]"
     defaultTag     = "#{stackCatalogModal} [testpath=StackDefaultTag]"
     accessTag      = "#{stackCatalogModal} [testpath=StackAccessLevelTag]"
-    deleteMenuItem = ".kdbuttonmenu .context-list-wrapper .delete"
+    deleteMenuItem = '.kdbuttonmenu .context-list-wrapper .delete'
 
     @openStackCatalog(browser, no)
 
@@ -673,7 +673,7 @@ module.exports =
 
   editStack: (browser, openEditorAndClone = no) ->
 
-    editMenuItem             = ".kdbuttonmenu .context-list-wrapper .edit"
+    editMenuItem             = '.kdbuttonmenu .context-list-wrapper .edit'
     openEditorButton         = '.kdmodal-inner .kdmodal-buttons .red'
     openEditorAndCloneButton = '.kdmodal-inner .kdmodal-buttons .green'
     stackTemplatePage        = '.define-stack-view .stack-template'
@@ -687,9 +687,9 @@ module.exports =
     newStackInSidebar        = '.SidebarStackSection .SidebarMachinesListItem .SidebarMachinesListItem--MainLink'
     updateNotification       = "#{stackItems} .update-notification"
     updateStackButton        = "#{updateNotification} .reinit-stack"
-    reinitModal              = ".kdmodal[testpath=reinitStack]"
+    reinitModal              = '.kdmodal[testpath=reinitStack]'
     proceedButton            = "#{reinitModal} .red"
-    sidebarStackWidget       = ".SidebarStackWidgets"
+    sidebarStackWidget       = '.SidebarStackWidgets'
 
 
     browser.pause  3000
@@ -762,7 +762,7 @@ module.exports =
 
   deleteStack: (browser) ->
 
-    deleteMenuItem = ".kdbuttonmenu .context-list-wrapper .delete"
+    deleteMenuItem = '.kdbuttonmenu .context-list-wrapper .delete'
     stackTemplate  = '.stacktemplates .stack-template-list [testpath=privateStackListItem]'
     stackMenuIcon  = "#{stackTemplate} .stack-settings-menu"
     deleteModal    = '.kdmodal[testpath=RemoveStackModal]'
@@ -771,7 +771,7 @@ module.exports =
 
     browser.element 'css selector', stackCatalogModal, (result) ->
       if result.status is 0
-         browser
+        browser
           .waitForElementVisible  stackCatalogModal, 20000
           .waitForElementVisible  closeButton, 20000
           .click                  closeButton
@@ -874,7 +874,7 @@ module.exports =
     myStacksLink  = '.AppModal-navItem.my-stacks'
     stackItem     = '.kdlistitemview.environment-item'
     reinitButton  = "#{stackItem} .button-container .red"
-    reinitModal   = ".kdmodal[testpath=reinitStack]"
+    reinitModal   = '.kdmodal[testpath=reinitStack]'
     proceedButton = "#{reinitModal} .red"
     notification  = '.kdnotification.main'
 

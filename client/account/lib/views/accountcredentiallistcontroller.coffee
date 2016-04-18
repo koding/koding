@@ -50,7 +50,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
       switch action
 
         when 'ShowItem'
-          @fetchCredentialData credential, (err, data) =>
+          @fetchCredentialData credential, (err, data) ->
             return  if showError err
 
             { meta }        = data
@@ -63,7 +63,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
             listView.showCredential { credential, cred }
 
         when 'EditItem'
-          @fetchCredentialData credential, (err, data) =>
+          @fetchCredentialData credential, (err, data) ->
             return  if showError err
 
             Tracker.track Tracker.USER_EDIT_CREDENTIALS
@@ -87,14 +87,14 @@ module.exports = class AccountCredentialListController extends KodingListControl
     credential  = item.getData()
 
     if credential.inuse
-      new kd.NotificationView title: 'This credential is currently in-use'
+      new kd.NotificationView { title: 'This credential is currently in-use' }
       return
 
     credential.isBootstrapped (err, bootstrapped) =>
 
       kd.warn 'Bootstrap check failed:', { credential, err }  if err
 
-      listView.askForConfirm { credential, bootstrapped }, ({action, modal}) =>
+      listView.askForConfirm { credential, bootstrapped }, ({ action, modal }) =>
 
         modal?.buttons.Remove.disable()
 
@@ -106,8 +106,8 @@ module.exports = class AccountCredentialListController extends KodingListControl
           when 'DestroyAll'
             @destroyResources credential, (err) =>
               if err
-                  modal.buttons.DestroyAll.hideLoader()
-                  modal.buttons.Remove.enable()
+                modal.buttons.DestroyAll.hideLoader()
+                modal.buttons.Remove.enable()
               else
                 @removeCredential item, -> modal.destroy()
 
@@ -117,7 +117,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
     credential = item.getData()
     listView   = @getListView()
 
-    credential.delete (err) =>
+    credential.delete (err) ->
       listView.emit 'ItemDeleted', item  unless showError err
       Tracker.track Tracker.USER_DELETE_CREDENTIALS
       callback err

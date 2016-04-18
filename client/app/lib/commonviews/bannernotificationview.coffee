@@ -56,8 +56,4 @@ module.exports = class BannerNotificationView extends kd.CustomHTMLView
     @unsetClass 'in'
 
 
-<<<<<<< HEAD
   pistachio: -> "<p title='#{@getOption 'title'} #{strip @getOption 'content'}'>{{> @title}} {{> @content}}</p>{{> @close}}"
-=======
-  pistachio: -> '<p>{{> @title}} {{> @content}}</p>{{> @close}}'
->>>>>>> fixed coffelint errors after merge

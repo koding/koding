@@ -18,5 +18,4 @@ module.exports = class LogsListView extends kd.View
 
     @addSubView @listView
 
-
   reload: -> @listController.loadItems()

@@ -37,7 +37,7 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
       statusType          : statusType
       noItemFoundText     : noItemFoundText
       listViewItemOptions : listViewItemOptions
-      fetcherMethod       : (selector, fetchOptions, callback) =>
+      fetcherMethod       : (selector, fetchOptions, callback) ->
 
         method = if selector.query then 'search' else 'some'
 
@@ -60,7 +60,7 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
     options     = { skip: @listController.filterStates.skip }
     method      = 'some'
-    selector    = { }
+    selector    = {}
 
     if query = @searchInput.getValue()
       method = 'search'
