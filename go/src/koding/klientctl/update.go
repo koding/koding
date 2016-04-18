@@ -7,6 +7,7 @@ import (
 	"io"
 	"koding/klientctl/config"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -52,7 +53,12 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 
 	kontrolURL := config.KontrolURL
 	if c, err := kiteconfig.NewFromKiteKey(config.KiteKeyPath); err == nil && c.KontrolURL != "" {
-		kontrolURL = c.KontrolURL
+		// BUG(rjeczalik): sandbox returns a kite.key on -register method that has
+		// KontrolURL set to default value. We workaround it here by ignoring the
+		// value.
+		if u, err := url.Parse(c.KontrolURL); err == nil && u.Host != "127.0.0.1:3000" {
+			kontrolURL = c.KontrolURL
+		}
 	}
 
 	klientSh := klientSh{
