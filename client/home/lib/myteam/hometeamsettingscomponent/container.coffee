@@ -78,7 +78,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
     mimeType = @state.fileType
 
     if _.isEmpty dataToUpdate.title
-      unless name or content or mimeType
+      if not (name or content or mimeType)
         return
 
     TeamFlux.actions.uploads3({ name, content, mimeType }).then ({ url }) ->

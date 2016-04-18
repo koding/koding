@@ -8,7 +8,7 @@ module.exports = class HomeTeamSettingsView extends React.Component
 
 
   onClickLogo: (event) ->
-    console.log '@input ', @input
+
     @input.click()
 
 
