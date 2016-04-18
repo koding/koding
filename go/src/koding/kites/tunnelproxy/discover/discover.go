@@ -3,6 +3,7 @@ package discover
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -101,6 +102,12 @@ func (c *Client) Discover(addr, service string) (Endpoints, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusBadRequest {
+		if p, e := ioutil.ReadAll(resp.Body); e == nil && len(p) != 0 {
+			err = errors.New(string(p))
+		} else {
+			err = errors.New("invalid service: " + service)
+		}
+
 		log.Error("%s", err)
 
 		return nil, err
