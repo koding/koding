@@ -2,7 +2,7 @@
 GithubAPI   = require 'github'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 Constants   = require './constants'
-helpers     = require './helpers'
+helpers     = require './utils/helpers'
 async       = require 'async'
 KodingError = require '../../error'
 

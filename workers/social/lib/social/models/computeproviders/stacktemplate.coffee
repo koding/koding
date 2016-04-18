@@ -3,12 +3,6 @@
 KodingError              = require '../../error'
 helpers                  = require './helpers'
 async                    = require 'async'
-_                        = require 'lodash'
-
-requirementsParser       = require './utils/requirementsParser'
-providersParser          = require './utils/providersParser'
-addUserInputOptions      = require './utils/addUserInputOptions'
-{ yamlToJson }           = require './utils/yamlutils'
 
 
 module.exports = class JStackTemplate extends Module
@@ -44,8 +38,6 @@ module.exports = class JStackTemplate extends Module
       static          :
         create        :
           (signature Object, Function)
-        createImportedTemplate :
-          (signature String, Object, Function)
         one           : [
           (signature Object, Function)
           (signature Object, Object, Function)
@@ -147,9 +139,9 @@ module.exports = class JStackTemplate extends Module
     return ComputeProvider.validateTemplateContent template, planConfig
 
 
-  @create =
+  @create = permit 'create stack template',
 
-    revive
+    success: revive
 
       shouldReviveClient   : yes
       shouldReviveProvider : no
@@ -185,38 +177,6 @@ module.exports = class JStackTemplate extends Module
         if err
         then callback new KodingError 'Failed to save stack template', err
         else callback null, stackTemplate
-
-
-  @create$ = permit 'create stack template', { success: @create }
-
-
-  @createImportedTemplate = permit 'create stack template',
-
-    success: (client, title, importData, callback) ->
-
-      { rawContent, description } = importData
-      delete importData.rawContent
-      delete importData.description
-
-      rawContent = _.unescape rawContent
-
-      requiredProviders = providersParser rawContent
-      requiredData      = requirementsParser rawContent
-      config            = { requiredData, requiredProviders, importData }
-
-      convertedDoc = yamlToJson rawContent
-      if convertedDoc.err
-        return callback new KodingError 'Failed to convert YAML to JSON'
-
-      { contentObject } = convertedDoc
-      addUserInputOptions contentObject, requiredData
-      config.buildDuration = contentObject.koding?.buildDuration
-
-      template = convertedDoc.content
-      title  or= 'Default stack template'
-
-      data = { rawContent, template, title, description, config }
-      @create client, data, callback
 
 
   @some$: permit 'list stack templates',

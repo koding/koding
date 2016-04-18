@@ -1,9 +1,13 @@
-{ Base, signature } = require 'bongo'
-URL                 = require 'url'
-Constants           = require './constants'
-GitHubProvider      = require './githubprovider'
-GitLabProvider      = require './gitlabprovider'
-_                   = require 'lodash'
+{ Base, signature }      = require 'bongo'
+URL                      = require 'url'
+Constants                = require './constants'
+GitHubProvider           = require './githubprovider'
+GitLabProvider           = require './gitlabprovider'
+_                        = require 'lodash'
+requirementsParser       = require './utils/requirementsParser'
+providersParser          = require './utils/providersParser'
+addUserInputOptions      = require './utils/addUserInputOptions'
+{ yamlToJson }           = require './utils/yamlutils'
 
 module.exports = class GitProvider extends Base
 
@@ -21,11 +25,13 @@ module.exports = class GitProvider extends Base
 
     sharedMethods :
       static      :
-        importStackTemplate :
+        importStackTemplateData :
           (signature String, Function)
+        createImportedStackTemplate :
+          (signature String, Object, Function)
 
 
-  @importStackTemplate = permit 'import stack template',
+  @importStackTemplateData = permit 'import stack template',
     success: revive {
       shouldReviveClient   : yes
       shouldReviveProvider : no
@@ -45,3 +51,34 @@ module.exports = class GitProvider extends Base
           GitHubProvider.importStackTemplate user, pathname, _callback
         when GITLAB_HOST
           GitLabProvider.importStackTemplate user, pathname, _callback
+
+
+  @createImportedStackTemplate = permit 'import stack template',
+
+    success: (client, title, importData, callback) ->
+
+      { rawContent, description } = importData
+      delete importData.rawContent
+      delete importData.description
+
+      rawContent = _.unescape rawContent
+
+      requiredProviders = providersParser rawContent
+      requiredData      = requirementsParser rawContent
+      config            = { requiredData, requiredProviders, importData }
+
+      convertedDoc = yamlToJson rawContent
+      if convertedDoc.err
+        return callback new KodingError 'Failed to convert YAML to JSON'
+
+      { contentObject } = convertedDoc
+      addUserInputOptions contentObject, requiredData
+      config.buildDuration = contentObject.koding?.buildDuration
+
+      template = convertedDoc.content
+      title  or= 'Default stack template'
+
+      JStackTemplate = require '../computeproviders/stacktemplate'
+      data = { rawContent, template, title, description, config }
+      JStackTemplate.create client, data, callback
+
