@@ -1,24 +1,37 @@
-{ argv }    = require 'optimist'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 Constants   = require './constants'
 helpers     = require './utils/helpers'
 async       = require 'async'
-KodingError = require '../../error'
+URL         = require 'url'
+_           = require 'lodash'
 
 module.exports = GitHubProvider =
 
-  importStackTemplate: (user, path, callback) ->
+  importStackTemplateByUrl: (url, user, callback) ->
 
-    [ empty, username, repo, tree, branch, rest... ] = path.split '/'
-    return callback(new KodingError 'Invalid url')  if rest.length > 0
+    return  unless urlData = @parseImportUrl url
 
-    GitHubProvider.importStackTemplateWithRawUrl username, repo, branch, callback
+    @importStackTemplateWithRawUrl urlData, callback
+    return yes
 
 
-  importStackTemplateWithRawUrl: (user, repo, branch, callback) ->
+  parseImportUrl: (url) ->
+
+    { GITLAB_HOST }        = Constants
+    { hostname, pathname } = URL.parse url
+
+    return  unless hostname is GITLAB_HOST
+
+    [ empty, user, repo, tree, branch, rest... ] = pathname.split '/'
+    return  if rest.length > 0
+
+    branch ?= 'master'
+    return { originalUrl : url, user, repo, branch }
+
+
+  importStackTemplateWithRawUrl: (urlData, callback) ->
 
     { GITLAB_HOST, TEMPLATE_PATH, README_PATH } = Constants
-    branch ?= 'master'
+    { user, repo, branch } = urlData
 
     queue = [
       (next) ->
@@ -39,4 +52,4 @@ module.exports = GitHubProvider =
     return async.series queue, (err, results) ->
       return callback err  if err
       [ rawContent, description ] = results
-      callback null, { rawContent, description, user, repo, branch }
+      callback null, _.extend { rawContent, description }, urlData

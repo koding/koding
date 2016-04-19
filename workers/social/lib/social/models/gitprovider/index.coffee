@@ -1,13 +1,13 @@
-{ Base, signature }      = require 'bongo'
-URL                      = require 'url'
-Constants                = require './constants'
-GitHubProvider           = require './githubprovider'
-GitLabProvider           = require './gitlabprovider'
-_                        = require 'lodash'
-requirementsParser       = require './utils/requirementsParser'
-providersParser          = require './utils/providersParser'
-addUserInputOptions      = require './utils/addUserInputOptions'
-{ yamlToJson }           = require './utils/yamlutils'
+{ Base, signature } = require 'bongo'
+Constants           = require './constants'
+GitHubProvider      = require './githubprovider'
+GitLabProvider      = require './gitlabprovider'
+_                   = require 'lodash'
+requirementsParser  = require './utils/requirementsParser'
+providersParser     = require './utils/providersParser'
+addUserInputOptions = require './utils/addUserInputOptions'
+{ yamlToJson }      = require './utils/yamlutils'
+KodingError         = require '../../error'
 
 module.exports = class GitProvider extends Base
 
@@ -37,25 +37,18 @@ module.exports = class GitProvider extends Base
       shouldReviveProvider : no
     }, (client, url, callback) ->
 
-      { hostname, pathname } = URL.parse url
-      { user } = client.r
-      { GITHUB_HOST, GITLAB_HOST } = Constants
+      { user }  = client.r
+      providers = [ GitHubProvider, GitLabProvider ]
 
-      _callback = (err, result) ->
-        return callback err  if err
-        result = _.extend { originalUrl : url }, result
-        callback null, result
+      for provider in providers
+        return  if provider.importStackTemplateByUrl url, user, callback
 
-      switch hostname
-        when GITHUB_HOST
-          GitHubProvider.importStackTemplate user, pathname, _callback
-        when GITLAB_HOST
-          GitLabProvider.importStackTemplate user, pathname, _callback
+      callback new KodingError 'Invalid url'
 
 
   @createImportedStackTemplate = permit 'import stack template',
 
-    success: (client, title, importData, callback) ->
+    (client, title, importData, callback) ->
 
       { rawContent, description } = importData
       delete importData.rawContent

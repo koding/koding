@@ -4,27 +4,44 @@ KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 Constants   = require './constants'
 helpers     = require './utils/helpers'
 async       = require 'async'
-KodingError = require '../../error'
+URL         = require 'url'
+_           = require 'lodash'
 
 module.exports = GitHubProvider =
 
-  importStackTemplate: (user, path, callback) ->
+  importStackTemplateByUrl: (url, user, callback) ->
 
-    [ empty, username, repo, tree, branch, rest... ] = path.split '/'
-    return callback(new KodingError 'Invalid url')  if rest.length > 0
+    return  unless urlData = @parseImportUrl url
 
     oauth = user.getAt 'foreignAuth.github'
 
     if oauth
-      GitHubProvider.importStackTemplateWithOauth oauth, username, repo, branch, callback
+      @importStackTemplateWithOauth oauth, urlData, callback
     else
-      GitHubProvider.importStackTemplateWithRawUrl username, repo, branch, callback
+      @importStackTemplateWithRawUrl urlData, callback
+
+    return yes
 
 
-  importStackTemplateWithOauth: (oauth, user, repo, branch, callback) ->
+  parseImportUrl: (url) ->
+
+    { GITHUB_HOST }        = Constants
+    { hostname, pathname } = URL.parse url
+
+    return  unless hostname is GITHUB_HOST
+
+    [ empty, user, repo, tree, branch, rest... ] = pathname.split '/'
+    return  if rest.length > 0
+
+    branch ?= 'master'
+    return { originalUrl : url, user, repo, branch }
+
+
+  importStackTemplateWithOauth: (oauth, urlData, callback) ->
 
     { token } = oauth
     { debug, timeout, userAgent } = KONFIG.githubapi
+    { user, repo, branch } = urlData
 
     gh = new GithubAPI {
       version : '3.0.0'
@@ -35,7 +52,6 @@ module.exports = GitHubProvider =
     gh.authenticate { type: 'oauth', token }
 
     { repos } = gh
-    branch   ?= 'master'
     { TEMPLATE_PATH, README_PATH } = Constants
     queue = [
       (next) ->
@@ -53,13 +69,13 @@ module.exports = GitHubProvider =
     return async.series queue, (err, results) ->
       return callback err  if err
       [ rawContent, description ] = results
-      callback null, { rawContent, description, user, repo, branch }
+      callback null, _.extend { rawContent, description }, urlData
 
 
-  importStackTemplateWithRawUrl: (user, repo, branch, callback) ->
+  importStackTemplateWithRawUrl: (urlData, callback) ->
 
     { RAW_GITHUB_HOST, TEMPLATE_PATH, README_PATH } = Constants
-    branch ?= 'master'
+    { user, repo, branch } = urlData
 
     queue = [
       (next) ->
@@ -80,4 +96,4 @@ module.exports = GitHubProvider =
     return async.series queue, (err, results) ->
       return callback err  if err
       [ rawContent, description ] = results
-      callback null, { rawContent, description, user, repo, branch }
+      callback null, _.extend { rawContent, description }, urlData
