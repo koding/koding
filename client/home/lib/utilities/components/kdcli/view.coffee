@@ -17,7 +17,7 @@ module.exports = class KDCliView extends React.Component
         </span>
         <cite>{@props.copyKey}</cite>
       </code>
-      <p>Once installed, you can use <code className="HomeAppView--code">kd list</code> to list your Koding VMs and
+      <p>Once installed, you can use <code className="HomeAppView--code">kd list</code> to list your Koding VMs and 
         <code className="HomeAppView--code">kd mount</code> to mount your VM to a local folder in your computer.
         For detailed instructions:
       </p>
