@@ -50,7 +50,7 @@ module.exports = class TryOnKodingContainer extends React.Component
     allowedDomains = allowedDomains.toJS()
     allowedDomains = _.clone allowedDomains or []
 
-    if state
+    unless state
       allowedDomains.push '*'
     else
       _.remove allowedDomains, (domain) -> domain is '*'
@@ -61,18 +61,18 @@ module.exports = class TryOnKodingContainer extends React.Component
     TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) =>
       if state
         @setState
-          primaryClassName : 'primary hidden'
-          secondaryClassName : 'secondary'
-      else
-        @setState
           primaryClassName : 'primary'
           secondaryClassName : 'secondary hidden'
+      else
+        @setState
+          primaryClassName : 'primary hidden'
+          secondaryClassName : 'secondary'
 
       @setState
-        checked: state
+        checked: not state
     .catch ({ message }) ->
       @setState
-        checked: not state
+        checked: state
 
 
   handleCodeBlockClick: ->
