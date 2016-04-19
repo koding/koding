@@ -154,6 +154,8 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	}
 
 	if stater.ProviderName() != args.Provider {
+		k.Log.Debug("want provider %q, got %q", stater.ProviderName(), args.Provider)
+
 		return nil, NewError(ErrProviderIsWrong)
 	}
 
