@@ -43,8 +43,8 @@ type Config struct {
 		StaticFilesBaseUrl string
 		RuntimeOptions     RuntimeOptions
 	}
-	Mongo          string
-	Mq             struct {
+	Mongo string
+	Mq    struct {
 		Host     string
 		Port     int
 		Login    string
@@ -56,7 +56,7 @@ type Config struct {
 	PremiumBroker     Broker
 	BrokerKite        Broker
 	PremiumBrokerKite Broker
-	ProxyKite struct {
+	ProxyKite         struct {
 		Domain   string
 		CertFile string
 		KeyFile  string
@@ -111,7 +111,7 @@ type Config struct {
 	GatherIngestor struct {
 		Port int
 	}
-	Mailgun             struct {
+	Mailgun struct {
 		Domain     string
 		PrivateKey string
 		PublicKey  string
@@ -121,11 +121,7 @@ type Config struct {
 type RuntimeOptions struct {
 	Kites struct {
 		DisableWebSocketByDefault bool `json:"disableWebSocketByDefault"`
-		Stack                     struct {
-			Force    bool `json:"force"`
-			NewKites bool `json:"newKites"`
-		} `json:"stack"`
-		Kontrol struct {
+		Kontrol                   struct {
 			Username string `json:"username"`
 		} `json:"kontrol"`
 		Os struct {
@@ -245,7 +241,7 @@ type RuntimeOptions struct {
 		Key     string `json:"key"`
 		Enabled bool   `json:"enabled"`
 	} `json:"recaptcha"`
-	Domains             struct {
+	Domains struct {
 		Base string `json:"base"`
 		Mail string `json:"mail"`
 		Main string `json:"main"`
