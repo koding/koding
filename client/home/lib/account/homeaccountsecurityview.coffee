@@ -121,11 +121,9 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
       cssClass             : 'AppModal-form'
       fields               :
         tfcode             :
-          placeholder      : 'Enter the verification code'
           name             : 'tfcode'
           label            : 'Verification Code'
         password           :
-          placeholder      : 'Enter your Koding password'
           name             : 'password'
           type             : 'password'
           label            : 'Password'
