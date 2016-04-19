@@ -22,7 +22,7 @@ type Bucket struct {
 }
 
 func (b *Bucket) LatestDeb() (string, error) {
-	objs, err := b.ListContents(b.Folder, 100)
+	objs, err := b.listContents(b.Folder, 100)
 	if err == ErrNoContents {
 		return "", fmt.Errorf("no .deb binary available for %q", b.Folder)
 	}
@@ -39,7 +39,7 @@ func (b *Bucket) LatestDeb() (string, error) {
 	return "", errors.New("couldn't find any .deb file")
 }
 
-func (b *Bucket) ListContents(prefix string, max int) ([]*s3.Object, error) {
+func (b *Bucket) listContents(prefix string, max int) ([]*s3.Object, error) {
 	params := &s3.ListObjectsInput{
 		Bucket:  aws.String(b.Name),
 		Prefix:  aws.String(prefix),

@@ -6,6 +6,19 @@ import (
 	"golang.org/x/net/context"
 )
 
+// Interface provides all kloud methods that a provider can support.
+type Interface interface {
+	Provider
+	Builder
+	Destroyer
+	Infoer
+	Stopper
+	Starter
+	Reiniter
+	Resizer
+	Restarter
+}
+
 // InfoArtifact should be returned from a Info method.
 type InfoArtifact struct {
 	// State defines the state of the machine

@@ -30,6 +30,15 @@ type Queue struct {
 // interval time. It fetches a single document.
 func (q *Queue) RunCheckers(interval time.Duration) {
 	q.Log.Debug("queue started with interval %s", interval)
+
+	if q.KodingProvider == nil {
+		q.Log.Warning("not running cleaner queue for disabled koding provider")
+	}
+
+	if q.AwsProvider == nil {
+		q.Log.Warning("not running cleaner queue for aws koding provider")
+	}
+
 	for _ = range time.Tick(interval) {
 		// do not block the next tick
 		go q.CheckKoding()
@@ -38,6 +47,10 @@ func (q *Queue) RunCheckers(interval time.Duration) {
 }
 
 func (q *Queue) CheckKoding() {
+	if q.KodingProvider == nil {
+		return
+	}
+
 	machine := koding.NewMachine()
 	err := q.FetchProvider("koding", machine.Machine)
 	if err != nil {
