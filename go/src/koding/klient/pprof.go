@@ -10,10 +10,10 @@ import (
 )
 
 func init() {
-	l := logging.NewLogger("init")
-
 	go func() {
-		l.Info("Starting debug server on localhost:8080")
-		l.Info("%s", http.ListenAndServe("localhost:8080", nil))
+		l := logging.NewLogger("debug")
+		l.Info("Starting debug server on localhost:8888")
+
+		l.Info("%s", http.ListenAndServe("localhost:8888", nil))
 	}()
 }
