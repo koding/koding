@@ -1,3 +1,4 @@
+kd = require 'kd'
 React = require 'kd-react'
 { Component, PropTypes } = React
 
@@ -115,6 +116,6 @@ module.exports = class List extends React.Component
 
   render: ->
 
-    <div className="ListView #{@props.className}" onScroll={@props.onScroll}>
+    <div className={kd.utils.curry 'ListView', @props.className} onScroll={@props.onScroll}>
       {@renderChildren()}
     </div>
