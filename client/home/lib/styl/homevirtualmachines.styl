@@ -18,9 +18,6 @@ $borderColor                = #CACACA
   &.expanded
     rounded                 4px
 
-  &:last-of-type
-    margin-bottom           0
-
   header
     display                 flex
     flex-flow               row wrap
@@ -46,6 +43,12 @@ $borderColor                = #CACACA
     .MachinesListItem-stackLabel
       text-transform        uppercase
       margin                0 30px 0 0
+
+.HomeAppViewVMSection
+
+  .ListView-row.stack:last-of-type
+    .MachinesListItem:last-of-type
+      margin-bottom         0
 
 
 .MachinesListItem-detailToggle
