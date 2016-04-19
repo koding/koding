@@ -16,7 +16,7 @@ module.exports = showStackEditor = (stackId) ->
     EDITOR_WINDOW?.resizeTo 258, 140
 
     # (re)open the window
-    EDITOR_WINDOW = window.open route, params
+    EDITOR_WINDOW = window.open route, name, params
 
     # in case popup blocked
     unless EDITOR_WINDOW
