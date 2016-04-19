@@ -47,5 +47,7 @@ module.exports = class VirtualMachinesListView extends React.Component
       renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
       renderRowAtIndex={@bound 'renderRowAtIndex'}
       renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
+      sectionClassName='HomeAppViewVMSection'
+      rowClassName='stack'
     />
 
