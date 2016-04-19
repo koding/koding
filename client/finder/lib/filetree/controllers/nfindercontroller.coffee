@@ -109,7 +109,7 @@ module.exports = class NFinderController extends KDViewController
 
     { uid } = machine
     mRoots  = (@appStorage.getValue 'machineRoots') or {}
-    path    = mRoots[uid] or options.mountPath or '/'
+    path    = options.mountPath or mRoots[uid] or '/'
     path   ?= '/root'  if machine.isManaged()
     path   ?= if owner = machine.getOwner()
     then "/home/#{owner}"

@@ -212,10 +212,6 @@ func (t *Tunnel) updateOptions(reg *tunnelproxy.RegisterResult) {
 }
 
 func (t *Tunnel) initServices() {
-	if !t.isVagrant {
-		return // no ssh service for non-vagrant kites (e.g. managed ones)
-	}
-
 	s, err := t.db.Services()
 	if err == storage.ErrKeyNotFound {
 		s = tunnelproxy.Services{
@@ -223,6 +219,11 @@ func (t *Tunnel) initServices() {
 				Name:      "ssh",
 				LocalAddr: "127.0.0.1:22",
 			},
+		}
+
+		// if we are a host managed kite, the 127.0.0.1:22 is always accessible
+		if !t.isVagrant {
+			s["ssh"].ForwardedPort = 22
 		}
 
 		err = t.db.SetServices(s)
@@ -250,7 +251,9 @@ func (t *Tunnel) updateServices(reg *tunnelproxy.RegisterServicesResult) {
 
 		service, ok := t.services[name]
 		if !ok {
-			service = &tunnelproxy.Service{}
+			service = &tunnelproxy.Service{
+				Name: name,
+			}
 			t.services[name] = service
 		}
 

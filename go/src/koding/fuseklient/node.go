@@ -9,8 +9,8 @@ import (
 type Node interface {
 	GetID() fuseops.InodeID
 	GetType() fuseutil.DirentType
-	GetAttrs() fuseops.InodeAttributes
-	SetAttrs(fuseops.InodeAttributes)
+	GetAttrs() *fuseops.InodeAttributes
+	SetAttrs(*fuseops.InodeAttributes)
 	Forget()
 	IsForgotten() bool
 	Expire() error

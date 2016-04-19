@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 	"sync"
-	"time"
 
 	"golang.org/x/net/context"
 	"golang.org/x/net/trace"
@@ -141,7 +140,7 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	rootEntry.Gid = localGroup
 
 	// TODO: what size to set for directories
-	rootEntry.Attrs = fuseops.InodeAttributes{
+	rootEntry.Attrs = &fuseops.InodeAttributes{
 		Uid: localUser, Gid: localGroup, Mode: 0700 | os.ModeDir, Size: 10,
 	}
 
@@ -222,7 +221,7 @@ func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.Ge
 		return err
 	}
 
-	op.Attributes = entry.GetAttrs()
+	op.Attributes = *entry.GetAttrs()
 
 	return nil
 }
@@ -245,7 +244,7 @@ func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpIno
 	k.setEntry(entry.GetID(), entry)
 
 	op.Entry.Child = entry.GetID()
-	op.Entry.Attributes = entry.GetAttrs()
+	op.Entry.Attributes = *entry.GetAttrs()
 
 	return nil
 }
@@ -277,7 +276,7 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 
 	var bytesRead int
 	for _, e := range entries {
-		c := fuseutil.WriteDirent(op.Dst[bytesRead:], e)
+		c := fuseutil.WriteDirent(op.Dst[bytesRead:], *e)
 		if c == 0 {
 			break
 		}
@@ -315,7 +314,7 @@ func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error 
 	k.setEntry(newDir.GetID(), newDir)
 
 	op.Entry.Child = newDir.GetID()
-	op.Entry.Attributes = newDir.GetAttrs()
+	op.Entry.Attributes = *newDir.GetAttrs()
 
 	return nil
 }
@@ -464,7 +463,7 @@ func (k *KodingNetworkFS) CreateFile(ctx context.Context, op *fuseops.CreateFile
 
 	// tell Kernel about file
 	op.Entry.Child = file.GetID()
-	op.Entry.Attributes = file.GetAttrs()
+	op.Entry.Attributes = *file.GetAttrs()
 
 	// save file to list of live nodes
 	k.setEntry(file.GetID(), file)
@@ -506,7 +505,7 @@ func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.Se
 	}
 
 	entry.SetAttrs(attrs)
-	op.Attributes = attrs
+	op.Attributes = *attrs
 
 	return nil
 }
@@ -665,7 +664,7 @@ func (k *KodingNetworkFS) deleteEntry(id fuseops.InodeID) {
 func (k *KodingNetworkFS) entryChanged(e Node) {
 	file, ok := e.(*File)
 	if ok {
-		k.Watcher.AddTimedIgnore(file.Path, 1*time.Minute)
+		k.Watcher.AddTimedIgnore(file.GetRemotePath())
 	}
 }
 

@@ -103,6 +103,13 @@ func main() {
 			},
 		},
 		cli.Command{
+			Name:        "version",
+			Usage:       "Display version information.",
+			HideHelp:    true,
+			Description: cmdDescriptions["version"],
+			Action:      ctlcli.ExitAction(VersionCommand, log, "version"),
+		},
+		cli.Command{
 			Name:        "mount",
 			ShortName:   "m",
 			Usage:       "Mount a remote folder to a local folder.",
