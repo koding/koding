@@ -93,9 +93,19 @@ func InvoiceRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 	)
 }
 
-func CreditCardRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func AccountCreditCardRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	req := &payment.AccountRequest{
 		AccountId: u.Query().Get("accountId"),
+	}
+
+	return response.HandleResultAndClientError(
+		req.GetCreditCard(),
+	)
+}
+
+func GroupCreditCardRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	req := &payment.GroupRequest{
+		GroupId: u.Query().Get("groupId"),
 	}
 
 	return response.HandleResultAndClientError(

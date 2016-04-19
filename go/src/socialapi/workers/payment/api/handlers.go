@@ -132,7 +132,7 @@ func AddHandlers(m *mux.Mux) {
 	// compatibilty
 	m.AddHandler(
 		handler.Request{
-			Handler:  CreditCardRequest,
+			Handler:  AccountCreditCardRequest,
 			Name:     "payment-creditcard",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/creditcard/{accountId}",
@@ -141,7 +141,7 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  CreditCardRequest,
+			Handler:  AccountCreditCardRequest,
 			Name:     "payment-account-creditcard",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/account/creditcard/{accountId}",
@@ -150,7 +150,7 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  CreditCardRequest,
+			Handler:  GroupCreditCardRequest,
 			Name:     "payment-group-creditcard",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/group/creditcard/{groupId}",
