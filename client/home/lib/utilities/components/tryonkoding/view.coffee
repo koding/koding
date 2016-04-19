@@ -1,8 +1,6 @@
 kd               = require 'kd'
 React            = require 'kd-react'
 KodingSwitch     = require 'app/commonviews/kodingswitch'
-Toggle           = require 'app/components/common/toggle'
-
 
 
 module.exports = class TryOnKodingView extends React.Component
@@ -26,8 +24,14 @@ module.exports = class TryOnKodingView extends React.Component
   
   render: ->
     
+    toggleState = if @props.checked then 'on' else off
+    toggleClassName = kd.utils.curry 'kdinput koding-on-off small', toggleState
+     
     <div>
-      <Toggle ref='toggle' callback={@props.handleSwitch} checked={@props.checked} />
+      <div className={toggleClassName} onClick={@props.handleSwitch.bind(this, @props.checked)}>
+        <a href='#' className='knob' title='turn on'></a>
+        <input className="react-toggle-screenreader-only" type="checkbox" />
+      </div>
       <Primary className={@props.primaryClassName}/>
       <p className={@props.secondaryClassName}>
         <strong>“Try On Koding” Button</strong>
