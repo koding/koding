@@ -235,6 +235,7 @@ generateDev = (KONFIG, options, credentials) ->
       env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'bootstrap';"
       env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'startup';"
       env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'enterprise';"
+      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'team_base';"
     }
 
     function run () {
