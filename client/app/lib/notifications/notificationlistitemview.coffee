@@ -27,6 +27,7 @@ module.exports = class NotificationListItemView extends KDListItemView
     leave   : 'your group'
     mention : 'status.'
 
+
   actionPhraseMap =
     comment  : 'commented on'
     reply    : 'replied to'
@@ -38,6 +39,7 @@ module.exports = class NotificationListItemView extends KDListItemView
     join     : 'joined'
     leave    : 'left'
     mention  : 'mentioned you in'
+
 
   constructor: (options = {}, data) ->
 

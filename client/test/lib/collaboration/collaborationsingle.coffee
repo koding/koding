@@ -40,4 +40,3 @@ module.exports =
         # assert.equal result.value, ''
         collaborationHelpers.endSessionFromStatusBar(browser)
         browser.end()
-

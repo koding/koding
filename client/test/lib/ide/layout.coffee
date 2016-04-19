@@ -161,4 +161,3 @@ module.exports =
       .pause                     500
       .waitForElementNotPresent  collapsedSidebarSelector, 20000
       .end()
-

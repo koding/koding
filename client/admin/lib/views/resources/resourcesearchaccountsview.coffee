@@ -24,7 +24,6 @@ module.exports = class ResourceSearchAccountsView extends kd.View
       fetchingItemClass   : FetchingActivityAutoCompleteUserItemView
       outputWrapper       : accountHeads
       listWrapperCssClass : 'resource-management-search'
-      outputWrapper       : accountHeads
       selectedItemClass   : ChatHead
       itemDataPath        : '_id'
       dataSource          : @bound 'fetchAccounts'

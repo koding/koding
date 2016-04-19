@@ -46,9 +46,9 @@ module.exports =
           ami: ''
     """
 
-  readme: """
+  readme: '''
     ### Test stack readme
 
     This is the readme for my stack template.
     To learn about stack files [click here](https://koding.com/docs/creating-an-aws-stack).
-  """
+  '''

@@ -9,6 +9,7 @@ module.exports = class LegalAppController extends KDViewController
     name  : 'Legal'
     route : '/:name?/Legal'
 
+
   constructor: (options = {}, data) ->
 
     options.view    = new LegalAppView

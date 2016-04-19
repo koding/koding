@@ -40,4 +40,3 @@ describe 'APITokenListView', ->
       expect(viewInstanceCheck).toBeTruthy()
       expect(itemClass).toBe APITokenItemView
       expect(controllerInstanceCheck).toBeTruthy()
-

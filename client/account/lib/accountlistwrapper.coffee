@@ -50,6 +50,7 @@ module.exports = class AccountListWrapper extends KDView
     privacyPolicy              : PrivacyPolicyView
     shortcuts                  : AccountEditShortcuts
 
+
   viewAppended: ->
 
     { listType } = @getData()

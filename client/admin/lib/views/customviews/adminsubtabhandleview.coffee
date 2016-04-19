@@ -2,6 +2,7 @@ kd = require 'kd'
 
 module.exports = class AdminSubTabHandleView extends kd.TabHandleView
 
+
   constructor: ->
 
     super
@@ -15,6 +16,5 @@ module.exports = class AdminSubTabHandleView extends kd.TabHandleView
     kd.singletons.router.handleRoute @path
 
     return no
-
 
   partial: -> "<a href='#{@path}'>#{@getOptions().title}</a>"

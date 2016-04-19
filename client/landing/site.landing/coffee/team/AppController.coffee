@@ -56,6 +56,7 @@ module.exports = class TeamAppController extends kd.ViewController
   kd.registerAppClass this,
     name : 'Team'
 
+
   constructor: (options = {}, data) ->
 
     options.view = new TeamView { cssClass : 'Team content-page' }

@@ -61,7 +61,7 @@ describe 'AccountCredentialList', ->
       modal         = listView.showCredentialEditModal
         provider    : mockCredential.provider
         credential  : mockCredential
-        data        : { }
+        data        : {}
 
       modal.hide()
 

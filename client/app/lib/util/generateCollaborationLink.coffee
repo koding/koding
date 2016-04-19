@@ -7,5 +7,3 @@ module.exports = generateCollaborationLink = (nickname, channelId, options = {},
   isAbsolute = options.isAbsolute ? yes
 
   shortenUrl "#{if isAbsolute then origin else ''}/Collaboration/#{nickname}/#{channelId}", callback
-
-

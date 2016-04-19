@@ -35,6 +35,6 @@ module.exports = class StackAdminMessageModal extends kd.ModalView
       @buttons.send.hideLoader()
 
       return showError err  if err
-    
+
       showNotification doneMessage, { type : 'main' }
       @destroy()

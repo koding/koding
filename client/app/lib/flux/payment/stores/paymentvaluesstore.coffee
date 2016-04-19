@@ -14,4 +14,3 @@ module.exports =
 handleStripeCLientLoad = (values) -> values.set 'isStripeClientLoaded', yes
 
 handleStripeTokenLoad = (values, { token }) -> values.set 'stripeToken', token
-

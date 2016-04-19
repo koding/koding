@@ -23,5 +23,3 @@ module.exports = class SharedMachineListItemsStore extends KodingFluxStore
   unsetMachineListItem: (listItems, { id, machineListItem }) ->
 
     listItems.remove id
-
-
