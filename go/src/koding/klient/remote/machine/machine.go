@@ -393,6 +393,16 @@ func (m *Machine) ConnectedAt() time.Time {
 	return m.KiteTracker.ConnectedAt()
 }
 
+// OnlineAt returns the httppingers's ConnectedAt result
+func (m *Machine) OnlineAt() time.Time {
+	// If it's nil, this is a not a valid / connected machine.
+	if m.HTTPTracker == nil {
+		return time.Time{} // Zero value time.
+	}
+
+	return m.HTTPTracker.ConnectedAt()
+}
+
 // WaitUntilOnline returns a channel allowing the caller to be notified once
 // the Machine is online.
 func (m *Machine) WaitUntilOnline() <-chan struct{} {

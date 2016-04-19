@@ -46,6 +46,7 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 			MountedPaths: []string{},
 			MachineLabel: machine.MachineLabel,
 			Teams:        machine.Teams,
+			OnlineAt:     machine.OnlineAt(),
 		}
 
 		// Set the machines status and message.
