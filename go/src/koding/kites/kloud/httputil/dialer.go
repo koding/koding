@@ -132,14 +132,14 @@ func (d *Dialer) process() {
 				counter[c.addr]++
 
 				if n := counter[c.addr]; n > d.maxIdle() {
-					d.log().Warning("(%d/%d) idle connection (active %s ago): %s", i+1, len(conns), dur, c)
-				} else {
 					d.log().Error("(%d/%d - %d) leaked connection (idle for %s): %s", i+1, len(conns), n, dur, c)
+				} else {
+					d.log().Info("(%d/%d) idle connection (active %s ago): %s", i+1, len(conns), dur, c)
 				}
 			}
 
 			if dur := now.Sub(c.Connected); dur > 15*time.Minute {
-				d.log().Debug("(%d/%d) long-running connection (for %s): %s", i+1, len(conns), dur, c)
+				d.log().Info("(%d/%d) long-running connection (for %s): %s", i+1, len(conns), dur, c)
 			}
 		}
 	}
