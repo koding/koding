@@ -578,6 +578,7 @@ module.exports = CollaborationController =
 
         if data.target is nick()
           @once 'IDEDidQuit', @bound 'showKickedModal'
+          @handleCollaborationEndedForParticipant()  unless params.forceStop
           @quit yes, params.forceStop
         else
           @handleParticipantKicked data.target
