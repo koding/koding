@@ -31,11 +31,17 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
     TeamFlux.actions.setSearchInputValue value
 
 
+  handleRoleChange: (member, currentRole, event) ->
+    
+    TeamFlux.actions.handleRoleChange member, currentRole
+
+
   render: ->
 
     <View
       members={@state.members}
       searchInputValue={@state.searchInputValue}
+      handleRoleChange={@bound 'handleRoleChange'}
       onSearchInputChange={@bound 'onSearchInputChange'} />
 
 

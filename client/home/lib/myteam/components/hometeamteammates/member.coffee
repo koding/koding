@@ -4,6 +4,8 @@ ProfilePicture = require 'app/components/profile/profilepicture'
 MakeMember = require './rolecomponents/makemember'
 AdminMenuItems = require './rolecomponents/adminmenuitems'
 MemberMenuItems = require './rolecomponents/membermenuitems'
+capitalizeFirstLetter = require 'app/util/capitalizefirstletter'
+ButtonWithMenu = require 'app/components/buttonwithmenu'
 
 
 module.exports = class Member extends React.Component
@@ -13,12 +15,12 @@ module.exports = class Member extends React.Component
     super props
 
     @state =
-      isRoleSettingsHidden: yes
+      isMenuOpen: no
 
 
-  onClickMemberRole: ->
-    @setState
-      isRoleSettingsHidden: not @state.isRoleSettingsHidden
+  onClickMemberRole: (role, event) ->
+    kd.utils.stopDOMEvent event
+    @setState { isMenuOpen: yes }
 
 
   renderRoleSettings: (role) ->
@@ -29,18 +31,34 @@ module.exports = class Member extends React.Component
       <AdminMenuItems account={@props.member} />
     else # member
       <MemberMenuItems account={@props.member} />
+      
+
+  getMenuItems: (role) ->
+    
+    items=[]
+    
+    if role is 'owner'
+      items.push { title: 'MAKE MEMBER', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
+    else if role is 'admin'
+      items.push { title: 'MAKE MEMBER', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
+      items.push { title: 'MAKE OWNER', key: 'mameowner', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
+      items.push { title: 'DISABLE USER', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }
+    else
+      items.push { title: 'MAKE OWNER', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
+      items.push { title: 'MAKE ADMIN', key: 'makeadmin', onClick: @props.handleRoleChange.bind(this, @props.member, 'admin') }
+      items.push { title: 'DISABLE USER', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }
+      
+    return items
+
 
   render: ->
-
+       
     nickname  = @props.member.getIn(['profile', 'nickname'])
     email     = @props.member.getIn(['profile', 'email'])
     role      = @props.member.get 'role'
     firstName = @props.member.getIn(['profile', 'firstName'])
     lastName  = @props.member.getIn(['profile', 'lastName'])
     fullName  = "#{firstName} #{lastName}"
-
-    isRoleSettingsHidden = if @state.isRoleSettingsHidden then 'hidden' else ''
-    settingsClassName = kd.utils.curry 'settings', isRoleSettingsHidden
 
     <div className='kdview kdlistitemview kdlistitemview-member'>
       <div className='details'>
@@ -49,13 +67,11 @@ module.exports = class Member extends React.Component
         <p className='nickname'>  @{nickname}</p>
       </div>
       <Email email={email} />
-      <span onClick={@bound 'onClickMemberRole'}>
+      <span onClick={@onClickMemberRole.bind(this, role)}>
         <MemberRole role={role} />
       </span>
       <div className='clear'></div>
-      <div className={settingsClassName}>
-        {@renderRoleSettings role}
-      </div>
+      <ButtonWithMenu menuClassName='menu-class' items={@getMenuItems role} isMenuOpen={@state.isMenuOpen} />
     </div>
 
 
@@ -73,6 +89,7 @@ AvatarView = ({ member }) ->
 
 MemberRole = ({ role }) ->
   className = 'role'
+  role = capitalizeFirstLetter role
   <div className={className}>
     {role}
     <span className='settings-icon'></span>
