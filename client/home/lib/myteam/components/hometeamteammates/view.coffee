@@ -21,7 +21,7 @@ module.exports = class HomeTeamTeamMatesView extends React.Component
 
     member = @props.members.toList().get(rowIndex)
     key = member?.get '_id'
-    <Member key={key} member={member} />  if member
+    <Member key={key} member={member} handleRoleChange={@props.handleRoleChange}/>  if member
 
 
   renderEmptySectionAtIndex: -> <div> No data found</div>
