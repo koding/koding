@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+  backend:
+    image: koding/base
+    environment:
+      KONFIG_PROJECTROOT: /opt/koding
+    volumes:
+      - .:/opt/koding
+    network_mode: host
+    ports:
+      - $KONFIG_PUBLICPORT:$KONFIG_PUBLICPORT
