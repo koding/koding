@@ -787,16 +787,16 @@ class IDEAppController extends AppController
 
     splitView.emit 'ResizeFirstSplitView'
     @resizeAllSplitViews()
-    
+
 
   resizeAllSplitViews: ->
-      
+
     parents = []
-    @ideViews.forEach (view) -> 
+    @ideViews.forEach (view) ->
       parent = view.parent?.parent
       if parent and parent instanceof kd.SplitView
         parents.push parent
-    
+
     _.uniq(parents, 'id').forEach (p) -> p._windowDidResize()
     @doResize()
 
@@ -1466,6 +1466,9 @@ class IDEAppController extends AppController
 
       else if type is 'IDETabMoved'
         @handleMoveTabChanges context
+
+      else if type is 'FileSaved'
+        targetPane?.file.emit 'FileContentsNeedsToBeRefreshed'
 
       else if type in ['TabChanged', 'PaneRemoved', 'TerminalRenamed']
         paneView = targetPane?.parent
