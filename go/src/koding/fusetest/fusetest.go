@@ -78,6 +78,9 @@ type FusetestOpts struct {
 
 	// General kd tests, outside of mount/unmount. Ie, kd list, kd ssh, etc.
 	MiscTests bool
+
+	// General kd tests that require sudo.
+	MiscSudoTests bool
 }
 
 func NewFusetest(machine string, opts FusetestOpts) (*Fusetest, error) {
@@ -123,7 +126,7 @@ func (f *Fusetest) RunTests() (testErrs error) {
 	// If any of below test are true, we need to unmount the users mount so that
 	// tests can unmount and remount as they need. We'll remount at the
 	// end of this func.
-	remountUserMount := f.Opts.MountSettingTests || f.Opts.MiscTests
+	remountUserMount := f.Opts.MountSettingTests || f.Opts.MiscTests || f.Opts.MiscSudoTests
 	if remountUserMount {
 		if err := NewKD().Unmount(f.Machine); err != nil {
 			testErrs = multierror.Append(testErrs, err)
@@ -140,6 +143,13 @@ func (f *Fusetest) RunTests() (testErrs error) {
 	// Run our --misc tests
 	if f.Opts.MiscTests {
 		if err := f.RunMiscTests(); err != nil {
+			testErrs = multierror.Append(testErrs, err)
+		}
+	}
+
+	// Run our --misc-sudo
+	if f.Opts.MiscSudoTests {
+		if err := f.RunMiscSudoTests(); err != nil {
 			testErrs = multierror.Append(testErrs, err)
 		}
 	}
@@ -173,7 +183,13 @@ func (f *Fusetest) RunMountSettingTests() (testErrs error) {
 	return testErrs
 }
 
-// Run our --kd tests
+// Run our --misc-sudo tests
+func (f *Fusetest) RunMiscSudoTests() error {
+	f.TestKDRemount()
+	return nil
+}
+
+// Run our --misctests
 func (f *Fusetest) RunMiscTests() error {
 	f.TestKDListMachineStatus()
 	return nil
