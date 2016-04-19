@@ -19,41 +19,36 @@ Configuration = (options={}) ->
       username : "IBM839677"
       apiKey   : "1664173c843a22d223247837da5cab6d4de7d06f238606e1523458d59eca72d0"
 
+  dev_master =
+    accessKeyId      : "AKIAIKQZE7JIXVGIT2MA"
+    secretAccessKey  : "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"
+
+
+
+
+  worker_ci_test = require './aws/worker_ci_test_key.json'
+
   awsKeys =
     # s3 full access
-    worker_terraformer:
-      accessKeyId     : "AKIAICCV3GMNBL4ECN5Q"
-      secretAccessKey : "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"
+    worker_terraformer: dev_master
 
     # s3 put only to koding-client bucket
-    worker_koding_client_s3_put_only:
-      accessKeyId     : "AKIAJCUG42THBT4LBQEQ"
-      secretAccessKey : "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"
+    worker_koding_client_s3_put_only: dev_master
 
     # admin
-    worker_test:
-      accessKeyId     : "AKIAIQESD65KKYRYAWDA"
-      secretAccessKey : "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"
+    worker_test: dev_master
 
     # s3 put only
-    worker_test_data_exporter:
-      accessKeyId     : "AKIAIWO4ZPTLQEYSOLGA"
-      secretAccessKey : "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"
+    worker_test_data_exporter: dev_master
 
     # AmazonRDSReadOnlyAccess
-    worker_rds_log_parser:
-      accessKeyId     : "AKIAJX6IPI3PQCS3GJ6Q"
-      secretAccessKey : "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"
+    worker_rds_log_parser: dev_master
 
     # ELB & EC2 -> AmazonEC2ReadOnlyAccess
-    worker_multi_ssh:
-      accessKeyId     : "AKIAI7CKP5SNHCBUEDXQ"
-      secretAccessKey : "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"
+    worker_multi_ssh: dev_master
 
     # AmazonEC2FullAccess
-    worker_test_instance_launcher:
-      accessKeyId     : "AKIAJDR2J6W5AT4KWS4A"
-      secretAccessKey : "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"
+    worker_test_instance_launcher: dev_master
 
     # CloudWatchReadOnlyAccess
     vm_vmwatcher:     # vm_vmwatcher_dev
@@ -66,14 +61,10 @@ Configuration = (options={}) ->
       secretAccessKey : "2BiWaqtX6WcFRPqXDI+QAfCJsqrR9pQzO8xWC9Xs"
 
     # TunnelProxyPolicy
-    worker_tunnelproxymanager: # Name worker_tunnelproxymanager_dev
-      accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
-      secretAccessKey : "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"
+    worker_tunnelproxymanager: dev_master # Name worker_tunnelproxymanager_dev
 
     #Encryption and Storage on S3
-    worker_sneakerS3 :
-      accessKeyId     : "AKIAJV2BZT3DBCEUOIXQ"
-      secretAccessKey : "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"
+    worker_sneakerS3 : dev_master
 
 
 
@@ -124,7 +115,7 @@ Configuration = (options={}) ->
 
   kloudPort           = 5500
   kloud               = { port : kloudPort, userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem", userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub", privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite", tunnelUrl : "#{tunnelUrl}"}
-  terraformer         = { port : 2300     , bucket         : "koding-terraformer-state-#{configName}"  ,    localstorepath:  "#{projectRoot}/go/data/terraformer"  }
+  terraformer         = { port : 2300     , bucket         : "kodingdev-terraformer-state-#{configName}"  ,    localstorepath:  "#{projectRoot}/go/data/terraformer"  }
 
   googleapiServiceAccount =
     clientId              : "1044469742845-kaqlodvc8me89f5r6ljfjvp5deku4ee0.apps.googleusercontent.com"
