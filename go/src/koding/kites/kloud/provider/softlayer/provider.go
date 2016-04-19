@@ -13,7 +13,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/provider/helpers"
+	"koding/kites/kloud/provider"
 	"koding/kites/kloud/userdata"
 	"strings"
 	"time"
@@ -47,6 +47,7 @@ type Provider struct {
 	Userdata      *userdata.Userdata
 	KlientTimeout time.Duration
 	StateTimeout  time.Duration
+	Base          *provider.BaseProvider
 }
 
 type slCred struct {
@@ -98,7 +99,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	}
 
 	// check for validation and permission
-	if err := helpers.ValidateUser(machine.User, machine.Users, req); err != nil {
+	if err := p.Base.ValidateUser(machine.User, machine.Users, req); err != nil {
 		return nil, err
 	}
 

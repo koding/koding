@@ -132,6 +132,7 @@ type Config struct {
 	JanitorSecretKey        string
 	VmwatcherSecretKey      string
 	PaymentwebhookSecretKey string
+	KloudSecretKey          string
 }
 
 func main() {
@@ -287,7 +288,7 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	authorizedUsers := map[string]string{
-		"kloudctl":       kloud.KloudSecretKey,
+		"kloudctl":       conf.KloudSecretKey,
 		"janitor":        conf.JanitorSecretKey,
 		"vmwatcher":      conf.VmwatcherSecretKey,
 		"paymentwebhook": conf.PaymentwebhookSecretKey,
@@ -317,13 +318,14 @@ func newKite(conf *Config) *kite.Kite {
 	/// BASE PROVIDER ///
 
 	bp := &provider.BaseProvider{
-		DB:         db,
-		Log:        common.NewLogger("kloud", conf.DebugMode),
-		DNSClient:  dnsInstance,
-		DNSStorage: dnsStorage,
-		Kite:       k,
-		Userdata:   userdata,
-		Debug:      conf.DebugMode,
+		DB:             db,
+		Log:            common.NewLogger("kloud", conf.DebugMode),
+		DNSClient:      dnsInstance,
+		DNSStorage:     dnsStorage,
+		Kite:           k,
+		Userdata:       userdata,
+		KloudSecretKey: conf.KloudSecretKey,
+		Debug:          conf.DebugMode,
 		CredStore: &stackplan.MongoCredStore{
 			MongoDB: db,
 			Log:     common.NewLogger("mongocred", conf.DebugMode),
@@ -355,6 +357,7 @@ func newKite(conf *Config) *kite.Kite {
 		Kite:       k,
 		SLClient:   slClient,
 		Userdata:   userdata,
+		Base:       bp,
 	}
 
 	// QUEUE STOPPER ///
@@ -400,6 +403,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
 	kld.Log = kloudLogger
+	kld.SecretKey = conf.KloudSecretKey
 
 	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {
