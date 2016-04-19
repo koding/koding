@@ -29,12 +29,14 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctl
 	opts := MountOptions{
 		Name:             c.Args().Get(0),
 		LocalPath:        c.Args().Get(1),
-		RemotePath:       c.String("remotepath"),     // note the lowercase of all chars
-		NoIgnore:         c.Bool("noignore"),         // note the lowercase of all chars
-		NoPrefetchMeta:   c.Bool("noprefetch-meta"),  // note the lowercase of all chars
-		NoWatch:          c.Bool("nowatch"),          // note the lowercase of all chars
-		PrefetchAll:      c.Bool("prefetch-all"),     // note the lowercase of all chars
-		PrefetchInterval: c.Int("prefetch-interval"), // note the lowercase of all chars
+		RemotePath:       c.String("remotepath"), // note the lowercase of all chars
+		NoIgnore:         c.Bool("noignore"),
+		NoPrefetchMeta:   c.Bool("noprefetch-meta"),
+		NoWatch:          c.Bool("nowatch"),
+		PrefetchAll:      c.Bool("prefetch-all"),
+		PrefetchInterval: c.Int("prefetch-interval"),
+		Trace:            c.Bool("trace"),
+
 		// Used for prefetch
 		SSHDefaultKeyDir:  config.SSHDefaultKeyDir,
 		SSHDefaultKeyName: config.SSHDefaultKeyName,
