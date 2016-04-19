@@ -68,7 +68,8 @@ InformationLabel =  ->
     <div className='invite-labels'>
       <label>Email</label>
       <label>First Name</label>
-      <label>Last Name<span>Admin</span>
+      <label>
+        <span className='lastname'>Last Name</span><span>Admin</span>
       </label>
     </div>
   </div>
