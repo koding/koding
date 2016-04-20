@@ -13,30 +13,31 @@ Configuration = (options={}) ->
     main  : 'dev.koding.com'
     port  : '8090'
 
-  options.boot2dockerbox       or= if os.type() is "Darwin" then "192.168.59.103" else "localhost"
-  options.serviceHost            = options.boot2dockerbox
-  options.publicPort           or= "8090"
-  options.hostname             or= "dev.koding.com"
-  options.protocol             or= "http:"
-  options.publicHostname       or= "#{options.protocol}//#{options.hostname}"
-  options.region               or= "dev"
-  options.configName           or= "dev"
-  options.environment          or= "dev"
-  options.projectRoot          or= path.join __dirname, '/..'
-  options.version              or= "2.0" # TBD
-  options.build                or= "1111"
-  options.tunnelUrl            or= "http://devtunnelproxy.koding.com"
-  options.kiteHome             or= "#{options.projectRoot}/kite_home/koding"
-  options.userSitesDomain      or= "dev.koding.io"
-  options.defaultEmail         or= "hello@#{options.domains.mail}"
-  options.recaptchaEnabled     or= no
-  options.debugGithubAPI       or= yes
-  options.autoConfirmAccounts  or= yes
+  options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "localhost"
+  options.serviceHost = options.boot2dockerbox
+  options.publicPort or= "8090"
+  options.hostname or= "dev.koding.com"
+  options.protocol or= "http:"
+  options.publicHostname or= "#{options.protocol}//#{options.hostname}"
+  options.region or= "dev"
+  options.configName or= "dev"
+  options.environment or= "dev"
+  options.projectRoot or= path.join __dirname, '/..'
+  options.version or= "2.0" # TBD
+  options.build or= "1111"
+  options.tunnelUrl or= "http://devtunnelproxy.koding.com"
+  options.kiteHome or= "#{options.projectRoot}/kite_home/koding"
+  options.userSitesDomain or= "dev.koding.io"
+  options.defaultEmail or= "hello@#{options.domains.mail}"
+  options.recaptchaEnabled or= no
+  options.debugGithubAPI or= yes
+  options.autoConfirmAccounts or= yes
   options.vmwatcherConnectToKlient = no
-  options.secureCookie         = no
-  options.algoliaIndexSuffix   = ".#{ os.hostname() }"
-  options.socialQueueName      = "koding-social-#{options.configName}"
-  options.sendEventsToSegment  = yes
+  options.secureCookie = no
+  options.algoliaIndexSuffix = ".#{ os.hostname() }"
+  options.socialQueueName = "koding-social-#{options.configName}"
+  options.sendEventsToSegment = yes
+  options.scheme = 'http'
 
   if options.ngrok
     options.scheme = 'https'
@@ -70,56 +71,8 @@ Configuration = (options={}) ->
     botchannel : yes
 
   KONFIG = require('./generateKonfig')(options, credentials)
-
-  workers = require('./workers')(KONFIG, options, credentials)
-
-  #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
-  # NOTE: when you add to runtime options below, be sure to modify
-  # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
-  KONFIG.client.runtimeOptions =
-    kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
-    algolia              : { appId: credentials.algolia.appId, indexSuffix: options.algoliaIndexSuffix }
-    suppressLogs         : no
-    authExchange         : "auth"
-    environment          : options.environment                        # this is where browser knows what kite environment to query for
-    version              : options.version
-    resourceName         : options.socialQueueName
-    userSitesDomain      : options.userSitesDomain
-    socialApiUri         : "/xhr"
-    apiUri               : null
-    sourceMapsUri        : "/sourcemaps"
-    mainUri              : null
-    broker               : { uri: "/subscribe" }
-    uploadsUri           : 'https://koding-uploads.s3.amazonaws.com'
-    uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
-    fileFetchTimeout     : 1000 * 15
-    userIdleMs           : 1000 * 60 * 5
-    embedly              : {apiKey       : KONFIG.embedly.apiKey}
-    github               : {clientId     : credentials.github.clientId}
-    sessionCookie        : KONFIG.sessionCookie
-    troubleshoot         : {idleTime     : 1000 * 60 * 60, externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    stripe               : { token: 'pk_test_2x9UxMl1EBdFtwT5BRfOHxtN' }
-    externalProfiles     :
-      google             : { nicename: 'Google' }
-      linkedin           : { nicename: 'LinkedIn'}
-      twitter            : { nicename: 'Twitter' }
-      odesk              : { nicename: 'Upwork', urlLocation: 'info.profile_url' }
-      facebook           : { nicename: 'Facebook', urlLocation: 'link' }
-      github             : { nicename: 'GitHub', urlLocation: 'html_url' }
-    entryPoint           : { slug:'koding'     , type:'group' }
-    siftScience          : '91f469711c'
-    paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
-    pubnub               : { subscribekey: credentials.pubnub.subscribekey , ssl: no,  enabled: yes    }
-    collaboration        : KONFIG.collaboration
-    paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
-    tokbox               : { apiKey: credentials.tokbox.apiKey }
-    disabledFeatures     : options.disabledFeatures
-    integration          : { url: "#{KONFIG.integration.url}" }
-    webhookMiddleware    : { url: "#{KONFIG.socialapi.webhookMiddleware.url}" }
-    google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
-    recaptcha            : { enabled : KONFIG.recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax" }
-    sendEventsToSegment  : KONFIG.sendEventsToSegment
-    domains              : options.domains
+  KONFIG.workers = require('./workers')(KONFIG, options, credentials)
+  KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
   if os.type() is 'Darwin'
     KONFIG.workers.ngrokProxy =
