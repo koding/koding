@@ -27,6 +27,15 @@ module.exports = class PaymentController extends kd.Controller
       callback err, result
 
 
+  subscribeGroup: (token, callback) ->
+
+    params = { token }
+
+    @api().subscribeGroup params, (err, plan) =>
+      callback err, plan
+      @emit 'GroupPlanUpdated'  unless err
+
+
   subscriptions: (callback) ->
 
     # return plan as 'koding' on default environment
@@ -47,6 +56,9 @@ module.exports = class PaymentController extends kd.Controller
       card = null  if isNoCard card
 
       return callback err, card
+
+
+  fetchGroupCreditCard: (callback) -> @api().fetchGroupCreditCard callback
 
 
   canUserPurchase: (callback) -> @api().canUserPurchase callback
