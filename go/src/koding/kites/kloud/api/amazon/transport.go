@@ -36,9 +36,9 @@ var httpDebugClient = httputil.NewClient(&httputil.ClientConfig{
 func NewTransport(opts *ClientOptions) *aws.Config {
 	cfg := aws.NewConfig()
 	if opts.Debug {
-		cfg = cfg.WithHTTPClient(httpClient)
-	} else {
 		cfg = cfg.WithHTTPClient(httpDebugClient)
+	} else {
+		cfg = cfg.WithHTTPClient(httpClient)
 	}
 	retryer := &transportRetryer{
 		MaxTries: 3,
