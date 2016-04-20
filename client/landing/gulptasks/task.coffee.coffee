@@ -19,11 +19,11 @@ gulpBrowserify = require './helper.browserify'
 module.exports = ->
 
   gulpBrowserify
-      entries : BROWSERFIY_PATH
-    .pipe source 'main.js'
-    .pipe gulpBuffer()
-    .pipe pistachio()
-    .pipe gulpif useUglify, uglify()
-    .pipe gulpStream()
-    .pipe gulpif devMode, livereload()
-    .pipe gulp.dest "#{BUILD_PATH}/js"
+    entries : BROWSERFIY_PATH
+  .pipe source 'main.js'
+  .pipe gulpBuffer()
+  .pipe pistachio()
+  .pipe gulpif useUglify, uglify()
+  .pipe gulpStream()
+  .pipe gulpif devMode, livereload()
+  .pipe gulp.dest "#{BUILD_PATH}/js"

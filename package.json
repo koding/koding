@@ -55,6 +55,7 @@
     "json-format": "0.0.1",
     "jsonify": "0.0.0",
     "jsonwebtoken": "5.0.1",
+    "js-yaml": "3.3.1",
     "kite.js": "0.3.9",
     "konstraints": "0.1.5",
     "lodash": "3.10.1",

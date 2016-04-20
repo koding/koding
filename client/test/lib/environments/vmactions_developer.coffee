@@ -45,5 +45,3 @@ module.exports =
         environmentHelpers.addNewVM(browser, usageVmSelector, yes, remainingSlots, usedStorage)
 
     browser.end()
-
-

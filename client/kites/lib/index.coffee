@@ -18,12 +18,15 @@ module.exports = class KitesAppController extends AppController
     behaviour       : 'application'
     version         : '1.0'
 
+
   constructor: (options = {}, data) ->
+
     options.appInfo =
       name          : 'Kites'
       type          : 'applications'
 
     super options, data
+
 
   handleQuery: (query) ->
     { currentPath } = kd.getSingleton 'router'
@@ -37,8 +40,10 @@ module.exports = class KitesAppController extends AppController
 
     @displayKiteContent username, kiteName
 
+
   goToKites: ->
     kd.getSingleton('router').handleRoute '/Apps?filter=kites'
+
 
   displayKiteContent: (username, kiteName) ->
     query =

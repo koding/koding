@@ -33,6 +33,7 @@ module.exports = class Terminal extends KDObject
     '\\'     : '\\\\'
     '\u001b' : '\\e'
 
+
   constructor: (options) ->
 
     { containerView, @readOnly } = options

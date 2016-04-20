@@ -17,5 +17,4 @@ module.exports = class DifferentStackResourcesStore extends KodingFluxStore
 
   show: -> yes
 
-
   hide: -> null

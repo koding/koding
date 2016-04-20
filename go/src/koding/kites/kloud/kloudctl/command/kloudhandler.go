@@ -9,7 +9,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"koding/kites/kloud/kloud"
 	"koding/tools/util"
 
 	"github.com/koding/kite"
@@ -189,7 +188,7 @@ func (bk *balancedKlients) newRandKlient() (*kite.Client, int) {
 	klient.ClientFunc = NewClient().Client
 	klient.Auth = &kite.Auth{
 		Type: "kloudctl",
-		Key:  kloud.KloudSecretKey,
+		Key:  os.Getenv("KLOUDCTL_SECRETKEY"),
 	}
 
 	return klient, n

@@ -37,7 +37,7 @@ module.exports = class MachineSettingsSnapshotsController extends KodingListCont
     confirmOptions =
       title        : options.title
       description  : options.description
-      callback     : ({status, modal}) =>
+      callback     : ({ status, modal }) =>
         return  unless status
         modal.destroy()
         @deleteSnapshot item
@@ -96,7 +96,7 @@ module.exports = class MachineSettingsSnapshotsController extends KodingListCont
     if data instanceof JSnapshot
       rename data
     else
-      JSnapshot.one snapshotId, (err, snapshot) =>
+      JSnapshot.one snapshotId, (err, snapshot) ->
         return kd.warn err  if err
 
         unless snapshot?

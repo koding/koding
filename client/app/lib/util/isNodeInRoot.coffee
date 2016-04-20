@@ -3,5 +3,3 @@ module.exports = (el, container) ->
     return yes  if el is container
     el = el.parentNode
   no
-
-

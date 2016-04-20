@@ -71,7 +71,7 @@ module.exports =
     vmSharingListSelector = '.vm-sharing.active'
     terminalSelector      = '.kdview.ws-tabview .application-tabview .terminal'
     secondTabSelector     = '.ws-tabview .application-tab-handle-holder .kdtabhandle-tabs div.terminal:nth-of-type(2)'
-    insertCommand         = "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input"
+    insertCommand         = 'window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input'
     executeCommand        = "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
 
     browser.pause 2500, -> # wait for user.json creation
@@ -91,7 +91,7 @@ module.exports =
       else
         vmHelpers.handleInvitation(browser, host, participant, yes, no)
 
-        browser.element 'css selector', secondTabSelector, (result) =>
+        browser.element 'css selector', secondTabSelector, (result) ->
           if result.status is -1
             terminalHelpers.openNewTerminalMenu(browser)
             terminalHelpers.openTerminal(browser, yes)
@@ -103,4 +103,3 @@ module.exports =
             .execute  executeCommand
             .pause    5000
             .end()
-

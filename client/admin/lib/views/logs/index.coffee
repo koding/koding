@@ -12,6 +12,7 @@ module.exports = class LogsView extends kd.View
     warn   : 'Warnings'
     error  : 'Errors'
 
+
   constructor: (options = {}, data) ->
 
     options.cssClass = 'logs-related'

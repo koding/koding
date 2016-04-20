@@ -23,6 +23,7 @@ type MountFolder struct {
 	PrefetchAll    bool   `json:"prefetchAll"`
 	NoWatch        bool   `json:"noWatch"`
 	CachePath      string `json:"cachePath"`
+	Trace          bool   `json:"trace"`
 }
 
 // UnmountFolder is the request struct for remote.UnmountFolder method.

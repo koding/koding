@@ -13,7 +13,6 @@ import (
 	"net/url"
 	"os"
 	"sync"
-	"testing"
 	"time"
 
 	"github.com/koding/tunnel"
@@ -24,27 +23,6 @@ import (
 
 func init() {
 	rand.Seed(time.Now().UnixNano() + int64(os.Getpid()))
-}
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
-type EchoMessage struct {
-	Value string `json:"value,omitempty"`
-	Close bool   `json:"close,omitempty"`
-}
-
-var timeout = 10 * time.Second
-
-var dialer = &websocket.Dialer{
-	ReadBufferSize:   1024,
-	WriteBufferSize:  1024,
-	HandshakeTimeout: timeout,
-	NetDial: func(_, addr string) (net.Conn, error) {
-		return net.DialTimeout("tcp4", addr, timeout)
-	},
 }
 
 var (
@@ -153,6 +131,27 @@ func (rec *StateRecorder) States() []*tunnel.ClientStateChange {
 	return states
 }
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
+type EchoMessage struct {
+	Value string `json:"value,omitempty"`
+	Close bool   `json:"close,omitempty"`
+}
+
+var timeout = 10 * time.Second
+
+var dialer = &websocket.Dialer{
+	ReadBufferSize:   1024,
+	WriteBufferSize:  1024,
+	HandshakeTimeout: timeout,
+	NetDial: func(_, addr string) (net.Conn, error) {
+		return net.DialTimeout("tcp4", addr, timeout)
+	},
+}
+
 func echoHTTP(tt *tunneltest.TunnelTest, echo string) (string, error) {
 	req := tt.Request("http", url.Values{"echo": []string{echo}})
 	if req == nil {
@@ -226,50 +225,42 @@ func sleep() {
 	time.Sleep(time.Duration(rand.Intn(2000)) * time.Millisecond)
 }
 
-func handlerEchoWS(t *testing.T) func(w http.ResponseWriter, r *http.Request) {
-	return handlerEchoSleepWS(t, false)
-}
-
-func handlerLatencyEchoWS(t *testing.T) func(w http.ResponseWriter, r *http.Request) {
-	return handlerEchoSleepWS(t, true)
-}
-
-func handlerEchoSleepWS(t *testing.T, doSleep bool) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func handlerEchoWS(sleepFn func()) func(w http.ResponseWriter, r *http.Request) error {
+	return func(w http.ResponseWriter, r *http.Request) (e error) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			t.Errorf("Upgrade error: %s", err)
-			return
+			return err
 		}
+		defer func() {
+			err := conn.Close()
+			if e == nil {
+				e = err
+			}
+		}()
 
-		if doSleep {
-			sleep()
+		if sleepFn != nil {
+			sleepFn()
 		}
 
 		for {
 			var msg EchoMessage
 			err := conn.ReadJSON(&msg)
 			if err != nil {
-				t.Errorf("ReadJSON error: %s", err)
-				continue
+				return fmt.Errorf("ReadJSON error: %s", err)
 			}
 
-			if doSleep {
-				sleep()
+			if sleepFn != nil {
+				sleepFn()
 			}
 
 			err = conn.WriteJSON(&msg)
 			if err != nil {
-				t.Errorf("WriteJSON error: %s", err)
+				return fmt.Errorf("WriteJSON error: %s", err)
 			}
 
 			if msg.Close {
-				if err = conn.Close(); err != nil {
-					t.Fatalf("Close error: %s", err)
-				}
-
-				return
+				return nil
 			}
 		}
 	}

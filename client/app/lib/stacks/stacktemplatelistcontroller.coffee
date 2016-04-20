@@ -55,7 +55,7 @@ module.exports = class StackTemplateListController extends KodingListController
 
     listView = @getListView()
 
-    listView.on 'ItemAction', ({action, item, options}) =>
+    listView.on 'ItemAction', ({ action, item, options }) =>
       switch action
         when 'RemoveItem'            then @removeItem     item
         when 'ShowItem'              then @showItem       item
@@ -63,7 +63,7 @@ module.exports = class StackTemplateListController extends KodingListController
         when 'ItemSelectedAsDefault' then @applyToTeam    item
         when 'GenerateStack'         then @generateStack  item
 
-    @on 'FetchProcessFailed', ({ err }) =>
+    @on 'FetchProcessFailed', ({ err }) ->
       showError err, { KodingError : 'Failed to fetch stackTemplates, try again later.' }
 
 

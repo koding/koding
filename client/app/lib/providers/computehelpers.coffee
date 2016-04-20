@@ -150,6 +150,7 @@ module.exports = class ComputeHelpers
         provider   : { $in: [ 'koding', 'softlayer' ] }
         credential : nick()
 
+
       cc.queryMachines query, (err, machines) ->
 
         kd.warn err  if err?

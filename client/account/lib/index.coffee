@@ -25,6 +25,7 @@ module.exports = class AccountAppController extends AppController
     name       : 'Account'
     background : yes
 
+
   kodingDangerItems = [ { slug: 'Delete', title : 'Delete account', listType: 'deleteAccount' } ]
   teamsDangerItems  = [ { slug: 'Leave',  title : 'Leave team',     listType: 'leaveGroup' } ]
 

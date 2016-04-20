@@ -12,8 +12,8 @@ AccountCredentialListController = require 'account/views/accountcredentiallistco
 
 mockCredential  = mock.getMockCredential()
 
-modelWithData   = some : (query, options, callback) -> callback null, [ mockCredential ]
-modelWithNoData = some : (query, options, callback) -> callback null, [ ]
+modelWithData   = { some : (query, options, callback) -> callback null, [ mockCredential ] }
+modelWithNoData = { some : (query, options, callback) -> callback null, [ ] }
 
 modal           = new kd.ModalView
   buttons       :

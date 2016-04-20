@@ -10,5 +10,4 @@ module.exports = class ComputePlansModalFooterLink extends CustomLinkView
 
     super options, data
 
-
   click: -> off

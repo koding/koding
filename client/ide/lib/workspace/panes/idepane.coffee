@@ -14,8 +14,6 @@ module.exports = class IDEPane extends JView
 
     @hash = options.hash or generatePassword 64, no
 
-
   setFocus: (state) ->
-
 
   setScrollMarginTop: (top) -> @aceView?.ace?.editor.renderer.setScrollMargin 0, top, 0, 0

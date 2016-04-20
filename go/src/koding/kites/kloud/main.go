@@ -29,11 +29,13 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/plans"
+	"koding/kites/kloud/provider"
 	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/provider/vagrant"
 	"koding/kites/kloud/queue"
+	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/userdata"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -130,6 +132,7 @@ type Config struct {
 	JanitorSecretKey        string
 	VmwatcherSecretKey      string
 	PaymentwebhookSecretKey string
+	KloudSecretKey          string
 }
 
 func main() {
@@ -285,7 +288,7 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	authorizedUsers := map[string]string{
-		"kloudctl":       kloud.KloudSecretKey,
+		"kloudctl":       conf.KloudSecretKey,
 		"janitor":        conf.JanitorSecretKey,
 		"vmwatcher":      conf.VmwatcherSecretKey,
 		"paymentwebhook": conf.PaymentwebhookSecretKey,
@@ -312,28 +315,34 @@ func newKite(conf *Config) *kite.Kite {
 
 	go kodingProvider.RunCleaners(time.Minute * 60)
 
+	/// BASE PROVIDER ///
+
+	bp := &provider.BaseProvider{
+		DB:             db,
+		Log:            common.NewLogger("kloud", conf.DebugMode),
+		DNSClient:      dnsInstance,
+		DNSStorage:     dnsStorage,
+		Kite:           k,
+		Userdata:       userdata,
+		KloudSecretKey: conf.KloudSecretKey,
+		Debug:          conf.DebugMode,
+		CredStore: &stackplan.MongoCredStore{
+			MongoDB: db,
+			Log:     common.NewLogger("mongocred", conf.DebugMode),
+		},
+	}
+
 	/// AWS PROVIDER ///
 
 	awsProvider := &awsprovider.Provider{
-		DB:         db,
-		Log:        common.NewLogger("kloud-aws", conf.DebugMode),
-		DNSClient:  dnsInstance,
-		DNSStorage: dnsStorage,
-		Kite:       k,
-		Userdata:   userdata,
+		BaseProvider: bp.New("aws"),
 	}
 
 	/// VAGRANT PROVIDER ///
 
 	vagrantProvider := &vagrant.Provider{
-		DB:         db,
-		Log:        common.NewLogger("kloud-vagrant", conf.DebugMode),
-		DNSClient:  dnsInstance,
-		DNSStorage: dnsStorage,
-		Kite:       k,
-		Userdata:   userdata,
-		TunnelURL:  conf.TunnelURL,
-		Debug:      conf.DebugMode,
+		BaseProvider: bp.New("vagrant"),
+		TunnelURL:    conf.TunnelURL,
 	}
 
 	/// SOFTLAYER PROVIDER ///
@@ -348,6 +357,7 @@ func newKite(conf *Config) *kite.Kite {
 		Kite:       k,
 		SLClient:   slClient,
 		Userdata:   userdata,
+		Base:       bp,
 	}
 
 	// QUEUE STOPPER ///
@@ -393,6 +403,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
 	kld.Log = kloudLogger
+	kld.SecretKey = conf.KloudSecretKey
 
 	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {

@@ -56,4 +56,3 @@ module.exports = class DesktopNotificationsController extends kd.Controller
       setTimeout  ->
         notification.close()
       , options.timeout
-

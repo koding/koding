@@ -72,4 +72,3 @@ module.exports =
     browser.isStackBuilt = yes
     teamsHelpers.destroyEverything(browser)
     browser.end()
-
