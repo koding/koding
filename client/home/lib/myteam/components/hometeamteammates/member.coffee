@@ -22,7 +22,7 @@ module.exports = class Member extends React.Component
 
   getMenuItems: (role) ->
     
-    items=[]
+    items = []
     
     if role is 'owner'
       items.push { title: 'MAKE MEMBER', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
