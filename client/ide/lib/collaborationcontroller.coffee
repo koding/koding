@@ -239,6 +239,8 @@ module.exports = CollaborationController =
     if @amIHost
     then @activateRealtimeManagerForHost()
     else @activateRealtimeManagerForParticipant()
+    
+    @startRealtimePolling()
 
     @rtm.isReady = yes
     @emit 'RTMIsReady'
@@ -261,7 +263,6 @@ module.exports = CollaborationController =
 
   activateRealtimeManagerForParticipant: ->
 
-    @startRealtimePolling()
     @resurrectParticipantSnapshot()
 
     if @permissions.get(nick()) is 'read'
@@ -545,7 +546,9 @@ module.exports = CollaborationController =
       return  if isActive
 
       kd.utils.killRepeat @pollInterval
-      @showSessionEndedModal()
+      if @amIHost 
+      then @stopCollaborationSession()
+      else @showSessionEndedModal()
 
 
   handleBroadcastMessage: (data) ->
