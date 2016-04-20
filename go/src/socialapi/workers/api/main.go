@@ -26,6 +26,7 @@ import (
 	"socialapi/workers/helper"
 	topicmoderationapi "socialapi/workers/moderation/topic/api"
 	notificationapi "socialapi/workers/notification/api"
+	oauthapi "socialapi/workers/oauth/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
 	permissionapi "socialapi/workers/permission/api"
@@ -55,6 +56,10 @@ func main() {
 	mc := mux.NewConfig(Name, r.Conf.Host, r.Conf.Port)
 	mc.Debug = r.Conf.Debug
 	m := mux.New(mc, r.Log, r.Metrics)
+
+	// init mongo connection
+	modelhelper.Initialize(c.Mongo)
+	defer modelhelper.Close()
 
 	// init redis
 	redisConn := r.Bongo.MustGetRedisConn()
@@ -88,10 +93,7 @@ func main() {
 	slackapi.AddHandlers(m, c)
 	credential.AddHandlers(m, r.Log, c)
 	emailapi.AddHandlers(m)
-
-	// init mongo connection
-	modelhelper.Initialize(c.Mongo)
-	defer modelhelper.Close()
+	oauthapi.AddHandlers(m, c)
 
 	mmdb, err := helper.ReadGeoIPDB(c)
 	if err != nil {
