@@ -40,6 +40,7 @@ module.exports = (options) ->
       port: "6379"
       db: 0
       url : "#{options.serviceHost}:6379"
+    monitoringRedis = redis
     rabbitmq =
       host: "#{options.serviceHost}"
       port: 5672
@@ -111,7 +112,7 @@ module.exports = (options) ->
       secret_url: "https://www.upwork.com/services/api/auth?oauth_token="
       version: "1.0"
       signature: "HMAC-SHA1"
-      redirect_uri: "#{options.host}/-/oauth/odesk/callback"
+      redirect_uri: "https://sandbox.koding.com/-/oauth/odesk/callback"
     facebook =
       clientId: "650676665033389"
       clientSecret: "6771ee1f5aa28e5cd13d3465bacffbdc"
@@ -133,7 +134,7 @@ module.exports = (options) ->
     twitter =
       key           : "2RXF9BaTlYbDyRS3DPOrfBJzR"
       secret        : "KrmmizYhEhu1zd1r0y6sn1XlW9mc1EGZYiqRbBMNQWC1MCarbc"
-      redirect_uri: "http://dev.koding.com:8090/-/oauth/twitter/callback"
+      redirect_uri: "https://sandbox.koding.com/-/oauth/twitter/callback"
       request_url: "https://twitter.com/oauth/request_token"
       access_url: "https://twitter.com/oauth/access_token"
       secret_url: "https://twitter.com/oauth/authenticate?oauth_token="
@@ -154,7 +155,7 @@ module.exports = (options) ->
     rollbar = "71c25e4dc728431b88f82bd3e7a600c9"
     siftScience = '2b62c0cbea188dc6'
     jwt =
-      secret: "ac25b4e6009c1b6ba336a3eb17fbc3b7"
+      secret: "71c25e4dc728431b88f82bd3e7a600c9"
       confirmExpiresInMinutes: 10080
     papertrail =
       destination: 'logs3.papertrailapp.com:13734'
@@ -196,6 +197,7 @@ module.exports = (options) ->
       slKeys
       mongo
       redis
+      monitoringRedis
       rabbitmq
       algolia
       # kloud
