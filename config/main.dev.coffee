@@ -53,7 +53,6 @@ Configuration = (options={}) ->
     local   : "http://127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
     local_  : "127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
     port    : parseInt(options.publicPort, 10)
-    host    : options.hostname
 
   options.customDomain = customDomain
   credentials = require("./credentials.#{options.environment}")(options)
