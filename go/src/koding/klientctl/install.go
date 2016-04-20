@@ -62,13 +62,12 @@ ulimit -n 5000
 
 # start klient
 
+export USERNAME=${USERNAME:-{{.User}}}
+export KITE_HOME=${KITE_HOME:-{{.KiteHome}}}
 {{if .KontrolURL}}
 export KITE_KONTROL_URL=${KITE_KONTROL_URL:-{{.KontrolURL}}}
 {{else}}
 export KITE_KONTROL_URL=${KITE_KONTROL_URL:-https://koding.com/kontrol/kite}
-{{end}}
-{{if .User}}
-export USERNAME=${USERNAME:-{{.User}}}
 {{end}}
 {{if .KlientBinPath}}
 export KLIENT_BIN=${KLIENT_BIN:-{{.KlientBinPath}}}
