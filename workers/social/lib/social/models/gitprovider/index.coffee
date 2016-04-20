@@ -2,7 +2,6 @@
 Constants           = require './constants'
 GitHubProvider      = require './githubprovider'
 GitLabProvider      = require './gitlabprovider'
-_                   = require 'lodash'
 requirementsParser  = require './utils/requirementsParser'
 providersParser     = require './utils/providersParser'
 addUserInputOptions = require './utils/addUserInputOptions'
@@ -26,7 +25,7 @@ module.exports = class GitProvider extends Base
     sharedMethods :
       static      :
         importStackTemplateData :
-          (signature String, Function)
+          (signature Object, Function)
         createImportedStackTemplate :
           (signature String, Object, Function)
 
@@ -35,13 +34,13 @@ module.exports = class GitProvider extends Base
     success: revive {
       shouldReviveClient   : yes
       shouldReviveProvider : no
-    }, (client, url, callback) ->
+    }, (client, importParams, callback) ->
 
       { user }  = client.r
       providers = [ GitHubProvider, GitLabProvider ]
 
       for provider in providers
-        return  if provider.importStackTemplateByUrl url, user, callback
+        return  if provider.importStackTemplateData importParams, user, callback
 
       callback new KodingError 'Invalid url'
 
@@ -53,8 +52,6 @@ module.exports = class GitProvider extends Base
       { rawContent, description } = importData
       delete importData.rawContent
       delete importData.description
-
-      rawContent = _.unescape rawContent
 
       requiredProviders = providersParser rawContent
       requiredData      = requirementsParser rawContent
