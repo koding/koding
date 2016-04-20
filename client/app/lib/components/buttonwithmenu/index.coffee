@@ -18,7 +18,7 @@ module.exports = class ButtonWithMenu extends React.Component
   constructor: (props) ->
 
     super props
-    
+
     @state = { isMenuOpen: @props.isMenuOpen }
     
     
@@ -30,7 +30,7 @@ module.exports = class ButtonWithMenu extends React.Component
 
 
   renderListMenu: ->
-    
+
     onClick = (item) => (event) =>
       item.onClick event
       @onMenuClose()
@@ -64,14 +64,14 @@ module.exports = class ButtonWithMenu extends React.Component
 
 
   onButtonClick: (event) ->
-    
+
     kd.utils.stopDOMEvent event
     @setState isMenuOpen: yes
     @props.onMenuOpen?()
 
 
   render: ->
-    
+
     <div className="ButtonWithMenuWrapper">
       <button ref="button" onClick={@bound 'onButtonClick'}></button>
       <Portal className={@props.menuClassName} isOpened={@state.isMenuOpen} closeOnOutsideClick={yes} closeOnEsc={yes} onClose={@bound 'onMenuClose'}>
