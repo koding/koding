@@ -86,6 +86,7 @@ module.exports = (options) ->
       serverAuthKey: "46fae3cc-9344-4edb-b152-864ba567980c7960b1d8-31dd-4722-b0a1-59bf878bd551"
       origin: "pubsub.pubnub.com"
       enabled:  yes
+      ssl: yes
     terraformer =
       port : 2300
       bucket: "kodingdev-terraformer-state-#{options.configName}"
