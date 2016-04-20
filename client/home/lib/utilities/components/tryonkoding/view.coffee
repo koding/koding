@@ -1,6 +1,6 @@
-kd               = require 'kd'
-React            = require 'kd-react'
-KodingSwitch     = require 'app/commonviews/kodingswitch'
+kd = require 'kd'
+React = require 'kd-react'
+KodingSwitch = require 'app/commonviews/kodingswitch'
 Toggle = require 'app/components/common/toggle'
 
 module.exports = class TryOnKodingView extends React.Component
@@ -17,13 +17,14 @@ module.exports = class TryOnKodingView extends React.Component
     <a className='custom-link-view TryOnKodingButton fr' href='#'></a>
     
   renderButtons: ->
+
     <span>
       {@renderGuideButton()} {@renderTryOnKodingButton()}
     </span>
   
   
   render: ->
-     
+
     <div>
       <Toggle checked={@props.checked} className='TryOnKoding-onOffButton' callback={@props.handleSwitch} />
       <Primary className={@props.primaryClassName}/>
