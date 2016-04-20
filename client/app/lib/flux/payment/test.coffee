@@ -39,3 +39,27 @@ describe 'PaymentFlux', ->
       done()
 
     .catch (err) -> done err
+
+
+  it 'should subscribe a group', (done) ->
+
+    reactor = new Reactor
+    {actions, getters} = PaymentFlux reactor
+
+    options =
+      cardNumber : '4111111111111111'
+      cardCVC    : '111'
+      cardMonth  : '11'
+      cardYear   : '2017'
+      cardName   : 'John Doe'
+
+    actions.createStripeToken(options).then ({ token }) ->
+      actions.subscribeGroupPlan({ token }).then ({ response }) ->
+
+        expected = getters.paymentValues().get('groupPlan').toJS()
+        expect(expected).toEqual(response)
+
+      .catch (err) -> done err
+    .catch (err) -> done err
+
+
