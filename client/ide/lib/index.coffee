@@ -505,11 +505,7 @@ class IDEAppController extends AppController
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
 
-    path  = @workspaceData?.rootPath
-    path ?= '/root'  if machineData.isManaged()
-    path ?= if owner = machineData.getOwner()
-    then "/home/#{owner}"
-    else '/'
+    path = @workspaceData?.rootPath
 
     @workspace.ready ->
       filesPane.emit 'MachineMountRequested', machineData, path
