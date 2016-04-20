@@ -141,6 +141,7 @@ module.exports = (KONFIG, options, credentials) ->
       ports             :
         incoming        : KONFIG.paymentwebhook.port
       supervisord       :
+        stopwaitsecs    : 20
         command         :
           run           : "#{GOBIN}/paymentwebhook -c #{KONFIG.socialapi.configFilePath} -kite-init=true"
           watch         : "make -C #{options.projectRoot}/go/src/socialapi paymentwebhookdev config=#{KONFIG.socialapi.configFilePath}"
@@ -157,8 +158,9 @@ module.exports = (KONFIG, options, credentials) ->
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
+        stopwaitsecs    : 20
         command         :
-          run           : "#{GOBIN}/vmwatcher"
+          run           : "#{GOBIN}/vmwatcher -c #{options.configName}"
           watch         : "#{GOBIN}/watcher -run koding/vmwatcher"
       nginx             :
         locations       : [ { location: "/vmwatcher" } ]
