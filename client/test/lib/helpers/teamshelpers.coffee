@@ -145,31 +145,6 @@ module.exports =
     return user
 
 
-<<<<<<< 9413b625f788f04e1890a59942389cb9412d3e5a
-  createTeam: (browser, user, inviteOrCreateLink, invalidCredentials = no, callback) ->
-=======
-  closeTeamSettingsModal: (browser) ->
-
-    adminModal  = '.AppModal.AppModal--admin.team-settings'
-    closeButton = "#{adminModal} .closeModal"
-
-    browser
-      .waitForElementVisible adminModal, 20000
-      .click                 closeButton
-
-
-  logoutTeam: (browser) ->
-
-    logoutLink = '.avatararea-popup.team a[href="/Logout"]'
-
-    helpers.openAvatarAreaModal(browser, yes)
-
-    browser
-      .waitForElementVisible logoutLink, 20000
-      .click                 logoutLink
-      .waitForElementVisible teamsLoginModal, 20000
-
-
   checkForgotPassword: (browser, user, callback) ->
 
     modalSelector   = '.kdview.kdtabpaneview.username'
@@ -184,8 +159,7 @@ module.exports =
       .pause                 2000
 
 
-  createTeam: (browser, user, callback) ->
->>>>>>> added integration test to check forgot pasword
+  createTeam: (browser, user, inviteOrCreateLink, invalidCredentials = no, callback) ->
 
     modalSelector       = '.TeamsModal.TeamsModal--create'
     emailSelector       = "#{modalSelector} input[name=email]"
@@ -216,6 +190,7 @@ module.exports =
           .pause                 2500
 
         @enterTeamURL(browser)
+        @checkForgotPassword(browser)
 
         if invalidCredentials
           @fillUsernamePasswordForm(browser, user, yes)
