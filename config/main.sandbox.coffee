@@ -31,7 +31,7 @@ Configuration = (options={}) ->
   options.defaultEmail or= "hello@#{options.domains.mail}"
   options.recaptchaEnabled or= yes
   options.debugGithubAPI or= no
-  options.autoConfirmAccounts or= yes
+  options.autoConfirmAccounts or= no
   options.vmwatcherConnectToKlient = no
   options.secureCookie = yes
   options.algoliaIndexSuffix = ".sandbox"
@@ -113,7 +113,7 @@ Configuration = (options={}) ->
     resourceName         : options.socialQueueName
     userSitesDomain      : options.userSitesDomain
     socialApiUri         : "/xhr"
-    apiUri               : null
+    apiUri               : "/"
     sourceMapsUri        : "/sourcemaps"
     mainUri              : null
     broker               : { uri: "/subscribe" }
