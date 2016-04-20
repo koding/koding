@@ -81,10 +81,12 @@ func (s *upstart) Install() error {
 
 	var to = &struct {
 		*Config
-		Path string
+		Path        string
+		Environment map[string]string
 	}{
-		s.Config,
-		path,
+		Config:      s.Config,
+		Path:        path,
+		Environment: s.Option.stringMap(optionEnvironment, optionEnvironmentDefault),
 	}
 
 	return s.template().Execute(f, to)
@@ -152,8 +154,15 @@ const upstartScript = `# {{.Description}}
 kill signal INT
 {{if .ChRoot}}chroot {{.ChRoot}}{{end}}
 {{if .WorkingDirectory}}chdir {{.WorkingDirectory}}{{end}}
-start on filesystem or runlevel [2345]
+
+start on (local-filesystems
+          and net-device-up IFACE!=lo
+          and runlevel [2345])
 stop on runlevel [!2345]
+
+{{range $key, $value := .Environment}}
+env {{$key}}={{$value}}
+{{end}}
 
 #setuid username
 
@@ -161,12 +170,11 @@ respawn
 respawn limit 10 5
 umask 022
 
-console none
-
 pre-start script
     test -x {{.Path}} || { stop; exit 0; }
 end script
 
-# Start
-exec {{.Path}}{{range .Arguments}} {{.|cmd}}{{end}}
+script
+    {{.Path}}{{range .Arguments}} {{.|cmd}} {{end}}
+end script
 `
