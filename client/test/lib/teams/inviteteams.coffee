@@ -52,6 +52,10 @@ module.exports =
 
   inviteUserAndJoinTeam: (browser) ->
 
+    closeModal                 = '.close-icon.closeModal'
+    acceptedInvitationsTab     = '.kdview.kdtabhandle-tabs .accepted-invitations'
+    acceptedInvitationsDetails = '.kdlistitemview-member.accepted .details'
+
     targetUser = utils.getUser yes, 1
     teamsHelpers.loginTeam(browser)
     teamsHelpers.clickTeamSettings(browser)
@@ -65,4 +69,19 @@ module.exports =
       browser.pause 2000
       teamsHelpers.checkForgotPassword(browser)
       teamsHelpers.fillJoinForm(browser, targetUser)
-      browser.end()
+
+      browser
+        .waitForElementVisible  closeModal, 20000
+        .click                  closeModal
+
+      teamsHelpers.logoutTeam(browser)
+      teamsHelpers.loginTeam(browser)
+      teamsHelpers.clickTeamSettings(browser)
+      teamsHelpers.openInvitationsTab(browser)
+
+      browser
+        .waitForElementVisible  acceptedInvitationsTab, 20000
+        .click                  acceptedInvitationsTab
+        .waitForElementVisible  acceptedInvitationsDetails, 20000
+        .assert.containsText    acceptedInvitationsDetails, targetUser.email
+        .end()

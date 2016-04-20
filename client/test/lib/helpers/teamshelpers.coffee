@@ -116,9 +116,16 @@ module.exports =
 
   loginTeam: (browser, invalidCredentials = no) ->
 
+<<<<<<< 9fe6f69731be20f9e4e13264c3543ccbdf0a1d5d
     user       = utils.getUser()
     url        = helpers.getUrl(yes)
     inviteLink = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
+=======
+    user               = utils.getUser()
+    url                = helpers.getUrl(yes)
+    inviteLink         = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
+    invalidCredentials = no
+>>>>>>> Added test TST-180 - Accepted invitations should be displayed..
 
     teamsLogin        = '.TeamsModal--login'
     stackCatalogModal = '.StackCatalogModal'
@@ -1154,3 +1161,24 @@ module.exports =
       .click                      cancelButton
       .waitForElementVisible      stackNameSelector, 20000
       .assert.containsText        stackNameSelector, editedText
+
+
+  closeTeamSettingsModal: (browser) ->
+
+    adminModal  = '.AppModal.AppModal--admin.team-settings'
+    closeButton = "#{adminModal} .closeModal"
+
+    browser
+      .waitForElementVisible adminModal, 20000
+      .click                 closeButton
+
+  logoutTeam: (browser) ->
+
+    logoutLink = '.avatararea-popup.team a[href="/Logout"]'
+
+    helpers.openAvatarAreaModal(browser, yes)
+
+    browser
+     .waitForElementVisible logoutLink, 20000
+      .click                 logoutLink
+      .waitForElementVisible teamsLoginModal, 20000
