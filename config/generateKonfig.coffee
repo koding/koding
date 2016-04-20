@@ -30,7 +30,7 @@ module.exports = (options, credentials) ->
     name: "broker"
     serviceGenericName: "broker"
     ip: ""
-    webProtocol: "http:"
+    webProtocol: options.protocol
     host: "#{options.customDomain.public}"
     port: 8008
     certFile: ""
@@ -144,7 +144,7 @@ module.exports = (options, credentials) ->
     eventExchangeName      : "BrokerMessageBus"
     proxyUrl               : "#{options.customDomain.local}/api/social"
     port                   : "7000"
-    configFilePath         : "#{options.projectRoot}/go/src/socialapi/config/dev.toml"
+    configFilePath         : "#{options.projectRoot}/go/src/socialapi/config/#{options.configName}.toml"
     disableCaching         : no
     debug                  : no
 
@@ -217,7 +217,7 @@ module.exports = (options, credentials) ->
     webserver                     : { port: 8080, useCacheHeader: no , kitePort: 8860 }
     authWorker                    : { login: credentials.rabbitmq.login, queueName: options.socialQueueName+'auth'   , authExchange     : "auth", authAllExchange: "authAll", port : 9530 }
     social                        : { port: 3030, login: "#{credentials.rabbitmq.login}", queueName: options.socialQueueName, kitePort: 8760 }
-    boxproxy                      : { port: 8090 }
+    boxproxy                      : { port: parseInt(options.publicPort, 10) }
     sourcemaps                    : { port: 3526 }
     rerouting                     : { port: 9500 }
     gowebserver                   : { port: 6500 }
