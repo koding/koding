@@ -113,10 +113,11 @@ module.exports =
     @loginAssertion(browser)
 
 
-  loginTeam: (browser) ->
+  loginTeam: (browser, invalidCredentials = no) ->
 
-    user = utils.getUser()
-    url  = helpers.getUrl(yes)
+    user       = utils.getUser()
+    url        = helpers.getUrl(yes)
+    inviteLink = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
 
     teamsLogin        = '.TeamsModal--login'
     stackCatalogModal = '.StackCatalogModal'
@@ -130,7 +131,7 @@ module.exports =
       if result.status is 0
         @loginToTeam browser, user, invalidCredentials
       else
-        @createTeam browser
+        @createTeam browser, user, inviteLink
 
       browser.pause 3000
       browser.element 'css selector', stackCatalogModal, (result) ->
@@ -943,7 +944,7 @@ module.exports =
   getAwsKey: -> return awsKey
 
 
-  checkIconsStacks: (browser) ->
+  checkIconsStacks: (browser, removeNewStack = yes) ->
 
     saveAndTestButton           = '.buttons button:nth-of-type(5)'
     stackTemplateSelector       = '.kdtabhandlecontainer.hide-close-icons .stack-template'
@@ -964,17 +965,19 @@ module.exports =
       .waitForElementVisible      notReadyIconSelector, 30000
       .assert.containsText        notReadyIconSelector, 'NOT READY'
       .assert.containsText        privateIconSelector, 'PRIVATE'
-      .waitForElementVisible      stackTemplateSettingsButton, 20000
-      .click                      stackTemplateSettingsButton
-      .waitForElementVisible      deleteButton, 20000
-      .click                      deleteButton
-      .waitForElementVisible      confirmDeleteButton, 20000
-      .click                      confirmDeleteButton
-      .pause                      2000
-      .waitForElementVisible      stackTemplateSelector, 20000
-      .assert.containsText        stackTemplateSelector, 'Stack Template'
-      .assert.containsText        saveAndTestButton, 'SAVE & TEST'
 
+    if removeNewStack
+      browser
+        .waitForElementVisible      stackTemplateSettingsButton, 20000
+        .click                      stackTemplateSettingsButton
+        .waitForElementVisible      deleteButton, 20000
+        .click                      deleteButton
+        .waitForElementVisible      confirmDeleteButton, 20000
+        .click                      confirmDeleteButton
+        .pause                      2000
+        .waitForElementVisible      stackTemplateSelector, 20000
+        .assert.containsText        stackTemplateSelector, 'Stack Template'
+        .assert.containsText        saveAndTestButton, 'SAVE & TEST'
 
   # possible values of tabName variable is 'stack', 'variables' or 'readme'
   switchTabOnStackCatalog: (browser, tabName) ->
@@ -1104,3 +1107,34 @@ module.exports =
       .waitForElementVisible     deleteButton, 20000
       .click                     confirmDelete
       .waitForElementNotVisible  tokenTimeStamp, 20000
+
+
+  editStackName: (browser) ->
+
+    stackTemplateSettingsButton = '.kdbutton.stack-settings-menu'
+    saveAndTestButton           = '.buttons button:nth-of-type(5)'
+    cancelButton                = '.buttons button:nth-of-type(2)'
+    stacksLogsSelector          = '.step-define-stack .kdscrollview'
+    myStackTemplatesButton      = '.kdview.kdtabhandle-tabs .my-stack-templates'
+    templateInputSelector       = '.template-title-form .template-title .input-wrapper input'
+    editedText                  = 'Edit stack name'
+    stackNameSelector           = '.stacktemplate-info.clearfix .title'
+    editButtonSelector          = '.kdbuttonmenu .context-list-wrapper .edit'
+
+    browser
+      .waitForElementVisible      stackTemplateSettingsButton, 20000
+      .click                      stackTemplateSettingsButton
+      .waitForElementVisible      editButtonSelector, 20000
+      .click                      editButtonSelector
+      .waitForElementVisible      templateInputSelector, 20000
+      .clearValue                 templateInputSelector
+      .setValue                   templateInputSelector, editedText
+      .click                      saveAndTestButton
+      .pause                      2000 #for stack creation logs to appear
+      .waitForElementVisible      stacksLogsSelector, 20000
+      .assert.containsText        stacksLogsSelector, 'An error occured: Required credentials are not provided yet'
+      .click                      myStackTemplatesButton
+      .waitForElementVisible      templateInputSelector, 20000
+      .click                      cancelButton
+      .waitForElementVisible      stackNameSelector, 20000
+      .assert.containsText        stackNameSelector, editedText
