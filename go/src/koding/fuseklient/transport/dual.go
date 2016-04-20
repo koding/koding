@@ -62,13 +62,13 @@ func (d *DualTransport) Remove(path string) error {
 }
 
 // ReadFile is sent to CacheTransport only.
-func (d *DualTransport) ReadFile(path string) (*ReadFileRes, error) {
-	return d.CacheTransport.ReadFile(path)
-}
+//func (d *DualTransport) ReadFile(dst []byte, path string) error {
+//return d.CacheTransport.ReadFile(dst, path)
+//}
 
 // ReadFileAt is sent to CacheTransport only.
-func (d *DualTransport) ReadFileAt(path string, offset, blockSize int64) (*ReadFileRes, error) {
-	return d.CacheTransport.ReadFileAt(path, offset, blockSize)
+func (d *DualTransport) ReadFileAt(dst []byte, path string, offset, blockSize int64) (int, error) {
+	return d.CacheTransport.ReadFileAt(dst, path, offset, blockSize)
 }
 
 // WriteFile is sent to RemoteTransport, then CacheTransport.

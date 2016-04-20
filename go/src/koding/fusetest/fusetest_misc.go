@@ -69,8 +69,7 @@ func (f *Fusetest) TestRename() {
 			So(os.Rename(f.fullMountPath(oldPath), f.fullMountPath(newPath)), ShouldBeNil)
 
 			_, err = os.Stat(f.fullMountPath(oldPath))
-			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldContainSubstring, "no such file or directory")
+			So(os.IsExist(err), ShouldBeFalse)
 
 			fi, err = statFileCheck(f.fullMountPath(newPath), 0700)
 			So(err, ShouldBeNil)

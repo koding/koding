@@ -127,17 +127,19 @@ func (r *RemoteTransport) Remove(path string) error {
 	return r.trip("fs.remove", req, &res)
 }
 
-func (r *RemoteTransport) ReadFile(path string) (*ReadFileRes, error) {
+func (r *RemoteTransport) ReadFile(dst []byte, path string) error {
 	req := struct{ Path string }{r.fullPath(path)}
 	res := &ReadFileRes{}
 	if err := r.trip("fs.readFile", req, &res); err != nil {
-		return nil, err
+		return err
 	}
 
-	return res, nil
+	copy(dst, res.Content)
+
+	return nil
 }
 
-func (r *RemoteTransport) ReadFileAt(path string, offset, blockSize int64) (*ReadFileRes, error) {
+func (r *RemoteTransport) ReadFileAt(dst []byte, path string, offset, blockSize int64) (int, error) {
 	req := struct {
 		Path      string
 		Offset    int64
@@ -149,10 +151,12 @@ func (r *RemoteTransport) ReadFileAt(path string, offset, blockSize int64) (*Rea
 	}
 	res := &ReadFileRes{}
 	if err := r.trip("fs.readFile", req, &res); err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return res, nil
+	i := copy(dst, res.Content)
+
+	return i, nil
 }
 
 func (r *RemoteTransport) WriteFile(path string, content []byte) error {
