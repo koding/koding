@@ -15,7 +15,11 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/go-webserver -c #{options.configName}"
           watch         : "#{GOBIN}/watcher -run koding/go-webserver -c #{options.configName}"
       nginx             :
-        locations       : [ location: "~^/IDE/.*" ]
+        locations       : [
+          location      : "~^/IDE/.*"
+          auth          : yes
+      ]
+
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
 
@@ -108,7 +112,7 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.webserver.port}"
         outgoing        : "#{KONFIG.webserver.kitePort}"
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/servers/index.js -c #{options.configName} -p #{KONFIG.webserver.port}                 --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{options.kiteHome}/kite.key"
+        command         : "./watch-node #{options.projectRoot}/servers/index.js -c #{options.configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{options.kiteHome}/kite.key"
       nginx             :
         locations       : [
           {
@@ -401,6 +405,7 @@ module.exports = (KONFIG, options, credentials) ->
       group             : "environment"
       instances         : 1
       supervisord       :
+        stopwaitsecs    : 20
         command         :
           run           : "#{GOBIN}/gatheringestor -c #{options.configName}"
           watch         : "#{GOBIN}/watcher -run koding/workers/gatheringestor -c #{options.configName}"
