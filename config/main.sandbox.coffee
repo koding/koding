@@ -112,54 +112,7 @@ Configuration = (options={}) ->
       instances         : 3
 
 
-  #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
-  # NOTE: when you add to runtime options below, be sure to modify
-  # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
-  KONFIG.client.runtimeOptions =
-    kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
-    algolia              : { appId: credentials.algolia.appId, indexSuffix: options.algoliaIndexSuffix }
-    suppressLogs         : no
-    authExchange         : "auth"
-    environment          : options.environment                        # this is where browser knows what kite environment to query for
-    version              : options.version
-    resourceName         : options.socialQueueName
-    userSitesDomain      : options.userSitesDomain
-    socialApiUri         : "/xhr"
-    apiUri               : "/"
-    sourceMapsUri        : "/sourcemaps"
-    mainUri              : "/"
-    broker               : { uri: "/subscribe" }
-    uploadsUri           : 'https://koding-uploads.s3.amazonaws.com'
-    uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
-    fileFetchTimeout     : 1000 * 15
-    userIdleMs           : 1000 * 60 * 5
-    embedly              : {apiKey       : KONFIG.embedly.apiKey}
-    github               : {clientId     : credentials.github.clientId}
-    sessionCookie        : KONFIG.sessionCookie
-    troubleshoot         : {idleTime     : 1000 * 60 * 60, externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    stripe               : { token: 'pk_test_2x9UxMl1EBdFtwT5BRfOHxtN' }
-    externalProfiles     :
-      google             : { nicename: 'Google' }
-      linkedin           : { nicename: 'LinkedIn'}
-      twitter            : { nicename: 'Twitter' }
-      odesk              : { nicename: 'Upwork', urlLocation: 'info.profile_url' }
-      facebook           : { nicename: 'Facebook', urlLocation: 'link' }
-      github             : { nicename: 'GitHub', urlLocation: 'html_url' }
-    entryPoint           : { slug:'koding'     , type:'group' }
-    siftScience          : '91f469711c'
-    paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
-    pubnub               : { subscribekey: credentials.pubnub.subscribekey , ssl: yes,  enabled: yes    }
-    collaboration        : KONFIG.collaboration
-    paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
-    tokbox               : { apiKey: credentials.tokbox.apiKey }
-    disabledFeatures     : options.disabledFeatures
-    integration          : { url: "#{KONFIG.integration.url}" }
-    webhookMiddleware    : { url: "#{KONFIG.socialapi.webhookMiddleware.url}" }
-    google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
-    recaptcha            : { enabled : KONFIG.recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax" }
-    sendEventsToSegment  : KONFIG.sendEventsToSegment
-    domains              : options.domains
-    contentRotatorUrl    : 'http://koding.github.io'
+  KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
   KONFIG.supervisord =
     logdir  : '/var/log/koding'
@@ -173,19 +126,6 @@ Configuration = (options={}) ->
   KONFIG.supervisord.memmon =
     limit: '1536MB'
     email: 'sysops+supervisord-sandbox@koding.com'
-
-  keys = Object.keys(KONFIG)
-  len = keys.length
-
-  keys.sort()
-
-  s = []
-  for i in keys
-    k = keys[i]
-    s.push KONFIG[i]
-
-  console.log JSON.stringify s
-
 
   KONFIG.JSON            = JSON.stringify KONFIG
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
