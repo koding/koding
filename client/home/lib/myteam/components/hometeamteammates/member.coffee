@@ -1,9 +1,6 @@
 kd    = require 'kd'
 React = require 'kd-react'
 ProfilePicture = require 'app/components/profile/profilepicture'
-MakeMember = require './rolecomponents/makemember'
-AdminMenuItems = require './rolecomponents/adminmenuitems'
-MemberMenuItems = require './rolecomponents/membermenuitems'
 capitalizeFirstLetter = require 'app/util/capitalizefirstletter'
 ButtonWithMenu = require 'app/components/buttonwithmenu'
 
@@ -22,16 +19,6 @@ module.exports = class Member extends React.Component
     kd.utils.stopDOMEvent event
     @setState { isMenuOpen: yes }
 
-
-  renderRoleSettings: (role) ->
-
-    if role is 'owner'
-      <MakeMember account={@props.member} />
-    else if role is 'admin'
-      <AdminMenuItems account={@props.member} />
-    else # member
-      <MemberMenuItems account={@props.member} />
-      
 
   getMenuItems: (role) ->
     
