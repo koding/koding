@@ -24,6 +24,8 @@ module.exports = class Payment extends Base
           (signature Object, Function)
         creditCard        :
           (signature Object, Function)
+        fetchGroupCreditCard:
+          (signature Function)
         updateCreditCard  :
           (signature Object, Function)
         canChangePlan     :
@@ -161,6 +163,31 @@ module.exports = class Payment extends Base
     url = "#{socialProxyUrl}/payments/creditcard/#{data.accountId}"
 
     get url, data, callback
+
+
+  @fetchGroupCreditCard = (group, callback) ->
+
+    return callback new KodingError 'No such group'  unless group
+
+    data = { groupId: group._id }
+
+    url = "#{socialProxyUrl}/payments/group/creditcard/#{data.groupId}"
+    get url, data, callback
+
+
+  @fetchGroupCreditCard$ = secure (client, callback) ->
+
+    slug = client?.context?.group
+
+
+    return callback new KodingError 'No such group'  unless slug
+
+    JGroup = require './group'
+    JGroup.one { slug }, (err, group) ->
+      console.log {err, group}
+      return callback err  if err
+      Payment.fetchGroupCreditCard group, callback
+
 
   @updateCreditCard = secure (client, data, callback) ->
     requiredParams = [ 'token' , 'provider']
