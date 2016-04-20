@@ -155,7 +155,7 @@ module.exports = (options) ->
     rollbar = "71c25e4dc728431b88f82bd3e7a600c9"
     siftScience = '2b62c0cbea188dc6'
     jwt =
-      secret: "71c25e4dc728431b88f82bd3e7a600c9"
+      secret: "ac25b4e6009c1b6ba336a3eb17fbc3b7"
       confirmExpiresInMinutes: 10080
     papertrail =
       destination: 'logs3.papertrailapp.com:13734'

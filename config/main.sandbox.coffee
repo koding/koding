@@ -32,7 +32,7 @@ Configuration = (options={}) ->
   options.recaptchaEnabled or= yes
   options.debugGithubAPI or= no
   options.autoConfirmAccounts or= no
-  options.vmwatcherConnectToKlient = no
+  options.vmwatcherConnectToKlient = yes
   options.secureCookie = yes
   options.algoliaIndexSuffix = ".sandbox"
   options.socialQueueName = "koding-social-#{options.configName}"
@@ -75,20 +75,20 @@ Configuration = (options={}) ->
 
   workers = require('./workers')(KONFIG, options, credentials)
 
-  KONFIG.workers = require('underscore').extend workers,
+  KONFIG.workers = require('./customextend') workers,
     webserver           :
       instances         : 2
       supervisord       :
-        command        : "node #{options.projectRoot}/servers/index.js -c #{options.configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{options.kiteHome}/kite.key"
+        command         : "node #{options.projectRoot}/servers/index.js -c #{options.configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{options.kiteHome}/kite.key"
       nginx             :
-        locations      : [
+        locations       : [
           {
-            location   : "~ /-/api/(.*)"
-            proxyPass  : "http://webserver/-/api/$1$is_args$args"
+            location    : "~ /-/api/(.*)"
+            proxyPass   : "http://webserver/-/api/$1$is_args$args"
           }
           {
-            location   : "/"
-            auth       : yes
+            location    : "/"
+            auth        : yes
           }
         ]
 
@@ -96,9 +96,21 @@ Configuration = (options={}) ->
       instances         : 4
       supervisord       :
         command         : "node #{options.projectRoot}/workers/social/index.js -c #{options.configName} -p #{KONFIG.social.port} -r #{options.region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{options.kiteHome}/kite.key"
+
+    authworker          :
+      group             : "webserver"
+      supervisord       :
+        command         : "node #{options.projectRoot}/workers/auth/index.js -c #{options.configName} -p #{KONFIG.authWorker.port} --disable-newrelic"
+
+    sourcemaps          :
+      supervisord       :
+        command         : "node #{options.projectRoot}/servers/sourcemaps/index.js -c #{options.configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
+
     socialapi           :
       instances         : 2
 
+    realtime            :
+      instances         : 3
 
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
@@ -116,7 +128,7 @@ Configuration = (options={}) ->
     socialApiUri         : "/xhr"
     apiUri               : "/"
     sourceMapsUri        : "/sourcemaps"
-    mainUri              : null
+    mainUri              : "/"
     broker               : { uri: "/subscribe" }
     uploadsUri           : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
@@ -148,6 +160,7 @@ Configuration = (options={}) ->
     recaptcha            : { enabled : KONFIG.recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax" }
     sendEventsToSegment  : KONFIG.sendEventsToSegment
     domains              : options.domains
+    contentRotatorUrl    : 'http://koding.github.io'
 
   KONFIG.supervisord =
     logdir  : '/var/log/koding'
