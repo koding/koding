@@ -49,6 +49,23 @@ createStripeToken = ({ dispatch, evaluate }) -> (options) ->
         resolve { token }
 
 
+subscribeGroupPlan = ({ dispatch, evaluate }) -> ({ token }) ->
+
+  { paymentController } = kd.singletons
+
+  return new Promise (resolve, reject) ->
+    dispatch actionTypes.SUBSCRIBE_GROUP_PLAN_BEGIN
+
+    paymentController.subscribeGroup token, (err, plan) ->
+      if err
+        dispatch actionTypes.SUBSCRIBE_GROUP_PLAN_FAIL, { err }
+        reject err
+        return
+
+      dispatch actionTypes.SUBSCRIBE_GROUP_PLAN_SUCCESS, { plan }
+      resolve { plan }
+
+
 module.exports = {
   loadStripeClient
   createStripeToken
