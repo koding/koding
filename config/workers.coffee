@@ -17,7 +17,6 @@ module.exports = (KONFIG, options, credentials) ->
       nginx             :
         locations       : [
           location      : "~^/IDE/.*"
-          auth          : yes
       ]
 
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"

@@ -76,6 +76,13 @@ Configuration = (options={}) ->
   workers = require('./workers')(KONFIG, options, credentials)
 
   KONFIG.workers = require('./customextend') workers,
+    gowebserver         :
+      nginx             :
+        locations       : [
+          location      : "~^/IDE/.*"
+          auth          : yes
+      ]
+
     webserver           :
       instances         : 2
       supervisord       :
