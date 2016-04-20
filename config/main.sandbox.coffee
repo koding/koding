@@ -15,28 +15,29 @@ Configuration = (options={}) ->
 
   options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "localhost"
   options.serviceHost   = prod_simulation_server
-  options.publicPort or= "80"
-  options.hostname or= "sandbox.koding.com#{if publicPort is "80" then "" else ":"+publicPort}"
-  options.protocol or= "https:"
-  options.publicHostname or= "#{options.protocol}//#{options.hostname}"
-  options.region or= "aws"
-  options.configName or= "sandbox"
-  options.environment or= "sandbox"
-  options.projectRoot or= "/opt/koding"
+  options.publicPort = "80"
+  options.hostname = "sandbox.koding.com#{if options.publicPort is "80" then "" else ":"+options.publicPort}"
+  options.protocol = "https:"
+  options.publicHostname = "#{options.protocol}//#{options.hostname}"
+  options.region = "aws"
+  options.configName = "sandbox"
+  options.environment = "sandbox"
+  options.projectRoot = "/opt/koding"
   options.version or= options.tag
   options.build or= "1111"
   options.tunnelUrl or= "http://devtunnelproxy.koding.com"
   options.kiteHome or= "#{options.projectRoot}/kite_home/koding"
   options.userSitesDomain or= "sandbox.koding.io"
-  options.defaultEmail or= "hello@#{domains.mail}"
-  options.recaptchaEnabled or= no
-  options.debugGithubAPI or= yes
+  options.defaultEmail or= "hello@#{options.domains.mail}"
+  options.recaptchaEnabled or= yes
+  options.debugGithubAPI or= no
   options.autoConfirmAccounts or= yes
   options.vmwatcherConnectToKlient = no
-  options.secureCookie = no
-  options.algoliaIndexSuffix = ".#{ os.hostname() }"
+  options.secureCookie = yes
+  options.algoliaIndexSuffix = ".sandbox"
   options.socialQueueName = "koding-social-#{options.configName}"
-  options.sendEventsToSegment = no
+  options.sendEventsToSegment = yes
+  options.scheme = 'https'
 
   options.host = options.hostname
   # if options.ngrok
@@ -47,12 +48,13 @@ Configuration = (options={}) ->
   #   _port  = if options.publicPort is '80' then '' else options.publicPort
   #   options.host   = options.host or "#{options.hostname}:#{_port}"
   customDomain =
-    public:  "https://#{options.hostname}"
-    public_: "#{options.hostname}"
-    local: "http://127.0.0.1"
-    local_: "127.0.0.1"
-    port: 80
-    host: hostname
+    public  : "#{options.scheme}://#{options.host}"
+    public_ : options.host
+    local   : "http://127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
+    local_  : "127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
+    port    : parseInt(options.publicPort, 10)
+    host    : options.hostname
+
 
   options.customDomain = customDomain
   credentials = require("./credentials.#{options.environment}")(options)
@@ -66,7 +68,7 @@ Configuration = (options={}) ->
   # features everywhere
   options.disabledFeatures =
     moderation : yes
-    teams      : no
+    teams      : yes
     botchannel : yes
 
   KONFIG = require('./generateKonfig')(options, credentials)
@@ -92,7 +94,7 @@ Configuration = (options={}) ->
     socialworker        :
       instances         : 4
       supervisord       :
-        command         : "node #{options.projectRoot}/workers/social/index.js -c #{options.configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{options.kiteHome}/kite.key"
+        command         : "node #{options.projectRoot}/workers/social/index.js -c #{options.configName} -p #{KONFIG.social.port} -r #{options.region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{options.kiteHome}/kite.key"
     socialapi           :
       instances         : 2
 
@@ -134,7 +136,7 @@ Configuration = (options={}) ->
     entryPoint           : { slug:'koding'     , type:'group' }
     siftScience          : '91f469711c'
     paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
-    pubnub               : { subscribekey: credentials.pubnub.subscribekey , ssl: no,  enabled: yes    }
+    pubnub               : { subscribekey: credentials.pubnub.subscribekey , ssl: yes,  enabled: yes    }
     collaboration        : KONFIG.collaboration
     paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
     tokbox               : { apiKey: credentials.tokbox.apiKey }
