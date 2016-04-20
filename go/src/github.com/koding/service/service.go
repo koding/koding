@@ -129,6 +129,7 @@ type Config struct {
 	//    - PIDFile       string () [/run/prog.pid] - Location of the PID file.
 	//    - RequiredStart string ()                 - Space-separated service dependencies (sysvinit, e.g. $network)
 	//    - After         string ()                 - Space-separated service dependencies (systemd, e.g. network.target)
+	//    - Environment   map[string]string         - environment variables
 	Option KeyValue
 }
 
