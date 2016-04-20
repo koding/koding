@@ -6,6 +6,7 @@ helpers     = require './utils/helpers'
 async       = require 'async'
 URL         = require 'url'
 _           = require 'lodash'
+KodingError = require '../../error'
 
 module.exports = GitHubProvider =
 
@@ -40,9 +41,12 @@ module.exports = GitHubProvider =
 
   importStackTemplateWithOauth: (oauth, urlData, callback) ->
 
-    { token } = oauth
-    { debug, timeout, userAgent } = KONFIG.githubapi
+    { githubapi } = KONFIG
+    return callback new KodingError 'Github api config is missing'  unless githubapi
+
+    { debug, timeout, userAgent } = githubapi
     { user, repo, branch } = urlData
+    { token } = oauth
 
     gh = new GithubAPI {
       version : '3.0.0'
