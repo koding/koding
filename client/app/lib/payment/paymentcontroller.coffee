@@ -27,9 +27,9 @@ module.exports = class PaymentController extends kd.Controller
       callback err, result
 
 
-  subscribeGroup: (token, callback) ->
+  subscribeGroup: ({ token, email }, callback) ->
 
-    params = { token }
+    params = { token, email }
 
     @api().subscribeGroup params, (err, plan) =>
       callback err, plan

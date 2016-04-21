@@ -80,26 +80,21 @@ module.exports = class Payment extends Base
     if group.slug is 'koding' or KONFIG.environment is 'default'
       return callback null, {}
 
-    requiredParams = ['token']
+    requiredParams = ['token', 'email']
+
     validateParams requiredParams, data, (err) ->
       return callback err  if err
 
-      # attach owner's email.
-      # TODO: User should be able to choose their billing email. ~Umut
-      group.fetchOwner (err, owner) ->
-        return callback err  if err
+      data = extend data,
+        groupId: group._id
+        provider: 'stripe'
+        planTitle: 'team_base'
+        planInterval: 'month'
 
-        data = extend data,
-          groupId: group._id
-          email: owner.email
-          provider: 'stripe'
-          planTitle: 'team_base'
-          planInterval: 'month'
+      data.groupId = group._id
+      url = "#{socialProxyUrl}/payments/group/subscribe"
 
-        data.groupId = group._id
-        url = "#{socialProxyUrl}/payments/group/subscribe"
-
-        post url, data, callback
+      post url, data, callback
 
 
   @subscribeGroup$ = secure (client, data, callback) ->
@@ -179,12 +174,10 @@ module.exports = class Payment extends Base
 
     slug = client?.context?.group
 
-
     return callback new KodingError 'No such group'  unless slug
 
     JGroup = require './group'
     JGroup.one { slug }, (err, group) ->
-      console.log {err, group}
       return callback err  if err
       Payment.fetchGroupCreditCard group, callback
 
