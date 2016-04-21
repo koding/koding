@@ -116,16 +116,10 @@ module.exports =
 
   loginTeam: (browser, invalidCredentials = no) ->
 
-<<<<<<< 9fe6f69731be20f9e4e13264c3543ccbdf0a1d5d
-    user       = utils.getUser()
-    url        = helpers.getUrl(yes)
-    inviteLink = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
-=======
     user               = utils.getUser()
     url                = helpers.getUrl(yes)
     inviteLink         = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
     invalidCredentials = no
->>>>>>> Added test TST-180 - Accepted invitations should be displayed..
 
     teamsLogin        = '.TeamsModal--login'
     stackCatalogModal = '.StackCatalogModal'
