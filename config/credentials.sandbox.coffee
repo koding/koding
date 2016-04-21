@@ -240,4 +240,5 @@ module.exports = (options) ->
       segment
       kontrol
       kloud
+      vmwatcher
     }
