@@ -2,6 +2,8 @@ kd                                = require 'kd'
 HomeTeamBillingPaymentInformation = require './hometeambillingpaymentinformation'
 HomeTeamBillingCreditCard         = require './hometeambillingcreditcard'
 
+PaymentFlux = require 'app/flux/payment'
+
 SECTIONS =
   'Payment Information' : HomeTeamBillingPaymentInformation
   'Credit Card'         : HomeTeamBillingCreditCard
@@ -25,7 +27,10 @@ module.exports = class HomeTeamBilling extends kd.CustomScrollView
 
     super options, data
 
-    kd.singletons.mainController.ready =>
+    { mainController, reactor } = kd.singletons
+
+    mainController.ready =>
+      PaymentFlux(reactor).actions.loadGroupCreditCard()
 
       formView = new kd.FormView
         cssClass: kd.utils.curry 'HomeAppView--billing-form', options.cssClass
