@@ -1156,19 +1156,6 @@ module.exports = class ComputeController extends KDController
 
 
   ###*
-   * Fetch given stack's README from the stackTemplate which
-   * is generated from.
-  ###
-
-  fetchStackReadme: (stack, callback = kd.noop) ->
-
-    return callback null, ''  unless stack?.baseStackId
-
-    @fetchBaseStackTemplate stack, (err, template) ->
-      return callback err, template?.description ? ''
-
-
-  ###*
    * Fetch given stack's stackTemplate which is generated from.
   ###
 

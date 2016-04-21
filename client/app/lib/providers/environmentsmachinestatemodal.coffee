@@ -18,6 +18,7 @@ BaseModalView           = require './views/basemodalview'
 HelpSupportModal        = require '../commonviews/helpsupportmodal'
 
 MarketingSnippetView    = require 'app/marketing/marketingsnippetview'
+ReadmeView              = require './environmentsmachinereadmeview'
 
 whoami                  = require 'app/util/whoami'
 isKoding                = require 'app/util/isKoding'
@@ -45,8 +46,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     super options, data
 
-    @addSubView @readmeView = new KDCustomScrollView
-      cssClass: 'content-readme hidden'
+    @addSubView @readmeView = new ReadmeView
+      delegate: this
     @addSubView @container  = new KDCustomHTMLView
       cssClass: 'content-container'
 
@@ -78,7 +79,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       return @buildVerifyView()  unless verified
 
       @stack = computeController.findStackFromMachineId @machineId
-      @setReadmeContent()
+      @initReadmeView()
 
       if @stack # Stack build events
         computeController.on "apply-#{@stack._id}", @bound 'updateStatus'
@@ -830,7 +831,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @container.setClass 'marketing-message'
 
 
-  setReadmeContent: ->
+  initReadmeView: ->
 
     # Show only for custom teams and only for NotInitalized state
     if isKoding() or not @stack or @state not in [NotInitialized, Building]
@@ -838,23 +839,9 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       return
 
     { computeController } = kd.singletons
-    computeController.fetchStackReadme @stack, (err, readme) =>
-
-      if err or not readme
-        @readmeView.hide()
-        return
-
-      @readmeView.wrapper.destroySubViews()
-
-      readmeContent = new KDCustomHTMLView
-        partial  : applyMarkdown readme
-        cssClass : 'has-markdown'
-
-      @readmeView.wrapper.addSubView readmeContent
-      @readmeView.show()
-      @readmeView.getDomElement().find('a').attr('target', '_blank')
-      @setClass 'has-readme'
-      @setWidth 540
+    computeController.fetchBaseStackTemplate @stack, (err, stackTemplate) =>
+      return @readmeView.hide()  if err
+      @readmeView.setData stackTemplate
 
 
   showErrorDetails: (errorMessage) ->
