@@ -8,3 +8,7 @@ module.exports =
 
   register: (reactor) ->
     reactor.registerStores @stores
+
+    PaymentFlux = require 'app/flux/payment'
+    PaymentFlux(reactor)
+
