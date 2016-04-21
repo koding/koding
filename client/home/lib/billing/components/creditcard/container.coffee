@@ -1,21 +1,28 @@
 kd = require 'kd'
 React = require 'kd-react'
 KDReactorMixin = require 'app/flux/base/reactormixin'
+CreditCard = require './view'
+CardFormValues = require '../../flux/cardformvalues'
 PaymentFlux = require 'app/flux/payment'
-CreditCardView = require './view'
 
 
 module.exports = class CreditCardContainer extends React.Component
 
-  componentWillMount: ->
+  getDataBindings: ->
+    return {
+      formValues: CardFormValues.getters.values
+      paymentValues: PaymentFlux.getters.paymentValues
+    }
 
-    { actions } = PaymentFlux kd.singletons.reactor
+  constructor: (props) ->
 
-    actions.loadGroupCreditCard()
+    super props
+
+    @state = { formValues: null }
 
 
   render: ->
-
-    <CreditCardView
-      formValues={}
+    <CreditCard
+      onInputValueChange={CardFormValues.actions.setValue}
+      formValues={@state.formValues}
       card={@state.paymentValues.get 'groupCreditCard'} />
