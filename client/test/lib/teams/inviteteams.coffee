@@ -58,9 +58,11 @@ module.exports =
     teamsHelpers.openInvitationsTab(browser)
     targetUser.email = teamsHelpers.inviteUser(browser)
 
-    teamsHelpers.getInvitationUrl browser, targetUser.email, (url) =>
+    teamsHelpers.getInvitationUrl browser, targetUser.email, (url) ->
       teamsHelpers.closeTeamSettingsModal(browser)
       teamsHelpers.logoutTeam(browser)
       browser.url url
+      browser.pause 2000
+      teamsHelpers.checkForgotPassword(browser)
       teamsHelpers.fillJoinForm(browser, targetUser)
       browser.end()

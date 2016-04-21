@@ -179,5 +179,3 @@ loadScript = (url, callback) ->
     bind       : 'load'
     load       : callback
   ).getElement()
-
-

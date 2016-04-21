@@ -75,7 +75,7 @@ describe 'KodingListController', ->
       { noItemFoundWidget, noItemFoundText } = listController.getOptions()
 
       expect(noItemFoundWidget).toExist()
-      expect(noItemFoundText).toEqual "No item found!"
+      expect(noItemFoundText).toEqual 'No item found!'
 
     it 'should create no item found widget with given text', ->
 
@@ -135,7 +135,7 @@ describe 'KodingListController', ->
       }
 
       spy     = expect.spyOn listController, 'removeItem'
-      options = { title: 'Remove item ?'}
+      options = { title: 'Remove item ?' }
 
       listView.emit 'ItemAction', { action : 'RemoveItem', item, options }
 
@@ -385,7 +385,7 @@ describe 'KodingListController', ->
       listController    = new KodingListController { fetcherMethod : fetcherMethodSpy }
 
       { limit, sort }   = listController.getOptions()
-      fetchOptions      = { limit ,sort }
+      fetchOptions      = { limit, sort }
 
       listController.fetch {}, kd.noop
 

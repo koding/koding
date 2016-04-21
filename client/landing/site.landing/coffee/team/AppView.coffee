@@ -18,6 +18,7 @@ module.exports = class TeamView extends kd.View
     # congrats        : require './tabs/teamcongratstab'
     # stacks          : require './tabs/teamstackstab'
 
+
   constructor: (options = {}, data) ->
 
     super options, data

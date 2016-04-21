@@ -17,5 +17,4 @@ module.exports = class LocalStorageController extends KDController
     key = "#{appName}-#{version}"
     return @localStorages[key] or= new LocalStorage appName, version
 
-
 # Let people can use AppStorage

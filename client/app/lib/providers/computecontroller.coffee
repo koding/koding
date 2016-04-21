@@ -1209,7 +1209,7 @@ module.exports = class ComputeController extends KDController
     stack = @findStackFromMachineId machine._id
     return callback()  unless stack
 
-    @fetchBaseStackTemplate stack, (err, stackTemplate) =>
+    @fetchBaseStackTemplate stack, (err, stackTemplate) ->
       if err
         kd.log err
         return callback()

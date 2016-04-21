@@ -64,4 +64,3 @@ module.exports =
           .waitForElementVisible messageSelector, 20000
           .assert.containsText   messageSelector, message #Assertion
           .end()
-

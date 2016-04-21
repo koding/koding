@@ -12,5 +12,4 @@ module.exports = class CommonInnerNavigationListItem extends KDListItemView
 
     super options, data
 
-
   partial: -> ''

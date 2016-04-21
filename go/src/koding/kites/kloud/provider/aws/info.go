@@ -1,11 +1,12 @@
 package awsprovider
 
 import (
+	"time"
+
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/kite"
@@ -85,7 +86,7 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 			// XXX: AWS call reduction workaround.
 			if dbState == machinestate.Stopped {
 				m.Log.Debug("Info result: Returning db state '%s' because the klient is not available. Username: %s",
-					dbState, m.Username)
+					dbState, m.User.Name)
 				return map[string]string{
 					"State": machinestate.Stopped.String(),
 				}, nil
@@ -93,7 +94,7 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		}
 	}
 
-	m.Log.Debug("Info result: '%s'. Username: %s", resultState, m.Username)
+	m.Log.Debug("Info result: '%s'. Username: %s", resultState, m.User.Name)
 	return map[string]string{
 		"State": resultState.String(),
 	}, nil

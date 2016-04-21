@@ -31,7 +31,7 @@ module.exports = class GroupsBlockedUserView extends JView
 
     @refresh()
 
-  fetchRoles: (callback = ->) ->
+  fetchRoles: (callback = -> ) ->
     groupData = @getData()
     list = @listController.getListView()
     list.getOptions().group = groupData

@@ -368,5 +368,3 @@ module.exports =
   getMockReactComponent: -> return new mockReactComponent
 
   getMockMessages: (args...) -> return mockMessages(args...)
-
-

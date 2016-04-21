@@ -91,7 +91,7 @@ func (c *CheckUpdate) IsUpdateAvailable() (bool, error) {
 	}
 
 	// remove any newlines at EOF.
-	str := strings.TrimSuffix(buf.String(), "\n")
+	str := strings.TrimSpace(buf.String())
 	newVersion, err := strconv.Atoi(str)
 	if err != nil {
 		return false, err

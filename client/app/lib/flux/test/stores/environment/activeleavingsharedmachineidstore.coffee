@@ -56,4 +56,3 @@ describe 'ActiveLeavingSharedMachineIdStore', ->
       store = @reactor.evaluate(['activeLeavingSharedMachineId'])
 
       expect(store).toBe null
-

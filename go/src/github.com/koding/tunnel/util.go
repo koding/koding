@@ -1,8 +1,13 @@
 package tunnel
 
 import (
+	"crypto/tls"
 	"fmt"
+	"net"
 	"sync"
+	"time"
+
+	"github.com/cenkalti/backoff"
 )
 
 // async is a helper function to convert a blocking function to a function
@@ -19,6 +24,32 @@ func async(fn func() error) <-chan error {
 	}()
 
 	return errChan
+}
+
+type expBackoff struct {
+	mu sync.Mutex
+	bk *backoff.ExponentialBackOff
+}
+
+func newForeverBackoff() *expBackoff {
+	eb := &expBackoff{
+		bk: backoff.NewExponentialBackOff(),
+	}
+	eb.bk.MaxElapsedTime = 0 // never stops
+	return eb
+}
+
+func (eb *expBackoff) NextBackOff() time.Duration {
+	eb.mu.Lock()
+	defer eb.mu.Unlock()
+
+	return eb.bk.NextBackOff()
+}
+
+func (eb *expBackoff) Reset() {
+	eb.mu.Lock()
+	eb.bk.Reset()
+	eb.mu.Unlock()
 }
 
 type callbacks struct {
@@ -69,4 +100,20 @@ func (c *callbacks) call(ident string) error {
 	}
 
 	return fn()
+}
+
+// Returns server control url as a string. Reads scheme and remote address from connection.
+func controlUrl(conn net.Conn) (string) {
+	return fmt.Sprint(scheme(conn), "://", conn.RemoteAddr(), controlPath)
+}
+
+func scheme(conn net.Conn) (scheme string) {
+	switch conn.(type) {
+	case *tls.Conn:
+		scheme = "https"
+	default:
+		scheme = "http"
+	}
+
+	return
 }

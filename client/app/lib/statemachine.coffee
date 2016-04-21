@@ -80,7 +80,6 @@ module.exports = class StateMachine extends machina.Fsm
 
     super next
 
-
 ###*
  * Transforms states array into machina ready states object.
  * If a handler with the key of state name is present, it attaches

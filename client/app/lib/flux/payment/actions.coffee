@@ -4,7 +4,7 @@ actionTypes = require './actiontypes'
 globals = require 'globals'
 getters = require './getters'
 
-loadStripeClient = ({dispatch, evaluate}) -> ->
+loadStripeClient = ({ dispatch, evaluate }) -> ->
 
   new Promise (resolve, reject) ->
 
@@ -26,7 +26,7 @@ loadStripeClient = ({dispatch, evaluate}) -> ->
       resolve()
 
 
-createStripeToken = ({dispatch, evaluate}) -> (options) ->
+createStripeToken = ({ dispatch, evaluate }) -> (options) ->
 
   tokenOptions =
     number    : options.cardNumber
@@ -53,5 +53,3 @@ module.exports = {
   loadStripeClient
   createStripeToken
 }
-
-

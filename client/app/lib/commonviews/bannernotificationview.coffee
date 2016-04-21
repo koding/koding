@@ -28,7 +28,7 @@ module.exports = class BannerNotificationView extends kd.CustomHTMLView
     { onClose, hideCloseButton } = @getOptions()
     @close = new kd.CustomHTMLView
       tagName    : 'a'
-      attributes : href : '#'
+      attributes : { href : '#' }
       cssClass   : 'close'
       click      : (event) =>
         kd.utils.stopDOMEvent event

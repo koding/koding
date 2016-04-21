@@ -80,14 +80,14 @@ func (c *ContentReadWriter) Create() error {
 // If content has been already fetched, it returns from memory, instead of
 // fetching from remote. It returns the number of bytes read and and error, if
 // any.
-func (c *ContentReadWriter) ReadAt(p []byte, offset int64) (int, error) {
+func (c *ContentReadWriter) ReadAt(p *[]byte, offset int64) (int, error) {
 	if offset >= c.Size {
 		return 0, io.EOF
 	}
 
 	// everything is fetched from remote already, so return from it
 	if int64(len(c.content)) == c.Size {
-		copied := copy(p, c.content[offset:])
+		copied := copy(*p, c.content[offset:])
 		return copied, nil
 	}
 
@@ -96,7 +96,7 @@ func (c *ContentReadWriter) ReadAt(p []byte, offset int64) (int, error) {
 		return 0, err
 	}
 
-	copied := copy(p, resp.Content)
+	copied := copy(*p, resp.Content)
 	return copied, nil
 }
 

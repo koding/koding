@@ -22,7 +22,7 @@ module.exports =
     browser.end()
 
 
-   createFolderFromContextMenu: (browser) ->
+  createFolderFromContextMenu: (browser) ->
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)

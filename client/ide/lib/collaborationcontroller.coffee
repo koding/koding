@@ -239,6 +239,8 @@ module.exports = CollaborationController =
     if @amIHost
     then @activateRealtimeManagerForHost()
     else @activateRealtimeManagerForParticipant()
+    
+    @startRealtimePolling()
 
     @rtm.isReady = yes
     @emit 'RTMIsReady'
@@ -261,7 +263,6 @@ module.exports = CollaborationController =
 
   activateRealtimeManagerForParticipant: ->
 
-    @startRealtimePolling()
     @resurrectParticipantSnapshot()
 
     if @permissions.get(nick()) is 'read'
@@ -545,7 +546,9 @@ module.exports = CollaborationController =
       return  if isActive
 
       kd.utils.killRepeat @pollInterval
-      @showSessionEndedModal()
+      if @amIHost 
+      then @stopCollaborationSession()
+      else @showSessionEndedModal()
 
 
   handleBroadcastMessage: (data) ->
@@ -578,6 +581,7 @@ module.exports = CollaborationController =
 
         if data.target is nick()
           @once 'IDEDidQuit', @bound 'showKickedModal'
+          @handleCollaborationEndedForParticipant()  unless params.forceStop
           @quit yes, params.forceStop
         else
           @handleParticipantKicked data.target
@@ -1196,7 +1200,9 @@ module.exports = CollaborationController =
       title      : 'Are you sure?'
       content    : 'This will end your session and all participants will be removed from this session.'
 
-    @showModal modalOptions, => @stopCollaborationSession callback
+    modal = @showModal modalOptions, => @stopCollaborationSession callback
+    modal.once 'KDObjectWillBeDestroyed', =>
+      @statusBar.share.button.enable()
 
 
   showKickedModal: ->

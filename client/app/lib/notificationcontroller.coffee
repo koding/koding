@@ -21,6 +21,7 @@ module.exports = class NotificationController extends KDObject
       title    : 'Thanks for confirming your e-mail address'
       duration : 5000
 
+
     return modal.destroy()
 
 

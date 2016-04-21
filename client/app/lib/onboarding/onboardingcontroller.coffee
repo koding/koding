@@ -334,5 +334,4 @@ module.exports = class OnboardingController extends KDController
     slug = @createOnboardingSlug name
     @appStorage.setValue slug, itemSlugs, callback
 
-
   isPreviewMode: -> return checkFlag 'super-admin'

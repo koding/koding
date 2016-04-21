@@ -56,7 +56,7 @@ module.exports = class EnvironmentListController extends KodingListController
     listView = @getListView()
 
     stack = item.getData()
-    computeController.destroyStack stack, (err) =>
+    computeController.destroyStack stack, (err) ->
       return  if showError err
 
       Tracker.track Tracker.STACKS_DELETE, {
@@ -65,7 +65,7 @@ module.exports = class EnvironmentListController extends KodingListController
           group     : getGroup().slug
       }
 
-      new KDNotificationView title : 'Stack deleted'
+      new KDNotificationView { title : 'Stack deleted' }
 
       computeController.reset yes, -> router.handleRoute '/IDE'
 
@@ -98,4 +98,3 @@ module.exports = class EnvironmentListController extends KodingListController
       if stackId = @getOption 'selected'
         unless stackId is view.getData().getId()
           view.setClass 'collapsed'
-

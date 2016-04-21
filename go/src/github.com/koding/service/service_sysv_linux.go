@@ -88,6 +88,7 @@ func (s *sysv) Install() error {
 	if err = os.Chmod(confPath, 0755); err != nil {
 		return err
 	}
+	// TODO(rjeczalik): replace with update-rc.d instead?
 	for _, i := range [...]string{"2", "3", "4", "5"} {
 		if err = os.Symlink(confPath, "/etc/rc"+i+".d/S50"+s.Name); err != nil {
 			continue

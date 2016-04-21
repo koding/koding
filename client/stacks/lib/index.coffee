@@ -17,6 +17,7 @@ module.exports = class StacksAppController extends AdminAppController
     name       : 'Stacks'
     background : yes
 
+
   NAV_ITEMS    =
     teams      :
       title    : 'Stack Catalog'

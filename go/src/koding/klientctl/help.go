@@ -63,6 +63,9 @@ var cmdDescriptions = map[string]string{
 	"update": fmtDesc(
 		"", fmt.Sprintf("Update %s to latest version.", config.KlientName),
 	),
+	"version": fmtDesc(
+		"", fmt.Sprintf("Display version information of the %s.", config.KlientName),
+	),
 }
 
 func init() {

@@ -55,6 +55,7 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
   addForgotPasswordLink: ->
 
     return  unless @alreadyMember
+    return  if @forgotPassword?
 
     @addSubView @forgotPassword = new kd.CustomHTMLView
       tagName: 'section'

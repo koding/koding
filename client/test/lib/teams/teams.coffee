@@ -103,3 +103,12 @@ module.exports =
     teamsHelpers.enableAndDisableApiAccess(browser, yes)
     teamsHelpers.addNewApiToken(browser)
     browser.end()
+
+
+  editStackName: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createStack(browser, yes)
+    teamsHelpers.checkIconsStacks(browser, no)
+    teamsHelpers.editStackName(browser)
+    browser.end()

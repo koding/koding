@@ -32,7 +32,7 @@ func (m *Machine) stop(ctx context.Context) (err error) {
 	}
 
 	if !origState.In(machinestate.Stopping, machinestate.Stopped) {
-		err = m.api.Halt(m.Meta.HostQueryString, m.Meta.FilePath)
+		err = m.Vagrant.Halt(m.Cred.QueryString, m.Meta.FilePath)
 		if err == kite.ErrNoKitesAvailable || err == klient.ErrDialingFailed {
 			m.updateState(origState)
 			return errors.New("unable to connect to host klient, is it down?")

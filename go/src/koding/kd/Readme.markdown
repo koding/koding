@@ -64,3 +64,11 @@ If you wish to develop kd you'll need the following depedencies.
 
 Currently we're using koding.com kontrol to develop against. We'll soon provide
 a way to run Kontrol locally.
+
+## Debug
+
+  There're multiple debug/tracing options available:
+
+    * `make klient` will build klient with pprof enabled. See http://localhost:8888/debug/pprof
+    * Passing `-t` to `kd` when mount will enable trace logs. See http://localhost:8888/debug/requests
+    * Passing `-debug` to klient in `/opt/kite/klient/klient.sh` (Warning: this'll create a whole lot of output.)

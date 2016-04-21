@@ -5,15 +5,6 @@ import (
 	"koding/s3logrotate"
 	"runtime"
 	"time"
-
-	"github.com/koding/kite"
-)
-
-const (
-	LogsBucketLocation = "us-west-1"
-	LogsBucketName     = "koding-klient-logs"
-	LogsFileSizeLimit  = 1024 * 400
-	LogsUploadInterval = time.Minute * 60 * 3
 )
 
 func (k *Klient) addRemoteHandlers() {
@@ -38,26 +29,27 @@ func (k *Klient) initRemote() {
 		k.log.Error("Failed to initialize Remote. Error: %s", err.Error())
 	}
 
-	go sendLogsOnInterval(k.log, LogLocations())
+	go k.sendLogsOnInterval(LogLocations())
 }
 
 // sendLogsOnInterval sends klient and kd logs files to write only s3 bucket
 // in an interval.
-func sendLogsOnInterval(log kite.Logger, logLocs []string) error {
-	u, err := s3logrotate.NewUploadClient(LogsBucketLocation, LogsBucketName)
+func (k *Klient) sendLogsOnInterval(logLocs []string) {
+	u, err := s3logrotate.NewUploadClient(
+		k.config.LogBucketRegion,
+		k.config.LogBucketName,
+	)
 	if err != nil {
-		log.Error("s3logrotate: Failed to initialize client. Error: %s", err)
+		k.log.Error("s3logrotate: Failed to initialize client. Error: %s", err)
 	}
 
-	t := time.Tick(LogsUploadInterval)
+	t := time.Tick(k.config.LogUploadInterval)
 	for _ = range t {
-		c := s3logrotate.New(LogsFileSizeLimit, u, logLocs...)
+		c := s3logrotate.New(int64(k.config.LogUploadLimit), u, logLocs...)
 		if err := c.ReadAndUpload(); err != nil {
-			log.Error("s3logrotate: Failed to send logs. Error: %s", err)
+			k.log.Error("s3logrotate: Failed to send logs. Error: %s", err)
 		}
 	}
-
-	return nil
 }
 
 func LogLocations() []string {

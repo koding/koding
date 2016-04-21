@@ -10,6 +10,7 @@ module.exports = class FeederAppController extends KDController
     name       : 'Feeder'
     background : yes
 
+
   constructor: (options = {}, data) ->
 
     options.view    = new KDView

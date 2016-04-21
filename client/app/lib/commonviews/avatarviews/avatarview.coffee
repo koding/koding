@@ -55,8 +55,10 @@ module.exports = class AvatarView extends LinkView
       @gravatar.setCss 'opacity', '1'
       @setCss 'background-image', 'none'
 
-    @gravatar.on 'error', =>
+    @gravatar.error = =>
       @setAvatar @getDefaultAvatarUri()
+      @gravatar.show()
+      return no
 
     @cite = new KDCustomHTMLView
       tagName     : 'cite'

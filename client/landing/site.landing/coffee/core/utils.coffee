@@ -53,9 +53,9 @@ module.exports = utils = {
   getGroupNameFromLocation: (hostname) ->
 
     { hostname }     = location  unless hostname
-    ipV4Pattern      = "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.xip\.io$"
-    subDomainPattern = "[A-Za-z0-9_]{1}[A-Za-z0-9_-]+"
-    kodingDomains    = "(?:dev|sandbox|latest|prod)"
+    ipV4Pattern      = '(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.xip\.io$'
+    subDomainPattern = '[A-Za-z0-9_]{1}[A-Za-z0-9_-]+'
+    kodingDomains    = '(?:dev|sandbox|latest|prod)'
     baseDomain       = "#{kd.config.domains.base}".replace '.', '\\.'
 
     # e.g. [teamName.]dev|sandbox|latest|prod.koding.com
