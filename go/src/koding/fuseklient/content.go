@@ -3,7 +3,6 @@ package fuseklient
 import (
 	"errors"
 	"io"
-	"koding/fuseklient/transport"
 )
 
 const (
@@ -25,7 +24,7 @@ var (
 
 // remote is requried interface to talk to remote machine.
 type remote interface {
-	ReadFileAt(string, int64, int64) (*transport.ReadFileRes, error)
+	ReadFileAt([]byte, string, int64, int64) (int, error)
 	WriteFile(string, []byte) error
 }
 
@@ -80,24 +79,18 @@ func (c *ContentReadWriter) Create() error {
 // If content has been already fetched, it returns from memory, instead of
 // fetching from remote. It returns the number of bytes read and and error, if
 // any.
-func (c *ContentReadWriter) ReadAt(p *[]byte, offset int64) (int, error) {
+func (c *ContentReadWriter) ReadAt(p []byte, offset int64) (int, error) {
 	if offset >= c.Size {
 		return 0, io.EOF
 	}
 
 	// everything is fetched from remote already, so return from it
 	if int64(len(c.content)) == c.Size {
-		copied := copy(*p, c.content[offset:])
+		copied := copy(p, c.content[offset:])
 		return copied, nil
 	}
 
-	resp, err := c.remote.ReadFileAt(*c.Path, offset, c.BlockSize)
-	if err != nil {
-		return 0, err
-	}
-
-	copied := copy(*p, resp.Content)
-	return copied, nil
+	return c.remote.ReadFileAt(p, *c.Path, offset, c.BlockSize)
 }
 
 // ResetAndRead is a helper method that zeroses out ContentReadWriter#content
@@ -116,14 +109,21 @@ func (c *ContentReadWriter) ReadAll() error {
 		return nil
 	}
 
+	// only allocate what is required
+	size := c.BlockSize
+	if c.Size < size {
+		size = c.Size
+	}
+
+	dst := make([]byte, size)
 	var offset int64 = 0
 	for offset < c.Size {
-		resp, err := c.remote.ReadFileAt(*c.Path, offset, c.BlockSize)
-		if err != nil {
+		cpd, err := c.remote.ReadFileAt(dst, *c.Path, offset, c.BlockSize)
+		if err != nil && err != io.EOF { // ignore EOF errors
 			return err
 		}
 
-		n := c.writeAt(resp.Content, offset)
+		n := c.writeAt(dst[:cpd], offset)
 		offset += int64(n)
 	}
 

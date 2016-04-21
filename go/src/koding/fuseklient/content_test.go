@@ -27,16 +27,16 @@ func TestContentReadWriterCreate(t *testing.T) {
 
 			So(cr.Create(), ShouldBeNil)
 
-			resp, err := rt.ReadFile(*cr.Path)
+			resp := make([]byte, len(cr.content))
+			_, err := rt.ReadFileAt(resp, *cr.Path, 0, int64(len(cr.content)))
 			So(err, ShouldBeNil)
-
-			So(resp.Content, ShouldResemble, []byte("Hello"))
+			So(resp, ShouldResemble, []byte("Hello"))
 		})
 	})
 }
 
 func TestContentReadWriterTruncateTo(t *testing.T) {
-	Convey("TruncateTo", t, func() {
+	SkipConvey("TruncateTo", t, func() {
 		Convey("It should add extra padding to content if specified size is greater than size", func() {
 		})
 
@@ -64,10 +64,10 @@ func TestContentReadWriterSave(t *testing.T) {
 			So(cr.WriteAt(dftCnt, 0), ShouldBeNil)
 			So(cr.Save(false), ShouldBeNil)
 
-			resp, err := rt.ReadFile(*cr.Path)
+			resp := make([]byte, len(dftCnt))
+			_, err := rt.ReadFileAt(resp, *cr.Path, 0, int64(len(dftCnt)))
 			So(err, ShouldBeNil)
-
-			So(resp.Content, ShouldResemble, dftCnt)
+			So(resp, ShouldResemble, dftCnt)
 		})
 
 		Convey("It should not save contents to remote when not dirty", func() {
