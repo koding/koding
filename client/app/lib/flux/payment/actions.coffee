@@ -1,3 +1,4 @@
+kd = require 'kd'
 appendHeadElement = require 'app/util/appendHeadElement'
 constants = require './constants'
 actionTypes = require './actiontypes'
@@ -66,8 +67,26 @@ subscribeGroupPlan = ({ dispatch, evaluate }) -> ({ token }) ->
       resolve { plan }
 
 
+loadGroupCreditCard = ({dispatch}) -> ->
+
+  {paymentController} = kd.singletons
+
+  return new Promise (resolve, reject) ->
+    dispatch actions.LOAD_GROUP_CREDIT_CARD_BEGIN
+
+    paymentController.fetchGroupCreditCard (err, card) ->
+      if err
+        dispatch actionTypes.LOAD_GROUP_CREDIT_CARD_FAIL, { err }
+        reject err
+        return
+
+      dispatch actionTypes.LOAD_GROUP_CREDIT_CARD_SUCCESS, { card }
+      resolve { card }
+
+
 module.exports = {
   loadStripeClient
   createStripeToken
   subscribeGroupPlan
+  loadGroupCreditCard
 }
