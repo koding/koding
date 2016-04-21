@@ -52,7 +52,7 @@ module.exports = class GlobalNotificationView extends JView
     else
       @adminClose = new KDCustomHTMLView
 
-  hideAndDestroy:->
+  hideAndDestroy: ->
     @once 'transitionend', @bound 'destroy'
     @hide()
 

@@ -3,6 +3,7 @@ package fusetest
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"koding/klient/remote/machine"
 	"koding/klient/remote/req"
@@ -72,14 +73,18 @@ func (kd *KD) GetMachineStatus(machineName string) (machine.MachineStatus, error
 	return info.MachineStatus, err
 }
 
-func (kd *KD) run(args ...string) error {
-	cmd := exec.Command("kd", args...)
+func (kd *KD) run_cmd(c string, args ...string) error {
+	cmd := exec.Command(c, args...)
 	// Assign stdout/etc for visible progress.
 	cmd.Stdout = kd.Stdout
 	cmd.Stderr = kd.Stderr
 	cmd.Stdin = kd.Stdin
 
 	return cmd.Run()
+}
+
+func (kd *KD) run(args ...string) error {
+	return kd.run_cmd("kd", args...)
 }
 
 func (kd *KD) Mount(machine, remoteDir, localDir string) error {
@@ -122,6 +127,13 @@ func (kd *KD) MountWithOpts(machine string, opts req.MountFolder) error {
 
 func (kd *KD) Unmount(machine string) error {
 	return kd.run("unmount", machine)
+}
+
+func (kd *KD) Restart() error {
+	// Printing a newline here, incase sudo asks the caller for password.
+	// If we don't, they might not see it, due to Convey.
+	fmt.Println("")
+	return kd.run_cmd("sudo", "kd", "restart")
 }
 
 func joinWithColon(s ...string) string {

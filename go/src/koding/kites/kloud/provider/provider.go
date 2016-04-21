@@ -2,74 +2,150 @@ package provider
 
 import (
 	"errors"
+	"fmt"
 
+	"koding/db/models"
+	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
-	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"golang.org/x/net/context"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
-// BaseStack provides shared implementation of team handler for use
-// with external provider-specific handlers.
-type BaseStack struct {
-	Log     logging.Logger
-	Req     *kite.Request
-	Builder *stackplan.Builder
-	Session *session.Session
+type BaseProvider struct {
+	Name           string
+	DB             *mongodb.MongoDB
+	Log            logging.Logger
+	Kite           *kite.Kite
+	KloudSecretKey string
+	Debug          bool
 
-	// Keys and Eventer may be nil, it depends on the context used
-	// to initialize the Stack.
-	Keys    *publickeys.Keys
-	Eventer eventer.Eventer
-
-	TraceID string
+	DNSClient  *dnsclient.Route53
+	DNSStorage *dnsstorage.MongodbStorage
+	Userdata   *userdata.Userdata
+	CredStore  stackplan.CredStore
 }
 
-// NewBaseStack builds new base stack for the given context value.
-func NewBaseStack(ctx context.Context, log logging.Logger) (*BaseStack, error) {
-	bs := &BaseStack{}
+func (bp *BaseProvider) New(name string) *BaseProvider {
+	bpCopy := *bp
+	bpCopy.Name = name
+	bpCopy.Log = bpCopy.Log.New(name)
 
-	var ok bool
-	if bs.Req, ok = request.FromContext(ctx); !ok {
-		return nil, errors.New("request not available in context")
+	return &bpCopy
+}
+
+func (bp *BaseProvider) BaseMachine(ctx context.Context, id string) (*BaseMachine, error) {
+	if !bson.IsObjectIdHex(id) {
+		return nil, fmt.Errorf("invalid machine id: %q", id)
 	}
 
-	req, ok := kloud.TeamRequestFromContext(ctx)
+	m, err := modelhelper.GetMachine(id)
+	if err == mgo.ErrNotFound {
+		return nil, kloud.NewError(kloud.ErrMachineNotFound)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("unable to get machine: %s", err)
+	}
+
+	req, ok := request.FromContext(ctx)
 	if !ok {
-		return nil, errors.New("team request not available in context")
+		return nil, errors.New("request context is not available")
 	}
 
-	if bs.Session, ok = session.FromContext(ctx); !ok {
-		return nil, errors.New("session not available in context")
+	bm := &BaseMachine{
+		Machine: m,
+		Session: &session.Session{
+			DB:         bp.DB,
+			Kite:       bp.Kite,
+			DNSClient:  bp.DNSClient,
+			DNSStorage: bp.DNSStorage,
+			Userdata:   bp.Userdata,
+			Log:        bp.Log.New(m.ObjectId.Hex()),
+		},
+		Provider: bp.Name,
+		Debug:    bp.Debug,
 	}
 
-	bs.Log = log.New(req.GroupName)
+	// NOTE(rjeczalik): "internal" method is used by (*Queue).CheckAWS
+	if req.Method != "internal" {
+		// get user model which contains user ssh keys or the list of users that
+		// are allowed to use this machine
+		if len(m.Users) == 0 {
+			return nil, errors.New("permitted users list is empty")
+		}
+
+		// get the user from the permitted list. If the list contains more than one
+		// allowed person, fetch the one that is the same as requesterName, if
+		// not pick up the first one.
+		bm.User, err = modelhelper.GetPermittedUser(req.Username, bm.Users)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := bp.ValidateUser(bm.User, bm.Users, req); err != nil {
+			return nil, err
+		}
+	}
 
 	if traceID, ok := kloud.TraceFromContext(ctx); ok {
-		bs.Log = common.NewLogger("kloud-"+req.Provider, true).New(traceID)
-		bs.TraceID = traceID
+		bm.Log = common.NewLogger("kloud-"+bp.Name, true).New(m.ObjectId.Hex()).New(traceID)
+		bm.Debug = true
+		bm.TraceID = traceID
 	}
 
-	if keys, ok := publickeys.FromContext(ctx); ok {
-		bs.Keys = keys
+	ev, ok := eventer.FromContext(ctx)
+	if ok {
+		bm.Eventer = ev
 	}
 
-	if ev, ok := eventer.FromContext(ctx); ok {
-		bs.Eventer = ev
+	bp.Log.Debug("BaseMachine: %+v", bm)
+
+	return bm, nil
+}
+
+func (bp *BaseProvider) ValidateUser(user *models.User, users []models.MachineUser, r *kite.Request) error {
+	// give access to kloudctl immediately
+	if kloud.IsKloudctlAuth(r, bp.KloudSecretKey) {
+		return nil
 	}
 
-	builderOpts := &stackplan.BuilderOptions{
-		Log: bs.Log.New("stackplan"),
+	if r.Username != user.Name {
+		return errors.New("username is not permitted to make any action")
 	}
 
-	bs.Builder = stackplan.NewBuilder(builderOpts)
+	// check for user permissions
+	if err := checkUser(user.ObjectId, users); err != nil {
+		return err
+	}
 
-	return bs, nil
+	if user.Status != "confirmed" {
+		return kloud.NewError(kloud.ErrUserNotConfirmed)
+	}
+
+	return nil
+}
+
+// checkUser checks whether the given username is available in the users list
+// and has permission
+func checkUser(userId bson.ObjectId, users []models.MachineUser) error {
+	// check if the incoming user is in the list of permitted user list
+	for _, u := range users {
+		if userId == u.Id && (u.Owner || (u.Permanent && u.Approved)) {
+			return nil // ok he/she is good to go!
+		}
+	}
+
+	return fmt.Errorf("permission denied. user not in the list of permitted users")
 }

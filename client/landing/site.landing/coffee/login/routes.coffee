@@ -28,11 +28,11 @@ do ->
       app.getView().setCustomDataToForm('reset', { recoveryToken:token })
       app.getView().animateToForm('reset')
 
-  handleUnsubscribeEmail = ({params:{token, email}}) ->
+  handleUnsubscribeEmail = ({ params: { token, email } }) ->
     utils.unsubscribeEmail token, email,
       error   : ->
       success : ->
-    new kd.NotificationView title: "You are unsubscribed from all email notifications."
+    new kd.NotificationView { title: 'You are unsubscribed from all email notifications.' }
     @clear()
 
 

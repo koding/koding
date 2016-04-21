@@ -22,6 +22,7 @@ module.exports = class MembersAppController extends AppController
     name         : 'Members'
     dependencies : [ 'Activity' ]
 
+
   { externalProfiles } = globals.config
 
   constructor: (options = {}, data) ->

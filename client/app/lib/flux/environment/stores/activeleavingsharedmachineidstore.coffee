@@ -16,5 +16,3 @@ module.exports = class ActiveLeavingSharedMachineIdStore extends KodingFluxStore
 
     return null  if activeWidgetId is id
     return id
-
-

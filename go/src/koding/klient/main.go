@@ -56,6 +56,12 @@ var (
 	flagTunnelKiteURL = flag.String("tunnel-kite-url", "", "Change default tunnel server kite URL")
 	flagNoTunnel      = flag.Bool("no-tunnel", defaultNoTunnel(), "Force tunnel connection off")
 	flagNoProxy       = flag.Bool("no-proxy", false, "Force TLS proxy for tunneled connection off")
+
+	// Upload log flags
+	flagLogBucketRegion   = flag.String("log-bucket-region", "us-west-1", "Change bucket region to upload logs")
+	flagLogBucketName     = flag.String("log-bucket-name", "koding-klient-logs", "Change bucket name to upload logs")
+	flagLogUploadLimit    = flag.Int("log-upload-limit", 1024*400, "Change file size of logs")
+	flagLogUploadInterval = flag.Duration("log-upload-interval", time.Minute*3*60, "Change interval of upload logs")
 )
 
 func main() {
@@ -99,24 +105,28 @@ func realMain() int {
 	}
 
 	conf := &app.KlientConfig{
-		Name:           protocol.Name,
-		Environment:    protocol.Environment,
-		Region:         protocol.Region,
-		Version:        protocol.Version,
-		DBPath:         dbPath,
-		IP:             *flagIP,
-		Port:           *flagPort,
-		RegisterURL:    *flagRegisterURL,
-		KontrolURL:     *flagKontrolURL,
-		Debug:          *flagDebug,
-		UpdateInterval: *flagUpdateInterval,
-		UpdateURL:      *flagUpdateURL,
-		ScreenrcPath:   *flagScreenrc,
-		VagrantHome:    vagrantHome,
-		TunnelName:     *flagTunnelName,
-		TunnelKiteURL:  *flagTunnelKiteURL,
-		NoTunnel:       *flagNoTunnel,
-		NoProxy:        *flagNoProxy,
+		Name:              protocol.Name,
+		Environment:       protocol.Environment,
+		Region:            protocol.Region,
+		Version:           protocol.Version,
+		DBPath:            dbPath,
+		IP:                *flagIP,
+		Port:              *flagPort,
+		RegisterURL:       *flagRegisterURL,
+		KontrolURL:        *flagKontrolURL,
+		Debug:             *flagDebug,
+		UpdateInterval:    *flagUpdateInterval,
+		UpdateURL:         *flagUpdateURL,
+		ScreenrcPath:      *flagScreenrc,
+		VagrantHome:       vagrantHome,
+		TunnelName:        *flagTunnelName,
+		TunnelKiteURL:     *flagTunnelKiteURL,
+		NoTunnel:          *flagNoTunnel,
+		NoProxy:           *flagNoProxy,
+		LogBucketRegion:   *flagLogBucketRegion,
+		LogBucketName:     *flagLogBucketName,
+		LogUploadLimit:    *flagLogUploadLimit,
+		LogUploadInterval: *flagLogUploadInterval,
 	}
 
 	a := app.NewKlient(conf)

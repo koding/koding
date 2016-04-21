@@ -42,6 +42,6 @@ module.exports = class IDETailerPaneProgressBar extends kd.View
 
 
   setBarWidth: (width) ->
-      
+
     width = Math.max width, INITIAL_WIDTH
     @bar.setStyle { width: "#{width}%" }

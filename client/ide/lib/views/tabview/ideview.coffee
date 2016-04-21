@@ -97,7 +97,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         when 'editor'
           tabHandle.enableContextMenu()
           tabHandle.on 'RenamingRequested', (newTitle) =>
-            pane.view.file.rename newTitle, (err)=>
+            pane.view.file.rename newTitle, (err) =>
               if err then @notify null, null, err
               @emit 'NodeRenamed', pane.view.file, newTitle
 
@@ -118,7 +118,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @tabView.on 'PaneRemoved', ({ pane, handle }) ->
       { options : { paneType } } = pane.view
-      handle.off 'RenamingRequested'  if paneType in ['terminal','editor']
+      handle.off 'RenamingRequested'  if paneType in ['terminal', 'editor']
 
 
     # This is a custom event for IDEApplicationTabView

@@ -13,5 +13,4 @@ module.exports = class ActiveMachineStore extends KodingFluxStore
 
     @on actions.MACHINE_SELECTED, @setMachineId
 
-
   setMachineId: (activeMachineId, id) -> id

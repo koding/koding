@@ -19,5 +19,3 @@ require './stores/environment/machinesworkspacesstore'
 require './stores/environment/connectedmanagedmachinestore'
 
 require '../payment/test'
-
-

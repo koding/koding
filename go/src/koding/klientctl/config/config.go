@@ -34,9 +34,17 @@ const (
 	SSHDefaultKeyName = "kd-ssh-key"
 )
 
-var kd2klient = map[string]string{
+var environments = map[string]string{
 	"production":  "managed",
 	"development": "devmanaged",
+}
+
+func kd2klient(kdEnv string) string {
+	if klientEnv, ok := environments[kdEnv]; ok {
+		return klientEnv
+	}
+
+	return "devmanaged"
 }
 
 var (
@@ -66,7 +74,7 @@ var (
 	KontrolURL = "https://koding.com/kontrol/kite"
 
 	// S3KlientLatest is URL to the latest version of the klient.
-	S3KlientLatest = "https://koding-klient.s3.amazonaws.com/" + kd2klient[Environment] + "/latest-version.txt"
+	S3KlientLatest = "https://koding-klient.s3.amazonaws.com/" + kd2klient(Environment) + "/latest-version.txt"
 
 	// S3KlientctlLatest is URL to the latest version of the klientctl.
 	S3KlientctlLatest = "https://koding-kd.s3.amazonaws.com/" + Environment + "/latest-version.txt"
@@ -118,6 +126,6 @@ func S3Klient(version int) string {
 }
 
 func S3Klientctl(version int) string {
-	return fmt.Sprintf("%s/klientctl-0.1.%d.%s_%s.gz", dirURL(S3KlientctlLatest),
+	return fmt.Sprintf("%s/kd-0.1.%d.%s_%s.gz", dirURL(S3KlientctlLatest),
 		version, runtime.GOOS, runtime.GOARCH)
 }

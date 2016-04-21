@@ -9,6 +9,7 @@ module.exports = class GuidesLinksView extends KDView
     'MySQL'        : 'https://koding.com/docs/installing-mysql/'
     'Collaboration': 'https://koding.com/docs/collaboration/'
 
+
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'guides-links', options.cssClass

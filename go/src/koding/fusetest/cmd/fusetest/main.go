@@ -27,6 +27,10 @@ var (
 
 	// Run general kd tests, not including mount setting tests.
 	miscTests bool
+
+	// Run misc tests that require sudo. These are randomly assorted, because of the
+	// use of sudo.
+	miscSudoTests bool
 )
 
 func main() {
@@ -54,6 +58,10 @@ func main() {
 		&miscTests, "misc", false,
 		"General kd tests, not including Mount/Unmount tests.",
 	)
+	flag.BoolVar(
+		&miscSudoTests, "misc-sudo", false,
+		"General kd tests that require sudo. This flag must be explicitly included. -all does not include this flag.",
+	)
 	flag.Parse()
 
 	// If all flag was given, set the reconnect depth to max. We'll set the rest of the
@@ -78,6 +86,7 @@ func main() {
 		ReconnectDepth:    reconnectDepth,
 		MountSettingTests: mountSettingTests,
 		MiscTests:         miscTests,
+		MiscSudoTests:     miscSudoTests,
 	}
 
 	f, err := fusetest.NewFusetest(mountName, opts)

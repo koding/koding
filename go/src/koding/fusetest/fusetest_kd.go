@@ -74,3 +74,48 @@ func (f *Fusetest) TestKDListMachineStatus() {
 		})
 	})
 }
+
+// Triggered with -sudo-misc opt
+func (f *Fusetest) TestKDRemount() {
+	kd := NewKD()
+	opts := f.OriginalMountOpts
+
+	f.setupConveyWithoutDir("KDRemount", func() {
+		Convey("Given there is a mount", func() {
+			err := kd.MountWithNoPrefetch(opts.Name, opts.RemotePath, opts.LocalPath)
+			So(err, ShouldBeNil)
+			defer kd.Unmount(opts.Name)
+
+			Convey("And the remote machine is off, and klient is restarted", func() {
+				So(stopRemoteKlient(f), ShouldBeNil)
+				// We start it in another test, but to be safe we also defer here, or
+				// we may leave the remote without a klient.
+				defer startRemoteKlient(f)
+				kd.Restart()
+
+				Convey("It should show Remounting", func() {
+					status, err := kd.GetMachineStatus(opts.Name)
+					So(err, ShouldBeNil)
+					So(status, ShouldEqual, machine.MachineRemounting)
+				})
+
+				Convey("When the remote is started again", func() {
+					So(startRemoteKlient(f), ShouldBeNil)
+					// TODO: When startRemoteKlient is able to run faster, we will need
+					// to pause here manually, to give local-klient time to reconnect
+					// after the disconnect. Not long though.
+
+					Convey("It should show Connected", func() {
+						status, err := kd.GetMachineStatus(opts.Name)
+						So(err, ShouldBeNil)
+						So(status, ShouldEqual, machine.MachineConnected)
+					})
+
+					Convey("It should remount", func() {
+						f.RunOperationTests()
+					})
+				})
+			})
+		})
+	})
+}

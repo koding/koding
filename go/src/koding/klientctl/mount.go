@@ -38,6 +38,7 @@ type MountOptions struct {
 	NoWatch          bool
 	PrefetchAll      bool
 	PrefetchInterval int
+	Trace            bool
 
 	// Used for Prefetching via RSync (SSH)
 	SSHDefaultKeyDir  string
@@ -147,6 +148,7 @@ func (c *MountCommand) Run() (int, error) {
 		PrefetchAll:    c.Options.PrefetchAll,
 		NoWatch:        c.Options.NoWatch,
 		CachePath:      getCachePath(c.Options.Name),
+		Trace:          c.Options.Trace,
 	}
 
 	// Actually mount the folder. Errors are printed by the mountFolder func to the user.

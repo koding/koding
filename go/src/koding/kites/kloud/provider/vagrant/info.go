@@ -98,7 +98,7 @@ var errNotFound = errors.New("the box was not found")
 func (m *Machine) status() (machinestate.State, error) {
 	// TODO(rjeczalik): We're using list instead of status to workaround
 	// TMS-2106.
-	list, err := m.api.List(m.Meta.HostQueryString)
+	list, err := m.Vagrant.List(m.Cred.QueryString)
 	if err == kite.ErrNoKitesAvailable || err == klient.ErrDialingFailed {
 		return machinestate.Stopped, nil
 	}

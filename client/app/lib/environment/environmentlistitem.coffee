@@ -129,7 +129,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleMachineRequest: (provider) ->
 
-   @sendItemAction 'NewMachineRequest', { item : provider }
+    @sendItemAction 'NewMachineRequest', { item : provider }
 
 
   destroyModal: (goBack = yes) ->

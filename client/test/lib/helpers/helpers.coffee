@@ -455,7 +455,7 @@ module.exports =
   postToSlack: (options = {}) ->
 
     if typeof options is 'string'
-      options = text: options
+      options = { text: options }
 
     options.text     or= ''
     options.channel  or= 'qa'

@@ -107,9 +107,11 @@ module.exports = class NFinderController extends KDViewController
     unless machine.status.state is Machine.State.Running
       return kd.warn "Machine '#{machine.getName()}' was not ready, I skipped it."
 
+    options.mountPath = null  if options.mountPath is '/'
+
     { uid } = machine
     mRoots  = (@appStorage.getValue 'machineRoots') or {}
-    path    = mRoots[uid] or options.mountPath or '/'
+    path    = options.mountPath or mRoots[uid] or '/'
     path   ?= '/root'  if machine.isManaged()
     path   ?= if owner = machine.getOwner()
     then "/home/#{owner}"

@@ -2,6 +2,7 @@ package tunnel_test
 
 import (
 	"fmt"
+	"net/http"
 	"reflect"
 	"testing"
 
@@ -41,8 +42,16 @@ func testWebsocket(name string, n int, t *testing.T, tt *tunneltest.TunnelTest) 
 	}
 }
 
+func testHandler(t *testing.T, fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := fn(w, r); err != nil {
+			t.Errorf("handler func error: %s", err)
+		}
+	}
+}
+
 func TestWebsocket(t *testing.T) {
-	tt, err := tunneltest.Serve(singleHTTP(handlerEchoWS(t)))
+	tt, err := tunneltest.Serve(singleHTTP(testHandler(t, handlerEchoWS(nil))))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +60,7 @@ func TestWebsocket(t *testing.T) {
 }
 
 func TestLatencyWebsocket(t *testing.T) {
-	tt, err := tunneltest.Serve(singleHTTP(handlerLatencyEchoWS(t)))
+	tt, err := tunneltest.Serve(singleHTTP(testHandler(t, handlerEchoWS(sleep))))
 	if err != nil {
 		t.Fatal(err)
 	}

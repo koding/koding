@@ -58,6 +58,10 @@ type StackProvider interface {
 // StackFunc handles execution of a single team method.
 type StackFunc func(Stacker, context.Context) (interface{}, error)
 
+func IsKloudctlAuth(r *kite.Request, key string) bool {
+	return key != "" && r.Auth != nil && r.Auth.Type == "kloudctl" && r.Auth.Key == key
+}
+
 // stackMethod routes the team method call to a requested provider.
 func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) {
 	if r.Args == nil {
@@ -76,7 +80,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		args.Provider = "aws"
 	}
 
-	if r.Auth != nil && r.Auth.Type == "kloudctl" && r.Auth.Key == KloudSecretKey {
+	if IsKloudctlAuth(r, k.SecretKey) {
 		// kloudctl is not authenticated with username, let it overwrite it
 		r.Username = args.Impersonate
 	}

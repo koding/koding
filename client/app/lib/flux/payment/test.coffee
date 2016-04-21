@@ -8,7 +8,7 @@ describe 'PaymentFlux', ->
   it 'loads stripe client', (done) ->
 
     reactor = new Reactor
-    {actions, getters} = PaymentFlux reactor
+    { actions, getters } = PaymentFlux reactor
 
     expect(global.Stripe).toNotExist()
     expect(getters.paymentValues().get 'isStripeClientLoaded').toBe no
@@ -24,7 +24,7 @@ describe 'PaymentFlux', ->
   it 'should create a stripe token', (done) ->
 
     reactor = new Reactor
-    {actions, getters} = PaymentFlux reactor
+    { actions, getters } = PaymentFlux reactor
 
     options =
       cardNumber : '4111111111111111'
@@ -39,5 +39,3 @@ describe 'PaymentFlux', ->
       done()
 
     .catch (err) -> done err
-
-

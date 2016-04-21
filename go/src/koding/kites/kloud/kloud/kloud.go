@@ -21,9 +21,6 @@ import (
 const (
 	VERSION = "0.0.1"
 	NAME    = "kloud"
-
-	// used to authenticate with Kloud directly
-	KloudSecretKey = "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
 )
 
 type Kloud struct {
@@ -53,6 +50,9 @@ type Kloud struct {
 
 	// idlock provides multiple locks per id
 	idlock *idlock.IdLock
+
+	// SecretKey is used for authentication with kloudctl tool.
+	SecretKey string
 
 	// ContextCreator is used to pass a manual context to each request. If not
 	// set context.Background()) is passed.

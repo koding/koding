@@ -103,6 +103,13 @@ func main() {
 			},
 		},
 		cli.Command{
+			Name:        "version",
+			Usage:       "Display version information.",
+			HideHelp:    true,
+			Description: cmdDescriptions["version"],
+			Action:      ctlcli.ExitAction(VersionCommand, log, "version"),
+		},
+		cli.Command{
 			Name:        "mount",
 			ShortName:   "m",
 			Usage:       "Mount a remote folder to a local folder.",
@@ -131,6 +138,10 @@ func main() {
 				cli.IntFlag{
 					Name:  "prefetch-interval",
 					Usage: "Sets how frequently folder will sync with remote, in seconds. Zero disables syncing.",
+				},
+				cli.BoolFlag{
+					Name:  "trace, t",
+					Usage: "Turn on trace logs.",
 				},
 			},
 			Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),

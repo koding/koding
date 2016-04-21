@@ -14,12 +14,15 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/cenkalti/backoff"
 	"github.com/hashicorp/yamux"
 	"github.com/koding/logging"
 )
 
 //go:generate stringer -type ClientState
+
+// ErrRedialAborted is emitted on ClientClosed event, when backoff policy
+// used by a client decided no more reconnection attempts must be made.
+var ErrRedialAborted = errors.New("unable to restore the connection, aborting")
 
 // ClientState represents client connection state to tunnel server.
 type ClientState uint32
@@ -48,6 +51,18 @@ func (cs *ClientStateChange) String() string {
 	return fmt.Sprintf("%s->%s", cs.Previous, cs.Current)
 }
 
+// Backoff defines behavior of staggering reconnection retries.
+type Backoff interface {
+	// Next returns the duration to sleep before retrying reconnections.
+	// If the returned value is negative, the retry is aborted.
+	NextBackOff() time.Duration
+
+	// Reset is used to signal a reconnection was successful and next
+	// call to Next should return desired time duration for 1st reconnection
+	// attempt.
+	Reset()
+}
+
 // Client is responsible for creating a control connection to a tunnel server,
 // creating new tunnels and proxy them to tunnel server.
 type Client struct {
@@ -65,10 +80,11 @@ type Client struct {
 	closed      bool       // if client calls Close() and quits
 	startNotify chan bool  // notifies if client established a conn to server
 
-	reqWg sync.WaitGroup
+	reqWg  sync.WaitGroup
+	ctrlWg sync.WaitGroup
 
 	// redialBackoff is used to reconnect in exponential backoff intervals
-	redialBackoff backoff.BackOff
+	redialBackoff Backoff
 
 	state ClientState
 }
@@ -114,6 +130,14 @@ type ClientConfig struct {
 	// Log defines the logger. If nil a default logging.Logger is used.
 	Log logging.Logger
 
+	// Dial provides custom transport layer for client server communication.
+	//
+	// If nil, default implementation is to return net.Dial("tcp", address).
+	//
+	// It can be used for connection monitoring, setting different timeouts or
+	// securing the connection.
+	Dial func(network, address string) (net.Conn, error)
+
 	// StateChanges receives state transition details each time client
 	// connection state changes. The channel is expected to be sufficiently
 	// buffered to keep up with event pace.
@@ -121,6 +145,16 @@ type ClientConfig struct {
 	// If nil, no information about state transitions are dispatched
 	// by the library.
 	StateChanges chan<- *ClientStateChange
+
+	// Backoff is used to control behavior of staggering reconnection loop.
+	//
+	// If nil, default backoff policy is used which makes a client to never
+	// give up on reconnection.
+	//
+	// If custom backoff is used, client will emit ErrRedialAborted set
+	// with ClientClosed event when no more reconnection atttemps should
+	// be made.
+	Backoff Backoff
 
 	// YamuxConfig defines the config which passed to every new yamux.Session. If nil
 	// yamux.DefaultConfig() is used.
@@ -165,15 +199,16 @@ func NewClient(cfg *ClientConfig) (*Client, error) {
 		return nil, err
 	}
 
-	forever := backoff.NewExponentialBackOff()
-	forever.MaxElapsedTime = 365 * 24 * time.Hour // 1 year
-
 	client := &Client{
 		config:        cfg,
 		log:           log,
 		yamuxConfig:   yamuxConfig,
-		redialBackoff: forever,
+		redialBackoff: cfg.Backoff,
 		startNotify:   make(chan bool, 1),
+	}
+
+	if client.redialBackoff == nil {
+		client.redialBackoff = newForeverBackoff()
 	}
 
 	return client, nil
@@ -206,10 +241,21 @@ func (c *Client) Start() {
 	c.redialBackoff.Reset()
 	var lastErr error
 	for {
-		c.changeState(ClientConnecting, lastErr)
+		prev := c.changeState(ClientConnecting, lastErr)
 
-		if c.isRetry() {
-			time.Sleep(c.redialBackoff.NextBackOff())
+		if c.isRetry(prev) {
+			dur := c.redialBackoff.NextBackOff()
+			if dur < 0 {
+				c.mu.Lock()
+				c.closed = true
+				c.mu.Unlock()
+
+				c.changeState(ClientClosed, ErrRedialAborted)
+
+				return
+			}
+
+			time.Sleep(dur)
 		}
 
 		identifier, err := fetchIdent()
@@ -283,8 +329,8 @@ func (c *Client) Close() error {
 	return nil
 }
 
-func (c *Client) changeState(state ClientState, err error) {
-	prev := atomic.LoadUint32((*uint32)(&c.state))
+func (c *Client) changeState(state ClientState, err error) (prev ClientState) {
+	prev = ClientState(atomic.LoadUint32((*uint32)(&c.state)))
 
 	if c.config.StateChanges != nil {
 		change := &ClientStateChange{
@@ -300,55 +346,62 @@ func (c *Client) changeState(state ClientState, err error) {
 	}
 
 	atomic.CompareAndSwapUint32((*uint32)(&c.state), uint32(prev), uint32(state))
+
+	return prev
 }
 
-func (c *Client) isRetry() bool {
-	return c.state != ClientStarted && c.state != ClientClosed
+func (c *Client) isRetry(state ClientState) bool {
+	return state != ClientStarted && state != ClientClosed
 }
 
 func (c *Client) connect(identifier, serverAddr string) error {
-	c.log.Debug("Trying to connect to '%s' with identifier '%s'", serverAddr, identifier)
-	conn, err := net.Dial("tcp", serverAddr)
+	c.log.Debug("Trying to connect to %q with identifier %q", serverAddr, identifier)
+
+	conn, err := c.dial(serverAddr)
 	if err != nil {
 		return err
 	}
 
-	remoteAddr := fmt.Sprintf("http://%s%s", conn.RemoteAddr(), controlPath)
-	c.log.Debug("CONNECT to '%s'", remoteAddr)
-	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
+	remoteUrl := controlUrl(conn)
+	c.log.Debug("CONNECT to %q", remoteUrl)
+	req, err := http.NewRequest("CONNECT", remoteUrl, nil)
 	if err != nil {
-		return fmt.Errorf("CONNECT %s", err)
+		return fmt.Errorf("error creating request to %s: %s", remoteUrl, err)
 	}
 
 	req.Header.Set(xKTunnelIdentifier, identifier)
+
 	c.log.Debug("Writing request to TCP: %+v", req)
+
 	if err := req.Write(conn); err != nil {
-		return err
+		return fmt.Errorf("writing CONNECT request to %s failed: %s", req.URL, err)
 	}
 
 	c.log.Debug("Reading response from TCP")
+
 	resp, err := http.ReadResponse(bufio.NewReader(conn), req)
 	if err != nil {
-		return fmt.Errorf("read response %s", err)
+		return fmt.Errorf("reading CONNECT response from %s failed: %s", req.URL, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 && resp.Status != connected {
 		out, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return err
+			return fmt.Errorf("tunnel server error: status=%d, error=%s", resp.StatusCode, err)
 		}
 
-		return fmt.Errorf("proxy server: %s. err: %s", resp.Status, string(out))
+		return fmt.Errorf("tunnel server error: status=%d, body=%s", resp.StatusCode, string(out))
 	}
+
+	c.ctrlWg.Wait() // wait until previous listenControl observes disconnection
 
 	c.session, err = yamux.Client(conn, c.yamuxConfig)
 	if err != nil {
-		return err
+		return fmt.Errorf("session initialization failed: %s", err)
 	}
 
 	var stream net.Conn
-
 	openStream := func() error {
 		// this is blocking until client opens a session to us
 		stream, err = c.session.Open()
@@ -359,7 +412,7 @@ func (c *Client) connect(identifier, serverAddr string) error {
 	select {
 	case err := <-async(openStream):
 		if err != nil {
-			return err
+			return fmt.Errorf("waiting for session to open failed: %s", err)
 		}
 	case <-time.After(time.Second * 10):
 		if stream != nil {
@@ -369,16 +422,16 @@ func (c *Client) connect(identifier, serverAddr string) error {
 	}
 
 	if _, err := stream.Write([]byte(ctHandshakeRequest)); err != nil {
-		return err
+		return fmt.Errorf("writing handshake request failed: %s", err)
 	}
 
 	buf := make([]byte, len(ctHandshakeResponse))
 	if _, err := stream.Read(buf); err != nil {
-		return err
+		return fmt.Errorf("reading handshake response failed: %s", err)
 	}
 
 	if string(buf) != ctHandshakeResponse {
-		return fmt.Errorf("handshake aborted. got: %s", string(buf))
+		return fmt.Errorf("invalid handshake response, received: %s", string(buf))
 	}
 
 	ct := newControl(stream)
@@ -402,7 +455,18 @@ func (c *Client) connect(identifier, serverAddr string) error {
 	return c.listenControl(ct)
 }
 
+func (c *Client) dial(serverAddr string) (net.Conn, error) {
+	if c.config.Dial != nil {
+		return c.config.Dial("tcp", serverAddr)
+	}
+
+	return net.Dial("tcp", serverAddr)
+}
+
 func (c *Client) listenControl(ct *control) error {
+	c.ctrlWg.Add(1)
+	defer c.ctrlWg.Done()
+
 	c.changeState(ClientConnected, nil)
 
 	for {
@@ -414,7 +478,7 @@ func (c *Client) listenControl(ct *control) error {
 			c.session.Close()
 			c.changeState(ClientDisconnected, err)
 
-			return err
+			return fmt.Errorf("failure decoding control message: %s", err)
 		}
 
 		c.log.Debug("Received control msg %+v", msg)

@@ -134,6 +134,11 @@ type KlientConfig struct {
 
 	NoTunnel bool
 	NoProxy  bool
+
+	LogBucketRegion   string
+	LogBucketName     string
+	LogUploadLimit    int
+	LogUploadInterval time.Duration
 }
 
 // NewKlient returns a new Klient instance
