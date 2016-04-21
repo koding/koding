@@ -3,7 +3,7 @@ React = require 'kd-react'
 ReactView = require 'app/react/reactview'
 PaymentInformation = require './components/paymentinformation'
 
-module.exports = class HomeTeamBillingForm extends ReactView
+module.exports = class HomeTeamBillingPaymentInformation extends ReactView
 
   constructor: (options = {}, data) ->
 
@@ -12,5 +12,5 @@ module.exports = class HomeTeamBillingForm extends ReactView
     super options, data
 
 
-  renderReact: -> <PaymentInformation />
+  renderReact: -> <PaymentInformation.Container />
 
