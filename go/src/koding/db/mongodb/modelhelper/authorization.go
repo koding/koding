@@ -116,22 +116,9 @@ func (store *MongoStorage) SetClient(id string, client osin.Client) error {
 
 // func (store *MongoStorage) SaveAuthorize(data *osin.AuthorizeData) error {
 func (store *MongoStorage) SaveAuthorize(data *osin.AuthorizeData) error {
-	// client := new(AuthorizeData)
 	client := removeClientFromAuthorize(data)
 	query := insertQuery(client)
 	return Mongo.Run(AuthorizeColl, query)
-}
-
-func removeClientFromAuthorize(osinData *osin.AuthorizeData) *AuthorizeData {
-	auth := &AuthorizeData{}
-	auth.Code = osinData.Code
-	auth.ExpiresIn = osinData.ExpiresIn
-	auth.Scope = osinData.Scope
-	auth.RedirectUri = osinData.RedirectUri
-	auth.State = osinData.State
-	auth.CreatedAt = osinData.CreatedAt
-	auth.UserData = osinData.UserData
-	return auth
 }
 
 // func (store *MongoStorage) LoadAuthorize(code string) (*osin.AuthorizeData, error) {
@@ -168,7 +155,9 @@ func (store *MongoStorage) RemoveAuthorize(code string) error {
 // func (store *MongoStorage) SaveAccess(data *osin.AccessData) error {
 //TODO change inside of mongo!!!
 func (store *MongoStorage) SaveAccess(data *osin.AccessData) error {
-	query := updateQuery(Selector{"accesstoken": data.AccessToken}, data)
+	// query := insertQuery(Selector{"accesstoken": acc.AccessToken}, acc)
+	acc := removeExtraFieldsFromAccess(data)
+	query := insertQuery(acc)
 	return Mongo.Run(AccessColl, query)
 }
 
@@ -362,4 +351,33 @@ func (store *MongoStorage) createAccessData(copyFrom *AccessData, osinData *osin
 	}
 
 	return osinData
+}
+
+func removeClientFromAuthorize(osinData *osin.AuthorizeData) *AuthorizeData {
+	auth := &AuthorizeData{}
+	auth.Code = osinData.Code
+	auth.ExpiresIn = osinData.ExpiresIn
+	auth.Scope = osinData.Scope
+	auth.RedirectUri = osinData.RedirectUri
+	auth.State = osinData.State
+	auth.CreatedAt = osinData.CreatedAt
+	auth.UserData = osinData.UserData
+
+	return auth
+}
+
+func removeExtraFieldsFromAccess(osinData *osin.AccessData) *AccessData {
+	acc := &AccessData{}
+	acc.AccessToken = osinData.AccessToken
+	acc.RefreshToken = osinData.RefreshToken
+	acc.ExpiresIn = osinData.ExpiresIn
+	acc.Scope = osinData.Scope
+	acc.RedirectUri = osinData.RedirectUri
+	acc.CreatedAt = osinData.CreatedAt
+	acc.UserData = osinData.UserData
+	if osinData.AccessData != nil {
+		acc.AccessData = removeExtraFieldsFromAccess(osinData.AccessData)
+	}
+
+	return acc
 }
