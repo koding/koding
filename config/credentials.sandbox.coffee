@@ -174,7 +174,7 @@ module.exports = (options) ->
       returnUrl: "#{options.customDomain.public}/-/payments/paypal/return"
       cancelUrl: "#{options.customDomain.public}/-/payments/paypal/cancel"
       isSandbox: yes
-      formUrl: 'https://www.paypal.com/incontext'
+      formUrl: 'https://www.sandbox.paypal.com/incontext'
     janitor =
       port: "6700"
       secretKey: "janitorsecretkey-#{options.configName}"
