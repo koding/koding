@@ -32,7 +32,7 @@ module.exports = (KONFIG, credentials, options) ->
       github             : { nicename: 'GitHub', urlLocation: 'html_url' }
     entryPoint           : { slug:'koding'     , type:'group' }
     troubleshoot         : { idleTime: 1000 * 60 * 60, externalUrl: "https://s3.amazonaws.com/koding-ping/healthcheck.json" }
-    stripe               : { token: 'pk_test_2x9UxMl1EBdFtwT5BRfOHxtN' }
+    stripe               : { token: credentials.stripe.publicToken }
     broker               : { uri: "/subscribe" }
     google               : { apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo' }
     paypal               : { formUrl: credentials.paypal.formUrl }
