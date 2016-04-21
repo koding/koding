@@ -12,8 +12,7 @@ module.exports =
     setValue: (type, value) ->
       dispatch actionTypes.SET_TEAM_BILLING_INPUT_VALUE, { type, value }
 
-  getters:
-    values: [FormValuesStore.getterPath]
+  getters: require './getters'
 
   register: (reactor) -> reactor.registerStores @stores
 
