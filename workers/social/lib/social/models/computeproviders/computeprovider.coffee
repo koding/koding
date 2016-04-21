@@ -34,7 +34,7 @@ module.exports = class ComputeProvider extends Base
     instances    : 'member_instances'
 
   @share()
-
+  
   @set
     permissions           :
       'sudoer'            : []
