@@ -50,7 +50,23 @@ createStripeToken = ({ dispatch, evaluate }) -> (options) ->
         resolve { token }
 
 
-subscribeGroupPlan = ({ dispatch, evaluate }) -> ({ token }) ->
+loadGroupPlan = ({ dispatch, evaluate }) -> ->
+
+  { paymentController } = kd.singletons
+
+  return new Promise (resolve, reject) ->
+    dispatch actionTypes.LOAD_GROUP_PLAN_BEGIN
+
+    paymentController.fetchGroupPlan token, (err, plan) ->
+      if err
+        dispatch actionTypes.LOAD_GROUP_PLAN_FAIL, { err }
+        reject err
+        return
+
+      dispatch actionTypes.LOAD_GROUP_PLAN_SUCCESS, { plan }
+      resolve { plan }
+
+
 subscribeGroupPlan = ({ dispatch, evaluate }) -> ({ token, email }) ->
 
   { paymentController } = kd.singletons
@@ -70,10 +86,10 @@ subscribeGroupPlan = ({ dispatch, evaluate }) -> ({ token, email }) ->
 
 loadGroupCreditCard = ({dispatch}) -> ->
 
-  {paymentController} = kd.singletons
+  { paymentController } = kd.singletons
 
   return new Promise (resolve, reject) ->
-    dispatch actions.LOAD_GROUP_CREDIT_CARD_BEGIN
+    dispatch actionTypes.LOAD_GROUP_CREDIT_CARD_BEGIN
 
     paymentController.fetchGroupCreditCard (err, card) ->
       if err
@@ -88,6 +104,7 @@ loadGroupCreditCard = ({dispatch}) -> ->
 module.exports = {
   loadStripeClient
   createStripeToken
+  loadGroupPlan
   subscribeGroupPlan
   loadGroupCreditCard
 }
