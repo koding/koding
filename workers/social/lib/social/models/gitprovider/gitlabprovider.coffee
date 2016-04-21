@@ -3,29 +3,75 @@ helpers     = require './utils/helpers'
 async       = require 'async'
 URL         = require 'url'
 _           = require 'lodash'
+GitlabAPI   = require 'node-gitlab'
+KodingError = require '../../error'
 
-module.exports = GitHubProvider =
+module.exports = GitLabProvider =
 
-  importStackTemplateByUrl: (url, user, callback) ->
+  importStackTemplateData: (importParams, user, callback) ->
 
+    { url, privateToken } = importParams
     return  unless urlData = @parseImportUrl url
 
-    @importStackTemplateWithRawUrl urlData, callback
+    if privateToken
+      @importStackTemplateWithPrivateToken privateToken, urlData, callback
+    else
+      @importStackTemplateWithRawUrl urlData, callback
+
     return yes
 
 
   parseImportUrl: (url) ->
 
-    { GITLAB_HOST }        = Constants
-    { hostname, pathname } = URL.parse url
+    { GITLAB_HOST } = Constants
+    { protocol, host, pathname } = URL.parse url
 
-    return  unless hostname is GITLAB_HOST
+    return  unless host is GITLAB_HOST
 
     [ empty, user, repo, tree, branch, rest... ] = pathname.split '/'
     return  if rest.length > 0
 
     branch ?= 'master'
-    return { originalUrl : url, user, repo, branch }
+    baseUrl = "#{protocol}//#{host}"
+    return { originalUrl : url, baseUrl, user, repo, branch }
+
+
+  importStackTemplateWithPrivateToken: (privateToken, urlData, callback) ->
+
+    { baseUrl, user, repo, branch } = urlData
+    { TEMPLATE_PATH, README_PATH }  = Constants
+
+    gitlab = GitlabAPI.create {
+      api  : "#{baseUrl}/api/v3"
+      privateToken
+    }
+
+    queue = [
+      (next) ->
+        gitlab.projects.list (err, projects) ->
+          return next err  if err
+          project = projects.filter((item) -> item.path_with_namespace is "#{user}/#{repo}")[0]
+          if project
+          then next null, project.id
+          else next new KodingError 'No repository found'
+
+      (projectId, next) ->
+        params = { id : projectId, ref : branch, file_path : TEMPLATE_PATH }
+        gitlab.repositoryFiles.get params, (err, file) ->
+          return next err  if err
+          rawContent = helpers.decodeContent file
+          next null, projectId, rawContent
+
+      (projectId, rawContent, next) ->
+        params = { id : projectId, ref : branch, file_path : README_PATH }
+        gitlab.repositoryFiles.get params, (err, file) ->
+          description = helpers.decodeContent file  if file
+          next null, { rawContent, description }
+    ]
+
+    async.waterfall queue, (err, result) ->
+      return callback err  if err
+      callback null, _.extend result, urlData
 
 
   importStackTemplateWithRawUrl: (urlData, callback) ->
@@ -40,6 +86,7 @@ module.exports = GitHubProvider =
           path   : "/#{user}/#{repo}/raw/#{branch}/#{TEMPLATE_PATH}"
           method : 'GET'
         helpers.loadRawContent options, next
+
       (next) ->
         options =
           host   : GITLAB_HOST

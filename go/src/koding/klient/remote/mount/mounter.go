@@ -33,14 +33,6 @@ const (
 	// Messages displayed to the user about the machines status.
 	autoRemountFailed = "Error auto-mounting. Please unmount & mount again."
 	autoRemounting    = "Remounting after extended disconnect. Please wait..."
-
-	// retryMounterCount and retryMounterPause is the number of times
-	// fuseMountFolder will try a failing mount.
-	//
-	// TODO: Move this into the Mounter, once Mounter is refactored per design
-	// mtg spec.
-	retryMounterCount = 30
-	retryMounterPause = 5 * time.Second
 )
 
 var (
@@ -206,7 +198,7 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 	// TODO: Uncomment this once fuseklient can accept a change channel.
 	//changes := changeSummaryToBool(changeSummaries)
 	//if err := fuseMountFolder(mount, changes); err != nil {
-	if err := m.fuseMountFolder(mount, true); err != nil {
+	if err := m.fuseMountFolder(mount); err != nil {
 		return err
 	}
 
@@ -217,12 +209,11 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 
 // fuseMountFolder uses the fuseklient library to mount the given
 // folder.
-func (m *Mounter) fuseMountFolder(mount *Mount, retry bool) error {
+func (m *Mounter) fuseMountFolder(mount *Mount) error {
 	var (
 		t   transport.Transport
 		err error
 	)
-	log := m.Log.New("fuseMountFolder")
 
 	t, err = transport.NewRemoteTransport(m.Transport, fuseTellTimeout, mount.RemotePath)
 	if err != nil {
@@ -251,37 +242,18 @@ func (m *Mounter) fuseMountFolder(mount *Mount, retry bool) error {
 		Trace:          mount.Trace,
 	}
 
-	var (
-		f  fuseklient.FS
-		fs *fuse.MountedFileSystem
-	)
-
-	retryFn := func() error {
-		f, err = fuseklient.New(t, cf)
-		if isRemotePathError(err) {
-			return ErrRemotePathDoesNotExist
-		} else if err != nil {
-			return err
-		}
-
-		mount.MountedFS = f
-		mount.Unmounter = f
-
-		if fs, err = f.Mount(); err != nil {
-			return err
-		}
-
-		return nil
+	f, err := fuseklient.New(t, cf)
+	if isRemotePathError(err) {
+		return ErrRemotePathDoesNotExist
+	} else if err != nil {
+		return err
 	}
 
-	// by "Blacklisting" ErrRemotePathDoesNotExist, the retryOnErr func will
-	// not retry if the remote path does not exist.
-	retryBlacklist := []error{ErrRemotePathDoesNotExist}
-	err = retryOnErr(
-		retryMounterCount, retryMounterPause, retryBlacklist, log.New("retryMounting"),
-		retryFn,
-	)
-	if err != nil {
+	mount.MountedFS = f
+	mount.Unmounter = f
+
+	var fs *fuse.MountedFileSystem
+	if fs, err = f.Mount(); err != nil {
 		return err
 	}
 
@@ -323,7 +295,7 @@ func (mounter *Mounter) remount(mount *Mount) error {
 		mounter.Log.Warning("Mounter#remount unmount on %s failed: %s...ignoring error", mount.MountName, err)
 	}
 
-	if err := mounter.fuseMountFolder(mount, true); err != nil {
+	if err := mounter.fuseMountFolder(mount); err != nil {
 		return err
 	}
 
@@ -358,40 +330,4 @@ func isRemotePathError(err error) bool {
 	}
 
 	return false
-}
-
-// retryOnErr will retry calling f() a number of times, ignoring any errors that
-// are returned. If a returned error is in the blacklisted slice, it is *not*
-// ignored, and *is* returned.
-func retryOnErr(count int, delay time.Duration, blacklist []error, log logging.Logger, f func() error) error {
-	var (
-		err error
-	)
-
-	for i := 0; i < count; i++ {
-		if err = f(); err == nil {
-			return nil
-		}
-
-		for _, ignore := range blacklist {
-			if err == ignore {
-				return err
-			}
-		}
-
-		if log != nil && i+1 < count {
-			log.Notice("Ignoring retry error, retrying in %s. err:%s", delay, blacklist)
-		}
-
-		time.Sleep(delay)
-	}
-
-	if log != nil {
-		log.Notice(
-			"Retry failures exceeded max count. count:%d, delay:%s, lastErr:%s",
-			count, delay, err,
-		)
-	}
-
-	return err
 }
