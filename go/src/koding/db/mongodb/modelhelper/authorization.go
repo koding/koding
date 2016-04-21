@@ -331,7 +331,13 @@ func (store *MongoStorage) createAccessData(copyFrom *AccessData, osinData *osin
 	// we cannot assign access data to our Access data
 	// struct fields are different from each other....
 	//TODO
+
 	// osinData.AccessData = copyFrom.AccessData
+
+	if copyFrom.AccessData != nil {
+		osinAccessData := store.createAccessData(copyFrom.AccessData, &osin.AccessData{})
+		osinData.AccessData = osinAccessData
+	}
 
 	osinData.AccessToken = copyFrom.AccessToken
 	osinData.RefreshToken = copyFrom.RefreshToken
