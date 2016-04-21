@@ -26,3 +26,6 @@ module.exports = class CreditCardContainer extends React.Component
       onInputValueChange={CardFormValues.actions.setValue}
       formValues={@state.formValues}
       card={@state.paymentValues.get 'groupCreditCard'} />
+
+
+CreditCardContainer.include [KDReactorMixin]
