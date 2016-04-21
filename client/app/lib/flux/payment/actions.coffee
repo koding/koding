@@ -69,4 +69,5 @@ subscribeGroupPlan = ({ dispatch, evaluate }) -> ({ token }) ->
 module.exports = {
   loadStripeClient
   createStripeToken
+  subscribeGroupPlan
 }
