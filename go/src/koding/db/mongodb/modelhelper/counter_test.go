@@ -107,7 +107,7 @@ func TestCounter(t *testing.T) {
 
 		got, err := CounterByID(c.ID)
 		if err != nil {
-			t.Errorf("%d (%s): CounterByID()=%d", i, c.ID.Hex(), err)
+			t.Errorf("%d (%s): CounterByID()=%s", i, c.ID.Hex(), err.Error())
 			continue
 		}
 
