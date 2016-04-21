@@ -38,6 +38,7 @@ Configuration = (options={}) ->
   options.socialQueueName = "koding-social-#{options.configName}"
   options.sendEventsToSegment = yes
   options.scheme = 'http'
+  options.suppressLogs = no
 
   if options.ngrok
     options.scheme = 'https'
