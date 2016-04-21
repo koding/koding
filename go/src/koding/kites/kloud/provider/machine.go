@@ -9,6 +9,8 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
+
+	"github.com/koding/kite"
 )
 
 var DefaultKlientTimeout = 5 * time.Minute
@@ -18,10 +20,11 @@ type BaseMachine struct {
 	*session.Session `bson:"-"`
 
 	// Fields set by (*Provider).BaseMachine
-	Provider string       `bson:"-"`
-	TraceID  string       `bson:"-"`
-	Debug    bool         `bson:"-"`
-	User     *models.User `bson:"-"`
+	Provider string        `bson:"-"`
+	TraceID  string        `bson:"-"`
+	Debug    bool          `bson:"-"`
+	User     *models.User  `bson:"-"`
+	Req      *kite.Request `bson:"-"`
 
 	// Fields configured by concrete provider.
 	KlientTimeout time.Duration `bson:"-"`
@@ -29,6 +32,16 @@ type BaseMachine struct {
 
 func (bm *BaseMachine) ProviderName() string {
 	return bm.Provider
+}
+
+// Username gives name of user that owns the machine or requested an
+// action on the machine.
+func (bm *BaseMachine) Username() string {
+	if bm.User != nil {
+		return bm.User.Name
+	}
+
+	return bm.Req.Username
 }
 
 // State returns the machinestate of the machine.

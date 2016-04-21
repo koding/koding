@@ -36,7 +36,7 @@ import (
 	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/provider/vagrant"
 	"koding/kites/kloud/queue"
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stackplan/stackcred"
 	"koding/kites/kloud/userdata"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -61,6 +61,9 @@ type Config struct {
 
 	// Endpoint for fetching plans
 	PlanEndpoint string `required:"true"`
+
+	// CredentialEndpoint is an API for managing stack credentials.
+	CredentialEndpoint string `required:"true"`
 
 	// Endpoint for fetching user machine network usage
 	NetworkUsageEndpoint string `required:"true"`
@@ -245,6 +248,12 @@ func newKite(conf *Config) *kite.Kite {
 		"paymentwebhook": conf.PaymentwebhookSecretKey,
 	}
 
+	storeOpts := &stackcred.StoreOptions{
+		MongoDB:            sess.DB,
+		Log:                sess.Log.New("mongocred"),
+		CredentialEndpoint: conf.CredentialEndpoint,
+	}
+
 	bp := &provider.BaseProvider{
 		DB:             sess.DB,
 		Log:            sess.Log,
@@ -252,10 +261,7 @@ func newKite(conf *Config) *kite.Kite {
 		Userdata:       sess.Userdata,
 		Debug:          conf.DebugMode,
 		KloudSecretKey: conf.KloudSecretKey,
-		CredStore: &stackplan.MongoCredStore{
-			MongoDB: sess.DB,
-			Log:     sess.Log.New("mongocred"),
-		},
+		CredStore:      stackcred.NewStore(storeOpts),
 	}
 
 	awsProvider := &awsprovider.Provider{

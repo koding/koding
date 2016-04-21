@@ -83,9 +83,8 @@ func loadManager(config *config.Config) (*sneaker.Manager, error) {
 		Envelope: sneaker.Envelope{
 			KMS: kms.New(session),
 		},
-		Bucket:            u.Host,
-		Prefix:            u.Path,
-		EncryptionContext: nil,
-		KeyId:             config.SneakerS3.SneakerMasterKey,
+		Bucket: u.Host,
+		Prefix: u.Path,
+		KeyId:  config.SneakerS3.SneakerMasterKey,
 	}, nil
 }

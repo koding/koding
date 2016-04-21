@@ -93,7 +93,7 @@ var _ kloud.StackProvider = (*Provider)(nil)
 
 // Stack
 func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
-	bs, err := provider.NewBaseStack(ctx, p.Log)
+	bs, err := p.BaseStack(ctx)
 	if err != nil {
 		return nil, err
 	}
