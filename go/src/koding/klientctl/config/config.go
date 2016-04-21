@@ -53,7 +53,7 @@ var (
 	// version on S3 bucket.
 	//
 	// Version is overwritten during deploy via linker flag.
-	Version = "35"
+	Version = "0"
 
 	// Environment is the target channel of klientctl. This value is used
 	// to register with Kontrol and to install klient.
