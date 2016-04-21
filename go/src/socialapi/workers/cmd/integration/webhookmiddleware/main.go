@@ -78,7 +78,7 @@ func addHandlers(m *mux.Mux, h *integration.Handler) {
 func RegisterServices(sf *services.Services, conf *config.Config, serviceConf *services.ServiceConfig, log logging.Logger) {
 	githubService, err := RegisterGithubService(sf, conf, serviceConf)
 	if err != nil {
-		panic(err)
+		log.Fatal("Could not initialize github service: %s", err)
 	}
 
 	pivotalService, err := RegisterPivotalService(sf, conf, serviceConf)

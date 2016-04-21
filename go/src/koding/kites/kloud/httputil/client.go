@@ -20,10 +20,10 @@ type ClientConfig struct {
 	Jar                   http.CookieJar // a cookie jar for http.Client
 
 	// Dialer options.
-	Director     func(net.Conn) // when non-nil called by dialer after each successful Dial
-	TickInterval time.Duration  // interval between connection checks
-	Log          logging.Logger // used for logging
-	DebugTCP     bool           // prints stack trace of Dial for each misbehaving connection
+	Director        func(net.Conn) // when non-nil called by dialer after each successful Dial
+	TickInterval    time.Duration  // interval between connection checks
+	Log             logging.Logger // used for logging
+	TraceLeakedConn bool           // makes Dialer trace connections and print stack trace for each leaked
 }
 
 // NewClient gives new HTTP client created for the given configuration.

@@ -89,6 +89,10 @@ func NewGithub(conf GithubConfig) (Github, error) {
 		Log:          log,
 	}
 
+	if conf.Secret == "" {
+		return Github{}, errors.New("no github secret provided")
+	}
+
 	wh := webhook.New(conf.Secret, gl)
 	wh.ContextFunc = githubContextCreator
 
