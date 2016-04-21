@@ -23,4 +23,10 @@ module.exports = class HomeTeamBillingFormValuesStore extends KodingFluxStore
     @on actionTypes.SET_TEAM_BILLING_INPUT_VALUE, handleSetValue
 
 
-handleSetValue = (values, { type, value }) -> values.set type, value
+handleSetValue = (values, { type, value }) ->
+  values.withMutations (values) ->
+    values
+      .set 'isEdited', yes
+      .set type, value
+
+
