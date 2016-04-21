@@ -7,15 +7,7 @@ module.exports = class HomeTeamBillingFormValuesStore extends KodingFluxStore
 
   @getterPath = 'HomeTeamBillingFormValuesStore'
 
-  getInitialState: ->
-    return toImmutable
-      number: ''
-      expirationMonth: ''
-      expirationYear: ''
-      cvc: ''
-      nickname: ''
-      fullName: ''
-      email: ''
+  getInitialState: -> defaultValues()
 
 
   initialize: ->
@@ -29,4 +21,14 @@ handleSetValue = (values, { type, value }) ->
       .set 'isEdited', yes
       .set type, value
 
+
+defaultValues = ->
+  return toImmutable
+    number: ''
+    expirationMonth: ''
+    expirationYear: ''
+    cvc: ''
+    fullName: ''
+    email: ''
+    isEdited: no
 
