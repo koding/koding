@@ -20,12 +20,6 @@ module.exports = class PaymentInformation extends React.Component
 
     <section className='HomeAppView--section billing'>
       <fieldset>
-        <label>Card Nickname:</label>
-        <input
-          className={inputClass 'card-nickname'}
-          value={@pickValue 'nickname'}
-          onChange={@sendValue 'nickname'}
-          placeholder='Enter a nickname' />
         <label>Full Name:</label>
         <input
           className={inputClass 'full-name'}
