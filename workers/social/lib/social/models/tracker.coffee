@@ -53,27 +53,11 @@ module.exports = class Tracker extends bongo.Base
     STACKS_REINIT             : 'reinitialized stack'
     STACKS_DELETE             : 'deleted stack'
 
-  @mailEvents = [
-  # 'START_REGISTER'  # it's an email event but not required for basic emails ~ GG
-    'REQUEST_NEW_PASSWORD'
-    'CHANGED_PASSWORD'
-    'REQUEST_EMAIL_CHANGE'
-    'CHANGED_EMAIL'
-    'INVITED_TEAM'
-    'INVITED_CREATE_TEAM'
-  ]
-
   @properties = {}
 
   @properties[@types.FINISH_REGISTER] = {
     category: 'NewAccount', label: 'VerifyAccount'
   }
-
-  @isEmailEvent = (event) ->
-
-    return yes  for type, val of @types when val is event and type in @mailEvents
-    return no
-
 
   @identifyAndTrack = (username, event, eventProperties = {}, callback = -> ) ->
     @identify username, {}, (err) =>

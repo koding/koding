@@ -18,7 +18,6 @@ webPort               = argv.p ? webserver.port
 { generateHumanstxt } = require './humanstxt'
 csrf                  = require './csrf'
 { NodejsProfiler }    = require 'koding-datadog'
-mqConn                = require './amqp'
 
 do ->
   cookieParser = require 'cookie-parser'
