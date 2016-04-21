@@ -39,6 +39,7 @@ Configuration = (options={}) ->
   options.sendEventsToSegment = yes
   options.scheme = 'https'
   options.suppressLogs = no
+  options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
 
   options.host = options.hostname
   # if options.ngrok

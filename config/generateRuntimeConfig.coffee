@@ -11,6 +11,7 @@ module.exports = (KONFIG, credentials, options) ->
     resourceName         : options.socialQueueName
     sendEventsToSegment  : options.sendEventsToSegment
     suppressLogs         : options.suppressLogs
+    paymentBlockDuration : options.paymentBlockDuration
     siftScience          : credentials.siftSciencePublic
     sessionCookie        : KONFIG.sessionCookie
     collaboration        : KONFIG.collaboration
@@ -21,7 +22,6 @@ module.exports = (KONFIG, credentials, options) ->
     mainUri              :  "/"
     fileFetchTimeout     : 1000 * 15
     userIdleMs           : 1000 * 60 * 5
-    paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
     kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     externalProfiles     :
       google             : { nicename: 'Google' }
