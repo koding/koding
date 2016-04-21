@@ -25,15 +25,15 @@ module.exports = class Member extends React.Component
     items = []
     
     if role is 'owner'
-      items.push { title: 'MAKE MEMBER', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
+      items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
     else if role is 'admin'
-      items.push { title: 'MAKE MEMBER', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
-      items.push { title: 'MAKE OWNER', key: 'mameowner', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
-      items.push { title: 'DISABLE USER', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }
+      items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
+      items.push { title: 'Make owner', key: 'mameowner', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
+      items.push { title: 'Disable user', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }
     else
-      items.push { title: 'MAKE OWNER', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
-      items.push { title: 'MAKE ADMIN', key: 'makeadmin', onClick: @props.handleRoleChange.bind(this, @props.member, 'admin') }
-      items.push { title: 'DISABLE USER', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }
+      items.push { title: 'Make owner', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
+      items.push { title: 'Make admin', key: 'makeadmin', onClick: @props.handleRoleChange.bind(this, @props.member, 'admin') }
+      items.push { title: 'Disable user', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }
       
     return items
 
