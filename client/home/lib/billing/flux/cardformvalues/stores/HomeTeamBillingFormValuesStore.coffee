@@ -5,6 +5,8 @@ actionTypes = require '../actiontypes'
 
 module.exports = class HomeTeamBillingFormValuesStore extends KodingFluxStore
 
+  @getterPath = 'HomeTeamBillingFormValuesStore'
+
   getInitialState: ->
     return toImmutable
       number: ''
@@ -15,7 +17,7 @@ module.exports = class HomeTeamBillingFormValuesStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actions.SET_TEAM_BILLING_INPUT_VALUE, handleSetValue
+    @on actionTypes.SET_TEAM_BILLING_INPUT_VALUE, handleSetValue
 
 
 handleSetValue = (values, { type, value }) -> values.set type, value
