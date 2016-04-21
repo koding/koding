@@ -120,11 +120,6 @@ Configuration = (options={}) ->
   if publicPort isnt '80'
     local = "#{local}:#{publicPort}"
 
-  # ------------------------------- 8< -------------
-  scheme = 'http'
-  host   = "koding-#{process.env.USER}.oud.cc:4480"
-  # ------------------------------- 8< -------------
-
   customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://#{hostname}", port: 8090 }
 
   email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    defaultEmail                            , defaultFromName:    'Koding'                    , forcedRecipientEmail: "#{process.env.USER}@koding.com", forcedRecipientUsername: "#{process.env.USER}"                      }
