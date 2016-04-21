@@ -128,12 +128,32 @@ func AddHandlers(m *mux.Mux) {
 	// CreditCard
 	//----------------------------------------------------------
 
+	// this is same /payments/account/creditcard/{accountId}, here for backwards
+	// compatibilty
 	m.AddHandler(
 		handler.Request{
-			Handler:  CreditCardRequest,
+			Handler:  AccountCreditCardRequest,
 			Name:     "payment-creditcard",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/creditcard/{accountId}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  AccountCreditCardRequest,
+			Name:     "payment-account-creditcard",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/account/creditcard/{accountId}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  GroupCreditCardRequest,
+			Name:     "payment-group-creditcard",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/group/creditcard/{groupId}",
 		},
 	)
 
