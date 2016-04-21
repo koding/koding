@@ -80,9 +80,9 @@ func (d *DualTransport) Exec(cmd string) (*ExecRes, error) {
 	return d.RemoteTransport.Exec(cmd)
 }
 
-// GetDiskInfo is sent to CacheTransport only.
+// GetDiskInfo is sent to RemoteTransport only.
 func (d *DualTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
-	return d.CacheTransport.GetDiskInfo(path)
+	return d.RemoteTransport.GetDiskInfo(path)
 }
 
 // GetInfo is sent to CacheTransport only.
