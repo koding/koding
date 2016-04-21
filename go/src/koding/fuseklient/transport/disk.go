@@ -66,10 +66,6 @@ func (d *DiskTransport) Remove(path string) error {
 	return remove(d.fullPath(path), true)
 }
 
-func (d *DiskTransport) ReadFile(dst []byte, path string) (int, error) {
-	return readFile(dst, d.fullPath(path), 0, 0)
-}
-
 func (d *DiskTransport) ReadFileAt(dst []byte, path string, offset, blockSize int64) (int, error) {
 	return readFile(dst, d.fullPath(path), offset, blockSize)
 }

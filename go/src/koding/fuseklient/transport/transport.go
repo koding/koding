@@ -18,9 +18,6 @@ type Transport interface {
 	// Remove (recursively) removes the entries in the specified path.
 	Remove(string) error
 
-	// ReadFile reads file at specified path and return its contents.
-	//ReadFile([]byte, string) error
-
 	// ReadFileAt reads file at specified offset and path with specified block
 	// size and returns it contents.
 	ReadFileAt([]byte, string, int64, int64) (int, error)
