@@ -38,6 +38,7 @@ module.exports =
       .click                  'button[testpath=domain-button]'
       .pause                  2000 # wait for modal change
 
+    console.log 'enterTeamURL'
 
   fillUsernamePasswordForm: (browser, user, invalidUserName = no) ->
 
@@ -144,6 +145,20 @@ module.exports =
     return user
 
 
+  checkForgotPassword: (browser, user, callback) ->
+
+    modalSelector   = '.kdview.kdtabpaneview.username'
+    sectionSelector = "#{modalSelector} section"
+    browser
+      .waitForElementVisible modalSelector, 20000
+      .click                 '.TeamsModal-button-link a'
+      .pause                 2000
+      .waitForElementVisible sectionSelector, 20000
+      .pause                 2000
+      .click                 '.TeamsModal-button-link a'
+      .pause                 2000
+
+
   createTeam: (browser, user, inviteOrCreateLink, invalidCredentials = no, callback) ->
 
     modalSelector       = '.TeamsModal.TeamsModal--create'
@@ -175,6 +190,7 @@ module.exports =
           .pause                 2500
 
         @enterTeamURL(browser)
+        @checkForgotPassword(browser)
 
         if invalidCredentials
           @fillUsernamePasswordForm(browser, user, yes)
