@@ -120,6 +120,11 @@ Configuration = (options={}) ->
   if publicPort isnt '80'
     local = "#{local}:#{publicPort}"
 
+  # ------------------------------- 8< -------------
+  scheme = 'http'
+  host   = "koding-#{process.env.USER}.oud.cc:4480"
+  # ------------------------------- 8< -------------
+
   customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://#{hostname}", port: 8090 }
 
   email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    defaultEmail                            , defaultFromName:    'Koding'                    , forcedRecipientEmail: "#{process.env.USER}@koding.com", forcedRecipientUsername: "#{process.env.USER}"                      }
@@ -283,6 +288,7 @@ Configuration = (options={}) ->
     boxproxy                       : {port          : 8090 }
     sourcemaps                     : {port          : 3526 }
     rerouting                      : {port          : 9500 }
+    emailer                        : {port          : 9600 }
     kloud                          : kloud
     terraformer                    : terraformer
     kontrol                        : kontrol
@@ -472,6 +478,13 @@ Configuration = (options={}) ->
         command         : "./watch-node #{projectRoot}/workers/auth/index.js -c #{configName} -p #{KONFIG.authWorker.port} --disable-newrelic"
       healthCheckURL    : "http://localhost:#{KONFIG.authWorker.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.authWorker.port}/version"
+
+    emailerworker       :
+      group             : "webserver"
+      supervisord       :
+        command         : "./watch-node #{projectRoot}/workers/emailer/index.js -c #{configName}"
+      healthCheckURL    : "http://localhost:#{KONFIG.emailer.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.emailer.port}/version"
 
     sourcemaps          :
       group             : "webserver"
