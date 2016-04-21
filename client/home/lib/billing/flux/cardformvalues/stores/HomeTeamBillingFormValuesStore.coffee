@@ -13,6 +13,9 @@ module.exports = class HomeTeamBillingFormValuesStore extends KodingFluxStore
       expirationMonth: ''
       expirationYear: ''
       cvc: ''
+      nickname: ''
+      fullName: ''
+      email: ''
 
 
   initialize: ->
