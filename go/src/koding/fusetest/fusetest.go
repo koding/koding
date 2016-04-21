@@ -212,7 +212,14 @@ func (f *Fusetest) RunPrefetchTests() error {
 	}
 	f.Opts.MountFolder = opts
 
+	// Run normal ops tests first
 	if err := f.RunOperationTests(); err != nil {
+		return err
+	}
+
+	// Run reconnect depths for reconnect testing on this mount. It will only run
+	// if enabled.
+	if err := f.RunReconnectDepths(); err != nil {
 		return err
 	}
 
@@ -236,7 +243,14 @@ func (f *Fusetest) RunNoPrefetchTests() error {
 	}
 	f.Opts.MountFolder = opts
 
+	// Run normal ops tests first
 	if err := f.RunOperationTests(); err != nil {
+		return err
+	}
+
+	// Run reconnect depths for reconnect testing on this mount. It will only run
+	// if enabled.
+	if err := f.RunReconnectDepths(); err != nil {
 		return err
 	}
 
@@ -260,7 +274,14 @@ func (f *Fusetest) RunPrefetchAllTests() error {
 	}
 	f.Opts.MountFolder = opts
 
+	// Run normal ops tests first
 	if err := f.RunOperationTests(); err != nil {
+		return err
+	}
+
+	// Run reconnect depths for reconnect testing on this mount. It will only run
+	// if enabled.
+	if err := f.RunReconnectDepths(); err != nil {
 		return err
 	}
 
@@ -268,6 +289,11 @@ func (f *Fusetest) RunPrefetchAllTests() error {
 }
 
 func (f *Fusetest) RunReconnectDepths() error {
+	// Do not run reconnect depths if reconnect depths are not enabled.
+	if f.Opts.ReconnectDepth < 0 {
+		return nil
+	}
+
 	if runtime.GOOS != "darwin" {
 		fmt.Println("Testing internet is disabled for non-darwin currently.")
 		return nil
