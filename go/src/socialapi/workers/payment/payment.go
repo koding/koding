@@ -122,3 +122,17 @@ func findSubscription(id string) (SubscriptionResponse, error) {
 		CanceledAt:         currentSubscription.CanceledAt,
 	}, nil
 }
+
+func cancelSubscription(id string) error {
+	customer, err := paymentmodels.NewCustomer().ByOldId(id)
+	if err != nil {
+		return err
+	}
+
+	subscription, err := customer.FindActiveSubscription()
+	if err != nil {
+		return err
+	}
+
+	return subscription.Cancel()
+}
