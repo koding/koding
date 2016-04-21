@@ -12,6 +12,6 @@ module.exports = class HomeTeamBillingCreditCard extends ReactView
     super options, data
 
 
-  renderReact: -> <CreditCard />
+  renderReact: -> <CreditCard.Container />
 
 
