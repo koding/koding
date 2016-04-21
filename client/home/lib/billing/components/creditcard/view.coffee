@@ -3,7 +3,7 @@ React = require 'kd-react'
 module.exports = class CreditCard extends React.Component
 
   @propTypes =
-    onInputValueChange: React.PropTypes.function.isRequired
+    onInputValueChange: React.PropTypes.func.isRequired
 
   render: ->
 
@@ -38,7 +38,7 @@ CardNumber = ({ onChange, value }) ->
 
   <input
     className={inputClass 'card-number'}
-    onChange={onChange ? noop}
+    onChange={pickValue(onChange ? noop)}
     value={value}
     placeholder='0000 - 0000 - 0000 - 0000' />
 
@@ -46,7 +46,7 @@ Expiration = ({ type, onChange, value }) ->
 
   <input
     className={inputClass "expiration-#{type}"}
-    onChange={onChange ? noop}
+    onChange={pickValue(onChange ? noop)}
     value={value} />
 
 
@@ -54,8 +54,10 @@ CVC = ({ onChange, value }) ->
 
   <input
     className={inputClass 'cvc'}
-    onChange={onChange ? noop}
+    onChange={pickValue(onChange ? noop)}
     value={value} />
 
+
+pickValue = (onChange) -> (event) -> onChange event.target.value
 
 
