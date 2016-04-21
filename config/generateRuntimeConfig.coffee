@@ -10,13 +10,13 @@ module.exports = (KONFIG, credentials, options) ->
     domains              : options.domains
     resourceName         : options.socialQueueName
     sendEventsToSegment  : options.sendEventsToSegment
+    suppressLogs         : options.suppressLogs
+    siftScience          : credentials.siftSciencePublic
     sessionCookie        : KONFIG.sessionCookie
     collaboration        : KONFIG.collaboration
-    suppressLogs         : no
     authExchange         : "auth"
     socialApiUri         : "/xhr"
     apiUri               : "/"
-    siftScience          : '91f469711c'
     sourceMapsUri        : "/sourcemaps"
     mainUri              :  "/"
     fileFetchTimeout     : 1000 * 15
@@ -35,7 +35,7 @@ module.exports = (KONFIG, credentials, options) ->
     stripe               : { token: 'pk_test_2x9UxMl1EBdFtwT5BRfOHxtN' }
     broker               : { uri: "/subscribe" }
     google               : { apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo' }
-    paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
+    paypal               : { formUrl: credentials.paypal.formUrl }
     embedly              : { apiKey: credentials.embedly.apiKey }
     algolia              : { appId: credentials.algolia.appId, indexSuffix: options.algoliaIndexSuffix }
     tokbox               : { apiKey: credentials.tokbox.apiKey }
@@ -44,7 +44,7 @@ module.exports = (KONFIG, credentials, options) ->
     integration          : { url: KONFIG.integration.url }
     webhookMiddleware    : { url: KONFIG.socialapi.webhookMiddleware.url }
     newkontrol           : { url: KONFIG.kontrol.url }
-    recaptcha            : { enabled : KONFIG.recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax" }
+    recaptcha            : { enabled : KONFIG.recaptcha.enabled, key : credentials.recaptcha.public }
     contentRotatorUrl    : 'http://koding.github.io'
     uploadsUri           : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
