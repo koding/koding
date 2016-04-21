@@ -115,13 +115,11 @@ func (c *ContentReadWriter) ReadAll() error {
 		size = c.Size
 	}
 
+	dst := make([]byte, size)
 	var offset int64 = 0
 	for offset < c.Size {
-		dst := make([]byte, size)
 		cpd, err := c.remote.ReadFileAt(dst, *c.Path, offset, c.BlockSize)
-
-		// ignore EOF errors
-		if err != nil && err != io.EOF {
+		if err != nil && err != io.EOF { // ignore EOF errors
 			return err
 		}
 
