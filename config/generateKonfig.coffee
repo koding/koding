@@ -1,9 +1,7 @@
 module.exports = (options, credentials) ->
 
-
-
   email =
-    host: "#{options.customDomain.public_}",
+    host: "#{options.customDomain.public_}"
     defaultFromMail: options.defaultEmail
     defaultFromName: 'Koding'
     forcedRecipientEmail: null
@@ -76,20 +74,20 @@ module.exports = (options, credentials) ->
     useTLS: no
     certFile: ""
     keyFile: ""
-    publicKeyFile: "./certs/test_kontrol_rsa_public.pem"
-    privateKeyFile: "./certs/test_kontrol_rsa_private.pem"
+    publicKeyFile: credentials.kontrol.publicKeyFile
+    privateKeyFile: credentials.kontrol.privateKeyFile
 
   kloudPort = 5500
   kloud =
     port: kloudPort
-    userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem",
-    userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub",
-    privateKeyFile: kontrol.privateKeyFile ,
-    publicKeyFile: kontrol.publicKeyFile,
-    kontrolUrl: kontrol.url,
-    registerUrl: "#{options.customDomain.public}/kloud/kite",
-    secretKey: "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe",
-    address: "http://localhost:#{kloudPort}/kite",
+    userPrivateKeyFile: credentials.kloud.userPrivateKeyFile
+    userPublicKeyfile: credentials.kloud.userPublicKeyfile
+    privateKeyFile: credentials.kloud.privateKeyFile
+    publicKeyFile: credentials.kloud.publicKeyFile
+    secretKey: credentials.kloud.secretKey
+    kontrolUrl: kontrol.url
+    registerUrl: "#{options.customDomain.public}/kloud/kite"
+    address: "http://localhost:#{kloudPort}/kite"
     tunnelUrl: "#{options.tunnelUrl}"
 
   vmwatcher =
@@ -97,12 +95,12 @@ module.exports = (options, credentials) ->
     awsKey: credentials.awsKeys.vm_vmwatcher.accessKeyId
     awsSecret: credentials.awsKeys.vm_vmwatcher.secretAccessKey
     kloudSecretKey: kloud.secretKey
-    kloudAddr: kloud.address,
-    connectToKlient: options.vmwatcherConnectToKlient,
+    kloudAddr: kloud.address
+    connectToKlient: options.vmwatcherConnectToKlient
     debug: false,
-    mongo: credentials.mongo,
+    mongo: credentials.mongo
     redis: credentials.redis.url
-    secretKey: "vmwatchersecretkey-#{options.configName}"
+    secretKey: credentials.vmwatcher.secretKey
 
   hubspotPageURL      = "http://www.koding.com"
 
@@ -211,7 +209,7 @@ module.exports = (options, credentials) ->
     recaptcha                     : recaptcha
     vmwatcher                     : vmwatcher
     uri                           : { address: options.customDomain.public }
-    misc                          : { claimGlobalNamesForUsers: no , debugConnectionErrors: yes }
+    misc                          : { claimGlobalNamesForUsers: no , debugConnectionErrors: yes, updateAllSlugs: false }
     # TODO: average request count per hour for a user should be measured and a reasonable limit should be set
     nodejsRateLimiter             : { enabled: no, guestRules: [{ interval: 3600, limit: 5000 }], userRules: [{ interval: 3600, limit: 10000 }]} # limit: request limit per rate limit window, interval: rate limit window duration in seconds
     webserver                     : { port: 8080, useCacheHeader: no , kitePort: 8860 }

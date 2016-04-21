@@ -144,6 +144,7 @@ module.exports = (options) ->
       url: 'http://iframe.ly/api/oembed'
     rollbar = "71c25e4dc728431b88f82bd3e7a600c9"
     siftScience = '2b62c0cbea188dc6'
+    siftSciencePublic = '91f469711c'
     jwt =
       secret: "71c25e4dc728431b88f82bd3e7a600c9"
       confirmExpiresInMinutes: 10080
@@ -161,9 +162,11 @@ module.exports = (options) ->
       sneakerMasterKey: "fecea2c8-e569-4d87-9179-8e7c93253072"
       awsRegion: "us-east-1"
     stripe =
-      secretToken: "sk_test_LLE4fVGK2zY3By3gccUYCLCw"
+      secretToken: 'sk_test_LLE4fVGK2zY3By3gccUYCLCw'
+      publicToken: 'pk_test_2x9UxMl1EBdFtwT5BRfOHxtN'
     recaptcha =
-      secret : "6Ld8wwkTAAAAAJoSJ07Q_6ysjQ54q9sJwC5w4xP_"
+      secret: "6Ld8wwkTAAAAAJoSJ07Q_6ysjQ54q9sJwC5w4xP_"
+      public: "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax"
     paypal =
       username: 'senthil+1_api1.koding.com'
       password: 'EUUPDYXX5EBZFGPN'
@@ -171,9 +174,12 @@ module.exports = (options) ->
       returnUrl: "#{options.customDomain.public}/-/payments/paypal/return"
       cancelUrl: "#{options.customDomain.public}/-/payments/paypal/cancel"
       isSandbox: yes
+      formUrl: 'https://www.sandbox.paypal.com/incontext'
     janitor =
       port: "6700"
       secretKey: "janitorsecretkey-dev"
+    vmwatcher =
+      secretKey: "vmwatchersecretkey-#{options.configName}"
     helpscout =
       apiKey: 'b041e4da61c0934cb73d47e1626098430738b049'
       baseUrl: 'https://api.helpscout.net/v1'
@@ -181,6 +187,15 @@ module.exports = (options) ->
       apiKey: "4a0b7965feb841238eadf94a46ef72ee"
       loggedRequests: "/^(subscriptions|transactions)/"
     segment = 'kb2hfdgf20'
+    kontrol =
+      publicKeyFile: "#{options.projectRoot}/certs/test_kontrol_rsa_public.pem"
+      privateKeyFile: "#{options.projectRoot}/certs/test_kontrol_rsa_private.pem"
+    kloud =
+      userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem"
+      userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub"
+      privateKeyFile: kontrol.privateKeyFile
+      publicKeyFile: kontrol.publicKeyFile
+      secretKey: "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
 
     return {
       awsKeys
@@ -190,7 +205,6 @@ module.exports = (options) ->
       monitoringRedis
       rabbitmq
       algolia
-      # kloud
       postgres
       kontrolPostgres
       pubnub
@@ -211,6 +225,7 @@ module.exports = (options) ->
       iframely
       rollbar
       siftScience
+      siftSciencePublic
       jwt
       papertrail
       helpscout
@@ -222,4 +237,7 @@ module.exports = (options) ->
       helpscout
       recurly
       segment
+      kontrol
+      kloud
+
     }
