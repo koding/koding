@@ -6,7 +6,7 @@ getters = require './getters'
 
 loadStripeClient = ({ dispatch, evaluate }) -> ->
 
-  new Promise (resolve, reject) ->
+  return new Promise (resolve, reject) ->
 
     flags = evaluate getters.paymentValues
 
@@ -35,7 +35,7 @@ createStripeToken = ({ dispatch, evaluate }) -> (options) ->
     exp_year  : options.cardYear
     name      : options.cardName
 
-  new Promise (resolve, reject) ->
+  return new Promise (resolve, reject) ->
     loadStripeClient({ dispatch, evaluate })().then ->
       Stripe.card.createToken tokenOptions, (status, response) ->
         if err = response.error
