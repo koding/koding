@@ -9,7 +9,8 @@ module.exports =
   stores: [ FormValuesStore ]
 
   actions:
-    setValue: (type, value) -> dispatch { type, value }
+    setValue: (type, value) ->
+      dispatch actionTypes.SET_TEAM_BILLING_INPUT_VALUE, { type, value }
 
   getters:
     values: [FormValuesStore.getterPath]
