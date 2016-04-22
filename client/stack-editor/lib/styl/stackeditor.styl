@@ -18,6 +18,13 @@ stackeditor.styl
 
       margin-bottom         10px
 
+  .breadcrumb
+    font-size               18px
+    color                   #00B057
+
+    .active
+      font-weight           normal
+
   .kdloader
     padding                 0
 
@@ -125,6 +132,67 @@ stackeditor.styl
   button
     &[disabled]
       opacity               .5
+
+  .kdtabhandlecontainer
+    background              none
+    padding                 0
+    height                  62px
+    line-height             62px
+    box-shadow              inset 0 -3px 0 #f2f2f2
+    border                  none
+
+    .kdtabhandle-tabs
+      size                  auto, auto
+      fl()
+
+    .kdtabhandle
+      padding               0 23px
+      margin                0
+      border                none
+      line-height           inherit
+      height                62px
+      background            none
+      color                 #969696
+      opacity               0.99
+      font-size             14px
+      font-weight           600
+
+      a
+        display             inline-block
+        ellipsis()
+        font-weight         400
+        width               100%
+        color               #969696
+
+      &.active
+        box-shadow          inset 0 -3px 0 #01b05a
+        color               #575757 !important
+        bg                  color, transparent !important
+        a
+          color             #575757
+
+  .kdlabel
+    font-size               14px
+    color                   #8D8D8D
+    float                   none
+    line-height             19px
+    margin                  0 0 7px !important
+    font-weight             200
+
+  .kdinput.text
+    rounded                 3px
+    background              #fff
+    border                  1px solid #C9C9C9
+    padding                 5px 13px
+    font-size               14px
+    line-height             19px
+    color                   #4C4C4C
+    font-weight             600
+    opacity                 .99
+    margin                  0 20px 0 0
+
+    &.validation-error
+      border-color          #f13a18
 
   .kdformview
     margin-top              20px
@@ -301,6 +369,9 @@ stackeditor.styl
     bg                      color, #FFF
 
   .define-stack-view
+    padding                 15px 25px 25px
+    borderBox()
+
     .kdtabhandle
     .kdtabhandlecontainer
       height                42px !important
@@ -464,3 +535,58 @@ stackeditor.styl
       .credential-item
         .inuse-tag
           margin-top        -10px
+
+  .step-define-stack
+
+    > .kdbutton
+      z-index               14
+
+    .editor-view
+      rounded               4px 4px 0 0
+
+    .showlogs-button
+    .template-preview-button
+    .fullscreen-button
+      z-index               13
+      right                 0
+      bottom                0
+      margin                0 15px 15px 0
+      bg                    color, white !important
+      abs()
+      &:focus
+        vendor              box-shadow, none
+
+    .template-preview-button
+      right                 78px
+
+    .fullscreen-button
+      right                 175px
+      hidden()
+
+  .kdview.output
+    bottom                  0
+    vendor                  transition, height .2s ease
+    background-color        rgb(250, 250, 250)
+    border-radius           0 0 2px 2px
+    z-index                 15
+    height                  0 !important
+    rounded                 0 0 4px 4px
+    borderBox()
+    abs()
+
+    &.raise
+      height                calc(70% - 33px) !important
+      border-top            1px solid #e4e4e4
+
+    pre.output-view
+      height                auto
+      margin                0 10px
+      white-space           pre-wrap
+
+    .kdlabel
+      line-height           49px
+      text-indent           17px
+      margin                0
+
+  .editor-view
+    height                  500px
