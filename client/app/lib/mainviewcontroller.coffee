@@ -85,7 +85,7 @@ module.exports = class MainViewController extends KDViewController
     mainView = @getView()
 
     fullSizeApps    = [ 'content-display' ]
-    appsWithSidebar = [ 'content-display', 'Dashboard' ]
+    appsWithSidebar = [ 'content-display', 'Dashboard', 'Stackeditor' ]
 
     if (isApp = behavior is 'application') or (name in fullSizeApps)
     then KDView.setElementClass html, 'add', 'app'
