@@ -33,11 +33,11 @@ StackTemplatePreviewModal = require './stacktemplatepreviewmodal'
 
 module.exports = class DefineStackView extends KDView
 
-  constructor: (options = {}, data) ->
+  constructor: (options = {}, data = {}) ->
 
     options.cssClass = kd.utils.curry 'define-stack-view', options.cssClass
 
-    { stackTemplate } = data ? {}
+    { stackTemplate } = data
 
     if stackTemplate
       unless provider = stackTemplate.selectedProvider
@@ -50,7 +50,6 @@ module.exports = class DefineStackView extends KDView
 
     super options, data
 
-    { stackTemplate }    = @getData()
     { selectedProvider } = @getOptions()
 
     options.delegate = this
