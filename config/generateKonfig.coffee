@@ -10,7 +10,7 @@ module.exports = (options, credentials) ->
   githubapi      =
     debug       : options.debugGithubAPI
     timeout     : 5000
-    userAgent   : 'Koding-Bridge'
+    userAgent   : "Koding-Bridge-#{options.configName}"
 
   regions =
     kodingme: "#{options.configName}"
@@ -89,7 +89,7 @@ module.exports = (options, credentials) ->
     registerUrl: "#{options.customDomain.public}/kloud/kite"
     address: "http://localhost:#{kloudPort}/kite"
     tunnelUrl: "#{options.tunnelUrl}"
-
+    klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
   vmwatcher =
     port: "6400"
     awsKey: credentials.awsKeys.vm_vmwatcher.accessKeyId

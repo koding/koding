@@ -783,4 +783,4 @@ generateSandbox =   generateRunFile = (KONFIG) ->
       runuserimporter
     fi
     """
-module.exports = { dev: generateDev, sandbox: generateSandbox, prod: generateSandbox }
+module.exports = { dev: generateDev, default: generateDev, sandbox: generateSandbox, prod: generateSandbox }
