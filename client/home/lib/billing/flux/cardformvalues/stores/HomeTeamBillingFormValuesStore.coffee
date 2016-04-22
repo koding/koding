@@ -13,6 +13,7 @@ module.exports = class HomeTeamBillingFormValuesStore extends KodingFluxStore
   initialize: ->
 
     @on actionTypes.SET_TEAM_BILLING_INPUT_VALUE, handleSetValue
+    @on actionTypes.RESET_TEAM_BILLING_INPUT_VALUES, defaultValues
 
 
 handleSetValue = (values, { type, value }) ->
