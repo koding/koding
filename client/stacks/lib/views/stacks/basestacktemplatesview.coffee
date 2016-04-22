@@ -53,6 +53,10 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
     @scrollView.addSubView @onboardingView = new OnboardingView options
 
+    @onboardingView.on 'ShowInitialView', =>
+      @onboardingView.destroy()
+      @initialView.show()
+
     @onboardingView.on 'StackOnboardingCompleted', (template) =>
       @onboardingView.destroy()
       @showEditor { inEditMode: no, showHelpContent: yes }, template

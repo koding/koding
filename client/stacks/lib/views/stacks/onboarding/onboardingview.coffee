@@ -64,6 +64,8 @@ module.exports = class OnboardingView extends JView
       nextIndex  = if direction is 'next' then ++pageIndex else --pageIndex
       targetPage = @pages[nextIndex]
 
+      return @emit 'ShowInitialView'  if pageIndex is 0 and direction is 'prev'
+
       # Temporary solution ~ GG
       selectedProvider  = @providerSelectionView.selected?.getOption 'provider'
 
