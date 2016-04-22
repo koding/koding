@@ -55,7 +55,7 @@ module.exports = class TeamMembersCommonView extends KDView
     @searchContainer.addSubView @searchInput = new KDHitEnterInputView
       type        : 'text'
       placeholder : @getOptions().searchInputPlaceholder
-      callback    : @bound 'search'
+      callback    : => @search()
 
     @searchContainer.addSubView @searchClear = new KDCustomHTMLView
       tagName     : 'span'
