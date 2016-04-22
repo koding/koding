@@ -108,16 +108,3 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     #     new ForceToReinitModal {}, stackTemplate
 
     super
-
-
-  pistachio: ->
-
-    { meta } = @getData()
-
-    """
-    <div class='stacktemplate-info clearfix'>
-      {div.title{#(title)}} {{> @isDefaultView}} {{> @inUseView}} {{> @notReadyView}} {{> @accessLevelView}}
-      <cite>Last updated #{timeago meta.modifiedAt}</cite>
-    </div>
-    <div class='buttons'>{{> @settings}}</div>
-    """
