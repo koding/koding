@@ -95,7 +95,7 @@ module.exports = class Sidebar extends React.Component
           machine={machine} />
 
 
-  divideStacks:  ->
+  prepareStacks:  ->
 
     stackSections = []
     stackList     =
@@ -132,7 +132,7 @@ module.exports = class Sidebar extends React.Component
 
     if @state.stacks.size
       <SidebarStackHeaderSection>
-        {@divideStacks()}
+        {@prepareStacks()}
       </SidebarStackHeaderSection>
     else if @state.showNoStacksWidget
       <SidebarNoStacks />
