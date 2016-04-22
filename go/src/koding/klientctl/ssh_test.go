@@ -67,7 +67,14 @@ func TestSSHCommand(t *testing.T) {
 
 			err = s.PrepareForSSH("name")
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldContainSubstring, "ssh: no key found")
+			So(os.IsExist(err), ShouldBeFalse)
+		})
+
+		Convey("It should create ssh folder if it doesn't exist", func() {
+			So(s.PrepareForSSH("name"), ShouldBeNil)
+
+			_, err := os.Stat(s.KeyPath)
+			So(err, ShouldBeNil)
 		})
 
 		Convey("It generates and saves key to remote if key doesn't exist", func() {

@@ -114,6 +114,11 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 
 	s.Log.Debug("machine uids (%d): %v", len(uids), uids)
 
+	klientURL, err := sess.Userdata.LookupKlientURL()
+	if err != nil {
+		return "", nil, err
+	}
+
 	// queryString is taken from jCredentialData.meta.queryString,
 	// for debugging purposes it can be overwritten in the template,
 	// however if template has multiple machines, all of them
@@ -127,11 +132,6 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		kiteID := uuid.NewV4().String()
 
 		kiteKey, err := sess.Userdata.Keycreator.Create(username, kiteID)
-		if err != nil {
-			return "", nil, err
-		}
-
-		klientURL, err := sess.Userdata.LookupKlientURL()
 		if err != nil {
 			return "", nil, err
 		}

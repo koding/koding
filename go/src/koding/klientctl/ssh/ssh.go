@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"os/user"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"koding/kites/tunnelproxy/discover"
@@ -259,6 +260,10 @@ func (s *SSHKey) GetUsername(name string) (string, error) {
 // GenerateAndSaveKey generates a new SSH key pair and saves it to local.
 func (s *SSHKey) GenerateAndSaveKey() ([]byte, error) {
 	var perms os.FileMode = 400
+
+	if err := os.MkdirAll(filepath.Dir(s.PrivateKeyPath()), 700); err != nil {
+		return nil, err
+	}
 
 	publicKey, privateKey, err := sshkey.Generate()
 	if err != nil {

@@ -85,7 +85,7 @@ func TestEntry(t *testing.T) {
 	Convey("Entry#GetAttrs", t, func() {
 		Convey("It should set attrs for entry", func() {
 			entry := newEntry()
-			entry.Attrs = fuseops.InodeAttributes{Uid: 1}
+			entry.Attrs = &fuseops.InodeAttributes{Uid: 1}
 			Convey("It should return attrs", func() {
 				newAttrs := entry.GetAttrs()
 				So(newAttrs.Uid, ShouldEqual, 1)
@@ -95,7 +95,7 @@ func TestEntry(t *testing.T) {
 
 	Convey("Entry#SetAttrs", t, func() {
 		Convey("It should set attrs for entry", func() {
-			attrs := fuseops.InodeAttributes{Uid: 1}
+			attrs := &fuseops.InodeAttributes{Uid: 1}
 			entry := newEntry()
 			entry.SetAttrs(attrs)
 
@@ -157,7 +157,7 @@ func newEntryWithFolderResp() *Entry {
 func newEntry() *Entry {
 	t := &fakeTransport{}
 	entry := NewRootEntry(t, "/local")
-	entry.Attrs = fuseops.InodeAttributes{}
+	entry.Attrs = &fuseops.InodeAttributes{}
 
 	return entry
 }

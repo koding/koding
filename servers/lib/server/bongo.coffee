@@ -1,6 +1,5 @@
 nodePath = require 'path'
 Bongo      = require 'bongo'
-Broker     = require 'broker'
 { argv }   = require 'optimist'
 { extend } = require 'underscore'
 
