@@ -4,11 +4,13 @@ KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
 
 Tracker  = require '../../../social/lib/social/models/tracker.coffee'
 
-sendmail = (require 'sendmail') logger : {  # disable verbosed loggers
-  debug  : ->
-  info   : ->
-  warn   : ->
-  error  : ->
+sendmail = (require 'sendmail') {
+  logger   : {  # disable verbosed loggers
+    debug  : ->
+    info   : ->
+    warn   : ->
+    error  : ->
+  }
 }
 
 module.exports = class EmailerWorker
