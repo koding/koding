@@ -87,7 +87,7 @@ module.exports = class StackTemplateListController extends KodingListController
     stackTemplate.generateStack (err, stack) =>
 
       unless showError err
-        kd.singletons.computeController.reset yes, @bound 'reload'
+        kd.singletons.computeController.reset yes
         new kd.NotificationView { title: 'Stack generated successfully' }
 
 
