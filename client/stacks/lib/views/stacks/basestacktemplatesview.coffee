@@ -118,7 +118,7 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
     @initialView.hide()
 
-    @defineStackView = new DefineStackView { inEditMode }, { stackTemplate, showHelpContent }
+    @defineStackView = new DefineStackView { inEditMode, delegate : this }, { stackTemplate, showHelpContent }
     @scrollView.addSubView @defineStackView
 
     @defineStackView.on 'Reload', ->
