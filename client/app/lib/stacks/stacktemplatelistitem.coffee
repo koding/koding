@@ -14,9 +14,22 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     super options, data
 
-    { isDefault, inUse, accessLevel, config } = @getData()
+    stackTemplate         = @getData()
+    { accessLevel, _id }  = stackTemplate
 
     @setAttribute 'testpath', "#{accessLevel}StackListItem"
+
+
+    kd.singletons.groupsController.on 'StackTemplateChanged', (params) =>
+      if params.contents is _id
+        stackTemplate.isDefault = yes
+        @isDefaultView?.show()
+      else
+        stackTemplate.isDefault = no
+        @isDefaultView?.hide()
+
+      @setData stackTemplate
+
 
     @isDefaultView = new kd.CustomHTMLView
       cssClass   : 'custom-tag'
@@ -79,6 +92,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     listView      = @getDelegate()
     stackTemplate = @getData()
+    @menu         = {}
 
     if not stackTemplate.isDefault and stackTemplate.config.verified
       @addMenuItem 'Apply to Team', =>
