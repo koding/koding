@@ -1,7 +1,8 @@
-kd              = require 'kd'
-React           = require 'kd-react'
+kd = require 'kd'
+React = require 'kd-react'
 EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin  = require 'app/flux/base/reactormixin'
+KDReactorMixin = require 'app/flux/base/reactormixin'
+showStackEditor = require 'app/util/showStackEditor'
 
 List = require 'app/components/list'
 TimeAgo = require 'app/components/common/timeago'
@@ -24,17 +25,17 @@ module.exports = class PrivateStacksListView extends React.Component
     template = @props.templates.toList().get(rowIndex)
 
     <div className='StackTemplateItem'>
-      <div className='StackTemplateItem-label'>
+      <div
+        className='StackTemplateItem-label'
+        onClick={showStackEditor.bind null, template.get '_id'}>
         {template.get 'title'}
       </div>
       <div className='StackTemplateItem-description'>
         Last updated <TimeAgo from={template.getIn ['meta', 'modifiedAt']} />
       </div>
-      <div className="StackTemplateItem-secondaryButton">
-        <button onClick={kd.noop}>RE-INITIALIZE</button>
-      </div>
-      <div className="StackTemplateItem-primaryButton">
-        <button onClick={kd.noop}>LAUNCH</button>
+      <div className='StackTemplateItem-ButtonContainer'>
+        <a href="#" className="HomeAppView--button" onClick={kd.noop}>RE-INITIALIZE</a>
+        <a href="#" className="HomeAppView--button primary" onClick={kd.noop}>LAUNCH</a>
       </div>
     </div>
 
@@ -50,5 +51,7 @@ module.exports = class PrivateStacksListView extends React.Component
       renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
       renderRowAtIndex={@bound 'renderRowAtIndex'}
       renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
+      sectionClassName='HomeAppViewStackSection'
+      rowClassName='stack-type'
     />
 
