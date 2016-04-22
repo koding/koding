@@ -41,13 +41,8 @@ Configuration = (options={}) ->
   options.suppressLogs = no
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
 
-  if options.ngrok
-    options.scheme = 'https'
-    options.host   = "koding-#{process.env.USER}.ngrok.com"
-  else
-    options.scheme = 'http'
-    _port  = if options.publicPort is '80' then '' else options.publicPort
-    options.host   = options.host or "#{options.hostname}:#{_port}"
+  _port  = if options.publicPort is '80' then '' else options.publicPort
+  options.host   = options.host or "#{options.hostname}:#{_port}"
 
   customDomain =
     public  : "#{options.scheme}://#{options.host}"
@@ -74,13 +69,6 @@ Configuration = (options={}) ->
   KONFIG = require('./generateKonfig')(options, credentials)
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
-
-  if os.type() is 'Darwin'
-    KONFIG.workers.ngrokProxy =
-      group       : "environment"
-      supervisord :
-        command   : "coffee #{options.projectRoot}/ngrokProxy --user #{process.env.USER}"
-
 
   KONFIG.supervisord =
     logdir   : "#{options.projectRoot}/.logs"

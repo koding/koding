@@ -41,13 +41,6 @@ Configuration = (options={}) ->
   options.suppressLogs = no
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.host or= options.hostname
-  # if options.ngrok
-  #   options.scheme = 'https'
-  #   options.host   = "koding-#{process.env.USER}.ngrok.com"
-  # else
-  #   options.scheme = 'http'
-  #   _port  = if options.publicPort is '80' then '' else options.publicPort
-  #   options.host   = options.host or "#{options.hostname}:#{_port}"
 
   customDomain =
     public  : "#{options.scheme}://#{options.host}#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
