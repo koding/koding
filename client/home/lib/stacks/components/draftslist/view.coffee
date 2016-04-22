@@ -1,10 +1,8 @@
-kd              = require 'kd'
-React           = require 'kd-react'
-EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin  = require 'app/flux/base/reactormixin'
+kd = require 'kd'
+React = require 'kd-react'
 
 List = require 'app/components/list'
-TimeAgo = require 'app/components/common/timeago'
+StackTemplateItem = require '../stacktemplateitem'
 
 
 module.exports = class DraftsListView extends React.Component
@@ -22,20 +20,7 @@ module.exports = class DraftsListView extends React.Component
 
     template = @props.templates.toList().get(rowIndex)
 
-    <div className='StackTemplateItem'>
-      <div className='StackTemplateItem-label'>
-        {template.get 'title'}
-      </div>
-      <div className='StackTemplateItem-description'>
-        Last updated <TimeAgo from={template.getIn ['meta', 'modifiedAt']} />
-      </div>
-      <div className="StackTemplateItem-secondaryButton">
-        <button onClick={kd.noop}>REMOVE</button>
-      </div>
-      <div className="StackTemplateItem-primaryButton">
-        <button onClick={kd.noop}>BUILD</button>
-      </div>
-    </div>
+    <StackTemplateItem template={template} />
 
 
   renderEmptySectionAtIndex: -> <div>No team stacks</div>
