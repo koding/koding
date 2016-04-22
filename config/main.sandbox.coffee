@@ -460,9 +460,9 @@ Configuration = (options={}) ->
       versionURL        : "http://localhost:#{KONFIG.authWorker.port}/version"
 
     emailerworker       :
-      group             : "webserver"
+      group             : "default"
       supervisord       :
-        command         : "./watch-node #{projectRoot}/workers/emailer/index.js -c #{configName}"
+        command         : "./watch-node #{projectRoot}/workers/emailer/index.js -c #{configName} -p #{KONFIG.emailer.port}"
       healthCheckURL    : "http://localhost:#{KONFIG.emailer.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.emailer.port}/version"
 
