@@ -90,7 +90,7 @@ func TestRemoveUser(t *testing.T) {
 		t.Error(err)
 	}
 
-	user, err = GetUser(username)
+	_, err = GetUser(username)
 	if err == nil {
 		t.Errorf("User should've been deleted, but wasn't")
 	}

@@ -13,6 +13,8 @@ import (
 const (
 	OauthAuthorization = "oauth-authorization"
 	GenerateToken      = "generate-token"
+	CallBack           = "oauth-callback"
+	OauthInfo          = "oauth-info"
 )
 
 // AddHandlers add oauth for koding api
@@ -32,22 +34,45 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 		handler.Request{
 			Handler:  oauth.GenerateToken,
 			Name:     GenerateToken,
-			Type:     handler.GetRequest,
+			Type:     handler.PostRequest,
 			Endpoint: "/oauth/token",
 		},
 	)
+	m.AddUnscopedHandler(
+		handler.Request{
+			Handler:  oauth.Info,
+			Name:     OauthInfo,
+			Type:     handler.GetRequest,
+			Endpoint: "/oauth/info",
+		},
+	)
+	// m.AddUnscopedHandler(
+	// 	handler.Request{
+	// 		Handler:  oauth.Callback,
+	// 		Name:     CallBack,
+	// 		Type:     handler.GetRequest,
+	// 		Endpoint: "/oauth/callback",
+	// 	},
+	// )
 
 }
 
 func NewOAuthHandler(session *mgo.Session) *Oauth {
 	sconfig := osin.NewServerConfig()
+	sconfig.RedirectUriSeparator = ","
 	// AllowedAccessType is a collection of allowed access request types
 	sconfig.AllowedAuthorizeTypes = osin.AllowedAuthorizeType{osin.CODE, osin.TOKEN}
+
 	// AccessRequestType is the type for OAuth param `grant_type`
-	sconfig.AllowedAccessTypes = osin.AllowedAccessType{osin.AUTHORIZATION_CODE,
-		osin.REFRESH_TOKEN, osin.PASSWORD, osin.CLIENT_CREDENTIALS, osin.ASSERTION}
+	sconfig.AllowedAccessTypes = osin.AllowedAccessType{
+		osin.AUTHORIZATION_CODE,
+		osin.REFRESH_TOKEN,
+		osin.PASSWORD,
+		osin.CLIENT_CREDENTIALS,
+		osin.ASSERTION,
+	}
 	// If true allows access request using GET, else only POST - default false
-	sconfig.AllowGetAccessRequest = true
+	// sconfig.AllowGetAccessRequest = true
 	storage := modelhelper.NewOauthStore(session)
 	server := osin.NewServer(sconfig, storage)
 
