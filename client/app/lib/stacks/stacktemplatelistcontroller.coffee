@@ -155,7 +155,6 @@ module.exports = class StackTemplateListController extends KodingListController
           listView.removeItem item
           modal.destroy()
           Tracker.track Tracker.STACKS_DELETE_TEMPLATE
-          appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
     modal.setAttribute 'testpath', 'RemoveStackModal'
 
