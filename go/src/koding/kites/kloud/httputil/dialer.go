@@ -35,11 +35,11 @@ func NewDialer(cfg *ClientConfig) *Dialer {
 }
 
 func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
-	if !d.opts.TraceLeakedConn {
-		d.Dialer.Dial(network, addr)
+	if d.opts.TraceLeakedConn {
+		return d.tracingDial(network, addr)
 	}
 
-	return d.tracingDial(network, addr)
+	return d.Dialer.Dial(network, addr)
 }
 
 func (d *Dialer) init() {
