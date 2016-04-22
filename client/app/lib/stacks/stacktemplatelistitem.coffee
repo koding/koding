@@ -19,6 +19,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     @setAttribute 'testpath', "#{accessLevel}StackListItem"
 
+    @buildLabels()
 
     kd.singletons.groupsController.on 'StackTemplateChanged', (params) =>
       if params.contents is _id
@@ -30,6 +31,10 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
       @setData stackTemplate
 
+
+  buildLabels: ->
+
+    { isDefault, inUse, accessLevel, config } = @getData()
 
     @isDefaultView = new kd.CustomHTMLView
       cssClass   : 'custom-tag'
@@ -74,14 +79,13 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     @notReadyView.hide()  if config.verified
 
 
-  generateStackFromTemplate: ->
+  updateLabels: ->
 
-    stackTemplate = @getData()
-    stackTemplate.generateStack (err, stack) =>
-
-      unless showError err
-        kd.singletons.computeController.reset yes, => @getDelegate().emit 'StackGenerated'
-        new kd.NotificationView { title: 'Stack generated successfully' }
+    @isDefaultView?.destroy()
+    @inUseView?.destroy()
+    @notReadyView?.destroy()
+    @accessLevelView?.destroy()
+    @buildLabels()
 
 
   _itemSelected: (data) ->
