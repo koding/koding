@@ -365,8 +365,10 @@ module.exports = class DefineStackView extends KDView
 
   processTemplate: (stackTemplate) ->
 
-    { groupsController, computeController } = kd.singletons
+    { groupsController, computeController, appManager } = kd.singletons
     canEditGroup = groupsController.canEditGroup()
+
+    stackApp = appManager.appControllers.Stacks.instances.first
 
     setToGroup = (method = 'add') =>
 
@@ -397,6 +399,8 @@ module.exports = class DefineStackView extends KDView
       _.each @editorViews, (view) -> view.editorView.getAce().saveFinished()
       @changedContents = {}
 
+      templatesView = @getDelegate()
+      @emit 'NewStackTemplateAdded', { stackTemplate, templatesView }
 
       if err
         @outputView.add 'Parsing failed, please check your template and try again'
