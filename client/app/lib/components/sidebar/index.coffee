@@ -179,8 +179,8 @@ module.exports = class Sidebar extends React.Component
         Koding Logo
       </object>
 
-  render: ->
 
+  render: ->
 
     <Scroller className={kd.utils.curry 'activity-sidebar', @props.className}>
       <div className='Sidebar-section-wrapper'>
