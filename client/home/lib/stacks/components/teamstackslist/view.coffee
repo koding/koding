@@ -49,4 +49,6 @@ module.exports = class TeamStacksListView extends React.Component
       renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
       renderRowAtIndex={@bound 'renderRowAtIndex'}
       renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
+      sectionClassName='HomeAppViewStackSection'
+      rowClassName='stack-type'
     />
