@@ -494,7 +494,7 @@ func TestDir(t *testing.T) {
 
 		Convey("It should fetch directory entries from remote", func() {
 			d := newDir()
-			d.Entries = []fuseutil.Dirent{}
+			d.Entries = []*fuseutil.Dirent{}
 			d.EntriesList = map[string]Node{}
 
 			err := d.updateEntriesFromRemote()

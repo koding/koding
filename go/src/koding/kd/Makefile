@@ -11,7 +11,7 @@ klient:
 
 klientctl:
 	@echo "$(OK_COLOR)==> Building kd $(NO_COLOR)"
-	@`which go` build -v ../klientctl
+	@`which go` build -v -ldflags "-X koding/klientctl/config.Version 100" ../klientctl
 	@echo "$(OK_COLOR)==> Installing kd $(NO_COLOR)"
 	@mv ./klientctl /usr/local/bin/kd
 

@@ -35,11 +35,11 @@ func NewDialer(cfg *ClientConfig) *Dialer {
 }
 
 func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
-	if !d.opts.DebugTCP {
-		d.Dialer.Dial(network, addr)
+	if d.opts.TraceLeakedConn {
+		return d.tracingDial(network, addr)
 	}
 
-	return d.dial(network, addr)
+	return d.Dialer.Dial(network, addr)
 }
 
 func (d *Dialer) init() {
@@ -72,7 +72,7 @@ func (d *Dialer) maxIdle() int {
 	return http.DefaultMaxIdleConnsPerHost
 }
 
-func (d *Dialer) dial(network, addr string) (net.Conn, error) {
+func (d *Dialer) tracingDial(network, addr string) (net.Conn, error) {
 	d.once.Do(d.init)
 
 	conn, err := d.Dialer.Dial(network, addr)

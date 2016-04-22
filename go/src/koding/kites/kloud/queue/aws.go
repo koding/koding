@@ -16,6 +16,10 @@ import (
 )
 
 func (q *Queue) CheckAWS() {
+	if q.AwsProvider == nil {
+		return
+	}
+
 	m := &awsprovider.Machine{
 		BaseMachine: &provider.BaseMachine{
 			Machine: &models.Machine{},

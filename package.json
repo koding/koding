@@ -7,7 +7,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git@git.sj.koding.com:koding/koding.git"
+    "url": "git@github.com:koding/koding.git"
   },
   "main": "server/index.js",
   "scripts": {
@@ -16,8 +16,9 @@
     "postinstall": "./.npm-postinstall.sh"
   },
   "dependencies": {
+    "amqp": "0.2.4",
     "analytics-node": "1.2.2",
-    "appmetrics": "1.0.5",
+    "appmetrics": "1.0.8",
     "async": "1.5.2",
     "aws-sdk": "2.1.4",
     "bluebird": "1.0.8",
@@ -52,10 +53,10 @@
     "helmet": "0.2.4",
     "highlight.js": "7.3.0",
     "htmlencode": "0.0.3",
+    "js-yaml": "3.3.1",
     "json-format": "0.0.1",
     "jsonify": "0.0.0",
     "jsonwebtoken": "5.0.1",
-    "js-yaml": "3.3.1",
     "kite.js": "0.3.9",
     "konstraints": "0.1.5",
     "lodash": "3.10.1",

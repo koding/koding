@@ -103,7 +103,6 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 	tfReq := &tf.TerraformRequest{
 		Content:   stackTemplate.Template.Content,
 		ContentID: contentID,
-		Variables: nil,
 		TraceID:   s.TraceID,
 	}
 

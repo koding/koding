@@ -46,7 +46,7 @@ module.exports = class FSHelper
   parseWatcherFile = ({ machine, parentPath, file, user, treeController }) ->
 
     { uid } = machine
-    { name, size, mode } = file
+    { fullPath, name, size, mode } = file
 
     type      = if file.isBroken then 'brokenLink' else \
                 if file.isDir then 'folder' else 'file'
@@ -54,6 +54,10 @@ module.exports = class FSHelper
                 "#{parentPath}/#{name}"
     group     = user
     createdAt = file.time
+
+    if not fullPath
+      path = name
+      name = FSHelper.getFileNameFromPath name
 
     return { size, user, group, createdAt, mode, type, \
              parentPath, path, name, machine, treeController }

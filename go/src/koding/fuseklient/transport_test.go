@@ -95,20 +95,19 @@ func (f *fakeTransport) WriteFile(path string, content []byte) error {
 	return f.Trip("fs.writeFile", nil, nil)
 }
 
-func (f *fakeTransport) ReadFile(path string) (*transport.ReadFileRes, error) {
-	var res *transport.ReadFileRes
-	return res, f.Trip("fs.readFile", nil, &res)
-}
+//func (f *fakeTransport) ReadFile(dst []byte, path string) error {
+//  return f.Trip("fs.readFile", nil, dst)
+//}
 
-func (f *fakeTransport) ReadFileAt(path string, offset, blockSize int64) (*transport.ReadFileRes, error) {
+func (f *fakeTransport) ReadFileAt(dst []byte, path string, offset, blockSize int64) (int, error) {
 	var res *transport.ReadFileRes
 	if err := f.Trip("fs.readFile", nil, &res); err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	res.Content = res.Content[offset:]
+	i := copy(dst, res.Content[offset:])
 
-	return res, nil
+	return i, nil
 }
 
 func (f *fakeTransport) Exec(path string) (*transport.ExecRes, error) {
