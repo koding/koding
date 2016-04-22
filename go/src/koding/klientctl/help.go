@@ -66,6 +66,11 @@ var cmdDescriptions = map[string]string{
 	"version": fmtDesc(
 		"", fmt.Sprintf("Display version information of the %s.", config.KlientName),
 	),
+	"autocompletion": fmtDesc(
+		"<optional args> <shellname>",
+		`Install autocompletion files for the given shell, to enable
+    autocompletion with kd`,
+	),
 }
 
 func init() {
