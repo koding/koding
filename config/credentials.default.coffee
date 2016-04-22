@@ -81,6 +81,7 @@ module.exports = (options) ->
       bucket: "kodingdev-terraformer-state-#{options.configName}"
       localstorepath:  "#{options.projectRoot}/go/data/terraformer"
     paymentwebhook =
+      customersKey: 'R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
       secretKey: "paymentwebhooksecretkey-#{options.configName}"
     tokbox =
       apiKey: "45253342"

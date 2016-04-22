@@ -1,3 +1,4 @@
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 { get } = require (
   '../../../workers/social/lib/social/models/socialapi/requests.coffee'
 )
@@ -17,10 +18,8 @@ module.exports = (req, res) ->
   unless kloud_key
     return res.status(401).send errMsg 'kloud_key is required'
 
-  # Hardcoding is wrong, however this key won't change
-  # depending on environments, so there's point of
-  # putting it in config : SA
-  unless kloud_key is 'R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
+
+  unless kloud_key is KONFIG.paymentwebhook.customersKey
     return res.status(401).send errMsg 'kloud_key is wrong'
 
   url  = "/payments/subscriptions/#{account_id}"

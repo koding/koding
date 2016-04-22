@@ -22,6 +22,7 @@ module.exports = (options, credentials) ->
   paymentwebhook =
     port: "6600"
     debug: false
+    customersKey: credentials.paymentwebhook.customersKey
     secretKey: credentials.paymentwebhook.secretKey
 
   broker =

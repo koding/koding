@@ -1,5 +1,7 @@
 helpers = require '../helpers/helpers.js'
 curl    = require 'curlrequest'
+KONFIG  = require('koding-config-manager').load("main.#{argv.c}")
+
 
 
 postToSlack = (message) ->
@@ -33,7 +35,7 @@ handleMachineNotRunning = (browser, targetUser, machineName) ->
 getUserData = (callback) ->
 
   options =
-    url   : 'https://koding.com/-/payments/customers?key=R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
+    url   : "https://koding.com/-/payments/customers?key=#{KONFIG.paymentwebhook.customersKey}"
 
   curl.request options, (err, result) ->
     if err
