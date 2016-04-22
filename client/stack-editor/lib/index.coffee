@@ -11,6 +11,8 @@ module.exports = class StackEditorAppController extends AppController
 
   constructor: (options = {}, data) ->
 
-    options.view = new DefineStackView {}, { showHelpContent : yes }
+    options.view = view = new DefineStackView { skipFullscreen : yes }, { showHelpContent : yes }
 
     super options, data
+
+    view.on 'Cancel', -> kd.singletons.router.back()
