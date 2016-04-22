@@ -397,7 +397,6 @@ module.exports = class DefineStackView extends KDView
       _.each @editorViews, (view) -> view.editorView.getAce().saveFinished()
       @changedContents = {}
 
-      @emit 'Reload'
 
       if err
         @outputView.add 'Parsing failed, please check your template and try again'
@@ -640,8 +639,6 @@ module.exports = class DefineStackView extends KDView
         else Tracker.track Tracker.STACKS_CUSTOM_NAME
 
         @setData { stackTemplate }
-        @emit 'Reload'
-
         stackTemplate._updated = currentSum isnt stackTemplate.template.sum
 
       callback err, stackTemplate
@@ -738,6 +735,4 @@ module.exports = class DefineStackView extends KDView
       Tracker.track Tracker.STACKS_MAKE_DEFAULT
 
       stackTemplate.isDefault = yes
-
-      @emit 'Reload'
       @emit 'Completed', stackTemplate  if completed
