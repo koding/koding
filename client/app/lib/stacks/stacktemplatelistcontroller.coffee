@@ -95,7 +95,7 @@ module.exports = class StackTemplateListController extends KodingListController
   generateStack: (item) ->
 
     stackTemplate = item.getData()
-    stackTemplate.generateStack (err, stack) =>
+    stackTemplate.generateStack (err, stack) ->
 
       unless showError err
         kd.singletons.computeController.reset yes
