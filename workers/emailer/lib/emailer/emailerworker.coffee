@@ -4,17 +4,22 @@ KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
 
 Tracker  = require '../../../social/lib/social/models/tracker.coffee'
 
+sendmail = (require 'sendmail') logger : {  # disable verbosed loggers
+  debug  : ->
+  info   : ->
+  warn   : ->
+  error  : ->
+}
 
 module.exports = class EmailerWorker
 
+  TEMPLATES  = require './templates'
   MAILEVENTS = [
-  # 'START_REGISTER'  # it's an email event but not required for basic emails ~ GG
     'REQUEST_NEW_PASSWORD'
     'CHANGED_PASSWORD'
     'REQUEST_EMAIL_CHANGE'
     'CHANGED_EMAIL'
     'INVITED_TEAM'
-    'INVITED_CREATE_TEAM'
   ]
 
   getEmailType = (subject) ->
@@ -55,11 +60,34 @@ module.exports = class EmailerWorker
       @log 'queue created'
 
       queue.bind EXCHANGENAME, '#', =>
+
         queue.subscribe (message, header, property) =>
 
           return  unless property.type is EMAILEVENT
 
           message = JSON.parse message.data.toString()
 
-          if isEmailEvent message.Subject
-            @log "SEND '#{message.Subject}' [#{getEmailType message.Subject}] email to #{message.To}"
+          return  unless isEmailEvent message.Subject
+
+          @sendMail message
+
+
+  sendMail: (message) ->
+
+    type = getEmailType message.Subject
+    mail = (TEMPLATES message.Properties.Options)[type]
+
+    @log "sending #{type} mail to #{message.To}..."
+
+    sendmail
+
+      from    : 'hello@koding.com'
+      to      : message.To
+      subject : mail.subject
+      content : mail.content
+
+    , (err) =>
+
+      if err
+      then @error "failed to send #{type} mail to #{message.To}", err
+      else @log "successfully sent #{type} mail to #{message.To}"
