@@ -65,7 +65,7 @@
     "mime": "1.2.x",
     "minimist": "0.0.8",
     "mkdirp": "0.3.2",
-    "mongodb": "1.4.14",
+    "mongodb": "2.1.16",
     "newrelic": "1.18.0",
     "nib": "0.5.0",
     "node-dogstatsd": "0.0.6",
