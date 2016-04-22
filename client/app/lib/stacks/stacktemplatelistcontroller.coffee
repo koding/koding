@@ -66,6 +66,17 @@ module.exports = class StackTemplateListController extends KodingListController
     @on 'FetchProcessFailed', ({ err }) ->
       showError err, { KodingError : 'Failed to fetch stackTemplates, try again later.' }
 
+    kd.singletons.computeController.on 'RenderStacks', (stacks) =>
+      listItems = @getListItems()
+
+      for stack in stacks
+        [item] = listItems.filter (i) -> i.getData()._id is stack.baseStackId
+        if item
+          stackTemplate = item.getData()
+          stackTemplate.inUse = yes
+          item.setData stackTemplate
+          item.updateLabels()
+
 
   applyToTeam: (item) ->
 
