@@ -77,6 +77,8 @@ module.exports = class EmailerWorker
   sendMail: (message) ->
 
     type = getEmailType message.Subject
+
+    message.Properties.Options.username = message.Properties.Username
     mail = (TEMPLATES message.Properties.Options)[type]
 
     @log "sending #{type} mail to #{message.To}..."

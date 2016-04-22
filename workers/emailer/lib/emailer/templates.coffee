@@ -4,12 +4,12 @@ module.exports = TEMPLATES = (data = {}) ->
     subject            : 'Your Koding password recovery link.'
     content            : """
 
-    Hi #{data.first_name or 'there'},
+    Hi #{data.username or 'there'},
 
     We received a request to reset your login credentials for Koding.com.
     If you did not request a password reset, you can ignore this email.
 
-    Follow #{data.tokenUrl} to reset your password
+    Follow #{data.tokenUrl} to reset your password.
 
   """
 
@@ -17,7 +17,7 @@ module.exports = TEMPLATES = (data = {}) ->
     subject            : 'Your Koding password was changed.'
     content            : """
 
-    Hi #{data.first_name or 'there'},
+    Hi #{data.username or 'there'},
 
     This is a notification that your password has been successfully
     updated. If you did not request a password change, please contact us
@@ -29,7 +29,7 @@ module.exports = TEMPLATES = (data = {}) ->
     subject            : 'Your Koding email was changed.'
     content            : """
 
-    Hi #{data.first_name or 'there'},
+    Hi #{data.username or 'there'},
 
     This is a notification and confirmation message that your email address
     has been successfully updated. If you did not change your email address
@@ -38,7 +38,7 @@ module.exports = TEMPLATES = (data = {}) ->
   """
 
   REQUEST_EMAIL_CHANGE :
-    subject            : "#{data.first_name or 'Hello'}, please confirm your
+    subject            : "#{data.username or 'Hello'}, please confirm your
                           email address."
     content            : """
 
@@ -54,7 +54,7 @@ module.exports = TEMPLATES = (data = {}) ->
 
     You've been invited to join Koding, by: #{data.inviter}
 
-    Hi #{data.first_name or 'there'},
+    Hi #{data.username or 'there'},
 
     You received this email because #{data.inviter} would like you to join
     #{data.groupName}'s Team on Koding.com
