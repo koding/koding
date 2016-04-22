@@ -42,13 +42,7 @@ Configuration = (options={}) ->
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
 
   options.host = options.hostname
-  # if options.ngrok
-  #   options.scheme = 'https'
-  #   options.host   = "koding-#{process.env.USER}.ngrok.com"
-  # else
-  #   options.scheme = 'http'
-  #   _port  = if options.publicPort is '80' then '' else options.publicPort
-  #   options.host   = options.host or "#{options.hostname}:#{_port}"
+
   customDomain =
     public  : "#{options.scheme}://#{options.host}"
     public_ : options.host
@@ -87,7 +81,7 @@ Configuration = (options={}) ->
     webserver           :
       instances         : 2
       supervisord       :
-        command         : "node #{options.projectRoot}/servers/index.js -c #{options.configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{options.kiteHome}/kite.key"
+        command         : "node #{options.projectRoot}/servers/index.js -c #{options.configName} -p #{KONFIG.webserver.port} --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{options.kiteHome}/kite.key"
       nginx             :
         locations       : [
           {
@@ -102,16 +96,16 @@ Configuration = (options={}) ->
     socialworker        :
       instances         : 4
       supervisord       :
-        command         : "node #{options.projectRoot}/workers/social/index.js -c #{options.configName} -p #{KONFIG.social.port} -r #{options.region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{options.kiteHome}/kite.key"
+        command         : "node #{options.projectRoot}/workers/social/index.js -c #{options.configName} -p #{KONFIG.social.port} -r #{options.region} --kite-port=#{KONFIG.social.kitePort} --kite-key=#{options.kiteHome}/kite.key"
 
     authworker          :
       group             : "webserver"
       supervisord       :
-        command         : "node #{options.projectRoot}/workers/auth/index.js -c #{options.configName} -p #{KONFIG.authWorker.port} --disable-newrelic"
+        command         : "node #{options.projectRoot}/workers/auth/index.js -c #{options.configName} -p #{KONFIG.authWorker.port}"
 
     sourcemaps          :
       supervisord       :
-        command         : "node #{options.projectRoot}/servers/sourcemaps/index.js -c #{options.configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
+        command         : "node #{options.projectRoot}/servers/sourcemaps/index.js -c #{options.configName} -p #{KONFIG.sourcemaps.port}"
 
     socialapi           :
       instances         : 2
@@ -140,7 +134,7 @@ Configuration = (options={}) ->
   KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
   KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG, options.environment
   KONFIG.runFile        = require('./generateRunFile').sandbox(KONFIG, options, credentials)
-  KONFIG.configCheckExempt = ["ngrokProxy", "command", "output_path"]
+  KONFIG.configCheckExempt = ["command", "output_path"]
 
   return KONFIG
 

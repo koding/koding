@@ -92,7 +92,7 @@ module.exports = (KONFIG, options, credentials) ->
     authworker          :
       group             : "webserver"
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/workers/auth/index.js -c #{options.configName} -p #{KONFIG.authWorker.port} --disable-newrelic"
+        command         : "./watch-node #{options.projectRoot}/workers/auth/index.js -c #{options.configName} -p #{KONFIG.authWorker.port}"
       healthCheckURL    : "http://localhost:#{KONFIG.authWorker.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.authWorker.port}/version"
 
@@ -103,7 +103,7 @@ module.exports = (KONFIG, options, credentials) ->
       nginx             :
         locations       : [ { location : "/sourcemaps" } ]
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/servers/sourcemaps/index.js -c #{options.configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
+        command         : "./watch-node #{options.projectRoot}/servers/sourcemaps/index.js -c #{options.configName} -p #{KONFIG.sourcemaps.port}"
 
     webserver           :
       group             : "webserver"
@@ -111,7 +111,7 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.webserver.port}"
         outgoing        : "#{KONFIG.webserver.kitePort}"
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/servers/index.js -c #{options.configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{options.kiteHome}/kite.key"
+        command         : "./watch-node #{options.projectRoot}/servers/index.js -c #{options.configName} -p #{KONFIG.webserver.port} --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{options.kiteHome}/kite.key"
       nginx             :
         locations       : [
           {
@@ -129,7 +129,7 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.social.port}"
         outgoing        : "#{KONFIG.social.kitePort}"
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/workers/social/index.js -c #{options.configName} -p #{KONFIG.social.port} -r #{options.region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{options.kiteHome}/kite.key"
+        command         : "./watch-node #{options.projectRoot}/workers/social/index.js -c #{options.configName} -p #{KONFIG.social.port} -r #{options.region} --kite-port=#{KONFIG.social.kitePort} --kite-key=#{options.kiteHome}/kite.key"
       nginx             :
         locations       : [ location: "/xhr" ]
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
