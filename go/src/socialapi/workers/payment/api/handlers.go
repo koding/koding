@@ -115,12 +115,32 @@ func AddHandlers(m *mux.Mux) {
 	// Invoices
 	//----------------------------------------------------------
 
+	// this is same /payments/account/invoices/{accountId}, here for backwards
+	// compatibilty
 	m.AddHandler(
 		handler.Request{
-			Handler:  InvoiceRequest,
+			Handler:  AccountInvoiceRequest,
 			Name:     "payment-invoices",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/invoices/{accountId}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  AccountInvoiceRequest,
+			Name:     "payment-account-invoices",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/account/invoices/{accountId}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  GroupInvoiceRequest,
+			Name:     "payment-group-invoices",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/group/invoices/{groupId}",
 		},
 	)
 

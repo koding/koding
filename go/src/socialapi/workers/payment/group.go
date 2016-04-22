@@ -72,6 +72,10 @@ func (g *GroupRequest) Delete() (interface{}, error) {
 	return nil, stripe.DeleteCustomer(g.GroupId)
 }
 
+func (g *GroupRequest) Invoices() ([]*stripe.StripeInvoiceResponse, error) {
+	return stripe.FindInvoicesForCustomer(g.GroupId)
+}
+
 func (g *GroupRequest) GetCreditCard() (*stripe.CreditCardResponse, error) {
 	return stripe.GetCreditCard(g.GroupId)
 }
