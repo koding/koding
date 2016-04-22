@@ -6,8 +6,6 @@ Scroller                       = require 'app/components/scroller'
 KDReactorMixin                 = require 'app/flux/base/reactormixin'
 SidebarNoStacks                = require 'app/components/sidebarstacksection/sidebarnostacks'
 SidebarStackSection            = require 'app/components/sidebarstacksection'
-SidebarChannelsSection         = require 'app/components/sidebarchannelssection'
-SidebarMessagesSection         = require 'app/components/sidebarmessagessection'
 SidebarStackHeaderSection      = require 'app/components/sidebarstacksection/sidebarstackheadersection'
 SidebarSharedMachinesSection   = require 'app/components/sidebarsharedmachinessection'
 SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
@@ -159,16 +157,8 @@ module.exports = class Sidebar extends React.Component
       machines={machines}/>
 
 
-  renderChannels: ->
-    <SidebarChannelsSection
-      selectedId={@state.selectedThreadId}
-      threads={@state.publicChannels} />
 
 
-  renderMessages: ->
-    <SidebarMessagesSection
-      selectedId={@state.selectedThreadId}
-      threads={@state.privateChannels} />
 
 
   renderLogo: ->
