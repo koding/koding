@@ -1,0 +1,16 @@
+{
+  "name": "stackeditor",
+  "main": "./lib/index.coffee",
+  "routes": {
+    "/Stack-Editor": "home",
+    "/Stack-Editor/:section": "section",
+    "/Stack-Editor/:section/:action": "action",
+    "/Stack-Editor/:section/:action/:identifier": "identifier"
+  },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl/*.styl"
+  ]
+}
