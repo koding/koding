@@ -17,26 +17,57 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     stackTemplate         = @getData()
     { accessLevel, _id }  = stackTemplate
 
-    @setAttribute 'testpath', "#{accessLevel}StackListItem"
-
-    @buildLabels()
+    @setTestPath()
+    @buildViews()
 
     kd.singletons.groupsController.on 'StackTemplateChanged', (params) =>
       if params.contents is _id
-        stackTemplate.isDefault = yes
-        @isDefaultView?.show()
+        stackTemplate.isDefault   = yes
+        stackTemplate.accessLevel = 'group'
       else
-        stackTemplate.isDefault = no
-        @isDefaultView?.hide()
+        stackTemplate.isDefault   = no
 
       @setData stackTemplate
+      @setTestPath()
+      @updateLabels()
+
+
+  setTestPath: ->
+
+    { accessLevel } = @getData()
+    @setAttribute 'testpath', "#{accessLevel}StackListItem"
+
+
+  buildViews: ->
+
+    { meta, isDefault, inUse, accessLevel, config, title } = @getData()
+
+    @addSubView @info = new kd.CustomHTMLView
+      cssClass  : 'stacktemplate-info clearfix'
+
+    @info.addSubView @title = new kd.CustomHTMLView
+      cssClass  : 'title'
+      partial   : title
+
+    @info.addSubView @labels  = new kd.CustomHTMLView
+      cssClass  : 'labels'
+
+    @info.addSubView @lastUpdatedView = new kd.CustomHTMLView
+      tagName    : 'cite'
+      partial    : "Last updated #{timeago meta.modifiedAt}"
+
+    @addSubView @buttons  = new kd.CustomHTMLView
+      cssClass   : 'buttons'
+
+    @buttons.addSubView @settings
+    @buildLabels()
 
 
   buildLabels: ->
 
     { isDefault, inUse, accessLevel, config } = @getData()
 
-    @isDefaultView = new kd.CustomHTMLView
+    @labels.addSubView @isDefaultView = new kd.CustomHTMLView
       cssClass   : 'custom-tag'
       partial    : 'DEFAULT'
       attributes :
@@ -44,7 +75,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
       tooltip    :
         title    : 'This group currently using this template'
 
-    @inUseView   = new kd.CustomHTMLView
+    @labels.addSubView @inUseView     = new kd.CustomHTMLView
       cssClass   : 'custom-tag'
       partial    : 'IN USE'
       attributes :
@@ -52,7 +83,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
       tooltip    :
         title    : 'This template is in use'
 
-    @notReadyView = new kd.CustomHTMLView
+    @labels.addSubView @notReadyView  = new kd.CustomHTMLView
       cssClass   : 'custom-tag not-ready'
       partial    : 'NOT READY'
       attributes :
@@ -60,7 +91,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
       tooltip    :
         title    : 'Template is not verified or credential data is missing'
 
-    @accessLevelView = new kd.CustomHTMLView
+    @labels.addSubView @accessLevelView = new kd.CustomHTMLView
       cssClass   : "custom-tag #{accessLevel}"
       partial    : accessLevel.toUpperCase()
       attributes :
