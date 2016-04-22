@@ -11,6 +11,6 @@ module.exports = class StackEditorAppController extends AppController
 
   constructor: (options = {}, data) ->
 
-    options.view = new DefineStackView
+    options.view = new DefineStackView {}, { showHelpContent : yes }
 
     super options, data
