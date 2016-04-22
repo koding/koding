@@ -118,14 +118,17 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
     @initialView.hide()
 
-    @defineStackView = new DefineStackView { inEditMode }, { stackTemplate, showHelpContent }
+    @defineStackView = new DefineStackView { inEditMode, delegate : this }, { stackTemplate, showHelpContent }
     @scrollView.addSubView @defineStackView
 
     @defineStackView.on 'Reload', ->
       kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
+    @defineStackView.on 'NewStackTemplateAdded', ({ stackTemplate, templatesView }) ->
+      return  if stackTemplate.event is 'updateInstance'
+      templatesView.initialView.stackTemplateList.listController.addItem stackTemplate
+
     @defineStackView.on [ 'Cancel', 'Completed' ], =>
       @defineStackView.destroy()
-      @initialView.reload()
       @initialView.show()
       @setRoute()

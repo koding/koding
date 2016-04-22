@@ -14,9 +14,27 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     super options, data
 
-    { isDefault, inUse, accessLevel, config } = @getData()
+    stackTemplate         = @getData()
+    { accessLevel, _id }  = stackTemplate
 
     @setAttribute 'testpath', "#{accessLevel}StackListItem"
+
+    @buildLabels()
+
+    kd.singletons.groupsController.on 'StackTemplateChanged', (params) =>
+      if params.contents is _id
+        stackTemplate.isDefault = yes
+        @isDefaultView?.show()
+      else
+        stackTemplate.isDefault = no
+        @isDefaultView?.hide()
+
+      @setData stackTemplate
+
+
+  buildLabels: ->
+
+    { isDefault, inUse, accessLevel, config } = @getData()
 
     @isDefaultView = new kd.CustomHTMLView
       cssClass   : 'custom-tag'
@@ -61,14 +79,13 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     @notReadyView.hide()  if config.verified
 
 
-  generateStackFromTemplate: ->
+  updateLabels: ->
 
-    stackTemplate = @getData()
-    stackTemplate.generateStack (err, stack) =>
-
-      unless showError err
-        kd.singletons.computeController.reset yes, => @getDelegate().emit 'StackGenerated'
-        new kd.NotificationView { title: 'Stack generated successfully' }
+    @isDefaultView?.destroy()
+    @inUseView?.destroy()
+    @notReadyView?.destroy()
+    @accessLevelView?.destroy()
+    @buildLabels()
 
 
   _itemSelected: (data) ->
@@ -79,6 +96,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     listView      = @getDelegate()
     stackTemplate = @getData()
+    @menu         = {}
 
     if not stackTemplate.isDefault and stackTemplate.config.verified
       @addMenuItem 'Apply to Team', =>
