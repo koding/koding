@@ -9,7 +9,7 @@ module.exports = (KONFIG, options, credentials) ->
     gowebserver         :
       group             : "webserver"
       ports             :
-         incoming       : "#{KONFIG.gowebserver.port}"
+        incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
         command         :
           run           : "#{GOBIN}/go-webserver -c #{options.configName}"
@@ -131,7 +131,7 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         command         : "./watch-node #{options.projectRoot}/workers/social/index.js -c #{options.configName} -p #{KONFIG.social.port} -r #{options.region} --kite-port=#{KONFIG.social.kitePort} --kite-key=#{options.kiteHome}/kite.key"
       nginx             :
-        locations       : [ location: "/xhr" ]
+        locations       : [ { location: "/xhr" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 

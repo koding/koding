@@ -12,7 +12,7 @@ generateDev = (KONFIG, options, credentials) ->
   kiteKeyFile = "#{options.projectRoot}/kite_home/koding/kite.key"
 
   killlist = ->
-    str = "kill -KILL "
+    str = 'kill -KILL '
     for key, worker of KONFIG.workers
       unless isAllowed worker.group, KONFIG.ebEnvName
         continue
@@ -21,7 +21,7 @@ generateDev = (KONFIG, options, credentials) ->
 
     return str
 
-  envvars = (options={})->
+  envvars = (options = {}) ->
     options.exclude or= []
 
     env = """
@@ -29,24 +29,24 @@ generateDev = (KONFIG, options, credentials) ->
     export GOBIN=#{GOBIN}
 
     """
-    env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV when key not in options.exclude
+    env += "export #{key}='#{val}'\n" for key, val of KONFIG.ENV when key not in options.exclude
     return env
 
-  workerList = (separator=" ")->
-    (key for key,val of KONFIG.workers).join separator
+  workerList = (separator = ' ') ->
+    (key for key, val of KONFIG.workers).join separator
 
   workersRunList = ->
-    workers = ""
+    workers = ''
     for name, worker of KONFIG.workers when worker.supervisord
       # some of the locations can be limited to some environments, while creating
       # nginx locations filter with this info
       unless isAllowed worker.group, KONFIG.ebEnvName
         continue
 
-      {command} = worker.supervisord
+      { command } = worker.supervisord
 
       if typeof command is 'object'
-        {run, watch} = command
+        { run, watch } = command
         command = if options.runGoWatcher then watch else run
 
       workers += """
@@ -213,7 +213,7 @@ generateDev = (KONFIG, options, credentials) ->
     function printconfig () {
       if [ "$2" == "" ]; then
         cat << EOF
-        #{envvars(exclude:["KONFIG_JSON"])}EOF
+        #{envvars({ exclude:["KONFIG_JSON"] })}EOF
       elif [ "$2" == "--json" ]; then
 
         echo '#{KONFIG.JSON}'
@@ -276,7 +276,7 @@ generateDev = (KONFIG, options, credentials) ->
       node #{options.projectRoot}/scripts/sanitize-email
 
       # Run all the worker daemons in KONFIG.workers
-      #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers when val.supervisord).join(" ")}
+      #{("worker_daemon_"+key+"\n" for key, val of KONFIG.workers when val.supervisord).join(" ")}
 
       # Check backend option, if it's then bypass client build
       if [ "$1" == "backend" ] ; then

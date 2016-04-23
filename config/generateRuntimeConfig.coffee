@@ -25,7 +25,7 @@ module.exports = (KONFIG, credentials, options) ->
     kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     externalProfiles     :
       google             : { nicename: 'Google' }
-      linkedin           : { nicename: 'LinkedIn'}
+      linkedin           : { nicename: 'LinkedIn' }
       twitter            : { nicename: 'Twitter' }
       odesk              : { nicename: 'Upwork', urlLocation: 'info.profile_url' }
       facebook           : { nicename: 'Facebook', urlLocation: 'link' }

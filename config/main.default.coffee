@@ -5,7 +5,7 @@ os                    = require 'os'
 path                  = require 'path'
 { isAllowed }         = require '../deployment/grouptoenvmapping'
 
-Configuration = (options={}) ->
+Configuration = (options = {}) ->
 
   options.domains =
     base  : 'koding.com'

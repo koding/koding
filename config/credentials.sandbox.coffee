@@ -1,7 +1,7 @@
 module.exports = (options) ->
   dev_master =
-    accessKeyId: "AKIAIKQZE7JIXVGIT2MA"
-    secretAccessKey: "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"
+    accessKeyId: 'AKIAIKQZE7JIXVGIT2MA'
+    secretAccessKey: '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'
 
   awsKeys =
     dev_master: dev_master
@@ -24,11 +24,11 @@ module.exports = (options) ->
     #Encryption and Storage on S3
     worker_sneakerS3 : dev_master
     vm_vmwatcher:     # vm_vmwatcher_dev
-      accessKeyId: "AKIAJ3OZKOIQUTV2GCBQ"
-      secretAccessKey: "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"
+      accessKeyId: 'AKIAJ3OZKOIQUTV2GCBQ'
+      secretAccessKey: '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'
     vm_kloud:         # vm_kloud_dev
-      accessKeyId: "AKIAJRNT55RTV2MHD4VA"
-      secretAccessKey: "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"
+      accessKeyId: 'AKIAJRNT55RTV2MHD4VA'
+      secretAccessKey: '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'
 
   slKeys =
     vm_kloud:
