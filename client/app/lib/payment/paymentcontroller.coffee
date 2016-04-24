@@ -1,6 +1,7 @@
 kd      = require 'kd'
 remote  = require('../remote').getInstance()
 globals = require 'globals'
+whoami = require 'app/util/whoami'
 
 
 module.exports = class PaymentController extends kd.Controller
@@ -34,6 +35,19 @@ module.exports = class PaymentController extends kd.Controller
     @api().subscribeGroup params, (err, plan) =>
       callback err, plan
       @emit 'GroupPlanUpdated'  unless err
+
+
+  # waiting for the team free plan to be exposed, because free_month is for
+  # only accounts. ~Umut
+  removeGroupPlan: (callback) ->
+
+    whoami().fetchEmail (err, email) =>
+      params =
+        token: 'a'
+        planTitle: 'free'
+        email: email
+
+      @api().subscribeGroup params, callback
 
 
   subscriptions: (callback) ->
