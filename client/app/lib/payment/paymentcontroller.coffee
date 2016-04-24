@@ -75,6 +75,13 @@ module.exports = class PaymentController extends kd.Controller
     @api().updateCreditCard params, callback
 
 
+  updateGroupCreditCard: (token, callback) ->
+
+    params = { token, provider: DEFAULT_PROVIDER }
+
+    @api().updateGroupCreditCard params, callback
+
+
   canChangePlan: (planTitle, callback) ->
 
     @api().canChangePlan { planTitle }, callback
