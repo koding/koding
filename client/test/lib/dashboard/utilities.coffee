@@ -25,3 +25,28 @@ module.exports =
         if result.state is 'success'
           helpers.switchBrowser browser, 'connect-your-machine'
       .end()
+
+
+  kodingButton: (browser) ->
+
+    sectionSelector = '.HomeAppView--section.koding-button'
+    toggleButtonSelector = "#{sectionSelector} .ReactToggle.TryOnKoding-onOffButton"
+    codeBlockSelector = "#{sectionSelector} .HomeAppView--code.block"
+    textarea = "#{codeBlockSelector} textarea"
+    tryOnKodingButtonSelector = '.custom-link-view.TryOnKodingButton.fr'
+    viewGuideButton = "#{sectionSelector} .custom-link-view.HomeAppView--button"
+    domainSelector = '.react-toggle.react-toggle--checked'
+
+    user = teamsHelpers.loginTeam browser
+
+    browser
+      .url utilitiesLink
+      .waitForElementVisible sectionSelector, 20000
+      .pause 5000
+      .elements 'css selector', domainSelector, (result) ->
+
+        unless result.value.length
+          browser
+            .waitForElementVisible toggleButtonSelector, 10000
+            .click toggleButtonSelector
+
