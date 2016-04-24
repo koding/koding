@@ -24,7 +24,10 @@ module.exports = class PaymentInformationContainer extends React.Component
 
   onRemoveCard: ->
 
-    console.log 'onRemoveCard'
+    { reactor } = kd.singletons
+    { actions } = PaymentFlux reactor
+
+    actions.removeGroupPlan()
 
 
   onPaymentHistory: ->
