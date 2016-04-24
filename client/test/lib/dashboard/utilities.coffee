@@ -64,3 +64,29 @@ module.exports =
       .end()
 
 
+  integrations: (browser) ->
+
+    sectionSelector = '.HomeAppView--section.customer-feedback'
+    chatlioLink = "#{sectionSelector} .warning a"
+    viewGuideButton = "#{sectionSelector} a[href='https://www.koding.com/docs/chatlio'].custom-link-view.HomeAppView--button"
+    inputSelector = "#{sectionSelector} input[type=text]"
+    saveButton = "#{sectionSelector} .custom-link-view.HomeAppView--button.primary.fr"
+    saveButtonTurnedOffResponse = 'Chatlio integration successfully turned off!'
+    saveButtonSaveResponse = 'Chatlio id successfully saved!'
+
+    teamsHelpers.loginTeam browser
+
+    browser
+      .url utilitiesLink
+      .waitForElementVisible sectionSelector, 10000
+      .scrollToElement saveButton
+      .waitForElementVisible saveButton, 5000
+      .click saveButton
+      .waitForElementVisible '.kdnotification', 10000
+      .assert.containsText '.kdnotification', saveButtonTurnedOffResponse
+      .waitForElementVisible inputSelector, 5000
+      .setValue inputSelector, 'something'
+      .pause 5000
+      .click saveButton
+      .waitForElementVisible '.kdnotification', 10000
+      .assert.containsText '.kdnotification', saveButtonSaveResponse
