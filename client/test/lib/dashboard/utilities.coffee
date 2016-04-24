@@ -21,3 +21,7 @@ module.exports =
       .click codeBlockSelector
       .waitForElementVisible '.kdnotification', 20000
       .assert.containsText '.kdnotification', 'Copied to clipboard!'
+      .click '.HomeAppView--button.primary', (result) ->
+        if result.state is 'success'
+          helpers.switchBrowser browser, 'connect-your-machine'
+      .end()
