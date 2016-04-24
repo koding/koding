@@ -96,3 +96,11 @@ module.exports =
 
         if result.state is 'success'
           helpers.switchBrowser browser, 'https://www.koding.com/docs/chatlio'
+      .pause 5000
+      .click chatlioLink, (result) ->
+
+        if result.state is 'success'
+          helpers.switchBrowser browser, 'chatlio.com'
+
+      .pause 1000
+      .end()
