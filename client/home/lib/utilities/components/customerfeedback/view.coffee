@@ -13,7 +13,7 @@ module.exports = class CustomerFeedBackView extends React.Component
       <cite className='warning'>
         Chatlio will allow you to talk with your team members using your
         existing Slack service. For this integration you need to create an
-        account at <a href='chatlio.com' target='_blank'>chatlio.com</a>. * Requires Slack integration.
+        account at <a href='https://chatlio.com' target='_blank'>chatlio.com</a>. * Requires Slack integration.
         <br/><br/>
         Once you get your Chatlio <code className='HomeAppView--code'>data-widget-id</code>
         and paste below, we will complete the integration for you.
