@@ -50,3 +50,6 @@ module.exports =
             .waitForElementVisible toggleButtonSelector, 10000
             .click toggleButtonSelector
 
+      .pause 5000
+      .waitForElementVisible codeBlockSelector, 20000
+      .assert.valueContains textarea, user.teamSlug
