@@ -90,3 +90,9 @@ module.exports =
       .click saveButton
       .waitForElementVisible '.kdnotification', 10000
       .assert.containsText '.kdnotification', saveButtonSaveResponse
+      .pause 5000
+
+      .click viewGuideButton, (result) ->
+
+        if result.state is 'success'
+          helpers.switchBrowser browser, 'https://www.koding.com/docs/chatlio'
