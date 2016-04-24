@@ -8,13 +8,16 @@ values = [
   plainValues
   PaymentFlux.getters.paymentValues
   (formValues, paymentValues) ->
-    card = paymentValues.get 'groupCreditCard'
 
     if isEdited(formValues)
       return formValues
 
     # groupPlan = paymentValues.get 'groupPlan'
     # return defaultValues()  unless groupPlan
+
+    card = paymentValues.get 'groupCreditCard'
+
+    return formValues  unless card
 
     formValues.withMutations (formValues) ->
       formValues
