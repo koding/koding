@@ -50,7 +50,7 @@ func (bm *BaseMachine) State() machinestate.State {
 }
 
 func (bm *BaseMachine) WaitKlientReady() error {
-	bm.Log.Debug("testing for %s (%s) klient kite connection: %s", bm.QueryString, bm.IpAddress)
+	bm.Log.Debug("testing for %s (%s) klient kite connection", bm.QueryString, bm.IpAddress)
 
 	c, err := klient.NewWithTimeout(bm.Kite, bm.QueryString, bm.klientTimeout())
 	if err != nil {

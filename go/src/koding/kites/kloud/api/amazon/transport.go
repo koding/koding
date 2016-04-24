@@ -2,9 +2,7 @@ package amazon
 
 import (
 	"net"
-	"time"
 
-	"koding/kites/common"
 	"koding/kites/kloud/httputil"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -14,32 +12,9 @@ import (
 	"github.com/koding/logging"
 )
 
-var httpClient = httputil.NewClient(&httputil.ClientConfig{
-	DialTimeout:           10 * time.Second,
-	RoundTripTimeout:      60 * time.Second,
-	TLSHandshakeTimeout:   10 * time.Second,
-	ResponseHeaderTimeout: 60 * time.Second,
-	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
-})
-
-var httpDebugClient = httputil.NewClient(&httputil.ClientConfig{
-	DialTimeout:           10 * time.Second,
-	RoundTripTimeout:      60 * time.Second,
-	TLSHandshakeTimeout:   10 * time.Second,
-	ResponseHeaderTimeout: 60 * time.Second,
-	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
-	Log:                   common.NewLogger("dialer", true),
-	TraceLeakedConn:       true,
-})
-
 // NewTransport gives new resilient transport for the given ClientOptions.
 func NewTransport(opts *ClientOptions) *aws.Config {
-	cfg := aws.NewConfig()
-	if opts.Debug {
-		cfg = cfg.WithHTTPClient(httpDebugClient)
-	} else {
-		cfg = cfg.WithHTTPClient(httpClient)
-	}
+	cfg := aws.NewConfig().WithHTTPClient(httputil.DefaultClient(opts.Debug))
 	retryer := &transportRetryer{
 		MaxTries: 3,
 	}

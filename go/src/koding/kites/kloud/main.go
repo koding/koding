@@ -248,10 +248,16 @@ func newKite(conf *Config) *kite.Kite {
 		"paymentwebhook": conf.PaymentwebhookSecretKey,
 	}
 
+	credURL, err := url.Parse(conf.CredentialEndpoint)
+	if err != nil {
+		panic(err)
+	}
+
 	storeOpts := &stackcred.StoreOptions{
-		MongoDB:            sess.DB,
-		Log:                sess.Log.New("mongocred"),
-		CredentialEndpoint: conf.CredentialEndpoint,
+		MongoDB: sess.DB,
+		Log:     sess.Log.New("stackcred"),
+		CredURL: credURL,
+		Client:  httputil.DefaultClient(conf.DebugMode),
 	}
 
 	bp := &provider.BaseProvider{
@@ -302,7 +308,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Log = sess.Log
 	kld.SecretKey = conf.KloudSecretKey
 
-	err := kld.AddProvider("koding", kodingProvider)
+	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
 	}

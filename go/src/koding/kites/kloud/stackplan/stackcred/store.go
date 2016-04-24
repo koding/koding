@@ -2,6 +2,8 @@ package stackcred
 
 import (
 	"fmt"
+	"net/http"
+	"net/url"
 
 	"koding/db/mongodb"
 	"koding/kites/kloud/utils/object"
@@ -57,10 +59,11 @@ type Putter interface {
 // StoreOptions are used to alter default behavior of credential store
 // implementations.
 type StoreOptions struct {
-	MongoDB            *mongodb.MongoDB
-	Log                logging.Logger
-	CredentialEndpoint string
-	ObjectBuilder      *object.Builder
+	MongoDB       *mongodb.MongoDB
+	Log           logging.Logger
+	CredURL       *url.URL
+	ObjectBuilder *object.Builder
+	Client        *http.Client
 }
 
 func (opts *StoreOptions) objectBuilder() *object.Builder {
@@ -71,6 +74,13 @@ func (opts *StoreOptions) objectBuilder() *object.Builder {
 	return object.HCLBuilder
 }
 
+func (opts *StoreOptions) new(logName string) *StoreOptions {
+	optsCopy := *opts
+	optsCopy.Log = opts.Log.New(logName)
+
+	return &optsCopy
+}
+
 // NewStore gives new credential store for the given options.
 //
 // The returned fetcher tries to fetch credential datas from sneaker,
@@ -79,7 +89,7 @@ func (opts *StoreOptions) objectBuilder() *object.Builder {
 // on sneaker.
 func NewStore(opts *StoreOptions) Fetcher {
 	social := &socialStore{
-		StoreOptions: opts,
+		StoreOptions: opts.new("social"),
 	}
 
 	return &FallbackFetcher{
@@ -87,11 +97,13 @@ func NewStore(opts *StoreOptions) Fetcher {
 			social,
 			&TeeFetcher{
 				Fetcher: &mongoStore{
-					StoreOptions: opts,
+					StoreOptions: opts.new("mongo"),
 				},
 				Putter: social,
+				Log:    opts.Log.New("TeeFetcher"),
 			},
 		},
+		Log: opts.Log.New("FallbackFetcher"),
 	}
 }
 
@@ -108,6 +120,7 @@ func toIdents(creds map[string]interface{}) []string {
 // by fetching missing ones with next fetcher until nil error is returned.
 type FallbackFetcher struct {
 	Fetchers []Fetcher
+	Log      logging.Logger
 }
 
 // Fetch implements the Fetcher interface than handles *NotFoundError by
@@ -116,13 +129,15 @@ type FallbackFetcher struct {
 func (ff *FallbackFetcher) Fetch(username string, creds map[string]interface{}) error {
 	left := creds
 
-	for _, f := range ff.Fetchers {
+	for i, f := range ff.Fetchers {
 		if len(left) == 0 {
 			break
 		}
 
 		err := f.Fetch(username, left)
 		e, ok := err.(*NotFoundError)
+
+		ff.Log.Debug("%d: fetch result: left=%+v, err=%+v", i, left, err)
 
 		if err != nil && !ok {
 			// errors other than *NotFoundError can't be recovered from
@@ -140,11 +155,11 @@ func (ff *FallbackFetcher) Fetch(username string, creds map[string]interface{}) 
 			}
 		}
 
+		left = make(map[string]interface{})
+
 		if err == nil {
 			break
 		}
-
-		left = make(map[string]interface{}, len(e.Identifiers))
 
 		for _, ident := range e.Identifiers {
 			data, ok := creds[ident]
@@ -158,6 +173,12 @@ func (ff *FallbackFetcher) Fetch(username string, creds map[string]interface{}) 
 		}
 	}
 
+	if len(left) != 0 {
+		return &NotFoundError{
+			Identifiers: toIdents(left),
+		}
+	}
+
 	return nil
 }
 
@@ -166,6 +187,7 @@ func (ff *FallbackFetcher) Fetch(username string, creds map[string]interface{}) 
 type TeeFetcher struct {
 	Fetcher Fetcher
 	Putter  Putter
+	Log     logging.Logger
 }
 
 // TeeFetcher implements the Fetcher interfaces which puts each fetched
@@ -173,6 +195,8 @@ type TeeFetcher struct {
 func (tf *TeeFetcher) Fetch(username string, creds map[string]interface{}) error {
 	err := tf.Fetcher.Fetch(username, creds)
 	e, ok := err.(*NotFoundError)
+
+	tf.Log.Debug("fetch result: creds=%+v, err=%+v", creds, err)
 
 	if err != nil && !ok {
 		// early return - no credential was fetched

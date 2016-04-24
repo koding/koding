@@ -64,6 +64,8 @@ func (db *mongoStore) Fetch(_ string, creds map[string]interface{}) error {
 		} else {
 			creds[ident] = data.Meta
 		}
+
+		db.Log.Debug("fetched credential data for %q: %+v", ident, creds[ident])
 	}
 
 	if len(missing) != 0 {
