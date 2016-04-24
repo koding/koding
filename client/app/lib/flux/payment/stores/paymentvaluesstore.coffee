@@ -4,14 +4,7 @@ immutable       = require 'immutable'
 
 module.exports =
 
-  getInitialState: ->
-    return toImmutable
-      isStripeClientLoaded: no
-      stripeToken: ''
-      groupPlan: null
-      groupCreditCard: null
-      groupInvoices: immutable.Map()
-
+  getInitialState: -> defaultValues()
 
   initialize: ->
     @on actionTypes.LOAD_STRIPE_CLIENT_SUCCESS, handleStripeCLientLoad
@@ -32,3 +25,11 @@ handleGroupPlanLoad = (values, { plan }) -> values.set 'groupPlan', toImmutable 
 handleGroupCreditCardLoad = (values, { card }) -> values.set 'groupCreditCard', toImmutable card
 
 handleGroupInvoices = (values, { invoices }) -> values.set 'groupInvoices', toImmutable invoices
+
+defaultValues = ->
+  return toImmutable
+    isStripeClientLoaded: no
+    stripeToken: ''
+    groupPlan: null
+    groupCreditCard: null
+
