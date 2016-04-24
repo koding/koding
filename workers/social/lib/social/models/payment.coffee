@@ -1,7 +1,7 @@
 { secure, signature, Base } = require 'bongo'
 { argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
-{ extend }  = require 'underscore'
+{ extend, defaults }  = require 'underscore'
 KodingError = require '../error'
 
 TEAM_PLANS  = require '../models/computeproviders/teamplans'
@@ -89,7 +89,7 @@ module.exports = class Payment extends Base
     validateParams requiredParams, data, (err) ->
       return callback err  if err
 
-      data = extend data,
+      data = defaults data,
         groupId: group._id
         provider: 'stripe'
         planTitle: 'team_base'
