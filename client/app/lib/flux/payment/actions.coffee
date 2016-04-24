@@ -84,6 +84,23 @@ subscribeGroupPlan = ({ dispatch, evaluate }) -> ({ token, email }) ->
       resolve { plan }
 
 
+removeGroupPlan = ({ dispatch }) -> ->
+
+  { paymentController } = kd.singletons
+
+  return new Promise (resolve, reject) ->
+    dispatch actionTypes.REMOVE_GROUP_PLAN_BEGIN
+
+    paymentController.removeGroupPlan (err) ->
+      if err
+        dispatch actionTypes.REMOVE_GROUP_PLAN_FAIL, { err }
+        reject err
+        return
+
+      dispatch actionTypes.REMOVE_GROUP_PLAN_SUCCESS
+      resolve()
+
+
 loadGroupCreditCard = ({dispatch}) -> ->
 
   { paymentController } = kd.singletons
@@ -141,6 +158,7 @@ module.exports = {
   createStripeToken
   loadGroupPlan
   subscribeGroupPlan
+  removeGroupPlan
   loadGroupCreditCard
   loadGroupInvoices
   updateGroupCreditCard
