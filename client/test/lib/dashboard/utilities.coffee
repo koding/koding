@@ -57,3 +57,10 @@ module.exports =
       .waitForElementVisible '.kdnotification', 20000
       .assert.containsText '.kdnotification', 'Copied to clipboard!'
       .waitForElementVisible tryOnKodingButtonSelector, 20000
+      .pause 2000
+      .click viewGuideButton, (result) ->
+        if result.state is 'success'
+          helpers.switchBrowser browser, 'koding-button'
+      .end()
+
+
