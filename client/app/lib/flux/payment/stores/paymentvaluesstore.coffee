@@ -20,6 +20,7 @@ module.exports =
     @on actionTypes.SUBSCRIBE_GROUP_PLAN_SUCCESS, handleGroupPlanLoad
     @on actionTypes.LOAD_GROUP_CREDIT_CARD_SUCCESS, handleGroupCreditCardLoad
     @on actiontypes.LOAD_GROUP_INVOICES_SUCCESS, handleGroupInvoices
+    @on actionTypes.UPDATE_GROUP_CREDIT_CARD_SUCCESS, handleGroupCreditCardLoad
 
 
 handleStripeCLientLoad = (values) -> values.set 'isStripeClientLoaded', yes
