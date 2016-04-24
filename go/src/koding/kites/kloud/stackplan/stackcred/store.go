@@ -49,6 +49,11 @@ type Fetcher interface {
 	Fetch(username string, creds map[string]interface{}) error
 }
 
+// Putter provides an interface for inserting/updating credentials.
+type Putter interface {
+	Put(username string, creds map[string]interface{}) error
+}
+
 // StoreOptions are used to alter default behavior of credential store
 // implementations.
 type StoreOptions struct {
@@ -67,9 +72,26 @@ func (opts *StoreOptions) objectBuilder() *object.Builder {
 }
 
 // NewStore gives new credential store for the given options.
+//
+// The returned fetcher tries to fetch credential datas from sneaker,
+// for each missing credential it fallbacks to Mongo and on each
+// successful fetch from Mongo it updates the credential data back
+// on sneaker.
 func NewStore(opts *StoreOptions) Fetcher {
-	return &mongoStore{
+	social := &socialStore{
 		StoreOptions: opts,
+	}
+
+	return &FallbackFetcher{
+		Fetchers: []Fetcher{
+			social,
+			&TeeFetcher{
+				Fetcher: &mongoStore{
+					StoreOptions: opts,
+				},
+				Putter: social,
+			},
+		},
 	}
 }
 
@@ -80,4 +102,101 @@ func toIdents(creds map[string]interface{}) []string {
 	}
 
 	return idents
+}
+
+// FallbackFetcher fetches credential datas recovering from *NotFoundError
+// by fetching missing ones with next fetcher until nil error is returned.
+type FallbackFetcher struct {
+	Fetchers []Fetcher
+}
+
+// Fetch implements the Fetcher interface than handles *NotFoundError by
+// trying to fetch missing credentials from the next fetcher from
+// the Fetchers slice.
+func (ff *FallbackFetcher) Fetch(username string, creds map[string]interface{}) error {
+	left := creds
+
+	for _, f := range ff.Fetchers {
+		if len(left) == 0 {
+			break
+		}
+
+		err := f.Fetch(username, left)
+		e, ok := err.(*NotFoundError)
+
+		if err != nil && !ok {
+			// errors other than *NotFoundError can't be recovered from
+			return err
+		}
+
+		// ensure all fetched data values are updated in creds map
+		if err == nil || ok {
+			for ident, data := range left {
+				// ensure the ident was requested so we do not leak
+				// excessive data values
+				if _, ok := creds[ident]; ok {
+					creds[ident] = data
+				}
+			}
+		}
+
+		if err == nil {
+			break
+		}
+
+		left = make(map[string]interface{}, len(e.Identifiers))
+
+		for _, ident := range e.Identifiers {
+			data, ok := creds[ident]
+			if !ok {
+				// this should not happen, can't have not found error
+				// for a credential that was not requested; safe to ignore
+				continue
+			}
+
+			left[ident] = data
+		}
+	}
+
+	return nil
+}
+
+// TeeFetcher creates/updates with Putter each credential data
+// that was fetched by Fetcher.
+type TeeFetcher struct {
+	Fetcher Fetcher
+	Putter  Putter
+}
+
+// TeeFetcher implements the Fetcher interfaces which puts each fetched
+// credential data from F to P.
+func (tf *TeeFetcher) Fetch(username string, creds map[string]interface{}) error {
+	err := tf.Fetcher.Fetch(username, creds)
+	e, ok := err.(*NotFoundError)
+
+	if err != nil && !ok {
+		// early return - no credential was fetched
+		return err
+	}
+
+	fetched := make(map[string]interface{})
+
+	for ident, data := range creds {
+		fetched[ident] = data
+	}
+
+	// if there are missing credential datas, remove them from fetched
+	if ok && e != nil {
+		for _, ident := range e.Identifiers {
+			delete(fetched, ident)
+		}
+	}
+
+	if len(fetched) != 0 {
+		// ignore errors from Put, we're going to retry putting
+		// credential data next time it's fetched
+		tf.Putter.Put(username, fetched)
+	}
+
+	return err
 }
