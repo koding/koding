@@ -53,3 +53,7 @@ module.exports =
       .pause 5000
       .waitForElementVisible codeBlockSelector, 20000
       .assert.valueContains textarea, user.teamSlug
+      .click codeBlockSelector
+      .waitForElementVisible '.kdnotification', 20000
+      .assert.containsText '.kdnotification', 'Copied to clipboard!'
+      .waitForElementVisible tryOnKodingButtonSelector, 20000
