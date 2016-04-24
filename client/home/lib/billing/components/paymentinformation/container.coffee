@@ -36,7 +36,11 @@ module.exports = class PaymentInformationContainer extends React.Component
 
     { formValues } = @state
     { reactor } = kd.singletons
-    { createStripeToken, subscribeGroupPlan, loadGroupCreditCard } = PaymentFlux(reactor).actions
+    { actions, getters } = PaymentFlux reactor
+
+    { createStripeToken, subscribeGroupPlan
+      loadGroupCreditCard, updateGroupCreditCard } = actions
+
     { resetValues } = CardFormValues.actions
 
     options =
@@ -47,10 +51,16 @@ module.exports = class PaymentInformationContainer extends React.Component
       cardName: formValues.get 'fullName'
 
     createStripeToken(options).then ({ token }) ->
-      subscribeGroupPlan({ token, email: formValues.get 'email' }).then ->
-        resetValues()
-        loadGroupCreditCard()
 
+      if getters.paymentValues().get 'groupCreditCard'
+        updateGroupCreditCard({ token }).then ->
+          resetValues()
+          loadGroupCreditCard()
+
+      else
+        subscribeGroupPlan({ token, email: formValues.get 'email' }).then ->
+          resetValues()
+          loadGroupCreditCard()
 
 
   render: ->
