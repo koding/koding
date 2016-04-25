@@ -1182,14 +1182,7 @@ module.exports = class JUser extends jraphical.Module
           if user
             afterLogin user, sessionToken, session, kallback
           else
-            info = session.foreignAuth[provider]
-            { returnUrl } = session
-            { username, email, firstName, lastName, scope } = info
-            callback null, {
-              isNewUser : true,
-              userInfo  : { username, email, firstName, lastName, scope }
-              returnUrl
-            }
+            return callback new KodingError 'OAuth registrations are no longer available.'
 
 
   @validateAll = (userFormData, callback) ->
