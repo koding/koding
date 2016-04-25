@@ -38,7 +38,7 @@ isEdited = (formValues) -> formValues.get 'isEdited'
 
 
 formatCardNumber = (last4) ->
-  if last4 then "****-****-****-#{last4}" else ''
+  if last4 then "************#{last4}" else ''
 
 
 defaultValues = ->
