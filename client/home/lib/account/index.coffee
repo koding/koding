@@ -4,7 +4,6 @@ HomeAccountEditProfile     = require './homeaccounteditprofile'
 HomeAccountChangePassword  = require './homeaccountchangepassword'
 HomeAccountSecurityView    = require './homeaccountsecurityview'
 HomeAccountSessionsView    = require './homeaccountsessionsview'
-HomeAccountCredentialsView = require './credentials/homeaccountcredentialsview'
 
 
 SECTIONS =
@@ -37,8 +36,6 @@ module.exports = class HomeAccount extends kd.CustomScrollView
     @wrapper.addSubView headerize 'Security'
     @wrapper.addSubView security    = section 'Security'
 
-    @wrapper.addSubView headerize 'Credentials'
-    @wrapper.addSubView credentials = section 'Credentials'
 
     @wrapper.addSubView headerize 'Sessions'
     @wrapper.addSubView sessions    = section 'Sessions'
