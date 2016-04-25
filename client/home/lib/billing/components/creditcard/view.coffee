@@ -30,10 +30,6 @@ module.exports = class CreditCard extends React.Component
     </figure>
 
 
-inputClass = (name) -> ['HomeAppView-input', name].filter(Boolean).join ' '
-
-noop = ->
-
 CardNumber = ({ onChange, value }) ->
 
   <input
@@ -60,4 +56,7 @@ CVC = ({ onChange, value }) ->
 
 pickValue = (onChange) -> (event) -> onChange event.target.value
 
+inputClass = (name) -> ['HomeAppView-input', name].filter(Boolean).join ' '
+
+noop = ->
 
