@@ -1,4 +1,5 @@
 React = require 'kd-react'
+MaskedInput = require 'react-maskedinput'
 
 module.exports = class CreditCard extends React.Component
 
@@ -32,11 +33,12 @@ module.exports = class CreditCard extends React.Component
 
 CardNumber = ({ onChange, value }) ->
 
-  <input
+  <MaskedInput
+    mask="1111 1111 1111 1111"
     className={inputClass 'card-number'}
     onChange={pickValue(onChange ? noop)}
     value={value}
-    placeholder='0000 - 0000 - 0000 - 0000' />
+    placeholder='0000 0000 0000 0000' />
 
 Expiration = ({ type, onChange, value }) ->
 
@@ -48,10 +50,12 @@ Expiration = ({ type, onChange, value }) ->
 
 CVC = ({ onChange, value }) ->
 
-  <input
+  <MaskedInput
+    mask="111"
     className={inputClass 'cvc'}
     onChange={pickValue(onChange ? noop)}
-    value={value} />
+    value={value}
+    placeholder='000' />
 
 
 pickValue = (onChange) -> (event) -> onChange event.target.value
