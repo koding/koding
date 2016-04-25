@@ -5,6 +5,7 @@ homestacks.styl
 */
 }
 
+$accentColor                = #F2778A
 $titleColor                 = #424242
 $subtleColor                = #A59999
 $borderColor                = rgba(151, 151, 151, .52)
@@ -85,3 +86,50 @@ $borderColor                = rgba(151, 151, 151, .52)
     &:last-child
       padding-bottom        0
       border-bottom         none
+
+.HomeAppView--scroller.stacks
+
+  .kdtabhandlecontainer
+    abs                     0px 0 0 0px
+    z-index                 1
+    bg                      color #F4F3F3
+    border-bottom           none
+    height                  89px
+    width                   100%
+    padding                 0
+
+    .kdtabhandle-tabs
+      margin                0 46px
+      padding               27px 0
+      size                  auto auto
+      border-bottom         1px solid #CACACA
+      rel()
+
+    .kdtabhandle
+      height                35px
+      bg                    color transparent
+      border                none
+      border-width          0 0 1px
+      border-right          1px solid #CACACA
+      color                 #5E5E5E
+      padding               0 32px
+      b
+        font-weight         400
+        font-size           15px
+        letter-spacing      .5px
+
+      &.active
+        color               $accentColor
+
+      &:last-of-type
+        border-right        none
+        padding-right       0
+
+      &:first-of-type
+        padding-left        0
+
+  > main.kdscrollview
+    z-index                 0
+    > .kdtabview
+      margin-top            89px
+
