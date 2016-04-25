@@ -4,6 +4,9 @@ Home styles
 */
 }
 
+$titleColor                 = #424242
+$subtleColor                = #A59999
+
 .HomeAppView
   font-family               SoleilFamily
   color                     #9f9f9f
@@ -127,3 +130,37 @@ Home styles
       padding               0
       // font-family           monoFamily
       borderBox()
+
+.HomeAppView-ListItem
+  rel()
+
+.HomeAppView-ListItem-description
+.HomeAppView-ListItem-label
+  width                     50%
+
+.HomeAppView-ListItem-label
+  font-weight               600
+  font-size                 16px
+  color                     $titleColor
+  line-height               25px
+  pointer()
+
+.HomeAppView-ListItem-description
+  font-style                italic
+  color                     $subtleColor
+  font-weight               100
+  font-size                 14px
+  line-height               16px
+  .u-color-light-text
+    color                   $subtleColor
+
+.HomeAppView-ListItem-ButtonContainer
+  width                     50%
+  abs                       13px 0px
+  text-align                right
+
+  .HomeAppView--button
+    line-height             20px
+    display                 inline-block
+
+
