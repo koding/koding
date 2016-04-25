@@ -1,22 +1,11 @@
-kd                         = require 'kd'
-headerize                  = require '../commons/headerize'
-HomeAccountEditProfile     = require './homeaccounteditprofile'
-HomeAccountChangePassword  = require './homeaccountchangepassword'
-HomeAccountSecurityView    = require './homeaccountsecurityview'
-HomeAccountSessionsView    = require './homeaccountsessionsview'
+kd = require 'kd'
+headerize = require '../commons/headerize'
+sectionize = require '../commons/sectionize'
 
-
-SECTIONS =
-  Profile     : HomeAccountEditProfile
-  Password    : HomeAccountChangePassword
-  Security    : HomeAccountSecurityView
-  Credentials : HomeAccountCredentialsView
-  Sessions    : HomeAccountSessionsView
-
-section = (name) ->
-  new (SECTIONS[name] or kd.View)
-    tagName  : 'section'
-    cssClass : "HomeAppView--section #{kd.utils.slugify name}"
+HomeAccountEditProfile = require './homeaccounteditprofile'
+HomeAccountChangePassword = require './homeaccountchangepassword'
+HomeAccountSecurityView = require './homeaccountsecurityview'
+HomeAccountSessionsView = require './homeaccountsessionsview'
 
 
 module.exports = class HomeAccount extends kd.CustomScrollView
@@ -28,15 +17,14 @@ module.exports = class HomeAccount extends kd.CustomScrollView
     super options, data
 
     @wrapper.addSubView headerize 'My Account'
-    @wrapper.addSubView profile     = section 'Profile'
+    @wrapper.addSubView sectionize 'Profile', HomeAccountEditProfile
 
     @wrapper.addSubView headerize 'Password'
-    @wrapper.addSubView password    = section 'Password'
+    @wrapper.addSubView sectionize 'Password', HomeAccountChangePassword
 
     @wrapper.addSubView headerize 'Security'
-    @wrapper.addSubView security    = section 'Security'
-
+    @wrapper.addSubView sectionize 'Security', HomeAccountSecurityView
 
     @wrapper.addSubView headerize 'Sessions'
-    @wrapper.addSubView sessions    = section 'Sessions'
+    @wrapper.addSubView sectionize 'Sessions', HomeAccountSessionsView
 
