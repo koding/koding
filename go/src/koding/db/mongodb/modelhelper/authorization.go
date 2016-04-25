@@ -109,16 +109,13 @@ func (store *MongoStorage) SetClient(id string, client osin.Client) error {
 	return Mongo.Run(ClientColl, query)
 }
 
-// func (store *MongoStorage) SaveAuthorize(data *osin.AuthorizeData) error {
 func (store *MongoStorage) SaveAuthorize(data *osin.AuthorizeData) error {
 	client := removeClientFromAuthorize(data)
 	query := insertQuery(client)
 	return Mongo.Run(AuthorizeColl, query)
 }
 
-// func (store *MongoStorage) LoadAuthorize(code string) (*osin.AuthorizeData, error) {
 func (store *MongoStorage) LoadAuthorize(code string) (*osin.AuthorizeData, error) {
-	// client := new(osin.AuthorizeData)
 	client := new(AuthorizeData)
 
 	query := func(c *mgo.Collection) error {
@@ -146,17 +143,13 @@ func (store *MongoStorage) RemoveAuthorize(code string) error {
 	return Mongo.Run(AuthorizeColl, query)
 }
 
-// func (store *MongoStorage) SaveAccess(data *osin.AccessData) error {
-//TODO change inside of mongo!!!
 func (store *MongoStorage) SaveAccess(data *osin.AccessData) error {
-	// query := insertQuery(Selector{"accesstoken": acc.AccessToken}, acc)
 	acc := removeExtraFieldsFromAccess(data)
 	query := insertQuery(acc)
 	return Mongo.Run(AccessColl, query)
 }
 
 func (store *MongoStorage) LoadAccess(token string) (*osin.AccessData, error) {
-	// func (store *MongoStorage) LoadAccess(token string) (*AccessData, error) {
 	client := new(AccessData)
 
 	query := func(c *mgo.Collection) error {
@@ -185,9 +178,7 @@ func (store *MongoStorage) RemoveAccess(token string) error {
 	return Mongo.Run(AccessColl, query)
 }
 
-// func (store *MongoStorage) LoadRefresh(token string) (*osin.AccessData, error) {
 func (store *MongoStorage) LoadRefresh(token string) (*osin.AccessData, error) {
-	// client := new(osin.AccessData)
 	client := new(AccessData)
 
 	query := func(c *mgo.Collection) error {
@@ -306,17 +297,6 @@ func (store *MongoStorage) createAuthorizeData(copyFrom *AuthorizeData, osinData
 }
 
 func (store *MongoStorage) createAccessData(copyFrom *AccessData, osinData *osin.AccessData) *osin.AccessData {
-
-	// Previous access data, for refresh token
-	// Access Data of the Access data
-	//TODO
-	//TODO
-	// we cannot assign access data to our Access data
-	// struct fields are different from each other....
-	//TODO
-
-	// osinData.AccessData = copyFrom.AccessData
-
 	if copyFrom.AccessData != nil {
 		osinAccessData := store.createAccessData(copyFrom.AccessData, &osin.AccessData{})
 		osinData.AccessData = osinAccessData
