@@ -389,7 +389,7 @@ module.exports = class JStackTemplate extends Module
       notifyOptions =
         account : delegate
         group   : group.slug
-        target  : 'account'
+        target  : if @accessLevel is 'group' then 'group' else 'account'
 
       @updateAndNotify notifyOptions, query, (err) =>
         callback err, this
