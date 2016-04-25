@@ -74,6 +74,7 @@ func (r *Remote) RemountHandler(kreq *kite.Request) (interface{}, error) {
 		Transport:     remoteMachine,
 		PathUnmounter: fuseklient.Unmount,
 		MountAdder:    r,
+		EventSub:      r.eventSub,
 	}
 
 	if _, err = mounter.Mount(); err != nil {

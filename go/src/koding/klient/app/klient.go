@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -27,6 +26,7 @@ import (
 	"koding/klient/logfetcher"
 	"koding/klient/protocol"
 	"koding/klient/remote"
+	"koding/klient/remote/mount"
 	"koding/klient/sshkeys"
 	"koding/klient/storage"
 	"koding/klient/terminal"
@@ -219,6 +219,15 @@ func NewKlient(conf *KlientConfig) *Klient {
 		conf.UpdateInterval = time.Minute
 	}
 
+	mountEvents := make(chan *mount.Event)
+
+	remoteOpts := &remote.RemoteOptions{
+		Kite:     k,
+		Log:      k.Log,
+		Storage:  storage.New(db),
+		EventSub: mountEvents,
+	}
+
 	kl := &Klient{
 		kite:    k,
 		collab:  collaboration.New(db), // nil is ok, fallbacks to in memory storage
@@ -230,11 +239,12 @@ func NewKlient(conf *KlientConfig) *Klient {
 		usage:    usg,
 		log:      k.Log,
 		config:   conf,
-		remote:   remote.NewRemote(k, k.Log, storage.New(db)),
+		remote:   remote.NewRemote(remoteOpts),
 		updater: &Updater{
 			Endpoint:       conf.UpdateURL,
 			Interval:       conf.UpdateInterval,
 			CurrentVersion: conf.Version,
+			MountEvents:    mountEvents,
 			Log:            k.Log,
 		},
 	}
@@ -550,13 +560,7 @@ func (k *Klient) Run() {
 
 	k.log.Info("Using version: '%s' querystring: '%s'", k.config.Version, k.kite.Id)
 
-	// TODO(rjeczalik): enable updater control with TMS-2816
-	if runtime.GOOS != "darwin" {
-		// start our updater in the background
-		go k.updater.Run()
-	} else {
-		k.log.Warning("automatic updates are disabled on darwin")
-	}
+	go k.updater.Run()
 
 	k.kite.Run()
 }

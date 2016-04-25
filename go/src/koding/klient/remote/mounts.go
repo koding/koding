@@ -278,6 +278,7 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 		KiteTracker:   remoteMachine.KiteTracker,
 		Transport:     remoteMachine,
 		PathUnmounter: fuseklient.Unmount,
+		EventSub:      r.eventSub,
 	}
 
 	if err := mounter.MountExisting(m); err != nil {
