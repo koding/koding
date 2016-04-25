@@ -548,7 +548,7 @@ module.exports = CollaborationController =
       kd.utils.killRepeat @pollInterval
       if @amIHost 
       then @stopCollaborationSession()
-      else @showSessionEndedModal()
+      else @showSessionEndedModal { redirect : yes }
 
 
   handleBroadcastMessage: (data) ->
@@ -1221,7 +1221,9 @@ module.exports = CollaborationController =
     @showModal options
 
 
-  showSessionEndedModal: (content) ->
+  showSessionEndedModal: (options) ->
+
+    { content, redirect } = options
 
     content ?= "This collaboration session has been terminated by the host @#{@collaborationHost}."
 
@@ -1235,6 +1237,7 @@ module.exports = CollaborationController =
           title    : 'LEAVE'
           callback : =>
             @modal.destroy()
+            kd.singletons.router.handleRoute '/IDE'  if redirect
 
     @showModal options
     @handleCollaborationEndedForParticipant()
