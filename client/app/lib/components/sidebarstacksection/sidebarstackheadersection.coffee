@@ -8,8 +8,7 @@ module.exports = class SidebarStackHeaderSection extends React.Component
 
   openStackEditor: (e) ->
 
-    e.preventDefault()
-    e.stopPropagation()
+    kd.utils.stopDOMEvent e
     kd.singletons.router.handleRoute '/Stack-Editor'
 
 
