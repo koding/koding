@@ -23,10 +23,7 @@ type socialStore struct {
 	*StoreOptions
 }
 
-var (
-	_ Fetcher = (*socialStore)(nil)
-	_ Putter  = (*socialStore)(nil)
-)
+var _ Store = (*socialStore)(nil)
 
 type socialRequest struct {
 	method   string

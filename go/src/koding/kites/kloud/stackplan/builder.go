@@ -62,7 +62,7 @@ func metaFunc(provider string) func() interface{} {
 type BuilderOptions struct {
 	Log       logging.Logger
 	Database  Database
-	CredStore stackcred.Fetcher
+	CredStore stackcred.Store
 }
 
 func (opts *BuilderOptions) defaults() *BuilderOptions {
@@ -83,7 +83,7 @@ func (opts *BuilderOptions) defaults() *BuilderOptions {
 type Builder struct {
 	Database  *DatabaseBuilder
 	Object    *object.Builder
-	CredStore stackcred.Fetcher
+	CredStore stackcred.Store
 	Log       logging.Logger
 
 	// Fields being built:

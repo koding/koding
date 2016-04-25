@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sync"
 
 	"koding/db/mongodb"
 	"koding/kites/kloud/utils/object"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/koding/logging"
 )
 
@@ -56,6 +58,12 @@ type Putter interface {
 	Put(username string, creds map[string]interface{}) error
 }
 
+// Store provides reading/writing credential data values.
+type Store interface {
+	Fetcher
+	Putter
+}
+
 // StoreOptions are used to alter default behavior of credential store
 // implementations.
 type StoreOptions struct {
@@ -87,23 +95,33 @@ func (opts *StoreOptions) new(logName string) *StoreOptions {
 // for each missing credential it fallbacks to Mongo and on each
 // successful fetch from Mongo it updates the credential data back
 // on sneaker.
-func NewStore(opts *StoreOptions) Fetcher {
+func NewStore(opts *StoreOptions) Store {
+	mongo := &mongoStore{
+		StoreOptions: opts.new("mongo"),
+	}
+
 	social := &socialStore{
 		StoreOptions: opts.new("social"),
 	}
 
-	return &FallbackFetcher{
-		Fetchers: []Fetcher{
-			social,
-			&TeeFetcher{
-				Fetcher: &mongoStore{
-					StoreOptions: opts.new("mongo"),
+	return &store{
+		Fetcher: &FallbackFetcher{
+			Fetchers: []Fetcher{
+				social,
+				&TeeFetcher{
+					Fetcher: mongo,
+					Putter:  social,
+					Log:     opts.Log.New("TeeFetcher"),
 				},
-				Putter: social,
-				Log:    opts.Log.New("TeeFetcher"),
+			},
+			Log: opts.Log.New("FallbackFetcher"),
+		},
+		Putter: &MultiPutter{
+			Putters: []Putter{
+				social,
+				mongo,
 			},
 		},
-		Log: opts.Log.New("FallbackFetcher"),
 	}
 }
 
@@ -223,4 +241,42 @@ func (tf *TeeFetcher) Fetch(username string, creds map[string]interface{}) error
 	}
 
 	return err
+}
+
+// MultiPutter is a putter that duplicates each Put to all the provided
+// Putters, concurrently.
+type MultiPutter struct {
+	Putters []Putter
+}
+
+// Put implements the Putter interface.
+func (mp *MultiPutter) Put(username string, creds map[string]interface{}) error {
+	var (
+		err error
+		mu  sync.Mutex
+		wg  sync.WaitGroup
+	)
+
+	for _, p := range mp.Putters {
+		wg.Add(1)
+
+		go func(p Putter) {
+			defer wg.Done()
+
+			if e := p.Put(username, creds); e != nil {
+				mu.Lock()
+				err = multierror.Append(err, e)
+				mu.Unlock()
+			}
+		}(p)
+	}
+
+	wg.Wait()
+
+	return err
+}
+
+type store struct {
+	Fetcher
+	Putter
 }

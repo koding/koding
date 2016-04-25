@@ -42,7 +42,7 @@ type BaseProvider struct {
 	Debug          bool
 
 	Userdata  *userdata.Userdata
-	CredStore stackcred.Fetcher
+	CredStore stackcred.Store
 }
 
 func (bp *BaseProvider) New(name string) *BaseProvider {

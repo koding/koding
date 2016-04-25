@@ -5,7 +5,10 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/kloud"
 
+	"github.com/hashicorp/go-multierror"
+
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // mongoStore implements fetching credential data values, reading them
@@ -14,7 +17,7 @@ type mongoStore struct {
 	*StoreOptions
 }
 
-var _ Fetcher = (*mongoStore)(nil)
+var _ Store = (*mongoStore)(nil)
 
 func (db *mongoStore) Fetch(_ string, creds map[string]interface{}) error {
 	idents := make([]string, 0, len(creds))
@@ -75,4 +78,25 @@ func (db *mongoStore) Fetch(_ string, creds map[string]interface{}) error {
 	}
 
 	return nil
+}
+
+// Put updates the jCredentialDatas.meta field of an existing credential.
+// It does not create new credential if it's missing by design - kloud
+// does not own that resource.
+func (db *mongoStore) Put(_ string, creds map[string]interface{}) error {
+	var err error
+
+	for ident, data := range creds {
+		op := bson.M{
+			"$set": bson.M{
+				"meta": data,
+			},
+		}
+
+		if e := modelhelper.UpdateCredentialData(ident, op); e != nil {
+			err = multierror.Append(err, e)
+		}
+	}
+
+	return err
 }
