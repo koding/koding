@@ -20,7 +20,7 @@ module.exports = class HomeAppController extends AppController
   TABS = [
     { title : 'Welcome',          viewClass : HomeWelcome,         role: 'member' }
     { title : 'Stacks',           viewClass : HomeStacks,          role: 'member' }
-    { title : 'Virtual Machines', viewClass : HomeVirtualMachines, role: 'member' }
+    # { title : 'Virtual Machines', viewClass : HomeVirtualMachines, role: 'member' }
     { title : 'My Team',          viewClass : HomeMyTeam,          role: 'member' }
     { title : 'Team Billing',     viewClass : HomeTeamBilling                     }
     { title : 'Koding Utilities', viewClass : HomeUtilities,       role: 'member' }
