@@ -261,3 +261,11 @@ func isPermDeniedErr(err error) bool {
 
 	return strings.Contains(err.Error(), "permission denied")
 }
+
+func (c *Command) Autocomplete(args ...string) error {
+	completions := []string{"bash", "fish"}
+	for _, cmplt := range completions {
+		c.Stdout.Printlnf(cmplt)
+	}
+	return nil
+}
