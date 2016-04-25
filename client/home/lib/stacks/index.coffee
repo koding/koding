@@ -18,18 +18,43 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
     super options, data
 
+    @addSubView @topNav  = new kd.TabHandleContainer
+
+    @wrapper.addSubView @tabView = new kd.TabView
+      maxHandleWidth       : 'none'
+      hideHandleCloseIcons : yes
+      detachPanes          : no
+      tabHandleContainer   : @topNav
+
+    @tabView.unsetClass 'kdscrollview'
+
+    @tabView.addPane @stacks      = new kd.TabPaneView { title: 'Stacks', name: 'List' }
+    @tabView.addPane @vms         = new kd.TabPaneView { title: 'Virtual Machines', name: 'VMs' }
+    @tabView.addPane @credentials = new kd.TabPaneView { title: 'Credentials', name: 'Credentials' }
+
+    @tabView.showPane @stacks
+
     kd.singletons.mainController.ready =>
+      @createStacksViews()
 
-      EnvironmentFlux.actions.loadTeamStackTemplates()
-      EnvironmentFlux.actions.loadPrivateStackTemplates()
 
-      @wrapper.addSubView new HomeStacksCreate
+  createStacksViews: ->
 
-      @wrapper.addSubView headerize 'Team Stacks'
-      @wrapper.addSubView sectionize 'Team Stacks', HomeStacksTeamStacks
+    EnvironmentFlux.actions.loadTeamStackTemplates()
+    EnvironmentFlux.actions.loadPrivateStackTemplates()
 
-      @wrapper.addSubView headerize 'Private Stacks'
-      @wrapper.addSubView sectionize 'Private Stacks', HomeStacksPrivateStacks
+    @stacks.addSubView new HomeStacksCreate
 
-      @wrapper.addSubView headerize 'Drafts'
-      @wrapper.addSubView sectionize 'Drafts', HomeStacksDrafts
+    @stacks.addSubView headerize 'Team Stacks'
+    @stacks.addSubView sectionize 'Team Stacks', HomeStacksTeamStacks
+
+    @stacks.addSubView headerize 'Private Stacks'
+    @stacks.addSubView sectionize 'Private Stacks', HomeStacksPrivateStacks
+
+    @stacks.addSubView headerize 'Drafts'
+    @stacks.addSubView sectionize 'Drafts', HomeStacksDrafts
+
+
+
+
+
