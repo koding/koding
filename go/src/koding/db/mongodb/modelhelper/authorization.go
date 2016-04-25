@@ -208,7 +208,6 @@ func (store *MongoStorage) RemoveRefresh(token string) error {
 }
 
 // GetAccessDataByAccessToken fetches the user data given access token
-// func GetAccessDataByAccessToken(token string) (*osin.AccessData, error) {
 func GetAccessDataByAccessToken(token string) (*AccessData, error) {
 	user := new(AccessData)
 
