@@ -116,7 +116,7 @@ module.exports = class Tracker extends bongo.Base
     # use `forcedRecipientEmail` for both username and email
     if forcedRecipientEmail
       username = forcedRecipientUsername
-      event.to  = forcedRecipientEmail
+      event.to = forcedRecipientEmail
 
     event.from       or= defaultFromMail
     event.properties   = @addDefaults { options, username }
