@@ -1,5 +1,6 @@
 React = require 'kd-react'
 MaskedInput = require 'react-maskedinput'
+SelectBox = require 'app/components/selectbox'
 
 module.exports = class CreditCard extends React.Component
 
@@ -42,10 +43,35 @@ CardNumber = ({ onChange, value }) ->
 
 Expiration = ({ type, onChange, value }) ->
 
-  <input
-    className={inputClass "expiration-#{type}"}
-    onChange={pickValue(onChange ? noop)}
-    value={value} />
+  thisYear = new Date().getFullYear()
+
+  options =
+    month: [
+      { value: '1', label: 'January' }
+      { value: '2', label: 'February' }
+      { value: '3', label: 'March' }
+      { value: '4', label: 'April' }
+      { value: '5', label: 'May' }
+      { value: '6', label: 'June' }
+      { value: '7', label: 'July' }
+      { value: '8', label: 'August' }
+      { value: '9', label: 'September' }
+      { value: '10', label: 'October' }
+      { value: '11', label: 'November' }
+      { value: '12', label: 'December' }
+    ]
+    year: [thisYear..thisYear+100].map (year) -> { value: String(year), label: String(year) }
+
+  placeholders = { month: 'Month', year: 'Year' }
+
+  return \
+    <div className={"HomeAppView-selectBoxWrapper expiration-#{type}"}>
+      <SelectBox
+        options={options[type]}
+        placeholder={placeholders[type]}
+        onChange={onChange ? noop}
+        value={value} />
+    </div>
 
 
 CVC = ({ onChange, value }) ->
