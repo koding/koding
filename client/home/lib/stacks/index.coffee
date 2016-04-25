@@ -1,10 +1,11 @@
-kd                      = require 'kd'
-sectionize              = require '../commons/sectionize'
-headerize               = require '../commons/headerize'
-HomeStacksCreate        = require './homestackscreate'
-HomeStacksTeamStacks    = require './homestacksteamstacks'
+kd = require 'kd'
+sectionize = require '../commons/sectionize'
+headerize = require '../commons/headerize'
+
+HomeStacksCreate = require './homestackscreate'
+HomeStacksTeamStacks = require './homestacksteamstacks'
 HomeStacksPrivateStacks = require './homestacksprivatestacks'
-HomeStacksDrafts        = require './homestacksdrafts'
+HomeStacksDrafts = require './homestacksdrafts'
 
 EnvironmentFlux         = require 'app/flux/environment'
 
