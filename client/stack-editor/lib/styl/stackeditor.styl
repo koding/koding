@@ -536,6 +536,70 @@ stackeditor.styl
         .inuse-tag
           margin-top        -10px
 
+
+  .credential-list
+    .credential-item
+      &.failed
+        .buttons
+          top               26px !important
+
+    .buttons
+      width                 400px
+
+  .custom-variables
+
+    &.kdtabhandle.custom-variables.notification
+      b
+        rel()
+        left                -10px
+
+    .indicator
+      size                  18px, 18px
+      color                 white
+      bg                    color, #F76E6E
+      text-align            center
+      font-size             11px
+      line-height           18px
+      font-weight           200
+      rounded               18px
+      vendor                transition, top .2s ease
+      abs                   66px 10px 0 0
+
+      &.in
+        top                 11px
+
+      &.red
+        bg                  color, darkred
+
+  .readme
+    .editor-view
+      rounded               4px 4px 0 0
+
+  .readme
+    .preview-button
+      bg                    color, white !important
+      z-index               13
+      bottom                0
+      right                 15px
+      abs()
+
+  .readme
+  .custom-variables
+    > .kdview
+      padding-right         0
+
+  .message-view
+    font-size               14px
+    height                  50px
+
+    pre
+      display               inline
+      background-color      #eee
+      font-size             12px
+      padding               2px 3px
+      border                1px solid #ddd
+      rounded               2px
+
   .step-define-stack
 
     > .kdbutton
