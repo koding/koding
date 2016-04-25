@@ -21,11 +21,10 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     @buildViews()
 
     kd.singletons.groupsController.on 'StackTemplateChanged', (params) =>
-      if params.contents is _id
-        stackTemplate.isDefault   = yes
-        stackTemplate.accessLevel = 'group'
+      if params.contents._id is _id
+        stackTemplate = params.contents
       else
-        stackTemplate.isDefault   = no
+        stackTemplate.isDefault = no
 
       @setData stackTemplate
       @setTestPath()
