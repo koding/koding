@@ -41,6 +41,14 @@ module.exports = class BaseStackTemplatesView extends kd.View
             @setRoute()
 
 
+    groupsController.on 'StackTemplateChanged', (params) =>
+
+      stackTemplate = params.contents
+
+      items   = @initialView.stackTemplateList.listController.getListItems()
+      [item]  = items.filter (i) -> i.getData()._id is stackTemplate._id
+
+      @initialView.stackTemplateList.listController.addItem stackTemplate  unless item
 
 
     groupsController.on 'GroupStackTemplateRemoved', (params) =>
