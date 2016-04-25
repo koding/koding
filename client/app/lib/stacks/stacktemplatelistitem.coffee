@@ -1,9 +1,12 @@
-kd                        = require 'kd'
-timeago                   = require 'timeago'
-showError                 = require 'app/util/showError'
+kd                                = require 'kd'
+timeago                           = require 'timeago'
+showError                         = require 'app/util/showError'
 
-BaseStackTemplateListItem = require './basestacktemplatelistitem'
-ForceToReinitModal        = require './forcetoreinitmodal'
+ForceToReinitModal                = require './forcetoreinitmodal'
+BaseStackTemplateListItem         = require './basestacktemplatelistitem'
+StackTemplateListItemTitle        = require './stacktemplatelistitemtitle'
+StackTemplateListItemLastUpdated  = require './stacktemplatelistitemlastupdated'
+
 
 
 module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
@@ -39,21 +42,18 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
   buildViews: ->
 
-    { meta, isDefault, inUse, accessLevel, config, title } = @getData()
+    stackTemplate = @getData()
+    { meta, isDefault, inUse, accessLevel, config, title } = stackTemplate
 
     @addSubView @info = new kd.CustomHTMLView
       cssClass  : 'stacktemplate-info clearfix'
 
-    @info.addSubView @title = new kd.CustomHTMLView
-      cssClass  : 'title'
-      partial   : title
+    @info.addSubView @title = new StackTemplateListItemTitle {}, stackTemplate
 
     @info.addSubView @labels  = new kd.CustomHTMLView
       cssClass  : 'labels'
 
-    @info.addSubView @lastUpdatedView = new kd.CustomHTMLView
-      tagName    : 'cite'
-      partial    : "Last updated #{timeago meta.modifiedAt}"
+    @info.addSubView @lastUpdatedView = new StackTemplateListItemLastUpdated {}, stackTemplate
 
     @addSubView @buttons  = new kd.CustomHTMLView
       cssClass   : 'buttons'
