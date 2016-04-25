@@ -9,10 +9,11 @@ module.exports = class StackEditorAppController extends AppController
   @options     =
     name       : 'Stackeditor'
 
-  constructor: (options = {}, data) ->
 
-    options.view = view = new DefineStackView { skipFullscreen : yes }, { showHelpContent : yes }
+  openSection: (section, query) ->
 
-    super options, data
-
+    view = new DefineStackView { skipFullscreen : yes }, { showHelpContent : yes }
     view.on 'Cancel', -> kd.singletons.router.back()
+
+    @mainView.destroySubViews()
+    @mainView.addSubView view
