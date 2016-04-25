@@ -22,7 +22,9 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
     @createInitialView()
 
-    kd.singletons.appStorageController.storage 'Ace', '1.0.1'
+    { appStorageController, groupsController } = kd.singletons
+
+    appStorageController.storage 'Ace', '1.0.1'
 
     @on 'SubTabRequested', (action, identifier) ->
       return  unless action
@@ -37,6 +39,20 @@ module.exports = class BaseStackTemplatesView extends kd.View
             @requestEditStack identifier
           else
             @setRoute()
+
+
+
+
+    groupsController.on 'GroupStackTemplateRemoved', (params) =>
+
+      stackTemplate = params.contents
+
+      items   = @initialView.stackTemplateList.listController.getListItems()
+      [item]  = items.filter (i) -> i.getData()._id is stackTemplate._id
+
+      { listController } = @initialView.stackTemplateList
+
+      listController.getListView().removeItem item  if item
 
 
   viewAppended: ->

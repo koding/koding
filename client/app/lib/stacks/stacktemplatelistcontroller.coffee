@@ -164,6 +164,8 @@ module.exports = class StackTemplateListController extends KodingListController
         return  unless status
         template.delete (err) ->
           listView.removeItem item
+          if template.accessLevel is 'group'
+            currentGroup.sendNotification 'GroupStackTemplateRemoved', template
           modal.destroy()
           Tracker.track Tracker.STACKS_DELETE_TEMPLATE
 
