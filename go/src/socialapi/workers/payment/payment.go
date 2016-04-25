@@ -134,5 +134,14 @@ func cancelSubscription(id string) error {
 		return err
 	}
 
-	return subscription.Cancel()
+	switch subscription.Provider {
+	case "stripe":
+		return stripe.CancelSubscriptionAndRemoveCC(customer, subscription)
+	case "paypal":
+		return paypal.CancelSubscription(customer, subscription)
+	default:
+		return ErrProviderNotFound
+	}
+
+	return nil
 }
