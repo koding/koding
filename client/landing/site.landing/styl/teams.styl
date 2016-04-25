@@ -919,3 +919,115 @@ teams.styl
             color       white
             &.puff
               opacity   1
+
+@media screen and (max-width : 767px)
+  .main-header
+    height                  100%
+    z-index                 9 !important
+
+  .expand-menu
+    .full-menu
+      padding-top           120px
+      height                100%
+      bg                    color, rgba(0,0,0,.85)
+      borderBox()
+
+      a
+        display             block
+        opacity             1
+        margin              0 0 30px 0 !important
+        text-align          center
+        font-size           22px !important
+        color               #f5f5f5 !important
+        line-height         26px
+
+        &.mobile-trigger
+          top               32px
+
+          span
+            font-size       16px
+            &::before
+              opacity       0
+
+            &::after
+              opacity       1
+          i
+            bg              color, transparent
+
+            &::before
+              margin-top    0
+              vendor        transform, rotate(45deg)
+
+            &::after
+              margin-top    0
+              vendor        transform,  rotate(-45deg)
+
+  nav.full-menu
+    font-family             SoleilFamily
+    left                    0
+    width                   100%
+    z-index                 9
+    height                  0
+    vendor                  transition, height .3s ease\, padding-top .3s ease
+    position                fixed
+
+    a
+      opacity               0
+      display               block
+
+      &.mobile-trigger
+        opacity             1
+        display             inline-block !important
+        margin-right        40px !important
+        top                 36px
+        right               0
+        width               auto
+        height              auto
+        padding             0
+        z-index             9
+        font-size           16px !important
+        font-weight         normal
+        text-align          left
+        text-transform      uppercase
+        vendor              transition, color .2s ease
+        pointer()
+        abs()
+
+        &::after
+          display           none
+
+        span
+          color             #fff
+
+          &::before
+            content         'Menu'
+            abs()
+
+          &::after
+            rel()
+            right           2px
+            content         'Close'
+            bg              color, rgba(0,0,0,.85)
+            opacity         0
+            vendor          transition, opacity .4s ease-in-out
+        i
+          top               -5px
+          margin-left       5px
+          size              15px 2px
+          bg                color, #fff
+          rel()
+          display           inline-block
+
+          &::before
+            margin-top      -6px
+            content         ''
+            size            15px 2px
+            bg              color, #fff
+            abs()
+
+          &::after
+            margin-top      6px
+            content         ''
+            size            15px 2px
+            bg              color, #fff
+            abs()

@@ -134,6 +134,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     return  unless email
 
     @wrapper.addSubView @avatar = new kd.CustomHTMLView { tagName: 'figure' }
+    @wrapper.getDomElement().addClass 'with-avatar'
 
     { getProfile, getGravatarUrl, getTeamData } = utils
 
