@@ -38,7 +38,6 @@ module.exports =
       .click                  'button[testpath=domain-button]'
       .pause                  2000 # wait for modal change
 
-    console.log 'enterTeamURL'
 
   fillUsernamePasswordForm: (browser, user, invalidUserName = no) ->
 
