@@ -55,6 +55,7 @@
     "react-portal": "1.2.0",
     "react-radio": "1.0.6",
     "react-router": "1.0.0-rc4",
+    "react-select": "1.0.0-beta12",
     "react-toggle": "2.0.1",
     "react-waypoint": "1.2.3",
     "record-shortcuts": "0.1.4",
