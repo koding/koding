@@ -41,6 +41,7 @@ module.exports = class IDEEditorPane extends IDEPane
     @on 'RealtimeManagerSet', @bound 'listenCollaborativeStringChanges'
 
     @getAce().on 'ace.requests.save', =>
+      return  if file.isDummyFile()
       change = @getInitialChangeObject()
       change.type = 'FileSaved'
 
