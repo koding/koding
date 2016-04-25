@@ -8,6 +8,7 @@ module.exports = class StackEditorAppController extends AppController
 
   @options     =
     name       : 'Stackeditor'
+    behavior   : 'application'
 
 
   openSection: (section, query) ->
