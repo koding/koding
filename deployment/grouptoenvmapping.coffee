@@ -20,6 +20,7 @@ groupToEnv =
   "environment" : envs
   "socialapi"   : envs
   "proxy"       : proxies
+  "default"     : [ 'default' ]
 
 module.exports.isAllowed = (group, env)->
   # if group name is not in groupToEnv

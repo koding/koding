@@ -216,7 +216,7 @@ EOF
 
 isVirtualbox=$(VBoxHeadless -h 2>&1 | grep -c 'Oracle VM VirtualBox Headless Interface')
 isVagrant=$(vagrant version 2>&1 | grep -c 'Installed Version:')
-kiteQueryID=$(kd version 2>/dev/null | grep 'Kite Query ID' | cut -d: -f 2 | tr -s ' ' | cut -d, -f1)
+kiteQueryID=$(kd version 2>/dev/null | grep 'Kite Query ID' | cut -d: -f 2 | tr -s ' ')
 
 if [[ $isVirtualbox -eq 0 && $isVagrant -eq 0 ]]; then
   cat << EOF
