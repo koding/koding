@@ -7,6 +7,10 @@ HomeStacksTeamStacks = require './homestacksteamstacks'
 HomeStacksPrivateStacks = require './homestacksprivatestacks'
 HomeStacksDrafts = require './homestacksdrafts'
 
+HomeVirtualMachinesVirtualMachines = require '../virtualmachines/homevirtualmachinesvirtualmachines'
+HomeVirtualMachinesConnectedMachines = require '../virtualmachines/homevirtualmachinesconnectedmachines'
+HomeVirtualMachinesSharedMachines = require '../virtualmachines/homevirtualmachinessharedmachines'
+
 EnvironmentFlux         = require 'app/flux/environment'
 
 
@@ -36,6 +40,15 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
     kd.singletons.mainController.ready =>
       @createStacksViews()
+      @createVMsViews()
+
+
+  handleAction: (action) ->
+
+    unless tab = @tabView.getPaneByName action
+      _kd.singletons.router.handleRoute '/Home/Stacks/List'
+    else
+      @tabView.showPane tab
 
 
   createStacksViews: ->
@@ -55,6 +68,13 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     @stacks.addSubView sectionize 'Drafts', HomeStacksDrafts
 
 
+  createVMsViews: ->
 
+    @vms.addSubView headerize 'Virtual Machines'
+    @vms.addSubView sectionize 'Virtual Machines', HomeVirtualMachinesVirtualMachines
 
+    @vms.addSubView headerize 'Connected Machines'
+    @vms.addSubView sectionize 'Connected Machines', HomeVirtualMachinesConnectedMachines
 
+    @vms.addSubView headerize 'Shared Machines'
+    @vms.addSubView sectionize 'Shared Machines', HomeVirtualMachinesSharedMachines
