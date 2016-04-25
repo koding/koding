@@ -9,10 +9,11 @@ import (
 )
 
 type StripeInvoiceResponse struct {
-	Amount      int64     `json:"amount"`
-	Paid        bool      `json:"paid"`
-	PeriodStart time.Time `json:"periodStart"`
-	PeriodEnd   time.Time `json:"periodEnd"`
+	Amount              int64     `json:"amount"`
+	Paid                bool      `json:"paid"`
+	PeriodStart         time.Time `json:"periodStart"`
+	PeriodEnd           time.Time `json:"periodEnd"`
+	*CreditCardResponse `json:"card"`
 }
 
 func FindInvoicesForCustomer(oldId string) ([]*StripeInvoiceResponse, error) {
@@ -42,6 +43,10 @@ func FindInvoicesForCustomer(oldId string) ([]*StripeInvoiceResponse, error) {
 			Paid:        raw.Paid,
 			PeriodStart: start,
 			PeriodEnd:   end,
+		}
+
+		if raw.Charge != nil && raw.Charge.Card != nil {
+			invoice.CreditCardResponse = unmarshalCC(raw.Charge.Card)
 		}
 
 		invoices = append(invoices, invoice)
