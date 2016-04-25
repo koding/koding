@@ -252,9 +252,16 @@ module.exports = CollaborationController =
 
     kite = @mountedMachine.getBaseKite()
 
-    if @amIHost
-    then kite.on 'close', @bound 'handleCollaborationEndedForHost'
-    else kite.on 'close', @bound 'handleCollaborationEndedForParticipant'
+    kite.once 'close', =>
+      kite.ping()
+        .timeout(30000)
+        .then =>
+          kite.reconnect()
+          @listenKlientKite()
+        .catch =>
+          if @amIHost
+          then @handleCollaborationEndedForHost()
+          else @handleCollaborationEndedForParticipant()
 
 
   setWatchMap: ->
