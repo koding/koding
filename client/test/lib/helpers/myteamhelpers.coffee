@@ -61,6 +61,20 @@ module.exports =
 
     @acceptConfirmModal browser, successMessage
 
+
+  uploadCSV: (browser) ->
+
+    invitationsModalSelector = '.HomeAppView--section.send-invites'
+    uploadCSVButtonSelector = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.ft"
+    message = 'Coming Soon!'
+
+    browser
+      .waitForElementVisible invitationsModalSelector, 20000
+      .click uploadCSVButtonSelector
+      .waitForElementVisible '.kdnotification', 10000
+      .assert.containsText '.kdnotification', message
+      .pause 2000
+
   rejectConfirmModal: (browser) ->
 
     confirmModal = '.kdmodal.admin-invite-confirm-modal.kddraggable'
