@@ -72,9 +72,7 @@ module.exports = class StackTemplateListController extends KodingListController
       for stack in stacks
         [item] = listItems.filter (i) -> i.getData()._id is stack.baseStackId
         if item
-          stackTemplate = item.getData()
-          stackTemplate.inUse = yes
-          item.setData stackTemplate
+          item.getData().inUse = yes
           item.updateLabels()
 
 
