@@ -123,6 +123,23 @@ updateGroupCreditCard = ({ dispatch }) -> ({ token }) ->
   { paymentController } = kd.singletons
 
   return new Promise (resolve, reject) ->
+    dispatch actionTypes.UPDATE_GROUP_CREDIT_CARD_BEGIN
+
+    paymentController.updateGroupCreditCard token, (err, card) ->
+      if err
+        dispatch actionTypes.UPDATE_GROUP_CREDIT_CARD_FAIL, { err }
+        reject err
+        return
+
+      dispatch actionTypes.UPDATE_GROUP_CREDIT_CARD_SUCCESS, { card }
+      resolve { card }
+
+
+loadGroupInvoices = ({dispatch}) -> ->
+
+  { paymentController } = kd.singletons
+
+  return new Promise (resolve, reject) ->
 
     dispatch actionTypes.LOAD_GROUP_INVOICES_BEGIN
 
@@ -136,23 +153,6 @@ updateGroupCreditCard = ({ dispatch }) -> ({ token }) ->
       resolve { invoices }
 
 
-loadGroupInvoices = ({dispatch}) -> ->
-
-  { paymentController } = kd.singletons
-
-  return new Promise (resolve, reject) ->
-    dispatch actionTypes.UPDATE_GROUP_CREDIT_CARD_BEGIN
-
-    paymentController.updateGroupCreditCard token, (err, card) ->
-      if err
-        dispatch actionTypes.UPDATE_GROUP_CREDIT_CARD_FAIL, { err }
-        reject err
-        return
-
-      dispatch actionTypes.UPDATE_GROUP_CREDIT_CARD_SUCCESS, { card }
-      resolve { card }
-
-
 module.exports = {
   loadStripeClient
   createStripeToken
@@ -160,6 +160,6 @@ module.exports = {
   subscribeGroupPlan
   removeGroupPlan
   loadGroupCreditCard
-  loadGroupInvoices
   updateGroupCreditCard
+  loadGroupInvoices
 }
