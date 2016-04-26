@@ -83,7 +83,15 @@ func (m *Mountcli) FindMountedPathByName(name string) (string, error) {
 }
 
 // FindMountedPathByName returns the mounted name for the given path.
+// It also works with nested mounted paths.
 func (m *Mountcli) FindMountNameByPath(path string) (string, error) {
+	path = filepath.Clean(path)
+
+	if relativePath, err := m.FindRelativeMountPath(path); err == nil {
+		path = strings.TrimSuffix(path, relativePath)
+		path = filepath.Clean(path)
+	}
+
 	mounts, err := m.parse()
 	if err != nil {
 		return "", err
