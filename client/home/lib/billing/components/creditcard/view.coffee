@@ -69,7 +69,7 @@ Expiration = ({ type, onChange, value }) ->
       <SelectBox
         options={options[type]}
         placeholder={placeholders[type]}
-        onChange={onChange ? noop}
+        onChange={(e) -> onChange?(e.value)}
         value={value} />
     </div>
 
