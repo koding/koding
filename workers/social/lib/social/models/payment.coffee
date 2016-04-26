@@ -42,9 +42,11 @@ module.exports = class Payment extends Base
           (signature Function)
         fetchGroupPlan    :
           (signature Function)
+        cancelGroupPlan:
+          (signature Function)
 
 
-  { get, post, deleteReq } = require './socialapi/requests'
+  { get, post, deleteReq, put } = require './socialapi/requests'
 
   socialProxyUrl = '/api/social'
 
@@ -140,6 +142,28 @@ module.exports = class Payment extends Base
     JGroup.one { slug }, (err, group) ->
       return callback err  if err
       Payment.fetchGroupPlan group, callback
+
+
+  @cancelGroupPlan = (group, callback) ->
+
+    return callback new KodingError 'No such group'  unless group
+
+    data = { groupId: group._id }
+
+    url = "#{socialProxyUrl}/payments/group/subscriptions/#{data.groupId}/cancel"
+    put url, data, callback
+
+
+  @cancelGroupPlan$ = secure (client, callback) ->
+
+    slug = client?.context?.group
+
+    return callback new KodingError 'No such group'  unless slug
+
+    JGroup = require './group'
+    JGroup.one { slug }, (err, group) ->
+      return callback err  if err
+      Payment.cancelGroupPlan group, callback
 
 
   @subscriptions$ = secure (client, data, callback) ->
