@@ -80,9 +80,9 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       return new kd.NotificationView
         title    : title
         duration : 5000
-    .catch ({ title }) ->
+    .catch ({ err }) ->
       return new kd.NotificationView
-        title    : title
+        title    : err.message
         duration : 5000
 
 
@@ -150,20 +150,19 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
   prepareEmailsText = (pendingInvites) ->
 
-    len = pendingInvites.size
-
-    state = [0...len].reduce (state, invitation, index) ->
-      email = pendingInvites.get(index).get('email')
-      state += "<strong>#{email}</strong>"
+    len = pendingInvites.length
+    emails = ''
+    state = [0...len].forEach (index) ->
+      email = pendingInvites[index].get('email')
+      emails += "<strong>#{email}</strong>"
       if index + 2 is len
-        state += ', and '
+        emails += ', and '
       else if index + 1 is len
-        state += ''
+        emails += ''
       else
-        state += ', '
-    , ''
+        emails += ', '
 
-    return state
+    return emails
 
 
   render: ->
