@@ -21,3 +21,10 @@ module.exports =
     browser.url myTeamLink
     myteamhelpers.inviteAll browser
     browser.end()
+
+  checkUploadCSV: (browser) ->
+
+    user = teamsHelpers.loginTeam browser
+    browser.url myTeamLink
+    myteamhelpers.uploadCSV browser
+    browser.end()
