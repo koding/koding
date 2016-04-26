@@ -49,6 +49,9 @@ module.exports = class PaymentController extends kd.Controller
   invoices: (callback) -> @api().invoices {}, callback
 
 
+  fetchGroupInvoices: (callback) -> @api().fetchGroupInvoices {}, callback
+
+
   creditCard: (callback) ->
 
     @api().creditCard {}, (err, card) ->
