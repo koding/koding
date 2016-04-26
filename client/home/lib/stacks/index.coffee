@@ -11,7 +11,7 @@ HomeVirtualMachinesVirtualMachines = require '../virtualmachines/homevirtualmach
 HomeVirtualMachinesConnectedMachines = require '../virtualmachines/homevirtualmachinesconnectedmachines'
 HomeVirtualMachinesSharedMachines = require '../virtualmachines/homevirtualmachinessharedmachines'
 
-EnvironmentFlux         = require 'app/flux/environment'
+EnvironmentFlux = require 'app/flux/environment'
 
 
 module.exports = class HomeStacks extends kd.CustomScrollView
