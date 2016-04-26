@@ -11,7 +11,6 @@ toImmutable             = require 'app/util/toImmutable'
 getGroup                = require 'app/util/getGroup'
 whoami                  = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
-Machine                 = require 'app/providers/machine'
 
 
 _eventsCache =
