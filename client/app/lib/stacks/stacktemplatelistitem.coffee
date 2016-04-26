@@ -4,9 +4,6 @@ showError                         = require 'app/util/showError'
 
 ForceToReinitModal                = require './forcetoreinitmodal'
 BaseStackTemplateListItem         = require './basestacktemplatelistitem'
-StackTemplateListItemTitle        = require './stacktemplatelistitemtitle'
-StackTemplateListItemLastUpdated  = require './stacktemplatelistitemlastupdated'
-
 
 
 module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
