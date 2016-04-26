@@ -41,25 +41,28 @@ button
   font-family       openSansFamily
 
 .kdview
-  overflow          visible
+  overflow                  visible
 
 .no-anim
   noAnim()
 
 .mobile-menu
-  height            0
-  overflow          hidden
-  background        #232323
-  vendor            transition, height .3s ease\, margin-top .3s ease\, padding-top .3s ease
+  overflow                  hidden
+  bg                        color, #232323
+  height                    0
+  left                      0
+  top                       0
+  width                     100%
+  vendor                    transition, height .3s ease\, margin-top .3s ease\, padding-top .3s ease
   borderBox()
 
   a
-    display         block
-    line-height     37px
-    font-size       14px
-    color           #f6f6f6
-    font-weight     600
-    padding         0 27px 0 22px
+    display                 block
+    line-height             37px
+    font-size               14px
+    color                   #f6f6f6
+    font-weight             600
+    padding                 0 27px 0 22px
     noTextDeco()
     borderBox()
 
@@ -126,7 +129,7 @@ figure.hackathon-header
     margin                  0 14px 0 0
     size                    auto auto
     bg                      color transparent
-    position                static
+    abs()
     fl()
 
     cite
@@ -175,7 +178,7 @@ figure.hackathon-header
 
     a
       font-size             14px
-      margin-left           12px
+      margin-right          40px
       font-family           openSansFamily
       color                 white
       padding-bottom        1px
@@ -215,7 +218,8 @@ figure.hackathon-header
   bg                color, logoBg
   z-index           11
   top               0
-  left              0
+  left              22px
+  z-index           1
   abs()
 
   &.staging
@@ -782,3 +786,12 @@ footer.main-footer
 
     .hamburger-menu.active
       background            transparent
+
+
+@media screen and (max-width : 767px)
+
+  .main-header.team
+    top                     0 !important
+
+  .koding-header-logo
+    top                     32px
