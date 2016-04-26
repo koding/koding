@@ -28,3 +28,11 @@ module.exports =
     browser.url myTeamLink
     myteamhelpers.uploadCSV browser
     browser.end()
+
+
+  resendInvitation: (browser) ->
+
+    user = teamsHelpers.loginTeam browser
+    browser.url myTeamLink
+    myteamhelpers.resendInvitation browser
+    browser.end()
