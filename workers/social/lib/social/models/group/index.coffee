@@ -234,8 +234,6 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         sendNotification:
           (signature String, String, Function)
-        sendNotification:
-          (signature String, Object, Function)
         setPlan:
           (signature Object, Function)
         fetchApiTokens: [

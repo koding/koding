@@ -222,10 +222,7 @@ module.exports = class GroupsController extends kd.Controller
             version.
           "
 
-        stackTemplate.isDefault   = yes
-        stackTemplate.accessLevel = 'group'
-
         # Warn other group members about stack template update
-        currentGroup.sendNotification 'StackTemplateChanged', stackTemplate
+        currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
 
         callback null
