@@ -102,7 +102,7 @@ sendInvitations = ->
 
     remote.api.JInvitation.create { invitations: invitations }, (err) ->
       if err
-        return reject { title }
+        return reject { err }
 
       title = "Invitation is sent to <strong>#{invitations[0].email}</strong>"
 
@@ -110,6 +110,8 @@ sendInvitations = ->
         title = 'All invitations are sent.'
 
       Tracker.track Tracker.TEAMS_SENT_INVITATION  for invite in invitations
+
+      loadPendingInvitations()
 
       reactor.dispatch actions.RESET_TEAM_INVITES
       resolve { title }
