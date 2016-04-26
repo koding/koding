@@ -30,4 +30,4 @@ handleGroupPlanLoad = (values, { plan }) -> values.set 'groupPlan', toImmutable 
 
 handleGroupCreditCardLoad = (values, { card }) -> values.set 'groupCreditCard', toImmutable card
 
-handleGroupInvoices = (values, { invocies }) -> values.set 'groupInvoices', toImmutable invocies
+handleGroupInvoices = (values, { invoices }) -> values.set 'groupInvoices', toImmutable invoices
