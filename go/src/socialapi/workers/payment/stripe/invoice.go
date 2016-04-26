@@ -46,7 +46,7 @@ func FindInvoicesForCustomer(oldId string) ([]*StripeInvoiceResponse, error) {
 		}
 
 		if raw.Charge != nil && raw.Charge.Card != nil {
-			invoice.CreditCardResponse = unmarshalCC(raw.Charge.Card)
+			invoice.CreditCardResponse = newCreditCardResponseFromStripe(raw.Charge.Card)
 		}
 
 		invoices = append(invoices, invoice)

@@ -41,7 +41,7 @@ func GetCreditCard(oldId string) (*CreditCardResponse, error) {
 		)
 	}
 
-	creditCardResponse := unmarshalCC(creditCardList.Values[0])
+	creditCardResponse := newCreditCardResponseFromStripe(creditCardList.Values[0])
 	creditCardResponse.Email = externalCustomer.Email
 
 	return creditCardResponse, nil
@@ -111,12 +111,12 @@ func UpdateCreditCardIfEmpty(accId, token string) error {
 	return nil
 }
 
-func unmarshalCC(creditCard *stripe.Card) *CreditCardResponse {
+func newCreditCardResponseFromStripe(c *stripe.Card) *CreditCardResponse {
 	return &CreditCardResponse{
-		LastFour: creditCard.LastFour,
-		Month:    creditCard.Month,
-		Year:     creditCard.Year,
-		Name:     creditCard.Name,
-		Brand:    string(creditCard.Brand),
+		LastFour: c.LastFour,
+		Month:    c.Month,
+		Year:     c.Year,
+		Name:     c.Name,
+		Brand:    string(c.Brand),
 	}
 }
