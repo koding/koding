@@ -44,11 +44,9 @@ module.exports = class SidebarSection extends React.Component
     else ''
 
     <header className="SidebarSection-header #{unreadCount}">
-      <Link href={@props.titleLink}>
-        <h4 className='SidebarSection-headerTitle'>
-          {@props.title}
-        </h4>
-      </Link>
+      <h4 className='SidebarSection-headerTitle'>
+        <Link href={@props.titleLink}>{@props.title}</Link>
+      </h4>
       {@renderSecondaryLink()}
       {@renderUnreadCount()}
     </header>
