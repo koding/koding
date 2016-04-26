@@ -22,6 +22,8 @@ module.exports = class Payment extends Base
           (signature Object, Function)
         invoices          :
           (signature Object, Function)
+        fetchGroupInvoices:
+          (signature Object, Function)
         creditCard        :
           (signature Object, Function)
         fetchGroupCreditCard:
@@ -146,6 +148,33 @@ module.exports = class Payment extends Base
     url = "#{socialProxyUrl}/payments/subscriptions?account_id=#{data.accountId}"
 
     get url, data, callback
+
+  @fetchGroupInvoices = (group, callback) ->
+
+    return callback new KodingError 'No such group'  unless group
+
+    if group.slug is 'koding' or KONFIG.environment is 'default'
+      return callback null, { planTitle: 'unlimited' }
+
+    url = "#{socialProxyUrl}/payments/group/invoices?group_id=#{group._id}"
+    get url, {}, (err, subscription) ->
+      return callback err  if err
+
+      # unless isSubscriptionOk group, subscription
+      #   return callback new KodingError 'Trial period exceeded'
+
+      callback null, sanitizeSubscription subscription
+
+  @fetchGroupInvoices$ = secure (client, callback) ->
+
+    slug = client?.context?.group
+
+    return callback new KodingError 'No such group'  unless slug
+
+    JGroup = require './group'
+    JGroup.one { slug }, (err, group) ->
+      return callback err  if err
+      Payment.fetchGroupInvoices group, callback
 
   @invoices = secure (client, data, callback) ->
     data.accountId = getAccountId client
