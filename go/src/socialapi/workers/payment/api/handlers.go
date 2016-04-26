@@ -80,6 +80,15 @@ func AddHandlers(m *mux.Mux) {
 		},
 	)
 
+	m.AddHandler(
+		handler.Request{
+			Handler:  GroupCancelSubscriptionRequest,
+			Name:     "payment-group-subscription-cancel",
+			Type:     handler.PutRequest,
+			Endpoint: "/payments/group/subscriptions/cancel",
+		},
+	)
+
 	//----------------------------------------------------------
 	// Customers
 	//----------------------------------------------------------

@@ -19,6 +19,11 @@ func TestGetInvoice(t *testing.T) {
 				So(firstInvoice.PeriodStart.IsZero(), ShouldBeFalse)
 				So(firstInvoice.PeriodEnd.IsZero(), ShouldBeFalse)
 				So(firstInvoice.Amount, ShouldEqual, StartingPlanPrice)
+
+				ccResp := firstInvoice.CreditCardResponse
+
+				So(ccResp, ShouldNotBeNil)
+				So(ccResp.LastFour, ShouldEqual, "4242")
 			})
 		}),
 	)

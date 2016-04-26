@@ -117,17 +117,7 @@ func (a *AccountRequest) Expire() (interface{}, error) {
 }
 
 func (a *AccountRequest) CancelSubscription() (interface{}, error) {
-	customer, err := paymentmodels.NewCustomer().ByOldId(a.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	subscription, err := customer.FindActiveSubscription()
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, subscription.Cancel()
+	return nil, cancelSubscription(a.AccountId)
 }
 
 //----------------------------------------------------------
