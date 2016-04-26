@@ -45,5 +45,7 @@ module.exports =
 
     user = teamsHelpers.loginTeam browser
     browser.url myTeamLink
-    myteamhelpers.newInviteFromResendModal browser
+    myteamhelpers.newInviteFromResendModal browser, 'member'
+    browser.pause 5000
+    myteamhelpers.newInviteFromResendModal browser, 'admin'
     browser.end()
