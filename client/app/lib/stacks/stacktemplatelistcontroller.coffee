@@ -73,7 +73,7 @@ module.exports = class StackTemplateListController extends KodingListController
         [item] = listItems.filter (i) -> i.getData()._id is stack.baseStackId
         if item
           item.getData().inUse = yes
-          item.updateLabels()
+          item.inUseView.show()
 
 
   applyToTeam: (item) ->
