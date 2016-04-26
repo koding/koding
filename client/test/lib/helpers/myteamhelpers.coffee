@@ -105,25 +105,27 @@ module.exports =
 
     return userEmail
 
-  newInviteFromResendModal: (browser) ->
+
+  newInviteFromResendModal: (browser, role) ->
 
     invitationsModalSelector = '.HomeAppView--section.send-invites'
     sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
-    userEmail = @resendInvitation browser
+    userEmail = @inviteUser browser, role
+    index = if role is 'member' then 2 else 1
     browser
       .pause 5000
       .waitForElementVisible invitationsModalSelector, 20000
 
-    userEmail = @fillInviteInputByIndex browser, 2, userEmail
-    newEmail = @fillInviteInputByIndex browser, 3
+    userEmail = @fillInviteInputByIndex browser, index, userEmail
+    newEmail = @fillInviteInputByIndex browser, index+1
     successMessage = "Invitation is sent to #{newEmail}"
 
     browser
       .click sendInvitesButton
+    @acceptConfirmModal browser  if role is 'admin'
     @rejectConfirmModal browser
-    browser
-      .pause 10000 # to read clearly notifications
     @assertConfirmModal browser, successMessage
+
 
   rejectConfirmModal: (browser) ->
 
@@ -160,6 +162,7 @@ module.exports =
       .waitForElementVisible '.kdnotification', 10000
       .assert.containsText '.kdnotification', successMessage
       .pause 2000
+
 
   fillInviteInputByIndex: (browser, index, userEmail = null) ->
 
