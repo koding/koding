@@ -6,6 +6,16 @@ MachineItem     = require '../machineslist/listitem'
 
 module.exports = class VirtualMachinesListView extends React.Component
 
+  @propTypes =
+    onToggleAlwaysOn : React.PropTypes.func
+
+  @defaultProps =
+    onToggleAlwaysOn : kd.noop
+
+
+  onToggleAlwaysOn: (machine) -> @props.onToggleAlwaysOn machine
+
+
   numberOfSections: -> 1
 
 
@@ -26,13 +36,14 @@ module.exports = class VirtualMachinesListView extends React.Component
 
     stack.get 'machines'
       .sort (a, b) -> a.get('label').localeCompare(b.get('label')) # Sorting from a to z
-      .map (machine) ->
+      .map (machine) =>
         <MachineItem
           key={machine.get '_id'} stack={stack} machine={machine}
           shouldRenderDetails={yes}
           shouldRenderSpecs={yes}
           shouldRenderPower={yes}
           shouldRenderAlwaysOn={yes}
+          onToggleAlwaysOn={@lazyBound 'onToggleAlwaysOn', machine}
           shouldRenderSharing={yes} />
 
 

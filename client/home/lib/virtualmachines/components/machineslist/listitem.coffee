@@ -1,3 +1,4 @@
+kd = require 'kd'
 React = require 'kd-react'
 MachineDetails = require './machinedetails'
 immutable = require 'immutable'
@@ -12,6 +13,7 @@ module.exports = class MachinesListItem extends React.Component
     shouldRenderPower    : React.PropTypes.bool
     shouldRenderAlwaysOn : React.PropTypes.bool
     shouldRenderSharing  : React.PropTypes.bool
+    onToggleAlwaysOn     : React.PropTypes.func
 
   @defaultProps =
     shouldRenderDetails  : yes
@@ -19,6 +21,7 @@ module.exports = class MachinesListItem extends React.Component
     shouldRenderPower    : yes
     shouldRenderAlwaysOn : no
     shouldRenderSharing  : no
+    onToggleAlwaysOn     : kd.noop
 
 
   constructor: (props) ->
@@ -36,7 +39,8 @@ module.exports = class MachinesListItem extends React.Component
         shouldRenderSpecs={@props.shouldRenderSpecs}
         shouldRenderPower={@props.shouldRenderPower}
         shouldRenderAlwaysOn={@props.shouldRenderAlwaysOn}
-        shouldRenderSharing={@props.shouldRenderSharing} />
+        shouldRenderSharing={@props.shouldRenderSharing}
+        onToggleAlwaysOn={@props.onToggleAlwaysOn} />
     </main>
 
   toggle: (event) -> @setState { isDetailOpen: not @state.isDetailOpen }
