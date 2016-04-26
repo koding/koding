@@ -104,24 +104,26 @@ func NewStore(opts *StoreOptions) Store {
 		StoreOptions: opts.new("social"),
 	}
 
-	return &store{
-		Fetcher: &FallbackFetcher{
-			Fetchers: []Fetcher{
-				social,
-				&TeeFetcher{
-					Fetcher: mongo,
-					Putter:  social,
-					Log:     opts.Log.New("TeeFetcher"),
-				},
-			},
-			Log: opts.Log.New("FallbackFetcher"),
-		},
-		Putter: &MultiPutter{
-			Putters: []Putter{
-				social,
-				mongo,
-			},
-		},
+	return MigratingStore(mongo, social)
+}
+
+// MigratingStore creates a Store that on Fetch tries to fetch
+// credentials from dst first and for every missing credential it
+// falls back to src. Every credential fetched from src store
+// is then put back to the dst one.
+//
+// On Put migrating store puts the credential both to src and dst
+// stores.
+func MigratingStore(src, dst Store) Store {
+	return struct {
+		Fetcher
+		Putter
+	}{
+		Fetcher: NewFallbackFetcher(
+			dst,
+			&TeeFetcher{Fetcher: src, Putter: dst},
+		),
+		Putter: NewMultiPutter(dst, src),
 	}
 }
 
@@ -138,7 +140,13 @@ func toIdents(creds map[string]interface{}) []string {
 // by fetching missing ones with next fetcher until nil error is returned.
 type FallbackFetcher struct {
 	Fetchers []Fetcher
-	Log      logging.Logger
+}
+
+// NewFallbackFetcher gives new chained fallback fetchers for the given ones.
+func NewFallbackFetcher(fetchers ...Fetcher) Fetcher {
+	return &FallbackFetcher{
+		Fetchers: fetchers,
+	}
 }
 
 // Fetch implements the Fetcher interface than handles *NotFoundError by
@@ -147,15 +155,13 @@ type FallbackFetcher struct {
 func (ff *FallbackFetcher) Fetch(username string, creds map[string]interface{}) error {
 	left := creds
 
-	for i, f := range ff.Fetchers {
+	for _, f := range ff.Fetchers {
 		if len(left) == 0 {
 			break
 		}
 
 		err := f.Fetch(username, left)
 		e, ok := err.(*NotFoundError)
-
-		ff.Log.Debug("%d: fetch result: left=%+v, err=%+v", i, left, err)
 
 		if err != nil && !ok {
 			// errors other than *NotFoundError can't be recovered from
@@ -205,7 +211,6 @@ func (ff *FallbackFetcher) Fetch(username string, creds map[string]interface{}) 
 type TeeFetcher struct {
 	Fetcher Fetcher
 	Putter  Putter
-	Log     logging.Logger
 }
 
 // TeeFetcher implements the Fetcher interfaces which puts each fetched
@@ -214,11 +219,12 @@ func (tf *TeeFetcher) Fetch(username string, creds map[string]interface{}) error
 	err := tf.Fetcher.Fetch(username, creds)
 	e, ok := err.(*NotFoundError)
 
-	tf.Log.Debug("fetch result: creds=%+v, err=%+v", creds, err)
-
 	if err != nil && !ok {
 		// early return - no credential was fetched
-		return err
+		return &NotFoundError{
+			Identifiers: toIdents(creds),
+			Err:         err,
+		}
 	}
 
 	fetched := make(map[string]interface{})
@@ -247,6 +253,13 @@ func (tf *TeeFetcher) Fetch(username string, creds map[string]interface{}) error
 // Putters, concurrently.
 type MultiPutter struct {
 	Putters []Putter
+}
+
+// NewMultiPutter gives new duplicating putter for the given putter values.
+func NewMultiPutter(putters ...Putter) Putter {
+	return &MultiPutter{
+		Putters: putters,
+	}
 }
 
 // Put implements the Putter interface.
