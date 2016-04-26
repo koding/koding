@@ -79,7 +79,7 @@ truncate --size 0 $INSTANCE_DATA_FILE
 for INSTANCE in $INSTANCES; do
   (
     check_revision $INSTANCE || fail_instance $INSTANCE
-    check_connectivity $INSTANCE  8090 1m 5 || fail_instance $INSTANCE
+    check_connectivity $INSTANCE  8090 1m 10 || fail_instance $INSTANCE
     check_connectivity $INSTANCE 42420 1m 5 || fail_instance $INSTANCE
     check_connectivity $INSTANCE 42421 1m 5 || fail_instance $INSTANCE
     health_check $INSTANCE || fail_instance $INSTANCE
