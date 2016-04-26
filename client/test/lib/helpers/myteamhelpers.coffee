@@ -19,7 +19,8 @@ module.exports =
       .waitForElementVisible sendInvitesButton, 5000
       .click sendInvitesButton
 
-    @acceptConfirmModal browser, successMessage
+    @acceptConfirmModal browser
+    @assertConfirmModal browser, successMessage
 
     userEmail = @fillInviteInputByIndex browser, 3
     successMessage = "Invitation is sent to #{userEmail}"
@@ -29,9 +30,7 @@ module.exports =
       .waitForElementVisible sendInvitesButton, 5000
       .click sendInvitesButton
 
-      .waitForElementVisible '.kdnotification', 10000
-      .assert.containsText '.kdnotification', successMessage
-
+    @assertConfirmModal browser, successMessage
 
 
   inviteAll: (browser) ->
@@ -59,8 +58,8 @@ module.exports =
       .waitForElementVisible sendInvitesButton, 5000
       .click sendInvitesButton
 
-    @acceptConfirmModal browser, successMessage
-
+    @acceptConfirmModal browser
+    @assertConfirmModal browser, successMessage
 
   uploadCSV: (browser) ->
 
@@ -71,9 +70,7 @@ module.exports =
     browser
       .waitForElementVisible invitationsModalSelector, 20000
       .click uploadCSVButtonSelector
-      .waitForElementVisible '.kdnotification', 10000
-      .assert.containsText '.kdnotification', message
-      .pause 2000
+    @assertConfirmModal browser, message
 
 
   resendInvitation: (browser) ->
@@ -93,8 +90,7 @@ module.exports =
       .waitForElementVisible sendInvitesButton, 5000
       .click sendInvitesButton
 
-      .waitForElementVisible '.kdnotification', 5000
-      .assert.containsText '.kdnotification', successMessage
+    @assertConfirmModal browser, successMessage
       .pause 10000
 
     userEmail = @fillInviteInputByIndex browser, 2, userEmail
@@ -104,7 +100,8 @@ module.exports =
       .waitForElementVisible sendInvitesButton, 5000
       .click sendInvitesButton
 
-    @acceptConfirmModal browser, successMessage
+    @acceptConfirmModal browser
+    @assertConfirmModal browser, successMessage
 
     return userEmail
 
@@ -126,9 +123,7 @@ module.exports =
     @rejectConfirmModal browser
     browser
       .pause 10000 # to read clearly notifications
-      .waitForElementVisible '.kdnotification', 10000
-      .assert.containsText '.kdnotification', successMessage
-
+    @assertConfirmModal browser, successMessage
 
   rejectConfirmModal: (browser) ->
 
@@ -144,7 +139,7 @@ module.exports =
             .click                 cancelButton
 
 
-  acceptConfirmModal: (browser, successMessage) ->
+  acceptConfirmModal: (browser) ->
 
     confirmModal = '.kdmodal.admin-invite-confirm-modal.kddraggable'
     confirmButton = '.kdmodal-content .kdbutton.confirm.solid.green.medium.w-loader'
@@ -157,8 +152,14 @@ module.exports =
             .pause 2000
             .waitForElementVisible confirmButton, 10000
             .click                 confirmButton
-            .waitForElementVisible '.kdnotification', 10000
-            .assert.containsText '.kdnotification', successMessage
+
+
+  assertConfirmModal: (browser, successMessage) ->
+
+    browser
+      .waitForElementVisible '.kdnotification', 10000
+      .assert.containsText '.kdnotification', successMessage
+      .pause 2000
 
   fillInviteInputByIndex: (browser, index, userEmail = null) ->
 
