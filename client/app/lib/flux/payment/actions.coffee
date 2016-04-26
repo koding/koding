@@ -101,10 +101,28 @@ loadGroupCreditCard = ({dispatch}) -> ->
       resolve { card }
 
 
+loadGroupInvoices = ({dispatch}) -> ->
+
+  { paymentController } = kd.singletons
+
+  return new Promise (resolve, reject) ->
+    dispatch actionTypes.LOAD_GROUP_INVOICES_BEGIN
+
+    paymentController.fetchGroupInvoices (err, card) ->
+      if err
+        dispatch actionTypes.LOAD_GROUP_INVOICES_FAIL, { err }
+        reject err
+        return
+
+      dispatch actionTypes.LOAD_GROUP_INVOICES_SUCCESS, { card }
+      resolve { card }
+
+
 module.exports = {
   loadStripeClient
   createStripeToken
   loadGroupPlan
   subscribeGroupPlan
   loadGroupCreditCard
+  loadGroupInvoices
 }
