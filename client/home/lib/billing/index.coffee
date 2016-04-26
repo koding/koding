@@ -1,12 +1,14 @@
 kd                                = require 'kd'
 HomeTeamBillingPaymentInformation = require './hometeambillingpaymentinformation'
 HomeTeamBillingCreditCard         = require './hometeambillingcreditcard'
+HomeTeamBillingPlansList = require './hometeambillingplanslist'
 
 PaymentFlux = require 'app/flux/payment'
 
 SECTIONS =
-  'Payment Information' : HomeTeamBillingPaymentInformation
-  'Credit Card'         : HomeTeamBillingCreditCard
+  'Koding Subscription': HomeTeamBillingPlansList
+  'Payment Information': HomeTeamBillingPaymentInformation
+  'Credit Card': HomeTeamBillingCreditCard
 
 
 header = (title) ->
@@ -31,6 +33,9 @@ module.exports = class HomeTeamBilling extends kd.CustomScrollView
 
     mainController.ready =>
       PaymentFlux(reactor).actions.loadGroupCreditCard()
+
+      @wrapper.addSubView header 'Koding Subscription'
+      @wrapper.addSubView section 'Koding Subscription'
 
       formView = new kd.FormView
         cssClass: kd.utils.curry 'HomeAppView--billing-form', options.cssClass
