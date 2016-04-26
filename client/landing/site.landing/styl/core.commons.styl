@@ -132,10 +132,8 @@ figure.hackathon-header
     abs()
     fl()
 
-    cite
-      r-sprite              app 'logo_full_white'
-      margin                0
-      display               block
+    .main-header-logo
+      width                 95px
 
   .hiring-badge
     font-size               12px
@@ -179,7 +177,7 @@ figure.hackathon-header
     a
       font-size             14px
       margin-right          40px
-      font-family           openSansFamily
+      font-family           Soleil, openSansFamily
       color                 white
       padding-bottom        1px
       noTextDeco()
@@ -189,6 +187,7 @@ figure.hackathon-header
         border-bottom   1px solid white
 
       &:last-child
+        margin-right    0
         visibility      visible
 
       &.buttonized
