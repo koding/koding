@@ -14,6 +14,7 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderPower    : React.PropTypes.bool
     shouldRenderAlwaysOn : React.PropTypes.bool
     shouldRenderSharing  : React.PropTypes.bool
+    onToggleAlwaysOn     : React.PropTypes.func
 
 
   @defaultProps =
@@ -21,6 +22,7 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderPower    : yes
     shouldRenderAlwaysOn : no
     shouldRenderSharing  : no
+    onToggleAlwaysOn     : kd.noop
 
 
   renderSpecs: ->
@@ -50,7 +52,9 @@ module.exports = class MachineDetails extends React.Component
 
     <GenericToggler
       title='Always On'
-      description='Keep this machine running indefinitely' />
+      description='Keep this machine running indefinitely'
+      defaultChecked={@props.machine.getIn [ 'meta', 'alwaysOn' ]}
+      onToggle={@props.onToggleAlwaysOn} />
 
 
   renderSharingToggler: ->

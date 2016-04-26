@@ -459,6 +459,26 @@ loadPrivateStackTemplates = ->
     reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_SUCCESS, { query, templates }
 
 
+toggleMachineAlwaysOn = (machine) ->
+
+  { computeController, reactor } = kd.singletons
+
+  computeController.fetchUserPlan (plan) =>
+
+    state = not machine.getIn [ 'meta', 'alwaysOn' ]
+    computeController.setAlwaysOn machine.toJS(), state, (err) =>
+
+      unless err
+        params = { id : machine.get 'id', state }
+        return reactor.dispatch actions.SET_MACHINE_ALWAYS_ON, params
+
+      if err.name is 'UsageLimitReached' and plan isnt 'hobbyist'
+        ComputeErrorUsageModal = require 'app/providers/computeerrorusagemodal'
+        kd.utils.defer -> new ComputeErrorUsageModal { plan }
+      else
+        showError err
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -487,4 +507,5 @@ module.exports = {
   dispatchSharedVMInvitationRejected
   loadTeamStackTemplates
   loadPrivateStackTemplates
+  toggleMachineAlwaysOn
 }

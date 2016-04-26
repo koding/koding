@@ -49,4 +49,6 @@ module.exports = {
   'GROUP_STACKS_CONSISTENT'
 
   'STACK_IS_ACTIVE'
+
+  'SET_MACHINE_ALWAYS_ON'
 }
