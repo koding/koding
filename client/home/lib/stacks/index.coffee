@@ -6,13 +6,13 @@ HomeStacksCreate = require './homestackscreate'
 HomeStacksTeamStacks = require './homestacksteamstacks'
 HomeStacksPrivateStacks = require './homestacksprivatestacks'
 HomeStacksDrafts = require './homestacksdrafts'
+HomeStacksTabHandle = require './homestackstabhandle'
 
 HomeVirtualMachinesVirtualMachines = require '../virtualmachines/homevirtualmachinesvirtualmachines'
 HomeVirtualMachinesConnectedMachines = require '../virtualmachines/homevirtualmachinesconnectedmachines'
 HomeVirtualMachinesSharedMachines = require '../virtualmachines/homevirtualmachinessharedmachines'
 
 HomeAccountCredentialsView = require '../account/credentials/homeaccountcredentialsview'
-
 EnvironmentFlux = require 'app/flux/environment'
 
 
@@ -31,6 +31,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
       hideHandleCloseIcons : yes
       detachPanes          : no
       tabHandleContainer   : @topNav
+      tabHandleClass       : HomeStacksTabHandle
 
     @tabView.unsetClass 'kdscrollview'
 
@@ -40,6 +41,11 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
     @tabView.showPane @stacks
 
+    # @tabView.on 'PaneDidShow', (pane) ->
+    #   { router } = kd.singletons
+    #   path = router.getCurrentPath()
+    #   router.handleRoute "/Home/Stacks/#{kd.utils.slugify pane.name}"
+
     kd.singletons.mainController.ready =>
       @createStacksViews()
       @createVMsViews()
@@ -48,10 +54,11 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
   handleAction: (action) ->
 
-    unless tab = @tabView.getPaneByName action
-      _kd.singletons.router.handleRoute '/Home/Stacks/List'
-    else
-      @tabView.showPane tab
+    for pane in @tabView.panes when kd.utils.slugify(pane.name) is action
+      pane_ = @tabView.showPane pane
+      break
+
+
 
 
   createStacksViews: ->
