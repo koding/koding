@@ -30,10 +30,10 @@ module.exports = class PlansList extends React.Component
 
 ActionBar = ->
   <fieldset className="HomeAppView--ActionBar">
-    <a className="HomeAppView--button custom-link-view primary fr" href="#" onClick={noop}>
+    <a className="HomeAppView--button custom-link-view primary fr" href="#" onClick={kd.noop}>
       <span className="title">VIEW MEMBERS</span>
     </a>
-    <a className="HomeAppView--button custom-link-view fr" href="#" onClick={noop}>
+    <a className="HomeAppView--button custom-link-view fr" href="#" onClick={kd.noop}>
       <span className="title">PRICING DETAILS</span>
     </a>
   </fieldset>
