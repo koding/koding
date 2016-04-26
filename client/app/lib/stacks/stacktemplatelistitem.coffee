@@ -42,31 +42,9 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
   buildViews: ->
 
-    stackTemplate = @getData()
-    { meta, isDefault, inUse, accessLevel, config, title } = stackTemplate
-
-    @addSubView @info = new kd.CustomHTMLView
-      cssClass  : 'stacktemplate-info clearfix'
-
-    @info.addSubView @title = new StackTemplateListItemTitle {}, stackTemplate
-
-    @info.addSubView @labels  = new kd.CustomHTMLView
-      cssClass  : 'labels'
-
-    @info.addSubView @lastUpdatedView = new StackTemplateListItemLastUpdated {}, stackTemplate
-
-    @addSubView @buttons  = new kd.CustomHTMLView
-      cssClass   : 'buttons'
-
-    @buttons.addSubView @settings
-    @buildLabels()
-
-
-  buildLabels: ->
-
     { isDefault, inUse, accessLevel, config } = @getData()
 
-    @labels.addSubView @isDefaultView = new kd.CustomHTMLView
+    @isDefaultView = new kd.CustomHTMLView
       cssClass   : 'custom-tag'
       partial    : 'DEFAULT'
       attributes :
@@ -74,7 +52,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
       tooltip    :
         title    : 'This group currently using this template'
 
-    @labels.addSubView @inUseView     = new kd.CustomHTMLView
+    @inUseView   = new kd.CustomHTMLView
       cssClass   : 'custom-tag'
       partial    : 'IN USE'
       attributes :
@@ -82,7 +60,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
       tooltip    :
         title    : 'This template is in use'
 
-    @labels.addSubView @notReadyView  = new kd.CustomHTMLView
+    @notReadyView = new kd.CustomHTMLView
       cssClass   : 'custom-tag not-ready'
       partial    : 'NOT READY'
       attributes :
@@ -90,32 +68,37 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
       tooltip    :
         title    : 'Template is not verified or credential data is missing'
 
-    @labels.addSubView @accessLevelView = new kd.CustomHTMLView
+    @accessLevelView = new kd.CustomHTMLView
       cssClass   : "custom-tag #{accessLevel}"
       partial    : accessLevel.toUpperCase()
       attributes :
         testpath : 'StackAccessLevelTag'
       tooltip    :
-        title    : switch accessLevel
-          when 'public'
-            'This group currently using this template'
-          when 'group'
-            'This template can be used in group'
-          when 'private'
-            'Only you can use this template'
+        title    : @getAccessLevelTooptipTitle accessLevel
 
     @isDefaultView.hide() unless isDefault
     @inUseView.hide()     unless inUse
     @notReadyView.hide()  if config.verified
 
 
-  updateLabels: ->
+  getAccessLevelTooptipTitle: (accessLevel) ->
 
-    @isDefaultView?.destroy()
-    @inUseView?.destroy()
-    @notReadyView?.destroy()
-    @accessLevelView?.destroy()
-    @buildLabels()
+    switch accessLevel
+      when 'public'
+        'This group currently using this template'
+      when 'group'
+        'This template can be used in group'
+      when 'private'
+        'Only you can use this template'
+
+
+  # updateLabels: ->
+
+  #   @isDefaultView?.destroy()
+  #   @inUseView?.destroy()
+  #   @notReadyView?.destroy()
+  #   @accessLevelView?.destroy()
+  #   @buildLabels()
 
 
   _itemSelected: (data) ->
@@ -138,3 +121,16 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     #     new ForceToReinitModal {}, stackTemplate
 
     super
+
+
+  pistachio: ->
+
+    { meta } = @getData()
+
+    """
+    <div class='stacktemplate-info clearfix'>
+      {div.title{#(title)}} {{> @isDefaultView}} {{> @inUseView}} {{> @notReadyView}} {{> @accessLevelView}}
+      <cite>Last updated #{timeago meta.modifiedAt}</cite>
+    </div>
+    <div class='buttons'>{{> @settings}}</div>
+    """
