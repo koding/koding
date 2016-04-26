@@ -95,3 +95,15 @@ describe 'MachinesStore', ->
       store = @reactor.evaluate(['machines']).get id
 
       expect(store.get 'isApproved').toBeTruthy()
+
+
+  describe '#setAlwaysOn', ->
+
+    it 'should set alwaysOn flag to specified value', ->
+
+      @reactor.dispatch actionTypes.SET_MACHINE_ALWAYS_ON, { id, state : yes }
+
+      store = @reactor.evaluate(['machines']).get id
+
+      expect(store).toExist()
+      expect(store.getIn [ 'meta', 'alwaysOn' ]).toBeTruthy()
