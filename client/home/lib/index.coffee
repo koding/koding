@@ -5,6 +5,7 @@ HomeAccount         = require './account'
 HomeUtilities       = require './utilities'
 HomeMyTeam          = require './myteam'
 HomeTeamBilling     = require './billing'
+HomePaymentHistory  = require './paymenthistory'
 HomeWelcome         = require './welcome'
 HomeStacks          = require './stacks'
 
@@ -21,6 +22,7 @@ module.exports = class HomeAppController extends AppController
     { title : 'Stacks',           viewClass : HomeStacks,          role: 'member' }
     { title : 'My Team',          viewClass : HomeMyTeam,          role: 'member' }
     { title : 'Team Billing',     viewClass : HomeTeamBilling                     }
+    { title : 'Payment History',  viewClass : HomePaymentHistory  }
     { title : 'Koding Utilities', viewClass : HomeUtilities,       role: 'member' }
     { title : 'My Account',       viewClass : HomeAccount,         role: 'member' }
   ]
