@@ -63,4 +63,5 @@ module.exports = [
   'admins'
   'group'
   'team'
+  'info'
 ]
