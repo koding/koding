@@ -153,17 +153,10 @@ module.exports = class Payment extends Base
 
     return callback new KodingError 'No such group'  unless group
 
-    if group.slug is 'koding' or KONFIG.environment is 'default'
-      return callback null, { planTitle: 'unlimited' }
+    data = { groupId: group._id }
 
-    url = "#{socialProxyUrl}/payments/group/invoices?group_id=#{group._id}"
-    get url, {}, (err, subscription) ->
-      return callback err  if err
-
-      # unless isSubscriptionOk group, subscription
-      #   return callback new KodingError 'Trial period exceeded'
-
-      callback null, sanitizeSubscription subscription
+    url = "#{socialProxyUrl}/payments/group/invoices/#{data.groupId}"
+    get url, data, callback
 
   @fetchGroupInvoices$ = secure (client, callback) ->
 
