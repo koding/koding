@@ -467,19 +467,22 @@ setMachineAlwaysOn = (machineId, state) ->
   machine = computeController.findMachineFromMachineId machineId
   return  unless machine
 
+  reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_BEGIN, { id : machineId, state }
+
   computeController.fetchUserPlan (plan) =>
 
     computeController.setAlwaysOn machine, state, (err) =>
 
       unless err
-        params = { id : machine._id, state }
-        return reactor.dispatch actions.SET_MACHINE_ALWAYS_ON, params
+        return reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_SUCCESS, { id : machineId }
 
       if err.name is 'UsageLimitReached' and plan isnt 'hobbyist'
         ComputeErrorUsageModal = require 'app/providers/computeerrorusagemodal'
         kd.utils.defer -> new ComputeErrorUsageModal { plan }
       else
         showError err
+
+      reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_FAIL, { id : machineId }
 
 
 setMachinePowerStatus = (machineId, shouldStart) ->

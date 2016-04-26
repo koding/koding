@@ -49,7 +49,7 @@ module.exports = class MachineDetails extends React.Component
     <GenericToggler
       title='VM Power'
       description='Turn your machine on or off from here'
-      defaultChecked={isRunning}
+      checked={isRunning}
       onToggle={@props.onChangePowerStatus} />
 
 
@@ -60,7 +60,7 @@ module.exports = class MachineDetails extends React.Component
     <GenericToggler
       title='Always On'
       description='Keep this machine running indefinitely'
-      defaultChecked={@props.machine.getIn [ 'meta', 'alwaysOn' ]}
+      checked={@props.machine.getIn [ 'meta', 'alwaysOn' ]}
       onToggle={@props.onChangeAlwaysOn} />
 
 

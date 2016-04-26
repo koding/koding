@@ -97,13 +97,53 @@ describe 'MachinesStore', ->
       expect(store.get 'isApproved').toBeTruthy()
 
 
-  describe '#setAlwaysOn', ->
+  describe '#setAlwaysOnBegin', ->
 
-    it 'should set alwaysOn flag to specified value', ->
+    it 'should set alwaysOn flag to specified value and save old alwaysOn flag', ->
 
-      @reactor.dispatch actionTypes.SET_MACHINE_ALWAYS_ON, { id, state : yes }
+      @reactor.dispatch actionTypes.LOAD_USER_ENVIRONMENT_SUCCESS, ENV_DATA
+      @reactor.dispatch actionTypes.SET_MACHINE_ALWAYS_ON_BEGIN, { id, state : yes }
 
       store = @reactor.evaluate(['machines']).get id
 
       expect(store).toExist()
       expect(store.getIn [ 'meta', 'alwaysOn' ]).toBeTruthy()
+      expect(store.getIn [ 'meta', '_alwaysOn' ]).toBeFalsy()
+
+
+  describe '#setAlwaysOnSuccess', ->
+
+    it 'should delete old alwaysOn flag', ->
+
+      @reactor.dispatch actionTypes.LOAD_USER_ENVIRONMENT_SUCCESS, ENV_DATA
+      @reactor.dispatch actionTypes.SET_MACHINE_ALWAYS_ON_BEGIN, { id, state : yes }
+
+      store = @reactor.evaluate(['machines']).get id
+
+      expect(store).toExist()
+      expect(store.getIn [ 'meta', '_alwaysOn' ]).toBeFalsy()
+
+      @reactor.dispatch actionTypes.SET_MACHINE_ALWAYS_ON_SUCCESS, { id }
+
+      store = @reactor.evaluate(['machines']).get id
+      expect(store.getIn [ 'meta', 'alwaysOn' ]).toBeTruthy()
+      expect(store.getIn [ 'meta', '_alwaysOn' ]).toNotExist()
+
+
+  describe '#setAlwaysOnFail', ->
+
+    it 'should revert changes on alwaysOn flag', ->
+
+      @reactor.dispatch actionTypes.LOAD_USER_ENVIRONMENT_SUCCESS, ENV_DATA
+      @reactor.dispatch actionTypes.SET_MACHINE_ALWAYS_ON_BEGIN, { id, state : yes }
+
+      store = @reactor.evaluate(['machines']).get id
+
+      expect(store).toExist()
+      expect(store.getIn [ 'meta', 'alwaysOn' ]).toBeTruthy()
+
+      @reactor.dispatch actionTypes.SET_MACHINE_ALWAYS_ON_FAIL, { id }
+
+      store = @reactor.evaluate(['machines']).get id
+      expect(store.getIn [ 'meta', 'alwaysOn' ]).toBeFalsy()
+      expect(store.getIn [ 'meta', '_alwaysOn' ]).toNotExist()
