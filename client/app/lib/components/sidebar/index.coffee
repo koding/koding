@@ -23,6 +23,7 @@ module.exports = class Sidebar extends React.Component
 
     @state =
       showNoStacksWidget : no
+      creatingNewStack   : no
 
 
   getDataBindings: ->
@@ -70,6 +71,9 @@ module.exports = class Sidebar extends React.Component
         EnvironmentFlux.actions.loadMachines()
 
 
+  onNewStack: -> @setState { creatingNewStack: yes }
+
+
   setActiveInvitationMachineId: ->
 
     { setActiveInvitationMachineId } = EnvironmentFlux.actions
@@ -114,6 +118,8 @@ module.exports = class Sidebar extends React.Component
     # Now render stack of managed vms last
     stackList.managed.forEach (stack) => stackSections.push @renderStack stack
 
+    stackSections.push @renderNewStackSection()
+
     return stackSections
 
 
@@ -130,7 +136,9 @@ module.exports = class Sidebar extends React.Component
   renderStacks: ->
 
     if @state.stacks.size
-      <SidebarStackHeaderSection>
+      <SidebarStackHeaderSection
+        onNewStack={@bound 'onNewStack'}
+        >
         {@prepareStacks()}
       </SidebarStackHeaderSection>
     else if @state.showNoStacksWidget
@@ -158,8 +166,20 @@ module.exports = class Sidebar extends React.Component
       machines={machines}/>
 
 
+  renderNewStackSection: ->
 
+    return null  unless @state.creatingNewStack
 
+    <section
+      key='newStack'
+      className='SidebarSection SidebarStackSection'
+      >
+      <header className="SidebarSection-header">
+        <h4 className='SidebarSection-headerTitle'>
+          <Link href='/Stack-Editor'>Default stack template</Link>
+        </h4>
+      </header>
+    </section>
 
 
   renderLogo: ->

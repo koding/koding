@@ -5,19 +5,18 @@ React = require 'kd-react'
 
 module.exports = class SidebarStackHeaderSection extends React.Component
 
-
-  openStackEditor: (e) ->
+  onNewStack: (e) ->
 
     kd.utils.stopDOMEvent e
-    kd.singletons.router.handleRoute '/Stack-Editor'
+    @props.onNewStack()
 
 
   render: ->
 
     <div className='SidebarTeamSection'>
-      <Link className='SidebarSection-headerTitle' href='/Stacks'>
+      <Link className='SidebarSection-headerTitle' href='/Home/Stacks'>
         STACKS
-        <span className='SidebarSection-secondaryLink' onClick={@bound 'openStackEditor'}></span>
+        <span className='SidebarSection-secondaryLink' onClick={@bound 'onNewStack'}></span>
       </Link>
       {@props.children}
     </div>
