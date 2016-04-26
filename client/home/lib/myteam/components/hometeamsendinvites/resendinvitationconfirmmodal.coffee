@@ -32,6 +32,5 @@ module.exports = class ResendInvitationConfirmationModal extends kd.ModalViewWit
                   planDetails :
                     cssClass  : 'content'
                     itemClass : kd.View
-                    partial   : options.partial
 
     super options, data
