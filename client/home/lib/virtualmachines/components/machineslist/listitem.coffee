@@ -13,8 +13,8 @@ module.exports = class MachinesListItem extends React.Component
     shouldRenderPower    : React.PropTypes.bool
     shouldRenderAlwaysOn : React.PropTypes.bool
     shouldRenderSharing  : React.PropTypes.bool
-    onToggleAlwaysOn     : React.PropTypes.func
-    onTogglePowerStatus  : React.PropTypes.func
+    onChangeAlwaysOn     : React.PropTypes.func
+    onChangePowerStatus  : React.PropTypes.func
 
   @defaultProps =
     shouldRenderDetails  : yes
@@ -22,8 +22,8 @@ module.exports = class MachinesListItem extends React.Component
     shouldRenderPower    : yes
     shouldRenderAlwaysOn : no
     shouldRenderSharing  : no
-    onToggleAlwaysOn     : kd.noop
-    onTogglePowerStatus  : kd.noop
+    onChangeAlwaysOn     : kd.noop
+    onChangePowerStatus  : kd.noop
 
 
   constructor: (props) ->
@@ -42,8 +42,8 @@ module.exports = class MachinesListItem extends React.Component
         shouldRenderPower={@props.shouldRenderPower}
         shouldRenderAlwaysOn={@props.shouldRenderAlwaysOn}
         shouldRenderSharing={@props.shouldRenderSharing}
-        onToggleAlwaysOn={@props.onToggleAlwaysOn}
-        onTogglePowerStatus={@props.onTogglePowerStatus} />
+        onChangeAlwaysOn={@props.onChangeAlwaysOn}
+        onChangePowerStatus={@props.onChangePowerStatus} />
     </main>
 
   toggle: (event) -> @setState { isDetailOpen: not @state.isDetailOpen }

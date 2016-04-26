@@ -460,17 +460,19 @@ loadPrivateStackTemplates = ->
     reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_SUCCESS, { query, templates }
 
 
-toggleMachineAlwaysOn = (machine) ->
+setMachineAlwaysOn = (machineId, state) ->
 
   { computeController, reactor } = kd.singletons
 
+  machine = computeController.findMachineFromMachineId machineId
+  return  unless machine
+
   computeController.fetchUserPlan (plan) =>
 
-    state = not machine.getIn [ 'meta', 'alwaysOn' ]
-    computeController.setAlwaysOn machine.toJS(), state, (err) =>
+    computeController.setAlwaysOn machine, state, (err) =>
 
       unless err
-        params = { id : machine.get 'id', state }
+        params = { id : machine._id, state }
         return reactor.dispatch actions.SET_MACHINE_ALWAYS_ON, params
 
       if err.name is 'UsageLimitReached' and plan isnt 'hobbyist'
@@ -480,16 +482,14 @@ toggleMachineAlwaysOn = (machine) ->
         showError err
 
 
-toggleMachineState = (machineId) ->
+setMachinePowerStatus = (machineId, shouldStart) ->
 
-  { Running, Starting } = Machine.State
   { computeController } = kd.singletons
 
   machine = computeController.findMachineFromMachineId machineId
   return  unless machine
 
-  isRunning = machine.status.state in [ Running, Starting ]
-  method    = if isRunning then 'stop' else 'start'
+  method    = if shouldStart then 'start' else 'stop'
 
   kd.singletons.computeController[method] machine
 
@@ -522,6 +522,6 @@ module.exports = {
   dispatchSharedVMInvitationRejected
   loadTeamStackTemplates
   loadPrivateStackTemplates
-  toggleMachineAlwaysOn
-  toggleMachineState
+  setMachineAlwaysOn
+  setMachinePowerStatus
 }

@@ -14,8 +14,8 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderPower    : React.PropTypes.bool
     shouldRenderAlwaysOn : React.PropTypes.bool
     shouldRenderSharing  : React.PropTypes.bool
-    onToggleAlwaysOn     : React.PropTypes.func
-    onTogglePowerStatus  : React.PropTypes.func
+    onChangeAlwaysOn     : React.PropTypes.func
+    onChangePowerStatus  : React.PropTypes.func
 
 
   @defaultProps =
@@ -23,8 +23,8 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderPower    : yes
     shouldRenderAlwaysOn : no
     shouldRenderSharing  : no
-    onToggleAlwaysOn     : kd.noop
-    onTogglePowerStatus  : kd.noop
+    onChangeAlwaysOn     : kd.noop
+    onChangePowerStatus  : kd.noop
 
 
   renderSpecs: ->
@@ -50,7 +50,7 @@ module.exports = class MachineDetails extends React.Component
       title='VM Power'
       description='Turn your machine on or off from here'
       defaultChecked={isRunning}
-      onToggle={@props.onTogglePowerStatus} />
+      onToggle={@props.onChangePowerStatus} />
 
 
   renderAlwaysOnToggler: ->
@@ -61,7 +61,7 @@ module.exports = class MachineDetails extends React.Component
       title='Always On'
       description='Keep this machine running indefinitely'
       defaultChecked={@props.machine.getIn [ 'meta', 'alwaysOn' ]}
-      onToggle={@props.onToggleAlwaysOn} />
+      onToggle={@props.onChangeAlwaysOn} />
 
 
   renderSharingToggler: ->
