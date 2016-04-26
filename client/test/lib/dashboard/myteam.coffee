@@ -13,3 +13,11 @@ module.exports =
     browser.url myTeamLink
     myteamhelpers.inviteUser browser
     browser.end()
+
+
+  sendInvitesToAll: (browser) ->
+
+    user = teamsHelpers.loginTeam browser
+    browser.url myTeamLink
+    myteamhelpers.inviteAll browser
+    browser.end()
