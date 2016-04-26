@@ -108,6 +108,28 @@ module.exports =
 
     return userEmail
 
+  newInviteFromResendModal: (browser) ->
+
+    invitationsModalSelector = '.HomeAppView--section.send-invites'
+    sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
+    userEmail = @resendInvitation browser
+    browser
+      .pause 5000
+      .waitForElementVisible invitationsModalSelector, 20000
+
+    userEmail = @fillInviteInputByIndex browser, 2, userEmail
+    newEmail = @fillInviteInputByIndex browser, 3
+    successMessage = "Invitation is sent to #{newEmail}"
+
+    browser
+      .click sendInvitesButton
+    @rejectConfirmModal browser
+    browser
+      .pause 10000 # to read clearly notifications
+      .waitForElementVisible '.kdnotification', 10000
+      .assert.containsText '.kdnotification', successMessage
+
+
   rejectConfirmModal: (browser) ->
 
     confirmModal = '.kdmodal.admin-invite-confirm-modal.kddraggable'
