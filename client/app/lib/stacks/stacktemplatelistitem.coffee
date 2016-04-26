@@ -14,21 +14,8 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     super options, data
 
-    stackTemplate         = @getData()
-    { accessLevel, _id }  = stackTemplate
-
     @setTestPath()
     @buildViews()
-
-    kd.singletons.groupsController.on 'StackTemplateChanged', (params) =>
-      if params.contents._id is _id
-        stackTemplate = params.contents
-      else
-        stackTemplate.isDefault = no
-
-      @setData stackTemplate
-      @setTestPath()
-      @updateLabels()
 
 
   setTestPath: ->
