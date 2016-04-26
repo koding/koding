@@ -60,7 +60,7 @@ Expiration = ({ type, onChange, value }) ->
       { value: '11', label: 'November' }
       { value: '12', label: 'December' }
     ]
-    year: [thisYear..thisYear+100].map (year) -> { value: String(year), label: String(year) }
+    year: [thisYear..thisYear+20].map (year) -> { value: String(year), label: String(year) }
 
   placeholders = { month: 'Month', year: 'Year' }
 
