@@ -4,6 +4,34 @@ utils = require '../utils/utils.js'
 
 module.exports =
 
+  inviteUser: (browser) ->
+
+    invitationsModalSelector = '.HomeAppView--section.send-invites'
+    sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
+
+    browser
+      .waitForElementVisible invitationsModalSelector, 20000
+
+    userEmail = @fillInviteInputByIndex browser, 1
+    successMessage = "Invitation is sent to #{userEmail}"
+
+    browser
+      .waitForElementVisible sendInvitesButton, 5000
+      .click sendInvitesButton
+
+    @acceptConfirmModal browser, successMessage
+
+    userEmail = @fillInviteInputByIndex browser, 3
+    successMessage = "Invitation is sent to #{userEmail}"
+
+    browser
+      .pause 10000
+      .waitForElementVisible sendInvitesButton, 5000
+      .click sendInvitesButton
+
+      .waitForElementVisible '.kdnotification', 10000
+      .assert.containsText '.kdnotification', successMessage
+
   rejectConfirmModal: (browser) ->
 
     confirmModal = '.kdmodal.admin-invite-confirm-modal.kddraggable'
