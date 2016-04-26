@@ -35,7 +35,7 @@ module.exports = class MainHeaderView extends kd.View
     @addSubView @logo = headerLogo or new kd.CustomHTMLView
       tagName   : 'a'
       cssClass  : 'koding-header-logo'
-      partial   : '<cite></cite>'
+      partial   : '<object type="image/svg+xml" data="/a/images/logos/header_logo.svg" class="main-header-logo">Koding Logo</object>'
       click     : (event) ->
         kd.utils.stopDOMEvent event
         kd.singletons.router.handleRoute '/'
