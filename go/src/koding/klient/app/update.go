@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -11,7 +12,7 @@ import (
 	"os"
 	"path"
 	"runtime"
-	"strings"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -63,10 +64,12 @@ func (u *Updater) checkAndUpdate() error {
 
 	l, err := u.latestVersion()
 	if err != nil {
+		u.Log.Debug("failure getting latest version from %s: %s", u.Endpoint, err)
+
 		return err
 	}
 
-	latestVer := "0.1." + l
+	latestVer := fmt.Sprintf("0.1.%d", l)
 	latest, err := version.NewVersion(latestVer)
 	if err != nil {
 		return err
@@ -99,7 +102,7 @@ func (u *Updater) checkAndUpdate() error {
 	latestKlientURL := &url.URL{
 		Scheme: "https",
 		Host:   "s3.amazonaws.com",
-		Path:   path.Join("/koding-klient", protocol.Environment, l, file),
+		Path:   path.Join("/koding-klient", protocol.Environment, strconv.Itoa(l), file),
 	}
 
 	return u.updateBinary(latestKlientURL.String())
@@ -156,20 +159,23 @@ func (u *Updater) updateBinary(url string) error {
 	return nil
 }
 
-func (u *Updater) latestVersion() (string, error) {
+func (u *Updater) latestVersion() (int, error) {
 	resp, err := http.Get(u.Endpoint)
 	if err != nil {
-		u.Log.Debug("Getting latest version from %s", u.Endpoint)
-		return "", err
+		return 0, err
 	}
 	defer resp.Body.Close()
 
-	latest, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
+	if resp.StatusCode != http.StatusOK {
+		return 0, errors.New(http.StatusText(resp.StatusCode))
 	}
 
-	return strings.TrimSpace(string(latest)), nil
+	latest, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	return strconv.Atoi(string(bytes.TrimSpace(latest)))
 }
 
 func (u *Updater) fetch(url string) ([]byte, error) {
@@ -209,8 +215,10 @@ func (u *Updater) Run() {
 
 	for {
 		select {
-		case ev := <-u.MountEvents:
-			var ok bool
+		case ev, ok := <-u.MountEvents:
+			if !ok {
+				return
+			}
 
 			// decide whether it's a new mount, failed mount or successful unmount
 			switch ev.Type {
