@@ -35,13 +35,6 @@ module.exports = class SidebarSection extends React.Component
       href={@props.secondaryLink} />
 
 
-  renderHeaderIcon: ->
-
-    return null  if isKoding()
-
-    <cite className='SidebarSection-headerIcon' />
-
-
   renderHeader: ->
 
     return null  unless @props.title
@@ -53,7 +46,6 @@ module.exports = class SidebarSection extends React.Component
     <header className="SidebarSection-header #{unreadCount}">
       <Link href={@props.titleLink}>
         <h4 className='SidebarSection-headerTitle'>
-          {@renderHeaderIcon()}
           {@props.title}
         </h4>
       </Link>
