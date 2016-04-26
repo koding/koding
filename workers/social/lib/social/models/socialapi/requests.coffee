@@ -480,6 +480,21 @@ deleteReq = (url, data, callback) ->
 
   request reqOptions, wrapCallback callback
 
+put = (url, data, callback) ->
+  [data, callback] = [null, data]  unless callback
+
+  reqOptions =
+    url    : "#{localDomain}#{url}"
+    json   : true
+    method : 'PUT'
+
+  { reqOptions, data } = setCookieIfRequired reqOptions, data
+  { reqOptions, data } = setHeaderIfRequired reqOptions, data
+
+  reqOptions.body = data
+
+  request reqOptions, wrapCallback callback
+
 getXml = (url, data, callback) ->
   reqOptions =
     url    : "#{localDomain}#{url}"
@@ -595,5 +610,6 @@ module.exports = {
   post
   get
   deleteReq
+  put
   publishMailEvent
 }
