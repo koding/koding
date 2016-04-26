@@ -16,8 +16,13 @@ module.exports = class VirtualMachinesListContainer extends React.Component
   onToggleAlwaysOn: (machine) -> EnvironmentFlux.actions.toggleMachineAlwaysOn machine
 
 
+  onTogglePowerStatus: (machineId) -> EnvironmentFlux.actions.toggleMachineState machineId
+
+
   render: ->
-    <View stacks={@state.stacks} onToggleAlwaysOn={@bound 'onToggleAlwaysOn'} />
+    <View stacks={@state.stacks}
+      onToggleAlwaysOn={@bound 'onToggleAlwaysOn'}
+      onTogglePowerStatus={@bound 'onTogglePowerStatus'} />
 
 
 VirtualMachinesListContainer.include [KDReactorMixin]

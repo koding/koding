@@ -4,7 +4,7 @@ React          = require 'kd-react'
 classnames     = require 'classnames'
 GenericToggler = require './generictoggler'
 immutable      = require 'immutable'
-
+Machine        = require 'app/providers/machine'
 
 module.exports = class MachineDetails extends React.Component
 
@@ -15,6 +15,7 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderAlwaysOn : React.PropTypes.bool
     shouldRenderSharing  : React.PropTypes.bool
     onToggleAlwaysOn     : React.PropTypes.func
+    onTogglePowerStatus  : React.PropTypes.func
 
 
   @defaultProps =
@@ -23,6 +24,7 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderAlwaysOn : no
     shouldRenderSharing  : no
     onToggleAlwaysOn     : kd.noop
+    onTogglePowerStatus  : kd.noop
 
 
   renderSpecs: ->
@@ -41,9 +43,14 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @props.shouldRenderPower
 
+    { Running, Starting } = Machine.State
+    isRunning = @props.machine.getIn([ 'status', 'state' ]) in [ Running, Starting ]
+
     <GenericToggler
       title='VM Power'
-      description='Turn your machine on or off from here' />
+      description='Turn your machine on or off from here'
+      defaultChecked={isRunning}
+      onToggle={@props.onTogglePowerStatus} />
 
 
   renderAlwaysOnToggler: ->
