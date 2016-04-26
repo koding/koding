@@ -6,18 +6,18 @@ Toggle = require 'app/components/common/toggle'
 module.exports = class GenericToggler extends React.Component
 
   @propTypes =
-    className      : React.PropTypes.string
-    title          : React.PropTypes.string
-    description    : React.PropTypes.string
-    onToggle       : React.PropTypes.func.isRequired
-    defaultChecked : React.PropTypes.bool
+    className   : React.PropTypes.string
+    title       : React.PropTypes.string
+    description : React.PropTypes.string
+    onToggle    : React.PropTypes.func.isRequired
+    checked     : React.PropTypes.bool
 
 
-  @defaultProps    =
-    className      : ''
-    title          : ''
-    description    : ''
-    defaultChecked : no
+  @defaultProps =
+    className   : ''
+    title       : ''
+    description : ''
+    checked     : no
 
 
   render: ->
@@ -30,7 +30,7 @@ module.exports = class GenericToggler extends React.Component
         </div>
         <div className='pull-right'>
           <div className='GenericToggler-toggle'>
-            <Toggle ref='toggle' callback={@props.onToggle} defaultChecked={@props.defaultChecked} />
+            <Toggle ref='toggle' callback={@props.onToggle} checked={@props.checked} />
           </div>
         </div>
       </div>
