@@ -48,11 +48,11 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     @addSubView new MainHeaderView
       cssClass: 'team'
       navItems : [
-        { title : 'Features', href : '/Features',               name : 'features' }
-        { title : 'Docs',     href : '/Docs',                   name : 'docs' }
-        { title : 'Pricing',  href : '/Pricing',                name : 'pricing' }
-        { title : 'Blog',     href : 'http://blog.koding.com',  name : 'blog' }
-        { title : 'Login',    href : '/Teams',                  name : 'login' }
+        { title : 'Features', href : '/Features', name : 'features' }
+        { title : 'Docs',     href : '/Docs',     name : 'docs' }
+        { title : 'Pricing',  href : '/Pricing',  name : 'pricing' }
+        { title : 'Blog',     href : '/Blog',     name : 'blog' }
+        { title : 'Login',    href : '/Teams',    name : 'login' }
       ]
 
     wrapperCssClass = 'TeamsModal TeamsModal--groupCreation'
