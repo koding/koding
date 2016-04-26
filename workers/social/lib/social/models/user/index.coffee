@@ -1182,7 +1182,7 @@ module.exports = class JUser extends jraphical.Module
           if user
             afterLogin user, sessionToken, session, kallback
           else
-            return callback new KodingError 'OAuth registrations are no longer available.'
+            return callback new KodingError 'Koding Solo registrations are closed!'
 
 
   @validateAll = (userFormData, callback) ->
