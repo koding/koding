@@ -108,14 +108,14 @@ loadGroupInvoices = ({dispatch}) -> ->
   return new Promise (resolve, reject) ->
     dispatch actionTypes.LOAD_GROUP_INVOICES_BEGIN
 
-    paymentController.fetchGroupInvoices (err, card) ->
+    paymentController.fetchGroupInvoices (err, invoices) ->
       if err
         dispatch actionTypes.LOAD_GROUP_INVOICES_FAIL, { err }
         reject err
         return
 
-      dispatch actionTypes.LOAD_GROUP_INVOICES_SUCCESS, { card }
-      resolve { card }
+      dispatch actionTypes.LOAD_GROUP_INVOICES_SUCCESS, { invoices }
+      resolve { invoices }
 
 
 module.exports = {
