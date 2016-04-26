@@ -34,9 +34,9 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
     @tabView.unsetClass 'kdscrollview'
 
-    @tabView.addPane @stacks      = new kd.TabPaneView { title: 'Stacks', name: 'List' }
-    @tabView.addPane @vms         = new kd.TabPaneView { title: 'Virtual Machines', name: 'VMs' }
-    @tabView.addPane @credentials = new kd.TabPaneView { title: 'Credentials', name: 'Credentials' }
+    @tabView.addPane @stacks      = new kd.TabPaneView { name: 'Stacks' }
+    @tabView.addPane @vms         = new kd.TabPaneView { name: 'Virtual Machines' }
+    @tabView.addPane @credentials = new kd.TabPaneView { name: 'Credentials' }
 
     @tabView.showPane @stacks
 
