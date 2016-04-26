@@ -4,7 +4,9 @@ utils = require '../utils/utils.js'
 
 module.exports =
 
-  inviteUser: (browser) ->
+  inviteUser: (browser, role) ->
+
+    index = if role is 'member' then 2 else 1
 
     invitationsModalSelector = '.HomeAppView--section.send-invites'
     sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
@@ -12,7 +14,7 @@ module.exports =
     browser
       .waitForElementVisible invitationsModalSelector, 20000
 
-    userEmail = @fillInviteInputByIndex browser, 1
+    userEmail = @fillInviteInputByIndex browser, index
     successMessage = "Invitation is sent to #{userEmail}"
 
     browser
@@ -22,16 +24,7 @@ module.exports =
     @acceptConfirmModal browser
     @assertConfirmModal browser, successMessage
 
-    userEmail = @fillInviteInputByIndex browser, 3
-    successMessage = "Invitation is sent to #{userEmail}"
-
-    browser
-      .pause 10000
-      .waitForElementVisible sendInvitesButton, 5000
-      .click sendInvitesButton
-
-    @assertConfirmModal browser, successMessage
-
+    return userEmail
 
   inviteAll: (browser) ->
 

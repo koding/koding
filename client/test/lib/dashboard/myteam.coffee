@@ -26,7 +26,9 @@ module.exports =
 
     user = teamsHelpers.loginTeam browser
     browser.url myTeamLink
-    myteamhelpers.uploadCSV browser
+    myteamhelpers.inviteUser browser, 'member'
+    browser.pause 5000
+    myteamhelpers.inviteUser browser, 'admin'
     browser.end()
 
 
