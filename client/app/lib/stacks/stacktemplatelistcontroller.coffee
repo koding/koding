@@ -76,6 +76,16 @@ module.exports = class StackTemplateListController extends KodingListController
           item.inUseView.show()
 
 
+    groupsController.on 'StackTemplateChanged', (params) =>
+
+      stackTemplateId = params.contents
+      [item]  = @getListItems().filter (i) -> i.getData()._id is stackTemplateId
+
+      unless item
+        @fetch { _id : stackTemplateId }, (items) =>
+          @addListItems items
+
+
   applyToTeam: (item) ->
 
     stackTemplate = item.getData()
