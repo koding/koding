@@ -32,6 +32,35 @@ module.exports =
       .waitForElementVisible '.kdnotification', 10000
       .assert.containsText '.kdnotification', successMessage
 
+
+
+  inviteAll: (browser) ->
+
+    invitationsModalSelector = '.HomeAppView--section.send-invites'
+
+    newEmailInputSelector = "#{invitationsModalSelector} .ListView-row:nth-of-type(4) .kdinput.text.user-email"
+    newUserEmail = "#{helpers.getFakeText().split(' ')[0]}#{Date.now()}@kd.io"
+    sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
+
+    successMessage = "All invitations are sent."
+
+    browser
+      .waitForElementVisible invitationsModalSelector, 20000
+
+    firstUserEmail = @fillInviteInputByIndex browser, 1
+    secondUserEmail = @fillInviteInputByIndex browser, 2
+    thirdUserEmail = @fillInviteInputByIndex browser, 3
+
+    browser
+      .pause 3000
+      .waitForElementVisible newEmailInputSelector, 10000
+      .setValue newEmailInputSelector, newUserEmail
+      .pause 5000
+      .waitForElementVisible sendInvitesButton, 5000
+      .click sendInvitesButton
+
+    @acceptConfirmModal browser, successMessage
+
   rejectConfirmModal: (browser) ->
 
     confirmModal = '.kdmodal.admin-invite-confirm-modal.kddraggable'
