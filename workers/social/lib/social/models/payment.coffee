@@ -23,7 +23,7 @@ module.exports = class Payment extends Base
         invoices          :
           (signature Object, Function)
         fetchGroupInvoices:
-          (signature Object, Function)
+          (signature Function)
         creditCard        :
           (signature Object, Function)
         fetchGroupCreditCard:
