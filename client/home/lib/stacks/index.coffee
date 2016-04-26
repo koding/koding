@@ -11,6 +11,8 @@ HomeVirtualMachinesVirtualMachines = require '../virtualmachines/homevirtualmach
 HomeVirtualMachinesConnectedMachines = require '../virtualmachines/homevirtualmachinesconnectedmachines'
 HomeVirtualMachinesSharedMachines = require '../virtualmachines/homevirtualmachinessharedmachines'
 
+HomeAccountCredentialsView = require '../account/credentials/homeaccountcredentialsview'
+
 EnvironmentFlux = require 'app/flux/environment'
 
 
@@ -41,6 +43,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     kd.singletons.mainController.ready =>
       @createStacksViews()
       @createVMsViews()
+      @createCredentialsViews()
 
 
   handleAction: (action) ->
@@ -78,3 +81,9 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
     @vms.addSubView headerize 'Shared Machines'
     @vms.addSubView sectionize 'Shared Machines', HomeVirtualMachinesSharedMachines
+
+
+  createCredentialsViews: ->
+
+    @credentials.addSubView headerize 'Credentials'
+    @credentials.addSubView sectionize 'Credentials', HomeAccountCredentialsView
