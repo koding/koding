@@ -17,7 +17,13 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
 
     @header = new MainHeaderView
       cssClass : 'team'
-      navItems : []
+      navItems : [
+        { title : 'Features', href : '/Features',               name : 'features' }
+        { title : 'Docs',     href : '/Docs',                   name : 'docs' }
+        { title : 'Pricing',  href : '/Pricing',                name : 'pricing' }
+        { title : 'Blog',     href : 'http://blog.koding.com',  name : 'blog' }
+        { title : 'Login',    href : '/Teams',                  name : 'login' }
+      ]
 
     @form = new TeamDomainTabForm
       callback: (formData) =>
