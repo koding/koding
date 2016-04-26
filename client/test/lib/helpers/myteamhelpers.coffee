@@ -73,27 +73,29 @@ module.exports =
     @assertConfirmModal browser, message
 
 
-  resendInvitation: (browser) ->
+  resendInvitation: (browser, role) ->
 
     invitationsModalSelector = '.HomeAppView--section.send-invites'
 
     sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
+    index = if role is 'member' then 2 else 1
 
     browser
       .waitForElementVisible invitationsModalSelector, 20000
 
-    userEmail = @fillInviteInputByIndex browser, 3
+    userEmail = @fillInviteInputByIndex browser, index
     successMessage = "Invitation is sent to #{userEmail}"
 
     browser
       .pause 2000
       .waitForElementVisible sendInvitesButton, 5000
       .click sendInvitesButton
-
+    @acceptConfirmModal browser if role is 'admin'
     @assertConfirmModal browser, successMessage
+    browser
       .pause 10000
 
-    userEmail = @fillInviteInputByIndex browser, 2, userEmail
+    userEmail = @fillInviteInputByIndex browser, index, userEmail
     successMessage = "Invitation is resent to #{userEmail}"
 
     browser
@@ -101,6 +103,11 @@ module.exports =
       .click sendInvitesButton
 
     @acceptConfirmModal browser
+
+    if role is 'admin'
+      browser
+        .pause 2000
+      @acceptConfirmModal browser
     @assertConfirmModal browser, successMessage
 
     return userEmail
