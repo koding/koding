@@ -10,6 +10,7 @@ module.exports =
       stripeToken: ''
       groupPlan: null
       groupCreditCard: null
+      groupInvoices: immutable.Map()
 
 
   initialize: ->
@@ -18,6 +19,7 @@ module.exports =
     @on actionTypes.LOAD_GROUP_PLAN_SUCCESS, handleGroupPlanLoad
     @on actionTypes.SUBSCRIBE_GROUP_PLAN_SUCCESS, handleGroupPlanLoad
     @on actionTypes.LOAD_GROUP_CREDIT_CARD_SUCCESS, handleGroupCreditCardLoad
+    @on actiontypes.LOAD_GROUP_INVOICES_SUCCESS, handleGroupInvoices
 
 
 handleStripeCLientLoad = (values) -> values.set 'isStripeClientLoaded', yes
@@ -27,3 +29,5 @@ handleStripeTokenLoad = (values, { token }) -> values.set 'stripeToken', token
 handleGroupPlanLoad = (values, { plan }) -> values.set 'groupPlan', toImmutable plan
 
 handleGroupCreditCardLoad = (values, { card }) -> values.set 'groupCreditCard', toImmutable card
+
+handleGroupInvoices = (values, { invocies }) -> values.set 'groupInvoices', toImmutable invocies
