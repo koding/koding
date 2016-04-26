@@ -7,13 +7,18 @@ MachineItem     = require '../machineslist/listitem'
 module.exports = class VirtualMachinesListView extends React.Component
 
   @propTypes =
-    onToggleAlwaysOn : React.PropTypes.func
+    onToggleAlwaysOn    : React.PropTypes.func
+    onTogglePowerStatus : React.PropTypes.func
 
   @defaultProps =
-    onToggleAlwaysOn : kd.noop
+    onToggleAlwaysOn    : kd.noop
+    onTogglePowerStatus : kd.noop
 
 
   onToggleAlwaysOn: (machine) -> @props.onToggleAlwaysOn machine
+
+
+  onTogglePowerStatus: (machine) -> @props.onTogglePowerStatus machine.get '_id'
 
 
   numberOfSections: -> 1
@@ -43,8 +48,9 @@ module.exports = class VirtualMachinesListView extends React.Component
           shouldRenderSpecs={yes}
           shouldRenderPower={yes}
           shouldRenderAlwaysOn={yes}
+          shouldRenderSharing={yes}
           onToggleAlwaysOn={@lazyBound 'onToggleAlwaysOn', machine}
-          shouldRenderSharing={yes} />
+          onTogglePowerStatus={@lazyBound 'onTogglePowerStatus', machine} />
 
 
   renderEmptySectionAtIndex: -> <div>No virtual machines.</div>

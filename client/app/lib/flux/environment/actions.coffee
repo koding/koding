@@ -11,6 +11,7 @@ toImmutable             = require 'app/util/toImmutable'
 getGroup                = require 'app/util/getGroup'
 whoami                  = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
+Machine                 = require 'app/providers/machine'
 
 
 _eventsCache =
@@ -479,6 +480,20 @@ toggleMachineAlwaysOn = (machine) ->
         showError err
 
 
+toggleMachineState = (machineId) ->
+
+  { Running, Starting } = Machine.State
+  { computeController } = kd.singletons
+
+  machine = computeController.findMachineFromMachineId machineId
+  return  unless machine
+
+  isRunning = machine.status.state in [ Running, Starting ]
+  method    = if isRunning then 'stop' else 'start'
+
+  kd.singletons.computeController[method] machine
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -508,4 +523,5 @@ module.exports = {
   loadTeamStackTemplates
   loadPrivateStackTemplates
   toggleMachineAlwaysOn
+  toggleMachineState
 }
