@@ -58,7 +58,7 @@ PAYLOAD  = {
 }
 
 slack = pycurl.Curl()
-slack.setopt(pycurl.URL, "https://hooks.slack.com/services/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")
+slack.setopt(pycurl.URL, "")
 slack.setopt(pycurl.POST, 1)
 
 def slack_it(message):
