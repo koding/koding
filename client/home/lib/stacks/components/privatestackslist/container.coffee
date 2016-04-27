@@ -22,6 +22,7 @@ module.exports = class PrivateStacksListContainer extends React.Component
   render: ->
     <View
       templates={@state.templates}
+      onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
       onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
     />

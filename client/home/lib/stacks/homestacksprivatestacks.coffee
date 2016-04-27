@@ -7,7 +7,9 @@ PrivateStacksList = require './components/privatestackslist'
 
 module.exports = class HomeStacksPrivateStacks extends ReactView
 
+  onOpenItem: -> @getDelegate().emit 'ModalDestroyRequested'
+
   renderReact: ->
-    <PrivateStacksList.Container />
+    <PrivateStacksList.Container onOpenItem={@bound 'onOpenItem'} />
 
 

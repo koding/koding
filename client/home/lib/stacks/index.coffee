@@ -69,13 +69,13 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     @stacks.addSubView new HomeStacksCreate
 
     @stacks.addSubView headerize 'Team Stacks'
-    @stacks.addSubView sectionize 'Team Stacks', HomeStacksTeamStacks
+    @stacks.addSubView sectionize 'Team Stacks', HomeStacksTeamStacks, { delegate : this }
 
     @stacks.addSubView headerize 'Private Stacks'
-    @stacks.addSubView sectionize 'Private Stacks', HomeStacksPrivateStacks
+    @stacks.addSubView sectionize 'Private Stacks', HomeStacksPrivateStacks, { delegate : this }
 
     @stacks.addSubView headerize 'Drafts'
-    @stacks.addSubView sectionize 'Drafts', HomeStacksDrafts
+    @stacks.addSubView sectionize 'Drafts', HomeStacksDrafts, { delegate : this }
 
 
   createVMsViews: ->

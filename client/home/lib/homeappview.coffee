@@ -82,7 +82,7 @@ module.exports = class HomeAppView extends kd.ModalView
           items.push subTab
 
 
-    @tabs.on 'PaneDidShow', (pane) ->
+    @tabs.on 'PaneDidShow', (pane) =>
       return  if pane._isViewAdded
 
       slug       = kd.utils.slugify pane.getOption 'title'
@@ -101,11 +101,13 @@ module.exports = class HomeAppView extends kd.ModalView
       { viewClass } = targetItem
 
       pane._isViewAdded = yes
-      pane.setMainView new viewClass
+      view = new viewClass
         cssClass : slug or action
         delegate : this
         action   : action
       , group
+      view.once 'ModalDestroyRequested', @bound 'destroy'
+      pane.setMainView view
 
     items.forEach (item, i) =>
 
