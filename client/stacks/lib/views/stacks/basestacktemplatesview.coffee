@@ -44,8 +44,8 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
       stackTemplateId = params.contents
 
-      items   = @initialView.stackTemplateList.listController.getListItems()
-      [item]  = items.filter (i) -> i.getData()._id is stackTemplateId
+      items  = @initialView.stackTemplateList.listController.getListItems()
+      [item] = items.filter (i) -> i.getData()._id is stackTemplateId
 
       { listController } = @initialView.stackTemplateList
 
