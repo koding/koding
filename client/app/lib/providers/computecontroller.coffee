@@ -750,6 +750,13 @@ module.exports = class ComputeController extends KDController
 
       actions.reinitStack stack._id
       @eventListener.addListener 'apply', stackId  if followEvents
+
+      Tracker.track Tracker.STACKS_DELETE, {
+        customEvent :
+          stackId   : stackId
+          group     : getGroup().slug
+      }
+
       callback? null
 
       return res

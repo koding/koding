@@ -506,6 +506,7 @@ generateStack = (stackTemplateId) ->
     stackTemplate.generateStack (err, stack) =>
       return  if showError err
       computeController.reset yes
+      new kd.NotificationView { title: 'Stack generated successfully' }
 
 
 deleteStack = (stackTemplateId) ->

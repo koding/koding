@@ -46,5 +46,6 @@ module.exports = class DraftsListView extends React.Component
       renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
       renderRowAtIndex={@bound 'renderRowAtIndex'}
       renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
+      sectionClassName='HomeAppViewStackSection'
     />
 
