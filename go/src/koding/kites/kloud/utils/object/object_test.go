@@ -1,6 +1,7 @@
 package object_test
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 
@@ -106,6 +107,55 @@ func TestBuilder(t *testing.T) {
 }
 
 func TestBuilderDecode(t *testing.T) {
+	b := &object.Builder{
+		Tag: "object",
+	}
+
+	cases := []struct {
+		in   interface{}
+		out  interface{}
+		want interface{}
+	}{{ // i=0
+		json.RawMessage([]byte(`{"dupa": "bar"}`)),
+		&Foo{},
+		&Foo{Dupa: "bar"},
+	}, { // i=1
+		bson.M{"dupa": "bar"},
+		&Foo{},
+		&Foo{Dupa: "bar"},
+	}, { // i=2
+		[]byte(`{"bar": "foo"}`),
+		&Bar{},
+		&Bar{Bar: "foo"},
+	}, { // i=3
+		&bson.Raw{
+			Kind: 3,
+			Data: []byte{
+				0x13, 0x0, 0x0, 0x0, 0x2, 0x64, 0x75, 0x70, 0x61, 0x0,
+				0x4, 0x0, 0x0, 0x0, 0x66, 0x6f, 0x6f, 0x0, 0x0,
+			},
+		},
+		&Foo{},
+		&Foo{Dupa: "foo"},
+	}, { // i=4
+		&Baz{Foo: &Foo{Dupa: "bar"}},
+		&Baz{},
+		&Baz{Foo: &Foo{Dupa: "bar"}},
+	}}
+
+	for i, cas := range cases {
+		if err := obj.Decode(cas.in, cas.out); err != nil {
+			t.Errorf("%d: Decode()=%s", i, err)
+			continue
+		}
+
+		if !reflect.DeepEqual(cas.out, cas.want) {
+			t.Errorf("%d: got %# v, want %# v", i, cas.out, cas.want)
+		}
+	}
+}
+
+func TestBuilderDecodeAwsMeta(t *testing.T) {
 	var RootModule = map[string]string{
 		"cidr_block": "10.0.0.0/16",
 		"igw":        "igw-aa43bdce",

@@ -44,7 +44,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 
 	// TODO(rjeczalik): move decoding provider-specific credential to BaseMachine.
 	var cred VagrantMeta
-	if err := p.CredStore.Get(bm.Credential, &cred); err != nil {
+	if err := p.FetchCredData(bm, &cred); err != nil {
 		return nil, err
 	}
 
