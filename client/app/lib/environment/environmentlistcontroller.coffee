@@ -59,12 +59,6 @@ module.exports = class EnvironmentListController extends KodingListController
     computeController.destroyStack stack, (err) ->
       return  if showError err
 
-      Tracker.track Tracker.STACKS_DELETE, {
-        customEvent :
-          stackId   : stack._id
-          group     : getGroup().slug
-      }
-
       new KDNotificationView { title : 'Stack deleted' }
 
       computeController.reset yes, -> router.handleRoute '/IDE'
