@@ -86,9 +86,18 @@ module.exports = class StackTemplateListController extends KodingListController
   handleStackTemplateChanged: (params) ->
 
     stackTemplateId = params.contents
-    [item]  = @getListItems().filter (i) -> i.getData()._id is stackTemplateId
+    hasFound        = no
 
-    unless item
+    for item in @getListItems()
+      item.isDefaultView.hide()
+
+      if item.getData()._id is stackTemplateId
+        item.getData().isDefault    = yes
+        item.isDefaultView.show()
+        item.updateAccessLevel 'group'
+        hasFound = yes
+
+    unless hasFound
       @fetch { _id : stackTemplateId }, (items) => @addListItems items
 
 
