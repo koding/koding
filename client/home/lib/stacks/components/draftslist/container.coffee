@@ -16,9 +16,15 @@ module.exports = class DraftsListContainer extends React.Component
   onAddToSidebar: (stackTemplateId) -> EnvironmentFlux.actions.generateStack stackTemplateId
 
 
-  render: ->
-    <View templates={@state.templates} onAddToSidebar={@bound 'onAddToSidebar'} />
+  onRemoveFromSidebar: (stackTemplateId) -> EnvironmentFlux.actions.deleteStack stackTemplateId
 
+
+  render: ->
+    <View
+      templates={@state.templates}
+      onAddToSidebar={@bound 'onAddToSidebar'}
+      onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
+    />
 
 
 DraftsListContainer.include [KDReactorMixin]
