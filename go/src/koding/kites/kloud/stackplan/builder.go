@@ -376,14 +376,14 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 	}
 
 	// 4- fetch credentialdata with identifier
-	datas := make(map[string]interface{}, len(validKeys))
+	data := make(map[string]interface{}, len(validKeys))
 	for ident, provider := range validKeys {
-		datas[ident] = metaFunc(provider)()
+		data[ident] = metaFunc(provider)()
 	}
 
-	b.Log.Debug("Building credential datas: %+v", datas)
+	b.Log.Debug("Building credential data: %+v", data)
 
-	if err := b.CredStore.Fetch(username, datas); err != nil {
+	if err := b.CredStore.Fetch(username, data); err != nil {
 		return fmt.Errorf("error fetching credential data: %s", err)
 	}
 
@@ -407,7 +407,7 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 			Title:      credentialTitles[ident],
 			Provider:   provider,
 			Identifier: ident,
-			Meta:       datas[ident], // TODO(rjeczalik): rename the field to Data
+			Meta:       data[ident], // TODO(rjeczalik): rename the field to Data
 		}
 
 		b.Log.Debug("%s(%s): Credential metadata: %+v", cred.Provider, cred.Identifier, cred.Meta)
