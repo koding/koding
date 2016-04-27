@@ -646,9 +646,9 @@ module.exports = class JAccount extends jraphical.Module
         @update { $set: { 'counts.twitterFollowers': followerCount } }, ->
 
 
-  dummyAdmins = [ 'sinan', 'devrim', 'gokmen', 'fatihacet',
-                  'sent-hil', 'cihangirsavas', 'leeolayvar', 'stefanbc',
-                  'szkl', 'nitin', 'usirin', 'kodinglearn', 'rjeczalik', 'caikoding'] # kodinglearn is nitin's impersonation account
+  dummyAdmins = [ 'sinan', 'devrim', 'gokmen',
+                  'sent-hil', 'cihangirsavas', 'leeolayvar',
+                  'szkl', 'usirin', 'rjeczalik', 'caikoding']
 
 
   isEmailVerified: (callback) ->

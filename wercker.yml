@@ -9,7 +9,7 @@ services:
 build:
   steps:
     - add-ssh-key:
-        keyname: DEPLOYMENT_KEY
+        keyname: DEPLOYMENT_KEY_V2
     - script:
         name: setup git identity
         code: |
@@ -46,8 +46,10 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
     - script:
-        name: copy prod creds
-        code: ./scripts/copy-prod-creds.sh
+        name: inject credentials
+        code: |
+          ./scripts/copy-prod-creds.sh
+          ./scripts/inject_credentials.sh
     - script:
         name: change mod of test instace private key
         code: chmod 600 ./scripts/test-instance/koding-test-instances-2015-06.pem
@@ -181,7 +183,7 @@ build:
 deploy:
   steps:
     - add-ssh-key:
-        keyname: DEPLOYMENT_KEY
+        keyname: DEPLOYMENT_KEY_V2
     - script:
         name: deploy started
         code: |
