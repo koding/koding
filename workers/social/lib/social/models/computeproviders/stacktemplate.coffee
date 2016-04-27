@@ -295,7 +295,7 @@ module.exports = class JStackTemplate extends Module
 
       shouldReviveClient   : yes
       shouldReviveProvider : no
-      shouldFetchGroupPlan : yes
+      shouldFetchGroupPlan : no
 
     , (client, accessLevel, callback) ->
 
