@@ -369,7 +369,7 @@ reinitStack = (stackId) ->
 
   { reactor } = kd.singletons
 
-  reactor.dispatch actions.REINIT_STACK, stackId
+  reactor.dispatch actions.REMOVE_STACK, stackId
 
   if reactor.evaluate ['DifferentStackResourcesStore']
     reactor.dispatch actions.GROUP_STACKS_CONSISTENT
@@ -508,6 +508,23 @@ generateStack = (stackTemplateId) ->
       computeController.reset yes
 
 
+deleteStack = (stackTemplateId) ->
+
+  { computeController, reactor } = kd.singletons
+
+  stack = computeController.findStackFromTemplateId stackTemplateId
+  return  unless stack
+
+  computeController.ui.askFor 'deleteStack', {}, (status) =>
+    return  unless status.confirmed
+
+    computeController.destroyStack stack, (err) ->
+      return  if showError err
+
+      computeController.reset yes
+      reactor.dispatch actions.REMOVE_STACK, stack._id
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -539,4 +556,5 @@ module.exports = {
   setMachineAlwaysOn
   setMachinePowerStatus
   generateStack
+  deleteStack
 }

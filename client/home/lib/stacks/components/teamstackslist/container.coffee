@@ -16,8 +16,15 @@ module.exports = class TeamStacksListContainer extends React.Component
   onAddToSidebar: (stackTemplateId) -> EnvironmentFlux.actions.generateStack stackTemplateId
 
 
+  onRemoveFromSidebar: (stackTemplateId) -> EnvironmentFlux.actions.deleteStack stackTemplateId
+
+
   render: ->
-    <View templates={@state.templates} onAddToSidebar={@bound 'onAddToSidebar'} />
+    <View
+      templates={@state.templates}
+      onAddToSidebar={@bound 'onAddToSidebar'}
+      onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
+    />
 
 TeamStacksListContainer.include [KDReactorMixin]
 
