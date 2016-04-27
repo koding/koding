@@ -1,6 +1,7 @@
 kd                  = require 'kd'
 AppController       = require 'app/appcontroller'
 DefineStackView     = require 'stacks/views/stacks/definestackview'
+showError           = require 'app/util/showError'
 
 do require './routehandler'
 
@@ -13,7 +14,20 @@ module.exports = class StackEditorAppController extends AppController
 
   openSection: (section, query) ->
 
-    view = new DefineStackView { skipFullscreen : yes }, { showHelpContent : yes }
+    { computeController } = kd.singletons
+    if section
+      computeController.fetchStackTemplate section, (err, stackTemplate) =>
+        return showError err  if err
+        @createView stackTemplate
+    else
+      @createView()
+
+
+  createView: (stackTemplate) ->
+
+    options = { skipFullscreen : yes }
+    data    = { stackTemplate, showHelpContent : yes }
+    view    = new DefineStackView options, data
     view.on 'Cancel', -> kd.singletons.router.back()
 
     @mainView.destroySubViews()
