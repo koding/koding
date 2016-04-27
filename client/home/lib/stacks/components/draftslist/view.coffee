@@ -7,6 +7,9 @@ StackTemplateItem = require '../stacktemplateitem'
 
 module.exports = class DraftsListView extends React.Component
 
+  onAddToSidebar: (template) -> @props.onAddToSidebar template.get '_id'
+
+
   numberOfSections: -> 1
 
 
@@ -19,8 +22,9 @@ module.exports = class DraftsListView extends React.Component
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
     template = @props.templates.toList().get(rowIndex)
+    onAddToSidebar = @lazyBound 'onAddToSidebar', template
 
-    <StackTemplateItem template={template} />
+    <StackTemplateItem template={template} onAddToSidebar={onAddToSidebar} />
 
 
   renderEmptySectionAtIndex: -> <div>No team stacks</div>

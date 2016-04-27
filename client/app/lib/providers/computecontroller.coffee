@@ -1165,7 +1165,12 @@ module.exports = class ComputeController extends KDController
 
     { baseStackId } = stack
 
-    remote.cacheable 'JStackTemplate', baseStackId, (err, template) ->
+    @fetchStackTemplate baseStackId, callback
+
+
+  fetchStackTemplate: (id, callback = kd.noop) ->
+
+    remote.cacheable 'JStackTemplate', id, (err, template) ->
       return callback err  if err
       return callback null, template
 

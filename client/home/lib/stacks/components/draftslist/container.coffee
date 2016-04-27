@@ -12,8 +12,12 @@ module.exports = class DraftsListContainer extends React.Component
       templates: EnvironmentFlux.getters.draftStackTemplates
     }
 
+
+  onAddToSidebar: (stackTemplateId) -> EnvironmentFlux.actions.generateStack stackTemplateId
+
+
   render: ->
-    <View templates={@state.templates}/>
+    <View templates={@state.templates} onAddToSidebar={@bound 'onAddToSidebar'} />
 
 
 
