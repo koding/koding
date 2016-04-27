@@ -33,18 +33,6 @@ func IsReachable(addr string) error {
 }
 
 // DefaultClient defines default behavior for IP fetching and testing.
-//
-// NOTE(rjeczalik):
-//
-// RapidSSL certificates does not include cert for GeoTrust,
-// which fails Go's crypto/tls verification. Browsers are
-// happy, since they have GeoTrust certs built-in, Go
-// tries to find the cert on the OS and fails, thus
-// rejects the server with "x509: certificate signed by unknown authority"
-//
-// See also: https://github.com/golang/go/issues/9586
-//
-// That's why "http://" is used for both endpoints.
 var DefaultClient = &Client{
 	Client: httputil.NewClient(&httputil.ClientConfig{
 		DialTimeout:           10 * time.Second,
@@ -59,17 +47,17 @@ var DefaultClient = &Client{
 	EndpointPublicIP: func() (url string) {
 		switch protocol.Environment {
 		case "production", "managed":
-			return "http://p.koding.com/-/ip"
+			return "https://p.koding.com/-/ip"
 		default:
-			return "http://dev-p.koding.com/-/ip"
+			return "https://dev-p.koding.com/-/ip"
 		}
 	},
 	EndpointIsReachable: func(port string) (url string) {
 		switch protocol.Environment {
 		case "production", "managed":
-			return "http://p.koding.com/-/ipcheck/" + port
+			return "https://p.koding.com/-/ipcheck/" + port
 		default:
-			return "http://dev-p.koding.com/-/ipcheck/" + port
+			return "https://dev-p.koding.com/-/ipcheck/" + port
 		}
 	},
 }
