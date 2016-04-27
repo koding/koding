@@ -26,9 +26,9 @@ module.exports = class CredentialStore
 
     { meta, identifier } = data
 
-    _data = { pathName: identifier, data: meta }
+    meta.pathName = identifier
 
-    SocialCredential.store client, _data, (err) ->
+    SocialCredential.store client, meta, (err) ->
       callback err, identifier
 
 
@@ -64,7 +64,7 @@ module.exports = class CredentialStore
 
     SocialCredential.get client, { pathName }, (err, data) ->
       return callback err  if err
-      callback null, { meta: data.data, identifier: pathName }
+      callback null, { meta: data, identifier: pathName }
 
 
   fetchFromMongo = (identifier, callback) ->

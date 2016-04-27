@@ -552,7 +552,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           (next) ->
             CredentialStore.fetch client, credential.identifier, (err, credData) ->
               expect(err).to.not.exist
-              expect(credData.meta).to.be.deep.equal { data : 'newMeta' }
+              expect(credData.meta.data).to.be.equal 'newMeta'
               next()
 
         ]
