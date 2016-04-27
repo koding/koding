@@ -30,6 +30,7 @@ module.exports = class DraftsListView extends React.Component
 
     <StackTemplateItem
       template={template}
+      onOpen={@props.onOpenItem}
       onAddToSidebar={onAddToSidebar}
       onRemoveFromSidebar={onRemoveFromSidebar}
     />

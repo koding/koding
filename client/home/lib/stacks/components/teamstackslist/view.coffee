@@ -29,6 +29,7 @@ module.exports = class TeamStacksListView extends React.Component
 
     <StackTemplateItem
       template={template}
+      onOpen={@props.onOpenItem}
       onAddToSidebar={onAddToSidebar}
       onRemoveFromSidebar={onRemoveFromSidebar}
     />

@@ -17,14 +17,16 @@ module.exports = class StackTemplateItem extends React.Component
 
   render: ->
 
-    { template } = @props
+    { template, onOpen } = @props
+    editorUrl = "/Stack-Editor/#{template.get '_id'}"
 
     <div className='HomeAppViewListItem StackTemplateItem'>
-      <div
+      <a
+        href={editorUrl}
         className='HomeAppViewListItem-label'
-        onClick={kd.noop}>
+        onClick={onOpen}>
         {_.unescape template.get 'title'}
-      </div>
+      </a>
       <div className='HomeAppViewListItem-description'>
         Last updated <TimeAgo from={template.getIn ['meta', 'modifiedAt']} />
       </div>

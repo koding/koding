@@ -7,7 +7,9 @@ DraftsList = require './components/draftslist'
 
 module.exports = class HomeStacksDrafts extends ReactView
 
+  onOpenItem: -> @getDelegate().emit 'ModalDestroyRequested'
+
   renderReact: ->
-    <DraftsList.Container />
+    <DraftsList.Container onOpenItem={@bound 'onOpenItem'} />
 
 
