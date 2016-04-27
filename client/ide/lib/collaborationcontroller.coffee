@@ -239,11 +239,29 @@ module.exports = CollaborationController =
     if @amIHost
     then @activateRealtimeManagerForHost()
     else @activateRealtimeManagerForParticipant()
-    
+
     @startRealtimePolling()
+
+    @listenKlientKite()
 
     @rtm.isReady = yes
     @emit 'RTMIsReady'
+
+
+  listenKlientKite: ->
+
+    kite = @mountedMachine.getBaseKite()
+
+    kite.once 'close', =>
+      kite.ping()
+        .timeout(30000)
+        .then =>
+          @listenKlientKite()
+        .catch (err) =>
+          if err?.code is 1002
+            if @amIHost
+            then @handleCollaborationEndedForHost()
+            else @handleCollaborationEndedForParticipant()
 
 
   setWatchMap: ->
@@ -546,7 +564,8 @@ module.exports = CollaborationController =
       return  if isActive
 
       kd.utils.killRepeat @pollInterval
-      if @amIHost 
+
+      if @amIHost
       then @stopCollaborationSession()
       else @showSessionEndedModal { redirect : yes }
 
@@ -606,10 +625,10 @@ module.exports = CollaborationController =
 
 
   destroyPermissionRequestMenuItem: (target) ->
-      
+
     @statusBar.participantAvatars[target]?.emit 'DestroyMenu'
-  
-  
+
+
   handlePermissionMapChange: (event) ->
 
     { property, newValue } = event
