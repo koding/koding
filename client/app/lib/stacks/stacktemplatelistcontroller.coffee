@@ -92,9 +92,9 @@ module.exports = class StackTemplateListController extends KodingListController
       item.isDefaultView.hide()
 
       if item.getData()._id is stackTemplateId
-        item.getData().isDefault    = yes
+        item.getData().isDefault = yes
         item.isDefaultView.show()
-        item.updateAccessLevel 'group'
+        item.updateAccessLevel()
         hasFound = yes
 
     unless hasFound
