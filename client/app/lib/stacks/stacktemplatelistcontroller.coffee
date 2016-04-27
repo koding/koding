@@ -66,6 +66,40 @@ module.exports = class StackTemplateListController extends KodingListController
     @on 'FetchProcessFailed', ({ err }) ->
       showError err, { KodingError : 'Failed to fetch stackTemplates, try again later.' }
 
+    { computeController, groupsController } = kd.singletons
+
+    computeController.on  'RenderStacks',         @bound 'handleRenderStacks'
+    groupsController.on   'StackTemplateChanged', @bound 'handleStackTemplateChanged'
+
+
+  handleRenderStacks: (stacks) ->
+
+    listItems = @getListItems()
+
+    for stack in stacks
+      [item] = listItems.filter (i) -> i.getData()._id is stack.baseStackId
+      if item
+        item.getData().inUse = yes
+        item.inUseView.show()
+
+
+  handleStackTemplateChanged: (params) ->
+
+    stackTemplateId = params.contents
+    hasFound        = no
+
+    for item in @getListItems()
+      item.isDefaultView.hide()
+
+      if item.getData()._id is stackTemplateId
+        item.getData().isDefault = yes
+        item.isDefaultView.show()
+        item.updateAccessLevel()
+        hasFound = yes
+
+    unless hasFound
+      @fetch { _id : stackTemplateId }, (items) => @addListItems items
+
 
   applyToTeam: (item) ->
 
@@ -78,19 +112,16 @@ module.exports = class StackTemplateListController extends KodingListController
     { groupsController, appManager } = kd.singletons
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
-      if err
-        @emit 'FailedToSetTemplate', err
-      else
-        appManager.tell 'Stacks', 'reloadStackTemplatesList'
+      @emit 'FailedToSetTemplate', err  if err
 
 
   generateStack: (item) ->
 
     stackTemplate = item.getData()
-    stackTemplate.generateStack (err, stack) =>
+    stackTemplate.generateStack (err, stack) ->
 
       unless showError err
-        kd.singletons.computeController.reset yes, @bound 'reload'
+        kd.singletons.computeController.reset yes
         new kd.NotificationView { title: 'Stack generated successfully' }
 
 
@@ -156,9 +187,10 @@ module.exports = class StackTemplateListController extends KodingListController
         return  unless status
         template.delete (err) ->
           listView.removeItem item
+          if template.accessLevel is 'group'
+            currentGroup.sendNotification 'GroupStackTemplateRemoved', template._id
           modal.destroy()
           Tracker.track Tracker.STACKS_DELETE_TEMPLATE
-          appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
     modal.setAttribute 'testpath', 'RemoveStackModal'
 
@@ -177,3 +209,13 @@ module.exports = class StackTemplateListController extends KodingListController
       stackTemplates = stackTemplates.filter (template) -> template.accessLevel is 'group'
 
     return stackTemplates
+
+
+  destroy: ->
+
+    { computeController, groupsController } = kd.singletons
+
+    computeController.off 'RenderStacks', @bound 'handleRenderStacks'
+    groupsController.off  'StackTemplateChanged', @bound 'handleStackTemplateChanged'
+
+    super

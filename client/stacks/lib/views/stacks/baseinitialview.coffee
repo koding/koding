@@ -45,30 +45,6 @@ module.exports = class BaseInitialView extends kd.View
     @stackTemplateList.listController.loadItems()
 
 
-  setDefaultTemplate: (stackTemplate) ->
-
-    { config } = stackTemplate
-
-    unless config.verified
-      return @showWarning '
-        This stack template is not verified, please edit and save again
-        to verify it. Only a verified stack template can be applied to a Team.
-      '
-
-    { groupsController, computeController } = kd.singletons
-
-    groupsController.setDefaultTemplate stackTemplate, (err) =>
-      if err
-        @showWarning "Failed to set template: \n#{err.message}"
-        console.warn err
-      else
-        # wait until stack template list is updated in current group
-        computeController.once 'GroupStackTemplatesUpdated', =>
-          @reload()
-          kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
-          Tracker.track Tracker.STACKS_MAKE_DEFAULT
-
-
   showWarning: (content) ->
 
     modal = new kd.ModalView
