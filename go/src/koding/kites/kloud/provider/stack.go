@@ -33,7 +33,7 @@ type BaseStack struct {
 }
 
 // NewBaseStack builds new base stack for the given context value.
-func NewBaseStack(ctx context.Context, log logging.Logger) (*BaseStack, error) {
+func (bp *BaseProvider) BaseStack(ctx context.Context) (*BaseStack, error) {
 	bs := &BaseStack{}
 
 	var ok bool
@@ -50,7 +50,7 @@ func NewBaseStack(ctx context.Context, log logging.Logger) (*BaseStack, error) {
 		return nil, errors.New("session not available in context")
 	}
 
-	bs.Log = log.New(req.GroupName)
+	bs.Log = bp.Log.New(req.GroupName)
 
 	if traceID, ok := kloud.TraceFromContext(ctx); ok {
 		bs.Log = common.NewLogger("kloud-"+req.Provider, true).New(traceID)
@@ -66,7 +66,8 @@ func NewBaseStack(ctx context.Context, log logging.Logger) (*BaseStack, error) {
 	}
 
 	builderOpts := &stackplan.BuilderOptions{
-		Log: bs.Log.New("stackplan"),
+		Log:       bs.Log.New("stackplan"),
+		CredStore: bp.CredStore,
 	}
 
 	bs.Builder = stackplan.NewBuilder(builderOpts)

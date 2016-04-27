@@ -1,11 +1,13 @@
 package object
 
 import (
+	"encoding/json"
 	"reflect"
 	"strings"
 
 	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // TODO(rjeczalik): Missing support for slice of structs - object's value
@@ -70,16 +72,32 @@ func (b *Builder) Build(v interface{}, ignored ...string) Object {
 // Decode marshals map-like obj value into v.
 //
 // TODO(rjeczalik): Support for recursive decoding.
-func (b *Builder) Decode(obj, v interface{}) error {
+func (b *Builder) Decode(in, out interface{}) error {
+	switch v := in.(type) {
+	case *bson.Raw:
+		return v.Unmarshal(out)
+	case json.RawMessage:
+		return json.Unmarshal([]byte(v), out)
+	case []byte:
+		return json.Unmarshal(v, out)
+	case bson.M:
+		return decode("bson", in, out)
+	default:
+		return decode(b.Tag, in, out)
+	}
+}
+
+func decode(tag string, in, out interface{}) error {
 	cfg := &mapstructure.DecoderConfig{
-		Result:  v,
-		TagName: b.Tag,
+		Result:  out,
+		TagName: tag,
 	}
 	dec, err := mapstructure.NewDecoder(cfg)
 	if err != nil {
 		return err
 	}
-	return dec.Decode(obj)
+	return dec.Decode(in)
+
 }
 
 func (b *Builder) build(v interface{}, obj Object, ignored ...string) {

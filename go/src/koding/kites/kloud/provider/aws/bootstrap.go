@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/terraformer"
@@ -17,7 +16,6 @@ import (
 	awssession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"golang.org/x/net/context"
-	"gopkg.in/mgo.v2/bson"
 )
 
 // Bootstrap
@@ -109,15 +107,12 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 		// again, instead they should be fetch and use the existing bootstrap
 		// data.
 
-		resp := &AwsMeta{}
-
-		// this is custom because we need to remove the fields if we get a
-		// destroy. So the operator changes from $set to $unset.
-		mongodDBOperator := "$set"
-
 		if arg.Destroy {
-			mongodDBOperator = "$unset"
+			// TODO(rjeczalik): bootstrap destroy should use already existing
+			// terraform files and not build templates again.
+
 			s.Log.Info("Destroying bootstrap resources belonging to identifier '%s'", cred.Identifier)
+
 			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: contentID,
@@ -126,8 +121,11 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
+
+			meta.ResetBootstrap()
 		} else {
 			s.Log.Info("Creating bootstrap resources belonging to identifier '%s'", cred.Identifier)
+
 			state, err := tfKite.Apply(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: contentID,
@@ -139,32 +137,24 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 
 			s.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.Identifier, state.RootModule().Outputs)
 
-			if err := s.Builder.Object.Decode(state.RootModule().Outputs, resp); err != nil {
+			if err := s.Builder.Object.Decode(state.RootModule().Outputs, meta); err != nil {
 				return nil, err
 			}
 
-			s.Log.Debug("[%s] resp = %+v\n", cred.Identifier, resp)
+			s.Log.Debug("[%s] resp = %+v\n", cred.Identifier, meta)
 
-			if err := resp.BootstrapValid(); err != nil {
+			if err := meta.BootstrapValid(); err != nil {
 				return nil, fmt.Errorf("invalid bootstrap metadata for %q: %s", cred.Identifier, err)
 			}
 		}
 
-		s.Log.Debug("[%s] Bootstrap response: %+v", cred.Identifier, resp)
+		s.Log.Debug("[%s] Bootstrap response: %+v", cred.Identifier, meta)
 
-		if err := modelhelper.UpdateCredentialData(cred.Identifier, bson.M{
-			mongodDBOperator: bson.M{
-				"meta.acl":        resp.ACL,
-				"meta.cidr_block": resp.CidrBlock,
-				"meta.igw":        resp.IGW,
-				"meta.key_pair":   resp.KeyPair,
-				"meta.rtb":        resp.RTB,
-				"meta.sg":         resp.SG,
-				"meta.subnet":     resp.Subnet,
-				"meta.vpc":        resp.VPC,
-				"meta.ami":        resp.AMI,
-			},
-		}); err != nil {
+		datas := map[string]interface{}{
+			cred.Identifier: meta,
+		}
+
+		if err := s.Builder.CredStore.Put(s.Req.Username, datas); err != nil {
 			return nil, err
 		}
 	}

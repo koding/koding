@@ -12,7 +12,7 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stackplan/stackcred"
 	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
@@ -22,6 +22,17 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// BaseProvider implements common functionality for stack providers (aws, vagrant).
+//
+// In longer term kloud controllers should be refactored and this functionality
+// moved there, so stack providers can be more thin. Another todo is to
+// merge common apply/destroy methods for each provider, so each provider
+// implements only extra provider-specific logic for building stackplan.
+//
+// TODO(rjeczalik): rework all external dependencies like Logger, Kite, DB etc.
+// in *BaseProvider, *BaseStack, *BaseMachine, *stackplan.Builder
+// and *session.Session into single *kloud.Context struct built in main.go
+// and pass it down all code paths. To eliminate duplication.
 type BaseProvider struct {
 	Name           string
 	DB             *mongodb.MongoDB
@@ -31,7 +42,7 @@ type BaseProvider struct {
 	Debug          bool
 
 	Userdata  *userdata.Userdata
-	CredStore stackplan.CredStore
+	CredStore stackcred.Store
 }
 
 func (bp *BaseProvider) New(name string) *BaseProvider {
@@ -68,6 +79,7 @@ func (bp *BaseProvider) BaseMachine(ctx context.Context, id string) (*BaseMachin
 			Userdata: bp.Userdata,
 			Log:      bp.Log.New(m.ObjectId.Hex()),
 		},
+		Req:      req,
 		Provider: bp.Name,
 		Debug:    bp.Debug,
 	}
@@ -107,6 +119,10 @@ func (bp *BaseProvider) BaseMachine(ctx context.Context, id string) (*BaseMachin
 	bp.Log.Debug("BaseMachine: %+v", bm)
 
 	return bm, nil
+}
+
+func (bp *BaseProvider) FetchCredData(bm *BaseMachine, data interface{}) error {
+	return bp.CredStore.Fetch(bm.Username(), map[string]interface{}{bm.Credential: data})
 }
 
 func (bp *BaseProvider) ValidateUser(user *models.User, users []models.MachineUser, r *kite.Request) error {
