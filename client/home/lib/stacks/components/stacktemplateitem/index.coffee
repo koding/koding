@@ -12,8 +12,7 @@ module.exports = class StackTemplateItem extends React.Component
     unless template.get 'inUse'
       return <a href="#" className="HomeAppView--button primary" onClick={onAddToSidebar}>ADD TO SIDEBAR</a>
 
-    unless template.get 'isDefault'
-      return <a href="#" className="HomeAppView--button primary" onClick={onRemoveFromSidebar}>REMOVE FROM SIDEBAR</a>
+    return <a href="#" className="HomeAppView--button primary" onClick={onRemoveFromSidebar}>REMOVE FROM SIDEBAR</a>
 
 
   render: ->
