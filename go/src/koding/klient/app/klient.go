@@ -450,7 +450,7 @@ func (k *Klient) RegisterMethods() {
 
 func (k *Klient) PublicIP() (net.IP, error) {
 	if k.publicIP == nil {
-		ip, err := publicip.PublicIPRetry(10, 5*time.Second, k.log)
+		ip, err := publicip.PublicIP()
 		if err != nil {
 			return nil, err
 		}
