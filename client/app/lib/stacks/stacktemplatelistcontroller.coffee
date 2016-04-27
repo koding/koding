@@ -66,24 +66,30 @@ module.exports = class StackTemplateListController extends KodingListController
     @on 'FetchProcessFailed', ({ err }) ->
       showError err, { KodingError : 'Failed to fetch stackTemplates, try again later.' }
 
-    kd.singletons.computeController.on 'RenderStacks', (stacks) =>
-      listItems = @getListItems()
+    { computeController, groupsController } = kd.singletons
 
-      for stack in stacks
-        [item] = listItems.filter (i) -> i.getData()._id is stack.baseStackId
-        if item
-          item.getData().inUse = yes
-          item.inUseView.show()
+    computeController.on  'RenderStacks',         @bound 'handleRenderStacks'
+    groupsController.on   'StackTemplateChanged', @bound 'handleStackTemplateChanged'
 
 
-    groupsController.on 'StackTemplateChanged', (params) =>
+  handleRenderStacks: (stacks) ->
 
-      stackTemplateId = params.contents
-      [item]  = @getListItems().filter (i) -> i.getData()._id is stackTemplateId
+    listItems = @getListItems()
 
-      unless item
-        @fetch { _id : stackTemplateId }, (items) =>
-          @addListItems items
+    for stack in stacks
+      [item] = listItems.filter (i) -> i.getData()._id is stack.baseStackId
+      if item
+        item.getData().inUse = yes
+        item.inUseView.show()
+
+
+  handleStackTemplateChanged: (params) ->
+
+    stackTemplateId = params.contents
+    [item]  = @getListItems().filter (i) -> i.getData()._id is stackTemplateId
+
+    unless item
+      @fetch { _id : stackTemplateId }, (items) => @addListItems items
 
 
   applyToTeam: (item) ->
@@ -194,3 +200,13 @@ module.exports = class StackTemplateListController extends KodingListController
       stackTemplates = stackTemplates.filter (template) -> template.accessLevel is 'group'
 
     return stackTemplates
+
+
+  destroy: ->
+
+    { computeController, groupsController } = kd.singletons
+
+    computeController.off   'RenderStacks',         @bound 'handleRenderStacks'
+    groupsController.off    'StackTemplateChanged', @bound 'handleStackTemplateChanged'
+
+    super
