@@ -291,9 +291,25 @@ module.exports = class JStackTemplate extends Module
       { permission: 'update stack template' }
     ]
 
-    success: (client, accessLevel, callback) ->
+    success: revive
 
-      @update { $set: { accessLevel } }, callback
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+      shouldFetchGroupPlan : yes
+
+    , (client, accessLevel, callback) ->
+
+      { group }     = client.r
+      { delegate }  = client.connection
+      query         = { $set: { accessLevel } }
+
+      notifyOptions =
+        account : delegate
+        group   : group.slug
+        target  : if accessLevel is 'group' then 'group' else 'account'
+
+      @updateAndNotify notifyOptions, query, (err) =>
+        callback err, this
 
 
   generateStack: permit
