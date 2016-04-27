@@ -392,6 +392,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     terminalPane.ready -> frontApp.setRealtimeManager terminalPane
 
+    terminalPane.webtermView.on 'ScreenSizeChanged', kd.utils.debounce 100, (size) =>
+      @emitChange terminalPane, { context: { size } }, 'TerminalScreenSizeChanged'
+
     @createPane_ terminalPane, { name: 'Terminal', isActivePane }
 
 
