@@ -30,8 +30,11 @@ module.exports = class TeamSelectorView extends JView
     @header = new MainHeaderView
       cssClass : 'team'
       navItems : [
-        { title : 'Blog',        href : 'http://blog.koding.com',   name : 'blog' }
-        { title : 'Features',    href : '/Features',                name : 'features' }
+        { title : 'Features', href : '/Features',  name : 'features' }
+        { title : 'Docs',     href : '/Docs',      name : 'docs' }
+        { title : 'Pricing',  href : '/Pricing',   name : 'pricing' }
+        { title : 'Blog',     href : '/Blog',      name : 'blog' }
+        { title : 'Login',    href : '/Teams',     name : 'login' }
       ]
 
     @form = new TeamsSelectorForm
@@ -97,10 +100,4 @@ module.exports = class TeamSelectorView extends JView
       {{> @previousTeams}}
       <p>Looking for <a href="/Login" target="_self" testpath="koding-solo-login">Koding Solo</a>?</p>
     </section>
-    <footer>
-      <a href="/Legal" target="_blank">Acceptable user policy</a>
-      <a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a>
-      <a href="/Legal/Terms" target="_blank">Terms of service</a>
-      <a href="/Legal/Privacy" target="_blank">Privacy policy</a>
-    </footer>
     """

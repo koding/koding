@@ -25,6 +25,14 @@ const (
 var (
 	digitRegex       = regexp.MustCompile(`\d+`)
 	ErrExistingMount = errors.New("There's already a mount on that folder.")
+
+	// errGetSizeMissingRemotePath is returned when the getSizeOfRemoteFolder method
+	// is missing the remote path argument.
+	errGetSizeMissingRemotePath = errors.New("A remote path is required.")
+
+	// errGetSizeMissingMachine is returned when the getSizeOfRemoteFolder method
+	// is missing the machine argument.
+	errGetSizeMissingMachine = errors.New("A machine instance is required.")
 )
 
 // MountFolderHandler implements klient's remote.mountFolder method. Mounting
@@ -134,6 +142,14 @@ func checkIfUserHasFolderPerms(folderPath string) error {
 // getSizeOfRemoteFolder asks remote machine for size of specified remote folder
 // and returns it in bytes.
 func getSizeOfRemoteFolder(m *machine.Machine, remotePath string) (int, error) {
+	if remotePath == "" {
+		return 0, errGetSizeMissingRemotePath
+	}
+
+	if m == nil {
+		return 0, errGetSizeMissingMachine
+	}
+
 	var (
 		kreq = struct{ Command string }{"du -sb " + remotePath}
 		kres struct {
