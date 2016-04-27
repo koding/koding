@@ -110,6 +110,8 @@ team.group.creation.styl
   // DOMAIN TAB STYLE CUSTOMIZATIONS
 
   .TeamsModal.TeamsModal--domain
+    &.not-supported-for-mobile
+      display               none
 
     .login-input-view
       overflow              hidden
@@ -274,3 +276,19 @@ team.group.creation.styl
       float                 none
       text-transform        none
 
+@media screen and (max-width : 767px)
+  .TeamsModal.TeamsModal-login
+    display                 none
+
+  .TeamsModal.TeamsModal--domain.not-supported-for-mobile
+    margin-top              200px
+    display                 block !important
+
+    p
+      width                 auto
+      color                 #909090
+    hr
+      width                 15%
+      border-color          #d7dadd
+      border-top            none
+      margin                20px auto 30px

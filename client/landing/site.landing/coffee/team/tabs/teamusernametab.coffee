@@ -1,6 +1,5 @@
 kd                               = require 'kd'
 utils                            = require './../../core/utils'
-MainHeaderView                   = require './../../core/mainheaderview'
 TeamJoinTab                      = require './teamjointab'
 TeamUsernameTabForm              = require './../forms/teamusernametabform'
 TeamLoginAndCreateTabForm        = require './../forms/teamloginandcreatetabform'

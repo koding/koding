@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/koding/kite"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestCheckSizeOfRemotefolder(t *testing.T) {
@@ -69,4 +70,28 @@ func TestCheckSizeOfRemotefolder(t *testing.T) {
 	if warning == "" {
 		t.Errorf("checkSizeOfRemote should have returned a warning. Got an empty string instead.")
 	}
+}
+
+func TestGetSizeOfRemoteFolder(t *testing.T) {
+	Convey("Given an empty path", t, func() {
+		m := &machine.Machine{}
+		path := ""
+
+		Convey("It should return an error", func() {
+			size, err := getSizeOfRemoteFolder(m, path)
+			So(err, ShouldEqual, errGetSizeMissingRemotePath)
+			So(size, ShouldEqual, 0)
+		})
+	})
+
+	Convey("Given an nil machine", t, func() {
+		var m *machine.Machine
+		path := "/foo/bar"
+
+		Convey("It should return an error", func() {
+			size, err := getSizeOfRemoteFolder(m, path)
+			So(err, ShouldEqual, errGetSizeMissingMachine)
+			So(size, ShouldEqual, 0)
+		})
+	})
 }

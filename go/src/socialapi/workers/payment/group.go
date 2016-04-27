@@ -84,6 +84,10 @@ func (g *GroupRequest) GetInvoices() ([]*stripe.StripeInvoiceResponse, error) {
 	return stripe.FindInvoicesForCustomer(g.GroupId)
 }
 
+func (g *GroupRequest) CancelSubscription() (interface{}, error) {
+	return nil, cancelSubscription(g.GroupId)
+}
+
 //----------------------------------------------------------
 // GroupUpdateCreditCard
 //----------------------------------------------------------

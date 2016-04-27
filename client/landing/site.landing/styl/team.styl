@@ -14,7 +14,7 @@ team.styl
 
 .main-header.team
   padding                   0 22px
-  max-width                 none
+  max-width                 1200px
   top                       32px
   z-index                   1
   fix()
@@ -95,7 +95,7 @@ team.styl
   width                     60%
   padding                   24px
   max-width                 530px
-  margin                    110px auto 0
+  margin                    150px auto 0
   bg                        color modalBackground
   top                       0px
   color                     #434343
@@ -184,7 +184,6 @@ team.styl
     font-family             openSansFamily
     font-size               16px
     line-height             25px
-    width                   361px
     margin                  0 auto
     color                   #909090
     &.full
@@ -210,10 +209,20 @@ team.styl
   .dim
     color                   #9E9E9E
 
+  &.TeamsModal--create::after
+  &.TeamsModal--domain::after
+  &.TeamsModal--groupCreation::after
+    content                 ''
+    size                    58px 96px
+    left                    -49px
+    top                     116px
+    r-sprite                'teams', 'startaccount_alien_left'
+    abs()
+
   &.TeamsModal--login
   &.TeamsModal--create
   &.TeamsModal--groupCreation
-    width                   425px
+    width                   490px
 
     > figure
       bg                    color #ddd
@@ -225,6 +234,8 @@ team.styl
       size                  64px 64px
 
     .login-form
+      margin-top            20px !important
+
       .login-input-view
         width               100%
         margin-bottom       19px !important
@@ -358,3 +369,42 @@ team.styl
 
 .recoverConfirmation
   text-align                center
+
+
+// @media only screen and (min-width : 992px) and (max-width : 1199px)
+
+
+// @media only screen and (min-width : 768px) and (max-width : 991px)
+
+
+@media screen and (max-width : 767px)
+  .content-page.Team footer
+    hidden()
+
+  .TeamsModal.TeamsModal--login
+  .TeamsModal.TeamsModal--create
+  .TeamsModal.TeamsModal--groupCreation
+    width                   90%
+    min-width               0 !important
+    margin-top              160px
+
+  .TeamsModal
+    > h5
+      font-size             14px
+
+    .login-form
+      .login-input-view .placeholder-helper
+        font-size           16px
+
+    &.TeamsModal--create::after
+    &.TeamsModal--domain::after
+    &.TeamsModal--groupCreation::after
+      left                  50% !important
+      margin-left           -76px
+      top                   -59px
+      bg                    repeat, no-repeat
+      r-sprite              'teams', 'signin_alien_mobile'
+      abs()
+
+    &.with-avatar.TeamsModal--groupCreation::after
+      margin-left           66px
