@@ -27,6 +27,7 @@ module.exports = class CredentialStore
     { meta, identifier } = data
 
     meta.pathName = identifier
+    meta.__allowEmpty = yes
 
     SocialCredential.store client, meta, (err) ->
       callback err, identifier
