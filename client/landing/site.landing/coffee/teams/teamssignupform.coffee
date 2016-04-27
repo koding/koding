@@ -29,7 +29,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
     @companyName = new LoginInputView
       inputOptions    :
         name          : 'companyName'
-        placeholder   : 'Name your team'
+        placeholder   : 'Name your team <span>(i.e. your company name)</span>'
         defaultValue  : companyName  if companyName
         attributes    : { testpath : 'company-name' }
         validate      :
