@@ -97,7 +97,12 @@ func (c *Context) MustGetRedisConn() *redis.RedisSession {
 
 // c/p from account.coffee
 var superAdmins = []string{
-	"sinan", "devrim", "gokmen", "fatihacet", "arslan",
-	"sent-hil", "cihangirsavas", "leeolayvar", "stefanbc",
-	"szkl", "nitin", "usirin",
+	"sinan",
+	"devrim",
+	"gokmen",
+	"sent-hil",
+	"cihangirsavas",
+	"leeolayvar",
+	"szkl",
+	"usirin",
 }

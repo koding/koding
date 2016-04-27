@@ -144,6 +144,7 @@ download_klient() {
 	VERSION=$(curl -sSL https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
 
 	sudo mkdir -p /opt/kite/klient
+	[[ -n "$USER" ]] && sudo chown -R "$USER" /opt/kite || true
 
 	cat << EOF
 Downloading Koding Service Connector 0.1.${VERSION}...
