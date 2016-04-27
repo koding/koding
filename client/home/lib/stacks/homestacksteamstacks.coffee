@@ -7,7 +7,7 @@ TeamStackList = require './components/teamstackslist'
 
 module.exports = class HomeStacksTeamStacks extends ReactView
 
-  onOpenItem: -> @getDelegate().emit 'ModalDestroyRequested'
+  onOpenItem: -> @getDelegate().emit 'ModalDestroyRequested', yes
 
 
   renderReact: ->

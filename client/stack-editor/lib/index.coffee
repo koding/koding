@@ -15,6 +15,9 @@ module.exports = class StackEditorAppController extends AppController
   openSection: (section, query) ->
 
     { computeController } = kd.singletons
+
+    @mainView.destroySubViews()
+
     if section
       computeController.fetchStackTemplate section, (err, stackTemplate) =>
         return showError err  if err
@@ -30,5 +33,4 @@ module.exports = class StackEditorAppController extends AppController
     view    = new DefineStackView options, data
     view.on 'Cancel', -> kd.singletons.router.back()
 
-    @mainView.destroySubViews()
     @mainView.addSubView view
