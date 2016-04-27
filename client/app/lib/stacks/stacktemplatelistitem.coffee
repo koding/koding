@@ -76,13 +76,16 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
         'Only you can use this template'
 
 
-  # updateLabels: ->
+  updateAccessLevel: (accessLevel) ->
 
-  #   @isDefaultView?.destroy()
-  #   @inUseView?.destroy()
-  #   @notReadyView?.destroy()
-  #   @accessLevelView?.destroy()
-  #   @buildLabels()
+    title = @getAccessLevelTooptipTitle accessLevel
+
+    @accessLevelView.tooltip.update { title }
+    @accessLevelView.tooltip.hide()
+    @accessLevelView.updatePartial accessLevel.toUpperCase()
+
+    @accessLevelView.unsetClass 'private'
+    @accessLevelView.setClass accessLevel
 
 
   _itemSelected: (data) ->
