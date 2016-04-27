@@ -299,12 +299,11 @@ module.exports = class JStackTemplate extends Module
 
     , (client, accessLevel, callback) ->
 
-      { group }     = client.r
-      { delegate }  = client.connection
-      query         = { $set: { accessLevel } }
+      { group } = client.r
+      query = { $set: { accessLevel } }
 
       notifyOptions =
-        account : delegate
+        account : client.r.account
         group   : group.slug
         target  : if accessLevel is 'group' then 'group' else 'account'
 
