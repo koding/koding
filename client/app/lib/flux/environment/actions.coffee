@@ -523,7 +523,6 @@ deleteStack = (stackTemplateId) ->
       return  if showError err
 
       computeController.reset yes
-      reactor.dispatch actions.REMOVE_STACK, stack._id
 
 
 module.exports = {
