@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
+	"strconv"
 
 	"github.com/codegangsta/cli"
 	kiteconfig "github.com/koding/kite/config"
@@ -66,6 +68,11 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		KiteHome:      config.KiteHome,
 		KlientBinPath: filepath.Join(KlientDirectory, "klient"),
 		KontrolURL:    kontrolURL,
+	}
+
+	// ensure the klient home dir is writeable by user
+	if klientSh.User != "" {
+		ensureWriteable(KlientctlDirectory, klientSh.User)
 	}
 
 	opts := &ServiceOptions{
@@ -215,4 +222,23 @@ func downloadRemoteToLocal(remotePath, destPath string) error {
 	}
 
 	return binFile.Close()
+}
+
+func ensureWriteable(dir, username string) error {
+	u, err := user.Lookup(username)
+	if err != nil {
+		return err
+	}
+
+	uid, err := strconv.Atoi(u.Uid)
+	if err != nil {
+		return err
+	}
+
+	gid, err := strconv.Atoi(u.Gid)
+	if err != nil {
+		return err
+	}
+
+	return os.Chown(dir, uid, gid)
 }
