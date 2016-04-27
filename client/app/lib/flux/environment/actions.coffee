@@ -491,9 +491,21 @@ setMachinePowerStatus = (machineId, shouldStart) ->
   machine = computeController.findMachineFromMachineId machineId
   return  unless machine
 
-  method    = if shouldStart then 'start' else 'stop'
+  method = if shouldStart then 'start' else 'stop'
 
   kd.singletons.computeController[method] machine
+
+
+generateStack = (stackTemplateId) ->
+
+  { computeController } = kd.singletons
+
+  computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) ->
+    return  if err
+
+    stackTemplate.generateStack (err, stack) =>
+      return  if showError err
+      computeController.reset yes
 
 
 module.exports = {
@@ -526,4 +538,5 @@ module.exports = {
   loadPrivateStackTemplates
   setMachineAlwaysOn
   setMachinePowerStatus
+  generateStack
 }

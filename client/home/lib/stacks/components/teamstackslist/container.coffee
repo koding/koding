@@ -12,8 +12,12 @@ module.exports = class TeamStacksListContainer extends React.Component
       templates: EnvironmentFlux.getters.inUseTeamStackTemplates
     }
 
+
+  onAddToSidebar: (stackTemplateId) -> EnvironmentFlux.actions.generateStack stackTemplateId
+
+
   render: ->
-    <View templates={@state.templates}/>
+    <View templates={@state.templates} onAddToSidebar={@bound 'onAddToSidebar'} />
 
 TeamStacksListContainer.include [KDReactorMixin]
 

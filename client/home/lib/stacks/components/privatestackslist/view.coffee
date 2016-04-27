@@ -7,6 +7,8 @@ StackTemplateItem = require '../stacktemplateitem'
 
 module.exports = class PrivateStacksListView extends React.Component
 
+  onAddToSidebar: (template) -> @props.onAddToSidebar template.get '_id'
+
 
   numberOfSections: -> 1
 
@@ -20,6 +22,7 @@ module.exports = class PrivateStacksListView extends React.Component
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
     template = @props.templates.toList().get(rowIndex)
+    onAddToSidebar = @lazyBound 'onAddToSidebar', template
 
     return <StackTemplateItem template={template} />
 

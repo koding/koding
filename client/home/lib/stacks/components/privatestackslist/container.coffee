@@ -12,8 +12,12 @@ module.exports = class PrivateStacksListContainer extends React.Component
       templates: EnvironmentFlux.getters.inUsePrivateStackTemplates
     }
 
+
+  onAddToSidebar: (stackTemplateId) -> EnvironmentFlux.actions.generateStack stackTemplateId
+
+
   render: ->
-    <View templates={@state.templates}/>
+    <View templates={@state.templates} onAddToSidebar={@bound 'onAddToSidebar'} />
 
 
 PrivateStacksListContainer.include [KDReactorMixin]
