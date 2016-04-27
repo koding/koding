@@ -215,7 +215,7 @@ module.exports = class StackTemplateListController extends KodingListController
 
     { computeController, groupsController } = kd.singletons
 
-    computeController.off   'RenderStacks',         @bound 'handleRenderStacks'
-    groupsController.off    'StackTemplateChanged', @bound 'handleStackTemplateChanged'
+    computeController.off 'RenderStacks', @bound 'handleRenderStacks'
+    groupsController.off  'StackTemplateChanged', @bound 'handleStackTemplateChanged'
 
     super
