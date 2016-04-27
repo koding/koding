@@ -106,7 +106,7 @@ module.exports = class HomeAppView extends kd.ModalView
         delegate : this
         action   : action
       , group
-      view.once 'ModalDestroyRequested', @bound 'destroy'
+      view.once 'ModalDestroyRequested', @bound 'onDestroyRequested'
       pane.setMainView view
 
     items.forEach (item, i) =>
@@ -140,3 +140,9 @@ module.exports = class HomeAppView extends kd.ModalView
     height = if window.innerHeight < 600 then 100 else 90
     @setHeight height, '%'
     @setPositions()
+
+
+  onDestroyRequested: (dontChangeRoute) ->
+
+    @dontChangeRoute = yes  if dontChangeRoute
+    @destroy()
