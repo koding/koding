@@ -180,6 +180,24 @@ handleRoleChange = (account, newRole) ->
           reactor.dispatch actions.UPDATE_TEAM_MEMBER, { account }
 
 
+handlePendingInvitationUpdate = (account, action) ->
+
+  { reactor } = kd.singletons
+
+  if action is 'revoke'
+    reactor.dispatch actions.DELETE_PENDING_INVITATION_SUCCESS, { account }
+
+  else if action is 'resend'
+    remote.api.JInvitation.sendInvitationByCode account.get('code'), (err) ->
+
+      title = 'Invitation is resent.'
+      duration = 5000
+      if err
+        title = 'Unable to resend the invitation. Please try again.'
+
+      return new kd.NotificationView { title, duration }
+
+
 handleKickMember = (member) ->
 
   { groupsController, reactor } = kd.singletons
@@ -216,6 +234,7 @@ module.exports = {
   resendInvitations
   setSearchInputValue
   handleRoleChange
+  handlePendingInvitationUpdate
   handleKickMember
   uploads3
 }
