@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 
 	"koding/fuseklient"
 	"koding/klient/remote/machine"
@@ -190,11 +191,16 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 	}
 
 	// The two New methods is to tweak how the log is displayed.
-	log := r.log.New("restoreMount").New(
+	log := logging.NewLogger("remote").New("restoreMount").New(
 		"mountName", m.MountName,
-		"mountFolder", m.MountFolder.LocalPath,
+		"syncMount", m.MountFolder.SyncMount,
 		"prefetchAll", m.MountFolder.PrefetchAll,
 	)
+
+	// Enable debug for the mount that was originally using debug.
+	if m.MountFolder.Debug {
+		log.SetLevel(logging.DEBUG)
+	}
 
 	remoteMachine, err := r.GetDialedMachine(m.MountName)
 	if err != nil {
@@ -282,7 +288,7 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 	// because cache is not creating one here, we need to do it manually.
 	if remoteMachine.Intervaler == nil {
 		if !m.SyncIntervalOpts.IsZero() {
-			rs := rsync.NewClient(r.log)
+			rs := rsync.NewClient(log)
 			// After the progress chan is done, start our SyncInterval
 			startIntervaler(log, remoteMachine, rs, m.SyncIntervalOpts)
 			// Assign the rsync intervaler to the mount.

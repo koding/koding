@@ -127,6 +127,10 @@ func NewRemote(k *kite.Kite, log kite.Logger, s storage.Interface) *Remote {
 	}
 
 	kodingLog = kodingLog.New("remote")
+	// Setting the handler to debug, because various Remote methods allow a
+	// debug option, and this saves us from having to set the handler level every time.
+	// This only sets handler, not the actual loglevel.
+	logging.DefaultHandler.SetLevel(logging.DEBUG)
 
 	r := &Remote{
 		localKite:            k,

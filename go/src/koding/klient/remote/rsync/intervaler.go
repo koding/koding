@@ -30,27 +30,34 @@ type syncInterval struct {
 
 	sync.Mutex
 
-	ticker *time.Ticker
+	running bool
 }
 
 func (i *syncInterval) Start() {
 	go i.start()
 }
 
+func (s *syncInterval) isRunning() bool {
+	s.Lock()
+	defer s.Unlock()
+	return s.running
+}
+
 func (s *syncInterval) start() {
-	// If the ticker exists, it's already running. Duplicating the ticker
-	// would also be bad, as we'd be unable to stop it.
-	if s.ticker != nil {
+	if s.isRunning() {
 		return
 	}
 
-	// This prevents a panic from NewTicker if the delay was never set.
+	// This prevents spamming Sync.
 	if s.Opts.Interval <= 0 {
 		return
 	}
 
-	s.ticker = time.NewTicker(s.Opts.Interval)
-	for range s.ticker.C {
+	s.Lock()
+	s.running = true
+	s.Unlock()
+
+	for s.isRunning() {
 		s.Lock()
 		// We don't actually care about any of the progress results, error or otherwise,
 		// from Sync. We only care that it is done. Once the channel is done, the inner
@@ -58,16 +65,16 @@ func (s *syncInterval) start() {
 		for range s.Sync(s.Opts.SyncOpts) {
 		}
 		s.Unlock()
+		// Sleep after we run Sync. Helps prevent Sync from running back
+		// to back.
+		time.Sleep(s.Opts.Interval)
 	}
 }
 
 func (s *syncInterval) Stop() {
-	if s.ticker != nil {
-		s.Lock()
-		s.ticker.Stop()
-		s.ticker = nil
-		s.Unlock()
-	}
+	s.Lock()
+	defer s.Unlock()
+	s.running = false
 }
 
 func (s *syncInterval) SyncIntervalOpts() SyncIntervalOpts {
