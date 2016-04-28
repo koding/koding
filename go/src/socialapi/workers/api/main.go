@@ -24,6 +24,7 @@ import (
 	emailapi "socialapi/workers/email/api"
 	mailapi "socialapi/workers/email/mailparse/api"
 	"socialapi/workers/helper"
+	kodingapi "socialapi/workers/kodingapi/api"
 	topicmoderationapi "socialapi/workers/moderation/topic/api"
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
@@ -88,6 +89,7 @@ func main() {
 	slackapi.AddHandlers(m, c)
 	credential.AddHandlers(m, r.Log, c)
 	emailapi.AddHandlers(m)
+	kodingapi.AddHandlers(m)
 
 	// init mongo connection
 	modelhelper.Initialize(c.Mongo)
