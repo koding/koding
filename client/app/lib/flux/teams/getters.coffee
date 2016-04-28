@@ -32,13 +32,30 @@ membersWithRole = [
 isValidMemberValue = (member, value) ->
   re = new RegExp(value, 'i')
 
-  re.test(member.get('profile').get('email')) or \
-  re.test(member.get('profile').get('firstname')) or \
-  re.test(member.get('profile').get('lastname'))
+  if member.get('status') is 'pending'
+    re.test(member.get('email')) or \
+    re.test(member.get('firstname')) or \
+    re.test(member.get('lastname'))
+  else
+    re.test(member.get('profile').get('email')) or \
+    re.test(member.get('profile').get('firstname')) or \
+    re.test(member.get('profile').get('lastname'))
+
+
+membersWithPendingInvitations = [
+  membersWithRole
+  pendingInvitations
+  (members, pendingMembers) ->
+
+    pendingMembers.toArray().forEach (invitation) ->
+      members = members.set invitation.get('_id'), invitation
+
+    return members
+]
 
 
 filteredMembersWithRole = [
-  membersWithRole
+  membersWithPendingInvitations
   searchInputValue
   (members, value) ->
     return members  if value is ''
