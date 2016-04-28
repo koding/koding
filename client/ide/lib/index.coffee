@@ -1466,6 +1466,9 @@ class IDEAppController extends AppController
       else if type is 'FileSaved'
         targetPane?.file.emit 'FileContentsNeedsToBeRefreshed'
 
+      else if type is 'TerminalScreenSizeChanged'
+        @handleTerminalScreenSizeChanged change
+
       else if type in ['TabChanged', 'PaneRemoved', 'TerminalRenamed']
         paneView = targetPane?.parent
         tabView  = paneView?.parent
@@ -1483,8 +1486,18 @@ class IDEAppController extends AppController
 
         ideView.suppressChangeHandlers = no
 
-
       targetPane?.handleChange? change, @rtm
+
+
+  handleTerminalScreenSizeChanged: (change) ->
+
+    targetPane = @getPaneByChange change
+
+    return  unless targetPane
+
+    { size } = change.context
+
+    targetPane.webtermView.terminal.setSize size.w, size.h, no
 
 
   ###*
