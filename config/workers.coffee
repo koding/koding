@@ -477,7 +477,6 @@ module.exports = (KONFIG, options, credentials) ->
       group             : "proxy"
       supervisord       :
         command         : "#{GOBIN}/tunnelserver -accesskey #{credentials.awsKeys.worker_tunnelproxymanager.accessKeyId} -secretkey #{credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey} -port #{KONFIG.tunnelserver.port} -basevirtualhost #{KONFIG.tunnelserver.basevirtualhost} -hostedzone #{KONFIG.tunnelserver.hostedzone} -region #{options.region} -environment #{options.environment}"
-        command         : "#{GOBIN}/tunnelserver -accesskey #{credentials.awsKeys.worker_tunnelproxymanager.accessKeyId} -secretkey #{credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey} -port #{KONFIG.tunnelserver.port} -basevirtualhost #{KONFIG.tunnelserver.basevirtualhost} -hostedzone #{KONFIG.tunnelserver.hostedzone}"
       ports             :
         incoming        : "#{KONFIG.tunnelserver.port}"
       healthCheckURL    : "http://tunnelserver/healthCheck"
