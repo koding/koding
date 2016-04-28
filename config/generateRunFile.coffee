@@ -265,6 +265,7 @@ generateDev = (KONFIG, options, credentials) ->
       echo "Usage: "
       echo ""
       echo "  run                       : to start koding"
+      echo "  run supervisor            : to execute supervisor commands"
       echo "  run backend               : to start only backend of koding"
       echo "  run killall               : to kill every process started by run script"
       echo "  run install               : to compile/install client and "
@@ -375,6 +376,8 @@ generateDev = (KONFIG, options, credentials) ->
       command -v node          >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
       command -v npm           >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
       command -v gulp          >/dev/null 2>&1 || { echo >&2 "I require gulp but it's not installed. (npm i gulp -g)  Aborting."; exit 1; }
+      command -v supervisord   >/dev/null 2>&1 || { echo >&2 "I require supervisord but it's not installed. (pip install supervisord)  Aborting."; exit 1; }
+      command -v supervisorctl >/dev/null 2>&1 || { echo >&2 "I require supervisorctl but it's not installed. (pip install supervisord)  Aborting."; exit 1; }
       # command -v stylus      >/dev/null 2>&1 || { echo >&2 "I require stylus  but it's not installed. (npm i stylus -g)  Aborting."; exit 1; }
       command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
       check_psql
@@ -642,6 +645,23 @@ generateDev = (KONFIG, options, credentials) ->
         make install-migrate
         migrate $2 $3
       fi
+
+    elif [ "$1" == "supervisor" ]; then
+
+      pushd $(dirname $0)
+
+      COMMAND=$2
+
+      if [ -z "$COMMAND" ]; then
+        exec supervisord
+      elif [ "$COMMAND" == "restart" ]; then
+        supervisorctl shutdown
+        supervisord
+      elif [ -n "$COMMAND" ]; then
+        exec supervisorctl $*
+      fi
+
+      popd
 
     elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
 
