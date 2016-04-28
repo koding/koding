@@ -15,8 +15,8 @@ module.exports = class TeamInvitationInputValuesStore extends KodingFluxStore
   createRecord = (role) ->
     immutable.Map
       email: ''
-      firstname: ''
-      lastname: ''
+      firstName: ''
+      lastName: ''
       role: role
 
 
