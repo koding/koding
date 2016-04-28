@@ -63,7 +63,7 @@ Configuration = (options={}) ->
 
   credentials = require(options.credentialPath)(options)
 
-  worker_ci_test = require './aws/worker_ci_test_key.json'
+  worker_ci_test = require path.join(options.vaultPath, './config/aws/worker_ci_test_key.json')
 
   # if you want to disable a feature add here with "true" value do not forget to
   # add corresponding go struct properties
