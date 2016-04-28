@@ -7,8 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
-	"os/user"
 	"sort"
 	"strconv"
 	"strings"
@@ -19,6 +17,7 @@ import (
 	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils"
+	"koding/kites/kontrol/presence"
 	"koding/tools/util"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -26,6 +25,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
+	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 	"github.com/koding/tunnel"
@@ -41,16 +41,19 @@ type ServerOptions struct {
 	// Server kite config.
 	Port        int            `json:"port" required:"true"`
 	Region      string         `json:"region" required:"true"`
+	KiteKey     string         `json:"kiteKey" required:"true"`
+	KontrolURL  string         `json:"kontrolURL" required:"true"`
 	Environment string         `json:"environment" required:"true"`
 	Config      *config.Config `json:"kiteConfig"`
 	RegisterURL *url.URL       `json:"registerURL"`
+	KiteName    string         `json:"kiteName"`
+	KiteVersion string         `json:"kiteVersion"`
 
 	TCPRangeFrom int    `json:"tcpRangeFrom,omitempty"`
 	TCPRangeTo   int    `json:"tcpRangeTo,omitempty"`
 	ServerAddr   string `json:"serverAddr,omitempty"` // public IP
 	Debug        bool   `json:"debug,omitempty"`
 	Test         bool   `json:"test,omitempty"`
-	NoCNAME      bool   `json:"noCNAME,omitempty"`
 
 	Log     logging.Logger     `json:"-"`
 	Metrics *metrics.DogStatsD `json:"-"`
@@ -63,7 +66,9 @@ type Server struct {
 	DNS    *dnsclient.Route53
 
 	opts      *ServerOptions
+	kite      *kite.Kite
 	record    *dnsclient.Record
+	presence  *presence.Client
 	callbacks *callbacks
 	privateIP string
 
@@ -110,6 +115,37 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		optsCopy.TCPRangeTo = 50000
 	}
 
+	if optsCopy.Config == nil {
+		cfg, err := config.NewFromKiteKey(optsCopy.KiteKey)
+		if err != nil {
+			return nil, err
+		}
+		optsCopy.Config = cfg
+	}
+
+	optsCopy.Config.Transport = config.XHRPolling
+
+	if optsCopy.Port != 0 {
+		optsCopy.Config.Port = optsCopy.Port
+	}
+
+	if optsCopy.Region != "" {
+		optsCopy.Config.Region = optsCopy.Region
+	}
+
+	if optsCopy.KontrolURL != "" {
+		optsCopy.Config.KontrolURL = optsCopy.KontrolURL
+	}
+
+	if optsCopy.Environment != "" {
+		optsCopy.Config.Environment = optsCopy.Environment
+	}
+
+	if opts.Test {
+		opts.Config.DisableAuthentication = true
+	}
+
+	// Underlying tunnel transport.
 	tunnelCfg := &tunnel.ServerConfig{
 		Debug: optsCopy.Debug,
 		Log:   optsCopy.Log,
@@ -119,6 +155,7 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		return nil, err
 	}
 
+	// Route53 client.
 	dnsOpts := &dnsclient.Options{
 		Creds:      credentials.NewStaticCredentials(optsCopy.AccessKey, optsCopy.SecretKey, ""),
 		HostedZone: optsCopy.HostedZone,
@@ -128,54 +165,6 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 	dns, err := dnsclient.NewRoute53Client(dnsOpts)
 	if err != nil {
 		return nil, err
-	}
-
-	if !optsCopy.NoCNAME {
-		id, err := instanceID()
-		if err != nil {
-			if optsCopy.Test {
-				username := os.Getenv("USER")
-				if u, err := user.Current(); err == nil {
-					username = u.Username
-				}
-
-				id = "koding-" + username
-			} else {
-				return nil, err
-			}
-		}
-
-		optsCopy.BaseVirtualHost = strings.TrimPrefix(id, "i-") + "." + optsCopy.BaseVirtualHost
-
-		ip := host(optsCopy.ServerAddr)
-		base := host(optsCopy.BaseVirtualHost)
-
-		tunnelRec := &dnsclient.Record{
-			Name: base,
-			IP:   ip,
-			Type: "A",
-			TTL:  300,
-		}
-
-		allRec := &dnsclient.Record{
-			Name: "\\052." + base,
-			IP:   base,
-			Type: "CNAME",
-			TTL:  300,
-		}
-
-		// TODO(rjeczalik): add retries to pkg/dnsclient (TMS-2052)
-		for i := 0; i < 5; i++ {
-			if err = dns.UpsertRecords(tunnelRec, allRec); err == nil {
-				break
-			}
-
-			time.Sleep(time.Duration(i) * time.Second) // linear backoff, overall time: 30s
-		}
-
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	optsCopy.Log.Debug("Server options: %# v", &optsCopy)
@@ -191,6 +180,32 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		tunnels:   newTunnels(),
 	}
 
+	s.presence = presence.NewClient(&presence.Options{
+		Peers: &protocol.KontrolQuery{
+			Name:        s.opts.KiteName,
+			Version:     s.opts.KiteVersion,
+			Environment: s.opts.Environment,
+			Region:      s.opts.Region,
+		},
+		KiteName:    s.opts.KiteName,
+		KiteVersion: s.opts.KiteVersion,
+		KiteConfig:  s.opts.Config,
+		Log:         s.opts.Log.New("presence"),
+		Debug:       s.opts.Debug,
+
+		// The following methods implement unique tunnel hostnames, like:
+		//
+		//   * a.koding.me
+		//   * b.koding.me
+		//   etc.
+		//
+		// Each new autoscaled instance gets first available letter.
+		PeerReady:        s.peerReady,
+		PeerReadyTimeout: s.peerReadyTimeout,
+		RestoreURL:       s.restoreURL,
+		RegisterURL:      s.registerURL,
+	})
+
 	// Do not bind to private address for testing.
 	if !s.opts.Test {
 		if ip, err := privateIP(); err == nil {
@@ -198,7 +213,115 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		}
 	}
 
+	// Kite initialisation.
+	if err := s.kontrolRegister(); err != nil {
+		return nil, err
+	}
+
+	s.registerMethods()
+
 	return s, nil
+}
+
+func (s *Server) peerReady(k *kite.Client) bool {
+	return tunnelName(k) != ""
+}
+
+func (s *Server) peerReadyTimeout(n int) time.Duration {
+	return time.Duration(n) * 2 * ttl * time.Second
+}
+
+func (s *Server) restoreURL(u *url.URL) error {
+	return s.upsert(u.Host, s.opts.ServerAddr)
+}
+
+func (s *Server) registerURL(peers []*kite.Client) (*url.URL, error) {
+	taken := make(map[string]struct{}, len(peers))
+
+	for _, peer := range peers {
+		taken[tunnelName(peer)] = struct{}{}
+	}
+
+	delete(taken, "")
+
+	u := *s.presence.InitialURL
+	u.Host = genName('a', 'z', taken) + "." + s.opts.BaseVirtualHost
+
+	return &u, s.upsert(u.Host, s.opts.ServerAddr)
+}
+
+func (s *Server) kontrolRegister() error {
+	k, _, err := s.presence.Register()
+	if err != nil {
+		return err
+	}
+
+	s.kite = k
+
+	return nil
+}
+
+func genName(begin, end int, taken map[string]struct{}) (name string) {
+	for c := begin; ; c++ {
+		s := string(c) + name
+
+		if _, ok := taken[s]; !ok {
+			return s
+		}
+
+		if c == end {
+			name = string(end) + name
+			c = begin - 1
+		}
+	}
+}
+
+func (s *Server) upsert(base, ip string) (err error) {
+	base, ip = host(base), host(ip)
+
+	s.opts.BaseVirtualHost = customPort(base, s.opts.Port, 80, 443)
+
+	tunnelRec := &dnsclient.Record{
+		Name: base,
+		IP:   ip,
+		Type: "A",
+		TTL:  ttl,
+	}
+
+	allRec := &dnsclient.Record{
+		Name: "\\052." + base,
+		IP:   base,
+		Type: "CNAME",
+		TTL:  ttl,
+	}
+
+	// TODO(rjeczalik): add retries to pkg/dnsclient (TMS-2052)
+	for i := 0; i < 5; i++ {
+		if err = s.DNS.UpsertRecords(tunnelRec, allRec); err == nil {
+			break
+		}
+
+		time.Sleep(time.Duration(i+1) * time.Second) // linear backoff, overall time: 15s
+	}
+
+	return err
+}
+
+func tunnelName(k *kite.Client) string {
+	if k.URL == "" {
+		return ""
+	}
+
+	u, err := url.Parse(k.URL)
+	if err != nil {
+		return ""
+	}
+
+	if i := strings.IndexRune(u.Host, '.'); i != -1 {
+		return u.Host[:i]
+	}
+
+	return ""
 }
 
 // RegisterRequest represents request value for register method.
@@ -569,15 +692,6 @@ func (s *Server) register(r *kite.Request) (interface{}, error) {
 
 	s.opts.Log.Debug("received register request: %s", TunnelsByName(toList(req.Services, vhost)))
 
-	// By default all addresses are routed by default with wildcard
-	// CNAME. If it is disabled explicitly, we're inserting A records
-	// for each tunnel instead.
-	if s.opts.NoCNAME {
-		if err := s.upsert(vhost); err != nil {
-			return nil, err
-		}
-	}
-
 	res := &RegisterResult{
 		VirtualHost: vhost,
 		ServerAddr:  s.opts.ServerAddr,
@@ -592,24 +706,6 @@ func (s *Server) register(r *kite.Request) (interface{}, error) {
 	})
 
 	return res, nil
-}
-
-func (s *Server) upsert(vhost string) error {
-	rec := *s.record
-	rec.Name = vhost
-
-	// Trim port part from s.opts.BaseVirtualHost.
-	if host, _, err := net.SplitHostPort(rec.Name); err == nil {
-		rec.Name = host
-	}
-
-	s.opts.Log.Debug("upserting %# v", rec)
-
-	if host, _, err := net.SplitHostPort(vhost); err == nil {
-		rec.Name = host
-	}
-
-	return s.DNS.UpsertRecord(&rec)
 }
 
 func (s *Server) metricsFunc() kite.HandlerFunc {
@@ -796,55 +892,32 @@ func (s *Server) serverHandler() http.HandlerFunc {
 	}
 }
 
-// NewServerKite creates a server kite for the given server.
-func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
-	k := kite.New(name, version)
+// newKite creates a server kite for the given server.
+func newKite(opts *ServerOptions) (*kite.Kite, error) {
+	k := kite.New(opts.KiteName, opts.KiteVersion)
+	k.Log = opts.Log
+	k.Config = opts.Config
 
-	if s.opts.Config == nil {
-		cfg, err := config.Get()
-		if err != nil {
-			return nil, err
-		}
-		s.opts.Config = cfg
-	}
-
-	if s.opts.Port != 0 {
-		s.opts.Config.Port = s.opts.Port
-	}
-	if s.opts.Region != "" {
-		s.opts.Config.Region = s.opts.Region
-	}
-	if s.opts.Environment != "" {
-		s.opts.Config.Environment = s.opts.Environment
-	}
-	if s.opts.Test {
-		s.opts.Config.DisableAuthentication = true
-	}
-	if s.opts.Debug {
+	if opts.Debug {
 		k.SetLogLevel(kite.DEBUG)
 	}
 
-	k.Log = s.opts.Log
-	k.Config = s.opts.Config
+	return k, nil
+}
 
+func (s *Server) registerMethods() {
 	if fn := s.metricsFunc(); fn != nil {
-		k.PreHandleFunc(fn)
+		s.kite.PreHandleFunc(fn)
 	}
 
-	k.HandleFunc("register", s.Register)
-	k.HandleFunc("registerServices", s.RegisterServices)
-	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(name))
-	k.HandleHTTPFunc("/version", artifact.VersionHandler())
+	s.kite.HandleFunc("register", s.Register)
+	s.kite.HandleFunc("registerServices", s.RegisterServices)
+	s.kite.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(s.opts.KiteName))
+	s.kite.HandleHTTPFunc("/version", artifact.VersionHandler())
 
 	// Tunnel helper methods, like ports, stats etc.
-	k.HandleHTTPFunc("/-/discover/{service}", s.discoverHandler())
+	s.kite.HandleHTTPFunc("/-/discover/{service}", s.discoverHandler())
 
 	// Route all the rest requests (match all paths that does not begin with /-/).
-	k.HandleHTTP(`/{rest:.?$|[^\/].+|\/[^-].+|\/-[^\/].*}`, s.serverHandler())
-
-	if s.opts.RegisterURL == nil {
-		s.opts.RegisterURL = k.RegisterURL(false)
-	}
-
-	return k, nil
+	s.kite.HandleHTTP(`/{rest:.?$|[^\/].+|\/[^-].+|\/-[^\/].*}`, s.serverHandler())
 }

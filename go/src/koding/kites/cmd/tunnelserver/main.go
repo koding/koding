@@ -9,11 +9,6 @@ import (
 	"github.com/koding/multiconfig"
 )
 
-const (
-	Name    = "tunnelkite"
-	Version = "0.0.1"
-)
-
 func die(v interface{}) {
 	fmt.Fprintln(os.Stderr, v)
 	os.Exit(1)
@@ -25,15 +20,13 @@ func main() {
 	m := multiconfig.New()
 	m.MustLoad(&opts)
 
+	opts.KiteName = "tunnelserver"
+	opts.KiteVersion = "0.0.1"
+
 	server, err := tunnelproxy.NewServer(&opts)
 	if err != nil {
 		die(err)
 	}
 
-	k, err := tunnelproxy.NewServerKite(server, Name, Version)
-	if err != nil {
-		die(err)
-	}
-
-	k.Run()
+	server.Run()
 }
