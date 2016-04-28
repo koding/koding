@@ -30,6 +30,8 @@ CredentialStatusView = require './credentialstatusview'
 
 StackTemplatePreviewModal = require './stacktemplatepreviewmodal'
 
+EnvironmentFlux = require 'app/flux/environment'
+
 
 module.exports = class DefineStackView extends KDView
 
@@ -237,6 +239,10 @@ module.exports = class DefineStackView extends KDView
           cssClass           : 'template-title'
           label              : 'Stack Name'
           defaultValue       : stackTemplate?.title or 'Default stack template' # can we auto generate cute stack names?
+          bind               : 'keyup'
+          keyup              : (e) ->
+            { changeTemplateTitle } = EnvironmentFlux.actions
+            changeTemplateTitle stackTemplate?._id, e.target.value
 
 
   createOutputView: ->
