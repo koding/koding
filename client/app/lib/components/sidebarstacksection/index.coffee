@@ -90,12 +90,14 @@ module.exports = class SidebarStackSection extends React.Component
     className  = 'SidebarStackSection'
     className += ' active'  if @state.activeStack is @props.stack.get '_id'
 
+    titleLink = "/Stack-Editor/#{@props.stack.get 'baseStackId'}"
+
     <SidebarSection
       ref='sidebarSection'
       className={kd.utils.curry className, @props.className}
       title={@props.stack.get 'title'}
-      titleLink='' # Set empty string
-      secondaryLink='' # Set empty string
+      titleLink={titleLink}
+      secondaryLink=''
       unreadCount={@getStackUnreadCount()}
       unreadCountClickHandler={@unreadCountClickHandler}
       >
