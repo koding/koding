@@ -1,3 +1,4 @@
+_ = require 'lodash'
 kd = require 'kd'
 Link = require 'app/components/common/link'
 React = require 'kd-react'
@@ -32,6 +33,7 @@ module.exports = class Sidebar extends React.Component
       privateChannels              : getters.followedPrivateChannelThreads
       selectedThreadId             : getters.selectedChannelThreadId
       stacks                       : EnvironmentFlux.getters.stacks
+      drafts                       : EnvironmentFlux.getters.draftStackTemplates
       sharedMachines               : EnvironmentFlux.getters.sharedMachines
       collaborationMachines        : EnvironmentFlux.getters.collaborationMachines
       sharedMachineListItems       : EnvironmentFlux.getters.sharedMachineListItems
@@ -52,6 +54,9 @@ module.exports = class Sidebar extends React.Component
 
     EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
 
+    EnvironmentFlux.actions.loadTeamStackTemplates()
+    EnvironmentFlux.actions.loadPrivateStackTemplates()
+
     actions.channel.loadFollowedPublicChannels()
     actions.channel.loadFollowedPrivateChannels()
 
@@ -69,9 +74,6 @@ module.exports = class Sidebar extends React.Component
           EnvironmentFlux.actions.dispatchSharedVMInvitationRejected options.machineId
 
         EnvironmentFlux.actions.loadMachines()
-
-
-  onNewStack: -> @setState { creatingNewStack: yes }
 
 
   setActiveInvitationMachineId: ->
@@ -115,10 +117,10 @@ module.exports = class Sidebar extends React.Component
     # Render stacks of koding as first.
     stackList.koding.forEach (stack) => stackSections.push @renderStack stack
 
+    stackSections = stackSections.concat @renderDrafts()
+
     # Now render stack of managed vms last
     stackList.managed.forEach (stack) => stackSections.push @renderStack stack
-
-    stackSections.push @renderNewStackSection()
 
     return stackSections
 
@@ -133,12 +135,22 @@ module.exports = class Sidebar extends React.Component
       machines={stack.get 'machines'}/>
 
 
+  renderDrafts: ->
+
+    @state.drafts?.toList().toJS().map (template) ->
+      id = template._id
+      title = _.unescape template.title
+      <header key={id} className="SidebarSection-header">
+        <h4 className='SidebarSection-headerTitle'>
+          <Link href="/Stack-Editor/#{id}">{title}</Link>
+        </h4>
+      </header>
+
+
   renderStacks: ->
 
     if @state.stacks.size
-      <SidebarStackHeaderSection
-        onNewStack={@bound 'onNewStack'}
-        >
+      <SidebarStackHeaderSection>
         {@prepareStacks()}
       </SidebarStackHeaderSection>
     else if @state.showNoStacksWidget
@@ -169,18 +181,6 @@ module.exports = class Sidebar extends React.Component
   renderNewStackSection: ->
 
     return null  unless @state.creatingNewStack
-
-    <section
-      key='newStack'
-      className='SidebarSection SidebarStackSection'
-      >
-      <header className="SidebarSection-header">
-        <h4 className='SidebarSection-headerTitle'>
-          <Link href='/Stack-Editor'>Default stack template</Link>
-        </h4>
-      </header>
-    </section>
-
 
   renderLogo: ->
 
