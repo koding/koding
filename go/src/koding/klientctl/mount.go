@@ -46,8 +46,8 @@ type MountOptions struct {
 	PrefetchAll      bool
 	PrefetchInterval int
 	Trace            bool
-	UseSync          bool
-	SyncInterval     int
+	OneWaySync       bool
+	OneWayInterval   int
 
 	// Used for Prefetching via RSync (SSH)
 	SSHDefaultKeyDir  string
@@ -141,7 +141,7 @@ func (c *MountCommand) Run() (int, error) {
 	}
 
 	// If they choose not to use fuse, mount with only caching.
-	if c.Options.UseSync {
+	if c.Options.OneWaySync {
 		if err := c.useSync(); err != nil {
 			cleanupPath = true
 			return 1, err
@@ -157,17 +157,17 @@ func (c *MountCommand) Run() (int, error) {
 	}
 
 	mountRequest := req.MountFolder{
-		Debug:          c.Options.Debug,
-		Name:           c.Options.Name,
-		LocalPath:      c.Options.LocalPath,
-		RemotePath:     c.Options.RemotePath,
-		NoIgnore:       c.Options.NoIgnore,
-		NoPrefetchMeta: c.Options.NoPrefetchMeta,
-		PrefetchAll:    c.Options.PrefetchAll,
-		NoWatch:        c.Options.NoWatch,
-		CachePath:      getCachePath(c.Options.Name),
-		Trace:          c.Options.Trace,
-		SyncMount:      c.Options.UseSync,
+		Debug:           c.Options.Debug,
+		Name:            c.Options.Name,
+		LocalPath:       c.Options.LocalPath,
+		RemotePath:      c.Options.RemotePath,
+		NoIgnore:        c.Options.NoIgnore,
+		NoPrefetchMeta:  c.Options.NoPrefetchMeta,
+		PrefetchAll:     c.Options.PrefetchAll,
+		NoWatch:         c.Options.NoWatch,
+		CachePath:       getCachePath(c.Options.Name),
+		Trace:           c.Options.Trace,
+		OneWaySyncMount: c.Options.OneWaySync,
 	}
 
 	// Actually mount the folder. Errors are printed by the mountFolder func to the user.
@@ -182,6 +182,7 @@ func (c *MountCommand) Run() (int, error) {
 		"no-ignore":        c.Options.NoIgnore,
 		"no-prefetch-meta": c.Options.NoPrefetchMeta,
 		"prefetch-all":     c.Options.PrefetchAll,
+		"oneway-sync":      c.Options.OneWaySync,
 		"no-watch":         c.Options.NoWatch,
 		"version":          config.VersionNum(),
 	}
@@ -195,25 +196,25 @@ func (c *MountCommand) Run() (int, error) {
 // handleOptions deals with options, erroring if options are missing, etc.
 func (c *MountCommand) handleOptions() (int, error) {
 	if c.Options.Name == "" || c.Options.LocalPath == "" {
-		c.printfln("Mount Name and LocalPath are required options.")
+		c.printfln("Mount name and local path are required options.\n")
 		c.Help()
 		return 1, errors.New("Not enough arguments")
 	}
 
-	if c.Options.UseSync {
+	if c.Options.OneWaySync {
 		var invalidOption bool
 		switch {
 		case c.Options.PrefetchAll:
-			c.printfln(errormessages.InvalidCLIOption, "--prefetch-all", "--use-sync")
+			c.printfln(errormessages.InvalidCLIOption, "--prefetch-all", "--oneway-sync")
 			invalidOption = true
 		case c.Options.NoPrefetchMeta:
-			c.printfln(errormessages.InvalidCLIOption, "--noprefetch-meta", "--use-sync")
+			c.printfln(errormessages.InvalidCLIOption, "--noprefetch-meta", "--oneway-sync")
 			invalidOption = true
 		case c.Options.NoIgnore:
-			c.printfln(errormessages.InvalidCLIOption, "--noignore", "--use-sync")
+			c.printfln(errormessages.InvalidCLIOption, "--noignore", "--oneway-sync")
 			invalidOption = true
 		case c.Options.NoWatch:
-			c.printfln(errormessages.InvalidCLIOption, "--nowatch", "--use-sync")
+			c.printfln(errormessages.InvalidCLIOption, "--nowatch", "--oneway-sync")
 			invalidOption = true
 		}
 
@@ -372,7 +373,7 @@ func (c *MountCommand) useSync() error {
 	}
 
 	// Modify our cache request with the interval only settings.
-	cacheReq.Interval = time.Duration(c.Options.SyncInterval) * time.Second
+	cacheReq.Interval = time.Duration(c.Options.OneWayInterval) * time.Second
 	if cacheReq.Interval == 0 {
 		cacheReq.Interval = 10 * time.Second
 	}

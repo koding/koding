@@ -159,7 +159,7 @@ func (m *Mounter) Mount() (*Mount, error) {
 		SyncIntervalOpts: syncOpts,
 	}
 
-	if m.Options.SyncMount {
+	if m.Options.OneWaySyncMount {
 		mount.Type = SyncMount
 	} else {
 		mount.Type = FuseMount

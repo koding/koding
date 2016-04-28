@@ -16,10 +16,7 @@ var cmdDescriptions = map[string]string{
 	),
 	"mount": fmtDesc(
 		"<optional args> <alias:remote_path> <local folder>",
-		fmt.Sprintf(`Mount folder from remote machine to local folder.
-    Alias is the local identifer for machine in 'kd list'.
-    Local folder can be relative or absolute path, if
-    folder doesn't exit, it'll be created.`),
+		fmt.Sprintf("Mount folder from remote machine to local folder.\n\n    Alias is the local identifer for machine in 'kd list'.\n    Local folder can be relative or absolute path, if\n    folder doesn't exit, it'll be created.\n\n    By default this uses FUSE to mount remote folders.\n    For best I/O performance, especially with commands\n    that does a lot of filesystem operations like git, \n    use --oneway-sync."),
 	),
 	"ssh": fmtDesc(
 		"<alias>", "SSH into the machine.",
