@@ -13,6 +13,12 @@ getGroup                = require 'app/util/getGroup'
 whoami                  = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
+stackDefaults = require 'stacks/defaults'
+providersParser = require 'stacks/views/stacks/providersparser'
+requirementsParser = require 'stacks/views/stacks/requirementsparser'
+{ jsonToYaml } = require 'stacks/views/stacks/yamlutils'
+
+
 
 _eventsCache =
   machine    : {}
@@ -521,6 +527,29 @@ createStackTemplate = (options) ->
       resolve { stackTemplate }
 
 
+createStackTemplateWithDefaults = (overrides = {}) ->
+
+  if overrides.template
+    template = overrides.template
+    rawContent = jsonToYaml(template).content
+  else
+    { template, rawContent } = stackDefaults
+
+  requiredProviders = providersParser template
+
+  if overrides.selectedProvider is 'vagrant'
+    requiredProviders.push 'vagrant'
+
+  requiredData = requirementsParser template
+
+  options = _.assign {}, stackDefaults,
+    template: template
+    rawContent: rawContent
+    config: { requiredData, requiredProviders }
+
+  return createStackTemplate(options)
+
+
 updateStackTemplate = (stackTemplate, options) ->
 
   { reactor } = kd.singletons
@@ -614,6 +643,7 @@ module.exports = {
   setMachineAlwaysOn
   setMachinePowerStatus
   createStackTemplate
+  createStackTemplateWithDefaults
   updateStackTemplate
   generateStack
   deleteStack
