@@ -496,6 +496,30 @@ setMachinePowerStatus = (machineId, shouldStart) ->
   kd.singletons.computeController[method] machine
 
 
+createStackTemplate = (options) ->
+
+  { reactor } = kd.singletons
+
+  { title, template, credentials, rawContent
+    templateDetails, config, description } = options
+
+  return new Promise (resolve, reject) ->
+
+    reactor.dispatch actions.CREATE_STACK_TEMPLATE_BEGIN
+
+    remote.api.JStackTemplate.create {
+      title, template, credentials, rawContent
+      templateDetails, config, description
+    }, (err, stackTemplate) ->
+      if err
+        reactor.dispatch actions.CREATE_STACK_TEMPLATE_FAIL, { err }
+        reject err
+        return
+
+      reactor.dispatch actions.CREATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
+      resolve { stackTemplate }
+
+
 generateStack = (stackTemplateId) ->
 
   { computeController } = kd.singletons
@@ -555,6 +579,7 @@ module.exports = {
   loadPrivateStackTemplates
   setMachineAlwaysOn
   setMachinePowerStatus
+  createStackTemplate
   generateStack
   deleteStack
 }
