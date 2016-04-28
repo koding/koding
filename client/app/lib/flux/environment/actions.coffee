@@ -621,6 +621,53 @@ changeTemplateTitle = (id, value) ->
   reactor.dispatch actions.CHANGE_TEMPLATE_TITLE, { id, value }
 
 
+loadMachineSharedUsers = (machineId) ->
+
+  { computeController, reactor } = kd.singletons
+
+  machine = computeController.findMachineFromMachineId machineId
+  return  unless machine
+
+  machine.jMachine.reviveUsers { permanentOnly : yes }, (err, users = []) ->
+    reactor.dispatch actions.LOAD_MACHINE_SHARED_USERS, { id : machineId, users }
+
+
+shareMachineWithUser = (machineId, nickname) ->
+
+  { computeController } = kd.singletons
+
+  machine = computeController.findMachineFromMachineId machineId
+  return  unless machine
+
+  remote.api.SharedMachine.add machine.uid, [nickname], (err) =>
+
+    return showError err  if err
+
+    kite = machine.getBaseKite()
+    kite.klientShare { username: nickname, permanent: yes }
+      .then -> loadMachineSharedUsers machineId
+      .catch (err) ->
+        showError err  unless err.message is 'user is already in the shared list.'
+
+
+unshareMachineWithUser = (machineid, nickname) ->
+
+  { computeController } = kd.singletons
+
+  machine = computeController.findMachineFromMachineId machineid
+  return  unless machine
+
+  remote.api.SharedMachine.kick machine.uid, [nickname], (err) =>
+
+    return showError err  if err
+
+    kite = machine.getBaseKite()
+    kite.klientUnshare { username: nickname, permanent: yes }
+      .then -> loadMachineSharedUsers machineId
+      .catch (err) ->
+        showError err  unless err.message is 'user is not in the shared list.'
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -657,4 +704,7 @@ module.exports = {
   generateStack
   deleteStack
   changeTemplateTitle
+  loadMachineSharedUsers
+  shareMachineWithUser
+  unshareMachineWithUser
 }

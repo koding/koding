@@ -19,10 +19,19 @@ module.exports = class VirtualMachinesListContainer extends React.Component
   onChangePowerStatus: (machineId, shouldStart) -> EnvironmentFlux.actions.setMachinePowerStatus machineId, shouldStart
 
 
+  onDetailOpen: (machineId) -> EnvironmentFlux.actions.loadMachineSharedUsers machineId
+
+
+  onSharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.shareMachineWithUser machineId, nickname
+
+
   render: ->
     <View stacks={@state.stacks}
       onChangeAlwaysOn={@bound 'onChangeAlwaysOn'}
-      onChangePowerStatus={@bound 'onChangePowerStatus'} />
+      onChangePowerStatus={@bound 'onChangePowerStatus'}
+      onDetailOpen={@bound 'onDetailOpen'}
+      onSharedWithUser={@bound 'onSharedWithUser'}
+    />
 
 
 VirtualMachinesListContainer.include [KDReactorMixin]

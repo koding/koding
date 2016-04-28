@@ -15,7 +15,7 @@ module.exports = class SharingAutocomplete extends React.Component
     }
 
 
-  onSelect: (value, item) -> alert value
+  onSelect: (value, item) -> @props.onSelect value
 
 
   onChange: (event, value) ->
