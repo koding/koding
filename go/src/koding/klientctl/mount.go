@@ -323,6 +323,16 @@ func (c *MountCommand) useSync() error {
 	c.Log.Debug("#useSync")
 	c.printfln("Warning: This feature is in alpha.")
 
+	// If the cachePath exists, move it to the mount location.
+	// No need to fail on an error during rename, we can just log it.
+	cachePath := getCachePath(c.Options.Name)
+	if err := os.Rename(cachePath, c.Options.LocalPath); err != nil {
+		c.Log.Warning(
+			"Failed to move cache path to mount path. cachePath:%s, localPath:%s, err:%s",
+			cachePath, c.Options.LocalPath, err,
+		)
+	}
+
 	sshKey, err := c.getSSHKey()
 	if err != nil {
 		return err
