@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"koding/kites/common"
+
 	"github.com/koding/logging"
 )
 
@@ -33,6 +35,7 @@ func NewClient(cfg *ClientConfig) *http.Client {
 	if cfg == nil {
 		return http.DefaultClient
 	}
+
 	return &http.Client{
 		Timeout: cfg.RoundTripTimeout,
 		Jar:     cfg.Jar,
@@ -44,4 +47,34 @@ func NewClient(cfg *ClientConfig) *http.Client {
 			Dial:                  NewDialer(cfg).Dial,
 		},
 	}
+}
+
+var httpClient = NewClient(&ClientConfig{
+	DialTimeout:           10 * time.Second,
+	RoundTripTimeout:      60 * time.Second,
+	TLSHandshakeTimeout:   10 * time.Second,
+	ResponseHeaderTimeout: 60 * time.Second,
+	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
+})
+
+var httpDebugClient = NewClient(&ClientConfig{
+	DialTimeout:           10 * time.Second,
+	RoundTripTimeout:      60 * time.Second,
+	TLSHandshakeTimeout:   10 * time.Second,
+	ResponseHeaderTimeout: 60 * time.Second,
+	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
+	Log:                   common.NewLogger("dialer", true),
+	TraceLeakedConn:       true,
+})
+
+// DefaultClient gives a global http.Client usable for performing short-lived
+// REST requests.
+//
+// It it not usable for streaming APIs.
+func DefaultClient(debug bool) *http.Client {
+	if debug {
+		return httpDebugClient
+	}
+
+	return httpClient
 }

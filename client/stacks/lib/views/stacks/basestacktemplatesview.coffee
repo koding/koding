@@ -22,7 +22,9 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
     @createInitialView()
 
-    kd.singletons.appStorageController.storage 'Ace', '1.0.1'
+    { appStorageController, groupsController } = kd.singletons
+
+    appStorageController.storage 'Ace', '1.0.1'
 
     @on 'SubTabRequested', (action, identifier) ->
       return  unless action
@@ -38,6 +40,17 @@ module.exports = class BaseStackTemplatesView extends kd.View
           else
             @setRoute()
 
+    groupsController.on 'GroupStackTemplateRemoved', (params) =>
+
+      stackTemplateId = params.contents
+
+      items  = @initialView.stackTemplateList.listController.getListItems()
+      [item] = items.filter (i) -> i.getData()._id is stackTemplateId
+
+      { listController } = @initialView.stackTemplateList
+
+      listController.getListView().removeItem item  if item
+
 
   viewAppended: ->
 
@@ -52,6 +65,10 @@ module.exports = class BaseStackTemplatesView extends kd.View
     @onboardingView?.destroy()
 
     @scrollView.addSubView @onboardingView = new OnboardingView options
+
+    @onboardingView.on 'ShowInitialView', =>
+      @onboardingView.destroy()
+      @initialView.show()
 
     @onboardingView.on 'StackOnboardingCompleted', (template) =>
       @onboardingView.destroy()
@@ -118,14 +135,17 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
     @initialView.hide()
 
-    @defineStackView = new DefineStackView { inEditMode }, { stackTemplate, showHelpContent }
+    @defineStackView = new DefineStackView { inEditMode, delegate : this }, { stackTemplate, showHelpContent }
     @scrollView.addSubView @defineStackView
 
     @defineStackView.on 'Reload', ->
       kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
+    @defineStackView.on 'NewStackTemplateAdded', ({ stackTemplate, templatesView }) ->
+      return  if stackTemplate.event is 'updateInstance'
+      templatesView.initialView.stackTemplateList.listController.addItem stackTemplate
+
     @defineStackView.on [ 'Cancel', 'Completed' ], =>
       @defineStackView.destroy()
-      @initialView.reload()
       @initialView.show()
       @setRoute()
