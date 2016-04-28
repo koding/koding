@@ -21,39 +21,49 @@ module.exports = class Member extends React.Component
 
 
   getMenuItems: (role) ->
-    
+
     items = []
-    
+
     if role is 'owner'
       items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
     else if role is 'admin'
       items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
       items.push { title: 'Make owner', key: 'mameowner', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
       items.push { title: 'Disable user', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }
+    else if role is 'Invitation Sent'
+      items.push {title: 'Resend Invitation', key: 'resend', onClick: @props.handleInvitation.bind(this, @props.member, 'resend')}
+      items.push {title: 'Revoke Invitation', key: 'revoke', onClick: @props.handleInvitation.bind(this, @props.member, 'revoke')}
     else
       items.push { title: 'Make owner', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
       items.push { title: 'Make admin', key: 'makeadmin', onClick: @props.handleRoleChange.bind(this, @props.member, 'admin') }
       items.push { title: 'Disable user', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }
-      
+
     return items
 
 
   render: ->
-       
-    nickname  = @props.member.getIn(['profile', 'nickname'])
-    email     = @props.member.getIn(['profile', 'email'])
-    role      = @props.member.get 'role'
+
+    nickname = @props.member.getIn(['profile', 'nickname'])
+    email = @props.member.getIn(['profile', 'email'])
+    role = @props.member.get 'role'
     firstName = @props.member.getIn(['profile', 'firstName'])
-    lastName  = @props.member.getIn(['profile', 'lastName'])
-    fullName  = "#{firstName} #{lastName}"
+    lastName = @props.member.getIn(['profile', 'lastName'])
+    fullName = "#{firstName} #{lastName}"
+
+    if @props.member.get('status') is 'pending'
+      role = 'Invitation Sent'
+      firstName = @props.member.get('firstName') or ''
+      lastName = @props.member.get('lastName') or ''
+      fullName = @props.member.get 'email'
+      email = "#{firstName} #{lastName}"
+      nickname = ''
 
     <div className='kdview kdlistitemview kdlistitemview-member'>
       <div className='details'>
-        <AvatarView member={@props.member} />
         <p className='fullname'>{fullName}</p>
-        <p className='nickname'>  @{nickname}</p>
       </div>
       <Email email={email} />
+      <NickName nickname={nickname}/>
       <span onClick={@onClickMemberRole.bind(this, role)}>
         <MemberRole role={role} />
       </span>
@@ -62,9 +72,16 @@ module.exports = class Member extends React.Component
     </div>
 
 
+NickName = ({ nickname }) ->
+
+  if nickname.length
+    <p className='nickname'> | @{nickname}</p>
+  else
+    <p className='nickname'></p>
+
 Email = ({ email }) ->
 
-  <p className='email' title={email}>{email}</p>
+  <p className='email-js' title={email}>{email}</p>
 
 AvatarView = ({ member }) ->
 
