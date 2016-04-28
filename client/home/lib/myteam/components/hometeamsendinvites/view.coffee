@@ -23,8 +23,8 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
 
     <div className='kdview invite-inputs'>
       <input type='text' className='kdinput text user-email' placeholder='mail@example.com' value={inviteInput.get 'email'} onChange={@props.onInputChange.bind(this, rowIndex, 'email')} />
-      <input type='text' className='kdinput text firstname' placeholder='Optional' value={inviteInput.get 'firstname'} onChange={@props.onInputChange.bind(this, rowIndex, 'fistname')}/>
-      <input type='text' className='kdinput text lastname' placeholder='Optional' value={inviteInput.get 'lastname'} onChange={@props.onInputChange.bind(this, rowIndex, 'lastname')}/>
+      <input type='text' className='kdinput text firstname' placeholder='Optional' value={inviteInput.get 'firstName'} onChange={@props.onInputChange.bind(this, rowIndex, 'firstName')}/>
+      <input type='text' className='kdinput text lastname' placeholder='Optional' value={inviteInput.get 'lastName'} onChange={@props.onInputChange.bind(this, rowIndex, 'lastName')}/>
       <div className='kdcustomcheckbox' >
         <input type='checkbox' className='kdinput checkbox' checked={checked} onChange={@props.onInputChange.bind(this, rowIndex, 'role')}/>
         <label onClick={@props.onInputChange.bind(null, rowIndex, 'role', { target: { value: not checked}})}></label>
