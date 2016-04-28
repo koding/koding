@@ -1,3 +1,4 @@
+_ = require 'lodash'
 kd                      = require 'kd'
 async                   = require 'async'
 actions                 = require './actiontypes'
@@ -520,6 +521,39 @@ createStackTemplate = (options) ->
       resolve { stackTemplate }
 
 
+updateStackTemplate = (stackTemplate, options) ->
+
+  { reactor } = kd.singletons
+
+  { inuse, _updated } = stackTemplate
+
+  { machines, config, title, template, credentials
+    rawContent, templateDetails, description } = options
+
+  updateOptions = if machines
+  then { machines, config }
+  else { title, template, credentials, rawContent, templateDetails, config, description }
+
+  return new Promise (resolve, reject) ->
+
+    reactor.dispatch actions.UPDATE_STACK_TEMPLATE_BEGIN
+
+    stackTemplate.update updateOptions, (err, updatedTemplate) ->
+      if err
+        reactor.dispatch actions.UPDATE_STACK_TEMPLATE_FAIL, { err }
+        reject err
+        return
+
+      stackTemplate = _.assign stackTemplate, { inuse, _updated }
+
+      updateStackTemplate.inuse = inuse
+
+      successPayload = { stackTemplate: updatedTemplate }
+
+      reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, successPayload
+      resolve successPayload
+
+
 generateStack = (stackTemplateId) ->
 
   { computeController } = kd.singletons
@@ -580,6 +614,7 @@ module.exports = {
   setMachineAlwaysOn
   setMachinePowerStatus
   createStackTemplate
+  updateStackTemplate
   generateStack
   deleteStack
 }
