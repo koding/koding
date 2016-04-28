@@ -26,6 +26,7 @@ draftStackTemplate        = require './mock.draftStackTemplate'
 teamStackTemplate         = require './mock.teamStackTemplate'
 privateStackTemplate      = require './mock.privateStackTemplate'
 teamMemberWithRole        = require './mock.teamMembersWithRole'
+teamMembersWithPendings   = require './mock.teamMembersWithPendings'
 teamSendInvites           = require './mock.teamSendInvites'
 team                      = require './mock.team'
 
@@ -380,10 +381,11 @@ module.exports =
   getTeamStackTemplate: -> return teamStackTemplate
 
   getPrivateStackTemplate: -> return privateStackTemplate
-  
+
   getTeamMembersWithRole: -> return teamMemberWithRole
-  
+
+  getTeamMembersWithPendings: -> return teamMembersWithPendings
+
   getTeamSendInvites: -> return teamSendInvites
-  
+
   getTeam: -> return team
-  
