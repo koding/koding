@@ -1,7 +1,10 @@
-kd                  = require 'kd'
-AppController       = require 'app/appcontroller'
-StackEditorView     = require './editor'
-showError           = require 'app/util/showError'
+_ = require 'lodash'
+kd = require 'kd'
+AppController = require 'app/appcontroller'
+DefineStackView = require 'stacks/views/stacks/definestackview'
+showError = require 'app/util/showError'
+OnboardingView = require 'stacks/views/stacks/onboarding/onboardingview'
+EnvironmentFlux = require 'app/flux/environment'
 
 do require './routehandler'
 
@@ -12,18 +15,42 @@ module.exports = class StackEditorAppController extends AppController
     behavior   : 'application'
 
 
-  openSection: (section, query) ->
+  openEditor: (stackTemplateId) ->
 
     { computeController } = kd.singletons
 
     @mainView.destroySubViews()
 
-    if section
-      computeController.fetchStackTemplate section, (err, stackTemplate) =>
+    if stackTemplateId
+      computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
         return showError err  if err
         @createView stackTemplate
     else
       @createView()
+
+
+  openStackWizard: ->
+
+    scrollView = new kd.ScrollView
+    view = new OnboardingView
+
+    view.on 'StackOnboardingCompleted', (result) =>
+      overrides = {}
+
+      if result?.template
+        overrides = _.assign overrides, { template: result.template.content }
+
+      if result?.selectedProvider
+        overrides = _.assign overrides, { selectedProvider: result.selectedProvider }
+
+      EnvironmentFlux.actions.createStackTemplateWithDefaults()
+        .then ({ stackTemplate }) ->
+          kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
+
+    scrollView.addSubView view
+
+    @mainView.destroySubViews()
+    @mainView.addSubView scrollView
 
 
   createView: (stackTemplate) ->
