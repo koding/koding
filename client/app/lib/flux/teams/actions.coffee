@@ -185,7 +185,11 @@ handlePendingInvitationUpdate = (account, action) ->
   { reactor } = kd.singletons
 
   if action is 'revoke'
-    reactor.dispatch actions.DELETE_PENDING_INVITATION_SUCCESS, { account }
+    remote.api.JInvitation.some { '_id': account.get '_id' }, {}, (err, invitations) ->
+        invitation = invitations[0]
+        invitation.remove (err) ->
+          unless err
+            reactor.dispatch actions.DELETE_PENDING_INVITATION_SUCCESS, { account }
 
   else if action is 'resend'
     remote.api.JInvitation.sendInvitationByCode account.get('code'), (err) ->
