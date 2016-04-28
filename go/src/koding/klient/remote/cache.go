@@ -18,7 +18,7 @@ import (
 // CacheFolderHandler implements a prefetching / caching mechanism, currently
 // implemented
 func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
-	log := r.log.New("remote.cacheFolder")
+	log := logging.NewLogger("remote").New("remote.cacheFolder")
 
 	var params struct {
 		req.Cache
@@ -40,6 +40,10 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		)
 		r.log.Error(err.Error())
 		return nil, err
+	}
+
+	if params.Debug {
+		log.SetLevel(logging.DEBUG)
 	}
 
 	switch {
@@ -86,7 +90,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	rs := rsync.NewClient(r.log)
+	rs := rsync.NewClient(log)
 	syncOpts := rsync.SyncIntervalOpts{
 		SyncOpts: rsync.SyncOpts{
 			Host:              remoteMachine.IP,
@@ -96,10 +100,17 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 			SSHAuthSock:       params.SSHAuthSock,
 			SSHPrivateKeyPath: params.SSHPrivateKeyPath,
 			DirSize:           remoteSize,
+			LocalToRemote:     params.LocalToRemote,
 		},
 		Interval: params.Interval,
 	}
-	log.Info("Caching remote via RSync, with options:%v", syncOpts)
+
+	if params.OnlyInterval {
+		startIntervaler(log, remoteMachine, rs, syncOpts)
+		return nil, nil
+	}
+
+	log.Info("Caching remote via RSync, with options:%#v", syncOpts)
 	progCh := rs.Sync(syncOpts.SyncOpts)
 
 	// If a valid callback is not provided, this method blocks until the data is done

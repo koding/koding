@@ -178,8 +178,11 @@ func (k *Klient) RemoteCache(r req.Cache, cb func(par *dnode.Partial)) error {
 		req.Cache
 		Progress dnode.Function `json:"progress"`
 	}{
-		Cache:    r,
-		Progress: dnode.Callback(cb),
+		Cache: r,
+	}
+
+	if cb != nil {
+		cacheReq.Progress = dnode.Callback(cb)
 	}
 
 	// No response from cacheFolder currently.

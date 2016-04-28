@@ -36,6 +36,8 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctl
 		PrefetchAll:      c.Bool("prefetch-all"),
 		PrefetchInterval: c.Int("prefetch-interval"),
 		Trace:            c.Bool("trace"),
+		UseSync:          c.Bool("use-sync"),
+		Debug:            c.Bool("debug"),
 
 		// Used for prefetch
 		SSHDefaultKeyDir:  config.SSHDefaultKeyDir,

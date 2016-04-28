@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 
 	"koding/fuseklient"
 	"koding/klient/remote/kitepinger"
@@ -38,7 +39,7 @@ var (
 // MountFolderHandler implements klient's remote.mountFolder method. Mounting
 // the given remote folder onto the given local folder.
 func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
-	log := r.log.New("remote.mountFolder")
+	log := logging.NewLogger("remote").New("remote.mountFolder")
 
 	if kreq.Args == nil {
 		return nil, errors.New("Required arguments were not passed.")
@@ -50,7 +51,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 			"remote.mountFolder: Error '%s' while unmarshalling request '%s'\n",
 			err, kreq.Args.One(),
 		)
-		r.log.Error(err.Error())
+		log.Error(err.Error())
 
 		return nil, err
 	}
@@ -60,6 +61,10 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, errors.New("Missing required argument `name`.")
 	case params.LocalPath == "":
 		return nil, errors.New("Missing required argument `localPath`.")
+	}
+
+	if params.Debug {
+		log.SetLevel(logging.DEBUG)
 	}
 
 	log = log.New(

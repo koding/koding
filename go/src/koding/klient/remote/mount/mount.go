@@ -18,6 +18,14 @@ var (
 	)
 )
 
+type MountType int
+
+const (
+	UnknownMount MountType = iota
+	FuseMount
+	SyncMount
+)
+
 // Mount stores information about mounted folders, and is both with
 // to various Remote.* kite methods as well as being saved in
 // klient's storage.
@@ -25,8 +33,9 @@ type Mount struct {
 	// The embedded MountFolder
 	req.MountFolder
 
-	IP        string `json:"ip"`
-	MountName string `json:"mountName"`
+	IP        string    `json:"ip"`
+	MountName string    `json:"mountName"`
+	Type      MountType `json:"mountType"`
 
 	// The options used for the local Intervaler. Used to store and retrieve from
 	// the database.
@@ -82,4 +91,17 @@ func MountLogger(m *Mount, l logging.Logger) logging.Logger {
 		"name", m.MountName,
 		"path", m.LocalPath,
 	)
+}
+
+func (mt MountType) String() string {
+	switch mt {
+	case UnknownMount:
+		return "UnknownMount"
+	case FuseMount:
+		return "FuseMount"
+	case SyncMount:
+		return "SyncMount"
+	default:
+		return "Invalid MountType"
+	}
 }
