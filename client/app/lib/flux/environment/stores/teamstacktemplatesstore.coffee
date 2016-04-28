@@ -13,6 +13,7 @@ module.exports = class TeamStackTemplatesStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_TEAM_STACK_TEMPLATES_SUCCESS, @load
+    @on actions.CHANGE_TEMPLATE_TITLE, @changeTitle
 
 
   load: (stackTemplates, { templates }) ->
@@ -22,5 +23,17 @@ module.exports = class TeamStackTemplatesStore extends KodingFluxStore
         _templates.set template._id, toImmutable template
 
     return stackTemplates
+
+
+  changeTitle: (stackTemplates, { id, value }) ->
+
+    template = stackTemplates.get id
+
+    return stackTemplates  unless template
+
+    stackTemplates.withMutations (templates) ->
+      templates
+        .setIn [id, 'title'], value
+        .setIn [id, 'isDirty'], yes
 
 

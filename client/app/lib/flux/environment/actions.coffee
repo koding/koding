@@ -612,6 +612,15 @@ deleteStack = (stackTemplateId) ->
       computeController.reset yes
 
 
+changeTemplateTitle = (id, value) ->
+
+  return  unless id
+
+  { reactor } = kd.singletons
+
+  reactor.dispatch actions.CHANGE_TEMPLATE_TITLE, { id, value }
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -647,4 +656,5 @@ module.exports = {
   updateStackTemplate
   generateStack
   deleteStack
+  changeTemplateTitle
 }
