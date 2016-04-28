@@ -69,8 +69,12 @@ type Mount struct {
 }
 
 func (m *Mount) Unmount() error {
-	var err error
+	// Nothing to do if this is a SyncMount
+	if m.Type == SyncMount {
+		return nil
+	}
 
+	var err error
 	if m.Unmounter != nil {
 		err = m.Unmounter.Unmount()
 	} else {
