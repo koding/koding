@@ -59,25 +59,7 @@ module.exports = class OnboardingView extends JView
       page.on 'HiliteTemplate', (type, keyword) =>
         kd.utils.wait 737, => @hiliteTemplate type, keyword
 
-    @on 'PageNavigationRequested', (direction) =>
-      pageIndex  = @pages.indexOf @currentPage
-      nextIndex  = if direction is 'next' then ++pageIndex else --pageIndex
-      targetPage = @pages[nextIndex]
-
-      # Temporary solution ~ GG
-      selectedProvider  = @providerSelectionView.selected?.getOption 'provider'
-
-      if direction is 'next' and selectedProvider is 'vagrant'
-        @onboardingCompleted()
-      else if targetPage
-        @currentPage.hide()
-        targetPage.show()
-        @setClass 'get-started'  if targetPage is @getStartedView
-        @currentPage = targetPage
-        @emit 'ScrollTo', 'top'
-      else
-        @onboardingCompleted()
-
+    @on 'PageNavigationRequested', @bound 'handlePageNavigationRequested'
 
     @getStartedView.on 'NextPageRequested', =>
       @unsetClass 'get-started'
@@ -88,26 +70,57 @@ module.exports = class OnboardingView extends JView
 
     @getStartedView.emit 'NextPageRequested'  if @getOption 'skipOnboarding'
 
-    @providerSelectionView.on 'UpdateStackTemplate', (isSelected) =>
-      if isSelected
-        @nextButton.enable()
-        @stackPreview.show()
-        @emit 'ScrollTo', 'bottom'
-      else
-        @nextButton.disable()
-        @stackPreview.hide()
+    @providerSelectionView.on 'UpdateStackTemplate', @bound 'handleUpdateStackTemplate'
 
     @configurationView.tabView.on 'PaneAdded', => @codeSetupView.addPane()
 
     @configurationView.tabView.on 'PaneRemoved', =>
       @codeSetupView.tabView.removePane @codeSetupView.tabView.panes.last
 
-    @configurationView.on 'InstanceTypeChanged', (type) =>
-      for pane, index in @configurationView.tabView.panes
-        label = @codeSetupView.tabView.panes[index]?.instanceTypeLabel
-        label.updatePartial pane.instanceTypeSelectBox.getValue()  if label
+    @configurationView.on 'InstanceTypeChanged', @bound 'handleInstanceTypeChanged'
 
-        @hiliteTemplate 'line', type
+
+  handlePageNavigationRequested: (direction) ->
+
+    pageIndex  = @pages.indexOf @currentPage
+    nextIndex  = if direction is 'next' then ++pageIndex else --pageIndex
+    targetPage = @pages[nextIndex]
+
+    return @emit 'ShowInitialView'  if pageIndex is 0 and direction is 'prev'
+
+    # Temporary solution ~ GG
+    selectedProvider  = @providerSelectionView.selected?.getOption 'provider'
+
+    if direction is 'next' and selectedProvider is 'vagrant'
+      @onboardingCompleted()
+    else if targetPage
+      @currentPage.hide()
+      targetPage.show()
+      @setClass 'get-started'  if targetPage is @getStartedView
+      @currentPage = targetPage
+      @emit 'ScrollTo', 'top'
+    else
+      @onboardingCompleted()
+
+
+  handleUpdateStackTemplate: (isSelected) ->
+
+    if isSelected
+      @nextButton.enable()
+      @stackPreview.show()
+      @emit 'ScrollTo', 'bottom'
+    else
+      @nextButton.disable()
+      @stackPreview.hide()
+
+
+  handleInstanceTypeChanged: (type) ->
+
+    for pane, index in @configurationView.tabView.panes
+      label = @codeSetupView.tabView.panes[index]?.instanceTypeLabel
+      label.updatePartial pane.instanceTypeSelectBox.getValue()  if label
+
+      @hiliteTemplate 'line', type
 
 
   createFooter: ->
