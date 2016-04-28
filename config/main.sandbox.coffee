@@ -6,15 +6,15 @@ path                  = require 'path'
 { isAllowed }         = require '../deployment/grouptoenvmapping'
 
 Configuration = (options = {}) ->
-  prod_simulation_server = "10.0.0.136"
+
   options.domains =
     base : 'koding.com'
     mail : 'koding.com'
     main : 'sandbox.koding.com'
     port : '80'
 
-  options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "localhost"
-  options.serviceHost   = prod_simulation_server
+
+  options.serviceHost   = "10.0.0.136"
   options.publicPort = "80"
   options.hostname = "sandbox.koding.com#{if options.publicPort is "80" then "" else ":"+options.publicPort}"
   options.protocol = "https:"
@@ -40,19 +40,27 @@ Configuration = (options = {}) ->
   options.scheme = 'https'
   options.suppressLogs = no
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
+  options.vaultPath or= path.join __dirname, "../../vault/"
+  options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.environment}.coffee"
+
+  try fs.lstatSync options.credentialPath
+  catch
+    console.log """
+      couldnt find credential in given path: #{options.credentialPath}
+      please provide --vaultPath or --credentialPath while configuring
+    """
+    process.exit 1
 
   options.host = options.hostname
 
-  customDomain =
+  options.customDomain =
     public  : "#{options.scheme}://#{options.host}"
     public_ : options.host
     local   : "http://127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
     local_  : "127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
     port    : parseInt(options.publicPort, 10)
 
-
-  options.customDomain = customDomain
-  credentials = require("./credentials.#{options.environment}")(options)
+  credentials = require(options.credentialPath)(options)
 
   worker_ci_test = require './aws/worker_ci_test_key.json'
 
