@@ -20,12 +20,12 @@ module.exports = class ButtonWithMenu extends React.Component
     super props
 
     @state = { isMenuOpen: @props.isMenuOpen }
-    
-    
+
+
   componentWillReceiveProps: (nextProps) ->
-    
+
     { isMenuOpen } = nextProps
-    
+
     @setState { isMenuOpen }
 
 
@@ -42,6 +42,7 @@ module.exports = class ButtonWithMenu extends React.Component
   listDidMount: (_list) ->
 
     button = ReactDOM.findDOMNode @refs.button
+    return @setState isMenuOpen: no  unless button
     list = ReactDOM.findDOMNode _list
     buttonRect = button.getBoundingClientRect()
 
