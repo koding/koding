@@ -1,10 +1,11 @@
-_              = require 'lodash'
-kd             = require 'kd'
-React          = require 'kd-react'
-classnames     = require 'classnames'
-GenericToggler = require './generictoggler'
-immutable      = require 'immutable'
-Machine        = require 'app/providers/machine'
+_                   = require 'lodash'
+kd                  = require 'kd'
+React               = require 'kd-react'
+classnames          = require 'classnames'
+GenericToggler      = require './generictoggler'
+immutable           = require 'immutable'
+Machine             = require 'app/providers/machine'
+SharingAutocomplete = require './sharingautocomplete'
 
 module.exports = class MachineDetails extends React.Component
 
@@ -25,6 +26,17 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderSharing  : no
     onChangeAlwaysOn     : kd.noop
     onChangePowerStatus  : kd.noop
+
+
+  constructor: (props) ->
+
+    super props
+    @state = { sharing : no }
+
+
+  onSharingToggle: (checked) ->
+
+    @setState { sharing : checked }
 
 
   renderSpecs: ->
@@ -70,9 +82,19 @@ module.exports = class MachineDetails extends React.Component
 
     <GenericToggler
       title='VM Sharing'
-      description='Teammates with this link can access my VM'>
-        Awesome shareable link
+      description='Teammates with this link can access my VM'
+      onToggle={@bound 'onSharingToggle'}>
+        {@renderSharingDetails()}
     </GenericToggler>
+
+
+  renderSharingDetails: ->
+
+    return  unless @state.sharing
+
+    <div className='MachineSharingDetails'>
+      <SharingAutocomplete machineId={@props.machine.get '_id'} />
+    </div>
 
 
   render: ->

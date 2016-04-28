@@ -172,3 +172,35 @@ $borderColor                = #CACACA
     color                   #999999
 
 
+.MachineSharingDetails
+
+  input.kdinput.text
+    line-height             20px
+    font-size               14px
+    color                   #a2a2a2
+    height                  38px
+    width                   100%
+
+  .autocomplete-list
+    min-width               268px !important
+    position                fixed
+    border                  1px solid #aaa
+    margin                  -1px 0 0 4px
+    shadow                  0 3px 6px rgba(0,0,0,.1)
+    padding                 5px 0
+    bg                      color, #fff
+
+  .autocomplete-list-item
+    padding                 5px 10px 5px 5px
+    pointer()
+    color                   #6d6d6d
+    line-height             27px
+
+    &.active
+      color                 #fff
+      bg                    color, #7a7a7a
+
+    .ProfilePicture
+      display               inline-block
+      margin                1px 10px 1px 5px
+      vertical-align        top
