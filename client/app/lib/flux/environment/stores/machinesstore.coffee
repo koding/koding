@@ -17,6 +17,7 @@ module.exports = class MachinesStore extends KodingFluxStore
     @on actions.SET_MACHINE_ALWAYS_ON_BEGIN, @setAlwaysOnBegin
     @on actions.SET_MACHINE_ALWAYS_ON_SUCCESS, @setAlwaysOnSuccess
     @on actions.SET_MACHINE_ALWAYS_ON_FAIL, @setAlwaysOnFail
+    @on actions.LOAD_MACHINE_SHARED_USERS, @loadSharedUsers
 
 
   load: (machines, { own, shared, collaboration }) ->
@@ -71,3 +72,7 @@ module.exports = class MachinesStore extends KodingFluxStore
       machine = machine.setIn ['meta', 'alwaysOn'], machine.getIn ['meta', '_alwaysOn']
       machine = machine.deleteIn ['meta', '_alwaysOn']
       machines.set id, machine
+
+  loadSharedUsers: (machines, { id, users }) ->
+
+    machines.setIn [id, 'sharedUsers'], toImmutable users

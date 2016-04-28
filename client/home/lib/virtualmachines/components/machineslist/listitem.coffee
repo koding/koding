@@ -15,6 +15,8 @@ module.exports = class MachinesListItem extends React.Component
     shouldRenderSharing  : React.PropTypes.bool
     onChangeAlwaysOn     : React.PropTypes.func
     onChangePowerStatus  : React.PropTypes.func
+    onDetailOpen         : React.PropTypes.func
+    onSharedWithUser     : React.PropTypes.func
 
   @defaultProps =
     shouldRenderDetails  : yes
@@ -24,6 +26,8 @@ module.exports = class MachinesListItem extends React.Component
     shouldRenderSharing  : no
     onChangeAlwaysOn     : kd.noop
     onChangePowerStatus  : kd.noop
+    onDetailOpen         : kd.noop
+    onSharedWithUser     : kd.noop
 
 
   constructor: (props) ->
@@ -43,10 +47,17 @@ module.exports = class MachinesListItem extends React.Component
         shouldRenderAlwaysOn={@props.shouldRenderAlwaysOn}
         shouldRenderSharing={@props.shouldRenderSharing}
         onChangeAlwaysOn={@props.onChangeAlwaysOn}
-        onChangePowerStatus={@props.onChangePowerStatus} />
+        onChangePowerStatus={@props.onChangePowerStatus}
+        onSharedWithUser={@props.onSharedWithUser}
+      />
     </main>
 
-  toggle: (event) -> @setState { isDetailOpen: not @state.isDetailOpen }
+
+  toggle: (event) ->
+
+    isDetailOpen = not @state.isDetailOpen
+    @setState { isDetailOpen }
+    @props.onDetailOpen()  if isDetailOpen
 
 
   renderIpAddress: ->

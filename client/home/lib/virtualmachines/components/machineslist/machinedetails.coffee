@@ -17,6 +17,7 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderSharing  : React.PropTypes.bool
     onChangeAlwaysOn     : React.PropTypes.func
     onChangePowerStatus  : React.PropTypes.func
+    onSharedWithUser     : React.PropTypes.func
 
 
   @defaultProps =
@@ -26,17 +27,21 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderSharing  : no
     onChangeAlwaysOn     : kd.noop
     onChangePowerStatus  : kd.noop
+    onSharedWithUser     : kd.noop
 
 
   constructor: (props) ->
 
     super props
-    @state = { sharing : no }
+    @state = {}
 
 
   onSharingToggle: (checked) ->
 
-    @setState { sharing : checked }
+    @setState { isShared : checked }
+
+
+  isShared: ->  @state.isShared ? @props.machine.get('sharedUsers')?.size > 0
 
 
   renderSpecs: ->
@@ -83,6 +88,7 @@ module.exports = class MachineDetails extends React.Component
     <GenericToggler
       title='VM Sharing'
       description='Teammates with this link can access my VM'
+      checked={@isShared()}
       onToggle={@bound 'onSharingToggle'}>
         {@renderSharingDetails()}
     </GenericToggler>
@@ -90,10 +96,10 @@ module.exports = class MachineDetails extends React.Component
 
   renderSharingDetails: ->
 
-    return  unless @state.sharing
+    return  unless @isShared()
 
     <div className='MachineSharingDetails'>
-      <SharingAutocomplete machineId={@props.machine.get '_id'} />
+      <SharingAutocomplete machineId={@props.machine.get '_id'} onSelect={@props.onSharedWithUser} />
     </div>
 
 
