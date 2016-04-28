@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"koding/kites/kloud/httputil"
-	"koding/klient/protocol"
 	"net"
 	"net/http"
 	"time"
+
+	"koding/config"
+	"koding/kites/kloud/httputil"
+	"koding/klient/protocol"
 )
 
 // StatusError describes a HTTP reponse error.
@@ -44,21 +46,11 @@ var DefaultClient = &Client{
 	Backoff: func(int) time.Duration {
 		return 100 * time.Millisecond
 	},
-	EndpointPublicIP: func() (url string) {
-		switch protocol.Environment {
-		case "production", "managed":
-			return "https://p.koding.com/-/ip"
-		default:
-			return "https://dev-p.koding.com/-/ip"
-		}
+	EndpointPublicIP: func() string {
+		return config.Builtin.Endpoints.URL("ip", protocol.Environment)
 	},
 	EndpointIsReachable: func(port string) (url string) {
-		switch protocol.Environment {
-		case "production", "managed":
-			return "https://p.koding.com/-/ipcheck/" + port
-		default:
-			return "https://dev-p.koding.com/-/ipcheck/" + port
-		}
+		return config.Builtin.Endpoints.URL("ipcheck", protocol.Environment) + "/" + port
 	},
 }
 
