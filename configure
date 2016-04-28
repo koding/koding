@@ -1,13 +1,12 @@
 #!/usr/bin/env coffee
-
-
-argv       = require('minimist')(process.argv.slice(2))
-log        = console.log
-fs         = require 'fs'
-path       = require 'path'
-os         = require 'os'
-request    = require 'request'
-git        = require 'git-rev'
+argv = require('minimist')(process.argv.slice(2))
+log = console.log
+fs = require 'fs'
+os = require 'os'
+path = require 'path'
+git = require 'git-rev'
+request = require 'request'
+{ extend, defaults } = require 'underscore'
 
 # check if dev environment is avaliable
 defaultEnv = 'default'
@@ -22,24 +21,26 @@ log ""
 
 version = undefined
 
-options = o =
-  projectRoot      : argv.projectRoot    or __dirname
-  config           : argv.config         or defaultEnv
-  region           : argv.region         or defaultEnv
-  branch           : argv.branch         or "cake-rewrite"
-  build            : argv.build          or 1
-  version          : argv.version
-  tag              : argv.tag
-  environment      : argv.environment    or defaultEnv
-  publicPort       : argv.publicPort     or "8090"
-  target           : argv.target         or "localhost"
-  onlyconfigure    : argv.onlyconfigure  or no
-  runGoWatcher     : argv.hasOwnProperty 'with-go-watcher'
-  deploy           : argv.deploy         or no
-  host             : argv.host
-  ebEnvName        : argv.ebEnvName      or defaultEnv
-  tunnelUrl        : argv.tunnelUrl
-  sendEventsToSegment : if argv['disable-segment'] then off else on
+# clone all the arguments to options
+options = extend {}, argv
+
+# TODO - get rid of this step, all configs already sets their own default options
+#
+# set sane defaults for _some_ options.
+defaults options,
+  projectRoot: __dirname
+  config: defaultEnv
+  region: defaultEnv
+  build: 1
+  environment: defaultEnv
+  onlyconfigure: no
+  deploy: no
+  ebEnvName: defaultEnv
+  vaultPath: path.join __dirname, "./"
+
+
+options.runGoWatcher = argv.hasOwnProperty 'with-go-watcher'
+options.sendEventsToSegment = if argv['disable-segment'] then off else on
 
 rest = ->
   options.publicHostname = argv.publichostname or "http://#{options.hostname}:8090"
@@ -48,11 +49,11 @@ rest = ->
 
   log "Configuring with options:"
   log "-------------------------"
-  log o
+  log options
   log "-------------------------"
   log ""
 
-  KONFIG = require("./config/main.#{o.config}.coffee")(options)
+  KONFIG = require("./config/main.#{options.config}.coffee")(options)
 
   equals = (x1, x2, whitelist)->
     for key of x1 when key not in whitelist
@@ -98,7 +99,7 @@ rest = ->
     log "3) brew install mongodb nginx"
     log "4) do './run install' "
     log "5) do './run buildservices' to create backend service containers after installing docker."
-    log "6) you can then type './run' to run Koding and see it on #{o.hostname}"
+    log "6) you can then type './run' to run Koding and see it on #{options.hostname}"
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
 
