@@ -42,6 +42,7 @@ type MountOptions struct {
 	PrefetchInterval int
 	Trace            bool
 	UseSync          bool
+	SyncInterval     int
 
 	// Used for Prefetching via RSync (SSH)
 	SSHDefaultKeyDir  string
@@ -320,6 +321,7 @@ func (c *MountCommand) setupKlient() (int, error) {
 
 func (c *MountCommand) useSync() error {
 	c.Log.Debug("#useSync")
+	c.printfln("Warning: This feature is in alpha.")
 
 	sshKey, err := c.getSSHKey()
 	if err != nil {
@@ -355,7 +357,11 @@ func (c *MountCommand) useSync() error {
 	}
 
 	// Modify our cache request with the interval only settings.
-	cacheReq.Interval = 10 * time.Second
+	cacheReq.Interval = time.Duration(c.Options.SyncInterval) * time.Second
+	if cacheReq.Interval == 0 {
+		cacheReq.Interval = 10 * time.Second
+	}
+
 	cacheReq.OnlyInterval = true
 	cacheReq.LocalToRemote = true
 

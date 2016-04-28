@@ -161,7 +161,7 @@ func startIntervaler(log logging.Logger, remoteMachine *machine.Machine, c *rsyn
 	log = log.New("startIntervaler")
 
 	if opts.Interval <= 0 {
-		log.Warning(
+		log.Debug(
 			"startIntervaler() called with interval:%d. Cannot start Intervaler",
 			opts.Interval,
 		)

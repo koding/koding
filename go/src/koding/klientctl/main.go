@@ -126,6 +126,10 @@ func main() {
 					Name:  "use-sync",
 					Usage: "Mount the remote directory by syncing, instead of fuse.",
 				},
+				cli.IntFlag{
+					Name:  "sync-interval",
+					Usage: "The interval at which local is synced to remote.",
+				},
 				cli.StringFlag{
 					Name:  "remotepath, r",
 					Usage: "Full path of remote folder in machine to mount to local.",
