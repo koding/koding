@@ -94,6 +94,7 @@ module.exports = class GroupsController extends kd.Controller
 
         @filterXssAndForwardEvents realtimeChan, [
           'StackTemplateChanged'
+          'GroupStackTemplateRemoved'
           'InstanceChanged'
           'GroupDestroyed'
           'StackAdminMessageCreated'

@@ -1,9 +1,9 @@
-kd                        = require 'kd'
-timeago                   = require 'timeago'
-showError                 = require 'app/util/showError'
+kd                                = require 'kd'
+timeago                           = require 'timeago'
+showError                         = require 'app/util/showError'
 
-BaseStackTemplateListItem = require './basestacktemplatelistitem'
-ForceToReinitModal        = require './forcetoreinitmodal'
+ForceToReinitModal                = require './forcetoreinitmodal'
+BaseStackTemplateListItem         = require './basestacktemplatelistitem'
 
 
 module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
@@ -14,9 +14,19 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     super options, data
 
-    { isDefault, inUse, accessLevel, config } = @getData()
+    @setTestPath()
+    @buildViews()
 
+
+  setTestPath: ->
+
+    { accessLevel } = @getData()
     @setAttribute 'testpath', "#{accessLevel}StackListItem"
+
+
+  buildViews: ->
+
+    { isDefault, inUse, accessLevel, config } = @getData()
 
     @isDefaultView = new kd.CustomHTMLView
       cssClass   : 'custom-tag'
@@ -48,27 +58,37 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
       attributes :
         testpath : 'StackAccessLevelTag'
       tooltip    :
-        title    : switch accessLevel
-          when 'public'
-            'This group currently using this template'
-          when 'group'
-            'This template can be used in group'
-          when 'private'
-            'Only you can use this template'
+        title    : @getAccessLevelTooptipTitle accessLevel
 
     @isDefaultView.hide() unless isDefault
     @inUseView.hide()     unless inUse
     @notReadyView.hide()  if config.verified
 
 
-  generateStackFromTemplate: ->
+  getAccessLevelTooptipTitle: (accessLevel) ->
 
-    stackTemplate = @getData()
-    stackTemplate.generateStack (err, stack) =>
+    switch accessLevel
+      when 'public'
+        'This group currently using this template'
+      when 'group'
+        'This template can be used in group'
+      when 'private'
+        'Only you can use this template'
 
-      unless showError err
-        kd.singletons.computeController.reset yes, => @getDelegate().emit 'StackGenerated'
-        new kd.NotificationView { title: 'Stack generated successfully' }
+
+  updateAccessLevel: ->
+
+    { accessLevel } = @getData()
+
+    title = @getAccessLevelTooptipTitle accessLevel
+
+    @accessLevelView.tooltip?.destroy()
+    @accessLevelView.setTooltip { title }
+
+    @accessLevelView.updatePartial accessLevel.toUpperCase()
+
+    @accessLevelView.unsetClass 'private'
+    @accessLevelView.setClass accessLevel
 
 
   _itemSelected: (data) ->
@@ -79,6 +99,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     listView      = @getDelegate()
     stackTemplate = @getData()
+    @menu         = {}
 
     if not stackTemplate.isDefault and stackTemplate.config.verified
       @addMenuItem 'Apply to Team', =>
