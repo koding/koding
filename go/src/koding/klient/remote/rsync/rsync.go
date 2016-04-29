@@ -1,6 +1,7 @@
 package rsync
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math"
@@ -156,6 +157,10 @@ func (rs *Client) sync(progCh chan Progress, opts SyncOpts) {
 	)
 	cmd := exec.Command("rsync", args...)
 
+	// Record our stderr, incase we need to print an error.
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
 	// Rsync is using SSH which requires a valid SSH_AUTH_SOCK of the user calling
 	// kd. So, we accept that and apply it to the rsync command here.
 	cmd.Env = append(os.Environ(), []string{
@@ -208,6 +213,14 @@ func (rs *Client) sync(progCh chan Progress, opts SyncOpts) {
 	}()
 
 	if err := cmd.Run(); err != nil {
+		// If the error was an exit error, log the last X lines of stderr output to
+		// aid in debugging.
+		if _, ok := err.(*exec.ExitError); ok {
+			rs.log.Error(
+				"RSync returned a non-zero exit status.\nerr: %s, stderr output:\n%s",
+				err, stderr.String(),
+			)
+		}
 		progCh <- progressErr(err)
 		// No need to close chan here, because we close below in all events.
 	}
