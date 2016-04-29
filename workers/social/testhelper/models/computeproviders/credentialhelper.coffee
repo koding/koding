@@ -49,7 +49,7 @@ createCredential = (client, options, callback) ->
 
   JCredential.create client, options, (err, credential) ->
 
-    addToRemoveList client, credential.identifier
+    addToRemoveList client, credential.identifier  if credential
 
     callback err, { credential }
 
