@@ -101,6 +101,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 			SSHPrivateKeyPath: params.SSHPrivateKeyPath,
 			DirSize:           remoteSize,
 			LocalToRemote:     params.LocalToRemote,
+			IgnoreFile:        params.IgnoreFile,
 		},
 		Interval: params.Interval,
 	}
