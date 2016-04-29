@@ -128,8 +128,8 @@ func main() {
 					Usage: "Copy remote folder to local and sync on interval. (fastest runtime).",
 				},
 				cli.IntFlag{
-					Name:  "oneway-interval, si",
-					Usage: "Sets how frequently local folder will sync with remote, in seconds.",
+					Name:  "oneway-interval",
+					Usage: "Sets how frequently local folder will sync with remote, in seconds. Default is 2 seconds.",
 				},
 				cli.BoolFlag{
 					Name:  "noprefetch-meta, p",
@@ -140,7 +140,7 @@ func main() {
 					Usage: "Prefetch all contents of the remote directory up front (DEPRECATED).",
 				},
 				cli.IntFlag{
-					Name:  "prefetch-interval, pi",
+					Name:  "prefetch-interval",
 					Usage: "Sets how frequently remote folder will sync with local, in seconds. (DEPRECATED).",
 				},
 				cli.BoolFlag{
