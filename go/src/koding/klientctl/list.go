@@ -21,12 +21,12 @@ import (
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
 func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
-	if len(c.Args()) != 0 && c.Args().First() != "all" {
+	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "list")
 		return 1
 	}
 
-	showAll := c.Args().First() == "all"
+	showAll := c.Bool("all")
 
 	k, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {

@@ -91,6 +91,10 @@ func main() {
 					Name:  "json",
 					Usage: "Output in JSON format",
 				},
+				cli.BoolFlag{
+					Name:  "all",
+					Usage: "Include machines that have been offline for more than 24h.",
+				},
 			},
 			Subcommands: []cli.Command{
 				cli.Command{
