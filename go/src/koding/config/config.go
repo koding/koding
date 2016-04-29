@@ -2,8 +2,7 @@ package config
 
 import "encoding/json"
 
-//go:generate go get github.com/jteeuwen/go-bindata/go-bindata
-//go:generate go-bindata -pkg config -o config.json.go config.json
+//go:generate ../../../bin/go-bindata -pkg config -o config.json.go config.json
 
 // Builtin represents an embedded configuration.
 var Builtin *Config

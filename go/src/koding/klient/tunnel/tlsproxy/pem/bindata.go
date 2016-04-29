@@ -84,7 +84,7 @@ func fullchainPem() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "fullchain.pem", size: 3460, mode: os.FileMode(420), modTime: time.Unix(1458927132, 0)}
+	info := bindataFileInfo{name: "fullchain.pem", size: 3460, mode: os.FileMode(420), modTime: time.Unix(1461015797, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -104,7 +104,7 @@ func privkeyPem() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "privkey.pem", size: 1704, mode: os.FileMode(420), modTime: time.Unix(1458927132, 0)}
+	info := bindataFileInfo{name: "privkey.pem", size: 1704, mode: os.FileMode(420), modTime: time.Unix(1461015797, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
