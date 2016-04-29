@@ -68,8 +68,18 @@ module.exports = class StackTemplateListController extends KodingListController
 
     { computeController, groupsController } = kd.singletons
 
-    computeController.on  'RenderStacks',         @bound 'handleRenderStacks'
-    groupsController.on   'StackTemplateChanged', @bound 'handleStackTemplateChanged'
+    computeController.on 'RenderStacks', @bound 'handleRenderStacks'
+    groupsController.on  'StackTemplateChanged', @bound 'handleStackTemplateChanged'
+
+
+  updateItem: (stackTemplate) ->
+
+    [target] = @getListItems().filter (i) -> i.getData()._id is stackTemplate._id
+
+    return  unless target
+
+    target.setData stackTemplate
+    target.handleLabelStates()
 
 
   handleRenderStacks: (stacks) ->
