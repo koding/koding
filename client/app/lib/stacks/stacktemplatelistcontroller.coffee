@@ -118,7 +118,12 @@ module.exports = class StackTemplateListController extends KodingListController
       kd.warn 'Stack template is already added to list!'
       return
 
-    @fetch { _id }, (items) =>
+    params = { _id }
+
+    if @getOption('viewType') is 'private'
+      params.query = @filterStates.query.originId
+
+    @fetch params, (items) =>
       @addListItems items
       callback items
 
