@@ -25,12 +25,16 @@ module.exports = class VirtualMachinesListContainer extends React.Component
   onSharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.shareMachineWithUser machineId, nickname
 
 
+  onUnsharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.unshareMachineWithUser machineId, nickname
+
+
   render: ->
     <View stacks={@state.stacks}
       onChangeAlwaysOn={@bound 'onChangeAlwaysOn'}
       onChangePowerStatus={@bound 'onChangePowerStatus'}
       onDetailOpen={@bound 'onDetailOpen'}
       onSharedWithUser={@bound 'onSharedWithUser'}
+      onUnsharedWithUser={@bound 'onUnsharedWithUser'}
     />
 
 

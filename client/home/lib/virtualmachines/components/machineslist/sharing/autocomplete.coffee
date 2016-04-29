@@ -15,7 +15,10 @@ module.exports = class SharingAutocomplete extends React.Component
     }
 
 
-  onSelect: (value, item) -> @props.onSelect value
+  onSelect: (value, item) ->
+
+    @setState { value : '' }
+    @props.onSelect value
 
 
   onChange: (event, value) ->
@@ -29,7 +32,7 @@ module.exports = class SharingAutocomplete extends React.Component
 
   renderMenu: (items, value, style) ->
 
-    className  = 'autocomplete-list'
+    className  = 'AutocompleteList'
     className += ' hidden'  unless items.length
 
     <div style={style} className={className}>
@@ -39,7 +42,7 @@ module.exports = class SharingAutocomplete extends React.Component
 
   renderItem: (item, isHighlighted) ->
 
-    className  = 'autocomplete-list-item'
+    className  = 'AutocompleteListItem'
     className += ' active'  if isHighlighted
 
     <div key={item._id} className={className}>

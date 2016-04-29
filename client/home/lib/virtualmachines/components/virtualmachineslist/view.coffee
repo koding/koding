@@ -10,11 +10,15 @@ module.exports = class VirtualMachinesListView extends React.Component
     onChangeAlwaysOn    : React.PropTypes.func
     onChangePowerStatus : React.PropTypes.func
     onDetailOpen        : React.PropTypes.func
+    onSharedWithUser    : React.PropTypes.func
+    onUnsharedWithUser  : React.PropTypes.func
 
   @defaultProps =
     onChangeAlwaysOn    : kd.noop
     onChangePowerStatus : kd.noop
     onDetailOpen        : kd.noop
+    onSharedWithUser    : kd.noop
+    onUnsharedWithUser  : kd.noop
 
 
   onChangeAlwaysOn: (machine, state) ->
@@ -35,6 +39,11 @@ module.exports = class VirtualMachinesListView extends React.Component
   onSharedWithUser: (machine, nickname) ->
 
     @props.onSharedWithUser machine.get('_id'), nickname
+
+
+  onUnsharedWithUser: (machine, nickname) ->
+
+    @props.onUnsharedWithUser machine.get('_id'), nickname
 
 
   numberOfSections: -> 1
@@ -69,6 +78,7 @@ module.exports = class VirtualMachinesListView extends React.Component
           onChangePowerStatus={@lazyBound 'onChangePowerStatus', machine}
           onDetailOpen={@lazyBound 'onDetailOpen', machine}
           onSharedWithUser={@lazyBound 'onSharedWithUser', machine}
+          onUnsharedWithUser={@lazyBound 'onUnsharedWithUser', machine}
         />
 
 

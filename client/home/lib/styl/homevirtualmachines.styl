@@ -181,7 +181,7 @@ $borderColor                = #CACACA
     height                  38px
     width                   100%
 
-  .autocomplete-list
+  .AutocompleteList
     min-width               268px !important
     position                fixed
     border                  1px solid #aaa
@@ -191,7 +191,7 @@ $borderColor                = #CACACA
     bg                      color, #fff
     z-index                 1000
 
-  .autocomplete-list-item
+  .AutocompleteListItem
     padding                 5px 10px 5px 5px
     pointer()
     color                   #6d6d6d
@@ -205,3 +205,43 @@ $borderColor                = #CACACA
       display               inline-block
       margin                1px 10px 1px 5px
       vertical-align        top
+
+  .UserList
+    margin-top              10px
+
+  .UserListItem
+    height                  45px
+    line-height             45px
+    border-top              1px solid #efefef
+    rel()
+
+    &:first-child
+      border-top            none
+
+    .ProfilePicture
+      margin-top            6px
+      margin-right          6px
+      fl()
+
+    .ProfileName
+      display               block
+      font-size             14px
+      color                 #434343
+
+    .remove
+      r-sprite              'app', 'red_close'
+      top                   14px
+      right                 15px
+      display               none
+      abs()
+      pointer()
+
+    &:hover .remove
+      display               inline-block
+
+  .NoItem
+    margin-top              30px
+    margin-bottom           10px
+    color                   #a1a1a1
+    text-align              center
+    font-size               14px
