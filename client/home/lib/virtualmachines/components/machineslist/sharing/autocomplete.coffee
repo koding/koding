@@ -18,6 +18,7 @@ module.exports = class SharingAutocomplete extends React.Component
   onSelect: (value, item) ->
 
     @setState { value : '' }
+    VirtualMachinesFlux.actions.resetSearchForSharing @props.machineId
     @props.onSelect value
 
 
