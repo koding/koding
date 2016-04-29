@@ -8,6 +8,14 @@ ProfileText         = require 'app/components/profile/profiletext'
 
 module.exports = class SharingAutocomplete extends React.Component
 
+  @propTypes    =
+    machineId   : React.PropTypes.string.isRequired
+    onSelect    : React.PropTypes.func
+
+  @defaultProps =
+    onSelect    : kd.noop
+
+
   getDataBindings: ->
 
     return {

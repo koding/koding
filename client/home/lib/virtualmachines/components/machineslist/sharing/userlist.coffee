@@ -1,4 +1,5 @@
 kd          = require 'kd'
+immutable   = require 'immutable'
 React       = require 'kd-react'
 List        = require 'app/components/list'
 Avatar      = require 'app/components/profile/avatar'
@@ -6,6 +7,14 @@ ProfileText = require 'app/components/profile/profiletext'
 
 
 module.exports = class SharingUserList extends React.Component
+
+  @propTypes     =
+    users        : React.PropTypes.instanceOf(immutable.List).isRequired
+    onUserRemove : React.PropTypes.func
+
+  @defaultProps  =
+    onUserRemove : kd.noop
+
 
   onUserRemove: (user) ->
 
@@ -31,7 +40,9 @@ module.exports = class SharingUserList extends React.Component
     </div>
 
 
-  renderEmptySectionAtIndex: -> <div className='NoItem'>This VM has not yet been shared with anyone.</div>
+  renderEmptySectionAtIndex: ->
+
+    <div className='NoItem'>This VM has not yet been shared with anyone.</div>
 
 
   render: ->
