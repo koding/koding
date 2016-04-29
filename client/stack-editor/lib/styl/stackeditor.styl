@@ -5,18 +5,33 @@ stackeditor.styl
 */
 }
 
-// MOVED STACK EDITOR STYLES
+$accentColor                = #F2778A
+$titleColor                 = #424242
+$subtleColor                = #A59999
+$borderColor                = #E3E3E3
 
-.kdtabpaneview.stackeditor
-  rel()
+//
+// NEW STACK EDITOR APP STYLES
+//
 
-  .text
-    font-size               14px
+.StackEditorView
+  padding                   40px
+  font-family               SoleilFamily
+  bg                        color #F5F3F3
+  min-height                600px
+  min-width                 720px
+  borderBox()
 
-    &.header
-      color                 #02A74D
-      font-size             17px
-      // font-family           adelle
+  .kdtabpaneview
+    bg                      color, #FFF
+    border                  1px solid #E4E4E4
+    border-top              none
+    borderBox()
+
+    > div
+      padding               30px
+      borderBox()
+
   .kdtabhandlecontainer
     bg                      color #FFFFFF
     border                  1px solid $borderColor
@@ -26,7 +41,6 @@ stackeditor.styl
     borderBox()
     rel()
 
-      margin-bottom         10px
     .kdtabhandle-tabs
       margin                0
       padding               0
@@ -63,12 +77,7 @@ stackeditor.styl
         padding-right       40px
         padding-left        20px
 
-  .breadcrumb
-    font-size               18px
-    color                   #00B057
 
-    .active
-      font-weight           normal
   .indicator
     size                  18px, 18px
     color                 white
@@ -95,6 +104,12 @@ stackeditor.styl
 
 
 
+//
+// MOVED STACK EDITOR STYLES
+//
+
+.kdtabpaneview.stackeditor
+  rel()
 
   .kdloader
     padding                 0
@@ -311,6 +326,7 @@ stackeditor.styl
     padding-top             40px
     borderBox()
 
+  .StackEditorView.edit-mode
     .step-define-stack .editor-pane.editor-view
       margin-top            20px
 
@@ -324,6 +340,7 @@ stackeditor.styl
     font-size               15px
     color                   #a1a1a1
 
+  .StackEditorView
 
     .providers
       .text.header
@@ -333,10 +350,10 @@ stackeditor.styl
       text-align            right
 
   .readme
+
     .editor-view
       rounded               4px 4px 0 0
 
-  .readme
     .preview-button
       bg                    color, white !important
       z-index               13
