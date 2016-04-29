@@ -159,6 +159,12 @@ func (m *Mounter) Mount() (*Mount, error) {
 		SyncIntervalOpts: syncOpts,
 	}
 
+	if m.Options.SyncMount {
+		mount.Type = SyncMount
+	} else {
+		mount.Type = FuseMount
+	}
+
 	mount.Log = MountLogger(mount, m.Log)
 
 	if err := m.MountExisting(mount); err != nil {
@@ -191,18 +197,28 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 		mount.Intervaler = m.Intervaler
 	}
 
+	if mount.Type == UnknownMount {
+		setTo := FuseMount
+		m.Log.Notice(
+			"Mount.Type is %q, setting to default:%s", mount.Type, setTo,
+		)
+		mount.Type = setTo
+	}
+
 	// Create our changes channel, so that fuseMount can be told when we lose and
 	// reconnect to klient.
 	changeSummaries := make(chan kitepinger.ChangeSummary, 1)
 
-	// TODO: Uncomment this once fuseklient can accept a change channel.
-	//changes := changeSummaryToBool(changeSummaries)
-	//if err := fuseMountFolder(mount, changes); err != nil {
-	if err := m.fuseMountFolder(mount); err != nil {
-		return err
+	if mount.Type == FuseMount {
+		// TODO: Uncomment this once fuseklient can accept a change channel.
+		//changes := changeSummaryToBool(changeSummaries)
+		//if err := fuseMountFolder(mount, changes); err != nil {
+		if err := m.fuseMountFolder(mount); err != nil {
+			return err
+		}
 	}
 
-	go m.watchClientAndReconnect(mount, changeSummaries)
+	go m.startKiteTracker(mount, changeSummaries)
 
 	return nil
 }
@@ -263,7 +279,7 @@ func (m *Mounter) fuseMountFolder(mount *Mount) error {
 	return nil
 }
 
-func (m *Mounter) watchClientAndReconnect(mount *Mount, changeSummaries chan kitepinger.ChangeSummary) error {
+func (m *Mounter) startKiteTracker(mount *Mount, changeSummaries chan kitepinger.ChangeSummary) error {
 	// TODO: Move this monitoring log into the KiteTracker itself
 	log := m.Log.New("Kite Monitor")
 	log.Info("Monitoring Klient connection..")
@@ -281,6 +297,10 @@ func (m *Mounter) watchClientAndReconnect(mount *Mount, changeSummaries chan kit
 			log.Notice(
 				"Kite connected after extended disconnect. Disconnected for:%s",
 				summary.OldStatusDur,
+			)
+		} else {
+			log.Debug(
+				"Kite connection status changed. newStatus:%s", summary.NewStatus,
 			)
 		}
 	}

@@ -182,7 +182,7 @@ module.exports = class Terminal extends KDObject
     @cursor.setFocused value
     if value then kd.utils.defer => @setKeyFocus()
 
-  setSize: (x, y) ->
+  setSize: (x, y, emit = yes) ->
 
     return  if x is @sizeX and y is @sizeY
 
@@ -192,7 +192,7 @@ module.exports = class Terminal extends KDObject
 
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
     if @server
-      @emit 'ScreenSizeChanged', { w: x, h: y }
+      @emit 'ScreenSizeChanged', { w: x, h: y }  if emit
       @server.setSize x, y
 
   getCharSizes: ->

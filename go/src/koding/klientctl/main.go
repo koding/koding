@@ -56,6 +56,10 @@ func main() {
 		logWriter = f
 	}
 
+	// Setting the handler to debug, because various Remote methods allow a
+	// debug option, and this saves us from having to set the handler level every time.
+	// This only sets handler, not the actual loglevel.
+	logging.DefaultHandler.SetLevel(logging.DEBUG)
 	// Create our logger.
 	//
 	// TODO: Single commit temporary solution, need to remove the above logger
@@ -115,6 +119,17 @@ func main() {
 			Usage:       "Mount a remote folder to a local folder.",
 			Description: cmdDescriptions["mount"],
 			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name: "debug",
+				},
+				cli.BoolFlag{
+					Name:  "use-sync",
+					Usage: "Mount the remote directory by syncing, instead of fuse.",
+				},
+				cli.IntFlag{
+					Name:  "sync-interval",
+					Usage: "The interval at which local is synced to remote.",
+				},
 				cli.StringFlag{
 					Name:  "remotepath, r",
 					Usage: "Full path of remote folder in machine to mount to local.",
