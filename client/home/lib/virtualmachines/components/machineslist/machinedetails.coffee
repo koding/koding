@@ -47,6 +47,9 @@ module.exports = class MachineDetails extends React.Component
   isShared: ->  @state.isShared ? @props.machine.get('sharedUsers')?.size > 0
 
 
+  status: -> @props.machine.getIn [ 'status', 'state' ]
+
+
   renderSpecs: ->
 
     return  unless @props.shouldRenderSpecs
@@ -63,13 +66,13 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @props.shouldRenderPower
 
-    { Running, Starting } = Machine.State
-    isRunning = @props.machine.getIn([ 'status', 'state' ]) in [ Running, Starting ]
+    { Running, Starting, Stopped } = Machine.State
 
     <GenericToggler
       title='VM Power'
       description='Turn your machine on or off from here'
-      checked={isRunning}
+      checked={@status() in [ Running, Starting ]}
+      disabled={not (@status() in [ Running, Stopped ])}
       onToggle={@props.onChangePowerStatus} />
 
 
@@ -77,10 +80,13 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @props.shouldRenderAlwaysOn
 
+    { NotInitialized } = Machine.State
+
     <GenericToggler
       title='Always On'
       description='Keep this machine running indefinitely'
       checked={@props.machine.getIn [ 'meta', 'alwaysOn' ]}
+      disabled={@status() is NotInitialized}
       onToggle={@props.onChangeAlwaysOn} />
 
 
@@ -88,10 +94,13 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @props.shouldRenderSharing
 
+    { NotInitialized } = Machine.State
+
     <GenericToggler
       title='VM Sharing'
       description='Teammates with this link can access my VM'
       checked={@isShared()}
+      disabled={@status() is NotInitialized}
       onToggle={@bound 'onSharingToggle'}>
         {@renderSharingDetails()}
     </GenericToggler>
