@@ -22,6 +22,7 @@ updateCustomVariable = require 'stacks/views/stacks/updatecustomvariable'
 parseTerraformOutput = require 'stacks/views/stacks/parseterraformoutput'
 CredentialStatusView = require 'stacks/views/stacks/credentialstatusview'
 StackTemplatePreviewModal = require 'stacks/views/stacks/stacktemplatepreviewmodal'
+EnvironmentFlux = require 'app/flux/environment'
 
 
 module.exports = class StackEditorView extends kd.View
@@ -201,6 +202,10 @@ module.exports = class StackEditorView extends kd.View
       cssClass     : 'template-title'
       autogrow     : yes
       defaultValue : stackTemplate?.title or 'Default stack template' # can we auto generate cute stack names?
+      bind: 'keyup'
+      keyup: (e) ->
+        { changeTemplateTitle } = EnvironmentFlux.actions
+        changeTemplateTitle stackTemplate?._id, e.target.value
 
 
   createOutputView: ->
