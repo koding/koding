@@ -17,8 +17,51 @@ stackeditor.styl
       color                 #02A74D
       font-size             17px
       // font-family           adelle
+  .kdtabhandlecontainer
+    bg                      color #FFFFFF
+    border                  1px solid $borderColor
+    rounded                 4px 4px 0 0
+    size                    100% 70px
+    padding                 0
+    borderBox()
+    rel()
 
       margin-bottom         10px
+    .kdtabhandle-tabs
+      margin                0
+      padding               0
+      size                  auto auto
+      rel()
+
+    .kdtabhandle
+      height                35px
+      line-height           35px
+      bg                    color transparent
+      border                none
+      color                 #5E5E5E
+      padding               17px 0 18px
+      float                 none
+      display               inline-block
+      contentBox()
+
+      b
+        border-right        1px solid #CACACA
+        padding             0 30px
+        font-weight         400
+        font-size           15px
+        letter-spacing      .5px
+        width               auto
+        vendor              transition, padding .177s ease
+
+      &.active b
+        color               $accentColor
+
+      &:last-of-type b
+        border-right        none
+
+      &.notification b
+        padding-right       40px
+        padding-left        20px
 
   .breadcrumb
     font-size               18px
