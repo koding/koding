@@ -107,7 +107,7 @@ module.exports = class StackTemplateListController extends KodingListController
         item.updateAccessLevel()
         hasFound = yes
 
-    @fetchTemplateById stackTemplateId  unless hasFound
+    @addStackTemplateById stackTemplateId  unless hasFound
 
 
   addStackTemplateById: (_id, callback = kd.noop) ->
