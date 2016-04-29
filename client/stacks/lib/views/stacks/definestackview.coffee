@@ -76,30 +76,30 @@ module.exports = class DefineStackView extends KDView
     @editorViews = {}
 
     @editorViews.stackTemplate = @stackTemplateView = new StackTemplateView options, data
-    @tabView.addPane stackTemplatePane              = new KDTabPaneView
+    @tabView.addPane stackTemplatePane = new KDTabPaneView
       name : 'Stack Template'
       view : @stackTemplateView
 
-    @editorViews.variables = @variablesView         = new VariablesView {
+    @editorViews.variables = @variablesView = new VariablesView {
       delegate: this
       stackTemplate
     }
-    @tabView.addPane variablesPane                  = new KDTabPaneView
+    @tabView.addPane variablesPane = new KDTabPaneView
       name : 'Custom Variables'
       view : @variablesView
 
-    @editorViews.readme = @readmeView               = new ReadmeView { stackTemplate }
-    @tabView.addPane readmePane                     = new KDTabPaneView
+    @editorViews.readme = @readmeView = new ReadmeView { stackTemplate }
+    @tabView.addPane readmePane = new KDTabPaneView
       name : 'Readme'
       view : @readmeView
 
-    @providersView                                  = new ProvidersView {
+    @providersView = new ProvidersView {
       selectedCredentials : @credentials
       provider            : selectedProvider
       stackTemplate
     }
 
-    @tabView.addPane @providersPane                 = new KDTabPaneView
+    @tabView.addPane @providersPane = new KDTabPaneView
       name : 'Credentials'
       view : @providersView
 
