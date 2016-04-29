@@ -38,7 +38,7 @@ module.exports = class ConfigurationView extends JView
 
     if tabLength is 2
       return new kd.NotificationView
-        title    : 'This is a preview mode. You can add more server manually in next steps.'
+        title    : 'This is a preview mode. You can add more servers manually in the next steps.'
         duration : 3663
 
     name = "Server #{tabLength + 1}"
