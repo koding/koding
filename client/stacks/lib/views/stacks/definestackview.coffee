@@ -733,6 +733,7 @@ module.exports = class DefineStackView extends KDView
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
       if @outputView.handleError err
+        @emit 'Reload'
         @setAsDefaultButton.hideLoader()
         return
 
