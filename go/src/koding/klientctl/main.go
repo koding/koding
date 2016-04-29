@@ -119,44 +119,45 @@ func main() {
 			Usage:       "Mount a remote folder to a local folder.",
 			Description: cmdDescriptions["mount"],
 			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name: "debug",
-				},
-				cli.BoolFlag{
-					Name:  "use-sync",
-					Usage: "Mount the remote directory by syncing, instead of fuse.",
-				},
-				cli.IntFlag{
-					Name:  "sync-interval",
-					Usage: "The interval at which local is synced to remote.",
-				},
 				cli.StringFlag{
 					Name:  "remotepath, r",
-					Usage: "Full path of remote folder in machine to mount to local.",
+					Usage: "Full path of remote folder in machine to mount.",
 				},
 				cli.BoolFlag{
-					Name:  "noignore, i",
-					Usage: "Retrieve all files and folders, including ignored folders like .git & .svn.",
+					Name:  "oneway-sync, s",
+					Usage: "Copy remote folder to local and sync on interval. (fastest runtime).",
+				},
+				cli.IntFlag{
+					Name:  "oneway-interval",
+					Usage: "Sets how frequently local folder will sync with remote, in seconds. Default is 2 seconds.",
 				},
 				cli.BoolFlag{
 					Name:  "noprefetch-meta, p",
-					Usage: "Retrieve only top level folder/files. Rest is fetched on request (fastest).",
+					Usage: "Retrieve only top level folder/files. Rest is fetched on request (fastest to mount).",
+				},
+				cli.BoolFlag{
+					Name:  "prefetch-all, a",
+					Usage: "Prefetch all contents of the remote directory up front (DEPRECATED).",
+				},
+				cli.IntFlag{
+					Name:  "prefetch-interval",
+					Usage: "Sets how frequently remote folder will sync with local, in seconds. (DEPRECATED).",
 				},
 				cli.BoolFlag{
 					Name:  "nowatch, w",
 					Usage: "Disable watching for changes on remote machine.",
 				},
 				cli.BoolFlag{
-					Name:  "prefetch-all, a",
-					Usage: "Prefetch all contents of the remote directory up front (best performance/slow bootup).",
-				},
-				cli.IntFlag{
-					Name:  "prefetch-interval",
-					Usage: "Sets how frequently folder will sync with remote, in seconds. Zero disables syncing.",
+					Name:  "noignore, i",
+					Usage: "Retrieve all files and folders, including ignored folders like .git & .svn.",
 				},
 				cli.BoolFlag{
 					Name:  "trace, t",
 					Usage: "Turn on trace logs.",
+				},
+				cli.BoolFlag{
+					Name:  "debug, d",
+					Usage: "Turn on debug logs.",
 				},
 			},
 			Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),

@@ -193,7 +193,7 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 	// The two New methods is to tweak how the log is displayed.
 	log := logging.NewLogger("remote").New("restoreMount").New(
 		"mountName", m.MountName,
-		"syncMount", m.MountFolder.SyncMount,
+		"syncMount", m.MountFolder.OneWaySyncMount,
 		"prefetchAll", m.MountFolder.PrefetchAll,
 	)
 
