@@ -40,5 +40,5 @@ describe 'TeamStacksList', ->
       listitem = renderIntoDocument(<TeamStacksList.Container />)
       listitem.setState {templates}
 
-      result = findRenderedDOMComponentWithClass listitem, 'StackTemplateItem-label'
+      result = findRenderedDOMComponentWithClass listitem, 'HomeAppViewListItem-label'
       expect(result.innerHTML).toEqual template.title
