@@ -36,7 +36,6 @@ defaults options,
   onlyconfigure: no
   deploy: no
   ebEnvName: defaultEnv
-  vaultPath: path.join __dirname, "./"
 
 
 options.runGoWatcher = argv.hasOwnProperty 'with-go-watcher'
@@ -122,6 +121,16 @@ rest = ->
       config = require("./config/main.#{c}.coffee")(options)
       process.exit(1)  unless configMatchesDefault(config)
 
+updateVault = ->
+  # only run copying vault in dev env
+  return rest() unless options.config is 'dev'
+  { execFile } = require 'child_process'
+
+  execFile './scripts/copy_vault.sh', (err, stdout, stderr) ->
+    console.log err  if err
+    process.stdout.write stdout
+    process.stderr.write stderr
+    rest()
 
 git.long (str) ->
   if str != ""
@@ -131,15 +140,15 @@ git.long (str) ->
 
   if argv.hostname
     options.hostname = argv.hostname
-    rest()
+    updateVault()
   else if os.type() is "Darwin"
     options.hostname = "dev.koding.com"
     options.ngrok = yes
-    rest()
+    updateVault()
   else
     log "lemme find your IP"
     request "http://echoip.net", (err, res, body) ->
       ip = body
       options.hostname = ip
       log "my ip is #{ip}"
-      rest()
+      updateVault()
