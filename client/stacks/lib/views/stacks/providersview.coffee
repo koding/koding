@@ -10,10 +10,10 @@ module.exports = class ProvidersView extends KDView
 
     super options, data
 
-    { stackTemplate, selectedCredentials, provider } = @getOptions()
+    { stackTemplate, selectedCredentials, provider, listItemClass } = @getOptions()
 
     @credentialList = new CredentialListView {
-      stackTemplate, selectedCredentials, provider
+      stackTemplate, selectedCredentials, provider, listItemClass
     }
 
     @forwardEvents @credentialList.list, ['ItemSelected', 'ItemDeleted']
