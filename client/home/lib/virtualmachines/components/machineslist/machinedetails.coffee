@@ -112,7 +112,7 @@ module.exports = class MachineDetails extends React.Component
 
     { machine } = @props
     <div className='MachineSharingDetails'>
-      <SharingAutocomplete machineId={machine.get '_id'} onSelect={@props.onSharedWithUser} />
+      <SharingAutocomplete.Container machineId={machine.get '_id'} onSelect={@props.onSharedWithUser} />
       <SharingUserList users={machine.get 'sharedUsers'} onUserRemove={@props.onUnsharedWithUser} />
     </div>
 

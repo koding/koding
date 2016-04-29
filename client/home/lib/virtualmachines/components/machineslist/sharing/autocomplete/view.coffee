@@ -1,39 +1,23 @@
 kd                  = require 'kd'
+immutable           = require 'immutable'
 React               = require 'kd-react'
 Autocomplete        = require 'react-autocomplete'
-KDReactorMixin      = require 'app/flux/base/reactormixin'
-VirtualMachinesFlux = require 'home/virtualmachines/flux'
 Avatar              = require 'app/components/profile/avatar'
 ProfileText         = require 'app/components/profile/profiletext'
 
-module.exports = class SharingAutocomplete extends React.Component
+module.exports = class SharingAutocompleteView extends React.Component
 
   @propTypes    =
-    machineId   : React.PropTypes.string.isRequired
+    value       : React.PropTypes.string
+    searchItems : React.PropTypes.instanceOf immutable.List
     onSelect    : React.PropTypes.func
+    onChange    : React.PropTypes.func
 
   @defaultProps =
+    value       : ''
+    searchItems : immutable.List()
     onSelect    : kd.noop
-
-
-  getDataBindings: ->
-
-    return {
-      sharingSearchItems: VirtualMachinesFlux.getters.sharingSearchItems @props.machineId
-    }
-
-
-  onSelect: (value, item) ->
-
-    @setState { value : '' }
-    VirtualMachinesFlux.actions.resetSearchForSharing @props.machineId
-    @props.onSelect value
-
-
-  onChange: (event, value) ->
-
-    @setState { value }
-    VirtualMachinesFlux.actions.searchForSharing value, @props.machineId
+    onChange    : kd.noop
 
 
   getItemValue: (item) -> item.profile.nickname
@@ -65,15 +49,12 @@ module.exports = class SharingAutocomplete extends React.Component
     <Autocomplete
       inputProps={ {placeholder: 'Type a username', className: 'kdinput text'} }
       ref='autocomplete'
-      value={@state.value}
-      items={@state.sharingSearchItems.toJS()}
+      value={@props.value}
+      items={@props.searchItems.toJS()}
       getItemValue={@bound 'getItemValue'}
-      onSelect={@bound 'onSelect'}
-      onChange={@bound 'onChange'}
+      onSelect={@props.onSelect}
+      onChange={@props.onChange}
       renderItem={@bound 'renderItem'}
       renderMenu={@bound 'renderMenu'}
       wrapperStyle={{}}
     />
-
-
-SharingAutocomplete.include [KDReactorMixin]
