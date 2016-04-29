@@ -136,6 +136,12 @@ Please wait a few minutes and try again.`,
 
 	// FailedUninstallingKlientWarn is when the service fails
 	// (connecting or uninstalling)
+	FailedStopKlientWarn = fmt.Sprintf(
+		"Warning: Unable to stop %s service.", config.Name,
+	)
+
+	// FailedUninstallingKlientWarn is when the service fails
+	// (connecting or uninstalling)
 	FailedUninstallingKlientWarn = fmt.Sprintf(
 		"Warning: Unable to uninstall %s service.", config.Name,
 	)
