@@ -1,0 +1,52 @@
+@css {
+/*
+Stack Editor Header stylesheet
+stackeditorheader.styl
+*/
+}
+
+$accentColor                = #F2778A
+$titleColor                 = #424242
+$subtleColor                = #A59999
+$borderColor                = #E3E3E3
+
+.StackEditorView--header
+  display                   flex
+  flex-flow                 row nowrap
+  justify-content           space-around
+  margin-bottom             33px
+  &:before
+    content                 ''
+    bg                      color #73C461
+    size                    10px 10px
+    abs                     61px 0 0 42px
+    rounded                 5px
+
+  .buttons
+    flex                    1 0 auto
+
+  .GenericButton
+    margin-top              3px
+    padding                 12px 40px
+
+  .kdinput.text
+    flex                    0 1 auto
+    font-size               20px
+    display                 block
+    size                    auto 50px
+    padding                 10px 25px
+    border                  1px solid transparent
+    rounded                 3px
+    color                   #424242
+    bg                      color transparent
+    max-width               50%
+    font-weight             400
+    outline                 none
+    shadow                  none
+
+    &:focus
+    &:hover
+      outline               inherit
+      bg                    color #FFFFFF
+      border                1px solid $borderColor
+
