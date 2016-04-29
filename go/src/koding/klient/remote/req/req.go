@@ -79,6 +79,9 @@ type Cache struct {
 
 	// The keypath that SSH will use for rsync.
 	SSHPrivateKeyPath string `json:"sshPrivateKeyPath"`
+
+	// IgnoreFile is the full path to CVS ignore file for rsync.
+	IgnoreFile string `json:"ignoreFile"`
 }
 
 type Status struct {

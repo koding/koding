@@ -39,6 +39,7 @@ type SyncOpts struct {
 	LocalDir          string `json:"localDir"`
 	DirSize           int    `json:"dirSize"`
 	LocalToRemote     bool   `json:"localToRemote"`
+	IgnoreFile        string `json:"ignoreFile"`
 }
 
 type SyncIntervalOpts struct {
@@ -145,11 +146,18 @@ func (rs *Client) sync(progCh chan Progress, opts SyncOpts) {
 	// if not it creates the folder itself
 	srcDir = srcDir + string(os.PathSeparator)
 
-	args := []string{
+	args := []string{}
+
+	if opts.IgnoreFile != "" {
+		args = append(args, fmt.Sprintf("--filter=:- %s", opts.IgnoreFile))
+	}
+
+	args = append(args, []string{
 		"--progress", "--delete", "-zave",
 		fmt.Sprintf("ssh -i %s -oStrictHostKeyChecking=no", opts.SSHPrivateKeyPath),
 		srcDir, dstDir,
-	}
+	}...)
+
 	log.Debug(
 		"Running command: rsync %s",
 		strings.Join(util.QuoteSpacedStrings(args...), " "),

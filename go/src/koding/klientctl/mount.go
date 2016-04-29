@@ -30,6 +30,11 @@ import (
 	"github.com/koding/logging"
 )
 
+var IgnoreFiles = []string{
+	".gitignore",
+	".hgignore",
+}
+
 type MountOptions struct {
 	Debug            bool
 	Name             string
@@ -374,6 +379,7 @@ func (c *MountCommand) useSync() error {
 
 	cacheReq.OnlyInterval = true
 	cacheReq.LocalToRemote = true
+	cacheReq.IgnoreFile = c.getIgnoreFile(c.Options.LocalPath)
 
 	// c.remoteCache handles UX
 	return c.remoteCache(cacheReq, nil)
@@ -604,6 +610,17 @@ func (c *MountCommand) cleanupPath() {
 	if err := util.NewRemovePath().Remove(c.Options.LocalPath); err != nil {
 		c.printfln(UnmountFailedRemoveMountPath)
 	}
+}
+
+func (c *MountCommand) getIgnoreFile(localPath string) string {
+	for _, name := range IgnoreFiles {
+		p := filepath.Join(localPath, name)
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
+
+	return ""
 }
 
 // askToCreate checks if the folder does not exist, and creates it
