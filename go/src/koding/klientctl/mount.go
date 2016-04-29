@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"koding/klientctl/errormessages"
 	"os"
 	"os/user"
 	"path"
@@ -30,6 +31,7 @@ import (
 )
 
 type MountOptions struct {
+	Debug            bool
 	Name             string
 	LocalPath        string
 	RemotePath       string
@@ -39,6 +41,8 @@ type MountOptions struct {
 	PrefetchAll      bool
 	PrefetchInterval int
 	Trace            bool
+	UseSync          bool
+	SyncInterval     int
 
 	// Used for Prefetching via RSync (SSH)
 	SSHDefaultKeyDir  string
@@ -131,6 +135,14 @@ func (c *MountCommand) Run() (int, error) {
 		return 1, err
 	}
 
+	// If they choose not to use fuse, mount with only caching.
+	if c.Options.UseSync {
+		if err := c.useSync(); err != nil {
+			cleanupPath = true
+			return 1, err
+		}
+	}
+
 	if c.Options.PrefetchAll {
 		if err := c.prefetchAll(); err != nil {
 			cleanupPath = true
@@ -140,6 +152,7 @@ func (c *MountCommand) Run() (int, error) {
 	}
 
 	mountRequest := req.MountFolder{
+		Debug:          c.Options.Debug,
 		Name:           c.Options.Name,
 		LocalPath:      c.Options.LocalPath,
 		RemotePath:     c.Options.RemotePath,
@@ -149,6 +162,7 @@ func (c *MountCommand) Run() (int, error) {
 		NoWatch:        c.Options.NoWatch,
 		CachePath:      getCachePath(c.Options.Name),
 		Trace:          c.Options.Trace,
+		SyncMount:      c.Options.UseSync,
 	}
 
 	// Actually mount the folder. Errors are printed by the mountFolder func to the user.
@@ -179,6 +193,28 @@ func (c *MountCommand) handleOptions() (int, error) {
 		c.printfln("Mount Name and LocalPath are required options.")
 		c.Help()
 		return 1, errors.New("Not enough arguments")
+	}
+
+	if c.Options.UseSync {
+		var invalidOption bool
+		switch {
+		case c.Options.PrefetchAll:
+			c.printfln(errormessages.InvalidCLIOption, "--prefetch-all", "--use-sync")
+			invalidOption = true
+		case c.Options.NoPrefetchMeta:
+			c.printfln(errormessages.InvalidCLIOption, "--noprefetch-meta", "--use-sync")
+			invalidOption = true
+		case c.Options.NoIgnore:
+			c.printfln(errormessages.InvalidCLIOption, "--noignore", "--use-sync")
+			invalidOption = true
+		case c.Options.NoWatch:
+			c.printfln(errormessages.InvalidCLIOption, "--nowatch", "--use-sync")
+			invalidOption = true
+		}
+
+		if invalidOption {
+			return 1, errors.New("Invalid CLI Option.")
+		}
 	}
 
 	if c.Options.PrefetchInterval == 0 {
@@ -283,30 +319,13 @@ func (c *MountCommand) setupKlient() (int, error) {
 	return 0, nil
 }
 
-// prefetchAll
-func (c *MountCommand) prefetchAll() error {
-	c.Log.Info("Executing prefetch...")
+func (c *MountCommand) useSync() error {
+	c.Log.Debug("#useSync")
+	c.printfln("Warning: This feature is in alpha.")
 
-	//func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, machineName, localPath, remotePath string, interval int) int {
-	homeDir, err := c.homeDirGetter()
+	sshKey, err := c.getSSHKey()
 	if err != nil {
-		// Using internal error here, because a list error would be confusing to the
-		// user.
-		c.printfln(GenericInternalError)
-		return fmt.Errorf("Failed to get OS User. err:%s", err)
-	}
-
-	// TODO: Use the ssh.Command's implementation of this logic, once ssh.Command is
-	// moved to this new struct setup.
-	sshKey := &ssh.SSHKey{
-		KeyPath: path.Join(homeDir, c.Options.SSHDefaultKeyDir),
-		KeyName: c.Options.SSHDefaultKeyName,
-		Klient:  c.Klient,
-	}
-
-	if !sshKey.KeysExist() {
-		// TODO: Fix this environment leak.
-		util.MustConfirm("The 'prefetchAll' flag needs to create public/private rsa key pair. Continue? [Y|n]")
+		return err
 	}
 
 	remoteUsername, err := sshKey.GetUsername(c.Options.Name)
@@ -315,23 +334,76 @@ func (c *MountCommand) prefetchAll() error {
 		return fmt.Errorf("Error getting remote username. err:%s", err)
 	}
 
-	if err := sshKey.PrepareForSSH(c.Options.Name); err != nil {
-		if strings.Contains(err.Error(), "user: unknown user") {
-			c.printfln(CannotSSHManaged)
-			return fmt.Errorf("Cannot ssh into managed machines. err:%s", err)
-		}
+	// prepareForSSH prints UX to user.
+	if err := c.prepareForSSH(sshKey); err != nil {
+		return err
+	}
 
-		if klientctlerrors.IsMachineNotValidYetErr(err) {
-			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
-			return fmt.Errorf("Machine is not valid yet. err:%s", err)
-		}
+	c.printfln("Downloading initial contents...Please don't interrupt this process while in progress.")
 
+	cacheReq := req.Cache{
+		Debug:             c.Options.Debug,
+		Name:              c.Options.Name,
+		LocalPath:         c.Options.LocalPath,
+		RemotePath:        c.Options.RemotePath,
+		Interval:          0,
+		Username:          remoteUsername,
+		SSHAuthSock:       util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
+		SSHPrivateKeyPath: sshKey.PrivateKeyPath(),
+	}
+
+	if err := c.cacheWithProgress(cacheReq); err != nil {
+		return err
+	}
+
+	// Modify our cache request with the interval only settings.
+	cacheReq.Interval = time.Duration(c.Options.SyncInterval) * time.Second
+	if cacheReq.Interval == 0 {
+		cacheReq.Interval = 10 * time.Second
+	}
+
+	cacheReq.OnlyInterval = true
+	cacheReq.LocalToRemote = true
+
+	// c.remoteCache handles UX
+	return c.remoteCache(cacheReq, nil)
+}
+
+func (c *MountCommand) prefetchAll() error {
+	c.Log.Info("Executing prefetch...")
+
+	sshKey, err := c.getSSHKey()
+	if err != nil {
+		return err
+	}
+
+	remoteUsername, err := sshKey.GetUsername(c.Options.Name)
+	if err != nil {
 		c.printfln(FailedGetSSHKey)
-		return fmt.Errorf("Error getting ssh key. err:%s", err)
+		return fmt.Errorf("Error getting remote username. err:%s", err)
+	}
+
+	// prepareForSSH prints UX to user.
+	if err := c.prepareForSSH(sshKey); err != nil {
+		return err
 	}
 
 	c.printfln("Prefetching remote path...Please don't interrupt this process while in progress.")
 
+	cacheReq := req.Cache{
+		Name:              c.Options.Name,
+		LocalPath:         getCachePath(c.Options.Name),
+		RemotePath:        c.Options.RemotePath,
+		Interval:          time.Duration(c.Options.PrefetchInterval) * time.Second,
+		Username:          remoteUsername,
+		SSHAuthSock:       util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
+		SSHPrivateKeyPath: sshKey.PrivateKeyPath(),
+	}
+
+	return c.cacheWithProgress(cacheReq)
+}
+
+func (c *MountCommand) cacheWithProgress(cacheReq req.Cache) (err error) {
 	// doneErr is used to wait until the cache progress is done, and also send
 	// any error encountered. We simply send nil if there is no error.
 	doneErr := make(chan error)
@@ -368,16 +440,6 @@ func (c *MountCommand) prefetchAll() error {
 		if p.Progress == 100 {
 			doneErr <- nil
 		}
-	}
-
-	cacheReq := req.Cache{
-		Name:              c.Options.Name,
-		LocalPath:         getCachePath(c.Options.Name),
-		RemotePath:        c.Options.RemotePath,
-		Interval:          time.Duration(c.Options.PrefetchInterval) * time.Second,
-		Username:          remoteUsername,
-		SSHAuthSock:       util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
-		SSHPrivateKeyPath: sshKey.PrivateKeyPath(),
 	}
 
 	// c.remoteCache handles UX
@@ -479,6 +541,50 @@ func (c *MountCommand) mountFolder(r req.MountFolder) error {
 
 	if warning != "" {
 		c.printfln("Warning: %s\n", warning)
+	}
+
+	return nil
+}
+
+func (c *MountCommand) getSSHKey() (*ssh.SSHKey, error) {
+	homeDir, err := c.homeDirGetter()
+	if err != nil {
+		// Using internal error here, because a list error would be confusing to the
+		// user.
+		c.printfln(GenericInternalError)
+		return nil, fmt.Errorf("Failed to get OS User. err:%s", err)
+	}
+
+	// TODO: Use the ssh.Command's implementation of this logic, once ssh.Command is
+	// moved to this new struct setup.
+	sshKey := &ssh.SSHKey{
+		KeyPath: path.Join(homeDir, c.Options.SSHDefaultKeyDir),
+		KeyName: c.Options.SSHDefaultKeyName,
+		Klient:  c.Klient,
+	}
+
+	if !sshKey.KeysExist() {
+		// TODO: Fix this environment leak.
+		util.MustConfirm("The 'prefetchAll' flag needs to create public/private rsa key pair. Continue? [Y|n]")
+	}
+
+	return sshKey, nil
+}
+
+func (c *MountCommand) prepareForSSH(sshKey *ssh.SSHKey) error {
+	if err := sshKey.PrepareForSSH(c.Options.Name); err != nil {
+		if strings.Contains(err.Error(), "user: unknown user") {
+			c.printfln(CannotSSHManaged)
+			return fmt.Errorf("Cannot ssh into managed machines. err:%s", err)
+		}
+
+		if klientctlerrors.IsMachineNotValidYetErr(err) {
+			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
+			return fmt.Errorf("Machine is not valid yet. err:%s", err)
+		}
+
+		c.printfln(FailedGetSSHKey)
+		return fmt.Errorf("Error getting ssh key. err:%s", err)
 	}
 
 	return nil

@@ -273,7 +273,9 @@ module.exports = class DefineStackView extends KDView
         appManager.tell 'Stacks', 'exitFullscreen'
         Tracker.track Tracker.STACKS_CANCEL_SETUP if @cancelButton.buttonTitle is 'Cancel'
         Tracker.track Tracker.STACKS_FINISHED_EDIT if @cancelButton.buttonTitle is 'Ok'
-        @emit 'Cancel'
+
+        { stackTemplate } = @getData()
+        @emit 'Cancel', { stackTemplate }
 
     # let's remove this button from here, or
     # only display when no default-stack is in use.
@@ -400,7 +402,7 @@ module.exports = class DefineStackView extends KDView
       @changedContents = {}
 
       templatesView = @getDelegate()
-      @emit 'NewStackTemplateAdded', { stackTemplate, templatesView }
+      @emit 'StackTemplateSaved', { stackTemplate, templatesView }
 
       if err
         @outputView.add 'Parsing failed, please check your template and try again'
@@ -733,6 +735,7 @@ module.exports = class DefineStackView extends KDView
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
       if @outputView.handleError err
+        @emit 'Reload'
         @setAsDefaultButton.hideLoader()
         return
 

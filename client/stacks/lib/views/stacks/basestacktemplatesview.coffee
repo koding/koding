@@ -132,6 +132,7 @@ module.exports = class BaseStackTemplatesView extends kd.View
   showEditor: (options, stackTemplate) ->
 
     { inEditMode, showHelpContent } = options
+    { appManager } = kd.singletons
 
     @initialView.hide()
 
@@ -139,11 +140,30 @@ module.exports = class BaseStackTemplatesView extends kd.View
     @scrollView.addSubView @defineStackView
 
     @defineStackView.on 'Reload', ->
-      kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
+      appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
-    @defineStackView.on 'NewStackTemplateAdded', ({ stackTemplate, templatesView }) ->
-      return  if stackTemplate.event is 'updateInstance'
-      templatesView.initialView.stackTemplateList.listController.addItem stackTemplate
+    @defineStackView.on 'StackTemplateSaved', ({ stackTemplate, templatesView }) ->
+      { listController } = templatesView.initialView.stackTemplateList
+
+      if stackTemplate.event is 'updateInstance'
+        listController.updateItem stackTemplate
+      else
+        listController.addItem stackTemplate
+
+
+    @defineStackView.on 'Cancel', ({ stackTemplate }) ->
+
+      return  unless stackTemplate
+      return  if stackTemplate.config.verified
+
+      stackApp = appManager.appControllers.Stacks.instances.first
+      templatesView = stackApp.getStackTemplatesViewByName 'My Stack Templates'
+
+      return  unless templatesView
+
+      # Add always "not ready" stack template to "My Stack Templates" list.
+      templatesView.initialView.stackTemplateList.listController.addStackTemplateById stackTemplate._id
+
 
     @defineStackView.on [ 'Cancel', 'Completed' ], =>
       @defineStackView.destroy()

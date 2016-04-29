@@ -15,6 +15,7 @@ const (
 
 // MountFolder is the request struct for remote.mountFolder method.
 type MountFolder struct {
+	Debug          bool   `json:"debug"`
 	Name           string `json:"name"`
 	LocalPath      string `json:"localPath"`
 	RemotePath     string `json:"remotePath"`
@@ -24,6 +25,7 @@ type MountFolder struct {
 	NoWatch        bool   `json:"noWatch"`
 	CachePath      string `json:"cachePath"`
 	Trace          bool   `json:"trace"`
+	SyncMount      bool   `json:"syncMount"`
 }
 
 // UnmountFolder is the request struct for remote.UnmountFolder method.
@@ -48,10 +50,21 @@ type SSHKeyAdd struct {
 
 // Cache is the request struct for remote.cache method.
 type Cache struct {
+	// Log debug info for this request.
+	Debug bool `json:"debug"`
+
 	Name       string        `json:"name"`
 	LocalPath  string        `json:"localPath"`
 	RemotePath string        `json:"remotePath"`
-	Interval   time.Duration `json:interval`
+	Interval   time.Duration `json:"interval"`
+
+	// OnlyInterval will not perform any type of cache request immediately, and
+	// instead only start the intervaler.
+	OnlyInterval bool
+
+	// LocalToRemote indicates that this cache request will copy local to remote. If
+	// false, Remote is copied to Local.
+	LocalToRemote bool `json:"localToRemote"`
 
 	// Implementation details required by rsync currently. Not great to expose the
 	// underlying implementation, but required currently.

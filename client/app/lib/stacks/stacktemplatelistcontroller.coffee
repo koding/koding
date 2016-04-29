@@ -68,8 +68,18 @@ module.exports = class StackTemplateListController extends KodingListController
 
     { computeController, groupsController } = kd.singletons
 
-    computeController.on  'RenderStacks',         @bound 'handleRenderStacks'
-    groupsController.on   'StackTemplateChanged', @bound 'handleStackTemplateChanged'
+    computeController.on 'RenderStacks', @bound 'handleRenderStacks'
+    groupsController.on  'StackTemplateChanged', @bound 'handleStackTemplateChanged'
+
+
+  updateItem: (stackTemplate) ->
+
+    [target] = @getListItems().filter (i) -> i.getData()._id is stackTemplate._id
+
+    return  unless target
+
+    target.setData stackTemplate
+    target.handleLabelStates()
 
 
   handleRenderStacks: (stacks) ->
@@ -97,8 +107,25 @@ module.exports = class StackTemplateListController extends KodingListController
         item.updateAccessLevel()
         hasFound = yes
 
-    unless hasFound
-      @fetch { _id : stackTemplateId }, (items) => @addListItems items
+    @addStackTemplateById stackTemplateId  unless hasFound
+
+
+  addStackTemplateById: (_id, callback = kd.noop) ->
+
+    [item] = @getListItems().filter (i) -> i.getData()._id is _id
+
+    if item
+      kd.warn 'Stack template is already added to list!'
+      return
+
+    params = { _id }
+
+    if @getOption('viewType') is 'private'
+      params.query = @filterStates.query.originId
+
+    @fetch params, (items) =>
+      @addListItems items
+      callback items
 
 
   applyToTeam: (item) ->
@@ -112,7 +139,9 @@ module.exports = class StackTemplateListController extends KodingListController
     { groupsController, appManager } = kd.singletons
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
-      @emit 'FailedToSetTemplate', err  if err
+      if err
+        @emit 'FailedToSetTemplate', err
+        appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
 
   generateStack: (item) ->
