@@ -102,6 +102,12 @@ module.exports = class StackTemplateListController extends KodingListController
 
   addStackTemplateById: (_id, callback = kd.noop) ->
 
+    [item] = @getListItems().filter (i) -> i.getData()._id is _id
+
+    if item
+      kd.warn "Stack template is already added to list!"
+      return
+
     @fetch { _id }, (items) =>
       @addListItems items
       callback items
