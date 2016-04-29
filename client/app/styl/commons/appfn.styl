@@ -329,3 +329,41 @@ webfont2(family, file, weight=normal, hack-chrome-windows=false)
       @font-face
         font-family         family
         src                 url(font-url(file + '.svg#'+ family)) format('svg')
+
+
+outlineButton(buttonColor)
+  width                     auto
+  height                    31px
+  border                    1px solid buttonColor
+  background                transparent
+  rounded                   3px
+  padding                   0 16px
+  line-height               30px
+
+  .button-title
+    color                   buttonColor
+    text-transform          uppercase
+    letter-spacing          .3px
+    line-height             30px
+
+  &:hover
+    bg                      color buttonColor
+    span.button-title
+      color                 white
+
+  &:focus
+    shadow                  0 0 10px -2px buttonColor
+
+colorizeOutlineButton(buttonColor)
+  border                    1px solid buttonColor
+
+  .button-title
+    color                   buttonColor
+
+  &:hover
+    bg                      color buttonColor
+    span.button-title
+      color                 white
+
+  &:focus
+    shadow                  0 0 10px -2px buttonColor
