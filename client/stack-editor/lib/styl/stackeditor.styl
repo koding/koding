@@ -26,6 +26,24 @@ stackeditor.styl
 
     .active
       font-weight           normal
+  .indicator
+    size                  18px, 18px
+    color                 white
+    bg                    color, #F76E6E
+    text-align            center
+    font-size             11px
+    line-height           18px
+    font-weight           200
+    rounded               18px
+    vendor                transition, top .2s ease
+    abs                   90px 13px 0 0
+
+    &.in
+      top                 25px
+
+    &.red
+      bg                  color, darkred
+
 
   .kdloader
     padding                 0
