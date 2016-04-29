@@ -9,10 +9,11 @@ ProfileText = require 'app/components/profile/profiletext'
 module.exports = class SharingUserList extends React.Component
 
   @propTypes     =
-    users        : React.PropTypes.instanceOf(immutable.List).isRequired
+    users        : React.PropTypes.instanceOf immutable.List
     onUserRemove : React.PropTypes.func
 
   @defaultProps  =
+    users        : immutable.List()
     onUserRemove : kd.noop
 
 

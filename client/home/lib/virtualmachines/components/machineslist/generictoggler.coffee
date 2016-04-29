@@ -11,6 +11,7 @@ module.exports = class GenericToggler extends React.Component
     description : React.PropTypes.string
     onToggle    : React.PropTypes.func.isRequired
     checked     : React.PropTypes.bool
+    disabled    : React.PropTypes.bool
 
 
   @defaultProps =
@@ -18,6 +19,7 @@ module.exports = class GenericToggler extends React.Component
     title       : ''
     description : ''
     checked     : no
+    disabled    : no
 
 
   render: ->
@@ -30,7 +32,7 @@ module.exports = class GenericToggler extends React.Component
         </div>
         <div className='pull-right'>
           <div className='GenericToggler-toggle'>
-            <Toggle ref='toggle' callback={@props.onToggle} checked={@props.checked} />
+            <Toggle ref='toggle' callback={@props.onToggle} checked={@props.checked} disabled={@props.disabled} />
           </div>
         </div>
       </div>
