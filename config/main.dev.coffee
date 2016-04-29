@@ -47,7 +47,7 @@ Configuration = (options={}) ->
   catch
     console.log """
       couldnt find credential in given path: #{options.credentialPath}
-      please provide --vaultPath or --credentialPath while configuring
+      please provide --vaultPath while configuring
     """
     process.exit 1
 
