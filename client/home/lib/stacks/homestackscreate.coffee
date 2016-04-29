@@ -13,7 +13,7 @@ module.exports = class HomeStacksCreate extends kd.CustomHTMLView
     super options, data
 
     @create = new kd.ButtonView
-      cssClass : 'HomeAppView-Stacks--createButton'
+      cssClass : 'GenericButton HomeAppView-Stacks--createButton'
       title    : 'NEW STACK'
       callback : -> showStackEditor()
 
