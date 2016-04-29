@@ -115,7 +115,7 @@ module.exports = class StackTemplateListController extends KodingListController
     [item] = @getListItems().filter (i) -> i.getData()._id is _id
 
     if item
-      kd.warn "Stack template is already added to list!"
+      kd.warn 'Stack template is already added to list!'
       return
 
     @fetch { _id }, (items) =>
