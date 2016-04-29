@@ -147,7 +147,7 @@ module.exports = class BaseStackTemplatesView extends kd.View
       templatesView.initialView.stackTemplateList.listController.addItem stackTemplate
 
 
-    @defineStackView.on 'Cancel', ({ stackTemplate }) =>
+    @defineStackView.on 'Cancel', ({ stackTemplate }) ->
 
       return  unless stackTemplate
       return  if stackTemplate.config.verified
