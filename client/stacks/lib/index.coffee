@@ -76,6 +76,11 @@ module.exports = class StacksAppController extends AdminAppController
     view.setClass className
 
 
+  getStackTemplatesViewByName: (name) ->
+
+    @mainView.tabs.getPaneByName(name)?.mainView
+
+
   reloadStackTemplatesList: ->
 
     { view } = @getOptions()
