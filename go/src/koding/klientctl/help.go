@@ -16,7 +16,16 @@ var cmdDescriptions = map[string]string{
 	),
 	"mount": fmtDesc(
 		"<optional args> <alias:remote path> <local folder>",
-		fmt.Sprintf("Mount folder from remote machine to local folder.\n\n    Alias is the local identifer for machine in 'kd list'.\n    Local folder can be relative or absolute path, if\n    folder doesn't exit, it'll be created.\n\n    By default this uses FUSE to mount remote folders.\n    For best I/O performance, especially with commands\n    that does a lot of filesystem operations like git, \n    use --oneway-sync."),
+		fmt.Sprintf(`Mount folder from remote machine to local folder.
+    Alias is the local identifer for machine in 'kd list'.
+
+    Local folder can be relative or absolute path, if
+    folder doesn't exit, it'll be created.
+
+    By default this uses FUSE to mount remote folders.
+    For best I/O performance, especially with commands
+    that does a lot of filesystem operations like git,
+    use --oneway-sync.`),
 	),
 	"ssh": fmtDesc(
 		"<alias>", "SSH into the machine.",
@@ -31,7 +40,14 @@ var cmdDescriptions = map[string]string{
 	),
 	"run": fmtDesc(
 		"<command> <arguments>",
-		fmt.Sprintf("Run command on remote or local machine depending\n    on the location where the command was run.\n\n    All arguments after run are passed to command on\n    remote machine.\n\n    Currently only commands that don't require tty/pty\n    work on remote machines."),
+		fmt.Sprintf(`Run command on remote or local machine depending
+    on the location where the command was run.
+
+    All arguments after run are passed to command on
+    remote machine.
+
+    Currently only commands that don't require tty/pty
+    work on remote machines.`),
 	),
 	"list": fmtDesc(
 		"", "List running machines for user.",
