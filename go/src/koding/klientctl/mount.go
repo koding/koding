@@ -375,7 +375,7 @@ func (c *MountCommand) useSync() error {
 	// Modify our cache request with the interval only settings.
 	cacheReq.Interval = time.Duration(c.Options.OneWayInterval) * time.Second
 	if cacheReq.Interval == 0 {
-		cacheReq.Interval = 10 * time.Second
+		cacheReq.Interval = 2 * time.Second
 	}
 
 	cacheReq.OnlyInterval = true
