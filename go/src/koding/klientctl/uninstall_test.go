@@ -23,6 +23,10 @@ func (u *testableService) Uninstall() error {
 	return nil
 }
 
+func (u *testableService) Stop() error {
+	return nil
+}
+
 func TestRemoveKiteKey(t *testing.T) {
 	Convey("Given the KiteKeyDirectory is empty", t, func() {
 		Convey("Then return an error", func() {
