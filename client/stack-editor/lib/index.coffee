@@ -1,6 +1,6 @@
 kd                  = require 'kd'
 AppController       = require 'app/appcontroller'
-DefineStackView     = require 'stacks/views/stacks/definestackview'
+StackEditorView     = require './editor'
 showError           = require 'app/util/showError'
 
 do require './routehandler'
@@ -30,7 +30,7 @@ module.exports = class StackEditorAppController extends AppController
 
     options = { skipFullscreen : yes }
     data    = { stackTemplate, showHelpContent : yes }
-    view    = new DefineStackView options, data
+    view    = new StackEditorView options, data
     view.on 'Cancel', -> kd.singletons.router.back()
 
     @mainView.addSubView view
