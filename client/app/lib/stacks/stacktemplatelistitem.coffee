@@ -60,8 +60,15 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
       tooltip    :
         title    : @getAccessLevelTooptipTitle accessLevel
 
-    @isDefaultView.hide() unless isDefault
-    @inUseView.hide()     unless inUse
+    @handleLabelStates()
+
+
+  handleLabelStates: ->
+
+    { isDefault, inUse, config } = @getData()
+
+    @isDefaultView.hide()  unless isDefault
+    @inUseView.hide()  unless inUse
     @notReadyView.hide()  if config.verified
 
 
