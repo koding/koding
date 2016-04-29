@@ -77,7 +77,7 @@ module.exports = class MachinesListItem extends React.Component
     return null  unless @props.shouldRenderDetails
 
     <div className="MachinesListItem-detailToggle#{if @state.isDetailOpen then ' expanded' else ''}">
-      <button onClick={@bound 'toggle'}></button>
+      <button className='MachinesListItem-detailToggleButton' onClick={@bound 'toggle'}></button>
     </div>
 
 

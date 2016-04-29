@@ -26,7 +26,6 @@ describe 'ListItem', ->
       listitem = shallowRenderer.getRenderOutput()
 
       expect(listitem.props.className).toInclude 'MachinesListItem'
-      expect(listitem.props.children.length).toEqual 5
 
 
     it 'should render children with correct classNames', ->
@@ -58,10 +57,10 @@ describe 'ListItem', ->
       expect(machineLabel.innerHTML).toEqual machine.get 'label'
 
       hostName       = findRenderedDOMComponentWithClass listitem, 'MachinesListItem-hostName'
-      expect(hostName.innerHTML).toEqual machine.get 'ipAddress'
+      expect(hostName.innerHTML).toEqual machine.get('ipAddress') or '0.0.0.0'
 
       stackLabel     = findRenderedDOMComponentWithClass listitem, 'MachinesListItem-stackLabel'
-      expect(stackLabel.innerHTML).toEqual stack.get 'title'
+      expect(stackLabel.textContent).toEqual stack.get 'title'
 
 
   describe '::click', ->
@@ -73,7 +72,7 @@ describe 'ListItem', ->
 
       isDetailOpen = listitem.state.isDetailOpen
 
-      detailToggle = findRenderedDOMComponentWithClass listitem, 'MachinesListItem-detailToggleIcon'
+      detailToggle = findRenderedDOMComponentWithClass listitem, 'MachinesListItem-detailToggleButton'
       Simulate.click ReactDOM.findDOMNode(detailToggle)
 
       expect(isDetailOpen).toNotEqual listitem.state.isDetailOpen
