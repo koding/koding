@@ -34,6 +34,8 @@ func IsReachable(addr string) error {
 	return DefaultClient.IsReachable(addr)
 }
 
+var fallback director
+
 // DefaultClient defines default behavior for IP fetching and testing.
 var DefaultClient = &Client{
 	Client: httputil.NewClient(&httputil.ClientConfig{
@@ -42,16 +44,55 @@ var DefaultClient = &Client{
 		TLSHandshakeTimeout:   10 * time.Second,
 		ResponseHeaderTimeout: 10 * time.Second,
 	}),
-	MaxRetries: 3,
-	Backoff: func(int) time.Duration {
-		return 100 * time.Millisecond
-	},
-	EndpointPublicIP: func() string {
-		return config.Builtin.Endpoints.URL("ip", protocol.Environment)
-	},
-	EndpointIsReachable: func(port string) (url string) {
-		return config.Builtin.Endpoints.URL("ipcheck", protocol.Environment) + "/" + port
-	},
+	MaxRetries:          3,
+	Backoff:             fallback.Backoff,
+	ShouldRetry:         fallback.ShouldRetry,
+	EndpointPublicIP:    fallback.EndpointPublicIP,
+	EndpointIsReachable: fallback.EndpointIsReachable,
+}
+
+type director struct {
+	fallback bool
+}
+
+func (d *director) Backoff(int) time.Duration {
+	return 100 * time.Millisecond
+}
+
+func (d *director) EndpointPublicIP() string {
+	if d.fallback {
+		return "http://echoip.net"
+	}
+
+	return config.Builtin.Endpoints.URL("ip", protocol.Environment)
+}
+
+func (d *director) EndpointIsReachable(port string) string {
+	if d.fallback {
+		return "http://rjk.io/test/" + port
+	}
+
+	return config.Builtin.Endpoints.URL("ipcheck", protocol.Environment) + "/" + port
+}
+
+func (d *director) ShouldRetry(err error) bool {
+	switch e := err.(type) {
+	case net.Error:
+		return e.Temporary() || e.Timeout()
+	case *StatusError:
+		// 504 Gateway Timeout it returned by nginx when client's
+		// IP address is not reachable.
+		switch e.StatusCode {
+		case http.StatusNotFound:
+			d.fallback = true // TODO(rjeczalik): remove after nginx changes are deployed to prod
+
+			return true
+		case http.StatusRequestTimeout, http.StatusInternalServerError:
+			return true
+		}
+	}
+
+	return false
 }
 
 // Client is used to fetch public IP of the host or test whether the IP
@@ -63,6 +104,7 @@ type Client struct {
 	Backoff             func(retry int) time.Duration // cool down between retries
 	EndpointPublicIP    func() (url string)
 	EndpointIsReachable func(port string) (url string)
+	ShouldRetry         func(error) bool
 }
 
 // PublicIP returns an IP that is supposed to be public.
@@ -72,7 +114,7 @@ func (c *Client) PublicIP() (ip net.IP, err error) {
 			return ip, nil
 		}
 
-		if !shouldRetry(err) {
+		if !c.ShouldRetry(err) {
 			return nil, err
 		}
 
@@ -129,7 +171,7 @@ func (c *Client) IsReachable(addr string) error {
 			return nil
 		}
 
-		if !shouldRetry(err) {
+		if !c.ShouldRetry(err) {
 			return err
 		}
 
@@ -169,22 +211,6 @@ func checkStatusError(resp *http.Response) error {
 			StatusCode: resp.StatusCode,
 		}
 	}
-}
-
-func shouldRetry(err error) bool {
-	switch e := err.(type) {
-	case net.Error:
-		return e.Temporary() || e.Timeout()
-	case *StatusError:
-		// 504 Gateway Timeout it returned by nginx when client's
-		// IP address is not reachable.
-		switch e.StatusCode {
-		case http.StatusRequestTimeout, http.StatusInternalServerError:
-			return true
-		}
-	}
-
-	return false
 }
 
 type testServer struct {
