@@ -650,11 +650,11 @@ shareMachineWithUser = (machineId, nickname) ->
         showError err  unless err.message is 'user is already in the shared list.'
 
 
-unshareMachineWithUser = (machineid, nickname) ->
+unshareMachineWithUser = (machineId, nickname) ->
 
   { computeController } = kd.singletons
 
-  machine = computeController.findMachineFromMachineId machineid
+  machine = computeController.findMachineFromMachineId machineId
   return  unless machine
 
   remote.api.SharedMachine.kick machine.uid, [nickname], (err) =>

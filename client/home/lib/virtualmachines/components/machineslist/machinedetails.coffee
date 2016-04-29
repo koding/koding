@@ -5,7 +5,8 @@ classnames          = require 'classnames'
 GenericToggler      = require './generictoggler'
 immutable           = require 'immutable'
 Machine             = require 'app/providers/machine'
-SharingAutocomplete = require './sharingautocomplete'
+SharingAutocomplete = require './sharing/autocomplete'
+SharingUserList     = require './sharing/userlist'
 
 module.exports = class MachineDetails extends React.Component
 
@@ -18,6 +19,7 @@ module.exports = class MachineDetails extends React.Component
     onChangeAlwaysOn     : React.PropTypes.func
     onChangePowerStatus  : React.PropTypes.func
     onSharedWithUser     : React.PropTypes.func
+    onUnsharedWithUser   : React.PropTypes.func
 
 
   @defaultProps =
@@ -28,6 +30,7 @@ module.exports = class MachineDetails extends React.Component
     onChangeAlwaysOn     : kd.noop
     onChangePowerStatus  : kd.noop
     onSharedWithUser     : kd.noop
+    onUnsharedWithUser   : kd.noop
 
 
   constructor: (props) ->
@@ -98,8 +101,10 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @isShared()
 
+    { machine } = @props
     <div className='MachineSharingDetails'>
-      <SharingAutocomplete machineId={@props.machine.get '_id'} onSelect={@props.onSharedWithUser} />
+      <SharingAutocomplete machineId={machine.get '_id'} onSelect={@props.onSharedWithUser} />
+      <SharingUserList users={machine.get 'sharedUsers'} onUserRemove={@props.onUnsharedWithUser} />
     </div>
 
 

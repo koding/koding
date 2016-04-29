@@ -17,6 +17,7 @@ module.exports = class MachinesListItem extends React.Component
     onChangePowerStatus  : React.PropTypes.func
     onDetailOpen         : React.PropTypes.func
     onSharedWithUser     : React.PropTypes.func
+    onUnsharedWithUser   : React.PropTypes.func
 
   @defaultProps =
     shouldRenderDetails  : yes
@@ -28,6 +29,7 @@ module.exports = class MachinesListItem extends React.Component
     onChangePowerStatus  : kd.noop
     onDetailOpen         : kd.noop
     onSharedWithUser     : kd.noop
+    onUnsharedWithUser   : kd.noop
 
 
   constructor: (props) ->
@@ -49,6 +51,7 @@ module.exports = class MachinesListItem extends React.Component
         onChangeAlwaysOn={@props.onChangeAlwaysOn}
         onChangePowerStatus={@props.onChangePowerStatus}
         onSharedWithUser={@props.onSharedWithUser}
+        onUnsharedWithUser={@props.onUnsharedWithUser}
       />
     </main>
 
