@@ -1,5 +1,6 @@
 JCredential      = require './credential'
 JCredentialData  = require './credentialdata'
+CredentialStore  = require './credentialstore'
 { async
   expect
   expectRelation
@@ -8,7 +9,9 @@ JCredentialData  = require './credentialdata'
   expectAccessDenied
   generateRandomString
   checkBongoConnectivity } = require '../../../../testhelper'
-{ generateMetaData
+{ addToRemoveList
+  generateMetaData
+  removeGeneratedCredentials
   withConvertedUserAndCredential } = require \
   '../../../../testhelper/models/computeproviders/credentialhelper'
 { withConvertedUserAnd } = require \
@@ -46,7 +49,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           done()
 
 
-    it 'should be able to ocreate credential when the data is valid', (done) ->
+    it 'should be able to create credential when the data is valid', (done) ->
 
       withConvertedUser ({ client, account }) ->
 
@@ -68,6 +71,9 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
             JCredential.create client, options, (err, credential_) ->
               expect(err).to.not.exist
               credential = credential_
+
+              addToRemoveList client, credential.identifier
+
               expect(credential.provider).to.be.equal provider
               expect(credential.title).to.be.equal title
               expect(credential.identifier).to.exist
@@ -76,7 +82,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
           (next) ->
             # expecting credential data to be created as well
-            JCredentialData.one { originId }, (err, credentialData_) ->
+            CredentialStore.fetch client, credential.identifier, (err, credentialData_) ->
               expect(err).to.not.exist
               credentialData = credentialData_
               expect(credentialData).to.exist
@@ -92,18 +98,6 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               sourceId   : account.getId()
               targetName : 'JCredential'
               sourceName : 'JAccount'
-
-            expectRelation.toExist options, ->
-              next()
-
-          (next) ->
-            # expecting credential and credential data relation to be created
-            options =
-              as         : 'data'
-              targetId   : credentialData._id
-              sourceId   : credential._id
-              targetName : 'JCredentialData'
-              sourceName : 'JCredential'
 
             expectRelation.toExist options, ->
               next()
@@ -456,16 +450,12 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
     testFetchDataFailure = (method, done) ->
       withConvertedUserAndCredential ({ client, credential }) ->
 
-        # adding client to args array, if method is for remote api
-        # a client argument will be passed before callback
-        args  = [client]  if method.slice(-1) is '$'
-        args ?= []
-
+        args  = [client]
         queue = [
 
           (next) ->
             credential[method] args..., (err, credData) ->
-              credData.remove (err) ->
+              CredentialStore.remove client, credData.identifier, (err) ->
                 expect(err).to.not.exist
                 next()
 
@@ -488,9 +478,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           expect(credData.identifier).to.be.equal credential.identifier
           done()
 
-        if   method.slice(-1) is '$'
-        then credential[method] client, checkCredData
-        else credential[method] checkCredData
+        credential[method] client, checkCredData
 
 
     describe 'fetchData()', ->
@@ -562,8 +550,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               next()
 
           (next) ->
-            options = { identifier : credential.identifier }
-            JCredentialData.one options, (err, credData) ->
+            CredentialStore.fetch client, credential.identifier, (err, credData) ->
               expect(err).to.not.exist
               expect(credData.meta).to.be.deep.equal { data : 'newMeta' }
               next()
@@ -590,6 +577,10 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           done()
 
 
+afterTests = -> after removeGeneratedCredentials
+
 beforeTests()
 
 runTests()
+
+afterTests()

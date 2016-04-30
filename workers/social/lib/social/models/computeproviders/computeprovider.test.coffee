@@ -7,7 +7,8 @@
   generateRandomString
   checkBongoConnectivity
   generateDummyUserFormData } = require '../../../../testhelper'
-{ withConvertedUserAndCredential } = require \
+{ removeGeneratedCredentials
+  withConvertedUserAndCredential } = require \
   '../../../../testhelper/models/computeproviders/credentialhelper'
 { forEachProvider
   withConvertedUserAnd } = require  \
@@ -578,43 +579,6 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
-  describe '::remove', ->
-
-    it 'should fail if not implemented yet', (done) ->
-
-      forEachProvider (providerSlug, provider, callback) ->
-
-        options = { provider : providerSlug }
-        withConvertedUserAnd ['ComputeProvider', 'Credential'], options, (data) ->
-          { client, machine, credential } = data
-
-          queue = [
-
-            (next) ->
-              JMachine.one { _id : machine._id }, (err, machine) ->
-                expect(err).to.not.exist
-                expect(machine).to.exist
-                next()
-
-            (next) ->
-              options = { provider : providerSlug, machineId : machine._id.toString(), credential }
-              ComputeProvider.remove client, options, (err) ->
-                if err
-                  expect(err.message).to.be.equal notImplementedMessage
-                next err
-
-            (next) ->
-              JMachine.one { _id : machine._id }, (err, machine) ->
-                expect(err).to.not.exist
-                expect(machine).to.not.exist
-                next()
-
-          ]
-
-          async.series queue, (err) -> callback()
-      , done
-
-
   describe '::createGroupStack', ->
 
     it 'should be able to create group stack', (done) ->
@@ -634,7 +598,10 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
+afterTests = -> after removeGeneratedCredentials
 
 beforeTests()
 
 runTests()
+
+afterTests()
