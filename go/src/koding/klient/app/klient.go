@@ -26,7 +26,6 @@ import (
 	"koding/klient/logfetcher"
 	"koding/klient/protocol"
 	"koding/klient/remote"
-	"koding/klient/remote/mount"
 	"koding/klient/sshkeys"
 	"koding/klient/storage"
 	"koding/klient/terminal"
@@ -219,13 +218,14 @@ func NewKlient(conf *KlientConfig) *Klient {
 		conf.UpdateInterval = time.Minute
 	}
 
-	mountEvents := make(chan *mount.Event)
+	// TODO(rjeczalik): Enable after TMS-848.
+	// mountEvents := make(chan *mount.Event)
 
 	remoteOpts := &remote.RemoteOptions{
-		Kite:     k,
-		Log:      k.Log,
-		Storage:  storage.New(db),
-		EventSub: mountEvents,
+		Kite:    k,
+		Log:     k.Log,
+		Storage: storage.New(db),
+		// EventSub: mountEvents,
 	}
 
 	kl := &Klient{
@@ -244,8 +244,8 @@ func NewKlient(conf *KlientConfig) *Klient {
 			Endpoint:       conf.UpdateURL,
 			Interval:       conf.UpdateInterval,
 			CurrentVersion: conf.Version,
-			MountEvents:    mountEvents,
-			Log:            k.Log,
+			// MountEvents:    mountEvents,
+			Log: k.Log,
 		},
 	}
 
@@ -514,8 +514,9 @@ func (k *Klient) Run() {
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
 	isKoding, _ := info.CheckKoding()
+	isManaged := protocol.Environment == "managed" || protocol.Environment == "devmanaged"
 
-	if (protocol.Environment == "managed" || protocol.Environment == "devmanaged") && isKoding {
+	if isManaged && isKoding {
 		k.log.Error("Managed Klient is attempting to run on a Koding provided VM")
 		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
 	}
@@ -560,7 +561,12 @@ func (k *Klient) Run() {
 
 	k.log.Info("Using version: '%s' querystring: '%s'", k.config.Version, k.kite.Id)
 
-	go k.updater.Run()
+	// TODO(rjeczalik): Enable after TMS-848.
+	if isManaged {
+		k.log.Warning("autoupdate is currently disabled for managed environment")
+	} else {
+		go k.updater.Run()
+	}
 
 	k.kite.Run()
 }
