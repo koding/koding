@@ -1,4 +1,5 @@
 { Base, signature } = require 'bongo'
+Encoder             = require 'htmlencode'
 Constants           = require './constants'
 GitHubProvider      = require './githubprovider'
 GitLabProvider      = require './gitlabprovider'
@@ -57,7 +58,7 @@ module.exports = class GitProvider extends Base
       requiredData      = requirementsParser rawContent
       config            = { requiredData, requiredProviders, importData }
 
-      convertedDoc = yamlToJson rawContent
+      convertedDoc = yamlToJson Encoder.htmlDecode rawContent
       if convertedDoc.err
         return callback new KodingError 'Failed to convert YAML to JSON'
 
