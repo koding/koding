@@ -79,6 +79,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = config.Name
 	app.Version = config.Version
+	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{
 		cli.Command{
@@ -245,7 +246,6 @@ func main() {
 					Usage: "Specify an alternate Kontrol",
 				},
 			},
-			//HideHelp: true,
 			Action: ctlcli.ExitAction(InstallCommandFactory, log, "install"),
 		},
 		cli.Command{
@@ -253,6 +253,30 @@ func main() {
 			Usage:    fmt.Sprintf("Internal use only."),
 			HideHelp: true,
 			Action:   ctlcli.ExitAction(MetricsCommandFactory, log, "metrics"),
+		},
+		cli.Command{
+			Name: "autocompletion",
+			Usage: fmt.Sprintf(
+				"Enable autocompletion support for bash and fish shells",
+			),
+			Description: cmdDescriptions["autocompletion"],
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "fish-dir",
+					Usage: "The name of directory to add fish autocompletion script.",
+				},
+				cli.BoolFlag{
+					Name:  "no-bashrc",
+					Usage: "Disable appending autocompletion source command to your bash config file.",
+				},
+				cli.StringFlag{
+					Name:  "bash-dir",
+					Usage: "The name of directory to add bash autocompletion script.",
+				},
+			},
+			Action: ctlcli.FactoryAction(
+				AutocompleteCommandFactory, log, "autocompletion",
+			),
 		},
 	}
 

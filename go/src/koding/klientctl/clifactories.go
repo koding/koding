@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"koding/klientctl/autocomplete"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
@@ -15,6 +16,7 @@ import (
 	"koding/klientctl/repair"
 	"koding/mountcli"
 	"os"
+	"strings"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -126,4 +128,31 @@ func RemountCommandFactory(c *cli.Context, _ logging.Logger, _ string) int {
 	}
 
 	return 0
+}
+
+// AutocompleteCommandFactory creates a autocomplete.Command instance and runs it with
+// Stdin and Out.
+func AutocompleteCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
+	opts := autocomplete.Options{
+		Shell:   strings.ToLower(c.Args().First()),
+		FishDir: c.String("fish-dir"),
+		Bashrc:  !c.Bool("no-bash-source"),
+		BashDir: c.String("bash-dir"),
+	}
+
+	init := autocomplete.Init{
+		Stdout: os.Stdout,
+		Log:    log,
+		Helper: ctlcli.CommandHelper(c, cmdName),
+	}
+
+	cmd, err := autocomplete.NewCommand(init, opts)
+	if err != nil {
+		return ctlcli.NewErrorCommand(
+			os.Stdout, log, err,
+			"Unable to create autocomplete command",
+		)
+	}
+
+	return cmd
 }
