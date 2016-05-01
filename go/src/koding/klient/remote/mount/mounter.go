@@ -19,6 +19,39 @@ import (
 	"github.com/koding/logging"
 )
 
+// EventType represents a single mounting/unmounting event type.
+//
+// When mounter transitions state of the mount it emits two events
+// - one describing begining of the operation, second describing
+// its result.
+//
+// On successful mount operation the following events are emitted:
+//
+//  1) Event{Path: "/path", Type: EventMounting, Err: nil}
+//  2) Event{Path: "/path", Type: EventMounted, Err: nil}
+//
+// And on unsuccessful mount operation:
+//
+//  1) Event{Path: "/path", Type: EventMounting, Err: nil}
+//  2) Event{Path: "/path", Type: EventMounting, Err: errDescribing}
+//
+type EventType uint8
+
+const (
+	EventUnknown EventType = iota + 1
+	EventMounting
+	EventMounted
+	EventUnmounting
+	EventUnmounted
+)
+
+// Event represents a single mounting/unmounting event.
+type Event struct {
+	Path string
+	Type EventType
+	Err  error
+}
+
 const (
 	// fuseTellTimout is the timeout that all kite method calls over the network
 	// will take to timeout. This should be large enough as to allow large files to
@@ -85,6 +118,9 @@ type Mounter struct {
 	// PathUnmounter is responsible for unmounting the given path. Usually implemented
 	// by fuseklient.Unmount(path)
 	PathUnmounter func(string) error
+
+	// EventSub receives events when paths get mounted / unmounted.
+	EventSub chan<- *Event
 }
 
 // IsConfigured checks the Mounter fields to ensure (as best as it can) that
@@ -157,6 +193,7 @@ func (m *Mounter) Mount() (*Mount, error) {
 		MountName:        m.Options.Name,
 		IP:               m.IP,
 		SyncIntervalOpts: syncOpts,
+		EventSub:         m.EventSub,
 	}
 
 	if m.Options.OneWaySyncMount {
@@ -179,6 +216,30 @@ func (m *Mounter) Mount() (*Mount, error) {
 }
 
 func (m *Mounter) MountExisting(mount *Mount) error {
+	m.emit(&Event{
+		Path: mount.LocalPath,
+		Type: EventMounting,
+	})
+
+	if err := m.mountExisting(mount); err != nil {
+		m.emit(&Event{
+			Path: mount.LocalPath,
+			Type: EventMounting,
+			Err:  err,
+		})
+
+		return err
+	}
+
+	m.emit(&Event{
+		Path: mount.LocalPath,
+		Type: EventMounted,
+	})
+
+	return nil
+}
+
+func (m *Mounter) mountExisting(mount *Mount) error {
 	if err := m.IsConfigured(); err != nil {
 		m.Log.Error("Mounter improperly configured. err:%s", err)
 		return err
@@ -203,6 +264,10 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 			"Mount.Type is %q, setting to default:%s", mount.Type, setTo,
 		)
 		mount.Type = setTo
+	}
+
+	if mount.EventSub == nil {
+		mount.EventSub = m.EventSub
 	}
 
 	// Create our changes channel, so that fuseMount can be told when we lose and
@@ -320,6 +385,12 @@ func (mounter *Mounter) remount(mount *Mount) error {
 	}
 
 	return nil
+}
+
+func (m *Mounter) emit(ev *Event) {
+	if m.EventSub != nil {
+		m.EventSub <- ev
+	}
 }
 
 // changeSummaryToBool is a simple func that converts a ChangeSummary channel to a
