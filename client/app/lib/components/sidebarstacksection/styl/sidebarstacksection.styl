@@ -37,6 +37,14 @@
     text-transform          capitalize
     noTextDeco()
 
+    &:hover a:after
+      content               ''
+      r-sprite              'app' '20_chevron_gray'
+      margin-left           1px
+      opacity               .7
+      vertical-align        top
+      dIBlock()
+
     &:hover .SidebarSection-secondaryLink
       visible()
 
