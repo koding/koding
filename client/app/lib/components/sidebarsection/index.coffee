@@ -43,9 +43,13 @@ module.exports = class SidebarSection extends React.Component
     then 'unread'
     else ''
 
+    linkProps = { titleLink: @props.titleLink }
+    if @props.onTitleClick
+      linkProps.onClick = @props.onTitleClick
+
     <header className="SidebarSection-header #{unreadCount}">
       <h4 className='SidebarSection-headerTitle'>
-        <Link href={@props.titleLink}>{@props.title}</Link>
+        <Link {...linkProps}>{@props.title}</Link>
       </h4>
       {@renderSecondaryLink()}
       {@renderUnreadCount()}
