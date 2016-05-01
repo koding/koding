@@ -12,7 +12,9 @@ SidebarStackHeaderSection = require 'app/components/sidebarstacksection/sidebars
 SidebarSharedMachinesSection = require 'app/components/sidebarsharedmachinessection'
 SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
 SidebarDifferentStackResources = require 'app/components/sidebarstacksection/sidebardifferentstackresources'
+{ findDOMNode } = require 'react-dom'
 
+MENU = null
 
 module.exports = class Sidebar extends React.Component
 
@@ -76,6 +78,41 @@ module.exports = class Sidebar extends React.Component
         EnvironmentFlux.actions.loadMachines()
 
 
+  onMenuItemClick: (id, item, event) ->
+
+    { router } = kd.singletons
+
+    { title } = item.getData()
+    MENU.destroy()
+
+    draft = @state.drafts.get id
+    switch title
+      when 'Edit' then router.handleRoute "/Stack-Editor/#{id}"
+      when 'Initialize' then EnvironmentFlux.actions.generateStack id
+
+
+  onDraftTitleClick: (id, event) ->
+
+    kd.utils.stopDOMEvent event
+
+    lastLayer = kd.singletons.windowController.layers?.first
+
+    return  if MENU
+
+    callback = (item, event) => @onMenuItemClick id, item, event
+
+    menuItems = {}
+    ['Edit', 'Initialize'].forEach (name) => menuItems[name] = { callback }
+
+    { top } = findDOMNode(@refs["draft-#{id}"]).getBoundingClientRect()
+
+    menuOptions = { cssClass: 'SidebarMenu', x: 36, y: top + 31 }
+
+    MENU = new kd.ContextMenu menuOptions, menuItems
+
+    MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
+
+
   setActiveInvitationMachineId: ->
 
     { setActiveInvitationMachineId } = EnvironmentFlux.actions
@@ -137,12 +174,15 @@ module.exports = class Sidebar extends React.Component
 
   renderDrafts: ->
 
-    @state.drafts?.toList().toJS().map (template) ->
+    @state.drafts?.toList().toJS().map (template) =>
       id = template._id
       title = _.unescape template.title
-      <header key={id} className="SidebarSection-header">
+      <header
+        ref="draft-#{id}"
+        key={id}
+        className="SidebarSection-header">
         <h4 className='SidebarSection-headerTitle'>
-          <Link href="/Stack-Editor/#{id}">{title}</Link>
+          <Link href="/Stack-Editor/#{id}" onClick={@onDraftTitleClick.bind this, id}>{title}</Link>
         </h4>
       </header>
 
