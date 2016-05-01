@@ -285,6 +285,20 @@ func (res *RegisterServicesResult) Err() (err error) {
 	return err
 }
 
+func (s *Server) Run() {
+	s.kite.Run()
+}
+
+func (s *Server) Start() {
+	go s.kite.Run()
+	<-s.kite.ServerReadyNotify()
+}
+
+func (s *Server) Close() error {
+	s.kite.Close()
+	return nil
+}
+
 func (s *Server) addClient(ident, name, vhost string, services map[string]*Tunnel) {
 	s.opts.Log.Debug("%s: adding vhost=%s", ident, vhost)
 

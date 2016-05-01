@@ -19,7 +19,8 @@ fi
 
 # NOTE(rjeczalik): -noclean is used to keep DNS records, sometimes
 # handy for deelopment when AWS is utterly slow.
-go test -v koding/kites/e2etest $run -- -debug -ngrokdebug -noclean
+# go test -v koding/kites/e2etest $run -- -debug -ngrokdebug -noclean
+go test -v koding/kites/e2etest $run -- -ngrokdebug -noclean
 
 # For more options see
 #
