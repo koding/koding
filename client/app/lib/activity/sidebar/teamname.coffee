@@ -33,7 +33,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
     callback = @bound 'handleMenuClick'
 
     ACCOUNT_MENU = new kd.ContextMenu
-      cssClass : 'TeamAccountMenu'
+      cssClass : 'SidebarMenu'
       x        : 36
       y        : 36
     ,
@@ -50,7 +50,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
     { title } = item.getData()
     ACCOUNT_MENU.destroy()
 
-    @["handle#{title.replace(' ','')}"] item, event
+    this["handle#{title.replace(' ','')}"] item, event
 
 
   handleMyAccount: ->
