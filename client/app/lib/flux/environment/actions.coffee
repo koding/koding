@@ -590,10 +590,29 @@ generateStack = (stackTemplateId) ->
   computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) ->
     return  if err
 
-    stackTemplate.generateStack (err, stack) =>
-      return  if showError err
-      computeController.reset yes
-      new kd.NotificationView { title: 'Stack generated successfully' }
+    generateStackFromTemplate stackTemplate
+      .then ({ stack }) ->
+        computeController.reset yes
+        new kd.NotificationView { title: 'Stack generated successfully' }
+      .catch (err) -> showError err
+
+
+generateStackFromTemplate = (template) ->
+
+  { reactor } = kd.singletons
+
+  return new Promise (resolve, reject) ->
+
+    reactor.dispatch actions.GENERATE_STACK_BEGIN, { template }
+
+    template.generateStack (err, stack) ->
+      if err
+        reactor.dispatch actions.GENERATE_STACK_FAIL, { template, err }
+        reject err
+        return
+
+      reactor.dispatch actions.GENERATE_STACK_SUCCESS, { template, stack }
+      resolve { template, stack }
 
 
 deleteStack = (stackTemplateId) ->
@@ -702,6 +721,7 @@ module.exports = {
   createStackTemplateWithDefaults
   updateStackTemplate
   generateStack
+  generateStackFromTemplate
   deleteStack
   changeTemplateTitle
   loadMachineSharedUsers
