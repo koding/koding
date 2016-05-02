@@ -100,7 +100,7 @@ func (s *Slack) Callback(u *url.URL, h http.Header, _ interface{}, context *mode
 func (s *Slack) Success(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	errMessage := u.Query().Get("error")
 	if len(errMessage) > 0 {
-		h.Set("Location", "/Admin/Invitations/Slack?error="+url.QueryEscape(errMessage))
+		h.Set("Location", "/Home/My-Team/Slack?error="+url.QueryEscape(errMessage))
 		return http.StatusTemporaryRedirect, h, nil, nil
 	}
 
@@ -141,7 +141,7 @@ func (s *Slack) Success(u *url.URL, h http.Header, _ interface{}, context *model
 		return response.NewBadRequest(err)
 	}
 
-	h.Set("Location", "/Admin/Invitations/Slack")
+	h.Set("Location", "/Home/My-Team/Slack")
 	return http.StatusTemporaryRedirect, h, nil, nil
 }
 
