@@ -87,7 +87,7 @@ build:
         name: ensure koding/config is not stale
         code: |
           go generate koding/config
-          ! git diff --name-only | grep go/src/koding/config/config.json.go
+          git diff --name-only --exit-code go/src/koding/config/config.json.go
     - script:
         name: test klient
         code: scripts/wercker/run-command scripts/test-klient.sh
