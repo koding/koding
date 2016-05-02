@@ -346,16 +346,13 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
 	t.buildOptions(opts)
 
 	if t.opts.LastAddr != registerURL.Host {
-		t.opts.Log.Info("testing whether %q address is reachable...", registerURL.Host)
+		t.opts.Log.Info("tunnel: checking if %q is reachable", registerURL.Host)
 
-		ok, err := publicip.IsReachableRetry(registerURL.Host, 10, 5*time.Second, t.opts.Log)
-		if err != nil {
-			t.opts.Log.Warning("tunnel: unable to test %q: %s", registerURL.Host, err)
-			return registerURL, nil
-		}
+		err := publicip.IsReachable(registerURL.Host)
+		t.opts.Log.Debug("tunnel: reachability check %q: %s", registerURL.Host, err)
 
 		t.opts.LastAddr = registerURL.Host
-		t.opts.LastReachable = ok
+		t.opts.LastReachable = (err == nil)
 
 		if err := t.db.SetOptions(t.opts); err != nil {
 			t.opts.Log.Warning("tunnel: unable to update options: %s", err)

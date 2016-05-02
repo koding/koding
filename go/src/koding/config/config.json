@@ -1,0 +1,55 @@
+{
+  "endpoints": {
+    "tunnelserver": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "http://tunnelproxy.koding.com/kite"
+      },
+      {
+        "environment": [
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "url": "http://devtunnelproxy.koding.com/kite"
+      }
+    ],
+    "ip": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "https://p.koding.com/-/ip"
+      },
+      {
+        "environment": [
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "url": "https://dev-p.koding.com/-/ip"
+      }
+    ],
+    "ipcheck": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "https://p.koding.com/-/ipcheck"
+      },
+      {
+        "environment": [
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "url": "https://dev-p.koding.com/-/ipcheck"
+      }
+    ]
+  }
+}
