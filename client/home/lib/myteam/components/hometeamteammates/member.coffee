@@ -20,6 +20,13 @@ module.exports = class Member extends React.Component
     @setState { isMenuOpen: yes }
 
 
+  componentWillReceiveProps: (nextProps) ->
+
+    { isMenuOpen } = nextProps
+
+    @setState { isMenuOpen }
+
+
   getMenuItems: (role) ->
 
     items = []
@@ -60,6 +67,7 @@ module.exports = class Member extends React.Component
 
     <div className='kdview kdlistitemview kdlistitemview-member'>
       <div className='details'>
+        <AvatarView member={@props.member} />
         <p className='fullname'>{fullName}</p>
       </div>
       <Email email={email} />
@@ -85,10 +93,15 @@ Email = ({ email }) ->
 
 AvatarView = ({ member }) ->
 
-  <span className='avatarview' href='#'>
-    <ProfilePicture account={member.toJS()} height={40} width={40} />
-    <cite className='super-admin'></cite>
-  </span>
+  unless member.get 'status'
+    <span className='avatarview' href='#'>
+      <ProfilePicture account={member.toJS()} height={40} width={40} />
+      <cite className='super-admin'></cite>
+    </span>
+  else
+    <span className='avatarview' href='#'>
+      <cite className='super-admin'></cite>
+    </span>
 
 
 MemberRole = ({ role }) ->
