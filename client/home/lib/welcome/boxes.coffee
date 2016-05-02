@@ -2,7 +2,7 @@ BULLETS =
 
   adminStackCreation :
     """
-    <a href='/Stacks/Group-Stack-Templates/welcome'>
+    <a href='/Stack-Editor'>
       <h3>Create a Stack for Your Team</h3>
       <p>Create a blueprint for your team’s entire infrastructure.</p>
     </a>
@@ -10,7 +10,7 @@ BULLETS =
 
   userStackCreation :
     """
-    <a href='/Stacks/My-Stack-Templates/welcome'>
+    <a href='/Stack-Editor'>
       <h3>Create a Personal Stack</h3>
       <p>While waiting for your team resources, you can experiment stacks.</p>
     </a>
