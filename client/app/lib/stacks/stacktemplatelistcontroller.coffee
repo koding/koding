@@ -100,6 +100,7 @@ module.exports = class StackTemplateListController extends KodingListController
 
     for item in @getListItems()
       item.isDefaultView.hide()
+      item.getData().isDefault = no
 
       if item.getData()._id is stackTemplateId
         item.getData().isDefault = yes
