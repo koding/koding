@@ -26,8 +26,12 @@ module.exports = class TeamMembersRoleStore extends KodingFluxStore
       for role in roles
         list = userRoles[role.targetId] or= []
         list.push role.as
-      roles.forEach ( role ) ->
-        memberRoles.set role.targetId, role.as #userRoles[role.targetId]
+
+      for id, roles of userRoles
+        hasOwner = 'owner' in roles
+        hasAdmin = 'admin' in roles
+        roles = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
+        memberRoles.set id, roles #userRoles[role.targetId]
 
 
   updateTeamMember: (memberRoles, { account }) ->
