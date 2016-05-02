@@ -73,7 +73,7 @@ module.exports = class SidebarStackSection extends React.Component
       when 'Update' then EnvironmentFlux.actions.reinitStackFromWidget stack
       when 'Edit' then router.handleRoute "/Stack-Editor/#{stack.get 'baseStackId'}"
       when 'Reinitialize' then EnvironmentFlux.actions.reinitStackFromWidget stack
-      when 'VMs' then router.handlerRoute "Home/Stacks/virtual-machines"
+      when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
 
 
   onTitleClick: (event) ->
