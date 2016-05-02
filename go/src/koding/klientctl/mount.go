@@ -624,6 +624,24 @@ func (c *MountCommand) getIgnoreFile(localPath string) string {
 	return ""
 }
 
+func (c *MountCommand) Autocomplete(_ ...string) error {
+	// setup our klient, if needed
+	if _, err := c.setupKlient(); err != nil {
+		return err
+	}
+
+	infos, err := c.Klient.RemoteList()
+	if err != nil {
+		return err
+	}
+
+	for _, i := range infos {
+		c.printfln(i.VMName)
+	}
+
+	return nil
+}
+
 // askToCreate checks if the folder does not exist, and creates it
 // if the user chooses to. If the user does *not* choose to create it,
 // we return an IsNotExist error.
