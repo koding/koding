@@ -121,7 +121,7 @@ module.exports = class StackTemplateListController extends KodingListController
     params = { _id }
 
     if @getOption('viewType') is 'private'
-      params.query = @filterStates.query.originId
+      params.originId = @filterStates.query.originId
 
     @fetch params, (items) =>
       @addListItems items
