@@ -53,11 +53,12 @@ module.exports = class StackTemplateListController extends KodingListController
 
   bindEvents: ->
 
+    super
+
     listView = @getListView()
 
     listView.on 'ItemAction', ({ action, item, options }) =>
       switch action
-        when 'RemoveItem'            then @removeItem     item
         when 'ShowItem'              then @showItem       item
         when 'EditItem'              then @editItem       item
         when 'ItemSelectedAsDefault' then @applyToTeam    item
@@ -216,9 +217,12 @@ module.exports = class StackTemplateListController extends KodingListController
       callback    : ({ status, modal }) ->
         return  unless status
         template.delete (err) ->
-          listView.removeItem item
+
+          listView.emit 'ItemAction', { action : 'ItemRemoved', item }
+
           if template.accessLevel is 'group'
             currentGroup.sendNotification 'GroupStackTemplateRemoved', template._id
+
           modal.destroy()
           Tracker.track Tracker.STACKS_DELETE_TEMPLATE
 
