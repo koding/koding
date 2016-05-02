@@ -2,6 +2,7 @@ package e2etest
 
 import (
 	"math/rand"
+	"os"
 	"strconv"
 	"sync"
 	"testing"
@@ -11,6 +12,9 @@ import (
 )
 
 func TestE2E_Presence(t *testing.T) {
+	if os.Getenv("WERCKER") != "" {
+		t.Skip("skipping test due to missing PostgreSQL setup on Wercker - TMS-2913")
+	}
 	var (
 		err error
 		mu  sync.Mutex // protects err
