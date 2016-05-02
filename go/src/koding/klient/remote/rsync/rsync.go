@@ -1,6 +1,7 @@
 package rsync
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math"
@@ -39,6 +40,7 @@ type SyncOpts struct {
 	LocalDir          string `json:"localDir"`
 	DirSize           int    `json:"dirSize"`
 	LocalToRemote     bool   `json:"localToRemote"`
+	IgnoreFile        string `json:"ignoreFile"`
 }
 
 type SyncIntervalOpts struct {
@@ -145,16 +147,27 @@ func (rs *Client) sync(progCh chan Progress, opts SyncOpts) {
 	// if not it creates the folder itself
 	srcDir = srcDir + string(os.PathSeparator)
 
-	args := []string{
+	args := []string{}
+
+	if opts.IgnoreFile != "" {
+		args = append(args, fmt.Sprintf("--filter=:- %s", opts.IgnoreFile))
+	}
+
+	args = append(args, []string{
 		"--progress", "--delete", "-zave",
 		fmt.Sprintf("ssh -i %s -oStrictHostKeyChecking=no", opts.SSHPrivateKeyPath),
 		srcDir, dstDir,
-	}
+	}...)
+
 	log.Debug(
 		"Running command: rsync %s",
 		strings.Join(util.QuoteSpacedStrings(args...), " "),
 	)
 	cmd := exec.Command("rsync", args...)
+
+	// Record our stderr, incase we need to print an error.
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
 
 	// Rsync is using SSH which requires a valid SSH_AUTH_SOCK of the user calling
 	// kd. So, we accept that and apply it to the rsync command here.
@@ -208,6 +221,14 @@ func (rs *Client) sync(progCh chan Progress, opts SyncOpts) {
 	}()
 
 	if err := cmd.Run(); err != nil {
+		// If the error was an exit error, log the last X lines of stderr output to
+		// aid in debugging.
+		if _, ok := err.(*exec.ExitError); ok {
+			rs.log.Error(
+				"RSync returned a non-zero exit status.\nerr: %s, stderr output:\n%s",
+				err, stderr.String(),
+			)
+		}
 		progCh <- progressErr(err)
 		// No need to close chan here, because we close below in all events.
 	}

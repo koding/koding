@@ -10,7 +10,7 @@ module.exports = class Google extends ProviderInterface
 
     { credential, name } = options
 
-    @fetchCredentialData credential, (err, credential) ->
+    @fetchCredentialData client, credential, (err, credential) ->
 
       return callback err  if err?
 

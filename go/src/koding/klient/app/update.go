@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -11,12 +12,13 @@ import (
 	"os"
 	"path"
 	"runtime"
-	"strings"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
 
 	"koding/klient/protocol"
+	"koding/klient/remote/mount"
 
 	"github.com/hashicorp/go-version"
 	"github.com/inconshreveable/go-update"
@@ -30,6 +32,7 @@ type Updater struct {
 	CurrentVersion string
 	Log            kite.Logger
 	Wait           sync.WaitGroup
+	MountEvents    <-chan *mount.Event
 }
 
 type UpdateData struct {
@@ -61,10 +64,12 @@ func (u *Updater) checkAndUpdate() error {
 
 	l, err := u.latestVersion()
 	if err != nil {
+		u.Log.Debug("failure getting latest version from %s: %s", u.Endpoint, err)
+
 		return err
 	}
 
-	latestVer := "0.1." + l
+	latestVer := fmt.Sprintf("0.1.%d", l)
 	latest, err := version.NewVersion(latestVer)
 	if err != nil {
 		return err
@@ -97,7 +102,7 @@ func (u *Updater) checkAndUpdate() error {
 	latestKlientURL := &url.URL{
 		Scheme: "https",
 		Host:   "s3.amazonaws.com",
-		Path:   path.Join("/koding-klient", protocol.Environment, l, file),
+		Path:   path.Join("/koding-klient", protocol.Environment, strconv.Itoa(l), file),
 	}
 
 	return u.updateBinary(latestKlientURL.String())
@@ -154,20 +159,23 @@ func (u *Updater) updateBinary(url string) error {
 	return nil
 }
 
-func (u *Updater) latestVersion() (string, error) {
+func (u *Updater) latestVersion() (int, error) {
 	resp, err := http.Get(u.Endpoint)
 	if err != nil {
-		u.Log.Debug("Getting latest version from %s", u.Endpoint)
-		return "", err
+		return 0, err
 	}
 	defer resp.Body.Close()
 
-	latest, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
+	if resp.StatusCode != http.StatusOK {
+		return 0, errors.New(http.StatusText(resp.StatusCode))
 	}
 
-	return strings.TrimSpace(string(latest)), nil
+	latest, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	return strconv.Atoi(string(bytes.TrimSpace(latest)))
 }
 
 func (u *Updater) fetch(url string) ([]byte, error) {
@@ -201,9 +209,56 @@ func (u *Updater) Run() {
 	u.Log.Info("Starting Updater with following options:\n\tinterval of: %s\n\tendpoint: %s",
 		u.Interval, u.Endpoint)
 
-	for _ = range time.Tick(u.Interval) {
-		if err := u.checkAndUpdate(); err != nil {
-			u.Log.Warning("Self-update: %s", err)
+	mounts := make(map[string]struct{})
+	enabled := true
+	ticker := time.NewTicker(u.Interval)
+
+	for {
+		select {
+		case ev, ok := <-u.MountEvents:
+			if !ok {
+				return
+			}
+
+			// decide whether it's a new mount, failed mount or successful unmount
+			switch ev.Type {
+			case mount.EventMounting, mount.EventMounted:
+				if ev.Err != nil {
+					ok = false // failed mount
+				} else {
+					ok = true // successful mount or mount in progress
+				}
+
+			case mount.EventUnmounted:
+				ok = false // successful unmount
+			}
+
+			// track or untracked mounted path
+			if ok {
+				mounts[ev.Path] = struct{}{}
+			} else {
+				delete(mounts, ev.Path)
+			}
+
+			// enable or disable autoupdate ticker
+			if len(mounts) > 0 {
+				u.Log.Debug("%d mounted dirs, disabling updater", len(mounts))
+
+				enabled = false
+			} else {
+				u.Log.Debug("no mounted dirs, enabling updater")
+
+				enabled = true
+			}
+
+		case <-ticker.C:
+			if !enabled {
+				continue
+			}
+
+			if err := u.checkAndUpdate(); err != nil {
+				u.Log.Warning("Self-update: %s", err)
+			}
 		}
 	}
 }

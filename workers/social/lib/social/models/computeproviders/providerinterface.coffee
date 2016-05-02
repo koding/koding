@@ -30,12 +30,12 @@ module.exports = class ProviderInterface
 
   @postCreate     = PASS_THROUGH
 
-  @fetchCredentialData  = (credential, callback) ->
+  @fetchCredentialData = (client, credential, callback) ->
 
     if not credential?.fetchData?
       return callback null, {}
 
-    credential.fetchData (err, credData) ->
+    credential.fetchData client, (err, credData) ->
 
       if err?
         callback new KodingError 'Failed to fetch credential'

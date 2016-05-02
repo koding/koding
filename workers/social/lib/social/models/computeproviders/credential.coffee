@@ -1,4 +1,5 @@
-jraphical      = require 'jraphical'
+hat       = require 'hat'
+jraphical = require 'jraphical'
 
 module.exports = class JCredential extends jraphical.Module
 
@@ -7,6 +8,7 @@ module.exports = class JCredential extends jraphical.Module
   JGroup             = require '../group'
   JCredentialData    = require './credentialdata'
   { PROVIDERS }      = require './computeutils'
+  CredentialStore    = require './credentialstore'
 
   KodingError        = require '../../error'
 
@@ -126,11 +128,6 @@ module.exports = class JCredential extends jraphical.Module
         ]
         default       : -> ACCESSLEVEL.PRIVATE
 
-    relationships     :
-
-      data            :
-        targetType    : JCredentialData
-        as            : 'data'
 
   @getName = -> 'JCredential'
 
@@ -190,12 +187,10 @@ module.exports = class JCredential extends jraphical.Module
         callback new KodingError 'Provider is not supported'
         return
 
-      credData = new JCredentialData { meta, originId }
-      credData.save (err) ->
+      CredentialStore.create client, { meta, originId }, (err, identifier) ->
         return  if failed err, callback
 
-        { identifier }   = credData
-        _data            = { provider, title, identifier, originId }
+        _data = { provider, title, identifier, originId }
 
         if provider in ['custom', 'userInput']
           _data.fields   = (Object.keys meta) or []
@@ -204,14 +199,12 @@ module.exports = class JCredential extends jraphical.Module
         credential = new JCredential _data
 
         credential.save (err) ->
-          return  if failed err, callback, credData
+          return  if failed err, callback
 
           delegate.addCredential credential, { as: 'owner' }, (err) ->
-            return  if failed err, callback, credential, credData
+            return  if failed err, callback, credential
 
-            credential.addData credData, (err) ->
-              return  if failed err, callback, credential, credData
-              callback null, credential
+            callback null, credential
 
 
   @fetchByIdentifier = (client, identifier, callback) ->
@@ -452,11 +445,9 @@ module.exports = class JCredential extends jraphical.Module
 
         if rel.data.as is 'owner'
 
-          @fetchData (err, credentialData) =>
+          CredentialStore.remove client, @identifier, (err) =>
             return callback err  if err
-            credentialData.remove (err) =>
-              return callback err  if err
-              @remove callback
+            @remove (err) -> callback err
 
         else
 
@@ -482,7 +473,7 @@ module.exports = class JCredential extends jraphical.Module
         title    : @getAt 'title'
         provider : @getAt 'provider'
 
-      @fetchData (err, data) ->
+      @fetchData client, (err, data) ->
 
         return callback err  if err
 
@@ -499,24 +490,20 @@ module.exports = class JCredential extends jraphical.Module
     return "*#{Array(r c).join '*'}#{c[(r c)..]}"
 
 
-  fetchData: (callback, shadowSensitiveData = yes) ->
+  fetchData: (client, callback, shadowSensitiveData = yes) ->
 
     sensitiveKeys = PROVIDERS[@provider]?.sensitiveKeys or []
 
-    Relationship.one { sourceId: @getId(), as: 'data' }, (err, rel) ->
+    CredentialStore.fetch client, @identifier, (err, data) ->
 
       return callback err  if err
-      return callback new KodingError 'No data found'  unless rel
 
-      rel.fetchTarget (err, data) ->
-        return callback err  if err
+      if shadowSensitiveData
+        meta = data?.meta or {}
+        sensitiveKeys.forEach (key) ->
+          meta[key] = shadowed meta[key]
 
-        if shadowSensitiveData
-          meta = data?.data?.meta or {}
-          sensitiveKeys.forEach (key) ->
-            meta[key] = shadowed meta[key]
-
-        callback null, data
+      callback null, data
 
 
   fetchData$: permit
@@ -532,7 +519,7 @@ module.exports = class JCredential extends jraphical.Module
 
     success: (client, callback) ->
 
-      @fetchData callback
+      @fetchData client, callback
 
 
   update$: permit
@@ -562,11 +549,7 @@ module.exports = class JCredential extends jraphical.Module
         return callback err  if err?
 
         if meta?
-
-          @fetchData (err, credData) ->
-            return callback err  if err?
-            credData.update { $set : { meta } }, callback
-
+          CredentialStore.update client, { @identifier, meta } , callback
         else
           callback null
 
@@ -592,7 +575,7 @@ module.exports = class JCredential extends jraphical.Module
       if bootstrapKeys.length is 0
         return callback null, no
 
-      @fetchData (err, data) ->
+      @fetchData client, (err, data) ->
         return callback err  if err
         return callback new KodingError 'Failed to fetch data'  unless data
 

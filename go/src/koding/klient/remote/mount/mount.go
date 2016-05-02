@@ -59,6 +59,9 @@ type Mount struct {
 
 	Log logging.Logger `json:"-"`
 
+	// EventSub receives events when paths get mounted / unmounted.
+	EventSub chan<- *Event `json:"-"`
+
 	// mockable interfaces and types, used for testing and abstracting the environment
 	// away.
 
@@ -74,7 +77,30 @@ func (m *Mount) Unmount() error {
 		return nil
 	}
 
-	var err error
+	m.emit(&Event{
+		Path: m.LocalPath,
+		Type: EventUnmounting,
+	})
+
+	if err := m.unmount(); err != nil {
+		m.emit(&Event{
+			Path: m.LocalPath,
+			Type: EventUnmounting,
+			Err:  err,
+		})
+
+		return err
+	}
+
+	m.emit(&Event{
+		Path: m.LocalPath,
+		Type: EventUnmounted,
+	})
+
+	return nil
+}
+
+func (m *Mount) unmount() (err error) {
 	if m.Unmounter != nil {
 		err = m.Unmounter.Unmount()
 	} else {
@@ -88,6 +114,12 @@ func (m *Mount) Unmount() error {
 	}
 
 	return nil
+}
+
+func (m *Mount) emit(ev *Event) {
+	if m.EventSub != nil {
+		m.EventSub <- ev
+	}
 }
 
 func MountLogger(m *Mount, l logging.Logger) logging.Logger {
