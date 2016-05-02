@@ -1,6 +1,6 @@
 module.exports = (email) ->
   emailPattern = /// ^ #begin of line
-   ([\w.-]+)         #one or more letters, numbers, _ . or -
+   ([\w._%+-]+)         #one or more letters, numbers, _ . or -
    @                 #followed by an @ sign
    ([\w.-]+)         #then one or more letters, numbers, _ . or -
    \.                #followed by a period
