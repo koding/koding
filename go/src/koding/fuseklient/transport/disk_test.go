@@ -136,9 +136,10 @@ func TestDTRename(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("It should change name of entry from old to new", func() {
-			res, err := dt.ReadFile("file1")
+			v := make([]byte, len("hello world!"))
+			_, err := dt.ReadFileAt(v, "file1", 0, 0)
 			So(err, ShouldBeNil)
-			So(string(res.Content), ShouldEqual, "hello world!")
+			So(string(v), ShouldEqual, "hello world!")
 		})
 
 		Convey("It should remove old entry", func() {
@@ -166,18 +167,18 @@ func TestDTRemove(t *testing.T) {
 	})
 }
 
-func TestDTReadFile(t *testing.T) {
-	Convey("ReadFile", t, func() {
+func TestDTReadFileAt(t *testing.T) {
+	Convey("ReadFileAt", t, func() {
 		dt, err := NewDiskTransport("")
 		So(err, ShouldBeNil)
 
 		Convey("It should read contents of file", func() {
-			err := dt.WriteFile("file", []byte("hello world!"))
-			So(err, ShouldBeNil)
+			So(dt.WriteFile("file", []byte("hello world!")), ShouldBeNil)
 
-			res, err := dt.ReadFile("file")
+			v := make([]byte, len("hello world!"))
+			_, err := dt.ReadFileAt(v, "file", 0, 0)
 			So(err, ShouldBeNil)
-			So(string(res.Content), ShouldEqual, "hello world!")
+			So(string(v), ShouldEqual, "hello world!")
 		})
 	})
 }
