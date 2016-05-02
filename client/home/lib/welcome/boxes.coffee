@@ -42,7 +42,7 @@ BULLETS =
 
   inviteTeam :
     """
-    <a href='/Admin/Invitations'>
+    <a href='/Home/My-Team'>
       <h3>Invite your team</h3>
       <p>Get your teammates working together.</p>
     </a>
