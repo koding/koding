@@ -44,7 +44,7 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := s.Builder.BuildStack(arg.StackID); err != nil {
+	if err := s.Builder.BuildStack(arg.StackID, nil); err != nil {
 		return nil, err
 	}
 
