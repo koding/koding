@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -219,6 +218,16 @@ func NewKlient(conf *KlientConfig) *Klient {
 		conf.UpdateInterval = time.Minute
 	}
 
+	// TODO(rjeczalik): Enable after TMS-848.
+	// mountEvents := make(chan *mount.Event)
+
+	remoteOpts := &remote.RemoteOptions{
+		Kite:    k,
+		Log:     k.Log,
+		Storage: storage.New(db),
+		// EventSub: mountEvents,
+	}
+
 	kl := &Klient{
 		kite:    k,
 		collab:  collaboration.New(db), // nil is ok, fallbacks to in memory storage
@@ -230,12 +239,13 @@ func NewKlient(conf *KlientConfig) *Klient {
 		usage:    usg,
 		log:      k.Log,
 		config:   conf,
-		remote:   remote.NewRemote(k, k.Log, storage.New(db)),
+		remote:   remote.NewRemote(remoteOpts),
 		updater: &Updater{
 			Endpoint:       conf.UpdateURL,
 			Interval:       conf.UpdateInterval,
 			CurrentVersion: conf.Version,
-			Log:            k.Log,
+			// MountEvents:    mountEvents,
+			Log: k.Log,
 		},
 	}
 
@@ -504,8 +514,9 @@ func (k *Klient) Run() {
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
 	isKoding, _ := info.CheckKoding()
+	isManaged := protocol.Environment == "managed" || protocol.Environment == "devmanaged"
 
-	if (protocol.Environment == "managed" || protocol.Environment == "devmanaged") && isKoding {
+	if isManaged && isKoding {
 		k.log.Error("Managed Klient is attempting to run on a Koding provided VM")
 		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
 	}
@@ -550,12 +561,11 @@ func (k *Klient) Run() {
 
 	k.log.Info("Using version: '%s' querystring: '%s'", k.config.Version, k.kite.Id)
 
-	// TODO(rjeczalik): enable updater control with TMS-2816
-	if runtime.GOOS != "darwin" {
-		// start our updater in the background
-		go k.updater.Run()
+	// TODO(rjeczalik): Enable after TMS-848.
+	if isManaged {
+		k.log.Warning("autoupdate is currently disabled for managed environment")
 	} else {
-		k.log.Warning("automatic updates are disabled on darwin")
+		go k.updater.Run()
 	}
 
 	k.kite.Run()

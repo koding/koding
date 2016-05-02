@@ -110,17 +110,28 @@ type Remote struct {
 	// The mocked<methodName> fields provide a way to mock especially complex methods,
 	// simplfying the testing requirements.
 	mockedRestoreMount func(*mount.Mount) error
+
+	// eventSub receives events when paths get unmounted
+	eventSub chan<- *mount.Event
+}
+
+// RemoteOptions is used to create new Remote value.
+type RemoteOptions struct {
+	Kite     *kite.Kite          // local kite, used to communicate with Kontrol
+	Log      kite.Logger         // used for logging
+	Storage  storage.Interface   // persistance layer for Remote
+	EventSub chan<- *mount.Event // receives events when path gets unmounted
 }
 
 // NewRemote creates a new Remote instance.
-func NewRemote(k *kite.Kite, log kite.Logger, s storage.Interface) *Remote {
+func NewRemote(opts *RemoteOptions) *Remote {
 	// TODO: Improve this usage. Basically i want a proper koding/logging struct,
 	// but we need to create it from somewhere. klient is always uses kite.Logger,
 	// which **should** always be implemented by a koding/logging.Logger.. but in
 	// the event that it's not, how do we handle it?
-	kodingLog, ok := log.(logging.Logger)
+	kodingLog, ok := opts.Log.(logging.Logger)
 	if !ok {
-		log.Error(
+		opts.Log.Error(
 			"Unable to convert koding/kite.Logger to koding/logging.Logger. Creating new logger",
 		)
 		kodingLog = logging.NewLogger("new-logger")
@@ -133,17 +144,18 @@ func NewRemote(k *kite.Kite, log kite.Logger, s storage.Interface) *Remote {
 	logging.DefaultHandler.SetLevel(logging.DEBUG)
 
 	r := &Remote{
-		localKite:            k,
-		kitesGetter:          &KodingKite{Kite: k},
-		storage:              s,
+		localKite:            opts.Kite,
+		kitesGetter:          &KodingKite{Kite: opts.Kite},
+		storage:              opts.Storage,
 		log:                  kodingLog,
 		machinesErrCacheMax:  5 * time.Minute,
 		machinesCacheMax:     10 * time.Second,
 		machineNamesCache:    map[string]string{},
 		unmountPath:          fuseklient.Unmount,
-		machines:             machine.NewMachines(kodingLog, s),
+		machines:             machine.NewMachines(kodingLog, opts.Storage),
 		maxRestoreAttempts:   defaultMaxRestoreAttempts,
 		restoreFailuresPause: defaultRestoreFailuresPause,
+		eventSub:             opts.EventSub,
 	}
 
 	return r
@@ -639,6 +651,12 @@ func (r *Remote) loadMachineNames() error {
 	}
 
 	return json.Unmarshal([]byte(data), &r.machineNamesCache)
+}
+
+func (r *Remote) emit(ev *mount.Event) {
+	if r.eventSub != nil {
+		r.eventSub <- ev
+	}
 }
 
 // saveMachineNames saves the machine name map to the database.
