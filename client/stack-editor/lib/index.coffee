@@ -31,7 +31,9 @@ module.exports = class StackEditorAppController extends AppController
 
   openStackWizard: ->
 
-    scrollView = new kd.ScrollView
+    modal = new kd.ModalView
+      width : 1000
+
     view = new OnboardingView
 
     view.on 'StackOnboardingCompleted', (result) =>
@@ -43,14 +45,14 @@ module.exports = class StackEditorAppController extends AppController
       if result?.selectedProvider
         overrides = _.assign overrides, { selectedProvider: result.selectedProvider }
 
-      EnvironmentFlux.actions.createStackTemplateWithDefaults()
-        .then ({ stackTemplate }) ->
-          kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
+      modal.destroy()
 
-    scrollView.addSubView view
+    modal.addSubView view
 
-    @mainView.destroySubViews()
-    @mainView.addSubView scrollView
+    EnvironmentFlux.actions.createStackTemplateWithDefaults()
+      .then ({ stackTemplate }) ->
+        kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
+
 
 
   createView: (stackTemplate) ->
