@@ -48,6 +48,50 @@ module.exports =
 
     browser.end()
 
+
+  inviteAndJoinUsersToTeam: (browser) ->
+
+    section = '.kdcustomscrollview.HomeAppView--scroller.my-team'
+    sectionSelector = '.HomeAppView--section.teammates'
+    filterSelector = "#{sectionSelector} .kdinput.text.hitenterview"
+    scrollElement = "#{sectionSelector} .ListView"
+
+    host = teamsHelpers.loginTeam browser
+    { invitations, index } = utils.getInvitationData()
+    index = if index is 0 then 1 else index
+    indexOfTargetUser1 = if 1%index isnt 0 then 1 else 2
+    indexOfTargetUser2 = if 3%index isnt 0 then 3 else 4
+    indexOfTargetUser3 = if 5%index isnt 0 then 5 else 6
+
+    browser
+      .url myTeamLink, (result) ->
+        if result.status is 0
+          myteamhelpers.inviteUsers browser, invitations, (res) ->
+            myteamhelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser1], (res) ->
+              myteamhelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser2], (res) ->
+                myteamhelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser3], (res) ->
+                  browser
+                    .url myTeamLink
+                    .waitForElementVisible section, 20000
+                    .waitForElementVisible sectionSelector, 20000
+                    .scrollToElement scrollElement
+                    .click selector 'role', indexOfTargetUser1+1
+                    .pause 1000
+                    .click action 2
+                    .pause 1000
+                    .click selector 'role', indexOfTargetUser1+1
+                    .pause 1000
+                    .click action 2
+                    .pause 1000
+                    .assert.containsText selector('role', indexOfTargetUser1+1), 'Member'
+                    .pause 1000
+                    .click selector 'role', indexOfTargetUser2+1
+                    .pause 1000
+                    .click action 2
+                    .pause 1000
+                    .assert.containsText selector('role', indexOfTargetUser2+1), 'Admin'
+                    .end()
+
   sendInvites: (browser) ->
 
     user = teamsHelpers.loginTeam browser
