@@ -48,20 +48,20 @@ module.exports = class Member extends React.Component
     return items
 
 
-  getData: (member) ->
+  getData: ->
 
-    nickname = member.getIn ['profile', 'nickname']
-    email = member.getIn ['profile', 'email']
-    role = member.get 'role'
-    firstName = member.getIn ['profile', 'firstName']
-    lastName = member.getIn ['profile', 'lastName']
+    nickname = @props.member.getIn ['profile', 'nickname']
+    email = @props.member.getIn ['profile', 'email']
+    role = @props.member.get 'role'
+    firstName = @props.member.getIn ['profile', 'firstName']
+    lastName = @props.member.getIn ['profile', 'lastName']
     fullName = "#{firstName} #{lastName}"
 
-    if member.get('status') is 'pending'
+    if @props.member.get('status') is 'pending'
       role = 'Invitation Sent'
-      firstName = member.get('firstName') or ''
-      lastName = member.get('lastName') or ''
-      fullName = member.get 'email'
+      firstName = @props.member.get('firstName') or ''
+      lastName = @props.member.get('lastName') or ''
+      fullName = @props.member.get 'email'
       email = "#{firstName} #{lastName}"
       nickname = ''
 
@@ -70,7 +70,7 @@ module.exports = class Member extends React.Component
 
   render: ->
 
-    { nickname, email, role, firstName, lastName, fullName } = @getData @props.member
+    { nickname, email, role, firstName, lastName, fullName } = @getData()
 
     <div className='kdview kdlistitemview kdlistitemview-member'>
       <div className='details'>
