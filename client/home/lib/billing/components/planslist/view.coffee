@@ -24,16 +24,24 @@ module.exports = class PlansList extends React.Component
         renderRowAtIndex={@bound 'renderRowAtIndex'}
         renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
       />
-      <ActionBar />
+      <ActionBar
+        onMembersClick={@props.onMembersClick}
+        onDetailsClick={@props.onDetailsClick} />
     </div>
 
 
-ActionBar = ->
+ActionBar = ({ onMembersClick, onDetailsClick }) ->
   <fieldset className="HomeAppView--ActionBar">
-    <a className="HomeAppView--button custom-link-view primary fr" href="#" onClick={kd.noop}>
+    <a
+      className="HomeAppView--button custom-link-view primary fr"
+      href="#"
+      onClick={onMembersClick}>
       <span className="title">VIEW MEMBERS</span>
     </a>
-    <a className="HomeAppView--button custom-link-view fr" href="#" onClick={kd.noop}>
+    <a
+      className="HomeAppView--button custom-link-view fr"
+      href="#"
+      onClick={onDetailsClick}>
       <span className="title">PRICING DETAILS</span>
     </a>
   </fieldset>
