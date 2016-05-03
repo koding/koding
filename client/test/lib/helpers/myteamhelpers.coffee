@@ -203,3 +203,33 @@ module.exports =
         callback()
 
 
+  acceptAndJoinInvitation: (host, browser, user, callback) ->
+
+    fn = ( email, done ) ->
+      _remote.api.JInvitation.some { 'email': email }, {}, (err, invitations) ->
+        if invitations.length
+          invitation = invitations[0]
+          done invitation.code
+        else
+          done()
+
+    browser
+      .timeoutsAsyncScript 10000
+      .executeAsync fn, [user.email], (result) =>
+
+        { status, value } = result
+
+        if status is 0 and value
+          browser.waitForElementVisible '.HomeAppView', 20000, yes, =>
+            @logoutTeam browser, =>
+              teamUrl       = helpers.getUrl yes
+              invitationUrl = "#{teamUrl}/Invitation/#{result.value}"
+              browser.url invitationUrl, =>
+                teamsHelpers.fillJoinForm browser, user, yes, =>
+                  browser.waitForElementVisible '.HomeAppView', 20000, yes, =>
+                    @logoutTeam browser, (res) ->
+                      teamsHelpers.loginToTeam browser, host, no, ->
+                        callback res
+        else
+          callback('alreadyMember')
+
