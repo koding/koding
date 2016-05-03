@@ -109,10 +109,6 @@ module.exports =
 
     invitations = _.sortBy(_.sortBy(_.sortBy(invitations, 'firstName'), 'lastName'), 'email')
 
-    invitations.forEach (invitation, i) ->
-
-      if invitation.email is host.email
-        index = i
+    index = invitations.indexOf host
 
     return { invitations, index }
-
