@@ -181,3 +181,13 @@ module.exports =
     browser.pause 5000
     myteamhelpers.newInviteFromResendModal browser, 'admin'
     browser.end()
+
+
+selector = (type, index) ->
+  sectionSelector = '.HomeAppView--section.teammates'
+  memberSelector = '.kdview.kdlistitemview.kdlistitemview-member'
+  "#{sectionSelector} .ListView-row:nth-of-type(#{index}) #{memberSelector} .#{type}"
+
+
+action = (index) ->
+  ".menu-class ul.ButtonWithMenuItemsList li:nth-of-type(#{index})"
