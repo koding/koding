@@ -5,7 +5,7 @@ Tracker = require 'app/util/tracker'
 copyToClipboard = require 'app/util/copyToClipboard'
 
 
-module.exports = class CodeBlockModal extends React.Component
+module.exports = class CodeBlock extends React.Component
 
   @propTypes =
     cmd: React.PropTypes.string

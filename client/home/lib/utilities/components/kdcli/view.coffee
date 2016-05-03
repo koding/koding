@@ -1,7 +1,7 @@
 kd = require 'kd'
 React = require 'kd-react'
 List = require 'app/components/list'
-CodeBlock = require 'app/components/codeblockmodal'
+CodeBlock = require 'app/components/codeblock'
 
 
 module.exports = class KDCliView extends React.Component

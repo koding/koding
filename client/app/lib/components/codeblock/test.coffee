@@ -4,7 +4,7 @@ globals = require 'globals'
 CodeBlock = require './index'
 TestUtils = require 'react-addons-test-utils'
 
-describe 'CodeBlockModal', ->
+describe 'CodeBlock', ->
 
   { Simulate, renderIntoDocument } = TestUtils
 
