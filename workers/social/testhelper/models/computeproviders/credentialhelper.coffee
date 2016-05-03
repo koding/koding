@@ -51,7 +51,7 @@ createCredential = (client, options, callback) ->
 
     addToRemoveList client, credential.identifier  if credential
 
-    console.log ">>> ERROR ON CREATE CREDENTIAL", err  if err
+    console.log '>>> ERROR ON CREATE CREDENTIAL', err  if err
 
     callback err, { credential }
 
