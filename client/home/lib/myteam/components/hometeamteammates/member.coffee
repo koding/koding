@@ -57,11 +57,11 @@ module.exports = class Member extends React.Component
     lastName = @props.member.getIn ['profile', 'lastName']
     fullName = "#{firstName} #{lastName}"
 
-    if @props.member.get('status') is 'pending'
+    if member.get('status') is 'pending'
       role = 'Invitation Sent'
-      firstName = @props.member.get('firstName') or ''
-      lastName = @props.member.get('lastName') or ''
-      fullName = @props.member.get 'email'
+      firstName = member.get('firstName') or ''
+      lastName = member.get('lastName') or ''
+      fullName = member.get 'email'
       email = "#{firstName} #{lastName}"
       nickname = ''
 
