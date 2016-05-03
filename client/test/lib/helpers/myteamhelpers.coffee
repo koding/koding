@@ -1,5 +1,6 @@
-helpers = require '../helpers/helpers.js'
+helpers = require './helpers.js'
 utils = require '../utils/utils.js'
+teamsHelpers = require './teamshelpers.js'
 
 
 module.exports =
@@ -22,7 +23,7 @@ module.exports =
       .click sendInvitesButton
 
     @acceptConfirmModal browser
-    @assertConfirmModal browser, successMessage
+    @assertConfirmation browser, successMessage
 
     return userEmail
 
@@ -52,7 +53,7 @@ module.exports =
       .click sendInvitesButton
 
     @acceptConfirmModal browser
-    @assertConfirmModal browser, successMessage
+    @assertConfirmation browser, successMessage
 
   uploadCSV: (browser) ->
 
@@ -63,7 +64,7 @@ module.exports =
     browser
       .waitForElementVisible invitationsModalSelector, 20000
       .click uploadCSVButtonSelector
-    @assertConfirmModal browser, message
+    @assertConfirmation browser, message
 
 
   resendInvitation: (browser, role) ->
@@ -84,7 +85,7 @@ module.exports =
       .waitForElementVisible sendInvitesButton, 5000
       .click sendInvitesButton
     @acceptConfirmModal browser if role is 'admin'
-    @assertConfirmModal browser, successMessage
+    @assertConfirmation browser, successMessage
     browser
       .pause 10000
 
@@ -101,7 +102,7 @@ module.exports =
       browser
         .pause 2000
       @acceptConfirmModal browser
-    @assertConfirmModal browser, successMessage
+    @assertConfirmation browser, successMessage
 
     return userEmail
 
@@ -124,7 +125,7 @@ module.exports =
       .click sendInvitesButton
     @acceptConfirmModal browser  if role is 'admin'
     @rejectConfirmModal browser
-    @assertConfirmModal browser, successMessage
+    @assertConfirmation browser, successMessage
 
 
   rejectConfirmModal: (browser) ->
@@ -156,7 +157,7 @@ module.exports =
             .click                 confirmButton
 
 
-  assertConfirmModal: (browser, successMessage) ->
+  assertConfirmation: (browser, successMessage) ->
 
     browser
       .waitForElementVisible '.kdnotification', 10000
@@ -175,3 +176,18 @@ module.exports =
       .setValue emailInputSelector, userEmail
 
     return userEmail
+
+
+  logoutTeam: (browser, callback) ->
+
+    browser
+      .waitForElementVisible '.avatarview.avatar-image-wrapper', 20000
+      .click '.avatarview.avatar-image-wrapper'
+      .pause 2000
+      .click '.avatarview.avatar-image-wrapper'
+      .pause 2000
+      .waitForElementVisible '.kdview.avatararea-popup.team', 20000
+      .click '.kdview.avatararea-popup.team a[href="/Logout"]'
+      .pause 5000, -> callback()
+
+
