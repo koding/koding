@@ -80,17 +80,17 @@ module.exports =
           @loginAssertion(browser)
 
 
-  loginAssertion: (browser) ->
+  loginAssertion: (browser, callback) ->
 
     user = utils.getUser()
 
     browser
-      .waitForElementVisible  '[testpath=main-sidebar]', 20000 # Assertion
+      .waitForElementVisible  '[testpath=main-sidebar]', 20000, yes, callback # Assertion
 
     console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password} to team: #{helpers.getUrl(yes)}"
 
 
-  loginToTeam: (browser, user, invalidCredentials = no) ->
+  loginToTeam: (browser, user, invalidCredentials = no, callback = -> ) ->
 
     incorrectEmailAddress = 'a@b.com'
     incorrectUserName     = 'testUserName'
@@ -109,12 +109,11 @@ module.exports =
       .waitForElementVisible  'form.login-form', 20000
       .setValue               'input[name=username]', user.username
       .setValue               'input[name=password]', user.password
-      .click                  'button[testpath=login-button]'
-
-    @loginAssertion(browser)
+      .click                  'button[testpath=login-button]', => @loginAssertion browser, callback
 
 
-  loginTeam: (browser, invalidCredentials = no) ->
+
+  loginTeam: (browser, invalidCredentials = no, callback = -> ) ->
 
     user               = utils.getUser()
     url                = helpers.getUrl(yes)
@@ -154,7 +153,7 @@ module.exports =
       .waitForElementVisible modalSelector, 20000
       .click                 '.TeamsModal-button-link a'
       .pause                 2000
-      .waitForElementVisible sectionSelector, 20000
+      .waitForElementVisible modalSelector, 20000
       .pause                 2000
       .click                 '.TeamsModal-button-link a'
       .pause                 2000
@@ -1031,7 +1030,7 @@ module.exports =
     browser.execute fn, params
 
 
-  fillJoinForm: (browser, userData, assertLoggedIn = yes) ->
+  fillJoinForm: (browser, userData, assertLoggedIn = yes, callback = -> ) ->
 
     loginForm     = '.TeamsModal.TeamsModal--groupCreation.join'
     emailInput    = "#{loginForm} input[name=email]"
@@ -1051,7 +1050,7 @@ module.exports =
       .click                 joinButton
 
     if assertLoggedIn
-      @loginAssertion(browser)
+      @loginAssertion(browser, callback)
 
 
   getInvitationUrl: (browser, email, callback) ->
