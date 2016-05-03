@@ -1240,7 +1240,7 @@ module.exports = CollaborationController =
     @showModal options
 
 
-  showSessionEndedModal: (options) ->
+  showSessionEndedModal: (options = {}) ->
 
     { content, redirect } = options
 
