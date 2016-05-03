@@ -6,15 +6,15 @@ path                  = require 'path'
 { isAllowed }         = require '../deployment/grouptoenvmapping'
 
 Configuration = (options = {}) ->
-  prod_simulation_server = "10.0.0.136"
+
   options.domains =
     base : 'koding.com'
     mail : 'koding.com'
     main : 'sandbox.koding.com'
     port : '80'
 
-  options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "localhost"
-  options.serviceHost   = prod_simulation_server
+
+  options.serviceHost   = "10.0.0.136"
   options.publicPort = "80"
   options.hostname = "sandbox.koding.com#{if options.publicPort is "80" then "" else ":"+options.publicPort}"
   options.protocol = "https:"
@@ -40,21 +40,29 @@ Configuration = (options = {}) ->
   options.scheme = 'https'
   options.suppressLogs = no
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
+  options.vaultPath or= path.join __dirname, "../vault/" # use same directory with our application
+  options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.environment}.coffee"
+
+  try fs.lstatSync options.credentialPath
+  catch
+    console.log """
+      couldnt find credential in given path: #{options.credentialPath}
+      please provide --vaultPath while configuring
+    """
+    process.exit 1
 
   options.host = options.hostname
 
-  customDomain =
+  options.customDomain =
     public  : "#{options.scheme}://#{options.host}"
     public_ : options.host
     local   : "http://127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
     local_  : "127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
     port    : parseInt(options.publicPort, 10)
 
+  credentials = require(options.credentialPath)(options)
 
-  options.customDomain = customDomain
-  credentials = require("./credentials.#{options.environment}")(options)
-
-  worker_ci_test = require './aws/worker_ci_test_key.json'
+  worker_ci_test = require path.join(options.vaultPath, './config/aws/worker_ci_test_key.json')
 
   # if you want to disable a feature add here with "true" value do not forget to
   # add corresponding go struct properties
@@ -129,11 +137,11 @@ Configuration = (options = {}) ->
     limit: '1536MB'
     email: 'sysops+supervisord-sandbox@koding.com'
 
-  KONFIG.JSON            = JSON.stringify KONFIG
-  KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
-  KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
-  KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG, options.environment
-  KONFIG.runFile        = require('./generateRunFile').sandbox(KONFIG, options, credentials)
+  KONFIG.JSON = JSON.stringify KONFIG
+  KONFIG.ENV = (require "../deployment/envvar.coffee").create KONFIG
+  KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
+  KONFIG.nginxConf = (require "../deployment/nginx.coffee").create KONFIG, options.environment
+  KONFIG.runFile = require('./generateRunFile').sandbox(KONFIG, options, credentials)
   KONFIG.configCheckExempt = ["command", "output_path"]
 
   return KONFIG
