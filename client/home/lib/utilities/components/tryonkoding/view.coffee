@@ -2,6 +2,7 @@ kd = require 'kd'
 React = require 'kd-react'
 KodingSwitch = require 'app/commonviews/kodingswitch'
 Toggle = require 'app/components/common/toggle'
+CodeBlock = require 'app/components/codeblockmodal'
 
 module.exports = class TryOnKodingView extends React.Component
 
@@ -31,10 +32,7 @@ module.exports = class TryOnKodingView extends React.Component
       <p className={@props.secondaryClassName}>
         <strong>“Try On Koding” Button</strong>
         Visiting users will have access to all team stack scripts
-        <code className='HomeAppView--code block' onClick={@props.handleCodeBlockClick}>
-          <textarea ref='textarea' spellCheck={no} readonly value={@props.value}>
-          </textarea>
-        </code>
+        <CodeBlock cmd={@props.value} />
         {@renderButtons()}
       </p>
     </div>
