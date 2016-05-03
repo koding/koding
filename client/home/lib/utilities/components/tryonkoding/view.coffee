@@ -2,7 +2,7 @@ kd = require 'kd'
 React = require 'kd-react'
 KodingSwitch = require 'app/commonviews/kodingswitch'
 Toggle = require 'app/components/common/toggle'
-CodeBlock = require 'app/components/codeblockmodal'
+CodeBlock = require 'app/components/codeblock'
 
 module.exports = class TryOnKodingView extends React.Component
 
