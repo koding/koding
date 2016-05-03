@@ -191,3 +191,15 @@ module.exports =
       .pause 5000, -> callback()
 
 
+  inviteUsers: (browser, invitations, callback) ->
+
+    fn = ( invitations, done ) ->
+      _remote.api.JInvitation.create {invitations: invitations}, (err) ->
+        done err
+
+    browser
+      .timeoutsAsyncScript 10000
+      .executeAsync  fn, [ invitations ], (result) ->
+        callback()
+
+
