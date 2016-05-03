@@ -107,8 +107,9 @@ rest = ->
     file = __dirname + '/client/.config.json'
     config = if fs.existsSync file then require file else {}
     config.rev = obj.client.version
-    fs.writeFileSync file, JSON.stringify config
-    console.log "written #{file}"
+    configStr = JSON.stringify config
+    fs.writeFileSync file, configStr
+    console.log "written #{file} with content: #{configStr}"
 
   createRunFile KONFIG
   writeVersion KONFIG
