@@ -233,3 +233,39 @@ module.exports =
         else
           callback('alreadyMember')
 
+  checkTeammates: (browser, invitation, actionSelector1, actionSelector2, roleSelector, revoke = no, callback) ->
+
+    unless invitation.accepted
+      if revoke
+        browser
+          .pause 1000
+          .click actionSelector2
+          .pause 5000, -> callback()
+      else
+        browser
+          .pause 1000
+          .click actionSelector1
+          .waitForElementVisible '.kdnotification.main', 20000
+          .assert.containsText '.kdnotification.main', 'Invitation is resent.'
+          .pause 1000, -> callback()
+    else
+      switch invitation.accepted
+        when 'Member', 'Admin'
+          browser
+            .pause 1000
+            .click actionSelector2
+            .pause 1000
+            .click roleSelector
+            .pause 1000
+            .click actionSelector2
+            .pause 1000
+            .waitForElementVisible roleSelector, 20000
+            .assert.containsText roleSelector, invitation.accepted
+            .pause 1000, -> callback()
+        when 'Owner'
+          browser
+            .pause 1000
+            .click 'body .ListView-row'
+            .waitForElementVisible roleSelector, 20000
+            .assert.containsText roleSelector, invitation.accepted
+            .pause 1000, -> callback()
