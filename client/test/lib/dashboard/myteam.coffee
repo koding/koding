@@ -141,7 +141,9 @@ module.exports =
 
     user = teamsHelpers.loginTeam browser
     browser.url myTeamLink
-    myteamhelpers.inviteUser browser
+    myteamhelpers.inviteUser browser, 'member'
+    browser.pause 5000
+    myteamhelpers.inviteUser browser, 'admin'
     browser.end()
 
 
@@ -151,6 +153,7 @@ module.exports =
     browser.url myTeamLink
     myteamhelpers.inviteAll browser
     browser.end()
+
 
   checkUploadCSV: (browser) ->
 
