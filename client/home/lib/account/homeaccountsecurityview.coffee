@@ -75,7 +75,7 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
       fields               :
         password           :
           cssClass         : 'Formline--half'
-          placeholder      : 'Enter your Koding password'
+          placeholder      : 'Enter your Koding password...'
           name             : 'password'
           type             : 'password'
           label            : 'Password'

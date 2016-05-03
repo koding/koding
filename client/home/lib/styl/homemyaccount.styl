@@ -94,8 +94,10 @@ Home My Account styles
           font-weight       400
           dBlock()
           
-          &::after
+          &:after
             content         ''
+            margin-left     10px
+            r-sprite        home tick
             dIBlock()
       
     .AppModal-form
@@ -115,15 +117,18 @@ Home My Account styles
         height              auto
         border-top          1px solid #d0d0d0
         
-        input[type=password]
-          padding           0 10px
-          
         .Formline--half 
           width             165px
           padding           0
           height            42px
           margin-right      20px
           
+          &.password
+            width           250px
+            
+            input
+              padding       0 10px
+              width         250px
               
       input 
         width               100%
