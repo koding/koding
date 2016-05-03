@@ -30,7 +30,7 @@ module.exports = class TryOnKodingContainer extends React.Component
 
       allowedDomains = @state.team.get 'allowedDomains'
 
-      if '*' in allowedDomains.toJS()
+      unless '*' in allowedDomains.toJS()
         @setState
           primaryClassName : 'primary'
           secondaryClassName : 'secondary hidden'
