@@ -7,7 +7,7 @@ var (
 
 	// FishDefaultPathMissing is used when the installation path for fish autocomplete
 	// cannot be found, and was not supplied.
-	FishDefaultPathMissing = `Error: Unable to assert default fish path.
+	FishDefaultPathMissing = `Error: Unable to find where to install file autocompete.
 Please use --fish-dir=your/dir to install fish.`
 
 	// FishDirFailed is used when creating the bash completion directory fails.

@@ -115,7 +115,7 @@ func NewBuilder(opts *BuilderOptions) *Builder {
 // BuildStack fetches stack details from MongoDB.
 //
 // When nil error is returned, the  b.Stack field is non-nil.
-func (b *Builder) BuildStack(stackID string) error {
+func (b *Builder) BuildStack(stackID string, overrideCreds map[string][]string) error {
 	computeStack, err := modelhelper.GetComputeStack(stackID)
 	if err != nil {
 		return err
@@ -144,6 +144,11 @@ func (b *Builder) BuildStack(stackID string) error {
 		if _, ok := credentials[k]; !ok {
 			credentials[k] = v
 		}
+	}
+
+	// Set or override credentials when passed in apply request.
+	for k, v := range overrideCreds {
+		credentials[k] = v
 	}
 
 	b.Log.Debug("Stack built: len(machines)=%d, len(credentials)=%d", len(machineIDs), len(credentials))
