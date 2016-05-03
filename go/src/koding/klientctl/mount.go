@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"koding/klientctl/errormessages"
+	"koding/klientctl/ssh/agent"
 	"os"
 	"os/user"
 	"path"
@@ -357,6 +358,11 @@ func (c *MountCommand) useSync() error {
 
 	c.printfln("Downloading initial contents...Please don't interrupt this process while in progress.")
 
+	sshAuthSock, err := agent.NewClient().GetAuthSock()
+	if err != nil || sshAuthSock == "" {
+		sshAuthSock = util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK")
+	}
+
 	cacheReq := req.Cache{
 		Debug:             c.Options.Debug,
 		Name:              c.Options.Name,
@@ -364,7 +370,7 @@ func (c *MountCommand) useSync() error {
 		RemotePath:        c.Options.RemotePath,
 		Interval:          0,
 		Username:          remoteUsername,
-		SSHAuthSock:       util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
+		SSHAuthSock:       sshAuthSock,
 		SSHPrivateKeyPath: sshKey.PrivateKeyPath(),
 	}
 
