@@ -92,6 +92,51 @@ module.exports =
                     .assert.containsText selector('role', indexOfTargetUser2+1), 'Admin'
                     .end()
 
+  searchAndChangeRoleOfTeamMates: (browser) ->
+
+    { invitations, index } = utils.getInvitationData()
+
+    index1 = if index is 0 then 1 else index
+    indexOfTargetUser1 = if 1%index1 isnt 0 then 1 else 2
+    indexOfTargetUser2 = if 3%index1 isnt 0 then 3 else 4
+    indexOfTargetUser3 = if 5%index1 isnt 0 then 5 else 6
+
+    invitations[indexOfTargetUser1].accepted = 'Member'
+    invitations[indexOfTargetUser2].accepted = 'Admin'
+    invitations[indexOfTargetUser3].accepted = 'Member'
+    invitations[index].accepted = 'Owner'
+
+    lastPendingInvitationIndex = 0
+    invitations.forEach (invitation, i) ->
+      unless invitation.accepted
+        lastPendingInvitationIndex = i
+
+    section= '.kdcustomscrollview.HomeAppView--scroller.my-team'
+    sectionSelector = '.HomeAppView--section.teammates'
+    filterSelector = "#{sectionSelector} .kdinput.text.hitenterview"
+    listViewSelector = "#{sectionSelector} .ListView .ListView-row"
+    scrollElement = "#{sectionSelector} .ListView"
+
+    user = teamsHelpers.loginTeam browser
+    browser
+      .url myTeamLink
+      .waitForElementVisible section, 2000
+      .waitForElementVisible sectionSelector, 20000
+      .scrollToElement scrollElement
+      .waitForElementVisible selector('role', 1), 20000
+      .click selector('role', 1), ->
+        myteamhelpers.checkTeammates browser, invitations[0], action(1), action(2), selector('role', 1), no, ->
+          browser.waitForElementVisible selector('role', 1), 20000
+          browser.click selector('role', 2), ->
+            myteamhelpers.checkTeammates browser, invitations[1], action(1), action(2), selector('role', 2), no, ->
+              browser.expect.element(selector('role', index+1)).text.to.contain 'Owner'
+              browser.click selector('role', lastPendingInvitationIndex+1), ->
+                myteamhelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], action(1), action(2), selector('role', lastPendingInvitationIndex+1), yes, ->
+                  browser
+                    .waitForElementNotPresent selector('fullname', lastPendingInvitationIndex+1), 20000
+                    .end()
+
+
   sendInvites: (browser) ->
 
     user = teamsHelpers.loginTeam browser
