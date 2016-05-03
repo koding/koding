@@ -7,15 +7,15 @@ log() {
   echo "$(date) [info] $1"
 }
 
-if [ ! -d "../vault" ]; then
-  log "vault folder does not exist at the same directory"
+if [ ! -d "./vault" ]; then
+  log "vault folder does not exist at ./vault"
   log "trying to clone it"
-  git clone git@github.com:koding/vault.git ../vault
+  git clone git@github.com:koding/vault.git ./vault
   exit 0;
 fi;
 
 
-cd ../vault
+cd ./vault
 log "getting status"
 
 # echo "asdfa" $?
