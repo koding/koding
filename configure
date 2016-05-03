@@ -109,7 +109,7 @@ rest = ->
     config.rev = obj.client.version
     configStr = JSON.stringify config
     fs.writeFileSync file, configStr
-    console.log "written #{file} with content: #{configStr}"
+    console.log "written #{file}"
 
   createRunFile KONFIG
   writeVersion KONFIG
