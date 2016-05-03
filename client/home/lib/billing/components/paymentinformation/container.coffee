@@ -25,9 +25,10 @@ module.exports = class PaymentInformationContainer extends React.Component
   onRemoveCard: ->
 
     { reactor } = kd.singletons
-    { actions } = PaymentFlux reactor
+    { actions, getters } = PaymentFlux reactor
 
-    actions.removeGroupPlan()
+    if getters.paymentValues().get 'groupCreditCard'
+      actions.removeGroupPlan()
 
 
   onPaymentHistory: ->
