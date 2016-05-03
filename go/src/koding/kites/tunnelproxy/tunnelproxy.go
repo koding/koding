@@ -16,6 +16,8 @@ import (
 
 // TODO(rjeczalik): forward ports on host klient for TCP services
 
+const ttl = 60
+
 type Service struct {
 	Name          string `json:"name"`
 	LocalAddr     string `json:"localAddr"`
@@ -269,6 +271,20 @@ func extractIPs(r *http.Request) map[string]struct{} {
 	delete(ips, "")
 
 	return ips
+}
+
+func uniqueName(counter int) (name string) {
+	const base = int('z') - int('a') + 1
+
+	for ; counter > 0; counter -= base {
+		c := counter
+		if c > base {
+			c = base
+		}
+		name = string(int('a')-1+c) + name
+	}
+
+	return name
 }
 
 type callbacks struct {

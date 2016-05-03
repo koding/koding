@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -272,46 +271,4 @@ func splitArgs() (testing, config []string) {
 		}
 	}
 	return args, []string{}
-}
-
-type debugListener struct {
-	net.Listener
-}
-
-type debugConn struct {
-	net.Conn
-}
-
-func (dl debugListener) Accept() (net.Conn, error) {
-	conn, err := dl.Listener.Accept()
-	if err != nil {
-		return nil, err
-	}
-	return debugConn{conn}, nil
-}
-
-func (dc debugConn) Write(p []byte) (int, error) {
-	fmt.Println("debugConn.Write:")
-	return io.MultiWriter(dc.Conn, os.Stderr).Write(p)
-}
-
-func (dc debugConn) Read(p []byte) (int, error) {
-	fmt.Println("debugConn.Read")
-	return io.TeeReader(dc.Conn, os.Stderr).Read(p)
-}
-
-func host(s string) string {
-	u, err := url.Parse(s)
-	if err != nil {
-		panic(err)
-	}
-	return u.Host
-}
-
-func port(s string) string {
-	_, port, err := net.SplitHostPort(s)
-	if err != nil {
-		panic(err)
-	}
-	return port
 }

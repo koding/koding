@@ -17,6 +17,9 @@ func NewKontrol() Kontrol {
 	if Test.Debug {
 		kntrl.Kite.SetLogLevel(kite.DEBUG)
 	}
+
+	kntrl.Kite.ClientFunc = newClientFunc()
+
 	p := kontrol.NewPostgres(&psqlCfg, kntrl.Kite.Log)
 	kntrl.SetKeyPairStorage(p)
 	kntrl.SetStorage(p)

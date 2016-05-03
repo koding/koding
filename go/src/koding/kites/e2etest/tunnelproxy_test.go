@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -244,6 +245,10 @@ func testTunnelserverTCP(t *testing.T, serverURL *url.URL) {
 }
 
 func testWithTunnelserver(t *testing.T, test func(*testing.T, *url.URL)) {
+	if os.Getenv("WERCKER") != "" {
+		t.Skip("skipping test due to missing PostgreSQL setup on Wercker - TMS-2913")
+	}
+
 	// Create and start Tunnel Server.
 	serverCfg, serverURL := Test.GenKiteConfig()
 	if Test.NoPublic {
@@ -273,6 +278,8 @@ func testWithTunnelserver(t *testing.T, test func(*testing.T, *url.URL)) {
 		TCPRangeFrom:    10000,
 		TCPRangeTo:      50000,
 		Log:             Test.Log.New("tunnelserver"),
+		KiteName:        "tunnelserver",
+		KiteVersion:     "0.0.1",
 		Debug:           true,
 		Test:            true,
 	}
@@ -281,14 +288,9 @@ func testWithTunnelserver(t *testing.T, test func(*testing.T, *url.URL)) {
 	if err != nil {
 		t.Fatalf("error creating tunnelproxy server: %s", err)
 	}
-	serverKite, err := tunnelproxy.NewServerKite(server, "tunnelkite", "0.0.1")
-	if err != nil {
-		t.Fatalf("error creating tunnelproxy server kite: %s", err)
-	}
-	defer serverKite.Close()
+	defer server.Close()
 
-	go serverKite.Run()
-	<-serverKite.ServerReadyNotify()
+	server.Start()
 
 	test(t, serverURL)
 }

@@ -20,7 +20,9 @@ module.exports = (options) ->
     # AmazonEC2FullAccess
     worker_test_instance_launcher: dev_master
     # TunnelProxyPolicy
-    worker_tunnelproxymanager: dev_master # Name worker_tunnelproxymanager_dev
+    worker_tunnelproxymanager: # Name worker_tunnelproxymanager_dev
+      accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
+      secretAccessKey : "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"
     #Encryption and Storage on S3
     worker_sneakerS3 : dev_master
     vm_vmwatcher:     # vm_vmwatcher_dev
