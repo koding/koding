@@ -72,19 +72,12 @@ module.exports = class TryOnKodingContainer extends React.Component
     .catch ({ message }) -> @setState { checked: not state }
 
 
-  handleCodeBlockClick: ->
-
-    copyContent = @refs.view.refs.textarea
-    copyToClipboard copyContent
-
-
   render: ->
 
     <View
       ref='view'
       value={@state.value}
       checked={@state.checked}
-      handleCodeBlockClick={@bound 'handleCodeBlockClick'}
       primaryClassName={@state.primaryClassName}
       secondaryClassName={@state.secondaryClassName}
       handleSwitch={@bound 'handleSwitch'}/>
