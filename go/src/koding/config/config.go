@@ -2,7 +2,7 @@ package config
 
 import "encoding/json"
 
-//go:generate go-bindata -mode 420 -modtime 1446555960 -pkg config -o config.json.go config.json
+//go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1446555960 -pkg config -o config.json.go config.json
 
 // Builtin represents an embedded configuration.
 var Builtin *Config
