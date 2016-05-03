@@ -77,17 +77,17 @@ module.exports =
                     .scrollToElement scrollElement
                     .click selector 'role', indexOfTargetUser1+1
                     .pause 1000
-                    .click action 2
+                    .click nthItem 2
                     .pause 1000
                     .click selector 'role', indexOfTargetUser1+1
                     .pause 1000
-                    .click action 2
+                    .click nthItem 2
                     .pause 1000
                     .assert.containsText selector('role', indexOfTargetUser1+1), 'Member'
                     .pause 1000
                     .click selector 'role', indexOfTargetUser2+1
                     .pause 1000
-                    .click action 2
+                    .click nthItem 2
                     .pause 1000
                     .assert.containsText selector('role', indexOfTargetUser2+1), 'Admin'
                     .end()
@@ -125,13 +125,13 @@ module.exports =
       .scrollToElement scrollElement
       .waitForElementVisible selector('role', 1), 20000
       .click selector('role', 1), ->
-        myteamhelpers.checkTeammates browser, invitations[0], action(1), action(2), selector('role', 1), no, ->
+        myteamhelpers.checkTeammates browser, invitations[0], nthItem(1), nthItem(2), selector('role', 1), no, ->
           browser.waitForElementVisible selector('role', 1), 20000
           browser.click selector('role', 2), ->
-            myteamhelpers.checkTeammates browser, invitations[1], action(1), action(2), selector('role', 2), no, ->
+            myteamhelpers.checkTeammates browser, invitations[1], nthItem(1), nthItem(2), selector('role', 2), no, ->
               browser.expect.element(selector('role', index+1)).text.to.contain 'Owner'
               browser.click selector('role', lastPendingInvitationIndex+1), ->
-                myteamhelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], action(1), action(2), selector('role', lastPendingInvitationIndex+1), yes, ->
+                myteamhelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], nthItem(1), nthItem(2), selector('role', lastPendingInvitationIndex+1), yes, ->
                   browser
                     .waitForElementNotPresent selector('fullname', lastPendingInvitationIndex+1), 20000
                     .end()
@@ -189,5 +189,5 @@ selector = (type, index) ->
   "#{sectionSelector} .ListView-row:nth-of-type(#{index}) #{memberSelector} .#{type}"
 
 
-action = (index) ->
+nthItem = (index) ->
   ".menu-class ul.ButtonWithMenuItemsList li:nth-of-type(#{index})"
