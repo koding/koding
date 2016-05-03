@@ -31,7 +31,7 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
 
 
   buildInitialView: ->
-
+    
     @destroySubViews()
 
     @addSubView loader = @getLoaderView()
@@ -53,7 +53,7 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
 
         instructionsView = @getInstructionsView()
         instructionsView.addSubView @getRenewQRCodeLink()
-
+        
         @addSubView @getFormView()
         @addSubView @getQrCodeView qrcode
         @addSubView instructionsView
@@ -65,14 +65,13 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
       cssClass  : 'enabled-intro'
       partial   : "
         <div>
-          2-Factor Authentication is <green>active</green> for your account.
-          <cite></cite>
+          <p class='status'><strong>ACTIVE</strong> Your 2-factor status</p>
+          <p class='info'>To change your code generator you must first disable the current authentication.</p>
         </div>
-        #{@getLearnLink()}
       "
 
     @addSubView @disableForm = new kd.FormViewWithFields
-      cssClass             : 'AppModal-form'
+      cssClass             : 'AppModal-form enabled-form'
       fields               :
         password           :
           cssClass         : 'Formline--half'
@@ -85,8 +84,8 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
           label            : '&nbsp;'
           cssClass         : 'Formline--half'
           itemClass        : kd.ButtonView
-          title            : 'Disable 2-Factor Auth'
-          style            : 'solid medium disable-tf'
+          title            : 'Disable'
+          style            : 'solid medium red disable-tf'
       callback             : @bound 'handleDisableFormButton'
 
 
