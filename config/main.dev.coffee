@@ -40,7 +40,7 @@ Configuration = (options={}) ->
   options.scheme = 'http'
   options.suppressLogs = no
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
-  options.vaultPath or= path.join __dirname, "../../vault/"
+  options.vaultPath or= path.join __dirname, "../vault/" # use same directory with our application
   options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.environment}.coffee"
 
   try fs.lstatSync options.credentialPath
