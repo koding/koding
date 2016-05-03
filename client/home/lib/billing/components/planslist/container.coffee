@@ -20,6 +20,12 @@ module.exports = class PlansListContainer extends React.Component
     @state = { groupPlans: null }
 
 
+  onMembersClick: (event) ->
+
+    kd.utils.stopDOMEvent event
+    kd.singletons.router.handleRoute '/Home/my-team'
+
+
   onDetailsClick: (event) ->
 
     kd.utils.stopDOMEvent event
@@ -29,6 +35,7 @@ module.exports = class PlansListContainer extends React.Component
   render: ->
     <PlansList
       plans={@state.plans}
+      onMembersClick={@bound 'onMembersClick'}
       onDetailsClick={@bound 'onDetailsClick'} />
 
 
