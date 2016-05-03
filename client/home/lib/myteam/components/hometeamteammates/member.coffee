@@ -34,8 +34,8 @@ module.exports = class Member extends React.Component
     if role is 'owner'
       items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
     else if role is 'admin'
-      items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
       items.push { title: 'Make owner', key: 'mameowner', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
+      items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
       items.push { title: 'Disable user', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }
     else if role is 'Invitation Sent'
       items.push {title: 'Resend Invitation', key: 'resend', onClick: @props.handleInvitation.bind(this, @props.member, 'resend')}
@@ -48,22 +48,29 @@ module.exports = class Member extends React.Component
     return items
 
 
-  render: ->
+  getData: (member) ->
 
-    nickname = @props.member.getIn(['profile', 'nickname'])
-    email = @props.member.getIn(['profile', 'email'])
-    role = @props.member.get 'role'
-    firstName = @props.member.getIn(['profile', 'firstName'])
-    lastName = @props.member.getIn(['profile', 'lastName'])
+    nickname = member.getIn ['profile', 'nickname']
+    email = member.getIn ['profile', 'email']
+    role = member.get 'role'
+    firstName = member.getIn ['profile', 'firstName']
+    lastName = member.getIn ['profile', 'lastName']
     fullName = "#{firstName} #{lastName}"
 
-    if @props.member.get('status') is 'pending'
+    if member.get('status') is 'pending'
       role = 'Invitation Sent'
-      firstName = @props.member.get('firstName') or ''
-      lastName = @props.member.get('lastName') or ''
-      fullName = @props.member.get 'email'
+      firstName = member.get('firstName') or ''
+      lastName = member.get('lastName') or ''
+      fullName = member.get 'email'
       email = "#{firstName} #{lastName}"
       nickname = ''
+
+    return { nickname, email, role, firstName, lastName, fullName }
+
+
+  render: ->
+
+    { nickname, email, role, firstName, lastName, fullName } = @getData @props.member
 
     <div className='kdview kdlistitemview kdlistitemview-member'>
       <div className='details'>
