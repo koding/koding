@@ -159,9 +159,7 @@ module.exports =
 
     user = teamsHelpers.loginTeam browser
     browser.url myTeamLink
-    myteamhelpers.inviteUser browser, 'member'
-    browser.pause 5000
-    myteamhelpers.inviteUser browser, 'admin'
+    myteamhelpers.uploadCSV browser
     browser.end()
 
 
@@ -173,6 +171,7 @@ module.exports =
     browser.pause 5000
     myteamhelpers.resendInvitation browser, 'admin'
     browser.end()
+
 
   newInviteFromResendModal: (browser) ->
 
