@@ -32,7 +32,7 @@ module.exports = class PaymentInformationContainer extends React.Component
 
   onPaymentHistory: ->
 
-    console.log 'onPaymentHistory'
+    kd.singletons.router.handleRoute '/Home/payment-history'
 
 
   onSave: ->
