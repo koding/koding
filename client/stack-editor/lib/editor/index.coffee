@@ -12,6 +12,7 @@ ReadmeView = require 'stacks/views/stacks/readmeview'
 ProvidersView = require 'stacks/views/stacks/providersview'
 VariablesView = require 'stacks/views/stacks/variablesview'
 { yamlToJson } = require 'stacks/views/stacks/yamlutils'
+CustomLinkView = require 'app/customlinkview'
 providersParser = require 'stacks/views/stacks/providersparser'
 StackTemplateView = require 'stacks/views/stacks/stacktemplateview'
 CredentialListItem = require '../credentials/credentiallistitem'
@@ -56,6 +57,15 @@ module.exports = class StackEditorView extends kd.View
       hideHandleCloseIcons : yes
       maxHandleWidth       : 300
       cssClass             : 'StackEditorTabs'
+
+    @addSubView @secondaryActions = new kd.CustomHTMLView
+      cssClass             : 'StackEditor-SecondaryActions'
+
+    @secondaryActions.addSubView new CustomLinkView
+      cssClass : 'HomeAppView--button danger'
+      title    : 'DELETE STACK TEMPLATE'
+      click    : ->
+
 
     @tabView.unsetClass 'kdscrollview'
 
