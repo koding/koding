@@ -71,7 +71,33 @@ Home My Account styles
 
   &.security
     overflow                hidden
-
+    
+    .enabled-intro
+      p
+        width               380px
+        font-size           12px
+        font-weight         400
+        vertical-align      top
+        line-height         18px
+        color               #ACACAC
+        dIBlock()
+        
+        &:first-child
+          margin-right      28px
+          color             #929292
+          size              134px 35px
+          border-right      1px solid #D9D9D9
+        
+        strong
+          color             #00b057
+          font-size         20px
+          font-weight       400
+          dBlock()
+          
+          &::after
+            content         ''
+            dIBlock()
+      
     .AppModal-form
       size                  224px 267px
       border                1px solid #d0d0d0
@@ -79,8 +105,27 @@ Home My Account styles
       fr()
       rel()
       borderBox()
-
-      input
+      
+      &.enabled-form
+        width               100%
+        border              none
+        margin              25px 0
+        float               none
+        padding-top         12px
+        height              auto
+        border-top          1px solid #d0d0d0
+        
+        input[type=password]
+          padding           0 10px
+          
+        .Formline--half 
+          width             165px
+          padding           0
+          height            42px
+          margin-right      20px
+          
+              
+      input 
         width               100%
 
       .button-field
