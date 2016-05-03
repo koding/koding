@@ -2,7 +2,7 @@ fs        = require 'fs'
 faker     = require 'faker'
 tempDir   = require 'os-tmpdir'
 formatter = require 'json-format'
-
+_ = require 'lodash'
 
 module.exports =
 
@@ -87,3 +87,32 @@ module.exports =
 
 
   afterEachCollaborationTest: (browser, done) -> browser.deleteCollabLink done
+
+
+  getInvitationData: ->
+
+    targetUsers = [0..6].map (index) =>
+      @getUser no, index+1
+
+    index = 0
+    invitations = targetUsers.map (user) ->
+      if user
+        firstName = if (index is 0 or index is 2) then '' else user.fakeText.split(' ')[0]
+        lastName = if (index is 1 or index is 2) then '' else user.fakeText.split(' ')[2]
+        index = index + 1
+        password = user.password
+        username = user.username
+        { 'email': user.email, 'role': 'member', firstName, lastName, password, username }
+
+    host = @getUser()
+    invitations.push host
+
+    invitations = _.sortBy(_.sortBy(_.sortBy(invitations, 'firstName'), 'lastName'), 'email')
+
+    invitations.forEach (invitation, i) ->
+
+      if invitation.email is host.email
+        index = i
+
+    return { invitations, index }
+
