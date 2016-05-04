@@ -383,10 +383,9 @@ module.exports = class DefineStackView extends KDView
         # new users get the default stack should. and this button shouldn't be there each time
         # i make a new one, it should be on the list-menu.
         @outputView[method] '''
-          Your stack script has been successfully saved and all your new team
-          members now will see this stack by default. Existing users
-          of the previous default-stack will be notified that default-stack has
-          changed.
+          All your new team members now will see this stack by default.
+          Existing users of the previous default-stack will be notified that
+          default-stack has changed.
 
           You can now close this window or continue working with your stack.
         '''
@@ -422,8 +421,6 @@ module.exports = class DefineStackView extends KDView
           if canEditGroup
             @setAsDefaultButton.show()
             @outputView.add '''
-              Your stack script has been successfully saved.
-
               If you want to auto-provision this template when new users join your team,
               you need to click "Make Team Default" after you save it.
 
@@ -432,7 +429,6 @@ module.exports = class DefineStackView extends KDView
           else
             @generateStackButton.show()
             @outputView.add '''
-              Your stack script has been successfully saved.
               You can now close the stack editor or continue editing your stack.
             '''
 
