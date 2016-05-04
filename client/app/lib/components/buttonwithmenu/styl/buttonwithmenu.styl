@@ -1,11 +1,21 @@
 .ButtonWithMenuWrapper
+  size                      20px 20px
+  rel()
+
+  &:before
+    content                 ''
+    r-sprite                activity chevron_icon
+    display                 block
+    margin-top              5px
+
   button
     pointer()
-    outline               none
-    size                  16px !important, 10px !important
-    border                none
-    r-sprite              activity chevron_icon
-    bg                    color, transparent
+    outline                 none
+    border                  none
+    bg                      color, transparent
+    size                    20px 20px
+    abs                     0px 0px
+
 .ButtonWithMenuItemsList
   abs()
   bg                          color, #FFF
