@@ -13,7 +13,7 @@ module.exports = class HomeAppAvatarArea extends kd.CustomHTMLView
 
   JView.mixin @prototype
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.tagName    = 'a'
     options.cssClass   = 'HomeAppView-Nav--AvatarArea'
@@ -46,8 +46,8 @@ module.exports = class HomeAppAvatarArea extends kd.CustomHTMLView
 
   pistachio: ->
 
-    """
+    '''
     {{> @teamName}}
     {{> @profileName}}
     {{> @avatar}}
-    """
+    '''
