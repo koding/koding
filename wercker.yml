@@ -67,11 +67,11 @@ build:
     - script:
         name: check configs
         code: |
-          ./configure --config sandbox --vaultPath `pwd`"/vault"
-          ./configure --config prod --vaultPath `pwd`"/vault"
+          ./configure --config sandbox
+          ./configure --config prod
     - script:
         name: configure build
-        code: ./configure --config sandbox --vaultPath `pwd`"/vault" --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
+        code: ./configure --config sandbox --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
     - script:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
@@ -214,7 +214,7 @@ deploy:
         code: |
           cd $WERCKER_ROOT
 
-          ./configure --config $CONFIG --projectRoot /opt/koding --vaultPath `pwd`"/vault" --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
+          ./configure --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
 
           ./scripts/install-npm.sh -d client -u
 
