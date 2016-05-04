@@ -1497,7 +1497,18 @@ class IDEAppController extends AppController
 
     { size } = change.context
 
-    targetPane.webtermView.terminal.setSize size.w, size.h, no
+    { terminal } = targetPane.webtermView
+
+    swidth = terminal.parent.getWidth()
+    { width: charWidth } = terminal.getCharSizes()
+    newCols = Math.max 1, Math.floor swidth / charWidth
+
+    if size.w > newCols
+      terminal.updateSize yes
+      kd.utils.wait 400, ->
+        targetPane.webtermView.triggerFitToWindow()
+    else
+      terminal.setSize size.w, size.h, no
 
 
   ###*
