@@ -17,6 +17,7 @@ stackDefaults = require 'stacks/defaults'
 providersParser = require 'stacks/views/stacks/providersparser'
 requirementsParser = require 'stacks/views/stacks/requirementsparser'
 { jsonToYaml } = require 'stacks/views/stacks/yamlutils'
+Tracker = require 'app/util/tracker'
 
 _eventsCache = { machine: {}, stack: no }
 
@@ -610,6 +611,29 @@ generateStackFromTemplate = (template) ->
       resolve { template, stack }
 
 
+removeStackTemplate = (template) ->
+
+  { reactor, groupsController } = kd.singletons
+
+  currentGroup = groupsController.getCurrentGroup()
+
+  return new Promise (resolve, reject) ->
+    reactor.dispatch actions.REMOVE_STACK_TEMPLATE_BEGIN, { template }
+    template.delete (err) ->
+      if err
+        reactor.dispatch actions.REMOVE_STACK_TEMPLATE_FAIL, { template, err }
+        reject err
+        return
+
+      if template.accessLevel is 'group'
+        currentGroup.sendNotification 'GroupStackTemplateRemoved', template._id
+
+      reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { template }
+      resolve()
+
+      Tracker.track Tracker.STACKS_DELETE_TEMPLATE
+
+
 deleteStack = (stackTemplateId) ->
 
   { computeController, reactor } = kd.singletons
@@ -717,6 +741,7 @@ module.exports = {
   updateStackTemplate
   generateStack
   generateStackFromTemplate
+  removeStackTemplate
   deleteStack
   changeTemplateTitle
   loadMachineSharedUsers
