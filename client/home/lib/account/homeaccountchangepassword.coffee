@@ -58,7 +58,7 @@ module.exports = class HomeAccountChangePassword extends kd.CustomHTMLView
     { password, confirmPassword, currentPassword } = formData
     skipConfirmation = no
 
-    notify_ = (msg) =>
+    notify_ = (msg) ->
       notify msg
 
     return notify_ WARNINGS.noMatch   if password isnt confirmPassword
@@ -100,6 +100,6 @@ module.exports = class HomeAccountChangePassword extends kd.CustomHTMLView
 
 
   pistachio: ->
-    """
+    '''
     {{> @changePasswordForm}}
-    """
+    '''

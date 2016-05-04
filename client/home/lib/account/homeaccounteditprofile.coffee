@@ -42,7 +42,7 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
       cssClass : 'HomeAppView--link'
       title    : 'USE GRAVATAR'
       click    : =>
-        @account.modify { 'profile.avatar' : '' }, (err) =>
+        @account.modify { 'profile.avatar' : '' }, (err) ->
           console.warn err  if err
 
     @avatarButtons = new KDCustomHTMLView
@@ -244,6 +244,6 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
 
 
   pistachio: ->
-    """
+    '''
     {{> @userProfileForm}}
-    """
+    '''
