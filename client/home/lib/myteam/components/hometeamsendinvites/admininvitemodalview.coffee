@@ -20,11 +20,11 @@ module.exports = class AdminInviteModalView extends kd.ModalViewWithForms
                 cssClass      : 'confirm'
                 style         : 'solid green medium'
                 loader        : { color: '#444444' }
-                callback      : => options.success()
+                callback      : -> options.success()
               Cancel          :
                 itemClass     : kd.ButtonView
                 style         : 'solid medium'
-                callback      : => options.cancel()
+                callback      : -> options.cancel()
             fields            :
               planDetails     :
                 type          : 'hidden'

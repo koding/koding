@@ -6,7 +6,7 @@ module.exports = class HomeStacksCreate extends kd.CustomHTMLView
 
   JView.mixin @prototype
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass = 'HomeAppView-Stacks--create'
 
@@ -20,8 +20,8 @@ module.exports = class HomeStacksCreate extends kd.CustomHTMLView
 
   pistachio: ->
 
-    """
+    '''
     <h2>Create New Stack Template</h2>
     <p>Start a new stack script</p>
     {{> @create}}
-    """
+    '''
