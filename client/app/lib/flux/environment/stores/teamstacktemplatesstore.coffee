@@ -15,6 +15,8 @@ module.exports = class TeamStackTemplatesStore extends KodingFluxStore
     @on actions.LOAD_TEAM_STACK_TEMPLATES_SUCCESS, @load
     @on actions.CHANGE_TEMPLATE_TITLE, @changeTitle
 
+    @on actions.REMOVE_STACK_TEMPLATE_SUCCESS, @remove
+
 
   load: (stackTemplates, { templates }) ->
 
@@ -36,4 +38,6 @@ module.exports = class TeamStackTemplatesStore extends KodingFluxStore
         .setIn [id, 'title'], value
         .setIn [id, 'isDirty'], yes
 
+
+  remove: (stackTemplates, { template }) -> stackTemplates.remove template._id
 

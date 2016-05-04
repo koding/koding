@@ -15,6 +15,7 @@ module.exports = class PrivateStackTemplatesStore extends KodingFluxStore
     @on actions.LOAD_PRIVATE_STACK_TEMPLATES_SUCCESS, @load
     @on actions.CHANGE_TEMPLATE_TITLE, @changeTitle
     @on actions.CREATE_STACK_TEMPLATE_SUCCESS, @loadSingle
+    @on actions.REMOVE_STACK_TEMPLATE_SUCCESS, @remove
 
 
   load: (stackTemplates, { templates }) ->
@@ -42,4 +43,6 @@ module.exports = class PrivateStackTemplatesStore extends KodingFluxStore
         .setIn [id, 'title'], value
         .setIn [id, 'isDirty'], yes
 
+
+  remove: (stackTemplates, { template }) -> stackTemplates.remove template._id
 
