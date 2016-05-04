@@ -30,14 +30,13 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
     { statusType, listViewItemOptions, noItemFoundText } = @getOptions()
 
-    sort      = @getSortOptions()
     groupSlug = @getData().slug
 
     @listController = new InvitationsListController
       statusType          : statusType
       noItemFoundText     : noItemFoundText
       listViewItemOptions : listViewItemOptions
-      fetcherMethod       : (selector, fetchOptions, callback) ->
+      fetcherMethod       : (selector, fetchOptions, callback) =>
 
         method = if selector.query then 'search' else 'some'
 
@@ -45,7 +44,7 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
           selector.groupSlug = groupSlug
 
         selector.status   = statusType
-        fetchOptions.sort = sort
+        fetchOptions.sort = @getSortOptions()
 
         remote.api.JInvitation[method] selector, fetchOptions, callback
 
