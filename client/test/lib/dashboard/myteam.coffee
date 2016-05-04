@@ -59,9 +59,9 @@ module.exports =
     host = teamsHelpers.loginTeam browser
     { invitations, index } = utils.getInvitationData()
     index = if index is 0 then 1 else index
-    indexOfTargetUser1 = if 1%index isnt 0 then 1 else 2
-    indexOfTargetUser2 = if 3%index isnt 0 then 3 else 4
-    indexOfTargetUser3 = if 5%index isnt 0 then 5 else 6
+    indexOfTargetUser1 = if 1 % index isnt 0 then 1 else 2
+    indexOfTargetUser2 = if 3 % index isnt 0 then 3 else 4
+    indexOfTargetUser3 = if 5 % index isnt 0 then 5 else 6
 
     browser
       .url myTeamLink, (result) ->
@@ -75,21 +75,21 @@ module.exports =
                     .waitForElementVisible section, 20000
                     .waitForElementVisible sectionSelector, 20000
                     .scrollToElement scrollElement
-                    .click selector 'role', indexOfTargetUser1+1
+                    .click selector 'role', indexOfTargetUser1 + 1
                     .pause 1000
                     .click nthItem 2
                     .pause 1000
-                    .click selector 'role', indexOfTargetUser1+1
+                    .click selector 'role', indexOfTargetUser1 + 1
                     .pause 1000
                     .click nthItem 2
                     .pause 1000
-                    .assert.containsText selector('role', indexOfTargetUser1+1), 'Member'
+                    .assert.containsText selector('role', indexOfTargetUser1 + 1), 'Member'
                     .pause 1000
-                    .click selector 'role', indexOfTargetUser2+1
+                    .click selector 'role', indexOfTargetUser2 + 1
                     .pause 1000
                     .click nthItem 2
                     .pause 1000
-                    .assert.containsText selector('role', indexOfTargetUser2+1), 'Admin'
+                    .assert.containsText selector('role', indexOfTargetUser2 + 1), 'Admin'
                     .end()
 
   searchAndChangeRoleOfTeamMates: (browser) ->
@@ -97,9 +97,9 @@ module.exports =
     { invitations, index } = utils.getInvitationData()
 
     index1 = if index is 0 then 1 else index
-    indexOfTargetUser1 = if 1%index1 isnt 0 then 1 else 2
-    indexOfTargetUser2 = if 3%index1 isnt 0 then 3 else 4
-    indexOfTargetUser3 = if 5%index1 isnt 0 then 5 else 6
+    indexOfTargetUser1 = if 1 % index1 isnt 0 then 1 else 2
+    indexOfTargetUser2 = if 3 % index1 isnt 0 then 3 else 4
+    indexOfTargetUser3 = if 5 % index1 isnt 0 then 5 else 6
 
     invitations[indexOfTargetUser1].accepted = 'Member'
     invitations[indexOfTargetUser2].accepted = 'Admin'
@@ -111,7 +111,7 @@ module.exports =
       unless invitation.accepted
         lastPendingInvitationIndex = i
 
-    section= '.kdcustomscrollview.HomeAppView--scroller.my-team'
+    section = '.kdcustomscrollview.HomeAppView--scroller.my-team'
     sectionSelector = '.HomeAppView--section.teammates'
     filterSelector = "#{sectionSelector} .kdinput.text.hitenterview"
     listViewSelector = "#{sectionSelector} .ListView .ListView-row"
@@ -129,11 +129,11 @@ module.exports =
           browser.waitForElementVisible selector('role', 1), 20000
           browser.click selector('role', 2), ->
             myteamhelpers.checkTeammates browser, invitations[1], nthItem(1), nthItem(2), selector('role', 2), no, ->
-              browser.expect.element(selector('role', index+1)).text.to.contain 'Owner'
-              browser.click selector('role', lastPendingInvitationIndex+1), ->
-                myteamhelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], nthItem(1), nthItem(2), selector('role', lastPendingInvitationIndex+1), yes, ->
+              browser.expect.element(selector('role', index + 1)).text.to.contain 'Owner'
+              browser.click selector('role', lastPendingInvitationIndex + 1), ->
+                myteamhelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], nthItem(1), nthItem(2), selector('role', lastPendingInvitationIndex + 1), yes, ->
                   browser
-                    .waitForElementNotPresent selector('fullname', lastPendingInvitationIndex+1), 20000
+                    .waitForElementNotPresent selector('fullname', lastPendingInvitationIndex + 1), 20000
                     .end()
 
 

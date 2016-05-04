@@ -35,7 +35,7 @@ module.exports =
     newUserEmail = "#{helpers.getFakeText().split(' ')[0]}#{Date.now()}@kd.io"
     sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
 
-    successMessage = "All invitations are sent."
+    successMessage = 'All invitations are sent.'
 
     browser
       .waitForElementVisible invitationsModalSelector, 20000
@@ -118,7 +118,7 @@ module.exports =
       .waitForElementVisible invitationsModalSelector, 20000
 
     userEmail = @fillInviteInputByIndex browser, index, userEmail
-    newEmail = @fillInviteInputByIndex browser, index+1
+    newEmail = @fillInviteInputByIndex browser, index + 1
     successMessage = "Invitation is sent to #{newEmail}"
 
     browser
@@ -194,7 +194,7 @@ module.exports =
   inviteUsers: (browser, invitations, callback) ->
 
     fn = ( invitations, done ) ->
-      _remote.api.JInvitation.create {invitations: invitations}, (err) ->
+      _remote.api.JInvitation.create { invitations: invitations }, (err) ->
         done err
 
     browser

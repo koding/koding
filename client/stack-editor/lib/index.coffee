@@ -36,7 +36,7 @@ module.exports = class StackEditorAppController extends AppController
 
     view = new OnboardingView
 
-    view.on 'StackOnboardingCompleted', (result) =>
+    view.on 'StackOnboardingCompleted', (result) ->
       overrides = {}
 
       if result?.template

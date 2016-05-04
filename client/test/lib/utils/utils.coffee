@@ -92,7 +92,7 @@ module.exports =
   getInvitationData: ->
 
     targetUsers = [0..6].map (index) =>
-      @getUser no, index+1
+      @getUser no, index + 1
 
     index = 0
     invitations = targetUsers.map (user) ->
