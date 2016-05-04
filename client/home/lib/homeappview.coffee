@@ -17,6 +17,12 @@ module.exports = class HomeAppView extends kd.ModalView
 
     super options, data
 
+    { router, mainView } = kd.singletons
+
+    router.on 'RouteInfoHandled', (routeInfo) =>
+      if routeInfo.path.indexOf('/Home') is -1
+        @destroy()
+
     @addSubView @nav = new kd.TabHandleContainer { cssClass: 'HomeAppView-Nav' }
 
     @avatarArea = new HomeAppAvatarView
