@@ -31,7 +31,7 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
 
 
   buildInitialView: ->
-    
+
     @destroySubViews()
 
     @addSubView loader = @getLoaderView()
@@ -52,8 +52,8 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
         @_activeKey     = key
 
         instructionsView = @getInstructionsView()
-        instructionsView.addSubView @getRenewQRCodeLink()
-        
+        instructionsView.addSubView
+        @getRenewQRCodeLink()
         @addSubView @getFormView()
         @addSubView @getQrCodeView qrcode
         @addSubView instructionsView
