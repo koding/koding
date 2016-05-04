@@ -34,7 +34,7 @@ BULLETS =
 
   installKd :
     """
-    <a href='/Stacks/Utilities'>
+    <a href='/Home/Koding-Utilities'>
       <h3>Install KD</h3>
       <p><code>kd</code>  is a CLI tool that allows you to use your local IDEs.</p>
     </a>
