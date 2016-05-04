@@ -18,12 +18,7 @@ providersParser = require 'stacks/views/stacks/providersparser'
 requirementsParser = require 'stacks/views/stacks/requirementsparser'
 { jsonToYaml } = require 'stacks/views/stacks/yamlutils'
 
-
-
-_eventsCache =
-  machine    : {}
-  stack      : no
-
+_eventsCache = { machine: {}, stack: no }
 
 _bindMachineEvents = (environmentData) ->
 
