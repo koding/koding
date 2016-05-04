@@ -47,7 +47,7 @@ module.exports = class TeamInvitationInputValuesStore extends KodingFluxStore
   *   va
   *   ----
   ###
-  handleChange: (state, {index, inputType, value}) ->
+  handleChange: (state, { index, inputType, value }) ->
 
     state = state.setIn [index, inputType], value
 

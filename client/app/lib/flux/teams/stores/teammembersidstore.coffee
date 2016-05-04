@@ -16,7 +16,7 @@ module.exports = class TeamMembersIdStore extends KodingFluxStore
     @on actions.FETCH_TEAM_MEMBERS_SUCCESS, @load
 
 
-  load: (memberIds, {users} ) ->
+  load: (memberIds, { users } ) ->
 
     return memberIds.withMutations (memberIds) ->
       users.forEach ( user ) ->

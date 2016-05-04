@@ -9,7 +9,7 @@ bootChatlio = (id, team) ->
 
   # this thing is js to coffee of chatlio embed code
   window._chatlio = window._chatlio or []
-  !do ->
+  not do ->
     t = document.getElementById('chatlio-widget-embed')
     if t and window.ChatlioReact and _chatlio.init
       return undefined
@@ -36,7 +36,7 @@ bootChatlio = (id, team) ->
     c = document.getElementsByTagName('script')[0]
     n.id = 'chatlio-widget-embed'
     n.src = 'https://w.chatlio.com/w.chatlio-widget.js'
-    n.async = !0
+    n.async = not 0
 
     # these are the custom attributes for the widget behavior
     n.setAttribute 'data-embed-version', '2.1'
@@ -47,20 +47,20 @@ bootChatlio = (id, team) ->
 
     # configure the client so it doesn't look shitty
     _chatlio.configure
-      titleColor                : "#01AF5B"
-      titleFontColor            : "#fff"
-      onlineTitle               : "How can we help you?"
-      offlineTitle              : "Contact Us"
-      agentLabel                : "Support"
-      browserSideAuthorLabel    : "You"
-      onlineMessagePlaceholder  : "Type message here..."
-      offlineGreeting           : "Sorry we are away, but we would love to hear from you and chat soon!"
-      offlineEmailPlaceholder   : "Email"
-      offlineMessagePlaceholder : "Your message here"
-      offlineNamePlaceholder    : "Name (optional but helpful)"
-      offlineSendButton         : "Send"
-      offlineThankYouMessage    : "Thanks for your message. We will be in touch soon!"
-      autoResponseMessage       : "Question? Just type it below and we are online and ready to answer."
+      titleColor                : '#01AF5B'
+      titleFontColor            : '#fff'
+      onlineTitle               : 'How can we help you?'
+      offlineTitle              : 'Contact Us'
+      agentLabel                : 'Support'
+      browserSideAuthorLabel    : 'You'
+      onlineMessagePlaceholder  : 'Type message here...'
+      offlineGreeting           : 'Sorry we are away, but we would love to hear from you and chat soon!'
+      offlineEmailPlaceholder   : 'Email'
+      offlineMessagePlaceholder : 'Your message here'
+      offlineNamePlaceholder    : 'Name (optional but helpful)'
+      offlineSendButton         : 'Send'
+      offlineThankYouMessage    : 'Thanks for your message. We will be in touch soon!'
+      autoResponseMessage       : 'Question? Just type it below and we are online and ready to answer.'
 
     # these to identify the user talking
     # taken from user's koding account

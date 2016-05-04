@@ -3,19 +3,20 @@ notification = null
 
 module.exports = copyToClipboard = (el, showNotification = yes) ->
 
-    notification?.destroy()
+  notification?.destroy()
 
-    kd.utils.selectText el
+  kd.utils.selectText el
 
-    msg = 'Copied to clipboard!'
+  msg = 'Copied to clipboard!'
 
-    try
-      copied = document.execCommand 'copy'
-      throw 'couldn\'t copy'  unless copied
-    catch
-      key = if globals.os is 'mac' then '⌘ + C' else 'Ctrl + C'
-      msg = "Hit #{key} to copy!"
+  try
+    copied = document.execCommand 'copy'
+    couldntCopy = 'couldn\'t copy'
+    throw couldntCopy  unless copied
+  catch
+    key = if globals.os is 'mac' then '⌘ + C' else 'Ctrl + C'
+    msg = "Hit #{key} to copy!"
 
-    return  unless showNotification
+  return  unless showNotification
 
-    notification = new kd.NotificationView { title: msg }
+  notification = new kd.NotificationView { title: msg }
