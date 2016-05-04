@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/errormessages"
 	"koding/klientctl/util"
@@ -113,16 +112,19 @@ func (c *Command) Run() (int, error) {
 			return 1, err
 		}
 	default:
-		c.Stdout.Printlnf(
-			"The shell %s is unsupported by %s at this time.",
-			c.Options.Shell,
-			config.Name,
-		)
+		c.Stdout.Printlnf("Only bash and fish shells are supported currently.")
+		// Commented out for use when we support more than just bash and fish.
+		//c.Stdout.Printlnf(
+		//	"The shell %s is unsupported by %s at this time.",
+		//	c.Options.Shell,
+		//	config.Name,
+		//)
 	}
 
 	c.Stdout.Printlnf(
-		`Successfully installed autocompletion files. Note that these will not work on
-existing shell sessions.`)
+		`Successfully installed kd autocomplete. Note you need to restart your shell or
+source your shell config file for autocomplete to work in current session.`,
+	)
 
 	return 0, nil
 }
@@ -260,4 +262,12 @@ func isPermDeniedErr(err error) bool {
 	}
 
 	return strings.Contains(err.Error(), "permission denied")
+}
+
+func (c *Command) Autocomplete(args ...string) error {
+	completions := []string{"bash", "fish"}
+	for _, cmplt := range completions {
+		c.Stdout.Printlnf(cmplt)
+	}
+	return nil
 }
