@@ -1,6 +1,7 @@
 package req
 
 import (
+	"koding/klient/fs"
 	"koding/klient/remote/rsync"
 	"time"
 )
@@ -108,6 +109,14 @@ type MountInfoResponse struct {
 // Remount is the struct for klient's remote.remount method.
 type Remount struct {
 	MountName string `json:"mountName"`
+}
+
+type ReadDirectoryOptions struct {
+	// The embedded ReadDirectoryOptions
+	fs.ReadDirectoryOptions
+
+	// The machine name to run the ReadDirectory on.
+	Machine string
 }
 
 func (i StatusItem) String() string {

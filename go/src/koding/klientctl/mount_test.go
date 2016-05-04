@@ -11,13 +11,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/koding/kite/dnode"
 	"koding/klient/kiteerrortypes"
 	"koding/klient/remote/restypes"
 	"koding/klient/util"
 	"koding/klientctl/klientctlerrors"
 	"koding/klientctl/list"
 	"koding/klientctl/util/testutil"
+
+	"github.com/koding/kite/dnode"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
