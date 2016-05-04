@@ -84,8 +84,8 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
           label            : '&nbsp;'
           cssClass         : 'Formline--half'
           itemClass        : kd.ButtonView
-          title            : 'Disable'
-          style            : 'solid medium red disable-tf'
+          title            : 'DISABLE'
+          style            : 'GenericButton danger disable-tf'
       callback             : @bound 'handleDisableFormButton'
 
 
