@@ -33,20 +33,22 @@ module.exports = class HomeTeamTeamMatesView extends React.Component
 
   render: ->
 
-    <div>
-      <SearchBox
-        onChange={@props.onSearchInputChange}
-        value={@props.searchInputValue} />
+    # commented out until we have a functioning design - SY
 
-      <div className='kdview kdlistview kdlistview-default'>
-        <List
-          numberOfSections={@bound 'numberOfSections'}
-          numberOfRowsInSection={@bound 'numberOfRowsInSection'}
-          renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
-          renderRowAtIndex={@bound 'renderRowAtIndex'}
-          renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
-        />
-      </div>
+    # <SearchBox
+    #   onChange={@props.onSearchInputChange}
+    #   value={@props.searchInputValue} />
+
+    <div>
+      <List
+        numberOfSections={@bound 'numberOfSections'}
+        numberOfRowsInSection={@bound 'numberOfRowsInSection'}
+        renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
+        renderRowAtIndex={@bound 'renderRowAtIndex'}
+        renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
+        rowClassName='HomeApp-Teammate--ListItem'
+        sectionClassName='HomeApp-TeammatesSection'
+      />
     </div>
 
 
