@@ -729,22 +729,15 @@ module.exports = class StackEditorView extends kd.View
     description = 'Do you want to remove this stack template ?'
     callback    = ({ status, modal }) ->
       return  unless status
-      template.delete (err) ->
 
-        if err
+      EnvironmentFlux.actions.removeStackTemplate template
+        .then ->
+          router.handleRoute '/IDE'
+          modal.destroy()
+        .catch (err) ->
           new kd.NotificationView { title: 'Something went wrong!' }
           modal.destroy()
-          return
 
-        if template.accessLevel is 'group'
-          currentGroup.sendNotification 'GroupStackTemplateRemoved', template._id
-
-        # UMUT FIX THE LINE BELOW - SY
-        reactor.dispatch actions.REMOVE_STACK, template._id
-        # UMUT FIX THE LINE ABOVE - SY
-        router.handleRoute '/IDE'
-        modal.destroy()
-        Tracker.track Tracker.STACKS_DELETE_TEMPLATE
 
     modal = kd.ModalView.confirm
       title       : title
