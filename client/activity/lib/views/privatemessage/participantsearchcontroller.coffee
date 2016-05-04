@@ -1,5 +1,7 @@
-kd = require 'kd'
-KDAutoCompleteController = kd.AutoCompleteController
+kd                          = require 'kd'
+KDAutoCompleteController    = kd.AutoCompleteController
+PrivateMessageAutoComplete  = require './privatemessageautocomplete'
+
 
 module.exports = class ParticipantSearchController extends KDAutoCompleteController
 
@@ -8,6 +10,8 @@ module.exports = class ParticipantSearchController extends KDAutoCompleteControl
   SHOW_LOADER_TIMEOUT = 1000
 
   constructor: (options = {}, data) ->
+
+    options.view or= new PrivateMessageAutoComplete
 
     super options, data
 
