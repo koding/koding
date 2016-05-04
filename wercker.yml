@@ -67,11 +67,11 @@ build:
     - script:
         name: check configs
         code: |
-          ./configure --config sandbox
-          ./configure --config prod
+          ./configure --config sandbox --vaultPath `pwd`"/vault"
+          ./configure --config prod --vaultPath `pwd`"/vault"
     - script:
         name: configure build
-        code: ./configure --config sandbox --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
+        code: ./configure --config sandbox --vaultPath `pwd`"/vault" --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
     - script:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
@@ -82,7 +82,12 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
-        code: scripts/wercker/run-command go/build.sh
+        code: go/build.sh
+    - script:
+        name: ensure koding/config is not stale
+        code: |
+          go generate koding/config
+          git diff --name-only --exit-code go/src/koding/config/config.json.go
     - script:
         name: test klient
         code: scripts/wercker/run-command scripts/test-klient.sh
@@ -209,7 +214,7 @@ deploy:
         code: |
           cd $WERCKER_ROOT
 
-          ./configure --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
+          ./configure --config $CONFIG --projectRoot /opt/koding --vaultPath `pwd`"/vault" --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
 
           ./scripts/install-npm.sh -d client -u
 

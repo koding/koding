@@ -247,6 +247,8 @@ module.exports.create = (KONFIG, environment)->
 
     #{createHealthcheck(KONFIG)}
 
+    #{createIPRoutes(KONFIG)}
+
     # start server
     server {
       # we should not timeout on proxy connections
@@ -425,6 +427,23 @@ createHealthcheck = (KONFIG) ->
       }
     }
   """
+
+createIPRoutes = (KONFIG) ->
+  return "" if not isProxy KONFIG.ebEnvName
+
+  return """
+    location ~^/-/ip$ {
+      return 200 $remote_addr;
+    }
+
+    location ~^/-/ipcheck/(?<port>\d+)(?<rest>.*)$ {
+      proxy_pass http://$remote_addr:$port$rest;
+      proxy_connect_timeout 5s;
+      proxy_read_timeout 5s;
+      proxy_send_timeout 5s;
+      proxy_next_upstream error timeout invalid_header;
+    }
+   """
 
 createListenDirective = (KONFIG, env) ->
   return "listen #{KONFIG.publicPort};" if not isProxy KONFIG.ebEnvName

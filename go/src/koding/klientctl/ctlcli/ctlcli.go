@@ -25,6 +25,12 @@ type Command interface {
 	Help()
 }
 
+// AutocompleteCommand is an interface for a Command that wants to provide
+// Autocomplete functionality.
+type AutocompleteCommand interface {
+	Autocomplete(args ...string) error
+}
+
 // Helper implements an abstraction between Commands and codegansta/cli. How the
 // helpers are implemented varies depending on the actual Helper function we're
 // wrapping, but typically they write the given io.Writer to the cli.Context
@@ -74,5 +80,22 @@ func FactoryAction(factory CommandFactory, log logging.Logger, cmdName string) f
 		}
 
 		os.Exit(exit)
+	}
+}
+
+// FactoryCompletion implements codeganstas cli.Command's bash completion field
+func FactoryCompletion(factory CommandFactory, log logging.Logger, cmdName string) func(*cli.Context) {
+	return func(c *cli.Context) {
+		cmd := factory(c, log, cmdName)
+
+		// If the command implements AutocompleteCommand, run the autocomplete.
+		if aCmd, ok := cmd.(AutocompleteCommand); ok {
+			if err := aCmd.Autocomplete(c.Args()...); err != nil {
+				log.Error(
+					"Autocompletion of a command encountered error. command:%s, err:%s",
+					cmdName, err,
+				)
+			}
+		}
 	}
 }

@@ -18,6 +18,7 @@ selenium-debug.log
 .runningpids
 .imagesrc
 /.build
+/vault
 /.logs/*
 /.deployments
 /.pydevproject

@@ -166,6 +166,9 @@ func main() {
 				},
 			},
 			Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
+			BashComplete: ctlcli.FactoryCompletion(
+				MountCommandFactory, log, "mount",
+			),
 		},
 		cli.Command{
 			Name:        "unmount",
@@ -275,6 +278,9 @@ func main() {
 				},
 			},
 			Action: ctlcli.FactoryAction(
+				AutocompleteCommandFactory, log, "autocompletion",
+			),
+			BashComplete: ctlcli.FactoryCompletion(
 				AutocompleteCommandFactory, log, "autocompletion",
 			),
 		},
