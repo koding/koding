@@ -50,7 +50,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
     { title } = item.getData()
     ACCOUNT_MENU.destroy()
 
-    this["handle#{title.replace(' ','')}"] item, event
+    this["handle#{title.replace(' ', '')}"] item, event
 
 
   handleMyAccount: ->

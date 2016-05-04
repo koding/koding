@@ -44,7 +44,7 @@ describe 'PaymentFlux', ->
   it 'should subscribe a group', (done) ->
 
     reactor = new Reactor
-    {actions, getters} = PaymentFlux reactor
+    { actions, getters } = PaymentFlux reactor
 
     options =
       cardNumber : '4111111111111111'

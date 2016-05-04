@@ -101,7 +101,7 @@ removeGroupPlan = ({ dispatch }) -> ->
       resolve()
 
 
-loadGroupCreditCard = ({dispatch}) -> ->
+loadGroupCreditCard = ({ dispatch }) -> ->
 
   { paymentController } = kd.singletons
 
@@ -135,7 +135,7 @@ updateGroupCreditCard = ({ dispatch }) -> ({ token }) ->
       resolve { card }
 
 
-loadGroupInvoices = ({dispatch}) -> ->
+loadGroupInvoices = ({ dispatch }) -> ->
 
   { paymentController } = kd.singletons
 
