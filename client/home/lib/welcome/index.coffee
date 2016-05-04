@@ -4,7 +4,7 @@ collectCredentials = require 'app/util/collectCredentials'
 
 module.exports = class HomeWelcome extends kd.CustomScrollView
 
-  constructor:(options = {}, data)->
+  constructor:(options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'WelcomeStacksView', options.cssClass
 

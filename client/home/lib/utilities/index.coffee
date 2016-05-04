@@ -15,9 +15,9 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
     options.cssClass = kd.utils.curry 'HomeAppView--scroller', options.cssClass
 
     super options, data
-    
-    TeamFlux.actions.loadTeam() 
-    
+
+    TeamFlux.actions.loadTeam()
+
     @wrapper.addSubView headerize  'KD CLI'
     @wrapper.addSubView sectionize 'KD CLI', HomeUtilitiesKD
 

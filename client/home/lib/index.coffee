@@ -18,13 +18,13 @@ module.exports = class HomeAppController extends AppController
     background : yes
 
   TABS = [
-    { title : 'Welcome',          viewClass : HomeWelcome,         role: 'member' }
-    { title : 'Stacks',           viewClass : HomeStacks,          role: 'member' }
-    { title : 'My Team',          viewClass : HomeMyTeam,          role: 'member' }
-    { title : 'Team Billing',     viewClass : HomeTeamBilling                     }
-    { title : 'Payment History',  viewClass : HomePaymentHistory  }
-    { title : 'Koding Utilities', viewClass : HomeUtilities,       role: 'member' }
-    { title : 'My Account',       viewClass : HomeAccount,         role: 'member' }
+    { title : 'Welcome', viewClass : HomeWelcome, role: 'member' }
+    { title : 'Stacks', viewClass : HomeStacks, role: 'member' }
+    { title : 'My Team', viewClass : HomeMyTeam, role: 'member' }
+    { title : 'Team Billing', viewClass : HomeTeamBilling }
+    { title : 'Payment History', viewClass : HomePaymentHistory }
+    { title : 'Koding Utilities', viewClass : HomeUtilities, role: 'member' }
+    { title : 'My Account', viewClass : HomeAccount, role: 'member' }
   ]
 
 
