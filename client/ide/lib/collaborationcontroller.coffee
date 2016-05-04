@@ -258,10 +258,9 @@ module.exports = CollaborationController =
         .then =>
           @listenKlientKite()
         .catch (err) =>
-          if err?.code is 1002
-            if @amIHost
-            then @handleCollaborationEndedForHost()
-            else @handleCollaborationEndedForParticipant()
+          if @amIHost
+          then @handleCollaborationEndedForHost()
+          else @handleCollaborationEndedForParticipant()
 
 
   setWatchMap: ->
