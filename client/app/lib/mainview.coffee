@@ -45,7 +45,7 @@ module.exports = class MainView extends kd.View
     @createMainTabView()
 
     kd.singletons.mainController.ready =>
-      @createAccountArea()
+      @createAccountArea()  if isKoding()
       @setStickyNotification()
       @emit 'ready'
 
