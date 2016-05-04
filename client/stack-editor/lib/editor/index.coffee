@@ -6,6 +6,8 @@ Encoder = require 'htmlencode'
 whoami = require 'app/util/whoami'
 curryIn = require 'app/util/curryIn'
 Tracker = require 'app/util/tracker'
+actions = require 'app/flux/environment/actiontypes'
+showError = require 'app/util/showError'
 
 OutputView = require 'stacks/views/stacks/outputview'
 ReadmeView = require 'stacks/views/stacks/readmeview'
@@ -64,7 +66,7 @@ module.exports = class StackEditorView extends kd.View
     @secondaryActions.addSubView new CustomLinkView
       cssClass : 'HomeAppView--button danger'
       title    : 'DELETE STACK TEMPLATE'
-      click    : ->
+      click    : @bound 'deleteStack'
 
 
     @tabView.unsetClass 'kdscrollview'
@@ -709,3 +711,52 @@ module.exports = class StackEditorView extends kd.View
 
       @emit 'Reload'
       @emit 'Completed', stackTemplate  if completed
+
+
+  deleteStack: ->
+
+    { groupsController, computeController, router, reactor }  = kd.singletons
+    currentGroup  = groupsController.getCurrentGroup()
+    template      = @getData().stackTemplate
+
+    if template._id in (currentGroup.stackTemplates ? [])
+      return showError 'This template currently in use by the Team.'
+
+    if computeController.findStackFromTemplateId template._id
+      return showError 'You currently have a stack generated from this template.'
+
+    title       = 'Remove stack template ?'
+    description = 'Do you want to remove this stack template ?'
+    callback    = ({ status, modal }) ->
+      return  unless status
+      template.delete (err) ->
+
+        if err
+          new kd.NotificationView { title: 'Something went wrong!' }
+          modal.destroy()
+          return
+
+        if template.accessLevel is 'group'
+          currentGroup.sendNotification 'GroupStackTemplateRemoved', template._id
+
+        # UMUT FIX THE LINE BELOW - SY
+        reactor.dispatch actions.REMOVE_STACK, template._id
+        # UMUT FIX THE LINE ABOVE - SY
+        router.handleRoute '/IDE'
+        modal.destroy()
+        Tracker.track Tracker.STACKS_DELETE_TEMPLATE
+
+    modal = kd.ModalView.confirm
+      title       : title
+      description : description
+      ok          :
+        title     : 'Yes'
+        callback  : -> callback { status : yes, modal }
+      cancel      :
+        title     : 'Cancel'
+        callback  : ->
+          modal.destroy()
+          callback { status : no }
+
+    modal.setAttribute 'testpath', 'RemoveStackModal'
+
