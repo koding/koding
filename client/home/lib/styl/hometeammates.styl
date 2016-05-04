@@ -1,0 +1,83 @@
+@css {
+/*
+Home My Team Teammate styles
+hometeammates.styl
+*/
+}
+
+.HomeApp-Teammate--ListItem
+  height                    44px
+  borderizeListItems        20px, 1px solid #EBEBEB
+  font-size                 15px
+  rel()
+
+  &:first-of-type
+    .avatarview
+      top                   4px
+
+    .dropdown
+      top                   10px
+
+  .avatarview
+    height                  40px
+    abs                     24px 0 0 0px
+    &.default
+      r-sprite              home user_default
+
+  .details
+    line-height             24px
+    margin-left             57px
+
+
+  p
+    dInline()
+
+  .fullname
+    color                   #5F5F5F
+    font-weight             400
+    padding-top             4px
+    line-height             22px
+    text-rendering          geometricPrecision
+
+  .metaData
+    color                   #AFAFAF
+    font-weight             400
+    line-height             14px
+    letter-spacing          .15px
+    text-rendering          geometricPrecision
+
+    .email
+    .nickname
+      ellipsis()
+
+    .nickname:before
+      content               ' | '
+      display               inline
+      color                 #eee
+
+
+  .dropdown
+    abs                     30px 2px 0 0
+
+    .role
+      display               inline-block
+      color                 #BFBFBF
+      cursor                pointer
+      margin-right          15px
+      font-size             14px
+      letter-spacing        .3px
+
+    .ButtonWithMenuWrapper
+      cursor                pointer
+      display               inline-block
+      &:before
+        content             ''
+        background          none
+        border              5px solid transparent
+        border-top-color    rgb(183,183,183)
+        width               10px
+        abs                 8px
+        borderBox()
+
+
+
