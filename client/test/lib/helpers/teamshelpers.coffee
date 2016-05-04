@@ -250,25 +250,33 @@ module.exports =
         callback result.value
 
 
-  openTeamSettingsModal: (browser) ->
+  clickTeamSettings: (browser, action = 'teamSettings') ->
 
-    avatarareaPopup  = '.avatararea-popup.team'
-    teamDashboard    = '.AppModal--admin'
-    teamSettingsLink = "#{avatarareaPopup} .admin a"
+    helpers.openAvatarAreaModal(browser, yes)
+    avatarareaPopup     = '.avatararea-popup.team'
+    teamDashboard       = '.AppModal--admin'
+    teamSettingsLink    = "#{avatarareaPopup} .admin a"
+    accountDashboard    = '.AppModal--account'
+    accountSettingsLink = "#{avatarareaPopup} .account a"
 
     browser
       .waitForElementVisible  avatarareaPopup, 20000
-      .waitForElementVisible  teamSettingsLink, 20000
-      .click                  teamSettingsLink
-      .waitForElementVisible  teamDashboard, 20000 # Assertion
-      .pause                  200 # Wait for team settings
-      .assert.containsText    teamDashboard, 'Team Settings' # Assertion
 
+    if action is 'teamSettings'
+      browser
+        .waitForElementVisible  teamSettingsLink, 20000
+        .click                  teamSettingsLink
+        .waitForElementVisible  teamDashboard, 20000 # Assertion
+        .pause                  200 # Wait for team settings
+        .assert.containsText    teamDashboard, 'Team Settings' # Assertion
 
-  clickTeamSettings: (browser) ->
-
-    helpers.openAvatarAreaModal(browser, yes)
-    @openTeamSettingsModal(browser)
+    else if action is 'accountSettings'
+      browser
+        .waitForElementVisible  accountSettingsLink, 20000
+        .click                  accountSettingsLink
+        .waitForElementVisible  accountDashboard, 20000 # Assertion
+        .pause                  200 # Wait for team settings
+        .assert.containsText    accountDashboard, 'Account Settings' # Assertion
 
 
   openStackCatalog: (browser, clickStartButton = yes) ->
