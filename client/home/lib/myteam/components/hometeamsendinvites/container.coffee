@@ -50,7 +50,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     invitations = @state.invitations
     inputValues = @state.inputValues
     ownEmail = kd.singletons.reactor.evaluate(['LoggedInUserEmailStore'])
-    title=''
+    title = ''
     inputValues = inputValues.toArray()
     for value in inputValues
       email = value.get('email')
@@ -64,8 +64,8 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
     if title isnt ''
       return new kd.NotificationView
-          title    : title
-          duration : 5000
+        title    : title
+        duration : 5000
 
     if adminInvitations.size
       notifyAdminInvites newInvitations, adminInvitations, resendInvitations
