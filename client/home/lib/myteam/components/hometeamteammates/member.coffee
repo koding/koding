@@ -16,6 +16,7 @@ module.exports = class Member extends React.Component
 
 
   onClickMemberRole: (role, event) ->
+
     kd.utils.stopDOMEvent event
     @setState { isMenuOpen: yes }
 
@@ -72,49 +73,44 @@ module.exports = class Member extends React.Component
 
     { nickname, email, role, firstName, lastName, fullName } = @getData()
 
-    <div className='kdview kdlistitemview kdlistitemview-member'>
+    <div>
+      <AvatarView member={@props.member} />
       <div className='details'>
-        <AvatarView member={@props.member} />
-        <p className='fullname'>{fullName}</p>
+        <div className='fullname'>{fullName}</div>
+        <div className='metaData'>
+          <Email email={email} />
+          <NickName nickname={nickname}/>
+        </div>
       </div>
-      <Email email={email} />
-      <NickName nickname={nickname}/>
-      <span onClick={@onClickMemberRole.bind(this, role)}>
-        <MemberRole role={role} />
-      </span>
-      <div className='clear'></div>
-      <ButtonWithMenu menuClassName='menu-class' items={@getMenuItems role} isMenuOpen={@state.isMenuOpen} />
+      <div className='dropdown' onClick={@onClickMemberRole.bind(this, role)}>
+        <MemberRole role={role}  />
+        <ButtonWithMenu menuClassName='menu-class' items={@getMenuItems role} isMenuOpen={@state.isMenuOpen} />
+      </div>
     </div>
 
 
 NickName = ({ nickname }) ->
 
   if nickname.length
-    <p className='nickname'> | @{nickname}</p>
-  else
-    <p className='nickname'></p>
+  then <span className='nickname'>@{nickname}</span>
+  else <i></i>
 
 Email = ({ email }) ->
 
-  <p className='email-js' title={email}>{email}</p>
+  <span className='email-js email' title={email}>{email}</span>
 
 AvatarView = ({ member }) ->
 
   unless member.get 'status'
-    <span className='avatarview' href='#'>
+    <div className='avatarview' href='#'>
       <ProfilePicture account={member.toJS()} height={40} width={40} />
-      <cite className='super-admin'></cite>
-    </span>
+    </div>
   else
-    <span className='avatarview' href='#'>
-      <cite className='super-admin'></cite>
-    </span>
+    <div className='avatarview default' href='#'>
+    </div>
 
 
 MemberRole = ({ role }) ->
-  className = 'role'
+
   role = capitalizeFirstLetter role
-  <div className={className}>
-    {role}
-    <span className='settings-icon'></span>
-  </div>
+  <div className='role'>{role}</div>
