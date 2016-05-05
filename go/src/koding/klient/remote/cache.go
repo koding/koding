@@ -90,6 +90,19 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	// If there is an actively running intervaler, run the requested cache
+	// *between* intervals. Locking to prevent any conflicts between the cache
+	// implementation.
+	runBetweenIntervals := remoteMachine.Intervaler != nil && params.Interval == 0
+
+	// If there is an interval already running, we may need to stop or pause it.
+	replaceIntervaler := remoteMachine.Intervaler != nil && params.Interval != 0
+
+	if replaceIntervaler {
+		log.Info("Unsubscribing from existing Sync Intervaler to replace it.")
+		remoteMachine.Intervaler.Stop()
+	}
+
 	rs := rsync.NewClient(log)
 	syncOpts := rsync.SyncIntervalOpts{
 		SyncOpts: rsync.SyncOpts{
@@ -107,7 +120,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 	}
 
 	if params.OnlyInterval {
-		startIntervaler(log, remoteMachine, rs, syncOpts)
+		startIntervalerIfNeeded(log, remoteMachine, rs, syncOpts)
 		return nil, nil
 	}
 
@@ -117,6 +130,17 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 	// If a valid callback is not provided, this method blocks until the data is done
 	// transferring.
 	if !params.Progress.IsValid() {
+		log.Debug(
+			"Progress callback is not valid. Running remote.cache in synchronous mode.",
+		)
+
+		// If there is an existing Intervaler, lock it for the duration of this
+		// synchronous method.
+		if runBetweenIntervals {
+			remoteMachine.Intervaler.Lock()
+			defer remoteMachine.Intervaler.Unlock()
+		}
+
 		// For predictable behavior we log any errors, but do not immediately return on
 		// them. If we return early, RSync may still be running - by blocking until the
 		// channel is closed, we ensure that this method, in blocking form, only returns
@@ -133,12 +157,23 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		}
 
 		// After the progress chan is done, start our SyncInterval
-		startIntervaler(r.log, remoteMachine, rs, syncOpts)
+		startIntervalerIfNeeded(r.log, remoteMachine, rs, syncOpts)
 
 		return nil, err
 	}
 
 	go func() {
+		log.Debug(
+			"Progress callback is valid. Running remote.cache in asynchronous mode.",
+		)
+
+		// If there is an existing Intervaler, lock it for the duration of this synchronous
+		// method.
+		if runBetweenIntervals {
+			remoteMachine.Intervaler.Lock()
+			defer remoteMachine.Intervaler.Unlock()
+		}
+
 		for p := range progCh {
 			if p.Error.Message != "" {
 				log.Error(
@@ -150,20 +185,21 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		}
 
 		// After the progress chan is done, start our SyncInterval
-		startIntervaler(log, remoteMachine, rs, syncOpts)
+		startIntervalerIfNeeded(log, remoteMachine, rs, syncOpts)
 	}()
 
 	return nil, nil
 }
 
-// startIntervaler starts the given rsync interval, logs any errors, and adds the
+// startIntervalerIfNeeded starts the given rsync interval, logs any errors, and adds the
 // resulting Intervaler to the Mount struct for later Stoppage.
-func startIntervaler(log logging.Logger, remoteMachine *machine.Machine, c *rsync.Client, opts rsync.SyncIntervalOpts) {
-	log = log.New("startIntervaler")
+func startIntervalerIfNeeded(log logging.Logger, remoteMachine *machine.Machine, c *rsync.Client, opts rsync.SyncIntervalOpts) {
+	log = log.New("startIntervalerIfNeeded")
 
 	if opts.Interval <= 0 {
+		// Using debug, because this is not an error - just informative.
 		log.Debug(
-			"startIntervaler() called with interval:%d. Cannot start Intervaler",
+			"startIntervalerIfNeeded() called with interval:%d. Cannot start Intervaler",
 			opts.Interval,
 		)
 		return

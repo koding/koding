@@ -303,7 +303,7 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 		if !m.SyncIntervalOpts.IsZero() {
 			rs := rsync.NewClient(log)
 			// After the progress chan is done, start our SyncInterval
-			startIntervaler(log, remoteMachine, rs, m.SyncIntervalOpts)
+			startIntervalerIfNeeded(log, remoteMachine, rs, m.SyncIntervalOpts)
 			// Assign the rsync intervaler to the mount.
 			m.Intervaler = remoteMachine.Intervaler
 		} else {
