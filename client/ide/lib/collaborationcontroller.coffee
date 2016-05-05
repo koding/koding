@@ -258,10 +258,9 @@ module.exports = CollaborationController =
         .then =>
           @listenKlientKite()
         .catch (err) =>
-          if err?.code is 1002
-            if @amIHost
-            then @handleCollaborationEndedForHost()
-            else @handleCollaborationEndedForParticipant()
+          if @amIHost
+          then @handleCollaborationEndedForHost()
+          else @handleCollaborationEndedForParticipant()
 
 
   setWatchMap: ->
@@ -1220,8 +1219,6 @@ module.exports = CollaborationController =
       content    : 'This will end your session and all participants will be removed from this session.'
 
     modal = @showModal modalOptions, => @stopCollaborationSession callback
-    modal.once 'KDObjectWillBeDestroyed', =>
-      @statusBar.share.button.enable()
 
 
   showKickedModal: ->

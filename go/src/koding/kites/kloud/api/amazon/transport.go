@@ -14,7 +14,7 @@ import (
 
 // NewTransport gives new resilient transport for the given ClientOptions.
 func NewTransport(opts *ClientOptions) *aws.Config {
-	cfg := aws.NewConfig().WithHTTPClient(httputil.DefaultClient(opts.Debug))
+	cfg := aws.NewConfig().WithHTTPClient(httputil.DefaultRestClient(opts.Debug))
 	retryer := &transportRetryer{
 		MaxTries: 3,
 	}
