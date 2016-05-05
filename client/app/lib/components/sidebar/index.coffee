@@ -22,13 +22,6 @@ module.exports = class Sidebar extends React.Component
 
   { getters, actions } = ActivityFlux
 
-  constructor: ->
-
-    @state =
-      showNoStacksWidget : no
-      creatingNewStack   : no
-
-
   getDataBindings: ->
     return {
       publicChannels               : getters.followedPublicChannelThreadsWithSelectedChannel
@@ -51,9 +44,7 @@ module.exports = class Sidebar extends React.Component
 
   componentWillMount: ->
 
-    EnvironmentFlux.actions.loadStacks().then (stacks) =>
-      @setState { showNoStacksWidget : yes }  unless stacks.length
-
+    EnvironmentFlux.actions.loadStacks()
     EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
 
     EnvironmentFlux.actions.loadTeamStackTemplates()
@@ -186,11 +177,11 @@ module.exports = class Sidebar extends React.Component
 
   renderStacks: ->
 
-    if @state.stacks.size
+    if @state.stacks?.size or @state.drafts?.size
       <SidebarStackHeaderSection>
         {@prepareStacks()}
       </SidebarStackHeaderSection>
-    else if @state.showNoStacksWidget
+    else
       <SidebarNoStacks />
 
 
@@ -214,10 +205,6 @@ module.exports = class Sidebar extends React.Component
       activeLeavingSharedMachineId={@state.activeLeavingSharedMachineId}
       machines={machines}/>
 
-
-  renderNewStackSection: ->
-
-    return null  unless @state.creatingNewStack
 
   renderLogo: ->
 
