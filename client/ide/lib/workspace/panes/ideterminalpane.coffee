@@ -99,13 +99,14 @@ module.exports = class IDETerminalPane extends IDEPane
   setFocus: (state) ->
 
     super state
-    @webtermView.setFocus state
-    kd.singletons.mainView.setKeyView null  if state
 
     classToSet   = if state then 'focused' else 'unfocused'
     classToUnset = if state then 'unfocused' else 'focused'
     @setClass classToSet
     @unsetClass classToUnset
+
+    @webtermView.setFocus state
+    kd.singletons.mainView.setKeyView null  if state
 
 
   serialize: ->

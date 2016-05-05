@@ -243,7 +243,9 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     for theme in settings.themes
       @container.unsetClass theme.value
+      @container.unsetClass 'dim-if-inactive'
       @messagePane.unsetClass theme.value
+      @messagePane.unsetClass 'dim-if-inactive'
 
     font        = @appStorage.getValue 'font'
     theme       = @appStorage.getValue 'theme'
@@ -256,14 +258,20 @@ module.exports = class WebTermView extends KDCustomScrollView
     @container.setStyle
       fontSize: @appStorage.getValue('fontSize') + 'px'
 
-    this.setStyle
-      color: (global.getComputedStyle @container.getElement()).backgroundColor
+    @updateColor()
 
     @terminal.updateSize true
     @terminal.scrollToBottom()
     @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'
     @terminal.setScrollbackLimit @appStorage.getValue 'scrollback'
     @terminal.cursor.setBlinking @appStorage.getValue 'blinkingCursor'
+
+
+  updateColor: ->
+
+    @setStyle
+      color: (global.getComputedStyle @container.getElement()).backgroundColor
+
 
   setKeyView: ->
     kd.getSingleton('windowController').addLayer this
@@ -274,6 +282,7 @@ module.exports = class WebTermView extends KDCustomScrollView
   setFocus: (state = yes) ->
     @focused = state
     @terminal.setFocused state
+    @updateColor()
 
   click: ->
     @setKeyView()
