@@ -45,13 +45,15 @@ bootChatlio = (id, team) ->
 
     c.parentNode.insertBefore n, c
 
+    shouldTalkToKoding = id is KODING_CHATLIO_KEY
+
     # configure the client so it doesn't look shitty
     _chatlio.configure
       titleColor                : '#01AF5B'
       titleFontColor            : '#fff'
       onlineTitle               : 'How can we help you?'
       offlineTitle              : 'Contact Us'
-      agentLabel                : 'Support'
+      agentLabel                : if shouldTalkToKoding then 'Koding Support' else "#{team.title} Support"
       browserSideAuthorLabel    : 'You'
       onlineMessagePlaceholder  : 'Type message here...'
       offlineGreeting           : 'Sorry we are away, but we would love to hear from you and chat soon!'
@@ -91,7 +93,7 @@ module.exports = setupChatlio = ->
     # if user is an admin or owner
     # their support requests should
     # come to koding support not to
-    # their slack they set up w/ chatlio
+    # their own slack that they set up
     if ('admin' in roles) or ('owner' in roles)
       chatlioId = KODING_CHATLIO_KEY
 
