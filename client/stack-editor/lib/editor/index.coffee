@@ -210,14 +210,25 @@ module.exports = class StackEditorView extends kd.View
       tagName: 'header'
       cssClass: 'StackEditorView--header'
 
+    valueGetter = [
+      EnvironmentFlux.getters.teamStackTemplates
+      EnvironmentFlux.getters.privateStackTemplates
+      (teamTemplates, privateTemplates) ->
+        teamTemplates.merge(privateTemplates).getIn [ stackTemplate?._id, 'title' ]
+    ]
+
+    title = kd.singletons.reactor.evaluate valueGetter
+
     @header.addSubView @inputTitle = new kd.InputView
       cssClass: 'template-title'
       autogrow: yes
-      defaultValue : stackTemplate?.title or 'Default stack template' # can we auto generate cute stack names?
+      defaultValue : title or 'Default stack template' # can we auto generate cute stack names?
       bind: 'keyup'
       keyup: (e) ->
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
+
+    kd.singletons.reactor.observe valueGetter, (value) => @inputTitle.setValue value
 
     @inputTitle.on 'viewAppended', =>
       @inputTitle.prepareClone()
