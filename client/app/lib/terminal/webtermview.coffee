@@ -212,6 +212,7 @@ module.exports = class WebTermView extends KDCustomScrollView
         'visualBell'     : no
         'scrollback'     : 1000
         'blinkingCursor' : no
+        'dimIfInactive'  : no
 
       @updateSettings()
 
@@ -242,11 +243,14 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     for theme in settings.themes
       @container.unsetClass theme.value
+      @container.unsetClass 'dim-if-inactive'
       @messagePane.unsetClass theme.value
+      @messagePane.unsetClass 'dim-if-inactive'
 
     font        = @appStorage.getValue 'font'
     theme       = @appStorage.getValue 'theme'
-    themeBucket = [font, theme].join ' '
+    dimFlag     = if @appStorage.getValue('dimIfInactive') then 'dim-if-inactive' else ''
+    themeBucket = [font, theme, dimFlag].join ' '
 
     @container.setClass themeBucket
     @messagePane.setClass themeBucket
@@ -254,14 +258,20 @@ module.exports = class WebTermView extends KDCustomScrollView
     @container.setStyle
       fontSize: @appStorage.getValue('fontSize') + 'px'
 
-    this.setStyle
-      color: (global.getComputedStyle @container.getElement()).backgroundColor
+    @updateColor()
 
     @terminal.updateSize true
     @terminal.scrollToBottom()
     @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'
     @terminal.setScrollbackLimit @appStorage.getValue 'scrollback'
     @terminal.cursor.setBlinking @appStorage.getValue 'blinkingCursor'
+
+
+  updateColor: ->
+
+    @setStyle
+      color: (global.getComputedStyle @container.getElement()).backgroundColor
+
 
   setKeyView: ->
     kd.getSingleton('windowController').addLayer this
@@ -272,6 +282,7 @@ module.exports = class WebTermView extends KDCustomScrollView
   setFocus: (state = yes) ->
     @focused = state
     @terminal.setFocused state
+    @updateColor()
 
   click: ->
     @setKeyView()

@@ -1306,3 +1306,16 @@ body.ide .kddialogview.save-as-dialog
     shadow                  none
     vendor                  transition, width .3s ease .05s\,\
                                         margin .3s ease
+
+.terminal.unfocused
+  .console.dim-if-inactive
+
+    bg                      color, #444 !important
+    color                   #ddd
+
+    .outlined
+      shadow                inset 0 0 0 1px #ddd !important
+
+    *
+      color                 #ddd !important
+      bg                    color, #444 !important
