@@ -38,6 +38,13 @@ module.exports = class StackEditorAppController extends AppController
 
     view = new OnboardingView
 
+    createOnce = do (isCreated = no) -> (overrides = {}) ->
+      return  if isCreated
+      isCreated = yes
+      EnvironmentFlux.actions.createStackTemplateWithDefaults overrides
+        .then ({ stackTemplate }) ->
+          kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
+
     view.on 'StackOnboardingCompleted', (result) ->
       overrides = {}
 
@@ -47,14 +54,12 @@ module.exports = class StackEditorAppController extends AppController
       if result?.selectedProvider
         overrides = _.assign overrides, { selectedProvider: result.selectedProvider }
 
+      createOnce overrides
       modal.destroy()
 
     modal.addSubView view
 
-    EnvironmentFlux.actions.createStackTemplateWithDefaults()
-      .then ({ stackTemplate }) ->
-        kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
-
+    modal.on 'KDObjectWillBeDestroyed', createOnce
 
 
   createView: (stackTemplate) ->
