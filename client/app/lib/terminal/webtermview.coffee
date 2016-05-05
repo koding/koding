@@ -212,6 +212,7 @@ module.exports = class WebTermView extends KDCustomScrollView
         'visualBell'     : no
         'scrollback'     : 1000
         'blinkingCursor' : no
+        'dimIfInactive'  : no
 
       @updateSettings()
 
@@ -246,7 +247,8 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     font        = @appStorage.getValue 'font'
     theme       = @appStorage.getValue 'theme'
-    themeBucket = [font, theme].join ' '
+    dimFlag     = if @appStorage.getValue('dimIfInactive') then 'dim-if-inactive' else ''
+    themeBucket = [font, theme, dimFlag].join ' '
 
     @container.setClass themeBucket
     @messagePane.setClass themeBucket
