@@ -31,6 +31,8 @@ module.exports = class StackEditorAppController extends AppController
 
   openStackWizard: ->
 
+    @openEditor()
+
     modal = new kd.ModalView
       width : 1000
 
