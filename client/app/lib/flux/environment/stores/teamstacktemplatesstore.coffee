@@ -16,6 +16,7 @@ module.exports = class TeamStackTemplatesStore extends KodingFluxStore
     @on actions.CHANGE_TEMPLATE_TITLE, @changeTitle
 
     @on actions.REMOVE_STACK_TEMPLATE_SUCCESS, @remove
+    @on actions.UPDATE_STACK_TEMPLATE_SUCCESS, @updateSingle
 
 
   load: (stackTemplates, { templates }) ->
@@ -40,4 +41,10 @@ module.exports = class TeamStackTemplatesStore extends KodingFluxStore
 
 
   remove: (stackTemplates, { template }) -> stackTemplates.remove template._id
+
+  updateSingle: (stackTemplates, { stackTemplate }) ->
+
+    return stackTemplates  unless stackTemplates.has stackTemplate._id
+
+    return stackTemplates.set stackTemplate._id, toImmutable stackTemplate
 
