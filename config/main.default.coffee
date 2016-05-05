@@ -74,7 +74,7 @@ Configuration = (options = {}) ->
   # fix it so it gets executed only once one remove the workaround.
   generate = spawn '/bin/bash', ['-c', "test ! -d #{options.projectRoot}/config && exit 0 || cd #{options.projectRoot}/config && ./generate.sh #{KONFIG.kontrol.url}"]
   generate.stdout.on 'data', (data) ->
-    console.log data.toString()
+    console.error data.toString()
   generate.on 'exit', (code) ->
     if code != 0
       console.log """
