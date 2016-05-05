@@ -9,7 +9,8 @@ generateDev = (KONFIG, options, credentials) ->
 
   GOBIN = "#{options.projectRoot}/go/bin"
   GOPATH = "#{options.projectRoot}/go"
-  kiteKeyFile = "#{options.projectRoot}/kite_home/koding/kite.key"
+  kiteKeyFile = if options.kiteHome? "#{options.kiteHome}/kite.key"
+                else "#{credentials.kiteHome}/kite.key"
 
   killlist = ->
     str = 'kill -KILL '
