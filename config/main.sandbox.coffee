@@ -26,7 +26,6 @@ Configuration = (options = {}) ->
   options.version or= options.tag
   options.build or= "1111"
   options.tunnelUrl or= "http://devtunnelproxy.koding.com"
-  options.kiteHome or= "#{options.projectRoot}/kite_home/koding"
   options.userSitesDomain or= "sandbox.koding.io"
   options.defaultEmail or= "hello@#{options.domains.mail}"
   options.recaptchaEnabled or= yes

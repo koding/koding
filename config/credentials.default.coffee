@@ -1,28 +1,30 @@
 module.exports = (options) ->
-  dev_master =
+  kiteHome = "#{options.projectRoot}/generated/kite_home/koding"
+
+  kodingdev_master_2016_05 =
     accessKeyId: ""
     secretAccessKey: ""
 
   awsKeys =
-    dev_master: dev_master
+    kodingdev_master_2016_05: kodingdev_master_2016_05
     # s3 full access
-    worker_terraformer: dev_master
+    worker_terraformer: kodingdev_master_2016_05
     # s3 put only to koding-client bucket
-    worker_koding_client_s3_put_only: dev_master
+    worker_koding_client_s3_put_only: kodingdev_master_2016_05
     # admin
-    worker_test: dev_master
+    worker_test: kodingdev_master_2016_05
     # s3 put only
-    worker_test_data_exporter: dev_master
+    worker_test_data_exporter: kodingdev_master_2016_05
     # AmazonRDSReadOnlyAccess
-    worker_rds_log_parser: dev_master
+    worker_rds_log_parser: kodingdev_master_2016_05
     # ELB & EC2 -> AmazonEC2ReadOnlyAccess
-    worker_multi_ssh: dev_master
+    worker_multi_ssh: kodingdev_master_2016_05
     # AmazonEC2FullAccess
-    worker_test_instance_launcher: dev_master
+    worker_test_instance_launcher: kodingdev_master_2016_05
     # TunnelProxyPolicy
-    worker_tunnelproxymanager: dev_master # Name worker_tunnelproxymanager_dev
+    worker_tunnelproxymanager: kodingdev_master_2016_05 # Name worker_tunnelproxymanager_dev
     #Encryption and Storage on S3
-    worker_sneakerS3 : dev_master
+    worker_sneakerS3 : kodingdev_master_2016_05
     vm_vmwatcher:     # vm_vmwatcher_dev
       accessKeyId: ""
       secretAccessKey: ""
@@ -189,11 +191,11 @@ module.exports = (options) ->
     loggedRequests: "/^(subscriptions|transactions)/"
   segment = ''
   kontrol =
-    publicKeyFile: "#{options.projectRoot}/certs/test_kontrol_rsa_public.pem"
-    privateKeyFile: "#{options.projectRoot}/certs/test_kontrol_rsa_private.pem"
+    publicKeyFile: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pem"
+    privateKeyFile: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pub"
   kloud =
-    userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem"
-    userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub"
+    userPrivateKeyFile: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pem"
+    userPublicKeyfile: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pub"
     privateKeyFile: kontrol.privateKeyFile
     publicKeyFile: kontrol.publicKeyFile
     secretKey: ''

@@ -160,12 +160,12 @@ module.exports = (options, credentials) ->
     version                       : options.version
     projectRoot                   : options.projectRoot
     sendEventsToSegment           : options.sendEventsToSegment
-    kiteHome                      : options.kiteHome
     userSitesDomain               : options.userSitesDomain
     disabledFeatures              : options.disabledFeatures
     autoConfirmAccounts           : options.autoConfirmAccounts
     domains                       : options.domains
 
+    kiteHome                      : credentials.kiteHome
     redis                         : credentials.redis.url
     monitoringRedis               : credentials.monitoringRedis.url
     mongo                         : credentials.mongo
