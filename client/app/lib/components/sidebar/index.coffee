@@ -59,9 +59,6 @@ module.exports = class Sidebar extends React.Component
     EnvironmentFlux.actions.loadTeamStackTemplates()
     EnvironmentFlux.actions.loadPrivateStackTemplates()
 
-    actions.channel.loadFollowedPublicChannels()
-    actions.channel.loadFollowedPrivateChannels()
-
     # These listeners needs to be listen those events only once ~ GG
     kd.singletons.notificationController
       .on 'SharedMachineInvitation', EnvironmentFlux.actions.handleSharedMachineInvitation
