@@ -117,8 +117,8 @@ generateDev = (KONFIG, options, credentials) ->
 
     SERVICES="mongo redis postgres rabbitmq"
 
-    NGINX_CONF="#{options.projectRoot}/.dev.nginx.conf"
-    NGINX_PID="#{options.projectRoot}/.dev.nginx.pid"
+    NGINX_CONF="#{options.projectRoot}/.#{options.environment}.nginx.conf"
+    NGINX_PID="#{options.projectRoot}/.#{options.environment}.nginx.pid"
 
     #{envvars()}
 
