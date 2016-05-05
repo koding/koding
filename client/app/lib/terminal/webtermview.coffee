@@ -243,13 +243,13 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     for theme in settings.themes
       @container.unsetClass theme.value
-      @container.unsetClass 'dim-if-inactive'
+      @container.unsetClass 'is-dimmed'
       @messagePane.unsetClass theme.value
-      @messagePane.unsetClass 'dim-if-inactive'
+      @messagePane.unsetClass 'is-dimmed'
 
     font        = @appStorage.getValue 'font'
     theme       = @appStorage.getValue 'theme'
-    dimFlag     = if @appStorage.getValue('dimIfInactive') then 'dim-if-inactive' else ''
+    dimFlag     = if @appStorage.getValue('dimIfInactive') then 'is-dimmed' else ''
     themeBucket = [font, theme, dimFlag].join ' '
 
     @container.setClass themeBucket
