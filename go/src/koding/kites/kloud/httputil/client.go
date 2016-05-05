@@ -3,10 +3,12 @@ package httputil
 import (
 	"net"
 	"net/http"
+	"net/http/cookiejar"
 	"time"
 
 	"koding/kites/common"
 
+	"github.com/koding/kite/sockjsclient"
 	"github.com/koding/logging"
 )
 
@@ -49,7 +51,7 @@ func NewClient(cfg *ClientConfig) *http.Client {
 	}
 }
 
-var httpClient = NewClient(&ClientConfig{
+var httpRestClient = NewClient(&ClientConfig{
 	DialTimeout:           10 * time.Second,
 	RoundTripTimeout:      60 * time.Second,
 	TLSHandshakeTimeout:   10 * time.Second,
@@ -57,7 +59,7 @@ var httpClient = NewClient(&ClientConfig{
 	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
 })
 
-var httpDebugClient = NewClient(&ClientConfig{
+var httpRestDebugClient = NewClient(&ClientConfig{
 	DialTimeout:           10 * time.Second,
 	RoundTripTimeout:      60 * time.Second,
 	TLSHandshakeTimeout:   10 * time.Second,
@@ -67,14 +69,51 @@ var httpDebugClient = NewClient(&ClientConfig{
 	TraceLeakedConn:       true,
 })
 
-// DefaultClient gives a global http.Client usable for performing short-lived
+// DefaultRestClient gives a global http.Client usable for performing short-lived
 // REST requests.
 //
 // It it not usable for streaming APIs.
-func DefaultClient(debug bool) *http.Client {
+func DefaultRestClient(debug bool) *http.Client {
 	if debug {
-		return httpDebugClient
+		return httpRestDebugClient
 	}
 
-	return httpClient
+	return httpRestClient
+}
+
+var jar, _ = cookiejar.New(nil)
+
+var httpStreamClient = NewClient(&ClientConfig{
+	DialTimeout:           10 * time.Second,
+	TLSHandshakeTimeout:   10 * time.Second,
+	ResponseHeaderTimeout: 60 * time.Second,
+	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
+	Jar:                   jar,
+})
+
+var httpStreamDebugClient = NewClient(&ClientConfig{
+	DialTimeout:           10 * time.Second,
+	TLSHandshakeTimeout:   10 * time.Second,
+	ResponseHeaderTimeout: 60 * time.Second,
+	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
+	Jar:                   jar,
+	Log:                   common.NewLogger("dialer", true),
+	TraceLeakedConn:       true,
+})
+
+// DefaultStreamClient gives a global http.Client usable for performing long-lived
+// requests.
+func DefaultStreamClient(debug bool) *http.Client {
+	if debug {
+		return httpStreamDebugClient
+	}
+
+	return httpStreamClient
+}
+
+// ClientFunc provides value for (*kite.Kite).ClientFunc field.
+func ClientFunc(debug bool) func(*sockjsclient.DialOptions) *http.Client {
+	return func(*sockjsclient.DialOptions) *http.Client {
+		return DefaultStreamClient(debug)
+	}
 }

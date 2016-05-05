@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/http/cookiejar"
 	_ "net/http/pprof"
 	"net/url"
 	"os"
@@ -42,7 +41,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/kite/sockjsclient"
 	"github.com/koding/multiconfig"
 )
 
@@ -192,20 +190,7 @@ func newKite(conf *Config) *kite.Kite {
 	k.Config = kiteconfig.MustGet()
 	k.Config.Port = conf.Port
 
-	jar, _ := cookiejar.New(nil)
-	httpClient := httputil.NewClient(&httputil.ClientConfig{
-		DialTimeout:           10 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ResponseHeaderTimeout: 60 * time.Second,
-		KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
-		Jar:                   jar,
-		TraceLeakedConn:       conf.DebugMode,
-		Log:                   common.NewLogger("dialer", conf.DebugMode),
-	})
-
-	k.ClientFunc = func(*sockjsclient.DialOptions) *http.Client {
-		return httpClient
-	}
+	k.ClientFunc = httputil.ClientFunc(conf.DebugMode)
 
 	if conf.DebugMode {
 		k.SetLogLevel(kite.DEBUG)
@@ -257,7 +242,7 @@ func newKite(conf *Config) *kite.Kite {
 		MongoDB: sess.DB,
 		Log:     sess.Log.New("stackcred"),
 		CredURL: credURL,
-		Client:  httputil.DefaultClient(conf.DebugMode),
+		Client:  httputil.DefaultRestClient(conf.DebugMode),
 	}
 
 	bp := &provider.BaseProvider{

@@ -84,7 +84,6 @@ module.exports = class CredentialStore
 
         if err
           failedToFetchFromSneaker = yes
-          return callback err  unless /^NoSuchKey/.test err.description
 
         if data
           return callback null, data
