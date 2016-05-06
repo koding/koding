@@ -93,8 +93,11 @@ module.exports = class OnboardingView extends JView
   handleUpdateStackTemplate: (isSelected) ->
 
     if isSelected
-    then @nextButton.enable()
-    else @nextButton.disable()
+      @nextButton.enable()
+      @skipLink.show()
+    else
+      @nextButton.disable()
+      @skipLink.hide()
 
 
   handleInstanceTypeChanged: (type) ->
@@ -123,7 +126,7 @@ module.exports = class OnboardingView extends JView
       callback  : => @emit 'PageNavigationRequested', 'next'
 
     @skipLink   = new CustomLinkView
-      cssClass  : 'HomeAppView--button'
+      cssClass  : 'HomeAppView--button hidden'
       title     : 'SKIP GUIDE'
       click     : =>
         @destroy()
