@@ -60,7 +60,7 @@ module.exports = class StackEditorAppController extends AppController
 
     modal.addSubView view
 
-    modal.on 'KDObjectWillBeDestroyed', createOnce
+    modal.on 'KDObjectWillBeDestroyed', -> kd.singletons.router.back()
 
 
   createView: (stackTemplate) ->
