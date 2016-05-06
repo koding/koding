@@ -41,7 +41,6 @@ SocialApiController            = require './socialapicontroller'
 WidgetController               = require './widgetcontroller'
 PageTitleController            = require './pagetitlecontroller'
 ShortcutsController            = require './shortcutscontroller'
-MarketingController            = require './marketing/marketingcontroller'
 MachineShareManager            = require './machinesharemanager'
 KodingFluxReactor              = require './flux/base/reactor'
 DesktopNotificationsController = require './desktopnotificationscontroller'
@@ -107,7 +106,6 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'realtime',                  new RealtimeController
     kd.registerSingleton 'pageTitle',                 new PageTitleController
     kd.registerSingleton 'shortcuts',     shortcuts = new ShortcutsController
-    kd.registerSingleton 'marketingController',       new MarketingController
     kd.registerSingleton 'onboarding',                new OnboardingController
     kd.registerSingleton 'machineShareManager',       new MachineShareManager
     kd.registerSingleton 'reactor',                   new KodingFluxReactor
