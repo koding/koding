@@ -34,7 +34,7 @@ module.exports = class StackEditorAppController extends AppController
     @openEditor()
 
     modal = new kd.ModalView
-      width : 1000
+      width : 820
 
     view = new OnboardingView
 
