@@ -70,6 +70,9 @@ module.exports = class VariablesView extends StackBaseEditorTabView
 
   setState: (newState, missings) ->
 
+    unless @parent
+      return @on 'viewAppended', => @setState newState, missings
+
     stateMessage = STATES[newState]
     @_state      = newState
 
