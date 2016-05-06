@@ -6,35 +6,29 @@ module.exports = class GetStartedView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'stack-onboarding get-started'
+    options.cssClass = 'StackEditor-OnboardingModal--GetStarted'
 
     super options, data
 
     @getStartedButton = new kd.ButtonView
-      cssClass : 'solid medium green'
-      title    : 'Get Started!'
+      cssClass : 'GenericButton StackEditor-OnboardingModal--create'
+      title    : 'CREATE A NEW STACK'
       callback : => @emit 'NextPageRequested'
 
 
   pistachio: ->
 
-    return '''
-      <div class="header">
-        <p class="title">Stacks</p>
-        <p class="description">Stacks let you set up a new developer environment in seconds.</p>
-        {{> @getStartedButton}}
-      </div>
-      <div class="artwork">
-        <div class="arrow"></div>
-        <div class="item">
-          <div class="icon"></div>
-          <p>Write a stack file</p>
-          <span>Pick the number of servers, and what applications to install.</span>
-        </div>
-        <div class="item">
-          <div class="icon invite-users"></div>
-          <p>Invite developers to your team</p>
-          <span>Developers get their enviroment set up for them instantly, so they can start working in seconds.</span>
-        </div>
-      </div>
+    '''
+    <header>
+      <h1>Create a Stack Template</h1>
+    </header>
+    <main>
+      <h2>Set up a new dev environment</h2>
+      <p>
+        We will guide you through setting up a stack template.
+        Your stack template will be used to build and manage your dev environment.
+        You can read more information about stack templates <a href='#'>here</a>.
+      </p>
+      {{> @getStartedButton}}
+    </main>
     '''
