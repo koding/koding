@@ -396,7 +396,7 @@ generateDev = (KONFIG, options, credentials) ->
           exit 1
       fi
 
-      EXISTS=$(PGPASSWORD=kontrolapp201506 psql -tA -h #{options.boot2dockerbox} social -U kontrolapp201506 -c "Select 1 from pg_tables where tablename = 'key' AND schemaname = 'kite';")
+      EXISTS=$(PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{options.boot2dockerbox} social -U #{credentials.postgres.username} -c "Select 1 from pg_tables where tablename = 'key' AND schemaname = 'kite';")
       if [[ $EXISTS != '1' ]]; then
         echo ""
         echo "You don't have the new Kontrol Postgres. Please call ./run buildservices."
@@ -461,8 +461,8 @@ generateDev = (KONFIG, options, credentials) ->
       # Include this to dockerfile before we continute with building
       mkdir -p kontrol
       cp #{options.projectRoot}/go/src/github.com/koding/kite/kontrol/*.sql kontrol/
-      sed -i -e 's/somerandompassword/kontrolapp201506/' kontrol/001-schema.sql
-      sed -i -e 's/kontrolapplication/kontrolapp201506/' kontrol/001-schema.sql
+      sed -i -e 's/somerandompassword/#{credentials.postgres.password}/' kontrol/001-schema.sql
+      sed -i -e 's/kontrolapplication/#{credentials.postgres.username}/' kontrol/001-schema.sql
 
       docker build -t koding/postgres .
 
