@@ -109,12 +109,12 @@ module.exports = class OnboardingView extends JView
   createFooter: ->
 
     @backButton = new kd.ButtonView
-      cssClass  : 'solid outline medium back'
+      cssClass  : 'outline back'
       title     : 'Back'
       callback  : => @emit 'PageNavigationRequested', 'prev'
 
     @nextButton = new kd.ButtonView
-      cssClass  : 'solid green medium next'
+      cssClass  : 'outline next'
       title     : 'Next'
       disabled  : yes
       callback  : => @emit 'PageNavigationRequested', 'next'
