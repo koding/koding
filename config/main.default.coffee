@@ -21,7 +21,7 @@ Configuration = (options = {}) ->
   options.publicHostname or= "#{options.protocol}//#{options.hostname}"
   options.region or= "default"
   options.configName or= "default"
-  options.environment = "default"
+  options.environment or= "default"
   options.projectRoot or= path.join __dirname, '/..'
   options.version or= "2.0" # TBD
   options.build or= "1111"
@@ -40,6 +40,7 @@ Configuration = (options = {}) ->
   options.suppressLogs = no
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.host or= options.hostname
+  options.credentialPath or= "#{options.projectRoot}/config/credentials.#{options.environment}.coffee"
 
   customDomain =
     public  : "#{options.scheme}://#{options.host}#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
