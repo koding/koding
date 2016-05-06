@@ -22,14 +22,14 @@ BEGIN
    IF NOT EXISTS (
       SELECT *
       FROM   pg_catalog.pg_user
-      WHERE  usename = 'socialapp201506') THEN
+      WHERE  usename = 'socialapp_2016_05') THEN
 
-      CREATE USER socialapp201506 PASSWORD 'socialapp201506';
+      CREATE USER socialapp_2016_05 PASSWORD 'socialapp_2016_05';
    END IF;
 END
 $body$
 ;
-GRANT social TO socialapp201506;
+GRANT social TO socialapp_2016_05;
 
 DO
 $body$
@@ -37,9 +37,9 @@ BEGIN
    IF NOT EXISTS (
       SELECT *
       FROM   pg_catalog.pg_user
-      WHERE  usename = 'kontrolapp201506') THEN
+      WHERE  usename = 'kontrolapp_2016_05') THEN
 
-      CREATE USER kontrolapp201506 PASSWORD 'kontrolapp201506';
+      CREATE USER kontrolapp_2016_05 PASSWORD 'kontrolapp_2016_05';
    END IF;
 END
 $body$
@@ -59,6 +59,6 @@ END
 $body$
 ;
 
-GRANT kontrol TO kontrolapp201506;
+GRANT kontrol TO kontrolapp_2016_05;
 
 ALTER USER paymentro with password 'N8bG8ZVjp2y87Zxfi3';
