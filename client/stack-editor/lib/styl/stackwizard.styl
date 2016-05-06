@@ -63,6 +63,48 @@ $accentColor                = #F2778A
     border-top              1px solid #DEDBDB
     bg                      color #fff
     rel()
+
+    .HomeAppView--button
+      color                 #ababab !important
+      abs                   25px 156px
+
+    .StackEditor-OnboardingModal--cancel
+      hidden()
+
+
+  .get-started footer
+    button.next
+    button.back
+    a.HomeAppView--button
+      hidden()
+
+    .StackEditor-OnboardingModal--cancel
+      visible()
+
+  button.next
+  button.back
+  .StackEditor-OnboardingModal--cancel
+    outlineButton           #BEBEBE
+    height                  42px
+    padding                 0 37px
+
+    span.button-title
+      font-size             14px
+      letter-spacing        .2px
+      text-transform        uppercase
+      line-height           42px
+      fontPrecisionForSoleil()
+
+  button.back
+    abs                     15px 0 0 26px
+
+  button.next
+    colorizeOutlineButton   $accentColor
+    abs                     15px 26px
+
+  .StackEditor-OnboardingModal--cancel
+    abs                     15px 26px
+
   .kdtabhandlecontainer
     background              none
     padding                 0
