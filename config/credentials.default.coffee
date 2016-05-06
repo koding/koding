@@ -201,6 +201,7 @@ module.exports = (options) ->
     secretKey: ''
 
   return {
+    kiteHome
     awsKeys
     slKeys
     mongo
