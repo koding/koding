@@ -78,7 +78,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = config.Name
-	app.Version = config.Version
+	app.Version = getReadableVersion(config.Version)
 	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{
