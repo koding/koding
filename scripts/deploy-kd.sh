@@ -37,7 +37,7 @@ kd-build() {
 kd-build
 
 # validate klient version
-[[ $(./kd -version) == "kd version $NEWBUILDNO" ]]
+[[ $(./kd -version | cut -d. -f3) == "kd version $NEWBUILDNO" ]]
 
 # prepare klient.gz
 gzip -9 -N kd
