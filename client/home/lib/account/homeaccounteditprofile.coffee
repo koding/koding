@@ -41,7 +41,7 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
     @useGravatarLink  = new CustomLinkView
       cssClass : 'HomeAppView--link'
       title    : 'USE GRAVATAR'
-      click    : =>
+      callback : =>
         @account.modify { 'profile.avatar' : '' }, (err) ->
           console.warn err  if err
 
