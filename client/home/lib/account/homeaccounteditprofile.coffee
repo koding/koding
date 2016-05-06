@@ -152,10 +152,10 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
       @account.modify { 'profile.avatar': "#{url}" }
 
 
-  update: (formData) ->
+  update: (event) ->
 
     { JUser } = remote.api
-    { email, firstName, lastName } = formData
+    { email, firstName, lastName } = @userProfileForm.getData()
     queue = [
       (next) ->
         # update firstname and lastname
@@ -164,7 +164,6 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
         me.modify {
           'profile.firstName': firstName,
           'profile.lastName' : lastName
-          'shareLocation'    : formData.shareLocation
         }, (err) ->
           return next err.message  if err
           next()
@@ -240,7 +239,7 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
       height      : 132
 
 
-  hideSaveButtonLoader: -> @userProfileForm.buttons.Save.hideLoader()
+  hideSaveButtonLoader: -> @submitButton.hideLoader()
 
 
   pistachio: ->
