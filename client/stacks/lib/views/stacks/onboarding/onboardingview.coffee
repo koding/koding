@@ -50,9 +50,7 @@ module.exports = class OnboardingView extends JView
 
   bindPageEvents: ->
 
-    @pages.forEach (page) =>
-      page.on 'UpdateStackTemplate', (scrollToBottom) =>
-        @updateStackTemplate()
+    @pages.forEach (page) => page.on 'UpdateStackTemplate', => @updateStackTemplate()
 
     @on 'PageNavigationRequested', @bound 'handlePageNavigationRequested'
 
@@ -97,9 +95,8 @@ module.exports = class OnboardingView extends JView
   handleUpdateStackTemplate: (isSelected) ->
 
     if isSelected
-      @nextButton.enable()
-    else
-      @nextButton.disable()
+    then @nextButton.enable()
+    else @nextButton.disable()
 
 
   handleInstanceTypeChanged: (type) ->
