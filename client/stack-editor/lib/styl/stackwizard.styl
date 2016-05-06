@@ -4,31 +4,65 @@ Stacks Onboarding styles
 */
 }
 
-$welcomeTitleColor          = #858585
-$titleGreen                 = #01B05A
-$linkColor                  = #769ECC
+$accentColor                = #F2778A
 
-.WelcomeStacksView
+.StackEditor-OnboardingModal
   font-family               SoleilFamily
+  overflow                  hidden
+  rounded                   6px
+  border                    none
 
-  section
+  &.kdmodal
+    .kdmodal-inner
+    .kdmodal-content
+      margin                0
 
-    > h2
-    > p
-      text-align            center
-      color                 $welcomeTitleColor
+    .kdmodal-inner .close-icon
+      r-sprite              app modal_close
+      top                   20px
+      right                 20px
 
-    > h2
-      font-size             24px
-      font-weight           bold
-      margin                40px 0 15px 0
-      letter-spacing        -.2px
+  header
+    height                  84px
+    border-bottom           1px solid #DEDBDB
+    bg                      color #fff
+    text-align              center
 
-    > p
-      margin                0 auto 40px
-      font-size             16.6px
-      line-height           20px
+    h1
+      color                 #BABABA
+      font-size             20px
       font-weight           300
+      line-height           20px
+      margin                31px 0
+      display               inline-block
+      fontPrecisionForSoleil()
+
+  main
+    text-align              center
+
+    > h2
+      color                 #585858
+      margin                91px 0 12px
+      font-size             27px
+      font-weight           300
+      line-height           27px
+      fontPrecisionForSoleil()
+
+    > p
+      margin                0 140px
+      width                 auto
+      font-size             17px
+      font-weight           300
+      line-height           27px
+      color                 #A59999
+      letter-spacing        .2px
+      fontPrecisionForSoleil()
+
+  footer
+    height                  75px
+    border-top              1px solid #DEDBDB
+    bg                      color #fff
+    rel()
   .kdtabhandlecontainer
     background              none
     padding                 0
