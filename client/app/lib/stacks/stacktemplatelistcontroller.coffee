@@ -79,8 +79,9 @@ module.exports = class StackTemplateListController extends KodingListController
 
     return  unless target
 
-    target.setData stackTemplate
-    target.handleLabelStates()
+    @getListView().removeItem target
+
+    @addStackTemplateById stackTemplate._id
 
 
   handleRenderStacks: (stacks) ->
