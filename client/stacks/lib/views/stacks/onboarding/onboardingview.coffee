@@ -233,10 +233,10 @@ module.exports = class OnboardingView extends JView
       {{> @providerSelectionView}}
       {{> @configurationView}}
       {{> @codeSetupView}}
-      <div class="footer">
+      <footer>
         {{> @backButton}}
         {{> @nextButton}}
         {{> @skipLink}}
-      </div>
-      {{> @stackPreview}}
+        {{> @cancelButton}}
+      </footer>
     '''
