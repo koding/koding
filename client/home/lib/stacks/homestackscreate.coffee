@@ -15,9 +15,7 @@ module.exports = class HomeStacksCreate extends kd.CustomHTMLView
     @create = new kd.ButtonView
       cssClass : 'GenericButton HomeAppView-Stacks--createButton'
       title    : 'NEW STACK'
-      callback : ->
-        options.delegate.destroy()
-        kd.singletons.router.handleRoute '/Stack-Editor/New'
+      callback : -> options.onCreate()
 
 
   pistachio: ->

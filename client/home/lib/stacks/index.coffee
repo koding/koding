@@ -49,7 +49,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     #   router.handleRoute "/Home/Stacks/#{kd.utils.slugify pane.name}"
 
     kd.singletons.mainController.ready =>
-      @createStacksViews options
+      @createStacksViews()
       @createVMsViews()
       @createCredentialsViews()
 
@@ -63,12 +63,15 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
 
 
-  createStacksViews: (options) ->
+  createStacksViews: ->
 
     EnvironmentFlux.actions.loadTeamStackTemplates()
     EnvironmentFlux.actions.loadPrivateStackTemplates()
 
-    @stacks.addSubView new HomeStacksCreate options
+    @stacks.addSubView new HomeStacksCreate
+      onCreate: =>
+        @destroy()
+        kd.singletons.router.handleRoute '/Stack-Editor/New'
 
     @stacks.addSubView headerize 'Team Stacks'
     @stacks.addSubView sectionize 'Team Stacks', HomeStacksTeamStacks, { delegate : this }
