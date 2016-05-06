@@ -15,7 +15,6 @@ module.exports = class ProviderSelectionView extends JView
 
     @createProviders()
 
-
   createProviders: ->
 
     providers        = [
@@ -26,7 +25,7 @@ module.exports = class ProviderSelectionView extends JView
     if globals.config.environment isnt 'production' or checkFlag 'super-admin'
       enabledProviders.push 'vagrant'
 
-    @providers = new kd.CustomHTMLView { cssClass: 'providers box-wrapper' }
+    @providers = new kd.CustomHTMLView { cssClass: 'providers box-wrapper clearfix' }
 
     providers.forEach (provider) =>
       extraClass = 'coming-soon'
