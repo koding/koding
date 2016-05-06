@@ -347,19 +347,20 @@ $accentColor                = #F2778A
 
   .configuration
     height                  auto
+    > main
+      padding               57px 0
 
     .kdtabview
       border                1px solid #D8D8D8
-      size                  523px, 258px
-      margin                0 auto 54px
-      rounded               0 0 6px 6px
+      size                  525px, 260px
+      margin                0 auto
+      rounded               0 6px 6px 6px
       bg                    color, #fff
-      top                   10px
-      left                  11px
+      borderBox()
       rel()
 
     .kdtabhandlecontainer .kdtabhandle
-      height                70px
+      height                62px
       box-shadow            none !important
       width                 153px
       max-width             153px !important
@@ -405,7 +406,7 @@ $accentColor                = #F2778A
 
         span
           display           inline-block !important
-          margin            25px 10px 0 20px !important
+          margin            23px 10px 0 0 !important
           opacity           .3
 
         &:after
@@ -420,11 +421,10 @@ $accentColor                = #F2778A
 
     .kdtabhandlecontainer
       box-shadow            none
-      width                 526px
+      width                 525px
       margin                0 auto
+      top                   1px
       rel()
-      top                   11px
-      left                  11px
 
   .server-configuration
 
