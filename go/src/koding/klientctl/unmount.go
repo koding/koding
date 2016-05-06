@@ -227,7 +227,7 @@ func (c *UnmountCommand) findMountAndPath() error {
 // of mount. If we cannot get the mount information, we assume removeMountFolder,
 // which will fail if the folder cannot be removed anyway.
 func (c *UnmountCommand) handleMountFolder() error {
-	if c.mountInfo.MountType == mount.SyncMount {
+	if c.mountInfo.MountType == int(mount.SyncMount) {
 		return c.moveMountFolderToCache()
 	}
 
