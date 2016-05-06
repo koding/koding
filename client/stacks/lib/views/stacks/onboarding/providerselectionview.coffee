@@ -2,6 +2,7 @@ kd      = require 'kd'
 JView   = require 'app/jview'
 globals = require 'globals'
 Tracker = require 'app/util/tracker'
+checkFlag = require 'app/util/checkFlag'
 
 
 module.exports = class ProviderSelectionView extends JView
@@ -22,7 +23,7 @@ module.exports = class ProviderSelectionView extends JView
     ]
     enabledProviders = ['aws']
 
-    unless globals.config.environment is 'production'
+    if globals.config.environment isnt 'production' or checkFlag 'super-admin'
       enabledProviders.push 'vagrant'
 
     @providers = new kd.CustomHTMLView { cssClass: 'providers box-wrapper' }

@@ -58,7 +58,7 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 				MountName:  m.MountName,
 				RemotePath: m.RemotePath,
 				LocalPath:  m.LocalPath,
-				MountType:  m.Type,
+				MountType:  int(m.Type),
 			}}
 			info.MountedPaths = append(info.MountedPaths, m.LocalPath)
 		}

@@ -38,7 +38,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
     @button     = @getButton @getOption 'buttonTitle'
     @buttonLink = @getButtonLink @createButtonLinkPartial(), callback
 
-    @on 'FormSubmitFailed', @button.bound 'hideLoader'
+    @on [ 'FormSubmitFailed', 'FormValidationFailed' ], @button.bound 'hideLoader'
 
 
   createButtonLinkPartial: ->

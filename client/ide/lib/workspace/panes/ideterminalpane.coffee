@@ -8,7 +8,7 @@ module.exports = class IDETerminalPane extends IDEPane
 
   constructor: (options = {}, data) ->
 
-    options.cssClass  = 'terminal-pane terminal'
+    options.cssClass  = 'terminal-pane terminal unfocused'
     options.paneType  = 'terminal'
     options.readOnly ?= no
 
@@ -99,6 +99,12 @@ module.exports = class IDETerminalPane extends IDEPane
   setFocus: (state) ->
 
     super state
+
+    classToSet   = if state then 'focused' else 'unfocused'
+    classToUnset = if state then 'unfocused' else 'focused'
+    @setClass classToSet
+    @unsetClass classToUnset
+
     @webtermView.setFocus state
     kd.singletons.mainView.setKeyView null  if state
 

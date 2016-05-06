@@ -43,6 +43,7 @@
     "es": "0.4.x",
     "express": "4.9.5",
     "express-session": "1.10.4",
+    "eventemitter2": "1.0.3",
     "faker": "1.1.0",
     "geoip-lite": "1.1.6",
     "git-rev": "0.2.1",
