@@ -57,10 +57,11 @@ module.exports = class ProviderSelectionView extends JView
 
   pistachio: ->
 
-    return '''
-      <div class="header">
-        <p class="title">What provider do you want to use?</p>
-        <p class="description">Koding machines run on your own cloud infrastructure. You can switch providers later at any time.</p>
-      </div>
+    '''
+    <header>
+      <h1>Select a Provider</h1>
+    </header>
+    <main>
       {{> @providers}}
+    </main>
     '''
