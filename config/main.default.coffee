@@ -66,22 +66,25 @@ Configuration = (options = {}) ->
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
-  { spawn } = require 'child_process'
+  generateSh = "#{options.projectRoot}/config/generate.sh"
 
   # BUG(rjeczalik): The Configuration gets executed twice, once with uninitialized
   # options, which makes the following code execute generate.sh with
   # options.projectRoot equal to "/opt/koding/config". The todo here is to
   # fix it so it gets executed only once one remove the workaround.
-  generate = spawn '/bin/bash', ['-c', "test ! -d #{options.projectRoot}/config && exit 0 || cd #{options.projectRoot}/config && ./generate.sh #{KONFIG.kontrol.url}"]
-  generate.stdout.on 'data', (data) ->
-    console.error data.toString()
-  generate.on 'exit', (code) ->
-    if code != 0
-      console.log """
-        failed to run #{options.projectRoot}/config/generate.sh (#{code}), please
-        execute it manually and most likely install missing dependencies
-      """
-      process.exit 1
+  if fs.existsSync generateSh
+    { execFile } = require 'child_process'
+
+    execFile generateSh, ["#{KONFIG.kontrol.url}"], (err, stdout, stderr) ->
+      process.stderr.write stdout
+      process.stderr.write stderr
+
+      if err
+        console.log """
+          failed to run #{options.projectRoot}/config/generate.sh (error: #{err})
+          please execute it manually and most likely install missing dependencies
+        """
+        process.exit 1
 
   options.disabledWorkers = [
     "algoliaconnector"
