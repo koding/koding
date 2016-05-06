@@ -30,71 +30,14 @@ $linkColor                  = #769ECC
       line-height           20px
       font-weight           300
 
-  .artboard
-    margin                  30px auto
-    size                    180px 180px
-    r-sprite                stacks strongman
-
-  ul.bullets
-    counter-reset           section
-    list-style-type         none
-    width                   455px
-    margin                  0 auto
-
-    li
-      rel()
-      margin                0 0 20px
-      border                1px solid #DCDCDC
-      bg                    color #fff
-      rounded               3px
-      &:hover a h3
-        color               $titleGreen
-
-      &.disabled
-        bg                  color transparent
-        opacity             .5
-        cursor              default
-        pointer-events      none
-        &:hover a h3
-          color             $welcomeTitleColor
-
-      &:before
-        abs                 28px 0 0 22px
-        counter-increment   section
-        content             counters(section,".") " "
-        color               #51B975
-        font-size           20px
-        font-weight         bold
 
       a
-        padding             17px 22px 17px 55px
-        size                100% 100%
-        display             block
-        color               $welcomeTitleColor
-        noTextDeco()
-        borderBox()
-        &:hover
-          noTextDeco()
-
-
-      h3
-        font-size           18px
         font-weight         400
         letter-spacing      .3px
 
       p
         font-size           12px
 
-  code
-    bg                    color #F7F7F7
-    border                1px solid #EAEAEA
-    borderBox()
-    color                 #8958BA
-    font-size             12px
-    font-weight           400
-    line-height           18px
-    padding               0 6px
-    rounded               2px
 // stack onboarding styling
 .stack-onboarding
 
@@ -177,52 +120,8 @@ $linkColor                  = #769ECC
   .box.selected
     border                  3px solid #00B057
 
-  .get-started
-
-    .description
-      width                 400px
-      margin-bottom         30px
-
-    .item
-      width                 290px
-      text-align            center
-      margin-left           35px
-      fl()
-
-      p
-        font-size           18px
-        color               #434343
-        margin-bottom       15px
-
-      span
-        color               #B2B2B2
-        font-size           18px
-        font-weight         300
-
-      .icon
-        r-sprite            'admin', 'document'
-        margin              0 auto 38px
-
-        &.invite-users
-          r-sprite          'admin', 'team'
-
-    .artwork
-      margin                98px auto
-      overflow              hidden
-      width                 730px
-
-    .arrow
-      r-sprite              'admin', 'arrow'
-      margin                0 auto 40px
-      rel()
-      left                  -8px
-
   .provider-selection
-
     height                  auto
-
-    .providers
-      height                396px
 
     .provider
       &.koding
@@ -336,15 +235,7 @@ $linkColor                  = #769ECC
       margin                40px 0 0 18px
 
   .configuration
-
     height                  auto
-
-    .footer
-      margin-left           22px
-
-    .description
-      width                 350px
-      margin-bottom         31px
 
     .kdtabview
       border                1px solid #D8D8D8
