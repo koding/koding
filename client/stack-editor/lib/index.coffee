@@ -35,6 +35,7 @@ module.exports = class StackEditorAppController extends AppController
 
     modal = new kd.ModalView
       width : 820
+      overlay : yes
 
     view = new OnboardingView
 
