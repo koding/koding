@@ -52,10 +52,10 @@ module.exports = class HomeAccountChangePassword extends kd.CustomHTMLView
     @changePasswordForm.addSubView @updatePasswordLink
 
 
-  update: (formData) ->
+  update: (event) ->
 
     { JUser } = remote.api
-    { password, confirmPassword, currentPassword } = formData
+    { password, confirmPassword, currentPassword } = @changePasswordForm.getData()
     skipConfirmation = no
 
     notify_ = (msg) ->
