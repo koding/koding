@@ -12,6 +12,10 @@ module.exports = class ConnectedMachinesListContainer extends React.Component
     }
 
   render: ->
-    <View stacks={@state.stacks} />
+
+    stacks = @state.stacks?.toList().filter (s) -> s.get('title').toLowerCase() is 'managed vms'
+
+    <View stacks={stacks} />
+
 
 ConnectedMachinesListContainer.include [KDReactorMixin]
