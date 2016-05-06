@@ -46,7 +46,7 @@ module.exports = class StackEditorAppController extends AppController
 
       { router } = kd.singletons
 
-      return router.back()  unless overrides
+      return router.handleRoute '/IDE'  unless overrides
 
       EnvironmentFlux.actions.createStackTemplateWithDefaults overrides
         .then ({ stackTemplate }) ->
@@ -67,6 +67,11 @@ module.exports = class StackEditorAppController extends AppController
     modal.addSubView view
 
     modal.on 'KDObjectWillBeDestroyed', createOnce
+
+    view.on 'StackCreationCancelled', ->
+      modal.off 'KDObjectWillBeDestroyed'
+      modal.destroy()
+      createOnce()
 
 
   createView: (stackTemplate) ->
