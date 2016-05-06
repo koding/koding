@@ -27,6 +27,8 @@ module.exports = class ConfigurationView extends JView
       enableMoveTabHandle : no
       tabHandleContainer  : @tabHandleContainer
 
+    @tabView.unsetClass 'kdscrollview'
+
     @on 'PlusHandleClicked', @bound 'addPane'
 
     @addPane no
