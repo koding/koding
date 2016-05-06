@@ -8,6 +8,7 @@ GetStartedView        = require './getstartedview'
 ConfigurationView     = require './configurationview'
 ProviderSelectionView = require './providerselectionview'
 Tracker               = require 'app/util/tracker'
+CustomLinkView        = require 'app/customlinkview'
 CLONE_REPO_TEMPLATES  =
   github              : 'git clone git@github.com:your-organization/reponame.git'
   bitbucket           : 'git clone git@bitbucket.org/your-organization/reponame.git'
@@ -136,9 +137,9 @@ module.exports = class OnboardingView extends JView
       disabled  : yes
       callback  : => @emit 'PageNavigationRequested', 'next'
 
-    @skipLink   = new kd.CustomHTMLView
-      cssClass  : 'skip-setup'
-      partial   : 'Skip setup guide'
+    @skipLink   = new CustomLinkView
+      cssClass  : 'HomeAppView--button'
+      title     : 'SKIP GUIDE'
       click     : =>
         @destroy()
         selectedProvider = @providerSelectionView.selected?.getOption 'provider'
