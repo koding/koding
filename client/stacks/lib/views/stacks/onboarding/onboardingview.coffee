@@ -108,6 +108,13 @@ module.exports = class OnboardingView extends JView
 
   createFooter: ->
 
+    @cancelButton = new kd.ButtonView
+      cssClass : 'StackEditor-OnboardingModal--cancel'
+      title    : 'CANCEL'
+      callback : =>
+        kd.singletons.router.handleRoute '/IDE'
+        @parent.cancel()
+
     @backButton = new kd.ButtonView
       cssClass  : 'outline back'
       title     : 'Back'
