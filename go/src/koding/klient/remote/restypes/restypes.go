@@ -2,7 +2,6 @@ package restypes
 
 import (
 	"koding/klient/remote/machine"
-	"koding/klient/remote/mount"
 	"time"
 )
 
@@ -57,8 +56,8 @@ type ListMachineInfo struct {
 
 // ListMountInfo is the machine info response from the `remote.list` handler.
 type ListMountInfo struct {
-	MountName  string          `json:"mountName"`
-	RemotePath string          `json:"remotePath"`
-	LocalPath  string          `json:"localPath"`
-	MountType  mount.MountType `json:"mountType"`
+	MountName  string `json:"mountName"`
+	RemotePath string `json:"remotePath"`
+	LocalPath  string `json:"localPath"`
+	MountType  int    `json:"mountType"`
 }
