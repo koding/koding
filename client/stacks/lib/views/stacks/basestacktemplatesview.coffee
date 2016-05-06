@@ -143,12 +143,15 @@ module.exports = class BaseStackTemplatesView extends kd.View
       appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
     @defineStackView.on 'StackTemplateSaved', ({ stackTemplate, templatesView }) ->
-      { listController } = templatesView.initialView.stackTemplateList
-
       if stackTemplate.event is 'updateInstance'
-        listController.updateItem stackTemplate
+        templatesView.initialView.stackTemplateList.listController.updateItem stackTemplate
       else
-        listController.addItem stackTemplate
+        stackApp = appManager.appControllers.Stacks.instances.first
+        templatesView = stackApp.getStackTemplatesViewByName 'My Stack Templates'
+
+        return  unless templatesView
+
+        templatesView.initialView.stackTemplateList.listController.addItem stackTemplate
 
 
     @defineStackView.on 'Cancel', ({ stackTemplate }) ->
