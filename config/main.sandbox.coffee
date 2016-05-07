@@ -138,6 +138,7 @@ Configuration = (options = {}) ->
     email: 'sysops+supervisord-sandbox@koding.com'
 
   KONFIG.JSON = JSON.stringify KONFIG
+  KONFIG.envFile = require('../deployment/envvar').create KONFIG
   KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
   KONFIG.nginxConf = (require "../deployment/nginx.coffee").create KONFIG, options.environment
   KONFIG.runFile = require('./generateRunFile').sandbox(KONFIG, options, credentials)

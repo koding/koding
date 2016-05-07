@@ -19,17 +19,6 @@ generateDev = (KONFIG, options, credentials) ->
 
     return str
 
-  envvars = (options = {}) ->
-    options.exclude or= []
-
-    env = """
-    export GOPATH=#{GOPATH}
-    export GOBIN=#{GOBIN}
-
-    """
-    env += "export #{key}='#{val}'\n" for key, val of KONFIG.ENV when key not in options.exclude
-    return env
-
   workerList = (separator = ' ') ->
     (key for key, val of KONFIG.workers).join separator
 
@@ -113,12 +102,28 @@ generateDev = (KONFIG, options, credentials) ->
 
     # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
 
+    ENV_FILE=${ENV_FILE:-$(dirname $0)/.env.sh}
+
+    if [ ! -f "$ENV_FILE" ]; then
+      echo "error: environment file does not exist"
+      exit 1
+    fi
+
+    source $ENV_FILE
+
+    GOPATH=${GOPATH:-$KONFIG_PROJECTROOT/go}
+
+    if [ ! -d "$GOPATH" ]; then
+      echo 'error: GOPATH is not set'
+      exit 1
+    fi
+
+    export GOBIN=${GOBIN:-$GOPATH/bin}
 
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
     SERVICES="mongo redis postgres rabbitmq"
 
-    #{envvars()}
     NGINX_CONF="$KONFIG_PROJECTROOT/.dev.nginx.conf"
     NGINX_PID="$KONFIG_PROJECTROOT/.dev.nginx.pid"
 
@@ -211,17 +216,11 @@ generateDev = (KONFIG, options, credentials) ->
     }
 
     function printconfig () {
-      if [ "$2" == "" ]; then
-        cat << EOF
-        #{envvars({ exclude:["KONFIG_JSON"] })}EOF
-      elif [ "$2" == "--json" ]; then
-
-        echo '#{KONFIG.JSON}'
-
+      if [ "$2" == "--json" ]; then
+        grep -v KONFIG_JSON $ENV_FILE
       else
-        echo ""
+        echo $KONFIG_JSON
       fi
-
     }
 
     function migrations () {
@@ -773,7 +772,15 @@ generateSandbox =   generateRunFile = (KONFIG) ->
   return """
     #!/bin/bash
     export HOME=/home/ec2-user
-    export KONFIG_JSON='#{KONFIG.JSON}'
+
+    ENV_FILE=${ENV_FILE:-$(dirname $0)/.env.sh}
+
+    if [ ! -f "$ENV_FILE" ]; then
+      echo "error: environment file does not exist"
+      exit 1
+    fi
+
+    source $ENV_FILE
 
     function runuserimporter () {
       node scripts/user-importer -c dev
