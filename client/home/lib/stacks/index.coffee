@@ -15,6 +15,8 @@ HomeVirtualMachinesSharedMachines = require '../virtualmachines/homevirtualmachi
 HomeAccountCredentialsView = require '../account/credentials/homeaccountcredentialsview'
 EnvironmentFlux = require 'app/flux/environment'
 
+AddManagedMachineModal = require 'app/providers/managed/addmanagedmachinemodal'
+
 
 module.exports = class HomeStacks extends kd.CustomScrollView
 
@@ -83,7 +85,12 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     @vms.addSubView headerize 'Virtual Machines'
     @vms.addSubView sectionize 'Virtual Machines', HomeVirtualMachinesVirtualMachines
 
-    @vms.addSubView headerize 'Connected Machines'
+    @vms.addSubView header = headerize 'Connected Machines'
+    header.addSubView new kd.ButtonView
+      cssClass : 'GenericButton HomeAppViewVMSection--addOwnMachineButton'
+      title    : 'Add Your Own Machine'
+      callback : -> new AddManagedMachineModal
+
     @vms.addSubView sectionize 'Connected Machines', HomeVirtualMachinesConnectedMachines
 
     @vms.addSubView headerize 'Shared Machines'
