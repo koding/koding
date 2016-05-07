@@ -192,16 +192,18 @@ generateDev = (KONFIG, options, credentials) ->
 
     function migrations () {
       # a temporary migration line (do we still need this?)
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_participant_status_constant_enum\" ADD VALUE IF NOT EXISTS 'blocked';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'linkedtopic';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'system';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'bootstrap';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'startup';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'enterprise';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'team_base';"
+      export PGPASSWORD=#{credentials.postgres.password}
+      PSQL_COMMAND="psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username}"
+      $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
+      $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_participant_status_constant_enum\" ADD VALUE IF NOT EXISTS 'blocked';"
+      $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'linkedtopic';"
+      $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
+      $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
+      $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'system';"
+      $PSQL_COMMAND -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'bootstrap';"
+      $PSQL_COMMAND -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'startup';"
+      $PSQL_COMMAND -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'enterprise';"
+      $PSQL_COMMAND -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'team_base';"
     }
 
     function run () {
