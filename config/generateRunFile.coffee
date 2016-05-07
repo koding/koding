@@ -157,7 +157,7 @@ generateDev = (KONFIG, options, credentials) ->
 
     function checkrunfile () {
 
-      if [ "#{options.projectRoot}/run" -ot "#{options.projectRoot}/config/main.dev.coffee" ]; then
+      if [ "#{options.projectRoot}/run" -ot "#{options.projectRoot}/config/main.#{options.configName}.coffee" ]; then
           echo your run file is older than your config file. doing ./configure.
           sleep 1
           ./configure
