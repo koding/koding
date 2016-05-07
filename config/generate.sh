@@ -3,7 +3,10 @@
 set -euo pipefail
 
 REPO_HOME=$(git rev-parse --show-toplevel)
-KONTROL_URL=${1:-http://127.0.0.1:3000/kite}
+
+# TODO(rjeczalik): GEN-2535
+# KONTROL_URL=${1:-http://127.0.0.1:3000/kite}
+KONTROL_URL="http://127.0.0.1:3000/kite"
 
 KONTROL_DIR="${REPO_HOME}/generated/private_keys/kontrol"
 KLOUD_DIR="${REPO_HOME}/generated/private_keys/kloud"
