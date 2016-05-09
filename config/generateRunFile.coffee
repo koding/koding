@@ -157,7 +157,7 @@ generateDev = (KONFIG, options, credentials) ->
 
     function checkrunfile () {
 
-      if [ "#{options.projectRoot}/run" -ot "#{options.projectRoot}/config/main.dev.coffee" ]; then
+      if [ "#{options.projectRoot}/run" -ot "#{options.projectRoot}/config/main.#{options.configName}.coffee" ]; then
           echo your run file is older than your config file. doing ./configure.
           sleep 1
           ./configure
@@ -176,40 +176,6 @@ generateDev = (KONFIG, options, credentials) ->
       fi
     }
 
-    function testendpoints () {
-
-      EP=("dev.koding.com:8090/" "dev.koding.com:8090/xhr" "dev.koding.com:8090/subscribe/info" "dev.koding.com:8090/kloud/kite" "dev.koding.com:8090/kontrol/kite" "dev.koding.com:8090/sourcemaps")
-
-      while [ 1==1 ];
-      do
-      for i in "${EP[@]}"
-        do
-
-           curl $i -s -f -o /dev/null || echo "DOWN $i" # | mail -s "Website is down" admin@thesite.com
-
-        done
-      sleep 1
-      done
-    }
-
-
-
-    function chaosmonkey () {
-
-      while [ 1==1 ]; do
-        for i in mongo redis postgres
-          do
-            echo stopping $i
-            docker stop $i
-            echo starting $i
-            docker start $i
-            sleep 10
-          done
-      done
-
-      echo now do "run services" again to make sure everything is back to normal..
-    }
-
     function printconfig () {
       if [ "$2" == "" ]; then
         cat << EOF
@@ -226,16 +192,18 @@ generateDev = (KONFIG, options, credentials) ->
 
     function migrations () {
       # a temporary migration line (do we still need this?)
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_participant_status_constant_enum\" ADD VALUE IF NOT EXISTS 'blocked';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'linkedtopic';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'system';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'bootstrap';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'startup';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'enterprise';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'team_base';"
+      export PGPASSWORD=#{credentials.postgres.password}
+      PSQL_COMMAND="psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username}"
+      $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
+      $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_participant_status_constant_enum\" ADD VALUE IF NOT EXISTS 'blocked';"
+      $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'linkedtopic';"
+      $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
+      $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
+      $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'system';"
+      $PSQL_COMMAND -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'bootstrap';"
+      $PSQL_COMMAND -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'startup';"
+      $PSQL_COMMAND -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'enterprise';"
+      $PSQL_COMMAND -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'team_base';"
     }
 
     function run () {
@@ -311,15 +279,11 @@ generateDev = (KONFIG, options, credentials) ->
       echo "  run logs                  : to see all workers logs"
       echo "  run log [worker]          : to see of specified worker logs only"
       echo "  run buildservices         : to initialize and start services"
-      echo "  run buildservices sandbox : to initialize and start services on sandbox"
       echo "  run resetdb               : to reset databases"
       echo "  run services              : to stop and restart services"
       echo "  run worker                : to list workers"
-      echo "  run chaosmonkey           : to restart every service randomly to test resilience."
-      echo "  run testendpoints         : to test every URL endpoint programmatically."
       echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
       echo "  run worker [worker]       : to run a single worker"
-      echo "  run supervisor [env]      : to show status of workers in that environment"
       echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
       echo "  run importusers           : to import koding user data"
       echo "  run nodeservertests       : to run tests for node.js web server"
@@ -571,17 +535,6 @@ generateDev = (KONFIG, options, credentials) ->
       ./notification -c #{KONFIG.socialapi.configFilePath} -h
     }
 
-    function sandbox_buildservices () {
-      SANDBOX_SERVICES=54.165.122.100
-      SANDBOX_WEB_1=54.165.177.88
-      SANDBOX_WEB_2=54.84.179.170
-
-      echo "cd /opt/koding; ./run buildservices" | ssh root@$SANDBOX_SERVICES @/bin/bash
-
-      echo "sudo supervisorctl restart all"      | ssh ec2-user@$SANDBOX_WEB_1 /bin/bash
-      echo "sudo supervisorctl restart all"      | ssh ec2-user@$SANDBOX_WEB_2 /bin/bash
-    }
-
     if [[ "$1" == "killall" ]]; then
 
       kill_all
@@ -644,19 +597,6 @@ generateDev = (KONFIG, options, credentials) ->
       migrateusers
 
     elif [ "$1" == "buildservices" ]; then
-
-      if [ "$2" == "sandbox" ]; then
-        read -p "This will destroy sandbox databases (y/N)" -n 1 -r
-        echo ""
-        if [[ ! $REPLY =~ ^[Yy]$ ]]
-        then
-            exit 1
-        fi
-
-        sandbox_buildservices
-        exit 0
-      fi
-
       check_service_dependencies
 
       if [ "$2" != "force" ]; then
@@ -673,12 +613,6 @@ generateDev = (KONFIG, options, credentials) ->
 
     elif [ "$1" == "help" ]; then
       printHelp
-
-    elif [ "$1" == "chaosmonkey" ]; then
-      chaosmonkey
-
-    elif [ "$1" == "testendpoints" ]; then
-      testendpoints
 
     elif [ "$1" == "importusers" ]; then
       importusers
@@ -703,16 +637,6 @@ generateDev = (KONFIG, options, credentials) ->
         trap
         eval "worker_$2"
       fi
-
-    elif [ "$1" == "supervisor" ]; then
-
-      SUPERVISOR_ENV=$2
-      if [ $SUPERVISOR_ENV == "" ]; then
-        SUPERVISOR_ENV="production"
-      fi
-
-      go run scripts/supervisor_status.go $SUPERVISOR_ENV
-      open supervisor.html
 
     elif [ "$1" == "migrate" ]; then
       check_psql
