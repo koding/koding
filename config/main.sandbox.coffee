@@ -14,19 +14,18 @@ Configuration = (options = {}) ->
     port : '80'
 
 
-  options.serviceHost   = "10.0.0.136"
-  options.publicPort = "80"
-  options.hostname = "sandbox.koding.com#{if options.publicPort is "80" then "" else ":"+options.publicPort}"
-  options.protocol = "https:"
-  options.publicHostname = "#{options.protocol}//#{options.hostname}"
-  options.region = "aws"
-  options.configName = "sandbox"
-  options.environment = "sandbox"
-  options.projectRoot = "/opt/koding"
+  options.serviceHost or= "10.0.0.136"
+  options.publicPort or= "80"
+  options.hostname or= "sandbox.koding.com#{if options.publicPort is "80" then "" else ":"+options.publicPort}"
+  options.protocol or= "https:"
+  options.publicHostname or= "#{options.protocol}//#{options.hostname}"
+  options.region or= "aws"
+  options.configName or= "sandbox"
+  options.environment or= "sandbox"
+  options.projectRoot or= "/opt/koding"
   options.version or= options.tag
   options.build or= "1111"
   options.tunnelUrl or= "http://devtunnelproxy.koding.com"
-  options.kiteHome or= "#{options.projectRoot}/kite_home/koding"
   options.userSitesDomain or= "sandbox.koding.io"
   options.defaultEmail or= "hello@#{options.domains.mail}"
   options.recaptchaEnabled or= yes
