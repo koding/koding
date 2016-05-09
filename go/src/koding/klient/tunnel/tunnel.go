@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	kconf "koding/config"
 	"koding/kites/tunnelproxy"
 	"koding/klient/info/publicip"
 	"koding/klient/storage"
@@ -430,6 +431,10 @@ func (t *Tunnel) LocalKontrolURL() *url.URL {
 	}
 
 	ip := net.ParseIP(host)
+	if ip == nil {
+		ip = net.ParseIP(kconf.Builtin.Routes[host])
+	}
+
 	if ip == nil {
 		tcpip, err := net.ResolveIPAddr("tcp", host)
 		if err != nil {
