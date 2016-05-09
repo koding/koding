@@ -27,20 +27,11 @@ END
 $body$
 ;
 
-DO
-$body$
-BEGIN
-   IF NOT EXISTS (
-      SELECT *
-      FROM   pg_catalog.pg_roles
-      WHERE  rolname = 'kontrol') THEN
-
-      CREATE ROLE kontrol;
-   END IF;
-END
-$body$
-;
-
 GRANT kontrol TO kontrolapp_2016_05;
 
 ALTER USER paymentro with password 'paymentro';
+
+-- replace with proper passwords
+-- ALTER USER paymentro with password 'paymentro';
+-- ALTER USER socialapp_2016_05 with password 'socialapp_2016_05';
+-- ALTER USER kontrolapp_2016_05 with password 'kontrolapp_2016_05';
