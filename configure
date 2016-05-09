@@ -127,7 +127,8 @@ rest = ->
     # does not use ' or= ' assigments.
     for c in ["sandbox", "prod"]
       if fs.existsSync("./config/main.#{c}.coffee")
-        config = require("./config/main.#{c}.coffee")(options)
+        _options = require("underscore").clone options
+        config = require("./config/main.#{c}.coffee")(_options)
         process.exit(1)  unless configMatchesDefault(config)
 
 updateVault = ->
