@@ -10,9 +10,9 @@ cd ${KODING_REPO_GO}/bin
 (cd ${KODING_REPO_GO}/src/koding/kites/kloud/localprovisioner && go build)
 
 # Fill the remaining parts
-KONTROL_POSTGRES_PASSWORD=kontrolapp201506 \
+KONTROL_POSTGRES_PASSWORD=kontrolapp_2016_05 \
 KONTROL_STORAGE=postgres \
-KONTROL_POSTGRES_USERNAME=kontrolapp201506 \
+KONTROL_POSTGRES_USERNAME=kontrolapp_2016_05 \
 KONTROL_POSTGRES_DBNAME=social \
 KONTROL_POSTGRES_HOST=192.168.59.103 \
 KLOUD_MONGODB_URL=192.168.59.103:27017/koding \
