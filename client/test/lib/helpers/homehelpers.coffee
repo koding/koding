@@ -36,6 +36,50 @@ module.exports =
         .waitForElementVisible '.HomeAppView--section.send-invites',20000
         .end()
 
+  verifyKDInstallView: (browser, targetUser) ->
+   
+    url = helpers.getUrl(yes)
+    kdinstall = ".WelcomeStacksView ul.bullets li:nth-of-type(3)"
+    # @acceptInvitation browser, targetUser
+    myteamHelpers.logoutTeam browser, =>
+      browser.url url
+      teamsHelpers.loginToTeam browser, targetUser, no
+      browser
+        .pause 3000
+        .waitForElementVisible '.WelcomeStacksView', 20000
+        .click kdinstall
+        .waitForElementVisible '.HomeAppView--section.kd-cli',20000
+        .end() 
+
+  verifyPendingStackView: (browser, targetUser) ->
+   
+    url = helpers.getUrl(yes)
+    pendingStack = ".WelcomeStacksView ul.bullets li:nth-of-type(1)"
+    @acceptInvitation browser, targetUser
+    myteamHelpers.logoutTeam browser, =>
+      browser.url url
+      teamsHelpers.loginToTeam browser, targetUser, no
+      browser
+        .pause 3000
+        .waitForElementVisible '.WelcomeStacksView', 20000
+        .assert.containsText   pendingStack, 'Your Team Stack is Pending'
+        .end() 
+  
+  verifyPersonalStackView: (browser, targetUser) ->
+   
+    url = helpers.getUrl(yes)
+    stackLink = ".WelcomeStacksView ul.bullets li:nth-of-type(2)"
+    # @acceptInvitation browser, targetUser
+    myteamHelpers.logoutTeam browser, =>
+      browser.url url
+      teamsHelpers.loginToTeam browser, targetUser, no
+      browser
+        .pause 3000
+        .waitForElementVisible '.WelcomeStacksView', 20000
+        .click stackLink
+        .waitForElementVisible '.StackEditor-OnboardingModal',20000
+        .end()
+
   acceptInvitation: (browser, targetUser) ->
     fn = ( email, done ) ->
       _remote.api.JInvitation.some { 'email': email }, {}, (err, invitations) ->
