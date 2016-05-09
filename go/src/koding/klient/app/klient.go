@@ -579,12 +579,14 @@ func (k *Klient) register(registerURL *url.URL) error {
 		origURL := k.kite.Config.KontrolURL
 		k.kite.Config.KontrolURL = u.String()
 
-		k.log.Info("Register to kontrol '%s' via the URL value: '%s'", k.kite.Config.KontrolURL, registerURL)
+		k.log.Info("Register to local kontrol '%s' via the URL value: '%s'", k.kite.Config.KontrolURL, registerURL)
 
 		_, err := k.kite.RegisterHTTP(registerURL)
 		if err == nil {
 			return nil
 		}
+
+		k.log.Error("Failed to register, retrying with original URL: %s", err)
 
 		k.kite.Config.KontrolURL = origURL
 	}

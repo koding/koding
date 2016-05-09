@@ -465,6 +465,7 @@ func (t *Tunnel) LocalKontrolURL() *url.URL {
 	}
 
 	u.Host = net.JoinHostPort(addr, "3000")
+	u.Path = "/kite"
 
 	return u
 }
