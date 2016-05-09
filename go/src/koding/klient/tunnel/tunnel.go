@@ -27,10 +27,11 @@ type Tunnel struct {
 	client *tunnelproxy.Client
 
 	// Cached routes, in case host kite goes down.
-	mu       sync.Mutex // protects ports, opts and services
-	ports    []*vagrant.ForwardedPort
-	opts     *Options
-	services tunnelproxy.Services
+	mu          sync.Mutex // protects ports, opts and services
+	ports       []*vagrant.ForwardedPort
+	opts        *Options
+	services    tunnelproxy.Services
+	registerURL *url.URL
 
 	// Used to wait for first successful tunnel server registration.
 	register     sync.WaitGroup
@@ -342,7 +343,19 @@ func (t *Tunnel) buildOptions(final *Options) {
 
 // Start setups the client and connects to a tunnel server based on the given
 // configuration. It's non blocking and should be called only once.
-func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
+//
+// TODO(rjeczalik): tunnel should:
+//
+//   - reregister to kontrol when the tunnelserver goes down permanently
+//     and we receive new public endpoint (the tunnel name is persistent,
+//     but we could be assigned to a different endpoint)
+//   - by async, it should not block main program flow - the klient should
+//     register to kontrol with possibly NATed IP, and when tunnel goes
+//     on-line we should re-register with tunnel URL; it would require
+//     changing kite to make it more register-friendly, currently
+//     register+close causes lots of "could not send" errors
+//
+func (t *Tunnel) Start(opts *Options, registerURL *url.URL) error {
 	t.buildOptions(opts)
 
 	if t.opts.LastAddr != registerURL.Host {
@@ -362,7 +375,7 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
 	clientOpts := t.clientOptions()
 
 	if t.opts.LastReachable && !t.isVagrant {
-		return registerURL, nil
+		return nil
 	}
 
 	t.opts.Log.Debug("starting tunnel client")
@@ -371,7 +384,7 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
 
 	client, err := tunnelproxy.NewClient(clientOpts)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	t.client = client
@@ -383,8 +396,72 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
 	u.Path = "/klient/kite"
 
 	t.opts.Log.Info("tunnel: connected as %q", u.Host)
+	t.registerURL = &u
 
-	return &u, nil
+	return nil
+}
+
+// RegisterURL gives public kite endpoint which should be used
+// to register with kontrol.
+//
+// If tunnel is not connected and there is no public endpoint
+// available the method returns nil.
+func (t *Tunnel) PublicRegisterURL() *url.URL {
+	return t.registerURL
+}
+
+// LocalKontrolURL gives local address of kontrol if both kontrol and klient
+// are on the same host.
+//
+// If kontrol is not accessible on the same host, the method returns nil.
+func (t *Tunnel) LocalKontrolURL() *url.URL {
+	if t.opts.Config == nil {
+		return nil
+	}
+
+	u, err := url.Parse(t.opts.Config.KontrolURL)
+	if err != nil {
+		return nil
+	}
+
+	host := u.Host
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+
+	ip := net.ParseIP(host)
+	if ip == nil {
+		tcpip, err := net.ResolveIPAddr("tcp", host)
+		if err != nil {
+			return nil
+		}
+
+		ip = tcpip.IP
+	}
+
+	localKontrol := ip.Equal(t.opts.PublicIP) || ip.IsLoopback()
+
+	if !localKontrol {
+		return nil
+	}
+
+	if !t.isVagrant {
+		if ip.IsLoopback() {
+			return nil
+		}
+
+		u.Host = "127.0.0.1:3000" // move to koding/config
+		return u
+	}
+
+	addr, err := t.gateway()
+	if err != nil {
+		return nil
+	}
+
+	u.Host = net.JoinHostPort(addr, "3000")
+
+	return u
 }
 
 func host(hostport string) string {

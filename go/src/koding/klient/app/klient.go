@@ -535,8 +535,7 @@ func (k *Klient) Run() {
 		// If tunnel has started, the returned url overwrites registerURL
 		// pointing at public end of the tunnel. Otherwise it's a nop
 		// and returns registerURL.
-		registerURL, err = k.tunnel.Start(opts, registerURL)
-		if err != nil {
+		if err = k.tunnel.Start(opts, registerURL); err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -572,9 +571,22 @@ func (k *Klient) Run() {
 }
 
 func (k *Klient) register(registerURL *url.URL) error {
-	// replace kontrolURL if's being overidden
-	if k.config.KontrolURL != "" {
-		k.kite.Config.KontrolURL = k.config.KontrolURL
+	if u := k.tunnel.PublicRegisterURL(); u != nil {
+		registerURL = u
+	}
+
+	if u := k.tunnel.LocalKontrolURL(); u != nil {
+		origURL := k.kite.Config.KontrolURL
+		k.kite.Config.KontrolURL = u.String()
+
+		k.log.Info("Register to kontrol '%s' via the URL value: '%s'", k.kite.Config.KontrolURL, registerURL)
+
+		_, err := k.kite.RegisterHTTP(registerURL)
+		if err == nil {
+			return nil
+		}
+
+		k.kite.Config.KontrolURL = origURL
 	}
 
 	k.log.Info("Register to kontrol '%s' via the URL value: '%s'", k.kite.Config.KontrolURL, registerURL)
@@ -605,6 +617,12 @@ func newKite(kconf *KlientConfig) *kite.Kite {
 	// Set klient to use XHR Polling, since Prod Koding only supports XHR
 	k.Config.Transport = config.XHRPolling
 	k.ClientFunc = klientXHRClientFunc
+
+	// replace kontrolURL if's being overidden
+	if kconf.KontrolURL != "" {
+		k.Config.KontrolURL = kconf.KontrolURL
+	}
+
 	return k
 }
 
