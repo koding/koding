@@ -65,6 +65,7 @@ module.exports =
     teamsHelpers.getInvitationUrl browser, targetUser.email, (url) ->
       teamsHelpers.closeTeamSettingsModal(browser)
       teamsHelpers.logoutTeam(browser)
+      console.log(url)
       browser.url url
       browser.pause 2000
       teamsHelpers.checkForgotPassword(browser)

@@ -27,6 +27,30 @@ module.exports =
 
     return userEmail
 
+  inviteTheUser: (browser, user, role) ->
+
+    index = if role is 'member' then 2 else 1
+
+    invitationsModalSelector = '.HomeAppView--section.send-invites'
+    sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
+    emailInputSelector = "#{invitationsModalSelector} .ListView-row:nth-of-type(#{index}) .kdinput.text.user-email"
+   
+    browser
+      .waitForElementVisible invitationsModalSelector, 20000
+      .waitForElementVisible emailInputSelector, 20000
+      .scrollToElement invitationsModalSelector
+      .scrollToElement invitationsModalSelector
+      .setValue emailInputSelector, user.email
+
+    successMessage = "Invitation is sent to #{user.email}"
+
+    browser
+      .waitForElementVisible sendInvitesButton, 5000
+      .click sendInvitesButton
+
+    @acceptConfirmModal browser
+    @assertConfirmation browser, successMessage
+
   inviteAll: (browser) ->
 
     invitationsModalSelector = '.HomeAppView--section.send-invites'
@@ -179,16 +203,16 @@ module.exports =
 
 
   logoutTeam: (browser, callback) ->
-
+  
     browser
-      .waitForElementVisible '.avatarview.avatar-image-wrapper', 20000
-      .click '.avatarview.avatar-image-wrapper'
-      .pause 2000
-      .click '.avatarview.avatar-image-wrapper'
-      .pause 2000
-      .waitForElementVisible '.kdview.avatararea-popup.team', 20000
-      .click '.kdview.avatararea-popup.team a[href="/Logout"]'
-      .pause 5000, -> callback()
+      .click '#main-sidebar'
+      .waitForElementVisible '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 20000
+      .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
+      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 20000
+      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default',2000
+      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(4)'
+              
+      .pause 2000, -> callback()
 
 
   inviteUsers: (browser, invitations, callback) ->
