@@ -116,11 +116,19 @@ rest = ->
 
   return  unless defaultEnv is 'default'
 
-  # check 'prod', 'sandbox' config schema against 'dev'
-  for c in ["sandbox", "prod"]
-    if fs.existsSync("./config/main.#{c}.coffee")
-      config = require("./config/main.#{c}.coffee")(options)
-      process.exit(1)  unless configMatchesDefault(config)
+  # do not check the schemas for default environment when user has no
+  # vault directory (e.g. clean repo), otherwise the configure
+  # will fail.
+  if defaultEnv != 'default' or fs.exists './vault'
+    # check 'prod', 'sandbox' config schema against 'dev'
+    #
+    # NOTICE(rjeczalik): this check causes BUG in main.default.coffee
+    # and also it overwrites fields in options when a main.#{c}.coffee
+    # does not use ' or= ' assigments.
+    for c in ["sandbox", "prod"]
+      if fs.existsSync("./config/main.#{c}.coffee")
+        config = require("./config/main.#{c}.coffee")(options)
+        process.exit(1)  unless configMatchesDefault(config)
 
 updateVault = ->
   # only run copying vault in dev env

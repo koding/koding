@@ -87,3 +87,14 @@ module.exports = class StacksAppController extends AdminAppController
 
     view.tabs.panes.forEach (pane) ->
       pane.mainView?.initialView?.reload()  unless pane.name is 'My Stacks'
+
+
+  handleStackTemplateSaved: ({ stackTemplate, templatesView }) ->
+
+    if stackTemplate.event is 'updateInstance'
+      templatesView.initialView.stackTemplateList.listController.updateItem stackTemplate
+    else
+      templatesView = @getStackTemplatesViewByName 'My Stack Templates'
+      return  unless templatesView
+
+      templatesView.initialView.stackTemplateList.listController.addItem stackTemplate

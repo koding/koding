@@ -79,9 +79,14 @@ module.exports = class StackTemplateListController extends KodingListController
 
     return  unless target
 
-    @getListView().removeItem target
+    kd.singletons.computeController.fetchStacks (err, stacks) =>
 
-    @addStackTemplateById stackTemplate._id
+      return showError  if err
+
+      stackTemplate.inUse = @isTemplateInUse stacks, stackTemplate
+
+      target.setData stackTemplate
+      target.handleLabelStates()
 
 
   handleRenderStacks: (stacks) ->
@@ -235,15 +240,18 @@ module.exports = class StackTemplateListController extends KodingListController
     currentGroup = getGroup()
     { viewType } = @getOptions()
 
-    stackTemplates.map (template) ->
+    stackTemplates.map (template) =>
       template.isDefault       = template._id in (currentGroup.stackTemplates or [])
-      template.inUse           = Boolean stacks.find (stack) -> stack.baseStackId is template._id
+      template.inUse           = @isTemplateInUse stacks, template
       template.canForcedReinit = canEditGroup and template.accessLevel is 'group'
 
     if viewType is 'group'
       stackTemplates = stackTemplates.filter (template) -> template.accessLevel is 'group'
 
     return stackTemplates
+
+
+  isTemplateInUse: (stacks = [], stackTemplate) -> Boolean stacks.find (stack) -> stack.baseStackId is stackTemplate._id
 
 
   destroy: ->
