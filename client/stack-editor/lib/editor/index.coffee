@@ -257,8 +257,8 @@ module.exports = class StackEditorView extends kd.View
     @header.addSubView @buttons = new kd.CustomHTMLView { cssClass: 'buttons' }
 
     @buttons.addSubView @reinitButton = new kd.ButtonView
-      title          : 'Re-Init'
-      cssClass       : 'solid compact nav hidden reinit'
+      title          : 'RE-INITIALIZE'
+      cssClass       : 'GenericButton secondary hidden reinit'
       tooltip        :
         title        : 'Destroys the existing stack and re-creates it.'
       callback       : @bound 'handleReinit'
@@ -266,16 +266,16 @@ module.exports = class StackEditorView extends kd.View
     # let's remove this button from here, or
     # only display when no default-stack is in use.
     @buttons.addSubView @setAsDefaultButton = new kd.ButtonView
-      title          : 'Make Team Default'
-      cssClass       : 'solid compact green nav next hidden set-default'
+      title          : 'MAKE TEAM DEFAULT'
+      cssClass       : 'GenericButton hidden set-default'
       loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
         @handleSetDefaultTemplate()
 
     @buttons.addSubView @generateStackButton = new kd.ButtonView
-      title          : 'Provision Stack'
-      cssClass       : 'solid compact green nav next hidden provision'
+      title          : 'PROVISION'
+      cssClass       : 'GenericButton hidden provision'
       loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
