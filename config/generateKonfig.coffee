@@ -169,6 +169,7 @@ module.exports = (options, credentials) ->
     redis                         : credentials.redis.url
     monitoringRedis               : credentials.monitoringRedis.url
     mongo                         : credentials.mongo
+    postgres                      : credentials.postgres
     mq                            : credentials.rabbitmq
     terraformer                   : credentials.terraformer
     recurly                       : credentials.recurly

@@ -34,7 +34,13 @@ module.exports = (options) ->
     vm_kloud:
       username: ""
       apiKey: ""
-  mongo = "#{options.serviceHost}:27017/koding"
+
+  mongo  =
+    host : options.serviceHost
+    port : 27017
+    db   : 'koding'
+    toString : -> "#{mongo.host}:#{mongo.port}/#{mongo.db}"
+
   redis =
     host: "#{options.serviceHost}"
     port: "6379"

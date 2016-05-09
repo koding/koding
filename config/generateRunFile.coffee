@@ -7,9 +7,7 @@ path                  = require 'path'
 
 generateDev = (KONFIG, options, credentials) ->
 
-  GOBIN = "#{options.projectRoot}/go/bin"
-  GOPATH = "#{options.projectRoot}/go"
-  kiteKeyFile = "#{options.projectRoot}/kite_home/koding/kite.key"
+  { projectRoot } = options
 
   killlist = ->
     str = 'kill -KILL '
@@ -20,17 +18,6 @@ generateDev = (KONFIG, options, credentials) ->
       str += "$#{key}pid "
 
     return str
-
-  envvars = (options = {}) ->
-    options.exclude or= []
-
-    env = """
-    export GOPATH=#{GOPATH}
-    export GOBIN=#{GOBIN}
-
-    """
-    env += "export #{key}='#{val}'\n" for key, val of KONFIG.ENV when key not in options.exclude
-    return env
 
   workerList = (separator = ' ') ->
     (key for key, val of KONFIG.workers).join separator
@@ -54,7 +41,7 @@ generateDev = (KONFIG, options, credentials) ->
       function worker_daemon_#{name} {
 
         #------------- worker: #{name} -------------#
-        #{command} &>#{options.projectRoot}/.logs/#{name}.log &
+        #{command} &>$KONFIG_PROJECTROOT/.logs/#{name}.log &
         #{name}pid=$!
         echo [#{name}] started with pid: $#{name}pid
 
@@ -72,34 +59,35 @@ generateDev = (KONFIG, options, credentials) ->
     return workers
 
   installScript = """
-      cd #{options.projectRoot}
+      cd $KONFIG_PROJECTROOT
       git submodule update --init
 
       npm install --unsafe-perm
 
       echo '#---> BUILDING CLIENT <---#'
-      make -C #{options.projectRoot}/client unit-tests
+      make -C $KONFIG_PROJECTROOT/client unit-tests
 
       echo '#---> BUILDING GO WORKERS (@farslan) <---#'
-      #{options.projectRoot}/go/build.sh
+      $KONFIG_PROJECTROOT/go/build.sh
 
       echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
-      cd #{options.projectRoot}/go/src/socialapi
+      cd $KONFIG_PROJECTROOT/go/src/socialapi
       make configure
       # make install
-      cd #{options.projectRoot}
+      cd $KONFIG_PROJECTROOT
       cleanchatnotifications
 
       echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
+      KITE_KEY=$KONFIG_KITEHOME/kite.key
       mkdir $HOME/.kite &>/dev/null
-      echo copying #{kiteKeyFile} to $HOME/.kite/kite.key
-      cp -f #{kiteKeyFile} $HOME/.kite/kite.key
+      echo copying $KITE_KEY to $HOME/.kite/kite.key
+      cp -f $KITE_KEY $HOME/.kite/kite.key
 
       echo '#---> BUILDING BROKER-CLIENT @chris <---#'
       echo "building koding-broker-client."
-      cd #{options.projectRoot}/node_modules_koding/koding-broker-client
+      cd $KONFIG_PROJECTROOT/node_modules_koding/koding-broker-client
       cake build
-      cd #{options.projectRoot}
+      cd $KONFIG_PROJECTROOT
 
 
       echo
@@ -113,14 +101,31 @@ generateDev = (KONFIG, options, credentials) ->
     #!/bin/bash
 
     # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
-    mkdir #{options.projectRoot}/.logs &>/dev/null
+
+    ENV_FILE=${ENV_FILE:-$(dirname $0)/.env.sh}
+
+    if [ ! -f "$ENV_FILE" ]; then
+      echo "error: environment file does not exist"
+      exit 1
+    fi
+
+    source $ENV_FILE
+
+    GOPATH=${GOPATH:-$KONFIG_PROJECTROOT/go}
+
+    if [ ! -d "$GOPATH" ]; then
+      echo 'error: GOPATH is not set'
+      exit 1
+    fi
+
+    export GOBIN=${GOBIN:-$GOPATH/bin}
+
+    mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
     SERVICES="mongo redis postgres rabbitmq"
 
-    NGINX_CONF="#{options.projectRoot}/.dev.nginx.conf"
-    NGINX_PID="#{options.projectRoot}/.dev.nginx.pid"
-
-    #{envvars()}
+    NGINX_CONF="$KONFIG_PROJECTROOT/.dev.nginx.conf"
+    NGINX_PID="$KONFIG_PROJECTROOT/.dev.nginx.pid"
 
     trap ctrl_c INT
 
@@ -157,7 +162,7 @@ generateDev = (KONFIG, options, credentials) ->
 
     function checkrunfile () {
 
-      if [ "#{options.projectRoot}/run" -ot "#{options.projectRoot}/config/main.dev.coffee" ]; then
+      if [ "$KONFIG_PROJECTROOT/run" -ot "$KONFIG_PROJECTROOT/config/main.dev.coffee" ]; then
           echo your run file is older than your config file. doing ./configure.
           sleep 1
           ./configure
@@ -166,7 +171,7 @@ generateDev = (KONFIG, options, credentials) ->
           exit 1;
       fi
 
-      if [ "#{options.projectRoot}/run" -ot "#{options.projectRoot}/configure" ]; then
+      if [ "$KONFIG_PROJECTROOT/run" -ot "$KONFIG_PROJECTROOT/configure" ]; then
           echo your run file is older than your configure file. doing ./configure.
           sleep 1
           ./configure
@@ -211,37 +216,31 @@ generateDev = (KONFIG, options, credentials) ->
     }
 
     function printconfig () {
-      if [ "$2" == "" ]; then
-        cat << EOF
-        #{envvars({ exclude:["KONFIG_JSON"] })}EOF
-      elif [ "$2" == "--json" ]; then
-
-        echo '#{KONFIG.JSON}'
-
+      if [ "$2" == "--json" ]; then
+        grep -v KONFIG_JSON $ENV_FILE
       else
-        echo ""
+        echo $KONFIG_JSON
       fi
-
     }
 
     function migrations () {
       # a temporary migration line (do we still need this?)
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_participant_status_constant_enum\" ADD VALUE IF NOT EXISTS 'blocked';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'linkedtopic';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'system';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'bootstrap';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'startup';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'enterprise';"
-      env PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U #{credentials.postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'team_base';"
+      env PGPASSWORD=$KONFIG_POSTGRES_PASSWORD psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U $KONFIG_POSTGRES_USERNAME -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
+      env PGPASSWORD=$KONFIG_POSTGRES_PASSWORD psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U $KONFIG_POSTGRES_USERNAME -c "ALTER TYPE \"api\".\"channel_participant_status_constant_enum\" ADD VALUE IF NOT EXISTS 'blocked';"
+      env PGPASSWORD=$KONFIG_POSTGRES_PASSWORD psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U $KONFIG_POSTGRES_USERNAME -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'linkedtopic';"
+      env PGPASSWORD=$KONFIG_POSTGRES_PASSWORD psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U $KONFIG_POSTGRES_USERNAME -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
+      env PGPASSWORD=$KONFIG_POSTGRES_PASSWORD psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U $KONFIG_POSTGRES_USERNAME -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
+      env PGPASSWORD=$KONFIG_POSTGRES_PASSWORD psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U $KONFIG_POSTGRES_USERNAME -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'system';"
+      env PGPASSWORD=$KONFIG_POSTGRES_PASSWORD psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U $KONFIG_POSTGRES_USERNAME -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'bootstrap';"
+      env PGPASSWORD=$KONFIG_POSTGRES_PASSWORD psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U $KONFIG_POSTGRES_USERNAME -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'startup';"
+      env PGPASSWORD=$KONFIG_POSTGRES_PASSWORD psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U $KONFIG_POSTGRES_USERNAME -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'enterprise';"
+      env PGPASSWORD=$KONFIG_POSTGRES_PASSWORD psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U $KONFIG_POSTGRES_USERNAME -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'team_base';"
     }
 
     function run () {
 
       # Check if PG DB schema update required
-      go run go/src/socialapi/tests/pg-update.go #{credentials.postgres.host} #{credentials.postgres.port}
+      go run $KONFIG_PROJECTROOT/go/src/socialapi/tests/pg-update.go $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_PORT
       RESULT=$?
 
       if [ $RESULT -ne 0 ]; then
@@ -257,14 +256,14 @@ generateDev = (KONFIG, options, credentials) ->
       check
 
       # Remove old watcher files (do we still need this?)
-      rm -rf #{options.projectRoot}/go/bin/goldorf-main-*
-      rm -rf #{options.projectRoot}/go/bin/watcher-*
+      rm -rf $KONFIG_PROJECTROOT/go/bin/goldorf-main-*
+      rm -rf $KONFIG_PROJECTROOT/go/bin/watcher-*
 
       # Run Go builder
-      #{options.projectRoot}/go/build.sh
+      $KONFIG_PROJECTROOT/go/build.sh
 
       # Run Social Api builder
-      make -C #{options.projectRoot}/go/src/socialapi configure
+      make -C $KONFIG_PROJECTROOT/go/src/socialapi configure
 
       # Do PG Migration if necessary
       migrate up
@@ -273,7 +272,7 @@ generateDev = (KONFIG, options, credentials) ->
       node scripts/create-default-workspace
 
       # Sanitize email addresses
-      node #{options.projectRoot}/scripts/sanitize-email
+      node $KONFIG_PROJECTROOT/scripts/sanitize-email
 
       # Run all the worker daemons in KONFIG.workers
       #{("worker_daemon_"+key+"\n" for key, val of KONFIG.workers when val.supervisord).join(" ")}
@@ -288,7 +287,7 @@ generateDev = (KONFIG, options, credentials) ->
         echo
 
       else
-        make -C #{options.projectRoot}/client
+        make -C $KONFIG_PROJECTROOT/client
       fi
 
       # Show the all logs of workers
@@ -367,7 +366,7 @@ generateDev = (KONFIG, options, credentials) ->
         exit 1
       fi
 
-      #{GOBIN}/migrate -url "postgres://#{credentials.postgres.host}:#{credentials.postgres.port}/#{credentials.postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{options.projectRoot}/go/src/socialapi/db/sql/migrations" $param $2
+      $GOBIN/migrate -url "postgres://$KONFIG_POSTGRES_HOST:$KONFIG_POSTGRES_PORT/$KONFIG_POSTGRES_DBNAME?user=social_superuser&password=social_superuser" -path "$KONFIG_PROJECTROOT/go/src/socialapi/db/sql/migrations" $param $2
 
       if [ "$param" == "create" ]; then
         echo "Please edit created script files and add them to your repository."
@@ -386,17 +385,17 @@ generateDev = (KONFIG, options, credentials) ->
         fi
       fi
 
-      mongo #{credentials.mongo} --eval "db.stats()" > /dev/null  # do a simple harmless command of some sort
+      mongo $KONFIG_MONGO --eval "db.stats()" > /dev/null  # do a simple harmless command of some sort
 
       RESULT=$?   # returns 0 if mongo eval succeeds
 
       if [ $RESULT -ne 0 ]; then
           echo ""
-          echo "Can't talk to mongodb at #{credentials.mongo}, is it not running? exiting."
+          echo "Can't talk to mongodb at $KONFIG_MONGO, is it not running? exiting."
           exit 1
       fi
 
-      EXISTS=$(PGPASSWORD=#{credentials.postgres.password} psql -tA -h #{options.boot2dockerbox} social -U #{credentials.postgres.username} -c "Select 1 from pg_tables where tablename = 'key' AND schemaname = 'kite';")
+      EXISTS=$(PGPASSWORD=$KONFIG_POSTGRES_PASSWORD psql -tA -h $KONFIG_POSTGRES_HOST social -U $KONFIG_POSTGRES_USERNAME -c "Select 1 from pg_tables where tablename = 'key' AND schemaname = 'kite';")
       if [[ $EXISTS != '1' ]]; then
         echo ""
         echo "You don't have the new Kontrol Postgres. Please call ./run buildservices."
@@ -448,21 +447,21 @@ generateDev = (KONFIG, options, credentials) ->
       docker rm   $SERVICES
 
       # Build Mongo service
-      cd #{options.projectRoot}/install/docker-mongo
+      cd $KONFIG_PROJECTROOT/install/docker-mongo
       docker build -t koding/mongo .
 
       # Build rabbitMQ service
-      cd #{options.projectRoot}/install/docker-rabbitmq
+      cd $KONFIG_PROJECTROOT/install/docker-rabbitmq
       docker build -t koding/rabbitmq .
 
       # Build postgres
-      cd #{options.projectRoot}/go/src/socialapi/db/sql
+      cd $KONFIG_PROJECTROOT/go/src/socialapi/db/sql
 
       # Include this to dockerfile before we continute with building
       mkdir -p kontrol
-      cp #{options.projectRoot}/go/src/github.com/koding/kite/kontrol/*.sql kontrol/
-      sed -i -e 's/somerandompassword/#{credentials.postgres.password}/' kontrol/001-schema.sql
-      sed -i -e 's/kontrolapplication/#{credentials.postgres.username}/' kontrol/001-schema.sql
+      cp $KONFIG_PROJECTROOT/go/src/github.com/koding/kite/kontrol/*.sql kontrol/
+      sed -i -e "s/somerandompassword/$KONFIG_POSTGRES_PASSWORD/" kontrol/001-schema.sql
+      sed -i -e "s/kontrolapplication/$KONFIG_POSTGRES_USERNAME/" kontrol/001-schema.sql
 
       docker build -t koding/postgres .
 
@@ -475,7 +474,7 @@ generateDev = (KONFIG, options, credentials) ->
       restoredefaultmongodump
 
       echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
-      cd #{options.projectRoot}
+      cd $KONFIG_PROJECTROOT
       ./scripts/clear-algolia-index.sh -i "accounts$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
       ./scripts/clear-algolia-index.sh -i "topics$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
       ./scripts/clear-algolia-index.sh -i "messages$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
@@ -507,8 +506,8 @@ generateDev = (KONFIG, options, credentials) ->
 
     function importusers () {
 
-      cd #{options.projectRoot}
-      node #{options.projectRoot}/scripts/user-importer -c dev
+      cd $KONFIG_PROJECTROOT
+      node $KONFIG_PROJECTROOT/scripts/user-importer -c dev
 
       migrateusers
 
@@ -517,12 +516,12 @@ generateDev = (KONFIG, options, credentials) ->
     function migrateusers () {
 
       echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
-      mongo #{credentials.mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
+      mongo $KONFIG_MONGO --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
 
-      go run ./go/src/socialapi/workers/cmd/migrator/main.go -c #{KONFIG.socialapi.configFilePath}
+      go run $KONFIG_PROJECTROOT/go/src/socialapi/workers/cmd/migrator/main.go -c $KONFIG_SOCIALAPI_CONFIGFILEPATH
 
       # Required step for guestuser
-      mongo #{credentials.mongo} --eval='db.jAccounts.update({"profile.nickname":"guestuser"},{$set:{type:"unregistered", socialApiId:0}});'
+      mongo $KONFIG_MONGO --eval='db.jAccounts.update({"profile.nickname":"guestuser"},{$set:{type:"unregistered", socialApiId:0}});'
 
     }
 
@@ -530,15 +529,15 @@ generateDev = (KONFIG, options, credentials) ->
 
       echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
 
-      mongo #{credentials.mongo} --eval "db.dropDatabase()"
+      mongo $KONFIG_MONGO --eval "db.dropDatabase()"
 
-      cd #{options.projectRoot}/install/docker-mongo
-      if [[ -f #{options.projectRoot}/install/docker-mongo/custom-db-dump.tar.bz2 ]]; then
-        tar jxvf #{options.projectRoot}/install/docker-mongo/custom-db-dump.tar.bz2
+      cd $KONFIG_PROJECTROOT/install/docker-mongo
+      if [[ -f $KONFIG_PROJECTROOT/install/docker-mongo/custom-db-dump.tar.bz2 ]]; then
+        tar jxvf $KONFIG_PROJECTROOT/install/docker-mongo/custom-db-dump.tar.bz2
       else
-        tar jxvf #{options.projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        tar jxvf $KONFIG_PROJECTROOT/install/docker-mongo/default-db-dump.tar.bz2
       fi
-      mongorestore -h#{options.boot2dockerbox} -dkoding dump/koding
+      mongorestore --host $KONFIG_MONGO_HOST --db $KONFIG_MONGO_DB dump/koding
       rm -rf ./dump
 
       updatePermissions
@@ -548,27 +547,27 @@ generateDev = (KONFIG, options, credentials) ->
     function updatePermissions () {
 
       echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @gokmen) <---#'
-      cd #{options.projectRoot}
-      node #{options.projectRoot}/scripts/permission-updater -c dev --reset
+      cd $KONFIG_PROJECTROOT
+      node $KONFIG_PROJECTROOT/scripts/permission-updater -c dev --reset
 
     }
 
     function updateusers () {
 
-      cd #{options.projectRoot}
-      node #{options.projectRoot}/scripts/user-updater
+      cd $KONFIG_PROJECTROOT
+      node $KONFIG_PROJECTROOT/scripts/user-updater
 
     }
 
     function create_default_workspace () {
 
-      node #{options.projectRoot}/scripts/create-default-workspace
+      node $KONFIG_PROJECTROOT/scripts/create-default-workspace
 
     }
 
     function cleanchatnotifications () {
-      cd #{GOBIN}
-      ./notification -c #{KONFIG.socialapi.configFilePath} -h
+      cd $GOBIN
+      ./notification -c $KONFIG_SOCIALAPI_CONFIGFILEPATH -h
     }
 
     function sandbox_buildservices () {
@@ -611,7 +610,7 @@ generateDev = (KONFIG, options, credentials) ->
 
     elif [ "$1" == "buildclient" ]; then
 
-      make -C #{options.projectRoot}/client dist
+      make -C $KONFIG_PROJECTROOT/client dist
 
     elif [ "$1" == "services" ]; then
       check_service_dependencies
@@ -624,7 +623,7 @@ generateDev = (KONFIG, options, credentials) ->
 
       if [ "$2" == "--yes" ]; then
 
-        env PGPASSWORD=social_superuser psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U social_superuser -c "DELETE FROM \"api\".\"channel_participant\"; DELETE FROM \"api\".\"channel\";DELETE FROM \"api\".\"account\";"
+        env PGPASSWORD=social_superuser psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U social_superuser -c "DELETE FROM \"api\".\"channel_participant\"; DELETE FROM \"api\".\"channel\";DELETE FROM \"api\".\"account\";"
         restoredefaultmongodump
         migrateusers
 
@@ -639,7 +638,7 @@ generateDev = (KONFIG, options, credentials) ->
           exit 1
       fi
 
-      env PGPASSWORD=social_superuser psql -tA -h #{credentials.postgres.host} #{credentials.postgres.dbname} -U social_superuser -c "DELETE FROM \"api\".\"channel_participant\"; DELETE FROM \"api\".\"channel\";DELETE FROM \"api\".\"account\";"
+      env PGPASSWORD=social_superuser psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U social_superuser -c "DELETE FROM \"api\".\"channel_participant\"; DELETE FROM \"api\".\"channel\";DELETE FROM \"api\".\"account\";"
       restoredefaultmongodump
       migrateusers
 
@@ -721,7 +720,7 @@ generateDev = (KONFIG, options, credentials) ->
         echo "Please choose a migrate command [create|up|down|version|reset|redo|to|goto]"
         echo ""
       else
-        cd "#{GOPATH}/src/socialapi"
+        pushd $GOPATH/src/socialapi
         make install-migrate
         migrate $2 $3
       fi
@@ -735,7 +734,7 @@ generateDev = (KONFIG, options, credentials) ->
       go test koding/vmwatcher -test.v=true
 
     elif [ "$1" == "janitortests" ]; then
-      cd go/src/koding/workers/janitor
+      pushd $KONFIG_PROJECTROOT/go/src/koding/workers/janitor
       ./test.sh
 
     elif [ "$1" == "gatheringestortests" ]; then
@@ -745,17 +744,17 @@ generateDev = (KONFIG, options, credentials) ->
       go test koding/db/mongodb/modelhelper -test.v=true
 
     elif [ "$1" == "socialworkertests" ]; then
-      #{options.projectRoot}/scripts/node-testing/mocha-runner "#{options.projectRoot}/workers/social"
+      $KONFIG_PROJECTROOT/scripts/node-testing/mocha-runner "$KONFIG_PROJECTROOT/workers/social"
 
     elif [ "$1" == "nodeservertests" ]; then
-      #{options.projectRoot}/scripts/node-testing/mocha-runner "#{options.projectRoot}/servers/lib/server"
+      $KONFIG_PROJECTROOT/scripts/node-testing/mocha-runner "$KONFIG_PROJECTROOT/servers/lib/server"
 
     # To run specific test directory or a single test file
     elif [ "$1" == "nodetestfiles" ]; then
-      #{options.projectRoot}/scripts/node-testing/mocha-runner $2
+      $KONFIG_PROJECTROOT/scripts/node-testing/mocha-runner $2
 
     elif [ "$1" == "sanitize-email" ]; then
-      node #{options.projectRoot}/scripts/sanitize-email
+      node $KONFIG_PROJECTROOT/scripts/sanitize-email
 
     elif [ "$1" == "migrations" ]; then
       migrations
@@ -773,7 +772,15 @@ generateSandbox =   generateRunFile = (KONFIG) ->
   return """
     #!/bin/bash
     export HOME=/home/ec2-user
-    export KONFIG_JSON='#{KONFIG.JSON}'
+
+    ENV_FILE=${ENV_FILE:-$(dirname $0)/.env.sh}
+
+    if [ ! -f "$ENV_FILE" ]; then
+      echo "error: environment file does not exist"
+      exit 1
+    fi
+
+    source $ENV_FILE
 
     function runuserimporter () {
       node scripts/user-importer -c dev

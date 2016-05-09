@@ -3,9 +3,6 @@ fs            = require 'fs'
 
 generateMainConf = (KONFIG) ->
 
-  environment = ""
-  environment += "#{key}='#{val}'," for key,val of KONFIG.ENV
-
   {supervisord} = KONFIG
 
   {
@@ -18,9 +15,6 @@ generateMainConf = (KONFIG) ->
 
   """
   [supervisord]
-  ; environment variables
-  environment=#{environment}
-
   pidfile=#{rundir}/supervisord.pid
 
   logfile=#{logdir}/supervisord.log
