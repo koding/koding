@@ -9,6 +9,8 @@ $accentColor                = #F2778A
 $accentActiveColor          = #DF6E7F
 $dangerColor                = #D75B5B
 $dangerActiveColor          = #E14A35
+$secondaryColor             = #858585
+$secondaryActiveColor       = #656565
 
 .GenericButton
   color                     white
@@ -25,6 +27,12 @@ $dangerActiveColor          = #E14A35
     &:active
     &:hover
       bg                    color, $dangerActiveColor
+
+  &.secondary
+    bg                      color, $secondaryColor
+    &:active
+    &:hover
+      bg                    color, $secondaryActiveColor
 
   span.button-title
     font-family             SoleilFamily
