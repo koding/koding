@@ -26,7 +26,6 @@ Configuration = (options = {}) ->
   options.version or= "2.0" # TBD
   options.build or= "1111"
   options.tunnelUrl or= "http://devtunnelproxy.koding.com"
-  options.kiteHome or= "#{options.projectRoot}/kite_home/koding"
   options.userSitesDomain or= "dev.koding.io"
   options.defaultEmail or= "hello@#{options.domains.mail}"
   options.recaptchaEnabled or= no
@@ -41,6 +40,7 @@ Configuration = (options = {}) ->
   options.suppressLogs = no
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.host or= options.hostname
+  options.credentialPath or= "#{options.projectRoot}/config/credentials.#{options.environment}.coffee"
 
   customDomain =
     public  : "#{options.scheme}://#{options.host}#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
@@ -67,16 +67,32 @@ Configuration = (options = {}) ->
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
+  generateSh = "#{options.projectRoot}/config/generate.sh"
+
+  # BUG(rjeczalik): The Configuration gets executed twice, once with uninitialized
+  # options, which makes the following code execute generate.sh with
+  # options.projectRoot equal to "/opt/koding/config". The todo here is to
+  # fix it so it gets executed only once one remove the workaround.
+  if fs.existsSync generateSh
+    { execFile } = require 'child_process'
+
+    execFile generateSh, ["#{KONFIG.kontrol.url}"], (err, stdout, stderr) ->
+      process.stderr.write stdout
+      process.stderr.write stderr
+
+      if err
+        console.log """
+          failed to run #{options.projectRoot}/config/generate.sh (error: #{err})
+          please execute it manually and most likely install missing dependencies
+        """
+        process.exit 1
+
   options.disabledWorkers = [
     "algoliaconnector"
     "paymentwebhook"
-  # "terraformer"
   # "gatekeeper"
     "vmwatcher"
-  # "webhook"
-  # "kloud"
   ]
-
 
   KONFIG.supervisord =
     logdir   : "#{options.projectRoot}/.logs"
@@ -90,10 +106,10 @@ Configuration = (options = {}) ->
     file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
 
   KONFIG.JSON = JSON.stringify KONFIG
-  KONFIG.ENV = (require "../deployment/envvar.coffee").create KONFIG
-  KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
-  KONFIG.nginxConf = (require "../deployment/nginx.coffee").create KONFIG, options.environment
-  KONFIG.runFile = require('./generateRunFile').dev(KONFIG, options, credentials)
+  KONFIG.ENV = (require '../deployment/envvar.coffee').create KONFIG
+  KONFIG.supervisorConf = (require '../deployment/supervisord.coffee').create KONFIG
+  KONFIG.nginxConf = (require '../deployment/nginx.coffee').create KONFIG, options.environment
+  KONFIG.runFile = (require './generateRunFile').default KONFIG, options, credentials
   KONFIG.configCheckExempt = []
 
   return KONFIG

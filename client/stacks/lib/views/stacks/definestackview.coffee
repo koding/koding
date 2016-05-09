@@ -401,7 +401,9 @@ module.exports = class DefineStackView extends KDView
       @changedContents = {}
 
       templatesView = @getDelegate()
-      @emit 'StackTemplateSaved', { stackTemplate, templatesView }
+
+      stackApp = appManager.appControllers.Stacks.instances.first
+      stackApp?.handleStackTemplateSaved { stackTemplate, templatesView }
 
       if err
         @outputView.add 'Parsing failed, please check your template and try again'
