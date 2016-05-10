@@ -27,6 +27,12 @@ module.exports = class TopNavigation extends kd.CustomHTMLView
 
   viewAppended: ->
 
+    @addSubView new kd.CustomHTMLView
+      cssClass  : 'mobile-trigger'
+      tagName   : 'a'
+      partial   : '<span></span><i></i>'
+      click     : -> document.body.classList.toggle 'expand-menu'
+
     @createItem options  for options in @getOptions().navItems
 
 

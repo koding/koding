@@ -1,4 +1,4 @@
-FROM mongo
+FROM mongo:2.4
 MAINTAINER Christopher Thorn <chris@koding.com>
 
 

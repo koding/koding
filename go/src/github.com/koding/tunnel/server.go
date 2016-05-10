@@ -57,6 +57,10 @@ type Server struct {
 	// onDisconnect contains the onDisconnect for each map
 	onDisconnect *callbacks
 
+	// httpDirector is provided by ServerConfig, if not nil decorates http requests
+	// before forwarding them to client.
+	httpDirector func(*http.Request)
+
 	// yamuxConfig is passed to new yamux.Session's
 	yamuxConfig *yamux.Config
 
@@ -65,6 +69,10 @@ type Server struct {
 
 // ServerConfig defines the configuration for the Server
 type ServerConfig struct {
+	// Director is a function that modifies HTTP request into a new HTTP request
+	// before sending to client. If nil no modifications are done.
+	Director func(*http.Request)
+
 	// Debug enables debug mode, enable only if you want to debug the server
 	Debug bool
 
@@ -107,6 +115,7 @@ func NewServer(cfg *ServerConfig) (*Server, error) {
 		virtualHosts: newVirtualHosts(),
 		virtualAddrs: newVirtualAddrs(opts),
 		controls:     newControls(),
+		httpDirector: cfg.Director,
 		yamuxConfig:  yamuxConfig,
 		connCh:       connCh,
 		log:          log,
@@ -139,33 +148,35 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 	s.log.Debug("HandleHTTP request:")
 	s.log.Debug("%v", r)
 
-	host := strings.ToLower(r.Host)
-	if host == "" {
+	if s.httpDirector != nil {
+		s.httpDirector(r)
+	}
+
+	hostPort := strings.ToLower(r.Host)
+	if hostPort == "" {
 		return errors.New("request host is empty")
 	}
 
-	// get the identifier associated with this host
-	identifier, ok := s.getIdentifier(host)
-	if !ok {
-		h, port, err := net.SplitHostPort(host)
-		if err == nil && (port == "80" || port == "443") {
-			identifier, ok = s.getIdentifier(h)
-		}
-
-		if !ok {
-			return fmt.Errorf("no virtual host available for %q", host)
-		}
-	}
-
-	// if someoone hits foo.example.com:8080, this should be proxied to
+	// if someone hits foo.example.com:8080, this should be proxied to
 	// localhost:8080, so send the port to the client so it knows how to proxy
-	// correctly. If no port is available, it's up to client how to intepret it
-	_, port, err := parseHostPort(r.Host)
+	// correctly. If no port is available, it's up to client how to interpret it
+	host, port, err := parseHostPort(hostPort)
 	if err != nil {
 		// no need to return, just continue lazily, port will be 0, which in
-		// our case will be proxied to client's localservers port 80
-		s.log.Debug("No port available for '%s', sending port 80 to client", r.Host)
+		// our case will be proxied to client's local servers port 80
+		s.log.Debug("No port available for %q, sending port 80 to client", hostPort)
 	}
+
+	// get the identifier associated with this host
+	identifier, ok := s.getIdentifier(hostPort)
+	if !ok {
+		// fallback to host
+		identifier, ok = s.getIdentifier(host)
+		if !ok {
+			return fmt.Errorf("no virtual host available for %q", hostPort)
+		}
+	}
+
 
 	if isWebsocketConn(r) {
 		s.log.Debug("handling websocket connection")
@@ -384,7 +395,7 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 		return fmt.Errorf("hijack not possible: %s", err)
 	}
 
-	if _, err := io.WriteString(conn, "HTTP/1.1 "+connected+"\n\n"); err != nil {
+	if _, err := io.WriteString(conn, "HTTP/1.1 " + connected + "\n\n"); err != nil {
 		return fmt.Errorf("error writing response: %s", err)
 	}
 

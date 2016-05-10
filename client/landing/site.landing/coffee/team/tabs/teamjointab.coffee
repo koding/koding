@@ -43,8 +43,17 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
 
     teamData       = utils.getTeamData()
     @alreadyMember = teamData.signup?.alreadyMember
+    @forgotPassword = null  if @forgotPassword?
 
-    @addSubView new MainHeaderView { cssClass: 'team', navItems: [] }
+    @addSubView new MainHeaderView
+      cssClass: 'team'
+      navItems : [
+        { title : 'Features', href : '/Features', name : 'features' }
+        { title : 'Docs',     href : '/Docs',     name : 'docs' }
+        { title : 'Pricing',  href : '/Pricing',  name : 'pricing' }
+        { title : 'Blog',     href : '/Blog',     name : 'blog' }
+        { title : 'Login',    href : '/Teams',    name : 'login' }
+      ]
 
     wrapperCssClass = 'TeamsModal TeamsModal--groupCreation'
     wrapperCssClass = kd.utils.curry wrapperCssClass, 'alreadyMember'  if @alreadyMember
@@ -99,6 +108,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
       @clearValidations()
       @addForm()
       @updatePartials()
+      @addForgotPasswordLink()
 
 
   updatePartials: ->
@@ -132,6 +142,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     return  unless email
 
     @wrapper.addSubView @avatar = new kd.CustomHTMLView { tagName: 'figure' }
+    @wrapper.getDomElement().addClass 'with-avatar'
 
     { getProfile, getGravatarUrl, getTeamData } = utils
 
@@ -167,6 +178,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
   addForgotPasswordLink: ->
 
     return  unless @alreadyMember
+    return  if @forgotPassword
 
     @addSubView @forgotPassword = new kd.CustomHTMLView
       tagName: 'section'

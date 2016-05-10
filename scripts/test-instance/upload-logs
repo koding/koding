@@ -4,7 +4,7 @@ REPOSITORY_PATH=/opt/koding
 LOG_PATH=$REPOSITORY_PATH/.logs
 INSTANCE_ID=$(ec2metadata | grep instance-id | awk '{print $2}')
 
-BUCKET="koding-test-instance-logs"
+BUCKET="kodingdev-test-instance-logs"
 PREFIX=$1
 DESTINATION="s3://$BUCKET/$PREFIX/$INSTANCE_ID"
 

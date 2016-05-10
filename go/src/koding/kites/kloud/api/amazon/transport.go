@@ -2,7 +2,6 @@ package amazon
 
 import (
 	"net"
-	"time"
 
 	"koding/kites/kloud/httputil"
 
@@ -13,17 +12,9 @@ import (
 	"github.com/koding/logging"
 )
 
-var transportParams = &httputil.ClientConfig{
-	DialTimeout:           10 * time.Second,
-	RoundTripTimeout:      60 * time.Second,
-	TLSHandshakeTimeout:   10 * time.Second,
-	ResponseHeaderTimeout: 60 * time.Second,
-	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
-}
-
 // NewTransport gives new resilient transport for the given ClientOptions.
 func NewTransport(opts *ClientOptions) *aws.Config {
-	cfg := aws.NewConfig().WithHTTPClient(httputil.NewClient(transportParams))
+	cfg := aws.NewConfig().WithHTTPClient(httputil.DefaultRestClient(opts.Debug))
 	retryer := &transportRetryer{
 		MaxTries: 3,
 	}

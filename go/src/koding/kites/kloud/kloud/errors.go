@@ -11,9 +11,13 @@ type EventerError struct {
 	Msg string
 }
 
-func NewEventerError(msg string) *EventerError {
+func NewEventerError(err error) *EventerError {
+	if e, ok := err.(*EventerError); ok {
+		return e
+	}
+
 	return &EventerError{
-		Msg: msg,
+		Msg: err.Error(),
 	}
 }
 
@@ -49,6 +53,7 @@ const (
 	ErrProviderIsMissing      = 408
 	ErrStaterNotImplemented   = 409
 	ErrProviderIsWrong        = 410
+	ErrProviderIsDisabled     = 411
 
 	ErrUserNotConfirmed = 500
 )
@@ -84,6 +89,7 @@ var kloudErrors = map[int]string{
 	ErrStaterNotImplemented:   "Provider doesn't implement the stater interface",
 	ErrProviderIsMissing:      "Provider argument is missing.",
 	ErrProviderIsWrong:        "Provider doesn't match the internal name",
+	ErrProviderIsDisabled:     "Provider is disabled",
 
 	// User errors
 	ErrUserNotConfirmed: "User account is not confirmed",

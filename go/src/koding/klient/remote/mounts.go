@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 
 	"koding/fuseklient"
 	"koding/klient/remote/machine"
@@ -147,7 +148,7 @@ func (r *Remote) restoreMounts() error {
 	if mountErr != nil {
 		log.Warning("Remounting failed after %d total attempts.", attempt)
 	} else {
-		log.Info("Remounting successfully.")
+		log.Info("Remounted successfully.")
 	}
 
 	return mountErr
@@ -190,25 +191,23 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 	}
 
 	// The two New methods is to tweak how the log is displayed.
-	log := r.log.New("restoreMount").New(
+	log := logging.NewLogger("remote").New("restoreMount").New(
 		"mountName", m.MountName,
-		"mountFolder", m.MountFolder.LocalPath,
+		"syncMount", m.MountFolder.OneWaySyncMount,
 		"prefetchAll", m.MountFolder.PrefetchAll,
 	)
 
-	remoteMachine, err := r.GetDialedMachine(m.MountName)
+	// Enable debug for the mount that was originally using debug.
+	if m.MountFolder.Debug {
+		log.SetLevel(logging.DEBUG)
+	}
+
+	// First get the plain machine, we don't care about it being dialed or valid as
+	// we will potentially just be setting the status with it.
+	remoteMachine, err := r.GetMachine(m.MountName)
 	if err != nil {
 		return err
 	}
-
-	if remoteMachine.IsMountingLocked() {
-		log.Warning("Restore mount was attempted but the machine is mount locked")
-		return machine.ErrMachineActionIsLocked
-	}
-
-	// Lock and defer unlock the machine mount actions
-	remoteMachine.LockMounting()
-	defer remoteMachine.UnlockMounting()
 
 	// Update the status based on the return value. Note that it's possible to
 	// return before this call, if we can't get the machine, but that's a non-issue
@@ -223,6 +222,25 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 			remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
 		}
 	}()
+
+	// Now try to get a valid, dialed machine. We're doing this *after* the
+	// machine's setstatus defer, so that we can set autoRemountingAgain as needed.
+	//
+	// Note that we're not getting the instance here, because if we cannot get a
+	// dialed machine then remoteMachine will be set to nil, causing a panic
+	// in the defer above. Regardless, it's the same instance, we don't need it.
+	if _, err := r.GetDialedMachine(m.MountName); err != nil {
+		return err
+	}
+
+	if remoteMachine.IsMountingLocked() {
+		log.Warning("Restore mount was attempted but the machine is mount locked")
+		return machine.ErrMachineActionIsLocked
+	}
+
+	// Lock and defer unlock the machine mount actions
+	remoteMachine.LockMounting()
+	defer remoteMachine.UnlockMounting()
 
 	fsMountName, _ := mountcli.NewMountcli().FindMountNameByPath(m.LocalPath)
 	if fsMountName != "" {
@@ -272,6 +290,7 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 		KiteTracker:   remoteMachine.KiteTracker,
 		Transport:     remoteMachine,
 		PathUnmounter: fuseklient.Unmount,
+		EventSub:      r.eventSub,
 	}
 
 	if err := mounter.MountExisting(m); err != nil {
@@ -282,7 +301,7 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 	// because cache is not creating one here, we need to do it manually.
 	if remoteMachine.Intervaler == nil {
 		if !m.SyncIntervalOpts.IsZero() {
-			rs := rsync.NewClient(r.log)
+			rs := rsync.NewClient(log)
 			// After the progress chan is done, start our SyncInterval
 			startIntervaler(log, remoteMachine, rs, m.SyncIntervalOpts)
 			// Assign the rsync intervaler to the mount.

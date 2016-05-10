@@ -29,6 +29,7 @@ module.exports = class AdminAppController extends AppController
     name       : 'Admin'
     background : yes
 
+
   NAV_ITEMS    =
     teams      :
       title    : 'Team Settings'

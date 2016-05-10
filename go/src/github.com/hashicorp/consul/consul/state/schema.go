@@ -263,7 +263,7 @@ func sessionsTableSchema() *memdb.TableSchema {
 			},
 			"node": &memdb.IndexSchema{
 				Name:         "node",
-				AllowMissing: true,
+				AllowMissing: false,
 				Unique:       false,
 				Indexer: &memdb.StringFieldIndex{
 					Field:     "Node",
@@ -389,6 +389,12 @@ func preparedQueriesTableSchema() *memdb.TableSchema {
 					Field:     "Name",
 					Lowercase: true,
 				},
+			},
+			"template": &memdb.IndexSchema{
+				Name:         "template",
+				AllowMissing: true,
+				Unique:       true,
+				Indexer:      &PreparedQueryIndex{},
 			},
 			"session": &memdb.IndexSchema{
 				Name:         "session",

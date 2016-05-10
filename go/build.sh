@@ -85,6 +85,7 @@ services=(
   github.com/remyoudompheng/go-misc/deadcode
   github.com/opennota/check/cmd/varcheck
   github.com/barakmich/go-nyet
+  github.com/jteeuwen/go-bindata/go-bindata
 )
 
 

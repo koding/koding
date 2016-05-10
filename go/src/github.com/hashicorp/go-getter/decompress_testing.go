@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -69,9 +70,16 @@ func TestDecompressor(t *testing.T, d Decompressor, cases []TestDecompressCase) 
 				return
 			}
 
+			// Convert expected for windows
+			expected := tc.DirList
+			if runtime.GOOS == "windows" {
+				for i, v := range expected {
+					expected[i] = strings.Replace(v, "/", "\\", -1)
+				}
+			}
+
 			// Directory, check for the correct contents
 			actual := testListDir(t, dst)
-			expected := tc.DirList
 			if !reflect.DeepEqual(actual, expected) {
 				t.Fatalf("bad %s\n\n%#v\n\n%#v", tc.Input, actual, expected)
 			}
@@ -91,6 +99,11 @@ func testListDir(t *testing.T, path string) []string {
 			return nil
 		}
 		sub = sub[1:] // Trim the leading path sep.
+
+		// If it is a dir, add trailing sep
+		if info.IsDir() {
+			sub += "/"
+		}
 
 		result = append(result, sub)
 		return nil

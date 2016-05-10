@@ -63,7 +63,7 @@ func TestMount(t *testing.T) {
 				})
 			})
 
-			Convey("GetMachineMountedForPath", func() {
+			Convey("FindMountNameByPath", func() {
 				Convey("It should return the matching path", func() {
 					machine, err := m.FindMountNameByPath("/path/mount1")
 					So(err, ShouldBeNil)
@@ -77,6 +77,22 @@ func TestMount(t *testing.T) {
 				Convey("It should return err on no match", func() {
 					_, err := m.FindMountNameByPath("/unknownpath")
 					So(err, ShouldEqual, ErrNoMountPath)
+				})
+
+				Convey("It should return the machine mount on root path", func() {
+					machine, err := m.FindMountNameByPath("/path/mount1/another/another")
+					So(err, ShouldBeNil)
+					So(machine, ShouldEqual, "mount1")
+				})
+
+				Convey("It should work with trailing slashes", func() {
+					machine, err := m.FindMountNameByPath("/path/mount1/")
+					So(err, ShouldBeNil)
+					So(machine, ShouldEqual, "mount1")
+
+					machine, err = m.FindMountNameByPath("/path/mount1/another/")
+					So(err, ShouldBeNil)
+					So(machine, ShouldEqual, "mount1")
 				})
 			})
 

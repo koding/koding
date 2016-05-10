@@ -3,7 +3,6 @@ package fuseklient
 import (
 	"errors"
 	"io"
-	"koding/fuseklient/transport"
 )
 
 const (
@@ -25,7 +24,7 @@ var (
 
 // remote is requried interface to talk to remote machine.
 type remote interface {
-	ReadFileAt(string, int64, int64) (*transport.ReadFileRes, error)
+	ReadFileAt([]byte, string, int64, int64) (int, error)
 	WriteFile(string, []byte) error
 }
 
@@ -36,7 +35,7 @@ type ContentReadWriter struct {
 
 	// Path is the full path on locally mounted folder. Note it does not contain.
 	// the remote path prefix, that's in transport.
-	Path string
+	Path *string
 
 	// Size is the size of file on local. Note this can differ from remote if
 	// file was written to, but not yet synced to remote.
@@ -55,7 +54,7 @@ type ContentReadWriter struct {
 }
 
 // NewContentReadWriter is the required initializer for ContentReadWriter.
-func NewContentReadWriter(t remote, path string, size int64) *ContentReadWriter {
+func NewContentReadWriter(t remote, path *string, size int64) *ContentReadWriter {
 	return &ContentReadWriter{
 		remote:    t,
 		Path:      path,
@@ -91,13 +90,7 @@ func (c *ContentReadWriter) ReadAt(p []byte, offset int64) (int, error) {
 		return copied, nil
 	}
 
-	resp, err := c.remote.ReadFileAt(c.Path, offset, c.BlockSize)
-	if err != nil {
-		return 0, err
-	}
-
-	copied := copy(p, resp.Content)
-	return copied, nil
+	return c.remote.ReadFileAt(p, *c.Path, offset, c.BlockSize)
 }
 
 // ResetAndRead is a helper method that zeroses out ContentReadWriter#content
@@ -116,14 +109,21 @@ func (c *ContentReadWriter) ReadAll() error {
 		return nil
 	}
 
+	// only allocate what is required
+	size := c.BlockSize
+	if c.Size < size {
+		size = c.Size
+	}
+
+	dst := make([]byte, size)
 	var offset int64 = 0
 	for offset < c.Size {
-		resp, err := c.remote.ReadFileAt(c.Path, offset, c.BlockSize)
-		if err != nil {
+		cpd, err := c.remote.ReadFileAt(dst, *c.Path, offset, c.BlockSize)
+		if err != nil && err != io.EOF { // ignore EOF errors
 			return err
 		}
 
-		n := c.writeAt(resp.Content, offset)
+		n := c.writeAt(dst[:cpd], offset)
 		offset += int64(n)
 	}
 
@@ -219,5 +219,5 @@ func (c *ContentReadWriter) writeAt(content []byte, offset int64) int {
 // writeContentToRemote saves specified byte slice to remote.
 func (c *ContentReadWriter) writeContentToRemote(content []byte) error {
 	c.isDirty = false
-	return c.remote.WriteFile(c.Path, content)
+	return c.remote.WriteFile(*c.Path, content)
 }

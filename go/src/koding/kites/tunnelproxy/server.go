@@ -17,6 +17,7 @@ import (
 
 	"koding/artifact"
 	"koding/kites/common"
+	"koding/kites/kloud/httputil"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils"
 	"koding/tools/util"
@@ -812,6 +813,7 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 
 	k.Log = s.opts.Log
 	k.Config = s.opts.Config
+	k.ClientFunc = httputil.ClientFunc(s.opts.Debug)
 
 	if fn := s.metricsFunc(); fn != nil {
 		k.PreHandleFunc(fn)

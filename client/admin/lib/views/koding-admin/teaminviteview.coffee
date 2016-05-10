@@ -15,7 +15,7 @@ module.exports = class TeamInviteView extends JView
       type        : 'textarea'
       placeholder : '''
         Put email addresses comma/newline separated e.g.
-        sinan@koding.com, devrim@koding.com, nitin@koding.com
+        sinan@koding.com, devrim@koding.com
 
         or:
 
@@ -26,7 +26,7 @@ module.exports = class TeamInviteView extends JView
 
         senthil@koding.com, indian-rider@software-engineer-girl.com
         --- oh@yeah I can break things .com ---
-        nitin@koding.com, nicolo@koding.com
+        nicolo@koding.com
         , some jibberish @@#!
         '''
 

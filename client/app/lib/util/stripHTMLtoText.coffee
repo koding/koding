@@ -3,4 +3,3 @@ module.exports = (html) ->
   tmp.innerHTML = html
 
   return tmp.textContent or tmp.innerText or ''
-

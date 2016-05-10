@@ -41,7 +41,11 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := s.Builder.BuildStack(arg.StackID); err != nil {
+	overrideCreds := map[string][]string{
+		arg.Provider: arg.Identifiers,
+	}
+
+	if err := s.Builder.BuildStack(arg.StackID, overrideCreds); err != nil {
 		return nil, err
 	}
 

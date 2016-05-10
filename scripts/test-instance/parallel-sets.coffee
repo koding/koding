@@ -27,6 +27,7 @@ module.exports = [
     { name: 'logout' }
     { name: 'unittests' }
     { name: 'account accountsettings' }
+    { name: 'teams inviteteams' }
   ]
 
   [
@@ -50,6 +51,7 @@ module.exports = [
 
   [
     { name: 'collaboration collaborationsingle'}
+    { name: 'collaboration collaborationpermission', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
@@ -71,7 +73,6 @@ module.exports = [
   [
     { name: 'teams teams' }
     { name: 'teams stack' }
-    { name: 'teams inviteteams' }
   ]
 
   [

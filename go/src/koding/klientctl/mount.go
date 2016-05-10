@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"koding/klientctl/errormessages"
+	"koding/klientctl/ssh/agent"
 	"os"
 	"os/user"
 	"path"
@@ -29,7 +31,13 @@ import (
 	"github.com/koding/logging"
 )
 
+var IgnoreFiles = []string{
+	".gitignore",
+	".hgignore",
+}
+
 type MountOptions struct {
+	Debug            bool
 	Name             string
 	LocalPath        string
 	RemotePath       string
@@ -38,6 +46,9 @@ type MountOptions struct {
 	NoWatch          bool
 	PrefetchAll      bool
 	PrefetchInterval int
+	Trace            bool
+	OneWaySync       bool
+	OneWayInterval   int
 
 	// Used for Prefetching via RSync (SSH)
 	SSHDefaultKeyDir  string
@@ -130,6 +141,14 @@ func (c *MountCommand) Run() (int, error) {
 		return 1, err
 	}
 
+	// If they choose not to use fuse, mount with only caching.
+	if c.Options.OneWaySync {
+		if err := c.useSync(); err != nil {
+			cleanupPath = true
+			return 1, err
+		}
+	}
+
 	if c.Options.PrefetchAll {
 		if err := c.prefetchAll(); err != nil {
 			cleanupPath = true
@@ -139,14 +158,17 @@ func (c *MountCommand) Run() (int, error) {
 	}
 
 	mountRequest := req.MountFolder{
-		Name:           c.Options.Name,
-		LocalPath:      c.Options.LocalPath,
-		RemotePath:     c.Options.RemotePath,
-		NoIgnore:       c.Options.NoIgnore,
-		NoPrefetchMeta: c.Options.NoPrefetchMeta,
-		PrefetchAll:    c.Options.PrefetchAll,
-		NoWatch:        c.Options.NoWatch,
-		CachePath:      getCachePath(c.Options.Name),
+		Debug:           c.Options.Debug,
+		Name:            c.Options.Name,
+		LocalPath:       c.Options.LocalPath,
+		RemotePath:      c.Options.RemotePath,
+		NoIgnore:        c.Options.NoIgnore,
+		NoPrefetchMeta:  c.Options.NoPrefetchMeta,
+		PrefetchAll:     c.Options.PrefetchAll,
+		NoWatch:         c.Options.NoWatch,
+		CachePath:       getCachePath(c.Options.Name),
+		Trace:           c.Options.Trace,
+		OneWaySyncMount: c.Options.OneWaySync,
 	}
 
 	// Actually mount the folder. Errors are printed by the mountFolder func to the user.
@@ -161,6 +183,7 @@ func (c *MountCommand) Run() (int, error) {
 		"no-ignore":        c.Options.NoIgnore,
 		"no-prefetch-meta": c.Options.NoPrefetchMeta,
 		"prefetch-all":     c.Options.PrefetchAll,
+		"oneway-sync":      c.Options.OneWaySync,
 		"no-watch":         c.Options.NoWatch,
 		"version":          config.VersionNum(),
 	}
@@ -174,9 +197,31 @@ func (c *MountCommand) Run() (int, error) {
 // handleOptions deals with options, erroring if options are missing, etc.
 func (c *MountCommand) handleOptions() (int, error) {
 	if c.Options.Name == "" || c.Options.LocalPath == "" {
-		c.printfln("Mount Name and LocalPath are required options.")
+		c.printfln("Mount name and local path are required options.\n")
 		c.Help()
 		return 1, errors.New("Not enough arguments")
+	}
+
+	if c.Options.OneWaySync {
+		var invalidOption bool
+		switch {
+		case c.Options.PrefetchAll:
+			c.printfln(errormessages.InvalidCLIOption, "--prefetch-all", "--oneway-sync")
+			invalidOption = true
+		case c.Options.NoPrefetchMeta:
+			c.printfln(errormessages.InvalidCLIOption, "--noprefetch-meta", "--oneway-sync")
+			invalidOption = true
+		case c.Options.NoIgnore:
+			c.printfln(errormessages.InvalidCLIOption, "--noignore", "--oneway-sync")
+			invalidOption = true
+		case c.Options.NoWatch:
+			c.printfln(errormessages.InvalidCLIOption, "--nowatch", "--oneway-sync")
+			invalidOption = true
+		}
+
+		if invalidOption {
+			return 1, errors.New("Invalid CLI Option.")
+		}
 	}
 
 	if c.Options.PrefetchInterval == 0 {
@@ -281,30 +326,23 @@ func (c *MountCommand) setupKlient() (int, error) {
 	return 0, nil
 }
 
-// prefetchAll
-func (c *MountCommand) prefetchAll() error {
-	c.Log.Info("Executing prefetch...")
+func (c *MountCommand) useSync() error {
+	c.Log.Debug("#useSync")
+	c.printfln("Warning: This feature is in alpha.")
 
-	//func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, machineName, localPath, remotePath string, interval int) int {
-	homeDir, err := c.homeDirGetter()
+	// If the cachePath exists, move it to the mount location.
+	// No need to fail on an error during rename, we can just log it.
+	cachePath := getCachePath(c.Options.Name)
+	if err := os.Rename(cachePath, c.Options.LocalPath); err != nil {
+		c.Log.Warning(
+			"Failed to move cache path to mount path. cachePath:%s, localPath:%s, err:%s",
+			cachePath, c.Options.LocalPath, err,
+		)
+	}
+
+	sshKey, err := c.getSSHKey()
 	if err != nil {
-		// Using internal error here, because a list error would be confusing to the
-		// user.
-		c.printfln(GenericInternalError)
-		return fmt.Errorf("Failed to get OS User. err:%s", err)
-	}
-
-	// TODO: Use the ssh.Command's implementation of this logic, once ssh.Command is
-	// moved to this new struct setup.
-	sshKey := &ssh.SSHKey{
-		KeyPath: path.Join(homeDir, c.Options.SSHDefaultKeyDir),
-		KeyName: c.Options.SSHDefaultKeyName,
-		Klient:  c.Klient,
-	}
-
-	if !sshKey.KeysExist() {
-		// TODO: Fix this environment leak.
-		util.MustConfirm("The 'prefetchAll' flag needs to create public/private rsa key pair. Continue? [Y|n]")
+		return err
 	}
 
 	remoteUsername, err := sshKey.GetUsername(c.Options.Name)
@@ -313,23 +351,82 @@ func (c *MountCommand) prefetchAll() error {
 		return fmt.Errorf("Error getting remote username. err:%s", err)
 	}
 
-	if err := sshKey.PrepareForSSH(c.Options.Name); err != nil {
-		if strings.Contains(err.Error(), "user: unknown user") {
-			c.printfln(CannotSSHManaged)
-			return fmt.Errorf("Cannot ssh into managed machines. err:%s", err)
-		}
+	// prepareForSSH prints UX to user.
+	if err := c.prepareForSSH(sshKey); err != nil {
+		return err
+	}
 
-		if klientctlerrors.IsMachineNotValidYetErr(err) {
-			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
-			return fmt.Errorf("Machine is not valid yet. err:%s", err)
-		}
+	c.printfln("Downloading initial contents...Please don't interrupt this process while in progress.")
 
+	sshAuthSock, err := agent.NewClient().GetAuthSock()
+	if err != nil || sshAuthSock == "" {
+		sshAuthSock = util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK")
+	}
+
+	cacheReq := req.Cache{
+		Debug:             c.Options.Debug,
+		Name:              c.Options.Name,
+		LocalPath:         c.Options.LocalPath,
+		RemotePath:        c.Options.RemotePath,
+		Interval:          0,
+		Username:          remoteUsername,
+		SSHAuthSock:       sshAuthSock,
+		SSHPrivateKeyPath: sshKey.PrivateKeyPath(),
+	}
+
+	if err := c.cacheWithProgress(cacheReq); err != nil {
+		return err
+	}
+
+	// Modify our cache request with the interval only settings.
+	cacheReq.Interval = time.Duration(c.Options.OneWayInterval) * time.Second
+	if cacheReq.Interval == 0 {
+		cacheReq.Interval = 2 * time.Second
+	}
+
+	cacheReq.OnlyInterval = true
+	cacheReq.LocalToRemote = true
+	cacheReq.IgnoreFile = c.getIgnoreFile(c.Options.LocalPath)
+
+	// c.remoteCache handles UX
+	return c.remoteCache(cacheReq, nil)
+}
+
+func (c *MountCommand) prefetchAll() error {
+	c.Log.Info("Executing prefetch...")
+
+	sshKey, err := c.getSSHKey()
+	if err != nil {
+		return err
+	}
+
+	remoteUsername, err := sshKey.GetUsername(c.Options.Name)
+	if err != nil {
 		c.printfln(FailedGetSSHKey)
-		return fmt.Errorf("Error getting ssh key. err:%s", err)
+		return fmt.Errorf("Error getting remote username. err:%s", err)
+	}
+
+	// prepareForSSH prints UX to user.
+	if err := c.prepareForSSH(sshKey); err != nil {
+		return err
 	}
 
 	c.printfln("Prefetching remote path...Please don't interrupt this process while in progress.")
 
+	cacheReq := req.Cache{
+		Name:              c.Options.Name,
+		LocalPath:         getCachePath(c.Options.Name),
+		RemotePath:        c.Options.RemotePath,
+		Interval:          time.Duration(c.Options.PrefetchInterval) * time.Second,
+		Username:          remoteUsername,
+		SSHAuthSock:       util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
+		SSHPrivateKeyPath: sshKey.PrivateKeyPath(),
+	}
+
+	return c.cacheWithProgress(cacheReq)
+}
+
+func (c *MountCommand) cacheWithProgress(cacheReq req.Cache) (err error) {
 	// doneErr is used to wait until the cache progress is done, and also send
 	// any error encountered. We simply send nil if there is no error.
 	doneErr := make(chan error)
@@ -368,28 +465,9 @@ func (c *MountCommand) prefetchAll() error {
 		}
 	}
 
-	cacheReq := req.Cache{
-		Name:              c.Options.Name,
-		LocalPath:         getCachePath(c.Options.Name),
-		RemotePath:        c.Options.RemotePath,
-		Interval:          time.Duration(c.Options.PrefetchInterval) * time.Second,
-		Username:          remoteUsername,
-		SSHAuthSock:       util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
-		SSHPrivateKeyPath: sshKey.PrivateKeyPath(),
-	}
-
-	if err := c.Klient.RemoteCache(cacheReq, cacheProgressCallback); err != nil {
-		c.printfln("") // newline to ensure the progress bar ends
-		switch {
-		case klientctlerrors.IsRemotePathNotExistErr(err):
-			c.printfln(RemotePathDoesNotExist)
-			return fmt.Errorf("Remote path does not exist. err:%s", err)
-		default:
-			c.printfln(
-				defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
-			)
-			return fmt.Errorf("remote.cacheFolder returned an error. err:%s", err)
-		}
+	// c.remoteCache handles UX
+	if err := c.remoteCache(cacheReq, cacheProgressCallback); err != nil {
+		return err
 	}
 
 	if err := <-doneErr; err != nil {
@@ -403,6 +481,30 @@ func (c *MountCommand) prefetchAll() error {
 	}
 
 	bar.FinishPrint("Prefetching complete.")
+
+	return nil
+}
+
+// remoteCache performs a Klient.RemoteCache request while ignoring
+func (c *MountCommand) remoteCache(r req.Cache, progressCb func(par *dnode.Partial)) error {
+	if err := c.Klient.RemoteCache(r, progressCb); err != nil {
+		// Because we have a progress bar in the UX currently, we need to add a
+		// newline if there's an error.
+		c.printfln("")
+		switch {
+		case klientctlerrors.IsRemotePathNotExistErr(err):
+			c.printfln(RemotePathDoesNotExist)
+			return fmt.Errorf("Remote path does not exist. err:%s", err)
+		case klientctlerrors.IsProcessError(err):
+			c.printfln(RemoteProcessFailed, err)
+			return err
+		default:
+			c.printfln(
+				defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
+			)
+			return fmt.Errorf("remote.cacheFolder returned an error. err:%s", err)
+		}
+	}
 
 	return nil
 }
@@ -467,10 +569,83 @@ func (c *MountCommand) mountFolder(r req.MountFolder) error {
 	return nil
 }
 
+func (c *MountCommand) getSSHKey() (*ssh.SSHKey, error) {
+	homeDir, err := c.homeDirGetter()
+	if err != nil {
+		// Using internal error here, because a list error would be confusing to the
+		// user.
+		c.printfln(GenericInternalError)
+		return nil, fmt.Errorf("Failed to get OS User. err:%s", err)
+	}
+
+	// TODO: Use the ssh.Command's implementation of this logic, once ssh.Command is
+	// moved to this new struct setup.
+	sshKey := &ssh.SSHKey{
+		KeyPath: path.Join(homeDir, c.Options.SSHDefaultKeyDir),
+		KeyName: c.Options.SSHDefaultKeyName,
+		Klient:  c.Klient,
+	}
+
+	if !sshKey.KeysExist() {
+		// TODO: Fix this environment leak.
+		util.MustConfirm("The 'prefetchAll' flag needs to create public/private rsa key pair. Continue? [Y|n]")
+	}
+
+	return sshKey, nil
+}
+
+func (c *MountCommand) prepareForSSH(sshKey *ssh.SSHKey) error {
+	if err := sshKey.PrepareForSSH(c.Options.Name); err != nil {
+		if strings.Contains(err.Error(), "user: unknown user") {
+			c.printfln(CannotSSHManaged)
+			return fmt.Errorf("Cannot ssh into managed machines. err:%s", err)
+		}
+
+		if klientctlerrors.IsMachineNotValidYetErr(err) {
+			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
+			return fmt.Errorf("Machine is not valid yet. err:%s", err)
+		}
+
+		c.printfln(FailedGetSSHKey)
+		return fmt.Errorf("Error getting ssh key. err:%s", err)
+	}
+
+	return nil
+}
+
 func (c *MountCommand) cleanupPath() {
 	if err := util.NewRemovePath().Remove(c.Options.LocalPath); err != nil {
 		c.printfln(UnmountFailedRemoveMountPath)
 	}
+}
+
+func (c *MountCommand) getIgnoreFile(localPath string) string {
+	for _, name := range IgnoreFiles {
+		p := filepath.Join(localPath, name)
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
+
+	return ""
+}
+
+func (c *MountCommand) Autocomplete(_ ...string) error {
+	// setup our klient, if needed
+	if _, err := c.setupKlient(); err != nil {
+		return err
+	}
+
+	infos, err := c.Klient.RemoteList()
+	if err != nil {
+		return err
+	}
+
+	for _, i := range infos {
+		c.printfln(i.VMName)
+	}
+
+	return nil
 }
 
 // askToCreate checks if the folder does not exist, and creates it

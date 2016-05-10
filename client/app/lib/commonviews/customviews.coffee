@@ -23,6 +23,7 @@ module.exports = class CustomViews
     link      : (options) ->
       new (require 'app/customlinkview') options
 
+
   @addTo   = (parent, views) ->
 
     map    = {}
@@ -46,8 +47,10 @@ module.exports = class CustomViews
     return map[key]  if length is 1
     return map
 
+
   @addCustomViews = (views) ->
     @addTo this, views
+
 
   @replaceViewsWith = (views) ->
     @destroySubViews()

@@ -14,21 +14,21 @@ module.exports = class TeamMembersCommonView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass                 = 'members-commonview'
-    options.itemLimit               ?= 10
-    options.fetcherMethod          or= 'fetchMembersWithEmail'
-    options.listViewItemOptions    or= {}
-    options.listViewItemClass      or= null
-    options.searchInputPlaceholder or= 'Find by name/username'
-    options.showSearchFieldAtFirst or= no
-    options.sortOptions            or= [
+    options.cssClass                    = 'members-commonview'
+    options.itemLimit                  ?= 10
+    options.fetcherMethod             or= 'fetchMembersWithEmail'
+    options.listViewItemOptions       or= {}
+    options.listViewItemClass         or= null
+    options.searchInputPlaceholder    or= 'Find by name/username'
+    options.showSearchFieldAtFirst    or= no
+    options.useCustomThresholdHandler  ?= yes
+    options.sortOptions               or= [
       { title: 'Screen name',   value: 'fullname' }
       { title: 'Nickname',      value: 'nickname' }
     ]
 
     super options, data
 
-    @skip = 0
     @page = 0
 
     @createSearchView()
@@ -55,7 +55,7 @@ module.exports = class TeamMembersCommonView extends KDView
     @searchContainer.addSubView @searchInput = new KDHitEnterInputView
       type        : 'text'
       placeholder : @getOptions().searchInputPlaceholder
-      callback    : @bound 'search'
+      callback    : => @search()
 
     @searchContainer.addSubView @searchClear = new KDCustomHTMLView
       tagName     : 'span'
@@ -63,8 +63,8 @@ module.exports = class TeamMembersCommonView extends KDView
       cssClass    : 'clear-search hidden'
       click       : =>
         @searchInput.setValue ''
-        @search()
         @searchClear.hide()
+        @search()
 
 
   createListController: ->
@@ -89,16 +89,19 @@ module.exports = class TeamMembersCommonView extends KDView
 
   buildListController: ->
 
+    { useCustomThresholdHandler } = @getOptions()
+
     @addSubView @listController.getView()
 
-    @listController.on 'LazyLoadThresholdReached', =>
-      if @searchInput.getValue()
-        unless @isFetching
-          @isFetching = yes
-          @page++
-          @search no, yes
-      else
-        @fetchMembers()
+    if useCustomThresholdHandler
+      @listController.on 'LazyLoadThresholdReached', =>
+        if @searchInput.getValue()
+          unless @isFetching
+            @isFetching = yes
+            @page++
+            @search no, yes
+        else
+          @fetchMembers()
 
     @listController
       .on 'CalculateAndFetchMoreIfNeeded',  @bound 'calculateAndFetchMoreIfNeeded'
@@ -119,7 +122,7 @@ module.exports = class TeamMembersCommonView extends KDView
     options =
       limit : itemLimit
       sort  : { timestamp: -1 } # timestamp is at relationship collection
-      skip  : @skip
+      skip  : @listController.filterStates.skip
 
     # fetch members as jAccount
     group[fetcherMethod] {}, options, (err, members) =>
@@ -137,7 +140,7 @@ module.exports = class TeamMembersCommonView extends KDView
     if err?.message?.indexOf('No account found') > -1
       @search yes
     else
-      @listController.lazyLoader.hide()
+      @listController.hideLazyLoader()
       kd.warn err
 
 
@@ -167,7 +170,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
     if isQueryEmpty or isQueryChanged
       @page = 0
-      @skip = 0
+      @listController.filterStates.skip = 0
       @searchClear.hide()
       return @fetchMembers()  if isQueryEmpty
 
@@ -216,7 +219,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
   resetListItems: (showLoader = yes) ->
 
-    @skip = 0
+    @listController.filterStates.skip = 0
     @listController.removeAllItems()
     @listController.hideNoItemWidget()
     @listController.lazyLoader.show()

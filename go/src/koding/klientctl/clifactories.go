@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"koding/klientctl/autocomplete"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
@@ -15,6 +16,7 @@ import (
 	"koding/klientctl/repair"
 	"koding/mountcli"
 	"os"
+	"strings"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -29,12 +31,17 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctl
 	opts := MountOptions{
 		Name:             c.Args().Get(0),
 		LocalPath:        c.Args().Get(1),
-		RemotePath:       c.String("remotepath"),     // note the lowercase of all chars
-		NoIgnore:         c.Bool("noignore"),         // note the lowercase of all chars
-		NoPrefetchMeta:   c.Bool("noprefetch-meta"),  // note the lowercase of all chars
-		NoWatch:          c.Bool("nowatch"),          // note the lowercase of all chars
-		PrefetchAll:      c.Bool("prefetch-all"),     // note the lowercase of all chars
-		PrefetchInterval: c.Int("prefetch-interval"), // note the lowercase of all chars
+		RemotePath:       c.String("remotepath"), // note the lowercase of all chars
+		NoIgnore:         c.Bool("noignore"),
+		NoPrefetchMeta:   c.Bool("noprefetch-meta"),
+		NoWatch:          c.Bool("nowatch"),
+		PrefetchAll:      c.Bool("prefetch-all"),
+		PrefetchInterval: c.Int("prefetch-interval"),
+		Trace:            c.Bool("trace"),
+		OneWaySync:       c.Bool("oneway-sync"),
+		OneWayInterval:   c.Int("oneway-interval"),
+		Debug:            c.Bool("debug"),
+
 		// Used for prefetch
 		SSHDefaultKeyDir:  config.SSHDefaultKeyDir,
 		SSHDefaultKeyName: config.SSHDefaultKeyName,
@@ -121,4 +128,31 @@ func RemountCommandFactory(c *cli.Context, _ logging.Logger, _ string) int {
 	}
 
 	return 0
+}
+
+// AutocompleteCommandFactory creates a autocomplete.Command instance and runs it with
+// Stdin and Out.
+func AutocompleteCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
+	opts := autocomplete.Options{
+		Shell:   strings.ToLower(c.Args().First()),
+		FishDir: c.String("fish-dir"),
+		Bashrc:  !c.Bool("no-bash-source"),
+		BashDir: c.String("bash-dir"),
+	}
+
+	init := autocomplete.Init{
+		Stdout: os.Stdout,
+		Log:    log,
+		Helper: ctlcli.CommandHelper(c, cmdName),
+	}
+
+	cmd, err := autocomplete.NewCommand(init, opts)
+	if err != nil {
+		return ctlcli.NewErrorCommand(
+			os.Stdout, log, err,
+			"Unable to create autocomplete command",
+		)
+	}
+
+	return cmd
 }

@@ -2,15 +2,41 @@ package fusetest
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-multierror"
 	"io/ioutil"
+	"koding/fusetest/internet"
 	"koding/klient/remote/req"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
+
 	. "github.com/smartystreets/goconvey/convey"
+)
+
+var (
+	// A series of timings to use for reconnect testing. Each larger disconnect
+	// test is run one after another, so a depth test of 2 will run 0, and 1, and 2.
+	ReconnectDepths = map[uint]internet.ReconnectOpts{
+		// No reconnect testing. (default)
+		0: internet.ReconnectOpts{},
+
+		// Disabled currently.
+		// A momentary disconnect, nothing should really lose connection and/or fail.
+		1: internet.ReconnectOpts{
+			PauseAfterDisconnect: 30 * time.Second,
+			PauseAfterConnect:    10 * time.Second,
+		},
+
+		// A full disconnect, long enough for kite to fully lose connection. Longer time
+		// to reconnect as well (due to backoffs/etc).
+		2: internet.ReconnectOpts{
+			PauseAfterDisconnect: 8 * time.Minute,
+			PauseAfterConnect:    2 * time.Minute,
+		},
+	}
 )
 
 // Fusetest runs common file & dir operations on already mounted folder
@@ -25,43 +51,122 @@ type Fusetest struct {
 	// are run.
 	TestDir string
 
-	Opts req.MountFolder
+	Opts FusetestOpts
+
+	OriginalMountOpts req.MountFolder
 
 	T *testing.T
 
 	*Remote
 }
 
-func NewFusetest(machine string, opts req.MountFolder) (*Fusetest, error) {
+type FusetestOpts struct {
+	// TODO: Deprecate this field, in favor of passing the settings into tests.
+	// Currently the tests are stateful and this var changes a lot, depending on the
+	// tests. Rather brittle.
+	req.MountFolder
+
+	// The main fuse operation tests. If false, no fuseop tests will be run.
+	// (useful if you just want to check klient list recovery, etc.)
+	FuseOpsTests bool
+
+	// The depth (if any) to run reconnect tests
+	ReconnectDepth uint
+
+	// Whether or not to run the op tests on various mount settings.
+	MountSettingTests bool
+
+	// General kd tests, outside of mount/unmount. Ie, kd list, kd ssh, etc.
+	MiscTests bool
+
+	// General kd tests that require sudo.
+	MiscSudoTests bool
+}
+
+func NewFusetest(machine string, opts FusetestOpts) (*Fusetest, error) {
 	r, err := NewRemote(machine)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Fusetest{
+	f := &Fusetest{
 		Machine:  machine,
 		MountDir: r.local,
 		T:        &testing.T{},
 		Remote:   r,
 		Opts:     opts,
-	}, nil
+	}
+
+	origMountOpts, err := NewKD().GetMountOptions(f.Machine)
+	if err != nil {
+		fmt.Println("Unable to get your mount settings.")
+		return nil, err
+	}
+	f.OriginalMountOpts = origMountOpts
+	f.Opts.MountFolder = origMountOpts
+
+	return f, nil
 }
 
 func (f *Fusetest) checkCachePath() bool {
 	return f.Opts.CachePath != "" && f.Opts.PrefetchAll
 }
 
-func (f *Fusetest) RunAllTests() (testErrs error) {
+func (f *Fusetest) RunTests() (testErrs error) {
 	fmt.Println("Testing pre-existing mount...")
 	if err := f.RunOperationTests(); err != nil {
 		testErrs = multierror.Append(testErrs, err)
 	}
 
-	// Unmount so we can mount with various settings below.
-	if err := NewKD().Unmount(f.Machine); err != nil {
+	// Run the --reconnect-depth tests on the original mount.
+	if err := f.RunReconnectDepths(); err != nil {
 		testErrs = multierror.Append(testErrs, err)
 	}
 
+	// If any of below test are true, we need to unmount the users mount so that
+	// tests can unmount and remount as they need. We'll remount at the
+	// end of this func.
+	remountUserMount := f.Opts.MountSettingTests || f.Opts.MiscTests || f.Opts.MiscSudoTests
+	if remountUserMount {
+		if err := NewKD().Unmount(f.Machine); err != nil {
+			testErrs = multierror.Append(testErrs, err)
+		}
+	}
+
+	// Run our --mount-settings tests
+	if f.Opts.MountSettingTests {
+		if err := f.RunMountSettingTests(); err != nil {
+			testErrs = multierror.Append(testErrs, err)
+		}
+	}
+
+	// Run our --misc tests
+	if f.Opts.MiscTests {
+		if err := f.RunMiscTests(); err != nil {
+			testErrs = multierror.Append(testErrs, err)
+		}
+	}
+
+	// Run our --misc-sudo
+	if f.Opts.MiscSudoTests {
+		if err := f.RunMiscSudoTests(); err != nil {
+			testErrs = multierror.Append(testErrs, err)
+		}
+	}
+
+	// If we unmounted the users mount, restore it.
+	if remountUserMount {
+		// Remount test folder.
+		if err := NewKD().MountWithOpts(f.Machine, f.OriginalMountOpts); err != nil {
+			testErrs = multierror.Append(testErrs, err)
+		}
+	}
+
+	return testErrs
+}
+
+// Run our --mount-settings tests
+func (f *Fusetest) RunMountSettingTests() (testErrs error) {
 	// Run our various test types
 	if err := f.RunPrefetchTests(); err != nil {
 		testErrs = multierror.Append(testErrs, err)
@@ -75,16 +180,19 @@ func (f *Fusetest) RunAllTests() (testErrs error) {
 		testErrs = multierror.Append(testErrs, err)
 	}
 
-	// Remount test folder.
-	//
-	// TODO: Perhaps store the current mount settings, so we can mount after we're
-	// done with the same settings?
-	err := NewKD().MountWithPrefetchAll(f.Machine, f.Remote.remote, f.MountDir)
-	if err != nil {
-		testErrs = multierror.Append(testErrs, err)
-	}
-
 	return testErrs
+}
+
+// Run our --misc-sudo tests
+func (f *Fusetest) RunMiscSudoTests() error {
+	f.TestKDRemount()
+	return nil
+}
+
+// Run our --misctests
+func (f *Fusetest) RunMiscTests() error {
+	f.TestKDListMachineStatus()
+	return nil
 }
 
 func (f *Fusetest) RunPrefetchTests() error {
@@ -97,13 +205,23 @@ func (f *Fusetest) RunPrefetchTests() error {
 		return err
 	}
 
+	// Update our local opts to match our new mount.
+	opts, err := NewKD().GetMountOptions(f.Machine)
+	if err != nil {
+		return err
+	}
+	f.Opts.MountFolder = opts
+
+	// Run normal ops tests first
 	if err := f.RunOperationTests(); err != nil {
 		return err
 	}
 
-	// Pausing, because the instant remount is giving me resource is busy every
-	// time.
-	time.Sleep(5 * time.Second)
+	// Run reconnect depths for reconnect testing on this mount. It will only run
+	// if enabled.
+	if err := f.RunReconnectDepths(); err != nil {
+		return err
+	}
 
 	return NewKD().Unmount(f.Machine)
 }
@@ -118,13 +236,23 @@ func (f *Fusetest) RunNoPrefetchTests() error {
 		return err
 	}
 
+	// Update our local opts to match our new mount.
+	opts, err := NewKD().GetMountOptions(f.Machine)
+	if err != nil {
+		return err
+	}
+	f.Opts.MountFolder = opts
+
+	// Run normal ops tests first
 	if err := f.RunOperationTests(); err != nil {
 		return err
 	}
 
-	// Pausing, because the instant remount is giving me resource is busy every
-	// time.
-	time.Sleep(5 * time.Second)
+	// Run reconnect depths for reconnect testing on this mount. It will only run
+	// if enabled.
+	if err := f.RunReconnectDepths(); err != nil {
+		return err
+	}
 
 	return NewKD().Unmount(f.Machine)
 }
@@ -139,18 +267,74 @@ func (f *Fusetest) RunPrefetchAllTests() error {
 		return err
 	}
 
+	// Update our local opts to match our new mount.
+	opts, err := NewKD().GetMountOptions(f.Machine)
+	if err != nil {
+		return err
+	}
+	f.Opts.MountFolder = opts
+
+	// Run normal ops tests first
 	if err := f.RunOperationTests(); err != nil {
 		return err
 	}
 
-	// Pausing, because the instant remount is giving me resource is busy every
-	// time.
-	time.Sleep(5 * time.Second)
+	// Run reconnect depths for reconnect testing on this mount. It will only run
+	// if enabled.
+	if err := f.RunReconnectDepths(); err != nil {
+		return err
+	}
 
 	return NewKD().Unmount(f.Machine)
 }
 
+func (f *Fusetest) RunReconnectDepths() error {
+	// Do not run reconnect depths if reconnect depths are not enabled.
+	if f.Opts.ReconnectDepth < 0 {
+		return nil
+	}
+
+	if runtime.GOOS != "darwin" {
+		fmt.Println("Testing internet is disabled for non-darwin currently.")
+		return nil
+	}
+
+	// Start at the first depth of reconnect testing. 0 is no reconnect, so there's
+	// no need in running that.
+	var i uint
+	for i = 1; i <= f.Opts.ReconnectDepth; i++ {
+		reconnectOpts, _ := ReconnectDepths[i]
+
+		if err := f.RunReconnectTests(reconnectOpts); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// TODO: Add the ability for the Op tests to return errors, so that we can
+// programmatically expect them to fail. Ensuring that ops during disconnect
+// fail as expected.
+func (f *Fusetest) RunReconnectTests(reconnectOpts internet.ReconnectOpts) error {
+	if runtime.GOOS != "darwin" {
+		fmt.Println("Testing internet is disabled for non-darwin currently.")
+		return nil
+	}
+
+	fmt.Printf("Testing reconnect, pausing for %s.\n", reconnectOpts.TotalDur())
+	if err := internet.ToggleInternet(reconnectOpts); err != nil {
+		return err
+	}
+
+	return f.RunOperationTests()
+}
+
 func (f *Fusetest) RunOperationTests() error {
+	if !f.Opts.FuseOpsTests {
+		return nil
+	}
+
 	testDir, err := ioutil.TempDir(f.MountDir, "tests")
 	if err != nil {
 		return err
@@ -181,6 +365,10 @@ func (f *Fusetest) setupConvey(name string, fn func(string)) {
 
 		fn(filepath.Join(m, d))
 	}))
+}
+
+func (f *Fusetest) setupConveyWithoutDir(name string, fn func()) {
+	Convey(name, f.T, fn)
 }
 
 func (f *Fusetest) checkCacheEntry(name string) (os.FileInfo, error) {
@@ -301,7 +489,7 @@ func (f *Fusetest) CheckLocalFileContents(file, contents string) error {
 }
 
 func (f *Fusetest) fullCachePath(entry string) string {
-	return filepath.Join(f.Opts.CachePath, filepath.Base(f.TestDir), entry)
+	return filepath.Join(f.Opts.CachePath, entry)
 }
 
 func (f *Fusetest) fullMountPath(entry string) string {

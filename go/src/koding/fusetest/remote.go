@@ -55,6 +55,8 @@ func NewRemote(machine string) (*Remote, error) {
 	}, nil
 }
 
+// RunCmd executes a *formatted* command string. Where the first arg is a
+// formatted string, such as `fmt.Printf` would take.
 func (r *Remote) RunCmd(cmd string, args ...interface{}) ([]byte, error) {
 	if r.SSHConn == nil {
 		return nil, errors.New("No ssh connection.")
@@ -66,7 +68,24 @@ func (r *Remote) RunCmd(cmd string, args ...interface{}) ([]byte, error) {
 	}
 
 	return session.CombinedOutput(fmt.Sprintf(
-		"bash -c \"%s\"", fmt.Sprintf(cmd, args...),
+		`bash -c "%s"`, fmt.Sprintf(cmd, args...),
+	))
+}
+
+// ExecCmd is similar to RunCmd, except it executes the given command in traditional
+// non-formatted pattern. Command and args are run on the remote just like RunCmd.
+func (r *Remote) ExecCmd(cmd string, args ...string) ([]byte, error) {
+	if r.SSHConn == nil {
+		return nil, errors.New("No ssh connection.")
+	}
+
+	session, err := r.SSHConn.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	args = append([]string{cmd}, args...)
+	return session.CombinedOutput(fmt.Sprintf(
+		`bash -c "%s"`, strings.Join(args, " "),
 	))
 }
 

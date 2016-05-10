@@ -16,7 +16,7 @@ var WatchInterval = 5 * time.Second
 // and sending the results to local.
 type Watcher interface {
 	Watch() (<-chan string, <-chan error)
-	AddTimedIgnore(string, time.Duration)
+	AddTimedIgnore(string)
 	Close()
 }
 
@@ -44,18 +44,15 @@ type FindWatcher struct {
 }
 
 // AddTimedIgnore ignores a specified path for specified duration of time.
-func (f *FindWatcher) AddTimedIgnore(path string, duration time.Duration) {
+func (f *FindWatcher) AddTimedIgnore(path string) {
 	f.Lock()
-	path = trimPrefix(path, f.RemotePath)
-	f.ignoredPaths[path] = time.Now().UTC().Add(duration)
+	// times * 3 to give it a bit of leeway
+	f.ignoredPaths[path] = time.Now().UTC().Add(f.watchInterval * 3)
 	f.Unlock()
 }
 
 func (f *FindWatcher) removeTimedIgnore(path string) {
-	f.Lock()
-	path = trimPrefix(path, f.RemotePath)
 	delete(f.ignoredPaths, path)
-	f.Unlock()
 }
 
 // Watch asks for changes on remote in an interval. It returns two channels:
@@ -65,7 +62,7 @@ func (f *FindWatcher) Watch() (<-chan string, <-chan error) {
 	errChan := make(chan error)
 
 	go func() {
-		ticker := time.NewTicker(WatchInterval)
+		ticker := time.NewTicker(f.watchInterval)
 		for {
 			select {
 			case <-ticker.C:
@@ -86,23 +83,20 @@ func (f *FindWatcher) Close() {
 }
 
 func (f *FindWatcher) isPathIgnored(path string) bool {
-	f.RLock()
+	f.Lock()
+	defer f.Unlock()
 
-	path = trimPrefix(path, f.RemotePath)
 	expiration, ok := f.ignoredPaths[path]
 	if !ok {
-		f.RUnlock()
 		return false
 	}
 
-	if expiration.After(time.Now().UTC()) {
-		f.RUnlock()
-		return true
+	if !expiration.After(time.Now().UTC()) {
+		f.removeTimedIgnore(path) // remove expired item
+		return false
 	}
 
-	f.removeTimedIgnore(path)
-
-	return false
+	return true
 }
 
 func (f *FindWatcher) getChangedFiles() ([]string, error) {
@@ -125,10 +119,10 @@ func (f *FindWatcher) getChangedFiles() ([]string, error) {
 		return []string{}, nil
 	}
 
-	// split results by newline and remove remote path prefix
+	// split results by newline
 	splitStrs := strings.Split(res.Stdout, "\n")
 	for i, s := range splitStrs {
-		splitStrs[i] = trimPrefix(s, f.RemotePath)
+		splitStrs[i] = s
 	}
 
 	return splitStrs, nil
@@ -140,6 +134,7 @@ func NewFindWatcher(t transport.Transport, r string) *FindWatcher {
 	return &FindWatcher{
 		Transport:     t,
 		RemotePath:    r,
+		LastRan:       time.Now(),
 		watchInterval: WatchInterval,
 		ignoredPaths:  map[string]time.Time{},
 		closeChannel:  make(chan bool, 1),
@@ -175,22 +170,23 @@ func WatchForRemoteChanges(dir *Dir, watcher Watcher) error {
 }
 
 func (f *FindWatcher) tickerFn(resChan chan string, errChan chan error) {
-	f.LastRan = time.Now().UTC()
-
 	entries, err := f.getChangedFiles()
 	if err != nil {
 		errChan <- err
 	}
 
+	// set only if above command is successfully
+	f.LastRan = time.Now().UTC()
+
 	for _, e := range entries {
 		if !f.isPathIgnored(e) {
-			resChan <- e
+			resChan <- f.trimPrefix(e)
 		}
 	}
 }
 
 // TODO: how to remove '/' at end of find results cmd
-func trimPrefix(p, remotePath string) string {
-	s := strings.TrimPrefix(p, remotePath+"/")
+func (f *FindWatcher) trimPrefix(p string) string {
+	s := strings.TrimPrefix(p, f.RemotePath+"/")
 	return strings.TrimSpace(s)
 }

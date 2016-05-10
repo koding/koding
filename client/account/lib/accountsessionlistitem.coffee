@@ -54,4 +54,3 @@ module.exports = class AccountSessionListItem extends KDListItemView
       {div.delete-button{> @deleteButton }}
     </div>
     """
-

@@ -26,7 +26,6 @@ myStackTemplatesButton   = '.kdview.kdtabhandle-tabs .my-stack-templates'
 closeButton              = "#{stackCatalogModal} .kdmodal-inner .closeModal"
 
 
-
 module.exports =
 
 
@@ -39,33 +38,47 @@ module.exports =
       .click                  'button[testpath=domain-button]'
       .pause                  2000 # wait for modal change
 
+    console.log 'enterTeamURL'
 
-  fillUsernamePasswordForm: (browser, user) ->
+  fillUsernamePasswordForm: (browser, user, invalidUserName = no) ->
 
     doneButton         = "#{teamsModalSelector} button.TeamsModal-button--green"
     usernameInput      = "#{teamsModalSelector} input[name=username]"
     passwordInput      = "#{teamsModalSelector} input[name=password]"
     alreadyMemberModal = "#{teamsModalSelector}.alreadyMember"
+    usernameErrorMsg   = '.validation-error .kdview.wrapper'
 
     browser
       .waitForElementVisible   teamsModalSelector, 20000
-      .element 'css selector', alreadyMemberModal, (result) =>
-        if result.status is 0
-          browser
-            .waitForElementVisible  passwordInput, 20000
-            .setValue               passwordInput, user.password
-        else
-          browser
-            .waitForElementVisible  usernameInput, 20000
-            .clearValue             usernameInput
-            .setValue               usernameInput, user.username
-            .setValue               passwordInput, user.password
 
-        browser
-          .click doneButton
-          .pause 2000 # wait for modal change
+    if invalidUserName
+      browser
+        .waitForElementVisible  usernameInput, 20000
+        .clearValue             usernameInput
+        .setValue               usernameInput, 'abc'
+        .setValue               passwordInput, user.password
+        .click                  doneButton
+        .waitForElementVisible  usernameErrorMsg, 20000
+        .assert.containsText    usernameErrorMsg, 'Username should be between 4 and 25 characters!'
+    else
+      browser
+        .element 'css selector', alreadyMemberModal, (result) =>
+          if result.status is 0
+            browser
+              .waitForElementVisible    passwordInput, 20000
+              .setValue                 passwordInput, user.password
+          else
+            browser
+              .waitForElementVisible  usernameInput, 20000
+              .clearValue             usernameInput
+              .setValue               usernameInput, user.username
+              .setValue               passwordInput, user.password
 
-        @loginAssertion(browser)
+          browser
+            .click doneButton
+            .pause 2000 # wait for modal change
+
+          @loginAssertion(browser)
 
 
   loginAssertion: (browser) ->
@@ -92,44 +105,23 @@ module.exports =
 
     browser
       .pause                  2000 # wait for login page
-      .waitForElementVisible  teamsLoginModal, 20000
+      .waitForElementVisible  '.TeamsModal--login', 20000
       .waitForElementVisible  'form.login-form', 20000
+      .setValue               'input[name=username]', user.username
+      .setValue               'input[name=password]', user.password
+      .click                  'button[testpath=login-button]'
 
-    if invalidCredentials
-      @insertInvalidCredentials(browser, incorrectEmailAddress, user.password, unrecognizedMessage)
-      @insertInvalidCredentials(browser, incorrectUserName, user.password, unknownUserMessage)
-      @insertInvalidCredentials(browser, user.username, wrongPassword, wrongPasswordMessage)
-    else
-      browser
-        .setValue  inputUserName, user.username
-        .setValue  inputPassword, user.password
-        .click     loginButton
-
-      @loginAssertion(browser)
-
-
-  insertInvalidCredentials: (browser, usernameOrEmail, password, errorMessage) ->
-
-    inputUserName        = 'input[name=username]'
-    inputPassword        = 'input[name=password]'
-    notificationSelector = '.team .kdnotification.main'
-    loginButton          = 'button[testpath=login-button]'
-
-    browser
-      .setValue               inputUserName, usernameOrEmail
-      .setValue               inputPassword, password
-      .click                  loginButton
-      .waitForElementVisible  notificationSelector, 20000
-      .assert.containsText    notificationSelector, errorMessage
-      .pause                  2000 # wait for notification to disappear
-      .clearValue             inputUserName
+    @loginAssertion(browser)
 
 
   loginTeam: (browser, invalidCredentials = no) ->
 
-    user = utils.getUser()
-    url  = helpers.getUrl(yes)
+    user               = utils.getUser()
+    url                = helpers.getUrl(yes)
+    inviteLink         = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
+    invalidCredentials = no
 
+    teamsLogin        = '.TeamsModal--login'
     stackCatalogModal = '.StackCatalogModal'
     stackCloseButton  = "#{stackCatalogModal} .kdmodal-inner .closeModal"
 
@@ -137,16 +129,16 @@ module.exports =
     browser.maximizeWindow()
 
     browser.pause  3000
-    browser.element 'css selector', teamsLoginModal, (result) =>
+    browser.element 'css selector', teamsLogin, (result) =>
       if result.status is 0
         @loginToTeam browser, user, invalidCredentials
       else
-        @createTeam browser
+        @createTeam browser, user, inviteLink
 
       browser.pause 3000
       browser.element 'css selector', stackCatalogModal, (result) ->
         if result.status is 0
-           browser
+          browser
             .waitForElementVisible  stackCatalogModal, 20000
             .waitForElementVisible  stackCloseButton, 20000
             .click                  stackCloseButton
@@ -154,51 +146,77 @@ module.exports =
     return user
 
 
-  closeTeamSettingsModal: (browser) ->
+  checkForgotPassword: (browser, user, callback) ->
 
-    adminModal  = '.AppModal.AppModal--admin.team-settings'
-    closeButton = "#{adminModal} .closeModal"
-
+    modalSelector   = '.kdview.kdtabpaneview.username'
+    sectionSelector = "#{modalSelector} section"
     browser
-      .waitForElementVisible adminModal, 20000
-      .click                 closeButton
+      .waitForElementVisible modalSelector, 20000
+      .click                 '.TeamsModal-button-link a'
+      .pause                 2000
+      .waitForElementVisible sectionSelector, 20000
+      .pause                 2000
+      .click                 '.TeamsModal-button-link a'
+      .pause                 2000
 
 
-  logoutTeam: (browser) ->
-
-    logoutLink = '.avatararea-popup.team a[href="/Logout"]'
-
-    helpers.openAvatarAreaModal(browser, yes)
-
-    browser
-      .waitForElementVisible logoutLink, 20000
-      .click                 logoutLink
-      .waitForElementVisible teamsLoginModal, 20000
-
-
-  createTeam: (browser, user, callback) ->
+  createTeam: (browser, user, inviteOrCreateLink, invalidCredentials = no, callback) ->
 
     modalSelector       = '.TeamsModal.TeamsModal--create'
     emailSelector       = "#{modalSelector} input[name=email]"
     companyNameSelector = "#{modalSelector} input[name=companyName]"
     signUpButton        = "#{modalSelector} button[type=submit]"
     user                = utils.getUser()
-    invitationLink      = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
+    inviteLink          = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
+    modalSelector       = '.TeamsModal.TeamsModal--create'
+    teamsModalSelector  = '.TeamsModal--groupCreation'
+    doneButton          = "#{teamsModalSelector} button.TeamsModal-button--green"
+    usernameInput       = "#{teamsModalSelector} input[name=username]"
+    passwordInput       = "#{teamsModalSelector} input[name=password]"
+    errorMessage        = '.kdnotification.main'
 
     browser
-      .url                   invitationLink
-      .waitForElementVisible modalSelector, 20000
-      .waitForElementVisible emailSelector, 20000
-      .waitForElementVisible companyNameSelector, 20000
-      .clearValue            emailSelector
-      .setValue              emailSelector, user.email
-      .pause                 2000
-      .setValue              companyNameSelector, user.teamSlug
-      .click                 signUpButton
-      .pause                 2500
+      .url                    inviteOrCreateLink
+      .waitForElementVisible  modalSelector, 20000
+      .waitForElementVisible  emailSelector, 20000
+      .waitForElementVisible  companyNameSelector, 20000
+      .clearValue             emailSelector
 
-    @enterTeamURL(browser)
-    @fillUsernamePasswordForm(browser, user)
+      if inviteOrCreateLink is inviteLink
+        browser
+          .setValue              emailSelector, user.email
+          .pause                 2000
+          .setValue              companyNameSelector, user.teamSlug
+          .click                 signUpButton
+          .pause                 2500
+
+        @enterTeamURL(browser)
+        @checkForgotPassword(browser)
+
+        if invalidCredentials
+          @fillUsernamePasswordForm(browser, user, yes)
+        else
+          @fillUsernamePasswordForm(browser, user)
+
+      else
+        browser
+          .setValue              emailSelector, user.email + 'test'
+          .pause                 2000
+          .setValue              companyNameSelector, user.teamSlug + 'test'
+          .click                 signUpButton
+          .pause                 2500
+
+        @enterTeamURL(browser)
+
+        browser
+          .waitForElementVisible  teamsModalSelector, 20000
+          .waitForElementVisible  usernameInput, 20000
+          .clearValue             usernameInput
+          .setValue               usernameInput, user.username
+          .setValue               passwordInput, user.password
+          .click                  doneButton
+          .waitForElementVisible  errorMessage, 20000
+          .assert.containsText    errorMessage, "Sorry, #{user.username} is already taken!"
 
 
   createInvitation: (browser, user, callback) ->
@@ -645,7 +663,7 @@ module.exports =
     inUseTag       = "#{stackCatalogModal} [testpath=StackInUseTag]"
     defaultTag     = "#{stackCatalogModal} [testpath=StackDefaultTag]"
     accessTag      = "#{stackCatalogModal} [testpath=StackAccessLevelTag]"
-    deleteMenuItem = ".kdbuttonmenu .context-list-wrapper .delete"
+    deleteMenuItem = '.kdbuttonmenu .context-list-wrapper .delete'
 
     @openStackCatalog(browser, no)
 
@@ -673,7 +691,7 @@ module.exports =
 
   editStack: (browser, openEditorAndClone = no) ->
 
-    editMenuItem             = ".kdbuttonmenu .context-list-wrapper .edit"
+    editMenuItem             = '.kdbuttonmenu .context-list-wrapper .edit'
     openEditorButton         = '.kdmodal-inner .kdmodal-buttons .red'
     openEditorAndCloneButton = '.kdmodal-inner .kdmodal-buttons .green'
     stackTemplatePage        = '.define-stack-view .stack-template'
@@ -687,9 +705,9 @@ module.exports =
     newStackInSidebar        = '.SidebarStackSection .SidebarMachinesListItem .SidebarMachinesListItem--MainLink'
     updateNotification       = "#{stackItems} .update-notification"
     updateStackButton        = "#{updateNotification} .reinit-stack"
-    reinitModal              = ".kdmodal[testpath=reinitStack]"
+    reinitModal              = '.kdmodal[testpath=reinitStack]'
     proceedButton            = "#{reinitModal} .red"
-    sidebarStackWidget       = ".SidebarStackWidgets"
+    sidebarStackWidget       = '.SidebarStackWidgets'
 
 
     browser.pause  3000
@@ -762,7 +780,7 @@ module.exports =
 
   deleteStack: (browser) ->
 
-    deleteMenuItem = ".kdbuttonmenu .context-list-wrapper .delete"
+    deleteMenuItem = '.kdbuttonmenu .context-list-wrapper .delete'
     stackTemplate  = '.stacktemplates .stack-template-list [testpath=privateStackListItem]'
     stackMenuIcon  = "#{stackTemplate} .stack-settings-menu"
     deleteModal    = '.kdmodal[testpath=RemoveStackModal]'
@@ -771,7 +789,7 @@ module.exports =
 
     browser.element 'css selector', stackCatalogModal, (result) ->
       if result.status is 0
-         browser
+        browser
           .waitForElementVisible  stackCatalogModal, 20000
           .waitForElementVisible  closeButton, 20000
           .click                  closeButton
@@ -874,7 +892,7 @@ module.exports =
     myStacksLink  = '.AppModal-navItem.my-stacks'
     stackItem     = '.kdlistitemview.environment-item'
     reinitButton  = "#{stackItem} .button-container .red"
-    reinitModal   = ".kdmodal[testpath=reinitStack]"
+    reinitModal   = '.kdmodal[testpath=reinitStack]'
     proceedButton = "#{reinitModal} .red"
     notification  = '.kdnotification.main'
 
@@ -943,7 +961,7 @@ module.exports =
   getAwsKey: -> return awsKey
 
 
-  checkIconsStacks: (browser) ->
+  checkIconsStacks: (browser, removeNewStack = yes) ->
 
     saveAndTestButton           = '.buttons button:nth-of-type(5)'
     stackTemplateSelector       = '.kdtabhandlecontainer.hide-close-icons .stack-template'
@@ -964,18 +982,19 @@ module.exports =
       .waitForElementVisible      notReadyIconSelector, 30000
       .assert.containsText        notReadyIconSelector, 'NOT READY'
       .assert.containsText        privateIconSelector, 'PRIVATE'
-      .waitForElementVisible      stackTemplateSettingsButton, 20000
-      .click                      stackTemplateSettingsButton
-      .waitForElementVisible      deleteButton, 20000
-      .click                      deleteButton
-      .waitForElementVisible      confirmDeleteButton, 20000
-      .click                      confirmDeleteButton
-      .pause                      2000
-      .waitForElementVisible      stackTemplateSelector, 20000
-      .assert.containsText        stackTemplateSelector, 'Stack Template'
-      .assert.containsText        saveAndTestButton, 'SAVE & TEST'
 
-
+    if removeNewStack
+      browser
+        .waitForElementVisible      stackTemplateSettingsButton, 20000
+        .click                      stackTemplateSettingsButton
+        .waitForElementVisible      deleteButton, 20000
+        .click                      deleteButton
+        .waitForElementVisible      confirmDeleteButton, 20000
+        .click                      confirmDeleteButton
+        .pause                      2000
+        .waitForElementVisible      stackTemplateSelector, 20000
+        .assert.containsText        stackTemplateSelector, 'Stack Template'
+        .assert.containsText        saveAndTestButton, 'SAVE & TEST'
 
   # possible values of tabName variable is 'stack', 'variables' or 'readme'
   switchTabOnStackCatalog: (browser, tabName) ->
@@ -1010,7 +1029,6 @@ module.exports =
         .editorView.setContent text
 
     browser.execute fn, params
-
 
 
   fillJoinForm: (browser, userData, assertLoggedIn = yes) ->
@@ -1106,3 +1124,55 @@ module.exports =
       .waitForElementVisible     deleteButton, 20000
       .click                     confirmDelete
       .waitForElementNotVisible  tokenTimeStamp, 20000
+
+
+  editStackName: (browser) ->
+
+    stackTemplateSettingsButton = '.kdbutton.stack-settings-menu'
+    saveAndTestButton           = '.buttons button:nth-of-type(5)'
+    cancelButton                = '.buttons button:nth-of-type(2)'
+    stacksLogsSelector          = '.step-define-stack .kdscrollview'
+    myStackTemplatesButton      = '.kdview.kdtabhandle-tabs .my-stack-templates'
+    templateInputSelector       = '.template-title-form .template-title .input-wrapper input'
+    editedText                  = 'Edit stack name'
+    stackNameSelector           = '.stacktemplate-info.clearfix .title'
+    editButtonSelector          = '.kdbuttonmenu .context-list-wrapper .edit'
+
+    browser
+      .waitForElementVisible      stackTemplateSettingsButton, 20000
+      .click                      stackTemplateSettingsButton
+      .waitForElementVisible      editButtonSelector, 20000
+      .click                      editButtonSelector
+      .waitForElementVisible      templateInputSelector, 20000
+      .clearValue                 templateInputSelector
+      .setValue                   templateInputSelector, editedText
+      .click                      saveAndTestButton
+      .pause                      2000 #for stack creation logs to appear
+      .waitForElementVisible      stacksLogsSelector, 20000
+      .assert.containsText        stacksLogsSelector, 'An error occured: Required credentials are not provided yet'
+      .click                      myStackTemplatesButton
+      .waitForElementVisible      templateInputSelector, 20000
+      .click                      cancelButton
+      .waitForElementVisible      stackNameSelector, 20000
+      .assert.containsText        stackNameSelector, editedText
+
+
+  closeTeamSettingsModal: (browser) ->
+
+    adminModal  = '.AppModal.AppModal--admin.team-settings'
+    closeButton = "#{adminModal} .closeModal"
+
+    browser
+      .waitForElementVisible adminModal, 20000
+      .click                 closeButton
+
+  logoutTeam: (browser) ->
+
+    logoutLink = '.avatararea-popup.team a[href="/Logout"]'
+
+    helpers.openAvatarAreaModal(browser, yes)
+
+    browser
+     .waitForElementVisible logoutLink, 20000
+      .click                 logoutLink
+      .waitForElementVisible teamsLoginModal, 20000

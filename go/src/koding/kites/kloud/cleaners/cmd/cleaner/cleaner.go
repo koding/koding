@@ -62,6 +62,7 @@ func NewCleaner(conf *Config) *Cleaner {
 		Regions:     amazon.ProductionRegions,
 		Log:         common.NewLogger("cleaner", conf.Debug),
 		MaxResults:  int64(conf.MaxResults),
+		Debug:       conf.Debug,
 	}
 
 	m := lookup.NewMongoDB(conf.MongoURL)

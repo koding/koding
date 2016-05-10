@@ -206,7 +206,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
         kiteInstance?.disconnect?()
 
         @getKite { name: kiteName, queryString, transportOptions
-                   correlationName, waitingPromises }
+          correlationName, waitingPromises }
 
     return kite
 

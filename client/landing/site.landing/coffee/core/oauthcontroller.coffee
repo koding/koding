@@ -60,7 +60,7 @@ module.exports = class OAuthController extends kd.Controller
       @doOAuth params, (err, resp) =>
 
         if err
-          return new kd.NotificationView { title: 'OAuth integration failed' }
+          return new kd.NotificationView { title: err }
 
         { isNewUser, userInfo, returnUrl } = resp
 

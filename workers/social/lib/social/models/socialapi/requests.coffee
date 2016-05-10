@@ -428,7 +428,11 @@ dispatchEvent = (eventName, data, callback) ->
 storeCredential = (data, callback) ->
   if not data.pathName
     return callback new KodingError 'Request is not valid for storing credential'
-  url = "#{socialProxyUrl}/credential/#{data.pathName}"
+
+  pathName = data.pathName
+  delete data.pathName
+
+  url = "#{socialProxyUrl}/credential/#{pathName}"
   post url, data, callback
 
 getCredential = (data, callback) ->

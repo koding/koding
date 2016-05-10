@@ -396,6 +396,13 @@ func (c *HealthCheck) IsSame(other *HealthCheck) bool {
 	return true
 }
 
+// Clone returns a distinct clone of the HealthCheck.
+func (c *HealthCheck) Clone() *HealthCheck {
+	clone := new(HealthCheck)
+	*clone = *c
+	return clone
+}
+
 type HealthChecks []*HealthCheck
 
 // CheckServiceNode is used to provide the node, its service
@@ -410,7 +417,7 @@ type CheckServiceNodes []CheckServiceNode
 // Shuffle does an in-place random shuffle using the Fisher-Yates algorithm.
 func (nodes CheckServiceNodes) Shuffle() {
 	for i := len(nodes) - 1; i > 0; i-- {
-		j := rand.Int31() % int32(i+1)
+		j := rand.Int31n(int32(i + 1))
 		nodes[i], nodes[j] = nodes[j], nodes[i]
 	}
 }

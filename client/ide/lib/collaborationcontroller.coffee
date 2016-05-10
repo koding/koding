@@ -128,8 +128,7 @@ module.exports = CollaborationController =
     # methods. IMO, it makes it easier to read. ~Umut
     callbacks =
       success: =>
-        @broadcastMessage { target, type: 'ParticipantKicked' }
-        @handleParticipantKicked target
+        @broadcastMessage { target, type: 'ParticipantKicked', params: { forceStop: no } }
       error: (err) ->
         # TODO: better error handling.
         showError err
@@ -241,8 +240,27 @@ module.exports = CollaborationController =
     then @activateRealtimeManagerForHost()
     else @activateRealtimeManagerForParticipant()
 
+    @startRealtimePolling()
+
+    @listenKlientKite()
+
     @rtm.isReady = yes
     @emit 'RTMIsReady'
+
+
+  listenKlientKite: ->
+
+    kite = @mountedMachine.getBaseKite()
+
+    kite.once 'close', =>
+      kite.ping()
+        .timeout(30000)
+        .then =>
+          @listenKlientKite()
+        .catch (err) =>
+          if @amIHost
+          then @handleCollaborationEndedForHost()
+          else @handleCollaborationEndedForParticipant()
 
 
   setWatchMap: ->
@@ -262,7 +280,6 @@ module.exports = CollaborationController =
 
   activateRealtimeManagerForParticipant: ->
 
-    @startRealtimePolling()
     @resurrectParticipantSnapshot()
 
     if @permissions.get(nick()) is 'read'
@@ -546,17 +563,22 @@ module.exports = CollaborationController =
       return  if isActive
 
       kd.utils.killRepeat @pollInterval
-      @showSessionEndedModal()
+
+      if @amIHost
+      then @stopCollaborationSession()
+      else @showSessionEndedModal { redirect : yes }
 
 
   handleBroadcastMessage: (data) ->
 
-    { origin, type } = data
+    { origin, type, params } = data
 
     if origin is nick()
       switch type
         when 'ParticipantKicked'
           return @handleParticipantKicked data.target
+        when 'PermissionDenied', 'PermissionGranted'
+          return @destroyPermissionRequestMenuItem data.target
         else return
 
     switch type
@@ -577,7 +599,8 @@ module.exports = CollaborationController =
 
         if data.target is nick()
           @once 'IDEDidQuit', @bound 'showKickedModal'
-          @quit()
+          @handleCollaborationEndedForParticipant()  unless params.forceStop
+          @quit yes, params.forceStop
         else
           @handleParticipantKicked data.target
 
@@ -598,6 +621,11 @@ module.exports = CollaborationController =
       when 'PermissionGranted'
 
         @handlePermissionGranted()  if data.target is nick()
+
+
+  destroyPermissionRequestMenuItem: (target) ->
+
+    @statusBar.participantAvatars[target]?.emit 'DestroyMenu'
 
 
   handlePermissionMapChange: (event) ->
@@ -1190,7 +1218,7 @@ module.exports = CollaborationController =
       title      : 'Are you sure?'
       content    : 'This will end your session and all participants will be removed from this session.'
 
-    @showModal modalOptions, => @stopCollaborationSession callback
+    modal = @showModal modalOptions, => @stopCollaborationSession callback
 
 
   showKickedModal: ->
@@ -1209,7 +1237,9 @@ module.exports = CollaborationController =
     @showModal options
 
 
-  showSessionEndedModal: (content) ->
+  showSessionEndedModal: (options = {}) ->
+
+    { content, redirect } = options
 
     content ?= "This collaboration session has been terminated by the host @#{@collaborationHost}."
 
@@ -1223,6 +1253,7 @@ module.exports = CollaborationController =
           title    : 'LEAVE'
           callback : =>
             @modal.destroy()
+            kd.singletons.router.handleRoute '/IDE'  if redirect
 
     @showModal options
     @handleCollaborationEndedForParticipant()

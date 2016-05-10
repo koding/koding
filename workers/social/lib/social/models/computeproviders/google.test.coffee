@@ -4,7 +4,8 @@ JCredential = require './credential'
 { expect
   withConvertedUser
   checkBongoConnectivity }      = require '../../../../testhelper'
-{ withConvertedUserAndCredential } = require '../../../../testhelper/models/computeproviders/credentialhelper'
+{ removeGeneratedCredentials
+  withConvertedUserAndCredential } = require '../../../../testhelper/models/computeproviders/credentialhelper'
 
 
 # this function will be called once before running any test
@@ -86,6 +87,10 @@ runTests = -> describe 'workers.social.models.computeproviders.google', ->
         done()
 
 
+afterTests = -> after removeGeneratedCredentials
+
 beforeTests()
 
 runTests()
+
+afterTests()

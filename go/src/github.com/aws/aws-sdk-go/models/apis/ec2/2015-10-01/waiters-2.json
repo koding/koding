@@ -7,13 +7,14 @@
       "operation": "DescribeInstances",
       "acceptors": [
         {
-          "matcher": "status",
-          "expected": 200,
+          "matcher": "path",
+          "expected": true,
+          "argument": "length(Reservations[]) > `0`",
           "state": "success"
         },
         {
           "matcher": "error",
-          "expected": "InvalidInstanceIDNotFound",
+          "expected": "InvalidInstanceID.NotFound",
           "state": "retry"
         }
       ]
@@ -139,6 +140,24 @@
         }
       ]
     },
+    "ImageExists": {
+      "operation": "DescribeImages",
+      "maxAttempts": 40,
+      "delay": 15,
+      "acceptors": [
+        {
+          "matcher": "path",
+          "expected": true,
+          "argument": "length(Images[]) > `0`",
+          "state": "success"
+        },
+        {
+          "matcher": "error",
+          "expected": "InvalidAMIID.NotFound",
+          "state": "retry"
+        }
+      ]
+    },
     "ImageAvailable": {
       "operation": "DescribeImages",
       "maxAttempts": 40,
@@ -186,6 +205,11 @@
           "matcher": "pathAny",
           "state": "failure",
           "argument": "Reservations[].Instances[].State.Name"
+        },
+        {
+          "matcher": "error",
+          "expected": "InvalidInstanceID.NotFound",
+          "state": "retry"
         }
       ]
     },
@@ -199,6 +223,11 @@
           "matcher": "pathAll",
           "argument": "InstanceStatuses[].InstanceStatus.Status",
           "expected": "ok"
+        },
+        {
+          "matcher": "error",
+          "expected": "InvalidInstanceID.NotFound",
+          "state": "retry"
         }
       ]
     },
@@ -264,9 +293,45 @@
           "argument": "length(KeyPairs[].KeyName) > `0`"
         },
         {
-          "expected": "InvalidKeyPairNotFound",
+          "expected": "InvalidKeyPair.NotFound",
           "matcher": "error",
           "state": "retry"
+        }
+      ]
+    },
+    "NatGatewayAvailable": {
+      "operation": "DescribeNatGateways",
+      "delay": 15,
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "state": "success",
+          "matcher": "pathAll",
+          "argument": "NatGateways[].State",
+          "expected": "available"
+        },
+        {
+          "state": "failure",
+          "matcher": "pathAny",
+          "argument": "NatGateways[].State",
+          "expected": "failed"
+        },
+        {
+          "state": "failure",
+          "matcher": "pathAny",
+          "argument": "NatGateways[].State",
+          "expected": "deleting"
+        },
+        {
+          "state": "failure",
+          "matcher": "pathAny",
+          "argument": "NatGateways[].State",
+          "expected": "deleted"
+        },
+        {
+          "state": "retry",
+          "matcher": "error",
+          "expected": "NatGatewayNotFound"
         }
       ]
     },
@@ -282,7 +347,7 @@
           "argument": "NetworkInterfaces[].Status"
         },
         {
-          "expected": "InvalidNetworkInterfaceIDNotFound",
+          "expected": "InvalidNetworkInterfaceID.NotFound",
           "matcher": "error",
           "state": "failure"
         }
@@ -409,7 +474,7 @@
         },
         {
           "matcher": "error",
-          "expected": "InvalidVolumeNotFound",
+          "expected": "InvalidVolume.NotFound",
           "state": "success"
         }
       ]
@@ -487,6 +552,23 @@
           "matcher": "pathAny",
           "state": "failure",
           "argument": "VpnConnections[].State"
+        }
+      ]
+    },
+    "VpcPeeringConnectionExists": {
+      "delay": 15,
+      "operation": "DescribeVpcPeeringConnections",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "matcher": "status",
+          "expected": 200,
+          "state": "success"
+        },
+        {
+          "matcher": "error",
+          "expected": "InvalidVpcPeeringConnectionID.NotFound",
+          "state": "retry"
         }
       ]
     }

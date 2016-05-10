@@ -23,15 +23,19 @@ import (
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
+	"koding/kites/kloud/httputil"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/plans"
+	"koding/kites/kloud/provider"
 	awsprovider "koding/kites/kloud/provider/aws"
+	"koding/kites/kloud/provider/disabled"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/provider/vagrant"
 	"koding/kites/kloud/queue"
+	"koding/kites/kloud/stackplan/stackcred"
 	"koding/kites/kloud/userdata"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -55,6 +59,9 @@ type Config struct {
 
 	// Endpoint for fetching plans
 	PlanEndpoint string `required:"true"`
+
+	// CredentialEndpoint is an API for managing stack credentials.
+	CredentialEndpoint string `required:"true"`
 
 	// Endpoint for fetching user machine network usage
 	NetworkUsageEndpoint string `required:"true"`
@@ -127,6 +134,7 @@ type Config struct {
 	JanitorSecretKey        string
 	VmwatcherSecretKey      string
 	PaymentwebhookSecretKey string
+	KloudSecretKey          string
 }
 
 func main() {
@@ -182,6 +190,8 @@ func newKite(conf *Config) *kite.Kite {
 	k.Config = kiteconfig.MustGet()
 	k.Config.Port = conf.Port
 
+	k.ClientFunc = httputil.ClientFunc(conf.DebugMode)
+
 	if conf.DebugMode {
 		k.SetLogLevel(kite.DEBUG)
 	}
@@ -211,146 +221,54 @@ func newKite(conf *Config) *kite.Kite {
 		softlayer.PostInstallScriptUri = conf.SLScriptURL
 	}
 
-	// overwrite TunnelURL with env var for development environment
-	if s := os.Getenv("CONFIG_TUNNELURL"); conf.Environment == "dev" && s != "" {
-		conf.TunnelURL = s
-	}
-
-	klientFolder := "development/latest"
-	checkInterval := time.Second * 5
-	if conf.ProdMode {
-		k.Log.Info("Prod mode enabled")
-		klientFolder = "production/latest"
-		checkInterval = time.Millisecond * 500
-	}
-	k.Log.Info("Klient distribution channel is: %s", klientFolder)
-
+	// TODO(rjeczalik): refactor modelhelper methods to not use global DB
 	modelhelper.Initialize(conf.MongoURL)
-	db := modelhelper.Mongo
 
-	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
+	sess := newSession(conf, k)
 
-	// Credential belongs to the `koding-kloud` user in AWS IAM's
-	c := credentials.NewStaticCredentials(conf.AWSAccessKeyId, conf.AWSSecretAccessKey, "")
-
-	dnsOpts := &dnsclient.Options{
-		Creds:      c,
-		HostedZone: conf.HostedZone,
-		Log:        common.NewLogger("kloud-dns", conf.DebugMode),
-	}
-	dnsInstance, err := dnsclient.NewRoute53Client(dnsOpts)
-	if err != nil {
-		panic(err)
-	}
-
-	dnsStorage := dnsstorage.NewMongodbStorage(db)
-	userdata := &userdata.Userdata{
-		Keycreator: &keycreator.Key{
-			KontrolURL:        getKontrolURL(conf.KontrolURL),
-			KontrolPrivateKey: kontrolPrivateKey,
-			KontrolPublicKey:  kontrolPublicKey,
-		},
-		Bucket:    userdata.NewBucket("koding-klient", klientFolder, c),
-		KlientURL: conf.KlientURL,
-	}
-	opts := &amazon.ClientOptions{
-		Credentials: c,
-		Regions:     amazon.ProductionRegions,
-		Log:         common.NewLogger("kloud-koding", conf.DebugMode),
-		MaxResults:  int64(conf.MaxResults),
-	}
-	ec2clients, err := amazon.NewClients(opts)
-	if err != nil {
-		panic(err)
-	}
-
-	authorizedUsers := map[string]string{
-		"kloudctl":       kloud.KloudSecretKey,
+	authUsers := map[string]string{
+		"kloudctl":       conf.KloudSecretKey,
 		"janitor":        conf.JanitorSecretKey,
 		"vmwatcher":      conf.VmwatcherSecretKey,
 		"paymentwebhook": conf.PaymentwebhookSecretKey,
 	}
 
-	/// KODING PROVIDER ///
-
-	kodingProvider := &koding.Provider{
-		DB:         db,
-		Log:        opts.Log,
-		DNSClient:  dnsInstance,
-		DNSStorage: dnsStorage,
-		Kite:       k,
-		EC2Clients: ec2clients,
-		Userdata:   userdata,
-		PaymentFetcher: &plans.Payment{
-			PaymentEndpoint: conf.PlanEndpoint,
-		},
-		CheckerFetcher: &plans.KodingChecker{
-			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
-		},
-		AuthorizedUsers: authorizedUsers,
+	credURL, err := url.Parse(conf.CredentialEndpoint)
+	if err != nil {
+		panic(err)
 	}
 
-	go kodingProvider.RunCleaners(time.Minute * 60)
+	storeOpts := &stackcred.StoreOptions{
+		MongoDB: sess.DB,
+		Log:     sess.Log.New("stackcred"),
+		CredURL: credURL,
+		Client:  httputil.DefaultRestClient(conf.DebugMode),
+	}
 
-	/// AWS PROVIDER ///
+	bp := &provider.BaseProvider{
+		DB:             sess.DB,
+		Log:            sess.Log,
+		Kite:           sess.Kite,
+		Userdata:       sess.Userdata,
+		Debug:          conf.DebugMode,
+		KloudSecretKey: conf.KloudSecretKey,
+		CredStore:      stackcred.NewStore(storeOpts),
+	}
 
 	awsProvider := &awsprovider.Provider{
-		DB:         db,
-		Log:        common.NewLogger("kloud-aws", conf.DebugMode),
-		DNSClient:  dnsInstance,
-		DNSStorage: dnsStorage,
-		Kite:       k,
-		Userdata:   userdata,
+		BaseProvider: bp.New("aws"),
 	}
-
-	/// VAGRANT PROVIDER ///
 
 	vagrantProvider := &vagrant.Provider{
-		DB:         db,
-		Log:        common.NewLogger("kloud-vagrant", conf.DebugMode),
-		DNSClient:  dnsInstance,
-		DNSStorage: dnsStorage,
-		Kite:       k,
-		Userdata:   userdata,
-		TunnelURL:  conf.TunnelURL,
-		Debug:      conf.DebugMode,
+		BaseProvider: bp.New("vagrant"),
+		TunnelURL:    conf.TunnelURL,
 	}
 
-	/// SOFTLAYER PROVIDER ///
+	softlayerProvider := newSoftlayerProvider(sess, conf)
 
-	slClient := sl.NewSoftlayer(conf.SLUsername, conf.SLAPIKey)
+	kodingProvider := newKodingProvider(sess, conf, authUsers)
 
-	softlayerProvider := &softlayer.Provider{
-		DB:         db,
-		Log:        common.NewLogger("kloud-softlayer", conf.DebugMode),
-		DNSClient:  dnsInstance,
-		DNSStorage: dnsStorage,
-		Kite:       k,
-		SLClient:   slClient,
-		Userdata:   userdata,
-	}
-
-	// QUEUE STOPPER ///
-
-	q := &queue.Queue{
-		KodingProvider: kodingProvider,
-		AwsProvider:    awsProvider,
-		Log:            common.NewLogger("kloud-queue", conf.DebugMode),
-	}
-	go q.RunCheckers(checkInterval)
-
-	// KLOUD DISPATCHER ///
-	kloudLogger := common.NewLogger("kloud", conf.DebugMode)
-	sess := &session.Session{
-		DB:         db,
-		Kite:       k,
-		DNSClient:  dnsInstance,
-		DNSStorage: dnsStorage,
-		AWSClients: ec2clients,
-		SLClient:   slClient,
-		Userdata:   userdata,
-		Log:        kloudLogger,
-	}
+	go runQueue(kodingProvider, awsProvider, sess, conf)
 
 	stats := common.MustInitMetrics(Name)
 
@@ -369,10 +287,11 @@ func newKite(conf *Config) *kite.Kite {
 		PrivateKey: userPrivateKey,
 		PublicKey:  userPublicKey,
 	}
-	kld.DomainStorage = dnsStorage
-	kld.Domainer = dnsInstance
-	kld.Locker = kodingProvider
-	kld.Log = kloudLogger
+	kld.DomainStorage = sess.DNSStorage
+	kld.Domainer = sess.DNSClient
+	kld.Locker = bp
+	kld.Log = sess.Log
+	kld.SecretKey = conf.KloudSecretKey
 
 	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {
@@ -429,18 +348,213 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 
-	for w, s := range authorizedUsers {
-		func(worker, secretKey string) {
-			k.Authenticators[worker] = func(r *kite.Request) error {
-				if r.Auth.Key != secretKey {
-					return errors.New("wrong secret key passed, you are not authenticated")
-				}
-				return nil
+	for worker, key := range authUsers {
+		worker, key := worker, key
+		k.Authenticators[worker] = func(r *kite.Request) error {
+			if r.Auth.Key != key {
+				return errors.New("wrong secret key passed, you are not authenticated")
 			}
-		}(w, s)
+			return nil
+		}
 	}
 
 	return k
+}
+
+func newSession(conf *Config, k *kite.Kite) *session.Session {
+	c := credentials.NewStaticCredentials(conf.AWSAccessKeyId, conf.AWSSecretAccessKey, "")
+
+	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
+
+	klientFolder := "development/latest"
+	if conf.ProdMode {
+		k.Log.Info("Prod mode enabled")
+		klientFolder = "production/latest"
+	}
+
+	k.Log.Info("Klient distribution channel is: %s", klientFolder)
+
+	// Credential belongs to the `koding-kloud` user in AWS IAM's
+	sess := &session.Session{
+		DB:   modelhelper.Mongo,
+		Kite: k,
+		Userdata: &userdata.Userdata{
+			Keycreator: &keycreator.Key{
+				KontrolURL:        getKontrolURL(conf.KontrolURL),
+				KontrolPrivateKey: kontrolPrivateKey,
+				KontrolPublicKey:  kontrolPublicKey,
+			},
+			KlientURL: conf.KlientURL,
+			Bucket:    userdata.NewBucket("koding-klient", klientFolder, c),
+		},
+		Log: common.NewLogger("kloud", conf.DebugMode),
+	}
+
+	sess.DNSStorage = dnsstorage.NewMongodbStorage(sess.DB)
+
+	dnsOpts := &dnsclient.Options{
+		Creds:      c,
+		HostedZone: conf.HostedZone,
+		Log:        common.NewLogger("kloud-dns", conf.DebugMode),
+		Debug:      conf.DebugMode,
+	}
+
+	dns, err := dnsclient.NewRoute53Client(dnsOpts)
+	if err != nil {
+		k.Log.Warning("invalid AWS credentials for Route53: %s", err)
+	} else {
+		sess.DNSClient = dns
+	}
+
+	opts := &amazon.ClientOptions{
+		Credentials: c,
+		Regions:     amazon.ProductionRegions,
+		Log:         common.NewLogger("kloud-koding", conf.DebugMode),
+		MaxResults:  int64(conf.MaxResults),
+		Debug:       conf.DebugMode,
+	}
+
+	ec2clients, err := amazon.NewClients(opts)
+	if err != nil {
+		k.Log.Warning("invalid AWS credentials for EC2: %s", err)
+	} else {
+		sess.AWSClients = ec2clients
+	}
+
+	return sess
+}
+
+// Providers ctors. If a provider has a dependencty on a service
+// defined in *session.Session, and the service is disabled (nil)
+// due to missing configuration or any other reason, we return
+// disabled provider that rejects all requests with 411 *kite.Error.
+
+func newKodingProvider(sess *session.Session, conf *Config, authUsers map[string]string) kloud.Provider {
+	if conf.Environment == "default" {
+		// TODO(rjeczalik): Koding provider (the one behind Koding Solo) is
+		// disabled for default environment as it relies heavily on
+		// bootstrapped AWS environment with a fixed VPC, Subnet names,
+		// tags etc.
+		//
+		// The TODO is to either parametrize all used by koding provider
+		// AWS resources or remove koding provider altogether replacing
+		// it with team provider.
+		sess.Log.Warning(`disabling "koding" provider for default environment`)
+
+		return disabled.NewProvider("koding")
+	}
+
+	if sess.DNSClient == nil {
+		sess.Log.Warning(`disabling "koding" provider due to invalid/missing Route53 credentials`)
+
+		return disabled.NewProvider("koding")
+	}
+
+	if sess.AWSClients == nil {
+		sess.Log.Warning(`disabling "koding" provider due to invalid/missing EC2 credentials`)
+
+		return disabled.NewProvider("koding")
+	}
+
+	// TODO(rjeczalik): refactor koding provider to use interface instead
+	dns, ok := sess.DNSStorage.(*dnsstorage.MongodbStorage)
+	if !ok {
+		sess.Log.Warning(`disabling "koding" provider due to invalid DNS storage: %T`, sess.DNSStorage)
+
+		return disabled.NewProvider("koding")
+	}
+
+	// TODO(rjeczalik): refactor koding provider to use interface instead
+	dnsClient, ok := sess.DNSClient.(*dnsclient.Route53)
+	if !ok {
+		sess.Log.Warning(`disabling "koding" provider due to invalid DNS client: %T`, sess.DNSClient)
+
+		return disabled.NewProvider("koding")
+	}
+
+	kp := &koding.Provider{
+		DB:         sess.DB,
+		Log:        sess.Log.New("koding"),
+		DNSClient:  dnsClient,
+		DNSStorage: dns,
+		Kite:       sess.Kite,
+		EC2Clients: sess.AWSClients,
+		Userdata:   sess.Userdata,
+		PaymentFetcher: &plans.Payment{
+			PaymentEndpoint: conf.PlanEndpoint,
+		},
+		CheckerFetcher: &plans.KodingChecker{
+			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
+		},
+		AuthorizedUsers: authUsers,
+	}
+	// TODO(rjeczalik): move interval to config
+	go kp.RunCleaners(time.Minute * 60)
+
+	return kp
+}
+
+func newSoftlayerProvider(sess *session.Session, conf *Config) kloud.Provider {
+	if sess.DNSClient == nil {
+		sess.Log.Warning(`disabling "softlayer" provider due to invalid/missing Route53 credentials`)
+
+		return disabled.NewProvider("softlayer")
+	}
+
+	if conf.SLUsername == "" || conf.SLAPIKey == "" {
+		sess.Log.Warning(`disabling "softlayer" provider due to missing Softlayer credentials`)
+
+		return disabled.NewProvider("softlayer")
+	}
+
+	// TODO(rjeczalik): refactor softlayer provider to use interface instead
+	dns, ok := sess.DNSStorage.(*dnsstorage.MongodbStorage)
+	if !ok {
+		sess.Log.Warning(`disabling "softlayer" provider due to invalid DNS storage: %T`, sess.DNSStorage)
+
+		return disabled.NewProvider("softlayer")
+	}
+
+	// TODO(rjeczalik): refactor softlayer provider to use interface instead
+	dnsClient, ok := sess.DNSClient.(*dnsclient.Route53)
+	if !ok {
+		sess.Log.Warning(`disabling "softlayer" provider due to invalid DNS client: %T`, sess.DNSClient)
+
+		return disabled.NewProvider("softlayer")
+	}
+	sess.SLClient = sl.NewSoftlayer(conf.SLUsername, conf.SLAPIKey)
+
+	return &softlayer.Provider{
+		DB:         sess.DB,
+		Log:        sess.Log.New("softlayer"),
+		DNSClient:  dnsClient,
+		DNSStorage: dns,
+		Kite:       sess.Kite,
+		Userdata:   sess.Userdata,
+		SLClient:   sess.SLClient,
+	}
+}
+
+func runQueue(k, aws kloud.Provider, sess *session.Session, conf *Config) {
+	q := &queue.Queue{
+		Log: sess.Log.New("queue"),
+	}
+
+	if p, ok := aws.(*awsprovider.Provider); ok {
+		q.AwsProvider = p
+	}
+
+	if p, ok := k.(*koding.Provider); ok {
+		q.KodingProvider = p
+	}
+
+	// TODO(rjeczalik): move to config
+	interv := 5 * time.Second
+	if conf.ProdMode {
+		interv = time.Second / 2
+	}
+
+	go q.RunCheckers(interv)
 }
 
 func userMachinesKeys(publicPath, privatePath string) (string, string) {

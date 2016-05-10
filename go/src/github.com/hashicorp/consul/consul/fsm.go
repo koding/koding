@@ -42,7 +42,7 @@ type snapshotHeader struct {
 	LastIndex uint64
 }
 
-// NewFSMPath is used to construct a new FSM with a blank state
+// NewFSM is used to construct a new FSM with a blank state
 func NewFSM(gc *state.TombstoneGC, logOutput io.Writer) (*consulFSM, error) {
 	stateNew, err := state.NewStateStore(gc)
 	if err != nil {
@@ -610,9 +610,9 @@ func (s *consulSnapshot) persistPreparedQueries(sink raft.SnapshotSink,
 		return err
 	}
 
-	for query := queries.Next(); query != nil; query = queries.Next() {
+	for _, query := range queries {
 		sink.Write([]byte{byte(structs.PreparedQueryRequestType)})
-		if err := encoder.Encode(query.(*structs.PreparedQuery)); err != nil {
+		if err := encoder.Encode(query); err != nil {
 			return err
 		}
 	}

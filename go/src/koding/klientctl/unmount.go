@@ -4,8 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 
+	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
+	"koding/klient/remote/restypes"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
@@ -49,6 +52,11 @@ type UnmountCommand struct {
 	// Note! These will be ignored if c.Klient is already defined before Run() is
 	// called.
 	KlientOptions klient.KlientOptions
+
+	// A stored value of the mountInfo, retrieved in `findMountAndPath()` so that
+	// we can refer to it after the machine is unmounted. Ie, after unmount,
+	// we may need mountInfo for something but the mount no longer exists.
+	mountInfo restypes.ListMountInfo
 
 	// the following vars exist primarily for mocking ability, and ensuring
 	// an enclosed environment within the struct.
@@ -110,17 +118,22 @@ func (c *UnmountCommand) Run() (int, error) {
 		return 1, err
 	}
 
-	// remove the mount folder.
+	// Deal with the mount folder, either removing it or moving it, depending
+	// on the mount type.
 	//
 	// Note that if there is an error, we still successfully unmounted - we just
 	// failed to remove the folder. So go ahead and print success.
-	err := c.removeMountFolder()
+	err := c.handleMountFolder()
 
 	// make sure to print success *after* removeMountFolder. Even though we're
 	// ignoring removal errors, we don't want to print success and then a warning.
 	c.printfln("Unmount complete.")
 
-	return 0, err
+	if err != nil {
+		return 1, err
+	}
+
+	return 0, nil
 }
 
 // handleOptions deals with options, erroring if options are missing, etc.
@@ -169,6 +182,13 @@ func (c *UnmountCommand) findMountAndPath() error {
 	// typos/etc from user input.
 	if machineFound {
 		c.Options.MountName = info.VMName
+
+		for _, mountInfo := range info.Mounts {
+			if mountInfo.MountName == c.Options.MountName {
+				c.mountInfo = mountInfo
+				break
+			}
+		}
 	}
 
 	// If options path is empty, get the path before we unmount
@@ -198,6 +218,32 @@ func (c *UnmountCommand) findMountAndPath() error {
 	if len(info.Mounts) == 0 && c.Options.Path == "" {
 		c.printfln(MountNotFound)
 		return errors.New("Unable to unmount, no mounts found")
+	}
+
+	return nil
+}
+
+// handleMountFolder either removes, or moves, the mount folder based on the type
+// of mount. If we cannot get the mount information, we assume removeMountFolder,
+// which will fail if the folder cannot be removed anyway.
+func (c *UnmountCommand) handleMountFolder() error {
+	if c.mountInfo.MountType == int(mount.SyncMount) {
+		return c.moveMountFolderToCache()
+	}
+
+	// By default, attempt to remove the mountFolder. If we cannot find it
+	return c.removeMountFolder()
+}
+
+// moveMountFolderToCache moves the mountFolder to the cache directory.
+func (c *UnmountCommand) moveMountFolderToCache() error {
+	cachePath := getCachePath(c.Options.MountName)
+	if err := os.Rename(c.mountInfo.LocalPath, cachePath); err != nil {
+		c.Log.Warning(
+			"Failed to move mount path to cache path. cachePath:%s, localPath:%s, err:%s",
+			cachePath, c.mountInfo.LocalPath, err,
+		)
+		return err
 	}
 
 	return nil

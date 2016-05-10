@@ -1,6 +1,9 @@
 package restypes
 
-import "koding/klient/remote/machine"
+import (
+	"koding/klient/remote/machine"
+	"time"
+)
 
 // ListMachineInfo is the machine info response from the `remote.list` handler.
 type ListMachineInfo struct {
@@ -9,6 +12,10 @@ type ListMachineInfo struct {
 
 	// The message (if any) associated with the machine status.
 	StatusMessage string `json:"statusMessage"`
+
+	// The last time this machine was online. This may be zero valued if this machine
+	// has not been online since Klient was restarted.
+	OnlineAt time.Time `json:"onlineAt"`
 
 	// The Ip of the running machine
 	IP string `json:"ip"`
@@ -49,6 +56,8 @@ type ListMachineInfo struct {
 
 // ListMountInfo is the machine info response from the `remote.list` handler.
 type ListMountInfo struct {
+	MountName  string `json:"mountName"`
 	RemotePath string `json:"remotePath"`
 	LocalPath  string `json:"localPath"`
+	MountType  int    `json:"mountType"`
 }

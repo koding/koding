@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	cfg "koding/config"
 	"koding/kites/common"
 	"koding/klient/protocol"
 
@@ -31,12 +32,7 @@ var (
 // TunnelKiteURLFromEnv gives tunnel server kite URL base on the given
 // environment.
 func TunnelKiteURLFromEnv(env string) string {
-	switch env {
-	case "managed", "production":
-		return "http://tunnelproxy.koding.com/kite"
-	default: // "sandbox", "development"
-		return "http://devtunnelproxy.koding.com/kite"
-	}
+	return cfg.Builtin.Endpoints.URL("tunnelserver", env)
 }
 
 // ClientOptions are used to alternate behavior of

@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 
 	"koding/fuseklient"
 	"koding/klient/remote/kitepinger"
@@ -25,12 +26,20 @@ const (
 var (
 	digitRegex       = regexp.MustCompile(`\d+`)
 	ErrExistingMount = errors.New("There's already a mount on that folder.")
+
+	// errGetSizeMissingRemotePath is returned when the getSizeOfRemoteFolder method
+	// is missing the remote path argument.
+	errGetSizeMissingRemotePath = errors.New("A remote path is required.")
+
+	// errGetSizeMissingMachine is returned when the getSizeOfRemoteFolder method
+	// is missing the machine argument.
+	errGetSizeMissingMachine = errors.New("A machine instance is required.")
 )
 
 // MountFolderHandler implements klient's remote.mountFolder method. Mounting
 // the given remote folder onto the given local folder.
 func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
-	log := r.log.New("remote.mountFolder")
+	log := logging.NewLogger("remote").New("remote.mountFolder")
 
 	if kreq.Args == nil {
 		return nil, errors.New("Required arguments were not passed.")
@@ -42,7 +51,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 			"remote.mountFolder: Error '%s' while unmarshalling request '%s'\n",
 			err, kreq.Args.One(),
 		)
-		r.log.Error(err.Error())
+		log.Error(err.Error())
 
 		return nil, err
 	}
@@ -52,6 +61,10 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, errors.New("Missing required argument `name`.")
 	case params.LocalPath == "":
 		return nil, errors.New("Missing required argument `localPath`.")
+	}
+
+	if params.Debug {
+		log.SetLevel(logging.DEBUG)
 	}
 
 	log = log.New(
@@ -101,6 +114,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		Transport:     remoteMachine,
 		PathUnmounter: fuseklient.Unmount,
 		MountAdder:    r,
+		EventSub:      r.eventSub,
 	}
 
 	if _, err := mounter.Mount(); err != nil {
@@ -134,6 +148,14 @@ func checkIfUserHasFolderPerms(folderPath string) error {
 // getSizeOfRemoteFolder asks remote machine for size of specified remote folder
 // and returns it in bytes.
 func getSizeOfRemoteFolder(m *machine.Machine, remotePath string) (int, error) {
+	if remotePath == "" {
+		return 0, errGetSizeMissingRemotePath
+	}
+
+	if m == nil {
+		return 0, errGetSizeMissingMachine
+	}
+
 	var (
 		kreq = struct{ Command string }{"du -sb " + remotePath}
 		kres struct {

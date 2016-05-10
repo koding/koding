@@ -16,6 +16,7 @@ describe 'KodingFluxReactor', ->
         initialize: ->
           @on 'test', (state, { foo }) -> flag = foo
 
+
       reactor.registerStores { foo: FooStore }
 
       reactor.dispatch 'test', { foo: 'test passed' }

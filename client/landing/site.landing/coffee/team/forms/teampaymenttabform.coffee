@@ -190,4 +190,3 @@ module.exports = class TeamPaymentTabForm extends kd.FormViewWithFields
     Object.keys(@inputs).reduce (result, key) =>
       input = @inputs[key]
       input.$().prop 'disabled', not state
-

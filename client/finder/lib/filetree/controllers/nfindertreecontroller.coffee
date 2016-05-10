@@ -114,8 +114,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
     Tracker.track Tracker.FILETREE_WATCH_FILE
 
-    @getDelegate().emit "FileNeedsToBeTailed", { file: nodeView.getData() }
-
+    @getDelegate().emit 'FileNeedsToBeTailed', { file: nodeView.getData() }
 
   previewFile: (nodeView) ->
     { vmName, path } = nodeView.getData()

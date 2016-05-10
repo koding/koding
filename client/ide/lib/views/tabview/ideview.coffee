@@ -97,7 +97,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         when 'editor'
           tabHandle.enableContextMenu()
           tabHandle.on 'RenamingRequested', (newTitle) =>
-            pane.view.file.rename newTitle, (err)=>
+            pane.view.file.rename newTitle, (err) =>
               if err then @notify null, null, err
               @emit 'NodeRenamed', pane.view.file, newTitle
 
@@ -118,7 +118,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @tabView.on 'PaneRemoved', ({ pane, handle }) ->
       { options : { paneType } } = pane.view
-      handle.off 'RenamingRequested'  if paneType in ['terminal','editor']
+      handle.off 'RenamingRequested'  if paneType in ['terminal', 'editor']
 
 
     # This is a custom event for IDEApplicationTabView
@@ -392,6 +392,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     terminalPane.ready -> frontApp.setRealtimeManager terminalPane
 
+    { webtermView } = terminalPane
+
+    webtermView.on 'viewAppended', =>
+      webtermView.terminal.on 'ScreenSizeChanged', kd.utils.debounce 100, (size) =>
+        @emitChange terminalPane, { context: { size } }, 'TerminalScreenSizeChanged'
+
     @createPane_ terminalPane, { name: 'Terminal', isActivePane }
 
 
@@ -518,7 +524,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     pane = @tabView.getActivePane()
 
     if pane.data instanceof FSFile and @isDummyFilePath pane.data.path
-      @tabView.removePane pane
+      @tabView.removePane pane, shouldDetach = no, quiet = no, askforsave = no
 
     @openFile file, content
 

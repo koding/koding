@@ -8,6 +8,9 @@ import (
 	"syscall"
 
 	"github.com/koding/kite"
+
+	"koding/klient/kiteerrortypes"
+	"koding/klient/util"
 )
 
 // Output defines the response of an executed command.
@@ -26,7 +29,8 @@ func NewOutput(cmd *exec.Cmd) (*Output, error) {
 	err := cmd.Run()
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); !ok {
-			return nil, err // return if it's not an exitError
+			// return if it's not an exitError
+			return nil, util.NewKiteError(kiteerrortypes.ProcessError, err)
 		} else {
 			exitStatus = exitErr.Sys().(syscall.WaitStatus).ExitStatus()
 		}

@@ -290,7 +290,9 @@ describe 'StackTemplateListController', ->
 
       listView       = new StackTemplateList
       listController = new StackTemplateListController { view : listView, fetcherMethod }
-      listViewSpy    = expect.spyOn listView, 'askForConfirm'
+
+      confirmModalStub = { setAttribute: kd.noop }
+      listViewSpy    = expect.spyOn(listView, 'askForConfirm').andReturn confirmModalStub
 
       group = mock.getMockGroup()
       group.stackTemplates = []

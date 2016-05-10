@@ -24,7 +24,7 @@ type Config struct {
 
 // AWS holds config variables for remote AWS
 type AWS struct {
-	Key    string `required:"true"`
-	Secret string `required:"true"`
-	Bucket string `required:"true"`
+	Key    string
+	Secret string
+	Bucket string
 }

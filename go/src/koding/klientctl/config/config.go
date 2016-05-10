@@ -34,13 +34,26 @@ const (
 	SSHDefaultKeyName = "kd-ssh-key"
 )
 
+var environments = map[string]string{
+	"production":  "managed",
+	"development": "devmanaged",
+}
+
+func kd2klient(kdEnv string) string {
+	if klientEnv, ok := environments[kdEnv]; ok {
+		return klientEnv
+	}
+
+	return "devmanaged"
+}
+
 var (
 	// Version is the current version of klientctl. This number is used
 	// by CheckUpdate to determine if current version is behind or equal to latest
 	// version on S3 bucket.
 	//
 	// Version is overwritten during deploy via linker flag.
-	Version = "35"
+	Version = "0"
 
 	// Environment is the target channel of klientctl. This value is used
 	// to register with Kontrol and to install klient.
@@ -61,7 +74,7 @@ var (
 	KontrolURL = "https://koding.com/kontrol/kite"
 
 	// S3KlientLatest is URL to the latest version of the klient.
-	S3KlientLatest = "https://koding-klient.s3.amazonaws.com/" + Environment + "/latest-version.txt"
+	S3KlientLatest = "https://koding-klient.s3.amazonaws.com/" + kd2klient(Environment) + "/latest-version.txt"
 
 	// S3KlientctlLatest is URL to the latest version of the klientctl.
 	S3KlientctlLatest = "https://koding-kd.s3.amazonaws.com/" + Environment + "/latest-version.txt"
@@ -113,6 +126,6 @@ func S3Klient(version int) string {
 }
 
 func S3Klientctl(version int) string {
-	return fmt.Sprintf("%s/klientctl-0.1.%d.%s_%s.gz", dirURL(S3KlientctlLatest),
+	return fmt.Sprintf("%s/kd-0.1.%d.%s_%s.gz", dirURL(S3KlientctlLatest),
 		version, runtime.GOOS, runtime.GOARCH)
 }

@@ -15,11 +15,17 @@ var cmdDescriptions = map[string]string{
 		fmt.Sprintf("Install the %s. sudo is required.", config.KlientName),
 	),
 	"mount": fmtDesc(
-		"<optional args> <alias:remote_path> <local folder>",
+		"<optional args> <alias:remote path> <local folder>",
 		fmt.Sprintf(`Mount folder from remote machine to local folder.
     Alias is the local identifer for machine in 'kd list'.
+
     Local folder can be relative or absolute path, if
-    folder doesn't exit, it'll be created.`),
+    folder doesn't exit, it'll be created.
+
+    By default this uses FUSE to mount remote folders.
+    For best I/O performance, especially with commands
+    that does a lot of filesystem operations like git,
+    use --oneway-sync.`),
 	),
 	"ssh": fmtDesc(
 		"<alias>", "SSH into the machine.",
@@ -34,13 +40,14 @@ var cmdDescriptions = map[string]string{
 	),
 	"run": fmtDesc(
 		"<command> <arguments>",
-		fmt.Sprintf(`Run command on remote or local machine depending on the location
-    where the command was run. If command was run on mount, it runs
-    the command on remote machine and returns the results. If command
-    was run on local, it runs the command on local machine and returns
-    the results. Currently only commands that don't require tty/pty work
-    on remote machines.
-    All arguments after run are passed to command on remote machine.`),
+		fmt.Sprintf(`Run command on remote or local machine depending
+    on the location where the command was run.
+
+    All arguments after run are passed to command on
+    remote machine.
+
+    Currently only commands that don't require tty/pty
+    work on remote machines.`),
 	),
 	"list": fmtDesc(
 		"", "List running machines for user.",
@@ -62,6 +69,14 @@ var cmdDescriptions = map[string]string{
 	),
 	"update": fmtDesc(
 		"", fmt.Sprintf("Update %s to latest version.", config.KlientName),
+	),
+	"version": fmtDesc(
+		"", fmt.Sprintf("Display version information of the %s.", config.KlientName),
+	),
+	"autocompletion": fmtDesc(
+		"<optional args> <shellname>",
+		`Install autocompletion files for the given shell, to enable
+    autocompletion with kd`,
 	),
 }
 

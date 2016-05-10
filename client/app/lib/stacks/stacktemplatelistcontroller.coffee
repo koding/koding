@@ -53,18 +53,87 @@ module.exports = class StackTemplateListController extends KodingListController
 
   bindEvents: ->
 
+    super
+
     listView = @getListView()
 
-    listView.on 'ItemAction', ({action, item, options}) =>
+    listView.on 'ItemAction', ({ action, item, options }) =>
       switch action
-        when 'RemoveItem'            then @removeItem     item
         when 'ShowItem'              then @showItem       item
         when 'EditItem'              then @editItem       item
         when 'ItemSelectedAsDefault' then @applyToTeam    item
         when 'GenerateStack'         then @generateStack  item
 
-    @on 'FetchProcessFailed', ({ err }) =>
+    @on 'FetchProcessFailed', ({ err }) ->
       showError err, { KodingError : 'Failed to fetch stackTemplates, try again later.' }
+
+    { computeController, groupsController } = kd.singletons
+
+    computeController.on 'RenderStacks', @bound 'handleRenderStacks'
+    groupsController.on  'StackTemplateChanged', @bound 'handleStackTemplateChanged'
+
+
+  updateItem: (stackTemplate) ->
+
+    [target] = @getListItems().filter (i) -> i.getData()._id is stackTemplate._id
+
+    return  unless target
+
+    kd.singletons.computeController.fetchStacks (err, stacks) =>
+
+      return showError  if err
+
+      stackTemplate.inUse = @isTemplateInUse stacks, stackTemplate
+
+      target.setData stackTemplate
+      target.handleLabelStates()
+
+
+  handleRenderStacks: (stacks) ->
+
+    listItems = @getListItems()
+
+    for stack in stacks
+      [item] = listItems.filter (i) -> i.getData()._id is stack.baseStackId
+      if item
+        item.getData().inUse = yes
+        item.inUseView.show()
+
+
+  handleStackTemplateChanged: (params) ->
+
+    stackTemplateId = params.contents
+    hasFound        = no
+
+    for item in @getListItems()
+      item.isDefaultView.hide()
+      item.getData().isDefault = no
+
+      if item.getData()._id is stackTemplateId
+        item.getData().isDefault = yes
+        item.isDefaultView.show()
+        item.updateAccessLevel()
+        hasFound = yes
+
+    @addStackTemplateById stackTemplateId  unless hasFound
+
+
+  addStackTemplateById: (_id, callback = kd.noop) ->
+
+    [item] = @getListItems().filter (i) -> i.getData()._id is _id
+
+    if item
+      kd.warn 'Stack template is already added to list!'
+      return
+
+    params = { _id }
+
+    if @getOption('viewType') is 'private'
+      params.originId = @filterStates.query.originId
+
+    @fetch params, (items) =>
+      @addListItems items
+      callback items
 
 
   applyToTeam: (item) ->
@@ -80,17 +149,16 @@ module.exports = class StackTemplateListController extends KodingListController
     groupsController.setDefaultTemplate stackTemplate, (err) =>
       if err
         @emit 'FailedToSetTemplate', err
-      else
         appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
 
   generateStack: (item) ->
 
     stackTemplate = item.getData()
-    stackTemplate.generateStack (err, stack) =>
+    stackTemplate.generateStack (err, stack) ->
 
       unless showError err
-        kd.singletons.computeController.reset yes, @bound 'reload'
+        kd.singletons.computeController.reset yes
         new kd.NotificationView { title: 'Stack generated successfully' }
 
 
@@ -155,10 +223,14 @@ module.exports = class StackTemplateListController extends KodingListController
       callback    : ({ status, modal }) ->
         return  unless status
         template.delete (err) ->
-          listView.removeItem item
+
+          listView.emit 'ItemAction', { action : 'ItemRemoved', item }
+
+          if template.accessLevel is 'group'
+            currentGroup.sendNotification 'GroupStackTemplateRemoved', template._id
+
           modal.destroy()
           Tracker.track Tracker.STACKS_DELETE_TEMPLATE
-          appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
     modal.setAttribute 'testpath', 'RemoveStackModal'
 
@@ -168,12 +240,25 @@ module.exports = class StackTemplateListController extends KodingListController
     currentGroup = getGroup()
     { viewType } = @getOptions()
 
-    stackTemplates.map (template) ->
+    stackTemplates.map (template) =>
       template.isDefault       = template._id in (currentGroup.stackTemplates or [])
-      template.inUse           = Boolean stacks.find (stack) -> stack.baseStackId is template._id
+      template.inUse           = @isTemplateInUse stacks, template
       template.canForcedReinit = canEditGroup and template.accessLevel is 'group'
 
     if viewType is 'group'
       stackTemplates = stackTemplates.filter (template) -> template.accessLevel is 'group'
 
     return stackTemplates
+
+
+  isTemplateInUse: (stacks = [], stackTemplate) -> Boolean stacks.find (stack) -> stack.baseStackId is stackTemplate._id
+
+
+  destroy: ->
+
+    { computeController, groupsController } = kd.singletons
+
+    computeController.off 'RenderStacks', @bound 'handleRenderStacks'
+    groupsController.off  'StackTemplateChanged', @bound 'handleStackTemplateChanged'
+
+    super

@@ -8,8 +8,8 @@ type Config struct {
 	// MountName is identifier for the mounted folder.
 	MountName string `default:"fuseklient"`
 
-	// Debug determines if application debug logs are turned on.
-	Debug bool `default:true`
+	// Trace determines if trace logs are turned on.
+	Trace bool `default:false`
 
 	// NoIgnore determines whether to ignore default or user specified folders.
 	// Use this to turn off default ignoring of folders.

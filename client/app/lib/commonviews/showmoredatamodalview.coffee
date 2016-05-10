@@ -15,14 +15,17 @@ module.exports = class ShowMoreDataModalView extends KDModalView
     tag     : 'Topics'
     app     : 'Applications'
 
+
   listControllerMap = ->
     account : KDListViewController
     tag     : KDListViewController
     app     : KDListViewController
 
+
   listItemMap = ->
     account : MembersListItemView
     app     : ModalAppsListItemView
+
 
   constructor: (options = {}, data) ->
 
@@ -50,6 +53,7 @@ module.exports = class ShowMoreDataModalView extends KDModalView
           @destroy()
 
     super
+
 
   viewAppended: ->
     @addSubView @loader = new KDLoaderView

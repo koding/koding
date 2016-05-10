@@ -25,8 +25,11 @@ module.exports = class TeamsView extends JView
     @header = new MainHeaderView
       cssClass : 'team'
       navItems : [
-        { title : 'Blog',        href : 'http://blog.koding.com',   name : 'blog' }
-        { title : 'Features',    href : '/Features',                name : 'features' }
+        { title : 'Features', href : '/Features', name : 'features' }
+        { title : 'Docs',     href : '/Docs',     name : 'docs' }
+        { title : 'Pricing',  href : '/Pricing',  name : 'pricing' }
+        { title : 'Blog',     href : '/Blog',     name : 'blog' }
+        { title : 'Login',    href : '/Teams',    name : 'login' }
       ]
 
     @form = new TeamsSignupForm
@@ -67,10 +70,8 @@ module.exports = class TeamsView extends JView
     '''
     {{> @header }}
     <div class="TeamsModal TeamsModal--create">
-      <h4>Create a team</h4>
+      <h4>Let's sign you up!</h4>
+      <h5>Let us know what your email is so we can start the process.</h5>
       {{> @form}}
     </div>
-    <footer>
-      <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
-    </footer>
     '''

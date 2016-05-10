@@ -281,4 +281,3 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       else '/IDE'
 
       kd.singletons.router.handleRoute route
-

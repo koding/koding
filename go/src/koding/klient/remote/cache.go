@@ -12,12 +12,13 @@ import (
 	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
 	"koding/klient/remote/rsync"
+	"path"
 )
 
 // CacheFolderHandler implements a prefetching / caching mechanism, currently
 // implemented
 func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
-	log := r.log.New("remote.cacheFolder")
+	log := logging.NewLogger("remote").New("remote.cacheFolder")
 
 	var params struct {
 		req.Cache
@@ -39,6 +40,10 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		)
 		r.log.Error(err.Error())
 		return nil, err
+	}
+
+	if params.Debug {
+		log.SetLevel(logging.DEBUG)
 	}
 
 	switch {
@@ -72,12 +77,20 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, mount.ErrRemotePathDoesNotExist
 	}
 
+	if params.RemotePath == "" {
+		// TODO: Deprecate in favor of a more robust way to identify the home dir.
+		// This assumes that the username klient is running under has a home
+		// at /home/username. Not true for root, if the user isn't the same user
+		// as klient is running under, and not true if the homedir isn't /home.
+		params.RemotePath = path.Join("/home", remoteMachine.Username)
+	}
+
 	remoteSize, err := getSizeOfRemoteFolder(remoteMachine, params.RemotePath)
 	if err != nil {
 		return nil, err
 	}
 
-	rs := rsync.NewClient(r.log)
+	rs := rsync.NewClient(log)
 	syncOpts := rsync.SyncIntervalOpts{
 		SyncOpts: rsync.SyncOpts{
 			Host:              remoteMachine.IP,
@@ -87,10 +100,18 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 			SSHAuthSock:       params.SSHAuthSock,
 			SSHPrivateKeyPath: params.SSHPrivateKeyPath,
 			DirSize:           remoteSize,
+			LocalToRemote:     params.LocalToRemote,
+			IgnoreFile:        params.IgnoreFile,
 		},
 		Interval: params.Interval,
 	}
-	log.Info("Caching remote via RSync, with options:%v", syncOpts)
+
+	if params.OnlyInterval {
+		startIntervaler(log, remoteMachine, rs, syncOpts)
+		return nil, nil
+	}
+
+	log.Info("Caching remote via RSync, with options:%#v", syncOpts)
 	progCh := rs.Sync(syncOpts.SyncOpts)
 
 	// If a valid callback is not provided, this method blocks until the data is done
@@ -141,7 +162,7 @@ func startIntervaler(log logging.Logger, remoteMachine *machine.Machine, c *rsyn
 	log = log.New("startIntervaler")
 
 	if opts.Interval <= 0 {
-		log.Warning(
+		log.Debug(
 			"startIntervaler() called with interval:%d. Cannot start Intervaler",
 			opts.Interval,
 		)

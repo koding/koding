@@ -51,7 +51,7 @@ func TestDir(t *testing.T) {
 
 		Convey("It should return error if offset is greater than length of contents", func() {
 			d := newDir()
-			d.Entries = []fuseutil.Dirent{fuseutil.Dirent{}}
+			d.Entries = []*fuseutil.Dirent{&fuseutil.Dirent{}}
 
 			_, err := d.ReadEntries(2)
 			So(err, ShouldEqual, fuse.EIO)
@@ -59,10 +59,10 @@ func TestDir(t *testing.T) {
 
 		Convey("It should return only live entries from specified offset", func() {
 			d := newDir()
-			d.Entries = []fuseutil.Dirent{
-				fuseutil.Dirent{Type: fuseutil.DT_Directory},
-				fuseutil.Dirent{Type: fuseutil.DT_Unknown},
-				fuseutil.Dirent{Type: fuseutil.DT_Directory},
+			d.Entries = []*fuseutil.Dirent{
+				{Type: fuseutil.DT_Directory},
+				{Type: fuseutil.DT_Unknown},
+				{Type: fuseutil.DT_Directory},
 			}
 
 			entries, err := d.ReadEntries(1)
@@ -72,9 +72,9 @@ func TestDir(t *testing.T) {
 
 		Convey("It should return entries from specified offset", func() {
 			d := newDir()
-			d.Entries = []fuseutil.Dirent{
-				fuseutil.Dirent{Type: fuseutil.DT_Directory},
-				fuseutil.Dirent{Type: fuseutil.DT_Directory},
+			d.Entries = []*fuseutil.Dirent{
+				{Type: fuseutil.DT_Directory},
+				{Type: fuseutil.DT_Directory},
 			}
 
 			entries, err := d.ReadEntries(1)
@@ -345,7 +345,7 @@ func TestDir(t *testing.T) {
 			c := newDir()
 			f := NewFile(NewEntry(c, "file"))
 			c.EntriesList = map[string]Node{"file": f}
-			c.Entries = []fuseutil.Dirent{fuseutil.Dirent{}}
+			c.Entries = []*fuseutil.Dirent{&fuseutil.Dirent{}}
 
 			// create directory to hold to be moved directory
 			d := newDir()
@@ -494,7 +494,7 @@ func TestDir(t *testing.T) {
 
 		Convey("It should fetch directory entries from remote", func() {
 			d := newDir()
-			d.Entries = []fuseutil.Dirent{}
+			d.Entries = []*fuseutil.Dirent{}
 			d.EntriesList = map[string]Node{}
 
 			err := d.updateEntriesFromRemote()

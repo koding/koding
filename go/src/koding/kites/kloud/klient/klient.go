@@ -14,7 +14,10 @@ import (
 	"github.com/koding/logging"
 )
 
-var ErrDialingFailed = errors.New("Dialing klient failed.")
+var (
+	ErrDialingFailed = errors.New("Dialing klient failed.")
+	DefaultTimeout   = 60 * time.Second
+)
 
 // KlientPool represents a pool of connected klients
 type KlientPool struct {
@@ -34,6 +37,15 @@ type Klient struct {
 	Client   *kite.Client
 	kite     *kite.Kite
 	Username string
+	Timeout  time.Duration
+}
+
+func (k *Klient) timeout() time.Duration {
+	if k.Timeout != 0 {
+		return k.Timeout
+	}
+
+	return DefaultTimeout
 }
 
 // ShareRequest is used for klient's klient.share,klient.unshare methods.
@@ -183,7 +195,7 @@ func (k *Klient) Close() {
 
 // Usage calls the usage method of remote and get's the result back
 func (k *Klient) Usage() (*Usage, error) {
-	resp, err := k.Client.Tell("klient.usage")
+	resp, err := k.Client.TellWithTimeout("klient.usage", k.timeout())
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +231,7 @@ func (k *Klient) Ping() error {
 // AddUser adds the given username to the klient's permission list. Once added
 // the user is able to make requests to Klient
 func (k *Klient) AddUser(username string) error {
-	resp, err := k.Client.Tell("klient.share", &ShareRequest{username})
+	resp, err := k.Client.TellWithTimeout("klient.share", k.timeout(), &ShareRequest{username})
 	if err != nil {
 		return err
 	}
@@ -239,7 +251,7 @@ func (k *Klient) AddUser(username string) error {
 // RemoveUser removes the given username from the klient's permission list.
 // Once removed the user is not able to make requests to Klient anymore.
 func (k *Klient) RemoveUser(username string) error {
-	resp, err := k.Client.Tell("klient.unshare", &ShareRequest{username})
+	resp, err := k.Client.TellWithTimeout("klient.unshare", k.timeout(), &ShareRequest{username})
 	if err != nil {
 		return err
 	}

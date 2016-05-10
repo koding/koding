@@ -273,7 +273,9 @@ module.exports = class DefineStackView extends KDView
         appManager.tell 'Stacks', 'exitFullscreen'
         Tracker.track Tracker.STACKS_CANCEL_SETUP if @cancelButton.buttonTitle is 'Cancel'
         Tracker.track Tracker.STACKS_FINISHED_EDIT if @cancelButton.buttonTitle is 'Ok'
-        @emit 'Cancel'
+
+        { stackTemplate } = @getData()
+        @emit 'Cancel', { stackTemplate }
 
     # let's remove this button from here, or
     # only display when no default-stack is in use.
@@ -365,8 +367,10 @@ module.exports = class DefineStackView extends KDView
 
   processTemplate: (stackTemplate) ->
 
-    { groupsController, computeController } = kd.singletons
+    { groupsController, computeController, appManager } = kd.singletons
     canEditGroup = groupsController.canEditGroup()
+
+    stackApp = appManager.appControllers.Stacks.instances.first
 
     setToGroup = (method = 'add') =>
 
@@ -379,10 +383,9 @@ module.exports = class DefineStackView extends KDView
         # new users get the default stack should. and this button shouldn't be there each time
         # i make a new one, it should be on the list-menu.
         @outputView[method] '''
-          Your stack script has been successfully saved and all your new team
-          members now will see this stack by default. Existing users
-          of the previous default-stack will be notified that default-stack has
-          changed.
+          All your new team members now will see this stack by default.
+          Existing users of the previous default-stack will be notified that
+          default-stack has changed.
 
           You can now close this window or continue working with your stack.
         '''
@@ -397,7 +400,10 @@ module.exports = class DefineStackView extends KDView
       _.each @editorViews, (view) -> view.editorView.getAce().saveFinished()
       @changedContents = {}
 
-      @emit 'Reload'
+      templatesView = @getDelegate()
+
+      stackApp = appManager.appControllers.Stacks.instances.first
+      stackApp?.handleStackTemplateSaved { stackTemplate, templatesView }
 
       if err
         @outputView.add 'Parsing failed, please check your template and try again'
@@ -417,8 +423,6 @@ module.exports = class DefineStackView extends KDView
           if canEditGroup
             @setAsDefaultButton.show()
             @outputView.add '''
-              Your stack script has been successfully saved.
-
               If you want to auto-provision this template when new users join your team,
               you need to click "Make Team Default" after you save it.
 
@@ -427,7 +431,6 @@ module.exports = class DefineStackView extends KDView
           else
             @generateStackButton.show()
             @outputView.add '''
-              Your stack script has been successfully saved.
               You can now close the stack editor or continue editing your stack.
             '''
 
@@ -640,8 +643,6 @@ module.exports = class DefineStackView extends KDView
         else Tracker.track Tracker.STACKS_CUSTOM_NAME
 
         @setData { stackTemplate }
-        @emit 'Reload'
-
         stackTemplate._updated = currentSum isnt stackTemplate.template.sum
 
       callback err, stackTemplate
@@ -732,12 +733,11 @@ module.exports = class DefineStackView extends KDView
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
       if @outputView.handleError err
+        @emit 'Reload'
         @setAsDefaultButton.hideLoader()
         return
 
       Tracker.track Tracker.STACKS_MAKE_DEFAULT
 
       stackTemplate.isDefault = yes
-
-      @emit 'Reload'
       @emit 'Completed', stackTemplate  if completed

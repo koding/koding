@@ -40,7 +40,7 @@ module.exports = class KodingListController extends KDListViewController
     options.fetcherMethod         or= null
 
     unless options.noItemFoundWidget
-      options.noItemFoundText or= "No item found!"
+      options.noItemFoundText or= 'No item found!'
       options.noItemFoundWidget = new KDView
         cssClass  : 'no-item-found'
         partial   : "<cite>#{options.noItemFoundText}</cite>"
@@ -84,10 +84,10 @@ module.exports = class KodingListController extends KDListViewController
     confirmOptions =
       title        : options.title
       description  : options.description
-      callback     : actionMethods?.remove ? ({status, modal}) =>
+      callback     : actionMethods?.remove ? ({ status, modal }) ->
         return  unless status
 
-        item.getData().remove (err) =>
+        item.getData().remove (err) ->
           modal.destroy()
           return showError err  if err
           listView.removeItem item

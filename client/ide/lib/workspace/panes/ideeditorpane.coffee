@@ -41,6 +41,7 @@ module.exports = class IDEEditorPane extends IDEPane
     @on 'RealtimeManagerSet', @bound 'listenCollaborativeStringChanges'
 
     @getAce().on 'ace.requests.save', =>
+      return  if file.isDummyFile()
       change = @getInitialChangeObject()
       change.type = 'FileSaved'
 
@@ -161,11 +162,11 @@ module.exports = class IDEEditorPane extends IDEPane
         @updateFileModifiedTime()
         @contentChangedWarning?.destroy()
         @contentChangedWarning = null
-        
+
         # Sync session content with original content
         return  unless @rtm?.isReady
         return  if @rtm?.isDisposed
-        
+
         string = @rtm.getFromModel @file.path
         string.setText content  if string
 

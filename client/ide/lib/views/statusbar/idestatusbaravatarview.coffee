@@ -48,10 +48,12 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     return  if MENU and nickname is @nickname
 
+    @once 'DestroyMenu', -> MENU?.destroy()
+
     MENU?.destroy()
 
     { appManager } = kd.singletons
-    { frontApp   } = appManager
+    { frontApp }   = appManager
     { rtm }        = frontApp
     menuItems      = {}
     fullName       = getFullnameFromAccount @getData()
@@ -70,7 +72,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       menuItems[fullName] = { title: fullName, disabled }
 
     if amIHost
-      menuItems.separator = type: 'separator'
+      menuItems.separator = { type: 'separator' }
 
     if @hasRequest
       type = 'customView'
@@ -188,10 +190,10 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     return new kd.CustomHTMLView
       cssClass: 'permission-row'
-      partial : """
+      partial : '''
         <a href="#" class="deny">DENY</a> -
         <a href="#" class="grant">GRANT PERMISSION</a>
-      """
+      '''
       click   : (e) =>
         { classList } = e.target
         frontApp      = kd.singletons.appManager.getFrontApp()

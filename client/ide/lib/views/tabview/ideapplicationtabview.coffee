@@ -29,7 +29,7 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
     { aceView }        = pane.getOptions()
     { isFileReadonly } = pane.view
 
-    if quiet or isFileReadonly or not aceView or not aceView.ace.isContentChanged() or not askforsave
+    if quiet or isFileReadonly or not aceView or not aceView.ace.isCurrentContentChanged() or not askforsave
       return @removePane_ pane, shouldDetach
 
 

@@ -22,7 +22,9 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
     @createInitialView()
 
-    kd.singletons.appStorageController.storage 'Ace', '1.0.1'
+    { appStorageController, groupsController } = kd.singletons
+
+    appStorageController.storage 'Ace', '1.0.1'
 
     @on 'SubTabRequested', (action, identifier) ->
       return  unless action
@@ -38,6 +40,17 @@ module.exports = class BaseStackTemplatesView extends kd.View
           else
             @setRoute()
 
+    groupsController.on 'GroupStackTemplateRemoved', (params) =>
+
+      stackTemplateId = params.contents
+
+      items  = @initialView.stackTemplateList.listController.getListItems()
+      [item] = items.filter (i) -> i.getData()._id is stackTemplateId
+
+      { listController } = @initialView.stackTemplateList
+
+      listController.getListView().removeItem item  if item
+
 
   viewAppended: ->
 
@@ -52,6 +65,10 @@ module.exports = class BaseStackTemplatesView extends kd.View
     @onboardingView?.destroy()
 
     @scrollView.addSubView @onboardingView = new OnboardingView options
+
+    @onboardingView.on 'ShowInitialView', =>
+      @onboardingView.destroy()
+      @initialView.show()
 
     @onboardingView.on 'StackOnboardingCompleted', (template) =>
       @onboardingView.destroy()
@@ -115,17 +132,31 @@ module.exports = class BaseStackTemplatesView extends kd.View
   showEditor: (options, stackTemplate) ->
 
     { inEditMode, showHelpContent } = options
+    { appManager } = kd.singletons
 
     @initialView.hide()
 
-    @defineStackView = new DefineStackView { inEditMode }, { stackTemplate, showHelpContent }
+    @defineStackView = new DefineStackView { inEditMode, delegate : this }, { stackTemplate, showHelpContent }
     @scrollView.addSubView @defineStackView
 
     @defineStackView.on 'Reload', ->
-      kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
+      appManager.tell 'Stacks', 'reloadStackTemplatesList'
+
+    @defineStackView.on 'Cancel', ({ stackTemplate }) ->
+
+      return  unless stackTemplate
+      return  if stackTemplate.config.verified
+
+      stackApp = appManager.appControllers.Stacks.instances.first
+      templatesView = stackApp.getStackTemplatesViewByName 'My Stack Templates'
+
+      return  unless templatesView
+
+      # Add always "not ready" stack template to "My Stack Templates" list.
+      templatesView.initialView.stackTemplateList.listController.addStackTemplateById stackTemplate._id
+
 
     @defineStackView.on [ 'Cancel', 'Completed' ], =>
       @defineStackView.destroy()
-      @initialView.reload()
       @initialView.show()
       @setRoute()

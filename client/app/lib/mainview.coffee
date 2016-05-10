@@ -281,7 +281,7 @@ module.exports = class MainView extends kd.View
     { appStorageController } = kd.singletons
     appStorage = appStorageController.storage 'Activity', '2.0'
 
-    appStorage.fetchValue 'registrationsClosedDismissed', (isDismissed) =>
+    appStorage.fetchValue 'registrationsClosedDismissed', (isDismissed) ->
 
       return  if isDismissed
 

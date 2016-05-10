@@ -47,6 +47,14 @@ func AccountCancelSubscriptionRequest(u *url.URL, h http.Header, req *payment.Ac
 	)
 }
 
+func GroupCancelSubscriptionRequest(u *url.URL, h http.Header, req *payment.GroupRequest) (int, http.Header, interface{}, error) {
+	req.GroupId = u.Query().Get("groupId")
+
+	return response.HandleResultAndClientError(
+		req.CancelSubscription(),
+	)
+}
+
 func GroupSubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	subscriptionRequest := &payment.GroupRequest{
 		GroupId: u.Query().Get("group_id"),
@@ -83,7 +91,7 @@ func DeleteCustomerRequest(u *url.URL, h http.Header, _ interface{}) (int, http.
 	)
 }
 
-func InvoiceRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func AccountInvoiceRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	req := &payment.AccountRequest{
 		AccountId: u.Query().Get("accountId"),
 	}
@@ -93,9 +101,29 @@ func InvoiceRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 	)
 }
 
-func CreditCardRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func GroupInvoiceRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	req := &payment.GroupRequest{
+		GroupId: u.Query().Get("groupId"),
+	}
+
+	return response.HandleResultAndClientError(
+		req.Invoices(),
+	)
+}
+
+func AccountCreditCardRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	req := &payment.AccountRequest{
 		AccountId: u.Query().Get("accountId"),
+	}
+
+	return response.HandleResultAndClientError(
+		req.GetCreditCard(),
+	)
+}
+
+func GroupCreditCardRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	req := &payment.GroupRequest{
+		GroupId: u.Query().Get("groupId"),
 	}
 
 	return response.HandleResultAndClientError(

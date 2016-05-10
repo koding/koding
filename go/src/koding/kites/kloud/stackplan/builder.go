@@ -8,7 +8,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stackplan/stackcred"
 	"koding/kites/kloud/utils/object"
 
 	"github.com/koding/logging"
@@ -60,8 +60,9 @@ func metaFunc(provider string) func() interface{} {
 
 // BuilderOptions alternates the default behavior of the builder.
 type BuilderOptions struct {
-	Log      logging.Logger
-	Database Database
+	Log       logging.Logger
+	Database  Database
+	CredStore stackcred.Store
 }
 
 func (opts *BuilderOptions) defaults() *BuilderOptions {
@@ -80,9 +81,10 @@ func (opts *BuilderOptions) defaults() *BuilderOptions {
 
 // Builder is used for building Terraform template.
 type Builder struct {
-	Database *DatabaseBuilder
-	Object   *object.Builder
-	Log      logging.Logger
+	Database  *DatabaseBuilder
+	Object    *object.Builder
+	CredStore stackcred.Store
+	Log       logging.Logger
 
 	// Fields being built:
 	Stack       *Stack
@@ -97,12 +99,9 @@ func NewBuilder(opts *BuilderOptions) *Builder {
 	opts = opts.defaults()
 
 	b := &Builder{
-		Log: opts.Log,
-		Object: &object.Builder{
-			Tag:       "hcl",
-			Sep:       "_",
-			Recursive: true,
-		},
+		Log:       opts.Log,
+		Object:    object.HCLBuilder,
+		CredStore: opts.CredStore,
 	}
 
 	b.Database = &DatabaseBuilder{
@@ -116,7 +115,7 @@ func NewBuilder(opts *BuilderOptions) *Builder {
 // BuildStack fetches stack details from MongoDB.
 //
 // When nil error is returned, the  b.Stack field is non-nil.
-func (b *Builder) BuildStack(stackID string) error {
+func (b *Builder) BuildStack(stackID string, overrideCreds map[string][]string) error {
 	computeStack, err := modelhelper.GetComputeStack(stackID)
 	if err != nil {
 		return err
@@ -145,6 +144,11 @@ func (b *Builder) BuildStack(stackID string) error {
 		if _, ok := credentials[k]; !ok {
 			credentials[k] = v
 		}
+	}
+
+	// Set or override credentials when passed in apply request.
+	for k, v := range overrideCreds {
+		credentials[k] = v
 	}
 
 	b.Log.Debug("Stack built: len(machines)=%d, len(credentials)=%d", len(machineIDs), len(credentials))
@@ -351,7 +355,7 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 
 	// 3- count relationship with credential id and jaccount id as user or
 	// owner. Any non valid credentials will be discarded
-	validKeys := make(map[string]string, 0)
+	validKeys := make(map[string]string, len(credentials))
 
 	permittedTargets, ok := credPermissions[method]
 	if !ok {
@@ -377,19 +381,18 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 	}
 
 	// 4- fetch credentialdata with identifier
-	validIdentifiers := make([]string, 0)
-	for pKey := range validKeys {
-		validIdentifiers = append(identifiers, pKey)
+	data := make(map[string]interface{}, len(validKeys))
+	for ident, provider := range validKeys {
+		data[ident] = metaFunc(provider)()
 	}
 
-	b.Log.Debug("Building valid credentials: %+v", validIdentifiers)
+	b.Log.Debug("Building credential data: %+v", data)
 
-	credentialData, err := modelhelper.GetCredentialDatasFromIdentifiers(validIdentifiers...)
-	if err != nil {
-		return fmt.Errorf("error fetching credential data %v: %s", validIdentifiers, err)
+	if err := b.CredStore.Fetch(username, data); err != nil {
+		return fmt.Errorf("error fetching credential data: %s", err)
 	}
 
-	// 5- return list of keys. We only support aws for now
+	// 5- return list of keys.
 	b.Koding = &Credential{
 		Provider: "koding",
 		Meta: &KodingMeta{
@@ -404,33 +407,15 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 		},
 	}
 
-	for _, c := range credentialData {
-		provider, ok := validKeys[c.Identifier]
-		if !ok {
-			return errors.New("provider was not found for identifer: " + c.Identifier)
-		}
-
-		fn := metaFunc(provider)
-
+	for ident, provider := range validKeys {
 		cred := &Credential{
-			Title:      credentialTitles[c.Identifier],
+			Title:      credentialTitles[ident],
 			Provider:   provider,
-			Identifier: c.Identifier,
-			Meta:       fn(),
-		}
-
-		if err := b.Object.Decode(c.Meta, cred.Meta); err != nil {
-			return fmt.Errorf("malformed credential data found: %+v. Please fix it\n\terr:%s",
-				c.Meta, err)
+			Identifier: ident,
+			Meta:       data[ident], // TODO(rjeczalik): rename the field to Data
 		}
 
 		b.Log.Debug("%s(%s): Credential metadata: %+v", cred.Provider, cred.Identifier, cred.Meta)
-
-		if validator, ok := cred.Meta.(kloud.Validator); ok {
-			if err := validator.Valid(); err != nil {
-				return fmt.Errorf("invalid credential %q: %s", cred.Identifier, err)
-			}
-		}
 
 		b.Credentials = append(b.Credentials, cred)
 	}

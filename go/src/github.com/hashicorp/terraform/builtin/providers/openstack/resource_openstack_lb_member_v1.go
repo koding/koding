@@ -24,7 +24,7 @@ func resourceLBMemberV1() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
-				DefaultFunc: envDefaultFuncAllowMissing("OS_REGION_NAME"),
+				DefaultFunc: schema.EnvDefaultFunc("OS_REGION_NAME", ""),
 			},
 			"tenant_id": &schema.Schema{
 				Type:     schema.TypeString,
@@ -85,6 +85,7 @@ func resourceLBMemberV1Create(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[DEBUG] Waiting for OpenStack LB member (%s) to become available.", m.ID)
 
 	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"PENDING_CREATE"},
 		Target:     []string{"ACTIVE"},
 		Refresh:    waitForLBMemberActive(networkingClient, m.ID),
 		Timeout:    2 * time.Minute,
@@ -158,7 +159,7 @@ func resourceLBMemberV1Delete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"ACTIVE"},
+		Pending:    []string{"ACTIVE", "PENDING_DELETE"},
 		Target:     []string{"DELETED"},
 		Refresh:    waitForLBMemberDelete(networkingClient, d.Id()),
 		Timeout:    2 * time.Minute,

@@ -27,12 +27,15 @@ func init() {
 func CheckUpdateFirst(f ctlcli.ExitingCommand, log logging.Logger, cmd string) (ctlcli.ExitingCommand, logging.Logger, string) {
 
 	exitCmd := func(c *cli.Context, log logging.Logger, cmd string) int {
-		u := NewCheckUpdate()
-		if y, err := u.IsUpdateAvailable(); y && err == nil {
-			// TODO: Fix the abstraction leak here.. this is wrong. This likely
-			// needs to be added as a type, and the actual commands (inside Run()) will
-			// run this check.
-			fmt.Printf("A newer version of %s is available. Please do `sudo %s update`.\n", config.Name, config.Name)
+		// Only check for updates if a bool flag (for any command) was not provided.
+		if !c.Bool("json") {
+			u := NewCheckUpdate()
+			if y, err := u.IsUpdateAvailable(); y && err == nil {
+				// TODO: Fix the abstraction leak here.. this is wrong. This likely
+				// needs to be added as a type, and the actual commands (inside Run()) will
+				// run this check.
+				fmt.Printf("A newer version of %s is available. Please do `sudo %s update`.\n", config.Name, config.Name)
+			}
 		}
 
 		return f(c, log, cmd)
@@ -88,7 +91,7 @@ func (c *CheckUpdate) IsUpdateAvailable() (bool, error) {
 	}
 
 	// remove any newlines at EOF.
-	str := strings.TrimSuffix(buf.String(), "\n")
+	str := strings.TrimSpace(buf.String())
 	newVersion, err := strconv.Atoi(str)
 	if err != nil {
 		return false, err

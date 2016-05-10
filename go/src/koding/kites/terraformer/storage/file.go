@@ -91,7 +91,7 @@ func (f File) Remove(filePath string) error {
 		return f.errorf(err, "Remove: fullPath of %q failed", fullPath)
 	}
 
-	if err := os.RemoveAll(fullPath); err != nil {
+	if err := os.RemoveAll(fullPath); err != nil && !os.IsNotExist(err) {
 		return f.errorf(err, "Remove: removing %q failed", fullPath)
 	}
 
@@ -127,6 +127,9 @@ func (f *File) Clone(filePath string, target Interface) error {
 	}
 
 	fileInfos, err := ioutil.ReadDir(fullPath)
+	if os.IsNotExist(err) {
+		return nil // nothing to copy, return early
+	}
 	if err != nil {
 		return f.errorf(err, "Clone: read %q dir failed", fullPath)
 	}
