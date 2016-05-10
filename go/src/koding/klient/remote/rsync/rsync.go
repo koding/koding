@@ -1,14 +1,19 @@
 package rsync
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
+	"koding/klient/util"
+
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 )
 
 type Progress struct {
@@ -17,10 +22,10 @@ type Progress struct {
 }
 
 type Client struct {
-	log kite.Logger
+	log logging.Logger
 }
 
-func NewClient(log kite.Logger) *Client {
+func NewClient(log logging.Logger) *Client {
 	return &Client{
 		log: log,
 	}
@@ -34,6 +39,8 @@ type SyncOpts struct {
 	RemoteDir         string `json:"remoteDir"`
 	LocalDir          string `json:"localDir"`
 	DirSize           int    `json:"dirSize"`
+	LocalToRemote     bool   `json:"localToRemote"`
+	IgnoreFile        string `json:"ignoreFile"`
 }
 
 type SyncIntervalOpts struct {
@@ -100,7 +107,7 @@ func (rs *Client) Sync(opts SyncOpts) <-chan Progress {
 
 // sync implements the blocking version of Sync
 func (rs *Client) sync(progCh chan Progress, opts SyncOpts) {
-	//rs.log.Info("Running RSync.sync with opts: %#v", opts)
+	log := rs.log.New("sync")
 
 	var err error
 	switch {
@@ -114,6 +121,8 @@ func (rs *Client) sync(progCh chan Progress, opts SyncOpts) {
 		err = errors.New("SyncOpts.SSHPrivateKeyPath is required.")
 	case opts.LocalDir == "":
 		err = errors.New("SyncOpts.LocalDir is required.")
+	case opts.RemoteDir == "":
+		err = errors.New("SyncOpts.RemoteDir is required.")
 	case opts.DirSize == 0:
 		err = errors.New("SyncOpts.DirSize is required.")
 	}
@@ -123,16 +132,42 @@ func (rs *Client) sync(progCh chan Progress, opts SyncOpts) {
 		return
 	}
 
+	var dstDir, srcDir string
+	if opts.LocalToRemote {
+		log.Debug("Using localToRemote")
+		srcDir = opts.LocalDir
+		dstDir = fmt.Sprintf("%s@%s:%s", opts.Username, opts.Host, opts.RemoteDir)
+	} else {
+		log.Debug("Using remoteToLocal")
+		srcDir = fmt.Sprintf("%s@%s:%s", opts.Username, opts.Host, opts.RemoteDir)
+		dstDir = opts.LocalDir
+	}
+
 	// add / to end so rsync syncs considers the folder to be root level;
 	// if not it creates the folder itself
-	remoteDir := opts.RemoteDir + string(os.PathSeparator)
+	srcDir = srcDir + string(os.PathSeparator)
 
-	cmd := exec.Command(
-		"rsync", "--progress", "--delete", "-zave",
+	args := []string{}
+
+	if opts.IgnoreFile != "" {
+		args = append(args, fmt.Sprintf("--filter=:- %s", opts.IgnoreFile))
+	}
+
+	args = append(args, []string{
+		"--progress", "--delete", "-zave",
 		fmt.Sprintf("ssh -i %s -oStrictHostKeyChecking=no", opts.SSHPrivateKeyPath),
-		fmt.Sprintf("%s@%s:%s", opts.Username, opts.Host, remoteDir),
-		opts.LocalDir,
+		srcDir, dstDir,
+	}...)
+
+	log.Debug(
+		"Running command: rsync %s",
+		strings.Join(util.QuoteSpacedStrings(args...), " "),
 	)
+	cmd := exec.Command("rsync", args...)
+
+	// Record our stderr, incase we need to print an error.
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
 
 	// Rsync is using SSH which requires a valid SSH_AUTH_SOCK of the user calling
 	// kd. So, we accept that and apply it to the rsync command here.
@@ -186,6 +221,14 @@ func (rs *Client) sync(progCh chan Progress, opts SyncOpts) {
 	}()
 
 	if err := cmd.Run(); err != nil {
+		// If the error was an exit error, log the last X lines of stderr output to
+		// aid in debugging.
+		if _, ok := err.(*exec.ExitError); ok {
+			rs.log.Error(
+				"RSync returned a non-zero exit status.\nerr: %s, stderr output:\n%s",
+				err, stderr.String(),
+			)
+		}
 		progCh <- progressErr(err)
 		// No need to close chan here, because we close below in all events.
 	}

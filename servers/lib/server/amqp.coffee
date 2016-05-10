@@ -3,8 +3,11 @@ amqp     = require 'amqp'
 KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
 { mq }   = KONFIG
 
-conn = amqp.createConnection mq, { reconnect: yes }
+bongo    = require './bongo'
+conn     = amqp.createConnection mq, { reconnect: yes }
+
 conn.on 'error', (err) ->
+
   console.error 'Error: connecting to RabbitMQ', err
   process.exit(1)
 

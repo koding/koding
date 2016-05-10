@@ -164,4 +164,3 @@ describe 'MachineSettingsSnapshotsController', ->
       listController.renameSnapshot item
 
       expect(spy).toHaveBeenCalled()
-

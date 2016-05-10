@@ -1120,6 +1120,7 @@ module.exports = class ComputeController extends KDController
 
       return  unless oldOwner
       return  if not machine.isRunning()
+      return  if machine.isManaged()
 
       @storage.fetchValue 'ignoredMachines', (ignoredMachines) =>
         ignoredMachines ?= {}
@@ -1152,19 +1153,6 @@ module.exports = class ComputeController extends KDController
       return no
 
     return yes
-
-
-  ###*
-   * Fetch given stack's README from the stackTemplate which
-   * is generated from.
-  ###
-
-  fetchStackReadme: (stack, callback = kd.noop) ->
-
-    return callback null, ''  unless stack?.baseStackId
-
-    @fetchBaseStackTemplate stack, (err, template) ->
-      return callback err, template?.description ? ''
 
 
   ###*
@@ -1208,7 +1196,7 @@ module.exports = class ComputeController extends KDController
     stack = @findStackFromMachineId machine._id
     return callback()  unless stack
 
-    @fetchBaseStackTemplate stack, (err, stackTemplate) =>
+    @fetchBaseStackTemplate stack, (err, stackTemplate) ->
       if err
         kd.log err
         return callback()
@@ -1290,6 +1278,9 @@ module.exports = class ComputeController extends KDController
         duration  : 5000
 
       @fetchBaseStackTemplate stack, (err, template) =>
+
+        if err or not template
+          console.warn 'The base template of the stack has been removed:', stack.baseStackId
 
         groupStack = stack.config?.groupStack
 

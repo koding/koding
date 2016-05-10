@@ -160,4 +160,12 @@ var DefaultPlans = map[string]*Plan{
 		Value:         10,
 		TypeConstant:  paymentmodels.GroupCustomer,
 	},
+	"team_base_month": &Plan{
+		Title:         "team_base_month",
+		NameForStripe: "Base",
+		Amount:        0,
+		Interval:      Month,
+		Value:         0,
+		TypeConstant:  paymentmodels.GroupCustomer,
+	},
 }

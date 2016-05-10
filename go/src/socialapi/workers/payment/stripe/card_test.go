@@ -36,6 +36,7 @@ func TestGetCustomerCreditCard(t *testing.T) {
 			So(creditCard.Month, ShouldEqual, 10)
 			So(creditCard.Year, ShouldEqual, 2020)
 			So(creditCard.Name, ShouldEqual, "Indiana Jones")
+			So(creditCard.Email, ShouldEqual, email)
 		})
 	})
 }

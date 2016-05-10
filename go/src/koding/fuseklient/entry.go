@@ -48,7 +48,7 @@ type Entry struct {
 	Forgotten bool
 
 	// Attrs is the list of attributes.
-	Attrs fuseops.InodeAttributes
+	Attrs *fuseops.InodeAttributes
 }
 
 // NewRootEntry is the required initializer for the root entry.
@@ -61,7 +61,7 @@ func NewRootEntry(t transport.Transport, path string) *Entry {
 		RWMutex:   sync.RWMutex{},
 		Name:      "root",
 		Forgotten: false,
-		Attrs:     fuseops.InodeAttributes{},
+		Attrs:     &fuseops.InodeAttributes{},
 	}
 }
 
@@ -114,14 +114,14 @@ func (e *Entry) Rename(name string) {
 	e.Unlock()
 }
 
-func (e *Entry) GetAttrs() fuseops.InodeAttributes {
+func (e *Entry) GetAttrs() *fuseops.InodeAttributes {
 	e.RLock()
 	defer e.RUnlock()
 
 	return e.Attrs
 }
 
-func (e *Entry) SetAttrs(attrs fuseops.InodeAttributes) {
+func (e *Entry) SetAttrs(attrs *fuseops.InodeAttributes) {
 	e.Lock()
 	e.Attrs = attrs
 	e.Unlock()
@@ -162,8 +162,8 @@ func (e *Entry) ToString() string {
 
 ///// Helpers
 
-func (e *Entry) getAttrsFromRemote() (fuseops.InodeAttributes, error) {
-	var attrs fuseops.InodeAttributes
+func (e *Entry) getAttrsFromRemote() (*fuseops.InodeAttributes, error) {
+	attrs := &fuseops.InodeAttributes{}
 
 	res, err := e.Transport.GetInfo(e.Name)
 	if err != nil {

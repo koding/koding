@@ -43,10 +43,8 @@ type Config struct {
 		StaticFilesBaseUrl string
 		RuntimeOptions     RuntimeOptions
 	}
-	Mongo          string
-	MongoKontrol   string
-	MongoMinWrites int
-	Mq             struct {
+	Mongo string
+	Mq    struct {
 		Host     string
 		Port     int
 		Login    string
@@ -54,58 +52,14 @@ type Config struct {
 		Vhost    string
 		LogLevel string
 	}
-	Neo4j struct {
-		Read    string
-		Write   string
-		Port    int
-		Enabled bool
-	}
-	GoLogLevel        string
 	Broker            Broker
 	PremiumBroker     Broker
 	BrokerKite        Broker
 	PremiumBrokerKite Broker
-	Loggr             struct {
-		Push   bool
-		Url    string
-		ApiKey string
-	}
-	Librato struct {
-		Push     bool
-		Email    string
-		Token    string
-		Interval int
-	}
-	Opsview struct {
-		Push bool
-		Host string
-	}
-	ElasticSearch struct {
-		Host  string
-		Port  int
-		Queue string
-	}
-	NewKites struct {
-		UseTLS   bool
-		CertFile string
-		KeyFile  string
-	}
-	NewKontrol struct {
-		Port           int
-		UseTLS         bool
-		CertFile       string
-		KeyFile        string
-		PublicKeyFile  string
-		PrivateKeyFile string
-	}
-	ProxyKite struct {
+	ProxyKite         struct {
 		Domain   string
 		CertFile string
 		KeyFile  string
-	}
-	Etcd []struct {
-		Host string
-		Port int
 	}
 	Kontrold struct {
 		Vhost    string
@@ -126,29 +80,9 @@ type Config struct {
 			FTPIP   string
 		}
 	}
-	FollowFeed struct {
-		Host          string
-		Port          int
-		ComponentUser string
-		Password      string
-		Vhost         string
-	}
-	Statsd struct {
-		Use  bool
-		Ip   string
-		Port int
-	}
-	TopicModifier struct {
-		CronSchedule string
-	}
 	Slack struct {
 		Token   string
 		Channel string
-	}
-	Graphite struct {
-		Use  bool
-		Host string
-		Port int
 	}
 	LogLevel             map[string]string
 	Redis                string
@@ -177,8 +111,7 @@ type Config struct {
 	GatherIngestor struct {
 		Port int
 	}
-	SendEventsToSegment bool `json:"sendEventsToSegment"`
-	Mailgun             struct {
+	Mailgun struct {
 		Domain     string
 		PrivateKey string
 		PublicKey  string
@@ -188,11 +121,7 @@ type Config struct {
 type RuntimeOptions struct {
 	Kites struct {
 		DisableWebSocketByDefault bool `json:"disableWebSocketByDefault"`
-		Stack                     struct {
-			Force    bool `json:"force"`
-			NewKites bool `json:"newKites"`
-		} `json:"stack"`
-		Kontrol struct {
+		Kontrol                   struct {
 			Username string `json:"username"`
 		} `json:"kontrol"`
 		Os struct {
@@ -213,9 +142,7 @@ type RuntimeOptions struct {
 		ApiKey      string `json:"apiKey"`
 		IndexSuffix string `json:"indexSuffix"`
 	} `json:"algolia"`
-	LogToExternal   bool   `json:"logToExternal"`
 	SuppressLogs    bool   `json:"suppressLogs"`
-	LogToInternal   bool   `json:"logToInternal"`
 	AuthExchange    string `json:"authExchange"`
 	Environment     string `json:"environment"`
 	Version         string `json:"version"`
@@ -247,10 +174,6 @@ type RuntimeOptions struct {
 		MaxAge int  `json:"maxAge"`
 		Secure bool `json:"secure"`
 	} `json:"sessionCookie"`
-	Troubleshoot struct {
-		IdleTime    int    `json:"idleTime"`
-		ExternalUrl string `json:"externalUrl"`
-	} `json:"troubleshoot"`
 	Stripe struct {
 		Token string `json:"token"`
 	} `json:"stripe"`
@@ -318,8 +241,7 @@ type RuntimeOptions struct {
 		Key     string `json:"key"`
 		Enabled bool   `json:"enabled"`
 	} `json:"recaptcha"`
-	SendEventsToSegment bool `json:"sendEventsToSegment"`
-	Domains             struct {
+	Domains struct {
 		Base string `json:"base"`
 		Mail string `json:"mail"`
 		Main string `json:"main"`
@@ -368,16 +290,6 @@ func MustEnv() *Config {
 // Config struct
 func Env() (*Config, error) {
 	return readConfig("", "")
-}
-
-// TODO: Fix this shit below where dir and profile is not even used ...
-func MustConfigDir(dir, profile string) *Config {
-	conf, err := readConfig(dir, profile)
-	if err != nil {
-		panic(err)
-	}
-
-	return conf
 }
 
 func readConfig(configDir, profile string) (*Config, error) {

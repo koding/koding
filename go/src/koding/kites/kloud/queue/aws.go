@@ -1,8 +1,10 @@
 package queue
 
 import (
-	"errors"
+	"koding/db/models"
+	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/klient"
+	"koding/kites/kloud/provider"
 	"koding/kites/kloud/provider/aws"
 	"time"
 
@@ -14,8 +16,16 @@ import (
 )
 
 func (q *Queue) CheckAWS() {
-	var machine awsprovider.Machine
-	err := q.FetchProvider("aws", &machine.Machine)
+	if q.AwsProvider == nil {
+		return
+	}
+
+	m := &awsprovider.Machine{
+		BaseMachine: &provider.BaseMachine{
+			Machine: &models.Machine{},
+		},
+	}
+	err := q.FetchProvider("aws", m.Machine)
 	if err != nil {
 		// do not show an error if the query didn't find anything, that
 		// means there is no such a document, which we don't care
@@ -27,7 +37,7 @@ func (q *Queue) CheckAWS() {
 		return
 	}
 
-	if err := q.CheckAWSUsage(&machine); err != nil {
+	if err := q.CheckAWSUsage(m); err != nil {
 		// only log if it's something else
 		switch err {
 		case kite.ErrNoKitesAvailable,
@@ -35,30 +45,32 @@ func (q *Queue) CheckAWS() {
 			klient.ErrDialingFailed:
 		default:
 			q.Log.Debug("[%s] check usage of AWS klient kite [%s] err: %v",
-				machine.ObjectId.Hex(), machine.IpAddress, err)
+				m.ObjectId.Hex(), m.IpAddress, err)
 		}
 	}
 }
 
-func (q *Queue) CheckAWSUsage(m *awsprovider.Machine) error {
-	q.Log.Debug("Checking AWS machine\n%+v\n", m)
-	if m == nil {
-		return errors.New("checking machine. document is nil")
+func (q *Queue) AttachSession(m *awsprovider.Machine) (*awsprovider.Machine, context.Context, error) {
+	req := &kite.Request{
+		Method: "internal",
 	}
 
-	meta, err := m.GetMeta()
+	ctx := request.NewContext(context.Background(), req)
+	builtM, err := q.AwsProvider.Machine(ctx, m.ObjectId.Hex())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return builtM.(*awsprovider.Machine), ctx, nil
+}
+
+func (q *Queue) CheckAWSUsage(m *awsprovider.Machine) error {
+	m, ctx, err := q.AttachSession(m)
 	if err != nil {
 		return err
 	}
 
-	if meta.Region == "" {
-		return errors.New("region is not set in.")
-	}
-
-	ctx := context.Background()
-	if err := q.AwsProvider.AttachSession(ctx, m); err != nil {
-		return err
-	}
+	q.Log.Debug("Checking AWS machine\n%+v\n", m)
 
 	klientRef, err := klient.Connect(m.Session.Kite, m.QueryString)
 	if err != nil {
@@ -68,7 +80,10 @@ func (q *Queue) CheckAWSUsage(m *awsprovider.Machine) error {
 	}
 
 	// replace with the real and authenticated username
-	m.Username = klientRef.Username
+	if m.User == nil {
+		m.User = &models.User{}
+	}
+	m.User.Name = klientRef.Username
 
 	// get the usage directly from the klient, which is the most predictable source
 	usg, err := klientRef.Usage()

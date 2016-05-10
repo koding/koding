@@ -247,7 +247,7 @@ class IDEAppController extends AppController
     return  if tabView is @activeTabView
     return  if tabView.isDestroyed
 
-    @setActivePaneFocus off
+    @setActivePaneFocus off, yes
     @activeTabView = tabView
     @setActivePaneFocus on
 
@@ -505,11 +505,7 @@ class IDEAppController extends AppController
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
 
-    path  = @workspaceData?.rootPath
-    path ?= '/root'  if machineData.isManaged()
-    path ?= if owner = machineData.getOwner()
-    then "/home/#{owner}"
-    else '/'
+    path = @workspaceData?.rootPath
 
     @workspace.ready ->
       filesPane.emit 'MachineMountRequested', machineData, path
@@ -764,7 +760,8 @@ class IDEAppController extends AppController
 
     @isSidebarCollapsed = yes
 
-    splitView.emit 'ResizeFirstSplitView'
+    splitView.emit 'ResizeFirstSplitView' # It references to main wrapper split view.
+    @resizeAllSplitViews() # Also resize all split views.
 
     tabView.on 'PaneDidShow', (pane) ->
       return if pane.options.name is 'Dummy'
@@ -785,6 +782,19 @@ class IDEAppController extends AppController
     filesPane.tabView.showPaneByName @activeFilesPaneName
 
     splitView.emit 'ResizeFirstSplitView'
+    @resizeAllSplitViews()
+
+
+  resizeAllSplitViews: ->
+
+    parents = []
+    @ideViews.forEach (view) ->
+      parent = view.parent?.parent
+      if parent and parent instanceof kd.SplitView
+        parents.push parent
+
+    _.uniq(parents, 'id').forEach (p) -> p._windowDidResize()
+    @doResize()
 
 
   toggleSidebar: ->
@@ -1433,7 +1443,7 @@ class IDEAppController extends AppController
     if @permissions.get(origin) is 'edit'
       mustSyncChanges.push 'CursorActivity'
 
-    if @amIWatchingChangeOwner(origin) or type in mustSyncChanges
+    if @amIWatchingChangeOwner(origin) or (type in mustSyncChanges) or (origin is nick())
       targetPane = @getPaneByChange change
 
       if type is 'NewPaneCreated'
@@ -1453,6 +1463,12 @@ class IDEAppController extends AppController
       else if type is 'IDETabMoved'
         @handleMoveTabChanges context
 
+      else if type is 'FileSaved'
+        targetPane?.file.emit 'FileContentsNeedsToBeRefreshed'
+
+      else if type is 'TerminalScreenSizeChanged'
+        @handleTerminalScreenSizeChanged change
+
       else if type in ['TabChanged', 'PaneRemoved', 'TerminalRenamed']
         paneView = targetPane?.parent
         tabView  = paneView?.parent
@@ -1470,8 +1486,29 @@ class IDEAppController extends AppController
 
         ideView.suppressChangeHandlers = no
 
-
       targetPane?.handleChange? change, @rtm
+
+
+  handleTerminalScreenSizeChanged: (change) ->
+
+    targetPane = @getPaneByChange change
+
+    return  unless targetPane
+
+    { size } = change.context
+
+    { terminal } = targetPane.webtermView
+
+    swidth = terminal.parent.getWidth()
+    { width: charWidth } = terminal.getCharSizes()
+    newCols = Math.max 1, Math.floor swidth / charWidth
+
+    if size.w > newCols
+      terminal.updateSize yes
+      kd.utils.wait 400, ->
+        targetPane.webtermView.triggerFitToWindow()
+    else
+      terminal.setSize size.w, size.h, no
 
 
   ###*
@@ -1567,7 +1604,7 @@ class IDEAppController extends AppController
       return tabView.showPane paneView
 
 
-    if ideViewHash and @amIWatchingChangeOwner origin
+    if ideViewHash and @amIWatchingChangeOwner(origin) or origin is nick()
       targetTabView = @getTabViewByIDEViewHash ideViewHash
       @setActiveTabView targetTabView  if targetTabView
 
@@ -1641,16 +1678,16 @@ class IDEAppController extends AppController
       delete @modal
 
 
-  quit: (destroy = yes) ->
+  quit: (destroy = yes, stopCollaborationSession = yes) ->
 
     return  if @getView().isDestroyed
 
     @emit 'IDEWillQuit'  if destroy
 
     @mountedMachine?.getBaseKite(createIfNotExists = no).disconnect()
-    @stopCollaborationSession()
 
     if destroy
+      @stopCollaborationSession()  if stopCollaborationSession
       kd.singletons.appManager.quit this, =>
         # fetch data to ensure target workspace is still exist
         environmentDataProvider.fetch =>

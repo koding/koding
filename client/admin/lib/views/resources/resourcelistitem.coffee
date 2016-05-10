@@ -151,7 +151,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
         next()
     ]
 
-    async.series queue, (err) =>
+    async.series queue, (err) ->
       return  if not err or err is 'Not confirmed'
       showError err
 

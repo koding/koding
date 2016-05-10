@@ -12,8 +12,8 @@ module.exports = class ForceToReinitModal extends kd.ModalView
 
     options.title   ?= 'Force to Re-init Stacks'
     options.content ?= '''
-      If you choose to proceed, every outdated stack will show 
-      a notification that it should be re-initialized. You can add 
+      If you choose to proceed, every outdated stack will show
+      a notification that it should be re-initialized. You can add
       your personal message for that notification
     '''
     options.buttons  =

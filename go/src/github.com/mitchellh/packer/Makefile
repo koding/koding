@@ -1,4 +1,5 @@
 TEST?=$(shell go list ./... | grep -v vendor)
+VET?=$(shell ls -d */ | grep -v vendor | grep -v website)
 # Get the current full sha from git
 GITSHA:=$(shell git rev-parse HEAD)
 # Get the current local branch name from git (if we can, this may be blank)
@@ -28,7 +29,6 @@ package:
 deps:
 	go get github.com/mitchellh/gox
 	go get golang.org/x/tools/cmd/stringer
-	go get golang.org/x/tools/cmd/vet
 	@go version | grep 1.4 ; if [ $$? -eq 0 ]; then \
 		echo "Installing godep and restoring dependencies"; \
 		go get github.com/tools/godep; \
@@ -45,6 +45,10 @@ dev: deps
 fmt:
 	go fmt `go list ./... | grep -v vendor`
 
+# Install js-beautify with npm install -g js-beautify
+fmt-examples:
+	find examples -name *.json | xargs js-beautify -r -s 2 -n -eol "\n"
+
 # generate runs `go generate` to build the dynamically generated
 # source files.
 generate: deps
@@ -52,8 +56,8 @@ generate: deps
 	go fmt command/plugin.go
 
 test: deps
-	@go test $(TEST) $(TESTARGS) -timeout=15s
-	@go vet $(TEST) ; if [ $$? -eq 1 ]; then \
+	@go test $(TEST) $(TESTARGS) -timeout=30s
+	@go tool vet $(VET)  ; if [ $$? -eq 1 ]; then \
 		echo "ERROR: Vet found problems in the code."; \
 		exit 1; \
 	fi
@@ -64,12 +68,11 @@ testacc: deps generate
 	PACKER_ACC=1 go test -v $(TEST) $(TESTARGS) -timeout=45m
 
 testrace: deps
-	@go test -race $(TEST) $(TESTARGS) -timeout=15s
+	@go test -race $(TEST) $(TESTARGS) -timeout=1m
 
 updatedeps:
 	go get -u github.com/mitchellh/gox
 	go get -u golang.org/x/tools/cmd/stringer
-	go get -u golang.org/x/tools/cmd/vet
 	@echo "INFO: Packer deps are managed by godep. See CONTRIBUTING.md"
 
 # This is used to add new dependencies to packer. If you are submitting a PR
@@ -78,4 +81,4 @@ vendor:
 	godep restore
 	godep save
 
-.PHONY: bin checkversion ci default deps generate releasebin test testacc testrace updatedeps
+.PHONY: bin checkversion ci default deps fmt fmt-examples generate releasebin test testacc testrace updatedeps

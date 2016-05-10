@@ -462,4 +462,3 @@ module.exports =
           browser
             .click                  "#{alwaysOnSelector}.off"
             .waitForElementVisible  "#{alwaysOnSelector}.on", 20000
-

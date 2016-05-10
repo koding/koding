@@ -15,6 +15,8 @@ import (
 // ServiceUninstaller is used to reduce the testable size of the Service, easing
 // mocking.
 type ServiceUninstaller interface {
+	Stop() error
+
 	// Uninstall the given service
 	Uninstall() error
 }
@@ -94,6 +96,11 @@ type Uninstall struct {
 // warning messages about this. This is to avoid spam, as one failure to remove a
 // bin can end up with multiple warnings, creating a bad UX.
 func (u *Uninstall) Uninstall() (string, int) {
+	if err := u.ServiceUninstaller.Stop(); err != nil {
+		u.log.Warning("Service errored on stop. err:%s", err)
+		u.addWarning(FailedStopKlientWarn)
+	}
+
 	if err := u.ServiceUninstaller.Uninstall(); err != nil {
 		u.log.Warning("Service errored on uninstall. err:%s", err)
 		u.addWarning(FailedUninstallingKlientWarn)

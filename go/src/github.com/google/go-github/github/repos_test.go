@@ -67,6 +67,20 @@ func TestRepositoriesService_List_invalidUser(t *testing.T) {
 	testURLParseError(t, err)
 }
 
+func ExampleRepositoriesService_List() {
+	client := NewClient(nil)
+
+	user := "willnorris"
+	opt := &RepositoryListOptions{Type: "owner", Sort: "updated", Direction: "desc"}
+
+	repos, _, err := client.Repositories.List(user, opt)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Printf("Recently updated repositories by %q: %v", user, Stringify(repos))
+}
+
 func TestRepositoriesService_ListByOrg(t *testing.T) {
 	setup()
 	defer teardown()
@@ -205,6 +219,27 @@ func TestRepositoriesService_Get(t *testing.T) {
 	want := &Repository{ID: Int(1), Name: String("n"), Description: String("d"), Owner: &User{Login: String("l")}, License: &License{Key: String("mit")}}
 	if !reflect.DeepEqual(repo, want) {
 		t.Errorf("Repositories.Get returned %+v, want %+v", repo, want)
+	}
+}
+
+func TestRepositoriesService_GetByID(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/repositories/1", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", mediaTypeLicensesPreview)
+		fmt.Fprint(w, `{"id":1,"name":"n","description":"d","owner":{"login":"l"},"license":{"key":"mit"}}`)
+	})
+
+	repo, _, err := client.Repositories.GetByID(1)
+	if err != nil {
+		t.Errorf("Repositories.GetByID returned error: %v", err)
+	}
+
+	want := &Repository{ID: Int(1), Name: String("n"), Description: String("d"), Owner: &User{Login: String("l")}, License: &License{Key: String("mit")}}
+	if !reflect.DeepEqual(repo, want) {
+		t.Errorf("Repositories.GetByID returned %+v, want %+v", repo, want)
 	}
 }
 
@@ -455,4 +490,29 @@ func TestRepositoriesService_EditBranch(t *testing.T) {
 func TestRepositoriesService_ListLanguages_invalidOwner(t *testing.T) {
 	_, _, err := client.Repositories.ListLanguages("%", "%")
 	testURLParseError(t, err)
+}
+
+func TestRepositoriesService_License(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/repos/o/r/license", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		fmt.Fprint(w, `{"license":{"key":"mit","name":"MIT License","url":"https://api.github.com/licenses/mit","featured":true}}`)
+	})
+
+	got, _, err := client.Repositories.License("o", "r")
+	if err != nil {
+		t.Errorf("Repositories.License returned error: %v", err)
+	}
+
+	want := &License{
+		Name:     String("MIT License"),
+		Key:      String("mit"),
+		URL:      String("https://api.github.com/licenses/mit"),
+		Featured: Bool(true),
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Repositories.License returned %+v, want %+v", got, want)
+	}
 }

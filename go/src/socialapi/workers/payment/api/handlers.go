@@ -80,6 +80,15 @@ func AddHandlers(m *mux.Mux) {
 		},
 	)
 
+	m.AddHandler(
+		handler.Request{
+			Handler:  GroupCancelSubscriptionRequest,
+			Name:     "payment-group-subscription-cancel",
+			Type:     handler.PutRequest,
+			Endpoint: "/payments/group/subscriptions/cancel",
+		},
+	)
+
 	//----------------------------------------------------------
 	// Customers
 	//----------------------------------------------------------
@@ -115,12 +124,32 @@ func AddHandlers(m *mux.Mux) {
 	// Invoices
 	//----------------------------------------------------------
 
+	// this is same /payments/account/invoices/{accountId}, here for backwards
+	// compatibilty
 	m.AddHandler(
 		handler.Request{
-			Handler:  InvoiceRequest,
+			Handler:  AccountInvoiceRequest,
 			Name:     "payment-invoices",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/invoices/{accountId}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  AccountInvoiceRequest,
+			Name:     "payment-account-invoices",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/account/invoices/{accountId}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  GroupInvoiceRequest,
+			Name:     "payment-group-invoices",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/group/invoices/{groupId}",
 		},
 	)
 
@@ -128,12 +157,32 @@ func AddHandlers(m *mux.Mux) {
 	// CreditCard
 	//----------------------------------------------------------
 
+	// this is same /payments/account/creditcard/{accountId}, here for backwards
+	// compatibilty
 	m.AddHandler(
 		handler.Request{
-			Handler:  CreditCardRequest,
+			Handler:  AccountCreditCardRequest,
 			Name:     "payment-creditcard",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/creditcard/{accountId}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  AccountCreditCardRequest,
+			Name:     "payment-account-creditcard",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/account/creditcard/{accountId}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  GroupCreditCardRequest,
+			Name:     "payment-group-creditcard",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/group/creditcard/{groupId}",
 		},
 	)
 

@@ -36,6 +36,7 @@ module.exports = class HelpModal extends AnimatedModalView
       { title : 'Preinstalled packages', url : '/Terminal', command:'help programs' }
     ]
 
+
   constructor: (options, data) ->
 
     options.cssClass     = 'kdhelp-modal'

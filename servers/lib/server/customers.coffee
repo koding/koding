@@ -2,6 +2,9 @@
   '../../../workers/social/lib/social/models/socialapi/requests.coffee'
 )
 
+{ argv } = require 'optimist'
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+
 async = require 'async'
 
 module.exports = (req, res) ->
@@ -19,10 +22,7 @@ module.exports = (req, res) ->
   unless key
     return res.status(401).send errMsg 'key is required'
 
-  # Hardcoding is wrong, however this key won't change
-  # depending on environments, so there's point of
-  # putting it in config : SA
-  unless key is 'R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
+  unless key is KONFIG.paymentwebhook.customersKey
     return res.status(401).send errMsg 'key is wrong'
 
   url = '/payments/customers'

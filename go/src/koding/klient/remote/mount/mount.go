@@ -18,6 +18,14 @@ var (
 	)
 )
 
+type MountType int
+
+const (
+	UnknownMount MountType = iota
+	FuseMount
+	SyncMount
+)
+
 // Mount stores information about mounted folders, and is both with
 // to various Remote.* kite methods as well as being saved in
 // klient's storage.
@@ -25,8 +33,9 @@ type Mount struct {
 	// The embedded MountFolder
 	req.MountFolder
 
-	IP        string `json:"ip"`
-	MountName string `json:"mountName"`
+	IP        string    `json:"ip"`
+	MountName string    `json:"mountName"`
+	Type      MountType `json:"mountType"`
 
 	// The options used for the local Intervaler. Used to store and retrieve from
 	// the database.
@@ -50,6 +59,9 @@ type Mount struct {
 
 	Log logging.Logger `json:"-"`
 
+	// EventSub receives events when paths get mounted / unmounted.
+	EventSub chan<- *Event `json:"-"`
+
 	// mockable interfaces and types, used for testing and abstracting the environment
 	// away.
 
@@ -60,8 +72,35 @@ type Mount struct {
 }
 
 func (m *Mount) Unmount() error {
-	var err error
+	// Nothing to do if this is a SyncMount
+	if m.Type == SyncMount {
+		return nil
+	}
 
+	m.emit(&Event{
+		Path: m.LocalPath,
+		Type: EventUnmounting,
+	})
+
+	if err := m.unmount(); err != nil {
+		m.emit(&Event{
+			Path: m.LocalPath,
+			Type: EventUnmounting,
+			Err:  err,
+		})
+
+		return err
+	}
+
+	m.emit(&Event{
+		Path: m.LocalPath,
+		Type: EventUnmounted,
+	})
+
+	return nil
+}
+
+func (m *Mount) unmount() (err error) {
 	if m.Unmounter != nil {
 		err = m.Unmounter.Unmount()
 	} else {
@@ -77,9 +116,28 @@ func (m *Mount) Unmount() error {
 	return nil
 }
 
+func (m *Mount) emit(ev *Event) {
+	if m.EventSub != nil {
+		m.EventSub <- ev
+	}
+}
+
 func MountLogger(m *Mount, l logging.Logger) logging.Logger {
 	return l.New("mount").New(
 		"name", m.MountName,
 		"path", m.LocalPath,
 	)
+}
+
+func (mt MountType) String() string {
+	switch mt {
+	case UnknownMount:
+		return "UnknownMount"
+	case FuseMount:
+		return "FuseMount"
+	case SyncMount:
+		return "SyncMount"
+	default:
+		return "Invalid MountType"
+	}
 }

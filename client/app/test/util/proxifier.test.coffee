@@ -14,8 +14,8 @@ devTunnelUrl  = "dev-p.#{baseDomain}/-/devtunnel"
 testTunnelUrl = "some.test.url.3f5.#{tunnelDomain}/kite"
 
 discoverKite  = [
-  { protocol: 'https', addr: 'dev.kodi.ng:56790', local: true  }
-  { protocol: 'http',  addr: '127.0.0.1:56789',   local: true  }
+  { protocol: 'https', addr: 'dev.kodi.ng:56790', local: true }
+  { protocol: 'http',  addr: '127.0.0.1:56789',   local: true }
   { protocol: 'http',  addr: testTunnelUrl,       local: false }
 ]
 

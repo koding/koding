@@ -1,4 +1,5 @@
 kd                        = require 'kd'
+remote                    = require('app/remote').getInstance()
 checkFlag                 = require 'app/util/checkFlag'
 InvitedItemView           = require './inviteditemview'
 KDCustomHTMLView          = kd.CustomHTMLView
@@ -11,10 +12,11 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
   constructor: (options = {}, data) ->
 
-    options.searchInputPlaceholder   = 'Find by email or first name'
-    options.listViewItemOptions    or= { statusType: 'pending' }
-    options.statusType             or= 'pending'
-    options.sortOptions            or= [
+    options.searchInputPlaceholder      = 'Find by email or first name'
+    options.listViewItemOptions       or= { statusType: 'pending' }
+    options.statusType                or= 'pending'
+    options.useCustomThresholdHandler  ?= no
+    options.sortOptions               or= [
       { title: 'Send date',  value: 'modifiedAt' } # sort by -1
       { title: 'Email',      value: 'email' }      # sort by  1
       { title: 'First name', value: 'firstName' }  # sort by  1
@@ -28,7 +30,23 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
     { statusType, listViewItemOptions, noItemFoundText } = @getOptions()
 
-    @listController = new InvitationsListController { statusType, listViewItemOptions, noItemFoundText }
+    groupSlug = @getData().slug
+
+    @listController = new InvitationsListController
+      statusType          : statusType
+      noItemFoundText     : noItemFoundText
+      listViewItemOptions : listViewItemOptions
+      fetcherMethod       : (selector, fetchOptions, callback) =>
+
+        method = if selector.query then 'search' else 'some'
+
+        if checkFlag('super-admin') and groupSlug isnt 'koding'
+          selector.groupSlug = groupSlug
+
+        selector.status   = statusType
+        fetchOptions.sort = @getSortOptions()
+
+        remote.api.JInvitation[method] selector, fetchOptions, callback
 
     @buildListController()
 
@@ -37,20 +55,15 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
     return  if @isFetching
 
-    @isFetching    = yes
-    query          = @searchInput.getValue()
-    options        = { @skip, sort: @getSortOptions() }
-    method         = 'some'
-    selector       = { }
-    isSuperAdmin   = checkFlag 'super-admin'
+    @isFetching = yes
 
-    if query
+    options     = { skip: @listController.filterStates.skip }
+    method      = 'some'
+    selector    = {}
+
+    if query = @searchInput.getValue()
       method = 'search'
       selector.query = query
-
-    groupSlug = @getData().slug
-    if isSuperAdmin and groupSlug isnt 'koding'
-      selector.groupSlug = groupSlug
 
     @listController.fetch selector, (invitations) =>
       @listController.addListItems invitations
@@ -60,12 +73,10 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
   search: ->
 
-    @skip  = 0
-    @query = @searchInput.getValue()
-
+    @listController.filterStates.skip = 0
     @refresh()
 
-    if @query.length then @searchClear.show() else @searchClear.hide()
+    if @searchInput.getValue() then @searchClear.show() else @searchClear.hide()
 
 
   getSortOptions: ->

@@ -7,11 +7,15 @@ import (
 	"io"
 	"koding/klientctl/config"
 	"net/http"
+	"net/url"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
+	"strconv"
 
 	"github.com/codegangsta/cli"
+	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/logging"
 	"github.com/koding/service"
 )
@@ -49,10 +53,37 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 0
 	}
 
-	s, err := newService(nil)
+	kontrolURL := config.KontrolURL
+	if c, err := kiteconfig.NewFromKiteKey(config.KiteKeyPath); err == nil && c.KontrolURL != "" {
+		// BUG(rjeczalik): sandbox returns a kite.key on -register method that has
+		// KontrolURL set to default value. We workaround it here by ignoring the
+		// value.
+		if u, err := url.Parse(c.KontrolURL); err == nil && u.Host != "127.0.0.1:3000" {
+			kontrolURL = c.KontrolURL
+		}
+	}
+
+	klientSh := klientSh{
+		User:          sudoUserFromEnviron(os.Environ()),
+		KiteHome:      config.KiteHome,
+		KlientBinPath: filepath.Join(KlientDirectory, "klient"),
+		KontrolURL:    kontrolURL,
+	}
+
+	// ensure the klient home dir is writeable by user
+	if klientSh.User != "" {
+		ensureWriteable(KlientctlDirectory, klientSh.User)
+	}
+
+	opts := &ServiceOptions{
+		Username:   klientSh.User,
+		KontrolURL: klientSh.KontrolURL,
+	}
+
+	s, err := newService(opts)
 	if err != nil {
 		log.Error("Error creating Service. err:%s", err)
-		fmt.Println(GenericInternalError)
+		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
@@ -101,6 +132,12 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 
 	klientScript := filepath.Join(KlientDirectory, "klient.sh")
 
+	if err := klientSh.Create(klientScript); err != nil {
+		log.Error("Error writing klient.sh file. err:%s", err)
+		fmt.Println(FailedInstallingKlient)
+		return 1
+	}
+
 	// try to migrate from old managed klient to new kd-installed klient
 	switch runtime.GOOS {
 	case "darwin":
@@ -117,19 +154,15 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		oldS.Uninstall()
 	}
 
-	if _, err := os.Stat(klientScript); os.IsNotExist(err) {
-		klientSh := klientSh{
-			User:          sudoUserFromEnviron(os.Environ()),
-			KiteHome:      config.KiteHome,
-			KlientBinPath: filepath.Join(KlientDirectory, "klient"),
-			KontrolURL:    config.KontrolURL,
-		}
+	// try to uninstall first, otherwise Install may fail if
+	// klient.plist or klient init script already exist
+	s.Uninstall()
 
-		if err := klientSh.Create(klientScript); err != nil {
-			log.Error("Error writing klient.sh file. err:%s", err)
-			fmt.Println(FailedInstallingKlient)
-			return 1
-		}
+	// Install the klient binary as a OS service
+	if err = s.Install(); err != nil {
+		log.Error("Error installing Service. err:%s", err)
+		fmt.Println(GenericInternalNewCodeError)
+		return 1
 	}
 
 	// start klient now that it's done updating
@@ -167,6 +200,10 @@ func downloadRemoteToLocal(remotePath, destPath string) error {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("%s: %s", remotePath, http.StatusText(res.StatusCode))
+	}
+
 	var buf bytes.Buffer // to restore begining of a response body consumed by gzip.NewReader
 	var body io.Reader = io.MultiReader(&buf, res.Body)
 
@@ -185,4 +222,23 @@ func downloadRemoteToLocal(remotePath, destPath string) error {
 	}
 
 	return binFile.Close()
+}
+
+func ensureWriteable(dir, username string) error {
+	u, err := user.Lookup(username)
+	if err != nil {
+		return err
+	}
+
+	uid, err := strconv.Atoi(u.Uid)
+	if err != nil {
+		return err
+	}
+
+	gid, err := strconv.Atoi(u.Gid)
+	if err != nil {
+		return err
+	}
+
+	return os.Chown(dir, uid, gid)
 }

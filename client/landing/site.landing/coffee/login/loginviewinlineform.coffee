@@ -20,5 +20,4 @@ module.exports = class LoginViewInlineForm extends kd.FormView
       _.each inputs, (input) ->
         input.emit 'ValidationFeedbackCleared' # Reset the validations
 
-
   pistachio: ->

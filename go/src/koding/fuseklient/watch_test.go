@@ -17,13 +17,12 @@ func TestFindWatcher(t *testing.T) {
 	}
 
 	fw := NewFindWatcher(ft, "/remote")
-	du := 1 * time.Minute
 
 	Convey("FindWatcher#AddTimedIgnore", t, func() {
 		Convey("It should add paths to ignore for till timeout", func() {
-			fw.AddTimedIgnore("/remote/a", du)
-			dur, ok := fw.ignoredPaths["a"]
+			fw.AddTimedIgnore("/remote/a")
 
+			dur, ok := fw.ignoredPaths["/remote/a"]
 			So(ok, ShouldBeTrue)
 			So(dur.After(time.Now()), ShouldBeTrue)
 		})
@@ -31,18 +30,10 @@ func TestFindWatcher(t *testing.T) {
 
 	Convey("FindWatcher#RemoveTimedIgnore", t, func() {
 		Convey("It should removes path with remote prefix", func() {
-			fw.AddTimedIgnore("/remote/a", du)
+			fw.AddTimedIgnore("/remote/a")
 			fw.removeTimedIgnore("/remote/a")
 
-			_, ok := fw.ignoredPaths["a"]
-			So(ok, ShouldBeFalse)
-		})
-
-		Convey("It should removes path without remote prefix", func() {
-			fw.AddTimedIgnore("/remote/a", du)
-			fw.removeTimedIgnore("a")
-
-			_, ok := fw.ignoredPaths["a"]
+			_, ok := fw.ignoredPaths["/remote/a"]
 			So(ok, ShouldBeFalse)
 		})
 	})
@@ -54,14 +45,14 @@ func TestFindWatcher(t *testing.T) {
 		})
 
 		Convey("It should return false if path is in list and has expired", func() {
-			fw.AddTimedIgnore("/remote/a", 1*time.Millisecond)
+			fw.AddTimedIgnore("/remote/a")
 
 			isIgnored := fw.isPathIgnored("expired")
 			So(isIgnored, ShouldBeFalse)
 		})
 
 		Convey("It should remove path from list if it has expired", func() {
-			fw.AddTimedIgnore("/remote/a", 1*time.Millisecond)
+			fw.AddTimedIgnore("/remote/a")
 
 			_, ok := fw.ignoredPaths["expired"]
 			So(ok, ShouldBeFalse)

@@ -37,7 +37,6 @@ module.exports = class IDEWorkspaceLayoutBuilder extends KDSplitComboView
   getSplitViewByName: (name) ->
     return @splitViews[name] or null
 
-
 ### Example Usage also see IDEPanel::constructor
 
 layoutOptions        =

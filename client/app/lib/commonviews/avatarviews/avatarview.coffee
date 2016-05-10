@@ -50,9 +50,15 @@ module.exports = class AvatarView extends LinkView
     @dpr              = global.devicePixelRatio ? 1
     { width, height } = options.size
     @gravatar         = new ErrorlessImageView { width, height }
+
     @gravatar.on 'load', =>
       @gravatar.setCss 'opacity', '1'
       @setCss 'background-image', 'none'
+
+    @gravatar.error = =>
+      @setAvatar @getDefaultAvatarUri()
+      @gravatar.show()
+      return no
 
     @cite = new KDCustomHTMLView
       tagName     : 'cite'
@@ -79,12 +85,12 @@ module.exports = class AvatarView extends LinkView
       @gravatar.show()
       @gravatar.setAttribute 'src', src
 
+
   getGravatarUri: ->
     { profile } = @getData()
     return no  unless profile?.hash?
 
-    { width } = @getOptions().size
-    size    = Math.round width * @dpr
+    size = @getUriSize()
 
     # We have 16-512 all versions of avatar on our CDN ~ GG
     # If you need to update them; after creating a largest version of avatar
@@ -96,8 +102,20 @@ module.exports = class AvatarView extends LinkView
     # and you need to upload them to koding-cdn/images bucket.
     # Thanks to gravatar to not support svg's, damn.
 
-    defaultAvatarUri = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+    defaultAvatarUri = @getDefaultAvatarUri()
     return "//gravatar.com/avatar/#{profile.hash}?size=#{size}&d=#{defaultAvatarUri}&r=g"
+
+
+  getDefaultAvatarUri: ->
+    size = @getUriSize()
+    return "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+
+
+  getUriSize: ->
+
+    { width } = @getOptions().size
+    return Math.round width * @dpr
+
 
   render: ->
 

@@ -15,14 +15,17 @@ const (
 
 // MountFolder is the request struct for remote.mountFolder method.
 type MountFolder struct {
-	Name           string `json:"name"`
-	LocalPath      string `json:"localPath"`
-	RemotePath     string `json:"remotePath"`
-	NoIgnore       bool   `json:"noIgnore"`
-	NoPrefetchMeta bool   `json:"noPrefetchMeta"`
-	PrefetchAll    bool   `json:"prefetchAll"`
-	NoWatch        bool   `json:"noWatch"`
-	CachePath      string `json:"cachePath"`
+	Debug           bool   `json:"debug"`
+	Name            string `json:"name"`
+	LocalPath       string `json:"localPath"`
+	RemotePath      string `json:"remotePath"`
+	NoIgnore        bool   `json:"noIgnore"`
+	NoPrefetchMeta  bool   `json:"noPrefetchMeta"`
+	PrefetchAll     bool   `json:"prefetchAll"`
+	NoWatch         bool   `json:"noWatch"`
+	CachePath       string `json:"cachePath"`
+	Trace           bool   `json:"trace"`
+	OneWaySyncMount bool   `json:"oneWaySyncMount"`
 }
 
 // UnmountFolder is the request struct for remote.UnmountFolder method.
@@ -47,10 +50,21 @@ type SSHKeyAdd struct {
 
 // Cache is the request struct for remote.cache method.
 type Cache struct {
+	// Log debug info for this request.
+	Debug bool `json:"debug"`
+
 	Name       string        `json:"name"`
 	LocalPath  string        `json:"localPath"`
 	RemotePath string        `json:"remotePath"`
-	Interval   time.Duration `json:interval`
+	Interval   time.Duration `json:"interval"`
+
+	// OnlyInterval will not perform any type of cache request immediately, and
+	// instead only start the intervaler.
+	OnlyInterval bool
+
+	// LocalToRemote indicates that this cache request will copy local to remote. If
+	// false, Remote is copied to Local.
+	LocalToRemote bool `json:"localToRemote"`
 
 	// Implementation details required by rsync currently. Not great to expose the
 	// underlying implementation, but required currently.
@@ -65,6 +79,9 @@ type Cache struct {
 
 	// The keypath that SSH will use for rsync.
 	SSHPrivateKeyPath string `json:"sshPrivateKeyPath"`
+
+	// IgnoreFile is the full path to CVS ignore file for rsync.
+	IgnoreFile string `json:"ignoreFile"`
 }
 
 type Status struct {

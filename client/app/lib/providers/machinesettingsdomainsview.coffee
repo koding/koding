@@ -20,7 +20,7 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
     options.listViewOptions      =
       fetcherMethod              : (query, options, callback) =>
         return no  if @getData().status.state isnt Machine.State.Running
-        kd.singletons.computeController.fetchDomains (err, domains = []) =>
+        kd.singletons.computeController.fetchDomains (err, domains = []) ->
           callback err, domains
 
     super options, data

@@ -47,4 +47,3 @@ describe 'LogsListController', ->
       options         = listController.getXHROptions { query }
 
       expect(options).toEqual { type, endPoint: '/-/api/logs?scope=test,q=dummy-query' }
-

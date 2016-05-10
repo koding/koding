@@ -1,6 +1,5 @@
 kd                               = require 'kd'
 utils                            = require './../../core/utils'
-MainHeaderView                   = require './../../core/mainheaderview'
 TeamJoinTab                      = require './teamjointab'
 TeamUsernameTabForm              = require './../forms/teamusernametabform'
 TeamLoginAndCreateTabForm        = require './../forms/teamloginandcreatetabform'
@@ -55,6 +54,7 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
   addForgotPasswordLink: ->
 
     return  unless @alreadyMember
+    return  if @forgotPassword?
 
     @addSubView @forgotPassword = new kd.CustomHTMLView
       tagName: 'section'

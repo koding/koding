@@ -9,6 +9,7 @@ module.exports = class AboutAppController extends KDViewController
     name  : 'About'
     route : '/:name?/About'
 
+
   constructor: (options = {}, data) ->
 
     options.view    = new AboutAppView

@@ -1,0 +1,10 @@
+package: github.com/Azure/go-autorest
+import:
+- package: github.com/dgrijalva/jwt-go
+  subpackages:
+  - .
+- package: golang.org/x/crypto
+  vcs: git
+  repo: https://github.com/golang/crypto.git
+  subpackages:
+  - /pkcs12

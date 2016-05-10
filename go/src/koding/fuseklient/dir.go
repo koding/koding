@@ -33,7 +33,7 @@ type Dir struct {
 	// to return entries can be filtered. This is done so we set proper offset
 	// position for newly created entries. In other words once an entry is set in
 	// an offset position, it should maintain that position always.
-	Entries []fuseutil.Dirent
+	Entries []*fuseutil.Dirent
 
 	// EntriesList contains list of files and directories that belong to this
 	// directory mapped by entry name for easy lookup.
@@ -45,7 +45,7 @@ func NewDir(e *Entry, idGen *IDGen) *Dir {
 	return &Dir{
 		Entry:       e,
 		IDGen:       idGen,
-		Entries:     []fuseutil.Dirent{},
+		Entries:     []*fuseutil.Dirent{},
 		EntriesList: map[string]Node{},
 	}
 }
@@ -54,7 +54,7 @@ func NewDir(e *Entry, idGen *IDGen) *Dir {
 
 // ReadEntries returns entries starting from specified offset position. If local
 // cache is empty, it'll fetch from remote.
-func (d *Dir) ReadEntries(offset fuseops.DirOffset) ([]fuseutil.Dirent, error) {
+func (d *Dir) ReadEntries(offset fuseops.DirOffset) ([]*fuseutil.Dirent, error) {
 	d.Lock()
 	defer d.Unlock()
 
@@ -73,7 +73,7 @@ func (d *Dir) ReadEntries(offset fuseops.DirOffset) ([]fuseutil.Dirent, error) {
 	}
 
 	// filter by entries whose type is not to set fuse.DT_Unknown
-	var liveEntries []fuseutil.Dirent
+	var liveEntries []*fuseutil.Dirent
 	for _, e := range entries[offset:] {
 		if e.Type != fuseutil.DT_Unknown {
 			liveEntries = append(liveEntries, e)
@@ -241,6 +241,8 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		dir2.Entries = dir1.Entries
 		dir2.EntriesList = dir1.EntriesList
 		dir2.Entry.Parent = newDir
+
+		dir2.ChangePathRecursive(oldName, newName)
 	case fuseutil.DT_File:
 		file1 := removedEntry.(*File)
 
@@ -321,12 +323,40 @@ func (d *Dir) FindEntryRecursive(path string) (Node, error) {
 	return last, nil
 }
 
+func (d *Dir) findAllEntriesRecursive() (entries []*Entry) {
+	queue := []*Dir{d}
+
+	for len(queue) != 0 {
+		var p *Dir
+		p, queue = queue[0], queue[1:]
+
+		for _, node := range p.EntriesList {
+			if f, ok := node.(*File); ok {
+				entries = append(entries, f.Entry)
+			}
+			if dd, ok := node.(*Dir); ok {
+				entries = append(entries, dd.Entry)
+				queue = append(queue, dd)
+			}
+		}
+	}
+
+	return entries
+}
+
+func (d *Dir) ChangePathRecursive(oldName, newName string) {
+	entries := d.findAllEntriesRecursive()
+	for _, n := range entries {
+		n.Path = strings.Replace(n.Path, oldName, newName, 1)
+	}
+}
+
 // Reset removes internal cache of files and directories.
 func (d *Dir) Reset() error {
 	d.Lock()
 	defer d.Unlock()
 
-	d.Entries = []fuseutil.Dirent{}
+	d.Entries = []*fuseutil.Dirent{}
 	d.EntriesList = map[string]Node{}
 
 	return nil
@@ -435,13 +465,13 @@ func (d *Dir) getEntriesFromRemote() ([]*tempEntry, error) {
 	return entries, nil
 }
 
-func (d *Dir) initializeAttrs(e *tempEntry) fuseops.InodeAttributes {
+func (d *Dir) initializeAttrs(e *tempEntry) *fuseops.InodeAttributes {
 	var t = e.Time
 	if t.IsZero() {
 		t = time.Now()
 	}
 
-	return fuseops.InodeAttributes{
+	return &fuseops.InodeAttributes{
 		Size:   e.Size,
 		Uid:    d.Attrs.Uid,
 		Gid:    d.Attrs.Gid,
@@ -464,7 +494,7 @@ func (d *Dir) initializeChild(e *tempEntry) (Node, error) {
 		t = time.Now()
 	}
 
-	attrs := fuseops.InodeAttributes{
+	attrs := &fuseops.InodeAttributes{
 		Size:   e.Size,
 		Uid:    d.Attrs.Uid,
 		Gid:    d.Attrs.Gid,
@@ -478,7 +508,7 @@ func (d *Dir) initializeChild(e *tempEntry) (Node, error) {
 	n := NewEntry(d, e.Name)
 	n.Attrs = attrs
 
-	dirEntry := fuseutil.Dirent{
+	dirEntry := &fuseutil.Dirent{
 		Offset: fuseops.DirOffset(len(d.Entries)) + 1, // offset is 1 indexed
 		Inode:  n.ID,
 		Name:   e.Name,

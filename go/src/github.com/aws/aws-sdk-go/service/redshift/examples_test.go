@@ -87,6 +87,7 @@ func ExampleRedshift_CreateCluster() {
 		MasterUserPassword:               aws.String("String"), // Required
 		MasterUsername:                   aws.String("String"), // Required
 		NodeType:                         aws.String("String"), // Required
+		AdditionalInfo:                   aws.String("String"),
 		AllowVersionUpgrade:              aws.Bool(true),
 		AutomatedSnapshotRetentionPeriod: aws.Int64(1),
 		AvailabilityZone:                 aws.String("String"),
@@ -103,9 +104,13 @@ func ExampleRedshift_CreateCluster() {
 		Encrypted:                      aws.Bool(true),
 		HsmClientCertificateIdentifier: aws.String("String"),
 		HsmConfigurationIdentifier:     aws.String("String"),
-		KmsKeyId:                       aws.String("String"),
-		NumberOfNodes:                  aws.Int64(1),
-		Port:                           aws.Int64(1),
+		IamRoles: []*string{
+			aws.String("String"), // Required
+			// More values...
+		},
+		KmsKeyId:      aws.String("String"),
+		NumberOfNodes: aws.Int64(1),
+		Port:          aws.Int64(1),
 		PreferredMaintenanceWindow: aws.String("String"),
 		PubliclyAccessible:         aws.Bool(true),
 		Tags: []*redshift.Tag{
@@ -1060,6 +1065,28 @@ func ExampleRedshift_DescribeSnapshotCopyGrants() {
 	fmt.Println(resp)
 }
 
+func ExampleRedshift_DescribeTableRestoreStatus() {
+	svc := redshift.New(session.New())
+
+	params := &redshift.DescribeTableRestoreStatusInput{
+		ClusterIdentifier:     aws.String("String"),
+		Marker:                aws.String("String"),
+		MaxRecords:            aws.Int64(1),
+		TableRestoreRequestId: aws.String("String"),
+	}
+	resp, err := svc.DescribeTableRestoreStatus(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleRedshift_DescribeTags() {
 	svc := redshift.New(session.New())
 
@@ -1185,6 +1212,7 @@ func ExampleRedshift_ModifyCluster() {
 		},
 		ClusterType:                    aws.String("String"),
 		ClusterVersion:                 aws.String("String"),
+		ElasticIp:                      aws.String("String"),
 		HsmClientCertificateIdentifier: aws.String("String"),
 		HsmConfigurationIdentifier:     aws.String("String"),
 		MasterUserPassword:             aws.String("String"),
@@ -1192,12 +1220,40 @@ func ExampleRedshift_ModifyCluster() {
 		NodeType:                       aws.String("String"),
 		NumberOfNodes:                  aws.Int64(1),
 		PreferredMaintenanceWindow:     aws.String("String"),
+		PubliclyAccessible:             aws.Bool(true),
 		VpcSecurityGroupIds: []*string{
 			aws.String("String"), // Required
 			// More values...
 		},
 	}
 	resp, err := svc.ModifyCluster(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleRedshift_ModifyClusterIamRoles() {
+	svc := redshift.New(session.New())
+
+	params := &redshift.ModifyClusterIamRolesInput{
+		ClusterIdentifier: aws.String("String"), // Required
+		AddIamRoles: []*string{
+			aws.String("String"), // Required
+			// More values...
+		},
+		RemoveIamRoles: []*string{
+			aws.String("String"), // Required
+			// More values...
+		},
+	}
+	resp, err := svc.ModifyClusterIamRoles(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -1397,6 +1453,7 @@ func ExampleRedshift_RestoreFromClusterSnapshot() {
 	params := &redshift.RestoreFromClusterSnapshotInput{
 		ClusterIdentifier:                aws.String("String"), // Required
 		SnapshotIdentifier:               aws.String("String"), // Required
+		AdditionalInfo:                   aws.String("String"),
 		AllowVersionUpgrade:              aws.Bool(true),
 		AutomatedSnapshotRetentionPeriod: aws.Int64(1),
 		AvailabilityZone:                 aws.String("String"),
@@ -1409,10 +1466,14 @@ func ExampleRedshift_RestoreFromClusterSnapshot() {
 		ElasticIp:                      aws.String("String"),
 		HsmClientCertificateIdentifier: aws.String("String"),
 		HsmConfigurationIdentifier:     aws.String("String"),
-		KmsKeyId:                       aws.String("String"),
-		NodeType:                       aws.String("String"),
-		OwnerAccount:                   aws.String("String"),
-		Port:                           aws.Int64(1),
+		IamRoles: []*string{
+			aws.String("String"), // Required
+			// More values...
+		},
+		KmsKeyId:     aws.String("String"),
+		NodeType:     aws.String("String"),
+		OwnerAccount: aws.String("String"),
+		Port:         aws.Int64(1),
 		PreferredMaintenanceWindow: aws.String("String"),
 		PubliclyAccessible:         aws.Bool(true),
 		SnapshotClusterIdentifier:  aws.String("String"),
@@ -1422,6 +1483,32 @@ func ExampleRedshift_RestoreFromClusterSnapshot() {
 		},
 	}
 	resp, err := svc.RestoreFromClusterSnapshot(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleRedshift_RestoreTableFromClusterSnapshot() {
+	svc := redshift.New(session.New())
+
+	params := &redshift.RestoreTableFromClusterSnapshotInput{
+		ClusterIdentifier:  aws.String("String"), // Required
+		NewTableName:       aws.String("String"), // Required
+		SnapshotIdentifier: aws.String("String"), // Required
+		SourceDatabaseName: aws.String("String"), // Required
+		SourceTableName:    aws.String("String"), // Required
+		SourceSchemaName:   aws.String("String"),
+		TargetDatabaseName: aws.String("String"),
+		TargetSchemaName:   aws.String("String"),
+	}
+	resp, err := svc.RestoreTableFromClusterSnapshot(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and

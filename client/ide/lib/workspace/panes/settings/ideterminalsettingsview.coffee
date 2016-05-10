@@ -36,10 +36,14 @@ module.exports = class IDETerminalSettingsView extends IDESettingsView
       size          : 'tiny settings-on-off'
       callback      : (state) => @emit 'SettingsChanged', 'blinkingCursor', state
 
+    @dimIfInactive  = new KodingSwitch
+      size          : 'tiny settings-on-off'
+      callback      : (state) => @emit 'SettingsChanged', 'dimIfInactive', state
+
   getStorageInformation: -> { name: 'Terminal', version: '1.0.1' }
 
   getSettingKeys: ->
-    return [ 'visualBell', 'font', 'theme', 'fontSize', 'scrollback', 'blinkingCursor' ]
+    return [ 'visualBell', 'font', 'theme', 'fontSize', 'scrollback', 'blinkingCursor', 'dimIfInactive' ]
 
   defaults:
     font           : 'ubuntu-mono'
@@ -48,6 +52,7 @@ module.exports = class IDETerminalSettingsView extends IDESettingsView
     visualBell     : no
     scrollback     : 1000
     blinkingCursor : yes
+    dimIfInactive  : no
 
   pistachio: ->
     '''
@@ -59,5 +64,6 @@ module.exports = class IDETerminalSettingsView extends IDESettingsView
         <li class="with-select">Scrollback  {{> @scrollback}}</li>
         <li>Use visual bell                 {{> @visualBell}}</li>
         <li>Blinking cursor                 {{> @blinkingCursor}}</li>
+        <li>Dim if inactive                 {{> @dimIfInactive}}</li>
       </ul>
     '''

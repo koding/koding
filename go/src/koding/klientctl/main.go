@@ -56,6 +56,10 @@ func main() {
 		logWriter = f
 	}
 
+	// Setting the handler to debug, because various Remote methods allow a
+	// debug option, and this saves us from having to set the handler level every time.
+	// This only sets handler, not the actual loglevel.
+	logging.DefaultHandler.SetLevel(logging.DEBUG)
 	// Create our logger.
 	//
 	// TODO: Single commit temporary solution, need to remove the above logger
@@ -75,6 +79,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = config.Name
 	app.Version = config.Version
+	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{
 		cli.Command{
@@ -87,14 +92,31 @@ func main() {
 					Name:  "json",
 					Usage: "Output in JSON format",
 				},
+				cli.BoolFlag{
+					Name:  "all",
+					Usage: "Include machines that have been offline for more than 24h.",
+				},
 			},
 			Subcommands: []cli.Command{
 				cli.Command{
 					Name:   "mounts",
 					Usage:  "List the mounted machines.",
 					Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format",
+						},
+					},
 				},
 			},
+		},
+		cli.Command{
+			Name:        "version",
+			Usage:       "Display version information.",
+			HideHelp:    true,
+			Description: cmdDescriptions["version"],
+			Action:      ctlcli.ExitAction(VersionCommand, log, "version"),
 		},
 		cli.Command{
 			Name:        "mount",
@@ -104,30 +126,49 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "remotepath, r",
-					Usage: "Full path of remote folder in machine to mount to local.",
+					Usage: "Full path of remote folder in machine to mount.",
 				},
 				cli.BoolFlag{
-					Name:  "noignore, i",
-					Usage: "Retrieve all files and folders, including ignored folders like .git & .svn.",
+					Name:  "oneway-sync, s",
+					Usage: "Copy remote folder to local and sync on interval. (fastest runtime).",
+				},
+				cli.IntFlag{
+					Name:  "oneway-interval",
+					Usage: "Sets how frequently local folder will sync with remote, in seconds. Default is 2 seconds.",
 				},
 				cli.BoolFlag{
 					Name:  "noprefetch-meta, p",
-					Usage: "Retrieve only top level folder/files. Rest is fetched on request (fastest).",
+					Usage: "Retrieve only top level folder/files. Rest is fetched on request (fastest to mount).",
+				},
+				cli.BoolFlag{
+					Name:  "prefetch-all, a",
+					Usage: "Prefetch all contents of the remote directory up front (DEPRECATED).",
+				},
+				cli.IntFlag{
+					Name:  "prefetch-interval",
+					Usage: "Sets how frequently remote folder will sync with local, in seconds. (DEPRECATED).",
 				},
 				cli.BoolFlag{
 					Name:  "nowatch, w",
 					Usage: "Disable watching for changes on remote machine.",
 				},
 				cli.BoolFlag{
-					Name:  "prefetch-all, a",
-					Usage: "Prefetch all contents of the remote directory up front (best performance/slow bootup).",
+					Name:  "noignore, i",
+					Usage: "Retrieve all files and folders, including ignored folders like .git & .svn.",
 				},
-				cli.IntFlag{
-					Name:  "prefetch-interval",
-					Usage: "Sets how frequently folder will sync with remote, in seconds. Zero disables syncing.",
+				cli.BoolFlag{
+					Name:  "trace, t",
+					Usage: "Turn on trace logs.",
+				},
+				cli.BoolFlag{
+					Name:  "debug, d",
+					Usage: "Turn on debug logs.",
 				},
 			},
 			Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
+			BashComplete: ctlcli.FactoryCompletion(
+				MountCommandFactory, log, "mount",
+			),
 		},
 		cli.Command{
 			Name:        "unmount",
@@ -208,7 +249,6 @@ func main() {
 					Usage: "Specify an alternate Kontrol",
 				},
 			},
-			//HideHelp: true,
 			Action: ctlcli.ExitAction(InstallCommandFactory, log, "install"),
 		},
 		cli.Command{
@@ -216,6 +256,33 @@ func main() {
 			Usage:    fmt.Sprintf("Internal use only."),
 			HideHelp: true,
 			Action:   ctlcli.ExitAction(MetricsCommandFactory, log, "metrics"),
+		},
+		cli.Command{
+			Name: "autocompletion",
+			Usage: fmt.Sprintf(
+				"Enable autocompletion support for bash and fish shells",
+			),
+			Description: cmdDescriptions["autocompletion"],
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "fish-dir",
+					Usage: "The name of directory to add fish autocompletion script.",
+				},
+				cli.BoolFlag{
+					Name:  "no-bashrc",
+					Usage: "Disable appending autocompletion source command to your bash config file.",
+				},
+				cli.StringFlag{
+					Name:  "bash-dir",
+					Usage: "The name of directory to add bash autocompletion script.",
+				},
+			},
+			Action: ctlcli.FactoryAction(
+				AutocompleteCommandFactory, log, "autocompletion",
+			),
+			BashComplete: ctlcli.FactoryCompletion(
+				AutocompleteCommandFactory, log, "autocompletion",
+			),
 		},
 	}
 

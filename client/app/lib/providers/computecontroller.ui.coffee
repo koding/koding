@@ -32,6 +32,7 @@ module.exports = class ComputeControllerUI
       new KDNotificationView
         title: message
 
+
     fn args...
 
 

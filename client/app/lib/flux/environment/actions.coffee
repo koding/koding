@@ -188,7 +188,7 @@ rejectInvitation = (machine) ->
 
       channel.byId { id: channelId }, (err, socialChannel) ->
         if err
-          showErr err
+          showError err
           return callback err
 
         isApproved = socialChannel.isParticipant

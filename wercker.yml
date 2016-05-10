@@ -9,7 +9,7 @@ services:
 build:
   steps:
     - add-ssh-key:
-        keyname: DEPLOYMENT_KEY
+        keyname: DEPLOYMENT_KEY_V2
     - script:
         name: setup git identity
         code: |
@@ -46,8 +46,10 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
     - script:
-        name: copy prod creds
-        code: ./scripts/copy-prod-creds.sh
+        name: inject credentials
+        code: |
+          ./scripts/copy-prod-creds.sh
+          ./scripts/inject_credentials.sh
     - script:
         name: change mod of test instace private key
         code: chmod 600 ./scripts/test-instance/koding-test-instances-2015-06.pem
@@ -56,6 +58,9 @@ build:
     - script:
         name: create data files
         code: touch INSTANCE_DATA
+    - script:
+        name: run coffeelint
+        code: scripts/wercker/run-command scripts/lint-coffeescript.sh
     - script:
         name: launch test hosts
         code: scripts/wercker/run-command scripts/wercker/launch-test-hosts
@@ -71,19 +76,24 @@ build:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
     - script:
-        name: run coffeelint
-        code: scripts/wercker/run-command scripts/lint-coffeescript.sh
-    - script:
         name: build client
         code: |
           make -C client dist
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
-        code: scripts/wercker/run-command go/build.sh
+        code: go/build.sh
+    - script:
+        name: ensure koding/config is not stale
+        code: |
+          go generate koding/config
+          git diff --name-only --exit-code go/src/koding/config/config.json.go
     - script:
         name: test klient
         code: scripts/wercker/run-command scripts/test-klient.sh
+    - script:
+        name: test kd
+        code: scripts/wercker/run-command scripts/test-kd.sh
     - script:
         name: test kites
         code: scripts/wercker/run-command go/src/koding/kites/e2etest/e2etest.sh
@@ -181,7 +191,7 @@ build:
 deploy:
   steps:
     - add-ssh-key:
-        keyname: DEPLOYMENT_KEY
+        keyname: DEPLOYMENT_KEY_V2
     - script:
         name: deploy started
         code: |
@@ -286,3 +296,17 @@ deploy:
     - script:
         name: deploy klient to devmanaged channel
         code: $WERCKER_ROOT/scripts/deploy-klient.sh
+
+  s3-klient-and-kd-production:
+    - script:
+        name: deploy klient to managed channel and kd to production
+        code: |
+          $WERCKER_ROOT/scripts/deploy-klient.sh
+          $WERCKER_ROOT/scripts/deploy-kd.sh
+
+  s3-klient-and-kd-development:
+    - script:
+        name: deploy klient to devmanaged channel and kd to development
+        code: |
+          $WERCKER_ROOT/scripts/deploy-klient.sh
+          $WERCKER_ROOT/scripts/deploy-kd.sh

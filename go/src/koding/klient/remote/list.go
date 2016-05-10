@@ -46,6 +46,7 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 			MountedPaths: []string{},
 			MachineLabel: machine.MachineLabel,
 			Teams:        machine.Teams,
+			OnlineAt:     machine.OnlineAt(),
 		}
 
 		// Set the machines status and message.
@@ -54,8 +55,10 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 		m, ok := r.mounts.FindByName(machine.Name)
 		if ok {
 			info.Mounts = []restypes.ListMountInfo{restypes.ListMountInfo{
+				MountName:  m.MountName,
 				RemotePath: m.RemotePath,
 				LocalPath:  m.LocalPath,
+				MountType:  int(m.Type),
 			}}
 			info.MountedPaths = append(info.MountedPaths, m.LocalPath)
 		}

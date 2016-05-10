@@ -1,7 +1,6 @@
 os              = require 'os'
 { argv }        = require 'optimist'
 KONFIG          = require('koding-config-manager').load("main.#{argv.c}")
-monitor         = require('appmetrics').monitor()
 { MetricsBase } = require 'koding-datadog'
 
 module.exports = class Metrics extends MetricsBase

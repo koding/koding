@@ -1,6 +1,7 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-module.exports = class ErrorlessImageView extends KDCustomHTMLView
+kd                = require 'kd'
+KDCustomHTMLView  = kd.CustomHTMLView
+
+module.exports    = class ErrorlessImageView extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 

@@ -19,6 +19,39 @@ import (
 	"github.com/koding/logging"
 )
 
+// EventType represents a single mounting/unmounting event type.
+//
+// When mounter transitions state of the mount it emits two events
+// - one describing begining of the operation, second describing
+// its result.
+//
+// On successful mount operation the following events are emitted:
+//
+//  1) Event{Path: "/path", Type: EventMounting, Err: nil}
+//  2) Event{Path: "/path", Type: EventMounted, Err: nil}
+//
+// And on unsuccessful mount operation:
+//
+//  1) Event{Path: "/path", Type: EventMounting, Err: nil}
+//  2) Event{Path: "/path", Type: EventMounting, Err: errDescribing}
+//
+type EventType uint8
+
+const (
+	EventUnknown EventType = iota + 1
+	EventMounting
+	EventMounted
+	EventUnmounting
+	EventUnmounted
+)
+
+// Event represents a single mounting/unmounting event.
+type Event struct {
+	Path string
+	Type EventType
+	Err  error
+}
+
 const (
 	// fuseTellTimout is the timeout that all kite method calls over the network
 	// will take to timeout. This should be large enough as to allow large files to
@@ -33,14 +66,6 @@ const (
 	// Messages displayed to the user about the machines status.
 	autoRemountFailed = "Error auto-mounting. Please unmount & mount again."
 	autoRemounting    = "Remounting after extended disconnect. Please wait..."
-
-	// retryMounterCount and retryMounterPause is the number of times
-	// fuseMountFolder will try a failing mount.
-	//
-	// TODO: Move this into the Mounter, once Mounter is refactored per design
-	// mtg spec.
-	retryMounterCount = 30
-	retryMounterPause = 5 * time.Second
 )
 
 var (
@@ -93,6 +118,9 @@ type Mounter struct {
 	// PathUnmounter is responsible for unmounting the given path. Usually implemented
 	// by fuseklient.Unmount(path)
 	PathUnmounter func(string) error
+
+	// EventSub receives events when paths get mounted / unmounted.
+	EventSub chan<- *Event
 }
 
 // IsConfigured checks the Mounter fields to ensure (as best as it can) that
@@ -165,6 +193,13 @@ func (m *Mounter) Mount() (*Mount, error) {
 		MountName:        m.Options.Name,
 		IP:               m.IP,
 		SyncIntervalOpts: syncOpts,
+		EventSub:         m.EventSub,
+	}
+
+	if m.Options.OneWaySyncMount {
+		mount.Type = SyncMount
+	} else {
+		mount.Type = FuseMount
 	}
 
 	mount.Log = MountLogger(mount, m.Log)
@@ -181,6 +216,30 @@ func (m *Mounter) Mount() (*Mount, error) {
 }
 
 func (m *Mounter) MountExisting(mount *Mount) error {
+	m.emit(&Event{
+		Path: mount.LocalPath,
+		Type: EventMounting,
+	})
+
+	if err := m.mountExisting(mount); err != nil {
+		m.emit(&Event{
+			Path: mount.LocalPath,
+			Type: EventMounting,
+			Err:  err,
+		})
+
+		return err
+	}
+
+	m.emit(&Event{
+		Path: mount.LocalPath,
+		Type: EventMounted,
+	})
+
+	return nil
+}
+
+func (m *Mounter) mountExisting(mount *Mount) error {
 	if err := m.IsConfigured(); err != nil {
 		m.Log.Error("Mounter improperly configured. err:%s", err)
 		return err
@@ -199,30 +258,43 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 		mount.Intervaler = m.Intervaler
 	}
 
+	if mount.Type == UnknownMount {
+		setTo := FuseMount
+		m.Log.Notice(
+			"Mount.Type is %q, setting to default:%s", mount.Type, setTo,
+		)
+		mount.Type = setTo
+	}
+
+	if mount.EventSub == nil {
+		mount.EventSub = m.EventSub
+	}
+
 	// Create our changes channel, so that fuseMount can be told when we lose and
 	// reconnect to klient.
 	changeSummaries := make(chan kitepinger.ChangeSummary, 1)
 
-	// TODO: Uncomment this once fuseklient can accept a change channel.
-	//changes := changeSummaryToBool(changeSummaries)
-	//if err := fuseMountFolder(mount, changes); err != nil {
-	if err := m.fuseMountFolder(mount, true); err != nil {
-		return err
+	if mount.Type == FuseMount {
+		// TODO: Uncomment this once fuseklient can accept a change channel.
+		//changes := changeSummaryToBool(changeSummaries)
+		//if err := fuseMountFolder(mount, changes); err != nil {
+		if err := m.fuseMountFolder(mount); err != nil {
+			return err
+		}
 	}
 
-	go m.watchClientAndReconnect(mount, changeSummaries)
+	go m.startKiteTracker(mount, changeSummaries)
 
 	return nil
 }
 
 // fuseMountFolder uses the fuseklient library to mount the given
 // folder.
-func (m *Mounter) fuseMountFolder(mount *Mount, retry bool) error {
+func (m *Mounter) fuseMountFolder(mount *Mount) error {
 	var (
 		t   transport.Transport
 		err error
 	)
-	log := m.Log.New("fuseMountFolder")
 
 	t, err = transport.NewRemoteTransport(m.Transport, fuseTellTimeout, mount.RemotePath)
 	if err != nil {
@@ -248,40 +320,21 @@ func (m *Mounter) fuseMountFolder(mount *Mount, retry bool) error {
 		NoIgnore:       mount.NoIgnore,
 		NoPrefetchMeta: mount.NoPrefetchMeta,
 		NoWatch:        mount.NoWatch,
-		Debug:          true, // turn on debug permanently till v1
+		Trace:          mount.Trace,
 	}
 
-	var (
-		f  fuseklient.FS
-		fs *fuse.MountedFileSystem
-	)
-
-	retryFn := func() error {
-		f, err = fuseklient.New(t, cf)
-		if isRemotePathError(err) {
-			return ErrRemotePathDoesNotExist
-		} else if err != nil {
-			return err
-		}
-
-		mount.MountedFS = f
-		mount.Unmounter = f
-
-		if fs, err = f.Mount(); err != nil {
-			return err
-		}
-
-		return nil
+	f, err := fuseklient.New(t, cf)
+	if isRemotePathError(err) {
+		return ErrRemotePathDoesNotExist
+	} else if err != nil {
+		return err
 	}
 
-	// by "Blacklisting" ErrRemotePathDoesNotExist, the retryOnErr func will
-	// not retry if the remote path does not exist.
-	retryBlacklist := []error{ErrRemotePathDoesNotExist}
-	err = retryOnErr(
-		retryMounterCount, retryMounterPause, retryBlacklist, log.New("retryMounting"),
-		retryFn,
-	)
-	if err != nil {
+	mount.MountedFS = f
+	mount.Unmounter = f
+
+	var fs *fuse.MountedFileSystem
+	if fs, err = f.Mount(); err != nil {
 		return err
 	}
 
@@ -291,7 +344,7 @@ func (m *Mounter) fuseMountFolder(mount *Mount, retry bool) error {
 	return nil
 }
 
-func (m *Mounter) watchClientAndReconnect(mount *Mount, changeSummaries chan kitepinger.ChangeSummary) error {
+func (m *Mounter) startKiteTracker(mount *Mount, changeSummaries chan kitepinger.ChangeSummary) error {
 	// TODO: Move this monitoring log into the KiteTracker itself
 	log := m.Log.New("Kite Monitor")
 	log.Info("Monitoring Klient connection..")
@@ -310,6 +363,10 @@ func (m *Mounter) watchClientAndReconnect(mount *Mount, changeSummaries chan kit
 				"Kite connected after extended disconnect. Disconnected for:%s",
 				summary.OldStatusDur,
 			)
+		} else {
+			log.Debug(
+				"Kite connection status changed. newStatus:%s", summary.NewStatus,
+			)
 		}
 	}
 
@@ -323,11 +380,17 @@ func (mounter *Mounter) remount(mount *Mount) error {
 		mounter.Log.Warning("Mounter#remount unmount on %s failed: %s...ignoring error", mount.MountName, err)
 	}
 
-	if err := mounter.fuseMountFolder(mount, true); err != nil {
+	if err := mounter.fuseMountFolder(mount); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (m *Mounter) emit(ev *Event) {
+	if m.EventSub != nil {
+		m.EventSub <- ev
+	}
 }
 
 // changeSummaryToBool is a simple func that converts a ChangeSummary channel to a
@@ -358,40 +421,4 @@ func isRemotePathError(err error) bool {
 	}
 
 	return false
-}
-
-// retryOnErr will retry calling f() a number of times, ignoring any errors that
-// are returned. If a returned error is in the blacklisted slice, it is *not*
-// ignored, and *is* returned.
-func retryOnErr(count int, delay time.Duration, blacklist []error, log logging.Logger, f func() error) error {
-	var (
-		err error
-	)
-
-	for i := 0; i < count; i++ {
-		if err = f(); err == nil {
-			return nil
-		}
-
-		for _, ignore := range blacklist {
-			if err == ignore {
-				return err
-			}
-		}
-
-		if log != nil && i+1 < count {
-			log.Notice("Ignoring retry error, retrying in %s. err:%s", delay, blacklist)
-		}
-
-		time.Sleep(delay)
-	}
-
-	if log != nil {
-		log.Notice(
-			"Retry failures exceeded max count. count:%d, delay:%s, lastErr:%s",
-			count, delay, err,
-		)
-	}
-
-	return err
 }

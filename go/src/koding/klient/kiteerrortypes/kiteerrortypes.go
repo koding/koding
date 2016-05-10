@@ -51,4 +51,17 @@ const (
 	// MachineActionIsLocked is used when the requested actions (such as mount related
 	// actions) are locked.
 	MachineActionIsLocked = "MachineActionIsLocked"
+
+	// MachineDuplicate is used if a machine was attempted to be added to
+	// the machines struct, but it is not unique. Ie, another machine shares field
+	// values with the given machine that should be unique.
+	MachineDuplicate = "MachineDuplicate"
+
+	// MachineAlreadyAdded is used if a machine instance was added to a Machines
+	// struct twice.
+	MachineAlreadyAdded = "MachineAlreadyAdded"
+
+	// Returned from a klient/command.Command when running the command fails in a
+	// non-exit status way.
+	ProcessError = "ProcessError"
 )

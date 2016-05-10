@@ -23,21 +23,6 @@ import (
  */
 var privateBlocks []*net.IPNet
 
-// serverparts is used to return the parts of a server role
-type serverParts struct {
-	Name       string
-	Datacenter string
-	Port       int
-	Bootstrap  bool
-	Expect     int
-	Version    int
-	Addr       net.Addr
-}
-
-func (s *serverParts) String() string {
-	return fmt.Sprintf("%s (Addr: %s) (DC: %s)", s.Name, s.Addr, s.Datacenter)
-}
-
 func init() {
 	// Add each private block
 	privateBlocks = make([]*net.IPNet, 6)
@@ -114,52 +99,6 @@ func CanServersUnderstandProtocol(members []serf.Member, version uint8) (bool, e
 		}
 	}
 	return (numServers > 0) && (numWhoGrok == numServers), nil
-}
-
-// Returns if a member is a consul server. Returns a bool,
-// the datacenter, and the rpc port
-func isConsulServer(m serf.Member) (bool, *serverParts) {
-	if m.Tags["role"] != "consul" {
-		return false, nil
-	}
-
-	datacenter := m.Tags["dc"]
-	_, bootstrap := m.Tags["bootstrap"]
-
-	expect := 0
-	expect_str, ok := m.Tags["expect"]
-	var err error
-	if ok {
-		expect, err = strconv.Atoi(expect_str)
-		if err != nil {
-			return false, nil
-		}
-	}
-
-	port_str := m.Tags["port"]
-	port, err := strconv.Atoi(port_str)
-	if err != nil {
-		return false, nil
-	}
-
-	vsn_str := m.Tags["vsn"]
-	vsn, err := strconv.Atoi(vsn_str)
-	if err != nil {
-		return false, nil
-	}
-
-	addr := &net.TCPAddr{IP: m.Addr, Port: port}
-
-	parts := &serverParts{
-		Name:       m.Name,
-		Datacenter: datacenter,
-		Port:       port,
-		Bootstrap:  bootstrap,
-		Expect:     expect,
-		Addr:       addr,
-		Version:    vsn,
-	}
-	return true, parts
 }
 
 // Returns if a member is a consul node. Returns a bool,
@@ -262,6 +201,56 @@ func getPrivateIP(addresses []net.Addr) (net.IP, error) {
 		return nil, fmt.Errorf("Multiple private IPs found. Please configure one.")
 	}
 
+}
+
+// GetPublicIPv6 is used to return the first public IP address
+// associated with an interface on the machine
+func GetPublicIPv6() (net.IP, error) {
+	addresses, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get interface addresses: %v", err)
+	}
+
+	return getPublicIPv6(addresses)
+}
+
+func isUniqueLocalAddress(ip net.IP) bool {
+	return len(ip) == net.IPv6len && ip[0] == 0xfc && ip[1] == 0x00
+}
+
+func getPublicIPv6(addresses []net.Addr) (net.IP, error) {
+	var candidates []net.IP
+
+	// Find public IPv6 address
+	for _, rawAddr := range addresses {
+		var ip net.IP
+		switch addr := rawAddr.(type) {
+		case *net.IPAddr:
+			ip = addr.IP
+		case *net.IPNet:
+			ip = addr.IP
+		default:
+			continue
+		}
+
+		if ip.To4() != nil {
+			continue
+		}
+
+		if ip.IsLinkLocalUnicast() || isUniqueLocalAddress(ip) || ip.IsLoopback() {
+			continue
+		}
+		candidates = append(candidates, ip)
+	}
+	numIps := len(candidates)
+	switch numIps {
+	case 0:
+		return nil, fmt.Errorf("No public IPv6 address found")
+	case 1:
+		return candidates[0], nil
+	default:
+		return nil, fmt.Errorf("Multiple public IPv6 addresses found. Please configure one.")
+	}
 }
 
 // Converts bytes to an integer

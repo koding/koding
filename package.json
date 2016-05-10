@@ -7,7 +7,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git@git.sj.koding.com:koding/koding.git"
+    "url": "git@github.com:koding/koding.git"
   },
   "main": "server/index.js",
   "scripts": {
@@ -16,8 +16,9 @@
     "postinstall": "./.npm-postinstall.sh"
   },
   "dependencies": {
+    "amqp": "0.2.4",
     "analytics-node": "1.2.2",
-    "appmetrics": "1.0.5",
+    "appmetrics": "1.0.8",
     "async": "1.5.2",
     "aws-sdk": "2.1.4",
     "bluebird": "1.0.8",
@@ -42,6 +43,7 @@
     "es": "0.4.x",
     "express": "4.9.5",
     "express-session": "1.10.4",
+    "eventemitter2": "1.0.3",
     "faker": "1.1.0",
     "geoip-lite": "1.1.6",
     "git-rev": "0.2.1",
@@ -52,6 +54,7 @@
     "helmet": "0.2.4",
     "highlight.js": "7.3.0",
     "htmlencode": "0.0.3",
+    "js-yaml": "3.3.1",
     "json-format": "0.0.1",
     "jsonify": "0.0.0",
     "jsonwebtoken": "5.0.1",
@@ -64,9 +67,9 @@
     "minimist": "0.0.8",
     "mkdirp": "0.3.2",
     "mongodb": "1.4.14",
-    "newrelic": "1.18.0",
     "nib": "0.5.0",
     "node-dogstatsd": "0.0.6",
+    "node-gitlab": "1.2.1",
     "node-sockjs-client": "1.0.7",
     "node-syntaxhighlighter": "0.8.1",
     "node-uuid": "1.4.1",
@@ -81,6 +84,7 @@
     "read": "1.0.5",
     "redis": "0.12.1",
     "request": "2.54.0",
+    "sendmail": "0.2.1",
     "shortid": "2.2.2",
     "simple-recaptcha": "0.0.3",
     "speakeasy": "1.0.3",

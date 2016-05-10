@@ -200,8 +200,8 @@ func (cfg *Config) setDefaults() {
 		cfg.Postgres = kontrol.PostgresConfig{
 			Host:           cfg.DockerHost,
 			Port:           5432,
-			Username:       "kontrolapp201506",
-			Password:       "kontrolapp201506",
+			Username:       "kontrolapp_2016_05",
+			Password:       "kontrolapp_2016_05",
 			DBName:         "social",
 			ConnectTimeout: 20,
 		}

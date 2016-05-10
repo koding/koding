@@ -136,6 +136,12 @@ Please wait a few minutes and try again.`,
 
 	// FailedUninstallingKlientWarn is when the service fails
 	// (connecting or uninstalling)
+	FailedStopKlientWarn = fmt.Sprintf(
+		"Warning: Unable to stop %s service.", config.Name,
+	)
+
+	// FailedUninstallingKlientWarn is when the service fails
+	// (connecting or uninstalling)
 	FailedUninstallingKlientWarn = fmt.Sprintf(
 		"Warning: Unable to uninstall %s service.", config.Name,
 	)
@@ -167,6 +173,16 @@ Please wait a few minutes and try again.`,
 	FailedPrefetchFolder = fmt.Sprintf(
 		"Error: Failed to prefetch the requested folder.\n",
 	)
+
+	// RemoteProcessFailed is used when a command was run on the remote, but the
+	// process itself failed to execute properly. *Not* an exit code, but more like
+	// a no memory.
+	//
+	// The %s arg is intended to be the full error.
+	RemoteProcessFailed = `A requested process on the remote Machine was unable to run properly,
+and exited with the following issue:
+
+%s`
 
 	// PrefetchAllAndMetaTogether is used when the user supplies both --prefetchall
 	// and --noprefetchmeta, as they are incompatible flags.

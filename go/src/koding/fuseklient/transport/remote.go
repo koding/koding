@@ -52,6 +52,8 @@ type RemoteTransport struct {
 	// IgnoreDirs are dirs that are ignored for performance purposes, ie .git
 	// .svn etc.
 	IgnoreDirs []string
+
+	BlockSize int64
 }
 
 // NewRemoteTransport initializes RemoteTransport with kite connection.
@@ -125,17 +127,7 @@ func (r *RemoteTransport) Remove(path string) error {
 	return r.trip("fs.remove", req, &res)
 }
 
-func (r *RemoteTransport) ReadFile(path string) (*ReadFileRes, error) {
-	req := struct{ Path string }{r.fullPath(path)}
-	res := &ReadFileRes{}
-	if err := r.trip("fs.readFile", req, &res); err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
-func (r *RemoteTransport) ReadFileAt(path string, offset, blockSize int64) (*ReadFileRes, error) {
+func (r *RemoteTransport) ReadFileAt(dst []byte, path string, offset, blockSize int64) (int, error) {
 	req := struct {
 		Path      string
 		Offset    int64
@@ -143,14 +135,16 @@ func (r *RemoteTransport) ReadFileAt(path string, offset, blockSize int64) (*Rea
 	}{
 		r.fullPath(path),
 		offset,
-		blockSize,
+		r.BlockSize,
 	}
 	res := &ReadFileRes{}
 	if err := r.trip("fs.readFile", req, &res); err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return res, nil
+	i := copy(dst, res.Content)
+
+	return i, nil
 }
 
 func (r *RemoteTransport) WriteFile(path string, content []byte) error {
@@ -194,7 +188,7 @@ func (r *RemoteTransport) GetInfo(path string) (*GetInfoRes, error) {
 		return nil, err
 	}
 
-	// remove disk path prefix
+	// remove remote path prefix
 	res.FullPath = r.relativePath(res.FullPath)
 
 	return res, nil

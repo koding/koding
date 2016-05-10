@@ -72,8 +72,6 @@ module.exports = class GroupProductsController extends KDController
         confirmDelete data, ->
           konstructor.removeByCode data.planCode, handleResponse
 
-      .on 'BuyersReportRequested', (data) ->
-        debugger # needs to be implemented
 
   confirmDelete = (data, callback) ->
 
