@@ -85,9 +85,6 @@ module.exports = (options) ->
   paymentwebhook =
     customersKey: 'R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
     secretKey: "paymentwebhooksecretkey-#{options.configName}"
-  tokbox =
-    apiKey: "45253342"
-    apiSecret: "e834f7f61bd2b3fafc36d258da92413cebb5ce6e"
   googleapiServiceAccount =
     clientId: ''
     clientSecret: ''
@@ -214,7 +211,6 @@ module.exports = (options) ->
     pubnub
     terraformer
     paymentwebhook
-    tokbox
     googleapiServiceAccount
     github
     odesk

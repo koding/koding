@@ -186,7 +186,6 @@ module.exports = (options, credentials) ->
     integration                   : credentials.integration
     googleapiServiceAccount       : credentials.googleapiServiceAccount
     siftScience                   : credentials.siftScience
-    tokbox                        : credentials.tokbox
     rollbar                       : credentials.rollbar
     jwt                           : credentials.jwt
     papertrail                    : credentials.papertrail

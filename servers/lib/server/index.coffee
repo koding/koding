@@ -78,9 +78,6 @@ app.post '/-/analytics/track'                    , require './handlers/analytics
 app.post '/-/analytics/page'                     , require './handlers/analytics/page'
 
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
-# creates a video session for the given channelId
-app.post '/-/video-chat/session'                 , csrf,   require './handlers/videosession'
-app.post '/-/video-chat/token'                   , require './handlers/videotoken'
 app.get  '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'
 app.get  '/-/auth/register/:hostname/:key'       , require './handlers/authregister'
