@@ -148,7 +148,9 @@ func (b *Builder) BuildStack(stackID string, overrideCreds map[string][]string) 
 
 	// Set or override credentials when passed in apply request.
 	for k, v := range overrideCreds {
-		credentials[k] = v
+		if len(v) != 0 {
+			credentials[k] = v
+		}
 	}
 
 	b.Log.Debug("Stack built: len(machines)=%d, len(credentials)=%d", len(machineIDs), len(credentials))
