@@ -141,7 +141,7 @@ module.exports =
             .waitForElementVisible  stackCatalogModal, 20000
             .waitForElementVisible  stackCloseButton, 20000
             .click                  stackCloseButton
-
+      callback user
     return user
 
 
