@@ -2,31 +2,77 @@ kd = require 'kd'
 JView = require 'app/jview'
 
 
-module.exports = class CredentialsView extends kd.View
+module.exports = class CredentialsView extends kd.CustomHTMLView
 
   JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'stack-credentials', options.cssClass
-    options.title   ?= 'AWS Credential:'
 
     super options, data
 
     { provider, selectedCredential } = @getOptions()
     items = @getData()
 
-    @selection = new kd.SelectBox()
-    selectedOptions = items.map (item) -> { value : item.identifier, title : item.title }
-    selectedOptions.unshift { value : '', title : "Select #{provider} credential..." }
-    @selection.setSelectOptions selectedOptions
-    @selection.setDefaultValue selectedCredential  if selectedCredential
+    selectOptions = items.map (item) -> { value : item.identifier, title : item.title }
+    selectOptions.unshift { value : '', title : "Select #{provider} credential..." }
+    defaultValue = selectedCredential ? ''
+    @selectionLabel = new kd.LabelView { title : 'Credential Selection' }
+    @selection = new kd.SelectBox {
+      selectOptions
+      defaultValue
+      label : @selectionLabel
+    }
+
+    @createNew = new kd.CustomHTMLView
+      tagName  : 'a'
+      cssClass : 'create-new'
+      partial  : '<span class="plus">+</span> Create New'
+      click    : @bound 'onCreateNew'
+
+    { computeController } = kd.singletons
+    @form = computeController.ui.generateAddCredentialFormFor { provider }
+
+    @cancelNew = new kd.CustomHTMLView
+      tagName  : 'a'
+      cssClass : 'cancel-new'
+      partial  : 'Cancel'
+      click    : @bound 'onCancelNew'
+
+
+  onCreateNew: -> @setClass 'form-open'
+
+
+  onCancelNew: -> @unsetClass 'form-open'
+
 
   pistachio: ->
 
-    { title } = @options
+    { provider } = @options
+    title = "#{helper.getProviderName provider} Credential:"
 
     """
-      <div class='credentials-title'>#{title}</div>
-      {{> @selection}}
+      <div class='form-header'>#{title}</div>
+      <div class='credential-selection'>
+        {{> @selectionLabel}}
+        {{> @selection}}
+      </div>
+      {{> @createNew}}
+      <div class='form-container'>
+        <div class='form-header'>
+          New #{helper.getProviderName provider} Credential:
+          {{> @cancelNew}}
+        </div>
+        {{> @form}}
+      </div>
     """
+
+
+  helper =
+
+    getProviderName: (provider) ->
+
+      switch provider
+        when 'aws' then provider.toUpperCase()
+        else provider[0].toUpperCase() + provider.substring 1

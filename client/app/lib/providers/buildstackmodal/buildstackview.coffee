@@ -14,13 +14,15 @@ module.exports = class BuildStackView extends kd.View
     { provider } = @getOptions()
     { stack, credentials } = @getData()
     selectedCredential = stack.credentials?[provider]?.first
-    @credentials = new CredentialsView { provider, selectedCredential }, credentials
+    @credentialsContainer = new kd.CustomScrollView { cssClass : 'form-section' }
+    credentialsView = new CredentialsView { provider, selectedCredential }, credentials
+    @credentialsContainer.wrapper.addSubView credentialsView
 
 
   pistachio: ->
 
     """
-      <div class="section-title">Select Credential and Fill the Requirements</div>
-      <div class="section-subtitle">Your stack requires AWS Credentials and a few requirements in order to boot</div>
-      {{> @credentials}}
+      <div class="top-title">Select Credential and Fill the Requirements</div>
+      <div class="top-subtitle">Your stack requires AWS Credentials and a few requirements in order to boot</div>
+      {{> @credentialsContainer}}
     """

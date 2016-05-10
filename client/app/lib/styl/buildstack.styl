@@ -1,5 +1,7 @@
 .build-stack-modal.kdmodal
   rounded                   5px
+  width                     600px !important
+  height                    600px !important
 
   .kdmodal-inner
     margin                  0
@@ -15,15 +17,92 @@
 
     .kdmodal-content
       bg                    color, #eee
+      height                510px
+      color                 #999
 
-  .section-title
+  .build-stack-view
+    borderBox()
+    padding                 0 10%
+
+  .top-title
     text-align              center
-    font-size               18px
+    font-size               16px
     padding-top             20px
-    padding-bottom          10px
+    padding-bottom          5px
+    color                   #333
 
-  .section-subtitle
+  .top-subtitle
     text-align              center
-    font-size               14px
+    font-size               12px
     color                   #999
-    padding-bottom          35px
+    padding-bottom          25px
+
+  .form-section
+    width                   50%
+
+    &.kdcustomscrollview
+      styleScrollBars       rgba(0, 0, 0, .15)
+      max-height            340px
+      padding-right         15px !important
+
+  .form-header
+    color                   #999
+    font-weight             bold
+    font-size               14px
+    margin-bottom           10px
+
+  .kdlabel
+    display                 block
+    font-size               12px
+    margin-bottom           2px
+    float                   none
+    color                   #999
+
+  .kdinput.text
+    rounded                 3px
+    bg                      color, #fff
+    border                  1px solid #c9c9c9
+    padding                 5px 13px
+    font-size               14px
+    line-height             19px
+    color                   #999
+
+  .kdselectbox
+    width                   100%
+    borderBox()
+    margin-bottom           15px
+
+  .create-new
+    color                   #729FCF
+    text-decoration         none
+    font-size               12px
+
+    .plus
+      font-size             16px
+
+  .cancel-new
+    color                   #729FCF
+    text-decoration         none
+    font-size               12px
+    float                   right
+    font-weight             normal
+
+  form
+    clear                   both
+
+    .advanced-field
+      hidden()
+
+    &.in-advanced-mode
+      .advanced-field
+        visible()
+
+  .form-container
+    hidden()
+
+  .form-open
+    .form-container
+      visible()
+
+    .create-new
+      hidden()
