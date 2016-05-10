@@ -247,8 +247,6 @@ module.exports.create = (KONFIG, environment)->
 
     #{createHealthcheck(KONFIG)}
 
-    #{createIPRoutes(KONFIG)}
-
     # start server
     server {
       # we should not timeout on proxy connections
@@ -268,6 +266,8 @@ module.exports.create = (KONFIG, environment)->
       #
 
       #{createListenDirective(KONFIG, environment)}
+
+      #{createIPRoutes(KONFIG)}
 
       # root /usr/share/nginx/html;
       index index.html index.htm;

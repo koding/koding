@@ -6,6 +6,7 @@ import (
 	"koding/klient/remote/machine"
 	"koding/klient/util"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/koding/kite"
@@ -72,10 +73,10 @@ func (s *Status) handleKiteErr(err error) error {
 	// Authentication errors come from the kite lib, so parse the messages to return
 	// easy to decpiher types.
 	if kErr.Type == kiteerrortypes.AuthenticationError {
-		switch kErr.Message {
-		case tokenExpiredMessage:
+		switch {
+		case strings.Contains(kErr.Message, tokenExpiredMessage):
 			return util.NewKiteError(kiteerrortypes.AuthErrTokenIsExpired, err)
-		case tokenNotValidYetMessage:
+		case strings.Contains(kErr.Message, tokenNotValidYetMessage):
 			return util.NewKiteError(kiteerrortypes.AuthErrTokenIsNotValidYet, err)
 		}
 	}
