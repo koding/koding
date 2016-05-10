@@ -1179,6 +1179,26 @@ module.exports =
      .pause 2000, -> callback()
 
 
+  inviteAndJoinWithUsers: (browser, users, callback) ->
+
+    host = @loginTeam browser
+    browser.pause 5000, ->
+
+      queue = [
+        (next) ->
+          myteamhelpers.inviteUsers browser, users, ->
+            next null, host
+        (next) ->
+          users.map (user) ->
+            myteamhelpers.acceptAndJoinInvitation host, browser, user, (res) ->
+              next null, user
+      ]
+
+      async.series queue, (err, result) ->
+        browser.end()
+        callback result
+
+
     browser
      .waitForElementVisible logoutLink, 20000
       .click                 logoutLink
