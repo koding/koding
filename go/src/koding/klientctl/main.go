@@ -303,6 +303,24 @@ func main() {
 				SyncCommandFactory, log, "sync",
 			),
 		},
+		cli.Command{
+			Name: "cp",
+			Usage: fmt.Sprintf(
+				"Copy a file from one one machine to another",
+			),
+			Description: cmdDescriptions["cp"],
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name: "debug",
+				},
+			},
+			Action: ctlcli.FactoryAction(
+				CpCommandFactory, log, "cp",
+			),
+			BashComplete: ctlcli.FactoryCompletion(
+				CpCommandFactory, log, "cp",
+			),
+		},
 	}
 
 	app.Run(os.Args)

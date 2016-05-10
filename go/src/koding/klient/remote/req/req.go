@@ -83,6 +83,13 @@ type Cache struct {
 
 	// IgnoreFile is the full path to CVS ignore file for rsync.
 	IgnoreFile string `json:"ignoreFile"`
+
+	// IncludeFolder includes the folder in the destination, otherwise it just
+	// includes the contents.
+	//
+	// This must be true for copying files, or the remote will attempt to copy
+	// `your/path/` (a directory) instead of `your/path` (a directory, *or file*)
+	IncludePath bool `json:"includePath"`
 }
 
 type Status struct {
