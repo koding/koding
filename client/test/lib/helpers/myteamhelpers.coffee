@@ -226,7 +226,6 @@ module.exports =
       .executeAsync  fn, [ invitations ], (result) ->
         callback()
 
-
   acceptAndJoinInvitation: (host, browser, user, callback) ->
 
     fn = ( email, done ) ->

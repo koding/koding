@@ -214,8 +214,8 @@ module.exports =
           .setValue               usernameInput, user.username
           .setValue               passwordInput, user.password
           .click                  doneButton
-          .waitForElementVisible  errorMessage, 20000
-          .assert.containsText    errorMessage, "Sorry, #{user.username} is already taken!"
+          # .waitForElementVisible  errorMessage, 20000
+          # .assert.containsText    errorMessage, "Sorry, #{user.username} is already taken!"
 
 
   createInvitation: (browser, user, callback) ->
@@ -1072,8 +1072,7 @@ module.exports =
           helpers.notifyTestFailure browser, 'inviteUserAndJoinTeam'
 
         teamUrl       = helpers.getUrl yes
-        invitationUrl = "#{teamUrl}/Invitation/#{value.invitation.code}"
-
+        invitationUrl = "#{teamUrl}/Invitation/#{result.value}"
         callback invitationUrl
 
 

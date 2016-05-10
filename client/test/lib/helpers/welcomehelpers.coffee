@@ -6,41 +6,29 @@ myTeamLink = "#{helpers.getUrl(yes)}/Home/my-team"
 module.exports =
 
   
-  verifyStackView: (browser, targetUser) ->
-   
-    url = helpers.getUrl(yes)
+  verifyStackView: (browser) ->
     stackLink = ".WelcomeStacksView ul.bullets li:nth-of-type(1)"
-    @acceptInvitation browser, targetUser
-    myteamHelpers.logoutTeam browser, =>
-      browser.url url
-      teamsHelpers.loginToTeam browser, targetUser, no
-      browser
-        .pause 3000
-        .waitForElementVisible '.WelcomeStacksView', 20000
-        .click stackLink
-        .waitForElementVisible '.StackEditor-OnboardingModal',20000
-        .end()
+    browser
+      .pause 3000
+      .waitForElementVisible '.WelcomeStacksView', 20000
+      .click stackLink
+      .waitForElementVisible '.StackEditor-OnboardingModal',20000        
+      .end()
 
-  verifyTeamView: (browser, targetUser) ->
-   
-    url = helpers.getUrl(yes)
+  verifyTeamView: (browser) ->
     teamLink = ".WelcomeStacksView ul.bullets li:nth-of-type(2)"
-    @acceptInvitation browser, targetUser
-    myteamHelpers.logoutTeam browser, =>
-      browser.url url
-      teamsHelpers.loginToTeam browser, targetUser, no
-      browser
-        .pause 3000
-        .waitForElementVisible '.WelcomeStacksView', 20000
-        .click teamLink
-        .waitForElementVisible '.HomeAppView--section.send-invites',20000
-        .end()
+    browser
+      .pause 3000
+      .waitForElementVisible '.WelcomeStacksView', 20000
+      .click teamLink
+      .waitForElementVisible '.HomeAppView--section.send-invites',20000        
+      .end()
 
   verifyKDInstallView: (browser, targetUser) ->
    
     url = helpers.getUrl(yes)
     kdinstall = ".WelcomeStacksView ul.bullets li:nth-of-type(3)"
-    # @acceptInvitation browser, targetUser
+    @acceptInvitation browser, targetUser
     myteamHelpers.logoutTeam browser, =>
       browser.url url
       teamsHelpers.loginToTeam browser, targetUser, no
@@ -69,7 +57,7 @@ module.exports =
    
     url = helpers.getUrl(yes)
     stackLink = ".WelcomeStacksView ul.bullets li:nth-of-type(2)"
-    # @acceptInvitation browser, targetUser
+    @acceptInvitation browser, targetUser
     myteamHelpers.logoutTeam browser, =>
       browser.url url
       teamsHelpers.loginToTeam browser, targetUser, no
@@ -99,7 +87,6 @@ module.exports =
             myteamHelpers.logoutTeam browser, =>
               teamUrl       = helpers.getUrl yes
               invitationUrl = "#{teamUrl}/Invitation/#{result.value}"
-              console.log(invitationUrl)
               browser.url invitationUrl, ->
                 teamsHelpers.fillJoinForm browser, targetUser
                   
