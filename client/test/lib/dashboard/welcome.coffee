@@ -7,13 +7,13 @@ homehelpers = require '../helpers/welcomehelpers.js'
 
 module.exports =
  
-  # checkAdminStackView: (browser) ->
-  #   teamsHelpers.loginTeam(browser)
-  #   homehelpers.verifyStackView(browser)
+  checkAdminStackView: (browser) ->
+    teamsHelpers.loginTeam(browser)
+    homehelpers.verifyStackView(browser)
    
-  # checkAdminTeamInvite: (browser) ->
-  #   teamsHelpers.loginTeam(browser)
-  #   homehelpers.verifyTeamView(browser)
+  checkAdminTeamInvite: (browser) ->
+    teamsHelpers.loginTeam(browser)
+    homehelpers.verifyTeamView(browser)
 
   checkUserKDInstallScreen: (browser) ->
     teamsHelpers.loginTeam(browser)
@@ -23,28 +23,21 @@ module.exports =
     teamsHelpers.getInvitationUrl browser, targetUser.email, (url) ->
       browser.url url, ->
         teamsHelpers.fillJoinForm browser, targetUser
-    
-    browser.end() 
-    # targetUser.email = myteamHelpers.inviteUser browser, 'member'
-    
-    # teamsHelpers.getInvitationUrl browser, targetUser.email, (url) ->
-    #   browser.url url, ->
-    #     teamsHelpers.fillJoinForm browser, targetUser
-     # homehelpers.verifyKDInstallView(browser, user)
+        homehelpers.verifyKDInstallView(browser, user)
+  
+  checkUserStackPendingScreen: (browser) ->
+    teamsHelpers.loginTeam(browser)
+    user = utils.getUser(no, 5);
+    browser.url myTeamLink      
+    myteamHelpers.inviteTheUser browser, user, 'member'
+    homehelpers.verifyPendingStackView(browser, user)
 
-  # checkUserStackPendingScreen: (browser) ->
-  #   teamsHelpers.loginTeam(browser)
-  #   user = utils.getUser(no, 5);
-  #   browser.url myTeamLink      
-  #   myteamHelpers.inviteTheUser browser, user, 'member'
-  #   homehelpers.verifyPendingStackView(browser, user)
-
-  # checkUserPrivateStack: (browser) ->
-  #   teamsHelpers.loginTeam(browser)
-  #   user = utils.getUser(no, 6);
-  #   browser.url myTeamLink
-  #   myteamHelpers.inviteTheUser browser, user, 'member'
-  #   homehelpers.verifyStackView(browser, user)
+  checkUserPrivateStack: (browser) ->
+    teamsHelpers.loginTeam(browser)
+    user = utils.getUser(no, 6);
+    browser.url myTeamLink
+    myteamHelpers.inviteTheUser browser, user, 'member'
+    homehelpers.verifyStackView(browser, user)
 
 
     
