@@ -1165,11 +1165,19 @@ module.exports =
       .waitForElementVisible adminModal, 20000
       .click                 closeButton
 
-  logoutTeam: (browser) ->
 
-    logoutLink = '.avatararea-popup.team a[href="/Logout"]'
+  logoutTeam: (browser, callback) ->
 
-    helpers.openAvatarAreaModal(browser, yes)
+    browser
+      .click '#main-sidebar'
+      .waitForElementVisible '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 20000
+      .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
+      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 20000
+      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default',2000
+      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(4)'
+
+     .pause 2000, -> callback()
+
 
     browser
      .waitForElementVisible logoutLink, 20000
