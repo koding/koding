@@ -36,7 +36,7 @@ module.exports = class HomeTeamBilling extends kd.CustomScrollView
       { actions } = PaymentFlux(reactor)
 
       actions.loadStripeClient().then =>
-        actions.loadGroupCreditCard()
+        actions.loadGroupCreditCard().catch kd.warn
 
         @wrapper.addSubView header 'Koding Subscription'
         @wrapper.addSubView section 'Koding Subscription'
