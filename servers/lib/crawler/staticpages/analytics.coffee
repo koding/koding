@@ -1,6 +1,4 @@
-{ argv } = require 'optimist'
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
-{ rollbar, version, environment } = KONFIG
+{ rollbar, environment } = require 'koding-config-manager'
 
 module.exports = ->
 

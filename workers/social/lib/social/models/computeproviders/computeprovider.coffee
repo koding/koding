@@ -1,8 +1,6 @@
 { Base, secure, signature } = require 'bongo'
 
-{ argv }     = require 'optimist'
-KONFIG       = require('koding-config-manager').load("main.#{argv.c}")
-
+KONFIG       = require 'koding-config-manager'
 async        = require 'async'
 konstraints  = require 'konstraints'
 

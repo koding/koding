@@ -1,6 +1,5 @@
 request  = require 'request'
-{ argv } = require 'optimist'
-KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG   = require 'koding-config-manager'
 
 module.exports = (account, req, res) ->
 

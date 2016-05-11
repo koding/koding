@@ -1,8 +1,7 @@
 { Base, secure, signature } = require 'bongo'
 crypto = require 'crypto'
 
-{ argv }    = require 'optimist'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG      = require 'koding-config-manager'
 KodingError = require '../error'
 
 module.exports = class S3 extends Base

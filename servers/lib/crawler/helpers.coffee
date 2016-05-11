@@ -1,5 +1,3 @@
-{ argv }  = require 'optimist'
-{ uri }   = require('koding-config-manager').load("main.#{argv.c}")
 async     = require 'async'
 encoder   = require 'htmlencode'
 
