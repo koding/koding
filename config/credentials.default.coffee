@@ -215,7 +215,6 @@ module.exports = (options) ->
     linkedin
     datadog
     embedly
-    rollbar
     siftScience
     siftSciencePublic
     jwt
