@@ -23,7 +23,7 @@ generateDev = (KONFIG, options, credentials) ->
     env = ''
 
     add = (name, value) ->
-      env += "export #{name}='#{JSON.stringify value}'\n"
+      env += "export #{name}=${#{name}:-#{JSON.stringify value}}\n"
 
     for name, value of KONFIG.ENV when name not in options.exclude
       add name, value
