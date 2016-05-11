@@ -176,9 +176,6 @@ module.exports = (options) ->
     secretKey: ""
   vmwatcher =
     secretKey: ""
-  recurly =
-    apiKey: ""
-    loggedRequests: "/^(subscriptions|transactions)/"
   segment = ''
   kontrol =
     publicKeyFile: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pem"
@@ -226,7 +223,6 @@ module.exports = (options) ->
     paypal
     janitor
     helpscout
-    recurly
     segment
     kontrol
     kloud
