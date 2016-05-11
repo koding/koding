@@ -2,23 +2,24 @@ kd = require 'kd'
 JView = require 'app/jview'
 
 
-module.exports = class CredentialsView extends kd.CustomHTMLView
+module.exports = class CredentialForm extends kd.CustomHTMLView
 
   JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'stack-credentials', options.cssClass
+    options.cssClass = kd.utils.curry 'credential-form', options.cssClass
+    options.selectionPlaceholder ?= "Select #{options.title}"
 
     super options, data
 
-    { provider, selectedCredential } = @getOptions()
-    items = @getData()
+    { title, selectionPlaceholder } = @getOptions()
+    { provider, fields, selectedItem, items } = @getData()
 
     selectOptions = items.map (item) -> { value : item.identifier, title : item.title }
-    selectOptions.unshift { value : '', title : "Select #{provider} credential..." }
-    defaultValue = selectedCredential ? ''
-    @selectionLabel = new kd.LabelView { title : 'Credential Selection' }
+    selectOptions.unshift { value : '', title : selectionPlaceholder }
+    defaultValue = selectedItem ? ''
+    @selectionLabel = new kd.LabelView { title }
     @selection = new kd.SelectBox {
       selectOptions
       defaultValue
@@ -31,8 +32,8 @@ module.exports = class CredentialsView extends kd.CustomHTMLView
       partial  : '<span class="plus">+</span> Create New'
       click    : @bound 'onCreateNew'
 
-    { computeController } = kd.singletons
-    @form = computeController.ui.generateAddCredentialFormFor { provider }
+    { ui } = kd.singletons.computeController
+    @form  = ui.generateAddCredentialFormFor { provider, requiredFields : fields }
 
     @cancelNew = new kd.CustomHTMLView
       tagName  : 'a'
@@ -54,8 +55,7 @@ module.exports = class CredentialsView extends kd.CustomHTMLView
 
   pistachio: ->
 
-    { provider } = @options
-    title = "#{helper.getProviderName provider} Credential:"
+    { title } = @getOptions()
 
     """
       <div class='form-header'>#{title}</div>
@@ -66,18 +66,9 @@ module.exports = class CredentialsView extends kd.CustomHTMLView
       {{> @createNew}}
       <div class='form-container'>
         <div class='form-header new-credential-header'>
-          New #{helper.getProviderName provider} Credential:
+          New #{title}
           {{> @cancelNew}}
         </div>
         {{> @form}}
       </div>
     """
-
-
-  helper =
-
-    getProviderName: (provider) ->
-
-      switch provider
-        when 'aws' then provider.toUpperCase()
-        else provider[0].toUpperCase() + provider.substring 1

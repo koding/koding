@@ -1,4 +1,5 @@
 kd = require 'kd'
+async = require 'async'
 BuildStackView = require './buildstackview'
 BuildStackModalController = require './buildstackmodalcontroller'
 
@@ -13,7 +14,17 @@ module.exports = class BuildStackModal extends kd.ModalView
 
     stack = @getData()
 
-    @controller = new BuildStackModalController {}, stack
-    @controller.loadData (err, credentials) =>
-      { provider } = @controller
-      @addSubView @view = new BuildStackView { provider }, { stack, credentials }
+    controller = new BuildStackModalController {}, stack
+    queue = [
+      (next) ->
+        controller.loadCredentials next
+      (next) ->
+        controller.loadRequirements next
+    ]
+
+    async.parallel queue, (err, results) =>
+      @addSubView new BuildStackView {}, {
+        stack
+        credentials  : results[0]
+        requirements : results[1]
+      }

@@ -22,7 +22,7 @@
 
   .build-stack-view
     borderBox()
-    padding                 0 10%
+    padding                 0 50px
 
   .top-title
     text-align              center
@@ -37,8 +37,13 @@
     color                   #999
     padding-bottom          25px
 
-  .form-section
-    width                   50%
+  .form-scroll-wrapper
+    width                   240px
+    borderBox()
+    fl()
+
+    &.requirements-wrapper
+      fr()
 
     &.kdcustomscrollview
       styleScrollBars       rgba(0, 0, 0, .15)
