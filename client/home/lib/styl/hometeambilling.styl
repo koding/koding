@@ -12,42 +12,65 @@ Home Team Billing styles
   margin-top                20px
 
   fieldset
-    padding-top             30px
-
-    &:first-child
-      padding-top           0
-
-  label
-    color                   #747474 !important
-    font-size               16px !important
-    width                   126px
-    font-size               14px
-    font-weight             100
-    margin-bottom           10px
-    dIBlock()
+    padding-top             18px
 
   .HomeAppView--cc
-    size                    360px 172px
+    size                    416px auto
     bg                      color, #42488E
     gradient                #42488E, #413C86
     margin                  0 auto
     rounded                 10px
-    padding                 25px
+    padding                 30px
     shadow                  0 2px 4px rgba(0,0,0,.16)
+    borderBox()
     rel()
+
+    fieldset
+      padding-top           24px
+
+    .Select-control
+      border                1px solid #403580
+      rounded               3px
+      height                42px
+
+      .Select-placeholder
+      .Select-value
+        line-height         40px
+        padding             0 11px
+        color               #C5C5C5
+        font-weight         300
+        fontPrecisionForSoleil()
+
+      .Select-arrow
+        border-color        #ccc transparent transparent
+        border-width        6px 6px 1px
+
 
     label
       width                 auto
-      font-size             14px !important
-      color                 #fff !important
+      font-size             14px
+      color                 #fff
+      font-weight           300
+      margin-bottom         7px
+      fontPrecisionForSoleil()
       dBlock()
 
     .HomeAppView-input
       width                 100%
 
+    .HomeAppView-input.cvc
+    .card-number
+      letter-spacing        4px
+      font-family           SourceCodePro
+      font-size             15px
+      font-weight           300
+      &::-webkit-input-placeholder
+        color               #C5C5C5
+      &:-moz-placeholder
+        color               #C5C5C5
+
     .card-number
       width                 100%
-      letter-spacing        4px
 
     .wrapper--expiration
       margin-right          14px
@@ -63,7 +86,7 @@ Home Team Billing styles
 
 .HomeAppView--section.payment
   > fieldset
-    padding-top             30px
+    padding-top             24px
 
 .HomeAppView-selectBoxWrapper
   height                    42px
@@ -78,11 +101,12 @@ Home Team Billing styles
     color                   inherit
 
 .PlansList-price
-  font-weight               bold
+  font-weight               600
+  fontPrecisionForSoleil()
 
 .HomeAppViewListItem.team_base
   .PlansList-price
-    color                   #00B057
+    color                   $accentColor
 
 .HomeTeamBillingPlansList-row
   borderizeListItems        10px, 1px solid #ddd
@@ -92,5 +116,14 @@ Home Team Billing styles
     border-top              1px solid #ddd
     margin-top              10px
     padding-top             20px
+
+
+.HomeAppView--section.billing
+
+  .HomeAppView--ActionBar
+
+    .GenericButton
+      margin-top            -12px
+
 
 
