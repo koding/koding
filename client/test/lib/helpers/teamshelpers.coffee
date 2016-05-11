@@ -289,6 +289,8 @@ module.exports =
 
     newCredentialPage = '.kdview.stacks.stacks-v2'
     saveButton = "#{newCredentialPage} button[type=submit]"
+    regionSelector = '.kdview.formline.region .kdselectbox select'
+    eu_west_1 = "#{regionSelector} option[value=eu-west-1]"
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
@@ -300,6 +302,13 @@ module.exports =
       .setValue "#{newCredentialPage} .access-key input", accessKeyId
       .pause 1000
       .setValue "#{newCredentialPage} .secret-key input", secretAccessKey
+      .pause 1000
+      .click regionSelector
+      .pause 1000
+      .waitForElementVisible eu_west_1, 20000
+      .click eu_west_1
+      .pause 1000
+      .click "#{newCredentialPage} .title input"
       .pause 1000
       .click saveButton, -> done()
 
@@ -319,15 +328,10 @@ module.exports =
       .click useThisAndContinueButton
       .waitForElementVisible editorPaneSelector, 20000
       .click saveButtonSelector
-    browser.element 'css selector', successModal, (result) ->
-      if result.status is 0
-        browser
-          .waitForElementVisible successModal, 40000
-          .click closeButton, ->
-            browser.end()
-            done()
-      else
-        browser.end()
+      .pause 10000
+      .waitForElementVisible successModal, 40000
+      .click closeButton
+      .pause 5000, ->
         done()
 
 
