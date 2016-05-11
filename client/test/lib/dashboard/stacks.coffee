@@ -24,87 +24,53 @@ module.exports =
           done()
 
 
-  redirectStackTemplate: (browser) ->
+  stacks: (browser) ->
 
     sectionSelector = '.kdview.kdtabpaneview.stacks'
     newStackButton = '.kdbutton.GenericButton.HomeAppView-Stacks--createButton'
-    host = utils.getUser()
-    url = helpers.getUrl(yes)
-    browser.url url, ->
-      teamsHelpers.loginToTeam browser, host, no, ->
-        browser
-          .pause 2000
-          .url stackEditorUrl
-          .waitForElementVisible sectionSelector, 20000
-          .click newStackButton, ->
-            helpers.switchBrowser browser, 'Stack-Editor/New'
 
+    browser
+      .pause 2000
+      .url stackEditorUrl
+      .waitForElementVisible sectionSelector, 20000
+      .click newStackButton
+      .pause 2000
+      .assert.urlContains '/Stack-Editor/New'
 
-  teamStacks: (browser) ->
 
     teamStacksSelector = '.HomeAppView--section.team-stacks'
     stackTemplate = "#{teamStacksSelector} .HomeAppViewListItem.StackTemplateItem"
 
-    host = utils.getUser()
-    url = helpers.getUrl(yes)
-    browser.url url, ->
-      teamsHelpers.loginToTeam browser, host, no, ->
-        browser
-          .pause 2000
-          .url stackEditorUrl
-          .waitForElementVisible teamStacksSelector, 20000
-          .waitForElementVisible stackTemplate, 20000
-          .end()
+    browser
+      .pause 2000
+      .waitForElementVisible teamStacksSelector, 20000
+      .waitForElementVisible stackTemplate, 20000
 
-
-  privateStacks: (browser) ->
 
     privateStacksSelector = '.HomeAppView--section.private-stacks'
     stackTemplate = "#{privateStacksSelector} .HomeAppViewListItem.StackTemplateItem"
 
-    host = utils.getUser()
-    url = helpers.getUrl(yes)
-    browser.url url, ->
-      teamsHelpers.loginToTeam browser, host, no, ->
-        browser
-          .pause 2000
-          .url stackEditorUrl
-          .waitForElementVisible privateStacksSelector, 20000
-          .waitForElementVisible stackTemplate, 20000
-          .end()
+    browser
+      .pause 2000
+      .waitForElementVisible privateStacksSelector, 20000
+      .waitForElementVisible stackTemplate, 20000
 
-
-  draftStacks: (browser) ->
 
     draftStacksSelector = '.HomeAppView--section.drafts'
     stackTemplate = "#{draftStacksSelector} .HomeAppViewListItem.StackTemplateItem"
 
-    host = utils.getUser()
-    url = helpers.getUrl(yes)
-    browser.url url, ->
-      teamsHelpers.loginToTeam browser, host, no, ->
-        browser
-          .pause 2000
-          .url stackEditorUrl
-          .waitForElementVisible draftStacksSelector, 20000
-          .waitForElementVisible stackTemplate, 20000
-          .end()
+    browser
+      .pause 2000
+      .waitForElementVisible draftStacksSelector, 20000
+      .waitForElementVisible stackTemplate, 20000
 
 
-  editTeamStackTemplate: (browser) ->
-
-    teamStacksSelector = '.HomeAppView--section.team-stacks'
     stackTemplate = "#{teamStacksSelector} .HomeAppViewListItem.StackTemplateItem"
 
-    host = utils.getUser()
-    url = helpers.getUrl(yes)
-    browser.url url, ->
-      teamsHelpers.loginToTeam browser, host, no, ->
-        browser
-          .pause 2000
-          .url stackEditorUrl
-          .waitForElementVisible teamStacksSelector, 20000
-          .waitForElementVisible stackTemplate, 20000
-          .click stackTemplate
-          .waitForElementVisible '.kdview.StackEditorView', 20000
-          .end()
+    browser
+      .pause 2000
+      .waitForElementVisible teamStacksSelector, 20000
+      .waitForElementVisible stackTemplate, 20000
+      .click stackTemplate
+      .waitForElementVisible '.kdview.StackEditorView', 20000
+      .end()
