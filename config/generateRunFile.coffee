@@ -95,13 +95,6 @@ generateDev = (KONFIG, options, credentials) ->
       echo copying #{kiteKeyFile} to $HOME/.kite/kite.key
       cp -f #{kiteKeyFile} $HOME/.kite/kite.key
 
-      echo '#---> BUILDING BROKER-CLIENT @chris <---#'
-      echo "building koding-broker-client."
-      cd #{options.projectRoot}/node_modules_koding/koding-broker-client
-      cake build
-      cd #{options.projectRoot}
-
-
       echo
       echo
       echo 'ALL DONE. Enjoy! :)'
