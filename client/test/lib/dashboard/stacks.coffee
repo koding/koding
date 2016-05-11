@@ -73,3 +73,20 @@ module.exports =
           .waitForElementVisible stackTemplate, 20000
           .end()
 
+
+  draftStacks: (browser) ->
+
+    draftStacksSelector = '.HomeAppView--section.drafts'
+    stackTemplate = "#{draftStacksSelector} .HomeAppViewListItem.StackTemplateItem"
+
+    host = utils.getUser()
+    url = helpers.getUrl(yes)
+    browser.url url, ->
+      teamsHelpers.loginToTeam browser, host, no, ->
+        browser
+          .pause 2000
+          .url stackEditorUrl
+          .waitForElementVisible draftStacksSelector, 20000
+          .waitForElementVisible stackTemplate, 20000
+          .end()
+
