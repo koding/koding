@@ -56,7 +56,7 @@ func init() {
 
 	top := string(bytes.TrimSpace(p))
 
-	p, err = ioutil.ReadFile(filepath.Join(top, "certs", "test_kontrol_rsa_private.pem"))
+	p, err = ioutil.ReadFile(filepath.Join(top, "vault", "private_keys", "kontrol", "kontrol.pem"))
 	if err != nil {
 		log.Println("unable to read private key:", err)
 		return
@@ -64,7 +64,7 @@ func init() {
 
 	defaultPrivateKey = string(p)
 
-	p, err = ioutil.ReadFile(filepath.Join(top, "certs", "test_kontrol_rsa_public.pem"))
+	p, err = ioutil.ReadFile(filepath.Join(top, "vault", "private_keys", "kontrol", "kontrol.pub"))
 	if err != nil {
 		log.Println("unable to read private key:", err)
 		return
