@@ -61,7 +61,7 @@ const (
 // migrated or updating partial migration status.
 type UpdateMigrationOptions struct {
 	MachineID bson.ObjectId // jMachine.objectId
-	Meta      interface{}   // jMachine.migration
+	Meta      interface{}   // jMachine.meta.migration
 	Log       logging.Logger
 }
 

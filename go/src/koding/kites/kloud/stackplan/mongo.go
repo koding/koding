@@ -124,7 +124,7 @@ func (db *mongoDatabase) Destroy(opts *DestroyOptions) error {
 var migrationBuilder = &object.Builder{
 	Tag:       "bson",
 	Sep:       ".",
-	Prefix:    "migration",
+	Prefix:    "meta.migration",
 	Recursive: true,
 }
 
@@ -166,9 +166,9 @@ func (db *mongoDatabase) Migrate(opts *MigrateOptions) error {
 	}
 
 	change := bson.M{
-		"migration.modifiedAt":      time.Now(),
-		"migration.status":          MigrationMigrated,
-		"migration.stackTemplateId": stack.Id,
+		"meta.migration.modifiedAt":      time.Now(),
+		"meta.migration.status":          MigrationMigrated,
+		"meta.migration.stackTemplateId": stack.Id,
 	}
 
 	for _, id := range opts.MachineIDs {

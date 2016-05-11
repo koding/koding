@@ -141,21 +141,21 @@ func (c *Client) Images() ([]*ec2.Image, error) {
 }
 
 // ImageByID is a wrapper for (*ec2.EC2).DescribeImages with image-id filter.
-func (c *Client) ImageByID(id string) (*ec2.Image, error) {
+func (c *Client) ImageByID(id string) (*Image, error) {
 	return c.imageBy("image-id", id)
 }
 
 // ImageByName is a wrapper for (*ec2.EC2).DescribeImages with name filter.
-func (c *Client) ImageByName(name string) (*ec2.Image, error) {
+func (c *Client) ImageByName(name string) (*Image, error) {
 	return c.imageBy("name", name)
 }
 
 // ImageByTag is a wrapper for (*ec2.EC2).DescribeImages with tag:Name filter.
-func (c *Client) ImageByTag(tag string) (*ec2.Image, error) {
+func (c *Client) ImageByTag(tag string) (*Image, error) {
 	return c.imageBy("tag:Name", tag)
 }
 
-func (c *Client) imageBy(key, value string) (*ec2.Image, error) {
+func (c *Client) imageBy(key, value string) (*Image, error) {
 	params := &ec2.DescribeImagesInput{
 		Filters: []*ec2.Filter{{
 			Name:   aws.String(key),
@@ -172,7 +172,9 @@ func (c *Client) imageBy(key, value string) (*ec2.Image, error) {
 	if len(resp.Images) > 1 {
 		c.Log.Warning("more than one image found with key=%q, value=%q: %+v", key, value, resp.Images)
 	}
-	return resp.Images[0], nil
+	return &Image{
+		Image: resp.Images[0],
+	}, nil
 }
 
 // RegisterImage is a wrapper for (*ec2.EC2).RegisterImage.
@@ -882,7 +884,7 @@ func (c *Client) CreateImage(instanceID, name string) (imageID string, err error
 
 // Image is a wrapper for ec2.Image.
 type Image struct {
-	Raw *ec2.Image
+	*ec2.Image
 }
 
 // Snapshot gives the ID and size of the snapshot that image uses.
@@ -890,7 +892,7 @@ type Image struct {
 // NOTE(rjeczalik): The API was built for provider/aws migration of koding
 // instances, which had only a single EBS.
 func (i *Image) Snapshot() (string, int64, error) {
-	for _, dev := range i.Raw.BlockDeviceMappings {
+	for _, dev := range i.BlockDeviceMappings {
 		if dev.Ebs == nil {
 			continue
 		}
@@ -898,34 +900,12 @@ func (i *Image) Snapshot() (string, int64, error) {
 		return aws.StringValue(dev.Ebs.SnapshotId), aws.Int64Value(dev.Ebs.VolumeSize), nil
 	}
 
-	return "", 0, fmt.Errorf("no snapshots found for %s image", aws.StringValue(i.Raw.ImageId))
+	return "", 0, fmt.Errorf("no snapshots found for %s image", i.ID())
 }
 
-// DescribeImage looks up an image by its id.
-//
-// If call succeeds but no snapshots were found, it returns non-nil
-// *NotFoundError.
-func (c *Client) DescribeImage(imageID string) (*Image, error) {
-	params := &ec2.DescribeImagesInput{
-		ImageIds: []*string{aws.String(imageID)},
-	}
-
-	resp, err := c.EC2.DescribeImages(params)
-	if err != nil {
-		return nil, awsError(err)
-	}
-
-	if len(resp.Images) == 0 {
-		return nil, newNotFoundError("Image", fmt.Errorf("no image found with id=%s", imageID))
-	}
-
-	if len(resp.Images) > 1 {
-		c.Log.Warning("more than one image found with id=%s", imageID)
-	}
-
-	return &Image{
-		Raw: resp.Images[0],
-	}, nil
+// ID gives the image id.
+func (i *Image) ID() string {
+	return aws.StringValue(i.ImageId)
 }
 
 // WaitImage blocks until an imgage given by the imageID becomes
@@ -949,7 +929,7 @@ func (c *Client) AllowCopyImage(image *Image, accountID string) error {
 	}
 
 	imgParams := &ec2.ModifyImageAttributeInput{
-		ImageId: image.Raw.ImageId,
+		ImageId: image.ImageId,
 		LaunchPermission: &ec2.LaunchPermissionModifications{
 			Add: []*ec2.LaunchPermission{{
 				UserId: aws.String(accountID),

@@ -14,12 +14,16 @@ import (
 )
 
 // Bootstrap
-func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
+func (s *Stack) Bootstrap(context.Context) (interface{}, error) {
 	var arg kloud.BootstrapRequest
 	if err := s.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
 	}
 
+	return s.bootstrap(&arg)
+}
+
+func (s *Stack) bootstrap(arg *kloud.BootstrapRequest) (interface{}, error) {
 	if err := arg.Valid(); err != nil {
 		return nil, err
 	}

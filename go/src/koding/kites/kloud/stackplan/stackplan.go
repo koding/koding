@@ -23,14 +23,13 @@ import (
 var defaultLog = common.NewLogger("stackplan", false)
 
 // credPermissions defines the permission grid for the given method
-var (
-	credPermissions = map[string][]string{
-		"bootstrap":    []string{"owner"},
-		"plan":         []string{"user", "owner"},
-		"apply":        []string{"user", "owner"},
-		"authenticate": []string{"user", "owner"},
-	}
-)
+var credPermissions = map[string][]string{
+	"bootstrap":    []string{"owner"},
+	"plan":         []string{"user", "owner"},
+	"apply":        []string{"user", "owner"},
+	"authenticate": []string{"user", "owner"},
+	"migrate":      []string{"owner"},
+}
 
 // Machine represents a jComputeStack.machine value.
 type Machine struct {

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"gopkg.in/mgo.v2/bson"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -13,6 +15,7 @@ import (
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/provider"
+	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/stackplan"
 
 	"golang.org/x/net/context"
@@ -170,6 +173,7 @@ type Stack struct {
 	*provider.BaseStack
 
 	p *stackplan.Planner
+	m *MigrateProvider
 }
 
 // Ensure Provider implements the kloud.StackProvider interface.
@@ -184,11 +188,24 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 		return nil, err
 	}
 
-	return &Stack{
+	s := &Stack{
 		BaseStack: bs,
 		p: &stackplan.Planner{
 			Provider:     "aws",
 			ResourceType: "instance",
 		},
-	}, nil
+	}
+
+	if p.Koding != nil {
+		s.m = &MigrateProvider{
+			Stack:      s,
+			Koding:     p.Koding,
+			Locker:     p.BaseProvider,
+			Status:     make(map[bson.ObjectId]*MigrationMeta),
+			KodingMeta: make(map[bson.ObjectId]*koding.Meta),
+			Log:        p.Log.New("migrate"),
+		}
+	}
+
+	return s, nil
 }
