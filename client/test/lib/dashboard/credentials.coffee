@@ -32,9 +32,6 @@ module.exports =
       .url credentialsUrl
       .waitForElementVisible sectionSelector, 20000
 
-
-  showAndRemoveCredential: (browser) ->
-
     sectionSelector = '.kdview.kdtabpaneview.credentials'
     credential = '.kdview.kdlistitemview.kdlistitemview-default.credential-item'
     showButton = "#{credential} .custom-link-view.HomeAppView--link.primary"
@@ -64,3 +61,4 @@ module.exports =
       .waitForElementVisible removeCredentialButton, 20000
       .click removeCredentialButton
       .pause 2000
+      .end()
