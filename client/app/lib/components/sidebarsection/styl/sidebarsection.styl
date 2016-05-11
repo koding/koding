@@ -16,11 +16,17 @@
   font-size                 $fs-small
   height                    16px
   line-height               16px
-  color                     $gray-8
   word-spacing              0.2em
   text-transform            uppercase
   ellipsis()
   antialiased()
+
+  a
+  a:active
+  a:visited
+    color                   $gray-8
+    noTextDeco()
+    pointer()
 
 .SidebarSection-body
   padding-left              2px

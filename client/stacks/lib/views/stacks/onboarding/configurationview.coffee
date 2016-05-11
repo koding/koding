@@ -27,6 +27,8 @@ module.exports = class ConfigurationView extends JView
       enableMoveTabHandle : no
       tabHandleContainer  : @tabHandleContainer
 
+    @tabView.unsetClass 'kdscrollview'
+
     @on 'PlusHandleClicked', @bound 'addPane'
 
     @addPane no
@@ -71,11 +73,12 @@ module.exports = class ConfigurationView extends JView
 
   pistachio: ->
 
-    return '''
-      <div class="header">
-        <p class="title">What do you want installed?</p>
-        <p class="description">You can configure your services or install new ones.</p>
-      </div>
+    '''
+    <header>
+      <h1>What do you want installed?</h1>
+    </header>
+    <main>
       {{> @tabHandleContainer}}
       {{> @tabView}}
+    </main>
     '''

@@ -29,6 +29,36 @@ module.exports = class UsersStore extends KodingFluxStore
     @on actions.SET_CREATE_CHANNEL_PARTICIPANT_DELETE_FLAG, @handleSetParticipantDeleteFlag
     @on actions.UNSET_CREATE_CHANNEL_PARTICIPANT_DELETE_FLAG, @handleUnsetParticipantDeleteFlag
 
+    @on actions.FETCH_TEAM_MEMBERS_SUCCESS, @handleLoadListSuccess
+
+    @on actions.UPDATE_TEAM_MEMBER, @handleUpdateTeamMember
+    @on actions.DELETE_TEAM_MEMBER, @handleDeleteTeamMember
+
+
+  ###*
+   * Handler for DELETE_TEAM_MEMBER action.
+   * It sets state's value as given given user.
+   *
+   * @param {Immutable.Map} users
+   * @param {object} user
+  ###
+  handleDeleteTeamMember: (users, userId) ->
+
+    return users.delete userId
+
+
+  ###*
+   * Handler for UPDATE_TEAM_MEMBER action.
+   * It sets state's value as given given user.
+   *
+   * @param {Immutable.Map} users
+   * @param {object} user
+  ###
+  handleUpdateTeamMember: (users, { account }) ->
+
+    return users.set account.get('id'), account
+
+
   ###*
    * Load account.
    *

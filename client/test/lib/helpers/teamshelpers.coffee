@@ -38,7 +38,6 @@ module.exports =
       .click                  'button[testpath=domain-button]'
       .pause                  2000 # wait for modal change
 
-    console.log 'enterTeamURL'
 
   fillUsernamePasswordForm: (browser, user, invalidUserName = no) ->
 
@@ -81,17 +80,17 @@ module.exports =
           @loginAssertion(browser)
 
 
-  loginAssertion: (browser) ->
+  loginAssertion: (browser, callback) ->
 
     user = utils.getUser()
 
     browser
-      .waitForElementVisible  '[testpath=main-sidebar]', 20000 # Assertion
+      .waitForElementVisible  '[testpath=main-sidebar]', 20000, yes, callback # Assertion
 
     console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password} to team: #{helpers.getUrl(yes)}"
 
 
-  loginToTeam: (browser, user, invalidCredentials = no) ->
+  loginToTeam: (browser, user, invalidCredentials = no, callback = -> ) ->
 
     incorrectEmailAddress = 'a@b.com'
     incorrectUserName     = 'testUserName'
@@ -103,18 +102,18 @@ module.exports =
     inputPassword         = 'input[name=password]'
     loginButton           = 'button[testpath=login-button]'
 
+
     browser
       .pause                  2000 # wait for login page
       .waitForElementVisible  '.TeamsModal--login', 20000
       .waitForElementVisible  'form.login-form', 20000
       .setValue               'input[name=username]', user.username
       .setValue               'input[name=password]', user.password
-      .click                  'button[testpath=login-button]'
-
-    @loginAssertion(browser)
+      .click                  'button[testpath=login-button]', => @loginAssertion browser, callback
 
 
-  loginTeam: (browser, invalidCredentials = no) ->
+
+  loginTeam: (browser, invalidCredentials = no, callback = -> ) ->
 
     user               = utils.getUser()
     url                = helpers.getUrl(yes)
@@ -154,7 +153,7 @@ module.exports =
       .waitForElementVisible modalSelector, 20000
       .click                 '.TeamsModal-button-link a'
       .pause                 2000
-      .waitForElementVisible sectionSelector, 20000
+      .waitForElementVisible modalSelector, 20000
       .pause                 2000
       .click                 '.TeamsModal-button-link a'
       .pause                 2000
@@ -273,7 +272,7 @@ module.exports =
 
   openStackCatalog: (browser, clickStartButton = yes) ->
 
-    stackCreateButton        = '.activity-sidebar .SidebarTeamSection a[href="/Stacks/Welcome"]'
+    stackCreateButton        = '.activity-sidebar .SidebarTeamSection a[href="/Home/Welcome"]'
     stacksHeader             = '.activity-sidebar .SidebarSection-headerTitle[href="/Stacks"]'
     teamStackTemplatesButton = "#{stackCatalogModal} .kdtabhandle-tabs .team-stack-templates"
     stackOnboardingPage      = '.stacks .stack-onboarding.get-started'
@@ -629,7 +628,7 @@ module.exports =
     stackModal           = '.stack-modal'
     modalCloseButton     = "#{stackModal} .gray"
     stackTabSelector     = '.team-stack-templates .kdtabhandle.stack-template.active'
-    finalizeStepsButton  = "#{sidebarSelector} a[href='/Stacks/Welcome']:not(.SidebarSection-headerTitle)"
+    finalizeStepsButton  = "#{sidebarSelector} a[href='/Home/Welcome']:not(.SidebarSection-headerTitle)"
 
     if doExtra
       @seeTemplatePreview(browser)
@@ -1031,7 +1030,7 @@ module.exports =
     browser.execute fn, params
 
 
-  fillJoinForm: (browser, userData, assertLoggedIn = yes) ->
+  fillJoinForm: (browser, userData, assertLoggedIn = yes, callback = -> ) ->
 
     loginForm     = '.TeamsModal.TeamsModal--groupCreation.join'
     emailInput    = "#{loginForm} input[name=email]"
@@ -1051,7 +1050,7 @@ module.exports =
       .click                 joinButton
 
     if assertLoggedIn
-      @loginAssertion(browser)
+      @loginAssertion(browser, callback)
 
 
   getInvitationUrl: (browser, email, callback) ->

@@ -98,8 +98,19 @@ pre
           font-size         13px
           text-transform    capitalize
           width             100%
+          background        none
+          cursor            pointer
+          noTextDeco()
           ellipsis()
           dIBlock()
+          &:after
+            content         ''
+            r-sprite        'app' '20_chevron_gray'
+            margin-left     1px
+            margin-top      -3px
+            opacity         .7
+            vertical-align  top
+            dIBlock()
 
         a
           vendor            transition, width .3s ease
@@ -1429,9 +1440,6 @@ paymentGrayLighter  = #f8f8f8
   .content-container
     margin-bottom       30px
 
-    &.marketing-message
-      margin-bottom     0px
-
     .error-message
       padding               12px 0
       margin                22px 0 -30px 0
@@ -1595,19 +1603,6 @@ paymentGrayLighter  = #f8f8f8
       vendor                box-shadow, none
       rounded               4px
       vendor                transition, margin .3s ease
-
-  .marketing-snippet
-    margin-top          30px
-    padding             30px 40px
-    background          #f7f7f7
-
-    .marketing-snippet-content
-      display           block
-      width             100%
-      height            140px
-
-    .marketing-snippet-markdown
-      text-align        left
 
 .managed-vm
 

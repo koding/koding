@@ -1,0 +1,64 @@
+@css {
+/*
+Generic stylesheet
+generic.styl
+*/
+}
+
+$accentColor                = #F2778A
+$accentActiveColor          = #DF6E7F
+$dangerColor                = #D75B5B
+$dangerActiveColor          = #E14A35
+$secondaryColor             = #858585
+$secondaryActiveColor       = #656565
+
+.GenericButton
+  color                     white
+  bg                        color, $accentColor
+  padding                   12px 24px
+  border                    none
+  rounded                   4px
+  &:active
+  &:hover
+    bg                      color, $accentActiveColor
+
+  &.danger
+    bg                      color, $dangerColor
+    &:active
+    &:hover
+      bg                    color, $dangerActiveColor
+
+  &.secondary
+    bg                      color, $secondaryColor
+    &:active
+    &:hover
+      bg                    color, $secondaryActiveColor
+
+  span.button-title
+    font-family             SoleilFamily
+    font-size               13.5px
+    font-weight             400
+    letter-spacing          .3px
+
+
+.HomeAppView--button
+  font-size                 14px
+  font-weight               100
+  padding-right             2px
+  color                     #ABABAB
+  noTextDeco()
+  dIBlock()
+
+  &.primary
+    color                   #769ECC
+
+  &.danger
+    color                   #e14a35
+
+.HomeAppView--link
+  bg                        color, transparent
+  color                     #9f9f9f
+  noTextDeco()
+
+  &.primary
+    color                   #769ecc !important

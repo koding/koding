@@ -750,6 +750,13 @@ module.exports = class ComputeController extends KDController
 
       actions.reinitStack stack._id
       @eventListener.addListener 'apply', stackId  if followEvents
+
+      Tracker.track Tracker.STACKS_DELETE, {
+        customEvent :
+          stackId   : stackId
+          group     : getGroup().slug
+      }
+
       callback? null
 
       return res
@@ -1165,7 +1172,12 @@ module.exports = class ComputeController extends KDController
 
     { baseStackId } = stack
 
-    remote.cacheable 'JStackTemplate', baseStackId, (err, template) ->
+    @fetchStackTemplate baseStackId, callback
+
+
+  fetchStackTemplate: (id, callback = kd.noop) ->
+
+    remote.cacheable 'JStackTemplate', id, (err, template) ->
       return callback err  if err
       return callback null, template
 

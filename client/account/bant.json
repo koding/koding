@@ -2,9 +2,9 @@
   "name": "account",
   "main": "./lib/index.coffee",
   "routes": {
-    "/:name?/Account": "profile",
-    "/:name?/Account/:section": "section",
-    "/:name?/Account/Referrer": "referrer"
+    "/Account": "profile",
+    "/Account/:section": "section",
+    "/Account/Referrer": "referrer"
   },
   "sprites": [
     "./lib/sprites"
