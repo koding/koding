@@ -445,167 +445,97 @@ module.exports =
       .assert.containsText       emailList, userEmail
 
 
-  createStack: (browser, skipStackSetup = no) ->
+  createCredential: (browser, provider, credentialName, addMore = no, done) ->
 
-    modalSelector         = '.kdmodal-content .AppModal-content'
-    providerSelector      = "#{modalSelector} .stack-onboarding .provider-selection"
-    machineSelector       = "#{providerSelector} .providers"
-    stackPreview          = "#{modalSelector} .stack-preview"
-    codeSelector          = "#{stackPreview} .has-markdown"
-    footerSelector        = "#{modalSelector} .stacks .footer"
-    nextButtonSelector    = "#{footerSelector} button.next"
-    awsSelector           = "#{machineSelector} .aws"
-    configurationSelector = "#{modalSelector} .configuration .server-configuration"
-    inputSelector         = "#{configurationSelector} .Database"
-    mysqlSelector         = "#{inputSelector} .mysql input.checkbox + label"
-    postgresqlSelector    = "#{inputSelector} .postgresql input.checkbox + label"
-    server1PageSelector   = "#{modalSelector} .code-setup .server-1"
-    githubSelector        = "#{server1PageSelector} .box-wrapper .github"
-    bitbucketSelector     = "#{server1PageSelector} .box-wrapper .bitbucket"
-    editorSelector        = "#{modalSelector} .editor-main"
-    skipSetupSelector     = '.footer .skip-setup'
-    stackTemplateSelector = '.kdtabhandlecontainer.hide-close-icons .stack-template'
-    saveAndTestButton     = '.buttons button:nth-of-type(5)'
+    url = helpers.getUrl(yes)
 
-    @openStackCatalog(browser)
-
-    if skipStackSetup
-      browser
-        .waitForElementVisible  skipSetupSelector, 20000
-        .click                  skipSetupSelector
-        .waitForElementVisible  stackTemplateSelector, 20000
-        .assert.containsText    stackTemplateSelector, 'Stack Template'
-        .assert.containsText    saveAndTestButton, 'SAVE & TEST'
-    else
-      browser
-        .waitForElementVisible  providerSelector, 20000
-        .waitForElementVisible  awsSelector, 20000
-        .waitForElementVisible  "#{machineSelector} .vagrant" , 20000 # Assertion
-        .click                  awsSelector
-        .waitForElementVisible  stackPreview, 20000
-        .waitForElementVisible  codeSelector, 20000
-        .assert.containsText    codeSelector, 'koding_group_slug'
-        .waitForElementVisible  footerSelector, 20000
-        .waitForElementVisible  nextButtonSelector, 20000
-        .pause                  2000 # wait for animation
-        .click                  nextButtonSelector
-        .waitForElementVisible  configurationSelector, 20000
-        .pause                  2000 # wait for animation
-        .waitForElementVisible  mysqlSelector, 20000
-        .click                  mysqlSelector
-        .pause                  2000 # wait for animation
-        .waitForElementVisible  postgresqlSelector, 20000
-        .click                  postgresqlSelector
-        .waitForElementVisible  stackPreview, 20000
-        .assert.containsText    codeSelector, 'mysql-server postgresql'
-        .waitForElementVisible  nextButtonSelector, 20000
-        .pause                  2000 # wait for animation
-        .click                  nextButtonSelector
-        .waitForElementVisible  server1PageSelector, 20000
-        .waitForElementVisible  githubSelector, 20000 # Assertion
-        .waitForElementVisible  bitbucketSelector, 20000 # Assertion
-        .waitForElementVisible  nextButtonSelector, 20000
-        .moveToElement          nextButtonSelector, 15, 10
-        .pause                  2000
-        .click                  nextButtonSelector
-        .waitForElementVisible  "#{modalSelector} .define-stack-view", 20000
-        .waitForElementVisible  editorSelector, 20000
-        .pause                  1000
-        .assert.containsText    editorSelector, 'aws_instance'
+    stacksPageSelector = '.HomeAppView-Stacks--create'
+    newStackButton = "#{stacksPageSelector} .kdbutton.GenericButton.HomeAppView-Stacks--createButton"
+    stackOnboardingPage = '.kdview.stack-onboarding.main-content.get-started'
+    createStackButton = '.kdbutton.GenericButton.StackEditor-OnboardingModal--create'
+    providers = '.providers.box-wrapper'
+    providerSelector = "#{providers} .provider.box.#{provider}"
+    skipGuideButton = '.kdview.stack-onboarding.main-content a.custom-link-view.HomeAppView--button'
+    stackEditorTab = '.kdview.kdtabview.StackEditorTabs'
+    credentialsTabSelector = "#{stackEditorTab} div.kdtabhandle.credentials.notification"
+    checkForCredentials = ".kdview.kdlistitemview.kdlistitemview-default.StackEditor-CredentialItem.#{provider}"
+    createNewButton = '.kdview.stacks.step-creds .kdbutton.add-big-btn.with-icon'
 
 
-  createCredential: (browser, show = no, remove = no, use = no) ->
+    browser
+      .url "#{url}/Home/stacks"
+      .waitForElementVisible stacksPageSelector, 20000
+      .click newStackButton
+      .pause 2000
+      .waitForElementVisible stackOnboardingPage, 20000
+      .waitForElementVisible createStackButton, 20000
+      .click createStackButton
+      .waitForElementVisible providers, 20000
+      .click providerSelector
+      .waitForElementVisible skipGuideButton, 20000
+      .click skipGuideButton
+      .pause 5000
+      .waitForElementVisible stackEditorTab, 20000
+      .click credentialsTabSelector
+    browser.element 'css selector', checkForCredentials, (result) =>
+      if result.status is -1
+        @fillCredentialsPage browser, credentialName, done
+      else
+        if addMore
+          browser
+            .waitForElementVisible createNewButton, 20000
+            .click createNewButton
+            .pause 2000, =>
+              @fillCredentialsPage browser, credentialName, done
+        else
+          done()
 
-    credetialTabSelector     = '.team-stack-templates .kdtabhandle-tabs .credentials'
-    stackTabSelector         = '.team-stack-templates .kdtabhandle.stack-template.active'
-    credentialsPane          = '.credentials-form-view'
-    editorSelector           = '.editor-main'
-    saveButtonSelector       = '.add-credential-scroll .button-field button.green'
-    newCredential            = '.step-creds .listview-wrapper .credential-list .credential-item'
-    credentialName           = 'test credential'
-    showCredentialButton     = "#{newCredential} button.show"
-    deleteCredentialButton   = "#{newCredential} button.delete"
-    useCredentialButton      = "#{newCredential} button.verify"
-    inUseLabelSelector       = "#{newCredential} .custom-tag.inuse"
-    secretKeyInput           = "#{credentialsPane} .secret-key input"
-    destroyCredentialModal   = '.kdmodal[testpath=destroyCredentialModal]'
-    removeCredentialModal    = '.kdmodal[testpath=removeCredentialModal]'
-    destroyCredentialsButton = '.kdbutton[testpath=destroyAll]'
-    removeCredentialButton   = '.kdbutton[testpath=removeCredential]'
+
+  fillCredentialsPage: (browser, name, done) ->
+
+    newCredentialPage = '.kdview.stacks.stacks-v2'
+    saveButton = "#{newCredentialPage} button[type=submit]"
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
-    keyPart    = accessKeyId.substr accessKeyId.length - 6
-    secretPart = secretAccessKey.substr secretAccessKey.length - 13
-
     browser
-      .waitForElementVisible  credetialTabSelector, 20000
-      .moveToElement          credetialTabSelector, 50, 21
-      .click                  credetialTabSelector
-      .pause                  2000
+      .waitForElementVisible newCredentialPage, 20000
+      .scrollToElement saveButton
+      .setValue "#{newCredentialPage} .title input", name
+      .pause 1000
+      .setValue "#{newCredentialPage} .access-key input", accessKeyId
+      .pause 1000
+      .setValue "#{newCredentialPage} .secret-key input", secretAccessKey
+      .pause 1000
+      .click saveButton, -> done()
 
-    browser.element 'css selector', newCredential, (result) ->
-      if result.status is -1
+
+  createStack: (browser, done) ->
+
+    url = helpers.getUrl(yes)
+
+    credentialSelector = '.kdview.kdlistitemview.kdlistitemview-default.StackEditor-CredentialItem'
+    useThisAndContinueButton = '.StackEditor-CredentialItem--buttons .kdbutton.solid.compact.outline.verify'
+    editorPaneSelector = '.kdview.pane.editor-pane.editor-view'
+    saveButtonSelector = '.StackEditorView--header .kdbutton.GenericButton.save-test'
+    successModal = '.kdmodal-inner .kdmodal-content'
+    closeButton = '.kdmodal-inner .kdview.kdmodal-buttons .kdbutton.solid.medium.gray'
+    browser
+      .pause 2000
+      .click useThisAndContinueButton
+      .waitForElementVisible editorPaneSelector, 20000
+      .click saveButtonSelector
+    browser.element 'css selector', successModal, (result) ->
+      if result.status is 0
         browser
-          .waitForElementVisible  credentialsPane, 20000
-          .setValue               "#{credentialsPane} .title input", credentialName
-          .pause                  500
-          .setValue               "#{credentialsPane} .access-key input", accessKeyId
-          .pause                  500
-          .scrollToElement        secretKeyInput
-          .setValue               secretKeyInput, secretAccessKey
-          .pause                  1000
-          .click                  '.credential-creation-intro'
-          .scrollToElement        saveButtonSelector
-          .click                  saveButtonSelector
-          .pause                  2000 # wait for loade next page
-          .waitForElementVisible  newCredential, 20000
-          .assert.containsText    newCredential, credentialName
+          .waitForElementVisible successModal, 40000
+          .click closeButton, ->
+            browser.end()
+            done()
+      else
+        browser.end()
+        done()
 
-      browser
-        .waitForElementVisible    newCredential, 20000
-        .moveToElement            newCredential, 300, 20
-        .pause                    1000
-
-      if show
-        browser
-          .waitForElementVisible  showCredentialButton, 20000
-          .click                  showCredentialButton
-          .waitForElementVisible  '.credential-modal', 20000
-          .pause                  2000
-          .assert.containsText    '.credential-modal .kdmodal-title', 'test credential'
-          .assert.containsText    '.credential-modal .kdmodal-content', keyPart
-          .assert.containsText    '.credential-modal .kdmodal-content', secretPart
-
-      if remove
-        browser
-          .waitForElementVisible    deleteCredentialButton, 20000
-          .click                    deleteCredentialButton
-          .pause                    2000
-          .element                  'css selector', destroyCredentialModal, (result) ->
-            buttonSelector = removeCredentialButton
-            modalSelector  = removeCredentialModal
-
-            if result.status is 0
-              buttonSelector = destroyCredentialsButton
-              modalSelector  = destroyCredentialModal
-
-            browser
-              .assert.containsText      modalSelector, credentialName
-              .click                    buttonSelector
-              .waitForElementNotPresent modalSelector, 60000
-              .waitForElementNotPresent newCredential, 20000
-
-      if use
-        browser
-          .waitForElementVisible    useCredentialButton, 20000
-          .click                    useCredentialButton
-          .waitForElementVisible    stackTabSelector, 20000
-          .waitForElementVisible    editorSelector, 20000
-          .click                    credetialTabSelector
-          .pause                    1000
-          .waitForElementVisible    newCredential, 20000
-          .waitForElementVisible    inUseLabelSelector, 20000
 
 
   clickSaveAndTestButton: (browser) ->
