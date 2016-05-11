@@ -10,6 +10,7 @@ import (
 
 	"koding/kites/kloud/keycreator"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite/kitekey"
 	"github.com/satori/go.uuid"
 )
@@ -44,8 +45,36 @@ func main() {
 	}
 }
 
-func show() error {
-	tok, err := kitekey.ParseFile(*file)
+func show() (err error) {
+	var tok *jwt.Token
+
+	if *pub != "" {
+		key, err := ioutil.ReadFile(*file)
+		if err != nil {
+			return err
+		}
+
+		p, err := ioutil.ReadFile(*pub)
+		if err != nil {
+			return err
+		}
+
+		// try if it's a kite.key, if yes read kontrolKey
+		if tok, err := jwt.Parse(string(p), kitekey.GetKontrolKey); err == nil {
+			p = []byte(tok.Claims["kontrolKey"].(string))
+		}
+
+		p = bytes.TrimSpace(p)
+
+		pubFn := func(*jwt.Token) (interface{}, error) {
+			return p, nil
+		}
+
+		tok, err = jwt.Parse(string(key), pubFn)
+
+	} else {
+		tok, err = kitekey.ParseFile(*file)
+	}
 	if err != nil {
 		return fmt.Errorf("reading %q failed: %s", *file, err)
 	}
