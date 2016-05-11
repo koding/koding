@@ -310,7 +310,8 @@ module.exports =
       .pause 1000
       .click "#{newCredentialPage} .title input"
       .pause 1000
-      .click saveButton, -> done()
+      .click saveButton
+      .pause 2000, -> done()
 
 
   createStack: (browser, done) ->
