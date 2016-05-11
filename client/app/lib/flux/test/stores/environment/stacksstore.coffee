@@ -69,7 +69,7 @@ describe 'StacksStore', ->
 
       expect(store).toExist()
 
-      @reactor.dispatch actionTypes.REINIT_STACK, _id
+      @reactor.dispatch actionTypes.REMOVE_STACK, _id
 
       store = @reactor.evaluate(['stacks']).get _id
 

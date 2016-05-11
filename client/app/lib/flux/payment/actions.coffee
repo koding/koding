@@ -1,3 +1,4 @@
+kd = require 'kd'
 appendHeadElement = require 'app/util/appendHeadElement'
 constants = require './constants'
 actionTypes = require './actiontypes'
@@ -6,7 +7,7 @@ getters = require './getters'
 
 loadStripeClient = ({ dispatch, evaluate }) -> ->
 
-  new Promise (resolve, reject) ->
+  return new Promise (resolve, reject) ->
 
     flags = evaluate getters.paymentValues
 
@@ -35,7 +36,7 @@ createStripeToken = ({ dispatch, evaluate }) -> (options) ->
     exp_year  : options.cardYear
     name      : options.cardName
 
-  new Promise (resolve, reject) ->
+  return new Promise (resolve, reject) ->
     loadStripeClient({ dispatch, evaluate })().then ->
       Stripe.card.createToken tokenOptions, (status, response) ->
         if err = response.error
@@ -49,7 +50,116 @@ createStripeToken = ({ dispatch, evaluate }) -> (options) ->
         resolve { token }
 
 
+loadGroupPlan = ({ dispatch, evaluate }) -> ->
+
+  { paymentController } = kd.singletons
+
+  return new Promise (resolve, reject) ->
+    dispatch actionTypes.LOAD_GROUP_PLAN_BEGIN
+
+    paymentController.fetchGroupPlan token, (err, plan) ->
+      if err
+        dispatch actionTypes.LOAD_GROUP_PLAN_FAIL, { err }
+        reject err
+        return
+
+      dispatch actionTypes.LOAD_GROUP_PLAN_SUCCESS, { plan }
+      resolve { plan }
+
+
+subscribeGroupPlan = ({ dispatch, evaluate }) -> ({ token, email }) ->
+
+  { paymentController } = kd.singletons
+
+  return new Promise (resolve, reject) ->
+    dispatch actionTypes.SUBSCRIBE_GROUP_PLAN_BEGIN
+
+    paymentController.subscribeGroup { token, email }, (err, plan) ->
+      if err
+        dispatch actionTypes.SUBSCRIBE_GROUP_PLAN_FAIL, { err }
+        reject err
+        return
+
+      dispatch actionTypes.SUBSCRIBE_GROUP_PLAN_SUCCESS, { plan }
+      resolve { plan }
+
+
+removeGroupPlan = ({ dispatch }) -> ->
+
+  { paymentController } = kd.singletons
+
+  return new Promise (resolve, reject) ->
+    dispatch actionTypes.REMOVE_GROUP_PLAN_BEGIN
+
+    paymentController.removeGroupPlan (err) ->
+      if err
+        dispatch actionTypes.REMOVE_GROUP_PLAN_FAIL, { err }
+        reject err
+        return
+
+      dispatch actionTypes.REMOVE_GROUP_PLAN_SUCCESS
+      resolve()
+
+
+loadGroupCreditCard = ({ dispatch }) -> ->
+
+  { paymentController } = kd.singletons
+
+  return new Promise (resolve, reject) ->
+    dispatch actionTypes.LOAD_GROUP_CREDIT_CARD_BEGIN
+
+    paymentController.fetchGroupCreditCard (err, card) ->
+      if err
+        dispatch actionTypes.LOAD_GROUP_CREDIT_CARD_FAIL, { err }
+        reject err
+        return
+
+      dispatch actionTypes.LOAD_GROUP_CREDIT_CARD_SUCCESS, { card }
+      resolve { card }
+
+
+updateGroupCreditCard = ({ dispatch }) -> ({ token }) ->
+
+  { paymentController } = kd.singletons
+
+  return new Promise (resolve, reject) ->
+    dispatch actionTypes.UPDATE_GROUP_CREDIT_CARD_BEGIN
+
+    paymentController.updateGroupCreditCard token, (err, card) ->
+      if err
+        dispatch actionTypes.UPDATE_GROUP_CREDIT_CARD_FAIL, { err }
+        reject err
+        return
+
+      dispatch actionTypes.UPDATE_GROUP_CREDIT_CARD_SUCCESS, { card }
+      resolve { card }
+
+
+loadGroupInvoices = ({ dispatch }) -> ->
+
+  { paymentController } = kd.singletons
+
+  return new Promise (resolve, reject) ->
+
+    dispatch actionTypes.LOAD_GROUP_INVOICES_BEGIN
+
+    paymentController.fetchGroupInvoices (err, invoices) ->
+      if err
+        dispatch actionTypes.LOAD_GROUP_INVOICES_FAIL, { err }
+        reject err
+        return
+
+      dispatch actionTypes.LOAD_GROUP_INVOICES_SUCCESS, { invoices }
+      resolve { invoices }
+
+
 module.exports = {
   loadStripeClient
   createStripeToken
+  loadGroupPlan
+  subscribeGroupPlan
+  removeGroupPlan
+  loadGroupCreditCard
+  updateGroupCreditCard
+  loadGroupInvoices
 }

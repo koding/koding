@@ -1,0 +1,16 @@
+{
+  "name": "home",
+  "main": "./lib/index.coffee",
+  "routes": {
+    "/Home": "home",
+    "/Home/:section": "section",
+    "/Home/:section/:action": "action",
+    "/Home/:section/:action/:identifier": "identifier"
+  },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl/*.styl"
+  ]
+}

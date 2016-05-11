@@ -974,45 +974,6 @@ dropdownBorder = 1px solid #E0E0E0
       vendor                transition, top .3s ease
       shadow                0 0px 10px rgba(0,0,0,.2)
 
-      .hamburger-menu
-        display             block
-        abs                 0px 0 0 0px
-        size                61px, 61px
-        background          none
-        border              none
-        shadow              none
-        text-align          center
-        line-height         61px
-        padding             0
-        vendor              transition, background .3s .3s ease
-
-        .icon
-          width             14px
-          height            3px
-          background        #fff
-          display           inline-block
-          position          relative
-          vertical-align    middle
-          opacity           .3
-          -webkit-transition -webkit-transform .3s ease
-          -moz-transition   -moz-transform .3s ease
-
-          &:after
-          &:before
-            content         ''
-            display         block
-            width           100%
-            height          3px
-            background      inherit
-            position        absolute
-            left            0
-
-          &:before
-            top             -5px
-
-          &:after
-            top             5px
-
       .logo-wrapper
         size                90px auto
         bg                  color #262626
@@ -1027,23 +988,6 @@ dropdownBorder = 1px solid #E0E0E0
 
       nav
         display             none
-
-  #kdmaincontainer.with-sidebar.mobile-menu-active
-    vendor                  transform, translateX(258px) !important
-
-    #main-header .hamburger-menu
-      background            #454545
-      vendor                pointer-events, none
-
-      .icon
-        vendor              transform, rotateZ(45deg)
-
-        &:before
-          vendor            transform, rotateZ(-90deg)
-          top               0
-
-        &:after
-          opacity           0
 
   .reply-input-widget.private
     margin-left             0

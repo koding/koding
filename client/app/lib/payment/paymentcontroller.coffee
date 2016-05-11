@@ -1,6 +1,7 @@
 kd      = require 'kd'
 remote  = require('../remote').getInstance()
 globals = require 'globals'
+whoami = require 'app/util/whoami'
 
 
 module.exports = class PaymentController extends kd.Controller
@@ -27,6 +28,28 @@ module.exports = class PaymentController extends kd.Controller
       callback err, result
 
 
+  subscribeGroup: ({ token, email }, callback) ->
+
+    params = { token, email }
+
+    @api().subscribeGroup params, (err, plan) =>
+      callback err, plan
+      @emit 'GroupPlanUpdated'  unless err
+
+
+  # waiting for the team free plan to be exposed, because free_month is for
+  # only accounts. ~Umut
+  removeGroupPlan: (callback) ->
+
+    whoami().fetchEmail (err, email) =>
+      params =
+        token: 'a'
+        planTitle: 'free'
+        email: email
+
+      @api().subscribeGroup params, callback
+
+
   subscriptions: (callback) ->
 
     # return plan as 'koding' on default environment
@@ -40,6 +63,9 @@ module.exports = class PaymentController extends kd.Controller
   invoices: (callback) -> @api().invoices {}, callback
 
 
+  fetchGroupInvoices: (callback) -> @api().fetchGroupInvoices callback
+
+
   creditCard: (callback) ->
 
     @api().creditCard {}, (err, card) ->
@@ -47,6 +73,9 @@ module.exports = class PaymentController extends kd.Controller
       card = null  if isNoCard card
 
       return callback err, card
+
+
+  fetchGroupCreditCard: (callback) -> @api().fetchGroupCreditCard callback
 
 
   canUserPurchase: (callback) -> @api().canUserPurchase callback
@@ -58,6 +87,13 @@ module.exports = class PaymentController extends kd.Controller
     params.provider = DEFAULT_PROVIDER
 
     @api().updateCreditCard params, callback
+
+
+  updateGroupCreditCard: (token, callback) ->
+
+    params = { token, provider: DEFAULT_PROVIDER }
+
+    @api().updateGroupCreditCard params, callback
 
 
   canChangePlan: (planTitle, callback) ->

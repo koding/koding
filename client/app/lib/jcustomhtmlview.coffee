@@ -1,8 +1,7 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
+kd    = require 'kd'
 JView = require './jview'
 
 
-module.exports = class JCustomHTMLView extends KDCustomHTMLView
+module.exports = class JCustomHTMLView extends kd.CustomHTMLView
 
   JView.mixin @prototype

@@ -22,7 +22,7 @@ module.exports = class StacksStore extends KodingFluxStore
 
     @on actions.LOAD_USER_STACKS_SUCCESS, @load
     @on actions.STACK_UPDATED, @updateStack
-    @on actions.REINIT_STACK, @removeStack
+    @on actions.REMOVE_STACK, @removeStack
 
 
   load: (stacks, jstacks) ->

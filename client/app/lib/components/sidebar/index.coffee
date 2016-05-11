@@ -1,18 +1,20 @@
-kd                             = require 'kd'
-React                          = require 'kd-react'
-ActivityFlux                   = require 'activity/flux'
-EnvironmentFlux                = require 'app/flux/environment'
-Scroller                       = require 'app/components/scroller'
-KDReactorMixin                 = require 'app/flux/base/reactormixin'
-SidebarNoStacks                = require 'app/components/sidebarstacksection/sidebarnostacks'
-SidebarStackSection            = require 'app/components/sidebarstacksection'
-SidebarChannelsSection         = require 'app/components/sidebarchannelssection'
-SidebarMessagesSection         = require 'app/components/sidebarmessagessection'
-SidebarStackHeaderSection      = require 'app/components/sidebarstacksection/sidebarstackheadersection'
-SidebarSharedMachinesSection   = require 'app/components/sidebarsharedmachinessection'
+_ = require 'lodash'
+kd = require 'kd'
+Link = require 'app/components/common/link'
+React = require 'kd-react'
+Scroller = require 'app/components/scroller'
+ActivityFlux = require 'activity/flux'
+KDReactorMixin = require 'app/flux/base/reactormixin'
+EnvironmentFlux = require 'app/flux/environment'
+SidebarNoStacks = require 'app/components/sidebarstacksection/sidebarnostacks'
+SidebarStackSection = require 'app/components/sidebarstacksection'
+SidebarStackHeaderSection = require 'app/components/sidebarstacksection/sidebarstackheadersection'
+SidebarSharedMachinesSection = require 'app/components/sidebarsharedmachinessection'
 SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
 SidebarDifferentStackResources = require 'app/components/sidebarstacksection/sidebardifferentstackresources'
+{ findDOMNode } = require 'react-dom'
 
+MENU = null
 
 module.exports = class Sidebar extends React.Component
 
@@ -20,18 +22,13 @@ module.exports = class Sidebar extends React.Component
 
   { getters, actions } = ActivityFlux
 
-  constructor: ->
-
-    @state =
-      showNoStacksWidget : no
-
-
   getDataBindings: ->
     return {
       publicChannels               : getters.followedPublicChannelThreadsWithSelectedChannel
       privateChannels              : getters.followedPrivateChannelThreads
       selectedThreadId             : getters.selectedChannelThreadId
       stacks                       : EnvironmentFlux.getters.stacks
+      drafts                       : EnvironmentFlux.getters.draftStackTemplates
       sharedMachines               : EnvironmentFlux.getters.sharedMachines
       collaborationMachines        : EnvironmentFlux.getters.collaborationMachines
       sharedMachineListItems       : EnvironmentFlux.getters.sharedMachineListItems
@@ -47,13 +44,11 @@ module.exports = class Sidebar extends React.Component
 
   componentWillMount: ->
 
-    EnvironmentFlux.actions.loadStacks().then (stacks) =>
-      @setState { showNoStacksWidget : yes }  unless stacks.length
-
+    EnvironmentFlux.actions.loadStacks()
     EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
 
-    actions.channel.loadFollowedPublicChannels()
-    actions.channel.loadFollowedPrivateChannels()
+    EnvironmentFlux.actions.loadTeamStackTemplates()
+    EnvironmentFlux.actions.loadPrivateStackTemplates()
 
     # These listeners needs to be listen those events only once ~ GG
     kd.singletons.notificationController
@@ -69,6 +64,41 @@ module.exports = class Sidebar extends React.Component
           EnvironmentFlux.actions.dispatchSharedVMInvitationRejected options.machineId
 
         EnvironmentFlux.actions.loadMachines()
+
+
+  onMenuItemClick: (id, item, event) ->
+
+    { router } = kd.singletons
+
+    { title } = item.getData()
+    MENU.destroy()
+
+    draft = @state.drafts.get id
+    switch title
+      when 'Edit' then router.handleRoute "/Stack-Editor/#{id}"
+      when 'Initialize' then EnvironmentFlux.actions.generateStack id
+
+
+  onDraftTitleClick: (id, event) ->
+
+    kd.utils.stopDOMEvent event
+
+    lastLayer = kd.singletons.windowController.layers?.first
+
+    return  if MENU
+
+    callback = (item, event) => @onMenuItemClick id, item, event
+
+    menuItems = {}
+    ['Edit', 'Initialize'].forEach (name) => menuItems[name] = { callback }
+
+    { top } = findDOMNode(@refs["draft-#{id}"]).getBoundingClientRect()
+
+    menuOptions = { cssClass: 'SidebarMenu', x: 36, y: top + 31 }
+
+    MENU = new kd.ContextMenu menuOptions, menuItems
+
+    MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
 
 
   setActiveInvitationMachineId: ->
@@ -95,7 +125,7 @@ module.exports = class Sidebar extends React.Component
           machine={machine} />
 
 
-  divideStacks:  ->
+  prepareStacks:  ->
 
     stackSections = []
     stackList     =
@@ -111,6 +141,8 @@ module.exports = class Sidebar extends React.Component
 
     # Render stacks of koding as first.
     stackList.koding.forEach (stack) => stackSections.push @renderStack stack
+
+    stackSections = stackSections.concat @renderDrafts()
 
     # Now render stack of managed vms last
     stackList.managed.forEach (stack) => stackSections.push @renderStack stack
@@ -128,13 +160,30 @@ module.exports = class Sidebar extends React.Component
       machines={stack.get 'machines'}/>
 
 
+  renderDrafts: ->
+
+    @state.drafts?.toList().toJS().map (template) =>
+      id = template._id
+      title = _.unescape template.title
+      <section className='SidebarSection SidebarStackSection draft'>
+        <header
+          ref="draft-#{id}"
+          key={id}
+          className="SidebarSection-header">
+          <h4 className='SidebarSection-headerTitle'>
+            <Link href="/Stack-Editor/#{id}" onClick={@onDraftTitleClick.bind this, id}>{title}</Link>
+          </h4>
+        </header>
+      </section>
+
+
   renderStacks: ->
 
-    if @state.stacks.size
+    if @state.stacks?.size or @state.drafts?.size
       <SidebarStackHeaderSection>
-        {@divideStacks()}
+        {@prepareStacks()}
       </SidebarStackHeaderSection>
-    else if @state.showNoStacksWidget
+    else
       <SidebarNoStacks />
 
 
@@ -159,16 +208,23 @@ module.exports = class Sidebar extends React.Component
       machines={machines}/>
 
 
-  renderChannels: ->
-    <SidebarChannelsSection
-      selectedId={@state.selectedThreadId}
-      threads={@state.publicChannels} />
+  renderLogo: ->
 
+    team = kd.singletons.groupsController.getCurrentGroup()
+    logo = team.customize?.logo
 
-  renderMessages: ->
-    <SidebarMessagesSection
-      selectedId={@state.selectedThreadId}
-      threads={@state.privateChannels} />
+    if logo
+      <img
+        src="#{logo}"
+        className='Sidebar-footer-logo'
+      />
+    else
+      <object
+        type='image/svg+xml'
+        data="#{logo or '/a/images/logos/sidebar_footer_logo.svg'}"
+        className='Sidebar-footer-logo'>
+        Koding Logo
+      </object>
 
 
   render: ->
@@ -181,12 +237,7 @@ module.exports = class Sidebar extends React.Component
         {@renderInvitationWidget()}
       </div>
       <div className='Sidebar-logo-wrapper'>
-        <object
-          type='image/svg+xml'
-          data='/a/images/logos/sidebar_footer_logo.svg'
-          className='Sidebar-footer-logo'>
-          Koding Logo
-        </object>
+        {@renderLogo()}
       </div>
     </Scroller>
 

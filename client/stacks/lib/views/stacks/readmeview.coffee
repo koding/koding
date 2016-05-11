@@ -1,8 +1,8 @@
-kd                      = require 'kd'
-Encoder                 = require 'htmlencode'
-
-MarkdownEditorView      = require './editors/markdowneditorview'
-StackBaseEditorTabView  = require './stackbaseeditortabview'
+kd = require 'kd'
+Encoder = require 'htmlencode'
+MarkdownEditorView = require './editors/markdowneditorview'
+StackBaseEditorTabView = require './stackbaseeditortabview'
+defaults = require '../../defaults'
 
 
 module.exports = class ReadmeView extends StackBaseEditorTabView
@@ -14,19 +14,9 @@ module.exports = class ReadmeView extends StackBaseEditorTabView
 
     { stackTemplate } = @getOptions()
 
-    defaultContent = '''
-      ##### Readme text for this stack template
-
-      You can write down a readme text for new users.
-      This text will be shown when they want to use this stack.
-      You can use markdown with the readme content.
-
-
-    '''
-
     content = if stackTemplate?.description \
       then Encoder.htmlDecode stackTemplate?.description
-      else defaultContent
+      else defaults.description
 
     @editorView   = @addSubView new MarkdownEditorView
       content     : content

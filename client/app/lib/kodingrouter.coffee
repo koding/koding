@@ -95,9 +95,7 @@ module.exports = class KodingRouter extends kd.Router
     if not currentGroup or currentGroup.slug is 'koding'
       return '/IDE'
 
-    if groupsController.currentGroupHasStack()
-    then return '/IDE'
-    else return '/Stacks'
+    return '/Home'
 
 
   setPageTitle: (title = 'Koding') -> kd.singletons.pageTitle.update title
