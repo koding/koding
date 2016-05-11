@@ -1113,20 +1113,20 @@ module.exports =
   inviteAndJoinWithUsers: (browser, users, callback) ->
 
     host = @loginTeam browser
-    browser.pause 5000, ->
+    browser.pause 5000, =>
 
       queue = [
-        (next) ->
-          myteamhelpers.inviteUsers browser, users, ->
+        (next) =>
+          @inviteUsers browser, users, ->
             next null, host
-        (next) ->
-          users.map (user) ->
-            myteamhelpers.acceptAndJoinInvitation host, browser, user, (res) ->
+        (next) =>
+          users.map (user) =>
+            @acceptAndJoinInvitation host, browser, user, (res) ->
               next null, user
       ]
 
       async.series queue, (err, result) ->
-        browser.end()
+
         callback result
 
 
@@ -1339,7 +1339,7 @@ module.exports =
               browser.url invitationUrl, =>
                 @fillJoinForm browser, user, yes, =>
                   browser.waitForElementVisible '.HomeAppView', 20000, yes, =>
-                    @logoutTeam browser, (res) ->
+                    @logoutTeam browser, (res) =>
                       @loginToTeam browser, host, no, ->
                         callback res
         else
