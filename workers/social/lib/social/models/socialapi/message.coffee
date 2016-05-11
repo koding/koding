@@ -3,7 +3,6 @@ Bongo              = require 'bongo'
 request            = require 'request'
 ApiError           = require './error'
 KodingError        = require '../../error'
-fallbackToIframely = require './fallbacktoiframely'
 
 { secure, signature, Base } = Bongo
 { uniq, extend } = require 'underscore'
@@ -233,19 +232,11 @@ module.exports = class SocialMessage extends Base
 
       api.extract options, (err, result) ->
 
-        return callback err, result  if err
+        if err or result[0]?.error_code
+          return callback err, result
 
-        if result[0]?.error_code
-
-          fallbackToIframely urls[0], (err, result) ->
-            return callback err, result  if err
-
-            cachedEmbedlyResult[urls] = result
-            callback err, result
-
-        else
-          cachedEmbedlyResult[urls] = result
-          callback err, result
+        cachedEmbedlyResult[urls] = result
+        callback err, result
 
 
   @paymentSubscribe = secure (client, options, callback) ->
