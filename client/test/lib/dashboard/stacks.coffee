@@ -39,3 +39,20 @@ module.exports =
           .click newStackButton, ->
             helpers.switchBrowser browser, 'Stack-Editor/New'
 
+
+  teamStacks: (browser) ->
+
+    teamStacksSelector = '.HomeAppView--section.team-stacks'
+    stackTemplate = "#{teamStacksSelector} .HomeAppViewListItem.StackTemplateItem"
+
+    host = utils.getUser()
+    url = helpers.getUrl(yes)
+    browser.url url, ->
+      teamsHelpers.loginToTeam browser, host, no, ->
+        browser
+          .pause 2000
+          .url stackEditorUrl
+          .waitForElementVisible teamStacksSelector, 20000
+          .waitForElementVisible stackTemplate, 20000
+          .end()
+
