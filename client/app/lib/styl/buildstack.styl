@@ -40,7 +40,9 @@
   .form-scroll-wrapper
     width                   240px
     borderBox()
-    fl()
+
+    &.credential-wrapper
+      fl()
 
     &.requirements-wrapper
       fr()
@@ -49,6 +51,18 @@
       styleScrollBars       rgba(0, 0, 0, .15)
       max-height            340px
       padding-right         15px !important
+
+  .credential-only
+
+    .credential-wrapper
+      float                 none
+      margin                0 auto
+
+      .main-form-header
+        hidden()
+
+    .requirements-wrapper
+      hidden()
 
   .form-header
     color                   #999

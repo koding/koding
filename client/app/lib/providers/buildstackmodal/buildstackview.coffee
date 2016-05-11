@@ -19,10 +19,12 @@ module.exports = class BuildStackView extends kd.View
 
     { credentials } = @getData()
 
-    @awsCredentialContainer = new kd.CustomScrollView { cssClass : 'form-scroll-wrapper' }
+    @awsCredentialContainer = new kd.CustomScrollView
+      cssClass : 'form-scroll-wrapper credential-wrapper'
     awsCredentialForm = new CredentialForm {
       title : 'AWS Credential'
       selectionPlaceholder : 'Select credential...'
+      selectionLabel : 'Credential Selection'
     }, credentials
     @awsCredentialContainer.wrapper.addSubView awsCredentialForm
 
@@ -33,18 +35,44 @@ module.exports = class BuildStackView extends kd.View
 
     @requirementsContainer = new kd.CustomScrollView
       cssClass : 'form-scroll-wrapper requirements-wrapper'
+
+    return @setClass 'credential-only'  unless requirements.fields
+
     requirementsForm = new CredentialForm {
       title : 'Requirements'
       selectionPlaceholder : 'Select from existing requirements...'
+      selectionLabel : 'Requirement Selection'
     }, requirements
     @requirementsContainer.wrapper.addSubView requirementsForm
 
 
+  buildTitleAndDescription: ->
+
+    { credentials, requirements } = @getData()
+
+    if not credentials.items.length and not requirements.fields
+      return {
+        title       : 'Create Your First Credential'
+        description : '''
+          Your Credential provides Koding with all of the information it needs to build your Stack
+        '''
+      }
+
+    return {
+      title       : 'Select Credential and Fill the Requirements'
+      description : '''
+        Your stack requires AWS Credentials and a few requirements in order to boot
+      '''
+    }
+
+
   pistachio: ->
 
+    { title, description } = @buildTitleAndDescription()
+
     """
-      <div class="top-title">Select Credential and Fill the Requirements</div>
-      <div class="top-subtitle">Your stack requires AWS Credentials and a few requirements in order to boot</div>
+      <div class="top-title">#{title}</div>
+      <div class="top-subtitle">#{description}</div>
       {{> @awsCredentialContainer}}
       {{> @requirementsContainer}}
     """

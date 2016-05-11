@@ -10,16 +10,17 @@ module.exports = class CredentialForm extends kd.CustomHTMLView
 
     options.cssClass = kd.utils.curry 'credential-form', options.cssClass
     options.selectionPlaceholder ?= "Select #{options.title}"
+    options.selectionLabel ?= "#{options.title} Selection"
 
     super options, data
 
-    { title, selectionPlaceholder } = @getOptions()
+    { title, selectionPlaceholder, selectionLabel } = @getOptions()
     { provider, fields, selectedItem, items } = @getData()
 
     selectOptions = items.map (item) -> { value : item.identifier, title : item.title }
     selectOptions.unshift { value : '', title : selectionPlaceholder }
     defaultValue = selectedItem ? ''
-    @selectionLabel = new kd.LabelView { title }
+    @selectionLabel = new kd.LabelView { title : selectionLabel }
     @selection = new kd.SelectBox {
       selectOptions
       defaultValue
@@ -58,7 +59,7 @@ module.exports = class CredentialForm extends kd.CustomHTMLView
     { title } = @getOptions()
 
     """
-      <div class='form-header'>#{title}</div>
+      <div class='form-header main-form-header'>#{title}</div>
       <div class='selection-container'>
         {{> @selectionLabel}}
         {{> @selection}}
