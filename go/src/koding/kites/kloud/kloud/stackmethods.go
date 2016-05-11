@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"koding/db/mongodb/modelhelper"
 
 	"github.com/koding/cache"
@@ -17,9 +19,58 @@ type Validator interface {
 	Valid() error
 }
 
+/// MIGRATE
+
+// MigrateRequest represents an argument of the migrate kite method.
+type MigrateRequest struct {
+	Provider   string   `json:"provider"`
+	Machines   []string `json:"machines"`
+	Identifier string   `json:"identifier"`
+	GroupName  string   `json:"groupName"`
+	StackName  string   `json:"stackName"`
+}
+
+// Validate implements the kloud.Validator interface.
+func (req *MigrateRequest) Valid() error {
+	if len(req.Machines) == 0 {
+		return errors.New("machine list is empty")
+	}
+
+	if req.Identifier == "" {
+		return errors.New("identifier is empty")
+	}
+
+	if req.GroupName == "" {
+		return errors.New("groupName is empty")
+	}
+
+	if req.StackName == "" {
+		req.StackName = "Migrated Stack Template"
+	}
+
+	return nil
+}
+
+// Migrater provides migrate as kite method.
+//
+// If the requested provider does not implement the Migrater interface,
+// the method return with a ErrProviderNotImplemented error.
+func (k *Kloud) Migrate(r *kite.Request) (interface{}, error) {
+	fn := func(s Stacker, ctx context.Context) (interface{}, error) {
+		m, ok := s.(Migrater)
+		if !ok {
+			return nil, NewError(ErrProviderNotImplemented)
+		}
+
+		return m.Migrate(ctx)
+	}
+
+	return k.stackMethod(r, fn)
+}
+
 /// APPLY
 
-// ApplyRequest
+// ApplyRequest represents an argument of apply kite method.
 type ApplyRequest struct {
 	Provider  string `json:"provider"`
 	StackID   string `json:"stackId"`
@@ -45,16 +96,17 @@ func (req *ApplyRequest) Valid() error {
 	return nil
 }
 
-// Apply
+// Apply provides apply as a kite method.
 func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	return k.stackMethod(r, Stacker.Apply)
 }
 
 /// AUTHENTICATE
 
-// AuthenticateRequest
+// AuthenticateRequest represents an argument of the authenticate kite method.
 type AuthenticateRequest struct {
 	Provider string `json:"provider"`
+
 	// Identifiers contains identifiers to be authenticated
 	Identifiers []string `json:"identifiers"`
 
@@ -79,16 +131,17 @@ func (req *AuthenticateRequest) Valid() error {
 	return nil
 }
 
-// Authenticate
+// Authenticate provides authenticate as a kite method.
 func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 	return k.stackMethod(r, Stacker.Authenticate)
 }
 
 /// BOOTSTRAP
 
-// BootstrapRequest
+// BootstrapRequest represents an argument of the bootstrap kite method.
 type BootstrapRequest struct {
 	Provider string `json:"provider"`
+
 	// Identifiers contains identifers to be used with terraform
 	Identifiers []string `json:"identifiers"`
 
@@ -110,14 +163,14 @@ func (req *BootstrapRequest) Valid() error {
 	return nil
 }
 
-// Bootstrap
+// Bootstrap provides bootstrap as a kite method.
 func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 	return k.stackMethod(r, Stacker.Bootstrap)
 }
 
 /// PLAN
 
-// PlanRequest
+// PlanRequest represents an argument of the plan kite method.
 type PlanRequest struct {
 	Provider        string `json:"provider"`
 	StackTemplateID string `json:"stackTemplateId"`
@@ -135,14 +188,14 @@ func (req *PlanRequest) Valid() error {
 	return nil
 }
 
-// Plan
+// Plan provides plan as a kite method.
 func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	return k.stackMethod(r, Stacker.Plan)
 }
 
 /// STATUS
 
-// StatusRequest
+// StatusRequest represents an argument of status kite method.
 type StatusRequest struct {
 	StackID string `json:"stackId"`
 }
@@ -155,7 +208,7 @@ func (req *StatusRequest) Valid() error {
 	return nil
 }
 
-// StatusResponse
+// StatusResponse represents a response of status kite method.
 type StatusResponse struct {
 	StackID    string    `json:"stackId"`
 	Status     string    `json:"status"`
