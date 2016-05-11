@@ -23,3 +23,13 @@ module.exports =
         teamsHelpers.createCredential browser, 'aws', 'aws2', yes, ->
           done()
 
+
+  credentials: (browser) ->
+
+    sectionSelector = '.kdview.kdtabpaneview.credentials'
+
+    browser
+      .url credentialsUrl
+      .waitForElementVisible sectionSelector, 20000
+
+
