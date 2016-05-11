@@ -74,6 +74,7 @@ Expiration = ({ type, onChange, value }) ->
   return \
     <div className={"HomeAppView-selectBoxWrapper expiration-#{type}"}>
       <SelectBox
+        clearable={no}
         options={options[type]}
         placeholder={placeholders[type]}
         onChange={(e) -> onChange?(e.value)}
