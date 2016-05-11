@@ -19,7 +19,7 @@ module.exports =
       targetUser1
 
     teamsHelpers.inviteAndJoinWithUsers browser, [ users ], (result) ->
-      teamsHelpers.createCredential browser, 'aws', 'test credential' no,  ->
+      teamsHelpers.createCredential browser, 'aws', 'test credential', no,  ->
         teamsHelpers.createStack browser, ->
           done()
 
