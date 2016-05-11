@@ -4,6 +4,8 @@ import (
 	"errors"
 	"koding/db/models"
 
+	"gopkg.in/mgo.v2/bson"
+
 	"github.com/koding/logging"
 )
 
@@ -45,6 +47,39 @@ func (opts *DestroyOptions) Valid() error {
 	return nil
 }
 
+// MigrationStatus describes a migration state.
+type MigrationStatus string
+
+const (
+	MigrationMigrating = MigrationStatus("Migrating")
+	MigrationMigrated  = MigrationStatus("Migrated")
+	MigrationAborted   = MigrationStatus("Aborted")
+	MigrationError     = MigrationStatus("Error")
+)
+
+// UpdateMigrationOptions groups parameters used for marking jMachine as
+// migrated or updating partial migration status.
+type UpdateMigrationOptions struct {
+	MachineID bson.ObjectId // jMachine.objectId
+	Meta      interface{}   // jMachine.migration
+	Log       logging.Logger
+}
+
+// MigrateOptions groups parameters needed to create stacks for
+// migrated machines.
+type MigrateOptions struct {
+	MachineIDs []bson.ObjectId
+	Machines   []interface{}
+	Provider   string
+	Identifier string
+	Username   string
+	GroupName  string
+	StackName  string
+	Template   string
+
+	Log logging.Logger
+}
+
 // Database describes an interface for stack's database operations.
 //
 // The stack deletion operation consist of two phases - removing metadata and
@@ -64,6 +99,12 @@ type Database interface {
 
 	// Destroy removes the stack completely.
 	Destroy(*DestroyOptions) error
+
+	// UpdateMigration updates migration metadata - jMachine.migration.
+	UpdateMigration(*UpdateMigrationOptions) error
+
+	// Migrate creates a stack from migrated machines.
+	Migrate(*MigrateOptions) error
 }
 
 // DatabaseBuilder is a decorator for Builder and Database values.
@@ -102,6 +143,29 @@ func (db *DatabaseBuilder) Destroy() error {
 	}
 
 	return db.Database.Destroy(opts)
+}
+
+// UpdateMigration is responsible for updating migration status
+// for the machine with specified ID.
+func (db *DatabaseBuilder) UpdateMigration(opts *UpdateMigrationOptions) error {
+	optsCopy := *opts
+
+	if optsCopy.Log == nil {
+		optsCopy.Log = db.log()
+	}
+
+	return db.Database.UpdateMigration(&optsCopy)
+}
+
+// Migrate creates template and a stack for the given migrated machines.
+func (db *DatabaseBuilder) Migrate(opts *MigrateOptions) error {
+	optsCopy := *opts
+
+	if optsCopy.Log == nil {
+		optsCopy.Log = db.log()
+	}
+
+	return db.Database.Migrate(&optsCopy)
 }
 
 func (db *DatabaseBuilder) log() logging.Logger {

@@ -1,12 +1,18 @@
 package stackplan
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
+	"fmt"
+	"time"
+
+	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/stackstate"
+	"koding/kites/kloud/utils/object"
 
 	"github.com/hashicorp/go-multierror"
-
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -113,4 +119,69 @@ func (db *mongoDatabase) Destroy(opts *DestroyOptions) error {
 	}
 
 	return err.ErrorOrNil()
+}
+
+var migrationBuilder = &object.Builder{
+	Tag:       "bson",
+	Sep:       ".",
+	Prefix:    "migration",
+	Recursive: true,
+}
+
+var machineBuilder = &object.Builder{
+	Tag:       "bson",
+	Sep:       ".",
+	Recursive: true,
+}
+
+// UpdateMigration implements the Database interface.
+func (db *mongoDatabase) UpdateMigration(opts *UpdateMigrationOptions) error {
+	return modelhelper.UpdateMachine(opts.MachineID, migrationBuilder.Build(opts.Meta))
+}
+
+// Migrate implements the Database interface.
+func (db *mongoDatabase) Migrate(opts *MigrateOptions) error {
+	stack := models.NewStackTemplate(opts.Provider, opts.Identifier)
+	stack.Machines = make([]bson.M, len(opts.Machines))
+
+	for i := range stack.Machines {
+		stack.Machines[i] = bson.M(machineBuilder.Build(opts.Machines[i]))
+	}
+
+	account, err := modelhelper.GetAccount(opts.Username)
+	if err != nil {
+		return fmt.Errorf("account lookup failed for %q: %s", opts.Username, err)
+	}
+
+	sum := sha1.Sum([]byte(opts.Template))
+
+	stack.Title = opts.StackName
+	stack.OriginID = account.Id
+	stack.Group = opts.GroupName
+	stack.Template.Content = opts.Template
+	stack.Template.Sum = hex.EncodeToString(sum[:])
+
+	if err := modelhelper.CreateStackTemplate(stack); err != nil {
+		return fmt.Errorf("failed to create stack template: %s", err)
+	}
+
+	change := bson.M{
+		"migration.modifiedAt":      time.Now(),
+		"migration.status":          MigrationMigrated,
+		"migration.stackTemplateId": stack.Id,
+	}
+
+	for _, id := range opts.MachineIDs {
+		if e := modelhelper.UpdateMachine(id, change); e != nil {
+			err = multierror.Append(err, fmt.Errorf("failed to update migration details for %q: %s", id.Hex(), err))
+		}
+	}
+
+	// Failure updating jMachine migration metadata is not critical,
+	// just log the error and continue.
+	if err != nil {
+		opts.Log.Error("%s", err)
+	}
+
+	return nil
 }
