@@ -32,17 +32,21 @@ module.exports = class HomeTeamBilling extends kd.CustomScrollView
     { mainController, reactor } = kd.singletons
 
     mainController.ready =>
-      PaymentFlux(reactor).actions.loadGroupCreditCard()
 
-      @wrapper.addSubView header 'Koding Subscription'
-      @wrapper.addSubView section 'Koding Subscription'
+      { actions } = PaymentFlux(reactor)
 
-      formView = new kd.FormView
-        cssClass: kd.utils.curry 'HomeAppView--billing-form', options.cssClass
+      actions.loadStripeClient().then =>
+        actions.loadGroupCreditCard().catch kd.warn
 
-      formView.addSubView header 'Payment Information'
-      formView.addSubView section 'Credit Card'
-      formView.addSubView section 'Payment Information'
+        @wrapper.addSubView header 'Koding Subscription'
+        @wrapper.addSubView section 'Koding Subscription'
 
-      @wrapper.addSubView formView
+        formView = new kd.FormView
+          cssClass: kd.utils.curry 'HomeAppView--billing-form', options.cssClass
+
+        formView.addSubView header 'Payment Information'
+        formView.addSubView section 'Credit Card'
+        formView.addSubView section 'Payment Information'
+
+        @wrapper.addSubView formView
 

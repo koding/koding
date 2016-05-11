@@ -12,9 +12,6 @@ values = [
     if isEdited(formValues)
       return formValues
 
-    # groupPlan = paymentValues.get 'groupPlan'
-    # return defaultValues()  unless groupPlan
-
     card = paymentValues.get 'groupCreditCard'
 
     return formValues  unless card
@@ -29,6 +26,8 @@ values = [
 ]
 
 
+
+
 isEmpty = (formValues) ->
   formValues.reduce (acc, value) ->
     acc and not value
@@ -39,17 +38,6 @@ isEdited = (formValues) -> formValues.get 'isEdited'
 
 formatCardNumber = (last4) ->
   if last4 then "************#{last4}" else ''
-
-
-defaultValues = ->
-  return toImmutable
-    number: ''
-    expirationMonth: ''
-    expirationYear: ''
-    cvc: ''
-    nickname: ''
-    fullName: ''
-    email: ''
 
 module.exports = {
   values

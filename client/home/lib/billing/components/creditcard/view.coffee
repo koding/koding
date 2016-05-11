@@ -1,5 +1,5 @@
 React = require 'kd-react'
-MaskedInput = require 'react-maskedinput'
+MaskedInput = require 'react-input-mask'
 SelectBox = require 'app/components/selectbox'
 
 module.exports = class CreditCard extends React.Component
@@ -13,6 +13,7 @@ module.exports = class CreditCard extends React.Component
       <label>Card Number</label>
       <CardNumber
         onChange={@props.onInputValueChange.bind null, 'number'}
+        cardType={@props.formValues.get 'cardType'}
         value={@props.formValues.get 'number'} />
       <fieldset className='wrapper--expiration'>
         <label>Expiration</label>
@@ -27,19 +28,25 @@ module.exports = class CreditCard extends React.Component
         <label>CVC</label>
         <CVC
           onChange={@props.onInputValueChange.bind null, 'cvc'}
+          cardType={@props.formValues.get 'cardType'}
           value={@props.formValues.get 'cvc'} />
       </fieldset>
     </figure>
 
 
-CardNumber = ({ onChange, value }) ->
+CardNumber = ({ onChange, value, cardType }) ->
+
+  mask = switch cardType
+    when 'American Express' then '9999 999999 99999'
+    else '9999 9999 9999 9999'
 
   <MaskedInput
-    mask="1111 1111 1111 1111"
+    mask={mask}
     className={inputClass 'card-number'}
     onChange={pickValue(onChange ? noop)}
     value={value}
     placeholder='0000 0000 0000 0000' />
+
 
 Expiration = ({ type, onChange, value }) ->
 
@@ -74,14 +81,18 @@ Expiration = ({ type, onChange, value }) ->
     </div>
 
 
-CVC = ({ onChange, value }) ->
+CVC = ({ onChange, value, cardType }) ->
+
+  _props = switch cardType
+    when 'American Express' then {mask: '9999', placeholder: '0000'}
+    else {mask: '999', placeholder: '000'}
 
   <MaskedInput
-    mask="111"
+    mask={_props.mask}
     className={inputClass 'cvc'}
     onChange={pickValue(onChange ? noop)}
     value={value}
-    placeholder='000' />
+    placeholder={_props.placeholder} />
 
 
 pickValue = (onChange) -> (event) -> onChange event.target.value
