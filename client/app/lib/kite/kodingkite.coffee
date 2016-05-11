@@ -1,6 +1,7 @@
 kd         = require 'kd'
 kitejs     = require 'kite.js'
 Promise    = require 'bluebird'
+KiteCache  = require './kitecache'
 KiteLogger = require '../kitelogger'
 
 
@@ -85,7 +86,9 @@ module.exports = class KodingKite extends kd.Object
           .timeout MAX_WAITING_TIME
 
           .then (args) =>
+
             KiteLogger.started name, rpcMethod
+
             resolve (@transport?.tell args...
 
               .then (res) ->
@@ -95,12 +98,8 @@ module.exports = class KodingKite extends kd.Object
 
               .catch (err) =>
 
-                if err.name is 'KiteError' and \
-                   err.message is 'token is expired'
-
-                  return new Promise (resolve, reject) =>
-                    @transport?.expireToken =>
-                      resolve @transport.tell args...
+                if _errPromise = @handleKiteError err, args
+                  return _errPromise
 
                 KiteLogger.failed name, rpcMethod, err
                 throw err
@@ -123,6 +122,29 @@ module.exports = class KodingKite extends kd.Object
 
       KiteLogger.failed name, rpcMethod
       Promise.reject @_kiteInvalidError
+
+
+  handleKiteError: (err, args) ->
+
+    return  unless err.name is 'KiteError'
+
+    name = @getOption 'name'
+
+    # In any case unset KiteCache if there is an authenticationError
+    if err.type is 'authenticationError'
+      KiteCache.unset name
+
+    # If it was because token is expired try to recover it
+    if err.message is 'token is expired'
+      return new Promise (resolve, reject) =>
+        @transport?.expireToken =>
+          resolve @transport.tell args...
+
+    # If not and the kite is kloud, make sure it's destroyed
+    else if name is 'kloud'
+      delete kd.singletons.kontrol.kites?.kloud?.singleton
+
+    return null
 
 
   @createMethod = (ctx, { method, rpcMethod }) ->

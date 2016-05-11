@@ -10,6 +10,7 @@ import (
 
 	cfg "koding/config"
 	"koding/kites/common"
+	"koding/kites/kloud/httputil"
 	"koding/klient/protocol"
 
 	"github.com/cenkalti/backoff"
@@ -183,6 +184,7 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 	}
 
 	c.kite.Config = c.opts.Config
+	c.kite.ClientFunc = httputil.ClientFunc(opts.Debug)
 
 	cfg := &tunnel.ClientConfig{
 		FetchIdentifier: c.fetchIdent,

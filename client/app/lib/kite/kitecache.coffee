@@ -56,6 +56,14 @@ module.exports = class KiteCache
     if typeof query is 'object'
       query = @generateQueryString query
 
+    # if only name provided instead of a full query string
+    # check existing keys for that name and unset those instead ~ GG
+    else if (query.indexOf '/') < 0
+      namedQuery = ///\/.*\/.*\/#{query}///
+      for queryString of storage when namedQuery.test queryString
+        delete storage[queryString]
+      return
+
     ltr = ''
     rtl = ''
 
