@@ -139,7 +139,6 @@ module.exports = (options) ->
     app_key: ''
   embedly =
     apiKey: ''
-  rollbar = ''
   siftScience = ''
   siftSciencePublic = ''
   jwt =
