@@ -67,11 +67,6 @@
     line-height             19px
     color                   #999
 
-  .kdselectbox
-    width                   100%
-    borderBox()
-    margin-bottom           15px
-
   .create-new
     color                   #729FCF
     text-decoration         none
@@ -90,19 +85,40 @@
   form
     clear                   both
 
-    .advanced-field
+    .advanced-field,
+    .formline.button-field .save-btn.kdbutton,
+    .formline.button-field .cancel-btn.kdbutton
       hidden()
 
     &.in-advanced-mode
       .advanced-field
         visible()
 
+  .selection-container
+    hidden()
+
+    .kdselectbox
+      width                 100%
+      borderBox()
+      margin-bottom         15px
+
+  .selection-visible
+    .selection-container
+      visible()
+
   .form-container
     hidden()
 
-  .form-open
+  .form-visible
     .form-container
       visible()
 
     .create-new
       hidden()
+
+  .new-credential-header
+    hidden()
+
+  .selection-visible
+    .new-credential-header
+      visible()

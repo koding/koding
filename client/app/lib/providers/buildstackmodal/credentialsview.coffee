@@ -40,11 +40,16 @@ module.exports = class CredentialsView extends kd.CustomHTMLView
       partial  : 'Cancel'
       click    : @bound 'onCancelNew'
 
+    if items.length > 0
+      @setClass 'selection-visible'
+    else
+      @onCreateNew()
 
-  onCreateNew: -> @setClass 'form-open'
+
+  onCreateNew: -> @setClass 'form-visible'
 
 
-  onCancelNew: -> @unsetClass 'form-open'
+  onCancelNew: -> @unsetClass 'form-visible'
 
 
   pistachio: ->
@@ -54,13 +59,13 @@ module.exports = class CredentialsView extends kd.CustomHTMLView
 
     """
       <div class='form-header'>#{title}</div>
-      <div class='credential-selection'>
+      <div class='selection-container'>
         {{> @selectionLabel}}
         {{> @selection}}
       </div>
       {{> @createNew}}
       <div class='form-container'>
-        <div class='form-header'>
+        <div class='form-header new-credential-header'>
           New #{helper.getProviderName provider} Credential:
           {{> @cancelNew}}
         </div>

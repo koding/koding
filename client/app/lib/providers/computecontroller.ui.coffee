@@ -152,7 +152,7 @@ module.exports = class ComputeControllerUI
       Save       :
         title    : 'Save'
         type     : 'submit'
-        style    : 'solid green medium'
+        style    : 'solid green medium save-btn'
         loader   : { color : '#444444' }
         callback : -> @hideLoader()
 
@@ -162,7 +162,7 @@ module.exports = class ComputeControllerUI
           input.setValue data  if data = generatedKeys[field]
 
     buttons.Cancel =
-      style        : 'solid medium'
+      style        : 'solid medium cancel-btn'
       type         : 'button'
       callback     : -> form.emit 'Cancel'
 
@@ -179,7 +179,7 @@ module.exports = class ComputeControllerUI
 
 
       buttons['Advanced Mode'] =
-        style    : 'solid medium'
+        style    : 'solid medium advanced-mode-btn'
         type     : 'button'
         callback : ->
           form.toggleClass 'in-advanced-mode'
