@@ -56,3 +56,20 @@ module.exports =
           .waitForElementVisible stackTemplate, 20000
           .end()
 
+
+  privateStacks: (browser) ->
+
+    privateStacksSelector = '.HomeAppView--section.private-stacks'
+    stackTemplate = "#{privateStacksSelector} .HomeAppViewListItem.StackTemplateItem"
+
+    host = utils.getUser()
+    url = helpers.getUrl(yes)
+    browser.url url, ->
+      teamsHelpers.loginToTeam browser, host, no, ->
+        browser
+          .pause 2000
+          .url stackEditorUrl
+          .waitForElementVisible privateStacksSelector, 20000
+          .waitForElementVisible stackTemplate, 20000
+          .end()
+
