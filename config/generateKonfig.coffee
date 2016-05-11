@@ -182,7 +182,6 @@ module.exports = (options, credentials) ->
     slack                         : credentials.slack
     sneakerS3                     : credentials.sneakerS3
     embedly                       : credentials.embedly
-    iframely                      : credentials.iframely
     integration                   : credentials.integration
     googleapiServiceAccount       : credentials.googleapiServiceAccount
     siftScience                   : credentials.siftScience

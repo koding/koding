@@ -139,9 +139,6 @@ module.exports = (options) ->
     app_key: ''
   embedly =
     apiKey: ''
-  iframely =
-    apiKey: ''
-    url: 'http://iframe.ly/api/oembed'
   rollbar = ''
   siftScience = ''
   siftSciencePublic = ''
@@ -222,7 +219,6 @@ module.exports = (options) ->
     linkedin
     datadog
     embedly
-    iframely
     rollbar
     siftScience
     siftSciencePublic
