@@ -176,9 +176,6 @@ module.exports = (options) ->
     secretKey: ""
   vmwatcher =
     secretKey: ""
-  helpscout =
-    apiKey: ''
-    baseUrl: 'https://api.helpscout.net/v1'
   recurly =
     apiKey: ""
     loggedRequests: "/^(subscriptions|transactions)/"
