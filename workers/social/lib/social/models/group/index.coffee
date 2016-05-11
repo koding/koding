@@ -276,6 +276,7 @@ module.exports = class JGroup extends Module
       customize     :
         coverPhoto  : String
         logo        : String
+        chatlioId   : String
         default     : -> return {}
       disabledFeatures: Object
       # BEWARE: if anyone needs to put a default value here in stackTemplates field
@@ -295,7 +296,7 @@ module.exports = class JGroup extends Module
       # tmp: the data stored here should be processed while
       # we create the group - SY
       # cc/ @cihangir
-      initalData    : Object
+      initialData   : Object
       # Generic config object for future requirements on groups ~ GG
       config        : Object
       # Api usage can be disabled or enabled for the group

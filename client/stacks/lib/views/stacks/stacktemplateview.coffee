@@ -38,6 +38,7 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
       title    : 'Preview'
       cssClass : 'solid compact light-gray template-preview-button'
       loader   : yes
+      loaderOptions: { color: '#858585' }
       tooltip  :
         title  : 'Generates a preview of this template with your own account information.'
       callback : => @emit 'ShowTemplatePreview'

@@ -30,14 +30,16 @@ CredentialStatusView = require './credentialstatusview'
 
 StackTemplatePreviewModal = require './stacktemplatepreviewmodal'
 
+EnvironmentFlux = require 'app/flux/environment'
+
 
 module.exports = class DefineStackView extends KDView
 
-  constructor: (options = {}, data) ->
+  constructor: (options = {}, data = {}) ->
 
     options.cssClass = kd.utils.curry 'define-stack-view', options.cssClass
 
-    { stackTemplate } = data ? {}
+    { stackTemplate } = data
 
     if stackTemplate
       unless provider = stackTemplate.selectedProvider
@@ -50,7 +52,6 @@ module.exports = class DefineStackView extends KDView
 
     super options, data
 
-    { stackTemplate }    = @getData()
     { selectedProvider } = @getOptions()
 
     options.delegate = this
@@ -70,35 +71,37 @@ module.exports = class DefineStackView extends KDView
       partial  : "<span class='active'>#{breadcrumbTitle}</span>"
 
     @createStackNameInput()
-    @addSubView @tabView = new KDTabView { hideHandleCloseIcons: yes }
+    @addSubView @tabView = new KDTabView
+      hideHandleCloseIcons : yes
+      cssClass             : 'StackEditorTabs'
 
     @editorViews = {}
 
     @editorViews.stackTemplate = @stackTemplateView = new StackTemplateView options, data
-    @tabView.addPane stackTemplatePane              = new KDTabPaneView
+    @tabView.addPane stackTemplatePane = new KDTabPaneView
       name : 'Stack Template'
       view : @stackTemplateView
 
-    @editorViews.variables = @variablesView         = new VariablesView {
+    @editorViews.variables = @variablesView = new VariablesView {
       delegate: this
       stackTemplate
     }
-    @tabView.addPane variablesPane                  = new KDTabPaneView
+    @tabView.addPane variablesPane = new KDTabPaneView
       name : 'Custom Variables'
       view : @variablesView
 
-    @editorViews.readme = @readmeView               = new ReadmeView { stackTemplate }
-    @tabView.addPane readmePane                     = new KDTabPaneView
+    @editorViews.readme = @readmeView = new ReadmeView { stackTemplate }
+    @tabView.addPane readmePane = new KDTabPaneView
       name : 'Readme'
       view : @readmeView
 
-    @providersView                                  = new ProvidersView {
+    @providersView = new ProvidersView {
       selectedCredentials : @credentials
       provider            : selectedProvider
       stackTemplate
     }
 
-    @tabView.addPane @providersPane                 = new KDTabPaneView
+    @tabView.addPane @providersPane = new KDTabPaneView
       name : 'Credentials'
       view : @providersView
 
@@ -236,6 +239,10 @@ module.exports = class DefineStackView extends KDView
           cssClass           : 'template-title'
           label              : 'Stack Name'
           defaultValue       : stackTemplate?.title or 'Default stack template' # can we auto generate cute stack names?
+          bind               : 'keyup'
+          keyup              : (e) ->
+            { changeTemplateTitle } = EnvironmentFlux.actions
+            changeTemplateTitle stackTemplate?._id, e.target.value
 
 
   createOutputView: ->
@@ -270,7 +277,7 @@ module.exports = class DefineStackView extends KDView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : =>
-        appManager.tell 'Stacks', 'exitFullscreen'
+        appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
         Tracker.track Tracker.STACKS_CANCEL_SETUP if @cancelButton.buttonTitle is 'Cancel'
         Tracker.track Tracker.STACKS_FINISHED_EDIT if @cancelButton.buttonTitle is 'Ok'
 
@@ -284,7 +291,7 @@ module.exports = class DefineStackView extends KDView
       cssClass       : 'solid compact green nav next hidden set-default'
       loader         : yes
       callback       : =>
-        appManager.tell 'Stacks', 'exitFullscreen'
+        appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
         @handleSetDefaultTemplate()
 
     @buttons.addSubView @generateStackButton = new kd.ButtonView
@@ -292,7 +299,7 @@ module.exports = class DefineStackView extends KDView
       cssClass       : 'solid compact green nav next hidden provision'
       loader         : yes
       callback       : =>
-        appManager.tell 'Stacks', 'exitFullscreen'
+        appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
         @handleGenerateStack()
 
     @buttons.addSubView @saveButton = new kd.ButtonView
@@ -300,7 +307,7 @@ module.exports = class DefineStackView extends KDView
       cssClass       : 'solid compact green nav next save-test'
       loader         : yes
       callback       : =>
-        appManager.tell 'Stacks', 'exitFullscreen'
+        appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
         @handleSave()
 
 

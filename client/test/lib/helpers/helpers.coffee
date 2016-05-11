@@ -148,6 +148,23 @@ module.exports =
     return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
 
 
+  ###*
+  * Switch browser with given current broser and url to check
+  * @param browser, {string} url
+  * return current browser
+  ###
+  switchBrowser: (browser, urlToCheck) ->
+
+    browser.window_handles (result) ->
+      handle = result.value[1]
+      browser
+        .switchWindow         handle
+        .assert.urlContains   urlToCheck
+        .pause                2000
+        .closeWindow()
+        .switchWindow         result.value[0]
+
+
   openFolderContextMenu: (browser, user, folderName) ->
 
     webPath       = '/home/' + user.username + '/' + folderName

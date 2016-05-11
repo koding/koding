@@ -290,10 +290,7 @@ class Haydar extends events.EventEmitter
     else
       b = bant opts_
 
-    if not opts.watchJs
-      # xxx: breaks watchify in watch mode, dedupe fuckup
-      b.require require.resolve('kd.js'), { expose: 'kd' }
-
+    b.require require.resolve('kd.js'), { expose: 'kd' }
     b.use manifests
 
     if opts.collapseJs then b.plugin collapse

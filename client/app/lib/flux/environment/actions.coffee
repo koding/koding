@@ -1,3 +1,4 @@
+_ = require 'lodash'
 kd                      = require 'kd'
 async                   = require 'async'
 actions                 = require './actiontypes'
@@ -8,13 +9,17 @@ remote                  = require('app/remote').getInstance()
 Promise                 = require 'bluebird'
 showError               = require 'app/util/showError'
 toImmutable             = require 'app/util/toImmutable'
+getGroup                = require 'app/util/getGroup'
+whoami                  = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
+stackDefaults = require 'stacks/defaults'
+providersParser = require 'stacks/views/stacks/providersparser'
+requirementsParser = require 'stacks/views/stacks/requirementsparser'
+{ jsonToYaml } = require 'stacks/views/stacks/yamlutils'
+Tracker = require 'app/util/tracker'
 
-_eventsCache =
-  machine    : {}
-  stack      : no
-
+_eventsCache = { machine: {}, stack: no }
 
 _bindMachineEvents = (environmentData) ->
 
@@ -367,7 +372,7 @@ reinitStack = (stackId) ->
 
   { reactor } = kd.singletons
 
-  reactor.dispatch actions.REINIT_STACK, stackId
+  reactor.dispatch actions.REMOVE_STACK, stackId
 
   if reactor.evaluate ['DifferentStackResourcesStore']
     reactor.dispatch actions.GROUP_STACKS_CONSISTENT
@@ -421,6 +426,286 @@ setActiveLeavingSharedMachineId = (id) ->
   reactor.dispatch actions.SET_ACTIVE_LEAVING_SHARED_MACHINE_ID, { id }
 
 
+loadTeamStackTemplates = ->
+
+  { reactor } = kd.singletons
+
+  query = { group: getGroup().slug }
+
+  reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_BEGIN, { query }
+
+  remote.api.JStackTemplate.some query, { limit: 30 }, (err, templates) ->
+
+    if err
+      reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_FAIL, { query, err }
+
+    templates = templates.filter (t) -> t.accessLevel is 'group'
+
+    reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_SUCCESS, { query, templates }
+
+
+loadPrivateStackTemplates = ->
+
+  { reactor } = kd.singletons
+
+  query = { group: getGroup().slug, originId: whoami()._id }
+
+  reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_BEGIN, { query }
+
+  remote.api.JStackTemplate.some query, { limit: 30 }, (err, templates) ->
+
+    if err
+      reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_FAIL, { query, err }
+
+    templates = templates.filter (t) -> t.accessLevel is 'private'
+
+    reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_SUCCESS, { query, templates }
+
+
+setMachineAlwaysOn = (machineId, state) ->
+
+  { computeController, reactor } = kd.singletons
+
+  machine = computeController.findMachineFromMachineId machineId
+  return  unless machine
+
+  reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_BEGIN, { id : machineId, state }
+
+  computeController.fetchUserPlan (plan) =>
+
+    computeController.setAlwaysOn machine, state, (err) =>
+
+      unless err
+        return reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_SUCCESS, { id : machineId }
+
+      if err.name is 'UsageLimitReached' and plan isnt 'hobbyist'
+        ComputeErrorUsageModal = require 'app/providers/computeerrorusagemodal'
+        kd.utils.defer -> new ComputeErrorUsageModal { plan }
+      else
+        showError err
+
+      reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_FAIL, { id : machineId }
+
+
+setMachinePowerStatus = (machineId, shouldStart) ->
+
+  { computeController } = kd.singletons
+
+  machine = computeController.findMachineFromMachineId machineId
+  return  unless machine
+
+  method = if shouldStart then 'start' else 'stop'
+
+  kd.singletons.computeController[method] machine
+
+
+createStackTemplate = (options) ->
+
+  { reactor } = kd.singletons
+
+  { title, template, credentials, rawContent
+    templateDetails, config, description } = options
+
+  return new Promise (resolve, reject) ->
+
+    reactor.dispatch actions.CREATE_STACK_TEMPLATE_BEGIN
+
+    remote.api.JStackTemplate.create {
+      title, template, credentials, rawContent
+      templateDetails, config, description
+    }, (err, stackTemplate) ->
+      if err
+        reactor.dispatch actions.CREATE_STACK_TEMPLATE_FAIL, { err }
+        reject err
+        return
+
+      reactor.dispatch actions.CREATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
+      resolve { stackTemplate }
+
+
+createStackTemplateWithDefaults = (overrides = {}) ->
+
+  if overrides.template
+    template = overrides.template
+    rawContent = jsonToYaml(template).content
+  else
+    { template, rawContent } = stackDefaults
+
+  requiredProviders = providersParser template
+
+  if overrides.selectedProvider is 'vagrant'
+    requiredProviders.push 'vagrant'
+
+  requiredData = requirementsParser template
+
+  options = _.assign {}, stackDefaults,
+    template: template
+    rawContent: rawContent
+    config: { requiredData, requiredProviders }
+
+  return createStackTemplate(options)
+
+
+updateStackTemplate = (stackTemplate, options) ->
+
+  { reactor } = kd.singletons
+
+  { inuse, _updated } = stackTemplate
+
+  { machines, config, title, template, credentials
+    rawContent, templateDetails, description } = options
+
+  updateOptions = if machines
+  then { machines, config }
+  else { title, template, credentials, rawContent, templateDetails, config, description }
+
+  return new Promise (resolve, reject) ->
+
+    reactor.dispatch actions.UPDATE_STACK_TEMPLATE_BEGIN
+
+    stackTemplate.update updateOptions, (err, updatedTemplate) ->
+      if err
+        reactor.dispatch actions.UPDATE_STACK_TEMPLATE_FAIL, { err }
+        reject err
+        return
+
+      stackTemplate = _.assign stackTemplate, { inuse, _updated }
+
+      updateStackTemplate.inuse = inuse
+
+      successPayload = { stackTemplate: updatedTemplate }
+
+      reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, successPayload
+      resolve successPayload
+
+
+generateStack = (stackTemplateId) ->
+
+  { computeController } = kd.singletons
+
+  computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) ->
+    return  if err
+
+    generateStackFromTemplate stackTemplate
+      .then ({ stack }) ->
+        computeController.reset yes
+        new kd.NotificationView { title: 'Stack generated successfully' }
+      .catch (err) -> showError err
+
+
+generateStackFromTemplate = (template) ->
+
+  { reactor } = kd.singletons
+
+  return new Promise (resolve, reject) ->
+
+    reactor.dispatch actions.GENERATE_STACK_BEGIN, { template }
+
+    template.generateStack (err, stack) ->
+      if err
+        reactor.dispatch actions.GENERATE_STACK_FAIL, { template, err }
+        reject err
+        return
+
+      reactor.dispatch actions.GENERATE_STACK_SUCCESS, { template, stack }
+      resolve { template, stack }
+
+
+removeStackTemplate = (template) ->
+
+  { reactor, groupsController } = kd.singletons
+
+  currentGroup = groupsController.getCurrentGroup()
+
+  return new Promise (resolve, reject) ->
+    reactor.dispatch actions.REMOVE_STACK_TEMPLATE_BEGIN, { template }
+    template.delete (err) ->
+      if err
+        reactor.dispatch actions.REMOVE_STACK_TEMPLATE_FAIL, { template, err }
+        reject err
+        return
+
+      if template.accessLevel is 'group'
+        currentGroup.sendNotification 'GroupStackTemplateRemoved', template._id
+
+      reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { template }
+      resolve()
+
+      Tracker.track Tracker.STACKS_DELETE_TEMPLATE
+
+
+deleteStack = (stackTemplateId) ->
+
+  { computeController, reactor } = kd.singletons
+
+  stack = computeController.findStackFromTemplateId stackTemplateId
+  return  unless stack
+
+  computeController.ui.askFor 'deleteStack', {}, (status) =>
+    return  unless status.confirmed
+
+    computeController.destroyStack stack, (err) ->
+      return  if showError err
+
+      computeController.reset yes
+
+
+changeTemplateTitle = (id, value) ->
+
+  return  unless id
+
+  { reactor } = kd.singletons
+
+  reactor.dispatch actions.CHANGE_TEMPLATE_TITLE, { id, value }
+
+
+loadMachineSharedUsers = (machineId) ->
+
+  { computeController, reactor } = kd.singletons
+
+  machine = computeController.findMachineFromMachineId machineId
+  return  unless machine
+
+  machine.jMachine.reviveUsers { permanentOnly : yes }, (err, users = []) ->
+    reactor.dispatch actions.LOAD_MACHINE_SHARED_USERS, { id : machineId, users }
+
+
+shareMachineWithUser = (machineId, nickname) ->
+
+  { computeController } = kd.singletons
+
+  machine = computeController.findMachineFromMachineId machineId
+  return  unless machine
+
+  remote.api.SharedMachine.add machine.uid, [nickname], (err) =>
+
+    return showError err  if err
+
+    kite = machine.getBaseKite()
+    kite.klientShare { username: nickname, permanent: yes }
+      .then -> loadMachineSharedUsers machineId
+      .catch (err) ->
+        showError err  unless err.message is 'user is already in the shared list.'
+
+
+unshareMachineWithUser = (machineId, nickname) ->
+
+  { computeController } = kd.singletons
+
+  machine = computeController.findMachineFromMachineId machineId
+  return  unless machine
+
+  remote.api.SharedMachine.kick machine.uid, [nickname], (err) =>
+
+    return showError err  if err
+
+    kite = machine.getBaseKite()
+    kite.klientUnshare { username: nickname, permanent: yes }
+      .then -> loadMachineSharedUsers machineId
+      .catch (err) ->
+        showError err  unless err.message is 'user is not in the shared list.'
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -447,4 +732,19 @@ module.exports = {
   setActiveStackId
   dispatchCollaborationInvitationRejected
   dispatchSharedVMInvitationRejected
+  loadTeamStackTemplates
+  loadPrivateStackTemplates
+  setMachineAlwaysOn
+  setMachinePowerStatus
+  createStackTemplate
+  createStackTemplateWithDefaults
+  updateStackTemplate
+  generateStack
+  generateStackFromTemplate
+  removeStackTemplate
+  deleteStack
+  changeTemplateTitle
+  loadMachineSharedUsers
+  shareMachineWithUser
+  unshareMachineWithUser
 }

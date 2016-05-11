@@ -14,6 +14,10 @@ module.exports = class MachinesStore extends KodingFluxStore
     @on actions.LOAD_USER_ENVIRONMENT_SUCCESS, @load
     @on actions.MACHINE_UPDATED, @updateMachine
     @on actions.INVITATION_ACCEPTED, @acceptInvitation
+    @on actions.SET_MACHINE_ALWAYS_ON_BEGIN, @setAlwaysOnBegin
+    @on actions.SET_MACHINE_ALWAYS_ON_SUCCESS, @setAlwaysOnSuccess
+    @on actions.SET_MACHINE_ALWAYS_ON_FAIL, @setAlwaysOnFail
+    @on actions.LOAD_MACHINE_SHARED_USERS, @loadSharedUsers
 
 
   load: (machines, { own, shared, collaboration }) ->
@@ -45,3 +49,30 @@ module.exports = class MachinesStore extends KodingFluxStore
   acceptInvitation: (machines, id ) ->
 
     machines.setIn [id, 'isApproved'], yes
+
+
+  setAlwaysOnBegin: (machines, { id, state }) ->
+
+    machines.withMutations (machines) ->
+      machine = machines.get id
+      machine = machine.setIn ['meta', '_alwaysOn'], machine.getIn ['meta', 'alwaysOn']
+      machine = machine.setIn ['meta', 'alwaysOn'], state
+      machines.set id, machine
+
+
+  setAlwaysOnSuccess: (machines, { id }) ->
+
+    machines.deleteIn [id, 'meta', '_alwaysOn']
+
+
+  setAlwaysOnFail: (machines, { id }) ->
+
+    machines.withMutations (machines) ->
+      machine = machines.get id
+      machine = machine.setIn ['meta', 'alwaysOn'], machine.getIn ['meta', '_alwaysOn']
+      machine = machine.deleteIn ['meta', '_alwaysOn']
+      machines.set id, machine
+
+  loadSharedUsers: (machines, { id, users }) ->
+
+    machines.setIn [id, 'sharedUsers'], toImmutable users
