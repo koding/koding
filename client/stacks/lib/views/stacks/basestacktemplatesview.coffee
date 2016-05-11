@@ -145,7 +145,7 @@ module.exports = class BaseStackTemplatesView extends kd.View
     @defineStackView.on 'Cancel', ({ stackTemplate }) ->
 
       return  unless stackTemplate
-      return  if stackTemplate.config.verified
+      return  if stackTemplate.config?.verified
 
       stackApp = appManager.appControllers.Stacks.instances.first
       templatesView = stackApp.getStackTemplatesViewByName 'My Stack Templates'

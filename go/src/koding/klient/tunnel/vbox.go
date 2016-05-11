@@ -254,6 +254,23 @@ func (t *Tunnel) gateways() (map[string]string, error) {
 	return gateways, nil
 }
 
+func (t *Tunnel) gateway() (string, error) {
+	gateways, err := t.gateways()
+	if err != nil {
+		return "", fmt.Errorf("failure reading routing table: %s", err)
+	}
+
+	addr, ok := gateways["eth0"]
+	if !ok {
+		for _, a := range gateways {
+			addr = a // pick first non-eth0 interface (eth1?)
+			break
+		}
+	}
+
+	return addr, nil
+}
+
 func (t *Tunnel) dialHostKite(addr string) (*kite.Client, error) {
 	hostKiteURL := &url.URL{
 		Scheme: "http",
@@ -291,17 +308,9 @@ func (t *Tunnel) forwardedPorts() ([]*vagrant.ForwardedPort, error) {
 	// kite and is equal to jMachines.Uid for the given vagrant
 	// vm. The VirtualBox machine name is always prefixed by
 	// the jMachines.Uid.
-	gateways, err := t.gateways()
+	addr, err := t.gateway()
 	if err != nil {
-		return nil, fmt.Errorf("failure reading routing table: %s", err)
-	}
-
-	addr, ok := gateways["eth0"]
-	if !ok {
-		for _, a := range gateways {
-			addr = a // pick first non-eth0 interface (eth1?)
-			break
-		}
+		return nil, err
 	}
 
 	// NOTE(rjeczalik): we assume host kite is on port 56789 (all installer

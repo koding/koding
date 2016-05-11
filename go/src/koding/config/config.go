@@ -9,7 +9,8 @@ var Builtin *Config
 
 // Config contains default values for services.
 type Config struct {
-	Endpoints Endpoints `json:"endpoints"`
+	Endpoints Endpoints         `json:"endpoints"`
+	Routes    map[string]string `json:"routes"`
 }
 
 // Endpoint represents a single worker's endpoint
