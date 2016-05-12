@@ -133,4 +133,12 @@ module.exports =
       .waitForElementVisible closeAddYourOwnMachineModal, 20000
       .click closeAddYourOwnMachineModal
       .pause 1000
-      .end()
+
+    # vm off by using VM Power toggle
+    browser
+      .click vmPowerToggleSelector, ->
+        teamsHelpers.waitUntilVmStopping browser, ->
+          browser
+            .click vmPowerToggleSelector, ->
+              teamsHelpers.waitUntilVmRunning browser, ->
+                browser.end()
