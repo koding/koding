@@ -350,10 +350,12 @@ module.exports = class MainController extends KDController
 
       return  unless id
 
-      repeater = kd.utils.repeat 100, ->
-        return  unless window._chatlio
-        window._chatlio[method] args
-        kd.utils.killRepeat repeater
+      run = do -> -> window._chatlio[method] args
+
+      if window._chatlio
+      then run()
+      else document.addEventListener 'chatlio.ready', run
+
 
 
   registerFluxModules: ->
