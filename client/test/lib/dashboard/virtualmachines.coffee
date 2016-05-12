@@ -89,3 +89,16 @@ module.exports =
       .pause 2000
       .click vmSharingToggleSelector
 
+    #check add a Connected Machine
+
+    browser
+      .waitForElementVisible addAConnectedMachineButtonSelector, 20000
+      .click addAConnectedMachineButtonSelector
+      .waitForElementVisible addYourOwnMachineSelector, 20000
+      .waitForElementVisible selectButtonSelector, 20000
+      .click selectButtonSelector
+      .waitForElementVisible pressCMDCNotificationSelector, 20000
+      .waitForElementVisible closeAddYourOwnMachineModal, 20000
+      .click closeAddYourOwnMachineModal
+      .pause 1000
+      .end()
