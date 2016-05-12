@@ -139,7 +139,8 @@ Configuration = (options = {}) ->
     limit: '1536MB'
     email: 'sysops+supervisord-sandbox@koding.com'
 
-  envFiles = {}
+  envFiles =
+    sh: (require './generateShellEnv').create KONFIG, options
 
   KONFIG.JSON = JSON.stringify KONFIG
   KONFIG.ENV = (require "../deployment/envvar.coffee").create KONFIG

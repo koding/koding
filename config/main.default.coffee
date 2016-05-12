@@ -92,7 +92,8 @@ Configuration = (options = {}) ->
   KONFIG.supervisord.unix_http_server =
     file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
 
-  envFiles = {}
+  envFiles =
+    sh: (require './generateShellEnv').create KONFIG, options
 
   KONFIG.JSON = JSON.stringify KONFIG
   KONFIG.ENV = (require '../deployment/envvar.coffee').create KONFIG
