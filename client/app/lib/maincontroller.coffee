@@ -344,7 +344,7 @@ module.exports = class MainController extends KDController
     kd.whoami      = whoami
 
 
-  tellChatlioWidget: (method, options, callback=kd.noop) ->
+  tellChatlioWidget: (method, options, callback = kd.noop) ->
 
     fetchChatlioKey (id) ->
 
