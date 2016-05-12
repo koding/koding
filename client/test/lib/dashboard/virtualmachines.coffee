@@ -39,6 +39,7 @@ module.exports =
     virtualMachineSelector = '.HomeAppView--section.virtual-machines'
     runningVMSelector = "#{virtualMachineSelector} .MachinesListItem-machineLabel.Running"
     machineDetailSelector = '.MachinesListItem-machineDetails'
+    machineDetailSpecsList = "#{machineDetailSelector} .MachineDetails-SpecsList"
     vmPowerSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(2)"
     alwaysOnSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(3)"
     vmSharingSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(4)"
@@ -67,6 +68,10 @@ module.exports =
       .waitForElementVisible runningVMSelector, 20000
       .click runningVMSelector
       .waitForElementVisible machineDetailSelector, 20000
+
+    # check for specsList
+    browser
+      .waitForElementVisible machineDetailSpecsList, 20000
 
     # check for alwaysOnToggle
     browser
