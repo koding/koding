@@ -2,7 +2,7 @@ teamsHelpers = require '../helpers/teamshelpers.js'
 helpers = require '../helpers/helpers.js'
 utils = require '../utils/utils.js'
 credentialsUrl = "#{helpers.getUrl(yes)}/Home/Stacks/credentials"
-
+async = require 'async'
 
 module.exports =
 
@@ -18,10 +18,20 @@ module.exports =
     users =
       targetUser1
 
-    teamsHelpers.inviteAndJoinWithUsers browser, [ users ], (result) ->
-      teamsHelpers.createCredential browser, 'aws', 'aws1', yes, ->
-        teamsHelpers.createCredential browser, 'aws', 'aws2', yes, ->
-          done()
+    queue = [
+      (next) ->
+        teamsHelpers.inviteAndJoinWithUsers browser, [ users ], (result) ->
+          next null, result
+      (next) ->
+        teamsHelpers.createCredential browser, 'aws', 'aws1', yes, (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.createCredential browser, 'aws', 'aws2', yes, (res) ->
+          next null, res
+    ]
+
+    async.series queue, (err, result) ->
+      done()  unless err
 
 
   credentials: (browser) ->
