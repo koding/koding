@@ -344,6 +344,24 @@ module.exports =
         when 'Starting' then @waitUntilVmRunning browser, done
 
 
+  turnOnVm: (browser, firstBuild = no, done = -> ) ->
+
+    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
+    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
+    buildStackModal = '.kdmodal.env-modal.env-machine-state.kddraggable.has-readme'
+    buildStackButton = "#{buildStackModal} .kdbutton.turn-on.state-button.solid.green.medium.with-icon"
+
+    unless firstBuild
+      buildStackModal = '.kdmodal.env-modal.env-machine-state'
+      buildStackButton = "#{buildStackModal} .kdbutton.turn-on.state-button.solid.green.medium.with-icon"
+
+    browser
+      .waitForElementVisible buildStackModal, 20000
+      .waitForElementVisible buildStackButton, 20000
+      .click buildStackButton, =>
+        @waitUntilVmRunning browser, done
+
+
   createStack: (browser, done) ->
 
     url = helpers.getUrl(yes)
