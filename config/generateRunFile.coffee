@@ -94,6 +94,14 @@ generateDev = (KONFIG, options, credentials) ->
 
     # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #
 
+    ENV_SHELL_FILE=${ENV_SHELL_FILE:-$(dirname $0)/.env.sh}
+    if [ -f "$ENV_SHELL_FILE" ]; then
+      source $ENV_SHELL_FILE
+    else
+      echo "error: shell environment file does not exist"
+      exit 1
+    fi
+
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
     SERVICES="mongo redis postgres rabbitmq"
@@ -668,6 +676,14 @@ generateSandbox =   generateRunFile = (KONFIG) ->
   return """
     #!/bin/bash
     export HOME=/home/ec2-user
+
+    ENV_SHELL_FILE=${ENV_SHELL_FILE:-$(dirname $0)/.env.sh}
+    if [ -f "$ENV_SHELL_FILE" ]; then
+      source $ENV_SHELL_FILE
+    else
+      echo "error: shell environment file does not exist"
+      exit 1
+    fi
 
     COMMAND=$1
     shift
