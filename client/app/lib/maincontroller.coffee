@@ -45,7 +45,7 @@ MachineShareManager            = require './machinesharemanager'
 KodingFluxReactor              = require './flux/base/reactor'
 DesktopNotificationsController = require './desktopnotificationscontroller'
 bowser                         = require 'bowser'
-getChatlioKey                  = require 'app/util/getChatlioKey'
+fetchChatlioKey                = require 'app/util/fetchChatlioKey'
 
 
 module.exports = class MainController extends KDController
@@ -346,7 +346,7 @@ module.exports = class MainController extends KDController
 
   tellChatlioWidget: (method, args) ->
 
-    getChatlioKey (id) ->
+    fetchChatlioKey (id) ->
 
       return  unless id
 

@@ -1,7 +1,7 @@
 kd                     = require 'kd'
 whoami                 = require 'app/util/whoami'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
-getChatlioKey          = require 'app/util/getChatlioKey'
+fetchChatlioKey        = require 'app/util/fetchChatlioKey'
 
 shouldTalkToKodingSupport = no
 
@@ -80,7 +80,7 @@ bootChatlio = (id, team) ->
 
 module.exports = setupChatlio = ->
 
-  getChatlioKey (chatlioId, isAdmin) ->
+  fetchChatlioKey (chatlioId, isAdmin) ->
 
     team = kd.singletons.groupsController.getCurrentGroup()
     shouldTalkToKodingSupport = isAdmin
