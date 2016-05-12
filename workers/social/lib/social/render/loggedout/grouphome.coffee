@@ -1,6 +1,6 @@
 module.exports = (options, callback) ->
   { argv } = require 'optimist'
-  { uri, domains } = require('koding-config-manager').load("main.#{argv.c}")
+  { uri, domains } = require 'koding-config-manager'
 
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'

@@ -3,9 +3,7 @@ jraphical   = require 'jraphical'
 KodingError = require '../error'
 ApiError    = require './socialapi/error'
 Tracker     = require './tracker'
-
-{ argv }    = require 'optimist'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG      = require 'koding-config-manager'
 
 module.exports = class JAccount extends jraphical.Module
 

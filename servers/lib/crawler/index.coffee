@@ -4,8 +4,7 @@ kodinghome                = require './staticpages/kodinghome'
 activity                  = require './staticpages/activity'
 feed                      = require './staticpages/feed'
 profile                   = require './staticpages/profile'
-{ argv }                  = require 'optimist'
-{ uri }                   = require('koding-config-manager').load("main.#{argv.c}")
+{ uri }                   = require 'koding-config-manager'
 { createActivityContent } = require './helpers'
 
 notFoundError = (name) ->

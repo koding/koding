@@ -12,7 +12,7 @@ Bongo                   = require 'bongo'
 { daisy, ObjectId }     = Bongo
 { argv }                = require 'optimist'
 { env : { MONGO_URL } } = process
-KONFIG                  = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG                  = require 'koding-config-manager'
 mongo                   = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
 
 

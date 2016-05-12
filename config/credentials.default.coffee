@@ -22,7 +22,7 @@ module.exports = (options) ->
     # AmazonEC2FullAccess
     worker_test_instance_launcher: kodingdev_master_2016_05
     # TunnelProxyPolicy
-    worker_tunnelproxymanager: kodingdev_master_2016_05 # Name worker_tunnelproxymanager_dev
+    worker_tunnelproxymanager: kodingdev_master_2016_05
     #Encryption and Storage on S3
     worker_sneakerS3 : kodingdev_master_2016_05
     vm_vmwatcher:     # vm_vmwatcher_dev
@@ -139,10 +139,6 @@ module.exports = (options) ->
     app_key: ''
   embedly =
     apiKey: ''
-  iframely =
-    apiKey: ''
-    url: 'http://iframe.ly/api/oembed'
-  rollbar = ''
   siftScience = ''
   siftSciencePublic = ''
   jwt =
@@ -180,12 +176,6 @@ module.exports = (options) ->
     secretKey: ""
   vmwatcher =
     secretKey: ""
-  helpscout =
-    apiKey: ''
-    baseUrl: 'https://api.helpscout.net/v1'
-  recurly =
-    apiKey: ""
-    loggedRequests: "/^(subscriptions|transactions)/"
   segment = ''
   kontrol =
     publicKeyFile: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pem"
@@ -222,8 +212,6 @@ module.exports = (options) ->
     linkedin
     datadog
     embedly
-    iframely
-    rollbar
     siftScience
     siftSciencePublic
     jwt
@@ -234,8 +222,6 @@ module.exports = (options) ->
     recaptcha
     paypal
     janitor
-    helpscout
-    recurly
     segment
     kontrol
     kloud

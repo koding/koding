@@ -1,5 +1,4 @@
-{ argv } = require 'optimist'
-KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG = require 'koding-config-manager'
 
 request         = require 'request'
 _               = require 'underscore'

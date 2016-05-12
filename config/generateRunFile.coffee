@@ -266,6 +266,7 @@ generateDev = (KONFIG, options, credentials) ->
       echo "Usage: "
       echo ""
       echo "  run                       : to start koding"
+      echo "  run exec                  : to exec arbitrary commands"
       echo "  run backend               : to start only backend of koding"
       echo "  run killall               : to kill every process started by run script"
       echo "  run install               : to compile/install client and "
@@ -641,6 +642,10 @@ generateDev = (KONFIG, options, credentials) ->
         make install-migrate
         migrate $2 $3
       fi
+
+    elif [ "$1" == "exec" ]; then
+      shift
+      exec $*
 
     elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
 

@@ -2,7 +2,7 @@ process.title = 'koding-webserver'
 { argv }      = require 'optimist'
 
 Object.defineProperty global, \
-  'KONFIG', { value : require('koding-config-manager').load "main.#{argv.c}" }
+  'KONFIG', { value : require 'koding-config-manager' }
 
 { webserver, projectRoot, basicAuth } = KONFIG
 

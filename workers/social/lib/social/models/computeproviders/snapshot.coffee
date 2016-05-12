@@ -1,9 +1,7 @@
 { Module }  = require 'jraphical'
 { revive }  = require './computeutils'
 KodingError = require '../../error'
-
-{ argv }    = require 'optimist'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG      = require 'koding-config-manager'
 
 
 module.exports = class JSnapshot extends Module

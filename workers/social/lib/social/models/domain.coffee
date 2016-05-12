@@ -1,8 +1,7 @@
 # NOTE: All domain registry related stuff removed
 # you can look at them from 745b4914f14fa424a3e38db68e09a1bc832be7f4
 
-{ argv }   = require 'optimist'
-KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG = require 'koding-config-manager'
 
 jraphical = require 'jraphical'
 module.exports = class JProposedDomain extends jraphical.Module

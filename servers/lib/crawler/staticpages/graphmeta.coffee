@@ -1,5 +1,4 @@
-{ argv } = require 'optimist'
-{ uri, domains, client:{ version } } = require('koding-config-manager').load("main.#{argv.c}")
+{ uri, domains, client: { version } } = require 'koding-config-manager'
 encoder      = require 'htmlencode'
 
 module.exports = (options = {}) ->

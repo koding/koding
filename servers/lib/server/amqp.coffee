@@ -1,7 +1,5 @@
 amqp     = require 'amqp'
-{ argv } = require 'optimist'
-KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
-{ mq }   = KONFIG
+{ mq }   = require 'koding-config-manager'
 
 bongo    = require './bongo'
 conn     = amqp.createConnection mq, { reconnect: yes }
