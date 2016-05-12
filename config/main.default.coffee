@@ -25,7 +25,9 @@ Configuration = (options = {}) ->
   options.projectRoot or= path.join __dirname, '/..'
   options.version or= "2.0" # TBD
   options.build or= "1111"
-  options.tunnelUrl or= "http://devtunnelproxy.koding.com"
+  options.tunnelHostedZoneName = "dev-t.koding.com"
+  options.tunnelHostedZoneCallerRef = "devtunnelproxy_hosted_zone_v0"
+  options.tunnelUrl or= "http://#{options.tunnelHostedZoneName}"
   options.userSitesDomain or= "dev.koding.io"
   options.defaultEmail or= "hello@#{options.domains.mail}"
   options.recaptchaEnabled or= no

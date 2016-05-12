@@ -25,7 +25,9 @@ Configuration = (options = {}) ->
   options.projectRoot = "/opt/koding"
   options.version or= options.tag
   options.build or= "1111"
-  options.tunnelUrl or= "http://devtunnelproxy.koding.com"
+  options.tunnelHostedZoneName = "dev-t.koding.com"
+  options.tunnelHostedZoneCallerRef = "devtunnelproxy_hosted_zone_v0"
+  options.tunnelUrl or= "http://#{options.tunnelHostedZoneName}"
   options.userSitesDomain or= "sandbox.koding.io"
   options.defaultEmail or= "hello@#{options.domains.mail}"
   options.recaptchaEnabled or= yes
