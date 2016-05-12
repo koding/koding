@@ -9,18 +9,16 @@
     .kdmodal-title
       color                 #aaa !important
       text-align            center
-      height                75px
+      height                60px
 
       .title
-        font-size           24px !important
-        padding-top         30px
+        font-size           18px !important
+        padding-top         22px
 
-    .kdmodal-content
-      bg                    color, #eee
-      height                510px
-      color                 #999
-
-  .build-stack-view
+  .build-stack-content
+    bg                      color, #eee
+    height                  450px
+    color                   #999
     borderBox()
     padding                 0 50px
 
@@ -86,6 +84,9 @@
     line-height             19px
     color                   #999
 
+  .validation-error
+    border                  1px solid #f13a18 !important
+
   .create-new
     color                   #729FCF
     text-decoration         none
@@ -141,3 +142,10 @@
   .selection-visible
     .new-credential-header
       visible()
+
+  .build-stack-footer
+    padding                 25px
+
+    .build-btn
+      fr()
+      rounded               3px

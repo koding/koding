@@ -34,7 +34,12 @@ module.exports = class CredentialForm extends kd.CustomHTMLView
       click    : @bound 'onCreateNew'
 
     { ui } = kd.singletons.computeController
-    @form  = ui.generateAddCredentialFormFor { provider, requiredFields : fields }
+    @form  = ui.generateAddCredentialFormFor {
+      provider
+      requiredFields : fields
+      callback       : @bound 'onFormValidated'
+    }
+    @forwardEvent @form, 'FormValidationFailed'
 
     @cancelNew = new kd.CustomHTMLView
       tagName  : 'a'
@@ -52,6 +57,25 @@ module.exports = class CredentialForm extends kd.CustomHTMLView
 
 
   onCancelNew: -> @unsetClass 'form-visible'
+
+
+  validate: ->
+
+    @selection.unsetClass 'validation-error'
+
+    if @hasClass 'form-visible'
+      @form.submit()
+    else if selectedItem = @selection.getValue()
+      @emit 'FormValidationPassed', { selectedItem }
+    else
+      @selection.setClass 'validation-error'
+      @emit 'FormValidationFailed'
+
+
+  onFormValidated: (title, data) ->
+
+    { provider } = @getData()
+    @emit 'FormValidationPassed', { newData : { provider, title, meta : data } }
 
 
   pistachio: ->

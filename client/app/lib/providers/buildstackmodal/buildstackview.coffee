@@ -1,6 +1,9 @@
 kd = require 'kd'
+async = require 'async'
+remote = require('app/remote').getInstance()
 JView = require 'app/jview'
 CredentialForm = require './credentialform'
+showError = require 'app/util/showError'
 
 module.exports = class BuildStackView extends kd.View
 
@@ -14,6 +17,12 @@ module.exports = class BuildStackView extends kd.View
     @createCredentialView()
     @createRequirementsView()
 
+    @buildButton = new kd.ButtonView
+      title    : 'Build Stack'
+      cssClass : 'solid small red build-btn'
+      loader   : yes
+      callback : @bound 'onBuild'
+
 
   createCredentialView: ->
 
@@ -21,12 +30,12 @@ module.exports = class BuildStackView extends kd.View
 
     @awsCredentialContainer = new kd.CustomScrollView
       cssClass : 'form-scroll-wrapper credential-wrapper'
-    awsCredentialForm = new CredentialForm {
+    @awsCredentialForm = new CredentialForm {
       title : 'AWS Credential'
       selectionPlaceholder : 'Select credential...'
       selectionLabel : 'Credential Selection'
     }, credentials
-    @awsCredentialContainer.wrapper.addSubView awsCredentialForm
+    @awsCredentialContainer.wrapper.addSubView @awsCredentialForm
 
 
   createRequirementsView: ->
@@ -38,12 +47,12 @@ module.exports = class BuildStackView extends kd.View
 
     return @setClass 'credential-only'  unless requirements.fields
 
-    requirementsForm = new CredentialForm {
+    @requirementsForm = new CredentialForm {
       title : 'Requirements'
       selectionPlaceholder : 'Select from existing requirements...'
       selectionLabel : 'Requirement Selection'
     }, requirements
-    @requirementsContainer.wrapper.addSubView requirementsForm
+    @requirementsContainer.wrapper.addSubView @requirementsForm
 
 
   buildTitleAndDescription: ->
@@ -66,13 +75,72 @@ module.exports = class BuildStackView extends kd.View
     }
 
 
+  onBuild: ->
+
+    validationQueue =
+      credential    : helper.createFormValidationCallback @awsCredentialForm
+      requirements  : helper.createFormValidationCallback @requirementsForm
+
+    async.parallel validationQueue, (err, validationResults) =>
+      return @buildButton.hideLoader()  if err
+
+      resultQueue = [
+        helper.createFormResultCallback validationResults.credential
+        helper.createFormResultCallback validationResults.requirements
+      ]
+
+      async.series resultQueue, (err, identifiers) =>
+        if err
+          @buildButton.hideLoader()
+          return showError err
+
+        alert identifiers
+
+
   pistachio: ->
 
     { title, description } = @buildTitleAndDescription()
 
     """
-      <div class="top-title">#{title}</div>
-      <div class="top-subtitle">#{description}</div>
-      {{> @awsCredentialContainer}}
-      {{> @requirementsContainer}}
+      <div class="build-stack-content">
+        <div class="top-title">#{title}</div>
+        <div class="top-subtitle">#{description}</div>
+        {{> @awsCredentialContainer}}
+        {{> @requirementsContainer}}
+        <div class="clearfix"></div>
+      </div>
+      <div class="build-stack-footer">
+        {{> @buildButton}}
+      </div>
     """
+
+  helper =
+
+    createFormValidationCallback: (form) ->
+
+      (next) ->
+
+        return next()  unless form
+
+        form.off  'FormValidationPassed'
+        form.once 'FormValidationPassed', (result) ->
+          next null, result
+
+        form.off  'FormValidationFailed'
+        form.once 'FormValidationFailed', -> next 'ValidationError'
+
+        form.validate()
+
+
+    createFormResultCallback: (validationResult) ->
+
+      (next) ->
+
+        return next()  unless validationResult
+
+        { selectedItem, newData } = validationResult
+        return next null, selectedItem  if selectedItem
+
+        remote.api.JCredential.create newData, (err, credential) ->
+          return next err  if err
+          return next null, credential.identifier
