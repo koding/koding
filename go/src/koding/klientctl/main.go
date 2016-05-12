@@ -142,11 +142,11 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "prefetch-all, a",
-					Usage: "Prefetch all contents of the remote directory up front (DEPRECATED).",
+					Usage: "Prefetch all contents of the remote directory up front.",
 				},
 				cli.IntFlag{
 					Name:  "prefetch-interval",
-					Usage: "Sets how frequently remote folder will sync with local, in seconds. (DEPRECATED).",
+					Usage: "Sets how frequently remote folder will sync with local, in seconds.",
 				},
 				cli.BoolFlag{
 					Name:  "nowatch, w",
