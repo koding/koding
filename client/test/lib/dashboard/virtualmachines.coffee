@@ -35,6 +35,7 @@ module.exports =
   virtualmachines: (browser) ->
 
     member = utils.getUser no, 1
+    host = utils.getUser()
 
     virtualMachineSelector = '.HomeAppView--section.virtual-machines'
     runningVMSelector = "#{virtualMachineSelector} .MachinesListItem-machineLabel.Running"
@@ -59,6 +60,13 @@ module.exports =
     selectButtonSelector = "#{addYourOwnMachineSelector} .code .select-all"
     closeAddYourOwnMachineModal = "#{addYourOwnMachineSelector} .close-icon.closeModal"
     pressCMDCNotificationSelector = '.kdview.kdtooltip.just-text.placement-top.direction-center'
+
+    sidebarSharedMachinesSection = '.SidebarSection.SidebarSharedMachinesSection'
+    sidebarPopover = '.Popover-Wrapper'
+    acceptSharedMachine = "#{sidebarPopover} .kdbutton.solid.green.medium"
+
+    sharedMachineSection = '.HomeAppView--section.shared-machines'
+    sharedMachinesList = "#{sharedMachineSection} .ListView"
 
 
     browser
@@ -89,13 +97,32 @@ module.exports =
       .waitForElementVisible memberSelector, 20000
       .click memberSelector
       .waitForElementVisible membersList, 20000
-      .waitForElementVisible removeSharedMachineMember, 20000
-      .click removeSharedMachineMember
-      .pause 2000
-      .click vmSharingToggleSelector
+      .waitForElementVisible removeSharedMachineMember, 20000, ->
+
+        # check shared machine for member
+        teamsHelpers.logoutTeam browser, ->
+          teamsHelpers.loginToTeam browser, member, no, ->
+            browser
+              .waitForElementVisible sidebarSharedMachinesSection, 20000
+              .click sidebarSharedMachinesSection
+              .waitForElementVisible sidebarPopover, 20000
+              .click acceptSharedMachine
+              .pause 2000
+              .url virtualMachinesUrl
+              .waitForElementVisible virtualMachineSelector, 20000
+              .waitForElementVisible sharedMachineSection, 20000
+              .waitForElementVisible sharedMachinesList, 20000
+              .pause 2000, ->
+                teamsHelpers.logoutTeam browser, ->
+                  teamsHelpers.loginToTeam browser, host, no, ->
+                    browser
+                      .pause 5000
+                      .url virtualMachinesUrl
+                      .waitForElementVisible virtualMachineSelector, 20000
+                      .waitForElementVisible runningVMSelector, 20000
+                      .click runningVMSelector
 
     #check add a Connected Machine
-
     browser
       .waitForElementVisible addAConnectedMachineButtonSelector, 20000
       .click addAConnectedMachineButtonSelector
