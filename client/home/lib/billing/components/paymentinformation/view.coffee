@@ -20,20 +20,20 @@ module.exports = class PaymentInformation extends React.Component
 
     <section className='HomeAppView--section billing'>
       <fieldset>
-        <label>Full Name:</label>
+        <label className='HomeAppView-label'>Full Name</label>
         <input
           className={inputClass 'full-name'}
           value={@pickValue 'fullName'}
           onChange={@sendValue 'fullName'}
-          placeholder='Enter your name and surname' />
+          placeholder='Enter your name and surname...' />
       </fieldset>
       <fieldset className='email'>
-        <label>E-mail Address:</label>
+        <label className='HomeAppView-label'>E-mail Address</label>
         <input
           className={inputClass 'email'}
           value={@pickValue 'email'}
           onChange={@sendValue 'email'}
-          placeholder='Enter your e-mail' />
+          placeholder='Enter your e-mail...' />
       </fieldset>
       <ActionBar
         onRemoveCard={@props.onRemoveCard}
@@ -53,8 +53,8 @@ ActionBar = ({ onRemoveCard, onPaymentHistory, onSave }) ->
     <a className="HomeAppView--button custom-link-view primary" href="#" onClick={onPaymentHistory}>
       <span className="title">PAYMENT HISTORY</span>
     </a>
-    <a className="HomeAppView--button custom-link-view primary fr" href="#" onClick={onSave}>
-      <span className="title">SAVE</span>
-    </a>
+    <button className="GenericButton medium fr" href="#" onClick={onSave}>
+      <span className="button-title">SAVE</span>
+    </button>
   </fieldset>
 

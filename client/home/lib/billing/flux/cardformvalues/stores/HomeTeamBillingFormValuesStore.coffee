@@ -22,6 +22,10 @@ handleSetValue = (values, { type, value }) ->
       .set 'isEdited', yes
       .set type, value
 
+    number = values.get 'number'
+
+    values.set 'cardType', extractType number
+
 
 defaultValues = ->
   return toImmutable
@@ -31,5 +35,9 @@ defaultValues = ->
     cvc: ''
     fullName: ''
     email: ''
+    cardType: 'Unknown' # it's the default state from Stripe.card.cardType
     isEdited: no
+
+
+extractType = (number) -> Stripe?.card.cardType(number) or 'Unknown'
 
