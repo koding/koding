@@ -30,3 +30,41 @@ module.exports =
 
     async.series queue, (err, result) ->
       done()  unless err
+
+
+  virtualmachines: (browser) ->
+
+    member = utils.getUser no, 1
+
+    virtualMachineSelector = '.HomeAppView--section.virtual-machines'
+    runningVMSelector = "#{virtualMachineSelector} .MachinesListItem-machineLabel.Running"
+    machineDetailSelector = '.MachinesListItem-machineDetails'
+    vmPowerSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(2)"
+    alwaysOnSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(3)"
+    vmSharingSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(4)"
+    vmPowerToggleSelector = "#{vmPowerSelector} .react-toggle-thumb"
+    alwaysOnToggleSelector = "#{alwaysOnSelector} .react-toggle-thumb"
+    vmSharingToggleSelector = "#{vmSharingSelector} .react-toggle-thumb"
+    machineSharingDetails = '.MachineSharingDetails'
+    inputSelector = "#{machineSharingDetails} input.kdinput.text"
+    memberSelector = "#{machineSharingDetails} .AutocompleteListItem"
+    membersList = "#{machineSharingDetails} .ListView"
+    removeSharedMachineMember = "#{membersList} .remove"
+    memberNicknameToShareMachine = "@#{member.username}"
+
+    addAConnectedMachineButtonSelector = '.kdbutton.GenericButton.HomeAppViewVMSection--addOwnMachineButton'
+    addYourOwnMachineSelector = '.kdmodal.add-managed-vm'
+
+    selectButtonSelector = "#{addYourOwnMachineSelector} .code .select-all"
+    closeAddYourOwnMachineModal = "#{addYourOwnMachineSelector} .close-icon.closeModal"
+    pressCMDCNotificationSelector = '.kdview.kdtooltip.just-text.placement-top.direction-center'
+
+
+    browser
+      .pause 5000
+      .url virtualMachinesUrl
+      .waitForElementVisible virtualMachineSelector, 20000
+      .waitForElementVisible runningVMSelector, 20000
+      .click runningVMSelector
+      .waitForElementVisible machineDetailSelector, 20000
+
