@@ -68,3 +68,10 @@ module.exports =
       .click runningVMSelector
       .waitForElementVisible machineDetailSelector, 20000
 
+    # check for alwaysOnToggle
+    browser
+      .click alwaysOnToggleSelector
+      .pause 1000
+      .click alwaysOnToggleSelector
+      .pause 1000
+
