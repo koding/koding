@@ -1,0 +1,152 @@
+@css {
+/*
+Home styles
+*/
+}
+
+$titleColor                 = #424242
+$subtleColor                = #A59999
+
+.HomeAppView
+  font-family               SoleilFamily
+  color                     #9f9f9f
+
+  ul
+    list-style-type         disc
+    list-style-position     inside
+    font-size               14px
+    line-height             28px
+    font-weight             100
+
+  .koding-on-off.small
+    size                    42px 22px
+    border-radius           19px
+    background              #D8D8D8
+    padding                 4px 6px
+
+    &:before
+      abs                   3px 0 0 -39px
+      content               'OFF'
+
+    a.knob
+      background            #fff
+      size                  14px 14px
+
+    &.on
+      background            #52A840
+      &:before
+        content             'ON'
+
+    &.on a.knob
+      vendor                transform, translateX(16px)
+
+
+  .react-toggle:before
+    abs                   5px 0 0 -39px
+    content               'OFF'
+
+  .react-toggle-track
+    size                  42px 22px
+
+  .react-toggle-thumb
+    abs                   4px 0 0 4px
+    size                  14px 14px
+
+  .react-toggle--checked
+
+    &:before
+      content             'ON'
+
+    .react-toggle-thumb
+      left                24px
+
+.HomeAppView-TabView
+  bg                        color, #F4F3F3
+  overflow                  hidden
+  size                      auto, 100%
+  border-left               1px solid #E4E4E4
+  borderBox()
+
+.HomeAppView--scroller
+  styleScrollBars           rgba(0,0,0,.15)
+
+
+.HomeAppView--code
+  bg                        color #F7F7F7
+  border                    1px solid #EAEAEA
+  borderBox()
+  color                     #8958BA
+  font-size                 12px
+  font-weight               400
+  font-style                normal
+  line-height               18px
+  padding                   0 6px
+  rounded                   2px
+  &.block
+    color                   #858585
+    font-size               14px
+    line-height             20px
+    padding                 0
+    margin                  40px 20px
+    width                   auto
+    display                 block
+    // font-family             monoFamily
+    rel()
+
+    span
+      padding               15px 80px 15px 25px
+      display               block
+
+    cite
+      color                 #979798
+      font-weight           300
+      font-size             14px
+      display               block
+      abs                   15px 15px
+
+    textarea
+      color                 #858585
+      font-size             14px
+      line-height           20px
+      padding               0
+      // font-family           monoFamily
+      borderBox()
+
+.HomeAppViewListItem
+  rel()
+
+.HomeAppViewListItem-description
+.HomeAppViewListItem-label
+  width                     50%
+
+.HomeAppViewListItem-label
+  font-weight               600
+  font-size                 16px
+  color                     $titleColor
+  line-height               25px
+  pointer()
+  text-decoration           none
+  fontPrecisionForSoleil()
+
+.HomeAppViewListItem-description
+  font-style                italic
+  color                     $subtleColor
+  font-weight               100
+  font-size                 14px
+  line-height               16px
+  .u-color-light-text
+    color                   $subtleColor
+
+.HomeAppViewListItem-SecondaryContainer
+  width                     50%
+  abs                       13px 0px
+  text-align                right
+
+  .HomeAppView--button
+    line-height             20px
+    display                 inline-block
+
+  .SecondaryContainerItem
+    margin-left             40px
+
+

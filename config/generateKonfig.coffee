@@ -169,6 +169,7 @@ module.exports = (options, credentials) ->
     redis                         : credentials.redis.url
     monitoringRedis               : credentials.monitoringRedis.url
     mongo                         : credentials.mongo
+    postgres                      : credentials.postgres
     mq                            : credentials.rabbitmq
     terraformer                   : credentials.terraformer
     recurly                       : credentials.recurly
@@ -186,7 +187,6 @@ module.exports = (options, credentials) ->
     integration                   : credentials.integration
     googleapiServiceAccount       : credentials.googleapiServiceAccount
     siftScience                   : credentials.siftScience
-    tokbox                        : credentials.tokbox
     rollbar                       : credentials.rollbar
     jwt                           : credentials.jwt
     papertrail                    : credentials.papertrail

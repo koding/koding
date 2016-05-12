@@ -15,7 +15,6 @@ module.exports = class ProviderSelectionView extends JView
 
     @createProviders()
 
-
   createProviders: ->
 
     providers        = [
@@ -26,7 +25,7 @@ module.exports = class ProviderSelectionView extends JView
     if globals.config.environment isnt 'production' or checkFlag 'super-admin'
       enabledProviders.push 'vagrant'
 
-    @providers = new kd.CustomHTMLView { cssClass: 'providers box-wrapper' }
+    @providers = new kd.CustomHTMLView { cssClass: 'providers box-wrapper clearfix' }
 
     providers.forEach (provider) =>
       extraClass = 'coming-soon'
@@ -57,10 +56,11 @@ module.exports = class ProviderSelectionView extends JView
 
   pistachio: ->
 
-    return '''
-      <div class="header">
-        <p class="title">What provider do you want to use?</p>
-        <p class="description">Koding machines run on your own cloud infrastructure. You can switch providers later at any time.</p>
-      </div>
+    '''
+    <header>
+      <h1>Select a Provider</h1>
+    </header>
+    <main>
       {{> @providers}}
+    </main>
     '''

@@ -1,0 +1,20 @@
+module.exports = {
+  "0":{
+    "email":"",
+    "firstname":"",
+    "lastname":"",
+    "role":"admin"
+  },
+  "1":{
+    "email":"",
+    "firstname":"",
+    "lastname":"",
+    "role":"member"
+  },
+  "2":{
+    "email":"",
+    "firstname":"",
+    "lastname":"",
+    "role":"member"
+  }
+}

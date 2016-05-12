@@ -7,6 +7,7 @@ enableLogs             = require './util/enableLogs'
 ConnectionChecker      = require './connectionchecker'
 lazyrouter             = require './lazyrouter'
 setupAnalytics         = require './setupanalytics'
+setupChatlio           = require './setupchatlio'
 os                     = require 'os'
 localStorage           = require './localstorage'
 
@@ -70,6 +71,8 @@ bootup = ->
   mainController.tempStorage = {}
 
   ConnectionChecker.listen()
+
+  mainController.ready -> setupChatlio()
 
   ###
   # CONNECTIVITY EVENTS
