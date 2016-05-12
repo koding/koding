@@ -93,3 +93,4 @@ elektron/dist
 elektron/node_modules
 
 .env.sh
+.env.json

@@ -94,6 +94,7 @@ Configuration = (options = {}) ->
 
   envFiles =
     sh: (require './generateShellEnv').create KONFIG, options
+    json: JSON.stringify KONFIG, null, 2
 
   KONFIG.JSON = JSON.stringify KONFIG
   KONFIG.ENV = (require "../deployment/envvar.coffee").create KONFIG
