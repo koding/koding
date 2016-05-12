@@ -286,24 +286,6 @@ func main() {
 			),
 		},
 		cli.Command{
-			Name: "sync",
-			Usage: fmt.Sprintf(
-				"Manually sync a OneWaySync Mount, in either direction.",
-			),
-			Description: cmdDescriptions["sync"],
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name: "debug",
-				},
-			},
-			Action: ctlcli.FactoryAction(
-				SyncCommandFactory, log, "sync",
-			),
-			BashComplete: ctlcli.FactoryCompletion(
-				SyncCommandFactory, log, "sync",
-			),
-		},
-		cli.Command{
 			Name: "cp",
 			Usage: fmt.Sprintf(
 				"Copy a file from one one machine to another",
