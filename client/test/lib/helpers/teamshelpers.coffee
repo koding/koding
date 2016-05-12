@@ -314,6 +314,36 @@ module.exports =
       .pause 2000, -> done()
 
 
+  buildStack: (browser, done) ->
+
+    sidebarSelector = '.SidebarTeamSection'
+    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
+    buildStackModal = '.kdmodal.env-modal.env-machine-state.kddraggable.has-readme'
+    buildStackButton = "#{buildStackModal} .kdbutton.turn-on.state-button.solid.green.medium.with-icon"
+    progressBarSelector = "#{buildStackModal} .progressbar-container"
+    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
+
+    browser
+      .click '#main-sidebar'
+      .waitForElementVisible sidebarSelector, 20000
+      .click sidebarStackSection
+
+    browser.getAttribute vmSelector, 'title', (result) =>
+      ###
+        Machine status: 'status'
+        substring function remove 'Machine status:'
+        from title attribute
+      ###
+      status = result.value.substring 16
+
+      switch status
+        when 'NotInitialized' then @turnOnVm browser, yes, done
+        when 'Running' then done()
+        when 'Stopping' then @waitUntilVmStopping browser, done
+        when 'Stopped' then @turnOnVm browser, no, done
+        when 'Starting' then @waitUntilVmRunning browser, done
+
+
   createStack: (browser, done) ->
 
     url = helpers.getUrl(yes)
