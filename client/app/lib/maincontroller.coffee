@@ -344,17 +344,17 @@ module.exports = class MainController extends KDController
     kd.whoami      = whoami
 
 
-  tellChatlioWidget: (method, args) ->
+  tellChatlioWidget: (method, options, callback=kd.noop) ->
 
     fetchChatlioKey (id) ->
 
       return  unless id
 
-      run = do -> -> window._chatlio[method] args
+      run = do -> -> callback window._chatlio[method] options
 
       if window._chatlio
       then run()
-      else document.addEventListener 'chatlio.ready', run
+      else document.addEventListener 'chatlio.ready', -> run()
 
 
 
