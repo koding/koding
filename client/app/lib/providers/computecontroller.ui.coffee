@@ -107,6 +107,7 @@ module.exports = class ComputeControllerUI
         label        : 'Title'
         placeholder  : 'title for this credential'
         defaultValue : defaultTitle or ''
+        required     : yes
 
     if provider in ['custom', 'userInput'] and requiredFields
       credentialFields = {}
