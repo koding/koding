@@ -30,7 +30,7 @@ type Config struct {
 }
 
 type HostedZone struct {
-	Name            string `default:"tunnelproxy.koding.com"`
+	Name            string `default:"t.koding.com"`
 	CallerReference string `default:"tunnelproxy_hosted_zone_v0"`
 }
 
