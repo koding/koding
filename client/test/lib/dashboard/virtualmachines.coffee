@@ -75,3 +75,17 @@ module.exports =
       .click alwaysOnToggleSelector
       .pause 1000
 
+    # check for vmSharingToggle
+    browser
+      .click vmSharingToggleSelector
+      .waitForElementVisible inputSelector, 20000
+      .setValue inputSelector, memberNicknameToShareMachine
+      .click inputSelector
+      .waitForElementVisible memberSelector, 20000
+      .click memberSelector
+      .waitForElementVisible membersList, 20000
+      .waitForElementVisible removeSharedMachineMember, 20000
+      .click removeSharedMachineMember
+      .pause 2000
+      .click vmSharingToggleSelector
+
