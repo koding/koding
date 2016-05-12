@@ -1,5 +1,4 @@
-{ argv }        = require 'optimist'
-{ uri, client } = require('koding-config-manager').load("main.#{argv.c}")
+{ uri } = require 'koding-config-manager'
 
 
 getAvatarImageUrl = (hash, avatar, size = 38) ->

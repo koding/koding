@@ -4,9 +4,7 @@ read = require 'read'
 
 { join: joinPath } = require 'path'
 
-argv = require('minimist') process.argv
-
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG = require 'koding-config-manager'
 
 koding = new Bongo
   root   : __dirname

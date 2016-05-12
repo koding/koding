@@ -34,7 +34,7 @@ generateShareUrl = (model, uri, defaultDomain) ->
 
 module.exports = (options, callback) ->
   { argv } = require 'optimist'
-  { uri, domains } = require('koding-config-manager').load("main.#{argv.c}")
+  { uri, domains } = require 'koding-config-manager'
 
   { name, section, models, bongoModels, client } = options
 

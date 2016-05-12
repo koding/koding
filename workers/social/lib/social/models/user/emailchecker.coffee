@@ -1,5 +1,4 @@
-{ argv }      = require 'optimist'
-KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG        = require 'koding-config-manager'
 KONFIG.redis  = process.env.REDIS_URL  if process.env.REDIS_URL
 redis         = require 'redis'
 REDIS_KEY     = 'social:disposable-email-addresses'

@@ -1,7 +1,6 @@
 koding = require './bongo'
 
-{ argv } = require 'optimist'
-KONFIG  = require('koding-config-manager').load "main.#{argv.c}"
+KONFIG  = require 'koding-config-manager'
 request = require 'request'
 url     = require 'url'
 

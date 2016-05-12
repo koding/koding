@@ -1,6 +1,5 @@
 { secure, signature, Base } = require 'bongo'
-{ argv }    = require 'optimist'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG = require 'koding-config-manager'
 { extend, defaults }  = require 'underscore'
 KodingError = require '../error'
 

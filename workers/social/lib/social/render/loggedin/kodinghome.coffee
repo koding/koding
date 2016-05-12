@@ -1,14 +1,12 @@
 module.exports = (options, callback) ->
   { account, client, bongoModels, models } = options
-  getStyles       = require './../styleblock'
-  fetchScripts    = require './../scriptblock'
-  getTitle        = require './../title'
-  getGraphMeta    = require './../graphmeta'
-  { argv }          = require 'optimist'
-  { uri, domains }  = require('koding-config-manager').load("main.#{argv.c}")
+  getStyles    = require './../styleblock'
+  fetchScripts = require './../scriptblock'
+  getTitle     = require './../title'
+  getGraphMeta = require './../graphmeta'
+  KONFIG       = require 'koding-config-manager'
 
-  entryPoint         = { slug : 'koding', type: 'group' }
-  options.entryPoint = entryPoint
+  options.entryPoint = { slug : 'koding', type: 'group' }
 
   prepareHTML = (scripts, socialApiData) ->
     if socialApiData?.navigated?
@@ -21,6 +19,7 @@ module.exports = (options, callback) ->
         summary  = body.slice(0, 80)
         title    = "#{summary} | Koding Community"
 
+      { uri, domains } = KONFIG
       url = if uri?.address then uri.address else "https://#{domains.base}/"
       shareUrl = "#{url}/#{slug}"
 

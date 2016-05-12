@@ -4,11 +4,9 @@ KodingLogger = require './kodinglogger'
 
 { secure, signature } = bongo
 
-{ argv } = require 'optimist'
-
 _ = require 'lodash'
 
-KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG        = require 'koding-config-manager'
 { socialapi } = KONFIG
 exchangeName  = "#{socialapi.eventExchangeName}:0"
 exchangeOpts  = { autoDelete: no, durable:yes, type :'fanout', confirm: true }

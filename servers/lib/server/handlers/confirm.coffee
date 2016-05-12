@@ -1,5 +1,4 @@
-{ argv }   = require 'optimist'
-KONFIG     = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG     = require 'koding-config-manager'
 { secret } = KONFIG.jwt
 
 Tracker = require '../../../../workers/social/lib/social/models/tracker.coffee'

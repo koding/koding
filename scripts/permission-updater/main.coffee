@@ -5,9 +5,9 @@ async                   = require 'async'
 
 argv = require('minimist') process.argv
 
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG = require 'koding-config-manager'
 
-mongo = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
+mongo = MONGO_URL or "mongodb://#{KONFIG.mongo}"
 
 modelPath = '../../workers/social/lib/social/models'
 

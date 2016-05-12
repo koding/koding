@@ -2,8 +2,7 @@
 { revive }  = require './computeutils'
 KodingError = require '../../error'
 async       = require 'async'
-{ argv }    = require 'optimist'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG      = require 'koding-config-manager'
 
 
 module.exports = class JMachine extends Module
