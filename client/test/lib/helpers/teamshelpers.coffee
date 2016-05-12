@@ -362,6 +362,38 @@ module.exports =
         @waitUntilVmRunning browser, done
 
 
+  waitUntilVmStopping: (browser, done) ->
+
+    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
+    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
+
+    browser
+      .pause 10000
+      .getAttribute vmSelector, 'title', (result) =>
+        if result.value.substring(16) is 'Stopped'
+          console.log '   VM is stopped'
+          @turnOnVm browser, no, done
+        else
+          console.log '   VM is still stopping'
+          @waitUntilVmStopping browser, done
+
+
+  waitUntilVmRunning: (browser, done) ->
+
+    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
+    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
+
+    browser
+      .pause 10000
+      .getAttribute vmSelector, 'title', (result) =>
+        if result.value.substring(16) is 'Running'
+          console.log '   VM is running'
+          done()
+        else
+          console.log '   VM is still building'
+          @waitUntilVmRunning browser, done
+
+
   createStack: (browser, done) ->
 
     url = helpers.getUrl(yes)
