@@ -4,7 +4,6 @@ Home Nav styles
 */
 }
 
-$green                      = #00B057
 $gray                       = #B0B0B0
 
 .HomeAppView-Nav
@@ -40,12 +39,12 @@ $gray                       = #B0B0B0
     margin-right            -28px
     abs                     0px 0px
     size                    4px 100%
-    bg                      color, $green
+    bg                      color, $accentColor
     vendor                  transform, translateX(3px)
 
   &.active
     vendor                  transform, translateX(-3px)
-    color                   $green
+    color                   $accentColor
     &:after
       vendor                transform, translateX(0px)
 
@@ -56,7 +55,7 @@ $gray                       = #B0B0B0
 
 
 .HomeAppView-Nav--Title
-  color                     $green
+  color                     $accentColor
   line-height               25px
   font-size                 17px
   margin                    31px 0 13px 2px

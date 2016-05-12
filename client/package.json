@@ -52,7 +52,7 @@
     "react-autocomplete": "1.0.0-rc2",
     "react-dom": "0.14.8",
     "react-immutable-render-mixin": "0.8.1",
-    "react-maskedinput": "3.1.2",
+    "react-input-mask": "0.6.7",
     "react-portal": "1.2.0",
     "react-radio": "1.0.6",
     "react-router": "1.0.0-rc4",
