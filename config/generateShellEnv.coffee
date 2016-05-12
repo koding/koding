@@ -11,6 +11,9 @@ module.exports.create = (KONFIG, options = {}) ->
     return  if typeof node is 'object'
     add "KONFIG_#{path.join('_')}".toUpperCase(), node
 
+  add 'ENV_JSON_FILE', "$KONFIG_PROJECTROOT/#{options.envFileName}.json"
+  add 'KONFIG_JSON', '$(cat $ENV_JSON_FILE)'
+
   add 'KITE_HOME', '$KONFIG_KITEHOME'
   add 'GOPATH', '$KONFIG_PROJECTROOT/go'
   add 'GOBIN', '$GOPATH/bin'
