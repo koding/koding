@@ -2,6 +2,7 @@ teamsHelpers = require '../helpers/teamshelpers.js'
 helpers = require '../helpers/helpers.js'
 utils = require '../utils/utils.js'
 stackEditorUrl = "#{helpers.getUrl(yes)}/Home/stacks"
+async = require 'async'
 
 
 module.exports =
@@ -18,11 +19,20 @@ module.exports =
     users =
       targetUser1
 
-    teamsHelpers.inviteAndJoinWithUsers browser, [ users ], (result) ->
-      teamsHelpers.createCredential browser, 'aws', 'test credential', no,  ->
-        teamsHelpers.createStack browser, ->
-          done()
+    queue = [
+      (next) ->
+        teamsHelpers.inviteAndJoinWithUsers browser, [ users ], (result) ->
+          next null, result
+      (next) ->
+        teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.createStack browser, (res) ->
+          next null, res
+    ]
 
+    async.series queue, (err, result) ->
+      done()  unless err
 
   stacks: (browser) ->
 
