@@ -83,17 +83,17 @@ module.exports = class CredentialForm extends kd.CustomHTMLView
     { title } = @getOptions()
 
     """
-      <div class='form-header main-form-header'>#{title}</div>
+      <h3 class='top-header'>#{title}</h3>
       <div class='selection-container'>
         {{> @selectionLabel}}
         {{> @selection}}
       </div>
       {{> @createNew}}
       <div class='form-container'>
-        <div class='form-header new-credential-header'>
+        <h3 class='new-credential-header'>
           New #{title}
           {{> @cancelNew}}
-        </div>
+        </h3>
         {{> @form}}
       </div>
     """

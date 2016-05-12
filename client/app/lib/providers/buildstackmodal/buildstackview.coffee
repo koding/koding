@@ -19,7 +19,7 @@ module.exports = class BuildStackView extends kd.View
 
     @buildButton = new kd.ButtonView
       title    : 'Build Stack'
-      cssClass : 'solid small red build-btn'
+      cssClass : 'GenericButton'
       loader   : yes
       callback : @bound 'onBuild'
 
@@ -102,15 +102,20 @@ module.exports = class BuildStackView extends kd.View
     { title, description } = @buildTitleAndDescription()
 
     """
-      <div class="build-stack-content">
-        <div class="top-title">#{title}</div>
-        <div class="top-subtitle">#{description}</div>
-        {{> @awsCredentialContainer}}
-        {{> @requirementsContainer}}
-        <div class="clearfix"></div>
-      </div>
-      <div class="build-stack-footer">
-        {{> @buildButton}}
+      <div class="credentials-step">
+        <header>
+          <h1>Build Your Stack</h1>
+        </header>
+        <section class="main">
+          <h2>#{title}</h2>
+          <p>#{description}</p>
+          {{> @awsCredentialContainer}}
+          {{> @requirementsContainer}}
+          <div class="clearfix"></div>
+        </section>
+        <footer>
+          {{> @buildButton}}
+        </footer>
       </div>
     """
 

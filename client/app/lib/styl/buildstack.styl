@@ -1,151 +1,174 @@
 .build-stack-modal.kdmodal
-  rounded                   5px
+  font-family               SoleilFamily
+  overflow                  hidden
+  rounded                   6px
+  border                    none
   width                     600px !important
-  height                    600px !important
 
-  .kdmodal-inner
+  .kdmodal-inner,
+  .kdmodal-inner .kdmodal-content
     margin                  0
 
-    .kdmodal-title
-      color                 #aaa !important
+  .kdmodal-inner .close-icon
+    hidden()
+
+  header
+    height                  84px
+    border-bottom           1px solid #DEDBDB
+    bg                      color #fff
+    text-align              center
+
+    h1
+      color                 #BABABA
+      font-size             20px
+      font-weight           300
+      line-height           20px
+      margin                31px 0
+      display               inline-block
+      fontPrecisionForSoleil()
+
+  section.main
+    height                  430px
+    color                   #A59999
+
+    > h2
+      color                 #585858
+      margin                30px 0 12px
+      font-size             20px
+      font-weight           300
+      fontPrecisionForSoleil()
       text-align            center
-      height                60px
 
-      .title
-        font-size           18px !important
-        padding-top         22px
+    > p
+      text-align            center
+      font-size             14px
+      font-weight           300
+      letter-spacing        .2px
+      fontPrecisionForSoleil()
+      text-align            center
 
-  .build-stack-content
-    bg                      color, #eee
-    height                  450px
-    color                   #999
-    borderBox()
-    padding                 0 50px
+  footer
+    height                  75px
+    border-top              1px solid #DEDBDB
+    bg                      color #fff
+    rel()
 
-  .top-title
-    text-align              center
-    font-size               16px
-    padding-top             20px
-    padding-bottom          5px
-    color                   #333
+    .GenericButton
+      abs                   15px 26px
+      text-transform        uppercase
 
-  .top-subtitle
-    text-align              center
-    font-size               12px
-    color                   #999
-    padding-bottom          25px
 
-  .form-scroll-wrapper
-    width                   240px
-    borderBox()
+  .credentials-step
 
-    &.credential-wrapper
-      fl()
+    section.main
+      padding               0 50px
+      borderBox()
 
-    &.requirements-wrapper
-      fr()
+      > p
+        margin-bottom       40px
 
-    &.kdcustomscrollview
-      styleScrollBars       rgba(0, 0, 0, .15)
-      max-height            340px
-      padding-right         15px !important
+    .form-scroll-wrapper
+      width                 240px
+      borderBox()
 
-  .credential-only
+      &.credential-wrapper
+        fl()
 
-    .credential-wrapper
-      float                 none
-      margin                0 auto
+      &.requirements-wrapper
+        fr()
 
-      .main-form-header
+      &.kdcustomscrollview
+        styleScrollBars     rgba(0, 0, 0, .15)
+        max-height          270px
+        padding-right       15px !important
+
+    .credential-only
+
+      .credential-wrapper
+        float               none
+        margin              0 auto
+
+        .top-header
+          hidden()
+
+      .requirements-wrapper
         hidden()
 
-    .requirements-wrapper
+    h3
+      font-weight           bold
+      font-size             14px
+      margin-bottom         10px
+
+    .kdlabel
+      display               block
+      font-size             14px
+      margin-bottom         2px
+      float                 none
+      color                 inherit
+
+    .kdinput.text
+      rounded               3px
+      bg                    color, #fff
+      border                1px solid #c9c9c9
+      padding               5px 13px
+      font-size             14px
+      line-height           19px
+
+    .validation-error
+      border                1px solid #f13a18 !important
+
+    a.create-new
+      color                 #729FCF
+      text-decoration       none
+      font-size             14px
+
+      .plus
+        font-size           16px
+
+    a.cancel-new
+      color                 #729FCF
+      text-decoration       none
+      font-size             14px
+      float                 right
+      font-weight           normal
+
+    form
+      clear                 both
+
+      .advanced-field,
+      .formline.button-field .save-btn.kdbutton,
+      .formline.button-field .cancel-btn.kdbutton
+        hidden()
+
+      &.in-advanced-mode
+        .advanced-field
+          visible()
+
+    .selection-container
       hidden()
 
-  .form-header
-    color                   #999
-    font-weight             bold
-    font-size               14px
-    margin-bottom           10px
+      .kdselectbox
+        width               100%
+        borderBox()
+        margin-bottom       15px
 
-  .kdlabel
-    display                 block
-    font-size               12px
-    margin-bottom           2px
-    float                   none
-    color                   #999
-
-  .kdinput.text
-    rounded                 3px
-    bg                      color, #fff
-    border                  1px solid #c9c9c9
-    padding                 5px 13px
-    font-size               14px
-    line-height             19px
-    color                   #999
-
-  .validation-error
-    border                  1px solid #f13a18 !important
-
-  .create-new
-    color                   #729FCF
-    text-decoration         none
-    font-size               12px
-
-    .plus
-      font-size             16px
-
-  .cancel-new
-    color                   #729FCF
-    text-decoration         none
-    font-size               12px
-    float                   right
-    font-weight             normal
-
-  form
-    clear                   both
-
-    .advanced-field,
-    .formline.button-field .save-btn.kdbutton,
-    .formline.button-field .cancel-btn.kdbutton
-      hidden()
-
-    &.in-advanced-mode
-      .advanced-field
+    .selection-visible
+      .selection-container
         visible()
 
-  .selection-container
-    hidden()
-
-    .kdselectbox
-      width                 100%
-      borderBox()
-      margin-bottom         15px
-
-  .selection-visible
-    .selection-container
-      visible()
-
-  .form-container
-    hidden()
-
-  .form-visible
     .form-container
-      visible()
-
-    .create-new
       hidden()
 
-  .new-credential-header
-    hidden()
+    .form-visible
+      .form-container
+        visible()
 
-  .selection-visible
+      .create-new
+        hidden()
+
     .new-credential-header
-      visible()
+      hidden()
 
-  .build-stack-footer
-    padding                 25px
-
-    .build-btn
-      fr()
-      rounded               3px
+    .selection-visible
+      .new-credential-header
+        visible()

@@ -8,8 +8,6 @@ module.exports = class BuildStackModal extends kd.ModalView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'build-stack-modal', options.cssClass
-    options.title   ?= 'Build Your Stack'
-
     super options, data
 
     stack = @getData()
