@@ -4,6 +4,14 @@ remote = require('app/remote').getInstance()
 
 module.exports = class BuildStackModalController extends kd.Controller
 
+  loadStackTemplate: (callback) ->
+
+    stack = @getData()
+    { computeController } = kd.singletons
+
+    computeController.fetchBaseStackTemplate stack, callback
+
+
   loadCredentials: (callback) ->
 
     stack = @getData()

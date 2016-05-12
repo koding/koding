@@ -5,13 +5,10 @@ JView = require 'app/jview'
 CredentialForm = require './credentialform'
 showError = require 'app/util/showError'
 
-module.exports = class BuildStackView extends kd.View
-
-  JView.mixin @prototype
+module.exports = class CredentialsPageView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'build-stack-view'
     super options, data
 
     @createCredentialView()
@@ -102,7 +99,7 @@ module.exports = class BuildStackView extends kd.View
     { title, description } = @buildTitleAndDescription()
 
     """
-      <div class="credentials-step">
+      <div class="credentials-page">
         <header>
           <h1>Build Your Stack</h1>
         </header>
