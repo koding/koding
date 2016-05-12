@@ -139,12 +139,16 @@ Configuration = (options = {}) ->
     limit: '1536MB'
     email: 'sysops+supervisord-sandbox@koding.com'
 
+  envFiles = {}
+
   KONFIG.JSON = JSON.stringify KONFIG
   KONFIG.ENV = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
   KONFIG.nginxConf = (require "../deployment/nginx.coffee").create KONFIG, options.environment
   KONFIG.runFile = require('./generateRunFile').sandbox(KONFIG, options, credentials)
   KONFIG.configCheckExempt = ["command", "output_path"]
+
+  KONFIG.envFiles = envFiles
 
   return KONFIG
 
