@@ -53,6 +53,7 @@ module.exports =
 
     browser
       .pause 2000
+      .url stackEditorUrl
       .waitForElementVisible teamStacksSelector, 20000
       .waitForElementVisible stackTemplate, 20000
 
