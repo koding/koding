@@ -372,7 +372,7 @@ module.exports =
       .getAttribute vmSelector, 'title', (result) =>
         if result.value.substring(16) is 'Stopped'
           console.log '   VM is stopped'
-          @turnOnVm browser, no, done
+          done()
         else
           console.log '   VM is still stopping'
           @waitUntilVmStopping browser, done
