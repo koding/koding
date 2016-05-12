@@ -222,7 +222,6 @@ module.exports = (options) ->
     recaptcha
     paypal
     janitor
-    helpscout
     segment
     kontrol
     kloud
