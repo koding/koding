@@ -215,6 +215,9 @@ deploy:
         name: copy prod creds
         code: ./scripts/copy-prod-creds.sh
     - script:
+        name: register to papertrail
+        code: ./scripts/register-to-papertrail.sh
+    - script:
         name: build application
         code: |
           cd $WERCKER_ROOT
