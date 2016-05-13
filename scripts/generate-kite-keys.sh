@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-REPO_HOME=$(git rev-parse --show-toplevel)
+REPO_HOME=${KONFIG_PROJECTROOT:-$(git rev-parse --show-toplevel)}
 
 # TODO(rjeczalik): GEN-2535
 # KONTROL_URL=${1:-http://127.0.0.1:3000/kite}
