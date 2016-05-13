@@ -61,14 +61,14 @@ module.exports =
       .waitForElementVisible teamStacksSelector, 20000
       .waitForElementVisible stackTemplate, 20000
 
+    # FIXME: reimplement after stacks page is done ~ HK
+    # privateStacksSelector = '.HomeAppView--section.private-stacks'
+    # stackTemplate = "#{privateStacksSelector} .HomeAppViewListItem.StackTemplateItem"
 
-    privateStacksSelector = '.HomeAppView--section.private-stacks'
-    stackTemplate = "#{privateStacksSelector} .HomeAppViewListItem.StackTemplateItem"
-
-    browser
-      .pause 2000
-      .waitForElementVisible privateStacksSelector, 20000
-      .waitForElementVisible stackTemplate, 20000
+    # browser
+    #   .pause 2000
+    #   .waitForElementVisible privateStacksSelector, 20000
+    #   .waitForElementVisible stackTemplate, 20000
 
 
     draftStacksSelector = '.HomeAppView--section.drafts'
@@ -78,14 +78,3 @@ module.exports =
       .pause 2000
       .waitForElementVisible draftStacksSelector, 20000
       .waitForElementVisible stackTemplate, 20000
-
-
-    stackTemplate = "#{teamStacksSelector} .HomeAppViewListItem.StackTemplateItem"
-
-    browser
-      .pause 2000
-      .waitForElementVisible teamStacksSelector, 20000
-      .waitForElementVisible stackTemplate, 20000
-      .click stackTemplate
-      .waitForElementVisible '.kdview.StackEditorView', 20000
-      .end()
