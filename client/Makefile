@@ -1,6 +1,7 @@
 MKFILE_PATH=$(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR=$(dir $(MKFILE_PATH))
-BUILDER=$(MKFILE_DIR)builder/bin/cmd.coffee
+RUN=$(MKFILE_DIR)/../run exec
+BUILDER=$(RUN) $(MKFILE_DIR)builder/bin/cmd.coffee
 BUILDER_BASEDIR?=--basedir "$(MKFILE_DIR)"
 BUILDER_BASEURL?=--baseurl "/a/p/p"
 BUILDER_USE?=--use "$(MKFILE_DIR)*/bant.json"
@@ -64,7 +65,7 @@ minify:
 	$(BUILDER) $(BUILDER_MINIFY_FLAGS) $(BUILDER_ARGS) $(BUILDER_EXCLUDE_TESTRUNNER_FLAG)
 
 bongo_schema:
-	$(RUN) exec $(SCRIPTS)/generate-bongo-schema > $(MKFILE_DIR).schema.json
+	$(RUN) $(SCRIPTS)/generate-bongo-schema > $(MKFILE_DIR).schema.json
 
 node_modules:
 	$(SCRIPTS)/check-node_modules.sh $(CLIENT) || $(SCRIPTS)/install-npm.sh
