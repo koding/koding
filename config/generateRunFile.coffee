@@ -696,6 +696,12 @@ generateSandbox =   generateRunFile = (KONFIG) ->
     export HOME=/home/ec2-user
     export KONFIG_JSON='#{KONFIG.JSON}'
 
+    COMMAND=$1
+    shift
+
+    case "$COMMAND" in
+      exec) exec "$@";;
+    esac
 
     """
 module.exports = { dev: generateDev, default: generateDev, sandbox: generateSandbox, prod: generateSandbox }
