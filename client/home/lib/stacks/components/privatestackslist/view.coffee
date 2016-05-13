@@ -28,7 +28,12 @@ module.exports = class PrivateStacksListView extends React.Component
     onAddToSidebar = @lazyBound 'onAddToSidebar', template
     onRemoveFromSidebar = @lazyBound 'onRemoveFromSidebar', template
 
+    stacks = @props.sidebarStacks.filter (s) -> s.get('baseStackId') is template.get('_id')
+
+    isVisible = stacks.size > 0
+
     <StackTemplateItem
+      isVisibleOnSidebar={isVisible}
       template={template}
       onOpen={@props.onOpenItem}
       onAddToSidebar={onAddToSidebar}

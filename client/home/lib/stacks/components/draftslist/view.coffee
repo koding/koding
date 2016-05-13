@@ -28,7 +28,10 @@ module.exports = class DraftsListView extends React.Component
     onAddToSidebar = @lazyBound 'onAddToSidebar', template
     onRemoveFromSidebar = @lazyBound 'onRemoveFromSidebar', template
 
+    isVisible = @props.sidebarDrafts.get template.get('_id')
+
     <StackTemplateItem
+      isVisibleOnSidebar={isVisible}
       template={template}
       onOpen={@props.onOpenItem}
       onAddToSidebar={onAddToSidebar}
