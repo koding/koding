@@ -13,6 +13,7 @@ SidebarSharedMachinesSection = require 'app/components/sidebarsharedmachinessect
 SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
 SidebarDifferentStackResources = require 'app/components/sidebarstacksection/sidebardifferentstackresources'
 { findDOMNode } = require 'react-dom'
+SidebarFlux = require 'app/flux/sidebar'
 
 MENU = null
 
@@ -44,11 +45,12 @@ module.exports = class Sidebar extends React.Component
 
   componentWillMount: ->
 
-    EnvironmentFlux.actions.loadStacks()
-    EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
+    SidebarFlux.actions.loadVisibilityFilters().then =>
+      EnvironmentFlux.actions.loadStacks()
+      EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
 
-    EnvironmentFlux.actions.loadTeamStackTemplates()
-    EnvironmentFlux.actions.loadPrivateStackTemplates()
+      EnvironmentFlux.actions.loadTeamStackTemplates()
+      EnvironmentFlux.actions.loadPrivateStackTemplates()
 
     # These listeners needs to be listen those events only once ~ GG
     kd.singletons.notificationController
