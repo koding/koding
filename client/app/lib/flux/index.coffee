@@ -12,3 +12,6 @@ module.exports =
     PaymentFlux = require 'app/flux/payment'
     PaymentFlux(reactor)
 
+    SidebarFlux = require 'app/flux/sidebar'
+    SidebarFlux.register reactor
+
