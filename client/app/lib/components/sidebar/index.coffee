@@ -167,10 +167,9 @@ module.exports = class Sidebar extends React.Component
     @state.drafts?.toList().toJS().map (template) =>
       id = template._id
       title = _.unescape template.title
-      <section className='SidebarSection SidebarStackSection draft'>
+      <section key={id} className='SidebarSection SidebarStackSection draft'>
         <header
           ref="draft-#{id}"
-          key={id}
           className="SidebarSection-header">
           <h4 className='SidebarSection-headerTitle'>
             <Link href="/Stack-Editor/#{id}" onClick={@onDraftTitleClick.bind this, id}>{title}</Link>
