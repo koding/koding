@@ -645,7 +645,7 @@ generateDev = (KONFIG, options, credentials) ->
 
     elif [ "$1" == "exec" ]; then
       shift
-      exec $*
+      exec "$@"
 
     elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
 
@@ -696,12 +696,12 @@ generateSandbox =   generateRunFile = (KONFIG) ->
     export HOME=/home/ec2-user
     export KONFIG_JSON='#{KONFIG.JSON}'
 
-    function runuserimporter () {
-      node scripts/user-importer -c dev
-    }
+    COMMAND=$1
+    shift
 
-    if [ "$1" == "runuserimporter" ]; then
-      runuserimporter
-    fi
+    case "$COMMAND" in
+      exec) exec "$@";;
+    esac
+
     """
 module.exports = { dev: generateDev, default: generateDev, sandbox: generateSandbox, prod: generateSandbox }
