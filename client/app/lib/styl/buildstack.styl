@@ -59,6 +59,33 @@
       text-transform        uppercase
 
 
+  .wizard-progress-pane
+    bg                      color, #f3f3f3
+    border-bottom           1px solid #dedbdb
+    text-align              center
+    borderBox()
+    padding                 0 60px
+
+    .wizard-step
+      display               inline-block
+      borderBox()
+      width                 33%
+      height                50px
+      font-size             14px
+      padding-top           11px
+      bg                    color, #fff
+      color                 #d9d9d9
+
+      &.current
+        bg                  color, #74E4F4
+        color               #fff
+
+      &.completed
+        bg                  color, #74E4F4
+        color               #93a1a1
+        border-right        1px solid #c7c7c7
+
+
   .credentials-page
 
     section.main

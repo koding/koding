@@ -1,5 +1,7 @@
 kd = require 'kd'
 JView = require 'app/jview'
+WizardSteps = require './wizardsteps'
+WizardProgressPane = require './wizardprogresspane'
 applyMarkdown = require 'app/util/applyMarkdown'
 
 module.exports = class ReadmePageView extends JView
@@ -7,6 +9,9 @@ module.exports = class ReadmePageView extends JView
   constructor: (options = {}, data) ->
 
     super options, data
+
+    @progressPane = new WizardProgressPane
+      currentStep : WizardSteps.Instructions
 
     { description } = @getData()
     descriptionView = new kd.CustomHTMLView
@@ -29,6 +34,7 @@ module.exports = class ReadmePageView extends JView
         <header>
           <h1>Build Your Stack</h1>
         </header>
+        {{> @progressPane}}
         <section class="main">
           <h2>Read Me First</h2>
           <p>Your admin created the following instructions to get you started</p>

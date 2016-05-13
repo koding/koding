@@ -2,6 +2,8 @@ kd = require 'kd'
 async = require 'async'
 remote = require('app/remote').getInstance()
 JView = require 'app/jview'
+WizardSteps = require './wizardsteps'
+WizardProgressPane = require './wizardprogresspane'
 CredentialForm = require './credentialform'
 showError = require 'app/util/showError'
 
@@ -10,6 +12,9 @@ module.exports = class CredentialsPageView extends JView
   constructor: (options = {}, data) ->
 
     super options, data
+
+    @progressPane = new WizardProgressPane
+      currentStep : WizardSteps.Credentials
 
     @createCredentialView()
     @createRequirementsView()
@@ -103,6 +108,7 @@ module.exports = class CredentialsPageView extends JView
         <header>
           <h1>Build Your Stack</h1>
         </header>
+        {{> @progressPane}}
         <section class="main">
           <h2>#{title}</h2>
           <p>#{description}</p>
