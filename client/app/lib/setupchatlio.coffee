@@ -1,9 +1,9 @@
 kd                     = require 'kd'
 whoami                 = require 'app/util/whoami'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
-globals                = require 'globals'
+fetchChatlioKey        = require 'app/util/fetchChatlioKey'
 
-KODING_CHATLIO_KEY     = 'ae02da65-1664-4e7b-49c8-31abedbb80ed'
+shouldTalkToKodingSupport = no
 
 bootChatlio = (id, team) ->
 
@@ -45,15 +45,13 @@ bootChatlio = (id, team) ->
 
     c.parentNode.insertBefore n, c
 
-    shouldTalkToKoding = id is KODING_CHATLIO_KEY
-
     # configure the client so it doesn't look shitty
     _chatlio.configure
       titleColor                : '#01AF5B'
       titleFontColor            : '#fff'
       onlineTitle               : 'How can we help you?'
       offlineTitle              : 'Contact Us'
-      agentLabel                : if shouldTalkToKoding then 'Koding Support' else "#{team.title} Support"
+      agentLabel                : if shouldTalkToKodingSupport then 'Koding Support' else "#{team.title} Support"
       browserSideAuthorLabel    : 'You'
       onlineMessagePlaceholder  : 'Type message here...'
       offlineGreeting           : 'Sorry we are away, but we would love to hear from you and chat soon!'
@@ -82,20 +80,10 @@ bootChatlio = (id, team) ->
 
 module.exports = setupChatlio = ->
 
-  { groupsController } = kd.singletons
+  fetchChatlioKey (chatlioId, isAdmin) ->
 
-  groupsController.ready ->
-
-    team      = groupsController.getCurrentGroup()
-    chatlioId = team.customize?.chatlioId
-    { roles } = globals.config
-
-    # if user is an admin or owner
-    # their support requests should
-    # come to koding support not to
-    # their own slack that they set up
-    if ('admin' in roles) or ('owner' in roles)
-      chatlioId = KODING_CHATLIO_KEY
+    team = kd.singletons.groupsController.getCurrentGroup()
+    shouldTalkToKodingSupport = isAdmin
 
     return  unless chatlioId
 

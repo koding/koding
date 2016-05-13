@@ -17,6 +17,11 @@ module.exports = class StackEditorAppController extends AppController
 
   openEditor: (stackTemplateId) ->
 
+    { mainController } = kd.singletons
+    mainController.tellChatlioWidget 'isShown', {}, (isShown) ->
+      return if isShown
+      mainController.tellChatlioWidget 'show', { expanded: no }
+
     { computeController } = kd.singletons
 
     @mainView.destroySubViews()
