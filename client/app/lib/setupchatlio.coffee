@@ -47,7 +47,7 @@ bootChatlio = (id, team) ->
 
     # configure the client so it doesn't look shitty
     _chatlio.configure
-      titleColor                : '#01AF5B'
+      titleColor                : '#56A2D3'
       titleFontColor            : '#fff'
       onlineTitle               : 'How can we help you?'
       offlineTitle              : 'Contact Us'
