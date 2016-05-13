@@ -29,6 +29,10 @@ module.exports =
       (next) ->
         teamsHelpers.createStack browser, (res) ->
           next null, res
+
+      (next) ->
+        teamsHelpers.createDefaultStackTemplate browser, (res) ->
+          next null, res
     ]
 
     async.series queue, (err, result) ->
