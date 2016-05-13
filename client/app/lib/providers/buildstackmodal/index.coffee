@@ -2,6 +2,7 @@ kd = require 'kd'
 async = require 'async'
 BuildStackModalController = require './buildstackmodalcontroller'
 ReadmePageView = require './readmepageview'
+StackTemplatePageView = require './stacktemplatepageview'
 CredentialsPageView = require './credentialspageview'
 showError = require 'app/util/showError'
 
@@ -15,11 +16,11 @@ module.exports = class BuildStackModal extends kd.ModalView
     stack = @getData()
     @controller = new BuildStackModalController {}, stack
 
-    @createReadmePage()
+    @createInstructionsPages()
     @createCredentialsPage()
 
 
-  createReadmePage: ->
+  createInstructionsPages: ->
 
     @controller.loadStackTemplate (err, stackTemplate) =>
       return showError err  if err
@@ -27,6 +28,15 @@ module.exports = class BuildStackModal extends kd.ModalView
       @addSubView @readmePage = new ReadmePageView {}, stackTemplate
       @readmePage.on 'CredentialsPageRequested', =>
         helper.changePage @readmePage, @credentialsPage
+      @readmePage.on 'StackTemplatePageRequested', =>
+        helper.changePage @readmePage, @stackTemplatePage
+
+      @addSubView @stackTemplatePage =
+        new StackTemplatePageView { cssClass : 'hidden' }, stackTemplate
+      @stackTemplatePage.on 'CredentialsPageRequested', =>
+        helper.changePage @stackTemplatePage, @credentialsPage
+      @stackTemplatePage.on 'ReadmePageRequested', =>
+        helper.changePage @stackTemplatePage, @readmePage
 
 
   createCredentialsPage: ->

@@ -31,6 +31,7 @@
     height                  430px
     color                   #A59999
     borderBox()
+    padding                 0 70px
 
     > h2
       color                 #585858
@@ -47,6 +48,7 @@
       letter-spacing        .2px
       fontPrecisionForSoleil()
       text-align            center
+      margin-bottom         25px
 
   footer
     height                  75px
@@ -57,6 +59,13 @@
     .GenericButton
       abs                   15px 26px
       text-transform        uppercase
+
+  .GenericButton.secondary
+    bg                      color, #fafafa
+    color                   #729FCF
+    border                  1px solid #dedbdb
+    display                 block
+    margin                  0 auto
 
 
   .wizard-progress-pane
@@ -86,10 +95,35 @@
         border-right        1px solid #c7c7c7
 
 
+  .readme-page
+
+      .kdcustomscrollview
+        max-height          250px
+        bg                  color, #fff
+        styleScrollBars     rgba(0, 0, 0, .15)
+        rounded             5px
+
+      .description
+        padding             20px
+        font-size           12px
+        color               #333
+
+      .GenericButton.secondary
+        margin-top          25px
+
+
+  .stack-template-page
+
+    .editor-view
+      height                250px
+
+    .GenericButton.secondary
+      margin-top            25px
+
+
   .credentials-page
 
     section.main
-      padding               0 70px
 
       > p
         margin-bottom       40px
@@ -203,23 +237,3 @@
     .selection-visible
       .new-credential-header
         visible()
-
-
-  .readme-page
-
-    section.main
-      padding               0 50px
-
-      > p
-        margin-bottom       25px
-
-      .kdcustomscrollview
-        max-height          250px
-        bg                  color, #fff
-        styleScrollBars     rgba(0, 0, 0, .15)
-        rounded             5px
-
-      .description
-        padding             20px
-        font-size           12px
-        color               #333

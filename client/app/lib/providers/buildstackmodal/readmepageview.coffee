@@ -21,6 +21,11 @@ module.exports = class ReadmePageView extends JView
     @descriptionContainer = new kd.CustomScrollView()
     @descriptionContainer.wrapper.addSubView descriptionView
 
+    @stackTemplateButton = new kd.ButtonView
+      title    : 'View Stack Template'
+      cssClass : 'GenericButton secondary'
+      callback : @lazyBound 'emit', 'StackTemplatePageRequested'
+
     @nextButton = new kd.ButtonView
       title    : 'Next'
       cssClass : 'GenericButton'
@@ -39,6 +44,7 @@ module.exports = class ReadmePageView extends JView
           <h2>Read Me First</h2>
           <p>Your admin created the following instructions to get you started</p>
           {{> @descriptionContainer}}
+          {{> @stackTemplateButton}}
         </section>
         <footer>
           {{> @nextButton}}
