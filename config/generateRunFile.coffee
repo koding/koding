@@ -696,12 +696,6 @@ generateSandbox =   generateRunFile = (KONFIG) ->
     export HOME=/home/ec2-user
     export KONFIG_JSON='#{KONFIG.JSON}'
 
-    function runuserimporter () {
-      node scripts/user-importer -c dev
-    }
 
-    if [ "$1" == "runuserimporter" ]; then
-      runuserimporter
-    fi
     """
 module.exports = { dev: generateDev, default: generateDev, sandbox: generateSandbox, prod: generateSandbox }
