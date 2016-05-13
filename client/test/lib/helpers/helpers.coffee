@@ -369,31 +369,34 @@ module.exports =
     defaultCard  =
       cardNumber : cardDetails.cardNumber or '4111 1111 1111 1111'
       cvc        : cardDetails.cvc        or 123
-      month      : cardDetails.month      or 12
+      month      : cardDetails.month      or 'December'
       year       : cardDetails.year       or 2019
 
     user         = utils.getUser()
     name         = user.username
-    paymentModal = 'form.payment-method-entry-form'
+    paymentModal = '.HomeAppView--billing-form'
 
     browser
       .waitForElementVisible   paymentModal, 20000
-      .waitForElementVisible   paymentModal + ' .cardnumber', 20000
-      .click                   'input[name=cardNumber]'
-      .setValue                'input[name=cardNumber]', defaultCard.cardNumber
-      .waitForElementVisible   paymentModal + ' .cardcvc', 20000
-      .click                   'input[name=cardCVC]'
-      .setValue                'input[name=cardCVC]', defaultCard.cvc
-      .waitForElementVisible   paymentModal + ' .cardmonth', 20000
-      .click                   'input[name=cardMonth]'
-      .setValue                'input[name=cardMonth]', defaultCard.month
-      .waitForElementVisible   paymentModal + ' .cardyear', 20000
-      .click                   'input[name=cardYear]'
-      .setValue                'input[name=cardYear]', defaultCard.year
-      .waitForElementVisible   paymentModal + ' .cardname', 20000
-      .click                   'input[name=cardName]'
-      .clearValue              'input[name=cardName]'
-      .setValue                'input[name=cardName]', name
+      .waitForElementVisible   '.HomeAppView-input.card-number', 20000
+      .click                   '.HomeAppView-input.card-number'
+      .setValue                '.HomeAppView-input.card-number', defaultCard.cardNumber
+      .waitForElementVisible   '.HomeAppView-input.cvc', 20000
+      .click                   '.HomeAppView-input.cvc'
+      .setValue                '.HomeAppView-input.cvc', defaultCard.cvc
+      .waitForElementVisible   '.HomeAppView-selectBoxWrapper.expiration-month', 20000
+      .click                   '.HomeAppView-selectBoxWrapper.expiration-month'
+      .click                   '.Select-control'
+      .setValue                '.Select-control', 'March'
+      
+      .waitForElementVisible   '.HomeAppView-selectBoxWrapper.expiration-year', 20000
+      .click                   '.HomeAppView-selectBoxWrapper.expiration-year'
+      .setValue                '.HomeAppView-selectBoxWrapper expiration-year', defaultCard.year
+
+      .waitForElementVisible   '.HomeAppView-input.HomeAppView-input--cc-form.full-name', 20000
+      .click                   '.HomeAppView-input.HomeAppView-input--cc-form.full-name'
+      .clearValue              '.HomeAppView-input.HomeAppView-input--cc-form.full-name'
+      .setValue                '.HomeAppView-input.HomeAppView-input--cc-form.full-name', name
 
 
   submitForm: (browser, validCardDetails = yes) ->

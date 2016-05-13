@@ -1,44 +1,39 @@
 utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
-myteamHelpers = require '../helpers/myteamhelpers.js'
-myTeamLink = "#{helpers.getUrl(yes)}/Home/my-team"
-homehelpers = require '../helpers/welcomehelpers.js'
+welcomehelpers = require '../helpers/welcomehelpers.js'
+
 
 module.exports =
  
-  checkAdminStackView: (browser) ->
-    teamsHelpers.loginTeam(browser)
-    homehelpers.verifyStackView(browser)
-   
-  checkAdminTeamInvite: (browser) ->
-    teamsHelpers.loginTeam(browser)
-    homehelpers.verifyTeamView(browser)
+  before: (browser, done) ->
+    targetUser1 = utils.getUser no, 1
+    targetUser1.role = 'member'
 
-  checkUserKDInstallScreen: (browser) ->
-    teamsHelpers.loginTeam(browser)
-    targetUser = utils.getUser(yes, 1);
-    browser.url myTeamLink
-    browser.pause 3000   
-    teamsHelpers.getInvitationUrl browser, targetUser.email, (url) ->
-      browser.url url, ->
-        teamsHelpers.fillJoinForm browser, targetUser
-        homehelpers.verifyKDInstallView(browser, user)
-  
-  checkUserStackPendingScreen: (browser) ->
-    teamsHelpers.loginTeam(browser)
-    user = utils.getUser(no, 5);
-    browser.url myTeamLink      
-    myteamHelpers.inviteTheUser browser, user, 'member'
-    homehelpers.verifyPendingStackView(browser, user)
+    users = targetUser1
 
-  checkUserPrivateStack: (browser) ->
-    teamsHelpers.loginTeam(browser)
-    user = utils.getUser(no, 6);
-    browser.url myTeamLink
-    myteamHelpers.inviteTheUser browser, user, 'member'
-    homehelpers.verifyStackView(browser, user)
+    teamsHelpers.inviteAndJoinWithUsers browser, [users], (result) ->
+      done()
+
+  checkDashboardbyAdmin: (browser) ->
+    welcomehelpers.seeStackView(browser)
+    browser.url  "#{helpers.getUrl(yes)}/Home/Welcome"
+    welcomehelpers.seeTeamView(browser)
+    browser.url  "#{helpers.getUrl(yes)}/Home/Welcome"
+    welcomehelpers.seeKDInstall(browser)
+    browser.end()
+
+  checkDashboardViewbyMember: (browser) ->
+    targetUser1 = utils.getUser no, 1
+    teamsHelpers.logoutTeam browser, (res) ->
+      teamsHelpers.loginToTeam browser, targetUser1 , no, ->
+      welcomehelpers.seePendingStackView browser
+      welcomehelpers.seePersonalStackView(browser)        
+      browser.url  "#{helpers.getUrl(yes)}/Home/Welcome"
+      welcomehelpers.seeKDInstall(browser)
+      browser.end()
 
 
-    
-    
+
+     
+      
