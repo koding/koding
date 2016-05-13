@@ -35,7 +35,7 @@ module.exports = class TeamStacksListView extends React.Component
     />
 
 
-  renderEmptySectionAtIndex: -> <div>No team stacks</div>
+  renderEmptySectionAtIndex: -> <div>Your team doesn't have any stacks ready.</div>
 
 
   render: ->

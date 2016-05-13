@@ -36,7 +36,7 @@ module.exports = class PrivateStacksListView extends React.Component
     />
 
 
-  renderEmptySectionAtIndex: -> <div>No team stacks</div>
+  renderEmptySectionAtIndex: -> <div>You don't have any private stacks ready.</div>
 
 
   render: ->

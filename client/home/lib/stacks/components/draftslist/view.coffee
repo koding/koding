@@ -36,7 +36,7 @@ module.exports = class DraftsListView extends React.Component
     />
 
 
-  renderEmptySectionAtIndex: -> <div>No team stacks</div>
+  renderEmptySectionAtIndex: -> <div>You don't have any draft stack templates.</div>
 
 
   render: ->
