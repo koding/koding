@@ -7,6 +7,8 @@ path                  = require 'path'
 
 generateDev = (KONFIG, options, credentials) ->
 
+  options.requirementCommands ?= []
+
   killlist = ->
     str = 'kill -KILL '
     for key, worker of KONFIG.workers
@@ -117,6 +119,8 @@ generateDev = (KONFIG, options, credentials) ->
     NGINX_PID="$KONFIG_PROJECTROOT/.dev.nginx.pid"
 
     trap ctrl_c INT
+
+    #{options.requirementCommands?.join "\n"}
 
     function ctrl_c () {
       echo "ctrl_c detected. killing all processes..."
