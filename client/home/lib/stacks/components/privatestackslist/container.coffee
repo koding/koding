@@ -3,6 +3,7 @@ React           = require 'kd-react'
 EnvironmentFlux = require 'app/flux/environment'
 KDReactorMixin  = require 'app/flux/base/reactormixin'
 View            = require './view'
+SidebarFlux = require 'app/flux/sidebar'
 
 
 module.exports = class PrivateStacksListContainer extends React.Component
@@ -10,6 +11,7 @@ module.exports = class PrivateStacksListContainer extends React.Component
   getDataBindings: ->
     return {
       templates: EnvironmentFlux.getters.inUsePrivateStackTemplates
+      sidebarStacks: SidebarFlux.getters.sidebarStacks
     }
 
 
@@ -22,6 +24,7 @@ module.exports = class PrivateStacksListContainer extends React.Component
   render: ->
     <View
       templates={@state.templates}
+      sidebarStacks={@state.sidebarStacks}
       onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
       onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
