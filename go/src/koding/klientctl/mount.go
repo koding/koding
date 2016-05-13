@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"koding/klient/fs"
 	"koding/klient/remote/req"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
@@ -67,6 +68,7 @@ type MountCommand struct {
 		RemoteList() (list.KiteInfos, error)
 		RemoteCache(req.Cache, func(par *dnode.Partial)) error
 		RemoteMountFolder(req.MountFolder) (string, error)
+		RemoteReadDirectory(string, string) ([]fs.FileEntry, error)
 
 		// For backwards compatibility with some helper funcs not yet embedded.
 		GetClient() *kite.Client
@@ -630,7 +632,60 @@ func (c *MountCommand) getIgnoreFile(localPath string) string {
 	return ""
 }
 
-func (c *MountCommand) Autocomplete(_ ...string) error {
+func (c *MountCommand) Autocomplete(args ...string) error {
+	// If there are no args, autocomplete to machine
+	if len(args) == 0 {
+		return c.AutocompleteMachineName()
+	}
+
+	// Get the last element from the args list, which is the element we want to
+	// complete.
+	completeArg := args[len(args)-1]
+
+	// If the last arg contains a colon in it, get the remote directory from it.
+	//
+	// TODO: Implement support for --remotepath flag in this same manner.
+	if strings.Contains(completeArg, ":") {
+		split := strings.SplitN(completeArg, ":", 2)
+		machineName, remotePath := split[0], split[1]
+		return c.AutocompleteRemotePath(machineName, remotePath)
+	}
+
+	// We were unable to autocomplete a remote path, so autocompleting the machine
+	// name by default.
+	return c.AutocompleteMachineName()
+}
+
+func (c *MountCommand) AutocompleteRemotePath(machineName, remotePath string) error {
+	// setup our klient, if needed
+	if _, err := c.setupKlient(); err != nil {
+		return err
+	}
+
+	// Drop the last path segment, because the last segment is likely the
+	// part that the user is trying to autocomplete.
+	remotePath, _ = filepath.Split(remotePath)
+
+	files, err := c.Klient.RemoteReadDirectory(machineName, remotePath)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range files {
+		if f.IsDir {
+			// Shells complete based on a match to the whole string that the user typed,
+			// meaning we need to return a potential match including the entire string.
+			//
+			// IMPORTANT: The ending slash causes Fish to not add a space at the end
+			// of the competion, making the UX much better.
+			c.printfln("%s:%s/", machineName, f.FullPath)
+		}
+	}
+
+	return nil
+}
+
+func (c *MountCommand) AutocompleteMachineName() error {
 	// setup our klient, if needed
 	if _, err := c.setupKlient(); err != nil {
 		return err

@@ -25,19 +25,20 @@ var (
 	mu             sync.Mutex // protects watchCallbacks
 )
 
+type ReadDirectoryOptions struct {
+	Path     string
+	OnChange dnode.Function
+
+	// Recursive specifies if results contain info about nested file/folder.
+	Recursive bool
+
+	// IgnoreFolders specifies which folders to not return results for
+	// when reading recursively.
+	IgnoreFolders []string
+}
+
 func ReadDirectory(r *kite.Request) (interface{}, error) {
-	var params struct {
-		Path     string
-		OnChange dnode.Function
-
-		// Recursive specifies if results contain info about nested file/folder.
-		Recursive bool
-
-		// IgnoreFolders specifies which folders to not return results for
-		// when reading recursively.
-		IgnoreFolders []string
-	}
-
+	var params ReadDirectoryOptions
 	if r.Args == nil {
 		return nil, errors.New("arguments are not passed")
 	}

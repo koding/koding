@@ -12,7 +12,6 @@ import (
 	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
 	"koding/klient/remote/rsync"
-	"path"
 )
 
 // CacheFolderHandler implements a prefetching / caching mechanism, currently
@@ -78,11 +77,11 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 	}
 
 	if params.RemotePath == "" {
-		// TODO: Deprecate in favor of a more robust way to identify the home dir.
-		// This assumes that the username klient is running under has a home
-		// at /home/username. Not true for root, if the user isn't the same user
-		// as klient is running under, and not true if the homedir isn't /home.
-		params.RemotePath = path.Join("/home", remoteMachine.Username)
+		home, err := remoteMachine.Home()
+		if err != nil {
+			return nil, err
+		}
+		params.RemotePath = home
 	}
 
 	remoteSize, err := getSizeOfRemoteFolder(remoteMachine, params.RemotePath)
