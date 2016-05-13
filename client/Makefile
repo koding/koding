@@ -29,6 +29,7 @@ BUILDER_EXT_SOURCEMAPS_FLAGS?=--extract-js-sourcemaps --debug-js
 BUILDER_EXCLUDE_TESTRUNNER_FLAG?=--exclude-testrunner
 CLIENT=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SCRIPTS=$(CLIENT)/../scripts
+RUN=$(CLIENT)/../run
 
 all: development landing
 
@@ -45,9 +46,9 @@ debug:
 watch:
 	$(BUILDER) -v $(BUILDER_WATCH_FLAGS) $(BUILDER_ARGS)
 
-development: node_modules watch
+development: bongo_schema node_modules watch
 
-production:
+production: bongo_schema
 	NODE_ENV=production \
 	$(BUILDER) -v \
 		$(BUILDER_MINIFY_FLAGS) \
@@ -62,6 +63,9 @@ minify-with-unit-tests:
 minify:
 	$(BUILDER) $(BUILDER_MINIFY_FLAGS) $(BUILDER_ARGS) $(BUILDER_EXCLUDE_TESTRUNNER_FLAG)
 
+bongo_schema:
+	$(RUN) exec $(SCRIPTS)/generate-bongo-schema > $(MKFILE_DIR).schema.json
+
 node_modules:
 	$(SCRIPTS)/check-node_modules.sh $(CLIENT) || $(SCRIPTS)/install-npm.sh
 	$(SCRIPTS)/check-node_modules.sh builder   || $(SCRIPTS)/install-npm.sh -d builder
@@ -73,4 +77,4 @@ landing:
 test:
 	$(MAKE) -C test
 
-.PHONY: node_modules landing test
+.PHONY: node_modules bongo_schema landing test
