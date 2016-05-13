@@ -220,9 +220,6 @@ deploy:
 
           make -C client dist
     - script:
-        name: pivotal deliver stories
-        code: $WERCKER_ROOT/scripts/deliver-pivotal-stories.rb
-    - script:
         name: zip
         code: |
           cd $WERCKER_ROOT
