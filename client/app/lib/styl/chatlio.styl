@@ -7,6 +7,23 @@ chatlio.styl
 
 #chatlio-widget .chatlio-widget
   z-index                   10002
+  font-family               SoleilFamily
+  rounded                   4px 4px 0 0
+
+  .chatlio-title-bar
+    border-bottom           1px solid rgba(0,0,0,.15)
+    rounded                 4px 4px 0 0
+    padding-left            20px
+    text-align              left
+
+  .chatlio-online-dot
+    hidden()
+
+  .chatlio-title-text a span
+    font-weight             400
+    font-size               14px
+    letter-spacing          .2px
+
 
   .chatlio-message-container
     kalc                    height, (100% \- 84px)
