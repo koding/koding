@@ -2,7 +2,6 @@ utils = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
 utils = require '../utils/utils.js'
-myteamhelpers = require '../helpers/myteamhelpers.js'
 myTeamLink = "#{helpers.getUrl(yes)}/Home/my-team"
 
 
@@ -38,13 +37,13 @@ module.exports =
       .setValue teamNameSelector, 'random'
       .click saveChangesButton
 
-    myteamhelpers.assertConfirmation browser, successMessage
+    teamsHelpers.assertConfirmation browser, successMessage
     browser
       .clearValue teamNameSelector
       .setValue teamNameSelector, user.teamSlug
       .click saveChangesButton
 
-    myteamhelpers.assertConfirmation browser, successMessage
+    teamsHelpers.assertConfirmation browser, successMessage
 
     browser.end()
 
@@ -66,10 +65,10 @@ module.exports =
     browser
       .url myTeamLink, (result) ->
         if result.status is 0
-          myteamhelpers.inviteUsers browser, invitations, (res) ->
-            myteamhelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser1], (res) ->
-              myteamhelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser2], (res) ->
-                myteamhelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser3], (res) ->
+          teamsHelpers.inviteUsers browser, invitations, (res) ->
+            teamsHelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser1], (res) ->
+              teamsHelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser2], (res) ->
+                teamsHelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser3], (res) ->
                   browser
                     .url myTeamLink
                     .waitForElementVisible section, 20000
@@ -125,13 +124,13 @@ module.exports =
       .scrollToElement scrollElement
       .waitForElementVisible selector('role', 1), 20000
       .click selector('role', 1), ->
-        myteamhelpers.checkTeammates browser, invitations[0], nthItem(1), nthItem(2), selector('role', 1), no, ->
+        teamsHelpers.checkTeammates browser, invitations[0], nthItem(1), nthItem(2), selector('role', 1), no, ->
           browser.waitForElementVisible selector('role', 1), 20000
           browser.click selector('role', 2), ->
-            myteamhelpers.checkTeammates browser, invitations[1], nthItem(1), nthItem(2), selector('role', 2), no, ->
+            teamsHelpers.checkTeammates browser, invitations[1], nthItem(1), nthItem(2), selector('role', 2), no, ->
               browser.expect.element(selector('role', index + 1)).text.to.contain 'Owner'
               browser.click selector('role', lastPendingInvitationIndex + 1), ->
-                myteamhelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], nthItem(1), nthItem(2), selector('role', lastPendingInvitationIndex + 1), yes, ->
+                teamsHelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], nthItem(1), nthItem(2), selector('role', lastPendingInvitationIndex + 1), yes, ->
                   browser
                     .waitForElementNotPresent selector('fullname', lastPendingInvitationIndex + 1), 20000
                     .end()
@@ -141,9 +140,9 @@ module.exports =
 
     user = teamsHelpers.loginTeam browser
     browser.url myTeamLink
-    myteamhelpers.inviteUser browser, 'member'
+    teamsHelpers.inviteUser browser, 'member'
     browser.pause 5000
-    myteamhelpers.inviteUser browser, 'admin'
+    teamsHelpers.inviteUser browser, 'admin'
     browser.end()
 
 
@@ -151,7 +150,7 @@ module.exports =
 
     user = teamsHelpers.loginTeam browser
     browser.url myTeamLink
-    myteamhelpers.inviteAll browser
+    teamsHelpers.inviteAll browser
     browser.end()
 
 
@@ -159,7 +158,7 @@ module.exports =
 
     user = teamsHelpers.loginTeam browser
     browser.url myTeamLink
-    myteamhelpers.uploadCSV browser
+    teamsHelpers.uploadCSV browser
     browser.end()
 
 
@@ -167,9 +166,9 @@ module.exports =
 
     user = teamsHelpers.loginTeam browser
     browser.url myTeamLink
-    myteamhelpers.resendInvitation browser, 'member'
+    teamsHelpers.resendInvitation browser, 'member'
     browser.pause 5000
-    myteamhelpers.resendInvitation browser, 'admin'
+    teamsHelpers.resendInvitation browser, 'admin'
     browser.end()
 
 
@@ -177,9 +176,9 @@ module.exports =
 
     user = teamsHelpers.loginTeam browser
     browser.url myTeamLink
-    myteamhelpers.newInviteFromResendModal browser, 'member'
+    teamsHelpers.newInviteFromResendModal browser, 'member'
     browser.pause 5000
-    myteamhelpers.newInviteFromResendModal browser, 'admin'
+    teamsHelpers.newInviteFromResendModal browser, 'admin'
     browser.end()
 
 

@@ -291,6 +291,8 @@ module.exports =
     saveButton = "#{newCredentialPage} button[type=submit]"
     regionSelector = '.kdview.formline.region .kdselectbox select'
     eu_west_1 = "#{regionSelector} option[value=eu-west-1]"
+<<<<<<< HEAD
+=======
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
@@ -313,9 +315,43 @@ module.exports =
       .click saveButton
       .pause 2000, -> done()
 
+>>>>>>> 56d3905d0cdfc983ed94b4e3db99aa73536b991c
 
   buildStack: (browser, done) ->
 
+<<<<<<< HEAD
+    browser
+      .waitForElementVisible newCredentialPage, 20000
+      .scrollToElement saveButton
+      .setValue "#{newCredentialPage} .title input", name
+      .pause 1000
+      .setValue "#{newCredentialPage} .access-key input", accessKeyId
+      .pause 1000
+      .setValue "#{newCredentialPage} .secret-key input", secretAccessKey
+      .pause 1000
+      .click regionSelector
+      .pause 1000
+      .waitForElementVisible eu_west_1, 20000
+      .click eu_west_1
+      .pause 1000
+      .click "#{newCredentialPage} .title input"
+      .pause 1000
+      .click saveButton
+      .pause 2000, -> done()
+
+
+  buildStack: (browser) ->
+
+    buildStackModal = '.kdmodal.env-modal.env-machine-state.kddraggable.has-readme'
+    buildStackButton = "#{buildStackModal} .kdbutton.turn-on.state-button.solid.green.medium.with-icon"
+    progressBarSelector = "#{buildStackModal} .progressbar-container"
+    browser
+      .click '#main-sidebar'
+      .waitForElementVisible buildStackModal, 20000
+      .waitForElementVisible buildStackButton, 20000
+      .click buildStackButton
+
+=======
     sidebarSelector = '.SidebarTeamSection'
     sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
     buildStackModal = '.kdmodal.env-modal.env-machine-state.kddraggable.has-readme'
@@ -400,10 +436,30 @@ module.exports =
         else
           console.log '   VM is still building'
           @waitUntilVmRunning browser, done
+>>>>>>> 56d3905d0cdfc983ed94b4e3db99aa73536b991c
 
 
   createStack: (browser, done) ->
 
+<<<<<<< HEAD
+    url = helpers.getUrl(yes)
+
+    credentialSelector = '.kdview.kdlistitemview.kdlistitemview-default.StackEditor-CredentialItem'
+    useThisAndContinueButton = '.StackEditor-CredentialItem--buttons .kdbutton.solid.compact.outline.verify'
+    editorPaneSelector = '.kdview.pane.editor-pane.editor-view'
+    saveButtonSelector = '.StackEditorView--header .kdbutton.GenericButton.save-test'
+    successModal = '.kdmodal-inner .kdmodal-content'
+    closeButton = '.kdmodal-inner .kdview.kdmodal-buttons .kdbutton.solid.medium.gray'
+    browser
+      .pause 2000
+      .click useThisAndContinueButton
+      .waitForElementVisible editorPaneSelector, 20000
+      .click saveButtonSelector
+      .pause 10000
+      .waitForElementVisible successModal, 40000
+      .click closeButton
+      .pause 5000, ->
+=======
 
     sidebarSelector = '.SidebarTeamSection'
     sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
@@ -439,6 +495,7 @@ module.exports =
 
     @createCredential browser, 'aws', 'draft-stack', yes, (res) ->
       browser.url stackEditorUrl, ->
+>>>>>>> 56d3905d0cdfc983ed94b4e3db99aa73536b991c
         done()
 
 
@@ -656,8 +713,65 @@ module.exports =
 
     userEmail = @fillInviteInputByIndex browser, index
     successMessage = "Invitation is sent to #{userEmail}"
+<<<<<<< HEAD
 
     browser
+      .pause 2000
+      .waitForElementVisible sendInvitesButton, 5000
+      .click sendInvitesButton
+    @acceptConfirmModal browser if role is 'admin'
+    @assertConfirmation browser, successMessage
+    browser
+      .pause 10000
+
+    userEmail = @fillInviteInputByIndex browser, index, userEmail
+    successMessage = "Invitation is resent to #{userEmail}"
+
+    browser
+      .waitForElementVisible sendInvitesButton, 5000
+      .click sendInvitesButton
+
+    @acceptConfirmModal browser
+
+    if role is 'admin'
+      browser
+        .pause 2000
+      @acceptConfirmModal browser
+    @assertConfirmation browser, successMessage
+
+    return userEmail
+
+
+  newInviteFromResendModal: (browser, role) ->
+
+    invitationsModalSelector = '.HomeAppView--section.send-invites'
+    sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
+    userEmail = @inviteUser browser, role
+    index = if role is 'member' then 2 else 1
+    browser
+      .pause 5000
+      .waitForElementVisible invitationsModalSelector, 20000
+
+    userEmail = @fillInviteInputByIndex browser, index, userEmail
+    newEmail = @fillInviteInputByIndex browser, index + 1
+    successMessage = "Invitation is sent to #{newEmail}"
+
+    browser
+      .click sendInvitesButton
+    @acceptConfirmModal browser  if role is 'admin'
+    @rejectConfirmModal browser
+    @assertConfirmation browser, successMessage
+
+
+  rejectConfirmModal: (browser) ->
+=======
+>>>>>>> 56d3905d0cdfc983ed94b4e3db99aa73536b991c
+
+    confirmModal = '.kdmodal.admin-invite-confirm-modal.kddraggable'
+    cancelButton = '.kdmodal-content .kdbutton.solid.medium:nth-of-type(2)'
+    browser
+<<<<<<< HEAD
+=======
       .pause 2000
       .waitForElementVisible sendInvitesButton, 5000
       .click sendInvitesButton
@@ -710,6 +824,7 @@ module.exports =
     confirmModal = '.kdmodal.admin-invite-confirm-modal.kddraggable'
     cancelButton = '.kdmodal-content .kdbutton.solid.medium:nth-of-type(2)'
     browser
+>>>>>>> 56d3905d0cdfc983ed94b4e3db99aa73536b991c
       .element 'css selector', confirmModal, (result) ->
 
         if result.status is 0
@@ -723,6 +838,7 @@ module.exports =
 
     confirmModal = '.kdmodal.admin-invite-confirm-modal.kddraggable'
     confirmButton = '.kdmodal-content .kdbutton.confirm.solid.green.medium.w-loader'
+<<<<<<< HEAD
 
     browser
       .element 'css selector', confirmModal, (result) ->
@@ -734,6 +850,19 @@ module.exports =
             .click                 confirmButton
 
 
+=======
+
+    browser
+      .element 'css selector', confirmModal, (result) ->
+
+        if result.status is 0
+          browser
+            .pause 2000
+            .waitForElementVisible confirmButton, 10000
+            .click                 confirmButton
+
+
+>>>>>>> 56d3905d0cdfc983ed94b4e3db99aa73536b991c
   assertConfirmation: (browser, successMessage) ->
 
     browser

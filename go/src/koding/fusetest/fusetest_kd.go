@@ -1,9 +1,10 @@
 package fusetest
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"koding/klient/remote/machine"
 	"time"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func startRemoteKlient(f *Fusetest) error {
