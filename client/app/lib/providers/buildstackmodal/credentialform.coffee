@@ -1,10 +1,7 @@
 kd = require 'kd'
 JView = require 'app/jview'
 
-
-module.exports = class CredentialForm extends kd.CustomHTMLView
-
-  JView.mixin @prototype
+module.exports = class CredentialForm extends JView
 
   constructor: (options = {}, data) ->
 
@@ -83,7 +80,7 @@ module.exports = class CredentialForm extends kd.CustomHTMLView
     { title } = @getOptions()
 
     """
-      <h3 class='top-header'>#{title}</h3>
+      <h3 class='top-header'>#{title}:</h3>
       <div class='selection-container'>
         {{> @selectionLabel}}
         {{> @selection}}
@@ -91,7 +88,7 @@ module.exports = class CredentialForm extends kd.CustomHTMLView
       {{> @createNew}}
       <div class='form-container'>
         <h3 class='new-credential-header'>
-          New #{title}
+          New #{title}:
           {{> @cancelNew}}
         </h3>
         {{> @form}}

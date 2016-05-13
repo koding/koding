@@ -5,6 +5,7 @@ JView = require 'app/jview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 CredentialForm = require './credentialform'
+KDCredentialForm = require './kdcredentialform'
 showError = require 'app/util/showError'
 
 module.exports = class CredentialsPageView extends JView
@@ -35,15 +36,15 @@ module.exports = class CredentialsPageView extends JView
   createCredentialView: ->
 
     { credentials } = @getData()
+    { provider }    = credentials
 
-    @awsCredentialContainer = new kd.CustomScrollView
+    @credentialContainer = new kd.CustomScrollView
       cssClass : 'form-scroll-wrapper credential-wrapper'
-    @awsCredentialForm = new CredentialForm {
-      title : 'AWS Credential'
-      selectionPlaceholder : 'Select credential...'
-      selectionLabel : 'Credential Selection'
-    }, credentials
-    @awsCredentialContainer.wrapper.addSubView @awsCredentialForm
+
+    options   = helper.getFormOptions provider
+    formClass = if provider is 'vagrant' then KDCredentialForm else CredentialForm
+    @credentialForm = new formClass options, credentials
+    @credentialContainer.wrapper.addSubView @credentialForm
 
 
   createRequirementsView: ->
@@ -55,38 +56,15 @@ module.exports = class CredentialsPageView extends JView
 
     return @setClass 'credential-only'  unless requirements.fields
 
-    @requirementsForm = new CredentialForm {
-      title : 'Requirements'
-      selectionPlaceholder : 'Select from existing requirements...'
-      selectionLabel : 'Requirement Selection'
-    }, requirements
+    options = helper.getFormOptions requirements.provider
+    @requirementsForm = new CredentialForm options, requirements
     @requirementsContainer.wrapper.addSubView @requirementsForm
-
-
-  buildTitleAndDescription: ->
-
-    { credentials, requirements } = @getData()
-
-    if not credentials.items.length and not requirements.fields
-      return {
-        title       : 'Create Your First Credential'
-        description : '''
-          Your Credential provides Koding with all of the information it needs to build your Stack
-        '''
-      }
-
-    return {
-      title       : 'Select Credential and Fill the Requirements'
-      description : '''
-        Your stack requires AWS Credentials and a few requirements in order to boot
-      '''
-    }
 
 
   onBuild: ->
 
     validationQueue =
-      credential    : helper.createFormValidationCallback @awsCredentialForm
+      credential    : helper.createFormValidationCallback @credentialForm
       requirements  : helper.createFormValidationCallback @requirementsForm
 
     async.parallel validationQueue, (err, validationResults) =>
@@ -107,7 +85,7 @@ module.exports = class CredentialsPageView extends JView
 
   pistachio: ->
 
-    { title, description } = @buildTitleAndDescription()
+    { title, description } = helper.getTitleAndDescription @getData()
 
     """
       <div class="credentials-page">
@@ -118,7 +96,7 @@ module.exports = class CredentialsPageView extends JView
         <section class="main">
           <h2>#{title}</h2>
           <p>#{description}</p>
-          {{> @awsCredentialContainer}}
+          {{> @credentialContainer}}
           {{> @requirementsContainer}}
           <div class="clearfix"></div>
         </section>
@@ -130,6 +108,42 @@ module.exports = class CredentialsPageView extends JView
     """
 
   helper =
+
+    getFormOptions: (provider) ->
+
+      switch provider
+        when 'vagrant'
+          title : 'KD Local Host'
+          selectionLabel : 'KD Selection'
+          selectionPlaceholder : 'Select your existent KD...'
+        when 'aws'
+          title : 'AWS Credential'
+          selectionLabel : 'Credential Selection'
+          selectionPlaceholder : 'Select credential...'
+        when 'userInput'
+          title : 'Requirements'
+          selectionLabel : 'Requirement Selection'
+          selectionPlaceholder : 'Select from existing requirements...'
+
+
+    getTitleAndDescription: (data) ->
+
+      { credentials, requirements } = data
+      if not credentials.items.length and not requirements.fields
+        return {
+          title       : 'Create Your First Credential'
+          description : '''
+            Your Credential provides Koding with all of the information it needs to build your Stack
+          '''
+        }
+
+      return {
+        title       : 'Select Credential and Fill the Requirements'
+        description : '''
+          Your stack requires AWS Credentials and a few requirements in order to boot
+        '''
+      }
+
 
     createFormValidationCallback: (form) ->
 
