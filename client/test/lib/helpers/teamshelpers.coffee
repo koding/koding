@@ -413,6 +413,14 @@ module.exports =
       .waitForElementVisible successModal, 40000
       .click closeButton
       .pause 5000, ->
+
+
+  createDefaultStackTemplate: (browser, done) ->
+
+    stackEditorUrl = "#{helpers.getUrl(yes)}/Home/stacks"
+
+    @createCredential browser, 'aws', 'draft-stack', yes, (res) ->
+      browser.url stackEditorUrl, ->
         done()
 
 
