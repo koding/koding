@@ -328,6 +328,11 @@ module.exports =
       .waitForElementVisible sidebarSelector, 20000
       .click sidebarStackSection
 
+    browser.element 'css selector', vmSelector, (result) =>
+      if result.status is -1
+        @createCredential browser, 'aws', 'build-stack', no, (res) =>
+          @createStack browser, ->
+
     browser.getAttribute vmSelector, 'title', (result) =>
       ###
         Machine status: 'status'
