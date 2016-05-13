@@ -353,7 +353,7 @@ func (c *MountCommand) useSync() error {
 		return fmt.Errorf("Error getting remote username. err:%s", err)
 	}
 
-	// prepareForSSH prints UX to user.
+	// UX not needed on failure, prepareForSSH prints UX to user.
 	if err := c.prepareForSSH(sshKey); err != nil {
 		return err
 	}
@@ -390,8 +390,8 @@ func (c *MountCommand) useSync() error {
 	cacheReq.LocalToRemote = true
 	cacheReq.IgnoreFile = c.getIgnoreFile(c.Options.LocalPath)
 
-	// c.remoteCache handles UX
-	return c.remoteCache(cacheReq, nil)
+	// c.callRemoteCache handles UX
+	return c.callRemoteCache(cacheReq, nil)
 }
 
 func (c *MountCommand) prefetchAll() error {
@@ -467,8 +467,8 @@ func (c *MountCommand) cacheWithProgress(cacheReq req.Cache) (err error) {
 		}
 	}
 
-	// c.remoteCache handles UX
-	if err := c.remoteCache(cacheReq, cacheProgressCallback); err != nil {
+	// c.callRemoteCache handles UX
+	if err := c.callRemoteCache(cacheReq, cacheProgressCallback); err != nil {
 		return err
 	}
 
@@ -487,8 +487,8 @@ func (c *MountCommand) cacheWithProgress(cacheReq req.Cache) (err error) {
 	return nil
 }
 
-// remoteCache performs a Klient.RemoteCache request while ignoring
-func (c *MountCommand) remoteCache(r req.Cache, progressCb func(par *dnode.Partial)) error {
+// callRemoteCache performs a Klient.RemoteCache request.
+func (c *MountCommand) callRemoteCache(r req.Cache, progressCb func(par *dnode.Partial)) error {
 	if err := c.Klient.RemoteCache(r, progressCb); err != nil {
 		// Because we have a progress bar in the UX currently, we need to add a
 		// newline if there's an error.

@@ -315,7 +315,7 @@ func TestMountCommandRemoteCache(t *testing.T) {
 		}
 
 		Convey("It should print RemoteProcessFailed", func() {
-			err := c.remoteCache(req.Cache{}, func(*dnode.Partial) {})
+			err := c.callRemoteCache(req.Cache{}, func(*dnode.Partial) {})
 			So(err, ShouldNotBeNil)
 			So(b.String(), ShouldContainSubstring, "A requested process on the remote")
 		})
@@ -332,7 +332,7 @@ func TestMountCommandRemoteCache(t *testing.T) {
 		}
 
 		Convey("It should not print RemoteProcessFailed", func() {
-			err := c.remoteCache(req.Cache{}, func(*dnode.Partial) {})
+			err := c.callRemoteCache(req.Cache{}, func(*dnode.Partial) {})
 			So(err, ShouldNotBeNil)
 			So(b.String(), ShouldNotContainSubstring, "A requested process on the remote")
 		})
