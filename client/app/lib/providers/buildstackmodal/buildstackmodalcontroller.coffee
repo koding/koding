@@ -1,6 +1,9 @@
 kd = require 'kd'
 _  = require 'lodash'
-remote = require('app/remote').getInstance()
+whoami  = require 'app/util/whoami'
+globals = require 'globals'
+remote  = require('app/remote').getInstance()
+KodingKontrol = require 'app/kite/kodingkontrol'
 
 module.exports = class BuildStackModalController extends kd.Controller
 
@@ -36,6 +39,19 @@ module.exports = class BuildStackModalController extends kd.Controller
     fields = requiredFields.map (field) -> field.name ? field
 
     helper.loadCredentials { provider, fields }, stack.credentials, callback
+
+
+  getKDCmd: (callback) ->
+
+    whoami().fetchOtaToken (err, token) =>
+      return callback err  if err
+
+      cmd = if globals.config.environment in ['dev', 'default', 'sandbox']
+        "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; curl -sL https://sandbox.kodi.ng/c/d/kd | bash -s #{token}"
+      else
+        "curl -sL https://kodi.ng/c/p/kd | bash -s #{token}"
+
+      callback null, cmd
 
 
   helper =

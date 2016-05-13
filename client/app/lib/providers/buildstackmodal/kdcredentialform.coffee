@@ -8,13 +8,14 @@ module.exports = class KDCredentialForm extends CredentialForm
 
     super options, data
 
+    { kdCmd } = @getData()
     @codeBlock = new kd.CustomHTMLView
       tagName  : 'code'
       cssClass : 'block'
-      partial  : '''
-        <div>export KONTROLURL=http://52.200.100.228:8090/kontrol/kite; curl -sL https://kodi.ng/d/kd | bash -s 9c9702af</div>
+      partial  : """
+        <div>#{kdCmd}</div>
         <cite>Ctrl + C</cite>
-      '''
+      """
       click    : ->
         copyToClipboard @getElement().querySelector 'div'
 

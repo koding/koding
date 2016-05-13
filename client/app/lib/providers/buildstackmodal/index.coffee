@@ -1,4 +1,5 @@
 kd = require 'kd'
+_  = require 'lodash'
 async = require 'async'
 BuildStackModalController = require './buildstackmodalcontroller'
 ReadmePageView = require './readmepageview'
@@ -42,20 +43,20 @@ module.exports = class BuildStackModal extends kd.ModalView
   createCredentialsPage: ->
 
     stack = @getData()
-    queue = [
-      (next) =>
-        @controller.loadCredentials next
-      (next) =>
-        @controller.loadRequirements next
-    ]
+    queue = {
+      credentials  : (next) => @controller.loadCredentials next
+      requirements : (next) => @controller.loadRequirements next
+      kdCmd        : (next) => @controller.getKDCmd next
+    }
 
     async.parallel queue, (err, results) =>
       return showError err  if err
 
+      { credentials, requirements, kdCmd } = results
       @addSubView @credentialsPage = new CredentialsPageView { cssClass : 'hidden' }, {
         stack
-        credentials  : results[0]
-        requirements : results[1]
+        credentials  : _.extend { kdCmd }, credentials
+        requirements
       }
       @credentialsPage.on 'InstructionsRequested', =>
         helper.changePage @credentialsPage, @readmePage
