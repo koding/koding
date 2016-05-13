@@ -346,6 +346,7 @@ module.exports =
 
   turnOnVm: (browser, firstBuild = no, done = -> ) ->
 
+    sidebarSelector = '.SidebarTeamSection'
     sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
     buildStackModal = '.kdmodal.env-modal.env-machine-state.kddraggable.has-readme'
@@ -364,6 +365,7 @@ module.exports =
 
   waitUntilVmStopping: (browser, done) ->
 
+    sidebarSelector = '.SidebarTeamSection'
     sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
 
@@ -380,6 +382,7 @@ module.exports =
 
   waitUntilVmRunning: (browser, done) ->
 
+    sidebarSelector = '.SidebarTeamSection'
     sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
 
@@ -396,7 +399,10 @@ module.exports =
 
   createStack: (browser, done) ->
 
-    url = helpers.getUrl(yes)
+
+    sidebarSelector = '.SidebarTeamSection'
+    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
+    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
 
     credentialSelector = '.kdview.kdlistitemview.kdlistitemview-default.StackEditor-CredentialItem'
     useThisAndContinueButton = '.StackEditor-CredentialItem--buttons .kdbutton.solid.compact.outline.verify'
@@ -404,15 +410,22 @@ module.exports =
     saveButtonSelector = '.StackEditorView--header .kdbutton.GenericButton.save-test'
     successModal = '.kdmodal-inner .kdmodal-content'
     closeButton = '.kdmodal-inner .kdview.kdmodal-buttons .kdbutton.solid.medium.gray'
+
     browser
-      .pause 2000
-      .click useThisAndContinueButton
-      .waitForElementVisible editorPaneSelector, 20000
-      .click saveButtonSelector
-      .pause 10000
-      .waitForElementVisible successModal, 40000
-      .click closeButton
-      .pause 5000, ->
+      .element 'css selector', vmSelector, (result) =>
+        if result.status is 0
+          done()
+        else
+          browser
+            .pause 2000
+            .click useThisAndContinueButton
+            .waitForElementVisible editorPaneSelector, 20000
+            .click saveButtonSelector
+            .pause 10000
+            .waitForElementVisible successModal, 40000
+            .click closeButton
+            .pause 5000, ->
+              done()
 
 
   createDefaultStackTemplate: (browser, done) ->
