@@ -15,10 +15,14 @@ module.exports = class PrivateStacksListContainer extends React.Component
     }
 
 
-  onAddToSidebar: (stackTemplateId) -> EnvironmentFlux.actions.generateStack stackTemplateId
+  onAddToSidebar: (stackTemplateId) ->
+
+    SidebarFlux.actions.makeVisible 'stack', stackTemplateId
 
 
-  onRemoveFromSidebar: (stackTemplateId) -> EnvironmentFlux.actions.deleteStack stackTemplateId
+  onRemoveFromSidebar: (stackTemplateId) ->
+
+    SidebarFlux.actions.makeHidden 'stack', stackTemplateId
 
 
   render: ->

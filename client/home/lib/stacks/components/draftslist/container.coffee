@@ -15,10 +15,14 @@ module.exports = class DraftsListContainer extends React.Component
     }
 
 
-  onAddToSidebar: (stackTemplateId) -> EnvironmentFlux.actions.generateStack stackTemplateId
+  onAddToSidebar: (stackTemplateId) ->
+
+    SidebarFlux.actions.makeVisible 'draft', stackTemplateId
 
 
-  onRemoveFromSidebar: (stackTemplateId) -> EnvironmentFlux.actions.deleteStack stackTemplateId
+  onRemoveFromSidebar: (stackTemplateId) ->
+
+    SidebarFlux.actions.makeHidden 'draft', stackTemplateId
 
 
   render: ->
