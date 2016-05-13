@@ -28,8 +28,8 @@ module.exports = class Sidebar extends React.Component
       publicChannels               : getters.followedPublicChannelThreadsWithSelectedChannel
       privateChannels              : getters.followedPrivateChannelThreads
       selectedThreadId             : getters.selectedChannelThreadId
-      stacks                       : EnvironmentFlux.getters.stacks
-      drafts                       : EnvironmentFlux.getters.draftStackTemplates
+      stacks                       : SidebarFlux.getters.sidebarStacks
+      drafts                       : SidebarFlux.getters.sidebarDrafts
       sharedMachines               : EnvironmentFlux.getters.sharedMachines
       collaborationMachines        : EnvironmentFlux.getters.collaborationMachines
       sharedMachineListItems       : EnvironmentFlux.getters.sharedMachineListItems
