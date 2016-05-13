@@ -6,6 +6,7 @@ BUILDER_BASEURL?=--baseurl "/a/p/p"
 BUILDER_USE?=--use "$(MKFILE_DIR)*/bant.json"
 BUILDER_GLOBALS?=--globals-file "$(MKFILE_DIR)globals.coffee"
 BUILDER_CONFIG?=--config-file "$(MKFILE_DIR).config.json"
+BUILDER_SCHEMA?=--schema-file "$(MKFILE_DIR).schema.json"
 BUILDER_OUTDIR?=--outdir "$(MKFILE_DIR)../website/a/p/p/"
 BUILDER_THIRDPARTY_DIR?=--thirdparty-dir "$(MKFILE_DIR)thirdparty"
 BUILDER_ASSETS_DIR?=--assets-dir "$(MKFILE_DIR)assets"
@@ -16,6 +17,7 @@ BUILDER_ARGS=\
 	$(BUILDER_USE) \
 	$(BUILDER_GLOBALS) \
 	$(BUILDER_CONFIG) \
+	$(BUILDER_SCHEMA) \
 	$(BUILDER_ASSETS_DIR) \
 	$(BUILDER_THIRDPARTY_DIR) \
 	$(BUILDER_OUTDIR) \
