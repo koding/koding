@@ -26,16 +26,16 @@ module.exports = class BuildStackModal extends kd.ModalView
       return showError err  if err
 
       @addSubView @readmePage = new ReadmePageView {}, stackTemplate
-      @readmePage.on 'CredentialsPageRequested', =>
+      @readmePage.on 'NextPageRequested', =>
         helper.changePage @readmePage, @credentialsPage
-      @readmePage.on 'StackTemplatePageRequested', =>
+      @readmePage.on 'StackTemplateRequested', =>
         helper.changePage @readmePage, @stackTemplatePage
 
       @addSubView @stackTemplatePage =
         new StackTemplatePageView { cssClass : 'hidden' }, stackTemplate
-      @stackTemplatePage.on 'CredentialsPageRequested', =>
+      @stackTemplatePage.on 'NextPageRequested', =>
         helper.changePage @stackTemplatePage, @credentialsPage
-      @stackTemplatePage.on 'ReadmePageRequested', =>
+      @stackTemplatePage.on 'ReadmeRequested', =>
         helper.changePage @stackTemplatePage, @readmePage
 
 
@@ -57,6 +57,8 @@ module.exports = class BuildStackModal extends kd.ModalView
         credentials  : results[0]
         requirements : results[1]
       }
+      @credentialsPage.on 'InstructionsRequested', =>
+        helper.changePage @credentialsPage, @readmePage
 
 
   helper =

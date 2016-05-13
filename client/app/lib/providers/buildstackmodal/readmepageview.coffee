@@ -24,12 +24,12 @@ module.exports = class ReadmePageView extends JView
     @stackTemplateButton = new kd.ButtonView
       title    : 'View Stack Template'
       cssClass : 'GenericButton secondary'
-      callback : @lazyBound 'emit', 'StackTemplatePageRequested'
+      callback : @lazyBound 'emit', 'StackTemplateRequested'
 
     @nextButton = new kd.ButtonView
       title    : 'Next'
       cssClass : 'GenericButton'
-      callback : @lazyBound 'emit', 'CredentialsPageRequested'
+      callback : @lazyBound 'emit', 'NextPageRequested'
 
 
   pistachio: ->

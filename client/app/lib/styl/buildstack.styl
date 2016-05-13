@@ -60,6 +60,19 @@
       abs                   15px 26px
       text-transform        uppercase
 
+    a.back-link
+      abs()
+      top                   24px
+      left                  26px
+      color                 #d9d9d9
+      text-decoration       none !important
+
+      .arrow:after
+        content             "\2190"
+        font-size           24px
+        font-family         Helvetica,Arial,sans-serif
+        color               #afafaf
+
   .GenericButton.secondary
     bg                      color, #fafafa
     color                   #729FCF
@@ -184,7 +197,7 @@
 
     a.create-new
       color                 #729FCF
-      text-decoration       none
+      text-decoration       none !important
       font-size             14px
 
       .plus
@@ -192,7 +205,7 @@
 
     a.cancel-new
       color                 #729FCF
-      text-decoration       none
+      text-decoration       none !important
       font-size             14px
       float                 right
       font-weight           normal

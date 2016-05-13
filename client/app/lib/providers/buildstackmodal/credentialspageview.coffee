@@ -19,6 +19,12 @@ module.exports = class CredentialsPageView extends JView
     @createCredentialView()
     @createRequirementsView()
 
+    @backLink = new kd.CustomHTMLView
+      tagName  : 'a'
+      cssClass : 'back-link'
+      partial  : '<span class="arrow"></span>  BACK TO INSTRUCTIONS'
+      click    : @lazyBound 'emit', 'InstructionsRequested'
+
     @buildButton = new kd.ButtonView
       title    : 'Build Stack'
       cssClass : 'GenericButton'
@@ -117,6 +123,7 @@ module.exports = class CredentialsPageView extends JView
           <div class="clearfix"></div>
         </section>
         <footer>
+          {{> @backLink}}
           {{> @buildButton}}
         </footer>
       </div>
