@@ -645,7 +645,7 @@ generateDev = (KONFIG, options, credentials) ->
 
     elif [ "$1" == "exec" ]; then
       shift
-      exec $*
+      exec "$@"
 
     elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
 
