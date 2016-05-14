@@ -26,7 +26,7 @@ module.exports =
       teamsHelpers.loginToTeam browser, targetUser1 , no, ->
       browser.pause 3000
       welcomehelpers.seePendingStackView browser
-      welcomehelpers.seePersonalStackView(browser)        
+      welcomehelpers.seePersonalStackView(browser)    
       browser.url  "#{helpers.getUrl(yes)}/Home/Welcome"
       browser.pause 3000
       welcomehelpers.seeKDInstall(browser)
