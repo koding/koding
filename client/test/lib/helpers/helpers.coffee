@@ -377,27 +377,31 @@ module.exports =
     paymentModal = '.HomeAppView--billing-form'
 
     browser
-      .waitForElementVisible   paymentModal, 20000
+      .waitForElementVisible   paymentModal, 10000
       .waitForElementVisible   '.HomeAppView-input.card-number', 20000
       .click                   '.HomeAppView-input.card-number'
       .setValue                '.HomeAppView-input.card-number', defaultCard.cardNumber
+
       .waitForElementVisible   '.HomeAppView-input.cvc', 20000
       .click                   '.HomeAppView-input.cvc'
       .setValue                '.HomeAppView-input.cvc', defaultCard.cvc
 
       .waitForElementVisible   '.HomeAppView-selectBoxWrapper.expiration-month', 20000
       .click                   '.HomeAppView-selectBoxWrapper.expiration-month'
-      .click                   '.Select-control'
-      .setValue                '.Select-control', 'March'
+      .setValue                '.HomeAppView-selectBoxWrapper.expiration-month', defaultCard.month
 
+      .scrollToElement         '.HomeAppView--billing-form'
       .waitForElementVisible   '.HomeAppView-selectBoxWrapper.expiration-year', 20000
       .click                   '.HomeAppView-selectBoxWrapper.expiration-year'
-      .setValue                '.HomeAppView-selectBoxWrapper expiration-year', defaultCard.year
+      .setValue                '.HomeAppView-selectBoxWrapper.expiration-year', defaultCard.year
 
       .waitForElementVisible   '.HomeAppView-input.HomeAppView-input--cc-form.full-name', 20000
-      .click                   '.HomeAppView-input.HomeAppView-input--cc-form.full-name'
-      .clearValue              '.HomeAppView-input.HomeAppView-input--cc-form.full-name'
       .setValue                '.HomeAppView-input.HomeAppView-input--cc-form.full-name', name
+      .scrollToElement         '.HomeAppView--billing-form'
+
+      .waitForElementVisible   '.HomeAppView-input.HomeAppView-input--cc-form.email', 20000
+      .setValue                '.HomeAppView-input.HomeAppView-input--cc-form.email', user.email
+      .pause 5000
      
   submitForm: (browser, validCardDetails = yes) ->
 

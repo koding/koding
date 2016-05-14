@@ -43,3 +43,35 @@ module.exports =
       .waitForElementVisible '.WelcomeStacksView', 20000
       .click stackLink
       .waitForElementVisible '.StackEditor-OnboardingModal', 20000
+
+
+  seePricingDetails: (browser)->
+    browser
+      .pause 2000
+      .click '.HomeAppView--button:nth-of-type(2)', (result) ->
+        if result.state is 'success'
+          helpers.switchBrowser browser, 'http://www.koding.com/pricing'
+          
+
+  seeMembers: (browser)->
+    browser
+      .pause 2000
+      .click '.HomeAppView--button:nth-of-type(1)'
+      .waitForElementVisible '.HomeAppView--section.team-settings', 20000
+      .assert.containsText '.HomeAppView--sectionHeader', 'Team Settings'
+    
+
+  seePaymentHistory: (browser) ->
+    browser
+      .scrollToElement '.HomeAppView--billing-form'
+      .click '.HomeAppView--button.custom-link-view.primary:nth-of-type(2)'
+      .pause 3000
+      .assert.containsText '.HomeAppView--sectionHeader', 'Payment History'
+      .waitForElementVisible 'div.HomeAppView--section.HomeTeamInvoicesList', 20000
+
+
+  removeCard: (browser) ->
+    browser
+      .scrollToElement '.HomeAppView--billing-form'
+      .click '.HomeAppView--button.custom-link-view.primary:nth-of-type(1)'
+      .pause 3000
