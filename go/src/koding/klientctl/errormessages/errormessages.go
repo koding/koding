@@ -1,6 +1,15 @@
 package errormessages
 
+import "fmt"
+
 var (
+	// GenericInternalError is a generic error message. Typically used when we don't
+	// want to reveal what exactly went wrong, like confusing implementation details.
+	//
+	// This is the same as GenericInternalError, but without a customizable message,
+	// hence the "NoMsg".
+	GenericInternalErrorNoMsg = "Error: Encountered an internal error."
+
 	// InvalidCLIOption is a generic message to print when two options cannot be
 	// used together.
 	InvalidCLIOption = "Invalid Option: %s cannot be used with UseSync"
@@ -34,4 +43,65 @@ bash autocompletions. Please run this command with sudo.`
 
 	// FailedToChown is used if a chown fails.
 	FailedToChown = `Error: Unable to change file ownership to current user.`
+
+	// SyncDirectionRequired is used when the user does not specify a sync direction.
+	//
+	// Note that Help is also printed after this.
+	SyncDirectionRequired = `Error: Sync direction is a required argument.`
+
+	// InvalidSyncDirection is used when the user specifies an option that is not
+	// a supported sync direction.
+	//
+	// Note that Help is also printed after this.
+	InvalidSyncDirection = `Error: Invalid sync direction %q.`
+
+	// MachineNotFound is a generic machine not found message.
+	MachineNotFound = "Error: Machine not found. Please enter a valid machine name as shown in kd list."
+
+	// MountNotFound is a generic mount not found message.
+	MountNotFound = "Error: Mount not found."
+
+	// FailedGetSSHKey is used when we fail to get the ssh key
+	FailedGetSSHKey = fmt.Sprintf("Error: Failed to get ssh key.\n")
+
+	// FailedPrefetchFolder is used when remote.cacheFolder fails.
+	FailedPrefetchFolder = fmt.Sprintf(
+		"Error: Failed to prefetch the requested folder.\n",
+	)
+
+	// MachineNotValidYet occurs when the kontrol has not yet returned a client
+	// for the given machine. Likely meaning the machine has not been online
+	// since klient has last restarted.
+	//
+	// Since the above DialingRemote error is generic enough, we're just using that
+	// for now.
+	MachineNotValidYet = fmt.Sprintf(
+		`Error: Unable to communicate with the remote machine. Please ensure that the
+remote machine is running & accessible and try again.`,
+	)
+
+	// CannotSSHManaged is used when the managed machine has a different username
+	// than the current user. A temporary error, for a temporary limitation.
+	CannotSSHManaged = "Error: Currently unable to ssh into managed machines."
+
+	// RemoteProcessFailed is used when a command was run on the remote, but the
+	// process itself failed to execute properly. *Not* an exit code, but more like
+	// a no memory.
+	//
+	// The %s arg is intended to be the full error.
+	RemoteProcessFailed = `A requested process on the remote Machine was unable to run properly,
+and exited with the following issue:
+
+%s`
+
+	// RemotePathDoesNotExist is printed when the user supplies a directory to mount,
+	// that does not exist on the remote side.
+	RemotePathDoesNotExist = fmt.Sprintf(
+		`Error: The given remote folder path does not exist on the remote machine.`,
+	)
+
+	// FailedToSync is used when remote.cacheFolder fails during kd sync.
+	FailedSyncFolder = fmt.Sprintf(
+		"Error: Failed to sync the requested folder.",
+	)
 )

@@ -19,7 +19,21 @@ function __kd_subcommand
   return 0
 end
 
-complete -f -c kd -a '(kd (__kd_subcommand) --generate-bash-completion)'
+function __kd_subcommand_args
+  set cmd (commandline -op)
+  set cmdCount (count $cmd)
+  if test $cmdCount -lt 3
+    return 0
+  end
+  # Ensure fish takes the args as separate, not a single string as is the case
+  # if we used $cmd[3..cmdCount]
+  for i in (seq 3 $cmdCount)
+    echo $cmd[$i]
+  end
+  return 0
+end
+
+complete -f -c kd -a '(kd (__kd_subcommand) --generate-bash-completion (__kd_subcommand_args))'
 `
 
 	// The bash completion file, usually placed in /etc/bash_completion.d/kd
@@ -31,6 +45,8 @@ _cli_bash_autocomplete() {
   local cur opts base
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
+  # Experimental full completion - not working yet
+  #opts=$( ${COMP_WORDS[@]:0:2} --generate-bash-completion ${COMP_WORDS[@]:2:$COMP_CWORD} )
   opts=$( ${COMP_WORDS[@]:0:$COMP_CWORD} --generate-bash-completion )
   COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
   return 0

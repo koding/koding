@@ -13,6 +13,7 @@ SidebarSharedMachinesSection = require 'app/components/sidebarsharedmachinessect
 SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
 SidebarDifferentStackResources = require 'app/components/sidebarstacksection/sidebardifferentstackresources'
 { findDOMNode } = require 'react-dom'
+SidebarFlux = require 'app/flux/sidebar'
 
 MENU = null
 
@@ -27,8 +28,8 @@ module.exports = class Sidebar extends React.Component
       publicChannels               : getters.followedPublicChannelThreadsWithSelectedChannel
       privateChannels              : getters.followedPrivateChannelThreads
       selectedThreadId             : getters.selectedChannelThreadId
-      stacks                       : EnvironmentFlux.getters.stacks
-      drafts                       : EnvironmentFlux.getters.draftStackTemplates
+      stacks                       : SidebarFlux.getters.sidebarStacks
+      drafts                       : SidebarFlux.getters.sidebarDrafts
       sharedMachines               : EnvironmentFlux.getters.sharedMachines
       collaborationMachines        : EnvironmentFlux.getters.collaborationMachines
       sharedMachineListItems       : EnvironmentFlux.getters.sharedMachineListItems
@@ -44,11 +45,12 @@ module.exports = class Sidebar extends React.Component
 
   componentWillMount: ->
 
-    EnvironmentFlux.actions.loadStacks()
-    EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
+    SidebarFlux.actions.loadVisibilityFilters().then =>
+      EnvironmentFlux.actions.loadStacks()
+      EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
 
-    EnvironmentFlux.actions.loadTeamStackTemplates()
-    EnvironmentFlux.actions.loadPrivateStackTemplates()
+      EnvironmentFlux.actions.loadTeamStackTemplates()
+      EnvironmentFlux.actions.loadPrivateStackTemplates()
 
     # These listeners needs to be listen those events only once ~ GG
     kd.singletons.notificationController
@@ -165,10 +167,9 @@ module.exports = class Sidebar extends React.Component
     @state.drafts?.toList().toJS().map (template) =>
       id = template._id
       title = _.unescape template.title
-      <section className='SidebarSection SidebarStackSection draft'>
+      <section key={id} className='SidebarSection SidebarStackSection draft'>
         <header
           ref="draft-#{id}"
-          key={id}
           className="SidebarSection-header">
           <h4 className='SidebarSection-headerTitle'>
             <Link href="/Stack-Editor/#{id}" onClick={@onDraftTitleClick.bind this, id}>{title}</Link>

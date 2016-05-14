@@ -7,17 +7,18 @@ module.exports = class StackTemplateItem extends React.Component
 
   renderButton: ->
 
-    { template, onAddToSidebar, onRemoveFromSidebar } = @props
+    { template, onAddToSidebar, onRemoveFromSidebar, isVisibleOnSidebar } = @props
 
-    unless template.get 'inUse'
-      return <a href="#" className="HomeAppView--button primary" onClick={onAddToSidebar}>ADD TO SIDEBAR</a>
-
-    return <a href="#" className="HomeAppView--button primary" onClick={onRemoveFromSidebar}>REMOVE FROM SIDEBAR</a>
+    if isVisibleOnSidebar
+      <a href="#" className="HomeAppView--button primary" onClick={onRemoveFromSidebar}>REMOVE FROM SIDEBAR</a>
+    else
+      <a href="#" className="HomeAppView--button primary" onClick={onAddToSidebar}>ADD TO SIDEBAR</a>
 
 
   render: ->
 
     { template, onOpen } = @props
+
     editorUrl = "/Stack-Editor/#{template.get '_id'}"
 
     <div className='HomeAppViewListItem StackTemplateItem'>

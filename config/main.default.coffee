@@ -69,25 +69,9 @@ Configuration = (options = {}) ->
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
-  generateSh = "#{options.projectRoot}/config/generate.sh"
-
-  # BUG(rjeczalik): The Configuration gets executed twice, once with uninitialized
-  # options, which makes the following code execute generate.sh with
-  # options.projectRoot equal to "/opt/koding/config". The todo here is to
-  # fix it so it gets executed only once one remove the workaround.
-  if fs.existsSync generateSh
-    { execFile } = require 'child_process'
-
-    execFile generateSh, ["#{KONFIG.kontrol.url}"], (err, stdout, stderr) ->
-      process.stderr.write stdout
-      process.stderr.write stderr
-
-      if err
-        console.log """
-          failed to run #{options.projectRoot}/config/generate.sh (error: #{err})
-          please execute it manually and most likely install missing dependencies
-        """
-        process.exit 1
+  options.requirementCommands = [
+    "$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh"
+  ]
 
   options.disabledWorkers = [
     "algoliaconnector"

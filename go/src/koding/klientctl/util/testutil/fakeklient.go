@@ -1,11 +1,13 @@
 package testutil
 
 import (
-	"github.com/koding/kite"
-	"github.com/koding/kite/dnode"
 	"koding/klient/command"
+	"koding/klient/fs"
 	"koding/klient/remote/req"
 	"koding/klientctl/list"
+
+	"github.com/koding/kite"
+	"github.com/koding/kite/dnode"
 )
 
 type FakeKlient struct {
@@ -92,4 +94,8 @@ func (k *FakeKlient) RemoteMountFolder(req.MountFolder) (string, error) {
 
 func (k *FakeKlient) Tell(string, ...interface{}) (*dnode.Partial, error) {
 	return k.ReturnTellPartial, k.ReturnTellErr
+}
+
+func (k *FakeKlient) RemoteReadDirectory(string, string) ([]fs.FileEntry, error) {
+	return nil, nil
 }

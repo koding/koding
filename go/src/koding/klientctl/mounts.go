@@ -8,6 +8,7 @@ import (
 	"koding/klientctl/klient"
 	"os"
 	"text/tabwriter"
+	"time"
 
 	kodinglogging "github.com/koding/logging"
 
@@ -21,6 +22,10 @@ type kiteMounts struct {
 	MountName  string `json:"mountName"`
 
 	req.MountFolder
+
+	SyncIntervalOpts struct {
+		Interval time.Duration `json:"interval"`
+	} `json:"syncIntervalOpts"`
 }
 
 // MountsCommand returns list of previously mounted folders.

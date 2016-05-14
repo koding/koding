@@ -39,7 +39,6 @@ ActionBar = ({ canEdit, callback }) ->
   className = kd.utils.curry 'custom-link-view primary fr', className
 
   <fieldset className='HomeAppView--ActionBar'>
-    <GenericButton title={'DELETE TEAM'}, callback={kd.noop} />
     <GenericButton className={className} title={'SAVE CHANGES'} callback={callback}/>
   </fieldset>
 

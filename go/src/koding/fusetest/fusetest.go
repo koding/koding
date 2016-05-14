@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/fusetest/internet"
-	"koding/klient/remote/req"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -53,7 +52,7 @@ type Fusetest struct {
 
 	Opts FusetestOpts
 
-	OriginalMountOpts req.MountFolder
+	OriginalMountOpts MountInfo
 
 	T *testing.T
 
@@ -64,7 +63,7 @@ type FusetestOpts struct {
 	// TODO: Deprecate this field, in favor of passing the settings into tests.
 	// Currently the tests are stateful and this var changes a lot, depending on the
 	// tests. Rather brittle.
-	req.MountFolder
+	MountInfo
 
 	// The main fuse operation tests. If false, no fuseop tests will be run.
 	// (useful if you just want to check klient list recovery, etc.)
@@ -103,7 +102,7 @@ func NewFusetest(machine string, opts FusetestOpts) (*Fusetest, error) {
 		return nil, err
 	}
 	f.OriginalMountOpts = origMountOpts
-	f.Opts.MountFolder = origMountOpts
+	f.Opts.MountInfo = origMountOpts
 
 	return f, nil
 }
@@ -180,6 +179,10 @@ func (f *Fusetest) RunMountSettingTests() (testErrs error) {
 		testErrs = multierror.Append(testErrs, err)
 	}
 
+	if err := f.RunOneWaySyncMountTests(); err != nil {
+		testErrs = multierror.Append(testErrs, err)
+	}
+
 	return testErrs
 }
 
@@ -210,7 +213,7 @@ func (f *Fusetest) RunPrefetchTests() error {
 	if err != nil {
 		return err
 	}
-	f.Opts.MountFolder = opts
+	f.Opts.MountInfo = opts
 
 	// Run normal ops tests first
 	if err := f.RunOperationTests(); err != nil {
@@ -241,7 +244,7 @@ func (f *Fusetest) RunNoPrefetchTests() error {
 	if err != nil {
 		return err
 	}
-	f.Opts.MountFolder = opts
+	f.Opts.MountInfo = opts
 
 	// Run normal ops tests first
 	if err := f.RunOperationTests(); err != nil {
@@ -272,7 +275,38 @@ func (f *Fusetest) RunPrefetchAllTests() error {
 	if err != nil {
 		return err
 	}
-	f.Opts.MountFolder = opts
+	f.Opts.MountInfo = opts
+
+	// Run normal ops tests first
+	if err := f.RunOperationTests(); err != nil {
+		return err
+	}
+
+	// Run reconnect depths for reconnect testing on this mount. It will only run
+	// if enabled.
+	if err := f.RunReconnectDepths(); err != nil {
+		return err
+	}
+
+	return NewKD().Unmount(f.Machine)
+}
+
+func (f *Fusetest) RunOneWaySyncMountTests() error {
+	fmt.Println("Mounting with OneWaySync...")
+
+	// TODO: Add the fusetest dir to Fusetest.RemoteDir. I haven't yet, because
+	// i want to make it the full abs path, rather than just a local path as seen here.
+	err := NewKD().MountWithOneWaySync(f.Machine, f.Remote.remote, f.MountDir)
+	if err != nil {
+		return err
+	}
+
+	// Update our local opts to match our new mount.
+	opts, err := NewKD().GetMountOptions(f.Machine)
+	if err != nil {
+		return err
+	}
+	f.Opts.MountInfo = opts
 
 	// Run normal ops tests first
 	if err := f.RunOperationTests(); err != nil {
@@ -330,16 +364,39 @@ func (f *Fusetest) RunReconnectTests(reconnectOpts internet.ReconnectOpts) error
 	return f.RunOperationTests()
 }
 
+// Run operation tests based on whatever the mount is - Fuse or OneWay
 func (f *Fusetest) RunOperationTests() error {
 	if !f.Opts.FuseOpsTests {
 		return nil
 	}
 
+	if f.Opts.MountInfo.OneWaySyncMount {
+		return f.RunOneWayOperationTests()
+	}
+
+	return f.RunFuseOperationTests()
+}
+
+func (f *Fusetest) RunOneWayOperationTests() error {
 	testDir, err := ioutil.TempDir(f.MountDir, "tests")
 	if err != nil {
 		return err
 	}
 	f.TestDir = testDir
+	defer os.RemoveAll(f.TestDir)
+
+	f.TestSyncInterval()
+
+	return nil
+}
+
+func (f *Fusetest) RunFuseOperationTests() error {
+	testDir, err := ioutil.TempDir(f.MountDir, "tests")
+	if err != nil {
+		return err
+	}
+	f.TestDir = testDir
+	defer os.RemoveAll(f.TestDir)
 
 	// dir ops
 	f.TestMkDir()
@@ -355,7 +412,7 @@ func (f *Fusetest) RunOperationTests() error {
 	f.TestRename()
 	f.TestCpOutToIn()
 
-	return os.RemoveAll(f.TestDir)
+	return nil
 }
 
 func (f *Fusetest) setupConvey(name string, fn func(string)) {
