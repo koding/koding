@@ -27,7 +27,7 @@ module.exports =
       teamsHelpers.loginToTeam browser, targetUser1 , no, ->
       browser.pause 3000
       welcomehelpers.seePendingStackView browser
-      welcomehelpers.seePersonalStackView(browser)        
+      welcomehelpers.seePersonalStackView(browser)
       browser.url  "#{helpers.getUrl(yes)}/Home/Welcome"
       browser.pause 3000
       welcomehelpers.seeKDInstall(browser)
@@ -36,18 +36,18 @@ module.exports =
 
   checkTeamBilling: (browser) ->
     browser
-      .url "#{helpers.getUrl(yes)}/Home/team-billing"    
+      .url "#{helpers.getUrl(yes)}/Home/team-billing"
       .pause 2000
       .assert.containsText '.HomeAppView--sectionHeader', 'Koding Subscription'
       .waitForElementVisible 'div.HomeAppView--section.HomeTeamBillingPlansList', 20000
       .pause 2000
       
     welcomehelpers.seePricingDetails(browser)
-    browser.url "#{helpers.getUrl(yes)}/Home/team-billing"      
+    browser.url "#{helpers.getUrl(yes)}/Home/team-billing"
     welcomehelpers.seeMembers(browser)
     browser.url "#{helpers.getUrl(yes)}/Home/team-billing"
     helpers.fillPaymentForm(browser)
-    browser.click 'button.GenericButton.medium.fr' 
+    browser.click 'button.GenericButton.medium.fr'
 
     welcomehelpers.seePaymentHistory(browser)
     browser.end()

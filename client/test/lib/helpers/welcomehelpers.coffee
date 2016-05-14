@@ -18,12 +18,12 @@ module.exports =
       .pause 3000
       .waitForElementVisible '.WelcomeStacksView', 20000
       .click teamLink
-      .waitForElementVisible '.HomeAppView--section.send-invites', 20000        
+      .waitForElementVisible '.HomeAppView--section.send-invites', 20000      
      
 
   seeKDInstall: (browser) ->
     browser
-      .waitForElementVisible '.WelcomeStacksView', 2000        
+      .waitForElementVisible '.WelcomeStacksView', 2000   
       .click '.WelcomeStacksView ul.bullets li:nth-of-type(3)'
       .waitForElementVisible '.HomeAppView--section.kd-cli', 20000
       .pause 3000
