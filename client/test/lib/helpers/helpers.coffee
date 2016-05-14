@@ -475,6 +475,7 @@ module.exports =
       .cookie    'POST', { name, value, domain }
       .refresh()
 
+
   notifyTestFailure: (browser, testName) ->
 
     message = "#{testName} test failed, please check the test..."
@@ -491,3 +492,28 @@ module.exports =
       return "http://#{user.teamSlug}.#{url}"
     else
       return "http://#{url}"
+
+
+  changePasswordHelper: (browser, newPassword, confirmPassword, currentPassword, notificationText ) ->
+    passwordSelector          = 'input[name=password]'
+    confirmPasswordSelector   = 'input[name=confirmPassword]'
+    currentPasswordSelector   = 'input[name=currentPassword]'
+    saveButtonSelector        = '.my-account .HomeAppView--section.password .HomeAppView--form a'
+
+    browser
+      .waitForElementVisible   passwordSelector, 20000
+      .clearValue              passwordSelector
+      .setValue                passwordSelector, newPassword
+    
+      .clearValue              confirmPasswordSelector
+      .setValue                confirmPasswordSelector, confirmPassword
+
+      .clearValue              currentPasswordSelector
+      .setValue                currentPasswordSelector, currentPassword
+      
+      .waitForElementVisible   saveButtonSelector, 20000
+      .click                   saveButtonSelector
+
+      .waitForElementVisible   '.kdnotification.main', 20000
+      .assert.containsText     '.kdnotification.main', notificationText 
+      .pause  3000

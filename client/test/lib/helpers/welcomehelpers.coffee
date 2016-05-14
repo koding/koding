@@ -75,3 +75,18 @@ module.exports =
       .scrollToElement '.HomeAppView--billing-form'
       .click '.HomeAppView--button.custom-link-view.primary:nth-of-type(1)'
       .pause 3000
+
+
+  gotoSettingsMenu: (browser, menuItemSelector) ->
+    menuSelector      = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
+    teamnameSelector  = '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
+  
+    browser
+      .waitForElementVisible '#main-sidebar', 20000
+      .click '#main-sidebar'
+      .waitForElementVisible teamnameSelector, 20000
+      .click teamnameSelector
+      .waitForElementVisible menuSelector,2000
+      .pause 3000
+      .click menuItemSelector
+      .pause 3000
