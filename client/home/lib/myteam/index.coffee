@@ -46,6 +46,7 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
     TeamFlux.actions.loadTeam()
     TeamFlux.actions.loadPendingInvitations()
+    TeamFlux.actions.loadDisabledUsers()
     AppFlux.actions.user.loadLoggedInUserEmail()
 
     options =
