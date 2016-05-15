@@ -369,31 +369,39 @@ module.exports =
     defaultCard  =
       cardNumber : cardDetails.cardNumber or '4111 1111 1111 1111'
       cvc        : cardDetails.cvc        or 123
-      month      : cardDetails.month      or 12
+      month      : cardDetails.month      or 'December'
       year       : cardDetails.year       or 2019
 
     user         = utils.getUser()
     name         = user.username
-    paymentModal = 'form.payment-method-entry-form'
+    paymentModal = '.HomeAppView--billing-form'
 
     browser
-      .waitForElementVisible   paymentModal, 20000
-      .waitForElementVisible   paymentModal + ' .cardnumber', 20000
-      .click                   'input[name=cardNumber]'
-      .setValue                'input[name=cardNumber]', defaultCard.cardNumber
-      .waitForElementVisible   paymentModal + ' .cardcvc', 20000
-      .click                   'input[name=cardCVC]'
-      .setValue                'input[name=cardCVC]', defaultCard.cvc
-      .waitForElementVisible   paymentModal + ' .cardmonth', 20000
-      .click                   'input[name=cardMonth]'
-      .setValue                'input[name=cardMonth]', defaultCard.month
-      .waitForElementVisible   paymentModal + ' .cardyear', 20000
-      .click                   'input[name=cardYear]'
-      .setValue                'input[name=cardYear]', defaultCard.year
-      .waitForElementVisible   paymentModal + ' .cardname', 20000
-      .click                   'input[name=cardName]'
-      .clearValue              'input[name=cardName]'
-      .setValue                'input[name=cardName]', name
+      .waitForElementVisible   paymentModal, 10000
+      .waitForElementVisible   '.HomeAppView-input.card-number', 20000
+      .click                   '.HomeAppView-input.card-number'
+      .setValue                '.HomeAppView-input.card-number', defaultCard.cardNumber
+
+      .waitForElementVisible   '.HomeAppView-input.cvc', 20000
+      .click                   '.HomeAppView-input.cvc'
+      .setValue                '.HomeAppView-input.cvc', defaultCard.cvc
+
+      .waitForElementVisible   '.HomeAppView-selectBoxWrapper.expiration-month', 20000
+      .click                   '.HomeAppView-selectBoxWrapper.expiration-month'
+      .setValue                '.HomeAppView-selectBoxWrapper.expiration-month', defaultCard.month
+
+      .scrollToElement         '.HomeAppView--billing-form'
+      .waitForElementVisible   '.HomeAppView-selectBoxWrapper.expiration-year', 20000
+      .click                   '.HomeAppView-selectBoxWrapper.expiration-year'
+      .setValue                '.HomeAppView-selectBoxWrapper.expiration-year', defaultCard.year
+
+      .waitForElementVisible   '.HomeAppView-input.HomeAppView-input--cc-form.full-name', 20000
+      .setValue                '.HomeAppView-input.HomeAppView-input--cc-form.full-name', name
+      .scrollToElement         '.HomeAppView--billing-form'
+
+      .waitForElementVisible   '.HomeAppView-input.HomeAppView-input--cc-form.email', 20000
+      .setValue                '.HomeAppView-input.HomeAppView-input--cc-form.email', user.email
+      .pause 5000
 
 
   submitForm: (browser, validCardDetails = yes) ->
@@ -468,6 +476,7 @@ module.exports =
       .cookie    'POST', { name, value, domain }
       .refresh()
 
+
   notifyTestFailure: (browser, testName) ->
 
     message = "#{testName} test failed, please check the test..."
@@ -484,3 +493,24 @@ module.exports =
       return "http://#{user.teamSlug}.#{url}"
     else
       return "http://#{url}"
+
+
+  changePasswordHelper: (browser, newPassword, confirmPassword, currentPassword, notificationText ) ->
+    passwordSelector          = 'input[name=password]'
+    confirmPasswordSelector   = 'input[name=confirmPassword]'
+    currentPasswordSelector   = 'input[name=currentPassword]'
+    saveButtonSelector        = '.my-account .HomeAppView--section.password .HomeAppView--form a'
+
+    browser
+      .waitForElementVisible   passwordSelector, 20000
+      .clearValue              passwordSelector
+      .setValue                passwordSelector, newPassword
+      .clearValue              confirmPasswordSelector
+      .setValue                confirmPasswordSelector, confirmPassword
+      .clearValue              currentPasswordSelector
+      .setValue                currentPasswordSelector, currentPassword
+      .waitForElementVisible   saveButtonSelector, 20000
+      .click                   saveButtonSelector
+      .waitForElementVisible   '.kdnotification.main', 20000
+      .assert.containsText     '.kdnotification.main', notificationText
+      .pause  3000
