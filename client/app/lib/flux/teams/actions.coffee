@@ -244,35 +244,24 @@ handleDisabledUser = (member) ->
   { groupsController, reactor } = kd.singletons
   team = groupsController.getCurrentGroup()
 
-  options =
-    limit : 10
-    sort  : { timestamp: -1 } # timestamp is at relationship collection
-    skip  : 0
+  memberId = member.get '_id'
+
+  team.unblockMember memberId, (err) ->
+    unless err
+      fetchMembers().then ->
+        fetchMembersRole()
+        reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
+
+  .catch (err) -> 'error occured while unblocking member'
+
+
+handlePermanentlyDeleteMember = (member) ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
 
   memberId = member.get '_id'
-  { profile : { email, firstName, lastName } } = member.toJS()
-
-  invitations = [ { email, firstName, lastName, role : 'member' } ]
-
-  remote.api.JInvitation.create
-    invitations : invitations
-    noEmail     : yes
-    returnCodes : yes
-  , (err, res) ->
-
-    return callback err  if err
-    return callback { message: 'Something went wrong, please try again!' }  unless res
-
-    invite = res[0]
-    invite.status = 'accepted'
-    team.unblockMember memberId, (err) ->
-      unless err
-        invite.accept().then (response) ->
-          reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
-          fetchMembers(options).then ->
-            fetchMembersRole()
-
-    .catch (err) -> console.log 'err ', err
+  reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
 
 module.exports = {
@@ -291,4 +280,5 @@ module.exports = {
   uploads3
   loadDisabledUsers
   handleDisabledUser
+  handlePermanentlyDeleteMember
 }
