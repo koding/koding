@@ -26,7 +26,8 @@ module.exports = class HomeTeamTeamMatesView extends React.Component
       userRole={@props.role}
       member={member}
       handleInvitation={@props.handleInvitation}
-      handleRoleChange={@props.handleRoleChange}/>  if member
+      handleRoleChange={@props.handleRoleChange}
+      handleDisabledUser={@props.handleDisabledUser} />  if member
 
 
   renderEmptySectionAtIndex: -> <div> No data found</div>
