@@ -98,6 +98,12 @@
       bg                    color, #fff
       color                 #d9d9d9
 
+      &:first-child
+        border-left         1px solid #e6e6e6
+
+      &:last-child
+        border-right        1px solid #e6e6e6
+
       &.current
         bg                  color, #74E4F4
         color               #fff
@@ -107,6 +113,34 @@
         color               #93a1a1
         border-right        1px solid #c7c7c7
 
+
+  .error-page
+
+    section.main
+
+      > h2
+        color               #F06969
+        font-weight         bold
+
+    .wizard-progress-pane
+
+      .wizard-step
+        &.completed
+          bg                color, #f3f3f3
+          color             #fff
+          border-right      1px solid #e6e6e6
+
+        &.current
+          bg                color, #F06969
+          color             #fff
+
+    footer
+
+      a.back-link
+        color               #F06969
+
+        .arrow:after
+          color             #F06969
 
   .readme-page
 

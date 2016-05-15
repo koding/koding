@@ -6,6 +6,8 @@ globals = require 'globals'
 remote  = require('app/remote').getInstance()
 KodingKontrol = require 'app/kite/kodingkontrol'
 CredentialsPageView = require '../views/credentialspageview'
+CredentialsErrorPageView = require '../views/credentialserrorpageview'
+commonHelpers = require '../helpers'
 
 module.exports = class CredentialsController extends kd.Controller
 
@@ -28,13 +30,17 @@ module.exports = class CredentialsController extends kd.Controller
       return showError err  if err
 
       { credentials, requirements, kdCmd } = results
-      @delegate.addSubView @view = new CredentialsPageView { cssClass : 'hidden' }, {
+      @delegate.addSubView @credentialsPage = new CredentialsPageView { cssClass : 'hidden' }, {
         stack
         credentials  : _.extend { kdCmd }, credentials
         requirements
       }
-      @forwardEvent @view, 'InstructionsRequested'
-      @view.on 'Submitted', @bound 'onSubmitted'
+      @forwardEvent @credentialsPage, 'InstructionsRequested'
+      @credentialsPage.on 'Submitted', @bound 'onSubmitted'
+
+      @delegate.addSubView @errorPage = new CredentialsErrorPageView { cssClass : 'hidden' }
+      @errorPage.on 'CredentialsRequested', =>
+        commonHelpers.changePage @errorPage, @credentialsPage
 
 
   onSubmitted: (formData) ->
@@ -51,10 +57,15 @@ module.exports = class CredentialsController extends kd.Controller
       alert identifiers
 
 
-  show: -> @view.show()
+  show: ->
+
+    @credentialsPage.show()
 
 
-  hide: -> @view.hide()
+  hide: ->
+
+    @credentialsPage.hide()
+    @errorPage.hide()
 
 
   helpers =
@@ -115,7 +126,6 @@ module.exports = class CredentialsController extends kd.Controller
         { selectedItem, newData } = formData
         return next null, selectedItem  if selectedItem
 
-        return next null, '12345'
         remote.api.JCredential.create newData, (err, credential) ->
           return next err  if err
           return next null, credential.identifier
