@@ -16,7 +16,7 @@ module.exports =
     paragraph          = helpers.getFakeText()
     newName            = paragraph.split(' ')[0]
     newLastName        = paragraph.split(' ')[1]
-    newEmail           = newName+newLastName+'@koding.com'
+    newEmail           = newName + newLastName + '@koding.com'
 
     user = teamsHelpers.loginTeam(browser)
     browser
@@ -35,8 +35,7 @@ module.exports =
       # .waitForElementVisible   emailSelector, 20000
       # .clearValue              emailSelector
       # .setValue                emailSelector, newName + '\n'
-      
-      .click                   saveButtonSelector 
+      .click                   saveButtonSelector
       .waitForElementVisible   '.kdmodal.kddraggable', 20000
       .pause 3000
 
@@ -54,24 +53,20 @@ module.exports =
       # .waitForElementVisible   emailSelector, 20000
       # .getValue                emailSelector, (result) ->
       #   assert.equal           result.value, newName
-    
     notificationText          = 'Password successfully changed!'
     notMatchingPasswords      = 'Passwords did not match'
     invalidCurrentPassword    = 'Old password did not match our records!'
     min8Character             = 'Passwords should be at least 8 characters!'
-    
     currentPassword = user.password
     newPassword     = utils.getPassword()
-    
     browser
       .scrollToElement '.HomeAppView--section.password'
 
-    helpers.changePasswordHelper browser, newPassword, newPassword+'test', null, notMatchingPasswords
+    helpers.changePasswordHelper browser, newPassword, newPassword + 'test', null, notMatchingPasswords
     helpers.changePasswordHelper browser, newPassword, newPassword, 'invalidpassword', invalidCurrentPassword
     helpers.changePasswordHelper browser, '1234', '1234', user.password, min8Character
     helpers.changePasswordHelper browser, newPassword, newPassword, user.password, notificationText
-   
-    browser 
+    browser
       .pause 3000
       .scrollToElement '.HomeAppView--section.profile'
       .scrollToElement '.HomeAppView--section.password'

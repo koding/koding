@@ -11,7 +11,6 @@ module.exports =
     users = targetUser1
     teamsHelpers.inviteAndJoinWithUsers browser, [users], (result) ->
       done()
-  
   checkDashboardbyAdmin: (browser) ->
     welcomehelpers.seeStackView(browser)
     browser.url welcomeLink
@@ -43,24 +42,21 @@ module.exports =
       .assert.containsText '.HomeAppView--sectionHeader', 'Koding Subscription'
       .waitForElementVisible 'div.HomeAppView--section.HomeTeamBillingPlansList', 20000
       .pause 2000
-      
     welcomehelpers.seePricingDetails(browser)
     browser.url teamBillingLink
     welcomehelpers.seeMembers(browser)
     browser.url teamBillingLink
     helpers.fillPaymentForm(browser)
     browser.click 'button.GenericButton.medium.fr'
-
     welcomehelpers.seePaymentHistory(browser)
     browser.end()
 
   checkSettingsMenu: (browser) ->
     menuSelector      = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
-    myAccountSelector = menuSelector+':nth-of-type(1)'
-    dashboardSelector = menuSelector+':nth-of-type(2)'
-    supportSelector   = menuSelector+':nth-of-type(3)'
-    logoutSelector    = menuSelector+':nth-of-type(4)'
-    
+    myAccountSelector = menuSelector + ':nth-of-type(1)'
+    dashboardSelector = menuSelector + ':nth-of-type(2)'
+    supportSelector   = menuSelector + ':nth-of-type(3)'
+    logoutSelector    = menuSelector + ':nth-of-type(4)'
     welcomehelpers.gotoSettingsMenu browser, myAccountSelector
     browser
       .assert.containsText 'header.HomeAppView--sectionHeader', 'My Account'
@@ -76,4 +72,3 @@ module.exports =
     welcomehelpers.gotoSettingsMenu browser, logoutSelector
     browser.pause 1000
     browser.end()
-   

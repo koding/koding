@@ -402,7 +402,8 @@ module.exports =
       .waitForElementVisible   '.HomeAppView-input.HomeAppView-input--cc-form.email', 20000
       .setValue                '.HomeAppView-input.HomeAppView-input--cc-form.email', user.email
       .pause 5000
-     
+
+
   submitForm: (browser, validCardDetails = yes) ->
 
     upgradePlanButton = '.kdmodal-inner .green:not(.paypal)'
@@ -504,16 +505,12 @@ module.exports =
       .waitForElementVisible   passwordSelector, 20000
       .clearValue              passwordSelector
       .setValue                passwordSelector, newPassword
-    
       .clearValue              confirmPasswordSelector
       .setValue                confirmPasswordSelector, confirmPassword
-
       .clearValue              currentPasswordSelector
       .setValue                currentPasswordSelector, currentPassword
-      
       .waitForElementVisible   saveButtonSelector, 20000
       .click                   saveButtonSelector
-
       .waitForElementVisible   '.kdnotification.main', 20000
-      .assert.containsText     '.kdnotification.main', notificationText 
+      .assert.containsText     '.kdnotification.main', notificationText
       .pause  3000
