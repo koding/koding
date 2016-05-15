@@ -1,12 +1,10 @@
 kd = require 'kd'
 async = require 'async'
-remote = require('app/remote').getInstance()
 JView = require 'app/jview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 CredentialForm = require './credentialform'
 KDCredentialForm = require './kdcredentialform'
-showError = require 'app/util/showError'
 
 module.exports = class CredentialsPageView extends JView
 
@@ -30,7 +28,7 @@ module.exports = class CredentialsPageView extends JView
       title    : 'Build Stack'
       cssClass : 'GenericButton'
       loader   : yes
-      callback : @bound 'onBuild'
+      callback : @bound 'onSubmit'
 
 
   createCredentialView: ->
@@ -41,7 +39,7 @@ module.exports = class CredentialsPageView extends JView
     @credentialContainer = new kd.CustomScrollView
       cssClass : 'form-scroll-wrapper credential-wrapper'
 
-    options   = helper.getFormOptions provider
+    options   = helpers.getFormOptions provider
     formClass = if provider is 'vagrant' then KDCredentialForm else CredentialForm
     @credentialForm = new formClass options, credentials
     @credentialContainer.wrapper.addSubView @credentialForm
@@ -56,36 +54,25 @@ module.exports = class CredentialsPageView extends JView
 
     return @setClass 'credential-only'  unless requirements.fields
 
-    options = helper.getFormOptions requirements.provider
+    options = helpers.getFormOptions requirements.provider
     @requirementsForm = new CredentialForm options, requirements
     @requirementsContainer.wrapper.addSubView @requirementsForm
 
 
-  onBuild: ->
+  onSubmit: ->
 
-    validationQueue =
-      credential    : helper.createFormValidationCallback @credentialForm
-      requirements  : helper.createFormValidationCallback @requirementsForm
+    queue =
+      credential   : helpers.createValidationCallback @credentialForm
+      requirements : helpers.createValidationCallback @requirementsForm
 
-    async.parallel validationQueue, (err, validationResults) =>
+    async.parallel queue, (err, validationResults) =>
       return @buildButton.hideLoader()  if err
-
-      resultQueue = [
-        helper.createFormResultCallback validationResults.credential
-        helper.createFormResultCallback validationResults.requirements
-      ]
-
-      async.series resultQueue, (err, identifiers) =>
-        if err
-          @buildButton.hideLoader()
-          return showError err
-
-        alert identifiers
+      @emit 'Submitted', validationResults
 
 
   pistachio: ->
 
-    { title, description } = helper.getTitleAndDescription @getData()
+    { title, description } = helpers.getTitleAndDescription @getData()
 
     """
       <div class="credentials-page">
@@ -107,7 +94,7 @@ module.exports = class CredentialsPageView extends JView
       </div>
     """
 
-  helper =
+  helpers =
 
     getFormOptions: (provider) ->
 
@@ -145,7 +132,7 @@ module.exports = class CredentialsPageView extends JView
       }
 
 
-    createFormValidationCallback: (form) ->
+    createValidationCallback: (form) ->
 
       (next) ->
 
@@ -159,17 +146,3 @@ module.exports = class CredentialsPageView extends JView
         form.once 'FormValidationFailed', -> next 'ValidationError'
 
         form.validate()
-
-
-    createFormResultCallback: (validationResult) ->
-
-      (next) ->
-
-        return next()  unless validationResult
-
-        { selectedItem, newData } = validationResult
-        return next null, selectedItem  if selectedItem
-
-        remote.api.JCredential.create newData, (err, credential) ->
-          return next err  if err
-          return next null, credential.identifier
