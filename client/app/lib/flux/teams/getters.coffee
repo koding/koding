@@ -84,7 +84,9 @@ filteredMembersWithRoleAndDisabledUsers = [
   filteredMembersWithRole
   disabledUsers
   (users, disabledUsers) ->
-    users = users.merge disabledUsers
+    users.withMutations (users) ->
+      disabledUsers.map (disabledUser) ->
+        users.set disabledUser.get('_id'), disabledUser
 ]
 
 
