@@ -5,6 +5,8 @@ HomeTeamTeammates    = require './hometeamteammates'
 HomeTeamSettings     = require './hometeamsettings'
 TeamFlux             = require 'app/flux/teams'
 AppFlux              = require 'app/flux'
+whoami               = require 'app/util/whoami'
+remote               = require('app/remote').getInstance()
 
 
 SECTIONS =
@@ -46,16 +48,36 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
     TeamFlux.actions.loadPendingInvitations()
     AppFlux.actions.user.loadLoggedInUserEmail()
 
-    @wrapper.addSubView header  'Team Settings'
-    @wrapper.addSubView section 'Team Settings', null, team
+    options =
+      limit : 10
+      sort  : { timestamp: -1 } # timestamp is at relationship collection
+      skip  : 0
 
-    @wrapper.addSubView header  'Send Invites'
-    @wrapper.addSubView section 'Send Invites'
+    TeamFlux.actions.fetchMembers(options).then =>
+      TeamFlux.actions.fetchMembersRole().then ({ roles }) =>
 
-    @wrapper.addSubView header  'Invite Using Slack'
-    @wrapper.addSubView section 'Invite Using Slack'
 
-    @wrapper.addSubView header  'Teammates'
-    @wrapper.addSubView section 'Teammates', null, team
+        userRoles = {}
+        for role in roles
+          list = userRoles[role.targetId] or= []
+          list.push role.as
+
+        for id, roles of userRoles
+          if id is whoami()._id
+            hasOwner = 'owner' in roles
+            hasAdmin = 'admin' in roles
+            role = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
+
+            @wrapper.addSubView header  'Team Settings'
+            @wrapper.addSubView section 'Team Settings', null, role
+
+            @wrapper.addSubView header  'Send Invites'
+            @wrapper.addSubView section 'Send Invites', null, role
+
+            @wrapper.addSubView header  'Invite Using Slack'
+            @wrapper.addSubView section 'Invite Using Slack'
+
+            @wrapper.addSubView header  'Teammates'
+            @wrapper.addSubView section 'Teammates', null, role
 
 
