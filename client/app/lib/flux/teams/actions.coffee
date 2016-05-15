@@ -230,6 +230,15 @@ uploads3 = ({ name, content, mimeType }) ->
       if err then reject { err } else resolve { url }
 
 
+loadDisabledUsers = ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+
+  team.fetchBlockedAccountsWithEmail (err, members) ->
+    reactor.dispatch actions.LOAD_DISABLED_MEMBERS, { members }
+
+
 module.exports = {
   loadTeam
   updateTeam
