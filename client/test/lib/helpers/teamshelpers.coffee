@@ -182,41 +182,41 @@ module.exports =
       .waitForElementVisible  companyNameSelector, 20000
       .clearValue             emailSelector
 
-      if inviteOrCreateLink is inviteLink
-        browser
-          .setValue              emailSelector, user.email
-          .pause                 2000
-          .setValue              companyNameSelector, user.teamSlug
-          .click                 signUpButton
-          .pause                 2500
+    if inviteOrCreateLink is inviteLink
+      browser
+        .setValue              emailSelector, user.email
+        .pause                 2000
+        .setValue              companyNameSelector, user.teamSlug
+        .click                 signUpButton
+        .pause                 2500
 
-        @enterTeamURL(browser)
-        @checkForgotPassword(browser)
+      @enterTeamURL(browser)
+      @checkForgotPassword(browser)
 
-        if invalidCredentials
-          @fillUsernamePasswordForm(browser, user, yes)
-        else
-          @fillUsernamePasswordForm(browser, user)
-
+      if invalidCredentials
+        @fillUsernamePasswordForm(browser, user, yes)
       else
-        browser
-          .setValue              emailSelector, user.email + 'test'
-          .pause                 2000
-          .setValue              companyNameSelector, user.teamSlug + 'test'
-          .click                 signUpButton
-          .pause                 2500
+        @fillUsernamePasswordForm(browser, user)
 
-        @enterTeamURL(browser)
+    else
+      browser
+        .setValue              emailSelector, user.email + 'test'
+        .pause                 2000
+        .setValue              companyNameSelector, user.teamSlug + 'test'
+        .click                 signUpButton
+        .pause                 2500
 
-        browser
-          .waitForElementVisible  teamsModalSelector, 20000
-          .waitForElementVisible  usernameInput, 20000
-          .clearValue             usernameInput
-          .setValue               usernameInput, user.username
-          .setValue               passwordInput, user.password
-          .click                  doneButton
-          .waitForElementVisible  errorMessage, 20000
-          .assert.containsText    errorMessage, "Sorry, #{user.username} is already taken!"
+      @enterTeamURL(browser)
+
+      browser
+        .waitForElementVisible  teamsModalSelector, 20000
+        .waitForElementVisible  usernameInput, 20000
+        .clearValue             usernameInput
+        .setValue               usernameInput, user.username
+        .setValue               passwordInput, user.password
+        .click                  doneButton
+        .waitForElementVisible  errorMessage, 20000
+        .assert.containsText    errorMessage, "Sorry, #{user.username} is already taken!"
 
 
 
