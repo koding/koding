@@ -314,22 +314,100 @@ module.exports =
       .pause 2000, -> done()
 
 
-  buildStack: (browser) ->
+  buildStack: (browser, done) ->
 
+    sidebarSelector = '.SidebarTeamSection'
+    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
     buildStackModal = '.kdmodal.env-modal.env-machine-state.kddraggable.has-readme'
     buildStackButton = "#{buildStackModal} .kdbutton.turn-on.state-button.solid.green.medium.with-icon"
     progressBarSelector = "#{buildStackModal} .progressbar-container"
+    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
+
     browser
       .click '#main-sidebar'
+      .waitForElementVisible sidebarSelector, 20000
+      .click sidebarStackSection
+
+    browser.element 'css selector', vmSelector, (result) =>
+      if result.status is -1
+        @createCredential browser, 'aws', 'build-stack', no, (res) =>
+          @createStack browser, ->
+
+    browser.getAttribute vmSelector, 'title', (result) =>
+      ###
+        Machine status: 'status'
+        substring function remove 'Machine status:'
+        from title attribute
+      ###
+      status = result.value.substring 16
+
+      switch status
+        when 'NotInitialized' then @turnOnVm browser, yes, done
+        when 'Running' then done()
+        when 'Stopping' then @waitUntilVmStopping browser, done
+        when 'Stopped' then @turnOnVm browser, no, done
+        when 'Starting' then @waitUntilVmRunning browser, done
+
+
+  turnOnVm: (browser, firstBuild = no, done = -> ) ->
+
+    sidebarSelector = '.SidebarTeamSection'
+    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
+    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
+    buildStackModal = '.kdmodal.env-modal.env-machine-state.kddraggable.has-readme'
+    buildStackButton = "#{buildStackModal} .kdbutton.turn-on.state-button.solid.green.medium.with-icon"
+
+    unless firstBuild
+      buildStackModal = '.kdmodal.env-modal.env-machine-state'
+      buildStackButton = "#{buildStackModal} .kdbutton.turn-on.state-button.solid.green.medium.with-icon"
+
+    browser
       .waitForElementVisible buildStackModal, 20000
       .waitForElementVisible buildStackButton, 20000
-      .click buildStackButton
+      .click buildStackButton, =>
+        @waitUntilVmRunning browser, done
 
+
+  waitUntilVmStopping: (browser, done) ->
+
+    sidebarSelector = '.SidebarTeamSection'
+    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
+    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
+
+    browser
+      .pause 10000
+      .getAttribute vmSelector, 'title', (result) =>
+        if result.value.substring(16) is 'Stopped'
+          console.log '   VM is stopped'
+          done()
+        else
+          console.log '   VM is still stopping'
+          @waitUntilVmStopping browser, done
+
+
+  waitUntilVmRunning: (browser, done) ->
+
+    sidebarSelector = '.SidebarTeamSection'
+    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
+    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
+
+    browser
+      .pause 10000
+      .getAttribute vmSelector, 'title', (result) =>
+        if result.value.substring(16) is 'Running'
+          console.log '   VM is running'
+          done()
+        else
+          console.log '   VM is still building'
+          @waitUntilVmRunning browser, done
 
 
   createStack: (browser, done) ->
 
-    url = helpers.getUrl(yes)
+
+    sidebarSelector = '.SidebarTeamSection'
+    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
+    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
 
     credentialSelector = '.kdview.kdlistitemview.kdlistitemview-default.StackEditor-CredentialItem'
     useThisAndContinueButton = '.StackEditor-CredentialItem--buttons .kdbutton.solid.compact.outline.verify'
@@ -337,15 +415,30 @@ module.exports =
     saveButtonSelector = '.StackEditorView--header .kdbutton.GenericButton.save-test'
     successModal = '.kdmodal-inner .kdmodal-content'
     closeButton = '.kdmodal-inner .kdview.kdmodal-buttons .kdbutton.solid.medium.gray'
+
     browser
-      .pause 2000
-      .click useThisAndContinueButton
-      .waitForElementVisible editorPaneSelector, 20000
-      .click saveButtonSelector
-      .pause 10000
-      .waitForElementVisible successModal, 40000
-      .click closeButton
-      .pause 5000, ->
+      .element 'css selector', vmSelector, (result) ->
+        if result.status is 0
+          done()
+        else
+          browser
+            .pause 2000
+            .click useThisAndContinueButton
+            .waitForElementVisible editorPaneSelector, 20000
+            .click saveButtonSelector
+            .pause 10000
+            .waitForElementVisible successModal, 40000
+            .click closeButton
+            .pause 5000, ->
+              done()
+
+
+  createDefaultStackTemplate: (browser, done) ->
+
+    stackEditorUrl = "#{helpers.getUrl(yes)}/Home/stacks"
+
+    @createCredential browser, 'aws', 'draft-stack', yes, (res) ->
+      browser.url stackEditorUrl, ->
         done()
 
 
@@ -463,10 +556,10 @@ module.exports =
       .waitForElementVisible '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 20000
       .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 20000
-      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default',2000
+      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 2000
       .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(4)'
 
-     .pause 2000, -> callback()
+      .pause 2000, -> callback()
 
 
   inviteAndJoinWithUsers: (browser, users, callback) ->

@@ -91,3 +91,15 @@ module.exports =
       .pause 3000
       .click menuItemSelector
       .pause 3000
+
+  gotoStackSettings: (browser, menuItemSelector) ->
+    menuSelector      = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
+    stackNameSelector = '.SidebarTeamSection .SidebarStackSection.active h4'
+
+    browser
+      .click '#main-sidebar'
+      .waitForElementVisible stackNameSelector, 20000
+      .click stackNameSelector
+      .waitForElementVisible menuSelector, 2000
+      .pause 3000
+      .click menuItemSelector
