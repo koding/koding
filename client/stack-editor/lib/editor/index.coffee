@@ -228,7 +228,11 @@ module.exports = class StackEditorView extends kd.View
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
 
-    kd.singletons.reactor.observe valueGetter, (value) => @inputTitle.setValue value
+    kd.singletons.reactor.observe valueGetter, (value) =>
+
+      return  if value is @inputTitle.getValue()
+
+      @inputTitle.setValue value
 
     @inputTitle.on 'viewAppended', =>
       @inputTitle.prepareClone()
