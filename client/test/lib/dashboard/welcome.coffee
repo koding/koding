@@ -1,6 +1,7 @@
 utils          = require '../utils/utils.js'
 helpers        = require '../helpers/helpers.js'
 teamsHelpers   = require '../helpers/teamshelpers.js'
+async          = require 'async'
 welcomehelpers = require '../helpers/welcomehelpers.js'
 welcomeLink    = "#{helpers.getUrl(yes)}/Home/Welcome"
 
@@ -11,6 +12,8 @@ module.exports =
     users = targetUser1
     teamsHelpers.inviteAndJoinWithUsers browser, [users], (result) ->
       done()
+
+
   checkDashboardbyAdmin: (browser) ->
     welcomehelpers.seeStackView(browser)
     browser.url welcomeLink
@@ -72,3 +75,65 @@ module.exports =
     welcomehelpers.gotoSettingsMenu browser, logoutSelector
     browser.pause 1000
     browser.end()
+
+
+  checkStackSettings: (browser, callback) ->
+    queue = [
+      (next) ->
+        teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.createStack browser, (res) ->
+          next null, res
+
+      (next) ->
+        teamsHelpers.createDefaultStackTemplate browser, (res) ->
+          next null, res
+    ]
+    async.series queue, (err, result) ->
+      callback result
+
+    menuSelector      = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
+    editSelector      = menuSelector + ':nth-of-type(1)'
+    reinitSelector    = menuSelector + ':nth-of-type(2)'
+    vmSelector        = menuSelector + ':nth-of-type(3)'
+
+    browser
+      .click '#main-sidebar'
+      .click '.SidebarSection-headerTitle'
+      .waitForElementVisible '.HomeAppView', 20000
+      .pause 3000
+      .click '#main-sidebar'
+      .waitForElementVisible '.SidebarTeamSection', 20000
+      .moveToElement('.SidebarSection-headerTitle', 0, 0)
+      .waitForElementVisible '.SidebarSection-secondaryLink', 20000
+      .click '.SidebarSection-secondaryLink'
+      .waitForElementVisible '.StackEditor-OnboardingModal', 20000
+      .pause 3000
+    welcomehelpers.gotoStackSettings browser, editSelector
+    browser
+      .waitForElementVisible '.StackEditorView', 20000
+      .pause 3000
+      welcomehelpers.gotoStackSettings browser, reinitSelector
+      .waitForElementVisible '[testpath=reinitStack]', 20000
+      .pause 3000
+      .click '.kdbutton.solid.red.medium'
+      .waitForElementVisible '.kdnotification', 20000
+      .assert.containsText '.kdnotification', 'Reinitializing stack...'
+    welcomehelpers.gotoStackSettings browser, vmSelector
+    browser
+      .waitForElementVisible '.kdview .kdtabpaneview .virtual-machines', 20000
+      .pause 2000
+      .click '#main-sidebar'
+      .click '.SidebarTeamSection .SidebarSection.draft'
+      .waitForElementVisible menuSelector, 20000
+      .pause 2000
+      .click menuSelector + ':nth-of-type(1)'
+      .waitForElementVisible '.StackEditorView', 20000
+      .pause 2000
+      .click '#main-sidebar'
+      .click '.SidebarTeamSection .SidebarSection.draft'
+      .waitForElementVisible menuSelector, 20000
+      .pause 2000
+      .click menuSelector + ':nth-of-type(2)'
+      .waitForElementVisible '.kdnotification', 20000

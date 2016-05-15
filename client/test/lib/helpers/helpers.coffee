@@ -372,35 +372,41 @@ module.exports =
       month      : cardDetails.month      or 'December'
       year       : cardDetails.year       or 2019
 
-    user         = utils.getUser()
-    name         = user.username
-    paymentModal = '.HomeAppView--billing-form'
+    user               = utils.getUser()
+    name               = user.username
+    paymentModal       = '.HomeAppView--billing-form'
+    cardNumberSelector = '.HomeAppView-input.card-number'
+    cvcSelector        = '.HomeAppView-input.cvc'
+    monthSelector      = '.HomeAppView-selectBoxWrapper.expiration-month'
+    yearSelector       = '.HomeAppView-selectBoxWrapper.expiration-year'
+    fullNameSelector   = '.HomeAppView-input.HomeAppView-input--cc-form.full-name'
+    emailSelector      = '.HomeAppView-input.HomeAppView-input--cc-form.email'
 
     browser
       .waitForElementVisible   paymentModal, 10000
-      .waitForElementVisible   '.HomeAppView-input.card-number', 20000
-      .click                   '.HomeAppView-input.card-number'
-      .setValue                '.HomeAppView-input.card-number', defaultCard.cardNumber
+      .waitForElementVisible   cardNumberSelector, 20000
+      .click                   cardNumberSelector
+      .setValue                cardNumberSelector, defaultCard.cardNumber
 
-      .waitForElementVisible   '.HomeAppView-input.cvc', 20000
-      .click                   '.HomeAppView-input.cvc'
-      .setValue                '.HomeAppView-input.cvc', defaultCard.cvc
+      .waitForElementVisible   cvcSelector, 20000
+      .click                   cvcSelector
+      .setValue                cvcSelector, defaultCard.cvc
 
-      .waitForElementVisible   '.HomeAppView-selectBoxWrapper.expiration-month', 20000
-      .click                   '.HomeAppView-selectBoxWrapper.expiration-month'
-      .setValue                '.HomeAppView-selectBoxWrapper.expiration-month', defaultCard.month
+      .waitForElementVisible   monthSelector, 20000
+      .click                   monthSelector
+      .setValue                monthSelector, defaultCard.month
 
-      .scrollToElement         '.HomeAppView--billing-form'
-      .waitForElementVisible   '.HomeAppView-selectBoxWrapper.expiration-year', 20000
-      .click                   '.HomeAppView-selectBoxWrapper.expiration-year'
-      .setValue                '.HomeAppView-selectBoxWrapper.expiration-year', defaultCard.year
+      .scrollToElement         paymentModal
+      .waitForElementVisible   yearSelector, 20000
+      .click                   yearSelector
+      .setValue                yearSelector, defaultCard.year
 
-      .waitForElementVisible   '.HomeAppView-input.HomeAppView-input--cc-form.full-name', 20000
-      .setValue                '.HomeAppView-input.HomeAppView-input--cc-form.full-name', name
-      .scrollToElement         '.HomeAppView--billing-form'
+      .waitForElementVisible   fullNameSelector, 20000
+      .setValue                fullNameSelector, name
+      .scrollToElement         paymentModal
 
-      .waitForElementVisible   '.HomeAppView-input.HomeAppView-input--cc-form.email', 20000
-      .setValue                '.HomeAppView-input.HomeAppView-input--cc-form.email', user.email
+      .waitForElementVisible   emailSelector, 20000
+      .setValue                emailSelector, user.email
       .pause 5000
 
 
