@@ -62,22 +62,21 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
           list = userRoles[role.targetId] or= []
           list.push role.as
 
-        for id, roles of userRoles
-          if id is whoami()._id
-            hasOwner = 'owner' in roles
-            hasAdmin = 'admin' in roles
-            role = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
+        for id, roles of userRoles when id is whoami()._id
+          hasOwner = 'owner' in roles
+          hasAdmin = 'admin' in roles
+          role = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
 
-            @wrapper.addSubView header  'Team Settings'
-            @wrapper.addSubView section 'Team Settings', null, role
+          @wrapper.addSubView header  'Team Settings'
+          @wrapper.addSubView section 'Team Settings', null, role
 
-            @wrapper.addSubView header  'Send Invites'
-            @wrapper.addSubView section 'Send Invites', null, role
+          @wrapper.addSubView header  'Send Invites'
+          @wrapper.addSubView section 'Send Invites', null, role
 
-            @wrapper.addSubView header  'Invite Using Slack'
-            @wrapper.addSubView section 'Invite Using Slack'
+          @wrapper.addSubView header  'Invite Using Slack'
+          @wrapper.addSubView section 'Invite Using Slack'
 
-            @wrapper.addSubView header  'Teammates'
-            @wrapper.addSubView section 'Teammates', null, role
+          @wrapper.addSubView header  'Teammates'
+          @wrapper.addSubView section 'Teammates', null, role
 
 
