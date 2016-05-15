@@ -6,11 +6,11 @@ module.exports = class InvoicesList extends React.Component
 
   numberOfSections: -> 1
 
-  numberOfRowsInSection: -> @props.invoices?.size * 3
+  numberOfRowsInSection: -> @props.invoices?.size
 
   renderSectionHeaderAtIndex: -> null
 
-  renderRowAtIndex: (sectionIndex, rowIndex) -> <SingleInvoice invoice={@props.invoices.get 0} />
+  renderRowAtIndex: (sectionIndex, rowIndex) -> <SingleInvoice invoice={@props.invoices.get rowIndex} />
 
   renderEmptySectionAtIndex: -> <div>No invoices found</div>
 
