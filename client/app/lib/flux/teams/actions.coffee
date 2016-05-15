@@ -63,16 +63,19 @@ fetchMembersRole = ->
   { groupsController, reactor } = kd.singletons
 
   team = groupsController.getCurrentGroup()
-  reactor.dispatch actions.FETCH_TEAM_MEMBERS_ROLES_BEGIN, { team }
+  new Promise (resolve, reject) ->
+    reactor.dispatch actions.FETCH_TEAM_MEMBERS_ROLES_BEGIN, { team }
 
-  myId = whoami().getId()
-  teamMemberIds = reactor.evaluate getters.TeamMembersIdStore
+    myId = whoami().getId()
+    teamMemberIds = reactor.evaluate getters.TeamMembersIdStore
 
-  ids = teamMemberIds.toArray()
-  ids.push myId
+    ids = teamMemberIds.toArray()
+    ids.push myId
 
-  team.fetchUserRoles ids, (err, roles) ->
-    reactor.dispatch actions.FETCH_TEAM_MEMBERS_ROLES_SUCCESS, roles
+    team.fetchUserRoles ids, (err, roles) ->
+      reactor.dispatch actions.FETCH_TEAM_MEMBERS_ROLES_SUCCESS, roles
+      resolve { roles }
+      reject { err }
 
 
 loadPendingInvitations = ->

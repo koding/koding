@@ -23,6 +23,7 @@ module.exports = class HomeTeamTeamMatesView extends React.Component
     key = member?.get '_id'
     <Member
       key={key}
+      userRole={@props.role}
       member={member}
       handleInvitation={@props.handleInvitation}
       handleRoleChange={@props.handleRoleChange}/>  if member

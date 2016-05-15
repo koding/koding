@@ -82,10 +82,25 @@ module.exports = class Member extends React.Component
           <NickName nickname={nickname}/>
         </div>
       </div>
-      <div className='dropdown' onClick={@onClickMemberRole.bind(this, role)}>
-        <MemberRole role={role}  />
-        <ButtonWithMenu menuClassName='menu-class' items={@getMenuItems role} isMenuOpen={@state.isMenuOpen} />
-      </div>
+      <MemberRoleWithDropDownMenu
+        userRole={@props.userRole}
+        role={role}
+        onClick={@onClickMemberRole.bind(this, role)}
+        items={@getMenuItems role}
+        isMenuOpen={@state.isMenuOpen} />
+    </div>
+
+
+MemberRoleWithDropDownMenu = ({ userRole, role, onClick, items, isMenuOpen }) ->
+
+  if userRole is 'member'
+    <div className='dropdown'>
+      <MemberRole role={role}  />
+    </div>
+  else
+    <div className='dropdown' onClick={onClick}>
+      <MemberRole role={role}  />
+      <ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />
     </div>
 
 
