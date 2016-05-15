@@ -716,9 +716,12 @@ module.exports = class StackEditorView extends kd.View
     # as default ~ GG
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
-      if @outputView.handleError err
-        @setAsDefaultButton.hideLoader()
-        return
+
+      @setAsDefaultButton.hideLoader()
+
+      return  if @outputView.handleError err
+
+      @setAsDefaultButton.hide()
 
       Tracker.track Tracker.STACKS_MAKE_DEFAULT
 
