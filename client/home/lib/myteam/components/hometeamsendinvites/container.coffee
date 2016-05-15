@@ -168,6 +168,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
   render: ->
 
     <View
+      role={@props.role}
       inputValues={@state.inputValues}
       onUploadCsv={@bound 'onUploadCsv'}
       onInputChange={@bound 'onInputChange'}
