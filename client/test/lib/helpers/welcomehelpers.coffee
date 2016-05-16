@@ -1,7 +1,7 @@
 helpers = require '../helpers/helpers.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
 myTeamLink = "#{helpers.getUrl(yes)}/Home/my-team"
-
+async          = require 'async'
 module.exports =
 
   seeStackView: (browser) ->
@@ -103,3 +103,21 @@ module.exports =
       .waitForElementVisible menuSelector, 2000
       .pause 3000
       .click menuItemSelector
+
+  createStacks: (browser, callback) ->
+
+    queue = [
+      (next) ->
+        teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.createStack browser, (res) ->
+          next null, res
+
+      (next) ->
+        teamsHelpers.createDefaultStackTemplate browser, (res) ->
+          next null, res
+    ]
+
+    async.series queue, (err, result) ->
+      callback result
