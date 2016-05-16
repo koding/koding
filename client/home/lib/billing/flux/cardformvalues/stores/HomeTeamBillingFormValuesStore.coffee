@@ -18,12 +18,8 @@ module.exports = class HomeTeamBillingFormValuesStore extends KodingFluxStore
 
 handleSetValue = (values, { type, value }) ->
 
-  # if it's not edited before
-  # let's reset all the values.
-  unless values.get('isEdited')
-    return defaultValues().set 'isEdited', yes
-
   values.withMutations (values) ->
+    values.set 'isEdited', yes
     values.set type, value
     values.set 'cardType', extractType(values.get 'number')
 
