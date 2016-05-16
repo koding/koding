@@ -756,8 +756,8 @@ module.exports = class JGroup extends Module
 
   fetchUserRoles: permit
     advanced: [
-      { permission: 'grant permissions' }
-      { permission: 'grant permissions', superadmin: yes }
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
     ]
     success:(client, ids, callback) ->
       [callback, ids] = [ids, callback]  unless callback
@@ -801,8 +801,8 @@ module.exports = class JGroup extends Module
 
   fetchMembersWithEmail$: permit
     advanced: [
-      { permission: 'grant permissions' }
-      { permission: 'grant permissions', superadmin: yes }
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
     ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
