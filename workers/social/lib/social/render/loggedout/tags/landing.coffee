@@ -1,5 +1,5 @@
-{ argv }    = require 'optimist'
-{ domains } = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG      = require 'koding-config-manager'
+{ domains } = KONFIG
 origin      = domains.base
 title       = 'Koding | Say goodbye to your localhost and write code in the cloud'
 shareUrl    = "https://#{origin}/"

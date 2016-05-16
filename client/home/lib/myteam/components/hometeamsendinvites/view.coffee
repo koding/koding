@@ -25,10 +25,11 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
       <input type='text' className='kdinput text user-email' placeholder='mail@example.com' value={inviteInput.get 'email'} onChange={@props.onInputChange.bind(this, rowIndex, 'email')} />
       <input type='text' className='kdinput text firstname' placeholder='Optional' value={inviteInput.get 'firstName'} onChange={@props.onInputChange.bind(this, rowIndex, 'firstName')}/>
       <input type='text' className='kdinput text lastname' placeholder='Optional' value={inviteInput.get 'lastName'} onChange={@props.onInputChange.bind(this, rowIndex, 'lastName')}/>
-      <div className='kdcustomcheckbox' >
-        <input type='checkbox' className='kdinput checkbox' checked={checked} onChange={@props.onInputChange.bind(this, rowIndex, 'role')}/>
-        <label onClick={@props.onInputChange.bind(null, rowIndex, 'role', { target: { value: not checked}})}></label>
-      </div>
+      <CheckBox
+        role={@props.role}
+        checked={checked}
+        onChange={@props.onInputChange.bind(this, rowIndex, 'role')}
+        onClick={@props.onInputChange.bind(null, rowIndex, 'role', { target: { value: not checked}})}/>
     </div>
 
 
@@ -38,7 +39,7 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
   render: ->
 
     <div>
-      <InformationLabel />
+      <InformationLabel role={@props.role} />
       <div className='input-wrapper'>
         <List
           numberOfSections={@bound 'numberOfSections'}
@@ -61,7 +62,18 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
     </div>
 
 
-InformationLabel =  ->
+CheckBox = ({ role, checked, onChange, onClick }) ->
+
+  unless role is 'member'
+    <div className='kdcustomcheckbox' >
+      <input type='checkbox' className='kdinput checkbox' checked={checked} onChange={onChange}/>
+      <label onClick={onClick}></label>
+    </div>
+  else
+    <div></div>
+
+
+InformationLabel = ({ role }) ->
 
   lastname = 'Last Name'
   <div className='information'>
@@ -69,10 +81,18 @@ InformationLabel =  ->
       <label>Email</label>
       <label>First Name</label>
       <label>
-        <span className='lastname'>Last Name</span><span>Admin</span>
+        <span className='lastname'>Last Name</span>
+        <AdminLabel role={role} />
       </label>
     </div>
   </div>
+
+
+AdminLabel = ({ role }) ->
+
+  unless role is 'member'
+  then <span>Admin</span>
+  else <span></span>
 
 
 GenericButton = ({ className, title, callback }) ->

@@ -13,7 +13,7 @@ module.exports = (name = '') ->
   helmet.defaults app
   app.use cors()
 
-  KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+  KONFIG = require 'koding-config-manager'
   app.get '/version', (req, res) ->
     res.send "#{KONFIG.version}"
 

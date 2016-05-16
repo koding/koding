@@ -1,7 +1,5 @@
 amqp     = require 'amqp'
-{ argv } = require 'optimist'
-KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
-
+KONFIG   = require 'koding-config-manager'
 Tracker  = require '../../../social/lib/social/models/tracker.coffee'
 
 sendmail = (require 'sendmail') {

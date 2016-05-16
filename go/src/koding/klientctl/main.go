@@ -56,16 +56,17 @@ func main() {
 		logWriter = f
 	}
 
-	// Setting the handler to debug, because various Remote methods allow a
+	// Setting the handler to debug, because various methods allow a
 	// debug option, and this saves us from having to set the handler level every time.
 	// This only sets handler, not the actual loglevel.
-	logging.DefaultHandler.SetLevel(logging.DEBUG)
+	handler := logging.NewWriterHandler(logWriter)
+	handler.SetLevel(logging.DEBUG)
 	// Create our logger.
 	//
 	// TODO: Single commit temporary solution, need to remove the above logger
 	// in favor of this.
 	log = logging.NewLogger("kd")
-	log.SetHandler(logging.NewWriterHandler(logWriter))
+	log.SetHandler(handler)
 	log.Info("kd binary called with: %s", os.Args)
 
 	// Check if the command the user is giving requires sudo.
@@ -142,11 +143,11 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "prefetch-all, a",
-					Usage: "Prefetch all contents of the remote directory up front (DEPRECATED).",
+					Usage: "Prefetch all contents of the remote directory up front.",
 				},
 				cli.IntFlag{
 					Name:  "prefetch-interval",
-					Usage: "Sets how frequently remote folder will sync with local, in seconds. (DEPRECATED).",
+					Usage: "Sets how frequently remote folder will sync with local, in seconds.",
 				},
 				cli.BoolFlag{
 					Name:  "nowatch, w",
@@ -282,6 +283,24 @@ func main() {
 			),
 			BashComplete: ctlcli.FactoryCompletion(
 				AutocompleteCommandFactory, log, "autocompletion",
+			),
+		},
+		cli.Command{
+			Name: "sync",
+			Usage: fmt.Sprintf(
+				"Manually sync a OneWaySync Mount, in either direction.",
+			),
+			Description: cmdDescriptions["sync"],
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name: "debug",
+				},
+			},
+			Action: ctlcli.FactoryAction(
+				SyncCommandFactory, log, "sync",
+			),
+			BashComplete: ctlcli.FactoryCompletion(
+				SyncCommandFactory, log, "sync",
 			),
 		},
 	}

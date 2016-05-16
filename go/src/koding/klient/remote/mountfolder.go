@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
 	"regexp"
 	"strconv"
 
@@ -83,11 +82,11 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 	}
 
 	if params.RemotePath == "" {
-		// TODO: Deprecate in favor of a more robust way to identify the home dir.
-		// This assumes that the username klient is running under has a home
-		// at /home/username. Not true for root, if the user isn't the same user
-		// as klient is running under, and not true if the homedir isn't /home.
-		params.RemotePath = path.Join("/home", remoteMachine.Username)
+		home, err := remoteMachine.Home()
+		if err != nil {
+			return nil, err
+		}
+		params.RemotePath = home
 	}
 
 	if remoteMachine.IsMountingLocked() {

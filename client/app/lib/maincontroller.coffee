@@ -45,6 +45,7 @@ MachineShareManager            = require './machinesharemanager'
 KodingFluxReactor              = require './flux/base/reactor'
 DesktopNotificationsController = require './desktopnotificationscontroller'
 bowser                         = require 'bowser'
+fetchChatlioKey                = require 'app/util/fetchChatlioKey'
 
 
 module.exports = class MainController extends KDController
@@ -341,6 +342,20 @@ module.exports = class MainController extends KDController
     kd.impersonate = require './util/impersonate'
     kd.remote      = remote
     kd.whoami      = whoami
+
+
+  tellChatlioWidget: (method, options, callback = kd.noop) ->
+
+    fetchChatlioKey (id) ->
+
+      return  unless id
+
+      run = do -> -> callback window._chatlio[method] options
+
+      if window._chatlio
+      then run()
+      else document.addEventListener 'chatlio.ready', -> run()
+
 
 
   registerFluxModules: ->

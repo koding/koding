@@ -1,9 +1,8 @@
 nodePath = require 'path'
 Bongo      = require 'bongo'
-{ argv }   = require 'optimist'
 { extend } = require 'underscore'
 
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG = require 'koding-config-manager'
 { projectRoot, webserver, mongoReplSet } = KONFIG
 
 redisClient = require('redis').createClient(

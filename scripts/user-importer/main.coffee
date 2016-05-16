@@ -6,10 +6,8 @@ createUsers = (users)->
   { join: joinPath } = require 'path'
   { v4: createId }   = require 'node-uuid'
 
-  argv      = require('minimist') process.argv
-
-  KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
-  mongo     = "mongodb://#{ KONFIG.mongo }"
+  KONFIG = require 'koding-config-manager'
+  mongo  = "mongodb://#{KONFIG.mongo}"
 
   if process.env.MONGO_URL
     mongo = process.env.MONGO_URL

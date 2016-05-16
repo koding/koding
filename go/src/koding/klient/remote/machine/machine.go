@@ -1,7 +1,9 @@
 package machine
 
 import (
+	"errors"
 	"fmt"
+	"path"
 	"time"
 
 	"github.com/koding/logging"
@@ -457,6 +459,20 @@ func (m *Machine) DoesRemoteDirExist(p string) (bool, error) {
 	}
 
 	return res.ExitStatus == 0, nil
+}
+
+// Home attempts to return the home directory of the remote machine.
+func (m *Machine) Home() (string, error) {
+	u := m.Username
+	if u == "" {
+		return "", errors.New("Unable to find home directory")
+	}
+
+	// TODO: Deprecate in favor of a more robust way to identify the home dir.
+	// This assumes that the username klient is running under has a home
+	// at /home/username. Not true for root, if the user isn't the same user
+	// as klient is running under, and not true if the homedir isn't /home.
+	return path.Join("/home", u), nil
 }
 
 func (ms MachineStatus) String() string {

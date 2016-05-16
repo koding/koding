@@ -1,9 +1,8 @@
-{ argv }         = require 'optimist'
 process.title    = 'koding-authworker'
 koding           = require './bongo'
 koding.connect()
 
-KONFIG         = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG         = require 'koding-config-manager'
 
 AuthWorker     = require './authworker'
 

@@ -1,8 +1,7 @@
 # JTeamInvitation is a temporary invitation token collection will be used for
 # inviting companies to use/try teams product, this file should be removed after
 # releasing teams product.
-{ argv }    = require 'optimist'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG      = require 'koding-config-manager'
 jraphical   = require 'jraphical'
 shortid     = require 'shortid'
 Bongo       = require 'bongo'

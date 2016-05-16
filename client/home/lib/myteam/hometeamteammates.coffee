@@ -6,5 +6,12 @@ TeamMates = require './components/hometeamteammates'
 
 module.exports = class HomeTeamTeammates extends ReactView
 
+  constructor: (options = {}, data) ->
+
+    super options, data
+
+    @state =
+      role : data
+
   renderReact: ->
-    <TeamMates.Container />
+    <TeamMates.Container role={@state.role} />

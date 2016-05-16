@@ -211,17 +211,6 @@ module.exports = class GroupsController extends kd.Controller
         if stackTemplate._updated
           id = currentGroup.socialApiDefaultChannelId
 
-          ActivityFlux = require 'activity/flux'
-
-          # TMS-1919: This needs to be rethink and maybe we should allow
-          # admins to post a specific message instead of a static one ~ GG
-
-          ActivityFlux.actions.message.createMessage id, "
-            I've just updated the Team stack template, please take a backup of
-            your existing data and re-initialize your stack to use the latest
-            version.
-          "
-
         # Warn other group members about stack template update
         currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
 

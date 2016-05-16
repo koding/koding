@@ -1,8 +1,7 @@
 { Base, signature, JsPath:{ getAt, setAt } } = require 'bongo'
 
-{ argv }  = require 'optimist'
 GithubAPI = require 'github'
-KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG    = require 'koding-config-manager'
 
 
 module.exports = class Github extends Base

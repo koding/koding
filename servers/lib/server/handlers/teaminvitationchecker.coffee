@@ -1,7 +1,6 @@
 Bongo      = require 'bongo'
 koding     = require './../bongo'
-{ argv }   = require 'optimist'
-KONFIG     = require('koding-config-manager').load "main.#{argv.c}"
+KONFIG     = require 'koding-config-manager'
 teamDomain = ".#{KONFIG.domains.main}"
 
 module.exports = (req, res, next) ->

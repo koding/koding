@@ -28,6 +28,9 @@ type Command interface {
 // AutocompleteCommand is an interface for a Command that wants to provide
 // Autocomplete functionality.
 type AutocompleteCommand interface {
+	// Autocomplete prints to Stdout what is to be autocompleted, one item per line.
+	// Handling of the autocompletion is done by the shell (bash/fish/etc), this
+	// method simply prints to Stdout.
 	Autocomplete(args ...string) error
 }
 

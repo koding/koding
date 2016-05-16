@@ -1,8 +1,7 @@
 # This code block is copied from client side (activitylistitem).
 # As a future work it could be implemented as a node module.
 
-{ argv } = require 'optimist'
-{ uri }  = require('koding-config-manager').load("main.#{argv.c}")
+{ uri } = require 'koding-config-manager'
 
 # We're using an older version of highlight.js that has the method
 # `getLanguage`. I wasn't able to find out which version, therefore

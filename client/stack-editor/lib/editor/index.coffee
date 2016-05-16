@@ -228,7 +228,11 @@ module.exports = class StackEditorView extends kd.View
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
 
-    kd.singletons.reactor.observe valueGetter, (value) => @inputTitle.setValue value
+    kd.singletons.reactor.observe valueGetter, (value) =>
+
+      return  if value is @inputTitle.getValue()
+
+      @inputTitle.setValue value
 
     @inputTitle.on 'viewAppended', =>
       @inputTitle.prepareClone()
@@ -716,9 +720,12 @@ module.exports = class StackEditorView extends kd.View
     # as default ~ GG
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
-      if @outputView.handleError err
-        @setAsDefaultButton.hideLoader()
-        return
+
+      @setAsDefaultButton.hideLoader()
+
+      return  if @outputView.handleError err
+
+      @setAsDefaultButton.hide()
 
       Tracker.track Tracker.STACKS_MAKE_DEFAULT
 

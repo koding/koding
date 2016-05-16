@@ -219,10 +219,7 @@ type RuntimeOptions struct {
 		Timeout int `json:"timeout"`
 	} `json:"collaboration"`
 	PaymentBlockDuration float64 `json:"paymentBlockDuration"`
-	Tokbox               struct {
-		ApiKey string `json:"apiKey"`
-	} `json:"tokbox"`
-	DisabledFeatures struct {
+	DisabledFeatures     struct {
 		Moderation bool `json:"moderation"`
 		Teams      bool `json:"teams"`
 		BotChannel bool `json:"botchannel"`

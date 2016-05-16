@@ -2,8 +2,7 @@ _                                       = require 'underscore'
 async                                   = require 'async'
 Bongo                                   = require 'bongo'
 koding                                  = require './../bongo'
-{ argv }                                = require 'optimist'
-KONFIG                                  = require('koding-config-manager').load "main.#{argv.c}"
+KONFIG                                  = require 'koding-config-manager'
 
 { uniq }                                = require 'underscore'
 { hostname, environment }               = KONFIG

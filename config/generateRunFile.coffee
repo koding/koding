@@ -7,6 +7,8 @@ path                  = require 'path'
 
 generateDev = (KONFIG, options, credentials) ->
 
+  options.requirementCommands ?= []
+
   killlist = ->
     str = 'kill -KILL '
     for key, worker of KONFIG.workers
@@ -117,6 +119,8 @@ generateDev = (KONFIG, options, credentials) ->
     NGINX_PID="$KONFIG_PROJECTROOT/.dev.nginx.pid"
 
     trap ctrl_c INT
+
+    #{options.requirementCommands?.join "\n"}
 
     function ctrl_c () {
       echo "ctrl_c detected. killing all processes..."
@@ -266,6 +270,7 @@ generateDev = (KONFIG, options, credentials) ->
       echo "Usage: "
       echo ""
       echo "  run                       : to start koding"
+      echo "  run exec                  : to exec arbitrary commands"
       echo "  run backend               : to start only backend of koding"
       echo "  run killall               : to kill every process started by run script"
       echo "  run install               : to compile/install client and "
@@ -642,6 +647,10 @@ generateDev = (KONFIG, options, credentials) ->
         migrate $2 $3
       fi
 
+    elif [ "$1" == "exec" ]; then
+      shift
+      exec "$@"
+
     elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
 
       checkrunfile
@@ -691,12 +700,12 @@ generateSandbox =   generateRunFile = (KONFIG) ->
     export HOME=/home/ec2-user
     export KONFIG_JSON='#{KONFIG.JSON}'
 
-    function runuserimporter () {
-      node scripts/user-importer -c dev
-    }
+    COMMAND=$1
+    shift
 
-    if [ "$1" == "runuserimporter" ]; then
-      runuserimporter
-    fi
+    case "$COMMAND" in
+      exec) exec "$@";;
+    esac
+
     """
 module.exports = { dev: generateDev, default: generateDev, sandbox: generateSandbox, prod: generateSandbox }

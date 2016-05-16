@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"koding/klient/command"
+	"koding/klient/fs"
 	"koding/klient/remote/req"
 	"koding/klientctl/config"
 	"koding/klientctl/list"
@@ -243,4 +244,44 @@ func (k *Klient) RemoteExec(machineName, c string) (command.Output, error) {
 	}
 
 	return res, kRes.Unmarshal(&res)
+}
+
+func (k *Klient) RemoteReadDirectory(mountName, remotePath string) ([]fs.FileEntry, error) {
+	r := req.ReadDirectoryOptions{
+		Machine: mountName,
+		ReadDirectoryOptions: fs.ReadDirectoryOptions{
+			Path: remotePath,
+		},
+	}
+
+	res, err := k.Tell("remote.readDirectory", r)
+	if err != nil {
+		return nil, err
+	}
+
+	resMap, err := res.Map()
+	if err != nil {
+		return nil, err
+	}
+
+	partial, ok := resMap["files"]
+	if !ok {
+		return nil, nil
+	}
+
+	filePartials, err := partial.Slice()
+	if err != nil {
+		return nil, err
+	}
+
+	files := make([]fs.FileEntry, len(filePartials))
+	for i, p := range filePartials {
+		var fe fs.FileEntry
+		if err := p.Unmarshal(&fe); err != nil {
+			return nil, err
+		}
+		files[i] = fe
+	}
+
+	return files, nil
 }

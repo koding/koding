@@ -13,8 +13,8 @@ module.exports = class KDCliView extends React.Component
           IDE with your VMs. Copy and paste the command below into your terminal.
       </p>
       <CodeBlock cmd={@props.cmd}/>
-      <p>Once installed, you can use <code className="HomeAppView--code">kd list</code> to list your Koding VMs and
-        <code className="HomeAppView--code">kd mount</code> to mount your VM to a local folder in your computer.
+      <p>Once installed, you can use <code className="HomeAppView--code">kd list</code> to list your Koding VMs
+        and <code className="HomeAppView--code">kd mount</code> to mount your VM to a local folder in your computer.
         For detailed instructions:
       </p>
       <p className='view-guide'>

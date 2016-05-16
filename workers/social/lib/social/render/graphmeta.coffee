@@ -1,6 +1,6 @@
-{ argv } = require 'optimist'
-{ uri, domains, client:{ version } } = require('koding-config-manager').load("main.#{argv.c}")
-encoder      = require 'htmlencode'
+encoder = require 'htmlencode'
+
+{ uri, domains, client: { version } } = require 'koding-config-manager'
 
 module.exports = (options = {}) ->
   options.title ?= 'Koding | Say goodbye to your localhost and write code in the cloud.'

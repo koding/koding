@@ -1,6 +1,5 @@
 { Module } = require 'jraphical'
-{ argv }   = require 'optimist'
-KONFIG     = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG     = require 'koding-config-manager'
 
 module.exports = class JDomainAlias extends Module
 

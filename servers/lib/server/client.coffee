@@ -1,5 +1,5 @@
 { argv }         = require 'optimist'
-KONFIG           = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG           = require 'koding-config-manager'
 bongo            = require './bongo'
 { v4: createId } = require 'node-uuid'
 

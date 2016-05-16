@@ -1,7 +1,6 @@
 koding      = require './../bongo'
 request     = require 'request'
-{ argv }    = require 'optimist'
-KONFIG      = require('koding-config-manager').load "main.#{argv.c}"
+KONFIG      = require 'koding-config-manager'
 Tracker     = require '../../../../workers/social/lib/social/models/tracker.coffee'
 
 module.exports = (req, res, next) ->

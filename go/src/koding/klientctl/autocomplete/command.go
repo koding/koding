@@ -58,7 +58,7 @@ func (i Init) CheckValid() error {
 	return nil
 }
 
-// Command implements the klientctl.Command interface for `kd install-autocomplete`
+// Command implements the klientctl.Command interface for `kd autocompletion`
 type Command struct {
 	Options Options
 	Stdout  *util.Fprint
