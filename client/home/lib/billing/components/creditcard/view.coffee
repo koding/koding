@@ -1,3 +1,4 @@
+kd = require 'kd'
 React = require 'kd-react'
 MaskedInput = require 'react-input-mask'
 SelectBox = require 'app/components/selectbox'
@@ -40,12 +41,17 @@ CardNumber = ({ onChange, value, cardType }) ->
     when 'American Express' then '9999 999999 99999'
     else '9999 9999 9999 9999'
 
-  <MaskedInput
-    mask={mask}
-    className={inputClass 'card-number'}
-    onChange={pickValue(onChange ? noop)}
-    value={value}
-    placeholder='0000 0000 0000 0000' />
+  type = kd.utils.slugify cardType
+
+  <div className="CardNumber-wrapper #{type}">
+    <MaskedInput
+      mask={mask}
+      className={inputClass 'card-number'}
+      formatChars={{"9": "(\\*|0|1|2|3|4|5|6|7|8|9)"}}
+      onChange={pickValue(onChange ? noop)}
+      value={value}
+      placeholder='0000 0000 0000 0000' />
+  </div>
 
 
 Expiration = ({ type, onChange, value }) ->
@@ -92,6 +98,7 @@ CVC = ({ onChange, value, cardType }) ->
     mask={_props.mask}
     className={inputClass 'cvc'}
     onChange={pickValue(onChange ? noop)}
+    formatChars={{"9": "(\\*|0|1|2|3|4|5|6|7|8|9)"}}
     value={value}
     placeholder={_props.placeholder} />
 

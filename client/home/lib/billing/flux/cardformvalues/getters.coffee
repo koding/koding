@@ -18,15 +18,14 @@ values = [
 
     formValues.withMutations (formValues) ->
       formValues
-        .set 'number', formatCardNumber card.get 'last4'
-        .set 'expirationMonth', card.get 'month'
-        .set 'expirationYear', card.get 'year'
+        .set 'number', formatCardNumber card.get('last4'), card.get('brand')
+        .set 'expirationMonth', String card.get 'month'
+        .set 'expirationYear', String card.get 'year'
         .set 'fullName', card.get 'name'
         .set 'email', card.get 'email'
+        .set 'cvc', formatCvc card.get('brand')
+        .set 'cardType', card.get('brand')
 ]
-
-
-
 
 isEmpty = (formValues) ->
   formValues.reduce (acc, value) ->
@@ -36,8 +35,21 @@ isEmpty = (formValues) ->
 isEdited = (formValues) -> formValues.get 'isEdited'
 
 
-formatCardNumber = (last4) ->
-  if last4 then "************#{last4}" else ''
+formatCardNumber = (last4, brand) ->
+
+  return ''  unless last4
+
+  switch brand
+    when 'American Express' then "***********#{last4}"
+    else "************#{last4}"
+
+
+formatCvc = (brand) ->
+
+  switch brand
+    when 'American Express' then '****'
+    else '***'
+
 
 module.exports = {
   values
