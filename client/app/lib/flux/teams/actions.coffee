@@ -245,8 +245,11 @@ handleDisabledUser = (member) ->
   team = groupsController.getCurrentGroup()
 
   memberId = member.get '_id'
+  options =
+    id: memberId
+    disable: yes
 
-  team.unblockMember memberId, (err) ->
+  team.unblockMember options, (err) ->
     unless err
       fetchMembers().then ->
         fetchMembersRole()
@@ -261,7 +264,11 @@ handlePermanentlyDeleteMember = (member) ->
   team = groupsController.getCurrentGroup()
 
   memberId = member.get '_id'
-  team.removeBlockedAccount memberId, (err) ->
+  options =
+    id: memberId
+    disable: no
+
+  team.unblockMember options, (err) ->
     reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
 
