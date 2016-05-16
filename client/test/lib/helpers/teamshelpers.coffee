@@ -437,9 +437,30 @@ module.exports =
 
     stackEditorUrl = "#{helpers.getUrl(yes)}/Home/stacks"
 
-    @createCredential browser, 'aws', 'draft-stack', yes, (res) ->
-      browser.url stackEditorUrl, ->
-        done()
+    @createCredential browser, 'aws', 'draft-stack', yes, (res) =>
+      @createPrivateStack browser, 'PrivateStack', (res) ->
+        browser.url stackEditorUrl, ->
+          done res.value
+
+
+  createPrivateStack: (browser, stackName, done) ->
+
+    stackEditorHeader = '.StackEditorView--header'
+    useThisAndContinueButton = '.StackEditor-CredentialItem--buttons .kdbutton.solid.compact.outline.verify'
+    editorPaneSelector = '.kdview.pane.editor-pane.editor-view'
+    stackTemplateNameArea = "#{stackEditorHeader} .kdinput.text.template-title.autogrow"
+    saveButtonSelector = '.StackEditorView--header .kdbutton.GenericButton.save-test'
+
+    browser
+      .pause 2000
+      .click useThisAndContinueButton
+      .waitForElementVisible editorPaneSelector, 20000
+      .waitForElementVisible stackTemplateNameArea, 2000
+      .setValue stackTemplateNameArea, ''
+      .pause 1000
+      .setValue stackTemplateNameArea, stackName
+      .click saveButtonSelector, =>
+        @waitUntilToCreatePrivateStack browser, done
 
 
   defineCustomVariables: (browser) ->
