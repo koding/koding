@@ -72,7 +72,11 @@ module.exports = class BlockedMemberItemView extends kd.ListItemView
         customErr = new Error 'Something went wrong, please try again!'
         return @handleError @unblockButton, customErr
 
-      currentGroup.unblockMember id, (err) =>
+      options =
+        id: id
+        disable: yes
+
+      currentGroup.unblockMember options, (err) =>
 
         if err
           customErr = new Error 'Failed to unblock user. Please try again.'
