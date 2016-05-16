@@ -66,8 +66,12 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tSTATUS\tMOUNTED PATHS\n")
 	for i, info := range infos {
-		// Do not show machines that have been offline for more than 24h
-		if !showAll && time.Since(info.OnlineAt) > 24*time.Hour {
+		onlineRecently := time.Since(info.OnlineAt) <= 24*time.Hour
+		hasMounts := len(info.Mounts) > 0
+		// Do not show machines that have been offline for more than 24h,
+		// but only if the machine doesn't have any mounts and we aren't using the --all
+		// flag.
+		if !hasMounts && !showAll && !onlineRecently {
 			continue
 		}
 
