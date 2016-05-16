@@ -11,6 +11,11 @@ module.exports = class CredentialForm extends JView
 
     super options, data
 
+    @createViews()
+
+
+  createViews: ->
+
     { title, selectionPlaceholder, selectionLabel } = @getOptions()
     { provider, fields, selectedItem, items } = @getData()
 
@@ -63,16 +68,28 @@ module.exports = class CredentialForm extends JView
     if @hasClass 'form-visible'
       @form.submit()
     else if selectedItem = @selection.getValue()
-      @emit 'FormValidationPassed', { selectedItem }
+      { provider } = @getData()
+      @emit 'FormValidationPassed', { provider, selectedItem }
     else
       @selection.setClass 'validation-error'
       @emit 'FormValidationFailed'
 
 
-  onFormValidated: (title, data) ->
+  onFormValidated: (title, fields) ->
 
     { provider } = @getData()
-    @emit 'FormValidationPassed', { newData : { provider, title, meta : data } }
+    @emit 'FormValidationPassed', { provider, newData : { title, fields } }
+
+
+  render: ->
+
+    @unsetClass 'form-visible'
+    @unsetClass 'selection-visible'
+    @destroySubViews()
+    @clear()
+
+    @createViews()
+    @viewAppended()
 
 
   pistachio: ->

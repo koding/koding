@@ -70,6 +70,22 @@ module.exports = class CredentialsPageView extends JView
       @emit 'Submitted', validationResults
 
 
+  selectNewCredential: (data) ->
+
+    { credentials } = @getData()
+    credentials.items.push data
+    credentials.selectedItem = data.identifier
+    @credentialForm.setData credentials
+
+
+  selectNewRequirements: (data) ->
+
+    { requirements } = @getData()
+    requirements.items.push data
+    requirements.selectedItem = data.identifier
+    @requirementsForm.setData requirements
+
+
   pistachio: ->
 
     { title, description } = helpers.getTitleAndDescription @getData()

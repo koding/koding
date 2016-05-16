@@ -11,6 +11,13 @@ commonHelpers = require '../helpers'
 
 module.exports = class CredentialsController extends kd.Controller
 
+  DEFAULT_VERIFICATION_ERROR_MESSAGE = '''
+    We couldn't verify this credential, please check the ones you
+    used or add a new credential to be able to continue to the
+    next step.
+  '''
+  VERIFICATION_TIMEOUT = 10000
+
   constructor: (options, data) ->
 
     super options, data
@@ -43,18 +50,78 @@ module.exports = class CredentialsController extends kd.Controller
         commonHelpers.changePage @errorPage, @credentialsPage
 
 
-  onSubmitted: (formData) ->
+  onSubmitted: (submissionData) ->
 
-    { credential, requirements } = formData
+    { credential, requirements } = submissionData
 
-    queue = [ helpers.createSubmittionCallback credential ]
-    queue.push helpers.createSubmittionCallback requirements  if requirements
+    queue = [
+      (next) => @handleSubmittedCredential credential, next
+    ]
 
-    async.series queue, (err, identifiers) =>
-      if err
-        return showError err
+    if requirements
+      queue.push (next) => @handleSubmittedRequirements requirements, next
 
-      alert identifiers
+    async.parallel queue, (err, results) =>
+      errs = (item.err for item in results when item.err)
+      if errs.length > 0
+        commonHelpers.changePage @credentialsPage, @errorPage
+        @errorPage.setErrors errs
+        @credentialsPage.buildButton.hideLoader()
+      else
+        identifiers = (item.identifier for item in results)
+
+
+  handleSubmittedCredential: (submissionData, callback) ->
+
+    { provider, selectedItem, newData } = submissionData
+
+    queue = [
+      (next) =>
+        return next null, selectedItem  if selectedItem
+
+        helpers.createNewCredential provider, newData, (err, newCredential) =>
+          return next err  if err
+
+          @credentialsPage.selectNewCredential newCredential
+          next null, newCredential.identifier
+
+      (identifier, next) ->
+
+        { computeController } = kd.singletons
+        computeController.getKloud()
+          .checkCredential { provider, identifiers : [identifier] }
+          .then (response) ->
+            next null, { identifier, status : response?[identifier] }
+          .catch (err) -> next err
+          .timeout VERIFICATION_TIMEOUT
+    ]
+
+    async.waterfall queue, (err, result) =>
+      return callback null, { err : err.message }  if err
+      return callback null, { err : DEFAULT_VERIFICATION_ERROR_MESSAGE }  unless result.status
+
+      { identifier, status } = result
+      { verified, message }  = status
+      message = message.split('\n')[..-2].join ''  if message
+      if verified
+        callback null, { identifier }
+      else
+        callback null, {
+          err : message or DEFAULT_VERIFICATION_ERROR_MESSAGE
+        }
+
+
+  handleSubmittedRequirements: (submissionData, callback) ->
+
+    { provider, selectedItem, newData } = submissionData
+
+    return callback null, { identifier : selectedItem }  if selectedItem
+
+    helpers.createNewCredential provider, newData, (err, newCredential) =>
+      return callback null, { err : err.message }  if err
+
+      @credentialsPage.selectNewRequirements newCredential
+      callback null, { identifier : newCredential.identifier }
 
 
   show: ->
@@ -117,15 +184,8 @@ module.exports = class CredentialsController extends kd.Controller
         callback null, cmd
 
 
-    createSubmittionCallback: (formData) ->
+    createNewCredential: (provider, newData, callback) ->
 
-      (next) ->
-
-        return next()  unless formData
-
-        { selectedItem, newData } = formData
-        return next null, selectedItem  if selectedItem
-
-        remote.api.JCredential.create newData, (err, credential) ->
-          return next err  if err
-          return next null, credential.identifier
+      { title, fields } = newData
+      credentialData    = { provider, title, meta : fields }
+      remote.api.JCredential.create credentialData, callback
