@@ -463,6 +463,21 @@ module.exports =
         @waitUntilToCreatePrivateStack browser, done
 
 
+  waitUntilToCreatePrivateStack: (browser, done) ->
+
+    stackEditorHeader = '.StackEditorView--header'
+    makeTeamDefaultButton = "#{stackEditorHeader} .kdbutton.GenericButton.set-default.w-loader"
+
+    browser
+      .pause 3000
+      .element 'css selector', makeTeamDefaultButton, (result) =>
+        if result.status is 0
+           browser.url (res) ->
+            done res
+
+        else @waitUntilToCreatePrivateStack browser, done
+
+
   defineCustomVariables: (browser) ->
 
     wrongCustomVariable    = "foo: '"
