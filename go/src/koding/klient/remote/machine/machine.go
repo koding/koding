@@ -56,6 +56,9 @@ const (
 
 	// The command fed to the remote Klient to check whether a remote dir exists.
 	remoteDirExistsBashCmd = `bash -c "[ -d %s ]"`
+
+	// The command fed to the remote Klient to check whether a remote path exists.
+	remotePathExistsBashCmd = `bash -c "[ -e %s ]"`
 )
 
 var (
@@ -439,7 +442,7 @@ func (m *Machine) UnlockMounting() {
 	m.mountLocker.Unlock()
 }
 
-// DoesRemotePathExist checks if the given remote path exists for this
+// DoesRemotePathExist checks if the given remote dir exists for this
 // machine.
 func (m *Machine) DoesRemoteDirExist(p string) (bool, error) {
 	params := struct {
@@ -473,6 +476,28 @@ func (m *Machine) Home() (string, error) {
 	// at /home/username. Not true for root, if the user isn't the same user
 	// as klient is running under, and not true if the homedir isn't /home.
 	return path.Join("/home", u), nil
+}
+
+// DoesRemotePathExist checks if the given remote path exists for this
+// machine.
+func (m *Machine) DoesRemotePathExist(p string) (bool, error) {
+	params := struct {
+		Command string
+	}{
+		Command: fmt.Sprintf(remotePathExistsBashCmd, p),
+	}
+
+	kRes, err := m.TellWithTimeout("exec", 4*time.Second, params)
+	if err != nil {
+		return false, err
+	}
+
+	var res command.Output
+	if err := kRes.Unmarshal(&res); err != nil {
+		return false, err
+	}
+
+	return res.ExitStatus == 0, nil
 }
 
 func (ms MachineStatus) String() string {

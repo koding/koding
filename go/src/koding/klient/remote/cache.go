@@ -3,6 +3,8 @@ package remote
 import (
 	"errors"
 	"fmt"
+	"path"
+	"path/filepath"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
@@ -67,15 +69,6 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	exists, err := remoteMachine.DoesRemoteDirExist(params.RemotePath)
-	if err != nil {
-		return nil, err
-	}
-
-	if !exists {
-		return nil, mount.ErrRemotePathDoesNotExist
-	}
-
 	if params.RemotePath == "" {
 		home, err := remoteMachine.Home()
 		if err != nil {
@@ -84,9 +77,32 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		params.RemotePath = home
 	}
 
-	remoteSize, err := getSizeOfRemoteFolder(remoteMachine, params.RemotePath)
-	if err != nil {
-		return nil, err
+	if !filepath.IsAbs(params.RemotePath) {
+		params.RemotePath = path.Join("/home", remoteMachine.Username, params.RemotePath)
+	}
+
+	if !params.LocalToRemote {
+		exists, err := remoteMachine.DoesRemotePathExist(params.RemotePath)
+		if err != nil {
+			return nil, err
+		}
+
+		if !exists {
+			return nil, mount.ErrRemotePathDoesNotExist
+		}
+	}
+
+	var remoteSize int
+	if params.LocalToRemote {
+		remoteSize, err = getSizeOfLocalPath(params.LocalPath)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		remoteSize, err = getSizeOfRemoteFolder(remoteMachine, params.RemotePath)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// If there is an actively running intervaler, run the requested cache
@@ -114,6 +130,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 			DirSize:           remoteSize,
 			LocalToRemote:     params.LocalToRemote,
 			IgnoreFile:        params.IgnoreFile,
+			IncludePath:       params.IncludePath,
 		},
 		Interval: params.Interval,
 	}
