@@ -15,12 +15,13 @@ module.exports =
     targetUser1 = utils.getUser no, 1
     targetUser1.role = 'member'
 
-    users =
+    users = [
       targetUser1
+    ]
 
     queue = [
       (next) ->
-        teamsHelpers.inviteAndJoinWithUsers browser, [ users ], (result) ->
+        teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
           next null, result
       (next) ->
         teamsHelpers.createCredential browser, 'aws', 'aws1', yes, (res) ->

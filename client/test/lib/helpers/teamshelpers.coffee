@@ -260,7 +260,7 @@ module.exports =
       .url "#{url}/Home/stacks"
       .waitForElementVisible stacksPageSelector, 20000
       .click newStackButton
-      .pause 2000
+      .pause 1000
       .waitForElementVisible stackOnboardingPage, 20000
       .waitForElementVisible createStackButton, 20000
       .click createStackButton
@@ -268,7 +268,7 @@ module.exports =
       .click providerSelector
       .waitForElementVisible skipGuideButton, 20000
       .click skipGuideButton
-      .pause 5000
+      .pause 1000
       .waitForElementVisible stackEditorTab, 20000
       .click credentialsTabSelector
     browser.element 'css selector', checkForCredentials, (result) =>
@@ -279,7 +279,7 @@ module.exports =
           browser
             .waitForElementVisible createNewButton, 20000
             .click createNewButton
-            .pause 2000, =>
+            .pause 1000, =>
               @fillCredentialsPage browser, credentialName, done
         else
           done()
@@ -298,20 +298,20 @@ module.exports =
       .waitForElementVisible newCredentialPage, 20000
       .scrollToElement saveButton
       .setValue "#{newCredentialPage} .title input", name
-      .pause 1000
+      .pause 200
       .setValue "#{newCredentialPage} .access-key input", accessKeyId
-      .pause 1000
+      .pause 200
       .setValue "#{newCredentialPage} .secret-key input", secretAccessKey
-      .pause 1000
+      .pause 200
       .click regionSelector
-      .pause 1000
+      .pause 200
       .waitForElementVisible eu_west_1, 20000
       .click eu_west_1
-      .pause 1000
+      .pause 200
       .click "#{newCredentialPage} .title input"
-      .pause 1000
+      .pause 200
       .click saveButton
-      .pause 2000, -> done()
+      .pause 1000, -> done()
 
 
   buildStack: (browser, done) ->
@@ -422,14 +422,14 @@ module.exports =
           done()
         else
           browser
-            .pause 2000
+            .pause 1000
             .click useThisAndContinueButton
             .waitForElementVisible editorPaneSelector, 20000
             .click saveButtonSelector
-            .pause 10000
+            .pause 10000 # here wait around 50 secs to create stack
             .waitForElementVisible successModal, 40000
             .click closeButton
-            .pause 5000, ->
+            .pause 2000, ->
               done()
 
 
