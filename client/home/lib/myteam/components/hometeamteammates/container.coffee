@@ -52,7 +52,7 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
 
 
   render: ->
-    console.log 'members -> ', @state.members
+
     <View
       role={@props.role}
       members={@state.members}
