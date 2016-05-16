@@ -43,14 +43,22 @@ CardNumber = ({ onChange, value, cardType }) ->
 
   type = kd.utils.slugify cardType
 
+  placeholder = ''
+
+  # means that the value is coming from the group card.
+  # so we will use this as a placeholder
+  if /^\*/.test(value)
+    placeholder = value
+    value = ''
+
   <div className="CardNumber-wrapper #{type}">
     <MaskedInput
       mask={mask}
       className={inputClass 'card-number'}
-      formatChars={{"9": "(\\*|0|1|2|3|4|5|6|7|8|9)"}}
       onChange={pickValue(onChange ? noop)}
       value={value}
-      placeholder='0000 0000 0000 0000' />
+      alwaysShowMask={yes}
+      placeholder={placeholder} />
   </div>
 
 
@@ -90,17 +98,17 @@ Expiration = ({ type, onChange, value }) ->
 
 CVC = ({ onChange, value, cardType }) ->
 
-  _props = switch cardType
-    when 'American Express' then {mask: '9999', placeholder: '0000'}
-    else {mask: '999', placeholder: '000'}
+  mask = switch cardType
+    when 'American Express' then '9999'
+    else '999'
 
   <MaskedInput
-    mask={_props.mask}
+    mask={mask}
     className={inputClass 'cvc'}
     onChange={pickValue(onChange ? noop)}
     formatChars={{"9": "(\\*|0|1|2|3|4|5|6|7|8|9)"}}
     value={value}
-    placeholder={_props.placeholder} />
+    alwaysShowMask={yes} />
 
 
 pickValue = (onChange) -> (event) -> onChange event.target.value
