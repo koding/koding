@@ -5,6 +5,7 @@ stackEditorUrl = "#{helpers.getUrl(yes)}/Home/stacks"
 async = require 'async'
 stackSelector = null
 
+
 module.exports =
 
   before: (browser, done) ->
@@ -16,13 +17,12 @@ module.exports =
     targetUser1 = utils.getUser no, 1
     targetUser1.role = 'member'
 
-    users = [
+    users =
       targetUser1
-    ]
 
     queue = [
       (next) ->
-        teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
+        teamsHelpers.inviteAndJoinWithUsers browser, [ users ], (result) ->
           next null, result
       (next) ->
         teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
@@ -76,79 +76,22 @@ module.exports =
     #   .waitForElementVisible stackTemplate, 20000
 
 
-    draftStacksSelector  = '.HomeAppView--section.drafts'
-    menuSelector         = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
-    defaultStackSelector = '.SidebarTeamSection .SidebarStackSection.active h4'
-    draftStackHeader     = '.SidebarTeamSection .SidebarSection.draft'
-    editSelector         = "#{menuSelector}:nth-of-type(1)"
-    reinitSelector       = "#{menuSelector}:nth-of-type(2)"
-    vmSelector           = "#{menuSelector}:nth-of-type(3)"
-    sideBarSelector      = '#main-sidebar'
-    headerTitleSelector  = '.SidebarSection-headerTitle'
-    notificationSelector = '.kdnotification'
-    plusIconSelector     = '.SidebarSection-secondaryLink'
-    createStackEditor    = '.StackEditor-OnboardingModal'
-    stackEditorView      = '.StackEditorView'
-    reinitializeButton   = '.kdbutton.solid.red.medium'
-    vmViewSelector       = '.kdview .kdtabpaneview .virtual-machines'
+    draftStacksSelector = '.HomeAppView--section.drafts'
+    stackTemplate = "#{draftStacksSelector} .HomeAppViewListItem.StackTemplateItem"
+    savedDefaultTemplate = ".SidebarSection.SidebarStackSection.draft a[href='#{stackSelector}']"
+    removeFromSideBarButton = "#{stackTemplate} .HomeAppViewListItem-SecondaryContainer .HomeAppView--button.primary"
 
     browser
       .pause 2000
       .waitForElementVisible draftStacksSelector, 20000
       .waitForElementVisible stackTemplate, 20000
-
-    #Test Stacks Title Click Events
-      .click sideBarSelector
-      .click headerTitleSelector
-      .waitForElementVisible '.HomeAppView', 20000
-      .pause 1000
-      .click sideBarSelector
-      .waitForElementVisible headerTitleSelector, 20000
-      .moveToElement headerTitleSelector, 0, 0
-      .waitForElementVisible plusIconSelector, 20000
-      .click plusIconSelector
-      .waitForElementVisible createStackEditor, 20000
-      .pause 1000
-
-    #Test Default Stack Settings Edit/Reinitialize/Vms
-      .click sideBarSelector
-      .waitForElementVisible defaultStackSelector, 20000
-      .click defaultStackSelector
-      .waitForElementVisible menuSelector, 20000
-      .pause 1000
-      .click editSelector
-      .waitForElementVisible stackEditorView, 20000
-      .pause 1000
-
-      .click defaultStackSelector
-      .waitForElementVisible menuSelector, 20000
-      .pause 1000
-      .click reinitSelector
-      .waitForElementVisible '[testpath=reinitStack]', 20000
-      .pause 3000
-      .click reinitializeButton
-      .waitForElementVisible notificationSelector, 20000
-      .assert.containsText   notificationSelector, 'Reinitializing stack...'
-      .pause 3000
-      .click defaultStackSelector
-      .waitForElementVisible menuSelector, 20000
-      .pause 1000
-      .click vmSelector
-      .waitForElementVisible vmViewSelector, 20000
+      .waitForElementVisible savedDefaultTemplate, 20000
+      .url stackEditorUrl
+      .waitForElementVisible draftStacksSelector, 20000
+      .waitForElementVisible stackTemplate, 20000
+      .click removeFromSideBarButton
       .pause 2000
-
-    #Test Draft Stack Settings Edit/Initialize
-      .click sideBarSelector
-      .click draftStackHeader
-      .waitForElementVisible menuSelector, 20000
-      .pause 2000
-      .click editSelector
-      .waitForElementVisible stackEditorView, 20000
-      .pause 2000
-      .click sideBarSelector
-      .click draftStackHeader
-      .waitForElementVisible menuSelector, 20000
-      .pause 2000
-      .click reinitSelector
-      .waitForElementVisible notificationSelector, 20000
+      .waitForElementNotPresent savedDefaultTemplate, 20000
+      .click removeFromSideBarButton
+      .waitForElementVisible savedDefaultTemplate, 20000
       .end()
