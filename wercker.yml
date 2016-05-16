@@ -73,10 +73,6 @@ build:
         name: configure build
         code: ./configure --config sandbox --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
     - script:
-        name: delete deployment credentials
-        code: |
-          [ "$CONFIG" != "prod" ] && scripts/delete-deployment-credentials.sh
-    - script:
         name: build client
         code: |
           make -C client dist
@@ -138,6 +134,10 @@ build:
         name: testing backend finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
+    - script:
+        name: delete deployment credentials
+        code: |
+          [ "$CONFIG" != "prod" ] && scripts/delete-deployment-credentials.sh
     - script:
         name: check connectivity
         code: scripts/wercker/run-command scripts/wercker/check-connectivity INSTANCE_DATA
