@@ -14,6 +14,7 @@ module.exports = class TeamMembersIdStore extends KodingFluxStore
   initialize: ->
 
     @on actions.FETCH_TEAM_MEMBERS_SUCCESS, @load
+    @on actions.DELETE_TEAM_MEMBER, @deleteTeamMember
 
 
   load: (memberIds, { users } ) ->
@@ -21,3 +22,6 @@ module.exports = class TeamMembersIdStore extends KodingFluxStore
     return memberIds.withMutations (memberIds) ->
       users.forEach ( user ) ->
         memberIds.set user._id, user._id
+
+  deleteTeamMember: (memberIds, memberId) ->
+    memberIds.delete memberId
