@@ -74,7 +74,8 @@ build:
         code: ./configure --config sandbox --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
     - script:
         name: delete deployment credentials
-        code: scripts/delete-deployment-credentials.sh
+        code: |
+          [ "$CONFIG" != "prod" ] && scripts/delete-deployment-credentials.sh
     - script:
         name: build client
         code: |
