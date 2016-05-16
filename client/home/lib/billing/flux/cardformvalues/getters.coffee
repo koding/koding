@@ -32,6 +32,7 @@ isEmpty = (formValues) ->
     acc and not value
   , yes
 
+
 isEdited = (formValues) -> formValues.get 'isEdited'
 
 
@@ -40,8 +41,8 @@ formatCardNumber = (last4, brand) ->
   return ''  unless last4
 
   switch brand
-    when 'American Express' then "***********#{last4}"
-    else "************#{last4}"
+    when 'American Express' then "**** ****** *#{last4}"
+    else "**** **** **** #{last4}"
 
 
 formatCvc = (brand) ->
