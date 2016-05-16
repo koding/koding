@@ -261,7 +261,8 @@ handlePermanentlyDeleteMember = (member) ->
   team = groupsController.getCurrentGroup()
 
   memberId = member.get '_id'
-  reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
+  team.removeBlockedAccount memberId, (err) ->
+    reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
 
 module.exports = {
