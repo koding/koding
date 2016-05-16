@@ -21,9 +21,12 @@ module.exports = class CreditCardContainer extends React.Component
     @state = { formValues: null }
 
 
+  onInputValueChange: (type, value) -> CardFormValues.actions.setValue type, value
+
+
   render: ->
     <CreditCard
-      onInputValueChange={CardFormValues.actions.setValue}
+      onInputValueChange={@bound 'onInputValueChange'}
       formValues={@state.formValues}
       card={@state.paymentValues.get 'groupCreditCard'} />
 
