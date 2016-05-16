@@ -16,12 +16,13 @@ module.exports =
     targetUser1 = utils.getUser no, 1
     targetUser1.role = 'member'
 
-    users =
+    users = [
       targetUser1
+    ]
 
     queue = [
       (next) ->
-        teamsHelpers.inviteAndJoinWithUsers browser, [ users ], (result) ->
+        teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
           next null, result
       (next) ->
         teamsHelpers.buildStack browser, (res) ->
@@ -116,7 +117,7 @@ module.exports =
                 teamsHelpers.logoutTeam browser, ->
                   teamsHelpers.loginToTeam browser, host, no, ->
                     browser
-                      .pause 5000
+                      .pause 2000
                       .url virtualMachinesUrl
                       .waitForElementVisible virtualMachineSelector, 20000
                       .waitForElementVisible runningVMSelector, 20000
