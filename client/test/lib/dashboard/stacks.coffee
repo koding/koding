@@ -78,8 +78,20 @@ module.exports =
 
     draftStacksSelector = '.HomeAppView--section.drafts'
     stackTemplate = "#{draftStacksSelector} .HomeAppViewListItem.StackTemplateItem"
+    savedDefaultTemplate = ".SidebarSection.SidebarStackSection.draft a[href='#{stackSelector}']"
+    removeFromSideBarButton = "#{stackTemplate} .HomeAppViewListItem-SecondaryContainer .HomeAppView--button.primary"
 
     browser
       .pause 2000
       .waitForElementVisible draftStacksSelector, 20000
       .waitForElementVisible stackTemplate, 20000
+      .waitForElementVisible savedDefaultTemplate, 20000
+      .url stackEditorUrl
+      .waitForElementVisible draftStacksSelector, 20000
+      .waitForElementVisible stackTemplate, 20000
+      .click removeFromSideBarButton
+      .pause 2000
+      .waitForElementNotPresent savedDefaultTemplate, 20000
+      .click removeFromSideBarButton
+      .waitForElementVisible savedDefaultTemplate, 20000
+      .end()
