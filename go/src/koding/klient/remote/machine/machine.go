@@ -378,14 +378,50 @@ func (m *Machine) IsConnected() bool {
 	return m.KiteTracker.IsConnected()
 }
 
+// InitHTTPTracker creates the HTTPTracker for this Machine, if it is
+// currently nil.
+//
+// This allows a caller to simply call this method beforehand on any machine,
+// valid or not, and access the online/offline status of the remote kite.
+func (m *Machine) InitHTTPTracker() error {
+	if m.HasHTTPTracker() {
+		return nil
+	}
+
+	// If the URL is empty, don't bother - nothing we can do.
+	if m.URL == "" {
+		return errors.New("Unable to Init HTTPTracker, Machine.URL is empty.")
+	}
+
+	httpPinger, err := kitepinger.NewKiteHTTPPinger(m.URL)
+	if err != nil {
+		return err
+	}
+
+	m.HTTPTracker = kitepinger.NewPingTracker(httpPinger)
+
+	return nil
+}
+
 // IsOnline returns the httppingers IsConnected result.
 func (m *Machine) IsOnline() bool {
-	// If it's nil, this is a not a valid / connected machine.
-	if m.HTTPTracker == nil {
+	// If it's false, this is a not a valid / connected machine.
+	if !m.HasHTTPTracker() {
 		return false
 	}
 
 	return m.HTTPTracker.IsConnected()
+}
+
+// HasHTTPTracker returns whether or not the machine has an HTTPTracker, and thusly
+// cannot properly know if the machine is online or not.
+//
+// An example use case being, machine.IsOnline() could return false but if there
+// is no HTTPTracker, it cannot actually know if the machine is offline. Checking
+// if the machine has an HTTPTracker would help ensure that the machine is indeed
+// offline.
+func (m *Machine) HasHTTPTracker() bool {
+	return m.HTTPTracker != nil
 }
 
 // ConnectedAt returns the kitepinger's ConnectedAt result
