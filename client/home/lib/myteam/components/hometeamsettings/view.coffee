@@ -28,19 +28,27 @@ module.exports = class HomeTeamSettingsView extends React.Component
           <TeamName title={@props.team.get 'title'} teamName={@props.teamName} callback={@props.onTeamNameChanged} />
           <TeamDomain slug={@props.team.get 'slug'} />
         </div>
-        <ActionBar canEdit={@props.canEdit} callback={@props.onUpdate} />
+        <ActionBar canEdit={@props.canEdit} callback={@props.onUpdate} onLeaveTeam={@props.onLeaveTeam}/>
       </form>
     </div>
 
 
-ActionBar = ({ canEdit, callback }) ->
+ActionBar = ({ canEdit, callback, onLeaveTeam }) ->
 
   className = unless canEdit then 'hidden' else ''
   className = kd.utils.curry 'custom-link-view primary fr', className
 
   <fieldset className='HomeAppView--ActionBar'>
+    <LeaveTeam canEdit={canEdit} onLeaveTeam={onLeaveTeam}/>
     <GenericButton className={className} title={'SAVE CHANGES'} callback={callback}/>
   </fieldset>
+
+
+LeaveTeam = ({canEdit, onLeaveTeam }) ->
+
+  unless canEdit
+  then <GenericButton title={'LEAVE TEAM'} callback={onLeaveTeam} />
+  else <div></div>
 
 
 TeamDomain = ({ slug }) ->
