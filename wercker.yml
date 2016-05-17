@@ -46,10 +46,10 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
     - script:
-        name: inject credentials
+        name: copy deployment credentials
         code: |
-          ./scripts/copy-prod-creds.sh
-          ./scripts/inject_credentials.sh
+          scripts/copy-deployment-credentials.sh
+          scripts/inject_credentials.sh
     - script:
         name: change mod of test instace private key
         code: chmod 600 ./scripts/test-instance/koding-test-instances-2015-06.pem
@@ -72,9 +72,6 @@ build:
     - script:
         name: configure build
         code: ./configure --config sandbox --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
-    - script:
-        name: delete prod creds unless prod
-        code: ./scripts/delete-prod-creds-unless-prod.sh
     - script:
         name: build client
         code: |
@@ -137,6 +134,10 @@ build:
         name: testing backend finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
+    - script:
+        name: delete deployment credentials
+        code: |
+          [ "$CONFIG" != "prod" ] && scripts/delete-deployment-credentials.sh
     - script:
         name: check connectivity
         code: scripts/wercker/run-command scripts/wercker/check-connectivity INSTANCE_DATA
@@ -212,8 +213,8 @@ deploy:
           source $HOME/.nvm/nvm.sh
           nvm use 0.10.33
     - script:
-        name: copy prod creds
-        code: ./scripts/copy-prod-creds.sh
+        name: copy deployment credentials
+        code: scripts/copy-deployment-credentials.sh
     - script:
         name: build application
         code: |
@@ -235,8 +236,8 @@ deploy:
 
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "created deploy file $ARCHIVE" "deploying" 45
     - script:
-        name: delete prod creds unless prod
-        code: ./scripts/delete-prod-creds-unless-prod.sh
+        name: delete deployment credentials
+        code: scripts/delete-deployment-credentials.sh
     - koding/eb-deploy@0.31.0:
         access-key: $S3_KEY_ID
         secret-key: $S3_KEY_SECRET

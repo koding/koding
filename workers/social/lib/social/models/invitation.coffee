@@ -20,15 +20,12 @@ module.exports = class JInvitation extends jraphical.Module
 
   { permit } = require './group/permissionset'
 
-  ADMIN_PERMISSIONS = [
-    { permission: 'send invitations', superadmin: yes }
-  ]
-
   @share()
 
   @set
     permissions     :
-      'send invitations' : ['moderator', 'admin']
+      'send invitations'  : ['member']
+      'remove invitation' : ['admin']
     indexes         :
       code          : 'unique'
       # email         : 'ascending'
@@ -117,7 +114,7 @@ module.exports = class JInvitation extends jraphical.Module
   isValid: -> @status in @validTypes
 
   # remove deletes an invitation from database
-  remove$: permit 'send invitations',
+  remove$: permit 'remove invitation',
     success: (client, callback) ->
       @remove callback
 
@@ -175,27 +172,52 @@ module.exports = class JInvitation extends jraphical.Module
       JGroup    = require './group'
       groupName = client.context.group or 'koding'
 
-      JGroup.one { slug: groupName }, (err, group) ->
+      JGroup.one { slug: groupName }, (err, group) =>
         return callback new KodingError err                   if err
         return callback new KodingError 'group doesnt exist'  if not group
 
         { invitations, forceInvite, returnCodes, noEmail } = options
 
-        queue = invitations.map (invitationData) -> (end) ->
-          invitationData.forceInvite = forceInvite
-          invitationData.noEmail     = noEmail
-          invitationData.groupName   = groupName
+        createInvites = (hasAdminRights = no) ->
 
-          createSingleInvite client, group, invitationData, end
+          queue = invitations.map (invitationData) -> (end) ->
+            invitationData.forceInvite = forceInvite
+            invitationData.noEmail     = noEmail
+            invitationData.groupName   = groupName
+            invitationData.role        = 'member'  unless hasAdminRights
 
-        async.parallel queue, (err, codes) ->
-          return callback err  if err
-          return callback()  unless returnCodes
-          return callback null, codes
+            createSingleInvite client, group, invitationData, end
+
+          async.parallel queue, (err, codes) ->
+            return callback err  if err
+            return callback()  unless returnCodes
+            return callback null, codes
+
+        # check if requester tries to create an invite with admin role
+        hasAdminInvite = no
+        invitations.forEach (invitation) ->
+          hasAdminInvite = yes  if invitation.role is 'admin'
+
+        if hasAdminInvite
+          # if so we need to make sure if requester has that role as well
+          @canCreateAdminInvitations client, (err, hasAdminRights = no) ->
+            # ignore err here since it will be AccessDenied if requester
+            # does not have admin rights on this team context ~ GG
+            createInvites hasAdminRights
+
+        else
+          createInvites hasAdminRights = no
 
 
   @canFetchInvitationsAsSuperAdmin: permit
-    advanced: ADMIN_PERMISSIONS
+    advanced: [ { permission: 'remove invitation', superadmin: yes } ]
+
+
+  @canCreateAdminInvitations: permit
+    advanced: [
+      { permission: 'remove invitation' }
+      { permission: 'remove invitation', superadmin: yes }
+    ]
 
 
   createSingleInvite = (client, group, invitationData, end) ->

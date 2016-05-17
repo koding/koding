@@ -19,6 +19,10 @@ module.exports = (data, currentGroup, callback) ->
     invite.status = 'accepted'
     invite.accept().then (response) ->
 
+      options =
+        id: id
+        removeUserFromTeam: no
+
       currentGroup.unblockMember id, (err) ->
 
         return callback err  if err
