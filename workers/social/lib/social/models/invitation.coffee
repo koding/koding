@@ -114,7 +114,7 @@ module.exports = class JInvitation extends jraphical.Module
   isValid: -> @status in @validTypes
 
   # remove deletes an invitation from database
-  remove$: permit 'send invitations',
+  remove$: permit 'remove invitation',
     success: (client, callback) ->
       @remove callback
 
