@@ -41,7 +41,8 @@ CREATE TYPE "payment"."plan_title_enum" AS ENUM (
     'bootstrap',
     'startup',
     'enterprise',
-    'team_base'
+    'team_base',
+    'team_free'
 );
 ALTER TYPE "payment"."plan_title_enum" OWNER TO "social";
 
