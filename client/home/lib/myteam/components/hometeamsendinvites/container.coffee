@@ -26,6 +26,16 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     }
 
 
+  componentDidMount: ->
+
+    canEdit = kd.singletons.groupsController.canEditGroup()
+
+    inputValues = @state.inputValues.set 0, @state.inputValues.get(0).set 'role', 'admin'
+
+    @setState { inputValues }  if canEdit
+    TeamFlux.actions.updateInvitationInputValue 0, 'role', 'admin'  if canEdit
+
+
   onUploadCsv: ->
     return new kd.NotificationView
       title    : 'Coming Soon!'
