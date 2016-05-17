@@ -94,15 +94,6 @@ module.exports = (options) ->
     clientId: ''
     clientSecret: ''
     redirectUri: 'http://dev.koding.com:8090/-/oauth/github/callback'
-  odesk =
-    key: ''
-    secret: ''
-    request_url: "https://www.upwork.com/api/auth/v1/oauth/token/request"
-    access_url: "https://www.upwork.com/api/auth/v1/oauth/token/access"
-    secret_url: "https://www.upwork.com/services/api/auth?oauth_token="
-    version: "1.0"
-    signature: "HMAC-SHA1"
-    redirect_uri: "http://dev.koding.com:8090/-/oauth/odesk/callback"
   facebook =
     clientId: ''
     clientSecret: ''
