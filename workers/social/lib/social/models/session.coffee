@@ -32,7 +32,6 @@ module.exports = class JSession extends Model
         default         : -> new Date
       foreignAuth       :
         github          : Object
-        odesk           : Object
         facebook        : Object
         linkedin        : Object
       returnUrl         : String
