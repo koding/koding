@@ -195,6 +195,13 @@ module.exports = class JInvitation extends jraphical.Module
     advanced: [ { permission: 'remove invitation', superadmin: yes } ]
 
 
+  @canCreateAdminInvitations: permit
+    advanced: [
+      { permission: 'remove invitation' }
+      { permission: 'remove invitation', superadmin: yes }
+    ]
+
+
   createSingleInvite = (client, group, invitationData, end) ->
     { email, role, forceInvite, noEmail } = invitationData
 
