@@ -82,6 +82,19 @@ var cmdDescriptions = map[string]string{
 		"[optional args] <machineName> <remote-to-local|local-to-remote>",
 		"Manually sync a OneWaySync Mount, in either direction.",
 	),
+	"cp": fmtDesc(
+		"[optional args] <source> <destination>",
+		`Copy a file from the source to the destination, either remote to local or local
+to remote.
+
+Like with mounting, remote paths are referred to with the
+machineName:path/to/file syntax. Example:
+
+  kd cp ./sourceFile apple:destinationFile
+  kd cp apple:sourceFile ./destinationFile
+
+`,
+	),
 }
 
 func init() {
