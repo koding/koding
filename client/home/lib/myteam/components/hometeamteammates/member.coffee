@@ -99,11 +99,11 @@ MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen }) ->
 
   unless canEdit
     <div className='dropdown'>
-      <MemberRole role={role} userRole={userRole}  />
+      <MemberRole role={role} canEdit={canEdit}  />
     </div>
   else
     <div className='dropdown' onClick={onClick}>
-      <MemberRole role={role} userRole={userRole} />
+      <MemberRole role={role} canEdit={canEdit} />
       <ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />
     </div>
 
@@ -129,8 +129,8 @@ AvatarView = ({ member }) ->
     </div>
 
 
-MemberRole = ({ role, userRole }) ->
+MemberRole = ({ role, canEdit }) ->
 
   role = capitalizeFirstLetter role
-  className = if userRole is 'member' then '' else 'role'
+  className = unless canEdit then '' else 'role'
   <div className={className}>{role}</div>
