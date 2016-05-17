@@ -118,7 +118,7 @@ module.exports =
 
         break
 
-    callback workspace
+    callback remote.revive workspace
 
 
   fetchWorkspacesByMachineUId: (machineUId, callback) ->
