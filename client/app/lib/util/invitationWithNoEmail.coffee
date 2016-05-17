@@ -21,7 +21,7 @@ module.exports = (data, currentGroup, callback) ->
 
       options =
         id: id
-        disable: yes
+        removeUserFromTeam: no
 
       currentGroup.unblockMember id, (err) ->
 
