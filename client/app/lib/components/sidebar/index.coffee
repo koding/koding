@@ -23,6 +23,13 @@ module.exports = class Sidebar extends React.Component
 
   { getters, actions } = ActivityFlux
 
+  constructor: (props) ->
+
+    super props
+
+    @state = { isLoading: yes }
+
+
   getDataBindings: ->
     return {
       publicChannels               : getters.followedPublicChannelThreadsWithSelectedChannel
@@ -46,7 +53,9 @@ module.exports = class Sidebar extends React.Component
   componentWillMount: ->
 
     SidebarFlux.actions.loadVisibilityFilters().then =>
-      EnvironmentFlux.actions.loadStacks()
+      EnvironmentFlux.actions.loadStacks().then =>
+        @setState { isLoading: no }
+
       EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
 
       EnvironmentFlux.actions.loadTeamStackTemplates()
@@ -180,10 +189,12 @@ module.exports = class Sidebar extends React.Component
 
   renderStacks: ->
 
-    if @state.stacks?.size or @state.drafts?.size
+    if @state.stacks.size or @state.drafts.size
       <SidebarStackHeaderSection>
         {@prepareStacks()}
       </SidebarStackHeaderSection>
+    else if @state.isLoading
+      <div/>
     else
       <SidebarNoStacks />
 
