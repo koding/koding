@@ -156,7 +156,7 @@ module.exports = class VariablesView extends StackBaseEditorTabView
       credential.fetchData (err, data) =>
 
         if err
-          @pinWarning "You don't have access for custom variables"
+          @pinWarning "You don't have access to custom variables"
           return kd.warn err
 
         @_activeCredential = credential
