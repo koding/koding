@@ -70,7 +70,7 @@ CheckBox = ({ canEdit, checked, onChange, onClick }) ->
       <label onClick={onClick}></label>
     </div>
   else
-    <div className='kdcustomcheckbox'></div>
+    <div></div>
 
 
 InformationLabel = ({ canEdit }) ->
