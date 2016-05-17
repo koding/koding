@@ -41,6 +41,7 @@ type SyncOpts struct {
 	DirSize           int    `json:"dirSize"`
 	LocalToRemote     bool   `json:"localToRemote"`
 	IgnoreFile        string `json:"ignoreFile"`
+	IncludePath       bool   `json:"includePath"`
 }
 
 type SyncIntervalOpts struct {
@@ -64,6 +65,10 @@ func (o SyncOpts) IsZero() bool {
 	case o.LocalDir != "":
 		return false
 	case o.DirSize != 0:
+		return false
+	case o.IgnoreFile != "":
+		return false
+	case o.IncludePath != false:
 		return false
 	default:
 		return true
@@ -143,9 +148,11 @@ func (rs *Client) sync(progCh chan Progress, opts SyncOpts) {
 		dstDir = opts.LocalDir
 	}
 
-	// add / to end so rsync syncs considers the folder to be root level;
-	// if not it creates the folder itself
-	srcDir = srcDir + string(os.PathSeparator)
+	if !opts.IncludePath {
+		// add / to end so rsync syncs considers the folder to be root level;
+		// if not it creates the folder itself
+		srcDir = srcDir + string(os.PathSeparator)
+	}
 
 	args := []string{}
 
