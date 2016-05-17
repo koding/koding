@@ -1947,7 +1947,6 @@ module.exports = class JUser extends jraphical.Module
 
     # for some reason status is sometimes 'undefined', so check for that
     if status? and status isnt 'unconfirmed'
-      console.log "ALERT: #{username} is trying to confirm '#{status}' email"
       return callback null
 
     modifier = { status: 'confirmed' }
