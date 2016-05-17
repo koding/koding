@@ -5,11 +5,11 @@ whoami  = require 'app/util/whoami'
 globals = require 'globals'
 remote  = require('app/remote').getInstance()
 KodingKontrol = require 'app/kite/kodingkontrol'
+BasePageController = require './basepagecontroller'
 CredentialsPageView = require '../views/credentialspageview'
 CredentialsErrorPageView = require '../views/credentialserrorpageview'
-commonHelpers = require '../helpers'
 
-module.exports = class CredentialsController extends kd.Controller
+module.exports = class CredentialsController extends BasePageController
 
   DEFAULT_VERIFICATION_ERROR_MESSAGE = '''
     We couldn't verify this credential, please check the ones you
@@ -44,21 +44,21 @@ module.exports = class CredentialsController extends kd.Controller
   createPages: (credentials, requirements, kdCmd) ->
 
     stack = @getData()
-    { container } = @getOptions()
 
-    container.addSubView @credentialsPage = new CredentialsPageView {}, {
+    @credentialsPage = new CredentialsPageView {}, {
       stack
       credentials  : _.extend { kdCmd }, credentials
       requirements
     }
-    @credentialsPage.hide()
+    @errorPage = new CredentialsErrorPageView()
+    @registerPages [ @credentialsPage, @errorPage ]
+
     @forwardEvent @credentialsPage, 'InstructionsRequested'
     @credentialsPage.on 'Submitted', @bound 'onSubmitted'
+    @errorPage.on 'CredentialsRequested', @lazyBound 'setCurrentPage', @credentialsPage
 
-    container.addSubView @errorPage = new CredentialsErrorPageView()
-    @errorPage.hide()
-    @errorPage.on 'CredentialsRequested', =>
-      commonHelpers.changePage @errorPage, @credentialsPage
+
+  submit: -> @credentialsPage.submit()
 
 
   onSubmitted: (submissionData) ->
@@ -76,9 +76,8 @@ module.exports = class CredentialsController extends kd.Controller
       errs = (item.err for item in results when item.err)
 
       if errs.length > 0
-        commonHelpers.changePage @credentialsPage, @errorPage
+        @setCurrentPage @errorPage
         @errorPage.setErrors errs
-        @credentialsPage.buildButton.hideLoader()
       else
         stack = @getData()
         identifiers = (item.identifier for item in results)
@@ -86,6 +85,8 @@ module.exports = class CredentialsController extends kd.Controller
 
         computeController.buildStack stack, identifiers
         @emit 'NextPageRequested'
+
+      @credentialsPage.buildButton.hideLoader()
 
 
   handleSubmittedCredential: (submissionData, callback) ->
@@ -143,13 +144,7 @@ module.exports = class CredentialsController extends kd.Controller
 
   show: ->
 
-    @ready => @credentialsPage.show()
-
-
-  hide: ->
-
-    @credentialsPage.hide()
-    @errorPage.hide()
+    @ready => super
 
 
   helpers =

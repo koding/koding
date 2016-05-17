@@ -1,12 +1,12 @@
 kd = require 'kd'
 Machine = require 'app/providers/machine'
+BasePageController = require './basepagecontroller'
 InstructionsController = require './instructionscontroller'
 CredentialsController = require './credentialscontroller'
 BuildStackController = require './buildstackcontroller'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
-helpers = require '../helpers'
 
-module.exports = class StackFlowController extends kd.Controller
+module.exports = class StackFlowController extends BasePageController
 
   { NotInitialized, Building, Running } = Machine.State
 
@@ -39,35 +39,35 @@ module.exports = class StackFlowController extends kd.Controller
     { container } = @getOptions()
 
     @instructions = new InstructionsController { container }, @stack
-    @instructions.on 'NextPageRequested', =>
-      @currentPage = helpers.changePage @currentPage, @credentials
-
     @credentials = new CredentialsController { container }, @stack
-    @credentials.on 'InstructionsRequested', =>
-      @currentPage = helpers.changePage @currentPage, @instructions
-    @credentials.on 'NextPageRequested', =>
-      @currentPage = helpers.changePage @currentPage, @buildStack
-
     @buildStack = new BuildStackController { container }, @stack
 
-    @show()
+    @instructions.on 'NextPageRequested', @lazyBound 'setCurrentPage', @credentials
+    @credentials.on 'InstructionsRequested', @lazyBound 'setCurrentPage', @instructions
+    @credentials.on 'NextPageRequested', @lazyBound 'setCurrentPage', @buildStack
+    @buildStack.on 'CredentialsRequested', @lazyBound 'setCurrentPage', @credentials
+    @buildStack.on 'RebuildRequested', => @credentials.submit()
+
+    page = if @state is Building then @buildStack else @instructions
+    @setCurrentPage page
 
 
   updateStatus: (event, task) ->
 
     { status, percentage, error, message } = event
 
-    if status is @state
-      return @buildStack.updateProgress percentage, message
-
     [ @oldState, @state ] = [ @state, status ]
-    if not percentage?
-      @checkIfBuildCompleted()
-    else if percentage is 100
-      initial = message is 'apply finished'
-      @completeBuildProcess status, initial
 
-    @show()
+    @setCurrentPage @buildStack
+
+    if error
+      @buildStack.showError error
+    else if percentage?
+      @buildStack.updateProgress percentage, message
+      if percentage is 100
+        @completeBuildProcess()
+    else
+      @checkIfBuildCompleted()
 
 
   checkIfBuildCompleted: (status = @state, initial = no) ->
@@ -84,7 +84,7 @@ module.exports = class StackFlowController extends kd.Controller
       @emit 'IDEBecameReady', machine, initial
 
 
-  completeBuildProcess: (status, initial) ->
+  completeBuildProcess: ->
 
     { machine } = @getData()
     machineId   = machine.jMachine._id
@@ -94,16 +94,7 @@ module.exports = class StackFlowController extends kd.Controller
     if @oldState is Building and @state is Running
       { computeController } = kd.singletons
       computeController.once "revive-#{machineId}", =>
-        @checkIfBuildCompleted status, initial
-
-
-  show: ->
-
-    nextPage = switch @state
-      when Building then @buildStack
-      when NotInitialized then @instructions
-
-    @currentPage = helpers.changePage @currentPage, nextPage
+        @checkIfBuildCompleted status, yes
 
 
   destroy: ->

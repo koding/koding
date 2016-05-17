@@ -1,10 +1,10 @@
 kd = require 'kd'
+BasePageController = require './basepagecontroller'
 ReadmePageView = require '../views/readmepageview'
 StackTemplatePageView = require '../views/stacktemplatepageview'
-helpers = require '../helpers'
 showError = require 'app/util/showError'
 
-module.exports = class InstructionsController extends kd.Controller
+module.exports = class InstructionsController extends BasePageController
 
   constructor: (options, data) ->
 
@@ -26,27 +26,16 @@ module.exports = class InstructionsController extends kd.Controller
 
   createPages: (stackTemplate) ->
 
-    { container } = @getOptions()
+    @readmePage = new ReadmePageView {}, stackTemplate
+    @stackTemplatePage = new StackTemplatePageView {}, stackTemplate
+    @registerPages [ @readmePage, @stackTemplatePage ]
 
-    container.addSubView @readmePage = new ReadmePageView {}, stackTemplate
-    @readmePage.hide()
     @forwardEvent @readmePage, 'NextPageRequested'
-    @readmePage.on 'StackTemplateRequested', =>
-      helpers.changePage @readmePage, @stackTemplatePage
-
-    container.addSubView @stackTemplatePage = new StackTemplatePageView {}, stackTemplate
-    @stackTemplatePage.hide()
+    @readmePage.on 'StackTemplateRequested', @lazyBound 'setCurrentPage', @stackTemplatePage
     @forwardEvent @stackTemplatePage, 'NextPageRequested'
-    @stackTemplatePage.on 'ReadmeRequested', =>
-      helpers.changePage @stackTemplatePage, @readmePage
+    @stackTemplatePage.on 'ReadmeRequested',  @lazyBound 'setCurrentPage', @readmePage
 
 
   show: ->
 
-    @ready => @readmePage.show()
-
-
-  hide: ->
-
-    @readmePage.hide()
-    @stackTemplatePage.hide()
+    @ready => super

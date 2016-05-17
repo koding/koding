@@ -28,7 +28,7 @@ module.exports = class CredentialsPageView extends JView
       title    : 'Build Stack'
       cssClass : 'GenericButton'
       loader   : yes
-      callback : @bound 'onSubmit'
+      callback : @bound 'submit'
 
 
   createCredentialView: ->
@@ -59,7 +59,7 @@ module.exports = class CredentialsPageView extends JView
     @requirementsContainer.wrapper.addSubView @requirementsForm
 
 
-  onSubmit: ->
+  submit: ->
 
     queue =
       credential   : helpers.createValidationCallback @credentialForm
