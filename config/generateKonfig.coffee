@@ -164,6 +164,7 @@ module.exports = (options, credentials) ->
     disabledFeatures              : options.disabledFeatures
     autoConfirmAccounts           : options.autoConfirmAccounts
     domains                       : options.domains
+    clientUploadS3BucketName      : options.clientUploadS3BucketName
 
     kiteHome                      : credentials.kiteHome
     redis                         : credentials.redis.url
