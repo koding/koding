@@ -74,7 +74,7 @@ module.exports = class BlockedMemberItemView extends kd.ListItemView
 
       options =
         id: id
-        disable: yes
+        removeUserFromTeam: no
 
       currentGroup.unblockMember options, (err) =>
 

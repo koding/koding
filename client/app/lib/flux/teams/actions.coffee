@@ -247,7 +247,7 @@ handleDisabledUser = (member) ->
   memberId = member.get '_id'
   options =
     id: memberId
-    disable: yes
+    removeUserFromTeam: no
 
   team.unblockMember options, (err) ->
     unless err
@@ -266,7 +266,7 @@ handlePermanentlyDeleteMember = (member) ->
   memberId = member.get '_id'
   options =
     id: memberId
-    disable: no
+    removeUserFromTeam: yes
 
   team.unblockMember options, (err) ->
     reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
