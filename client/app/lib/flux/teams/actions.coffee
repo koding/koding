@@ -272,8 +272,23 @@ handlePermanentlyDeleteMember = (member) ->
     reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
 
+leaveTeam = (id) ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+  options =
+    id: id
+    removeUserFromTeam: yes
+
+  team.unblockMember id, (err) ->
+    console.log 'err', err
+
+
+
+
 module.exports = {
   loadTeam
+  leaveTeam
   updateTeam
   updateInvitationInputValue
   fetchMembers
