@@ -17,20 +17,25 @@ module.exports = class InstructionsController extends kd.Controller
     stack = @getData()
     { computeController } = kd.singletons
 
-    computeController.fetchBaseStackTemplate stack, @bound 'onDataLoaded'
+    computeController.fetchBaseStackTemplate stack, (err, stackTemplate) =>
+      return showError err  if err
+
+      @createPages stackTemplate
+      @emit 'ready'
 
 
-  onDataLoaded: (err, stackTemplate) ->
+  createPages: (stackTemplate) ->
 
-    return showError err  if err
+    { container } = @getOptions()
 
-    @delegate.addSubView @readmePage = new ReadmePageView {}, stackTemplate
+    container.addSubView @readmePage = new ReadmePageView {}, stackTemplate
+    @readmePage.hide()
     @forwardEvent @readmePage, 'NextPageRequested'
     @readmePage.on 'StackTemplateRequested', =>
       helpers.changePage @readmePage, @stackTemplatePage
 
-    @delegate.addSubView @stackTemplatePage =
-      new StackTemplatePageView { cssClass : 'hidden' }, stackTemplate
+    container.addSubView @stackTemplatePage = new StackTemplatePageView {}, stackTemplate
+    @stackTemplatePage.hide()
     @forwardEvent @stackTemplatePage, 'NextPageRequested'
     @stackTemplatePage.on 'ReadmeRequested', =>
       helpers.changePage @stackTemplatePage, @readmePage
@@ -38,7 +43,7 @@ module.exports = class InstructionsController extends kd.Controller
 
   show: ->
 
-    @readmePage.show()
+    @ready => @readmePage.show()
 
 
   hide: ->

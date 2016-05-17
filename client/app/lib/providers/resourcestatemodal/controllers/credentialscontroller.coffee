@@ -37,17 +37,28 @@ module.exports = class CredentialsController extends kd.Controller
       return showError err  if err
 
       { credentials, requirements, kdCmd } = results
-      @delegate.addSubView @credentialsPage = new CredentialsPageView { cssClass : 'hidden' }, {
-        stack
-        credentials  : _.extend { kdCmd }, credentials
-        requirements
-      }
-      @forwardEvent @credentialsPage, 'InstructionsRequested'
-      @credentialsPage.on 'Submitted', @bound 'onSubmitted'
+      @createPages credentials, requirements, kdCmd
+      @emit 'ready'
 
-      @delegate.addSubView @errorPage = new CredentialsErrorPageView { cssClass : 'hidden' }
-      @errorPage.on 'CredentialsRequested', =>
-        commonHelpers.changePage @errorPage, @credentialsPage
+
+  createPages: (credentials, requirements, kdCmd) ->
+
+    stack = @getData()
+    { container } = @getOptions()
+
+    container.addSubView @credentialsPage = new CredentialsPageView {}, {
+      stack
+      credentials  : _.extend { kdCmd }, credentials
+      requirements
+    }
+    @credentialsPage.hide()
+    @forwardEvent @credentialsPage, 'InstructionsRequested'
+    @credentialsPage.on 'Submitted', @bound 'onSubmitted'
+
+    container.addSubView @errorPage = new CredentialsErrorPageView()
+    @errorPage.hide()
+    @errorPage.on 'CredentialsRequested', =>
+      commonHelpers.changePage @errorPage, @credentialsPage
 
 
   onSubmitted: (submissionData) ->
@@ -126,7 +137,7 @@ module.exports = class CredentialsController extends kd.Controller
 
   show: ->
 
-    @credentialsPage.show()
+    @ready => @credentialsPage.show()
 
 
   hide: ->
