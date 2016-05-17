@@ -103,7 +103,7 @@ allInvitations = [
 adminInvitations = [
   allInvitations
   (allInvitations) ->
-    allInvitations.filter (value) -> value.get('role') is 'admin'
+    allInvitations.filter (value) -> value.get 'canEdit'
 ]
 
 newInvitations = [

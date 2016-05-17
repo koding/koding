@@ -164,6 +164,7 @@ module.exports = (options, credentials) ->
     disabledFeatures              : options.disabledFeatures
     autoConfirmAccounts           : options.autoConfirmAccounts
     domains                       : options.domains
+    clientUploadS3BucketName      : options.clientUploadS3BucketName
 
     kiteHome                      : credentials.kiteHome
     redis                         : credentials.redis.url
@@ -178,7 +179,6 @@ module.exports = (options, credentials) ->
     linkedin                      : credentials.linkedin
     datadog                       : credentials.datadog
     github                        : credentials.github
-    odesk                         : credentials.odesk
     facebook                      : credentials.facebook
     slack                         : credentials.slack
     sneakerS3                     : credentials.sneakerS3

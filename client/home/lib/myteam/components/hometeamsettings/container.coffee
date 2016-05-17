@@ -7,6 +7,7 @@ View            = require './view'
 Encoder         = require 'htmlencode'
 showError       = require 'app/util/showError'
 
+
 notify = (title, duration = 5000) -> new kd.NotificationView { title, duration }
 
 module.exports = class HomeTeamSettingsContainer extends React.Component
@@ -95,6 +96,11 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       teamName : event.target.value
 
 
+  onLeaveTeam: (event) ->
+
+    TeamFlux.actions.leaveTeam()
+
+
   render: ->
 
     <View
@@ -107,6 +113,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       onClickLogo={@bound 'onClickLogo'}
       onRemoveLogo={@bound 'onRemoveLogo'}
       onUpdate={@bound 'onUpdate'}
+      onLeaveTeam={@bound 'onLeaveTeam'}
       onTeamNameChanged={@bound 'onTeamNameChanged'}/>
 
 
