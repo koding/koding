@@ -46,7 +46,6 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
 
   render: ->
     <View
-      role={@props.role}
       members={@state.members}
       searchInputValue={@state.searchInputValue}
       handleInvitation={@bound 'handleInvitation'}
