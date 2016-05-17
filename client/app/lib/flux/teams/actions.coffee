@@ -12,7 +12,8 @@ Tracker     = require 'app/util/tracker'
 isKoding    = require 'app/util/isKoding'
 isEmailValid = require 'app/util/isEmailValid'
 s3upload = require 'app/util/s3upload'
-
+kookies = require 'kookies'
+Tracker = require 'app/util/tracker'
 
 loadTeam = ->
 
@@ -272,8 +273,24 @@ handlePermanentlyDeleteMember = (member) ->
     reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
 
+leaveTeam = ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+
+  team.leave (err) ->
+    if err
+      return new kd.NotificationView { title : 'You need to transfer ownership of team before leaving team' }
+
+    Tracker.track Tracker.USER_LEFT_TEAM
+    kookies.expire 'clientId'
+    global.location.replace '/'
+
+
+
 module.exports = {
   loadTeam
+  leaveTeam
   updateTeam
   updateInvitationInputValue
   fetchMembers
