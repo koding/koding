@@ -69,7 +69,6 @@ module.exports = class JUser extends jraphical.Module
       email         : 'unique'
       sanitizedEmail: ['unique', 'sparse']
       'foreignAuth.github.foreignId'   : 'ascending'
-      'foreignAuth.odesk.foreignId'    : 'ascending'
       'foreignAuth.facebook.foreignId' : 'ascending'
       'foreignAuth.google.foreignId'   : 'ascending'
       'foreignAuth.linkedin.foreignId' : 'ascending'
@@ -180,13 +179,6 @@ module.exports = class JUser extends jraphical.Module
           lastName           : String
           email              : String
           scope              : String
-        odesk                :
-          foreignId          : String
-          token              : String
-          accessTokenSecret  : String
-          requestToken       : String
-          requestTokenSecret : String
-          profileUrl         : String
         facebook             :
           foreignId          : String
           username           : String

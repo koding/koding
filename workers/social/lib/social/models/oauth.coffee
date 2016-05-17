@@ -59,8 +59,6 @@ module.exports = class OAuth extends bongo.Base
         url += "redirect_uri=#{redirectUri}"
 
         callback null, url
-      when 'odesk'
-        @saveTokensAndReturnUrl client, 'odesk', callback
       when 'twitter'
         @saveTokensAndReturnUrl client, 'twitter', callback
 
