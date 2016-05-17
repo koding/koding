@@ -4,6 +4,8 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"sync"
+
+	"gopkg.in/mgo.v2"
 )
 
 var limitsToAction = map[string]func(string, string, string) error{
@@ -36,7 +38,7 @@ func getAndSaveQueueMachineMetrics() error {
 				index += 1
 
 				err := msg.Metric.GetAndSaveData(msg.Machine.Credential)
-				if err != nil {
+				if err != nil && err != mgo.ErrNotFound {
 					Log.Error(err.Error())
 				}
 			}

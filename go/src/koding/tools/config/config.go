@@ -187,10 +187,6 @@ type RuntimeOptions struct {
 		Twitter struct {
 			Nicename string `json:"nicename"`
 		} `json:"twitter"`
-		Odesk struct {
-			Nicename    string `json:"nicename"`
-			UrlLocation string `json:"urlLocation"`
-		} `json:"odesk"`
 		Facebook struct {
 			Nicename    string `json:"nicename"`
 			UrlLocation string `json:"urlLocation"`
