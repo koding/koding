@@ -194,7 +194,6 @@ module.exports = (options) ->
     paymentwebhook
     googleapiServiceAccount
     github
-    odesk
     facebook
     mailgun
     slack
