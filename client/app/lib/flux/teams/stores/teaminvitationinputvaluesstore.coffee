@@ -12,18 +12,18 @@ module.exports = class TeamInvitationInputValuesStore extends KodingFluxStore
     @on actions.RESET_TEAM_INVITES, @handleReset # handleReset comes from base class
 
 
-  createRecord = (role) ->
+  createRecord = (canEdit) ->
     immutable.Map
       email: ''
       firstName: ''
       lastName: ''
-      role: role
+      canEdit: canEdit
 
 
   getInitialState: ->
 
-    ['member', 'member', 'member'].reduce (state, role, index) ->
-      state.set index, createRecord role
+    [no, no, no].reduce (state, canEdit, index) ->
+      state.set index, createRecord canEdit
     , immutable.Map()
 
 
@@ -55,5 +55,5 @@ module.exports = class TeamInvitationInputValuesStore extends KodingFluxStore
 
     return state  if empties.size
 
-    return state.set(state.size, createRecord 'member')
+    return state.set(state.size, createRecord no)
 
