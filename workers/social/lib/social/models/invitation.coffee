@@ -20,15 +20,12 @@ module.exports = class JInvitation extends jraphical.Module
 
   { permit } = require './group/permissionset'
 
-  ADMIN_PERMISSIONS = [
-    { permission: 'send invitations', superadmin: yes }
-  ]
-
   @share()
 
   @set
     permissions     :
-      'send invitations' : ['moderator', 'admin']
+      'send invitations'  : ['member']
+      'remove invitation' : ['admin']
     indexes         :
       code          : 'unique'
       # email         : 'ascending'
@@ -195,7 +192,7 @@ module.exports = class JInvitation extends jraphical.Module
 
 
   @canFetchInvitationsAsSuperAdmin: permit
-    advanced: ADMIN_PERMISSIONS
+    advanced: [ { permission: 'remove invitation', superadmin: yes } ]
 
 
   createSingleInvite = (client, group, invitationData, end) ->
