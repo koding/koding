@@ -279,9 +279,8 @@ leaveTeam = (id) ->
   team = groupsController.getCurrentGroup()
 
   team.leave (err) ->
-    console.log 'err', err
     if err
-        new kd.NotificationView { title : 'You need to transfer ownership of team before leaving team' }
+      return new kd.NotificationView { title : 'You need to transfer ownership of team before leaving team' }
 
     Tracker.track Tracker.USER_LEFT_TEAM
     kookies.expire 'clientId'
