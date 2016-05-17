@@ -52,7 +52,7 @@ module.exports = class CredentialsPageView extends JView
     @requirementsContainer = new kd.CustomScrollView
       cssClass : 'form-scroll-wrapper requirements-wrapper'
 
-    return @setClass 'credential-only'  unless requirements.fields
+    return  unless requirements.fields
 
     options = helpers.getFormOptions requirements.provider
     @requirementsForm = new CredentialForm options, requirements
@@ -90,13 +90,17 @@ module.exports = class CredentialsPageView extends JView
 
     { title, description } = helpers.getTitleAndDescription @getData()
 
+    { requirements }   = @getData()
+    containerCssClass  = 'main'
+    containerCssClass += ' credential-only' unless requirements.fields
+
     """
       <div class="credentials-page">
         <header>
           <h1>Build Your Stack</h1>
         </header>
         {{> @progressPane}}
-        <section class="main">
+        <section class="#{containerCssClass}">
           <h2>#{title}</h2>
           <p>#{description}</p>
           {{> @credentialContainer}}
