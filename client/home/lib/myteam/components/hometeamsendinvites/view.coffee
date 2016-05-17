@@ -21,12 +21,14 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
     inviteInput = @props.inputValues.toList().get(rowIndex)
     checked = inviteInput.get('role') is 'admin'
 
+    canEdit = kd.singletons.groupsController.canEditGroup()
+
     <div className='kdview invite-inputs'>
       <input type='text' className='kdinput text user-email' placeholder='mail@example.com' value={inviteInput.get 'email'} onChange={@props.onInputChange.bind(this, rowIndex, 'email')} />
       <input type='text' className='kdinput text firstname' placeholder='Optional' value={inviteInput.get 'firstName'} onChange={@props.onInputChange.bind(this, rowIndex, 'firstName')}/>
       <input type='text' className='kdinput text lastname' placeholder='Optional' value={inviteInput.get 'lastName'} onChange={@props.onInputChange.bind(this, rowIndex, 'lastName')}/>
       <CheckBox
-        role={@props.role}
+        canEdit={canEdit}
         checked={checked}
         onChange={@props.onInputChange.bind(this, rowIndex, 'role')}
         onClick={@props.onInputChange.bind(null, rowIndex, 'role', { target: { value: not checked}})}/>
@@ -62,9 +64,9 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
     </div>
 
 
-CheckBox = ({ role, checked, onChange, onClick }) ->
+CheckBox = ({ canEdit, checked, onChange, onClick }) ->
 
-  unless role is 'member'
+  if canEdit
     <div className='kdcustomcheckbox' >
       <input type='checkbox' className='kdinput checkbox' checked={checked} onChange={onChange}/>
       <label onClick={onClick}></label>
