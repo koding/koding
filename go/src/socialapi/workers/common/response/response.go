@@ -35,7 +35,7 @@ func NewBadRequestWithLogger(l logging.Logger, err error) (int, http.Header, int
 	}
 
 	// make sure errors are outputted
-	l.Error("Bad Request: %s", err)
+	l.Debug("Bad Request: %s", err)
 
 	// do not expose errors to the client
 	env := config.MustGet().Environment
