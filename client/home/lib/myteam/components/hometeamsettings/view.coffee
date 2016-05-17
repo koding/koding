@@ -39,16 +39,14 @@ ActionBar = ({ canEdit, callback, onLeaveTeam }) ->
   className = kd.utils.curry 'custom-link-view primary fr', className
 
   <fieldset className='HomeAppView--ActionBar'>
-    <LeaveTeam canEdit={canEdit} onLeaveTeam={onLeaveTeam}/>
+    <LeaveTeam onLeaveTeam={onLeaveTeam}/>
     <GenericButton className={className} title={'SAVE CHANGES'} callback={callback}/>
   </fieldset>
 
 
-LeaveTeam = ({canEdit, onLeaveTeam }) ->
+LeaveTeam = ({ onLeaveTeam }) ->
 
-  unless canEdit
-  then <GenericButton title={'LEAVE TEAM'} callback={onLeaveTeam} />
-  else <div></div>
+  <GenericButton title={'LEAVE TEAM'} callback={onLeaveTeam} />
 
 
 TeamDomain = ({ slug }) ->
