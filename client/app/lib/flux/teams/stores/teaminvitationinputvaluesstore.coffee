@@ -22,7 +22,7 @@ module.exports = class TeamInvitationInputValuesStore extends KodingFluxStore
 
   getInitialState: ->
 
-    ['admin', 'member', 'member'].reduce (state, role, index) ->
+    ['member', 'member', 'member'].reduce (state, role, index) ->
       state.set index, createRecord role
     , immutable.Map()
 
