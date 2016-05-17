@@ -273,7 +273,7 @@ handlePermanentlyDeleteMember = (member) ->
     reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
 
-leaveTeam = (id) ->
+leaveTeam = ->
 
   { groupsController, reactor } = kd.singletons
   team = groupsController.getCurrentGroup()
