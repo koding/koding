@@ -19,19 +19,17 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
     inviteInput = @props.inputValues.toList().get(rowIndex)
-    checked = inviteInput.get('role') is 'admin'
-
-    canEdit = kd.singletons.groupsController.canEditGroup()
+    checked = inviteInput.get('canEdit')
 
     <div className='kdview invite-inputs'>
       <input type='text' className='kdinput text user-email' placeholder='mail@example.com' value={inviteInput.get 'email'} onChange={@props.onInputChange.bind(this, rowIndex, 'email')} />
       <input type='text' className='kdinput text firstname' placeholder='Optional' value={inviteInput.get 'firstName'} onChange={@props.onInputChange.bind(this, rowIndex, 'firstName')}/>
       <input type='text' className='kdinput text lastname' placeholder='Optional' value={inviteInput.get 'lastName'} onChange={@props.onInputChange.bind(this, rowIndex, 'lastName')}/>
       <CheckBox
-        canEdit={canEdit}
+        canEdit={@props.canEdit}
         checked={checked}
-        onChange={@props.onInputChange.bind(this, rowIndex, 'role')}
-        onClick={@props.onInputChange.bind(null, rowIndex, 'role', { target: { value: not checked}})}/>
+        onChange={@props.onInputChange.bind(this, rowIndex, 'canEdit')}
+        onClick={@props.onInputChange.bind(null, rowIndex, 'canEdit', { target: { value: not checked}})}/>
     </div>
 
 
@@ -41,7 +39,7 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
   render: ->
 
     <div>
-      <InformationLabel role={@props.role} />
+      <InformationLabel canEdit={@props.canEdit} />
       <div className='input-wrapper'>
         <List
           numberOfSections={@bound 'numberOfSections'}
@@ -75,7 +73,7 @@ CheckBox = ({ canEdit, checked, onChange, onClick }) ->
     <div></div>
 
 
-InformationLabel = ({ role }) ->
+InformationLabel = ({ canEdit }) ->
 
   lastname = 'Last Name'
   <div className='information'>
@@ -84,15 +82,15 @@ InformationLabel = ({ role }) ->
       <label>First Name</label>
       <label>
         <span className='lastname'>Last Name</span>
-        <AdminLabel role={role} />
+        <AdminLabel canEdit={canEdit} />
       </label>
     </div>
   </div>
 
 
-AdminLabel = ({ role }) ->
+AdminLabel = ({ canEdit }) ->
 
-  unless role is 'member'
+  if canEdit
   then <span>Admin</span>
   else <span></span>
 
