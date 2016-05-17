@@ -74,6 +74,7 @@ module.exports = class Member extends React.Component
 
   render: ->
 
+    canEdit = kd.singletons.groupsController.canEditGroup()
     { nickname, email, role, firstName, lastName, fullName } = @getData()
 
     <div>
@@ -86,7 +87,7 @@ module.exports = class Member extends React.Component
         </div>
       </div>
       <MemberRoleWithDropDownMenu
-        userRole={@props.userRole}
+        canEdit={canEdit}
         role={role}
         onClick={@onClickMemberRole.bind(this, role)}
         items={@getMenuItems role}
@@ -94,9 +95,9 @@ module.exports = class Member extends React.Component
     </div>
 
 
-MemberRoleWithDropDownMenu = ({ userRole, role, onClick, items, isMenuOpen }) ->
+MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen }) ->
 
-  if userRole is 'member'
+  unless canEdit
     <div className='dropdown'>
       <MemberRole role={role} userRole={userRole}  />
     </div>
