@@ -43,6 +43,7 @@ Configuration = (options = {}) ->
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.host or= options.hostname
   options.credentialPath or= "#{options.projectRoot}/config/credentials.#{options.environment}.coffee"
+  options.clientUploadS3BucketName or= 'kodingdev-client'
 
   customDomain =
     public  : "#{options.scheme}://#{options.host}#{if options.publicPort is "80" then "" else ":" + options.publicPort}"

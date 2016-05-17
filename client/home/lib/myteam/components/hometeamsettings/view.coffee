@@ -70,7 +70,7 @@ TeamName = ({ title, teamName, callback }) ->
   </fieldset>
 
 
-GenericButton = ({ className='', title, callback }) ->
+GenericButton = ({ className, title, callback }) ->
 
   className = kd.utils.curry 'HomeAppView--button', className
   <a className={className} href='#' onClick={callback}>
