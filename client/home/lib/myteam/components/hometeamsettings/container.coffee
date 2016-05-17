@@ -6,6 +6,8 @@ KDReactorMixin  = require 'app/flux/base/reactormixin'
 View            = require './view'
 Encoder         = require 'htmlencode'
 showError       = require 'app/util/showError'
+whoami          = require 'app/util/whoami'
+
 
 notify = (title, duration = 5000) -> new kd.NotificationView { title, duration }
 
@@ -95,6 +97,11 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       teamName : event.target.value
 
 
+  onLeaveTeam: (event) ->
+
+    TeamFlux.actions.leaveTeam whoami()._id
+
+
   render: ->
 
     <View
@@ -107,6 +114,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       onClickLogo={@bound 'onClickLogo'}
       onRemoveLogo={@bound 'onRemoveLogo'}
       onUpdate={@bound 'onUpdate'}
+      onLeaveTeam={@bound 'onLeaveTeam'}
       onTeamNameChanged={@bound 'onTeamNameChanged'}/>
 
 
