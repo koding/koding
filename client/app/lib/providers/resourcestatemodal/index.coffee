@@ -10,6 +10,15 @@ module.exports = class ResourceStateModal extends kd.ModalView
     super options, data
 
     @stackFlow = new StackFlowController { container : this }, @getData()
+    @forwardEvent @stackFlow, 'IDEBecameReady'
 
 
-  updateStatus: ->
+  updateStatus: (event, task) ->
+
+    @stackFlow.updateStatus event, task
+
+
+  destroy: ->
+
+    @stackFlow.destroy()
+    super

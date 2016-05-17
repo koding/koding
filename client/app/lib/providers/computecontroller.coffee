@@ -677,9 +677,10 @@ module.exports = class ComputeController extends KDController
       (@errorHandler call, 'build', machine) err
 
 
-  buildStack: (stack) ->
+  buildStack: (stack, identifiers) ->
 
-    return  unless @verifyStackRequirements stack
+    verificationNeeded = not identifiers
+    return  if verificationNeeded and not @verifyStackRequirements stack
 
     state = stack.status?.state ? 'Unknown'
 
@@ -704,7 +705,7 @@ module.exports = class ComputeController extends KDController
       customEvent : { stackId, group : getGroup().slug }
     }
 
-    call = @getKloud().buildStack { stackId }
+    call = @getKloud().buildStack { stackId, identifiers }
 
     .then (res) =>
 

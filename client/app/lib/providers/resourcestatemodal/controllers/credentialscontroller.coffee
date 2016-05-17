@@ -74,12 +74,18 @@ module.exports = class CredentialsController extends kd.Controller
 
     async.parallel queue, (err, results) =>
       errs = (item.err for item in results when item.err)
+
       if errs.length > 0
         commonHelpers.changePage @credentialsPage, @errorPage
         @errorPage.setErrors errs
         @credentialsPage.buildButton.hideLoader()
       else
+        stack = @getData()
         identifiers = (item.identifier for item in results)
+        { computeController } = kd.singletons
+
+        computeController.buildStack stack, identifiers
+        @emit 'NextPageRequested'
 
 
   handleSubmittedCredential: (submissionData, callback) ->

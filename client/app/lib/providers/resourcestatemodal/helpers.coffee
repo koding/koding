@@ -2,5 +2,8 @@ module.exports =
 
   changePage: (currentPage, nextPage) ->
 
-    currentPage.hide()
+    return currentPage  if currentPage is nextPage
+
+    currentPage.hide()  if currentPage
     nextPage.show()
+    return nextPage
