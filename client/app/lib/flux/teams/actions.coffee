@@ -12,7 +12,8 @@ Tracker     = require 'app/util/tracker'
 isKoding    = require 'app/util/isKoding'
 isEmailValid = require 'app/util/isEmailValid'
 s3upload = require 'app/util/s3upload'
-
+kookies = require 'kookies'
+Tracker = require 'app/util/tracker'
 
 loadTeam = ->
 
@@ -276,13 +277,15 @@ leaveTeam = (id) ->
 
   { groupsController, reactor } = kd.singletons
   team = groupsController.getCurrentGroup()
-  options =
-    id: id
-    removeUserFromTeam: yes
 
-  team.unblockMember id, (err) ->
+  team.leave (err) ->
     console.log 'err', err
+    if err
+        new kd.NotificationView { title : 'You need to transfer ownership of team before leaving team' }
 
+    Tracker.track Tracker.USER_LEFT_TEAM
+    kookies.expire 'clientId'
+    global.location.replace '/'
 
 
 
