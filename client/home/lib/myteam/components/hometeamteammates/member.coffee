@@ -39,8 +39,11 @@ module.exports = class Member extends React.Component
       items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
       items.push { title: 'Disable user', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }
     else if role is 'Invitation Sent'
-      items.push {title: 'Resend Invitation', key: 'resend', onClick: @props.handleInvitation.bind(this, @props.member, 'resend')}
-      items.push {title: 'Revoke Invitation', key: 'revoke', onClick: @props.handleInvitation.bind(this, @props.member, 'revoke')}
+      items.push { title: 'Resend Invitation', key: 'resend', onClick: @props.handleInvitation.bind(this, @props.member, 'resend') }
+      items.push { title: 'Revoke Invitation', key: 'revoke', onClick: @props.handleInvitation.bind(this, @props.member, 'revoke') }
+    else if role is 'disabled'
+      items.push { title: 'Remove Permenantly', key: 'delete', onClick: @props.handleDisabledUser.bind(this, @props.member, 'delete') }
+      items.push { title: 'Enable User', key: 'enable', onClick: @props.handleDisabledUser.bind(this, @props.member, 'enable') }
     else
       items.push { title: 'Make owner', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
       items.push { title: 'Make admin', key: 'makeadmin', onClick: @props.handleRoleChange.bind(this, @props.member, 'admin') }
@@ -96,11 +99,11 @@ MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen }) ->
 
   unless canEdit
     <div className='dropdown'>
-      <MemberRole role={role}  />
+      <MemberRole role={role} userRole={userRole}  />
     </div>
   else
     <div className='dropdown' onClick={onClick}>
-      <MemberRole role={role}  />
+      <MemberRole role={role} userRole={userRole} />
       <ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />
     </div>
 
@@ -126,7 +129,8 @@ AvatarView = ({ member }) ->
     </div>
 
 
-MemberRole = ({ role }) ->
+MemberRole = ({ role, userRole }) ->
 
   role = capitalizeFirstLetter role
-  <div className='role'>{role}</div>
+  className = if userRole is 'member' then '' else 'role'
+  <div className={className}>{role}</div>

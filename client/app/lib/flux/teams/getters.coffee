@@ -12,6 +12,7 @@ searchInputValue = ['TeamSearchInputValueStore']
 invitationInputValues = ['TeamInvitationInputValuesStore']
 loggedInUserEmail = ['LoggedInUserEmailStore']
 teamInvitations = ['TeamInvitationStore']
+disabledUsers = ['TeamDisabledMembersStore']
 
 pendingInvitations = [
   teamInvitations
@@ -79,6 +80,15 @@ filteredMembersWithRole = [
     members.filter (member) -> isValidMemberValue member, value
 ]
 
+filteredMembersWithRoleAndDisabledUsers = [
+  filteredMembersWithRole
+  disabledUsers
+  (users, disabledUsers) ->
+    users.withMutations (users) ->
+      disabledUsers.map (disabledUser) ->
+        users.set disabledUser.get('_id'), disabledUser
+]
+
 
 allInvitations = [
   invitationInputValues
@@ -134,4 +144,6 @@ module.exports = {
   newInvitations
   pendingInvitations
   resendInvitations
+  disabledUsers
+  filteredMembersWithRoleAndDisabledUsers
 }

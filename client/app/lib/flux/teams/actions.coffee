@@ -230,6 +230,48 @@ uploads3 = ({ name, content, mimeType }) ->
       if err then reject { err } else resolve { url }
 
 
+loadDisabledUsers = ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+
+  team.fetchBlockedAccountsWithEmail (err, members) ->
+    reactor.dispatch actions.LOAD_DISABLED_MEMBERS, { members }
+
+
+handleDisabledUser = (member) ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+
+  memberId = member.get '_id'
+  options =
+    id: memberId
+    removeUserFromTeam: no
+
+  team.unblockMember options, (err) ->
+    unless err
+      fetchMembers().then ->
+        fetchMembersRole()
+        reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
+
+  .catch (err) -> 'error occured while unblocking member'
+
+
+handlePermanentlyDeleteMember = (member) ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+
+  memberId = member.get '_id'
+  options =
+    id: memberId
+    removeUserFromTeam: yes
+
+  team.unblockMember options, (err) ->
+    reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
+
+
 module.exports = {
   loadTeam
   updateTeam
@@ -244,4 +286,7 @@ module.exports = {
   handlePendingInvitationUpdate
   handleKickMember
   uploads3
+  loadDisabledUsers
+  handleDisabledUser
+  handlePermanentlyDeleteMember
 }

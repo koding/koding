@@ -9,7 +9,8 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
 
   getDataBindings: ->
     return {
-      members: TeamFlux.getters.filteredMembersWithRole
+      members: TeamFlux.getters.filteredMembersWithRoleAndDisabledUsers
+      disables: TeamFlux.getters.disabledUsers
       seachInput: TeamFlux.getters.searchInputValue
     }
 
@@ -39,17 +40,25 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
       TeamFlux.actions.handleRoleChange member, role
 
 
+  handleDisabledUser: (member, action, event) ->
+    if action is 'enable'
+    then TeamFlux.actions.handleDisabledUser member
+    else TeamFlux.actions.handlePermanentlyDeleteMember member
+
+
   handleInvitation: (member, action, event) ->
 
     TeamFlux.actions.handlePendingInvitationUpdate member, action
 
 
   render: ->
+
     <View
       members={@state.members}
       searchInputValue={@state.searchInputValue}
       handleInvitation={@bound 'handleInvitation'}
       handleRoleChange={@bound 'handleRoleChange'}
+      handleDisabledUser={@bound 'handleDisabledUser'}
       onSearchInputChange={@bound 'onSearchInputChange'} />
 
 
