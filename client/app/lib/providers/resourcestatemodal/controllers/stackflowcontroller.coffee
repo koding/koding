@@ -47,6 +47,7 @@ module.exports = class StackFlowController extends BasePageController
     @credentials.on 'NextPageRequested', @lazyBound 'setCurrentPage', @buildStack
     @buildStack.on 'CredentialsRequested', @lazyBound 'setCurrentPage', @credentials
     @buildStack.on 'RebuildRequested', => @credentials.submit()
+    @forwardEvent @buildStack, 'ClosingRequested'
 
     page = if @state is Building then @buildStack else @instructions
     @setCurrentPage page
@@ -70,9 +71,9 @@ module.exports = class StackFlowController extends BasePageController
       @checkIfBuildCompleted()
 
 
-  checkIfBuildCompleted: (status = @state, initial = no) ->
+  checkIfBuildCompleted: (initial = no) ->
 
-    return  unless status is Running
+    return  unless @state is Running
 
     machine = @getData()
     { appManager } = kd.singletons
@@ -86,15 +87,15 @@ module.exports = class StackFlowController extends BasePageController
 
   completeBuildProcess: ->
 
-    { machine } = @getData()
-    machineId   = machine.jMachine._id
+    machine   = @getData()
+    machineId = machine.jMachine._id
 
-    @buildStackPage.completeProcess()
+    @buildStack.completeProcess()
 
     if @oldState is Building and @state is Running
       { computeController } = kd.singletons
       computeController.once "revive-#{machineId}", =>
-        @checkIfBuildCompleted status, yes
+        @checkIfBuildCompleted yes
 
 
   destroy: ->

@@ -3,6 +3,7 @@ Machine = require 'app/providers/machine'
 BasePageController = require './basepagecontroller'
 BuildStackPageView = require '../views/buildstackpageview'
 BuildStackErrorPageView = require '../views/buildstackerrorpageview'
+BuildStackSuccessPageView = require '../views/buildstacksuccesspageview'
 showError = require 'app/util/showError'
 
 module.exports = class BuildStackController extends BasePageController
@@ -21,19 +22,20 @@ module.exports = class BuildStackController extends BasePageController
 
     @buildStackPage = new BuildStackPageView stackName : stack.title
     @errorPage = new BuildStackErrorPageView()
-    @registerPages [ @buildStackPage, @errorPage ]
+    @successPage = new BuildStackSuccessPageView()
+    @registerPages [ @buildStackPage, @errorPage, @successPage ]
 
     @forwardEvent @errorPage, 'CredentialsRequested'
     @errorPage.on 'RebuildRequested', =>
       @updateProgress() # reset previous values
       @emit 'RebuildRequested'
+    @forwardEvent @successPage, 'ClosingRequested'
 
 
   updateProgress: (percentage, message = '') ->
 
     @buildStackPage.updatePercentage percentage
 
-    message = message.replace 'machine', 'VM'
     message = message.capitalize()
     @buildStackPage.setStatusText message
 
@@ -41,6 +43,7 @@ module.exports = class BuildStackController extends BasePageController
   completeProcess: ->
 
     @buildStackPage.updatePercentage 100
+    kd.utils.wait 100, @lazyBound 'setCurrentPage', @successPage
 
 
   showError: (err) ->

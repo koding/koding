@@ -1,6 +1,5 @@
 kd = require 'kd'
 StackFlowController = require './controllers/stackflowcontroller'
-helpers = require './helpers'
 
 module.exports = class ResourceStateModal extends kd.ModalView
 
@@ -11,6 +10,7 @@ module.exports = class ResourceStateModal extends kd.ModalView
 
     @stackFlow = new StackFlowController { container : this }, @getData()
     @forwardEvent @stackFlow, 'IDEBecameReady'
+    @stackFlow.on 'ClosingRequested', @bound 'destroy'
 
 
   updateStatus: (event, task) ->
