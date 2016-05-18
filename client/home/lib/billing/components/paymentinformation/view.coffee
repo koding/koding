@@ -16,6 +16,9 @@ module.exports = class PaymentInformation extends React.Component
   pickValue: (type) -> @props.formValues.get type
 
 
+  pickError: (type) -> @props.formErrors.get type
+
+
   render: ->
 
     <section className='HomeAppView--section billing'>
@@ -29,11 +32,10 @@ module.exports = class PaymentInformation extends React.Component
       </fieldset>
       <fieldset className='email'>
         <label className='HomeAppView-label'>E-mail Address</label>
-        <input
-          className={inputClass 'email'}
+        <Email
           value={@pickValue 'email'}
           onChange={@sendValue 'email'}
-          placeholder='Enter your e-mail...' />
+          hasError={@pickError 'email'} />
       </fieldset>
       <ActionBar
         onRemoveCard={@props.onRemoveCard}
@@ -42,7 +44,7 @@ module.exports = class PaymentInformation extends React.Component
     </section>
 
 
-inputClass = (name) -> ['HomeAppView-input', 'HomeAppView-input--cc-form', name].filter(Boolean).join ' '
+inputClass = (name) -> ['HomeAppView-input', name].filter(Boolean).join ' '
 
 ActionBar = ({ onRemoveCard, onPaymentHistory, onSave }) ->
 
@@ -57,4 +59,18 @@ ActionBar = ({ onRemoveCard, onPaymentHistory, onSave }) ->
       <span className="button-title">SAVE</span>
     </button>
   </fieldset>
+
+
+Email = ({ value, onChange, hasError }) ->
+
+  className = if hasError then 'has-error' else ''
+
+  <div className={className}>
+    <input
+      className={inputClass 'email'}
+      value={value}
+      onChange={onChange}
+      hasError={hasError}
+      placeholder='Enter your e-mail...' />
+  </div>
 

@@ -7,9 +7,13 @@ Home Team Billing styles
 .HomeTeamBillingForm
   margin-top                -65px
 
-
 .HomeAppView--billing-form
   margin-top                20px
+
+  .has-error
+    input
+    .Select-control
+      border                1px solid red
 
   fieldset
     padding-top             18px
@@ -126,6 +130,7 @@ Home Team Billing styles
       margin-top            -12px
 
 .CardNumber-wrapper
+
   &:after
     content                 ''
     display                 block
@@ -153,3 +158,5 @@ Home Team Billing styles
     r-sprite                'pricing', 'mastercard'
   &.discover:after
     r-sprite                'pricing', 'discover'
+
+

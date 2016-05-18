@@ -12,6 +12,7 @@ module.exports = class PaymentInformationContainer extends React.Component
   getDataBindings: ->
     return {
       formValues: CardFormValues.getters.values
+      formErrors: CardFormValues.getters.errors
     }
 
 
@@ -28,7 +29,8 @@ module.exports = class PaymentInformationContainer extends React.Component
     { actions, getters } = PaymentFlux reactor
 
     if getters.paymentValues().get 'groupCreditCard'
-      actions.removeGroupPlan()
+      actions.removeGroupPlan().then ->
+        showSuccess 'Your card has been removed successfully.'
 
 
   onPaymentHistory: ->
@@ -45,7 +47,7 @@ module.exports = class PaymentInformationContainer extends React.Component
     { createStripeToken, subscribeGroupPlan
       loadGroupCreditCard, updateGroupCreditCard } = actions
 
-    { resetValues } = CardFormValues.actions
+    { resetValues, resetErrors } = CardFormValues.actions
 
     options =
       cardNumber: formValues.get 'number'
@@ -53,18 +55,22 @@ module.exports = class PaymentInformationContainer extends React.Component
       cardMonth: formValues.get 'expirationMonth'
       cardYear: formValues.get 'expirationYear'
       cardName: formValues.get 'fullName'
+      cardEmail: formValues.get 'email'
 
+    resetErrors()
     createStripeToken(options).then ({ token }) ->
 
       if getters.paymentValues().get 'groupCreditCard'
         updateGroupCreditCard({ token }).then ->
           resetValues()
           loadGroupCreditCard()
+          showSuccess 'Your card has been updated successfully.'
 
       else
         subscribeGroupPlan({ token, email: formValues.get 'email' }).then ->
           resetValues()
           loadGroupCreditCard()
+          showSuccess 'Your card has been saved successfully.'
 
 
   render: ->
@@ -74,8 +80,11 @@ module.exports = class PaymentInformationContainer extends React.Component
       onRemoveCard={@bound 'onRemoveCard'}
       onPaymentHistory={@bound 'onPaymentHistory'}
       onSave={@bound 'onSave'}
+      formErrors={@state.formErrors}
       formValues={@state.formValues} />
 
 
 PaymentInformationContainer.include [KDReactorMixin]
+
+showSuccess = (title) -> new kd.NotificationView { title }
 
