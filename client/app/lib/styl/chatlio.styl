@@ -93,20 +93,63 @@ $dullBorder                 = rgba(0,0,0,.15)
 
 
   .chatlio-message-container
-    kalc                    height, (100% \- 84px)
-    bottom                  48px
+    kalc                    height, (100% \- 79px)
+    bottom                  39px
+    border                  1px solid #DFDFDF
+    border-width            0 1px
+    bg                      color #F9F9F9
 
   .chatlio-new-message-container
     border-top              1px solid #dedede
     background-color        #f6f6f6
-    padding                 6px 8px
-    abs                     0 0 -5px 0
+    padding                 0
+    abs                     0 0 0px 0
     width                   100%
+    bg                      color #FFF
+    border                  1px solid #DFDFDF
+    border-width            1px 1px 0
 
   textarea.chatlio-new-message
-    margin                  0 0 6px
+    margin                  0
     rounded                 0
-    border                  1px solid #ddd
+    border                  none
+    padding                 10px 19px
+
+    &::-webkit-input-placeholder
+      color                 #BBBBBB
+      font-weight           300
+      fontPrecisionForSoleil()
+    &:-moz-placeholder
+      color                 #BBBBBB
+      font-weight           300
+      fontPrecisionForSoleil()
+
 
   .chatlio-powered-by
     display                 none !important
+
+  .chatlio-message
+    padding                 .35em .5em 0
+
+  .chatlio-message-body
+    code
+      font-size             .8em
+      color                 #BC3557
+      padding               .3em .4em .1em
+      bg                    color #F7F7F9
+      border-color          #E1E1E8
+
+  .chatlio-message-timestamp
+    color                   #adadad
+    margin-top              .4em
+    margin-bottom           .4em
+
+  .chatlio-message-from-me
+    .chatlio-message-content
+      bg                    color #F1F1F1
+      border                1px solid #E5E5E5
+
+  .chatlio-message-from-them
+    .chatlio-message-content
+      bg                    color #FFF
+      border                1px solid #E5E5E5
