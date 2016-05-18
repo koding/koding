@@ -2,8 +2,7 @@ traverse = require 'traverse'
 
 module.exports = (KONFIG) ->
 
-  traverse.forEach (node) ->
-    node = traverse.get KONFIG, path
+  traverse.forEach KONFIG, (node) ->
     return  if typeof node is 'object'
 
     if val = process.env["KONFIG_#{@path.join '_'}"]
