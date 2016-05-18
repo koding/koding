@@ -18,7 +18,10 @@ module.exports = class HomeTeamSettingsView extends React.Component
       <div className='HomeAppView--uploadLogo'>
         <TeamLogo team={@props.team} logopath={@props.logopath} callback={@bound 'onClickLogo'}/>
         <div className='uploadInputWrapper'>
-          <GenericButtons canEdit={@props.canEdit} clickLogo={@props.onClickLogo} removeLogo={@props.onRemoveLogo} />
+          <GenericButtons
+            canEdit={@props.canEdit}
+            clickLogo={@props.onClickLogo}
+            removeLogo={@props.onRemoveLogo} />
           <input ref={(input) => @input = input} accept='image/*' className='kdinput file' type='file' onChange={@props.onUploadInput} />
         </div>
       </div>
@@ -36,8 +39,8 @@ GenericButtons = ({ canEdit, clickLogo, removeLogo }) ->
 
   if canEdit
     <div>
-      <GenericButton className={'custom-link-view primary'} title={'UPLOAD LOGO'} callback={clickLogo} />
-      <GenericButton className={'custom-link-view remove'} title={'REMOVE'} callback={removeLogo} />
+      <GenericButton className='custom-link-view primary' title='UPLOAD LOGO' callback={clickLogo} />
+      <GenericButton className='custom-link-view remove' title='REMOVE' callback={removeLogo} />
     </div>
   else
     <div />
@@ -50,7 +53,7 @@ ActionBar = ({ canEdit, callback, onLeaveTeam }) ->
 
   <fieldset className='HomeAppView--ActionBar'>
     <LeaveTeam onLeaveTeam={onLeaveTeam}/>
-    <GenericButton className={className} title={'SAVE CHANGES'} callback={callback}/>
+    <GenericButton className=className title='SAVE CHANGES' callback={callback}/>
   </fieldset>
 
 
@@ -82,8 +85,20 @@ TeamName = ({ canEdit, title, teamName, callback }) ->
 
 TeamNameInputArea = ({ canEdit, value, callback }) ->
   if canEdit
-  then <input type='text' name='title' className='kdinput text js-teamName' value={value} onChange={callback}/>
-  else <input type='text' name='title' disabled className='kdinput text js-teamName' value={value} onChange={callback}/>
+    <input
+      type='text'
+      name='title'
+      value={value}
+      className='kdinput text js-teamName'
+      onChange={callback} />
+  else
+    <input
+      type='text'
+      name='title'
+      value={value}
+      disabled={not canEdit}
+      className='kdinput text js-teamName'
+      onChange={callback} />
 
 
 GenericButton = ({ className, title, callback }) ->
