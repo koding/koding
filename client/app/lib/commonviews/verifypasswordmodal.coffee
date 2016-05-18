@@ -7,7 +7,7 @@ showError = require 'app/util/showError'
 
 module.exports = class VerifyPasswordModal extends KDModalViewWithForms
 
-  constructor: (buttonTitle = 'Submit', callback) ->
+  constructor: (buttonTitle = 'Submit', partial = '', callback) ->
 
     options =
       title                       : 'Please verify your current password '
@@ -38,6 +38,13 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
                     @destroy()
 
             fields                :
+              planDetails     :
+                type          : 'hidden'
+                nextElement   :
+                  planDetails :
+                    cssClass  : 'content'
+                    itemClass : kd.View
+                    partial   : partial
               password            :
                 name              : 'password'
                 placeholder       : 'current password'
@@ -47,6 +54,7 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
                     required      : yes
                   messages        :
                     required      : 'Current Password required!'
+
 
     super options
 
