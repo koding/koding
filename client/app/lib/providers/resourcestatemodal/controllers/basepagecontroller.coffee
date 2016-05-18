@@ -21,10 +21,12 @@ module.exports = class BasePageController extends kd.Controller
 
   show: ->
 
+    return  unless @pages
     @setCurrentPage @pages.first
 
 
   hide: ->
 
+    return  unless @pages
     page.hide() for page in @pages
     @currentPage = null

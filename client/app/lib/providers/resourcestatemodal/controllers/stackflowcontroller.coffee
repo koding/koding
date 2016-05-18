@@ -49,13 +49,16 @@ module.exports = class StackFlowController extends BasePageController
     @buildStack.on 'RebuildRequested', => @credentials.submit()
     @forwardEvent @buildStack, 'ClosingRequested'
 
-    page = if @state is Building then @buildStack else @instructions
-    @setCurrentPage page
+    page = if @state is Building then @buildStack
+    else if @state is NotInitialized then @instructions
+    @setCurrentPage page  if page
 
 
   updateStatus: (event, task) ->
 
-    { status, percentage, error, message } = event
+    { status, percentage, error, message, eventId } = event
+
+    return  unless eventId?.indexOf(@stack._id) > -1
 
     [ @oldState, @state ] = [ @state, status ]
 
