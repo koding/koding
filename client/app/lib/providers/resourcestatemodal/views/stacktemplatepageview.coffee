@@ -37,7 +37,7 @@ module.exports = class StackTemplatePageView extends JView
 
   pistachio: ->
 
-    """
+    '''
       <div class="stack-template-page">
         <header>
           <h1>Build Your Stack</h1>
@@ -53,4 +53,4 @@ module.exports = class StackTemplatePageView extends JView
           {{> @nextButton}}
         </footer>
       </div>
-    """
+    '''

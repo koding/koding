@@ -20,7 +20,7 @@ module.exports = class BuildStackController extends BasePageController
 
     stack = @getData()
 
-    @buildStackPage = new BuildStackPageView stackName : stack.title
+    @buildStackPage = new BuildStackPageView { stackName : stack.title }
     @errorPage = new BuildStackErrorPageView()
     @successPage = new BuildStackSuccessPageView()
     @registerPages [ @buildStackPage, @errorPage, @successPage ]

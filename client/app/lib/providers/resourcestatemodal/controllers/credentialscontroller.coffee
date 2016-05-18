@@ -114,7 +114,7 @@ module.exports = class CredentialsController extends BasePageController
           .timeout VERIFICATION_TIMEOUT
     ]
 
-    async.waterfall queue, (err, result) =>
+    async.waterfall queue, (err, result) ->
       return callback null, { err : err.message }  if err
       return callback null, { err : DEFAULT_VERIFICATION_ERROR_MESSAGE }  unless result.status
 
@@ -185,14 +185,14 @@ module.exports = class CredentialsController extends BasePageController
 
 
     getKDCmd: (callback) ->
-    
-      whoami().fetchOtaToken (err, token) =>
+
+      whoami().fetchOtaToken (err, token) ->
         return callback err  if err
-    
+
         cmd = if globals.config.environment in ['dev', 'default', 'sandbox']
         then "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; curl -sL https://sandbox.kodi.ng/c/d/kd | bash -s #{token}"
         else "curl -sL https://kodi.ng/c/p/kd | bash -s #{token}"
-    
+
         callback null, cmd
 
 

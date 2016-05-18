@@ -27,8 +27,8 @@ module.exports = class CredentialsErrorPageView extends JView
     isSingleError = errs.length is 1
 
     title = if isSingleError
-    then "You got an error:"
-    else "You got some errors:"
+    then 'You got an error:'
+    else 'You got some errors:'
 
     content = if isSingleError
     then "<p>#{errs.first}</p>"
@@ -39,7 +39,7 @@ module.exports = class CredentialsErrorPageView extends JView
 
   pistachio: ->
 
-    """
+    '''
       <div class="error-page credentials-error-page">
         <header>
           <h1>Build Your Stack</h1>
@@ -54,4 +54,4 @@ module.exports = class CredentialsErrorPageView extends JView
           {{> @backLink}}
         </footer>
       </div>
-    """
+    '''

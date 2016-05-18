@@ -34,7 +34,7 @@ module.exports = class ReadmePageView extends JView
 
   pistachio: ->
 
-    """
+    '''
       <div class="readme-page">
         <header>
           <h1>Build Your Stack</h1>
@@ -50,4 +50,4 @@ module.exports = class ReadmePageView extends JView
           {{> @nextButton}}
         </footer>
       </div>
-    """
+    '''

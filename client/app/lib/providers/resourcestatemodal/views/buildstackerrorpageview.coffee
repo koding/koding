@@ -37,7 +37,7 @@ module.exports = class BuildStackErrorPageView extends JView
 
   pistachio: ->
 
-    """
+    '''
       <div class="error-page build-stack-error-page">
         <header>
           <h1>Build Your Stack</h1>
@@ -54,4 +54,4 @@ module.exports = class BuildStackErrorPageView extends JView
           {{> @buildButton}}
         </footer>
       </div>
-    """
+    '''
