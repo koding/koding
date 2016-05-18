@@ -1,9 +1,9 @@
 kd = require 'kd'
-JView = require 'app/jview'
+BaseErrorPageView = require './baseerrorpageview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 
-module.exports = class BuildStackErrorPageView extends JView
+module.exports = class BuildStackErrorPageView extends BaseErrorPageView
 
   constructor: (options = {}, data) ->
 
@@ -11,9 +11,6 @@ module.exports = class BuildStackErrorPageView extends JView
 
     @progressPane = new WizardProgressPane
       currentStep : WizardSteps.BuildStack
-
-    @errorContent = new kd.CustomHTMLView
-      cssClass : 'error-content'
 
     @backLink = new kd.CustomHTMLView
       tagName  : 'a'
@@ -27,14 +24,6 @@ module.exports = class BuildStackErrorPageView extends JView
       callback : @lazyBound 'emit', 'RebuildRequested'
 
 
-  setError: (err) ->
-
-    @errorContent.updatePartial """
-      You got an error:
-      <p>#{err}</p>
-    """
-
-
   pistachio: ->
 
     '''
@@ -45,9 +34,9 @@ module.exports = class BuildStackErrorPageView extends JView
         {{> @progressPane}}
         <section class="main">
           <h2>Oh no! Your stack build failed</h2>
-          <p>There was an error while building your stack. Please go back<br />
-          and try building it again, or get in contact with us</p>
-          {{> @errorContent}}
+          <p>There was an error while building your stack.<br />
+          Please try building it again, or get in contact with us</p>
+          {{> @errorContainer}}
         </section>
         <footer>
           {{> @backLink}}

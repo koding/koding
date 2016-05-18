@@ -49,4 +49,4 @@ module.exports = class BuildStackController extends BasePageController
   showError: (err) ->
 
     @setCurrentPage @errorPage
-    @errorPage.setError err
+    @errorPage.setErrors [ err ]

@@ -139,26 +139,36 @@
           bg                color, #F06969
           color             #fff
 
-    .error-content
-      border                1px solid #f06969
-      rounded               5px
+    .error-container
+      max-height            250px
       width                 450px
       margin                0 auto
-      bg                    color, #f4f4f4
-      borderBox()
-      padding               15px 15px 20px 15px
-      color                 #555
-      font-size             14px
+      styleScrollBars       rgba(0, 0, 0, .15)
 
-      p
-        padding-top         12px
+      .error-content
+        padding             15px 15px 20px 15px
+        color               #555
+        font-size           14px
+        border              1px solid #f06969
+        bg                  color, #f4f4f4
+        rounded             5px
 
-      ul
-        list-style-type     disc
-        padding-left        20px
-
-        li
+        p
           padding-top       12px
+
+        ul
+          list-style-type   disc
+          padding-left      20px
+
+          li
+            padding-top     12px
+
+      &.has-vertical
+        border              1px solid #f06969
+        rounded             5px
+
+        .error-content
+          border            none
 
 
     footer

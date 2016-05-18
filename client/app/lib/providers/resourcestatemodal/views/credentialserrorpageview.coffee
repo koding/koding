@@ -1,9 +1,9 @@
 kd = require 'kd'
-JView = require 'app/jview'
+BaseErrorPageView = require './baseerrorpageview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 
-module.exports = class CredentialsErrorPageView extends JView
+module.exports = class CredentialsErrorPageView extends BaseErrorPageView
 
   constructor: (options = {}, data) ->
 
@@ -18,24 +18,6 @@ module.exports = class CredentialsErrorPageView extends JView
       partial  : '<span class="arrow"></span>  RE-ENTER YOUR CREDENTIALS'
       click    : @lazyBound 'emit', 'CredentialsRequested'
 
-    @errorContent = new kd.CustomHTMLView
-      cssClass : 'error-content'
-
-
-  setErrors: (errs) ->
-
-    isSingleError = errs.length is 1
-
-    title = if isSingleError
-    then 'You got an error:'
-    else 'You got some errors:'
-
-    content = if isSingleError
-    then "<p>#{errs.first}</p>"
-    else "<ul>#{(errs.map (err) -> "<li>#{err}</li>").join ''}</ul>"
-
-    @errorContent.updatePartial title + content
-
 
   pistachio: ->
 
@@ -48,7 +30,7 @@ module.exports = class CredentialsErrorPageView extends JView
         <section class="main">
           <h2>Whoops, Those Credentials Didn't Work</h2>
           <p>The credentials you have provided didn't work. You can try again<br />or add new credentials</p>
-          {{> @errorContent}}
+          {{> @errorContainer}}
         </section>
         <footer>
           {{> @backLink}}
