@@ -139,6 +139,8 @@ Configuration = (options = {}) ->
     limit: '1536MB'
     email: 'sysops+supervisord-sandbox@koding.com'
 
+  (require './inheritEnvVars') KONFIG  if options.inheritEnvVars
+
   envFiles =
     sh: (require './generateShellEnv').create KONFIG, options
     json: JSON.stringify KONFIG, null, 2
