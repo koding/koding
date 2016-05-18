@@ -1230,7 +1230,7 @@ module.exports = class JGroup extends Module
     if @slug in ['koding', 'guests']
       return callback new KodingError "It's not allowed to leave this group"
 
-    @fetchMyRoles client, (err, roles) =>
+    @fetchMyRoles client, (err, roles) ->
       return callback err if err
 
       account.fetchUser (err, user) ->
