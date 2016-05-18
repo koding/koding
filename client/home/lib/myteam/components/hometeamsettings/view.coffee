@@ -18,19 +18,29 @@ module.exports = class HomeTeamSettingsView extends React.Component
       <div className='HomeAppView--uploadLogo'>
         <TeamLogo team={@props.team} logopath={@props.logopath} callback={@bound 'onClickLogo'}/>
         <div className='uploadInputWrapper'>
-          <GenericButton className={'custom-link-view primary'} title={'UPLOAD LOGO'} callback={@props.onClickLogo} />
-          <GenericButton className={'custom-link-view remove'} title={'REMOVE'} callback={@props.onRemoveLogo}/>
+          <GenericButtons canEdit={@props.canEdit} clickLogo={@props.onClickLogo} removeLogo={@props.onRemoveLogo} />
           <input ref={(input) => @input = input} accept='image/*' className='kdinput file' type='file' onChange={@props.onUploadInput} />
         </div>
       </div>
       <form>
         <div className='hor-flex'>
-          <TeamName title={@props.team.get 'title'} teamName={@props.teamName} callback={@props.onTeamNameChanged} />
+          <TeamName canEdit={@props.canEdit} title={@props.team.get 'title'} teamName={@props.teamName} callback={@props.onTeamNameChanged} />
           <TeamDomain slug={@props.team.get 'slug'} />
         </div>
         <ActionBar canEdit={@props.canEdit} callback={@props.onUpdate} onLeaveTeam={@props.onLeaveTeam}/>
       </form>
     </div>
+
+
+GenericButtons = ({ canEdit, clickLogo, removeLogo }) ->
+
+  if canEdit
+    <div>
+      <GenericButton className={'custom-link-view primary'} title={'UPLOAD LOGO'} callback={clickLogo} />
+      <GenericButton className={'custom-link-view remove'} title={'REMOVE'} callback={removeLogo} />
+    </div>
+  else
+    <div />
 
 
 ActionBar = ({ canEdit, callback, onLeaveTeam }) ->
