@@ -69,15 +69,21 @@ TeamDomain = ({ slug }) ->
   </fieldset>
 
 
-TeamName = ({ title, teamName, callback }) ->
+TeamName = ({ canEdit, title, teamName, callback }) ->
 
   encode = if title then title else ''
   value = teamName or Encoder.htmlDecode encode
 
   <fieldset className='half'>
     <label>Team Name</label>
-    <input type='text' name='title' className='kdinput text js-teamName' value={value} onChange={callback}/>
+    <TeamNameInputArea canEdit={canEdit} value={value} callback={callback} />
   </fieldset>
+
+
+TeamNameInputArea = ({ canEdit, value, callback }) ->
+  if canEdit
+  then <input type='text' name='title' className='kdinput text js-teamName' value={value} onChange={callback}/>
+  else <input type='text' name='title' disabled className='kdinput text js-teamName' value={value} onChange={callback}/>
 
 
 GenericButton = ({ className, title, callback }) ->
