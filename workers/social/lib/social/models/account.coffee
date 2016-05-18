@@ -167,6 +167,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchMetaInformation :
           (signature Function)
+        fetchAllParticipatedGroups :
+          (signature Object, Function)
         setLastLoginTimezoneOffset:
           (signature Object, Function)
         expireSubscription:
@@ -331,6 +333,8 @@ module.exports = class JAccount extends jraphical.Module
       roles = [ 'member', 'moderator', 'admin', 'owner' ]
 
     selector = {
+      sourceName: 'JGroup'
+      targetName: 'JAccount'
       targetId: delegate.getId()
       as: { $in: roles }
     }
