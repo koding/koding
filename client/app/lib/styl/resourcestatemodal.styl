@@ -3,9 +3,7 @@
   overflow                  hidden
   rounded                   6px
   border                    none
-  width                     720px !important
-  left                      50% !important
-  margin-left               -230px
+  width                     920px !important
 
   .kdmodal-inner,
   .kdmodal-inner .kdmodal-content
@@ -18,59 +16,57 @@
     hidden()
 
   header
-    height                  84px
+    height                  100px
     border-bottom           1px solid #DEDBDB
     bg                      color #fff
     text-align              center
 
     h1
+      display               inline-block
       color                 #BABABA
       font-size             20px
       font-weight           300
-      line-height           20px
-      margin                31px 0
-      display               inline-block
-      fontPrecisionForSoleil()
+      padding-top           40px
 
   section.main
-    height                  430px
-    color                   #A59999
-    borderBox()
-    padding                 0 70px
+    height                  500px
 
     > h2
-      color                 #585858
-      margin                30px 0 12px
+      color                 #424242
+      padding-top           29px
       font-size             20px
-      font-weight           300
-      fontPrecisionForSoleil()
       text-align            center
+      letter-spacing        .2px
 
     > p
       text-align            center
       font-size             14px
-      font-weight           300
       letter-spacing        .2px
-      fontPrecisionForSoleil()
       text-align            center
-      margin-bottom         25px
+      color                 #a59999
+      margin-bottom         29px
 
   footer
-    height                  75px
+    height                  100px
     border-top              1px solid #DEDBDB
     bg                      color #fff
     rel()
 
     .GenericButton
-      abs                   15px 26px
+      abs                   29px 29px
       text-transform        uppercase
+      width                 146px
+      height                42px
+      padding               0
 
     a.back-link
       abs()
-      top                   24px
-      left                  26px
-      color                 #d9d9d9
+      top                   39px
+      left                  30px
+      color                 #c6c6c6
       text-decoration       none !important
+      font-size             14px
+      line-height           18px
 
       .arrow:after
         content             "\2190"
@@ -79,29 +75,32 @@
         color               #afafaf
 
   .GenericButton.secondary
+    width                   165px
+    height                  41px
+    padding                 0
+    font-size               13.7px
+    color                   #57a2d2
     bg                      color, #fafafa
-    color                   #729FCF
     border                  1px solid #dedbdb
     display                 block
     margin                  0 auto
 
 
   .wizard-progress-pane
-    bg                      color, #f3f3f3
+    bg                      color, #efefef
     border-bottom           1px solid #dedbdb
     text-align              center
-    borderBox()
-    padding                 0 70px
 
     .wizard-step
       display               inline-block
       borderBox()
-      width                 33%
-      height                50px
-      font-size             14px
-      padding-top           11px
+      width                 230px
+      height                58px
+      font-size             16px
+      padding-top           15px
       bg                    color, #fff
-      color                 #d9d9d9
+      color                 #c6c6c6
+      letter-spacing        .2px
 
       &:first-child
         border-left         1px solid #e6e6e6
@@ -110,12 +109,12 @@
         border-right        1px solid #e6e6e6
 
       &.current
-        bg                  color, #74E4F4
+        bg                  color, #57a2d2
         color               #fff
 
       &.completed
-        bg                  color, #74E4F4
-        color               #93a1a1
+        bg                  color, #57a2d2
+        color               rgba(0,0,0,0.3)
         border-right        1px solid #c7c7c7
 
 
@@ -147,10 +146,11 @@
 
       .error-content
         padding             15px 15px 20px 15px
-        color               #555
-        font-size           14px
-        border              1px solid #f06969
-        bg                  color, #f4f4f4
+        color               #5e5e5e
+        font-size           13px
+        line-height         16px
+        border              1px solid #f2778a
+        bg                  color, rgba(242,119,138,0.05)
         rounded             5px
 
         p
@@ -164,7 +164,7 @@
             padding-top     12px
 
       &.has-vertical
-        border              1px solid #f06969
+        border              1px solid #f2778a
         rounded             5px
 
         .error-content
@@ -182,38 +182,43 @@
   .readme-page
 
       .kdcustomscrollview
-        max-height          250px
+        max-height          310px
+        width               700px
         bg                  color, #fff
         styleScrollBars     rgba(0, 0, 0, .15)
         rounded             5px
+        margin              0 auto
 
       .description
-        padding             20px
+        padding             30px
         font-size           12px
         color               #333
 
       .GenericButton.secondary
-        margin-top          25px
+        margin-top          20px
 
 
   .stack-template-page
 
     .editor-view
-      height                250px
+      width                 700px
+      height                310px
+      margin                0 auto
 
     .GenericButton.secondary
-      margin-top            25px
+      margin-top            20px
 
 
   .credentials-page
 
     section.main
+      padding               0 115px
 
       > p
-        margin-bottom       40px
+        margin-bottom       60px
 
     .form-scroll-wrapper
-      width                 270px
+      width                 325px
       borderBox()
 
       &.credential-wrapper
@@ -233,56 +238,59 @@
         float               none
         margin              0 auto
 
-        .top-header
-          hidden()
-
       .requirements-wrapper
         hidden()
 
-    h3
-      font-weight           bold
-      font-size             14px
-      margin-bottom         10px
+    .credential-form
+      font-family           $helvetica-family
+      color                 #929292
 
-    .kdlabel
-      display               block
-      font-size             14px
-      margin-bottom         2px
-      float                 none
-      color                 inherit
+      a
+        color               #57a2d2
+        font-size           13.7px
+        text-decoration     none !important
+        font-weight         normal
 
-    .kdinput.text
-      rounded               3px
-      bg                    color, #fff
-      border                1px solid #c9c9c9
-      padding               5px 13px
-      font-size             14px
-      line-height           19px
+      h3
+        font-weight         bold
+        font-size           15px
+        letter-spacing      .4px
+        margin-bottom       20px
 
-    .validation-error
-      border                1px solid #f13a18 !important
+      .kdlabel
+        display             block
+        font-size           11.7px
+        letter-spacing      .3px
+        margin-bottom       3px
+        float               none
+        color               inherit
 
-    div.kdselectbox
-      span.title
-        font-size           14px
+      .formline .input-wrapper
+        margin-bottom       12px
 
-    a.create-new
-      color                 #729FCF
-      text-decoration       none !important
-      font-size             14px
+      .kdinput.text
+        font-size           13.7px
+        line-height         .3px
+        rounded             3px
+        bg                  color, #fff
+        border              1px solid #d9d9d9
+        padding             5px 13px
 
-      .plus
+      .validation-error
+        border              1px solid #f13a18 !important
+
+      div.kdselectbox
+        span.title
+          font-size         13.7px
+
+      a.create-new .plus
         font-size           16px
 
-    a.cancel-new
-      color                 #729FCF
-      text-decoration       none !important
-      font-size             14px
-      float                 right
-      font-weight           normal
+      a.cancel-new
+        float               right
 
-    form
-      clear                 both
+      form
+        clear               both
 
       .advanced-field,
       .formline.button-field .save-btn.kdbutton,
@@ -293,70 +301,60 @@
         .advanced-field
           visible()
 
-    .selection-container
-      hidden()
-
-      .kdselectbox
-        width               100%
-        borderBox()
-        margin-bottom       15px
-
-    .selection-visible
       .selection-container
-        visible()
+        .kdselectbox
+          width             100%
+          borderBox()
+          margin-bottom     11px
 
-    .form-container
-      hidden()
-
-    .form-visible
       .form-container
-        visible()
-
-      .create-new
         hidden()
 
-    .new-credential-header
-      hidden()
+      &.form-visible
+        .form-container
+          visible()
 
-    .selection-visible
-      .new-credential-header
-        visible()
+        .selection-container
+          hidden()
 
-    article
-      font-size             14px
+      article
+        font-size           13px
+        font-family         SoleilFamily
+        color               #9f9f9f
+        line-height         19px
 
-      code
-        bg                  color, #f7f7f7
-        border              1px solid #eaeaea
-        borderBox()
-        color               #f2778a
-        font-size           12px
-        font-weight         400
-        font-style          normal
-        line-height         18px
-        padding             0 6px
-        rounded             3px
+        code
+          bg                color, #f2f2f2
+          border            1px solid #cacaca
+          borderBox()
+          color             #f2778a
+          font-weight       400
+          font-style        normal
+          font-size         12px
+          line-height       18px
+          padding           0 6px
+          rounded           4px
 
-        &.block
-          bg                color, #fff
-          color             #858585
-          line-height       20px
-          padding           8px 13px
-          margin            20px 0
-          display           block
-          rel()
-          width             255px
+          &.block
+            bg              color, #fff
+            color           #858585
+            line-height     20px
+            padding         8px 13px
+            margin          20px 0
+            display         block
+            rel()
+            width           310px
 
-          div
-            ellipsis()
-            width           175px
+            div
+              ellipsis()
+              width         230px
 
-          cite
-            abs             8px 13px
+            cite
+              abs           8px 13px
 
-      a
-        color               #f2778a
-        text-decoration     underline
+        a
+          color             #f2778a
+          text-decoration   underline
 
 
   .build-stack-page
@@ -369,7 +367,9 @@
       bg                    image, none
       border                none
       rounded               0
+      width                 600px
       height                40px
+      margin                0 auto
 
       .bar
         rounded             0
@@ -401,5 +401,4 @@
 
       h2
         font-size           32px
-        color               #000
-        opacity             0.5
+        color               rgba(0,0,0,0.5)

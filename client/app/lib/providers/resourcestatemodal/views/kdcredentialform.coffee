@@ -25,12 +25,12 @@ module.exports = class KDCredentialForm extends CredentialForm
     { title } = @getOptions()
 
     """
-      <h3 class='top-header'>#{title}:</h3>
       <div class='selection-container'>
+        <h3 class='top-header'>#{title}:</h3>
         {{> @selectionLabel}}
         {{> @selection}}
+        {{> @createNew}}
       </div>
-      {{> @createNew}}
       <div class='form-container'>
         <h3 class='new-credential-header'>
           New #{title}:

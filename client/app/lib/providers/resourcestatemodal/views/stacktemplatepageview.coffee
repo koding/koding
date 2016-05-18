@@ -14,7 +14,7 @@ module.exports = class StackTemplatePageView extends JView
     @progressPane = new WizardProgressPane
       currentStep : WizardSteps.Instructions
 
-    { rawContent } = @getData()
+    { template: { rawContent } } = @getData()
     @editorView = new StackTemplateEditorView
       delegate    : this
       content     : Encoder.htmlDecode rawContent

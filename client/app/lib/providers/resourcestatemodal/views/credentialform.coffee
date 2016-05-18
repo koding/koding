@@ -33,7 +33,7 @@ module.exports = class CredentialForm extends JView
       tagName  : 'a'
       cssClass : 'create-new'
       partial  : '<span class="plus">+</span> Create New'
-      click    : @bound 'onCreateNew'
+      click    : @lazyBound 'setClass', 'form-visible'
 
     { ui } = kd.singletons.computeController
     @form  = ui.generateAddCredentialFormFor {
@@ -47,18 +47,14 @@ module.exports = class CredentialForm extends JView
       tagName  : 'a'
       cssClass : 'cancel-new'
       partial  : 'Cancel'
-      click    : @bound 'onCancelNew'
+      click    : @lazyBound 'unsetClass', 'form-visible'
 
     if items.length > 0
-      @setClass 'selection-visible'
+      @cancelNew.show()
+      @unsetClass 'form-visible'
     else
-      @onCreateNew()
-
-
-  onCreateNew: -> @setClass 'form-visible'
-
-
-  onCancelNew: -> @unsetClass 'form-visible'
+      @cancelNew.hide()
+      @setClass 'form-visible'
 
 
   validate: ->
@@ -97,12 +93,12 @@ module.exports = class CredentialForm extends JView
     { title } = @getOptions()
 
     """
-      <h3 class='top-header'>#{title}:</h3>
       <div class='selection-container'>
+        <h3 class='top-header'>#{title}:</h3>
         {{> @selectionLabel}}
         {{> @selection}}
+        {{> @createNew}}
       </div>
-      {{> @createNew}}
       <div class='form-container'>
         <h3 class='new-credential-header'>
           New #{title}:
