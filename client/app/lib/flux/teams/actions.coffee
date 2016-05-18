@@ -237,7 +237,7 @@ loadDisabledUsers = ->
   team = groupsController.getCurrentGroup()
 
   team.fetchBlockedAccountsWithEmail (err, members) ->
-    reactor.dispatch actions.LOAD_DISABLED_MEMBERS, { members }
+    reactor.dispatch actions.LOAD_DISABLED_MEMBERS, { members }  unless err
 
 
 handleDisabledUser = (member) ->
