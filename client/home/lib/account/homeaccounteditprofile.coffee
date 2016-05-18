@@ -197,7 +197,7 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
 
   confirmCurrentPassword: (opts, callback) ->
 
-    modal = new VerifyPasswordModal 'Confirm', (currentPassword) ->
+    modal = new VerifyPasswordModal 'Confirm', '', (currentPassword) ->
       options = { password: currentPassword, email: opts.email }
       remote.api.JUser.verifyPassword options, (err, confirmed) ->
 
