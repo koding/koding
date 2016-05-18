@@ -24,7 +24,6 @@ Configuration = (options = {}) ->
   options.environment = "sandbox"
   options.projectRoot = "/opt/koding"
   options.version or= options.tag
-  options.build or= "1111"
   options.tunnelHostedZoneName = "dev-t.koding.com"
   options.tunnelHostedZoneCallerRef = "devtunnelproxy_hosted_zone_v0"
   options.tunnelUrl or= "http://#{options.tunnelHostedZoneName}"
