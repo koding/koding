@@ -634,17 +634,21 @@ removeStackTemplate = (template) ->
       Tracker.track Tracker.STACKS_DELETE_TEMPLATE
 
 
-deleteStack = (stackTemplateId) ->
+deleteStack = ({ stackTemplateId, stack }) ->
 
   { computeController, reactor } = kd.singletons
 
-  stack = computeController.findStackFromTemplateId stackTemplateId
-  return  unless stack
+  _stack = remote.revive stack.toJS()  if stack
 
-  computeController.ui.askFor 'deleteStack', {}, (status) =>
+  if not _stack and stackTemplateId
+    _stack = computeController.findStackFromTemplateId stackTemplateId
+
+  return  unless _stack
+
+  computeController.ui.askFor 'deleteStack', {}, (status) ->
     return  unless status.confirmed
 
-    computeController.destroyStack stack, (err) ->
+    computeController.destroyStack _stack, (err) ->
       return  if showError err
 
       computeController.reset yes
