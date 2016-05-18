@@ -9,7 +9,7 @@ module.exports = class HomeTeamSettingsView extends React.Component
 
   onClickLogo: (event) ->
 
-    @input.click()
+    @input.click()  if @props.canEdit
 
 
   render: ->
