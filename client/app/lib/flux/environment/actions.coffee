@@ -651,7 +651,8 @@ deleteStack = ({ stackTemplateId, stack }) ->
     computeController.destroyStack _stack, (err) ->
       return  if showError err
 
-      computeController.reset yes
+      kd.singletons.appManager.quitByName 'IDE', ->
+        kd.singletons.router.handleRoute '/IDE'
 
 
 changeTemplateTitle = (id, value) ->
