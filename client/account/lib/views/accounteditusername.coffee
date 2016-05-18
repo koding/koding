@@ -285,7 +285,7 @@ module.exports = class AccountEditUsername extends JView
 
     return callback null  if skipPasswordConfirmation
 
-    modal = new VerifyPasswordModal 'Confirm', (currentPassword) ->
+    modal = new VerifyPasswordModal 'Confirm', '', (currentPassword) ->
       options = { password: currentPassword, email }
       remote.api.JUser.verifyPassword options, (err, confirmed) ->
 
