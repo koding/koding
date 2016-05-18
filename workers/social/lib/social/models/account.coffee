@@ -339,11 +339,12 @@ module.exports = class JAccount extends jraphical.Module
       as: { $in: roles }
     }
 
-    Relationship.someData selector, { sourceId: 1 }, (err, cursor) ->
+    Relationship.someData selector, { sourceId: 1, as: 1 }, (err, cursor) ->
       return callback err  if err
       return callback null, []  if not cursor
 
       cursor.toArray (err, arr) ->
+
         return callback err       if err
         return callback null, []  if not arr
 
@@ -353,7 +354,17 @@ module.exports = class JAccount extends jraphical.Module
         groupIds = uniq map(arr, (rel) -> rel.sourceId)
 
         JGroup = require './group'
-        JGroup.some { _id : { $in : groupIds } }, {}, callback
+        JGroup.some { _id : { $in : groupIds } }, {}, (err, groups) ->
+          return callback err  if err
+
+          groups = groups.map (group) ->
+            for rel in arr when group._id.equals rel.sourceId
+              group.roles ?= []
+              group.roles.push rel.as
+            group
+
+          callback null, groups
+
 
   createSocialApiId: (callback) ->
 
