@@ -1222,6 +1222,9 @@ module.exports = class JGroup extends Module
 
   leave: secure (client, options, callback) ->
 
+    password = options?.password
+    account = client.connection.delegate
+
     [callback, options] = [options, callback] unless callback
 
     if @slug in ['koding', 'guests']
@@ -1230,25 +1233,31 @@ module.exports = class JGroup extends Module
     @fetchMyRoles client, (err, roles) =>
       return callback err if err
 
-      if 'owner' in roles
-        return callback new KodingError 'As owner of this group, you must first transfer ownership to someone else!'
+      account.fetchUser (err, user) ->
 
-      Joinable = require '../../traits/joinable'
+        unless err
+          unless user.checkPassword password
+            return callback new KodingError 'Your password didn\'t match with our records'
 
-      kallback = (err) =>
-        @updateCounts()
+        if 'owner' in roles
+          return callback new KodingError 'As owner of this group, you must first transfer ownership to someone else!'
 
-        { profile: { nickname } } = client.connection.delegate
+        Joinable = require '../../traits/joinable'
 
-        return  unless nickname
+        kallback = (err) =>
+          @updateCounts()
 
-        JSession = require '../session'
-        JSession.remove { username: nickname, groupName: @slug }, callback
+          { profile: { nickname } } = client.connection.delegate
 
-      queue = roles.map (role) => (fin) =>
-        Joinable::leave.call this, client, { as:role }, fin
+          return  unless nickname
 
-      async.parallel queue, kallback
+          JSession = require '../session'
+          JSession.remove { username: nickname, groupName: @slug }, callback
+
+        queue = roles.map (role) => (fin) =>
+          Joinable::leave.call this, client, { as:role }, fin
+
+        async.parallel queue, kallback
 
   kickMember: permit
     advanced: [
