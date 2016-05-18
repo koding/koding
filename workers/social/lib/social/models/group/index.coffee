@@ -878,8 +878,8 @@ module.exports = class JGroup extends Module
 
   fetchBlockedAccountsWithEmail$: permit
     advanced: [
-      { permission: 'grant permissions' }
-      { permission: 'grant permissions', superadmin: yes }
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
     ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
