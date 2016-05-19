@@ -156,7 +156,7 @@ module.exports = class Sidebar extends React.Component
     stackSections = stackSections.concat @renderDrafts()
 
     # Now render stack of managed vms last
-    stackList.managed.forEach (stack) => stackSections.push @renderStack stack
+    # stackList.managed.forEach (stack) => stackSections.push @renderStack stack
 
     return stackSections
 
