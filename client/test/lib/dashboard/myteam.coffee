@@ -62,6 +62,24 @@ module.exports =
         .assert.containsText    '.kdnotification.main', 'Check your email'
         .pause 5000
 
+        .click leaveTeamButton
+        .waitForElementVisible '.kdmodal.kddraggable', 5000
+        .pause 2000
+        .clearValue passwordSelector
+        .setValue passwordSelector, '1234'
+        .click confirmButton
+        .waitForElementVisible  '.kdnotification', 20000
+        .assert.containsText    '.kdnotification.main', 'Current password cannot be confirmed'
+        .pause 5000
+
+        .click leaveTeamButton
+        .waitForElementVisible '.kdmodal.kddraggable', 5000
+        .pause 2000
+        .clearValue passwordSelector
+        .setValue passwordSelector, targetUser1.password
+        .click confirmButton
+        .assert.urlContains helpers.getUrl(yes)
+
       # .click saveChangesButton
       # .waitForElementNotPresent '.kdnotification', 5000
       # .clearValue               teamNameSelector
