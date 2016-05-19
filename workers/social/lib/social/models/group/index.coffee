@@ -1223,8 +1223,11 @@ module.exports = class JGroup extends Module
 
   leave$: secure (client, options, callback) ->
 
-    password = options.password
-    account = client.connection.delegate
+    password = options?.password
+    account = client?.connection?.delegate
+
+    unless account or password
+      return callback new KodingError 'Error occured while leaving team'
 
     account.fetchUser (err, user) =>
       unless err
