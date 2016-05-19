@@ -1220,44 +1220,49 @@ module.exports = class JGroup extends Module
     , (err, count) =>
       @update ({ $set: { 'counts.members': count } }), ->
 
-  leave: secure (client, options, callback) ->
 
-    password = options?.password
+  leave$: secure (client, options, callback) ->
+
+    password = options.password
     account = client.connection.delegate
+
+    account.fetchUser (err, user) =>
+      unless err
+        unless user.checkPassword password
+          return callback new KodingError 'Your password didn\'t match with our records'
+        else
+          @leave client, options, callback
+
+
+  leave: (client, options, callback) ->
 
     [callback, options] = [options, callback] unless callback
 
     if @slug in ['koding', 'guests']
       return callback new KodingError "It's not allowed to leave this group"
 
-    @fetchMyRoles client, (err, roles) ->
+    @fetchMyRoles client, (err, roles) =>
       return callback err if err
 
-      account.fetchUser (err, user) ->
+      if 'owner' in roles
+        return callback new KodingError 'As owner of this group, you must first transfer ownership to someone else!'
 
-        unless err
-          unless user.checkPassword password
-            return callback new KodingError 'Your password didn\'t match with our records'
+      Joinable = require '../../traits/joinable'
 
-        if 'owner' in roles
-          return callback new KodingError 'As owner of this group, you must first transfer ownership to someone else!'
+      kallback = (err) =>
+        @updateCounts()
 
-        Joinable = require '../../traits/joinable'
+        { profile: { nickname } } = client.connection.delegate
 
-        kallback = (err) =>
-          @updateCounts()
+        return  unless nickname
 
-          { profile: { nickname } } = client.connection.delegate
+        JSession = require '../session'
+        JSession.remove { username: nickname, groupName: @slug }, callback
 
-          return  unless nickname
+      queue = roles.map (role) => (fin) =>
+        Joinable::leave.call this, client, { as:role }, fin
 
-          JSession = require '../session'
-          JSession.remove { username: nickname, groupName: @slug }, callback
-
-        queue = roles.map (role) => (fin) =>
-          Joinable::leave.call this, client, { as:role }, fin
-
-        async.parallel queue, kallback
+      async.parallel queue, kallback
 
   kickMember: permit
     advanced: [
