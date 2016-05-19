@@ -57,6 +57,11 @@ module.exports =
         .waitForElementVisible '.kdmodal.kddraggable', 5000
         .pause 2000
 
+        .click forgotPasswordButton
+        .waitForElementVisible  '.kdnotification', 5000
+        .assert.containsText    '.kdnotification.main', 'Check your email'
+        .pause 5000
+
       # .click saveChangesButton
       # .waitForElementNotPresent '.kdnotification', 5000
       # .clearValue               teamNameSelector
