@@ -16,8 +16,13 @@ module.exports = class CredentialForm extends JView
 
   createViews: ->
 
-    { title, selectionPlaceholder, selectionLabel } = @getOptions()
+    { title, hideTitle, selectionPlaceholder, selectionLabel } = @getOptions()
     { provider, fields, selectedItem, items } = @getData()
+
+    @header = new kd.CustomHTMLView
+      tagName  : 'h3'
+      partial  : title
+    @header.hide()  if hideTitle
 
     selectOptions = items.map (item) -> { value : item.identifier, title : item.title }
     selectOptions.unshift { value : '', title : selectionPlaceholder }
@@ -33,7 +38,7 @@ module.exports = class CredentialForm extends JView
       tagName  : 'a'
       cssClass : 'create-new'
       partial  : '<span class="plus">+</span> Create New'
-      click    : @lazyBound 'setClass', 'form-visible'
+      click    : @bound 'onCreateNew'
 
     { ui } = kd.singletons.computeController
     @form  = ui.generateAddCredentialFormFor {
@@ -43,18 +48,45 @@ module.exports = class CredentialForm extends JView
     }
     @forwardEvent @form, 'FormValidationFailed'
 
+    @newHeader = new kd.CustomHTMLView
+      tagName  : 'h3'
+      partial  : "New #{title}"
     @cancelNew = new kd.CustomHTMLView
       tagName  : 'a'
       cssClass : 'cancel-new'
       partial  : 'Cancel'
-      click    : @lazyBound 'unsetClass', 'form-visible'
+      click    : @bound 'onCancelNew'
+    @newHeader.addSubView @cancelNew
+    @newHeader.hide()
+
+    @scroller = new kd.CustomScrollView()
+    @scroller.wrapper.addSubView @getScrollableContent()
 
     if items.length > 0
-      @cancelNew.show()
       @unsetClass 'form-visible'
     else
-      @cancelNew.hide()
       @setClass 'form-visible'
+
+
+  getScrollableContent: -> @form
+
+
+  onCreateNew: ->
+
+    { title } = @getOptions()
+
+    @setClass 'form-visible'
+    @newHeader.show()
+    @header.hide()
+
+
+  onCancelNew: ->
+
+    { hideTitle } = @getOptions()
+
+    @unsetClass 'form-visible'
+    @newHeader.hide()
+    @header.show()  unless hideTitle
 
 
   validate: ->
@@ -93,17 +125,14 @@ module.exports = class CredentialForm extends JView
     { title } = @getOptions()
 
     """
+      {{> @header}}
       <div class='selection-container'>
-        <h3 class='top-header'>#{title}:</h3>
         {{> @selectionLabel}}
         {{> @selection}}
         {{> @createNew}}
       </div>
+      {{> @newHeader}}
       <div class='form-container'>
-        <h3 class='new-credential-header'>
-          New #{title}:
-          {{> @cancelNew}}
-        </h3>
-        {{> @form}}
+        {{> @scroller}}
       </div>
     """

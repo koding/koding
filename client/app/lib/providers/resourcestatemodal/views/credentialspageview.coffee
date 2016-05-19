@@ -15,8 +15,8 @@ module.exports = class CredentialsPageView extends JView
     @progressPane = new WizardProgressPane
       currentStep : WizardSteps.Credentials
 
-    @createCredentialView()
     @createRequirementsView()
+    @createCredentialView()
 
     @backLink = new kd.CustomHTMLView
       tagName  : 'a'
@@ -31,32 +31,30 @@ module.exports = class CredentialsPageView extends JView
       callback : @bound 'submit'
 
 
-  createCredentialView: ->
-
-    { credentials } = @getData()
-    { provider }    = credentials
-
-    @credentialContainer = new kd.CustomScrollView
-      cssClass : 'form-scroll-wrapper credential-wrapper'
-
-    options   = helpers.getFormOptions provider
-    formClass = if provider is 'vagrant' then KDCredentialForm else CredentialForm
-    @credentialForm = new formClass options, credentials
-    @credentialContainer.wrapper.addSubView @credentialForm
-
-
   createRequirementsView: ->
 
     { requirements } = @getData()
 
-    @requirementsContainer = new kd.CustomScrollView
-      cssClass : 'form-scroll-wrapper requirements-wrapper'
-
-    return  unless requirements.fields
+    if not requirements.fields
+      return @requirementsForm = new kd.CustomHTMLView { cssClass : 'hidden' }
 
     options = helpers.getFormOptions requirements.provider
+    options.cssClass = 'right-form'
     @requirementsForm = new CredentialForm options, requirements
-    @requirementsContainer.wrapper.addSubView @requirementsForm
+
+
+  createCredentialView: ->
+
+    { credentials } = @getData()
+    { provider } = credentials
+
+    options = helpers.getFormOptions provider
+    if @requirementsForm.hasClass 'hidden'
+      options.hideTitle = yes
+    else
+      options.cssClass = 'left-form'
+    formClass = if provider is 'vagrant' then KDCredentialForm else CredentialForm
+    @credentialForm = new formClass options, credentials
 
 
   submit: ->
@@ -90,21 +88,17 @@ module.exports = class CredentialsPageView extends JView
 
     { title, description } = helpers.getTitleAndDescription @getData()
 
-    { requirements }   = @getData()
-    containerCssClass  = 'main'
-    containerCssClass += ' credential-only' unless requirements.fields
-
     """
       <div class="credentials-page">
         <header>
           <h1>Build Your Stack</h1>
         </header>
         {{> @progressPane}}
-        <section class="#{containerCssClass}">
+        <section class="main">
           <h2>#{title}</h2>
           <p>#{description}</p>
-          {{> @credentialContainer}}
-          {{> @requirementsContainer}}
+          {{> @credentialForm}}
+          {{> @requirementsForm}}
           <div class="clearfix"></div>
         </section>
         <footer>
@@ -156,7 +150,7 @@ module.exports = class CredentialsPageView extends JView
 
       (next) ->
 
-        return next()  unless form
+        return next()  if form.hasClass 'hidden'
 
         form.off  'FormValidationPassed'
         form.once 'FormValidationPassed', (result) ->

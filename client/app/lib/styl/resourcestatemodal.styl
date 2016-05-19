@@ -250,37 +250,20 @@ $warningColor               = #f2778a
 
     section.main
       > p
-        margin-bottom       60px
-
-    .form-scroll-wrapper
-      width                 332px
-      borderBox()
-
-      &.credential-wrapper
-        fl()
-        margin-left         115px
-
-      &.requirements-wrapper
-        fr()
-        margin-right        100px
-
-      &.kdcustomscrollview
-        styleScrollBars     rgba(0, 0, 0, .15)
-        max-height          270px
-        padding-right       15px !important
-
-    .credential-only
-
-      .credential-wrapper
-        float               none
-        margin              0 auto
-
-      .requirements-wrapper
-        hidden()
+        margin-bottom       48px
 
     .credential-form
       font-family           $helvetica-family
       color                 #929292
+      width                 332px
+      borderBox()
+      float                 none
+      margin                0 auto
+
+      .kdcustomscrollview
+        styleScrollBars     rgba(0, 0, 0, .15)
+        max-height          325px
+        padding-right       15px !important
 
       a
         color               #57a2d2
@@ -293,6 +276,7 @@ $warningColor               = #f2778a
         font-size           15px
         letter-spacing      .4px
         margin-bottom       20px
+        padding-right       15px
 
       .kdlabel
         display             block
@@ -301,6 +285,9 @@ $warningColor               = #f2778a
         margin-bottom       3px
         float               none
         color               inherit
+
+      .formline:first-child .kdlabel
+        margin-top          0px
 
       .formline .input-wrapper
         margin-bottom       12px
@@ -329,36 +316,29 @@ $warningColor               = #f2778a
       form
         clear               both
 
-      .advanced-field,
-      .formline.button-field .save-btn.kdbutton,
-      .formline.button-field .cancel-btn.kdbutton
-        hidden()
+        .advanced-field,
+        .formline.button-field .save-btn.kdbutton,
+        .formline.button-field .cancel-btn.kdbutton
+          hidden()
 
-      &.in-advanced-mode
-        .advanced-field
-          visible()
+        &.in-advanced-mode
+          .advanced-field
+            visible()
 
       .selection-container
+        padding-right       15px
+
         .kdselectbox
           width             100%
           borderBox()
           margin-bottom     11px
-
-      .form-container
-        hidden()
-
-      &.form-visible
-        .form-container
-          visible()
-
-        .selection-container
-          hidden()
 
       article
         font-size           13px
         font-family         SoleilFamily
         color               #9f9f9f
         line-height         19px
+        margin-bottom       15px
 
         code
           bg                color, #f2f2f2
@@ -380,11 +360,11 @@ $warningColor               = #f2778a
             margin          20px 0
             display         block
             rel()
-            width           310px
+            width           316px
 
             div
               ellipsis()
-              width         230px
+              width         236px
 
             cite
               abs           8px 13px
@@ -392,6 +372,25 @@ $warningColor               = #f2778a
         a
           color             $warningColor
           text-decoration   underline
+
+      .form-container
+        hidden()
+        height              370px
+
+      &.form-visible
+        .form-container
+          visible()
+
+        .selection-container
+          hidden()
+
+      &.left-form
+        fl()
+        margin-left         115px
+
+      &.right-form
+        fr()
+        margin-right        100px
 
 
   .credentials-error-page
