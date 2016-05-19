@@ -50,7 +50,6 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
     TeamFlux.actions.loadDisabledUsers()
     AppFlux.actions.user.loadLoggedInUserEmail()
 
-
     groupsController.on 'GroupJoined', (data) ->
 
       if data.contents.actionType is 'groupJoined'
@@ -66,6 +65,13 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
             reactor.dispatch 'UPDATE_TEAM_MEMBER', { account }
             reactor.dispatch 'ADD_MEMBER_TO_TEAM', { id }
             reactor.dispatch 'REMOVE_PENDING_INVITATION', { email }
+
+    groupsController.on 'GroupLeft', (data) ->
+
+      { username } = data.contents
+      remote.cacheable username, (err, account) ->
+        account = account[0]
+        reactor.dispatch 'DELETE_TEAM_MEMBER', account._id
 
     @wrapper.addSubView header  'Team Settings'
     @wrapper.addSubView section 'Team Settings'
