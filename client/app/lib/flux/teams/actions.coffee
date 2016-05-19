@@ -14,6 +14,7 @@ isEmailValid = require 'app/util/isEmailValid'
 s3upload = require 'app/util/s3upload'
 kookies = require 'kookies'
 Tracker = require 'app/util/tracker'
+VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
 
 loadTeam = ->
 
@@ -237,7 +238,7 @@ loadDisabledUsers = ->
   team = groupsController.getCurrentGroup()
 
   team.fetchBlockedAccountsWithEmail (err, members) ->
-    reactor.dispatch actions.LOAD_DISABLED_MEMBERS, { members }
+    reactor.dispatch actions.LOAD_DISABLED_MEMBERS, { members }  unless err
 
 
 handleDisabledUser = (member) ->
@@ -273,18 +274,30 @@ handlePermanentlyDeleteMember = (member) ->
     reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
 
-leaveTeam = ->
+leaveTeam = (partial) ->
 
-  { groupsController, reactor } = kd.singletons
-  team = groupsController.getCurrentGroup()
+  new Promise (resolve, reject) ->
+    new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
 
-  team.leave (err) ->
-    if err
-      return new kd.NotificationView { title : 'You need to transfer ownership of team before leaving team' }
+      whoami().fetchEmail (err, email) ->
+        options = { password: currentPassword, email }
+        remote.api.JUser.verifyPassword options, (err, confirmed) ->
 
-    Tracker.track Tracker.USER_LEFT_TEAM
-    kookies.expire 'clientId'
-    global.location.replace '/'
+          return reject err.message  if err
+          return reject 'Current password cannot be confirmed'  unless confirmed
+
+          resolve confirmed
+
+          { groupsController, reactor } = kd.singletons
+          team = groupsController.getCurrentGroup()
+
+          team.leave (err) ->
+            if err
+              return new kd.NotificationView { title : 'You need to transfer ownership of team before leaving team' }
+
+            Tracker.track Tracker.USER_LEFT_TEAM
+            kookies.expire 'clientId'
+            global.location.replace '/'
 
 
 
