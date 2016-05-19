@@ -636,7 +636,7 @@ removeStackTemplate = (template) ->
 
 deleteStack = ({ stackTemplateId, stack }) ->
 
-  { computeController, reactor } = kd.singletons
+  { computeController, appManager, router } = kd.singletons
 
   _stack = remote.revive stack.toJS()  if stack
 
@@ -648,11 +648,14 @@ deleteStack = ({ stackTemplateId, stack }) ->
   computeController.ui.askFor 'deleteStack', {}, (status) ->
     return  unless status.confirmed
 
-    computeController.destroyStack _stack, (err) ->
-      return  if showError err
+    appManager.quitByName 'IDE', ->
+      computeController.destroyStack _stack, (err) ->
+        return  if showError err
 
-      kd.singletons.appManager.quitByName 'IDE', ->
-        kd.singletons.router.handleRoute '/IDE'
+        computeController
+          .reset yes
+          .once 'RenderStacks', ->
+            router.handleRoute '/IDE'
 
 
 changeTemplateTitle = (id, value) ->
