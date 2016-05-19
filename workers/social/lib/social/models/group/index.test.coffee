@@ -131,7 +131,11 @@ runTests = -> describe 'workers.social.group.index', ->
 
             (next) ->
               # we should be able to unblock the member
-              group.unblockMember adminClient, account.getId(), (err) ->
+              options =
+                id: account.getId()
+                removeUserFromTeam: no
+
+              group.unblockMember adminClient, options, (err) ->
                 expect(err).to.not.exist
                 next()
 

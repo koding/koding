@@ -350,11 +350,11 @@ module.exports = class MainController extends KDController
 
       return  unless id
 
-      run = do -> -> callback window._chatlio[method] options
+      run = -> callback window._chatlio[method] options
 
       if window._chatlio
-      then run()
-      else document.addEventListener 'chatlio.ready', -> run()
+      then do run
+      else document.addEventListener 'chatlio.ready', run
 
 
 

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 
@@ -196,6 +197,20 @@ func checkSizeOfRemoteFolder(remoteMachine *machine.Machine, remotePath string) 
 	}
 
 	return nil, nil
+}
+
+// getSizeOfLocalFolder asks remote machine for size of specified remote folder
+// and returns it in bytes.
+func getSizeOfLocalPath(localPath string) (int, error) {
+	var size int64
+	err := filepath.Walk(localPath, func(_ string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return err
+	})
+
+	return int(size), err
 }
 
 // changeSummaryToBool is a simple func that converts a ChangeSummary channel to a

@@ -7,6 +7,7 @@ View            = require './view'
 Encoder         = require 'htmlencode'
 showError       = require 'app/util/showError'
 
+
 notify = (title, duration = 5000) -> new kd.NotificationView { title, duration }
 
 module.exports = class HomeTeamSettingsContainer extends React.Component
@@ -95,6 +96,18 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       teamName : event.target.value
 
 
+  onLeaveTeam: (event) ->
+
+    partial = '<p>
+                <strong>CAUTION! </strong>You are going to leave your team and you will not be able to login again.
+                This action <strong>CANNOT</strong> be undone.
+              </p> <br>
+              <p>Please enter <strong>current password</strong> into the field below to continue: </p>'
+
+    TeamFlux.actions.leaveTeam(partial).catch (err) ->
+      showError err
+
+
   render: ->
 
     <View
@@ -107,6 +120,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       onClickLogo={@bound 'onClickLogo'}
       onRemoveLogo={@bound 'onRemoveLogo'}
       onUpdate={@bound 'onUpdate'}
+      onLeaveTeam={@bound 'onLeaveTeam'}
       onTeamNameChanged={@bound 'onTeamNameChanged'}/>
 
 

@@ -26,6 +26,12 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     }
 
 
+  componentWillMount: ->
+
+    canEdit = kd.singletons.groupsController.canEditGroup()
+    TeamFlux.actions.updateInvitationInputValue 0, 'canEdit', yes  if canEdit
+
+
   onUploadCsv: ->
     return new kd.NotificationView
       title    : 'Coming Soon!'
@@ -36,8 +42,8 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
     value = event.target.value
 
-    if inputName is 'role'
-      value = if value then 'admin' else 'member'
+    if inputName is 'canEdit'
+      value = if value then yes else no
 
     TeamFlux.actions.updateInvitationInputValue index, inputName, value
 
@@ -167,8 +173,9 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
   render: ->
 
+    canEdit = kd.singletons.groupsController.canEditGroup()
     <View
-      role={@props.role}
+      canEdit={canEdit}
       inputValues={@state.inputValues}
       onUploadCsv={@bound 'onUploadCsv'}
       onInputChange={@bound 'onInputChange'}

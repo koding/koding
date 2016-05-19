@@ -12,7 +12,9 @@ Tracker     = require 'app/util/tracker'
 isKoding    = require 'app/util/isKoding'
 isEmailValid = require 'app/util/isEmailValid'
 s3upload = require 'app/util/s3upload'
-
+kookies = require 'kookies'
+Tracker = require 'app/util/tracker'
+VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
 
 loadTeam = ->
 
@@ -230,8 +232,78 @@ uploads3 = ({ name, content, mimeType }) ->
       if err then reject { err } else resolve { url }
 
 
+loadDisabledUsers = ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+
+  team.fetchBlockedAccountsWithEmail (err, members) ->
+    reactor.dispatch actions.LOAD_DISABLED_MEMBERS, { members }  unless err
+
+
+handleDisabledUser = (member) ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+
+  memberId = member.get '_id'
+  options =
+    id: memberId
+    removeUserFromTeam: no
+
+  team.unblockMember options, (err) ->
+    unless err
+      fetchMembers().then ->
+        fetchMembersRole()
+        reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
+
+  .catch (err) -> 'error occured while unblocking member'
+
+
+handlePermanentlyDeleteMember = (member) ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+
+  memberId = member.get '_id'
+  options =
+    id: memberId
+    removeUserFromTeam: yes
+
+  team.unblockMember options, (err) ->
+    reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
+
+
+leaveTeam = (partial) ->
+
+  new Promise (resolve, reject) ->
+    new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
+
+      whoami().fetchEmail (err, email) ->
+        options = { password: currentPassword, email }
+        remote.api.JUser.verifyPassword options, (err, confirmed) ->
+
+          return reject err.message  if err
+          return reject 'Current password cannot be confirmed'  unless confirmed
+
+          resolve confirmed
+
+          { groupsController, reactor } = kd.singletons
+          team = groupsController.getCurrentGroup()
+
+          team.leave (err) ->
+            if err
+              return new kd.NotificationView { title : 'You need to transfer ownership of team before leaving team' }
+
+            Tracker.track Tracker.USER_LEFT_TEAM
+            kookies.expire 'clientId'
+            global.location.replace '/'
+
+
+
 module.exports = {
   loadTeam
+  leaveTeam
   updateTeam
   updateInvitationInputValue
   fetchMembers
@@ -244,4 +316,7 @@ module.exports = {
   handlePendingInvitationUpdate
   handleKickMember
   uploads3
+  loadDisabledUsers
+  handleDisabledUser
+  handlePermanentlyDeleteMember
 }

@@ -260,7 +260,7 @@ module.exports =
       .url "#{url}/Home/stacks"
       .waitForElementVisible stacksPageSelector, 20000
       .click newStackButton
-      .pause 2000
+      .pause 1000
       .waitForElementVisible stackOnboardingPage, 20000
       .waitForElementVisible createStackButton, 20000
       .click createStackButton
@@ -268,7 +268,7 @@ module.exports =
       .click providerSelector
       .waitForElementVisible skipGuideButton, 20000
       .click skipGuideButton
-      .pause 5000
+      .pause 1000
       .waitForElementVisible stackEditorTab, 20000
       .click credentialsTabSelector
     browser.element 'css selector', checkForCredentials, (result) =>
@@ -279,7 +279,7 @@ module.exports =
           browser
             .waitForElementVisible createNewButton, 20000
             .click createNewButton
-            .pause 2000, =>
+            .pause 1000, =>
               @fillCredentialsPage browser, credentialName, done
         else
           done()
@@ -298,20 +298,20 @@ module.exports =
       .waitForElementVisible newCredentialPage, 20000
       .scrollToElement saveButton
       .setValue "#{newCredentialPage} .title input", name
-      .pause 1000
+      .pause 200
       .setValue "#{newCredentialPage} .access-key input", accessKeyId
-      .pause 1000
+      .pause 200
       .setValue "#{newCredentialPage} .secret-key input", secretAccessKey
-      .pause 1000
+      .pause 200
       .click regionSelector
-      .pause 1000
+      .pause 200
       .waitForElementVisible eu_west_1, 20000
       .click eu_west_1
-      .pause 1000
+      .pause 200
       .click "#{newCredentialPage} .title input"
-      .pause 1000
+      .pause 200
       .click saveButton
-      .pause 2000, -> done()
+      .pause 1000, -> done()
 
 
   buildStack: (browser, done) ->
@@ -422,14 +422,14 @@ module.exports =
           done()
         else
           browser
-            .pause 2000
+            .pause 1000
             .click useThisAndContinueButton
             .waitForElementVisible editorPaneSelector, 20000
             .click saveButtonSelector
-            .pause 10000
+            .pause 10000 # here wait around 50 secs to create stack
             .waitForElementVisible successModal, 40000
             .click closeButton
-            .pause 5000, ->
+            .pause 2000, ->
               done()
 
 
@@ -437,9 +437,45 @@ module.exports =
 
     stackEditorUrl = "#{helpers.getUrl(yes)}/Home/stacks"
 
-    @createCredential browser, 'aws', 'draft-stack', yes, (res) ->
-      browser.url stackEditorUrl, ->
-        done()
+    @createCredential browser, 'aws', 'draft-stack', yes, (res) =>
+      @createPrivateStack browser, 'PrivateStack', (res) ->
+        browser.url stackEditorUrl, ->
+          done res.value
+
+
+  createPrivateStack: (browser, stackName, done) ->
+
+    stackEditorHeader = '.StackEditorView--header'
+    useThisAndContinueButton = '.StackEditor-CredentialItem--buttons .kdbutton.solid.compact.outline.verify'
+    editorPaneSelector = '.kdview.pane.editor-pane.editor-view'
+    stackTemplateNameArea = "#{stackEditorHeader} .kdinput.text.template-title.autogrow"
+    saveButtonSelector = '.StackEditorView--header .kdbutton.GenericButton.save-test'
+
+    browser
+      .pause 2000
+      .click useThisAndContinueButton
+      .waitForElementVisible editorPaneSelector, 20000
+      .waitForElementVisible stackTemplateNameArea, 2000
+      .setValue stackTemplateNameArea, ''
+      .pause 1000
+      .setValue stackTemplateNameArea, stackName
+      .click saveButtonSelector, =>
+        @waitUntilToCreatePrivateStack browser, done
+
+
+  waitUntilToCreatePrivateStack: (browser, done) ->
+
+    stackEditorHeader = '.StackEditorView--header'
+    makeTeamDefaultButton = "#{stackEditorHeader} .kdbutton.GenericButton.set-default.w-loader"
+
+    browser
+      .pause 3000
+      .element 'css selector', makeTeamDefaultButton, (result) =>
+        if result.status is 0
+           browser.url (res) ->
+            done res
+
+        else @waitUntilToCreatePrivateStack browser, done
 
 
   defineCustomVariables: (browser) ->

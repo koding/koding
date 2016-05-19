@@ -3,6 +3,7 @@ helpers = require '../helpers/helpers.js'
 utils = require '../utils/utils.js'
 stackEditorUrl = "#{helpers.getUrl(yes)}/Home/stacks"
 async = require 'async'
+stackSelector = null
 
 
 module.exports =
@@ -16,12 +17,13 @@ module.exports =
     targetUser1 = utils.getUser no, 1
     targetUser1.role = 'member'
 
-    users =
+    users = [
       targetUser1
+    ]
 
     queue = [
       (next) ->
-        teamsHelpers.inviteAndJoinWithUsers browser, [ users ], (result) ->
+        teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
           next null, result
       (next) ->
         teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
@@ -32,6 +34,10 @@ module.exports =
 
       (next) ->
         teamsHelpers.createDefaultStackTemplate browser, (res) ->
+          # remove main url from result
+          # to get '/Stack-Editor/machineId'
+          res = res.substring helpers.getUrl(yes).length
+          stackSelector = res
           next null, res
     ]
 
@@ -73,8 +79,20 @@ module.exports =
 
     draftStacksSelector = '.HomeAppView--section.drafts'
     stackTemplate = "#{draftStacksSelector} .HomeAppViewListItem.StackTemplateItem"
+    savedDefaultTemplate = ".SidebarSection.SidebarStackSection.draft a[href='#{stackSelector}']"
+    removeFromSideBarButton = "#{stackTemplate} .HomeAppViewListItem-SecondaryContainer .HomeAppView--button.primary"
 
     browser
       .pause 2000
       .waitForElementVisible draftStacksSelector, 20000
       .waitForElementVisible stackTemplate, 20000
+      .waitForElementVisible savedDefaultTemplate, 20000
+      .url stackEditorUrl
+      .waitForElementVisible draftStacksSelector, 20000
+      .waitForElementVisible stackTemplate, 20000
+      .click removeFromSideBarButton
+      .pause 2000
+      .waitForElementNotPresent savedDefaultTemplate, 20000
+      .click removeFromSideBarButton
+      .waitForElementVisible savedDefaultTemplate, 20000
+      .end()

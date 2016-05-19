@@ -97,11 +97,33 @@ and exited with the following issue:
 	// RemotePathDoesNotExist is printed when the user supplies a directory to mount,
 	// that does not exist on the remote side.
 	RemotePathDoesNotExist = fmt.Sprintf(
-		`Error: The given remote folder path does not exist on the remote machine.`,
+		`Error: The given remote path does not exist on the remote machine.`,
 	)
 
 	// FailedToSync is used when remote.cacheFolder fails during kd sync.
 	FailedSyncFolder = fmt.Sprintf(
 		"Error: Failed to sync the requested folder.",
 	)
+
+	// SourceAndDestAreRemote is used when the user entered two remote paths to kd cp.
+	//
+	// Note that Help is also printed after this.
+	SourceAndDestAreRemote = `Error: Both Source and Destination are Remote.
+Please provide a remote and a local path.`
+
+	// SourceAndDestAreLocal is used when the user entered two local paths to kd cp.
+	//
+	// Note that Help is also printed after this.
+	SourceAndDestAreLocal = `Error: Both Source and Destination are Local.
+Please provide a remote and a local path.`
+
+	// SourceRequired is used when the user does not specify a sync direction.
+	//
+	// Note that Help is also printed after this.
+	SourceRequired = `Error: Copy Source is a required argument.`
+
+	// DestinationRequired is used when the user does not specify a sync direction.
+	//
+	// Note that Help is also printed after this.
+	DestinationRequired = `Error: Copy Destination is a required argument.`
 )
