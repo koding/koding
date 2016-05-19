@@ -12,7 +12,9 @@ sidebarStacks = [
   visibilityFilters
   (stacks, filters) ->
     stackFilters = filters.get 'stack'
-    stacks.filter (stack) -> not stackFilters.has stack.get 'baseStackId'
+    stacks.filter (stack) ->
+      not stackFilters.has stack.get 'baseStackId'
+      not stack.getIn(['config', 'oldOwner'])
 ]
 
 sidebarDrafts = [
