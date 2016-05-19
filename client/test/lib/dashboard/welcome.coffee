@@ -43,29 +43,26 @@ module.exports =
 
     #Test Dashboard Screen for Admin
     browser
-      .pause 3000
+      .pause 2000
       .waitForElementVisible WelcomeView, 20000
       .click stackLink
       .waitForElementVisible stackEditor, 20000
       .url welcomeLink
-      .pause 3000
       .waitForElementVisible WelcomeView, 20000
       .click teamLink
       .waitForElementVisible teamSettings, 20000
       .url welcomeLink
-      .pause 3000
-      .waitForElementVisible WelcomeView, 2000
+      .waitForElementVisible WelcomeView, 20000
       .click installKDLink
       .waitForElementVisible kodingUtilities, 20000
-      .pause 3000
 
     #Test Team Billing Screen
     browser
-      .url teamBillingLink
       .pause 2000
+      .url teamBillingLink
+      .waitForElementVisible headerSelector, 20000
       .assert.containsText headerSelector, 'Koding Subscription'
       .waitForElementVisible teamBillingList, 20000
-      .pause 2000
       .click pricingButton, (result) ->
         if result.state is 'success'
           helpers.switchBrowser browser, 'http://www.koding.com/pricing'
@@ -88,7 +85,7 @@ module.exports =
     browser
       .scrollToElement billingForm
       .click paymenthistoryBtn
-      .pause 3000
+      .pause 1000
       .assert.containsText headerSelector, 'Payment History'
       .waitForElementVisible paymentHistory, 20000
 
@@ -96,32 +93,27 @@ module.exports =
     teamsHelpers.gotoSettingsMenu browser, myAccountSelector
     browser
       .assert.containsText headerSelector, 'My Account'
-      .pause 3000
     teamsHelpers.gotoSettingsMenu browser, dashboardSelector
     browser
       .waitForElementVisible WelcomeView, 20000
-      .pause 3000
     teamsHelpers.gotoSettingsMenu browser, supportSelector
     browser
       .waitForElementVisible chatlioWidget, 20000
-      .pause 3000
     teamsHelpers.gotoSettingsMenu browser, logoutSelector
 
     #Test Dashboard Screen for User
     targetUser1 = utils.getUser no, 1
     teamsHelpers.loginToTeam browser, targetUser1 , no, ->
       browser
-        .pause 3000
+        .pause 2000
         .waitForElementVisible WelcomeView, 20000
         .assert.containsText   pendingStack, 'Your Team Stack is Pending'
-        .pause 3000
         .waitForElementVisible WelcomeView, 20000
         .click userstackLink
         .waitForElementVisible stackEditor, 20000
         .url  welcomeLink
-        .pause 3000
+        .pause 2000
         .waitForElementVisible WelcomeView, 20000
         .click installKDLink
         .waitForElementVisible kodingUtilities, 20000
-        .pause 3000
         .end()
