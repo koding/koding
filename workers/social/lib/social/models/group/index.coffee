@@ -359,17 +359,21 @@ module.exports = class JGroup extends Module
     @on 'MemberAdded', (member) ->
       @constructor.emit 'MemberAdded', { group: this, member }
       unless @slug is 'guests'
-        @sendNotificationToAdmins 'GroupJoined',
-          actionType : 'groupJoined'
-          actorType  : 'member'
-          subject    : ObjectRef(this).data
-          member     : ObjectRef(member).data
+
+        @prepareNewlyAddedMember member, ({ memberData }) =>
+
+          @sendNotification 'GroupJoined',
+            actionType : 'groupJoined'
+            actorType  : 'member'
+            subject    : ObjectRef(this).data
+            member     : ObjectRef(member).data
+            memberData : memberData
 
     @on 'MemberRemoved', (member, requester) ->
       requester ?= member
       @constructor.emit 'MemberRemoved', { group: this, member, requester }
       unless @slug is 'guests'
-        @sendNotificationToAdmins 'GroupLeft',
+        @sendNotification 'GroupLeft',
           actionType : 'groupLeft'
           actorType  : 'member'
           subject    : ObjectRef(this).data
@@ -384,6 +388,18 @@ module.exports = class JGroup extends Module
       groupHome  : require '../../render/loggedout/grouphome'
       kodingHome : require '../../render/loggedout/kodinghome'
       subPage    : require '../../render/loggedout/subpage'
+
+
+  prepareNewlyAddedMember: (member, callback) ->
+
+    memberData = {}
+    @fetchRolesByAccount member, (err, roles = []) ->
+      console.log 'roles >>> ', roles
+      memberData.roles = roles  unless err
+      member.fetchEmail (err, email) ->
+        memberData.email = email  unless err
+        memberData.username = member.data.profile.nickname
+        callback { memberData }
 
 
   @create = (client, groupData, owner, callback) ->
