@@ -657,6 +657,8 @@ deleteStack = ({ stackTemplateId, stack }) ->
           .once 'RenderStacks', ->
             router.handleRoute '/IDE'
 
+      , followEvents = no
+
 
 changeTemplateTitle = (id, value) ->
 
