@@ -373,11 +373,13 @@ module.exports = class JGroup extends Module
       requester ?= member
       @constructor.emit 'MemberRemoved', { group: this, member, requester }
       unless @slug is 'guests'
+        username = member.data.profile.nickname
         @sendNotification 'GroupLeft',
           actionType : 'groupLeft'
           actorType  : 'member'
           subject    : ObjectRef(this).data
           member     : ObjectRef(member).data
+          username   : username
 
   @render        :
     loggedIn     :
