@@ -3,7 +3,7 @@
 defaultTemplate = require './views/stacks/defaulttemplate'
 
 module.exports = {
-  title: 'Default Stack Template'
+  title: 'Default Stack'
   description: '''
       ##### Readme text for this stack template
 
