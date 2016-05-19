@@ -91,6 +91,8 @@ module.exports = class StackEditorView extends kd.View
       name : 'Readme'
       view : @readmeView
 
+    { @credentials } = @stackTemplateView.credentialStatus or {}
+
     @providersView = new ProvidersView {
       selectedCredentials : @credentials
       provider            : selectedProvider
@@ -113,8 +115,6 @@ module.exports = class StackEditorView extends kd.View
     @credentialStatusView = new CredentialStatusView {
       stackTemplate, selectedProvider
     }
-
-    { @credentials } = @stackTemplateView.credentialStatus or {}
 
     @tabView.showPaneByIndex 0
 
