@@ -56,7 +56,7 @@ module.exports = class UsersStore extends KodingFluxStore
   ###
   handleUpdateTeamMember: (users, { account }) ->
 
-    return users.set account.get('id'), account
+    return users.set account.get('_id'), account
 
 
   ###*
