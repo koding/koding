@@ -28,5 +28,9 @@ module.exports = class WizardProgressPane extends kd.View
 
       @addSubView new kd.CustomHTMLView {
         cssClass
-        partial  : value
+        partial  : """
+          <div class='alien'></div>
+          <span class='icon'></span>
+          #{value}
+        """
       }

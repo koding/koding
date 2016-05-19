@@ -21,7 +21,7 @@ module.exports = class CredentialsPageView extends JView
     @backLink = new kd.CustomHTMLView
       tagName  : 'a'
       cssClass : 'back-link'
-      partial  : '<span class="arrow"></span>  BACK TO INSTRUCTIONS'
+      partial  : '<span class="arrow"></span>Back to Instructions'
       click    : @lazyBound 'emit', 'InstructionsRequested'
 
     @buildButton = new kd.ButtonView

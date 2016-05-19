@@ -15,7 +15,7 @@ module.exports = class CredentialsErrorPageView extends BaseErrorPageView
     @backLink = new kd.CustomHTMLView
       tagName  : 'a'
       cssClass : 'back-link'
-      partial  : '<span class="arrow"></span>  RE-ENTER YOUR CREDENTIALS'
+      partial  : '<span class="arrow"></span>Re-Enter Your Credentials'
       click    : @lazyBound 'emit', 'CredentialsRequested'
 
 
@@ -28,6 +28,7 @@ module.exports = class CredentialsErrorPageView extends BaseErrorPageView
         </header>
         {{> @progressPane}}
         <section class="main">
+          <div class="background"></div>
           <h2>Whoops, Those Credentials Didn't Work</h2>
           <p>The credentials you have provided didn't work. You can try again<br />or add new credentials</p>
           {{> @errorContainer}}

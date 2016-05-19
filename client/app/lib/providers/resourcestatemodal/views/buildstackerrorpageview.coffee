@@ -15,7 +15,7 @@ module.exports = class BuildStackErrorPageView extends BaseErrorPageView
     @backLink = new kd.CustomHTMLView
       tagName  : 'a'
       cssClass : 'back-link'
-      partial  : '<span class="arrow"></span>  BACK TO CREDENTIALS'
+      partial  : '<span class="arrow"></span>Back to Credentials'
       click    : @lazyBound 'emit', 'CredentialsRequested'
 
     @buildButton = new kd.ButtonView

@@ -1,6 +1,8 @@
+$warningColor               = #f2778a
+
 .resource-state-modal.kdmodal
   font-family               SoleilFamily
-  overflow                  hidden
+  overflow                  visible
   rounded                   6px
   border                    none
   width                     920px !important
@@ -8,6 +10,7 @@
   .kdmodal-inner,
   .kdmodal-inner .kdmodal-content
     margin                  0
+    overflow                visible
 
   .kdmodal-inner .close-icon
     hidden()
@@ -20,6 +23,7 @@
     border-bottom           1px solid #DEDBDB
     bg                      color #fff
     text-align              center
+    rounded                 6px 6px 0 0
 
     h1
       display               inline-block
@@ -30,6 +34,9 @@
 
   section.main
     height                  500px
+    overflow                hidden
+    rel()
+    borderBox()
 
     > h2
       color                 #424242
@@ -51,13 +58,14 @@
     border-top              1px solid #DEDBDB
     bg                      color #fff
     rel()
+    rounded                 0 0 6px 6px
 
     .GenericButton
       abs                   29px 29px
       text-transform        uppercase
-      width                 146px
+      min-width             146px
       height                42px
-      padding               0
+      padding               0 24px
 
     a.back-link
       abs()
@@ -65,14 +73,14 @@
       left                  30px
       color                 #c6c6c6
       text-decoration       none !important
+      text-transform        uppercase
       font-size             14px
       line-height           18px
 
-      .arrow:after
-        content             "\2190"
-        font-size           24px
-        font-family         Helvetica,Arial,sans-serif
-        color               #afafaf
+      .arrow
+        display             inline-block
+        r-sprite            'app', 'back_arrow_gray'
+        margin-right        9px
 
   .GenericButton.secondary
     width                   165px
@@ -101,42 +109,70 @@
       bg                    color, #fff
       color                 #c6c6c6
       letter-spacing        .2px
+      rel()
+
+      .alien
+        hidden()
+        abs()
+        top                 -133px
+        left                75px
+        r-sprite            'app' 'alien'
+
+      .icon
+        rel()
+        top                 1px
+        display             inline-block
+        margin-right        5px
 
       &:first-child
-        border-left         1px solid #e6e6e6
+        border-left         1px solid #e6e6e6 !important
 
       &:last-child
-        border-right        1px solid #e6e6e6
+        border-right        1px solid #e6e6e6 !important
 
       &.current
         bg                  color, #57a2d2
         color               #fff
 
+        .alien
+          visible()
+
       &.completed
         bg                  color, #57a2d2
         color               rgba(0,0,0,0.3)
-        border-right        1px solid #c7c7c7
+        border-right        1px solid #5095C2
 
+        .icon
+          r-sprite          'app', 'checkmark'
+
+      &.current, &.completed
+        border-left         1px solid #70AED6
 
   .error-page
 
     section.main
 
       > h2
-        color               #F06969
+        color               $warningColor
         font-weight         bold
 
     .wizard-progress-pane
 
       .wizard-step
         &.completed
-          bg                color, #f3f3f3
+          bg                color, $warningColor
           color             #fff
-          border-right      1px solid #e6e6e6
+          border-right      1px solid #E97587
 
         &.current
-          bg                color, #F06969
+          bg                color, $warningColor
           color             #fff
+
+          .alien
+            hidden()
+
+        &.current, &.completed
+          border-left       1px solid #EB8292
 
     .error-container
       max-height            250px
@@ -149,7 +185,7 @@
         color               #5e5e5e
         font-size           13px
         line-height         16px
-        border              1px solid #f2778a
+        border              1px solid $warningColor
         bg                  color, rgba(242,119,138,0.05)
         rounded             5px
 
@@ -164,7 +200,7 @@
             padding-top     12px
 
       &.has-vertical
-        border              1px solid #f2778a
+        border              1px solid $warningColor
         rounded             5px
 
         .error-content
@@ -174,10 +210,11 @@
     footer
 
       a.back-link
-        color               #F06969
+        color               $warningColor
 
-        .arrow:after
-          color             #F06969
+        .arrow
+          r-sprite          'app', 'back_arrow_pink'
+
 
   .readme-page
 
@@ -212,20 +249,20 @@
   .credentials-page
 
     section.main
-      padding               0 115px
-
       > p
         margin-bottom       60px
 
     .form-scroll-wrapper
-      width                 325px
+      width                 332px
       borderBox()
 
       &.credential-wrapper
         fl()
+        margin-left         115px
 
       &.requirements-wrapper
         fr()
+        margin-right        100px
 
       &.kdcustomscrollview
         styleScrollBars     rgba(0, 0, 0, .15)
@@ -327,7 +364,7 @@
           bg                color, #f2f2f2
           border            1px solid #cacaca
           borderBox()
-          color             #f2778a
+          color             $warningColor
           font-weight       400
           font-style        normal
           font-size         12px
@@ -353,8 +390,16 @@
               abs           8px 13px
 
         a
-          color             #f2778a
+          color             $warningColor
           text-decoration   underline
+
+
+  .credentials-error-page
+    section.main
+      .background
+        abs()
+        bottom              0px
+        r-sprite            'app', 'buildstack_art_fail'
 
 
   .build-stack-page
@@ -374,7 +419,7 @@
       .bar
         rounded             0
         bg                  image, none
-        bg                  color, #f2778a
+        bg                  color, $warningColor
         shadow              none
 
     .status-text
@@ -383,22 +428,46 @@
       padding               25px 0
 
 
+  .build-stack-error-page
+
+    .wizard-progress-pane
+      .wizard-step
+        &.completed
+          bg                color, #efefef
+          border-right      1px solid #e6e6e6
+
+        &.completed, &.current
+          border-left       0
+
+
   .build-stack-success-page
 
     .wizard-step.current
-      bg                    color, #74E4F4
-      color                 #93a1a1
-      border-right          1px solid #c7c7c7
+      bg                    color, #57a2d2
+      color                 rgba(0,0,0,0.3)
+
+      .icon
+        r-sprite            'app', 'checkmark'
 
     section.main
+      padding-left          460px
+      padding-top           164px
 
       h1
         color               #57a2d2
         font-size           50px
+        letter-spacing      .5px
         line-height         44px
-        text-align          center
-        padding-top         150px
 
       h2
         font-size           32px
+        line-height         44px
         color               rgba(0,0,0,0.5)
+        text-align          left
+        padding-top         17px
+
+      .background
+        abs()
+        top                 105px
+        left                100px
+        r-sprite            'app', 'buildstack_art_success'
