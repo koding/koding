@@ -71,19 +71,17 @@ module.exports =
     targetUser1 = utils.getUser no, 1
     teamsHelpers.logoutTeam browser, (res) ->
       teamsHelpers.loginToTeam browser, targetUser1 , no, ->
-        browser.pause 3000
-        .pause 3000
+        browser
         .waitForElementVisible welcomeView, 20000
         .url myTeamLink
         .waitForElementVisible sectionSelector, 20000
-        .waitForElementNotPresent removeLogoButton, 2000
-        .waitForElementNotPresent uploadLogoButton, 2000
-        .waitForElementNotPresent saveChangesButton + ':nth-of-type(1)', 2000
+        .waitForElementNotPresent removeLogoButton, 20000
+        .waitForElementNotPresent uploadLogoButton, 20000
+        .waitForElementNotPresent saveChangesButton + ':nth-of-type(1)', 20000
         .assert.attributeEquals teamNameSelector, 'disabled', 'true'
         .waitForElementVisible leaveTeamButton, 20000
         .click leaveTeamButton
         .waitForElementVisible '.kdmodal.kddraggable', 5000
-        .pause 2000
 
         .click forgotPasswordButton
         .waitForElementVisible  '.kdnotification', 5000
@@ -92,7 +90,6 @@ module.exports =
 
         .click leaveTeamButton
         .waitForElementVisible '.kdmodal.kddraggable', 5000
-        .pause 2000
         .clearValue passwordSelector
         .setValue passwordSelector, '1234'
         .click confirmButton
@@ -102,12 +99,11 @@ module.exports =
 
         .click leaveTeamButton
         .waitForElementVisible '.kdmodal.kddraggable', 5000
-        .pause 2000
         .clearValue passwordSelector
         .setValue passwordSelector, targetUser1.password
         .click confirmButton
         .assert.urlContains helpers.getUrl(yes)
-        .end
+        .end()
 
 
   inviteAndJoinUsersToTeam: (browser) ->
