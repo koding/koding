@@ -50,10 +50,12 @@ module.exports =
       .url welcomeLink
       .waitForElementVisible WelcomeView, 20000
       .click teamLink
+      .pause 1000
       .waitForElementVisible teamSettings, 20000
       .url welcomeLink
       .waitForElementVisible WelcomeView, 20000
       .click installKDLink
+      .pause 1000
       .waitForElementVisible kodingUtilities, 20000
 
     #Test Team Billing Screen
