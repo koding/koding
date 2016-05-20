@@ -1,5 +1,6 @@
 kd    = require 'kd'
 JView = require '../../jview'
+showError = require 'app/util/showError'
 
 ACCOUNT_MENU  = null
 
@@ -70,10 +71,9 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
   handleSupport: ->
 
-    kd.singletons.mainController.tellChatlioWidget 'show', { expanded: yes }, (result) ->
-      if result is 404
-        new kd.NotificationView { title: 'Support isn\'t enabled by your team admin!' }
-        return
+    { mainController } = kd.singletons
 
+    mainController.tellChatlioWidget 'show', { expanded: yes }, (err, result) ->
+      showError err  if err
 
   pistachio: -> '{{ #(title)}}'

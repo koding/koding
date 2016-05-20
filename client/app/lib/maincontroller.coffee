@@ -348,15 +348,9 @@ module.exports = class MainController extends KDController
 
     fetchChatlioKey (id) ->
 
-      # returns a random number with callback to identify
-      # the lack of chatlioId, i didn't return `false`
-      # which you would normally expect, because we return
-      # whatever the chatlio methods return below and it is
-      # highly probable that it can return false on some
-      # calls. To avoid confusion i picked 404 :) - SY
-      return callback 404  unless id
+      return callback new Error 'Support isn\'t enabled by your team admin!'  unless id
 
-      run = -> callback window._chatlio[method] options
+      run = -> callback null, window._chatlio[method] options
 
       if window._chatlio
       then do run
