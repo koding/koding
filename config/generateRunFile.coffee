@@ -5,7 +5,7 @@ os                    = require 'os'
 path                  = require 'path'
 { isAllowed }         = require '../deployment/grouptoenvmapping'
 
-generateDev = (KONFIG, options, credentials) ->
+generateDev = (KONFIG, options) ->
 
   options.requirementCommands ?= []
 
