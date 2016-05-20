@@ -291,9 +291,9 @@ leaveTeam = (partial) ->
           { groupsController, reactor } = kd.singletons
           team = groupsController.getCurrentGroup()
 
-          team.leave (err) ->
+          team.leave { password: currentPassword }, (err) ->
             if err
-              return new kd.NotificationView { title : 'You need to transfer ownership of team before leaving team' }
+              return new kd.NotificationView { title : err.message }
 
             Tracker.track Tracker.USER_LEFT_TEAM
             kookies.expire 'clientId'

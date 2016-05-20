@@ -1220,7 +1220,24 @@ module.exports = class JGroup extends Module
     , (err, count) =>
       @update ({ $set: { 'counts.members': count } }), ->
 
-  leave: secure (client, options, callback) ->
+
+  leave$: secure (client, options, callback) ->
+
+    password = options?.password
+    account = client?.connection?.delegate
+
+    unless account or password
+      return callback new KodingError 'Error occured while leaving team'
+
+    account.fetchUser (err, user) =>
+      unless err
+        unless user.checkPassword password
+          return callback new KodingError 'Your password didn\'t match with our records'
+        else
+          @leave client, options, callback
+
+
+  leave: (client, options, callback) ->
 
     [callback, options] = [options, callback] unless callback
 
