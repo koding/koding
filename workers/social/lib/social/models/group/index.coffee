@@ -2,7 +2,6 @@ KONFIG         = require 'koding-config-manager'
 async          = require 'async'
 { Module }     = require 'jraphical'
 { difference } = require 'underscore'
-_ = require 'lodash'
 
 
 module.exports = class JGroup extends Module
@@ -362,7 +361,7 @@ module.exports = class JGroup extends Module
 
       return  if @slug is 'guests'
 
-      @prepareNewlyAddedMember member, (err, { memberData }) =>
+      @prepareNewlyAddedMember member, (err, memberData) =>
 
         return @sendNotification 'GroupJoined', {}  if err
 
@@ -384,6 +383,7 @@ module.exports = class JGroup extends Module
       return  if @slug is 'guests'
 
       username = member.data.profile.nickname
+      member = ObjectRef(member).data
       member.username = username
 
       @sendNotification 'GroupLeft',
@@ -413,7 +413,7 @@ module.exports = class JGroup extends Module
         return callback err  if err and not email
         memberData.email = email
         memberData.username = member.data.profile.nickname
-        callback null, { memberData }
+        callback null, memberData
 
 
   @create = (client, groupData, owner, callback) ->
