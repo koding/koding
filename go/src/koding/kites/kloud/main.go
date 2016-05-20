@@ -141,7 +141,15 @@ func main() {
 	conf := new(Config)
 
 	// Load the config, it's reads environment variables or from flags
-	multiconfig.New().MustLoad(conf)
+	mc := multiconfig.New()
+	mc.Loader = multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.EnvironmentLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_KLOUD"},
+		&multiconfig.FlagLoader{},
+	)
+
+	mc.MustLoad(conf)
 
 	if conf.Version {
 		fmt.Println(kloud.VERSION)
