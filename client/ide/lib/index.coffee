@@ -242,6 +242,12 @@ class IDEAppController extends AppController
   handleKlientOpenFiles: (eventData) -> @openFiles eventData.files
 
 
+  isTabViewFocused: (tabView) ->
+
+    return no  if @isChatInputFocused()
+    return @activeTabView is tabView
+
+
   setActiveTabView: (tabView) ->
 
     return  if tabView is @activeTabView
@@ -284,6 +290,7 @@ class IDEAppController extends AppController
     then layout = splitViewPanel._layout
     else layout = @layout
 
+    @setActivePaneFocus off, yes
     @activeTabView = null
 
     ideView.detach()
