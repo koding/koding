@@ -709,9 +709,9 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
   requestNewMachine: ->
 
-    route = if isKoding() then '/My-Machines' else '/Stacks'
+    route = if isKoding() then '/My-Machines' else '/Home/Stacks'
 
-    kd.singletons.appManager.getFrontApp().quit()
+    kd.singletons.appManager.getFrontApp().quit()  if isKoding()
     kd.singletons.router.handleRoute route
 
 
