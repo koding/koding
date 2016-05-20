@@ -396,7 +396,6 @@ module.exports = class JGroup extends Module
 
     memberData = {}
     @fetchRolesByAccount member, (err, roles = []) ->
-      console.log 'roles >>> ', roles
       memberData.roles = roles  unless err
       member.fetchEmail (err, email) ->
         memberData.email = email  unless err

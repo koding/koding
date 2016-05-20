@@ -26,7 +26,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     }
 
 
-  componentWillMount: ->
+  componentDidMount: ->
 
     canEdit = kd.singletons.groupsController.canEditGroup()
     TeamFlux.actions.updateInvitationInputValue 0, 'canEdit', yes  if canEdit
