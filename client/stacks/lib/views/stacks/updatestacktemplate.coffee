@@ -1,5 +1,6 @@
 remote = require('app/remote').getInstance()
 EnvironmentFlux = require 'app/flux/environment'
+generateStackTemplateTitle = 'app/util/generateStackTemplateTitle'
 
 
 module.exports = updateStackTemplate = (data, callback) ->
@@ -7,7 +8,7 @@ module.exports = updateStackTemplate = (data, callback) ->
   { template, templateDetails, credentials, description
     title, stackTemplate, machines, config, rawContent } = data
 
-  title or= 'Default stack template'
+  title or= generateStackTemplateTitle()
   config ?= stackTemplate.config ? {}
 
   if stackTemplate?.update
