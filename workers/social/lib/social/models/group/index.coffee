@@ -362,18 +362,19 @@ module.exports = class JGroup extends Module
 
       return  if @slug is 'guests'
 
-      @prepareNewlyAddedMember member, ({err, memberData }) =>
+      @prepareNewlyAddedMember member, (err, { memberData }) =>
 
         return @sendNotification 'GroupJoined', {}  if err
 
-        member = _.extend {}, ObjectRef(member).data
-        member = _.extend member, memberData
+        username = member.data.profile.nickname
+        memberData.username = username
+        memberData.id = member.data._id
 
         @sendNotification 'GroupJoined',
           actionType : 'groupJoined'
           actorType  : 'member'
           subject    : ObjectRef(this).data
-          member     : member
+          member     : memberData
 
     @on 'MemberRemoved', (member, requester) ->
 
@@ -383,8 +384,8 @@ module.exports = class JGroup extends Module
       return  if @slug is 'guests'
 
       username = member.data.profile.nickname
-      member = _.extend {}, ObjectRef(member).data
-      member = _.extend member, { username }
+      member.username = username
+
       @sendNotification 'GroupLeft',
         actionType : 'groupLeft'
         actorType  : 'member'
@@ -406,13 +407,13 @@ module.exports = class JGroup extends Module
 
     memberData = {}
     @fetchRolesByAccount member, (err, roles = []) ->
-      return callback { err, roles }  if err
+      return callback err  if err
       memberData.roles = roles
       member.fetchEmail (err, email) ->
-        return callback { err, '' }  if err and not email
+        return callback err  if err and not email
         memberData.email = email
         memberData.username = member.data.profile.nickname
-        callback { '', memberData }
+        callback null, { memberData }
 
 
   @create = (client, groupData, owner, callback) ->
