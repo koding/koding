@@ -1,5 +1,6 @@
 kd    = require 'kd'
 JView = require '../../jview'
+showError = require 'app/util/showError'
 
 ACCOUNT_MENU  = null
 
@@ -70,18 +71,9 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
   handleSupport: ->
 
-    unless window._chatlio
-      new kd.NotificationView { title: 'Support isn\'t enabled by your team admin!' }
-      return
+    { mainController } = kd.singletons
 
-    window._chatlio.show { expanded: yes }
-
-    # hide completely when close icon clicked
-    # default behavior is to minify
-    kd.utils.wait 100, ->
-      closeIcon = document.querySelectorAll('.chatlio-icon-cross2')[0]
-      closeIcon?.addEventListener 'click', -> _chatlio.hide()
-
-
+    mainController.tellChatlioWidget 'show', { expanded: yes }, (err, result) ->
+      showError err  if err
 
   pistachio: -> '{{ #(title)}}'
