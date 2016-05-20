@@ -217,7 +217,7 @@ module.exports = class StackEditorView extends kd.View
         teamTemplates.merge(privateTemplates).getIn [ stackTemplate?._id, 'title' ]
     ]
 
-    title = kd.singletons.reactor.evaluate valueGetter
+    title = Encoder.htmlDecode kd.singletons.reactor.evaluate valueGetter
 
     @header.addSubView @inputTitle = new kd.InputView
       cssClass: 'template-title'
@@ -229,6 +229,8 @@ module.exports = class StackEditorView extends kd.View
         changeTemplateTitle stackTemplate?._id, e.target.value
 
     kd.singletons.reactor.observe valueGetter, (value) =>
+
+      value = Encoder.htmlDecode value
 
       return  if value is @inputTitle.getValue()
 
