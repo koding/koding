@@ -52,25 +52,33 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
     groupsController.on 'GroupJoined', (data) ->
 
-      if data.contents.actionType is 'groupJoined'
-        { roles, email, username } = data.contents.memberData
-        remote.cacheable username, (err, account) ->
-          unless err
-            account = toImmutable account[0]
-            account = account.setIn ['profile', 'email'], email
-            account = account.set 'role', roles
+      return console.warm 'We couldn\'t fetch neccessary information'  unless data.contents.member
+      return  unless data.contents.actionType is 'groupJoined'
 
-            id = account.get '_id'
+      { roles, email, username } = data.contents.member
 
-            reactor.dispatch 'UPDATE_TEAM_MEMBER', { account }
-            reactor.dispatch 'ADD_MEMBER_TO_TEAM', { id }
-            reactor.dispatch 'REMOVE_PENDING_INVITATION', { email }
+      remote.cacheable username, (err, accounts) ->
+
+        return  if err or not accounts
+
+        account = toImmutable accounts[0]
+        account = account.setIn ['profile', 'email'], email
+        account = account.set 'role', roles
+
+        id = account.get '_id'
+
+        reactor.dispatch 'UPDATE_TEAM_MEMBER', { account }
+        reactor.dispatch 'ADD_MEMBER_TO_TEAM', { id }
+        reactor.dispatch 'REMOVE_PENDING_INVITATION', { email }
 
     groupsController.on 'GroupLeft', (data) ->
 
-      { username } = data.contents
-      remote.cacheable username, (err, account) ->
-        account = account[0]
+      { username } = data.contents.member
+      remote.cacheable username, (err, accounts) ->
+
+        return  if err or not accounts
+
+        account = accounts[0]
         reactor.dispatch 'DELETE_TEAM_MEMBER', account._id
 
     @wrapper.addSubView header  'Team Settings'
