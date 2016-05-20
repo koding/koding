@@ -1134,15 +1134,21 @@ module.exports = class JAccount extends jraphical.Module
   updateMetaModifiedAt: (callback) ->
     @update { $set: { 'meta.modifiedAt': new Date } }, callback
 
-  fetchEmail: secure (client, callback) ->
+
+  fetchEmail: (callback) ->
+
+    @fetchUser (err, user) ->
+      return callback err  if err
+      callback null, user?.email
+
+  fetchEmail$: secure (client, callback) ->
     { delegate } = client.connection
     isMine     = @equals delegate
     if isMine
-      @fetchUser (err, user) ->
-        return callback err  if err
-        callback null, user?.email
+      @fetchEmail callback
     else
       callback new KodingError 'Access denied'
+
 
   @fetchEmailsByUsername = permit 'grant permissions',
     success: (client, usernames = [], callback) ->

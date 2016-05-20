@@ -358,22 +358,39 @@ module.exports = class JGroup extends Module
 
     @on 'MemberAdded', (member) ->
       @constructor.emit 'MemberAdded', { group: this, member }
-      unless @slug is 'guests'
-        @sendNotificationToAdmins 'GroupJoined',
+
+      return  if @slug is 'guests'
+
+      @prepareNewlyAddedMember member, (err, memberData) =>
+
+        return @sendNotification 'GroupJoined', {}  if err
+
+        username = member.data.profile.nickname
+        memberData.username = username
+        memberData.id = member.data._id
+
+        @sendNotification 'GroupJoined',
           actionType : 'groupJoined'
           actorType  : 'member'
           subject    : ObjectRef(this).data
-          member     : ObjectRef(member).data
+          member     : memberData
 
     @on 'MemberRemoved', (member, requester) ->
+
       requester ?= member
       @constructor.emit 'MemberRemoved', { group: this, member, requester }
-      unless @slug is 'guests'
-        @sendNotificationToAdmins 'GroupLeft',
-          actionType : 'groupLeft'
-          actorType  : 'member'
-          subject    : ObjectRef(this).data
-          member     : ObjectRef(member).data
+
+      return  if @slug is 'guests'
+
+      username = member.data.profile.nickname
+      member = ObjectRef(member).data
+      member.username = username
+
+      @sendNotification 'GroupLeft',
+        actionType : 'groupLeft'
+        actorType  : 'member'
+        subject    : ObjectRef(this).data
+        member     : member
 
   @render        :
     loggedIn     :
@@ -384,6 +401,19 @@ module.exports = class JGroup extends Module
       groupHome  : require '../../render/loggedout/grouphome'
       kodingHome : require '../../render/loggedout/kodinghome'
       subPage    : require '../../render/loggedout/subpage'
+
+
+  prepareNewlyAddedMember: (member, callback) ->
+
+    memberData = {}
+    @fetchRolesByAccount member, (err, roles = []) ->
+      return callback err  if err
+      memberData.roles = roles
+      member.fetchEmail (err, email) ->
+        return callback err  if err and not email
+        memberData.email = email
+        memberData.username = member.data.profile.nickname
+        callback null, memberData
 
 
   @create = (client, groupData, owner, callback) ->
