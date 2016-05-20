@@ -42,7 +42,7 @@ module.exports = class Member extends React.Component
       items.push { title: 'Resend Invitation', key: 'resend', onClick: @props.handleInvitation.bind(this, @props.member, 'resend') }
       items.push { title: 'Revoke Invitation', key: 'revoke', onClick: @props.handleInvitation.bind(this, @props.member, 'revoke') }
     else if role is 'disabled'
-      items.push { title: 'Remove Permenantly', key: 'delete', onClick: @props.handleDisabledUser.bind(this, @props.member, 'delete') }
+      items.push { title: 'Remove Permanently', key: 'delete', onClick: @props.handleDisabledUser.bind(this, @props.member, 'delete') }
       items.push { title: 'Enable User', key: 'enable', onClick: @props.handleDisabledUser.bind(this, @props.member, 'enable') }
     else
       items.push { title: 'Make owner', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
