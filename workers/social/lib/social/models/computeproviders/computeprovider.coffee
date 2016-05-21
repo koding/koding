@@ -1,3 +1,6 @@
+# coffeelint: disable=cyclomatic_complexity
+# FIXME ~GG ^^
+
 { Base, secure, signature } = require 'bongo'
 
 KONFIG       = require 'koding-config-manager'
