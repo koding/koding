@@ -1,4 +1,6 @@
+kd                  = require 'kd'
 Link                = require 'app/components/common/link'
+EnvironmentFlux     = require 'app/flux/environment'
 React               = require 'kd-react'
 classnames          = require 'classnames'
 
@@ -7,6 +9,12 @@ module.exports = class SidebarDifferentStackResources extends React.Component
 
   @defaultProps =
     className   : 'SidebarStackWidgets --DifferentStackResources'
+
+  onClick: (event) ->
+
+    kd.utils.stopDOMEvent event
+    EnvironmentFlux.actions.reinitStackFromWidget()
+
 
   # this is at best a notification, we shouldn't put this on
   # top of the sidebar as a forcing function. if we do, there should be "hide this" option
@@ -21,10 +29,10 @@ module.exports = class SidebarDifferentStackResources extends React.Component
       <div className='SidebarSection-body'>
         <p>
           Team admin has changed the default stack.
-          Please save your changes and go to Stack Catalog, and reinitialize.
+          Please save your changes and reinitialize to get latest stack
         </p>
-        <Link href='/Stacks/My-Stacks'>
-          Stack Catalog
+        <Link onClick={@bound 'onClick'}>
+          Reinitialize Default Stack
         </Link>
       </div>
     </section>
