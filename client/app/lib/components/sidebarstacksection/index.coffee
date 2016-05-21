@@ -92,8 +92,13 @@ module.exports = class SidebarStackSection extends React.Component
     if @getStackUnreadCount()
       menuItems['Update'] = { callback }
 
-    ['Edit', 'Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) =>
-      menuItems[name] = { callback }
+    managedVM = @props.stack.get('title').indexOf('Managed VMs') > -1
+
+    if managedVM
+      menuItems['VMs'] = { callback }
+    else
+      ['Edit', 'Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
+        menuItems[name] = { callback }
 
     { top } = findDOMNode(this).getBoundingClientRect()
 
