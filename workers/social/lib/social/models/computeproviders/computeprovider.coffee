@@ -235,7 +235,7 @@ module.exports = class ComputeProvider extends Base
     #
     # We eventually remove this one once we remove group stack flow ~ GG
     config = _.clone template.config
-    for _template in group.stackTemplates
+    for _template in (group.stackTemplates ? [])
       if template._id.equals _template
         config.groupStack = yes
         break
