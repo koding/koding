@@ -1235,6 +1235,9 @@ module.exports = class ComputeController extends KDController
       for stack in @stacks when stack.baseStackId is stackTemplate
         return stack
 
+    for stack in @stacks when stack.config?.groupStack
+      return stack
+
     return null
 
 
