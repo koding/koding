@@ -62,6 +62,7 @@ _bindStackEvents = ->
   { reactor, computeController } = kd.singletons
 
   computeController.ready ->
+
     computeController.on 'StackRevisionChecked', (stack) ->
       return  if _revisionStatus?.error? and not stack._revisionStatus.status
 
@@ -73,6 +74,8 @@ _bindStackEvents = ->
 
     computeController.on 'GroupStacksConsistent', ->
       reactor.dispatch actions.GROUP_STACKS_CONSISTENT
+
+    computeController.checkGroupStacks()
 
 
 handleMemberWarning = (message) ->
