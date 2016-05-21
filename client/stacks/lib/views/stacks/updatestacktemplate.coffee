@@ -1,6 +1,6 @@
 remote = require('app/remote').getInstance()
 EnvironmentFlux = require 'app/flux/environment'
-generateStackTemplateTitle = 'app/util/generateStackTemplateTitle'
+generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 
 
 module.exports = updateStackTemplate = (data, callback) ->
