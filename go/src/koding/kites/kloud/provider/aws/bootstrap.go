@@ -7,14 +7,9 @@ import (
 	"time"
 
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	awssession "github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/iam"
 	"golang.org/x/net/context"
 )
 
@@ -57,20 +52,9 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 
 		meta := cred.Meta.(*AwsMeta)
 
-		sess := awssession.New(&aws.Config{
-			Credentials: credentials.NewStaticCredentials(meta.AccessKey, meta.SecretKey, ""),
-			Region:      aws.String(meta.Region),
-		})
-
-		iamClient := iam.New(sess)
-
 		s.Log.Debug("Fetching the AWS user information to get the account ID")
-		user, err := iamClient.GetUser(nil) // will default to username making the request
-		if err != nil {
-			return nil, err
-		}
 
-		awsAccountID, err := stackplan.ParseAccountID(aws.StringValue(user.User.Arn))
+		awsAccountID, err := meta.AccountID()
 		if err != nil {
 			return nil, err
 		}
