@@ -84,6 +84,7 @@ module.exports =
     lastPendingInvitationIndex = 0
     invitations.forEach (invitation, i) ->
       unless invitation.accepted
+        console.log(i)
         lastPendingInvitationIndex = i
     browser
       .pause 3000
