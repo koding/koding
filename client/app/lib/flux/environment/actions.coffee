@@ -62,6 +62,7 @@ _bindStackEvents = ->
   { reactor, computeController } = kd.singletons
 
   computeController.ready ->
+
     computeController.on 'StackRevisionChecked', (stack) ->
       return  if _revisionStatus?.error? and not stack._revisionStatus.status
 
@@ -73,6 +74,8 @@ _bindStackEvents = ->
 
     computeController.on 'GroupStacksConsistent', ->
       reactor.dispatch actions.GROUP_STACKS_CONSISTENT
+
+    computeController.checkGroupStacks()
 
 
 handleMemberWarning = (message) ->
@@ -381,8 +384,10 @@ reinitStack = (stackId) ->
 reinitStackFromWidget = (stack) ->
 
   { computeController } = kd.singletons
-  _stack = remote.revive stack.toJS()
-  computeController.reinitStack _stack
+
+  computeController.reinitStack if stack
+  then remote.revive stack.toJS()
+  else computeController.getGroupStack()
 
 
 createWorkspace = (machine, workspace) ->

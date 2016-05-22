@@ -1235,6 +1235,9 @@ module.exports = class ComputeController extends KDController
       for stack in @stacks when stack.baseStackId is stackTemplate
         return stack
 
+    for stack in @stacks when stack.config?.groupStack
+      return stack
+
     return null
 
 
@@ -1266,7 +1269,7 @@ module.exports = class ComputeController extends KDController
           title   : "Couldn't find default stack"
           content : 'Please re-init manually'
 
-        return kd.singletons.router.handleRoute '/Stacks'
+        return kd.singletons.router.handleRoute '/Home/stacks'
 
       else
         @createDefaultStack()
