@@ -26,6 +26,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       logopath: '/a/images/logos/sidebar_footer_logo.svg'
       canEdit: canEdit
       loading: no
+      teamNameChanged: no
 
 
   componentDidMount: ->
@@ -89,17 +90,24 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
     TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) =>
       notify message
-      @setState { loading: no }
+      @setState
+        loading: no
+        teamNameChanged: no
     .catch ({ message }) =>
       notify message
-      @setState { loading: no }
+      @setState
+        loading: no
+        teamNameChanged: no
 
 
   onTeamNameChanged: (event) ->
 
-    @setState
-      teamName : event.target.value
+    @setState { teamName : event.target.value }
 
+    if @state.team.get('title') isnt event.target.value
+      @setState { teamNameChanged: yes }
+    else
+      @setState { teamNameChanged: no }
 
   onLeaveTeam: (event) ->
 
@@ -119,6 +127,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       ref='view'
       team={@state.team}
       teamName={@state.teamName}
+      teamNameChanged={@state.teamNameChanged}
       canEdit={@state.canEdit}
       loading={@state.loading}
       logopath={@state.logopath}
