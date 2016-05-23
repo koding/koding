@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"runtime"
 
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
@@ -38,6 +39,10 @@ var sudoRequiredFor = []string{
 var log logging.Logger
 
 func main() {
+	// For forward-compatibility with go1.5+, where GOMAXPROCS is
+	// always set to a number of available cores.
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	// The writer used for the logging output. Either a file, or /dev/null
 	var logWriter io.Writer
 
