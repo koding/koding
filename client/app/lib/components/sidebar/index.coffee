@@ -15,7 +15,7 @@ SidebarDifferentStackResources = require 'app/components/sidebarstacksection/sid
 { findDOMNode } = require 'react-dom'
 SidebarFlux = require 'app/flux/sidebar'
 TeamFlux = require 'app/flux/teams'
-
+DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 MENU = null
 
 module.exports = class Sidebar extends React.Component
@@ -226,8 +226,7 @@ module.exports = class Sidebar extends React.Component
 
   renderLogo: ->
 
-    logopath = '/a/images/logos/sidebar_footer_logo.svg'
-    src = @state.team.getIn(['customize', 'logo']) or logopath
+    src = @state.team.getIn(['customize', 'logo']) or DEFAULT_LOGOPATH
 
     <img src="#{src}" className='Sidebar-footer-logo' />
 
