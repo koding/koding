@@ -1,9 +1,10 @@
 { jsonToYaml } = require './views/stacks/yamlutils'
-
 defaultTemplate = require './views/stacks/defaulttemplate'
+generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
+
 
 module.exports = {
-  title: 'Default Stack Template'
+  title: generateStackTemplateTitle()
   description: '''
       ##### Readme text for this stack template
 

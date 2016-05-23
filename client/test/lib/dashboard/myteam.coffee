@@ -7,6 +7,13 @@ myTeamLink = "#{helpers.getUrl(yes)}/Home/my-team"
 
 module.exports =
 
+  before: (browser, done) ->
+    targetUser1 = utils.getUser no, 1
+    targetUser1.role = 'member'
+    users = targetUser1
+    teamsHelpers.inviteAndJoinWithUsers browser, [users], (result) ->
+      done()
+
   teamSettings: (browser) ->
 
     sectionSelector = '.HomeAppView--section.team-settings'
@@ -46,6 +53,57 @@ module.exports =
     teamsHelpers.assertConfirmation browser, successMessage
 
     browser.end()
+
+  teamSettingsMember: (browser) ->
+
+    sectionSelector      = '.HomeAppView--section.team-settings'
+    welcomeView          = '.WelcomeStacksView'
+    buttonSelector       = "#{sectionSelector} .uploadInputWrapper .HomeAppView--button.custom-link-view"
+    uploadLogoButton     = "#{buttonSelector}.primary"
+    removeLogoButton     = "#{buttonSelector}.remove"
+    teamNameSelector     = '.kdinput.text.js-teamName'
+    saveChangesButton    = "#{sectionSelector} .HomeAppView--button.custom-link-view.primary.fr"
+    leaveTeamButton      = '.HomeAppView--button'
+    passwordSelector     = 'input[name=password]'
+    forgotPasswordButton = '.kdbutton.solid.light-gray'
+    confirmButton        = 'button[type=submit]'
+
+    targetUser1 = utils.getUser no, 1
+    teamsHelpers.logoutTeam browser, (res) ->
+      teamsHelpers.loginToTeam browser, targetUser1 , no, ->
+        browser
+        .waitForElementVisible welcomeView, 20000
+        .url myTeamLink
+        .waitForElementVisible sectionSelector, 20000
+        .waitForElementNotPresent removeLogoButton, 20000
+        .waitForElementNotPresent uploadLogoButton, 20000
+        .waitForElementNotPresent saveChangesButton + ':nth-of-type(1)', 20000
+        .assert.attributeEquals teamNameSelector, 'disabled', 'true'
+        .waitForElementVisible leaveTeamButton, 20000
+        .click leaveTeamButton
+        .waitForElementVisible '.kdmodal.kddraggable', 5000
+
+        .click forgotPasswordButton
+        .waitForElementVisible  '.kdnotification', 5000
+        .assert.containsText    '.kdnotification.main', 'Check your email'
+        .pause 5000
+
+        .click leaveTeamButton
+        .waitForElementVisible '.kdmodal.kddraggable', 5000
+        .clearValue passwordSelector
+        .setValue passwordSelector, '1234'
+        .click confirmButton
+        .waitForElementVisible  '.kdnotification', 20000
+        .assert.containsText    '.kdnotification.main', 'Current password cannot be confirmed'
+        .pause 5000
+
+        .click leaveTeamButton
+        .waitForElementVisible '.kdmodal.kddraggable', 5000
+        .clearValue passwordSelector
+        .setValue passwordSelector, targetUser1.password
+        .click confirmButton
+        .assert.urlContains helpers.getUrl(yes)
+        .end()
 
 
   inviteAndJoinUsersToTeam: (browser) ->

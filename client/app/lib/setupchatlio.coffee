@@ -76,6 +76,12 @@ bootChatlio = (id, team) ->
     # show when message received
     document.addEventListener 'chatlio.messageReceived', -> _chatlio.show  { expanded: yes }
 
+    # hide completely when close icon clicked
+    # default behavior is to minify
+    document.addEventListener 'click', (event) ->
+      return  unless event.target.classList.contains 'chatlio-icon-cross2'
+      _chatlio.hide()
+
 
 
 module.exports = setupChatlio = ->

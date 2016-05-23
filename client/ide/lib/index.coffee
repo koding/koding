@@ -10,6 +10,7 @@ Machine                       = require 'app/providers/machine'
 IDEView                       = require './views/tabview/ideview'
 FSHelper                      = require 'app/util/fs/fshelper'
 showError                     = require 'app/util/showError'
+checkFlag                     = require 'app/util/checkFlag'
 actionTypes                   = require 'app/flux/environment/actiontypes'
 IDEWorkspace                  = require './workspace/ideworkspace'
 IDEStatusBar                  = require './views/statusbar/idestatusbar'
@@ -27,6 +28,7 @@ AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
 CollaborationController       = require './collaborationcontroller'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
+ResourceStateModal            = require 'app/providers/resourcestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
@@ -242,6 +244,12 @@ class IDEAppController extends AppController
   handleKlientOpenFiles: (eventData) -> @openFiles eventData.files
 
 
+  isTabViewFocused: (tabView) ->
+
+    return no  if @isChatInputFocused()
+    return @activeTabView is tabView
+
+
   setActiveTabView: (tabView) ->
 
     return  if tabView is @activeTabView
@@ -284,6 +292,7 @@ class IDEAppController extends AppController
     then layout = splitViewPanel._layout
     else layout = @layout
 
+    @setActivePaneFocus off, yes
     @activeTabView = null
 
     ideView.detach()
@@ -732,7 +741,10 @@ class IDEAppController extends AppController
     if isTeamReactSide() and state is Stopping
       modalOptions.cssClass = 'env-machine-state team full'
 
-    @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
+    modalClass = if checkFlag 'new-resource-state-modal'
+    then ResourceStateModal
+    else EnvironmentsMachineStateModal
+    @machineStateModal = new modalClass modalOptions, machineItem
 
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
     @machineStateModal.once 'IDEBecameReady', @bound 'handleIDEBecameReady'

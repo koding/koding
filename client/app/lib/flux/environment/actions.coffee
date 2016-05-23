@@ -62,6 +62,7 @@ _bindStackEvents = ->
   { reactor, computeController } = kd.singletons
 
   computeController.ready ->
+
     computeController.on 'StackRevisionChecked', (stack) ->
       return  if _revisionStatus?.error? and not stack._revisionStatus.status
 
@@ -73,6 +74,8 @@ _bindStackEvents = ->
 
     computeController.on 'GroupStacksConsistent', ->
       reactor.dispatch actions.GROUP_STACKS_CONSISTENT
+
+    computeController.checkGroupStacks()
 
 
 handleMemberWarning = (message) ->
@@ -381,8 +384,10 @@ reinitStack = (stackId) ->
 reinitStackFromWidget = (stack) ->
 
   { computeController } = kd.singletons
-  _stack = remote.revive stack.toJS()
-  computeController.reinitStack _stack
+
+  computeController.reinitStack if stack
+  then remote.revive stack.toJS()
+  else computeController.getGroupStack()
 
 
 createWorkspace = (machine, workspace) ->
@@ -634,20 +639,30 @@ removeStackTemplate = (template) ->
       Tracker.track Tracker.STACKS_DELETE_TEMPLATE
 
 
-deleteStack = (stackTemplateId) ->
+deleteStack = ({ stackTemplateId, stack }) ->
 
-  { computeController, reactor } = kd.singletons
+  { computeController, appManager, router } = kd.singletons
 
-  stack = computeController.findStackFromTemplateId stackTemplateId
-  return  unless stack
+  _stack = remote.revive stack.toJS()  if stack
 
-  computeController.ui.askFor 'deleteStack', {}, (status) =>
+  if not _stack and stackTemplateId
+    _stack = computeController.findStackFromTemplateId stackTemplateId
+
+  return  unless _stack
+
+  computeController.ui.askFor 'deleteStack', {}, (status) ->
     return  unless status.confirmed
 
-    computeController.destroyStack stack, (err) ->
-      return  if showError err
+    appManager.quitByName 'IDE', ->
+      computeController.destroyStack _stack, (err) ->
+        return  if showError err
 
-      computeController.reset yes
+        computeController
+          .reset yes
+          .once 'RenderStacks', ->
+            router.handleRoute '/IDE'
+
+      , followEvents = no
 
 
 changeTemplateTitle = (id, value) ->

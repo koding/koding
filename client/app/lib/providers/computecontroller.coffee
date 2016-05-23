@@ -677,9 +677,10 @@ module.exports = class ComputeController extends KDController
       (@errorHandler call, 'build', machine) err
 
 
-  buildStack: (stack) ->
+  buildStack: (stack, identifiers) ->
 
-    return  unless @verifyStackRequirements stack
+    verificationNeeded = not identifiers
+    return  if verificationNeeded and not @verifyStackRequirements stack
 
     state = stack.status?.state ? 'Unknown'
 
@@ -704,7 +705,7 @@ module.exports = class ComputeController extends KDController
       customEvent : { stackId, group : getGroup().slug }
     }
 
-    call = @getKloud().buildStack { stackId }
+    call = @getKloud().buildStack { stackId, identifiers }
 
     .then (res) =>
 
@@ -1234,6 +1235,9 @@ module.exports = class ComputeController extends KDController
       for stack in @stacks when stack.baseStackId is stackTemplate
         return stack
 
+    for stack in @stacks when stack.config?.groupStack
+      return stack
+
     return null
 
 
@@ -1265,7 +1269,7 @@ module.exports = class ComputeController extends KDController
           title   : "Couldn't find default stack"
           content : 'Please re-init manually'
 
-        return kd.singletons.router.handleRoute '/Stacks'
+        return kd.singletons.router.handleRoute '/Home/stacks'
 
       else
         @createDefaultStack()

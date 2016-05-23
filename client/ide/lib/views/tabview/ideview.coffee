@@ -80,7 +80,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       { frontApp } = kd.singletons.appManager
       @updateStatusBar()
       frontApp.writeSnapshot()
-      @focusTab()  unless frontApp.isChatInputFocused()
+      @focusTab()  if frontApp.isTabViewFocused @tabView
 
     @tabView.on 'PaneAdded', (pane) =>
 
@@ -108,7 +108,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
           tabHandle.enableContextMenu()
 
           webtermCallback = @lazyBound 'handleWebtermCreated', pane
-          view.once 'WebtermCreated', webtermCallback
+          view.ready webtermCallback
 
           handleCallback = @lazyBound 'handleTerminalRenamingRequested', tabHandle
           tabHandle.on 'RenamingRequested', handleCallback
@@ -116,9 +116,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
           tabHandle.makeEditable()
 
 
-    @tabView.on 'PaneRemoved', ({ pane, handle }) ->
-      { options : { paneType } } = pane.view
+    @tabView.on 'PaneRemoved', ({ pane, handle }) =>
+      { view } = pane
+      { options : { paneType } } = view
       handle.off 'RenamingRequested'  if paneType in ['terminal', 'editor']
+      view.webtermView.off 'click', @bound 'click'  if paneType is 'terminal'
 
 
     # This is a custom event for IDEApplicationTabView
@@ -488,9 +490,14 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     pane = @getActivePaneView()
     return unless pane
 
+    { panes } = @tabView
+
     kd.utils.defer ->
       { paneType } = pane.getOptions()
       appManager   = kd.getSingleton 'appManager'
+
+      for _pane in panes when _pane.view isnt pane
+        _pane.view.setFocus? no
 
       pane.setFocus? yes
 

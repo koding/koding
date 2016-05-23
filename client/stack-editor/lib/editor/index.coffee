@@ -24,6 +24,7 @@ addUserInputOptions = require 'stacks/views/stacks/adduserinputoptions'
 updateCustomVariable = require 'stacks/views/stacks/updatecustomvariable'
 parseTerraformOutput = require 'stacks/views/stacks/parseterraformoutput'
 CredentialStatusView = require 'stacks/views/stacks/credentialstatusview'
+generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 StackTemplatePreviewModal = require 'stacks/views/stacks/stacktemplatepreviewmodal'
 EnvironmentFlux = require 'app/flux/environment'
 
@@ -51,10 +52,13 @@ module.exports = class StackEditorView extends kd.View
     if stackTemplate?.title
       stackTemplate.title = Encoder.htmlDecode stackTemplate.title
 
-    title   = stackTemplate?.title or 'Default stack template'
+    generatedStackTemplateTitle = generateStackTemplateTitle()
+
+    title   = stackTemplate?.title or generatedStackTemplateTitle
     content = stackTemplate?.template?.content
 
-    @createStackNameInput()
+    @createStackNameInput generateStackTemplateTitle
+
     @addSubView @tabView = new kd.TabView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 300
@@ -91,6 +95,8 @@ module.exports = class StackEditorView extends kd.View
       name : 'Readme'
       view : @readmeView
 
+    { @credentials } = @stackTemplateView.credentialStatus or {}
+
     @providersView = new ProvidersView {
       selectedCredentials : @credentials
       provider            : selectedProvider
@@ -113,8 +119,6 @@ module.exports = class StackEditorView extends kd.View
     @credentialStatusView = new CredentialStatusView {
       stackTemplate, selectedProvider
     }
-
-    { @credentials } = @stackTemplateView.credentialStatus or {}
 
     @tabView.showPaneByIndex 0
 
@@ -202,7 +206,7 @@ module.exports = class StackEditorView extends kd.View
     return isChanged
 
 
-  createStackNameInput: ->
+  createStackNameInput: (generatedStackTemplateTitle) ->
 
     { stackTemplate } = @getData()
 
@@ -217,18 +221,20 @@ module.exports = class StackEditorView extends kd.View
         teamTemplates.merge(privateTemplates).getIn [ stackTemplate?._id, 'title' ]
     ]
 
-    title = kd.singletons.reactor.evaluate valueGetter
+    title = Encoder.htmlDecode kd.singletons.reactor.evaluate valueGetter
 
     @header.addSubView @inputTitle = new kd.InputView
       cssClass: 'template-title'
       autogrow: yes
-      defaultValue : title or 'Default stack template' # can we auto generate cute stack names?
+      defaultValue: title or generatedStackTemplateTitle
       bind: 'keyup'
       keyup: (e) ->
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
 
     kd.singletons.reactor.observe valueGetter, (value) =>
+
+      value = Encoder.htmlDecode value
 
       return  if value is @inputTitle.getValue()
 

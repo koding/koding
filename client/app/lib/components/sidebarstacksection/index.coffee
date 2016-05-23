@@ -73,6 +73,7 @@ module.exports = class SidebarStackSection extends React.Component
       when 'Update' then EnvironmentFlux.actions.reinitStackFromWidget stack
       when 'Edit' then router.handleRoute "/Stack-Editor/#{stack.get 'baseStackId'}"
       when 'Reinitialize' then EnvironmentFlux.actions.reinitStackFromWidget stack
+      when 'Destroy VMs' then EnvironmentFlux.actions.deleteStack { stack }
       when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
 
 
@@ -91,7 +92,13 @@ module.exports = class SidebarStackSection extends React.Component
     if @getStackUnreadCount()
       menuItems['Update'] = { callback }
 
-    ['Edit', 'Reinitialize', 'VMs'].forEach (name) => menuItems[name] = { callback }
+    managedVM = @props.stack.get('title').indexOf('Managed VMs') > -1
+
+    if managedVM
+      menuItems['VMs'] = { callback }
+    else
+      ['Edit', 'Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
+        menuItems[name] = { callback }
 
     { top } = findDOMNode(this).getBoundingClientRect()
 

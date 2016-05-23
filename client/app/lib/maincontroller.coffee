@@ -348,9 +348,9 @@ module.exports = class MainController extends KDController
 
     fetchChatlioKey (id) ->
 
-      return  unless id
+      return callback new Error 'Support isn\'t enabled by your team admin!'  unless id
 
-      run = -> callback window._chatlio[method] options
+      run = -> callback null, window._chatlio[method] options
 
       if window._chatlio
       then do run
