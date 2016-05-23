@@ -169,8 +169,8 @@ module.exports = (options) ->
     secretKey: ""
   segment = ''
   kontrol =
-    publicKeyFile: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pem"
-    privateKeyFile: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pub"
+    publicKeyFile: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pub"
+    privateKeyFile: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pem"
   kloud =
     userPrivateKeyFile: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pem"
     userPublicKeyfile: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pub"
