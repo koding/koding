@@ -5,7 +5,7 @@ KDReactorMixin  = require 'app/flux/base/reactormixin'
 View            = require './view'
 Encoder         = require 'htmlencode'
 showError       = require 'app/util/showError'
-
+DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 
 notify = (title, duration = 5000) -> new kd.NotificationView { title, duration }
 
@@ -23,7 +23,6 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
     canEdit = kd.singletons.groupsController.canEditGroup()
     @state =
-      logopath: '/a/images/logos/sidebar_footer_logo.svg'
       canEdit: canEdit
       loading: no
       teamNameChanged: no
@@ -48,14 +47,19 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       name = "#{@state.team.get 'slug'}-logo-#{Date.now()}.png"
       mimeType = file.type
       content = file
-      TeamFlux.actions.uploads3({ name, content, mimeType }).then ({ url }) =>
+      TeamFlux.actions.uploads3({ name, content, mimeType })
+      .then ({ url }) =>
         dataToUpdate =
           customize:
             logo: url
         @updateTeam { dataToUpdate }
 
-      .catch ({ err }) ->
+      .timeout 15000
+
+      .catch ({ err }) =>
         showError err  if err
+        showError 'There was a problem while uploading your logo, please try again later!'  unless err
+        @setState { loading: no }
 
     reader.readAsDataURL file
 
@@ -69,7 +73,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
     dataToUpdate =
       customize:
-        logo: @state.logopath
+        logo: DEFAULT_LOGOPATH
     @updateTeam { dataToUpdate }
 
 
@@ -130,7 +134,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       teamNameChanged={@state.teamNameChanged}
       canEdit={@state.canEdit}
       loading={@state.loading}
-      logopath={@state.logopath}
+      logopath={DEFAULT_LOGOPATH}
       onUploadInput={@bound 'onUploadInput'}
       onClickLogo={@bound 'onClickLogo'}
       onRemoveLogo={@bound 'onRemoveLogo'}
