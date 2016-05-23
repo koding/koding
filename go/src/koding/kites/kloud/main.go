@@ -268,6 +268,10 @@ func newKite(conf *Config) *kite.Kite {
 
 	kodingProvider := newKodingProvider(sess, conf, authUsers)
 
+	if k, ok := kodingProvider.(*koding.Provider); ok {
+		awsProvider.Koding = k
+	}
+
 	go runQueue(kodingProvider, awsProvider, sess, conf)
 
 	stats := common.MustInitMetrics(Name)

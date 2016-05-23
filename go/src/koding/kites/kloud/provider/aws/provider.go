@@ -6,6 +6,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/provider"
+	"koding/kites/kloud/provider/koding"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"golang.org/x/net/context"
@@ -13,6 +14,8 @@ import (
 
 type Provider struct {
 	*provider.BaseProvider
+
+	Koding *koding.Provider // used for migrations if non-nil
 }
 
 func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {

@@ -241,7 +241,7 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 			if (user.Sudo || !user.Permanent) && user.Owner {
 				validUsers[user.Id.Hex()] = user
 			} else {
-				// return early, we don't tolerate nonvalid inputs to apply
+				// return early, we don't accept invalid inputs for apply method
 				return fmt.Errorf("machine '%s' is not valid. Aborting apply", machine.ObjectId.Hex())
 			}
 		}
@@ -425,6 +425,24 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 	b.Log.Debug("Built credentials: %+v", b.Credentials)
 
 	return nil
+}
+
+// CredentialByProvider returns first encountered credential for the given provider.
+func (b *Builder) CredentialByProvider(provider string) (*Credential, error) {
+	var cred *Credential
+
+	for _, c := range b.Credentials {
+		if cred.Provider == provider {
+			cred = c
+			break
+		}
+	}
+
+	if cred == nil {
+		return nil, fmt.Errorf("no credential found for %s provider", provider)
+	}
+
+	return cred, nil
 }
 
 // BuildTemplate parsers a template from the given content and injects
