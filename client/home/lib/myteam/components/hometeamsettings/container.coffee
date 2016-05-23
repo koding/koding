@@ -1,4 +1,3 @@
-_               = require 'lodash'
 kd              = require 'kd'
 React           = require 'kd-react'
 TeamFlux        = require 'app/flux/teams'
@@ -23,13 +22,14 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
     super props
 
     canEdit = kd.singletons.groupsController.canEditGroup()
-
     @state =
       logopath: '/a/images/logos/sidebar_footer_logo.svg'
       canEdit: canEdit
+      loading: no
 
 
   componentDidMount: ->
+
     teamName = if @state.team? then Encoder.htmlDecode @state.team.get 'title' else ''
     @setState
       teamName: teamName
@@ -40,6 +40,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
     [file] = @refs.view.input.files
     return  unless file
+    @setState { loading: yes }
     reader = new FileReader
     reader.onload = (reader, event) =>
 
@@ -65,37 +66,36 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
   onRemoveLogo: ->
 
-    team = @state.team.updateIn(['customize', 'logo'], -> '')
-    @setState {team}
+    dataToUpdate =
+      customize:
+        logo: @state.logopath
+    @updateTeam { dataToUpdate }
 
 
   onUpdate: ->
 
-    dataToUpdate =
-      customize:
-        logo: @state.logopath
-
+    dataToUpdate = {}
     title = @state.teamName
 
     if title isnt @state.team.get 'title'
       dataToUpdate.title = title
 
-    name = @state.fileName
-    content = @state.file
-    mimeType = @state.fileType
+    return  unless dataToUpdate.title
 
-      if not (name or content or mimeType)
-        return
-
-    TeamFlux.actions.uploads3({ name, content, mimeType }).then ({ url }) ->
-      dataToUpdate.customize.logo = url
-      updateTeam { dataToUpdate }
-    .catch ({ err }) ->
-      showError err  if err
-      updateTeam { dataToUpdate }
+    @updateTeam { dataToUpdate }
 
 
-  onTeamNameChanged: (event)->
+  updateTeam: ({ dataToUpdate }) ->
+
+    TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) =>
+      notify message
+      @setState { loading: no }
+    .catch ({ message }) =>
+      notify message
+      @setState { loading: no }
+
+
+  onTeamNameChanged: (event) ->
 
     @setState
       teamName : event.target.value
@@ -120,6 +120,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       team={@state.team}
       teamName={@state.teamName}
       canEdit={@state.canEdit}
+      loading={@state.loading}
       logopath={@state.logopath}
       onUploadInput={@bound 'onUploadInput'}
       onClickLogo={@bound 'onClickLogo'}
@@ -129,12 +130,6 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       onTeamNameChanged={@bound 'onTeamNameChanged'}/>
 
 
-updateTeam = ({ dataToUpdate }) ->
-
-  TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) ->
-    notify message
-  .catch ({ message }) ->
-    notify message
 
 
 HomeTeamSettingsContainer.include [KDReactorMixin]
