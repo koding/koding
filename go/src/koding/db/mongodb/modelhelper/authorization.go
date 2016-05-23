@@ -146,17 +146,14 @@ func (store *MongoStorage) RemoveAuthorize(code string) error {
 	return Mongo.Run(AuthorizeColl, query)
 }
 
-// func (store *MongoStorage) SaveAccess(data *osin.AccessData) error {
 //TODO change inside of mongo!!!
 func (store *MongoStorage) SaveAccess(data *osin.AccessData) error {
-	// query := insertQuery(Selector{"accesstoken": acc.AccessToken}, acc)
 	acc := removeExtraFieldsFromAccess(data)
 	query := insertQuery(acc)
 	return Mongo.Run(AccessColl, query)
 }
 
 func (store *MongoStorage) LoadAccess(token string) (*osin.AccessData, error) {
-	// func (store *MongoStorage) LoadAccess(token string) (*AccessData, error) {
 	client := new(AccessData)
 
 	query := func(c *mgo.Collection) error {
@@ -185,9 +182,7 @@ func (store *MongoStorage) RemoveAccess(token string) error {
 	return Mongo.Run(AccessColl, query)
 }
 
-// func (store *MongoStorage) LoadRefresh(token string) (*osin.AccessData, error) {
 func (store *MongoStorage) LoadRefresh(token string) (*osin.AccessData, error) {
-	// client := new(osin.AccessData)
 	client := new(AccessData)
 
 	query := func(c *mgo.Collection) error {
@@ -217,7 +212,6 @@ func (store *MongoStorage) RemoveRefresh(token string) error {
 }
 
 // GetAccessDataByAccessToken fetches the user data given access token
-// func GetAccessDataByAccessToken(token string) (*osin.AccessData, error) {
 func GetAccessDataByAccessToken(token string) (*AccessData, error) {
 	user := new(AccessData)
 
