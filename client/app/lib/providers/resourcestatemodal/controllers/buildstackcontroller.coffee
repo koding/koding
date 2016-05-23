@@ -43,7 +43,7 @@ module.exports = class BuildStackController extends BasePageController
   completeProcess: ->
 
     @buildStackPage.updatePercentage 100
-    kd.utils.wait 500, @lazyBound 'setCurrentPage', @successPage
+    @setCurrentPage @successPage
 
 
   showError: (err) ->

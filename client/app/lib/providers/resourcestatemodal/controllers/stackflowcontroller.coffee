@@ -1,46 +1,21 @@
 kd = require 'kd'
-Machine = require 'app/providers/machine'
 BasePageController = require './basepagecontroller'
 InstructionsController = require './instructionscontroller'
 CredentialsController = require './credentialscontroller'
 BuildStackController = require './buildstackcontroller'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 module.exports = class StackFlowController extends BasePageController
-
-  { NotInitialized, Building, Running } = Machine.State
 
   constructor: (options, data) ->
 
     super options, data
 
-    machine = @getData()
-
-    { computeController } = kd.singletons
-    computeController.ready =>
-
-      machineId = machine.jMachine._id
-      @stack = computeController.findStackFromMachineId machineId
-
-      return kd.log 'Stack not found!'  unless @stack
-
-      computeController.on "apply-#{@stack._id}", @bound 'updateStatus'
-
-      @state = @stack.status?.state
-      if @state is Building
-        computeController.eventListener.addListener 'apply', @stack._id
-
-      @ready()
-
-
-  ready: ->
-
-    machine = @getData()
+    { stack }     = @getData()
     { container } = @getOptions()
 
-    @instructions = new InstructionsController { container }, @stack
-    @credentials = new CredentialsController { container }, @stack
-    @buildStack = new BuildStackController { container }, @stack
+    @instructions = new InstructionsController { container }, stack
+    @credentials  = new CredentialsController { container }, stack
+    @buildStack   = new BuildStackController { container }, stack
 
     @instructions.on 'NextPageRequested', @lazyBound 'setCurrentPage', @credentials
     @credentials.on 'InstructionsRequested', @lazyBound 'setCurrentPage', @instructions
@@ -49,61 +24,27 @@ module.exports = class StackFlowController extends BasePageController
     @buildStack.on 'RebuildRequested', => @credentials.submit()
     @forwardEvent @buildStack, 'ClosingRequested'
 
-    page = if @state is Building then @buildStack
-    else if @state is NotInitialized then @instructions
-    @setCurrentPage page  if page
 
-
-  updateStatus: (event, task) ->
-
-    { status, percentage, error, message, eventId } = event
-
-    return  unless eventId?.indexOf(@stack._id) > -1
-
-    [ @oldState, @state ] = [ @state, status ]
+  showBuildError: (error) ->
 
     @setCurrentPage @buildStack
-
-    if error
-      @buildStack.showError error
-    else if percentage?
-      @buildStack.updateProgress percentage, message
-      if percentage is 100
-        @completeBuildProcess()
-    else
-      @checkIfBuildCompleted()
+    @buildStack.showError error
 
 
-  checkIfBuildCompleted: (initial = no) ->
+  updateBuildProgress: (percentage, message) ->
 
-    return  unless @state is Running
-
-    machine = @getData()
-    { appManager } = kd.singletons
-
-    environmentDataProvider.fetchMachine machine.uid, (_machine) =>
-      return appManager.tell 'IDE', 'quit'  unless _machine
-
-      @setData _machine
-      @emit 'IDEBecameReady', machine, initial
+    @setCurrentPage @buildStack
+    @buildStack.updateProgress percentage, message
 
 
   completeBuildProcess: ->
 
-    machine   = @getData()
-    machineId = machine.jMachine._id
-
+    @setCurrentPage @buildStack
     @buildStack.completeProcess()
 
-    if @oldState is Building and @state is Running
-      { computeController } = kd.singletons
-      computeController.once "revive-#{machineId}", =>
-        @checkIfBuildCompleted yes
 
+  show: (state) ->
 
-  destroy: ->
-
-    { computeController } = kd.singletons
-    computeController.off "apply-#{@stack._id}", @bound 'updateStatus'
-
-    super
+    page = if state is 'Building' then @buildStack
+    else if state is 'NotInitialized' then @instructions
+    @setCurrentPage page  if page
