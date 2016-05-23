@@ -53,7 +53,7 @@ ActionBar = ({ canEdit, callback, onLeaveTeam }) ->
 
   <fieldset className='HomeAppView--ActionBar'>
     <LeaveTeam onLeaveTeam={onLeaveTeam}/>
-    <GenericButton className=className title='SAVE CHANGES' callback={callback}/>
+    <GenericButton className=className title='SAVE TEAM NAME' callback={callback}/>
   </fieldset>
 
 
