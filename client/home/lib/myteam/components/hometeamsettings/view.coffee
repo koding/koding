@@ -2,6 +2,7 @@ kd              = require 'kd'
 React           = require 'kd-react'
 List            = require 'app/components/list'
 Encoder         = require 'htmlencode'
+DEFAULT_SPINNER_PATH = '/a/images/logos/balls.gif'
 
 
 module.exports = class HomeTeamSettingsView extends React.Component
@@ -121,6 +122,6 @@ GenericButton = ({ className, title, callback }) ->
 TeamLogo = ({ team, logopath, loading, callback }) ->
 
   src = team.getIn(['customize', 'logo']) or logopath
-  src = '/a/images/logos/balls.gif'  if loading
+  src = DEFAULT_SPINNER_PATH  if loading
   <img className='teamLogo' src={src} onClick={callback} />
 
