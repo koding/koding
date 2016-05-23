@@ -33,21 +33,27 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
     teamName = if @state.team? then Encoder.htmlDecode @state.team.get 'title' else ''
     @setState
       teamName: teamName
-      file: null
-      fileType: null
-      fileName: null
 
 
   onUploadInput: ->
 
-    [file] = @refs.view.input.files
 
+    [file] = @refs.view.input.files
+    return  unless file
     reader = new FileReader
     reader.onload = (reader, event) =>
-      team = @state.team.setIn ['customize', 'logo'], reader.target.result
-      fileName = "#{@state.team.get 'slug'}-logo-#{Date.now()}.png"
-      fileType = file.type
-      @setState { team, file, fileType, fileName }
+
+      name = "#{@state.team.get 'slug'}-logo-#{Date.now()}.png"
+      mimeType = file.type
+      content = file
+      TeamFlux.actions.uploads3({ name, content, mimeType }).then ({ url }) =>
+        dataToUpdate =
+          customize:
+            logo: url
+        @updateTeam { dataToUpdate }
+
+      .catch ({ err }) ->
+        showError err  if err
 
     reader.readAsDataURL file
 
@@ -78,7 +84,6 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
     content = @state.file
     mimeType = @state.fileType
 
-    if _.isEmpty dataToUpdate.title
       if not (name or content or mimeType)
         return
 
