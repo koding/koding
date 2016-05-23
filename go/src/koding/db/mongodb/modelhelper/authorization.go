@@ -1,7 +1,6 @@
 package modelhelper
 
 import (
-	"fmt"
 	"koding/db/models"
 	"time"
 
@@ -93,24 +92,20 @@ func (store *MongoStorage) Close() {
 func (store *MongoStorage) GetClient(id string) (osin.Client, error) {
 	client := new(osin.DefaultClient)
 
-	fmt.Println("id", id)
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"id": id}).One(client)
 	}
 
 	err := Mongo.Run(ClientColl, query)
 	if err != nil {
-		fmt.Println("1-->", 1)
 		return nil, err
 	}
 
-	fmt.Println("client", client)
 	return client, nil
 }
 
 func (store *MongoStorage) SetClient(id string, client osin.Client) error {
 	query := insertQuery(client)
-	fmt.Println("2-->", 2)
 	return Mongo.Run(ClientColl, query)
 }
 
@@ -132,7 +127,6 @@ func (store *MongoStorage) LoadAuthorize(code string) (*osin.AuthorizeData, erro
 
 	err := Mongo.Run(AuthorizeColl, query)
 	if err != nil {
-		fmt.Println("5-->", 5)
 		return nil, err
 	}
 	authData := new(osin.AuthorizeData)
