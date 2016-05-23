@@ -2,14 +2,12 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"log"
 	"net/http"
 
 	"github.com/RangelReale/osin"
-	"github.com/kr/pretty"
 )
 
 var (
@@ -43,7 +41,6 @@ func (o *Oauth) AuthorizeClient(w http.ResponseWriter, r *http.Request) {
 
 	}
 	if resp.IsError && resp.InternalError != nil {
-		fmt.Printf("resp %# v", pretty.Formatter(resp))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -83,7 +80,7 @@ func (o *Oauth) GenerateToken(w http.ResponseWriter, r *http.Request) {
 		}
 		server.FinishAccessRequest(resp, r, ar)
 	}
-	fmt.Printf("resp %# v", pretty.Formatter(resp))
+
 	if resp.IsError && resp.InternalError != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

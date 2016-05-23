@@ -26,28 +26,6 @@ var (
 	ErrInvalidToken = errors.New("invalid token")
 )
 
-func getAuthorization(h http.Header) (string, error) {
-	authHeader := h.Get("Authorization")
-	if authHeader == "" {
-		return "", ErrTokenNotSet
-	}
-
-	var token string
-
-	if authHeader != "" {
-		s := strings.SplitN(authHeader, " ", 2)
-		if len(s) != 2 || strings.ToLower(s[0]) != "bearer" {
-			return "", ErrInvalidToken
-		}
-		//Use authorization header token only if token type is bearer else query string access token would be returned
-		if len(s) > 0 && strings.ToLower(s[0]) == "bearer" {
-			token = s[1]
-		}
-	}
-
-	return token, nil
-}
-
 var Name = "KodingApi"
 
 func main() {
@@ -98,4 +76,26 @@ func main() {
 
 	_ = logger.Log("msg", "HTTP", "addr", *listen)
 	_ = logger.Log("err", http.ListenAndServe(*listen, nil))
+}
+
+func getAuthorization(h http.Header) (string, error) {
+	authHeader := h.Get("Authorization")
+	if authHeader == "" {
+		return "", ErrTokenNotSet
+	}
+
+	var token string
+
+	if authHeader != "" {
+		s := strings.SplitN(authHeader, " ", 2)
+		if len(s) != 2 || strings.ToLower(s[0]) != "bearer" {
+			return "", ErrInvalidToken
+		}
+		//Use authorization header token only if token type is bearer else query string access token would be returned
+		if len(s) > 0 && strings.ToLower(s[0]) == "bearer" {
+			token = s[1]
+		}
+	}
+
+	return token, nil
 }
