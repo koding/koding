@@ -172,11 +172,11 @@ module.exports = (options) ->
     publicKey: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pub"
     privateKey: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pem"
   kloud =
-    userPrivateKeyFile: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pem"
-    userPublicKeyfile: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pub"
-    privateKeyFile: kontrol.privateKey
-    publicKeyFile: kontrol.publicKey
+    publicKey: kontrol.publicKey
+    privateKey: kontrol.privateKey
     secretKey: ''
+    userPublicKey: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pub"
+    userPrivateKey: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pem"
   dummyAdmins = ['superadmin', 'admin', 'koding']
 
   return {
