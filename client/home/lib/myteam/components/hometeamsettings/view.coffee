@@ -6,7 +6,6 @@ Encoder         = require 'htmlencode'
 
 module.exports = class HomeTeamSettingsView extends React.Component
 
-
   onClickLogo: (event) ->
 
     @input.click()  if @props.canEdit
@@ -16,7 +15,11 @@ module.exports = class HomeTeamSettingsView extends React.Component
 
     <div>
       <div className='HomeAppView--uploadLogo'>
-        <TeamLogo team={@props.team} logopath={@props.logopath} callback={@bound 'onClickLogo'}/>
+        <TeamLogo
+          team={@props.team}
+          logopath={@props.logopath}
+          loading={@props.loading}
+          callback={@bound 'onClickLogo'} />
         <div className='uploadInputWrapper'>
           <GenericButtons
             canEdit={@props.canEdit}
@@ -84,6 +87,7 @@ TeamName = ({ canEdit, title, teamName, callback }) ->
 
 
 TeamNameInputArea = ({ canEdit, value, callback }) ->
+
   if canEdit
     <input
       type='text'
@@ -109,7 +113,9 @@ GenericButton = ({ className, title, callback }) ->
   </a>
 
 
-TeamLogo = ({ team, logopath, callback }) ->
+TeamLogo = ({ team, logopath, loading, callback }) ->
 
   src = team.getIn(['customize', 'logo']) or logopath
-  <img className='teamLogo' src={src} onClick={callback}/>
+  src = '/a/images/logos/balls.gif'  if loading
+  <img className='teamLogo' src={src} onClick={callback} />
+
