@@ -38,6 +38,7 @@ updateTeam = (dataToUpdate) ->
 
       return reject { message: 'Couldn\'t update team settings. Please try again' }  if err
 
+      reactor.dispatch actions.UPDATE_TEAM_SUCCESS, { dataToUpdate }
       resolve { message }
 
 

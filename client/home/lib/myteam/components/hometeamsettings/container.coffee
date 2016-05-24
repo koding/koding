@@ -1,4 +1,3 @@
-_               = require 'lodash'
 kd              = require 'kd'
 React           = require 'kd-react'
 TeamFlux        = require 'app/flux/teams'
@@ -6,7 +5,7 @@ KDReactorMixin  = require 'app/flux/base/reactormixin'
 View            = require './view'
 Encoder         = require 'htmlencode'
 showError       = require 'app/util/showError'
-
+DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 
 notify = (title, duration = 5000) -> new kd.NotificationView { title, duration }
 
@@ -23,31 +22,44 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
     super props
 
     canEdit = kd.singletons.groupsController.canEditGroup()
-
     @state =
-      logopath: '/a/images/logos/sidebar_footer_logo.svg'
       canEdit: canEdit
+      loading: no
+      teamNameChanged: no
 
 
   componentDidMount: ->
+
     teamName = if @state.team? then Encoder.htmlDecode @state.team.get 'title' else ''
     @setState
       teamName: teamName
-      file: null
-      fileType: null
-      fileName: null
 
 
   onUploadInput: ->
 
-    [file] = @refs.view.input.files
 
+    [file] = @refs.view.input.files
+    return  unless file
+    @setState { loading: yes }
     reader = new FileReader
     reader.onload = (reader, event) =>
-      team = @state.team.setIn ['customize', 'logo'], reader.target.result
-      fileName = "#{@state.team.get 'slug'}-logo-#{Date.now()}.png"
-      fileType = file.type
-      @setState { team, file, fileType, fileName }
+
+      name = "#{@state.team.get 'slug'}-logo-#{Date.now()}.png"
+      mimeType = file.type
+      content = file
+      TeamFlux.actions.uploads3({ name, content, mimeType })
+      .then ({ url }) =>
+        dataToUpdate =
+          customize:
+            logo: url
+        @updateTeam { dataToUpdate }
+
+      .timeout 15000
+
+      .catch ({ err }) =>
+        showError err  if err
+        showError 'There was a problem while uploading your logo, please try again later!'  unless err
+        @setState { loading: no }
 
     reader.readAsDataURL file
 
@@ -59,42 +71,47 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
   onRemoveLogo: ->
 
-    team = @state.team.updateIn(['customize', 'logo'], -> '')
-    @setState {team}
+    dataToUpdate =
+      customize:
+        logo: DEFAULT_LOGOPATH
+    @updateTeam { dataToUpdate }
 
 
   onUpdate: ->
 
-    dataToUpdate =
-      customize:
-        logo: @state.logopath
-
+    dataToUpdate = {}
     title = @state.teamName
 
     if title isnt @state.team.get 'title'
       dataToUpdate.title = title
 
-    name = @state.fileName
-    content = @state.file
-    mimeType = @state.fileType
+    return  unless dataToUpdate.title
 
-    if _.isEmpty dataToUpdate.title
-      if not (name or content or mimeType)
-        return
-
-    TeamFlux.actions.uploads3({ name, content, mimeType }).then ({ url }) ->
-      dataToUpdate.customize.logo = url
-      updateTeam { dataToUpdate }
-    .catch ({ err }) ->
-      showError err  if err
-      updateTeam { dataToUpdate }
+    @updateTeam { dataToUpdate }
 
 
-  onTeamNameChanged: (event)->
+  updateTeam: ({ dataToUpdate }) ->
 
-    @setState
-      teamName : event.target.value
+    TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) =>
+      notify message
+      @setState
+        loading: no
+        teamNameChanged: no
+    .catch ({ message }) =>
+      notify message
+      @setState
+        loading: no
+        teamNameChanged: no
 
+
+  onTeamNameChanged: (event) ->
+
+    @setState { teamName : event.target.value }
+
+    if @state.team.get('title') isnt event.target.value
+      @setState { teamNameChanged: yes }
+    else
+      @setState { teamNameChanged: no }
 
   onLeaveTeam: (event) ->
 
@@ -114,8 +131,10 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       ref='view'
       team={@state.team}
       teamName={@state.teamName}
+      teamNameChanged={@state.teamNameChanged}
       canEdit={@state.canEdit}
-      logopath={@state.logopath}
+      loading={@state.loading}
+      logopath={DEFAULT_LOGOPATH}
       onUploadInput={@bound 'onUploadInput'}
       onClickLogo={@bound 'onClickLogo'}
       onRemoveLogo={@bound 'onRemoveLogo'}
@@ -124,12 +143,6 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       onTeamNameChanged={@bound 'onTeamNameChanged'}/>
 
 
-updateTeam = ({ dataToUpdate }) ->
-
-  TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) ->
-    notify message
-  .catch ({ message }) ->
-    notify message
 
 
 HomeTeamSettingsContainer.include [KDReactorMixin]

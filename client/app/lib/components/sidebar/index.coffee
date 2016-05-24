@@ -14,7 +14,8 @@ SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem
 SidebarDifferentStackResources = require 'app/components/sidebarstacksection/sidebardifferentstackresources'
 { findDOMNode } = require 'react-dom'
 SidebarFlux = require 'app/flux/sidebar'
-
+TeamFlux = require 'app/flux/teams'
+DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 MENU = null
 
 module.exports = class Sidebar extends React.Component
@@ -44,6 +45,7 @@ module.exports = class Sidebar extends React.Component
       activeLeavingSharedMachineId : EnvironmentFlux.getters.activeLeavingSharedMachineId
       requiredInvitationMachine    : EnvironmentFlux.getters.requiredInvitationMachine
       differentStackResourcesStore : EnvironmentFlux.getters.differentStackResourcesStore
+      team                         : TeamFlux.getters.team
     }
 
 
@@ -51,6 +53,8 @@ module.exports = class Sidebar extends React.Component
 
 
   componentWillMount: ->
+
+    TeamFlux.actions.loadTeam()
 
     SidebarFlux.actions.loadVisibilityFilters().then =>
       EnvironmentFlux.actions.loadStacks().then =>
@@ -222,21 +226,9 @@ module.exports = class Sidebar extends React.Component
 
   renderLogo: ->
 
-    team = kd.singletons.groupsController.getCurrentGroup()
-    logo = team.customize?.logo
+    src = @state.team.getIn(['customize', 'logo']) or DEFAULT_LOGOPATH
 
-    if logo
-      <img
-        src="#{logo}"
-        className='Sidebar-footer-logo'
-      />
-    else
-      <object
-        type='image/svg+xml'
-        data="#{logo or '/a/images/logos/sidebar_footer_logo.svg'}"
-        className='Sidebar-footer-logo'>
-        Koding Logo
-      </object>
+    <img src="#{src}" className='Sidebar-footer-logo' />
 
 
   render: ->
