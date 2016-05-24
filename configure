@@ -24,18 +24,10 @@ version = undefined
 # clone all the arguments to options
 options = extend {}, argv
 
-# TODO - get rid of this step, all configs already sets their own default options
-#
 # set sane defaults for _some_ options.
 defaults options,
-  projectRoot: __dirname
   config: defaultEnv
-  region: defaultEnv
-  build: 1
-  environment: defaultEnv
-  onlyconfigure: no
-  deploy: no
-  ebEnvName: defaultEnv
+  envFileName: path.join __dirname, '.env'
 
 
 options.runGoWatcher = argv.hasOwnProperty 'with-go-watcher'
