@@ -2,10 +2,10 @@ kd              = require 'kd'
 React           = require 'kd-react'
 List            = require 'app/components/list'
 Encoder         = require 'htmlencode'
+DEFAULT_SPINNER_PATH = '/a/images/logos/balls.gif'
 
 
 module.exports = class HomeTeamSettingsView extends React.Component
-
 
   onClickLogo: (event) ->
 
@@ -16,7 +16,11 @@ module.exports = class HomeTeamSettingsView extends React.Component
 
     <div>
       <div className='HomeAppView--uploadLogo'>
-        <TeamLogo team={@props.team} logopath={@props.logopath} callback={@bound 'onClickLogo'}/>
+        <TeamLogo
+          team={@props.team}
+          logopath={@props.logopath}
+          loading={@props.loading}
+          callback={@bound 'onClickLogo'} />
         <div className='uploadInputWrapper'>
           <GenericButtons
             canEdit={@props.canEdit}
@@ -30,7 +34,11 @@ module.exports = class HomeTeamSettingsView extends React.Component
           <TeamName canEdit={@props.canEdit} title={@props.team.get 'title'} teamName={@props.teamName} callback={@props.onTeamNameChanged} />
           <TeamDomain slug={@props.team.get 'slug'} />
         </div>
-        <ActionBar canEdit={@props.canEdit} callback={@props.onUpdate} onLeaveTeam={@props.onLeaveTeam}/>
+        <ActionBar
+          canEdit={@props.canEdit}
+          callback={@props.onUpdate}
+          onLeaveTeam={@props.onLeaveTeam}
+          teamNameChanged={@props.teamNameChanged} />
       </form>
     </div>
 
@@ -46,14 +54,15 @@ GenericButtons = ({ canEdit, clickLogo, removeLogo }) ->
     <div />
 
 
-ActionBar = ({ canEdit, callback, onLeaveTeam }) ->
+ActionBar = ({ canEdit, callback, onLeaveTeam, teamNameChanged }) ->
 
   className = unless canEdit then 'hidden' else ''
-  className = kd.utils.curry 'custom-link-view primary fr', className
+  className = kd.utils.curry 'custom-link-view fr', className
+  className = kd.utils.curry className, 'primary'  if teamNameChanged
 
   <fieldset className='HomeAppView--ActionBar'>
     <LeaveTeam onLeaveTeam={onLeaveTeam}/>
-    <GenericButton className=className title='SAVE CHANGES' callback={callback}/>
+    <GenericButton className=className title='CHANGE TEAM NAME' callback={callback}/>
   </fieldset>
 
 
@@ -84,6 +93,7 @@ TeamName = ({ canEdit, title, teamName, callback }) ->
 
 
 TeamNameInputArea = ({ canEdit, value, callback }) ->
+
   if canEdit
     <input
       type='text'
@@ -109,7 +119,9 @@ GenericButton = ({ className, title, callback }) ->
   </a>
 
 
-TeamLogo = ({ team, logopath, callback }) ->
+TeamLogo = ({ team, logopath, loading, callback }) ->
 
   src = team.getIn(['customize', 'logo']) or logopath
-  <img className='teamLogo' src={src} onClick={callback}/>
+  src = DEFAULT_SPINNER_PATH  if loading
+  <img className='teamLogo' src={src} onClick={callback} />
+
