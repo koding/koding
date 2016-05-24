@@ -12,7 +12,6 @@ parser = require 'csv-parse'
 
 before (done) -> checkBongoConnectivity done
 
-
 describe 'server.handlers.invitetoteambycsv', ->
 
   it 'should be parse broken csv', (done) ->
@@ -22,7 +21,6 @@ describe 'server.handlers.invitetoteambycsv', ->
     runTest lotsOfInvitations, done
 
 runTest = (testData, done) ->
-
   password = 'testpass'
   registerRequestParams =
     email: generateRandomEmail()
@@ -32,7 +30,6 @@ runTest = (testData, done) ->
     agree: 'on'
 
   withConvertedUser { createGroup: true, role: 'admin', userFormData: registerRequestParams }, (admin) ->
-
     requestParams = generateRequestParamsEncodeBody
       url      : generateUrl { route : '-/teams/invite-by-csv' }
       clientId : admin.client.sessionToken
@@ -55,14 +52,12 @@ validateInvitation = (data, callback) ->
     return callback err if err
 
     JInvitation = require '../../../models/invitation'
-    # 4 is a RANDOM NUMBER.
+    # 4 is a RANDOM NUMBER OK?.
     JInvitation.one { email: data[4].email }, (err, invitation) ->
       return callback err if err
       return callback new Error 'invitation is not found' if not invitation
 
       return callback null
-
-
 
 brokenFile = '''
   this is not an valid line that contains email
@@ -97,6 +92,5 @@ brokenFile = '''
 #     lastName: 'member' },
 #   { email: 'cihangir6@koding.com.cihangir6.savas6.member' }
 # ] }
-
 
 lotsOfInvitations = (generateRandomEmail() for i in [1...500]).join('\n')

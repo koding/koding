@@ -16,7 +16,6 @@ module.exports.parserOpts = csvParseOpts =
   auto_parse: no # convert integers to numbers etc
 
 module.exports.handler = (req, rres) ->
-
   generateFakeClient req, rres, (err, client, session) ->
     return rres.status(500).send err  if err
 
@@ -31,7 +30,6 @@ module.exports.handler = (req, rres) ->
       fileSize: 10 * 1024 * 1024 # 10 mb
     }
 
-
     busboy.on 'file', (fieldname, file, filename, encoding, mimetype) ->
       file.pipe(fs.createWriteStream(fileName))
 
@@ -40,7 +38,6 @@ module.exports.handler = (req, rres) ->
         return respond 500, err if err
 
         respond 200, "That's all folks!"
-
 
     return req.pipe busboy
 
