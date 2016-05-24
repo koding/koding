@@ -5,7 +5,10 @@ $warningColor               = #f2778a
   overflow                  visible
   rounded                   6px
   border                    none
-  width                     920px !important
+  width                     auto !important
+
+  .kdmodal-inner
+    bg                      color, #f7f7f7
 
   .kdmodal-inner,
   .kdmodal-inner .kdmodal-content
@@ -19,7 +22,6 @@ $warningColor               = #f2778a
     hidden()
 
   header
-    height                  100px
     border-bottom           1px solid #DEDBDB
     bg                      color #fff
     text-align              center
@@ -28,19 +30,15 @@ $warningColor               = #f2778a
     h1
       display               inline-block
       color                 #BABABA
-      font-size             20px
-      font-weight           300
-      padding-top           40px
 
   section.main
-    height                  500px
     overflow                hidden
     rel()
     borderBox()
 
     > h2
       color                 #424242
-      padding-top           29px
+      padding-top           25px
       font-size             20px
       text-align            center
       letter-spacing        .2px
@@ -51,7 +49,8 @@ $warningColor               = #f2778a
       letter-spacing        .2px
       text-align            center
       color                 #a59999
-      margin-bottom         29px
+      margin-top            5px
+      margin-bottom         28px
 
     .GenericButton
       text-transform        uppercase
@@ -63,6 +62,7 @@ $warningColor               = #f2778a
       height                41px
       padding               0
       font-size             13.7px
+      text-transform        none
       color                 #57a2d2
       bg                    color, #fafafa
       border                1px solid #dedbdb
@@ -111,6 +111,35 @@ $warningColor               = #f2778a
         display             inline-block
         r-sprite            'app', 'back_arrow_gray'
         margin-right        9px
+
+
+  .build-stack-flow
+
+    header
+      height                100px
+
+      h1
+        font-size           20px
+        padding-top         40px
+
+    section.main
+      width                 920px
+      height                500px
+
+
+  .start-machine-flow
+
+    header
+      height                70px
+
+      h1
+        font-size           25px
+        line-height         34px
+        padding-top         16px
+
+    section.main
+      width                 800px
+      height                530px
 
 
   .wizard-progress-pane
@@ -237,6 +266,8 @@ $warningColor               = #f2778a
 
   .readme-page
 
+    section.main
+
       .kdcustomscrollview
         max-height          310px
         width               700px
@@ -256,13 +287,15 @@ $warningColor               = #f2778a
 
   .stack-template-page
 
-    .editor-view
-      width                 700px
-      height                310px
-      margin                0 auto
+    section.main
 
-    .GenericButton.secondary
-      margin-top            20px
+      .editor-view
+        width               700px
+        height              310px
+        margin              0 auto
+
+      .GenericButton.secondary
+        margin-top          20px
 
 
   .credentials-page
@@ -506,6 +539,11 @@ $warningColor               = #f2778a
           font-size         21.6px
           line-height       30px
 
+      .background
+        abs()
+        bottom              0px
+        r-sprite            'app', 'buildstack_art_boot'
+
 
   .start-machine-progress-page
 
@@ -516,7 +554,7 @@ $warningColor               = #f2778a
         font-size           24px
         letter-spacing      .2px
         line-height         43px
-        padding-top         39px
+        padding-top         35px
 
       .progressbar-container
         border              1px solid #ccc
@@ -534,12 +572,18 @@ $warningColor               = #f2778a
           borderBox()
           z-index           100
 
+      .background
+        abs()
+        bottom              0px
+        r-sprite            'app', 'buildstack_art_building'
+
 
   .start-machine-success-page
 
     section.main
-      padding-left          460px
-      padding-top           164px
+      height                430px
+      padding-left          420px
+      padding-top           140px
 
       h1
         color               #57a2d2
@@ -556,8 +600,8 @@ $warningColor               = #f2778a
 
       .background
         abs()
-        top                 105px
-        left                100px
+        top                 72px
+        left                70px
         r-sprite            'app', 'buildstack_art_success'
 
     footer

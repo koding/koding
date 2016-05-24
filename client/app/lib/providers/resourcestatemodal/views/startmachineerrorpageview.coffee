@@ -16,7 +16,7 @@ module.exports = class StartMachineErrorPageView extends BaseErrorPageView
   pistachio: ->
 
     '''
-      <div class="error-page start-machine-error-page">
+      <div class="start-machine-flow error-page start-machine-error-page">
         <header>
           <h1>VM Boot</h1>
         </header>

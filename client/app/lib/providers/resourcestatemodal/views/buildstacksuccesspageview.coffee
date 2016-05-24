@@ -21,7 +21,7 @@ module.exports = class BuildStackSuccessPageView extends JView
   pistachio: ->
 
     '''
-      <div class="build-stack-success-page">
+      <div class="build-stack-flow build-stack-success-page">
         <header>
           <h1>Build Your Stack</h1>
         </header>

@@ -22,7 +22,7 @@ module.exports = class CredentialsErrorPageView extends BaseErrorPageView
   pistachio: ->
 
     '''
-      <div class="error-page credentials-error-page">
+      <div class="build-stack-flow error-page credentials-error-page">
         <header>
           <h1>Build Your Stack</h1>
         </header>

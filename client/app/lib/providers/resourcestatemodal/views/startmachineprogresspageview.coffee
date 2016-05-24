@@ -14,6 +14,7 @@ module.exports = class StartMachineProgressPageView extends JView
 
   updateProgress: (percentage, label) ->
 
+    percentage = Math.max percentage, INITIAL_PROGRESS_VALUE
     @progressBar.updateBar percentage, '%', label
 
 
@@ -23,11 +24,12 @@ module.exports = class StartMachineProgressPageView extends JView
     title   = machine.jMachine.label
 
     """
-      <div class="start-machine-progress-page">
+      <div class="start-machine-flow start-machine-progress-page">
         <header>
           <h1>Boot Virtual Machine</h1>
         </header>
         <section class="main">
+          <div class="background"></div>
           <h2>Spinning up the "#{title}" VM.</h2>
           <p>We're building your VM. Once we're finished you can get to coding.</p>
           {{> @progressBar}}

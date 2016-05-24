@@ -16,7 +16,7 @@ module.exports = class StartMachineSuccessPageView extends JView
   pistachio: ->
 
     '''
-      <div class="start-machine-success-page">
+      <div class="start-machine-flow start-machine-success-page">
         <header>
           <h1>Boot Virtual Machine</h1>
         </header>

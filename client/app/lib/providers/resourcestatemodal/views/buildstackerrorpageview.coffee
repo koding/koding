@@ -27,7 +27,7 @@ module.exports = class BuildStackErrorPageView extends BaseErrorPageView
   pistachio: ->
 
     '''
-      <div class="error-page build-stack-error-page">
+      <div class="build-stack-flow error-page build-stack-error-page">
         <header>
           <h1>Build Your Stack</h1>
         </header>

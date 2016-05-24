@@ -33,7 +33,7 @@ module.exports = class BuildStackPageView extends JView
     { stackName } = @getOptions()
 
     """
-      <div class="build-stack-page">
+      <div class="build-stack-flow build-stack-page">
         <header>
           <h1>Build Your Stack</h1>
         </header>
