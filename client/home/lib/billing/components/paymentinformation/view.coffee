@@ -31,7 +31,7 @@ module.exports = class PaymentInformation extends React.Component
           placeholder='Enter your name and surname...' />
       </fieldset>
       <fieldset className='email'>
-        <label className='HomeAppView-label'>E-mail Address</label>
+        <label className='HomeAppView-label'>Billing Email Address</label>
         <Email
           value={@pickValue 'email'}
           onChange={@sendValue 'email'}
