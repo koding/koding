@@ -182,41 +182,41 @@ module.exports =
       .waitForElementVisible  companyNameSelector, 20000
       .clearValue             emailSelector
 
-      if inviteOrCreateLink is inviteLink
-        browser
-          .setValue              emailSelector, user.email
-          .pause                 2000
-          .setValue              companyNameSelector, user.teamSlug
-          .click                 signUpButton
-          .pause                 2500
+    if inviteOrCreateLink is inviteLink
+      browser
+        .setValue              emailSelector, user.email
+        .pause                 2000
+        .setValue              companyNameSelector, user.teamSlug
+        .click                 signUpButton
+        .pause                 2500
 
-        @enterTeamURL(browser)
-        @checkForgotPassword(browser)
+      @enterTeamURL(browser)
+      @checkForgotPassword(browser)
 
-        if invalidCredentials
-          @fillUsernamePasswordForm(browser, user, yes)
-        else
-          @fillUsernamePasswordForm(browser, user)
-
+      if invalidCredentials
+        @fillUsernamePasswordForm(browser, user, yes)
       else
-        browser
-          .setValue              emailSelector, user.email + 'test'
-          .pause                 2000
-          .setValue              companyNameSelector, user.teamSlug + 'test'
-          .click                 signUpButton
-          .pause                 2500
+        @fillUsernamePasswordForm(browser, user)
 
-        @enterTeamURL(browser)
+    else
+      browser
+        .setValue              emailSelector, user.email + 'test'
+        .pause                 2000
+        .setValue              companyNameSelector, user.teamSlug + 'test'
+        .click                 signUpButton
+        .pause                 2500
 
-        browser
-          .waitForElementVisible  teamsModalSelector, 20000
-          .waitForElementVisible  usernameInput, 20000
-          .clearValue             usernameInput
-          .setValue               usernameInput, user.username
-          .setValue               passwordInput, user.password
-          .click                  doneButton
-          .waitForElementVisible  errorMessage, 20000
-          .assert.containsText    errorMessage, "Sorry, #{user.username} is already taken!"
+      @enterTeamURL(browser)
+
+      browser
+        .waitForElementVisible  teamsModalSelector, 20000
+        .waitForElementVisible  usernameInput, 20000
+        .clearValue             usernameInput
+        .setValue               usernameInput, user.username
+        .setValue               passwordInput, user.password
+        .click                  doneButton
+        .waitForElementVisible  errorMessage, 20000
+        .assert.containsText    errorMessage, "Sorry, #{user.username} is already taken!"
 
 
 
@@ -417,7 +417,7 @@ module.exports =
     closeButton = '.kdmodal-inner .kdview.kdmodal-buttons .kdbutton.solid.medium.gray'
 
     browser
-      .element 'css selector', vmSelector, (result) =>
+      .element 'css selector', vmSelector, (result) ->
         if result.status is 0
           done()
         else
@@ -472,7 +472,7 @@ module.exports =
       .pause 3000
       .element 'css selector', makeTeamDefaultButton, (result) =>
         if result.status is 0
-           browser.url (res) ->
+          browser.url (res) ->
             done res
 
         else @waitUntilToCreatePrivateStack browser, done
@@ -592,10 +592,10 @@ module.exports =
       .waitForElementVisible '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 20000
       .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 20000
-      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default',2000
+      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 2000
       .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(4)'
 
-     .pause 2000, -> callback()
+      .pause 2000, -> callback()
 
 
   inviteAndJoinWithUsers: (browser, users, callback) ->
@@ -731,12 +731,14 @@ module.exports =
       .waitForElementVisible invitationsModalSelector, 20000
 
     userEmail = @fillInviteInputByIndex browser, index, userEmail
-    newEmail = @fillInviteInputByIndex browser, index + 1
+    newEmail  = @fillInviteInputByIndex browser, index + 1
     successMessage = "Invitation is sent to #{newEmail}"
 
     browser
       .click sendInvitesButton
-    @acceptConfirmModal browser  if role is 'admin'
+    if role is 'admin'
+      @acceptConfirmModal browser
+      successMessage = 'All invitations are sent'
     @rejectConfirmModal browser
     @assertConfirmation browser, successMessage
 
@@ -773,7 +775,7 @@ module.exports =
   assertConfirmation: (browser, successMessage) ->
 
     browser
-      .waitForElementVisible '.kdnotification', 10000
+      .waitForElementVisible '.kdnotification', 20000
       .assert.containsText '.kdnotification', successMessage
       .pause 2000
 
