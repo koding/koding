@@ -60,14 +60,14 @@ module.exports = (options) ->
   postgres =
     host: "#{options.serviceHost}"
     port: "5432"
-    username: "socialapp_2016_05"
-    password: "socialapp_2016_05"
+    username: "socialapplication"
+    password: "socialapplication"
     dbname: "social"
   kontrolPostgres =
     host: "#{options.serviceHost}"
     port: 5432
-    username: "kontrolapp_2016_05"
-    password: "kontrolapp_2016_05"
+    username: "kontrolapplication"
+    password: "somerandompassword"
     dbname: "social"
     connecttimeout: 20
   pubnub =
