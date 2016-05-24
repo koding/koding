@@ -174,9 +174,10 @@ class ApplicationManager extends KDObject
 
 
   require: (name, params, callback) ->
-    kd.log 'AppManager: requiring an app', name
+
     [callback, params] = [params, callback]  unless callback
-    callback ?= ->
+    callback ?= kd.noop
+
     if app = @get name
     then callback app
     else @create name, params, callback

@@ -14,7 +14,8 @@ module.exports = updateStackTemplate = (data, callback) ->
   title or= generateStackTemplateTitle()
   config ?= stackTemplate.config ? {}
 
-  if stackTemplate?.update
+  # Make sure it's a valid stacktemplate that can be updated
+  if stackTemplate?.update?
 
     dataToUpdate = if machines \
     then { machines, config }

@@ -12,7 +12,6 @@ FSHelper                  = require 'app/util/fs/fshelper'
 getPublicURLOfPath        = require 'app/util/getPublicURLOfPath'
 CloneRepoModal            = require 'app/commonviews/clonerepomodal'
 NFinderDeleteDialog       = require '../itemsubviews/nfinderdeletedialog'
-DropboxDownloadItemView   = require 'app/commonviews/dropboxdownloaditemview'
 Encoder                   = require 'htmlencode'
 Tracker                   = require 'app/util/tracker'
 
@@ -508,7 +507,6 @@ module.exports = class NFinderTreeController extends JTreeViewController
   cmMakeNewApp:          (node) -> @makeNewApp           node
   cmPublish:             (node) -> @publishApp           node
   cmCloneRepo:           (node) -> @cloneRepo            node
-  cmDropboxChooser:      (node) -> @chooseFromDropbox    node
   cmOpenTerminal:        (node) -> @openTerminalFromHere node
   cmDuplicate:           (node) -> @duplicateFiles       @selectedNodes
   cmDownload:            (node) -> @appManager.notify()
@@ -798,47 +796,6 @@ module.exports = class NFinderTreeController extends JTreeViewController
   #       nodeView
   #       apps
   #     }
-
-  chooseFromDropbox: (nodeView) ->
-    fileItemViews     = []
-    filePath          = FSHelper.plainPath nodeView.getData().path
-    modal             = null
-    kallback          = ->
-      file            = fileItemViews[0]
-      if file
-        file.emit 'FileNeedsToBeDownloaded', filePath
-        file.on   'FileDownloadDone', ->
-          fileItemViews.shift()
-          if fileItemViews.length
-            kallback()
-          else
-            modal.destroy()
-            new KDNotificationView
-              title    : 'Your download has been completed'
-              type     : 'mini'
-              cssClass : 'success'
-              duration : 4000
-
-    Dropbox.choose
-      linkType         : 'direct'
-      multiselect      : true
-      success          : (files) ->
-        modal          = new KDModalView
-          overlay      : yes
-          title        : 'Download from Dropbox'
-          buttons      :
-            Start      :
-              title    : 'Start'
-              cssClass : 'solid green medium'
-              callback : -> kallback()
-            Cancel     :
-              title    : 'Cancel'
-              cssClass : 'solid light-gray medium'
-              callback : -> modal.destroy()
-
-        for file in files
-          fileItemView = modal.addSubView new DropboxDownloadItemView { nodeView }, file
-          fileItemViews.push fileItemView
 
   uploadFile: (nodeView) ->
     finderController = @getDelegate()

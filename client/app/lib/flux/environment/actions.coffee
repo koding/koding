@@ -16,7 +16,7 @@ environmentDataProvider = require 'app/userenvironmentdataprovider'
 stackDefaults = require 'stacks/defaults'
 providersParser = require 'stacks/views/stacks/providersparser'
 requirementsParser = require 'stacks/views/stacks/requirementsparser'
-{ jsonToYaml } = require 'stacks/views/stacks/yamlutils'
+generateTemplateRawContent = require 'app/util/generateTemplateRawContent'
 Tracker = require 'app/util/tracker'
 
 _eventsCache = { machine: {}, stack: no }
@@ -532,7 +532,7 @@ createStackTemplateWithDefaults = (overrides = {}) ->
 
   if overrides.template
     template = overrides.template
-    rawContent = jsonToYaml(template).content
+    rawContent = generateTemplateRawContent template
   else
     { template, rawContent } = stackDefaults
 
@@ -548,7 +548,7 @@ createStackTemplateWithDefaults = (overrides = {}) ->
     rawContent: rawContent
     config: { requiredData, requiredProviders }
 
-  return createStackTemplate(options)
+  return createStackTemplate options
 
 
 updateStackTemplate = (stackTemplate, options) ->
@@ -593,7 +593,10 @@ generateStack = (stackTemplateId) ->
 
     generateStackFromTemplate stackTemplate
       .then ({ stack }) ->
-        computeController.reset yes
+        { results : { machines } } = stack
+        [ machine ] = machines
+        computeController.reset yes, ->
+          computeController.reloadIDE machine.obj.slug
         new kd.NotificationView { title: 'Stack generated successfully' }
       .catch (err) -> showError err
 

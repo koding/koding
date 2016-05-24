@@ -72,12 +72,14 @@ module.exports = class StackEditorView extends kd.View
       title    : 'DELETE STACK TEMPLATE'
       click    : @bound 'deleteStack'
 
-
     @tabView.unsetClass 'kdscrollview'
 
     @editorViews = {}
 
-    @editorViews.stackTemplate = @stackTemplateView = new StackTemplateView { delegate: this }, data
+    @editorViews.stackTemplate = @stackTemplateView = new StackTemplateView {
+      delegate: this
+    }, data
+
     @tabView.addPane stackTemplatePane = new kd.TabPaneView
       name : 'Stack Template'
       view : @stackTemplateView
