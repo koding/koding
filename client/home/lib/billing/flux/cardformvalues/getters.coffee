@@ -2,20 +2,23 @@ FormValuesStore = require './stores/HomeTeamBillingFormValuesStore'
 FormErrorsStore = require './stores/HomeTeamBillingFormErrorsStore'
 PaymentFlux = require 'app/flux/payment'
 toImmutable = require 'app/util/toImmutable'
-
+LoggedInUserEmailStore = ['LoggedInUserEmailStore']
 plainValues = [FormValuesStore.getterPath]
 
 values = [
   plainValues
   PaymentFlux.getters.paymentValues
-  (formValues, paymentValues) ->
+  LoggedInUserEmailStore
+  (formValues, paymentValues, email) ->
 
     if isEdited(formValues)
       return formValues
 
     card = paymentValues.get 'groupCreditCard'
 
-    return formValues  unless card
+    unless card
+      email = if email then email else ''
+      return formValues.set 'email', email
 
     formValues.withMutations (formValues) ->
       formValues
