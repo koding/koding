@@ -19,7 +19,7 @@ module.exports.handler = (req, rres) ->
   generateFakeClient req, rres, (err, client, session) ->
     return rres.status(500).send err  if err
 
-    fileName = path.join(os.tmpDir(), "team-upload-#{hat(32)}.csv")
+    fileName = path.join(os.tmpDir(), "team-upload-#{session.groupName}-#{hat(32)}.csv")
 
     respond = (code, message) ->
       fs.unlink(fileName) # clean up after yourself
