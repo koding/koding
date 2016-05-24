@@ -2,7 +2,7 @@ kd                                = require 'kd'
 HomeTeamBillingPaymentInformation = require './hometeambillingpaymentinformation'
 HomeTeamBillingCreditCard         = require './hometeambillingcreditcard'
 HomeTeamBillingPlansList = require './hometeambillingplanslist'
-
+AppFlux = require 'app/flux'
 PaymentFlux = require 'app/flux/payment'
 
 SECTIONS =
@@ -32,6 +32,8 @@ module.exports = class HomeTeamBilling extends kd.CustomScrollView
     { mainController, reactor } = kd.singletons
 
     mainController.ready =>
+
+      AppFlux.actions.user.loadLoggedInUserEmail()
 
       { actions } = PaymentFlux(reactor)
 
