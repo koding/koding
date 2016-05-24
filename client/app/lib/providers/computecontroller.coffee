@@ -450,7 +450,7 @@ module.exports = class ComputeController extends KDController
       [ machine ] = machines
 
       @reset yes, =>
-        reloadIDE machine.obj.slug
+        @reloadIDE machine.obj.slug
         @checkGroupStacks()
 
     mainController.ready =>
@@ -1240,7 +1240,7 @@ module.exports = class ComputeController extends KDController
     return null
 
 
-  reloadIDE = (machineSlug) ->
+  reloadIDE: (machineSlug) ->
 
     route   = '/IDE'
     if machineSlug
