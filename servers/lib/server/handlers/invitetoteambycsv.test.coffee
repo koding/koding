@@ -34,7 +34,7 @@ runTest = (testData, done) ->
   withConvertedUser { createGroup: true, role: 'admin', userFormData: registerRequestParams }, (admin) ->
 
     requestParams = generateRequestParamsEncodeBody
-      url      : generateUrl { route : "-/teams/invite-by-csv" }
+      url      : generateUrl { route : '-/teams/invite-by-csv' }
       clientId : admin.client.sessionToken
 
     req = request.post requestParams, (err, resp, body) ->
@@ -58,13 +58,13 @@ validateInvitation = (data, callback) ->
     # 4 is a RANDOM NUMBER.
     JInvitation.one { email: data[4].email }, (err, invitation) ->
       return callback err if err
-      return callback new Error "invitation not found" if not invitation
+      return callback new Error 'invitation is not found' if not invitation
 
       return callback null
 
 
 
-brokenFile = """
+brokenFile = '''
   this is not an valid line that contains email
   cihangir1@koding.com,   cihangir1,savas1  ,admin
   cihangir2@koding.com,,savas2,
@@ -75,7 +75,7 @@ brokenFile = """
 
 
   cihangir6@koding.com.cihangir6.savas6.member
-  """
+  '''
 
 # [ { email: 'cihangir1@koding.com',
 #     firstName: 'cihangir1',
@@ -99,4 +99,4 @@ brokenFile = """
 # ] }
 
 
-lotsOfInvitations = ("#{generateRandomEmail()}\n" for i in [1...500]).join("")
+lotsOfInvitations = (generateRandomEmail() for i in [1...500]).join('\n')

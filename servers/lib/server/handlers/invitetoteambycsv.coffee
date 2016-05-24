@@ -7,8 +7,8 @@ parser = require 'csv-parse'
 { generateFakeClient } = require './../client'
 
 module.exports.parserOpts = csvParseOpts =
-  delimiter: ","
-  columns: ["email", "firstName", "lastName", "role"]
+  delimiter: ','
+  columns: ['email', 'firstName', 'lastName', 'role']
   relax: no # Preserve quotes inside unquoted field.
   relax_column_count: yes
   skip_empty_lines: true
