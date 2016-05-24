@@ -206,7 +206,6 @@ module.exports = class ComputeController extends KDController
 
       if @stacks.length > 0 and not force
         callback null, @stacks
-        kd.info 'Stacks returned from cache.'
         return
 
       return  if (queue.push callback) > 1

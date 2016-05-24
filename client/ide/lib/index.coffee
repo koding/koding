@@ -1015,8 +1015,7 @@ class IDEAppController extends AppController
   registerPane: (pane) ->
 
     { view } = pane
-    unless view?.hash?
-      return warn 'view.hash not found, returning'
+    return  unless view?.hash?
 
     @generatedPanes or= {}
     @generatedPanes[view.hash] = yes
