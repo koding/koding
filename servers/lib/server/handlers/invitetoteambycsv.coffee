@@ -27,7 +27,7 @@ module.exports.handler = (req, rres) ->
 
     busboy = new Busboy {
       headers: req.headers
-      fileSize: 1024 * 1024 # 10 mb
+      fileSize: 1024 * 1024 # 1 mb
     }
 
     busboy.on 'file', (fieldname, file, filename, encoding, mimetype) ->
