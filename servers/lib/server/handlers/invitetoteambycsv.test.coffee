@@ -47,7 +47,7 @@ runTest = (testData, done) ->
     form = req.form()
     form.append 'file', testData, {
       filename: 'invitations.csv'
-      contentType: 'text/csv'
+      contentType: 'multipart/form-data'
     }
 
 validateInvitation = (data, callback) ->
