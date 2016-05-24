@@ -65,6 +65,7 @@ validateInvitation = (data, callback) ->
 
 
 brokenFile = """
+  this is not an valid line that contains email
   cihangir1@koding.com,   cihangir1,savas1  ,admin
   cihangir2@koding.com,,savas2,
   cihangir3@koding.com,cihangir3,
