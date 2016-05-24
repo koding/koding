@@ -4,8 +4,6 @@ hat = require 'hat'
 path = require 'path'
 Busboy = require 'busboy'
 parser = require 'csv-parse'
-{ isLoggedIn } = require './../helpers'
-
 { generateFakeClient } = require './../client'
 
 module.exports.parserOpts = csvParseOpts =
