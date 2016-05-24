@@ -106,6 +106,24 @@ func (o *Oauth) Info(w http.ResponseWriter, r *http.Request) {
 	osin.OutputJSON(resp, w, r)
 }
 
+func getSession(r *http.Request) (*models.Session, error) {
+	cookie, err := r.Cookie("clientId")
+	if err != nil {
+		return nil, ErrClientIdNotFound
+	}
+
+	if cookie.Value == "" {
+		return nil, ErrCookieValueNotFound
+	}
+
+	session, err := modelhelper.GetSession(cookie.Value)
+	if err != nil {
+		return nil, ErrSessionNotFound
+	}
+
+	return session, nil
+}
+
 ///// TEST FOR OAUTH SERVER ////
 //
 // config := &osincli.ClientConfig{
@@ -145,21 +163,3 @@ func (o *Oauth) Info(w http.ResponseWriter, r *http.Request) {
 // 	}
 //
 // }
-
-func getSession(r *http.Request) (*models.Session, error) {
-	cookie, err := r.Cookie("clientId")
-	if err != nil {
-		return nil, ErrClientIdNotFound
-	}
-
-	if cookie.Value == "" {
-		return nil, ErrCookieValueNotFound
-	}
-
-	session, err := modelhelper.GetSession(cookie.Value)
-	if err != nil {
-		return nil, ErrSessionNotFound
-	}
-
-	return session, nil
-}
