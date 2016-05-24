@@ -32,6 +32,7 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
     ace.contentChanged    = no
     ace.lastSavedContents = ace.getContents()
 
+
   createEditor: ->
 
     super
