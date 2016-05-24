@@ -53,6 +53,36 @@ $warningColor               = #f2778a
       color                 #a59999
       margin-bottom         29px
 
+    .GenericButton
+      text-transform        uppercase
+      margin                0 auto
+      display               block
+
+    .GenericButton.secondary
+      width                 165px
+      height                41px
+      padding               0
+      font-size             13.7px
+      color                 #57a2d2
+      bg                    color, #fafafa
+      border                1px solid #dedbdb
+      display               block
+      margin                0 auto
+
+    .progressbar-container
+      bg                    color, #e1e1e1
+      bg                    image, none
+      border                none
+      rounded               0
+      width                 600px
+      height                40px
+      margin                0 auto
+
+      .bar
+        rounded             0
+        bg                  image, none
+        shadow              none
+
   footer
     height                  100px
     border-top              1px solid #DEDBDB
@@ -62,10 +92,10 @@ $warningColor               = #f2778a
 
     .GenericButton
       abs                   29px 29px
-      text-transform        uppercase
       min-width             146px
       height                42px
       padding               0 24px
+      text-transform        uppercase
 
     a.back-link
       abs()
@@ -81,17 +111,6 @@ $warningColor               = #f2778a
         display             inline-block
         r-sprite            'app', 'back_arrow_gray'
         margin-right        9px
-
-  .GenericButton.secondary
-    width                   165px
-    height                  41px
-    padding                 0
-    font-size               13.7px
-    color                   #57a2d2
-    bg                      color, #fafafa
-    border                  1px solid #dedbdb
-    display                 block
-    margin                  0 auto
 
 
   .wizard-progress-pane
@@ -407,19 +426,8 @@ $warningColor               = #f2778a
       font-weight           bold
 
     .progressbar-container
-      bg                    color, #efefef
-      bg                    image, none
-      border                none
-      rounded               0
-      width                 600px
-      height                40px
-      margin                0 auto
-
       .bar
-        rounded             0
-        bg                  image, none
         bg                  color, $warningColor
-        shadow              none
 
     .status-text
       text-align            center
@@ -470,3 +478,99 @@ $warningColor               = #f2778a
         top                 105px
         left                100px
         r-sprite            'app', 'buildstack_art_success'
+
+
+  .start-machine-page
+
+    section.main
+
+      h2
+        color               #57a2d2
+        font-size           32px
+        letter-spacing      .3px
+        line-height         43px
+        padding-top         39px
+
+      p
+        font-size           22px
+        line-height         30px
+        margin-top          33px
+        margin-bottom       44px
+
+      .GenericButton
+        width               226px
+        height              65px
+        borderBox()
+
+        span.button-title
+          font-size         21.6px
+          line-height       30px
+
+
+  .start-machine-progress-page
+
+    section.main
+
+      h2
+        color               #777777
+        font-size           24px
+        letter-spacing      .2px
+        line-height         43px
+        padding-top         39px
+
+      .progressbar-container
+        border              1px solid #ccc
+
+        .bar
+          bg                color, #57a2d2
+
+        span.dark-label
+          color             #fff
+          font-size         15px
+          letter-spacing    .1px
+          line-height       20px
+          top               7px
+          padding-right     10px
+          borderBox()
+          z-index           100
+
+
+  .start-machine-success-page
+
+    section.main
+      padding-left          460px
+      padding-top           164px
+
+      h1
+        color               #57a2d2
+        font-size           50px
+        letter-spacing      .5px
+        line-height         44px
+
+      h2
+        font-size           32px
+        line-height         44px
+        color               rgba(0,0,0,0.5)
+        text-align          left
+        padding-top         17px
+
+      .background
+        abs()
+        top                 105px
+        left                100px
+        r-sprite            'app', 'buildstack_art_success'
+
+    footer
+      .GenericButton
+        sta()
+        margin              29px auto 0 auto
+        display             block
+
+
+  .start-machine-error-page
+
+    footer
+      .GenericButton
+        sta()
+        margin              29px auto 0 auto
+        display             block

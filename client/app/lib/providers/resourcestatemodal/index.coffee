@@ -1,5 +1,6 @@
 kd = require 'kd'
 StackFlowController = require './controllers/stackflowcontroller'
+MachineFlowController = require './controllers/machineflowcontroller'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 module.exports = class ResourceStateModal extends kd.BlockingModalView
@@ -27,16 +28,39 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
     return kd.log 'Stack not found!'  unless @stack
 
-    @stackFlow = new StackFlowController { container : this }, { machine, stack : @stack }
-    @stackFlow.on 'BuildCompleted', @bound 'checkIfResourceReady'
+    @stackFlow = new StackFlowController { container : this }, { machine, @stack }
     @stackFlow.on 'ClosingRequested', @bound 'destroy'
+
+    @machineFlow = new MachineFlowController { container : this }, machine
+    @machineFlow.on 'ClosingRequested', @bound 'destroy'
+    @forwardEvent @machineFlow, 'MachineTurnOnStarted'
 
     computeController.on "apply-#{@stack._id}", @bound 'updateStackStatus'
 
     if @stack.status?.state is 'Building'
       eventListener.addListener 'apply', @stack._id
 
+    computeController.on "start-#{machineId}", @bound 'updateMachineStatus'
+    computeController.on "build-#{machineId}", @bound 'updateMachineStatus'
+    computeController.on "stop-#{machineId}",  @bound 'updateMachineStatus'
+    computeController.eventListener.followUpcomingEvents machine
+
     @show()
+
+    stackState = @stack.status?.state
+    return @stackFlow.show stackState  unless stackState is 'Initialized'
+
+    machineState = machine.status.state
+    if @getOption 'initial'
+      computeController.getKloud().info { machineId, currentState : machineState }
+        .then (response) =>
+          @machineFlow.show response.State
+          @_windowDidResize()
+        .catch (err) =>
+          @machineFlow.showError err
+          @_windowDidResize()
+    else
+      @machineFlow.show { State : machineState }
 
 
   show: ->
@@ -49,9 +73,6 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
     container.addSubView @overlay
     container.addSubView this
-
-    stackState = @stack.status?.state
-    @stackFlow.show stackState  unless stackState is 'Initialized'
 
 
   updateStackStatus: (event, task) ->
@@ -75,12 +96,34 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
         { computeController } = kd.singletons
         computeController.once "revive-#{machineId}", =>
           @stackFlow.completeBuildProcess()
-          @checkIfResourceReady yes
+          @checkIfResourceRunning yes
     else
-      @checkIfResourceReady()
+      @checkIfResourceRunning()
 
 
-  checkIfResourceReady: (initial = no) ->
+  updateMachineStatus: (event, task) ->
+
+    { status, percentage, message, error } = event
+
+    machine   = @getData()
+    machineId = machine.jMachine._id
+
+    [ oldState, @state ] = [ @state, status ]
+
+    if error
+      @machineFlow.showError error, @state
+
+    else if percentage?
+      @machineFlow.updateProgress percentage, message, @state
+
+      if percentage is 100
+        @machineFlow.completeProcess @state
+        @checkIfResourceRunning()
+    else
+      @checkIfResourceRunning()
+
+
+  checkIfResourceRunning: (initial = no) ->
 
     return  unless @state is 'Running'
 
