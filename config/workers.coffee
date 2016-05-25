@@ -84,8 +84,8 @@ module.exports = (KONFIG, options, credentials) ->
       group             : "webserver"
       supervisord       :
         command         :
-          run           : "#{GOBIN}/rerouting -c #{options.configName}"
-          watch         : "#{GOBIN}/watcher -run koding/rerouting -c #{options.configName}"
+          run           : "#{GOBIN}/rerouting"
+          watch         : "#{GOBIN}/watcher -run koding/rerouting"
       healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
