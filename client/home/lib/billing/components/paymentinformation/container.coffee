@@ -1,10 +1,11 @@
 kd = require 'kd'
 React = require 'kd-react'
 KDReactorMixin = require 'app/flux/base/reactormixin'
+whoami = require 'app/util/whoami'
 
 CardFormValues = require '../../flux/cardformvalues'
 PaymentFlux = require 'app/flux/payment'
-
+TeamFlux = require 'app/flux/teams'
 PaymentInformation = require './view'
 
 module.exports = class PaymentInformationContainer extends React.Component
@@ -13,6 +14,7 @@ module.exports = class PaymentInformationContainer extends React.Component
     return {
       formValues: CardFormValues.getters.values
       formErrors: CardFormValues.getters.errors
+      userEmail: TeamFlux.getters.loggedInUserEmail
     }
 
 
@@ -20,7 +22,11 @@ module.exports = class PaymentInformationContainer extends React.Component
 
     super props
 
-    @state = { formValues: null }
+    { firstName, lastName } = whoami().profile
+
+    @state =
+      formValues: null
+      fullName: "#{firstName} #{lastName}"
 
 
   onRemoveCard: ->
@@ -38,6 +44,9 @@ module.exports = class PaymentInformationContainer extends React.Component
     kd.singletons.router.handleRoute '/Home/payment-history'
 
 
+  onCancel: -> CardFormValues.actions.cancelEditing()
+
+
   onSave: ->
 
     { formValues } = @state
@@ -49,13 +58,21 @@ module.exports = class PaymentInformationContainer extends React.Component
 
     { resetValues, resetErrors } = CardFormValues.actions
 
+    cardName = if formValues.get 'fullName'
+    then formValues.get 'fullName'
+    else @state.fullName
+
+    cardEmail = if formValues.get 'email'
+    then formValues.get('email')
+    else @state.userEmail
+
     options =
       cardNumber: formValues.get 'number'
       cardCVC: formValues.get 'cvc'
       cardMonth: formValues.get 'expirationMonth'
       cardYear: formValues.get 'expirationYear'
-      cardName: formValues.get 'fullName'
-      cardEmail: formValues.get 'email'
+      cardName: cardName
+      cardEmail: cardEmail
 
     resetErrors()
     createStripeToken(options).then ({ token }) ->
@@ -81,7 +98,10 @@ module.exports = class PaymentInformationContainer extends React.Component
       onPaymentHistory={@bound 'onPaymentHistory'}
       onSave={@bound 'onSave'}
       formErrors={@state.formErrors}
-      formValues={@state.formValues} />
+      formValues={@state.formValues}
+      userEmail={@state.userEmail}
+      fullName={@state.fullName}
+      onCancel={@bound 'onCancel'} />
 
 
 PaymentInformationContainer.include [KDReactorMixin]
