@@ -12,7 +12,7 @@ toImmutable             = require 'app/util/toImmutable'
 getGroup                = require 'app/util/getGroup'
 whoami                  = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
-
+Machine = require 'app/providers/machine'
 stackDefaults = require 'stacks/defaults'
 providersParser = require 'stacks/views/stacks/providersparser'
 requirementsParser = require 'stacks/views/stacks/requirementsparser'
@@ -622,6 +622,7 @@ generateStackFromTemplate = (template) ->
 disconnectMachine = (machine) ->
 
   remote.api.JMachine.one machine.get('_id'), (err, machine) ->
+    machine = new Machine { machine }
     kd.singletons.computeController.destroy machine
 
 
