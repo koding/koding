@@ -29,6 +29,7 @@ values = [
         .set 'email', card.get 'email'
         .set 'cvc', formatCvc card.get('brand')
         .set 'cardType', card.get('brand')
+        .set 'mask', formatMask card.get 'brand'
 ]
 
 isEmpty = (formValues) ->
@@ -54,6 +55,12 @@ formatCvc = (brand) ->
   switch brand
     when 'American Express' then '****'
     else '***'
+
+formatMask = (brand) ->
+
+  switch brand
+    when 'American Express' then '9999 999999 99999'
+    else '9999 9999 9999 9999'
 
 
 errors = [FormErrorsStore.getterPath]
