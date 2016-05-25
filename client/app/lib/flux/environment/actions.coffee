@@ -619,6 +619,12 @@ generateStackFromTemplate = (template) ->
       resolve { template, stack }
 
 
+disconnectMachine = (machine) ->
+
+  # remote.api.JMachine.one machine.get('_id'), (err, machine) ->
+  kd.singletons.computeController.destroy machine
+
+
 removeStackTemplate = (template) ->
 
   { reactor, groupsController } = kd.singletons
@@ -765,4 +771,5 @@ module.exports = {
   loadMachineSharedUsers
   shareMachineWithUser
   unshareMachineWithUser
+  disconnectMachine
 }
