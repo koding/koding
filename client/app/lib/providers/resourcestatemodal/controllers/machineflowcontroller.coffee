@@ -51,10 +51,13 @@ module.exports = class MachineFlowController extends BasePageController
 
   showError: (error, state,  prevState) ->
 
+    return  if state is prevState
+
     page = switch
       when state is 'Stopped' and prevState is 'Starting' then @startMachineErrorPage
       when state is 'Running' and prevState is 'Stopping' then @stopMachineErrorPage
-    return  unless page
+
+    return @show state  unless page
 
     page.setErrors [ error ]
     @setCurrentPage page
@@ -86,11 +89,7 @@ module.exports = class MachineFlowController extends BasePageController
     { computeController } = kd.singletons
 
     computeController.start machine
-
-    page = @show 'Starting'
-    page.updateProgress() # reset previous progress
-
-    @emit 'MachineTurnOnStarted', machine
+    @emit 'MachineStarting'
 
 
   stopMachine: ->
@@ -99,6 +98,4 @@ module.exports = class MachineFlowController extends BasePageController
     { computeController } = kd.singletons
 
     computeController.stop machine
-
-    page = @show 'Stopping'
-    page.updateProgress() # reset previous progress
+    @emit 'MachineStopping'

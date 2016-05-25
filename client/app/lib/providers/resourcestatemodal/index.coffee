@@ -2,6 +2,8 @@ kd = require 'kd'
 StackFlowController = require './controllers/stackflowcontroller'
 MachineFlowController = require './controllers/machineflowcontroller'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
+constants = require './constants'
+helpers = require './helpers'
 
 module.exports = class ResourceStateModal extends kd.BlockingModalView
 
@@ -33,7 +35,8 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
     @machineFlow = new MachineFlowController { container : this }, machine
     @machineFlow.on 'ClosingRequested', @bound 'destroy'
-    @forwardEvent @machineFlow, 'MachineTurnOnStarted'
+    @machineFlow.on 'MachineStarting', @bound 'onMachineStarting'
+    @machineFlow.on 'MachineStopping', @bound 'onMachineStopping'
 
     computeController.on "apply-#{@stack._id}", @bound 'updateStackStatus'
 
@@ -43,6 +46,7 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
     computeController.on "start-#{machineId}", @bound 'updateMachineStatus'
     computeController.on "build-#{machineId}", @bound 'updateMachineStatus'
     computeController.on "stop-#{machineId}",  @bound 'updateMachineStatus'
+    computeController.on "error-#{machineId}", @bound 'onMachineError'
     computeController.eventListener.followUpcomingEvents machine
 
     @show()
@@ -77,14 +81,14 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
   updateStackStatus: (event, task) ->
 
-    { status, percentage, message, error, eventId } = event
+    { status, percentage, message, error } = event
 
     machine   = @getData()
     machineId = machine.jMachine._id
 
-    return  unless eventId?.indexOf(@stack._id) > -1
+    return  unless helpers.isTargetEvent event, @stack
 
-    [ oldState, @state ] = [ @state, status ]
+    [ prevState, @state ] = [ @state, status ]
 
     if error
       @stackFlow.showBuildError error
@@ -92,7 +96,7 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
     else if percentage?
       @stackFlow.updateBuildProgress percentage, message
 
-      if percentage is 100 and oldState is 'Building' and @state is 'Running'
+      if percentage is 100 and prevState is 'Building' and @state is 'Running'
         { computeController } = kd.singletons
         computeController.once "revive-#{machineId}", =>
           @stackFlow.completeBuildProcess()
@@ -105,12 +109,13 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
     { status, percentage, message, error } = event
 
-    machine   = @getData()
-    machineId = machine.jMachine._id
+    machine = @getData()
 
-    [ oldState, @state ] = [ @state, status ]
+    return  unless helpers.isTargetEvent event, machine.jMachine
 
-    return @machineFlow.showError error, @state  if error
+    [ prevState, @state ] = [ @state, status ]
+
+    return @machineFlow.showError error, @state, prevState  if error
 
     if percentage?
       return  if @machineFlow.updateProgress percentage, message, @state
@@ -118,7 +123,7 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
       if percentage is 100
         return @checkIfResourceRunning()  if @machineFlow.completeProcess @state
 
-    return  if @show @state
+    return  if @machineFlow.show @state
 
     @checkIfResourceRunning no, yes
 
@@ -138,7 +143,33 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
       @destroy()  if destroy
 
 
+  onMachineError: (response) ->
+
+    { machine, err } = response
+    return  unless machine and err
+
+    status = machine.status.state
+    error  = err.message
+    @updateMachineStatus { status, error }
+
+
+  onMachineStarting: ->
+
+    @updateMachineStatus { status : 'Starting', percentage : constants.INITIAL_PROGRESS_VALUE }
+    @emit 'MachineTurnOnStarted', @getData()
+
+
+  onMachineStopping: ->
+
+    @updateMachineStatus { status : 'Stopping', percentage : constants.INITIAL_PROGRESS_VALUE }
+
+
   updateStatus: (event, task) ->
+
+    if helpers.isTargetEvent event, @stack
+      @updateStackStatus event, task
+    else
+      @updateMachineStatus event, task
 
 
   destroy: ->

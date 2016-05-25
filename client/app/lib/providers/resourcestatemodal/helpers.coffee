@@ -14,3 +14,9 @@ module.exports =
     message = message.capitalize()
 
     return message
+
+
+  isTargetEvent: (event, target) ->
+
+    { eventId } = event
+    return eventId?.indexOf(target._id) > -1
