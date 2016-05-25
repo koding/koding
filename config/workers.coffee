@@ -69,8 +69,8 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
         command         :
-          run           : "#{GOBIN}/broker -c #{options.configName}"
-          watch         : "#{GOBIN}/watcher -run koding/broker -c #{options.configName}"
+          run           : "#{GOBIN}/broker"
+          watch         : "#{GOBIN}/watcher -run koding/broker"
       nginx             :
         websocket       : yes
         locations       : [

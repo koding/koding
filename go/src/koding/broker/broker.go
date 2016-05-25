@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"koding/artifact"
 	"koding/kontrol/kontrolhelper"
@@ -24,6 +23,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/koding/multiconfig"
 	"github.com/koding/redis"
 
 	"github.com/streadway/amqp"
@@ -47,13 +47,6 @@ var (
 	changeClientsGauge          = lifecycle.CreateClientsGauge()
 	changeNewClientsGauge       = logger.CreateCounterGauge("newClients", logger.NoUnit, true)
 	changeWebsocketClientsGauge = logger.CreateCounterGauge("websocketClients", logger.NoUnit, false)
-
-	flagProfile      = flag.String("c", "", "Configuration profile from file")
-	flagBrokerDomain = flag.String("a", "", "Send kontrol a custom domain istead of os.Hostname")
-	flagDuration     = flag.Duration("t", time.Second*50, "Duration for timeout in seconds - Duration flag accept any input valid for time.ParseDuration.")
-	flagKontrolUUID  = flag.String("u", "", "Enable Kontrol mode")
-	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker, premiumBroker and brokerKite, premiumBrokerKite. B")
-	flagDebug        = flag.Bool("d", false, "Debug mode")
 )
 
 // Broker is a router/multiplexer that routes messages coming from a SockJS
@@ -86,7 +79,7 @@ type Broker struct {
 func NewBroker(conf *config.Config) *Broker {
 	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
 	// returns config.BrokerDomain back
-	brokerHostname := kontrolhelper.CustomHostname(*flagBrokerDomain)
+	brokerHostname := kontrolhelper.CustomHostname("")
 	sanitizedHostname := strings.Replace(brokerHostname, ".", "_", -1)
 	serviceUniqueName := BROKER_NAME + "|" + sanitizedHostname
 
@@ -99,34 +92,21 @@ func NewBroker(conf *config.Config) *Broker {
 }
 
 func main() {
-	flag.Parse()
-	if *flagProfile == "" {
-		log.Fatal("Please specify profile via -c. Aborting.")
-	}
+	loader := multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.FlagLoader{},
+		&multiconfig.EnvironmentLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG"},
+	)
 
-	conf = config.MustConfig(*flagProfile)
+	conf = new(config.Config)
+	loader.Load(conf)
 	broker := NewBroker(conf)
-
-	switch *flagBrokerType {
-	case "premiumBroker":
-		broker.Config = &conf.PremiumBroker
-	case "brokerKite":
-		broker.Config = &conf.BrokerKite
-	case "premiumBrokerKite":
-		broker.Config = &conf.PremiumBrokerKite
-	default:
-		broker.Config = &conf.Broker
-	}
+	broker.Config = &conf.Broker
 
 	// update broker name
 	log = logger.New(broker.Config.Name)
-	var logLevel logger.Level
-	if *flagDebug {
-		logLevel = logger.DEBUG
-	} else {
-		logLevel = logger.GetLoggingLevelFromConfig(BROKER_NAME, *flagProfile)
-	}
-
+	logLevel := logger.GetLoggingLevelFromConfig(BROKER_NAME, "")
 	log.SetLevel(logLevel)
 	broker.Run()
 }
@@ -178,7 +158,7 @@ func (b *Broker) registerToKontrol() error {
 		b.Config.Name,
 		b.Config.ServiceGenericName, // servicGenericName
 		b.ServiceUniqueName,
-		*flagKontrolUUID,
+		"",
 		b.Hostname,
 		b.Config.Port,
 	); err != nil {
@@ -375,8 +355,8 @@ func (b *Broker) sockjsSession(session *sockjs.Session) {
 	case err := <-errChan:
 		log.Critical("An error occurred while creating client %v", err)
 		return
-	case <-time.After(*flagDuration):
-		log.Critical("Client coulnt created in %s exiting ", flagDuration.String())
+	case <-time.After(time.Second * 50):
+		log.Critical("Client coulnt created in 50 exiting")
 		return
 	}
 
