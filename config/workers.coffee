@@ -408,8 +408,8 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         stopwaitsecs    : 20
         command         :
-          run           : "#{GOBIN}/gatheringestor -c #{options.configName}"
-          watch         : "#{GOBIN}/watcher -run koding/workers/gatheringestor -c #{options.configName}"
+          run           : "#{GOBIN}/gatheringestor"
+          watch         : "#{GOBIN}/watcher -run koding/workers/gatheringestor"
       healthCheckURL    : "http://localhost:#{KONFIG.gatheringestor.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.gatheringestor.port}/version"
       nginx             :
