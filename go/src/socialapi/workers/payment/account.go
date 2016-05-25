@@ -23,7 +23,7 @@ func (a *AccountSubscribeRequest) Do() (interface{}, error) {
 	case "stripe":
 		err = stripe.SubscribeForAccount(a.Token, a.AccountId, a.Email, a.PlanTitle, a.PlanInterval)
 	case "paypal":
-		err = paypal.SubscribeWithPlan(a.Token, a.AccountId, a.PlanTitle, a.PlanInterval)
+		err = ErrProviderNotImplemented
 	default:
 		err = ErrProviderNotFound
 	}
