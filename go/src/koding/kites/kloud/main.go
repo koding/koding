@@ -271,6 +271,10 @@ func newKite(conf *Config) *kite.Kite {
 
 	kodingProvider := newKodingProvider(sess, conf, authUsers)
 
+	if k, ok := kodingProvider.(*koding.Provider); ok {
+		awsProvider.Koding = k
+	}
+
 	go runQueue(kodingProvider, awsProvider, sess, conf)
 
 	stats := common.MustInitMetrics(Name)
@@ -319,6 +323,7 @@ func newKite(conf *Config) *kite.Kite {
 	// Teams/stack handling methods
 	k.HandleFunc("plan", kld.Plan)
 	k.HandleFunc("apply", kld.Apply)
+	k.HandleFunc("migrate", kld.Migrate)
 	k.HandleFunc("describeStack", kld.Status)
 	k.HandleFunc("authenticate", kld.Authenticate)
 	k.HandleFunc("bootstrap", kld.Bootstrap)
