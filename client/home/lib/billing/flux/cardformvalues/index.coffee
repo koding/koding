@@ -14,6 +14,7 @@ module.exports =
 
   actions:
     setValue: (type, value) -> dispatch actionTypes.SET_TEAM_BILLING_INPUT_VALUE, { type, value }
+    cancelEditing: -> dispatch actionTypes.CANCEL_EDITING_TEAM_BILLING_INPUT_VALUES
     resetValues: -> dispatch actionTypes.RESET_TEAM_BILLING_INPUT_VALUES
     resetErrors: -> dispatch actionTypes.RESET_TEAM_BILLING_INPUT_ERRORS
 
