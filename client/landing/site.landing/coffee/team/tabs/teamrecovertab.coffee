@@ -25,10 +25,7 @@ module.exports = class TeamRecoverTab extends kd.TabPaneView
 
     @header = new MainHeaderView
       cssClass : 'team'
-      navItems : [
-        { title : 'Blog',     href : 'http://blog.koding.com',          name : 'blog' }
-        { title : 'Features', href : 'https://www.koding.com/Features', name : 'features', attributes: { target: '_blank' } }
-      ]
+      navItems : []
 
     @logo = utils.getGroupLogo()
 
