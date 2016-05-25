@@ -11,26 +11,30 @@ SharingUserList     = require './sharing/userlist'
 module.exports = class MachineDetails extends React.Component
 
   @propTypes =
-    machine              : React.PropTypes.instanceOf(immutable.Map).isRequired
-    shouldRenderSpecs    : React.PropTypes.bool
-    shouldRenderPower    : React.PropTypes.bool
-    shouldRenderAlwaysOn : React.PropTypes.bool
-    shouldRenderSharing  : React.PropTypes.bool
-    onChangeAlwaysOn     : React.PropTypes.func
-    onChangePowerStatus  : React.PropTypes.func
-    onSharedWithUser     : React.PropTypes.func
-    onUnsharedWithUser   : React.PropTypes.func
+    machine                : React.PropTypes.instanceOf(immutable.Map).isRequired
+    shouldRenderSpecs      : React.PropTypes.bool
+    shouldRenderPower      : React.PropTypes.bool
+    shouldRenderAlwaysOn   : React.PropTypes.bool
+    shouldRenderSharing    : React.PropTypes.bool
+    shouldRenderDisconnect : React.PropTypes.bool
+    onChangeAlwaysOn       : React.PropTypes.func
+    onChangePowerStatus    : React.PropTypes.func
+    onSharedWithUser       : React.PropTypes.func
+    onUnsharedWithUser     : React.PropTypes.func
+    onDisconnectVM         : React.PropTypes.func
 
 
   @defaultProps =
-    shouldRenderSpecs    : no
-    shouldRenderPower    : yes
-    shouldRenderAlwaysOn : no
-    shouldRenderSharing  : no
-    onChangeAlwaysOn     : kd.noop
-    onChangePowerStatus  : kd.noop
-    onSharedWithUser     : kd.noop
-    onUnsharedWithUser   : kd.noop
+    shouldRenderSpecs      : no
+    shouldRenderPower      : no
+    shouldRenderAlwaysOn   : no
+    shouldRenderSharing    : no
+    shouldRenderDisconnect : no
+    onChangeAlwaysOn       : kd.noop
+    onChangePowerStatus    : kd.noop
+    onSharedWithUser       : kd.noop
+    onUnsharedWithUser     : kd.noop
+    onDisconnectVM         : kd.noop
 
 
   constructor: (props) ->
@@ -60,6 +64,21 @@ module.exports = class MachineDetails extends React.Component
       <div key={spec} className="SingleSpecItem">{spec}</div>
 
     <div className='MachineDetails-SpecsList'>{children}</div>
+
+
+  renderDisconnectToggler: ->
+    console.log 'sadasdas ', @props.shouldRenderDisconnect
+    return  unless @props.shouldRenderDisconnect
+
+    console.log 'Machine.State ', Machine.State
+    { Running, Starting, Stopped } = Machine.State
+
+    <GenericToggler
+      title='VM Disconnect'
+      description='Turn your machine off from here'
+      checked={@status() in [ Running, Starting ]}
+      disabled={not (@status() in [ Running, Stopped ])}
+      onToggle={@props.onDisconnectVM} />
 
 
   renderPowerToggler: ->
@@ -123,6 +142,7 @@ module.exports = class MachineDetails extends React.Component
       {@renderSpecs()}
       {@renderPowerToggler()}
       {@renderAlwaysOnToggler()}
+      {@renderDisconnectToggler()}
       {@renderSharingToggler()}
     </div>
 
