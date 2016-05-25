@@ -7,6 +7,7 @@ globals        = require 'globals'
 lazyrouter     = require './lazyrouter'
 isKoding       = require './util/isKoding'
 whoami         = require './util/whoami'
+nick           = require './util/nick'
 
 EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MachineSettingsModal    = require 'app/providers/machinesettingsmodal'
@@ -139,17 +140,19 @@ requestCollaboration = ({ nickname, channelId }) ->
 
   kd.singletons.mainController.ready ->
 
-    whoami().pushNotification
+    if nickname is nick()
+      return kd.singletons.router.back()
+
+    kd.utils.defer -> kd.singletons.router.handleRoute '/IDE'
+
+    me = whoami()
+    me.pushNotification
       receiver: nickname
       channelId: channelId
       action: 'COLLABORATION_REQUEST'
-      senderUserId: whoami()._id
-      senderAccountId: whoami().socialApiId
+      senderUserId: me._id
+      senderAccountId: me.socialApiId
     , (err) ->
 
-      # FIXME: better error message
-      return new kd.NotificationView { title: 'There is an error' }  if err
-
+      showError err
       kd.singletons.router.back()
-
-
