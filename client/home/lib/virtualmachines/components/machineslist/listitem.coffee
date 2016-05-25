@@ -6,30 +6,34 @@ immutable = require 'immutable'
 module.exports = class MachinesListItem extends React.Component
 
   @propTypes =
-    machine              : React.PropTypes.instanceOf(immutable.Map).isRequired
-    stack                : React.PropTypes.instanceOf(immutable.Map).isRequired
-    shouldRenderDetails  : React.PropTypes.bool
-    shouldRenderSpecs    : React.PropTypes.bool
-    shouldRenderPower    : React.PropTypes.bool
-    shouldRenderAlwaysOn : React.PropTypes.bool
-    shouldRenderSharing  : React.PropTypes.bool
-    onChangeAlwaysOn     : React.PropTypes.func
-    onChangePowerStatus  : React.PropTypes.func
-    onDetailOpen         : React.PropTypes.func
-    onSharedWithUser     : React.PropTypes.func
-    onUnsharedWithUser   : React.PropTypes.func
+    machine                : React.PropTypes.instanceOf(immutable.Map).isRequired
+    stack                  : React.PropTypes.instanceOf(immutable.Map).isRequired
+    shouldRenderDetails    : React.PropTypes.bool
+    shouldRenderSpecs      : React.PropTypes.bool
+    shouldRenderPower      : React.PropTypes.bool
+    shouldRenderDisconnect : React.PropTypes.bool
+    shouldRenderAlwaysOn   : React.PropTypes.bool
+    shouldRenderSharing    : React.PropTypes.bool
+    onChangeAlwaysOn       : React.PropTypes.func
+    onChangePowerStatus    : React.PropTypes.func
+    onDetailOpen           : React.PropTypes.func
+    onSharedWithUser       : React.PropTypes.func
+    onUnsharedWithUser     : React.PropTypes.func
+    onDisconnectVM         : React.PropTypes.func
 
   @defaultProps =
-    shouldRenderDetails  : yes
-    shouldRenderSpecs    : no
-    shouldRenderPower    : yes
-    shouldRenderAlwaysOn : no
-    shouldRenderSharing  : no
-    onChangeAlwaysOn     : kd.noop
-    onChangePowerStatus  : kd.noop
-    onDetailOpen         : kd.noop
-    onSharedWithUser     : kd.noop
-    onUnsharedWithUser   : kd.noop
+    shouldRenderDetails    : yes
+    shouldRenderSpecs      : no
+    shouldRenderPower      : no
+    shouldRenderDisconnect : no
+    shouldRenderAlwaysOn   : no
+    shouldRenderSharing    : no
+    onChangeAlwaysOn       : kd.noop
+    onChangePowerStatus    : kd.noop
+    onDetailOpen           : kd.noop
+    onSharedWithUser       : kd.noop
+    onUnsharedWithUser     : kd.noop
+    onDisconnectVM         : kd.noop
 
 
   constructor: (props) ->
@@ -46,12 +50,14 @@ module.exports = class MachinesListItem extends React.Component
         machine={@props.machine}
         shouldRenderSpecs={@props.shouldRenderSpecs}
         shouldRenderPower={@props.shouldRenderPower}
+        shouldRenderDisconnect={@props.shouldRenderDisconnect}
         shouldRenderAlwaysOn={@props.shouldRenderAlwaysOn}
         shouldRenderSharing={@props.shouldRenderSharing}
         onChangeAlwaysOn={@props.onChangeAlwaysOn}
         onChangePowerStatus={@props.onChangePowerStatus}
         onSharedWithUser={@props.onSharedWithUser}
         onUnsharedWithUser={@props.onUnsharedWithUser}
+        onDisconnectVM={@props.onDisconnectVM}
       />
     </main>
 
