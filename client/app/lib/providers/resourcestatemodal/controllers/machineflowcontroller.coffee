@@ -4,6 +4,8 @@ StartMachinePageView = require '../views/startmachinepageview'
 StartMachineProgressPageView = require '../views/startmachineprogresspageview'
 StartMachineSuccessPageView = require '../views/startmachinesuccesspageview'
 StartMachineErrorPageView = require '../views/startmachineerrorpageview'
+StopMachineProgressPageView = require '../views/stopmachineprogresspageview'
+StopMachineErrorPageView = require '../views/stopmachineerrorpageview'
 
 module.exports = class MachineFlowController extends BasePageController
 
@@ -18,17 +20,22 @@ module.exports = class MachineFlowController extends BasePageController
     @startMachineProgressPage = new StartMachineProgressPageView {}, machine
     @startMachineSuccessPage = new StartMachineSuccessPageView()
     @startMachineErrorPage = new StartMachineErrorPageView()
+    @stopMachineProgressPage = new StopMachineProgressPageView {}, machine
+    @stopMachineErrorPage = new StopMachineErrorPageView()
 
     @registerPages [
       @startMachinePage
       @startMachineProgressPage
       @startMachineSuccessPage
       @startMachineErrorPage
+      @stopMachineProgressPage
+      @stopMachineErrorPage
     ]
 
     @startMachinePage.on 'StartMachine', @bound 'startMachine'
     @startMachineErrorPage.on 'StartMachine', @bound 'startMachine'
     @forwardEvent @startMachineSuccessPage, 'ClosingRequested'
+    @stopMachineErrorPage.on 'StopMachine', @bound 'stopMachine'
 
 
   show: (state) ->
@@ -36,15 +43,17 @@ module.exports = class MachineFlowController extends BasePageController
     page = switch state
       when 'Starting' then @startMachineProgressPage
       when 'Stopped'  then @startMachinePage
+      when 'Stopping' then @stopMachineProgressPage
     return  unless page
 
     @setCurrentPage page
 
 
-  showError: (error, state) ->
+  showError: (error, state,  prevState) ->
 
-    page = switch state
-      when 'Stopped' then @startMachineErrorPage
+    page = switch
+      when state is 'Stopped' and prevState is 'Starting' then @startMachineErrorPage
+      when state is 'Running' and prevState is 'Stopping' then @stopMachineErrorPage
     return  unless page
 
     page.setErrors [ error ]
@@ -55,6 +64,7 @@ module.exports = class MachineFlowController extends BasePageController
 
     page = switch state
       when 'Starting' then @startMachineProgressPage
+      when 'Stopping' then @stopMachineProgressPage
     return  unless page
 
     page.updateProgress percentage, message
@@ -82,3 +92,13 @@ module.exports = class MachineFlowController extends BasePageController
 
     @emit 'MachineTurnOnStarted', machine
 
+
+  stopMachine: ->
+
+    machine = @getData()
+    { computeController } = kd.singletons
+
+    computeController.stop machine
+
+    page = @show 'Stopping'
+    page.updateProgress() # reset previous progress

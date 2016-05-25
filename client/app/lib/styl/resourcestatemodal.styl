@@ -142,6 +142,21 @@ $warningColor               = #f2778a
       height                530px
 
 
+  .stop-machine-flow
+
+    header
+      height                70px
+
+      h1
+        font-size           25px
+        line-height         34px
+        padding-top         16px
+
+    section.main
+      width                 800px
+      height                330px
+
+
   .wizard-progress-pane
     bg                      color, #efefef
     border-bottom           1px solid #dedbdb
@@ -621,3 +636,52 @@ $warningColor               = #f2778a
         sta()
         margin              29px auto 0 auto
         display             block
+
+
+  .stop-machine-progress-page
+
+    section.main
+
+      h2
+        color               #777777
+        font-size           31px
+        letter-spacing      .3px
+        line-height         43px
+        padding-top         75px
+        padding-bottom      35px
+
+        span
+          font-weight       bold
+
+      .progressbar-container
+        border              1px solid #ccc
+
+        .bar
+          bg                color, #57a2d2
+
+        span.dark-label, span.light-label
+          color             #fff
+          font-size         15px
+          letter-spacing    .1px
+          line-height       20px
+          top               7px
+          padding-right     10px
+          borderBox()
+
+
+  .stop-machine-error-page
+
+    section.main
+
+      .error-container
+        max-height          100px
+
+      .GenericButton
+        width               226px
+        height              65px
+        borderBox()
+        margin-top          20px
+
+        span.button-title
+          font-size         21.6px
+          line-height       30px
