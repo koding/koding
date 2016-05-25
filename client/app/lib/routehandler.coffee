@@ -7,6 +7,7 @@ globals        = require 'globals'
 lazyrouter     = require './lazyrouter'
 isKoding       = require './util/isKoding'
 whoami         = require './util/whoami'
+nick           = require './util/nick'
 
 EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MachineSettingsModal    = require 'app/providers/machinesettingsmodal'
@@ -140,6 +141,8 @@ requestCollaboration = ({ nickname, channelId }) ->
   kd.singletons.mainController.ready ->
 
     whoami().pushNotification
+    if nickname is nick()
+      return kd.singletons.router.back()
       receiver: nickname
       channelId: channelId
       action: 'COLLABORATION_REQUEST'
