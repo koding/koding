@@ -12,8 +12,8 @@ module.exports = (KONFIG, options, credentials) ->
         incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
         command         :
-          run           : "#{GOBIN}/go-webserver -c #{options.configName}"
-          watch         : "#{GOBIN}/watcher -run koding/go-webserver -c #{options.configName}"
+          run           : "#{GOBIN}/go-webserver"
+          watch         : "#{GOBIN}/watcher -run koding/go-webserver"
       nginx             :
         locations       : [
           location      : "~^/IDE/.*"

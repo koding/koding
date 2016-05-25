@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"koding/artifact"
 	"koding/db/models"
@@ -11,6 +10,7 @@ import (
 	"runtime"
 
 	"github.com/koding/logging"
+	"github.com/koding/multiconfig"
 )
 
 var (
@@ -22,8 +22,7 @@ var (
 	kodingFbImage     = "koding.com/a/site.landing/images/share.fb.jpg"
 	kodingTwImage     = "koding.com/a/site.landing/images/share.tw.jpg"
 
-	flagConfig = flag.String("c", "dev", "Configuration profile from file")
-	Log        = logging.NewLogger(Name)
+	Log = logging.NewLogger(Name)
 
 	kodingGroup *models.Group
 	conf        *config.Config
@@ -32,12 +31,16 @@ var (
 func initialize() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	flag.Parse()
-	if *flagConfig == "" {
-		Log.Critical("Please define config file with -c")
-	}
+	loader := multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.FlagLoader{},
+		&multiconfig.EnvironmentLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG"},
+	)
 
-	conf = config.MustConfig(*flagConfig)
+	conf = new(config.Config)
+	loader.Load(conf)
+
 	modelhelper.Initialize(conf.Mongo)
 
 	var err error
