@@ -134,6 +134,7 @@ resendInvitations = [
 
 module.exports = {
   team
+  loggedInUserEmail
   membersWithRole
   TeamMembersIdStore
   invitationInputValues
