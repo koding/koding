@@ -17,6 +17,9 @@ if [[ ! -z "$run" ]]; then
 	run="-run $run"
 fi
 
+# TODO(rjeczalik): enable after fixing TMS-3077
+exit 0
+
 # NOTE(rjeczalik): -noclean is used to keep DNS records, sometimes
 # handy for deelopment when AWS is utterly slow.
 go test -v koding/kites/e2etest $run -- -debug -ngrokdebug -noclean
