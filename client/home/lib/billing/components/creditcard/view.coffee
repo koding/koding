@@ -11,15 +11,15 @@ module.exports = class CreditCard extends React.Component
 
   render: ->
 
-    console.log {@props}
-
     <figure className='HomeAppView--cc'>
       <label>Card Number</label>
       <CardNumber
         hasError={@props.formErrors.get 'number'}
         onChange={@props.onInputValueChange.bind null, 'number'}
         cardType={@props.formValues.get 'cardType'}
-        value={@props.formValues.get 'number'} />
+        value={@props.formValues.get 'number'}
+        isEdited={@props.formValues.get 'isEdited'}
+        mask={@props.formValues.get 'mask'} />
       <fieldset className='wrapper--expiration'>
         <label>Expiration</label>
         <Expiration type='month'
@@ -42,19 +42,13 @@ module.exports = class CreditCard extends React.Component
     </figure>
 
 
-CardNumber = ({ onChange, hasError, value, cardType }) ->
-
-  mask = switch cardType
-    when 'American Express' then '9999 999999 99999'
-    else '9999 9999 9999 9999'
+CardNumber = ({ onChange, hasError, value, cardType, isEdited, mask }) ->
 
   type = kd.utils.slugify cardType
 
   placeholder = ''
 
-  # means that the value is coming from the group card.
-  # so we will use this as a placeholder
-  if /^\*/.test(value)
+  unless isEdited
     placeholder = value
     value = ''
 
