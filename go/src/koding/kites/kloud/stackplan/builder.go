@@ -17,6 +17,61 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// NotFoundError is returned when requested operation on a resource
+// cannot be completed due to resource being missing. Most likely
+// this kind of errors means the resource was deleted outside
+// (shared ownership) and this error is returned to the caller,
+// so it recover if possible.
+//
+// TODO(rjeczalik): the db/mongo helpers should be decorating errors
+// instead, so database handling layer is transparent and no
+// library specific errors (e.g. mgo.ErrNotFound, pq.Error) are leaked.
+type NotFoundError struct {
+	Resource string // type / name of resource missing
+	Err      error  // underlying error, if any
+}
+
+// Error implements the builtin error interface.
+func (e *NotFoundError) Error() string {
+	return fmt.Sprintf("the %q resource was not found: %s", e.Resource, e.Err)
+}
+
+// Underlying gives the error value responsible for failure.
+func (e *NotFoundError) Underlying() error {
+	return e.Err
+}
+
+// resError is a helper function that decorates the given err with more
+// meaningful error value, giving the caller context to recover.
+func resError(err error, resource string) error {
+	switch err {
+	case mgo.ErrNotFound:
+		return &NotFoundError{
+			Resource: resource,
+			Err:      err,
+		}
+	default:
+		return err
+	}
+}
+
+// IsNotFound gives true when err is of *NotFoundError type and its Resource
+// field is equal to one of the given resources.
+//
+// If no resources are given, the function tests only if err is of
+// *NotFoundError type.
+func IsNotFound(err error, resources ...string) bool {
+	if e, ok := err.(*NotFoundError); ok {
+		for _, res := range resources {
+			if e.Resource == res {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 // KodingMeta represents "koding_"-prefixed variables injected into Terraform
 // template.
 type KodingMeta struct {
@@ -116,53 +171,59 @@ func NewBuilder(opts *BuilderOptions) *Builder {
 //
 // When nil error is returned, the  b.Stack field is non-nil.
 func (b *Builder) BuildStack(stackID string, overrideCreds map[string][]string) error {
+	var overallErr error
+
 	computeStack, err := modelhelper.GetComputeStack(stackID)
 	if err != nil {
-		return err
+		return resError(err, "jComputeStack")
 	}
 
-	stackTemplate, err := modelhelper.GetStackTemplate(computeStack.BaseStackId.Hex())
-	if err != nil {
-		return err
+	b.Stack = &Stack{
+		Stack:       computeStack,
+		Machines:    make([]string, len(computeStack.Machines)),
+		Credentials: make(map[string][]string),
 	}
 
-	machineIDs := make([]string, len(computeStack.Machines))
-	for i, m := range computeStack.Machines {
-		machineIDs[i] = m.Hex()
+	for i, m := range b.Stack.Stack.Machines {
+		b.Stack.Machines[i] = m.Hex()
 	}
 
-	credentials := make(map[string][]string, 0)
+	baseStackID := b.Stack.Stack.BaseStackId.Hex()
 
-	// first copy admin/group based credentials
-	for k, v := range stackTemplate.Credentials {
-		credentials[k] = v
+	// If fetching jStackTemplate fails, it might got deleted outside.
+	// Continue building stack and let the caller decide, whether missing
+	// jStackTemplate is fatal or not (e.g. for apply operations it's fatal,
+	// for destroy ones - not).
+	if stackTemplate, err := modelhelper.GetStackTemplate(baseStackID); err == nil {
+		// first copy admin/group based credentials
+		for k, v := range stackTemplate.Credentials {
+			b.Stack.Credentials[k] = v
+		}
+
+		b.Stack.Template = stackTemplate.Template.Content
+	} else {
+		overallErr = resError(err, "jStackTemplate")
 	}
 
 	// copy user based credentials
 	for k, v := range computeStack.Credentials {
 		// however don't override anything the admin already added
-		if _, ok := credentials[k]; !ok {
-			credentials[k] = v
+		if _, ok := b.Stack.Credentials[k]; !ok {
+			b.Stack.Credentials[k] = v
 		}
 	}
 
 	// Set or override credentials when passed in apply request.
 	for k, v := range overrideCreds {
 		if len(v) != 0 {
-			credentials[k] = v
+			b.Stack.Credentials[k] = v
 		}
 	}
 
-	b.Log.Debug("Stack built: len(machines)=%d, len(credentials)=%d", len(machineIDs), len(credentials))
+	b.Log.Debug("Stack built: len(machines)=%d, len(credentials)=%d, overallErr=%v",
+		len(b.Stack.Machines), len(b.Stack.Credentials), overallErr)
 
-	b.Stack = &Stack{
-		Machines:    machineIDs,
-		Credentials: credentials,
-		Template:    stackTemplate.Template.Content,
-		Stack:       computeStack,
-	}
-
-	return nil
+	return overallErr
 }
 
 // FindMachine looks for a jMachine document in b.Machines which meta.assignedLabel
@@ -256,7 +317,7 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 
 	users, err := modelhelper.GetUsersById(allowedIds...)
 	if err != nil {
-		return err
+		return resError(err, "jUser")
 	}
 
 	// find whether requested user is among allowed ones
@@ -267,6 +328,8 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 			break
 		}
 	}
+
+	b.Log.Debug("Found requester: %v (requester username: %s)", reqUser, req.Username)
 
 	if reqUser != nil {
 		// now check if the requested user is inside the allowed users list
@@ -315,19 +378,19 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 	// fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
-		return fmt.Errorf("fetching account %q: %s", username, err)
+		return resError(err, "jAccount")
 	}
 
 	// fetch jGroup from group slug name
 	group, err := modelhelper.GetGroup(groupname)
 	if err != nil {
-		return fmt.Errorf("fetching group %q: %s", groupname, err)
+		return resError(err, "jGroup")
 	}
 
 	// fetch jUser from username
 	user, err := modelhelper.GetUser(username)
 	if err != nil {
-		return fmt.Errorf("fetching user %q: %s", username, err)
+		return resError(err, "jUser")
 	}
 
 	// validate if username belongs to groupnam
@@ -347,7 +410,7 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 	// 2- fetch credential from identifiers via args
 	credentials, err := modelhelper.GetCredentialsFromIdentifiers(identifiers...)
 	if err != nil {
-		return fmt.Errorf("fetching credentials %v: %s", identifiers, err)
+		return resError(err, "jCredential")
 	}
 
 	credentialTitles := make(map[string]string, len(credentials))
@@ -374,8 +437,10 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 		}
 
 		count, err := modelhelper.RelationshipCount(selector)
-		if err != nil || count == 0 {
-			// we return for any not validated identifier key.
+		if err != nil {
+			return resError(err, "jRelationship")
+		}
+		if count == 0 {
 			return fmt.Errorf("credential with identifier '%s' is not validated: %v", cred.Identifier, err)
 		}
 
@@ -391,7 +456,8 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 	b.Log.Debug("Building credential data: %+v", data)
 
 	if err := b.CredStore.Fetch(username, data); err != nil {
-		return fmt.Errorf("error fetching credential data: %s", err)
+		// TODO(rjeczalik): add *NotFoundError support to CredStore
+		return resError(err, "jCredentialData")
 	}
 
 	// 5- return list of keys.
