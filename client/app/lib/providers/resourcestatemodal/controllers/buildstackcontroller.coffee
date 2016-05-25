@@ -4,7 +4,6 @@ BasePageController = require './basepagecontroller'
 BuildStackPageView = require '../views/buildstackpageview'
 BuildStackErrorPageView = require '../views/buildstackerrorpageview'
 BuildStackSuccessPageView = require '../views/buildstacksuccesspageview'
-showError = require 'app/util/showError'
 
 module.exports = class BuildStackController extends BasePageController
 
@@ -32,12 +31,9 @@ module.exports = class BuildStackController extends BasePageController
     @forwardEvent @successPage, 'ClosingRequested'
 
 
-  updateProgress: (percentage, message = '') ->
+  updateProgress: (percentage, message) ->
 
-    @buildStackPage.updatePercentage percentage
-
-    message = message.capitalize()
-    @buildStackPage.setStatusText message
+    @buildStackPage.updateProgress percentage, message
 
 
   completeProcess: ->

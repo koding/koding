@@ -47,7 +47,7 @@ module.exports = class MachineFlowController extends BasePageController
       when 'Stopped' then @startMachineErrorPage
     return  unless page
 
-    page.showErrors [ error ]
+    page.setErrors [ error ]
     @setCurrentPage page
 
 
@@ -77,5 +77,8 @@ module.exports = class MachineFlowController extends BasePageController
 
     computeController.start machine
 
-    @show 'Starting'
+    page = @show 'Starting'
+    page.updateProgress() # reset previous progress
+
     @emit 'MachineTurnOnStarted', machine
+

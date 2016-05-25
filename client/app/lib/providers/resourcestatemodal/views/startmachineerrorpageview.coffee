@@ -10,7 +10,7 @@ module.exports = class StartMachineErrorPageView extends BaseErrorPageView
     @startButton = new kd.ButtonView
       title    : 'Try Booting Again'
       cssClass : 'GenericButton'
-      callback : @lazyBound 'emit', 'StartRequested'
+      callback : @lazyBound 'emit', 'StartMachine'
 
 
   pistachio: ->

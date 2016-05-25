@@ -2,6 +2,7 @@ kd = require 'kd'
 JView = require 'app/jview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
+helpers = require '../helpers'
 
 module.exports = class BuildStackPageView extends JView
 
@@ -18,14 +19,13 @@ module.exports = class BuildStackPageView extends JView
     @statusText  = new kd.CustomHTMLView { cssClass : 'status-text' }
 
 
-  updatePercentage: (percentage = INITIAL_PROGRESS_VALUE) ->
+  updateProgress: (percentage, message) ->
 
+    percentage = Math.max percentage ? 0, INITIAL_PROGRESS_VALUE
     @progressBar.updateBar percentage
 
-
-  setStatusText: (text) ->
-
-    @statusText.updatePartial text
+    message = helpers.formatProgressStatus message
+    @statusText.updatePartial message
 
 
   pistachio: ->

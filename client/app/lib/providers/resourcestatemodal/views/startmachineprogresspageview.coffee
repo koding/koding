@@ -1,5 +1,6 @@
 kd = require 'kd'
 JView = require 'app/jview'
+helpers = require '../helpers'
 
 module.exports = class StartMachineProgressPageView extends JView
 
@@ -12,10 +13,11 @@ module.exports = class StartMachineProgressPageView extends JView
     @progressBar = new kd.ProgressBarView { initial : INITIAL_PROGRESS_VALUE }
 
 
-  updateProgress: (percentage, label) ->
+  updateProgress: (percentage, message) ->
 
-    percentage = Math.max percentage, INITIAL_PROGRESS_VALUE
-    @progressBar.updateBar percentage, '%', label
+    percentage = Math.max percentage ? 0, INITIAL_PROGRESS_VALUE
+    message = helpers.formatProgressStatus message
+    @progressBar.updateBar percentage, '%', message
 
 
   pistachio: ->

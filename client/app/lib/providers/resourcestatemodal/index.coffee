@@ -98,7 +98,7 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
           @stackFlow.completeBuildProcess()
           @checkIfResourceRunning yes
     else
-      @checkIfResourceRunning()
+      @checkIfResourceRunning no, yes
 
 
   updateMachineStatus: (event, task) ->
@@ -110,20 +110,20 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
     [ oldState, @state ] = [ @state, status ]
 
-    if error
-      @machineFlow.showError error, @state
+    return @machineFlow.showError error, @state  if error
 
-    else if percentage?
-      @machineFlow.updateProgress percentage, message, @state
+    if percentage?
+      return  if @machineFlow.updateProgress percentage, message, @state
 
       if percentage is 100
-        @machineFlow.completeProcess @state
-        @checkIfResourceRunning()
-    else
-      @checkIfResourceRunning()
+        return @checkIfResourceRunning()  if @machineFlow.completeProcess @state
+
+    return  if @show @state
+
+    @checkIfResourceRunning no, yes
 
 
-  checkIfResourceRunning: (initial = no) ->
+  checkIfResourceRunning: (initial = no, destroy = no) ->
 
     return  unless @state is 'Running'
 
@@ -135,6 +135,7 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
       @setData _machine
       @emit 'IDEBecameReady', _machine, initial
+      @destroy()  if destroy
 
 
   updateStatus: (event, task) ->
