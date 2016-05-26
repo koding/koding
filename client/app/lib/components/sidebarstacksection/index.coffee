@@ -25,6 +25,7 @@ module.exports = class SidebarStackSection extends React.Component
       coordinates :
         left      : 0
         top       : 0
+      showWidget  : no
 
 
   getDataBindings: ->
@@ -111,19 +112,17 @@ module.exports = class SidebarStackSection extends React.Component
 
   renderStackUpdatedWidget: ->
 
-    { coordinates } = @state
+    { coordinates, showWidget } = @state
 
     return null  unless @getStackUnreadCount()
     return null  if not coordinates.left and coordinates.top
 
-    <StackUpdatedWidget coordinates={coordinates} stack={@props.stack} />
+    <StackUpdatedWidget coordinates={coordinates} stack={@props.stack} show={showWidget} />
 
 
   unreadCountClickHandler: ->
 
-    { router } = kd.singletons
-
-    router.handleRoute '/Stacks/My-Stacks'
+    @setState { showWidget: yes }
 
 
   getStackUnreadCount: ->
@@ -146,7 +145,7 @@ module.exports = class SidebarStackSection extends React.Component
       onTitleClick={@bound 'onTitleClick'}
       secondaryLink=''
       unreadCount={@getStackUnreadCount()}
-      unreadCountClickHandler={@unreadCountClickHandler}
+      unreadCountClickHandler={@bound 'unreadCountClickHandler'}
       >
       {@renderMachines()}
       {@renderStackUpdatedWidget()}

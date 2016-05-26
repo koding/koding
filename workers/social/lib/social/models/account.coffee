@@ -672,7 +672,7 @@ module.exports = class JAccount extends jraphical.Module
 
 
   dummyAdmins = [ 'sinan', 'devrim', 'gokmen',
-                  'sent-hil', 'cihangirsavas', 'leeolayvar',
+                  'cihangirsavas', 'leeolayvar',
                   'szkl', 'usirin', 'rjeczalik', 'caikoding']
 
 

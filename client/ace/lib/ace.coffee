@@ -598,7 +598,7 @@ class Ace extends KDView
 
     next = (err) =>
       throw err  if err
-      @editor.setOption 'enableEmmet', value
+      @editor.setOption 'enableEmmet', value  if value
       @appStorage.setValue 'enableEmmet', value  if save
 
     if value is yes and not EmmetLoadState.READY

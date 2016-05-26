@@ -23,14 +23,13 @@ import (
 var defaultLog = common.NewLogger("stackplan", false)
 
 // credPermissions defines the permission grid for the given method
-var (
-	credPermissions = map[string][]string{
-		"bootstrap":    []string{"owner"},
-		"plan":         []string{"user", "owner"},
-		"apply":        []string{"user", "owner"},
-		"authenticate": []string{"user", "owner"},
-	}
-)
+var credPermissions = map[string][]string{
+	"bootstrap":    []string{"owner"},
+	"plan":         []string{"user", "owner"},
+	"apply":        []string{"user", "owner"},
+	"authenticate": []string{"user", "owner"},
+	"migrate":      []string{"owner"},
+}
 
 // Machine represents a jComputeStack.machine value.
 type Machine struct {
@@ -369,26 +368,6 @@ func parseResource(resource string) (string, string, string, error) {
 // "${var.region}"
 func IsVariable(v string) bool {
 	return len(v) != 0 && v[0] == '$'
-}
-
-// ParseAccountID parses an AWS arn string to get the Account ID
-//
-// The function assumes arn string comes from an IAM resource, as
-// it treats region empty.
-//
-// For details see:
-//
-//   http://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns
-//
-func ParseAccountID(arn string) (string, error) {
-	// example arn string: "arn:aws:iam::213456789:user/username"
-	// returns: 213456789.
-	splitted := strings.Split(strings.TrimPrefix(arn, "arn:aws:iam::"), ":")
-	if len(splitted) != 2 {
-		return "", fmt.Errorf("Couldn't parse arn string: %s", arn)
-	}
-
-	return splitted[0], nil
 }
 
 // FlattenValues converts the values of a map[string][]string to a []string slice.

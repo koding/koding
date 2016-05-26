@@ -11,11 +11,29 @@ module.exports = class ConnectedMachinesListContainer extends React.Component
       stacks: EnvironmentFlux.getters.stacks
     }
 
+
+  onDetailOpen: (machineId) -> EnvironmentFlux.actions.loadMachineSharedUsers machineId
+
+
+  onSharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.shareMachineWithUser machineId, nickname
+
+
+  onUnsharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.unshareMachineWithUser machineId, nickname
+
+
+  onDisconnectVM: (machine) -> EnvironmentFlux.actions.disconnectMachine machine
+
+
   render: ->
 
     stacks = @state.stacks?.toList().filter (s) -> s.get('title').toLowerCase() is 'managed vms'
 
-    <View stacks={stacks} />
+    <View stacks={stacks}
+      onDisconnectVM={@bound 'onDisconnectVM'}
+      onDetailOpen={@bound 'onDetailOpen'}
+      onSharedWithUser={@bound 'onSharedWithUser'}
+      onUnsharedWithUser={@bound 'onUnsharedWithUser'}
+    />
 
 
 ConnectedMachinesListContainer.include [KDReactorMixin]

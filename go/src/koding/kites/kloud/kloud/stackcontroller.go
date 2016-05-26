@@ -16,6 +16,7 @@ type TeamRequest struct {
 	GroupName   string `json:"groupName,omitempty"`
 	Debug       bool   `json:"debug,omitempty"`
 	Impersonate string `json:"impersonate,omitempty"` // only for kloudctl
+	Identifier  string `json:"identifier"`
 }
 
 func (req *TeamRequest) metricTags() []string {
@@ -48,6 +49,12 @@ type Stacker interface {
 	Authenticate(context.Context) (interface{}, error)
 	Bootstrap(context.Context) (interface{}, error)
 	Plan(context.Context) (interface{}, error)
+}
+
+// Migrater provides an interface to import solo machine (from "koding"
+// provider) to the specific stack provider.
+type Migrater interface {
+	Migrate(context.Context) (interface{}, error)
 }
 
 // StackProvider is responsible for creating stack providers.
@@ -112,6 +119,11 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
 
 		k.Log.Debug("Eventer created %q", evID)
+	} else if args.Identifier != "" {
+		evID := r.Method + "-" + args.GroupName + "-" + args.Identifier
+		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
+
+		k.Log.Debug("Eventer created %q", evID)
 	}
 
 	if args.Debug {
@@ -142,6 +154,11 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 	// type and log unexpected errors with k.Log.Error().
 	if err != nil {
 		k.Log.Debug("method %q for user %q failed: %s", r.Method, r.Username, err)
+
+		// ensure UI receives proper error origin - kloudError
+		if _, ok := err.(*kite.Error); !ok {
+			err = NewErrorMessage(err.Error())
+		}
 	}
 
 	k.send(ctx)

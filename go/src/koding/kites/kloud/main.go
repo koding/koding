@@ -141,7 +141,15 @@ func main() {
 	conf := new(Config)
 
 	// Load the config, it's reads environment variables or from flags
-	multiconfig.New().MustLoad(conf)
+	mc := multiconfig.New()
+	mc.Loader = multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.EnvironmentLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_KLOUD"},
+		&multiconfig.FlagLoader{},
+	)
+
+	mc.MustLoad(conf)
 
 	if conf.Version {
 		fmt.Println(kloud.VERSION)
@@ -224,7 +232,10 @@ func newKite(conf *Config) *kite.Kite {
 	// TODO(rjeczalik): refactor modelhelper methods to not use global DB
 	modelhelper.Initialize(conf.MongoURL)
 
-	sess := newSession(conf, k)
+	sess, err := newSession(conf, k)
+	if err != nil {
+		panic(err)
+	}
 
 	authUsers := map[string]string{
 		"kloudctl":       conf.KloudSecretKey,
@@ -267,6 +278,10 @@ func newKite(conf *Config) *kite.Kite {
 	softlayerProvider := newSoftlayerProvider(sess, conf)
 
 	kodingProvider := newKodingProvider(sess, conf, authUsers)
+
+	if k, ok := kodingProvider.(*koding.Provider); ok {
+		awsProvider.Koding = k
+	}
 
 	go runQueue(kodingProvider, awsProvider, sess, conf)
 
@@ -316,6 +331,7 @@ func newKite(conf *Config) *kite.Kite {
 	// Teams/stack handling methods
 	k.HandleFunc("plan", kld.Plan)
 	k.HandleFunc("apply", kld.Apply)
+	k.HandleFunc("migrate", kld.Migrate)
 	k.HandleFunc("describeStack", kld.Status)
 	k.HandleFunc("authenticate", kld.Authenticate)
 	k.HandleFunc("bootstrap", kld.Bootstrap)
@@ -361,7 +377,7 @@ func newKite(conf *Config) *kite.Kite {
 	return k
 }
 
-func newSession(conf *Config, k *kite.Kite) *session.Session {
+func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 	c := credentials.NewStaticCredentials(conf.AWSAccessKeyId, conf.AWSSecretAccessKey, "")
 
 	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
@@ -392,36 +408,39 @@ func newSession(conf *Config, k *kite.Kite) *session.Session {
 
 	sess.DNSStorage = dnsstorage.NewMongodbStorage(sess.DB)
 
-	dnsOpts := &dnsclient.Options{
-		Creds:      c,
-		HostedZone: conf.HostedZone,
-		Log:        common.NewLogger("kloud-dns", conf.DebugMode),
-		Debug:      conf.DebugMode,
-	}
+	if conf.AWSAccessKeyId != "" && conf.AWSSecretAccessKey != "" {
 
-	dns, err := dnsclient.NewRoute53Client(dnsOpts)
-	if err != nil {
-		k.Log.Warning("invalid AWS credentials for Route53: %s", err)
-	} else {
+		dnsOpts := &dnsclient.Options{
+			Creds:      c,
+			HostedZone: conf.HostedZone,
+			Log:        common.NewLogger("kloud-dns", conf.DebugMode),
+			Debug:      conf.DebugMode,
+		}
+
+		dns, err := dnsclient.NewRoute53Client(dnsOpts)
+		if err != nil {
+			return nil, err
+		}
+
 		sess.DNSClient = dns
-	}
 
-	opts := &amazon.ClientOptions{
-		Credentials: c,
-		Regions:     amazon.ProductionRegions,
-		Log:         common.NewLogger("kloud-koding", conf.DebugMode),
-		MaxResults:  int64(conf.MaxResults),
-		Debug:       conf.DebugMode,
-	}
+		opts := &amazon.ClientOptions{
+			Credentials: c,
+			Regions:     amazon.ProductionRegions,
+			Log:         common.NewLogger("kloud-koding", conf.DebugMode),
+			MaxResults:  int64(conf.MaxResults),
+			Debug:       conf.DebugMode,
+		}
 
-	ec2clients, err := amazon.NewClients(opts)
-	if err != nil {
-		k.Log.Warning("invalid AWS credentials for EC2: %s", err)
-	} else {
+		ec2clients, err := amazon.NewClients(opts)
+		if err != nil {
+			return nil, err
+		}
+
 		sess.AWSClients = ec2clients
 	}
 
-	return sess
+	return sess, nil
 }
 
 // Providers ctors. If a provider has a dependencty on a service

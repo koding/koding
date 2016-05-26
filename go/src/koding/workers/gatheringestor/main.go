@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"koding/artifact"
 	"koding/common"
@@ -16,23 +15,26 @@ import (
 
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
+	"github.com/koding/multiconfig"
 	"github.com/koding/redis"
 )
 
 var (
 	WorkerName = "ingestor"
-	flagConfig = flag.String("c", "dev", "Configuration profile from file")
 )
 
 func initializeConf() *config.Config {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	flag.Parse()
-	if *flagConfig == "" {
-		panic("Please define config file with -c")
-	}
+	loader := multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG"},
+		&multiconfig.FlagLoader{},
+	)
 
-	return config.MustConfig(*flagConfig)
+	conf := new(config.Config)
+	loader.Load(conf)
+	return conf
 }
 
 func main() {

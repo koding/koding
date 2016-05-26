@@ -12,8 +12,8 @@ module.exports = (KONFIG, options, credentials) ->
         incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
         command         :
-          run           : "#{GOBIN}/go-webserver -c #{options.configName}"
-          watch         : "#{GOBIN}/watcher -run koding/go-webserver -c #{options.configName}"
+          run           : "#{GOBIN}/go-webserver"
+          watch         : "#{GOBIN}/watcher -run koding/go-webserver"
       nginx             :
         locations       : [
           location      : "~^/IDE/.*"
@@ -69,8 +69,8 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
         command         :
-          run           : "#{GOBIN}/broker -c #{options.configName}"
-          watch         : "#{GOBIN}/watcher -run koding/broker -c #{options.configName}"
+          run           : "#{GOBIN}/broker"
+          watch         : "#{GOBIN}/watcher -run koding/broker"
       nginx             :
         websocket       : yes
         locations       : [
@@ -408,8 +408,8 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         stopwaitsecs    : 20
         command         :
-          run           : "#{GOBIN}/gatheringestor -c #{options.configName}"
-          watch         : "#{GOBIN}/watcher -run koding/workers/gatheringestor -c #{options.configName}"
+          run           : "#{GOBIN}/gatheringestor"
+          watch         : "#{GOBIN}/watcher -run koding/workers/gatheringestor"
       healthCheckURL    : "http://localhost:#{KONFIG.gatheringestor.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.gatheringestor.port}/version"
       nginx             :

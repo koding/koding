@@ -51,9 +51,9 @@ module.exports = class TeamInvitationInputValuesStore extends KodingFluxStore
   ###
   handleChange: (state, { index, inputType, value }) ->
 
-    if state.getIn [index, 'canEdit']
-      state = state.setIn [index, 'role'], 'admin'
     state = state.setIn [index, inputType], value
+    role = if state.getIn([index, 'canEdit']) then 'admin' else 'member'
+    state = state.setIn [index, 'role'], role
 
     empties = state.filter (val) -> val.get('email') is ''
 

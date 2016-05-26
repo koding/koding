@@ -39,8 +39,10 @@ module.exports = class TopNavigation extends kd.CustomHTMLView
   createItem: (options) ->
 
     options.cssClass = options.name.toLowerCase()
+    link             = new CustomLinkView options
+    link.setAttribute 'target', '_self'
 
-    @addSubView @menu[options.name] = new CustomLinkView options
+    @addSubView @menu[options.name] = link
 
 
   setActiveItem: (pane) ->
