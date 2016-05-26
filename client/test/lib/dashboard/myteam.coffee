@@ -41,6 +41,7 @@ module.exports =
     passwordSelector     = 'input[name=password]'
     forgotPasswordButton = '.kdbutton.solid.light-gray'
     confirmButton        = 'button[type=submit]'
+    notification         = '.kdnotification.main'
 
     member = utils.getUser no, 1
     host = utils.getUser()
@@ -60,7 +61,7 @@ module.exports =
       .click saveChangesButton
     teamsHelpers.assertConfirmation browser, successMessage
 
-  #Test Section Teammates Invite and Join to Team
+  # #Test Section Teammates Invite and Join to Team
 
     { invitations, index } = utils.getInvitationData()
     index = if index is 0 then 1 else index
@@ -111,8 +112,17 @@ module.exports =
                   .assert.containsText selector(indexOfTargetUser2 + 1), 'Admin'
                   browser.expect.element(selector(index + 1)).text.to.contain 'Owner'
                 browser.click selector(lastPendingInvitationIndex + 1), ->
+                  browser.pause 3000
                   teamsHelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], nthItem(1), nthItem(2), selector(lastPendingInvitationIndex + 1), yes, ->
-                  browser.scrollToElement '.HomeAppView--section.send-invites'
+                    teamsHelpers.logoutTeam browser, (res) ->
+                      teamsHelpers.loginToTeam browser, invitations[lastPendingInvitationIndex], yes, ->
+                      browser.assert.containsText notification, 'Unknown user name'
+                      teamsHelpers.loginToTeam browser, host , no, ->
+                        browser
+                          .waitForElementVisible welcomeView, 20000
+                          .url myTeamLink
+                          .pause 3000
+                          .scrollToElement '.HomeAppView--section.send-invites'
 
 
   #Test Section Send Invites
@@ -145,9 +155,9 @@ module.exports =
     browser.pause 3000
     teamsHelpers.newInviteFromResendModal browser, 'admin'
 
-  #Test Section Team Settings for Member
+  # Test Section Team Settings for Member
 
-    targetUser1 = utils.getUser no, 1
+    targetUser1 = invitations[1]
     teamsHelpers.logoutTeam browser, (res) ->
       teamsHelpers.loginToTeam browser, targetUser1 , no, ->
         browser
@@ -194,7 +204,6 @@ module.exports =
           .setValue passwordSelector, targetUser1.password
           .click confirmButton
           .assert.urlContains helpers.getUrl(yes)
-
 
 
 selector = (index) ->

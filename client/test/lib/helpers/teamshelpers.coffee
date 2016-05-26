@@ -102,15 +102,23 @@ module.exports =
     inputUserName         = 'input[name=username]'
     inputPassword         = 'input[name=password]'
     loginButton           = 'button[testpath=login-button]'
-
+    errorMessage          = '.kdnotification.main'
 
     browser
       .pause                  2000 # wait for login page
       .waitForElementVisible  '.TeamsModal--login', 20000
       .waitForElementVisible  'form.login-form', 20000
+      .clearValue             'input[name=username]'
+      .clearValue             'input[name=password]'
       .setValue               'input[name=username]', user.username
       .setValue               'input[name=password]', user.password
-      .click                  'button[testpath=login-button]', => @loginAssertion browser, callback
+
+    if invalidCredentials
+      browser
+      .click 'button[testpath=login-button]'
+      .waitForElementVisible  errorMessage, 20000
+    else
+      browser.click 'button[testpath=login-button]', => @loginAssertion browser, callback
 
 
 
