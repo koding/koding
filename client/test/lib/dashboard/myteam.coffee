@@ -15,23 +15,25 @@ module.exports =
 
   teamSettings: (browser) ->
 
-    sectionSelector = '.HomeAppView--section.team-settings'
-    buttonSelector = "#{sectionSelector} .uploadInputWrapper .HomeAppView--button.custom-link-view"
-    uploadLogoButton = "#{buttonSelector}.primary"
-    removeLogoButton = "#{buttonSelector}.remove"
-    teamNameSelector = "#{sectionSelector} .half input[type=text]"
-    saveChangesButton = "#{sectionSelector} .HomeAppView--ActionBar .HomeAppView--button.custom-link-view.primary.fr"
+    sectionSelector   = '.HomeAppView--section.team-settings'
+    buttonSelector    = "#{sectionSelector} .uploadInputWrapper .HomeAppView--button.custom-link-view"
+    uploadLogoButton  = "#{buttonSelector}.primary"
+    removeLogoButton  = "#{buttonSelector}.remove"
+    teamNameSelector  = "#{sectionSelector} .half input[type=text]"
+    saveChangesButton = '.HomeAppView--section .HomeAppView--button.fr'
 
-    kodingLogo = "#{sectionSelector} .HomeAppView--uploadLogo img"
+    kodingLogo      = "#{sectionSelector} .HomeAppView--uploadLogo img"
     defaultLogoPath = "#{helpers.getUrl(yes)}/a/images/logos/sidebar_footer_logo.svg"
-    localImage = "#{__dirname}/upload.png"
-    localImage = require('path').resolve(localImage)
-    teamLogo = "#{sectionSelector} .kdinput.file"
-    successMessage = 'Team settings has been successfully updated.'
-    executeCommand = "document.querySelector('.teamLogo').setAttribute('src', 'some_path');"
+    localImage      = "#{__dirname}/upload.png"
+    localImage      = require('path').resolve(localImage)
+    teamLogo        = "#{sectionSelector} .kdinput.file"
+    successMessage  = 'Team settings has been successfully updated.'
+    executeCommand  = "document.querySelector('.teamLogo').setAttribute('src', 'some_path');"
 
-    teammateSection = '.kdcustomscrollview.HomeAppView--scroller.my-team'
+    teammateSection         = '.kdcustomscrollview.HomeAppView--scroller.my-team'
     teammateSectionSelector = '.HomeAppView--section.teammates'
+    checkboxSelector        = '.HomeAppView--section.send-invites .invite-inputs .kdcustomcheckbox'
+    adminTextSelector       = '.HomeAppView--section.send-invites .information .invite-labels label:last-child span:last-child'
 
     welcomeView          = '.WelcomeStacksView'
     leaveTeamButton      = '.HomeAppView--button'
@@ -49,6 +51,11 @@ module.exports =
       .waitForElementNotPresent '.kdnotification', 5000
       .clearValue teamNameSelector
       .setValue teamNameSelector, host.teamSlug + 'new'
+      .click saveChangesButton
+    teamsHelpers.assertConfirmation browser, successMessage
+    browser
+      .clearValue teamNameSelector
+      .setValue teamNameSelector, host.teamSlug
       .click saveChangesButton
     teamsHelpers.assertConfirmation browser, successMessage
 
@@ -75,6 +82,7 @@ module.exports =
               .assert.containsText   selector(indexOfTargetUser2 + 1), 'Member'
               .assert.containsText   selector(indexOfTargetUser3 + 1), 'Member'
 
+
   #Test Section Teammates Change Role of TeamMates
     invitations[indexOfTargetUser1].accepted = 'Member'
     invitations[indexOfTargetUser2].accepted = 'Admin'
@@ -98,6 +106,8 @@ module.exports =
                 teamsHelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], nthItem(1), nthItem(2), selector(lastPendingInvitationIndex + 1), yes, ->
                 browser.scrollToElement '.HomeAppView--section.send-invites'
 
+
+
   #Test Section Send Invites
     teamsHelpers.uploadCSV browser
     teamsHelpers.inviteUser browser, 'member'
@@ -118,9 +128,21 @@ module.exports =
           .waitForElementVisible welcomeView, 20000
           .url myTeamLink
           .waitForElementVisible sectionSelector, 20000
+          .waitForElementNotPresent checkboxSelector, 20000
+          .expect.element(adminTextSelector).text.to.not.contain 'Admin'
+
+        browser
+          .scrollToElement "#{teammateSectionSelector} .ListView"
+          .waitForElementVisible teammateSection, 20000
+          .waitForElementVisible teammateSectionSelector, 20000
+          .pause 5000
+          .click selector(1)
+          .waitForElementNotPresent nthItem(1), 20000
+
+          .scrollToElement sectionSelector
           .waitForElementNotPresent removeLogoButton, 20000
           .waitForElementNotPresent uploadLogoButton, 20000
-          .waitForElementNotPresent saveChangesButton + ':nth-of-type(1)', 20000
+          .waitForElementNotPresent '.HomeAppView--button .custom-link-view .fr .hidden', 20000
           .assert.attributeEquals teamNameSelector, 'disabled', 'true'
           .waitForElementVisible leaveTeamButton, 20000
           .click leaveTeamButton
@@ -146,6 +168,8 @@ module.exports =
           .setValue passwordSelector, targetUser1.password
           .click confirmButton
           .assert.urlContains helpers.getUrl(yes)
+
+
 
 selector = (index) ->
   ".HomeApp-Teammate--ListItem:nth-of-type(#{index}) .dropdown "
