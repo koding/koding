@@ -126,9 +126,9 @@ func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateReques
 
 		status.Credential = req.Identifier
 		mp.Status[m.ObjectId] = status
-	}
 
-	mp.Log.Debug("read machines status: %# v", mp.Status)
+		mp.Log.Debug("read %q machine status: %# v", m.ObjectId.Hex(), status)
+	}
 
 	// validate koding vm metadata
 	var merr error
@@ -157,9 +157,8 @@ func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateReques
 		}
 
 		mp.KodingMeta[m.ObjectId] = meta
+		mp.Log.Debug("read %q machine metadata: %# v", m.ObjectId.Hex(), meta)
 	}
-
-	mp.Log.Debug("read machines metadata: %# v", mp.KodingMeta)
 
 	if merr != nil {
 		return nil, merr
@@ -309,6 +308,7 @@ func (mp *MigrateProvider) migrate(ctx context.Context, req *kloud.MigrateReques
 
 		stack.addInstance(mm)
 		migrateOpts.Machines[i] = mm
+		migrateOpts.MachineIDs[i] = m.ObjectId
 	}
 
 	p, err := json.Marshal(stack)
