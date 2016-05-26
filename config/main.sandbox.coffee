@@ -8,11 +8,10 @@ path                  = require 'path'
 Configuration = (options = {}) ->
 
   options.domains =
-    base : 'koding.com'
-    mail : 'koding.com'
-    main : 'sandbox.koding.com'
-    port : '80'
-
+    base: 'koding.com'
+    mail: 'koding.com'
+    main: 'sandbox.koding.com'
+    port: '80'
 
   options.serviceHost = "10.0.0.136"
   options.publicPort = "80"

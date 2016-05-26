@@ -5,13 +5,13 @@ os                    = require 'os'
 path                  = require 'path'
 { isAllowed }         = require '../deployment/grouptoenvmapping'
 
-Configuration = (options={}) ->
+Configuration = (options = {}) ->
 
   options.domains =
-    base  : 'koding.com'
-    mail  : 'koding.com'
-    main  : 'dev.koding.com'
-    port  : '8090'
+    base: 'koding.com'
+    mail: 'koding.com'
+    main: 'dev.koding.com'
+    port: '8090'
 
   options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "localhost"
   options.serviceHost = options.boot2dockerbox
