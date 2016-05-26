@@ -119,7 +119,7 @@ func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateReques
 		}
 
 		if status.Credential != req.Identifier {
-			// The lastly copied image belongs do a different account,
+			// The lastly copied image belongs to a different account,
 			// we need to copy it again.
 			status.ImageID = ""
 		}
