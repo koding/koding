@@ -56,12 +56,12 @@ func (s *Stack) bootstrap(arg *kloud.BootstrapRequest) (interface{}, error) {
 
 		meta := cred.Meta.(*AwsMeta)
 
-		s.Log.Debug("Fetching the AWS user information to get the account ID")
-
 		awsAccountID, err := meta.AccountID()
 		if err != nil {
 			return nil, err
 		}
+
+		s.Log.Debug("Fetching the AWS user information to get the account ID: %s", awsAccountID)
 
 		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, arg.GroupName, cred.Identifier)
 		s.Log.Debug("Building template: %s", contentID)

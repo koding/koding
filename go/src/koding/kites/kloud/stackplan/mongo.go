@@ -136,7 +136,10 @@ var machineBuilder = &object.Builder{
 
 // UpdateMigration implements the Database interface.
 func (db *mongoDatabase) UpdateMigration(opts *UpdateMigrationOptions) error {
-	return modelhelper.UpdateMachine(opts.MachineID, migrationBuilder.Build(opts.Meta))
+	change := bson.M{
+		"$set": migrationBuilder.Build(opts.Meta),
+	}
+	return modelhelper.UpdateMachine(opts.MachineID, change)
 }
 
 // Migrate implements the Database interface.

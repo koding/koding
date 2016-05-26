@@ -69,7 +69,15 @@ func NewMachine() *Machine {
 
 func (m *Machine) GetMeta() (*Meta, error) {
 	var mt Meta
-	if err := mapstructure.Decode(m.Meta, &mt); err != nil {
+	dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		TagName: "structs",
+		Result:  &mt,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if err := dec.Decode(m.Meta); err != nil {
 		return nil, err
 	}
 
