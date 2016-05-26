@@ -68,6 +68,8 @@ type (
 		SneakerS3 SneakerS3
 
 		Mailgun Mailgun
+
+		DummyAdmins []string
 	}
 
 	// Email holds Email Workers' config
