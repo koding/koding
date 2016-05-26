@@ -38,7 +38,6 @@ module.exports = class CredentialsController extends BasePageController
 
       { credentials, requirements, kdCmd } = results
       @createPages credentials, requirements, kdCmd
-      @emit 'ready'
 
 
   createPages: (credentials, requirements, kdCmd) ->
@@ -51,11 +50,12 @@ module.exports = class CredentialsController extends BasePageController
       requirements
     }
     @errorPage = new CredentialsErrorPageView()
-    @registerPages [ @credentialsPage, @errorPage ]
 
     @forwardEvent @credentialsPage, 'InstructionsRequested'
     @credentialsPage.on 'Submitted', @bound 'onSubmitted'
     @errorPage.on 'CredentialsRequested', @lazyBound 'setCurrentPage', @credentialsPage
+
+    @registerPages [ @credentialsPage, @errorPage ]
 
 
   submit: -> @credentialsPage.submit()
@@ -140,11 +140,6 @@ module.exports = class CredentialsController extends BasePageController
 
       @credentialsPage.selectNewRequirements newCredential
       callback null, { identifier : newCredential.identifier }
-
-
-  show: ->
-
-    @ready => super
 
 
   helpers =

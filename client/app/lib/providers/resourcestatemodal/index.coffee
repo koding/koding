@@ -1,4 +1,5 @@
 kd = require 'kd'
+BasePageController = require './controllers/basepagecontroller'
 StackFlowController = require './controllers/stackflowcontroller'
 MachineFlowController = require './controllers/machineflowcontroller'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
@@ -26,45 +27,30 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
     machine   = @getData()
     machineId = machine.jMachine._id
-    @stack    = computeController.findStackFromMachineId machineId
+    stack     = computeController.findStackFromMachineId machineId
 
-    return kd.log 'Stack not found!'  unless @stack
+    return kd.log 'Stack not found!'  unless stack
 
-    @stackFlow = new StackFlowController { container : this }, { machine, @stack }
+    @stackFlow = new StackFlowController { container : this }, { machine, stack }
+    @stackFlow.on 'PageChanged', @bound '_windowDidResize'
     @stackFlow.on 'ClosingRequested', @bound 'destroy'
+    @forwardEvent @stackFlow, 'IDEBecameReady'
 
     @machineFlow = new MachineFlowController { container : this }, machine
+    @machineFlow.on 'PageChanged', @bound '_windowDidResize'
     @machineFlow.on 'ClosingRequested', @bound 'destroy'
-    @machineFlow.on 'MachineStarting', @bound 'onMachineStarting'
-    @machineFlow.on 'MachineStopping', @bound 'onMachineStopping'
+    @forwardEvent @machineFlow, 'IDEBecameReady'
+    @forwardEvent @machineFlow, 'MachineTurnOnStarted'
 
-    computeController.on "apply-#{@stack._id}", @bound 'updateStackStatus'
-
-    if @stack.status?.state is 'Building'
-      eventListener.addListener 'apply', @stack._id
-
-    computeController.on "start-#{machineId}", @bound 'updateMachineStatus'
-    computeController.on "build-#{machineId}", @bound 'updateMachineStatus'
-    computeController.on "stop-#{machineId}",  @bound 'updateMachineStatus'
-    computeController.on "error-#{machineId}", @bound 'onMachineError'
-    computeController.eventListener.followUpcomingEvents machine
+    controller = new BasePageController()
+    controller.registerPages [ @stackFlow, @machineFlow ]
 
     @show()
 
-    stackState = @stack.status?.state
-    return @stackFlow.show stackState  unless stackState is 'Initialized'
-
-    machineState = machine.status.state
-    if @getOption 'initial'
-      computeController.getKloud().info { machineId, currentState : machineState }
-        .then (response) =>
-          @machineFlow.show response.State
-          @_windowDidResize()
-        .catch (err) =>
-          @machineFlow.showError err
-          @_windowDidResize()
+    if stack.status?.state isnt 'Initialized'
+      controller.setCurrentPage @stackFlow
     else
-      @machineFlow.show { State : machineState }
+      controller.setCurrentPage @machineFlow
 
 
   show: ->
@@ -79,104 +65,14 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
     container.addSubView this
 
 
-  updateStackStatus: (event, task) ->
-
-    { status, percentage, message, error } = event
-
-    machine   = @getData()
-    machineId = machine.jMachine._id
-
-    return  unless helpers.isTargetEvent event, @stack
-
-    [ prevState, @state ] = [ @state, status ]
-
-    if error
-      @stackFlow.showBuildError error
-
-    else if percentage?
-      @stackFlow.updateBuildProgress percentage, message
-
-      if percentage is 100 and prevState is 'Building' and @state is 'Running'
-        { computeController } = kd.singletons
-        computeController.once "revive-#{machineId}", =>
-          @stackFlow.completeBuildProcess()
-          @checkIfResourceRunning yes
-    else
-      @checkIfResourceRunning no, yes
-
-
-  updateMachineStatus: (event, task) ->
-
-    { status, percentage, message, error } = event
-
-    machine = @getData()
-
-    return  unless helpers.isTargetEvent event, machine.jMachine
-
-    [ prevState, @state ] = [ @state, status ]
-
-    return @machineFlow.showError error, @state, prevState  if error
-
-    if percentage?
-      return  if @machineFlow.updateProgress percentage, message, @state
-
-      if percentage is 100
-        return @checkIfResourceRunning()  if @machineFlow.completeProcess @state
-
-    return  if @machineFlow.show @state
-
-    @checkIfResourceRunning no, yes
-
-
-  checkIfResourceRunning: (initial = no, destroy = no) ->
-
-    return  unless @state is 'Running'
-
-    machine = @getData()
-    { appManager } = kd.singletons
-
-    environmentDataProvider.fetchMachine machine.uid, (_machine) =>
-      return appManager.tell 'IDE', 'quit'  unless _machine
-
-      @setData _machine
-      @emit 'IDEBecameReady', _machine, initial
-      @destroy()  if destroy
-
-
-  onMachineError: (response) ->
-
-    { machine, err } = response
-    return  unless machine and err
-
-    status = machine.status.state
-    error  = err.message
-    @updateMachineStatus { status, error }
-
-
-  onMachineStarting: ->
-
-    @updateMachineStatus { status : 'Starting', percentage : constants.INITIAL_PROGRESS_VALUE }
-    @emit 'MachineTurnOnStarted', @getData()
-
-
-  onMachineStopping: ->
-
-    @updateMachineStatus { status : 'Stopping', percentage : constants.INITIAL_PROGRESS_VALUE }
-
-
   updateStatus: (event, task) ->
-
-    if helpers.isTargetEvent event, @stack
-      @updateStackStatus event, task
-    else
-      @updateMachineStatus event, task
 
 
   destroy: ->
 
     @overlay.destroy()
 
-    { computeController } = kd.singletons
-    computeController.off "apply-#{@stack._id}", @bound 'updateStackStatus'
+    @stackFlow.destroy()
+    @machineFlow.destroy()
 
     super

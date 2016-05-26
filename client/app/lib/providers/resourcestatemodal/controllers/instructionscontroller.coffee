@@ -21,21 +21,16 @@ module.exports = class InstructionsController extends BasePageController
       return showError err  if err
 
       @createPages stackTemplate
-      @emit 'ready'
 
 
   createPages: (stackTemplate) ->
 
     @readmePage = new ReadmePageView {}, stackTemplate
     @stackTemplatePage = new StackTemplatePageView {}, stackTemplate
-    @registerPages [ @readmePage, @stackTemplatePage ]
 
     @forwardEvent @readmePage, 'NextPageRequested'
     @readmePage.on 'StackTemplateRequested', @lazyBound 'setCurrentPage', @stackTemplatePage
     @forwardEvent @stackTemplatePage, 'NextPageRequested'
     @stackTemplatePage.on 'ReadmeRequested',  @lazyBound 'setCurrentPage', @readmePage
 
-
-  show: ->
-
-    @ready => super
+    @registerPages [ @readmePage, @stackTemplatePage ]

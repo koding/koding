@@ -22,13 +22,14 @@ module.exports = class BuildStackController extends BasePageController
     @buildStackPage = new BuildStackPageView { stackName : stack.title }
     @errorPage = new BuildStackErrorPageView()
     @successPage = new BuildStackSuccessPageView()
-    @registerPages [ @buildStackPage, @errorPage, @successPage ]
 
     @forwardEvent @errorPage, 'CredentialsRequested'
     @errorPage.on 'RebuildRequested', =>
       @updateProgress() # reset previous values
       @emit 'RebuildRequested'
     @forwardEvent @successPage, 'ClosingRequested'
+
+    @registerPages [ @buildStackPage, @errorPage, @successPage ]
 
 
   updateProgress: (percentage, message) ->

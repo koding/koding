@@ -3,12 +3,36 @@ BasePageController = require './basepagecontroller'
 InstructionsController = require './instructionscontroller'
 CredentialsController = require './credentialscontroller'
 BuildStackController = require './buildstackcontroller'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
+helpers = require '../helpers'
 
 module.exports = class StackFlowController extends BasePageController
 
   constructor: (options, data) ->
 
     super options, data
+
+    { stack} = @getData()
+    @state   = stack.status?.state
+
+    @bindToKloudEvents()
+    @createPages()
+
+
+  bindToKloudEvents: ->
+
+    { stack } = @getData()
+
+    { computeController } = kd.singletons
+    { eventListener }     = computeController
+
+    computeController.on "apply-#{stack._id}", @bound 'updateStatus'
+
+    if @state is 'Building'
+      eventListener.addListener 'apply', stack._id
+
+
+  createPages: ->
 
     { stack }     = @getData()
     { container } = @getOptions()
@@ -24,27 +48,64 @@ module.exports = class StackFlowController extends BasePageController
     @buildStack.on 'RebuildRequested', => @credentials.submit()
     @forwardEvent @buildStack, 'ClosingRequested'
 
+    @registerPages [ @instructions, @credentials, @buildStack ]
 
-  showBuildError: (error) ->
+
+  updateStatus: (event, task) ->
+
+    { status, percentage, message, error } = event
+
+    { machine, stack } = @getData()
+    machineId = machine.jMachine._id
+
+    return  unless helpers.isTargetEvent event, stack
+
+    [ prevState, @state ] = [ @state, status ]
 
     @setCurrentPage @buildStack
-    @buildStack.showError error
+
+    if error
+      @buildStack.showError error
+    else if percentage?
+      @buildStack.updateProgress percentage, message
+
+      if percentage is 100 and prevState is 'Building' and @state is 'Running'
+        { computeController } = kd.singletons
+        computeController.once "revive-#{machineId}", =>
+          @buildStack.completeProcess()
+          @checkIfResourceRunning yes
+    else
+      @checkIfResourceRunning no, yes
 
 
-  updateBuildProgress: (percentage, message) ->
+  checkIfResourceRunning: (initial = no) ->
 
-    @setCurrentPage @buildStack
-    @buildStack.updateProgress percentage, message
+    return  unless @state is 'Running'
+
+    machine = @getData()
+    { appManager } = kd.singletons
+
+    environmentDataProvider.fetchMachine machine.uid, (_machine) =>
+      return appManager.tell 'IDE', 'quit'  unless _machine
+
+      @setData _machine
+      @emit 'IDEBecameReady', _machine, initial
 
 
-  completeBuildProcess: ->
+  show: ->
 
-    @setCurrentPage @buildStack
-    @buildStack.completeProcess()
+    page = switch @state
+      when 'Building' then @buildStack
+      when 'NotInitialized' then @instructions
 
-
-  show: (state) ->
-
-    page = if state is 'Building' then @buildStack
-    else if state is 'NotInitialized' then @instructions
     @setCurrentPage page  if page
+
+
+  destroy: ->
+
+    { stack} = @getData()
+
+    { computeController } = kd.singletons
+    computeController.off "apply-#{stack._id}", @bound 'updateStatus'
+
+    super

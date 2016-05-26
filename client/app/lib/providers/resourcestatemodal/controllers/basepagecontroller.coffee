@@ -1,4 +1,5 @@
 kd = require 'kd'
+Promise = require 'bluebird'
 
 module.exports = class BasePageController extends kd.Controller
 
@@ -7,26 +8,36 @@ module.exports = class BasePageController extends kd.Controller
     @pages = pages
 
     { container } = @getOptions()
-    container.addSubView page for page in @pages
+    for page in @pages when page instanceof kd.View
+      container.addSubView page
 
     @hide()
+    @emit 'ready'
 
 
   setCurrentPage: (page) ->
 
-    @currentPage?.hide()
-    page.show()
-    @currentPage = page
+    return  if page is @currentPage
+
+    p = new Promise (resolve) =>
+      resolve()  if page instanceof kd.View
+      page.ready resolve
+
+    p.then =>
+      @currentPage?.hide()
+      page.show()
+      @currentPage = page
+      @emit 'PageChanged'
 
 
   show: ->
 
-    return  unless @pages
-    @setCurrentPage @pages.first
+    @setCurrentPage @pages?.first
 
 
   hide: ->
 
     return  unless @pages
+
     page.hide() for page in @pages
     @currentPage = null
