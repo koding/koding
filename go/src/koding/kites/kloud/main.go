@@ -141,7 +141,15 @@ func main() {
 	conf := new(Config)
 
 	// Load the config, it's reads environment variables or from flags
-	multiconfig.New().MustLoad(conf)
+	mc := multiconfig.New()
+	mc.Loader = multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.EnvironmentLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_KLOUD"},
+		&multiconfig.FlagLoader{},
+	)
+
+	mc.MustLoad(conf)
 
 	if conf.Version {
 		fmt.Println(kloud.VERSION)
@@ -271,6 +279,10 @@ func newKite(conf *Config) *kite.Kite {
 
 	kodingProvider := newKodingProvider(sess, conf, authUsers)
 
+	if k, ok := kodingProvider.(*koding.Provider); ok {
+		awsProvider.Koding = k
+	}
+
 	go runQueue(kodingProvider, awsProvider, sess, conf)
 
 	stats := common.MustInitMetrics(Name)
@@ -319,6 +331,7 @@ func newKite(conf *Config) *kite.Kite {
 	// Teams/stack handling methods
 	k.HandleFunc("plan", kld.Plan)
 	k.HandleFunc("apply", kld.Apply)
+	k.HandleFunc("migrate", kld.Migrate)
 	k.HandleFunc("describeStack", kld.Status)
 	k.HandleFunc("authenticate", kld.Authenticate)
 	k.HandleFunc("bootstrap", kld.Bootstrap)

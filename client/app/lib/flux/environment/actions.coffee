@@ -12,7 +12,7 @@ toImmutable             = require 'app/util/toImmutable'
 getGroup                = require 'app/util/getGroup'
 whoami                  = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
-
+Machine = require 'app/providers/machine'
 stackDefaults = require 'stacks/defaults'
 providersParser = require 'stacks/views/stacks/providersparser'
 requirementsParser = require 'stacks/views/stacks/requirementsparser'
@@ -619,6 +619,13 @@ generateStackFromTemplate = (template) ->
       resolve { template, stack }
 
 
+disconnectMachine = (machine) ->
+
+  { computeController } = kd.singletons
+  machine = computeController.findMachineFromMachineId machine.get '_id'
+  computeController.destroy machine
+
+
 removeStackTemplate = (template) ->
 
   { reactor, groupsController } = kd.singletons
@@ -765,4 +772,5 @@ module.exports = {
   loadMachineSharedUsers
   shareMachineWithUser
   unshareMachineWithUser
+  disconnectMachine
 }

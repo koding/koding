@@ -44,7 +44,9 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := s.Builder.BuildStack(arg.StackID, nil); err != nil {
+	err := s.Builder.BuildStack(arg.StackID, nil)
+
+	if err != nil && !arg.Destroy || !stackplan.IsNotFound(err, "jStackTemplate") {
 		return nil, err
 	}
 
@@ -56,7 +58,6 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		rt.Hijack()
 	}
 
-	var err error
 	if arg.Destroy {
 		err = s.destroy(ctx, &arg)
 	} else {
@@ -184,28 +185,28 @@ func (s *Stack) destroyAsync(ctx context.Context, req *kloud.ApplyRequest) error
 	}
 
 	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
-	s.Log.Debug("Connection to Terraformer")
 
-	tfKite, err := terraformer.Connect(s.Session.Kite)
-	if err != nil {
-		return err
-	}
-	defer tfKite.Close()
+	if s.Builder.Stack.Stack.State() != stackstate.NotInitialized {
+		s.Log.Debug("Connection to Terraformer")
 
-	contentID := req.GroupName + "-" + req.StackID
-	s.Log.Debug("Building template %s", contentID)
+		tfKite, err := terraformer.Connect(s.Session.Kite)
+		if err != nil {
+			return err
+		}
+		defer tfKite.Close()
 
-	tfReq := &tf.TerraformRequest{
-		ContentID: contentID,
-		TraceID:   s.TraceID,
-	}
+		tfReq := &tf.TerraformRequest{
+			ContentID: req.GroupName + "-" + req.StackID,
+			TraceID:   s.TraceID,
+		}
 
-	s.Log.Debug("Calling terraform.destroy method with context:")
-	s.Log.Debug("%+v", tfReq)
+		s.Log.Debug("Calling terraform.destroy method with context:")
+		s.Log.Debug("%+v", tfReq)
 
-	_, err = tfKite.Destroy(tfReq)
-	if err != nil {
-		return err
+		_, err = tfKite.Destroy(tfReq)
+		if err != nil {
+			return err
+		}
 	}
 
 	return s.Builder.Database.Destroy()
