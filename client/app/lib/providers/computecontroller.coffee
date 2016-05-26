@@ -206,7 +206,6 @@ module.exports = class ComputeController extends KDController
 
       if @stacks.length > 0 and not force
         callback null, @stacks
-        kd.info 'Stacks returned from cache.'
         return
 
       return  if (queue.push callback) > 1
@@ -451,7 +450,7 @@ module.exports = class ComputeController extends KDController
       [ machine ] = machines
 
       @reset yes, =>
-        reloadIDE machine.obj.slug
+        @reloadIDE machine.obj.slug
         @checkGroupStacks()
 
     mainController.ready =>
@@ -1180,6 +1179,12 @@ module.exports = class ComputeController extends KDController
 
     remote.cacheable 'JStackTemplate', id, (err, template) ->
       return callback err  if err
+
+      # Follow update events to get change set from remote-extensions
+      # This is not required but we will need a huge set of changes
+      # to make it happen in a better way, FIXME ~GG
+      template.on 'update', kd.noop
+
       return callback null, template
 
 
@@ -1241,7 +1246,7 @@ module.exports = class ComputeController extends KDController
     return null
 
 
-  reloadIDE = (machineSlug) ->
+  reloadIDE: (machineSlug) ->
 
     route   = '/IDE'
     if machineSlug

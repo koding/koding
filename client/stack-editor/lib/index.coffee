@@ -82,8 +82,8 @@ module.exports = class StackEditorAppController extends AppController
 
   createView: (stackTemplate) ->
 
-    options = { skipFullscreen : yes }
-    data    = { stackTemplate, showHelpContent : yes }
+    options = { skipFullscreen: yes }
+    data    = { stackTemplate, showHelpContent: not stackTemplate }
     view    = new StackEditorView options, data
     view.on 'Cancel', -> kd.singletons.router.back()
 

@@ -12,11 +12,11 @@ toImmutable             = require 'app/util/toImmutable'
 getGroup                = require 'app/util/getGroup'
 whoami                  = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
-
+Machine = require 'app/providers/machine'
 stackDefaults = require 'stacks/defaults'
 providersParser = require 'stacks/views/stacks/providersparser'
 requirementsParser = require 'stacks/views/stacks/requirementsparser'
-{ jsonToYaml } = require 'stacks/views/stacks/yamlutils'
+generateTemplateRawContent = require 'app/util/generateTemplateRawContent'
 Tracker = require 'app/util/tracker'
 
 _eventsCache = { machine: {}, stack: no }
@@ -532,7 +532,7 @@ createStackTemplateWithDefaults = (overrides = {}) ->
 
   if overrides.template
     template = overrides.template
-    rawContent = jsonToYaml(template).content
+    rawContent = generateTemplateRawContent template
   else
     { template, rawContent } = stackDefaults
 
@@ -548,7 +548,7 @@ createStackTemplateWithDefaults = (overrides = {}) ->
     rawContent: rawContent
     config: { requiredData, requiredProviders }
 
-  return createStackTemplate(options)
+  return createStackTemplate options
 
 
 updateStackTemplate = (stackTemplate, options) ->
@@ -593,7 +593,10 @@ generateStack = (stackTemplateId) ->
 
     generateStackFromTemplate stackTemplate
       .then ({ stack }) ->
-        computeController.reset yes
+        { results : { machines } } = stack
+        [ machine ] = machines
+        computeController.reset yes, ->
+          computeController.reloadIDE machine.obj.slug
         new kd.NotificationView { title: 'Stack generated successfully' }
       .catch (err) -> showError err
 
@@ -614,6 +617,13 @@ generateStackFromTemplate = (template) ->
 
       reactor.dispatch actions.GENERATE_STACK_SUCCESS, { template, stack }
       resolve { template, stack }
+
+
+disconnectMachine = (machine) ->
+
+  { computeController } = kd.singletons
+  machine = computeController.findMachineFromMachineId machine.get '_id'
+  computeController.destroy machine
 
 
 removeStackTemplate = (template) ->
@@ -762,4 +772,5 @@ module.exports = {
   loadMachineSharedUsers
   shareMachineWithUser
   unshareMachineWithUser
+  disconnectMachine
 }

@@ -141,21 +141,21 @@ func (c *Client) Images() ([]*ec2.Image, error) {
 }
 
 // ImageByID is a wrapper for (*ec2.EC2).DescribeImages with image-id filter.
-func (c *Client) ImageByID(id string) (*ec2.Image, error) {
+func (c *Client) ImageByID(id string) (*Image, error) {
 	return c.imageBy("image-id", id)
 }
 
 // ImageByName is a wrapper for (*ec2.EC2).DescribeImages with name filter.
-func (c *Client) ImageByName(name string) (*ec2.Image, error) {
+func (c *Client) ImageByName(name string) (*Image, error) {
 	return c.imageBy("name", name)
 }
 
 // ImageByTag is a wrapper for (*ec2.EC2).DescribeImages with tag:Name filter.
-func (c *Client) ImageByTag(tag string) (*ec2.Image, error) {
+func (c *Client) ImageByTag(tag string) (*Image, error) {
 	return c.imageBy("tag:Name", tag)
 }
 
-func (c *Client) imageBy(key, value string) (*ec2.Image, error) {
+func (c *Client) imageBy(key, value string) (*Image, error) {
 	params := &ec2.DescribeImagesInput{
 		Filters: []*ec2.Filter{{
 			Name:   aws.String(key),
@@ -172,7 +172,9 @@ func (c *Client) imageBy(key, value string) (*ec2.Image, error) {
 	if len(resp.Images) > 1 {
 		c.Log.Warning("more than one image found with key=%q, value=%q: %+v", key, value, resp.Images)
 	}
-	return resp.Images[0], nil
+	return &Image{
+		Image: resp.Images[0],
+	}, nil
 }
 
 // RegisterImage is a wrapper for (*ec2.EC2).RegisterImage.
@@ -863,4 +865,107 @@ func (c *Client) RunInstances(params *ec2.RunInstancesInput) (*ec2.Instance, err
 func (c *Client) ModifyInstance(params *ec2.ModifyInstanceAttributeInput) error {
 	_, err := c.EC2.ModifyInstanceAttribute(params)
 	return awsError(err)
+}
+
+// CreateImage is a wrapper for (*ec2.EC2).CreateImage.
+func (c *Client) CreateImage(instanceID, name string) (imageID string, err error) {
+	params := &ec2.CreateImageInput{
+		InstanceId: aws.String(instanceID),
+		Name:       aws.String(name),
+	}
+
+	resp, err := c.EC2.CreateImage(params)
+	if err != nil {
+		return "", awsError(err)
+	}
+
+	return aws.StringValue(resp.ImageId), nil
+}
+
+// Image is a wrapper for ec2.Image.
+type Image struct {
+	*ec2.Image
+}
+
+// Snapshot gives the ID and size of the snapshot that image uses.
+//
+// NOTE(rjeczalik): The API was built for provider/aws migration of koding
+// instances, which had only a single EBS.
+func (i *Image) Snapshot() (string, int64, error) {
+	for _, dev := range i.BlockDeviceMappings {
+		if dev.Ebs == nil {
+			continue
+		}
+
+		return aws.StringValue(dev.Ebs.SnapshotId), aws.Int64Value(dev.Ebs.VolumeSize), nil
+	}
+
+	return "", 0, fmt.Errorf("no snapshots found for %s image", i.ID())
+}
+
+// ID gives the image id.
+func (i *Image) ID() string {
+	return aws.StringValue(i.ImageId)
+}
+
+// WaitImage blocks until an imgage given by the imageID becomes
+// available.
+func (c *Client) WaitImage(imageID string) error {
+	params := &ec2.DescribeImagesInput{
+		ImageIds: []*string{aws.String(imageID)},
+	}
+
+	return awsError(c.EC2.WaitUntilImageAvailable(params))
+}
+
+// AllowCopyImage modifies the image attributes to allow access
+// by a user given by the accountID.
+//
+// It also modifies its snapshot's permissions to allow the access.
+func (c *Client) AllowCopyImage(image *Image, accountID string) error {
+	snapshotID, _, err := image.Snapshot()
+	if err != nil {
+		return err
+	}
+
+	imgParams := &ec2.ModifyImageAttributeInput{
+		ImageId: image.ImageId,
+		LaunchPermission: &ec2.LaunchPermissionModifications{
+			Add: []*ec2.LaunchPermission{{
+				UserId: aws.String(accountID),
+			}},
+		},
+	}
+
+	_, err = c.EC2.ModifyImageAttribute(imgParams)
+	if err != nil {
+		return awsError(err)
+	}
+
+	snapParams := &ec2.ModifySnapshotAttributeInput{
+		SnapshotId:    aws.String(snapshotID),
+		Attribute:     aws.String("createVolumePermission"),
+		OperationType: aws.String("add"),
+		UserIds:       []*string{aws.String(accountID)},
+	}
+
+	_, err = c.EC2.ModifySnapshotAttribute(snapParams)
+	return awsError(err)
+}
+
+// CopyImage imports the given source image, which may belong to different
+// user.
+func (c *Client) CopyImage(srcImageID, srcRegion, newName string) (newImageID string, err error) {
+	params := &ec2.CopyImageInput{
+		SourceImageId: aws.String(srcImageID),
+		SourceRegion:  aws.String(srcRegion),
+		Name:          aws.String(newName),
+	}
+
+	resp, err := c.EC2.CopyImage(params)
+	if err != nil {
+		return "", awsError(err)
+	}
+
+	return aws.StringValue(resp.ImageId), nil
 }

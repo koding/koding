@@ -15,6 +15,11 @@ module.exports = class StackUpdatedWidget extends React.Component
       isShown : no
 
 
+  componentWillReceiveProps: (nextProps) ->
+
+    @setState { isShown : no }  if nextProps.show
+
+
   handleOnClick : ->
 
     actions.reinitStackFromWidget @props.stack

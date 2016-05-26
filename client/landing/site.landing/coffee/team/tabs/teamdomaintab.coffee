@@ -18,10 +18,6 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
     @header = new MainHeaderView
       cssClass : 'team'
       navItems : [
-        { title : 'Features', href : '/Features',  name : 'features' }
-        { title : 'Docs',     href : '/Docs',      name : 'docs' }
-        { title : 'Pricing',  href : '/Pricing',   name : 'pricing' }
-        { title : 'Blog',     href : '/Blog',      name : 'blog' }
         { title : 'Login',    href : '/Teams',     name : 'login' }
       ]
 

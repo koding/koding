@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -80,15 +79,6 @@ func (f *Flag) NumberOfFlags() int {
 }
 
 func (f *Flag) ParseArgs(args []string) error {
-	// If there are some flags defined and the user didnt' provide any flag
-	// let us report it
-	cmdFlagCount := f.NumberOfFlags() - f.totalDefaultFlag
-
-	if cmdFlagCount > len(args) {
-		fmt.Print(f.Help())
-		return errors.New("no arguments")
-	}
-
 	err := f.Parse(args)
 	if err != nil && err != flag.ErrHelp {
 		DefaultUi.Error(err.Error())

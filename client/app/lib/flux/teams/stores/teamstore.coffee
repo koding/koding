@@ -14,6 +14,14 @@ module.exports = class TeamStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_TEAM_SUCCESS, @load
+    @on actions.UPDATE_TEAM_SUCCESS, @update
 
 
   load: (oldTeam, { team }) -> toImmutable team
+
+
+  update: (oldTeam, { dataToUpdate }) ->
+
+    return oldTeam.set 'title', dataToUpdate.title  if dataToUpdate.title?
+    if dataToUpdate.customize?.logo?
+      oldTeam.setIn ['customize', 'logo'], dataToUpdate.customize.logo

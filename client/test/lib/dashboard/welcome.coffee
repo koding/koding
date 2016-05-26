@@ -13,7 +13,7 @@ module.exports =
       done()
 
 
-  Dashboard: (browser) ->
+  dashboard: (browser) ->
     WelcomeView       = '.WelcomeStacksView'
     stackLink         = "#{WelcomeView} ul.bullets li:nth-of-type(1)"
     teamLink          = "#{WelcomeView} ul.bullets li:nth-of-type(2)"
