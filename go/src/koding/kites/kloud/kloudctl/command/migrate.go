@@ -101,6 +101,7 @@ func (m *Migrate) Action(args []string) error {
 	defer c.Close()
 
 	modelhelper.Initialize(*m.MongoURL)
+	defer modelhelper.Close()
 
 	account, err := modelhelper.GetAccount(*m.User)
 	if err != nil {
