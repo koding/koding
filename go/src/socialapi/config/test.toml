@@ -10,6 +10,7 @@ eventExchangeName  = "BrokerMessageBus"
 disableCaching     = false
 debug              = false
 segment            = "kb2hfdgf20"
+dummyAdmins = ["sinan", "devrim", "gokmen", "cihangirsavas", "leeolayvar", "szkl", "usirin", "rjeczalik", "caikoding"]
 
 [postgres]
 Host=     "localhost"
