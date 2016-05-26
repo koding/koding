@@ -67,10 +67,9 @@ module.exports = class MachineDetails extends React.Component
 
 
   renderDisconnectToggler: ->
-    console.log 'sadasdas ', @props.shouldRenderDisconnect
+
     return  unless @props.shouldRenderDisconnect
 
-    console.log 'Machine.State ', Machine.State
     { Running, Starting, Stopped } = Machine.State
 
     <GenericToggler

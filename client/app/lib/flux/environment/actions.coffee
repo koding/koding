@@ -621,9 +621,9 @@ generateStackFromTemplate = (template) ->
 
 disconnectMachine = (machine) ->
 
-  remote.api.JMachine.one machine.get('_id'), (err, machine) ->
-    machine = new Machine { machine }
-    kd.singletons.computeController.destroy machine
+  { computeController } = kd.singletons
+  machine = computeController.findMachineFromMachineId machine.get '_id'
+  computeController.destroy machine
 
 
 removeStackTemplate = (template) ->
