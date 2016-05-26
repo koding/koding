@@ -27,6 +27,7 @@ module.exports = class StackFlowController extends BasePageController
     { eventListener }     = computeController
 
     computeController.on "apply-#{stack._id}", @bound 'updateStatus'
+    computeController.on "error-#{stack._id}", @bound 'onKloudError'
 
     if @state is 'Building'
       eventListener.addListener 'apply', stack._id
@@ -73,23 +74,21 @@ module.exports = class StackFlowController extends BasePageController
         { computeController } = kd.singletons
         computeController.once "revive-#{machineId}", =>
           @buildStack.completeProcess()
-          @checkIfResourceRunning yes
+          @checkIfResourceRunning 'BuildCompleted'
     else
-      @checkIfResourceRunning no, yes
+      @checkIfResourceRunning()
 
 
-  checkIfResourceRunning: (initial = no) ->
+  checkIfResourceRunning: (reason) ->
 
-    return  unless @state is 'Running'
+    @emit 'ResourceBecameRunning', reason  if @state is 'Running'
 
-    machine = @getData()
-    { appManager } = kd.singletons
 
-    environmentDataProvider.fetchMachine machine.uid, (_machine) =>
-      return appManager.tell 'IDE', 'quit'  unless _machine
+  onKloudError: (response) ->
 
-      @setData _machine
-      @emit 'IDEBecameReady', _machine, initial
+    { message } = response
+    @setCurrentPage @buildStack
+    @buildStack.showError message
 
 
   show: ->
@@ -107,5 +106,6 @@ module.exports = class StackFlowController extends BasePageController
 
     { computeController } = kd.singletons
     computeController.off "apply-#{stack._id}", @bound 'updateStatus'
+    computeController.off "error-#{stack._id}", @bound 'onKloudError'
 
     super

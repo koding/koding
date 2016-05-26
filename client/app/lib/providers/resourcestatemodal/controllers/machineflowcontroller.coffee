@@ -107,26 +107,16 @@ module.exports = class MachineFlowController extends BasePageController
       return  if @updateProgress percentage, message
 
       if percentage is 100
-        return @checkIfResourceRunning()  if @completeProcess()
+        return @checkIfResourceRunning 'StartCompleted'  if @completeProcess()
 
-    return  if @_show()
+    return  if @show()
 
-    @checkIfResourceRunning no, yes
+    @checkIfResourceRunning()
 
 
-  checkIfResourceRunning: (initial = no, destroy = no) ->
+  checkIfResourceRunning: (reason) ->
 
-    return  unless @state is 'Running'
-
-    machine = @getData()
-    { appManager } = kd.singletons
-
-    environmentDataProvider.fetchMachine machine.uid, (_machine) =>
-      return appManager.tell 'IDE', 'quit'  unless _machine
-
-      @setData _machine
-      @emit 'IDEBecameReady', _machine, initial
-      @destroy()  if destroy
+    @emit 'ResourceBecameRunning', reason  if @state is 'Running'
 
 
   show: ->
@@ -147,7 +137,7 @@ module.exports = class MachineFlowController extends BasePageController
       when @state is 'Stopped' and @prevState is 'Starting' then @startMachineErrorPage
       when @state is 'Running' and @prevState is 'Stopping' then @stopMachineErrorPage
 
-    return @_show()  unless page
+    return @show()  unless page
 
     page.setErrors [ error ]
     @setCurrentPage page
@@ -175,30 +165,40 @@ module.exports = class MachineFlowController extends BasePageController
 
   startMachine: ->
 
-    machine = @getData()
+    machine   = @getData()
+    machineId = machine.jMachine._id
+
     { computeController } = kd.singletons
 
     computeController.start machine
-    @updateStatus { status : 'Starting', percentage : constants.INITIAL_PROGRESS_VALUE }
+    @updateStatus
+      status     : 'Starting'
+      percentage : constants.INITIAL_PROGRESS_VALUE
+      eventId    : machineId
     @emit 'MachineTurnOnStarted', @getData()
 
 
   stopMachine: ->
 
-    machine = @getData()
+    machine   = @getData()
+    machineId = machine.jMachine._id
+
     { computeController } = kd.singletons
 
     computeController.stop machine
 
-    @updateStatus { status : 'Stopping', percentage : constants.INITIAL_PROGRESS_VALUE }
+    @updateStatus
+      status     : 'Stopping'
+      percentage : constants.INITIAL_PROGRESS_VALUE
+      eventId    : machineId
 
 
   onKloudError: (response) ->
 
     { machine, err } = response
-    return  unless machine and err
+    return  unless err
 
-    status = machine.status.state
+    status = if machine then machine.status.state else @state
     error  = err.message
     @updateStatus { status, error }
 
@@ -213,6 +213,5 @@ module.exports = class MachineFlowController extends BasePageController
     computeController.off "build-#{machineId}", @bound 'updateStatus'
     computeController.off "stop-#{machineId}",  @bound 'updateStatus'
     computeController.off "error-#{machineId}", @bound 'onKloudError'
-    computeController.eventListener.followUpcomingEvents machine
 
     super

@@ -41,3 +41,11 @@ module.exports = class BasePageController extends kd.Controller
 
     page.hide() for page in @pages
     @currentPage = null
+
+
+  destroy: ->
+
+    super
+
+    return  unless @pages
+    page.destroy() for page in @pages

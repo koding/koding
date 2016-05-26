@@ -39,7 +39,7 @@ module.exports = class BuildStackController extends BasePageController
 
   completeProcess: ->
 
-    @buildStackPage.updatePercentage 100
+    @buildStackPage.updateProgress 100
     @setCurrentPage @successPage
 
 
