@@ -70,7 +70,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 	}
 
 	if params.RemotePath == "" {
-		home, err := remoteMachine.Home()
+		home, err := remoteMachine.HomeWithDefault()
 		if err != nil {
 			return nil, err
 		}
@@ -78,7 +78,11 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 	}
 
 	if !filepath.IsAbs(params.RemotePath) {
-		params.RemotePath = path.Join("/home", remoteMachine.Username, params.RemotePath)
+		home, err := remoteMachine.HomeWithDefault()
+		if err != nil {
+			return nil, err
+		}
+		params.RemotePath = path.Join(home, params.RemotePath)
 	}
 
 	if !params.LocalToRemote {
