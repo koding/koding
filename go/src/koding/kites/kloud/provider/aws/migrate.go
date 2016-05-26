@@ -38,9 +38,8 @@ type MigrationMeta struct {
 	ModifiedAt time.Time                 `bson:"modifiedAt,omitempty"`
 	Status     stackplan.MigrationStatus `bson:"status,omitempty"`
 
-	SourceImageID   string        `bson:"sourceImageID,omitempty"`
-	ImageID         string        `bson:"imageID,omitempty"`
-	StackTemplateID bson.ObjectId `bson:"stackTemplateId,omitempty"`
+	SourceImageID string `bson:"sourceImageID,omitempty"`
+	ImageID       string `bson:"imageID,omitempty"`
 
 	Error string `bson:"error,omitempty"`
 }
@@ -129,6 +128,8 @@ func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateReques
 		mp.Status[m.ObjectId] = status
 	}
 
+	mp.Log.Debug("read machines status: %# v", mp.Status)
+
 	// validate koding vm metadata
 	var merr error
 	for _, m := range b.Machines {
@@ -157,6 +158,8 @@ func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateReques
 
 		mp.KodingMeta[m.ObjectId] = meta
 	}
+
+	mp.Log.Debug("read machines metadata: %# v", mp.KodingMeta)
 
 	if merr != nil {
 		return nil, merr
@@ -313,6 +316,8 @@ func (mp *MigrateProvider) migrate(ctx context.Context, req *kloud.MigrateReques
 		return err
 	}
 
+	mp.Log.Debug("stack template: %s", p)
+
 	migrateOpts.Template = string(p)
 
 	return mp.Stack.Builder.Database.Migrate(migrateOpts)
@@ -339,14 +344,19 @@ func (mp *MigrateProvider) migrateSingle(m *models.Machine, meta *koding.Meta,
 	}
 
 	if status.SourceImageID == "" {
-		status.SourceImageID, err = solo.CreateImage(meta.InstanceId, fmt.Sprintf("migration-%s-%d", m.Uid, timestamp()))
+		name := fmt.Sprintf("migration-%s-%d", m.Uid, timestamp())
+
+		status.SourceImageID, err = solo.CreateImage(meta.InstanceId, name)
 		if err != nil {
 			return err
 		}
 
-		status.SourceImageID = srcImage.ID()
+		mp.Log.Debug("created %q image for %s: %s", name, meta.InstanceId, status.SourceImageID)
+
 		mp.updateMigration(m, status)
 	}
+
+	mp.Log.Debug("waiting for %q image to become ready", status.SourceImageID)
 
 	if err := solo.WaitImage(status.SourceImageID); err != nil {
 		return err
@@ -364,13 +374,19 @@ func (mp *MigrateProvider) migrateSingle(m *models.Machine, meta *koding.Meta,
 	}
 
 	if status.ImageID == "" {
-		status.ImageID, err = user.CopyImage(status.SourceImageID, meta.Region, fmt.Sprintf("koding-%s-%d", m.Uid, timestamp()))
+		name := fmt.Sprintf("koding-%s-%d", m.Uid, timestamp())
+
+		status.ImageID, err = user.CopyImage(status.SourceImageID, meta.Region, name)
 		if err != nil {
 			return err
 		}
 
+		mp.Log.Debug("copied %q image to user AWS account: %s", status.SourceImageID, status.ImageID)
+
 		mp.updateMigration(m, status)
 	}
+
+	mp.Log.Debug("waiting for %q image to become ready", status.ImageID)
 
 	return user.WaitImage(status.ImageID)
 }
