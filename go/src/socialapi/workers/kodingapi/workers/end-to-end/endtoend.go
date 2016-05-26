@@ -1,4 +1,4 @@
-// NOTE for usage
+// NOTE about usage
 // This file is created for testing
 package main
 
@@ -67,23 +67,25 @@ func main() {
 
 	machineAndUser, err := getMachineAndUser()
 	if err != nil {
-		fmt.Errorf("err while getting machine and user: %v",err)
+		fmt.Errorf("err while getting machine and user: %v", err)
 		return
 	}
 
 	machineId := machineAndUser.ObjectId.Hex()
 
-	_, err = machineClient.GetMachine(ctx, &machineId)
+	mach, err := machineClient.GetMachine(ctx, &machineId)
 	if err != nil {
-		fmt.Errorf("err while getting machine : %v",err)
+		fmt.Errorf("err while getting machine : %v", err)
 		return
 	}
+	fmt.Println("machine is", mach)
 
-	_, err = machineClient.GetMachineStatus(ctx, &machineId)
+	machineStatus, err := machineClient.GetMachineStatus(ctx, &machineId)
 	if err != nil {
-		fmt.Errorf("err while getting machine : %v",err)
+		fmt.Errorf("err while getting machine : %v", err)
 		return
 	}
+	fmt.Println("machine is", machineStatus)
 }
 
 func getMachineAndUser() (*models.Machine, error) {
