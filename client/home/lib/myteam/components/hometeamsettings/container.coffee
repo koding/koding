@@ -71,15 +71,11 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
   onUpdate: ->
 
-    dataToUpdate = {}
-    title = @state.teamName
+    return  if @state.teamName is @state.team.get 'title'
 
-    if title isnt @state.team.get 'title'
-      dataToUpdate.title = title
+    title = Encoder.htmlEncode @state.teamName
 
-    return  unless dataToUpdate.title
-
-    @updateTeam { dataToUpdate }
+    @updateTeam { dataToUpdate: { title } }
 
 
   updateTeam: ({ dataToUpdate }) ->
