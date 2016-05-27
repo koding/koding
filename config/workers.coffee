@@ -471,12 +471,12 @@ module.exports = (KONFIG, options, credentials) ->
     tunnelproxymanager  :
       group             : "proxy"
       supervisord       :
-        command         : "#{GOBIN}/tunnelproxymanager -ebenvname #{options.ebEnvName} -accesskeyid #{credentials.awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey} -hostedzone-name #{options.tunnelHostedZoneName} -hostedzone-callerreference #{options.tunnelHostedZoneCallerRef}"
+        command         : "#{GOBIN}/tunnelproxymanager -ebenvname #{options.ebEnvName} -accesskeyid #{credentials.awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey} -route53accesskeyid #{credentials.awsKeys.worker_tunnelproxymanager_route53.accessKeyId} -route53secretaccesskey #{credentials.awsKeys.worker_tunnelproxymanager_route53.secretAccessKey} -hostedzone-name #{options.tunnelHostedZoneName} -hostedzone-callerreference #{options.tunnelHostedZoneCallerRef}"
 
     tunnelserver        :
       group             : "proxy"
       supervisord       :
-        command         : "#{GOBIN}/tunnelserver -accesskey #{credentials.awsKeys.worker_tunnelproxymanager.accessKeyId} -secretkey #{credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey} -port #{KONFIG.tunnelserver.port} -basevirtualhost #{KONFIG.tunnelserver.basevirtualhost} -hostedzone #{KONFIG.tunnelserver.hostedzone} -region #{options.region} -environment #{options.environment}"
+        command         : "#{GOBIN}/tunnelserver -accesskey #{credentials.awsKeys.worker_tunnelproxymanager_route53.accessKeyId} -secretkey #{credentials.awsKeys.worker_tunnelproxymanager_route53.secretAccessKey} -port #{KONFIG.tunnelserver.port} -basevirtualhost #{KONFIG.tunnelserver.basevirtualhost} -hostedzone #{KONFIG.tunnelserver.hostedzone} -region #{options.region} -environment #{options.environment}"
       ports             :
         incoming        : "#{KONFIG.tunnelserver.port}"
       healthCheckURL    : "http://tunnelserver/healthCheck"
