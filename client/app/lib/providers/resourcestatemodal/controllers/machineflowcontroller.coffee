@@ -105,10 +105,10 @@ module.exports = class MachineFlowController extends BasePageController
     return @showError error  if error
 
     if percentage?
-      return  if @updateProgress percentage, message
-
       if percentage is constants.COMPLETE_PROGRESS_VALUE
-        return @checkIfResourceRunning 'StartCompleted'  if @completeProcess()
+        return  if @completeProcess message
+
+      return  if @updateProgress percentage, message
 
     return  if @show()
 
@@ -122,12 +122,14 @@ module.exports = class MachineFlowController extends BasePageController
 
   show: ->
 
-    page = switch @state
-      when 'Starting' then @startMachineProgressPage
-      when 'Stopped'  then @startMachinePage
-      when 'Stopping' then @stopMachineProgressPage
-
-    @setCurrentPage page  if page
+    switch @state
+      when 'Starting'
+        return @updateProgress constants.INITIAL_PROGRESS_VALUE
+      when 'Stopping'
+        return @updateProgress constants.COMPLETE_PROGRESS_VALUE
+      when 'Stopped'
+        @setCurrentPage page = @startMachinePage
+        return page
 
 
   showError: (error) ->
@@ -155,15 +157,15 @@ module.exports = class MachineFlowController extends BasePageController
 
     page.updateProgress percentage, message
     @setCurrentPage page
+    return page
 
 
-  completeProcess: ->
+  completeProcess: (message) ->
 
-    page = switch @state
-      when 'Running' then @startMachineSuccessPage
-    return  unless page
-
-    @setCurrentPage page
+    if @state is 'Running' and @prevState is 'Starting'
+      @checkIfResourceRunning 'StartCompleted'
+      @setCurrentPage page = @startMachineSuccessPage
+      return page
 
 
   startMachine: ->

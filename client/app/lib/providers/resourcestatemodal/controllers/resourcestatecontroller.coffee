@@ -28,9 +28,6 @@ module.exports = class ResourceStateController extends BasePageController
 
     machine = @getData()
     unless machine
-      if groupsController.currentGroupHasStack()
-        return kd.log 'ResourceStateController: machine is not passed'
-
       @noStackPage = new NoStackPageView()
       @registerPages [ @noStackPage ]
       return @show()
