@@ -127,6 +127,7 @@ module.exports = (options, credentials) ->
     sneakerS3              : credentials.sneakerS3
     mailgun                : credentials.mailgun
     segment                : credentials.segment
+    dummyAdmins            : credentials.dummyAdmins
 
     algolia                : algoliaSecret
     gatekeeper             : gatekeeper
@@ -192,6 +193,7 @@ module.exports = (options, credentials) ->
     helpscout                     : credentials.helpscout
     awsKeys                       : credentials.awsKeys
     segment                       : credentials.segment
+    dummyAdmins                   : credentials.dummyAdmins
 
     paymentwebhook                : paymentwebhook
     regions                       : regions

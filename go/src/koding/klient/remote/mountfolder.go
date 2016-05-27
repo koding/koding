@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -83,11 +84,19 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 	}
 
 	if params.RemotePath == "" {
-		home, err := remoteMachine.Home()
+		home, err := remoteMachine.HomeWithDefault()
 		if err != nil {
 			return nil, err
 		}
 		params.RemotePath = home
+	}
+
+	if !filepath.IsAbs(params.RemotePath) {
+		home, err := remoteMachine.HomeWithDefault()
+		if err != nil {
+			return nil, err
+		}
+		params.RemotePath = path.Join(home, params.RemotePath)
 	}
 
 	if remoteMachine.IsMountingLocked() {

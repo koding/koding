@@ -24,6 +24,7 @@ import (
 	"koding/klient/info"
 	"koding/klient/info/publicip"
 	"koding/klient/logfetcher"
+	kos "koding/klient/os"
 	"koding/klient/protocol"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
@@ -295,6 +296,9 @@ func (k *Klient) RegisterMethods() {
 	// Metrics, is used by Kloud to get usage so Kloud can stop free VMs
 	k.kite.PreHandleFunc(k.usage.Counter) // we measure every incoming request
 	k.kite.HandleFunc("klient.usage", k.usage.Current)
+
+	// klient os method(s)
+	k.kite.HandleFunc("os.home", kos.Home)
 
 	// Klient Info method(s)
 	k.kite.HandleFunc("klient.info", info.Info)

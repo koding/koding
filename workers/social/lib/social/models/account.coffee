@@ -4,6 +4,7 @@ KodingError = require '../error'
 ApiError    = require './socialapi/error'
 Tracker     = require './tracker'
 KONFIG      = require 'koding-config-manager'
+{ dummyAdmins } = KONFIG
 
 module.exports = class JAccount extends jraphical.Module
 
@@ -669,12 +670,6 @@ module.exports = class JAccount extends jraphical.Module
       return if err or not user
       if followerCount = user.foreignAuth?.twitter?.profile?.followers_count
         @update { $set: { 'counts.twitterFollowers': followerCount } }, ->
-
-
-  dummyAdmins = [ 'sinan', 'devrim', 'gokmen',
-                  'cihangirsavas', 'leeolayvar',
-                  'szkl', 'usirin', 'rjeczalik', 'caikoding']
-
 
   isEmailVerified: (callback) ->
     @fetchUser (err, user) ->

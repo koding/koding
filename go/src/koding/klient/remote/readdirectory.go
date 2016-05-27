@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"koding/klient/remote/req"
+	"path"
+	"path/filepath"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -45,11 +47,19 @@ func (r *Remote) ReadDirectoryHandler(kreq *kite.Request) (interface{}, error) {
 	}
 
 	if params.Path == "" {
-		home, err := remoteMachine.Home()
+		home, err := remoteMachine.HomeWithDefault()
 		if err != nil {
 			return nil, err
 		}
 		params.Path = home
+	}
+
+	if !filepath.IsAbs(params.Path) {
+		home, err := remoteMachine.HomeWithDefault()
+		if err != nil {
+			return nil, err
+		}
+		params.Path = path.Join(home, params.Path)
 	}
 
 	return remoteMachine.Tell("fs.readDirectory", params)

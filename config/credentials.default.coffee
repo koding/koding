@@ -177,6 +177,7 @@ module.exports = (options) ->
     privateKeyFile: kontrol.privateKeyFile
     publicKeyFile: kontrol.publicKeyFile
     secretKey: ''
+  dummyAdmins = ['superadmin', 'admin', 'koding']
 
   return {
     kiteHome
@@ -216,4 +217,5 @@ module.exports = (options) ->
     kontrol
     kloud
     vmwatcher
+    dummyAdmins
   }
