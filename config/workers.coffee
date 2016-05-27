@@ -92,7 +92,7 @@ module.exports = (KONFIG, options, credentials) ->
     authworker          :
       group             : "webserver"
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/workers/auth/index.js -c #{options.configName} -p #{KONFIG.authWorker.port}"
+        command         : "./watch-node #{options.projectRoot}/workers/auth/index.js"
       healthCheckURL    : "http://localhost:#{KONFIG.authWorker.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.authWorker.port}/version"
 
