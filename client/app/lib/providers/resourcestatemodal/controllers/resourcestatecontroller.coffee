@@ -22,8 +22,8 @@ module.exports = class ResourceStateController extends BasePageController
 
   createPages: (stackTemplate) ->
 
-    { computeController } = kd.singletons
-    { container } = @getOptions()
+    { computeController }  = kd.singletons
+    { container, initial } = @getOptions()
 
     machine   = @getData()
     machineId = machine.jMachine._id
@@ -36,7 +36,7 @@ module.exports = class ResourceStateController extends BasePageController
     @forwardEvent @stackFlow, 'PageChanged'
     @forwardEvent @stackFlow, 'ClosingRequested'
 
-    @machineFlow = new MachineFlowController { container }, machine
+    @machineFlow = new MachineFlowController { container, initial }, machine
     @machineFlow.on 'ResourceBecameRunning', @bound 'onResourceBecameRunning'
     @forwardEvent @machineFlow, 'PageChanged'
     @forwardEvent @machineFlow, 'ClosingRequested'

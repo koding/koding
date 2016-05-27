@@ -6,7 +6,8 @@ StartMachineSuccessPageView = require '../views/startmachinesuccesspageview'
 StartMachineErrorPageView = require '../views/startmachineerrorpageview'
 StopMachineProgressPageView = require '../views/stopmachineprogresspageview'
 StopMachineErrorPageView = require '../views/stopmachineerrorpageview'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
+sendDataDogEvent = require 'app/util/sendDataDogEvent'
+trackInitialTurnOn = require 'app/util/trackInitialTurnOn'
 constants = require '../constants'
 helpers = require '../helpers'
 
@@ -33,11 +34,11 @@ module.exports = class MachineFlowController extends BasePageController
 
     computeController.getKloud().info { machineId, currentState : @state }
       .then (response) =>
+        @onDataLoaded()
         @updateStatus
           status     : response.Status
           percentage : response.percentage
           eventId    : machineId
-        @onDataLoaded()
       .catch (err) =>
         @showError err
         @onDataLoaded()
@@ -106,7 +107,7 @@ module.exports = class MachineFlowController extends BasePageController
     if percentage?
       return  if @updateProgress percentage, message
 
-      if percentage is 100
+      if percentage is constants.COMPLETE_PROGRESS_VALUE
         return @checkIfResourceRunning 'StartCompleted'  if @completeProcess()
 
     return  if @show()
@@ -132,6 +133,8 @@ module.exports = class MachineFlowController extends BasePageController
   showError: (error) ->
 
     return  if @state is @prevState
+
+    sendDataDogEvent 'MachineStateFailed'
 
     page = switch
       when @state is 'Stopped' and @prevState is 'Starting' then @startMachineErrorPage
@@ -175,7 +178,10 @@ module.exports = class MachineFlowController extends BasePageController
       status     : 'Starting'
       percentage : constants.INITIAL_PROGRESS_VALUE
       eventId    : machineId
-    @emit 'MachineTurnOnStarted', @getData()
+
+    sendDataDogEvent 'MachineTurnedOn', { tags: { label: machine.label } }
+    trackInitialTurnOn machine
+    @emit 'MachineTurnOnStarted', machine
 
 
   stopMachine: ->
@@ -189,7 +195,7 @@ module.exports = class MachineFlowController extends BasePageController
 
     @updateStatus
       status     : 'Stopping'
-      percentage : constants.INITIAL_PROGRESS_VALUE
+      percentage : constants.COMPLETE_PROGRESS_VALUE
       eventId    : machineId
 
 

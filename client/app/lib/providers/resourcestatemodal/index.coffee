@@ -13,7 +13,8 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
     @off 'childAppended'
 
-    @controller = new ResurceStateController { container: this }, @getData()
+    { initial } = @getOptions()
+    @controller = new ResurceStateController { container: this, initial }, @getData()
     @controller.on 'PageChanged', @bound 'setPositions'
     @controller.on 'ClosingRequested', @bound 'destroy'
     @forwardEvent @controller, 'IDEBecameReady'

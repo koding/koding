@@ -5,6 +5,7 @@ CredentialsController = require './credentialscontroller'
 BuildStackController = require './buildstackcontroller'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 helpers = require '../helpers'
+constants = require '../constants'
 
 module.exports = class StackFlowController extends BasePageController
 
@@ -44,7 +45,7 @@ module.exports = class StackFlowController extends BasePageController
 
     @instructions.on 'NextPageRequested', @lazyBound 'setCurrentPage', @credentials
     @credentials.on 'InstructionsRequested', @lazyBound 'setCurrentPage', @instructions
-    @credentials.on 'NextPageRequested', @lazyBound 'setCurrentPage', @buildStack
+    @credentials.on 'StartBuild', @bound 'startBuild'
     @buildStack.on 'CredentialsRequested', @lazyBound 'setCurrentPage', @credentials
     @buildStack.on 'RebuildRequested', => @credentials.submit()
     @forwardEvent @buildStack, 'ClosingRequested'
@@ -69,8 +70,9 @@ module.exports = class StackFlowController extends BasePageController
       @buildStack.showError error
     else if percentage?
       @buildStack.updateProgress percentage, message
+      return unless percentage is constants.COMPLETE_PROGRESS_VALUE
 
-      if percentage is 100 and prevState is 'Building' and @state is 'Running'
+      if prevState is 'Building' and @state is 'Running'
         { computeController } = kd.singletons
         computeController.once "revive-#{machineId}", =>
           @buildStack.completeProcess()
@@ -82,6 +84,24 @@ module.exports = class StackFlowController extends BasePageController
   checkIfResourceRunning: (reason) ->
 
     @emit 'ResourceBecameRunning', reason  if @state is 'Running'
+
+
+  startBuild: (identifiers) ->
+
+    { stack } = @getData()
+
+    if stack.config?.oldOwner?
+      return @updateStatus
+        status  : @state
+        error   : 'Stack building is not allowed for disabled users\' stacks.'
+        eventId : stack._id
+
+    { computeController } = kd.singletons
+    computeController.buildStack stack, identifiers
+    @updateStatus
+      status     : 'Building'
+      percentage : constants.INITIAL_PROGRESS_VALUE
+      eventId    : stack._id
 
 
   onKloudError: (response) ->

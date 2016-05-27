@@ -8,15 +8,9 @@ KodingKontrol = require 'app/kite/kodingkontrol'
 BasePageController = require './basepagecontroller'
 CredentialsPageView = require '../views/credentialspageview'
 CredentialsErrorPageView = require '../views/credentialserrorpageview'
+constants = require '../constants'
 
 module.exports = class CredentialsController extends BasePageController
-
-  DEFAULT_VERIFICATION_ERROR_MESSAGE = '''
-    We couldn't verify this credential, please check the ones you
-    used or add a new credential to be able to continue to the
-    next step.
-  '''
-  VERIFICATION_TIMEOUT = 10000
 
   constructor: (options, data) ->
 
@@ -79,12 +73,8 @@ module.exports = class CredentialsController extends BasePageController
         @setCurrentPage @errorPage
         @errorPage.setErrors errs
       else
-        stack = @getData()
         identifiers = (item.identifier for item in results)
-        { computeController } = kd.singletons
-
-        computeController.buildStack stack, identifiers
-        @emit 'NextPageRequested'
+        @emit 'StartBuild', identifiers
 
       @credentialsPage.buildButton.hideLoader()
 
@@ -92,6 +82,7 @@ module.exports = class CredentialsController extends BasePageController
   handleSubmittedCredential: (submissionData, callback) ->
 
     { provider, selectedItem, newData } = submissionData
+    { CREDENTIAL_VERIFICATION_ERROR_MESSAGE, CREDENTIAL_VERIFICATION_TIMEOUT } = constants
 
     queue = [
       (next) =>
@@ -111,12 +102,12 @@ module.exports = class CredentialsController extends BasePageController
           .then (response) ->
             next null, { identifier, status : response?[identifier] }
           .catch (err) -> next err
-          .timeout VERIFICATION_TIMEOUT
+          .timeout constants.CREDENTIAL_VERIFICATION_TIMEOUT
     ]
 
     async.waterfall queue, (err, result) ->
       return callback null, { err : err.message }  if err
-      return callback null, { err : DEFAULT_VERIFICATION_ERROR_MESSAGE }  unless result.status
+      return callback null, { err : CREDENTIAL_VERIFICATION_ERROR_MESSAGE }  unless result.status
 
       { identifier, status } = result
       { verified, message }  = status
@@ -125,7 +116,7 @@ module.exports = class CredentialsController extends BasePageController
         callback null, { identifier }
       else
         callback null, {
-          err : message or DEFAULT_VERIFICATION_ERROR_MESSAGE
+          err : message or CREDENTIAL_VERIFICATION_ERROR_MESSAGE
         }
 
 

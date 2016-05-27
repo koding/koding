@@ -4,6 +4,8 @@ BasePageController = require './basepagecontroller'
 BuildStackPageView = require '../views/buildstackpageview'
 BuildStackErrorPageView = require '../views/buildstackerrorpageview'
 BuildStackSuccessPageView = require '../views/buildstacksuccesspageview'
+constants = require '../constants'
+sendDataDogEvent = require 'app/util/sendDataDogEvent'
 
 module.exports = class BuildStackController extends BasePageController
 
@@ -34,16 +36,19 @@ module.exports = class BuildStackController extends BasePageController
 
   updateProgress: (percentage, message) ->
 
+    @setCurrentPage @buildStackPage
     @buildStackPage.updateProgress percentage, message
 
 
   completeProcess: ->
 
-    @buildStackPage.updateProgress 100
     @setCurrentPage @successPage
+    @buildStackPage.updateProgress constants.COMPLETE_PROGRESS_VALUE
 
 
   showError: (err) ->
+
+    sendDataDogEvent 'MachineStateFailed'
 
     @setCurrentPage @errorPage
     @errorPage.setErrors [ err ]
