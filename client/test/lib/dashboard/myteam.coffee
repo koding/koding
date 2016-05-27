@@ -112,7 +112,7 @@ module.exports =
                   .assert.containsText selector(indexOfTargetUser2 + 1), 'Admin'
                   browser.expect.element(selector(index + 1)).text.to.contain 'Owner'
                 browser.click selector(lastPendingInvitationIndex + 1), ->
-                  browser.pause 3000
+                  browser.waitForElementVisible selector(lastPendingInvitationIndex + 1), 20000
                   teamsHelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], nthItem(1), nthItem(2), selector(lastPendingInvitationIndex + 1), yes, ->
                     teamsHelpers.logoutTeam browser, (res) ->
                       teamsHelpers.loginToTeam browser, invitations[lastPendingInvitationIndex], yes, ->
@@ -121,7 +121,7 @@ module.exports =
                         browser
                           .waitForElementVisible welcomeView, 20000
                           .url myTeamLink
-                          .pause 3000
+                          .waitForElementVisible sectionSelector, 20000
                           .scrollToElement '.HomeAppView--section.send-invites'
 
 

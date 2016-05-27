@@ -102,7 +102,7 @@ module.exports =
     inputUserName         = 'input[name=username]'
     inputPassword         = 'input[name=password]'
     loginButton           = 'button[testpath=login-button]'
-    errorMessage          = '.kdnotification.main'
+    notification          = '.kdnotification.main'
 
     browser
       .pause                  2000 # wait for login page
@@ -116,7 +116,7 @@ module.exports =
     if invalidCredentials
       browser
       .click 'button[testpath=login-button]'
-      .waitForElementVisible  errorMessage, 20000
+      .waitForElementVisible  notification, 20000
     else
       browser.click 'button[testpath=login-button]', => @loginAssertion browser, callback
 
