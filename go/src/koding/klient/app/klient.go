@@ -24,6 +24,7 @@ import (
 	"koding/klient/info"
 	"koding/klient/info/publicip"
 	"koding/klient/logfetcher"
+	kos "koding/klient/os"
 	"koding/klient/protocol"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
@@ -296,6 +297,9 @@ func (k *Klient) RegisterMethods() {
 	k.kite.PreHandleFunc(k.usage.Counter) // we measure every incoming request
 	k.kite.HandleFunc("klient.usage", k.usage.Current)
 
+	// klient os method(s)
+	k.kite.HandleFunc("os.home", kos.Home)
+
 	// Klient Info method(s)
 	k.kite.HandleFunc("klient.info", info.Info)
 
@@ -513,7 +517,7 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 func (k *Klient) Run() {
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
-	isKoding, _ := info.CheckKoding()
+	isAWS, isKoding, _ := info.CheckKodingAWS()
 	isManaged := protocol.Environment == "managed" || protocol.Environment == "devmanaged"
 
 	if isManaged && isKoding {
@@ -526,7 +530,7 @@ func (k *Klient) Run() {
 		log.Fatal(err)
 	}
 
-	if !isKoding && !k.config.NoTunnel {
+	if !isAWS && !isKoding && !k.config.NoTunnel {
 		opts, err := k.tunnelOptions()
 		if err != nil {
 			log.Fatal(err)
