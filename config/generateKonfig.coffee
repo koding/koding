@@ -70,13 +70,23 @@ module.exports = (options, credentials) ->
     url: "https://www.google.com/recaptcha/api/siteverify"
 
   kontrol =
-    url: "#{options.customDomain.public}/kontrol/kite"
     port: 3000
+    storage: 'postgres'
+    postgres: credentials.kontrolPostgres
+
+    mongoUrl: credentials.mongo
+
+    region: options.region
+    environment: options.environment
+
+    url: "#{options.customDomain.public}/kontrol/kite"
+
     useTLS: no
-    certFile: ""
-    keyFile: ""
-    publicKeyFile: credentials.kontrol.publicKeyFile
-    privateKeyFile: credentials.kontrol.privateKeyFile
+    tlsCertFile: ""
+    tlsKeyFile: ""
+
+    publicKey: credentials.kontrol.publicKey
+    privateKey: credentials.kontrol.privateKey
 
   kloudPort = 5500
   kloud =
