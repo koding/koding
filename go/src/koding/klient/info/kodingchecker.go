@@ -3,8 +3,9 @@ package info
 import (
 	"runtime"
 
-	"github.com/koding/ec2dynamicdata"
 	"koding/klient/fix"
+
+	"github.com/koding/ec2dynamicdata"
 )
 
 const (
@@ -19,17 +20,22 @@ const (
 
 // TODO: Check the distro, if we're not on Ubuntu simply return false.
 func CheckKoding() (bool, error) {
+	_, isKoding, err := CheckKodingAWS()
+	return isKoding, err
+}
+
+func CheckKodingAWS() (isAWS, isKoding bool, err error) {
 	if cachedProviderName == Koding {
-		return true, nil
+		return true, true, nil
 	}
 
 	// If we're not on Linux, we're not on a Koding VM
 	if runtime.GOOS != "linux" {
-		return false, nil
+		return false, false, nil
 	}
 
 	// Attempt to disable the aws api null route on Koding VMs.
-	err := fix.RunAsSudo(delRouteCommand)
+	err = fix.RunAsSudo(delRouteCommand)
 	// We expect delRoute to fail in many places (DO, localhost, etc),
 	// but if it does not fail, we need to make sure to restore the null
 	// route when this func is done.
@@ -51,14 +57,14 @@ func CheckKoding() (bool, error) {
 	if err != nil {
 		// Not returning the error, because this func is not actually
 		// failing/erroring.
-		return false, nil
+		return false, false, nil
 	}
 
 	// Check if the account ID is the same, if not, it belongs to
 	// someone else (not Koding obviously)
 	if data.AccountID != KodingAccountID {
-		return false, nil
+		return true, false, nil
 	}
 
-	return true, nil
+	return true, true, nil
 }
