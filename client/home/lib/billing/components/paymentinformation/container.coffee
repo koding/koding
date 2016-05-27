@@ -1,10 +1,11 @@
 kd = require 'kd'
 React = require 'kd-react'
 KDReactorMixin = require 'app/flux/base/reactormixin'
+whoami = require 'app/util/whoami'
 
 CardFormValues = require '../../flux/cardformvalues'
 PaymentFlux = require 'app/flux/payment'
-
+TeamFlux = require 'app/flux/teams'
 PaymentInformation = require './view'
 
 module.exports = class PaymentInformationContainer extends React.Component
@@ -12,6 +13,8 @@ module.exports = class PaymentInformationContainer extends React.Component
   getDataBindings: ->
     return {
       formValues: CardFormValues.getters.values
+      formErrors: CardFormValues.getters.errors
+      userEmail: TeamFlux.getters.loggedInUserEmail
     }
 
 
@@ -19,7 +22,11 @@ module.exports = class PaymentInformationContainer extends React.Component
 
     super props
 
-    @state = { formValues: null }
+    { firstName, lastName } = whoami().profile
+
+    @state =
+      formValues: null
+      fullName: "#{firstName} #{lastName}"
 
 
   onRemoveCard: ->
@@ -28,12 +35,16 @@ module.exports = class PaymentInformationContainer extends React.Component
     { actions, getters } = PaymentFlux reactor
 
     if getters.paymentValues().get 'groupCreditCard'
-      actions.removeGroupPlan()
+      actions.removeGroupPlan().then ->
+        showSuccess 'Your card has been removed successfully.'
 
 
   onPaymentHistory: ->
 
     kd.singletons.router.handleRoute '/Home/payment-history'
+
+
+  onCancel: -> CardFormValues.actions.cancelEditing()
 
 
   onSave: ->
@@ -45,26 +56,38 @@ module.exports = class PaymentInformationContainer extends React.Component
     { createStripeToken, subscribeGroupPlan
       loadGroupCreditCard, updateGroupCreditCard } = actions
 
-    { resetValues } = CardFormValues.actions
+    { resetValues, resetErrors } = CardFormValues.actions
+
+    cardName = if formValues.get 'fullName'
+    then formValues.get 'fullName'
+    else @state.fullName
+
+    cardEmail = if formValues.get 'email'
+    then formValues.get('email')
+    else @state.userEmail
 
     options =
       cardNumber: formValues.get 'number'
       cardCVC: formValues.get 'cvc'
       cardMonth: formValues.get 'expirationMonth'
       cardYear: formValues.get 'expirationYear'
-      cardName: formValues.get 'fullName'
+      cardName: cardName
+      cardEmail: cardEmail
 
+    resetErrors()
     createStripeToken(options).then ({ token }) ->
 
       if getters.paymentValues().get 'groupCreditCard'
         updateGroupCreditCard({ token }).then ->
           resetValues()
           loadGroupCreditCard()
+          showSuccess 'Your card has been updated successfully.'
 
       else
         subscribeGroupPlan({ token, email: formValues.get 'email' }).then ->
           resetValues()
           loadGroupCreditCard()
+          showSuccess 'Your card has been saved successfully.'
 
 
   render: ->
@@ -74,8 +97,14 @@ module.exports = class PaymentInformationContainer extends React.Component
       onRemoveCard={@bound 'onRemoveCard'}
       onPaymentHistory={@bound 'onPaymentHistory'}
       onSave={@bound 'onSave'}
-      formValues={@state.formValues} />
+      formErrors={@state.formErrors}
+      formValues={@state.formValues}
+      userEmail={@state.userEmail}
+      fullName={@state.fullName}
+      onCancel={@bound 'onCancel'} />
 
 
 PaymentInformationContainer.include [KDReactorMixin]
+
+showSuccess = (title) -> new kd.NotificationView { title }
 
