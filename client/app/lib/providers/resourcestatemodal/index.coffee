@@ -11,13 +11,15 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
     super options, data
 
-    @show()
+    @off 'childAppended'
 
     @controller = new ResurceStateController { container: this }, @getData()
-    @controller.once 'BecameVisible', => @_windowDidResize()
-    @controller.once 'ClosingRequested', @bound 'destroy'
+    @controller.on 'PageChanged', @bound 'setPositions'
+    @controller.on 'ClosingRequested', @bound 'destroy'
     @forwardEvent @controller, 'IDEBecameReady'
     @forwardEvent @controller, 'MachineTurnOnStarted'
+
+    @show()
 
 
   show: ->
@@ -30,6 +32,22 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
     container.addSubView @overlay
     container.addSubView this
+
+    @setPositions()
+
+
+  setPositions: ->
+
+    { container } = @getOptions()
+    { top, left } = container.getDomElement().offset()
+
+    offset = @getDomElement().offset()
+
+    style     =
+      top     : Math.round((container.getHeight() - @getHeight()) / 2 + top)
+      left    : Math.round((container.getWidth()  - @getWidth()) / 2 + left)
+      opacity : 1
+    @setStyle style
 
 
   updateStatus: (event, task) ->

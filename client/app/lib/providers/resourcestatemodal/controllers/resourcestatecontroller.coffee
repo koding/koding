@@ -8,6 +8,12 @@ module.exports = class ResourceStateController extends BasePageController
 
   constructor: (options, data) ->
 
+    options.showLoader    = yes
+    options.loaderOptions =
+      size     :
+        width  : 50
+        height : 50
+
     super options, data
 
     { computeController } = kd.singletons
@@ -26,13 +32,13 @@ module.exports = class ResourceStateController extends BasePageController
     return kd.log 'Stack not found!'  unless @stack
 
     @stackFlow = new StackFlowController { container }, { machine, @stack }
-    @stackFlow.once 'PageChanged', @lazyBound 'emit', 'BecameVisible'
     @stackFlow.on 'ResourceBecameRunning', @bound 'onResourceBecameRunning'
+    @forwardEvent @stackFlow, 'PageChanged'
     @forwardEvent @stackFlow, 'ClosingRequested'
 
     @machineFlow = new MachineFlowController { container }, machine
-    @machineFlow.once 'PageChanged', @lazyBound 'emit', 'BecameVisible'
     @machineFlow.on 'ResourceBecameRunning', @bound 'onResourceBecameRunning'
+    @forwardEvent @machineFlow, 'PageChanged'
     @forwardEvent @machineFlow, 'ClosingRequested'
     @forwardEvent @machineFlow, 'MachineTurnOnStarted'
 
@@ -49,7 +55,9 @@ module.exports = class ResourceStateController extends BasePageController
 
   updateStatus: (event, task) ->
 
-    @currentPage?.updateStatus event, task
+    return  if not @currentPage or @currentPage is @loader
+
+    @currentPage.updateStatus event, task
 
 
   onResourceBecameRunning: (reason) ->
