@@ -436,8 +436,8 @@ createIPRoutes = (KONFIG) ->
       return 200 $remote_addr;
     }
 
-    location ~^/-/ipcheck/(?<port>\d+)(?<rest>.*)$ {
-      proxy_pass http://$remote_addr:$port$rest;
+    location ~ /-/ipcheck/(.*) {
+      proxy_pass http://$remote_addr:$1/;
       proxy_connect_timeout 5s;
       proxy_read_timeout 5s;
       proxy_send_timeout 5s;
