@@ -31,8 +31,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
   componentDidMount: ->
 
     teamName = if @state.team? then Encoder.htmlDecode @state.team.get 'title' else ''
-    @setState
-      teamName: teamName
+    @setState { teamName: teamName }
 
 
   onUploadInput: ->
@@ -64,17 +63,10 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
     reader.readAsDataURL file
 
 
-  onClickLogo: ->
-
-    @refs.view.input.click()
+  onClickLogo: -> @refs.view.input.click()
 
 
-  onRemoveLogo: ->
-
-    dataToUpdate =
-      customize:
-        logo: DEFAULT_LOGOPATH
-    @updateTeam { dataToUpdate }
+  onRemoveLogo: -> @updateTeam { customize: { logo: DEFAULT_LOGOPATH } }
 
 
   onUpdate: ->
@@ -94,24 +86,20 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
     TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) =>
       notify message
-      @setState
-        loading: no
-        teamNameChanged: no
+      @setState { loading: no, teamNameChanged: no }
     .catch ({ message }) =>
       notify message
-      @setState
-        loading: no
-        teamNameChanged: no
+      @setState { loading: no, teamNameChanged: no }
 
 
   onTeamNameChanged: (event) ->
 
-    @setState { teamName : event.target.value }
+    { value } = event.target
 
-    if @state.team.get('title') isnt event.target.value
-      @setState { teamNameChanged: yes }
-    else
-      @setState { teamNameChanged: no }
+    @setState
+      teamName: value
+      teamNameChanged: @state.team.get('title') isnt value
+
 
   onLeaveTeam: (event) ->
 
