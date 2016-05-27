@@ -9,7 +9,7 @@
           "production",
           "managed"
         ],
-        "url": "http://t.koding.com/kite"
+        "url": "http://tunnelproxy.koding.com/kite"
       },
       {
         "environment": [
@@ -17,7 +17,7 @@
           "devmanaged",
           "sandbox"
         ],
-        "url": "http://dev-t.koding.com/kite"
+        "url": "http://devtunnelproxy.koding.com/kite"
       }
     ],
     "ip": [

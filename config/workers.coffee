@@ -27,7 +27,7 @@ module.exports = (KONFIG, options, credentials) ->
       ports             :
         incoming        : "#{KONFIG.kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{options.region} -environment #{options.environment} -mongourl #{KONFIG.mongo} -port #{KONFIG.kontrol.port} -privatekey #{KONFIG.kontrol.privateKeyFile} -publickey #{KONFIG.kontrol.publicKeyFile} -storage postgres -postgres-dbname #{credentials.kontrolPostgres.dbname} -postgres-host #{credentials.kontrolPostgres.host} -postgres-port #{credentials.kontrolPostgres.port} -postgres-username #{credentials.kontrolPostgres.username} -postgres-password #{credentials.kontrolPostgres.password} -postgres-connecttimeout #{credentials.kontrolPostgres.connecttimeout}"
+        command         : "#{GOBIN}/kontrol -region #{options.region} -environment #{options.environment} -mongourl #{KONFIG.mongo} -port #{KONFIG.kontrol.port} -privatekey #{KONFIG.kontrol.privateKey} -publickey #{KONFIG.kontrol.publicKey} -storage postgres -postgres-dbname #{credentials.kontrolPostgres.dbname} -postgres-host #{credentials.kontrolPostgres.host} -postgres-port #{credentials.kontrolPostgres.port} -postgres-username #{credentials.kontrolPostgres.username} -postgres-password #{credentials.kontrolPostgres.password} -postgres-connecttimeout #{credentials.kontrolPostgres.connecttimeout}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -44,7 +44,7 @@ module.exports = (KONFIG, options, credentials) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{KONFIG.socialapi.proxyUrl}/payments/subscriptions -credentialendpoint #{KONFIG.socialapi.proxyUrl}/credential -hostedzone #{options.userSitesDomain} -region #{options.region} -environment #{options.environment} -port #{KONFIG.kloud.port}  -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile}  -publickey #{KONFIG.kontrol.publicKeyFile} -privatekey #{KONFIG.kontrol.privateKeyFile} -kontrolurl #{KONFIG.kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{options.configName is "prod"} -awsaccesskeyid=#{credentials.awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{credentials.awsKeys.vm_kloud.secretAccessKey} -slusername=#{credentials.slKeys.vm_kloud.username} -slapikey=#{credentials.slKeys.vm_kloud.apiKey} -janitorsecretkey=#{KONFIG.socialapi.janitor.secretKey} -vmwatchersecretkey=#{KONFIG.vmwatcher.secretKey} -paymentwebhooksecretkey=#{KONFIG.paymentwebhook.secretKey} -kloudsecretkey=#{credentials.kloud.secretKey} -tunnelurl #{KONFIG.kloud.tunnelUrl}"
+        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{KONFIG.socialapi.proxyUrl}/payments/subscriptions -credentialendpoint #{KONFIG.socialapi.proxyUrl}/credential -hostedzone #{options.userSitesDomain} -region #{options.region} -environment #{options.environment} -port #{KONFIG.kloud.port}  -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile}  -publickey #{KONFIG.kontrol.publicKey} -privatekey #{KONFIG.kontrol.privateKey} -kontrolurl #{KONFIG.kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{options.configName is "prod"} -awsaccesskeyid=#{credentials.awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{credentials.awsKeys.vm_kloud.secretAccessKey} -slusername=#{credentials.slKeys.vm_kloud.username} -slapikey=#{credentials.slKeys.vm_kloud.apiKey} -janitorsecretkey=#{KONFIG.socialapi.janitor.secretKey} -vmwatchersecretkey=#{KONFIG.vmwatcher.secretKey} -paymentwebhooksecretkey=#{KONFIG.paymentwebhook.secretKey} -kloudsecretkey=#{credentials.kloud.secretKey} -tunnelurl #{KONFIG.kloud.tunnelUrl}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -471,12 +471,12 @@ module.exports = (KONFIG, options, credentials) ->
     tunnelproxymanager  :
       group             : "proxy"
       supervisord       :
-        command         : "#{GOBIN}/tunnelproxymanager -ebenvname #{options.ebEnvName} -accesskeyid #{credentials.awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey} -hostedzone-name #{options.tunnelHostedZoneName} -hostedzone-callerreference #{options.tunnelHostedZoneCallerRef}"
+        command         : "#{GOBIN}/tunnelproxymanager -ebenvname #{options.ebEnvName} -accesskeyid #{credentials.awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey} -route53accesskeyid #{credentials.awsKeys.worker_tunnelproxymanager_route53.accessKeyId} -route53secretaccesskey #{credentials.awsKeys.worker_tunnelproxymanager_route53.secretAccessKey} -hostedzone-name #{options.tunnelHostedZoneName} -hostedzone-callerreference #{options.tunnelHostedZoneCallerRef}"
 
     tunnelserver        :
       group             : "proxy"
       supervisord       :
-        command         : "#{GOBIN}/tunnelserver -accesskey #{credentials.awsKeys.worker_tunnelproxymanager.accessKeyId} -secretkey #{credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey} -port #{KONFIG.tunnelserver.port} -basevirtualhost #{KONFIG.tunnelserver.basevirtualhost} -hostedzone #{KONFIG.tunnelserver.hostedzone} -region #{options.region} -environment #{options.environment}"
+        command         : "#{GOBIN}/tunnelserver -accesskey #{credentials.awsKeys.worker_tunnelproxymanager_route53.accessKeyId} -secretkey #{credentials.awsKeys.worker_tunnelproxymanager_route53.secretAccessKey} -port #{KONFIG.tunnelserver.port} -basevirtualhost #{KONFIG.tunnelserver.basevirtualhost} -hostedzone #{KONFIG.tunnelserver.hostedzone} -region #{options.region} -environment #{options.environment}"
       ports             :
         incoming        : "#{KONFIG.tunnelserver.port}"
       healthCheckURL    : "http://tunnelserver/healthCheck"

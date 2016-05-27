@@ -517,7 +517,7 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 func (k *Klient) Run() {
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
-	isKoding, _ := info.CheckKoding()
+	isAWS, isKoding, _ := info.CheckKodingAWS()
 	isManaged := protocol.Environment == "managed" || protocol.Environment == "devmanaged"
 
 	if isManaged && isKoding {
@@ -530,7 +530,7 @@ func (k *Klient) Run() {
 		log.Fatal(err)
 	}
 
-	if !isKoding && !k.config.NoTunnel {
+	if !isAWS && !isKoding && !k.config.NoTunnel {
 		opts, err := k.tunnelOptions()
 		if err != nil {
 			log.Fatal(err)

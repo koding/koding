@@ -23,6 +23,7 @@ module.exports = (options) ->
     worker_test_instance_launcher: kodingdev_master_2016_05
     # TunnelProxyPolicy
     worker_tunnelproxymanager: kodingdev_master_2016_05
+    worker_tunnelproxymanager_route53: kodingdev_master_2016_05
     #Encryption and Storage on S3
     worker_sneakerS3 : kodingdev_master_2016_05
     vm_vmwatcher:     # vm_vmwatcher_dev
@@ -169,13 +170,13 @@ module.exports = (options) ->
     secretKey: ""
   segment = ''
   kontrol =
-    publicKeyFile: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pub"
-    privateKeyFile: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pem"
+    publicKey: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pub"
+    privateKey: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pem"
   kloud =
     userPrivateKeyFile: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pem"
     userPublicKeyfile: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pub"
-    privateKeyFile: kontrol.privateKeyFile
-    publicKeyFile: kontrol.publicKeyFile
+    privateKeyFile: kontrol.privateKey
+    publicKeyFile: kontrol.publicKey
     secretKey: ''
   dummyAdmins = ['superadmin', 'admin', 'koding']
 

@@ -15,7 +15,7 @@ import (
 const Name = "tunnelproxymanager"
 
 func main() {
-	conf, session, err := tunnelproxymanager.Configure()
+	conf, err := tunnelproxymanager.Configure()
 	if err != nil {
 		log.Fatal("Reading config failed: ", err.Error())
 	}
@@ -28,13 +28,13 @@ func main() {
 	log.SetCallDepth(1)
 
 	// create record manager
-	recordManager := tunnelproxymanager.NewRecordManager(session, log, conf.Region, conf.HostedZone)
+	recordManager := tunnelproxymanager.NewRecordManager(conf.Route53Session, log, conf.Region, conf.HostedZone)
 	if err := recordManager.Init(); err != nil {
 		log.Fatal(err.Error())
 	}
 
 	// create lifecycle
-	l := tunnelproxymanager.NewLifeCycle(session, log, conf.AutoScalingName)
+	l := tunnelproxymanager.NewLifeCycle(conf.Session, log, conf.AutoScalingName)
 
 	// configure lifecycle with system name
 	if err := l.Configure(systemName); err != nil {
