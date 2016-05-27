@@ -13,8 +13,8 @@ module.exports = class StackFlowController extends BasePageController
 
     super options, data
 
-    { stack} = @getData()
-    @state   = stack.status?.state
+    { stack } = @getData()
+    @state    = stack.status?.state
 
     @bindToKloudEvents()
     @createPages()
@@ -122,7 +122,7 @@ module.exports = class StackFlowController extends BasePageController
 
   destroy: ->
 
-    { stack} = @getData()
+    { stack } = @getData()
 
     { computeController } = kd.singletons
     computeController.off "apply-#{stack._id}", @bound 'updateStatus'
