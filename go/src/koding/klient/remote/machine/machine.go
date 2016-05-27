@@ -11,6 +11,7 @@ import (
 	"koding/kites/tunnelproxy/discover"
 	"koding/klient/command"
 	"koding/klient/kiteerrortypes"
+	"koding/klient/os"
 	"koding/klient/remote/kitepinger"
 	"koding/klient/remote/rsync"
 	"koding/klient/util"
@@ -504,13 +505,57 @@ func (m *Machine) DoesRemoteDirExist(p string) (bool, error) {
 func (m *Machine) Home() (string, error) {
 	u := m.Username
 	if u == "" {
+		return "", errors.New("Machine username is missing, unable to find Home.")
+	}
+
+	opts := os.HomeOptions{
+		Username: u,
+	}
+
+	// First try to get the real home
+	res, err := m.TellWithTimeout("os.home", 4*time.Second, opts)
+	if err != nil {
+		return "", err
+	}
+
+	var home string
+	if err := res.Unmarshal(&home); err != nil {
+		return "", err
+	}
+
+	return home, nil
+}
+
+// HomeWithDefault attempts to get the home value, but defaults if it cannot
+// get the system users true home.
+//
+// The remote system being unable to find the users home is most commonly due to
+// running an older klient.
+func (m *Machine) HomeWithDefault() (string, error) {
+	home, err := m.Home()
+	if err == nil {
+		return home, nil
+	}
+
+	// If home fails, it might be due to a missing transport. Assume log is missing
+	// too (ie, not valid machine) to prevent a panic.
+	if m.Log != nil {
+		m.Log.New("homeWithDefault").Warning(
+			"Failed to get real Home value. Ignoring error. err:%s",
+			err,
+		)
+	}
+
+	u := m.Username
+	if u == "" {
 		return "", errors.New("Unable to find home directory")
 	}
 
-	// TODO: Deprecate in favor of a more robust way to identify the home dir.
-	// This assumes that the username klient is running under has a home
-	// at /home/username. Not true for root, if the user isn't the same user
-	// as klient is running under, and not true if the homedir isn't /home.
+	// TODO: Add a system identifier (ie, runtime.GOOS for the remote system), and
+	// with that system identifier we can provide sane defaults with the username.
+	//
+	// Ie, OSX is /Users/u, linux is /home/u, etc. Not 100%, but in the event of a
+	// fallback it's better than just assuming/home.
 	return path.Join("/home", u), nil
 }
 

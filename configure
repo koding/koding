@@ -135,6 +135,7 @@ rest = ->
 updateVault = ->
   # only run copying vault in dev env
   return rest() unless options.config is 'dev'
+  return rest()  if process.env.CI
   { execFile } = require 'child_process'
 
   execFile './scripts/copy_vault.sh', (err, stdout, stderr) ->

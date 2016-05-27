@@ -1,20 +1,19 @@
 package main
 
 import (
-	"flag"
 	"koding/artifact"
 	"koding/rerouting/router"
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/logger"
+
+	"github.com/koding/multiconfig"
 )
 
 var (
-	Name        = "rerouting"
-	log         = logger.New(Name)
-	conf        *config.Config
-	flagProfile = flag.String("c", "", "Configuration profile from file")
-	flagDebug   = flag.Bool("d", false, "Debug mode")
+	Name = "rerouting"
+	log  = logger.New(Name)
+	conf *config.Config
 
 	defaultPublishingExchange string
 	producer                  *rerouting.Producer
@@ -22,20 +21,18 @@ var (
 )
 
 func main() {
-	flag.Parse()
+	loader := multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG"},
+		&multiconfig.FlagLoader{},
+	)
+
+	conf = new(config.Config)
+	loader.Load(conf)
+
 	log.Info("routing worker started")
-	if *flagProfile == "" {
-		log.Fatal("Please define config file with -c")
-	}
 
-	conf = config.MustConfig(*flagProfile)
-
-	var logLevel logger.Level
-	if *flagDebug {
-		logLevel = logger.DEBUG
-	} else {
-		logLevel = logger.GetLoggingLevelFromConfig("rerouting", *flagProfile)
-	}
+	logLevel := logger.GetLoggingLevelFromConfig("rerouting", "")
 	log.SetLevel(logLevel)
 
 	var err error
@@ -71,7 +68,7 @@ func startRouting() {
 		Channel: nil,
 	}
 
-	router = rerouting.NewRouter(c, producer, *flagProfile)
+	router = rerouting.NewRouter(c, producer, "")
 
 	var err error
 
