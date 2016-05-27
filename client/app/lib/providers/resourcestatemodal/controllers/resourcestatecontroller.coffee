@@ -2,6 +2,7 @@ kd = require 'kd'
 BasePageController = require './basepagecontroller'
 StackFlowController = require './stackflowcontroller'
 MachineFlowController = require './machineflowcontroller'
+NoStackPageView = require '../views/nostackpageview'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 module.exports = class ResourceStateController extends BasePageController
@@ -11,8 +12,8 @@ module.exports = class ResourceStateController extends BasePageController
     options.showLoader    = yes
     options.loaderOptions =
       size     :
-        width  : 50
-        height : 50
+        width  : 40
+        height : 40
 
     super options, data
 
@@ -22,14 +23,22 @@ module.exports = class ResourceStateController extends BasePageController
 
   createPages: (stackTemplate) ->
 
-    { computeController }  = kd.singletons
+    { computeController, groupsController } = kd.singletons
     { container, initial } = @getOptions()
 
-    machine   = @getData()
+    machine = @getData()
+    unless machine
+      if groupsController.currentGroupHasStack()
+        return kd.log 'ResourceStateController: machine is not passed'
+
+      @noStackPage = new NoStackPageView()
+      @registerPages [ @noStackPage ]
+      return @show()
+
     machineId = machine.jMachine._id
     @stack    = computeController.findStackFromMachineId machineId
 
-    return kd.log 'Stack not found!'  unless @stack
+    return kd.log 'ResourceStateController: stack not found!'  unless @stack
 
     @stackFlow = new StackFlowController { container }, { machine, @stack }
     @stackFlow.on 'ResourceBecameRunning', @bound 'onResourceBecameRunning'
@@ -43,11 +52,12 @@ module.exports = class ResourceStateController extends BasePageController
     @forwardEvent @machineFlow, 'MachineTurnOnStarted'
 
     @registerPages [ @stackFlow, @machineFlow ]
-
     @show()
 
 
   show: ->
+
+    return @setCurrentPage @noStackPage  if @noStackPage
 
     page = if @stack.status?.state isnt 'Initialized' then @stackFlow else @machineFlow
     @setCurrentPage page
