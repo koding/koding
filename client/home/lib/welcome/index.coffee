@@ -27,20 +27,14 @@ module.exports = class HomeWelcome extends kd.CustomScrollView
       cssClass : 'bullets clearfix'
 
     { groupsController, computeController } = kd.singletons
-    { stacks }                              = computeController
 
-    view  = this
+    computeController.ready =>
+      if groupsController.canEditGroup()
+      then @putAdminBullets()
+      else @putUserBullets()
 
-    groupsController.ready -> computeController.ready ->
 
-      { providers, variables } = collectCredentials()
 
-      groupsController.getCurrentGroup().fetchMyRoles (err, roles) ->
-        return  kd.warn err  if err
-        isAdmin = 'admin' in (roles ? [])
-        if isAdmin
-        then view.putAdminBullets()
-        else view.putUserBullets()
 
 
   putAdminBullets: ->
