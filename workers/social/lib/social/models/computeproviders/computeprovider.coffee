@@ -70,6 +70,8 @@ module.exports = class ComputeProvider extends Base
           (signature Function)
         updateTeamCounters:
           (signature String, Function)
+        fetchSoloMachines :
+          (signature Function)
 
 
   @providers      = PROVIDERS
@@ -742,6 +744,33 @@ module.exports = class ComputeProvider extends Base
         }, next
 
       async.series queue, (err) -> callback err
+
+
+  @fetchSoloMachines = secure revive
+
+    shouldReviveProvider : no
+    shouldReviveClient   : yes
+    hasOptions           : no
+
+  , (client, callback) ->
+
+    { user, group, account } = client.r
+
+    activeMachinesSelector = {
+      'users.id': user.getId()
+      'provider': 'koding'
+      'status.state': $in: [
+        'Starting', 'Running',
+        'Stopped', 'Stopping', 'Rebooting'
+      ]
+    }
+
+    JMachine.some activeMachinesSelector, { limit: 30 }, (err, machines) ->
+
+      if err or not machines?.length
+        return callback null, { machines: [] }
+
+      callback null, { machines }
 
 
   do ->
