@@ -756,6 +756,14 @@ module.exports = class ComputeProvider extends Base
 
     { user, group, account } = client.r
 
+    { isSoloAccessible } = require '../user/validators'
+
+    return callback null, { machines: [] }  unless isSoloAccessible {
+      groupName: 'koding'
+      account: account
+      env: KONFIG.environment
+    }
+
     activeMachinesSelector = {
       'users.id': user.getId()
       'provider': 'koding'
