@@ -471,7 +471,7 @@ module.exports = (KONFIG, options, credentials) ->
     tunnelproxymanager  :
       group             : "proxy"
       supervisord       :
-        command         : "#{GOBIN}/tunnelproxymanager -ebenvname #{options.ebEnvName} -accesskeyid #{credentials.awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey} -route53accesskeyid #{credentials.awsKeys.worker_tunnelproxymanager_route53.accessKeyId} -route53secretaccesskey #{credentials.awsKeys.worker_tunnelproxymanager_route53.secretAccessKey} -hostedzone-name #{options.tunnelHostedZoneName} -hostedzone-callerreference #{options.tunnelHostedZoneCallerRef}"
+        command         : "#{GOBIN}/tunnelproxymanager"
 
     tunnelserver        :
       group             : "proxy"
