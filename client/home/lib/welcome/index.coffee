@@ -44,7 +44,7 @@ module.exports = class HomeWelcome extends kd.CustomScrollView
 
       @welcome.addSubView @soloMachines = new kd.CustomHTMLView
         tagName  : 'ul'
-        cssClass : 'bullets clearfix'
+        cssClass : 'bullets solo clearfix'
         partial  : """
           <li>#{BULLETS.migrateFromKoding}</li>
         """
