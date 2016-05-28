@@ -57,12 +57,12 @@ koding = new Bongo {
   kite          :
     name        : 'social'
     environment : argv.environment or KONFIG.environment
-    region      : argv.region
+    region      : argv.region or KONFIG.region
     version     : KONFIG.version
     username    : 'koding'
-    port        : argv['kite-port']
+    port        : argv['kite-port'] or KONFIG.social.kitePort
     prefix      : 'social'
-    kiteKey     : argv['kite-key']
+    kiteKey     : argv['kite-key'] or KONFIG.social.kiteKey
 
     fetchClient: (name, context, callback) ->
       { JAccount } = koding.models
@@ -165,4 +165,4 @@ do ->
   app.get '/healthCheck', (req, res) ->
     res.send "Socialworker is running with version: #{KONFIG.version}"
 
-  app.listen argv.p
+  app.listen argv.p or KONFIG.social.port

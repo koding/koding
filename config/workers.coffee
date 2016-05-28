@@ -129,7 +129,7 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.social.port}"
         outgoing        : "#{KONFIG.social.kitePort}"
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/workers/social/index.js -c #{options.configName} -p #{KONFIG.social.port} -r #{options.region} --kite-port=#{KONFIG.social.kitePort} --kite-key=#{credentials.kiteHome}/kite.key"
+        command         : "./watch-node #{options.projectRoot}/workers/social/index.js"
       nginx             :
         locations       : [ { location: "/xhr" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
