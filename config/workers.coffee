@@ -27,7 +27,7 @@ module.exports = (KONFIG, options, credentials) ->
       ports             :
         incoming        : "#{KONFIG.kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{options.region} -environment #{options.environment} -mongourl #{KONFIG.mongo} -port #{KONFIG.kontrol.port} -privatekey #{KONFIG.kontrol.privateKey} -publickey #{KONFIG.kontrol.publicKey} -storage postgres -postgres-dbname #{credentials.kontrolPostgres.dbname} -postgres-host #{credentials.kontrolPostgres.host} -postgres-port #{credentials.kontrolPostgres.port} -postgres-username #{credentials.kontrolPostgres.username} -postgres-password #{credentials.kontrolPostgres.password} -postgres-connecttimeout #{credentials.kontrolPostgres.connecttimeout}"
+        command         : "#{GOBIN}/kontrol"
       nginx             :
         websocket       : yes
         locations       : [
