@@ -42,7 +42,16 @@ type HostedZone struct {
 // Configure prepares configuration data for tunnelproxy manager
 func Configure() (*Config, error) {
 	c := &Config{}
-	multiconfig.New().MustLoad(c)
+
+	mc := multiconfig.New()
+	mc.Loader = multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.EnvironmentLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_TUNNELPROXYMANAGER"},
+		&multiconfig.FlagLoader{},
+	)
+
+	mc.MustLoad(c)
 
 	// decide on region name
 	region, err := getRegion(c)
