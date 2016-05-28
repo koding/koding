@@ -29,23 +29,32 @@ $borderColor                = #CACACA
 
     > div
       flex                  0 0 auto
-      margin                0 40px 0 0
+      margin                0 30px 0 0
       padding               6px 0 0
 
       &:last-of-type
         margin-right        0
 
-      .HomeAppView--button
-        margin-left         0
-
     .MachinesListItem-machineLabel
       flex                  1 0 auto
       padding               6px 0 0 26px
+      width                 144px
+      ellipsis()
       pointer()
 
+    .MachinesListItem-hostName
+      width                 100px
+      text-align            center
+
     .MachinesListItem-stackLabel
+      flex                  1 0 auto
       text-transform        uppercase
-      margin                0 30px 0 0
+      margin                0 20px 0 0
+      .HomeAppView--button
+        ellipsis()
+        width               160px
+        margin-left         0
+
 
 .HomeAppViewVMSection
 
