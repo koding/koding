@@ -111,7 +111,7 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.webserver.port}"
         outgoing        : "#{KONFIG.webserver.kitePort}"
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/servers/index.js -c #{options.configName} -p #{KONFIG.webserver.port} --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{credentials.kiteHome}/kite.key"
+        command         : "./watch-node #{options.projectRoot}/servers/index.js"
       nginx             :
         locations       : [
           {
