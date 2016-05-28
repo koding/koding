@@ -33,8 +33,21 @@ module.exports = class HomeWelcome extends kd.CustomScrollView
       then @putAdminBullets()
       else @putUserBullets()
 
+      @checkMigration()
 
 
+  checkMigration: ->
+
+    kd.singletons.computeController.fetchSoloMachines (err, machines) =>
+
+      return  unless machines?.length
+
+      @welcome.addSubView @soloMachines = new kd.CustomHTMLView
+        tagName  : 'ul'
+        cssClass : 'bullets clearfix'
+        partial  : """
+          <li>#{BULLETS.migrateFromKoding}</li>
+        """
 
 
   putAdminBullets: ->
