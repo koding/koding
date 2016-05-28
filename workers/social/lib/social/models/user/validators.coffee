@@ -102,6 +102,9 @@ module.exports = class Validators
     # everyone can login to their own team
     return yes  if groupName isnt 'koding'
 
+    # use default cutoffDate if not provided
+    cutoffDate ?= new Date 2016, 2, 11 # 11 March 2016
+
     # user should be created before cutoffDate to be able to login to koding
     return yes  if account.meta.createdAt.getTime() < cutoffDate.getTime()
 
