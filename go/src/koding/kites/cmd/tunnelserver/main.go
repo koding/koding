@@ -22,8 +22,15 @@ func die(v interface{}) {
 func main() {
 	var opts tunnelproxy.ServerOptions
 
-	m := multiconfig.New()
-	m.MustLoad(&opts)
+	mc := multiconfig.New()
+	mc.Loader = multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.EnvironmentLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_TUNNELSERVER"},
+		&multiconfig.FlagLoader{},
+	)
+
+	mc.MustLoad(&opts)
 
 	server, err := tunnelproxy.NewServer(&opts)
 	if err != nil {
