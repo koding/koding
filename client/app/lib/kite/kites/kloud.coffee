@@ -88,6 +88,7 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
     createSnapshot  : 'createSnapshot'
 
     # Stack, Teams, Credentials related methods
+    migrate         : 'migrate'
     bootstrap       : 'bootstrap'
     buildStack      : 'apply'
     checkTemplate   : 'plan'
