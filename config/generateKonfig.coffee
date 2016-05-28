@@ -52,9 +52,16 @@ module.exports = (options, credentials) ->
         callerReference: options.tunnelHostedZoneCallerRef
 
   tunnelserver =
-    port           : 80
-    basevirtualhost: "koding.me"
-    hostedzone     : "koding.me"
+    port: 80
+
+    region     : options.region
+    environment: options.environment
+
+    accessKey: credentials.awsKeys.worker_tunnelproxymanager.accessKeyId
+    secretKey: credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey
+
+    hostedzone      : "koding.me"
+    basevirtualhost : "koding.me"
 
   algoliaSecret =
     appId: credentials.algolia.appId
