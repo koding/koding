@@ -767,10 +767,12 @@ module.exports = class ComputeProvider extends Base
     activeMachinesSelector = {
       'users.id': user.getId()
       'provider': 'koding'
-      'status.state': $in: [
-        'Starting', 'Running',
-        'Stopped', 'Stopping', 'Rebooting'
-      ]
+      'status.state': {
+        $in: [
+          'Starting', 'Running',
+          'Stopped', 'Stopping', 'Rebooting'
+        ]
+      }
     }
 
     JMachine.some activeMachinesSelector, { limit: 30 }, (err, machines) ->
