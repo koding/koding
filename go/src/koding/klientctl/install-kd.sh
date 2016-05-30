@@ -2,7 +2,46 @@
 
 readonly releaseChannel="%RELEASE_CHANNEL%"
 
+readonly osxfuseUrl="http://downloads.sourceforge.net/project/osxfuse/osxfuse-2.8.0/osxfuse-2.8.0.dmg"
+readonly virtualBoxUrlLinux="http://download.virtualbox.org/virtualbox/5.0.20/VirtualBox-5.0.20-106931-Linux_amd64.run"
+readonly virtualBoxUrlDarwin="http://download.virtualbox.org/virtualbox/5.0.20/VirtualBox-5.0.20-106931-OSX.dmg"
+readonly vagrantUrlLinux="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
+readonly vagrantUrlDarwin="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1.dmg"
+
+alias curl='curl -L --retry 5 --retry-delay 0'
+
+isMacosx=$(uname -v | grep -Ec '^Darwin Kernel.*')
+isVirtualbox=$(VBoxHeadless -h 2>&1 | grep -c 'Oracle VM VirtualBox Headless Interface')
+isVagrant=$(vagrant version 2>&1 | grep -c 'Installed Version:')
+
+# prompt_install <install info>
+prompt_install() {
+  echo
+  read -p "${1} [y/N]" -n 1 -r < /dev/tty
+  echo
+
+  # default to no
+  if [ -z "$REPLY" ]; then
+    REPLY="n"
+  fi
+
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    return 0
+  fi
+
+  return 1
+}
+
+die() {
+  echo $* 1>&2
+  exit 1
+}
+
 installFuseOnDarwinOnly () {
+  if [[ $isMacosx -eq 0 ]]; then
+    return 0 # setup fuse on linux?
+  fi
+
   # check if osxfuse is installed already
   if [ -d "/Library/Filesystems/osxfusefs.fs" ]; then
     return
@@ -10,32 +49,19 @@ installFuseOnDarwinOnly () {
 
   fuseDmg=/tmp/osxfuse-2.8.0.dmg
 
-  echo ""
-  read -p "kd requires osxfuse to work. Do you want to install it now? [y/N]" -n 1 -r < /dev/tty
-  echo ""
-
-  # default to no
-  if [ -z "$REPLY" ]; then
-    REPLY="n"
-  fi
-
-  if [[ ! $REPLY =~ ^[Yy]$ ]]
-  then
-    echo "Installation failed. Please run the installer again."
-    exit 1
+  if ! prompt_install "kd requires osxfuse to work. Do you want to install it now?"; then
+    die "Installation failed. Please run the installer again."
   fi
 
   echo ""
   echo "Downloading osxfuse..."
 
   # download osxfuse
-  curl -L -o "$fuseDmg" "http://downloads.sourceforge.net/project/osxfuse/osxfuse-2.8.0/osxfuse-2.8.0.dmg"
-  err=$?; if [ "$err" -ne 0 ]; then
-    echo "Error: Failed to download OSX Fuse."
-    exit 1
+  if ! curl -o "$fuseDmg" "$osxfuseUrl"; then
+    die "error: failed to download OSX Fuse" 2>&1
   fi
 
-  echo ""
+  echo
 
   # attach dmg as a volume
   sudo hdiutil attach "$fuseDmg"
@@ -49,6 +75,92 @@ installFuseOnDarwinOnly () {
   echo "Created /Library/Filesystems/osxfusefs.fs"
 }
 
+installVagrantProviderDeps() {
+  if ! prompt_install "VirtualBox and Vagrant are needed in order to build Vagrant stack. Do you want to install them now?"; then
+    return
+  fi
+
+  installVirtualBox
+  installVagrant
+
+  if ! vagrant box list | grep -c ubuntu/trusty64 >/dev/null; then
+    vagrant box add ubuntu/trusty64
+  fi
+}
+
+installVirtualBox() {
+  if [[ $isVirtualbox -eq 1 ]]; then
+    return 0
+  fi
+
+  if [[ ${isMacosx} -eq 0 ]]; then
+    installVirtualBoxLinux
+  else
+    installVirtualBoxDarwin
+  fi
+}
+
+installVirtualBoxLinux() {
+  local vboxRun="/tmp/virtualbox-5.0.20.run"
+
+  if ! curl -i $vboxRun "$virtualBoxUrlLinux"; then
+    die "error: failed to download VirtualBox"
+  fi
+
+  chmod +x $vboxRun
+
+  if ! sudo $vboxRun; then
+    die "error: failed to install VirtualBox"
+  fi
+}
+
+installVirtualBoxDarwin() {
+  local vboxDmg="/tmp/virtualbox-5.0.20.dmg"
+
+  if ! curl -o $vboxDmg "$virtualBoxUrlDarwin"; then
+    die "error: failed to download VirtualBox"
+  fi
+
+  sudo hdiutil attach $vboxDmg
+  sudo installer -pkg "/Volumes/VirtualBox/VirtualBox.pkg" -target /
+  diskutil unmount force "/Volumes/VirtualBox"
+}
+
+installVagrant() {
+  if [[ $isVagrant -eq 1 ]]; then
+    return 0
+  fi
+
+  if [[ ${isMacosx} -eq 0 ]]; then
+    installVagrantLinux
+  else
+    installVagrantDarwin
+  fi
+}
+
+installVagrantLinux() {
+  local vagrantDeb="/tmp/vagrant-1.8.1.deb"
+
+  if ! curl -o $vagrantDeb "$vagrantUrlLinux"; then
+    die "error: failed to download vagrant"
+  fi
+
+  if ! sudo dpkg -i $vagrantDeb; then
+    die "error: failed to install vagrant"
+  fi
+}
+
+installVagrantDarwin() {
+  local vagrantDmg="/tmp/vagrant-1.8.1.dmg"
+
+  if ! curl -o $vagrantDmg "$vagrantUrlDarwin"; then
+    die "error: failed to download vagrant"
+  fi
+
+  sudo hdiutil attach $vagrantDmg
+  sudo installer -pkg "/Volumes/Vagrant/Vagrant.pkg" -target /
+  diskutil unmount force "/Volumes/Vagrant"
+}
 
 if [ -z "$1" ]; then
   cat << EOF
@@ -175,9 +287,11 @@ EOF
     installFuseOnDarwinOnly
   fi
 
+  installVagrantProviderDeps
+
   echo
   ;;
-  windows|linux)
+  windows)
     cat << EOF
 Error: This platform is not supported at this time.
 EOF
@@ -214,8 +328,6 @@ Please run the following command for more information:
 
 EOF
 
-isVirtualbox=$(VBoxHeadless -h 2>&1 | grep -c 'Oracle VM VirtualBox Headless Interface')
-isVagrant=$(vagrant version 2>&1 | grep -c 'Installed Version:')
 kiteQueryID=$(kd version 2>/dev/null | grep 'Kite Query ID' | cut -d: -f 2 | tr -s ' ')
 
 if [[ $isVirtualbox -eq 0 && $isVagrant -eq 0 ]]; then
@@ -249,7 +361,7 @@ EOF
 fi
 
 if [[ -n "$kiteQueryID" ]]; then
-	cat << EOF
+  cat << EOF
 Your Kite Query ID, which you can use as a credential for local provisioning, is:
 
     $kiteQueryID
