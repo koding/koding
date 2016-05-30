@@ -103,7 +103,7 @@ module.exports = (KONFIG, options, credentials) ->
       nginx             :
         locations       : [ { location : "/sourcemaps" } ]
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/servers/sourcemaps/index.js -c #{options.configName} -p #{KONFIG.sourcemaps.port}"
+        command         : "./watch-node #{options.projectRoot}/servers/sourcemaps/index.js"
 
     webserver           :
       group             : "webserver"

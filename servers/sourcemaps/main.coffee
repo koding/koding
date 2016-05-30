@@ -1,8 +1,10 @@
-{ argv }      = require 'optimist'
+express = require 'express'
+
+KONFIG = require 'koding-config-manage'
+
 process.title = 'koding-sourcemapserver'
 
-express = require 'express'
-app     = express()
+app = express()
 app.use '/sourcemaps/', express.static('client')
-app.listen argv.p
-console.log "[SOURCEMAP SERVER] running on port #{argv.p} pid:#{process.pid}"
+app.listen KONFIG.sourcemaps.port
+console.log "[SOURCEMAP SERVER] running on port #{KONFIG.sourcemaps.port} pid:#{process.pid}"
