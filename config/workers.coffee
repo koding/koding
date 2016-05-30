@@ -159,7 +159,7 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         stopwaitsecs    : 20
         command         :
-          run           : "#{GOBIN}/vmwatcher -c #{options.configName}"
+          run           : "#{GOBIN}/vmwatcher"
           watch         : "#{GOBIN}/watcher -run koding/vmwatcher"
       nginx             :
         locations       : [ { location: "/vmwatcher" } ]
