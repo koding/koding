@@ -88,24 +88,49 @@ module.exports = (options, credentials) ->
     publicKey: credentials.kontrol.publicKey
     privateKey: credentials.kontrol.privateKey
 
-  kloudPort = 5500
+  socialApiProxyUrl = "#{options.customDomain.local}/api/social"
+  vmwatcherPort = '6400'
+
   kloud =
-    port: kloudPort
-    userPrivateKeyFile: credentials.kloud.userPrivateKeyFile
-    userPublicKeyfile: credentials.kloud.userPublicKeyfile
-    privateKeyFile: credentials.kloud.privateKeyFile
-    publicKeyFile: credentials.kloud.publicKeyFile
-    secretKey: credentials.kloud.secretKey
+    port: kloudPort = 5500
+    kloudSecretKey: credentials.kloud.secretKey
+
+    mongoUrl: credentials.mongo
+
+    region: options.region
+    environment: options.environment
+    prodMode: options.configName is 'prod'
+    hostedZone: options.userSitesDomain
+
+    publicKey: credentials.kloud.publicKey
+    privateKey: credentials.kloud.privateKey
+
+    userPublicKey: credentials.kloud.userPublicKey
+    userPrivateKey: credentials.kloud.userPrivateKey
+
+    address: "http://localhost:#{kloudPort}/kite"
+
     kontrolUrl: kontrol.url
     registerUrl: "#{options.customDomain.public}/kloud/kite"
-    address: "http://localhost:#{kloudPort}/kite"
     tunnelUrl: "#{options.tunnelUrl}"
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
+
+    planEndpoint: "#{socialApiProxyUrl}/payments/subscriptions"
+    credentialEndPoint: "#{socialApiProxyUrl}/credential"
+    networkUsageEndpoint: "http://localhost:#{vmwatcherPort}"
+
+    janitorSecretKey: credentials.janitor.secretKey
+    vmWatcherSecretKey: credentials.vmwatcher.secretKey
+    paymentWebHookSecretKey: credentials.paymentwebhook.secretKey
+
+    awsAccessKeyId: credentials.awsKeys.vm_kloud.accessKeyId
+    awsSecretAcessKey: credentials.awsKeys.vm_kloud.secretAccessKey
+
   vmwatcher =
-    port: "6400"
+    port: vmwatcherPort
     awsKey: credentials.awsKeys.vm_vmwatcher.accessKeyId
     awsSecret: credentials.awsKeys.vm_vmwatcher.secretAccessKey
-    kloudSecretKey: kloud.secretKey
+    kloudSecretKey: kloud.kloudSecretKey
     kloudAddr: kloud.address
     connectToKlient: options.vmwatcherConnectToKlient
     debug: false,
@@ -149,10 +174,10 @@ module.exports = (options, credentials) ->
 
     sitemap                : { redisDB: 0, updateInterval: "1m" }
     limits                 : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
-    kloud                  : { secretKey: kloud.secretKey, address: kloud.address }
+    kloud                  : { secretKey: kloud.kloudSecretKey, address: kloud.address }
     geoipdbpath            : "#{options.projectRoot}/go/data/geoipdb"
     eventExchangeName      : "BrokerMessageBus"
-    proxyUrl               : "#{options.customDomain.local}/api/social"
+    proxyUrl               : socialApiProxyUrl
     port                   : "7000"
     configFilePath         : "#{options.projectRoot}/go/src/socialapi/config/#{options.configName}.toml"
     disableCaching         : no

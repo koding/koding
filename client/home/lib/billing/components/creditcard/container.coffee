@@ -11,6 +11,7 @@ module.exports = class CreditCardContainer extends React.Component
   getDataBindings: ->
     return {
       formValues: CardFormValues.getters.values
+      formErrors: CardFormValues.getters.errors
       paymentValues: PaymentFlux.getters.paymentValues
     }
 
@@ -21,10 +22,14 @@ module.exports = class CreditCardContainer extends React.Component
     @state = { formValues: null }
 
 
+  onInputValueChange: (type, value) -> CardFormValues.actions.setValue type, value
+
+
   render: ->
     <CreditCard
-      onInputValueChange={CardFormValues.actions.setValue}
+      onInputValueChange={@bound 'onInputValueChange'}
       formValues={@state.formValues}
+      formErrors={@state.formErrors}
       card={@state.paymentValues.get 'groupCreditCard'} />
 
 
