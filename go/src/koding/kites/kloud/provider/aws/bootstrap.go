@@ -3,8 +3,8 @@ package awsprovider
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"strconv"
+	"text/template"
 	"time"
 
 	"koding/kites/kloud/api/amazon"
@@ -88,6 +88,9 @@ func (s *Stack) bootstrap(arg *kloud.BootstrapRequest) (interface{}, error) {
 			return nil, err
 		}
 
+		s.Log.Debug("Bootstrap template:")
+		s.Log.Debug("%s", bootstrapTemplate)
+
 		if err := s.Builder.BuildTemplate(bootstrapTemplate, contentID); err != nil {
 			return nil, err
 		}
@@ -98,7 +101,7 @@ func (s *Stack) bootstrap(arg *kloud.BootstrapRequest) (interface{}, error) {
 		}
 
 		s.Log.Debug("Final bootstrap template:")
-		s.Log.Debug(finalBootstrap)
+		s.Log.Debug("%s", finalBootstrap)
 
 		// Important so bootstraping is distributed amongs multiple users. If I
 		// use these keys to bootstrap, any other user should be not create
