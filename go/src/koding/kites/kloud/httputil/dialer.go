@@ -44,6 +44,7 @@ func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
 
 func (d *Dialer) init() {
 	d.conns = make(map[*Conn]struct{})
+	// never stopped as it is designed to live throughout whole process lifetime
 	d.tick = time.NewTicker(d.tickInterval())
 	go d.process()
 }

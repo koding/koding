@@ -80,11 +80,18 @@ func MustGet() *Config {
 func MustRead(path string) *Config {
 	conf = &Config{}
 
+	loaders := []multiconfig.Loader{}
+
+	if path != "" {
+		tomlLoader := &multiconfig.TOMLLoader{Path: path}
+		loaders = append(loaders, tomlLoader)
+	}
+
+	envLoader := &multiconfig.EnvironmentLoader{Prefix: "KONFIG_SOCIALAPI"}
+	loaders = append(loaders, envLoader)
+
 	d := &multiconfig.DefaultLoader{
-		Loader: multiconfig.MultiLoader(
-			&multiconfig.TOMLLoader{Path: path},
-			&multiconfig.EnvironmentLoader{Prefix: "KONFIG_SOCIALAPI"},
-		),
+		Loader: multiconfig.MultiLoader(loaders...),
 	}
 
 	if err := d.Load(conf); err != nil {
