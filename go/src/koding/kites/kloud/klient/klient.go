@@ -173,10 +173,12 @@ func (k *Klient) IpAddress() (string, error) {
 
 func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient, error) {
 	timeout := time.After(t)
+	ticker := time.NewTicker(4 * time.Second)
+	defer ticker.Stop()
 
 	for {
 		select {
-		case <-time.Tick(time.Second * 4):
+		case <-ticker.C:
 			k.Log.Debug("trying to connect to klient: %s", queryString)
 
 			if klient, err := Connect(k, queryString); err == nil {
