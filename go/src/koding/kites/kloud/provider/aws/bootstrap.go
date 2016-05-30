@@ -1,11 +1,13 @@
 package awsprovider
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
+	"html/template"
 	"strconv"
 	"time"
 
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
@@ -61,34 +63,42 @@ func (s *Stack) bootstrap(arg *kloud.BootstrapRequest) (interface{}, error) {
 			return nil, err
 		}
 
+		opts := meta.Options()
+		opts.Log = s.Log.New("amazon")
+
+		availabilityZone := "${lookup(var.aws_availability_zones, var.aws_region)}"
+
+		if c, err := amazon.NewClient(opts); err == nil && len(c.Zones) != 0 {
+			availabilityZone = c.Zones[0]
+		}
+
 		s.Log.Debug("Fetching the AWS user information to get the account ID: %s", awsAccountID)
 
 		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, arg.GroupName, cred.Identifier)
 		s.Log.Debug("Building template: %s", contentID)
 
-		if err := s.Builder.BuildTemplate(awsBootstrap, contentID); err != nil {
+		keyName := "koding-deployment-" + s.Req.Username + "-" + arg.GroupName + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		bootstrapTemplate, err := newTemplate(&awsTemplateData{
+			AvailabilityZone: availabilityZone,
+			KeyPairName:      keyName,
+			PublicKey:        s.Keys.PublicKey,
+			EnvironmentName:  fmt.Sprintf("Koding-%s-Bootstrap", arg.GroupName),
+		})
+		if err != nil {
 			return nil, err
 		}
 
-		keyName := "koding-deployment-" + s.Req.Username + "-" + arg.GroupName + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		if err := s.Builder.BuildTemplate(bootstrapTemplate, contentID); err != nil {
+			return nil, err
+		}
 
 		finalBootstrap, err := s.Builder.Template.JsonOutput()
 		if err != nil {
 			return nil, err
 		}
 
-		finalBootstrap, err = appendAWSTemplateData(finalBootstrap, &awsTemplateData{
-			KeyPairName:     keyName,
-			PublicKey:       s.Keys.PublicKey,
-			EnvironmentName: fmt.Sprintf("Koding-%s-Bootstrap", arg.GroupName),
-		})
-
 		s.Log.Debug("Final bootstrap template:")
 		s.Log.Debug(finalBootstrap)
-
-		if err != nil {
-			return nil, err
-		}
 
 		// Important so bootstraping is distributed amongs multiple users. If I
 		// use these keys to bootstrap, any other user should be not create
@@ -150,47 +160,26 @@ func (s *Stack) bootstrap(arg *kloud.BootstrapRequest) (interface{}, error) {
 	return true, nil
 }
 
-func appendAWSTemplateData(template string, awsData *awsTemplateData) (string, error) {
-	var data struct {
-		Output   map[string]map[string]interface{} `json:"output,omitempty"`
-		Resource map[string]map[string]interface{} `json:"resource,omitempty"`
-		Provider map[string]map[string]interface{} `json:"provider,omitempty"`
-		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
-	}
+func newTemplate(awsData *awsTemplateData) (string, error) {
+	var buf bytes.Buffer
 
-	if err := json.Unmarshal([]byte(template), &data); err != nil {
+	if err := awsBootstrap.Execute(&buf, awsData); err != nil {
 		return "", err
 	}
 
-	data.Variable["key_name"] = map[string]interface{}{
-		"default": awsData.KeyPairName,
-	}
-
-	data.Variable["public_key"] = map[string]interface{}{
-		"default": awsData.PublicKey,
-	}
-
-	data.Variable["environment_name"] = map[string]interface{}{
-		"default": awsData.EnvironmentName,
-	}
-
-	out, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return "", err
-	}
-
-	return string(out), nil
+	return buf.String(), nil
 }
 
 // awsTemplateData is being used to format the bootstrap before we pass it to
 // terraformer
 type awsTemplateData struct {
-	KeyPairName     string
-	PublicKey       string
-	EnvironmentName string
+	AvailabilityZone string
+	KeyPairName      string
+	PublicKey        string
+	EnvironmentName  string
 }
 
-var awsBootstrap = `{
+var awsBootstrap = template.Must(template.New("").Parse(`{
     "provider": {
         "aws": {
             "access_key": "${var.aws_access_key}",
@@ -246,7 +235,7 @@ var awsBootstrap = `{
         },
         "aws_subnet": {
             "main_koding_subnet": {
-                "availability_zone": "${lookup(var.aws_availability_zones, var.aws_region)}",
+                "availability_zone": "{{.AvailabilityZone}}",
                 "cidr_block": "${var.cidr_block}",
                 "map_public_ip_on_launch": true,
                 "tags": {
@@ -339,6 +328,15 @@ var awsBootstrap = `{
                 "us-west-1": "ami-b33dccf7",
                 "us-west-2": "ami-8d5b5dbd"
             }
-        }
+        },
+		"key_name": {
+			"default": "{{.KeyPairName}}"
+		},
+		"public_key": {
+			"default": "{{.PublicKey}}"
+		},
+		"environment_name": {
+			"default": "{{.EnvironmentName}}"
+		}
     }
-}`
+}`))

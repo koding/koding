@@ -76,11 +76,21 @@ func (meta *AwsMeta) BootstrapValid() error {
 	return nil
 }
 
-func (meta *AwsMeta) session() *session.Session {
-	return amazon.NewSession(&amazon.ClientOptions{
-		Credentials: credentials.NewStaticCredentials(meta.AccessKey, meta.SecretKey, ""),
+// Credentials creates new AWS credentials value from the given meta.
+func (meta *AwsMeta) Credentials() *credentials.Credentials {
+	return credentials.NewStaticCredentials(meta.AccessKey, meta.SecretKey, "")
+}
+
+// Options creates new amazon client options.
+func (meta *AwsMeta) Options() *amazon.ClientOptions {
+	return &amazon.ClientOptions{
+		Credentials: meta.Credentials(),
 		Region:      meta.Region,
-	})
+	}
+}
+
+func (meta *AwsMeta) session() *session.Session {
+	return amazon.NewSession(meta.Options())
 }
 
 const arnPrefix = "arn:aws:iam::"
