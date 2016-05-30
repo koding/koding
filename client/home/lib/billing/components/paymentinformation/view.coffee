@@ -16,6 +16,9 @@ module.exports = class PaymentInformation extends React.Component
   pickValue: (type) -> @props.formValues.get type
 
 
+  pickError: (type) -> @props.formErrors.get type
+
+
   render: ->
 
     <section className='HomeAppView--section billing'>
@@ -25,26 +28,31 @@ module.exports = class PaymentInformation extends React.Component
           className={inputClass 'full-name'}
           value={@pickValue 'fullName'}
           onChange={@sendValue 'fullName'}
-          placeholder='Enter your name and surname...' />
+          placeholder={@props.fullName} />
       </fieldset>
       <fieldset className='email'>
-        <label className='HomeAppView-label'>E-mail Address</label>
-        <input
-          className={inputClass 'email'}
+        <label className='HomeAppView-label'>Billing Email Address</label>
+        <Email
           value={@pickValue 'email'}
           onChange={@sendValue 'email'}
-          placeholder='Enter your e-mail...' />
+          userEmail={@props.userEmail} />
       </fieldset>
       <ActionBar
         onRemoveCard={@props.onRemoveCard}
         onPaymentHistory={@props.onPaymentHistory}
-        onSave={@props.onSave} />
+        onSave={@props.onSave}
+        onCancel={@props.onCancel}
+        showCancelButton={@props.formValues.get 'isEdited'} />
     </section>
 
 
-inputClass = (name) -> ['HomeAppView-input', 'HomeAppView-input--cc-form', name].filter(Boolean).join ' '
+inputClass = (name) -> ['HomeAppView-input', name].filter(Boolean).join ' '
 
-ActionBar = ({ onRemoveCard, onPaymentHistory, onSave }) ->
+ActionBar = ({ onRemoveCard, onPaymentHistory, onSave, onCancel, showCancelButton }) ->
+
+  className = 'HomeAppView--button fr hideCancelButton'
+  className = 'HomeAppView--button fr showCancelButton'  if showCancelButton
+
 
   <fieldset className="HomeAppView--ActionBar">
     <a className="HomeAppView--button" href="#" onClick={onRemoveCard}>
@@ -56,5 +64,19 @@ ActionBar = ({ onRemoveCard, onPaymentHistory, onSave }) ->
     <button className="GenericButton medium fr" href="#" onClick={onSave}>
       <span className="button-title">SAVE</span>
     </button>
+    <a className={className} href="#" onClick={onCancel}>
+      <span className="title">CANCEL</span>
+    </a>
   </fieldset>
+
+
+Email = ({ value, onChange, userEmail}) ->
+
+  <div>
+    <input
+      className={inputClass 'email'}
+      value={value}
+      onChange={onChange}
+      placeholder="#{userEmail}" />
+  </div>
 
