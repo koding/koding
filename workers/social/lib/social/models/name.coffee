@@ -34,37 +34,6 @@ module.exports = class JName extends Model
       type            : Date
       default         : -> new Date
 
-  @cycleSecretName = (name, callback) ->
-    JSecretName = require './secretname'
-    JSecretName.one { name }, (err, secretNameObj) ->
-      if err then callback err
-      else unless secretNameObj?
-        callback new KodingError "Unknown name #{name} (Maybe non of the participants are using Broker anymore)"
-      else
-        oldSecretName = secretNameObj.secretName
-        secretName    = createId()
-        secretNameObj.update {
-          $set: { oldSecretName, secretName }
-        }, -> callback null, oldSecretName, secretName
-        setTimeout ->
-          secretNameObj.update { $unset: { oldSecretName: 1 } }, ->
-        , 5000
-
-  @fetchSecretName = (name, callback) ->
-    JSecretName = require './secretname'
-    JSecretName.one { name }, (err, secretNameObj) ->
-      if err then callback err
-      else unless secretNameObj
-        secretNameObj = new JSecretName { name }
-        secretNameObj.save (err) ->
-          if err then callback err
-          else callback null, secretNameObj.secretName
-      else
-        # TODO: we could possibly try to create the conversation slice by
-        #  observing an event that we could emit from here.
-        #@emit 'channel-control'
-        callback null, secretNameObj.secretName, secretNameObj.oldSecretName
-
   stripTemplate = (konstructor, nameStr) ->
     { slugTemplate } = konstructor#Base.constructors[@constructorName]
     return nameStr  unless slugTemplate

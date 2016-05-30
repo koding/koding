@@ -27,8 +27,6 @@ version=$(git rev-parse HEAD || cat ./VERSION || cat ../VERSION || cat ../../../
 ldflags="-X koding/artifact.VERSION${LINK_OPERATOR}${version:0:8}"
 
 services=(
-  koding/broker
-  koding/rerouting
   koding/kites/kontrol
   koding/kites/kloud
   koding/kites/kloud/kloudctl
@@ -92,8 +90,6 @@ services=(
 `which go` install -v -ldflags "$ldflags" "${services[@]}"
 
 cd $GOPATH
-mkdir -p build/broker
-cp bin/broker build/broker/broker
 
 # build terraform services
 terraformservices=(
