@@ -38,6 +38,19 @@ module.exports = (options, credentials) ->
     authAllExchange: "authAll"
     failoverUri: "#{options.customDomain.public}"
 
+  tunnelproxymanager =
+    ebEnvName: options.ebEnvName
+
+    accessKeyId:     credentials.awsKeys.worker_tunnelproxymanager.accessKeyId
+    secretAccessKey: credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey
+
+    route53AccessKeyId: credentials.awsKeys.worker_tunnelproxymanager_route53.accessKeyId
+    route53SecretAccessKey: credentials.awsKeys.worker_tunnelproxymanager_route53.secretAccessKey
+
+    hostedZone:
+        name: options.tunnelHostedZoneName
+        callerReference: options.tunnelHostedZoneCallerRef
+
   tunnelserver =
     port           : 80
     basevirtualhost: "koding.me"
@@ -233,6 +246,7 @@ module.exports = (options, credentials) ->
     paymentwebhook                : paymentwebhook
     regions                       : regions
     broker                        : broker
+    tunnelproxymanager            : tunnelproxymanager
     tunnelserver                  : tunnelserver
     hubspotPageURL                : hubspotPageURL
     socialapi                     : socialapi
