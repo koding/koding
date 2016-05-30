@@ -272,8 +272,9 @@ func (s *Stack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
 	// because apply can last long, we are going to increment the eventer's
 	// percentage as long as we build automatically.
 	go func() {
-		ticker := time.NewTicker(time.Second * 5)
 		start := 45
+		ticker := time.NewTicker(time.Second * 5)
+		defer ticker.Stop()
 
 		for {
 			select {

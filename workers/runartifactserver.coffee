@@ -1,4 +1,4 @@
-module.exports = (name = '') ->
+module.exports = (name = '', options = {}) ->
   { argv }     = require 'optimist'
   express      = require 'express'
   cors         = require 'cors'
@@ -20,4 +20,4 @@ module.exports = (name = '') ->
   app.get '/healthCheck', (req, res) ->
     res.send "#{name} is running with version: #{KONFIG.version}"
 
-  app.listen argv.p
+  app.listen options.port

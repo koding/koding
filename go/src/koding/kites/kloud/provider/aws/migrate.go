@@ -10,6 +10,7 @@ import (
 
 	"koding/db/models"
 	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/provider/koding"
@@ -83,6 +84,21 @@ func diff(lhs []*models.Machine, rhs []string) []string {
 
 // Migrate
 func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateRequest) (interface{}, error) {
+	mp.pushEvent(0, "Migration has started")
+
+	resp, err := mp.migrate(ctx, req)
+	if err != nil {
+		mp.pushError(err)
+
+		return nil, err
+	}
+
+	mp.pushEvent(100, "Migration has finished")
+
+	return resp, nil
+}
+
+func (mp *MigrateProvider) migrate(ctx context.Context, req *kloud.MigrateRequest) (interface{}, error) {
 	b := mp.Stack.Builder
 
 	b.Stack = &stackplan.Stack{
@@ -96,7 +112,7 @@ func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateReques
 		rt.Hijack()
 	}
 
-	// TODO: eventer: build machines
+	mp.pushEvent(10, "Fetching and validating machines")
 
 	if err := b.BuildMachines(ctx); err != nil {
 		return nil, err
@@ -164,7 +180,7 @@ func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateReques
 		return nil, merr
 	}
 
-	// TODO: eventer: Build credentials
+	mp.pushEvent(20, "Fetching and validating credentials")
 
 	if err := b.BuildCredentials(mp.Stack.Req.Method, mp.Stack.Req.Username, req.GroupName, []string{req.Identifier}); err != nil {
 		return nil, err
@@ -227,7 +243,7 @@ func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateReques
 	go func() {
 		method := strings.ToUpper(mp.Stack.Req.Method)
 
-		if err := mp.migrate(ctx, req, accountID, user); err != nil {
+		if err := mp.migrateAsync(ctx, req, accountID, user); err != nil {
 			mp.Log.Error("======> %s finished with error (time: %s): '%s' <======", method,
 				time.Since(mp.start), err)
 		} else {
@@ -240,13 +256,36 @@ func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateReques
 	}, nil
 }
 
-func (mp *MigrateProvider) migrate(ctx context.Context, req *kloud.MigrateRequest,
+func (mp *MigrateProvider) migrateAsync(ctx context.Context, req *kloud.MigrateRequest,
 	accountID string, user *amazon.Client) error {
 	defer mp.unlock()
 
 	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
 		defer rt.Send()
 	}
+
+	done := make(chan struct{})
+
+	// TODO(rjeczalik): increment real progress, adding checkpoints e.g. after
+	// WaitImage methods in migrateSingle method, for now it's faked.
+	go func() {
+		progress := 25
+		ticker := time.NewTicker(time.Second * 5)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-done:
+				return
+			case <-ticker.C:
+				if progress < 90 {
+					progress += 5
+				}
+
+				mp.pushEvent(progress, "Migrating Koding resources")
+			}
+		}
+	}()
 
 	var wg sync.WaitGroup
 
@@ -273,10 +312,13 @@ func (mp *MigrateProvider) migrate(ctx context.Context, req *kloud.MigrateReques
 	}
 
 	wg.Wait()
+	close(done)
 
 	if err := mp.Err(); err != nil {
 		return err
 	}
+
+	mp.pushEvent(95, "Creating stack template")
 
 	var (
 		stack = newStackTemplate()
@@ -478,6 +520,26 @@ func (mp *MigrateProvider) Err() error {
 	}
 
 	return merr
+}
+
+func (mp *MigrateProvider) pushEvent(percentage int, message string) {
+	if mp.Stack.Eventer != nil {
+		mp.Stack.Eventer.Push(&eventer.Event{
+			Percentage: percentage,
+			Status:     machinestate.Building,
+			Message:    message,
+		})
+	}
+}
+
+func (mp *MigrateProvider) pushError(err error) {
+	if mp.Stack.Eventer != nil {
+		mp.Stack.Eventer.Push(&eventer.Event{
+			Percentage: 100,
+			Status:     machinestate.NotInitialized,
+			Error:      err.Error(),
+		})
+	}
 }
 
 // Migrate
