@@ -48,10 +48,7 @@ module.exports = class BasePageController extends kd.Controller
 
     @pages.push @loader  if @loader
 
-    if queue.length > 0
-      async.parallel queue, => @emit 'ready'
-    else
-      @emit 'ready'
+    async.parallel queue, => @emit 'ready'
 
 
   _setCurrentPage: (page) ->
