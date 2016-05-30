@@ -1,4 +1,5 @@
 kd = require 'kd'
+validator = require 'validator'
 appendHeadElement = require 'app/util/appendHeadElement'
 constants = require './constants'
 actionTypes = require './actiontypes'
@@ -27,6 +28,26 @@ loadStripeClient = ({ dispatch, evaluate }) -> ->
       resolve()
 
 
+validateTokenOptions = (tokenOptions) ->
+
+  validators =
+    number: Stripe.card.validateCardNumber
+    cvc: Stripe.card.validateCVC
+    exp_month: (value) -> value
+    exp_year: (value) -> value
+    email: validator.isEmail
+
+  errors = Object.keys(validators).reduce (final, key) ->
+    fn = validators[key]
+    value = tokenOptions[key]
+    final[key] = not fn(value)
+
+    return final
+  , {}
+
+  return if Object.keys(errors).length then errors else null
+
+
 createStripeToken = ({ dispatch, evaluate }) -> (options) ->
 
   tokenOptions =
@@ -35,9 +56,20 @@ createStripeToken = ({ dispatch, evaluate }) -> (options) ->
     exp_month : options.cardMonth
     exp_year  : options.cardYear
     name      : options.cardName
+    email     : options.cardEmail
 
   return new Promise (resolve, reject) ->
     loadStripeClient({ dispatch, evaluate })().then ->
+
+      errors = validateTokenOptions tokenOptions
+
+      errorKeys = Object.keys(errors).filter (key) -> errors[key]
+
+      if errorKeys.length
+        errorKeys.forEach (key) ->
+          dispatch actionTypes.CREATE_STRIPE_TOKEN_FAIL, { err: { param: key } }
+        return
+
       Stripe.card.createToken tokenOptions, (status, response) ->
         if err = response.error
           dispatch actionTypes.CREATE_STRIPE_TOKEN_FAIL, { err }
