@@ -533,12 +533,29 @@ $warningColor               = #f2778a
         color               rgba(0,0,0,0.5)
         text-align          left
         padding-top         17px
+        padding-bottom      21px
+
+      .GenericButton.secondary
+        margin              0
 
       .background
         abs()
         top                 105px
         left                100px
         r-sprite            'app', 'buildstack_art_success'
+
+
+  .build-stack-logs-page
+
+    .wizard-step.current
+      bg                    color, #57a2d2
+      color                 rgba(0,0,0,0.3)
+
+      .icon
+        r-sprite            'app', 'checkmark'
+
+      .alien
+        hidden()
 
 
   .start-machine-page

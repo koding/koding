@@ -2,6 +2,7 @@ kd = require 'kd'
 BuildStackPageView = require '../views/buildstackpageview'
 BuildStackErrorPageView = require '../views/buildstackerrorpageview'
 BuildStackSuccessPageView = require '../views/buildstacksuccesspageview'
+BuildStackLogsPageView = require '../views/buildstacklogspageview'
 constants = require '../constants'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
 
@@ -21,14 +22,17 @@ module.exports = class BuildStackController extends kd.Controller
     @buildStackPage = new BuildStackPageView { stackName : stack.title }
     @errorPage = new BuildStackErrorPageView()
     @successPage = new BuildStackSuccessPageView()
+    @logsPage = new BuildStackLogsPageView()
 
     @forwardEvent @errorPage, 'CredentialsRequested'
     @errorPage.on 'RebuildRequested', =>
       @updateProgress() # reset previous values
       @emit 'RebuildRequested'
     @forwardEvent @successPage, 'ClosingRequested'
+    @successPage.on 'LogsRequested', => container.showPage @logsPage
+    @forwardEvent @logsPage, 'ClosingRequested'
 
-    container.appendPages @buildStackPage, @errorPage, @successPage
+    container.appendPages @buildStackPage, @errorPage, @successPage, @logsPage
 
 
   updateProgress: (percentage, message) ->
