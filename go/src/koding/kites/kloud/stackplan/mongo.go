@@ -178,9 +178,11 @@ func (db *mongoDatabase) Migrate(opts *MigrateOptions) error {
 	}
 
 	change := bson.M{
-		"meta.migration.modifiedAt":      time.Now(),
-		"meta.migration.status":          MigrationMigrated,
-		"meta.migration.stackTemplateId": stack.Id,
+		"$set": bson.M{
+			"meta.migration.modifiedAt":      time.Now(),
+			"meta.migration.status":          MigrationMigrated,
+			"meta.migration.stackTemplateId": stack.Id,
+		},
 	}
 
 	for _, id := range opts.MachineIDs {
