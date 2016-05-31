@@ -10,7 +10,7 @@ readonly vagrantUrlDarwin="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_
 
 alias curl='curl -L --retry 5 --retry-delay 0'
 
-isMacosx=$(uname -v | grep -Ec '^Darwin Kernel.*')
+isMacosx=$(uname | grep -c 'Darwin')
 isVirtualbox=$(VBoxHeadless -h 2>&1 | grep -c 'Oracle VM VirtualBox Headless Interface')
 isVagrant=$(vagrant version 2>&1 | grep -c 'Installed Version:')
 
