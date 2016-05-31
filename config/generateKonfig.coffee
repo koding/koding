@@ -144,7 +144,7 @@ module.exports = (options, credentials) ->
     paymentWebHookSecretKey: credentials.paymentwebhook.secretKey
 
     awsAccessKeyId: credentials.awsKeys.vm_kloud.accessKeyId
-    awsSecretAcessKey: credentials.awsKeys.vm_kloud.secretAccessKey
+    awsSecretAccessKey: credentials.awsKeys.vm_kloud.secretAccessKey
 
   vmwatcher =
     port: vmwatcherPort
