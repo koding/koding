@@ -10,6 +10,7 @@ import (
 type StackTemplateConfig struct {
 	RequiredData      map[string][]string `bson:"requiredData"`
 	RequiredProviders []string            `bson:"requiredProviders"`
+	Verified          bool                `bson:"verified"`
 }
 
 // StackTemplate is a document from jStackTemplates collection
@@ -18,8 +19,10 @@ type StackTemplate struct {
 	AccessLevel string        `bson:"accessLevel"`
 
 	Template struct {
-		Content string `bson:"content"`
-		Sum     string `bson:"sum"`
+		Content    string `bson:"content"`
+		RawContent string `bson:"rawContent"`
+		Sum        string `bson:"sum"`
+		Details    bson.M `bson:"details"`
 	} `bson:"template"`
 
 	Config      *StackTemplateConfig `bson:"config"`
@@ -40,12 +43,14 @@ func NewStackTemplate(provider, identifier string) *StackTemplate {
 		AccessLevel: "group",
 		Config: &StackTemplateConfig{
 			RequiredData: map[string][]string{
-				"user": {"username"},
+				"user":  {"username"},
+				"group": {"slug"},
 			},
 			RequiredProviders: []string{
 				"koding",
 				provider,
 			},
+			Verified: true,
 		},
 		Credentials: map[string][]string{
 			provider: {identifier},
@@ -62,4 +67,5 @@ func NewStackTemplate(provider, identifier string) *StackTemplate {
 			"likes":      0,
 		},
 	}
+
 }
