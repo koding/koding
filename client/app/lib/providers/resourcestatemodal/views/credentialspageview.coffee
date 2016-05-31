@@ -89,7 +89,7 @@ module.exports = class CredentialsPageView extends JView
     { title, description } = helpers.getTitleAndDescription @getData()
 
     """
-      <div class="credentials-page">
+      <div class="build-stack-flow credentials-page">
         <header>
           <h1>Build Your Stack</h1>
         </header>

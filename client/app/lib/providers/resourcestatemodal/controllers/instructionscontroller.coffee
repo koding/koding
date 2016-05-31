@@ -1,10 +1,9 @@
 kd = require 'kd'
-BasePageController = require './basepagecontroller'
 ReadmePageView = require '../views/readmepageview'
 StackTemplatePageView = require '../views/stacktemplatepageview'
 showError = require 'app/util/showError'
 
-module.exports = class InstructionsController extends BasePageController
+module.exports = class InstructionsController extends kd.Controller
 
   constructor: (options, data) ->
 
@@ -21,21 +20,26 @@ module.exports = class InstructionsController extends BasePageController
       return showError err  if err
 
       @createPages stackTemplate
-      @emit 'ready'
 
 
   createPages: (stackTemplate) ->
 
+    { container } = @getOptions()
+
     @readmePage = new ReadmePageView {}, stackTemplate
     @stackTemplatePage = new StackTemplatePageView {}, stackTemplate
-    @registerPages [ @readmePage, @stackTemplatePage ]
 
     @forwardEvent @readmePage, 'NextPageRequested'
-    @readmePage.on 'StackTemplateRequested', @lazyBound 'setCurrentPage', @stackTemplatePage
+    @readmePage.on 'StackTemplateRequested', => container.showPage @stackTemplatePage
     @forwardEvent @stackTemplatePage, 'NextPageRequested'
-    @stackTemplatePage.on 'ReadmeRequested',  @lazyBound 'setCurrentPage', @readmePage
+    @stackTemplatePage.on 'ReadmeRequested', => container.showPage @readmePage
+
+    container.appendPages @readmePage, @stackTemplatePage
+
+    @emit 'ready'
 
 
   show: ->
 
-    @ready => super
+    { container } = @getOptions()
+    container.showPage @readmePage
