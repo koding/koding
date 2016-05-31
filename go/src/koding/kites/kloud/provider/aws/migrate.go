@@ -579,7 +579,9 @@ func timestamp() int {
 
 type stackTemplate struct {
 	Provider map[string]interface{} `json:"provider"`
-	Resource map[string]interface{} `json:"resource"`
+	Resource struct {
+		Instances map[string]interface{} `json:"aws_instance"`
+	} `json:"resource"`
 }
 
 type instance struct {
@@ -589,19 +591,22 @@ type instance struct {
 }
 
 func newStackTemplate() *stackTemplate {
-	return &stackTemplate{
+	s := &stackTemplate{
 		Provider: map[string]interface{}{
 			"aws": map[string]string{
 				"access_key": "${var.aws_access_key}",
 				"secret_key": "${var.aws_secret_key}",
 			},
 		},
-		Resource: make(map[string]interface{}),
 	}
+
+	s.Resource.Instances = make(map[string]interface{})
+
+	return s
 }
 
 func (s *stackTemplate) addInstance(m *MigratedMachine) {
-	s.Resource[m.Label] = &instance{
+	s.Resource.Instances[m.Label] = &instance{
 		InstanceType: m.InstanceType,
 		AMI:          m.SourceAMI,
 		Tags: map[string]string{
