@@ -1,6 +1,6 @@
 express = require 'express'
 
-KONFIG = require 'koding-config-manage'
+KONFIG = require 'koding-config-manager'
 
 process.title = 'koding-sourcemapserver'
 
