@@ -1,5 +1,4 @@
 kd = require 'kd'
-BasePageController = require './basepagecontroller'
 StartMachinePageView = require '../views/startmachinepageview'
 StartMachineProgressPageView = require '../views/startmachineprogresspageview'
 StartMachineSuccessPageView = require '../views/startmachinesuccesspageview'
@@ -11,7 +10,7 @@ trackInitialTurnOn = require 'app/util/trackInitialTurnOn'
 constants = require '../constants'
 helpers = require '../helpers'
 
-module.exports = class MachineFlowController extends BasePageController
+module.exports = class MachineFlowController extends kd.Controller
 
   constructor: (options, data) ->
 
@@ -48,6 +47,7 @@ module.exports = class MachineFlowController extends BasePageController
 
     @bindToKloudEvents()
     @createPages()
+    @show()
 
 
   bindToKloudEvents: ->
@@ -82,14 +82,10 @@ module.exports = class MachineFlowController extends BasePageController
     @forwardEvent @startMachineSuccessPage, 'ClosingRequested'
     @stopMachineErrorPage.on 'StopMachine', @bound 'stopMachine'
 
-    @registerPages [
-      @startMachinePage
-      @startMachineProgressPage
-      @startMachineSuccessPage
-      @startMachineErrorPage
-      @stopMachineProgressPage
-      @stopMachineErrorPage
-    ]
+    container.appendPages(
+      @startMachinePage, @startMachineProgressPage, @startMachineSuccessPage,
+      @startMachineErrorPage, @stopMachineProgressPage, @stopMachineErrorPage
+    )
 
 
   updateStatus: (event, task) ->
@@ -122,14 +118,16 @@ module.exports = class MachineFlowController extends BasePageController
 
   show: ->
 
+    { container } = @getOptions()
+
     switch @state
       when 'Starting'
         return @updateProgress constants.INITIAL_PROGRESS_VALUE
       when 'Stopping'
         return @updateProgress constants.COMPLETE_PROGRESS_VALUE
       when 'Stopped'
-        @setCurrentPage page = @startMachinePage
-        return page
+        container.showPage @startMachinePage
+        return yes
 
 
   showError: (error) ->
@@ -144,8 +142,9 @@ module.exports = class MachineFlowController extends BasePageController
 
     return @show()  unless page
 
+    { container } = @getOptions()
+    container.showPage page
     page.setErrors [ error ]
-    @setCurrentPage page
 
 
   updateProgress: (percentage, message) ->
@@ -155,17 +154,20 @@ module.exports = class MachineFlowController extends BasePageController
       when 'Stopping' then @stopMachineProgressPage
     return  unless page
 
+    { container } = @getOptions()
+    container.showPage page
     page.updateProgress percentage, message
-    @setCurrentPage page
-    return page
+    return yes
 
 
   completeProcess: (message) ->
 
     if @state is 'Running' and @prevState is 'Starting'
       @checkIfResourceRunning 'StartCompleted'
-      @setCurrentPage page = @startMachineSuccessPage
-      return page
+
+      { container } = @getOptions()
+      container.showPage @startMachineSuccessPage
+      return yes
 
 
   startMachine: ->

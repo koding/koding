@@ -15,7 +15,7 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
     { initial } = @getOptions()
     @controller = new ResurceStateController { container: this, initial }, @getData()
-    @controller.on 'PageChanged', @bound 'setPositions'
+    @controller.on 'PaneDidShow', @bound 'setPositions'
     @controller.on 'ClosingRequested', @bound 'destroy'
     @forwardEvent @controller, 'IDEBecameReady'
     @forwardEvent @controller, 'MachineTurnOnStarted'

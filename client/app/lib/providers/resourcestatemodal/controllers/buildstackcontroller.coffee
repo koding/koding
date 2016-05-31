@@ -1,15 +1,11 @@
 kd = require 'kd'
-Machine = require 'app/providers/machine'
-BasePageController = require './basepagecontroller'
 BuildStackPageView = require '../views/buildstackpageview'
 BuildStackErrorPageView = require '../views/buildstackerrorpageview'
 BuildStackSuccessPageView = require '../views/buildstacksuccesspageview'
 constants = require '../constants'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
 
-module.exports = class BuildStackController extends BasePageController
-
-  { Running } = Machine.State
+module.exports = class BuildStackController extends kd.Controller
 
   constructor: (options, data) ->
 
@@ -20,6 +16,7 @@ module.exports = class BuildStackController extends BasePageController
   createPages: ->
 
     stack = @getData()
+    { container } = @getOptions()
 
     @buildStackPage = new BuildStackPageView { stackName : stack.title }
     @errorPage = new BuildStackErrorPageView()
@@ -31,24 +28,32 @@ module.exports = class BuildStackController extends BasePageController
       @emit 'RebuildRequested'
     @forwardEvent @successPage, 'ClosingRequested'
 
-    @registerPages [ @buildStackPage, @errorPage, @successPage ]
+    container.appendPages @buildStackPage, @errorPage, @successPage
 
 
   updateProgress: (percentage, message) ->
 
-    @setCurrentPage @buildStackPage
+    { container } = @getOptions()
+    container.showPage @buildStackPage
     @buildStackPage.updateProgress percentage, message
 
 
   completeProcess: ->
 
-    @setCurrentPage @successPage
-    @buildStackPage.updateProgress constants.COMPLETE_PROGRESS_VALUE
+    { container } = @getOptions()
+    container.showPage @successPage
 
 
   showError: (err) ->
 
     sendDataDogEvent 'MachineStateFailed'
 
-    @setCurrentPage @errorPage
+    { container } = @getOptions()
+    container.showPage @errorPage
     @errorPage.setErrors [ err ]
+
+
+  show: ->
+
+    { container } = @getOptions()
+    container.showPage @buildStackPage

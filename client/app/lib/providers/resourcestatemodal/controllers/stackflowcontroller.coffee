@@ -1,5 +1,5 @@
 kd = require 'kd'
-BasePageController = require './basepagecontroller'
+async = require 'async'
 InstructionsController = require './instructionscontroller'
 CredentialsController = require './credentialscontroller'
 BuildStackController = require './buildstackcontroller'
@@ -7,7 +7,7 @@ environmentDataProvider = require 'app/userenvironmentdataprovider'
 helpers = require '../helpers'
 constants = require '../constants'
 
-module.exports = class StackFlowController extends BasePageController
+module.exports = class StackFlowController extends kd.Controller
 
   constructor: (options, data) ->
 
@@ -17,7 +17,7 @@ module.exports = class StackFlowController extends BasePageController
     @state    = stack.status?.state
 
     @bindToKloudEvents()
-    @createPages()
+    @createControllers()
 
 
   bindToKloudEvents: ->
@@ -34,7 +34,7 @@ module.exports = class StackFlowController extends BasePageController
       eventListener.addListener 'apply', stack._id
 
 
-  createPages: ->
+  createControllers: ->
 
     { stack }     = @getData()
     { container } = @getOptions()
@@ -43,14 +43,18 @@ module.exports = class StackFlowController extends BasePageController
     @credentials  = new CredentialsController { container }, stack
     @buildStack   = new BuildStackController { container }, stack
 
-    @instructions.on 'NextPageRequested', @lazyBound 'setCurrentPage', @credentials
-    @credentials.on 'InstructionsRequested', @lazyBound 'setCurrentPage', @instructions
+    @instructions.on 'NextPageRequested', => @credentials.show()
+    @credentials.on 'InstructionsRequested', => @instructions.show()
     @credentials.on 'StartBuild', @bound 'startBuild'
-    @buildStack.on 'CredentialsRequested', @lazyBound 'setCurrentPage', @credentials
+    @buildStack.on 'CredentialsRequested', => @credentials.show()
     @buildStack.on 'RebuildRequested', => @credentials.submit()
     @forwardEvent @buildStack, 'ClosingRequested'
 
-    @registerPages [ @instructions, @credentials, @buildStack ]
+    queue = [
+      (next) => @instructions.ready next
+      (next) => @credentials.ready next
+    ]
+    async.parallel queue, @bound 'show'
 
 
   updateStatus: (event, task) ->
@@ -63,8 +67,6 @@ module.exports = class StackFlowController extends BasePageController
     return  unless helpers.isTargetEvent event, stack
 
     [ prevState, @state ] = [ @state, status ]
-
-    @setCurrentPage @buildStack
 
     if error
       @buildStack.showError error
@@ -107,17 +109,16 @@ module.exports = class StackFlowController extends BasePageController
   onKloudError: (response) ->
 
     { message } = response
-    @setCurrentPage @buildStack
     @buildStack.showError message
 
 
   show: ->
 
-    page = switch @state
+    controller = switch @state
       when 'Building' then @buildStack
       when 'NotInitialized' then @instructions
 
-    @setCurrentPage page  if page
+    controller.show()  if controller
 
 
   destroy: ->

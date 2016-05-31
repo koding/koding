@@ -5,12 +5,11 @@ whoami  = require 'app/util/whoami'
 globals = require 'globals'
 remote  = require('app/remote').getInstance()
 KodingKontrol = require 'app/kite/kodingkontrol'
-BasePageController = require './basepagecontroller'
 CredentialsPageView = require '../views/credentialspageview'
 CredentialsErrorPageView = require '../views/credentialserrorpageview'
 constants = require '../constants'
 
-module.exports = class CredentialsController extends BasePageController
+module.exports = class CredentialsController extends kd.Controller
 
   constructor: (options, data) ->
 
@@ -37,6 +36,7 @@ module.exports = class CredentialsController extends BasePageController
   createPages: (credentials, requirements, kdCmd) ->
 
     stack = @getData()
+    { container } = @getOptions()
 
     @credentialsPage = new CredentialsPageView {}, {
       stack
@@ -47,9 +47,11 @@ module.exports = class CredentialsController extends BasePageController
 
     @forwardEvent @credentialsPage, 'InstructionsRequested'
     @credentialsPage.on 'Submitted', @bound 'onSubmitted'
-    @errorPage.on 'CredentialsRequested', @lazyBound 'setCurrentPage', @credentialsPage
+    @errorPage.on 'CredentialsRequested', => container.showPage @credentialsPage
 
-    @registerPages [ @credentialsPage, @errorPage ]
+    container.appendPages @credentialsPage, @errorPage
+
+    @emit 'ready'
 
 
   submit: -> @credentialsPage.submit()
@@ -57,6 +59,7 @@ module.exports = class CredentialsController extends BasePageController
 
   onSubmitted: (submissionData) ->
 
+    { container } = @getOptions()
     { credential, requirements } = submissionData
 
     queue = [
@@ -70,7 +73,7 @@ module.exports = class CredentialsController extends BasePageController
       errs = (item.err for item in results when item.err)
 
       if errs.length > 0
-        @setCurrentPage @errorPage
+        container.showPage @errorPage
         @errorPage.setErrors errs
       else
         identifiers = (item.identifier for item in results)
@@ -131,6 +134,12 @@ module.exports = class CredentialsController extends BasePageController
 
       @credentialsPage.selectNewRequirements newCredential
       callback null, { identifier : newCredential.identifier }
+
+
+  show: ->
+
+    { container } = @getOptions()
+    container.showPage @credentialsPage
 
 
   helpers =
