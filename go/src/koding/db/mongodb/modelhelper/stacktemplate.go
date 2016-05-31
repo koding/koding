@@ -29,18 +29,5 @@ func GetStackTemplate(id string) (*models.StackTemplate, error) {
 
 func CreateStackTemplate(tmpl *models.StackTemplate) error {
 	query := insertQuery(tmpl)
-	if err := Mongo.Run(StackTemplateColl, query); err != nil {
-		return err
-	}
-
-	user := &models.Relationship{
-		Id:         bson.NewObjectId(),
-		TargetId:   tmpl.Id,
-		TargetName: "JStackTemplate",
-		SourceId:   tmpl.OriginID,
-		SourceName: "JAccount",
-		As:         "user",
-	}
-
-	return AddRelationship(user)
+	return Mongo.Run(StackTemplateColl, query)
 }
