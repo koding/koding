@@ -871,18 +871,3 @@ module.exports =
             .waitForElementVisible roleSelector, 20000
             .assert.containsText roleSelector, invitation.accepted
             .pause 1000, -> callback()
-
-
-  gotoSettingsMenu: (browser, menuItemSelector) ->
-    menuSelector      = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
-    teamnameSelector  = '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
-
-    browser
-      .waitForElementVisible sidebarSelector, 20000
-      .click sidebarSelector
-      .waitForElementVisible teamnameSelector, 20000
-      .click teamnameSelector
-      .waitForElementVisible menuSelector, 2000
-      .pause 3000
-      .click menuItemSelector
-      .pause 3000
