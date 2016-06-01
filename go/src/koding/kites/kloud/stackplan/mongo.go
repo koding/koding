@@ -3,6 +3,7 @@ package stackplan
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"gopkg.in/yaml.v2"
 )
 
 var defaultDatabase Database = &mongoDatabase{
@@ -160,18 +162,27 @@ func (db *mongoDatabase) Migrate(opts *MigrateOptions) error {
 
 	stack.Title = opts.StackName
 	stack.OriginID = account.Id
+	stack.Template.Details = bson.M{
+		"lastUpdaterId": account.Id,
+	}
 	stack.Group = opts.GroupName
 	stack.Template.Content = opts.Template
 	stack.Template.Sum = hex.EncodeToString(sum[:])
+
+	if s, err := yamlReencode(opts.Template); err == nil {
+		stack.Template.RawContent = s
+	}
 
 	if err := modelhelper.CreateStackTemplate(stack); err != nil {
 		return fmt.Errorf("failed to create stack template: %s", err)
 	}
 
 	change := bson.M{
-		"meta.migration.modifiedAt":      time.Now(),
-		"meta.migration.status":          MigrationMigrated,
-		"meta.migration.stackTemplateId": stack.Id,
+		"$set": bson.M{
+			"meta.migration.modifiedAt":      time.Now(),
+			"meta.migration.status":          MigrationMigrated,
+			"meta.migration.stackTemplateId": stack.Id,
+		},
 	}
 
 	for _, id := range opts.MachineIDs {
@@ -187,4 +198,19 @@ func (db *mongoDatabase) Migrate(opts *MigrateOptions) error {
 	}
 
 	return nil
+}
+
+func yamlReencode(template string) (string, error) {
+	var m map[string]interface{}
+
+	if err := json.Unmarshal([]byte(template), &m); err != nil {
+		return "", err
+	}
+
+	p, err := yaml.Marshal(m)
+	if err != nil {
+		return "", err
+	}
+
+	return string(p), nil
 }

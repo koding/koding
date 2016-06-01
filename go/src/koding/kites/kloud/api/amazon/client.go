@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/private/waiter"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/koding/logging"
 )
@@ -911,11 +912,33 @@ func (i *Image) ID() string {
 // WaitImage blocks until an imgage given by the imageID becomes
 // available.
 func (c *Client) WaitImage(imageID string) error {
-	params := &ec2.DescribeImagesInput{
-		ImageIds: []*string{aws.String(imageID)},
+	w := waiter.Waiter{
+		Client: c.EC2,
+		Input: &ec2.DescribeImagesInput{
+			ImageIds: []*string{aws.String(imageID)},
+		},
+		Config: waiter.Config{
+			Operation:   "DescribeImages",
+			Delay:       15,
+			MaxAttempts: 120,
+			Acceptors: []waiter.WaitAcceptor{
+				{
+					State:    "success",
+					Matcher:  "pathAll",
+					Argument: "Images[].State",
+					Expected: "available",
+				},
+				{
+					State:    "failure",
+					Matcher:  "pathAny",
+					Argument: "Images[].State",
+					Expected: "failed",
+				},
+			},
+		},
 	}
 
-	return awsError(c.EC2.WaitUntilImageAvailable(params))
+	return awsError(w.Wait())
 }
 
 // AllowCopyImage modifies the image attributes to allow access
