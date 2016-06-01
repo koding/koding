@@ -4,7 +4,7 @@ generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 
 
 module.exports = updateStackTemplate = (data, callback) ->
-  console.trace('UPDATESTACKTEMPLATE')
+
   { template, templateDetails, credentials, description
     title, stackTemplate, machines, config, rawContent } = data
 
