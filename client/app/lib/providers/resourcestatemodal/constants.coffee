@@ -7,3 +7,5 @@ module.exports =
     used or add a new credential to be able to continue to the
     next step.
   '''
+  BUILD_LOG_FILE_PATH                   : '/var/log/cloud-init-output.log'
+  BUILD_LOG_TAIL_OFFSET                 : 15

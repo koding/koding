@@ -36,12 +36,12 @@ module.exports = class StackFlowController extends kd.Controller
 
   createControllers: ->
 
-    { stack }     = @getData()
-    { container } = @getOptions()
+    { stack, machine } = @getData()
+    { container }      = @getOptions()
 
     @instructions = new InstructionsController { container }, stack
     @credentials  = new CredentialsController { container }, stack
-    @buildStack   = new BuildStackController { container }, stack
+    @buildStack   = new BuildStackController { container }, { stack, machine }
 
     @instructions.on 'NextPageRequested', => @credentials.show()
     @credentials.on 'InstructionsRequested', => @instructions.show()

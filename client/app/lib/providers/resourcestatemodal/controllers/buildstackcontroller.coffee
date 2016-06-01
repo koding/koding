@@ -5,6 +5,7 @@ BuildStackSuccessPageView = require '../views/buildstacksuccesspageview'
 BuildStackLogsPageView = require '../views/buildstacklogspageview'
 constants = require '../constants'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
+FSHelper = require 'app/util/fs/fshelper'
 
 module.exports = class BuildStackController extends kd.Controller
 
@@ -16,13 +17,15 @@ module.exports = class BuildStackController extends kd.Controller
 
   createPages: ->
 
-    stack = @getData()
+    { stack } = @getData()
     { container } = @getOptions()
 
     @buildStackPage = new BuildStackPageView { stackName : stack.title }
     @errorPage = new BuildStackErrorPageView()
     @successPage = new BuildStackSuccessPageView()
-    @logsPage = new BuildStackLogsPageView()
+    @logsPage = new BuildStackLogsPageView {
+      tailOffset : constants.BUILD_LOG_TAIL_OFFSET
+    }, @getLogFile()
 
     @forwardEvent @errorPage, 'CredentialsRequested'
     @errorPage.on 'RebuildRequested', =>
@@ -33,6 +36,15 @@ module.exports = class BuildStackController extends kd.Controller
     @forwardEvent @logsPage, 'ClosingRequested'
 
     container.appendPages @buildStackPage, @errorPage, @successPage, @logsPage
+
+
+  getLogFile: ->
+
+    { machine } = @getData()
+    return FSHelper.createFileInstance {
+      machine
+      path : constants.BUILD_LOG_FILE_PATH
+    }
 
 
   updateProgress: (percentage, message) ->

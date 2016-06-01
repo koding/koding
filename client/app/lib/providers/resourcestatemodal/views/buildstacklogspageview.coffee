@@ -2,6 +2,7 @@ kd = require 'kd'
 JView = require 'app/jview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
+IDETailerPane = require 'ide/workspace/panes/idetailerpane'
 
 module.exports = class BuildStackLogsPageView extends JView
 
@@ -17,6 +18,16 @@ module.exports = class BuildStackLogsPageView extends JView
       cssClass : 'GenericButton'
       callback : @lazyBound 'emit', 'ClosingRequested'
 
+    { tailOffset } = @getOptions()
+
+    file = @getData()
+    @logsPane = new IDETailerPane {
+      file
+      tailOffset
+      delegate : this
+      cssClass : 'logs-pane'
+    }
+
 
   pistachio: ->
 
@@ -27,6 +38,7 @@ module.exports = class BuildStackLogsPageView extends JView
         </header>
         {{> @progressPane}}
         <section class="main">
+          {{> @logsPane}}
         </section>
         <footer>
           {{> @closeButton}}

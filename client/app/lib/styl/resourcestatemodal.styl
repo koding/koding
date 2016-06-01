@@ -547,6 +547,9 @@ $warningColor               = #f2778a
 
   .build-stack-logs-page
 
+    section.main
+      padding-top           80px
+
     .wizard-step.current
       bg                    color, #57a2d2
       color                 rgba(0,0,0,0.3)
@@ -556,6 +559,22 @@ $warningColor               = #f2778a
 
       .alien
         hidden()
+
+    .logs-pane
+      width                 840px
+      height                420px
+      margin                0 auto
+
+      .editor-main
+        bg                  color, #000
+
+      .description-view
+        height              0
+        padding             0
+        overflow            hidden
+
+      .ace_editor
+        color               #fff
 
 
   .start-machine-page
