@@ -20,7 +20,7 @@ module.exports = class BuildStackController extends kd.Controller
     { stack } = @getData()
     { container } = @getOptions()
 
-    @buildStackPage = new BuildStackPageView { stackName : stack.title }
+    @buildStackPage = new BuildStackPageView { stackName : stack.title }, @getLogFile()
     @errorPage = new BuildStackErrorPageView()
     @successPage = new BuildStackSuccessPageView()
     @logsPage = new BuildStackLogsPageView {
@@ -41,10 +41,12 @@ module.exports = class BuildStackController extends kd.Controller
   getLogFile: ->
 
     { machine } = @getData()
-    return FSHelper.createFileInstance {
-      machine
-      path : constants.BUILD_LOG_FILE_PATH
-    }
+
+    path = if machine.status.state is 'Running'
+    then constants.BUILD_LOG_FILE_PATH
+    else "localfile:/build-log-#{Date.now()}.txt"
+
+    return FSHelper.createFileInstance { path, machine }
 
 
   updateProgress: (percentage, message) ->

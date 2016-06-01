@@ -490,7 +490,25 @@ $warningColor               = #f2778a
     .status-text
       text-align            center
       color                 #585858
-      padding               25px 0
+      padding-top           25px
+      borderBox()
+      height                76px
+
+    .logs-pane
+      width                 600px
+      height                280px
+      margin                0 auto
+
+      .editor-main
+        bg                  color, #000
+
+      .description-view
+        height              0
+        padding             0
+        overflow            hidden
+
+      .ace_editor
+        color               #fff
 
 
   .build-stack-error-page
