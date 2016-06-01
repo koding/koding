@@ -379,8 +379,8 @@ module.exports =
     cvcSelector        = '.HomeAppView-input.cvc'
     monthSelector      = '.HomeAppView-selectBoxWrapper.expiration-month'
     yearSelector       = '.HomeAppView-selectBoxWrapper.expiration-year'
-    fullNameSelector   = '.HomeAppView-input.HomeAppView-input--cc-form.full-name'
-    emailSelector      = '.HomeAppView-input.HomeAppView-input--cc-form.email'
+    fullNameSelector   = '.HomeAppView-input.full-name'
+    emailSelector      = '.HomeAppView-input.email'
 
     browser
       .waitForElementVisible   paymentModal, 10000

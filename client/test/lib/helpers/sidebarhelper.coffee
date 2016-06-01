@@ -35,8 +35,8 @@ module.exports =
       .waitForElementVisible plusIconSelector, 20000
       .click plusIconSelector
       .waitForElementVisible createStackEditor, 20000, callback
-  
-  
+
+
   #Test Default Stack Settings Edit/Reinitialize/Vms
   testDefaultStackSettings: (browser, callback) ->
     browser
@@ -82,8 +82,8 @@ module.exports =
       .pause 2000
       .click reinitSelector
       .waitForElementVisible notificationSelector, 20000, callback
-   
-  
+
+
   testSettingsMenu: (browser, callback) ->
     @gotoSettingsMenu browser, myAccountSelector
     browser
@@ -96,7 +96,7 @@ module.exports =
       .waitForElementVisible chatlioWidget, 20000
     @gotoSettingsMenu browser, logoutSelector
 
-  
+
   gotoSettingsMenu: (browser, menuItemSelector) ->
     browser
       .waitForElementVisible sidebarSelector, 20000

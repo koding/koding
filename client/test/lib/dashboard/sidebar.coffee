@@ -40,12 +40,12 @@ module.exports =
 
 
   sidebar: (browser) ->
-   
+
     sidebarhelper.testStacksTitleEvents browser, ->
       sidebarhelper.testDefaultStackSettings browser, ->
         sidebarhelper.testDraftStackSettings browser, ->
-          sidebarhelper.testSettingsMenu browser        
+          sidebarhelper.testSettingsMenu browser
 
-  
+
   after: (browser) ->
     browser.end()
