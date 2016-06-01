@@ -1,7 +1,7 @@
 kd                  = require 'kd'
 React               = require 'kd-react'
 KDReactorMixin      = require 'app/flux/base/reactormixin'
-VirtualMachinesFlux = require 'home/virtualmachines/flux'
+VirtualMachinesSearchFlux = require 'home/virtualmachines/flux/search'
 View                = require './view'
 
 module.exports = class SharingAutocompleteContainer extends React.Component
@@ -17,21 +17,21 @@ module.exports = class SharingAutocompleteContainer extends React.Component
   getDataBindings: ->
 
     return {
-      searchItems: VirtualMachinesFlux.getters.sharingSearchItems @props.machineId
+      searchItems: VirtualMachinesSearchFlux.getters.sharingSearchItems @props.machineId
     }
 
 
   onSelect: (value, item) ->
 
     @setState { value : '' }
-    VirtualMachinesFlux.actions.resetSearchForSharing @props.machineId
+    VirtualMachinesSearchFlux.actions.resetSearchForSharing @props.machineId
     @props.onSelect value
 
 
   onChange: (event, value) ->
 
     @setState { value }
-    VirtualMachinesFlux.actions.searchForSharing value, @props.machineId
+    VirtualMachinesSearchFlux.actions.searchForSharing value, @props.machineId
 
 
   render: ->
