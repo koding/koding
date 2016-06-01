@@ -19,6 +19,8 @@ dashboardSelector = "#{menuSelector}:nth-of-type(2)"
 supportSelector   = "#{menuSelector}:nth-of-type(3)"
 logoutSelector    = "#{menuSelector}:nth-of-type(4)"
 chatlioWidget     = '.chatlio-widget'
+headerSelector    = '.HomeAppView--sectionHeader'
+WelcomeView       = '.WelcomeStacksView'
 
 module.exports =
 
@@ -99,8 +101,8 @@ module.exports =
 
   gotoSettingsMenu: (browser, menuItemSelector) ->
     browser
-      .waitForElementVisible sidebarSelector, 20000
-      .click sidebarSelector
+      .waitForElementVisible sideBarSelector, 20000
+      .click sideBarSelector
       .waitForElementVisible teamnameSelector, 20000
       .click teamnameSelector
       .waitForElementVisible menuSelector, 2000
