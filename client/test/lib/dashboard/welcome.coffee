@@ -16,9 +16,9 @@ module.exports =
     welcomehelper.dashboardScreenAdmin browser, ->
       welcomehelper.testTeamBillingScreen browser, ->
         teamsHelpers.logoutTeam browser, ->
-          welcomehelper.dashboardScreenMember browser        
+          welcomehelper.dashboardScreenMember browser   
 
-  
+
   after: (browser) ->
     browser.end()
 
