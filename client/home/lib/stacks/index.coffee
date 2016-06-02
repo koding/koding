@@ -16,7 +16,7 @@ HomeAccountCredentialsView = require '../account/credentials/homeaccountcredenti
 EnvironmentFlux = require 'app/flux/environment'
 
 AddManagedMachineModal = require 'app/providers/managed/addmanagedmachinemodal'
-
+VirtualMachinesSelectedMachineFlux = require 'home/virtualmachines/flux/selectedmachine'
 
 module.exports = class HomeStacks extends kd.CustomScrollView
 
@@ -58,10 +58,17 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
     for pane in @tabView.panes when kd.utils.slugify(pane.name) is action
       pane_ = @tabView.showPane pane
+      if action is 'virtual-machines'
+        VirtualMachinesSelectedMachineFlux.actions.setSelectedMachine null
       break
 
+  handleIdentifier: (identifier, action) ->
 
-
+    for pane in @tabView.panes when kd.utils.slugify(pane.name) is action
+      pane_ = @tabView.showPane pane
+      if action is 'virtual-machines'
+        VirtualMachinesSelectedMachineFlux.actions.setSelectedMachine identifier
+      break
 
   createStacksViews: ->
 
