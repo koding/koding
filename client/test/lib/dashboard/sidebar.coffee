@@ -40,12 +40,25 @@ module.exports =
 
 
   sidebar: (browser) ->
+    
+    queue = [
+      (next) ->
+        sidebarhelper.testStacksTitleEvents browser, (result) ->
+          next null, result
+      (next) ->
+        sidebarhelper.testDefaultStackSettings browser, (result) ->
+          next null, result
+      (next) ->
+        sidebarhelper.testDraftStackSettings browser, (result) ->
+          next null, result
+      (next) ->
+        sidebarhelper.testSettingsMenu browser, (result) ->
+          next null, result
+    ]
 
-    sidebarhelper.testStacksTitleEvents browser, ->
-      sidebarhelper.testDefaultStackSettings browser, ->
-        sidebarhelper.testDraftStackSettings browser, ->
-          sidebarhelper.testSettingsMenu browser
-
-
+    async.series queue, (err, result) ->
+      if err
+        console.log(err)
+   
   after: (browser) ->
     browser.end()

@@ -28,6 +28,7 @@ module.exports =
   testStacksTitleEvents: (browser, callback) ->
     browser
       .click sideBarSelector
+      .waitForElementVisible headerTitleSelector, 20000
       .click headerTitleSelector
       .waitForElementVisible '.HomeAppView', 20000
       .pause 1000
@@ -97,6 +98,7 @@ module.exports =
     browser
       .waitForElementVisible chatlioWidget, 20000
     @gotoSettingsMenu browser, logoutSelector
+    browser.waitForElementVisible '.TeamsModal--login', 20000, callback
 
 
   gotoSettingsMenu: (browser, menuItemSelector) ->
