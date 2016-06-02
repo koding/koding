@@ -25,7 +25,10 @@ func main() {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	exporter := eventexporter.NewSegmentIOExporter(appConfig.Segment, QueueLength)
+	segmentExporter := eventexporter.NewSegmentIOExporter(appConfig.Segment, QueueLength)
+	datadogExporter := eventexporter.NewDatadogExporter(r.DogStatsD)
+	exporter := eventexporter.NewMultiExporter(segmentExporter, datadogExporter)
+
 	constructor := emailsender.New(exporter, r.Log, appConfig)
 	r.ShutdownHandler = constructor.Close
 
