@@ -34,15 +34,15 @@ module.exports =
       .assert.containsText '.kdnotification', 'Copied to clipboard!'
       .pause 1000, done
 
-  
+
   checkViewGuideButton: (browser, buttonSelector, browserSelector, done) ->
     browser
       .click buttonSelector, (result) ->
         if result.state is 'success'
           helpers.switchBrowser browser, browserSelector
           browser.pause 1000, done
-  
-  
+
+
   toggleKodingButton: (browser, done) ->
     browser
       .url utilitiesLink
@@ -56,8 +56,8 @@ module.exports =
             .waitForElementVisible toggleButtonSelector, 10000
             .click toggleButtonSelector
       .pause 1000, done
-  
-  
+
+
   checkCodeBlock: (browser, done) ->
     browser
       .waitForElementVisible kodingBtncodeBlockSelector, 20000
@@ -91,7 +91,7 @@ module.exports =
       .assert.containsText '.kdnotification', saveButtonSaveResponse
       .pause 5000, done
 
-  
+
   checkChatlioLink: (browser, done) ->
     browser
       .click chatlioLink, (result) ->
