@@ -3,7 +3,7 @@ helpers = require '../helpers/helpers.js'
 utils = require '../utils/utils.js'
 async = require 'async'
 stackSelector = null
-sidebarhelper  = require '../helpers/sidebarhelper.js'
+sidebarhelper  = require '../helpers/sidebarhelpers.js'
 
 module.exports =
 
@@ -40,25 +40,24 @@ module.exports =
 
 
   sidebar: (browser) ->
-    
     queue = [
       (next) ->
-        sidebarhelper.testStacksTitleEvents browser, (result) ->
+        sidebarhelper.redirectMyAccountPage browser, (result) ->
           next null, result
       (next) ->
-        sidebarhelper.testDefaultStackSettings browser, (result) ->
+        sidebarhelper.redirectStackSettingsMenu browser, (result) ->
           next null, result
       (next) ->
-        sidebarhelper.testDraftStackSettings browser, (result) ->
+        sidebarhelper.redirectDraftStackSettingsMenu browser, (result) ->
           next null, result
       (next) ->
-        sidebarhelper.testSettingsMenu browser, (result) ->
+        sidebarhelper.openSettingsMenu browser, (result) ->
           next null, result
     ]
 
     async.series queue, (err, result) ->
       if err
         console.log(err)
-   
+
   after: (browser) ->
     browser.end()

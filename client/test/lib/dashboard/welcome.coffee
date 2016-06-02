@@ -1,6 +1,6 @@
 utils          = require '../utils/utils.js'
 teamsHelpers   = require '../helpers/teamshelpers.js'
-welcomehelper  = require '../helpers/welcomehelper.js'
+welcomehelper  = require '../helpers/welcomehelpers.js'
 async = require 'async'
 
 module.exports =
