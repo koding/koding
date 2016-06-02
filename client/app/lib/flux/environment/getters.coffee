@@ -153,6 +153,11 @@ privateStackTemplates = [
         .set 'isDefault', template.get('_id') in (getGroup().stackTemplates or [])
 ]
 
+disabledMembersStackTemplates = [
+  stacks
+  (_stacks) -> _stacks.filter (s) -> s.getIn(['config', 'oldOwner'])
+]
+
 inUseTeamStackTemplates = [
   teamStackTemplates
   (templates) -> templates.filter (t) -> t.get('inUse')
@@ -192,4 +197,5 @@ module.exports = {
   inUseTeamStackTemplates
   inUsePrivateStackTemplates
   draftStackTemplates
+  disabledMembersStackTemplates
 }

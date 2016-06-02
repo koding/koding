@@ -7,6 +7,7 @@ HomeStacksTeamStacks = require './homestacksteamstacks'
 HomeStacksPrivateStacks = require './homestacksprivatestacks'
 HomeStacksDrafts = require './homestacksdrafts'
 HomeStacksTabHandle = require './homestackstabhandle'
+HomeStacksDisabledMembersStacks = require './homestacksdisabledmembersstacks'
 
 HomeVirtualMachinesVirtualMachines = require '../virtualmachines/homevirtualmachinesvirtualmachines'
 HomeVirtualMachinesConnectedMachines = require '../virtualmachines/homevirtualmachinesconnectedmachines'
@@ -89,6 +90,9 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
     @stacks.addSubView headerize 'Drafts'
     @stacks.addSubView sectionize 'Drafts', HomeStacksDrafts, { delegate : this }
+
+    @stacks.addSubView headerize 'Disabled Members Stacks'
+    @stacks.addSubView sectionize 'Disabled Members Stacks', HomeStacksDisabledMembersStacks, { delegate : this }
 
 
   createVMsViews: ->
