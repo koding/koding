@@ -25,8 +25,6 @@ module.exports = class StackEditorAppController extends AppController
 
     { computeController } = kd.singletons
 
-    @mainView.destroySubViews()
-
     if stackTemplateId
       computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
         return showError err  if err
@@ -84,6 +82,9 @@ module.exports = class StackEditorAppController extends AppController
 
     options = { skipFullscreen: yes }
     data    = { stackTemplate, showHelpContent: not stackTemplate }
+
+    @mainView.destroySubViews()
+
     view    = new StackEditorView options, data
     view.on 'Cancel', -> kd.singletons.router.back()
 

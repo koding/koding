@@ -96,8 +96,28 @@ func TestFlattenAndCamelCaseFlags(t *testing.T) {
 	if err := m.Load(s); err != nil {
 		t.Error(err)
 	}
+}
 
-	testFlattenedStruct(t, s, getDefaultServer())
+func TestCustomUsageFunc(t *testing.T) {
+	const usageMsg = "foobar help"
+	strt := struct {
+		Foobar string
+	}{}
+	m := FlagLoader{
+		FlagUsageFunc: (func(s string) string { return usageMsg }),
+	}
+	err := m.Load(&strt)
+
+	if err != nil {
+		t.Fatalf("Unable to load struct: %s", err)
+	}
+	f := m.flagSet.Lookup("foobar")
+	if f == nil {
+		t.Fatalf("Flag foobar is not set")
+	}
+	if f.Usage != usageMsg {
+		t.Fatalf("usage message was %q, expected %q", f.Usage, usageMsg)
+	}
 }
 
 // getFlags returns a slice of arguments that can be passed to flag.Parse()

@@ -52,6 +52,12 @@ func New(s interface{}) *Struct {
 //   // Map will panic if Animal does not implement String().
 //   Field *Animal `structs:"field,string"`
 //
+// A tag value with the option of "flatten" used in a struct field is to flatten its fields
+// in the output map. Example:
+//
+//   // The FieldStruct's fields will be flattened into the output map.
+//   FieldStruct time.Time `structs:"flatten"`
+//
 // A tag value with the option of "omitnested" stops iterating further if the type
 // is a struct. Example:
 //
@@ -74,13 +80,23 @@ func New(s interface{}) *Struct {
 // fields will be neglected.
 func (s *Struct) Map() map[string]interface{} {
 	out := make(map[string]interface{})
+	s.FillMap(out)
+	return out
+}
+
+// FillMap is the same as Map. Instead of returning the output, it fills the
+// given map.
+func (s *Struct) FillMap(out map[string]interface{}) {
+	if out == nil {
+		return
+	}
 
 	fields := s.structFields()
 
 	for _, field := range fields {
 		name := field.Name
 		val := s.value.FieldByName(name)
-
+		isSubStruct := false
 		var finalVal interface{}
 
 		tagName, tagOpts := parseTag(field.Tag.Get(s.TagName))
@@ -105,6 +121,7 @@ func (s *Struct) Map() map[string]interface{} {
 			n := New(val.Interface())
 			n.TagName = s.TagName
 			m := n.Map()
+			isSubStruct = true
 			if len(m) == 0 {
 				finalVal = val.Interface()
 			} else {
@@ -122,10 +139,14 @@ func (s *Struct) Map() map[string]interface{} {
 			continue
 		}
 
-		out[name] = finalVal
+		if isSubStruct && (tagOpts.Has("flatten")) {
+			for k := range finalVal.(map[string]interface{}) {
+				out[k] = finalVal.(map[string]interface{})[k]
+			}
+		} else {
+			out[name] = finalVal
+		}
 	}
-
-	return out
 }
 
 // Values converts the given s struct's field values to a []interface{}.  A
@@ -262,7 +283,7 @@ func (s *Struct) Field(name string) *Field {
 	return f
 }
 
-// Field returns a new Field struct that provides several high level functions
+// FieldOk returns a new Field struct that provides several high level functions
 // around a single struct field entity. The boolean returns true if the field
 // was found.
 func (s *Struct) FieldOk(name string) (*Field, bool) {
@@ -425,6 +446,12 @@ func strctVal(s interface{}) reflect.Value {
 // refer to Struct types Map() method. It panics if s's kind is not struct.
 func Map(s interface{}) map[string]interface{} {
 	return New(s).Map()
+}
+
+// FillMap is the same as Map. Instead of returning the output, it fills the
+// given map.
+func FillMap(s interface{}, out map[string]interface{}) {
+	New(s).FillMap(out)
 }
 
 // Values converts the given struct to a []interface{}. For more info refer to
