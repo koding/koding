@@ -11,7 +11,7 @@ module.exports = class IDETailerPane extends IDEPane
 
     options.cssClass = kd.utils.curry 'editor-pane', options.cssClass
     options.paneType = 'tailer'
-    { @file } = options
+    { @file }        = options
 
     super options, data
 
