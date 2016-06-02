@@ -1177,7 +1177,7 @@ module.exports = class ComputeController extends KDController
 
   fetchStackTemplate: (id, callback = kd.noop) ->
 
-    remote.cacheable 'JStackTemplate', id, (err, template) ->
+    remote.api.JStackTemplate.one { _id: id }, (err, template) ->
       return callback err  if err
 
       # Follow update events to get change set from remote-extensions
