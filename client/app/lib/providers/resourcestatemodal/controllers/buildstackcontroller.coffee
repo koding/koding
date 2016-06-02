@@ -30,7 +30,7 @@ module.exports = class BuildStackController extends kd.Controller
     @buildStackPage.on 'BuildDone', @bound 'completePostBuildProcess'
     @forwardEvent @errorPage, 'CredentialsRequested'
     @errorPage.on 'RebuildRequested', =>
-      @updateProgress() # reset previous values
+      @buildStackPage.reset()
       @emit 'RebuildRequested'
     @forwardEvent @successPage, 'ClosingRequested'
     @successPage.on 'LogsRequested', @bound 'showLogs'
@@ -95,10 +95,10 @@ module.exports = class BuildStackController extends kd.Controller
 
   completePostBuildProcess: ->
 
+    @postBuildTimer.stop()  if @postBuildTimer
+
     { container } = @getOptions()
     container.showPage @successPage
-
-    @postBuildTimer.stop()  if @postBuildTimer
 
 
   showError: (err) ->

@@ -29,6 +29,7 @@ module.exports = class IDETailerPane extends IDEPane
     @scrollToBottom()
     @getEditor().insert "\n#{newLine}"
     @lineParser.process newLine
+    @emit 'NewLineAdded', newLine
 
 
   createEditor: ->

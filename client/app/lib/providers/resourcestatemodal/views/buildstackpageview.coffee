@@ -45,6 +45,7 @@ module.exports = class BuildStackPageView extends JView
         delegate : this
       }
       @forwardEvent postBuildLogs, 'BuildDone'
+      postBuildLogs.on 'NewLineAdded', @bound 'onNewLogLineAdded'
 
 
   updateProgress: (percentage, message) ->
@@ -53,9 +54,26 @@ module.exports = class BuildStackPageView extends JView
     @progressBar.updateBar percentage
 
     message = helpers.formatProgressStatus message
-    @statusText.updatePartial message
+    @setStatusText message  if message
 
     @buildLogs.appendLogMessage message  if @buildLogs
+
+
+  reset: ->
+
+    @progressBar.updateBar constants.INITIAL_PROGRESS_VALUE
+    @setStatusText ''
+    @render()
+
+
+  setStatusText: (text) ->
+
+    @statusText.updatePartial text
+
+
+  onNewLogLineAdded: (text) ->
+
+    @setStatusText text  if text
 
 
   pistachio: ->
