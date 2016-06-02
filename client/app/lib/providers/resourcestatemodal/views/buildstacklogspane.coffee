@@ -14,9 +14,9 @@ module.exports = class BuildStackLogsPane extends AceView
     @ace.ready => @ace.setReadOnly yes
 
 
-  appendLogMessage: (message) ->
+  appendLogLine: (text) ->
 
-    return  if message is @lastMessage
+    return  if text is @lastLine
 
-    @ace.editor.insert "#{if @lastMessage then '\n' else ''}#{message}"
-    @lastMessage = message
+    @ace.editor.insert "#{if @lastLine then '\n' else ''}#{text}"
+    @lastLine = text
