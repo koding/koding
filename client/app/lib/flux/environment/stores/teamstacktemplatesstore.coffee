@@ -16,6 +16,7 @@ module.exports = class TeamStackTemplatesStore extends KodingFluxStore
     @on actions.CHANGE_TEMPLATE_TITLE, @changeTitle
 
     @on actions.REMOVE_STACK_TEMPLATE_SUCCESS, @remove
+    @on actions.UPDATE_TEAM_STACK_TEMPLATE_SUCCESS, @updateSingle
     @on actions.UPDATE_STACK_TEMPLATE_SUCCESS, @updateSingle
 
 

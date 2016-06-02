@@ -38,7 +38,7 @@ module.exports = class StackTemplatePageView extends JView
   pistachio: ->
 
     '''
-      <div class="stack-template-page">
+      <div class="build-stack-flow stack-template-page">
         <header>
           <h1>Build Your Stack</h1>
         </header>

@@ -1,14 +1,11 @@
 kd = require 'kd'
-Machine = require 'app/providers/machine'
-BasePageController = require './basepagecontroller'
 BuildStackPageView = require '../views/buildstackpageview'
 BuildStackErrorPageView = require '../views/buildstackerrorpageview'
 BuildStackSuccessPageView = require '../views/buildstacksuccesspageview'
-showError = require 'app/util/showError'
+constants = require '../constants'
+sendDataDogEvent = require 'app/util/sendDataDogEvent'
 
-module.exports = class BuildStackController extends BasePageController
-
-  { Running } = Machine.State
+module.exports = class BuildStackController extends kd.Controller
 
   constructor: (options, data) ->
 
@@ -19,11 +16,11 @@ module.exports = class BuildStackController extends BasePageController
   createPages: ->
 
     stack = @getData()
+    { container } = @getOptions()
 
     @buildStackPage = new BuildStackPageView { stackName : stack.title }
     @errorPage = new BuildStackErrorPageView()
     @successPage = new BuildStackSuccessPageView()
-    @registerPages [ @buildStackPage, @errorPage, @successPage ]
 
     @forwardEvent @errorPage, 'CredentialsRequested'
     @errorPage.on 'RebuildRequested', =>
@@ -31,22 +28,32 @@ module.exports = class BuildStackController extends BasePageController
       @emit 'RebuildRequested'
     @forwardEvent @successPage, 'ClosingRequested'
 
+    container.appendPages @buildStackPage, @errorPage, @successPage
 
-  updateProgress: (percentage, message = '') ->
 
-    @buildStackPage.updatePercentage percentage
+  updateProgress: (percentage, message) ->
 
-    message = message.capitalize()
-    @buildStackPage.setStatusText message
+    { container } = @getOptions()
+    container.showPage @buildStackPage
+    @buildStackPage.updateProgress percentage, message
 
 
   completeProcess: ->
 
-    @buildStackPage.updatePercentage 100
-    kd.utils.wait 500, @lazyBound 'setCurrentPage', @successPage
+    { container } = @getOptions()
+    container.showPage @successPage
 
 
   showError: (err) ->
 
-    @setCurrentPage @errorPage
+    sendDataDogEvent 'MachineStateFailed'
+
+    { container } = @getOptions()
+    container.showPage @errorPage
     @errorPage.setErrors [ err ]
+
+
+  show: ->
+
+    { container } = @getOptions()
+    container.showPage @buildStackPage

@@ -2,6 +2,8 @@ kd = require 'kd'
 React = require 'kd-react'
 MachineDetails = require './machinedetails'
 immutable = require 'immutable'
+VirtualMachinesSelectedMachineFlux = require 'home/virtualmachines/flux/selectedmachine'
+KDReactorMixin = require 'app/flux/base/reactormixin'
 
 module.exports = class MachinesListItem extends React.Component
 
@@ -35,15 +37,18 @@ module.exports = class MachinesListItem extends React.Component
     onUnsharedWithUser     : kd.noop
     onDisconnectVM         : kd.noop
 
+  getDataBindings: ->
 
-  constructor: (props) ->
-    super props
-    @state = {isDetailOpen: no}
+    return {
+      selectedMachine: VirtualMachinesSelectedMachineFlux.getters.selectedMachine
+    }
 
 
   renderMachineDetails: ->
+
     return null  unless @props.shouldRenderDetails
-    return null  unless @state.isDetailOpen
+    return null  unless @props.machine.get('label') is @state.selectedMachine
+
 
     <main className="MachinesListItem-machineDetails">
       <MachineDetails
@@ -64,9 +69,11 @@ module.exports = class MachinesListItem extends React.Component
 
   toggle: (event) ->
 
-    isDetailOpen = not @state.isDetailOpen
-    @setState { isDetailOpen }
-    @props.onDetailOpen()  if isDetailOpen
+    if @state.selectedMachine is @props.machine.get 'label'
+      return kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines"
+
+    kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines/#{@props.machine.get 'label'}"
+
 
 
   renderIpAddress: ->
@@ -82,14 +89,22 @@ module.exports = class MachinesListItem extends React.Component
 
     return null  unless @props.shouldRenderDetails
 
-    <div className="MachinesListItem-detailToggle#{if @state.isDetailOpen then ' expanded' else ''}">
+    expanded = if @props.machine.get('label') is @state.selectedMachine
+    then ' expanded'
+    else ''
+
+    <div className="MachinesListItem-detailToggle#{expanded}">
       <button className='MachinesListItem-detailToggleButton' onClick={@bound 'toggle'}></button>
     </div>
 
 
   render: ->
 
-    <div className="MachinesListItem#{if @state.isDetailOpen then ' expanded' else ''}">
+    expanded = if @props.machine.get('label') is @state.selectedMachine
+    then ' expanded'
+    else ''
+
+    <div className="MachinesListItem#{expanded}">
       <header>
         <div
           className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}"
@@ -105,5 +120,4 @@ module.exports = class MachinesListItem extends React.Component
       {@renderMachineDetails()}
     </div>
 
-
-
+MachinesListItem.include [KDReactorMixin]

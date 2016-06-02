@@ -1,109 +1,132 @@
 kd = require 'kd'
-Machine = require 'app/providers/machine'
-BasePageController = require './basepagecontroller'
+async = require 'async'
 InstructionsController = require './instructionscontroller'
 CredentialsController = require './credentialscontroller'
 BuildStackController = require './buildstackcontroller'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
+helpers = require '../helpers'
+constants = require '../constants'
 
-module.exports = class StackFlowController extends BasePageController
-
-  { NotInitialized, Building, Running } = Machine.State
+module.exports = class StackFlowController extends kd.Controller
 
   constructor: (options, data) ->
 
     super options, data
 
-    machine = @getData()
+    { stack } = @getData()
+    @state    = stack.status?.state
+
+    @bindToKloudEvents()
+    @createControllers()
+
+
+  bindToKloudEvents: ->
+
+    { stack } = @getData()
 
     { computeController } = kd.singletons
-    computeController.ready =>
+    { eventListener }     = computeController
 
-      machineId = machine.jMachine._id
-      @stack = computeController.findStackFromMachineId machineId
+    computeController.on "apply-#{stack._id}", @bound 'updateStatus'
+    computeController.on "error-#{stack._id}", @bound 'onKloudError'
 
-      return kd.log 'Stack not found!'  unless @stack
-
-      computeController.on "apply-#{@stack._id}", @bound 'updateStatus'
-
-      @state = @stack.status?.state
-      if @state is Building
-        computeController.eventListener.addListener 'apply', @stack._id
-
-      @ready()
+    if @state is 'Building'
+      eventListener.addListener 'apply', stack._id
 
 
-  ready: ->
+  createControllers: ->
 
-    machine = @getData()
+    { stack }     = @getData()
     { container } = @getOptions()
 
-    @instructions = new InstructionsController { container }, @stack
-    @credentials = new CredentialsController { container }, @stack
-    @buildStack = new BuildStackController { container }, @stack
+    @instructions = new InstructionsController { container }, stack
+    @credentials  = new CredentialsController { container }, stack
+    @buildStack   = new BuildStackController { container }, stack
 
-    @instructions.on 'NextPageRequested', @lazyBound 'setCurrentPage', @credentials
-    @credentials.on 'InstructionsRequested', @lazyBound 'setCurrentPage', @instructions
-    @credentials.on 'NextPageRequested', @lazyBound 'setCurrentPage', @buildStack
-    @buildStack.on 'CredentialsRequested', @lazyBound 'setCurrentPage', @credentials
+    @instructions.on 'NextPageRequested', => @credentials.show()
+    @credentials.on 'InstructionsRequested', => @instructions.show()
+    @credentials.on 'StartBuild', @bound 'startBuild'
+    @buildStack.on 'CredentialsRequested', => @credentials.show()
     @buildStack.on 'RebuildRequested', => @credentials.submit()
     @forwardEvent @buildStack, 'ClosingRequested'
 
-    page = if @state is Building then @buildStack
-    else if @state is NotInitialized then @instructions
-    @setCurrentPage page  if page
+    queue = [
+      (next) => @instructions.ready next
+      (next) => @credentials.ready next
+    ]
+    async.parallel queue, @bound 'show'
 
 
   updateStatus: (event, task) ->
 
-    { status, percentage, error, message, eventId } = event
+    { status, percentage, message, error } = event
 
-    return  unless eventId?.indexOf(@stack._id) > -1
+    { machine, stack } = @getData()
+    machineId = machine.jMachine._id
 
-    [ @oldState, @state ] = [ @state, status ]
+    return  unless helpers.isTargetEvent event, stack
 
-    @setCurrentPage @buildStack
+    [ prevState, @state ] = [ @state, status ]
 
     if error
       @buildStack.showError error
     else if percentage?
       @buildStack.updateProgress percentage, message
-      if percentage is 100
-        @completeBuildProcess()
+      return unless percentage is constants.COMPLETE_PROGRESS_VALUE
+
+      if prevState is 'Building' and @state is 'Running'
+        { computeController } = kd.singletons
+        computeController.once "revive-#{machineId}", =>
+          @buildStack.completeProcess()
+          @checkIfResourceRunning 'BuildCompleted'
     else
-      @checkIfBuildCompleted()
+      @checkIfResourceRunning()
 
 
-  checkIfBuildCompleted: (initial = no) ->
+  checkIfResourceRunning: (reason) ->
 
-    return  unless @state is Running
-
-    machine = @getData()
-    { appManager } = kd.singletons
-
-    environmentDataProvider.fetchMachine machine.uid, (_machine) =>
-      return appManager.tell 'IDE', 'quit'  unless _machine
-
-      @setData _machine
-      @emit 'IDEBecameReady', machine, initial
+    @emit 'ResourceBecameRunning', reason  if @state is 'Running'
 
 
-  completeBuildProcess: ->
+  startBuild: (identifiers) ->
 
-    machine   = @getData()
-    machineId = machine.jMachine._id
+    { stack } = @getData()
 
-    @buildStack.completeProcess()
+    if stack.config?.oldOwner?
+      return @updateStatus
+        status  : @state
+        error   : 'Stack building is not allowed for disabled users\' stacks.'
+        eventId : stack._id
 
-    if @oldState is Building and @state is Running
-      { computeController } = kd.singletons
-      computeController.once "revive-#{machineId}", =>
-        @checkIfBuildCompleted yes
+    { computeController } = kd.singletons
+    computeController.buildStack stack, identifiers
+    @updateStatus
+      status     : 'Building'
+      percentage : constants.INITIAL_PROGRESS_VALUE
+      eventId    : stack._id
+
+
+  onKloudError: (response) ->
+
+    { message } = response
+    @buildStack.showError message
+
+
+  show: ->
+
+    controller = switch @state
+      when 'Building' then @buildStack
+      when 'NotInitialized' then @instructions
+
+    controller.show()  if controller
 
 
   destroy: ->
 
+    { stack } = @getData()
+
     { computeController } = kd.singletons
-    computeController.off "apply-#{@stack._id}", @bound 'updateStatus'
+    computeController.off "apply-#{stack._id}", @bound 'updateStatus'
+    computeController.off "error-#{stack._id}", @bound 'onKloudError'
 
     super

@@ -112,13 +112,13 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @props.shouldRenderSharing
 
-    { NotInitialized } = Machine.State
+    { Running } = Machine.State
 
     <GenericToggler
       title='VM Sharing'
       description='Teammates with this link can access my VM'
       checked={@isShared()}
-      disabled={@status() is NotInitialized}
+      disabled={@status() isnt Running}
       onToggle={@bound 'onSharingToggle'}>
         {@renderSharingDetails()}
     </GenericToggler>

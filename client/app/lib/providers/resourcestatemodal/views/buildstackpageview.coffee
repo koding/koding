@@ -2,10 +2,10 @@ kd = require 'kd'
 JView = require 'app/jview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
+helpers = require '../helpers'
+constants = require '../constants'
 
 module.exports = class BuildStackPageView extends JView
-
-  INITIAL_PROGRESS_VALUE = 10
 
   constructor: (options = {}, data) ->
 
@@ -14,18 +14,18 @@ module.exports = class BuildStackPageView extends JView
     @wizardPane = new WizardProgressPane
       currentStep : WizardSteps.BuildStack
 
-    @progressBar = new kd.ProgressBarView { initial : INITIAL_PROGRESS_VALUE }
+    @progressBar = new kd.ProgressBarView
+      initial : constants.INITIAL_PROGRESS_VALUE
     @statusText  = new kd.CustomHTMLView { cssClass : 'status-text' }
 
 
-  updatePercentage: (percentage = INITIAL_PROGRESS_VALUE) ->
+  updateProgress: (percentage, message) ->
 
+    percentage = Math.max percentage ? 0, constants.INITIAL_PROGRESS_VALUE
     @progressBar.updateBar percentage
 
-
-  setStatusText: (text) ->
-
-    @statusText.updatePartial text
+    message = helpers.formatProgressStatus message
+    @statusText.updatePartial message
 
 
   pistachio: ->
@@ -33,7 +33,7 @@ module.exports = class BuildStackPageView extends JView
     { stackName } = @getOptions()
 
     """
-      <div class="build-stack-page">
+      <div class="build-stack-flow build-stack-page">
         <header>
           <h1>Build Your Stack</h1>
         </header>
