@@ -8,7 +8,7 @@ filesTabSelector    = '.ide-files-tab .file-container'
 module.exports =
 
 
-  openNewFile: (browser, callback = ->) ->
+  openNewFile: ( browser, callback = -> ) ->
 
     @closeAllTabs browser
 
@@ -59,7 +59,7 @@ module.exports =
     close()
 
 
-  openContextMenu: (browser, callback = ->) ->
+  openContextMenu: ( browser, callback = -> ) ->
 
     fileSelector    = "#{tabHandleSelector} .kdtabhandle.active"
     optionsSelector = "#{fileSelector} span.options"
@@ -159,7 +159,7 @@ module.exports =
       .waitForTextToContain   activeEditorSelector, text # Assertion
 
 
-  openFileFromConfigFolder: (browser, user, fileName, fileContent, callback = ->) ->
+  openFileFromConfigFolder: ( browser, user, fileName, fileContent, callback = -> ) ->
 
     fileName    or= 'index.html'
     fileContent or= 'Hello World from HTML by Koding'
@@ -182,7 +182,7 @@ module.exports =
       .waitForTextToContain    tabSelector, fileContent # Assertion
       .pause 10, -> callback()
 
-  openFile: (browser, user, fileName, callback = ->) ->
+  openFile: ( browser, user, fileName, callback = -> ) ->
 
     filePath            = "/home/#{user.username}/.config/#{fileName}"
     fileSelector        = "span[title='#{filePath}']"
@@ -207,7 +207,7 @@ module.exports =
     browser.click ".context-list-wrapper #{selector}"
 
 
-  compressFileFolder: (browser, user, type, fileFolderName, compressType, callback = ->) ->
+  compressFileFolder: ( browser, user, type, fileFolderName, compressType, callback = -> ) ->
 
     configPath     = '/home/' + user.username + '/.config'
     name        = fileFolderName
@@ -238,7 +238,7 @@ module.exports =
       .pause                     2000
 
     # install zip package if it is not exist
-    browser.element 'css selector', packageInstallerModal, (result) =>
+    browser.element 'css selector', packageInstallerModal, (result) ->
       if result.status is 0
         browser
           .waitForElementVisible packageInstallerModal, 2000

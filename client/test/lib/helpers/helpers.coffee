@@ -189,7 +189,7 @@ module.exports =
       .waitForElementPresent   '.context-list-wrapper', 50000
 
 
-  createFile: (browser, user, selector, folderName, fileName, callback = ->) ->
+  createFile: ( browser, user, selector, folderName, fileName, callback = -> ) ->
 
     selector   or= 'li.new-file'
     folderName or= '.config'
@@ -211,7 +211,7 @@ module.exports =
     return fileName
 
 
-  createFileFromMachineHeader: (browser, user, fileName, shouldAssert = yes, callback = ->) ->
+  createFileFromMachineHeader: ( browser, user, fileName, shouldAssert = yes, callback = -> ) ->
 
     unless fileName
       fileName    = @getFakeText().split(' ')[0] + '.txt'
@@ -238,7 +238,7 @@ module.exports =
     return fileName
 
 
-  createFolder: (browser, user, callback = ->) ->
+  createFolder: ( browser, user, callback = -> ) ->
 
     folderName     = @getFakeText().split(' ')[0]
     folderPath     = '/home/' + user.username + '/' + folderName
@@ -273,7 +273,7 @@ module.exports =
     return data
 
 
-  deleteFile: (browser, fileSelector, callback = ->) ->
+  deleteFile: ( browser, fileSelector, callback = -> ) ->
 
     browser
       .waitForElementPresent     fileSelector, 20000
@@ -467,7 +467,7 @@ module.exports =
           browser.end()
 
 
-  runCommandOnTerminal: (browser, text, callback = ->) ->
+  runCommandOnTerminal: ( browser, text, callback = -> ) ->
 
     text or= Date.now()
 

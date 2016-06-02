@@ -15,7 +15,7 @@ module.exports =
       .moveToElement           '.context-list-wrapper li.new-terminal', 25, 20
 
 
-  openTerminal: (browser, openSessionTerminal = no, callback = ->) ->
+  openTerminal: ( browser, openSessionTerminal = no, callback = -> ) ->
 
     sessionLink     = '.kdlistview-contextmenu ul:nth-of-type(1) .has-sub-items'
     openNewTerminal = '.kdlistview-contextmenu.default .open'
@@ -34,7 +34,7 @@ module.exports =
         .click                   openNewTerminal
         .pause                   2500, -> callback null #wait for terminal to be displayed
 
-  createTerminalSession: (browser, user, callback = ->) ->
+  createTerminalSession: ( browser, user, callback = -> ) ->
 
     userName                   = user.username
     notActiveTerminalSelector  = paneSelector + ' .terminal:not(.active)'
@@ -56,7 +56,7 @@ module.exports =
         .pause 10, -> callback()
 
 
-  terminateAll: (browser, callback = ->) ->
+  terminateAll: ( browser, callback = -> ) ->
 
     @openNewTerminalMenu(browser)
 

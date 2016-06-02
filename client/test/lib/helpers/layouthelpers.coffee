@@ -23,7 +23,7 @@ module.exports =
     browser.pause 7500 # find a better way
 
 
-  undoSplit: (browser, shouldAssert = yes, callback = ->) ->
+  undoSplit: ( browser, shouldAssert = yes, callback = -> ) ->
 
     @waitForSnapshotRestore browser
 
@@ -42,7 +42,7 @@ module.exports =
             browser.pause 10, -> callback()
 
 
-  split: (browser, direction, callback = ->) ->
+  split: ( browser, direction, callback = -> ) ->
 
     if direction is 'vertical'
       splitButtonSelector = 'li.split-vertically'
