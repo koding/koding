@@ -1,16 +1,11 @@
 kd = require 'kd'
 JView = require 'app/jview'
-WizardSteps = require './wizardsteps'
-WizardProgressPane = require './wizardprogresspane'
 
-module.exports = class BuildStackSuccessPageView extends JView
+module.exports = class StartMachineSuccessPageView extends JView
 
   constructor: (options = {}, data) ->
 
     super options, data
-
-    @progressPane = new WizardProgressPane
-      currentStep : WizardSteps.BuildStack
 
     @closeButton = new kd.ButtonView
       title    : 'Start Coding'
@@ -21,15 +16,14 @@ module.exports = class BuildStackSuccessPageView extends JView
   pistachio: ->
 
     '''
-      <div class="build-stack-flow build-stack-success-page">
+      <div class="start-machine-flow start-machine-success-page">
         <header>
-          <h1>Build Your Stack</h1>
+          <h1>Boot Virtual Machine</h1>
         </header>
-        {{> @progressPane}}
         <section class="main">
           <div class="background"></div>
           <h1>Success!</h1>
-          <h2>Your stack has been built</h2>
+          <h2>Your VM is Booted</h2>
         </section>
         <footer>
           {{> @closeButton}}

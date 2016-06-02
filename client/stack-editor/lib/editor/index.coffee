@@ -719,7 +719,7 @@ module.exports = class StackEditorView extends kd.View
   handleSetDefaultTemplate: (completed = yes) ->
 
     { stackTemplate }    = @getData()
-    { groupsController } = kd.singletons
+    { groupsController, reactor } = kd.singletons
 
     @outputView.add 'Setting this as default team stack template...'
 
@@ -728,6 +728,10 @@ module.exports = class StackEditorView extends kd.View
     # as default ~ GG
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
+
+      template = stackTemplate
+      reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+      reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { template }
 
       @setAsDefaultButton.hideLoader()
 

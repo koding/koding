@@ -651,7 +651,9 @@ removeStackTemplate = (template) ->
 
 deleteStack = ({ stackTemplateId, stack }) ->
 
-  { computeController, appManager, router } = kd.singletons
+  { computeController, appManager, router, reactor } = kd.singletons
+
+  teamStackTemplatesStore = reactor.evaluate(['TeamStackTemplatesStore'])
 
   _stack = remote.revive stack.toJS()  if stack
 
@@ -670,6 +672,7 @@ deleteStack = ({ stackTemplateId, stack }) ->
         computeController
           .reset yes
           .once 'RenderStacks', ->
+            loadTeamStackTemplates()  unless teamStackTemplatesStore.size
             router.handleRoute '/IDE'
 
       , followEvents = no

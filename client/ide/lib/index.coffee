@@ -735,16 +735,15 @@ class IDEAppController extends AppController
 
     { state, container, machineItem, initial } = options
 
-    container            ?= @getView()
-    modalOptions          = { state, container, initial }
+    container   ?= @getView()
+    modalOptions = { state, container, initial }
 
-    if isTeamReactSide() and state is Stopping
-      modalOptions.cssClass = 'env-machine-state team full'
-
-    modalClass = if checkFlag 'new-resource-state-modal'
-    then ResourceStateModal
-    else EnvironmentsMachineStateModal
-    @machineStateModal = new modalClass modalOptions, machineItem
+    if checkFlag 'new-resource-state-modal'
+      @machineStateModal = new ResourceStateModal modalOptions, machineItem
+    else
+      if isTeamReactSide() and state is Stopping
+        modalOptions.cssClass = 'env-machine-state team full'
+      @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
 
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
     @machineStateModal.once 'IDEBecameReady', @bound 'handleIDEBecameReady'

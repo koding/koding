@@ -5,5 +5,7 @@ module.exports =
     HomeBillingFlux = require '../billing/flux'
     HomeBillingFlux.register reactor
 
-    VirtualMachinesFlux = require '../virtualmachines/flux'
-    VirtualMachinesFlux.register reactor
+    VirtualMachinesSearchFlux = require '../virtualmachines/flux/search'
+    VirtualMachinesSearchFlux.register reactor
+    VirtualMachinesSelectedMachineFlux = require '../virtualmachines/flux/selectedmachine'
+    VirtualMachinesSelectedMachineFlux.register reactor

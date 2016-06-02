@@ -102,15 +102,23 @@ module.exports =
     inputUserName         = 'input[name=username]'
     inputPassword         = 'input[name=password]'
     loginButton           = 'button[testpath=login-button]'
-
+    notification          = '.kdnotification.main'
 
     browser
       .pause                  2000 # wait for login page
       .waitForElementVisible  '.TeamsModal--login', 20000
       .waitForElementVisible  'form.login-form', 20000
+      .clearValue             'input[name=username]'
+      .clearValue             'input[name=password]'
       .setValue               'input[name=username]', user.username
       .setValue               'input[name=password]', user.password
-      .click                  'button[testpath=login-button]', => @loginAssertion browser, callback
+
+    if invalidCredentials
+      browser
+      .click 'button[testpath=login-button]'
+      .waitForElementVisible  notification, 20000
+    else
+      browser.click 'button[testpath=login-button]', => @loginAssertion browser, callback
 
 
 
@@ -871,18 +879,3 @@ module.exports =
             .waitForElementVisible roleSelector, 20000
             .assert.containsText roleSelector, invitation.accepted
             .pause 1000, -> callback()
-
-
-  gotoSettingsMenu: (browser, menuItemSelector) ->
-    menuSelector      = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
-    teamnameSelector  = '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
-
-    browser
-      .waitForElementVisible sidebarSelector, 20000
-      .click sidebarSelector
-      .waitForElementVisible teamnameSelector, 20000
-      .click teamnameSelector
-      .waitForElementVisible menuSelector, 2000
-      .pause 3000
-      .click menuItemSelector
-      .pause 3000

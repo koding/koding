@@ -5,18 +5,11 @@ whoami  = require 'app/util/whoami'
 globals = require 'globals'
 remote  = require('app/remote').getInstance()
 KodingKontrol = require 'app/kite/kodingkontrol'
-BasePageController = require './basepagecontroller'
 CredentialsPageView = require '../views/credentialspageview'
 CredentialsErrorPageView = require '../views/credentialserrorpageview'
+constants = require '../constants'
 
-module.exports = class CredentialsController extends BasePageController
-
-  DEFAULT_VERIFICATION_ERROR_MESSAGE = '''
-    We couldn't verify this credential, please check the ones you
-    used or add a new credential to be able to continue to the
-    next step.
-  '''
-  VERIFICATION_TIMEOUT = 10000
+module.exports = class CredentialsController extends kd.Controller
 
   constructor: (options, data) ->
 
@@ -38,12 +31,12 @@ module.exports = class CredentialsController extends BasePageController
 
       { credentials, requirements, kdCmd } = results
       @createPages credentials, requirements, kdCmd
-      @emit 'ready'
 
 
   createPages: (credentials, requirements, kdCmd) ->
 
     stack = @getData()
+    { container } = @getOptions()
 
     @credentialsPage = new CredentialsPageView {}, {
       stack
@@ -51,11 +44,14 @@ module.exports = class CredentialsController extends BasePageController
       requirements
     }
     @errorPage = new CredentialsErrorPageView()
-    @registerPages [ @credentialsPage, @errorPage ]
 
     @forwardEvent @credentialsPage, 'InstructionsRequested'
     @credentialsPage.on 'Submitted', @bound 'onSubmitted'
-    @errorPage.on 'CredentialsRequested', @lazyBound 'setCurrentPage', @credentialsPage
+    @errorPage.on 'CredentialsRequested', => container.showPage @credentialsPage
+
+    container.appendPages @credentialsPage, @errorPage
+
+    @emit 'ready'
 
 
   submit: -> @credentialsPage.submit()
@@ -63,6 +59,7 @@ module.exports = class CredentialsController extends BasePageController
 
   onSubmitted: (submissionData) ->
 
+    { container } = @getOptions()
     { credential, requirements } = submissionData
 
     queue = [
@@ -76,15 +73,11 @@ module.exports = class CredentialsController extends BasePageController
       errs = (item.err for item in results when item.err)
 
       if errs.length > 0
-        @setCurrentPage @errorPage
+        container.showPage @errorPage
         @errorPage.setErrors errs
       else
-        stack = @getData()
         identifiers = (item.identifier for item in results)
-        { computeController } = kd.singletons
-
-        computeController.buildStack stack, identifiers
-        @emit 'NextPageRequested'
+        @emit 'StartBuild', identifiers
 
       @credentialsPage.buildButton.hideLoader()
 
@@ -92,6 +85,7 @@ module.exports = class CredentialsController extends BasePageController
   handleSubmittedCredential: (submissionData, callback) ->
 
     { provider, selectedItem, newData } = submissionData
+    { CREDENTIAL_VERIFICATION_ERROR_MESSAGE, CREDENTIAL_VERIFICATION_TIMEOUT } = constants
 
     queue = [
       (next) =>
@@ -111,12 +105,12 @@ module.exports = class CredentialsController extends BasePageController
           .then (response) ->
             next null, { identifier, status : response?[identifier] }
           .catch (err) -> next err
-          .timeout VERIFICATION_TIMEOUT
+          .timeout constants.CREDENTIAL_VERIFICATION_TIMEOUT
     ]
 
     async.waterfall queue, (err, result) ->
       return callback null, { err : err.message }  if err
-      return callback null, { err : DEFAULT_VERIFICATION_ERROR_MESSAGE }  unless result.status
+      return callback null, { err : CREDENTIAL_VERIFICATION_ERROR_MESSAGE }  unless result.status
 
       { identifier, status } = result
       { verified, message }  = status
@@ -125,7 +119,7 @@ module.exports = class CredentialsController extends BasePageController
         callback null, { identifier }
       else
         callback null, {
-          err : message or DEFAULT_VERIFICATION_ERROR_MESSAGE
+          err : message or CREDENTIAL_VERIFICATION_ERROR_MESSAGE
         }
 
 
@@ -144,7 +138,8 @@ module.exports = class CredentialsController extends BasePageController
 
   show: ->
 
-    @ready => super
+    { container } = @getOptions()
+    container.showPage @credentialsPage
 
 
   helpers =

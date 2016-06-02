@@ -35,7 +35,7 @@ module.exports = class ReadmePageView extends JView
   pistachio: ->
 
     '''
-      <div class="readme-page">
+      <div class="build-stack-flow readme-page">
         <header>
           <h1>Build Your Stack</h1>
         </header>

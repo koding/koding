@@ -1,5 +1,5 @@
 kd = require 'kd'
-StackFlowController = require './controllers/stackflowcontroller'
+ResurceStateController = require './controllers/resourcestatecontroller'
 
 module.exports = class ResourceStateModal extends kd.BlockingModalView
 
@@ -11,16 +11,16 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
 
     super options, data
 
-    @stackFlow = new StackFlowController { container : this }, @getData()
-    @forwardEvent @stackFlow, 'IDEBecameReady'
-    @stackFlow.on 'ClosingRequested', @bound 'destroy'
+    @off 'childAppended'
+
+    { initial } = @getOptions()
+    @controller = new ResurceStateController { container: this, initial }, @getData()
+    @controller.on 'PaneDidShow', @bound 'setPositions'
+    @controller.on 'ClosingRequested', @bound 'destroy'
+    @forwardEvent @controller, 'IDEBecameReady'
+    @forwardEvent @controller, 'MachineTurnOnStarted'
 
     @show()
-
-
-  updateStatus: (event, task) ->
-
-    @stackFlow.updateStatus event, task
 
 
   show: ->
@@ -34,9 +34,31 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
     container.addSubView @overlay
     container.addSubView this
 
+    @setPositions()
+
+
+  setPositions: ->
+
+    { container } = @getOptions()
+    { top, left } = container.getDomElement().offset()
+
+    offset = @getDomElement().offset()
+
+    style     =
+      top     : Math.round((container.getHeight() - @getHeight()) / 2 + top)
+      left    : Math.round((container.getWidth()  - @getWidth()) / 2 + left)
+      opacity : 1
+    @setStyle style
+
+
+  updateStatus: (event, task) ->
+
+    @controller.updateStatus event, task
+
 
   destroy: ->
 
     @overlay.destroy()
-    @stackFlow.destroy()
+    @controller.destroy()
+
     super
