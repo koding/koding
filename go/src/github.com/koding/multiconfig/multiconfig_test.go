@@ -27,6 +27,11 @@ type (
 		AvailabilityRatio float64
 		unexported        string
 	}
+
+	TaggedServer struct {
+		Name     string `required:"true"`
+		Postgres `structs:",flatten"`
+	}
 )
 
 type FlattenedServer struct {
@@ -133,7 +138,7 @@ func testStruct(t *testing.T, s *Server, d *Server) {
 	} else {
 		for i, label := range d.Labels {
 			if s.Labels[i] != label {
-				t.Errorf("Label is wrong for index: %d, label: %s, want: %s", i, s.Labels[i], label)
+				t.Errorf("Label is wrong for index: %d, label: %d, want: %d", i, s.Labels[i], label)
 			}
 		}
 	}
@@ -148,63 +153,40 @@ func testStruct(t *testing.T, s *Server, d *Server) {
 		}
 	}
 
-	// Explicitly state that Enabled should be true, no need to check
-	// `x == true` infact.
-	if s.Postgres.Enabled != d.Postgres.Enabled {
-		t.Errorf("Postgres enabled is wrong %t, want: %t", s.Postgres.Enabled, d.Postgres.Enabled)
-	}
-
-	if s.Postgres.Port != d.Postgres.Port {
-		t.Errorf("Postgres Port value is wrong: %d, want: %d", s.Postgres.Port, d.Postgres.Port)
-	}
-
-	if s.Postgres.DBName != d.Postgres.DBName {
-		t.Errorf("DBName is wrong: %s, want: %s", s.Postgres.DBName, d.Postgres.DBName)
-	}
-
-	if s.Postgres.AvailabilityRatio != d.Postgres.AvailabilityRatio {
-		t.Errorf("AvailabilityRatio is wrong: %f, want: %f", s.Postgres.AvailabilityRatio, d.Postgres.AvailabilityRatio)
-	}
-
-	if len(s.Postgres.Hosts) != len(d.Postgres.Hosts) {
-		// do not continue testing if this fails, because others is depending on this test
-		t.Fatalf("Hosts len is wrong: %v, want: %v", s.Postgres.Hosts, d.Postgres.Hosts)
-	}
-
-	for i, host := range d.Postgres.Hosts {
-		if s.Postgres.Hosts[i] != host {
-			t.Fatalf("Hosts number %d is wrong: %v, want: %v", i, s.Postgres.Hosts[i], host)
-		}
-	}
+	testPostgres(t, s.Postgres, d.Postgres)
 }
 
 func testFlattenedStruct(t *testing.T, s *FlattenedServer, d *Server) {
 	// Explicitly state that Enabled should be true, no need to check
 	// `x == true` infact.
-	if s.Postgres.Enabled != d.Postgres.Enabled {
-		t.Errorf("Postgres enabled is wrong %t, want: %t", s.Postgres.Enabled, d.Postgres.Enabled)
+	testPostgres(t, s.Postgres, d.Postgres)
+}
+
+func testPostgres(t *testing.T, s Postgres, d Postgres) {
+	if s.Enabled != d.Enabled {
+		t.Errorf("Postgres enabled is wrong %t, want: %t", s.Enabled, d.Enabled)
 	}
 
-	if s.Postgres.Port != d.Postgres.Port {
-		t.Errorf("Postgres Port value is wrong: %d, want: %d", s.Postgres.Port, d.Postgres.Port)
+	if s.Port != d.Port {
+		t.Errorf("Postgres Port value is wrong: %d, want: %d", s.Port, d.Port)
 	}
 
-	if s.Postgres.DBName != d.Postgres.DBName {
-		t.Errorf("DBName is wrong: %s, want: %s", s.Postgres.DBName, d.Postgres.DBName)
+	if s.DBName != d.DBName {
+		t.Errorf("DBName is wrong: %s, want: %s", s.DBName, d.DBName)
 	}
 
-	if s.Postgres.AvailabilityRatio != d.Postgres.AvailabilityRatio {
-		t.Errorf("AvailabilityRatio is wrong: %f, want: %f", s.Postgres.AvailabilityRatio, d.Postgres.AvailabilityRatio)
+	if s.AvailabilityRatio != d.AvailabilityRatio {
+		t.Errorf("AvailabilityRatio is wrong: %f, want: %f", s.AvailabilityRatio, d.AvailabilityRatio)
 	}
 
-	if len(s.Postgres.Hosts) != len(d.Postgres.Hosts) {
+	if len(s.Hosts) != len(d.Hosts) {
 		// do not continue testing if this fails, because others is depending on this test
-		t.Fatalf("Hosts len is wrong: %v, want: %v", s.Postgres.Hosts, d.Postgres.Hosts)
+		t.Fatalf("Hosts len is wrong: %v, want: %v", s.Hosts, d.Hosts)
 	}
 
-	for i, host := range d.Postgres.Hosts {
-		if s.Postgres.Hosts[i] != host {
-			t.Fatalf("Hosts number %d is wrong: %v, want: %v", i, s.Postgres.Hosts[i], host)
+	for i, host := range d.Hosts {
+		if s.Hosts[i] != host {
+			t.Fatalf("Hosts number %d is wrong: %v, want: %v", i, s.Hosts[i], host)
 		}
 	}
 }

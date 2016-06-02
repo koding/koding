@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/kr/pretty"
 )
 
 var (
@@ -77,6 +79,7 @@ func (pr *PubNubRequest) handleResponse() {
 func (pr *PubNubRequest) parseResponse(response []byte) {
 	var r interface{}
 	err := json.Unmarshal(response, &r)
+	fmt.Printf("r %# v", pretty.Formatter(r))
 	if err != nil {
 		pr.sendError(err)
 	}

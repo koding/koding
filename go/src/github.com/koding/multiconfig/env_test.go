@@ -57,6 +57,23 @@ func TestENVWithPrefix(t *testing.T) {
 	testStruct(t, s, getDefaultServer())
 }
 
+func TestENVFlattenStructPrefix(t *testing.T) {
+	const prefix = "Prefix"
+
+	m := EnvironmentLoader{Prefix: prefix}
+	s := &TaggedServer{}
+	structName := structs.New(s).Name()
+
+	// set env variables
+	setEnvVars(t, structName, prefix)
+
+	if err := m.Load(s); err != nil {
+		t.Error(err)
+	}
+
+	testPostgres(t, s.Postgres, getDefaultServer().Postgres)
+}
+
 func setEnvVars(t *testing.T, structName, prefix string) {
 	if structName == "" {
 		t.Fatal("struct name can not be empty")
@@ -86,6 +103,16 @@ func setEnvVars(t *testing.T, structName, prefix string) {
 			"NORMAL":             "normal",
 			"DB_NAME":            "configdb",
 			"AVAILABILITY_RATIO": "8.23",
+		}
+	case "TaggedServer":
+		env = map[string]string{
+			"NAME":              "koding",
+			"ENABLED":           "true",
+			"PORT":              "5432",
+			"HOSTS":             "192.168.2.1,192.168.2.2,192.168.2.3",
+			"DBNAME":            "configdb",
+			"AVAILABILITYRATIO": "8.23",
+			"FOO":               "8.23,9.12,11,90",
 		}
 	}
 
