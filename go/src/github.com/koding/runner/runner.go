@@ -45,6 +45,7 @@ type Runner struct {
 	Done            chan error
 	Kite            *kite.Kite
 	Metrics         *metrics.Metrics
+	DogStatsD       *metrics.DogStatsD
 }
 
 func New(name string) *Runner {
@@ -86,8 +87,10 @@ func (r *Runner) InitWithConfigFile(configFile string) error {
 		r.Conf.Debug,
 	)
 
-	metrics := CreateMetrics(r.Name, r.Log, *flagOutputMetrics)
+	metrics, dogstatsd := CreateMetrics(r.Name, r.Log, *flagOutputMetrics)
 	r.Metrics = metrics
+	r.DogStatsD = dogstatsd
+
 	// panics if not successful
 	r.Bongo = MustInitBongo(
 		WrapWithVersion(r.Name, flagVersion),
@@ -199,6 +202,10 @@ func (r *Runner) Close() error {
 		}
 
 		r.Kite.Close()
+	}
+
+	if r.DogStatsD != nil {
+		r.DogStatsD.Close()
 	}
 
 	return err
