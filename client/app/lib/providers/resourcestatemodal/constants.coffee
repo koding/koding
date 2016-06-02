@@ -9,3 +9,4 @@ module.exports =
   '''
   BUILD_LOG_FILE_PATH                   : '/var/log/cloud-init-output.log'
   BUILD_LOG_TAIL_OFFSET                 : 15
+  MAX_BUILD_PROGRESS_VALUE              : 60

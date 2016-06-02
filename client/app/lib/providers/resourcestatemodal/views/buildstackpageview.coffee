@@ -36,14 +36,16 @@ module.exports = class BuildStackPageView extends JView
 
     if isDummyFile
       @logsContainer.addSubView @buildLogs = new BuildStackLogsPane {
-        delegate                 : this
+        delegate : this
       }, file
     else
-      @logsContainer.addSubView new IDETailerPane {
+      @logsContainer.addSubView postBuildLogs = new IDETailerPane {
         file
         tailOffset
         delegate : this
+        showDoneNotification : no
       }
+      @forwardEvent postBuildLogs, 'BuildDone'
 
 
   updateProgress: (percentage, message) ->
@@ -54,7 +56,7 @@ module.exports = class BuildStackPageView extends JView
     message = helpers.formatProgressStatus message
     @statusText.updatePartial message
 
-    @buildLogs.appendLogMessage message
+    @buildLogs.appendLogMessage message  if @buildLogs
 
 
   pistachio: ->

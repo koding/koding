@@ -6,12 +6,14 @@ BuildStackLogsPageView = require '../views/buildstacklogspageview'
 constants = require '../constants'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
 FSHelper = require 'app/util/fs/fshelper'
+ProgressUpdateTimer = require './progressupdatetimer'
 
 module.exports = class BuildStackController extends kd.Controller
 
   constructor: (options, data) ->
 
     super options, data
+
     @createPages()
 
 
@@ -23,16 +25,15 @@ module.exports = class BuildStackController extends kd.Controller
     @buildStackPage = new BuildStackPageView { stackName : stack.title }, @getLogFile()
     @errorPage = new BuildStackErrorPageView()
     @successPage = new BuildStackSuccessPageView()
-    @logsPage = new BuildStackLogsPageView {
-      tailOffset : constants.BUILD_LOG_TAIL_OFFSET
-    }, @getLogFile()
+    @logsPage = new BuildStackLogsPageView { tailOffset : constants.BUILD_LOG_TAIL_OFFSET }
 
+    @buildStackPage.on 'BuildDone', @bound 'completePostBuildProcess'
     @forwardEvent @errorPage, 'CredentialsRequested'
     @errorPage.on 'RebuildRequested', =>
       @updateProgress() # reset previous values
       @emit 'RebuildRequested'
     @forwardEvent @successPage, 'ClosingRequested'
-    @successPage.on 'LogsRequested', => container.showPage @logsPage
+    @successPage.on 'LogsRequested', @bound 'showLogs'
     @forwardEvent @logsPage, 'ClosingRequested'
 
     container.appendPages @buildStackPage, @errorPage, @successPage, @logsPage
@@ -56,10 +57,48 @@ module.exports = class BuildStackController extends kd.Controller
     @buildStackPage.updateProgress percentage, message
 
 
-  completeProcess: ->
+  updateBuildProgress: (percentage, message) ->
+
+    { MAX_BUILD_PROGRESS_VALUE, COMPLETE_PROGRESS_VALUE } = constants
+
+    { stackTemplate } = @getData()
+    postBuildProcessEnabled = stackTemplate.config?.buildDuration > 0
+
+    rate = if postBuildProcessEnabled
+    then MAX_BUILD_PROGRESS_VALUE / COMPLETE_PROGRESS_VALUE
+    else 1
+    percentage = percentage * rate
+    @updateProgress percentage, message
+
+
+  updatePostBuildProgress: (percentage) ->
+
+    { MAX_BUILD_PROGRESS_VALUE, COMPLETE_PROGRESS_VALUE } = constants
+
+    rate = (COMPLETE_PROGRESS_VALUE - MAX_BUILD_PROGRESS_VALUE) / COMPLETE_PROGRESS_VALUE
+    percentage = MAX_BUILD_PROGRESS_VALUE + rate * percentage
+    @updateProgress percentage
+
+
+  completeBuildProcess: ->
+
+    { stackTemplate } = @getData()
+
+    duration = stackTemplate.config?.buildDuration
+    return @completePostBuildProcess()  unless duration > 0
+
+    @buildStackPage.setData @getLogFile()
+
+    @postBuildTimer = new ProgressUpdateTimer { duration }
+    @postBuildTimer.on 'ProgressUpdated', @bound 'updatePostBuildProgress'
+
+
+  completePostBuildProcess: ->
 
     { container } = @getOptions()
     container.showPage @successPage
+
+    @postBuildTimer.stop()  if @postBuildTimer
 
 
   showError: (err) ->
@@ -69,6 +108,13 @@ module.exports = class BuildStackController extends kd.Controller
     { container } = @getOptions()
     container.showPage @errorPage
     @errorPage.setErrors [ err ]
+
+
+  showLogs: ->
+
+    { container } = @getOptions()
+    container.showPage @logsPage
+    @logsPage.setData @getLogFile()
 
 
   show: ->

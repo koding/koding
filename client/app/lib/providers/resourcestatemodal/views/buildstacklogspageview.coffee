@@ -18,15 +18,25 @@ module.exports = class BuildStackLogsPageView extends JView
       cssClass : 'GenericButton'
       callback : @lazyBound 'emit', 'ClosingRequested'
 
-    { tailOffset } = @getOptions()
+    @logsContainer = new kd.CustomHTMLView { cssClass : 'logs-pane' }
+    @render()
 
+
+  render: ->
+
+    { tailOffset } = @getOptions()
     file = @getData()
-    @logsPane = new IDETailerPane {
+
+    @logsContainer.destroySubViews()
+    return  unless file
+
+    logsPane = new IDETailerPane {
       file
       tailOffset
       delegate : this
-      cssClass : 'logs-pane'
+      showDoneNotification : no
     }
+    @logsContainer.addSubView logsPane
 
 
   pistachio: ->
@@ -38,7 +48,7 @@ module.exports = class BuildStackLogsPageView extends JView
         </header>
         {{> @progressPane}}
         <section class="main">
-          {{> @logsPane}}
+          {{> @logsContainer}}
         </section>
         <footer>
           {{> @closeButton}}

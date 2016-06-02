@@ -13,14 +13,14 @@ module.exports = class IDETailerPane extends IDEPane
 
     options.cssClass = kd.utils.curry 'editor-pane', options.cssClass
     options.paneType = 'tailer'
-    { @file }        = options
+    { @file, showDoneNotification } = options
 
     super options, data
 
     @hash = @file.paneHash  if @file.paneHash
     @ideViewHash = options.ideViewHash
 
-    @lineParser = new IDETailerPaneLineParser()
+    @lineParser = new IDETailerPaneLineParser { showDoneNotification }
     @lineParser.on 'BuildDone', @bound 'handleBuildDone'
 
     @createEditor()
@@ -180,6 +180,8 @@ module.exports = class IDETailerPane extends IDEPane
 
 
   handleBuildDone: ->
+
+    @emit 'BuildDone'
 
     { progressBar } = @aceView.ace
     return  unless progressBar

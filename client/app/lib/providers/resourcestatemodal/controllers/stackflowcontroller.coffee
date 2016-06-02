@@ -1,11 +1,11 @@
 kd = require 'kd'
-async = require 'async'
 InstructionsController = require './instructionscontroller'
 CredentialsController = require './credentialscontroller'
 BuildStackController = require './buildstackcontroller'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 helpers = require '../helpers'
 constants = require '../constants'
+showError = require 'app/util/showError'
 
 module.exports = class StackFlowController extends kd.Controller
 
@@ -16,6 +16,22 @@ module.exports = class StackFlowController extends kd.Controller
     { stack } = @getData()
     @state    = stack.status?.state
 
+    @loadData()
+
+
+  loadData: ->
+
+    { stack } = @getData()
+    { computeController } = kd.singletons
+
+    computeController.fetchBaseStackTemplate stack, (err, stackTemplate) =>
+      return showError err  if err
+      @onDataLoaded stackTemplate
+
+
+  onDataLoaded: (stackTemplate) ->
+
+    @stackTemplate = stackTemplate
     @bindToKloudEvents()
     @createControllers()
 
@@ -39,9 +55,9 @@ module.exports = class StackFlowController extends kd.Controller
     { stack, machine } = @getData()
     { container }      = @getOptions()
 
-    @instructions = new InstructionsController { container }, stack
+    @instructions = new InstructionsController { container }, @stackTemplate
     @credentials  = new CredentialsController { container }, stack
-    @buildStack   = new BuildStackController { container }, { stack, machine }
+    @buildStack   = new BuildStackController { container }, { stack, @stackTemplate, machine }
 
     @instructions.on 'NextPageRequested', => @credentials.show()
     @credentials.on 'InstructionsRequested', => @instructions.show()
@@ -50,11 +66,7 @@ module.exports = class StackFlowController extends kd.Controller
     @buildStack.on 'RebuildRequested', => @credentials.submit()
     @forwardEvent @buildStack, 'ClosingRequested'
 
-    queue = [
-      (next) => @instructions.ready next
-      (next) => @credentials.ready next
-    ]
-    async.parallel queue, @bound 'show'
+    @credentials.ready @bound 'show'
 
 
   updateStatus: (event, task) ->
@@ -71,13 +83,13 @@ module.exports = class StackFlowController extends kd.Controller
     if error
       @buildStack.showError error
     else if percentage?
-      @buildStack.updateProgress percentage, message
+      @buildStack.updateBuildProgress percentage, message
       return unless percentage is constants.COMPLETE_PROGRESS_VALUE
 
       if prevState is 'Building' and @state is 'Running'
         { computeController } = kd.singletons
         computeController.once "revive-#{machineId}", =>
-          @buildStack.completeProcess()
+          @buildStack.completeBuildProcess()
           @checkIfResourceRunning 'BuildCompleted'
     else
       @checkIfResourceRunning()

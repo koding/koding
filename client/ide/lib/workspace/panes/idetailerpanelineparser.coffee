@@ -4,9 +4,10 @@ KDNotificationView = kd.NotificationView
 
 module.exports = class IDETailerPaneLineParser extends KDObject
 
-  constructor: ->
+  constructor: (options = {}) ->
 
-    super
+    options.showDoneNotification ?= yes
+    super options
 
     @config = [
       { template : '_KD_DONE_', method : @bound 'showDoneNotification' }
@@ -27,7 +28,7 @@ module.exports = class IDETailerPaneLineParser extends KDObject
 
   showDoneNotification: ->
 
-    @showNotification 'Provisioning Completed'
+    @showNotification 'Provisioning Completed'  if @getOption 'showDoneNotification'
     @emit 'BuildDone'
 
 

@@ -85,8 +85,6 @@ module.exports = class ResourceStateController extends kd.Controller
     environmentDataProvider.fetchMachine machine.uid, (_machine) =>
       return appManager.tell 'IDE', 'quit'  unless _machine
 
-      @setData _machine
-
       initial = reason is 'BuildCompleted'
       @emit 'IDEBecameReady', _machine, initial
       @emit 'ClosingRequested'  unless reason
