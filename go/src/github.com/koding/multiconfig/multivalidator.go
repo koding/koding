@@ -7,7 +7,7 @@ func MultiValidator(validators ...Validator) Validator {
 	return multiValidator(validators)
 }
 
-// Validate tries to validate given struct with all the validators. If it doesnt
+// Validate tries to validate given struct with all the validators. If it doesn't
 // have any Validator it will simply skip the validation step. If any of the
 // given validators return err, it will stop validating and return it.
 func (d multiValidator) Validate(s interface{}) error {

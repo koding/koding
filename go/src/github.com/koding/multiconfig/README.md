@@ -30,7 +30,7 @@ Lets define and struct that defines our configuration
 ```go
 type Server struct {
 	Name    string `required:"true"`
-	Port    int    `default:6060`
+	Port    int    `default:"6060"`
 	Enabled bool
 	Users   []string
 }
