@@ -4,8 +4,6 @@ IDEPane                  = require './idepane'
 AceView                  = require 'ace/aceview'
 IDEAce                   = require '../../views/ace/ideace'
 IDETailerPaneLineParser  = require './idetailerpanelineparser'
-IDETailerPaneProgressBar = require './idetailerpaneprogressbar'
-
 
 module.exports = class IDETailerPane extends IDEPane
 
@@ -13,15 +11,15 @@ module.exports = class IDETailerPane extends IDEPane
 
     options.cssClass = kd.utils.curry 'editor-pane', options.cssClass
     options.paneType = 'tailer'
-    { @file, showDoneNotification } = options
+    { @file } = options
 
     super options, data
 
     @hash = @file.paneHash  if @file.paneHash
     @ideViewHash = options.ideViewHash
 
-    @lineParser = new IDETailerPaneLineParser { showDoneNotification }
-    @lineParser.on 'BuildDone', @bound 'handleBuildDone'
+    @lineParser = new IDETailerPaneLineParser()
+    @forwardEvent @lineParser, 'BuildDone'
 
     @createEditor()
 
@@ -55,7 +53,7 @@ module.exports = class IDETailerPane extends IDEPane
       ace.setReadOnly      yes
       ace.setScrollPastEnd no
 
-      { descriptionView, description, buildDuration } = @getOptions()
+      { descriptionView, description } = @getOptions()
       file = @getData()
 
       ace.descriptionView = descriptionView ? new kd.View
@@ -70,10 +68,6 @@ module.exports = class IDETailerPane extends IDEPane
           @resize()
 
       ace.descriptionView.setClass 'description-view'
-
-      if buildDuration
-        ace.progressBar = new IDETailerPaneProgressBar { duration : buildDuration }
-        ace.prepend ace.progressBar
 
       ace.prepend ace.descriptionView
 
@@ -182,8 +176,3 @@ module.exports = class IDETailerPane extends IDEPane
   handleBuildDone: ->
 
     @emit 'BuildDone'
-
-    { progressBar } = @aceView.ace
-    return  unless progressBar
-
-    progressBar.completeProgress()

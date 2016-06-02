@@ -34,7 +34,6 @@ module.exports = class BuildStackLogsPageView extends JView
       file
       tailOffset
       delegate : this
-      showDoneNotification : no
     }
     @logsContainer.addSubView logsPane
 

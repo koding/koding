@@ -6,11 +6,10 @@ module.exports = class IDETailerPaneLineParser extends KDObject
 
   constructor: (options = {}) ->
 
-    options.showDoneNotification ?= yes
     super options
 
     @config = [
-      { template : '_KD_DONE_', method : @bound 'showDoneNotification' }
+      { template : '_KD_DONE_', method : @bound 'onBuildDone' }
       { template : /^_KD_NOTIFY_@(.+)@$/, method : @bound 'showNotification' }
     ]
 
@@ -26,10 +25,7 @@ module.exports = class IDETailerPaneLineParser extends KDObject
         return method()
 
 
-  showDoneNotification: ->
-
-    @showNotification 'Provisioning Completed'  if @getOption 'showDoneNotification'
-    @emit 'BuildDone'
+  onBuildDone: -> @emit 'BuildDone'
 
 
   showNotification: (message, duration = 2000) ->

@@ -43,7 +43,6 @@ module.exports = class BuildStackPageView extends JView
         file
         tailOffset
         delegate : this
-        showDoneNotification : no
       }
       @forwardEvent postBuildLogs, 'BuildDone'
 
