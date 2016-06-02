@@ -27,6 +27,14 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
+	var (
+		forceUpdate   = c.Bool("force")
+		klientVersion = c.Int("klient-version")
+		klientChannel = c.String("klient-channel")
+		kdVersion     = c.Int("kd-version")
+		kdChannel     = c.String("kd-channel")
+	)
+
 	// Create and open the log file, to be safe in case it's missing.
 	f, err := createLogFile(LogFilePath)
 	if err != nil {
@@ -36,21 +44,20 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		log.Info("Update created log file at %q", LogFilePath)
 	}
 
-	checkUpdate := NewCheckUpdate()
+	if !shouldTryUpdate(kdVersion, klientVersion, forceUpdate) {
+		yesUpdate, err := checkUpdate()
+		if err != nil {
+			log.Error("Error checking if update is available. err:%s", err)
+			fmt.Println(FailedCheckingUpdateAvailable)
+			return 1
+		}
 
-	// by pass random checking to force checking for update
-	checkUpdate.ForceCheck = true
-
-	yesUpdate, err := checkUpdate.IsUpdateAvailable()
-	if err != nil {
-		log.Error("Error checking if update is available. err:%s", err)
-		fmt.Println(FailedCheckingUpdateAvailable)
-		return 1
-	}
-
-	if !yesUpdate {
-		fmt.Println("No update available.")
-		return 0
+		if !yesUpdate {
+			fmt.Println("No update available.")
+			return 0
+		} else {
+			fmt.Println("An update is available.")
+		}
 	}
 
 	kontrolURL := config.KontrolURL
@@ -87,7 +94,6 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	fmt.Printf("An update is available...\n")
 	fmt.Printf("Stopping %s...\n", config.KlientName)
 
 	// stop klient before we update it
@@ -97,27 +103,35 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	klientVersion, err := latestVersion(config.S3KlientLatest)
-	if err != nil {
-		log.Error("Error checking if update is available. err: %s", err)
-		fmt.Println(FailedCheckingUpdateAvailable)
-		return 1
+	if kdVersion == 0 {
+		var err error
+
+		kdVersion, err = latestVersion(config.S3KlientctlLatest)
+		if err != nil {
+			log.Error("Error checking if update is available. err: %s", err)
+			fmt.Println(FailedCheckingUpdateAvailable)
+			return 1
+		}
 	}
 
-	klientctlVersion, err := latestVersion(config.S3KlientctlLatest)
-	if err != nil {
-		log.Error("Error checking if update is available. err: %s", err)
-		fmt.Println(FailedCheckingUpdateAvailable)
-		return 1
+	if klientVersion == 0 {
+		var err error
+
+		klientVersion, err = latestVersion(config.S3KlientLatest)
+		if err != nil {
+			log.Error("Error checking if update is available. err: %s", err)
+			fmt.Println(FailedCheckingUpdateAvailable)
+			return 1
+		}
 	}
 
 	// download klient and kd to approprite place
 	dlPaths := map[string]string{
 		// /opt/kite/klient/klient
-		filepath.Join(KlientDirectory, "klient"): config.S3Klient(klientVersion),
+		filepath.Join(KlientDirectory, "klient"): config.S3Klient(klientVersion, klientChannel),
 
 		// /usr/local/bin/kd
-		filepath.Join(KlientctlDirectory, "kd"): config.S3Klientctl(klientctlVersion),
+		filepath.Join(KlientctlDirectory, "kd"): config.S3Klientctl(kdVersion, kdChannel),
 	}
 
 	fmt.Println("Updating...")
@@ -241,4 +255,25 @@ func ensureWriteable(dir, username string) error {
 	}
 
 	return os.Chown(dir, uid, gid)
+}
+
+func shouldTryUpdate(kdVersion, klientVersion int, forceUpdate bool) bool {
+	if forceUpdate {
+		return true
+	}
+
+	if kdVersion == 0 && klientVersion == 0 {
+		return true
+	}
+
+	return false
+}
+
+func checkUpdate() (bool, error) {
+	checkUpdate := NewCheckUpdate()
+
+	// by pass random checking to force checking for update
+	checkUpdate.ForceCheck = true
+
+	return checkUpdate.IsUpdateAvailable()
 }
