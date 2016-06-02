@@ -1,9 +1,5 @@
-teamsHelpers = require '../helpers/teamshelpers.js'
 helpers = require '../helpers/helpers.js'
-utils = require '../utils/utils.js'
 credentialsUrl = "#{helpers.getUrl(yes)}/Home/Stacks/credentials"
-async = require 'async'
-
 sectionSelector        = '.kdview.kdtabpaneview.credentials'
 credential             = '.kdview.kdlistitemview.kdlistitemview-default.credential-item'
 showButton             = "#{credential} .custom-link-view.HomeAppView--link.primary"

@@ -1,8 +1,5 @@
-teamsHelpers         = require '../helpers/teamshelpers.js'
 helpers              = require '../helpers/helpers.js'
-utils                = require '../utils/utils.js'
 stackEditorUrl       = "#{helpers.getUrl(yes)}/Home/stacks"
-async                = require 'async'
 stackSelector        = null
 sectionSelector      = '.kdview.kdtabpaneview.stacks'
 newStackButton       = '.kdbutton.GenericButton.HomeAppView-Stacks--createButton'
@@ -20,13 +17,14 @@ module.exports =
       .click newStackButton
       .pause 2000
       .assert.urlContains '/Stack-Editor/New'
+      .pause 1000, done
 
   seeTeamStackTemplates: (browser, done) ->
     browser
       .pause 2000
       .url stackEditorUrl
       .waitForElementVisible teamStacksSelector, 20000
-      .waitForElementVisible stackTemplate, 20000
+      .waitForElementVisible stackTemplate, 20000, done
 
   seePrivateStackTemplates: (browser, done) ->
     # FIXME: reimplement after stacks page is done ~ HK
@@ -42,4 +40,4 @@ module.exports =
     browser
       .pause 2000
       .waitForElementVisible draftStacksSelector, 20000
-      .waitForElementVisible stackTemplate, 20000
+      .waitForElementVisible stackTemplate, 20000, done

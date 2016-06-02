@@ -1,7 +1,6 @@
 teamsHelpers   = require '../helpers/teamshelpers.js'
 helpers        = require '../helpers/helpers.js'
 utils          = require '../utils/utils.js'
-stackEditorUrl = "#{helpers.getUrl(yes)}/Home/stacks"
 async          = require 'async'
 stackSelector  = null
 stackshelpers  = require '../helpers/stackshelpers.js'
