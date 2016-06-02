@@ -40,9 +40,6 @@ func (d *DatadogExporter) Send(m *Event) error {
 		}
 	}
 
-	fmt.Println("eventName-->", eventName)
-	fmt.Println("tags-->", tags)
-
 	return d.datadog.Count(eventName, 1, tags, 1)
 }
 
@@ -62,7 +59,9 @@ func isAllowed(ß string) bool {
 		"label",
 		"firstName",
 		"invitesCount",
+		"group",
 	}
+
 	for _, val := range whitelist {
 		if ß == val {
 			return true
