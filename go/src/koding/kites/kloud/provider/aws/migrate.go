@@ -93,8 +93,6 @@ func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateReques
 		return nil, err
 	}
 
-	mp.pushEvent(100, "Migration has finished")
-
 	return resp, nil
 }
 
@@ -246,8 +244,12 @@ func (mp *MigrateProvider) migrate(ctx context.Context, req *kloud.MigrateReques
 		if err := mp.migrateAsync(ctx, req, accountID, user); err != nil {
 			mp.Log.Error("======> %s finished with error (time: %s): '%s' <======", method,
 				time.Since(mp.start), err)
+
+			mp.pushError(err)
 		} else {
 			mp.Log.Info("======> %s finished (time: %s) <======", method, time.Since(mp.start))
+
+			mp.pushEvent(100, "Migration has finished")
 		}
 	}()
 
