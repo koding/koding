@@ -172,8 +172,3 @@ module.exports = class IDETailerPane extends IDEPane
 
 
   makeReadOnly: ->
-
-
-  handleBuildDone: ->
-
-    @emit 'BuildDone'
