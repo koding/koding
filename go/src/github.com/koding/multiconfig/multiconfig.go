@@ -195,6 +195,7 @@ func fieldSet(field *structs.Field, v string) error {
 			return fmt.Errorf("multiconfig: field '%s' of type int64 is unsupported: %s (%T)",
 				field.Name(), field.Kind(), t)
 		}
+
 	default:
 		return fmt.Errorf("multiconfig: field '%s' has unsupported type: %s", field.Name(), field.Kind())
 	}

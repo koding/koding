@@ -28,7 +28,7 @@ type FlagLoader struct {
 	// struct). Use this option only if you know what you do.
 	Flatten bool
 
-	// CamelCase adds a seperator for field names in camelcase form. A
+	// CamelCase adds a separator for field names in camelcase form. A
 	// fieldname of "AccessKey" would generate a flag name "--accesskey". If
 	// CamelCase is enabled, the flag name will be generated in the form of
 	// "--access-key"
@@ -40,6 +40,14 @@ type FlagLoader struct {
 
 	// Args defines a custom argument list. If nil, os.Args[1:] is used.
 	Args []string
+
+	// FlagUsageFunc an optional function that is called to set a flag.Usage value
+	// The input is the raw flag name, and the output should be a string
+	// that will used in passed into the flag for Usage.
+	FlagUsageFunc func(name string) string
+
+	// only exists for testing.  This is the raw flagset that is to parse
+	flagSet *flag.FlagSet
 }
 
 // Load loads the source into the config defined by struct s
@@ -48,9 +56,10 @@ func (f *FlagLoader) Load(s interface{}) error {
 	structName := strct.Name()
 
 	flagSet := flag.NewFlagSet(structName, flag.ExitOnError)
+	f.flagSet = flagSet
 
 	for _, field := range strct.Fields() {
-		f.processField(flagSet, field.Name(), field)
+		f.processField(field.Name(), field)
 	}
 
 	flagSet.Usage = func() {
@@ -76,7 +85,7 @@ func (f *FlagLoader) Load(s interface{}) error {
 // processField generates a flag based on the given field and fieldName. If a
 // nested struct is detected, a flag for each field of that nested struct is
 // generated too.
-func (f *FlagLoader) processField(flagSet *flag.FlagSet, fieldName string, field *structs.Field) error {
+func (f *FlagLoader) processField(fieldName string, field *structs.Field) error {
 	if f.CamelCase {
 		fieldName = strings.Join(camelcase.Split(fieldName), "-")
 	}
@@ -90,7 +99,7 @@ func (f *FlagLoader) processField(flagSet *flag.FlagSet, fieldName string, field
 				// first check if it's set or not, because if we have duplicate
 				// we don't want to break the flag. Panic by giving a readable
 				// output
-				flagSet.VisitAll(func(fl *flag.Flag) {
+				f.flagSet.VisitAll(func(fl *flag.Flag) {
 					if strings.ToLower(ff.Name()) == fl.Name {
 						// already defined
 						panic(fmt.Sprintf("flag '%s' is already defined in outer struct", fl.Name))
@@ -100,7 +109,7 @@ func (f *FlagLoader) processField(flagSet *flag.FlagSet, fieldName string, field
 				flagName = ff.Name()
 			}
 
-			if err := f.processField(flagSet, flagName, ff); err != nil {
+			if err := f.processField(flagName, ff); err != nil {
 				return err
 			}
 		}
@@ -112,7 +121,12 @@ func (f *FlagLoader) processField(flagSet *flag.FlagSet, fieldName string, field
 
 		// we only can get the value from expored fields, unexported fields panics
 		if field.IsExported() {
-			flagSet.Var(newFieldValue(field), flagName(fieldName), flagUsage(fieldName))
+			// use built-in or custom flag usage message
+			flagUsageFunc := flagUsageDefault
+			if f.FlagUsageFunc != nil {
+				flagUsageFunc = f.FlagUsageFunc
+			}
+			f.flagSet.Var(newFieldValue(field), flagName(fieldName), flagUsageFunc(fieldName))
 		}
 	}
 
@@ -152,6 +166,8 @@ func (f *fieldValue) IsBoolFlag() bool {
 	return false
 }
 
-func flagUsage(name string) string { return fmt.Sprintf("Change value of %s.", name) }
+// flagUsageDefault is the default "FlagUsageFunc" use in filling out
+// the usage of a flag.
+func flagUsageDefault(name string) string { return fmt.Sprintf("Change value of %s.", name) }
 
 func flagName(name string) string { return strings.ToLower(name) }

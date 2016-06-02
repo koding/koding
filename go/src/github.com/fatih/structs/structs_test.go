@@ -296,6 +296,60 @@ func TestMap_Anonymous(t *testing.T) {
 	}
 }
 
+func TestMap_Flatnested(t *testing.T) {
+	type A struct {
+		Name string
+	}
+	a := A{Name: "example"}
+
+	type B struct {
+		A `structs:",flatten"`
+		C int
+	}
+	b := &B{C: 123}
+	b.A = a
+
+	m := Map(b)
+
+	_, ok := m["A"].(map[string]interface{})
+	if ok {
+		t.Error("Embedded A struct with tag flatten has to be flat in the map")
+	}
+
+	expectedMap := map[string]interface{}{"Name": "example", "C": 123}
+	if !reflect.DeepEqual(m, expectedMap) {
+		t.Errorf("The exprected map %+v does't correspond to %+v", expectedMap, m)
+	}
+
+}
+
+func TestMap_FlatnestedOverwrite(t *testing.T) {
+	type A struct {
+		Name string
+	}
+	a := A{Name: "example"}
+
+	type B struct {
+		A    `structs:",flatten"`
+		Name string
+		C    int
+	}
+	b := &B{C: 123, Name: "bName"}
+	b.A = a
+
+	m := Map(b)
+
+	_, ok := m["A"].(map[string]interface{})
+	if ok {
+		t.Error("Embedded A struct with tag flatten has to be flat in the map")
+	}
+
+	expectedMap := map[string]interface{}{"Name": "bName", "C": 123}
+	if !reflect.DeepEqual(m, expectedMap) {
+		t.Errorf("The exprected map %+v does't correspond to %+v", expectedMap, m)
+	}
+}
+
 func TestMap_TimeField(t *testing.T) {
 	type A struct {
 		CreatedAt time.Time
@@ -310,6 +364,63 @@ func TestMap_TimeField(t *testing.T) {
 	}
 }
 
+func TestFillMap(t *testing.T) {
+	var T = struct {
+		A string
+		B int
+		C bool
+	}{
+		A: "a-value",
+		B: 2,
+		C: true,
+	}
+
+	a := make(map[string]interface{}, 0)
+	FillMap(T, a)
+
+	// we have three fields
+	if len(a) != 3 {
+		t.Errorf("FillMap should fill a map of len 3, got: %d", len(a))
+	}
+
+	inMap := func(val interface{}) bool {
+		for _, v := range a {
+			if reflect.DeepEqual(v, val) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	for _, val := range []interface{}{"a-value", 2, true} {
+		if !inMap(val) {
+			t.Errorf("FillMap should have the value %v", val)
+		}
+	}
+}
+
+func TestFillMap_Nil(t *testing.T) {
+	var T = struct {
+		A string
+		B int
+		C bool
+	}{
+		A: "a-value",
+		B: 2,
+		C: true,
+	}
+
+	defer func() {
+		err := recover()
+		if err != nil {
+			t.Error("FillMap should not panic if a nil map is passed")
+		}
+	}()
+
+	// nil should no
+	FillMap(T, nil)
+}
 func TestStruct(t *testing.T) {
 	var T = struct{}{}
 
@@ -911,6 +1022,28 @@ func TestNestedNilPointer(t *testing.T) {
 	_ = Map(personWithDogWithCollar) // Doesn't panic
 }
 
+func TestSetValueOnNestedField(t *testing.T) {
+	type Base struct {
+		ID int
+	}
+
+	type User struct {
+		Base
+		Name string
+	}
+
+	u := User{}
+	s := New(&u)
+	f := s.Field("Base").Field("ID")
+	err := f.Set(10)
+	if err != nil {
+		t.Errorf("Error %v", err)
+	}
+	if f.Value().(int) != 10 {
+		t.Errorf("Value should be equal to 10, got %v", f.Value())
+	}
+}
+
 type Person struct {
 	Name string
 	Age  int
@@ -956,7 +1089,7 @@ func TestTagWithStringOption(t *testing.T) {
 
 	vs := s.Values()
 	if vs[1] != person.String() {
-		t.Errorf("Value for 2nd field (person) should be %t, got: %t", person.String(), vs[1])
+		t.Errorf("Value for 2nd field (person) should be %T, got: %T", person.String(), vs[1])
 	}
 }
 

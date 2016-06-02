@@ -85,7 +85,10 @@ func getConfig(path string) (*os.File, error) {
 		return nil, err
 	}
 
-	configPath := filepath.Join(pwd, path)
+	configPath := path
+	if !filepath.IsAbs(path) {
+		configPath = filepath.Join(pwd, path)
+	}
 
 	// check if file with combined path is exists(relative path)
 	if _, err := os.Stat(configPath); !os.IsNotExist(err) {
