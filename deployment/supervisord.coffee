@@ -3,10 +3,10 @@ fs            = require 'fs'
 
 generateMainConf = (KONFIG) ->
 
-  environment = ""
-  environment += "#{key}='#{val}'," for key,val of KONFIG.ENV
+  environment = ''
+  environment += "#{key}='#{val}',"  for key, val of KONFIG.ENV
 
-  {supervisord} = KONFIG
+  { supervisord } = KONFIG
 
   {
     logdir
@@ -56,17 +56,13 @@ generateMainConf = (KONFIG) ->
   """
 
 # becareful while editing this function, any change will affect every worker
-generateWorkerSection = (app, options={}, KONFIG) ->
+generateWorkerSection = (app, options = {}, KONFIG) ->
 
-  {projectRoot} = KONFIG
-  {supervisord: {logdir}} = KONFIG
+  { projectRoot } = KONFIG
+  { supervisord: { logdir } } = KONFIG
 
   section =
-    command                 : "command"
-    stdout_logfile_maxbytes : "10MB"
-    stdout_logfile_backups  : 50
-    stderr_logfile          : "#{logdir}/#{app}.log"
-    stdout_logfile          : "#{logdir}/#{app}.log"
+    command                 : 'command'
     numprocs                : options.instances or 1
     numprocs_start          : 0
     directory               : projectRoot
@@ -74,13 +70,14 @@ generateWorkerSection = (app, options={}, KONFIG) ->
     autorestart             : yes
     startsecs               : 10
     startretries            : 5
-    stopsignal              : "TERM"
+    stopsignal              : 'TERM'
     stopwaitsecs            : 10
     redirect_stderr         : yes
     stdout_logfile          : "#{logdir}/#{app}.log"
-    stdout_logfile_maxbytes : "1MB"
+    stdout_logfile_maxbytes : '1MB'
     stdout_logfile_backups  : 10
-    stdout_capture_maxbytes : "1MB"
+    stdout_capture_maxbytes : '1MB'
+    stderr_logfile          : "#{logdir}/#{app}.log"
 
   for key, opt of options.supervisord
     section[key] = opt
@@ -93,13 +90,12 @@ generateWorkerSection = (app, options={}, KONFIG) ->
 
   # %(process_num) must be present within process_name when numprocs > 1
   if section.numprocs > 1
-    section.process_name = "%(program_name)s_%(process_num)d"
-
+    section.process_name = '%(program_name)s_%(process_num)d'
 
   supervisordSection = "\n[program:#{app}]\n"
   for key, val of section
     # longest supervisord conf's length is 31
-    space = new Array(32-key.length).join(" ")
+    space = new Array(32 - key.length).join(' ')
     supervisordSection += "#{key}#{space} = #{val}\n"
 
   return supervisordSection
@@ -107,8 +103,8 @@ generateWorkerSection = (app, options={}, KONFIG) ->
 
 generateMemmonSection = (config) ->
 
-  {limit, email} = config
-  limit or= "2048MB"
+  { limit, email } = config
+  limit or= '2048MB'
 
   """
   [eventlistener:memmon]
@@ -117,7 +113,7 @@ generateMemmonSection = (config) ->
   """
 
 
-module.exports.create = (KONFIG)->
+module.exports.create = (KONFIG) ->
   # create supervisord main config
   conf = generateMainConf KONFIG
 
@@ -134,7 +130,7 @@ module.exports.create = (KONFIG)->
     # other on normal. if we want to watch go files use previous one.
     command = options.supervisord.command
     if typeof command is 'object'
-      {run, watch} = command
+      { run, watch } = command
       options.supervisord.command = if KONFIG.runGoWatcher then watch else run
 
     groupConfigs[options.group]       or= {}
@@ -153,7 +149,7 @@ module.exports.create = (KONFIG)->
     \n
     """
 
-  {memmon} = KONFIG.supervisord
+  { memmon } = KONFIG.supervisord
   conf += generateMemmonSection memmon  if memmon
 
   return conf
