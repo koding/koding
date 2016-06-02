@@ -84,7 +84,7 @@ module.exports = class PaymentInformationContainer extends React.Component
           showSuccess 'Your card has been updated successfully.'
 
       else
-        subscribeGroupPlan({ token, email: formValues.get 'email' }).then ->
+        subscribeGroupPlan({ token, email: cardEmail }).then ->
           resetValues()
           loadGroupCreditCard()
           showSuccess 'Your card has been saved successfully.'

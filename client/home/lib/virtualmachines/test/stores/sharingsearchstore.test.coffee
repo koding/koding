@@ -1,7 +1,7 @@
-actions              = require 'home/virtualmachines/flux/actiontypes'
+actions              = require 'home/virtualmachines/flux/search/actiontypes'
 expect               = require 'expect'
 Reactor              = require 'app/flux/base/reactor'
-SharingSearchStore   = require 'home/virtualmachines/flux/stores/sharingsearchstore'
+SharingSearchStore   = require 'home/virtualmachines/flux/search/stores/sharingsearchstore'
 generateDummyAccount = require 'app/util/generateDummyAccount'
 
 describe 'VirtualMachinesSharingSearchStore', ->

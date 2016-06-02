@@ -34,12 +34,14 @@ module.exports =
     teammateSectionSelector = '.HomeAppView--section.teammates'
     checkboxSelector        = '.HomeAppView--section.send-invites .invite-inputs .kdcustomcheckbox'
     adminTextSelector       = '.HomeAppView--section.send-invites .information .invite-labels label:last-child span:last-child'
+    sendInvitesButton       = '.HomeAppView--section.send-invites .custom-link-view.HomeAppView--button.primary.fr'
 
     welcomeView          = '.WelcomeStacksView'
     leaveTeamButton      = '.HomeAppView--button'
     passwordSelector     = 'input[name=password]'
     forgotPasswordButton = '.kdbutton.solid.light-gray'
     confirmButton        = 'button[type=submit]'
+    notification         = '.kdnotification.main'
 
     member = utils.getUser no, 1
     host = utils.getUser()
@@ -59,7 +61,7 @@ module.exports =
       .click saveChangesButton
     teamsHelpers.assertConfirmation browser, successMessage
 
-  #Test Section Teammates Invite and Join to Team
+  # #Test Section Teammates Invite and Join to Team
 
     { invitations, index } = utils.getInvitationData()
     index = if index is 0 then 1 else index
@@ -101,15 +103,49 @@ module.exports =
           browser.waitForElementVisible selector(1), 20000
           browser.click selector(2), ->
             teamsHelpers.checkTeammates browser, invitations[1], nthItem(1), nthItem(2), selector(2), no, ->
-              browser.expect.element(selector(index + 1)).text.to.contain 'Owner'
-              browser.click selector(lastPendingInvitationIndex + 1), ->
-                teamsHelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], nthItem(1), nthItem(2), selector(lastPendingInvitationIndex + 1), yes, ->
-                browser.scrollToElement '.HomeAppView--section.send-invites'
-
+              browser.click selector(indexOfTargetUser2 + 1), ->
+                browser
+                  .pause 1000
+                  .click nthItem(2)
+                  .pause 1000
+                  .waitForElementVisible selector(indexOfTargetUser2 + 1), 20000
+                  .assert.containsText selector(indexOfTargetUser2 + 1), 'Admin'
+                  browser.expect.element(selector(index + 1)).text.to.contain 'Owner'
+                browser.click selector(lastPendingInvitationIndex + 1), ->
+                  browser.waitForElementVisible selector(lastPendingInvitationIndex + 1), 20000
+                  teamsHelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], nthItem(1), nthItem(2), selector(lastPendingInvitationIndex + 1), yes, ->
+                    teamsHelpers.logoutTeam browser, (res) ->
+                      teamsHelpers.loginToTeam browser, invitations[lastPendingInvitationIndex], yes, ->
+                      browser.assert.containsText notification, 'Unknown user name'
+                      teamsHelpers.loginToTeam browser, host , no, ->
+                        browser
+                          .waitForElementVisible welcomeView, 20000
+                          .url myTeamLink
+                          .waitForElementVisible sectionSelector, 20000
+                          .scrollToElement '.HomeAppView--section.send-invites'
 
 
   #Test Section Send Invites
     teamsHelpers.uploadCSV browser
+    teamsHelpers.fillInviteInputByIndex browser, 2, invitations[indexOfTargetUser1].email
+    browser
+      .waitForElementVisible sendInvitesButton, 5000
+      .click sendInvitesButton
+    teamsHelpers.acceptConfirmModal browser
+    teamsHelpers.assertConfirmation browser, "Invitation is sent to #{invitations[indexOfTargetUser1].email}"
+
+    teamsHelpers.fillInviteInputByIndex browser, 1, invitations[indexOfTargetUser2].email
+    browser
+      .waitForElementVisible sendInvitesButton, 5000
+      .click sendInvitesButton
+    teamsHelpers.acceptConfirmModal browser
+    teamsHelpers.assertConfirmation browser, "Invitation is sent to #{invitations[indexOfTargetUser1].email}"
+    browser.pause 3000
+
+    teamsHelpers.inviteUser browser, 'member', invitations[indexOfTargetUser1 + 1]
+    browser.pause 3000
+    teamsHelpers.inviteUser browser, 'admin',  invitations[indexOfTargetUser2 + 1]
+    browser.pause 3000
     teamsHelpers.inviteUser browser, 'member'
     browser.pause 3000
     teamsHelpers.inviteUser browser, 'admin'
@@ -119,9 +155,9 @@ module.exports =
     browser.pause 3000
     teamsHelpers.newInviteFromResendModal browser, 'admin'
 
-  #Test Section Team Settings for Member
+  # Test Section Team Settings for Member
 
-    targetUser1 = utils.getUser no, 1
+    targetUser1 = invitations[1]
     teamsHelpers.logoutTeam browser, (res) ->
       teamsHelpers.loginToTeam browser, targetUser1 , no, ->
         browser
@@ -168,7 +204,6 @@ module.exports =
           .setValue passwordSelector, targetUser1.password
           .click confirmButton
           .assert.urlContains helpers.getUrl(yes)
-
 
 
 selector = (index) ->
