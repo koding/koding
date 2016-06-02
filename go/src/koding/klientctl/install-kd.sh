@@ -2,22 +2,22 @@
 
 readonly releaseChannel="%RELEASE_CHANNEL%"
 
-readonly osxfuseUrl="http://downloads.sourceforge.net/project/osxfuse/osxfuse-2.8.0/osxfuse-2.8.0.dmg"
-readonly virtualBoxUrlLinux="http://download.virtualbox.org/virtualbox/5.0.20/VirtualBox-5.0.20-106931-Linux_amd64.run"
-readonly virtualBoxUrlDarwin="http://download.virtualbox.org/virtualbox/5.0.20/VirtualBox-5.0.20-106931-OSX.dmg"
-readonly vagrantUrlLinux="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
-readonly vagrantUrlDarwin="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1.dmg"
+readonly OSXFUSE_URL="http://downloads.sourceforge.net/project/osxfuse/osxfuse-2.8.0/osxfuse-2.8.0.dmg"
+readonly VIRTUALBOX_URL_LINUX="http://download.virtualbox.org/virtualbox/5.0.20/VirtualBox-5.0.20-106931-Linux_amd64.run"
+readonly VIRTUALBOX_URL_DARWIN="http://download.virtualbox.org/virtualbox/5.0.20/VirtualBox-5.0.20-106931-OSX.dmg"
+readonly VAGRANT_URL_LINUX="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
+readonly VAGRANT_URL_DARWIN="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1.dmg"
 
-version="$(curl -sSL https://koding-kd.s3.amazonaws.com/${releaseChannel}/latest-version.txt)"
-platform="$(uname | tr '[:upper:]' '[:lower:]')"
-kdUrl="https://koding-kd.s3.amazonaws.com/${releaseChannel}/kd-0.1.${version}.${platform}_amd64.gz"
+VERSION="$(curl -sSL https://koding-kd.s3.amazonaws.com/${releaseChannel}/latest-VERSION.txt)"
+PLATFORM="$(uname | tr '[:upper:]' '[:lower:]')"
+KD_URL="https://koding-kd.s3.amazonaws.com/${releaseChannel}/kd-0.1.${VERSION}.${PLATFORM}_amd64.gz"
 
-isVirtualbox() {
+is_virtualbox() {
   VBoxHeadless -h 2>&1 | grep -c 'Oracle VM VirtualBox Headless Interface' >/dev/null
 }
 
-isVagrant() {
-  vagrant version 2>&1 | grep -c 'Installed Version:' >/dev/null
+is_vagrant() {
+  vagrant VERSION 2>&1 | grep -c 'Installed Version:' >/dev/null
 }
 
 # download_file <url> <output file>
@@ -48,11 +48,11 @@ die() {
   exit 1
 }
 
-installFuseOnDarwinOnly () {
+install_fuse_darwin() {
   local fuseDir="/Library/Filesystems/osxfusefs.fs"
   local fuseDmg=/tmp/osxfuse.dmg
 
-  if [[ $platform == "linux" ]]; then
+  if [[ $PLATFORM == "linux" ]]; then
     return 0 # setup fuse on linux?
   fi
 
@@ -69,7 +69,7 @@ installFuseOnDarwinOnly () {
   echo "Downloading osxfuse..."
 
   # download osxfuse
-  if ! download_file "$osxfuseUrl" "$fuseDmg"; then
+  if ! download_file "$OSXFUSE_URL" "$fuseDmg"; then
     die "error: failed to download OSX Fuse" 2>&1
   fi
 
@@ -89,41 +89,41 @@ installFuseOnDarwinOnly () {
   echo "Created $fuseDir"
 }
 
-installVagrantProviderDeps() {
+install_vagrant_deps() {
   if ! prompt_install "VirtualBox and Vagrant are needed in order to build Vagrant stack. Do you want to install them now?"; then
     return
   fi
 
-  installVirtualBox
-  installVagrant
+  install_virtualbox
+  install_vagrant
 
   if ! vagrant box list | grep ubuntu/trusty64 >/dev/null; then
     vagrant box add ubuntu/trusty64
   fi
 }
 
-installVirtualBox() {
-  if isVirtualbox; then
+install_virtualbox() {
+  if is_virtualbox; then
     return 0
   fi
 
-  case "$platform" in
+  case "$PLATFORM" in
   linux)
-      installVirtualBoxLinux
+      install_virtualbox_linux
     ;;
   darwin)
-      installVirtualBoxDarwin
+      install_virtualbox_darwin
     ;;
   *)
-    die "error: platform not supported: $platform"
+    die "error: platform not supported: $PLATFORM"
     ;;
   esac
 }
 
-installVirtualBoxLinux() {
+install_virtualbox_linux() {
   local vboxRun="/tmp/virtualbox.run"
 
-  if ! download_file "$virtualBoxUrlLinux" "$vboxRun"; then
+  if ! download_file "$VIRTUALBOX_URL_LINUX" "$vboxRun"; then
     die "error: failed to download VirtualBox"
   fi
 
@@ -136,10 +136,10 @@ installVirtualBoxLinux() {
   rm -f "$vboxRun"
 }
 
-installVirtualBoxDarwin() {
+install_virtualbox_darwin() {
   local vboxDmg="/tmp/virtualbox.dmg"
 
-  if ! download_file "$virtualBoxUrlDarwin" "$vboxDmg"; then
+  if ! download_file "$VIRTUALBOX_URL_DARWIN" "$vboxDmg"; then
     die "error: failed to download VirtualBox"
   fi
 
@@ -150,28 +150,28 @@ installVirtualBoxDarwin() {
   rm -f "$vboxDmg"
 }
 
-installVagrant() {
-  if isVagrant; then
+install_vagrant() {
+  if is_vagrant; then
     return 0
   fi
 
-  case "$platform" in
+  case "$PLATFORM" in
   linux)
-    installVagrantLinux
+    install_vagrant_linux
     ;;
   darwin)
-    installVagrantDarwin
+    install_vagrant_darwin
     ;;
   *)
-    die "error: platform not supported: $platform"
+    die "error: platform not supported: $PLATFORM"
     ;;
   esac
 }
 
-installVagrantLinux() {
+install_vagrant_linux() {
   local vagrantDeb="/tmp/vagrant.deb"
 
-  if ! download_file "$vagrantUrlLinux" "$vagrantDeb"; then
+  if ! download_file "$VAGRANT_URL_LINUX" "$vagrantDeb"; then
     die "error: failed to download vagrant"
   fi
 
@@ -182,10 +182,10 @@ installVagrantLinux() {
   rm -f "$vagrantDeb"
 }
 
-installVagrantDarwin() {
+install_vagrant_darwin() {
   local vagrantDmg="/tmp/vagrant.dmg"
 
-  if ! download_file "$vagrantUrlDarwin" "$vagrantDmg"; then
+  if ! download_file "$VAGRANT_URL_DARWIN" "$vagrantDmg"; then
     die "error: failed to download vagrant"
   fi
 
@@ -239,7 +239,7 @@ fi
 # This check helps us prevent kd from being installed over a managed vm
 # where kd would have trouble replacing klient in an unknown environment.
 #
-# TODO: renable this after oldder version of kd has replaced with self
+# TODO: renable this after oldder VERSION of kd has replaced with self
 # updateable one.
 #
 # if sudo [ -f /opt/kite/klient/klient ]; then
@@ -267,7 +267,7 @@ if which kd &>/dev/null; then
   sudo kd uninstall > /dev/null 2>&1
 fi
 
-case "$platform" in
+case "$PLATFORM" in
   darwin|linux)
     installDir="/usr/local/bin"
     kdGz="/tmp/kd.gz"
@@ -286,7 +286,7 @@ case "$platform" in
     echo
     echo "Downloading kd..."
 
-    if ! download_file "$kdUrl" "$kdGz"; then
+    if ! download_file "$KD_URL" "$kdGz"; then
       cat << EOF
 Error: Failed to download kd binary. Please check your internet
 connection or try again.
@@ -305,16 +305,16 @@ EOF
 
     echo "Created ${installDir}/kd"
 
-    if [[ "$platform" == "darwin" ]]; then
+    if [[ "$PLATFORM" == "darwin" ]]; then
       # Ensure old klient is not running.
       sudo launchctl unload -w /Library/LaunchDaemons/com.koding.klient &>/dev/null || true
       rm -f /Library/LaunchDaemons/com.koding.klient &>/dev/null || true
 
       # Check if fuse is needed, and install it if it is.
-      installFuseOnDarwinOnly
+      install_fuse_darwin
     fi
 
-    installVagrantProviderDeps
+    install_vagrant_deps
 
     echo
     ;;
@@ -347,7 +347,7 @@ if ! sudo kd install $kontrolFlag "$1" < /dev/tty; then
 fi
 
 cat << EOF
-Success! kd (version ${version}, channel ${releaseChannel}) has been successfully installed.
+Success! kd (version ${VERSION}, channel ${releaseChannel}) has been successfully installed.
 Please run the following command for more information:
 
     kd -h
@@ -356,7 +356,7 @@ EOF
 
 kiteQueryID=$(kd version 2>/dev/null | grep 'Kite Query ID' | cut -d: -f 2 | tr -s ' ')
 
-if ! isVirtualbox && ! isVagrant; then
+if ! is_virtualbox && ! is_vagrant; then
   cat << EOF
 No VirtualBox nor Vagrant is present on your system. In order to use local provisioning
 with Vagrant provider ensure they are installed:
@@ -366,7 +366,7 @@ with Vagrant provider ensure they are installed:
 
 EOF
 
-elif ! isVirtualbox then
+elif ! is_virtualbox then
   cat << EOF
 No VirtualBox is present on your system. In order to use local provisioning
 with Vagrant provider ensure it is installed:
@@ -375,7 +375,7 @@ with Vagrant provider ensure it is installed:
 
 EOF
 
-elif ! isVagrant; then
+elif ! is_vagrant; then
   cat << EOF
 No Vagrant is present on your system. In order to use local provisioning
 with Vagrant provider ensure it is installed:
