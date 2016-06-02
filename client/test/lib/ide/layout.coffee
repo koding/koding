@@ -41,113 +41,91 @@ module.exports =
   layout: (browser) ->
 
     queue = [
-      # # splitPanesVertically
-      # (next) ->
-      #   layoutHelpers.split browser, 'vertical', ->
-      #     next null
+      # splitPanesVertically
+      (next) ->
+        layoutHelpers.split browser, 'vertical', ->
+          next null
 
-      # # splitPanesHorizontally
-      # (next) ->
-      #   layoutHelpers.split browser, 'horizontal', ->
-      #     next null
+      # splitPanesHorizontally
+      (next) ->
+        layoutHelpers.split browser, 'horizontal', ->
+          next null
 
-      # # undoSplitPanes
-      # (next) ->
-      #   layoutHelpers.undoSplit browser, yes, ->
-      #     next null
+      # undoSplitPanes
+      (next) ->
+        layoutHelpers.undoSplit browser, yes, ->
+          next null
 
-      # # undoSplitPanesNotShowOnScreen
-      # (next) ->
-      #   newPaneSelector = '.kdsplitcomboview .kdsplitview-panel.panel-1 .application-tab-handle-holder'
+      # undoSplitPanesNotShowOnScreen
+      (next) ->
+        newPaneSelector = '.kdsplitcomboview .kdsplitview-panel.panel-1 .application-tab-handle-holder'
 
-      #   fn = ->
-      #     browser.elements 'css selector', newPaneSelector, (result) ->
-      #       if result.value.length is 1
-      #         browser
-      #           .waitForElementPresent '.panel-1 .general-handles .close-handle.hidden', 20000 # Assertion
-      #           .pause 1, ->
-      #             next null, next
-      #       else
-      #         layoutHelpers.undoSplit(browser, no)
-      #         fn()
+        fn = ->
+          browser.elements 'css selector', newPaneSelector, (result) ->
+            if result.value.length is 1
+              browser
+                .waitForElementPresent '.panel-1 .general-handles .close-handle.hidden', 20000 # Assertion
+                .pause 1, ->
+                  next null, next
+            else
+              layoutHelpers.undoSplit(browser, no)
+              fn()
 
-      #   layoutHelpers.waitForSnapshotRestore(browser)
-      #   fn()
+        layoutHelpers.waitForSnapshotRestore(browser)
+        fn()
 
-      # # openDrawingBoard
-      # (next) ->
-      #   handleSelector     = '.kdtabhandle.drawing'
-      #   activePaneSelector = '.kdtabpaneview.drawing.active .drawing-pane'
+      # openDrawingBoard
+      (next) ->
+        handleSelector     = '.kdtabhandle.drawing'
+        activePaneSelector = '.kdtabpaneview.drawing.active .drawing-pane'
 
-      #   fn = ->
-      #     browser.elements 'css selector', handleSelector, (result) ->
-      #       if result.value.length > 0
-      #         console.log(' ✔ A drawing board is already opened. Ending test...')
-      #         next null
-      #       else
-      #         layoutHelpers.openMenuAndClick(browser, '.new-drawing-board')
+        fn = ->
+          browser.elements 'css selector', handleSelector, (result) ->
+            if result.value.length > 0
+              console.log(' ✔ A drawing board is already opened. Ending test...')
+              next null
+            else
+              layoutHelpers.openMenuAndClick(browser, '.new-drawing-board')
 
-      #         browser
-      #           .pause 4000
-      #           .waitForElementVisible handleSelector + '.active', 20000
-      #           .waitForElementVisible activePaneSelector, 20000 # Assertion
-      #           .waitForElementVisible activePaneSelector + ' .drawing-board-toolbar', 20000 # Assertion
-      #           .pause 1, -> next null
+              browser
+                .pause 4000
+                .waitForElementVisible handleSelector + '.active', 20000
+                .waitForElementVisible activePaneSelector, 20000 # Assertion
+                .waitForElementVisible activePaneSelector + ' .drawing-board-toolbar', 20000 # Assertion
+                .pause 1, -> next null
 
-      #   layoutHelpers.waitForSnapshotRestore(browser)
-      #   fn()
+        layoutHelpers.waitForSnapshotRestore(browser)
+        fn()
 
-      # # collapseExpandFileTree
-      # (next) ->
-      #   tabSelector             = '.kdtabhandle-tabs.clearfix'
-      #   fileTabSelector         = "#{tabSelector} .files"
-      #   settingsTabSelector     = "#{tabSelector} .settings"
-      #   collapseButton          = '.application-tab-handle-holder .general-handles'
-      #   collapsedWindowSelector = '.kdview.kdscrollview.kdsplitview-panel.panel-0.floating'
-      #   settingsHeaderSelector  = '.kdtabhandle-tabs .settings.kddraggable.active'
+      # collapseExpandFileTree
+      (next) ->
+        tabSelector             = '.kdtabhandle-tabs.clearfix'
+        fileTabSelector         = "#{tabSelector} .files"
+        settingsTabSelector     = "#{tabSelector} .settings"
+        collapseButton          = '.application-tab-handle-holder .general-handles'
+        collapsedWindowSelector = '.kdview.kdscrollview.kdsplitview-panel.panel-0.floating'
+        settingsHeaderSelector  = '.kdtabhandle-tabs .settings.kddraggable.active'
 
-      #   browser
-      #     .waitForElementVisible        fileTabSelector, 20000
-      #     .pause                        3000 # wait for file tree to load
-      #     .moveToElement                fileTabSelector, 5, 5
-      #     .waitForElementVisible        collapseButton, 20000
-      #     .click                        collapseButton
-      #     .pause                        500
-      #     .waitForElementVisible        collapsedWindowSelector, 20000
-      #     .click                        fileTabSelector
-      #     .pause                        500
-      #     .waitForElementNotPresent     collapsedWindowSelector, 20000
-      #     .click                        collapseButton
-      #     .pause                        500
-      #     .waitForElementVisible        collapsedWindowSelector, 20000
-      #     .click                        settingsTabSelector
-      #     .pause                        500
-      #     .waitForElementNotPresent     collapsedWindowSelector, 20000
-      #     .waitForElementVisible        settingsHeaderSelector, 20000
-      #     .pause 1, -> next null
+        browser
+          .waitForElementVisible        fileTabSelector, 20000
+          .pause                        3000 # wait for file tree to load
+          .moveToElement                fileTabSelector, 5, 5
+          .waitForElementVisible        collapseButton, 20000
+          .click                        collapseButton
+          .pause                        500
+          .waitForElementVisible        collapsedWindowSelector, 20000
+          .click                        fileTabSelector
+          .pause                        500
+          .waitForElementNotPresent     collapsedWindowSelector, 20000
+          .click                        collapseButton
+          .pause                        500
+          .waitForElementVisible        collapsedWindowSelector, 20000
+          .click                        settingsTabSelector
+          .pause                        500
+          .waitForElementNotPresent     collapsedWindowSelector, 20000
+          .waitForElementVisible        settingsHeaderSelector, 20000
+          .pause 1, -> next null
 
-      # collapseExpandSidebar
-      # (next) ->
-      #   sidebarSelector         = '.kdview.with-sidebar .logo-wrapper'
-      #   collapseButton          = '.logo-wrapper .sidebar-close-handle'
-      #   collapsedWindowSelector = '.kdview.with-sidebar#kdmaincontainer.collapsed'
-      #   hiddenExpandSelector    = '.sidebar-close-handle.hidden .icon'
-
-      #   browser
-      #     .waitForElementVisible     sidebarSelector, 20000
-      #     .moveToElement             sidebarSelector, 5, 5
-      #     .waitForElementVisible     collapseButton, 20000
-      #     .click                     collapseButton
-      #     .pause                     500
-      #     .waitForElementVisible     collapsedWindowSelector, 20000
-      #     .moveToElement             sidebarSelector, 5, 5
-      #     .pause                     2000 # wait for hidden button to be displayed
-      #     .click                     hiddenExpandSelector
-      #     .pause                     500
-      #     .waitForElementNotPresent  collapsedWindowSelector, 20000
-      #     .pause 1, ->
-      #       console.log "*******"
-      #       next null
 
       # enterExitFullScreenFromIdeHeader
       (next) ->
