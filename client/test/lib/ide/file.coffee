@@ -1,132 +1,123 @@
 helpers    = require '../helpers/helpers.js'
 ideHelpers = require '../helpers/idehelpers.js'
-
+utils = require '../utils/utils.js'
+async = require 'async'
+teamsHelpers = require '../helpers/teamshelpers.js'
 
 module.exports =
 
+  before: (browser, done) ->
 
-  openFile: (browser) ->
+    ###
+    * we are creating users list here to send invitation and join to team
+    * so we will be able to run our test for different kind of member role
+    ###
+    targetUser1 = utils.getUser no, 1
+    targetUser1.role = 'member'
 
-    user = helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-    ideHelpers.openFileFromWebFolder(browser, user)
-    browser.end()
+    users = [
+      targetUser1
+    ]
 
+    queue = [
+      (next) ->
+        teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
+          next null, result
+      (next) ->
+        teamsHelpers.buildStack browser, (res) ->
+          next null, res
 
-  createFileFromContextMenu: (browser) ->
+      # go to IDE url
+      (next) ->
+        teamUrl = helpers.getUrl yes
+        url = "#{teamUrl}/IDE"
+        browser.url url, -> next null
+    ]
 
-    user = helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-    helpers.createFile(browser, user)
-    browser.end()
-
-
-  createFileFromMachineHeader: (browser) ->
-
-    user = helpers.beginTest(browser)
-
-    helpers.waitForVMRunning(browser)
-
-    helpers.createFileFromMachineHeader(browser, user)
-    browser.end()
-
-
-  deleteFile: (browser) ->
-
-    user = helpers.beginTest(browser)
-
-    helpers.waitForVMRunning(browser)
-
-    filename     = helpers.createFile(browser, user)
-    webPath      = '/home/' + user.username + '/Web'
-    fileSelector = "span[title='" + webPath + '/' + filename + "']"
-
-    helpers.deleteFile(browser, fileSelector)
-    browser.end()
+    async.series queue, (err, result) ->
+      done()  unless err
 
 
-  renameFile: (browser) ->
+  file: (browser, done) ->
+    user = utils.getUser()
 
-    user = helpers.beginTest(browser)
+    queue = [
 
-    helpers.waitForVMRunning(browser)
+      # createFileFromContextMenu
+      (next) ->
+        helpers.createFile browser, user, null, null, null, (res) -> next null
 
-    filename     = helpers.createFile(browser, user)
-    webPath      = '/home/' + user.username + '/Web'
-    fileSelector = "span[title='" + webPath + '/' + filename + "']"
+      # createFileFromMachineHeader
+      (next) ->
+        helpers.createFileFromMachineHeader browser, user, null, yes, (res) ->
+          next null
 
-    paragraph        = helpers.getFakeText()
-    newFileName      = paragraph.split(' ')[0] + '.txt'
-    newFileSelector  = "span[title='" + webPath + '/' + newFileName + "']"
+      # deleteFile
+      (next) ->
+        filename     = helpers.createFile(browser, user)
+        configPath      = '/home/' + user.username + '/.config'
+        fileSelector = "span[title='" + configPath + '/' + filename + "']"
+        helpers.deleteFile browser, fileSelector, -> next null
 
-    browser
-      .waitForElementPresent     fileSelector, 20000
-      .click                     fileSelector
-      .click                     fileSelector + ' + .chevron'
-      .waitForElementVisible     'li.rename', 20000
-      .click                     'li.rename'
-      .waitForElementVisible     'li.selected .rename-container .hitenterview', 20000
-      .clearValue                'li.selected .rename-container .hitenterview'
-      .setValue                  'li.selected .rename-container .hitenterview', newFileName + '\n'
-      .waitForElementPresent     newFileSelector, 20000 # Assertion
-      .end()
+      # rename file
+      (next) ->
+        filename     = helpers.createFile(browser, user)
+        configPath      = '/home/' + user.username + '/.config'
+        fileSelector = "span[title='" + configPath + '/' + filename + "']"
 
+        paragraph        = helpers.getFakeText()
+        newFileName      = paragraph.split(' ')[0] + '.txt'
+        newFileSelector  = "span[title='" + configPath + '/' + newFileName + "']"
 
-  duplicateFile: (browser) ->
-
-    user = helpers.beginTest(browser)
-
-    helpers.waitForVMRunning(browser)
-
-    filename      = helpers.createFile(browser, user)
-    newFileName   = filename.split('.txt').join('_1.txt')
-    webPath       = '/home/' + user.username + '/Web'
-    fileSelector  = "span[title='" + webPath + '/' + filename + "']"
-    newFile       = "span[title='" + webPath + '/' + newFileName + "']"
-
-    browser
-      .waitForElementPresent     fileSelector, 20000
-      .click                     fileSelector
-      .click                     fileSelector + ' + .chevron'
-      .waitForElementPresent     'li.duplicate', 20000
-      .click                     'li.duplicate'
-      .pause                     2000
-      .waitForElementPresent     newFile, 20000 # Assertion
-
-    helpers.deleteFile(browser, fileSelector)
-    helpers.deleteFile(browser, newFile)
-
-    browser.end()
+        browser
+          .waitForElementPresent     fileSelector, 20000
+          .click                     fileSelector
+          .click                     fileSelector + ' + .chevron'
+          .waitForElementVisible     'li.rename', 20000
+          .click                     'li.rename'
+          .waitForElementVisible     'li.selected .rename-container .hitenterview', 20000
+          .clearValue                'li.selected .rename-container .hitenterview'
+          .setValue                  'li.selected .rename-container .hitenterview', newFileName + '\n'
+          .waitForElementPresent     newFileSelector, 20000
+          .pause 10, -> next null # Assertion
 
 
-  createFileAndOpen: (browser) ->
+      # duplicateFile
+      (next) ->
+        filename      = helpers.createFile(browser, user)
+        newFileName   = filename.split('.txt').join('_1.txt')
+        configPath       = '/home/' + user.username + '/.config'
+        fileSelector  = "span[title='" + configPath + '/' + filename + "']"
+        newFile       = "span[title='" + configPath + '/' + newFileName + "']"
 
-    user = helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+        browser
+          .waitForElementPresent     fileSelector, 20000
+          .click                     fileSelector
+          .click                     fileSelector + ' + .chevron'
+          .waitForElementPresent     'li.duplicate', 20000
+          .click                     'li.duplicate'
+          .pause                     2000
+          .waitForElementPresent     newFile, 20000 # Assertion
 
-    fileName = helpers.createFile(browser, user)
-    ideHelpers.openFile(browser, user, fileName)
+        helpers.deleteFile browser, fileSelector, ->
+          helpers.deleteFile browser, newFile, -> next null
 
-    browser.end()
+      # createFileAndOpen
+      (next) ->
+        fileName = helpers.createFile browser, user, null, null, null, (res) ->
+          ideHelpers.openFile browser, user, fileName, -> next null
 
+      # compressFileZip
+      (next) ->
+        fileName = helpers.createFile browser, user, null, null, null, (res) ->
+          ideHelpers.compressFileFolder browser, user, 'file', fileName, 'zip', -> next null
 
-  compressFileZip: (browser) ->
+      # compressFileTarGz
+      (next) ->
+        fileName = helpers.createFile browser, user, null, null, null, (res) ->
+          ideHelpers.compressFileFolder browser, user, 'file', fileName, 'targz', -> next null
+    ]
 
-    user = helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+    async.series queue
 
-    fileName = helpers.createFile(browser, user)
-    ideHelpers.compressFileFolder(browser, user, 'file', fileName, 'zip')
-
-    browser.end()
-
-
-  compressFileTarGz: (browser) ->
-
-    user = helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-
-    fileName = helpers.createFile(browser, user)
-    ideHelpers.compressFileFolder(browser, user, 'file', fileName, 'targz')
-
-    browser.end()
+  after: (browser) -> browser.end()
