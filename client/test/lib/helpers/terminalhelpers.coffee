@@ -15,7 +15,7 @@ module.exports =
       .moveToElement           '.context-list-wrapper li.new-terminal', 25, 20
 
 
-  openTerminal: (browser, openSessionTerminal = no) ->
+  openTerminal: (browser, openSessionTerminal = no, callback = ->) ->
 
     sessionLink     = '.kdlistview-contextmenu ul:nth-of-type(1) .has-sub-items'
     openNewTerminal = '.kdlistview-contextmenu.default .open'
@@ -26,15 +26,15 @@ module.exports =
       browser
         .moveToElement           'li.new-session', 25, 20
         .click                   'li.new-session'
-        .pause 6000 # required
+        .pause 6000, -> callback null # required
     else
       browser
         .moveToElement           sessionLink, 5, 5
         .waitForElementVisible   openNewTerminal, 20000
         .click                   openNewTerminal
-        .pause                   2500 #wait for terminal to be displayed
+        .pause                   2500, -> callback null #wait for terminal to be displayed
 
-  createTerminalSession: (browser, user) ->
+  createTerminalSession: (browser, user, callback = ->) ->
 
     userName                   = user.username
     notActiveTerminalSelector  = paneSelector + ' .terminal:not(.active)'
@@ -53,9 +53,10 @@ module.exports =
         .waitForElementVisible   paneSelector + ' .terminal.active', 20000 # Assertion
         .pause 6000 # required for the Connecting...
         .assert.containsText     terminalTextAssertSelector, userName # Assertion
+        .pause 10, -> callback()
 
 
-  terminateAll: (browser) ->
+  terminateAll: (browser, callback = ->) ->
 
     @openNewTerminalMenu(browser)
 
@@ -71,3 +72,4 @@ module.exports =
 
     browser
       .assert.elementNotPresent   'li.terminate-all' # Assertion
+      .pause 10, -> callback()
