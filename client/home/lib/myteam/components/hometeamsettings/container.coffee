@@ -66,7 +66,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
   onClickLogo: -> @refs.view.input.click()
 
 
-  onRemoveLogo: -> @updateTeam { customize: { logo: DEFAULT_LOGOPATH } }
+  onRemoveLogo: -> @updateTeam { dataToUpdate: customize: { logo: DEFAULT_LOGOPATH } }
 
 
   onUpdate: ->
