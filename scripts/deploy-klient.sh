@@ -49,8 +49,10 @@ gzip -9 -N klient
 mv klient.gz klient-0.1.$NEWBUILDNO.darwin_amd64.gz
 
 #  Copy files to S3.
-s3cmd -P put *.deb  $S3DIR/$NEWBUILDNO/
-s3cmd -P put *.gz  $S3DIR/$NEWBUILDNO/
+#s3cmd -P put klient_0.1.*.deb  $S3DIR/$NEWBUILDNO/
+#s3cmd -P put klient-0.1*.gz  $S3DIR/$NEWBUILDNO/
+
+s3cmd -P put klient${_,-}.$NEWBUILDNO.${gz,deb}  $S3DIR/$NEWBUILDNO/
 
 # Keep a copy of klient under /latest/ without version number in the name,
 # so it can be downloaded without prior lookup of latest version number.
@@ -60,8 +62,8 @@ cp -f klient{_0.1.${NEWBUILDNO}_${KLIENT_CHANNEL}_amd64,}.deb
 
 # Cleanup the latest/ folder and put the latest one in there
 s3cmd del --recursive $S3DIR/latest/
-s3cmd -P put *.deb  $S3DIR/latest/
-s3cmd -P put *.gz  $S3DIR/latest/
+s3cmd -P put klient${_,-}0.1.$NEWBUILDNO.${gz,deb}  $S3DIR/latest/
+#s3cmd -P put klient-0.1.*gz  $S3DIR/latest/
 
 # Update latest-version.txt with the latest version
 s3cmd del $S3DIR/latest-version.txt

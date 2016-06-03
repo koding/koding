@@ -84,7 +84,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = config.Name
-	app.Version = config.Version
+	app.Version = getReadableVersion(config.Version)
 	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{
@@ -220,6 +220,28 @@ func main() {
 			Usage:       fmt.Sprintf("Update %s to latest version.", config.KlientName),
 			Description: cmdDescriptions["update"],
 			Action:      ctlcli.ExitAction(UpdateCommand, log, "update"),
+			Flags: []cli.Flag{
+				cli.IntFlag{
+					Name:  "kd-version",
+					Usage: "Version of KD (klientctl) to update to.",
+				},
+				cli.StringFlag{
+					Name:  "kd-channel",
+					Usage: "Channel (production|development) to download update from.",
+				},
+				cli.IntFlag{
+					Name:  "klient-version",
+					Usage: "Version of klient to update to.",
+				},
+				cli.StringFlag{
+					Name:  "klient-channel",
+					Usage: "Channel (production|development) to download update from.",
+				},
+				cli.BoolFlag{
+					Name:  "force",
+					Usage: "Updates kd & klient to latest available version.",
+				},
+			},
 		},
 		cli.Command{
 			Name:        "restart",

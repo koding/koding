@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
 	"koding/klientctl/config"
 
@@ -14,10 +15,10 @@ import (
 func VersionCommand(c *cli.Context, log logging.Logger, _ string) int {
 	latest, err := latestVersion(config.S3KlientctlLatest)
 
-	fmt.Println("Installed Version:", config.Version)
+	fmt.Printf("Installed Version: %s\n", getReadableVersion(config.Version))
 
 	if err == nil && latest != 0 {
-		fmt.Println("Latest Version:", latest)
+		fmt.Printf("Latest Version: %s\n", getReadableVersion(strconv.Itoa(latest)))
 	}
 
 	fmt.Println("Environment:", config.Environment)
@@ -27,4 +28,8 @@ func VersionCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	return 0
+}
+
+func getReadableVersion(version string) string {
+	return fmt.Sprintf("0.1.%s", version)
 }

@@ -37,7 +37,7 @@ kd-build() {
 kd-build
 
 # validate klient version
-[[ $(./kd -version) == "kd version $NEWBUILDNO" ]]
+[[ $(./kd -version | cut -d. -f3) == "kd version $NEWBUILDNO" ]]
 
 # prepare klient.gz
 gzip -9 -N kd
@@ -48,7 +48,7 @@ gzip -9 -N kd
 mv kd.gz kd-0.1.$NEWBUILDNO.darwin_amd64.gz
 
 #  Copy files to S3.
-s3cmd -P put *.gz  $S3DIR/
+s3cmd -P put kd-0.1.$NEWBUILDNO.*.gz  $S3DIR/
 
 # Update latest-version.txt with the latest version
 s3cmd del $S3DIR/latest-version.txt
