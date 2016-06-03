@@ -18,27 +18,7 @@ func NewDatadogExporter(d *kodingmetrics.DogStatsD) *DatadogExporter {
 }
 
 func (d *DatadogExporter) Send(m *Event) error {
-	eventName := strings.Replace(m.Name, " ", "_", -1)
-
-	tags := make([]string, 0)
-	if m.User.Email != "" {
-		tags = append(tags, fmt.Sprintf("email:%s", m.User.Email))
-	}
-
-	if m.User.Username != "" {
-		tags = append(tags, fmt.Sprintf("username:%s", m.User.Username))
-	}
-
-	for key, val := range m.Properties {
-		value, ok := val.(string)
-		if !ok {
-			continue
-		}
-
-		if isAllowed(key) && value != "" {
-			tags = append(tags, fmt.Sprintf("%s:%s", clean(key), clean(val.(string))))
-		}
-	}
+	eventName, tags := eventSeperator(m)
 
 	return d.datadog.Count(eventName, 1, tags, 1)
 }
@@ -73,4 +53,33 @@ func isAllowed(ß string) bool {
 	}
 
 	return false
+}
+
+// eventSeperator uses Event struct and seperates eventname and tags.
+// while appending tags into array, if tags dont exist in whitelist wont be added to array
+// Also empty properties are not added into tags array
+func eventSeperator(m *Event) (string, []string) {
+	eventName := strings.Replace(m.Name, " ", "_", -1)
+
+	tags := make([]string, 0)
+	if m.User.Email != "" {
+		tags = append(tags, fmt.Sprintf("email:%s", m.User.Email))
+	}
+
+	if m.User.Username != "" {
+		tags = append(tags, fmt.Sprintf("username:%s", m.User.Username))
+	}
+
+	for key, val := range m.Properties {
+		value, ok := val.(string)
+		if !ok {
+			continue
+		}
+
+		if isAllowed(key) && value != "" {
+			tags = append(tags, fmt.Sprintf("%s:%s", clean(key), clean(val.(string))))
+		}
+	}
+
+	return eventName, tags
 }
