@@ -27,6 +27,9 @@ func main() {
 
 	segmentExporter := eventexporter.NewSegmentIOExporter(appConfig.Segment, QueueLength)
 	datadogExporter := eventexporter.NewDatadogExporter(r.DogStatsD)
+
+	// TODO
+	// use config file for druid address
 	druidExporter := eventexporter.NewDruidExporter("address")
 
 	exporter := eventexporter.NewMultiExporter(segmentExporter, datadogExporter, druidExporter)
