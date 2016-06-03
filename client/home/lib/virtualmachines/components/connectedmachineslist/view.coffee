@@ -41,7 +41,8 @@ module.exports = class ConnectedMachinesListView extends React.Component
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: -> @props.stacks?.size
+  numberOfRowsInSection: ->
+    @props.stacks?.size and @props.stacks?.get(0).get('machines').length
 
   renderSectionHeaderAtIndex: -> null
 

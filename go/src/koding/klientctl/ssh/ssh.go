@@ -148,6 +148,8 @@ func (s *SSHCommand) Run(machine string) error {
 		"-i", s.PrivateKeyPath(),
 		"-o", "ServerAliveInterval=300",
 		"-o", "ServerAliveCountMax=3",
+		"-o", "ConnectTimeout=7",
+		"-o", "ConnectionAttempts=1",
 		userhost,
 	}
 
