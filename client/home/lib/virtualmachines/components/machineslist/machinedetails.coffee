@@ -116,7 +116,7 @@ module.exports = class MachineDetails extends React.Component
 
     <GenericToggler
       title='VM Sharing'
-      description='Teammates with this link can access my VM'
+      description='Share my VM with teammates'
       checked={@isShared()}
       disabled={@status() isnt Running}
       onToggle={@bound 'onSharingToggle'}>
