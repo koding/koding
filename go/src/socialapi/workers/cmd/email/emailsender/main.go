@@ -34,9 +34,7 @@ func main() {
 
 	r.SetContext(constructor)
 
-	r.Register(emailsender.Mail{}).On(emailsender.SendEmailEventName).Handle(
-		(*emailsender.Controller).Process,
-	)
+	r.Register(emailsender.Mail{}).On(emailsender.SendEmailEventName).Handle((*emailsender.Controller).Process)
 
 	r.Listen()
 	r.Wait()
