@@ -448,10 +448,8 @@ func (c *Command) Autocomplete(args ...string) error {
 	completeArg := args[len(args)-1]
 
 	// If the last arg contains a colon in it, get the remote directory from it.
-	if strings.Contains(completeArg, ":") {
-		split := strings.SplitN(completeArg, ":", 2)
-		machineName, remotePath := split[0], split[1]
-		return c.AutocompleteRemotePath(machineName, remotePath)
+	if i := strings.IndexRune(completeArg, ':'); i != -1 {
+		return c.AutocompleteRemotePath(completeArg[:i], completeArg[i+1:])
 	}
 
 	// We were unable to autocomplete a remote path, so autocompleting the machine
@@ -467,7 +465,7 @@ func (c *Command) AutocompleteRemotePath(machineName, remotePath string) error {
 
 	// Drop the last path segment, because the last segment is likely the
 	// part that the user is trying to autocomplete.
-	remotePath, _ = filepath.Split(remotePath)
+	remotePath = filepath.Dir(remotePath)
 
 	files, err := c.Klient.RemoteReadDirectory(machineName, remotePath)
 	if err != nil {
