@@ -29,9 +29,7 @@ module.exports =
           next null, result
     ]
 
-    async.series queue, (err, result) ->
-      if err
-        console.log(err)
+    async.series queue
 
   after: (browser) ->
     browser.end()

@@ -1,8 +1,7 @@
-teamsHelpers = require '../helpers/teamshelpers.js'
-helpers = require '../helpers/helpers.js'
-utils = require '../utils/utils.js'
-virtualMachinesUrl = "#{helpers.getUrl(yes)}/Home/Stacks/virtual-machines"
-async = require 'async'
+teamsHelpers          = require '../helpers/teamshelpers.js'
+helpers               = require '../helpers/helpers.js'
+utils                 = require '../utils/utils.js'
+async                 = require 'async'
 virtualmachineshelper = require '../helpers/virtualmachineshelpers.js'
 
 module.exports =
@@ -65,7 +64,7 @@ module.exports =
           next null, result
     ]
 
-    async.series queue, (err, result) ->
+    async.series queue
 
 
   after: (browser) ->

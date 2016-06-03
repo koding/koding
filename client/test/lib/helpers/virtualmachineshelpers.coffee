@@ -1,37 +1,37 @@
-teamsHelpers = require '../helpers/teamshelpers.js'
-helpers = require '../helpers/helpers.js'
-utils = require '../utils/utils.js'
-virtualMachinesUrl = "#{helpers.getUrl(yes)}/Home/Stacks/virtual-machines"
+teamsHelpers            = require '../helpers/teamshelpers.js'
+helpers                 = require '../helpers/helpers.js'
+utils                   = require '../utils/utils.js'
+virtualMachinesUrl      = "#{helpers.getUrl(yes)}/Home/Stacks/virtual-machines"
 
-virtualMachineSelector = '.HomeAppView--section.virtual-machines'
-runningVMSelector = "#{virtualMachineSelector} .MachinesListItem-machineLabel.Running"
-machineDetailSelector = '.MachinesListItem-machineDetails'
-machineDetailSpecsList = "#{machineDetailSelector} .MachineDetails-SpecsList"
-vmPowerSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(2)"
-alwaysOnSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(3)"
-vmSharingSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(4)"
-vmPowerToggleSelector = "#{vmPowerSelector} .react-toggle-thumb"
-alwaysOnToggleSelector = "#{alwaysOnSelector} .react-toggle-thumb"
+virtualMachineSelector  = '.HomeAppView--section.virtual-machines'
+runningVMSelector       = "#{virtualMachineSelector} .MachinesListItem-machineLabel.Running"
+machineDetailSelector   = '.MachinesListItem-machineDetails'
+machineDetailSpecsList  = "#{machineDetailSelector} .MachineDetails-SpecsList"
+vmPowerSelector         = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(2)"
+alwaysOnSelector        = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(3)"
+vmSharingSelector       = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(4)"
+vmPowerToggleSelector   = "#{vmPowerSelector} .react-toggle-thumb"
+alwaysOnToggleSelector  = "#{alwaysOnSelector} .react-toggle-thumb"
 vmSharingToggleSelector = "#{vmSharingSelector} .react-toggle-thumb"
-machineSharingDetails = '.MachineSharingDetails'
-inputSelector = "#{machineSharingDetails} input.kdinput.text"
-memberSelector = "#{machineSharingDetails} .AutocompleteListItem"
-membersList = "#{machineSharingDetails} .UserList"
-sharedUserlist = "#{machineSharingDetails} .UserList"
+machineSharingDetails   = '.MachineSharingDetails'
+inputSelector           = "#{machineSharingDetails} input.kdinput.text"
+memberSelector          = "#{machineSharingDetails} .AutocompleteListItem"
+membersList             = "#{machineSharingDetails} .UserList"
+sharedUserlist          = "#{machineSharingDetails} .UserList"
 
 addAConnectedMachineButtonSelector = '.kdbutton.GenericButton.HomeAppViewVMSection--addOwnMachineButton'
-addYourOwnMachineSelector = '.kdmodal.add-managed-vm.kddraggable'
+addYourOwnMachineSelector          = '.kdmodal.add-managed-vm.kddraggable'
 
-selectButtonSelector = "#{addYourOwnMachineSelector} .code .select-all"
-closeAddYourOwnMachineModal = "#{addYourOwnMachineSelector} .close-icon.closeModal"
-pressCMDCNotificationSelector = '.kdview.kdtooltip.just-text.placement-top.direction-center'
+selectButtonSelector               = "#{addYourOwnMachineSelector} .code .select-all"
+closeAddYourOwnMachineModal        = "#{addYourOwnMachineSelector} .close-icon.closeModal"
+pressCMDCNotificationSelector      = '.kdview.kdtooltip.just-text.placement-top.direction-center'
 
-sidebarSharedMachinesSection = '.SidebarSection.SidebarSharedMachinesSection'
-sidebarPopover = '.Popover-Wrapper'
-acceptSharedMachine = "#{sidebarPopover} .kdbutton.solid.green.medium"
+sidebarSharedMachinesSection       = '.SidebarSection.SidebarSharedMachinesSection'
+sidebarPopover                     = '.Popover-Wrapper'
+acceptSharedMachine                = "#{sidebarPopover} .kdbutton.solid.green.medium"
 
-sharedMachineSection = '.HomeAppView--section.shared-machines'
-sharedMachinesList = "#{sharedMachineSection} .ListView"
+sharedMachineSection               = '.HomeAppView--section.shared-machines'
+sharedMachinesList                 = "#{sharedMachineSection} .ListView"
 
 module.exports =
 

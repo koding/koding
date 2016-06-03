@@ -35,8 +35,7 @@ module.exports =
           next null, res
     ]
 
-    async.series queue, (err, result) ->
-      done()  unless err
+    async.series queue
 
 
   sidebar: (browser) ->
