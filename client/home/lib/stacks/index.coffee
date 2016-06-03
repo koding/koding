@@ -48,10 +48,17 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     #   path = router.getCurrentPath()
     #   router.handleRoute "/Home/Stacks/#{kd.utils.slugify pane.name}"
 
+    { mainController, computeController, reactor } = kd.singletons
+
     kd.singletons.mainController.ready =>
       @createStacksViews()
       @createVMsViews()
       @createCredentialsViews()
+
+
+    computeController.on 'MachineBeingDestroyed', (machine) ->
+      stack = computeController.findStackFromMachineId machine._id
+      reactor.dispatch actions.REMOVE_STACK, stack._id
 
 
   handleAction: (action) ->
