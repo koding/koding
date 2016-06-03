@@ -12,6 +12,8 @@ type DatadogExporter struct {
 	datadog *kodingmetrics.DogStatsD
 }
 
+// NewDatadogExporter initializes DatadogExporter struct
+// and NewDatadogExporter implements Exporter interface with Send and Close functions
 func NewDatadogExporter(d *kodingmetrics.DogStatsD) *DatadogExporter {
 	return &DatadogExporter{datadog: d}
 }
@@ -43,6 +45,10 @@ func (d *DatadogExporter) Send(m *Event) error {
 	return d.datadog.Count(eventName, 1, tags, 1)
 }
 
+func (d *DatadogExporter) Close() error {
+	return nil
+}
+
 func clean(s string) string {
 	return strings.Replace(s, " ", "_", -1)
 }
@@ -69,33 +75,4 @@ func isAllowed(ß string) bool {
 	}
 
 	return false
-}
-func (d *DatadogExporter) Close() error {
-	return nil
-}
-
-type MultiExporter []Exporter
-
-func NewMultiExporter(e ...Exporter) MultiExporter {
-	return MultiExporter(e)
-}
-
-func (m MultiExporter) Send(event *Event) error {
-	for _, e := range m {
-		if err := e.Send(event); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m MultiExporter) Close() error {
-	for _, e := range m {
-		if err := e.Close(); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
