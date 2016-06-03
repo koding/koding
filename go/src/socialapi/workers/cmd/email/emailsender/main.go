@@ -26,13 +26,20 @@ func main() {
 	defer modelhelper.Close()
 
 	segmentExporter := eventexporter.NewSegmentIOExporter(appConfig.Segment, QueueLength)
-	datadogExporter := eventexporter.NewDatadogExporter(r.DogStatsD)
+
+	// TODO
+	// this lines will not be commentout
+	// datadogExporter := eventexporter.NewDatadogExporter(r.DogStatsD)
 
 	// TODO
 	// use config file for druid address
-	druidExporter := eventexporter.NewDruidExporter("address")
+	// open this line !!
+	// druidExporter := eventexporter.NewDruidExporter("address")
 
-	exporter := eventexporter.NewMultiExporter(segmentExporter, datadogExporter, druidExporter)
+	// TODO
+	//open this line also!!!
+	// exporter := eventexporter.NewMultiExporter(segmentExporter, datadogExporter, druidExporter)
+	exporter := eventexporter.NewMultiExporter(segmentExporter)
 
 	constructor := emailsender.New(exporter, r.Log, appConfig)
 	r.ShutdownHandler = constructor.Close
