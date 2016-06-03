@@ -66,3 +66,7 @@ module.exports =
     ]
 
     async.series queue, (err, result) ->
+
+
+  after: (browser) ->
+    browser.end()
