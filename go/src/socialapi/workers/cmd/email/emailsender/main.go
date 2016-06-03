@@ -27,7 +27,9 @@ func main() {
 
 	segmentExporter := eventexporter.NewSegmentIOExporter(appConfig.Segment, QueueLength)
 	datadogExporter := eventexporter.NewDatadogExporter(r.DogStatsD)
-	exporter := eventexporter.NewMultiExporter(segmentExporter, datadogExporter)
+	druidExporter := eventexporter.NewDruidExporter("address")
+
+	exporter := eventexporter.NewMultiExporter(segmentExporter, datadogExporter, druidExporter)
 
 	constructor := emailsender.New(exporter, r.Log, appConfig)
 	r.ShutdownHandler = constructor.Close
