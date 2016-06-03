@@ -5,7 +5,7 @@ set -euo pipefail
 REPO_PATH=$(git rev-parse --show-toplevel)
 
 # configure s3cmd
-cat > $HOME/.s3cfg <<EOF
+cat >$HOME/.s3cfg <<EOF
 [default]
 access_key=$S3_KEY_ID
 secret_key=$S3_KEY_SECRET
@@ -17,7 +17,7 @@ export S3DIR="s3://koding-kd/$CHANNEL"
 s3cmd get $S3DIR/latest-version.txt version
 
 export OLDBUILDNO=$(cat version)
-export NEWBUILDNO=$(($OLDBUILDNO+1))
+export NEWBUILDNO=$(($OLDBUILDNO + 1))
 
 echo "New version will be: $NEWBUILDNO"
 rm -f version
@@ -29,12 +29,12 @@ fi
 
 # NOTE(rjeczalik): kd expects the version to be a single digit, while klient
 # expect semver - making a note until this is made consistent.
-kd-build() {
+kd_build() {
 	GOOS="${1:-}" GOARCH=amd64 go build -v -ldflags "-X koding/klientctl/config.Version $NEWBUILDNO -X koding/klientctl/config.Environment $CHANNEL -X koding/klientctl/config.KontrolURL $KONTROL_URL" -o kd koding/klientctl
 }
 
 # build klient binary for linux
-kd-build
+kd_build
 
 # validate klient version
 [[ $(./kd -version | cut -d. -f3) == "kd version $NEWBUILDNO" ]]
@@ -43,16 +43,16 @@ kd-build
 gzip -9 -N kd
 mv kd.gz kd-0.1.$NEWBUILDNO.linux_amd64.gz
 
-kd-build darwin
+kd_build darwin
 gzip -9 -N kd
 mv kd.gz kd-0.1.$NEWBUILDNO.darwin_amd64.gz
 
 #  Copy files to S3.
-s3cmd -P put kd-0.1.$NEWBUILDNO.*.gz  $S3DIR/
+s3cmd -P put kd-0.1.$NEWBUILDNO.*.gz $S3DIR/
 
 # Update latest-version.txt with the latest version
 s3cmd del $S3DIR/latest-version.txt
-echo $NEWBUILDNO > latest-version.txt
+echo $NEWBUILDNO >latest-version.txt
 s3cmd -P put latest-version.txt $S3DIR/latest-version.txt
 
 #  Update install-kd.sh file

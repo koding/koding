@@ -8,7 +8,7 @@ init_tool=
 init_dir=
 init_file=
 
-alias curl='curl --retry 5 --retry-delay 0'
+alias curl='curl -L --retry 5 --retry-delay 0'
 
 get_init_tool() {
 	for tool in update-rc.d chkconfig launchctl; do

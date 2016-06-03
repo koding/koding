@@ -5,7 +5,7 @@ set -euo pipefail
 REPO_PATH=$(git rev-parse --show-toplevel)
 
 # configure s3cmd
-cat > $HOME/.s3cfg <<EOF
+cat >$HOME/.s3cfg <<EOF
 [default]
 access_key=$S3_KEY_ID
 secret_key=$S3_KEY_SECRET
@@ -21,53 +21,51 @@ export S3DIR="s3://koding-klient/$KLIENT_CHANNEL"
 s3cmd get $S3DIR/latest-version.txt version
 
 export OLDBUILDNO=$(cat version)
-export NEWBUILDNO=$(($OLDBUILDNO+1))
+export NEWBUILDNO=$(($OLDBUILDNO + 1))
+export KLIENT_PREFIX="klient-0.1.$NEWBUILDNO"
+export KLIENT_DEB="klient_0.1.${NEWBUILDNO}_${KLIENT_CHANNEL}_amd64.deb"
 
 echo "New version will be: $NEWBUILDNO"
 rm -f version
 
-klient-build() {
+klient_build() {
 	GOOS="${1:-}" GOARCH=amd64 go build -v -ldflags "-X koding/klient/protocol.Version 0.1.$NEWBUILDNO -X koding/klient/protocol.Environment $KLIENT_CHANNEL" -o klient koding/klient
 }
 
 # build klient binary for linux
-klient-build
+klient_build
 
 # validate klient version
 [[ $(./klient -version) == "0.1.$NEWBUILDNO" ]]
 
 # prepare klient.gz
-gzip -9 -N klient
-mv klient.gz klient-0.1.$NEWBUILDNO.gz
+gzip -9 -N -f klient
+mv klient.gz ${KLIENT_PREFIX}.gz
 
 # prepare klient.deb
 go run "${REPO_PATH}/go/src/koding/klient/build/build.go" -e $KLIENT_CHANNEL -b $NEWBUILDNO
-dpkg -f *.deb
+dpkg -f $KLIENT_DEB
 
-klient-build "darwin"
-gzip -9 -N klient
-mv klient.gz klient-0.1.$NEWBUILDNO.darwin_amd64.gz
+klient_build "darwin"
+gzip -9 -N -f klient
+mv klient.gz ${KLIENT_PREFIX}.darwin_amd64.gz
 
 #  Copy files to S3.
-#s3cmd -P put klient_0.1.*.deb  $S3DIR/$NEWBUILDNO/
-#s3cmd -P put klient-0.1*.gz  $S3DIR/$NEWBUILDNO/
-
-s3cmd -P put klient${_,-}.$NEWBUILDNO.${gz,deb}  $S3DIR/$NEWBUILDNO/
+s3cmd -P put $KLIENT_DEB ${KLIENT_PREFIX}* $S3DIR/$NEWBUILDNO/
 
 # Keep a copy of klient under /latest/ without version number in the name,
 # so it can be downloaded without prior lookup of latest version number.
 cp -f klient{-0.1.$NEWBUILDNO,}.gz
 cp -f klient{-0.1.$NEWBUILDNO,}.darwin_amd64.gz
-cp -f klient{_0.1.${NEWBUILDNO}_${KLIENT_CHANNEL}_amd64,}.deb
+cp -f $KLIENT_DEB klient.deb
 
 # Cleanup the latest/ folder and put the latest one in there
 s3cmd del --recursive $S3DIR/latest/
-s3cmd -P put klient${_,-}0.1.$NEWBUILDNO.${gz,deb}  $S3DIR/latest/
-#s3cmd -P put klient-0.1.*gz  $S3DIR/latest/
+s3cmd -P put klient.deb klient.gz klient.darwin_amd64.gz $S3DIR/latest/
 
 # Update latest-version.txt with the latest version
 s3cmd del $S3DIR/latest-version.txt
-echo $NEWBUILDNO > latest-version.txt
+echo $NEWBUILDNO >latest-version.txt
 s3cmd -P put latest-version.txt $S3DIR/latest-version.txt
 
 #  Update install.sh file
