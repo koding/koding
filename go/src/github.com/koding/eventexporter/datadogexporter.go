@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	kodingmetrics "github.com/koding/metrics"
-	"github.com/kr/pretty"
 )
 
 type DatadogExporter struct {
@@ -19,7 +18,6 @@ func NewDatadogExporter(d *kodingmetrics.DogStatsD) *DatadogExporter {
 }
 
 func (d *DatadogExporter) Send(m *Event) error {
-	fmt.Printf("m %# v\n", pretty.Formatter(m))
 	eventName := strings.Replace(m.Name, " ", "_", -1)
 
 	tags := make([]string, 0)
