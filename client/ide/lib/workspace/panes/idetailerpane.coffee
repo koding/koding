@@ -20,6 +20,7 @@ module.exports = class IDETailerPane extends IDEPane
 
     @lineParser = new IDETailerPaneLineParser()
     @forwardEvent @lineParser, 'BuildDone'
+    @forwardEvent @lineParser, 'BuildNotification'
 
     @createEditor()
 
@@ -29,12 +30,11 @@ module.exports = class IDETailerPane extends IDEPane
     @scrollToBottom()
     @getEditor().insert "\n#{newLine}"
     @lineParser.process newLine
-    @emit 'NewLineAdded', newLine
 
 
   createEditor: ->
 
-    { file, description, descriptionView, tailOffset } = @getOptions()
+    { file, description, descriptionView, tailOffset, parseOnLoad } = @getOptions()
 
     unless file instanceof FSFile
       throw new TypeError 'File must be an instance of FSFile'
@@ -84,6 +84,8 @@ module.exports = class IDETailerPane extends IDEPane
       @setScrollMarginTop 15
 
       @resize()
+
+      @lineParser.process @getContent()  if parseOnLoad
 
 
   getAce: ->

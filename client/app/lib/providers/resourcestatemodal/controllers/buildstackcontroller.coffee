@@ -61,12 +61,7 @@ module.exports = class BuildStackController extends kd.Controller
 
     { MAX_BUILD_PROGRESS_VALUE, COMPLETE_PROGRESS_VALUE } = constants
 
-    { stackTemplate } = @getData()
-    postBuildProcessEnabled = stackTemplate.config?.buildDuration > 0
-
-    rate = if postBuildProcessEnabled
-    then MAX_BUILD_PROGRESS_VALUE / COMPLETE_PROGRESS_VALUE
-    else 1
+    rate = MAX_BUILD_PROGRESS_VALUE / COMPLETE_PROGRESS_VALUE
     percentage = percentage * rate
     @updateProgress percentage, message
 
@@ -82,12 +77,11 @@ module.exports = class BuildStackController extends kd.Controller
 
   completeBuildProcess: ->
 
-    { stackTemplate } = @getData()
-
-    duration = stackTemplate.config?.buildDuration
-    return @completePostBuildProcess()  unless duration > 0
-
     @buildStackPage.setData @getLogFile()
+    @buildStackPage.setStatusText 'Installing software...'
+
+    { stackTemplate } = @getData()
+    duration = stackTemplate.config?.buildDuration ? constants.DEFAULT_BUILD_DURATION
 
     @postBuildTimer = new ProgressUpdateTimer { duration }
     @postBuildTimer.on 'ProgressUpdated', @bound 'updatePostBuildProgress'

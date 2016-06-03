@@ -42,10 +42,11 @@ module.exports = class BuildStackPageView extends JView
       @logsContainer.addSubView postBuildLogs = new IDETailerPane {
         file
         tailOffset
-        delegate : this
+        delegate    : this
+        parseOnLoad : yes
       }
       @forwardEvent postBuildLogs, 'BuildDone'
-      postBuildLogs.on 'NewLineAdded', @bound 'onNewLogLineAdded'
+      postBuildLogs.on 'BuildNotification', @lazyBound 'setStatusText'
 
 
   updateProgress: (percentage, message) ->
@@ -69,11 +70,6 @@ module.exports = class BuildStackPageView extends JView
   setStatusText: (text) ->
 
     @statusText.updatePartial text
-
-
-  onNewLogLineAdded: (text) ->
-
-    @setStatusText text  if text
 
 
   pistachio: ->

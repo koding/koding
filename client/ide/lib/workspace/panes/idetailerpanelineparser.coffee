@@ -10,7 +10,7 @@ module.exports = class IDETailerPaneLineParser extends KDObject
 
     @config = [
       { template : '_KD_DONE_', method : @lazyBound 'emit', 'BuildDone' }
-      { template : /^_KD_NOTIFY_@(.+)@$/, method : @bound 'showNotification' }
+      { template : /_KD_NOTIFY_@(.+)@/, method : @lazyBound 'emit', 'BuildNotification' }
     ]
 
 
@@ -21,12 +21,5 @@ module.exports = class IDETailerPaneLineParser extends KDObject
       if template instanceof RegExp
         match = line.match template
         return method.apply null, match.slice(1)  if match
-      else if line is template
+      else if line.indexOf(template) > -1
         return method()
-
-
-  showNotification: (message, duration = 2000) ->
-
-    new KDNotificationView
-      title    : message
-      duration : duration
