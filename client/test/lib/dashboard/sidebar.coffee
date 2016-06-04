@@ -35,7 +35,8 @@ module.exports =
           next null, res
     ]
 
-    async.series queue
+    async.series queue, (err, result) ->
+      done()  unless err
 
 
   sidebar: (browser) ->
@@ -54,9 +55,7 @@ module.exports =
           next null, result
     ]
 
-    async.series queue, (err, result) ->
-      if err
-        console.log(err)
+    async.series queue
 
   after: (browser) ->
     browser.end()
