@@ -372,7 +372,7 @@ module.exports =
   fillPaymentForm: (browser, planType = 'developer', cardDetails = {}) ->
 
     defaultCard  =
-      cardNumber : cardDetails.cardNumber or '4111 1111 1111 1111'
+      cardNumber : cardDetails.cardNumber or '4242 4242 4242 4242'
       cvc        : cardDetails.cvc        or 123
       month      : cardDetails.month      or 'December'
       year       : cardDetails.year       or 2019
