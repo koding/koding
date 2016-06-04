@@ -12,6 +12,10 @@ $borderColor                = #E3E3E3
 $buttonGray                 = #858585
 
 .MigrateFromSoloAppView.kdmodal
+  font-family               SoleilFamily
+
+  .GenericButton
+    text-transform          uppercase
 
   .kdmodal-inner
     margin                  0
@@ -19,8 +23,80 @@ $buttonGray                 = #858585
 
   .kdmodal-content
     height                  100%
-    padding                 15px 15px 0
+    padding                 25px
     borderBox()
+
+  .SoloMachinesList
+    position                relative
+
+    &.disabled
+      opacity               .33
+      pointer-events        none
+
+
+  .MigrationFinished
+    text-align              center
+    margin-top              150px
+
+  .MigrationFinished-message
+    h1
+      color                 #57a2d2
+      font-size             50px
+      letter-spacing        .5px
+      line-height           44px
+
+    h2
+      font-size             32px
+      line-height           44px
+      color                 rgba(0,0,0,0.5)
+      padding-top           17px
+      padding-bottom        21px
+
+  .progressbar-container
+    bg                      color, #e1e1e1
+    bg                      image, none
+    border                  none
+    rounded                 4px
+    height                  40px
+
+    .bar
+      rounded               4px
+      bg                    image, none
+      bg                    color, #f2778a
+      shadow                none
+
+
+  .SoloMachinesListItem
+    border                  1px solid $borderColor
+    padding                 25px
+    margin-bottom           15px
+    &:last-of-type
+      margin-bottom         15px
+
+
+    &.expanded
+      rounded               4px
+
+    header
+      display               flex
+      flex-flow             row wrap
+      justify-content       space-around
+      align-content         flex-start
+
+      .SoloMachinesListItem-machineLabel
+        flex                1 0 auto
+        width               144px
+        ellipsis()
+        pointer()
+
+        .kdcustomcheckbox
+          float             left
+          margin            2px 15px 0 0
+
+      .SoloMachinesListItem-hostName
+        flex                0 0 auto
+        width               100px
+        text-align          center
 
 
 .MigrateFromSoloAppView .step-creds
