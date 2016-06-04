@@ -136,7 +136,6 @@ module.exports =
 
 
   sendAlreadyMemberInvite: (browser, callback) ->
-    console.log(invitations)
     teamsHelpers.fillInviteInputByIndex browser, 2, invitations[indexOfTargetUser1].email
     browser
       .waitForElementVisible sendInvitesButton, 5000
