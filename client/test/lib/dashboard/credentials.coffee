@@ -35,7 +35,7 @@ module.exports =
       done()  unless err
 
 
-  credentials: (browser, done) ->
+  credentials: (browser) ->
     queue = [
       (next) ->
         credentialshelper.seeCredentials browser, (result) ->

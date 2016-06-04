@@ -43,7 +43,7 @@ module.exports =
     async.series queue, (err, result) ->
       done()  unless err
 
-  stacks: (browser, done) ->
+  stacks: (browser) ->
     queue = [
       (next) ->
         stackshelpers.clickNewStackButton browser, (result) ->

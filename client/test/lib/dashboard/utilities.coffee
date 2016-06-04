@@ -22,7 +22,7 @@ module.exports =
       done()
 
 
-  utilities: (browser, done) ->
+  utilities: (browser) ->
     queue = [
       (next) ->
         utilitieshelpers.checkKdCliCodeBlock browser, (result) ->

@@ -32,7 +32,7 @@ module.exports =
       done()  unless err
 
 
-  virtualmachines: (browser, done) ->
+  virtualmachines: (browser) ->
 
     member = utils.getUser no, 1
     host = utils.getUser()

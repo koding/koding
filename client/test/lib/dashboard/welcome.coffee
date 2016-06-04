@@ -13,7 +13,7 @@ module.exports =
       done()
 
 
-  dashboard: (browser, done) ->
+  dashboard: (browser) ->
     queue = [
       (next) ->
         welcomehelper.dashboardScreenAdmin browser, (result) ->
