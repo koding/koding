@@ -67,7 +67,7 @@ func setFrom(mail *sendgrid.SGMail, event *Event) (*sendgrid.SGMail, error) {
 
 	fromName, ok := event.Properties["fromName"]
 	if !ok {
-		from = DefaultFromName
+		fromName = DefaultFromName
 	}
 
 	mail.SetFromName(fromName.(string))
