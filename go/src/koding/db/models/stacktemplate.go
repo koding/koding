@@ -40,7 +40,7 @@ func NewStackTemplate(provider, identifier string) *StackTemplate {
 
 	return &StackTemplate{
 		Id:          bson.NewObjectId(),
-		AccessLevel: "group",
+		AccessLevel: "private",
 		Config: &StackTemplateConfig{
 			RequiredData: map[string][]string{
 				"user":  {"username"},
