@@ -41,11 +41,11 @@ kd_build
 [[ "$(./kd -version)" == "kd version 0.1.${NEWBUILDNO}" ]]
 
 # prepare klient.gz
-gzip -9 -N kd
+gzip -9 -N -f kd
 mv kd.gz kd-0.1.$NEWBUILDNO.linux_amd64.gz
 
 kd_build darwin
-gzip -9 -N kd
+gzip -9 -N -f kd
 mv kd.gz kd-0.1.$NEWBUILDNO.darwin_amd64.gz
 
 #  Copy files to S3.
