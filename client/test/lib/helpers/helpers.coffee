@@ -398,8 +398,7 @@ module.exports =
       .setValue                cvcSelector, defaultCard.cvc
 
       .waitForElementVisible   monthSelector, 20000
-      .click                   monthSelector
-      .setValue                monthSelector, defaultCard.month
+      .click monthSelector
 
       .scrollToElement         paymentModal
       .waitForElementVisible   yearSelector, 20000
@@ -412,7 +411,7 @@ module.exports =
 
       .waitForElementVisible   emailSelector, 20000
       .setValue                emailSelector, user.email
-      .pause 5000
+      .pause 1000
 
 
   submitForm: (browser, validCardDetails = yes) ->

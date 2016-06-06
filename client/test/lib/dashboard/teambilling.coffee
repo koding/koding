@@ -1,6 +1,7 @@
 utils              = require '../utils/utils.js'
 teamsHelpers       = require '../helpers/teamshelpers.js'
 teambillinghelper  = require '../helpers/teambillinghelpers.js'
+async = require 'async'
 
 module.exports =
 
@@ -13,12 +14,24 @@ module.exports =
 
 
   teambilling: (browser) ->
-    
+
     queue = [
       (next) ->
-        teambillinghelper.testTeamBillingScreen browser, (result) ->
+        teambillinghelper.seeAvailablePaymentSubscription browser, (result) ->
           next null, result
-     
+      (next) ->
+        teambillinghelper.redirectPricingDetails browser, (result) ->
+          next null, result
+      (next) ->
+        teambillinghelper.redirectViewMembers browser, (result) ->
+          next null, result
+      (next) ->
+        teambillinghelper.enterCreditCard browser, (result) ->
+          next null, result
+      (next) ->
+        teambillinghelper.redirectPaymentHistory browser, (result) ->
+          next null, result
+
     ]
 
     async.series queue
