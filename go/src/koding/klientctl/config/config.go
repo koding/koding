@@ -67,6 +67,11 @@ var (
 	// KiteKeyPath is the full path to kite.key.
 	KiteKeyPath = filepath.Join(KiteHome, "kite.key")
 
+	// Used to send basic error metrics.
+	//
+	// Injected on build.
+	SegmentKey = ""
+
 	// KontrolURL is the url to connect to authenticate local klient and get
 	// list of machines.
 	//

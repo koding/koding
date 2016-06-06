@@ -48,7 +48,7 @@ module.exports = [
   ]
 
   [
-    { name: 'ide workspace' }
+    # { name: 'ide workspace' }
     { name: 'ide layout' }
   ]
 

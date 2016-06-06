@@ -167,16 +167,16 @@ module.exports =
 
   openFolderContextMenu: (browser, user, folderName) ->
 
-    webPath       = '/home/' + user.username + '/' + folderName
-    webSelector   = "span[title='" + webPath + "']"
+    configPath       = '/home/' + user.username + '/' + folderName
+    configSelector   = "span[title='" + configPath + "']"
 
     @clickVMHeaderButton(browser)
 
     browser
       .click                   '.context-list-wrapper .refresh'
-      .waitForElementVisible   webSelector, 50000
-      .click                   webSelector
-      .click                   webSelector + ' + .chevron'
+      .waitForElementVisible   configSelector, 50000
+      .click                   configSelector
+      .click                   configSelector + ' + .chevron'
 
 
   clickVMHeaderButton: (browser) ->
@@ -184,14 +184,15 @@ module.exports =
     browser
       .pause                   5000 # wait for filetree load
       .waitForElementVisible   '.vm-header', 50000
-      .click                   '.vm-header .buttons'
+      .click                   '.vm-header'
+      .click                   '.vm-header .chevron'
       .waitForElementPresent   '.context-list-wrapper', 50000
 
 
-  createFile: (browser, user, selector, folderName, fileName) ->
+  createFile: ( browser, user, selector, folderName, fileName, callback = -> ) ->
 
     selector   or= 'li.new-file'
-    folderName or= 'Web'
+    folderName or= '.config'
     fileName   or= "#{@getFakeText().split(' ')[0]}.txt"
     folderPath = "/home/#{user.username}/#{folderName}"
 
@@ -204,12 +205,13 @@ module.exports =
       .clearValue               'li.selected .rename-container .hitenterview'
       .setValue                 'li.selected .rename-container .hitenterview', fileName + '\n'
       .pause                    3000 # required
-      .waitForElementPresent    "span[title='" + folderPath + '/' + fileName + "']", 50000 # Assertion
+      .waitForElementPresent    "span[title='" + folderPath + '/' + fileName + "']", 50000, false, -> callback() # Assertion
+
 
     return fileName
 
 
-  createFileFromMachineHeader: (browser, user, fileName, shouldAssert = yes) ->
+  createFileFromMachineHeader: ( browser, user, fileName, shouldAssert = yes, callback = -> ) ->
 
     unless fileName
       fileName    = @getFakeText().split(' ')[0] + '.txt'
@@ -231,12 +233,12 @@ module.exports =
 
     if shouldAssert
       browser
-        .waitForElementPresent   fileSelector, 20000 # Assertion
+        .waitForElementPresent   fileSelector, 20000, false, -> callback() # Assertion
 
     return fileName
 
 
-  createFolder: (browser, user) ->
+  createFolder: ( browser, user, callback = -> ) ->
 
     folderName     = @getFakeText().split(' ')[0]
     folderPath     = '/home/' + user.username + '/' + folderName
@@ -244,12 +246,14 @@ module.exports =
 
     browser
       .waitForElementVisible   '.vm-header', 50000
-      .click                   '.vm-header .buttons'
+      .click                   '.vm-header'
+      .click                   '.vm-header .chevron'
       .waitForElementPresent   '.context-list-wrapper', 50000
       .click                   '.context-list-wrapper .refresh'
       .pause                   2000
       .waitForElementVisible   '.vm-header', 50000
-      .click                   '.vm-header .buttons'
+      .click                   '.vm-header'
+      .click                   '.vm-header .chevron'
       .waitForElementVisible   '.context-list-wrapper', 50000
       .click                   '.context-list-wrapper li.new-folder'
       .waitForElementVisible   'li.selected .rename-container .hitenterview', 50000
@@ -258,7 +262,7 @@ module.exports =
       .pause                   3000 # wait for
       .setValue                'li.selected .rename-container .hitenterview', folderName + '\n'
       .pause                   3000 # required
-      .waitForElementPresent   folderSelector, 50000 # Assertion
+      .waitForElementPresent   folderSelector, 50000, false, callback() # Assertion
 
     data = {
       name: folderName
@@ -269,7 +273,7 @@ module.exports =
     return data
 
 
-  deleteFile: (browser, fileSelector) ->
+  deleteFile: ( browser, fileSelector, callback = -> ) ->
 
     browser
       .waitForElementPresent     fileSelector, 20000
@@ -280,6 +284,7 @@ module.exports =
       .waitForElementVisible     '.delete-container', 20000
       .click                     '.delete-container button.clean-red'
       .waitForElementNotPresent  fileSelector, 2000
+      .pause 10, -> callback()
 
 
   openChangeTopFolderMenu: (browser) ->
@@ -462,7 +467,7 @@ module.exports =
           browser.end()
 
 
-  runCommandOnTerminal: (browser, text) ->
+  runCommandOnTerminal: ( browser, text, callback = -> ) ->
 
     text or= Date.now()
 
@@ -472,6 +477,7 @@ module.exports =
       .pause                     5000
       .waitForElementVisible     '.panel-1 .panel-1 .kdtabpaneview.terminal.active', 25000
       .assert.containsText       '.panel-1 .panel-1 .kdtabpaneview.terminal.active', text
+      .pause 10, -> callback()
 
 
   setCookie: (browser, name, value) ->
