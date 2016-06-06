@@ -70,6 +70,8 @@ type (
 		Mailgun Mailgun
 
 		DummyAdmins []string
+
+		DruidHost string
 	}
 
 	// Email holds Email Workers' config
