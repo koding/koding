@@ -1,6 +1,7 @@
 utils          = require '../utils/utils.js'
 teamsHelpers   = require '../helpers/teamshelpers.js'
-welcomehelper  = require '../helpers/welcomehelper.js'
+welcomehelper  = require '../helpers/welcomehelpers.js'
+async = require 'async'
 
 module.exports =
 
@@ -13,11 +14,22 @@ module.exports =
 
 
   dashboard: (browser) ->
-    welcomehelper.dashboardScreenAdmin browser, ->
-      welcomehelper.testTeamBillingScreen browser, ->
-        teamsHelpers.logoutTeam browser, ->
-          welcomehelper.dashboardScreenMember browser
+    queue = [
+      (next) ->
+        welcomehelper.dashboardScreenAdmin browser, (result) ->
+          next null, result
+      (next) ->
+        welcomehelper.testTeamBillingScreen browser, (result) ->
+          next null, result
+      (next) ->
+        teamsHelpers.logoutTeam browser, (result) ->
+          next null, result
+      (next) ->
+        welcomehelper.dashboardScreenMember browser, (result) ->
+          next null, result
+    ]
 
+    async.series queue
 
   after: (browser) ->
     browser.end()
