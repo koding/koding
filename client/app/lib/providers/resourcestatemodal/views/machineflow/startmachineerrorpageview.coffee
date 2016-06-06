@@ -1,5 +1,5 @@
 kd = require 'kd'
-BaseErrorPageView = require './baseerrorpageview'
+BaseErrorPageView = require '../baseerrorpageview'
 
 module.exports = class StartMachineErrorPageView extends BaseErrorPageView
 

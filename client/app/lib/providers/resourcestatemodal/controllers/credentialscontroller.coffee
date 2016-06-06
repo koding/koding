@@ -5,8 +5,8 @@ whoami  = require 'app/util/whoami'
 globals = require 'globals'
 remote  = require('app/remote').getInstance()
 KodingKontrol = require 'app/kite/kodingkontrol'
-CredentialsPageView = require '../views/credentialspageview'
-CredentialsErrorPageView = require '../views/credentialserrorpageview'
+CredentialsPageView = require '../views/stackflow/credentialspageview'
+CredentialsErrorPageView = require '../views/stackflow/credentialserrorpageview'
 constants = require '../constants'
 
 module.exports = class CredentialsController extends kd.Controller

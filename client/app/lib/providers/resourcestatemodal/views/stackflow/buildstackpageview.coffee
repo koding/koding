@@ -4,8 +4,8 @@ WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 IDETailerPane = require 'ide/workspace/panes/idetailerpane'
 BuildStackLogsPane = require './buildstacklogspane'
-helpers = require '../helpers'
-constants = require '../constants'
+helpers = require '../../helpers'
+constants = require '../../constants'
 
 module.exports = class BuildStackPageView extends JView
 
