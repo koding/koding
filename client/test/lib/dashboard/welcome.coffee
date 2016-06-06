@@ -14,6 +14,7 @@ module.exports =
 
 
   dashboard: (browser) ->
+
     queue = [
       (next) ->
         welcomehelper.dashboardScreenAdmin browser, (result) ->
