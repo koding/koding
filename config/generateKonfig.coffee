@@ -183,6 +183,7 @@ module.exports = (options, credentials) ->
     mailgun                : credentials.mailgun
     segment                : credentials.segment
     dummyAdmins            : credentials.dummyAdmins
+    druidHost              : credentials.druidHost
 
     algolia                : algoliaSecret
     gatekeeper             : gatekeeper
@@ -249,6 +250,7 @@ module.exports = (options, credentials) ->
     awsKeys                       : credentials.awsKeys
     segment                       : credentials.segment
     dummyAdmins                   : credentials.dummyAdmins
+    druidHost                     : credentials.druidHost
 
     paymentwebhook                : paymentwebhook
     regions                       : regions
