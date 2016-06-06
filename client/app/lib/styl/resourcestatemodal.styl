@@ -1,5 +1,6 @@
 $warningColor               = #f2778a
 
+/* General page structure and common styles */
 .resource-state-modal.kdmodal
   font-family               SoleilFamily
   overflow                  visible
@@ -123,6 +124,7 @@ $warningColor               = #f2778a
         margin-right        9px
 
 
+  /* Overrides for specific page flows */
   .build-stack-flow
 
     header
@@ -167,6 +169,22 @@ $warningColor               = #f2778a
       height                330px
 
 
+  /* Loader */
+  .loader-container
+    width                   400px
+    height                  200px
+    text-align              center
+    borderBox()
+    padding-top             50px
+
+    .loader-text
+      font-size             20px
+      letter-spacing        .2px
+      color                 #424242
+      margin-bottom         15px
+
+
+  /* Wizard pane */
   .wizard-progress-pane
     bg                      color, #efefef
     border-bottom           1px solid #dedbdb
@@ -221,6 +239,24 @@ $warningColor               = #f2778a
       &.current, &.completed
         border-left         1px solid #70AED6
 
+
+  /* Logs pane */
+  .logs-pane
+    margin                  0 auto
+
+    .editor-main
+      bg                    color, #000
+
+    .description-view
+      height                0
+      padding               0
+      overflow              hidden
+
+    .ace_editor
+      color                 #fff
+
+
+  /* Error page coomon styles */
   .error-page
 
     section.main
@@ -279,7 +315,6 @@ $warningColor               = #f2778a
         .error-content
           border            none
 
-
     footer
 
       a.back-link
@@ -289,6 +324,7 @@ $warningColor               = #f2778a
           r-sprite          'app', 'back_arrow_pink'
 
 
+  /* Styles for specific pages */
   .readme-page
 
     section.main
@@ -471,6 +507,7 @@ $warningColor               = #f2778a
 
 
   .credentials-error-page
+
     section.main
       .background
         abs()
@@ -500,18 +537,6 @@ $warningColor               = #f2778a
     .logs-pane
       width                 600px
       height                280px
-      margin                0 auto
-
-      .editor-main
-        bg                  color, #000
-
-      .description-view
-        height              0
-        padding             0
-        overflow            hidden
-
-      .ace_editor
-        color               #fff
 
 
   .build-stack-error-page
@@ -584,18 +609,6 @@ $warningColor               = #f2778a
     .logs-pane
       width                 840px
       height                420px
-      margin                0 auto
-
-      .editor-main
-        bg                  color, #000
-
-      .description-view
-        height              0
-        padding             0
-        overflow            hidden
-
-      .ace_editor
-        color               #fff
 
 
   .start-machine-page
@@ -736,20 +749,6 @@ $warningColor               = #f2778a
         span.button-title
           font-size         21.6px
           line-height       30px
-
-
-  .loader-container
-    width                   400px
-    height                  200px
-    text-align              center
-    borderBox()
-    padding-top             50px
-
-    .loader-text
-      font-size             20px
-      letter-spacing        .2px
-      color                 #424242
-      margin-bottom         15px
 
 
   .no-stack-page
