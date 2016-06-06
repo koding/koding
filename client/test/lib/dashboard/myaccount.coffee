@@ -14,7 +14,6 @@ module.exports =
 
 
   myaccount: (browser) ->
-
     queue = [
       (next) ->
         myaccounthelper.updateFirstName browser, (result) ->
