@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"koding/klient/fs"
 	"koding/klient/remote/req"
 	"koding/klient/remote/restypes"
 	"koding/klientctl/ctlcli"
@@ -70,6 +71,7 @@ type Init struct {
 	Klient interface {
 		RemoteList() (list.KiteInfos, error)
 		RemoteCache(req.Cache, func(par *dnode.Partial)) error
+		RemoteReadDirectory(string, string) ([]fs.FileEntry, error)
 
 		// Tell is here solely for the SSH struct. Need to make that struct use
 		// a fully abstracted, Klient interface.
@@ -161,13 +163,6 @@ func (c *Command) Run() (int, error) {
 	}
 
 	return 0, nil
-}
-
-func (c *Command) Autocomplete(args ...string) error {
-	for _, cmplt := range validPosArgs {
-		fmt.Fprintln(c.Stdout, cmplt)
-	}
-	return nil
 }
 
 // handleOptions deals with options, erroring if options are missing, etc.
@@ -437,6 +432,76 @@ func (c *Command) callRemoteCache(r req.Cache, progressCb func(par *dnode.Partia
 			)
 			return fmt.Errorf("remote.cacheFolder returned an error. err:%s", err)
 		}
+	}
+
+	return nil
+}
+
+func (c *Command) Autocomplete(args ...string) error {
+	// If there are no args, autocomplete to machine
+	if len(args) == 0 {
+		return c.AutocompleteMachineName()
+	}
+
+	// Get the last element from the args list, which is the element we want to
+	// complete.
+	completeArg := args[len(args)-1]
+
+	// If the last arg contains a colon in it, get the remote directory from it.
+	if i := strings.IndexRune(completeArg, ':'); i != -1 {
+		return c.AutocompleteRemotePath(completeArg[:i], completeArg[i+1:])
+	}
+
+	// We were unable to autocomplete a remote path, so autocompleting the machine
+	// name by default.
+	return c.AutocompleteMachineName()
+}
+
+func (c *Command) AutocompleteRemotePath(machineName, remotePath string) error {
+	// setup our klient, if needed
+	if err := c.setupKlient(); err != nil {
+		return err
+	}
+
+	// Drop the last path segment, because the last segment is likely the
+	// part that the user is trying to autocomplete.
+	remotePath = filepath.Dir(remotePath)
+
+	files, err := c.Klient.RemoteReadDirectory(machineName, remotePath)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range files {
+		if f.IsDir {
+			// Shells complete based on a match to the whole string that the user typed,
+			// meaning we need to return a potential match including the entire string.
+			//
+			// IMPORTANT: The ending slash causes Fish to not add a space at the end
+			// of the competion, making the UX much better.
+			c.Stdout.Printlnf("%s:%s/", machineName, f.FullPath)
+		} else {
+			c.Stdout.Printlnf("%s:%s", machineName, f.FullPath)
+		}
+	}
+
+	return nil
+}
+
+func (c *Command) AutocompleteMachineName() error {
+	// setup our klient, if needed
+	if err := c.setupKlient(); err != nil {
+		return err
+	}
+
+	infos, err := c.Klient.RemoteList()
+	if err != nil {
+		return err
+	}
+
+	for _, i := range infos {
+		// printing the : after it ensures that Fish won't put a space after the string.
+		c.Stdout.Printlnf("%s:", i.VMName)
 	}
 
 	return nil

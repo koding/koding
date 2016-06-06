@@ -30,7 +30,7 @@ fi
 # NOTE(rjeczalik): kd expects the version to be a single digit, while klient
 # expect semver - making a note until this is made consistent.
 kd_build() {
-	GOOS="${1:-}" GOARCH=amd64 go build -v -ldflags "-X koding/klientctl/config.Version $NEWBUILDNO -X koding/klientctl/config.Environment $CHANNEL -X koding/klientctl/config.KontrolURL $KONTROL_URL" -o kd koding/klientctl
+	GOOS="${1:-}" GOARCH=amd64 go build -v -ldflags "-X koding/klientctl/config.Version $NEWBUILDNO -X koding/klientctl/config.SegmentKey $KD_SEGMENTIO_KEY -X koding/klientctl/config.Environment $CHANNEL -X koding/klientctl/config.KontrolURL $KONTROL_URL" -o kd koding/klientctl
 }
 
 # build klient binary for linux

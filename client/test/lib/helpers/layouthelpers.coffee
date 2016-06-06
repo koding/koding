@@ -23,7 +23,7 @@ module.exports =
     browser.pause 7500 # find a better way
 
 
-  undoSplit: (browser, shouldAssert = yes) ->
+  undoSplit: ( browser, shouldAssert = yes, callback = -> ) ->
 
     @waitForSnapshotRestore browser
 
@@ -39,9 +39,10 @@ module.exports =
         if shouldAssert
           browser.elements 'css selector', newPaneSelector, (result) ->
             assert.equal result.value.length, oldLength - 1
+            browser.pause 10, -> callback()
 
 
-  split: (browser, direction) ->
+  split: ( browser, direction, callback = -> ) ->
 
     if direction is 'vertical'
       splitButtonSelector = 'li.split-vertically'
@@ -58,11 +59,11 @@ module.exports =
 
         if length >= 1
           console.log(' ✔ Views already splitted. Ending test...')
-          browser.end()
+          callback null
         else
           @openMenuAndClick(browser, splitButtonSelector)
           browser.pause 2000
 
           browser.elements 'css selector', splitViewSelector, (result) ->
             assert.equal result.value.length, length + 1
-            browser.pause 2000 # wait for snapshot write
+            browser.pause 2000, -> callback null # wait for snapshot write

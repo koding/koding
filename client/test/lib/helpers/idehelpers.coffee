@@ -8,7 +8,7 @@ filesTabSelector    = '.ide-files-tab .file-container'
 module.exports =
 
 
-  openNewFile: (browser) ->
+  openNewFile: ( browser, callback = -> ) ->
 
     @closeAllTabs browser
 
@@ -20,7 +20,7 @@ module.exports =
       .click                  plusSelector
       .waitForElementVisible  '.kdlistview-contextmenu li.new-file', 20000
       .click                  '.kdlistview-contextmenu li.new-file'
-      .waitForElementVisible  activeEditorSelector, 20000 # Assertion
+      .waitForElementVisible  activeEditorSelector, 20000, false, -> callback() # Assertion
 
 
   closeAllTabs: (browser) ->
@@ -59,7 +59,7 @@ module.exports =
     close()
 
 
-  openContextMenu: (browser) ->
+  openContextMenu: ( browser, callback = -> ) ->
 
     fileSelector    = "#{tabHandleSelector} .kdtabhandle.active"
     optionsSelector = "#{fileSelector} span.options"
@@ -70,10 +70,10 @@ module.exports =
       .moveToElement          optionsSelector, 8, 8
       .waitForElementVisible  optionsSelector, 20000
       .click                  optionsSelector
-      .waitForElementVisible  '.kdlistview-contextmenu', 20000 # Assertion
+      .waitForElementVisible  '.kdlistview-contextmenu', 20000, false, callback() # Assertion
 
 
-  createAndSaveNewFile: (browser, user, text) ->
+  createAndSaveNewFile: (browser, user, text, callback) ->
 
     saveSelector        = '.kdlistview-contextmenu li.save'
     saveAsModalSelector = '.save-as-dialog'
@@ -104,6 +104,8 @@ module.exports =
 
     if text
       browser.assert.containsText panelSelector, text
+
+    browser.pause 10, -> callback()
 
     return newName
 
@@ -157,15 +159,15 @@ module.exports =
       .waitForTextToContain   activeEditorSelector, text # Assertion
 
 
-  openFileFromWebFolder: (browser, user, fileName, fileContent) ->
+  openFileFromConfigFolder: ( browser, user, fileName, fileContent, callback = -> ) ->
 
     fileName    or= 'index.html'
     fileContent or= 'Hello World from HTML by Koding'
-    fileSelector  = "span[title='/home/#{user.username}/Web/#{fileName}']"
+    fileSelector  = "span[title='/home/#{user.username}/.config/#{fileName}']"
     fileNameSlug  = fileName.replace '.', ''
     tabSelector   = ".kdtabpaneview.#{fileNameSlug}.active"
 
-    helpers.openFolderContextMenu browser, user, 'Web'
+    helpers.openFolderContextMenu browser, user, '.config'
 
     browser
       .waitForElementVisible   'li.expand', 15000
@@ -178,11 +180,11 @@ module.exports =
       .waitForElementVisible   ".pane-wrapper .kdsplitview-panel .#{fileNameSlug}", 20000 # Assertion
       .waitForElementVisible   tabSelector, 20000 # Assertion
       .waitForTextToContain    tabSelector, fileContent # Assertion
+      .pause 10, -> callback()
 
+  openFile: ( browser, user, fileName, callback = -> ) ->
 
-  openFile: (browser, user, fileName) ->
-
-    filePath            = "/home/#{user.username}/Web/#{fileName}"
+    filePath            = "/home/#{user.username}/.config/#{fileName}"
     fileSelector        = "span[title='#{filePath}']"
     chevronSelector     = "#{fileSelector} + span.chevron"
     contextMenuSelector = '.kdlistview-contextmenu'
@@ -196,7 +198,7 @@ module.exports =
       .click                  chevronSelector
       .waitForElementVisible  contextMenuSelector, 20000
       .click                  openFileSelector
-      .waitForElementVisible  fileTabSelector, 20000
+      .waitForElementVisible  fileTabSelector, 20000, false, -> callback()
 
 
   clickItemInMachineHeaderMenu: (browser, selector) ->
@@ -205,23 +207,25 @@ module.exports =
     browser.click ".context-list-wrapper #{selector}"
 
 
-  compressFileFolder: (browser, user, type, fileFolderName, compressType) ->
+  compressFileFolder: ( browser, user, type, fileFolderName, compressType, callback = -> ) ->
 
-    webPath     = '/home/' + user.username + '/Web'
+    configPath     = '/home/' + user.username + '/.config'
     name        = fileFolderName
+    packageInstallerModal = '.kdmodal.kddraggable.with-buttons'
+    installPackageButton = "#{packageInstallerModal} .kdbutton.solid.green.medium"
 
     if type is 'folder'
-      webPath   = '/home/' + user.username
+      configPath   = '/home/' + user.username
       name      = fileFolderName.name
 
-    fileFolderSelector  = "span[title='" + webPath + '/' + name + "']"
+    fileFolderSelector  = "span[title='" + configPath + '/' + name + "']"
     submenuSelector     = "li.as-#{compressType}"
     extension           = '.zip'
 
     if compressType is 'targz'
       extension = '.tar.gz'
 
-    newFile = "span[title='" + webPath + '/' + name + extension + "']"
+    newFile = "span[title='" + configPath + '/' + name + extension + "']"
 
     browser
       .waitForElementPresent     fileFolderSelector, 20000
@@ -232,7 +236,25 @@ module.exports =
       .waitForElementVisible     submenuSelector, 20000
       .click                     submenuSelector
       .pause                     2000
+
+    # install zip package if it is not exist
+    browser.element 'css selector', packageInstallerModal, (result) ->
+      if result.status is 0
+        browser
+          .waitForElementVisible packageInstallerModal, 2000
+          .waitForElementVisible installPackageButton, 20000
+          .click installPackageButton
+          .pause 10000
+          .waitForElementPresent     fileFolderSelector, 20000
+          .click                     fileFolderSelector
+          .click                     fileFolderSelector + ' + .chevron'
+          .waitForElementVisible     'li.compress', 20000
+          .click                     'li.compress'
+          .waitForElementVisible     submenuSelector, 20000
+          .click                     submenuSelector
+          .pause                     2000
+    browser
       .waitForElementPresent     newFile, 20000 # Assertion
 
-    helpers.deleteFile(browser, fileFolderSelector)
-    helpers.deleteFile(browser, newFile)
+    helpers.deleteFile browser, fileFolderSelector , ->
+      helpers.deleteFile browser, newFile, -> callback()
