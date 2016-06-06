@@ -71,7 +71,7 @@ type (
 
 		DummyAdmins []string
 
-		DruidHost string
+		Druid Druid
 	}
 
 	// Email holds Email Workers' config
@@ -216,5 +216,10 @@ type (
 		Domain     string `env:"key=KONFIG_SOCIALAPI_MAILGUN_DOMAIN"`
 		PrivateKey string `env:"key=KONFIG_SOCIALAPI_MAILGUN_PRIVATEKEY"`
 		PublicKey  string `env:"key=KONFIG_SOCIALAPI_SLACK_PUBLICKEY"`
+	}
+
+	Druid struct {
+		Host string `env:"key=KONFIG_SOCIALAPI_DRUID_HOST"`
+		Port string `env:"key=KONFIG_SOCIALAPI_DRUID_PORT"`
 	}
 )
