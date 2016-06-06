@@ -455,7 +455,7 @@ class IDEAppController extends AppController
   tailFile: (options, callback = kd.noop) ->
 
     { file, contents, targetTabView, description,
-      emitChange, isActivePane, tailOffset, buildDuration } = options
+      emitChange, isActivePane, tailOffset } = options
 
     targetTabView = @ideViews.first.tabView  unless targetTabView
 
@@ -463,7 +463,7 @@ class IDEAppController extends AppController
 
     @activeTabView.emit 'FileNeedsToBeTailed', {
       file, contents, description, callback, emitChange,
-      isActivePane, tailOffset, buildDuration
+      isActivePane, tailOffset
     }
 
 
@@ -648,7 +648,6 @@ class IDEAppController extends AppController
           @prepareCollaboration()
           @bindKlientEvents machineItem
           @runOnboarding()
-
         else
           unless @machineStateModal
 
@@ -1298,7 +1297,7 @@ class IDEAppController extends AppController
         mainView.activitySidebar.selectWorkspace data
 
       if initial
-        computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET, showProgress = yes
+        computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET
 
       @emit 'IDEReady'
 
