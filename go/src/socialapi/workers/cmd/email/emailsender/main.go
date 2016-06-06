@@ -26,20 +26,15 @@ func main() {
 	defer modelhelper.Close()
 
 	segmentExporter := eventexporter.NewSegmentIOExporter(appConfig.Segment, QueueLength)
+	datadogExporter := eventexporter.NewDatadogExporter(r.DogStatsD)
 
 	// TODO
-	// this lines will not be commentout
-	// datadogExporter := eventexporter.NewDatadogExporter(r.DogStatsD)
-
-	// TODO
-	// use config file for druid address
-	// open this line !!
-	// druidExporter := eventexporter.NewDruidExporter("address")
-
-	// TODO
-	//open this line also!!!
+	// we are gonna add this line into the multiexporter
+	// firstly, we need to make sure our json data satisfy druid's data specs
+	// druidExporter := eventexporter.NewDruidExporter(appConfig.DruidHost)
 	// exporter := eventexporter.NewMultiExporter(segmentExporter, datadogExporter, druidExporter)
-	exporter := eventexporter.NewMultiExporter(segmentExporter)
+
+	exporter := eventexporter.NewMultiExporter(segmentExporter, datadogExporter)
 
 	constructor := emailsender.New(exporter, r.Log, appConfig)
 	r.ShutdownHandler = constructor.Close
