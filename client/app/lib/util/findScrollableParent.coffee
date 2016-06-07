@@ -7,9 +7,9 @@
  *  styling. If no parent found, `global` (global: window for browser), the
  *  `window` object is returned.
 ###
-module.exports = findScrollableParent = (element) ->
+module.exports = findScrollableParent = (element, checkForKdScrollView = no) ->
 
-  while element.parentNode
+  while element?.parentNode
     element = element.parentNode
 
     # document don't have computed style.
@@ -17,6 +17,9 @@ module.exports = findScrollableParent = (element) ->
       continue
 
     if element.dataset.isScroller
+      return element
+
+    if element.classList.contains('kdscrollview') and checkForKdScrollView
       return element
 
     style = global.getComputedStyle element
