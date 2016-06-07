@@ -148,7 +148,6 @@ module.exports =
                         browser.pause 1000, callback
 
 
-
   removeAccessFromSharedMachine: (browser, callback) ->
     member = utils.getUser no, 1
     removeUser = "#{sharedUserlist} .remove"
