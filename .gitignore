@@ -74,6 +74,7 @@ website/a/p
 client/.sprites
 client/node_modules
 client/.config.json
+client/.schema.json
 client/.nightwatch.json
 client/builder/node_modules
 client/test/users.json

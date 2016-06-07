@@ -1,9 +1,8 @@
-teamsHelpers = require '../helpers/teamshelpers.js'
-helpers = require '../helpers/helpers.js'
-utils = require '../utils/utils.js'
-virtualMachinesUrl = "#{helpers.getUrl(yes)}/Home/Stacks/virtual-machines"
-async = require 'async'
-
+teamsHelpers          = require '../helpers/teamshelpers.js'
+helpers               = require '../helpers/helpers.js'
+utils                 = require '../utils/utils.js'
+async                 = require 'async'
+virtualmachineshelper = require '../helpers/virtualmachineshelpers.js'
 
 module.exports =
 
@@ -38,108 +37,35 @@ module.exports =
     member = utils.getUser no, 1
     host = utils.getUser()
 
-    virtualMachineSelector = '.HomeAppView--section.virtual-machines'
-    runningVMSelector = "#{virtualMachineSelector} .MachinesListItem-machineLabel.Running"
-    machineDetailSelector = '.MachinesListItem-machineDetails'
-    machineDetailSpecsList = "#{machineDetailSelector} .MachineDetails-SpecsList"
-    vmPowerSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(2)"
-    alwaysOnSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(3)"
-    vmSharingSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(4)"
-    vmPowerToggleSelector = "#{vmPowerSelector} .react-toggle-thumb"
-    alwaysOnToggleSelector = "#{alwaysOnSelector} .react-toggle-thumb"
-    vmSharingToggleSelector = "#{vmSharingSelector} .react-toggle-thumb"
-    machineSharingDetails = '.MachineSharingDetails'
-    inputSelector = "#{machineSharingDetails} input.kdinput.text"
-    memberSelector = "#{machineSharingDetails} .AutocompleteListItem"
-    membersList = "#{machineSharingDetails} .ListView"
-    removeSharedMachineMember = "#{membersList} .remove"
-    memberNicknameToShareMachine = "@#{member.username}"
+    queue = [
+      (next) ->
+        virtualmachineshelper.seeOwnMachinesList browser, (result) ->
+          next null, result
+      (next) ->
+        virtualmachineshelper.seeSpecificationOfMachine browser, (result) ->
+          next null, result
+      (next) ->
+        virtualmachineshelper.toggleOnOffMachine browser, (result) ->
+          next null, result
+      (next) ->
+        virtualmachineshelper.toggleAlwaysOnMachine browser, (result) ->
+          next null, result
+      (next) ->
+        virtualmachineshelper.shareTheMachineWithMembers browser, (result) ->
+          next null, result
+      (next) ->
+        virtualmachineshelper.removeAccessFromSharedMachine browser, (result) ->
+          next null, result
+      (next) ->
+        virtualmachineshelper.seeConnectedMachinesList browser, (result) ->
+          next null, result
+      (next) ->
+        virtualmachineshelper.seeSharedMachinesList browser, (result) ->
+          next null, result
+    ]
 
-    addAConnectedMachineButtonSelector = '.kdbutton.GenericButton.HomeAppViewVMSection--addOwnMachineButton'
-    addYourOwnMachineSelector = '.kdmodal.add-managed-vm'
-
-    selectButtonSelector = "#{addYourOwnMachineSelector} .code .select-all"
-    closeAddYourOwnMachineModal = "#{addYourOwnMachineSelector} .close-icon.closeModal"
-    pressCMDCNotificationSelector = '.kdview.kdtooltip.just-text.placement-top.direction-center'
-
-    sidebarSharedMachinesSection = '.SidebarSection.SidebarSharedMachinesSection'
-    sidebarPopover = '.Popover-Wrapper'
-    acceptSharedMachine = "#{sidebarPopover} .kdbutton.solid.green.medium"
-
-    sharedMachineSection = '.HomeAppView--section.shared-machines'
-    sharedMachinesList = "#{sharedMachineSection} .ListView"
+    async.series queue
 
 
-    browser
-      .pause 5000
-      .url virtualMachinesUrl
-      .waitForElementVisible virtualMachineSelector, 20000
-      .waitForElementVisible runningVMSelector, 20000
-      .click runningVMSelector
-      .waitForElementVisible machineDetailSelector, 20000
-
-    # check for specsList
-    browser
-      .waitForElementVisible machineDetailSpecsList, 20000
-
-    # check for alwaysOnToggle
-    browser
-      .click alwaysOnToggleSelector
-      .pause 1000
-      .click alwaysOnToggleSelector
-      .pause 1000
-
-    # check for vmSharingToggle
-    browser
-      .click vmSharingToggleSelector
-      .waitForElementVisible inputSelector, 20000
-      .setValue inputSelector, memberNicknameToShareMachine
-      .click inputSelector
-      .waitForElementVisible memberSelector, 20000
-      .click memberSelector
-      .waitForElementVisible membersList, 20000
-      .waitForElementVisible removeSharedMachineMember, 20000, ->
-
-        # check shared machine for member
-        teamsHelpers.logoutTeam browser, ->
-          teamsHelpers.loginToTeam browser, member, no, ->
-            browser
-              .waitForElementVisible sidebarSharedMachinesSection, 20000
-              .click sidebarSharedMachinesSection
-              .waitForElementVisible sidebarPopover, 20000
-              .click acceptSharedMachine
-              .pause 2000
-              .url virtualMachinesUrl
-              .waitForElementVisible virtualMachineSelector, 20000
-              .waitForElementVisible sharedMachineSection, 20000
-              .waitForElementVisible sharedMachinesList, 20000
-              .pause 2000, ->
-                teamsHelpers.logoutTeam browser, ->
-                  teamsHelpers.loginToTeam browser, host, no, ->
-                    browser
-                      .pause 2000
-                      .url virtualMachinesUrl
-                      .waitForElementVisible virtualMachineSelector, 20000
-                      .waitForElementVisible runningVMSelector, 20000
-                      .click runningVMSelector
-
-    #check add a Connected Machine
-    browser
-      .waitForElementVisible addAConnectedMachineButtonSelector, 20000
-      .click addAConnectedMachineButtonSelector
-      .waitForElementVisible addYourOwnMachineSelector, 20000
-      .waitForElementVisible selectButtonSelector, 20000
-      .click selectButtonSelector
-      .waitForElementVisible pressCMDCNotificationSelector, 20000
-      .waitForElementVisible closeAddYourOwnMachineModal, 20000
-      .click closeAddYourOwnMachineModal
-      .pause 1000
-
-    # vm off by using VM Power toggle
-    browser
-      .click vmPowerToggleSelector, ->
-        teamsHelpers.waitUntilVmStopping browser, ->
-          browser
-            .click vmPowerToggleSelector, ->
-              teamsHelpers.waitUntilVmRunning browser, ->
-                browser.end()
+  after: (browser) ->
+    browser.end()

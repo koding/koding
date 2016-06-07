@@ -177,9 +177,9 @@ runcmd:
   - [wget, "{{.LatestKlientURL}}", --retry-connrefused, --tries, 5, -O, /tmp/latest-klient.deb]
   - [dpkg, -i, /tmp/latest-klient.deb]
   - [chown, -R, '{{.Username}}:{{.Username}}', /opt/kite/klient]
-  - service klient stop
+  - [service, klient, stop]
   - [sed, -i, 's/\.\/klient/sudo -E -u {{.Username}} \.\/klient/g', /etc/init/klient.conf]
-  - service klient start
+  - [service, klient, start]
   - [rm, -f, /tmp/latest-klient.deb]
 
 {{if .KodingSetup}}
@@ -208,6 +208,7 @@ runcmd:
   - [chmod, +x, /root/user-data.sh]
   - [/root/user-data.sh]
 {{end}}
+  - [echo, _KD_DONE_]
 
 final_message: "All done!"
 `

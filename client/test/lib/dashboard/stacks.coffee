@@ -1,10 +1,9 @@
-teamsHelpers = require '../helpers/teamshelpers.js'
-helpers = require '../helpers/helpers.js'
-utils = require '../utils/utils.js'
-stackEditorUrl = "#{helpers.getUrl(yes)}/Home/stacks"
-async = require 'async'
-stackSelector = null
-
+teamsHelpers   = require '../helpers/teamshelpers.js'
+helpers        = require '../helpers/helpers.js'
+utils          = require '../utils/utils.js'
+async          = require 'async'
+stackSelector  = null
+stackshelpers  = require '../helpers/stackshelpers.js'
 
 module.exports =
 
@@ -45,40 +44,19 @@ module.exports =
       done()  unless err
 
   stacks: (browser) ->
+    queue = [
+      (next) ->
+        stackshelpers.clickNewStackButton browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.seeTeamStackTemplates browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.seeDraftStackTemplates browser, (result) ->
+          next null, result
+    ]
 
-    sectionSelector = '.kdview.kdtabpaneview.stacks'
-    newStackButton = '.kdbutton.GenericButton.HomeAppView-Stacks--createButton'
+    async.series queue
 
-    browser
-      .pause 2000
-      .url stackEditorUrl
-      .waitForElementVisible sectionSelector, 20000
-      .click newStackButton
-      .pause 2000
-      .assert.urlContains '/Stack-Editor/New'
-
-
-    teamStacksSelector = '.HomeAppView--section.team-stacks'
-    stackTemplate = "#{teamStacksSelector} .HomeAppViewListItem.StackTemplateItem"
-
-    browser
-      .pause 2000
-      .url stackEditorUrl
-      .waitForElementVisible teamStacksSelector, 20000
-      .waitForElementVisible stackTemplate, 20000
-
-    # FIXME: reimplement after stacks page is done ~ HK
-    # privateStacksSelector = '.HomeAppView--section.private-stacks'
-    # stackTemplate = "#{privateStacksSelector} .HomeAppViewListItem.StackTemplateItem"
-
-    # browser
-    #   .pause 2000
-    #   .waitForElementVisible privateStacksSelector, 20000
-    #   .waitForElementVisible stackTemplate, 20000
-
-
-    draftStacksSelector  = '.HomeAppView--section.drafts'
-    browser
-      .pause 2000
-      .waitForElementVisible draftStacksSelector, 20000
-      .waitForElementVisible stackTemplate, 20000
+  after: (browser) ->
+    browser.end()

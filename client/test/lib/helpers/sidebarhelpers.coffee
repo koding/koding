@@ -25,9 +25,10 @@ WelcomeView       = '.WelcomeStacksView'
 module.exports =
 
   #Test Stacks Title Click Events
-  testStacksTitleEvents: (browser, callback) ->
+  redirectMyAccountPage: (browser, callback) ->
     browser
       .click sideBarSelector
+      .waitForElementVisible headerTitleSelector, 20000
       .click headerTitleSelector
       .waitForElementVisible '.HomeAppView', 20000
       .pause 1000
@@ -40,7 +41,7 @@ module.exports =
 
 
   #Test Default Stack Settings Edit/Reinitialize/Vms
-  testDefaultStackSettings: (browser, callback) ->
+  redirectStackSettingsMenu: (browser, callback) ->
     browser
       .click sideBarSelector
       .waitForElementVisible defaultStackSelector, 20000
@@ -69,7 +70,7 @@ module.exports =
 
 
   #Test Draft Stack Settings Edit/Initialize
-  testDraftStackSettings: (browser, callback) ->
+  redirectDraftStackSettingsMenu: (browser, callback) ->
     browser
       .click sideBarSelector
       .click draftStackHeader
@@ -86,7 +87,7 @@ module.exports =
       .waitForElementVisible notificationSelector, 20000, callback
 
 
-  testSettingsMenu: (browser, callback) ->
+  openSettingsMenu: (browser, callback) ->
     @gotoSettingsMenu browser, myAccountSelector
     browser
       .assert.containsText headerSelector, 'My Account'
@@ -97,6 +98,7 @@ module.exports =
     browser
       .waitForElementVisible chatlioWidget, 20000
     @gotoSettingsMenu browser, logoutSelector
+    browser.waitForElementVisible '.TeamsModal--login', 20000, callback
 
 
   gotoSettingsMenu: (browser, menuItemSelector) ->
