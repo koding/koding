@@ -9,7 +9,9 @@
 ###
 module.exports = findScrollableParent = (element, checkForKdScrollView = no) ->
 
-  while element?.parentNode
+  return null  unless element
+
+  while element.parentNode
     element = element.parentNode
 
     # document don't have computed style.
@@ -19,7 +21,7 @@ module.exports = findScrollableParent = (element, checkForKdScrollView = no) ->
     if element.dataset.isScroller
       return element
 
-    if element.classList.contains('kdscrollview') and checkForKdScrollView
+    if checkForKdScrollView and element.classList.contains('kdscrollview')
       return element
 
     style = global.getComputedStyle element
