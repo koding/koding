@@ -17,6 +17,7 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
     super options, data
 
     TeamFlux.actions.loadTeam()
+    canEdit = kd.singletons.groupsController.canEditGroup()
 
     @wrapper.addSubView headerize  'KD CLI'
     @wrapper.addSubView sectionize 'KD CLI', HomeUtilitiesKD
@@ -27,6 +28,6 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
     @wrapper.addSubView headerize  'Koding Button'
     @wrapper.addSubView sectionize 'Koding Button', HomeUtilitiesTryOnKoding
 
-    @wrapper.addSubView headerize  'Integrations'
-
-    @wrapper.addSubView sectionize 'Customer Feedback', HomeUtilitiesCustomerFeedback
+    if canEdit
+        @wrapper.addSubView headerize  'Integrations'
+        @wrapper.addSubView sectionize 'Customer Feedback', HomeUtilitiesCustomerFeedback
