@@ -17,7 +17,9 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
     super options, data
 
     TeamFlux.actions.loadTeam()
+    team = kd.singletons.groupsController.getCurrentGroup()
     canEdit = kd.singletons.groupsController.canEditGroup()
+    allowedDomains = team.allowedDomains
 
     @wrapper.addSubView headerize  'KD CLI'
     @wrapper.addSubView sectionize 'KD CLI', HomeUtilitiesKD
@@ -25,8 +27,9 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
     #@wrapper.addSubView headerize  'Koding OS X App'
     #@wrapper.addSubView sectionize 'Koding OS X App', HomeUtilitiesDesktopApp
 
-    @wrapper.addSubView headerize  'Koding Button'
-    @wrapper.addSubView sectionize 'Koding Button', HomeUtilitiesTryOnKoding
+    if '*' in allowedDomains or canEdit
+        @wrapper.addSubView headerize  'Koding Button'
+        @wrapper.addSubView sectionize 'Koding Button', HomeUtilitiesTryOnKoding
 
     if canEdit
         @wrapper.addSubView headerize  'Integrations'
