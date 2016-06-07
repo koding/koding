@@ -90,10 +90,10 @@ module.exports = class CredentialsController extends kd.Controller
     pendingCredential = null
 
     queue = [
-      (next) =>
+      (next) ->
         return next null, selectedItem  if selectedItem
 
-        helpers.createNewCredential provider, newData, (err, newCredential) =>
+        helpers.createNewCredential provider, newData, (err, newCredential) ->
           return next err  if err
 
           pendingCredential = newCredential
