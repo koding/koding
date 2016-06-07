@@ -26,7 +26,7 @@ generateStackTemplateData = (client, data) ->
   data        ?= {}
   { delegate } = client.connection
   details      = 'template details'
-  content      = """
+  content      = '''
     {
       "provider": {
         "aws": {
@@ -46,8 +46,8 @@ generateStackTemplateData = (client, data) ->
         }
       }
     }
-  """
-  rawContent   = """
+  '''
+  rawContent   = '''
     provider:
       aws:
         access_key: '${var.aws_access_key}'
@@ -59,7 +59,7 @@ generateStackTemplateData = (client, data) ->
           ami: ''
           tags:
             Name: '${var.koding_user_username}-${var.koding_group_slug}'
-  """
+  '''
 
 
   stackTemplate =
