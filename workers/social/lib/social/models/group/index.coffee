@@ -293,10 +293,6 @@ module.exports = class JGroup extends Module
       # then we will check if the domain they are trying to register is an
       # allowed global domain
       allowedDomains  : [ String ]
-      # tmp: the data stored here should be processed while
-      # we create the group - SY
-      # cc/ @cihangir
-      initialData   : Object
       # Generic config object for future requirements on groups ~ GG
       config        : Object
       # Api usage can be disabled or enabled for the group

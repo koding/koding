@@ -428,7 +428,7 @@ module.exports = class ComputeProvider extends Base
     maxAllowed   = MAX_INT
     if planConfig.plan
       plan       = teamutils.getPlanData planConfig
-      maxAllowed = plan.member
+      maxAllowed = plan.member ? MAX_INT
 
     JCounter = require '../counter'
     JCounter[change]
@@ -446,15 +446,15 @@ module.exports = class ComputeProvider extends Base
 
     { group, change, amount } = options
 
-    return callback null  if group.slug is 'koding'
-
-    planConfig = helpers.getPlanConfig group
-    return callback null  if amount is 0
+    # We don't need to do anything if amount somehow is 0
+    # A stack template without machines in it? ~ GG
+    return callback null  if group.slug is 'koding' or amount is 0
 
     maxAllowed   = MAX_INT
+    planConfig   = helpers.getPlanConfig group
     if planConfig.plan
       plan       = teamutils.getPlanData planConfig
-      maxAllowed = plan.maxInstance
+      maxAllowed = plan.maxInstance ? MAX_INT
 
     JCounter = require '../counter'
     JCounter[change]

@@ -73,7 +73,7 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
           (next) ->
             withConvertedUser { role: 'admin' }, (data) ->
               _client = data.client
-              group._activePlan = 'default'
+              group._activePlan = 'test'
               next()
 
           (next) ->
