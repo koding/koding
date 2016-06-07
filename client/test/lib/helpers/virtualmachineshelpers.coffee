@@ -18,6 +18,7 @@ inputSelector           = "#{machineSharingDetails} input.kdinput.text"
 memberSelector          = "#{machineSharingDetails} .AutocompleteListItem"
 membersList             = "#{machineSharingDetails} .UserList"
 sharedUserlist          = "#{machineSharingDetails} .UserList"
+noFoundUserList         = "#{machineSharingDetails} .NoItem"
 
 addAConnectedMachineButtonSelector = '.kdbutton.GenericButton.HomeAppViewVMSection--addOwnMachineButton'
 addYourOwnMachineSelector          = '.kdmodal.add-managed-vm.kddraggable'
@@ -29,6 +30,7 @@ pressCMDCNotificationSelector      = '.kdview.kdtooltip.just-text.placement-top.
 sidebarSharedMachinesSection       = '.SidebarSection.SidebarSharedMachinesSection'
 sidebarPopover                     = '.Popover-Wrapper'
 acceptSharedMachine                = "#{sidebarPopover} .kdbutton.solid.green.medium"
+rejectSharedMachine                = "#{sidebarPopover} .kdbutton.solid.red.medium"
 
 sharedMachineSection               = '.HomeAppView--section.shared-machines'
 sharedMachinesList                 = "#{sharedMachineSection} .ListView"
@@ -71,13 +73,11 @@ module.exports =
 
 
   # check for vmSharingToggle and share the machine
-  shareTheMachineWithMembers: (browser, callback) ->
-    member = utils.getUser no, 1
-    host = utils.getUser()
-
+  shareTheMachineWithMembers: (browser, member, callback) ->
     removeSharedMachineMember = "#{membersList} .remove"
     memberNicknameToShareMachine = "@#{member.username}"
     browser
+      .scrollToElement addAConnectedMachineButtonSelector
       .click vmSharingToggleSelector
       .waitForElementVisible inputSelector, 20000
       .setValue inputSelector, memberNicknameToShareMachine
@@ -85,36 +85,74 @@ module.exports =
       .waitForElementVisible memberSelector, 20000
       .click memberSelector
       .waitForElementVisible membersList, 20000
-      .waitForElementVisible removeSharedMachineMember, 20000, ->
+      .waitForElementVisible removeSharedMachineMember, 20000, callback
 
-        # check shared machine for member
-        teamsHelpers.logoutTeam browser, ->
-          teamsHelpers.loginToTeam browser, member, no, ->
-            browser
-              .waitForElementVisible sidebarSharedMachinesSection, 20000
-              .click sidebarSharedMachinesSection
-              .waitForElementVisible sidebarPopover, 20000
-              .click acceptSharedMachine
-              .pause 2000
-              .url virtualMachinesUrl
-              .waitForElementVisible virtualMachineSelector, 20000
-              .waitForElementVisible sharedMachineSection, 20000
-              .waitForElementVisible sharedMachinesList, 20000
-              .pause 2000, ->
-                teamsHelpers.logoutTeam browser, ->
-                  teamsHelpers.loginToTeam browser, host, no, ->
-                    browser
-                      .pause 2000
-                      .url virtualMachinesUrl
-                      .waitForElementVisible virtualMachineSelector, 20000
-                      .waitForElementVisible runningVMSelector, 20000
-                      .click runningVMSelector
-                      .waitForElementVisible machineDetailSelector, 20000, callback
+
+  # check shared machine for member
+  acceptSharedMachine: (browser, host, member, callback) ->
+    @shareTheMachineWithMembers browser, member, ->
+      teamsHelpers.logoutTeam browser, ->
+        teamsHelpers.loginToTeam browser, member, no, ->
+          browser
+            .waitForElementVisible sidebarSharedMachinesSection, 20000
+            .click sidebarSharedMachinesSection
+            .waitForElementVisible sidebarPopover, 20000
+            .click acceptSharedMachine
+            .pause 2000
+            .url virtualMachinesUrl
+            .waitForElementVisible virtualMachineSelector, 20000
+            .waitForElementVisible sharedMachineSection, 20000
+            .waitForElementVisible sharedMachinesList, 20000
+            .pause 2000, ->
+              teamsHelpers.logoutTeam browser, ->
+                teamsHelpers.loginToTeam browser, host, no, ->
+                  browser
+                    .pause 2000
+                    .url virtualMachinesUrl
+                    .waitForElementVisible virtualMachineSelector, 20000
+                    .waitForElementVisible runningVMSelector, 20000
+                    .click runningVMSelector
+                    .waitForElementVisible machineDetailSelector, 20000, callback
+
+
+  rejectAndAcceptSharedMachine: (browser, host, member, callback) ->
+
+    @shareTheMachineWithMembers browser, member, =>
+      teamsHelpers.logoutTeam browser, =>
+        teamsHelpers.loginToTeam browser, member, no, =>
+          browser
+            .waitForElementVisible sidebarSharedMachinesSection, 20000
+            .click sidebarSharedMachinesSection
+            .waitForElementVisible sidebarPopover, 20000
+            .click rejectSharedMachine
+            .pause 2000
+            .url virtualMachinesUrl
+            .waitForElementVisible virtualMachineSelector, 20000
+            .waitForElementVisible sharedMachineSection, 20000
+            .waitForElementVisible sharedMachinesList, 20000
+            .pause 2000, =>
+              teamsHelpers.logoutTeam browser, =>
+                teamsHelpers.loginToTeam browser, host, no, =>
+                  browser
+                    .pause 2000
+                    .url virtualMachinesUrl
+                    .waitForElementVisible virtualMachineSelector, 20000
+                    .waitForElementVisible runningVMSelector, 20000
+                    .click runningVMSelector
+                    .waitForElementVisible machineDetailSelector, 20000
+                    .click vmSharingToggleSelector
+                    .waitForElementVisible noFoundUserList, 20000
+                    .click vmSharingToggleSelector
+                    .pause 1000, =>
+                      @acceptSharedMachine browser, host, member, ->
+                        browser.pause 1000, callback
+
+
 
   removeAccessFromSharedMachine: (browser, callback) ->
     member = utils.getUser no, 1
     removeUser = "#{sharedUserlist} .remove"
-
+    console.log('remove')
     browser
       .waitForElementVisible membersList, 20000
       .moveToElement sharedUserlist, 0, 0
