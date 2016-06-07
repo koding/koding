@@ -151,7 +151,6 @@ module.exports =
   removeAccessFromSharedMachine: (browser, callback) ->
     member = utils.getUser no, 1
     removeUser = "#{sharedUserlist} .remove"
-    console.log('remove')
     browser
       .waitForElementVisible membersList, 20000
       .moveToElement sharedUserlist, 0, 0
