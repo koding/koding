@@ -113,7 +113,7 @@ generateDev = (KONFIG, options, credentials) ->
 
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
-    SERVICES="mongo redis postgres rabbitmq"
+    SERVICES="mongo redis postgres rabbitmq imply"
 
     NGINX_CONF="$KONFIG_PROJECTROOT/.dev.nginx.conf"
     NGINX_PID="$KONFIG_PROJECTROOT/.dev.nginx.pid"
@@ -430,12 +430,13 @@ generateDev = (KONFIG, options, credentials) ->
 
       docker build -t koding/postgres .
 
-      docker run -d -p 27017:27017              --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
-      docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
+      docker run -d -p 27017:27017                                        --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
+      docker run -d -p 5672:5672 -p 15672:15672                           --name=rabbitmq koding/rabbitmq
 
-      docker run -d -p 6379:6379                --name=redis    redis
-      docker run -d -p 5432:5432                --name=postgres koding/postgres
+      docker run -d -p 6379:6379                                          --name=redis    redis
+      docker run -d -p 5432:5432                                          --name=postgres koding/postgres
 
+      docker run -d -p 18081-18110:8081-8110 -p 18200:8200 -p 19095:9095  --name=imply    imply/imply:1.2.1
       restoredefaultmongodump
 
       echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
