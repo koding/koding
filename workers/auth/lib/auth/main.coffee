@@ -1,9 +1,8 @@
-{ argv }         = require 'optimist'
 process.title    = 'koding-authworker'
 koding           = require './bongo'
 koding.connect()
 
-KONFIG         = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG         = require 'koding-config-manager'
 
 AuthWorker     = require './authworker'
 
@@ -19,7 +18,10 @@ authWorker = new AuthWorker koding, {
   authAllExchange : KONFIG.authWorker.authAllExchange
 }
 
+options =
+  port  : KONFIG.authWorker.port
+
 # expose healthcheck and version handlers
-require('../../../runartifactserver')('authworker')
+require('../../../runartifactserver') 'authworker', options
 
 authWorker.connect()

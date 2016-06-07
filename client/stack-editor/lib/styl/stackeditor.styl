@@ -1,0 +1,420 @@
+@css {
+/*
+Stack Editor stylesheet
+stackeditor.styl
+*/
+}
+
+$accentColor                = #F2778A
+$titleColor                 = #424242
+$subtleColor                = #A59999
+$borderColor                = #E3E3E3
+
+//
+// NEW STACK EDITOR APP STYLES
+//
+
+.StackEditorView
+  padding                   40px
+  font-family               SoleilFamily
+  bg                        color #F5F3F3
+  min-height                600px
+  min-width                 720px
+  max-width                 1024px
+  borderBox()
+
+  .kdtabpaneview
+    bg                      color, #FFF
+    border                  1px solid #E4E4E4
+    border-top              none
+    borderBox()
+
+    > div
+      padding               30px
+      borderBox()
+
+  .kdtabhandlecontainer
+    bg                      color #FFFFFF
+    border                  1px solid $borderColor
+    rounded                 4px 4px 0 0
+    size                    100% 70px
+    padding                 0
+    borderBox()
+    rel()
+
+    .kdtabhandle-tabs
+      margin                0
+      padding               0
+      size                  auto auto
+      rel()
+
+    .kdtabhandle
+      height                35px
+      line-height           35px
+      bg                    color transparent
+      border                none
+      color                 #5E5E5E
+      padding               17px 0 18px
+      float                 none
+      display               inline-block
+      contentBox()
+
+      b
+        border-right        1px solid #CACACA
+        padding             0 30px
+        font-weight         400
+        font-size           15px
+        letter-spacing      .5px
+        width               auto
+        vendor              transition, padding .177s ease
+
+      &.active b
+        color               $accentColor
+
+      &:last-of-type b
+        border-right        none
+
+      &.notification b
+        padding-right       40px
+        padding-left        20px
+
+
+  .indicator
+    size                  18px, 18px
+    color                 white
+    bg                    color, #F76E6E
+    text-align            center
+    font-size             11px
+    line-height           18px
+    font-weight           200
+    rounded               18px
+    vendor                transition, top .2s ease
+    abs                   90px 13px 0 0
+
+    &.in
+      top                 25px
+
+    &.red
+      bg                  color, darkred
+
+.StackEditorTabs
+  kalc                      height, (100% \- 133px)
+
+  > .kdtabpaneview
+    height                  calc(100% \- 73px)
+
+.StackEditor-SecondaryActions
+  margin-top                30px
+
+//
+// MOVED STACK EDITOR STYLES
+//
+
+.kdtabpaneview.stackeditor
+  rel()
+
+  .kdloader
+    padding                 0
+
+  .main-loader
+    top                     42%
+    height                  auto
+    width                   100%
+    text-align              center
+    abs()
+
+    .text
+      margin-top            10px
+
+  form
+    .formline
+      padding               0
+
+  .no-stack-found
+    .text
+      margin-bottom         10px
+
+  .providers
+    display                 flex
+    display                 -webkit-flex
+    flex-flow               row wrap
+    -webkit-flex-flow       row wrap
+    margin                  20px 0 30px
+
+      .button-title
+        display             none
+
+      &.selected
+        border-color        green
+
+      &[disabled]
+        background          #EEE
+        opacity             .5
+        vendor              filter, grayscale(100%)
+
+      &.github
+        bg image,           url("/a/images/vendors/github.png")
+        bg size,            auto 100px
+        bg position,        50px -2px
+
+      &.bitbucket
+        bg image,           url("/a/images/vendors/bitbucket.png")
+        bg size,            auto 100px
+        bg position,        47px -3px
+
+      &.aws
+        bg image,           url("/a/images/vendors/amazon.png")
+        bg size,            auto 40px
+        bg position,        38px 22px
+
+      &.koding
+        bg image,           url("/a/images/vendors/koding.png")
+        bg size,            auto 40px
+        bg position,        26px
+
+      &.digitalocean
+        bg image,           url("/a/images/vendors/digitalocean.png")
+        bg size,            180px
+        bg position,        7px 33px
+
+      &.rackspace
+        bg image,           url("/a/images/vendors/rackspace.png")
+        bg size,            180px
+        bg position,        8px 25px
+
+      &.engineyard
+        bg image,           url("/a/images/vendors/engineyard.png")
+        bg size,            auto 40px
+        bg position,        25px 28px
+
+      &.google
+        bg image,           url("/a/images/vendors/google.png")
+        bg size,            200px
+        bg position,        0 23px
+
+  .top
+    display                 flex
+    display                 -webkit-flex
+    margin-bottom           10px
+
+    .text.intro
+      margin                auto
+
+    button.action
+      margin                auto
+      margin-left           4px
+      margin-top            6px
+      min-width             162px
+
+
+  button
+    &[disabled]
+      opacity               .5
+
+  .kdformview
+    margin-top              20px
+
+    .kdlabel
+      line-height           39px
+      min-width             160px
+      fl()
+
+
+  .edit-mode
+
+    .step-define-stack
+      margin-top            -20px
+
+    .header.title, .description
+      hidden()
+
+  .steps-view
+    display                 flex
+    display                 -webkit-flex
+    margin-bottom           30px
+
+    cite.vline
+      size                  100%, 1px
+      border-top            1px solid #BDBDBD
+      left                  0
+      top                   20px
+      abs()
+
+    div
+      width                 300px
+      margin                auto
+      text-align            center
+
+      .step
+        size                40px, 40px
+        left                -20px
+
+        color               white
+        font-size           20px
+        font-family         adelle
+        text-align          center
+        border-radius       40px
+        background-color    #BDBDBD
+
+        padding-top         8px
+        margin-left         50%
+
+        borderBox()
+        rel()
+
+      .title
+        width               auto
+        margin-top          5px
+        color               #BDBDBD
+
+      &.selected
+        .step
+          background        #02A74D
+        .title
+          color             #02A74D
+
+  .repo-listview
+    margin-top              20px
+    height                  calc(100% \- 60px)
+
+  .select-view
+
+    display                 flex
+    display                 -webkit-flex
+
+    margin-top              20px
+    borderBox()
+
+    .kdselectbox
+      min-width             130px
+      padding-top           2px
+      border-radius         3px
+      borderBox()
+
+      .arrows
+        top                 12px
+
+    div, input, button
+      margin                auto !important
+      margin-right          10px !important
+      height                40px
+      min-width             80px
+
+    button
+      margin-right          0 !important
+  .stack-onboarding.main-content
+    padding-top             40px
+
+  .ace_gutter-layer
+    bg                      color, #FFF
+
+  .stacktemplates
+    padding-top             40px
+    borderBox()
+
+  .StackEditorView.edit-mode
+    .step-define-stack .editor-pane.editor-view
+      margin-top            20px
+
+  .editor-main > .kdview
+    height                  100% !important
+
+
+  .no-item-view
+    text-align              center
+    margin-top              70px
+    font-size               15px
+    color                   #a1a1a1
+
+  .StackEditorView
+
+    .providers
+      .text.header
+        margin-bottom       15px
+
+    .buttons
+      text-align            right
+
+  .readme
+
+    .editor-view
+      rounded               4px 4px 0 0
+
+    .preview-button
+      bg                    color, white !important
+      z-index               13
+      bottom                0
+      right                 15px
+      abs()
+
+  .readme
+  .custom-variables
+    > .kdview
+      padding-right         0
+
+  .message-view
+    font-size               14px
+    height                  50px
+
+    pre
+      display               inline
+      background-color      #eee
+      font-size             12px
+      padding               2px 3px
+      border                1px solid #ddd
+      rounded               2px
+
+  .step-define-stack
+
+    > .kdbutton
+      z-index               14
+
+    .editor-view
+      rounded               4px 4px 0 0
+
+    .showlogs-button
+    .template-preview-button
+    .fullscreen-button
+      z-index               13
+      right                 0
+      bottom                0
+      margin                0
+      bg                    color, white !important
+      border-width          1px
+      font-family           SoleilFamily
+      letter-spacing        .5px
+      font-weight           300
+      abs()
+      &:focus
+        vendor              box-shadow, none
+
+    .template-preview-button
+      right                 78px
+
+    .fullscreen-button
+      right                 175px
+      hidden()
+
+  .kdview.output
+    vendor                  transition, height .2s ease
+    background-color        rgb(250, 250, 250)
+    border-radius           0 0 2px 2px
+    z-index                 15
+    height                  0 !important
+    rounded                 0 0 4px 4px
+    borderBox()
+    abs                     0 0 0px 0px
+
+    &.raise
+      height                calc(70% - 33px) !important
+      border-top            1px solid #e4e4e4
+
+    pre.output-view
+      height                auto
+      margin                0 10px
+      white-space           pre-wrap
+
+    .kdlabel
+      line-height           49px
+      text-indent           17px
+      margin                0

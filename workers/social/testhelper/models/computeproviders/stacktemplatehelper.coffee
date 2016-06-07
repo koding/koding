@@ -26,8 +26,40 @@ generateStackTemplateData = (client, data) ->
   data        ?= {}
   { delegate } = client.connection
   details      = 'template details'
-  content      = '{}'
-  rawContent   = 'template raw content'
+  content      = '''
+    {
+      "provider": {
+        "aws": {
+          "access_key": "${var.aws_access_key}",
+          "secret_key": "${var.aws_secret_key}"
+        }
+      },
+      "resource": {
+        "aws_instance": {
+          "test_machine": {
+            "instance_type": "t2.nano",
+            "ami": "",
+            "tags": {
+              "Name": "${var.koding_user_username}-${var.koding_group_slug}"
+            }
+          }
+        }
+      }
+    }
+  '''
+  rawContent   = '''
+    provider:
+      aws:
+        access_key: '${var.aws_access_key}'
+        secret_key: '${var.aws_secret_key}'
+    resource:
+      aws_instance:
+        test_machine:
+          instance_type: t2.nano
+          ami: ''
+          tags:
+            Name: '${var.koding_user_username}-${var.koding_group_slug}'
+  '''
 
 
   stackTemplate =

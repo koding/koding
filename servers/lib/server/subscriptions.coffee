@@ -1,5 +1,4 @@
-{ argv } = require 'optimist'
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG = require 'koding-config-manager'
 { get } = require (
   '../../../workers/social/lib/social/models/socialapi/requests.coffee'
 )

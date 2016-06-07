@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"koding/klient/app"
@@ -73,6 +74,11 @@ func main() {
 
 func realMain() int {
 	flag.Parse()
+
+	// For forward-compatibility with go1.5+, where GOMAXPROCS is
+	// always set to a number of available cores.
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	if *flagVersion {
 		fmt.Println(protocol.Version)
 		return 0

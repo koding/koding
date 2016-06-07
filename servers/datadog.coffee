@@ -1,5 +1,5 @@
 { argv }        = require 'optimist'
-KONFIG          = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG          = require 'koding-config-manager'
 onFinished      = require 'on-finished'
 { MetricsBase } = require 'koding-datadog'
 

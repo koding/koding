@@ -11,7 +11,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
-func CreateMetrics(appName string, log logging.Logger, outputMetrics bool) *kodingmetrics.Metrics {
+func CreateMetrics(appName string, log logging.Logger, outputMetrics bool) (*kodingmetrics.Metrics, *kodingmetrics.DogStatsD) {
 	metric := kodingmetrics.New(appName)
 
 	// if outputMetrics, do print output to the console
@@ -44,5 +44,5 @@ func CreateMetrics(appName string, log logging.Logger, outputMetrics bool) *kodi
 		go kodingmetrics.Collect(metric.Registry, statsd, 24e10)
 	}
 
-	return metric
+	return metric, statsd
 }

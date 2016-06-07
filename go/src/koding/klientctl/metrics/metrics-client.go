@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io/ioutil"
+	"koding/klientctl/config"
 	"koding/mountcli"
 	"log"
 	"net/http"
@@ -21,7 +22,6 @@ const (
 	DefaultTimeout       = 5 * time.Second
 	DefaultInterval      = 1 * time.Minute
 	DefaultLimitFailures = 5
-	SegmentKey           = "2hPHGxJfgsqJ2snTQHL81oDYEYsPAQkK"
 )
 
 type Metric struct {
@@ -40,7 +40,7 @@ type MetricClient struct {
 }
 
 func NewDefaultClient() *MetricClient {
-	client := analytics.New(SegmentKey)
+	client := analytics.New(config.SegmentKey)
 	client.Interval = DefaultInterval
 	client.Size = 0
 	client.Logger = log.New(ioutil.Discard, "", 0)

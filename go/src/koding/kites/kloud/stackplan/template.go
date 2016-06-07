@@ -119,6 +119,7 @@ var unescapeJSON = strings.NewReplacer(
 	"\\u003c", "<",
 	"\\u003e", ">",
 	"\\u0026", "&",
+	"\\u0043", "+",
 )
 
 // JsonOutput returns a JSON formatted output of the template
@@ -130,7 +131,10 @@ func (t *Template) JsonOutput() (string, error) {
 
 	// replace escaped brackets and ampersand. the marshal package is encoding
 	// them automtically so it can be safely processed inside HTML scripts, but
-	// we don't need it.
+	// we don't need it
+	//
+	//   https://github.com/golang/go/issues/8592
+	//
 	return unescapeJSON.Replace(string(out)), nil
 }
 

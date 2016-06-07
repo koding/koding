@@ -2,7 +2,7 @@ process.title = 'koding-webserver'
 { argv }      = require 'optimist'
 
 Object.defineProperty global, \
-  'KONFIG', { value : require('koding-config-manager').load "main.#{argv.c}" }
+  'KONFIG', { value : require 'koding-config-manager' }
 
 { webserver, projectRoot, basicAuth } = KONFIG
 
@@ -59,12 +59,12 @@ app.use require './setsession'
 # ORDER IS IMPORTANT
 # routes ordered as before no particular structure
 
-# temp endpoints @cihangir will reorganize these - SY
 app.post '/-/teams/validate-token'               , require './handlers/checktoken'
 app.post '/-/teams/create'                       , csrf,   require './handlers/createteam'
 app.post '/-/teams/join'                         , csrf,   require './handlers/jointeam'
 app.post '/-/teams/early-access'                 , require './handlers/earlyaccess'
 app.post '/-/teams/verify-domain'                , require './handlers/verifyslug'
+app.post '/-/teams/invite-by-csv'                , require('./handlers/invitetoteambycsv').handler
 app.get  '/-/teams/check-team-invitation'        , require './handlers/teaminvitationchecker'
 
 # fetches last members of team
@@ -78,9 +78,6 @@ app.post '/-/analytics/track'                    , require './handlers/analytics
 app.post '/-/analytics/page'                     , require './handlers/analytics/page'
 
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
-# creates a video session for the given channelId
-app.post '/-/video-chat/session'                 , csrf,   require './handlers/videosession'
-app.post '/-/video-chat/token'                   , require './handlers/videotoken'
 app.get  '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'
 app.get  '/-/auth/register/:hostname/:key'       , require './handlers/authregister'
@@ -117,7 +114,6 @@ app.post '/-/api/ssotoken/create'                , require './handlers/api/creat
 app.get  '/-/api/ssotoken/login'                 , require './handlers/api/ssotokenlogin'
 app.get  '/-/api/logs'                           , require './handlers/api/logs'
 app.get  '/-/image/cache'                        , require './image_cache'
-app.get  '/-/oauth/odesk/callback'               , require './odesk_callback'
 app.get  '/-/oauth/github/callback'              , require './github_callback'
 app.get  '/-/oauth/facebook/callback'            , require './facebook_callback'
 app.get  '/-/oauth/google/callback'              , require './google_callback'

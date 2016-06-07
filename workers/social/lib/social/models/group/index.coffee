@@ -1,6 +1,4 @@
-{ argv }       = require 'optimist'
-KONFIG         = require('koding-config-manager').load("main.#{argv.c}")
-
+KONFIG         = require 'koding-config-manager'
 async          = require 'async'
 { Module }     = require 'jraphical'
 { difference } = require 'underscore'
@@ -216,8 +214,10 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         kickMember:
           (signature String, Function)
-        unblockMember:
+        unblockMember: [
           (signature String, Function)
+          (signature Object, Function)
+        ]
         transferOwnership:
           (signature String, Function)
         destroy:
@@ -276,6 +276,7 @@ module.exports = class JGroup extends Module
       customize     :
         coverPhoto  : String
         logo        : String
+        chatlioId   : String
         default     : -> return {}
       disabledFeatures: Object
       # BEWARE: if anyone needs to put a default value here in stackTemplates field
@@ -292,10 +293,6 @@ module.exports = class JGroup extends Module
       # then we will check if the domain they are trying to register is an
       # allowed global domain
       allowedDomains  : [ String ]
-      # tmp: the data stored here should be processed while
-      # we create the group - SY
-      # cc/ @cihangir
-      initalData    : Object
       # Generic config object for future requirements on groups ~ GG
       config        : Object
       # Api usage can be disabled or enabled for the group
@@ -357,22 +354,39 @@ module.exports = class JGroup extends Module
 
     @on 'MemberAdded', (member) ->
       @constructor.emit 'MemberAdded', { group: this, member }
-      unless @slug is 'guests'
-        @sendNotificationToAdmins 'GroupJoined',
+
+      return  if @slug is 'guests'
+
+      @prepareNewlyAddedMember member, (err, memberData) =>
+
+        return @sendNotification 'GroupJoined', {}  if err
+
+        username = member.data.profile.nickname
+        memberData.username = username
+        memberData.id = member.data._id
+
+        @sendNotification 'GroupJoined',
           actionType : 'groupJoined'
           actorType  : 'member'
           subject    : ObjectRef(this).data
-          member     : ObjectRef(member).data
+          member     : memberData
 
     @on 'MemberRemoved', (member, requester) ->
+
       requester ?= member
       @constructor.emit 'MemberRemoved', { group: this, member, requester }
-      unless @slug is 'guests'
-        @sendNotificationToAdmins 'GroupLeft',
-          actionType : 'groupLeft'
-          actorType  : 'member'
-          subject    : ObjectRef(this).data
-          member     : ObjectRef(member).data
+
+      return  if @slug is 'guests'
+
+      username = member.data.profile.nickname
+      member = ObjectRef(member).data
+      member.username = username
+
+      @sendNotification 'GroupLeft',
+        actionType : 'groupLeft'
+        actorType  : 'member'
+        subject    : ObjectRef(this).data
+        member     : member
 
   @render        :
     loggedIn     :
@@ -383,6 +397,19 @@ module.exports = class JGroup extends Module
       groupHome  : require '../../render/loggedout/grouphome'
       kodingHome : require '../../render/loggedout/kodinghome'
       subPage    : require '../../render/loggedout/subpage'
+
+
+  prepareNewlyAddedMember: (member, callback) ->
+
+    memberData = {}
+    @fetchRolesByAccount member, (err, roles = []) ->
+      return callback err  if err
+      memberData.roles = roles
+      member.fetchEmail (err, email) ->
+        return callback err  if err and not email
+        memberData.email = email
+        memberData.username = member.data.profile.nickname
+        callback null, memberData
 
 
   @create = (client, groupData, owner, callback) ->
@@ -757,8 +784,8 @@ module.exports = class JGroup extends Module
 
   fetchUserRoles: permit
     advanced: [
-      { permission: 'grant permissions' }
-      { permission: 'grant permissions', superadmin: yes }
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
     ]
     success:(client, ids, callback) ->
       [callback, ids] = [ids, callback]  unless callback
@@ -802,8 +829,8 @@ module.exports = class JGroup extends Module
 
   fetchMembersWithEmail$: permit
     advanced: [
-      { permission: 'grant permissions' }
-      { permission: 'grant permissions', superadmin: yes }
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
     ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
@@ -877,8 +904,8 @@ module.exports = class JGroup extends Module
 
   fetchBlockedAccountsWithEmail$: permit
     advanced: [
-      { permission: 'grant permissions' }
-      { permission: 'grant permissions', superadmin: yes }
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
     ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
@@ -1219,7 +1246,24 @@ module.exports = class JGroup extends Module
     , (err, count) =>
       @update ({ $set: { 'counts.members': count } }), ->
 
-  leave: secure (client, options, callback) ->
+
+  leave$: secure (client, options, callback) ->
+
+    password = options?.password
+    account = client?.connection?.delegate
+
+    unless account or password
+      return callback new KodingError 'Error occured while leaving team'
+
+    account.fetchUser (err, user) =>
+      unless err
+        unless user.checkPassword password
+          return callback new KodingError 'Your password didn\'t match with our records'
+        else
+          @leave client, options, callback
+
+
+  leave: (client, options, callback) ->
 
     [callback, options] = [options, callback] unless callback
 
@@ -1315,15 +1359,25 @@ module.exports = class JGroup extends Module
       { permission: 'grant permissions' }
       { permission: 'grant permissions', superadmin: yes }
     ]
-    success: (client, accountId, callback) ->
+    success: (client, options, callback) ->
+
+      if typeof options is 'string'
+        accountId = options
+        removeUserFromTeam = no
+      else
+        accountId = options.id
+        removeUserFromTeam = options.removeUserFromTeam
+
       JAccount = require '../account'
       JAccount.one { _id: accountId }, (err, account) =>
         return callback err  if err
-
+        return callback new KodingError 'There is no such user'  unless account
         # removeBlockedAccount is generated by bongo
         @removeBlockedAccount account, (err) =>
           return callback err  if err
-          @addMember account, {}, callback
+          callback err  if removeUserFromTeam
+          @addMember account, {}, callback  unless removeUserFromTeam
+
 
   transferOwnership: permit
     advanced: [

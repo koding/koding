@@ -187,10 +187,6 @@ type RuntimeOptions struct {
 		Twitter struct {
 			Nicename string `json:"nicename"`
 		} `json:"twitter"`
-		Odesk struct {
-			Nicename    string `json:"nicename"`
-			UrlLocation string `json:"urlLocation"`
-		} `json:"odesk"`
 		Facebook struct {
 			Nicename    string `json:"nicename"`
 			UrlLocation string `json:"urlLocation"`
@@ -219,10 +215,7 @@ type RuntimeOptions struct {
 		Timeout int `json:"timeout"`
 	} `json:"collaboration"`
 	PaymentBlockDuration float64 `json:"paymentBlockDuration"`
-	Tokbox               struct {
-		ApiKey string `json:"apiKey"`
-	} `json:"tokbox"`
-	DisabledFeatures struct {
+	DisabledFeatures     struct {
 		Moderation bool `json:"moderation"`
 		Teams      bool `json:"teams"`
 		BotChannel bool `json:"botchannel"`

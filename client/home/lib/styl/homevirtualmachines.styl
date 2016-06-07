@@ -1,0 +1,263 @@
+@css {
+/*
+Home Virtual Machines stylesheet
+homevirtualmachines.styl
+*/
+}
+
+$transGreen                 = rgba(26, 175, 93, .25)
+$transRed                   = rgba(233, 72, 53, .25)
+$titleColor                 = #424242
+$borderColor                = #CACACA
+
+.MachinesListItem
+  border                    1px solid $borderColor
+  padding                   25px
+  margin-bottom             15px
+  &:last-of-type
+    margin-bottom           15px
+
+
+  &.expanded
+    rounded                 4px
+
+  header
+    display                 flex
+    flex-flow               row wrap
+    justify-content         space-around
+    align-content           flex-start
+
+    > div
+      flex                  0 0 auto
+      margin                0 30px 0 0
+      padding               6px 0 0
+
+      &:last-of-type
+        margin-right        0
+
+    .MachinesListItem-machineLabel
+      flex                  1 0 auto
+      padding               6px 0 0 26px
+      width                 144px
+      ellipsis()
+      pointer()
+
+    .MachinesListItem-hostName
+      width                 100px
+      text-align            center
+
+    .MachinesListItem-stackLabel
+      flex                  1 0 auto
+      text-transform        uppercase
+      margin                0 20px 0 0
+      margin-top            2px
+      .HomeAppView--button
+        ellipsis()
+        width               160px
+        margin-left         0
+
+
+.HomeAppViewVMSection
+
+  .ListView-row.stack:last-of-type
+    .MachinesListItem:last-of-type
+      margin-bottom         0
+
+.HomeAppViewVMSection--addOwnMachineButton
+  fr()
+  top                       -12px
+
+.MachinesListItem-detailToggle
+  size                      25px 25px
+  padding                   0 !important
+  rel()
+
+  &:after
+    content                 ''
+    r-sprite                home expand_arrow
+    abs                     9px 5px
+    z-index                 0
+
+
+  &.expanded:after
+    r-sprite                home collapsed_line
+    abs                     12px 5px
+
+  button
+  button:hover
+  button:active
+    z-index                 1
+    cursor                  pointer
+    size                    100% 100%
+    border                  none
+    background              transparent
+    outline                 none
+    abs()
+
+
+.MachinesListItem-machineLabel
+  color                     $titleColor
+  font-size                 16px
+  font-weight               600
+  letter-spacing            .2px
+  padding                   3px 0 0 26px
+  rel()
+
+  &:before
+    content                 ''
+    abs                     50% 0 0 0px
+    bg                      color transparent
+    border                  3px solid $gray-14
+    display                 block
+    rounded                 3px
+    size                    16px 16px
+    vendor                  transform, translateY(-50%)
+    borderBox()
+
+  &.Unknown:before
+  &.Stopped:before
+  &.NotInitialized:before
+    border-color            $gray-14
+
+  &.Running:before
+  &.Starting:before
+    border-color            $green
+
+  &.Building:before
+  &.Rebooting:before
+    border-color            $yellow
+
+  &.Stopping:before
+  &.Terminating:before
+  &.Terminated:before
+    border-color            $red
+
+  &.Starting
+    .SidebarListItem-progressbar
+      bg                    color $transGreen
+
+  &.Stopping
+    .SidebarListItem-progressbar
+      bg                    color $transRed
+      > cite
+        bg                  color $red
+
+
+.MachineDetails
+
+  .GenericToggler
+    font-size               14px
+    border-top              1px solid $borderColor
+
+    .GenericToggler-title
+      color                 #999999
+      letter-spacing        .5
+      margin-bottom         5px
+      font-weight           600
+
+
+  .GenericToggler-top
+    padding                   25px 0
+    display                   flex
+    flex-flow                 row wrap
+    justify-content           space-around
+    align-content             flex-start
+    rel()
+
+    .pull-right
+      flex                    0 0 auto
+
+    .pull-left
+      flex                    1 0 auto
+
+
+.MachineDetails-SpecsList
+  margin                    25px 0 0
+  padding-bottom            25px
+
+  .SingleSpecItem
+    bg                      color #E8F5F9
+    border                  1px solid #9ECFE3
+    letter-spacing          .5px
+    font-size               14px
+    font-style              italic
+    padding                 3px 13px
+    display                 inline-block
+    margin-right            11px
+    rounded                 13px
+    color                   #999999
+
+
+.MachineSharingDetails
+
+  input.kdinput.text
+    line-height             20px
+    font-size               14px
+    color                   #a2a2a2
+    height                  38px
+    width                   100%
+
+  .AutocompleteList
+    min-width               268px !important
+    position                fixed
+    border                  1px solid #aaa
+    margin                  -1px 0 0 4px
+    shadow                  0 3px 6px rgba(0,0,0,.1)
+    padding                 5px 0
+    bg                      color, #fff
+    z-index                 1000
+
+  .AutocompleteListItem
+    padding                 5px 10px 5px 5px
+    pointer()
+    color                   #6d6d6d
+    line-height             27px
+
+    &.active
+      color                 #fff
+      bg                    color, #7a7a7a
+
+    .ProfilePicture
+      display               inline-block
+      margin                1px 10px 1px 5px
+      vertical-align        top
+
+  .UserList
+    margin-top              10px
+
+  .UserListItem
+    height                  45px
+    line-height             45px
+    border-top              1px solid #efefef
+    rel()
+
+    &:first-child
+      border-top            none
+
+    .ProfilePicture
+      margin-top            6px
+      margin-right          6px
+      fl()
+
+    .ProfileName
+      display               block
+      font-size             14px
+      color                 #434343
+
+    .remove
+      r-sprite              'app', 'red_close'
+      top                   14px
+      right                 15px
+      display               none
+      abs()
+      pointer()
+
+    &:hover .remove
+      display               inline-block
+
+  .NoItem
+    margin-top              30px
+    margin-bottom           10px
+    color                   #a1a1a1
+    text-align              center
+    font-size               14px

@@ -1,0 +1,288 @@
+@css {
+/*
+Home My Team styles
+homemyteam.styl
+*/
+}
+
+.HomeAppView--section.team-settings
+  .hor-flex
+    display                 flex
+    flex-flow               row nowrap
+    justify-content         space-around
+
+  fieldset
+    rel()
+    &.TeamUrl
+      &:after
+        content             ''
+        r-sprite            'home' 'lock'
+        abs                 33px 17px
+      input.kdinput
+        opacity             .5
+
+    label
+      display               block
+      font-weight           300
+      font-size             12px
+      margin-bottom         10px
+
+    input.kdinput
+      font-size             14px
+      display               block
+      size                  100%, 40px
+      border                1px solid #D9D9D9
+      rounded               3px
+      shadow                0 0 2px rgba(70, 70, 70, .15) inset
+
+  fieldset.half
+    flex                    1 0 auto
+    &:first-child
+      padding-right         20px
+
+
+
+.HomeAppView--uploadLogo
+  size                      auto, 47px
+  margin-bottom             40px
+  rel()
+
+  .teamLogo
+    size                    auto auto
+    max-width               132px
+    max-height              47px
+    cursor                  pointer
+    fl()
+
+  .uploadInputWrapper
+    overflow                hidden
+    width                   auto
+    padding                 15px 0
+
+    .HomeAppView--button
+      line-height           21px
+      fr()
+
+    .kdinput.file
+      z-index               0
+      opacity               0
+      abs                   -1000px 0 0 0
+
+
+.HomeAppView--section.invite-using-slack
+  rel()
+
+  .slack-oauth
+    abs()
+    right                   30px
+    top                     20px
+
+  .HomeAppView--button
+    text-transform          uppercase
+    &.inviteChannel
+      margin                12px 0 0
+    &.inviteIndividual
+      abs                   12px 0px 0
+    &.changeTeam
+      abs                   0px 0px 0
+
+  h3
+    line-height             22px
+    font-size               14px
+    font-weight             300
+    margin                  20px 0
+    rel()
+
+  .listview-wrapper
+    kalc                    height, (100% \- 51px)
+
+  .kdtabhandle
+    cite.slack
+      r-sprite              welcome slack_small
+      display               inline-block
+      vertical-align        text-bottom
+
+  .kdbutton.slack-oauth
+    .button-title
+      cite
+        r-sprite            admin slack_monochrome_white
+        display             inline-block
+        vertical-align      sub
+
+  .slack-user-list
+    .kdbutton.invite-members
+      abs                   0px 0px 0 0
+
+  .slack-user-item
+    line-height             40px
+    height                  40px
+
+    a
+      color                 #5F5F5F
+      font-weight           400
+      font-size             14px
+      noTextDeco()
+
+    .kdcustomcheckbox
+      display               inline-block
+      height                20px
+      margin-right          10px
+      margin-top            6px
+
+    .name
+      display               inline-block
+      vertical-align        top
+      img
+        vertical-align      middle
+        size                24px 24px
+        rounded             2px
+
+      cite
+        font-style          italic
+        color               #7B7B7B
+
+  .invite-view
+  .members-commonview
+    height                  calc(100% \- 40px)
+
+    main
+      padding               5px 25px 5px 5px
+      borderBox()
+
+  .kdlistitemview-member
+    height                  40px
+
+    &.settings-visible
+      height                85px
+
+  .kdbutton
+
+    &.invite-members
+      margin-right          25px
+      fr()
+      &[disabled=disabled]
+        bg                  color #7B7B7B
+
+  .kdcustomscrollview.slack-invite-view
+    font-size               14px
+    color                   #3E3E3E
+
+    h3
+      color                 #7B7B7B
+      font-size             15px
+      line-height           3em
+      margin                0 0 25px
+      text-rendering        geometricPrecision
+      shadow                inset 0 -3px 0 #f2f2f2
+      margin-top            15px
+      rel()
+      &:not(:first-of-type)
+        margin-top          25px
+
+    .information
+      color                 #7b7b7b
+      .kdbutton.slack-oauth
+        margin              25px 0
+        display             block
+
+    .use-different-team
+      padding-bottom        50px
+
+
+.HomeAppView--section.send-invites
+  overflow                  hidden
+
+  .information
+    padding                 30px 0 4px
+    .invite-labels
+      label
+        width               152px
+        font-size           12px
+        font-weight         300
+        vertical-align      top
+        dIBlock()
+
+        &:first-child
+          width             242px
+        &:last-child
+          width             198px
+
+          span
+            fr()
+          .lastname
+            fl()
+
+  .input-wrapper
+    margin-bottom           30px
+
+  .invite-inputs
+    width                   592px
+    border                  1px solid #D9D9D9
+    rounded                 3px
+    margin-bottom           10px
+    color                   #6B6B6B
+    borderBox()
+
+    .kdcustomcheckbox
+      top                   5px
+      size                  20px, 20px
+      abs                   11px 13px
+      dIBlock()
+      input.kdinput
+        font-size           0
+
+    input.kdinput
+      border                none
+      rounded               0
+      font-weight           300
+      font-size             12px
+      borderBox()
+
+    input.kdinput.user-email
+      width                 242px
+      border-right          1px solid #D9D9D9
+
+    input.kdinput.firstname
+      width                 152px
+      border-right          1px solid #D9D9D9
+
+    .lastname
+      width                 150px
+
+  .invite-members
+    fr()
+
+.HomeAppView--section.teammates
+  .search
+    margin-bottom           30px
+
+    > .label
+      margin-right          15px
+      font-size             14px
+      color                 #727272
+      line-height           40px
+
+    .kdselectbox
+      size                  180px 40px
+      margin-right          15px
+
+      .title
+        line-height         40px
+
+      .arrows
+        top                 13px
+
+    input
+      border                1px solid #d7d7d7
+      vertical-align        top
+      rounded               4px !important
+      height                42px
+      width                 230px !important
+      borderBox()
+
+
+
+.menu-class
+  .ButtonWithMenuItemsList
+    z-index                 10002
+

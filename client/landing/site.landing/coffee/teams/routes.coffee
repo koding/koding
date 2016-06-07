@@ -34,7 +34,8 @@ do ->
       if teamData.signup
         utils.storeNewTeamData 'signup', teamData.signup
 
-    utils.storeNewTeamData 'invitation', { email }
+    if email
+      utils.storeNewTeamData 'invitation', { email }
 
     handleRoute { params, query }
 

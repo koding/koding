@@ -23,16 +23,22 @@ func NewMachineShortcut(k Klient) *MachineShortcut {
 }
 
 func (s *MachineShortcut) GetNameFromShortcut(shortcut string) (string, error) {
+	info, err := s.GetMachineInfoFromShortcut(shortcut)
+	// Zero value will be returned if err
+	return info.VMName, err
+}
+
+func (s *MachineShortcut) GetMachineInfoFromShortcut(shortcut string) (list.KiteInfo, error) {
 	infos, err := s.Klient.RemoteList()
 	if err != nil {
-		return "", err
+		return list.KiteInfo{}, err
 	}
 
 	// Find the machine by a name, even if partial.
 	info, ok := infos.FindFromName(shortcut)
 	if !ok {
-		return "", ErrMachineNotFound
+		return list.KiteInfo{}, ErrMachineNotFound
 	}
 
-	return info.VMName, nil
+	return info, nil
 }

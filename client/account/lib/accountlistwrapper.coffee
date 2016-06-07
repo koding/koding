@@ -3,14 +3,12 @@ KDListView                          = kd.ListView
 KDView                              = kd.View
 
 AccountBilling                      = require './views/accountbilling'
-LeaveGroupView                      = require './views/leavegroupview'
 AccountEditorList                   = require './accounteditorlist'
 AccountSshKeyList                   = require './accountsshkeylist'
 PrivacyPolicyView                   = require './views/privacypolicyview'
 DeleteAccountView                   = require './views/deleteaccountview'
 TermsOfServiceView                  = require './views/termsofserviceview'
 AccountEditUsername                 = require './views/accounteditusername'
-AccountEditSecurity                 = require './views/accounteditsecurity'
 AccountTwoFactorAuth                = require './accounttwofactorauth'
 AccountEditShortcuts                = require './views/accounteditshortcuts'
 AccountKodingKeyList                = require './accountkodingkeylist'
@@ -29,7 +27,6 @@ module.exports = class AccountListWrapper extends KDView
 
   listClasses =
     username                   : AccountEditUsername
-    security                   : AccountEditSecurity
     emailNotifications         : AccountEmailNotifications
     billing                    : AccountBilling
     linkedAccountsController   : AccountLinkedAccountsListController
@@ -45,7 +42,6 @@ module.exports = class AccountListWrapper extends KDView
     sessions                   : AccountSessionListWrapper
     twofactorauth              : AccountTwoFactorAuth
     deleteAccount              : DeleteAccountView
-    leaveGroup                 : LeaveGroupView
     termsOfService             : TermsOfServiceView
     privacyPolicy              : PrivacyPolicyView
     shortcuts                  : AccountEditShortcuts

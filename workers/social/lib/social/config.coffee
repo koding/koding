@@ -1,4 +1,1 @@
-{ argv } = require 'optimist'
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
-
-module.exports = KONFIG
+module.exports = require 'koding-config-manager'

@@ -1,4 +1,6 @@
 remote = require('app/remote').getInstance()
+EnvironmentFlux = require 'app/flux/environment'
+generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 
 
 module.exports = updateStackTemplate = (data, callback) ->
@@ -6,13 +8,11 @@ module.exports = updateStackTemplate = (data, callback) ->
   { template, templateDetails, credentials, description
     title, stackTemplate, machines, config, rawContent } = data
 
-  title or= 'Default stack template'
+  title or= generateStackTemplateTitle()
   config ?= stackTemplate.config ? {}
 
-  if stackTemplate?.update
-
-    inuse   = stackTemplate.inuse
-    updated = stackTemplate._updated
+  # Make sure it's a valid stacktemplate that can be updated
+  if stackTemplate?.update?
 
     dataToUpdate = if machines \
     then { machines, config }
@@ -20,18 +20,15 @@ module.exports = updateStackTemplate = (data, callback) ->
       title, template, credentials, rawContent
       templateDetails, config, description
     }
-
-    stackTemplate.update dataToUpdate, (err, _stackTemplate) ->
-
-      if _stackTemplate
-        _stackTemplate._updated = updated
-        _stackTemplate.inuse    = inuse
-
-      callback err, _stackTemplate
+    EnvironmentFlux.actions.updateStackTemplate(stackTemplate, dataToUpdate)
+      .then ({ stackTemplate }) -> callback null, stackTemplate
+      .catch (err) -> callback err
 
   else
 
-    remote.api.JStackTemplate.create {
+    EnvironmentFlux.actions.createStackTemplate({
       title, template, credentials, rawContent
       templateDetails, config, description
-    }, callback
+    }).then ({ stackTemplate }) ->
+      callback null, stackTemplate
+    .catch (err) -> callback err

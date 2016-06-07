@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
+	awssession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/koding/ec2dynamicdata"
 	"github.com/koding/multiconfig"
@@ -19,30 +19,44 @@ type Config struct {
 	AccessKeyID     string `required:"true"`
 	SecretAccessKey string `required:"true"`
 
+	Route53AccessKeyID     string `required:"true"`
+	Route53SecretAccessKey string `required:"true"`
+
 	// can be overriden
 	Region          string
 	EBEnvName       string
 	AutoScalingName string
 	HostedZone      HostedZone // defaults are in struct tags
 
+	Session        *awssession.Session
+	Route53Session *awssession.Session
 	// optional
 	Debug bool
 }
 
 type HostedZone struct {
-	Name            string `default:"tunnelproxy.koding.com"`
+	Name            string `default:"t.koding.com"`
 	CallerReference string `default:"tunnelproxy_hosted_zone_v0"`
 }
 
 // Configure prepares configuration data for tunnelproxy manager
-func Configure() (*Config, *session.Session, error) {
+func Configure() (*Config, error) {
 	c := &Config{}
-	multiconfig.New().MustLoad(c)
+
+	mc := multiconfig.New()
+	mc.Loader = multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.EnvironmentLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_TUNNELPROXYMANAGER"},
+		&multiconfig.FlagLoader{},
+	)
+
+	mc.MustLoad(c)
 
 	// decide on region name
 	region, err := getRegion(c)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	c.Region = region
@@ -50,12 +64,12 @@ func Configure() (*Config, *session.Session, error) {
 	// decide on eb env name
 	ebEnvName, err := getEBEnvName(c)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	c.EBEnvName = ebEnvName
 
-	session := session.New(&aws.Config{
+	c.Session = awssession.New(&aws.Config{
 		Credentials: credentials.NewStaticCredentials(
 			c.AccessKeyID,
 			c.SecretAccessKey,
@@ -65,14 +79,24 @@ func Configure() (*Config, *session.Session, error) {
 		MaxRetries: aws.Int(5),
 	})
 
+	c.Route53Session = awssession.New(&aws.Config{
+		Credentials: credentials.NewStaticCredentials(
+			c.Route53AccessKeyID,
+			c.Route53SecretAccessKey,
+			"",
+		),
+		Region:     aws.String(c.Region),
+		MaxRetries: aws.Int(5),
+	})
+
 	// decide on autoscaling name
-	name, err := getAutoScalingName(c, session)
+	name, err := getAutoScalingName(c, c.Session)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	c.AutoScalingName = name
-	return c, session, nil
+	return c, nil
 }
 
 // getRegion checks if region name is given in config, if not tries to get it
@@ -110,7 +134,7 @@ func getEBEnvName(conf *Config) (string, error) {
 
 // getAutoScalingName tries to get autoscaling name from system, first gets from
 // config var, if not set then tries ec2dynamicdata service
-func getAutoScalingName(conf *Config, session *session.Session) (string, error) {
+func getAutoScalingName(conf *Config, session *awssession.Session) (string, error) {
 	if conf.AutoScalingName != "" {
 		return conf.AutoScalingName, nil
 	}

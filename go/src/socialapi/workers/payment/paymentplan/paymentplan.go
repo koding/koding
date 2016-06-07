@@ -39,6 +39,8 @@ func GetPlanValue(title, interval string) int {
 // Predefined list of plans. There are currently 5 tiers:
 // "free", "hobbyist", "developer", "professional" "super"
 // and 2 intervals: "month" and "year".
+//
+// TODO: when solo product is sunset, remove AccountCustomer plans.
 var DefaultPlans = map[string]*Plan{
 	"free_month": &Plan{
 		Title:         "free",
@@ -166,6 +168,14 @@ var DefaultPlans = map[string]*Plan{
 		Amount:        0,
 		Interval:      Month,
 		Value:         0,
+		TypeConstant:  paymentmodels.GroupCustomer,
+	},
+	"team_free_month": &Plan{
+		Title:         "team_free_month",
+		NameForStripe: "Free",
+		Amount:        0,
+		Interval:      Month,
+		Value:         1,
 		TypeConstant:  paymentmodels.GroupCustomer,
 	},
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/klientctl/config"
+	"koding/klientctl/errormessages"
 )
 
 const (
@@ -70,13 +71,6 @@ the following command to start it:
 		"Error: Failed to stop the %s within the expected time.\n", config.KlientName,
 	)
 
-	// FailedGetSSHKey is used when we fail to get the ssh key
-	FailedGetSSHKey = fmt.Sprintf("Error: Failed to get ssh key.\n")
-
-	// CannotSSHManaged is used when the managed machine has a different username
-	// than the current user. A temporary error, for a temporary limitation.
-	CannotSSHManaged = "Error: Currently unable to ssh into managed machines."
-
 	// FailedListMachines is a generic remote.list error. We include wait a moment
 	// to retry, since this is often connection related.
 	FailedListMachines = fmt.Sprintf(
@@ -103,12 +97,6 @@ Please wait a few minutes and try again.`,
 	// CannotMountPathExists is used when the user provides a path that already
 	// exists.
 	CannotMountPathExists = "Error: given path already exists. Please remove and try again."
-
-	// MachineNotFound is a generic machine not found message.
-	MachineNotFound = "Error: Machine not found. Please enter a valid machine name as shown in kd list."
-
-	// MountNotFound is a generic mount not found message.
-	MountNotFound = "Error: Mount not found."
 
 	// given path. A possible example might be that the user asked to mount to
 	// /root/foo and kd doesn't have permission to even look in that directory.
@@ -169,21 +157,6 @@ Please wait a few minutes and try again.`,
 		"Error: Failed to download the update.\n",
 	)
 
-	// FailedPrefetchFolder is used when remote.cacheFolder fails.
-	FailedPrefetchFolder = fmt.Sprintf(
-		"Error: Failed to prefetch the requested folder.\n",
-	)
-
-	// RemoteProcessFailed is used when a command was run on the remote, but the
-	// process itself failed to execute properly. *Not* an exit code, but more like
-	// a no memory.
-	//
-	// The %s arg is intended to be the full error.
-	RemoteProcessFailed = `A requested process on the remote Machine was unable to run properly,
-and exited with the following issue:
-
-%s`
-
 	// PrefetchAllAndMetaTogether is used when the user supplies both --prefetchall
 	// and --noprefetchmeta, as they are incompatible flags.
 	PrefetchAllAndMetaTogether = `Error: Cannot use both noprefetchmeta and prefetchall flags at the same time.
@@ -203,25 +176,11 @@ Please try again with just the --prefetchall flag.`
 remote machine is running & accessible and try again.`,
 	)
 
-	// MachineNotValidYet occurs when the kontrol has not yet returned a client
-	// for the given machine. Likely meaning the machine has not been online
-	// since klient has last restarted.
-	//
-	// Since the above DialingRemote error is generic enough, we're just using that
-	// for now.
-	MachineNotValidYet = FailedDialingRemote
-
 	// MachineMountActionIsLocked is used when the machine's mount(s) have been locked
 	// by another kd call or auto mounting process. Ie, two calls to `kd mount` at
 	// the same time for the same machine.
 	MachineMountActionIsLocked = `Error: %s is currently busy with another mounting process.
 Please try again in a moment.`
-
-	// RemotePathDoesNotExist is printed when the user supplies a directory to mount,
-	// that does not exist on the remote side.
-	RemotePathDoesNotExist = fmt.Sprintf(
-		`Error: The given remote folder path does not exist on the remote machine.`,
-	)
 
 	// AttemptedRemoveRestrictedPath is when the user unmounts a path, but
 	// the path cannot be removed because it is an important path.
@@ -236,4 +195,14 @@ Please try again in a moment.`
 		`Warning: The mount path was unable to be cleaned up after unmount.
 Please remove this path before trying to mount again to this path. `,
 	)
+
+	// DEPRECATED LOCATION. Moved to errormessages package.
+	MachineNotFound        = errormessages.MachineNotFound
+	MountNotFound          = errormessages.MountNotFound
+	FailedGetSSHKey        = errormessages.FailedGetSSHKey
+	FailedPrefetchFolder   = errormessages.FailedPrefetchFolder
+	MachineNotValidYet     = errormessages.MachineNotValidYet
+	CannotSSHManaged       = errormessages.CannotSSHManaged
+	RemoteProcessFailed    = errormessages.RemoteProcessFailed
+	RemotePathDoesNotExist = errormessages.RemotePathDoesNotExist
 )

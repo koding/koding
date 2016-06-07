@@ -1,0 +1,160 @@
+@css {
+/*
+Chatlio box Styling
+chatlio.styl
+*/
+}
+
+$shadowProps                = 0 0 15px rgba(0,0,0,.05)
+$titleBlue                  = #56A2D3
+$dullBorder                 = rgba(0,0,0,.15)
+
+#chatlio-widget .chatlio-widget
+  z-index                   10002
+  font-family               SoleilFamily
+  rounded                   4px 4px 0 0
+  shadow                    $shadowProps
+
+  .chatlio-title-bar
+    height                  40px
+    border                  1px solid $titleBlue
+    border-bottom           1px solid $dullBorder
+    rounded                 4px 4px 0 0
+    padding-left            20px
+    text-align              left
+    vendor                  transition, background-color .177s ease\, border-color .177s ease
+    shadow                  $shadowProps
+    borderBox()
+
+    .chatlio-icon-minus
+      font-size             0
+
+      &:before
+        r-sprite            app chatlio_minimize
+        margin-top          16px
+        margin-left         -21px
+
+    .chatlio-icon-cross2
+      font-size             0
+      margin-top            0
+      margin-left           0
+      height                40px
+      width                 40px
+
+      &:before
+        display             block
+        r-sprite            app chatlio_close
+        margin              15px 0 0 10px
+
+
+
+  .chatlio-online-dot
+    hidden()
+
+  .chatlio-title-text a
+    vendor                  transition, color .177s ease
+
+  .chatlio-title-text a span
+    font-weight             600
+    font-size               14px
+    letter-spacing          .2px
+    fontPrecisionForSoleil()
+
+  &.closed
+    height                  39px
+    shadow                  $shadowProps
+
+    .chatlio-title-bar
+      border                1px solid #DFDFDF
+      bg                    color, #fff !important
+      padding-left          54px
+      shadow                none
+      .chatlio-title-text a
+        color               #5E5E5E !important
+
+      span.closed
+        hidden()
+
+    .chatlio-title-avatar-container
+      img
+        size                37px 37px
+        border              1px solid #fff
+        left                10px !important
+        top                 -4px !important
+
+    &:hover
+      .chatlio-title-bar
+        border              1px solid $titleBlue
+        border-bottom       1px solid $dullBorder
+        bg                  color, #fff !important
+        padding-left        54px
+
+      .chatlio-title-bar
+        bg                  color, $titleBlue !important
+        border-bottom-color $dullBorder !important
+
+      .chatlio-title-text a
+        color               #fff !important
+
+
+  .chatlio-message-container
+    kalc                    height, (100% \- 79px)
+    bottom                  39px
+    border                  1px solid #DFDFDF
+    border-width            0 1px
+    bg                      color #F9F9F9
+
+  .chatlio-new-message-container
+    border-top              1px solid #dedede
+    background-color        #f6f6f6
+    padding                 0
+    abs                     0 0 0px 0
+    width                   100%
+    bg                      color #FFF
+    border                  1px solid #DFDFDF
+    border-width            1px 1px 0
+
+  textarea.chatlio-new-message
+    margin                  0
+    rounded                 0
+    border                  none
+    padding                 10px 19px
+
+    &::-webkit-input-placeholder
+      color                 #BBBBBB
+      font-weight           300
+      fontPrecisionForSoleil()
+    &:-moz-placeholder
+      color                 #BBBBBB
+      font-weight           300
+      fontPrecisionForSoleil()
+
+
+  .chatlio-powered-by
+    display                 none !important
+
+  .chatlio-message
+    padding                 .35em .5em 0
+
+  .chatlio-message-body
+    code
+      font-size             .8em
+      color                 #BC3557
+      padding               .3em .4em .1em
+      bg                    color #F7F7F9
+      border-color          #E1E1E8
+
+  .chatlio-message-timestamp
+    color                   #adadad
+    margin-top              .4em
+    margin-bottom           .4em
+
+  .chatlio-message-from-me
+    .chatlio-message-content
+      bg                    color #F1F1F1
+      border                1px solid #E5E5E5
+
+  .chatlio-message-from-them
+    .chatlio-message-content
+      bg                    color #FFF
+      border                1px solid #E5E5E5

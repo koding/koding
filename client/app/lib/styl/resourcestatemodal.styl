@@ -1,0 +1,761 @@
+$warningColor               = #f2778a
+
+.resource-state-modal.kdmodal
+  font-family               SoleilFamily
+  overflow                  visible
+  rounded                   6px
+  border                    none
+  width                     auto !important
+  noAnim()
+
+  .kdmodal-inner
+    bg                      color, #f7f7f7
+
+  .kdmodal-inner,
+  .kdmodal-inner .kdmodal-content
+    margin                  0
+    overflow                visible
+
+  .kdmodal-inner .close-icon
+    hidden()
+
+  .kdmodal-title
+    hidden()
+
+  header
+    border-bottom           1px solid #DEDBDB
+    bg                      color #fff
+    text-align              center
+    rounded                 6px 6px 0 0
+
+    h1
+      display               inline-block
+      color                 #BABABA
+
+  section.main
+    overflow                hidden
+    rel()
+    borderBox()
+
+    > h2
+      color                 #424242
+      padding-top           25px
+      font-size             20px
+      text-align            center
+      letter-spacing        .2px
+
+    > p
+      text-align            center
+      font-size             14px
+      letter-spacing        .2px
+      text-align            center
+      color                 #a59999
+      margin-top            5px
+      margin-bottom         28px
+
+    .GenericButton
+      text-transform        uppercase
+      margin                0 auto
+      display               block
+
+    .GenericButton.secondary
+      width                 165px
+      height                41px
+      padding               0
+      font-size             13.7px
+      text-transform        none
+      color                 #57a2d2
+      bg                    color, #fafafa
+      border                1px solid #dedbdb
+      display               block
+      margin                0 auto
+
+    .progressbar-container
+      bg                    color, #e1e1e1
+      bg                    image, none
+      border                none
+      rounded               0
+      width                 600px
+      height                40px
+      margin                0 auto
+
+      .bar
+        rounded             0
+        bg                  image, none
+        shadow              none
+
+      span.dark-label, span.light-label
+        color               #fff
+        font-size           15px
+        letter-spacing      .1px
+        line-height         20px
+        top                 7px
+        padding-right       10px
+        borderBox()
+
+  footer
+    height                  100px
+    border-top              1px solid #DEDBDB
+    bg                      color #fff
+    rel()
+    rounded                 0 0 6px 6px
+
+    .GenericButton
+      abs                   29px 29px
+      min-width             146px
+      height                42px
+      padding               0 24px
+      text-transform        uppercase
+
+    a.back-link
+      abs()
+      top                   39px
+      left                  30px
+      color                 #c6c6c6
+      text-decoration       none !important
+      text-transform        uppercase
+      font-size             14px
+      line-height           18px
+
+      .arrow
+        display             inline-block
+        r-sprite            'app', 'back_arrow_gray'
+        margin-right        9px
+
+
+  .build-stack-flow
+
+    header
+      height                100px
+
+      h1
+        font-size           20px
+        padding-top         40px
+
+    section.main
+      width                 920px
+      height                500px
+
+
+  .start-machine-flow
+
+    header
+      height                70px
+
+      h1
+        font-size           25px
+        line-height         34px
+        padding-top         16px
+
+    section.main
+      width                 800px
+      height                530px
+
+
+  .stop-machine-flow
+
+    header
+      height                70px
+
+      h1
+        font-size           25px
+        line-height         34px
+        padding-top         16px
+
+    section.main
+      width                 800px
+      height                330px
+
+
+  .wizard-progress-pane
+    bg                      color, #efefef
+    border-bottom           1px solid #dedbdb
+    text-align              center
+
+    .wizard-step
+      display               inline-block
+      borderBox()
+      width                 230px
+      height                58px
+      font-size             16px
+      padding-top           15px
+      bg                    color, #fff
+      color                 #c6c6c6
+      letter-spacing        .2px
+      rel()
+
+      .alien
+        hidden()
+        abs()
+        top                 -133px
+        left                75px
+        r-sprite            'app' 'alien'
+
+      .icon
+        rel()
+        top                 1px
+        display             inline-block
+        margin-right        5px
+
+      &:first-child
+        border-left         1px solid #e6e6e6 !important
+
+      &:last-child
+        border-right        1px solid #e6e6e6 !important
+
+      &.current
+        bg                  color, #57a2d2
+        color               #fff
+
+        .alien
+          visible()
+
+      &.completed
+        bg                  color, #57a2d2
+        color               rgba(0,0,0,0.3)
+        border-right        1px solid #5095C2
+
+        .icon
+          r-sprite          'app', 'checkmark'
+
+      &.current, &.completed
+        border-left         1px solid #70AED6
+
+  .error-page
+
+    section.main
+
+      > h2
+        color               $warningColor
+        font-weight         bold
+
+    .wizard-progress-pane
+
+      .wizard-step
+        &.completed
+          bg                color, $warningColor
+          color             #fff
+          border-right      1px solid #E97587
+
+        &.current
+          bg                color, $warningColor
+          color             #fff
+
+          .alien
+            hidden()
+
+        &.current, &.completed
+          border-left       1px solid #EB8292
+
+    .error-container
+      max-height            250px
+      width                 450px
+      margin                0 auto
+      styleScrollBars       rgba(0, 0, 0, .15)
+
+      .error-content
+        padding             15px 15px 20px 15px
+        color               #5e5e5e
+        font-size           13px
+        line-height         16px
+        border              1px solid $warningColor
+        bg                  color, rgba(242,119,138,0.05)
+        rounded             5px
+
+        p
+          padding-top       12px
+
+        ul
+          list-style-type   disc
+          padding-left      20px
+
+          li
+            padding-top     12px
+
+      &.has-vertical
+        border              1px solid $warningColor
+        rounded             5px
+
+        .error-content
+          border            none
+
+
+    footer
+
+      a.back-link
+        color               $warningColor
+
+        .arrow
+          r-sprite          'app', 'back_arrow_pink'
+
+
+  .readme-page
+
+    section.main
+
+      .kdcustomscrollview
+        max-height          310px
+        width               700px
+        bg                  color, #fff
+        styleScrollBars     rgba(0, 0, 0, .15)
+        rounded             5px
+        margin              0 auto
+
+      .description
+        padding             30px
+        font-size           12px
+        color               #333
+
+      .GenericButton.secondary
+        margin-top          20px
+
+
+  .stack-template-page
+
+    section.main
+
+      .editor-view
+        width               700px
+        height              310px
+        margin              0 auto
+
+      .GenericButton.secondary
+        margin-top          20px
+
+
+  .credentials-page
+
+    section.main
+      > p
+        margin-bottom       48px
+
+    .credential-form
+      font-family           $helvetica-family
+      color                 #929292
+      width                 332px
+      borderBox()
+      float                 none
+      margin                0 auto
+
+      .kdcustomscrollview
+        styleScrollBars     rgba(0, 0, 0, .15)
+        max-height          325px
+        padding-right       15px !important
+
+      a
+        color               #57a2d2
+        font-size           13.7px
+        text-decoration     none !important
+        font-weight         normal
+
+      h3
+        font-weight         bold
+        font-size           15px
+        letter-spacing      .4px
+        margin-bottom       20px
+        padding-right       15px
+
+      .kdlabel
+        display             block
+        font-size           11.7px
+        letter-spacing      .3px
+        margin-bottom       3px
+        float               none
+        color               inherit
+
+      .formline:first-child .kdlabel
+        margin-top          0px
+
+      .formline .input-wrapper
+        margin-bottom       12px
+
+      .kdinput.text
+        font-size           13.7px
+        line-height         .3px
+        rounded             3px
+        bg                  color, #fff
+        border              1px solid #d9d9d9
+        padding             5px 13px
+
+      .validation-error
+        border              1px solid #f13a18 !important
+
+      div.kdselectbox
+        span.title
+          font-size         13.7px
+
+      a.create-new .plus
+        font-size           16px
+
+      a.cancel-new
+        float               right
+
+      form
+        clear               both
+
+        .advanced-field,
+        .formline.button-field .save-btn.kdbutton,
+        .formline.button-field .cancel-btn.kdbutton
+          hidden()
+
+        &.in-advanced-mode
+          .advanced-field
+            visible()
+
+      .selection-container
+        padding-right       15px
+
+        .kdselectbox
+          width             100%
+          borderBox()
+          margin-bottom     11px
+
+      article
+        font-size           13px
+        font-family         SoleilFamily
+        color               #9f9f9f
+        line-height         19px
+        margin-bottom       15px
+
+        code
+          bg                color, #f2f2f2
+          border            1px solid #cacaca
+          borderBox()
+          color             $warningColor
+          font-weight       400
+          font-style        normal
+          font-size         12px
+          line-height       18px
+          padding           0 6px
+          rounded           4px
+
+          &.block
+            bg              color, #fff
+            color           #858585
+            line-height     20px
+            padding         8px 13px
+            margin          20px 0
+            display         block
+            rel()
+            width           316px
+
+            div
+              ellipsis()
+              width         236px
+
+            cite
+              abs           8px 13px
+
+        a
+          color             $warningColor
+          text-decoration   underline
+
+      .form-container
+        hidden()
+        height              370px
+
+      &.form-visible
+        .form-container
+          visible()
+
+        .selection-container
+          hidden()
+
+      &.left-form
+        fl()
+        margin-left         115px
+
+      &.right-form
+        fr()
+        margin-right        100px
+
+
+  .credentials-error-page
+    section.main
+      .background
+        abs()
+        bottom              0px
+        r-sprite            'app', 'buildstack_art_fail'
+
+
+  .build-stack-page
+
+    section.main > h2 span
+      font-weight           bold
+
+    .progressbar-container
+      .bar
+        bg                  color, $warningColor
+
+    .status-text
+      text-align            center
+      color                 #585858
+      padding-top           25px
+      borderBox()
+      ellipsis()
+      height                76px
+      width                 600px
+      margin                0 auto
+
+    .logs-pane
+      width                 600px
+      height                280px
+      margin                0 auto
+
+      .editor-main
+        bg                  color, #000
+
+      .description-view
+        height              0
+        padding             0
+        overflow            hidden
+
+      .ace_editor
+        color               #fff
+
+
+  .build-stack-error-page
+
+    .wizard-progress-pane
+      .wizard-step
+        &.completed
+          bg                color, #efefef
+          border-right      1px solid #e6e6e6
+
+        &.completed, &.current
+          border-left       0
+
+
+  .build-stack-success-page
+
+    .wizard-step.current
+      bg                    color, #57a2d2
+      color                 rgba(0,0,0,0.3)
+
+      .icon
+        r-sprite            'app', 'checkmark'
+
+      .alien
+        hidden()
+
+    section.main
+      padding-left          460px
+      padding-top           164px
+
+      h1
+        color               #57a2d2
+        font-size           50px
+        letter-spacing      .5px
+        line-height         44px
+
+      h2
+        font-size           32px
+        line-height         44px
+        color               rgba(0,0,0,0.5)
+        text-align          left
+        padding-top         17px
+        padding-bottom      21px
+
+      .GenericButton.secondary
+        margin              0
+
+      .background
+        abs()
+        top                 105px
+        left                100px
+        r-sprite            'app', 'buildstack_art_success'
+
+
+  .build-stack-logs-page
+
+    section.main
+      padding-top           80px
+
+    .wizard-step.current
+      bg                    color, #57a2d2
+      color                 rgba(0,0,0,0.3)
+
+      .icon
+        r-sprite            'app', 'checkmark'
+
+      .alien
+        hidden()
+
+    .logs-pane
+      width                 840px
+      height                420px
+      margin                0 auto
+
+      .editor-main
+        bg                  color, #000
+
+      .description-view
+        height              0
+        padding             0
+        overflow            hidden
+
+      .ace_editor
+        color               #fff
+
+
+  .start-machine-page
+
+    section.main
+
+      h2
+        color               #57a2d2
+        font-size           32px
+        letter-spacing      .3px
+        line-height         43px
+        padding-top         39px
+
+      p
+        font-size           22px
+        line-height         30px
+        margin-top          33px
+        margin-bottom       44px
+
+      .GenericButton
+        width               226px
+        height              65px
+        borderBox()
+
+        span.button-title
+          font-size         21.6px
+          line-height       30px
+
+      .background
+        abs()
+        bottom              0px
+        r-sprite            'app', 'buildstack_art_boot'
+
+
+  .start-machine-progress-page
+
+    section.main
+
+      h2
+        color               #777777
+        font-size           24px
+        letter-spacing      .2px
+        line-height         43px
+        padding-top         35px
+
+      .progressbar-container
+        border              1px solid #ccc
+
+        .bar
+          bg                color, #57a2d2
+
+      .background
+        abs()
+        bottom              0px
+        r-sprite            'app', 'buildstack_art_building'
+
+
+  .start-machine-success-page
+
+    section.main
+      height                430px
+      padding-left          420px
+      padding-top           140px
+
+      h1
+        color               #57a2d2
+        font-size           50px
+        letter-spacing      .5px
+        line-height         44px
+
+      h2
+        font-size           32px
+        line-height         44px
+        color               rgba(0,0,0,0.5)
+        text-align          left
+        padding-top         17px
+
+      .background
+        abs()
+        top                 72px
+        left                70px
+        r-sprite            'app', 'buildstack_art_success'
+
+    footer
+      .GenericButton
+        sta()
+        margin              29px auto 0 auto
+        display             block
+
+
+  .start-machine-error-page
+
+    section.main
+      height                430px
+
+    footer
+      .GenericButton
+        sta()
+        margin              29px auto 0 auto
+        display             block
+
+
+  .stop-machine-progress-page
+
+    section.main
+
+      h2
+        color               #777777
+        font-size           31px
+        letter-spacing      .3px
+        line-height         43px
+        padding-top         75px
+        padding-bottom      35px
+
+        span
+          font-weight       bold
+
+      .progressbar-container
+        border              1px solid #ccc
+
+        .bar
+          bg                color, #57a2d2
+
+
+  .stop-machine-error-page
+
+    section.main
+
+      .error-container
+        max-height          100px
+
+      .GenericButton
+        width               226px
+        height              65px
+        borderBox()
+        margin-top          20px
+
+        span.button-title
+          font-size         21.6px
+          line-height       30px
+
+
+  .loader-container
+    width                   400px
+    height                  200px
+    text-align              center
+    borderBox()
+    padding-top             50px
+
+    .loader-text
+      font-size             20px
+      letter-spacing        .2px
+      color                 #424242
+      margin-bottom         15px
+
+
+  .no-stack-page
+    width                   400px
+    height                  200px
+    borderBox()
+
+    section.main
+      padding               20px

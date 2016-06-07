@@ -1,14 +1,22 @@
 package stackplan
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"time"
+
+	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/stackstate"
+	"koding/kites/kloud/utils/object"
 
 	"github.com/hashicorp/go-multierror"
-
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"gopkg.in/yaml.v2"
 )
 
 var defaultDatabase Database = &mongoDatabase{
@@ -113,4 +121,96 @@ func (db *mongoDatabase) Destroy(opts *DestroyOptions) error {
 	}
 
 	return err.ErrorOrNil()
+}
+
+var migrationBuilder = &object.Builder{
+	Tag:       "bson",
+	Sep:       ".",
+	Prefix:    "meta.migration",
+	Recursive: true,
+}
+
+var machineBuilder = &object.Builder{
+	Tag:       "bson",
+	Sep:       ".",
+	Recursive: true,
+}
+
+// UpdateMigration implements the Database interface.
+func (db *mongoDatabase) UpdateMigration(opts *UpdateMigrationOptions) error {
+	change := bson.M{
+		"$set": migrationBuilder.Build(opts.Meta),
+	}
+	return modelhelper.UpdateMachine(opts.MachineID, change)
+}
+
+// Migrate implements the Database interface.
+func (db *mongoDatabase) Migrate(opts *MigrateOptions) error {
+	stack := models.NewStackTemplate(opts.Provider, opts.Identifier)
+	stack.Machines = make([]bson.M, len(opts.Machines))
+
+	for i := range stack.Machines {
+		stack.Machines[i] = bson.M(machineBuilder.Build(opts.Machines[i]))
+	}
+
+	account, err := modelhelper.GetAccount(opts.Username)
+	if err != nil {
+		return fmt.Errorf("account lookup failed for %q: %s", opts.Username, err)
+	}
+
+	sum := sha1.Sum([]byte(opts.Template))
+
+	stack.Title = opts.StackName
+	stack.OriginID = account.Id
+	stack.Template.Details = bson.M{
+		"lastUpdaterId": account.Id,
+	}
+	stack.Group = opts.GroupName
+	stack.Template.Content = opts.Template
+	stack.Template.Sum = hex.EncodeToString(sum[:])
+
+	if s, err := yamlReencode(opts.Template); err == nil {
+		stack.Template.RawContent = s
+	}
+
+	if err := modelhelper.CreateStackTemplate(stack); err != nil {
+		return fmt.Errorf("failed to create stack template: %s", err)
+	}
+
+	change := bson.M{
+		"$set": bson.M{
+			"meta.migration.modifiedAt":      time.Now(),
+			"meta.migration.status":          MigrationMigrated,
+			"meta.migration.stackTemplateId": stack.Id,
+		},
+	}
+
+	for _, id := range opts.MachineIDs {
+		if e := modelhelper.UpdateMachine(id, change); e != nil {
+			err = multierror.Append(err, fmt.Errorf("failed to update migration details for %q: %s", id.Hex(), err))
+		}
+	}
+
+	// Failure updating jMachine migration metadata is not critical,
+	// just log the error and continue.
+	if err != nil {
+		opts.Log.Error("%s", err)
+	}
+
+	return nil
+}
+
+func yamlReencode(template string) (string, error) {
+	var m map[string]interface{}
+
+	if err := json.Unmarshal([]byte(template), &m); err != nil {
+		return "", err
+	}
+
+	p, err := yaml.Marshal(m)
+	if err != nil {
+		return "", err
+	}
+
+	return string(p), nil
 }

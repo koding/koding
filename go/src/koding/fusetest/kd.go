@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"io"
 	"koding/klient/remote/machine"
-	"koding/klient/remote/req"
 	"koding/klient/remote/restypes"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 // KD is a simple struct for simplifying calling KD commands as a subprocess.
@@ -18,6 +18,29 @@ type KD struct {
 	Stdout io.Writer
 	Stderr io.Writer
 	Stdin  io.Reader
+}
+
+// MountInfo is a customized struct to unmarshal the fields we care about from
+// `kd list mounts`. Note that the actual struct returned by the command is
+// the mount.Mount type, containing many fields.
+//
+// See `klient/remote/mount/mount.go` for reference if you want to add a field
+// to this struct. Or simply type `kd list mounts --json` to see the json.
+type MountInfo struct {
+	IP               string `json:"ip"`
+	Name             string `json:"name"`
+	MountName        string `json:"mountName"`
+	RemotePath       string `json:"remotePath"`
+	LocalPath        string `json:"localPath"`
+	NoIgnore         bool   `json:"noIgnore"`
+	NoPrefetchMeta   bool   `json:"noPrefetchMeta"`
+	PrefetchAll      bool   `json:"prefetchAll"`
+	NoWatch          bool   `json:"noWatch"`
+	CachePath        string `json:"cachePath"`
+	OneWaySyncMount  bool   `json:"oneWaySyncMount"`
+	SyncIntervalOpts struct {
+		Interval time.Duration `json:"interval"`
+	} `json:"syncIntervalOpts"`
 }
 
 func NewKD() *KD {
@@ -28,24 +51,24 @@ func NewKD() *KD {
 	}
 }
 
-func (kd *KD) GetMountOptions(mountName string) (req.MountFolder, error) {
+func (kd *KD) GetMountOptions(mountName string) (MountInfo, error) {
 	b, err := exec.Command("kd", "list", "mounts", "--json").CombinedOutput()
 	if err != nil {
-		return req.MountFolder{}, err
+		return MountInfo{}, err
 	}
 
-	var mountsOpts []req.MountFolder
+	var mountsOpts []MountInfo
 	if err := json.Unmarshal(b, &mountsOpts); err != nil {
-		return req.MountFolder{}, err
+		return MountInfo{}, err
 	}
 
 	for _, mountOpts := range mountsOpts {
-		if mountOpts.Name == mountName {
+		if mountOpts.MountName == mountName {
 			return mountOpts, nil
 		}
 	}
 
-	return req.MountFolder{}, errors.New("Mount not found.")
+	return MountInfo{}, errors.New("Mount not found.")
 }
 
 func (kd *KD) GetMachineInfo(machineName string) (restypes.ListMachineInfo, error) {
@@ -97,13 +120,20 @@ func (kd *KD) MountWithNoPrefetch(machine, remoteDir, localDir string) error {
 	)
 }
 
+func (kd *KD) MountWithOneWaySync(machine, remoteDir, localDir string) error {
+	return kd.run(
+		"mount", "--oneway-sync", "--oneway-interval=1",
+		joinWithColon(machine, remoteDir), localDir,
+	)
+}
+
 func (kd *KD) MountWithPrefetchAll(machine, remoteDir, localDir string) error {
 	return kd.run(
 		"mount", "--prefetch-all", joinWithColon(machine, remoteDir), localDir,
 	)
 }
 
-func (kd *KD) MountWithOpts(machine string, opts req.MountFolder) error {
+func (kd *KD) MountWithOpts(machine string, opts MountInfo) error {
 	args := []string{"mount"}
 	if opts.NoWatch {
 		args = append(args, "--nowatch")
@@ -119,6 +149,16 @@ func (kd *KD) MountWithOpts(machine string, opts req.MountFolder) error {
 
 	if opts.NoIgnore {
 		args = append(args, "--noignore")
+	}
+
+	if opts.OneWaySyncMount {
+		args = append(args, "--oneway-sync")
+	}
+
+	if opts.SyncIntervalOpts.Interval >= 0 {
+		args = append(args, fmt.Sprintf(
+			"--oneway-interval=%d", int(opts.SyncIntervalOpts.Interval.Seconds()),
+		))
 	}
 
 	args = append(args, joinWithColon(machine, opts.RemotePath), opts.LocalPath)

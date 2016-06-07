@@ -78,22 +78,24 @@ func addHandlers(m *mux.Mux, h *integration.Handler) {
 func RegisterServices(sf *services.Services, conf *config.Config, serviceConf *services.ServiceConfig, log logging.Logger) {
 	githubService, err := RegisterGithubService(sf, conf, serviceConf)
 	if err != nil {
-		log.Fatal("Could not initialize github service: %s", err)
+		log.Error("Could not initialize github service: %s", err)
+	} else {
+		sf.Register("github", githubService)
 	}
 
 	pivotalService, err := RegisterPivotalService(sf, conf, serviceConf)
 	if err != nil {
-		log.Fatal("Could not initialize pivotal service: %s", err)
+		log.Error("Could not initialize pivotal service: %s", err)
+	} else {
+		sf.Register("pivotal", services.Service(pivotalService))
 	}
 
 	pagerdutyService, err := RegisterPagerdutyService(sf, conf, serviceConf)
 	if err != nil {
-		log.Fatal("Could not initialize pagerduty service: %s", err)
+		log.Error("Could not initialize pagerduty service: %s", err)
+	} else {
+		sf.Register("pagerduty", pagerdutyService)
 	}
-
-	sf.Register("github", githubService)
-	sf.Register("pivotal", services.Service(pivotalService))
-	sf.Register("pagerduty", pagerdutyService)
 }
 
 func RegisterGithubService(sf *services.Services, conf *config.Config, serviceConf *services.ServiceConfig) (services.Service, error) {

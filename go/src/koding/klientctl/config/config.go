@@ -67,6 +67,11 @@ var (
 	// KiteKeyPath is the full path to kite.key.
 	KiteKeyPath = filepath.Join(KiteHome, "kite.key")
 
+	// Used to send basic error metrics.
+	//
+	// Injected on build.
+	SegmentKey = ""
+
 	// KontrolURL is the url to connect to authenticate local klient and get
 	// list of machines.
 	//
@@ -93,12 +98,18 @@ func init() {
 	}
 }
 
-func dirURL(s string) string {
+func dirURL(s, env string) string {
 	u, err := url.Parse(s)
 	if err != nil {
 		panic(err)
 	}
-	u.Path = path.Dir(u.Path)
+
+	if env == "" {
+		u.Path = path.Dir(u.Path)
+	} else {
+		u.Path = env
+	}
+
 	return u.String()
 }
 
@@ -111,8 +122,8 @@ func VersionNum() int {
 	return int(version)
 }
 
-func S3Klient(version int) string {
-	s3dir := dirURL(S3KlientLatest)
+func S3Klient(version int, env string) string {
+	s3dir := dirURL(S3KlientLatest, kd2klient(env))
 
 	// TODO(rjeczalik): klient uses a URL without $GOOS_$GOARCH suffix for
 	// auto-updates. Remove the special case when a redirect is deployed
@@ -125,7 +136,8 @@ func S3Klient(version int) string {
 		s3dir, version, runtime.GOOS, runtime.GOARCH)
 }
 
-func S3Klientctl(version int) string {
-	return fmt.Sprintf("%s/kd-0.1.%d.%s_%s.gz", dirURL(S3KlientctlLatest),
-		version, runtime.GOOS, runtime.GOARCH)
+func S3Klientctl(version int, env string) string {
+	return fmt.Sprintf("%s/kd-0.1.%d.%s_%s.gz", dirURL(S3KlientctlLatest, env),
+		version, runtime.GOOS, runtime.GOARCH,
+	)
 }

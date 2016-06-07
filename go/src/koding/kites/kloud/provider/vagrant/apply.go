@@ -45,7 +45,9 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		arg.Provider: arg.Identifiers,
 	}
 
-	if err := s.Builder.BuildStack(arg.StackID, overrideCreds); err != nil {
+	err := s.Builder.BuildStack(arg.StackID, overrideCreds)
+
+	if err != nil && !(arg.Destroy && stackplan.IsNotFound(err, "jStackTemplate")) {
 		return nil, err
 	}
 
@@ -57,7 +59,6 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		rt.Hijack()
 	}
 
-	var err error
 	if arg.Destroy {
 		err = s.destroy(ctx, &arg)
 	} else {
@@ -177,47 +178,28 @@ func (s *Stack) destroyAsync(ctx context.Context, req *kloud.ApplyRequest) error
 	}
 
 	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
-	s.Log.Debug("Connection to Terraformer")
 
-	tfKite, err := terraformer.Connect(s.Session.Kite)
-	if err != nil {
-		return err
-	}
-	defer tfKite.Close()
+	if s.Builder.Stack.Stack.State() != stackstate.NotInitialized {
+		s.Log.Debug("Connection to Terraformer")
 
-	contentID := req.GroupName + "-" + req.StackID
-	s.Log.Debug("Building template: %s", contentID)
+		tfKite, err := terraformer.Connect(s.Session.Kite)
+		if err != nil {
+			return err
+		}
+		defer tfKite.Close()
 
-	if err := s.Builder.BuildTemplate(s.Builder.Stack.Template, contentID); err != nil {
-		return err
-	}
+		tfReq := &tf.TerraformRequest{
+			ContentID: req.GroupName + "-" + req.StackID,
+			TraceID:   s.TraceID,
+		}
 
-	s.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
+		s.Log.Debug("Calling terraform.destroy method with context:")
+		s.Log.Debug("%+v", tfReq)
 
-	if _, _, err := s.InjectVagrantData(ctx, s.Req.Username); err != nil {
-		return err
-	}
-
-	out, err := s.Builder.Template.JsonOutput()
-	if err != nil {
-		return err
-	}
-
-	s.Builder.Stack.Template = out
-
-	tfReq := &tf.TerraformRequest{
-		Content:   s.Builder.Stack.Template,
-		ContentID: contentID,
-		Variables: nil,
-		TraceID:   s.TraceID,
-	}
-
-	s.Log.Debug("Calling terraform.destroy method with context:")
-	s.Log.Debug("%+v", tfReq)
-
-	_, err = tfKite.Destroy(tfReq)
-	if err != nil {
-		return err
+		_, err = tfKite.Destroy(tfReq)
+		if err != nil {
+			return err
+		}
 	}
 
 	return s.Builder.Database.Destroy()
@@ -290,8 +272,9 @@ func (s *Stack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
 	// because apply can last long, we are going to increment the eventer's
 	// percentage as long as we build automatically.
 	go func() {
-		ticker := time.NewTicker(time.Second * 5)
 		start := 45
+		ticker := time.NewTicker(time.Second * 5)
+		defer ticker.Stop()
 
 		for {
 			select {

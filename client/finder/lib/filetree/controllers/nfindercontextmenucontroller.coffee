@@ -94,8 +94,6 @@ module.exports = class NFinderContextMenuController extends KDController
         action                    : 'createFile'
       'New folder'                :
         action                    : 'createFolder'
-      # 'Upload to Dropbox'         :
-      #   action                    : 'dropboxSaver'
 
     if 'archive' isnt FSHelper.getFileType FSHelper.getFileExtension fileData.name
       delete items.Extract
@@ -156,13 +154,6 @@ module.exports = class NFinderContextMenuController extends KDController
       # Download                    :
       #   disabled                  : yes
       #   action                    : "download"
-      #   separator                 : yes
-      # Dropbox                     :
-      #   children                  :
-      #     'Download from Dropbox' :
-      #       action                : 'dropboxChooser'
-      #     'Upload to Dropbox'     :
-      #       action                : 'dropboxSaver'
       #   separator                 : yes
       # 'Public URL...'             :
       #   separator                 : yes

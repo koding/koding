@@ -1,8 +1,7 @@
 { Base, secure, signature } = require 'bongo'
 crypto = require 'crypto'
 
-{ argv }    = require 'optimist'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG      = require 'koding-config-manager'
 KodingError = require '../error'
 
 module.exports = class S3 extends Base
@@ -17,7 +16,7 @@ module.exports = class S3 extends Base
   AWS_KEY      = KONFIG.awsKeys.worker_koding_client_s3_put_only.accessKeyId
   AWS_SECRET   = KONFIG.awsKeys.worker_koding_client_s3_put_only.secretAccessKey
 
-  AWS_BUCKET   = 'koding-client'
+  AWS_BUCKET   = KONFIG.clientUploadS3BucketName
   AWS_URL      = "https://#{AWS_BUCKET}.s3.amazonaws.com"
 
   EXPIREIN     = 100     # in seconds.

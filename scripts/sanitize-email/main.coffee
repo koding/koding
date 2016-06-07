@@ -5,8 +5,7 @@ _ = require 'underscore'
 
 Bongo   = require 'bongo'
 
-argv   = require('minimist') process.argv
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG = require 'koding-config-manager'
 mongo  = "mongodb://#{KONFIG.mongo}"
 
 modelPath = '../../workers/social/lib/social/models'

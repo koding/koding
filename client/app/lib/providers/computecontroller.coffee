@@ -206,7 +206,6 @@ module.exports = class ComputeController extends KDController
 
       if @stacks.length > 0 and not force
         callback null, @stacks
-        kd.info 'Stacks returned from cache.'
         return
 
       return  if (queue.push callback) > 1
@@ -451,7 +450,7 @@ module.exports = class ComputeController extends KDController
       [ machine ] = machines
 
       @reset yes, =>
-        reloadIDE machine.obj.slug
+        @reloadIDE machine.obj.slug
         @checkGroupStacks()
 
     mainController.ready =>
@@ -677,9 +676,10 @@ module.exports = class ComputeController extends KDController
       (@errorHandler call, 'build', machine) err
 
 
-  buildStack: (stack) ->
+  buildStack: (stack, identifiers) ->
 
-    return  unless @verifyStackRequirements stack
+    verificationNeeded = not identifiers
+    return  if verificationNeeded and not @verifyStackRequirements stack
 
     state = stack.status?.state ? 'Unknown'
 
@@ -704,7 +704,7 @@ module.exports = class ComputeController extends KDController
       customEvent : { stackId, group : getGroup().slug }
     }
 
-    call = @getKloud().buildStack { stackId }
+    call = @getKloud().buildStack { stackId, identifiers }
 
     .then (res) =>
 
@@ -750,6 +750,13 @@ module.exports = class ComputeController extends KDController
 
       actions.reinitStack stack._id
       @eventListener.addListener 'apply', stackId  if followEvents
+
+      Tracker.track Tracker.STACKS_DELETE, {
+        customEvent :
+          stackId   : stackId
+          group     : getGroup().slug
+      }
+
       callback? null
 
       return res
@@ -1165,12 +1172,23 @@ module.exports = class ComputeController extends KDController
 
     { baseStackId } = stack
 
-    remote.cacheable 'JStackTemplate', baseStackId, (err, template) ->
+    @fetchStackTemplate baseStackId, callback
+
+
+  fetchStackTemplate: (id, callback = kd.noop) ->
+
+    remote.api.JStackTemplate.one { _id: id }, (err, template) ->
       return callback err  if err
+
+      # Follow update events to get change set from remote-extensions
+      # This is not required but we will need a huge set of changes
+      # to make it happen in a better way, FIXME ~GG
+      template.on 'update', kd.noop
+
       return callback null, template
 
 
-  showBuildLogs: (machine, tailOffset, showProgress) ->
+  showBuildLogs: (machine, tailOffset) ->
 
     # Not supported for Koding Group
     return  if isKoding()
@@ -1181,27 +1199,14 @@ module.exports = class ComputeController extends KDController
 
     return  unless ideApp = envDataProvider.getIDEFromUId machine.uid
 
-    callback = (buildDuration) -> ideApp.tailFile {
+    ideApp.tailFile {
       file
       description : '
         Your Koding Stack has successfully been initialized. The log here
         describes each executed step of the Stack creation process.
       '
       tailOffset
-      buildDuration
     }
-
-    return callback()  unless showProgress
-
-    stack = @findStackFromMachineId machine._id
-    return callback()  unless stack
-
-    @fetchBaseStackTemplate stack, (err, stackTemplate) ->
-      if err
-        kd.log err
-        return callback()
-
-      callback stackTemplate.config?.buildDuration
 
 
   ###*
@@ -1222,10 +1227,13 @@ module.exports = class ComputeController extends KDController
       for stack in @stacks when stack.baseStackId is stackTemplate
         return stack
 
+    for stack in @stacks when stack.config?.groupStack
+      return stack
+
     return null
 
 
-  reloadIDE = (machineSlug) ->
+  reloadIDE: (machineSlug) ->
 
     route   = '/IDE'
     if machineSlug
@@ -1253,7 +1261,7 @@ module.exports = class ComputeController extends KDController
           title   : "Couldn't find default stack"
           content : 'Please re-init manually'
 
-        return kd.singletons.router.handleRoute '/Stacks'
+        return kd.singletons.router.handleRoute '/Home/stacks'
 
       else
         @createDefaultStack()

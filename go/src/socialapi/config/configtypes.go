@@ -6,7 +6,7 @@ type (
 	// Config holds all the configuration variables of socialapi
 	Config struct {
 		// extend config with runner's
-		runner.Config
+		runner.Config `structs:",flatten"`
 
 		// Mongo holds full connection string
 		Mongo string `env:"key=KONFIG_SOCIALAPI_MONGO                                 required"`
@@ -68,6 +68,10 @@ type (
 		SneakerS3 SneakerS3
 
 		Mailgun Mailgun
+
+		DummyAdmins []string
+
+		Druid Druid
 	}
 
 	// Email holds Email Workers' config
@@ -212,5 +216,10 @@ type (
 		Domain     string `env:"key=KONFIG_SOCIALAPI_MAILGUN_DOMAIN"`
 		PrivateKey string `env:"key=KONFIG_SOCIALAPI_MAILGUN_PRIVATEKEY"`
 		PublicKey  string `env:"key=KONFIG_SOCIALAPI_SLACK_PUBLICKEY"`
+	}
+
+	Druid struct {
+		Host string `env:"key=KONFIG_SOCIALAPI_DRUID_HOST"`
+		Port string `env:"key=KONFIG_SOCIALAPI_DRUID_PORT"`
 	}
 )

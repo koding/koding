@@ -138,7 +138,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.handleHTTP(w, r); err != nil {
-		s.log.Error("remote %s (%s): %s", r.RemoteAddr, r.RequestURI, err)
+		if !strings.Contains(err.Error(), "no virtual host available") { // this one is outputted too much, unnecessarily
+			s.log.Error("remote %s (%s): %s", r.RemoteAddr, r.RequestURI, err)
+		}
 		http.Error(w, err.Error(), 502)
 	}
 }
@@ -176,7 +178,6 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 			return fmt.Errorf("no virtual host available for %q", hostPort)
 		}
 	}
-
 
 	if isWebsocketConn(r) {
 		s.log.Debug("handling websocket connection")
@@ -395,7 +396,7 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 		return fmt.Errorf("hijack not possible: %s", err)
 	}
 
-	if _, err := io.WriteString(conn, "HTTP/1.1 " + connected + "\n\n"); err != nil {
+	if _, err := io.WriteString(conn, "HTTP/1.1 "+connected+"\n\n"); err != nil {
 		return fmt.Errorf("error writing response: %s", err)
 	}
 

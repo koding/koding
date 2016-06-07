@@ -22,6 +22,13 @@ mockReactComponent        = require './mock.reactComponent'
 mockcollaborationchannel  = require './mock.collaborationchannel'
 mockMessages              = require 'app/util/generateDummyMessages'
 mockChannels              = require 'app/util/generateDummyChannels'
+draftStackTemplate        = require './mock.draftStackTemplate'
+teamStackTemplate         = require './mock.teamStackTemplate'
+privateStackTemplate      = require './mock.privateStackTemplate'
+teamMemberWithRole        = require './mock.teamMembersWithRole'
+teamMembersWithPendings   = require './mock.teamMembersWithPendings'
+teamSendInvites           = require './mock.teamSendInvites'
+team                      = require './mock.team'
 
 
 mockMachine = new Machine { machine: mockjmachine }
@@ -368,3 +375,17 @@ module.exports =
   getMockReactComponent: -> return new mockReactComponent
 
   getMockMessages: (args...) -> return mockMessages(args...)
+
+  getDraftStackTemplate: -> return draftStackTemplate
+
+  getTeamStackTemplate: -> return teamStackTemplate
+
+  getPrivateStackTemplate: -> return privateStackTemplate
+
+  getTeamMembersWithRole: -> return teamMemberWithRole
+
+  getTeamMembersWithPendings: -> return teamMembersWithPendings
+
+  getTeamSendInvites: -> return teamSendInvites
+
+  getTeam: -> return team

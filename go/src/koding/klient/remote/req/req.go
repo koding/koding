@@ -1,6 +1,7 @@
 package req
 
 import (
+	"koding/klient/fs"
 	"koding/klient/remote/rsync"
 	"time"
 )
@@ -82,6 +83,13 @@ type Cache struct {
 
 	// IgnoreFile is the full path to CVS ignore file for rsync.
 	IgnoreFile string `json:"ignoreFile"`
+
+	// IncludeFolder includes the folder in the destination, otherwise it just
+	// includes the contents.
+	//
+	// This must be true for copying files, or the remote will attempt to copy
+	// `your/path/` (a directory) instead of `your/path` (a directory, *or file*)
+	IncludePath bool `json:"includePath"`
 }
 
 type Status struct {
@@ -108,6 +116,14 @@ type MountInfoResponse struct {
 // Remount is the struct for klient's remote.remount method.
 type Remount struct {
 	MountName string `json:"mountName"`
+}
+
+type ReadDirectoryOptions struct {
+	// The embedded ReadDirectoryOptions
+	fs.ReadDirectoryOptions
+
+	// The machine name to run the ReadDirectory on.
+	Machine string
 }
 
 func (i StatusItem) String() string {

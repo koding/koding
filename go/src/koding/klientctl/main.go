@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"runtime"
 
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
@@ -38,6 +39,10 @@ var sudoRequiredFor = []string{
 var log logging.Logger
 
 func main() {
+	// For forward-compatibility with go1.5+, where GOMAXPROCS is
+	// always set to a number of available cores.
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	// The writer used for the logging output. Either a file, or /dev/null
 	var logWriter io.Writer
 
@@ -56,16 +61,17 @@ func main() {
 		logWriter = f
 	}
 
-	// Setting the handler to debug, because various Remote methods allow a
+	// Setting the handler to debug, because various methods allow a
 	// debug option, and this saves us from having to set the handler level every time.
 	// This only sets handler, not the actual loglevel.
-	logging.DefaultHandler.SetLevel(logging.DEBUG)
+	handler := logging.NewWriterHandler(logWriter)
+	handler.SetLevel(logging.DEBUG)
 	// Create our logger.
 	//
 	// TODO: Single commit temporary solution, need to remove the above logger
 	// in favor of this.
 	log = logging.NewLogger("kd")
-	log.SetHandler(logging.NewWriterHandler(logWriter))
+	log.SetHandler(handler)
 	log.Info("kd binary called with: %s", os.Args)
 
 	// Check if the command the user is giving requires sudo.
@@ -78,7 +84,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = config.Name
-	app.Version = config.Version
+	app.Version = getReadableVersion(config.Version)
 	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{
@@ -142,11 +148,11 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "prefetch-all, a",
-					Usage: "Prefetch all contents of the remote directory up front (DEPRECATED).",
+					Usage: "Prefetch all contents of the remote directory up front.",
 				},
 				cli.IntFlag{
 					Name:  "prefetch-interval",
-					Usage: "Sets how frequently remote folder will sync with local, in seconds. (DEPRECATED).",
+					Usage: "Sets how frequently remote folder will sync with local, in seconds.",
 				},
 				cli.BoolFlag{
 					Name:  "nowatch, w",
@@ -214,6 +220,28 @@ func main() {
 			Usage:       fmt.Sprintf("Update %s to latest version.", config.KlientName),
 			Description: cmdDescriptions["update"],
 			Action:      ctlcli.ExitAction(UpdateCommand, log, "update"),
+			Flags: []cli.Flag{
+				cli.IntFlag{
+					Name:  "kd-version",
+					Usage: "Version of KD (klientctl) to update to.",
+				},
+				cli.StringFlag{
+					Name:  "kd-channel",
+					Usage: "Channel (production|development) to download update from.",
+				},
+				cli.IntFlag{
+					Name:  "klient-version",
+					Usage: "Version of klient to update to.",
+				},
+				cli.StringFlag{
+					Name:  "klient-channel",
+					Usage: "Channel (production|development) to download update from.",
+				},
+				cli.BoolFlag{
+					Name:  "force",
+					Usage: "Updates kd & klient to latest available version.",
+				},
+			},
 		},
 		cli.Command{
 			Name:        "restart",
@@ -282,6 +310,24 @@ func main() {
 			),
 			BashComplete: ctlcli.FactoryCompletion(
 				AutocompleteCommandFactory, log, "autocompletion",
+			),
+		},
+		cli.Command{
+			Name: "cp",
+			Usage: fmt.Sprintf(
+				"Copy a file from one one machine to another",
+			),
+			Description: cmdDescriptions["cp"],
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name: "debug",
+				},
+			},
+			Action: ctlcli.FactoryAction(
+				CpCommandFactory, log, "cp",
+			),
+			BashComplete: ctlcli.FactoryCompletion(
+				CpCommandFactory, log, "cp",
 			),
 		},
 	}

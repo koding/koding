@@ -27,7 +27,6 @@ module.exports = (KONFIG, credentials, options) ->
       google             : { nicename: 'Google' }
       linkedin           : { nicename: 'LinkedIn' }
       twitter            : { nicename: 'Twitter' }
-      odesk              : { nicename: 'Upwork', urlLocation: 'info.profile_url' }
       facebook           : { nicename: 'Facebook', urlLocation: 'link' }
       github             : { nicename: 'GitHub', urlLocation: 'html_url' }
     entryPoint           : { slug:'koding'     , type:'group' }
@@ -38,7 +37,6 @@ module.exports = (KONFIG, credentials, options) ->
     paypal               : { formUrl: credentials.paypal.formUrl }
     embedly              : { apiKey: credentials.embedly.apiKey }
     algolia              : { appId: credentials.algolia.appId, indexSuffix: options.algoliaIndexSuffix }
-    tokbox               : { apiKey: credentials.tokbox.apiKey }
     github               : { clientId: credentials.github.clientId }
     pubnub               : { subscribekey: credentials.pubnub.subscribekey, ssl: credentials.pubnub.ssl,  enabled: credentials.pubnub.enabled }
     integration          : { url: KONFIG.integration.url }

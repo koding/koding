@@ -15,7 +15,7 @@ var cmdDescriptions = map[string]string{
 		fmt.Sprintf("Install the %s. sudo is required.", config.KlientName),
 	),
 	"mount": fmtDesc(
-		"<optional args> <alias:remote path> <local folder>",
+		"[optional args] <alias:remote path> <local folder>",
 		fmt.Sprintf(`Mount folder from remote machine to local folder.
     Alias is the local identifer for machine in 'kd list'.
 
@@ -74,9 +74,26 @@ var cmdDescriptions = map[string]string{
 		"", fmt.Sprintf("Display version information of the %s.", config.KlientName),
 	),
 	"autocompletion": fmtDesc(
-		"<optional args> <shellname>",
+		"[optional args] <shellname>",
 		`Install autocompletion files for the given shell, to enable
     autocompletion with kd`,
+	),
+	"sync": fmtDesc(
+		"[optional args] <machineName> <remote-to-local|local-to-remote>",
+		"Manually sync a OneWaySync Mount, in either direction.",
+	),
+	"cp": fmtDesc(
+		"[optional args] <source> <destination>",
+		`Copy a file from the source to the destination, either remote to local or local
+to remote.
+
+Like with mounting, remote paths are referred to with the
+machineName:path/to/file syntax. Example:
+
+  kd cp ./sourceFile apple:destinationFile
+  kd cp apple:sourceFile ./destinationFile
+
+`,
 	),
 }
 

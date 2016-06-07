@@ -37,28 +37,42 @@
     text-transform          capitalize
     noTextDeco()
 
+    &:hover a
+      width                 186px
+      &:after
+        box-shadow          0 0 15px #323232
+        content             ''
+        r-sprite            'app' '20_chevron_gray'
+        margin-left         1px
+        opacity             .7
+        position            absolute
+        right               0
+        top                 -3px
+        dIBlock()
+
     &:hover .SidebarSection-secondaryLink
       visible()
 
     .SidebarSection-secondaryLink
       top                   10px
 
-    .SidebarSection-headerIcon
+  .SidebarSection
+    margin-bottom           30px
+
+    &.draft
+      margin-bottom         0px
+
+    .SidebarSection-headerTitle:before
+      content               ''
       rel()
       borderBox()
       dIBlock()
-      top                   -2px
+      top                   -6px
       border                2px solid rgba(255, 255, 255, .2)
       height                6px
       rounded               100%
       width                 6px
       margin-right          5px
-
-  .SidebarSection
-    margin-bottom           30px
-
-    .SidebarSection-header a
-      cursor                default
 
   &:last-of-type
     margin-bottom           0

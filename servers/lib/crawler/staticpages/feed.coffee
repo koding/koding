@@ -1,5 +1,4 @@
-{ argv }                  = require 'optimist'
-{ uri }                   = require('koding-config-manager').load("main.#{argv.c}")
+{ uri }                   = require 'koding-config-manager'
 async                     = require 'async'
 encoder                   = require 'htmlencode'
 { createActivityContent } = require '../helpers'

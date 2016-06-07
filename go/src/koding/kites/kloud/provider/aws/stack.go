@@ -2,9 +2,20 @@ package awsprovider
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
+	"gopkg.in/mgo.v2/bson"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/iam"
+
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/provider"
+	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/stackplan"
 
 	"golang.org/x/net/context"
@@ -65,6 +76,82 @@ func (meta *AwsMeta) BootstrapValid() error {
 	return nil
 }
 
+// Credentials creates new AWS credentials value from the given meta.
+func (meta *AwsMeta) Credentials() *credentials.Credentials {
+	return credentials.NewStaticCredentials(meta.AccessKey, meta.SecretKey, "")
+}
+
+// Options creates new amazon client options.
+func (meta *AwsMeta) Options() *amazon.ClientOptions {
+	return &amazon.ClientOptions{
+		Credentials: meta.Credentials(),
+		Region:      meta.Region,
+	}
+}
+
+func (meta *AwsMeta) session() *session.Session {
+	return amazon.NewSession(meta.Options())
+}
+
+const arnPrefix = "arn:aws:iam::"
+
+// AccountID parses an AWS arn string to get the Account ID.
+func (meta *AwsMeta) AccountID() (string, error) {
+	user, err := iam.New(meta.session()).GetUser(nil)
+	if err == nil {
+		return parseAccountID(aws.StringValue(user.User.Arn))
+	}
+
+	for msg := err.Error(); msg != ""; {
+		i := strings.Index(msg, arnPrefix)
+
+		if i == -1 {
+			break
+		}
+
+		msg = msg[i:]
+
+		accountID, e := parseAccountID(msg)
+		if e != nil {
+			continue
+		}
+
+		return accountID, nil
+	}
+
+	return "", err
+}
+
+// The function assumes arn string comes from an IAM resource, as
+// it treats region empty.
+//
+// For details see:
+//
+//   http://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns
+//
+// Example arn string: "arn:aws:iam::213456789:user/username"
+// Returns: 213456789
+func parseAccountID(arn string) (string, error) {
+	if !strings.HasPrefix(arn, arnPrefix) {
+		return "", fmt.Errorf("invalid ARN: %q", arn)
+	}
+
+	accountID := arn[len(arnPrefix):]
+	i := strings.IndexRune(accountID, ':')
+
+	if i == -1 {
+		return "", fmt.Errorf("invalid ARN: %q", arn)
+	}
+
+	accountID = accountID[:i]
+
+	if accountID == "" {
+		return "", fmt.Errorf("invalid ARN: %q", arn)
+	}
+
+	return accountID, nil
+}
+
 func (meta *AwsMeta) ResetBootstrap() {
 	meta.ACL = ""
 	meta.CidrBlock = ""
@@ -96,6 +183,7 @@ type Stack struct {
 	*provider.BaseStack
 
 	p *stackplan.Planner
+	m *MigrateProvider
 }
 
 // Ensure Provider implements the kloud.StackProvider interface.
@@ -110,11 +198,24 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 		return nil, err
 	}
 
-	return &Stack{
+	s := &Stack{
 		BaseStack: bs,
 		p: &stackplan.Planner{
 			Provider:     "aws",
 			ResourceType: "instance",
 		},
-	}, nil
+	}
+
+	if p.Koding != nil {
+		s.m = &MigrateProvider{
+			Stack:      s,
+			Koding:     p.Koding,
+			Locker:     p.BaseProvider,
+			Status:     make(map[bson.ObjectId]*MigrationMeta),
+			KodingMeta: make(map[bson.ObjectId]*koding.Meta),
+			Log:        p.Log.New("migrate"),
+		}
+	}
+
+	return s, nil
 }

@@ -3,6 +3,7 @@ utils           = require './../../core/utils'
 JView           = require './../../core/jview'
 MainHeaderView  = require './../../core/mainheaderview'
 LoginInlineForm = require './../../login/loginform'
+Encoder         = require 'htmlencode'
 
 track = (action) ->
 
@@ -24,10 +25,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
 
     @header = new MainHeaderView
       cssClass : 'team'
-      navItems : [
-        { title : 'Blog',        href : 'http://blog.koding.com',      name : 'blog' }
-        { title : 'Features',    href : 'https://www.koding.com/Features', name : 'features', attributes: { target: '_blank' } }
-      ]
+      navItems : []
 
     @logo = utils.getGroupLogo()
 
@@ -71,11 +69,15 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
 
   pistachio: ->
 
+    # this is to make sure that already created teams with problematic names
+    # are not causing any problems as well. ~Umut
+    title = Encoder.htmlEncode Encoder.htmlDecode kd.config.group.title
+
     """
     {{> @header }}
     <div class="TeamsModal TeamsModal--login">
       {{> @logo}}
-      <h4><span>Sign in to</span> #{kd.config.group.title}</h4>
+      <h4><span>Sign in to</span> #{title}</h4>
       {{> @form}}
     </div>
     <section>

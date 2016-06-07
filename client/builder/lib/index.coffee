@@ -64,16 +64,19 @@ class Haydar extends events.EventEmitter
       baseurl   : defined opts.baseurl, '/'
       defaults  : defined opts.globalsFile, {}
       config    : defined opts.configFile, {}
+      schema    : defined opts.schemaFile, {}
       manifests : defined opts.use, []
 
     opts.basedir = path.resolve __dirname, opts.basedir
     opts.outdir = path.resolve __dirname, opts.outdir
 
     if 'string' is typeof opts.config
-      opts.config = require @_resolve(opts.config)
+      opts.config = require @_resolve opts.config
+
+    if 'string' is typeof opts.schema
+      opts.schema = require @_resolve opts.schema
 
     opts.rev    = defined opts.config.rev, '2.0'
-    opts.schema = null
 
     if opts.revId
       opts.outdir  = path.join opts.outdir, opts.rev
@@ -119,22 +122,6 @@ class Haydar extends events.EventEmitter
 
     dirs = [ opts.outdir ]
 
-    getModels = =>
-      if opts.schema is null and 'object' is typeof opts.config
-        @_time "#{chalk.blue('config')}: write bongo schema to #{opts.configFile}"
-        child_process.exec "node #{__dirname}/get-bongo-schema.js", (err, res) =>
-          throw err if err
-          opts.schema = JSON.parse res
-          configData = if fs.existsSync opts.configFile then require opts.configFile else {}
-          configData = xtend configData,
-            rev    : opts.rev
-            schema : opts.schema
-          fs.writeFileSync opts.configFile, JSON.stringify(configData)
-          @_timeEnd "#{chalk.blue('config')}: write bongo schema to #{opts.configFile}"
-          @_build()
-      else
-        @_build()
-
     getFiles opts.manifests, opts.basedir,
       (err, files) =>
         throw err if err
@@ -165,10 +152,10 @@ class Haydar extends events.EventEmitter
           , (cb) =>
             if --pending is 0
               @_timeEnd chalk.blue 'manifests'
-              createDirs dirs, ->
+              createDirs dirs, =>
                 opts.manifests = manifests
                 opts.rsManifests = rsManifests
-                getModels()
+                @_build()
             cb()
 
           s.pipe(parse).pipe(tr)
@@ -290,10 +277,7 @@ class Haydar extends events.EventEmitter
     else
       b = bant opts_
 
-    if not opts.watchJs
-      # xxx: breaks watchify in watch mode, dedupe fuckup
-      b.require require.resolve('kd.js'), { expose: 'kd' }
-
+    b.require require.resolve('kd.js'), { expose: 'kd' }
     b.use manifests
 
     if opts.collapseJs then b.plugin collapse

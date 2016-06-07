@@ -2,8 +2,7 @@ _                                       = require 'underscore'
 async                                   = require 'async'
 Bongo                                   = require 'bongo'
 koding                                  = require './../bongo'
-{ argv }                                = require 'optimist'
-KONFIG                                  = require('koding-config-manager').load "main.#{argv.c}"
+KONFIG                                  = require 'koding-config-manager'
 
 { uniq }                                = require 'underscore'
 { hostname, environment }               = KONFIG
@@ -147,7 +146,6 @@ createGroupKallback = (client, req, res, body) ->
       title           : companyName
     # config          : { plan: 'trial' } # default team plan
       visibility      : 'hidden'
-      initialData     : body
       allowedDomains  : convertToArray domains # clear & convert domains into array
       defaultChannels : []
     , owner, afterGroupCreate

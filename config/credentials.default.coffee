@@ -22,7 +22,8 @@ module.exports = (options) ->
     # AmazonEC2FullAccess
     worker_test_instance_launcher: kodingdev_master_2016_05
     # TunnelProxyPolicy
-    worker_tunnelproxymanager: kodingdev_master_2016_05 # Name worker_tunnelproxymanager_dev
+    worker_tunnelproxymanager: kodingdev_master_2016_05
+    worker_tunnelproxymanager_route53: kodingdev_master_2016_05
     #Encryption and Storage on S3
     worker_sneakerS3 : kodingdev_master_2016_05
     vm_vmwatcher:     # vm_vmwatcher_dev
@@ -60,14 +61,14 @@ module.exports = (options) ->
   postgres =
     host: "#{options.serviceHost}"
     port: "5432"
-    username: "socialapp_2016_05"
-    password: "socialapp_2016_05"
+    username: "socialapplication"
+    password: "socialapplication"
     dbname: "social"
   kontrolPostgres =
     host: "#{options.serviceHost}"
     port: 5432
-    username: "kontrolapp_2016_05"
-    password: "kontrolapp_2016_05"
+    username: "kontrolapplication"
+    password: "somerandompassword"
     dbname: "social"
     connecttimeout: 20
   pubnub =
@@ -85,9 +86,6 @@ module.exports = (options) ->
   paymentwebhook =
     customersKey: 'R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
     secretKey: "paymentwebhooksecretkey-#{options.configName}"
-  tokbox =
-    apiKey: "45253342"
-    apiSecret: "e834f7f61bd2b3fafc36d258da92413cebb5ce6e"
   googleapiServiceAccount =
     clientId: ''
     clientSecret: ''
@@ -97,15 +95,6 @@ module.exports = (options) ->
     clientId: ''
     clientSecret: ''
     redirectUri: 'http://dev.koding.com:8090/-/oauth/github/callback'
-  odesk =
-    key: ''
-    secret: ''
-    request_url: "https://www.upwork.com/api/auth/v1/oauth/token/request"
-    access_url: "https://www.upwork.com/api/auth/v1/oauth/token/access"
-    secret_url: "https://www.upwork.com/services/api/auth?oauth_token="
-    version: "1.0"
-    signature: "HMAC-SHA1"
-    redirect_uri: "http://dev.koding.com:8090/-/oauth/odesk/callback"
   facebook =
     clientId: ''
     clientSecret: ''
@@ -142,10 +131,6 @@ module.exports = (options) ->
     app_key: ''
   embedly =
     apiKey: ''
-  iframely =
-    apiKey: ''
-    url: 'http://iframe.ly/api/oembed'
-  rollbar = ''
   siftScience = ''
   siftSciencePublic = ''
   jwt =
@@ -183,22 +168,17 @@ module.exports = (options) ->
     secretKey: ""
   vmwatcher =
     secretKey: ""
-  helpscout =
-    apiKey: ''
-    baseUrl: 'https://api.helpscout.net/v1'
-  recurly =
-    apiKey: ""
-    loggedRequests: "/^(subscriptions|transactions)/"
   segment = ''
   kontrol =
-    publicKeyFile: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pem"
-    privateKeyFile: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pub"
+    publicKey: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pub"
+    privateKey: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pem"
   kloud =
-    userPrivateKeyFile: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pem"
-    userPublicKeyfile: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pub"
-    privateKeyFile: kontrol.privateKeyFile
-    publicKeyFile: kontrol.publicKeyFile
+    publicKey: kontrol.publicKey
+    privateKey: kontrol.privateKey
     secretKey: ''
+    userPublicKey: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pub"
+    userPrivateKey: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pem"
+  dummyAdmins = ['superadmin', 'admin', 'koding']
 
   return {
     kiteHome
@@ -214,10 +194,8 @@ module.exports = (options) ->
     pubnub
     terraformer
     paymentwebhook
-    tokbox
     googleapiServiceAccount
     github
-    odesk
     facebook
     mailgun
     slack
@@ -226,8 +204,6 @@ module.exports = (options) ->
     linkedin
     datadog
     embedly
-    iframely
-    rollbar
     siftScience
     siftSciencePublic
     jwt
@@ -238,10 +214,9 @@ module.exports = (options) ->
     recaptcha
     paypal
     janitor
-    helpscout
-    recurly
     segment
     kontrol
     kloud
     vmwatcher
+    dummyAdmins
   }

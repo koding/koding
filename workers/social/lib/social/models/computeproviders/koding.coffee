@@ -5,10 +5,7 @@
 
 ProviderInterface = require './providerinterface'
 KodingError       = require '../../error'
-
 Regions           = require 'koding-regions'
-{ argv }          = require 'optimist'
-KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 { updateMachine, validateResizeByUserPlan } = require './helpers'
 

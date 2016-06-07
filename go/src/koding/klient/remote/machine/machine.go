@@ -1,7 +1,9 @@
 package machine
 
 import (
+	"errors"
 	"fmt"
+	"path"
 	"time"
 
 	"github.com/koding/logging"
@@ -9,6 +11,7 @@ import (
 	"koding/kites/tunnelproxy/discover"
 	"koding/klient/command"
 	"koding/klient/kiteerrortypes"
+	"koding/klient/os"
 	"koding/klient/remote/kitepinger"
 	"koding/klient/remote/rsync"
 	"koding/klient/util"
@@ -54,6 +57,9 @@ const (
 
 	// The command fed to the remote Klient to check whether a remote dir exists.
 	remoteDirExistsBashCmd = `bash -c "[ -d %s ]"`
+
+	// The command fed to the remote Klient to check whether a remote path exists.
+	remotePathExistsBashCmd = `bash -c "[ -e %s ]"`
 )
 
 var (
@@ -373,14 +379,50 @@ func (m *Machine) IsConnected() bool {
 	return m.KiteTracker.IsConnected()
 }
 
+// InitHTTPTracker creates the HTTPTracker for this Machine, if it is
+// currently nil.
+//
+// This allows a caller to simply call this method beforehand on any machine,
+// valid or not, and access the online/offline status of the remote kite.
+func (m *Machine) InitHTTPTracker() error {
+	if m.HasHTTPTracker() {
+		return nil
+	}
+
+	// If the URL is empty, don't bother - nothing we can do.
+	if m.URL == "" {
+		return errors.New("Unable to Init HTTPTracker, Machine.URL is empty.")
+	}
+
+	httpPinger, err := kitepinger.NewKiteHTTPPinger(m.URL)
+	if err != nil {
+		return err
+	}
+
+	m.HTTPTracker = kitepinger.NewPingTracker(httpPinger)
+
+	return nil
+}
+
 // IsOnline returns the httppingers IsConnected result.
 func (m *Machine) IsOnline() bool {
-	// If it's nil, this is a not a valid / connected machine.
-	if m.HTTPTracker == nil {
+	// If it's false, this is a not a valid / connected machine.
+	if !m.HasHTTPTracker() {
 		return false
 	}
 
 	return m.HTTPTracker.IsConnected()
+}
+
+// HasHTTPTracker returns whether or not the machine has an HTTPTracker, and thusly
+// cannot properly know if the machine is online or not.
+//
+// An example use case being, machine.IsOnline() could return false but if there
+// is no HTTPTracker, it cannot actually know if the machine is offline. Checking
+// if the machine has an HTTPTracker would help ensure that the machine is indeed
+// offline.
+func (m *Machine) HasHTTPTracker() bool {
+	return m.HTTPTracker != nil
 }
 
 // ConnectedAt returns the kitepinger's ConnectedAt result
@@ -437,13 +479,93 @@ func (m *Machine) UnlockMounting() {
 	m.mountLocker.Unlock()
 }
 
-// DoesRemotePathExist checks if the given remote path exists for this
+// DoesRemotePathExist checks if the given remote dir exists for this
 // machine.
 func (m *Machine) DoesRemoteDirExist(p string) (bool, error) {
 	params := struct {
 		Command string
 	}{
 		Command: fmt.Sprintf(remoteDirExistsBashCmd, p),
+	}
+
+	kRes, err := m.TellWithTimeout("exec", 4*time.Second, params)
+	if err != nil {
+		return false, err
+	}
+
+	var res command.Output
+	if err := kRes.Unmarshal(&res); err != nil {
+		return false, err
+	}
+
+	return res.ExitStatus == 0, nil
+}
+
+// Home attempts to return the home directory of the remote machine.
+func (m *Machine) Home() (string, error) {
+	u := m.Username
+	if u == "" {
+		return "", errors.New("Machine username is missing, unable to find Home.")
+	}
+
+	opts := os.HomeOptions{
+		Username: u,
+	}
+
+	// First try to get the real home
+	res, err := m.TellWithTimeout("os.home", 4*time.Second, opts)
+	if err != nil {
+		return "", err
+	}
+
+	var home string
+	if err := res.Unmarshal(&home); err != nil {
+		return "", err
+	}
+
+	return home, nil
+}
+
+// HomeWithDefault attempts to get the home value, but defaults if it cannot
+// get the system users true home.
+//
+// The remote system being unable to find the users home is most commonly due to
+// running an older klient.
+func (m *Machine) HomeWithDefault() (string, error) {
+	home, err := m.Home()
+	if err == nil {
+		return home, nil
+	}
+
+	// If home fails, it might be due to a missing transport. Assume log is missing
+	// too (ie, not valid machine) to prevent a panic.
+	if m.Log != nil {
+		m.Log.New("homeWithDefault").Warning(
+			"Failed to get real Home value. Ignoring error. err:%s",
+			err,
+		)
+	}
+
+	u := m.Username
+	if u == "" {
+		return "", errors.New("Unable to find home directory")
+	}
+
+	// TODO: Add a system identifier (ie, runtime.GOOS for the remote system), and
+	// with that system identifier we can provide sane defaults with the username.
+	//
+	// Ie, OSX is /Users/u, linux is /home/u, etc. Not 100%, but in the event of a
+	// fallback it's better than just assuming/home.
+	return path.Join("/home", u), nil
+}
+
+// DoesRemotePathExist checks if the given remote path exists for this
+// machine.
+func (m *Machine) DoesRemotePathExist(p string) (bool, error) {
+	params := struct {
+		Command string
+	}{
+		Command: fmt.Sprintf(remotePathExistsBashCmd, p),
 	}
 
 	kRes, err := m.TellWithTimeout("exec", 4*time.Second, params)

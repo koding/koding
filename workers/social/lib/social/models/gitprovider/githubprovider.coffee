@@ -1,6 +1,5 @@
-{ argv }    = require 'optimist'
 GithubAPI   = require 'github'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG      = require 'koding-config-manager'
 Constants   = require './constants'
 helpers     = require './utils/helpers'
 async       = require 'async'

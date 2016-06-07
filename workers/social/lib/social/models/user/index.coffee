@@ -2,8 +2,7 @@ async            = require 'async'
 jraphical        = require 'jraphical'
 Regions          = require 'koding-regions'
 request          = require 'request'
-{ argv }         = require 'optimist'
-KONFIG           = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG           = require 'koding-config-manager'
 Flaggable        = require '../../traits/flaggable'
 KodingError      = require '../../error'
 emailsanitize    = require './emailsanitize'
@@ -70,7 +69,6 @@ module.exports = class JUser extends jraphical.Module
       email         : 'unique'
       sanitizedEmail: ['unique', 'sparse']
       'foreignAuth.github.foreignId'   : 'ascending'
-      'foreignAuth.odesk.foreignId'    : 'ascending'
       'foreignAuth.facebook.foreignId' : 'ascending'
       'foreignAuth.google.foreignId'   : 'ascending'
       'foreignAuth.linkedin.foreignId' : 'ascending'
@@ -181,13 +179,6 @@ module.exports = class JUser extends jraphical.Module
           lastName           : String
           email              : String
           scope              : String
-        odesk                :
-          foreignId          : String
-          token              : String
-          accessTokenSecret  : String
-          requestToken       : String
-          requestTokenSecret : String
-          profileUrl         : String
         facebook             :
           foreignId          : String
           username           : String
@@ -1948,7 +1939,6 @@ module.exports = class JUser extends jraphical.Module
 
     # for some reason status is sometimes 'undefined', so check for that
     if status? and status isnt 'unconfirmed'
-      console.log "ALERT: #{username} is trying to confirm '#{status}' email"
       return callback null
 
     modifier = { status: 'confirmed' }

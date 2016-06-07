@@ -17,7 +17,6 @@ ComputeController       = require './computecontroller'
 BaseModalView           = require './views/basemodalview'
 HelpSupportModal        = require '../commonviews/helpsupportmodal'
 
-MarketingSnippetView    = require 'app/marketing/marketingsnippetview'
 ReadmeView              = require './environmentsmachinereadmeview'
 
 whoami                  = require 'app/util/whoami'
@@ -93,9 +92,6 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         if subscription?.state is 'expired'
         then @buildExpiredView subscription
         else @buildInitial()
-
-    { marketingController } = kd.singletons
-    marketingController.on 'SnippetNeedsToBeShown', @bound 'showMarketingSnippet'
 
     @on 'MachineTurnOnStarted', (machine) ->
       sendDataDogEvent 'MachineTurnedOn', { tags: { label: machine.label } }
@@ -412,7 +408,6 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       @state = response.State
 
     @container.destroySubViews()
-    @container.unsetClass 'marketing-message'
     @progressBar = null
 
     if @state is 'NotFound'
@@ -432,7 +427,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
       @createProgressBar percentage
       @triggerEventTimer percentage
-      @showRandomMarketingSnippet()  if @state is Starting
+
     else if @state is Terminated
       @label.destroy?()
       @createStateLabel if isKoding() then "
@@ -714,9 +709,9 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
   requestNewMachine: ->
 
-    route = if isKoding() then '/My-Machines' else '/Stacks'
+    route = if isKoding() then '/My-Machines' else '/Home/Stacks'
 
-    kd.singletons.appManager.getFrontApp().quit()
+    kd.singletons.appManager.getFrontApp().quit()  if isKoding()
     kd.singletons.router.handleRoute route
 
 
@@ -812,23 +807,6 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         .subscribe 'token', 'free', 'month', { email }, (err, resp) ->
           return callback err  if err?
           callback null
-
-
-  showRandomMarketingSnippet: ->
-
-    { marketingController } = kd.singletons
-    marketingController.getRandomSnippet @bound 'showMarketingSnippet'
-
-
-  showMarketingSnippet: (snippet) ->
-
-    return  unless snippet
-
-    @marketingSnippet?.destroy()
-    @marketingSnippet = new MarketingSnippetView snippet
-
-    @container.addSubView @marketingSnippet
-    @container.setClass 'marketing-message'
 
 
   initReadmeView: ->

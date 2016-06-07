@@ -25,6 +25,11 @@ const (
 
 	// The message displayed after an auto remount failed, but we are retrying.
 	autoRemountingAgain = "Remounting failed, retrying in a moment."
+
+	// The message displayed after an auto remount failed, but the machine cannot
+	// be reached - either due to the current users connection, or the remote
+	// machines connection.
+	remountingButOffline = "Retrying remount, machine is unreachable."
 )
 
 // MountsHandler lists all of the locally mounted folders
@@ -209,6 +214,20 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 		return err
 	}
 
+	// If the machine does not have an http tracker, create it so that we can
+	// get accurate online/offline information.
+	if !remoteMachine.HasHTTPTracker() {
+		// No need to return here, this just means we won't get accurate information
+		// about online/offline *before the machine is valid*. This is used mainly
+		// in the defer, to mark the remounting machine as offline.
+		//
+		// Later, we'll get a valid and dialed machine, which is assured to have an
+		// http tracker or fail trying.
+		if err := remoteMachine.InitHTTPTracker(); err != nil {
+			log.Error("Unable to init http tracker before remount. err:%s", err)
+		}
+	}
+
 	// Update the status based on the return value. Note that it's possible to
 	// return before this call, if we can't get the machine, but that's a non-issue
 	// for updating the machine status, since we failed to get the machine, and
@@ -216,7 +235,19 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 	defer func() {
 		if err != nil {
 			// Update the user that we failed, and are retrying.
-			remoteMachine.SetStatus(machine.MachineRemounting, autoRemountingAgain)
+			switch {
+			case !remoteMachine.IsOnline() && remoteMachine.HasHTTPTracker():
+				// The machine is offline / unreachable, so don't set the status to
+				// remounting specifically.
+				//
+				// TODO: Check if we have internet here?
+				remoteMachine.SetStatus(machine.MachineOffline, remountingButOffline)
+			default:
+				// Machine status is not offline/disconnected, therefor it may be
+				// online and/or connected - but we failed to mount for another unknown
+				// reason. Use a generic status.
+				remoteMachine.SetStatus(machine.MachineRemounting, autoRemountingAgain)
+			}
 		} else {
 			// If there's no errors, clear the status.
 			remoteMachine.SetStatus(machine.MachineStatusUnknown, "")
@@ -303,7 +334,7 @@ func (r *Remote) restoreMount(m *mount.Mount) (err error) {
 		if !m.SyncIntervalOpts.IsZero() {
 			rs := rsync.NewClient(log)
 			// After the progress chan is done, start our SyncInterval
-			startIntervaler(log, remoteMachine, rs, m.SyncIntervalOpts)
+			startIntervalerIfNeeded(log, remoteMachine, rs, m.SyncIntervalOpts)
 			// Assign the rsync intervaler to the mount.
 			m.Intervaler = remoteMachine.Intervaler
 		} else {

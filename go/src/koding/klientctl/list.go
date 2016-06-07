@@ -63,13 +63,21 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 0
 	}
 
+	var listCount int
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tSTATUS\tMOUNTED PATHS\n")
-	for i, info := range infos {
-		// Do not show machines that have been offline for more than 24h
-		if !showAll && time.Since(info.OnlineAt) > 24*time.Hour {
+	for _, info := range infos {
+		onlineRecently := time.Since(info.OnlineAt) <= 24*time.Hour
+		hasMounts := len(info.Mounts) > 0
+		// Do not show machines that have been offline for more than 24h,
+		// but only if the machine doesn't have any mounts and we aren't using the --all
+		// flag.
+		if !hasMounts && !showAll && !onlineRecently {
 			continue
 		}
+
+		// Increase the visible machine count
+		listCount++
 
 		// Join multiple teams into a single identifier
 		team := strings.Join(info.Teams, ",")
@@ -116,7 +124,7 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 		}
 
 		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\t%s\n",
-			i+1, team, info.MachineLabel, info.IP, info.VMName, status, formattedMount,
+			listCount, team, info.MachineLabel, info.IP, info.VMName, status, formattedMount,
 		)
 	}
 	w.Flush()

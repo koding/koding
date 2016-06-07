@@ -5,13 +5,13 @@ os                    = require 'os'
 path                  = require 'path'
 { isAllowed }         = require '../deployment/grouptoenvmapping'
 
-Configuration = (options={}) ->
+Configuration = (options = {}) ->
 
   options.domains =
-    base  : 'koding.com'
-    mail  : 'koding.com'
-    main  : 'dev.koding.com'
-    port  : '8090'
+    base: 'koding.com'
+    mail: 'koding.com'
+    main: 'dev.koding.com'
+    port: '8090'
 
   options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "localhost"
   options.serviceHost = options.boot2dockerbox
@@ -25,7 +25,9 @@ Configuration = (options={}) ->
   options.projectRoot or= path.join __dirname, '/..'
   options.version or= "2.0" # TBD
   options.build or= "1111"
-  options.tunnelUrl or= "http://devtunnelproxy.koding.com"
+  options.tunnelHostedZoneName = "dev-t.koding.com"
+  options.tunnelHostedZoneCallerRef = "devtunnelproxy_hosted_zone_v0"
+  options.tunnelUrl or= "http://#{options.tunnelHostedZoneName}"
   options.userSitesDomain or= "dev.koding.io"
   options.defaultEmail or= "hello@#{options.domains.mail}"
   options.recaptchaEnabled or= no
@@ -41,6 +43,7 @@ Configuration = (options={}) ->
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.vaultPath or= path.join __dirname, "../vault/" # use same directory with our application
   options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.environment}.coffee"
+  options.clientUploadS3BucketName = 'kodingdev-client'
 
   try fs.lstatSync options.credentialPath
   catch

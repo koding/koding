@@ -148,18 +148,35 @@ module.exports =
     return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
 
 
+  ###*
+  * Switch browser with given current broser and url to check
+  * @param browser, {string} url
+  * return current browser
+  ###
+  switchBrowser: (browser, urlToCheck) ->
+
+    browser.window_handles (result) ->
+      handle = result.value[1]
+      browser
+        .switchWindow         handle
+        .assert.urlContains   urlToCheck
+        .pause                2000
+        .closeWindow()
+        .switchWindow         result.value[0]
+
+
   openFolderContextMenu: (browser, user, folderName) ->
 
-    webPath       = '/home/' + user.username + '/' + folderName
-    webSelector   = "span[title='" + webPath + "']"
+    configPath       = '/home/' + user.username + '/' + folderName
+    configSelector   = "span[title='" + configPath + "']"
 
     @clickVMHeaderButton(browser)
 
     browser
       .click                   '.context-list-wrapper .refresh'
-      .waitForElementVisible   webSelector, 50000
-      .click                   webSelector
-      .click                   webSelector + ' + .chevron'
+      .waitForElementVisible   configSelector, 50000
+      .click                   configSelector
+      .click                   configSelector + ' + .chevron'
 
 
   clickVMHeaderButton: (browser) ->
@@ -167,14 +184,15 @@ module.exports =
     browser
       .pause                   5000 # wait for filetree load
       .waitForElementVisible   '.vm-header', 50000
-      .click                   '.vm-header .buttons'
+      .click                   '.vm-header'
+      .click                   '.vm-header .chevron'
       .waitForElementPresent   '.context-list-wrapper', 50000
 
 
-  createFile: (browser, user, selector, folderName, fileName) ->
+  createFile: ( browser, user, selector, folderName, fileName, callback = -> ) ->
 
     selector   or= 'li.new-file'
-    folderName or= 'Web'
+    folderName or= '.config'
     fileName   or= "#{@getFakeText().split(' ')[0]}.txt"
     folderPath = "/home/#{user.username}/#{folderName}"
 
@@ -187,12 +205,13 @@ module.exports =
       .clearValue               'li.selected .rename-container .hitenterview'
       .setValue                 'li.selected .rename-container .hitenterview', fileName + '\n'
       .pause                    3000 # required
-      .waitForElementPresent    "span[title='" + folderPath + '/' + fileName + "']", 50000 # Assertion
+      .waitForElementPresent    "span[title='" + folderPath + '/' + fileName + "']", 50000, false, -> callback() # Assertion
+
 
     return fileName
 
 
-  createFileFromMachineHeader: (browser, user, fileName, shouldAssert = yes) ->
+  createFileFromMachineHeader: ( browser, user, fileName, shouldAssert = yes, callback = -> ) ->
 
     unless fileName
       fileName    = @getFakeText().split(' ')[0] + '.txt'
@@ -214,12 +233,12 @@ module.exports =
 
     if shouldAssert
       browser
-        .waitForElementPresent   fileSelector, 20000 # Assertion
+        .waitForElementPresent   fileSelector, 20000, false, -> callback() # Assertion
 
     return fileName
 
 
-  createFolder: (browser, user) ->
+  createFolder: ( browser, user, callback = -> ) ->
 
     folderName     = @getFakeText().split(' ')[0]
     folderPath     = '/home/' + user.username + '/' + folderName
@@ -227,12 +246,14 @@ module.exports =
 
     browser
       .waitForElementVisible   '.vm-header', 50000
-      .click                   '.vm-header .buttons'
+      .click                   '.vm-header'
+      .click                   '.vm-header .chevron'
       .waitForElementPresent   '.context-list-wrapper', 50000
       .click                   '.context-list-wrapper .refresh'
       .pause                   2000
       .waitForElementVisible   '.vm-header', 50000
-      .click                   '.vm-header .buttons'
+      .click                   '.vm-header'
+      .click                   '.vm-header .chevron'
       .waitForElementVisible   '.context-list-wrapper', 50000
       .click                   '.context-list-wrapper li.new-folder'
       .waitForElementVisible   'li.selected .rename-container .hitenterview', 50000
@@ -241,7 +262,7 @@ module.exports =
       .pause                   3000 # wait for
       .setValue                'li.selected .rename-container .hitenterview', folderName + '\n'
       .pause                   3000 # required
-      .waitForElementPresent   folderSelector, 50000 # Assertion
+      .waitForElementPresent   folderSelector, 50000, false, callback() # Assertion
 
     data = {
       name: folderName
@@ -252,7 +273,7 @@ module.exports =
     return data
 
 
-  deleteFile: (browser, fileSelector) ->
+  deleteFile: ( browser, fileSelector, callback = -> ) ->
 
     browser
       .waitForElementPresent     fileSelector, 20000
@@ -263,6 +284,7 @@ module.exports =
       .waitForElementVisible     '.delete-container', 20000
       .click                     '.delete-container button.clean-red'
       .waitForElementNotPresent  fileSelector, 2000
+      .pause 10, -> callback()
 
 
   openChangeTopFolderMenu: (browser) ->
@@ -352,31 +374,45 @@ module.exports =
     defaultCard  =
       cardNumber : cardDetails.cardNumber or '4111 1111 1111 1111'
       cvc        : cardDetails.cvc        or 123
-      month      : cardDetails.month      or 12
+      month      : cardDetails.month      or 'December'
       year       : cardDetails.year       or 2019
 
-    user         = utils.getUser()
-    name         = user.username
-    paymentModal = 'form.payment-method-entry-form'
+    user               = utils.getUser()
+    name               = user.username
+    paymentModal       = '.HomeAppView--billing-form'
+    cardNumberSelector = '.HomeAppView-input.card-number'
+    cvcSelector        = '.HomeAppView-input.cvc'
+    monthSelector      = '.HomeAppView-selectBoxWrapper.expiration-month'
+    yearSelector       = '.HomeAppView-selectBoxWrapper.expiration-year'
+    fullNameSelector   = '.HomeAppView-input.full-name'
+    emailSelector      = '.HomeAppView-input.email'
 
     browser
-      .waitForElementVisible   paymentModal, 20000
-      .waitForElementVisible   paymentModal + ' .cardnumber', 20000
-      .click                   'input[name=cardNumber]'
-      .setValue                'input[name=cardNumber]', defaultCard.cardNumber
-      .waitForElementVisible   paymentModal + ' .cardcvc', 20000
-      .click                   'input[name=cardCVC]'
-      .setValue                'input[name=cardCVC]', defaultCard.cvc
-      .waitForElementVisible   paymentModal + ' .cardmonth', 20000
-      .click                   'input[name=cardMonth]'
-      .setValue                'input[name=cardMonth]', defaultCard.month
-      .waitForElementVisible   paymentModal + ' .cardyear', 20000
-      .click                   'input[name=cardYear]'
-      .setValue                'input[name=cardYear]', defaultCard.year
-      .waitForElementVisible   paymentModal + ' .cardname', 20000
-      .click                   'input[name=cardName]'
-      .clearValue              'input[name=cardName]'
-      .setValue                'input[name=cardName]', name
+      .waitForElementVisible   paymentModal, 10000
+      .waitForElementVisible   cardNumberSelector, 20000
+      .click                   cardNumberSelector
+      .setValue                cardNumberSelector, defaultCard.cardNumber
+
+      .waitForElementVisible   cvcSelector, 20000
+      .click                   cvcSelector
+      .setValue                cvcSelector, defaultCard.cvc
+
+      .waitForElementVisible   monthSelector, 20000
+      .click                   monthSelector
+      .setValue                monthSelector, defaultCard.month
+
+      .scrollToElement         paymentModal
+      .waitForElementVisible   yearSelector, 20000
+      .click                   yearSelector
+      .setValue                yearSelector, defaultCard.year
+
+      .waitForElementVisible   fullNameSelector, 20000
+      .setValue                fullNameSelector, name
+      .scrollToElement         paymentModal
+
+      .waitForElementVisible   emailSelector, 20000
+      .setValue                emailSelector, user.email
+      .pause 5000
 
 
   submitForm: (browser, validCardDetails = yes) ->
@@ -431,7 +467,7 @@ module.exports =
           browser.end()
 
 
-  runCommandOnTerminal: (browser, text) ->
+  runCommandOnTerminal: ( browser, text, callback = -> ) ->
 
     text or= Date.now()
 
@@ -441,6 +477,7 @@ module.exports =
       .pause                     5000
       .waitForElementVisible     '.panel-1 .panel-1 .kdtabpaneview.terminal.active', 25000
       .assert.containsText       '.panel-1 .panel-1 .kdtabpaneview.terminal.active', text
+      .pause 10, -> callback()
 
 
   setCookie: (browser, name, value) ->
@@ -450,6 +487,7 @@ module.exports =
     browser
       .cookie    'POST', { name, value, domain }
       .refresh()
+
 
   notifyTestFailure: (browser, testName) ->
 
@@ -467,3 +505,24 @@ module.exports =
       return "http://#{user.teamSlug}.#{url}"
     else
       return "http://#{url}"
+
+
+  changePasswordHelper: (browser, newPassword, confirmPassword, currentPassword, notificationText ) ->
+    passwordSelector          = 'input[name=password]'
+    confirmPasswordSelector   = 'input[name=confirmPassword]'
+    currentPasswordSelector   = 'input[name=currentPassword]'
+    saveButtonSelector        = '.my-account .HomeAppView--section.password .HomeAppView--form a'
+
+    browser
+      .waitForElementVisible   passwordSelector, 20000
+      .clearValue              passwordSelector
+      .setValue                passwordSelector, newPassword
+      .clearValue              confirmPasswordSelector
+      .setValue                confirmPasswordSelector, confirmPassword
+      .clearValue              currentPasswordSelector
+      .setValue                currentPasswordSelector, currentPassword
+      .waitForElementVisible   saveButtonSelector, 20000
+      .click                   saveButtonSelector
+      .waitForElementVisible   '.kdnotification.main', 20000
+      .assert.containsText     '.kdnotification.main', notificationText
+      .pause  3000

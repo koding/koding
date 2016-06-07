@@ -8,11 +8,10 @@ path                  = require 'path'
 Configuration = (options = {}) ->
 
   options.domains =
-    base : 'koding.com'
-    mail : 'koding.com'
-    main : 'sandbox.koding.com'
-    port : '80'
-
+    base: 'koding.com'
+    mail: 'koding.com'
+    main: 'sandbox.koding.com'
+    port: '80'
 
   options.serviceHost = "10.0.0.136"
   options.publicPort = "80"
@@ -25,7 +24,9 @@ Configuration = (options = {}) ->
   options.projectRoot = "/opt/koding"
   options.version or= options.tag
   options.build or= "1111"
-  options.tunnelUrl or= "http://devtunnelproxy.koding.com"
+  options.tunnelHostedZoneName = "dev-t.koding.com"
+  options.tunnelHostedZoneCallerRef = "devtunnelproxy_hosted_zone_v0"
+  options.tunnelUrl or= "http://#{options.tunnelHostedZoneName}"
   options.userSitesDomain or= "sandbox.koding.io"
   options.defaultEmail or= "hello@#{options.domains.mail}"
   options.recaptchaEnabled or= yes
@@ -41,6 +42,8 @@ Configuration = (options = {}) ->
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.vaultPath or= path.join __dirname, "../vault/" # use same directory with our application
   options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.environment}.coffee"
+  options.clientUploadS3BucketName = 'kodingdev-client'
+
 
   try fs.lstatSync options.credentialPath
   catch

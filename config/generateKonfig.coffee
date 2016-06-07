@@ -38,10 +38,30 @@ module.exports = (options, credentials) ->
     authAllExchange: "authAll"
     failoverUri: "#{options.customDomain.public}"
 
+  tunnelproxymanager =
+    ebEnvName: options.ebEnvName
+
+    accessKeyId:     credentials.awsKeys.worker_tunnelproxymanager.accessKeyId
+    secretAccessKey: credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey
+
+    route53AccessKeyId: credentials.awsKeys.worker_tunnelproxymanager_route53.accessKeyId
+    route53SecretAccessKey: credentials.awsKeys.worker_tunnelproxymanager_route53.secretAccessKey
+
+    hostedZone:
+        name: options.tunnelHostedZoneName
+        callerReference: options.tunnelHostedZoneCallerRef
+
   tunnelserver =
-    port           : 80
-    basevirtualhost: "koding.me"
-    hostedzone     : "koding.me"
+    port: 80
+
+    region     : options.region
+    environment: options.environment
+
+    accessKey: credentials.awsKeys.worker_tunnelproxymanager.accessKeyId
+    secretKey: credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey
+
+    hostedzone      : "koding.me"
+    basevirtualhost : "koding.me"
 
   algoliaSecret =
     appId: credentials.algolia.appId
@@ -70,32 +90,67 @@ module.exports = (options, credentials) ->
     url: "https://www.google.com/recaptcha/api/siteverify"
 
   kontrol =
-    url: "#{options.customDomain.public}/kontrol/kite"
     port: 3000
-    useTLS: no
-    certFile: ""
-    keyFile: ""
-    publicKeyFile: credentials.kontrol.publicKeyFile
-    privateKeyFile: credentials.kontrol.privateKeyFile
+    storage: 'postgres'
+    postgres: credentials.kontrolPostgres
 
-  kloudPort = 5500
+    mongoUrl: credentials.mongo
+
+    region: options.region
+    environment: options.environment
+
+    url: "#{options.customDomain.public}/kontrol/kite"
+
+    useTLS: no
+    tlsCertFile: ""
+    tlsKeyFile: ""
+
+    publicKey: credentials.kontrol.publicKey
+    privateKey: credentials.kontrol.privateKey
+
+  socialApiProxyUrl = "#{options.customDomain.local}/api/social"
+  vmwatcherPort = '6400'
+
   kloud =
-    port: kloudPort
-    userPrivateKeyFile: credentials.kloud.userPrivateKeyFile
-    userPublicKeyfile: credentials.kloud.userPublicKeyfile
-    privateKeyFile: credentials.kloud.privateKeyFile
-    publicKeyFile: credentials.kloud.publicKeyFile
-    secretKey: credentials.kloud.secretKey
+    port: kloudPort = 5500
+    kloudSecretKey: credentials.kloud.secretKey
+
+    mongoUrl: credentials.mongo
+
+    region: options.region
+    environment: options.environment
+    prodMode: options.configName is 'prod'
+    hostedZone: options.userSitesDomain
+
+    publicKey: credentials.kloud.publicKey
+    privateKey: credentials.kloud.privateKey
+
+    userPublicKey: credentials.kloud.userPublicKey
+    userPrivateKey: credentials.kloud.userPrivateKey
+
+    address: "http://localhost:#{kloudPort}/kite"
+
     kontrolUrl: kontrol.url
     registerUrl: "#{options.customDomain.public}/kloud/kite"
-    address: "http://localhost:#{kloudPort}/kite"
     tunnelUrl: "#{options.tunnelUrl}"
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
+
+    planEndpoint: "#{socialApiProxyUrl}/payments/subscriptions"
+    credentialEndPoint: "#{socialApiProxyUrl}/credential"
+    networkUsageEndpoint: "http://localhost:#{vmwatcherPort}"
+
+    janitorSecretKey: credentials.janitor.secretKey
+    vmWatcherSecretKey: credentials.vmwatcher.secretKey
+    paymentWebHookSecretKey: credentials.paymentwebhook.secretKey
+
+    awsAccessKeyId: credentials.awsKeys.vm_kloud.accessKeyId
+    awsSecretAccessKey: credentials.awsKeys.vm_kloud.secretAccessKey
+
   vmwatcher =
-    port: "6400"
+    port: vmwatcherPort
     awsKey: credentials.awsKeys.vm_vmwatcher.accessKeyId
     awsSecret: credentials.awsKeys.vm_vmwatcher.secretAccessKey
-    kloudSecretKey: kloud.secretKey
+    kloudSecretKey: kloud.kloudSecretKey
     kloudAddr: kloud.address
     connectToKlient: options.vmwatcherConnectToKlient
     debug: false,
@@ -127,6 +182,8 @@ module.exports = (options, credentials) ->
     sneakerS3              : credentials.sneakerS3
     mailgun                : credentials.mailgun
     segment                : credentials.segment
+    dummyAdmins            : credentials.dummyAdmins
+    druid                  : credentials.druid
 
     algolia                : algoliaSecret
     gatekeeper             : gatekeeper
@@ -138,10 +195,10 @@ module.exports = (options, credentials) ->
 
     sitemap                : { redisDB: 0, updateInterval: "1m" }
     limits                 : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
-    kloud                  : { secretKey: kloud.secretKey, address: kloud.address }
+    kloud                  : { secretKey: kloud.kloudSecretKey, address: kloud.address }
     geoipdbpath            : "#{options.projectRoot}/go/data/geoipdb"
     eventExchangeName      : "BrokerMessageBus"
-    proxyUrl               : "#{options.customDomain.local}/api/social"
+    proxyUrl               : socialApiProxyUrl
     port                   : "7000"
     configFilePath         : "#{options.projectRoot}/go/src/socialapi/config/#{options.configName}.toml"
     disableCaching         : no
@@ -164,11 +221,13 @@ module.exports = (options, credentials) ->
     disabledFeatures              : options.disabledFeatures
     autoConfirmAccounts           : options.autoConfirmAccounts
     domains                       : options.domains
+    clientUploadS3BucketName      : options.clientUploadS3BucketName
 
     kiteHome                      : credentials.kiteHome
     redis                         : credentials.redis.url
     monitoringRedis               : credentials.monitoringRedis.url
     mongo                         : credentials.mongo
+    postgres                      : credentials.postgres
     mq                            : credentials.rabbitmq
     terraformer                   : credentials.terraformer
     recurly                       : credentials.recurly
@@ -177,27 +236,26 @@ module.exports = (options, credentials) ->
     linkedin                      : credentials.linkedin
     datadog                       : credentials.datadog
     github                        : credentials.github
-    odesk                         : credentials.odesk
     facebook                      : credentials.facebook
     slack                         : credentials.slack
     sneakerS3                     : credentials.sneakerS3
     embedly                       : credentials.embedly
-    iframely                      : credentials.iframely
     integration                   : credentials.integration
     googleapiServiceAccount       : credentials.googleapiServiceAccount
     siftScience                   : credentials.siftScience
-    tokbox                        : credentials.tokbox
-    rollbar                       : credentials.rollbar
     jwt                           : credentials.jwt
     papertrail                    : credentials.papertrail
     mailgun                       : credentials.mailgun
     helpscout                     : credentials.helpscout
     awsKeys                       : credentials.awsKeys
     segment                       : credentials.segment
+    dummyAdmins                   : credentials.dummyAdmins
+    druid                         : credentials.druid
 
     paymentwebhook                : paymentwebhook
     regions                       : regions
     broker                        : broker
+    tunnelproxymanager            : tunnelproxymanager
     tunnelserver                  : tunnelserver
     hubspotPageURL                : hubspotPageURL
     socialapi                     : socialapi
@@ -213,9 +271,9 @@ module.exports = (options, credentials) ->
     misc                          : { claimGlobalNamesForUsers: no , debugConnectionErrors: yes, updateAllSlugs: false }
     # TODO: average request count per hour for a user should be measured and a reasonable limit should be set
     nodejsRateLimiter             : { enabled: no, guestRules: [{ interval: 3600, limit: 5000 }], userRules: [{ interval: 3600, limit: 10000 }] } # limit: request limit per rate limit window, interval: rate limit window duration in seconds
-    webserver                     : { port: 8080, useCacheHeader: no , kitePort: 8860 }
+    webserver                     : { port: 8080, useCacheHeader: no }
     authWorker                    : { login: credentials.rabbitmq.login, queueName: options.socialQueueName + 'auth', authExchange: "auth", authAllExchange: "authAll", port : 9530 }
-    social                        : { port: 3030, login: "#{credentials.rabbitmq.login}", queueName: options.socialQueueName, kitePort: 8760 }
+    social                        : { port: 3030, login: "#{credentials.rabbitmq.login}", queueName: options.socialQueueName, kitePort: 8760, kiteKey: "#{credentials.kiteHome}/kite.key" }
     boxproxy                      : { port: parseInt(options.publicPort, 10) }
     sourcemaps                    : { port: 3526 }
     rerouting                     : { port: 9500 }

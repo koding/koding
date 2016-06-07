@@ -8,6 +8,7 @@ GetStartedView        = require './getstartedview'
 ConfigurationView     = require './configurationview'
 ProviderSelectionView = require './providerselectionview'
 Tracker               = require 'app/util/tracker'
+CustomLinkView        = require 'app/customlinkview'
 CLONE_REPO_TEMPLATES  =
   github              : 'git clone git@github.com:your-organization/reponame.git'
   bitbucket           : 'git clone git@bitbucket.org/your-organization/reponame.git'
@@ -30,7 +31,6 @@ module.exports = class OnboardingView extends JView
 
     @createViews()
     @createFooter()
-    @createStackPreview()
 
     @bindPageEvents()
 
@@ -50,23 +50,13 @@ module.exports = class OnboardingView extends JView
 
   bindPageEvents: ->
 
-    @pages.forEach (page) =>
-      page.on 'UpdateStackTemplate', (scrollToBottom) =>
-        @stackPreview.show()
-        @updateStackTemplate()
-        @emit 'ScrollTo', 'bottom'  if scrollToBottom
-
-      page.on 'HiliteTemplate', (type, keyword) =>
-        kd.utils.wait 737, => @hiliteTemplate type, keyword
+    @pages.forEach (page) => page.on 'UpdateStackTemplate', => @updateStackTemplate()
 
     @on 'PageNavigationRequested', @bound 'handlePageNavigationRequested'
 
     @getStartedView.on 'NextPageRequested', =>
       @unsetClass 'get-started'
       @emit 'PageNavigationRequested', 'next'
-
-    @configurationView.once 'UpdateStackTemplate', => @emit 'ScrollTo', 'bottom'
-    @codeSetupView.once 'UpdateStackTemplate', => @emit 'ScrollTo', 'bottom'
 
     @getStartedView.emit 'NextPageRequested'  if @getOption 'skipOnboarding'
 
@@ -86,8 +76,6 @@ module.exports = class OnboardingView extends JView
     nextIndex  = if direction is 'next' then ++pageIndex else --pageIndex
     targetPage = @pages[nextIndex]
 
-    return @emit 'ShowInitialView'  if pageIndex is 0 and direction is 'prev'
-
     # Temporary solution ~ GG
     selectedProvider  = @providerSelectionView.selected?.getOption 'provider'
 
@@ -98,7 +86,6 @@ module.exports = class OnboardingView extends JView
       targetPage.show()
       @setClass 'get-started'  if targetPage is @getStartedView
       @currentPage = targetPage
-      @emit 'ScrollTo', 'top'
     else
       @onboardingCompleted()
 
@@ -107,11 +94,10 @@ module.exports = class OnboardingView extends JView
 
     if isSelected
       @nextButton.enable()
-      @stackPreview.show()
-      @emit 'ScrollTo', 'bottom'
+      @skipLink.show()
     else
       @nextButton.disable()
-      @stackPreview.hide()
+      @skipLink.hide()
 
 
   handleInstanceTypeChanged: (type) ->
@@ -120,25 +106,28 @@ module.exports = class OnboardingView extends JView
       label = @codeSetupView.tabView.panes[index]?.instanceTypeLabel
       label.updatePartial pane.instanceTypeSelectBox.getValue()  if label
 
-      @hiliteTemplate 'line', type
-
 
   createFooter: ->
 
+    @cancelButton = new kd.ButtonView
+      cssClass : 'StackEditor-OnboardingModal--cancel'
+      title    : 'CANCEL'
+      callback : => @emit 'StackCreationCancelled'
+
     @backButton = new kd.ButtonView
-      cssClass  : 'solid outline medium back'
+      cssClass  : 'outline back'
       title     : 'Back'
       callback  : => @emit 'PageNavigationRequested', 'prev'
 
     @nextButton = new kd.ButtonView
-      cssClass  : 'solid green medium next'
+      cssClass  : 'outline next'
       title     : 'Next'
       disabled  : yes
       callback  : => @emit 'PageNavigationRequested', 'next'
 
-    @skipLink   = new kd.CustomHTMLView
-      cssClass  : 'skip-setup'
-      partial   : 'Skip setup guide'
+    @skipLink   = new CustomLinkView
+      cssClass  : 'HomeAppView--button hidden'
+      title     : 'SKIP GUIDE'
       click     : =>
         @destroy()
         selectedProvider = @providerSelectionView.selected?.getOption 'provider'
@@ -148,24 +137,11 @@ module.exports = class OnboardingView extends JView
         @emit 'StackOnboardingCompleted', options
 
 
-  createStackPreview: ->
-
-    @stackPreview = new kd.CustomHTMLView
-      cssClass : 'stack-preview hidden'
-      partial  : '''
-        <div class="header">STACK FILE PREVIEW</div>
-      '''
-
-    @stackPreview.addSubView @stackContent = new kd.CustomHTMLView
-      cssClass: 'has-markdown'
-
-
   updateStackTemplate: ->
 
     selectedProvider  = @providerSelectionView.selected?.getOption 'provider'
 
     if selectedProvider is 'vagrant'
-      @createStackPreviewFromYaml @getDefaultStackTemplate selectedProvider, 'yaml'
       @stackTemplate = @getDefaultStackTemplate selectedProvider, 'json'
       return
 
@@ -222,89 +198,7 @@ module.exports = class OnboardingView extends JView
     if err
       return new kd.NotificationView 'Unable to update stack template preview'
 
-    @createStackPreviewFromYaml content
     @stackTemplate = JSON.stringify stackTemplate
-
-
-  createStackPreviewFromYaml: (content) ->
-
-    linesMarkup   = ''
-    codeMarkup    = ''
-    templateLines = content.split '\n'
-
-    @stackContent.destroySubViews()
-    @stackPreviewLines = []
-
-    for line, index in templateLines when line
-      line = new kd.CustomHTMLView
-        cssClass : 'line'
-        partial  : """
-          <div class="number">#{++index}</div>
-          <pre><code class="coffee">#{line}</code></pre>
-        """
-
-      @stackContent.addSubView line
-      @stackPreviewLines.push line
-
-    hljs.highlightBlock line  for line in document.querySelectorAll '.line code'
-
-
-  hiliteTemplate: (type, keyword) ->
-
-    commonSelector = $ ".stack-preview .line:contains('#{keyword}')"
-
-    if type is 'all'
-      lines = document.querySelectorAll '.stack-preview .line'
-      line.classList.add 'hilite'  for line in lines
-
-    else if type is 'line'
-      if tabView = @currentPage.tabView
-        if tabView.getActivePaneIndex() is 1
-          commonSelector.last().addClass 'hilite'
-        else
-          commonSelector.first().addClass 'hilite'
-      else
-        commonSelector.addClass 'hilite'
-
-    else if type is 'block'
-      commonSelector.prev().nextAll().addClass 'hilite'
-
-    @showStackTemplateTooltip type, keyword
-
-
-  showStackTemplateTooltip: (type, keyword) ->
-
-    return  unless type
-
-    messages =
-      all    : 'This is the initial stack template to build your AWS instances.'
-      block  : 'This is the lines to add another machine to your stack.'
-      line   : ->
-        if keyword in [ 'github', 'gitlab', 'yourgitserver', 'bitbucket' ]
-          return 'You can clone any git repository to your machines when the stack is built.'
-        else
-          return 'You can install any package to machines when stack is built.'
-
-    elements =
-      all    : @stackPreviewLines.first
-      line   : =>
-        for line in @stackPreviewLines
-          if line.getElement().innerHTML.indexOf(keyword) > -1
-            return line
-
-    elements.block = elements.line
-
-    el = if typeof elements[type] is 'function' then elements[type]() else elements[type]
-
-    return  unless el
-
-    el.setTooltip
-      title    : messages[type]?() or messages[type]
-      cssClass : 'stack-tooltip'
-
-    el.tooltip.show()
-
-    @parent.once 'scroll', -> el.tooltip?.hide()
 
 
   getDefaultStackTemplate: (provider, format = 'json') ->
@@ -345,10 +239,10 @@ module.exports = class OnboardingView extends JView
       {{> @providerSelectionView}}
       {{> @configurationView}}
       {{> @codeSetupView}}
-      <div class="footer">
+      <footer>
         {{> @backButton}}
         {{> @nextButton}}
         {{> @skipLink}}
-      </div>
-      {{> @stackPreview}}
+        {{> @cancelButton}}
+      </footer>
     '''

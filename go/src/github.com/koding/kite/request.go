@@ -214,7 +214,7 @@ func (r *Request) authenticate() *Error {
 func (k *Kite) AuthenticateFromToken(r *Request) error {
 	token, err := jwt.Parse(r.Auth.Key, r.LocalKite.RSAKey)
 	if err != nil {
-		return fmt.Errorf("failed parsing JWT token: %s", err)
+		return err
 	}
 
 	if !token.Valid {
@@ -224,7 +224,7 @@ func (k *Kite) AuthenticateFromToken(r *Request) error {
 	// check if we have an audience and it matches our own signature
 	audience, ok := token.Claims["aud"].(string)
 	if ok && audience != "/" {
-		if err := checkAudience(k.Kite().String(), audience); err != nil {
+		if checkAudience(k.Kite().String(), audience); err != nil {
 			return err
 		}
 	}

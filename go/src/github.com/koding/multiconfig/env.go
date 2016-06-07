@@ -3,7 +3,6 @@ package multiconfig
 import (
 	"fmt"
 	"os"
-	"reflect"
 	"strings"
 
 	"github.com/fatih/camelcase"
@@ -18,7 +17,7 @@ type EnvironmentLoader struct {
 	// {STRUCTNAME}_FIELDNAME will be {PREFIX}_FIELDNAME
 	Prefix string
 
-	// CamelCase adds a seperator for field names in camelcase form. A
+	// CamelCase adds a separator for field names in camelcase form. A
 	// fieldname of "AccessKey" would generate a environment name of
 	// "STRUCTNAME_ACCESSKEY". If CamelCase is enabled, the environment name
 	// will be generated in the form of "STRUCTNAME_ACCESS_KEY"
@@ -36,11 +35,13 @@ func (e *EnvironmentLoader) getPrefix(s *structs.Struct) string {
 // Load loads the source into the config defined by struct s
 func (e *EnvironmentLoader) Load(s interface{}) error {
 	strct := structs.New(s)
-
+	strctMap := strct.Map()
 	prefix := e.getPrefix(strct)
 
-	for _, field := range strct.Fields() {
-		if err := e.processField(prefix, field); err != nil {
+	for key, val := range strctMap {
+		field := strct.Field(key)
+
+		if err := e.processField(prefix, field, key, val); err != nil {
 			return err
 		}
 	}
@@ -50,13 +51,15 @@ func (e *EnvironmentLoader) Load(s interface{}) error {
 
 // processField gets leading name for the env variable and combines the current
 // field's name and generates environemnt variable names recursively
-func (e *EnvironmentLoader) processField(prefix string, field *structs.Field) error {
-	fieldName := e.generateFieldName(prefix, field)
+func (e *EnvironmentLoader) processField(prefix string, field *structs.Field, name string, strctMap interface{}) error {
+	fieldName := e.generateFieldName(prefix, name)
 
-	switch field.Kind() {
-	case reflect.Struct:
-		for _, f := range field.Fields() {
-			if err := e.processField(fieldName, f); err != nil {
+	switch strctMap.(type) {
+	case map[string]interface{}:
+		for key, val := range strctMap.(map[string]interface{}) {
+			field := field.Field(key)
+
+			if err := e.processField(fieldName, field, key, val); err != nil {
 				return err
 			}
 		}
@@ -77,34 +80,38 @@ func (e *EnvironmentLoader) processField(prefix string, field *structs.Field) er
 // PrintEnvs prints the generated environment variables to the std out.
 func (e *EnvironmentLoader) PrintEnvs(s interface{}) {
 	strct := structs.New(s)
-
+	strctMap := strct.Map()
 	prefix := e.getPrefix(strct)
 
-	for _, field := range strct.Fields() {
-		e.printField(prefix, field)
+	for key, val := range strctMap {
+		field := strct.Field(key)
+
+		e.printField(prefix, field, key, val)
 	}
 }
 
 // printField prints the field of the config struct for the flag.Usage
-func (e *EnvironmentLoader) printField(prefix string, field *structs.Field) {
-	fieldName := e.generateFieldName(prefix, field)
+func (e *EnvironmentLoader) printField(prefix string, field *structs.Field, name string, strctMap interface{}) {
+	fieldName := e.generateFieldName(prefix, name)
 
-	switch field.Kind() {
-	case reflect.Struct:
-		for _, f := range field.Fields() {
-			e.printField(fieldName, f)
+	switch strctMap.(type) {
+	case map[string]interface{}:
+		for key, val := range strctMap.(map[string]interface{}) {
+			field := field.Field(key)
+
+			e.printField(fieldName, field, key, val)
 		}
 	default:
 		fmt.Println("  ", fieldName)
 	}
 }
 
-// generateFieldName generates the fiels name combined with the prefix and the
+// generateFieldName generates the field name combined with the prefix and the
 // struct's field name
-func (e *EnvironmentLoader) generateFieldName(prefix string, field *structs.Field) string {
-	fieldName := strings.ToUpper(field.Name())
+func (e *EnvironmentLoader) generateFieldName(prefix string, name string) string {
+	fieldName := strings.ToUpper(name)
 	if e.CamelCase {
-		fieldName = strings.ToUpper(strings.Join(camelcase.Split(field.Name()), "_"))
+		fieldName = strings.ToUpper(strings.Join(camelcase.Split(name), "_"))
 	}
 
 	return strings.ToUpper(prefix) + "_" + fieldName

@@ -22,12 +22,24 @@
 module.exports = [
 
   [
+    { name: 'dashboard virtualmachines' }
+  ]
+
+  [
+    { name: 'dashboard stacks' }
+    { name: 'dashboard myteam' }
+    { name: 'dashboard credentials' }
+    { name: 'dashboard utilities' }
+    { name: 'dashboard welcome' }
+  ]
+
+  [
     { name: 'register' }
     { name: 'login' }
     { name: 'logout' }
     { name: 'unittests' }
-    { name: 'account accountsettings' }
-    { name: 'teams inviteteams' }
+    # { name: 'account accountsettings' }
+    # { name: 'teams inviteteams' }
   ]
 
   [
@@ -36,7 +48,7 @@ module.exports = [
   ]
 
   [
-    { name: 'ide workspace' }
+    # { name: 'ide workspace' }
     { name: 'ide layout' }
   ]
 
@@ -62,35 +74,31 @@ module.exports = [
     { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
-  # [
-  #   { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  # ]
+  [
+    { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
 
   [
     { name: 'vmsharing vmsharing', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
-  [
-    { name: 'teams teams' }
-    { name: 'teams stack' }
-  ]
 
-  [
-    { name: 'environments vm' }
-  ]
+  # [
+  #   { name: 'environments vm' }
+  # ]
 
-  [
-    { name: 'environments snapshot' }
-  ]
+  # [
+  #   { name: 'environments snapshot' }
+  # ]
 
-  [
-    { name: 'environments paidaccount' }
-    # { name: 'environments vm-advanced' }
-  ]
+  # [
+  #   { name: 'environments paidaccount' }
+  #   # { name: 'environments vm-advanced' }
+  # ]
 
-  [
-    { name: 'environments domain' }
-  ]
+  # [
+  #   { name: 'environments domain' }
+  # ]
 
   # [
   #   { name: 'environments vmactions_hobbyist' }

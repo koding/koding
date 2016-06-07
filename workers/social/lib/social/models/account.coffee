@@ -3,9 +3,8 @@ jraphical   = require 'jraphical'
 KodingError = require '../error'
 ApiError    = require './socialapi/error'
 Tracker     = require './tracker'
-
-{ argv }    = require 'optimist'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG      = require 'koding-config-manager'
+{ dummyAdmins } = KONFIG
 
 module.exports = class JAccount extends jraphical.Module
 
@@ -169,6 +168,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchMetaInformation :
           (signature Function)
+        fetchAllParticipatedGroups :
+          (signature Object, Function)
         setLastLoginTimezoneOffset:
           (signature Object, Function)
         expireSubscription:
@@ -305,7 +306,9 @@ module.exports = class JAccount extends jraphical.Module
   leaveFromAllGroups: secure (client, callback) ->
     { delegate } = client.connection
 
-    @fetchAllParticipatedGroups client, (err, groups) ->
+    roles = [ 'member', 'moderator', 'admin' ]
+
+    @fetchAllParticipatedGroups client, { roles }, (err, groups) ->
       return callback err   if err
       return callback null  if not groups
 
@@ -317,20 +320,32 @@ module.exports = class JAccount extends jraphical.Module
 
       async.parallel queue, callback
 
-  fetchAllParticipatedGroups: secure (client, callback) ->
+
+  fetchAllParticipatedGroups: secure (client, options, callback) ->
 
     { delegate } = client.connection
 
+    [ options, callback ] = [ callback, options ]  unless callback
+    options  ?= {}
+
+    { roles } = {}
+
+    unless Array.isArray roles
+      roles = [ 'member', 'moderator', 'admin', 'owner' ]
+
     selector = {
+      sourceName: 'JGroup'
+      targetName: 'JAccount'
       targetId: delegate.getId()
-      as : { $in: [ 'member', 'moderator', 'admin'] }
+      as: { $in: roles }
     }
 
-    Relationship.someData selector, { sourceId: 1 }, (err, cursor) ->
+    Relationship.someData selector, { sourceId: 1, as: 1 }, (err, cursor) ->
       return callback err  if err
       return callback null, []  if not cursor
 
       cursor.toArray (err, arr) ->
+
         return callback err       if err
         return callback null, []  if not arr
 
@@ -340,9 +355,20 @@ module.exports = class JAccount extends jraphical.Module
         groupIds = uniq map(arr, (rel) -> rel.sourceId)
 
         JGroup = require './group'
-        JGroup.some { _id : { $in : groupIds } }, {}, callback
+        JGroup.some { _id : { $in : groupIds } }, {}, (err, groups) ->
+          return callback err  if err
 
-  createSocialApiId:(callback) ->
+          groups = groups.map (group) ->
+            for rel in arr when group._id.equals rel.sourceId
+              group.roles ?= []
+              group.roles.push rel.as
+            group
+
+          callback null, groups
+
+
+  createSocialApiId: (callback) ->
+
     if @type is 'unregistered'
       return callback null, -1
 
@@ -644,12 +670,6 @@ module.exports = class JAccount extends jraphical.Module
       return if err or not user
       if followerCount = user.foreignAuth?.twitter?.profile?.followers_count
         @update { $set: { 'counts.twitterFollowers': followerCount } }, ->
-
-
-  dummyAdmins = [ 'sinan', 'devrim', 'gokmen',
-                  'sent-hil', 'cihangirsavas', 'leeolayvar',
-                  'szkl', 'usirin', 'rjeczalik', 'caikoding']
-
 
   isEmailVerified: (callback) ->
     @fetchUser (err, user) ->
@@ -1109,15 +1129,21 @@ module.exports = class JAccount extends jraphical.Module
   updateMetaModifiedAt: (callback) ->
     @update { $set: { 'meta.modifiedAt': new Date } }, callback
 
-  fetchEmail: secure (client, callback) ->
+
+  fetchEmail: (callback) ->
+
+    @fetchUser (err, user) ->
+      return callback err  if err
+      callback null, user?.email
+
+  fetchEmail$: secure (client, callback) ->
     { delegate } = client.connection
     isMine     = @equals delegate
     if isMine
-      @fetchUser (err, user) ->
-        return callback err  if err
-        callback null, user?.email
+      @fetchEmail callback
     else
       callback new KodingError 'Access denied'
+
 
   @fetchEmailsByUsername = permit 'grant permissions',
     success: (client, usernames = [], callback) ->

@@ -2,6 +2,7 @@ package models
 
 import (
 	"net"
+	"socialapi/config"
 	"socialapi/request"
 
 	"github.com/koding/logging"
@@ -74,6 +75,7 @@ func (c *Context) IsAdmin() bool {
 		return false
 	}
 
+	superAdmins := config.MustGet().DummyAdmins
 	return IsIn(c.Client.Account.Nick, superAdmins...)
 }
 
@@ -93,16 +95,4 @@ func (c *Context) MustGetRedisConn() *redis.RedisSession {
 	}
 
 	return c.redis
-}
-
-// c/p from account.coffee
-var superAdmins = []string{
-	"sinan",
-	"devrim",
-	"gokmen",
-	"sent-hil",
-	"cihangirsavas",
-	"leeolayvar",
-	"szkl",
-	"usirin",
 }

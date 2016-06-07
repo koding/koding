@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 
@@ -83,11 +84,19 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 	}
 
 	if params.RemotePath == "" {
-		// TODO: Deprecate in favor of a more robust way to identify the home dir.
-		// This assumes that the username klient is running under has a home
-		// at /home/username. Not true for root, if the user isn't the same user
-		// as klient is running under, and not true if the homedir isn't /home.
-		params.RemotePath = path.Join("/home", remoteMachine.Username)
+		home, err := remoteMachine.HomeWithDefault()
+		if err != nil {
+			return nil, err
+		}
+		params.RemotePath = home
+	}
+
+	if !filepath.IsAbs(params.RemotePath) {
+		home, err := remoteMachine.HomeWithDefault()
+		if err != nil {
+			return nil, err
+		}
+		params.RemotePath = path.Join(home, params.RemotePath)
 	}
 
 	if remoteMachine.IsMountingLocked() {
@@ -197,6 +206,20 @@ func checkSizeOfRemoteFolder(remoteMachine *machine.Machine, remotePath string) 
 	}
 
 	return nil, nil
+}
+
+// getSizeOfLocalFolder asks remote machine for size of specified remote folder
+// and returns it in bytes.
+func getSizeOfLocalPath(localPath string) (int, error) {
+	var size int64
+	err := filepath.Walk(localPath, func(_ string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return err
+	})
+
+	return int(size), err
 }
 
 // changeSummaryToBool is a simple func that converts a ChangeSummary channel to a

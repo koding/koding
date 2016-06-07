@@ -220,12 +220,10 @@ module.exports = class JRewardCampaign extends jraphical.Module
         endDate, startDate } = campaign
 
       if Date.now() < startDate.getTime()
-        console.info "campaign #{campaignName} is not started yet"
         return callback null, { isValid: no }
 
       # if date is valid
       if Date.now() > endDate.getTime()
-        console.info "date is not valid for campaign #{campaignName}"
         return callback null, { isValid: no }
 
       # if campaign initial amount is 0
@@ -235,7 +233,6 @@ module.exports = class JRewardCampaign extends jraphical.Module
 
       # if campaign hit the limits
       if givenAmount + perEventAmount > maxAmount
-        console.info "hit the max amount for #{campaignName} campaign"
         return callback null, { isValid: no }
 
       return callback null, { isValid: yes, campaign }

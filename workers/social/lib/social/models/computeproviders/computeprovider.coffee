@@ -1,9 +1,11 @@
+# coffeelint: disable=cyclomatic_complexity
+# FIXME ~GG ^^
+
 { Base, secure, signature } = require 'bongo'
 
-{ argv }     = require 'optimist'
-KONFIG       = require('koding-config-manager').load("main.#{argv.c}")
-
+KONFIG       = require 'koding-config-manager'
 async        = require 'async'
+_            = require 'underscore'
 konstraints  = require 'konstraints'
 
 teamutils    = require './teamutils'
@@ -227,11 +229,22 @@ module.exports = class ComputeProvider extends Base
 
     JComputeStack = require '../stack'
 
+    # To be able to mark a generated stack as group stack
+    # we need to iterate over existing stacks defined for group
+    # and mark this one as groupStack or not.
+    #
+    # We eventually remove this one once we remove group stack flow ~ GG
+    config = _.clone template.config
+    for _template in (group.stackTemplates ? [])
+      if template._id.equals _template
+        config.groupStack = yes
+        break
+
     # Create a new JComputeStack based on the template details
     # We will then add machines and other information into it.
     JComputeStack.create {
       title         : template.title
-      config        : template.config
+      config        : config
       credentials   : template.credentials
       baseStackId   : template._id
       groupSlug     : group.slug
@@ -315,7 +328,7 @@ module.exports = class ComputeProvider extends Base
     catch
       return new KodingError 'Template is not valid'
 
-    { passed, results } = konstraints template, rules, { log: yes }
+    { passed, results } = konstraints template, rules, {}
     return new KodingError results.last[1]  unless passed
 
     return null
@@ -415,7 +428,7 @@ module.exports = class ComputeProvider extends Base
     maxAllowed   = MAX_INT
     if planConfig.plan
       plan       = teamutils.getPlanData planConfig
-      maxAllowed = plan.member
+      maxAllowed = plan.member ? MAX_INT
 
     JCounter = require '../counter'
     JCounter[change]
@@ -433,15 +446,15 @@ module.exports = class ComputeProvider extends Base
 
     { group, change, amount } = options
 
-    return callback null  if group.slug is 'koding'
-
-    planConfig = helpers.getPlanConfig group
-    return callback null  if amount is 0
+    # We don't need to do anything if amount somehow is 0
+    # A stack template without machines in it? ~ GG
+    return callback null  if group.slug is 'koding' or amount is 0
 
     maxAllowed   = MAX_INT
+    planConfig   = helpers.getPlanConfig group
     if planConfig.plan
       plan       = teamutils.getPlanData planConfig
-      maxAllowed = plan.maxInstance
+      maxAllowed = plan.maxInstance ? MAX_INT
 
     JCounter = require '../counter'
     JCounter[change]

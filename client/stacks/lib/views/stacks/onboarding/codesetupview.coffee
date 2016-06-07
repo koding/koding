@@ -73,11 +73,12 @@ module.exports = class CodeSetupView extends JView
 
   pistachio: ->
 
-    return '''
-      <div class="header">
-        <p class="title">Where is your code?</p>
-        <p class="description">Koding can pull your project’s codebase from wherever its hosted.</p>
-      </div>
+    '''
+    <header>
+      <h1>Where is your code?</h1>
+    </header>
+    <main>
       {{> @tabHandleContainer}}
       {{> @tabView}}
+    </main>
     '''
