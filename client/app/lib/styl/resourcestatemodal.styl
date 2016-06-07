@@ -1,5 +1,6 @@
 $warningColor               = #f2778a
 
+/* General page structure and common styles */
 .resource-state-modal.kdmodal
   font-family               SoleilFamily
   overflow                  visible
@@ -31,6 +32,7 @@ $warningColor               = #f2778a
     h1
       display               inline-block
       color                 #BABABA
+      font-weight           300
 
   section.main
     overflow                hidden
@@ -123,6 +125,7 @@ $warningColor               = #f2778a
         margin-right        9px
 
 
+  /* Overrides for specific page flows */
   .build-stack-flow
 
     header
@@ -167,6 +170,22 @@ $warningColor               = #f2778a
       height                330px
 
 
+  /* Loader */
+  .loader-container
+    width                   400px
+    height                  200px
+    text-align              center
+    borderBox()
+    padding-top             50px
+
+    .loader-text
+      font-size             20px
+      letter-spacing        .2px
+      color                 #424242
+      margin-bottom         15px
+
+
+  /* Wizard pane */
   .wizard-progress-pane
     bg                      color, #efefef
     border-bottom           1px solid #dedbdb
@@ -178,6 +197,7 @@ $warningColor               = #f2778a
       width                 230px
       height                58px
       font-size             16px
+      font-weight           300
       padding-top           15px
       bg                    color, #fff
       color                 #c6c6c6
@@ -214,6 +234,7 @@ $warningColor               = #f2778a
         bg                  color, #57a2d2
         color               rgba(0,0,0,0.3)
         border-right        1px solid #5095C2
+        font-weight         400
 
         .icon
           r-sprite          'app', 'checkmark'
@@ -221,6 +242,24 @@ $warningColor               = #f2778a
       &.current, &.completed
         border-left         1px solid #70AED6
 
+
+  /* Logs pane */
+  .logs-pane
+    margin                  0 auto
+
+    .editor-main
+      bg                    color, #000
+
+    .description-view
+      height                0
+      padding               0
+      overflow              hidden
+
+    .ace_editor
+      color                 #fff
+
+
+  /* Error page coomon styles */
   .error-page
 
     section.main
@@ -265,6 +304,9 @@ $warningColor               = #f2778a
         p
           padding-top       12px
 
+        .error-title
+          font-weight       600
+
         ul
           list-style-type   disc
           padding-left      20px
@@ -279,7 +321,6 @@ $warningColor               = #f2778a
         .error-content
           border            none
 
-
     footer
 
       a.back-link
@@ -289,6 +330,7 @@ $warningColor               = #f2778a
           r-sprite          'app', 'back_arrow_pink'
 
 
+  /* Styles for specific pages */
   .readme-page
 
     section.main
@@ -349,7 +391,8 @@ $warningColor               = #f2778a
         font-weight         normal
 
       h3
-        font-weight         bold
+        font-family         SoleilFamily
+        font-weight         600
         font-size           15px
         letter-spacing      .4px
         margin-bottom       20px
@@ -413,6 +456,7 @@ $warningColor               = #f2778a
       article
         font-size           13px
         font-family         SoleilFamily
+        font-weight         300
         color               #9f9f9f
         line-height         19px
         margin-bottom       15px
@@ -448,7 +492,7 @@ $warningColor               = #f2778a
 
         a
           color             $warningColor
-          text-decoration   underline
+          text-decoration   underline !important
 
       .form-container
         hidden()
@@ -471,6 +515,7 @@ $warningColor               = #f2778a
 
 
   .credentials-error-page
+
     section.main
       .background
         abs()
@@ -500,18 +545,6 @@ $warningColor               = #f2778a
     .logs-pane
       width                 600px
       height                280px
-      margin                0 auto
-
-      .editor-main
-        bg                  color, #000
-
-      .description-view
-        height              0
-        padding             0
-        overflow            hidden
-
-      .ace_editor
-        color               #fff
 
 
   .build-stack-error-page
@@ -531,6 +564,7 @@ $warningColor               = #f2778a
     .wizard-step.current
       bg                    color, #57a2d2
       color                 rgba(0,0,0,0.3)
+      font-weight           400
 
       .icon
         r-sprite            'app', 'checkmark'
@@ -550,6 +584,7 @@ $warningColor               = #f2778a
 
       h2
         font-size           32px
+        font-weight         300
         line-height         44px
         color               rgba(0,0,0,0.5)
         text-align          left
@@ -584,18 +619,6 @@ $warningColor               = #f2778a
     .logs-pane
       width                 840px
       height                420px
-      margin                0 auto
-
-      .editor-main
-        bg                  color, #000
-
-      .description-view
-        height              0
-        padding             0
-        overflow            hidden
-
-      .ace_editor
-        color               #fff
 
 
   .start-machine-page
@@ -605,12 +628,14 @@ $warningColor               = #f2778a
       h2
         color               #57a2d2
         font-size           32px
+        font-weight         300
         letter-spacing      .3px
         line-height         43px
         padding-top         39px
 
       p
         font-size           22px
+        font-weight         300
         line-height         30px
         margin-top          33px
         margin-bottom       44px
@@ -637,6 +662,7 @@ $warningColor               = #f2778a
       h2
         color               #777777
         font-size           24px
+        font-weight         300
         letter-spacing      .2px
         line-height         43px
         padding-top         35px
@@ -668,6 +694,7 @@ $warningColor               = #f2778a
 
       h2
         font-size           32px
+        font-weight         300
         line-height         44px
         color               rgba(0,0,0,0.5)
         text-align          left
@@ -705,13 +732,14 @@ $warningColor               = #f2778a
       h2
         color               #777777
         font-size           31px
+        font-weight         300
         letter-spacing      .3px
         line-height         43px
         padding-top         75px
         padding-bottom      35px
 
         span
-          font-weight       bold
+          font-weight       600
 
       .progressbar-container
         border              1px solid #ccc
@@ -736,20 +764,6 @@ $warningColor               = #f2778a
         span.button-title
           font-size         21.6px
           line-height       30px
-
-
-  .loader-container
-    width                   400px
-    height                  200px
-    text-align              center
-    borderBox()
-    padding-top             50px
-
-    .loader-text
-      font-size             20px
-      letter-spacing        .2px
-      color                 #424242
-      margin-bottom         15px
 
 
   .no-stack-page

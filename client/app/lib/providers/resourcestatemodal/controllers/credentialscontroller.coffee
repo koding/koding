@@ -5,8 +5,8 @@ whoami  = require 'app/util/whoami'
 globals = require 'globals'
 remote  = require('app/remote').getInstance()
 KodingKontrol = require 'app/kite/kodingkontrol'
-CredentialsPageView = require '../views/credentialspageview'
-CredentialsErrorPageView = require '../views/credentialserrorpageview'
+CredentialsPageView = require '../views/stackflow/credentialspageview'
+CredentialsErrorPageView = require '../views/stackflow/credentialserrorpageview'
 constants = require '../constants'
 
 module.exports = class CredentialsController extends kd.Controller
@@ -87,14 +87,16 @@ module.exports = class CredentialsController extends kd.Controller
     { provider, selectedItem, newData } = submissionData
     { CREDENTIAL_VERIFICATION_ERROR_MESSAGE, CREDENTIAL_VERIFICATION_TIMEOUT } = constants
 
+    pendingCredential = null
+
     queue = [
-      (next) =>
+      (next) ->
         return next null, selectedItem  if selectedItem
 
-        helpers.createNewCredential provider, newData, (err, newCredential) =>
+        helpers.createNewCredential provider, newData, (err, newCredential) ->
           return next err  if err
 
-          @credentialsPage.selectNewCredential newCredential
+          pendingCredential = newCredential
           next null, newCredential.identifier
 
       (identifier, next) ->
@@ -103,24 +105,25 @@ module.exports = class CredentialsController extends kd.Controller
         computeController.getKloud()
           .checkCredential { provider, identifiers : [identifier] }
           .then (response) ->
-            next null, { identifier, status : response?[identifier] }
-          .catch (err) -> next err
+            status = response?[identifier]
+            return next CREDENTIAL_VERIFICATION_ERROR_MESSAGE  unless status
+
+            { verified, message } = status
+            return next null, identifier  if verified
+
+            message = message.split('\n')[..-2].join ''  if message
+            next message or CREDENTIAL_VERIFICATION_ERROR_MESSAGE
+          .catch (err) -> next err.message
           .timeout constants.CREDENTIAL_VERIFICATION_TIMEOUT
     ]
 
-    async.waterfall queue, (err, result) ->
-      return callback null, { err : err.message }  if err
-      return callback null, { err : CREDENTIAL_VERIFICATION_ERROR_MESSAGE }  unless result.status
-
-      { identifier, status } = result
-      { verified, message }  = status
-      message = message.split('\n')[..-2].join ''  if message
-      if verified
-        callback null, { identifier }
+    async.waterfall queue, (err, identifier) =>
+      if err
+        pendingCredential.delete()  if pendingCredential
+        callback null, { err }
       else
-        callback null, {
-          err : message or CREDENTIAL_VERIFICATION_ERROR_MESSAGE
-        }
+        @credentialsPage.selectNewCredential pendingCredential  if pendingCredential
+        callback null, { identifier }
 
 
   handleSubmittedRequirements: (submissionData, callback) ->
