@@ -3,6 +3,7 @@ kd              = require 'kd'
 React           = require 'kd-react'
 View            = require './view'
 TeamFlux        = require 'app/flux/teams'
+showError       = require 'app/util/showError'
 KDReactorMixin  = require 'app/flux/base/reactormixin'
 copyToClipboard = require 'app/util/copyToClipboard'
 
@@ -13,6 +14,13 @@ module.exports = class TryOnKodingContainer extends React.Component
     return {
       team: TeamFlux.getters.team
     }
+
+  constructor: (props) ->
+
+    super props
+
+    canEdit = kd.singletons.groupsController.canEditGroup()
+    @state = {canEdit : canEdit}
 
 
   componentDidMount: ->
@@ -46,8 +54,11 @@ module.exports = class TryOnKodingContainer extends React.Component
 
   handleSwitch: (state) ->
 
-    allowedDomains = @state.team.get 'allowedDomains'
-    allowedDomains = allowedDomains.toJS()
+    unless @state.canEdit
+      return showError 'You are not allowed to toggle this button'
+
+    allowedDomains = @state.team?.get 'allowedDomains'
+    allowedDomains = allowedDomains?.toJS()
     allowedDomains = _.clone allowedDomains or []
 
     if state
