@@ -1,8 +1,10 @@
 kd = require 'kd'
 React = require 'kd-react'
+ReactDOM = require 'react-dom'
 MaskedInput = require 'react-input-mask'
 SelectBox = require 'app/components/selectbox'
 classnames = require 'classnames'
+findScrollableParent = require 'app/util/findScrollableParent'
 
 module.exports = class CreditCard extends React.Component
 
@@ -25,7 +27,8 @@ module.exports = class CreditCard extends React.Component
         <Expiration type='month'
           hasError={@props.formErrors.get 'exp_month'}
           onChange={@props.onInputValueChange.bind null, 'expirationMonth'}
-          value={@props.formValues.get 'expirationMonth'} />
+          value={@props.formValues.get 'expirationMonth'}
+           />
         <Expiration type='year'
           hasError={@props.formErrors.get 'exp_year'}
           onChange={@props.onInputValueChange.bind null, 'expirationYear'}
@@ -92,12 +95,51 @@ Expiration = ({ type, onChange, hasError, value }) ->
   className = "HomeAppView-selectBoxWrapper expiration-#{type}"
   className += ' has-error'  if hasError
 
+  select = null
+  lastKnownNode = null
+
+  onOpen = ->
+
+    node = ReactDOM.findDOMNode select
+    node = findScrollableParent node, yes
+
+    if lastKnownNode
+      lastKnownNode.dataset.scrollable = 'no-scroll'
+      return
+
+    return  unless node
+
+    node.dataset.scrollable = 'no-scroll'
+    lastKnownNode = node
+
+
+  onClose = ->
+
+    node = ReactDOM.findDOMNode select
+
+    node = findScrollableParent node, yes
+
+    if lastKnownNode
+      lastKnownNode.dataset.scrollable = ''
+      return
+
+    return  unless node
+
+    node.dataset?.scrollable = ''
+    lastKnownNode = node
+
+
   <div className={className}>
     <SelectBox
+      ref={(_select) -> select ?= _select}
       clearable={no}
+      onOpen={onOpen}
+      onClose={onClose}
       options={options[type]}
       placeholder={placeholders[type]}
-      onChange={(e) -> onChange?(e.value)}
+      onChange={(e) ->
+        lastKnownNode.dataset.scrollable = ''
+        onChange?(e.value)}
       value={value} />
   </div>
 
