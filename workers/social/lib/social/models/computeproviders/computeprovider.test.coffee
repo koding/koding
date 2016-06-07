@@ -256,7 +256,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
-        testGroup._activePlan = 'default'
+        testGroup._activePlan = 'test'
 
         # checking in parallel to test lock mechanism ~ GG
         #
@@ -278,7 +278,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
         overrides = { member: 3 }
 
-        testGroup._activePlan = 'default'
+        testGroup._activePlan = 'test'
 
         testGroup.setPlan client, { overrides }, (err) ->
           expect(err).to.not.exist
@@ -358,7 +358,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
-        testGroup._activePlan = 'default'
+        testGroup._activePlan = 'test'
 
         options  =
           group  : testGroup
@@ -375,7 +375,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
-        testGroup._activePlan = 'default'
+        testGroup._activePlan = 'test'
         overrides = { maxInstance: 3 }
 
         testGroup.setPlan client, { overrides }, (err) ->
@@ -461,7 +461,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
         { group } = options
 
-        group._activePlan = 'default'
+        group._activePlan = 'test'
 
         options.change = 'increment'
 
