@@ -104,12 +104,12 @@ Expiration = ({ type, onChange, hasError, value }) ->
     node = findScrollableParent node, yes
 
     if lastKnownNode
-      lastKnownNode.dataset.scrollable = 'no-scroll'
+      lastKnownNode.dataset.innerItemWillScroll = 'no-scroll'
       return
 
     return  unless node
 
-    node.dataset.scrollable = 'no-scroll'
+    node.dataset.innerItemWillScroll = 'no-scroll'
     lastKnownNode = node
 
 
@@ -120,12 +120,11 @@ Expiration = ({ type, onChange, hasError, value }) ->
     node = findScrollableParent node, yes
 
     if lastKnownNode
-      lastKnownNode.dataset.scrollable = ''
+      delete lastKnownNode.dataset?.innerItemWillScroll
       return
 
     return  unless node
-
-    node.dataset?.scrollable = ''
+    delete node.dataset?.innerItemWillScroll
     lastKnownNode = node
 
 
@@ -138,7 +137,7 @@ Expiration = ({ type, onChange, hasError, value }) ->
       options={options[type]}
       placeholder={placeholders[type]}
       onChange={(e) ->
-        lastKnownNode.dataset.scrollable = ''
+        delete lastKnownNode.dataset?.innerItemWillScroll
         onChange?(e.value)}
       value={value} />
   </div>
