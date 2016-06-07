@@ -89,6 +89,7 @@ module.exports = class TryOnKodingContainer extends React.Component
       ref='view'
       value={@state.value}
       checked={@state.checked}
+      canEdit={@state.canEdit}
       primaryClassName={@state.primaryClassName}
       secondaryClassName={@state.secondaryClassName}
       handleSwitch={@bound 'handleSwitch'}/>
