@@ -33,6 +33,9 @@ module.exports = class JStackTemplate extends Module
 
       'force stacks to reinit'    : []
 
+      'check if own stack template has stacks' : ['member']
+      'check if stack template has stacks'     : []
+
     sharedMethods     :
 
       static          :
@@ -60,6 +63,8 @@ module.exports = class JStackTemplate extends Module
           (signature Function)
         forceStacksToReinit :
           (signature String, Function)
+        hasStacks     :
+          (signature Function)
 
     sharedEvents      :
       static          : []
@@ -473,6 +478,22 @@ module.exports = class JStackTemplate extends Module
 
       ComputeProvider = require './computeprovider'
       ComputeProvider.forceStacksToReinit this, message, callback
+
+
+  hasStacks: permit
+
+    advanced: [
+      { permission: 'check if own stack template has stacks', validateWith: Validators.own }
+      { permission: 'check if stack template has stacks' }
+    ]
+
+    success: (client, callback) ->
+
+      JComputeStack = require '../stack'
+      JComputeStack.some { baseStackId: @_id }, { limit: 1 }, (err, stacks) ->
+        result = stacks?.length > 0
+        callback err, result
+
 
 # Base StackTemplate example for koding group
 ###
