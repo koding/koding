@@ -490,7 +490,28 @@ $warningColor               = #f2778a
     .status-text
       text-align            center
       color                 #585858
-      padding               25px 0
+      padding-top           25px
+      borderBox()
+      ellipsis()
+      height                76px
+      width                 600px
+      margin                0 auto
+
+    .logs-pane
+      width                 600px
+      height                280px
+      margin                0 auto
+
+      .editor-main
+        bg                  color, #000
+
+      .description-view
+        height              0
+        padding             0
+        overflow            hidden
+
+      .ace_editor
+        color               #fff
 
 
   .build-stack-error-page
@@ -533,12 +554,48 @@ $warningColor               = #f2778a
         color               rgba(0,0,0,0.5)
         text-align          left
         padding-top         17px
+        padding-bottom      21px
+
+      .GenericButton.secondary
+        margin              0
 
       .background
         abs()
         top                 105px
         left                100px
         r-sprite            'app', 'buildstack_art_success'
+
+
+  .build-stack-logs-page
+
+    section.main
+      padding-top           80px
+
+    .wizard-step.current
+      bg                    color, #57a2d2
+      color                 rgba(0,0,0,0.3)
+
+      .icon
+        r-sprite            'app', 'checkmark'
+
+      .alien
+        hidden()
+
+    .logs-pane
+      width                 840px
+      height                420px
+      margin                0 auto
+
+      .editor-main
+        bg                  color, #000
+
+      .description-view
+        height              0
+        padding             0
+        overflow            hidden
+
+      .ace_editor
+        color               #fff
 
 
   .start-machine-page

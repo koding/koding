@@ -248,7 +248,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           async.series [
 
             (next) ->
-              group.update { $set: { 'config.testplan': 'default' } }, (err) ->
+              group.update { $set: { 'config.testplan': 'test' } }, (err) ->
                 expect(err).to.not.exist
                 next()
 

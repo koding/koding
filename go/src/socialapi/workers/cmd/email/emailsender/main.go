@@ -27,6 +27,13 @@ func main() {
 
 	segmentExporter := eventexporter.NewSegmentIOExporter(appConfig.Segment, QueueLength)
 	datadogExporter := eventexporter.NewDatadogExporter(r.DogStatsD)
+
+	// TODO
+	// we are gonna add this line into the multiexporter
+	// firstly, we need to make sure our json data satisfy druid's data specs
+	// druidExporter := eventexporter.NewDruidExporter(appConfig.DruidHost)
+	// exporter := eventexporter.NewMultiExporter(segmentExporter, datadogExporter, druidExporter)
+
 	exporter := eventexporter.NewMultiExporter(segmentExporter, datadogExporter)
 
 	constructor := emailsender.New(exporter, r.Log, appConfig)

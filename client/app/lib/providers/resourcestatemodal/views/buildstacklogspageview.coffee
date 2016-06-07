@@ -2,8 +2,9 @@ kd = require 'kd'
 JView = require 'app/jview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
+IDETailerPane = require 'ide/workspace/panes/idetailerpane'
 
-module.exports = class BuildStackSuccessPageView extends JView
+module.exports = class BuildStackLogsPageView extends JView
 
   constructor: (options = {}, data) ->
 
@@ -12,30 +13,41 @@ module.exports = class BuildStackSuccessPageView extends JView
     @progressPane = new WizardProgressPane
       currentStep : WizardSteps.BuildStack
 
-    @logsButton = new kd.ButtonView
-      title    : 'See the logs here'
-      cssClass : 'GenericButton secondary'
-      callback : @lazyBound 'emit', 'LogsRequested'
-
     @closeButton = new kd.ButtonView
       title    : 'Start Coding'
       cssClass : 'GenericButton'
       callback : @lazyBound 'emit', 'ClosingRequested'
 
+    @logsContainer = new kd.CustomHTMLView { cssClass : 'logs-pane' }
+    @render()
+
+
+  render: ->
+
+    { tailOffset } = @getOptions()
+    file = @getData()
+
+    @logsContainer.destroySubViews()
+    return  unless file
+
+    logsPane = new IDETailerPane {
+      file
+      tailOffset
+      delegate : this
+    }
+    @logsContainer.addSubView logsPane
+
 
   pistachio: ->
 
     '''
-      <div class="build-stack-flow build-stack-success-page">
+      <div class="build-stack-flow build-stack-logs-page">
         <header>
           <h1>Build Your Stack</h1>
         </header>
         {{> @progressPane}}
         <section class="main">
-          <div class="background"></div>
-          <h1>Success!</h1>
-          <h2>Your stack has been built</h2>
-          {{> @logsButton}}
+          {{> @logsContainer}}
         </section>
         <footer>
           {{> @closeButton}}

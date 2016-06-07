@@ -58,7 +58,8 @@ reviveGroupPlan = (group, callback) ->
     return callback err  if err
     return callback new KodingError 'Plan not found'  unless plan
 
-    group._activePlan = plan.planTitle
+    if plan.planTitle is 'team_base'
+      group._activePlan = 'unlimited'
 
     callback null, group
 

@@ -2,6 +2,8 @@ kd = require 'kd'
 JView = require 'app/jview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
+IDETailerPane = require 'ide/workspace/panes/idetailerpane'
+BuildStackLogsPane = require './buildstacklogspane'
 helpers = require '../helpers'
 constants = require '../constants'
 
@@ -18,6 +20,34 @@ module.exports = class BuildStackPageView extends JView
       initial : constants.INITIAL_PROGRESS_VALUE
     @statusText  = new kd.CustomHTMLView { cssClass : 'status-text' }
 
+    @logsContainer = new kd.CustomHTMLView { cssClass : 'logs-pane' }
+    @render()
+
+
+  render: ->
+
+    file = @getData()
+    { tailOffset } = @getOptions()
+
+    @logsContainer.destroySubViews()
+    @buildLogs = null
+
+    isDummyFile = file.path.indexOf('localfile:/') is 0
+
+    if isDummyFile
+      @logsContainer.addSubView @buildLogs = new BuildStackLogsPane {
+        delegate : this
+      }, file
+    else
+      @logsContainer.addSubView postBuildLogs = new IDETailerPane {
+        file
+        tailOffset
+        delegate    : this
+        parseOnLoad : yes
+      }
+      @forwardEvent postBuildLogs, 'BuildDone'
+      postBuildLogs.on 'BuildNotification', @lazyBound 'setStatusText'
+
 
   updateProgress: (percentage, message) ->
 
@@ -25,7 +55,21 @@ module.exports = class BuildStackPageView extends JView
     @progressBar.updateBar percentage
 
     message = helpers.formatProgressStatus message
-    @statusText.updatePartial message
+    @setStatusText message  if message
+
+    @buildLogs.appendLogLine message  if @buildLogs
+
+
+  reset: ->
+
+    @progressBar.updateBar constants.INITIAL_PROGRESS_VALUE
+    @setStatusText ''
+    @render()
+
+
+  setStatusText: (text) ->
+
+    @statusText.updatePartial text
 
 
   pistachio: ->
@@ -43,6 +87,7 @@ module.exports = class BuildStackPageView extends JView
           <p>Your flawless dev environment will be ready soon</p>
           {{> @progressBar}}
           {{> @statusText}}
+          {{> @logsContainer}}
         </section>
         <footer>
         </footer>

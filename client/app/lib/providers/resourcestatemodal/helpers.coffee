@@ -9,9 +9,12 @@ module.exports =
 
   formatProgressStatus: (message = '') ->
 
+    return  unless message
+
     message = progressStatusMap[message] or message
     message = message.replace 'machine', 'VM'
     message = message.capitalize()
+    message = "#{message}..."  unless message.lastIndexOf('...') is message.length - 3
 
     return message
 

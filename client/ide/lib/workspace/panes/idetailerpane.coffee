@@ -4,8 +4,6 @@ IDEPane                  = require './idepane'
 AceView                  = require 'ace/aceview'
 IDEAce                   = require '../../views/ace/ideace'
 IDETailerPaneLineParser  = require './idetailerpanelineparser'
-IDETailerPaneProgressBar = require './idetailerpaneprogressbar'
-
 
 module.exports = class IDETailerPane extends IDEPane
 
@@ -21,7 +19,8 @@ module.exports = class IDETailerPane extends IDEPane
     @ideViewHash = options.ideViewHash
 
     @lineParser = new IDETailerPaneLineParser()
-    @lineParser.on 'BuildDone', @bound 'handleBuildDone'
+    @forwardEvent @lineParser, 'BuildDone'
+    @forwardEvent @lineParser, 'BuildNotification'
 
     @createEditor()
 
@@ -35,7 +34,7 @@ module.exports = class IDETailerPane extends IDEPane
 
   createEditor: ->
 
-    { file, description, descriptionView, tailOffset } = @getOptions()
+    { file, description, descriptionView, tailOffset, parseOnLoad } = @getOptions()
 
     unless file instanceof FSFile
       throw new TypeError 'File must be an instance of FSFile'
@@ -55,7 +54,7 @@ module.exports = class IDETailerPane extends IDEPane
       ace.setReadOnly      yes
       ace.setScrollPastEnd no
 
-      { descriptionView, description, buildDuration } = @getOptions()
+      { descriptionView, description } = @getOptions()
       file = @getData()
 
       ace.descriptionView = descriptionView ? new kd.View
@@ -71,10 +70,6 @@ module.exports = class IDETailerPane extends IDEPane
 
       ace.descriptionView.setClass 'description-view'
 
-      if buildDuration
-        ace.progressBar = new IDETailerPaneProgressBar { duration : buildDuration }
-        ace.prepend ace.progressBar
-
       ace.prepend ace.descriptionView
 
       @emit 'EditorIsReady'
@@ -89,6 +84,8 @@ module.exports = class IDETailerPane extends IDEPane
       @setScrollMarginTop 15
 
       @resize()
+
+      @lineParser.process @getContent()  if parseOnLoad
 
 
   getAce: ->
@@ -177,11 +174,3 @@ module.exports = class IDETailerPane extends IDEPane
 
 
   makeReadOnly: ->
-
-
-  handleBuildDone: ->
-
-    { progressBar } = @aceView.ace
-    return  unless progressBar
-
-    progressBar.completeProgress()

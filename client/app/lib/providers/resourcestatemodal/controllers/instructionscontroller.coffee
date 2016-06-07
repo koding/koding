@@ -8,23 +8,13 @@ module.exports = class InstructionsController extends kd.Controller
   constructor: (options, data) ->
 
     super options, data
-    @loadData()
+    @createPages()
 
 
-  loadData: ->
-
-    stack = @getData()
-    { computeController } = kd.singletons
-
-    computeController.fetchBaseStackTemplate stack, (err, stackTemplate) =>
-      return showError err  if err
-
-      @createPages stackTemplate
-
-
-  createPages: (stackTemplate) ->
+  createPages: ->
 
     { container } = @getOptions()
+    stackTemplate = @getData()
 
     @readmePage = new ReadmePageView {}, stackTemplate
     @stackTemplatePage = new StackTemplatePageView {}, stackTemplate

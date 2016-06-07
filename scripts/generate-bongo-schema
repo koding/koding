@@ -1,0 +1,22 @@
+#!/usr/bin/env coffee
+
+path  = require 'path'
+Bongo = require 'bongo'
+
+unless root = process.env.KONFIG_PROJECTROOT
+  root = path.join __dirname, '..'
+
+models = 'workers/social/lib/social/models'
+
+generate = (callback) ->
+  new Bongo { root, models }
+    .on 'apiReady', ->
+      @describeApi callback
+
+if require.main is module
+  generate (res) ->
+    process.stdout.write JSON.stringify res, null, 2
+    process.stdout.write '\n'
+    process.exit 0
+
+module.exports = generate

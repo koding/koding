@@ -146,7 +146,6 @@ createGroupKallback = (client, req, res, body) ->
       title           : companyName
     # config          : { plan: 'trial' } # default team plan
       visibility      : 'hidden'
-      initialData     : body
       allowedDomains  : convertToArray domains # clear & convert domains into array
       defaultChannels : []
     , owner, afterGroupCreate
