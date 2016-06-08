@@ -20,7 +20,11 @@ sidebarDrafts = [
   visibilityFilters
   (drafts, filters) ->
     draftFilters = filters.get 'draft'
-    drafts.filter (draft) -> not draftFilters.has draft.get '_id'
+    drafts.filter (draft) ->
+      if draftFilter = draftFilters.get draft.get '_id'
+        return draftFilter is 'visible'
+
+      return draft.get('accessLevel') is 'private'
 ]
 
 
