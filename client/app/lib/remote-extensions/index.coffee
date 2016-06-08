@@ -1,5 +1,6 @@
 globals        = require 'globals'
 REMOTE_CACHE   = {}
+whoami = require 'app/util/whoami'
 
 module.exports = RemoteExtensions =
 
@@ -34,6 +35,8 @@ module.exports = RemoteExtensions =
         # we need to try to cache all instances regardless it's listeners
         # RemoteExtensions will decide to keep or drop them away.
         RemoteExtensions.addInstance data._id, this
+
+      remote.api[model]::isMine = -> @originId is whoami()._id
 
 
   getCache: globals._getRemoteCache = -> REMOTE_CACHE
