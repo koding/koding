@@ -88,7 +88,7 @@ TeamName = ({ canEdit, title, teamName, callback }) ->
 
   className = if canEdit then 'half' else 'half TeamName'
 
-  <fieldset className=className>
+  <fieldset className={className}>
     <label>Team Name</label>
     <TeamNameInputArea canEdit={canEdit} value={value} callback={callback} />
   </fieldset>
