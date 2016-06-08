@@ -135,6 +135,12 @@ module.exports = class StackEditorView extends kd.View
 
     @tabView.showPaneByIndex 0
 
+    @tabView.on 'PaneDidShow', (pane) =>
+      if pane.name is 'Credentials'
+        @warningView.hide()
+      else
+        @warningView.show()
+
     @createOutputView()
     @createMainButtons()
 
