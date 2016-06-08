@@ -106,10 +106,10 @@ $borderColor                = #E3E3E3
       padding-top           12px
       padding-left          30px
       bg                    color #FEF2F4
-      border-left           1px solid #DDD
-      border-right          1px solid #DDD
-      left                  0px
-      right                 0px
+      border                1px solid #DDD
+      border-width          0 1px
+      left                  0
+      right                 0
       z-index               1
       abs()
 
@@ -365,7 +365,7 @@ $borderColor                = #E3E3E3
     > .kdview
       &.isntMine
         padding-top         57px
-        opacity             0.5
+        opacity             .5
       padding-right         0
 
   .message-view
@@ -412,7 +412,7 @@ $borderColor                = #E3E3E3
       hidden()
     &.isntMine
       padding-top           57px
-      opacity               0.5
+      opacity               .5
 
   .kdview.output
     vendor                  transition, height .2s ease
