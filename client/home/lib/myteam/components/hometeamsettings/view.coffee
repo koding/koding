@@ -86,7 +86,9 @@ TeamName = ({ canEdit, title, teamName, callback }) ->
   encode = if title then title else ''
   value = teamName or Encoder.htmlDecode encode
 
-  <fieldset className='half'>
+  className = if canEdit then 'half' else 'half TeamName'
+
+  <fieldset className=className>
     <label>Team Name</label>
     <TeamNameInputArea canEdit={canEdit} value={value} callback={callback} />
   </fieldset>
@@ -94,21 +96,13 @@ TeamName = ({ canEdit, title, teamName, callback }) ->
 
 TeamNameInputArea = ({ canEdit, value, callback }) ->
 
-  if canEdit
-    <input
-      type='text'
-      name='title'
-      value={value}
-      className='kdinput text js-teamName'
-      onChange={callback} />
-  else
-    <input
-      type='text'
-      name='title'
-      value={value}
-      disabled={not canEdit}
-      className='kdinput text js-teamName'
-      onChange={callback} />
+  <input
+    type='text'
+    name='title'
+    value={value}
+    disabled={not canEdit}
+    className='kdinput text js-teamName'
+    onChange={callback} />
 
 
 GenericButton = ({ className, title, callback }) ->
