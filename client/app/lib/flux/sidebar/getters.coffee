@@ -21,8 +21,9 @@ sidebarDrafts = [
   (drafts, filters) ->
     draftFilters = filters.get 'draft'
     drafts.filter (draft) ->
-      if draftFilter = draftFilters.get draft.get '_id'
-        return draftFilter is 'visible'
+      if draftFilter = draftFilters.get id = draft.get '_id'
+        # check for id is for backwards compatibility. ~Umut
+        return draftFilter in ['visible', id]
 
       return draft.get('accessLevel') is 'private'
 ]
