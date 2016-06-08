@@ -57,7 +57,7 @@ module.exports = class StackEditorView extends kd.View
     title   = stackTemplate?.title or generatedStackTemplateTitle
     content = stackTemplate?.template?.content
 
-    @createStackNameInput generateStackTemplateTitle
+    @createStackNameInput title
 
     @addSubView @tabView = new kd.TabView
       hideHandleCloseIcons : yes
@@ -229,6 +229,7 @@ module.exports = class StackEditorView extends kd.View
       cssClass: 'template-title'
       autogrow: yes
       defaultValue: title or generatedStackTemplateTitle
+      placeholder: generatedStackTemplateTitle
       bind: 'keyup'
       keyup: (e) ->
         { changeTemplateTitle } = EnvironmentFlux.actions

@@ -1,3 +1,4 @@
+_ = require 'lodash'
 EnvironmentFlux = require 'app/flux/environment'
 
 visibilityFilters = ['SidebarItemVisibilityStore']
@@ -9,10 +10,20 @@ visibilityFilter = (type, id) -> [
 
 sidebarStacks = [
   EnvironmentFlux.getters.stacks
+  EnvironmentFlux.getters.teamStackTemplates
+  EnvironmentFlux.getters.privateStackTemplates
   visibilityFilters
-  (stacks, filters) ->
+  (stacks, teamTemplates, privateTemplates, filters) ->
+    templates = teamTemplates.concat privateTemplates
     stackFilters = filters.get 'stack'
-    stacks.filter (stack) -> not stackFilters.has stack.get 'baseStackId'
+
+    stacks
+      .filter (stack) -> not stackFilters.has stack.get 'baseStackId'
+      .map (stack) ->
+        templateTitle = templates.getIn [stack.get('baseStackId'), 'title']
+        stack = stack.set 'title', _.unescape templateTitle  if templateTitle
+
+        return stack
 ]
 
 sidebarDrafts = [
