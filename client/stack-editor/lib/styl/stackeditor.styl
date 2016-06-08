@@ -99,6 +99,19 @@ $borderColor                = #E3E3E3
 
 .StackEditorTabs
   kalc                      height, (100% \- 133px)
+  &.isntMine
+    .warning-view
+      height                30px
+      color                 #222222
+      padding-top           12px
+      padding-left          30px
+      bg                    color #FEF2F4
+      border-left           1px solid #DDD
+      border-right          1px solid #DDD
+      left                  0px
+      right                 0px
+      z-index               1
+      abs()
 
   > .kdtabpaneview
     height                  calc(100% \- 73px)
