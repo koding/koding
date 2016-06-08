@@ -47,7 +47,20 @@ module.exports = class StackEditorView extends kd.View
 
     super options, data
 
-    @isMine = stackTemplate?.isMine()
+    @isMine = yes
+    kd.singletons.groupsController.ready =>
+
+      { groupsController } = kd.singletons
+      @isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
+
+      unless @isMine
+        @tabView.setClass 'StackEditorTabs isntMine'
+        @warningView.show()
+        @secondaryActions.hide()
+        @saveButton.hide()
+        @inputTitle.setClass 'template-title isntMine'
+
+
 
     @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
 
@@ -62,24 +75,23 @@ module.exports = class StackEditorView extends kd.View
     @createStackNameInput generateStackTemplateTitle
 
     stackEditorTabsCssClass = unless @isMine then 'StackEditorTabs isntMine' else 'StackEditorTabs'
+
     @addSubView @tabView = new kd.TabView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 300
       cssClass             : stackEditorTabsCssClass
 
-    unless @isMine
-      @tabView.addSubView @warningView = new kd.CustomHTMLView
-        cssClass: 'warning-view'
-        partial: 'You must be an admin to edit this stack.'
+
+    @tabView.addSubView @warningView = new kd.CustomHTMLView
+      cssClass: 'warning-view hidden'
+      partial: 'You must be an admin to edit this stack.'
 
     @addSubView @secondaryActions = new kd.CustomHTMLView
       cssClass             : 'StackEditor-SecondaryActions'
 
-    deleteStackCssClas = unless @isMine then ' isntMine' else ''
-    cssClass = "HomeAppView--button danger#{deleteStackCssClas}"
 
     @secondaryActions.addSubView new CustomLinkView
-      cssClass : cssClass
+      cssClass : 'HomeAppView--button danger'
       title    : 'DELETE STACK TEMPLATE'
       click    : @bound 'deleteStack'
 
@@ -97,13 +109,12 @@ module.exports = class StackEditorView extends kd.View
 
     @editorViews.variables = @variablesView = new VariablesView {
       delegate: this
-      stackTemplate
-    }
+    }, data
     @tabView.addPane variablesPane = new kd.TabPaneView
       name : 'Custom Variables'
       view : @variablesView
 
-    @editorViews.readme = @readmeView = new ReadmeView { stackTemplate }
+    @editorViews.readme = @readmeView = new ReadmeView {}, data
     @tabView.addPane readmePane = new kd.TabPaneView
       name : 'Readme'
       view : @readmeView
@@ -138,8 +149,9 @@ module.exports = class StackEditorView extends kd.View
     @tabView.on 'PaneDidShow', (pane) =>
       if pane.name is 'Credentials'
         @warningView.hide()
-      else
-        @warningView.show()
+      unless @isMine
+        if pane.name isnt 'Credentials'
+          @warningView.show()
 
     @createOutputView()
     @createMainButtons()
@@ -241,17 +253,17 @@ module.exports = class StackEditorView extends kd.View
     ]
 
     title = Encoder.htmlDecode kd.singletons.reactor.evaluate valueGetter
-    cssClass = unless @isMine then 'template-title isntMine' else 'template-title'
+
     options =
-      cssClass: cssClass
+      cssClass: 'template-title'
       autogrow: yes
       defaultValue: title or generatedStackTemplateTitle
       bind: 'keyup'
-      attributes:
-        disabled: not @isMine
+
       keyup: (e) ->
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
+
 
     @header.addSubView @inputTitle = new kd.InputView options
 
@@ -315,11 +327,10 @@ module.exports = class StackEditorView extends kd.View
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
         @handleGenerateStack()
 
-    saveButtonCssClass = unless @isMine then ' isntMine' else ''
-    cssClass = "GenericButton save-test#{saveButtonCssClass}"
+
     @buttons.addSubView @saveButton = new kd.ButtonView
       title          : 'SAVE'
-      cssClass       : cssClass
+      cssClass       : 'GenericButton save-test'
       loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
