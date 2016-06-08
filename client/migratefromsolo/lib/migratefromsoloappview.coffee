@@ -10,22 +10,42 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass or= kd.utils.curry 'MigrateFromSoloAppView', options.cssClass
-    options.width ?= 800
-    options.height ?= 600
+    options.cssClass or= kd.utils.curry 'BaseModalView MigrateFromSoloAppView', options.cssClass
+    options.width = 800
+    options.height = 700
     options.overlay ?= yes
 
     super options, data
 
+    console.log this
+
     @credential = @machines = null
 
-    @providersView = new ProvidersView { provider: 'aws' }
-    @soloMachinesList = new SoloMachinesListView
-    @progressBar = new kd.ProgressBarView { initial: 1 }
+    @mainHeader = new kd.CustomHTMLView
+      tagName: 'header'
+      partial: '<h1>Import VMs From Koding Solo</h1>'
+      cssClass: 'mainHeader'
 
-    @addSubView @providersView
-    @addSubView @soloMachinesList
-    @addSubView @progressBar
+    @mainSection = new kd.CustomHTMLView
+      tagName: 'section'
+      cssClass: 'main mainSection'
+
+    @mainSection.addSubView @stepHeader = new kd.CustomHTMLView
+      tagName: 'h2'
+      cssClass: 'stepHeader'
+
+    @mainSection.addSubView @stepDescription = new kd.CustomHTMLView
+      tagName: 'p'
+      cssClass: 'stepDescription'
+
+    @mainSection.addSubView @stepContainer = new kd.CustomHTMLView
+      tagName: 'div'
+      cssClass: 'stepContainer'
+
+    @stepContainer.addSubView @providersView = new ProvidersView { provider: 'aws' }
+    @stepContainer.addSubView @soloMachinesList = new SoloMachinesListView { click: -> console.log 'foo' }
+    @stepContainer.addSubView @progressBar = new kd.ProgressBarView { initial: 1 }
+    @stepContainer.addSubView @statusText = new kd.CustomHTMLView { cssClass: 'status-text' }
 
     @providersView.on 'ItemSelected', (credentialItem) =>
       @credential = credentialItem.getData()
@@ -35,21 +55,64 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
       @machines = machines
       @switchToMigrationProcess()
 
+    @mainFooter = new kd.CustomHTMLView
+      tagName: 'footer'
+      cssClass: 'mainFooter'
+
+    @mainFooter.addSubView @backLink = new kd.CustomHTMLView
+      tagName: 'a'
+      partial: 'GO BACK'
+      cssClass: 'back-link'
+      attributes: { href: '#' }
+
+    @mainFooter.addSubView @nextButton = new kd.ButtonView
+      title    : 'Next'
+      cssClass : 'GenericButton'
+
+    @addSubView @mainHeader
+    @addSubView @mainSection
+    @addSubView @mainFooter
+
     @switchToCredentials()
+
+
+  setBackLinkCallback: (cb) ->
+
+    @backLink.off 'click'
+    @backLink.on 'click', (event) ->
+      kd.utils.stopDOMEvent event
+      cb()
 
 
   switchToCredentials: ->
 
+    @stepHeader.updatePartial 'Select Personal AWS Credentials'
+    @stepDescription.updatePartial 'Your personal AWS credentials are required to import your solo account.'
+
+    @setBackLinkCallback kd.noop
+    @backLink.hide()
+    @nextButton.hide()
+
     @providersView.show()
     @soloMachinesList.hide()
     @progressBar.hide()
+    @statusText.hide()
 
 
   switchToMachinesList: ->
 
+    @stepHeader.updatePartial 'Select the VMs You Would Like to Transfer'
+    @stepDescription.updatePartial 'A new stack will be created in Koding Teams for the selected VMs.'
+
+    @setBackLinkCallback @bound 'switchToCredentials'
+
+    @backLink.show()
+    @nextButton.hide()
+
     @providersView.hide()
     @soloMachinesList.show()
     @progressBar.hide()
+    @statusText.hide()
 
 
   switchToMigrationProcess: ->
@@ -57,9 +120,17 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
     { computeController } = kd.singletons
     { slug } = getGroup()
 
+    @stepHeader.updatePartial 'A New Stack is Being Created for Your VMs'
+    @stepDescription.updatePartial 'Once your VM’s are transferred they will be located under the stacks menu in a new stack called “Migrated Stack Template”.'
+
+    @setBackLinkCallback @bound 'switchToCredentials'
+
+    @statusText.updatePartial 'Migration in progress...'
+
     @providersView.hide()
-    @soloMachinesList.show()
+    @soloMachinesList.hide()
     @progressBar.show()
+    @statusText.show()
 
     computeController.getKloud().migrate(
       provider: 'aws'
@@ -92,12 +163,17 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
 
   switchToFinishedView: ->
 
-    @destroySubViews()
+    @mainSection.destroySubViews()
 
-    @addSubView view = new MigrationFinishedView
+    @mainSection.addSubView view = new MigrationFinishedView
 
-    view.on 'GoToStacksRequested', =>
+    @backLink.hide()
+
+    @nextButton.setTitle 'Start Koding'
+    @nextButton.setCallback =>
       kd.singletons.router.handleRoute '/Home/Stacks'
       @destroy()
+
+    @nextButton.show()
 
 

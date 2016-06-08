@@ -12,10 +12,39 @@ $borderColor                = #E3E3E3
 $buttonGray                 = #858585
 
 .MigrateFromSoloAppView.kdmodal
-  font-family               SoleilFamily
 
-  .GenericButton
-    text-transform          uppercase
+  .disabled, :disabled
+    opacity               .33
+    pointer-events        none
+
+  .mainHeader, .mainSection, .mainFooter
+    borderBox()
+
+  .mainHeader, .mainFooter
+    height                  90px
+
+  .mainFooter .GenericButton
+    top                     24px
+    right                   24px
+
+  .mainHeader h1
+    font-size               20px
+    padding-top             40px
+
+  .mainSection
+    height                  520px
+    display                 flex
+    flex-direction          column
+
+  .stepDescription
+    width                   600px
+    margin                  0 auto
+
+  .stepContainer
+    height                  410px
+    padding                 0 25px
+    flex                    1 auto
+    borderBox()
 
   .kdmodal-inner
     margin                  0
@@ -23,34 +52,40 @@ $buttonGray                 = #858585
 
   .kdmodal-content
     height                  100%
-    padding                 25px
     borderBox()
+
+  .SoloMachinesListContainer
+    .ButtonContainer
+      text-align            center
 
   .SoloMachinesList
     position                relative
 
-    &.disabled
-      opacity               .33
-      pointer-events        none
-
-
   .MigrationFinished
-    text-align              center
-    margin-top              150px
 
-  .MigrationFinished-message
+    padding-left            460px
+    padding-top             164px
+
     h1
       color                 #57a2d2
       font-size             50px
+      font-weight           600
       letter-spacing        .5px
       line-height           44px
 
     h2
       font-size             32px
+      font-weight           200
       line-height           44px
       color                 rgba(0,0,0,0.5)
+      text-align            left
       padding-top           17px
-      padding-bottom        21px
+
+    .background
+      abs()
+      top                   105px
+      left                  100px
+      r-sprite              'app', 'buildstack_art_success'
 
   .progressbar-container
     bg                      color, #e1e1e1
@@ -67,25 +102,24 @@ $buttonGray                 = #858585
 
 
   .SoloMachinesListItem
+    bg                      color, white
     border                  1px solid $borderColor
     padding                 25px
     margin-bottom           15px
     &:last-of-type
       margin-bottom         15px
 
-
-    &.expanded
-      rounded               4px
-
     header
       display               flex
       flex-flow             row wrap
       justify-content       space-around
       align-content         flex-start
+      border                none
 
       .SoloMachinesListItem-machineLabel
         flex                1 0 auto
         width               144px
+        text-align          left
         ellipsis()
         pointer()
 

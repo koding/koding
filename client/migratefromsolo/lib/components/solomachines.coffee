@@ -66,15 +66,17 @@ module.exports = class SoloMachines extends React.Component
 
   renderButton: ->
 
+    selectedMachineCount = Object.keys(@state.selectedMachines).length
+
     if @state.confirmed
       null
     else if @state.finishedSelection
       <div className="GenericButtonGroup">
         <button className='GenericButton' onClick={@bound 'onConfirm'}>START MIGRATING</button>
-        <button className='GenericButton secondary' onClick={@bound 'onFinishCancel'}>CANCEL</button>
+        <button className='GenericButton alternate' onClick={@bound 'onFinishCancel'}>CANCEL</button>
       </div>
     else
-      <button className='GenericButton' onClick={@bound 'onSubmit'}>SELECT MACHINES</button>
+      <button disabled={not selectedMachineCount} className='GenericButton' onClick={@bound 'onSubmit'}>SELECT MACHINES</button>
 
 
   render: ->
@@ -82,11 +84,13 @@ module.exports = class SoloMachines extends React.Component
     className = 'SoloMachinesList'
     className += ' disabled'  if @state.finishedSelection or @state.confirmed
 
-    <div>
+    <div className='SoloMachinesListContainer'>
       <ul className={className}>
         {@renderMachines()}
       </ul>
-      {@renderButton()}
+      <div className='ButtonContainer'>
+        {@renderButton()}
+      </div>
     </div>
 
 
