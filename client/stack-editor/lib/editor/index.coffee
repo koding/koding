@@ -293,9 +293,11 @@ module.exports = class StackEditorView extends kd.View
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
         @handleGenerateStack()
 
+    saveButtonCssClass = unless @isMine then ' isntMine' else ''
+    cssClass = "GenericButton save-test#{saveButtonCssClass}"
     @buttons.addSubView @saveButton = new kd.ButtonView
       title          : 'SAVE'
-      cssClass       : 'GenericButton save-test'
+      cssClass       : cssClass
       loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
