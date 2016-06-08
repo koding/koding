@@ -1,0 +1,111 @@
+$warningColor               = #f2778a
+
+.BaseModalView.kdmodal
+  font-family               SoleilFamily
+  overflow                  visible
+  rounded                   6px
+  border                    none
+  noAnim()
+
+  .kdmodal-inner
+    bg                      color, #f7f7f7
+
+  .kdmodal-inner,
+  .kdmodal-inner .kdmodal-content
+    margin                  0
+    overflow                visible
+
+  .kdmodal-inner .close-icon
+    hidden()
+
+  .kdmodal-title
+    hidden()
+
+  header
+    border-bottom           1px solid #DEDBDB
+    bg                      color #fff
+    text-align              center
+    rounded                 6px 6px 0 0
+
+    h1
+      display               inline-block
+      color                 #BABABA
+
+  .status-text
+    text-align              center
+    color                   #585858
+    padding                 25px 0
+
+  section.main
+    overflow                hidden
+    rel()
+    borderBox()
+
+    > h2
+      color                 #424242
+      padding-top           25px
+      font-size             20px
+      text-align            center
+      letter-spacing        .2px
+
+    > p
+      text-align            center
+      font-size             14px
+      letter-spacing        .2px
+      text-align            center
+      color                 #a59999
+      margin-top            5px
+      margin-bottom         28px
+
+    .progressbar-container
+      bg                    color, #e1e1e1
+      bg                    image, none
+      border                none
+      rounded               0
+      width                 600px
+      height                40px
+      margin                0 auto
+
+      .bar
+        rounded             0
+        bg                  image, none
+        shadow              none
+
+      span.dark-label, span.light-label
+        color               #fff
+        font-size           15px
+        letter-spacing      .1px
+        line-height         20px
+        top                 7px
+        padding-right       10px
+        borderBox()
+
+  footer
+    height                  100px
+    border-top              1px solid #DEDBDB
+    bg                      color #fff
+    rel()
+    rounded                 0 0 6px 6px
+
+    .GenericButton
+      abs                   29px 29px
+      min-width             146px
+      height                42px
+      padding               0 24px
+      text-transform        uppercase
+
+    a.back-link
+      abs()
+      top                   39px
+      left                  30px
+      color                 #c6c6c6
+      text-decoration       none !important
+      text-transform        uppercase
+      font-size             14px
+      line-height           18px
+
+      .arrow
+        display             inline-block
+        r-sprite            'app', 'back_arrow_gray'
+        margin-right        9px
+
