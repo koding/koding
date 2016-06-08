@@ -36,6 +36,10 @@ module.exports = RemoteExtensions =
         # RemoteExtensions will decide to keep or drop them away.
         RemoteExtensions.addInstance data._id, this
 
+      # small helper to check instance ownership
+      # if originId is provided in the modal
+      # please be aware this will return false all the time
+      # if modal doesn't have originId field in its schema
       remote.api[model]::isMine = -> @originId is whoami()._id
 
 
