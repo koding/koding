@@ -30,10 +30,8 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
 
     delegate = @getDelegate()
 
-    isMine = stackTemplate?.isMine()
-
     @addSubView @editorView = new StackTemplateEditorView {
-      delegate: this, content, contentType, showHelpContent, isMine
+      delegate: this, content, contentType, showHelpContent
     }
 
     @editorView.addSubView @previewButton = new KDButtonView
