@@ -67,8 +67,11 @@ module.exports = class StackEditorView extends kd.View
     @addSubView @secondaryActions = new kd.CustomHTMLView
       cssClass             : 'StackEditor-SecondaryActions'
 
+    deleteStackCssClas = unless @isMine then ' isntMine' else ''
+    cssClass = "HomeAppView--button danger#{deleteStackCssClas}"
+
     @secondaryActions.addSubView new CustomLinkView
-      cssClass : 'HomeAppView--button danger'
+      cssClass : cssClass
       title    : 'DELETE STACK TEMPLATE'
       click    : @bound 'deleteStack'
 
