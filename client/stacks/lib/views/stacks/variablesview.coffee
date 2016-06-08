@@ -24,8 +24,8 @@ module.exports = class VariablesView extends StackBaseEditorTabView
 
     super options, data
 
-    { stackTemplate } = @getOptions()
-    options.isMine = stackTemplate?.isMine()
+    { stackTemplate } = @getData()
+
     @editorView = @addSubView new VariablesEditorView options
 
     if cred = stackTemplate?.credentials?.custom?.first

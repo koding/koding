@@ -12,11 +12,6 @@ module.exports = class MarkdownEditorView extends BaseStackEditorView
 
     super options, data
 
-    unless options.isMine
-      @once 'EditorReady', ->
-        ace = @getAce()
-        ace.editor.setReadOnly yes
-
 
   viewAppended: ->
 
