@@ -28,7 +28,7 @@ makeVisible = (type, id) ->
 
     storage.fetchValue 'visibility', (visibilityFilters) ->
       visibilityFilters = withDefaults visibilityFilters  unless visibilityFilters
-      delete visibilityFilters[type][id]
+      visibilityFilters[type][id] = 'visible'
       storage.setValue 'visibility', visibilityFilters, ->
         reactor.dispatch actionTypes.MAKE_SIDEBAR_ITEM_VISIBLE_SUCCESS, { type, id }
 
@@ -44,7 +44,7 @@ makeHidden = (type, id) ->
 
     storage.fetchValue 'visibility', (visibilityFilters) ->
       visibilityFilters = withDefaults visibilityFilters  unless visibilityFilters
-      visibilityFilters[type][id] = id
+      visibilityFilters[type][id] = 'hidden'
       storage.setValue 'visibility', visibilityFilters, ->
         reactor.dispatch actionTypes.MAKE_SIDEBAR_ITEM_HIDDEN_SUCCESS, { type, id }
 
@@ -52,14 +52,14 @@ makeHidden = (type, id) ->
 saveVisible = (storage, type, id, callback) ->
 
   visibilityFilters = storage.getValue 'visibility'
-  delete visibilityFilters[type][id]
+  visibilityFilters[type][id] = 'visible'
   storage.setValue 'visibility', visibilityFilters, callback
 
 
 saveHidden = (storage, type, id, callback) ->
 
   visibilityFilters = storage.getValue 'visibility'
-  visibilityFilters[type][id] = id
+  visibilityFilters[type][id] = 'hidden'
   storage.setValue 'visibility', visibilityFilters, callback
 
 
