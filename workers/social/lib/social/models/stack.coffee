@@ -21,6 +21,9 @@ module.exports = class JComputeStack extends jraphical.Module
 
   @set
 
+    indexes              :
+      baseStackId        : 'sparse'
+
     softDelete           : yes
 
     permissions          :
