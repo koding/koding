@@ -18,7 +18,10 @@ module.exports = class ReadmeView extends StackBaseEditorTabView
       then Encoder.htmlDecode stackTemplate?.description
       else defaults.description
 
+    isMine = stackTemplate?.isMine()
+
     @editorView   = @addSubView new MarkdownEditorView
       content     : content
       delegate    : this
       contentType : 'md'
+      isMine      : isMine
