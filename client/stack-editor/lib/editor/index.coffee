@@ -241,15 +241,20 @@ module.exports = class StackEditorView extends kd.View
     ]
 
     title = Encoder.htmlDecode kd.singletons.reactor.evaluate valueGetter
-
-    @header.addSubView @inputTitle = new kd.InputView
-      cssClass: 'template-title'
+    cssClass = unless @isMine then 'template-title isntMine' else 'template-title'
+    options =
+      cssClass: cssClass
       autogrow: yes
       defaultValue: title or generatedStackTemplateTitle
       bind: 'keyup'
+      attributes:
+        disabled: not @isMine
       keyup: (e) ->
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
+
+    @header.addSubView @inputTitle = new kd.InputView options
+
 
     kd.singletons.reactor.observe valueGetter, (value) =>
 
