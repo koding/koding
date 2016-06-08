@@ -33,8 +33,8 @@ module.exports = class JStackTemplate extends Module
 
       'force stacks to reinit'    : []
 
-      'check if own stack template has stacks' : ['member']
-      'check if stack template has stacks'     : []
+      'check own stack usage'     : ['member']
+      'check stack usage'         : []
 
     sharedMethods     :
 
@@ -483,8 +483,8 @@ module.exports = class JStackTemplate extends Module
   hasStacks: permit
 
     advanced: [
-      { permission: 'check if own stack template has stacks', validateWith: Validators.own }
-      { permission: 'check if stack template has stacks' }
+      { permission: 'check own stack usage', validateWith: Validators.own }
+      { permission: 'check stack usage' }
     ]
 
     success: (client, callback) ->
