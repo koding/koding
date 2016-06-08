@@ -14,6 +14,11 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
     if options.showHelpContent
       @once 'EditorReady', @bound 'insertHelpText'
 
+    unless options.isMine
+      @once 'EditorReady', ->
+        ace = @getAce()
+        ace.editor.setReadOnly yes
+
 
   insertHelpText: ->
 
