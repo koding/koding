@@ -14,6 +14,13 @@ module.exports = class StackEditorAppController extends AppController
     name       : 'Stackeditor'
     behavior   : 'application'
 
+  constructor: (options = {}, data) ->
+
+    super options, data
+
+    # a cache to register created views.
+    @editors = {}
+
 
   openEditor: (stackTemplateId) ->
 
