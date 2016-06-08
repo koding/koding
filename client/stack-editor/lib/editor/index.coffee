@@ -47,6 +47,8 @@ module.exports = class StackEditorView extends kd.View
 
     super options, data
 
+    @isMine = stackTemplate?.isMine()
+
     @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
 
     if stackTemplate?.title
@@ -59,10 +61,16 @@ module.exports = class StackEditorView extends kd.View
 
     @createStackNameInput generateStackTemplateTitle
 
+    stackEditorTabsCssClass = unless @isMine then 'StackEditorTabs isntMine' else 'StackEditorTabs'
     @addSubView @tabView = new kd.TabView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 300
-      cssClass             : 'StackEditorTabs'
+      cssClass             : stackEditorTabsCssClass
+
+    unless @isMine
+      @tabView.addSubView @warningView = new kd.CustomHTMLView
+        cssClass: 'warning-view'
+        partial: 'You must be an admin to edit this stack.'
 
     @addSubView @secondaryActions = new kd.CustomHTMLView
       cssClass             : 'StackEditor-SecondaryActions'
