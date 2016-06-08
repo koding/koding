@@ -22,3 +22,8 @@ module.exports = class VariablesEditorView extends BaseStackEditorView
       options.contentType = 'yaml'
 
     super options, data
+
+    unless options.isMine
+      @once 'EditorReady', ->
+        ace = @getAce()
+        ace.editor.setReadOnly yes
