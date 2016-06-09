@@ -170,6 +170,19 @@ draftStackTemplates = [
     teamTemplates.merge(privateTemplates).filter (t) -> not t.get('inUse')
 ]
 
+
+disabledUsersStacks = [
+  stacks
+  (_stacks) -> _stacks.filter (s) -> s.hasIn ['config', 'oldOwner']
+]
+
+disabledUsersStackTemplates = [
+  teamStackTemplates
+  disabledUsersStacks
+  (templates, _stacks) -> _stacks.map (s) -> templates.get s.get('baseStackId')
+]
+
+
 module.exports = {
   stacks
   ownMachines
@@ -192,4 +205,6 @@ module.exports = {
   inUseTeamStackTemplates
   inUsePrivateStackTemplates
   draftStackTemplates
+  disabledUsersStacks
+  disabledUsersStackTemplates
 }

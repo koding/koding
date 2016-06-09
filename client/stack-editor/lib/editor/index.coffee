@@ -57,7 +57,7 @@ module.exports = class StackEditorView extends kd.View
     title   = stackTemplate?.title or generatedStackTemplateTitle
     content = stackTemplate?.template?.content
 
-    @createStackNameInput generateStackTemplateTitle
+    @createStackNameInput title
 
     @addSubView @tabView = new kd.TabView
       hideHandleCloseIcons : yes
@@ -229,6 +229,7 @@ module.exports = class StackEditorView extends kd.View
       cssClass: 'template-title'
       autogrow: yes
       defaultValue: title or generatedStackTemplateTitle
+      placeholder: generatedStackTemplateTitle
       bind: 'keyup'
       keyup: (e) ->
         { changeTemplateTitle } = EnvironmentFlux.actions
@@ -773,17 +774,25 @@ module.exports = class StackEditorView extends kd.View
           modal.destroy()
 
 
-    modal = kd.ModalView.confirm
-      title       : title
-      description : description
-      ok          :
-        title     : 'Yes'
-        callback  : -> callback { status : yes, modal }
-      cancel      :
-        title     : 'Cancel'
-        callback  : ->
-          modal.destroy()
-          callback { status : no }
+    template.hasStacks (err, result) ->
+      return showError err  if err
 
-    modal.setAttribute 'testpath', 'RemoveStackModal'
+      if result
+        description = '''
+          There is a stack generated from this template by another team member. Removing it can break their stack.
+          Do you still want to remove this stack template ?
+        '''
 
+      modal = kd.ModalView.confirm
+        title       : title
+        description : description
+        ok          :
+          title     : 'Yes'
+          callback  : -> callback { status : yes, modal }
+        cancel      :
+          title     : 'Cancel'
+          callback  : ->
+            modal.destroy()
+            callback { status : no }
+
+      modal.setAttribute 'testpath', 'RemoveStackModal'

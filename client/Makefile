@@ -35,7 +35,7 @@ all: development landing
 
 dist: landing production
 
-unit-tests: landing minify-with-unit-tests
+unit-tests: landing bongo_schema minify-with-unit-tests
 
 vanilla:
 	$(BUILDER) $(BUILDER_ARGS)
