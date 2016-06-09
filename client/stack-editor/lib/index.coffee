@@ -85,19 +85,6 @@ module.exports = class StackEditorAppController extends AppController
       createOnce()
 
 
-  createView: (stackTemplate) ->
-
-    options = { skipFullscreen: yes }
-    data    = { stackTemplate, showHelpContent: not stackTemplate }
-
-    @mainView.destroySubViews()
-
-    view    = new StackEditorView options, data
-    view.on 'Cancel', -> kd.singletons.router.back()
-
-    @mainView.addSubView view
-
-
   showView: (stackTemplate) ->
 
     stackTemplate or= { _id: 'default' }
