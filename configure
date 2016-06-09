@@ -39,6 +39,7 @@ defaults options,
   envFileName: '.env'
 
 
+options.inheritEnvVars = if argv.hasOwnProperty 'without-envvars' then no else yes
 options.runGoWatcher = argv.hasOwnProperty 'with-go-watcher'
 options.sendEventsToSegment = if argv['disable-segment'] then off else on
 
@@ -92,10 +93,9 @@ rest = ->
 
     fs.writeFileSync "./deployment/generated_files/supervisord.conf", KONFIG.supervisorConf
     fs.writeFileSync "./deployment/generated_files/nginx.conf", KONFIG.nginxConf
-    fs.writeFileSync "./.#{defaultEnv}.nginx.conf", KONFIG.nginxConf
 
-    if KONFIG.supervisord.output_path
-      fs.writeFileSync KONFIG.supervisord.output_path, KONFIG.supervisorConf
+    fs.writeFileSync 'supervisord.conf', KONFIG.supervisorConf
+    fs.writeFileSync "./.#{defaultEnv}.nginx.conf", KONFIG.nginxConf
 
     log "Configuration done"
     log "------------------"
