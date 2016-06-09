@@ -108,7 +108,7 @@ module.exports = class AvatarView extends LinkView
 
   getDefaultAvatarUri: ->
     size = @getUriSize()
-    return "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+    return "https://koding-cdn.s3.amazonaws.com/new-avatars/default.avatar.#{size}.png"
 
 
   getUriSize: ->
