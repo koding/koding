@@ -21,6 +21,13 @@ prog_bin="${exec_prefix}/bin/supervisord"
 PIDFILE="/var/run/$prog.pid"
 CONFFILE="/etc/supervisord.conf"
 
+if [ ! -f /etc/sysconfig/supervisord ]; then
+    exit 6
+fi
+
+. /etc/sysconfig/supervisord
+
+
 start()
 {
         echo -n $"Starting $prog: "
