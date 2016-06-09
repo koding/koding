@@ -409,10 +409,19 @@ module.exports = class StackEditorView extends kd.View
       stackTemplate.isDefault ?= stackTemplate._id in (stackTemplates or [])
       templateSetBefore        = stackTemplates?.length
 
+      stacks = kd.singletons.reactor.evaluateToJS ['StacksStore']
+      templateIds = Object.keys(stacks).map (key) -> stacks[key].baseStackId
+
+      hasStack = stackTemplate._id in templateIds
+
       # TMS-1919: This needs to be reimplemented, once we have multiple
       # stacktemplates set for a team this will be broken ~ GG
 
-      if templateSetBefore
+
+      if hasStack
+        setToGroup()
+
+      else if templateSetBefore
 
         unless stackTemplate.isDefault
 
@@ -427,7 +436,7 @@ module.exports = class StackEditorView extends kd.View
               You can now close the stack editor or continue editing your stack.
             '''
           else
-            @generateStackButton.show()
+            @reinitButton.show()
             @outputView.add '''
               Your stack script has been successfully saved.
               You can now close the stack editor or continue editing your stack.
