@@ -14,7 +14,6 @@ module.exports = class CredentialsController extends kd.Controller
   constructor: (options, data) ->
 
     super options, data
-    @loadData()
 
 
   loadData: ->
@@ -30,10 +29,10 @@ module.exports = class CredentialsController extends kd.Controller
       return showError err  if err
 
       { credentials, requirements, kdCmd } = results
-      @createPages credentials, requirements, kdCmd
+      @setup credentials, requirements, kdCmd
 
 
-  createPages: (credentials, requirements, kdCmd) ->
+  setup: (credentials, requirements, kdCmd) ->
 
     stack = @getData()
     { container } = @getOptions()

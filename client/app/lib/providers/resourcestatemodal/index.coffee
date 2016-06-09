@@ -19,6 +19,7 @@ module.exports = class ResourceStateModal extends kd.BlockingModalView
     @controller.on 'ClosingRequested', @bound 'destroy'
     @forwardEvent @controller, 'IDEBecameReady'
     @forwardEvent @controller, 'MachineTurnOnStarted'
+    @controller.loadData()
 
     @show()
 

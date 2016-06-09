@@ -19,8 +19,6 @@ module.exports = class MachineFlowController extends kd.Controller
     machine = @getData()
     @state  = machine.status.state
 
-    @loadData()
-
 
   loadData: ->
 
@@ -39,15 +37,14 @@ module.exports = class MachineFlowController extends kd.Controller
           percentage : response.percentage
           eventId    : machineId
       .catch (err) =>
-        @showError err
         @onDataLoaded()
+        @showError err
 
 
   onDataLoaded: ->
 
     @bindToKloudEvents()
-    @createPages()
-    @show()
+    @setup()
 
 
   bindToKloudEvents: ->
@@ -65,7 +62,7 @@ module.exports = class MachineFlowController extends kd.Controller
     eventListener.followUpcomingEvents machine
 
 
-  createPages: ->
+  setup: ->
 
     { container } = @getOptions()
     machine = @getData()
@@ -86,6 +83,8 @@ module.exports = class MachineFlowController extends kd.Controller
       @startMachinePage, @startMachineProgressPage, @startMachineSuccessPage,
       @startMachineErrorPage, @stopMachineProgressPage, @stopMachineErrorPage
     )
+
+    @show()
 
 
   updateStatus: (event, task) ->

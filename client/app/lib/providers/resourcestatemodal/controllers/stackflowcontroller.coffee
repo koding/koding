@@ -16,8 +16,6 @@ module.exports = class StackFlowController extends kd.Controller
     { stack } = @getData()
     @state    = stack.status?.state
 
-    @loadData()
-
 
   loadData: ->
 
@@ -26,14 +24,11 @@ module.exports = class StackFlowController extends kd.Controller
 
     computeController.fetchBaseStackTemplate stack, (err, stackTemplate) =>
       return showError err  if err
-      @onDataLoaded stackTemplate
 
+      @bindToKloudEvents()
+      @setup stackTemplate
 
-  onDataLoaded: (stackTemplate) ->
-
-    @stackTemplate = stackTemplate
-    @bindToKloudEvents()
-    @createControllers()
+      @credentials.loadData()
 
 
   bindToKloudEvents: ->
@@ -50,14 +45,14 @@ module.exports = class StackFlowController extends kd.Controller
       eventListener.addListener 'apply', stack._id
 
 
-  createControllers: ->
+  setup: (stackTemplate) ->
 
     { stack, machine } = @getData()
     { container }      = @getOptions()
 
-    @instructions = new InstructionsController { container }, @stackTemplate
+    @instructions = new InstructionsController { container }, stackTemplate
     @credentials  = new CredentialsController { container }, stack
-    @buildStack   = new BuildStackController { container }, { stack, @stackTemplate, machine }
+    @buildStack   = new BuildStackController { container }, { stack, stackTemplate, machine }
 
     @instructions.on 'NextPageRequested', => @credentials.show()
     @credentials.on 'InstructionsRequested', => @instructions.show()

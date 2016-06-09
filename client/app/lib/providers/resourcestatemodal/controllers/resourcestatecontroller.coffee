@@ -12,10 +12,22 @@ module.exports = class ResourceStateController extends kd.Controller
     super options, data
 
     @createPageContainer()
-    @createLoader()
+    @createInitialView()
+
+
+  loadData: ->
+
+    machine = @getData()
+    return  unless machine
 
     { computeController } = kd.singletons
-    computeController.ready @bound 'createCurrentFlow'
+    computeController.ready =>
+      machineId = machine.jMachine._id
+      stack     = computeController.findStackFromMachineId machineId
+      return kd.log 'ResourceStateController: stack not found!'  unless stack
+
+      @setup stack
+      @currentFlow.loadData()
 
 
   createPageContainer: ->
@@ -26,41 +38,36 @@ module.exports = class ResourceStateController extends kd.Controller
     @forwardEvent @pageContainer, 'PaneDidShow'
 
 
-  createLoader: ->
+  createInitialView: ->
 
-    loader = new kd.CustomHTMLView
-      cssClass : 'loader-container'
-      partial  : "<div class='loader-text'>Loading...</div>"
-    loader.addSubView new kd.LoaderView
-      showLoader : yes
-      size       :
-        width    : 40
-        height   : 40
+    machine = @getData()
+    if machine
+      view = new kd.CustomHTMLView
+        cssClass : 'loader-container'
+        partial  : "<div class='loader-text'>Loading...</div>"
+      view.addSubView new kd.LoaderView
+        showLoader : yes
+        size       :
+          width    : 40
+          height   : 40
+    else
+      view = new NoStackPageView()
 
-    @pageContainer.appendPages loader
-    @pageContainer.showPage loader
+    @pageContainer.appendPages view
+    @pageContainer.showPage view
 
 
-  createCurrentFlow: ->
+  setup: (stack) ->
+
+    machine = @getData()
 
     { computeController } = kd.singletons
     { initial } = @getOptions()
 
-    machine = @getData()
-    unless machine
-      noStackPage = new NoStackPageView()
-      @pageContainer.appendPages noStackPage
-      return @pageContainer.showPage noStackPage
-
-    machineId = machine.jMachine._id
-    @stack    = computeController.findStackFromMachineId machineId
-
-    return kd.log 'ResourceStateController: stack not found!'  unless @stack
-
-    if @stack.status?.state isnt 'Initialized'
+    if stack.status?.state isnt 'Initialized'
       @currentFlow = new StackFlowController {
         container : @pageContainer
-      }, { machine, @stack }
+      }, { machine, stack }
     else
       @currentFlow = new MachineFlowController {
         container : @pageContainer
