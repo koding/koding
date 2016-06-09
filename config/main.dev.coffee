@@ -92,12 +92,18 @@ Configuration = (options = {}) ->
   KONFIG.supervisord.unix_http_server =
     file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
 
+  envFiles =
+    sh: (require './generateShellEnv').create KONFIG, options
+    json: JSON.stringify KONFIG, null, 2
+
   KONFIG.JSON = JSON.stringify KONFIG
   KONFIG.ENV = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
   KONFIG.nginxConf = (require "../deployment/nginx.coffee").create KONFIG, options.environment
   KONFIG.runFile = require('./generateRunFile').dev(KONFIG, options, credentials)
   KONFIG.configCheckExempt = []
+
+  KONFIG.envFiles = envFiles
 
   return KONFIG
 

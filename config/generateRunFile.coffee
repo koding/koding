@@ -19,22 +19,6 @@ generateDev = (KONFIG, options, credentials) ->
 
     return str
 
-  envvars = (options = {}) ->
-    options.exclude or= []
-
-    env = ''
-
-    add = (name, value) ->
-      env += "export #{name}=${#{name}:-#{JSON.stringify value}}\n"
-
-    for name, value of KONFIG.ENV when name not in options.exclude
-      add name, value
-
-    add 'GOPATH', '$KONFIG_PROJECTROOT/go'
-    add 'GOBIN', '$GOPATH/bin'
-
-    return env
-
   workerList = (separator = ' ') ->
     (key for key, val of KONFIG.workers).join separator
 
@@ -108,8 +92,15 @@ generateDev = (KONFIG, options, credentials) ->
   run = """
     #!/bin/bash
 
-    # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
-    #{envvars()}
+    # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #
+
+    ENV_SHELL_FILE=${ENV_SHELL_FILE:-$(dirname $0)/.env.sh}
+    if [ -f "$ENV_SHELL_FILE" ]; then
+      source $ENV_SHELL_FILE
+    else
+      echo "error: shell environment file does not exist"
+      exit 1
+    fi
 
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
@@ -172,20 +163,6 @@ generateDev = (KONFIG, options, credentials) ->
           echo -e "\n\nPlease do ./run again\n"
           exit 1;
       fi
-    }
-
-    function printconfig () {
-      if [ "$2" == "" ]; then
-        cat << EOF
-        #{envvars({ exclude:["KONFIG_JSON"] })}EOF
-      elif [ "$2" == "--json" ]; then
-
-        echo '#{KONFIG.JSON}'
-
-      else
-        echo ""
-      fi
-
     }
 
     function migrations () {
@@ -699,7 +676,14 @@ generateSandbox =   generateRunFile = (KONFIG) ->
   return """
     #!/bin/bash
     export HOME=/home/ec2-user
-    export KONFIG_JSON='#{KONFIG.JSON}'
+
+    ENV_SHELL_FILE=${ENV_SHELL_FILE:-$(dirname $0)/.env.sh}
+    if [ -f "$ENV_SHELL_FILE" ]; then
+      source $ENV_SHELL_FILE
+    else
+      echo "error: shell environment file does not exist"
+      exit 1
+    fi
 
     COMMAND=$1
     shift
