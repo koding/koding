@@ -5,6 +5,7 @@ headerize = require '../commons/headerize'
 HomeStacksCreate = require './homestackscreate'
 HomeStacksTeamStacks = require './homestacksteamstacks'
 HomeStacksPrivateStacks = require './homestacksprivatestacks'
+HomeStacksDisabledUsers = require './homestacksdisableduserstacks'
 HomeStacksDrafts = require './homestacksdrafts'
 HomeStacksTabHandle = require './homestackstabhandle'
 
@@ -50,7 +51,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
     { mainController, computeController, reactor } = kd.singletons
 
-    kd.singletons.mainController.ready =>
+    mainController.ready =>
       @createStacksViews()
       @createVMsViews()
       @createCredentialsViews()
@@ -79,8 +80,11 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
   createStacksViews: ->
 
-    EnvironmentFlux.actions.loadTeamStackTemplates()
-    EnvironmentFlux.actions.loadPrivateStackTemplates()
+    { reactor } = kd.singletons
+    { actions, getters } = EnvironmentFlux
+
+    actions.loadTeamStackTemplates()
+    actions.loadPrivateStackTemplates()
 
     @stacks.addSubView view = new HomeStacksCreate
 
@@ -93,6 +97,27 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
     @stacks.addSubView headerize 'Private Stacks'
     @stacks.addSubView sectionize 'Private Stacks', HomeStacksPrivateStacks, { delegate : this }
+
+    @stacks.addSubView disabledUsersHeader = headerize 'Disabled User Stacks'
+    @stacks.addSubView disabledUsersSection = sectionize 'Disabled User Stacks', HomeStacksDisabledUsers, { deletage: this }
+
+    showDisabledUsers = ->
+      disabledUsersHeader.show()
+      disabledUsersSection.show()
+
+    hideDisabledUsers = ->
+      disabledUsersHeader.hide()
+      disabledUsersSection.hide()
+
+
+    cleanObserver = reactor.observe getters.disabledUsersStackTemplates, (templates) ->
+      if templates.size
+      then showDisabledUsers()
+      else hideDisabledUsers()
+
+    hideDisabledUsers()
+
+    @once 'KDObjectWillBeDestroyed', cleanObserver
 
     @stacks.addSubView headerize 'Drafts'
     @stacks.addSubView sectionize 'Drafts', HomeStacksDrafts, { delegate : this }

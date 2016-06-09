@@ -18,17 +18,16 @@ module.exports = class SidebarItemVisibilityStore extends KodingFluxStore
 
     @on actions.LOAD_SIDEBAR_ITEM_VISIBILITIES_SUCCESS, @load
 
-    @on actions.MAKE_SIDEBAR_ITEM_VISIBLE_BEGIN, @remove
-    @on actions.MAKE_SIDEBAR_ITEM_VISIBLE_SUCCESS, @remove
+    @on actions.MAKE_SIDEBAR_ITEM_VISIBLE_BEGIN, @makeVisible
+    @on actions.MAKE_SIDEBAR_ITEM_VISIBLE_SUCCESS, @makeVisible
 
-    @on actions.MAKE_SIDEBAR_ITEM_HIDDEN_BEGIN, @add
-    @on actions.MAKE_SIDEBAR_ITEM_HIDDEN_SUCCESS, @add
+    @on actions.MAKE_SIDEBAR_ITEM_HIDDEN_BEGIN, @makeHidden
+    @on actions.MAKE_SIDEBAR_ITEM_HIDDEN_SUCCESS, @makeHidden
 
 
   load: (currentFilters, { visibilityFilters }) -> currentFilters.merge toImmutable visibilityFilters
 
-  add: (visibilityFilters, { type, id }) -> visibilityFilters.setIn [type, id], id
+  makeVisible: (filters, { type, id }) -> filters.setIn [type, id], 'visible'
 
-  remove: (visibilityFilters, { type, id }) -> visibilityFilters.removeIn [type, id]
-
+  makeHidden: (filters, { type, id }) -> filters.setIn [type, id], 'hidden'
 

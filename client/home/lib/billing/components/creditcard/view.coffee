@@ -1,8 +1,13 @@
 kd = require 'kd'
 React = require 'kd-react'
+ReactDOM = require 'react-dom'
 MaskedInput = require 'react-input-mask'
 SelectBox = require 'app/components/selectbox'
 classnames = require 'classnames'
+findScrollableParent = require 'app/util/findScrollableParent'
+select = null
+lastKnownNode = null
+
 
 module.exports = class CreditCard extends React.Component
 
@@ -25,7 +30,8 @@ module.exports = class CreditCard extends React.Component
         <Expiration type='month'
           hasError={@props.formErrors.get 'exp_month'}
           onChange={@props.onInputValueChange.bind null, 'expirationMonth'}
-          value={@props.formValues.get 'expirationMonth'} />
+          value={@props.formValues.get 'expirationMonth'}
+           />
         <Expiration type='year'
           hasError={@props.formErrors.get 'exp_year'}
           onChange={@props.onInputValueChange.bind null, 'expirationYear'}
@@ -94,12 +100,51 @@ Expiration = ({ type, onChange, hasError, value }) ->
 
   <div className={className}>
     <SelectBox
+      ref={(_select) -> select ?= _select}
       clearable={no}
+      onOpen={onOpen}
+      onClose={onClose}
       options={options[type]}
       placeholder={placeholders[type]}
-      onChange={(e) -> onChange?(e.value)}
+      onChange={(e) ->
+        delete lastKnownNode.dataset?.innerItemWillScroll
+        onChange?(e.value)}
       value={value} />
   </div>
+
+# override onOpen and onClose functions
+# we are setting an attribute to element when user open or close the modal
+# we can prevent scrolling of parent scrollable view
+# so kd will scroll only inner scrollable list when we set `innerItemWillScroll`
+onOpen = ->
+
+  node = ReactDOM.findDOMNode select
+  node = findScrollableParent node, yes
+
+  if lastKnownNode
+    lastKnownNode.dataset.innerItemWillScroll = 'no-scroll'
+    return
+
+  return  unless node
+
+  node.dataset.innerItemWillScroll = 'no-scroll'
+  lastKnownNode = node
+
+
+onClose = ->
+
+  node = ReactDOM.findDOMNode select
+
+  node = findScrollableParent node, yes
+
+  if lastKnownNode
+    delete lastKnownNode.dataset?.innerItemWillScroll
+    return
+
+  return  unless node
+
+  delete node.dataset?.innerItemWillScroll
+  lastKnownNode = node
 
 
 CVC = ({ onChange, hasError, value, cardType }) ->

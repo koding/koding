@@ -14,6 +14,7 @@ cd $REPOSITORY_PATH
 npm install --unsafe-perm
 
 ./configure
+./go/build.sh
 sudo ./run buildservices force || :
 
 

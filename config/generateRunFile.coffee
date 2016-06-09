@@ -19,22 +19,6 @@ generateDev = (KONFIG, options, credentials) ->
 
     return str
 
-  envvars = (options = {}) ->
-    options.exclude or= []
-
-    env = ''
-
-    add = (name, value) ->
-      env += "export #{name}=${#{name}:-#{JSON.stringify value}}\n"
-
-    for name, value of KONFIG.ENV when name not in options.exclude
-      add name, value
-
-    add 'GOPATH', '$KONFIG_PROJECTROOT/go'
-    add 'GOBIN', '$GOPATH/bin'
-
-    return env
-
   workerList = (separator = ' ') ->
     (key for key, val of KONFIG.workers).join separator
 
@@ -108,12 +92,19 @@ generateDev = (KONFIG, options, credentials) ->
   run = """
     #!/bin/bash
 
-    # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
-    #{envvars()}
+    # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #
+
+    ENV_SHELL_FILE=${ENV_SHELL_FILE:-$(dirname $0)/.env.sh}
+    if [ -f "$ENV_SHELL_FILE" ]; then
+      source $ENV_SHELL_FILE
+    else
+      echo "error: shell environment file does not exist"
+      exit 1
+    fi
 
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
-    SERVICES="mongo redis postgres rabbitmq"
+    SERVICES="mongo redis postgres rabbitmq imply"
 
     NGINX_CONF="$KONFIG_PROJECTROOT/.dev.nginx.conf"
     NGINX_PID="$KONFIG_PROJECTROOT/.dev.nginx.pid"
@@ -172,20 +163,6 @@ generateDev = (KONFIG, options, credentials) ->
           echo -e "\n\nPlease do ./run again\n"
           exit 1;
       fi
-    }
-
-    function printconfig () {
-      if [ "$2" == "" ]; then
-        cat << EOF
-        #{envvars({ exclude:["KONFIG_JSON"] })}EOF
-      elif [ "$2" == "--json" ]; then
-
-        echo '#{KONFIG.JSON}'
-
-      else
-        echo ""
-      fi
-
     }
 
     function migrations () {
@@ -430,12 +407,13 @@ generateDev = (KONFIG, options, credentials) ->
 
       docker build -t koding/postgres .
 
-      docker run -d -p 27017:27017              --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
-      docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
+      docker run -d -p 27017:27017                                        --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
+      docker run -d -p 5672:5672 -p 15672:15672                           --name=rabbitmq koding/rabbitmq
 
-      docker run -d -p 6379:6379                --name=redis    redis
-      docker run -d -p 5432:5432                --name=postgres koding/postgres
+      docker run -d -p 6379:6379                                          --name=redis    redis
+      docker run -d -p 5432:5432                                          --name=postgres koding/postgres
 
+      docker run -d -p 18081-18110:8081-8110 -p 18200:8200 -p 19095:9095  --name=imply    imply/imply:1.2.1
       restoredefaultmongodump
 
       echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
@@ -699,7 +677,14 @@ generateSandbox =   generateRunFile = (KONFIG) ->
   return """
     #!/bin/bash
     export HOME=/home/ec2-user
-    export KONFIG_JSON='#{KONFIG.JSON}'
+
+    ENV_SHELL_FILE=${ENV_SHELL_FILE:-$(dirname $0)/.env.sh}
+    if [ -f "$ENV_SHELL_FILE" ]; then
+      source $ENV_SHELL_FILE
+    else
+      echo "error: shell environment file does not exist"
+      exit 1
+    fi
 
     COMMAND=$1
     shift

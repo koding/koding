@@ -1,5 +1,5 @@
 kd = require 'kd'
-BaseErrorPageView = require './baseerrorpageview'
+BaseErrorPageView = require '../baseerrorpageview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 

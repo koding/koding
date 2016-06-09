@@ -36,6 +36,7 @@ defaults options,
   onlyconfigure: no
   deploy: no
   ebEnvName: defaultEnv
+  envFileName: '.env'
 
 
 options.runGoWatcher = argv.hasOwnProperty 'with-go-watcher'
@@ -78,6 +79,12 @@ rest = ->
     equals(devKeys, keys, config.configCheckExempt)
 
 
+  createEnvFile = (KONFIG) ->
+
+    for own type, content of KONFIG.envFiles
+      fs.writeFileSync "#{options.envFileName}.#{type}", content
+
+
   createRunFile = (KONFIG)->
 
     fs.writeFileSync "run",KONFIG.runFile
@@ -112,6 +119,7 @@ rest = ->
     fs.writeFileSync file, configStr
     console.log "written #{file}"
 
+  createEnvFile KONFIG
   createRunFile KONFIG
   writeVersion KONFIG
 

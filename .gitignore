@@ -91,3 +91,6 @@ client/test/users-*.json
 elektron/lib
 elektron/dist
 elektron/node_modules
+
+.env.sh
+.env.json
