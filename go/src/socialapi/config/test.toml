@@ -44,10 +44,10 @@ ForcedRecipientUsername = "kodingtestuser"
 RedisDB = 2
 
 [algolia]
-AppId            = "DYVV81J2S1"
-ApiSecretKey     = "682e02a34e2a65dc774f5ec355ceca33"
+AppId            = "PKLDB6C2X0"
+ApiSecretKey     = "cd321186b09ed242ceaf9a074dc6d94a"
 IndexSuffix      = ".test"
-ApiSearchOnlyKey = "8dc0b0dc39282effe9305981d427fec7"
+ApiSearchOnlyKey = "d1735410135b3505cd32b59fdc5786f6"
 
 [limits]
 MessageBodyMinLen    = 1
