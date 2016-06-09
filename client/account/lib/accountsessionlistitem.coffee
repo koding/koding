@@ -34,7 +34,7 @@ module.exports = class AccountSessionListItem extends KDListItemView
 
   pistachio: ->
 
-    { groupName, lastAccess, lastLoginDate } = @getData()
+    { groupName, lastAccess, lastLoginDate, clientId } = @getData()
 
     hostname = globals.config.domains.main
 
@@ -43,12 +43,17 @@ module.exports = class AccountSessionListItem extends KDListItemView
       then hostname
       else "#{groupName}.#{hostname}"
 
+    activeSession = ''
+    if kookies.get('clientId') is clientId
+      group = "#{group} (Active)"
+      activeSession = ' active'
+
     lastAccess = lastLoginDate or lastAccess
 
     """
     <div class="session-item">
       <div class="session-info">
-        <p class="group-name">#{group}</p>
+        <p class="group-name#{activeSession}">#{group}</p>
         <p class="last-access">Last access: #{timeago lastAccess}</p>
       </div>
       {div.delete-button{> @deleteButton }}
