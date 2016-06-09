@@ -14,6 +14,13 @@ module.exports = class StackEditorAppController extends AppController
     name       : 'Stackeditor'
     behavior   : 'application'
 
+  constructor: (options = {}, data) ->
+
+    super options, data
+
+    # a cache to register created views.
+    @editors = {}
+
 
   openEditor: (stackTemplateId) ->
 
@@ -28,9 +35,9 @@ module.exports = class StackEditorAppController extends AppController
     if stackTemplateId
       computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
         return showError err  if err
-        @createView stackTemplate
+        @showView stackTemplate
     else
-      @createView()
+      @showView()
 
 
   openStackWizard: ->
@@ -89,3 +96,67 @@ module.exports = class StackEditorAppController extends AppController
     view.on 'Cancel', -> kd.singletons.router.back()
 
     @mainView.addSubView view
+
+
+  showView: (stackTemplate) ->
+
+    stackTemplate or= { _id: 'default' }
+
+    id = stackTemplate._id
+
+    unless @editors[id]
+      @editors[id] = editor = @createEditor stackTemplate
+      @mainView.addSubView editor
+
+    return  unless editor = @editors[id]
+
+    # hide all editors
+    Object.keys(@editors).forEach (templateId) => @editors[templateId].hide()
+
+    # show the correct editor.
+    editor.show()
+
+
+  createEditor: (stackTemplate) ->
+
+    template = if stackTemplate._id is 'default' then null else stackTemplate
+
+    options = { cssClass: 'hidden', skipFullscreen: yes }
+    data    = { stackTemplate: template, showHelpContent: not stackTemplate }
+
+    view    = new StackEditorView options, data
+    view.on 'Cancel', -> kd.singletons.router.back()
+
+    # TODO: Will activate this with following PRs.
+    # Not removing to leave it as ref. ~Umut
+    # confirmation = null
+
+    # stackTemplate.on? 'update', =>
+
+    #   return  if confirmation
+
+    #   view.addSubView confirmation = new kd.ModalView
+    #     title: 'Stack Template is Updated'
+    #     buttons:
+    #       ok:
+    #         title: 'OK'
+    #         style: 'solid green medium'
+    #         callback: =>
+    #           view.destroy()
+    #           delete @editors[stackTemplate._id]
+    #           @openEditor stackTemplate._id
+    #       cancel:
+    #         title: 'Cancel'
+    #         style: 'solid light-gray medium'
+    #         callback: ->
+    #           confirmation.destroy()
+    #           confirmation = null
+    #     content: '''
+    #       <div class='modalformline'
+    #         <p>This stack template is updated by another admin. Do you want to reload?
+    #       </div>
+    #       '''
+
+    return view
+
+

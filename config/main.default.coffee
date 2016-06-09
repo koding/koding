@@ -87,10 +87,10 @@ Configuration = (options = {}) ->
     minfds   : 1024
     minprocs : 200
 
-  KONFIG.supervisord.output_path = "#{options.projectRoot}/supervisord.conf"
-
   KONFIG.supervisord.unix_http_server =
     file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
+
+  (require './inheritEnvVars') KONFIG  if options.inheritEnvVars
 
   envFiles =
     sh: (require './generateShellEnv').create KONFIG, options

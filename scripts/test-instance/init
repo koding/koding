@@ -36,7 +36,7 @@ sleep 60 # let dockers boot up
 ./run resetdb --yes
 ./run importusers
 
-supervisord -c $REPOSITORY_PATH/supervisord.conf
+./run exec supervisord -c $REPOSITORY_PATH/supervisord.conf
 
 export TEST_VENDOR=$REPOSITORY_PATH/client/test/vendor
 

@@ -1,36 +1,19 @@
 fs            = require 'fs'
 { isAllowed } = require './grouptoenvmapping'
 
-generateMainConf = (KONFIG) ->
+generateMainConf = ->
 
-  environment = ''
-  environment += "#{key}='#{val}',"  for key, val of KONFIG.ENV
-
-  { supervisord } = KONFIG
-
-  {
-    logdir
-    rundir
-    minfds
-    minprocs
-    unix_http_server
-  } = supervisord
-
-  """
+  '''
   [supervisord]
-  ; environment variables
-  environment=#{environment}
-
-  pidfile=#{rundir}/supervisord.pid
-
-  logfile=#{logdir}/supervisord.log
-  childlogdir=#{logdir}/
+  pidfile=%(ENV_KONFIG_SUPERVISORD_RUNDIR)s/supervisord.pid
+  logfile=%(ENV_KONFIG_SUPERVISORD_LOGDIR)s/supervisord.log
+  childlogdir=%(ENV_KONFIG_SUPERVISORD_LOGDIR)s/
 
   ; number of startup file descriptors
-  minfds=#{minfds}
+  minfds=%(ENV_KONFIG_SUPERVISORD_MINFDS)s
 
   ; number of process descriptors
-  minprocs=#{minprocs}
+  minprocs=%(ENV_KONFIG_SUPERVISORD_MINPROCS)s
 
   logfile_maxbytes=50MB                           ; maximum size of logfile before rotation
   logfile_backups=10                              ; number of backed up logfiles
@@ -40,32 +23,29 @@ generateMainConf = (KONFIG) ->
   user=root                                       ; default user
 
   [unix_http_server]
-  file=#{unix_http_server.file}
+  file=%(ENV_KONFIG_SUPERVISORD_UNIX_HTTP_SERVER_FILE)s
 
   [rpcinterface:supervisor]
   supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
   [supervisorctl]
-  serverurl=unix://#{unix_http_server.file}       ; use a unix:// URL  for a unix socket
+  serverurl=unix://%(ENV_KONFIG_SUPERVISORD_UNIX_HTTP_SERVER_FILE)s
 
   [inet_http_server]
   port=0.0.0.0:9001
   username=koding
   password=1q2w3e4r
 
-  """
+  '''
 
 # becareful while editing this function, any change will affect every worker
-generateWorkerSection = (app, options = {}, KONFIG) ->
-
-  { projectRoot } = KONFIG
-  { supervisord: { logdir } } = KONFIG
+generateWorkerSection = (app, options = {}) ->
 
   section =
     command                 : 'command'
     numprocs                : options.instances or 1
     numprocs_start          : 0
-    directory               : projectRoot
+    directory               : '%(ENV_KONFIG_PROJECTROOT)s'
     autostart               : yes
     autorestart             : yes
     startsecs               : 10
@@ -73,11 +53,11 @@ generateWorkerSection = (app, options = {}, KONFIG) ->
     stopsignal              : 'TERM'
     stopwaitsecs            : 10
     redirect_stderr         : yes
-    stdout_logfile          : "#{logdir}/#{app}.log"
+    stdout_logfile          : "%(ENV_KONFIG_SUPERVISORD_LOGDIR)s/#{app}.log"
     stdout_logfile_maxbytes : '1MB'
     stdout_logfile_backups  : 10
     stdout_capture_maxbytes : '1MB'
-    stderr_logfile          : "#{logdir}/#{app}.log"
+    stderr_logfile          : "%(ENV_KONFIG_SUPERVISORD_LOGDIR)s/#{app}.log"
 
   for key, opt of options.supervisord
     section[key] = opt
@@ -115,7 +95,7 @@ generateMemmonSection = (config) ->
 
 module.exports.create = (KONFIG) ->
   # create supervisord main config
-  conf = generateMainConf KONFIG
+  conf = generateMainConf()
 
   groupConfigs = {}
 
@@ -136,8 +116,7 @@ module.exports.create = (KONFIG) ->
     groupConfigs[options.group]       or= {}
     groupConfigs[options.group][name] or= {}
 
-    conf += generateWorkerSection name, options, KONFIG
-
+    conf += generateWorkerSection name, options
 
   # add group sections
   for group, sections of groupConfigs
@@ -146,7 +125,7 @@ module.exports.create = (KONFIG) ->
 
     [group:#{group}]
     programs=#{Object.keys(sections).join(",")}
-    \n
+
     """
 
   { memmon } = KONFIG.supervisord
