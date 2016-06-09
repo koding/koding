@@ -45,5 +45,7 @@ module.exports = class TeamStackTemplatesStore extends KodingFluxStore
 
   updateSingle: (stackTemplates, { stackTemplate }) ->
 
+    return stackTemplates  if stackTemplate.accessLevel isnt 'group'
+
     return stackTemplates.set stackTemplate._id, toImmutable stackTemplate
 

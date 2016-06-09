@@ -131,6 +131,4 @@ AvatarView = ({ member }) ->
 
 MemberRole = ({ role, canEdit }) ->
 
-  role = capitalizeFirstLetter role
-  className = unless canEdit then '' else 'role'
-  <div className={className}>{role}</div>
+  <div className='role'>{capitalizeFirstLetter role}</div>
