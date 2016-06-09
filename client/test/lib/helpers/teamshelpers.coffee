@@ -2,7 +2,7 @@ helpers                  = require '../helpers/helpers.js'
 utils                    = require '../utils/utils.js'
 staticContents           = require '../helpers/staticContents.js'
 path                     = require 'path'
-awsKeyPath               = path.resolve __dirname, '../../../../../config/aws/worker_ci_test_key.json'
+awsKeyPath               = path.resolve __dirname, '../../../../../vault/config/aws/worker_ci_test_key.json'
 awsKey                   = require awsKeyPath
 teamsModalSelector       = '.TeamsModal--groupCreation'
 companyNameSelector      = '.login-form input[testpath=company-name]'
