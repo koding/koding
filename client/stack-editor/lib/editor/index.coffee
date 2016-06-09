@@ -706,7 +706,18 @@ module.exports = class StackEditorView extends kd.View
 
 
   handleReinit: ->
-    kd.singletons.computeController.reinitStack()
+    stacks = kd.singletons.reactor.evaluateToJS ['StacksStore']
+    { stackTemplate } = @getData()
+
+    foundStack = null
+    Object.keys(stacks).forEach (key) ->
+      stack = stacks[key]
+      if stack.baseStackId is stackTemplate._id
+        foundStack = stack
+
+    return  unless foundStack
+
+    kd.singletons.computeController.reinitStack foundStack
 
 
   handleGenerateStack: ->
