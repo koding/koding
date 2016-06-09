@@ -386,6 +386,8 @@ module.exports = class StackEditorView extends kd.View
 
           You can now close this window or continue working with your stack.
         '''
+      else if method is 'addAndWarn'
+        @generateStackButton.show()
       else
         @reinitButton.show()
 
