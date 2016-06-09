@@ -48,6 +48,7 @@ userData =
     - cd /opt/koding
     - #{git_fetch}
     - #{git_checkout}
+    - rm -rf ./vault # delete vault folder if exists
     - #{git_clone_vault argv['branch-name']} || #{git_clone_vault()}
     - git submodule update --recursive
     - /opt/koding/scripts/test-instance/init
