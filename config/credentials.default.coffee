@@ -72,10 +72,10 @@ module.exports = (options) ->
     dbname: "social"
     connecttimeout: 20
   pubnub =
-    publishkey: "pub-c-5b987056-ef0f-457a-aadf-87b0488c1da1"
-    subscribekey: "sub-c-70ab5d36-0b13-11e5-8104-0619f8945a4f"
-    secretkey: "sec-c-MWFhYTAzZWUtYzg4My00ZjAyLThiODEtZmI0OTFkOTk0YTE0"
-    serverAuthKey: "46fae3cc-9344-4edb-b152-864ba567980c7960b1d8-31dd-4722-b0a1-59bf878bd551"
+    publishkey: ""
+    subscribekey: ""
+    secretkey: ""
+    serverAuthKey: ""
     origin: "pubsub.pubnub.com"
     enabled:  yes
     ssl: no
