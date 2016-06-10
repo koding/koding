@@ -10,11 +10,8 @@ module.exports = class MigrateFromSoloAppController extends AppController
     name: 'Migratefromsolo'
     background: yes
 
-
   constructor: (options = {}, data) ->
 
     options.view ?= new MigrateFromSoloAppView
 
     super options, data
-
-

@@ -10,16 +10,15 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass or= kd.utils.curry 'BaseModalView MigrateFromSoloAppView', options.cssClass
+    options.cssClass = kd.utils.curry 'BaseModalView MigrateFromSoloAppView', options.cssClass
     options.width = 800
     options.height = 700
     options.overlay ?= yes
 
     super options, data
 
-    console.log this
-
-    @credential = @machines = null
+    @machines = null
+    @credential = null
 
     @mainHeader = new kd.CustomHTMLView
       tagName: 'header'
@@ -43,7 +42,7 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
       cssClass: 'stepContainer'
 
     @stepContainer.addSubView @providersView = new ProvidersView { provider: 'aws' }
-    @stepContainer.addSubView @soloMachinesList = new SoloMachinesListView { click: -> console.log 'foo' }
+    @stepContainer.addSubView @soloMachinesList = new SoloMachinesListView
     @stepContainer.addSubView @progressBar = new kd.ProgressBarView { initial: 1 }
     @stepContainer.addSubView @statusText = new kd.CustomHTMLView { cssClass: 'status-text' }
 
