@@ -22,6 +22,8 @@ sidebarStacks = [
         if stackFilter = stackFilters.get id = stack.get 'baseStackId'
           # check for id is for backwards compatibility. ~Umut
           return stackFilter in ['visible', id]
+        else
+          return yes
       .map (stack) ->
         templateTitle = templates.getIn [stack.get('baseStackId'), 'title']
         stack = stack.set 'title', _.unescape templateTitle  if templateTitle
