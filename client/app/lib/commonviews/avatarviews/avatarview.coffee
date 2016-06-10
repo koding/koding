@@ -6,7 +6,7 @@ ErrorlessImageView = require '../../errorlessimageview'
 JView = require '../../jview'
 LinkView = require '../linkviews/linkview'
 isKoding = require '../../util/isKoding'
-
+TeamFlux = require 'app/flux/teams'
 
 module.exports = class AvatarView extends LinkView
 
@@ -66,6 +66,8 @@ module.exports = class AvatarView extends LinkView
         title     : 'Koding Staff'
         placement : 'right'
         direction : 'center'
+
+    @badge = new KDCustomHTMLView
 
     super options, data
 
@@ -155,7 +157,27 @@ module.exports = class AvatarView extends LinkView
 
     kd.getSingleton('groupsController').ready =>
 
-      nickname = @getData().profile?.nickname
+      { _id } = @getData()
+
+      nickname = profile?.nickname
+
+      options =
+        limit : 10
+        sort  : { timestamp: -1 } # timestamp is at relationship collection
+        skip  : 0
+      TeamFlux.actions.fetchMembers(options).then =>
+        TeamFlux.actions.fetchMembersRole().then =>
+
+          { reactor } = kd.singletons
+
+          teamMemberRoles = reactor.evaluate ['TeamMembersRoleStore']
+          myRole = teamMemberRoles.toJS()[_id]
+
+          myRole = 'member' unless myRole
+          cssClass = "badge #{myRole}"
+
+          @badge.setClass cssClass
+          @badge.setAttribute 'title', myRole
 
       href = if payload?.channelIntegrationId
         "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
@@ -208,6 +230,7 @@ module.exports = class AvatarView extends LinkView
 
   pistachio: ->
     '''
+    {{> @badge}}
     {{> @gravatar}}
     {{> @cite}}
     '''
