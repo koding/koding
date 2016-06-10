@@ -8,10 +8,6 @@ module.exports = class InstructionsController extends kd.Controller
   constructor: (options, data) ->
 
     super options, data
-    @createPages()
-
-
-  createPages: ->
 
     { container } = @getOptions()
     stackTemplate = @getData()
@@ -25,8 +21,6 @@ module.exports = class InstructionsController extends kd.Controller
     @stackTemplatePage.on 'ReadmeRequested', => container.showPage @readmePage
 
     container.appendPages @readmePage, @stackTemplatePage
-
-    @emit 'ready'
 
 
   show: ->

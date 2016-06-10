@@ -14,11 +14,6 @@ module.exports = class BuildStackController extends kd.Controller
 
     super options, data
 
-    @createPages()
-
-
-  createPages: ->
-
     { stack } = @getData()
     { container } = @getOptions()
 
@@ -90,6 +85,7 @@ module.exports = class BuildStackController extends kd.Controller
   completePostBuildProcess: ->
 
     @postBuildTimer.stop()  if @postBuildTimer
+    @postBuildTimer = null
 
     { container } = @getOptions()
     container.showPage @successPage

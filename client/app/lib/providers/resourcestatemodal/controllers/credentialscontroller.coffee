@@ -11,12 +11,6 @@ constants = require '../constants'
 
 module.exports = class CredentialsController extends kd.Controller
 
-  constructor: (options, data) ->
-
-    super options, data
-    @loadData()
-
-
   loadData: ->
 
     stack = @getData()
@@ -30,10 +24,10 @@ module.exports = class CredentialsController extends kd.Controller
       return showError err  if err
 
       { credentials, requirements, kdCmd } = results
-      @createPages credentials, requirements, kdCmd
+      @setup credentials, requirements, kdCmd
 
 
-  createPages: (credentials, requirements, kdCmd) ->
+  setup: (credentials, requirements, kdCmd) ->
 
     stack = @getData()
     { container } = @getOptions()
@@ -69,23 +63,23 @@ module.exports = class CredentialsController extends kd.Controller
     if requirements
       queue.push (next) => @handleSubmittedRequirements requirements, next
 
-    async.parallel queue, (err, results) =>
-      errs = (item.err for item in results when item.err)
+    async.parallel queue, @bound 'handleSubmitResult'
 
-      if errs.length > 0
-        container.showPage @errorPage
-        @errorPage.setErrors errs
-      else
-        identifiers = (item.identifier for item in results)
-        @emit 'StartBuild', identifiers
 
-      @credentialsPage.buildButton.hideLoader()
+  handleSubmitResult: (err, identifiers) ->
+
+    if err
+      @showError err
+    else
+      @emit 'StartBuild', identifiers
+
+    @credentialsPage.buildButton.hideLoader()
 
 
   handleSubmittedCredential: (submissionData, callback) ->
 
     { provider, selectedItem, newData } = submissionData
-    { CREDENTIAL_VERIFICATION_ERROR_MESSAGE, CREDENTIAL_VERIFICATION_TIMEOUT } = constants
+    { CREDENTIAL_VERIFICATION_TIMEOUT } = constants
 
     pendingCredential = null
 
@@ -99,20 +93,14 @@ module.exports = class CredentialsController extends kd.Controller
           pendingCredential = newCredential
           next null, newCredential.identifier
 
-      (identifier, next) ->
+      (identifier, next) =>
 
         { computeController } = kd.singletons
         computeController.getKloud()
           .checkCredential { provider, identifiers : [identifier] }
-          .then (response) ->
-            status = response?[identifier]
-            return next CREDENTIAL_VERIFICATION_ERROR_MESSAGE  unless status
-
-            { verified, message } = status
-            return next null, identifier  if verified
-
-            message = message.split('\n')[..-2].join ''  if message
-            next message or CREDENTIAL_VERIFICATION_ERROR_MESSAGE
+          .then (response) =>
+            { err, verified } = @checkVerificationResult identifier, response
+            next err, identifier
           .catch (err) -> next err.message
           .timeout constants.CREDENTIAL_VERIFICATION_TIMEOUT
     ]
@@ -120,29 +108,50 @@ module.exports = class CredentialsController extends kd.Controller
     async.waterfall queue, (err, identifier) =>
       if err
         pendingCredential.delete()  if pendingCredential
-        callback null, { err }
+        callback err
       else
         @credentialsPage.selectNewCredential pendingCredential  if pendingCredential
-        callback null, { identifier }
+        callback null, identifier
 
 
   handleSubmittedRequirements: (submissionData, callback) ->
 
     { provider, selectedItem, newData } = submissionData
 
-    return callback null, { identifier : selectedItem }  if selectedItem
+    return callback null, selectedItem  if selectedItem
 
     helpers.createNewCredential provider, newData, (err, newCredential) =>
-      return callback null, { err : err.message }  if err
+      return callback err.message  if err
 
       @credentialsPage.selectNewRequirements newCredential
-      callback null, { identifier : newCredential.identifier }
+      callback null, newCredential.identifier
+
+
+  checkVerificationResult: (identifier, response) ->
+
+    { CREDENTIAL_VERIFICATION_ERROR_MESSAGE } = constants
+
+    status = response?[identifier]
+    return { err : CREDENTIAL_VERIFICATION_ERROR_MESSAGE } unless status
+
+    { verified, message } = status
+    return { verified }  if verified
+
+    message = message.split('\n')[..-2].join ''  if message
+    return { err : message or CREDENTIAL_VERIFICATION_ERROR_MESSAGE }
 
 
   show: ->
 
     { container } = @getOptions()
     container.showPage @credentialsPage
+
+
+  showError: (err) ->
+
+    { container } = @getOptions()
+    container.showPage @errorPage
+    @errorPage.setErrors [ err ]
 
 
   helpers =

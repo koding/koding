@@ -12,10 +12,22 @@ module.exports = class ResourceStateController extends kd.Controller
     super options, data
 
     @createPageContainer()
-    @createLoader()
+    @createInitialView()
+
+
+  loadData: ->
+
+    machine = @getData()
+    return  unless machine
 
     { computeController } = kd.singletons
-    computeController.ready @bound 'createCurrentFlow'
+    computeController.ready =>
+      machineId = machine.jMachine._id
+      stack     = computeController.findStackFromMachineId machineId
+      return kd.log 'ResourceStateController: stack not found!'  unless stack
+
+      @setup stack
+      @currentFlow.loadData()
 
 
   createPageContainer: ->
@@ -26,41 +38,34 @@ module.exports = class ResourceStateController extends kd.Controller
     @forwardEvent @pageContainer, 'PaneDidShow'
 
 
-  createLoader: ->
-
-    loader = new kd.CustomHTMLView
-      cssClass : 'loader-container'
-      partial  : "<div class='loader-text'>Loading...</div>"
-    loader.addSubView new kd.LoaderView
-      showLoader : yes
-      size       :
-        width    : 40
-        height   : 40
-
-    @pageContainer.appendPages loader
-    @pageContainer.showPage loader
-
-
-  createCurrentFlow: ->
-
-    { computeController } = kd.singletons
-    { initial } = @getOptions()
+  createInitialView: ->
 
     machine = @getData()
-    unless machine
-      noStackPage = new NoStackPageView()
-      @pageContainer.appendPages noStackPage
-      return @pageContainer.showPage noStackPage
+    if machine
+      view = new kd.CustomHTMLView
+        cssClass : 'loader-container'
+        partial  : "<div class='loader-text'>Loading...</div>"
+      view.addSubView new kd.LoaderView
+        showLoader : yes
+        size       :
+          width    : 40
+          height   : 40
+    else
+      view = new NoStackPageView()
 
-    machineId = machine.jMachine._id
-    @stack    = computeController.findStackFromMachineId machineId
+    @pageContainer.appendPages view
+    @pageContainer.showPage view
 
-    return kd.log 'ResourceStateController: stack not found!'  unless @stack
 
-    if @stack.status?.state isnt 'Initialized'
+  setup: (stack) ->
+
+    machine     = @getData()
+    { initial } = @getOptions()
+
+    if stack.status?.state isnt 'Initialized'
       @currentFlow = new StackFlowController {
         container : @pageContainer
-      }, { machine, @stack }
+      }, { machine, stack }
     else
       @currentFlow = new MachineFlowController {
         container : @pageContainer
