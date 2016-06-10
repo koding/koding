@@ -2,7 +2,7 @@
 
 go test -c
 
-./janitor.test -c ../../../socialapi/config/test.toml -test.v=true
+./janitor.test -c ../../../socialapi/config/dev.toml -test.v=true
 RESULT=$?
 
 rm janitor.test
