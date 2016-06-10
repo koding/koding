@@ -439,8 +439,6 @@ module.exports = class StackEditorView extends kd.View
       _.each @editorViews, (view) -> view.editorView.getAce().saveFinished()
       @changedContents = {}
 
-      @emit 'Reload'
-
       if err
         @outputView.add 'Parsing failed, please check your template and try again'
         return
@@ -684,7 +682,6 @@ module.exports = class StackEditorView extends kd.View
         else Tracker.track Tracker.STACKS_CUSTOM_NAME
 
         @setData { stackTemplate }
-        @emit 'Reload'
 
         stackTemplate._updated = currentSum isnt stackTemplate.template.sum
 
