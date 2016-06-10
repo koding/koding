@@ -30,7 +30,9 @@ module.exports = class SoloMachines extends React.Component
 
     { selectedMachines } = @state
     isSelected = selectedMachines[machineId]
-    selectedMachines[machineId] = not isSelected
+    if selectedMachines[machineId]
+    then delete selectedMachines[machineId]
+    else selectedMachines[machineId] = yes
 
     @setState { selectedMachines }
 
@@ -94,7 +96,7 @@ module.exports = class SoloMachines extends React.Component
 
   renderButton: ->
 
-    selectedMachineCount = Object.keys(@state.selectedMachines).length
+    machinesSelected = Object.keys(@state.selectedMachines).length > 0
 
     if @state.confirmed
       null
@@ -104,7 +106,7 @@ module.exports = class SoloMachines extends React.Component
         <button className='GenericButton alternate' onClick={@bound 'onFinishCancel'}>CANCEL</button>
       </div>
     else
-      <button disabled={not selectedMachineCount} className='GenericButton' onClick={@bound 'onSubmit'}>SELECT MACHINES</button>
+      <button disabled={not machinesSelected} className='GenericButton' onClick={@bound 'onSubmit'}>SELECT MACHINES</button>
 
 
   render: ->
@@ -135,5 +137,3 @@ ListItem = ({ machine, isSelected, onSelect, finishedSelection }) ->
       <div className="SoloMachinesListItem-hostName">{machine.ipAddress}</div>
     </header>
   </div>
-
-
