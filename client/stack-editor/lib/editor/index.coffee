@@ -760,7 +760,7 @@ module.exports = class StackEditorView extends kd.View
 
     @outputView.add 'Generating stack from template...'
 
-    stackTemplate.generateStack (err) =>
+    stackTemplate.generateStack (err, result) =>
       @generateStackButton.hideLoader()
 
       return  if @outputView.handleError err
@@ -769,6 +769,7 @@ module.exports = class StackEditorView extends kd.View
 
       computeController.reset yes
 
+      kd.singletons.router.handleRoute "/IDE/#{result.results.machines[0].obj.label}"
       @emit 'Reload'
 
 
