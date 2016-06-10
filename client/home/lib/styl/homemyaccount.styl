@@ -45,6 +45,16 @@ Home My Account styles
       top                   60px
       right                 29px
       size                  132px 132px
+      overflow              visible
+      .badge
+        abs()
+        bottom              10px
+        margin              0
+        right               0
+        &.owner
+          r-sprite            app badge_owner
+        &.admin
+          r-sprite            app badge_admin
 
     button[type=submit]
       height                37px
@@ -74,7 +84,7 @@ Home My Account styles
 
   &.security
     overflow                hidden
-    
+
     .enabled-intro
       p
         width               380px
@@ -85,26 +95,26 @@ Home My Account styles
         color               #ACACAC
         text-rendering      geometricPrecision
         dIBlock()
-        
+
         &:first-child
           margin-right      28px
           color             #929292
           size              134px 35px
           border-right      1px solid #D9D9D9
-        
+
         strong
           color             #00b057
           font-size         20px
           font-weight       400
           margin-bottom     3px
           dBlock()
-          
+
           &:after
             content         ''
             margin-left     10px
             r-sprite        home tick
             dIBlock()
-      
+
     .AppModal-form
       size                  224px 267px
       border                1px solid #d0d0d0
@@ -112,7 +122,7 @@ Home My Account styles
       fr()
       rel()
       borderBox()
-      
+
       &.enabled-form
         width               100%
         border              none
@@ -121,21 +131,21 @@ Home My Account styles
         padding-top         12px
         height              auto
         border-top          1px solid #d0d0d0
-            
-        .Formline--half 
+
+        .Formline--half
           width             165px
           padding           0
           height            42px
           margin-right      20px
-          
+
           &.password
             width           250px
-            
+
             input
               padding       0 10px
               width         250px
-              
-      input 
+
+      input
         width               100%
 
       .button-field
