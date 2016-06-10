@@ -58,14 +58,7 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
       @machines = machines
       @switchToMigrationProcess()
 
-    @soloMachinesList.on 'SupportRequested', =>
-
-      { mainController } = kd.singletons
-
-      mainController.tellChatlioWidget 'show', { expanded: yes }, (err, result) ->
-        showError err  if err
-
-      @destroy()
+    @soloMachinesList.on 'SupportRequested', @bound 'handleSupportRequest'
 
     @mainFooter = new kd.CustomHTMLView
       tagName: 'footer'
@@ -113,6 +106,7 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
             resetState()
 
     else
+
       @switchToCredentials()
 
 
@@ -220,3 +214,11 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
     @nextButton.show()
 
 
+  handleSupportRequest: ->
+
+    { mainController } = kd.singletons
+
+    mainController.tellChatlioWidget 'show', { expanded: yes }, (err, result) ->
+      showError err  if err
+
+    @destroy()
