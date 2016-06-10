@@ -74,6 +74,9 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
 
     @switchToCredentials()
 
+    @on 'KDObjectWillBeDestroyed', ->
+      kd.singletons.router.handleRoute '/IDE'
+
 
   setBackLinkCallback: (cb) ->
 
