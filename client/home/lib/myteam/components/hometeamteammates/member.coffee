@@ -78,6 +78,7 @@ module.exports = class Member extends React.Component
     { nickname, email, role, firstName, lastName, fullName } = @getData()
 
     <div>
+      <Badge role={role}/>
       <AvatarView member={@props.member} />
       <div className='details'>
         <div className='fullname'>{fullName}</div>
@@ -107,6 +108,9 @@ MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen }) ->
       <ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />
     </div>
 
+Badge = ({ role }) ->
+  role = 'member'  unless role
+  <div className={"badge #{role}"} title={role}></div>
 
 NickName = ({ nickname }) ->
 
