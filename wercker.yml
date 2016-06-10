@@ -114,7 +114,7 @@ build:
         code: scripts/wercker/run-command scripts/wercker/create-postgresql-tables
     - script:
         name: prepare test data
-        code: scripts/wercker/run-command go run go/src/socialapi/workers/cmd/migrator/main.go -c go/src/socialapi/config/test.toml
+        code: scripts/wercker/run-command go run go/src/socialapi/workers/cmd/migrator/main.go -c go/src/socialapi/config/dev.toml
     - script:
         name: test social api
         code: scripts/wercker/run-command scripts/wercker/test-social-api
