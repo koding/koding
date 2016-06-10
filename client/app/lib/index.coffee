@@ -79,6 +79,7 @@ bootup = ->
   ###
 
   status.on 'bongoConnected', (account) ->
+    console.log 'bongoConnected', account
     socketConnected()
     mainController.accountChanged account, firstLoad
     firstLoad = no
@@ -88,16 +89,21 @@ bootup = ->
     # $.cookie 'clientId', token
 
   status.on 'connected', ->
+    console.log 'connected', 2
     ConnectionChecker.globalNotification.hide()
     startAuthenticationInterval()
     kd.log 'kd remote connected'
 
   status.on 'reconnected', (options = {}) ->
+    console.log 'reconnected', options
+
     ConnectionChecker.globalNotification.hide()
     startAuthenticationInterval()
     kd.log 'kd remote re-connected'
 
   status.on 'disconnected', (options = {}) ->
+    console.log 'disconnected', options
+
     stopAuthenticationInterval()
     kd.log 'kd remote disconnected'
 

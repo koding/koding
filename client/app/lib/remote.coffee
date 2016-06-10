@@ -2,7 +2,6 @@ globals           = require 'globals'
 kd                = require 'kd'
 kookies           = require 'kookies'
 Bongo             = require '@koding/bongo-client'
-broker            = require 'broker-client'
 async             = require 'async'
 remote_extensions = require './remote-extensions'
 
@@ -59,20 +58,6 @@ createInstance = ->
             @emit 'modelsReady'
             cache[nameStr] = models
             callback err, models, name
-
-    mq: do ->
-      { authExchange } = globals.config
-
-      options = {
-        authExchange
-        autoReconnect: yes
-        getSessionToken
-      }
-
-      console.log 'connecting to:' + globals.config.broker.uri
-
-      new broker.Broker "#{globals.config.broker.uri}", options
-
 
   bongoInstance.once 'ready', ->
     remote_extensions.initialize bongoInstance

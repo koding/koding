@@ -27,6 +27,7 @@ module.exports = class Status extends KDController
   connect: -> @remote.connect()
 
   disconnect: (options = {}) ->
+    console.log "disconnected", disconnected
     if 'boolean' is typeof options
       options = { autoReconnect : options }
 
@@ -39,6 +40,9 @@ module.exports = class Status extends KDController
     @disconnected()
 
   connected: ->
+    console.log "connected",
+    console.log "@state", @state
+
     @connectionState = UP
 
     if @state is NOTSTARTED
@@ -50,6 +54,7 @@ module.exports = class Status extends KDController
       @resetLocals()
 
   disconnected: ->
+    console.log "disconnected"
     return 'already disconnected'  if @connectionState is DOWN
 
     @connectionState = DOWN
