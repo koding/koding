@@ -63,6 +63,13 @@ module.exports = class SoloMachines extends React.Component
         <p>Loading...</p>
       </div>
 
+    else if @state.machines.length is 0
+
+      message = """
+        You don't have any Koding VMs that can be migrated to your Team
+        Please contact with support if you need an assistance
+      """
+
     else
 
       @state.machines.map (machine) =>
@@ -95,11 +102,13 @@ module.exports = class SoloMachines extends React.Component
     className = 'SoloMachinesList'
     className += ' disabled'  if @state.finishedSelection or @state.confirmed
 
+    buttonState = if @state.machines.length is 0 then 'hidden' else 'ButtonContainer'
+
     <div className='SoloMachinesListContainer'>
       <ul className={className}>
         {@renderMachines()}
       </ul>
-      <div className='ButtonContainer'>
+      <div className={buttonState}>
         {@renderButton()}
       </div>
     </div>
