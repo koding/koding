@@ -29,6 +29,7 @@ module.exports = class StackFlowController extends kd.Controller
       @setup stackTemplate
 
       @credentials.loadData()
+      @credentials.ready @bound 'show'
 
 
   bindToKloudEvents: ->
@@ -60,8 +61,6 @@ module.exports = class StackFlowController extends kd.Controller
     @buildStack.on 'CredentialsRequested', => @credentials.show()
     @buildStack.on 'RebuildRequested', => @credentials.submit()
     @forwardEvent @buildStack, 'ClosingRequested'
-
-    @credentials.ready @bound 'show'
 
 
   updateStatus: (event, task) ->

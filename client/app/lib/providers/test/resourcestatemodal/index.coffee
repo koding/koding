@@ -1,0 +1,5 @@
+describe 'ResourceStateModal', ->
+
+  require './resourcestatecontroller.test'
+  require './instructionscontroller.test'
+  require './credentialscontroller.test'

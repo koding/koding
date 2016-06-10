@@ -45,6 +45,7 @@ module.exports = class MachineFlowController extends kd.Controller
 
     @bindToKloudEvents()
     @setup()
+    @show()
 
 
   bindToKloudEvents: ->
@@ -83,8 +84,6 @@ module.exports = class MachineFlowController extends kd.Controller
       @startMachinePage, @startMachineProgressPage, @startMachineSuccessPage,
       @startMachineErrorPage, @stopMachineProgressPage, @stopMachineErrorPage
     )
-
-    @show()
 
 
   updateStatus: (event, task) ->

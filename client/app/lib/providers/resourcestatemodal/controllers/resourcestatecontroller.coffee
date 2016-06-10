@@ -59,9 +59,7 @@ module.exports = class ResourceStateController extends kd.Controller
 
   setup: (stack) ->
 
-    machine = @getData()
-
-    { computeController } = kd.singletons
+    machine     = @getData()
     { initial } = @getOptions()
 
     if stack.status?.state isnt 'Initialized'
