@@ -161,23 +161,16 @@ module.exports = class AvatarView extends LinkView
 
       nickname = profile?.nickname
 
-      options =
-        limit : 10
-        sort  : { timestamp: -1 } # timestamp is at relationship collection
-        skip  : 0
-      TeamFlux.actions.fetchMembers(options).then =>
-        TeamFlux.actions.fetchMembersRole().then =>
+      @getData().fetchMyPermissionsAndRoles (err, res) =>
+        { roles } = res
+        hasOwner = 'owner' in roles
+        hasAdmin = 'admin' in roles
+        userRole = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
 
-          { reactor } = kd.singletons
+        cssClass = "badge #{userRole}"
 
-          teamMemberRoles = reactor.evaluate ['TeamMembersRoleStore']
-          myRole = teamMemberRoles.toJS()[_id]
-
-          myRole = 'member' unless myRole
-          cssClass = "badge #{myRole}"
-
-          @badge.setClass cssClass
-          @badge.setAttribute 'title', myRole
+        @badge.setClass cssClass
+        @badge.setAttribute 'title', userRole
 
       href = if payload?.channelIntegrationId
         "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
