@@ -92,14 +92,25 @@ $gray                       = #B0B0B0
   line-height               23px
 
 .HomeAppView-Nav--avatar
+  overflow                  visible
+
+
+.HomeAppView-Nav--avatar
 .HomeAppView--section .avatarview
   abs                       3px 0px
   rounded                   50%
-  bg                        color #CACACA
-  overflow                  hidden
+  // bg                        color #CACACA
   size                      40px 40px
   padding                   1px
   borderBox()
 
   > img
     rounded                 50%
+  .badge
+    abs()
+    bottom                  0
+    right                   0
+    &.owner
+      r-sprite              app badge_icon_owner
+    &.admin
+      r-sprite              app badge_icon_admin
