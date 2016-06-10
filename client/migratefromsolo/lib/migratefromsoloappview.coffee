@@ -85,10 +85,36 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
     @addSubView @mainSection
     @addSubView @mainFooter
 
-    @switchToCredentials()
-
     @on 'KDObjectWillBeDestroyed', ->
       kd.singletons.router.handleRoute '/IDE'
+
+    { computeController } = kd.singletons
+
+    resetState = =>
+      @storage.unsetKey ACTIVE_MIGRATION
+      @switchToCredentials()
+
+    if activeMigration = @storage.getValue ACTIVE_MIGRATION
+
+      new kd.NotificationView
+        title: 'Checking migration status...'
+
+      { eventName, eventId } = activeMigration
+      if not eventName or not eventId
+        resetState()
+      else
+        computeController.getKloud()
+          .event [{ type: eventName, eventId }]
+          .then (event) =>
+            if event.err
+            then resetState()
+            else @switchToMigrationProcess activeMigration
+          .catch =>
+            resetState()
+
+    else
+      @switchToCredentials()
+
 
 
   setBackLinkCallback: (cb) ->
@@ -130,7 +156,7 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
     @statusText.hide()
 
 
-  switchToMigrationProcess: ->
+  switchToMigrationProcess: (migrateEvent) ->
 
     { computeController } = kd.singletons
     { slug } = getGroup()
@@ -161,6 +187,10 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
       @storage.setValue ACTIVE_MIGRATION, { eventName, eventId }
       computeController.eventListener.addListener eventName, eventId
       computeController.on eventName, handler
+
+    if migrateEvent
+      return followEvent migrateEvent
+
     computeController.getKloud().migrate(
       provider: 'aws'
       groupName: slug
