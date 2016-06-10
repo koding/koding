@@ -86,9 +86,14 @@ module.exports = class SoloMachines extends React.Component
 
       @state.machines.map (machine) =>
         isSelected = @state.selectedMachines[machine._id]
+        migrateStatus = if imageId = machine.meta.migration?.imageID
+        then <pre>{imageId}</pre>
+        else ''
+
         <ListItem
           key={machine._id}
           machine={machine}
+          migrateStatus={migrateStatus}
           finishedSelection={@state.finishedSelection}
           onSelect={@lazyBound 'onMachineSelect', machine._id}
           isSelected={isSelected} />
@@ -126,7 +131,7 @@ module.exports = class SoloMachines extends React.Component
     </div>
 
 
-ListItem = ({ machine, isSelected, onSelect, finishedSelection }) ->
+ListItem = ({ machine, isSelected, onSelect, migrateStatus, finishedSelection }) ->
 
   <div className="SoloMachinesListItem">
     <header>
@@ -134,6 +139,7 @@ ListItem = ({ machine, isSelected, onSelect, finishedSelection }) ->
         <CheckBox disabled={finishedSelection} onClick={onSelect} checked={!!isSelected} />
         { machine.label }
       </label>
+      <div className="SoloMachinesListItem-info">{migrateStatus}</div>
       <div className="SoloMachinesListItem-hostName">{machine.ipAddress}</div>
     </header>
   </div>
