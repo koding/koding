@@ -10,14 +10,17 @@ module.exports = class SoloMachines extends React.Component
 
     super props
 
-    @state = { machines: [], selectedMachines: {}, finishedSelection: no, confirmed: no }
+    @state = {
+      machines: [], selectedMachines: {},
+      finishedSelection: no, confirmed: no, loading: yes
+    }
 
 
   componentDidMount: ->
 
     kd.singletons.computeController.fetchSoloMachines (err, machines) =>
       return  if err
-      @setState { machines }
+      @setState { loading: no, machines }
 
 
   onMachineSelect: (machineId) ->
@@ -54,14 +57,22 @@ module.exports = class SoloMachines extends React.Component
 
   renderMachines: ->
 
-    @state.machines.map (machine) =>
-      isSelected = @state.selectedMachines[machine._id]
-      <ListItem
-        key={machine._id}
-        machine={machine}
-        finishedSelection={@state.finishedSelection}
-        onSelect={@lazyBound 'onMachineSelect', machine._id}
-        isSelected={isSelected} />
+    if @state.loading
+
+      <div className='GenericMessage'>
+        <p>Loading...</p>
+      </div>
+
+    else
+
+      @state.machines.map (machine) =>
+        isSelected = @state.selectedMachines[machine._id]
+        <ListItem
+          key={machine._id}
+          machine={machine}
+          finishedSelection={@state.finishedSelection}
+          onSelect={@lazyBound 'onMachineSelect', machine._id}
+          isSelected={isSelected} />
 
 
   renderButton: ->
