@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	testConfigPath = "./test.toml"
+	testConfigPath = "./dev.toml"
 	protocol       = "MehmetAli"
 )
 
