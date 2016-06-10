@@ -8,6 +8,8 @@ MigrationFinishedView = require './migrationfinishedview'
 
 module.exports = class MigrateFromSoloAppView extends kd.ModalView
 
+  ACTIVE_MIGRATION = 'active-migration'
+
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'BaseModalView MigrateFromSoloAppView', options.cssClass
@@ -19,6 +21,8 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
 
     @machines = null
     @credential = null
+
+    @storage = kd.getSingleton('localStorageController').storage 'migrator'
 
     @mainHeader = new kd.CustomHTMLView
       tagName: 'header'
@@ -62,7 +66,6 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
         showError err  if err
 
       @destroy()
-
 
     @mainFooter = new kd.CustomHTMLView
       tagName: 'footer'
@@ -131,6 +134,7 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
 
     { computeController } = kd.singletons
     { slug } = getGroup()
+    eventName = "migrate-#{slug}"
 
     @stepHeader.updatePartial 'A New Stack is Being Created for Your VMs'
     @stepDescription.updatePartial 'Once your VM’s are transferred they will be located under the stacks menu in a new stack called “Migrated Stack Template”.'
@@ -144,6 +148,19 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
     @progressBar.show()
     @statusText.show()
 
+    handler = ({ percentage }) =>
+      @progressBar.updateBar percentage
+
+      if percentage >= 100
+        @storage.unsetKey ACTIVE_MIGRATION
+        computeController.off eventName, handler
+        EnvironmentFlux.actions.loadPrivateStackTemplates().then =>
+          kd.utils.wait 500, @bound 'switchToFinishedView'
+
+    followEvent = ({ eventName, eventId }) =>
+      @storage.setValue ACTIVE_MIGRATION, { eventName, eventId }
+      computeController.eventListener.addListener eventName, eventId
+      computeController.on eventName, handler
     computeController.getKloud().migrate(
       provider: 'aws'
       groupName: slug
@@ -151,20 +168,8 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
       identifier: @credential.identifier
     ).then ({ eventId }) =>
 
-      eventName = "migrate-#{slug}"
-
-      splitted = eventId.split '-'
-      computeController.eventListener.addListener eventName, splitted.last
-
-      handler = ({ percentage }) =>
-        @progressBar.updateBar percentage
-
-        if percentage >= 100
-          computeController.off eventName, handler
-          EnvironmentFlux.actions.loadPrivateStackTemplates().then =>
-            kd.utils.wait 500, @bound 'switchToFinishedView'
-
-      computeController.on eventName, handler
+      eventId = (eventId.split '-').last
+      followEvent { eventName, eventId }
 
     .catch kd.warn
 
