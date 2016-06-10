@@ -195,7 +195,20 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
       eventId = (eventId.split '-').last
       followEvent { eventName, eventId }
 
-    .catch kd.warn
+    .catch (err) =>
+
+      kd.warn err
+
+      @statusText.updatePartial 'Migration failed, please contact with support'
+
+      @nextButton.setTitle 'Contact Support'
+      @nextButton.setCallback =>
+        @handleSupportRequest()
+
+      @nextButton.show()
+      @backLink.hide()
+
+      @progressBar.updateBar 100
 
 
   switchToFinishedView: ->
