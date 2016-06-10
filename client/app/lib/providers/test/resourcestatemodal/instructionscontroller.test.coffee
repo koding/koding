@@ -7,7 +7,7 @@ StackTemplatePageView = require 'app/providers/resourcestatemodal/views/stackflo
 
 describe 'InstructionsController', ->
 
-  stackTemplate = { description : 'Test template', template : { rawContent : 'test' }  }
+  stackTemplate = { description : 'Test template', template : { rawContent : 'test' } }
   container = null
 
   beforeEach ->

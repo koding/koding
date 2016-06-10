@@ -6,7 +6,7 @@ PageContainer = require 'app/providers/resourcestatemodal/views/pagecontainer'
 describe 'StackFlowController', ->
 
   container = new PageContainer()
-  stackTemplate = { description : 'Test template', template : { rawContent : 'test' }  }
+  stackTemplate = { description : 'Test template', template : { rawContent : 'test' } }
 
   describe '::show', ->
 
