@@ -750,7 +750,7 @@ module.exports = class StackEditorView extends kd.View
 
     return  unless foundStack
 
-    kd.singletons.computeController.reinitStack foundStack
+    kd.singletons.computeController.reinitStack foundStack, @lazyBound 'emit', 'Reload'
 
 
   handleGenerateStack: ->
