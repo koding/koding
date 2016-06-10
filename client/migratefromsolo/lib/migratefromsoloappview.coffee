@@ -152,11 +152,7 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
         if percentage >= 100
           computeController.off eventName, handler
           EnvironmentFlux.actions.loadPrivateStackTemplates().then =>
-            # TODO: right now the migrated stacks' access level is group,
-            # so load the team stack templates. Remove this after access level
-            # is correct (private)
-            EnvironmentFlux.actions.loadTeamStackTemplates().then =>
-              kd.utils.wait 500, @bound 'switchToFinishedView'
+            kd.utils.wait 500, @bound 'switchToFinishedView'
 
       computeController.on eventName, handler
 
