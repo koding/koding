@@ -32,8 +32,6 @@ module.exports = class KDCliContainer extends React.Component
           "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; curl -sL https://sandbox.kodi.ng/c/d/kd | bash -s #{token}"
         else "curl -sL https://kodi.ng/d/kd | bash -s #{token}"
 
-      console.log {cmd}
-
       @setState
         key : key
         cmd : cmd
