@@ -54,6 +54,16 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
       @machines = machines
       @switchToMigrationProcess()
 
+    @soloMachinesList.on 'SupportRequested', =>
+
+      { mainController } = kd.singletons
+
+      mainController.tellChatlioWidget 'show', { expanded: yes }, (err, result) ->
+        showError err  if err
+
+      @destroy()
+
+
     @mainFooter = new kd.CustomHTMLView
       tagName: 'footer'
       cssClass: 'mainFooter'

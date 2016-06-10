@@ -9,8 +9,14 @@ module.exports = class SoloMachinesListView extends ReactView
     @emit 'MachinesConfirmed', machines
 
 
+  onHelpRequest: ->
+
+    @emit 'SupportRequested'
+
+
   renderReact: ->
 
-    <SoloMachines onMachinesConfirm={@bound 'onMachinesConfirm'} />
-
-
+    <SoloMachines
+      onMachinesConfirm={@bound 'onMachinesConfirm'}
+      onHelpRequest={@bound 'onHelpRequest'}
+    />

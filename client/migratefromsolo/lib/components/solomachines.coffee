@@ -4,7 +4,10 @@ CheckBox = require 'app/components/common/checkbox'
 
 module.exports = class SoloMachines extends React.Component
 
-  @propTypes = { onMachinesConfirm: React.PropTypes.func.isRequired }
+  @propTypes = {
+    onMachinesConfirm: React.PropTypes.func.isRequired
+    onHelpRequest: React.PropTypes.func.isRequired
+  }
 
   constructor: (props) ->
 
@@ -69,6 +72,13 @@ module.exports = class SoloMachines extends React.Component
         You don't have any Koding VMs that can be migrated to your Team
         Please contact with support if you need an assistance
       """
+
+      <div className='GenericMessage'>
+        <p>{message}</p>
+        <div className='ButtonContainer'>
+          <button className='GenericButton' onClick={@props.onHelpRequest}>Contact Support</button>
+        </div>
+      </div>
 
     else
 
