@@ -180,6 +180,10 @@ module.exports = (options) ->
     userPrivateKey: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pem"
   dummyAdmins = ['superadmin', 'admin', 'koding']
 
+  druid =
+    host : options.serviceHost
+    port : 8090
+
   return {
     kiteHome
     awsKeys
@@ -219,4 +223,5 @@ module.exports = (options) ->
     kloud
     vmwatcher
     dummyAdmins
+    druid
   }
