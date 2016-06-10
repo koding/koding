@@ -18,7 +18,10 @@ sidebarStacks = [
     stackFilters = filters.get 'stack'
 
     stacks
-      .filter (stack) -> not stackFilters.has stack.get 'baseStackId'
+      .filter (stack) ->
+        if stackFilter = stackFilters.get id = stack.get 'baseStackId'
+          # check for id is for backwards compatibility. ~Umut
+          return stackFilter in ['visible', id]
       .map (stack) ->
         templateTitle = templates.getIn [stack.get('baseStackId'), 'title']
         stack = stack.set 'title', _.unescape templateTitle  if templateTitle

@@ -47,6 +47,21 @@ module.exports = class StackEditorView extends kd.View
 
     super options, data
 
+    @isMine = yes
+    kd.singletons.groupsController.ready =>
+
+      { groupsController } = kd.singletons
+      @isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
+
+      unless @isMine
+        @tabView.setClass 'StackEditorTabs isntMine'
+        @warningView.show()
+        @secondaryActions.hide()
+        @saveButton.hide()
+        @inputTitle.setClass 'template-title isntMine'
+
+
+
     @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
 
     if stackTemplate?.title
@@ -59,13 +74,21 @@ module.exports = class StackEditorView extends kd.View
 
     @createStackNameInput title
 
+    stackEditorTabsCssClass = unless @isMine then 'StackEditorTabs isntMine' else 'StackEditorTabs'
+
     @addSubView @tabView = new kd.TabView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 300
-      cssClass             : 'StackEditorTabs'
+      cssClass             : stackEditorTabsCssClass
+
+
+    @tabView.addSubView @warningView = new kd.CustomHTMLView
+      cssClass: 'warning-view hidden'
+      partial: 'You must be an admin to edit this stack.'
 
     @addSubView @secondaryActions = new kd.CustomHTMLView
       cssClass             : 'StackEditor-SecondaryActions'
+
 
     @secondaryActions.addSubView new CustomLinkView
       cssClass : 'HomeAppView--button danger'
@@ -86,13 +109,12 @@ module.exports = class StackEditorView extends kd.View
 
     @editorViews.variables = @variablesView = new VariablesView {
       delegate: this
-      stackTemplate
-    }
+    }, data
     @tabView.addPane variablesPane = new kd.TabPaneView
       name : 'Custom Variables'
       view : @variablesView
 
-    @editorViews.readme = @readmeView = new ReadmeView { stackTemplate }
+    @editorViews.readme = @readmeView = new ReadmeView {}, data
     @tabView.addPane readmePane = new kd.TabPaneView
       name : 'Readme'
       view : @readmeView
@@ -123,6 +145,13 @@ module.exports = class StackEditorView extends kd.View
     }
 
     @tabView.showPaneByIndex 0
+
+    @tabView.on 'PaneDidShow', (pane) =>
+      if pane.name is 'Credentials'
+        @warningView.hide()
+      unless @isMine
+        if pane.name isnt 'Credentials'
+          @warningView.show()
 
     @createOutputView()
     @createMainButtons()
@@ -225,15 +254,20 @@ module.exports = class StackEditorView extends kd.View
 
     title = Encoder.htmlDecode kd.singletons.reactor.evaluate valueGetter
 
-    @header.addSubView @inputTitle = new kd.InputView
+    options =
       cssClass: 'template-title'
       autogrow: yes
       defaultValue: title or generatedStackTemplateTitle
       placeholder: generatedStackTemplateTitle
       bind: 'keyup'
+
       keyup: (e) ->
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
+
+
+    @header.addSubView @inputTitle = new kd.InputView options
+
 
     kd.singletons.reactor.observe valueGetter, (value) =>
 
@@ -293,6 +327,7 @@ module.exports = class StackEditorView extends kd.View
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
         @handleGenerateStack()
+
 
     @buttons.addSubView @saveButton = new kd.ButtonView
       title          : 'SAVE'

@@ -20,7 +20,6 @@ module.exports = class HomeWelcome extends kd.CustomScrollView
       partial : '''
         <h2>Welcome to Koding For Teams!</h2>
         <p>Your new dev environment in the cloud.</p>
-        <div class="artboard"></div>
         '''
 
     @welcome.addSubView @instructions = new kd.CustomHTMLView
