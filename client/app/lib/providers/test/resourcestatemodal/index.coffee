@@ -4,3 +4,4 @@ describe 'ResourceStateModal', ->
   require './instructionscontroller.test'
   require './credentialscontroller.test'
   require './buildstackcontroller.test'
+  require './machineflowcontroller.test'
