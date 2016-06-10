@@ -10,6 +10,15 @@ hometeammates.styl
   borderizeListItems        20px, 1px solid #EBEBEB
   font-size                 15px
   rel()
+  .badge
+    abs()
+    z-index                 1
+    top                     49px
+    left                    25px
+    &.owner
+      r-sprite            app badge_icon_owner
+    &.admin
+      r-sprite            app badge_icon_admin
 
   &:first-of-type
     .avatarview
@@ -21,6 +30,7 @@ hometeammates.styl
   .avatarview
     height                  40px
     abs                     24px 0 0 0px
+    overflow                hidden
     &.default
       r-sprite              home user_default
 
