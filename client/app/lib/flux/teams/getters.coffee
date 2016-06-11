@@ -80,6 +80,7 @@ filteredMembersWithRole = [
     members.filter (member) -> isValidMemberValue member, value
 ]
 
+
 filteredMembersWithRoleAndDisabledUsers = [
   filteredMembersWithRole
   disabledUsers
@@ -87,6 +88,14 @@ filteredMembersWithRoleAndDisabledUsers = [
     users.withMutations (users) ->
       disabledUsers.map (disabledUser) ->
         users.set disabledUser.get('_id'), disabledUser
+]
+
+
+adminsList = [
+  filteredMembersWithRole
+  (users) ->
+    users.filter (user) ->
+      user.get('status') isnt 'pending' and user.get('role') is 'admin'  if user
 ]
 
 
@@ -147,4 +156,5 @@ module.exports = {
   resendInvitations
   disabledUsers
   filteredMembersWithRoleAndDisabledUsers
+  adminsList
 }
