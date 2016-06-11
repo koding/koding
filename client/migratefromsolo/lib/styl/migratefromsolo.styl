@@ -32,16 +32,18 @@ $buttonGray                 = #858585
     padding-top             40px
 
   .mainSection
-    height                  520px
+    min-height              520px
     display                 flex
     flex-direction          column
+    &.inactive
+      opacity               0
 
   .stepDescription
     width                   600px
     margin                  0 auto
 
   .stepContainer
-    height                  410px
+    height                  390px
     padding                 0 25px
     flex                    1 auto
     borderBox()

@@ -31,7 +31,7 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
 
     @mainSection = new kd.CustomHTMLView
       tagName: 'section'
-      cssClass: 'main mainSection'
+      cssClass: 'main mainSection inactive'
 
     @mainSection.addSubView @stepHeader = new kd.CustomHTMLView
       tagName: 'h2'
@@ -83,7 +83,8 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
 
     { computeController } = kd.singletons
 
-    resetState = =>
+    initialState = =>
+      @mainSection.unsetClass 'inactive'
       @storage.unsetKey ACTIVE_MIGRATION
       @switchToCredentials()
 
@@ -93,21 +94,26 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
         title: 'Checking migration status...'
 
       { eventName, eventId } = activeMigration
+
       if not eventName or not eventId
-        resetState()
+        initialState()
+
       else
         computeController.getKloud()
           .event [{ type: eventName, eventId }]
+
           .then (event) =>
             if event.err
-            then resetState()
-            else @switchToMigrationProcess activeMigration
+              initialState()
+            else
+              @mainSection.unsetClass 'inactive'
+              @switchToMigrationProcess activeMigration
+
           .catch =>
-            resetState()
+            initialState()
 
     else
-
-      @switchToCredentials()
+      initialState()
 
 
 
