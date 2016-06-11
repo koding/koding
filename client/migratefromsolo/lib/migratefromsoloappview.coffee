@@ -40,6 +40,9 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
     @mainSection.addSubView @stepDescription = new kd.CustomHTMLView
       tagName: 'p'
       cssClass: 'stepDescription'
+      click: (event) =>
+        @handleSupportRequest no  if event.target.className is 'support'
+        kd.utils.stopDOMEvent event
 
     @mainSection.addSubView @stepContainer = new kd.CustomHTMLView
       tagName: 'div'
@@ -143,7 +146,12 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
   switchToMachinesList: ->
 
     @stepHeader.updatePartial 'Select the VMs You Would Like to Transfer'
-    @stepDescription.updatePartial 'A new stack will be created in Koding Teams for the selected VMs.'
+    @stepDescription.updatePartial '''
+      A new stack will be created for the selected VMs. You can migrate
+      following machines anytime before <strong>July 15, 2016</strong>.
+      For more information please contact with
+      <a href='#' class='support'>support</a>.
+    '''
 
     @setBackLinkCallback @bound 'switchToCredentials'
 
@@ -169,6 +177,7 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
 
     @statusText.updatePartial 'Migration in progress...'
 
+    @nextButton.hide()
     @providersView.hide()
     @soloMachinesList.hide()
     @progressBar.show()
@@ -233,11 +242,11 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
     @nextButton.show()
 
 
-  handleSupportRequest: ->
+  handleSupportRequest: (destroy = yes) ->
 
     { mainController } = kd.singletons
 
     mainController.tellChatlioWidget 'show', { expanded: yes }, (err, result) ->
       showError err  if err
 
-    @destroy()
+    @destroy()  if destroy
