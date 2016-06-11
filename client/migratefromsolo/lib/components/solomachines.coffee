@@ -84,11 +84,17 @@ module.exports = class SoloMachines extends React.Component
 
     else
 
+      migratedTooltip = '''
+        This machine already migrated and you can use
+        this ami id in your stack templates.
+      '''
+
       @state.machines.map (machine) =>
         isSelected = @state.selectedMachines[machine._id]
         migrateStatus = if imageId = machine.meta.migration?.imageID
-        then <pre>{imageId}</pre>
-        else ''
+          <pre title={migratedTooltip}>{imageId}</pre>
+        else
+          'not migrated before'
 
         <ListItem
           key={machine._id}
