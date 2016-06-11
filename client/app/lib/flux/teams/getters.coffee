@@ -97,7 +97,7 @@ adminsList = [
     users.filter (user) ->
       return  unless user
       return no  if user.get('_id') is whoami()._id
-      user.get('status') isnt 'pending' and user.get('role') in ['admin','owner']
+      user.get('status') isnt 'pending' and user.get('role') in ['admin', 'owner']
 ]
 
 
