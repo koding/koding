@@ -68,6 +68,8 @@ module.exports = class AvatarView extends LinkView
         direction : 'center'
 
     @badge = new KDCustomHTMLView
+      cssClass : 'badge'
+      partial : 'Owner'
 
     super options, data
 
@@ -166,10 +168,7 @@ module.exports = class AvatarView extends LinkView
         hasOwner = 'owner' in roles
         hasAdmin = 'admin' in roles
         userRole = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
-
-        cssClass = "badge #{userRole}"
-
-        @badge.setClass cssClass
+        @badge.setClass userRole
         @badge.setAttribute 'title', userRole
 
       href = if payload?.channelIntegrationId
