@@ -47,14 +47,31 @@ Home My Account styles
       size                  132px 132px
       overflow              visible
       .badge
-        abs()
-        bottom              10px
+        abs                 0 0px 10px 0
         margin              0
-        right               0
+        padding             3px 10px 4px 20px
+        color               white
+        font-size           12px
+        line-height         12px
+        height              14px
+        rounded             11px
+        &::before
+          content           ''
+          abs               5px 0 0 6px
         &.owner
-          r-sprite            app badge_owner
+          bg                color #48BA7D
+          &::before
+            r-sprite        app badge_icon_owner
         &.admin
-          r-sprite            app badge_admin
+          bg                color #FFC442
+          &::before
+            r-sprite        app badge_icon_admin
+        &.compact
+          font-size         0
+          padding           3px 10px 4px 11px
+          &::before
+            left            3px
+
 
     button[type=submit]
       height                37px
