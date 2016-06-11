@@ -143,7 +143,7 @@ ListItem = ({ machine, isSelected, onSelect, migrateStatus, finishedSelection })
     <header>
       <label className="SoloMachinesListItem-machineLabel">
         <CheckBox disabled={finishedSelection} onClick={onSelect} checked={!!isSelected} />
-        { machine.label }
+        <div onClick={onSelect}>{ machine.label }</div>
       </label>
       <div className="SoloMachinesListItem-info">{migrateStatus}</div>
       <div className="SoloMachinesListItem-hostName">{machine.ipAddress}</div>
