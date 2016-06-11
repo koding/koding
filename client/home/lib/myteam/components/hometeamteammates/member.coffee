@@ -87,17 +87,20 @@ module.exports = class Member extends React.Component
         </div>
       </div>
       <MemberRoleWithDropDownMenu
-        canEdit={canEdit}
         role={role}
-        onClick={@onClickMemberRole.bind(this, role)}
         items={@getMenuItems role}
+        admins={@props.admins}
+        canEdit={canEdit}
+        onClick={@onClickMemberRole.bind(this, role)}
         isMenuOpen={@state.isMenuOpen} />
     </div>
 
 
-MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen }) ->
+MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen, admins }) ->
 
-  unless canEdit
+  showButtonWithMenu = role is 'owner' and admins.size is 0
+
+  unless canEdit and not showButtonWithMenu
     <div className='dropdown'>
       <MemberRole role={role} canEdit={canEdit}  />
     </div>
