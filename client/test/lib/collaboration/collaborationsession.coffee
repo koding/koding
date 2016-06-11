@@ -24,7 +24,7 @@ module.exports =
 
 
     hostCallback = ->
-
+      browser.pause 3000
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
 
@@ -35,7 +35,8 @@ module.exports =
         .waitForElementVisible     '.application-page.read-only', 20000
         .waitForElementNotVisible  '.panel-1 .panel-0 .application-tab-handle-holder .plus', 20000
 
-      collaborationHelpers.leaveSessionFromSidebar(browser)
+      collaborationHelpers.leaveSessionFromStatusBar(browser)
+      browser.pause 3000
       browser.end()
 
 

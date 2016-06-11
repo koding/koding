@@ -1,12 +1,16 @@
-helpers    = require './helpers.js'
+helpers    = require '../helpers/helpers.js'
 assert     = require 'assert'
 ideHelpers = require './idehelpers.js'
 utils      = require '../utils/utils.js'
 
-startButtonSelector = '.IDE-StatusBar .share.not-started button'
-endButtonSelector   = '.IDE-StatusBar .share.active button'
-collabLink          = '.collaboration-link'
+startButtonSelector   = '.IDE-StatusBar .share.not-started button'
+endButtonSelector     = '.IDE-StatusBar .share.active button'
+collabLink            = '.collaboration-link'
+terminalHelpers       = require '../helpers/terminalhelpers.js'
+teamsHelpers          = require '../helpers/teamshelpers.js'
+async                 = require 'async'
 
+runvm    = require '../helpers/runvm.js'
 
 module.exports =
 
@@ -60,17 +64,64 @@ module.exports =
     if shouldAssert
       browser.waitForElementVisible  startButtonSelector, 20000 # Assertion
 
+  createDefaultFiles: (browser, host) ->
+    pyContent    = 'Hello World from Python by Koding'
+    pythonFileName     = 'python.py'
+    pythonfileSelector = "span[title='/home/#{host.username}/.config/#{pythonFileName}']"
 
-  startSessionAndInviteUser: (browser, firstUser, secondUser, callback, skipLogin = no) ->
+    htmlContent      = 'Hello World from Html by Koding'
+    htmlFileName     = 'index.html'
+    htmlFileSelector = "span[title='/home/#{host.username}/.config/#{htmlFileName}']"
 
-    secondUserAvatar       = ".avatars .avatarview[href='/#{secondUser.username}']"
+    helpers.createFile(browser, host, null, null, pythonFileName)
+    ideHelpers.openFile(browser, host, pythonFileName)
+    browser.pause 2000
+    ideHelpers.setTextToEditor(browser, pyContent)
+    ideHelpers.saveFile(browser)      
+    ideHelpers.closeFile(browser, pythonFileName, host)
+
+    helpers.createFile(browser, host, null, null, htmlFileName)
+    ideHelpers.openFile(browser, host, htmlFileName)
+    browser.pause 2000
+    ideHelpers.setTextToEditor(browser, htmlContent)
+    ideHelpers.saveFile(browser)   
+    ideHelpers.closeFile(browser, htmlFileName, host)
+
+
+    ideHelpers.openFileFromConfigFolder(browser, host, pythonFileName, pyContent)   
+    ideHelpers.openFileFromConfigFolder(browser, host, htmlFileName, htmlContent)
+
+    terminalHelpers.openNewTerminalMenu(browser)
+    terminalHelpers.openTerminal(browser)
+
+
+  startSessionAndInviteUser: (browser, firstUser, secondUser, callback, createDefaultFiles = no) ->
+
+    secondUserAvatar       = ".IDE-StatusBar .avatars .avatarview"
     secondUserOnlineAvatar = "#{secondUserAvatar}.online"
 
-    unless skipLogin
-      helpers.beginTest browser, firstUser
-      helpers.waitForVMRunning browser
+    secondUser.role = 'member'
 
-      ideHelpers.closeAllTabs(browser)
+    users = [
+        secondUser
+    ]
+
+    queue = [
+      (next) ->
+        teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
+          browser.writeMemberInvitation 'Participant joined to team', ->
+            next null, result
+      (next) ->
+        teamsHelpers.buildStack browser, (res) ->            
+          next null, res
+    ]
+
+    async.series queue
+
+    ideHelpers.closeAllTabs(browser)
+
+    if createDefaultFiles
+      @createDefaultFiles browser, firstUser
 
     @isSessionActive browser, (isActive) =>
 
@@ -96,39 +147,40 @@ module.exports =
   joinSession: (browser, firstUser, secondUser, callback) ->
 
     firstUserName    = firstUser.username
-    shareModal       = '.share-modal'
-    fullName         = "#{shareModal} .user-details .fullname"
-    acceptButton     = "#{shareModal} .kdbutton.green"
-    rejectButton     = "#{shareModal} .kdbutton.red"
-    selectedMachine  = '.sidebar-machine-box.selected'
+    shareModal       = '.Popover-Wrapper'
+    fullName         = ".SidebarWidget-FullName"
+    acceptButton     = ".SidebarWidget .kdbutton.green"
+    rejectButton     = ".SidebarWidget .kdbutton.solid.red"
     filetree         = '.ide-files-tab'
     sessionLoading   = '.session-starting'
+    teamurl         = helpers.getUrl(yes)
+    
+    browser.url teamurl, ->
+      browser.getMemberInvitation browser, (res) ->
+        browser.url teamurl
+        browser.maximizeWindow()
+        teamsHelpers.loginToTeam browser, secondUser, no, ->
+          browser.getCollabLink browser, (url) ->
+            console.log '>>>>>>>>>> Participant get the link', url
 
-    console.log ' ✔ Getting collaboration link...'
+            browser
+              .waitForElementVisible     '#main-sidebar', 20000
+              .url                       url
+              .waitForElementVisible     shareModal, 500000 # wait for vm turn on for host
+              .waitForElementVisible     fullName, 50000
+              .waitForTextToContain      shareModal, firstUserName
+              .waitForElementVisible     acceptButton, 50000
+              .waitForElementVisible     rejectButton, 50000
+              .click                     acceptButton
+              .waitForElementNotPresent  shareModal, 50000
+              .pause                     3000 # wait for sidebar redraw
+              .waitForElementNotPresent  sessionLoading, 50000
+              .waitForElementVisible     filetree, 50000
+              .waitForTextToContain      filetree, firstUserName
+              .waitForElementVisible     endButtonSelector, 50000
+              .assert.containsText       endButtonSelector, 'LEAVE SESSION' # Assertion
 
-    helpers.beginTest browser, secondUser
-    browser.getCollabLink browser, (url) ->
-      console.log '>>>>>>>>>> Participant get the link', url
-
-      browser
-        .url                       url
-        .pause                     5000 # sidebar redraw
-        .waitForElementVisible     shareModal, 500000 # wait for vm turn on for host
-        .waitForElementVisible     fullName, 50000
-        .waitForTextToContain      shareModal, firstUserName
-        .waitForElementVisible     acceptButton, 50000
-        .waitForElementVisible     rejectButton, 50000
-        .click                     acceptButton
-        .waitForElementNotPresent  shareModal, 50000
-        .pause                     3000 # wait for sidebar redraw
-        .waitForElementVisible     selectedMachine, 50000
-        .waitForElementNotPresent  sessionLoading, 50000
-        .waitForElementVisible     filetree, 50000
-        .waitForTextToContain      filetree, firstUserName
-        .waitForElementVisible     endButtonSelector, 50000
-        .assert.containsText       endButtonSelector, 'LEAVE SESSION' # Assertion
-
-      callback?()
+            callback?()
 
 
   waitParticipantLeaveAndEndSession: (browser) ->
@@ -154,7 +206,7 @@ module.exports =
       # assert that no shared vm on sidebar
 
 
-  initiateCollaborationSession: (browser, hostCallback, participantCallback) ->
+  initiateCollaborationSession: (browser, hostCallback, participantCallback, createDefaultFiles) ->
 
     host        = utils.getUser no, 0
     participant = utils.getUser no, 1
@@ -166,7 +218,7 @@ module.exports =
     hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
 
     if hostBrowser
-      @startSessionAndInviteUser browser, host, participant, hostCallback
+      @startSessionAndInviteUser browser, host, participant, hostCallback, createDefaultFiles
     else
       @joinSession browser, host, participant, participantCallback
 
@@ -195,9 +247,9 @@ module.exports =
 
   openMachineSettingsButton: (browser) ->
 
-    sharedMachineSelector       = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
-    sharedMachineButtonSettings = "#{sharedMachineSelector} span.settings-icon"
-    shareModal                  = '.share-modal'
+    sharedMachineSelector       = ".SidebarMachinesListItem.Running.active"
+    sharedMachineButtonSettings = '.MachineSettings' 
+    shareModal                  = '.Popover-Wrapper'
 
     browser
       .waitForElementVisible     sharedMachineSelector, 20000
@@ -209,10 +261,10 @@ module.exports =
 
   leaveSessionFromSidebar: (browser) ->
 
-    hostBrowser        = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    shareModal         = '.share-modal'
-    leaveSessionButton = "#{shareModal} .kdmodal-inner button.red"
-    machineSelector    = '.shared-machines'
+    hostBrowser              = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    sharedMachineSelector    = ".SidebarMachinesListItem.Running.active"
+    shareModal               = '.Popover-Wrapper'
+    leaveSessionButton       = ".SidebarWidget .kdbutton.solid.red"
 
     unless hostBrowser
       @openMachineSettingsButton(browser)
@@ -220,7 +272,7 @@ module.exports =
     browser
       .waitForElementVisible     leaveSessionButton, 20000
       .click                     leaveSessionButton
-      .waitForElementNotVisible  machineSelector, 20000
+      .waitForElementNotVisible  sharedMachineSelector, 20000
       .pause                     1500 # wait little bit before leaving
 
 
@@ -296,7 +348,7 @@ module.exports =
     browser.pause 2500, => # wait for user.json creation
 
       hostCallback = =>
-
+        browser.pause 3000
         @waitParticipantLeaveAndEndSession(browser)
         browser.end()
 
@@ -307,6 +359,7 @@ module.exports =
           when 'Sidebar'   then @leaveSessionFromSidebar(browser)
           when 'StatusBar' then @leaveSessionFromStatusBar(browser)
 
+        browser.pause 3000
         browser.end()
 
       @initiateCollaborationSession(browser, hostCallback, participantCallback)

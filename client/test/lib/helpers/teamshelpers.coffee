@@ -122,10 +122,10 @@ module.exports =
 
 
 
-  loginTeam: (browser, invalidCredentials = no, callback = -> ) ->
+  loginTeam: (browser, user, invalidCredentials = no, callback = -> ) ->
 
-    user               = utils.getUser()
-    url                = helpers.getUrl(yes)
+    user               ?= utils.getUser()
+    url                = "http://#{user.teamSlug}.dev.koding.com:8090"
     inviteLink         = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
     invalidCredentials = no
 
@@ -174,7 +174,7 @@ module.exports =
     emailSelector       = "#{modalSelector} input[name=email]"
     companyNameSelector = "#{modalSelector} input[name=companyName]"
     signUpButton        = "#{modalSelector} button[type=submit]"
-    user                = utils.getUser()
+    # user                = utils.getUser()
     inviteLink          = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
     modalSelector       = '.TeamsModal.TeamsModal--create'
     teamsModalSelector  = '.TeamsModal--groupCreation'
