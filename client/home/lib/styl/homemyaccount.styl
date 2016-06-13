@@ -45,6 +45,33 @@ Home My Account styles
       top                   60px
       right                 29px
       size                  132px 132px
+      overflow              visible
+      .badge
+        abs                 0 0px 10px 0
+        margin              0
+        padding             3px 10px 4px 20px
+        color               white
+        font-size           12px
+        line-height         12px
+        height              14px
+        rounded             11px
+        &::before
+          content           ''
+          abs               5px 0 0 6px
+        &.owner
+          bg                color #48BA7D
+          &::before
+            r-sprite        app badge_icon_owner
+        &.admin
+          bg                color #FFC442
+          &::before
+            r-sprite        app badge_icon_admin
+        &.compact
+          font-size         0
+          padding           3px 10px 4px 11px
+          &::before
+            left            3px
+
 
     button[type=submit]
       height                37px
@@ -74,7 +101,7 @@ Home My Account styles
 
   &.security
     overflow                hidden
-    
+
     .enabled-intro
       p
         width               380px
@@ -85,26 +112,26 @@ Home My Account styles
         color               #ACACAC
         text-rendering      geometricPrecision
         dIBlock()
-        
+
         &:first-child
           margin-right      28px
           color             #929292
           size              134px 35px
           border-right      1px solid #D9D9D9
-        
+
         strong
           color             #00b057
           font-size         20px
           font-weight       400
           margin-bottom     3px
           dBlock()
-          
+
           &:after
             content         ''
             margin-left     10px
             r-sprite        home tick
             dIBlock()
-      
+
     .AppModal-form
       size                  224px 267px
       border                1px solid #d0d0d0
@@ -112,7 +139,7 @@ Home My Account styles
       fr()
       rel()
       borderBox()
-      
+
       &.enabled-form
         width               100%
         border              none
@@ -121,21 +148,21 @@ Home My Account styles
         padding-top         12px
         height              auto
         border-top          1px solid #d0d0d0
-            
-        .Formline--half 
+
+        .Formline--half
           width             165px
           padding           0
           height            42px
           margin-right      20px
-          
+
           &.password
             width           250px
-            
+
             input
               padding       0 10px
               width         250px
-              
-      input 
+
+      input
         width               100%
 
       .button-field
@@ -193,12 +220,15 @@ Home My Account styles
       p
         margin              20px 0 0 40px
         fl()
-        width               230px
+        width               190px
 
         &:first-child
           margin-left       0
-          width             180px
+          width             220px
           ellipsis()
+
+        &.active
+          font-weight       700
 
     .delete-button
       fr()

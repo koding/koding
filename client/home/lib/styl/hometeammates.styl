@@ -10,10 +10,32 @@ hometeammates.styl
   borderizeListItems        20px, 1px solid #EBEBEB
   font-size                 15px
   rel()
+  .badge
+    abs                     0 -4px 0px 0
+    margin                  0
+    color                   white
+    line-height             12px
+    height                  16px
+    rounded                 8px
+    font-size               0
+    padding                 0 6px 0 10px
+    &::before
+      content               ''
+      abs                   3px 1px 2px 3px
+    &.owner
+      bg                    color #48BA7D
+      &::before
+        r-sprite            app badge_icon_owner
+    &.admin
+      bg                    color #FFC442
+      &::before
+        r-sprite            app badge_icon_admin
+
 
   &:first-of-type
     .avatarview
       top                   4px
+      overflow              visible
 
     .dropdown
       top                   10px
