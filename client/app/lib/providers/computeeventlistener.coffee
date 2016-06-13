@@ -140,6 +140,11 @@ module.exports = class ComputeEventListener extends kd.Object
         { event } = res
         [type, eventId] = event.eventId.split '-'
 
+        if type is 'migrate'
+          [type, groupName, eventId] = event.eventId.split '-'
+          type = "#{type}-#{groupName}"
+          computeController.emit type, event
+
         if event.percentage < 100 and \
            event.status isnt Machine.State.Unknown
           uniqueAdd activeListeners, type, eventId

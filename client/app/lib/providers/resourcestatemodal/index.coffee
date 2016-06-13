@@ -1,7 +1,8 @@
 kd = require 'kd'
 ResurceStateController = require './controllers/resourcestatecontroller'
+BaseModalView = require 'app/commonviews/basemodalview'
 
-module.exports = class ResourceStateModal extends kd.BlockingModalView
+module.exports = class ResourceStateModal extends BaseModalView
 
   constructor: (options = {}, data) ->
 

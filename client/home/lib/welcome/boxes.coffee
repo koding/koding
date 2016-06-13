@@ -48,4 +48,12 @@ BULLETS =
     </a>
     """
 
+  migrateFromKoding :
+    """
+    <a href='/MigrateFromSolo'>
+      <h3>Migrate from Solo</h3>
+      <p>You can migrate your solo machines to team!</p>
+    </a>
+    """
+
 module.exports = { BULLETS }

@@ -1,0 +1,11 @@
+{
+  "name": "migratefromsolo",
+  "main": "./lib/index.coffee",
+  "routes": {
+    "/MigrateFromSolo": "migrate"
+  },
+  "styles": [
+    "./lib/styl/*.styl"
+  ]
+}
+
