@@ -1,9 +1,10 @@
+package main
+
 // ctifactories implements abstractions ontop of the CLI commands, interfacting the
 // CLI library of choice with the klientctl Commands created.
 //
 // TODO: Move this to it's own package, once the rest of the klientctl lib is
 // package-able.
-package main
 
 import (
 	"fmt"

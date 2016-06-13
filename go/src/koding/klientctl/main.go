@@ -1,3 +1,14 @@
+// Klientctl's main package implements the binary `kd`.
+//
+// kd allows you to use your local IDE and tools to interact with a Koding VMs.
+// It uses FUSE (and other methods) to mount the remote VM as a filesystem onto
+// your local machine.
+//
+// In addition it allows you to run commands/ssh on your remote machine from local
+// terminal.
+//
+// TODO: Most kd commands are implemented in this main package, but they're being
+// moved to their own packages.
 package main
 
 import (

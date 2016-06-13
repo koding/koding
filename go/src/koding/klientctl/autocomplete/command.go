@@ -1,3 +1,5 @@
+// Autocomplete handles the installation of shell autocomplete for KD implemented by
+// `kd autocomplete`.
 package autocomplete
 
 import (
