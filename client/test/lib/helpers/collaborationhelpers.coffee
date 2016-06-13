@@ -75,18 +75,18 @@ module.exports =
     ideHelpers.openFile(browser, host, pythonFileName)
     browser.pause 2000
     ideHelpers.setTextToEditor(browser, pyContent)
-    ideHelpers.saveFile(browser)      
+    ideHelpers.saveFile(browser)
     ideHelpers.closeFile(browser, pythonFileName, host)
 
     helpers.createFile(browser, host, null, null, htmlFileName)
     ideHelpers.openFile(browser, host, htmlFileName)
     browser.pause 2000
     ideHelpers.setTextToEditor(browser, htmlContent)
-    ideHelpers.saveFile(browser)   
+    ideHelpers.saveFile(browser)
     ideHelpers.closeFile(browser, htmlFileName, host)
 
 
-    ideHelpers.openFileFromConfigFolder(browser, host, pythonFileName, pyContent)   
+    ideHelpers.openFileFromConfigFolder(browser, host, pythonFileName, pyContent)
     ideHelpers.openFileFromConfigFolder(browser, host, htmlFileName, htmlContent)
 
     terminalHelpers.openNewTerminalMenu(browser)
@@ -95,7 +95,7 @@ module.exports =
 
   startSessionAndInviteUser: (browser, firstUser, secondUser, callback, createDefaultFiles = no) ->
 
-    secondUserAvatar       = ".IDE-StatusBar .avatars .avatarview"
+    secondUserAvatar       = '.IDE-StatusBar .avatars .avatarview'
     secondUserOnlineAvatar = "#{secondUserAvatar}.online"
 
     secondUser.role = 'member'
@@ -110,7 +110,7 @@ module.exports =
           browser.writeMemberInvitation 'Participant joined to team', ->
             next null, result
       (next) ->
-        teamsHelpers.buildStack browser, (res) ->            
+        teamsHelpers.buildStack browser, (res) ->
           next null, res
     ]
 
@@ -146,13 +146,13 @@ module.exports =
 
     firstUserName    = firstUser.username
     shareModal       = '.Popover-Wrapper'
-    fullName         = ".SidebarWidget-FullName"
-    acceptButton     = ".SidebarWidget .kdbutton.green"
-    rejectButton     = ".SidebarWidget .kdbutton.solid.red"
+    fullName         = '.SidebarWidget-FullName'
+    acceptButton     = '.SidebarWidget .kdbutton.green'
+    rejectButton     = '.SidebarWidget .kdbutton.solid.red'
     filetree         = '.ide-files-tab'
     sessionLoading   = '.session-starting'
     teamurl         = helpers.getUrl(yes)
-    
+
     browser.url teamurl, ->
       browser.getMemberInvitation browser, (res) ->
         browser.url teamurl
@@ -245,8 +245,8 @@ module.exports =
 
   openMachineSettingsButton: (browser) ->
 
-    sharedMachineSelector       = ".SidebarMachinesListItem.Running.active"
-    sharedMachineButtonSettings = '.MachineSettings' 
+    sharedMachineSelector       = '.SidebarMachinesListItem.Running.active'
+    sharedMachineButtonSettings = '.MachineSettings'
     shareModal                  = '.Popover-Wrapper'
 
     browser
@@ -260,9 +260,9 @@ module.exports =
   leaveSessionFromSidebar: (browser) ->
 
     hostBrowser              = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    sharedMachineSelector    = ".SidebarMachinesListItem.Running.active"
+    sharedMachineSelector    = '.SidebarMachinesListItem.Running.active'
     shareModal               = '.Popover-Wrapper'
-    leaveSessionButton       = ".SidebarWidget .kdbutton.solid.red"
+    leaveSessionButton       = '.SidebarWidget .kdbutton.solid.red'
 
     unless hostBrowser
       @openMachineSettingsButton(browser)

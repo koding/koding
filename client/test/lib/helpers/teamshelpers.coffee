@@ -277,7 +277,7 @@ module.exports =
       .waitForElementVisible skipGuideButton, 20000
       .click skipGuideButton
       .pause 1000
-      # .waitForElementVisible stackEditorTab, 20000
+      .waitForElementVisible stackEditorTab, 20000
       .click credentialsTabSelector
     browser.element 'css selector', checkForCredentials, (result) =>
       if result.status is -1
