@@ -398,34 +398,39 @@ module.exports = class StackEditorView extends kd.View
           @processTemplate _stackTemplate
 
 
+  afterProcessTemplate: (method) ->
+
+    canEditGroup = kd.singletons.groupsController.canEditGroup()
+
+    switch method
+      when 'provision'
+        @generateStackButton.show()
+        @outputView.add '''
+          Your stack script has been successfully saved.
+          You can now close the stack editor or continue editing your stack.
+        '''
+      when 'reinit'
+        @reinitButton.show()
+        @outputView.add '''
+          Your stack script has been successfully saved.
+          You can now close the stack editor or continue editing your stack.
+        '''
+      when 'maketeamdefault'
+        @setAsDefaultButton.show()
+        @outputView.add '''
+          Your stack script has been successfully saved.
+
+          If you want to auto-provision this template when new users join your team,
+          you need to click "Make Team Default" after you save it.
+
+          You can now close the stack editor or continue editing your stack.
+        '''
+
+
   processTemplate: (stackTemplate) ->
 
     { groupsController, computeController } = kd.singletons
     canEditGroup = groupsController.canEditGroup()
-
-    setToGroup = (method = 'add') =>
-
-      if canEditGroup
-        @handleSetDefaultTemplate completed = no
-
-        # this is confusing. if there are currently 20 members using this stack
-        # their stack shouldn't be changed to this one automatically
-        # they should see a notification that says "this stack has been deleted by Gokmen"
-        # new users get the default stack should. and this button shouldn't be there each time
-        # i make a new one, it should be on the list-menu.
-        @outputView[method] '''
-          Your stack script has been successfully saved and all your new team
-          members now will see this stack by default. Existing users
-          of the previous default-stack will be notified that default-stack has
-          changed.
-
-          You can now close this window or continue working with your stack.
-        '''
-      else if method is 'addAndWarn'
-        @generateStackButton.show()
-      else
-        @reinitButton.show()
-
 
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
@@ -434,15 +439,13 @@ module.exports = class StackEditorView extends kd.View
       _.each @editorViews, (view) -> view.editorView.getAce().saveFinished()
       @changedContents = {}
 
-      @emit 'Reload'
-
       if err
         @outputView.add 'Parsing failed, please check your template and try again'
         return
 
       { stackTemplates }       = groupsController.getCurrentGroup()
       stackTemplate.isDefault ?= stackTemplate._id in (stackTemplates or [])
-      templateSetBefore        = stackTemplates?.length
+      hasGroupTemplates        = stackTemplates?.length
 
       stacks = kd.singletons.reactor.evaluateToJS ['StacksStore']
       templateIds = Object.keys(stacks).map (key) -> stacks[key].baseStackId
@@ -452,39 +455,34 @@ module.exports = class StackEditorView extends kd.View
       # TMS-1919: This needs to be reimplemented, once we have multiple
       # stacktemplates set for a team this will be broken ~ GG
 
+      unless hasGroupTemplates
+
+        # this means that the created stack template will be assigned as team
+        # default, and it will be shared with the group.
+        if canEditGroup
+          @handleSetDefaultTemplate completed = no
+
+          # this is confusing. if there are currently 20 members using this stack
+          # their stack shouldn't be changed to this one automatically
+          # they should see a notification that says "this stack has been deleted by Gokmen"
+          # new users get the default stack should. and this button shouldn't be there each time
+          # i make a new one, it should be on the list-menu.
+          @outputView.addAndWarn '''
+            Your stack script has been successfully saved and all your new team
+            members now will see this stack by default. Existing users
+            of the previous default-stack will be notified that default-stack has
+            changed.
+
+            You can now close this window or continue working with your stack.
+          '''
+          return
 
       if hasStack
-        setToGroup()
-
-      else if templateSetBefore
-
-        unless stackTemplate.isDefault
-
-          if canEditGroup
-            @setAsDefaultButton.show()
-            @outputView.add '''
-              Your stack script has been successfully saved.
-
-              If you want to auto-provision this template when new users join your team,
-              you need to click "Make Team Default" after you save it.
-
-              You can now close the stack editor or continue editing your stack.
-            '''
-          else
-            @reinitButton.show()
-            @outputView.add '''
-              Your stack script has been successfully saved.
-              You can now close the stack editor or continue editing your stack.
-            '''
-
-          computeController.checkGroupStacks()
-
-        else
-          setToGroup()
-
+        @afterProcessTemplate 'reinit'
+      else if canEditGroup
+        @afterProcessTemplate 'maketeamdefault'
       else
-        setToGroup 'addAndWarn'
-
+        @afterProcessTemplate 'provision'
 
 
   checkAndBootstrapCredentials: (callback) ->
@@ -684,7 +682,6 @@ module.exports = class StackEditorView extends kd.View
         else Tracker.track Tracker.STACKS_CUSTOM_NAME
 
         @setData { stackTemplate }
-        @emit 'Reload'
 
         stackTemplate._updated = currentSum isnt stackTemplate.template.sum
 
@@ -741,6 +738,7 @@ module.exports = class StackEditorView extends kd.View
 
 
   handleReinit: ->
+
     stacks = kd.singletons.reactor.evaluateToJS ['StacksStore']
     { stackTemplate } = @getData()
 
@@ -752,7 +750,7 @@ module.exports = class StackEditorView extends kd.View
 
     return  unless foundStack
 
-    kd.singletons.computeController.reinitStack foundStack
+    kd.singletons.computeController.reinitStack foundStack, @lazyBound 'emit', 'Reload'
 
 
   handleGenerateStack: ->
@@ -762,7 +760,7 @@ module.exports = class StackEditorView extends kd.View
 
     @outputView.add 'Generating stack from template...'
 
-    stackTemplate.generateStack (err) =>
+    stackTemplate.generateStack (err, result) =>
       @generateStackButton.hideLoader()
 
       return  if @outputView.handleError err
@@ -771,6 +769,7 @@ module.exports = class StackEditorView extends kd.View
 
       computeController.reset yes
 
+      kd.singletons.router.handleRoute "/IDE/#{result.results.machines[0].obj.label}"
       @emit 'Reload'
 
 

@@ -128,8 +128,6 @@ func (rs *Client) sync(progCh chan Progress, opts SyncOpts) {
 		err = errors.New("SyncOpts.LocalDir is required.")
 	case opts.RemoteDir == "":
 		err = errors.New("SyncOpts.RemoteDir is required.")
-	case opts.DirSize == 0:
-		err = errors.New("SyncOpts.DirSize is required.")
 	}
 	if err != nil {
 		progCh <- progressErr(err)

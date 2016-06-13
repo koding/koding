@@ -149,7 +149,7 @@ Configuration = (options = {}) ->
   KONFIG.ENV = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
   KONFIG.nginxConf = (require "../deployment/nginx.coffee").create KONFIG, options.environment
-  KONFIG.runFile = require('./generateRunFile').sandbox(KONFIG, options, credentials)
+  KONFIG.runFile = (require './generateRunFile').sandbox KONFIG, options
   KONFIG.configCheckExempt = ["command", "output_path"]
 
   KONFIG.envFiles = envFiles

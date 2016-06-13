@@ -89,7 +89,7 @@ func TestWebhook(t *testing.T) {
 		So(channelId, ShouldNotEqual, 0)
 	})
 
-	Convey("We should be able to successfully receive github push messages via middleware", t, func() {
+	SkipConvey("We should be able to successfully receive github push messages via middleware", t, func() {
 		channelIntegration, topicChannel := webhook.CreateTestChannelIntegration(t)
 
 		account, err := models.CreateAccountInBothDbsWithNick(models.RandomName())
@@ -131,7 +131,7 @@ func TestWebhook(t *testing.T) {
 
 	})
 
-	Convey("We should be able to successfully receive payload of github push messages via middleware", t, func() {
+	SkipConvey("We should be able to successfully receive payload of github push messages via middleware", t, func() {
 		channelIntegration, topicChannel := webhook.CreateTestChannelIntegration(t)
 
 		account, err := models.CreateAccountInBothDbsWithNick(models.RandomName())
