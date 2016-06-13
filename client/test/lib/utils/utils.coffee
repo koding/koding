@@ -90,13 +90,13 @@ module.exports =
     @registerSuiteHook 'before'  unless @suiteHookHasRun 'before'
 
 
-  afterEachCollaborationTest: (browser, done) -> 
+  afterEachCollaborationTest: (browser, done) ->
     queue = [
       (next) ->
         browser.deleteCollabLink (result) ->
           next null, result
       (next) ->
-        browser.deleteMemberInvitation (res) ->           
+        browser.deleteMemberInvitation (res) ->
           next null, res
     ]
 
