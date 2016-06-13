@@ -29,6 +29,7 @@ $secondaryActiveColor       = #656565
       bg                    color, $dangerActiveColor
 
   &.secondary
+  &.alternate
     bg                      color, $secondaryColor
     &:active
     &:hover
@@ -49,6 +50,14 @@ $secondaryActiveColor       = #656565
       letter-spacing        .3px
 
 
+.GenericButtonGroup
+  .GenericButton
+    margin-left             10px
+
+    &:first-child
+      margin-left           0
+
+
 .HomeAppView--button
   font-size                 14px
   font-weight               100
@@ -62,6 +71,8 @@ $secondaryActiveColor       = #656565
 
   &.danger
     color                   #e14a35
+    &.isntMine
+      pointer-events        none
 
 .HomeAppView--link
   bg                        color, transparent

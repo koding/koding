@@ -1337,3 +1337,14 @@ module.exports = class ComputeController extends KDController
     return  if not stack or not stack.config
 
     delete stack.config.adminMessage
+
+
+  fetchSoloMachines: (callback) ->
+
+    return callback null, @_soloMachines  if @_soloMachines
+
+    remote.api.ComputeProvider.fetchSoloMachines (err, res) =>
+      @_soloMachines = res?.machines ? []
+      kd.warn err  if err
+      callback null, @_soloMachines
+

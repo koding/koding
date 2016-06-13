@@ -1,6 +1,7 @@
-kd               = require 'kd'
-React            = require 'kd-react'
-List             = require 'app/components/list'
+kd = require 'kd'
+React = require 'kd-react'
+List = require 'app/components/list'
+CheckBox = require 'app/components/common/checkbox'
 
 
 module.exports = class HomeTeamSendInvitesView extends React.Component
@@ -25,7 +26,7 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
       <input type='text' className='kdinput text user-email' placeholder='mail@example.com' value={inviteInput.get 'email'} onChange={@props.onInputChange.bind(this, rowIndex, 'email')} />
       <input type='text' className='kdinput text firstname' placeholder='Optional' value={inviteInput.get 'firstName'} onChange={@props.onInputChange.bind(this, rowIndex, 'firstName')}/>
       <input type='text' className='kdinput text lastname' placeholder='Optional' value={inviteInput.get 'lastName'} onChange={@props.onInputChange.bind(this, rowIndex, 'lastName')}/>
-      <CheckBox
+      <CheckBoxOrEmpty
         canEdit={@props.canEdit}
         checked={checked}
         onChange={@props.onInputChange.bind(this, rowIndex, 'canEdit')}
@@ -62,13 +63,10 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
     </div>
 
 
-CheckBox = ({ canEdit, checked, onChange, onClick }) ->
+CheckBoxOrEmpty = ({ canEdit, checked, onChange, onClick }) ->
 
   if canEdit
-    <div className='kdcustomcheckbox' >
-      <input type='checkbox' className='kdinput checkbox' checked={checked} onChange={onChange}/>
-      <label onClick={onClick}></label>
-    </div>
+    <CheckBox checked={checked} onChange={onChange} onClick={onClick} />
   else
     <div></div>
 

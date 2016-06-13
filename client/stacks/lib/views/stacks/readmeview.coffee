@@ -12,7 +12,7 @@ module.exports = class ReadmeView extends StackBaseEditorTabView
 
     super options, data
 
-    { stackTemplate } = @getOptions()
+    { stackTemplate } = @getData()
 
     content = if stackTemplate?.description \
       then Encoder.htmlDecode stackTemplate?.description

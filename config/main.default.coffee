@@ -100,7 +100,7 @@ Configuration = (options = {}) ->
   KONFIG.ENV = (require '../deployment/envvar.coffee').create KONFIG
   KONFIG.supervisorConf = (require '../deployment/supervisord.coffee').create KONFIG
   KONFIG.nginxConf = (require '../deployment/nginx.coffee').create KONFIG, options.environment
-  KONFIG.runFile = (require './generateRunFile').default KONFIG, options, credentials
+  KONFIG.runFile = (require './generateRunFile').default KONFIG, options
   KONFIG.configCheckExempt = []
 
   KONFIG.envFiles = envFiles

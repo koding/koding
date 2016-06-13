@@ -500,7 +500,6 @@ module.exports = class JUser extends jraphical.Module
         opts =
           groupName: groupName
           account: account
-          cutoffDate: new Date 2016, 2, 11 # 11 March 2016
           env: KONFIG.environment
 
         return next() if isSoloAccessible opts

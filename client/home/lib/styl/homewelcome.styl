@@ -32,16 +32,19 @@ $linkColor                  = #769ECC
       line-height           20px
       font-weight           300
 
-  .artboard
-    margin                  30px auto
-    size                    180px 180px
-    r-sprite                stacks strongman
 
   ul.bullets
     counter-reset           section
     list-style-type         none
     width                   455px
     margin                  0 auto
+
+    &.solo
+      padding-top           20px
+      border-top            1px solid #DCDCDC
+
+      li:before
+        content             "*"
 
     li
       rel()
