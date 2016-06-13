@@ -82,7 +82,7 @@ module.exports =
   getCollabLinkFilePath: -> return "#{tempDir()}/collabLink.txt"
 
   getMemberInvitationPath: -> return "#{tempDir()}/invitation.txt"
-  
+
 
   beforeCollaborationSuite: ->
 
