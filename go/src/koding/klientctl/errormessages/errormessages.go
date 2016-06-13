@@ -1,3 +1,5 @@
+// A series of error messages provided to the end user, with explanations of how
+// they are expected to be used.
 package errormessages
 
 import "fmt"

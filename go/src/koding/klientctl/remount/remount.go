@@ -1,3 +1,4 @@
+// Remount implements `kd remount`
 package remount
 
 import (

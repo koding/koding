@@ -1,6 +1,8 @@
 // ctlcli holds the interfaces and helpers for the current CLI library
-// (codeganster/cli). Abstracting away any cli library implementation from the
-// commands themselves, keeping our commands testable and generic.
+// (codeganster/cli).
+//
+// Abstracting away any cli library implementation from the commands themselves,
+// keeping our commands testable and generic.
 package ctlcli
 
 import (

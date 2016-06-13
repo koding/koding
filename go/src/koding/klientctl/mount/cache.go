@@ -1,3 +1,6 @@
+// Various types and functions used by `kd mount`.
+//
+// TODO: Move klientctl/mount.go to this package.
 package mount
 
 import (

@@ -1,3 +1,8 @@
+// Various types and functions used by `kd list`.
+//
+// TODO: Move klientctl/list.go to this package.
+//
+// TODO: Deprecate type KiteInfo, as it is not implementing any unique functionality.
 package list
 
 import (
