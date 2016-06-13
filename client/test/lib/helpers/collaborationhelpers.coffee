@@ -10,8 +10,6 @@ terminalHelpers       = require '../helpers/terminalhelpers.js'
 teamsHelpers          = require '../helpers/teamshelpers.js'
 async                 = require 'async'
 
-runvm    = require '../helpers/runvm.js'
-
 module.exports =
 
 

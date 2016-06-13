@@ -15,44 +15,44 @@ module.exports =
 
   afterEach: (browser, done) -> utils.afterEachCollaborationTest browser, done
 
-  # checkIfInvitedUserCanEditFilesOtherUserVm: (browser) ->
+  checkIfInvitedUserCanEditFilesOtherUserVm: (browser) ->
 
-  #   host               = utils.getUser no, 0
-  #   hostBrowser        = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-  #   participant        = utils.getUser no, 1
-  #   hostFakeText       = host.fakeText.split(' ')
-  #   fileName           = hostFakeText[0]
-  #   fileSlug           = fileName.replace '.', ''
-  #   tabSelector        = ".kdtabhandle.#{fileSlug}"
-  #   editorSelector     = ".kdtabpaneview.#{fileSlug} .ace_content"
-  #   hostContent        = hostFakeText[1]
-  #   participantContent = participant.fakeText.split(' ')[0]
+    host               = utils.getUser no, 0
+    hostBrowser        = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant        = utils.getUser no, 1
+    hostFakeText       = host.fakeText.split(' ')
+    fileName           = hostFakeText[0]
+    fileSlug           = fileName.replace '.', ''
+    tabSelector        = ".kdtabhandle.#{fileSlug}"
+    editorSelector     = ".kdtabpaneview.#{fileSlug} .ace_content"
+    hostContent        = hostFakeText[1]
+    participantContent = participant.fakeText.split(' ')[0]
 
-  #   hostCallback = ->
+    hostCallback = ->
 
-  #     helpers.createFile(browser, host, null, null, fileName)
-  #     ideHelpers.openFile(browser, host, fileName)
-  #     ideHelpers.setTextToEditor(browser, hostContent)
-  #     collaborationHelpers.answerPermissionRequest(browser, yes)
-  #     browser.waitForTextToContain(editorSelector, participantContent)
-  #     collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
-  #     browser.end()
+      helpers.createFile(browser, host, null, null, fileName)
+      ideHelpers.openFile(browser, host, fileName)
+      ideHelpers.setTextToEditor(browser, hostContent)
+      collaborationHelpers.answerPermissionRequest(browser, yes)
+      browser.waitForTextToContain(editorSelector, participantContent)
+      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+      browser.end()
 
-  #   participantCallback = ->
+    participantCallback = ->
 
-  #     browser
-  #       .waitForElementPresent tabSelector, 50000 # Assertion
-  #       .pause 3000
-  #       .waitForElementVisible editorSelector, 20000
-  #       .waitForTextToContain  editorSelector, hostContent
-  #       .pause 3000
+      browser
+        .waitForElementPresent tabSelector, 50000 # Assertion
+        .pause 3000
+        .waitForElementVisible editorSelector, 20000
+        .waitForTextToContain  editorSelector, hostContent
+        .pause 3000
 
-  #     collaborationHelpers.requestPermission(browser, yes)
-  #     ideHelpers.setTextToEditor(browser, participantContent)
-  #     collaborationHelpers.leaveSessionFromStatusBar(browser)
-  #     browser.end()
+      collaborationHelpers.requestPermission(browser, yes)
+      ideHelpers.setTextToEditor(browser, participantContent)
+      collaborationHelpers.leaveSessionFromStatusBar(browser)
+      browser.end()
 
-  #   collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
+    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
 
 
   checkIfInvitedUserCanSeeExistingOpenIDETabs: (browser) ->
@@ -67,7 +67,7 @@ module.exports =
       helpers.deleteFile(browser, htmlFileSelector)
 
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
-      
+
       browser.end()
 
     participantCallback = ->
@@ -76,7 +76,7 @@ module.exports =
         .waitForElementVisible  '.kdtabhandle.indexhtml', 20000
         .waitForElementVisible  '.kdtabhandle.pythonpy', 20000
         .waitForElementVisible  '.kdtabhandle.terminal', 20000
-      
+
       collaborationHelpers.leaveSessionFromStatusBar(browser)
       browser.end()
 
