@@ -455,34 +455,50 @@ module.exports = class StackEditorView extends kd.View
       # TMS-1919: This needs to be reimplemented, once we have multiple
       # stacktemplates set for a team this will be broken ~ GG
 
-      unless hasGroupTemplates
-
-        # this means that the created stack template will be assigned as team
-        # default, and it will be shared with the group.
-        if canEditGroup
-          @handleSetDefaultTemplate completed = no
-
-          # this is confusing. if there are currently 20 members using this stack
-          # their stack shouldn't be changed to this one automatically
-          # they should see a notification that says "this stack has been deleted by Gokmen"
-          # new users get the default stack should. and this button shouldn't be there each time
-          # i make a new one, it should be on the list-menu.
-          @outputView.addAndWarn '''
-            Your stack script has been successfully saved and all your new team
-            members now will see this stack by default. Existing users
-            of the previous default-stack will be notified that default-stack has
-            changed.
-
-            You can now close this window or continue working with your stack.
-          '''
-          return
-
       if hasStack
+        if canEditGroup
+          # admin is editing a team stack
+          if stackTemplate.isDefault
+            @handleSetDefaultTemplate completed = no
+            @outputView.addAndWarn '''
+              Your stack script has been successfully saved and all your new team
+              members now will see this stack by default. Existing users
+              of the previous default-stack will be notified that default-stack has
+              changed.
+
+              You can now close this window or continue working with your stack.
+            '''
+          # admin is editing a private stack
+          else
+            @afterProcessTemplate 'maketeamdefault'
+
+        # since this is an existing stack, show renit buttons and update
+        # sidebar no matter what.
         @afterProcessTemplate 'reinit'
-      else if canEditGroup
-        @afterProcessTemplate 'maketeamdefault'
+        computeController.checkGroupStacks()
+
       else
-        @afterProcessTemplate 'provision'
+        # admin is creating a new stack
+        if canEditGroup
+          if hasGroupTemplates
+            @afterProcessTemplate 'maketeamdefault'
+            @afterProcessTemplate 'provision'
+            computeController.checkGroupStacks()
+          else
+            @handleSetDefaultTemplate completed = no
+            @outputView.addAndWarn '''
+              Your stack script has been successfully saved and all your new team
+              members now will see this stack by default. Existing users
+              of the previous default-stack will be notified that default-stack has
+              changed.
+
+              You can now close this window or continue working with your stack.
+            '''
+            computeController.checkGroupStacks()
+        # member is creating a new stack
+        else
+          @afterProcessTemplate 'provision'
+          computeController.checkGroupStacks()
 
 
   checkAndBootstrapCredentials: (callback) ->
