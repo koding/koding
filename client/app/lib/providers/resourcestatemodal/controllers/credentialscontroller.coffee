@@ -119,9 +119,12 @@ module.exports = class CredentialsController extends kd.Controller
           .catch (err) -> next err.message
           .timeout constants.CREDENTIAL_VERIFICATION_TIMEOUT
 
-      (identifier, next) ->
+      (identifier, next) =>
 
-        pendingCredential.isBootstrapped (err, state) ->
+        credential = pendingCredential ? @_credentials[identifier]
+        next null, identifier  unless credential
+
+        credential.isBootstrapped (err, state) ->
           return next err  if err
           return next null, identifier  if state  # already bootstrapped
 
