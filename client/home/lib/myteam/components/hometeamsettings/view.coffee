@@ -2,7 +2,7 @@ kd              = require 'kd'
 React           = require 'kd-react'
 List            = require 'app/components/list'
 Encoder         = require 'htmlencode'
-DEFAULT_SPINNER_PATH = '/a/images/logos/balls.gif'
+DEFAULT_SPINNER_PATH = '/a/images/logos/loader.svg'
 
 
 module.exports = class HomeTeamSettingsView extends React.Component
