@@ -79,7 +79,7 @@ describe 'HomeTeamSettings', ->
       teamSettings.setState {team}
 
       teamLogo = findRenderedDOMComponentWithClass teamSettings, 'teamLogo'
-      expect(teamLogo.src).toContain '/a/images/logos/sidebar_footer_logo.svg'
+      expect(teamLogo.src).toContain '/a/images/logos/default_team_logo.svg'
 
       team = team.setIn ['customize', 'logo'], 'team_logo_path'
       teamSettings.setState {team}

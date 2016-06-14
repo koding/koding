@@ -47,8 +47,8 @@ GenericButtons = ({ canEdit, clickLogo, removeLogo }) ->
 
   if canEdit
     <div>
-      <GenericButton className='custom-link-view primary' title='UPLOAD LOGO' callback={clickLogo} />
-      <GenericButton className='custom-link-view remove' title='REMOVE' callback={removeLogo} />
+      <GenericButton className='custom-link-view primary' title='CHANGE LOGO' callback={clickLogo} />
+      <GenericButton className='custom-link-view remove' title='REMOVE LOGO' callback={removeLogo} />
     </div>
   else
     <div />
