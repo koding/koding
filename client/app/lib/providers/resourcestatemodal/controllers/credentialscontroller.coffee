@@ -40,6 +40,10 @@ module.exports = class CredentialsController extends kd.Controller
     }
     @errorPage = new CredentialsErrorPageView()
 
+    @_credentials = {}
+    credentials.items?.map (item) =>
+      @_credentials[item.identifier] = item
+
     @forwardEvent @credentialsPage, 'InstructionsRequested'
     @credentialsPage.on 'Submitted', @bound 'onSubmitted'
     @errorPage.on 'CredentialsRequested', => container.showPage @credentialsPage
