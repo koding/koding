@@ -23,6 +23,8 @@ module.exports = class HomeTeamSettingsView extends React.Component
           callback={@bound 'onClickLogo'} />
         <div className='uploadInputWrapper'>
           <GenericButtons
+            team={@props.team}
+            logopath={@props.logopath}
             canEdit={@props.canEdit}
             clickLogo={@props.onClickLogo}
             removeLogo={@props.onRemoveLogo} />
@@ -43,12 +45,18 @@ module.exports = class HomeTeamSettingsView extends React.Component
     </div>
 
 
-GenericButtons = ({ canEdit, clickLogo, removeLogo }) ->
+GenericButtons = ({ team, logopath, canEdit, clickLogo, removeLogo }) ->
+
+  source = team.getIn(['customize', 'logo']) or logopath
+  className = 'custom-link-view remove hidden'
+
+  if source isnt logopath
+    className = 'custom-link-view remove'
 
   if canEdit
     <div>
       <GenericButton className='custom-link-view primary' title='CHANGE LOGO' callback={clickLogo} />
-      <GenericButton className='custom-link-view remove' title='REMOVE LOGO' callback={removeLogo} />
+      <GenericButton className={className} title='REMOVE LOGO' callback={removeLogo} />
     </div>
   else
     <div />
@@ -117,5 +125,11 @@ TeamLogo = ({ team, logopath, loading, callback }) ->
 
   src = team.getIn(['customize', 'logo']) or logopath
   src = DEFAULT_SPINNER_PATH  if loading
-  <img className='teamLogo' src={src} onClick={callback} />
+  className = 'teamLogo default'
 
+  if src isnt logopath
+    className = 'teamLogo'
+
+  <div className='teamLogo-wrapper'>
+    <img className={className} src={src} onClick={callback} />
+  </div>

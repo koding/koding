@@ -11,17 +11,17 @@ homemyteam.styl
     justify-content         space-around
   form
     abs()
-    flex                    0 1 auto
+    flex                    1 0 auto
     top                     16px
     right                   20px
-    width                   420px
+    width                   427px
     fieldset
       margin-top            15px
       &.TeamUrl
         &:after
           content           ''
           r-sprite          'home' 'lock'
-          abs               127px 36px
+          abs               120px 36px
         input.kdinput
           opacity           .5
       &.TeamName
@@ -63,21 +63,25 @@ homemyteam.styl
   flex                      0 0 auto
   height                    200px
 
-  .teamLogo
-    abs()
-    width                   127px
-    height                  127px
+  .teamLogo-wrapper
+    background              rgba(81,81,81,.25)
+    size                    120px, 120px
     cursor                  pointer
-    opacity                 .5
+    abs()
     fl()
+    .teamLogo
+      size                  120px, 120px
+      &.default
+        size                50px, 50px
+        margin-left         35px
+        margin-top          35px
 
   .uploadInputWrapper
     rel()
     overflow                hidden
     padding                 15px 0
     top                     127px
-    width                   127px
-    margin-left             2px
+    width                   120px
     text-align              center
     .HomeAppView--button
       line-height           21px
@@ -85,6 +89,8 @@ homemyteam.styl
         margin-left         0px
       &.remove
         margin-top          4px
+        &.hidden
+          opacity           0
 
     .kdinput.file
       z-index               0
