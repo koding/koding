@@ -88,12 +88,14 @@ module.exports = class CredentialsController extends kd.Controller
 
   handleSubmittedCredential: (submissionData, callback) ->
 
+    { computeController } = kd.singletons
     { provider, selectedItem, newData } = submissionData
     { CREDENTIAL_VERIFICATION_TIMEOUT } = constants
 
     pendingCredential = null
 
     queue = [
+
       (next) ->
         return next null, selectedItem  if selectedItem
 
@@ -105,7 +107,6 @@ module.exports = class CredentialsController extends kd.Controller
 
       (identifier, next) =>
 
-        { computeController } = kd.singletons
         computeController.getKloud()
           .checkCredential { provider, identifiers : [identifier] }
           .then (response) =>
@@ -113,6 +114,19 @@ module.exports = class CredentialsController extends kd.Controller
             next err, identifier
           .catch (err) -> next err.message
           .timeout constants.CREDENTIAL_VERIFICATION_TIMEOUT
+
+      (identifier, next) ->
+
+        pendingCredential.isBootstrapped (err, state) ->
+          return next err  if err
+          return next null, identifier  if state  # already bootstrapped
+
+          computeController.getKloud()
+            .bootstrap { identifiers: [ identifier ] }
+            .then (response) -> next null, identifier
+            .catch (err) -> next err.message
+            .timeout constants.CREDENTIAL_BOOTSTRAP_TIMEOUT
+
     ]
 
     async.waterfall queue, (err, identifier) =>

@@ -1,6 +1,7 @@
 module.exports =
   INITIAL_PROGRESS_VALUE                : 10
   COMPLETE_PROGRESS_VALUE               : 100
+  CREDENTIAL_BOOTSTRAP_TIMEOUT          : 30000
   CREDENTIAL_VERIFICATION_TIMEOUT       : 10000
   CREDENTIAL_VERIFICATION_ERROR_MESSAGE : '''
     We couldn't verify this credential, please check the ones you
