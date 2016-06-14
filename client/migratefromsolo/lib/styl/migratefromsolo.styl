@@ -35,8 +35,14 @@ $buttonGray                 = #858585
     min-height              520px
     display                 flex
     flex-direction          column
+    overflow                auto !important
+
     &.inactive
       opacity               0
+
+    button
+      .kdloader
+        margin-top          4px !important
 
   .stepDescription
     width                   600px
@@ -62,6 +68,7 @@ $buttonGray                 = #858585
   .SoloMachinesListContainer
     .ButtonContainer
       text-align            center
+      margin-bottom         15px
 
   .SoloMachinesList
     position                relative
