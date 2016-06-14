@@ -104,8 +104,8 @@ module.exports = class StackFlowController extends kd.Controller
         error   : 'Stack building is not allowed for disabled users\' stacks.'
         eventId : stack._id
 
-    { computeController } = kd.singletons
-    computeController.buildStack stack, identifiers
+    kd.singletons.computeController.buildStack stack, identifiers
+
     @updateStatus
       status     : 'Building'
       percentage : constants.INITIAL_PROGRESS_VALUE

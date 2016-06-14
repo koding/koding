@@ -4,6 +4,7 @@ async   = require 'async'
 whoami  = require 'app/util/whoami'
 globals = require 'globals'
 remote  = require('app/remote').getInstance()
+showError = require 'app/util/showError'
 KodingKontrol = require 'app/kite/kodingkontrol'
 CredentialsPageView = require '../views/stackflow/credentialspageview'
 CredentialsErrorPageView = require '../views/stackflow/credentialserrorpageview'
@@ -21,7 +22,7 @@ module.exports = class CredentialsController extends kd.Controller
     }
 
     async.parallel queue, (err, results) =>
-      return showError err  if err
+      return  if showError err
 
       { credentials, requirements, kdCmd } = results
       @setup credentials, requirements, kdCmd
@@ -68,10 +69,9 @@ module.exports = class CredentialsController extends kd.Controller
 
   handleSubmitResult: (err, identifiers) ->
 
-    if err
-      @showError err
-    else
-      @emit 'StartBuild', identifiers
+    unless @showError err
+
+      @emit 'StartBuild', credentials
 
     @credentialsPage.buildButton.hideLoader()
 
@@ -106,9 +106,11 @@ module.exports = class CredentialsController extends kd.Controller
     ]
 
     async.waterfall queue, (err, identifier) =>
+
       if err
-        pendingCredential.delete()  if pendingCredential
+        pendingCredential?.delete()
         callback err
+
       else
         @credentialsPage.selectNewCredential pendingCredential  if pendingCredential
         callback null, identifier
@@ -149,9 +151,13 @@ module.exports = class CredentialsController extends kd.Controller
 
   showError: (err) ->
 
+    return no  unless err
+
     { container } = @getOptions()
     container.showPage @errorPage
     @errorPage.setErrors [ err ]
+
+    return err
 
 
   helpers =
