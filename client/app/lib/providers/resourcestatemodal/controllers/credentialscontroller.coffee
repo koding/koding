@@ -71,6 +71,16 @@ module.exports = class CredentialsController extends kd.Controller
 
     unless @showError err
 
+      stackTemplate = @getData()
+
+      if stackTemplate.credentials.custom?.length > 0
+        identifiers.push { custom: stackTemplate.credentials.custom }
+
+      credentials = {}
+      identifiers.map (identifier) ->
+        for own provider, credential of identifier
+          credentials[provider] = credential
+
       @emit 'StartBuild', credentials
 
     @credentialsPage.buildButton.hideLoader()
