@@ -41,11 +41,7 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	overrideCreds := map[string][]string{
-		arg.Provider: arg.Identifiers,
-	}
-
-	err := s.Builder.BuildStack(arg.StackID, overrideCreds)
+	err := s.Builder.BuildStack(arg.StackID, arg.Credentials)
 
 	if err != nil && !(arg.Destroy && stackplan.IsNotFound(err, "jStackTemplate")) {
 		return nil, err

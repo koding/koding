@@ -44,7 +44,7 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	err := s.Builder.BuildStack(arg.StackID, nil)
+	err := s.Builder.BuildStack(arg.StackID, arg.Credentials)
 
 	if err != nil && !(arg.Destroy && stackplan.IsNotFound(err, "jStackTemplate")) {
 		return nil, err
