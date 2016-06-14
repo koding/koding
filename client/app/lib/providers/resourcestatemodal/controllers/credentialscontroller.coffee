@@ -126,13 +126,16 @@ module.exports = class CredentialsController extends kd.Controller
 
     { provider, selectedItem, newData } = submissionData
 
-    return callback null, selectedItem  if selectedItem
+    kallback = (identifier) ->
+      callback null, { userInput: [ identifier ] }
+
+    return kallback selectedItem  if selectedItem
 
     helpers.createNewCredential provider, newData, (err, newCredential) =>
       return callback err.message  if err
 
       @credentialsPage.selectNewRequirements newCredential
-      callback null, newCredential.identifier
+      kallback newCredential.identifier
 
 
   checkVerificationResult: (identifier, response) ->
