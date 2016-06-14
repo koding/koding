@@ -249,8 +249,8 @@ module.exports = class MainView extends kd.View
 
 
   getClassNames: (logo) -> classnames
-      'team-logo' : yes
-      'default' : logo is DEAFULT_TEAM_LOGO
+    'team-logo' : yes
+    'default' : logo is DEAFULT_TEAM_LOGO
 
   createTeamLogo: ->
 
