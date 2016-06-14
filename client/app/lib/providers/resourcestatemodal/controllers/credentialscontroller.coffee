@@ -112,8 +112,14 @@ module.exports = class CredentialsController extends kd.Controller
         callback err
 
       else
-        @credentialsPage.selectNewCredential pendingCredential  if pendingCredential
-        callback null, identifier
+
+        if pendingCredential
+          @credentialsPage.selectNewCredential pendingCredential
+
+        response = {}
+        response[provider] = [ identifier ]
+
+        callback null, response
 
 
   handleSubmittedRequirements: (submissionData, callback) ->
