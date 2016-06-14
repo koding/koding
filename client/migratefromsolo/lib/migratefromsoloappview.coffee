@@ -1,5 +1,6 @@
 kd = require 'kd'
 getGroup = require 'app/util/getGroup'
+showError = require 'app/util/showError'
 ProvidersView = require 'stacks/views/stacks/providersview'
 SoloMachinesListView = require './solomachineslistview'
 EnvironmentFlux = require 'app/flux/environment'
@@ -70,12 +71,12 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
     @mainFooter.addSubView @backLink = new kd.CustomHTMLView
       tagName: 'a'
       partial: 'GO BACK'
-      cssClass: 'back-link'
+      cssClass: 'back-link hidden'
       attributes: { href: '#' }
 
     @mainFooter.addSubView @nextButton = new kd.ButtonView
       title    : 'Next'
-      cssClass : 'GenericButton'
+      cssClass : 'GenericButton hidden'
 
     @addSubView @mainHeader
     @addSubView @mainSection
@@ -88,6 +89,8 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
 
     initialState = =>
       @mainSection.unsetClass 'inactive'
+      @nextButton.show()
+      @backLink.show()
       @storage.unsetKey ACTIVE_MIGRATION
       @switchToCredentials()
 
@@ -178,6 +181,7 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
     @statusText.updatePartial 'Migration in progress...'
 
     @nextButton.hide()
+    @backLink.hide()
     @providersView.hide()
     @soloMachinesList.hide()
     @progressBar.show()
