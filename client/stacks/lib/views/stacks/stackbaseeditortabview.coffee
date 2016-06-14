@@ -10,11 +10,11 @@ module.exports = class StackBaseEditorTabView extends KDView
     super options, data
 
     kd.singletons.groupsController.ready =>
-      
+
       { groupsController } = kd.singletons
-      
+
       return  unless data
-      
+
       { stackTemplate } = data
       isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
       return  if isMine
@@ -23,4 +23,3 @@ module.exports = class StackBaseEditorTabView extends KDView
         @editorView.aceView.ace.editor.setReadOnly yes
 
     @on 'FocusToEditor', => @editorView?.setFocus yes
-    
