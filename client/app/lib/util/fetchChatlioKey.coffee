@@ -10,6 +10,10 @@ module.exports = fetchChatlioKey = (callback = noop) ->
 
     team = groupsController.getCurrentGroup()
     chatlioId = team.customize?.chatlioId
+    # if user is an admin or owner
+    # their support requests should
+    # come to koding support not to
+    # their own slack that they set up
     if isAdmin = groupsController.canEditGroup()
       chatlioId = KODING_CHATLIO_KEY
 
