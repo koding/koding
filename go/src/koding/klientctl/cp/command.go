@@ -1,3 +1,7 @@
+// Cp handles the implementation of the `kd cp` command, copying files from one
+// machine to another.
+//
+// See also: klient/remote/cache.go for implementation of the copying logic.
 package cp
 
 import (

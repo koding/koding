@@ -6,7 +6,7 @@ ErrorlessImageView = require '../../errorlessimageview'
 JView = require '../../jview'
 LinkView = require '../linkviews/linkview'
 isKoding = require '../../util/isKoding'
-
+TeamFlux = require 'app/flux/teams'
 
 module.exports = class AvatarView extends LinkView
 
@@ -67,6 +67,10 @@ module.exports = class AvatarView extends LinkView
         placement : 'right'
         direction : 'center'
 
+    @badge = new KDCustomHTMLView
+      cssClass : 'badge'
+      partial : 'Owner'
+
     super options, data
 
     if @detailedAvatar?
@@ -108,7 +112,7 @@ module.exports = class AvatarView extends LinkView
 
   getDefaultAvatarUri: ->
     size = @getUriSize()
-    return "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+    return "https://koding-cdn.s3.amazonaws.com/new-avatars/default.avatar.#{size}.png"
 
 
   getUriSize: ->
@@ -155,7 +159,17 @@ module.exports = class AvatarView extends LinkView
 
     kd.getSingleton('groupsController').ready =>
 
-      nickname = @getData().profile?.nickname
+      { _id } = @getData()
+
+      nickname = profile?.nickname
+
+      @getData().fetchMyPermissionsAndRoles (err, res) =>
+        { roles } = res
+        hasOwner = 'owner' in roles
+        hasAdmin = 'admin' in roles
+        userRole = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
+        @badge.setClass userRole
+        @badge.setAttribute 'title', userRole
 
       href = if payload?.channelIntegrationId
         "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
@@ -208,6 +222,7 @@ module.exports = class AvatarView extends LinkView
 
   pistachio: ->
     '''
+    {{> @badge}}
     {{> @gravatar}}
     {{> @cite}}
     '''

@@ -1,3 +1,8 @@
+// The remote package contains the bulk of logic used by klientctl.
+//
+// The package naming refers to a local klient calling the remote klient.
+// So `remote.mountFolder` would then mean that this klient mounts a
+// remote folder to this klient's filesystem, and so on.
 package remote
 
 import (

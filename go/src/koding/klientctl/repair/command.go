@@ -1,3 +1,8 @@
+// A package implementing the `kd repair` command.
+//
+// The repair package consists of a Command and various types implementing Repairer.
+// This repairier is responsible for looking at the given mount and identifying
+// a specific problem, and fixing it when possible.
 package repair
 
 import (

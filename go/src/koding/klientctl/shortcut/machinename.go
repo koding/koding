@@ -1,3 +1,5 @@
+// Shortcut implements logic for getting a machine by it's "shortcut" name,
+// ie a partial machine name (o for orange, etc).
 package shortcut
 
 import (

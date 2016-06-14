@@ -76,9 +76,9 @@ type ApplyRequest struct {
 	StackID   string `json:"stackId"`
 	GroupName string `json:"groupName"`
 
-	// Identifiers sets or overrides credentials set in jStackTemplate or
-	// jComputeStack, if supported by the provider.
-	Identifiers []string `json:"identifiers"`
+	// Credentials sets or overrides credentials set in jStackTemplate or
+	// jComputeStack.
+	Credentials map[string][]string `json:"credentials,omitempty"`
 
 	// Destroy, when true, destroys the terraform tempalte associated with the
 	// given StackId.

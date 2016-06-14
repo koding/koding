@@ -78,7 +78,7 @@ module.exports = class Member extends React.Component
     { nickname, email, role, firstName, lastName, fullName } = @getData()
 
     <div>
-      <AvatarView member={@props.member} />
+      <AvatarView member={@props.member} role={role}/>
       <div className='details'>
         <div className='fullname'>{fullName}</div>
         <div className='metaData'>
@@ -87,17 +87,20 @@ module.exports = class Member extends React.Component
         </div>
       </div>
       <MemberRoleWithDropDownMenu
-        canEdit={canEdit}
         role={role}
-        onClick={@onClickMemberRole.bind(this, role)}
         items={@getMenuItems role}
+        admins={@props.admins}
+        canEdit={canEdit}
+        onClick={@onClickMemberRole.bind(this, role)}
         isMenuOpen={@state.isMenuOpen} />
     </div>
 
 
-MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen }) ->
+MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen, admins }) ->
 
-  unless canEdit
+  showButtonWithMenu = role is 'owner' and admins.size is 0
+
+  unless canEdit and not showButtonWithMenu
     <div className='dropdown'>
       <MemberRole role={role} canEdit={canEdit}  />
     </div>
@@ -107,6 +110,9 @@ MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen }) ->
       <ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />
     </div>
 
+Badge = ({ role }) ->
+  role = 'member'  unless role
+  <div className={"badge #{role}"} title={role}></div>
 
 NickName = ({ nickname }) ->
 
@@ -118,11 +124,11 @@ Email = ({ email }) ->
 
   <span className='email-js email' title={email}>{email}</span>
 
-AvatarView = ({ member }) ->
+AvatarView = ({ member, role }) ->
 
   unless member.get 'status'
     <div className='avatarview' href='#'>
-      <ProfilePicture account={member.toJS()} height={40} width={40} />
+      <ProfilePicture account={member.toJS()} height={40} width={40} role={role} />
     </div>
   else
     <div className='avatarview default' href='#'>

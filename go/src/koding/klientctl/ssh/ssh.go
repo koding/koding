@@ -1,3 +1,4 @@
+// The core logic for the `kd ssh` command.
 package ssh
 
 import (
