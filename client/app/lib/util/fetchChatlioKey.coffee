@@ -8,19 +8,11 @@ module.exports = fetchChatlioKey = (callback = noop) ->
 
   groupsController.ready ->
 
-    isAdmin   = no
-    team      = groupsController.getCurrentGroup()
+    team = groupsController.getCurrentGroup()
     chatlioId = team.customize?.chatlioId
-    { roles } = globals.config
-
-    # if user is an admin or owner
-    # their support requests should
-    # come to koding support not to
-    # their own slack that they set up
-    if ('admin' in roles) or ('owner' in roles)
+    if isAdmin = groupsController.canEditGroup()
       chatlioId = KODING_CHATLIO_KEY
-      isAdmin   = yes
 
-    callback no  unless chatlioId
+    return callback no  unless chatlioId
 
     callback chatlioId, isAdmin
