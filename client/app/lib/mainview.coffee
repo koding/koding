@@ -45,6 +45,7 @@ module.exports = class MainView extends kd.View
     @createMainTabView()
 
     kd.singletons.mainController.ready =>
+      @createTeamLogo()
       @createAccountArea()  if isKoding()
       @setStickyNotification()
       @emit 'ready'
@@ -238,6 +239,24 @@ module.exports = class MainView extends kd.View
 
     @toggleHoverSidebar()
     @toggleSidebar()
+
+
+  createTeamLogo: ->
+
+    logo = '/a/images/logos/default_team_logo.png'
+    { groupsController } = kd.singletons
+    team = groupsController?.getCurrentGroup()
+    { customize : { logo } } = team
+
+    @logoWrapper.addSubView @teamLogo = new kd.CustomHTMLView
+      tagName : 'img'
+      cssClass: 'team-logo'
+      attributes: { src : logo }
+
+    groupsController.on 'TEAM_DATA_TO_UPDATE', (dataToUpdate) =>
+      logo= dataToUpdate.customize?.logo
+      @teamLogo.setAttribute 'src', logo  if logo
+
 
 
   createAccountArea: ->
