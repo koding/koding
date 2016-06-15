@@ -1,5 +1,5 @@
-helpers = require '../helpers/helpers.js'
-credentialsUrl = "#{helpers.getUrl(yes)}/Home/Stacks/credentials"
+helpers                = require '../helpers/helpers.js'
+credentialsUrl         = "#{helpers.getUrl(yes)}/Home/Stacks/credentials"
 sectionSelector        = '.kdview.kdtabpaneview.credentials'
 credential             = '.kdview.kdlistitemview.kdlistitemview-default.credential-item'
 showButton             = "#{credential} .custom-link-view.HomeAppView--link.primary"
@@ -7,13 +7,15 @@ removeButton           = "#{credential} .custom-link-view.HomeAppView--link"
 closeModal             = '.kdmodal-inner .close-icon.closeModal'
 removeCredentialButton = '.kdmodal-inner .kdview.kdmodal-buttons .kdbutton.solid.red.medium.w-loader'
 credentialInfo         = "#{credential} .credential-info"
-
+credentialHeader       = '.HomeAppView--sectionHeader'
 
 module.exports =
 
   seeCredentials: (browser, callback) ->
     browser
       .url credentialsUrl
+      .waitForElementVisible credentialHeader, 20000
+      .assert.containsText credentialHeader, 'Credentials'
       .waitForElementVisible sectionSelector, 20000, callback
 
   seeDetailsCredentials: (browser, callback) ->

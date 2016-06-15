@@ -410,13 +410,11 @@ module.exports =
 
 
   createStack: (browser, done) ->
-
-
     sidebarSelector = '.SidebarTeamSection'
     sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
     visibleStack = '[testpath=StackEditor-isVisible]'
-
+    
     credentialSelector = '.kdview.kdlistitemview.kdlistitemview-default.StackEditor-CredentialItem'
     useThisAndContinueButton = "#{visibleStack} .StackEditor-CredentialItem--buttons .kdbutton.solid.compact.outline.verify"
     editorPaneSelector = "#{visibleStack} .kdview.pane.editor-pane.editor-view"
@@ -453,7 +451,7 @@ module.exports =
 
 
   createPrivateStack: (browser, stackName, done) ->
-
+    
     visibleStack = '[testpath=StackEditor-isVisible]'
     stackEditorHeader = "#{visibleStack} .StackEditorView--header"
     useThisAndContinueButton = '.StackEditor-CredentialItem--buttons .kdbutton.solid.compact.outline.verify'
