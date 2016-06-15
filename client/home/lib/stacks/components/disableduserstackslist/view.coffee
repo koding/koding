@@ -23,19 +23,18 @@ module.exports = class DisabledUsersStacksListView extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    template = @props.templates.toList().get(rowIndex)
-    onAddToSidebar = @lazyBound 'onAddToSidebar', template
-    onRemoveFromSidebar = @lazyBound 'onRemoveFromSidebar', template
+    stack = @props.stacks.toList().get(rowIndex)
+    template = @props.templates.get stack.get 'baseStackId'
 
-    stacks = @props.sidebarStacks.toList().filter (s) ->
-      s.hasIn(['config', 'oldOwner']) and s.get('baseStackId') is template.get('_id')
+    onAddToSidebar = @lazyBound 'onAddToSidebar', stack
+    onRemoveFromSidebar = @lazyBound 'onRemoveFromSidebar', stack
 
-    isVisible = stacks.size > 0
+    isVisible = !!@props.sidebarStacks.get(stack.get '_id')
 
     <StackTemplateItem
       isVisibleOnSidebar={isVisible}
       template={template}
-      stack={stacks.get(0)}
+      stack={stack}
       onOpen={@props.onOpenItem}
       onAddToSidebar={onAddToSidebar}
       onRemoveFromSidebar={onRemoveFromSidebar}
