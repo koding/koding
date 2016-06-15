@@ -279,12 +279,14 @@ module.exports = class AccountCredentialListController extends KodingListControl
     view.form.on 'Cancel', =>
       view.unsetClass 'form-open'
       @isAddCredentialFormOpen = no
+      view.scrollView?.destroy()
       view.form.destroy()
 
     view.form.on 'CredentialAdded', (credential) =>
       view.unsetClass 'form-open'
       @isAddCredentialFormOpen  = no
       credential.owner = yes
+      view.scrollView?.destroy()
       view.form.destroy()
       @addItem credential
 
