@@ -704,7 +704,6 @@ module.exports = class ComputeController extends KDController
       customEvent : { stackId, group : getGroup().slug }
     }
 
-
     call = @getKloud().buildStack { stackId, credentials }
 
     .then (res) =>
