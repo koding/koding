@@ -1,13 +1,12 @@
 package kite
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -60,6 +59,9 @@ type Client struct {
 	disconnect   chan struct{}
 	disconnectMu sync.Mutex // protects disconnect chan
 
+	// authMu protects Auth field.
+	authMu sync.Mutex
+
 	// To signal about the close
 	closeChan chan struct{}
 
@@ -86,8 +88,10 @@ type Client struct {
 
 	// on connect/disconnect handlers are invoked after every
 	// connect/disconnect.
-	onConnectHandlers    []func()
-	onDisconnectHandlers []func()
+	onConnectHandlers     []func()
+	onDisconnectHandlers  []func()
+	onTokenExpireHandlers []func()
+	onTokenRenewHandlers  []func(string)
 
 	// For protecting access over OnConnect and OnDisconnect handlers.
 	m sync.RWMutex
@@ -146,9 +150,11 @@ func (k *Kite) NewClient(remoteURL string) *Client {
 		redialBackOff: *forever,
 		scrubber:      dnode.NewScrubber(),
 		Concurrent:    true,
-		send:          make(chan []byte, 512), // buffered
+		send:          make(chan []byte, 128), // buffered
 		wg:            &sync.WaitGroup{},
 	}
+
+	k.OnRegister(c.updateAuth)
 
 	return c
 }
@@ -185,6 +191,31 @@ func (c *Client) DialForever() (connected chan bool, err error) {
 	connected = make(chan bool, 1) // This will be closed on first connection.
 	go c.dialForever(connected)
 	return
+}
+
+func (c *Client) updateAuth(reg *protocol.RegisterResult) {
+	c.authMu.Lock()
+	defer c.authMu.Unlock()
+
+	if c.Auth == nil {
+		return
+	}
+
+	if c.Auth.Type == "kiteKey" && reg.KiteKey != "" {
+		c.Auth.Key = reg.KiteKey
+	}
+}
+
+func (c *Client) authCopy() *Auth {
+	c.authMu.Lock()
+	defer c.authMu.Unlock()
+
+	if c.Auth == nil {
+		return nil
+	}
+
+	authCopy := *c.Auth
+	return &authCopy
 }
 
 func (c *Client) dial(timeout time.Duration) (err error) {
@@ -224,7 +255,7 @@ func (c *Client) dial(timeout time.Duration) (err error) {
 	}
 
 	c.setSession(session)
-	c.wg.Add(1) // with sendHub we added a new listener
+	c.wg.Add(1)
 	go c.sendHub()
 
 	// Reset the wait time.
@@ -269,14 +300,6 @@ func (c *Client) RemoteAddr() string {
 	}
 
 	return websocketsession.RemoteAddr()
-}
-
-// randomStringLength is used to generate a session_id.
-func randomStringLength(length int) string {
-	size := (length * 6 / 8) + 1
-	r := make([]byte, size)
-	rand.Read(r)
-	return base64.URLEncoding.EncodeToString(r)[:length]
 }
 
 // run consumes incoming dnode messages. Reconnects if necessary.
@@ -423,25 +446,24 @@ func (c *Client) Close() {
 	c.Reconnect = false
 	c.muReconnect.Unlock()
 
-	if session := c.getSession(); session != nil {
-		session.Close(3000, "Go away!")
-	}
-
 	close(c.closeChan)
 
 	// wait for consumers to finish buffered messages
 	c.wg.Wait()
+
+	if session := c.getSession(); session != nil {
+		session.Close(3000, "Go away!")
+	}
 }
 
 // sendhub sends the msg received from the send channel to the remote client
 func (c *Client) sendHub() {
-	// notify that we are done
 	defer c.wg.Done()
 
 	for {
 		select {
 		case msg := <-c.send:
-			c.LocalKite.Log.Debug("Sending: %s", string(msg))
+			c.LocalKite.Log.Debug("sending: %s", msg)
 			session := c.getSession()
 			if session == nil {
 				c.LocalKite.Log.Error("not connected")
@@ -457,7 +479,11 @@ func (c *Client) sendHub() {
 				// by the server).
 				//
 				// And get rid of the timeout workaround.
-				c.LocalKite.Log.Debug("Send err: %s", err.Error())
+				c.LocalKite.Log.Error("error sending %q: %s", msg, err)
+
+				if err == sockjsclient.ErrSessionClosed {
+					return
+				}
 			}
 		case <-c.closeChan:
 			c.LocalKite.Log.Debug("Send hub is closed")
@@ -466,17 +492,35 @@ func (c *Client) sendHub() {
 	}
 }
 
-// OnConnect registers a function to run on connect.
+// OnConnect adds a callback which is called when client connects
+// to a remote kite.
 func (c *Client) OnConnect(handler func()) {
 	c.m.Lock()
 	c.onConnectHandlers = append(c.onConnectHandlers, handler)
 	c.m.Unlock()
 }
 
-// OnDisconnect registers a function to run on disconnect.
+// OnDisconnect adds a callback which is called when client disconnects
+// from a remote kite.
 func (c *Client) OnDisconnect(handler func()) {
 	c.m.Lock()
 	c.onDisconnectHandlers = append(c.onDisconnectHandlers, handler)
+	c.m.Unlock()
+}
+
+// OnTokenExpire adds a callback which is called when client receives
+// token-is-expired error from a remote kite.
+func (c *Client) OnTokenExpire(handler func()) {
+	c.m.Lock()
+	c.onTokenExpireHandlers = append(c.onTokenExpireHandlers, handler)
+	c.m.Unlock()
+}
+
+// OnTokenRenew adds a callback which is called when client successfully
+// renews its token.
+func (c *Client) OnTokenRenew(handler func(token string)) {
+	c.m.Lock()
+	c.onTokenRenewHandlers = append(c.onTokenRenewHandlers, handler)
 	c.m.Unlock()
 }
 
@@ -504,12 +548,39 @@ func (c *Client) callOnDisconnectHandlers() {
 	c.m.RUnlock()
 }
 
+// callOnTokenExpireHandlers calls registered functions when an error
+// from remote kite is received that token used is expired.
+func (c *Client) callOnTokenExpireHandlers() {
+	c.m.RLock()
+	for _, handler := range c.onTokenExpireHandlers {
+		func() {
+			defer recover()
+			handler()
+		}()
+	}
+	c.m.RUnlock()
+}
+
+// callOnTokenRenewHandlers calls all registered functions when
+// we successfully obtain new token from kontrol.
+func (c *Client) callOnTokenRenewHandlers(token string) {
+	c.m.RLock()
+	for _, handler := range c.onTokenRenewHandlers {
+		func() {
+			defer recover()
+			handler(token)
+		}()
+	}
+	c.m.RUnlock()
+}
+
 func (c *Client) wrapMethodArgs(args []interface{}, responseCallback dnode.Function) []interface{} {
 	options := callOptionsOut{
 		WithArgs: args,
 		callOptions: callOptions{
-			Kite:             *c.LocalKite.Kite(),
-			Auth:             c.Auth,
+			Kite: *c.LocalKite.Kite(),
+			Auth: c.authCopy(),
+			// Auth:             c.Auth,
 			ResponseCallback: responseCallback,
 		},
 	}
@@ -593,6 +664,12 @@ func (c *Client) sendMethod(method string, args []interface{}, timeout time.Dura
 
 		select {
 		case resp := <-doneChan:
+			if e, ok := resp.Err.(*Error); ok {
+				if e.Type == "authenticationError" && strings.Contains(e.Message, "token is expired") {
+					c.callOnTokenExpireHandlers()
+				}
+			}
+
 			responseChan <- resp
 		case <-c.disconnect:
 			responseChan <- &response{

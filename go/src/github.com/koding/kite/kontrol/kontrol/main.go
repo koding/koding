@@ -44,15 +44,7 @@ type Kontrol struct {
 func main() {
 	conf := new(Kontrol)
 
-	mc := multiconfig.New()
-	mc.Loader = multiconfig.MultiLoader(
-		&multiconfig.TagLoader{},
-		&multiconfig.EnvironmentLoader{},
-		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_KONTROL"},
-		&multiconfig.FlagLoader{},
-	)
-
-	mc.MustLoad(conf)
+	multiconfig.New().MustLoad(conf)
 
 	publicKey, err := ioutil.ReadFile(conf.PublicKeyFile)
 	if err != nil {
