@@ -303,5 +303,5 @@ describe 'StackTemplateListController', ->
 
       params = listViewSpy.calls.first.arguments[0]
 
-      expect(params.title).toEqual 'Remove stack template ?'
-      expect(params.description).toEqual 'Do you want to remove this stack template ?'
+      expect(params.title).toEqual 'Are you sure?'
+      expect(params.description).toEqual 'Do you want to delete this stack template?'
