@@ -47,7 +47,7 @@ module.exports = class MainView extends kd.View
     @createMainTabView()
 
     kd.singletons.mainController.ready =>
-      @createTeamLogo()
+      @createTeamLogo()  unless isKoding()
       @createAccountArea()  if isKoding()
       @setStickyNotification()
       @emit 'ready'
@@ -128,13 +128,12 @@ module.exports = class MainView extends kd.View
 
     closeHandle.hide()
 
-    @logoWrapper.addSubView @teamLogoWrapper = new kd.CustomHTMLView
-      tagName : 'div'
-      cssClass : 'team-logo-wrapper'
-
     @aside.addSubView @logoWrapper
 
-    if isTeamReactSide()
+    unless isKoding()
+      @logoWrapper.addSubView @teamLogoWrapper = new kd.CustomHTMLView
+        tagName : 'div'
+        cssClass : 'team-logo-wrapper'
       SidebarView = require './components/sidebar/view'
       @aside.addSubView @sidebar = new SidebarView
       return
