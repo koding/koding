@@ -5,7 +5,7 @@ KDReactorMixin  = require 'app/flux/base/reactormixin'
 View            = require './view'
 Encoder         = require 'htmlencode'
 showError       = require 'app/util/showError'
-DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
+DEFAULT_LOGOPATH = '/a/images/logos/default_team_logo.svg'
 
 notify = (title, duration = 5000) -> new kd.NotificationView { title, duration }
 

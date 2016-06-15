@@ -17,6 +17,9 @@ isSoloProductLite       = require 'app/util/issoloproductlite'
 TeamName                = require './activity/sidebar/teamname'
 BannerNotificationView  = require 'app/commonviews/bannernotificationview'
 doXhrRequest            = require 'app/util/doXhrRequest'
+classnames              = require 'classnames'
+DEAFULT_TEAM_LOGO       = '/a/images/logos/default_team_logo.svg'
+
 
 module.exports = class MainView extends kd.View
 
@@ -45,6 +48,7 @@ module.exports = class MainView extends kd.View
     @createMainTabView()
 
     kd.singletons.mainController.ready =>
+      @createTeamLogo()
       @createAccountArea()  if isKoding()
       @setStickyNotification()
       @emit 'ready'
@@ -161,6 +165,10 @@ module.exports = class MainView extends kd.View
 
     closeHandle.hide()
 
+    @logoWrapper.addSubView @teamLogoWrapper = new kd.CustomHTMLView
+      tagName : 'div'
+      cssClass : 'team-logo-wrapper'
+
     @aside.addSubView @logoWrapper
 
     if isTeamReactSide()
@@ -239,6 +247,35 @@ module.exports = class MainView extends kd.View
     @toggleHoverSidebar()
     @toggleSidebar()
 
+
+  getClassNames: (logo) -> classnames
+    'team-logo' : yes
+    'default' : logo is DEAFULT_TEAM_LOGO
+
+  createTeamLogo: ->
+
+    logo = '/a/images/logos/default_team_logo.svg'
+
+    { groupsController } = kd.singletons
+    team = groupsController?.getCurrentGroup()
+
+    if team.customize
+      logo = team.customize.logo
+
+    className = @getClassNames logo
+
+    @teamLogoWrapper.addSubView @teamLogo = new kd.CustomHTMLView
+      tagName : 'img'
+      cssClass : className
+      attributes :
+        src : "#{logo}"
+
+    groupsController.on 'TEAM_DATA_TO_UPDATE', (dataToUpdate) =>
+      logo = dataToUpdate.customize?.logo
+      if logo
+        @teamLogo.setAttribute 'src', logo
+        @teamLogo.setAttribute 'class', ''
+        @teamLogo.setClass @getClassNames logo
 
   createAccountArea: ->
 
