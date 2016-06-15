@@ -16,8 +16,6 @@ import (
 	"github.com/koding/kite/protocol"
 )
 
-type kontrolFunc func(*Client) error
-
 // the implementation of New() doesn't have any error to be returned yet it
 // returns, so it's totally safe to neglect the error
 var cookieJar, _ = cookiejar.New(nil)
@@ -27,33 +25,6 @@ var defaultClient = &http.Client{
 	// add this so we can make use of load balancer's sticky session features,
 	// such as AWS ELB
 	Jar: cookieJar,
-}
-
-// kontrolFunc setups and prepares a kontrol instance. It connects to
-// kontrol and providers a way to call the given function in that connected
-// kontrol environment. This method is called internally whenever a kontrol
-// client specific action is taking (getKites, getToken, register). The main
-// reason for having this is doing the call and close the connection
-// immediately, so there will be no persistent connection.
-func (k *Kite) kontrolFunc(fn kontrolFunc) error {
-	if k.Config.KontrolURL == "" {
-		return errors.New("no kontrol URL given in config")
-	}
-
-	client := k.NewClient(k.Config.KontrolURL)
-
-	client.Kite = protocol.Kite{Name: "kontrol"} // for logging purposes
-	client.Auth = &Auth{
-		Type: "kiteKey",
-		Key:  k.Config.KiteKey,
-	}
-
-	if err := client.Dial(); err != nil {
-		return err
-	}
-	defer client.Close()
-
-	return fn(client)
 }
 
 // RegisterHTTPForever is just like RegisterHTTP however it first tries to
@@ -108,7 +79,7 @@ func (k *Kite) RegisterHTTP(kiteURL *url.URL) (*registerResult, error) {
 		Kite: k.Kite(),
 		Auth: &protocol.Auth{
 			Type: "kiteKey",
-			Key:  k.Config.KiteKey,
+			Key:  k.KiteKey(),
 		},
 	}
 
@@ -136,12 +107,6 @@ func (k *Kite) RegisterHTTP(kiteURL *url.URL) (*registerResult, error) {
 		return nil, errors.New("heartbeat interval cannot be zero")
 	}
 
-	// we also received a new public key (means the old one was invalidated).
-	// Use it now.
-	if rr.PublicKey != "" {
-		k.Config.KontrolKey = rr.PublicKey
-	}
-
 	parsed, err := url.Parse(rr.URL)
 	if err != nil {
 		k.Log.Error("Cannot parse registered URL: %s", err.Error())
@@ -153,6 +118,8 @@ func (k *Kite) RegisterHTTP(kiteURL *url.URL) (*registerResult, error) {
 		rr.URL, heartbeat)
 
 	go k.sendHeartbeats(heartbeat, kiteURL)
+
+	k.callOnRegisterHandlers(&rr)
 
 	return &registerResult{parsed}, nil
 }
@@ -191,7 +158,7 @@ func (k *Kite) sendHeartbeats(interval time.Duration, kiteURL *url.URL) {
 			return err
 		}
 
-		k.Log.Debug("Heartbeat response received '%s'", strings.TrimSpace(string(body)))
+		k.Log.Debug("Heartbeat response received %q", body)
 
 		switch string(body) {
 		case "pong":
@@ -206,7 +173,7 @@ func (k *Kite) sendHeartbeats(interval time.Duration, kiteURL *url.URL) {
 			return errRegisterAgain
 		}
 
-		return fmt.Errorf("malformed heartbeat response %v", strings.TrimSpace(string(body)))
+		return fmt.Errorf("malformed heartbeat response %q", body)
 	}
 
 	for _ = range tick.C {
