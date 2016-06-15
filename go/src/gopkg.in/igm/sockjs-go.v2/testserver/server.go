@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"code.google.com/p/go.net/websocket"
+	"golang.org/x/net/websocket"
 	"gopkg.in/igm/sockjs-go.v2/sockjs"
 )
 
