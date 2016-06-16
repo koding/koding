@@ -48,7 +48,9 @@ module.exports = class MachineDetails extends React.Component
     @setState { isShared : checked }
 
 
-  isShared: ->  @state.isShared ? @props.machine.get('sharedUsers')?.size > 0
+  isShared: ->
+
+    @state.isShared ? @props.machine.get 'isShared'
 
 
   status: -> @props.machine.getIn [ 'status', 'state' ]
