@@ -38,7 +38,6 @@ module.exports = class TeamName extends kd.CustomHTMLView
       x        : 36
       y        : 36
     ,
-      'My Account' : { callback }
       'Dashboard'  : { callback }
       'Support'    : { callback }
       'Logout'     : { callback }
@@ -52,11 +51,6 @@ module.exports = class TeamName extends kd.CustomHTMLView
     ACCOUNT_MENU.destroy()
 
     this["handle#{title.replace(' ', '')}"] item, event
-
-
-  handleMyAccount: ->
-
-    kd.singletons.router.handleRoute '/Home/My-Account'
 
 
   handleDashboard: ->
