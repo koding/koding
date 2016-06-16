@@ -367,7 +367,7 @@ with Vagrant provider ensure they are installed:
 
 EOF
 
-elif ! is_virtualbox then
+elif ! is_virtualbox; then
   cat << EOF
 No VirtualBox is present on your system. In order to use local provisioning
 with Vagrant provider ensure it is installed:
