@@ -59,10 +59,6 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := s.Builder.Template.FillVariables("userInput_"); err != nil {
-		return nil, err
-	}
-
 	var region string
 	for _, cred := range s.Builder.Credentials {
 		// rest is aws related
@@ -91,6 +87,19 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 
 	if _, err := s.InjectAWSData(ctx, s.Req.Username, true); err != nil {
 		return nil, err
+	}
+
+	// Plan request is made right away the template is saved, it may
+	// not have all the credentials provided yet. We set them all to
+	// to dummy values to make the template pass terraform parsing.
+	if err := s.Builder.Template.FillVariables("userInput_"); err != nil {
+		return nil, err
+	}
+
+	if region == "" {
+		if err := s.Builder.Template.FillVariables("aws_"); err != nil {
+			return nil, err
+		}
 	}
 
 	out, err := s.Builder.Template.JsonOutput()
