@@ -84,8 +84,8 @@ Configuration = (options = {}) ->
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
   KONFIG.supervisord =
-    logdir   : "#{options.projectRoot}/.logs"
-    rundir   : "#{options.projectRoot}/.supervisor"
+    logdir   : "$KONFIG_PROJECTROOT/.logs"
+    rundir   : "$KONFIG_PROJECTROOT/.supervisor"
     minfds   : 1024
     minprocs : 200
 
