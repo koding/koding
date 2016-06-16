@@ -270,7 +270,8 @@ fi
 case "$PLATFORM" in
   darwin|linux)
     installDir="/usr/local/bin"
-    kdGz="/tmp/kd.gz"
+    kdFile="/tmp/kd"
+    kdGz="${kdFile}.gz"
 
     # On some OSX systems, /usr/local/bin doesn't seem to exist. Create it.
     if sudo [ ! -d "$installDir" ]; then
@@ -299,9 +300,9 @@ EOF
       exit 1
     fi
 
-    sudo mv "$kdGz" "${installDir}/kd"
+    sudo mv "$kdFile" "${installDir}/kd"
     sudo chmod +x "${installDir}/kd"
-    sudo rm -f "$kdGz"
+    sudo rm -f "$kdFile"
 
     echo "Created ${installDir}/kd"
 
@@ -366,7 +367,7 @@ with Vagrant provider ensure they are installed:
 
 EOF
 
-elif ! is_virtualbox then
+elif ! is_virtualbox; then
   cat << EOF
 No VirtualBox is present on your system. In order to use local provisioning
 with Vagrant provider ensure it is installed:
