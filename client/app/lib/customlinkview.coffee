@@ -35,6 +35,7 @@ module.exports = class CustomLinkView extends KDCustomHTMLView
 
     @setOption 'title', title
 
+    @data?.title = title
     @render()
 
 
