@@ -6,16 +6,16 @@ StackTemplateItem = require '../stacktemplateitem'
 
 module.exports = class TeamStacksListView extends React.Component
 
-  onAddToSidebar: (template) -> @props.onAddToSidebar template.get '_id'
+  onAddToSidebar: (stack) -> @props.onAddToSidebar stack.get '_id'
 
 
-  onRemoveFromSidebar: (template) -> @props.onRemoveFromSidebar template.get '_id'
+  onRemoveFromSidebar: (stack) -> @props.onRemoveFromSidebar stack.get '_id'
 
 
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: -> @props.templates?.size or 0
+  numberOfRowsInSection: -> @props.stacks?.size or 0
 
 
   renderSectionHeaderAtIndex: -> null
@@ -23,13 +23,13 @@ module.exports = class TeamStacksListView extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    template = @props.templates.toList().get(rowIndex)
-    onAddToSidebar = @lazyBound 'onAddToSidebar', template
-    onRemoveFromSidebar = @lazyBound 'onRemoveFromSidebar', template
+    stack = @props.stacks.toList().get(rowIndex)
+    template = @props.templates.get stack.get 'baseStackId'
 
-    stacks = @props.sidebarStacks.filter (s) -> s.get('baseStackId') is template.get('_id')
+    onAddToSidebar = @lazyBound 'onAddToSidebar', stack
+    onRemoveFromSidebar = @lazyBound 'onRemoveFromSidebar', stack
 
-    isVisible = stacks.size > 0
+    isVisible = !!@props.sidebarStacks.get(stack.get '_id')
 
     <StackTemplateItem
       isVisibleOnSidebar={isVisible}

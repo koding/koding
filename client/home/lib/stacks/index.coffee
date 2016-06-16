@@ -75,7 +75,14 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     for pane in @tabView.panes when kd.utils.slugify(pane.name) is action
       pane_ = @tabView.showPane pane
       if action is 'virtual-machines'
+        {reactor} = kd.singletons
+        machine = reactor.evaluate ['MachinesStore']
+          .toList()
+          .filter (machine) -> machine.get('label') is identifier
+          .get(0)
+
         VirtualMachinesSelectedMachineFlux.actions.setSelectedMachine identifier
+        EnvironmentFlux.actions.loadMachineSharedUsers machine.get '_id'
       break
 
   createStacksViews: ->
