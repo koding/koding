@@ -8,7 +8,7 @@ readonly VIRTUALBOX_URL_DARWIN="http://download.virtualbox.org/virtualbox/5.0.20
 readonly VAGRANT_URL_LINUX="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
 readonly VAGRANT_URL_DARWIN="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1.dmg"
 
-VERSION="$(curl -sSL https://koding-kd.s3.amazonaws.com/${releaseChannel}/latest-VERSION.txt)"
+VERSION="$(curl -sSL https://koding-kd.s3.amazonaws.com/${releaseChannel}/latest-version.txt)"
 PLATFORM="$(uname | tr '[:upper:]' '[:lower:]')"
 KD_URL="https://koding-kd.s3.amazonaws.com/${releaseChannel}/kd-0.1.${VERSION}.${PLATFORM}_amd64.gz"
 

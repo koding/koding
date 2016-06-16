@@ -1,3 +1,5 @@
+// The metrics package implements a forking metrics server command to send
+// metrics about kd issues and/or problems.
 package metrics
 
 import (

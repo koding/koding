@@ -29,4 +29,10 @@ module.exports = class ProfilePicture extends React.Component
 
 
   render: ->
-    <img className="ProfilePicture" {...@getImageProps()} />
+
+    { role } = @props
+
+    <span>
+      <img className="ProfilePicture" {...@getImageProps()} />
+      <div className={"badge #{role}"} title={role}></div>
+    </span>

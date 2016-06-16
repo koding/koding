@@ -27,7 +27,7 @@ module.exports = class GetStartedView extends JView
       <p>
         We will guide you through setting up a stack template.
         Your stack template will be used to build and manage your dev environment.
-        You can read more information about stack templates <a href='#'>here</a>.
+        You can read more information about stack templates <a href='https://www.koding.com/docs/creating-an-aws-stack'>here</a>.
       </p>
       {{> @getStartedButton}}
     </main>

@@ -10,6 +10,7 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
   getDataBindings: ->
     return {
       members: TeamFlux.getters.filteredMembersWithRoleAndDisabledUsers
+      admins: TeamFlux.getters.adminsList
       disables: TeamFlux.getters.disabledUsers
       seachInput: TeamFlux.getters.searchInputValue
     }
@@ -54,6 +55,7 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
   render: ->
 
     <View
+      admins={@state.admins}
       members={@state.members}
       searchInputValue={@state.searchInputValue}
       handleInvitation={@bound 'handleInvitation'}

@@ -30,6 +30,7 @@ updateTeam = (dataToUpdate) ->
   { groupsController, reactor } = kd.singletons
 
   team = groupsController.getCurrentGroup()
+  groupsController.emit 'TEAM_DATA_TO_UPDATE', dataToUpdate
 
   new Promise (resolve, reject) ->
 

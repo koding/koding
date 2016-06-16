@@ -218,8 +218,8 @@ module.exports = class StackTemplateListController extends KodingListController
       return showError 'You currently have a stack generated from this template.'
 
     modal = listView.askForConfirm
-      title       : 'Remove stack template ?'
-      description : 'Do you want to remove this stack template ?'
+      title       : 'Are you sure?'
+      description : 'Do you want to delete this stack template?'
       callback    : ({ status, modal }) ->
         return  unless status
         template.delete (err) ->

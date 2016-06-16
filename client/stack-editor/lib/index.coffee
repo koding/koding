@@ -99,9 +99,14 @@ module.exports = class StackEditorAppController extends AppController
     return  unless editor = @editors[id]
 
     # hide all editors
-    Object.keys(@editors).forEach (templateId) => @editors[templateId].hide()
+    Object.keys(@editors).forEach (templateId) =>
+      view = @editors[templateId]
+
+      view.getElement().removeAttribute 'testpath'
+      view.hide()
 
     # show the correct editor.
+    editor.setAttribute 'testpath', 'StackEditor-isVisible'
     editor.show()
 
 

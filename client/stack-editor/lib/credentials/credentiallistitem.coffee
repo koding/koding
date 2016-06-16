@@ -33,6 +33,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
       title    : 'USE THIS & CONTINUE'
       loader   :
         color  : '#666'
+        diameter : 24
       callback : @bound 'verifyCredential'
 
     @inuseView = new kd.CustomHTMLView

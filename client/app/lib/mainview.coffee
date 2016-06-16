@@ -17,6 +17,9 @@ isSoloProductLite       = require 'app/util/issoloproductlite'
 TeamName                = require './activity/sidebar/teamname'
 BannerNotificationView  = require 'app/commonviews/bannernotificationview'
 doXhrRequest            = require 'app/util/doXhrRequest'
+classnames              = require 'classnames'
+DEAFULT_TEAM_LOGO       = '/a/images/logos/default_team_logo.svg'
+
 
 module.exports = class MainView extends kd.View
 
@@ -25,7 +28,6 @@ module.exports = class MainView extends kd.View
     mobileDevices       = /Android|iPhone|iPod/i
     options.domId       = 'kdmaincontainer'
     options.cssClass    = if globals.isLoggedInOnLoad then 'with-sidebar' else ''
-    options.deviceType  = if mobileDevices.test navigator.userAgent then 'mobile' else 'desktop'
 
     super options, data
 
@@ -45,50 +47,15 @@ module.exports = class MainView extends kd.View
     @createMainTabView()
 
     kd.singletons.mainController.ready =>
+      @createTeamLogo()  unless isKoding()
       @createAccountArea()  if isKoding()
       @setStickyNotification()
       @emit 'ready'
 
 
-  createMobileHeader: ->
-
-    @addSubView @header = new kd.View
-      tagName    : 'header'
-      domId      : 'main-header'
-      attributes :
-        testpath : 'main-header'
-
-    @header.addSubView @hamburgerMenu = new kd.ButtonView
-      cssClass  : 'hamburger-menu'
-      iconOnly  : yes
-      callback  : =>
-        @toggleClass 'mobile-menu-active'
-
-        @once 'click', =>
-          @toggleClass 'mobile-menu-active'
-
-    { router } = kd.singletons
-    router.on 'RouteInfoHandled', =>
-      @unsetClass 'mobile-menu-active'
-
-    logoWrapper = new kd.CustomHTMLView
-      cssClass  : if entryPoint?.type is 'group' then 'logo-wrapper group' else 'logo-wrapper'
-
-    logoWrapper.addSubView new kd.CustomHTMLView
-      tagName    : 'a'
-      attributes : { href : '/' } # so that it shows base url on status bar of browser
-      partial    : '<figure></figure>'
-      click      : (event) -> kd.utils.stopDOMEvent event
-
-    @header.addSubView logoWrapper
-
-
   createHeader: ->
 
     entryPoint = globals.config.entryPoint
-
-    if @getOption('deviceType') is 'mobile'
-      return @createMobileHeader()
 
     @addSubView @header = new kd.View
       tagName    : 'header'
@@ -163,7 +130,10 @@ module.exports = class MainView extends kd.View
 
     @aside.addSubView @logoWrapper
 
-    if isTeamReactSide()
+    unless isKoding()
+      @logoWrapper.addSubView @teamLogoWrapper = new kd.CustomHTMLView
+        tagName : 'div'
+        cssClass : 'team-logo-wrapper'
       SidebarView = require './components/sidebar/view'
       @aside.addSubView @sidebar = new SidebarView
       return
@@ -239,6 +209,35 @@ module.exports = class MainView extends kd.View
     @toggleHoverSidebar()
     @toggleSidebar()
 
+
+  getClassNames: (logo) -> classnames
+    'team-logo' : yes
+    'default' : logo is DEAFULT_TEAM_LOGO
+
+  createTeamLogo: ->
+
+    logo = '/a/images/logos/default_team_logo.svg'
+
+    { groupsController } = kd.singletons
+    team = groupsController?.getCurrentGroup()
+
+    if team.customize
+      logo = team.customize.logo
+
+    className = @getClassNames logo
+
+    @teamLogoWrapper.addSubView @teamLogo = new kd.CustomHTMLView
+      tagName : 'img'
+      cssClass : className
+      attributes :
+        src : "#{logo}"
+
+    groupsController.on 'TEAM_DATA_TO_UPDATE', (dataToUpdate) =>
+      logo = dataToUpdate.customize?.logo
+      if logo
+        @teamLogo.setAttribute 'src', logo
+        @teamLogo.setAttribute 'class', ''
+        @teamLogo.setClass @getClassNames logo
 
   createAccountArea: ->
 

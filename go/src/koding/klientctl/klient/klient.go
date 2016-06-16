@@ -1,3 +1,4 @@
+// A library for easing the interaction with klient.
 package klient
 
 import (
