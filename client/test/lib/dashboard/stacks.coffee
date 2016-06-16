@@ -24,20 +24,20 @@ module.exports =
       (next) ->
         teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
           next null, result
-      (next) ->
-        teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
-          next null, res
-      (next) ->
-        teamsHelpers.createStack browser, (res) ->
-          next null, res
+      # (next) ->
+      #   teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
+      #     next null, res
+      # (next) ->
+      #   teamsHelpers.createStack browser, (res) ->
+      #     next null, res
 
-      (next) ->
-        teamsHelpers.createDefaultStackTemplate browser, (res) ->
-          # remove main url from result
-          # to get '/Stack-Editor/machineId'
-          res = res.substring helpers.getUrl(yes).length
-          stackSelector = res
-          next null, res
+      # (next) ->
+      #   teamsHelpers.createDefaultStackTemplate browser, (res) ->
+      #     # remove main url from result
+      #     # to get '/Stack-Editor/machineId'
+      #     res = res.substring helpers.getUrl(yes).length
+      #     stackSelector = res
+      #     next null, res
     ]
 
     async.series queue, (err, result) ->
@@ -45,37 +45,44 @@ module.exports =
 
   stacks: (browser) ->
     queue = [
-      (next) ->
-        stackshelpers.clickNewStackButton browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.seeTeamStackTemplates browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.seeDraftStackTemplates browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.editStackTemplates browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.deleteCredentialInUse browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.deleteStackTemplatesInUse browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.deleteStackTemplates browser, (result) ->
-          next null, result
-      (next) ->
-        teamsHelpers.logoutTeam browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.createPrivateStackAsMember browser, (result) ->
-          next null, result
+      # (next) ->
+      #   stackshelpers.clickNewStackButton browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.seeTeamStackTemplates browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.seeDraftStackTemplates browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.editStackTemplates browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.deleteCredentialInUse browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.deleteStackTemplatesInUse browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.deleteStackTemplates browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   teamsHelpers.logoutTeam browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.createPrivateStackAsMember browser, (result) ->
+      #     next null, result
 
+      # (next) ->
+      #   stackshelpers.checkAndDestroyVm browser, (result) ->
+      #     next null, result
+
+      (next) ->
+        stackshelpers.destroy browser, (result) ->
+          next null, result
     ]
 
     async.series queue
 
-  after: (browser) ->
-    browser.end()
+  # after: (browser) ->
+  #   browser.end()

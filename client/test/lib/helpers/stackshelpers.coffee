@@ -25,8 +25,9 @@ credentialsTabSelector = "div.kdtabhandle.credentials"
 listCredential         = '.kdview.stacks.stacks-v2'
 deletebutton           = '.custom-link-view.HomeAppView--button.danger'
 
-WelcomeView       = '.WelcomeStacksView'
-userstackLink     = "#{WelcomeView} ul.bullets li:nth-of-type(2)"
+WelcomeView            = '.WelcomeStacksView'
+userstackLink          = "#{WelcomeView} ul.bullets li:nth-of-type(2)"
+destroySelector        = "#{menuSelector}:nth-of-type(4)"
 
 module.exports =
 
@@ -141,6 +142,29 @@ module.exports =
         .pause 2000
         .waitForElementVisible WelcomeView, 20000
       teamsHelpers.createDefaultStackTemplate browser, (res) ->
+        done
+
+  checkAndDestroyVm: (browser, done) ->
+    browser
+      .url stackEditorUrl
+      .waitForElementVisible teamStacksSelector, 20000
+      .click '.kdtabhandle.virtual-machines'
+      .pause 2000
+      .waitForElementVisible '.ListView-section.HomeAppViewVMSection', 20000
+      .waitForElementVisible '.MachinesListItem-machineLabel', 20000
+      #disconnect vm ekle
+
+  destroy: (browser, done) ->
+    browser
+      .click sideBarSelector
+      .waitForElementVisible teamHeaderSelector, 20000
+      .click teamHeaderSelector
+      .waitForElementVisible menuSelector, 20000
+      .pause 1000
+      .click destroySelector
+      .waitForElementVisible '[testpath=deleteStack]', 20000
+      .click removeButton
+
 
 
   gotoStackTemplate: (browser, callback) ->
