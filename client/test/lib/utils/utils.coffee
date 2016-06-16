@@ -4,6 +4,8 @@ tempDir   = require 'os-tmpdir'
 formatter = require 'json-format'
 _ = require 'lodash'
 
+async = require 'async'
+
 module.exports =
 
   generateUsers: ->
@@ -79,6 +81,8 @@ module.exports =
 
   getCollabLinkFilePath: -> return "#{tempDir()}/collabLink.txt"
 
+  getMemberInvitationPath: -> return "#{tempDir()}/invitation.txt"
+
 
   beforeCollaborationSuite: ->
 
@@ -86,8 +90,18 @@ module.exports =
     @registerSuiteHook 'before'  unless @suiteHookHasRun 'before'
 
 
-  afterEachCollaborationTest: (browser, done) -> browser.deleteCollabLink done
+  afterEachCollaborationTest: (browser, done) ->
+    queue = [
+      (next) ->
+        browser.deleteCollabLink (result) ->
+          next null, result
+      (next) ->
+        browser.deleteMemberInvitation (res) ->
+          next null, res
+    ]
 
+    async.series queue, (err, result) ->
+      done()  unless err
 
   getInvitationData: ->
 

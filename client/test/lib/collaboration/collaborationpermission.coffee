@@ -24,7 +24,7 @@ module.exports =
     participantCallback = ->
 
       collaborationHelpers.requestPermission(browser, no)
-      collaborationHelpers.leaveSessionFromSidebar(browser)
+      collaborationHelpers.leaveSessionFromStatusBar(browser)
       browser.end()
 
 
@@ -33,25 +33,26 @@ module.exports =
 
   makePresenterThenRevokeAccess: (browser) ->
 
-    participant          = utils.getUser no, 1
-    participantAvatar    = ".avatars .avatarview[href='/#{participant.username}']"
-    watchingAvatar       = "#{participantAvatar}.watching"
-    makePresenterItem    = '.IDE-StatusBarContextMenu .make-presenter'
-    revokePermissionItem = '.IDE-StatusBarContextMenu .revoke-permission'
+    participant             = utils.getUser no, 1
+    participantAvatar       = '.IDE-StatusBar .avatars .avatarview'
+    participantOnlineAvatar = "#{participantAvatar}.online"
+    watchingAvatar          = '.avatars .avatarview.watching'
+    makePresenterItem       = '.IDE-StatusBarContextMenu .make-presenter'
+    revokePermissionItem    = '.IDE-StatusBarContextMenu .revoke-permission'
 
     hostCallback = ->
 
       browser
-        .waitForElementVisible    participantAvatar, 30000
         .moveToElement            participantAvatar, 5, 5
         .waitForElementVisible    makePresenterItem, 20000
         .click                    makePresenterItem
-        .waitForElementVisible    watchingAvatar, 20000
         .pause                    2000 # wait a bit before revoke
+        .waitForElementVisible    watchingAvatar, 20000
         .moveToElement            participantAvatar, 5, 5
         .waitForElementVisible    revokePermissionItem, 20000
         .click                    revokePermissionItem
-        .waitForElementNotVisible watchingAvatar, 20000
+        .pause                    2000
+        .waitForElementNotPresent watchingAvatar, 20000
 
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
@@ -65,7 +66,7 @@ module.exports =
         .waitForElementVisible    "#{notificationView}.error", 30000
         .waitForElementNotVisible '.plus .icon', 20000
 
-      collaborationHelpers.leaveSessionFromSidebar(browser)
+      collaborationHelpers.leaveSessionFromStatusBar(browser)
       browser.end()
 
 

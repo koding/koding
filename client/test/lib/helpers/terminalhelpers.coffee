@@ -29,10 +29,10 @@ module.exports =
         .pause 6000, -> callback null # required
     else
       browser
-        .moveToElement           sessionLink, 5, 5
+        .moveToElement           sessionLink, 50, 50
         .waitForElementVisible   openNewTerminal, 20000
         .click                   openNewTerminal
-        .pause                   2500, -> callback null #wait for terminal to be displayed
+        .pause                   5000, -> callback null #wait for terminal to be displayed
 
   createTerminalSession: ( browser, user, callback = -> ) ->
 
