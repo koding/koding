@@ -1,5 +1,6 @@
 helpers              = require '../helpers/helpers.js'
 teamsHelpers         = require '../helpers/teamshelpers.js'
+utils                = require '../utils/utils.js'
 stackEditorUrl       = "#{helpers.getUrl(yes)}/Home/stacks"
 stackSelector        = null
 sectionSelector      = '.kdview.kdtabpaneview.stacks'
@@ -10,7 +11,6 @@ draftStacksSelector  = '.HomeAppView--section.drafts'
 menuSelector         = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
 editSelector         = "#{menuSelector}:nth-of-type(1)"
 stackEditorView      = '.StackEditorView'
-deletebutton         = '.HomeAppView--button.danger'
 sideBarSelector      = '#main-sidebar'
 teamHeaderSelector   = '.SidebarTeamSection .SidebarStackSection.active h4'
 draftStackHeader     = '.SidebarTeamSection .SidebarSection.draft'
@@ -23,6 +23,10 @@ saveButtonSelector     = "#{visibleStack} .StackEditorView--header .kdbutton.Gen
 stackEditorTab         = "#{visibleStack} .kdview.kdtabview.StackEditorTabs"
 credentialsTabSelector = "div.kdtabhandle.credentials"
 listCredential         = '.kdview.stacks.stacks-v2'
+deletebutton           = '.custom-link-view.HomeAppView--button.danger'
+
+WelcomeView       = '.WelcomeStacksView'
+userstackLink     = "#{WelcomeView} ul.bullets li:nth-of-type(2)"
 
 module.exports =
 
@@ -60,78 +64,33 @@ module.exports =
       .waitForElementVisible stackTemplate, 20000, done
 
 
-  deleteStackTemplatesInUse: (browser, done) ->
-    browser
-      .pause 2000
-      .waitForElementVisible sideBarSelector, 20000
-      .click sideBarSelector
-      .waitForElementVisible teamHeaderSelector, 20000
-      .click teamHeaderSelector
-      .waitForElementVisible menuSelector, 20000
-      .pause 2000
-      .click editSelector
-      .waitForElementVisible stackEditorView, 20000
-      .waitForElementVisible deletebutton, 20000
-      .click deletebutton
-      .waitForElementVisible '.kdnotification', 20000
-      .assert.containsText '.kdnotification', 'This template currently in use by the Team.', done
-
-
-  deleteStackTemplates: (browser, done) ->
-    browser
-      .pause 2000
-      .waitForElementVisible sideBarSelector, 20000
-      .click sideBarSelector
-      .waitForElementVisible draftStackHeader, 20000
-      .click draftStackHeader
-      .waitForElementVisible menuSelector, 20000
-      .pause 2000
-      .click editSelector
-      .waitForElementVisible stackEditorView, 20000
-      .waitForElementVisible deletebutton, 20000
-      .click deletebutton
-      .waitForElementVisible removeStackModal, 20000
-      .click removeButton
-      .pause 1000, done
-
   editStackTemplates: (browser, done) ->
-    browser
-      .pause 2000
-      .waitForElementVisible sideBarSelector, 20000
-      .click sideBarSelector
-      .waitForElementVisible draftStackHeader, 20000
-      .click draftStackHeader
-      .waitForElementVisible menuSelector, 20000
-      .pause 2000
-      .click editSelector
-      .waitForElementVisible stackEditorView, 20000
-      .waitForElementVisible stackTemplateNameArea, 2000
-      .clearValue stackTemplateNameArea
-      .pause 1000
-      .setValue stackTemplateNameArea, 'NewStackName'
-      .click saveButtonSelector, =>
-        teamsHelpers.waitUntilToCreatePrivateStack browser, ->
-          browser
-            .refresh()
-            .waitForElementVisible stackEditorView, 20000
-            .waitForElementVisible stackTemplateNameArea, 2000
-            .getAttribute stackTemplateNameArea, 'placeholder', (result) -> 
-              this.assert.equal result.value, 'NewStackName'
-          browser.pause 1000, done
+    @gotoStackTemplate browser, ->
+      browser
+        .waitForElementVisible stackTemplateNameArea, 2000
+        .clearValue stackTemplateNameArea
+        .pause 1000
+        .setValue stackTemplateNameArea, 'NewStackName'
+        .click saveButtonSelector, =>
+          teamsHelpers.waitUntilToCreatePrivateStack browser, ->
+            browser
+              .refresh()
+              .waitForElementVisible stackEditorHeader, 20000
+              .waitForElementVisible stackTemplateNameArea, 2000
+              .getAttribute stackTemplateNameArea, 'placeholder', (result) -> 
+                this.assert.equal result.value, 'NewStackName'
+                browser.pause 1000, done
             
-  deleteCredentialInUsebrowser: (browser, done) ->
+  deleteCredentialInUse: (browser, done) ->
     browser
-      .pause 2000
-      .waitForElementVisible sideBarSelector, 20000
-      .click sideBarSelector
-      .waitForElementVisible teamHeaderSelector, 20000
-      .click teamHeaderSelector
-      .waitForElementVisible menuSelector, 20000
-      .pause 2000
-      .click editSelector
-      .waitForElementVisible stackEditorView, 20000
+      .url stackEditorUrl
+      .waitForElementVisible teamStacksSelector, 20000
+      .waitForElementVisible stackTemplate, 20000
+      .click '.HomeAppViewListItem-label'
+      .waitForElementVisible stackEditorHeader, 20000
       .click credentialsTabSelector
-      .waitForElementVisible listCredential, 20000
+      .pause 2000
+      .waitForElementVisible listCredential, 20000, done
 
     browser.elements "css selector", ".StackEditor-CredentialItem--info .custom-tag.inuse", (result) ->
       index = 0
@@ -148,3 +107,52 @@ module.exports =
                 browser.pause 1000
                 browser.waitForElementVisible '.kdnotification.main', 20000
                 browser.assert.containsText '.kdnotification.main', 'This credential is currently in-use'
+
+  
+  deleteStackTemplatesInUse: (browser, done) ->
+    browser
+      .pause 2000
+      .url stackEditorUrl
+      .waitForElementVisible teamStacksSelector, 20000
+      .waitForElementVisible stackTemplate, 20000
+      .click '.HomeAppViewListItem-label'
+      .waitForElementVisible stackEditorHeader, 20000
+      .waitForElementVisible deletebutton, 20000
+      .click deletebutton
+      .waitForElementVisible '.kdnotification', 20000
+      .assert.containsText '.kdnotification', 'This template currently in use by the Team.'
+      .pause 1000, done
+
+
+  deleteStackTemplates: (browser, done) ->
+     @gotoStackTemplate browser, ->
+      browser
+        .waitForElementVisible deletebutton, 20000
+        .click deletebutton
+        .waitForElementVisible removeStackModal, 20000
+        .click removeButton
+        .pause 1000, done
+
+  
+  createPrivateStackAsMember: (browser, done) ->
+    targetUser1 = utils.getUser no, 1
+    teamsHelpers.loginToTeam browser, targetUser1 , no, ->
+      browser
+        .pause 2000
+        .waitForElementVisible WelcomeView, 20000
+      teamsHelpers.createDefaultStackTemplate browser, (res) ->
+
+
+  gotoStackTemplate: (browser, callback) ->
+    browser
+      .pause 2000
+      .waitForElementVisible sideBarSelector, 20000
+      .click sideBarSelector
+      .waitForElementVisible draftStackHeader, 20000
+      .click draftStackHeader
+      .waitForElementVisible menuSelector, 20000
+      .pause 2000
+      .click editSelector
+      .waitForElementVisible stackEditorHeader, 20000
+      .pause 2000, -> callback()
+
