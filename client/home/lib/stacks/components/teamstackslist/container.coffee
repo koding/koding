@@ -10,19 +10,21 @@ module.exports = class TeamStacksListContainer extends React.Component
 
   getDataBindings: ->
     return {
+      stacks: EnvironmentFlux.getters.teamStacks
       templates: EnvironmentFlux.getters.inUseTeamStackTemplates
       sidebarStacks: SidebarFlux.getters.sidebarStacks
     }
 
 
-  onAddToSidebar: (stackTemplateId) -> SidebarFlux.actions.makeVisible 'stack', stackTemplateId
+  onAddToSidebar: (stackId) -> SidebarFlux.actions.makeVisible 'stack', stackId
 
 
-  onRemoveFromSidebar: (stackTemplateId) -> SidebarFlux.actions.makeHidden 'stack', stackTemplateId
+  onRemoveFromSidebar: (stackId) -> SidebarFlux.actions.makeHidden 'stack', stackId
 
 
   render: ->
     <View
+      stacks={@state.stacks}
       templates={@state.templates}
       sidebarStacks={@state.sidebarStacks}
       onOpenItem={@props.onOpenItem}
