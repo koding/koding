@@ -91,13 +91,24 @@ pre
         rel()
 
       .logo-wrapper
+        .team-logo-wrapper
+          size              40px, 40px
+          abs               0px 0 0 0px
+          bg                color #323232
+          .team-logo
+            size            40px, 40px
+            &.default
+              size            20px, 20px
+              margin-left     10px
+              margin-top      10px
+
         .team-name
           height            16px
           color             #b3b3b3
-          margin            4px 0 0 2px
+          margin            4px 0 0 30px
           font-size         13px
           text-transform    capitalize
-          width             100%
+          width             calc(100% - 70px)
           background        none
           cursor            pointer
           noTextDeco()

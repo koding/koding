@@ -226,9 +226,7 @@ module.exports = class Sidebar extends React.Component
 
   renderLogo: ->
 
-    src = @state.team?.getIn(['customize', 'logo']) or DEFAULT_LOGOPATH
-
-    <img src="#{src}" className='Sidebar-footer-logo' />
+    <img src="#{DEFAULT_LOGOPATH}" className='Sidebar-footer-logo' />
 
 
   render: ->
