@@ -48,6 +48,7 @@ machinesWithWorkspaces = [
 
     machines.map (machine) ->
       machine
+        .set 'isShared', machine.get('users').size > 1
         .set 'workspaces', machinesWorkspaces.get(machine.get '_id')?.map (workspaceId) ->
           workspaces.get workspaceId
 ]
