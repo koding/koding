@@ -515,7 +515,15 @@ generateDev = (KONFIG, options) ->
       $GOBIN/notification -c $KONFIG_SOCIALAPI_CONFIGFILEPATH -h
     }
 
-    if [[ "$1" == "killall" ]]; then
+    if [ "$#" == "0" || "$1" == "backend" ]; then
+      checkrunfile
+      run $1
+
+    elif [ "$1" == "exec" ]; then
+      shift
+      exec "$@"
+
+    elif [[ "$1" == "killall" ]]; then
 
       kill_all
 
@@ -629,15 +637,6 @@ generateDev = (KONFIG, options) ->
         make install-migrate
         migrate $2 $3
       fi
-
-    elif [ "$1" == "exec" ]; then
-      shift
-      exec "$@"
-
-    elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
-
-      checkrunfile
-      run $1
 
     elif [ "$1" == "vmwatchertests" ]; then
       go test koding/vmwatcher -test.v=true
