@@ -258,7 +258,8 @@ module.exports =
     providers = '.providers.box-wrapper'
     providerSelector = "#{providers} .provider.box.#{provider}"
     skipGuideButton = '.kdview.stack-onboarding.main-content a.custom-link-view.HomeAppView--button'
-    stackEditorTab = '.kdview.kdtabview.StackEditorTabs'
+    visibleStack = '[testpath=StackEditor-isVisible]'
+    stackEditorTab = "#{visibleStack} .kdview.kdtabview.StackEditorTabs"
     credentialsTabSelector = "#{stackEditorTab} div.kdtabhandle.credentials.notification"
     checkForCredentials = ".kdview.kdlistitemview.kdlistitemview-default.StackEditor-CredentialItem.#{provider}"
     createNewButton = '.kdview.stacks.step-creds .kdbutton.add-big-btn.with-icon'
@@ -298,7 +299,7 @@ module.exports =
     newCredentialPage = '.kdview.stacks.stacks-v2'
     saveButton = "#{newCredentialPage} button[type=submit]"
     regionSelector = '.kdview.formline.region .kdselectbox select'
-    eu_west_1 = "#{regionSelector} option[value=eu-west-1]"
+    eu_west_1 = "#{regionSelector} option[value=us-west-1]"
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
@@ -325,7 +326,6 @@ module.exports =
   buildStack: (browser, done) ->
 
     sidebarSelector = '.SidebarTeamSection'
-    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
     buildStackModal = '.kdmodal.env-modal.env-machine-state.kddraggable.has-readme'
     buildStackButton = "#{buildStackModal} .kdbutton.turn-on.state-button.solid.green.medium.with-icon"
     progressBarSelector = "#{buildStackModal} .progressbar-container"
@@ -334,7 +334,6 @@ module.exports =
     browser
       .click '#main-sidebar'
       .waitForElementVisible sidebarSelector, 20000
-      .click sidebarStackSection
 
     browser.element 'css selector', vmSelector, (result) =>
       if result.status is -1
@@ -416,11 +415,12 @@ module.exports =
     sidebarSelector = '.SidebarTeamSection'
     sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
+    visibleStack = '[testpath=StackEditor-isVisible]'
 
     credentialSelector = '.kdview.kdlistitemview.kdlistitemview-default.StackEditor-CredentialItem'
-    useThisAndContinueButton = '.StackEditor-CredentialItem--buttons .kdbutton.solid.compact.outline.verify'
-    editorPaneSelector = '.kdview.pane.editor-pane.editor-view'
-    saveButtonSelector = '.StackEditorView--header .kdbutton.GenericButton.save-test'
+    useThisAndContinueButton = "#{visibleStack} .StackEditor-CredentialItem--buttons .kdbutton.solid.compact.outline.verify"
+    editorPaneSelector = "#{visibleStack} .kdview.pane.editor-pane.editor-view"
+    saveButtonSelector = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
     successModal = '.kdmodal-inner .kdmodal-content'
     closeButton = '.kdmodal-inner .kdview.kdmodal-buttons .kdbutton.solid.medium.gray'
 
@@ -433,6 +433,7 @@ module.exports =
             .pause 1000
             .click useThisAndContinueButton
             .waitForElementVisible editorPaneSelector, 20000
+            .waitForElementVisible saveButtonSelector, 20000
             .click saveButtonSelector
             .pause 10000 # here wait around 50 secs to create stack
             .waitForElementVisible successModal, 40000
@@ -453,11 +454,12 @@ module.exports =
 
   createPrivateStack: (browser, stackName, done) ->
 
-    stackEditorHeader = '.StackEditorView--header'
+    visibleStack = '[testpath=StackEditor-isVisible]'
+    stackEditorHeader = "#{visibleStack} .StackEditorView--header"
     useThisAndContinueButton = '.StackEditor-CredentialItem--buttons .kdbutton.solid.compact.outline.verify'
-    editorPaneSelector = '.kdview.pane.editor-pane.editor-view'
+    editorPaneSelector = "#{visibleStack} .kdview.pane.editor-pane.editor-view"
     stackTemplateNameArea = "#{stackEditorHeader} .kdinput.text.template-title.autogrow"
-    saveButtonSelector = '.StackEditorView--header .kdbutton.GenericButton.save-test'
+    saveButtonSelector = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
 
     browser
       .pause 2000
