@@ -1,5 +1,7 @@
 module.exports =
 
+  actions: require './actions'
+
   stores: [ require './stores/welcomestepsstore' ]
 
   getters: require './getters'
@@ -14,3 +16,5 @@ module.exports =
     VirtualMachinesSearchFlux.register reactor
     VirtualMachinesSelectedMachineFlux = require '../virtualmachines/flux/selectedmachine'
     VirtualMachinesSelectedMachineFlux.register reactor
+
+
