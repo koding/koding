@@ -28,6 +28,8 @@ deletebutton           = "#{visibleStack} .custom-link-view.HomeAppView--button.
 WelcomeView            = '.WelcomeStacksView'
 userstackLink          = "#{WelcomeView} ul.bullets li:nth-of-type(2)"
 destroySelector        = "#{menuSelector}:nth-of-type(4)"
+reinitSelector         = "#{menuSelector}:nth-of-type(2)"
+notificationSelector   = '.kdnotification'
 
 module.exports =
 
@@ -121,8 +123,8 @@ module.exports =
       .waitForElementVisible stackEditorHeader, 20000
       .waitForElementVisible deletebutton, 20000
       .click deletebutton
-      .waitForElementVisible '.kdnotification', 20000
-      .assert.containsText '.kdnotification', 'This template currently in use by the Team.'
+      .waitForElementVisible notificationSelector, 20000
+      .assert.containsText notificationSelector, 'This template currently in use by the Team.'
       .pause 1000, done
 
 
@@ -155,6 +157,7 @@ module.exports =
       .waitForElementVisible '.MachinesListItem-machineLabel', 20000
       #add disconnect vm
 
+
   destroy: (browser, done) ->
     browser
       .click sideBarSelector
@@ -165,7 +168,6 @@ module.exports =
       .click destroySelector
       .waitForElementVisible '[testpath=deleteStack]', 20000
       .click removeButton
-
 
 
   gotoStackTemplate: (browser, callback) ->
@@ -181,3 +183,30 @@ module.exports =
       .waitForElementVisible stackEditorHeader, 20000
       .pause 2000, -> callback()
 
+
+  changeAndReinitializeStack: (browser, done) ->
+    host = utils.getUser no, 0
+    buildStackButton = ".kdbutton.turn-on.state-button.solid.green.medium.with-icon"
+
+    browser
+      .click '.HomeAppView .close-icon.closeModal'
+      .click '.SidebarMachinesListItem--MainLink .SidebarListItem-title'
+      .waitForElementVisible '.kdview.kdscrollview', 20000
+    helpers.createFile(browser, host, null, null, 'Test.txt')
+    browser
+      .click sideBarSelector
+      .waitForElementVisible teamHeaderSelector, 20000
+      .click teamHeaderSelector
+      .waitForElementVisible menuSelector, 20000
+      .pause 1000
+      .click reinitSelector
+      .waitForElementVisible '[testpath=reinitStack]', 20000
+      .pause 3000
+      .click removeButton
+      .waitForElementVisible notificationSelector, 20000
+      .assert.containsText   notificationSelector, 'Reinitializing stack...'
+      .pause 2000
+      .waitForElementVisible buildStackButton, 20000
+      .waitForElementNotPresent "span[title='config/Test.txt']", 50000
+      .click buildStackButton, =>
+        teamsHelpers.waitUntilVmRunning browser, done

@@ -38,6 +38,9 @@ module.exports =
           res = res.substring helpers.getUrl(yes).length
           stackSelector = res
           next null, res
+      (next) ->
+        teamsHelpers.buildStack browser, (res) ->
+          next null, res
     ]
 
     async.series queue, (err, result) ->
@@ -57,6 +60,11 @@ module.exports =
       (next) ->
         stackshelpers.editStackTemplates browser, (result) ->
           next null, result
+      
+      (next) ->
+        stackshelpers.changeAndReinitializeStack browser, (res) ->
+          next null, res
+      
       (next) ->
         stackshelpers.deleteCredentialInUse browser, (result) ->
           next null, result
@@ -73,10 +81,10 @@ module.exports =
         stackshelpers.createPrivateStackAsMember browser, (result) ->
           next null, result
 
-      # will be continue to edit
-      # (next) ->
-      #   stackshelpers.checkAndDestroyVm browser, (result) ->
-      #     next null, result
+      will be continue to edit
+      (next) ->
+        stackshelpers.checkAndDestroyVm browser, (result) ->
+          next null, result
 
       (next) ->
         stackshelpers.destroy browser, (result) ->
