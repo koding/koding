@@ -1,6 +1,8 @@
 module.exports =
 
+  stores: [ require './stores/welcomestepsstore' ]
   register: (reactor) ->
+    reactor.registerStores @stores
 
     HomeBillingFlux = require '../billing/flux'
     HomeBillingFlux.register reactor
