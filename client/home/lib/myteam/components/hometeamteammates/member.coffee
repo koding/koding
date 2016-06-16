@@ -36,8 +36,8 @@ module.exports = class Member extends React.Component
       items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
     else if role is 'admin'
       items.push { title: 'Make owner', key: 'mameowner', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
-      items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
-      items.push { title: 'Disable user', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }
+      items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }  if @props.admins.size
+      items.push { title: 'Disable user', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }  if @props.admins.size
     else if role is 'Invitation Sent'
       items.push { title: 'Resend Invitation', key: 'resend', onClick: @props.handleInvitation.bind(this, @props.member, 'resend') }
       items.push { title: 'Revoke Invitation', key: 'revoke', onClick: @props.handleInvitation.bind(this, @props.member, 'revoke') }
@@ -106,7 +106,7 @@ MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen, admin
     </div>
   else
     <div className='dropdown' onClick={onClick}>
-      <MemberRole role={role} canEdit={canEdit} />
+      <MemberRole role={role} canEdit={canEdit} showPointer={yes} />
       <ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />
     </div>
 
@@ -135,6 +135,9 @@ AvatarView = ({ member, role }) ->
     </div>
 
 
-MemberRole = ({ role, canEdit }) ->
+MemberRole = ({ role, canEdit, showPointer = no }) ->
 
-  <div className='role'>{capitalizeFirstLetter role}</div>
+  className = 'role'
+  className = 'role showPointer'  if showPointer
+
+  <div className={className}>{capitalizeFirstLetter role}</div>
