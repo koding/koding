@@ -12,6 +12,8 @@ module.exports = class WelcomeStepsContainer extends React.Component
       steps: HomeFlux.getters.welcomeSteps
     }
 
+  componentWillMount: ->
+    HomeFlux.actions.checkMigration()
 
   render: ->
     <View steps={@state.steps.toList()}/>

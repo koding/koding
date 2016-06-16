@@ -33,6 +33,7 @@ welcomeSteps = [
     return steps.sortBy (a) -> a.get('order')
 ]
 
+
 module.exports = {
   welcomeSteps
 }

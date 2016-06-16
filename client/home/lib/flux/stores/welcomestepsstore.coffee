@@ -55,18 +55,24 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           description: "<code>kd</code> is a CLI tool that allows you to use your local IDEs."
           isDone: no
           order: 20
-        migrateFromKoding :
-          path: '/MigrateFromSolo'
-          title: 'Migrate from Solo'
-          description: "You can migrate your solo machines to team!"
-          isDone: no
-          order: 30
-          starred: yes
 
 
   initialize: ->
 
     @on actions.MARK_WELCOME_STEP_AS_DONE, @handleMarkAsDone
 
+    @on actions.MIGRATION_AVAILABLE, @handleMigration
+
 
   handleMarkAsDone: (steps, { step }) -> steps.setIn [ step, 'isDone' ], yes
+
+
+  handleMigration: (steps) ->
+
+    steps.setIn [ 'common', 'migrateFromKoding' ], toImmutable
+      path: '/MigrateFromSolo'
+      title: 'Migrate from Solo'
+      description: "You can migrate your solo machines to team!"
+      isDone: no
+      order: 30
+      starred: yes
