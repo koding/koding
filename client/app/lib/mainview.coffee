@@ -210,21 +210,17 @@ module.exports = class MainView extends kd.View
     @toggleSidebar()
 
 
-  getClassNames: (logo) -> classnames
-    'team-logo' : yes
-    'default' : logo is DEAFULT_TEAM_LOGO
-
   createTeamLogo: ->
 
     logo = '/a/images/logos/default_team_logo.svg'
 
     { groupsController } = kd.singletons
-    team = groupsController?.getCurrentGroup()
+    team = groupsController.getCurrentGroup()
 
     if team.customize
       logo = team.customize.logo
 
-    className = @getClassNames logo
+    className = getClassNames logo
 
     @teamLogoWrapper.addSubView @teamLogo = new kd.CustomHTMLView
       tagName : 'img'
@@ -233,11 +229,10 @@ module.exports = class MainView extends kd.View
         src : "#{logo}"
 
     groupsController.on 'TEAM_DATA_TO_UPDATE', (dataToUpdate) =>
-      logo = dataToUpdate.customize?.logo
-      if logo
-        @teamLogo.setAttribute 'src', logo
-        @teamLogo.setAttribute 'class', ''
-        @teamLogo.setClass @getClassNames logo
+      return unless logo = dataToUpdate.customize?.logo
+      @teamLogo.setAttribute 'src', logo
+      @teamLogo.setAttribute 'class', ''
+      @teamLogo.setClass getClassNames logo
 
   createAccountArea: ->
 
@@ -412,3 +407,7 @@ module.exports = class MainView extends kd.View
 
     body.style.background = '#000'
     @setClass 'logout-tv'
+
+getClassNames = (logo) -> classnames
+  'team-logo' : yes
+  'default' : logo is DEAFULT_TEAM_LOGO
