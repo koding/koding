@@ -54,8 +54,11 @@ module.exports =
       # (next) ->
       #   stackshelpers.seeDraftStackTemplates browser, (result) ->
       # #     next null, result
+      # (next) ->
+      #   stackshelpers.editStackTemplates browser, (result) ->
+      #     next null, result
       (next) ->
-        stackshelpers.editStackTemplates browser, (result) ->
+        stackshelpers.deleteCredentialInUsebrowser browser, (result) ->
           next null, result
       # (next) ->
       #   stackshelpers.deleteStackTemplatesInUse browser, (result) ->
