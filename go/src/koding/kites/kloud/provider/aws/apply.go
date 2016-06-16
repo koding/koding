@@ -1,7 +1,6 @@
 package awsprovider
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -262,7 +261,7 @@ func (s *Stack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
 
 	s.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 
-	var region string
+	var region, credential string
 	for _, cred := range s.Builder.Credentials {
 		// rest is aws related
 		if cred.Provider != "aws" {
@@ -282,6 +281,7 @@ func (s *Stack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
 		}
 
 		region = meta.Region
+		credential = cred.Identifier
 
 		if err := s.SetAwsRegion(region); err != nil {
 			return err
@@ -370,12 +370,6 @@ func (s *Stack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
 	output.AppendQueryString(kiteIDs)
 	output.AppendRegisterURL(urls)
 
-	d, err := json.MarshalIndent(output, "", " ")
-	if err != nil {
-		return err
-	}
-
-	s.Log.Debug("Updated machines\n%s", string(d))
 	s.Log.Debug("Updating and syncing terraform output to jMachine documents")
 
 	s.Eventer.Push(&eventer.Event{
@@ -384,10 +378,16 @@ func (s *Stack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
 		Status:     machinestate.Building,
 	})
 
-	return updateMachines(ctx, output, s.Builder.Machines)
+	err = updateMachines(ctx, output, s.Builder.Machines, credential)
+
+	if e := s.Builder.UpdateStack(); e != nil && err == nil {
+		err = e
+	}
+
+	return err
 }
 
-func updateMachines(ctx context.Context, data *stackplan.Machines, jMachines []*models.Machine) error {
+func updateMachines(ctx context.Context, data *stackplan.Machines, jMachines []*models.Machine, credential string) error {
 	for _, machine := range jMachines {
 		label := machine.Label
 		if l, ok := machine.Meta["assignedLabel"]; ok {
@@ -402,7 +402,7 @@ func updateMachines(ctx context.Context, data *stackplan.Machines, jMachines []*
 		}
 
 		if tf.Provider == "aws" {
-			if err := updateAWS(ctx, tf, machine.ObjectId); err != nil {
+			if err := updateAWS(ctx, tf, machine.ObjectId, credential); err != nil {
 				return err
 			}
 		}
@@ -411,7 +411,7 @@ func updateMachines(ctx context.Context, data *stackplan.Machines, jMachines []*
 	return nil
 }
 
-func updateAWS(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId) error {
+func updateAWS(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId, credential string) error {
 	size, err := strconv.Atoi(tf.Attributes["root_block_device.0.volume_size"])
 	if err != nil {
 		return err
@@ -420,6 +420,7 @@ func updateAWS(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectI
 	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
 		"provider":           tf.Provider,
 		"meta.region":        tf.Region,
+		"credential":         credential,
 		"queryString":        tf.QueryString,
 		"ipAddress":          tf.Attributes["public_ip"],
 		"meta.instanceId":    tf.Attributes["id"],

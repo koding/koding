@@ -66,6 +66,12 @@ type Stack struct {
 	// TunnelURL for klient connection inside vagrant boxes.
 	TunnelURL *url.URL
 
+	// Credential represents Vagrant credential value.
+	//
+	// The Meta field is of *VagrantMeta type.
+	// The field is set during injecting variables to a template.
+	Credential *stackplan.Credential
+
 	api *vagrantapi.Klient
 	p   *stackplan.Planner
 }

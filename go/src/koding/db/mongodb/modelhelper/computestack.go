@@ -305,3 +305,9 @@ func RemoveFromStack(sd *StackDetails) error {
 	// Remove machine from stack.
 	return tryPull(ComputeStackColl, bson.M{"_id": stack.Id}, bson.M{"machines": sd.MachineID})
 }
+
+func UpdateStack(stackID bson.ObjectId, change interface{}) error {
+	return Mongo.Run(ComputeStackColl, func(c *mgo.Collection) error {
+		return c.UpdateId(stackID, change)
+	})
+}
