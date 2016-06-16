@@ -21,9 +21,9 @@ stackEditorHeader    = "#{visibleStack} .StackEditorView--header"
 stackTemplateNameArea  = "#{stackEditorHeader} .kdinput.text.template-title.autogrow"
 saveButtonSelector     = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
 stackEditorTab         = "#{visibleStack} .kdview.kdtabview.StackEditorTabs"
-credentialsTabSelector = "div.kdtabhandle.credentials"
+credentialsTabSelector = 'div.kdtabhandle.credentials'
 listCredential         = '.kdview.stacks.stacks-v2'
-deletebutton           = '.custom-link-view.HomeAppView--button.danger'
+deletebutton           = "#{visibleStack} .custom-link-view.HomeAppView--button.danger"
 
 WelcomeView            = '.WelcomeStacksView'
 userstackLink          = "#{WelcomeView} ul.bullets li:nth-of-type(2)"
@@ -72,16 +72,17 @@ module.exports =
         .clearValue stackTemplateNameArea
         .pause 1000
         .setValue stackTemplateNameArea, 'NewStackName'
-        .click saveButtonSelector, =>
+        .click saveButtonSelector, ->
           teamsHelpers.waitUntilToCreatePrivateStack browser, ->
             browser
               .refresh()
               .waitForElementVisible stackEditorHeader, 20000
               .waitForElementVisible stackTemplateNameArea, 2000
-              .getAttribute stackTemplateNameArea, 'placeholder', (result) -> 
+              .getAttribute stackTemplateNameArea, 'placeholder', (result) ->
                 this.assert.equal result.value, 'NewStackName'
                 browser.pause 1000, done
-            
+
+
   deleteCredentialInUse: (browser, done) ->
     browser
       .url stackEditorUrl
@@ -93,7 +94,7 @@ module.exports =
       .pause 2000
       .waitForElementVisible listCredential, 20000, done
 
-    browser.elements "css selector", ".StackEditor-CredentialItem--info .custom-tag.inuse", (result) ->
+    browser.elements 'css selector', '.StackEditor-CredentialItem--info .custom-tag.inuse', (result) ->
       index = 0
       result.value.map (value) ->
         index += 1
@@ -102,14 +103,14 @@ module.exports =
             browser.assert.equal res.value, 'IN USE'
             browser.elementIdClick value.ELEMENT
             browser.pause 2000, ->
-              browser.elements "css selector", ".kdbutton.solid.compact.outline.red.secondary.delete", (buttons) ->
-                buttonElement = buttons.value[index-1].ELEMENT
+              browser.elements 'css selector', '.kdbutton.solid.compact.outline.red.secondary.delete', (buttons) ->
+                buttonElement = buttons.value[index - 1].ELEMENT
                 browser.elementIdClick buttonElement
                 browser.pause 1000
                 browser.waitForElementVisible '.kdnotification.main', 20000
                 browser.assert.containsText '.kdnotification.main', 'This credential is currently in-use'
 
-  
+
   deleteStackTemplatesInUse: (browser, done) ->
     browser
       .pause 2000
@@ -126,15 +127,15 @@ module.exports =
 
 
   deleteStackTemplates: (browser, done) ->
-     @gotoStackTemplate browser, ->
-      browser
-        .waitForElementVisible deletebutton, 20000
-        .click deletebutton
-        .waitForElementVisible removeStackModal, 20000
-        .click removeButton
-        .pause 1000, done
+    @gotoStackTemplate browser, ->
+    browser
+      .waitForElementVisible deletebutton, 20000
+      .click deletebutton
+      .waitForElementVisible removeStackModal, 20000
+      .click removeButton
+      .pause 1000, done
 
-  
+
   createPrivateStackAsMember: (browser, done) ->
     targetUser1 = utils.getUser no, 1
     teamsHelpers.loginToTeam browser, targetUser1 , no, ->
@@ -152,7 +153,7 @@ module.exports =
       .pause 2000
       .waitForElementVisible '.ListView-section.HomeAppViewVMSection', 20000
       .waitForElementVisible '.MachinesListItem-machineLabel', 20000
-      #disconnect vm ekle
+      #add disconnect vm
 
   destroy: (browser, done) ->
     browser
