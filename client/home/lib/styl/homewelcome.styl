@@ -39,13 +39,6 @@ $linkColor                  = #769ECC
     width                   455px
     margin                  0 auto
 
-    &.solo
-      padding-top           20px
-      border-top            1px solid #DCDCDC
-
-      li:before
-        content             "*"
-
     li
       rel()
       margin                0 0 20px
@@ -63,6 +56,18 @@ $linkColor                  = #769ECC
         pointer-events      none
         &:hover a h3
           color             $welcomeTitleColor
+
+      &.starred
+        margin-top          40px
+        &:after
+          content           ''
+          display           block
+          size              100% 1px
+          bg                color #DCDCDC
+          abs               -21px 0 0 0
+        &:before
+          content           '*'
+
 
       &:before
         abs                 28px 0 0 22px
