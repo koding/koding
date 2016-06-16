@@ -1,6 +1,9 @@
 module.exports =
 
   stores: [ require './stores/welcomestepsstore' ]
+
+  getters: require './getters'
+
   register: (reactor) ->
     reactor.registerStores @stores
 
