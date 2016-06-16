@@ -18,7 +18,6 @@ module.exports = class MachinesListItem extends React.Component
     shouldRenderSharing    : React.PropTypes.bool
     onChangeAlwaysOn       : React.PropTypes.func
     onChangePowerStatus    : React.PropTypes.func
-    onDetailOpen           : React.PropTypes.func
     onSharedWithUser       : React.PropTypes.func
     onUnsharedWithUser     : React.PropTypes.func
     onDisconnectVM         : React.PropTypes.func
@@ -32,7 +31,6 @@ module.exports = class MachinesListItem extends React.Component
     shouldRenderSharing    : no
     onChangeAlwaysOn       : kd.noop
     onChangePowerStatus    : kd.noop
-    onDetailOpen           : kd.noop
     onSharedWithUser       : kd.noop
     onUnsharedWithUser     : kd.noop
     onDisconnectVM         : kd.noop
@@ -73,7 +71,6 @@ module.exports = class MachinesListItem extends React.Component
       return kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines"
 
     kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines/#{@props.machine.get 'label'}"
-
 
 
   renderIpAddress: ->

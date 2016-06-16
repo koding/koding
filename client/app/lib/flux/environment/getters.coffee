@@ -1,3 +1,4 @@
+immutable = require 'immutable'
 machineRuleChecker = require 'app/util/machinerulechecker'
 getMachineOwner    = require 'app/util/getMachineOwner'
 getGroup           = require 'app/util/getGroup'
@@ -47,6 +48,7 @@ machinesWithWorkspaces = [
 
     machines.map (machine) ->
       machine
+        .set 'isShared', machine.get('users').size > 1
         .set 'workspaces', machinesWorkspaces.get(machine.get '_id')?.map (workspaceId) ->
           workspaces.get workspaceId
 ]
@@ -103,10 +105,17 @@ requiredInvitationMachine = [
     return _machine
 ]
 
+allStackTemplates = [
+  TeamStackTemplatesStore
+  PrivateStackTemplatesStore
+  (teamStackTemplates, privateStackTemplates) -> teamStackTemplates.concat privateStackTemplates
+]
+
 stacks = [
   StacksStore
+  allStackTemplates
   machinesWithWorkspaces
-  (stacks, machinesWorkspaces) ->
+  (stacks, templates, machinesWorkspaces) ->
     # Sort stacks by modifiedAt and type.
     stacks
 
@@ -120,15 +129,29 @@ stacks = [
       .sort (a, b) -> if a.getIn ['config', 'groupStack'] then -1 else 1
 
       .map (stack) ->
-        stack.update 'machines', (machines) ->
-          machines.map (id) ->
-            machine = machinesWorkspaces.get(id)
-            type    = if machine.getIn ['meta', 'oldOwner'] then 'reassigned' else 'own'
+        stack
+          .set 'accessLevel', templates.getIn [stack.get('baseStackId'), 'accessLevel']
+          .update 'machines', (machines) ->
+            machines.map (id) ->
+              machine = machinesWorkspaces.get(id)
+              type    = if machine.getIn ['meta', 'oldOwner'] then 'reassigned' else 'own'
 
-            machine
-              .set 'type', type
-              .set 'owner', getMachineOwner machine
-              .set 'isApproved', yes
+              machine
+                .set 'type', type
+                .set 'owner', getMachineOwner machine
+                .set 'isApproved', yes
+]
+
+teamStacks = [
+  stacks
+  (_stacks) ->
+    _stacks.filter (s) ->
+      s.get('accessLevel') is 'group' and not s.hasIn ['config', 'oldOwner']
+]
+
+privateStacks = [
+  stacks
+  (_stacks) -> _stacks.filter (s) -> s.get('accessLevel') is 'private'
 ]
 
 teamStackTemplates = [
@@ -179,12 +202,19 @@ disabledUsersStacks = [
 disabledUsersStackTemplates = [
   teamStackTemplates
   disabledUsersStacks
-  (templates, _stacks) -> _stacks.map (s) -> templates.get s.get('baseStackId')
+  (templates, _stacks) ->
+    _stacks
+      .map (s) -> templates.get s.get('baseStackId')
+      .reduce (acc, template) ->
+        acc.set template.get('_id'), template
+      , immutable.Map({})
 ]
 
 
 module.exports = {
   stacks
+  teamStacks
+  privateStacks
   ownMachines
   sharedMachines
   collaborationMachines

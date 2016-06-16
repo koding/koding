@@ -10,30 +10,27 @@ module.exports = class PrivateStacksListContainer extends React.Component
 
   getDataBindings: ->
     return {
+      stacks: EnvironmentFlux.getters.privateStacks
       templates: EnvironmentFlux.getters.inUsePrivateStackTemplates
       sidebarStacks: SidebarFlux.getters.sidebarStacks
     }
 
 
-  onAddToSidebar: (stackTemplateId) ->
-
-    SidebarFlux.actions.makeVisible 'stack', stackTemplateId
+  onAddToSidebar: (stackId) -> SidebarFlux.actions.makeVisible 'stack', stackId
 
 
-  onRemoveFromSidebar: (stackTemplateId) ->
-
-    SidebarFlux.actions.makeHidden 'stack', stackTemplateId
+  onRemoveFromSidebar: (stackId) -> SidebarFlux.actions.makeHidden 'stack', stackId
 
 
   render: ->
     <View
+      stacks={@state.stacks}
       templates={@state.templates}
       sidebarStacks={@state.sidebarStacks}
       onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
       onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
     />
-
 
 PrivateStacksListContainer.include [KDReactorMixin]
 
