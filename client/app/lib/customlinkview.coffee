@@ -35,7 +35,7 @@ module.exports = class CustomLinkView extends KDCustomHTMLView
 
     @setOption 'title', title
 
-    @render()
+    @setData { title }
 
 
   disable: -> @disabled = yes
