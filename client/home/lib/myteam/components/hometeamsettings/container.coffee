@@ -5,7 +5,6 @@ KDReactorMixin  = require 'app/flux/base/reactormixin'
 View            = require './view'
 Encoder         = require 'htmlencode'
 showError       = require 'app/util/showError'
-DEFAULT_LOGOPATH = '/a/images/logos/default_team_logo.svg'
 
 notify = (title, duration = 5000) -> new kd.NotificationView { title, duration }
 
@@ -69,7 +68,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
   onRemoveLogo: ->
     @refs.view.input.value = null
-    @updateTeam { dataToUpdate: customize: { logo: DEFAULT_LOGOPATH } }
+    @updateTeam { dataToUpdate: customize: { logo: '' } }
 
 
   onUpdate: ->
@@ -121,7 +120,6 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       teamNameChanged={@state.teamNameChanged}
       canEdit={@state.canEdit}
       loading={@state.loading}
-      logopath={DEFAULT_LOGOPATH}
       onUploadInput={@bound 'onUploadInput'}
       onClickLogo={@bound 'onClickLogo'}
       onRemoveLogo={@bound 'onRemoveLogo'}

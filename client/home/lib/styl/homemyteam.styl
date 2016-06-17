@@ -60,27 +60,32 @@ homemyteam.styl
 
 
 .HomeAppView--uploadLogo
-  flex                      0 0 auto
   height                    200px
 
   .teamLogo-wrapper
-    background              rgba(81,81,81,.25)
     size                    120px, 120px
     cursor                  pointer
-    abs()
-    fl()
-    .teamLogo
-      size                  120px, 120px
-      &.default
-        size                50px, 50px
-        margin-left         35px
-        margin-top          35px
+    background-size         cover
+    background-repeat       no-repeat
+    background-position     center center
+    background-color        transparent
+    r-sprite                app upload_image
+    // .teamLogo
+    //   max-height            100%
+    //   max-width             100%
+    //   flex                  0 0 auto
+    //   height                auto
+    //   align-self            center
+    //   &.default
+    //     r-sprite            app upload_image
+
+
 
   .uploadInputWrapper
     rel()
     overflow                hidden
     padding                 15px 0
-    top                     127px
+    top                     7px
     width                   120px
     text-align              center
     .HomeAppView--button
