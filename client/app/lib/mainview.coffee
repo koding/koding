@@ -119,7 +119,7 @@ module.exports = class MainView extends kd.View
         partial    : '<figure></figure>'
         click      : (event) -> kd.utils.stopDOMEvent event
     else
-      @logoWrapper.addSubView new TeamName {}, getGroup()
+      @logoWrapper.addSubView @teamname = new TeamName {}, getGroup()
 
     @logoWrapper.addSubView closeHandle = new kd.CustomHTMLView
       cssClass : 'sidebar-close-handle'
@@ -212,7 +212,7 @@ module.exports = class MainView extends kd.View
 
   createTeamLogo: ->
 
-    logo = '/a/images/logos/default_team_logo.svg'
+    logo = ''
 
     { groupsController } = kd.singletons
     team = groupsController.getCurrentGroup()
@@ -220,19 +220,34 @@ module.exports = class MainView extends kd.View
     if team.customize
       logo = team.customize.logo
 
-    className = getClassNames logo
-
     @teamLogoWrapper.addSubView @teamLogo = new kd.CustomHTMLView
       tagName : 'img'
-      cssClass : className
+      cssClass : ''
       attributes :
         src : "#{logo}"
 
+    unless logo
+      @teamLogoWrapper.hide()
+      @teamname.setClass 'no-logo'
+    else
+      @teamLogo.setClass 'team-logo'
+      @teamLogoWrapper.show()
+      @teamname.unsetClass 'no-logo'
+
     groupsController.on 'TEAM_DATA_TO_UPDATE', (dataToUpdate) =>
-      return unless logo = dataToUpdate.customize?.logo
-      @teamLogo.setAttribute 'src', logo
+      logo = dataToUpdate.customize?.logo
+
       @teamLogo.setAttribute 'class', ''
-      @teamLogo.setClass getClassNames logo
+
+      unless logo
+        @teamLogo.setAttribute 'src', ''
+        @teamname.setClass 'no-logo'
+        @teamLogoWrapper.hide()
+      else
+        @teamLogo.setAttribute 'src', logo
+        @teamLogo.setClass 'team-logo'
+        @teamLogoWrapper.show()
+        @teamname.unsetClass 'no-logo'
 
   createAccountArea: ->
 

@@ -93,24 +93,31 @@ pre
       .logo-wrapper
         .team-logo-wrapper
           size              40px, 40px
+          display           flex
+          align-content     center
+          justify-content   center
           abs               0px 0 0 0px
-          bg                color #323232
           .team-logo
-            size            40px, 40px
-            &.default
-              size            20px, 20px
-              margin-left     10px
-              margin-top      10px
+            max-width       100%
+            max-height      100%
+            height          auto
+            flex            0 0 auto
+            align-self      center
 
         .team-name
+          abs()
+          left              47px
           height            16px
           color             #b3b3b3
-          margin            4px 0 0 30px
+          margin-top        14px
           font-size         13px
           text-transform    capitalize
           width             calc(100% - 70px)
           background        none
           cursor            pointer
+          &.no-logo
+            left            18px
+
           noTextDeco()
           ellipsis()
           dIBlock()
