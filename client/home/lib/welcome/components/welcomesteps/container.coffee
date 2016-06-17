@@ -1,6 +1,7 @@
 kd              = require 'kd'
 React           = require 'kd-react'
 View            = require './view'
+MiniView        = require './miniview'
 HomeFlux        = require 'home/flux'
 KDReactorMixin  = require 'app/flux/base/reactormixin'
 
@@ -16,7 +17,11 @@ module.exports = class WelcomeStepsContainer extends React.Component
     HomeFlux.actions.checkMigration()
 
   render: ->
-    <View steps={@state.steps.toList()}/>
+    if @props.mini
+      <View steps={@state.steps.toList()}/>
+    else
+      <MiniView steps={@state.steps.toList()}/>
+
 
 
 WelcomeStepsContainer.include [KDReactorMixin]
