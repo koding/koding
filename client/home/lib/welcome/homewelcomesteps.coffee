@@ -6,7 +6,7 @@ WelcomeSteps = require './components/welcomesteps'
 module.exports = class HomeWelcomeSteps extends ReactView
 
   renderReact: ->
-    <WelcomeSteps.Container />
+    <WelcomeSteps.Container mini={ @getOption 'mini' } />
 
 
 
