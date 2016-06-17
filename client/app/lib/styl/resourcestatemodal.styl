@@ -353,6 +353,18 @@ $warningColor               = #f2778a
           borderBox()
           margin-bottom     11px
 
+        a.show-link
+          font-size         11px !important
+          abs               0px, 20px
+          &:before
+            content         'Show Details'
+
+          &.loading
+            cursor          default
+            color           #999
+            &:before
+              content       'Loading...'
+
       article
         font-size           13px
         font-family         SoleilFamily
@@ -404,6 +416,11 @@ $warningColor               = #f2778a
 
         .selection-container
           hidden()
+
+      &.left-form
+      &.right-form
+        a.show-link
+          abs               44px, 20px
 
       &.left-form
         fl()
