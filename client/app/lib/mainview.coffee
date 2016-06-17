@@ -19,6 +19,7 @@ BannerNotificationView  = require 'app/commonviews/bannernotificationview'
 doXhrRequest            = require 'app/util/doXhrRequest'
 classnames              = require 'classnames'
 DEAFULT_TEAM_LOGO       = '/a/images/logos/default_team_logo.svg'
+HomeWelcomeSteps        = require 'home/welcome/homewelcomesteps'
 
 
 module.exports = class MainView extends kd.View
@@ -120,6 +121,7 @@ module.exports = class MainView extends kd.View
         click      : (event) -> kd.utils.stopDOMEvent event
     else
       @logoWrapper.addSubView @teamname = new TeamName { cssClass: 'no-logo' }, getGroup()
+      @logoWrapper.addSubView new HomeWelcomeSteps { mini : yes }
 
     @logoWrapper.addSubView closeHandle = new kd.CustomHTMLView
       cssClass : 'sidebar-close-handle'

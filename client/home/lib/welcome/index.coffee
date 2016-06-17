@@ -1,5 +1,5 @@
-kd                 = require 'kd'
-HomeWelcomeSteps   = require './homewelcomesteps'
+kd               = require 'kd'
+HomeWelcomeSteps = require './homewelcomesteps'
 
 module.exports = class HomeWelcome extends kd.CustomScrollView
 
