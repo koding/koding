@@ -60,14 +60,19 @@ module.exports =
       (next) ->
         stackshelpers.editStackTemplates browser, (result) ->
           next null, result
-      
+
       (next) ->
         stackshelpers.addRemoveFromSideBar browser, (res) ->
           next null, res
-      
       (next) ->
         stackshelpers.changeAndReinitializeStack browser, (res) ->
           next null, res
+      (next) ->
+        stackshelpers.destroyPersonalStack browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.destroy browser, (result) ->
+          next null, result
       (next) ->
         stackshelpers.deleteCredentialInUse browser, (result) ->
           next null, result
@@ -84,14 +89,8 @@ module.exports =
         stackshelpers.createPrivateStackAsMember browser, (result) ->
           next null, result
 
-      will be continue to edit
-      (next) ->
-        stackshelpers.checkAndDestroyVm browser, (result) ->
-          next null, result
 
-      (next) ->
-        stackshelpers.destroy browser, (result) ->
-          next null, result
+
     ]
 
     async.series queue

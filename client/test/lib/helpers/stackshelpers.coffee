@@ -30,6 +30,11 @@ userstackLink          = "#{WelcomeView} ul.bullets li:nth-of-type(2)"
 destroySelector        = "#{menuSelector}:nth-of-type(4)"
 reinitSelector         = "#{menuSelector}:nth-of-type(2)"
 notificationSelector   = '.kdnotification'
+stacksSelector         = '.SidebarSection-headerTitle'
+stackTitleSelector     = '.ListView > .ListView-section.HomeAppViewStackSection'
+buildStackButton       = '.kdbutton.turn-on.state-button.solid.green.medium.with-icon'
+closeModal             = '.HomeAppView .close-icon.closeModal'
+sidebarVmSelector      = '.SidebarMachinesListItem--MainLink .SidebarListItem-title'
 
 module.exports =
 
@@ -94,7 +99,7 @@ module.exports =
       .waitForElementVisible stackEditorHeader, 20000
       .click credentialsTabSelector
       .pause 2000
-      .waitForElementVisible listCredential, 20000, done
+      .waitForElementVisible listCredential, 20000
 
     browser.elements 'css selector', '.StackEditor-CredentialItem--info .custom-tag.inuse', (result) ->
       index = 0
@@ -111,6 +116,7 @@ module.exports =
                 browser.pause 1000
                 browser.waitForElementVisible '.kdnotification.main', 20000
                 browser.assert.containsText '.kdnotification.main', 'This credential is currently in-use'
+                browser.pause 1000, done
 
 
   deleteStackTemplatesInUse: (browser, done) ->
@@ -125,7 +131,7 @@ module.exports =
       .click deletebutton
       .waitForElementVisible notificationSelector, 20000
       .assert.containsText notificationSelector, 'This template currently in use by the Team.'
-      .pause 1000, done
+    browser.pause 1000, done
 
 
   deleteStackTemplates: (browser, done) ->
@@ -147,27 +153,69 @@ module.exports =
       teamsHelpers.createDefaultStackTemplate browser, (res) ->
         done
 
-  checkAndDestroyVm: (browser, done) ->
-    browser
-      .url stackEditorUrl
-      .waitForElementVisible teamStacksSelector, 20000
-      .click '.kdtabhandle.virtual-machines'
-      .pause 2000
-      .waitForElementVisible '.ListView-section.HomeAppViewVMSection', 20000
-      .waitForElementVisible '.MachinesListItem-machineLabel', 20000
-      #add disconnect vm
+  # checkAndDestroyVm: (browser, done) ->
+  #   browser
+  #     .url stackEditorUrl
+  #     .waitForElementVisible teamStacksSelector, 20000
+  #     .click '.kdtabhandle.virtual-machines'
+  #     .pause 2000
+  #     .waitForElementVisible '.ListView-section.HomeAppViewVMSection', 20000
+  #     .waitForElementVisible '.MachinesListItem-machineLabel', 20000
+  #     #add disconnect vm
 
 
   destroy: (browser, done) ->
-    browser
-      .click sideBarSelector
-      .waitForElementVisible teamHeaderSelector, 20000
-      .click teamHeaderSelector
-      .waitForElementVisible menuSelector, 20000
-      .pause 1000
-      .click destroySelector
-      .waitForElementVisible '[testpath=deleteStack]', 20000
-      .click removeButton
+    browser.getText teamHeaderSelector, (res) ->
+      browser
+        .click sideBarSelector
+        .waitForElementVisible teamHeaderSelector, 20000
+        .click teamHeaderSelector
+        .waitForElementVisible menuSelector, 20000
+        .pause 1000
+        .click destroySelector
+        .waitForElementVisible '[testpath=deleteStack]', 20000
+        .click removeButton
+        .pause 3000
+        .waitForElementNotPresent '.SidebarMachinesListItem', 20000
+        .click stacksSelector
+        .waitForElementVisible teamStacksSelector, 20000
+        .assert.containsText '.HomeAppView--section.team-stacks > ' + stackTitleSelector, "Your team doesn't have any stacks ready."
+        .scrollToElement draftStacksSelector
+        .waitForElementVisible draftStacksSelector, 20000
+        .assert.containsText '.HomeAppViewListItem-label ', res.value
+        .refresh()
+        .pause 3000, done
+
+  destroyPersonalStack: (browser, done) ->
+    saveButtonSelector = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
+    browser.refresh()
+    @gotoStackTemplate browser, ->
+      browser
+        .click saveButtonSelector
+        .pause 10000 # here wait around 50 secs to verify stack
+        .getText teamHeaderSelector, (res) ->
+          browser
+            .click sideBarSelector
+            .waitForElementVisible draftStackHeader, 20000
+            .click draftStackHeader
+            .waitForElementVisible menuSelector, 20000
+            .pause 1000
+            .click reinitSelector #initiliaze stack
+            .pause 3000
+            .click sideBarSelector
+            .click teamHeaderSelector
+            .waitForElementVisible menuSelector, 20000
+            .pause 3000
+            .click destroySelector
+            .waitForElementVisible '[testpath=deleteStack]', 20000
+            .click removeButton
+            .pause 3000
+            .click stacksSelector
+            .waitForElementVisible teamStacksSelector, 20000
+            .scrollToElement draftStacksSelector
+            .waitForElementVisible draftStacksSelector, 20000
+            .assert.containsText '.HomeAppViewListItem-label ', res.value
+            .pause 1000, done
 
 
   gotoStackTemplate: (browser, callback) ->
@@ -185,11 +233,10 @@ module.exports =
 
   changeAndReinitializeStack: (browser, done) ->
     host = utils.getUser no, 0
-    buildStackButton = ".kdbutton.turn-on.state-button.solid.green.medium.with-icon"
 
     browser
-      .click '.HomeAppView .close-icon.closeModal'
-      .click '.SidebarMachinesListItem--MainLink .SidebarListItem-title'
+      .click closeModal
+      .click sidebarVmSelector
       .waitForElementVisible '.kdview.kdscrollview', 20000
     helpers.createFile(browser, host, null, null, 'Test.txt')
     browser
@@ -207,16 +254,22 @@ module.exports =
       .pause 2000
       .waitForElementVisible buildStackButton, 20000
       .waitForElementNotPresent "span[title='config/Test.txt']", 50000
-      .click buildStackButton, =>
+      .click buildStackButton, ->
         teamsHelpers.waitUntilVmRunning browser, done
 
   addRemoveFromSideBar: (browser, done) ->
     browser
       .url stackEditorUrl
       .waitForElementVisible teamStacksSelector, 20000
-      .scrollToElement '.HomeAppView--section.drafts'
-      .waitForElementVisible '.HomeAppViewListItem-SecondaryContainer .HomeAppView--button', 20000
+      .scrollToElement draftStacksSelector
       .click '.HomeAppViewListItem-SecondaryContainer .HomeAppView--button'
       .assert.containsText '.HomeAppView--section .HomeAppView--button.primary', 'ADD TO SIDEBAR'
       .click '.HomeAppViewListItem-SecondaryContainer .HomeAppView--button'
       .assert.containsText '.HomeAppView--section .HomeAppView--button.primary', 'REMOVE FROM SIDEBAR'
+      .pause 1000, done
+
+  getStackTitle: (browser, selector, callback) ->
+    browser.getText selector, (res) ->
+      return res.value
+
+

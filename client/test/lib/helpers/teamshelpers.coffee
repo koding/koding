@@ -25,7 +25,7 @@ stackSettingsMenuIcon    = '.stacktemplates .stack-template-list .stack-settings
 myStackTemplatesButton   = '.kdview.kdtabhandle-tabs .my-stack-templates'
 closeButton              = "#{stackCatalogModal} .kdmodal-inner .closeModal"
 async                    = require 'async'
-
+closeModal               = '.HomeAppView .close-icon.closeModal'
 
 module.exports =
 
@@ -332,6 +332,8 @@ module.exports =
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
 
     browser
+      .pause 2000
+      .click closeModal
       .click '#main-sidebar'
       .waitForElementVisible sidebarSelector, 20000
 
