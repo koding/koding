@@ -60,8 +60,8 @@ module.exports = (options, credentials) ->
     accessKey: credentials.awsKeys.worker_tunnelproxymanager.accessKeyId
     secretKey: credentials.awsKeys.worker_tunnelproxymanager.secretAccessKey
 
-    hostedzone      : "koding.me"
-    basevirtualhost : "koding.me"
+    hostedzone      : options.tunnelserverHostedZone
+    basevirtualhost : options.tunnelserverBasevirtualHost
 
   algoliaSecret =
     appId: credentials.algolia.appId
