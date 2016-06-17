@@ -12,12 +12,12 @@ menuSelector         = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.d
 editSelector         = "#{menuSelector}:nth-of-type(1)"
 stackEditorView      = '.StackEditorView'
 sideBarSelector      = '#main-sidebar'
-teamHeaderSelector   = '.SidebarTeamSection .SidebarStackSection.active h4'
-draftStackHeader     = '.SidebarTeamSection .SidebarSection.draft'
-removeStackModal     = '[testpath=RemoveStackModal]'
-removeButton         = '.kdbutton.solid.red.medium'
-visibleStack         = '[testpath=StackEditor-isVisible]'
-stackEditorHeader    = "#{visibleStack} .StackEditorView--header"
+teamHeaderSelector     = '.SidebarTeamSection .SidebarStackSection.active h4'
+draftStackHeader       = '.SidebarTeamSection .SidebarSection.draft'
+removeStackModal       = '[testpath=RemoveStackModal]'
+removeButton           = '.kdbutton.solid.red.medium'
+visibleStack           = '[testpath=StackEditor-isVisible]'
+stackEditorHeader      = "#{visibleStack} .StackEditorView--header"
 stackTemplateNameArea  = "#{stackEditorHeader} .kdinput.text.template-title.autogrow"
 saveButtonSelector     = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
 stackEditorTab         = "#{visibleStack} .kdview.kdtabview.StackEditorTabs"
@@ -172,7 +172,6 @@ module.exports =
 
   gotoStackTemplate: (browser, callback) ->
     browser
-      .pause 2000
       .waitForElementVisible sideBarSelector, 20000
       .click sideBarSelector
       .waitForElementVisible draftStackHeader, 20000
@@ -201,7 +200,7 @@ module.exports =
       .pause 1000
       .click reinitSelector
       .waitForElementVisible '[testpath=reinitStack]', 20000
-      .pause 3000
+      .pause 2000
       .click removeButton
       .waitForElementVisible notificationSelector, 20000
       .assert.containsText   notificationSelector, 'Reinitializing stack...'
@@ -210,3 +209,14 @@ module.exports =
       .waitForElementNotPresent "span[title='config/Test.txt']", 50000
       .click buildStackButton, =>
         teamsHelpers.waitUntilVmRunning browser, done
+
+  addRemoveFromSideBar: (browser, done) ->
+    browser
+      .url stackEditorUrl
+      .waitForElementVisible teamStacksSelector, 20000
+      .scrollToElement '.HomeAppView--section.drafts'
+      .waitForElementVisible '.HomeAppViewListItem-SecondaryContainer .HomeAppView--button', 20000
+      .click '.HomeAppViewListItem-SecondaryContainer .HomeAppView--button'
+      .assert.containsText '.HomeAppView--section .HomeAppView--button.primary', 'ADD TO SIDEBAR'
+      .click '.HomeAppViewListItem-SecondaryContainer .HomeAppView--button'
+      .assert.containsText '.HomeAppView--section .HomeAppView--button.primary', 'REMOVE FROM SIDEBAR'

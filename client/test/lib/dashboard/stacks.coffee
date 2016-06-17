@@ -62,9 +62,12 @@ module.exports =
           next null, result
       
       (next) ->
-        stackshelpers.changeAndReinitializeStack browser, (res) ->
+        stackshelpers.addRemoveFromSideBar browser, (res) ->
           next null, res
       
+      (next) ->
+        stackshelpers.changeAndReinitializeStack browser, (res) ->
+          next null, res
       (next) ->
         stackshelpers.deleteCredentialInUse browser, (result) ->
           next null, result
