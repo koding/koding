@@ -17,7 +17,7 @@ is_virtualbox() {
 }
 
 is_vagrant() {
-  vagrant VERSION 2>&1 | grep -c 'Installed Version:' >/dev/null
+  vagrant version 2>&1 | grep -c 'Installed Version:' >/dev/null
 }
 
 # download_file <url> <output file>
@@ -239,7 +239,7 @@ fi
 # This check helps us prevent kd from being installed over a managed vm
 # where kd would have trouble replacing klient in an unknown environment.
 #
-# TODO: renable this after oldder VERSION of kd has replaced with self
+# TODO: renable this after oldder version of kd has replaced with self
 # updateable one.
 #
 # if sudo [ -f /opt/kite/klient/klient ]; then
@@ -315,7 +315,9 @@ EOF
       install_fuse_darwin
     fi
 
-    install_vagrant_deps
+    if ! is_virtualbox || ! is_vagrant; then
+      install_vagrant_deps
+    fi
 
     echo
     ;;
