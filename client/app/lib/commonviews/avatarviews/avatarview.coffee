@@ -164,7 +164,7 @@ module.exports = class AvatarView extends LinkView
       nickname = profile?.nickname
 
       unless isKoding()
-        @getData().fetchMyPermissionsAndRoles (err, res) =>
+        @getData()?.fetchMyPermissionsAndRoles (err, res) =>
           { roles } = res
           hasOwner = 'owner' in roles
           hasAdmin = 'admin' in roles
