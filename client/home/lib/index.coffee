@@ -36,7 +36,7 @@ module.exports = class HomeAppController extends AppController
     super options, data
 
 
-  checkRoute: (route) -> /^\/Home.*/.test route
+  checkRoute: (route) -> /^\/(Home|Welcome).*/.test route
 
   openSection: (args...) -> @mainView.ready => @openSection_ args...
 
