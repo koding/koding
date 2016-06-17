@@ -35,21 +35,3 @@ module.exports = class KDCredentialForm extends CredentialForm
         {{> form}}
       '''
     }
-
-
-  pistachio: ->
-
-    { title } = @getOptions()
-
-    """
-      {{> @header}}
-      <div class='selection-container'>
-        {{> @selectionLabel}}
-        {{> @selection}}
-        {{> @createNew}}
-      </div>
-      {{> @newHeader}}
-      <div class='form-container'>
-        {{> @scroller}}
-      </div>
-    """
