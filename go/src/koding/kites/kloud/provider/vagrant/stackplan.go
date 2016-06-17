@@ -73,28 +73,27 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 	}
 
 	// TODO(rjeczalik): add ByProvider to stackplan.Credentials
-	var cred *stackplan.Credential
 	for _, c := range s.Builder.Credentials {
 		if c.Provider == "vagrant" {
-			cred = c
+			s.Credential = c
 			break
 		}
 	}
 
-	if cred == nil {
+	if s.Credential == nil {
 		return "", nil, errors.New("vagrant credential not found")
 	}
 
-	if err := s.updateCredential(cred); err != nil {
+	if err := s.updateCredential(s.Credential); err != nil {
 		return "", nil, err
 	}
 
 	t := s.Builder.Template
-	meta := cred.Meta.(*VagrantMeta)
+	meta := s.Credential.Meta.(*VagrantMeta)
 
-	s.Log.Debug("Injecting vagrant credentials: %# v", cred.Meta)
+	s.Log.Debug("Injecting vagrant credentials: %# v", meta)
 
-	if err := t.InjectVariables(cred.Provider, cred.Meta); err != nil {
+	if err := t.InjectVariables(s.Credential.Provider, s.Credential.Meta); err != nil {
 		return "", nil, err
 	}
 
@@ -301,7 +300,7 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 		}
 
 		if tf.Provider == "vagrant" {
-			if err := updateVagrant(ctx, tf, machine.ObjectId); err != nil {
+			if err := updateVagrant(ctx, tf, machine.ObjectId, s.Credential.Identifier); err != nil {
 				return err
 			}
 		}
@@ -310,11 +309,12 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 	return nil
 }
 
-func updateVagrant(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId) error {
+func updateVagrant(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId, credential string) error {
 	machine := bson.M{
 		"provider":             tf.Provider,
 		"meta.hostQueryString": tf.HostQueryString,
 		"queryString":          tf.QueryString,
+		"credential":           credential,
 		"ipAddress":            tf.Attributes["ipAddress"],
 		"meta.filePath":        tf.Attributes["filePath"],
 		"meta.box":             tf.Attributes["box"],
