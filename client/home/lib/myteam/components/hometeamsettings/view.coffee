@@ -49,13 +49,15 @@ GenericButtons = ({ team, logopath, canEdit, clickLogo, removeLogo }) ->
 
   source = team.getIn(['customize', 'logo']) or logopath
   className = 'custom-link-view remove hidden'
+  title = 'UPLOAD LOGO'
 
   if source isnt logopath
     className = 'custom-link-view remove'
+    title = 'CHANGE LOGO'
 
   if canEdit
     <div>
-      <GenericButton className='custom-link-view primary' title='CHANGE LOGO' callback={clickLogo} />
+      <GenericButton className={'custom-link-view primary'} title={title} callback={clickLogo} />
       <GenericButton className={className} title='REMOVE LOGO' callback={removeLogo} />
     </div>
   else
@@ -70,7 +72,7 @@ ActionBar = ({ canEdit, callback, onLeaveTeam, teamNameChanged }) ->
 
   <fieldset className='HomeAppView--ActionBar'>
     <LeaveTeam onLeaveTeam={onLeaveTeam}/>
-    <GenericButton className={className} title='CHANGE TEAM NAME' callback={callback}/>
+    <GenericButton className={className} title={'CHANGE TEAM NAME'} callback={callback}/>
   </fieldset>
 
 
