@@ -18,13 +18,11 @@ module.exports = class HomeTeamSettingsView extends React.Component
       <div className='HomeAppView--uploadLogo'>
         <TeamLogo
           team={@props.team}
-          logopath={@props.logopath}
           loading={@props.loading}
           callback={@bound 'onClickLogo'} />
         <div className='uploadInputWrapper'>
           <GenericButtons
             team={@props.team}
-            logopath={@props.logopath}
             canEdit={@props.canEdit}
             clickLogo={@props.onClickLogo}
             removeLogo={@props.onRemoveLogo} />
@@ -45,17 +43,19 @@ module.exports = class HomeTeamSettingsView extends React.Component
     </div>
 
 
-GenericButtons = ({ team, logopath, canEdit, clickLogo, removeLogo }) ->
+GenericButtons = ({ team, canEdit, clickLogo, removeLogo }) ->
 
-  source = team.getIn(['customize', 'logo']) or logopath
+  source = team.getIn(['customize', 'logo'])
   className = 'custom-link-view remove hidden'
+  title = 'UPLOAD LOGO'
 
-  if source isnt logopath
+  if source
     className = 'custom-link-view remove'
+    title = 'CHANGE LOGO'
 
   if canEdit
     <div>
-      <GenericButton className='custom-link-view primary' title='CHANGE LOGO' callback={clickLogo} />
+      <GenericButton className='custom-link-view primary' title={title} callback={clickLogo} />
       <GenericButton className={className} title='REMOVE LOGO' callback={removeLogo} />
     </div>
   else
@@ -70,7 +70,7 @@ ActionBar = ({ canEdit, callback, onLeaveTeam, teamNameChanged }) ->
 
   <fieldset className='HomeAppView--ActionBar'>
     <LeaveTeam onLeaveTeam={onLeaveTeam}/>
-    <GenericButton className={className} title='CHANGE TEAM NAME' callback={callback}/>
+    <GenericButton className={className} title={'CHANGE TEAM NAME'} callback={callback}/>
   </fieldset>
 
 
@@ -121,15 +121,17 @@ GenericButton = ({ className, title, callback }) ->
   </a>
 
 
-TeamLogo = ({ team, logopath, loading, callback }) ->
+TeamLogo = ({ team, loading, callback }) ->
 
-  src = team.getIn(['customize', 'logo']) or logopath
+  src = team.getIn(['customize', 'logo'])
   src = DEFAULT_SPINNER_PATH  if loading
-  className = 'teamLogo default'
+  unless src
+    styles = {}
+  else
+    styles =
+      backgroundImage : "url('#{src}')"
+      backgroundSize : 'contain'
+      backgroundPosition : 'center'
 
-  if src isnt logopath
-    className = 'teamLogo'
-
-  <div className='teamLogo-wrapper'>
-    <img className={className} src={src} onClick={callback} />
+  <div className='teamLogo-wrapper' onClick={callback} style={styles}>
   </div>
