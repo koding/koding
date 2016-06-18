@@ -1,0 +1,107 @@
+section.WelcomeSteps-miniview
+  abs                       42px 0 0 208px
+  bg                        color #FFFFFF
+  rounded                   3px
+  width                     180px
+  z-index                   1001
+  opacity                   0
+  vendor                    transform-origin, 32px -24px
+  vendor                    transform, scale(0)
+  opacity                   0
+  &.out
+    animation               retractSteps .177s 1
+  &.in
+    animation               expandSteps .3s 1
+    vendor                  transform, scale(1)
+    opacity                 1
+
+  &:before
+    content                 ''
+    border                  10px solid transparent
+    border-bottom-color     #F7F7F7
+    abs                     -18px 0 0 21px
+
+cite.WelcomeSteps-miniview--count
+  background                #F2778A
+  border-radius             3px
+  font-size                 12px
+  font-weight               600
+  color                     #FFFFFF
+  letter-spacing            0px
+  abs                       11px 0 0 232px
+  min-width                 16px
+  padding                   3px 4px 2px
+  pointer()
+  borderBox()
+
+section.WelcomeSteps-miniview h2
+  font-size                 14px
+  color                     #4A4A4A
+  line-height               16px
+  bg                        color #F7F7F7
+  height                    37px
+  line-height               37px
+  border-bottom             1px solid #EBEBEB
+  text-align                center
+  font-weight               600
+  rounded                   3px 3px 0 0
+
+section.WelcomeSteps-miniview ul
+  padding                   20px
+
+section.WelcomeSteps-miniview ul li
+  margin                    4px 0 0
+  line-height               24px
+  &:first-child
+    margin-top              0
+  cite
+    font-size               14px
+    color                   #5E5E5E
+    font-weight             700
+    background              #F7F7F7
+    rounded                 3px
+    margin-right            10px
+    text-align              center
+    size                    24px 24px
+    display                 inline-block
+  a
+    font-size               12px
+    color                   #979797
+    letter-spacing          0px
+    line-height             16px
+    noTextDeco()
+
+section.WelcomeSteps-miniview button
+  font-size                 12px
+  color                     #FFFFFF
+  letter-spacing            0.17px
+  line-height               14px
+  font-weight               600
+  margin                    0 auto 20px
+  width                     140px
+  display                   block
+
+@keyframes expandSteps {
+  0% {
+    vendor                  transform, scale(0)
+    opacity                 0
+  }
+  66% {
+    vendor                  transform, scale(1.1)
+    opacity                 1
+  }
+  100% {
+    vendor                  transform, scale(1)
+    opacity                 1
+  }
+}
+@keyframes retractSteps {
+  0% {
+    vendor                  transform, scale(1)
+    opacity                 1
+  }
+  100% {
+    vendor                  transform, scale(0)
+    opacity                 0
+  }
+}
