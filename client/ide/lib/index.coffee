@@ -628,7 +628,7 @@ class IDEAppController extends AppController
     environmentDataProvider.fetchMachineByUId machineUId, (machineItem) =>
 
       unless machineItem
-        return @createMachineStateModal { state: 'NotFound', container }
+        return @showNoMachineState()
 
       unless machineItem instanceof Machine
         machineItem = new Machine { machine: machineItem }
@@ -681,7 +681,7 @@ class IDEAppController extends AppController
         adminMessage.showIfNeeded()
 
       else
-        @createMachineStateModal { state: 'NotFound', container }
+        return @showNoMachineState()
 
 
   bindMachineEvents: (machineItem) ->
