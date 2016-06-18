@@ -28,7 +28,6 @@ module.exports = class CredentialsErrorPageView extends BaseErrorPageView
         </header>
         {{> @progressPane}}
         <section class="main">
-          <div class="background"></div>
           <h2>Whoops, Those Credentials Didn't Work</h2>
           <p>The credentials you have provided didn't work. You can try again<br />or add new credentials</p>
           {{> @errorContainer}}
