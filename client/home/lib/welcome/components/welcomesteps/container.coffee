@@ -18,10 +18,9 @@ module.exports = class WelcomeStepsContainer extends React.Component
 
   render: ->
     if @props.mini
-      <View steps={@state.steps.toList()}/>
+      <MiniView kdParent={@props.kdParent} steps={@state.steps.toList()}/>
     else
-      <MiniView steps={@state.steps.toList()}/>
-
+      <View steps={@state.steps.toList()}/>
 
 
 WelcomeStepsContainer.include [KDReactorMixin]

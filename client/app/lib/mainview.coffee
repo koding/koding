@@ -49,6 +49,7 @@ module.exports = class MainView extends kd.View
 
     kd.singletons.mainController.ready =>
       @createTeamLogo()  unless isKoding()
+      @createMiniWelcomeSteps()  unless isKoding()
       @createAccountArea()  if isKoding()
       @setStickyNotification()
       @emit 'ready'
@@ -240,15 +241,11 @@ module.exports = class MainView extends kd.View
 
       @teamLogo.setAttribute 'class', ''
 
-      unless logo
-        @teamLogo.setAttribute 'src', ''
-        @teamname.setClass 'no-logo'
-        @teamLogoWrapper.hide()
-      else
-        @teamLogo.setAttribute 'src', logo
-        @teamLogo.setClass 'team-logo'
-        @teamLogoWrapper.show()
-        @teamname.unsetClass 'no-logo'
+
+  createMiniWelcomeSteps: ->
+
+    @logoWrapper.addSubView new HomeWelcomeSteps { mini : yes }
+
 
   createAccountArea: ->
 

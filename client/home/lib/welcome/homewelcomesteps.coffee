@@ -5,8 +5,16 @@ WelcomeSteps = require './components/welcomesteps'
 
 module.exports = class HomeWelcomeSteps extends ReactView
 
+  constructor: (options = {}, data) ->
+
+    options.mini ?= no
+
+    super options, data
+
+
   renderReact: ->
-    <WelcomeSteps.Container mini={ @getOption 'mini' } />
+
+    <WelcomeSteps.Container kdParent={this} mini={ @getOption('mini') or no } />
 
 
 
