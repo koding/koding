@@ -34,8 +34,9 @@ IDELayoutManager              = require './workspace/idelayoutmanager'
 StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
 ContentModal = require 'app/components/contentModal'
 
-require('./routes').init()
+NoStackFoundView = require 'app/nostackfoundview'
 
+require('./routes').init()
 
 module.exports =
 
@@ -607,6 +608,13 @@ class IDEAppController extends AppController
         @setMountedMachine machine
 
         callback null, machine
+
+
+  showNoMachineState: ->
+
+    return  if @noStackFoundView
+
+    @getView().addSubView @noStackFoundView = new NoStackFoundView
 
 
   mountMachineByMachineUId: (machineUId) ->
