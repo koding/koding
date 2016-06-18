@@ -57,7 +57,7 @@ module.exports = class BuildStackPageView extends JView
     message = helpers.formatProgressStatus message
     @setStatusText message  if message
 
-    @buildLogs.appendLogLine message  if @buildLogs
+    @buildLogs.appendLogLine message  if @buildLogs and message
 
 
   reset: ->
