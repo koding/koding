@@ -690,7 +690,12 @@ module.exports = class DefineStackView extends KDView
             errors[type] ?= []
             errors[type].push field
 
-      new StackTemplatePreviewModal {}, { errors, warnings, template }
+      modal = new kd.ModalView
+        cssClass : 'NewModal'
+        width : 600
+        overlay : yes
+
+      modal.addSubView new StackTemplatePreviewModal {}, { errors, warnings, template }
 
       @previewButton.hideLoader()
 

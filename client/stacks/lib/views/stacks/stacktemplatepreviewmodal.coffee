@@ -5,20 +5,19 @@ applyMarkdown            = require 'app/util/applyMarkdown'
 KDTabPaneView            = kd.TabPaneView
 KDCustomHTMLView         = kd.CustomHTMLView
 StackTemplateEditorView  = require './editors/stacktemplateeditorview'
+newModal = require 'app/components/newModal'
 
-
-module.exports = class StackTemplatePreviewModal extends KDModalView
+module.exports = class StackTemplatePreviewModal extends newModal
 
 
   constructor: (options = {}, data) ->
 
     options.title           = 'Template Preview'
-    options.subtitle        = 'Generated from your account data'
+    options.content         = '<h2>Generated from your account data</h2>'
     options.cssClass        = kd.utils.curry 'stack-template-preview content-modal', options.cssClass
-    options.height        or= 500
-    options.width         or= 757
     options.overlay         = yes
     options.overlayOptions  = { cssClass : 'second-overlay' }
+    options.buttons         = null
 
     super options, data
 
@@ -27,14 +26,17 @@ module.exports = class StackTemplatePreviewModal extends KDModalView
     errors   = createReportFor errors,   'errors'
     warnings = createReportFor warnings, 'warnings'
 
-    @addSubView new KDCustomHTMLView
+    @addSubView @main = new KDCustomHTMLView
+      tagName : 'main'
+
+    @main.addSubView new KDCustomHTMLView
       cssClass : 'has-markdown'
       partial  : applyMarkdown """
         #{errors}
         #{warnings}
         """
 
-    @addSubView @tabView = new KDTabView { hideHandleCloseIcons : yes }
+    @main.addSubView @tabView = new KDTabView { hideHandleCloseIcons : yes }
 
     @createYamlView()
     @createJSONView()
