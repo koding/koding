@@ -1,7 +1,7 @@
 kd            = require 'kd'
 KDListView    = kd.ListView
 KDModalView   = kd.ModalView
-
+newModal = require 'app/components/newModal'
 
 module.exports = class KodingListView extends KDListView
 
@@ -20,15 +20,22 @@ module.exports = class KodingListView extends KDListView
     if not title or not description
       return kd.warn 'You should pass title or description for confirm modal'
 
-    modal = KDModalView.confirm
+    modal = new kd.ModalView
+      cssClass : 'NewModal'
+      width : 400
+      overlay : yes
+
+    view = new newModal
       title       : title
       description : description
-      ok          :
-        title     : 'Yes'
-        callback  : ->
-          callback { status : yes, modal }
       cancel      :
         title     : 'Cancel'
         callback  : ->
           modal.destroy()
           callback { status : no }
+      ok          :
+        title     : 'Yes'
+        callback  : ->
+          callback { status : yes, modal }
+
+    modal.addSubview view

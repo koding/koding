@@ -27,7 +27,7 @@ CredentialStatusView = require 'stacks/views/stacks/credentialstatusview'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 StackTemplatePreviewModal = require 'stacks/views/stacks/stacktemplatepreviewmodal'
 EnvironmentFlux = require 'app/flux/environment'
-
+newModal = require 'app/components/newModal'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -739,7 +739,12 @@ module.exports = class StackEditorView extends kd.View
             errors[type] ?= []
             errors[type].push field
 
-      new StackTemplatePreviewModal {}, { errors, warnings, template }
+      modal = new kd.ModalView
+        cssClass : 'NewModal'
+        width : 600
+        overlay : yes
+
+      modal.addSubView new StackTemplatePreviewModal {}, { errors, warnings, template }
 
       @previewButton.hideLoader()
 
@@ -833,7 +838,7 @@ module.exports = class StackEditorView extends kd.View
       return showError 'You currently have a stack generated from this template.'
 
     title       = 'Are you sure?'
-    description = 'Do you want to delete this stack template?'
+    description = '<h2>Do you want to delete this stack template?</h2>'
     callback    = ({ status, modal }) ->
       return  unless status
 
@@ -850,21 +855,34 @@ module.exports = class StackEditorView extends kd.View
       return showError err  if err
 
       if result
-        description = '''
+        description = '''<p>
           There is a stack generated from this template by another team member. Deleting it can break their stack.
-          Do you still want to delete this stack template?
+          Do you still want to delete this stack template?</p>
         '''
 
-      modal = kd.ModalView.confirm
-        title       : title
-        description : description
-        ok          :
-          title     : 'Yes'
-          callback  : -> callback { status : yes, modal }
-        cancel      :
-          title     : 'Cancel'
-          callback  : ->
-            modal.destroy()
-            callback { status : no }
+      modal = new kd.ModalView
+        cssClass : 'NewModal'
+        width : 400
+        overlay : yes
+
+      view = new newModal
+        cssClass       : 'delete-stack-template'
+        title   : title
+        content : description
+        buttons :
+          cancel      :
+            title     : 'Cancel'
+            cssClass  : 'kdbutton solid light-gray medium'
+            callback  : ->
+              modal.destroy()
+              callback { status : no }
+          ok          :
+            title     : 'Yes'
+            cssClass  : 'kdbutton solid red medium'
+            callback  : -> callback { status : yes, modal }
+
+      # modal = kd.ModalView.confirm
 
       modal.setAttribute 'testpath', 'RemoveStackModal'
+
+      modal.addSubView view

@@ -94,9 +94,9 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
       kd.warn 'Bootstrap check failed:', { credential, err }  if err
 
-      listView.askForConfirm { credential, bootstrapped }, ({ action, modal }) =>
+      listView.askForConfirm { credential, bootstrapped }, ({ action, modal, removeButton }) =>
 
-        modal?.buttons.Remove.disable()
+        removeButton.disable = not removeButton.disable
 
         switch action
 
