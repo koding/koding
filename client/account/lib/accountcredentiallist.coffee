@@ -11,6 +11,8 @@ KodingListView              = require 'app/kodinglist/kodinglistview'
 AccountCredentialListItem   = require './accountcredentiallistitem'
 AccountCredentialEditModal  = require './accountcredentialeditmodal'
 
+newModal = require 'app/components/newModal'
+
 
 module.exports = class AccountCredentialList extends KodingListView
 
@@ -28,13 +30,18 @@ module.exports = class AccountCredentialList extends KodingListView
 
     { credential, cred } = options
 
-    new KDModalView
-      title          : credential.title
-      subtitle       : credential.provider
-      cssClass       : 'has-markdown credential-modal'
-      overlay        : yes
+    modal = new KDModalView
+      cssClass : 'NewModal'
+      width : 600
+      overlay : yes
+
+    view = new newModal
+      title : "<h1>#{credential.title}</h1>"
+      cssClass : 'has-markdown credential-modal'
       overlayOptions : { cssClass : 'second-overlay' }
-      content        : "<pre><code>#{cred}</code></pre>"
+      content : "<h2>#{credential.provider}</h2><p><pre><code>#{cred}</code></pre></p>"
+
+    modal.addSubView view
 
 
   askForConfirm: (options, callback) ->
@@ -80,10 +87,16 @@ module.exports = class AccountCredentialList extends KodingListView
       bootstrapped = no
       removeButtonTitle = 'Remove Access'
 
-    modal              = new KDModalView
+
+    modal = new kd.ModalView
+      cssClass : 'NewModal'
+      width : 600
+      overlay : yes
+
+    view = new newModal
       title          : 'Remove credential'
       content        : "<div class='modalformline'>#{description}</div>"
-      cssClass       : 'has-markdown remove-credential'
+      cssClass       : 'remove-credential'
       attributes     :
         testpath     : if bootstrapped then 'destroyCredentialModal' else 'removeCredentialModal'
       overlay        : yes
@@ -91,14 +104,12 @@ module.exports = class AccountCredentialList extends KodingListView
         cssClass     : 'second-overlay'
         overlayClick : yes
       buttons        :
-        Remove       :
-          title      : removeButtonTitle ? 'Remove Credential'
-          style      : 'solid red medium'
-          attributes :
-            testpath : 'removeCredential'
-          loader     : yes
+        cancel       :
+          title      : 'Cancel'
+          style      : 'solid light-gray medium'
           callback   : ->
-            callback { action : 'Remove', modal }
+            modal.destroy()
+            callback { action : 'Cancel', modal }
         DestroyAll   :
           title      : 'Destroy Everything'
           style      : "solid red medium #{unless bootstrapped then 'hidden'}"
@@ -106,13 +117,51 @@ module.exports = class AccountCredentialList extends KodingListView
             testpath : 'destroyAll'
           loader     : yes
           callback   : ->
-            callback { action : 'DestroyAll', modal }
-        cancel       :
-          title      : 'Cancel'
-          style      : 'solid light-gray medium'
+            callback { action : 'DestroyAll', modal, removeButton : view.options.buttons.Remove }
+        Remove       :
+          title      : removeButtonTitle ? 'Remove Credential'
+          style      : 'solid red medium'
+          attributes :
+            testpath : 'removeCredential'
+          loader     : yes
           callback   : ->
-            modal.destroy()
-            callback { action : 'Cancel', modal }
+            callback { action : 'Remove', modal, removeButton : view.options.buttons.Remove }
+
+    modal.addSubView view
+
+    # modal              = new KDModalView
+    #   title          : 'Remove credential'
+    #   content        : "<div class='modalformline'>#{description}</div>"
+    #   cssClass       : 'has-markdown remove-credential'
+    #   attributes     :
+    #     testpath     : if bootstrapped then 'destroyCredentialModal' else 'removeCredentialModal'
+    #   overlay        : yes
+    #   overlayOptions :
+    #     cssClass     : 'second-overlay'
+    #     overlayClick : yes
+    #   buttons        :
+    #     Remove       :
+    #       title      : removeButtonTitle ? 'Remove Credential'
+    #       style      : 'solid red medium'
+    #       attributes :
+    #         testpath : 'removeCredential'
+    #       loader     : yes
+    #       callback   : ->
+    #         callback { action : 'Remove', modal }
+    #     DestroyAll   :
+    #       title      : 'Destroy Everything'
+    #       style      : "solid red medium #{unless bootstrapped then 'hidden'}"
+    #       attributes :
+    #         testpath : 'destroyAll'
+    #       loader     : yes
+    #       callback   : ->
+    #         callback { action : 'DestroyAll', modal }
+    #     cancel       :
+    #       title      : 'Cancel'
+    #       style      : 'solid light-gray medium'
+    #       callback   : ->
+    #         modal.destroy()
+    #         callback { action : 'Cancel', modal }
 
 
   showCredentialEditModal: (options = {}) ->
