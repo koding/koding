@@ -129,40 +129,6 @@ module.exports = class AccountCredentialList extends KodingListView
 
     modal.addSubView view
 
-    # modal              = new KDModalView
-    #   title          : 'Remove credential'
-    #   content        : "<div class='modalformline'>#{description}</div>"
-    #   cssClass       : 'has-markdown remove-credential'
-    #   attributes     :
-    #     testpath     : if bootstrapped then 'destroyCredentialModal' else 'removeCredentialModal'
-    #   overlay        : yes
-    #   overlayOptions :
-    #     cssClass     : 'second-overlay'
-    #     overlayClick : yes
-    #   buttons        :
-    #     Remove       :
-    #       title      : removeButtonTitle ? 'Remove Credential'
-    #       style      : 'solid red medium'
-    #       attributes :
-    #         testpath : 'removeCredential'
-    #       loader     : yes
-    #       callback   : ->
-    #         callback { action : 'Remove', modal }
-    #     DestroyAll   :
-    #       title      : 'Destroy Everything'
-    #       style      : "solid red medium #{unless bootstrapped then 'hidden'}"
-    #       attributes :
-    #         testpath : 'destroyAll'
-    #       loader     : yes
-    #       callback   : ->
-    #         callback { action : 'DestroyAll', modal }
-    #     cancel       :
-    #       title      : 'Cancel'
-    #       style      : 'solid light-gray medium'
-    #       callback   : ->
-    #         modal.destroy()
-    #         callback { action : 'Cancel', modal }
-
 
   showCredentialEditModal: (options = {}) ->
 
