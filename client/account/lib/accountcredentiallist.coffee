@@ -1,17 +1,12 @@
-_                           = require 'lodash'
-kd                          = require 'kd'
-hljs                        = require 'highlight.js'
-
-showError                   = require 'app/util/showError'
-applyMarkdown               = require 'app/util/applyMarkdown'
-
-KDModalView                 = kd.ModalView
-KodingListView              = require 'app/kodinglist/kodinglistview'
-
-AccountCredentialListItem   = require './accountcredentiallistitem'
-AccountCredentialEditModal  = require './accountcredentialeditmodal'
-
-newModal = require 'app/components/newModal'
+_ = require 'lodash'
+kd = require 'kd'
+hljs = require 'highlight.js'
+showError = require 'app/util/showError'
+contentModal = require 'app/components/contentModal'
+applyMarkdown = require 'app/util/applyMarkdown'
+KodingListView = require 'app/kodinglist/kodinglistview'
+AccountCredentialListItem = require './accountcredentiallistitem'
+AccountCredentialEditModal = require './accountcredentialeditmodal'
 
 
 module.exports = class AccountCredentialList extends KodingListView
@@ -30,18 +25,15 @@ module.exports = class AccountCredentialList extends KodingListView
 
     { credential, cred } = options
 
-    modal = new KDModalView
+    new contentModal
       cssClass : 'NewModal'
       width : 600
       overlay : yes
-
-    view = new newModal
       title : "<h1>#{credential.title}</h1>"
       cssClass : 'has-markdown credential-modal'
       overlayOptions : { cssClass : 'second-overlay' }
       content : "<h2>#{credential.provider}</h2><p><pre><code>#{cred}</code></pre></p>"
 
-    modal.addSubView view
 
 
   askForConfirm: (options, callback) ->
@@ -88,12 +80,10 @@ module.exports = class AccountCredentialList extends KodingListView
       removeButtonTitle = 'Remove Access'
 
 
-    modal = new kd.ModalView
+    modal = new newModal
       cssClass : 'NewModal'
       width : 600
       overlay : yes
-
-    view = new newModal
       title          : 'Remove credential'
       content        : "<div class='modalformline'>#{description}</div>"
       cssClass       : 'remove-credential'
@@ -117,7 +107,7 @@ module.exports = class AccountCredentialList extends KodingListView
             testpath : 'destroyAll'
           loader     : yes
           callback   : ->
-            callback { action : 'DestroyAll', modal, removeButton : view.options.buttons.Remove }
+            callback { action : 'DestroyAll', modal }
         Remove       :
           title      : removeButtonTitle ? 'Remove Credential'
           style      : 'solid red medium'
@@ -125,9 +115,7 @@ module.exports = class AccountCredentialList extends KodingListView
             testpath : 'removeCredential'
           loader     : yes
           callback   : ->
-            callback { action : 'Remove', modal, removeButton : view.options.buttons.Remove }
-
-    modal.addSubView view
+            callback { action : 'Remove', modal }
 
 
   showCredentialEditModal: (options = {}) ->

@@ -1,13 +1,9 @@
-kd                       = require 'kd'
-KDTabView                = kd.TabView
-KDModalView              = kd.ModalView
-applyMarkdown            = require 'app/util/applyMarkdown'
-KDTabPaneView            = kd.TabPaneView
-KDCustomHTMLView         = kd.CustomHTMLView
+kd = require 'kd'
+applyMarkdown = require 'app/util/applyMarkdown'
+contentModal = require 'app/components/contentModal'
 StackTemplateEditorView  = require './editors/stacktemplateeditorview'
-newModal = require 'app/components/newModal'
 
-module.exports = class StackTemplatePreviewModal extends newModal
+module.exports = class StackTemplatePreviewModal extends contentModal
 
 
   constructor: (options = {}, data) ->
@@ -26,17 +22,17 @@ module.exports = class StackTemplatePreviewModal extends newModal
     errors   = createReportFor errors,   'errors'
     warnings = createReportFor warnings, 'warnings'
 
-    @addSubView @main = new KDCustomHTMLView
+    @addSubView @main = new kd.CustomHTMLView
       tagName : 'main'
 
-    @main.addSubView new KDCustomHTMLView
+    @main.addSubView new kd.CustomHTMLView
       cssClass : 'has-markdown'
       partial  : applyMarkdown """
         #{errors}
         #{warnings}
         """
 
-    @main.addSubView @tabView = new KDTabView { hideHandleCloseIcons : yes }
+    @main.addSubView @tabView = new kd.TabView { hideHandleCloseIcons : yes }
 
     @createYamlView()
     @createJSONView()
@@ -53,7 +49,7 @@ module.exports = class StackTemplatePreviewModal extends newModal
 
     view = @createEditorView options
 
-    @tabView.addPane yaml = new KDTabPaneView {
+    @tabView.addPane yaml = new kd.TabPaneView {
       name : 'YAML'
       view
     }
@@ -68,7 +64,7 @@ module.exports = class StackTemplatePreviewModal extends newModal
 
     view = @createEditorView options
 
-    @tabView.addPane yaml = new KDTabPaneView {
+    @tabView.addPane yaml = new kd.TabPaneView {
       name : 'JSON'
       view
     }

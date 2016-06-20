@@ -9,7 +9,7 @@ KDNotificationView          = kd.NotificationView
 KodingListController        = require 'app/kodinglist/kodinglistcontroller'
 StackTemplateListItem       = require './stacktemplatelistitem'
 StackTemplateContentModal   = require './stacktemplatecontentmodal'
-newModal = require 'app/components/newModal'
+contentModal = require 'app/components/contentModal'
 
 module.exports = class StackTemplateListController extends KodingListController
 
@@ -217,15 +217,13 @@ module.exports = class StackTemplateListController extends KodingListController
     if computeController.findStackFromTemplateId template._id
       return showError 'You currently have a stack generated from this template.'
 
-    modal = new kd.ModalView
-      cssClass : 'NewModal'
+    modal = new contentModal
+      cssClass : 'ContentModal'
       width : 400
       overlay : yes
-
-    view = new newModal
-      title       : 'Are you sure?'
-      description : 'Do you want to delete this stack template?'
-      callback    : ({ status, modal }) ->
+      title : 'Are you sure?'
+      content : 'Do you want to delete this stack template?'
+      callback : ({ status, modal }) ->
         return  unless status
         template.delete (err) ->
 

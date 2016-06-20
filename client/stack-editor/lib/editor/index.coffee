@@ -27,7 +27,7 @@ CredentialStatusView = require 'stacks/views/stacks/credentialstatusview'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 StackTemplatePreviewModal = require 'stacks/views/stacks/stacktemplatepreviewmodal'
 EnvironmentFlux = require 'app/flux/environment'
-newModal = require 'app/components/newModal'
+contentModal = require 'app/components/contentModal'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -740,7 +740,7 @@ module.exports = class StackEditorView extends kd.View
             errors[type].push field
 
       modal = new kd.ModalView
-        cssClass : 'NewModal'
+        cssClass : 'ContentModal'
         width : 600
         overlay : yes
 
@@ -860,12 +860,10 @@ module.exports = class StackEditorView extends kd.View
           Do you still want to delete this stack template?</p>
         '''
 
-      modal = new kd.ModalView
-        cssClass : 'NewModal'
+      modal = new contentModal
+        cssClass : 'ContentModal'
         width : 400
         overlay : yes
-
-      view = new newModal
         cssClass       : 'delete-stack-template'
         title   : title
         content : description
@@ -881,8 +879,5 @@ module.exports = class StackEditorView extends kd.View
             cssClass  : 'kdbutton solid red medium'
             callback  : -> callback { status : yes, modal }
 
-      # modal = kd.ModalView.confirm
-
       modal.setAttribute 'testpath', 'RemoveStackModal'
 
-      modal.addSubView view
