@@ -135,7 +135,7 @@ AvatarView = ({ member, role }) ->
     </div>
 
 
-MemberRole = ({ role, canEdit, showPointer = no }) ->
+MemberRole = ({ role, canEdit, showPointer }) ->
 
   className = 'role'
   className = 'role showPointer'  if showPointer

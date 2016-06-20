@@ -19,7 +19,6 @@ module.exports = class StackBaseEditorTabView extends KDView
       isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
       return  if isMine
       @setClass 'isntMine'
-      @editorView.once 'EditorReady', =>
-        @editorView.aceView.ace.editor.setReadOnly yes
+      @editorView?.aceView.ace.editor.setReadOnly yes
 
     @on 'FocusToEditor', => @editorView?.setFocus yes

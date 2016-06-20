@@ -104,6 +104,12 @@ func (l *LifeCycle) Configure(name string) error {
 // Listen listens for messages that are put into lifecycle queues
 func (l *LifeCycle) Listen(recordManager *RecordManager) error {
 	f := l.newProcessFunc(recordManager)
+	// run for the first time to fix/update existing record set.
+	eventName := "init proxy manager"
+	if err := f(&eventName); err != nil {
+		return err
+	}
+
 	for {
 		select {
 		case c := <-l.closeChan:

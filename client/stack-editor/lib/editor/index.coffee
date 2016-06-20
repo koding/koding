@@ -57,7 +57,7 @@ module.exports = class StackEditorView extends kd.View
         @tabView.setClass 'StackEditorTabs isntMine'
         @warningView.show()
         @secondaryActions.hide()
-        @saveButton.hide()
+        @saveButton.setClass 'isntMine'
         @inputTitle.setClass 'template-title isntMine'
 
 

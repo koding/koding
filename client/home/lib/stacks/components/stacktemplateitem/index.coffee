@@ -19,6 +19,8 @@ module.exports = class StackTemplateItem extends React.Component
 
     { template, stack, onOpen } = @props
 
+    return null  unless template
+
     editorUrl = "/Stack-Editor/#{template.get '_id'}"
 
     <div className='HomeAppViewListItem StackTemplateItem'>
