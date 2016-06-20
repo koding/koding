@@ -26,7 +26,6 @@ module.exports = class AccountCredentialList extends KodingListView
     { credential, cred } = options
 
     new contentModal
-      cssClass : 'NewModal'
       width : 600
       overlay : yes
       title : "<h1>#{credential.title}</h1>"
@@ -80,8 +79,7 @@ module.exports = class AccountCredentialList extends KodingListView
       removeButtonTitle = 'Remove Access'
 
 
-    modal = new newModal
-      cssClass : 'NewModal'
+    modal = new contentModal
       width : 600
       overlay : yes
       title          : 'Remove credential'
@@ -89,7 +87,6 @@ module.exports = class AccountCredentialList extends KodingListView
       cssClass       : 'remove-credential'
       attributes     :
         testpath     : if bootstrapped then 'destroyCredentialModal' else 'removeCredentialModal'
-      overlay        : yes
       overlayOptions :
         cssClass     : 'second-overlay'
         overlayClick : yes

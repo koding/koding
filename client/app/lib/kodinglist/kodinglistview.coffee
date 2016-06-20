@@ -18,7 +18,6 @@ module.exports = class KodingListView extends kd.ListView
       return kd.warn 'You should pass title or description for confirm modal'
 
     modal = new contentModal
-      cssClass : 'NewModal'
       width : 400
       overlay : yes
       cssClass : 'askForConfirm'
