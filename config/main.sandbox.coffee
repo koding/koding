@@ -26,6 +26,8 @@ Configuration = (options = {}) ->
   options.build or= "1111"
   options.tunnelHostedZoneName = "dev-t.koding.com"
   options.tunnelHostedZoneCallerRef = "devtunnelproxy_hosted_zone_v0"
+  options.tunnelserverHostedZone or= "dev.koding.me"
+  options.tunnelserverBasevirtualHost or= "dev.koding.me"
   options.tunnelUrl or= "http://devtunnelproxy.koding.com"
   options.userSitesDomain or= "sandbox.koding.io"
   options.defaultEmail or= "hello@#{options.domains.mail}"

@@ -34,7 +34,7 @@
           "devmanaged",
           "sandbox"
         ],
-        "url": "https://dev-p.koding.com/-/ip"
+        "url": "https://dev-p2.koding.com/-/ip"
       }
     ],
     "ipcheck": [
@@ -51,7 +51,7 @@
           "devmanaged",
           "sandbox"
         ],
-        "url": "https://dev-p.koding.com/-/ipcheck"
+        "url": "https://dev-p2.koding.com/-/ipcheck"
       }
     ]
   }
