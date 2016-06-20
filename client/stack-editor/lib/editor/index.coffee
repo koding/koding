@@ -832,8 +832,8 @@ module.exports = class StackEditorView extends kd.View
     if computeController.findStackFromTemplateId template._id
       return showError 'You currently have a stack generated from this template.'
 
-    title       = 'Remove stack template ?'
-    description = 'Do you want to remove this stack template ?'
+    title       = 'Are you sure?'
+    description = 'Do you want to delete this stack template?'
     callback    = ({ status, modal }) ->
       return  unless status
 
@@ -851,8 +851,8 @@ module.exports = class StackEditorView extends kd.View
 
       if result
         description = '''
-          There is a stack generated from this template by another team member. Removing it can break their stack.
-          Do you still want to remove this stack template ?
+          There is a stack generated from this template by another team member. Deleting it can break their stack.
+          Do you still want to delete this stack template?
         '''
 
       modal = kd.ModalView.confirm

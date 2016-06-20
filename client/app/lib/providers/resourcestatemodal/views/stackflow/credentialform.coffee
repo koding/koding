@@ -1,5 +1,6 @@
 kd = require 'kd'
 JView = require 'app/jview'
+showError = require 'app/util/showError'
 
 module.exports = class CredentialForm extends JView
 
@@ -32,7 +33,31 @@ module.exports = class CredentialForm extends JView
       selectOptions
       defaultValue
       label : @selectionLabel
+      callback : (selection) =>
+        if selection
+        then @showLink.show()
+        else @showLink.hide()
     }
+
+    { ui } = kd.singletons.computeController
+
+    @showLink  = new kd.CustomHTMLView
+      tagName  : 'a'
+      cssClass : "show-link #{unless selectedItem then 'hidden' else ''}"
+      click    : =>
+
+        selectedItem = @selection.getValue()
+        return  if not selectedItem or @showLink.hasClass 'loading'
+
+        @showLink.setClass 'loading'
+
+        for item in items when item.identifier is selectedItem
+          ui.showCredentialDetails {
+            credential : item
+            cssClass   : 'resources'
+          }, @showLink.lazyBound 'unsetClass', 'loading'
+
+          break
 
     @createNew = new kd.CustomHTMLView
       tagName  : 'a'
@@ -40,7 +65,6 @@ module.exports = class CredentialForm extends JView
       partial  : '<span class="plus">+</span> Create New'
       click    : @bound 'onCreateNew'
 
-    { ui } = kd.singletons.computeController
     @form  = ui.generateAddCredentialFormFor {
       provider
       requiredFields : fields
@@ -128,6 +152,7 @@ module.exports = class CredentialForm extends JView
       {{> @header}}
       <div class='selection-container'>
         {{> @selectionLabel}}
+        {{> @showLink}}
         {{> @selection}}
         {{> @createNew}}
       </div>

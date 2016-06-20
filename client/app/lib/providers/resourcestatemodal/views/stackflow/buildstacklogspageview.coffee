@@ -13,7 +13,7 @@ module.exports = class BuildStackLogsPageView extends JView
     @progressPane = new WizardProgressPane
       currentStep : WizardSteps.BuildStack
 
-    @closeButton = new kd.ButtonView
+    @startCodingButton = new kd.ButtonView
       title    : 'Start Coding'
       cssClass : 'GenericButton'
       callback : @lazyBound 'emit', 'ClosingRequested'
@@ -50,7 +50,7 @@ module.exports = class BuildStackLogsPageView extends JView
           {{> @logsContainer}}
         </section>
         <footer>
-          {{> @closeButton}}
+          {{> @startCodingButton}}
         </footer>
       </div>
     '''

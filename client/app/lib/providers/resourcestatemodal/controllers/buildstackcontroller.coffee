@@ -26,7 +26,7 @@ module.exports = class BuildStackController extends kd.Controller
     @forwardEvent @errorPage, 'CredentialsRequested'
     @errorPage.on 'RebuildRequested', =>
       @buildStackPage.reset()
-      @emit 'RebuildRequested'
+      @emit 'RebuildRequested', stack
     @forwardEvent @successPage, 'ClosingRequested'
     @successPage.on 'LogsRequested', @bound 'showLogs'
     @forwardEvent @logsPage, 'ClosingRequested'

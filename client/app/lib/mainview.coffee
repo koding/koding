@@ -119,7 +119,7 @@ module.exports = class MainView extends kd.View
         partial    : '<figure></figure>'
         click      : (event) -> kd.utils.stopDOMEvent event
     else
-      @logoWrapper.addSubView new TeamName {}, getGroup()
+      @logoWrapper.addSubView @teamname = new TeamName {}, getGroup()
 
     @logoWrapper.addSubView closeHandle = new kd.CustomHTMLView
       cssClass : 'sidebar-close-handle'
@@ -210,34 +210,44 @@ module.exports = class MainView extends kd.View
     @toggleSidebar()
 
 
-  getClassNames: (logo) -> classnames
-    'team-logo' : yes
-    'default' : logo is DEAFULT_TEAM_LOGO
-
   createTeamLogo: ->
 
-    logo = '/a/images/logos/default_team_logo.svg'
+    logo = ''
 
     { groupsController } = kd.singletons
-    team = groupsController?.getCurrentGroup()
+    team = groupsController.getCurrentGroup()
 
     if team.customize
       logo = team.customize.logo
 
-    className = @getClassNames logo
-
     @teamLogoWrapper.addSubView @teamLogo = new kd.CustomHTMLView
       tagName : 'img'
-      cssClass : className
+      cssClass : ''
       attributes :
         src : "#{logo}"
 
+    unless logo
+      @teamLogoWrapper.hide()
+      @teamname.setClass 'no-logo'
+    else
+      @teamLogo.setClass 'team-logo'
+      @teamLogoWrapper.show()
+      @teamname.unsetClass 'no-logo'
+
     groupsController.on 'TEAM_DATA_TO_UPDATE', (dataToUpdate) =>
       logo = dataToUpdate.customize?.logo
-      if logo
+
+      @teamLogo.setAttribute 'class', ''
+
+      unless logo
+        @teamLogo.setAttribute 'src', ''
+        @teamname.setClass 'no-logo'
+        @teamLogoWrapper.hide()
+      else
         @teamLogo.setAttribute 'src', logo
-        @teamLogo.setAttribute 'class', ''
-        @teamLogo.setClass @getClassNames logo
+        @teamLogo.setClass 'team-logo'
+        @teamLogoWrapper.show()
+        @teamname.unsetClass 'no-logo'
 
   createAccountArea: ->
 
@@ -412,3 +422,7 @@ module.exports = class MainView extends kd.View
 
     body.style.background = '#000'
     @setClass 'logout-tv'
+
+getClassNames = (logo) -> classnames
+  'team-logo' : yes
+  'default' : logo is DEAFULT_TEAM_LOGO
