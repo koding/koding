@@ -32,7 +32,7 @@ module.exports = class Proxifier
 
     # subdomain is for different proxy environments
     # one for development the other for production
-    subdomain = if isInProduction then 'p' else 'dev-p'
+    subdomain = if isInProduction then 'p' else 'dev-p2'
 
     # create the base url
     baseURL = "#{protocol}//#{subdomain}.#{globals.config.domains.base}/-"
