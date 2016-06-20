@@ -50,10 +50,16 @@ module.exports = class AccountSessionListItem extends KDListItemView
 
     lastAccess = lastLoginDate or lastAccess
 
+    @session = new kd.CustomHTMLView
+      tagName: 'p'
+      cssClass: "group-name#{activeSession}"
+      partial:"#{group}"
+      tooltip: { title : 'Active Session!', placement: 'left' }  if activeSession
+
     """
     <div class="session-item">
       <div class="session-info">
-        <p class="group-name#{activeSession}">#{group}</p>
+        {{> @session}}
         <p class="last-access">Last access: #{timeago lastAccess}</p>
       </div>
       {div.delete-button{> @deleteButton }}
