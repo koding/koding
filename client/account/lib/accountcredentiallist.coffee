@@ -69,7 +69,7 @@ module.exports = class AccountCredentialList extends KodingListView
         to stop working properly, please make sure that you don't have any
         stack or stack templates that depend on this credential.
         \n\n
-        Do you want to remove **#{credential.title}** ?
+        Do you want to remove **#{credential.title}**?
       "
 
     unless credential.owner
