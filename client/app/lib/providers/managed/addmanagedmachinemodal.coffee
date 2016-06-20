@@ -5,16 +5,15 @@ actions         = require 'app/flux/environment/actions'
 KodingKontrol   = require 'app/kite/kodingkontrol'
 isTeamReactSide = require 'app/util/isTeamReactSide'
 CopyTooltipView = require 'app/components/common/copytooltipview'
+contentModal = require 'app/components/contentModal'
 
-
-module.exports = class AddManagedMachineModal extends kd.ModalView
+module.exports = class AddManagedMachineModal extends contentModal
 
   constructor: (options = {}, data) ->
 
     options.cssClass = 'add-managed-vm'
     options.title    = 'Add Your Own Machine'
-    options.width    = 690
-    options.height   = 310
+    options.width    = 720
     options.overlay  = yes
 
     super options, data
@@ -25,11 +24,14 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   createElements: ->
 
-    @addSubView new kd.CustomHTMLView
+    @addSubView @main = new kd.CustomHTMLView
+      tagName : 'main'
+
+    @main.addSubView new kd.CustomHTMLView
       cssClass: 'bg'
       partial : '<div class="extra"></div>'
 
-    @addSubView @content = new kd.CustomHTMLView
+    @main.addSubView @content = new kd.CustomHTMLView
       tagName: 'section'
       partial: """
         <p>Run the command below to connect your Ubuntu machine to Koding. Please note:</p>
@@ -43,7 +45,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
         </span>
       """
 
-    @addSubView @code = new kd.CustomHTMLView
+    @main.addSubView @code = new kd.CustomHTMLView
       tagName  : 'div'
       cssClass : 'code'
 
@@ -116,7 +118,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     computeController.managedKiteChecker.addListener @bound 'machineFoundCallback'
 
     kd.utils.wait 20000, =>
-      @addSubView new kd.LoaderView { showLoader: yes, size: { width: 26 } }
+      @main.addSubView new kd.LoaderView { showLoader: yes, size: { width: 26 } }
       @setClass 'polling'
 
 
