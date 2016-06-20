@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/koding/kite/kitekey"
 )
 
 var (
@@ -35,20 +36,27 @@ func (k *Key) Create(username, kiteId string) (string, error) {
 		return "", ErrSignPrivateKeyEmpty
 	}
 
+	rsaKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(k.KontrolPrivateKey))
+	if err != nil {
+		return "", err
+	}
+
 	if k.KontrolPublicKey == "" {
 		return "", ErrSignPublicKeyEmpty
 	}
 
-	token := jwt.New(jwt.GetSigningMethod("RS256"))
-
-	token.Claims = map[string]interface{}{
-		"iss":        "koding",                              // Issuer, should be the same username as kontrol
-		"sub":        username,                              // Subject
-		"iat":        time.Now().UTC().Unix(),               // Issued At
-		"jti":        kiteId,                                // JWT ID
-		"kontrolURL": k.KontrolURL,                          // Kontrol URL
-		"kontrolKey": strings.TrimSpace(k.KontrolPublicKey), // Public key of kontrol
+	claims := &kitekey.KiteClaims{
+		StandardClaims: jwt.StandardClaims{
+			Issuer:   "koding",
+			Subject:  username,
+			IssuedAt: time.Now().UTC().Unix(),
+			Id:       kiteId,
+		},
+		KontrolURL: k.KontrolURL,
+		KontrolKey: strings.TrimSpace(k.KontrolPublicKey),
 	}
 
-	return token.SignedString([]byte(k.KontrolPrivateKey))
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("RS256"), claims)
+
+	return token.SignedString(rsaKey)
 }
