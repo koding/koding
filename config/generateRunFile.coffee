@@ -370,10 +370,14 @@ generateDev = (KONFIG, options) ->
         command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
       fi
 
+      set -o errexit
+
       scripts/check-node-version.sh
       scripts/check-npm-version.sh
       scripts/check-gulp-version.sh
       scripts/check-go-version.sh
+
+      set +o errexit
     }
 
     function build_services () {
