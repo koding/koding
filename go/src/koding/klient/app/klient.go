@@ -37,6 +37,7 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
+	kiteproto "github.com/koding/kite/protocol"
 	"github.com/koding/kite/sockjsclient"
 )
 
@@ -619,6 +620,7 @@ func newKite(kconf *KlientConfig) *kite.Kite {
 	k.Config.Port = kconf.Port
 	k.Config.Environment = kconf.Environment
 	k.Config.Region = kconf.Region
+	k.Config.VerifyAudiencefunc = verifyAudience
 	k.Id = conf.Id // always boot up with the same id in the kite.key
 	// Set klient to use XHR Polling, since Prod Koding only supports XHR
 	k.Config.Transport = config.XHRPolling
@@ -686,4 +688,74 @@ func userIn(user string, users ...string) bool {
 		}
 	}
 	return false
+}
+
+// TODO(rjeczalik): move to koding/config
+var (
+	prodEnvs = map[string]struct{}{
+		"managed":    {},
+		"production": {},
+	}
+	devEnvs = map[string]struct{}{
+		"devmanaged":  {},
+		"development": {},
+	}
+	kiteNames = map[string]struct{}{
+		"kd":     {},
+		"klient": {},
+	}
+)
+
+func match(allowed map[string]struct{}, values ...string) bool {
+	for _, v := range values {
+		if _, ok := allowed[v]; !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
+func verifyAudience(kite *kiteproto.Kite, audience string) error {
+	// The root audience is like superuser - it has access to everything.
+	if audience == "/" {
+		return nil
+	}
+
+	aud, err := kiteproto.KiteFromString(audience)
+	if err != nil {
+		return fmt.Errorf("invalid audience: %s", err)
+	}
+
+	if kite.Username != aud.Username {
+		return fmt.Errorf("audience: username %q not allowed", aud.Username)
+	}
+
+	// Verify environment - managed environment means production klient
+	// running on a user's laptop; devmanaged is for development/sandobx
+	// environments.
+	//
+	// TODO(rjeczalik): klient should always have development/production
+	// values for the environment fields - the managed flag should be
+	// set elsewhere; it'd also make the deployment process easier
+	// (2 delivery channels instead of 4).
+	switch {
+	case kite.Environment == aud.Environment:
+		// ok - environment matches
+	case match(prodEnvs, kite.Environment, aud.Environment):
+		// ok - either remote or local is managed kite from development channel
+	case match(devEnvs, kite.Environment, aud.Environment):
+		// ok - either remote or local is managed kite from development channel
+	default:
+		return fmt.Errorf("audience: environment %q not allowed", aud.Environment)
+	}
+
+	switch {
+	case kite.Name == aud.Name:
+	case match(kiteNames, kite.Name, aud.Name):
+	default:
+		return fmt.Errorf("audience: kite %q not allowed", aud.Name)
+	}
+
+	return nil
 }
