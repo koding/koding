@@ -214,17 +214,21 @@ Home My Account styles
 
   &.sessions
     .session-info
-      width                 450px
+      width                 490px
       fl()
 
       p
-        margin              20px 0 0 40px
+        margin              20px 0 0 30px
         fl()
-        width               190px
+        &.last-access
+          text-align        left
+          font-size         13px
+          width             190px
+          font-style        italic
 
         &:first-child
           margin-left       0
-          width             220px
+          width             270px
           ellipsis()
 
         &.active
@@ -238,7 +242,7 @@ Home My Account styles
         bg                  color, transparent
 
       .button-title
-        color               #9f9f9f !important
+        color               #769ecc
 
   .HomeAppView--account-avatarArea-links
     clear                   both
