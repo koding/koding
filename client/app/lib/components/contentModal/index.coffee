@@ -1,12 +1,18 @@
+_ = require 'lodash'
 kd = require 'kd'
 
-module.exports = class NewModalView extends kd.View
+module.exports = class ContentModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass ?= 'new-modal'
+    contentAttrs = ['title', 'content', 'cssClass', 'buttons']
 
-    super options, data
+    modalOptions = _.omit options, contentAttrs
+    @contentOptions = _.pick options, contentAttrs
+
+    modalOptions.cssClass = 'ContentModal'
+
+    super modalOptions, data
 
     @createHeader()
     @createBody()
@@ -15,8 +21,7 @@ module.exports = class NewModalView extends kd.View
 
   createHeader: ->
 
-    { title, cssClass } = @getOptions()
-
+    { title, cssClass } = @contentOptions
     @setClass cssClass
 
 
@@ -27,7 +32,7 @@ module.exports = class NewModalView extends kd.View
 
   createBody: ->
 
-    { content } = @getOptions()
+    { content } = @contentOptions
 
     @addSubView main = new kd.CustomHTMLView
       tagName : 'main'
@@ -36,8 +41,7 @@ module.exports = class NewModalView extends kd.View
 
   createFooter: ->
 
-    { buttons } = @getOptions()
-    console.log {buttons}
+    { buttons } = @contentOptions
 
     if buttons
       @addSubView @footer = new kd.CustomHTMLView

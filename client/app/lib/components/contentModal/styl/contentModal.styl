@@ -2,10 +2,10 @@
 /*
 Modal styles
 -----------------------------
-newModal.styl
+contentModal.styl
 */
 }
-.NewModal
+.ContentModal
   font-family               SoleilFamily
   overflow                  hidden
   rounded                   6px
@@ -24,12 +24,21 @@ newModal.styl
       top                   20px
       right                 20px
 
+  &.has-markdown
+    h1
+      padding               0
 
-  .remove-credential
-  .delete-stack-template
-  .stack-template-preview
-  .credential-modal
-  .askForConfirm
+  &.remove-credential
+  &.delete-stack-template
+  &.stack-template-preview
+  &.credential-modal
+  &.askForConfirm
+  &.readme-preview
+  &.add-managed-vm
+
+    .kdmodal-content
+      height                405px
+
     header
       height                60px
       border-bottom         1px solid #DEDBDB
@@ -106,3 +115,11 @@ newModal.styl
           border-radius     4px
           span
             color             #5E5E5E
+
+    section span
+      width                   360px
+      bottom                  22px
+
+    .kdloader
+      top                     184px
+      left                    144px
