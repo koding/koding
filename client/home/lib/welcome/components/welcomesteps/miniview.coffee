@@ -10,7 +10,7 @@ module.exports = class WelcomeStepsMiniView extends React.Component
         @props.steps.map (step, i) ->
           step = step.toJS()
           <li key={ step.order } className={ if step.starred then 'starred' else ''}>
-            <cite className=''>{ i + 1 }</cite>
+            <cite className={if step.isDone then 'done' else ''}>{ i + 1 }</cite>
             <a href={ step.path } dangerouslySetInnerHTML={ { __html : step.miniTitle or step.title } } />
           </li>
       }

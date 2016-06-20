@@ -64,6 +64,14 @@ section.WelcomeSteps-miniview ul li
     text-align              center
     size                    24px 24px
     display                 inline-block
+    rel()
+    &.done
+      bg                    color, rgba(115, 196, 97,.25)
+      color                 transparent
+      &:after
+        content             ''
+        r-sprite            home step_done
+        abs                 8px 0 0 7px
   a
     font-size               12px
     color                   #979797
