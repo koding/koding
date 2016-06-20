@@ -1,4 +1,4 @@
-kd                    = require 'kd'
+kd = require 'kd'
 
 module.exports = class NewModalView extends kd.View
 
@@ -44,8 +44,6 @@ module.exports = class NewModalView extends kd.View
         tagName : 'footer'
 
       Object.keys(buttons).forEach (key) =>
-        console.log {key}
-        console.log buttons[key]
         button = new kd.ButtonView buttons[key]
         if buttons[key].title is 'Cancel' or buttons[key].title is 'No'
           button.setClass 'cancel'
