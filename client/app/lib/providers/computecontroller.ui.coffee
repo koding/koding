@@ -528,6 +528,38 @@ module.exports = class ComputeControllerUI
       showInlineInformation provisioner, modal
 
 
+  @showCredentialDetails = (options = {}, callback = kd.noop) ->
+
+    { credential, cssClass } = options
+
+    unless credential
+      kd.warn 'No credential passed'
+      return callback null
+
+    credential.fetchData (err, data) ->
+      return callback err  if showError err
+
+      { meta } = data
+
+      delete meta.__rawContent
+      meta = _.mapValues meta, (val) -> _.unescape val
+      meta.identifier = credential.identifier
+
+      cred = JSON.stringify meta, null, 2
+      cred = hljs.highlight('json', cred).value
+
+      new kd.ModalView
+        title : credential.title
+        subtitle : credential.provider
+        cssClass : kd.utils.curry 'has-markdown credential-modal', cssClass
+        overlay : yes
+        overlayOptions :
+          cssClass : 'second-overlay'
+        content : "<pre><code>#{cred}</code></pre>"
+
+      callback data
+
+
   @showComputeError = (options) ->
 
     { stack, errorMessage, title, subtitle, cssClass, message } = options

@@ -4,6 +4,7 @@ async   = require 'async'
 whoami  = require 'app/util/whoami'
 globals = require 'globals'
 remote  = require('app/remote').getInstance()
+showError = require 'app/util/showError'
 KodingKontrol = require 'app/kite/kodingkontrol'
 CredentialsPageView = require '../views/stackflow/credentialspageview'
 CredentialsErrorPageView = require '../views/stackflow/credentialserrorpageview'
@@ -21,7 +22,7 @@ module.exports = class CredentialsController extends kd.Controller
     }
 
     async.parallel queue, (err, results) =>
-      return showError err  if err
+      return  if showError err
 
       { credentials, requirements, kdCmd } = results
       @setup credentials, requirements, kdCmd
@@ -38,6 +39,10 @@ module.exports = class CredentialsController extends kd.Controller
       requirements
     }
     @errorPage = new CredentialsErrorPageView()
+
+    @_credentials = {}
+    credentials.items?.map (item) =>
+      @_credentials[item.identifier] = item
 
     @forwardEvent @credentialsPage, 'InstructionsRequested'
     @credentialsPage.on 'Submitted', @bound 'onSubmitted'
@@ -68,22 +73,33 @@ module.exports = class CredentialsController extends kd.Controller
 
   handleSubmitResult: (err, identifiers) ->
 
-    if err
-      @showError err
-    else
-      @emit 'StartBuild', identifiers
+    unless @showError err
+
+      stackTemplate = @getData()
+
+      if stackTemplate.credentials.custom?.length > 0
+        identifiers.push { custom: stackTemplate.credentials.custom }
+
+      credentials = {}
+      identifiers.map (identifier) ->
+        for own provider, credential of identifier
+          credentials[provider] = credential
+
+      @emit 'StartBuild', credentials
 
     @credentialsPage.buildButton.hideLoader()
 
 
   handleSubmittedCredential: (submissionData, callback) ->
 
+    { computeController } = kd.singletons
     { provider, selectedItem, newData } = submissionData
     { CREDENTIAL_VERIFICATION_TIMEOUT } = constants
 
     pendingCredential = null
 
     queue = [
+
       (next) ->
         return next null, selectedItem  if selectedItem
 
@@ -95,7 +111,6 @@ module.exports = class CredentialsController extends kd.Controller
 
       (identifier, next) =>
 
-        { computeController } = kd.singletons
         computeController.getKloud()
           .checkCredential { provider, identifiers : [identifier] }
           .then (response) =>
@@ -103,28 +118,55 @@ module.exports = class CredentialsController extends kd.Controller
             next err, identifier
           .catch (err) -> next err.message
           .timeout constants.CREDENTIAL_VERIFICATION_TIMEOUT
+
+      (identifier, next) =>
+
+        credential = pendingCredential ? @_credentials[identifier]
+        next null, identifier  unless credential
+
+        credential.isBootstrapped (err, state) ->
+          return next err  if err
+          return next null, identifier  if state  # already bootstrapped
+
+          computeController.getKloud()
+            .bootstrap { identifiers: [ identifier ] }
+            .then (response) -> next null, identifier
+            .catch (err) -> next err.message
+            .timeout constants.CREDENTIAL_BOOTSTRAP_TIMEOUT
+
     ]
 
     async.waterfall queue, (err, identifier) =>
+
       if err
-        pendingCredential.delete()  if pendingCredential
+        pendingCredential?.delete()
         callback err
+
       else
-        @credentialsPage.selectNewCredential pendingCredential  if pendingCredential
-        callback null, identifier
+
+        if pendingCredential
+          @credentialsPage.selectNewCredential pendingCredential
+
+        response = {}
+        response[provider] = [ identifier ]
+
+        callback null, response
 
 
   handleSubmittedRequirements: (submissionData, callback) ->
 
     { provider, selectedItem, newData } = submissionData
 
-    return callback null, selectedItem  if selectedItem
+    kallback = (identifier) ->
+      callback null, { userInput: [ identifier ] }
+
+    return kallback selectedItem  if selectedItem
 
     helpers.createNewCredential provider, newData, (err, newCredential) =>
       return callback err.message  if err
 
       @credentialsPage.selectNewRequirements newCredential
-      callback null, newCredential.identifier
+      kallback newCredential.identifier
 
 
   checkVerificationResult: (identifier, response) ->
@@ -149,9 +191,13 @@ module.exports = class CredentialsController extends kd.Controller
 
   showError: (err) ->
 
+    return no  unless err
+
     { container } = @getOptions()
     container.showPage @errorPage
     @errorPage.setErrors [ err ]
+
+    return err
 
 
   helpers =

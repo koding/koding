@@ -59,7 +59,12 @@ module.exports = class StackFlowController extends kd.Controller
     @credentials.on 'InstructionsRequested', => @instructions.show()
     @credentials.on 'StartBuild', @bound 'startBuild'
     @buildStack.on 'CredentialsRequested', => @credentials.show()
-    @buildStack.on 'RebuildRequested', => @credentials.submit()
+
+    @buildStack.on 'RebuildRequested', (stack) =>
+      stack.status.state = 'NotInitialized'
+      @credentials.setData stack
+      @credentials.submit()
+
     @forwardEvent @buildStack, 'ClosingRequested'
 
 
@@ -104,8 +109,8 @@ module.exports = class StackFlowController extends kd.Controller
         error   : 'Stack building is not allowed for disabled users\' stacks.'
         eventId : stack._id
 
-    { computeController } = kd.singletons
-    computeController.buildStack stack, identifiers
+    kd.singletons.computeController.buildStack stack, identifiers
+
     @updateStatus
       status     : 'Building'
       percentage : constants.INITIAL_PROGRESS_VALUE

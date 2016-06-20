@@ -8,7 +8,7 @@ lazyrouter     = require './lazyrouter'
 isKoding       = require './util/isKoding'
 whoami         = require './util/whoami'
 nick           = require './util/nick'
-
+showError      = require 'app/util/showError'
 EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MachineSettingsModal    = require 'app/providers/machinesettingsmodal'
 

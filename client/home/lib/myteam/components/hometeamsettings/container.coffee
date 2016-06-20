@@ -5,7 +5,6 @@ KDReactorMixin  = require 'app/flux/base/reactormixin'
 View            = require './view'
 Encoder         = require 'htmlencode'
 showError       = require 'app/util/showError'
-DEFAULT_LOGOPATH = '/a/images/logos/default_team_logo.svg'
 
 notify = (title, duration = 5000) -> new kd.NotificationView { title, duration }
 
@@ -36,8 +35,8 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
   onUploadInput: ->
 
-
     [file] = @refs.view.input.files
+
     return  unless file
     @setState { loading: yes }
     reader = new FileReader
@@ -46,6 +45,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       name = "#{@state.team.get 'slug'}-logo-#{Date.now()}.png"
       mimeType = file.type
       content = file
+
       TeamFlux.actions.uploads3({ name, content, mimeType })
       .then ({ url }) =>
         dataToUpdate =
@@ -66,7 +66,9 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
   onClickLogo: -> @refs.view.input.click()
 
 
-  onRemoveLogo: -> @updateTeam { dataToUpdate: customize: { logo: DEFAULT_LOGOPATH } }
+  onRemoveLogo: ->
+    @refs.view.input.value = null
+    @updateTeam { dataToUpdate: customize: { logo: '' } }
 
 
   onUpdate: ->
@@ -118,7 +120,6 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       teamNameChanged={@state.teamNameChanged}
       canEdit={@state.canEdit}
       loading={@state.loading}
-      logopath={DEFAULT_LOGOPATH}
       onUploadInput={@bound 'onUploadInput'}
       onClickLogo={@bound 'onClickLogo'}
       onRemoveLogo={@bound 'onRemoveLogo'}
