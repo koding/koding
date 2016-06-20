@@ -9,55 +9,6 @@ generateDev = (KONFIG, options) ->
 
   options.requirementCommands ?= []
 
-  killlist = ->
-    str = 'kill -KILL '
-    for key, worker of KONFIG.workers
-      unless isAllowed worker.group, KONFIG.ebEnvName
-        continue
-
-      str += "$#{key}pid "
-
-    return str
-
-  workerList = (separator = ' ') ->
-    (key for key, val of KONFIG.workers).join separator
-
-  workersRunList = ->
-    workers = ''
-    for name, worker of KONFIG.workers when worker.supervisord
-      # some of the locations can be limited to some environments, while creating
-      # nginx locations filter with this info
-      unless isAllowed worker.group, KONFIG.ebEnvName
-        continue
-
-      { command } = worker.supervisord
-
-      if typeof command is 'object'
-        { run, watch } = command
-        command = if options.runGoWatcher then watch else run
-
-      workers += """
-
-      function worker_daemon_#{name} {
-
-        #------------- worker: #{name} -------------#
-        #{command} &>$KONFIG_PROJECTROOT/.logs/#{name}.log &
-        #{name}pid=$!
-        echo [#{name}] started with pid: $#{name}pid
-
-
-      }
-
-      function worker_#{name} {
-
-        #------------- worker: #{name} -------------#
-        #{command}
-
-      }
-
-      """
-    return workers
-
   installScript = """
       pushd $KONFIG_PROJECTROOT
       git submodule update --init
@@ -109,26 +60,12 @@ generateDev = (KONFIG, options) ->
     NGINX_CONF="$KONFIG_PROJECTROOT/.dev.nginx.conf"
     NGINX_PID="$KONFIG_PROJECTROOT/.dev.nginx.pid"
 
-    trap ctrl_c INT
-
     #{options.requirementCommands?.join "\n"}
 
+    trap ctrl_c INT
+
     function ctrl_c () {
-      echo "ctrl_c detected. killing all processes..."
-      kill_all
-    }
-
-    function kill_all () {
-      #{killlist()}
-
-      echo "killing hung processes"
-      # there is race condition, that killlist() can not kill all process
-      sleep 3
-
-
-      # both of them are  required
-      ps aux | grep koding | grep -v cmd.coffee | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
-      pkill -9 koding-
+      supervisorctl shutdown
     }
 
     function nginxstop () {
@@ -219,29 +156,12 @@ generateDev = (KONFIG, options) ->
       # Sanitize email addresses
       node $KONFIG_PROJECTROOT/scripts/sanitize-email
 
-      # Run all the worker daemons in KONFIG.workers
-      #{("worker_daemon_"+key+"\n" for key, val of KONFIG.workers when val.supervisord).join(" ")}
-
-      # Check backend option, if it's then bypass client build
-      if [ "$1" == "backend" ] ; then
-
-        echo
-        echo '---------------------------------------------------------------'
-        echo '>>> CLIENT BUILD DISABLED! DO "make -C client" MANUALLY <<<'
-        echo '---------------------------------------------------------------'
-        echo
-
-      else
-        make -C $KONFIG_PROJECTROOT/client
-      fi
+      supervisord && sleep 1
 
       # Show the all logs of workers
       tail -fq ./.logs/*.log
 
     }
-
-    #{workersRunList()}
-
 
     function printHelp (){
 
@@ -370,10 +290,15 @@ generateDev = (KONFIG, options) ->
         command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
       fi
 
+      set -o errexit
+
       scripts/check-node-version.sh
       scripts/check-npm-version.sh
       scripts/check-gulp-version.sh
       scripts/check-go-version.sh
+      scripts/check-supervisor.sh
+
+      set +o errexit
     }
 
     function build_services () {
@@ -511,9 +436,13 @@ generateDev = (KONFIG, options) ->
       $GOBIN/notification -c $KONFIG_SOCIALAPI_CONFIGFILEPATH -h
     }
 
-    if [[ "$1" == "killall" ]]; then
+    if [ "$#" == "0" ]; then
+      checkrunfile
+      run $1
 
-      kill_all
+    elif [ "$1" == "exec" ]; then
+      shift
+      exec "$@"
 
     elif [ "$1" == "install" ]; then
       check_service_dependencies
@@ -607,11 +536,11 @@ generateDev = (KONFIG, options) ->
       if [ "$2" == "" ]; then
         echo Available workers:
         echo "-------------------"
-        echo '#{workerList "\n"}'
+        supervisorctl status | awk '${print $1} | sort'
       else
         trap - INT
         trap
-        eval "worker_$2"
+        exec supervisorctl start $2
       fi
 
     elif [ "$1" == "migrate" ]; then
@@ -625,15 +554,6 @@ generateDev = (KONFIG, options) ->
         make install-migrate
         migrate $2 $3
       fi
-
-    elif [ "$1" == "exec" ]; then
-      shift
-      exec "$@"
-
-    elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
-
-      checkrunfile
-      run $1
 
     elif [ "$1" == "vmwatchertests" ]; then
       go test koding/vmwatcher -test.v=true
