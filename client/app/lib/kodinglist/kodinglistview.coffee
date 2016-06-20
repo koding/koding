@@ -25,17 +25,19 @@ module.exports = class KodingListView extends KDListView
       width : 400
       overlay : yes
 
-    view = new newModal
-      title       : title
-      description : description
-      cancel      :
-        title     : 'Cancel'
-        callback  : ->
-          modal.destroy()
-          callback { status : no }
-      ok          :
-        title     : 'Yes'
-        callback  : ->
-          callback { status : yes, modal }
+    modal.addSubView  new newModal
+      cssClass : 'askForConfirm'
+      title : title
+      content : "<h2>#{description}</h2>"
+      buttons :
+        cancel      :
+          title     : 'Cancel'
+          callback  : ->
+            modal.destroy()
+            callback { status : no }
+        ok          :
+          title     : 'Yes'
+          cssClass  : 'solid red medium'
+          callback  : ->
+            callback { status : yes, modal }
 
-    modal.addSubview view
