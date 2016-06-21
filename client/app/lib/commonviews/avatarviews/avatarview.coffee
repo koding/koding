@@ -171,6 +171,7 @@ module.exports = class AvatarView extends LinkView
 
           return  if userRole is 'member'
 
+          @badge.clear()
           @badge.setClass userRole
           @badge.setAttribute 'title', userRole
           @badge.setPartial userRole.capitalize()

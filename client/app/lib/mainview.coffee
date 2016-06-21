@@ -236,7 +236,7 @@ module.exports = class MainView extends kd.View
 
     groupsController.on 'TEAM_DATA_TO_UPDATE', (dataToUpdate) =>
       logo = dataToUpdate.customize?.logo
-
+      return  if logo is undefined
       @teamLogo.setAttribute 'class', ''
 
       unless logo
