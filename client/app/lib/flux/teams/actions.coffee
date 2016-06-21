@@ -30,7 +30,8 @@ updateTeam = (dataToUpdate) ->
   { groupsController, reactor } = kd.singletons
 
   team = groupsController.getCurrentGroup()
-  groupsController.emit 'TEAM_DATA_TO_UPDATE', dataToUpdate
+  logo = dataToUpdate.customize?.logo
+  groupsController.emit 'TEAM_LOGO_CHANGED', logo  if logo or logo is ''
 
   new Promise (resolve, reject) ->
 
