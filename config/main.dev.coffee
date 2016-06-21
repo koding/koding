@@ -83,6 +83,10 @@ Configuration = (options = {}) ->
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
+  options.requirementCommands = [
+    "$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh"
+  ]
+
   KONFIG.supervisord =
     logdir   : "$KONFIG_PROJECTROOT/.logs"
     rundir   : "$KONFIG_PROJECTROOT/.supervisor"
