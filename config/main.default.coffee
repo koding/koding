@@ -44,7 +44,7 @@ Configuration = (options = {}) ->
   options.suppressLogs = no
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.host or= options.hostname
-  options.credentialPath or= "#{options.projectRoot}/config/credentials.#{options.environment}.coffee"
+  options.credentialPath or= "$KONFIG_PROJECTROOT/config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName or= 'kodingdev-client'
 
   customDomain =
@@ -84,8 +84,8 @@ Configuration = (options = {}) ->
   ]
 
   KONFIG.supervisord =
-    logdir   : "#{options.projectRoot}/.logs"
-    rundir   : "#{options.projectRoot}/.supervisor"
+    logdir   : "$KONFIG_PROJECTROOT/.logs"
+    rundir   : "$KONFIG_PROJECTROOT/.supervisor"
     minfds   : 1024
     minprocs : 200
 
