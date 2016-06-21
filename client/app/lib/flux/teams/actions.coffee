@@ -31,7 +31,7 @@ updateTeam = (dataToUpdate) ->
 
   team = groupsController.getCurrentGroup()
   logo = dataToUpdate.customize?.logo
-  groupsController.emit 'TEAM_LOGO_CHANGED', logo  if logo or logo is ''
+  groupsController.emit 'TEAM_LOGO_CHANGED', logo  if dataToUpdate.customize?
 
   new Promise (resolve, reject) ->
 
