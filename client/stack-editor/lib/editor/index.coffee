@@ -47,6 +47,21 @@ module.exports = class StackEditorView extends kd.View
 
     super options, data
 
+    @isMine = yes
+    kd.singletons.groupsController.ready =>
+
+      { groupsController } = kd.singletons
+      @isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
+
+      unless @isMine
+        @tabView.setClass 'StackEditorTabs isntMine'
+        @warningView.show()
+        @secondaryActions.hide()
+        @saveButton.setClass 'isntMine'
+        @inputTitle.setClass 'template-title isntMine'
+
+
+
     @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
 
     if stackTemplate?.title
@@ -57,15 +72,23 @@ module.exports = class StackEditorView extends kd.View
     title   = stackTemplate?.title or generatedStackTemplateTitle
     content = stackTemplate?.template?.content
 
-    @createStackNameInput generateStackTemplateTitle
+    @createStackNameInput title
+
+    stackEditorTabsCssClass = unless @isMine then 'StackEditorTabs isntMine' else 'StackEditorTabs'
 
     @addSubView @tabView = new kd.TabView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 300
-      cssClass             : 'StackEditorTabs'
+      cssClass             : stackEditorTabsCssClass
+
+
+    @tabView.addSubView @warningView = new kd.CustomHTMLView
+      cssClass: 'warning-view hidden'
+      partial: 'You must be an admin to edit this stack.'
 
     @addSubView @secondaryActions = new kd.CustomHTMLView
       cssClass             : 'StackEditor-SecondaryActions'
+
 
     @secondaryActions.addSubView new CustomLinkView
       cssClass : 'HomeAppView--button danger'
@@ -86,13 +109,12 @@ module.exports = class StackEditorView extends kd.View
 
     @editorViews.variables = @variablesView = new VariablesView {
       delegate: this
-      stackTemplate
-    }
+    }, data
     @tabView.addPane variablesPane = new kd.TabPaneView
       name : 'Custom Variables'
       view : @variablesView
 
-    @editorViews.readme = @readmeView = new ReadmeView { stackTemplate }
+    @editorViews.readme = @readmeView = new ReadmeView {}, data
     @tabView.addPane readmePane = new kd.TabPaneView
       name : 'Readme'
       view : @readmeView
@@ -123,6 +145,13 @@ module.exports = class StackEditorView extends kd.View
     }
 
     @tabView.showPaneByIndex 0
+
+    @tabView.on 'PaneDidShow', (pane) =>
+      if pane.name is 'Credentials'
+        @warningView.hide()
+      unless @isMine
+        if pane.name isnt 'Credentials'
+          @warningView.show()
 
     @createOutputView()
     @createMainButtons()
@@ -225,14 +254,20 @@ module.exports = class StackEditorView extends kd.View
 
     title = Encoder.htmlDecode kd.singletons.reactor.evaluate valueGetter
 
-    @header.addSubView @inputTitle = new kd.InputView
+    options =
       cssClass: 'template-title'
       autogrow: yes
       defaultValue: title or generatedStackTemplateTitle
+      placeholder: generatedStackTemplateTitle
       bind: 'keyup'
+
       keyup: (e) ->
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
+
+
+    @header.addSubView @inputTitle = new kd.InputView options
+
 
     kd.singletons.reactor.observe valueGetter, (value) =>
 
@@ -292,6 +327,7 @@ module.exports = class StackEditorView extends kd.View
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
         @handleGenerateStack()
+
 
     @buttons.addSubView @saveButton = new kd.ButtonView
       title          : 'SAVE'
@@ -362,32 +398,39 @@ module.exports = class StackEditorView extends kd.View
           @processTemplate _stackTemplate
 
 
+  afterProcessTemplate: (method) ->
+
+    canEditGroup = kd.singletons.groupsController.canEditGroup()
+
+    switch method
+      when 'provision'
+        @generateStackButton.show()
+        @outputView.add '''
+          Your stack script has been successfully saved.
+          You can now close the stack editor or continue editing your stack.
+        '''
+      when 'reinit'
+        @reinitButton.show()
+        @outputView.add '''
+          Your stack script has been successfully saved.
+          You can now close the stack editor or continue editing your stack.
+        '''
+      when 'maketeamdefault'
+        @setAsDefaultButton.show()
+        @outputView.add '''
+          Your stack script has been successfully saved.
+
+          If you want to auto-provision this template when new users join your team,
+          you need to click "Make Team Default" after you save it.
+
+          You can now close the stack editor or continue editing your stack.
+        '''
+
+
   processTemplate: (stackTemplate) ->
 
     { groupsController, computeController } = kd.singletons
     canEditGroup = groupsController.canEditGroup()
-
-    setToGroup = (method = 'add') =>
-
-      if canEditGroup
-        @handleSetDefaultTemplate completed = no
-
-        # this is confusing. if there are currently 20 members using this stack
-        # their stack shouldn't be changed to this one automatically
-        # they should see a notification that says "this stack has been deleted by Gokmen"
-        # new users get the default stack should. and this button shouldn't be there each time
-        # i make a new one, it should be on the list-menu.
-        @outputView[method] '''
-          Your stack script has been successfully saved and all your new team
-          members now will see this stack by default. Existing users
-          of the previous default-stack will be notified that default-stack has
-          changed.
-
-          You can now close this window or continue working with your stack.
-        '''
-      else
-        @reinitButton.show()
-
 
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
@@ -396,48 +439,66 @@ module.exports = class StackEditorView extends kd.View
       _.each @editorViews, (view) -> view.editorView.getAce().saveFinished()
       @changedContents = {}
 
-      @emit 'Reload'
-
       if err
         @outputView.add 'Parsing failed, please check your template and try again'
         return
 
       { stackTemplates }       = groupsController.getCurrentGroup()
       stackTemplate.isDefault ?= stackTemplate._id in (stackTemplates or [])
-      templateSetBefore        = stackTemplates?.length
+      hasGroupTemplates        = stackTemplates?.length
+
+      stacks = kd.singletons.reactor.evaluateToJS ['StacksStore']
+      templateIds = Object.keys(stacks).map (key) -> stacks[key].baseStackId
+
+      hasStack = stackTemplate._id in templateIds
 
       # TMS-1919: This needs to be reimplemented, once we have multiple
       # stacktemplates set for a team this will be broken ~ GG
 
-      if templateSetBefore
+      if hasStack
+        if canEditGroup
+          # admin is editing a team stack
+          if stackTemplate.isDefault
+            @handleSetDefaultTemplate completed = no
+            @outputView.addAndWarn '''
+              Your stack script has been successfully saved and all your new team
+              members now will see this stack by default. Existing users
+              of the previous default-stack will be notified that default-stack has
+              changed.
 
-        unless stackTemplate.isDefault
-
-          if canEditGroup
-            @setAsDefaultButton.show()
-            @outputView.add '''
-              Your stack script has been successfully saved.
-
-              If you want to auto-provision this template when new users join your team,
-              you need to click "Make Team Default" after you save it.
-
-              You can now close the stack editor or continue editing your stack.
+              You can now close this window or continue working with your stack.
             '''
+          # admin is editing a private stack
           else
-            @generateStackButton.show()
-            @outputView.add '''
-              Your stack script has been successfully saved.
-              You can now close the stack editor or continue editing your stack.
-            '''
+            @afterProcessTemplate 'maketeamdefault'
 
-          computeController.checkGroupStacks()
-
-        else
-          setToGroup()
+        # since this is an existing stack, show renit buttons and update
+        # sidebar no matter what.
+        @afterProcessTemplate 'reinit'
+        computeController.checkGroupStacks()
 
       else
-        setToGroup 'addAndWarn'
+        # admin is creating a new stack
+        if canEditGroup
+          if hasGroupTemplates
+            @afterProcessTemplate 'maketeamdefault'
+            @afterProcessTemplate 'provision'
+            computeController.checkGroupStacks()
+          else
+            @handleSetDefaultTemplate completed = no
+            @outputView.addAndWarn '''
+              Your stack script has been successfully saved and all your new team
+              members now will see this stack by default. Existing users
+              of the previous default-stack will be notified that default-stack has
+              changed.
 
+              You can now close this window or continue working with your stack.
+            '''
+            computeController.checkGroupStacks()
+        # member is creating a new stack
+        else
+          @afterProcessTemplate 'provision'
+          computeController.checkGroupStacks()
 
 
   checkAndBootstrapCredentials: (callback) ->
@@ -637,7 +698,6 @@ module.exports = class StackEditorView extends kd.View
         else Tracker.track Tracker.STACKS_CUSTOM_NAME
 
         @setData { stackTemplate }
-        @emit 'Reload'
 
         stackTemplate._updated = currentSum isnt stackTemplate.template.sum
 
@@ -694,7 +754,19 @@ module.exports = class StackEditorView extends kd.View
 
 
   handleReinit: ->
-    kd.singletons.computeController.reinitStack()
+
+    stacks = kd.singletons.reactor.evaluateToJS ['StacksStore']
+    { stackTemplate } = @getData()
+
+    foundStack = null
+    Object.keys(stacks).forEach (key) ->
+      stack = stacks[key]
+      if stack.baseStackId is stackTemplate._id
+        foundStack = stack
+
+    return  unless foundStack
+
+    kd.singletons.computeController.reinitStack foundStack, @lazyBound 'emit', 'Reload'
 
 
   handleGenerateStack: ->
@@ -704,7 +776,7 @@ module.exports = class StackEditorView extends kd.View
 
     @outputView.add 'Generating stack from template...'
 
-    stackTemplate.generateStack (err) =>
+    stackTemplate.generateStack (err, result) =>
       @generateStackButton.hideLoader()
 
       return  if @outputView.handleError err
@@ -713,6 +785,7 @@ module.exports = class StackEditorView extends kd.View
 
       computeController.reset yes
 
+      kd.singletons.router.handleRoute "/IDE/#{result.results.machines[0].obj.label}"
       @emit 'Reload'
 
 
@@ -759,8 +832,8 @@ module.exports = class StackEditorView extends kd.View
     if computeController.findStackFromTemplateId template._id
       return showError 'You currently have a stack generated from this template.'
 
-    title       = 'Remove stack template ?'
-    description = 'Do you want to remove this stack template ?'
+    title       = 'Are you sure?'
+    description = 'Do you want to delete this stack template?'
     callback    = ({ status, modal }) ->
       return  unless status
 
@@ -773,17 +846,25 @@ module.exports = class StackEditorView extends kd.View
           modal.destroy()
 
 
-    modal = kd.ModalView.confirm
-      title       : title
-      description : description
-      ok          :
-        title     : 'Yes'
-        callback  : -> callback { status : yes, modal }
-      cancel      :
-        title     : 'Cancel'
-        callback  : ->
-          modal.destroy()
-          callback { status : no }
+    template.hasStacks (err, result) ->
+      return showError err  if err
 
-    modal.setAttribute 'testpath', 'RemoveStackModal'
+      if result
+        description = '''
+          There is a stack generated from this template by another team member. Deleting it can break their stack.
+          Do you still want to delete this stack template?
+        '''
 
+      modal = kd.ModalView.confirm
+        title       : title
+        description : description
+        ok          :
+          title     : 'Yes'
+          callback  : -> callback { status : yes, modal }
+        cancel      :
+          title     : 'Cancel'
+          callback  : ->
+            modal.destroy()
+            callback { status : no }
+
+      modal.setAttribute 'testpath', 'RemoveStackModal'

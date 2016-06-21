@@ -68,26 +68,40 @@ module.exports =
     lineWidgetSelector     = '.kdtabpaneview.active .ace-line-widget-'
     participantFileName    = 'python.py'
     participantFileContent = 'Hello World from Python by Koding'
+    hostFileName           = 'index.html'
+    hostFileContent        = 'Hello World from Html by Koding'
+    fileSelector           = "span[title='/home/#{host.username}/.config/python.py']"
+    htmlFileSelector       = "span[title='/home/#{host.username}/.config/index.html']"
+
 
     hostCallback = ->
+      ideHelpers.closeFile(browser, participantFileName, host)
+      ideHelpers.closeFile(browser, hostFileName, host)
+      browser
+        .waitForElementNotPresent  '.kdtabhandle.indexhtml', 20000
+        .waitForElementNotPresent  '.kdtabhandle.pythonpy', 20000
 
-      ideHelpers.openFileFromWebFolder browser, host
+      ideHelpers.openFileFromConfigFolder browser, host, hostFileName, hostFileContent
       collaborationHelpers.answerPermissionRequest(browser, yes)
       browser.waitForElementVisible "#{paneSelector} .pythonpy",  60000
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+      browser.pause 1000
+      helpers.deleteFile(browser, fileSelector)
+      helpers.deleteFile(browser, htmlFileSelector)
+
       browser.end()
 
 
     participantCallback = ->
-
+      browser.pause 5000
       browser.waitForElementVisible "#{paneSelector} .indexhtml", 60000
       collaborationHelpers.requestPermission(browser, yes)
-      ideHelpers.openFileFromWebFolder browser, host, participantFileName, participantFileContent
+      ideHelpers.openFileFromConfigFolder browser, host, participantFileName, participantFileContent
       collaborationHelpers.leaveSession(browser)
       browser.end()
 
 
-    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
+    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback, yes)
 
 
   openTerminalWithInvitedUser: (browser) ->
@@ -110,6 +124,7 @@ module.exports =
 
       collaborationHelpers.answerPermissionRequest(browser, yes)
       commonCallback()
+      browser.pause 6000
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
 
@@ -118,7 +133,6 @@ module.exports =
       collaborationHelpers.requestPermission(browser, yes)
       terminalHelpers.openNewTerminalMenu(browser)
       terminalHelpers.openTerminal(browser)
-
       commonCallback()
 
       collaborationHelpers.leaveSession(browser)

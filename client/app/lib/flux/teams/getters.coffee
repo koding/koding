@@ -2,7 +2,7 @@ toImmutable = require 'app/util/toImmutable'
 immutable   = require 'immutable'
 isEmailValid = require 'app/util/isEmailValid'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
-
+whoami = require 'app/util/whoami'
 
 team = ['TeamStore']
 TeamMembersIdStore = ['TeamMembersIdStore']
@@ -80,6 +80,7 @@ filteredMembersWithRole = [
     members.filter (member) -> isValidMemberValue member, value
 ]
 
+
 filteredMembersWithRoleAndDisabledUsers = [
   filteredMembersWithRole
   disabledUsers
@@ -87,6 +88,16 @@ filteredMembersWithRoleAndDisabledUsers = [
     users.withMutations (users) ->
       disabledUsers.map (disabledUser) ->
         users.set disabledUser.get('_id'), disabledUser
+]
+
+
+adminsList = [
+  filteredMembersWithRole
+  (users) ->
+    users.filter (user) ->
+      return  unless user
+      return no  if user.get('_id') is whoami()._id
+      user.get('status') isnt 'pending' and user.get('role') in ['admin', 'owner']
 ]
 
 
@@ -147,4 +158,5 @@ module.exports = {
   resendInvitations
   disabledUsers
   filteredMembersWithRoleAndDisabledUsers
+  adminsList
 }

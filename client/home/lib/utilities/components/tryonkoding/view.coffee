@@ -27,7 +27,7 @@ module.exports = class TryOnKodingView extends React.Component
   render: ->
 
     <div>
-      <Toggle checked={@props.checked} className='TryOnKoding-onOffButton' callback={@props.handleSwitch} />
+      <ToggleButton canEdit={@props.canEdit} checked={@props.checked} callback={@props.handleSwitch} />
       <Primary className={@props.primaryClassName}/>
       <p className={@props.secondaryClassName}>
         <strong>“Try On Koding” Button</strong>
@@ -36,6 +36,13 @@ module.exports = class TryOnKodingView extends React.Component
         {@renderButtons()}
       </p>
     </div>
+
+
+ToggleButton = ({ checked, callback, canEdit }) ->
+
+  return <span></span>  unless canEdit
+
+  <Toggle checked={checked} className='TryOnKoding-onOffButton' callback={callback} />
 
 
 Primary = ({ className }) ->

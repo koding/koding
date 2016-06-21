@@ -197,7 +197,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
         else if machine = cc.findMachineFromQueryString queryString
           kiteInstance = @kites[kiteName][machine.uid]
-          { waitingPromises } = kiteInstance
+          { waitingPromises } = kiteInstance  if kiteInstance
           delete @kites[kiteName][machine.uid]
 
           correlationName  = machine.uid

@@ -6,7 +6,7 @@ os = require 'os'
 path = require 'path'
 git = require 'git-rev'
 request = require 'request'
-{ extend, defaults } = require 'underscore'
+{ extend, defaults, clone } = require 'underscore'
 
 # check if dev environment is avaliable
 defaultEnv = 'default'
@@ -36,8 +36,10 @@ defaults options,
   onlyconfigure: no
   deploy: no
   ebEnvName: defaultEnv
+  envFileName: '.env'
 
 
+options.inheritEnvVars = if argv.hasOwnProperty 'without-envvars' then no else yes
 options.runGoWatcher = argv.hasOwnProperty 'with-go-watcher'
 options.sendEventsToSegment = if argv['disable-segment'] then off else on
 
@@ -78,6 +80,12 @@ rest = ->
     equals(devKeys, keys, config.configCheckExempt)
 
 
+  createEnvFile = (KONFIG) ->
+
+    for own type, content of KONFIG.envFiles
+      fs.writeFileSync "#{options.envFileName}.#{type}", content
+
+
   createRunFile = (KONFIG)->
 
     fs.writeFileSync "run",KONFIG.runFile
@@ -86,9 +94,7 @@ rest = ->
     fs.writeFileSync "./deployment/generated_files/supervisord.conf", KONFIG.supervisorConf
     fs.writeFileSync "./deployment/generated_files/nginx.conf", KONFIG.nginxConf
     fs.writeFileSync "./.#{defaultEnv}.nginx.conf", KONFIG.nginxConf
-
-    if KONFIG.supervisord.output_path
-      fs.writeFileSync KONFIG.supervisord.output_path, KONFIG.supervisorConf
+    fs.writeFileSync 'supervisord.conf', KONFIG.supervisorConf
 
     log "Configuration done"
     log "------------------"
@@ -112,6 +118,7 @@ rest = ->
     fs.writeFileSync file, configStr
     console.log "written #{file}"
 
+  createEnvFile KONFIG
   createRunFile KONFIG
   writeVersion KONFIG
 
@@ -128,7 +135,7 @@ rest = ->
     # does not use ' or= ' assigments.
     for c in ["sandbox", "prod"]
       if fs.existsSync("./config/main.#{c}.coffee")
-        _options = require("underscore").clone options
+        _options = clone options
         config = require("./config/main.#{c}.coffee")(_options)
         process.exit(1)  unless configMatchesDefault(config)
 

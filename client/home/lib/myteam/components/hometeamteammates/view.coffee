@@ -24,6 +24,7 @@ module.exports = class HomeTeamTeamMatesView extends React.Component
     <Member
       key={key}
       member={member}
+      admins={@props.admins}
       handleInvitation={@props.handleInvitation}
       handleDisabledUser={@props.handleDisabledUser}
       handleRoleChange={@props.handleRoleChange} />  if member

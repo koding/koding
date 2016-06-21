@@ -9,7 +9,7 @@
           "production",
           "managed"
         ],
-        "url": "http://tunnelproxy.koding.com/kite"
+        "url": "http://t.koding.com/kite"
       },
       {
         "environment": [
@@ -17,7 +17,7 @@
           "devmanaged",
           "sandbox"
         ],
-        "url": "http://devtunnelproxy.koding.com/kite"
+        "url": "http://dev-t.koding.com/kite"
       }
     ],
     "ip": [
@@ -34,7 +34,7 @@
           "devmanaged",
           "sandbox"
         ],
-        "url": "https://dev-p.koding.com/-/ip"
+        "url": "https://dev-p2.koding.com/-/ip"
       }
     ],
     "ipcheck": [
@@ -51,7 +51,7 @@
           "devmanaged",
           "sandbox"
         ],
-        "url": "https://dev-p.koding.com/-/ipcheck"
+        "url": "https://dev-p2.koding.com/-/ipcheck"
       }
     ]
   }

@@ -88,9 +88,8 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
     @wrapper.addSubView section 'Send Invites'
 
     @wrapper.addSubView header  'Invite Using Slack'
-    @wrapper.addSubView section 'Invite Using Slack'
+    @wrapper.addSubView connectSlack = section 'Invite Using Slack'
+    connectSlack.on 'InvitationsAreSent', -> TeamFlux.actions.loadPendingInvitations()
 
     @wrapper.addSubView header  'Teammates'
     @wrapper.addSubView section 'Teammates'
-
-

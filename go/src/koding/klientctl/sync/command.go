@@ -1,3 +1,8 @@
+// The core logic for the `kd sync` command.
+//
+// Note this command is not currently provided by ctl binary, as it was deemed
+// unneeded due to the current UX of one way sync (deletions of remote files). This
+// package is kept in the event that one way sync UX changes, to require this utility.
 package sync
 
 import (

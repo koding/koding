@@ -10,7 +10,7 @@ getHookSuiteName = (type) ->
   return "#{hookDir}/#{TEST_GROUP}_#{TEST_SUITE}_#{type}"
 
 
-awsKeyPath = path.resolve __dirname, '../../config/aws/worker_ci_test_key.json'
+awsKeyPath = path.resolve __dirname, '../../vault/config/aws/worker_ci_test_key.json'
 
 module.exports =
 

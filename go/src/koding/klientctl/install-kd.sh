@@ -8,7 +8,7 @@ readonly VIRTUALBOX_URL_DARWIN="http://download.virtualbox.org/virtualbox/5.0.20
 readonly VAGRANT_URL_LINUX="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
 readonly VAGRANT_URL_DARWIN="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1.dmg"
 
-VERSION="$(curl -sSL https://koding-kd.s3.amazonaws.com/${releaseChannel}/latest-VERSION.txt)"
+VERSION="$(curl -sSL https://koding-kd.s3.amazonaws.com/${releaseChannel}/latest-version.txt)"
 PLATFORM="$(uname | tr '[:upper:]' '[:lower:]')"
 KD_URL="https://koding-kd.s3.amazonaws.com/${releaseChannel}/kd-0.1.${VERSION}.${PLATFORM}_amd64.gz"
 
@@ -17,7 +17,7 @@ is_virtualbox() {
 }
 
 is_vagrant() {
-  vagrant VERSION 2>&1 | grep -c 'Installed Version:' >/dev/null
+  vagrant version 2>&1 | grep -c 'Installed Version:' >/dev/null
 }
 
 # download_file <url> <output file>
@@ -239,7 +239,7 @@ fi
 # This check helps us prevent kd from being installed over a managed vm
 # where kd would have trouble replacing klient in an unknown environment.
 #
-# TODO: renable this after oldder VERSION of kd has replaced with self
+# TODO: renable this after oldder version of kd has replaced with self
 # updateable one.
 #
 # if sudo [ -f /opt/kite/klient/klient ]; then
@@ -270,7 +270,8 @@ fi
 case "$PLATFORM" in
   darwin|linux)
     installDir="/usr/local/bin"
-    kdGz="/tmp/kd.gz"
+    kdFile="/tmp/kd"
+    kdGz="${kdFile}.gz"
 
     # On some OSX systems, /usr/local/bin doesn't seem to exist. Create it.
     if sudo [ ! -d "$installDir" ]; then
@@ -299,9 +300,9 @@ EOF
       exit 1
     fi
 
-    sudo mv "$kdGz" "${installDir}/kd"
+    sudo mv "$kdFile" "${installDir}/kd"
     sudo chmod +x "${installDir}/kd"
-    sudo rm -f "$kdGz"
+    sudo rm -f "$kdFile"
 
     echo "Created ${installDir}/kd"
 
@@ -314,7 +315,9 @@ EOF
       install_fuse_darwin
     fi
 
-    install_vagrant_deps
+    if ! is_virtualbox || ! is_vagrant; then
+      install_vagrant_deps
+    fi
 
     echo
     ;;
@@ -366,7 +369,7 @@ with Vagrant provider ensure they are installed:
 
 EOF
 
-elif ! is_virtualbox then
+elif ! is_virtualbox; then
   cat << EOF
 No VirtualBox is present on your system. In order to use local provisioning
 with Vagrant provider ensure it is installed:

@@ -20,7 +20,6 @@ module.exports = class HomeWelcome extends kd.CustomScrollView
       partial : '''
         <h2>Welcome to Koding For Teams!</h2>
         <p>Your new dev environment in the cloud.</p>
-        <div class="artboard"></div>
         '''
 
     @welcome.addSubView @instructions = new kd.CustomHTMLView
@@ -28,20 +27,27 @@ module.exports = class HomeWelcome extends kd.CustomScrollView
       cssClass : 'bullets clearfix'
 
     { groupsController, computeController } = kd.singletons
-    { stacks }                              = computeController
 
-    view  = this
+    computeController.ready =>
+      if groupsController.canEditGroup()
+      then @putAdminBullets()
+      else @putUserBullets()
 
-    groupsController.ready -> computeController.ready ->
+      @checkMigration()
 
-      { providers, variables } = collectCredentials()
 
-      groupsController.getCurrentGroup().fetchMyRoles (err, roles) ->
-        return  kd.warn err  if err
-        isAdmin = 'admin' in (roles ? [])
-        if isAdmin
-        then view.putAdminBullets()
-        else view.putUserBullets()
+  checkMigration: ->
+
+    kd.singletons.computeController.fetchSoloMachines (err, machines) =>
+
+      return  unless machines?.length
+
+      @welcome.addSubView @soloMachines = new kd.CustomHTMLView
+        tagName  : 'ul'
+        cssClass : 'bullets solo clearfix'
+        partial  : """
+          <li>#{BULLETS.migrateFromKoding}</li>
+        """
 
 
   putAdminBullets: ->

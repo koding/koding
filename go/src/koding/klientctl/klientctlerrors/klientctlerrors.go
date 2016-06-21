@@ -1,3 +1,4 @@
+// A series of error related functions and errors.
 package klientctlerrors
 
 import (

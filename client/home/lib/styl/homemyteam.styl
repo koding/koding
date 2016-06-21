@@ -6,62 +6,85 @@ homemyteam.styl
 }
 
 .HomeAppView--section.team-settings
+  rel()
   .hor-flex
-    display                 flex
-    flex-flow               row nowrap
     justify-content         space-around
-
-  fieldset
-    rel()
-    &.TeamUrl
-      &:after
-        content             ''
-        r-sprite            'home' 'lock'
-        abs                 33px 17px
-      input.kdinput
-        opacity             .5
-
-    label
-      display               block
-      font-weight           300
-      font-size             12px
-      margin-bottom         10px
-
-    input.kdinput
-      font-size             14px
-      display               block
-      size                  100%, 40px
-      border                1px solid #D9D9D9
-      rounded               3px
-      shadow                0 0 2px rgba(70, 70, 70, .15) inset
-
-  fieldset.half
+  form
+    abs()
     flex                    1 0 auto
-    &:first-child
-      padding-right         20px
+    top                     16px
+    right                   20px
+    width                   427px
+    fieldset
+      margin-top            15px
+      &.TeamUrl
+        &:after
+          content           ''
+          r-sprite          'home' 'lock'
+          abs               120px 36px
+        input.kdinput
+          opacity           .5
+      &.TeamName
+        &:after
+          content           ''
+          r-sprite          'home' 'lock'
+          abs               49px 36px
+        input.kdinput
+          opacity           .5
+
+
+      label
+        display             block
+        font-weight         300
+        font-size           12px
+        margin-bottom       10px
+
+      input.kdinput
+        font-size           14px
+        display             block
+        width               402px
+        height 40px
+        border              1px solid #D9D9D9
+        rounded             3px
+        shadow              0 0 2px rgba(70, 70, 70, .15) inset
+
+    fieldset.half
+      &:first-child
+        padding-right       20px
+
+    .HomeAppView--ActionBar
+      margin-top            25px
+      .HomeAppView--button.fr
+        margin-right  16px
 
 
 
 .HomeAppView--uploadLogo
-  size                      auto, 47px
-  margin-bottom             40px
-  rel()
+  height                    200px
 
-  .teamLogo
-    size                    auto auto
-    max-width               132px
-    max-height              47px
+  .teamLogo-wrapper
     cursor                  pointer
-    fl()
+    bg                      color, transparent
+    bg                      position, center center
+    bg                      repeat, no-repeat
+    r-sprite                app upload_image
+
 
   .uploadInputWrapper
+    rel()
     overflow                hidden
-    width                   auto
     padding                 15px 0
-
+    top                     7px
+    width                   120px
+    text-align              center
     .HomeAppView--button
       line-height           21px
-      fr()
+      &.primary
+        margin-left         0px
+      &.remove
+        margin-top          4px
+        &.hidden
+          opacity           0
 
     .kdinput.file
       z-index               0
@@ -75,7 +98,7 @@ homemyteam.styl
   .slack-oauth
     abs()
     right                   30px
-    top                     20px
+    top                     25px
 
   .HomeAppView--button
     text-transform          uppercase
@@ -229,6 +252,7 @@ homemyteam.styl
       abs                   11px 13px
       dIBlock()
       input.kdinput
+        abs()
         font-size           0
 
     input.kdinput

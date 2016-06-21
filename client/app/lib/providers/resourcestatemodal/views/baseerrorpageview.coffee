@@ -27,4 +27,7 @@ module.exports = class BaseErrorPageView extends JView
     then "<p>#{errs.first}</p>"
     else "<ul>#{(errs.map (err) -> "<li>#{err}</li>").join ''}</ul>"
 
-    @errorContent.updatePartial title + content
+    @errorContent.updatePartial """
+      <span class='error-title'>#{title}</span>
+        <pre>#{content}</pre>
+    """

@@ -18,6 +18,8 @@ module.exports = class MachinesStore extends KodingFluxStore
     @on actions.SET_MACHINE_ALWAYS_ON_SUCCESS, @setAlwaysOnSuccess
     @on actions.SET_MACHINE_ALWAYS_ON_FAIL, @setAlwaysOnFail
     @on actions.LOAD_MACHINE_SHARED_USERS, @loadSharedUsers
+    @on actions.SHARED_VM_INVITATION_REJECTED, @removeSharedUser
+
 
 
   load: (machines, { own, shared, collaboration }) ->
@@ -27,7 +29,14 @@ module.exports = class MachinesStore extends KodingFluxStore
     machines.withMutations (machines) ->
       envData.forEach ({ machine, workspaces }) ->
         machine.hasOldOwner = machine.meta?.oldOwner?
-        machines.set machine._id, toImmutable machine
+
+        _machine = toImmutable machine
+
+        if m = machines.get(machine._id)
+          if sharedUsers = m.get 'sharedUsers'
+            _machine = _machine.set 'sharedUsers', sharedUsers
+
+        machines.set machine._id, _machine
 
 
   updateMachine: (machines, { id, event, machine }) ->

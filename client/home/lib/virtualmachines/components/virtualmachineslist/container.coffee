@@ -19,9 +19,6 @@ module.exports = class VirtualMachinesListContainer extends React.Component
   onChangePowerStatus: (machineId, shouldStart) -> EnvironmentFlux.actions.setMachinePowerStatus machineId, shouldStart
 
 
-  onDetailOpen: (machineId) -> EnvironmentFlux.actions.loadMachineSharedUsers machineId
-
-
   onSharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.shareMachineWithUser machineId, nickname
 
 
@@ -32,7 +29,6 @@ module.exports = class VirtualMachinesListContainer extends React.Component
     <View stacks={@state.stacks}
       onChangeAlwaysOn={@bound 'onChangeAlwaysOn'}
       onChangePowerStatus={@bound 'onChangePowerStatus'}
-      onDetailOpen={@bound 'onDetailOpen'}
       onSharedWithUser={@bound 'onSharedWithUser'}
       onUnsharedWithUser={@bound 'onUnsharedWithUser'}
     />

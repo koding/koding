@@ -1,8 +1,8 @@
 kd = require 'kd'
-BuildStackPageView = require '../views/buildstackpageview'
-BuildStackErrorPageView = require '../views/buildstackerrorpageview'
-BuildStackSuccessPageView = require '../views/buildstacksuccesspageview'
-BuildStackLogsPageView = require '../views/buildstacklogspageview'
+BuildStackPageView = require '../views/stackflow/buildstackpageview'
+BuildStackErrorPageView = require '../views/stackflow/buildstackerrorpageview'
+BuildStackSuccessPageView = require '../views/stackflow/buildstacksuccesspageview'
+BuildStackLogsPageView = require '../views/stackflow/buildstacklogspageview'
 constants = require '../constants'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
 FSHelper = require 'app/util/fs/fshelper'
@@ -13,11 +13,6 @@ module.exports = class BuildStackController extends kd.Controller
   constructor: (options, data) ->
 
     super options, data
-
-    @createPages()
-
-
-  createPages: ->
 
     { stack } = @getData()
     { container } = @getOptions()
@@ -31,7 +26,7 @@ module.exports = class BuildStackController extends kd.Controller
     @forwardEvent @errorPage, 'CredentialsRequested'
     @errorPage.on 'RebuildRequested', =>
       @buildStackPage.reset()
-      @emit 'RebuildRequested'
+      @emit 'RebuildRequested', stack
     @forwardEvent @successPage, 'ClosingRequested'
     @successPage.on 'LogsRequested', @bound 'showLogs'
     @forwardEvent @logsPage, 'ClosingRequested'
@@ -90,6 +85,7 @@ module.exports = class BuildStackController extends kd.Controller
   completePostBuildProcess: ->
 
     @postBuildTimer.stop()  if @postBuildTimer
+    @postBuildTimer = null
 
     { container } = @getOptions()
     container.showPage @successPage

@@ -2,7 +2,7 @@ kd              = require 'kd'
 React           = require 'kd-react'
 List            = require 'app/components/list'
 Encoder         = require 'htmlencode'
-DEFAULT_SPINNER_PATH = '/a/images/logos/balls.gif'
+DEFAULT_SPINNER_PATH = '/a/images/logos/loader.svg'
 
 
 module.exports = class HomeTeamSettingsView extends React.Component
@@ -18,11 +18,11 @@ module.exports = class HomeTeamSettingsView extends React.Component
       <div className='HomeAppView--uploadLogo'>
         <TeamLogo
           team={@props.team}
-          logopath={@props.logopath}
           loading={@props.loading}
           callback={@bound 'onClickLogo'} />
         <div className='uploadInputWrapper'>
           <GenericButtons
+            team={@props.team}
             canEdit={@props.canEdit}
             clickLogo={@props.onClickLogo}
             removeLogo={@props.onRemoveLogo} />
@@ -43,12 +43,20 @@ module.exports = class HomeTeamSettingsView extends React.Component
     </div>
 
 
-GenericButtons = ({ canEdit, clickLogo, removeLogo }) ->
+GenericButtons = ({ team, canEdit, clickLogo, removeLogo }) ->
+
+  source = team.getIn(['customize', 'logo'])
+  className = 'custom-link-view remove hidden'
+  title = 'UPLOAD LOGO'
+
+  if source
+    className = 'custom-link-view remove'
+    title = 'CHANGE LOGO'
 
   if canEdit
     <div>
-      <GenericButton className='custom-link-view primary' title='UPLOAD LOGO' callback={clickLogo} />
-      <GenericButton className='custom-link-view remove' title='REMOVE' callback={removeLogo} />
+      <GenericButton className='custom-link-view primary' title={title} callback={clickLogo} />
+      <GenericButton className={className} title='REMOVE LOGO' callback={removeLogo} />
     </div>
   else
     <div />
@@ -62,7 +70,7 @@ ActionBar = ({ canEdit, callback, onLeaveTeam, teamNameChanged }) ->
 
   <fieldset className='HomeAppView--ActionBar'>
     <LeaveTeam onLeaveTeam={onLeaveTeam}/>
-    <GenericButton className=className title='CHANGE TEAM NAME' callback={callback}/>
+    <GenericButton className={className} title={'CHANGE TEAM NAME'} callback={callback}/>
   </fieldset>
 
 
@@ -86,7 +94,9 @@ TeamName = ({ canEdit, title, teamName, callback }) ->
   encode = if title then title else ''
   value = teamName or Encoder.htmlDecode encode
 
-  <fieldset className='half'>
+  className = if canEdit then 'half' else 'half TeamName'
+
+  <fieldset className={className}>
     <label>Team Name</label>
     <TeamNameInputArea canEdit={canEdit} value={value} callback={callback} />
   </fieldset>
@@ -94,21 +104,13 @@ TeamName = ({ canEdit, title, teamName, callback }) ->
 
 TeamNameInputArea = ({ canEdit, value, callback }) ->
 
-  if canEdit
-    <input
-      type='text'
-      name='title'
-      value={value}
-      className='kdinput text js-teamName'
-      onChange={callback} />
-  else
-    <input
-      type='text'
-      name='title'
-      value={value}
-      disabled={not canEdit}
-      className='kdinput text js-teamName'
-      onChange={callback} />
+  <input
+    type='text'
+    name='title'
+    value={value}
+    disabled={not canEdit}
+    className='kdinput text js-teamName'
+    onChange={callback} />
 
 
 GenericButton = ({ className, title, callback }) ->
@@ -119,9 +121,17 @@ GenericButton = ({ className, title, callback }) ->
   </a>
 
 
-TeamLogo = ({ team, logopath, loading, callback }) ->
+TeamLogo = ({ team, loading, callback }) ->
 
-  src = team.getIn(['customize', 'logo']) or logopath
+  src = team.getIn(['customize', 'logo'])
   src = DEFAULT_SPINNER_PATH  if loading
-  <img className='teamLogo' src={src} onClick={callback} />
+  unless src
+    styles = {}
+  else
+    styles =
+      backgroundImage : "url('#{src}')"
+      backgroundSize : 'contain'
+      backgroundPosition : 'center'
 
+  <div className='teamLogo-wrapper' onClick={callback} style={styles}>
+  </div>

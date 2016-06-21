@@ -36,8 +36,8 @@ module.exports = class Member extends React.Component
       items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
     else if role is 'admin'
       items.push { title: 'Make owner', key: 'mameowner', onClick: @props.handleRoleChange.bind(this, @props.member, 'owner') }
-      items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }
-      items.push { title: 'Disable user', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }
+      items.push { title: 'Make member', key: 'makemember', onClick: @props.handleRoleChange.bind(this, @props.member, 'member') }  if @props.admins.size
+      items.push { title: 'Disable user', key: 'disableuser', onClick: @props.handleRoleChange.bind(this, @props.member, 'kick') }  if @props.admins.size
     else if role is 'Invitation Sent'
       items.push { title: 'Resend Invitation', key: 'resend', onClick: @props.handleInvitation.bind(this, @props.member, 'resend') }
       items.push { title: 'Revoke Invitation', key: 'revoke', onClick: @props.handleInvitation.bind(this, @props.member, 'revoke') }
@@ -78,7 +78,7 @@ module.exports = class Member extends React.Component
     { nickname, email, role, firstName, lastName, fullName } = @getData()
 
     <div>
-      <AvatarView member={@props.member} />
+      <AvatarView member={@props.member} role={role}/>
       <div className='details'>
         <div className='fullname'>{fullName}</div>
         <div className='metaData'>
@@ -87,26 +87,32 @@ module.exports = class Member extends React.Component
         </div>
       </div>
       <MemberRoleWithDropDownMenu
-        canEdit={canEdit}
         role={role}
-        onClick={@onClickMemberRole.bind(this, role)}
         items={@getMenuItems role}
+        admins={@props.admins}
+        canEdit={canEdit}
+        onClick={@onClickMemberRole.bind(this, role)}
         isMenuOpen={@state.isMenuOpen} />
     </div>
 
 
-MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen }) ->
+MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen, admins }) ->
 
-  unless canEdit
+  showButtonWithMenu = role is 'owner' and admins.size is 0
+
+  unless canEdit and not showButtonWithMenu
     <div className='dropdown'>
       <MemberRole role={role} canEdit={canEdit}  />
     </div>
   else
     <div className='dropdown' onClick={onClick}>
-      <MemberRole role={role} canEdit={canEdit} />
+      <MemberRole role={role} canEdit={canEdit} showPointer={yes} />
       <ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />
     </div>
 
+Badge = ({ role }) ->
+  role = 'member'  unless role
+  <div className={"badge #{role}"} title={role}></div>
 
 NickName = ({ nickname }) ->
 
@@ -118,19 +124,20 @@ Email = ({ email }) ->
 
   <span className='email-js email' title={email}>{email}</span>
 
-AvatarView = ({ member }) ->
+AvatarView = ({ member, role }) ->
 
   unless member.get 'status'
     <div className='avatarview' href='#'>
-      <ProfilePicture account={member.toJS()} height={40} width={40} />
+      <ProfilePicture account={member.toJS()} height={40} width={40} role={role} />
     </div>
   else
     <div className='avatarview default' href='#'>
     </div>
 
 
-MemberRole = ({ role, canEdit }) ->
+MemberRole = ({ role, canEdit, showPointer }) ->
 
-  role = capitalizeFirstLetter role
-  className = unless canEdit then '' else 'role'
-  <div className={className}>{role}</div>
+  className = 'role'
+  className = 'role showPointer'  if showPointer
+
+  <div className={className}>{capitalizeFirstLetter role}</div>

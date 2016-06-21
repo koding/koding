@@ -51,10 +51,13 @@ module.exports =
         virtualmachineshelper.toggleAlwaysOnMachine browser, (result) ->
           next null, result
       (next) ->
-        virtualmachineshelper.shareTheMachineWithMembers browser, (result) ->
+        virtualmachineshelper.acceptSharedMachine browser, host, member, (result) ->
           next null, result
       (next) ->
         virtualmachineshelper.removeAccessFromSharedMachine browser, (result) ->
+          next null, result
+      (next) ->
+        virtualmachineshelper.rejectAndAcceptSharedMachine browser, host, member, (result) ->
           next null, result
       (next) ->
         virtualmachineshelper.seeConnectedMachinesList browser, (result) ->

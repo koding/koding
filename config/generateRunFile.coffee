@@ -5,74 +5,9 @@ os                    = require 'os'
 path                  = require 'path'
 { isAllowed }         = require '../deployment/grouptoenvmapping'
 
-generateDev = (KONFIG, options, credentials) ->
+generateDev = (KONFIG, options) ->
 
   options.requirementCommands ?= []
-
-  killlist = ->
-    str = 'kill -KILL '
-    for key, worker of KONFIG.workers
-      unless isAllowed worker.group, KONFIG.ebEnvName
-        continue
-
-      str += "$#{key}pid "
-
-    return str
-
-  envvars = (options = {}) ->
-    options.exclude or= []
-
-    env = ''
-
-    add = (name, value) ->
-      env += "export #{name}=${#{name}:-#{JSON.stringify value}}\n"
-
-    for name, value of KONFIG.ENV when name not in options.exclude
-      add name, value
-
-    add 'GOPATH', '$KONFIG_PROJECTROOT/go'
-    add 'GOBIN', '$GOPATH/bin'
-
-    return env
-
-  workerList = (separator = ' ') ->
-    (key for key, val of KONFIG.workers).join separator
-
-  workersRunList = ->
-    workers = ''
-    for name, worker of KONFIG.workers when worker.supervisord
-      # some of the locations can be limited to some environments, while creating
-      # nginx locations filter with this info
-      unless isAllowed worker.group, KONFIG.ebEnvName
-        continue
-
-      { command } = worker.supervisord
-
-      if typeof command is 'object'
-        { run, watch } = command
-        command = if options.runGoWatcher then watch else run
-
-      workers += """
-
-      function worker_daemon_#{name} {
-
-        #------------- worker: #{name} -------------#
-        #{command} &>$KONFIG_PROJECTROOT/.logs/#{name}.log &
-        #{name}pid=$!
-        echo [#{name}] started with pid: $#{name}pid
-
-
-      }
-
-      function worker_#{name} {
-
-        #------------- worker: #{name} -------------#
-        #{command}
-
-      }
-
-      """
-    return workers
 
   installScript = """
       pushd $KONFIG_PROJECTROOT
@@ -108,36 +43,29 @@ generateDev = (KONFIG, options, credentials) ->
   run = """
     #!/bin/bash
 
-    # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
-    #{envvars()}
+    # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #
+
+    ENV_SHELL_FILE=${ENV_SHELL_FILE:-$(dirname $0)/.env.sh}
+    if [ -f "$ENV_SHELL_FILE" ]; then
+      source $ENV_SHELL_FILE
+    else
+      echo "error: shell environment file does not exist"
+      exit 1
+    fi
 
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
-    SERVICES="mongo redis postgres rabbitmq"
+    SERVICES="mongo redis postgres rabbitmq imply"
 
     NGINX_CONF="$KONFIG_PROJECTROOT/.dev.nginx.conf"
     NGINX_PID="$KONFIG_PROJECTROOT/.dev.nginx.pid"
 
-    trap ctrl_c INT
-
     #{options.requirementCommands?.join "\n"}
 
+    trap ctrl_c INT
+
     function ctrl_c () {
-      echo "ctrl_c detected. killing all processes..."
-      kill_all
-    }
-
-    function kill_all () {
-      #{killlist()}
-
-      echo "killing hung processes"
-      # there is race condition, that killlist() can not kill all process
-      sleep 3
-
-
-      # both of them are  required
-      ps aux | grep koding | grep -v cmd.coffee | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
-      pkill -9 koding-
+      supervisorctl shutdown
     }
 
     function nginxstop () {
@@ -172,20 +100,6 @@ generateDev = (KONFIG, options, credentials) ->
           echo -e "\n\nPlease do ./run again\n"
           exit 1;
       fi
-    }
-
-    function printconfig () {
-      if [ "$2" == "" ]; then
-        cat << EOF
-        #{envvars({ exclude:["KONFIG_JSON"] })}EOF
-      elif [ "$2" == "--json" ]; then
-
-        echo '#{KONFIG.JSON}'
-
-      else
-        echo ""
-      fi
-
     }
 
     function migrations () {
@@ -242,29 +156,12 @@ generateDev = (KONFIG, options, credentials) ->
       # Sanitize email addresses
       node $KONFIG_PROJECTROOT/scripts/sanitize-email
 
-      # Run all the worker daemons in KONFIG.workers
-      #{("worker_daemon_"+key+"\n" for key, val of KONFIG.workers when val.supervisord).join(" ")}
-
-      # Check backend option, if it's then bypass client build
-      if [ "$1" == "backend" ] ; then
-
-        echo
-        echo '---------------------------------------------------------------'
-        echo '>>> CLIENT BUILD DISABLED! DO "make -C client" MANUALLY <<<'
-        echo '---------------------------------------------------------------'
-        echo
-
-      else
-        make -C $KONFIG_PROJECTROOT/client
-      fi
+      supervisord && sleep 1
 
       # Show the all logs of workers
       tail -fq ./.logs/*.log
 
     }
-
-    #{workersRunList()}
-
 
     function printHelp (){
 
@@ -393,10 +290,15 @@ generateDev = (KONFIG, options, credentials) ->
         command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
       fi
 
+      set -o errexit
+
       scripts/check-node-version.sh
       scripts/check-npm-version.sh
       scripts/check-gulp-version.sh
       scripts/check-go-version.sh
+      scripts/check-supervisor.sh
+
+      set +o errexit
     }
 
     function build_services () {
@@ -425,17 +327,18 @@ generateDev = (KONFIG, options, credentials) ->
       # Include this to dockerfile before we continute with building
       mkdir -p kontrol
       cp $KONFIG_PROJECTROOT/go/src/github.com/koding/kite/kontrol/*.sql kontrol/
-      sed -i -e "s/somerandompassword/$KONFIG_POSTGRES_PASSWORD/" kontrol/001-schema.sql
-      sed -i -e "s/kontrolapplication/$KONFIG_POSTGRES_USERNAME/" kontrol/001-schema.sql
+      sed -i -e "s/somerandompassword/$KONFIG_KONTROL_POSTGRES_PASSWORD/" kontrol/001-schema.sql
+      sed -i -e "s/kontrolapplication/$KONFIG_KONTROL_POSTGRES_USERNAME/" kontrol/001-schema.sql
 
       docker build -t koding/postgres .
 
-      docker run -d -p 27017:27017              --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
-      docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
+      docker run -d -p 27017:27017                                        --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
+      docker run -d -p 5672:5672 -p 15672:15672                           --name=rabbitmq koding/rabbitmq
 
-      docker run -d -p 6379:6379                --name=redis    redis
-      docker run -d -p 5432:5432                --name=postgres koding/postgres
+      docker run -d -p 6379:6379                                          --name=redis    redis
+      docker run -d -p 5432:5432                                          --name=postgres koding/postgres
 
+      docker run -d -p 18081-18110:8081-8110 -p 18200:8200 -p 19095:9095  --name=imply    imply/imply:1.2.1
       restoredefaultmongodump
 
       echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
@@ -533,9 +436,13 @@ generateDev = (KONFIG, options, credentials) ->
       $GOBIN/notification -c $KONFIG_SOCIALAPI_CONFIGFILEPATH -h
     }
 
-    if [[ "$1" == "killall" ]]; then
+    if [ "$#" == "0" ]; then
+      checkrunfile
+      run $1
 
-      kill_all
+    elif [ "$1" == "exec" ]; then
+      shift
+      exec "$@"
 
     elif [ "$1" == "install" ]; then
       check_service_dependencies
@@ -629,11 +536,11 @@ generateDev = (KONFIG, options, credentials) ->
       if [ "$2" == "" ]; then
         echo Available workers:
         echo "-------------------"
-        echo '#{workerList "\n"}'
+        supervisorctl status | awk '${print $1} | sort'
       else
         trap - INT
         trap
-        eval "worker_$2"
+        exec supervisorctl start $2
       fi
 
     elif [ "$1" == "migrate" ]; then
@@ -647,15 +554,6 @@ generateDev = (KONFIG, options, credentials) ->
         make install-migrate
         migrate $2 $3
       fi
-
-    elif [ "$1" == "exec" ]; then
-      shift
-      exec "$@"
-
-    elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
-
-      checkrunfile
-      run $1
 
     elif [ "$1" == "vmwatchertests" ]; then
       go test koding/vmwatcher -test.v=true
@@ -699,7 +597,14 @@ generateSandbox =   generateRunFile = (KONFIG) ->
   return """
     #!/bin/bash
     export HOME=/home/ec2-user
-    export KONFIG_JSON='#{KONFIG.JSON}'
+
+    ENV_SHELL_FILE=${ENV_SHELL_FILE:-$(dirname $0)/.env.sh}
+    if [ -f "$ENV_SHELL_FILE" ]; then
+      source $ENV_SHELL_FILE
+    else
+      echo "error: shell environment file does not exist"
+      exit 1
+    fi
 
     COMMAND=$1
     shift

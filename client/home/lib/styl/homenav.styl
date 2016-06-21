@@ -82,22 +82,49 @@ $gray                       = #B0B0B0
   font-size                 15px
   letter-spacing            .8px
   line-height               22px
+  width                     150px
+  ellipsis()
 
 .HomeAppView-Nav--fullname
-  color                     #BEBEBE
+  color                     #769ECC
   font-weight               300
   font-size                 14px
   line-height               23px
 
 .HomeAppView-Nav--avatar
+  overflow                  visible
+
+
+.HomeAppView-Nav--avatar
 .HomeAppView--section .avatarview
   abs                       3px 0px
   rounded                   50%
-  bg                        color #CACACA
-  overflow                  hidden
+  // bg                        color #CACACA
   size                      40px 40px
   padding                   1px
   borderBox()
 
   > img
     rounded                 50%
+
+.HomeAppView-Nav--avatar
+  .badge
+    abs                     0 -2px 2px 0
+    margin                  0
+    color                   white
+    line-height             12px
+    size                    17px, 17px
+    rounded                 8px
+    font-size               0
+    &::before
+      content               ''
+      abs                   4px 3px
+    &.owner
+      bg                    color #48BA7D
+      &::before
+        r-sprite            app badge_icon_owner
+    &.admin
+      bg                    color #FFC442
+      &::before
+        left                4px
+        r-sprite            app badge_icon_admin

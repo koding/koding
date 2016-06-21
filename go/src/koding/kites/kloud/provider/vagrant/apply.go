@@ -41,11 +41,7 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	overrideCreds := map[string][]string{
-		arg.Provider: arg.Identifiers,
-	}
-
-	err := s.Builder.BuildStack(arg.StackID, overrideCreds)
+	err := s.Builder.BuildStack(arg.StackID, arg.Credentials)
 
 	if err != nil && !(arg.Destroy && stackplan.IsNotFound(err, "jStackTemplate")) {
 		return nil, err
@@ -297,7 +293,6 @@ func (s *Stack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
 	tfReq := &tf.TerraformRequest{
 		Content:   s.Builder.Stack.Template,
 		ContentID: contentID,
-		Variables: nil,
 		TraceID:   s.TraceID,
 	}
 	s.Log.Debug("Final stack template. Calling terraform.apply method:")
@@ -350,5 +345,11 @@ func (s *Stack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
 		Status:     machinestate.Building,
 	})
 
-	return s.updateMachines(ctx, output, s.Builder.Machines)
+	err = s.updateMachines(ctx, output, s.Builder.Machines)
+
+	if e := s.Builder.UpdateStack(); e != nil && err == nil {
+		err = e
+	}
+
+	return err
 }

@@ -48,19 +48,8 @@ bootChatlio = (id, team) ->
     # configure the client so it doesn't look shitty
     _chatlio.configure
       titleColor                : '#56A2D3'
-      titleFontColor            : '#fff'
-      onlineTitle               : 'How can we help you?'
-      offlineTitle              : 'Contact Us'
+      titleFontColor            : '#FFFFFF'
       agentLabel                : if shouldTalkToKodingSupport then 'Koding Support' else "#{team.title} Support"
-      browserSideAuthorLabel    : 'You'
-      onlineMessagePlaceholder  : 'Type message here...'
-      offlineGreeting           : 'Sorry we are away, but we would love to hear from you and chat soon!'
-      offlineEmailPlaceholder   : 'Email'
-      offlineMessagePlaceholder : 'Your message here'
-      offlineNamePlaceholder    : 'Name (optional but helpful)'
-      offlineSendButton         : 'Send'
-      offlineThankYouMessage    : 'Thanks for your message. We will be in touch soon!'
-      autoResponseMessage       : 'Question? Just type it below and we are online and ready to answer.'
 
     # these to identify the user talking
     # taken from user's koding account

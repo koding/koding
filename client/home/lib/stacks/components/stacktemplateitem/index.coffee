@@ -17,7 +17,9 @@ module.exports = class StackTemplateItem extends React.Component
 
   render: ->
 
-    { template, onOpen } = @props
+    { template, stack, onOpen } = @props
+
+    return null  unless template
 
     editorUrl = "/Stack-Editor/#{template.get '_id'}"
 
@@ -26,7 +28,7 @@ module.exports = class StackTemplateItem extends React.Component
         href={editorUrl}
         className='HomeAppViewListItem-label'
         onClick={onOpen}>
-        {_.unescape template.get 'title'}
+        { makeTitle { template, stack } }
       </a>
       <div className='HomeAppViewListItem-description'>
         Last updated <TimeAgo from={template.getIn ['meta', 'modifiedAt']} />
@@ -35,3 +37,13 @@ module.exports = class StackTemplateItem extends React.Component
         {@renderButton()}
       </div>
     </div>
+
+makeTitle = ({ template, stack }) ->
+
+  title = _.unescape template.get 'title'
+
+  return title  unless stack
+  return title  unless oldOwner = stack.getIn(['config', 'oldOwner'])
+
+  return "#{title} (@#{oldOwner})"
+

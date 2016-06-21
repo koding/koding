@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var defaultLog = common.NewLogger("stackplan", false)
@@ -48,6 +49,8 @@ type KiteMap map[string]string
 // Stack is struct that contains all necessary information Apply needs to
 // perform successfully.
 type Stack struct {
+	ID bson.ObjectId // jComputeStack._id
+
 	// Machines is a list of jMachine identifiers.
 	Machines []string
 

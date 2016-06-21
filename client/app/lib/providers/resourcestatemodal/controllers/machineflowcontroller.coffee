@@ -1,10 +1,10 @@
 kd = require 'kd'
-StartMachinePageView = require '../views/startmachinepageview'
-StartMachineProgressPageView = require '../views/startmachineprogresspageview'
-StartMachineSuccessPageView = require '../views/startmachinesuccesspageview'
-StartMachineErrorPageView = require '../views/startmachineerrorpageview'
-StopMachineProgressPageView = require '../views/stopmachineprogresspageview'
-StopMachineErrorPageView = require '../views/stopmachineerrorpageview'
+StartMachinePageView = require '../views/machineflow/startmachinepageview'
+StartMachineProgressPageView = require '../views/machineflow/startmachineprogresspageview'
+StartMachineSuccessPageView = require '../views/machineflow/startmachinesuccesspageview'
+StartMachineErrorPageView = require '../views/machineflow/startmachineerrorpageview'
+StopMachineProgressPageView = require '../views/machineflow/stopmachineprogresspageview'
+StopMachineErrorPageView = require '../views/machineflow/stopmachineerrorpageview'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
 trackInitialTurnOn = require 'app/util/trackInitialTurnOn'
 constants = require '../constants'
@@ -18,8 +18,6 @@ module.exports = class MachineFlowController extends kd.Controller
 
     machine = @getData()
     @state  = machine.status.state
-
-    @loadData()
 
 
   loadData: ->
@@ -39,14 +37,14 @@ module.exports = class MachineFlowController extends kd.Controller
           percentage : response.percentage
           eventId    : machineId
       .catch (err) =>
-        @showError err
         @onDataLoaded()
+        @showError err
 
 
   onDataLoaded: ->
 
     @bindToKloudEvents()
-    @createPages()
+    @setup()
     @show()
 
 
@@ -65,7 +63,7 @@ module.exports = class MachineFlowController extends kd.Controller
     eventListener.followUpcomingEvents machine
 
 
-  createPages: ->
+  setup: ->
 
     { container } = @getOptions()
     machine = @getData()

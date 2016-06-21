@@ -14,6 +14,13 @@ module.exports = class StackEditorAppController extends AppController
     name       : 'Stackeditor'
     behavior   : 'application'
 
+  constructor: (options = {}, data) ->
+
+    super options, data
+
+    # a cache to register created views.
+    @editors = {}
+
 
   openEditor: (stackTemplateId) ->
 
@@ -28,9 +35,9 @@ module.exports = class StackEditorAppController extends AppController
     if stackTemplateId
       computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
         return showError err  if err
-        @createView stackTemplate
+        @showView stackTemplate
     else
-      @createView()
+      @showView()
 
 
   openStackWizard: ->
@@ -78,14 +85,81 @@ module.exports = class StackEditorAppController extends AppController
       createOnce()
 
 
-  createView: (stackTemplate) ->
+  showView: (stackTemplate) ->
 
-    options = { skipFullscreen: yes }
-    data    = { stackTemplate, showHelpContent: not stackTemplate }
+    stackTemplate or= { _id: 'default' }
 
-    @mainView.destroySubViews()
+    id = stackTemplate._id
+
+    unless @editors[id]
+      @editors[id] = editor = @createEditor stackTemplate
+      editor.on 'Reload', @lazyBound 'reloadEditor', stackTemplate
+      @mainView.addSubView editor
+
+    return  unless editor = @editors[id]
+
+    # hide all editors
+    Object.keys(@editors).forEach (templateId) =>
+      view = @editors[templateId]
+
+      view.getElement().removeAttribute 'testpath'
+      view.hide()
+
+    # show the correct editor.
+    editor.setAttribute 'testpath', 'StackEditor-isVisible'
+    editor.show()
+
+
+  reloadEditor: (template) ->
+
+    editor = @editors[template._id]
+    delete @editors[template._id]
+
+    editor.destroy()
+
+    @showView template
+
+
+  createEditor: (stackTemplate) ->
+
+    template = if stackTemplate._id is 'default' then null else stackTemplate
+
+    options = { cssClass: 'hidden', skipFullscreen: yes }
+    data    = { stackTemplate: template, showHelpContent: not stackTemplate }
 
     view    = new StackEditorView options, data
     view.on 'Cancel', -> kd.singletons.router.back()
 
-    @mainView.addSubView view
+    # TODO: Will activate this with following PRs.
+    # Not removing to leave it as ref. ~Umut
+    # confirmation = null
+
+    # stackTemplate.on? 'update', =>
+
+    #   return  if confirmation
+
+    #   view.addSubView confirmation = new kd.ModalView
+    #     title: 'Stack Template is Updated'
+    #     buttons:
+    #       ok:
+    #         title: 'OK'
+    #         style: 'solid green medium'
+    #         callback: =>
+    #           view.destroy()
+    #           delete @editors[stackTemplate._id]
+    #           @openEditor stackTemplate._id
+    #       cancel:
+    #         title: 'Cancel'
+    #         style: 'solid light-gray medium'
+    #         callback: ->
+    #           confirmation.destroy()
+    #           confirmation = null
+    #     content: '''
+    #       <div class='modalformline'
+    #         <p>This stack template is updated by another admin. Do you want to reload?
+    #       </div>
+    #       '''
+
+    return view
+
+

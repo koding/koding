@@ -170,7 +170,7 @@ func NewBuilder(opts *BuilderOptions) *Builder {
 // BuildStack fetches stack details from MongoDB.
 //
 // When nil error is returned, the  b.Stack field is non-nil.
-func (b *Builder) BuildStack(stackID string, overrideCreds map[string][]string) error {
+func (b *Builder) BuildStack(stackID string, credentials map[string][]string) error {
 	var overallErr error
 
 	computeStack, err := modelhelper.GetComputeStack(stackID)
@@ -179,6 +179,7 @@ func (b *Builder) BuildStack(stackID string, overrideCreds map[string][]string) 
 	}
 
 	b.Stack = &Stack{
+		ID:          computeStack.Id,
 		Stack:       computeStack,
 		Machines:    make([]string, len(computeStack.Machines)),
 		Credentials: make(map[string][]string),
@@ -214,7 +215,7 @@ func (b *Builder) BuildStack(stackID string, overrideCreds map[string][]string) 
 	}
 
 	// Set or override credentials when passed in apply request.
-	for k, v := range overrideCreds {
+	for k, v := range credentials {
 		if len(v) != 0 {
 			b.Stack.Credentials[k] = v
 		}
@@ -534,4 +535,13 @@ func (b *Builder) BuildTemplate(content, contentID string) error {
 	b.Template = template
 
 	return nil
+}
+
+// UpdateStack updates jComputeStack document using b.Stack field.
+func (b *Builder) UpdateStack() error {
+	return modelhelper.UpdateStack(b.Stack.ID, bson.M{
+		"$set": bson.M{
+			"credentials": b.Stack.Credentials,
+		},
+	})
 }
