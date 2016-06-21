@@ -3,6 +3,8 @@ package app
 import (
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -11,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -37,6 +40,7 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
+	"github.com/koding/kite/kitekey"
 	kiteproto "github.com/koding/kite/protocol"
 	"github.com/koding/kite/sockjsclient"
 )
@@ -250,6 +254,8 @@ func NewKlient(conf *KlientConfig) *Klient {
 			Log: k.Log,
 		},
 	}
+
+	kl.kite.OnRegister(kl.updateKiteKey)
 
 	// This is important, don't forget it
 	kl.RegisterMethods()
@@ -664,6 +670,51 @@ func (k *Klient) checkAuth(r *kite.Request) (interface{}, error) {
 	}
 
 	return true, nil
+}
+
+func (k *Klient) updateKiteKey(reg *kiteproto.RegisterResult) {
+	if reg.KiteKey == "" {
+		return
+	}
+
+	kiteKey := k.kite.KiteKey()
+
+	if kiteKey == reg.KiteKey {
+		return
+	}
+
+	if err := writeKiteKey(reg.KiteKey); err != nil {
+		k.kite.Log.Warning("kite.key update failed: %s", err)
+	}
+}
+
+func writeKiteKey(content string) error {
+	kiteHome, err := kitekey.KiteHome()
+	if err != nil {
+		return err
+	}
+
+	f, err := ioutil.TempFile(kiteHome, "kite.key")
+	if err != nil {
+		return err
+	}
+
+	origPath := filepath.Join(kiteHome, "kite.key")
+
+	_, err = io.Copy(f, strings.NewReader(content))
+	errClose := f.Close()
+	if err == nil {
+		err = errClose
+	}
+
+	if err != nil {
+		os.Remove(f.Name())
+		return err
+	}
+
+	os.Remove(origPath)
+
+	return os.Rename(f.Name(), origPath)
 }
 
 func openBoltDb(dbpath string) (*bolt.DB, error) {
