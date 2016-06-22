@@ -72,7 +72,14 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
     @on actions.MIGRATION_AVAILABLE, @handleMigration
 
 
-  handleMarkAsDone: (steps, { step }) -> steps.setIn [ step, 'isDone' ], yes
+  handleMarkAsDone: (steps, { step }) ->
+
+    steps.forEach (stepSet, role) ->
+      return  unless stepSet.has step
+      steps = steps.setIn [ role, step, 'isDone' ], yes
+
+    return steps
+
 
 
   handleMigration: (steps) ->
