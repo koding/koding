@@ -7,7 +7,7 @@ module.exports = class ResendInvitationConfirmationModal extends contentModal
   constructor: (options = {}, data) ->
 
     options = _.assign {}, options,
-      title                   : 'Resend invitation'
+      title                   : 'Resend Invitation'
       overlay                 : yes
       height                  : 'auto'
       cssClass                : 'admin-invite-confirm-modal content-modal'
