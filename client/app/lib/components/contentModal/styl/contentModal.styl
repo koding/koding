@@ -1,0 +1,179 @@
+@css {
+/*
+  &.admin-invite-confirm-modaltyles
+-----------------------------
+contentModal.styl
+*/
+}
+.ContentModal
+  font-family               SoleilFamily
+  overflow                  hidden
+  rounded                   6px
+  border                    none
+
+  &.kdmodal
+    .kdmodal-inner
+    .kdmodal-content
+      margin                0px
+
+      .kdtabview
+        overflow            hidden
+
+    .kdmodal-inner .close-icon
+      r-sprite              app modal_close
+      top                   20px
+      right                 20px
+
+    &.formline.button-field
+      button.kdbutton
+        height              60px
+        border-top          1px solid #DEDBDB
+        bg                  color #fff
+        padding-top         20px
+        text-align          center
+
+    &.with-form.with-partial
+      main
+        min-height          237px
+        .formline.button-field
+          abs               170px 0 0 95px
+
+    &.with-form
+      main
+        min-height          145px
+        .formline.button-field
+          abs               70px 0 0 95px
+
+        // margin              0px 0px
+    &.with-form
+      main
+        rel()
+      .kdtabview
+        abs                 10px 0 0 0
+        left                0px
+      .kdtabpaneview
+      .form-view
+        overflow            visible
+        .formline.button-field
+          // abs               170px 0 0 95px
+
+          .kdbutton
+            margin-left     10px
+            text-align      center
+            min-width       127px
+            height          42px
+            font-size       14px
+            text-transform  uppercase
+            fontPrecisionForSoleil()
+
+          .kdbutton
+            background      #F2778A
+            &.cancel
+            &.no
+              background    #FFFFFF
+              border        1px solid #BEBEBE
+              border-radius 4px
+              span
+                color       #5E5E5E
+            span
+              color         #FFFFFF
+
+
+  &.add-managed-vm
+    .kdmodal-content
+      height                405px
+
+  &.has-markdown
+    h1
+      padding               0
+
+  &.content-modal
+    header
+      height                60px
+      border-bottom         1px solid #ECEAEA
+      bg                    color #fff
+      text-align            center
+
+      > h1
+        color               #727272
+        font-size           22px
+        font-weight         300
+        line-height         20px
+        margin-top          20px
+        display             inline-block
+        letter-spacing      0px
+        fontPrecisionForSoleil()
+
+
+    main
+      margin                40px 40px
+      color                 #727272
+
+      .kdtabpaneview
+        overflow            visible
+        height              360px
+
+      .kdtabpaneview.verifypasswordform
+        height              auto
+
+      h5
+      h2
+        font-size           16px
+        letter-spacing      0.18px
+        line-height         20px
+        font-weight         300
+        fontPrecisionForSoleil()
+        text-align          center
+        font-weight         400
+
+      p
+        width               auto
+        font-size           14px
+        font-weight         300
+        line-height         27px
+        letter-spacing      .2px
+        fontPrecisionForSoleil()
+        strong
+          color             #F2778A
+
+      code
+        background          #EDEDED
+
+
+    footer
+      height                60px
+      border-top            1px solid #ECEAEA
+      bg                    color #fff
+      padding-top           20px
+      text-align            center
+
+      rel()
+
+      .kdbutton
+        margin-left         10px
+        text-align          center
+        min-width           127px
+        height              42px
+        font-size           14px
+        border-radius       4px
+        text-transform      uppercase
+        fontPrecisionForSoleil()
+
+      .kdbutton
+        background          #F2778A
+        &.cancel
+        &.no
+          background        #FFFFFF
+          border            1px solid #BEBEBE
+          span
+            color           #5E5E5E
+        span
+          color             #FFFFFF
+
+    section span
+      width                 360px
+      bottom                22px
+
+    .kdloader
+      top                   184px
+      left                  144px
