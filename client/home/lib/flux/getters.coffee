@@ -21,13 +21,9 @@ welcomeSteps = [
   (stacks, steps) ->
 
     if stacks.size and status = stacks.first()?.get 'status'
-      steps = steps.delete 'stackCreation'
-      if status is 'NotInitialized'
-        steps = steps.delete 'buildStack'
-      else
+      unless status is 'NotInitialized'
         steps = steps.delete 'pendingStack'
     else
-      steps = steps.delete 'buildStack'
       steps = steps.delete 'pendingStack'
 
     return steps.sortBy (a) -> a.get('order')
