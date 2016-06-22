@@ -1,5 +1,7 @@
 kd = require 'kd'
+globals = require 'globals'
 JView = require 'app/jview'
+{ actions : HomeActions } = require 'home/flux'
 
 VIDEO_SRC = 'https://www.youtube.com/embed/hR3mUvknsaU?autoplay=1'
 
@@ -17,7 +19,7 @@ module.exports = class IntroVideoView extends kd.View
     @label = new kd.CustomHTMLView
       tagName  : 'span'
       cssClass : 'IntroVideoView--label'
-      partial  : "Don't show me this again"
+      partial  : 'Don\'t show me this again'
       click    : => @checkbox.setValue !@checkbox.getValue()
 
 
@@ -30,8 +32,9 @@ module.exports = class IntroVideoView extends kd.View
       @$('.IntroVideoView-FauxVideo').addClass 'hidden'
       @$('.IntroVideoView-Video').removeClass 'hidden'
       @$('.IntroVideoView-Video iframe').attr 'src', VIDEO_SRC
-
-
+    else if event.target.classList.contains 'GenericButton'
+      HomeActions.markAsDone 'watchVideo'  if @checkbox.getValue()
+      kd.singletons.mainView.hideIntroVideo()
 
 
   pistachio: ->
