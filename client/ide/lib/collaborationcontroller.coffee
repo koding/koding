@@ -24,7 +24,7 @@ generateCollaborationLink     = require 'app/util/generateCollaborationLink'
 isKoding                      = require 'app/util/isKoding'
 Tracker                       = require 'app/util/tracker'
 IDEHelpers                    = require 'ide/idehelpers'
-
+contentModal = require 'app/components/contentModal'
 
 { warn } = kd
 
@@ -344,9 +344,10 @@ module.exports = CollaborationController =
     isHostWatched = nickname is @collaborationHost
     return  if not isHostWatched or @amIHost
 
-    modal = new KDModalView
+    modal = new contentModal
+      width         : 600
       title         : "Host's layout is updated since you last watched his changes."
-      cssClass      : 'modal-with-text layout-changed-modal'
+      cssClass      : 'modal-with-text collaboration-modals layout-changed-modal content-modal'
       content       : """
         If you click yes below we'll change your tabs layout to match host's layout.
         You won't lose your changes, if you have any.<br/><br/>
@@ -354,14 +355,14 @@ module.exports = CollaborationController =
       """
       overlay       : yes
       buttons       :
+        'Cancel'    :
+          cssClass  : 'solid medium light-gray'
+          callback  : -> modal.destroy()
         'Yes'       :
           cssClass  : 'solid medium red'
           callback  : =>
             modal.destroy()
             @applyHostLayoutToParticipant()
-        'Cancel'    :
-          cssClass  : 'solid medium light-gray'
-          callback  : -> modal.destroy()
 
 
   applyHostLayoutToParticipant: ->

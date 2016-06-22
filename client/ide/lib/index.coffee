@@ -32,6 +32,7 @@ ResourceStateModal            = require 'app/providers/resourcestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
+contentModal = require 'app/components/contentModal'
 
 require('./routes').init()
 
@@ -1669,20 +1670,22 @@ class IDEAppController extends AppController
   showModal: (modalOptions = {}, callback = noop) ->
     return  if @modal
 
+    modalOptions.cssClass = 'content-modal'
     modalOptions.overlay  ?= yes
     modalOptions.blocking ?= no
     modalOptions.buttons or=
+      No         :
+        title    : 'Cancel'
+        cssClass : 'solid cancel medium'
+        callback : => @modal.destroy()
       Yes        :
-        cssClass : 'solid green medium'
+        title    : 'Yes'
+        cssClass : 'solid medium'
         loader   : yes
         callback : callback
-      No         :
-        cssClass : 'solid light-gray medium'
-        callback : => @modal.destroy()
 
     ModalClass = if modalOptions.blocking then kd.BlockingModalView else kd.ModalView
-
-    @modal = new ModalClass modalOptions
+    @modal = new contentModal modalOptions
     @modal.once 'KDObjectWillBeDestroyed', =>
       delete @modal
 
