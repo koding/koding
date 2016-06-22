@@ -12,8 +12,6 @@ module.exports = class VerifyPasswordModal extends contentModal
     cssClass = 'content-modal'
     cssClass = 'content-modal with-partial'  if partial
 
-    console.log {cssClass}
-
     options =
       title                       : 'Please Verify Your Current Password'
       cssClass                    : cssClass
