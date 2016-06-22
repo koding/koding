@@ -2,8 +2,8 @@ traverse              = require 'traverse'
 os                    = require 'os'
 
 module.exports = (KONFIG, options, credentials) ->
-  GOBIN = "#{options.projectRoot}/go/bin"
-  GOPATH = "#{options.projectRoot}/go"
+  GOBIN = "%(ENV_KONFIG_PROJECTROOT)s/go/bin"
+  GOPATH = "%(ENV_KONFIG_PROJECTROOT)s/go"
 
   workers =
     gowebserver         :
@@ -92,7 +92,7 @@ module.exports = (KONFIG, options, credentials) ->
     authworker          :
       group             : "webserver"
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/workers/auth/index.js"
+        command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/workers/auth/index.js"
       healthCheckURL    : "http://localhost:#{KONFIG.authWorker.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.authWorker.port}/version"
 
@@ -103,7 +103,7 @@ module.exports = (KONFIG, options, credentials) ->
       nginx             :
         locations       : [ { location : "/sourcemaps" } ]
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/servers/sourcemaps/index.js"
+        command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/servers/sourcemaps/index.js"
 
     webserver           :
       group             : "webserver"
@@ -111,7 +111,7 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.webserver.port}"
         outgoing        : "#{KONFIG.webserver.kitePort}"
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/servers/index.js"
+        command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/servers/index.js"
       nginx             :
         locations       : [
           {
@@ -129,7 +129,7 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.social.port}"
         outgoing        : "#{KONFIG.social.kitePort}"
       supervisord       :
-        command         : "./watch-node #{options.projectRoot}/workers/social/index.js"
+        command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js"
       nginx             :
         locations       : [ { location: "/xhr" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
@@ -143,7 +143,7 @@ module.exports = (KONFIG, options, credentials) ->
         stopwaitsecs    : 20
         command         :
           run           : "#{GOBIN}/paymentwebhook -kite-init=true"
-          watch         : "make -C #{options.projectRoot}/go/src/socialapi paymentwebhookdev"
+          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi paymentwebhookdev"
       healthCheckURL    : "http://localhost:#{KONFIG.paymentwebhook.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.paymentwebhook.port}/version"
       nginx             :
@@ -174,7 +174,7 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         command         :
           run           : "#{GOBIN}/api -port=#{KONFIG.socialapi.port}"
-          watch         : "make -C #{options.projectRoot}/go/src/socialapi apidev"
+          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi apidev"
       healthCheckURL    : "#{KONFIG.socialapi.proxyUrl}/healthCheck"
       versionURL        : "#{KONFIG.socialapi.proxyUrl}/version"
       nginx             :
@@ -362,7 +362,7 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         command         :
           run           : "#{GOBIN}/gatekeeper"
-          watch         : "make -C #{options.projectRoot}/go/src/socialapi gatekeeperdev"
+          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi gatekeeperdev"
       healthCheckURL    : "#{options.customDomain.local}/api/gatekeeper/healthCheck"
       versionURL        : "#{options.customDomain.local}/api/gatekeeper/version"
       nginx             :
@@ -376,7 +376,7 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         command         :
           run           : "#{GOBIN}/dispatcher"
-          watch         : "make -C #{options.projectRoot}/go/src/socialapi dispatcherdev"
+          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi dispatcherdev"
 
     mailsender          :
       group             : "socialapi"
@@ -425,7 +425,7 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         command         :
           run           : "#{GOBIN}/webhook"
-          watch         : "make -C #{options.projectRoot}/go/src/socialapi webhookdev"
+          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi webhookdev"
       healthCheckURL    : "#{options.customDomain.local}/api/integration/healthCheck"
       versionURL        : "#{options.customDomain.local}/api/integration/version"
       nginx             :
@@ -441,7 +441,7 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         command         :
           run           : "#{GOBIN}/webhookmiddleware"
-          watch         : "make -C #{options.projectRoot}/go/src/socialapi middlewaredev"
+          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi middlewaredev"
       healthCheckURL    : "#{options.customDomain.local}/api/webhook/healthCheck"
       versionURL        : "#{options.customDomain.local}/api/webhook/version"
       nginx             :

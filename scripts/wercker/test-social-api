@@ -8,5 +8,5 @@ tail -n 100 /var/log/koding/social-pinnedpost.log
 tail -n 100 /var/log/koding/social-webhook.log
 tail -n 100 /var/log/koding/social-webhookmiddleware.log
 
-cd $WERCKER_ROOT/go/src/socialapi
-EXTRAS="-convey-story=true" make testapi
+export EXTRAS="-convey-story=true"
+./run exec make -C $WERCKER_ROOT/go/src/socialapi testapi
