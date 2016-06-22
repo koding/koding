@@ -11,6 +11,7 @@ GlobalNotificationView  = require './globalnotificationview'
 MainTabView             = require './maintabview'
 TopNavigation           = require './topnavigation'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
+IntroVideoView          = require 'app/introvideoview'
 isTeamReactSide         = require 'app/util/isTeamReactSide'
 getGroup                = require 'app/util/getGroup'
 isSoloProductLite       = require 'app/util/issoloproductlite'
@@ -42,15 +43,19 @@ module.exports = class MainView extends kd.View
     @createSidebar()
     @createHeader()
     @createPanelWrapper()
+    @checkForIntroVideo()  unless isKoding()
     @showRegistrationsClosedWarning()  if isSoloProductLite() and isKoding()
     @checkVersion()
     kd.utils.repeat (5 * 60 * 1000), @bound 'checkVersion'
     @createMainTabView()
 
     kd.singletons.mainController.ready =>
-      @createTeamLogo()  unless isKoding()
-      @createMiniWelcomeSteps()  unless isKoding()
-      @createAccountArea()  if isKoding()
+      unless isKoding()
+        @createTeamLogo()
+        @createMiniWelcomeSteps()
+      else
+        @createAccountArea()
+
       @setStickyNotification()
       @emit 'ready'
 
@@ -319,6 +324,37 @@ module.exports = class MainView extends kd.View
       kd.getSingleton('router').handleRoute '/Activity'
 
     @panelWrapper.addSubView @mainTabView
+
+
+  checkForIntroVideo: ->
+
+    { appStorageController } = kd.singletons
+    appStorage = appStorageController.storage 'Home', '1.0'
+
+    appStorage.fetchValue 'IntroVideoWatched', (isWatched) =>
+
+      return  if isWatched
+
+      @showIntroVideo()
+
+
+  showIntroVideo: ->
+
+    return  if @introVideo
+
+    @addSubView @introVideo = new IntroVideoView
+    @introVideoViewIsShown = yes
+    @emit 'IntroVideoViewIsShown'
+
+
+  hideIntroVideo: ->
+
+    return  unless @introVideo
+
+    @introVideo.destroy()
+    @introVideo = null
+    @introVideoViewIsShown = no
+    @emit 'IntroVideoViewIsHidden'
 
 
   setStickyNotification: ->

@@ -28,6 +28,7 @@ generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 StackTemplatePreviewModal = require 'stacks/views/stacks/stacktemplatepreviewmodal'
 EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
+{ actions : HomeActions } = require 'home/flux'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -700,6 +701,7 @@ module.exports = class StackEditorView extends kd.View
         @setData { stackTemplate }
 
         stackTemplate._updated = currentSum isnt stackTemplate.template.sum
+        HomeActions.markAsDone 'stackCreation'
 
       callback err, stackTemplate
 
