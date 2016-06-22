@@ -329,11 +329,11 @@ module.exports = class MainView extends kd.View
   checkForIntroVideo: ->
 
     { appStorageController } = kd.singletons
-    appStorage = appStorageController.storage 'Home', '1.0'
+    appStorage = appStorageController.storage "WelcomeSteps-#{globals.currentGroup.slug}"
 
-    appStorage.fetchValue 'IntroVideoWatched', (isWatched) =>
+    appStorage.fetchValue 'finishedSteps', (finishedSteps = {}) =>
 
-      return  if isWatched
+      return  if finishedSteps.watchVideo
 
       @showIntroVideo()
 
