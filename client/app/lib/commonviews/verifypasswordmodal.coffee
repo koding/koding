@@ -3,18 +3,23 @@ KDModalViewWithForms = kd.ModalViewWithForms
 KDNotificationView = kd.NotificationView
 whoami = require 'app/util/whoami'
 showError = require 'app/util/showError'
+contentModal = require 'app/components/contentModal'
 
-
-module.exports = class VerifyPasswordModal extends KDModalViewWithForms
+module.exports = class VerifyPasswordModal extends contentModal
 
   constructor: (buttonTitle = 'Submit', partial = '', callback) ->
 
+    cssClass = 'content-modal'
+    cssClass = 'content-modal with-partial'  if partial
+
+    console.log {cssClass}
+
     options =
-      title                       : 'Please verify your current password '
+      title                       : 'Please Verify Your Current Password'
+      cssClass                    : cssClass
       overlay                     : yes
       overlayClick                : no
       width                       : 605
-      height                      : 'auto'
       tabs                        :
         navigable                 : yes
         forms                     :
@@ -28,7 +33,7 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
                 style             : 'solid green medium'
                 type              : 'submit'
               Forgot              :
-                style             : 'solid light-gray medium'
+                style             : 'solid medium'
                 title             : 'Forgot Password?'
                 callback          : =>
                   account = whoami()
