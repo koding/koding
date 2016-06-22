@@ -25,8 +25,38 @@ checkMigration = ->
 
     kd.singletons.reactor.dispatch actionTypes.MIGRATION_AVAILABLE
 
+checkFinishedSteps = ->
+
+  { appStorageController, groupsController, reactor } = kd.singletons
+  appStorage = appStorageController.storage "WelcomeSteps-#{globals.currentGroup.slug}"
+
+  welcomeSteps = reactor.evaluate(HomeGetters.welcomeSteps).toJS()
+
+  appStorage.fetchValue 'finishedSteps', (finishedSteps = {}) ->
+    Object.keys(welcomeSteps).forEach (step) ->
+      markAsDone step  if finishedSteps[step]
+
+  if groupsController.getCurrentGroup().counts?.members > 1
+      markAsDone 'inviteTeam'
+
+  return  if reactor.evaluate(HomeGetters.welcomeSteps).getIn [ 'common', 'installKd', 'isDone' ]
+
+  queryKites().then (result) ->
+
+    return markAsDone 'installKd'  if result?.length
+
+    kiteTimer = kd.utils.repeat 30000, -> queryKites().then (result) ->
+
+      return  unless result?.length
+
+      kd.utils.killRepeat kiteTimer
+      markAsDone 'installKd'
+
+
+
 
 module.exports = {
   markAsDone
   checkMigration
+  checkFinishedSteps
 }
