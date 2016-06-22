@@ -52,6 +52,18 @@ module.exports = class WelcomeStepsMiniView extends React.Component
     kdParent.off 'ReceivedClickElsewhere'
 
 
+  hideJewel: ->
+
+    @refs.jewel.classList.remove 'in'
+    @refs.jewel.classList.add 'out'
+
+
+  showJewel: ->
+
+    @refs.jewel.classList.remove 'out'
+    @refs.jewel.classList.add 'in'
+
+
   handleDetailsClick: ->
 
     kd.singletons.router.handleRoute '/Welcome'
@@ -62,9 +74,10 @@ module.exports = class WelcomeStepsMiniView extends React.Component
 
     stepsUndone = 0
     @props.steps.map (step, i) -> stepsUndone++  unless step.get 'isDone'
+    jewelClass = "WelcomeSteps-miniview--count#{if stepsUndone > 0 then ' in' else ' out'}"
 
     <div>
-      <cite className='WelcomeSteps-miniview--count' onClick={ @bound 'toggleDropdown' }>{ stepsUndone }</cite>
+      <cite ref='jewel' className={ jewelClass } onClick={ @bound 'toggleDropdown' }>{ stepsUndone }</cite>
       <section ref='dropdown' className='WelcomeSteps-miniview'>
         <h2>Become An Expert</h2>
         {@renderBullets()}
