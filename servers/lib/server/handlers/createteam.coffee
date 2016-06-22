@@ -14,9 +14,12 @@ module.exports = (req, res, next) ->
   { body }                       = req
   { # slug is team slug, unique name. Can not be changed
     slug
+    username
     email
     # newsletter holds announcements config.
     newsletter
+    # is request coming from hubspot?
+    fromHubspot
     # is group creator already a member
     alreadyMember }              = body
   body.groupName                 = slug
@@ -69,19 +72,51 @@ module.exports = (req, res, next) ->
         next()
 
     (next) ->
-      # checking if user exists by trying to login the user
-      JUser.login client.sessionToken, body, (err, result) ->
-        errorMessage          = err?.message
-        unknownUsernameError  = 'Unknown user name'
 
-        # send HTTP 400 if somehow alreadyMember is true but user doesnt exist
-        if alreadyMember and errorMessage is unknownUsernameError
-          return next { status: 400, message: unknownUsernameError }
+      checkUserLogin = (_body, next) ->
+        # checking if user exists by trying to login the user
+        JUser.login client.sessionToken, _body, (err, result) ->
+          errorMessage          = err?.message
+          unknownUsernameError  = 'Unknown user name'
 
-        # setting alreadyMember to true if error is not unknownUsernameError
-        # ignoring other errors here since our only concern is checking if user exists
-        alreadyMember = errorMessage isnt unknownUsernameError
-        next()
+          # send HTTP 400 if somehow alreadyMember is true but user doesnt exist
+          if alreadyMember and errorMessage is unknownUsernameError
+            return next { status: 400, message: unknownUsernameError }
+
+          # setting alreadyMember to true if error is not unknownUsernameError
+          # ignoring other errors here since our only concern is checking if user exists
+          alreadyMember = errorMessage isnt unknownUsernameError
+          next()
+
+      if alreadyMember and fromHubspot and email and not username
+        body.username = email
+        checkUserLogin body, next
+
+      else if not alreadyMember and fromHubspot and email
+
+        candidateUsername = email.split('@')[0]
+        index = 1
+
+        generateUsername = ->
+          _username = "#{candidateUsername}#{index++ or ''}"
+
+          # fetch user with a candidate username
+          JUser.one { username: _username }, (err, res) ->
+
+            # if there is an error or there is not a result with this username
+            # this means that the candidate username can be used.
+            if err or not res
+              body.username = _username
+              checkUserLogin body, next
+
+            # if there isn't an error that means that there is a user with this
+            # username, so generate new one and try with that.
+            else
+              generateUsername()
+
+      else
+        checkUserLogin body, next
+
 
   ]
 
