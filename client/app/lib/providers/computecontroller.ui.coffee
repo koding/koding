@@ -17,7 +17,7 @@ showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 applyMarkdown        = require 'app/util/applyMarkdown'
 doXhrRequest         = require 'app/util/doXhrRequest'
-
+contentModal = require 'app/components/contentModal'
 
 MissingDataView      = require './missingdataview'
 
@@ -41,9 +41,9 @@ module.exports = class ComputeControllerUI
 
   showPrivateKeyWarning = (privateKey) ->
 
-    new kd.ModalView
+    new contentModal
       title           : 'Please save private key content'
-      subtitle        : applyMarkdown "
+      content         : applyMarkdown "
                          This stack only requires public key which means
                          private key of this public key is not going to be
                          stored, please take a copy of following private key.
@@ -51,7 +51,7 @@ module.exports = class ComputeControllerUI
                          **You won't be able to access this private key later**
                         "
       content         : applyMarkdown "```\n#{privateKey}\n```"
-      cssClass        : 'has-markdown'
+      cssClass        : 'has-markdown content-modal'
       width           : 530
       overlay         : yes
       overlayClick    : yes
@@ -396,9 +396,9 @@ module.exports = class ComputeControllerUI
     buttonColor ?= 'red'
     dontAskAgain = 'hidden'  if not dontAskAgain
 
-    modal = new kd.ModalView
+    modal = new contentModal
       title          : title ? 'Remove?'
-      cssClass       : 'has-markdown'
+      cssClass       : 'has-markdown content-modal'
       attributes     :
         testpath     : action
       content        : """
@@ -408,18 +408,19 @@ module.exports = class ComputeControllerUI
       """
       overlay        : yes
       buttons        :
-        ok           :
-          title      : button ? 'Yes, remove'
-          style      : "solid #{buttonColor} medium"
-          callback   : ->
-            modal.destroy()
-            callback { confirmed: yes }
         cancel       :
-          style      : 'solid light-gray medium'
+          title      : 'Cancel'
+          style      : 'solid cancel medium'
           type       : 'button'
           callback   : ->
             modal.destroy()
             callback { confirmed: no }
+        ok           :
+          title      : button ? 'Yes, remove'
+          style      : "solid medium"
+          callback   : ->
+            modal.destroy()
+            callback { confirmed: yes }
         dontAskAgain :
           title      : "Don't ask this again"
           style      : "solid medium #{dontAskAgain}"
