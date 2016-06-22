@@ -1216,7 +1216,7 @@ module.exports = CollaborationController =
   showEndCollaborationModal: (callback) ->
 
     modalOptions =
-      title      : 'Are You Sure?'
+      title      : 'Are you sure?'
       content    : 'This will end your session and all participants will be removed from this session.'
 
     modal = @showModal modalOptions, => @stopCollaborationSession callback
@@ -1263,7 +1263,7 @@ module.exports = CollaborationController =
   handleParticipantLeaveAction: ->
 
     options   =
-      title   : 'Are You Sure?'
+      title   : 'Are you sure?'
       content : "If you leave this session you won't be able to return back."
 
     @showModal options, => @stateMachine.transition 'Ending'

@@ -10,7 +10,7 @@ module.exports = class AccountCredentialEditModal extends contentModal
 
   constructor: (options = {}, data) ->
 
-    options.cssClass  = kd.utils.curry 'content-modal', options.cssClass
+    options.cssClass  = kd.utils.curry 'content-modal with-form', options.cssClass
     options.title   or= 'Edit Credential'
 
     super options, data
@@ -34,9 +34,9 @@ module.exports = class AccountCredentialEditModal extends contentModal
             @form.emit 'CredentialUpdated', credential
 
 
-    @main.addSubView @wrapper = new KDView { cssClass : '', tagName: 'main' }
+    # @main.addSubView @wrapper = new KDView { cssClass : '', tagName: 'main' }
 
-    @wrapper.addSubView @form = ui.generateAddCredentialFormFor formOptions
+    @main.addSubView @form = ui.generateAddCredentialFormFor formOptions
 
     @form.on 'Cancel', @bound 'cancel'
 

@@ -221,7 +221,7 @@ module.exports = class StackTemplateListController extends KodingListController
       cssClass : 'content-modal'
       width : 400
       overlay : yes
-      title : 'Are You Sure?'
+      title : 'Are you sure?'
       content : 'Do you want to delete this stack template?'
       callback : ({ status, modal }) ->
         return  unless status

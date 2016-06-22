@@ -150,6 +150,11 @@ module.exports = class ComputeControllerUI
         selectOptions.push { field, values }
 
     buttons      =
+      Cancel     :
+        style    : 'solid medium cancel'
+        type     : 'button'
+        callback : -> form.emit 'Cancel'
+
       Save       :
         title    : 'Save'
         type     : 'submit'
@@ -161,12 +166,6 @@ module.exports = class ComputeControllerUI
       buttons = injectCustomActions requiredFields, buttons, (generatedKeys) ->
         for own field, input of form.inputs
           input.setValue data  if data = generatedKeys[field]
-
-    buttons.Cancel =
-      style        : 'solid medium cancel-btn'
-      type         : 'button'
-      callback     : -> form.emit 'Cancel'
-
 
     # Add advanced fields into form
     if advancedFields = currentProvider.advancedFields
@@ -276,7 +275,7 @@ module.exports = class ComputeControllerUI
     tasks         =
       default     :
         resize    :
-          title   : 'Resize VM?'
+          title   : 'Resize VM'
           message : '
             If you choose to proceed, this VM will be resized #{resizeDetails}.
             During the resize process, you will not be able to use your VM.
@@ -284,7 +283,7 @@ module.exports = class ComputeControllerUI
           '
           button  : 'Proceed'
         reinit    :
-          title   : 'Reinitialize VM?'
+          title   : 'Reinitialize VM'
           message : '
             If you choose to proceed, this VM will be reset to its default state.
             That means you will lose all of its data i.e. your files, workspaces, collaboration
@@ -292,7 +291,7 @@ module.exports = class ComputeControllerUI
           '
           button  : 'Proceed'
         reinitStack :
-          title   : 'Reinitialize Stack?'
+          title   : 'Reinitialize Stack'
           message : '
             If you choose to proceed, this stack and all of its VMs will be
             re-initialized from the latest revision of this stack.
@@ -300,7 +299,7 @@ module.exports = class ComputeControllerUI
           '
           button  : 'Proceed'
         deleteStack :
-          title   : 'Destroy Stack?'
+          title   : 'Destroy Stack'
           message : "
             <p>If you choose to proceed, this stack and all the VMs will be
             destroyed, and you won't be able to revert this.</p>
@@ -322,7 +321,7 @@ module.exports = class ComputeControllerUI
           buttonColor  : 'green'
           dontAskAgain : dontAskAgain ? yes
         forceDeleteStack :
-          title   : 'Delete Stack data?'
+          title   : 'Delete Stack data'
           message : "
             <p>If you choose to proceed, all of the meta data and related
             information for this stack will be removed from Koding.</p>
@@ -352,7 +351,7 @@ module.exports = class ComputeControllerUI
           '
           button  : 'Proceed'
         destroy   :
-          title   : 'Remove VM?'
+          title   : 'Remove VM'
           message : '
             <p>Terminating this VM will destroy all of its:</p>
               <br/>
@@ -369,7 +368,7 @@ module.exports = class ComputeControllerUI
           button  : 'Yes, remove'
       managed     :
         destroy   :
-          title   : 'Delete Machine from Koding?'
+          title   : 'Delete Machine from Koding'
           message : applyMarkdown '
             Deleting this machine here will only remove its connection to
             your Koding account. All files and data will still be available
@@ -397,7 +396,7 @@ module.exports = class ComputeControllerUI
     dontAskAgain = 'hidden'  if not dontAskAgain
 
     modal = new contentModal
-      title          : title ? 'Remove?'
+      title          : title ? 'Remove'
       cssClass       : 'has-markdown content-modal'
       attributes     :
         testpath     : action

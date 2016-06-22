@@ -12,8 +12,9 @@ module.exports = class VerifyPasswordModal extends contentModal
     cssClass = 'content-modal'
     cssClass = 'content-modal with-partial'  if partial
 
+
     options =
-      title                       : 'Please Verify Your Current Password'
+      title                       : 'Please verify your current password'
       cssClass                    : cssClass
       overlay                     : yes
       overlayClick                : no
@@ -26,12 +27,8 @@ module.exports = class VerifyPasswordModal extends contentModal
               callback @modalTabs.forms.verifyPasswordForm.inputs.password.getValue()
               @destroy()
             buttons               :
-              Submit              :
-                title             : buttonTitle
-                style             : 'solid green medium'
-                type              : 'submit'
               Forgot              :
-                style             : 'solid medium'
+                style             : 'solid medium cancel'
                 title             : 'Forgot Password?'
                 callback          : =>
                   account = whoami()
@@ -39,10 +36,15 @@ module.exports = class VerifyPasswordModal extends contentModal
                     return @showError err  if err
                     @doRecover email
                     @destroy()
+              Submit              :
+                title             : buttonTitle
+                style             : 'solid green medium'
+                type              : 'submit'
 
             fields                :
               planDetails     :
                 type          : 'hidden'
+                cssClass      : 'hidden'  unless partial
                 nextElement   :
                   planDetails :
                     cssClass  : 'content'

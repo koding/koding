@@ -76,7 +76,7 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
     @askForSaveModal = new contentModal
       width         : 620
       cssClass      : 'modal-with-text content-modal'
-      title         : 'Do You Want to Save Your Changes?'
+      title         : 'Do you want to save your changes?'
       content       : "<h2>#{content}</h2>"
       overlay       : yes
       buttons       :
