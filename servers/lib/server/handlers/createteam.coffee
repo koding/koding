@@ -86,7 +86,22 @@ module.exports = (req, res, next) ->
   ]
 
   async.series queue, (err) ->
-    return res.status(err.status).send err.message  if err
+
+    index = 1
+    generateTeamName = (next) ->
+      _slug = "#{slug}#{index++}"
+      JGroup.one { slug: _slug }, (_err, existingGroup) ->
+        if _err or not existingGroup
+          err.suggested = _slug
+          return res.status(err.status).json err
+        next { message: 'try again with new group slug' }
+
+    # if err means that this group exists, try to find a new group name to be
+    # suggested.
+    if err
+      return res.status(err.status).json err  unless err.status is 403
+      return async.retry 20, generateTeamName, ->
+        return res.status(err.status).json err
 
     # generating callback function to be used in both login and convert
     createGroup = createGroupKallback client, req, res, body
