@@ -4,14 +4,13 @@ section.WelcomeSteps-miniview
   rounded                   3px
   width                     180px
   z-index                   1001
-  opacity                   0
   vendor                    transform-origin, 32px -24px
   vendor                    transform, scale(0)
   opacity                   0
   &.out
-    animation               retractSteps .177s 1
+    animation               scaleDown .177s 1
   &.in
-    animation               expandSteps .3s 1
+    animation               scaleUp .3s 1
     vendor                  transform, scale(1)
     opacity                 1
 
@@ -98,7 +97,7 @@ section.WelcomeSteps-miniview button
   width                     140px
   display                   block
 
-@keyframes expandSteps {
+@keyframes scaleUp {
   0% {
     vendor                  transform, scale(0)
     opacity                 0
@@ -112,7 +111,7 @@ section.WelcomeSteps-miniview button
     opacity                 1
   }
 }
-@keyframes retractSteps {
+@keyframes scaleDown {
   0% {
     vendor                  transform, scale(1)
     opacity                 1
