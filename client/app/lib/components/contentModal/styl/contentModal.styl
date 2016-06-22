@@ -21,8 +21,8 @@ contentModal.styl
 
     .kdmodal-inner .close-icon
       r-sprite              app content_modal_close_icon
-      top                   20px
-      right                 20px
+      top                   24px
+      right                 24px
 
     &.formline.button-field
       button.kdbutton
@@ -32,30 +32,33 @@ contentModal.styl
         padding-top         20px
         text-align          center
 
-    &.with-form.with-partial
-      main
-        min-height          237px
-        .formline.button-field
-          abs               170px 0 0 95px
 
     &.with-form
       main
-        min-height          145px
-        .formline.button-field
-          abs               70px 0 0 95px
-
-        // margin              0px 0px
-    &.with-form
-      main
+        margin              0px 0px
         rel()
-      .kdtabview
-        abs                 10px 0 0 0
-        left                0px
+
       .kdtabpaneview
-      .form-view
+        height              auto
+        > form > div
+          margin            20px
+
+      form.form-view.with-fields
+        > div
+          margin            20px
+
+
+      .kdtabpaneview
+      .form-view.with-fields
         overflow            visible
+
         .formline.button-field
-          // abs               170px 0 0 95px
+          display           flex
+          justify-content   center
+          padding           19px 0 18px
+          background        #FFFFFF !important
+          border-top        1px solid #ECEAEA !important
+
 
           .kdbutton
             margin-left     10px
@@ -64,18 +67,21 @@ contentModal.styl
             height          42px
             font-size       14px
             text-transform  uppercase
+            bg              color #F2778A
+            padding         0 28px
             fontPrecisionForSoleil()
 
-          .kdbutton
-            background      #F2778A
             &.cancel
             &.no
+              margin-left   0px
               background    #FFFFFF
               border        1px solid #BEBEBE
               border-radius 4px
               span
                 color       #5E5E5E
+
             span
+              font-weight   400
               color         #FFFFFF
 
 
@@ -113,9 +119,6 @@ contentModal.styl
         overflow            visible
         height              360px
 
-      .kdtabpaneview.verifypasswordform
-        height              auto
-
       h5
       h2
         font-size           16px
@@ -136,8 +139,15 @@ contentModal.styl
         strong
           color             #F2778A
 
+      p:empty
+        display             none
+
       code
         background          #EDEDED
+
+      section
+        span
+          margin-bottom     5px
 
 
     footer
@@ -157,12 +167,12 @@ contentModal.styl
         font-size           14px
         border-radius       4px
         text-transform      uppercase
+        background          #F2778A
         fontPrecisionForSoleil()
 
-      .kdbutton
-        background          #F2778A
         &.cancel
         &.no
+          margin-left       0px
           background        #FFFFFF
           border            1px solid #BEBEBE
           span
