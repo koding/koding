@@ -4,7 +4,7 @@ KDTabView           = kd.TabView
 IDETabHandleView    = require './idetabhandleview'
 ApplicationTabView  = require 'app/commonviews/applicationview/applicationtabview'
 SplitRegionView     = require './region/splitregionview'
-
+contentModal = require 'app/components/contentModal'
 
 module.exports = class IDEApplicationTabView extends ApplicationTabView
 
@@ -73,15 +73,20 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
     file    = ace.getData()
 
     @askForSaveModal?.destroy()
-    @askForSaveModal = new KDModalView
+    @askForSaveModal = new contentModal
       width         : 620
-      cssClass      : 'modal-with-text'
-      title         : 'Do you want to save your changes?'
-      content       : "<p>#{content}</p>"
+      cssClass      : 'modal-with-text content-modal'
+      title         : 'Do You Want to Save Your Changes?'
+      content       : "<h2>#{content}</h2>"
       overlay       : yes
       buttons       :
+        'Cancel'    :
+          cssClass  : 'solid cancel medium'
+          title     : 'Cancel'
+          callback  : =>
+            @askForSaveModal.destroy()
         'SaveClose' :
-          cssClass  : 'solid green medium'
+          cssClass  : 'solid medium'
           title     : 'Save and Close'
           callback  : =>
             if file.isDummyFile()
@@ -96,18 +101,13 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
             @askForSaveModal.destroy()
         'DontSave'  :
-          cssClass  : 'solid red medium'
+          cssClass  : 'solid medium'
           title     : "Don't Save"
           callback  : =>
             @removePane_ pane
             @parent.handleCloseSplitView pane
             @askForSaveModal.destroy()
             file.emit 'FileContentsNeedsToBeRefreshed'
-        'Cancel'    :
-          cssClass  : 'solid light-gray medium'
-          title     : 'Cancel'
-          callback  : =>
-            @askForSaveModal.destroy()
 
 
   dragEnter: (event) ->
