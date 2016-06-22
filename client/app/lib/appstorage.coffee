@@ -73,8 +73,8 @@ class AppStorage extends kd.Object
 
     appId = @_applicationID
     return unless @_storage
-    return if @_storageData[group]?[appId]?['data']?[key]? then @_storageData[group][appId]['data'][key]
-    return if @_storage[group]?[appId]?['data']?[key]?     then @_storage[group][appId]['data'][key]
+    return if @_storageData[group]?[appId]?.data?[key]? then @_storageData[group][appId].data[key]
+    return if @_storage[group]?[appId]?.data?[key]?     then @_storage[group][appId].data[key]
 
 
   setValue: (key, value, callback, group = AppStorage.DEFAULT_GROUP_NAME, notify = no) ->
@@ -82,8 +82,8 @@ class AppStorage extends kd.Object
     appId                                    = @_applicationID
     @_storageData[group]                   or= {}
     @_storageData[group][appId]            or= {}
-    @_storageData[group][appId]['data']    or= {}
-    @_storageData[group][appId]['data'][key] = value
+    @_storageData[group][appId].data       or= {}
+    @_storageData[group][appId].data[key]    = value
 
     pack = @zip key, group, value
 
