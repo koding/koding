@@ -132,7 +132,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
   notifyPendingInvites = (pendingInvitations, invitations) ->
     pendingInvitations = pendingInvitations.toArray()
-    content = "<strong>#{pendingInvitations[0].get 'email'}</strong> has already been invited. Are you sure you want to resend invitation?"
+    content = "<p><strong>#{pendingInvitations[0].get 'email'}</strong> has already been invited. Are you sure you want to resend invitation?</p>"
     resendButtonText = 'Resend Invitation'
     cancelButtonText = 'Cancel'
 

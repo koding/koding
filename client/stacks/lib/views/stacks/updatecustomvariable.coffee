@@ -49,7 +49,7 @@ module.exports = updateCustomVariable = (options, callback) ->
 
   # TODO add multiple custom credential support if needed ~ GG
   identifier = stackTemplate.credentials.custom?.first
-  title      = "Custom variables for #{stackTemplate.title}"
+  title      = "Custom Variables For #{stackTemplate.title}"
   provider   = 'custom'
 
   if identifier
