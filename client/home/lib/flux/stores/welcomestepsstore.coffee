@@ -18,25 +18,33 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           description: "Create a blueprint for your team’s entire infrastructure."
           isDone: no
           order: 1
+        enterCredentials :
+          path: '/Stack-Editor'
+          title: 'Enter your Credentials'
+          miniTitle: 'Enter Credentials'
+          description: "To be able to set up your machines we need your cloud provider credentials."
+          isDone: no
+          order: 2
         buildStack :
           path: '/IDE'
           title: 'Build Your Stack'
           description: "You have a stack ready to go, go ahead and build it."
           isDone: no
-          order: 2
+          order: 3
       member :
         stackCreation :
           path: '/Stack-Editor'
           title: 'Create a Personal Stack'
+          miniTitle: 'Create a Stack'
           description: "While waiting for your team resources, you can experiment stacks."
           isDone: no
-          order: 1
+          order: 3
         pendingStack :
           path: '#'
           title: 'Your Team Stack is Pending'
           description: "Your team admins haven't created your stack yet."
           isDone: no
-          order: 2
+          order: 1
         buildStack :
           path: '/IDE'
           title: 'Build Your Stack'
