@@ -102,7 +102,8 @@ module.exports = (options) ->
     clientSecret: ''
     redirectUri: 'http://dev.koding.com:8090/-/oauth/github/callback'
   gitlab =
-    host: ''
+    host: 'gitlab.com'
+    port: 80
     applicationId: ''
     applicationSecret: ''
     redirectUri: "http://dev.koding.com:8090/-/oauth/gitlab/callback"

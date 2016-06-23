@@ -28,6 +28,14 @@ module.exports = class OAuth extends bongo.Base
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
         url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=#{scope}&redirect_uri=#{redirectUri}"
         callback null, url
+      when 'gitlab'
+        { applicationId, host, redirectUri } = KONFIG.gitlab
+        host ?= 'https://gitlab.com'
+        { returnUrl } = options
+        host = options.host ? host
+        redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
+        url = "#{host}/oauth/authorize?client_id=#{applicationId}&redirect_uri=#{redirectUri}&response_type=code"
+        callback null, url
       when 'facebook'
         { clientId } = KONFIG.facebook
         url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}&scope=email"
