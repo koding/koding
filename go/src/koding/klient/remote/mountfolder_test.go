@@ -39,10 +39,6 @@ func TestCheckSizeOfRemotefolder(t *testing.T) {
 	ts := httptest.NewServer(s)
 
 	c := kite.New("c", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
-	err := c.Dial()
-	if err != nil {
-		t.Fatal("Failed to connect to testing Kite", err)
-	}
 
 	// Set the expected response
 	expectedExecResponse = ExecResponse{

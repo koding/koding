@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -37,7 +38,7 @@ func TestUpdateKeys(t *testing.T) {
 		t.Skip("skipping TestUpdateKeys for storage %q: not implemented", storage)
 	}
 
-	kon, conf := startKontrol(testkeys.Private, testkeys.Public, 5501)
+	kon, conf := startKontrol(testkeys.PrivateThird, testkeys.PublicThird, 5501)
 
 	hk1, err := NewHelloKite("kite1", conf)
 	if err != nil {
@@ -64,8 +65,66 @@ func TestUpdateKeys(t *testing.T) {
 
 	kon.Close()
 
-	kon, conf = startKontrol(testkeys.PrivateThird, testkeys.PublicThird, 5501)
+	if err := kon.DeleteKeyPair("", testkeys.PublicThird); err != nil {
+		t.Fatalf("error deleting key pair: %s", err)
+	}
+
+	kon, conf = startKontrol(testkeys.Private, testkeys.Public, 5501)
 	defer kon.Close()
+
+	reg, err := hk1.WaitRegister(15 * time.Second)
+	if err != nil {
+		t.Fatalf("kite1 register error: %s", err)
+	}
+
+	if reg.PublicKey != testkeys.Public {
+		t.Fatalf("kite1: got public key %q, want %q", reg.PublicKey, testkeys.Public)
+	}
+
+	if reg.KiteKey == "" {
+		t.Fatal("kite1: kite key was not updated")
+	}
+
+	reg, err = hk2.WaitRegister(15 * time.Second)
+	if err != nil {
+		t.Fatalf("kite2 register error: %s", err)
+	}
+
+	if reg.PublicKey != testkeys.Public {
+		t.Fatalf("kite2: got public key %q, want %q", reg.PublicKey, testkeys.Public)
+	}
+
+	if reg.KiteKey == "" {
+		t.Fatal("kite2: kite key was not updated")
+	}
+
+	pause("token renew")
+
+	calls = HelloKites{
+		hk1: hk2,
+		hk2: hk1,
+	}
+
+	if err := Call(calls); err == nil || !strings.Contains(err.Error(), "token is expired") {
+		t.Fatalf("got nil or unexpected error: %v", err)
+	}
+
+	if err := hk2.WaitTokenExpired(10 * time.Second); err != nil {
+		t.Fatalf("kite2: waiting for token expire: %s", err)
+	}
+
+	if err := hk2.WaitTokenRenew(10 * time.Second); err != nil {
+		t.Fatalf("kite2: waiting for token renew: %s", err)
+	}
+
+	calls = HelloKites{
+		hk1: hk2,
+		hk2: hk1,
+	}
+
+	if err := Call(calls); err != nil {
+		t.Fatal(err)
+	}
 
 	pause("started kontrol 2")
 
@@ -93,11 +152,9 @@ func TestUpdateKeys(t *testing.T) {
 
 	pause("kite2 -> kite3 starting")
 
-	// TODO(rjeczalik): enable after implementing kite key updates in kontrol
-	//
-	// if err := Call(HelloKites{hk2: hk3}); err != nil {
-	//   t.Fatal(err)
-	// }
+	if err := Call(HelloKites{hk2: hk3}); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestRegisterMachine(t *testing.T) {
@@ -107,13 +164,68 @@ func TestRegisterMachine(t *testing.T) {
 		return
 	}
 
-	token, err := jwt.Parse(key, kitekey.GetKontrolKey)
+	claims := &kitekey.KiteClaims{}
+
+	_, err = jwt.ParseWithClaims(key, claims, kitekey.GetKontrolKey)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
 
-	if username := token.Claims["sub"].(string); username != "foo" {
-		t.Fatalf("invalid username: %s", username)
+	if claims.Subject != "foo" {
+		t.Fatalf("invalid username: %s", claims.Subject)
+	}
+}
+
+func TestRegisterDenyEvil(t *testing.T) {
+	// TODO(rjeczalik): use sentinel error value instead
+	const authErr = "no valid authentication key found"
+
+	legit, err := NewHelloKite("testuser", conf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err = legit.Kite.GetToken(legit.Kite.Kite()); err != nil {
+		t.Fatal(err)
+	}
+
+	evil := kite.New("testuser", "1.0.0")
+	evil.Config = conf.Config.Copy()
+	evil.Config.Port = 6767
+	evil.Config.Username = "testuser"
+	evil.Config.KontrolUser = "testuser"
+	evil.Config.KontrolURL = conf.Config.KontrolURL
+	evil.Config.KiteKey = testutil.NewToken("testuser", testkeys.PrivateEvil, testkeys.PublicEvil).Raw
+	// KontrolKey can be easily extracted from existing kite.key
+	evil.Config.KontrolKey = testkeys.Public
+	evil.Config.ReadEnvironmentVariables()
+
+	evilURL := &url.URL{
+		Scheme: "http",
+		Host:   "127.0.0.1:6767",
+		Path:   "/kite",
+	}
+
+	_, err = evil.Register(evilURL)
+	if err == nil {
+		t.Errorf("expected kontrol to deny register request: %s", evil.Kite())
+	} else {
+		t.Logf("register denied: %s", err)
+	}
+
+	_, err = evil.GetToken(legit.Kite.Kite())
+	if err == nil {
+		t.Errorf("expected kontrol to deny token request: %s", evil.Kite())
+	} else {
+		t.Logf("token denied: %s", err)
+	}
+
+	_, err = evil.TellKontrolWithTimeout("registerMachine", 4*time.Second, map[string]interface{}{})
+	if err == nil {
+		t.Fatal("expected registerMachine to fail")
+	}
+	if !strings.Contains(err.Error(), authErr) {
+		t.Fatalf("got %q, want %q error", err, authErr)
 	}
 }
 
@@ -375,7 +487,11 @@ func TestKontrol(t *testing.T) {
 	}
 
 	// Test Kontrol.GetToken
-	tokenCache = make(map[string]string) // empty it
+	// TODO(rjeczalik): rework test to not touch Kontrol internals
+	kon.tokenCacheMu.Lock()
+	kon.tokenCache = make(map[string]string)
+	kon.tokenCacheMu.Unlock()
+
 	_, err = exp2Kite.GetToken(&remoteMathWorker.Kite)
 	if err != nil {
 		t.Error(err)
@@ -452,6 +568,10 @@ func TestGetQueryKey(t *testing.T) {
 }
 
 func TestKontrolMultiKey(t *testing.T) {
+	if storage := os.Getenv("KONTROL_STORAGE"); storage != "postgres" {
+		t.Skip("%q storage does not currently implement soft key pair deletes", storage)
+	}
+
 	i := uuid.NewV4()
 	secondID := i.String()
 
@@ -506,7 +626,11 @@ func TestKontrolMultiKey(t *testing.T) {
 	}
 
 	// Test Kontrol.GetToken
-	tokenCache = make(map[string]string) // empty it
+	// TODO(rjeczalik): rework test to not touch Kontrol internals
+	kon.tokenCacheMu.Lock()
+	kon.tokenCache = make(map[string]string) // empty it
+	kon.tokenCacheMu.Unlock()
+
 	newToken, err := exp3Kite.GetToken(&remoteMathWorker.Kite)
 	if err != nil {
 		t.Error(err)
