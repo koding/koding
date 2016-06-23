@@ -768,18 +768,21 @@ func match(allowed map[string]struct{}, values ...string) bool {
 }
 
 func verifyAudience(kite *kiteproto.Kite, audience string) error {
-	// The root audience is like superuser - it has access to everything.
-	if audience == "/" {
+	switch audience {
+	case "/":
+		// The root audience is like superuser - it has access to everything.
 		return nil
+	case "":
+		return errors.New("invalid empty audience")
 	}
 
 	aud, err := kiteproto.KiteFromString(audience)
 	if err != nil {
-		return fmt.Errorf("invalid audience: %s", err)
+		return fmt.Errorf("invalid audience: %s (%s)", err, audience)
 	}
 
 	if kite.Username != aud.Username {
-		return fmt.Errorf("audience: username %q not allowed", aud.Username)
+		return fmt.Errorf("audience: username %q not allowed (%s)", aud.Username, audience)
 	}
 
 	// Verify environment - managed environment means production klient
@@ -791,6 +794,8 @@ func verifyAudience(kite *kiteproto.Kite, audience string) error {
 	// set elsewhere; it'd also make the deployment process easier
 	// (2 delivery channels instead of 4).
 	switch {
+	case aud.Environment == "":
+		// ok - empty matches all
 	case kite.Environment == aud.Environment:
 		// ok - environment matches
 	case match(prodEnvs, kite.Environment, aud.Environment):
@@ -798,14 +803,16 @@ func verifyAudience(kite *kiteproto.Kite, audience string) error {
 	case match(devEnvs, kite.Environment, aud.Environment):
 		// ok - either remote or local is managed kite from development channel
 	default:
-		return fmt.Errorf("audience: environment %q not allowed", aud.Environment)
+		return fmt.Errorf("audience: environment %q not allowed (%s)", aud.Environment, audience)
 	}
 
 	switch {
+	case aud.Name == "":
+		// ok - empty matches all
 	case kite.Name == aud.Name:
 	case match(kiteNames, kite.Name, aud.Name):
 	default:
-		return fmt.Errorf("audience: kite %q not allowed", aud.Name)
+		return fmt.Errorf("audience: kite %q not allowed (%s)", aud.Name, audience)
 	}
 
 	return nil
