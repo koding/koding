@@ -54,6 +54,13 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
       type        : 'submit'
       loader      : yes
 
+    @gitlabButton = new kd.ButtonView
+      title       : 'GITLAB LOGIN'
+      style       : 'solid medium green'
+      loader      : yes
+      callback    : ->
+        kd.singletons.oauthController.redirectToOauth { provider: 'gitlab' }
+
   activate: ->
     @username.setFocus()
 
@@ -68,4 +75,5 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
     <div>{{> @password}}</div>
     <div>{{> @tfcode}}</div>
     <div>{{> @button}}</div>
+    <div>{{> @gitlabButton}}</div>
     '''

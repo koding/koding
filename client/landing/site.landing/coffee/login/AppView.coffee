@@ -84,6 +84,11 @@ module.exports = class LoginView extends JView
 
     { oauthController } = kd.singletons
 
+    @gitlabIcon = new kd.CustomHTMLView
+      tagName   : 'span'
+      cssClass  : 'gl icon'
+      click     : -> oauthController.redirectToOauth { provider: 'gitlab' }
+
     @githubIcon = new kd.CustomHTMLView
       tagName   : 'span'
       cssClass  : 'gh icon'
@@ -158,6 +163,7 @@ module.exports = class LoginView extends JView
       <div class="inline-footer">
         <div class="oauth-container">
           <span class='text'></span>
+          {{> @gitlabIcon}}
           {{> @githubIcon}}
           {{> @gplusIcon}}
           {{> @facebookIcon}}
