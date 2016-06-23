@@ -8,10 +8,10 @@ path                  = require 'path'
 Configuration = (options = {}) ->
 
   options.domains =
-    base  : 'koding.com'
-    mail  : 'koding.com'
-    main  : 'dev.koding.com'
-    port  : '8090'
+    base: options.hostname ? 'koding.com'
+    mail: 'koding.com'
+    main: options.hostname ? 'dev.koding.com'
+    port: '8090'
 
   options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "localhost"
   options.serviceHost = options.boot2dockerbox
