@@ -12,6 +12,7 @@ module.exports = class ContentModal extends kd.ModalView
     @contentOptions = _.pick options, contentAttrs
 
     modalOptions.cssClass = 'ContentModal'
+    modalOptions.width or= 500
 
     super modalOptions, data
 
