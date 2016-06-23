@@ -10,7 +10,8 @@ module.exports = class AccountCredentialEditModal extends contentModal
   constructor: (options = {}, data) ->
 
     options.cssClass  = kd.utils.curry 'content-modal with-form', options.cssClass
-    options.title   or= 'Edit Credential'
+    options.title or= 'Edit Credential'
+    options.width = 600
 
     super options, data
 
