@@ -118,6 +118,7 @@ app.get  '/-/api/ssotoken/login'                 , require './handlers/api/ssoto
 app.get  '/-/api/logs'                           , require './handlers/api/logs'
 app.get  '/-/image/cache'                        , require './image_cache'
 app.get  '/-/oauth/github/callback'              , require './github_callback'
+app.get  '/-/oauth/gitlab/callback'              , require './gitlab_callback'
 app.get  '/-/oauth/facebook/callback'            , require './facebook_callback'
 app.get  '/-/oauth/google/callback'              , require './google_callback'
 app.get  '/-/oauth/linkedin/callback'            , require './linkedin_callback'
