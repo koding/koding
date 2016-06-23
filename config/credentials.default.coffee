@@ -80,9 +80,14 @@ module.exports = (options) ->
     enabled:  yes
     ssl: no
   terraformer =
-    port : 2300
-    bucket: "kodingdev-terraformer-state-#{options.configName}"
-    localstorepath:  "$KONFIG_PROJECTROOT/go/data/terraformer"
+    port: 2300
+    region: options.region
+    environment: options.environment
+    aws:
+      key: credentials.awsKeys.worker_terraformer.accessKeyId
+      secret: credentials.awsKeys.worker_terraformer.secretAccessKey
+      bucket: "kodingdev-terraformer-state-#{options.configName}"
+    localStorePath:  "$KONFIG_PROJECTROOT/go/data/terraformer"
   paymentwebhook =
     customersKey: 'R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
     secretKey: "paymentwebhooksecretkey-#{options.configName}"
