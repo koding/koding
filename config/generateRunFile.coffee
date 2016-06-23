@@ -163,11 +163,24 @@ generateDev = (KONFIG, options) ->
 
     }
 
+    function docker_compose() {
+      if ! which docker-compose; then
+        echo 'error: docker-compose is not found'
+        echo '$ pip install docker-compose'
+        exit 1
+      fi
+
+      local ENTRYPOINT="/opt/koding/scripts/bootstrap-container $@"
+
+      docker-compose run --entrypoint $ENTRYPOINT backend
+    }
+
     function printHelp (){
 
       echo "Usage: "
       echo ""
       echo "  run                       : to start koding"
+      echo "  run docker-compose        : to start koding in docker-compose environment"
       echo "  run exec                  : to exec arbitrary commands"
       echo "  run install               : to compile/install client and "
       echo "  run buildclient           : to see of specified worker logs only"
@@ -437,6 +450,10 @@ generateDev = (KONFIG, options) ->
     if [ "$#" == "0" ]; then
       checkrunfile
       run $1
+
+    elif [ "$1" == "docker-compose" ]; then
+      shift
+      docker_compose
 
     elif [ "$1" == "exec" ]; then
       shift
