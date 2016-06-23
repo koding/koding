@@ -107,22 +107,21 @@ contentModal.styl
         color               #727272
         font-size           22px
         font-weight         300
-        line-height         20px
-        margin-top          20px
+        line-height         60px
         display             inline-block
         letter-spacing      0px
-        height              25px
         fontPrecisionForSoleil()
         ellipsis()
         max-width           450px
         span
         padding-left        10px
-        vertical-align      super
 
         &.vagrant:before
         &.aws:before
           display           inline-block
           content           ' '
+          vertical-align    top
+          margin            14px 5px 0 0
 
         &.vagrant:before
           r-sprite          stacks icon_vagrant
