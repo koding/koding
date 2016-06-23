@@ -22,7 +22,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     options.loginForm        or= TeamJoinByLoginForm
     options.loginFormInvited or= TeamJoinWithInvitedAccountForm
     options.signupForm       or= TeamJoinBySignupForm
-    options.email            or= utils.getTeamData().invitation.email
+    options.email            or= utils.getTeamData().invitation?.email
 
     super options, data
 

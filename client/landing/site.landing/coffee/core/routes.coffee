@@ -76,7 +76,7 @@ do ->
     # if we dont have a valid email fetched from the invitation token we warn and route to root.
     unless utils.getTeamData().invitation?.email
       console.warn 'No valid invitation found!'
-      return router.handleRoute '/'
+      return router.handleRoute '/'  unless /\*/.test group.allowedDomains
 
     return handleTeamRoute section, { params, query }
 
