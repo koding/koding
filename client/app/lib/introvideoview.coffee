@@ -20,7 +20,7 @@ module.exports = class IntroVideoView extends kd.View
       tagName  : 'span'
       cssClass : 'IntroVideoView--label'
       partial  : 'Don\'t show me this again'
-      click    : => @checkbox.setValue !@checkbox.getValue()
+      click    : => @checkbox.setValue not @checkbox.getValue()
 
 
   click: (event) ->
