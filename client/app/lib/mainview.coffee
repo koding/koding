@@ -234,8 +234,7 @@ module.exports = class MainView extends kd.View
       @teamLogoWrapper.show()
       @teamname.unsetClass 'no-logo'
 
-    groupsController.on 'TEAM_DATA_TO_UPDATE', (dataToUpdate) =>
-      logo = dataToUpdate.customize?.logo
+    groupsController.on 'TEAM_LOGO_CHANGED', (logo) =>
 
       @teamLogo.setAttribute 'class', ''
 
