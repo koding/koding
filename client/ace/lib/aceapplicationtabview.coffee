@@ -2,7 +2,7 @@ kd = require 'kd'
 KDModalView = kd.ModalView
 KDTabView = kd.TabView
 ApplicationTabView = require 'app/commonviews/applicationview/applicationtabview'
-
+contentModal = require 'app/components/contentModal'
 
 module.exports = class AceApplicationTabView extends ApplicationTabView
 
@@ -18,15 +18,20 @@ module.exports = class AceApplicationTabView extends ApplicationTabView
 
     return @removePane_ pane, shouldDetach  unless ace.isContentChanged()
 
-    modal = new KDModalView
-      width         : 620
+    modal = new contentModal
+      width         : 600
       cssClass      : 'modal-with-text'
       title         : 'Do you want to save your changes?'
       content       : "<p>Your changes will be lost if you don't save them.</p>"
       overlay       : yes
       buttons       :
+        'DontSave'  :
+          cssClass  : 'solid cancel medium'
+          title     : "Don't Save"
+          callback  : =>
+            @closePaneAndModal pane, modal
         'SaveClose' :
-          cssClass  : 'solid green medium'
+          cssClass  : 'solid medium'
           title     : 'Save and Close'
           callback  : =>
             if file.path.indexOf('localfile:') is 0
@@ -37,16 +42,6 @@ module.exports = class AceApplicationTabView extends ApplicationTabView
             else
               ace.requestSave()
               @closePaneAndModal pane, modal
-        'DontSave'  :
-          cssClass  : 'solid red medium'
-          title     : "Don't Save"
-          callback  : =>
-            @closePaneAndModal pane, modal
-        'Cancel'   :
-          cssClass  : 'solid light-gray medium'
-          title     : 'Cancel'
-          callback  : ->
-            modal.destroy()
 
   closePaneAndModal: (pane, modal) ->
     @removePane_ pane

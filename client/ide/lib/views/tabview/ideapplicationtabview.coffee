@@ -74,17 +74,20 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
     @askForSaveModal?.destroy()
     @askForSaveModal = new contentModal
-      width         : 620
+      width         : 600
       cssClass      : 'modal-with-text content-modal'
       title         : 'Do you want to save your changes?'
       content       : "<h2>#{content}</h2>"
       overlay       : yes
       buttons       :
-        'Cancel'    :
-          cssClass  : 'solid cancel medium'
-          title     : 'Cancel'
+        'DontSave'  :
+          cssClass  : 'solid medium cancel'
+          title     : "Don't Save"
           callback  : =>
+            @removePane_ pane
+            @parent.handleCloseSplitView pane
             @askForSaveModal.destroy()
+            file.emit 'FileContentsNeedsToBeRefreshed'
         'SaveClose' :
           cssClass  : 'solid medium'
           title     : 'Save and Close'
@@ -100,14 +103,6 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
               @parent.handleCloseSplitView pane
 
             @askForSaveModal.destroy()
-        'DontSave'  :
-          cssClass  : 'solid medium'
-          title     : "Don't Save"
-          callback  : =>
-            @removePane_ pane
-            @parent.handleCloseSplitView pane
-            @askForSaveModal.destroy()
-            file.emit 'FileContentsNeedsToBeRefreshed'
 
 
   dragEnter: (event) ->

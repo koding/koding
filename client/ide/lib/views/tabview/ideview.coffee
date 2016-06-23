@@ -19,7 +19,7 @@ IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
 showErrorNotification = require 'app/util/showErrorNotification'
 Tracker               = require 'app/util/tracker'
-
+contentModal          = require 'app/components/contentModal'
 
 HANDLE_PROXIMITY_DISTANCE   = 100
 DEFAULT_SESSION_NAME_LENGTH = 24
@@ -158,7 +158,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     { frontApp } = kd.singletons.appManager
 
-    modal = new KDModalView
+    modal = new contentModal
       title         : 'Would you like us to remove the pane when there are no tabs left?'
       cssClass      : 'autoremovepane-confirm'
       content       : '''
@@ -166,15 +166,15 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       '''
       overlay       : yes
       buttons       :
+        'No'        :
+          style     : 'solid medium'
+          callback  : -> modal.destroy()
         'Yes'       :
-          style     : 'solid green medium'
+          style     : 'solid medium'
           callback  : =>
             frontApp.settingsPane.emit 'EnableAutoRemovePane'
             @closeSplitView()
             modal.destroy()
-        'No'        :
-          style     : 'solid red medium'
-          callback  : -> modal.destroy()
 
 
   createSplitHandle = (type) ->

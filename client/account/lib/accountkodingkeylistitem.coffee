@@ -2,6 +2,7 @@ kd                = require 'kd'
 KDCustomHTMLView  = kd.CustomHTMLView
 KDListItemView    = kd.ListItemView
 KDModalView       = kd.ModalView
+contentModal      = require 'app/components/contentModal'
 whoami            = require 'app/util/whoami'
 
 
@@ -20,10 +21,10 @@ module.exports = class AccountKodingKeyListItem extends KDListItemView
       width        : 600
       click        : =>
         { nickname } = whoami().profile
-        modal = new KDModalView
+        modal = new contentModal
           title        : 'Revoke Koding Key Access'
           overlay      : yes
-          cssClass     : 'new-kdmodal koding-keys'
+          cssClass     : 'content-modal'
           content      : """
           <div class='modalformline'>
             <p>
@@ -41,26 +42,26 @@ module.exports = class AccountKodingKeyListItem extends KDListItemView
           </div>
           """
           buttons      :
+            'Close'    :
+              style    : 'solid medium'
+              callback : (event) ->
+                modal.destroy()
             'Yes, Revoke Access':
-              style    : 'solid red medium'
+              style    : 'solid medium'
               callback : (event) =>
                 @revokeAccess options, data
                 @destroy()
-                modal.destroy()
-            'Close'    :
-              style    : 'solid light-gray medium'
-              callback : (event) ->
                 modal.destroy()
 
     @addSubView new KDCustomHTMLView
       tagName     : 'a'
       partial     : 'View access key'
       click       : ->
-        modal = new KDModalView
+        modal = new contentModal
           title        : 'Access Key'
           width        : 500
           overlay      : yes
-          cssClass     : 'new-kdmodal koding-keys'
+          cssClass     : 'content-modal'
           content      : """
           <div class='modalformline'>
             <p>

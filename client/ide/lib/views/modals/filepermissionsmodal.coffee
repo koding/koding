@@ -1,7 +1,7 @@
 kd = require 'kd'
-KDModalView = kd.ModalView
+contentModal = require 'app/components/contentModal'
 
-module.exports = class FilePermissionsModal extends KDModalView
+module.exports = class FilePermissionsModal extends contentModal
 
   constructor: (options = {}, data) ->
 
@@ -14,10 +14,10 @@ module.exports = class FilePermissionsModal extends KDModalView
       </div>
     """
     options.overlay  = yes
-    options.cssClass = 'file-permissions-modal'
+    options.cssClass = 'content-modal'
     options.buttons  =
       ok :
-        cssClass : 'solid green medium'
+        cssClass : 'solid medium'
         title    : 'OK'
         callback : @bound 'destroy'
 
