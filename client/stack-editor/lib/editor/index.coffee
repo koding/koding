@@ -783,9 +783,8 @@ module.exports = class StackEditorView extends kd.View
 
       @outputView.add 'Stack generated successfully. You can now build it.'
 
-      computeController.reset yes
-
-      kd.singletons.router.handleRoute "/IDE/#{result.results.machines[0].obj.label}"
+      computeController.reset yes, ->
+        kd.singletons.router.handleRoute "/IDE/#{result.results.machines[0].obj.slug}"
       @emit 'Reload'
 
 
