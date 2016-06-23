@@ -1,0 +1,125 @@
+@css {
+/*
+Modal styles
+-----------------------------
+contentModal.styl
+*/
+}
+.ContentModal
+  font-family               SoleilFamily
+  overflow                  hidden
+  rounded                   6px
+  border                    none
+
+  &.kdmodal
+    .kdmodal-inner
+    .kdmodal-content
+      margin                0px
+
+      .kdtabview
+        overflow            hidden
+
+    .kdmodal-inner .close-icon
+      r-sprite              app modal_close
+      top                   20px
+      right                 20px
+
+  &.add-managed-vm
+    .kdmodal-content
+      height                405px
+
+  &.has-markdown
+    h1
+      padding               0
+
+  &.remove-credential
+  &.delete-stack-template
+  &.stack-template-preview
+  &.credential-modal
+  &.askForConfirm
+  &.readme-preview
+  &.add-managed-vm
+    header
+      height                60px
+      border-bottom         1px solid #DEDBDB
+      bg                    color #fff
+      text-align            center
+
+      > h1
+        color               #727272
+        font-size           22px
+        font-weight         300
+        line-height         20px
+        margin-top          20px
+        display             inline-block
+        letter-spacing      0px
+        fontPrecisionForSoleil()
+
+
+    main
+      margin                40px 40px
+
+      .kdtabpaneview
+        overflow            visible
+        height              360px
+
+
+      .modalformline
+        padding             0
+        overflow            visible
+
+      h2
+        color               #727272
+        font-size           16px
+        letter-spacing      0.18px
+        line-height         20px
+        font-weight         300
+        fontPrecisionForSoleil()
+
+
+      p
+        width               auto
+        font-size           14px
+        font-weight         300
+        line-height         27px
+        color               #A59999
+        letter-spacing      .2px
+        fontPrecisionForSoleil()
+        strong
+          color                #F2778A
+
+
+    footer
+      height                60px
+      border-top            1px solid #DEDBDB
+      bg                    color #fff
+      padding-top           20px
+      text-align            center
+
+      rel()
+
+      .kdbutton
+        margin-left         10px
+        text-align          center
+        min-width           127px
+        height              42px
+        font-size           14px
+        text-transform      uppercase
+        fontPrecisionForSoleil()
+
+      .kdbutton
+        &.cancel
+        &.no
+          background        #FFFFFF
+          border            1px solid #BEBEBE
+          border-radius     4px
+          span
+            color             #5E5E5E
+
+    section span
+      width                   360px
+      bottom                  22px
+
+    .kdloader
+      top                     184px
+      left                    144px

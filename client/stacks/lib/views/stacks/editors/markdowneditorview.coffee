@@ -2,7 +2,7 @@ kd                  = require 'kd'
 KDButtonView        = kd.ButtonView
 BaseStackEditorView = require './basestackeditorview'
 applyMarkdown       = require 'app/util/applyMarkdown'
-
+contentModal = require 'app/components/contentModal'
 
 module.exports = class MarkdownEditorView extends BaseStackEditorView
 
@@ -28,11 +28,11 @@ module.exports = class MarkdownEditorView extends BaseStackEditorView
     { title } = @getOptions()
     content   = @getContent()
 
-    new kd.ModalView
-      title          : title or 'Readme Preview'
-      cssClass       : 'has-markdown content-modal'
-      height         : 500
-      overlay        : yes
+    new contentModal
+      width : 600
+      overlay : yes
       attributes     : { testpath: 'ReadmePreviewModal' }
       overlayOptions : { cssClass : 'second-overlay' }
+      title          : title or 'Readme Preview'
+      cssClass       : 'readme-preview has-markdown content-modal'
       content        : applyMarkdown content

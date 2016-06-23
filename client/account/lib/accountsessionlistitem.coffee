@@ -23,8 +23,8 @@ module.exports = class AccountSessionListItem extends KDListItemView
           action        : 'RemoveItem'
           item          : this
           options       :
-            title       : 'Remove session ?'
-            description : 'Do you want to remove ?'
+            title       : 'Are you sure?'
+            description : 'Do you really want to remove this session?'
 
     if data and kookies.get('clientId') is data.clientId
       deleteButtonOptions.tooltip = { title : 'This will log you out!', placement: 'left' }

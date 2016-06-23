@@ -90,7 +90,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
           item          : this
           options       :
             title       : 'Delete snapshot?'
-            description : 'Do you want to remove ?'
+            description : 'Do you want to remove?'
 
     @infoNewVmBtn = new kd.ButtonView
       iconOnly : true
