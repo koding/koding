@@ -169,8 +169,6 @@ generateDev = (KONFIG, options) ->
       echo ""
       echo "  run                       : to start koding"
       echo "  run exec                  : to exec arbitrary commands"
-      echo "  run backend               : to start only backend of koding"
-      echo "  run killall               : to kill every process started by run script"
       echo "  run install               : to compile/install client and "
       echo "  run buildclient           : to see of specified worker logs only"
       echo "  run logs                  : to see all workers logs"
