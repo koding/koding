@@ -1,5 +1,4 @@
 kd                  = require 'kd'
-KDModalView         = kd.ModalView
 KDView              = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
 showError           = require 'app/util/showError'

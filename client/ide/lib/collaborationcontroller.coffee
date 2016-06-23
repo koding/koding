@@ -1217,7 +1217,7 @@ module.exports = CollaborationController =
 
     modalOptions =
       title      : 'Are you sure?'
-      content    : 'This will end your session and all participants will be removed from this session.'
+      content    : '<p>This will end your session and all participants will be removed from this session.</p>'
 
     modal = @showModal modalOptions, => @stopCollaborationSession callback
 
@@ -1225,7 +1225,7 @@ module.exports = CollaborationController =
   showKickedModal: ->
     options        =
       title        : 'Your session has been closed'
-      content      : "You have been removed from the session by @#{@collaborationHost}."
+      content      : "<p>You have been removed from the session by @#{@collaborationHost}.</p>"
       cssClass     : 'kicked-modal'
       blocking     : yes
       buttons      :
@@ -1264,7 +1264,7 @@ module.exports = CollaborationController =
 
     options   =
       title   : 'Are you sure?'
-      content : "If you leave this session you won't be able to return back."
+      content : "<p>If you leave this session you won't be able to return back.</p>"
 
     @showModal options, => @stateMachine.transition 'Ending'
 

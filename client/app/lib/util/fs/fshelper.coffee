@@ -142,7 +142,7 @@ module.exports = class FSHelper
       callback  : -> modal.destroy()
     installBtn  =
       title     : 'Install Package'
-      cssClass  : 'solid green medium'
+      cssClass  : 'solid medium'
       callback  : ->
         kd.singletons.appManager.getFrontApp().emit 'InstallationRequired', command
         modal.destroy()
@@ -165,8 +165,9 @@ module.exports = class FSHelper
       buttons = { cancel : cancelBtn }
       buttons.cancel.title = 'Close'
 
+    cssClass = 'content-modal'
 
-    modal = new kd.ModalView { title, content, overlay, buttons }
+    modal = new contentModal { title, content, overlay, buttons }
 
 
   # @exists = (path, vmName, callback=noop)->

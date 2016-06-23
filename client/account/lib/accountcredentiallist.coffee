@@ -93,13 +93,13 @@ module.exports = class AccountCredentialList extends KodingListView
       buttons        :
         cancel       :
           title      : 'Cancel'
-          style      : 'solid light-gray medium'
+          style      : "solid light-gray medium #{if bootstrapped then 'hidden'}"
           callback   : ->
             modal.destroy()
             callback { action : 'Cancel', modal }
         DestroyAll   :
           title      : 'Destroy Everything'
-          style      : "solid medium #{unless bootstrapped then 'hidden'}"
+          style      : "solid medium #{unless bootstrapped then 'hidden' else 'cancel'}"
           attributes :
             testpath : 'destroyAll'
           loader     : yes

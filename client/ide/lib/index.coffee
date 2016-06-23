@@ -1803,7 +1803,7 @@ class IDEAppController extends AppController
 
     options        =
       title        : 'Machine access revoked'
-      content      : '<h1>Your access to this machine has been removed by its owner.</h1>'
+      content      : '<p>Your access to this machine has been removed by its owner.</p>'
       blocking     : yes
       buttons      :
         quit       :
