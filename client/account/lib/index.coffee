@@ -142,7 +142,7 @@ module.exports = class AccountAppController extends AppController
         if groupSlug is 'koding'
           mergeables = section.items
         else
-          mergeables.push item  unless item.slug in [ 'Billing', 'Externals', 'Referral', 'Delete' ]
+          mergeables.push item  unless item.slug in [ 'Billing', 'Referral', 'Delete' ]
 
       items = items.concat mergeables
 
