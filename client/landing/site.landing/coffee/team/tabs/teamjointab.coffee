@@ -90,7 +90,11 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     else
       @forgotPassword?.hide()
       @hideAvatar()
-      kd.utils.defer => @form.username.input.$().trigger 'focus'
+      kd.utils.defer =>
+        if utils.getTeamData().invitation?.email
+          @form.username.input.$().trigger 'focus'
+        else
+          @form.email.input.$().trigger 'focus'
 
       TeamJoinTabFormClass = @getOption 'signupForm'
 
@@ -164,9 +168,13 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
       "Please enter your <i>#{kd.config.domains.main}</i> password."
     else if domains?.length > 1
       domainsPartial = utils.getAllowedDomainsPartial domains
-      "You must have an email address from one of these domains #{domainsPartial} to join"
+      if /\*/.test kd.config.group.allowedDomains
+      then "This is a public team, you can use any email address to join!"
+      else "You must have an email address from one of these domains #{domainsPartial} to join"
     else if domains?.length is 1
-      "You must have #{articlize domains.first} <i>#{domains.first}</i> email address to join"
+      if /\*/.test kd.config.group.allowedDomains
+      then "This is a public team, you can use any email address to join!"
+      else "You must have #{articlize domains.first} <i>#{domains.first}</i> email address to join"
     else
       "Pick a username and password for your new <i>#{kd.config.domains.main}</i> account."
 
