@@ -345,7 +345,7 @@ module.exports = CollaborationController =
     return  if not isHostWatched or @amIHost
 
     modal = new contentModal
-      width         : 600
+      width         : 400
       title         : "Host's layout is updated since you last watched his changes."
       cssClass      : 'modal-with-text collaboration-modals layout-changed-modal content-modal'
       content       : """
@@ -1264,7 +1264,7 @@ module.exports = CollaborationController =
 
     options   =
       title   : 'Are you sure?'
-      content : "<p>If you leave this session you won't be able to return back.</p>"
+      content : "<p>If you leave this session you won't be able to return backs.</p>"
 
     @showModal options, => @stateMachine.transition 'Ending'
 
