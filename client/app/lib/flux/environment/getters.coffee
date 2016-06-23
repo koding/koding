@@ -47,8 +47,11 @@ machinesWithWorkspaces = [
   (machines, workspaces, machinesWorkspaces) ->
 
     machines.map (machine) ->
+      # if we use the `sharedUsers` prop, we will have to add 1 to include the
+      # real owner of the machine. `users` prop already includes owner.
+      userCount = ((machine.get('sharedUsers')?.size + 1) or machine.get('users')?.size)
       machine
-        .set 'isShared', machine.get('users').size > 1
+        .set 'isShared', (userCount or 1) > 1
         .set 'workspaces', machinesWorkspaces.get(machine.get '_id')?.map (workspaceId) ->
           workspaces.get workspaceId
 ]
