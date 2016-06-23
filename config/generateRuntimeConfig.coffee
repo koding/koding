@@ -29,6 +29,7 @@ module.exports = (KONFIG, credentials, options) ->
       twitter            : { nicename: 'Twitter' }
       facebook           : { nicename: 'Facebook', urlLocation: 'link' }
       github             : { nicename: 'GitHub', urlLocation: 'html_url' }
+      gitlab             : { nicename: 'GitLab' }
     entryPoint           : { slug:'koding'     , type:'group' }
     troubleshoot         : { idleTime: 1000 * 60 * 60, externalUrl: "https://s3.amazonaws.com/koding-ping/healthcheck.json" }
     stripe               : { token: credentials.stripe.publicToken }

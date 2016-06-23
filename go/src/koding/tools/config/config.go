@@ -162,6 +162,9 @@ type RuntimeOptions struct {
 			Nicename    string `json:"nicename"`
 			UrlLocation string `json:"urlLocation"`
 		} `json:"github"`
+		Gitlab struct {
+			Nicename string `json:"nicename"`
+		} `json:"gitlab"`
 	} `json:"externalProfiles"`
 	EntryPoint struct {
 		Slug string `json:"slug"`
