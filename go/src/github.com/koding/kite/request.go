@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"runtime/debug"
-	"strings"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/cache"
@@ -212,7 +212,19 @@ func (r *Request) authenticate() *Error {
 
 // AuthenticateFromToken is the default Authenticator for Kite.
 func (k *Kite) AuthenticateFromToken(r *Request) error {
-	token, err := jwt.Parse(r.Auth.Key, r.LocalKite.RSAKey)
+	k.verifyOnce.Do(k.verifyInit)
+
+	token, err := jwt.ParseWithClaims(r.Auth.Key, &kitekey.KiteClaims{}, r.LocalKite.RSAKey)
+
+	if e, ok := err.(*jwt.ValidationError); ok {
+		// Translate public key mismatch errors to token-is-expired one.
+		// This is to signal remote client the key pairs have been
+		// updated on kontrol and it should invalidate all tokens.
+		if (e.Errors & jwt.ValidationErrorSignatureInvalid) != 0 {
+			return errors.New("token is expired")
+		}
+	}
+
 	if err != nil {
 		return err
 	}
@@ -221,66 +233,51 @@ func (k *Kite) AuthenticateFromToken(r *Request) error {
 		return errors.New("Invalid signature in token")
 	}
 
+	claims, ok := token.Claims.(*kitekey.KiteClaims)
+	if !ok {
+		return errors.New("token does not have valid claims")
+	}
+
+	if claims.Audience == "" {
+		return errors.New("token has no audience")
+	}
+
+	if claims.Subject == "" {
+		return errors.New("token has no username")
+	}
+
 	// check if we have an audience and it matches our own signature
-	audience, ok := token.Claims["aud"].(string)
-	if ok && audience != "/" {
-		if checkAudience(k.Kite().String(), audience); err != nil {
-			return err
-		}
+	if err := k.verifyAudienceFunc(k.Kite(), claims.Audience); err != nil {
+		return err
 	}
 
 	// We don't check for exp and nbf claims here because jwt-go package
 	// already checks them.
-	username, ok := token.Claims["sub"].(string)
-	if !ok {
-		return errors.New("Username is not present in token")
-	}
 
 	// replace the requester username so we reflect the validated
-	r.Username = username
-
-	return nil
-}
-
-func checkAudience(kiteRepr, audience string) error {
-	a, err := protocol.KiteFromString(audience)
-	if err != nil {
-		return err
-	}
-
-	// it doesn't make sense to return an error if the audience is fully empty
-	if a.Username == "" {
-		return nil
-	}
-
-	// this is good so our kites can also work behind load balancers
-	threePart := fmt.Sprintf("/%s/%s/%s", a.Username, a.Environment, a.Name)
-
-	// now check if the first three fields are matching our own fields
-	if !strings.HasPrefix(kiteRepr, threePart) {
-		return fmt.Errorf("Invalid audience in token. Have: '%s' Must be a part of: '%s'",
-			audience, kiteRepr)
-	}
+	r.Username = claims.Subject
 
 	return nil
 }
 
 // AuthenticateFromKiteKey authenticates user from kite key.
 func (k *Kite) AuthenticateFromKiteKey(r *Request) error {
-	token, err := jwt.Parse(r.Auth.Key, kitekey.GetKontrolKey)
+	claims := &kitekey.KiteClaims{}
+
+	token, err := jwt.ParseWithClaims(r.Auth.Key, claims, k.verify)
 	if err != nil {
 		return err
 	}
 
 	if !token.Valid {
-		return errors.New("Invalid signature in token")
+		return errors.New("Invalid signature in kite key")
 	}
 
-	if username, ok := token.Claims["sub"].(string); !ok {
-		return errors.New("Username is not present in token")
-	} else {
-		r.Username = username
+	if claims.Subject == "" {
+		return errors.New("token has no username")
 	}
+
+	r.Username = claims.Subject
 
 	return nil
 }
@@ -289,7 +286,9 @@ func (k *Kite) AuthenticateFromKiteKey(r *Request) error {
 // returns the authenticated username. It's the same as AuthenticateFromKiteKey
 // but can be used without the need for a *kite.Request.
 func (k *Kite) AuthenticateSimpleKiteKey(key string) (string, error) {
-	token, err := jwt.Parse(key, kitekey.GetKontrolKey)
+	claims := &kitekey.KiteClaims{}
+
+	token, err := jwt.ParseWithClaims(key, claims, k.verify)
 	if err != nil {
 		return "", err
 	}
@@ -298,11 +297,129 @@ func (k *Kite) AuthenticateSimpleKiteKey(key string) (string, error) {
 		return "", errors.New("Invalid signature in token")
 	}
 
-	username, ok := token.Claims["sub"].(string)
-	if !ok {
-		return "", errors.New("Username is not present in token")
+	if claims.Subject == "" {
+		return "", errors.New("token has no username")
 	}
 
-	// return authenticated username
-	return username, nil
+	return claims.Subject, nil
+}
+
+func (k *Kite) verifyInit() {
+	k.configMu.Lock()
+	defer k.configMu.Unlock()
+
+	k.verifyFunc = k.Config.VerifyFunc
+
+	if k.verifyFunc == nil {
+		k.verifyFunc = k.selfVerify
+	}
+
+	k.verifyAudienceFunc = k.Config.VerifyAudiencefunc
+
+	if k.verifyAudienceFunc == nil {
+		k.verifyAudienceFunc = k.verifyAudience
+	}
+
+	ttl := k.Config.VerifyTTL
+
+	if ttl == 0 {
+		ttl = 5 * time.Minute
+	}
+
+	if ttl > 0 {
+		k.mu.Lock()
+		k.verifyCache = cache.NewMemoryWithTTL(ttl)
+		k.mu.Unlock()
+
+		k.verifyCache.StartGC(ttl / 2)
+	}
+
+	key, err := jwt.ParseRSAPublicKeyFromPEM([]byte(k.Config.KontrolKey))
+	if err != nil {
+		k.Log.Error("unable to init kontrol key: %s", err)
+
+		return
+	}
+
+	k.kontrolKey = key
+}
+
+func (k *Kite) selfVerify(pub string) error {
+	k.configMu.RLock()
+	ourKey := k.Config.KontrolKey
+	k.configMu.RUnlock()
+
+	if pub != ourKey {
+		return ErrKeyNotTrusted
+	}
+
+	return nil
+}
+
+func (k *Kite) verify(token *jwt.Token) (interface{}, error) {
+	k.verifyOnce.Do(k.verifyInit)
+
+	key := token.Claims.(*kitekey.KiteClaims).KontrolKey
+	if key == "" {
+		return nil, errors.New("no kontrol key found")
+	}
+
+	rsaKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(key))
+	if err != nil {
+		return nil, err
+	}
+
+	switch {
+	case k.verifyCache != nil:
+		v, err := k.verifyCache.Get(key)
+		if err != nil {
+			break
+		}
+
+		if !v.(bool) {
+			return nil, errors.New("invalid kontrol key found")
+		}
+
+		return rsaKey, nil
+	}
+
+	if err := k.verifyFunc(key); err != nil {
+		if err == ErrKeyNotTrusted {
+			k.verifyCache.Set(key, false)
+		}
+
+		// signal old token to somewhere else (GetKiteKey and alike)
+
+		return nil, err
+	}
+
+	k.verifyCache.Set(key, true)
+
+	return rsaKey, nil
+}
+
+func (k *Kite) verifyAudience(kite *protocol.Kite, audience string) error {
+	// The root audience is like superuser - it has access to everything.
+	if audience == "/" {
+		return nil
+	}
+
+	aud, err := protocol.KiteFromString(audience)
+	if err != nil {
+		return fmt.Errorf("invalid audience: %s", err)
+	}
+
+	if kite.Username != aud.Username {
+		return fmt.Errorf("audience: username %q not allowed", aud.Username)
+	}
+
+	if kite.Environment != aud.Environment {
+		return fmt.Errorf("audience: environment %q not allowed", aud.Environment)
+	}
+
+	if kite.Name != aud.Name {
+		return fmt.Errorf("audience: kite %q not allowed", aud.Name)
+	}
+
+	return nil
 }

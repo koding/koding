@@ -67,7 +67,7 @@ func (k *Kite) SetupKontrolClient() error {
 	client.Kite = protocol.Kite{Name: "kontrol"} // for logging purposes
 	client.Auth = &Auth{
 		Type: "kiteKey",
-		Key:  k.Config.KiteKey,
+		Key:  k.KiteKey(),
 	}
 
 	k.kontrol.Lock()
@@ -210,7 +210,10 @@ func (k *Kite) GetKey() (string, error) {
 		return "", err
 	}
 
+	k.configMu.Lock()
 	k.Config.KontrolKey = key
+	k.configMu.Unlock()
+
 	return key, nil
 }
 
@@ -320,14 +323,10 @@ func (k *Kite) Register(kiteURL *url.URL) (*registerResult, error) {
 
 	parsed, err := url.Parse(rr.URL)
 	if err != nil {
-		k.Log.Error("Cannot parse registered URL: %s", err.Error())
+		k.Log.Error("Cannot parse registered URL: %s", err)
 	}
 
-	// we also received a new public key (means the old one was invalidated).
-	// Use it now.
-	if rr.PublicKey != "" {
-		k.Config.KontrolKey = rr.PublicKey
-	}
+	k.callOnRegisterHandlers(&rr)
 
 	return &registerResult{parsed}, nil
 }
@@ -367,7 +366,7 @@ func (k *Kite) RegisterToProxy(registerURL *url.URL, query *protocol.KontrolQuer
 			proxyKite = k.NewClient(kiteProxyURL)
 			proxyKite.Auth = &Auth{
 				Type: "kiteKey",
-				Key:  k.Config.KiteKey,
+				Key:  k.KiteKey(),
 			}
 		} else {
 			kites, err := k.GetKites(query)

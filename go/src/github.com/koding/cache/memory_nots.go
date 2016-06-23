@@ -13,6 +13,11 @@ func NewMemoryNoTS() *MemoryNoTS {
 	}
 }
 
+// Helper method to return a Cache interface, so callers don't have to typecast
+func NewMemNoTSCache() Cache {
+        return NewMemoryNoTS()
+}
+
 // Get returns a value of a given key if it exists
 // and valid for the time being
 func (r *MemoryNoTS) Get(key string) (interface{}, error) {
