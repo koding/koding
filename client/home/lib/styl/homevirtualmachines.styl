@@ -5,6 +5,9 @@ homevirtualmachines.styl
 */
 }
 
+$transGreen = rgba(26, 175, 93, .25)
+$transRed   = rgba(233, 72, 53, .25)
+
 $transGreen                 = rgba(26, 175, 93, .25)
 $transRed                   = rgba(233, 72, 53, .25)
 $titleColor                 = #424242
@@ -21,7 +24,20 @@ $borderColor                = #CACACA
   &.expanded
     rounded                 4px
 
+  .MachinesListItem-machineLabel
+
+    &.Starting
+      .SidebarListItem-progressbar
+        bg                    color $transGreen
+
+    &.Stopping
+      .SidebarListItem-progressbar
+        bg                    color $transRed
+        > cite
+          bg                  color $red
+
   header
+    height                  32px
     display                 flex
     flex-flow               row wrap
     justify-content         space-around
@@ -41,6 +57,28 @@ $borderColor                = #CACACA
       width                 144px
       ellipsis()
       pointer()
+
+    .SidebarListItem-progressbar
+      abs                 29px 0 0 26px
+      background          none
+      bg                  color transparent
+      border              none
+      height              3px
+      kalc                width, (100% \- 26px)
+      overflow            hidden
+      rounded             2px
+      vendor              transition, color .1s ease
+
+      > cite
+        bg                color $green
+        border            none
+        display           block
+        height            100%
+        max-width         100%
+        rounded           2px
+        shadow            none
+        vendor            transition, width .1s ease .05s\,\
+                                      margin .3s ease
 
     .MachinesListItem-hostName
       width                 100px
@@ -106,13 +144,13 @@ $borderColor                = #CACACA
 
   &:before
     content                 ''
-    abs                     50% 0 0 0px
+    abs                     6px 0 0 0px
     bg                      color transparent
     border                  3px solid $gray-14
     display                 block
     rounded                 3px
     size                    16px 16px
-    vendor                  transform, translateY(-50%)
+    vendor                  transform, translateY(0px)
     borderBox()
 
   &.Unknown:before
@@ -158,22 +196,22 @@ $borderColor                = #CACACA
 
 
   .GenericToggler-top
-    padding                   25px 0
-    display                   flex
-    flex-flow                 row wrap
-    justify-content           space-around
-    align-content             flex-start
+    padding                 25px 0
+    display                 flex
+    flex-flow               row wrap
+    justify-content         space-around
+    align-content           flex-start
     rel()
 
     .pull-right
-      flex                    0 0 auto
+      flex                  0 0 auto
 
     .pull-left
-      flex                    1 0 auto
+      flex                  1 0 auto
 
 
 .MachineDetails-SpecsList
-  margin                    25px 0 0
+  margin                    19px 0 0
   padding-bottom            25px
 
   .SingleSpecItem
