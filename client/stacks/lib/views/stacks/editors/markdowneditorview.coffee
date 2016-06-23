@@ -35,4 +35,4 @@ module.exports = class MarkdownEditorView extends BaseStackEditorView
       overlayOptions : { cssClass : 'second-overlay' }
       title          : title or 'Readme Preview'
       cssClass       : 'readme-preview has-markdown content-modal'
-      content        : applyMarkdown content
+      content        : "<pre><code>#{applyMarkdown content}</code></pre>"

@@ -9,7 +9,7 @@ module.exports = class StackTemplatePreviewModal extends contentModal
   constructor: (options = {}, data) ->
 
     options.title           = 'Template Preview'
-    options.content         = '<p>Generated from your account data</p>'
+    options.content         = '<p style="font-weight:700">Generated from your account data</p>'
     options.cssClass        = kd.utils.curry 'stack-template-preview content-modal', options.cssClass
     options.overlay         = yes
     options.overlayOptions  = { cssClass : 'second-overlay' }

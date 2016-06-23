@@ -396,6 +396,7 @@ module.exports = class ComputeControllerUI
     dontAskAgain = 'hidden'  if not dontAskAgain
 
     modal = new contentModal
+      width          : 600
       title          : title ? 'Remove'
       cssClass       : 'has-markdown content-modal'
       attributes     :

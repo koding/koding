@@ -28,10 +28,10 @@ module.exports = class AccountCredentialList extends KodingListView
     new contentModal
       width : 600
       overlay : yes
-      title : "<h1>#{credential.title}</h1>"
+      title : "<h1 class=#{credential.provider}><span>#{credential.title} Preview</span></h1>"
       cssClass : 'has-markdown content-modal'
       overlayOptions : { cssClass : 'second-overlay' }
-      content : "<h2>#{credential.provider}</h2><p><pre><code>#{cred}</code></pre></p>"
+      content : "<p><pre><code>#{cred}</code></pre></p>"
 
 
 
