@@ -93,7 +93,7 @@ Configuration = (options = {}) ->
     webserver           :
       instances         : 2
       supervisord       :
-        command         : "node %(ENV_KONFIG_PROJECTROOT)s/servers/index.js"
+        command         : "node %(ENV_KONFIG_PROJECTROOT)s/servers/index.js -p #{KONFIG.webserver.port}"
       nginx             :
         locations       : [
           {
@@ -108,7 +108,7 @@ Configuration = (options = {}) ->
     socialworker        :
       instances         : 4
       supervisord       :
-        command         : "node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js"
+        command         : "node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js -p #{KONFIG.social.port}"
 
     authworker          :
       group             : "webserver"
