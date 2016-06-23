@@ -1,7 +1,7 @@
 kd = require 'kd'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 
-module.exports = class FilePermissionsModal extends contentModal
+module.exports = class FilePermissionsModal extends ContentModal
 
   constructor: (options = {}, data) ->
 

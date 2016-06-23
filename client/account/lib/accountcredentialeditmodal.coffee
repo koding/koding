@@ -2,9 +2,9 @@ kd                  = require 'kd'
 KDView              = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
 showError           = require 'app/util/showError'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 
-module.exports = class AccountCredentialEditModal extends contentModal
+module.exports = class AccountCredentialEditModal extends ContentModal
 
 
   constructor: (options = {}, data) ->

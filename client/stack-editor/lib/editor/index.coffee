@@ -27,7 +27,7 @@ CredentialStatusView = require 'stacks/views/stacks/credentialstatusview'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 StackTemplatePreviewModal = require 'stacks/views/stacks/stacktemplatepreviewmodal'
 EnvironmentFlux = require 'app/flux/environment'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -859,7 +859,7 @@ module.exports = class StackEditorView extends kd.View
           Do you still want to delete this stack template?</p>
         '''
 
-      modal = new contentModal
+      modal = new ContentModal
         width : 400
         overlay : yes
         cssClass : 'delete-stack-template content-modal'

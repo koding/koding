@@ -5,9 +5,9 @@ actions         = require 'app/flux/environment/actions'
 KodingKontrol   = require 'app/kite/kodingkontrol'
 isTeamReactSide = require 'app/util/isTeamReactSide'
 CopyTooltipView = require 'app/components/common/copytooltipview'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 
-module.exports = class AddManagedMachineModal extends contentModal
+module.exports = class AddManagedMachineModal extends ContentModal
 
   constructor: (options = {}, data) ->
 

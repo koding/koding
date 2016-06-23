@@ -24,7 +24,7 @@ generateCollaborationLink     = require 'app/util/generateCollaborationLink'
 isKoding                      = require 'app/util/isKoding'
 Tracker                       = require 'app/util/tracker'
 IDEHelpers                    = require 'ide/idehelpers'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 
 { warn } = kd
 
@@ -344,7 +344,7 @@ module.exports = CollaborationController =
     isHostWatched = nickname is @collaborationHost
     return  if not isHostWatched or @amIHost
 
-    modal = new contentModal
+    modal = new ContentModal
       width         : 400
       title         : "Host's layout is updated since you last watched his changes."
       cssClass      : 'modal-with-text collaboration-modals layout-changed-modal content-modal'

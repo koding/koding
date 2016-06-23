@@ -17,7 +17,7 @@ showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 applyMarkdown        = require 'app/util/applyMarkdown'
 doXhrRequest         = require 'app/util/doXhrRequest'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 
 MissingDataView      = require './missingdataview'
 
@@ -41,7 +41,7 @@ module.exports = class ComputeControllerUI
 
   showPrivateKeyWarning = (privateKey) ->
 
-    new contentModal
+    new ContentModal
       title           : 'Please save private key content'
       content         : applyMarkdown "
                          This stack only requires public key which means
@@ -395,7 +395,7 @@ module.exports = class ComputeControllerUI
     buttonColor ?= 'red'
     dontAskAgain = 'hidden'  if not dontAskAgain
 
-    modal = new contentModal
+    modal = new ContentModal
       width          : 600
       title          : title ? 'Remove'
       cssClass       : 'has-markdown content-modal'

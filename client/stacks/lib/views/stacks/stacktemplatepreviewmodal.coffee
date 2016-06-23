@@ -1,9 +1,9 @@
 kd = require 'kd'
 applyMarkdown = require 'app/util/applyMarkdown'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 StackTemplateEditorView  = require './editors/stacktemplateeditorview'
 
-module.exports = class StackTemplatePreviewModal extends contentModal
+module.exports = class StackTemplatePreviewModal extends ContentModal
 
 
   constructor: (options = {}, data) ->

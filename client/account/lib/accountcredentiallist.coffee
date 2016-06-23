@@ -2,7 +2,7 @@ _ = require 'lodash'
 kd = require 'kd'
 hljs = require 'highlight.js'
 showError = require 'app/util/showError'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 applyMarkdown = require 'app/util/applyMarkdown'
 KodingListView = require 'app/kodinglist/kodinglistview'
 AccountCredentialListItem = require './accountcredentiallistitem'
@@ -25,7 +25,7 @@ module.exports = class AccountCredentialList extends KodingListView
 
     { credential, cred } = options
 
-    new contentModal
+    new ContentModal
       width : 600
       overlay : yes
       title : "<h1 class=#{credential.provider}><span>#{credential.title} Preview</span></h1>"
@@ -79,7 +79,7 @@ module.exports = class AccountCredentialList extends KodingListView
       removeButtonTitle = 'Remove Access'
 
 
-    modal = new contentModal
+    modal = new ContentModal
       width : 600
       overlay : yes
       title          : 'Remove Credential'

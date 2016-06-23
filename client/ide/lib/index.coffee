@@ -32,7 +32,7 @@ ResourceStateModal            = require 'app/providers/resourcestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 
 require('./routes').init()
 
@@ -1685,7 +1685,7 @@ class IDEAppController extends AppController
         callback : callback
 
     ModalClass = if modalOptions.blocking then kd.BlockingModalView else kd.ModalView
-    @modal = new contentModal modalOptions
+    @modal = new ContentModal modalOptions
     @modal.once 'KDObjectWillBeDestroyed', =>
       delete @modal
 

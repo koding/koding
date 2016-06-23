@@ -1,5 +1,5 @@
 kd = require 'kd'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 
 module.exports = class KodingListView extends kd.ListView
 
@@ -17,7 +17,7 @@ module.exports = class KodingListView extends kd.ListView
     if not title or not description
       return kd.warn 'You should pass title or description for confirm modal'
 
-    modal = new contentModal
+    modal = new ContentModal
       width : 400
       overlay : yes
       cssClass : 'askForConfirm content-modal'

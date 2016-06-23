@@ -3,9 +3,9 @@ KDModalViewWithForms = kd.ModalViewWithForms
 KDNotificationView = kd.NotificationView
 whoami = require 'app/util/whoami'
 showError = require 'app/util/showError'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 
-module.exports = class VerifyPasswordModal extends contentModal
+module.exports = class VerifyPasswordModal extends ContentModal
 
   constructor: (buttonTitle = 'Submit', partial = '', callback) ->
 

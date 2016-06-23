@@ -1,8 +1,8 @@
 kd = require 'kd'
 _  = require 'lodash'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 
-module.exports = class AdminInviteModalView extends contentModal
+module.exports = class AdminInviteModalView extends ContentModal
 
   constructor: (options = {}, data) ->
 

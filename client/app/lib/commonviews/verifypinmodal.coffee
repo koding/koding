@@ -1,8 +1,7 @@
 kd = require 'kd'
-# KDModalViewWithForms = kd.ModalViewWithForms
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 
-module.exports = class VerifyPINModal extends contentModal
+module.exports = class VerifyPINModal extends ContentModal
 
   constructor: (buttonTitle = 'Submit', callback) ->
 

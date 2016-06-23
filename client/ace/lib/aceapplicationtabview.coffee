@@ -2,7 +2,7 @@ kd = require 'kd'
 KDModalView = kd.ModalView
 KDTabView = kd.TabView
 ApplicationTabView = require 'app/commonviews/applicationview/applicationtabview'
-contentModal = require 'app/components/contentModal'
+ContentModal = require 'app/components/contentModal'
 
 module.exports = class AceApplicationTabView extends ApplicationTabView
 
@@ -18,7 +18,7 @@ module.exports = class AceApplicationTabView extends ApplicationTabView
 
     return @removePane_ pane, shouldDetach  unless ace.isContentChanged()
 
-    modal = new contentModal
+    modal = new ContentModal
       width         : 600
       cssClass      : 'modal-with-text'
       title         : 'Do you want to save your changes?'
