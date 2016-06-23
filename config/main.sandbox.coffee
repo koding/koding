@@ -93,7 +93,7 @@ Configuration = (options = {}) ->
     webserver           :
       instances         : 2
       supervisord       :
-        command         : "node #{options.projectRoot}/servers/index.js -c #{options.configName} -p #{KONFIG.webserver.port} --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{options.kiteHome}/kite.key"
+        command         : "node $KONFIG_PROJECTROOT/servers/index.js -c #{options.configName} -p #{KONFIG.webserver.port} --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{options.kiteHome}/kite.key"
       nginx             :
         locations       : [
           {
@@ -108,16 +108,16 @@ Configuration = (options = {}) ->
     socialworker        :
       instances         : 4
       supervisord       :
-        command         : "node #{options.projectRoot}/workers/social/index.js -c #{options.configName} -p #{KONFIG.social.port} -r #{options.region} --kite-port=#{KONFIG.social.kitePort} --kite-key=#{options.kiteHome}/kite.key"
+        command         : "node $KONFIG_PROJECTROOT/workers/social/index.js -c #{options.configName} -p #{KONFIG.social.port} -r #{options.region} --kite-port=#{KONFIG.social.kitePort} --kite-key=#{options.kiteHome}/kite.key"
 
     authworker          :
       group             : "webserver"
       supervisord       :
-        command         : "node #{options.projectRoot}/workers/auth/index.js -c #{options.configName} -p #{KONFIG.authWorker.port}"
+        command         : "node $KONFIG_PROJECTROOT/workers/auth/index.js -c #{options.configName} -p #{KONFIG.authWorker.port}"
 
     sourcemaps          :
       supervisord       :
-        command         : "node #{options.projectRoot}/servers/sourcemaps/index.js -c #{options.configName} -p #{KONFIG.sourcemaps.port}"
+        command         : "node $KONFIG_PROJECTROOT/servers/sourcemaps/index.js -c #{options.configName} -p #{KONFIG.sourcemaps.port}"
 
     socialapi           :
       instances         : 2
