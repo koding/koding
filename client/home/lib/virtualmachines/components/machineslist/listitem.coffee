@@ -1,6 +1,7 @@
 kd = require 'kd'
 React = require 'kd-react'
 MachineDetails = require './machinedetails'
+Machine = require 'app/providers/machine'
 immutable = require 'immutable'
 VirtualMachinesSelectedMachineFlux = require 'home/virtualmachines/flux/selectedmachine'
 KDReactorMixin = require 'app/flux/base/reactormixin'
@@ -94,6 +95,22 @@ module.exports = class MachinesListItem extends React.Component
       <button className='MachinesListItem-detailToggleButton' onClick={@bound 'toggle'}></button>
     </div>
 
+  renderProgressbar: ->
+
+    return unless  @props.machine
+
+    status     = @props.machine.getIn ['status', 'state']
+    percentage = @props.machine.get('percentage') or 0
+
+    return null  if status in [Machine.State.NotInitialized, Machine.State.Stopped]
+    return null  if status is Machine.State.Running and percentage is 100
+
+    fullClass  = if percentage is 100 then ' full' else ''
+
+    <div className={"SidebarListItem-progressbar#{fullClass}"}>
+      <cite style={width: "#{percentage}%"} />
+    </div>
+
 
   render: ->
 
@@ -107,6 +124,7 @@ module.exports = class MachinesListItem extends React.Component
           className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}"
           onClick={@bound 'toggle'}>
           {@props.machine.get 'label'}
+          {@renderProgressbar()}
         </div>
         {@renderIpAddress()}
         <div className="MachinesListItem-stackLabel">
