@@ -6,7 +6,6 @@ HomeUtilities       = require './utilities'
 HomeMyTeam          = require './myteam'
 HomeTeamBilling     = require './billing'
 HomePaymentHistory  = require './paymenthistory'
-HomeWelcome         = require './welcome'
 HomeStacks          = require './stacks'
 
 do require './routehandler'
@@ -18,7 +17,6 @@ module.exports = class HomeAppController extends AppController
     background : yes
 
   TABS = [
-    { title : 'Welcome', viewClass : HomeWelcome, role: 'member' }
     { title : 'Stacks', viewClass : HomeStacks, role: 'member' }
     { title : 'My Team', viewClass : HomeMyTeam, role: 'member' }
     { title : 'Team Billing', viewClass : HomeTeamBilling }
@@ -36,7 +34,7 @@ module.exports = class HomeAppController extends AppController
     super options, data
 
 
-  checkRoute: (route) -> /^\/(Home|Welcome).*/.test route
+  checkRoute: (route) -> /^\/(?:Home).*/.test route
 
   openSection: (args...) -> @mainView.ready => @openSection_ args...
 
