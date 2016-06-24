@@ -734,6 +734,21 @@ unshareMachineWithUser = (machineId, nickname) ->
         showError err  unless err.message is 'user is not in the shared list.'
 
 
+unshareMachineWihAllUsers = (machineId) ->
+
+  machine = _kd.singletons.reactor.evaluate ['MachinesStore', machineId]
+
+  new Promise (resolve, reject) ->
+    queue = machine.get('sharedUsers').toJS().map (user) -> (next) ->
+      { nickname } = user.profile
+      unshareMachineWithUser(machineId, nickname)
+        .then -> next(null)
+        .catch (err) -> next(err)
+
+    async.series queue, (err) -> if err then reject() else resolve()
+
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -775,5 +790,6 @@ module.exports = {
   loadMachineSharedUsers
   shareMachineWithUser
   unshareMachineWithUser
+  unshareMachineWihAllUsers
   disconnectMachine
 }
