@@ -91,7 +91,10 @@ module.exports = class Sidebar extends React.Component
     draft = @state.drafts.get id
     switch title
       when 'Edit' then router.handleRoute "/Stack-Editor/#{id}"
-      when 'Initialize' then EnvironmentFlux.actions.generateStack id
+      when 'Initialize'
+        EnvironmentFlux.actions.generateStack(id).then ->
+          kd.singletons.appManager.tell 'Stackeditor', 'reloadEditor', { _id: id }
+
 
 
   onDraftTitleClick: (id, event) ->
