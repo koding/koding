@@ -385,9 +385,12 @@ reinitStackFromWidget = (stack) ->
 
   { computeController } = kd.singletons
 
-  computeController.reinitStack if stack
-  then remote.revive stack.toJS()
-  else computeController.getGroupStack()
+  new Promise (resolve, reject) ->
+
+    stack = if stack then stack.toJS() else computeController.getGroupStack()
+
+    computeController.reinitStack stack, (err) ->
+      if err then reject(err) else resolve()
 
 
 createWorkspace = (machine, workspace) ->
