@@ -1,0 +1,29 @@
+#!/bin/bash
+
+pushd $(dirname $0)/..
+
+function build() {
+  npm install --unsafe-perm
+  ./configure "$@"
+  go/build.sh
+  make -C client dist
+}
+
+function start() {
+  nginx -c $(pwd)/nginx.conf
+  ./run exec supervisord -c supervisord.conf
+  sleep 2
+}
+
+function tail_logs() {
+  tail --follow --lines +0 --quiet .logs/*.log
+}
+
+if [ -z "$*" ]; then
+  start && tail_logs
+elif [ "$1" = "build" ]; then
+  shift
+  build && start && tail_logs
+else
+  exec "$@"
+fi

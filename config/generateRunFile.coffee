@@ -45,6 +45,8 @@ generateDev = (KONFIG, options) ->
 
     # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #
 
+    export KONFIG_PROJECTROOT=$(cd $(dirname $0); pwd)
+
     ENV_SHELL_FILE=${ENV_SHELL_FILE:-$(dirname $0)/.env.sh}
     if [ -f "$ENV_SHELL_FILE" ]; then
       source $ENV_SHELL_FILE
@@ -57,8 +59,8 @@ generateDev = (KONFIG, options) ->
 
     SERVICES="mongo redis postgres rabbitmq imply"
 
-    NGINX_CONF="$KONFIG_PROJECTROOT/.dev.nginx.conf"
-    NGINX_PID="$KONFIG_PROJECTROOT/.dev.nginx.pid"
+    NGINX_CONF="$KONFIG_PROJECTROOT/nginx.conf"
+    NGINX_PID="$KONFIG_PROJECTROOT/nginx.pid"
 
     #{options.requirementCommands?.join "\n"}
 

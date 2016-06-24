@@ -19,6 +19,7 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderDisconnect : React.PropTypes.bool
     onChangeAlwaysOn       : React.PropTypes.func
     onChangePowerStatus    : React.PropTypes.func
+    onChangeSharingStatus  : React.PropTypes.func
     onSharedWithUser       : React.PropTypes.func
     onUnsharedWithUser     : React.PropTypes.func
     onDisconnectVM         : React.PropTypes.func
@@ -32,6 +33,7 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderDisconnect : no
     onChangeAlwaysOn       : kd.noop
     onChangePowerStatus    : kd.noop
+    onChangeSharingStatus  : kd.noop
     onSharedWithUser       : kd.noop
     onUnsharedWithUser     : kd.noop
     onDisconnectVM         : kd.noop
@@ -45,7 +47,27 @@ module.exports = class MachineDetails extends React.Component
 
   onSharingToggle: (checked) ->
 
-    @setState { isShared : checked }
+    return @setState { isShared: yes }  if checked
+
+    modal          = new kd.ModalView
+      title        : 'Are you sure?'
+      content      : 'Unsharing this machine will kick all shared users. Do you still want to continue?'
+      overlay      : yes
+      buttons      :
+        No         :
+          title    : 'No'
+          cssClass : 'solid red medium'
+          callback : =>
+            @setState { isShared: yes }
+            modal.destroy()
+        Yes        :
+          title    : 'Yes'
+          cssClass : 'solid green medium'
+          callback : =>
+            @setState { isShared: no }
+            @props.onChangeSharingStatus no
+            modal.destroy()
+
 
 
   isShared: ->

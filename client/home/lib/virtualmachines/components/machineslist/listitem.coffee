@@ -18,6 +18,7 @@ module.exports = class MachinesListItem extends React.Component
     shouldRenderSharing    : React.PropTypes.bool
     onChangeAlwaysOn       : React.PropTypes.func
     onChangePowerStatus    : React.PropTypes.func
+    onChangeSharingStatus  : React.PropTypes.func
     onSharedWithUser       : React.PropTypes.func
     onUnsharedWithUser     : React.PropTypes.func
     onDisconnectVM         : React.PropTypes.func
@@ -31,6 +32,7 @@ module.exports = class MachinesListItem extends React.Component
     shouldRenderSharing    : no
     onChangeAlwaysOn       : kd.noop
     onChangePowerStatus    : kd.noop
+    onChangeSharingStatus  : kd.noop
     onSharedWithUser       : kd.noop
     onUnsharedWithUser     : kd.noop
     onDisconnectVM         : kd.noop
@@ -58,6 +60,7 @@ module.exports = class MachinesListItem extends React.Component
         shouldRenderSharing={@props.shouldRenderSharing}
         onChangeAlwaysOn={@props.onChangeAlwaysOn}
         onChangePowerStatus={@props.onChangePowerStatus}
+        onChangeSharingStatus={@props.onChangeSharingStatus}
         onSharedWithUser={@props.onSharedWithUser}
         onUnsharedWithUser={@props.onUnsharedWithUser}
         onDisconnectVM={@props.onDisconnectVM}
