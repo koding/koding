@@ -46,7 +46,7 @@ module.exports = class AccountSessionListItem extends KDListItemView
     lastAccess = lastLoginDate or lastAccess
 
     if kookies.get('clientId') is clientId
-      cssClass = "active"
+      cssClass = 'active'
     @session = new kd.CustomHTMLView
       cssClass: 'group-name'
       partial: group
