@@ -10,12 +10,9 @@ function build() {
 }
 
 function start() {
-  cp deployment/generated_files/nginx.conf /etc/nginx/nginx.conf
-  cp deployment/generated_files/supervisord.conf /etc/supervisord.conf
-
-  service nginx start
-  ./run exec supervisord -c /etc/supervisord.conf
-  sleep 1
+  nginx -c $(pwd)/nginx.conf
+  ./run exec supervisord -c supervisord.conf
+  sleep 2
 }
 
 function tail_logs() {
