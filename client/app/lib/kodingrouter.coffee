@@ -85,20 +85,14 @@ module.exports = class KodingRouter extends kd.Router
     { groupsController } = kd.singletons
     currentGroup         = groupsController.getCurrentGroup()
 
-    # For koding default route still is /IDE always, for others if there is
-    # stack template defined for the active group, it goes again to /IDE but if
-    # there is no stack template defined for the current group it goes /Activity
-    # directly.
-    #
-    # This doesn't effect the routes direct accesses. ~ GG
-
     if not currentGroup or currentGroup.slug is 'koding'
       return '/IDE'
 
-    return '/Home'
+    return '/Welcome'
 
 
   setPageTitle: (title = 'Koding') -> kd.singletons.pageTitle.update title
+
 
   openContent : (name, section, models, route, query, passOptions = no) ->
     method   = 'createContentDisplay'
