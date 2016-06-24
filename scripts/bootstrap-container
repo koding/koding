@@ -12,7 +12,7 @@ function build() {
 function start() {
   nginx -c $(pwd)/nginx.conf
   ./run exec supervisord -c supervisord.conf
-  sleep 1
+  sleep 2
 }
 
 function tail_logs() {
