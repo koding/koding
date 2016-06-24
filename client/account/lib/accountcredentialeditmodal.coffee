@@ -1,17 +1,17 @@
 kd                  = require 'kd'
-KDModalView         = kd.ModalView
 KDView              = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
 showError           = require 'app/util/showError'
+ContentModal = require 'app/components/contentModal'
 
-
-module.exports = class AccountCredentialEditModal extends KDModalView
+module.exports = class AccountCredentialEditModal extends ContentModal
 
 
   constructor: (options = {}, data) ->
 
-    options.cssClass  = kd.utils.curry 'credential-edit', options.cssClass
-    options.title   or= 'Edit Credential'
+    options.cssClass  = kd.utils.curry 'content-modal with-form', options.cssClass
+    options.title or= 'Edit Credential'
+    options.width = 600
 
     super options, data
 
@@ -33,9 +33,10 @@ module.exports = class AccountCredentialEditModal extends KDModalView
           unless showError err
             @form.emit 'CredentialUpdated', credential
 
-    @addSubView @wrapper = new KDView { cssClass : 'stacks step-creds' }
 
-    @wrapper.addSubView @form = ui.generateAddCredentialFormFor formOptions
+    # @main.addSubView @wrapper = new KDView { cssClass : '', tagName: 'main' }
+
+    @main.addSubView @form = ui.generateAddCredentialFormFor formOptions
 
     @form.on 'Cancel', @bound 'cancel'
 

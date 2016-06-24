@@ -183,7 +183,7 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
 
     modal = new KDModalView
       cssClass      : 'domain-assign-modal'
-      title         : 'Reassign domain ?'
+      title         : 'Reassign domain?'
       content       : """
         <div class='modalformline'>
           <p>
