@@ -1,6 +1,6 @@
 selenium-debug.log
-.*.nginx.conf
-.*.nginx.pid
+nginx.conf
+nginx.pid
 *.test
 *.dump
 *.orig

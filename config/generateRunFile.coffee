@@ -57,8 +57,8 @@ generateDev = (KONFIG, options) ->
 
     SERVICES="mongo redis postgres rabbitmq imply"
 
-    NGINX_CONF="$KONFIG_PROJECTROOT/.dev.nginx.conf"
-    NGINX_PID="$KONFIG_PROJECTROOT/.dev.nginx.pid"
+    NGINX_CONF="$KONFIG_PROJECTROOT/nginx.conf"
+    NGINX_PID="$KONFIG_PROJECTROOT/nginx.pid"
 
     #{options.requirementCommands?.join "\n"}
 
