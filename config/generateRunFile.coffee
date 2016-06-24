@@ -45,6 +45,8 @@ generateDev = (KONFIG, options) ->
 
     # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #
 
+    export KONFIG_PROJECTROOT=$(cd $(dirname $0); pwd)
+
     ENV_SHELL_FILE=${ENV_SHELL_FILE:-$(dirname $0)/.env.sh}
     if [ -f "$ENV_SHELL_FILE" ]; then
       source $ENV_SHELL_FILE
