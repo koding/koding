@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"koding/common"
 	"koding/workers/tunnelproxymanager"
 	"log"
 	"os"
@@ -23,7 +22,7 @@ func main() {
 	// system name defines all resource names
 	systemName := fmt.Sprintf("%s-%s", "tunnelproxymanager", conf.EBEnvName)
 
-	log := common.CreateLogger(Name, conf.Debug)
+	log := logging.NewCustom(Name, conf.Debug)
 	// remove formatting from call stack and output correct line
 	log.SetCallDepth(1)
 
