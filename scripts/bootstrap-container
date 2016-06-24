@@ -22,7 +22,7 @@ function tail_logs() {
   tail --follow --lines +0 --quiet .logs/*.log
 }
 
-if [ -z "$@" ]; then
+if [ -z "$*" ]; then
   start && tail_logs
 elif [ "$1" = "build" ]; then
   shift
