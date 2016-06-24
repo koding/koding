@@ -1,4 +1,4 @@
-package tunnelproxymanager
+package asgd
 
 import (
 	"encoding/json"

@@ -1,4 +1,4 @@
-package tunnelproxymanager
+package asgd
 
 import (
 	"errors"
@@ -101,8 +101,8 @@ func (l *LifeCycle) Configure(name string) error {
 }
 
 // Listen listens for messages that are put into lifecycle queues
-func (l *LifeCycle) Listen(recordManager *RecordManager) error {
-	f := l.newProcessFunc(recordManager)
+func (l *LifeCycle) Listen(callback func([]*ec2.Instance) error) error {
+	f := l.newProcessFunc(callback)
 	// run for the first time to fix/update existing record set.
 	eventName := "init proxy manager"
 	if err := f(&eventName); err != nil {
@@ -122,24 +122,22 @@ func (l *LifeCycle) Listen(recordManager *RecordManager) error {
 	}
 }
 
-func (l *LifeCycle) newProcessFunc(recordManager *RecordManager) func(body *string) error {
+func (l *LifeCycle) newProcessFunc(callback func([]*ec2.Instance) error) func(body *string) error {
 	return func(body *string) error {
 		l.log.Debug("got event %s", *body)
 
 		ticker := backoff.NewTicker(backoff.NewExponentialBackOff())
 
-		var res []*string
+		var res []*ec2.Instance
 		var err error
 
 		for _ = range ticker.C {
-			if res, err = l.GetAutoScalingOperatingIPs(); err != nil {
+			if res, err = l.GetAutoScalingOperatingMachines(); err != nil {
 				l.log.Error("Getting autoscaling operating IPs failed, will retry... err: %s", err.Error())
 				continue
 			}
 
-			l.log.Debug("Autoscaling operating IPs %s", aws.StringValueSlice(res))
-
-			if err = recordManager.UpsertRecordSet(res); err != nil {
+			if err = callback(res); err != nil {
 				l.log.Error("Upserting records failed, will retry... err: %s", err.Error())
 				continue
 
