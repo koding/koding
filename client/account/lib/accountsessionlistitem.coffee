@@ -43,17 +43,21 @@ module.exports = class AccountSessionListItem extends KDListItemView
       then hostname
       else "#{groupName}.#{hostname}"
 
-    activeSession = ''
-    if kookies.get('clientId') is clientId
-      group = "#{group} (Active)"
-      activeSession = ' active'
-
     lastAccess = lastLoginDate or lastAccess
+
+    if kookies.get('clientId') is clientId
+      cssClass = 'active'
+    @session = new kd.CustomHTMLView
+      cssClass: 'group-name'
+      partial: group
+
 
     """
     <div class="session-item">
-      <div class="session-info">
-        <p class="group-name#{activeSession}">#{group}</p>
+      <div class='session-info'>
+        <div class="#{cssClass}">
+          {{> @session}}
+        </div>
         <p class="last-access">Last access: #{timeago lastAccess}</p>
       </div>
       {div.delete-button{> @deleteButton }}
