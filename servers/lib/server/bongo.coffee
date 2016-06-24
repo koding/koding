@@ -6,8 +6,8 @@ KONFIG = require 'koding-config-manager'
 { projectRoot, webserver, mongoReplSet } = KONFIG
 
 redisClient = require('redis').createClient(
-  KONFIG.monitoringRedis.split(':')[1]
-  KONFIG.monitoringRedis.split(':')[0]
+  KONFIG.monitoringRedis.port
+  KONFIG.monitoringRedis.host
   {}
 )
 

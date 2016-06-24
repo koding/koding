@@ -45,7 +45,7 @@ func main() {
 
 	defer modelhelper.Close()
 
-	redisConn, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
+	redisConn, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis.Url})
 	if err != nil {
 		log.Fatal(err.Error())
 	}

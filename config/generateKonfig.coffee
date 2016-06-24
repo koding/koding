@@ -224,8 +224,8 @@ module.exports = (options, credentials) ->
     clientUploadS3BucketName      : options.clientUploadS3BucketName
 
     kiteHome                      : credentials.kiteHome
-    redis                         : credentials.redis.url
-    monitoringRedis               : credentials.monitoringRedis.url
+    redis                         : credentials.redis
+    monitoringRedis               : credentials.monitoringRedis
     mongo                         : credentials.mongo
     postgres                      : credentials.postgres
     mq                            : credentials.rabbitmq
