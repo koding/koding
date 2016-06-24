@@ -12,8 +12,16 @@ import (
 
 func main() {
 	conf := &terraformer.Config{}
-	// Load the config, reads environment variables or from flags
-	multiconfig.New().MustLoad(conf)
+
+	mc := multiconfig.New()
+	mc.Loader = multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.EnvironmentLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_TERRAFORMER"},
+		&multiconfig.FlagLoader{},
+	)
+
+	mc.MustLoad(conf)
 
 	if !conf.TerraformDebug {
 		// hashicorp.terraform outputs many logs, discard them

@@ -59,7 +59,7 @@ module.exports = (KONFIG, options, credentials) ->
     terraformer         :
       group             : "environment"
       supervisord       :
-        command         : "#{GOBIN}/terraformer -port #{KONFIG.terraformer.port} -region #{options.region} -environment  #{options.environment} -aws-key #{credentials.awsKeys.worker_terraformer.accessKeyId} -aws-secret #{credentials.awsKeys.worker_terraformer.secretAccessKey} -aws-bucket #{KONFIG.terraformer.bucket} -localstorepath #{KONFIG.terraformer.localstorepath}"
+        command         : "#{GOBIN}/terraformer"
       healthCheckURL    : "http://localhost:#{KONFIG.terraformer.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
 
