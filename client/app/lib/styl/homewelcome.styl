@@ -5,12 +5,20 @@ welcome.styl
 */
 }
 
-$welcomeTitleColor          = #858585
+$welcomeTitleColor          = #F2778A
 $titleGreen                 = #01B05A
-$linkColor                  = #769ECC
+$linkColor                  = #56A2D3
+
+.HomeWelcomeModal.kdmodal
+  .kdmodal-inner
+    margin                  0
+    .kdmodal-content
+      margin                0
+    .close-icon.closeModal
+      r-sprite              app modal_close
 
 .WelcomeStacksView
-  font-family               SoleilFamily
+  font-family               ProximaNovaFamily
   styleScrollBars           rgba(0,0,0,.15)
 
   section
@@ -21,33 +29,40 @@ $linkColor                  = #769ECC
       color                 $welcomeTitleColor
 
     > h2
-      font-size             24px
-      font-weight           bold
-      margin                40px 0 15px 0
-      letter-spacing        -.2px
+      font-size             27px
+      line-height           32px
+      font-weight           400
+      margin                40px 0 5px 0
 
     > p
+      font-size             18px
+      color                 #A59999
+      letter-spacing        0.21px
+      line-height           22px
       margin                0 auto 40px
-      font-size             16.6px
-      line-height           20px
       font-weight           300
 
 
   ul.bullets
     counter-reset           section
     list-style-type         none
-    width                   455px
-    margin                  0 auto
+    margin                  0 40px
 
     li
       rel()
-      margin                0 0 20px
+      margin                0
       border                1px solid #DCDCDC
+      border-bottom         none
       bg                    color #fff
-      rounded               3px
       line-height           23px
       &:hover a h3
-        color               $titleGreen
+        color               $welcomeTitleColor
+      &:first-child
+        rounded             3px 3px 0 0
+      &:last-child
+        border-bottom       1px solid #DCDCDC
+        rounded             0 0 3px 3px
+
 
       &.disabled
         bg                  color transparent
@@ -70,15 +85,29 @@ $linkColor                  = #769ECC
 
 
       &:before
-        abs                 28px 0 0 22px
+        abs                 24px 0 0 23px
         counter-increment   section
         content             counters(section,".") " "
-        color               #51B975
+        color               $welcomeTitleColor
         font-size           20px
         font-weight         bold
+        size                32px 32px
+        bg                  color #F7F7F7
+        rounded             3px
+        text-align          center
+        line-height         32px
+      &.done
+        bg                  color, rgb(251,251,251)
+        &:before
+          bg                color, rgba(115, 196, 97,.25)
+          color             transparent
+        &:after
+          content           ''
+          r-sprite          app step_done_white
+          abs               34px 0 0 31px
 
-      a
-        padding             17px 22px 17px 55px
+      a.WelcomeStepLink
+        padding             17px 184px 17px 73px
         size                100% 100%
         display             block
         color               $welcomeTitleColor
@@ -90,19 +119,53 @@ $linkColor                  = #769ECC
 
       h3
         font-size           18px
-        font-weight         400
-        letter-spacing      .3px
+        font-weight         500
+        color               #5E5E5E
+        letter-spacing      .34px
 
       p
-        font-size           12px
+        font-size           13px
+        color               #989898
+        letter-spacing      .25px
+        font-weight         300
+
+      cite
+        display             block
+        width               118px
+        height              40px
+        border-left         1px solid #ECECEC
+        abs                 20px 0px
+        font-size           18px
+        color               $linkColor
+        letter-spacing      .34px
+        text-transform      uppercase
+        font-weight         300
+        line-height         40px
+        text-align          center
 
   code
-    bg                    color #F7F7F7
-    border                1px solid #EAEAEA
+    bg                      color #F7F7F7
+    border                  1px solid #EAEAEA
     borderBox()
-    color                 #8958BA
-    font-size             12px
-    font-weight           400
-    line-height           18px
-    padding               0 6px
-    rounded               2px
+    color                   #8958BA
+    font-size               12px
+    font-weight             400
+    line-height             18px
+    padding                 0 6px
+    rounded                 2px
+
+  footer
+    font-size               14px
+    font-weight             300
+    color                   #9B9B9B
+    letter-spacing          .16px
+    line-height             27px
+    text-align              center
+    margin                  20px 0
+    a
+      color                 $linkColor
+      noTextDeco()
+
+.WelcomeStepVideoIcon
+  abs                       29px 136px
+  r-sprite                  app video_icon
