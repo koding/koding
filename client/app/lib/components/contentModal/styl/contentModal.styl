@@ -113,8 +113,6 @@ contentModal.styl
         fontPrecisionForSoleil()
         ellipsis()
         max-width           450px
-        span
-        padding-left        10px
 
         &.vagrant:before
         &.aws:before
@@ -129,7 +127,7 @@ contentModal.styl
           r-sprite          stacks icon_aws
 
     main
-      margin                40px 40px
+      margin                40px
       color                 #727272
 
       .kdtabpaneview
@@ -146,6 +144,7 @@ contentModal.styl
         text-align          center
         font-weight         400
 
+      pre
       p
         width               auto
         font-size           14px
@@ -158,6 +157,9 @@ contentModal.styl
 
       p:empty
         display             none
+
+      pre
+        font-weight         600
 
       code
         background          #FFFFFF

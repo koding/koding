@@ -160,7 +160,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     modal = new ContentModal
       title         : 'Would you like us to remove the pane when there are no tabs left?'
-      cssClass      : 'autoremovepane-confirm'
+      cssClass      : 'content-modal'
       content       : '''
         <p>You can always change this setting on preferences.</p>
       '''
