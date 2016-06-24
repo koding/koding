@@ -38,8 +38,7 @@ module.exports = (options) ->
         router.handleRoute path
       router.handleRoute '/IDE'
     else
-      groupsController.ready ->
-        new WelcomeModal
+      groupsController.ready -> new WelcomeModal
 
 
   lazyrouter.bind name, (type, info, state, path, ctx) ->
