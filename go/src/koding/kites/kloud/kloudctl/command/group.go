@@ -23,7 +23,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	"koding/db/models"
-	"koding/kites/common"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
@@ -33,6 +32,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 	"github.com/mitchellh/cli"
 	"golang.org/x/net/context"
 )
@@ -672,7 +672,7 @@ func (cmd *GroupFixDomain) Valid() error {
 	dnsOpts := &dnsclient.Options{
 		Creds:      credentials.NewStaticCredentials(cmd.access, cmd.secret, ""),
 		HostedZone: zone,
-		Log:        common.NewLogger("dns", flagDebug),
+		Log:        logging.NewCustom("dns", flagDebug),
 	}
 
 	dns, err := dnsclient.NewRoute53Client(dnsOpts)

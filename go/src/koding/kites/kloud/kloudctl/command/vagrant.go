@@ -15,7 +15,6 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"koding/kites/common"
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/keycreator"
 	puser "koding/kites/kloud/scripts/provisionklient/userdata"
@@ -129,7 +128,7 @@ func (v *Vagrant) Action(args []string) error {
 	}
 	vapi := &vagrantapi.Klient{
 		Kite:  k.LocalKite,
-		Log:   common.NewLogger("vagrant", flagDebug),
+		Log:   logging.NewCustom("vagrant", flagDebug),
 		Debug: true,
 	}
 

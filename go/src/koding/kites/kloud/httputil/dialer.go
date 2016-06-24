@@ -2,7 +2,6 @@ package httputil
 
 import (
 	"fmt"
-	"koding/kites/common"
 	"net"
 	"net/http"
 	"runtime/debug"
@@ -12,7 +11,7 @@ import (
 	"github.com/koding/logging"
 )
 
-var defaultLog = common.NewLogger("dialer", false)
+var defaultLog = logging.NewCustom("dialer", false)
 
 type Dialer struct {
 	*net.Dialer

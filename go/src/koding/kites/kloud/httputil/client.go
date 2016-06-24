@@ -6,8 +6,6 @@ import (
 	"net/http/cookiejar"
 	"time"
 
-	"koding/kites/common"
-
 	"github.com/koding/kite/sockjsclient"
 	"github.com/koding/logging"
 )
@@ -65,7 +63,7 @@ var httpRestDebugClient = NewClient(&ClientConfig{
 	TLSHandshakeTimeout:   10 * time.Second,
 	ResponseHeaderTimeout: 60 * time.Second,
 	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
-	Log:                   common.NewLogger("dialer", true),
+	Log:                   logging.NewCustom("dialer", true),
 	TraceLeakedConn:       true,
 })
 
@@ -97,7 +95,7 @@ var httpStreamDebugClient = NewClient(&ClientConfig{
 	ResponseHeaderTimeout: 60 * time.Second,
 	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
 	Jar:                   jar,
-	Log:                   common.NewLogger("dialer", true),
+	Log:                   logging.NewCustom("dialer", true),
 	TraceLeakedConn:       true,
 })
 
