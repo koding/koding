@@ -330,10 +330,6 @@ generateDev = (KONFIG, options) ->
       pushd $KONFIG_PROJECTROOT/install/docker-mongo
       docker build -t koding/mongo .
 
-      # Build rabbitMQ service
-      pushd $KONFIG_PROJECTROOT/install/docker-rabbitmq
-      docker build -t koding/rabbitmq .
-
       # Build postgres
       pushd $KONFIG_PROJECTROOT/go/src/socialapi/db/sql
 
@@ -346,7 +342,7 @@ generateDev = (KONFIG, options) ->
       docker build -t koding/postgres .
 
       docker run -d -p 27017:27017                                        --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
-      docker run -d -p 5672:5672 -p 15672:15672                           --name=rabbitmq koding/rabbitmq
+      docker run -d -p 5672:5672 -p 15672:15672                           --name=rabbitmq rabbitmq:3-management
 
       docker run -d -p 6379:6379                                          --name=redis    redis
       docker run -d -p 5432:5432                                          --name=postgres koding/postgres
