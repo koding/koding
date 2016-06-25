@@ -84,8 +84,10 @@ type Config struct {
 		Token   string
 		Channel string
 	}
-	LogLevel             map[string]string
-	Redis                string
+	LogLevel map[string]string
+	Redis    struct {
+		Url string
+	}
 	SubscriptionEndpoint string
 	Gowebserver          struct {
 		Port int
