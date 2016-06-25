@@ -7,6 +7,7 @@ immutable           = require 'immutable'
 Machine             = require 'app/providers/machine'
 SharingAutocomplete = require './sharing/autocomplete'
 SharingUserList     = require './sharing/userlist'
+ContentModal        = require 'app/components/contentModal'
 
 module.exports = class MachineDetails extends React.Component
 
@@ -49,20 +50,26 @@ module.exports = class MachineDetails extends React.Component
 
     return @setState { isShared: yes }  if checked
 
-    modal          = new kd.ModalView
+    unless @props.machine.get('sharedUsers').size
+      @setState { isShared: no }
+      @props.onChangeSharingStatus no
+      return
+
+    modal          = new ContentModal
       title        : 'Are you sure?'
-      content      : 'Unsharing this machine will kick all shared users. Do you still want to continue?'
+      content      : 'Once you turn off sharing all of the participants will lose access to this VM immediately.'
+      cssClass     : 'content-modal'
       overlay      : yes
       buttons      :
         No         :
-          title    : 'No'
-          cssClass : 'solid red medium'
+          title    : 'Cancel'
+          cssClass : 'solid medium'
           callback : =>
             @setState { isShared: yes }
             modal.destroy()
         Yes        :
-          title    : 'Yes'
-          cssClass : 'solid green medium'
+          title    : 'Turn Off'
+          cssClass : 'solid medium'
           callback : =>
             @setState { isShared: no }
             @props.onChangeSharingStatus no
