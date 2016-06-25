@@ -6,7 +6,7 @@ module.exports = class WelcomeModal extends kd.ModalView
   constructor: (options = {}, data) ->
 
     options.cssClass = 'HomeWelcomeModal'
-    options.width    = 660
+    options.width    = 710
 
     super options, data
 
