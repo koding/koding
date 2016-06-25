@@ -25,7 +25,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           actionTitle: 'Enter'
           videoLink: ''
           miniTitle: 'Enter Credentials'
-          description: "To be able to set up your machines we need your cloud provider credentials."
+          description: "To set up your machines we need your cloud provider credentials."
           isDone: no
           order: 2
         buildStack :
@@ -75,7 +75,8 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           path: '/Home/My-Team'
           title: 'Invite Your Team'
           actionTitle: 'Invite'
-          videoLink: '//www.koding.com/docs'
+          videoLink: ''
+          # videoLink: '//www.koding.com/docs'
           miniTitle: 'Invite Teammates'
           description: "Get your teammates working together."
           isDone: no
