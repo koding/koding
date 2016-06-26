@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"koding/artifact"
-	"koding/common"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"net"
@@ -38,7 +37,7 @@ func initializeConf() *config.Config {
 }
 
 func main() {
-	log := common.CreateLogger(WorkerName, false)
+	log := logging.NewCustom(WorkerName, false)
 
 	conf := initializeConf()
 	modelhelper.Initialize(conf.Mongo)

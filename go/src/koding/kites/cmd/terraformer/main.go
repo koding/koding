@@ -4,9 +4,9 @@ import (
 	"io/ioutil"
 	"log"
 
-	"koding/kites/common"
 	"koding/kites/terraformer"
 
+	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 )
 
@@ -28,7 +28,7 @@ func main() {
 		log.SetOutput(ioutil.Discard)
 	}
 
-	log := common.NewLogger(terraformer.Name, conf.Debug)
+	log := logging.NewCustom(terraformer.Name, conf.Debug)
 
 	// init terraformer
 	t, err := terraformer.New(conf, log)

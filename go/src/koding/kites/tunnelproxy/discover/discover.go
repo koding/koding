@@ -12,7 +12,6 @@ import (
 
 	"github.com/koding/logging"
 
-	"koding/kites/common"
 	"koding/kites/kloud/httputil"
 )
 
@@ -24,7 +23,7 @@ var defaultHTTPClient = httputil.NewClient(&httputil.ClientConfig{
 	KeepAlive:             30 * time.Second,
 })
 
-var defaultLog = common.NewLogger("discover", false)
+var defaultLog = logging.NewCustom("discover", false)
 
 type Endpoint struct {
 	Addr     string `json:"addr"`

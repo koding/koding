@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/cenkalti/backoff"
-	"github.com/coreos/go-log/log"
 	"github.com/koding/logging"
 )
 
@@ -72,22 +71,22 @@ func (l *LifeCycle) Configure(name string) error {
 	l.log.Debug("Configuring...")
 
 	if err := l.EnureSNS(name); err != nil {
-		log.Error("Could not ensure SNS Err: %s", err.Error())
+		l.log.Error("Could not ensure SNS Err: %s", err.Error())
 		return err
 	}
 
 	if err := l.MakeSureSQS(name); err != nil {
-		log.Error("Coud not ensure SQS Err: %s", err.Error())
+		l.log.Error("Coud not ensure SQS Err: %s", err.Error())
 		return err
 	}
 
 	if err := l.MakeSureSubscriptions(); err != nil {
-		log.Error("Could not create subscription to SNS from SQS Err: %s", err.Error())
+		l.log.Error("Could not create subscription to SNS from SQS Err: %s", err.Error())
 		return err
 	}
 
 	if err := l.AttachNotificationToAutoScaling(); err != nil {
-		log.Error("Could not attach notification to autoscaling Err: %s", err.Error())
+		l.log.Error("Could not attach notification to autoscaling Err: %s", err.Error())
 		return err
 	}
 

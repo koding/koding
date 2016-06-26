@@ -21,7 +21,6 @@ import (
 	"testing"
 	"time"
 
-	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -106,7 +105,7 @@ func TestMain(m *testing.M) {
 		die("unable to load configuration", err)
 	}
 
-	Test.Log = common.NewLogger("test", Test.Debug)
+	Test.Log = logging.NewCustom("test", Test.Debug)
 	Test.setDefaults()
 
 	if Test.Debug {

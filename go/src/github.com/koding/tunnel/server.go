@@ -10,7 +10,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -95,7 +94,7 @@ func NewServer(cfg *ServerConfig) (*Server, error) {
 		yamuxConfig = cfg.YamuxConfig
 	}
 
-	log := newLogger("tunnel-server", cfg.Debug)
+	log := logging.NewCustom("tunnel-server", cfg.Debug)
 	if cfg.Log != nil {
 		log = cfg.Log
 	}
@@ -667,18 +666,4 @@ func nonil(err ...error) error {
 	}
 
 	return nil
-}
-
-func newLogger(name string, debug bool) logging.Logger {
-	log := logging.NewLogger(name)
-	logHandler := logging.NewWriterHandler(os.Stderr)
-	logHandler.Colorize = true
-	log.SetHandler(logHandler)
-
-	if debug {
-		log.SetLevel(logging.DEBUG)
-		logHandler.SetLevel(logging.DEBUG)
-	}
-
-	return log
 }

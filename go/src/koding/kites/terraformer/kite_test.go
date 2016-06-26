@@ -7,10 +7,9 @@ import (
 	"sync"
 	"testing"
 
-	"koding/kites/common"
-
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 )
 
@@ -35,7 +34,7 @@ func withKite(t *testing.T, f func(k *kite.Kite) error) {
 		log.SetOutput(ioutil.Discard)
 	}
 
-	log := common.NewLogger(Name, conf.Debug)
+	log := logging.NewCustom(Name, conf.Debug)
 
 	// init terraformer
 	tr, err := New(conf, log)

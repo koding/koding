@@ -41,6 +41,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
+	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 )
 
@@ -403,7 +404,7 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 			KlientURL: conf.KlientURL,
 			Bucket:    userdata.NewBucket("koding-klient", klientFolder, c),
 		},
-		Log: common.NewLogger("kloud", conf.DebugMode),
+		Log: logging.NewCustom("kloud", conf.DebugMode),
 	}
 
 	sess.DNSStorage = dnsstorage.NewMongodbStorage(sess.DB)
@@ -413,7 +414,7 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 		dnsOpts := &dnsclient.Options{
 			Creds:      c,
 			HostedZone: conf.HostedZone,
-			Log:        common.NewLogger("kloud-dns", conf.DebugMode),
+			Log:        logging.NewCustom("kloud-dns", conf.DebugMode),
 			Debug:      conf.DebugMode,
 		}
 
@@ -427,7 +428,7 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 		opts := &amazon.ClientOptions{
 			Credentials: c,
 			Regions:     amazon.ProductionRegions,
-			Log:         common.NewLogger("kloud-koding", conf.DebugMode),
+			Log:         logging.NewCustom("kloud-koding", conf.DebugMode),
 			MaxResults:  int64(conf.MaxResults),
 			Debug:       conf.DebugMode,
 		}
