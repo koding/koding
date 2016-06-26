@@ -143,7 +143,7 @@ type Builder struct {
 
 	// Fields being built:
 	Stack       *Stack
-	Machines    []*models.Machine
+	Machines    map[string]*models.Machine // maps label to jMachine
 	Koding      *Credential
 	Credentials []*Credential
 	Template    *Template
@@ -345,11 +345,18 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 		return fmt.Errorf("no valid machines found for the user: %s", req.Username)
 	}
 
+	b.Machines = make(map[string]*models.Machine, len(validMachines))
+
 	for _, m := range validMachines {
-		b.Machines = append(b.Machines, m)
+		label := m.Label
+		if s, ok := m.Meta["assignedLabel"].(string); ok {
+			label = s
+		}
+
+		b.Machines[label] = m
 	}
 
-	b.Log.Debug("Machines built: %+v", machines)
+	b.Log.Debug("Machines built: %+v", b.Machines)
 
 	return nil
 }

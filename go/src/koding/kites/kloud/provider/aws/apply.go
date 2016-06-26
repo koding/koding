@@ -387,15 +387,8 @@ func (s *Stack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
 	return err
 }
 
-func updateMachines(ctx context.Context, data *stackplan.Machines, jMachines []*models.Machine, credential string) error {
-	for _, machine := range jMachines {
-		label := machine.Label
-		if l, ok := machine.Meta["assignedLabel"]; ok {
-			if ll, ok := l.(string); ok {
-				label = ll
-			}
-		}
-
+func updateMachines(ctx context.Context, data *stackplan.Machines, jMachines map[string]*models.Machine, credential string) error {
+	for label, machine := range jMachines {
 		tf, err := data.WithLabel(label)
 		if err != nil {
 			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", label)

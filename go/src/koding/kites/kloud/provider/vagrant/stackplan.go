@@ -56,7 +56,7 @@ func (s *Stack) newTunnel(resourceName string) *Tunnel {
 		KiteURL: s.TunnelURL.String(),
 	}
 
-	if m := s.Builder.FindMachine(resourceName); m != nil {
+	if m, ok := s.Builder.Machines[resourceName]; ok {
 		t.Name = m.Uid
 	}
 
@@ -285,13 +285,8 @@ func (s *Stack) machinesFromTemplate(t *stackplan.Template, hostQueryString stri
 	return out, nil
 }
 
-func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jMachines []*models.Machine) error {
-	for _, machine := range jMachines {
-		label := machine.Label
-		if l, ok := machine.Meta["assignedLabel"].(string); ok {
-			label = l
-		}
-
+func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jMachines map[string]*models.Machine) error {
+	for label, machine := range jMachines {
 		s.Log.Debug("Updating machine with %q label and %q provider", label, machine.Provider)
 
 		tf, err := data.WithLabel(label)
@@ -311,18 +306,17 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 
 func updateVagrant(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId, credential string) error {
 	machine := bson.M{
-		"provider":             tf.Provider,
-		"meta.hostQueryString": tf.HostQueryString,
-		"queryString":          tf.QueryString,
-		"credential":           credential,
-		"ipAddress":            tf.Attributes["ipAddress"],
-		"meta.filePath":        tf.Attributes["filePath"],
-		"meta.box":             tf.Attributes["box"],
-		"meta.hostname":        tf.Attributes["hostname"],
-		"meta.klientHostURL":   tf.Attributes["klientHostURL"],
-		"status.state":         machinestate.Running.String(),
-		"status.modifiedAt":    time.Now().UTC(),
-		"status.reason":        "Created with kloud.apply",
+		"provider":           tf.Provider,
+		"queryString":        tf.QueryString,
+		"credential":         credential,
+		"ipAddress":          tf.Attributes["ipAddress"],
+		"meta.filePath":      tf.Attributes["filePath"],
+		"meta.box":           tf.Attributes["box"],
+		"meta.hostname":      tf.Attributes["hostname"],
+		"meta.klientHostURL": tf.Attributes["klientHostURL"],
+		"status.state":       machinestate.Running.String(),
+		"status.modifiedAt":  time.Now().UTC(),
+		"status.reason":      "Created with kloud.apply",
 	}
 
 	if u, err := url.Parse(tf.RegisterURL); tf.RegisterURL != "" && err == nil {
