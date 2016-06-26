@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/private/waiter"
@@ -32,20 +33,19 @@ type Client struct {
 func NewClient(opts *ClientOptions) (*Client, error) {
 	cfg := NewSession(opts)
 	svc := ec2.New(cfg)
-	zones, err := svc.DescribeAvailabilityZones(nil)
-	if err != nil {
-		return nil, awsError(err)
-	}
 	c := &Client{
 		EC2:        svc,
 		Region:     aws.StringValue(cfg.Config.Region),
-		Zones:      make([]string, len(zones.AvailabilityZones)),
 		Log:        opts.Log,
 		MaxResults: opts.MaxResults,
 	}
-	for i, zone := range zones.AvailabilityZones {
-		c.Zones[i] = aws.StringValue(zone.ZoneName)
+	zones, err := c.SubnetAvailabilityZones()
+	if err != nil {
+		return nil, awsError(err)
 	}
+
+	c.Zones = zones
+
 	return c, nil
 }
 
@@ -274,6 +274,40 @@ func (c *Client) VPCs() ([]*ec2.Vpc, error) {
 		return nil, newNotFoundError("VPC", errors.New("no VPCs found"))
 	}
 	return resp.Vpcs, nil
+}
+
+var errUnknownZones = errors.New("unable to guess availability zones")
+
+// SubnetAvailabilityZones gives all availability zones that can be used
+// for creating a subnet for the account.
+func (c *Client) SubnetAvailabilityZones() ([]string, error) {
+	const errMsg = "Subnets can currently only be created in the following availability zones:"
+
+	params := &ec2.CreateSubnetInput{
+		AvailabilityZone: aws.String("invalid"),
+		VpcId:            aws.String("invalid"),
+		CidrBlock:        aws.String("10.0.0.0/24"),
+	}
+
+	_, err := c.EC2.CreateSubnet(params)
+	if err == nil {
+		return nil, errUnknownZones
+	}
+
+	msg := err.Error()
+
+	i := strings.Index(msg, errMsg)
+	if i == -1 {
+		return nil, errUnknownZones
+	}
+
+	zones := strings.Split(strings.Trim(msg[i+len(errMsg):], " ."), ", ")
+
+	if len(zones) == 0 || zones[0] == "" {
+		return nil, errUnknownZones
+	}
+
+	return zones, nil
 }
 
 // Subnets is a wrapper for (*ec2.EC2).DescribeSubnets.
