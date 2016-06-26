@@ -84,8 +84,8 @@ module.exports = (options) ->
     region: options.region
     environment: options.environment
     aws:
-      key: credentials.awsKeys.worker_terraformer.accessKeyId
-      secret: credentials.awsKeys.worker_terraformer.secretAccessKey
+      key: awsKeys.worker_terraformer.accessKeyId
+      secret: awsKeys.worker_terraformer.secretAccessKey
       bucket: "kodingdev-terraformer-state-#{options.configName}"
     localStorePath:  "$KONFIG_PROJECTROOT/go/data/terraformer"
   paymentwebhook =
