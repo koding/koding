@@ -25,6 +25,7 @@ checkMigration = ->
 
     kd.singletons.reactor.dispatch actionTypes.MIGRATION_AVAILABLE
 
+
 checkFinishedSteps = ->
 
   { appStorageController, groupsController, reactor } = kd.singletons

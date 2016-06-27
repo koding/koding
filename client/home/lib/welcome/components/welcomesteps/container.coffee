@@ -14,8 +14,10 @@ module.exports = class WelcomeStepsContainer extends React.Component
     }
 
   componentWillMount: ->
+
     HomeFlux.actions.checkMigration()
     HomeFlux.actions.checkFinishedSteps()
+
 
   render: ->
     if @props.mini
