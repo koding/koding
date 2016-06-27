@@ -19,16 +19,10 @@ import (
 const Name = "tunnelproxymanager"
 
 func main() {
-	c := &tunnelproxymanager.Config{}
-	mc := multiconfig.New()
-	mc.Loader = multiconfig.MultiLoader(
-		&multiconfig.TagLoader{},
-		&multiconfig.EnvironmentLoader{},
-		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_TUNNELPROXYMANAGER"},
-		&multiconfig.FlagLoader{},
-	)
-
-	mc.MustLoad(c)
+	c, err := configure()
+	if err != nil {
+		log.Fatal("Reading config failed: ", err.Error())
+	}
 
 	conf := &asgd.Config{
 		Name:            fmt.Sprintf("%s-%s", "tunnelproxymanager", c.EBEnvName),
@@ -102,4 +96,41 @@ func registerSignalHandler(l *asgd.LifeCycle, log logging.Logger) chan struct{} 
 
 	}()
 	return done
+}
+
+func configure() (*tunnelproxymanager.Config, error) {
+	c := &tunnelproxymanager.Config{}
+	mc := multiconfig.New()
+	mc.Loader = multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.EnvironmentLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_TUNNELPROXYMANAGER"},
+		&multiconfig.FlagLoader{},
+	)
+
+	mc.MustLoad(c)
+
+	// decide on eb env name
+	ebEnvName, err := getEBEnvName(c)
+	if err != nil {
+		return nil, err
+	}
+
+	c.EBEnvName = ebEnvName
+	return c, nil
+}
+
+// getEBEnvName checks if region name is given in config, if not tries to get it
+// from env variable
+func getEBEnvName(conf *tunnelproxymanager.Config) (string, error) {
+	if conf.EBEnvName != "" {
+		return conf.EBEnvName, nil
+	}
+
+	// get EB_ENV_NAME param
+	ebEnvName := os.Getenv("EB_ENV_NAME")
+	if ebEnvName == "" {
+		return "", fmt.Errorf("EB_ENV_NAME can not be empty")
+	}
+	return ebEnvName, nil
 }
