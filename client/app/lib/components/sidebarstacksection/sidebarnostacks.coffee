@@ -18,7 +18,6 @@ module.exports = class SidebarNoStacks extends React.Component
             fully configured yet, please
             finalize onboarding steps.
           </p>
-          <Link href='/Home/Welcome'>Finalize steps</Link>
         </div>
       </section>
     </div>
