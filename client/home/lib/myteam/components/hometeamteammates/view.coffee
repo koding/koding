@@ -41,6 +41,11 @@ module.exports = class HomeTeamTeamMatesView extends React.Component
     #   onChange={@props.onSearchInputChange}
     #   value={@props.searchInputValue} />
 
+    loadMoreClassName = 'load-more'
+
+    if @props.members.size < 10 or @props.allUsersLoaded
+      loadMoreClassName = 'load-more hidden'
+
     <div>
       <List
         numberOfSections={@bound 'numberOfSections'}
@@ -51,6 +56,7 @@ module.exports = class HomeTeamTeamMatesView extends React.Component
         rowClassName='HomeApp-Teammate--ListItem'
         sectionClassName='HomeApp-TeammatesSection'
       />
+      <div className={loadMoreClassName} onClick={@props.handleLoadMore}>Load More...</div>
     </div>
 
 
