@@ -10,6 +10,7 @@ module.exports = class WelcomeModal extends kd.ModalView
 
     super options, data
 
+    kd.singletons.router.once 'RouteInfoHandled', @bound 'destroy'
 
 
   viewAppended: ->
