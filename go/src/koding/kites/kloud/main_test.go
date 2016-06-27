@@ -81,11 +81,11 @@ import (
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
+	"github.com/koding/logging"
 	"golang.org/x/net/context"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/common"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/publickeys"
@@ -270,7 +270,7 @@ func init() {
 		LocalStorePath: filepath.Join(repoPath, filepath.FromSlash("go/data/terraformer")),
 	}
 
-	t, err := terraformer.New(tConf, common.NewLogger("terraformer", false))
+	t, err := terraformer.New(tConf, logging.NewCustom("terraformer", false))
 	if err != nil {
 		log.Fatal("terraformer ", err.Error())
 	}
@@ -1368,7 +1368,7 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 	dnsOpts := &dnsclient.Options{
 		Creds:      c,
 		HostedZone: "dev.koding.io",
-		Log:        common.NewLogger("dns", true),
+		Log:        logging.NewCustom("dns", true),
 	}
 
 	dnsInstance, err := dnsclient.NewRoute53Client(dnsOpts)
@@ -1388,7 +1388,7 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 	opts := &amazon.ClientOptions{
 		Credentials: c,
 		Regions:     amazon.ProductionRegions,
-		Log:         common.NewLogger("koding", true),
+		Log:         logging.NewCustom("koding", true),
 	}
 
 	ec2clients, err := amazon.NewClients(opts)
@@ -1415,7 +1415,7 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 
 	awsp := &awsprovider.Provider{
 		DB:         db,
-		Log:        common.NewLogger("kloud-aws", true),
+		Log:        logging.NewCustom("kloud-aws", true),
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		Kite:       kloudKite,
@@ -1424,7 +1424,7 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 
 	slp := &softlayer.Provider{
 		DB:         db,
-		Log:        common.NewLogger("kloud-softlayer", true),
+		Log:        logging.NewCustom("kloud-softlayer", true),
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		SLClient:   slclient,
@@ -1436,7 +1436,7 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 }
 
 func kloudWithProviders(p *koding.Provider, a *awsprovider.Provider, s *softlayer.Provider) *kloud.Kloud {
-	kloudLogger := common.NewLogger("kloud", true)
+	kloudLogger := logging.NewCustom("kloud", true)
 	sess := &session.Session{
 		DB:         p.DB,
 		Kite:       p.Kite,

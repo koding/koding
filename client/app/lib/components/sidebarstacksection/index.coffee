@@ -64,17 +64,21 @@ module.exports = class SidebarStackSection extends React.Component
 
   onMenuItemClick: (item, event) ->
 
-    { router } = kd.singletons
+    { appManager, router } = kd.singletons
     { stack } = @props
+    { reinitStackFromWidget, deleteStack } = EnvironmentFlux.actions
 
     { title } = item.getData()
     MENU.destroy()
 
+    templateId = stack.get 'baseStackId'
+
     switch title
-      when 'Update' then EnvironmentFlux.actions.reinitStackFromWidget stack
-      when 'Edit' then router.handleRoute "/Stack-Editor/#{stack.get 'baseStackId'}"
-      when 'Reinitialize' then EnvironmentFlux.actions.reinitStackFromWidget stack
-      when 'Destroy VMs' then EnvironmentFlux.actions.deleteStack { stack }
+      when 'Edit' then router.handleRoute "/Stack-Editor/#{templateId}"
+      when 'Reinitialize', 'Update'
+        reinitStackFromWidget(stack).then ->
+          appManager.tell 'Stackeditor', 'reloadEditor', { _id: templateId }
+      when 'Destroy VMs' then deleteStack { stack }
       when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
 
 

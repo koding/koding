@@ -119,7 +119,7 @@ module.exports = class MainView extends kd.View
         partial    : '<figure></figure>'
         click      : (event) -> kd.utils.stopDOMEvent event
     else
-      @logoWrapper.addSubView @teamname = new TeamName {}, getGroup()
+      @logoWrapper.addSubView @teamname = new TeamName { cssClass: 'no-logo' }, getGroup()
 
     @logoWrapper.addSubView closeHandle = new kd.CustomHTMLView
       cssClass : 'sidebar-close-handle'
@@ -228,14 +228,13 @@ module.exports = class MainView extends kd.View
 
     unless logo
       @teamLogoWrapper.hide()
-      @teamname.setClass 'no-logo'
+      # @teamname.setClass 'no-logo'
     else
       @teamLogo.setClass 'team-logo'
       @teamLogoWrapper.show()
       @teamname.unsetClass 'no-logo'
 
-    groupsController.on 'TEAM_DATA_TO_UPDATE', (dataToUpdate) =>
-      logo = dataToUpdate.customize?.logo
+    groupsController.on 'TEAM_LOGO_CHANGED', (logo) =>
 
       @teamLogo.setAttribute 'class', ''
 

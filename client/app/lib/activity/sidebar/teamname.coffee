@@ -11,7 +11,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass   = 'team-name'
+    options.cssClass   = kd.utils.curry 'team-name', options.cssClass
     options.tagName    = 'a'
     options.attributes = { href: '#' }
 

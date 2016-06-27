@@ -1,36 +1,30 @@
 kd = require 'kd'
 _ = require 'lodash'
+ContentModal = require 'app/components/contentModal'
 
-
-module.exports = class ResendInvitationConfirmationModal extends kd.ModalViewWithForms
+module.exports = class ResendInvitationConfirmationModal extends ContentModal
 
   constructor: (options = {}, data) ->
 
     options = _.assign {}, options,
-      title                   : 'Resend invitation'
+      title                   : 'Resend Invitation'
       overlay                 : yes
       height                  : 'auto'
-      cssClass                : 'admin-invite-confirm-modal'
-      tabs                    :
-        forms                 :
-          confirm             :
-            buttons           :
-              "#{options.resendButtonText}" :
-                itemClass     : kd.ButtonView
-                cssClass      : 'confirm'
-                style         : 'solid green medium'
-                loader        : { color: '#444444' }
-                callback      : -> options.success()
-              "#{options.cancelButtonText}" :
-                itemClass     : kd.ButtonView
-                style         : 'solid medium'
-                callback      : -> options.cancel()
-            fields            :
-              planDetails     :
-                type          : 'hidden'
-                nextElement   :
-                  planDetails :
-                    cssClass  : 'content'
-                    itemClass : kd.View
+      cssClass                : 'admin-invite-confirm-modal content-modal'
+      buttons :
+        "#{options.cancelButtonText}" :
+          title: 'Cancel'
+          cssClass : 'cancel'
+          itemClass : kd.ButtonView
+          style : 'solid medium'
+          callback : -> options.cancel()
+        "#{options.resendButtonText}" :
+          title: 'Resend'
+          itemClass : kd.ButtonView
+          cssClass : 'GenericButton confirm'
+          style : 'solid medium'
+          loader : { color: '#444444' }
+          callback : -> options.success()
+
 
     super options, data

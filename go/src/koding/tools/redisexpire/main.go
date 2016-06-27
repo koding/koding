@@ -32,7 +32,7 @@ func main() {
 		log.SetLevel(logger.DEBUG)
 	}
 
-	redisSess, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
+	redisSess, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis.Url})
 	if err != nil {
 		panic(err)
 	}

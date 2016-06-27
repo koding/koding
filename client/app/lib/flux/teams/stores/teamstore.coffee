@@ -23,5 +23,5 @@ module.exports = class TeamStore extends KodingFluxStore
   update: (oldTeam, { dataToUpdate }) ->
 
     return oldTeam.set 'title', dataToUpdate.title  if dataToUpdate.title?
-    if dataToUpdate.customize?.logo?
-      oldTeam.setIn ['customize', 'logo'], dataToUpdate.customize.logo
+
+    oldTeam.setIn ['customize', 'logo'], dataToUpdate.customize.logo

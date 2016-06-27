@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"koding/kites/common"
 	"koding/klient/testutil"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
+	"github.com/koding/logging"
 )
 
-var testLog = common.NewLogger("test", true)
+var testLog = logging.NewCustom("test", true)
 
 func TestTerminal(t *testing.T) {
 	kiteURL := testutil.GenKiteURL()

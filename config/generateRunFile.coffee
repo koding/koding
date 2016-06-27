@@ -45,6 +45,8 @@ generateDev = (KONFIG, options) ->
 
     # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #
 
+    export KONFIG_PROJECTROOT=$(cd $(dirname $0); pwd)
+
     ENV_SHELL_FILE=${ENV_SHELL_FILE:-$(dirname $0)/.env.sh}
     if [ -f "$ENV_SHELL_FILE" ]; then
       source $ENV_SHELL_FILE
@@ -57,8 +59,8 @@ generateDev = (KONFIG, options) ->
 
     SERVICES="mongo redis postgres rabbitmq imply"
 
-    NGINX_CONF="$KONFIG_PROJECTROOT/.dev.nginx.conf"
-    NGINX_PID="$KONFIG_PROJECTROOT/.dev.nginx.pid"
+    NGINX_CONF="$KONFIG_PROJECTROOT/nginx.conf"
+    NGINX_PID="$KONFIG_PROJECTROOT/nginx.pid"
 
     #{options.requirementCommands?.join "\n"}
 
@@ -163,11 +165,24 @@ generateDev = (KONFIG, options) ->
 
     }
 
+    function docker_compose() {
+      if ! which docker-compose; then
+        echo 'error: docker-compose is not found'
+        echo '$ pip install docker-compose'
+        exit 1
+      fi
+
+      local ENTRYPOINT="/opt/koding/scripts/bootstrap-container $@"
+
+      docker-compose run --entrypoint $ENTRYPOINT backend
+    }
+
     function printHelp (){
 
       echo "Usage: "
       echo ""
       echo "  run                       : to start koding"
+      echo "  run docker-compose        : to start koding in docker-compose environment"
       echo "  run exec                  : to exec arbitrary commands"
       echo "  run install               : to compile/install client and "
       echo "  run buildclient           : to see of specified worker logs only"
@@ -315,10 +330,6 @@ generateDev = (KONFIG, options) ->
       pushd $KONFIG_PROJECTROOT/install/docker-mongo
       docker build -t koding/mongo .
 
-      # Build rabbitMQ service
-      pushd $KONFIG_PROJECTROOT/install/docker-rabbitmq
-      docker build -t koding/rabbitmq .
-
       # Build postgres
       pushd $KONFIG_PROJECTROOT/go/src/socialapi/db/sql
 
@@ -331,7 +342,7 @@ generateDev = (KONFIG, options) ->
       docker build -t koding/postgres .
 
       docker run -d -p 27017:27017                                        --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
-      docker run -d -p 5672:5672 -p 15672:15672                           --name=rabbitmq koding/rabbitmq
+      docker run -d -p 5672:5672 -p 15672:15672                           --name=rabbitmq rabbitmq:3-management
 
       docker run -d -p 6379:6379                                          --name=redis    redis
       docker run -d -p 5432:5432                                          --name=postgres koding/postgres
@@ -437,6 +448,10 @@ generateDev = (KONFIG, options) ->
     if [ "$#" == "0" ]; then
       checkrunfile
       run $1
+
+    elif [ "$1" == "docker-compose" ]; then
+      shift
+      docker_compose
 
     elif [ "$1" == "exec" ]; then
       shift

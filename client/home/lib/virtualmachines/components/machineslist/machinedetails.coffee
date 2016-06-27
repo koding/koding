@@ -7,6 +7,7 @@ immutable           = require 'immutable'
 Machine             = require 'app/providers/machine'
 SharingAutocomplete = require './sharing/autocomplete'
 SharingUserList     = require './sharing/userlist'
+ContentModal        = require 'app/components/contentModal'
 
 module.exports = class MachineDetails extends React.Component
 
@@ -19,6 +20,7 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderDisconnect : React.PropTypes.bool
     onChangeAlwaysOn       : React.PropTypes.func
     onChangePowerStatus    : React.PropTypes.func
+    onChangeSharingStatus  : React.PropTypes.func
     onSharedWithUser       : React.PropTypes.func
     onUnsharedWithUser     : React.PropTypes.func
     onDisconnectVM         : React.PropTypes.func
@@ -32,6 +34,7 @@ module.exports = class MachineDetails extends React.Component
     shouldRenderDisconnect : no
     onChangeAlwaysOn       : kd.noop
     onChangePowerStatus    : kd.noop
+    onChangeSharingStatus  : kd.noop
     onSharedWithUser       : kd.noop
     onUnsharedWithUser     : kd.noop
     onDisconnectVM         : kd.noop
@@ -45,7 +48,33 @@ module.exports = class MachineDetails extends React.Component
 
   onSharingToggle: (checked) ->
 
-    @setState { isShared : checked }
+    return @setState { isShared: yes }  if checked
+
+    unless @props.machine.get('sharedUsers').size
+      @setState { isShared: no }
+      @props.onChangeSharingStatus no
+      return
+
+    modal          = new ContentModal
+      title        : 'Are you sure?'
+      content      : 'Once you turn off sharing all of the participants will lose access to this VM immediately.'
+      cssClass     : 'content-modal'
+      overlay      : yes
+      buttons      :
+        No         :
+          title    : 'Cancel'
+          cssClass : 'solid medium'
+          callback : =>
+            @setState { isShared: yes }
+            modal.destroy()
+        Yes        :
+          title    : 'Turn Off'
+          cssClass : 'solid medium'
+          callback : =>
+            @setState { isShared: no }
+            @props.onChangeSharingStatus no
+            modal.destroy()
+
 
 
   isShared: ->
