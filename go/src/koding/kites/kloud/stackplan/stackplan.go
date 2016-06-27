@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"koding/db/models"
-	"koding/kites/common"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/utils"
@@ -17,11 +16,12 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2/bson"
 )
 
-var defaultLog = common.NewLogger("stackplan", false)
+var defaultLog = logging.NewCustom("stackplan", false)
 
 // credPermissions defines the permission grid for the given method
 var credPermissions = map[string][]string{

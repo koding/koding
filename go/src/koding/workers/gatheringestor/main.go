@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"koding/artifact"
-	"koding/common"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"net"
@@ -38,14 +37,14 @@ func initializeConf() *config.Config {
 }
 
 func main() {
-	log := common.CreateLogger(WorkerName, false)
+	log := logging.NewCustom(WorkerName, false)
 
 	conf := initializeConf()
 	modelhelper.Initialize(conf.Mongo)
 
 	defer modelhelper.Close()
 
-	redisConn, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
+	redisConn, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis.Url})
 	if err != nil {
 		log.Fatal(err.Error())
 	}

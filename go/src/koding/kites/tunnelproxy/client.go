@@ -9,7 +9,6 @@ import (
 	"time"
 
 	cfg "koding/config"
-	"koding/kites/common"
 	"koding/kites/kloud/httputil"
 	"koding/klient/protocol"
 
@@ -156,7 +155,7 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 	optsCopy.Config = opts.Config.Copy()
 
 	if optsCopy.Log == nil {
-		optsCopy.Log = common.NewLogger("tunnelclient", optsCopy.Debug)
+		optsCopy.Log = logging.NewCustom("tunnelclient", optsCopy.Debug)
 	}
 
 	k := kite.New(ClientKiteName, ClientKiteVersion)

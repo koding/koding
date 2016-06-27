@@ -10,13 +10,13 @@ import (
 	"strings"
 	"sync"
 
-	"koding/kites/common"
 	"koding/klient/tunnel/tlsproxy/pem"
 
 	"github.com/boltdb/bolt"
 	"github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
+	"github.com/koding/logging"
 	"github.com/koding/vagrantutil"
 )
 
@@ -151,7 +151,7 @@ func (h *Handlers) vagrantutil(path string, debug bool) (*vagrantutil.Vagrant, e
 		}
 
 		if debug || h.debug {
-			v.Log = common.NewLogger("vagrantutil", true)
+			v.Log = logging.NewCustom("vagrantutil", true)
 		}
 
 		h.paths[path] = v

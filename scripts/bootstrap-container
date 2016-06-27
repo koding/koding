@@ -10,6 +10,7 @@ function build() {
 }
 
 function start() {
+  ./run migrate up
   nginx -c $(pwd)/nginx.conf
   ./run exec supervisord -c supervisord.conf
   sleep 2

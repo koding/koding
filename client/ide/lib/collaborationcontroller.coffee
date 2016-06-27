@@ -24,7 +24,7 @@ generateCollaborationLink     = require 'app/util/generateCollaborationLink'
 isKoding                      = require 'app/util/isKoding'
 Tracker                       = require 'app/util/tracker'
 IDEHelpers                    = require 'ide/idehelpers'
-
+ContentModal = require 'app/components/contentModal'
 
 { warn } = kd
 
@@ -344,9 +344,10 @@ module.exports = CollaborationController =
     isHostWatched = nickname is @collaborationHost
     return  if not isHostWatched or @amIHost
 
-    modal = new KDModalView
+    modal = new ContentModal
+      width         : 400
       title         : "Host's layout is updated since you last watched his changes."
-      cssClass      : 'modal-with-text layout-changed-modal'
+      cssClass      : 'modal-with-text collaboration-modals layout-changed-modal content-modal'
       content       : """
         If you click yes below we'll change your tabs layout to match host's layout.
         You won't lose your changes, if you have any.<br/><br/>
@@ -354,14 +355,14 @@ module.exports = CollaborationController =
       """
       overlay       : yes
       buttons       :
+        'Cancel'    :
+          cssClass  : 'solid medium light-gray'
+          callback  : -> modal.destroy()
         'Yes'       :
           cssClass  : 'solid medium red'
           callback  : =>
             modal.destroy()
             @applyHostLayoutToParticipant()
-        'Cancel'    :
-          cssClass  : 'solid medium light-gray'
-          callback  : -> modal.destroy()
 
 
   applyHostLayoutToParticipant: ->
@@ -1216,7 +1217,7 @@ module.exports = CollaborationController =
 
     modalOptions =
       title      : 'Are you sure?'
-      content    : 'This will end your session and all participants will be removed from this session.'
+      content    : '<p>This will end your session and all participants will be removed from this session.</p>'
 
     modal = @showModal modalOptions, => @stopCollaborationSession callback
 
@@ -1224,7 +1225,7 @@ module.exports = CollaborationController =
   showKickedModal: ->
     options        =
       title        : 'Your session has been closed'
-      content      : "You have been removed from the session by @#{@collaborationHost}."
+      content      : "<p>You have been removed from the session by @#{@collaborationHost}.</p>"
       cssClass     : 'kicked-modal'
       blocking     : yes
       buttons      :
@@ -1263,7 +1264,7 @@ module.exports = CollaborationController =
 
     options   =
       title   : 'Are you sure?'
-      content : "If you leave this session you won't be able to return back."
+      content : "<p>If you leave this session you won't be able to return backs.</p>"
 
     @showModal options, => @stateMachine.transition 'Ending'
 

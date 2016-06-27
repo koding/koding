@@ -13,7 +13,14 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
       admins: TeamFlux.getters.adminsList
       disables: TeamFlux.getters.disabledUsers
       seachInput: TeamFlux.getters.searchInputValue
+      allUsersLoaded: TeamFlux.getters.allUsersLoaded
     }
+
+  constructor: (props) ->
+
+    super props
+
+    @skip = 0
 
 
   componentWillMount: ->
@@ -23,8 +30,19 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
       sort  : { timestamp: -1 } # timestamp is at relationship collection
       skip  : 0
 
-    TeamFlux.actions.fetchMembers(options).then ->
-      TeamFlux.actions.fetchMembersRole()
+    TeamFlux.actions.fetchMembers options
+
+
+  handleLoadMore: ->
+
+    @skip += 10
+    options =
+      limit : 10 + @skip
+      sort  : { timestamp: -1 } # timestamp is at relationship collection
+      skip  : @skip
+
+    TeamFlux.actions.fetchMembers options
+
 
 
   onSearchInputChange: (event) ->
@@ -57,6 +75,8 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
     <View
       admins={@state.admins}
       members={@state.members}
+      allUsersLoaded={@state.allUsersLoaded}
+      handleLoadMore={@bound 'handleLoadMore'}
       searchInputValue={@state.searchInputValue}
       handleInvitation={@bound 'handleInvitation'}
       handleRoleChange={@bound 'handleRoleChange'}

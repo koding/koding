@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/common"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -135,7 +134,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	machine.Log = p.Log.New(machine.ObjectId.Hex())
 
 	if traceID, ok := kloud.TraceFromContext(ctx); ok {
-		machine.Log = common.NewLogger("kloud-softlayer", true).New(machine.ObjectId.Hex()).New(traceID)
+		machine.Log = logging.NewCustom("kloud-softlayer", true).New(machine.ObjectId.Hex()).New(traceID)
 	}
 
 	sess := &session.Session{

@@ -6,7 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"koding/kites/common"
+	"github.com/koding/logging"
+
 	"koding/klient/vagrant"
 )
 
@@ -53,7 +54,7 @@ func TestVboxIsVagrant(t *testing.T) {
 	}
 }
 
-var h = vagrant.NewHandlers(&vagrant.Options{Log: common.NewLogger("vagrant", true)})
+var h = vagrant.NewHandlers(&vagrant.Options{Log: logging.NewCustom("vagrant", true)})
 
 func TestVboxLookupName(t *testing.T) {
 	output := map[string]string{

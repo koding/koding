@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"koding/kites/common"
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/tools/util"
 
@@ -69,7 +68,7 @@ func NewClient() (*Client, error) {
 
 	c := &Client{
 		Kite: k,
-		Log:  common.NewLogger(Name, debug),
+		Log:  logging.NewCustom(Name, debug),
 	}
 
 	c.Log.Debug("starting provider-vagrant in debug mode")

@@ -17,7 +17,7 @@ showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 applyMarkdown        = require 'app/util/applyMarkdown'
 doXhrRequest         = require 'app/util/doXhrRequest'
-
+ContentModal = require 'app/components/contentModal'
 
 MissingDataView      = require './missingdataview'
 
@@ -41,9 +41,9 @@ module.exports = class ComputeControllerUI
 
   showPrivateKeyWarning = (privateKey) ->
 
-    new kd.ModalView
+    new ContentModal
       title           : 'Please save private key content'
-      subtitle        : applyMarkdown "
+      content         : applyMarkdown "
                          This stack only requires public key which means
                          private key of this public key is not going to be
                          stored, please take a copy of following private key.
@@ -51,7 +51,7 @@ module.exports = class ComputeControllerUI
                          **You won't be able to access this private key later**
                         "
       content         : applyMarkdown "```\n#{privateKey}\n```"
-      cssClass        : 'has-markdown'
+      cssClass        : 'has-markdown content-modal'
       width           : 530
       overlay         : yes
       overlayClick    : yes
@@ -150,6 +150,11 @@ module.exports = class ComputeControllerUI
         selectOptions.push { field, values }
 
     buttons      =
+      Cancel     :
+        style    : 'solid medium cancel'
+        type     : 'button'
+        callback : -> form.emit 'Cancel'
+
       Save       :
         title    : 'Save'
         type     : 'submit'
@@ -161,12 +166,6 @@ module.exports = class ComputeControllerUI
       buttons = injectCustomActions requiredFields, buttons, (generatedKeys) ->
         for own field, input of form.inputs
           input.setValue data  if data = generatedKeys[field]
-
-    buttons.Cancel =
-      style        : 'solid medium cancel-btn'
-      type         : 'button'
-      callback     : -> form.emit 'Cancel'
-
 
     # Add advanced fields into form
     if advancedFields = currentProvider.advancedFields
@@ -276,7 +275,7 @@ module.exports = class ComputeControllerUI
     tasks         =
       default     :
         resize    :
-          title   : 'Resize VM?'
+          title   : 'Resize VM'
           message : '
             If you choose to proceed, this VM will be resized #{resizeDetails}.
             During the resize process, you will not be able to use your VM.
@@ -284,7 +283,7 @@ module.exports = class ComputeControllerUI
           '
           button  : 'Proceed'
         reinit    :
-          title   : 'Reinitialize VM?'
+          title   : 'Reinitialize VM'
           message : '
             If you choose to proceed, this VM will be reset to its default state.
             That means you will lose all of its data i.e. your files, workspaces, collaboration
@@ -292,7 +291,7 @@ module.exports = class ComputeControllerUI
           '
           button  : 'Proceed'
         reinitStack :
-          title   : 'Reinitialize Stack?'
+          title   : 'Reinitialize Stack'
           message : '
             If you choose to proceed, this stack and all of its VMs will be
             re-initialized from the latest revision of this stack.
@@ -300,7 +299,7 @@ module.exports = class ComputeControllerUI
           '
           button  : 'Proceed'
         deleteStack :
-          title   : 'Destroy Stack?'
+          title   : 'Destroy Stack'
           message : "
             <p>If you choose to proceed, this stack and all the VMs will be
             destroyed, and you won't be able to revert this.</p>
@@ -322,7 +321,7 @@ module.exports = class ComputeControllerUI
           buttonColor  : 'green'
           dontAskAgain : dontAskAgain ? yes
         forceDeleteStack :
-          title   : 'Delete Stack data?'
+          title   : 'Delete Stack data'
           message : "
             <p>If you choose to proceed, all of the meta data and related
             information for this stack will be removed from Koding.</p>
@@ -352,7 +351,7 @@ module.exports = class ComputeControllerUI
           '
           button  : 'Proceed'
         destroy   :
-          title   : 'Remove VM?'
+          title   : 'Remove VM'
           message : '
             <p>Terminating this VM will destroy all of its:</p>
               <br/>
@@ -369,7 +368,7 @@ module.exports = class ComputeControllerUI
           button  : 'Yes, remove'
       managed     :
         destroy   :
-          title   : 'Delete Machine from Koding?'
+          title   : 'Delete Machine from Koding'
           message : applyMarkdown '
             Deleting this machine here will only remove its connection to
             your Koding account. All files and data will still be available
@@ -396,9 +395,10 @@ module.exports = class ComputeControllerUI
     buttonColor ?= 'red'
     dontAskAgain = 'hidden'  if not dontAskAgain
 
-    modal = new kd.ModalView
-      title          : title ? 'Remove?'
-      cssClass       : 'has-markdown'
+    modal = new ContentModal
+      width          : 600
+      title          : title ? 'Remove'
+      cssClass       : 'has-markdown content-modal'
       attributes     :
         testpath     : action
       content        : """
@@ -408,18 +408,19 @@ module.exports = class ComputeControllerUI
       """
       overlay        : yes
       buttons        :
-        ok           :
-          title      : button ? 'Yes, remove'
-          style      : "solid #{buttonColor} medium"
-          callback   : ->
-            modal.destroy()
-            callback { confirmed: yes }
         cancel       :
-          style      : 'solid light-gray medium'
+          title      : 'Cancel'
+          style      : 'solid cancel medium'
           type       : 'button'
           callback   : ->
             modal.destroy()
             callback { confirmed: no }
+        ok           :
+          title      : button ? 'Yes, remove'
+          style      : "solid medium"
+          callback   : ->
+            modal.destroy()
+            callback { confirmed: yes }
         dontAskAgain :
           title      : "Don't ask this again"
           style      : "solid medium #{dontAskAgain}"

@@ -24,8 +24,8 @@ Object.defineProperty global, 'KONFIG', { value: KONFIG }
 { mq, email, social, mongoReplSet, socialapi } = KONFIG
 
 redisClient = require('redis').createClient(
-  KONFIG.monitoringRedis.split(':')[1]
-  KONFIG.monitoringRedis.split(':')[0]
+  KONFIG.monitoringRedis.port
+  KONFIG.monitoringRedis.host
   {}
 )
 

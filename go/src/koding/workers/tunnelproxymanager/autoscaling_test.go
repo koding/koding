@@ -2,7 +2,6 @@ package tunnelproxymanager
 
 import (
 	"fmt"
-	"koding/common"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/koding/logging"
 )
 
 func createLifeCycle(t *testing.T) *LifeCycle {
@@ -18,7 +18,7 @@ func createLifeCycle(t *testing.T) *LifeCycle {
 		t.Fatal(err.Error())
 	}
 
-	log := common.CreateLogger("tunnelproxymanager-test", config.Debug)
+	log := logging.NewCustom("tunnelproxymanager-test", config.Debug)
 	log.SetCallDepth(1)
 
 	l := NewLifeCycle(

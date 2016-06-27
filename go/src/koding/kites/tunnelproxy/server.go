@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"koding/artifact"
-	"koding/kites/common"
 	"koding/kites/kloud/httputil"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils"
@@ -91,7 +90,7 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 	}
 
 	if optsCopy.Log == nil {
-		optsCopy.Log = common.NewLogger("tunnelserver", optsCopy.Debug)
+		optsCopy.Log = logging.NewCustom("tunnelserver", optsCopy.Debug)
 	}
 
 	optsCopy.Log.Debug("Initial server options: %# v", &optsCopy)
