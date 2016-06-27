@@ -173,31 +173,24 @@ module.exports = class MainController extends KDController
     unless firstLoad
       (kd.getSingleton 'kontrol').reauthenticate()
 
-    account.fetchMyPermissionsAndRoles (err, res) =>
+    tzOffset = (new Date()).getTimezoneOffset()
 
-      return kd.warn err  if err
+    account.setLastLoginTimezoneOffset { lastLoginTimezoneOffset: tzOffset }, (err) ->
 
-      globals.config.roles       = res.roles
-      globals.config.permissions = res.permissions
+      kd.warn err  if err
 
-      tzOffset = (new Date()).getTimezoneOffset()
+    @ready @emit.bind this, 'AccountChanged', account, firstLoad
 
-      account.setLastLoginTimezoneOffset { lastLoginTimezoneOffset: tzOffset }, (err) ->
+    @emit 'ready'
 
-        kd.warn err  if err
-
-      @ready @emit.bind this, 'AccountChanged', account, firstLoad
-
-      @emit 'ready'
-
-      # this emits following events
-      # -> "pageLoaded.as.loggedIn"
-      # -> "pageLoaded.as.loggedOut"
-      # -> "accountChanged.to.loggedIn"
-      # -> "accountChanged.to.loggedOut"
-      eventPrefix = if firstLoad then 'pageLoaded.as' else 'accountChanged.to'
-      eventSuffix = if isLoggedIn() then 'loggedIn' else 'loggedOut'
-      @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
+    # this emits following events
+    # -> "pageLoaded.as.loggedIn"
+    # -> "pageLoaded.as.loggedOut"
+    # -> "accountChanged.to.loggedIn"
+    # -> "accountChanged.to.loggedOut"
+    eventPrefix = if firstLoad then 'pageLoaded.as' else 'accountChanged.to'
+    eventSuffix = if isLoggedIn() then 'loggedIn' else 'loggedOut'
+    @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
 
   doLogout: ->
