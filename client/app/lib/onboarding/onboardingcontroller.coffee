@@ -19,7 +19,7 @@ module.exports = class OnboardingController extends KDController
   CooperativeOnboardings = [
     [
       'IDELoaded'
-      'CollaborationStarted'
+      #'CollaborationStarted'
       'IDESettingsOpened'
     ]
   ]
@@ -131,9 +131,9 @@ module.exports = class OnboardingController extends KDController
   ###
   getItemsIfResetOnboarding: (onboarding) ->
 
-    if @isResetOnboarding onboarding.name
-      items = onboarding.partial.items
+    return  unless @isResetOnboarding onboarding.name
 
+    items = onboarding.partial.items
     items = []  unless Array.isArray items
     return items
 
