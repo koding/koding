@@ -26,7 +26,7 @@ module.exports = class StackEditorAppController extends AppController
 
     { mainController, groupsController, computeController } = kd.singletons
 
-    groupsController.ready =>
+    groupsController.ready ->
       if groupsController.canEditGroup()
         Intercom?('show')
       else

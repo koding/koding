@@ -19,7 +19,7 @@ markAsDone = (step) ->
 
 checkMigration = ->
 
-  kd.singletons.computeController.fetchSoloMachines (err, machines) =>
+  kd.singletons.computeController.fetchSoloMachines (err, machines) ->
 
     return  unless machines?.length
 
@@ -37,7 +37,7 @@ checkFinishedSteps = ->
       markAsDone step  if finishedSteps[step]
 
   if groupsController.getCurrentGroup().counts?.members > 1
-      markAsDone 'inviteTeam'
+    markAsDone 'inviteTeam'
 
   return  if reactor.evaluate(HomeGetters.welcomeSteps).getIn [ 'common', 'installKd', 'isDone' ]
 

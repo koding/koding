@@ -16,7 +16,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           title: 'Create a Stack for Your Team'
           actionTitle: 'Create'
           miniTitle: 'Create a Stack'
-          description: "Create a blueprint for your team’s entire infrastructure."
+          description: 'Create a blueprint for your team’s entire infrastructure.'
           isDone: no
           order: 1
         enterCredentials :
@@ -25,7 +25,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           actionTitle: 'Enter'
           videoLink: ''
           miniTitle: 'Enter Credentials'
-          description: "To set up your machines we need your cloud provider credentials."
+          description: 'To set up your machines we need your cloud provider credentials.'
           isDone: no
           order: 2
         buildStack :
@@ -33,7 +33,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           title: 'Build Your Stack'
           actionTitle: 'Build'
           videoLink: ''
-          description: "You have a stack ready to go, go ahead and build it."
+          description: 'You have a stack ready to go, go ahead and build it.'
           isDone: no
           order: 3
       member :
@@ -42,7 +42,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           title: 'Your Team Stack is Pending'
           actionTitle: 'Pending'
           videoLink: ''
-          description: "Your team admins haven't created your stack yet."
+          description: 'Your team admins haven\'t created your stack yet.'
           isDone: no
           order: 1
         buildStack :
@@ -50,7 +50,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           title: 'Build Your Stack'
           actionTitle: 'Build'
           videoLink: ''
-          description: "Your team admins have already created your stack, it is ready for you to build."
+          description: 'Your team admins have already created your stack, it is ready for you to build.'
           isDone: no
           order: 2
         stackCreation :
@@ -59,7 +59,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           actionTitle: 'Create'
           videoLink: ''
           miniTitle: 'Create a Stack'
-          description: "While waiting for your team resources, you can experiment stacks."
+          description: 'While waiting for your team resources, you can experiment stacks.'
           isDone: no
           order: 3
       common :
@@ -78,7 +78,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           videoLink: ''
           # videoLink: '//www.koding.com/docs'
           miniTitle: 'Invite Teammates'
-          description: "Get your teammates working together."
+          description: 'Get your teammates working together.'
           isDone: no
           order: 10
         installKd :
@@ -86,7 +86,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           title: 'Install KD'
           actionTitle: 'Install'
           videoLink: ''
-          description: "<code>kd</code> is a CLI tool that allows you to use your local IDEs."
+          description: '<code>kd</code> is a CLI tool that allows you to use your local IDEs.'
           isDone: no
           order: 20
 
@@ -115,7 +115,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
       title: 'Migrate from Solo'
       actionTitle: 'Migrate from Solo'
       videoLink: ''
-      description: "You can migrate your solo machines to team!"
+      description: 'You can migrate your solo machines to team!'
       isDone: no
       order: 30
       starred: yes

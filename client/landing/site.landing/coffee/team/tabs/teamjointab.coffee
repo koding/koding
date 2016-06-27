@@ -169,11 +169,11 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     else if domains?.length > 1
       domainsPartial = utils.getAllowedDomainsPartial domains
       if /\*/.test kd.config.group.allowedDomains
-      then "This is a public team, you can use any email address to join!"
+      then 'This is a public team, you can use any email address to join!'
       else "You must have an email address from one of these domains #{domainsPartial} to join"
     else if domains?.length is 1
       if /\*/.test kd.config.group.allowedDomains
-      then "This is a public team, you can use any email address to join!"
+      then 'This is a public team, you can use any email address to join!'
       else "You must have #{articlize domains.first} <i>#{domains.first}</i> email address to join"
     else
       "Pick a username and password for your new <i>#{kd.config.domains.main}</i> account."
