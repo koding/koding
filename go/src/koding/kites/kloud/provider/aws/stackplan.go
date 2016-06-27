@@ -1,14 +1,11 @@
 package awsprovider
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
 	"github.com/satori/go.uuid"
-	"golang.org/x/net/context"
 
-	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/userdata"
 )
@@ -42,13 +39,8 @@ func (s *Stack) SetAwsRegion(region string) error {
 	return t.Flush()
 }
 
-func (s *Stack) InjectAWSData(ctx context.Context, username string, expandUserData bool) (stackplan.KiteMap, error) {
+func (s *Stack) InjectAWSData() (stackplan.KiteMap, error) {
 	t := s.Builder.Template
-
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("session context is not passed")
-	}
 
 	var meta *AwsMeta
 	for _, cred := range s.Builder.Credentials {
@@ -122,9 +114,9 @@ func (s *Stack) InjectAWSData(ctx context.Context, username string, expandUserDa
 
 		// this part will be the same for all machines
 		userCfg := &userdata.CloudInitConfig{
-			Username: username,
+			Username: s.Req.Username,
 			Groups:   []string{"sudo"},
-			Hostname: username, // no typo here. hostname = username
+			Hostname: s.Req.Username, // no typo here. hostname = username
 		}
 
 		// prepend custom script if available - the script needs to be
@@ -144,7 +136,7 @@ func (s *Stack) InjectAWSData(ctx context.Context, username string, expandUserDa
 		//
 		//   https://github.com/hashicorp/terraform/issues/4084
 		//
-		if cmd, ok := instance["user_data"].(string); ok && expandUserData {
+		if cmd, ok := instance["user_data"].(string); ok {
 			userCfg.UserData = fmt.Sprintf("${base64encode(null_resource.%s.triggers.user_data)}", resourceName)
 
 			nullRes, ok := t.Resource["null_resource"].(map[string]interface{})
@@ -181,7 +173,7 @@ func (s *Stack) InjectAWSData(ctx context.Context, username string, expandUserDa
 		// will be replaced with the kitekeys we create below
 		userCfg.KiteKey = fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName)
 
-		userdata, err := sess.Userdata.Create(userCfg)
+		userdata, err := s.Session.Userdata.Create(userCfg)
 		if err != nil {
 			return nil, err
 		}
@@ -197,7 +189,7 @@ func (s *Stack) InjectAWSData(ctx context.Context, username string, expandUserDa
 
 			kiteId := kiteUUID.String()
 
-			kiteKey, err := sess.Userdata.Keycreator.Create(username, kiteId)
+			kiteKey, err := s.Session.Userdata.Keycreator.Create(s.Req.Username, kiteId)
 			if err != nil {
 				return nil, err
 			}

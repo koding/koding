@@ -17,6 +17,17 @@ import (
 	"golang.org/x/net/context"
 )
 
+// Apply builds and expands compute stack template for the given ID and
+// sends an apply request to terraformer.
+//
+// When destroy=false, building and expanding the stack prior to
+// terraformer request is done asynchronously, and the result of
+// that operation is communicated back with eventer.
+//
+// When destroy=true, fetching machines from DB is done synchronously, as
+// as soon as Apply method returns, allowed user list for each machine
+// is zeroed, which could make the destroy oepration to fail - we
+// first build machines and rest of the destroy is perfomed asynchronously.
 func (bs *BaseStack) Apply(ctx context.Context) (interface{}, error) {
 	var arg kloud.ApplyRequest
 	if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
@@ -306,7 +317,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) er
 		Status:     machinestate.Building,
 	})
 
-	if err := bs.WaitResources(); err != nil {
+	if err := bs.WaitResources(ctx); err != nil {
 		return err
 	}
 

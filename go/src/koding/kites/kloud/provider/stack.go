@@ -31,7 +31,7 @@ type BaseStack struct {
 	// provider/* to stackplan.Builder in order to support multiple providers
 	// per stack.
 	BuildResources  func() error
-	WaitResources   func() error
+	WaitResources   func(context.Context) error
 	UpdateResources func(*terraform.State) error
 
 	// Keys and Eventer may be nil, it depends on the context used
