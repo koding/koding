@@ -43,7 +43,7 @@ module.exports = class MainView extends kd.View
     @createSidebar()
     @createHeader()
     @createPanelWrapper()
-    @checkForIntroVideo()  unless isKoding()
+    # @checkForIntroVideo()  unless isKoding()
     @showRegistrationsClosedWarning()  if isSoloProductLite() and isKoding()
     @checkVersion()
     kd.utils.repeat (5 * 60 * 1000), @bound 'checkVersion'
