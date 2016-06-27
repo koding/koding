@@ -70,6 +70,8 @@ func (s *Stack) bootstrap(arg *kloud.BootstrapRequest) (interface{}, error) {
 
 		if c, err := amazon.NewClient(opts); err == nil && len(c.Zones) != 0 {
 			availabilityZone = c.Zones[0]
+		} else {
+			s.Log.Warning("unable to guess availability zones for %q: %v", cred.Identifier, err)
 		}
 
 		s.Log.Debug("Fetching the AWS user information to get the account ID: %s", awsAccountID)
