@@ -58,3 +58,9 @@ client/home/lib/welcome/index.coffee
 client/mocks/
 client/stack-editor/lib/editor/index.coffee
 client/migratefromsolo/lib
+
+/client/app/lib/nostackfoundview.coffee
+/client/home/lib/welcome/components/welcomesteps/container.coffee
+/client/home/lib/welcome/components/welcomesteps/miniview.coffee
+/client/home/lib/welcome/components/welcomesteps/view.coffee
+/client/home/lib/welcome/homewelcomesteps.coffee
