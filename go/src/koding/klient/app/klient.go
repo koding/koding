@@ -306,6 +306,7 @@ func (k *Klient) RegisterMethods() {
 
 	// klient os method(s)
 	k.kite.HandleFunc("os.home", kos.Home)
+	k.kite.HandleFunc("os.currentUsername", kos.CurrentUsername)
 
 	// Klient Info method(s)
 	k.kite.HandleFunc("klient.info", info.Info)
