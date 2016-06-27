@@ -1,4 +1,5 @@
 htmlencode            = require 'htmlencode'
+$                     = require 'jquery'
 kd                    = require 'kd'
 KDView                = kd.View
 OnboardingMetrics     = require './onboardingmetrics'
@@ -20,10 +21,9 @@ module.exports = class OnboardingItemView extends KDView
     { onboardingName, isModal } = @getOptions()
 
     try
-      @targetElement = @getViewByPath path
-      @targetElement?.on 'KDObjectWillBeDestroyed', @bound 'handleTargetDestroyed'
+      @targetElement = @getElementByPath path
 
-      if @targetElement and not @targetElement.hasClass 'hidden'
+      if @targetElement.is ':visible'
         { placementX, placementY, offsetX, offsetY, content, tooltipPlacement, color, targetIsScrollable } = @getData()
         @throbber = new ThrobberView {
           cssClass    : kd.utils.curry color, if isModal then 'modal-throbber' else ''
@@ -46,7 +46,7 @@ module.exports = class OnboardingItemView extends KDView
           @emit 'OnboardingItemCompleted'
         @show()
       else
-        return new Error "Target is neither KDView or visible. name = #{name}, onboardingName = #{onboardingName}"
+        return new Error "Target doesn't exist in DOM or invisible. name = #{name}, onboardingName = #{onboardingName}"
     catch e
       return new Error "Couldn't create onboarding item. name = #{name}, onboardingName = #{onboardingName}"
 
@@ -55,21 +55,15 @@ module.exports = class OnboardingItemView extends KDView
 
   ###*
    * Searches for a target element by path
-   * If the element is in DOM, tries to find a kd instance for it
+   * and returns its jQuery wrapper
    *
    * @param {string} path - path to element
-   * @return {KDView}     - kd view for the path if it exists
+   * @return {jQuery}     - jQuery element
   ###
-  getViewByPath: (path) ->
+  getElementByPath: (path) ->
 
     path = htmlencode.htmlDecode path
-    element = document.querySelector path
-
-    return  unless element
-
-    for key, kdinstance of kd.instances
-      if kdinstance.getElement?() is element
-        return kdinstance
+    element = $(path).first()
 
 
   ###*
@@ -80,9 +74,8 @@ module.exports = class OnboardingItemView extends KDView
   ###
   refresh: ->
 
-    if @targetElement?.isInDom()
-      domElement = @targetElement.getDomElement()
-      visible = domElement.is(':visible') and domElement.css('visibility') isnt 'hidden'
+    if @targetElement?.closest('body').length
+      visible = @targetElement.is(':visible') and @targetElement.css('visibility') isnt 'hidden'
       if visible
         @show()
         @throbber.setPosition()
