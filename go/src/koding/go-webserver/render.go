@@ -10,17 +10,18 @@ import (
 )
 
 type HomeContent struct {
-	Impersonating bool
-	Version       string
-	Title         string
-	Description   string
-	ShareUrl      string
-	GpImage       string
-	FbImage       string
-	TwImage       string
-	Segment       string
-	Runtime       config.RuntimeOptions
-	User          *LoggedInUser
+	Impersonating   bool
+	Version         string
+	Title           string
+	Description     string
+	ShareUrl        string
+	GpImage         string
+	FbImage         string
+	TwImage         string
+	Segment         string
+	Runtime         config.RuntimeOptions
+	User            *LoggedInUser
+	UnsupportedHTML template.HTML
 }
 
 func writeLoggedInHomeToResp(w http.ResponseWriter, u *LoggedInUser) {
@@ -66,15 +67,16 @@ func writeLoggedOutHomeToResp(w http.ResponseWriter) {
 
 func buildHomeContent() HomeContent {
 	hc := HomeContent{
-		Version:     conf.Version,
-		ShareUrl:    conf.Client.RuntimeOptions.MainUri,
-		Segment:     conf.Segment,
-		Title:       kodingTitle,
-		Description: kodingDescription,
-		GpImage:     kodingGpImage,
-		FbImage:     kodingFbImage,
-		TwImage:     kodingTwImage,
-		Runtime:     conf.Client.RuntimeOptions,
+		Version:         conf.Version,
+		ShareUrl:        conf.Client.RuntimeOptions.MainUri,
+		Segment:         conf.Segment,
+		Title:           kodingTitle,
+		Description:     kodingDescription,
+		GpImage:         kodingGpImage,
+		FbImage:         kodingFbImage,
+		TwImage:         kodingTwImage,
+		Runtime:         conf.Client.RuntimeOptions,
+		UnsupportedHTML: template.HTML("<!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->"),
 	}
 
 	return hc
