@@ -15,7 +15,7 @@ s3upload = require 'app/util/s3upload'
 kookies = require 'kookies'
 Tracker = require 'app/util/tracker'
 VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
-{ actions : HomeActions } = require 'home/flux'
+
 
 loadTeam = ->
 
@@ -115,8 +115,6 @@ sendInvitations = ->
 
       if invitations.length > 1 or pendingInvites?.size
         title = 'All invitations are sent.'
-        HomeActions.markAsDone 'sendInvitations'
-
 
       Tracker.track Tracker.TEAMS_SENT_INVITATION  for invite in invitations
 
