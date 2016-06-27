@@ -16,3 +16,4 @@ module.exports = (req, res, next) ->
   res.cookie '_csrf', csrfToken, { expires, secure }
 
   next()
+

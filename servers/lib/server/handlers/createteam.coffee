@@ -1,3 +1,4 @@
+# coffeelint: disable=cyclomatic_complexity
 _                                       = require 'underscore'
 async                                   = require 'async'
 Bongo                                   = require 'bongo'
