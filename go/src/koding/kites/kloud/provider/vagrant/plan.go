@@ -56,7 +56,7 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 
 	s.Log.Debug("Injecting Vagrant data")
 
-	hostQueryString, _, err := s.InjectVagrantData(ctx, s.Req.Username)
+	hostQueryString, _, err := s.InjectVagrantData()
 	if err != nil {
 		return nil, err
 	}

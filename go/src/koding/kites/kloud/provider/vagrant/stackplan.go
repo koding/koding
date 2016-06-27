@@ -15,14 +15,12 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/vagrantapi"
-	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/machinestate"
 	puser "koding/kites/kloud/scripts/provisionklient/userdata"
 	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/utils"
 
 	"github.com/satori/go.uuid"
-	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -66,12 +64,7 @@ func (s *Stack) newTunnel(resourceName string) *Tunnel {
 // InjectVagrantData sets default properties for vagrant_instance Terraform template.
 //
 // TODO(rjeczalik): move out hostQueryString outside this method.
-func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string, stackplan.KiteMap, error) {
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return "", nil, errors.New("session context is not passed")
-	}
-
+func (s *Stack) InjectVagrantData() (string, stackplan.KiteMap, error) {
 	// TODO(rjeczalik): add ByProvider to stackplan.Credentials
 	for _, c := range s.Builder.Credentials {
 		if c.Provider == "vagrant" {
@@ -113,7 +106,7 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 
 	s.Log.Debug("machine uids (%d): %v", len(uids), uids)
 
-	klientURL, err := sess.Userdata.LookupKlientURL()
+	klientURL, err := s.Session.Userdata.LookupKlientURL()
 	if err != nil {
 		return "", nil, err
 	}
@@ -130,13 +123,13 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 	for resourceName, box := range res.Build {
 		kiteID := uuid.NewV4().String()
 
-		kiteKey, err := sess.Userdata.Keycreator.Create(username, kiteID)
+		kiteKey, err := s.Session.Userdata.Keycreator.Create(s.Req.Username, kiteID)
 		if err != nil {
 			return "", nil, err
 		}
 
 		// set kontrolURL if not provided via template
-		kontrolURL := sess.Userdata.Keycreator.KontrolURL
+		kontrolURL := s.Session.Userdata.Keycreator.KontrolURL
 		if k, ok := box["kontrolURL"].(string); ok {
 			kontrolURL = k
 		} else {
@@ -202,14 +195,14 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		ports = append(ports, kitePort, kitesPort)
 
 		box["forwarded_ports"] = ports
-		box["username"] = username
+		box["username"] = s.Req.Username
 
 		tunnel := s.newTunnel(resourceName)
 
 		data := puser.Value{
-			Username:        username,
+			Username:        s.Req.Username,
 			Groups:          []string{"sudo"},
-			Hostname:        username, // no typo here. hostname = username
+			Hostname:        s.Req.Username, // no typo here. hostname = username
 			KiteKey:         kiteKey,
 			LatestKlientURL: klientURL,
 			TunnelName:      tunnel.Name,
@@ -285,7 +278,7 @@ func (s *Stack) machinesFromTemplate(t *stackplan.Template, hostQueryString stri
 	return out, nil
 }
 
-func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jMachines map[string]*models.Machine) error {
+func (s *Stack) updateMachines(data *stackplan.Machines, jMachines map[string]*models.Machine) error {
 	for label, machine := range jMachines {
 		s.Log.Debug("Updating machine with %q label and %q provider", label, machine.Provider)
 
@@ -295,7 +288,7 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 		}
 
 		if tf.Provider == "vagrant" {
-			if err := updateVagrant(ctx, tf, machine.ObjectId, s.Credential.Identifier); err != nil {
+			if err := updateVagrant(tf, machine.ObjectId, s.Credential.Identifier); err != nil {
 				return err
 			}
 		}
@@ -304,7 +297,7 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 	return nil
 }
 
-func updateVagrant(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId, credential string) error {
+func updateVagrant(tf stackplan.Machine, machineId bson.ObjectId, credential string) error {
 	machine := bson.M{
 		"provider":           tf.Provider,
 		"queryString":        tf.QueryString,
