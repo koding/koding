@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"os/signal"
 	"syscall"
 
@@ -12,11 +15,25 @@ import (
 	"github.com/koding/multiconfig"
 )
 
-const Name = "asgd"
+type Conf struct {
+	Name string
+
+	// required
+	AccessKeyID     string
+	SecretAccessKey string
+
+	// can be overriden
+	Region          string
+	AutoScalingName string
+
+	Execute string
+
+	// optional
+	Debug bool
+}
 
 func main() {
-
-	conf := &asgd.Config{}
+	c := &Conf{}
 	mc := multiconfig.New()
 	mc.Loader = multiconfig.MultiLoader(
 		&multiconfig.TagLoader{},
@@ -24,15 +41,23 @@ func main() {
 		&multiconfig.EnvironmentLoader{Prefix: "ASGD"},
 		&multiconfig.FlagLoader{},
 	)
+	mc.MustLoad(c)
 
-	mc.MustLoad(conf)
+	conf := &asgd.Config{
+		Name:            c.Name,
+		AccessKeyID:     c.AccessKeyID,
+		SecretAccessKey: c.SecretAccessKey,
+		Region:          c.Region,
+		AutoScalingName: c.AutoScalingName,
+		Debug:           c.Debug,
+	}
 
 	session, err := asgd.Configure(conf)
 	if err != nil {
 		log.Fatal("Reading config failed: ", err.Error())
 	}
 
-	log := logging.NewCustom(Name, conf.Debug)
+	log := logging.NewCustom("asgd", conf.Debug)
 	// remove formatting from call stack and output correct line
 	log.SetCallDepth(1)
 
@@ -45,17 +70,37 @@ func main() {
 	}
 
 	done := registerSignalHandler(l, log)
-
 	// listen to lifecycle events
-	if err := l.Listen(process); err != nil {
+	if err := l.Listen(process(c.Execute)); err != nil {
 		log.Fatal(err.Error())
 	}
 
 	<-done
 }
 
-func process(instances []*ec2.Instance) error {
-	return nil
+func process(execute string) func(instances []*ec2.Instance) error {
+	return func(instances []*ec2.Instance) error {
+		tmpfile, err := ioutil.TempFile("", "content")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		defer os.Remove(tmpfile.Name()) // clean up
+		if err := json.NewEncoder(tmpfile).Encode(instances); err != nil {
+			return err
+		}
+
+		if err := tmpfile.Close(); err != nil {
+			return err
+		}
+
+		cmd := exec.Command(execute, "-file", tmpfile.Name())
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+
+		return nil
+	}
 }
 
 func registerSignalHandler(l *asgd.LifeCycle, log logging.Logger) chan struct{} {
