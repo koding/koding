@@ -62,7 +62,10 @@ module.exports = class HomeAppController extends AppController
     else
       targetPaneView.handleAction? action
 
-    return  unless identifier and action
+    unless identifier and action
+      onboardingEvent = @getOnboardingEventByPane targetPane
+      kd.singletons.onboarding.run onboardingEvent, yes  if onboardingEvent
+      return
 
     targetPaneView.emit 'SubTabRequested', action, identifier
     { parentTabTitle } = targetPane.getOptions()
@@ -88,3 +91,15 @@ module.exports = class HomeAppController extends AppController
 
 
   fetchNavItems: (cb) -> cb TABS
+
+
+  getOnboardingEventByPane: (pane) ->
+
+    slug = kd.utils.slugify pane.getOption 'title'
+
+    switch slug
+      when 'stacks'           then 'StacksViewed'
+      when 'my-team'          then 'MyTeamViewed'
+      when 'team-billing'     then 'TeamBillingViewed'
+      when 'koding-utilities' then 'KodingUtilitiesViewed'
+      when 'my-account'       then 'MyAccountViewed'
