@@ -29,7 +29,21 @@ welcomeSteps = [
     return steps.sortBy (a) -> a.get('order')
 ]
 
+doneSteps = [
+  welcomeSteps
+  (steps) ->
+    return steps.takeWhile (step) -> yes is step.get 'isDone'
+]
+
+areStepsFinished = [
+  welcomeSteps
+  doneSteps
+  (steps, doneSteps) ->
+    return steps.size is doneSteps.size
+]
 
 module.exports = {
   welcomeSteps
+  doneSteps
+  areStepsFinished
 }
