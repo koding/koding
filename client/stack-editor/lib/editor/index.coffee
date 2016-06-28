@@ -321,8 +321,8 @@ module.exports = class StackEditorView extends kd.View
         @handleSetDefaultTemplate()
 
     @buttons.addSubView @generateStackButton = new kd.ButtonView
-      title          : 'PROVISION'
-      cssClass       : 'GenericButton hidden provision'
+      title          : 'INITIALIZE'
+      cssClass       : 'GenericButton hidden initialize'
       loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
@@ -403,7 +403,7 @@ module.exports = class StackEditorView extends kd.View
     canEditGroup = kd.singletons.groupsController.canEditGroup()
 
     switch method
-      when 'provision'
+      when 'initialize'
         @generateStackButton.show()
         @outputView.add '''
           Your stack script has been successfully saved.
@@ -420,7 +420,7 @@ module.exports = class StackEditorView extends kd.View
         @outputView.add '''
           Your stack script has been successfully saved.
 
-          If you want to auto-provision this template when new users join your team,
+          If you want to auto-initialize this template when new users join your team,
           you need to click "Make Team Default" after you save it.
 
           You can now close the stack editor or continue editing your stack.
@@ -482,7 +482,7 @@ module.exports = class StackEditorView extends kd.View
         if canEditGroup
           if hasGroupTemplates
             @afterProcessTemplate 'maketeamdefault'
-            @afterProcessTemplate 'provision'
+            @afterProcessTemplate 'initialize'
             computeController.checkGroupStacks()
           else
             @handleSetDefaultTemplate completed = no
@@ -497,7 +497,7 @@ module.exports = class StackEditorView extends kd.View
             computeController.checkGroupStacks()
         # member is creating a new stack
         else
-          @afterProcessTemplate 'provision'
+          @afterProcessTemplate 'initialize'
           computeController.checkGroupStacks()
 
 
