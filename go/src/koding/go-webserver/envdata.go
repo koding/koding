@@ -1,13 +1,29 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"net"
+	"net/http"
+	"sync"
+	"time"
 
 	"gopkg.in/mgo.v2/bson"
 )
+
+const myPermissionsAndRolesPath = "/-/my/permissionsAndRoles"
+
+var defClient = http.Client{
+	Timeout: time.Second * 2,
+	Transport: &http.Transport{
+		Dial: func(network, addr string) (net.Conn, error) {
+			return net.DialTimeout(network, addr, time.Second)
+		},
+	},
+}
 
 type EnvData struct {
 	Own           []*MachineAndWorkspaces `json:"own"`
@@ -164,4 +180,33 @@ func getCollabChannels(userInfo *UserInfo) ([]string, error) {
 	}
 
 	return channelIds, nil
+}
+
+func doGetRequest(endpoint, clientId string) (map[string]interface{}, error) {
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.AddCookie(&http.Cookie{
+		Name:  "clientId",
+		Value: clientId,
+	})
+
+	resp, err := defClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("err: status code (%d)", resp.StatusCode)
+	}
+
+	var res map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
