@@ -14,12 +14,11 @@ module.exports = class ContentModal extends kd.ModalView
     modalOptions.cssClass = 'ContentModal'
     modalOptions.width or= 500
 
-    super modalOptions, data
-
-    @overlay = new kd.OverlayView
+    modalOptions.overlayOptions =
       isRemovable : no
       cssClass    : 'content-overlay'
 
+    super modalOptions, data
 
     @createHeader()
     @createBody()
