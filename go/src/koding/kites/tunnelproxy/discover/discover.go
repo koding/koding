@@ -12,7 +12,7 @@ import (
 
 	"github.com/koding/logging"
 
-	"koding/kites/kloud/httputil"
+	"koding/httputil"
 )
 
 var defaultHTTPClient = httputil.NewClient(&httputil.ClientConfig{
