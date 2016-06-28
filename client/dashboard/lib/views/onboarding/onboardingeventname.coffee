@@ -1,12 +1,5 @@
 module.exports =
   IDELoaded               : 'IDE/Terminal loaded for the first time'
-  #CollaborationStarted    : 'Collaboration button clicked for the first time'
-  #ChangelogChannelViewed  : 'Viewed #changelog'
-  #OtherChannelViewed      : 'Viewed other #channel for the first time'
-  #NewPrivateMessageOpened : 'New Private Message form opened'
-  #PrivateMessagesViewed   : 'Private Messages viewed for the first time'
-  #VMSettingsOpened        : 'VM Settings opened'
-  #WorkspaceSettingsOpened : 'Workspace Settings opened'
   IDESettingsOpened       : 'IDE/Terminal settings clicked'
   StacksViewed            : 'Stack list viewed'
   VMsViewed               : 'VM list viewed'

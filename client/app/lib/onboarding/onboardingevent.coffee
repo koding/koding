@@ -1,12 +1,5 @@
 module.exports = [
   'IDELoaded'
-  #'CollaborationStarted'
-  #'ChangelogChannelViewed'
-  #'OtherChannelViewed'
-  #'NewPrivateMessageOpened'
-  #'PrivateMessagesViewed'
-  #'VMSettingsOpened'
-  #'WorkspaceSettingsOpened'
   'IDESettingsOpened'
   'StacksViewed'
   'VMsViewed'

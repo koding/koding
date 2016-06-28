@@ -89,6 +89,8 @@ module.exports = class OnboardingController extends KDController
 
     return @pendingQueue.push [].slice.call(arguments)  unless @isReady
 
+    @refresh()
+
     onboarding = @onboardings[name]
     return  unless onboarding
     return  unless onboarding.partial.items?.length
@@ -230,16 +232,16 @@ module.exports = class OnboardingController extends KDController
 
 
   ###*
-   * Handles FrontAppIsChanged event of appManager and refreshes all
-   * onboarding items so they can be hidden if their target elements
-   * are not visible on new app
+   * Handles FrontAppIsChanged event of appManager and hides all
+   * onboarding items at that moment. If a new app has onboardings,
+   * they will be run using run() later when the page is ready
    *
    * @param {object} appInstance     - new application
    * @param {object} prevAppInstance - previous application
   ###
   handleFrontAppChanged: (appInstance, prevAppInstance) ->
 
-    @viewController.refreshItems()
+    @viewController.hideItems()
 
 
   ###*
