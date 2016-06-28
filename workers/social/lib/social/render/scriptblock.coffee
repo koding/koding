@@ -118,7 +118,7 @@ module.exports = (options = {}, callback) ->
     (fin) ->
 
       { delegate : account } = client.connection
-      account.fetchMyPermissionsAndRoles client, (err, res) =>
+      account.fetchMyPermissionsAndRoles client, (err, res) ->
 
         console.log err  if err
 
