@@ -3,6 +3,9 @@ KONFIG = require 'koding-config-manager'
 
 module.exports = (req, res, next) ->
 
+  unless KONFIG.environment is 'production'
+    res.header 'Access-Control-Allow-Origin', 'http://www.koding.com'
+
   next()  if req?.cookies?._csrf
 
   { maxAge, secure } = KONFIG.sessionCookie

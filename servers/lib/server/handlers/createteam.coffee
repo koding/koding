@@ -121,7 +121,9 @@ module.exports = (req, res, next) ->
 
   ]
 
-  res.header 'Access-Control-Allow-Origin', 'http://www.koding.com'
+  unless KONFIG.environment is 'production'
+    res.header 'Access-Control-Allow-Origin', 'http://www.koding.com'
+
   async.series queue, (err) ->
 
     index = 1
