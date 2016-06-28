@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"net"
+	"koding/httputil"
 	"net/http"
 	"sync"
 	"time"
@@ -16,14 +16,12 @@ import (
 
 const myPermissionsAndRolesPath = "/-/my/permissionsAndRoles"
 
-var defClient = http.Client{
-	Timeout: time.Second * 2,
-	Transport: &http.Transport{
-		Dial: func(network, addr string) (net.Conn, error) {
-			return net.DialTimeout(network, addr, time.Second)
-		},
-	},
-}
+var defClient = httputil.NewClient(&httputil.ClientConfig{
+	DialTimeout:           1 * time.Second,
+	RoundTripTimeout:      2 * time.Second,
+	TLSHandshakeTimeout:   2 * time.Second,
+	ResponseHeaderTimeout: 2 * time.Second,
+})
 
 type EnvData struct {
 	Own           []*MachineAndWorkspaces `json:"own"`
@@ -50,10 +48,8 @@ func fetchRolesAndPermissions(userInfo *UserInfo, user *LoggedInUser, wg *sync.W
 		Log.Error(err.Error())
 	}
 
-	roles, _ := envData["roles"]
-	permissions, _ := envData["permissions"]
-	user.Set("Roles", roles)
-	user.Set("Permissions", permissions)
+	user.Set("Roles", envData["roles"])
+	user.Set("Permissions", envData["permissions"])
 }
 
 func getEnvData(userInfo *UserInfo) *EnvData {
