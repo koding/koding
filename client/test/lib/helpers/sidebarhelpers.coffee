@@ -9,15 +9,13 @@ headerTitleSelector  = '.SidebarSection-headerTitle'
 notificationSelector = '.kdnotification'
 plusIconSelector     = '.SidebarSection-secondaryLink'
 createStackEditor    = '.StackEditor-OnboardingModal'
-stackEditorView      = '.StackEditorView'
-reinitializeButton   = '.kdbutton.solid.red.medium'
+stackEditorView      = '[testpath=StackEditor-isVisible]'
+reinitializeButton   = '[testpath=proceed]'
 vmViewSelector       = '.kdview .kdtabpaneview .virtual-machines'
 teamnameSelector     = '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
-
-myAccountSelector = "#{menuSelector}:nth-of-type(1)"
-dashboardSelector = "#{menuSelector}:nth-of-type(2)"
-supportSelector   = "#{menuSelector}:nth-of-type(3)"
-logoutSelector    = "#{menuSelector}:nth-of-type(4)"
+dashboardSelector = "#{menuSelector}:nth-of-type(1)"
+supportSelector   = "#{menuSelector}:nth-of-type(2)"
+logoutSelector    = "#{menuSelector}:nth-of-type(3)"
 chatlioWidget     = '.chatlio-widget'
 headerSelector    = '.HomeAppView--sectionHeader'
 WelcomeView       = '.WelcomeStacksView'
@@ -88,12 +86,10 @@ module.exports =
 
 
   openSettingsMenu: (browser, callback) ->
-    @gotoSettingsMenu browser, myAccountSelector
-    browser
-      .assert.containsText headerSelector, 'My Account'
+
     @gotoSettingsMenu browser, dashboardSelector
     browser
-      .waitForElementVisible WelcomeView, 20000
+      .waitForElementVisible '.HomeWelcomeModal', 20000
     @gotoSettingsMenu browser, supportSelector
     browser
       .waitForElementVisible chatlioWidget, 20000

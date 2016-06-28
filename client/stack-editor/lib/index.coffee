@@ -24,15 +24,21 @@ module.exports = class StackEditorAppController extends AppController
 
   openEditor: (stackTemplateId) ->
 
-    { mainController } = kd.singletons
-    mainController.tellChatlioWidget 'isShown', {}, (err, isShown) ->
-      return if err
-      return if isShown
-      mainController.tellChatlioWidget 'show', { expanded: no }
+    { mainController, groupsController, computeController } = kd.singletons
+    { setSelectedMachineId, setSelectedTemplateId } = EnvironmentFlux.actions
 
-    { computeController } = kd.singletons
+    groupsController.ready ->
+      if groupsController.canEditGroup()
+        Intercom?('show')
+      else
+        mainController.tellChatlioWidget 'isShown', {}, (err, isShown) ->
+          return if err
+          return if isShown
+          mainController.tellChatlioWidget 'show', { expanded: no }
 
+    setSelectedMachineId null
     if stackTemplateId
+      setSelectedTemplateId stackTemplateId
       computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
         return showError err  if err
         @showView stackTemplate

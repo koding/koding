@@ -4,6 +4,7 @@ module.exports = (options = {}, callback) ->
   async     = require 'async'
   encoder   = require 'htmlencode'
   { argv }  = require 'optimist'
+  _         = require 'lodash'
 
   options.client               or= {}
   options.client.context       or= {}
@@ -12,12 +13,13 @@ module.exports = (options = {}, callback) ->
 
 
   prefetchedFeeds     = null
-  socialapidata       = null
   currentGroup        = null
   userMachines        = null
   userWorkspaces      = null
   userEnvironmentData = null
   userId              = null
+  roles               = null
+  permissions         = null
 
   { bongoModels, client, session } = options
 
@@ -30,7 +32,8 @@ module.exports = (options = {}, callback) ->
     { segment, client }  = KONFIG
     { siftScience }      = client.runtimeOptions
     config               = JSON.stringify client.runtimeOptions, replacer
-    encodedSocialApiData = JSON.stringify socialapidata, replacer
+    userRoles            = JSON.stringify roles, replacer
+    userPermissions      = JSON.stringify permissions, replacer
     currentGroup         = JSON.stringify currentGroup, replacer
     userAccount          = JSON.stringify delegate, replacer
     userMachines         = JSON.stringify userMachines, replacer
@@ -55,9 +58,10 @@ module.exports = (options = {}, callback) ->
         userAccount: #{userAccount},
         userMachines: #{userMachines},
         userWorkspaces: #{userWorkspaces},
+        userRoles: #{userRoles},
+        userPermissions: #{userPermissions},
         currentGroup: #{currentGroup},
         isLoggedInOnLoad: true,
-        socialApiData: #{encodedSocialApiData},
         userEnvironmentData: #{userEnvironmentData}
       };
     </script>
@@ -98,13 +102,6 @@ module.exports = (options = {}, callback) ->
   queue = [
 
     (fin) ->
-      socialApiCacheFn = require '../cache/socialapi'
-      socialApiCacheFn options, (err, data) ->
-        console.error 'could not get prefetched data', err  if err
-        socialapidata = data
-        fin()
-
-    (fin) ->
       groupName = session?.groupName or 'koding'
 
       # due to some reason, I suspect JSON.stringify somewhere, undefined
@@ -116,6 +113,18 @@ module.exports = (options = {}, callback) ->
         console.log err  if err
 
         currentGroup = group  if group
+
+        fin()
+
+    (fin) ->
+
+      { delegate : account } = client.connection
+      account.fetchMyPermissionsAndRoles client, (err, res) ->
+
+        console.log err  if err
+
+        roles       = res.roles
+        permissions = res.permissions
 
         fin()
 
@@ -147,4 +156,4 @@ module.exports = (options = {}, callback) ->
         fin()
   ]
 
-  async.parallel queue, -> callback null, createHTML(), socialapidata
+  async.parallel queue, -> callback null, createHTML()

@@ -26,6 +26,7 @@ DifferentStackResourcesStore      = ['DifferentStackResourcesStore']
 ActiveStackStore                  = ['ActiveStackStore']
 TeamStackTemplatesStore           = ['TeamStackTemplatesStore']
 PrivateStackTemplatesStore        = ['PrivateStackTemplatesStore']
+SelectedTemplateIdStore           = ['SelectedTemplateIdStore']
 
 
 workspacesWithChannels = [
@@ -233,6 +234,7 @@ module.exports = {
   activeInvitationMachineId: ActiveInvitationMachineIdStore
   activeLeavingSharedMachineId: ActiveLeavingSharedMachineIdStore
   differentStackResourcesStore : DifferentStackResourcesStore
+  selectedTemplateId : SelectedTemplateIdStore
   teamStackTemplates
   privateStackTemplates
   inUseTeamStackTemplates

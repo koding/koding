@@ -46,6 +46,7 @@ module.exports = class Sidebar extends React.Component
       requiredInvitationMachine    : EnvironmentFlux.getters.requiredInvitationMachine
       differentStackResourcesStore : EnvironmentFlux.getters.differentStackResourcesStore
       team                         : TeamFlux.getters.team
+      selectedTemplateId           : EnvironmentFlux.getters.selectedTemplateId
     }
 
 
@@ -183,7 +184,9 @@ module.exports = class Sidebar extends React.Component
     @state.drafts?.toList().toJS().map (template) =>
       id = template._id
       title = _.unescape template.title
-      <section key={id} className='SidebarSection SidebarStackSection draft'>
+      className = 'SidebarSection SidebarStackSection draft'
+      className += ' active'  if @state.selectedTemplateId is id
+      <section key={id} className={className}>
         <header
           ref="draft-#{id}"
           className="SidebarSection-header">

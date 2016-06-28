@@ -16,6 +16,7 @@ kookies = require 'kookies'
 Tracker = require 'app/util/tracker'
 VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
 
+
 loadTeam = ->
 
   { groupsController, reactor } = kd.singletons

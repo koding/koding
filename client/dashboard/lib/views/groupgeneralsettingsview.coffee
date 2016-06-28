@@ -9,6 +9,7 @@ remote = require('app/remote').getInstance()
 showError = require 'app/util/showError'
 JView = require 'app/jview'
 Encoder = require 'htmlencode'
+# globals = require 'globals'
 
 
 module.exports = class GroupGeneralSettingsView extends JView
@@ -28,7 +29,7 @@ module.exports = class GroupGeneralSettingsView extends JView
 
     @settingsForm = new KDFormViewWithFields formOptions, @getData()
 
-    # unless KD.config.roles? and 'owner' in KD.config.roles
+    # unless globals.userRoles? and 'owner' in globals.userRoles
     #   @settingsForm.buttons.Remove.hide()
 
     # if data.slug is 'koding'

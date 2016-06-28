@@ -10,6 +10,7 @@ remote          = require('app/remote').getInstance()
 AdminInviteModalView = require './admininvitemodalview'
 ResendInvitationConfirmModal = require './resendinvitationconfirmmodal'
 isEmailValid = require 'app/util/isEmailValid'
+{ actions : HomeActions } = require 'home/flux'
 
 
 module.exports = class HomeTeamSendInvitesContainer extends React.Component
@@ -83,6 +84,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
     return  unless invitations.size
     TeamFlux.actions.sendInvitations().then ({ title }) ->
+      HomeActions.markAsDone 'inviteTeam'
       return new kd.NotificationView
         title    : title
         duration : 5000
