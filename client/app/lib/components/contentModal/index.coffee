@@ -16,6 +16,11 @@ module.exports = class ContentModal extends kd.ModalView
 
     super modalOptions, data
 
+    @overlay = new kd.OverlayView
+      isRemovable : no
+      cssClass    : 'content-overlay'
+
+
     @createHeader()
     @createBody()
     @createFooter()
