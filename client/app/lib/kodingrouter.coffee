@@ -3,6 +3,7 @@ kd                   = require 'kd'
 remote               = require('./remote').getInstance()
 showError            = require './util/showError'
 KodingAppsController = require './kodingappscontroller'
+HomeGetters          = require 'home/flux/getters'
 
 
 module.exports = class KodingRouter extends kd.Router
@@ -88,7 +89,11 @@ module.exports = class KodingRouter extends kd.Router
     if not currentGroup or currentGroup.slug is 'koding'
       return '/IDE'
 
-    return '/Welcome'
+    areStepsFinished = kd.singletons.reactor.evaluate(HomeGetters.areStepsFinished)
+
+    if areStepsFinished
+    then return '/IDE'
+    else return '/Welcome'
 
 
   setPageTitle: (title = 'Koding') -> kd.singletons.pageTitle.update title
