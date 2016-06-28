@@ -116,6 +116,7 @@ app.post '/-/api/user/create'                    , require './handlers/api/creat
 app.post '/-/api/ssotoken/create'                , require './handlers/api/createssotoken'
 app.get  '/-/api/ssotoken/login'                 , require './handlers/api/ssotokenlogin'
 app.get  '/-/api/logs'                           , require './handlers/api/logs'
+app.post '/-/api/gitlab', bodyParser.json()      , require './handlers/api/gitlab'
 app.get  '/-/image/cache'                        , require './image_cache'
 app.get  '/-/oauth/github/callback'              , require './github_callback'
 app.get  '/-/oauth/gitlab/callback'              , require './gitlab_callback'
