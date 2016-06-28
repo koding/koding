@@ -96,7 +96,9 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
       listView.askForConfirm { credential, bootstrapped }, ({ action, modal }) =>
 
-        modal?.options.buttons.Remove.disable = yes
+        buttons = modal.getButtons()
+        buttons.forEach (b) ->
+          b.disable()  if b.buttonTitle is 'Remove Credential'
 
         switch action
 
