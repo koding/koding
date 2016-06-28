@@ -138,7 +138,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     resendButtonText = 'Resend Invitation'
     cancelButtonText = 'Cancel'
 
-    if pendingInvitations.length
+    if pendingInvitations.length > 1
       emailsText = prepareEmailsText pendingInvitations
       content = "<p>#{emailsText} have already been invited. Are you sure you want to resend invitations?</p>"
       resendButtonText = 'Resend Invitations'

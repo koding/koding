@@ -295,7 +295,7 @@ module.exports = class ComputeControllerUI
           message : '
             If you choose to proceed, this stack and all of its VMs will be
             re-initialized from the latest revision of this stack.
-            You will lose all of your existing VMs, workspaces and your data therein.
+            You will lose all of your existing VMs and your data therein.
           '
           button  : 'Proceed'
         deleteStack :
@@ -305,7 +305,7 @@ module.exports = class ComputeControllerUI
             destroyed, and you won't be able to revert this.</p>
 
             <p>Any existing data will be lost including existing files,
-            workspaces, VMs and anything provided by this stack.</p>
+            VMs and anything provided by this stack.</p>
           "
           button  : 'Proceed'
         permissionFix  :
