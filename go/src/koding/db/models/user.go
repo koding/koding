@@ -36,6 +36,7 @@ type User struct {
 	EmailFrequency *EmailFrequency `bson:"emailFrequency" json:"emailFrequency"`
 	Inactive       *UserInactive   `bson:"inactive,omitempty" json:"inactive"`
 	ForeignAuth    ForeignAuth     `bson:"foreignAuth,omitempty" json:"-"`
+	CompanyId      bson.ObjectId   `bson:"companyId,omitempty" json:"-"`
 }
 
 type EmailFrequency struct {
