@@ -25,3 +25,4 @@ module.exports = class WelcomeModal extends kd.ModalView
     kd.singletons.router.handleRoute '/IDE'  if selfInitiated
 
     super
+
