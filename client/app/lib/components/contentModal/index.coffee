@@ -40,7 +40,14 @@ module.exports = class ContentModal extends kd.ModalView
 
     @addSubView @main = new kd.CustomHTMLView
       tagName : 'main'
-      partial : content
+      cssClass : 'main-container'
+
+
+    if typeof content is 'string'
+      @main.setPartial content
+    else
+      @main.addSubView content
+
 
     if tabs
       @main.addSubView @modalTabs = new kd.TabViewWithForms tabs
