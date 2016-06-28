@@ -64,7 +64,7 @@ module.exports = class AdminAppView extends kd.ModalView
     { tabData, checkRoles }   = @getOptions()
 
     items   = []
-    myRoles = _globals.config.roles
+    myRoles = _globals.userRoles
 
     for own sectionKey, section of tabData
 

@@ -38,6 +38,9 @@ module.exports =
           res = res.substring helpers.getUrl(yes).length
           stackSelector = res
           next null, res
+      (next) ->
+        teamsHelpers.buildStack browser, (res) ->
+          next null, res
     ]
 
     async.series queue, (err, result) ->
@@ -54,6 +57,40 @@ module.exports =
       (next) ->
         stackshelpers.seeDraftStackTemplates browser, (result) ->
           next null, result
+      (next) ->
+        stackshelpers.editStackTemplates browser, (result) ->
+          next null, result
+
+      (next) ->
+        stackshelpers.addRemoveFromSideBar browser, (res) ->
+          next null, res
+      (next) ->
+        stackshelpers.changeAndReinitializeStack browser, (res) ->
+          next null, res
+      (next) ->
+        stackshelpers.destroyPersonalStack browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.destroy browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.deleteCredentialInUse browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.deleteStackTemplatesInUse browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.deleteStackTemplates browser, (result) ->
+          next null, result
+      (next) ->
+        teamsHelpers.logoutTeam browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.createPrivateStackAsMember browser, (result) ->
+          next null, result
+
+
+
     ]
 
     async.series queue

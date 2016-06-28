@@ -342,6 +342,11 @@ setSelectedMachineId = (machineId) ->
   kd.singletons.reactor.dispatch actions.MACHINE_SELECTED, machineId
 
 
+setSelectedTemplateId = (templateId) ->
+
+  kd.singletons.reactor.dispatch actions.SET_SELECTED_TEMPLATE_ID, { id: templateId }
+
+
 setActiveStackId = (stackId) ->
 
   kd.utils.defer ->
@@ -766,6 +771,7 @@ module.exports = {
   deleteWorkspace
   setSelectedWorkspaceId
   setSelectedMachineId
+  setSelectedTemplateId
   showDeleteWorkspaceWidget
   hideDeleteWorkspaceWidget
   showManagedMachineAddedModal

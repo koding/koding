@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"koding/artifact"
-	"koding/kites/kloud/httputil"
+	"koding/httputil"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils"
 	"koding/tools/util"

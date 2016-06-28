@@ -1264,7 +1264,7 @@ module.exports = CollaborationController =
 
     options   =
       title   : 'Are you sure?'
-      content : "<p>If you leave this session you won't be able to return backs.</p>"
+      content : "<p>If you leave this session you won't be able to return back.</p>"
 
     @showModal options, => @stateMachine.transition 'Ending'
 

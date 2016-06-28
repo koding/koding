@@ -6,7 +6,6 @@ HomeUtilities       = require './utilities'
 HomeMyTeam          = require './myteam'
 HomeTeamBilling     = require './billing'
 HomePaymentHistory  = require './paymenthistory'
-HomeWelcome         = require './welcome'
 HomeStacks          = require './stacks'
 
 do require './routehandler'
@@ -18,7 +17,6 @@ module.exports = class HomeAppController extends AppController
     background : yes
 
   TABS = [
-    { title : 'Welcome', viewClass : HomeWelcome, role: 'member' }
     { title : 'Stacks', viewClass : HomeStacks, role: 'member' }
     { title : 'My Team', viewClass : HomeMyTeam, role: 'member' }
     { title : 'Team Billing', viewClass : HomeTeamBilling }
@@ -36,7 +34,7 @@ module.exports = class HomeAppController extends AppController
     super options, data
 
 
-  checkRoute: (route) -> /^\/Home.*/.test route
+  checkRoute: (route) -> /^\/(?:Home).*/.test route
 
   openSection: (args...) -> @mainView.ready => @openSection_ args...
 
@@ -62,7 +60,10 @@ module.exports = class HomeAppController extends AppController
     else
       targetPaneView.handleAction? action
 
-    return  unless identifier and action
+    unless identifier and action
+      onboardingEvent = @getOnboardingEventByPane targetPane
+      kd.singletons.onboarding.run onboardingEvent, yes  if onboardingEvent
+      return
 
     targetPaneView.emit 'SubTabRequested', action, identifier
     { parentTabTitle } = targetPane.getOptions()
@@ -88,3 +89,15 @@ module.exports = class HomeAppController extends AppController
 
 
   fetchNavItems: (cb) -> cb TABS
+
+
+  getOnboardingEventByPane: (pane) ->
+
+    slug = kd.utils.slugify pane.getOption 'title'
+
+    switch slug
+      when 'stacks'           then 'StacksViewed'
+      when 'my-team'          then 'MyTeamViewed'
+      when 'team-billing'     then 'TeamBillingViewed'
+      when 'koding-utilities' then 'KodingUtilitiesViewed'
+      when 'my-account'       then 'MyAccountViewed'

@@ -30,7 +30,7 @@ module.exports = [
     { name: 'dashboard myteam' }
     { name: 'dashboard credentials' }
     { name: 'dashboard utilities' }
-    { name: 'dashboard welcome' }
+    # { name: 'dashboard welcome' }
   ]
 
   [

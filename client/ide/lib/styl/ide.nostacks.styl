@@ -1,0 +1,46 @@
+.NoStackFoundView
+  abs                       0px 0 0 0px
+  size                      100% 100%
+  z-index                   10
+  background                rgba(43,51,61,0.75)
+  display                   flex
+  align-items               center
+  justify-content           center
+
+  .NoStackFoundView-wrapper
+    flex                    0 0 auto
+    text-align              center
+    width                   555px
+
+  .ButtonContainer
+    margin                  25px 0
+
+  .GenericButton
+    font-size               14px
+    font-weight             600
+    cursor                  pointer
+
+  h2
+    font-family             'Proxima Nova'
+    font-size               28px
+    color                   #FFFFFF
+    letter-spacing          1px
+    line-height             32px
+    margin                  25px auto
+    width                   450px
+    font-weight             100
+
+  p
+    font-family             'Proxima Nova'
+    font-weight             100
+    font-size               18px
+    color                   #CACACA
+    letter-spacing          0.17px
+    line-height             22px
+
+    > a
+      color                 #52A1D5
+      noTextDeco()
+
+      &:hover
+        text-decoration     underline

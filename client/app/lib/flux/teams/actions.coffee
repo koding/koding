@@ -16,6 +16,7 @@ kookies = require 'kookies'
 Tracker = require 'app/util/tracker'
 VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
 
+
 loadTeam = ->
 
   { groupsController, reactor } = kd.singletons
@@ -30,8 +31,9 @@ updateTeam = (dataToUpdate) ->
   { groupsController, reactor } = kd.singletons
 
   team = groupsController.getCurrentGroup()
-  logo = dataToUpdate.customize?.logo
-  groupsController.emit 'TEAM_LOGO_CHANGED', logo  if dataToUpdate.customize?
+  if dataToUpdate.customize
+    logo = dataToUpdate.customize?.logo
+    groupsController.emit 'TEAM_LOGO_CHANGED', logo
 
   new Promise (resolve, reject) ->
 

@@ -34,8 +34,9 @@ IDELayoutManager              = require './workspace/idelayoutmanager'
 StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
 ContentModal = require 'app/components/contentModal'
 
-require('./routes').init()
+NoStackFoundView = require 'app/nostackfoundview'
 
+require('./routes').init()
 
 module.exports =
 
@@ -609,6 +610,13 @@ class IDEAppController extends AppController
         callback null, machine
 
 
+  showNoMachineState: ->
+
+    return  if @noStackFoundView
+
+    @getView().addSubView @noStackFoundView = new NoStackFoundView
+
+
   mountMachineByMachineUId: (machineUId) ->
 
     return  if @mountedMachine
@@ -620,7 +628,7 @@ class IDEAppController extends AppController
     environmentDataProvider.fetchMachineByUId machineUId, (machineItem) =>
 
       unless machineItem
-        return @createMachineStateModal { state: 'NotFound', container }
+        return @showNoMachineState()
 
       unless machineItem instanceof Machine
         machineItem = new Machine { machine: machineItem }
@@ -673,7 +681,7 @@ class IDEAppController extends AppController
         adminMessage.showIfNeeded()
 
       else
-        @createMachineStateModal { state: 'NotFound', container }
+        return @showNoMachineState()
 
 
   bindMachineEvents: (machineItem) ->

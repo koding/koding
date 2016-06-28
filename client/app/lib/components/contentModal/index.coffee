@@ -14,6 +14,10 @@ module.exports = class ContentModal extends kd.ModalView
     modalOptions.cssClass = 'ContentModal'
     modalOptions.width or= 500
 
+    modalOptions.overlayOptions =
+      isRemovable : no
+      cssClass    : 'content-overlay'
+
     super modalOptions, data
 
     @createHeader()
@@ -40,7 +44,14 @@ module.exports = class ContentModal extends kd.ModalView
 
     @addSubView @main = new kd.CustomHTMLView
       tagName : 'main'
-      partial : content
+      cssClass : 'main-container'
+
+
+    if typeof content is 'string'
+      @main.setPartial content
+    else
+      @main.addSubView content
+
 
     if tabs
       @main.addSubView @modalTabs = new kd.TabViewWithForms tabs
@@ -60,4 +71,9 @@ module.exports = class ContentModal extends kd.ModalView
       button = new kd.ButtonView buttons[key]
       if buttons[key].title is 'Cancel' or buttons[key].title is 'No'
         button.setClass 'cancel'
+      else
+        button.setAttribute 'testpath', 'proceed'
       @footer.addSubView button
+
+  getButtons: ->
+    @footer.subViews.filter (s) -> s.getElement().tagName is 'BUTTON'

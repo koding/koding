@@ -96,9 +96,7 @@ fetchJAccountByKiteUserNameAndKey = (req, callback) ->
       if not account or err
         callback("couldnt find account #{kodingKey.owner}", null)
         return
-      console.log 'account ====================='
-      console.log account
-      console.log '======== account'
+
       req.account = account
       callback(err, account)
 

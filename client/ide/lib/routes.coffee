@@ -51,7 +51,7 @@ loadIDENotFound = ->
   { appManager } = kd.singletons
   appManager.open 'IDE', { forceNew: yes }, (app) ->
     app.amIHost = yes
-    appManager.tell 'IDE', 'createMachineStateModal', { state: 'NotFound' }
+    appManager.tell 'IDE', 'showNoMachineState'
 
 
 loadIDE = (data) ->
@@ -61,6 +61,7 @@ loadIDE = (data) ->
   { machine, workspace, username, channelId } = data
   selectWorkspaceOnSidebar data
   actions.setSelectedMachineId machine._id
+  actions.setSelectedTemplateId machine.data.generatedFrom.templateId
 
   appManager = kd.getSingleton 'appManager'
   ideApps    = appManager.appControllers.IDE

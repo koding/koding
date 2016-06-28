@@ -17,6 +17,7 @@ webPort               = argv.p ? webserver.port
 { error_500 }         = require './helpers'
 { generateHumanstxt } = require './humanstxt'
 csrf                  = require './csrf'
+setCrsfToken          = require './setcsrftoken'
 { NodejsProfiler }    = require 'koding-datadog'
 
 do ->
@@ -60,6 +61,7 @@ app.use require './setsession'
 # routes ordered as before no particular structure
 
 app.post '/-/teams/validate-token'               , require './handlers/checktoken'
+app.post '/-/teams/allow'                        , setCrsfToken, (req, res) -> res.json { token: req.pendingCookies._csrf }
 app.post '/-/teams/create'                       , csrf,   require './handlers/createteam'
 app.post '/-/teams/join'                         , csrf,   require './handlers/jointeam'
 app.post '/-/teams/early-access'                 , require './handlers/earlyaccess'
@@ -77,6 +79,7 @@ app.all  '/-/unsubscribe/:token/:email'          , require './handlers/unsubscri
 app.post '/-/analytics/track'                    , require './handlers/analytics/track'
 app.post '/-/analytics/page'                     , require './handlers/analytics/page'
 
+app.get  '/-/my/permissionsAndRoles'             , require './handlers/myPermissionsAndRoles'
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
 app.get  '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'

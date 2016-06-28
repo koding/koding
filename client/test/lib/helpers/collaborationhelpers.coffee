@@ -6,6 +6,7 @@ utils      = require '../utils/utils.js'
 startButtonSelector   = '.IDE-StatusBar .share.not-started button'
 endButtonSelector     = '.IDE-StatusBar .share.active button'
 collabLink            = '.collaboration-link'
+endSessionButton      = '[testpath=proceed]'
 terminalHelpers       = require '../helpers/terminalhelpers.js'
 teamsHelpers          = require '../helpers/teamshelpers.js'
 async                 = require 'async'
@@ -54,9 +55,8 @@ module.exports =
     buttonsSelector = '.kdmodal .kdmodal-buttons'
 
     browser
-      .waitForElementVisible  '.with-buttons', 20000
-      .waitForElementVisible  buttonsSelector, 20000
-      .click                  buttonsSelector + ' button.green'
+      .waitForElementVisible  endSessionButton, 20000
+      .click                  endSessionButton
       .pause                  5000
 
     if shouldAssert
