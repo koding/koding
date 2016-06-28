@@ -16,10 +16,14 @@ module.exports = class OnboardingViewController extends KDViewController
 
 
   ###*
-   * Creates and renders views for onboarding items
+   * Creates and renders views for onboarding items.
    * Item views are grouped by onboarding name.
    * If item views already exist for onboarding,
-   * it just refreshes them
+   * it just refreshes them.
+   * Before running items it refreshes existent items
+   * of other onboardings. In some cases onboarding running
+   * signals that something happens on the page, therefore we need
+   * to make sure that all existent items are still actual
    *
    * @param {string} name     - onboarding name
    * @param {Array} items     - a list of onboarding items
@@ -27,8 +31,11 @@ module.exports = class OnboardingViewController extends KDViewController
   ###
   runItems: (name, items, isModal = no) ->
 
+    otherNames = Object.keys(@itemViews).filter (_name) -> _name isnt name
+    @refreshItems _name for _name in otherNames
+
     return  unless items.length
-    return @refreshItems name  if @itemViews[name]
+    return new OnboardingTask views, 'refresh'  if views = @itemViews[name]
 
     @itemViews[name] = views = []
     for item in items
@@ -62,9 +69,9 @@ module.exports = class OnboardingViewController extends KDViewController
   ###
   refreshItems: (name) ->
 
-    return  unless views = @itemViews[name]
-
-    new OnboardingTask views, 'refresh'
+    for own _name, views of @itemViews
+      if _name is name or not name
+        view.refresh()  for view in views
 
 
   ###*
@@ -84,12 +91,3 @@ module.exports = class OnboardingViewController extends KDViewController
       delete @itemViews[name]
     else
       @itemViews = {}
-
-
-  ###*
-   * Hides all onboarding items
-  ###
-  hideItems: ->
-
-    for own name, views of @itemViews
-      view.hide()  for view in views
