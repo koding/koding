@@ -5,7 +5,7 @@ credential             = '.kdview.kdlistitemview.kdlistitemview-default.credenti
 showButton             = "#{credential} .custom-link-view.HomeAppView--link.primary"
 removeButton           = "#{credential} .custom-link-view.HomeAppView--link"
 closeModal             = '.kdmodal-inner .close-icon.closeModal'
-removeCredentialButton = '.kdmodal-inner .kdview.kdmodal-buttons .kdbutton.solid.red.medium.w-loader'
+removeCredentialButton = '[testpath=removeCredential]'
 credentialInfo         = "#{credential} .credential-info"
 credentialHeader       = '.HomeAppView--sectionHeader'
 

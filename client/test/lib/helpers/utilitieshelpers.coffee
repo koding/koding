@@ -27,7 +27,7 @@ module.exports =
     browser
       .url utilitiesLink
       .waitForElementVisible sectionSelector, 20000
-      .assert.containsText codeBlockText, 'https://kodi.ng/d/kd'
+      .assert.containsText codeBlockText, 'export KONTROLURL=http://'
       .pause 1000
       .click codeBlockSelector
       .waitForElementVisible '.kdnotification', 20000
