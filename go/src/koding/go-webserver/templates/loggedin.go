@@ -11,7 +11,7 @@ var LoggedInHome = `
   </head>
 
   <body class='logged-in'>
-    <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
+    {{.UnsupportedHTML}}
 
     <script>
       var _globals = {

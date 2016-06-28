@@ -25,7 +25,7 @@ stackSettingsMenuIcon    = '.stacktemplates .stack-template-list .stack-settings
 myStackTemplatesButton   = '.kdview.kdtabhandle-tabs .my-stack-templates'
 closeButton              = "#{stackCatalogModal} .kdmodal-inner .closeModal"
 async                    = require 'async'
-
+closeModal               = '.HomeAppView .close-icon.closeModal'
 
 module.exports =
 
@@ -332,6 +332,8 @@ module.exports =
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
 
     browser
+      .pause 2000
+      .click closeModal
       .click '#main-sidebar'
       .waitForElementVisible sidebarSelector, 20000
 
@@ -410,8 +412,6 @@ module.exports =
 
 
   createStack: (browser, done) ->
-
-
     sidebarSelector = '.SidebarTeamSection'
     sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
@@ -603,7 +603,7 @@ module.exports =
       .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 20000
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 2000
-      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(4)'
+      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(3)'
 
       .pause 2000, -> callback()
 
