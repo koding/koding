@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"koding/config"
-	"koding/kites/kloud/httputil"
+	"koding/httputil"
 	"koding/klient/protocol"
 )
 
