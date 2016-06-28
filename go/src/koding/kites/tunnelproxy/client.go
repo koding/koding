@@ -9,7 +9,7 @@ import (
 	"time"
 
 	cfg "koding/config"
-	"koding/kites/kloud/httputil"
+	"koding/httputil"
 	"koding/klient/protocol"
 
 	"github.com/cenkalti/backoff"

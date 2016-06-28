@@ -264,7 +264,7 @@ runTests = -> describe 'server.handlers.createteam', ->
         # sending alreadyMember:true with unregistered username
         request.post createTeamRequestParams, (err, res, body) ->
           expect(err).to.not.exist
-          expect(body).to.be.equal 'Unknown user name'
+          expect(body).to.include 'Unknown user name'
           expect(res.statusCode).to.be.equal 400
           next()
 
@@ -410,7 +410,7 @@ runTests = -> describe 'server.handlers.createteam', ->
       request.post createTeamRequestParams, (err, res, body) ->
         expect(err).to.not.exist
         expect(res.statusCode).to.be.equal 403
-        expect(body).to.be.equal expectedBody
+        expect(body).to.include expectedBody
         done()
 
 
@@ -438,9 +438,8 @@ runTests = -> describe 'server.handlers.createteam', ->
           expectedBody = "Sorry, Team URL '#{slug}.#{hostname}' is already in use"
           request.post createTeamRequestParams, (err, res, body) ->
             expect(err).to.not.exist
-            expect(body).to.be.equal expectedBody
             expect(res.statusCode).to.be.equal 403
-            expect(body).to.be.equal expectedBody
+            expect(body).to.include expectedBody
             next()
 
     ]
@@ -499,7 +498,7 @@ runTests = -> describe 'server.handlers.createteam', ->
       request.post createTeamRequestParams, (err, res, body) ->
         expect(err).to.not.exist
         expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal 'Unknown user name'
+        expect(body).to.include 'Unknown user name'
         done()
 
 

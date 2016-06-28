@@ -29,7 +29,7 @@ module.exports = class SidebarStackSection extends React.Component
 
 
   getDataBindings: ->
-    activeStack : EnvironmentFlux.getters.activeStack
+    selectedTemplateId: EnvironmentFlux.getters.selectedTemplateId
 
 
   componentWillReceiveProps: -> @setCoordinates()
@@ -139,7 +139,7 @@ module.exports = class SidebarStackSection extends React.Component
     return null  unless @props.stack.get('machines').length
 
     className  = 'SidebarStackSection'
-    className += ' active'  if @state.activeStack is @props.stack.get '_id'
+    className += ' active'  if @state.selectedTemplateId is @props.stack.get 'baseStackId'
 
 
     <SidebarSection

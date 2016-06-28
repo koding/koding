@@ -3,10 +3,9 @@ React = require 'kd-react'
 List = require 'app/components/list'
 CodeBlock = require 'app/components/codeblock'
 
-
 module.exports = class KDCliView extends React.Component
 
-  renderKDInstallView: ->
+  render: ->
     <div>
       <p>
         <code className="HomeAppView--code">kd</code>  is a command line program that allows you to use your local
@@ -20,11 +19,4 @@ module.exports = class KDCliView extends React.Component
       <p className='view-guide'>
         <a className='HomeAppView--button primary' href='https://www.koding.com/docs/connect-your-machine' target='_blank'>VIEW GUIDE</a>
       </p>
-    </div>
-
-
-  render: ->
-
-    <div>
-      {@renderKDInstallView()}
     </div>

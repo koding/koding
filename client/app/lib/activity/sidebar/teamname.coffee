@@ -65,7 +65,10 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
   handleSupport: ->
 
-    { mainController } = kd.singletons
+    { mainController, groupsController } = kd.singletons
+
+    if groupsController.canEditGroup()
+      return Intercom?('show')
 
     mainController.tellChatlioWidget 'show', { expanded: yes }, (err, result) ->
       showError err  if err

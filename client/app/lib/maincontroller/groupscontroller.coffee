@@ -171,7 +171,7 @@ module.exports = class GroupsController extends kd.Controller
 
   canEditGroup: ->
     ['admin', 'owner'].reduce (prole, role) ->
-      prole or (role in _globals.config.roles)
+      prole or (role in _globals.userRoles)
     , no
 
   ###*

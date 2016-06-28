@@ -10,6 +10,7 @@ contentModal.styl
   overflow                  hidden
   rounded                   6px
   border                    none
+  z-index                   10003
 
   &.kdmodal
     .kdmodal-inner
@@ -206,6 +207,8 @@ contentModal.styl
         span
           color             #FFFFFF
 
+        box-shadow          0px 0px #FFFFFF
+
     section span
       width                 360px
       bottom                22px
@@ -213,3 +216,21 @@ contentModal.styl
     .kdloader
       top                   184px
       left                  144px
+
+main.main-container
+
+  .readme-scroll
+    bg color #FFFFFF
+
+  styleScrollBars       rgba(0,0,0,.15)
+
+  .kdscrollview
+    borderBox()
+    max-height          250px
+
+    .markdown-content
+      margin-top            10px
+      max-width             450px
+
+      pre code
+        overflow          auto

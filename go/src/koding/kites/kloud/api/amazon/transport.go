@@ -3,7 +3,7 @@ package amazon
 import (
 	"net"
 
-	"koding/kites/kloud/httputil"
+	"koding/httputil"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"

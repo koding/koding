@@ -1,13 +1,27 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/httputil"
+	"net/http"
+	"sync"
+	"time"
 
 	"gopkg.in/mgo.v2/bson"
 )
+
+const myPermissionsAndRolesPath = "/-/my/permissionsAndRoles"
+
+var defClient = httputil.NewClient(&httputil.ClientConfig{
+	DialTimeout:           1 * time.Second,
+	RoundTripTimeout:      2 * time.Second,
+	TLSHandshakeTimeout:   2 * time.Second,
+	ResponseHeaderTimeout: 2 * time.Second,
+})
 
 type EnvData struct {
 	Own           []*MachineAndWorkspaces `json:"own"`
@@ -20,9 +34,22 @@ type MachineAndWorkspaces struct {
 	Workspaces []*modelhelper.WorkspaceContainer `json:"workspaces"`
 }
 
-func fetchEnvData(userInfo *UserInfo, outputter *Outputter) {
+func fetchEnvData(userInfo *UserInfo, user *LoggedInUser, wg *sync.WaitGroup) {
+	defer wg.Done()
 	envData := getEnvData(userInfo)
-	outputter.OnItem <- &Item{Name: "EnvData", Data: envData}
+	user.Set("EnvData", envData)
+}
+
+func fetchRolesAndPermissions(userInfo *UserInfo, user *LoggedInUser, wg *sync.WaitGroup) {
+	defer wg.Done()
+	path := fmt.Sprintf("%s%s", conf.SocialApi.CustomDomain.Local, myPermissionsAndRolesPath)
+	envData, err := doGetRequest(path, userInfo.ClientId)
+	if err != nil {
+		Log.Error(err.Error())
+	}
+
+	user.Set("Roles", envData["roles"])
+	user.Set("Permissions", envData["permissions"])
 }
 
 func getEnvData(userInfo *UserInfo) *EnvData {
@@ -164,4 +191,33 @@ func getCollabChannels(userInfo *UserInfo) ([]string, error) {
 	}
 
 	return channelIds, nil
+}
+
+func doGetRequest(endpoint, clientId string) (map[string]interface{}, error) {
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.AddCookie(&http.Cookie{
+		Name:  "clientId",
+		Value: clientId,
+	})
+
+	resp, err := defClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("err: status code (%d)", resp.StatusCode)
+	}
+
+	var res map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }

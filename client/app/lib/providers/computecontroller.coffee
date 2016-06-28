@@ -23,6 +23,8 @@ envDataProvider      = require 'app/userenvironmentdataprovider'
 Tracker              = require 'app/util/tracker'
 getGroup             = require 'app/util/getGroup'
 
+{ actions : HomeActions } = require 'home/flux'
+
 require './config'
 
 
@@ -700,6 +702,8 @@ module.exports = class ComputeController extends KDController
       machine.getBaseKite( no ).disconnect()
 
     stackId = stack._id
+
+    HomeActions.markAsDone 'buildStack'
     Tracker.track Tracker.STACKS_START_BUILD, {
       customEvent : { stackId, group : getGroup().slug }
     }
