@@ -31,10 +31,9 @@ module.exports = (options = {}, callback) ->
     replacer             = (k, v) -> if 'string' is typeof v then encoder.XSSEncode v else v
     { segment, client }  = KONFIG
     { siftScience }      = client.runtimeOptions
-    _config              = _.cloneDeep client.runtimeOptions
-    _config.roles        = roles
-    _config.permissions  = permissions
-    config               = JSON.stringify _config, replacer
+    config               = JSON.stringify client.runtimeOptions, replacer
+    userRoles            = JSON.stringify roles, replacer
+    userPermissions      = JSON.stringify permissions, replacer
     currentGroup         = JSON.stringify currentGroup, replacer
     userAccount          = JSON.stringify delegate, replacer
     userMachines         = JSON.stringify userMachines, replacer
@@ -59,6 +58,8 @@ module.exports = (options = {}, callback) ->
         userAccount: #{userAccount},
         userMachines: #{userMachines},
         userWorkspaces: #{userWorkspaces},
+        userRoles: #{userRoles},
+        userPermissions: #{userPermissions},
         currentGroup: #{currentGroup},
         isLoggedInOnLoad: true,
         userEnvironmentData: #{userEnvironmentData}

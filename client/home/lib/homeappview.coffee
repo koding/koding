@@ -70,7 +70,7 @@ module.exports = class HomeAppView extends kd.ModalView
     { tabData, checkRoles }   = @getOptions()
 
     items   = []
-    myRoles = _globals.config.roles
+    myRoles = _globals.userRoles
 
     for item in tabData.items
 
