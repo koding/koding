@@ -21,7 +21,7 @@ function check_postgres() {
              --quiet
 
   if [ $? != 0 ]; then
-    echo "error: postgres service check failed on $KONFIG_POSTGRES_HOST:$KONFIG_POSTGRES:PORT"
+    echo "error: postgres service check failed on $KONFIG_POSTGRES_HOST:$KONFIG_POSTGRES_PORT"
     return 1
   fi
 
