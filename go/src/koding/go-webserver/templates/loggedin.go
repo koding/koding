@@ -21,7 +21,9 @@ var LoggedInHome = `
         userAccount: {{.User.GetWithDefaultHash "Account"  }},
         currentGroup: {{.User.GetWithDefaultHash "Group" }},
         userEnvironmentData: {{.User.GetWithDefaultHash "EnvData" }},
-        socialApiData: {{.User.GetWithDefaultHash "SocialApiData" }}
+        socialApiData: {{.User.GetWithDefaultHash "SocialApiData" }},
+        userRoles: {{.User.GetWithDefaultHash "Roles" }}
+        userPermissions: {{.User.GetWithDefaultHash "Permissions" }}
       };
     </script>
 
