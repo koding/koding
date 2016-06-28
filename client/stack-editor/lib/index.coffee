@@ -25,6 +25,7 @@ module.exports = class StackEditorAppController extends AppController
   openEditor: (stackTemplateId) ->
 
     { mainController, groupsController, computeController } = kd.singletons
+    { setSelectedMachineId, setSelectedTemplateId } = EnvironmentFlux.actions
 
     groupsController.ready ->
       if groupsController.canEditGroup()
@@ -35,7 +36,9 @@ module.exports = class StackEditorAppController extends AppController
           return if isShown
           mainController.tellChatlioWidget 'show', { expanded: no }
 
+    setSelectedMachineId null
     if stackTemplateId
+      setSelectedTemplateId stackTemplateId
       computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
         return showError err  if err
         @showView stackTemplate
