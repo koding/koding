@@ -36,9 +36,24 @@ type MachineAndWorkspaces struct {
 	Workspaces []*modelhelper.WorkspaceContainer `json:"workspaces"`
 }
 
-func fetchEnvData(userInfo *UserInfo, outputter *Outputter) {
+func fetchEnvData(userInfo *UserInfo, user *LoggedInUser, wg *sync.WaitGroup) {
+	defer wg.Done()
 	envData := getEnvData(userInfo)
-	outputter.OnItem <- &Item{Name: "EnvData", Data: envData}
+	user.Set("EnvData", envData)
+}
+
+func fetchRolesAndPermissions(userInfo *UserInfo, user *LoggedInUser, wg *sync.WaitGroup) {
+	defer wg.Done()
+	path := fmt.Sprintf("%s%s", conf.SocialApi.CustomDomain.Local, myPermissionsAndRolesPath)
+	envData, err := doGetRequest(path, userInfo.ClientId)
+	if err != nil {
+		Log.Error(err.Error())
+	}
+
+	roles, _ := envData["roles"]
+	permissions, _ := envData["permissions"]
+	user.Set("Roles", roles)
+	user.Set("Permissions", permissions)
 }
 
 func getEnvData(userInfo *UserInfo) *EnvData {
