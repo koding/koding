@@ -11,7 +11,8 @@ module.exports = class AccountCredentialEditModal extends ContentModal
 
     options.cssClass  = kd.utils.curry 'content-modal with-form', options.cssClass
     options.title or= 'Edit Credential'
-    options.width = 600
+    options.width = 500
+    options.overlay = yes
 
     super options, data
 
