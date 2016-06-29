@@ -197,3 +197,6 @@ module.exports = class NotificationController extends KDObject
 
     @on 'InstanceChanged', (data) ->
       remote_extensions.updateInstance data
+
+
+    @on 'InstanceDeleted', console.log.bind(console, 'NotificationController:InstanceDeleted')
