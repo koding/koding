@@ -75,10 +75,10 @@ module.exports = class CredentialsController extends kd.Controller
 
     unless @showError err
 
-      stackTemplate = @getData()
+      stack = @getData()
 
-      if stackTemplate.credentials.custom?.length > 0
-        identifiers.push { custom: stackTemplate.credentials.custom }
+      if stack.credentials.custom?.length > 0
+        identifiers.push { custom: stack.credentials.custom }
 
       credentials = {}
       identifiers.map (identifier) ->
