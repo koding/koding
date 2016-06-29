@@ -42,6 +42,13 @@ module.exports = class StackEditorAppController extends AppController
       computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
         return showError err  if err
         @showView stackTemplate
+
+        # If selected template is deleted, then redirect them to ide.
+        # TODO: show an information modal to the user if he/she is admin. ~Umut
+        stackTemplate.on 'deleteInstance', =>
+          return  unless @selectedEditor.getData()._id isnt stackTemplate._id
+          @removeEditor stackTemplate._id
+          kd.singletons.router.handleRoute '/IDE'
     else
       @showView()
 
