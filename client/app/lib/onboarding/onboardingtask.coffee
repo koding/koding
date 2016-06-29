@@ -39,4 +39,4 @@ module.exports = class OnboardingTask extends KDObject
         notReadyItems.push item
 
     if notReadyItems.length > 0 and new Date() - @startTime < @maxTime
-        kd.utils.wait @timeInterval, @lazyBound 'processItems', notReadyItems, itemMethod
+      kd.utils.wait @timeInterval, @lazyBound 'processItems', notReadyItems, itemMethod

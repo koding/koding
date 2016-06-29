@@ -62,12 +62,7 @@ module.exports = class HomeAppController extends AppController
     else if action
       targetPaneView.handleAction? action
     else
-      { onboarding }  = kd.singletons
-      onboardingEvent = @getOnboardingEventByPane targetPane
-      if onboardingEvent
-        onboarding.run onboardingEvent, yes
-      else
-        onboarding.refresh()
+      @doOnboarding targetPane
 
     return  unless identifier and action
 
@@ -95,6 +90,16 @@ module.exports = class HomeAppController extends AppController
 
 
   fetchNavItems: (cb) -> cb TABS
+
+
+  doOnboarding: (pane) ->
+
+    { onboarding }  = kd.singletons
+    onboardingEvent = @getOnboardingEventByPane pane
+    if onboardingEvent
+      onboarding.run onboardingEvent, yes
+    else
+      onboarding.refresh()
 
 
   getOnboardingEventByPane: (pane) ->
