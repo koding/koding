@@ -1,3 +1,5 @@
+# coffeelint: disable=cyclomatic_complexity
+
 bongo       = require 'bongo'
 { secure, signature } = bongo
 crypto      = require 'crypto'
