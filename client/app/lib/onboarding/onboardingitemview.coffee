@@ -22,43 +22,37 @@ module.exports = class OnboardingItemView extends KDView
     { onboardingName, isModal } = @getOptions()
 
     try
-      @targetElement = @getElementByPath path
+      targetElement = @getElementByPath path
     catch e
       kd.warn "Couldn't create onboarding item. name = #{name}, onboardingName = #{onboardingName}", e
       @isError = yes
       return
 
-    if @isTargetVisible()
-      { placementX, placementY, offsetX, offsetY, content, tooltipPlacement, color, targetIsScrollable } = @getData()
-      @throbber = new ThrobberView {
-        cssClass    : kd.utils.curry color, if isModal then 'modal-throbber' else ''
-        delegate    : @targetElement
-        tooltipText : "<div class='has-markdown'>#{applyMarkdown(content, { sanitize : no }) ? ''}</div>"
-        placementX
-        placementY
-        offsetX
-        offsetY
-        tooltipPlacement
-        targetIsScrollable
-      }
-      @throbber.on 'TooltipShown', =>
-        @startTrackDate = new Date()
-      @throbber.on 'TooltipClosed', =>
-        @removeThrobber()
-        if @startTrackDate
-          OnboardingMetrics.trackView onboardingName, name, new Date() - @startTrackDate
-        @startTrackDate = null
-        @emit 'OnboardingItemCompleted'
+    return  unless targetElement.length
+
+    { placementX, placementY, offsetX, offsetY, content, tooltipPlacement, color, targetIsScrollable } = @getData()
+    @throbber = new ThrobberView {
+      cssClass    : kd.utils.curry color, if isModal then 'modal-throbber' else ''
+      delegate    : targetElement
+      tooltipText : "<div class='has-markdown'>#{applyMarkdown(content, { sanitize : no }) ? ''}</div>"
+      placementX
+      placementY
+      offsetX
+      offsetY
+      tooltipPlacement
+      targetIsScrollable
+    }
+    @throbber.on 'TooltipShown', =>
+      @startTrackDate = new Date()
+    @throbber.on 'TooltipClosed', =>
+      @removeThrobber()
+      if @startTrackDate
+        OnboardingMetrics.trackView onboardingName, name, new Date() - @startTrackDate
+      @startTrackDate = null
+      @emit 'OnboardingItemCompleted'
 
 
   isReady: -> @throbber?
-
-
-  isTargetVisible: ->
-
-    return @targetElement and
-    @targetElement.is(':visible') and
-    @targetElement.css('visibility') isnt 'hidden'
 
 
   ###*
@@ -71,28 +65,16 @@ module.exports = class OnboardingItemView extends KDView
   getElementByPath: (path) ->
 
     path = htmlencode.htmlDecode path
-    element = $(path).first()
+    element = $(path).filter((i, item) -> helper.isElementVisible item).first()
 
 
   ###*
    * Refreshes throbber according to the target element
-   * visibility and position.
-   * If target element is absent, it tries to find it in DOM
-   * and if it exists, re-renders throbber for it
   ###
   refresh: ->
 
-    if @targetElement?.closest('body').length
-      if @isTargetVisible()
-        if @throbber
-          @throbber.setPosition()
-        else
-          @render()
-      else
-        @removeThrobber()
-    else
-      @removeThrobber()
-      @render()
+    @removeThrobber()
+    @render()
 
 
   removeThrobber: ->
@@ -105,6 +87,15 @@ module.exports = class OnboardingItemView extends KDView
 
   destroy: ->
 
-    @targetElement = null
     @removeThrobber()
     super
+
+
+  helper =
+
+    isElementVisible: (element) ->
+
+      return  unless element
+
+      element = $(element)
+      return element.is(':visible') and element.css('visibility') isnt 'hidden'

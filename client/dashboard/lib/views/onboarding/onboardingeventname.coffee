@@ -8,3 +8,4 @@ module.exports =
   TeamBillingViewed       : 'Team Billing viewed'
   KodingUtilitiesViewed   : 'Koding Utilities viewed'
   MyAccountViewed         : 'My Account information viewed'
+  StackEditorOpened       : 'Stack editor opened'
