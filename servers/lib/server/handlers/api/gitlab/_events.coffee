@@ -1,7 +1,7 @@
 # Events from GitLab System Hooks
 # Extracted from http://docs.gitlab.com/ee/system_hooks/system_hooks.html
 
-KNOWN_EVENTS = [
+module.exports = KNOWN_EVENTS = [
   'project_create'
   'project_destroy'
   'project_rename'
