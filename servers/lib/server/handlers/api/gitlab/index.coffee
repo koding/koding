@@ -19,5 +19,16 @@ module.exports = GitLabHandler = (req, res, next) ->
 
   Models = (require '../../../bongo').models
 
+  if not event = validateRequest req
+    return sendApiError res, 'not valid'
 
-  sendApiResponse res, 'ok'
+  { scope, method } = parseEvent event
+
+  if not handler = HANDLERS[scope]
+    return sendApiError res, 'not valid'
+
+  log "Processing #{method} on #{scope}..."
+
+  handler[method] req.body, (err) ->
+    if err then sendApiError res, err
+    else sendApiResponse res, 'ok'
