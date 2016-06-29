@@ -31,6 +31,7 @@ module.exports = class JSession extends Model
         type            : Date
         default         : -> new Date
       foreignAuth       :
+        gitlab          : Object
         github          : Object
         facebook        : Object
         linkedin        : Object
