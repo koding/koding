@@ -116,13 +116,17 @@ module.exports = class StackEditorAppController extends AppController
     editor.show()
 
 
+  removeEditor: (templateId) ->
+
+    editor = @editors[templateId]
+    delete @editors[templateId]
+
+    editor?.destroy()
+
+
   reloadEditor: (template) ->
 
-    editor = @editors[template._id]
-    delete @editors[template._id]
-
-    editor.destroy()
-
+    @removeEditor template._id
     @showView template
 
 
