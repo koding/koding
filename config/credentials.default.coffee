@@ -107,6 +107,7 @@ module.exports = (options) ->
     applicationId: ''
     applicationSecret: ''
     redirectUri: "http://dev.koding.com:8090/-/oauth/gitlab/callback"
+    systemHookToken: 'some-random-token-here'
   facebook =
     clientId: ''
     clientSecret: ''
