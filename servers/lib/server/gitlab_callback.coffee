@@ -83,7 +83,7 @@ module.exports = (req, res) ->
   path += "client_id=#{gitlab.applicationId}&"
   path += "client_secret=#{gitlab.applicationSecret}&"
   path += "code=#{code}&"
-  path += "grant_type=authorization_code&"
+  path += 'grant_type=authorization_code&'
   path += "redirect_uri=#{gitlab.redirectUri}"
 
   options   =

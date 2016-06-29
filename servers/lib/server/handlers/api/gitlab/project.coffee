@@ -4,13 +4,11 @@ module.exports = class Project extends GenericHandler
 
 
   # event project_create
-  @create = (data, callback = ->) ->
-    {
-     name
-     owner_email
-     path_with_namespace
-     project_visibility
-    } = data
+  @create = (data, callback = -> ) ->
+    { name
+      owner_email
+      path_with_namespace
+      project_visibility } = data
 
     # IMPLEMENT ME
 
@@ -18,13 +16,11 @@ module.exports = class Project extends GenericHandler
 
 
   # event project_destroy
-  @destroy = (data, callback = ->) ->
-    {
-     name
-     owner_email
-     path_with_namespace
-     project_visibility
-    } = data
+  @destroy = (data, callback = -> ) ->
+    { name
+      owner_email
+      path_with_namespace
+      project_visibility } = data
 
     # IMPLEMENT ME
 
@@ -32,14 +28,12 @@ module.exports = class Project extends GenericHandler
 
 
   # event project_rename
-  @rename = (data, callback = ->) ->
-    {
-     name
-     owner_email
-     path_with_namespace
-     old_path_with_namespace
-     project_visibility
-    } = data
+  @rename = (data, callback = -> ) ->
+    { name
+      owner_email
+      path_with_namespace
+      old_path_with_namespace
+      project_visibility } = data
 
     # IMPLEMENT ME
 
@@ -47,14 +41,12 @@ module.exports = class Project extends GenericHandler
 
 
   # event project_transfer
-  @transfer = (data, callback = ->) ->
-    {
-     name
-     owner_email
-     path_with_namespace
-     old_path_with_namespace
-     project_visibility
-    } = data
+  @transfer = (data, callback = -> ) ->
+    { name
+      owner_email
+      path_with_namespace
+      old_path_with_namespace
+      project_visibility } = data
 
     # IMPLEMENT ME
 
