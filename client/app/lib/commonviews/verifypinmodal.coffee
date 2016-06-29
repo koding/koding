@@ -27,7 +27,7 @@ module.exports = class VerifyPINModal extends ContentModal
             fields                :
               pin                 :
                 name              : 'pin'
-                placeholder       : 'Code'
+                placeholder       : 'Enter pin code'
                 label             : 'Pin code'
                 testPath          : 'account-email-pin'
                 validate          :
