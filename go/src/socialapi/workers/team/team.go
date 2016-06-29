@@ -2,32 +2,46 @@
 package team
 
 import (
+	"errors"
+	mongomodels "koding/db/models"
 	"socialapi/config"
 	"socialapi/models"
 	notymodels "socialapi/workers/notification/models"
+	"strings"
 
 	"koding/db/mongodb/modelhelper"
 	"strconv"
 
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 
+	"github.com/f2prateek/clearbit-go"
 	"github.com/hashicorp/go-multierror"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
 
+var (
+	ErrCompanyNameNotFound     = errors.New("company name not found")
+	ErrCompanyMetricsNotFound  = errors.New("company metrics not found")
+	ErrCompanyEmployeeNotFound = errors.New("company employee not found")
+	ErrCompanyDomainNotFound   = errors.New("company domain not found")
+)
+
 // Controller holds the required parameters for team async operations
 type Controller struct {
-	log    logging.Logger
-	config *config.Config
+	log      logging.Logger
+	config   *config.Config
+	clearbit clearbit.Clearbit
 }
 
 // NewController creates a handler for consuming async operations of team
 func NewController(log logging.Logger, config *config.Config) *Controller {
 	return &Controller{
-		log:    log,
-		config: config,
+		log:      log,
+		config:   config,
+		clearbit: clearbit.New(config.Clearbit),
 	}
 }
 
@@ -74,6 +88,102 @@ func (c *Controller) HandleChannel(channel *models.Channel) error {
 	}
 
 	return nil
+}
+
+// HandleCreator finds the creator of the channel, and tries to find its
+// company name according to its email address
+func (c *Controller) HandleCreator(channel *models.Channel) error {
+	if channel.TypeConstant != models.Channel_TYPE_GROUP {
+		return nil
+	}
+
+	creator, err := models.Cache.Account.ById(channel.CreatorId)
+	if err != nil {
+		return err
+	}
+
+	user, err := modelhelper.GetUser(creator.Nick)
+	if err != nil {
+		return err
+	}
+
+	// if user already has company, no need to fetch user's company info again.
+	if user.CompanyId.Hex() != "" {
+		return nil
+	}
+
+	// if user has no company data, then try to fetch info about company of user.
+	userData, err := c.clearbit.Enrichment().Combined(user.Email)
+	if err != nil {
+		return err
+	}
+
+	// if code line reach to here, it means that we got user's company data,
+	// after that we are going to update user's data.
+	// TODO ~mehmetalisavas
+	// reduce code complexity for readability
+	if userData.Company != nil {
+		if userData.Company.Name != nil {
+			company, err := modelhelper.GetCompanyByNameOrSlug(*userData.Company.Name)
+			if err != nil {
+				if err == mgo.ErrNotFound {
+					cmpany, err := checkValuesForCompany(userData.Company)
+					if err != nil {
+						return nil
+					}
+
+					// CREATE Company
+					if err := modelhelper.CreateCompany(cmpany); err != nil {
+						return err
+					}
+					com, err := modelhelper.GetCompanyByNameOrSlug(company.Name)
+					if err != nil {
+						return err
+					}
+
+					selector := bson.M{"username": user.Name}
+					update := bson.M{"companyId": com.Id}
+					if err := modelhelper.UpdateUser(selector, update); err != nil {
+						return err
+					}
+					// if error is not RecordNotFound but isnt nil also, then return err
+				} else {
+					return err
+				}
+			}
+
+			// update the company info of user if company exist in mongo
+			selector := bson.M{"username": user.Name}
+			update := bson.M{"companyId": company.Id}
+			if err := modelhelper.UpdateUser(selector, update); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func checkValuesForCompany(company *clearbit.Company) (*mongomodels.Company, error) {
+	if company.Name == nil {
+		return nil, ErrCompanyNameNotFound
+	}
+	if company.Metrics == nil {
+		return nil, ErrCompanyMetricsNotFound
+	}
+	if company.Metrics.Employees == nil {
+		return nil, ErrCompanyEmployeeNotFound
+	}
+	if company.Domain == nil {
+		return nil, ErrCompanyDomainNotFound
+	}
+
+	return &mongomodels.Company{
+		Name:      *company.Name,
+		Slug:      strings.ToLower(*company.Name),
+		Employees: *company.Metrics.Employees,
+		Domain:    *company.Domain,
+	}, nil
 }
 
 // HandleParticipant handles participant operations
