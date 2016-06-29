@@ -72,6 +72,113 @@ module.exports = {
     'project_visibility'          : 'private'
   }
 
+  'user_remove_from_team'         : {
+    'created_at'                  : '2012-07-21T07:30:56Z'
+    'updated_at'                  : '2012-07-21T07:38:22Z'
+    'event_name'                  : 'user_remove_from_team'
+    'project_access'              : 'Master'
+    'project_id'                  : 74
+    'project_name'                : 'StoreCloud'
+    'project_path'                : 'storecloud'
+    'project_path_with_namespace' : 'jsmith/storecloud'
+    'user_email'                  : 'johnsmith@gmail.com'
+    'user_name'                   : 'John Smith'
+    'user_username'               : 'johnsmith'
+    'user_id'                     : 41
+    'project_visibility'          : 'private'
+  }
+
+  'user_add_to_group'             : {
+    'created_at'                  : '2012-07-21T07:30:56Z'
+    'updated_at'                  : '2012-07-21T07:38:22Z'
+    'event_name'                  : 'user_add_to_group'
+    'group_access'                : 'Master'
+    'group_id'                    : 78
+    'group_name'                  : 'StoreCloud'
+    'group_path'                  : 'storecloud'
+    'user_email'                  : 'johnsmith@gmail.com'
+    'user_name'                   : 'John Smith'
+    'user_username'               : 'johnsmith'
+    'user_id'                     : 41
+  }
+
+  'user_remove_from_group'        : {
+    'created_at'                  : '2012-07-21T07:30:56Z'
+    'updated_at'                  : '2012-07-21T07:38:22Z'
+    'event_name'                  : 'user_remove_from_group'
+    'group_access'                : 'Master'
+    'group_id'                    : 78
+    'group_name'                  : 'StoreCloud'
+    'group_path'                  : 'storecloud'
+    'user_email'                  : 'johnsmith@gmail.com'
+    'user_name'                   : 'John Smith'
+    'user_username'               : 'johnsmith'
+    'user_id'                     : 41
+  }
+
+  'user_create'                   : {
+    'created_at'                  : '2012-07-21T07:44:07Z'
+    'updated_at'                  : '2012-07-21T07:38:22Z'
+    'email'                       : 'js@gitlabhq.com'
+    'event_name'                  : 'user_create'
+    'name'                        : 'John Smith'
+    'username'                    : 'js'
+    'user_id'                     : 41
+  }
+
+  'user_destroy'                  : {
+    'created_at'                  : '2012-07-21T07:44:07Z'
+    'updated_at'                  : '2012-07-21T07:38:22Z'
+    'email'                       : 'js@gitlabhq.com'
+    'event_name'                  : 'user_destroy'
+    'name'                        : 'John Smith'
+    'username'                    : 'js'
+    'user_id'                     : 41
+  }
+
+  # ----------------
+
+  'key_create'                    : {
+    'event_name'                  : 'key_create'
+    'created_at'                  : '2014-08-18 18:45:16 UTC'
+    'updated_at'                  : '2012-07-21T07:38:22Z'
+    'username'                    : 'root'
+    'key'                         : 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC58FwqHUbebw2SdT7SP4FxZ0w+lAO/erhy2ylhlcW/tZ3GY3mBu9VeeiSGoGz8hCx80Zrz+aQv28xfFfKlC8XQFpCWwsnWnQqO2Lv9bS8V1fIHgMxOHIt5Vs+9CAWGCCvUOAurjsUDoE2ALIXLDMKnJxcxD13XjWdK54j6ZXDB4syLF0C2PnAQSVY9X7MfCYwtuFmhQhKaBussAXpaVMRHltie3UYSBUUuZaB3J4cg/7TxlmxcNd+ppPRIpSZAB0NI6aOnqoBCpimscO/VpQRJMVLr3XiSYeT6HBiDXWHnIVPfQc03OGcaFqOit6p8lYKMaP/iUQLm+pgpZqrXZ9vB john@localhost'
+    'id'                          : 4
+  }
+
+  'key_destroy'                   : {
+    'event_name'                  : 'key_destroy'
+    'created_at'                  : '2014-08-18 18:45:16 UTC'
+    'updated_at'                  : '2012-07-21T07:38:22Z'
+    'username'                    : 'root'
+    'key'                         : 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC58FwqHUbebw2SdT7SP4FxZ0w+lAO/erhy2ylhlcW/tZ3GY3mBu9VeeiSGoGz8hCx80Zrz+aQv28xfFfKlC8XQFpCWwsnWnQqO2Lv9bS8V1fIHgMxOHIt5Vs+9CAWGCCvUOAurjsUDoE2ALIXLDMKnJxcxD13XjWdK54j6ZXDB4syLF0C2PnAQSVY9X7MfCYwtuFmhQhKaBussAXpaVMRHltie3UYSBUUuZaB3J4cg/7TxlmxcNd+ppPRIpSZAB0NI6aOnqoBCpimscO/VpQRJMVLr3XiSYeT6HBiDXWHnIVPfQc03OGcaFqOit6p8lYKMaP/iUQLm+pgpZqrXZ9vB john@localhost'
+    'id'                          : 4
+  }
+
+  # ----------------
+
+  'group_create'                  : {
+    'created_at'                  : '2012-07-21T07:30:54Z'
+    'updated_at'                  : '2012-07-21T07:38:22Z'
+    'event_name'                  : 'group_create'
+    'name'                        : 'StoreCloud'
+    'owner_email'                 : 'johnsmith@gmail.com'
+    'owner_name'                  : 'John Smith'
+    'path'                        : 'storecloud'
+    'group_id'                    : 78
+  }
+
+  'group_destroy'                 : {
+    'created_at'                  : '2012-07-21T07:30:54Z'
+    'updated_at'                  : '2012-07-21T07:38:22Z'
+    'event_name'                  : 'group_destroy'
+    'name'                        : 'StoreCloud'
+    'owner_email'                 : 'johnsmith@gmail.com'
+    'owner_name'                  : 'John Smith'
+    'path'                        : 'storecloud'
+    'group_id'                    : 78
+  }
 
   # ----------------
 
