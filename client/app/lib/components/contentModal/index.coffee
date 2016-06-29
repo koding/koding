@@ -73,7 +73,4 @@ module.exports = class ContentModal extends kd.ModalView
         button.setClass 'cancel'
       else
         button.setAttribute 'testpath', 'proceed'
-      @footer.addSubView button
-
-  getButtons: ->
-    @footer.subViews.filter (s) -> s.getElement().tagName is 'BUTTON'
+      @footer.addSubView @["button_#{key}"] = button
