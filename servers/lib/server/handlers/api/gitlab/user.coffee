@@ -4,12 +4,10 @@ module.exports = class User extends GenericHandler
 
 
   # event user_create
-  @create = (data, callback = ->) ->
-    {
-     username
-     email
-     name
-    } = data
+  @create = (data, callback = -> ) ->
+    { username
+      email
+      name } = data
 
     # IMPLEMENT ME
 
@@ -17,12 +15,10 @@ module.exports = class User extends GenericHandler
 
 
   # event user_destroy
-  @destroy = (data, callback = ->) ->
-    {
-     username
-     email
-     name
-    } = data
+  @destroy = (data, callback = -> ) ->
+    { username
+      email
+      name } = data
 
     # IMPLEMENT ME
 
@@ -30,12 +26,10 @@ module.exports = class User extends GenericHandler
 
 
   # event user_add_to_team
-  @add_to_team = (data, callback = ->) ->
-    {
-     project_path_with_namespace
-     user_username
-     user_email
-    } = data
+  @add_to_team = (data, callback = -> ) ->
+    { project_path_with_namespace
+      user_username
+      user_email } = data
 
     # IMPLEMENT ME
 
@@ -43,12 +37,10 @@ module.exports = class User extends GenericHandler
 
 
   # event user_remove_from_team
-  @remove_from_team = (data, callback = ->) ->
-    {
-     project_path_with_namespace
-     user_username
-     user_email
-    } = data
+  @remove_from_team = (data, callback = -> ) ->
+    { project_path_with_namespace
+      user_username
+      user_email } = data
 
     # IMPLEMENT ME
 
@@ -56,14 +48,12 @@ module.exports = class User extends GenericHandler
 
 
   # event user_add_to_group
-  @add_to_group = (data, callback = ->) ->
-    {
-     group_path
-     group_access
-     user_name
-     user_email
-     user_username
-    } = data
+  @add_to_group = (data, callback = -> ) ->
+    { group_path
+      group_access
+      user_name
+      user_email
+      user_username } = data
 
     # IMPLEMENT ME
 
@@ -71,14 +61,12 @@ module.exports = class User extends GenericHandler
 
 
   # event user_remove_from_group
-  @remove_from_group = (data, callback = ->) ->
-    {
-     group_path
-     group_access
-     user_name
-     user_email
-     user_username
-    } = data
+  @remove_from_group = (data, callback = -> ) ->
+    { group_path
+      group_access
+      user_name
+      user_email
+      user_username } = data
 
     # IMPLEMENT ME
 

@@ -4,11 +4,9 @@ module.exports = class Key extends GenericHandler
 
 
   # event key_create
-  @create = (data, callback = ->) ->
-    {
-     username
-     key
-    } = data
+  @create = (data, callback = -> ) ->
+    { username
+      key } = data
 
     # IMPLEMENT ME
 
@@ -16,11 +14,9 @@ module.exports = class Key extends GenericHandler
 
 
   # event key_destroy
-  @destroy = (data, callback = ->) ->
-    {
-     username
-     key
-    } = data
+  @destroy = (data, callback = -> ) ->
+    { username
+      key } = data
 
     # IMPLEMENT ME
 

@@ -4,13 +4,11 @@ module.exports = class Group extends GenericHandler
 
 
   # event group_create
-  @create = (data, callback = ->) ->
-    {
-     name
-     path
-     owner_email
-     owner_name
-    } = data
+  @create = (data, callback = -> ) ->
+    { name
+      path
+      owner_email
+      owner_name } = data
 
     # IMPLEMENT ME
 
@@ -18,13 +16,11 @@ module.exports = class Group extends GenericHandler
 
 
   # event group_destroy
-  @destroy = (data, callback = ->) ->
-    {
-     name
-     path
-     owner_email
-     owner_name
-    } = data
+  @destroy = (data, callback = -> ) ->
+    { name
+      path
+      owner_email
+      owner_name } = data
 
     # IMPLEMENT ME
 
