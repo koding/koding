@@ -110,3 +110,17 @@ module.exports = RemoteExtensions =
 
         instance.__lastUpdate = timestamp
         instance.emit 'updateInstance', change
+
+
+  removeInstance: (data) ->
+
+    return  unless data
+
+    { id: instanceId } = data
+
+    return  if (instances = @getInstances instanceId).length is 0
+
+    instances.forEach (instance) -> instance.emit 'deleteInstance'
+
+    @setInstances instanceId, null
+
