@@ -37,6 +37,7 @@ module.exports = class OAuth extends bongo.Base
         host = options.host ? host
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
         url = "#{host}/oauth/authorize?client_id=#{applicationId}&redirect_uri=#{redirectUri}&response_type=code"
+        url = "http://#{host}/oauth/authorize?client_id=#{applicationId}&redirect_uri=#{redirectUri}&response_type=code"
         callback null, url
       when 'facebook'
         { clientId } = KONFIG.facebook
