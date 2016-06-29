@@ -74,11 +74,14 @@ module.exports = class AddManagedMachineModal extends ContentModal
 
         return @handleError err  if err
 
+        # FIXME ~ GG
         { plan, usage, plans } = userPlanInfo
         limit = plans[plan].managed
         used  = usage.total
 
-        return @handleUsageLimit()  if used >= limit
+        # this is hard coded for now
+        # we dont allow to add more than 3 managed VMs
+        return @handleUsageLimit()  if used >= 3
 
         whoami().fetchOtaToken (err, token) =>
           return @handleError err  if err
