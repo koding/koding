@@ -110,10 +110,12 @@ module.exports = class StackEditorAppController extends AppController
 
       view.getElement().removeAttribute 'testpath'
       view.hide()
+      @selectedEditor = null
 
     # show the correct editor.
     editor.setAttribute 'testpath', 'StackEditor-isVisible'
     editor.show()
+    @selectedEditor = editor
 
 
   removeEditor: (templateId) ->
