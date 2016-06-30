@@ -179,8 +179,12 @@ module.exports = class CredentialsController extends kd.Controller
     { verified, message } = status
     return { verified }  if verified
 
-    message = message.split('\n')[..-2].join ''  if message
-    return { err : message or CREDENTIAL_VERIFICATION_ERROR_MESSAGE }
+    return { err : CREDENTIAL_VERIFICATION_ERROR_MESSAGE }  unless message
+
+    messageLines = message.split('\n')
+    if messageLines.length > 1
+      message = messageLines[..-2].join ''
+    return { err : message }
 
 
   show: ->
