@@ -193,12 +193,29 @@ handleUsername = (username, suggestedUsername, callback) ->
     return callback err  if err
     return callback null, username_
 
+
+validateUsername = (username, callback) ->
+
+  { JUser } = koding.models
+
+  # checking if username has valid length
+  unless isUsernameLengthValid username
+    return callback apiErrors.outOfRangeUsername
+
+  # checking if username is available
+  JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
+    return callback apiErrors.internalError          if err
+    return callback apiErrors.usernameAlreadyExists  if kodingUser or forbidden
+    return callback null
+
+
 module.exports = {
   sendApiError
   handleUsername
   verifyApiToken
-  validateJWTToken
   sendApiResponse
+  validateJWTToken
+  validateUsername
   checkApiAvailability
   isUsernameLengthValid
   verifySessionOrApiToken

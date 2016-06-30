@@ -9,6 +9,7 @@ apiErrors                          = require './errors'
   handleUsername
   verifyApiToken
   sendApiResponse
+  validateUsername
   checkApiAvailability
   isUsernameLengthValid
   isSuggestedUsernameLengthValid } = require './helpers'
@@ -99,23 +100,6 @@ validateData = (data, callback) ->
       return callback err  if err
 
       callback null, { apiToken, username }
-
-
-
-validateUsername = (username, callback) ->
-
-  { JUser } = koding.models
-
-  # checking if username has valid length
-  unless isUsernameLengthValid username
-    return callback apiErrors.outOfRangeUsername
-
-  # checking if username is available
-  JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
-    return callback apiErrors.internalError          if err
-    return callback apiErrors.usernameAlreadyExists  if kodingUser or forbidden
-    return callback null
-
 
 
 validateRequest = (req) ->
