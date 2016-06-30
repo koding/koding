@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"koding/klient/logfetcher"
+	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/util"
 	"os"
@@ -94,13 +95,11 @@ func (c *Command) Run() (int, error) {
 // handleOptions deals with options, erroring if options are missing, etc.
 func (c *Command) handleOptions() error {
 	if c.Options.KdLogLocation == "" {
-		// TODO: !! Get from Service, for multi OS support
-		c.Options.KdLogLocation = "/Library/Logs/kd.log"
+		c.Options.KdLogLocation = config.GetKdLogPath()
 	}
 
 	if c.Options.KlientLogLocation == "" {
-		// TODO: !! Get from Service, for multi OS support
-		c.Options.KlientLogLocation = "/Library/Logs/klient.log"
+		c.Options.KlientLogLocation = config.GetKlientLogPath()
 	}
 
 	if c.Options.Lines == 0 {
@@ -128,20 +127,25 @@ func (c *Command) tailFile(path string, n int) error {
 	return nil
 }
 
-func (c *Command) tailLogs() error {
+func (c *Command) tailLogs() (err error) {
 	if c.Options.KdLog {
-		err := c.tailFile(c.Options.KdLogLocation, c.Options.Lines)
+		logLoc := c.Options.KdLogLocation
+		err = c.tailFile(logLoc, c.Options.Lines)
+
+		// Just logging here, because we want to print both logs if possible.
 		if err != nil {
-			return err
+			c.Log.Error("Tailing %q returned err: %s", logLoc, err)
 		}
 	}
 
 	if c.Options.KlientLog {
-		err := c.tailFile(c.Options.KlientLogLocation, c.Options.Lines)
+		logLoc := c.Options.KlientLogLocation
+		err = c.tailFile(logLoc, c.Options.Lines)
+		// Just logging here, because we want to print both logs if possible.
 		if err != nil {
-			return err
+			c.Log.Error("Tailing %q returned err: %s", logLoc, err)
 		}
 	}
 
-	return nil
+	return err
 }
