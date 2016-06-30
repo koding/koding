@@ -17,7 +17,15 @@ func CreateCompany(c *models.Company) error {
 		return err
 	}
 
-	query := insertQuery(c)
+	company := &models.Company{
+		Id:        bson.NewObjectId(),
+		Name:      c.Name,
+		Slug:      c.Slug,
+		Employees: c.Employees,
+		Domain:    c.Domain,
+	}
+
+	query := insertQuery(company)
 	return Mongo.Run(CompanyColl, query)
 }
 
