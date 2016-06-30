@@ -263,8 +263,8 @@ module.exports = class ManagedKiteChecker extends kd.Object
       return kd.error err  if err
 
       { plan, plans, usage } = planCombo
-
-      hasAllowances = usage.total < plans[plan].managed
+      # FIXME ~ GG
+      hasAllowances = usage.total < 3
       callback hasAllowances
 
 

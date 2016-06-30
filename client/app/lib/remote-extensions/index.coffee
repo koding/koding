@@ -2,6 +2,10 @@ globals        = require 'globals'
 REMOTE_CACHE   = {}
 whoami = require 'app/util/whoami'
 
+FORCE_CACHE_LIST = [
+  'JStackTemplate'
+]
+
 module.exports = RemoteExtensions =
 
 
@@ -27,7 +31,8 @@ module.exports = RemoteExtensions =
         # if update listener is added. which is used by kd.js to get data
         # update and redraw the ui components attached to it.
         @on 'newListener', (listener) =>
-          return  unless listener is 'update'
+          if model not in FORCE_CACHE_LIST
+            return  unless listener is 'update'
           # microemitter fires the `newListener` event before setting
           # the event itself so we need to wait for it until it's set.
           process.nextTick => RemoteExtensions.addInstance data._id, this
@@ -60,7 +65,8 @@ module.exports = RemoteExtensions =
 
   addInstance: (instanceId, instance) ->
 
-    return  unless instance._events?.update?
+    if instance.constructor.name not in FORCE_CACHE_LIST
+      return  unless instance._events?.update?
 
     instances  = @getCache()[instanceId]
     instances ?= []
@@ -104,3 +110,17 @@ module.exports = RemoteExtensions =
 
         instance.__lastUpdate = timestamp
         instance.emit 'updateInstance', change
+
+
+  removeInstance: (data) ->
+
+    return  unless data
+
+    { id: instanceId } = data
+
+    return  if (instances = @getInstances instanceId).length is 0
+
+    instances.forEach (instance) -> instance.emit 'deleteInstance'
+
+    @setInstances instanceId, null
+

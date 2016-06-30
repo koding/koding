@@ -81,6 +81,8 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
   handleIdentifier: (identifier, action) ->
 
+    { onboarding } = kd.singletons
+
     for pane in @tabView.panes when kd.utils.slugify(pane.name) is action
       pane_ = @tabView.showPane pane
       if action is 'virtual-machines'
@@ -92,6 +94,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
         VirtualMachinesSelectedMachineFlux.actions.setSelectedMachine identifier
         EnvironmentFlux.actions.loadMachineSharedUsers machine.get '_id'
+        onboarding.run 'VMsViewed', yes
       break
 
   createStacksViews: ->

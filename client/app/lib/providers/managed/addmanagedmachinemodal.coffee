@@ -74,11 +74,14 @@ module.exports = class AddManagedMachineModal extends ContentModal
 
         return @handleError err  if err
 
+        # FIXME ~ GG
         { plan, usage, plans } = userPlanInfo
         limit = plans[plan].managed
         used  = usage.total
 
-        return @handleUsageLimit()  if used >= limit
+        # this is hard coded for now
+        # we dont allow to add more than 3 managed VMs
+        return @handleUsageLimit()  if used >= 3
 
         whoami().fetchOtaToken (err, token) =>
           return @handleError err  if err
@@ -118,7 +121,11 @@ module.exports = class AddManagedMachineModal extends ContentModal
     computeController.managedKiteChecker.addListener @bound 'machineFoundCallback'
 
     kd.utils.wait 20000, =>
-      @main.addSubView new kd.LoaderView { showLoader: yes, size: { width: 26 } }
+      @main.addSubView new kd.LoaderView
+        cssClass : 'machine-search-loader'
+        showLoader: yes
+        size: { width: 26 }
+
       @setClass 'polling'
 
 
@@ -144,10 +151,11 @@ module.exports = class AddManagedMachineModal extends ContentModal
 
   handleUsageLimit: ->
 
-    @setTitle 'Uh oh! You already have a managed machine!'
-
     @code.destroy()
     @content.updatePartial '''
+      <h>
+        'Uh oh! You already have a managed machine!'
+      </h>
       <p>
         Free Koding accounts are limited to adding one external machine and
         you already have one connected. Paid accounts are allowed to add unlimited external machines.
