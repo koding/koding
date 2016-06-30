@@ -46,16 +46,16 @@ module.exports = class ContentModal extends kd.ModalView
       tagName : 'main'
       cssClass : 'main-container'
 
-
-    if typeof content is 'string'
-      @main.setPartial content
-    else
-      @main.addSubView content
-
+    if content
+      if typeof content is 'string'
+        @main.setPartial content
+      else
+        @main.addSubView content
 
     if tabs
       @main.addSubView @modalTabs = new kd.TabViewWithForms tabs
       @setClass 'with-form'
+      @main.setClass 'tabview'
 
 
   createFooter: ->
@@ -73,7 +73,4 @@ module.exports = class ContentModal extends kd.ModalView
         button.setClass 'cancel'
       else
         button.setAttribute 'testpath', 'proceed'
-      @footer.addSubView button
-
-  getButtons: ->
-    @footer.subViews.filter (s) -> s.getElement().tagName is 'BUTTON'
+      @footer.addSubView @["button_#{key}"] = button

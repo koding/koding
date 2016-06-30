@@ -1446,13 +1446,14 @@ module.exports = class JAccount extends jraphical.Module
     { sessionToken } = client
     return callback new KodingError 'Invalid session.'  unless sessionToken
 
-    { skip, limit } = options
+    { skip, limit, sort } = options
     skip  ?= 0
     limit ?= 10
+    sort  ?= { '_id' : -1 }
 
     username = @profile.nickname
     selector = { username }
-    options  = { limit, skip }
+    options  = { limit, skip, sort }
     JSession = require './session'
     JSession.some selector, options, callback
 

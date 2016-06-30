@@ -159,17 +159,21 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     { frontApp } = kd.singletons.appManager
 
     modal = new ContentModal
-      title         : 'Would you like us to remove the pane when there are no tabs left?'
+      width         : 600
+      title         : 'Remove Pane'
       cssClass      : 'content-modal'
       content       : '''
+        <h>Would you like us to remove the pane when there are no tabs left?</h>
         <p>You can always change this setting on preferences.</p>
       '''
       overlay       : yes
       buttons       :
         'No'        :
+          title     : 'No'
           style     : 'solid medium'
           callback  : -> modal.destroy()
         'Yes'       :
+          title     : 'Yes'
           style     : 'solid medium'
           callback  : =>
             frontApp.settingsPane.emit 'EnableAutoRemovePane'

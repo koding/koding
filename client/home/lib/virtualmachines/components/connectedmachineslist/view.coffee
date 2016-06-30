@@ -50,6 +50,8 @@ module.exports = class ConnectedMachinesListView extends React.Component
 
     stack = @props.stacks.get rowIndex
 
+    return  unless stack
+
     machines = stack.get 'machines'
       .sort (a, b) -> a.get('label').localeCompare(b.get('label')) # Sorting from a to z
       .map (machine) =>

@@ -456,6 +456,10 @@ loadTeamStackTemplates = ->
 
     reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_SUCCESS, { query, templates }
 
+    templates.forEach (template) ->
+      template.on 'deleteInstance', ->
+        reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { template }
+
 
 loadPrivateStackTemplates = ->
 
@@ -473,6 +477,10 @@ loadPrivateStackTemplates = ->
     templates = templates.filter (t) -> t.accessLevel is 'private'
 
     reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_SUCCESS, { query, templates }
+
+    templates.forEach (template) ->
+      template.on 'deleteInstance', ->
+        reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { template }
 
 
 setMachineAlwaysOn = (machineId, state) ->

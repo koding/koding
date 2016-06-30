@@ -13,17 +13,6 @@ OnboardingConstants = require './onboardingconstants'
 ###
 module.exports = class OnboardingController extends KDController
 
-  ###*
-   * A list of onboardings that can be shown on the page at the same time
-  ###
-  CooperativeOnboardings = [
-    [
-      'IDELoaded'
-      #'CollaborationStarted'
-      'IDESettingsOpened'
-    ]
-  ]
-
   constructor: (options = {}, data) ->
 
     super options, data
@@ -100,7 +89,7 @@ module.exports = class OnboardingController extends KDController
 
     return @pendingQueue.push [].slice.call(arguments)  unless @isReady
 
-    @refreshCooperativeOnboardings name
+    @refresh()
 
     onboarding = @onboardings[name]
     return  unless onboarding
@@ -226,29 +215,13 @@ module.exports = class OnboardingController extends KDController
    * Refreshes onboarding items according to the state of elements
    * they are attached to. If elements are hidden, items get hidden too,
    * and vice versa.
-   * If onboarding has cooperative onboardings, they can be refreshed too
    *
-   * @param {string} name        - name of onboarding which items should be refreshed
-   * @param {bool} isCooperative - a flag shows if it's necessary to refresh cooperative onboardings
+   * @param {string} name - name of onboarding which items should be refreshed
   ###
-  refresh: (name, isCooperative = yes) ->
+  refresh: (name) ->
 
     @viewController.refreshItems name
-    @refreshCooperativeOnboardings name  if isCooperative
 
-
-  ###*
-   * Refreshes cooperative onboardings for specific onboarding
-   *
-   * @param {string} name - name of onboarding which should be checked
-   * for cooperative onboardings
-  ###
-  refreshCooperativeOnboardings: (name) ->
-
-    for onboardings in CooperativeOnboardings
-      if onboardings.indexOf(name) > -1
-        for cooperativeOnboarding in onboardings when cooperativeOnboarding isnt name
-          @refresh cooperativeOnboarding, no
 
   ###*
    * Removes onboarding items from the page

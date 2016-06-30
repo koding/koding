@@ -208,7 +208,10 @@ module.exports = class OnboardingView extends JView
         resource            :
           vagrant_instance  :
             localvm         :
-              user_data: '''
+              cpus          : 2
+              memory        : 2048
+              box           : 'ubuntu/trusty64'
+              user_data     : '''
                 sudo apt-get install sl -y
                 touch /tmp/${var.koding_user_username}.txt
               '''
