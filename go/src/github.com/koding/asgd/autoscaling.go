@@ -1,4 +1,4 @@
-package tunnelproxymanager
+package asgd
 
 import (
 	"errors"
@@ -59,7 +59,7 @@ func (l *LifeCycle) AttachNotificationToAutoScaling() error {
 
 // GetAutoScalingOperatingIPs gets the Healthy and InService servers' IP
 // addresses of an autscaling group
-func (l *LifeCycle) GetAutoScalingOperatingIPs() ([]*string, error) {
+func (l *LifeCycle) GetAutoScalingOperatingMachines() ([]*ec2.Instance, error) {
 	if l.asgName == nil {
 		return nil, errASGNameNotSet
 	}
@@ -99,7 +99,8 @@ func (l *LifeCycle) GetAutoScalingOperatingIPs() ([]*string, error) {
 	if insResp == nil || insResp.Reservations == nil {
 		return nil, errors.New("describe instances response is malformed")
 	}
-	return mapPublicIps(insResp), nil
+
+	return mapMachines(insResp), nil
 }
 
 func filterHealthyInstances(asResp *autoscaling.DescribeAutoScalingGroupsOutput) []*string {
@@ -115,12 +116,13 @@ func filterHealthyInstances(asResp *autoscaling.DescribeAutoScalingGroupsOutput)
 	return healthyInstances
 }
 
-func mapPublicIps(insResp *ec2.DescribeInstancesOutput) []*string {
-	publicIps := make([]*string, 0)
+func mapMachines(insResp *ec2.DescribeInstancesOutput) []*ec2.Instance {
+	var machines []*ec2.Instance
 	for _, reservation := range insResp.Reservations {
 		for _, instance := range reservation.Instances {
-			publicIps = append(publicIps, instance.PublicIpAddress)
+			machines = append(machines, instance)
 		}
 	}
-	return publicIps
+
+	return machines
 }
