@@ -13,6 +13,7 @@ module.exports = (options = {}, callback) ->
 
 
   prefetchedFeeds     = null
+  socialapidata       = null
   currentGroup        = null
   userMachines        = null
   userWorkspaces      = null
@@ -34,6 +35,8 @@ module.exports = (options = {}, callback) ->
     config               = JSON.stringify client.runtimeOptions, replacer
     userRoles            = JSON.stringify roles, replacer
     userPermissions      = JSON.stringify permissions, replacer
+
+    encodedSocialApiData = JSON.stringify socialapidata, replacer
     currentGroup         = JSON.stringify currentGroup, replacer
     userAccount          = JSON.stringify delegate, replacer
     userMachines         = JSON.stringify userMachines, replacer
@@ -62,6 +65,7 @@ module.exports = (options = {}, callback) ->
         userPermissions: #{userPermissions},
         currentGroup: #{currentGroup},
         isLoggedInOnLoad: true,
+        socialApiData: #{encodedSocialApiData},
         userEnvironmentData: #{userEnvironmentData}
       };
     </script>
@@ -100,6 +104,13 @@ module.exports = (options = {}, callback) ->
     """
 
   queue = [
+
+    (fin) ->
+       socialApiCacheFn = require '../cache/socialapi'
+       socialApiCacheFn options, (err, data) ->
+         console.error 'could not get prefetched data', err  if err
+         socialapidata = data
+         fin()
 
     (fin) ->
       groupName = session?.groupName or 'koding'
@@ -156,4 +167,4 @@ module.exports = (options = {}, callback) ->
         fin()
   ]
 
-  async.parallel queue, -> callback null, createHTML()
+  async.parallel queue, -> callback null, createHTML(), socialapidata

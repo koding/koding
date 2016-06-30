@@ -281,8 +281,14 @@ module.exports = class JStackTemplate extends Module
             "It's not allowed to delete in-use stack templates!", 'InUseByGroup'
 
         customCredentials = @getAt('credentials.custom') ? []
+        { context: { group }, connection: { delegate: account } } = client
 
-        @remove (err) ->
+        notifyOptions =
+          account: account
+          group: group
+          target: if @getAt('accessLevel') is 'group' then 'group' else 'account'
+
+        @removeAndNotify notifyOptions, (err) ->
           return callback err  if err
 
           # delete custom credentials if exists ~ GG

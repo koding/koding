@@ -21,6 +21,8 @@ module.exports = class StackEditorAppController extends AppController
     # a cache to register created views.
     @editors = {}
 
+    @selectedEditor = null
+
 
   openEditor: (stackTemplateId) ->
 
@@ -42,6 +44,14 @@ module.exports = class StackEditorAppController extends AppController
       computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
         return showError err  if err
         @showView stackTemplate
+
+        # If selected template is deleted, then redirect them to ide.
+        # TODO: show an information modal to the user if he/she is admin. ~Umut
+        stackTemplate.on 'deleteInstance', =>
+          return  if @selectedEditor.getData()._id isnt stackTemplate._id
+          @selectedEditor = null
+          @removeEditor stackTemplate._id
+          kd.singletons.router.handleRoute '/IDE'
     else
       @showView()
 
@@ -110,22 +120,28 @@ module.exports = class StackEditorAppController extends AppController
 
       view.getElement().removeAttribute 'testpath'
       view.hide()
+      @selectedEditor = null
 
     # show the correct editor.
     editor.setAttribute 'testpath', 'StackEditor-isVisible'
     editor.show()
+    @selectedEditor = editor
 
     { onboarding } = kd.singletons
     onboarding.run 'StackEditorOpened'
 
 
+  removeEditor: (templateId) ->
+
+    editor = @editors[templateId]
+    delete @editors[templateId]
+
+    editor?.destroy()
+
+
   reloadEditor: (template) ->
 
-    editor = @editors[template._id]
-    delete @editors[template._id]
-
-    editor.destroy()
-
+    @removeEditor template._id
     @showView template
 
 
