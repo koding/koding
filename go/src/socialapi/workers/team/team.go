@@ -120,36 +120,31 @@ func (c *Controller) HandleCreator(channel *models.Channel) error {
 
 	// if code line reach to here, it means that we got user's company data,
 	// after that we are going to update user's data.
-	// TODO ~mehmetalisavas
-	// reduce code complexity for readability
+	var company *mongomodels.Company
 	if userData.Company != nil {
 		if userData.Company.Name != nil {
-			company, err := modelhelper.GetCompanyByNameOrSlug(*userData.Company.Name)
-			if err != nil {
-				if err == mgo.ErrNotFound {
-					cmpany, err := checkValuesForCompany(userData.Company)
-					if err != nil {
-						return nil
-					}
+			company, err = modelhelper.GetCompanyByNameOrSlug(*userData.Company.Name)
+			if err != nil && err != mgo.ErrNotFound {
+				return err
+			}
 
-					// CREATE Company
-					if err := modelhelper.CreateCompany(cmpany); err != nil {
-						return err
-					}
-					com, err := modelhelper.GetCompanyByNameOrSlug(company.Name)
-					if err != nil {
-						return err
-					}
+			// if company is not found in db, then create new one
+			// after creation, update user's company with company id
+			if err == mgo.ErrNotFound {
+				companyData, err := checkValuesForCompany(userData.Company)
+				if err != nil {
+					return nil
+				}
 
-					selector := bson.M{"username": user.Name}
-					update := bson.M{"companyId": com.Id}
-					if err := modelhelper.UpdateUser(selector, update); err != nil {
-						return err
-					}
-					// if error is not RecordNotFound but isnt nil also, then return err
-				} else {
+				// create company in db if it doesn't exist
+				if err := modelhelper.CreateCompany(companyData); err != nil {
 					return err
 				}
+				company, err = modelhelper.GetCompanyByNameOrSlug(companyData.Name)
+				if err != nil {
+					return err
+				}
+
 			}
 
 			// update the company info of user if company exist in mongo
