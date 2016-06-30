@@ -3,6 +3,10 @@ koding   = require '../../bongo'
 
 KONFIG   = require 'koding-config-manager'
 Jwt      = require 'jsonwebtoken'
+async    = require 'async'
+hat      = require 'hat'
+
+apiErrors = require './errors'
 
 SUGGESTED_USERNAME_MIN_LENGTH = 4
 SUGGESTED_USERNAME_MAX_LENGTH = 15
@@ -148,8 +152,50 @@ verifySessionOrApiToken = (req, res, callback) ->
         callback { session }
 
 
+handleUsername = (username, suggestedUsername, callback) ->
+
+  queue = []
+
+  generateUsername = (next, results) ->
+    _username = "#{suggestedUsername}#{hat(32)}"
+    validateUsername _username, (err) ->
+      return next err  if err
+      next null, _username
+
+  queue.push (next) ->
+    # go next step and try suggestedUsername if no username is given
+    return next null, null  unless username
+
+    validateUsername username, (err) ->
+      if err
+        # try with suggestedUsername if one is given
+        return next null, null  if suggestedUsername
+        return next err
+
+      # no err, pass username to next function
+      next null, username
+
+  queue.push (username_, next) ->
+    # skip if username is returned from previous function
+    return next null, username_  if username_
+
+    # if suggestedUsername length is not valid, return error without trying
+    unless isSuggestedUsernameLengthValid suggestedUsername
+      return next apiErrors.outOfRangeSuggestedUsername
+
+    # try 10 times to generate a valid username
+    # will stop trying after first successful attempt
+    async.retry 10, generateUsername, (err, generatedUsername) ->
+      return next err  if err
+      next null, generatedUsername
+
+  async.waterfall queue, (err, username_) ->
+    return callback err  if err
+    return callback null, username_
+
 module.exports = {
   sendApiError
+  handleUsername
   verifyApiToken
   validateJWTToken
   sendApiResponse
