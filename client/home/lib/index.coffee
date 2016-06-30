@@ -57,13 +57,12 @@ module.exports = class HomeAppController extends AppController
 
     if identifier
       targetPaneView.handleIdentifier? identifier, action
-    else
+    else if action
       targetPaneView.handleAction? action
+    else
+      @doOnboarding targetPane
 
-    unless identifier and action
-      onboardingEvent = @getOnboardingEventByPane targetPane
-      kd.singletons.onboarding.run onboardingEvent, yes  if onboardingEvent
-      return
+    return  unless identifier and action
 
     targetPaneView.emit 'SubTabRequested', action, identifier
     { parentTabTitle } = targetPane.getOptions()
@@ -89,6 +88,16 @@ module.exports = class HomeAppController extends AppController
 
 
   fetchNavItems: (cb) -> cb TABS
+
+
+  doOnboarding: (pane) ->
+
+    { onboarding }  = kd.singletons
+    onboardingEvent = @getOnboardingEventByPane pane
+    if onboardingEvent
+      onboarding.run onboardingEvent, yes
+    else
+      onboarding.refresh()
 
 
   getOnboardingEventByPane: (pane) ->

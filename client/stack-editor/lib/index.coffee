@@ -115,6 +115,9 @@ module.exports = class StackEditorAppController extends AppController
     editor.setAttribute 'testpath', 'StackEditor-isVisible'
     editor.show()
 
+    { onboarding } = kd.singletons
+    onboarding.run 'StackEditorOpened'
+
 
   reloadEditor: (template) ->
 
@@ -167,5 +170,3 @@ module.exports = class StackEditorAppController extends AppController
     #       '''
 
     return view
-
-
