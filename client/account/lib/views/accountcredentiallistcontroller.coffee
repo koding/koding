@@ -96,18 +96,17 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
       listView.askForConfirm { credential, bootstrapped }, ({ action, modal }) =>
 
-        modal['button_Remove'].disable()
-
         switch action
 
           when 'Remove'
-            @removeCredential item, (err) -> modal.destroy()
+            @removeCredential item, -> modal.destroy()
 
           when 'DestroyAll'
             @destroyResources credential, (err) =>
               if err
-                modal.buttons.DestroyAll.hideLoader()
-                modal.buttons.Remove.enable()
+                modal['button_DestroyAll'].hideLoader()
+                modal['button_Remove'].hideLoader()
+                modal.destroy()
               else
                 @removeCredential item, -> modal.destroy()
 
