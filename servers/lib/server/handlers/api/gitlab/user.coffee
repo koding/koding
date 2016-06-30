@@ -69,13 +69,37 @@ module.exports = class User extends GenericHandler
 
   # event user_destroy
   @destroy = (data, callback = -> ) ->
-    { username
-      email
-      name } = data
 
-    # IMPLEMENT ME
+    { JSession, JUser } = @getModels()
+    { username, email, name } = data
+    bongo     = @getBongo()
+    groupName = 'gitlab'
 
-    callback { message: 'user destroy handler is not implemented' }
+    client = null
+    queue  = [
+
+      # make sure user exists before trying to unregister
+      (next) ->
+        JUser.one { username }, (err, user) ->
+          if err or not user
+            return next err ? { message: 'user not exists' }
+          next()
+
+      (next) ->
+        JSession.createNewSession { username, groupName }, (err, session) ->
+          if err or not session
+            return next err ? { message: 'user not exists' }
+
+          bongo.fetchClient session.clientId, (client_) ->
+            client = client_
+            next()
+
+      (next) ->
+        JUser.unregister client, username, next
+
+    ]
+
+    async.series queue, callback
 
 
   # event user_add_to_team
