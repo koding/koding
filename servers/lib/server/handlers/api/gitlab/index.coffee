@@ -31,7 +31,7 @@ module.exports = GitLabHandler = (req, res, next) ->
 
   handler[method] req.body, (err, data) ->
     if err
-      log "ERROR", err
+      log 'ERROR', err
       sendApiError res, err
     else
       sendApiResponse res, data
