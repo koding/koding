@@ -29,7 +29,7 @@ module.exports = class NoStackFoundView extends ReactView
 
     { groupsController, computeController, mainView } = kd.singletons
 
-    return <div/>  unless globals.config?.roles
+    return <div/>  unless globals.userRoles
     return <div/>  if mainView.introVideoViewIsShown
 
     if groupsController.canEditGroup()
