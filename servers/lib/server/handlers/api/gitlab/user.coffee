@@ -1,17 +1,70 @@
+hat = require 'hat'
+async = require 'async'
+
+apiErrors = require '../errors'
+{ handleUsername } = require '../helpers'
+
 GenericHandler = require './generichandler'
+
 
 module.exports = class User extends GenericHandler
 
-
   # event user_create
-  @create = (data, callback = -> ) ->
-    { username
-      email
-      name } = data
+  @create = (data, callback = ->) ->
 
-    # IMPLEMENT ME
+    # validating req params
+    { error, username, email, firstName,
+      lastName, suggestedUsername } = @validateDataFor 'create', data
 
-    callback { message: 'user create handler is not implemented' }
+    return callback error  if error
+
+    bongo     = @getBongo()
+    { JUser } = @getModels()
+
+    client = null
+
+    queue  = [
+
+      (next) ->
+        JUser.one { username }, (err, user) ->
+          if err or user
+            return next err ? { message: 'user already exists' }
+          next()
+
+      (next) ->
+        handleUsername username, suggestedUsername, (err, _username) ->
+          return next err  if err
+          username = _username
+          next()
+
+      (next) ->
+        context = { group: 'gitlab' }
+        bongo.fetchClient 1, context, (client_) ->
+          return next apiErrors.internalError  if client_.message
+          client = client_
+          next()
+
+      (next) ->
+        password = passwordConfirm = hat()
+        userData = {
+          email, username, firstName, lastName, password, passwordConfirm
+          agree     : 'on'
+          groupName : 'gitlab'
+        }
+
+        # here we don't check if email is in allowed domains
+        # because the user who has the api token must be a group admin
+        # they should be able to use any email they want for their own team  ~ OK
+        options  = { skipAllowedDomainCheck : yes }
+
+        JUser.convert client, userData, options, (err, data) ->
+          if err or not data.user
+            return next err ? apiErrors.failedToCreateUser
+          next null, username
+
+    ]
+
+    async.series queue, callback
 
 
   # event user_destroy
