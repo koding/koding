@@ -29,6 +29,9 @@ module.exports = GitLabHandler = (req, res, next) ->
 
   log "Processing #{method} on #{scope}..."
 
-  handler[method] req.body, (err) ->
-    if err then sendApiError res, err
-    else sendApiResponse res, 'ok'
+  handler[method] req.body, (err, data) ->
+    if err
+      log "ERROR", err
+      sendApiError res, err
+    else
+      sendApiResponse res, data
