@@ -7,6 +7,7 @@ constants = require '../constants'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
 FSHelper = require 'app/util/fs/fshelper'
 ProgressUpdateTimer = require './progressupdatetimer'
+TimeoutChecker = require './timeoutchecker'
 
 module.exports = class BuildStackController extends kd.Controller
 
@@ -33,6 +34,9 @@ module.exports = class BuildStackController extends kd.Controller
 
     container.appendPages @buildStackPage, @errorPage, @successPage, @logsPage
 
+    @timeoutChecker = new TimeoutChecker { duration : constants.TIMEOUT_DURATION }
+    @timeoutChecker.on 'Timeout', @bound 'handleTimeout'
+
 
   getLogFile: ->
 
@@ -50,6 +54,7 @@ module.exports = class BuildStackController extends kd.Controller
     { container } = @getOptions()
     container.showPage @buildStackPage
     @buildStackPage.updateProgress percentage, message
+    @timeoutChecker.update percentage
 
 
   updateBuildProgress: (percentage, message) ->
@@ -87,17 +92,26 @@ module.exports = class BuildStackController extends kd.Controller
     @postBuildTimer.stop()  if @postBuildTimer
     @postBuildTimer = null
 
+    @timeoutChecker.stop()
+
     { container } = @getOptions()
     container.showPage @successPage
 
 
-  showError: (err) ->
+  handleTimeout: ->
 
-    sendDataDogEvent 'MachineStateFailed'
+    @showError 'It\'s taking longer than expected. Please reload the page', yes
+
+
+  showError: (err, skipTracking) ->
+
+    sendDataDogEvent 'MachineStateFailed'  unless skipTracking
 
     { container } = @getOptions()
     container.showPage @errorPage
     @errorPage.setErrors [ err ]
+
+    @timeoutChecker.stop()
 
 
   showLogs: ->
