@@ -3,6 +3,7 @@ KDView              = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
 showError           = require 'app/util/showError'
 ContentModal = require 'app/components/contentModal'
+Encoder = require 'htmlencode'
 
 module.exports = class AccountCredentialEditModal extends ContentModal
 
@@ -11,17 +12,22 @@ module.exports = class AccountCredentialEditModal extends ContentModal
 
     options.cssClass  = kd.utils.curry 'content-modal with-form', options.cssClass
     options.title or= 'Edit Credential'
-    options.width = 600
+    options.width = 500
+    options.overlay = yes
 
     super options, data
 
     { ui }                    = kd.singletons.computeController
     { credential, provider }  = options
 
+    { meta, title } = data
+
+    title = Encoder.htmlDecode title
+
     formOptions       =
       provider        : provider
-      defaultValues   : data.meta
-      defaultTitle    : data.title
+      defaultValues   : meta
+      defaultTitle    : title
       requiredFields  : credential.fields
       callback        : (title, data) =>
 
