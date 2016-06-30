@@ -226,7 +226,6 @@ module.exports = class JUser extends jraphical.Module
         return callback new KodingError \
           "User not found #{toBeDeletedUsername}"
 
-
       userValues = {
         email               : email
         sanitizedEmail      : email
