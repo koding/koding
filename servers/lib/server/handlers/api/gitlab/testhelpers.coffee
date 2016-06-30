@@ -22,4 +22,16 @@ testhelpers.getSampleDataFor = (event) ->
 
 testhelpers.parseEvent = utils.parseEvent
 
+testhelpers.doRequestFor = (event, callback) ->
+
+  { scope, method } = utils.parseEvent event
+
+  params    = generateRequestParamsEncodeBody
+    url     : testhelpers.gitlabApiUrl
+    headers : testhelpers.gitlabDefaultHeaders
+    body    : testhelpers.getSampleDataFor event
+
+  request.post params, callback
+
+
 module.exports = testhelpers
