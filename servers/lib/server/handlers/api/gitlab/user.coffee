@@ -10,7 +10,7 @@ GenericHandler = require './generichandler'
 module.exports = class User extends GenericHandler
 
   # event user_create
-  @create = (data, callback = ->) ->
+  @create = (data, callback = -> ) ->
 
     # validating req params
     { error, username, email, firstName,
