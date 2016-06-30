@@ -107,7 +107,7 @@ func getAutoScalingName(conf *Config, session *awssession.Session) (string, erro
 	}
 
 	for _, instance := range resp.AutoScalingInstances {
-		if *instance.InstanceId == instanceID {
+		if aws.StringValue(instance.InstanceId) == instanceID {
 			return *instance.AutoScalingGroupName, nil
 		}
 	}

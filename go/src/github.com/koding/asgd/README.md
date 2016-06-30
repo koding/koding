@@ -7,10 +7,7 @@ configuration files up-to-date using ASG events
 
 
 ```
-$ git clone https://github.com/koding/asgd.git
-$ cd ./asgd
-$ go get ./...
-$ go build -o asgd ./cmd/asgd
+$ go get github.com/koding/asgd/cmd/asgd
 ```
 
 You should now have asgd

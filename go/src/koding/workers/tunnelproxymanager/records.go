@@ -245,7 +245,7 @@ func (r *RecordManager) ProcessFunc(instances []*ec2.Instance) error {
 		return errors.New("no instance to process")
 	}
 
-	publicIps := make([]*string, 0)
+	publicIps := make([]*string, 0, len(instances))
 	for _, instance := range instances {
 		publicIps = append(publicIps, instance.PublicIpAddress)
 	}

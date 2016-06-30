@@ -117,7 +117,7 @@ func filterHealthyInstances(asResp *autoscaling.DescribeAutoScalingGroupsOutput)
 }
 
 func mapMachines(insResp *ec2.DescribeInstancesOutput) []*ec2.Instance {
-	machines := make([]*ec2.Instance, 0)
+	var machines []*ec2.Instance
 	for _, reservation := range insResp.Reservations {
 		for _, instance := range reservation.Instances {
 			machines = append(machines, instance)
