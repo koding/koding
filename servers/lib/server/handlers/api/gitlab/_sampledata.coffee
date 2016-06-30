@@ -5,7 +5,7 @@ module.exports = {
     'updated_at'             : '2012-07-21T07:38:22Z'
     'event_name'             : 'project_create'
     'name'                   : 'StoreCloud'
-    'owner_email'            : 'johnsmith@gmail.com'
+    'owner_email'            : 'john@koding.com'
     'owner_name'             : 'John Smith'
     'path'                   : 'storecloud'
     'path_with_namespace'    : 'jsmith/storecloud'
@@ -18,7 +18,7 @@ module.exports = {
     'updated_at'             : '2012-07-21T07:38:22Z'
     'event_name'             : 'project_destroy'
     'name'                   : 'Underscore'
-    'owner_email'            : 'johnsmith@gmail.com'
+    'owner_email'            : 'john@koding.com'
     'owner_name'             : 'John Smith'
     'path'                   : 'underscore'
     'path_with_namespace'    : 'jsmith/underscore'
@@ -35,7 +35,7 @@ module.exports = {
     'path_with_namespace'    : 'jsmith/underscore'
     'project_id'             : 73
     'owner_name'             : 'John Smith'
-    'owner_email'            : 'johnsmith@gmail.com'
+    'owner_email'            : 'john@koding.com'
     'project_visibility'     : 'internal'
     'old_path_with_namespace': 'jsmith/overscore'
   }
@@ -49,7 +49,7 @@ module.exports = {
     'path_with_namespace'    : 'scores/underscore'
     'project_id'             : 73
     'owner_name'             : 'John Smith'
-    'owner_email'            : 'johnsmith@gmail.com'
+    'owner_email'            : 'john@koding.com'
     'project_visibility'     : 'internal'
     'old_path_with_namespace': 'jsmith/overscore'
   }
@@ -65,7 +65,7 @@ module.exports = {
     'project_name'                : 'StoreCloud'
     'project_path'                : 'storecloud'
     'project_path_with_namespace' : 'jsmith/storecloud'
-    'user_email'                  : 'johnsmith@gmail.com'
+    'user_email'                  : 'john@koding.com'
     'user_name'                   : 'John Smith'
     'user_username'               : 'johnsmith'
     'user_id'                     : 41
@@ -81,7 +81,7 @@ module.exports = {
     'project_name'                : 'StoreCloud'
     'project_path'                : 'storecloud'
     'project_path_with_namespace' : 'jsmith/storecloud'
-    'user_email'                  : 'johnsmith@gmail.com'
+    'user_email'                  : 'john@koding.com'
     'user_name'                   : 'John Smith'
     'user_username'               : 'johnsmith'
     'user_id'                     : 41
@@ -96,7 +96,7 @@ module.exports = {
     'group_id'                    : 78
     'group_name'                  : 'StoreCloud'
     'group_path'                  : 'storecloud'
-    'user_email'                  : 'johnsmith@gmail.com'
+    'user_email'                  : 'john@koding.com'
     'user_name'                   : 'John Smith'
     'user_username'               : 'johnsmith'
     'user_id'                     : 41
@@ -110,7 +110,7 @@ module.exports = {
     'group_id'                    : 78
     'group_name'                  : 'StoreCloud'
     'group_path'                  : 'storecloud'
-    'user_email'                  : 'johnsmith@gmail.com'
+    'user_email'                  : 'john@koding.com'
     'user_name'                   : 'John Smith'
     'user_username'               : 'johnsmith'
     'user_id'                     : 41
@@ -119,20 +119,20 @@ module.exports = {
   'user_create'                   : {
     'created_at'                  : '2012-07-21T07:44:07Z'
     'updated_at'                  : '2012-07-21T07:38:22Z'
-    'email'                       : 'js@gitlabhq.com'
+    'email'                       : 'john@koding.com'
     'event_name'                  : 'user_create'
     'name'                        : 'John Smith'
-    'username'                    : 'js'
+    'username'                    : 'john'
     'user_id'                     : 41
   }
 
   'user_destroy'                  : {
     'created_at'                  : '2012-07-21T07:44:07Z'
     'updated_at'                  : '2012-07-21T07:38:22Z'
-    'email'                       : 'js@gitlabhq.com'
+    'email'                       : 'john@koding.com'
     'event_name'                  : 'user_destroy'
     'name'                        : 'John Smith'
-    'username'                    : 'js'
+    'username'                    : 'john'
     'user_id'                     : 41
   }
 
@@ -163,7 +163,7 @@ module.exports = {
     'updated_at'                  : '2012-07-21T07:38:22Z'
     'event_name'                  : 'group_create'
     'name'                        : 'StoreCloud'
-    'owner_email'                 : 'johnsmith@gmail.com'
+    'owner_email'                 : 'john@koding.com'
     'owner_name'                  : 'John Smith'
     'path'                        : 'storecloud'
     'group_id'                    : 78
@@ -174,7 +174,7 @@ module.exports = {
     'updated_at'                  : '2012-07-21T07:38:22Z'
     'event_name'                  : 'group_destroy'
     'name'                        : 'StoreCloud'
-    'owner_email'                 : 'johnsmith@gmail.com'
+    'owner_email'                 : 'john@koding.com'
     'owner_name'                  : 'John Smith'
     'path'                        : 'storecloud'
     'group_id'                    : 78
@@ -231,7 +231,7 @@ module.exports = {
     'checkout_sha'           : 'da1560886d4f094c3e6c9ef40349f7d38b5d27d7'
     'user_id'                : 4
     'user_name'              : 'John Smith'
-    'user_email'             : 'john@example.com'
+    'user_email'             : 'john@koding.com'
     'user_avatar'            : 'https://s.gravatar.com/avatar/d4c74594d841139328695756648b6bd6?s=8://s.gravatar.com/avatar/d4c74594d841139328695756648b6bd6?s=80'
     'project_id'             : 15
     'project'                : {
