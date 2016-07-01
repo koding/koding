@@ -26,10 +26,22 @@ app.settings.styl
 // Account AppModal Styles
 .AppModal--account
 
+  .kdmodal-title
+    hidden()
+
+  .AppModal-content
+    overflow                hidden
+    zoom                    1
+    width                   auto
+    padding-left            10px
+
+
   .kdmodal-content
     overflow                hidden !important
 
     .AppModal-nav
+      hidden()
+
       .AppModal-navItem
         color               #a1a1a1
         text-decoration     none
