@@ -1,11 +1,14 @@
 kd = require 'kd'
 HomeWelcome = require './'
+LocalStorage = require 'app/localstorage'
+
 
 module.exports = class WelcomeModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    { landedOnWelcome } = localStorage
+    storage = new LocalStorage 'Koding', '1.0'
+    landedOnWelcome = storage.getValue 'landedOnWelcome'
 
     options.cssClass = "HomeWelcomeModal#{if landedOnWelcome then ' hidden' else ''}"
     options.width    = 710
@@ -20,7 +23,7 @@ module.exports = class WelcomeModal extends kd.ModalView
     mainController.once 'AllWelcomeStepsDone', @bound 'destroy'
     mainController.once 'AllWelcomeStepsNotDoneYet', @bound 'initialShow'
 
-    localStorage.landedOnWelcome = ''
+    storage.setValue 'landedOnWelcome', ''
 
 
   initialShow: ->

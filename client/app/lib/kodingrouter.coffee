@@ -4,7 +4,7 @@ remote               = require('./remote').getInstance()
 showError            = require './util/showError'
 KodingAppsController = require './kodingappscontroller'
 HomeGetters          = require 'home/flux/getters'
-
+LocalStorage = require 'app/localstorage'
 
 module.exports = class KodingRouter extends kd.Router
 
@@ -94,8 +94,11 @@ module.exports = class KodingRouter extends kd.Router
     if areStepsFinished
     then return '/IDE'
     else
-      localStorage.landedOnWelcome = yes
+      storage = new LocalStorage 'Koding', '1.0'
+      storage.setValue 'landedOnWelcome', yes
       return '/Welcome'
+
+
 
 
   setPageTitle: (title = 'Koding') -> kd.singletons.pageTitle.update title
