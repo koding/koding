@@ -8,7 +8,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-var (
+const (
 	CompanyColl = "jCompanies"
 )
 
