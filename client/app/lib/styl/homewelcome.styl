@@ -22,8 +22,14 @@ $linkColor                  = #56A2D3
     margin                  0
     .kdmodal-content
       margin                0
+      footer
+        a
+          color             $linkColor
+          noTextDeco()
+
     .close-icon.closeModal
       r-sprite              app modal_close
+
 
 .WelcomeStacksView
   font-family               ProximaNovaFamily
@@ -171,9 +177,6 @@ $linkColor                  = #56A2D3
     line-height             27px
     text-align              center
     margin                  20px 0
-    a
-      color                 $linkColor
-      noTextDeco()
 
 .WelcomeStepVideoIcon
   abs                       29px 136px
