@@ -268,7 +268,10 @@ module.exports = class MainView extends kd.View
 
     return  if @updateBanner
 
-    currentVersion = globals.config.version
+    # if current version only consists numerical characters JSON.stringify
+    # casts it into a `Number`. But the result from backend is always string.
+    # We are making sure that the compared version is a string. ~Umut
+    currentVersion = String globals.config.version
 
     endPoint = '/-/version'
     type = 'GET'

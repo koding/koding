@@ -29,14 +29,11 @@ module.exports = class StackEditorAppController extends AppController
     { mainController, groupsController, computeController } = kd.singletons
     { setSelectedMachineId, setSelectedTemplateId } = EnvironmentFlux.actions
 
-    groupsController.ready ->
-      if groupsController.canEditGroup()
-        Intercom?('show')
-      else
-        mainController.tellChatlioWidget 'isShown', {}, (err, isShown) ->
-          return if err
-          return if isShown
-          mainController.tellChatlioWidget 'show', { expanded: no }
+    unless groupsController.canEditGroup()
+      mainController.tellChatlioWidget 'isShown', {}, (err, isShown) ->
+        return if err
+        return if isShown
+        mainController.tellChatlioWidget 'show', { expanded: no }
 
     setSelectedMachineId null
     if stackTemplateId

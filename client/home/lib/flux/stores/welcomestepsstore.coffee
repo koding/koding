@@ -33,14 +33,25 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           title: 'Build Your Stack'
           actionTitle: 'Build'
           videoLink: ''
-          description: 'You have a stack ready to go, go ahead and build it.'
+          description: 'To access your VMs you need to build your stack.'
           isDone: no
           order: 3
+        inviteTeam :
+          path: '/Home/My-Team'
+          title: 'Invite Your Team'
+          actionTitle: 'Invite'
+          videoLink: ''
+          # videoLink: '//www.koding.com/docs'
+          miniTitle: 'Invite Teammates'
+          description: 'Get your teammates working together.'
+          isDone: no
+          order: 10
       member :
         pendingStack :
           path: '#'
           title: 'Your Team Stack is Pending'
           actionTitle: 'Pending'
+          cssClass: 'pending'
           videoLink: ''
           description: 'Your team admins haven\'t created your stack yet.'
           isDone: no
@@ -50,7 +61,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           title: 'Build Your Stack'
           actionTitle: 'Build'
           videoLink: ''
-          description: 'Your team admins have already created your stack, it is ready for you to build.'
+          description: 'To access your VMs you need to build your stack.'
           isDone: no
           order: 2
         stackCreation :
@@ -71,16 +82,6 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
         #   description: "You are all set, watch our short video to know how to use Koding."
         #   isDone: no
         #   order: 0
-        inviteTeam :
-          path: '/Home/My-Team'
-          title: 'Invite Your Team'
-          actionTitle: 'Invite'
-          videoLink: ''
-          # videoLink: '//www.koding.com/docs'
-          miniTitle: 'Invite Teammates'
-          description: 'Get your teammates working together.'
-          isDone: no
-          order: 10
         installKd :
           path: '/Home/Koding-Utilities'
           title: 'Install KD'

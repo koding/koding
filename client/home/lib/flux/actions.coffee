@@ -2,16 +2,19 @@ kd = require 'kd'
 globals = require 'globals'
 actionTypes = require './actiontypes'
 HomeGetters = require './getters'
-{ queryKites } = require 'app/providers/managed/helpers'
+remote = require('app/remote').getInstance()
 
+{ queryKites } = require 'app/providers/managed/helpers'
 { getters: EnvironmentGetters } = require 'app/flux/environment'
 
 markAsDone = (step) ->
   # set app state
-  kd.singletons.reactor.dispatch actionTypes.MARK_WELCOME_STEP_AS_DONE, { step }
+  { reactor, mainController, appStorageController } = kd.singletons
+  reactor.dispatch actionTypes.MARK_WELCOME_STEP_AS_DONE, { step }
+  if reactor.evaluate HomeGetters.areStepsFinished
+    mainController.emit 'AllWelcomeStepsDone'
 
   # persist state
-  { appStorageController } = kd.singletons
   appStorage = appStorageController.storage "WelcomeSteps-#{globals.currentGroup.slug}"
   appStorage.fetchValue 'finishedSteps', (finishedSteps = {}) ->
     finishedSteps[step] = yes
@@ -28,7 +31,9 @@ checkMigration = ->
 
 checkFinishedSteps = ->
 
-  { appStorageController, groupsController, reactor } = kd.singletons
+  { appStorageController, groupsController
+    reactor, mainController, computeController } = kd.singletons
+
   appStorage = appStorageController.storage "WelcomeSteps-#{globals.currentGroup.slug}"
 
   welcomeSteps = reactor.evaluate(HomeGetters.welcomeSteps).toJS()
@@ -37,14 +42,37 @@ checkFinishedSteps = ->
     Object.keys(welcomeSteps).forEach (step) ->
       markAsDone step  if finishedSteps[step]
 
+    if Object.keys(welcomeSteps).length > Object.keys(finishedSteps).length
+      mainController.emit 'AllWelcomeStepsNotDoneYet'
+
+
   if groupsController.getCurrentGroup().counts?.members > 1
     markAsDone 'inviteTeam'
 
-  return  if reactor.evaluate(HomeGetters.welcomeSteps).getIn [ 'common', 'installKd', 'isDone' ]
+  if reactor.evaluate(EnvironmentGetters.stacks).size
+    markAsDone 'stackCreation'
+
+  remote.api.JCredential.some {}, { limit: 1 }, (err, res) ->
+    return  if err
+    markAsDone 'enterCredentials'  if res?.length
+
+  if reactor.evaluate(HomeGetters.welcomeSteps).getIn [ 'common', 'installKd', 'isDone' ]
+    if reactor.evaluate HomeGetters.areStepsFinished
+    then mainController.emit 'AllWelcomeStepsDone'
+    else mainController.emit 'AllWelcomeStepsNotDoneYet'
+
+    return
 
   queryKites().then (result) ->
 
-    return markAsDone 'installKd'  if result?.length
+    if result?.length
+
+      markAsDone 'installKd'
+
+      unless reactor.evaluate HomeGetters.areStepsFinished
+        mainController.emit 'AllWelcomeStepsNotDoneYet'
+
+      return
 
     kiteTimer = kd.utils.repeat 30000, -> queryKites().then (result) ->
 

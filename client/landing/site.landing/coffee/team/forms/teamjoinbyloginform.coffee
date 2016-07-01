@@ -55,6 +55,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
   submit: (formData) ->
 
     teamData = utils.getTeamData()
+    teamData.signup ?= {}
     teamData.signup.alreadyMember = yes
 
     super formData
