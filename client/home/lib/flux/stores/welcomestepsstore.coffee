@@ -36,6 +36,16 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           description: 'You have a stack ready to go, go ahead and build it.'
           isDone: no
           order: 3
+        inviteTeam :
+          path: '/Home/My-Team'
+          title: 'Invite Your Team'
+          actionTitle: 'Invite'
+          videoLink: ''
+          # videoLink: '//www.koding.com/docs'
+          miniTitle: 'Invite Teammates'
+          description: 'Get your teammates working together.'
+          isDone: no
+          order: 10
       member :
         pendingStack :
           path: '#'
@@ -72,16 +82,6 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
         #   description: "You are all set, watch our short video to know how to use Koding."
         #   isDone: no
         #   order: 0
-        inviteTeam :
-          path: '/Home/My-Team'
-          title: 'Invite Your Team'
-          actionTitle: 'Invite'
-          videoLink: ''
-          # videoLink: '//www.koding.com/docs'
-          miniTitle: 'Invite Teammates'
-          description: 'Get your teammates working together.'
-          isDone: no
-          order: 10
         installKd :
           path: '/Home/Koding-Utilities'
           title: 'Install KD'
