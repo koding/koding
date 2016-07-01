@@ -275,7 +275,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     { ui }    = kd.singletons.computeController
 
-    noCredFound = !listView.items.length
+    noCredFound = not listView.items.length
 
     view.form = ui.generateAddCredentialFormFor options, noCredFound
     view.form.setClass 'credentials-form-view'
