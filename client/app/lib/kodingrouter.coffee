@@ -93,7 +93,9 @@ module.exports = class KodingRouter extends kd.Router
 
     if areStepsFinished
     then return '/IDE'
-    else return '/Welcome'
+    else
+      localStorage.landedOnWelcome = yes
+      return '/Welcome'
 
 
   setPageTitle: (title = 'Koding') -> kd.singletons.pageTitle.update title
