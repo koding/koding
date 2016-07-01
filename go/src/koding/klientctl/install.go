@@ -228,7 +228,6 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		"-token", authToken,
 		"--kontrol-url", kontrolURL,
 		"--kite-home", config.KiteHome,
-		"-debug",
 	)
 
 	var errBuf bytes.Buffer
