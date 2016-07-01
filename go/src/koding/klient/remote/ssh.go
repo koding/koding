@@ -3,6 +3,7 @@ package remote
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -10,6 +11,10 @@ import (
 	"koding/klient/remote/req"
 	"koding/klient/sshkeys"
 )
+
+// standardTimeout is a timeout value to use for basic communications with remote
+// machines. Do not use this for file transfers, or anything long running!
+const standardTimeout = 30 * time.Second
 
 // SSHKeyAddHandler adds the specified public SSH key to remote machine via the klient
 // on the remote machine.
@@ -62,7 +67,7 @@ func (r *Remote) SSHKeyAddHandler(kreq *kite.Request) (interface{}, error) {
 	if params.Username == "" {
 		log.Debug("Username empty, looking up default.")
 
-		res, err := remoteMachine.Tell("os.currentUsername")
+		res, err := remoteMachine.TellWithTimeout("os.currentUsername", standardTimeout)
 		if err != nil {
 			log.Debug("Error from remote machine os.currentUsername method. err:%s", err)
 			return nil, err
