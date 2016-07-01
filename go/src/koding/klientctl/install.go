@@ -228,7 +228,11 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		"-token", authToken,
 		"--kontrol-url", kontrolURL,
 		"--kite-home", config.KiteHome,
+		"-debug",
 	)
+
+	var errBuf bytes.Buffer
+
 	// Note that we are *only* printing to Stdout. This is done because
 	// Klient logs error messages to Stderr, and we want to control the UX for
 	// that interaction.
@@ -236,9 +240,10 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	// TODO: Logg Klient's Stderr message on error, if any.
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
+	cmd.Stderr = &errBuf
 
 	if err := cmd.Run(); err != nil {
-		log.Error("Error registering klient. err:%s", err)
+		log.Error("Error registering klient. err: %s: %s", err, errBuf.String())
 		fmt.Println(FailedRegisteringKlient)
 		return 1
 	}

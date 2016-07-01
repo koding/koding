@@ -3,12 +3,14 @@ welcomeStepsAll = [ 'WelcomeStepsStore' ]
 EnvironmentFlux = require 'app/flux/environment'
 
 
+isAdmin = -> kd.singletons.groupsController.canEditGroup()
+
+
 welcomeStepsByRole = [
   EnvironmentFlux.getters.stacks
   welcomeStepsAll
   (stacks, steps) ->
-    { groupsController } = kd.singletons
-    steps = if groupsController.canEditGroup()
+    steps = if isAdmin()
       steps.get('admin').merge steps.get 'common'
     else
       steps.get('member').merge steps.get 'common'
@@ -21,10 +23,11 @@ welcomeSteps = [
   (stacks, steps) ->
 
     if stacks.size and status = stacks.first()?.get 'status'
-      unless status is 'NotInitialized'
+      if status isnt 'NotInitialized'
         steps = steps.delete 'pendingStack'
+        steps = steps.delete 'stackCreation'  unless isAdmin()
     else
-      steps = steps.delete 'pendingStack'
+        steps = steps.delete 'buildStack'
 
     return steps.sortBy (a) -> a.get('order')
 ]
