@@ -575,29 +575,30 @@ module.exports = class ComputeControllerUI
         #{errorMessage}
       """
 
-    message   = if message then "<div class='message'>#{message}</div>" else ''
+    message = ''  unless message
 
-    modal     = new kd.ModalView
-      title          : title    ? 'An error occured'
-      subtitle       : subtitle ? ''
-      draggable      : no
-      height         : 600
-      cssClass       : "AppModal AppModal--admin has-markdown
-                        compute-error-modal #{cssClass}"
-      overlay        : yes
-      overlayOptions :
-        cssClass     : 'second-overlay'
+    modal = new ContentModal
+      title : title ? 'An error occured'
+      draggable : no
+      width : 600
+      cssClass : "has-markdown #{cssClass} content-modal"
+      overlay : yes
 
-    content      = (hljs.highlight 'profile', errorMessage).value
+    content = (hljs.highlight 'profile', errorMessage).value
 
     errorDetails = new KDView
+      tagName : 'main'
+      cssClass: 'main-container'
+    errorDetails.unsetClass 'kdview'
     if message
       errorDetails.setClass 'with-message'
       errorDetails.addSubView new KDCustomHTMLView
+        tagName: 'p'
         partial: "#{message}"
 
     errorDetails.addSubView scrollView = new KDCustomScrollView
     scrollView.wrapper.addSubView new KDCustomHTMLView
+      tagName  : 'p'
       cssClass : 'error-content'
       partial  : """
         <div class='content'>
