@@ -33,7 +33,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           title: 'Build Your Stack'
           actionTitle: 'Build'
           videoLink: ''
-          description: 'You have a stack ready to go, go ahead and build it.'
+          description: 'To access your VMs you need to build your stack.'
           isDone: no
           order: 3
         inviteTeam :
@@ -61,7 +61,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           title: 'Build Your Stack'
           actionTitle: 'Build'
           videoLink: ''
-          description: 'Your team admins have already created your stack, it is ready for you to build.'
+          description: 'To access your VMs you need to build your stack.'
           isDone: no
           order: 2
         stackCreation :
