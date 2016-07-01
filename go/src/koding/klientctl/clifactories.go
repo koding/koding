@@ -13,6 +13,7 @@ import (
 	"koding/klientctl/cp"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
+	"koding/klientctl/logcmd"
 	"koding/klientctl/metrics"
 	"koding/klientctl/remount"
 	"koding/klientctl/repair"
@@ -224,6 +225,37 @@ func CpCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli
 		return ctlcli.NewErrorCommand(
 			os.Stdout, log, err,
 			"Unable to create cp command",
+		)
+	}
+
+	return cmd
+}
+
+func LogCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
+	log = log.New(fmt.Sprintf("command:%s", cmdName))
+
+	// Fill our repair options from the CLI. Any empty options are okay, as
+	// the command struct is responsible for verifying valid opts.
+	opts := logcmd.Options{
+		Debug:             c.Bool("debug"),
+		KdLog:             !c.Bool("no-kd-log"),
+		KlientLog:         !c.Bool("no-klient-log"),
+		KdLogLocation:     c.String("kd-log-file"),
+		KlientLogLocation: c.String("klient-log-file"),
+		Lines:             c.Int("lines"),
+	}
+
+	init := logcmd.Init{
+		Stdout: os.Stdout,
+		Log:    log,
+		Helper: ctlcli.CommandHelper(c, cmdName),
+	}
+
+	cmd, err := logcmd.NewCommand(init, opts)
+	if err != nil {
+		return ctlcli.NewErrorCommand(
+			os.Stdout, log, err,
+			"Unable to create log command",
 		)
 	}
 
