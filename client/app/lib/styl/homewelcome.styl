@@ -10,6 +10,14 @@ $titleGreen                 = #01B05A
 $linkColor                  = #56A2D3
 
 .HomeWelcomeModal.kdmodal
+  vendor                    transform-origin, 0px 0px
+  vendor                    transform, scale(1)
+  opacity                   1
+  &.out
+    animation               scaleDown .3s 1
+    vendor                  transform, scale(0)
+    opacity                 0
+
   .kdmodal-inner
     margin                  0
     .kdmodal-content
