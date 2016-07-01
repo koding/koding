@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
 
+	"koding/httputil"
 	"koding/klientctl/config"
 	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
@@ -14,19 +16,20 @@ import (
 	kodinglogging "github.com/koding/logging"
 )
 
-const kiteHTTPResponse = "Welcome to SockJS!\n"
+var kiteHTTPResponse = []byte("Welcome to SockJS!")
 
-var defaultHealthChecker *HealthChecker
+var defaultClient = httputil.NewClient(&httputil.ClientConfig{
+	DialTimeout:           3 * time.Second,
+	RoundTripTimeout:      3 * time.Second,
+	TLSHandshakeTimeout:   3 * time.Second,
+	ResponseHeaderTimeout: 3 * time.Second,
+})
 
-func init() {
-	defaultHealthChecker = &HealthChecker{
-		HTTPClient: &http.Client{
-			Timeout: 4 * time.Second,
-		},
-		LocalKiteAddress:  config.KlientAddress,
-		RemoteKiteAddress: config.KontrolURL,
-		RemoteHTTPAddress: config.S3KlientctlLatest,
-	}
+var defaultHealthChecker = &HealthChecker{
+	HTTPClient:        defaultClient,
+	LocalKiteAddress:  config.KlientAddress,
+	RemoteKiteAddress: config.KontrolURL,
+	RemoteHTTPAddress: config.S3KlientctlLatest,
 }
 
 // HealthChecker implements state for the various HealthCheck functions,
@@ -124,15 +127,30 @@ func (c *HealthChecker) CheckLocal() error {
 	}
 	defer res.Body.Close()
 
-	// It should be safe to ignore any errors dumping the response data,
-	// since we just want to check the data itself. Handling the error
-	// might aid with debugging any problems though.
-	resData, _ := ioutil.ReadAll(res.Body)
-	if string(resData) != kiteHTTPResponse {
+	switch res.StatusCode {
+	case http.StatusOK, http.StatusNoContent:
+	default:
 		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
-			"The local klient /kite route is returning an unexpected response: '%s'",
-			string(resData),
+			"Unexpected status code. Code: %d", res.StatusCode,
 		)}
+	}
+
+	if res.StatusCode == http.StatusOK {
+		// It should be safe to ignore any errors dumping the response data,
+		// since we just want to check the data itself. Handling the error
+		// might aid with debugging any problems though.
+		p, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
+				"Failure reading local klient /kite response: %s", err,
+			)}
+		}
+
+		if bytes.Compare(kiteHTTPResponse, bytes.TrimSpace(p)) != 0 {
+			return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
+				"The local klient /kite route is returning an unexpected response: '%s'", p,
+			)}
+		}
 	}
 
 	// The only error CreateKlientClient returns (currently) is kite read
@@ -180,11 +198,21 @@ func (c *HealthChecker) CheckRemote() error {
 	defer res.Body.Close()
 
 	// Kontrol should return a 200 response.
-	if res.StatusCode < 200 || res.StatusCode > 299 {
+	switch res.StatusCode {
+	case http.StatusOK, http.StatusNoContent:
+	default:
 		return ErrHealthNoKontrolHTTPResponse{Message: fmt.Sprintf(
 			"A http request to Kontrol returned bad status code. Code: %d",
 			res.StatusCode,
 		)}
+	}
+
+	// TODO: Check the local ip address for an open port. We
+	// need to implement a service on Koding to properly ip check though,
+	// since we've been having problems with echoip.net failing.
+
+	if res.StatusCode == http.StatusNoContent {
+		return nil
 	}
 
 	// It should be safe to ignore any errors dumping the response data,
@@ -193,17 +221,20 @@ func (c *HealthChecker) CheckRemote() error {
 	//
 	// TODO: Log the response if it's not as expected, to help
 	// debug Cloudflare/nginx issues.
-	resData, _ := ioutil.ReadAll(res.Body)
-	if string(resData) != kiteHTTPResponse {
+	p, err := ioutil.ReadAll(res.Body)
+	if err != nil {
 		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
-			"The '%s' route is returning an unexpected response: '%s'",
-			c.RemoteKiteAddress, string(resData),
+			"Error reading response from %s: '%s'",
+			c.RemoteKiteAddress, p,
 		)}
 	}
 
-	// TODO: Check the local ip address for an open port. We
-	// need to implement a service on Koding to properly ip check though,
-	// since we've been having problems with echoip.net failing.
+	if bytes.Compare(kiteHTTPResponse, bytes.TrimSpace(p)) != 0 {
+		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
+			"The '%s' route is returning an unexpected response: '%s'",
+			c.RemoteKiteAddress, p,
+		)}
+	}
 
 	return nil
 }
@@ -307,26 +338,31 @@ func (c *HealthChecker) CheckAllFailureOrMessagef(f string, i ...interface{}) st
 // to verify that it is running. It does *not* check the auth or tcp
 // connection, it *just* attempts to verify that klient is running.
 func IsKlientRunning(a string) bool {
-	res, err := http.Get(a)
-
-	if res != nil {
-		defer res.Body.Close()
+	res, err := defaultClient.Get(a)
+	if err != nil {
+		return false
 	}
 
-	// If there was an error even talking to Klient, something is wrong.
-	if err != nil {
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		// ok - check response
+	case http.StatusNoContent:
+		return true
+	default:
 		return false
 	}
 
 	// It should be safe to ignore any errors dumping the response data,
 	// since we just want to check the data itself. Handling the error
 	// might aid with debugging any problems though.
-	resData, _ := ioutil.ReadAll(res.Body)
-	if string(resData) != kiteHTTPResponse {
+	p, err := ioutil.ReadAll(res.Body)
+	if err != nil {
 		return false
 	}
 
-	return true
+	return bytes.Compare(kiteHTTPResponse, bytes.TrimSpace(p)) == 0
 }
 
 func getListErrRes(err error, healthChecker *HealthChecker) string {

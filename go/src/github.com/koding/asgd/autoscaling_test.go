@@ -1,4 +1,4 @@
-package tunnelproxymanager
+package asgd
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ func createLifeCycle(t *testing.T) *LifeCycle {
 		t.Fatal(err.Error())
 	}
 
-	log := logging.NewCustom("tunnelproxymanager-test", config.Debug)
+	log := logging.NewCustom("asgd-test", config.Debug)
 	log.SetCallDepth(1)
 
 	l := NewLifeCycle(

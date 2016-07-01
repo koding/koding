@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/koding/logging"
 )
@@ -237,4 +238,19 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 
 	_, err := r.route53.ChangeResourceRecordSets(params)
 	return err
+}
+
+func (r *RecordManager) ProcessFunc(instances []*ec2.Instance) error {
+	if len(instances) == 0 {
+		return errors.New("no instance to process")
+	}
+
+	publicIps := make([]*string, 0, len(instances))
+	for _, instance := range instances {
+		publicIps = append(publicIps, instance.PublicIpAddress)
+	}
+
+	r.log.Debug("Autoscaling operating IPs %s", aws.StringValueSlice(publicIps))
+
+	return r.UpsertRecordSet(publicIps)
 }

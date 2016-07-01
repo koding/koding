@@ -19,6 +19,7 @@ module.exports = class WelcomeStepsView extends React.Component
           itemClass = ''
           itemClass = kd.utils.curry 'starred', itemClass  if step.starred
           itemClass = kd.utils.curry 'done', itemClass  if step.isDone
+          itemClass = kd.utils.curry step.cssClass, itemClass  if step.cssClass
 
           <li key={ step.order } className={ itemClass }>
             <a className='WelcomeStepLink' href={ step.path }>

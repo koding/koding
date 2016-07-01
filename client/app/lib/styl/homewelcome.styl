@@ -10,12 +10,26 @@ $titleGreen                 = #01B05A
 $linkColor                  = #56A2D3
 
 .HomeWelcomeModal.kdmodal
+  vendor                    transform-origin, 0px 0px
+  vendor                    transform, scale(1)
+  opacity                   1
+  &.out
+    animation               scaleDown .3s 1
+    vendor                  transform, scale(0)
+    opacity                 0
+
   .kdmodal-inner
     margin                  0
     .kdmodal-content
       margin                0
+      footer
+        a
+          color             $linkColor
+          noTextDeco()
+
     .close-icon.closeModal
       r-sprite              app modal_close
+
 
 .WelcomeStacksView
   font-family               ProximaNovaFamily
@@ -65,6 +79,7 @@ $linkColor                  = #56A2D3
 
 
       &.disabled
+      &.pending
         bg                  color transparent
         opacity             .5
         cursor              default
@@ -162,9 +177,6 @@ $linkColor                  = #56A2D3
     line-height             27px
     text-align              center
     margin                  20px 0
-    a
-      color                 $linkColor
-      noTextDeco()
 
 .WelcomeStepVideoIcon
   abs                       29px 136px

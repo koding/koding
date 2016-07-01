@@ -119,7 +119,7 @@ module.exports = class StackFlowController extends kd.Controller
 
   onKloudError: (response) ->
 
-    { message } = response
+    message = response.err?.message ? response.message
     @buildStack.showError message
 
 
