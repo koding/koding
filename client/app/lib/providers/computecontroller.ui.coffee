@@ -96,7 +96,7 @@ module.exports = class ComputeControllerUI
     return buttons
 
 
-  @generateAddCredentialFormFor = (options) ->
+  @generateAddCredentialFormFor = (options, noCredFound = no) ->
 
     { provider, requiredFields, defaultTitle, defaultValues, callback } = options
 
@@ -149,6 +149,9 @@ module.exports = class ComputeControllerUI
 
         selectOptions.push { field, values }
 
+    saveButtonTitle = 'Save'
+    saveButtonTitle = 'Save This & Continue'  if noCredFound
+
     buttons      =
       Cancel     :
         style    : 'solid medium cancel'
@@ -156,7 +159,7 @@ module.exports = class ComputeControllerUI
         callback : -> form.emit 'Cancel'
 
       Save       :
-        title    : 'Save'
+        title    : saveButtonTitle
         type     : 'submit'
         style    : 'solid green medium save-btn'
         loader   : { color : '#444444' }
@@ -209,7 +212,7 @@ module.exports = class ComputeControllerUI
             @buttons.Save.hideLoader()
 
             unless showError err
-              @emit 'CredentialAdded', credential
+              @emit 'CredentialAdded', credential, noCredFound
 
 
     selectOptions.forEach (select) ->
