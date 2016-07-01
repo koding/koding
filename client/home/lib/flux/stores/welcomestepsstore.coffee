@@ -41,6 +41,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           path: '#'
           title: 'Your Team Stack is Pending'
           actionTitle: 'Pending'
+          cssClass: 'pending'
           videoLink: ''
           description: 'Your team admins haven\'t created your stack yet.'
           isDone: no
