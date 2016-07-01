@@ -213,7 +213,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	if err = downloadRemoteToLocal(config.S3Klient(version, ""), klientBinPath); err != nil {
+	if err = downloadRemoteToLocal(config.S3Klient(version, config.Environment), klientBinPath); err != nil {
 		log.Error("Error downloading klient binary. err: %s", err)
 		fmt.Printf(FailedDownloadingKlient)
 		return 1
