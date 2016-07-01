@@ -165,7 +165,7 @@ module.exports = class OnboardingView extends JView
         selectedServices.push (toggle.getOption 'package' or toggle.getOption 'name')  if toggle.getValue()
 
       if selectedServices.length
-        serverConfig.user_data = "DEBIAN_FRONTEND=noninteractive\napt-get update -y\napt-get -y install #{selectedServices.join ' '}"
+        serverConfig.user_data = "export DEBIAN_FRONTEND=noninteractive\napt-get update -y\napt-get -y install #{selectedServices.join ' '}"
 
     stackTemplate    =
       provider       : PROVIDER_TEMPLATES[selectedProvider]
