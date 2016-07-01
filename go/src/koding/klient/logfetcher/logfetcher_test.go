@@ -313,7 +313,7 @@ func TestGetOffsetLines(t *testing.T) {
 	defer file1.Close()
 
 	offset := 3
-	result, err := getOffsetLines(file1, 4, offset)
+	result, err := GetOffsetLines(file1, 4, offset)
 	if err != nil {
 		t.Error(err)
 	}
@@ -328,7 +328,7 @@ func TestGetOffsetLines(t *testing.T) {
 
 	// Set the offset to the entire file.
 	offset = len(sourceLines) + 1
-	result, err = getOffsetLines(file1, 4, offset)
+	result, err = GetOffsetLines(file1, 4, offset)
 	if err != nil {
 		t.Error(err)
 	}
@@ -349,7 +349,7 @@ func TestGetOffsetLines(t *testing.T) {
 
 	fmt.Println("Requesting empty lines")
 	offset = 3
-	result, err = getOffsetLines(file2, 4, offset)
+	result, err = GetOffsetLines(file2, 4, offset)
 	if err != nil {
 		t.Error(err)
 	}
@@ -376,7 +376,7 @@ func TestGetOffsetLines(t *testing.T) {
 	defer file1.Close()
 
 	offset = 3
-	result, err = getOffsetLines(file1, defaultOffsetChunkSize, offset)
+	result, err = GetOffsetLines(file1, defaultOffsetChunkSize, offset)
 	if err != nil {
 		t.Error(err)
 	}
