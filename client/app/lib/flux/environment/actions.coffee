@@ -689,6 +689,8 @@ deleteStack = ({ stackTemplateId, stack }) ->
       computeController.destroyStack _stack, (err) ->
         return  if showError err
 
+        reactor.dispatch actions.REMOVE_STACK, _stack._id
+
         computeController
           .reset yes
           .once 'RenderStacks', ->
