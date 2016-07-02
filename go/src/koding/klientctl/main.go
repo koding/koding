@@ -206,7 +206,16 @@ func main() {
 			ShortName:   "s",
 			Usage:       "SSH into the machine.",
 			Description: cmdDescriptions["ssh"],
-			Action:      ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name: "debug",
+				},
+				cli.StringFlag{
+					Name:  "username",
+					Usage: "The username to ssh into on the remote machine.",
+				},
+			},
+			Action: ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
 		},
 		cli.Command{
 			Name:            "run",

@@ -3,11 +3,18 @@ package remote
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 
 	"koding/klient/remote/req"
+	"koding/klient/sshkeys"
 )
+
+// standardTimeout is a timeout value to use for basic communications with remote
+// machines. Do not use this for file transfers, or anything long running!
+const standardTimeout = 30 * time.Second
 
 // SSHKeyAddHandler adds the specified public SSH key to remote machine via the klient
 // on the remote machine.
@@ -31,6 +38,10 @@ func (r *Remote) SSHKeyAddHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	if params.Debug {
+		log.SetLevel(logging.DEBUG)
+	}
+
 	switch {
 	case params.Name == "":
 		return nil, errors.New("Missing required argument `name`.")
@@ -50,8 +61,31 @@ func (r *Remote) SSHKeyAddHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	var sshReq = struct{ Keys []string }{Keys: []string{string(params.Key)}}
-	if _, err = remoteMachine.Tell("sshkeys.add", sshReq); err != nil {
+	username := params.Username
+
+	// If the username is empty, default it to the current user on the remote side.
+	if params.Username == "" {
+		log.Debug("Username empty, looking up default.")
+
+		res, err := remoteMachine.TellWithTimeout("os.currentUsername", standardTimeout)
+		if err != nil {
+			log.Debug("Error from remote machine os.currentUsername method. err:%s", err)
+			return nil, err
+		}
+
+		if err := res.Unmarshal(&username); err != nil {
+			log.Debug("Failed to unmarshal username string")
+			return nil, err
+		}
+	}
+
+	log.Debug("Adding key for username %q", username)
+	var sshReq = sshkeys.AddOptions{
+		Username: username,
+		Keys:     []string{string(params.Key)},
+	}
+	if _, err := remoteMachine.Tell("sshkeys.add", sshReq); err != nil {
+		log.Debug("Error from remote machine sshkeys.add method. err:%s", err)
 		return nil, err
 	}
 
