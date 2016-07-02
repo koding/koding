@@ -29,7 +29,8 @@ type Remote struct {
 func NewRemote(machine string) (*Remote, error) {
 	log := logging.NewLogger("fusetest")
 
-	s, err := sshCmd.NewSSHCommand(log, false)
+	opts := sshCmd.SSHCommandOpts{Ask: true}
+	s, err := sshCmd.NewSSHCommand(log, opts)
 	if err != nil {
 		return nil, err
 	}

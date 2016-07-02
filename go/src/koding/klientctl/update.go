@@ -35,6 +35,14 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		kdChannel     = c.String("kd-channel")
 	)
 
+	if kdChannel == "" {
+		kdChannel = config.Environment
+	}
+
+	if klientChannel == "" {
+		klientChannel = config.Environment
+	}
+
 	// Create and open the log file, to be safe in case it's missing.
 	f, err := createLogFile(LogFilePath)
 	if err != nil {

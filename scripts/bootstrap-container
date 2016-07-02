@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o errexit
+
 pushd $(dirname $0)/..
 
 function build() {
@@ -10,6 +12,7 @@ function build() {
 }
 
 function start() {
+  ./run exec scripts/check-service-connectivity.sh
   ./run migrate up
   nginx -c $(pwd)/nginx.conf
   ./run exec supervisord -c supervisord.conf

@@ -286,3 +286,15 @@ func (k *Klient) RemoteReadDirectory(mountName, remotePath string) ([]fs.FileEnt
 
 	return files, nil
 }
+
+// CurrentUsername calls klient's `remote.currentUsername` method
+func (k *Klient) RemoteCurrentUsername(opts req.CurrentUsernameOptions) (string, error) {
+	var username string
+
+	kRes, err := k.Tell("remote.currentUsername", opts)
+	if err != nil {
+		return username, err
+	}
+
+	return username, kRes.Unmarshal(&username)
+}
