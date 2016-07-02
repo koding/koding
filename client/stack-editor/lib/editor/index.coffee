@@ -98,7 +98,9 @@ module.exports = class StackEditorView extends kd.View
 
     @secondaryActions.addSubView new CustomLinkView
       cssClass : 'HomeAppView--button secondary fr'
-      title    : 'DOCUMENTATION'
+      attributes :
+        style  : 'color: #67a2ee;'
+      title    : 'CLICK HERE TO READ STACK SCRIPT DOCS'
       href     : 'http://www.koding.com/docs'
 
     @tabView.unsetClass 'kdscrollview'
