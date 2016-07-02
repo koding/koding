@@ -21,7 +21,16 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	cmd, err := ssh.NewSSHCommand(log, true)
+	if c.Bool("debug") {
+		log.SetLevel(logging.DEBUG)
+	}
+
+	opts := ssh.SSHCommandOpts{
+		Debug:          c.Bool("debug"),
+		RemoteUsername: c.String("username"),
+		Ask:            true,
+	}
+	cmd, err := ssh.NewSSHCommand(log, opts)
 	mountName := c.Args()[0]
 
 	// TODO: Refactor SSHCommand instance to require no initialization,
@@ -55,8 +64,8 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 0
 	case ssh.ErrMachineNotFound:
 		fmt.Println(MachineNotFound)
-	case ssh.ErrManagedMachineNotSupported:
-		fmt.Println(CannotSSHManaged)
+	case ssh.ErrCannotFindUser:
+		fmt.Println(CannotFindSSHUser)
 		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	case ssh.ErrFailedToGetSSHKey:
 		fmt.Println(FailedGetSSHKey)

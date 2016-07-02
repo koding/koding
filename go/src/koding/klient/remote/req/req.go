@@ -45,8 +45,16 @@ type Exec struct {
 
 // SSHAuthSock is the request struct for remote.sshKeysAdd method.
 type SSHKeyAdd struct {
+	Debug bool
+
+	// The MachineName to add to.
 	Name string
-	Key  []byte
+
+	// The key being added.
+	Key []byte
+
+	// The username to add the key to, on the remote machine.
+	Username string
 }
 
 // Cache is the request struct for remote.cache method.
@@ -124,6 +132,14 @@ type ReadDirectoryOptions struct {
 
 	// The machine name to run the ReadDirectory on.
 	Machine string
+}
+
+// CurrentUsernameOptions
+type CurrentUsernameOptions struct {
+	Debug bool
+
+	// The MachineName to add to.
+	MachineName string
 }
 
 func (i StatusItem) String() string {
