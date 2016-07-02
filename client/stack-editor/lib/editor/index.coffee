@@ -96,6 +96,11 @@ module.exports = class StackEditorView extends kd.View
       title    : 'DELETE STACK TEMPLATE'
       click    : @bound 'deleteStack'
 
+    @secondaryActions.addSubView new CustomLinkView
+      cssClass : 'HomeAppView--button secondary fr'
+      title    : 'DOCUMENTATION'
+      href     : 'http://www.koding.com/docs'
+
     @tabView.unsetClass 'kdscrollview'
 
     @editorViews = {}
