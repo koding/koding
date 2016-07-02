@@ -1182,7 +1182,7 @@ module.exports = class ComputeController extends KDController
   fetchStackTemplate: (id, callback = kd.noop) ->
 
     remote.api.JStackTemplate.one { _id: id }, (err, template) ->
-      return callback err  if err
+      return callback { message: "Stack template doesn't exist." }  if err or not template
 
       # Follow update events to get change set from remote-extensions
       # This is not required but we will need a huge set of changes

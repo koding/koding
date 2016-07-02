@@ -341,6 +341,18 @@ func main() {
 				CpCommandFactory, log, "cp",
 			),
 		},
+		cli.Command{
+			Name: "log",
+			Flags: []cli.Flag{
+				cli.BoolFlag{Name: "debug"},
+				cli.BoolFlag{Name: "no-kd-log"},
+				cli.BoolFlag{Name: "no-klient-log"},
+				cli.StringFlag{Name: "kd-log-file"},
+				cli.StringFlag{Name: "klient-log-file"},
+				cli.IntFlag{Name: "lines, n"},
+			},
+			Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
+		},
 	}
 
 	app.Run(os.Args)

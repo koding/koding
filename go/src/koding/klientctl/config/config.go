@@ -32,6 +32,10 @@ const (
 
 	// SSHDefaultKeyName is the default name of the ssh key pair.
 	SSHDefaultKeyName = "kd-ssh-key"
+
+	// used in combination with os-specific log paths under _linux and _darwin.
+	kdLogName     = "kd.log"
+	klientLogName = "klient.log"
 )
 
 var environments = map[string]string{
