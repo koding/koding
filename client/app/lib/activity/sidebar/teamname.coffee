@@ -55,7 +55,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
   handleDashboard: ->
 
-    kd.singletons.router.handleRoute '/Home/Welcome'
+    kd.singletons.router.handleRoute '/Home/Stacks'
 
 
   handleLogout: ->

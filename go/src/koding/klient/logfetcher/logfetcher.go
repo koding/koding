@@ -78,7 +78,7 @@ func Tail(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		lines, err := getOffsetLines(f, defaultOffsetChunkSize, params.LineOffset)
+		lines, err := GetOffsetLines(f, defaultOffsetChunkSize, params.LineOffset)
 		f.Close()
 
 		if err != nil {
@@ -175,7 +175,7 @@ func Tail(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
-func getOffsetLines(f *os.File, chunkSize int64, requestedLines int) ([]string, error) {
+func GetOffsetLines(f *os.File, chunkSize int64, requestedLines int) ([]string, error) {
 	var (
 		newLineChar = byte('\n')
 		foundLines  []string
@@ -190,7 +190,7 @@ func getOffsetLines(f *os.File, chunkSize int64, requestedLines int) ([]string, 
 	// then the start is the same as the end. Empty file, nothing we can do.
 	start, err := f.Seek(0, 2)
 	if err != nil {
-		return nil, fmt.Errorf("getOffsetLines: Failed to seek. err:%s", err)
+		return nil, fmt.Errorf("GetOffsetLines: Failed to seek. err:%s", err)
 	}
 	if start == 0 {
 		return nil, nil

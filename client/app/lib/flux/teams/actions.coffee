@@ -256,8 +256,8 @@ handleDisabledUser = (member) ->
 
   team.unblockMember options, (err) ->
     unless err
-      fetchMembers().then ->
-        fetchMembersRole()
+      fetchMembers().then (members) ->
+        fetchMembersRole members
         reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
   .catch (err) -> 'error occured while unblocking member'

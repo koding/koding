@@ -96,6 +96,13 @@ module.exports = class StackEditorView extends kd.View
       title    : 'DELETE STACK TEMPLATE'
       click    : @bound 'deleteStack'
 
+    @secondaryActions.addSubView new CustomLinkView
+      cssClass : 'HomeAppView--button secondary fr'
+      attributes :
+        style  : 'color: #67a2ee;'
+      title    : 'CLICK HERE TO READ STACK SCRIPT DOCS'
+      href     : 'http://www.koding.com/docs'
+
     @tabView.unsetClass 'kdscrollview'
 
     @editorViews = {}
@@ -390,7 +397,9 @@ module.exports = class StackEditorView extends kd.View
           .add 'Checking provided credentials...'
 
         @checkAndBootstrapCredentials (err, credentials) =>
-          return @saveButton.hideLoader()  if err
+          if err
+            @credentialWarning.tooltip.show()
+            return @saveButton.hideLoader()
 
           @outputView
             .add 'Credentials are ready!'
