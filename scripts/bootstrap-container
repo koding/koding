@@ -16,6 +16,7 @@ function configure() {
 }
 
 function start() {
+  configure
   ./run exec scripts/check-service-connectivity.sh
   ./run migrate up
   nginx -c $(pwd)/nginx.conf
