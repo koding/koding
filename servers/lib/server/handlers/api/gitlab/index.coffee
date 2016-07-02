@@ -17,6 +17,8 @@ HANDLERS  =
 
 module.exports = GitLabHandler = (req, res, next) ->
 
+  return next()  unless KONFIG.gitlab.hooksEnabled
+
   Models = (require '../../../bongo').models
 
   if not event = validateRequest req
