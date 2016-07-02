@@ -32,7 +32,7 @@ import (
 )
 
 var (
-	ErrManagedMachineNotSupported = errors.New("Cannot ssh into managed machines.")
+	ErrCannotFindUser = errors.New("Cannot find username on remote machine.")
 
 	ErrFailedToGetSSHKey = errors.New("Failed to get ssh key.")
 
@@ -47,6 +47,16 @@ var (
 	// ErrMachineNotFound is when the requested machine is not found.
 	ErrMachineNotFound = errors.New("Machine not found.")
 )
+
+type SSHCommandOpts struct {
+	Ask bool
+
+	// The Remote SSH Username to connect with.
+	RemoteUsername string
+
+	// Whether to log with debug, and pass debug to Klient.
+	Debug bool
+}
 
 // SSHCommand is the command that lets users ssh into a remote machine.  It
 // manages the creating and storing of authorization keys for ease of use.
@@ -65,7 +75,8 @@ var (
 type SSHCommand struct {
 	*SSHKey
 
-	Log logging.Logger
+	Log   logging.Logger
+	Debug bool
 
 	// Ask is flag for user interaction, ie should we ask user to generate new
 	// SSH key if it doesn't exist.
@@ -80,7 +91,7 @@ type SSHCommand struct {
 }
 
 // NewSSHCommand is the required initializer for SSHCommand.
-func NewSSHCommand(log logging.Logger, ask bool) (*SSHCommand, error) {
+func NewSSHCommand(log logging.Logger, opts SSHCommandOpts) (*SSHCommand, error) {
 	usr, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -101,12 +112,15 @@ func NewSSHCommand(log logging.Logger, ask bool) (*SSHCommand, error) {
 	return &SSHCommand{
 		Klient: k,
 		Log:    log.New("SSHCommand"),
-		Ask:    ask,
+		Ask:    opts.Ask,
+		Debug:  opts.Debug,
 		SSHKey: &SSHKey{
-			Log:     log.New("SSHKey"),
-			KeyPath: path.Join(usr.HomeDir, config.SSHDefaultKeyDir),
-			KeyName: config.SSHDefaultKeyName,
-			Klient:  k,
+			Log:            log.New("SSHKey"),
+			Debug:          opts.Debug,
+			RemoteUsername: opts.RemoteUsername,
+			KeyPath:        path.Join(usr.HomeDir, config.SSHDefaultKeyDir),
+			KeyName:        config.SSHDefaultKeyName,
+			Klient:         k,
 		},
 	}, nil
 }
@@ -127,8 +141,10 @@ func (s *SSHCommand) Run(machine string) error {
 	}
 
 	if err := s.PrepareForSSH(machine); err != nil {
+		s.Log.Debug("PrepareForSSH returned err: %s", err)
+
 		if strings.Contains(err.Error(), "user: unknown user") {
-			return ErrManagedMachineNotSupported
+			return ErrCannotFindUser
 		}
 
 		// TODO: We're unable to log the meaningful error returned from klient, so we're
@@ -158,6 +174,7 @@ func (s *SSHCommand) Run(machine string) error {
 		args = append(args, "-p", port)
 	}
 
+	s.Log.Debug("SSHing with command: ssh %s", strings.Join(args, " "))
 	cmd := exec.Command("ssh", args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -181,7 +198,11 @@ func (s *SSHCommand) PrepareForSSH(name string) error {
 // SSHKey implements methods for dealing with creating a KD local and remote ssh key,
 // and adding it to the remote via klient's remote.sshKeysAdd
 type SSHKey struct {
-	Log logging.Logger
+	Log   logging.Logger
+	Debug bool
+
+	// The *default* username used.
+	RemoteUsername string
 
 	// KeyPath is the directory that stores the ssh keys pairs. It's defaults
 	// to `.ssh/` in the user's home directory.
@@ -195,6 +216,7 @@ type SSHKey struct {
 	// machine.
 	Klient interface {
 		RemoteList() (list.KiteInfos, error)
+		RemoteCurrentUsername(req.CurrentUsernameOptions) (string, error)
 		Tell(string, ...interface{}) (*dnode.Partial, error)
 	}
 
@@ -220,9 +242,14 @@ func (s *SSHKey) GetSSHAddr(name string) (userhost, port string, err error) {
 		return "", "", ErrMachineNotFound
 	}
 
+	remoteUsername, err := s.GetUsername(name)
+	if err != nil {
+		return "", "", err
+	}
+
 	endpoints, err := s.Discover.Discover(info.IP, "ssh")
 	if err != nil {
-		return fmt.Sprintf("%s@%s", info.Hostname, info.IP), "", nil
+		return fmt.Sprintf("%s@%s", remoteUsername, info.IP), "", nil
 	}
 
 	addr := endpoints[0].Addr
@@ -241,23 +268,29 @@ func (s *SSHKey) GetSSHAddr(name string) (userhost, port string, err error) {
 		host = addr
 	}
 
-	return fmt.Sprintf("%s@%s", info.Hostname, host), port, nil
+	return fmt.Sprintf("%s@%s", remoteUsername, host), port, nil
 }
 
 // GetUsername returns the username of the remote machine.
-// It assume user exists on the remote machine with the same Koding username.
-func (s *SSHKey) GetUsername(name string) (string, error) {
-	infos, err := s.Klient.RemoteList()
-	if err != nil {
-		return "", err
+func (s *SSHKey) GetUsername(name string) (username string, err error) {
+	if s.RemoteUsername != "" {
+		return s.RemoteUsername, nil
 	}
 
-	if info, ok := infos.FindFromName(name); ok {
-		return info.Hostname, nil
+	// Cache the return value if we have one. Not required, just useful,
+	// no need for repeated queries.
+	defer func() {
+		if err == nil && username != "" {
+			s.RemoteUsername = username
+		}
+	}()
+
+	currentUsernameOpts := req.CurrentUsernameOptions{
+		Debug:       s.Debug,
+		MachineName: name,
 	}
 
-	s.Log.Error("No machine found with specified name: `%s`", name)
-	return "", ErrMachineNotFound
+	return s.Klient.RemoteCurrentUsername(currentUsernameOpts)
 }
 
 // GenerateAndSaveKey generates a new SSH key pair and saves it to local.
@@ -347,12 +380,21 @@ func (s *SSHKey) PrepareForSSH(name string) error {
 		}
 	}
 
+	username, err := s.GetUsername(name)
+	if err != nil {
+		return err
+	}
+
 	req := req.SSHKeyAdd{
-		Name: name,
-		Key:  contents,
+		Debug:    s.Debug,
+		Name:     name,
+		Username: username,
+		Key:      contents,
 	}
 
 	if _, err = s.Klient.Tell("remote.sshKeysAdd", req); err != nil {
+		s.Log.Debug("Klient's remote.sshKeysAdd method returned err:%s", err)
+
 		// ignore errors about duplicate keys since we're adding on each run
 		if strings.Contains(err.Error(), "cannot add duplicate ssh key") {
 			return nil
