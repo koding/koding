@@ -244,6 +244,8 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     { requiredFields, defaultTitle } = @getOptions()
 
+    listView = @getListView()
+
     view = @getView().parent
     view.form?.destroy()
     view.intro?.destroy()
@@ -272,7 +274,10 @@ module.exports = class AccountCredentialListController extends KodingListControl
           '''
 
     { ui }    = kd.singletons.computeController
-    view.form = ui.generateAddCredentialFormFor options
+
+    noCredFound = not listView.items.length
+
+    view.form = ui.generateAddCredentialFormFor options, noCredFound
     view.form.setClass 'credentials-form-view'
 
     view.form.on 'Cancel', =>
@@ -281,13 +286,17 @@ module.exports = class AccountCredentialListController extends KodingListControl
       view.scrollView?.destroy()
       view.form.destroy()
 
-    view.form.on 'CredentialAdded', (credential) =>
+    view.form.on 'CredentialAdded', (credential, noCredFound = no) =>
       view.unsetClass 'form-open'
       @isAddCredentialFormOpen  = no
       credential.owner = yes
       view.scrollView?.destroy()
       view.form.destroy()
-      @addItem credential
+
+      if noCredFound
+      then @addItem(credential).verifyCredential()
+      else
+        @addItem credential
 
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.

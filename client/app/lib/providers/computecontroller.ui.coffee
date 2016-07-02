@@ -96,7 +96,7 @@ module.exports = class ComputeControllerUI
     return buttons
 
 
-  @generateAddCredentialFormFor = (options) ->
+  @generateAddCredentialFormFor = (options, noCredFound = no) ->
 
     { provider, requiredFields, defaultTitle, defaultValues, callback } = options
 
@@ -149,6 +149,9 @@ module.exports = class ComputeControllerUI
 
         selectOptions.push { field, values }
 
+    saveButtonTitle = 'Save'
+    saveButtonTitle = 'Save This & Continue'  if noCredFound
+
     buttons      =
       Cancel     :
         style    : 'solid medium cancel'
@@ -156,7 +159,7 @@ module.exports = class ComputeControllerUI
         callback : -> form.emit 'Cancel'
 
       Save       :
-        title    : 'Save'
+        title    : saveButtonTitle
         type     : 'submit'
         style    : 'solid green medium save-btn'
         loader   : { color : '#444444' }
@@ -209,7 +212,7 @@ module.exports = class ComputeControllerUI
             @buttons.Save.hideLoader()
 
             unless showError err
-              @emit 'CredentialAdded', credential
+              @emit 'CredentialAdded', credential, noCredFound
 
 
     selectOptions.forEach (select) ->
@@ -575,29 +578,30 @@ module.exports = class ComputeControllerUI
         #{errorMessage}
       """
 
-    message   = if message then "<div class='message'>#{message}</div>" else ''
+    message = ''  unless message
 
-    modal     = new kd.ModalView
-      title          : title    ? 'An error occured'
-      subtitle       : subtitle ? ''
-      draggable      : no
-      height         : 600
-      cssClass       : "AppModal AppModal--admin has-markdown
-                        compute-error-modal #{cssClass}"
-      overlay        : yes
-      overlayOptions :
-        cssClass     : 'second-overlay'
+    modal = new ContentModal
+      title : title ? 'An error occured'
+      draggable : no
+      width : 600
+      cssClass : "has-markdown #{cssClass} content-modal"
+      overlay : yes
 
-    content      = (hljs.highlight 'profile', errorMessage).value
+    content = (hljs.highlight 'profile', errorMessage).value
 
     errorDetails = new KDView
+      tagName : 'main'
+      cssClass: 'main-container'
+    errorDetails.unsetClass 'kdview'
     if message
       errorDetails.setClass 'with-message'
       errorDetails.addSubView new KDCustomHTMLView
+        tagName: 'p'
         partial: "#{message}"
 
     errorDetails.addSubView scrollView = new KDCustomScrollView
     scrollView.wrapper.addSubView new KDCustomHTMLView
+      tagName  : 'p'
       cssClass : 'error-content'
       partial  : """
         <div class='content'>
