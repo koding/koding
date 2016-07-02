@@ -7,6 +7,13 @@ import (
 	"github.com/koding/kite"
 )
 
+// AddOptions is the option struct for the Add method of klient.
+type AddOptions struct {
+	Username string `json:"username"`
+	Keys     []string
+	Override bool
+}
+
 // List returns a list of all keys with their respective fingerrpints for the
 // callers username. Fingerprints are useful to delete a key.
 func List(r *kite.Request) (interface{}, error) {
@@ -36,25 +43,27 @@ func List(r *kite.Request) (interface{}, error) {
 // Add adds the given keys to the authorized_keys file. If override is given,
 // it replaces the current authorized_keys with the given keys.
 func Add(r *kite.Request) (interface{}, error) {
-	var params struct {
-		Keys     []string
-		Override bool
-	}
+	var opts AddOptions
 
-	if err := r.Args.One().Unmarshal(&params); err != nil {
+	if err := r.Args.One().Unmarshal(&opts); err != nil {
 		return nil, err
 	}
 
-	if len(params.Keys) == 0 {
+	if len(opts.Keys) == 0 {
 		return nil, errors.New("keys argument list is empty")
 	}
 
-	if params.Override {
-		if err := ReplaceKeys(r.Username, params.Keys...); err != nil {
+	username := opts.Username
+	if username == "" {
+		username = r.Username
+	}
+
+	if opts.Override {
+		if err := ReplaceKeys(username, opts.Keys...); err != nil {
 			return nil, err
 		}
 	} else {
-		if err := AddKeys(r.Username, params.Keys...); err != nil {
+		if err := AddKeys(username, opts.Keys...); err != nil {
 			return nil, err
 		}
 	}

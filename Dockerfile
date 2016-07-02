@@ -7,6 +7,7 @@ WORKDIR /opt/koding
 RUN npm install --unsafe-perm && \
     KODINGENV="default" ./configure && \
     go/build.sh && \
-    make -C client dist
+    make -C client dist && \
+    rm -rfv generated
 
 ENTRYPOINT ["scripts/bootstrap-container"]

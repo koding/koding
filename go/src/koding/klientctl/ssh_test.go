@@ -9,10 +9,13 @@ import (
 	"koding/kites/tunnelproxy/discover/discovertest"
 	"koding/klient/kiteerrortypes"
 	"koding/klient/remote/restypes"
+	"koding/klient/testutil"
 	"koding/klient/util"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
 	"koding/klientctl/ssh"
+
+	"github.com/koding/kite/dnode"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -26,6 +29,7 @@ func TestSSHCommand(t *testing.T) {
 		teller := newFakeTransport()
 		s := ssh.SSHCommand{
 			SSHKey: &ssh.SSHKey{
+				Log:     testutil.DiscardLogger,
 				KeyPath: tempSSHDir,
 				KeyName: "key",
 				// Create a klient, with the fake transport to satisfy the Teller interface.
@@ -41,6 +45,9 @@ func TestSSHCommand(t *testing.T) {
 					kiteerrortypes.DialingFailed, "Failed to dial.",
 				)
 				teller.TripErrors["remote.sshKeysAdd"] = kiteErr
+				teller.TripResponses["remote.currentUsername"] = &dnode.Partial{
+					Raw: []byte(`"foo"`),
+				}
 
 				Convey("It should return ErrRemoteDialingFailed", func() {
 					So(s.PrepareForSSH("foo"), ShouldEqual, kiteErr)
@@ -71,6 +78,9 @@ func TestSSHCommand(t *testing.T) {
 		})
 
 		Convey("It should create ssh folder if it doesn't exist", func() {
+			teller.TripResponses["remote.currentUsername"] = &dnode.Partial{
+				Raw: []byte(`"foo"`),
+			}
 			So(s.PrepareForSSH("name"), ShouldBeNil)
 
 			_, err := os.Stat(s.KeyPath)
@@ -78,6 +88,9 @@ func TestSSHCommand(t *testing.T) {
 		})
 
 		Convey("It generates and saves key to remote if key doesn't exist", func() {
+			teller.TripResponses["remote.currentUsername"] = &dnode.Partial{
+				Raw: []byte(`"foo"`),
+			}
 			err := s.PrepareForSSH("name")
 			So(err, ShouldBeNil)
 
@@ -117,6 +130,7 @@ func TestSSHKey(t *testing.T) {
 		defer l.Close()
 
 		k := &fakeKlient{
+			RemoteUsername: "root",
 			Remotes: list.KiteInfos{{
 				ListMachineInfo: restypes.ListMachineInfo{
 					Hostname: "root",
@@ -149,6 +163,7 @@ func TestSSHKey(t *testing.T) {
 		defer l.Close()
 
 		k := &fakeKlient{
+			RemoteUsername: "root",
 			Remotes: list.KiteInfos{{
 				ListMachineInfo: restypes.ListMachineInfo{
 					Hostname: "root",
