@@ -21,6 +21,11 @@ module.exports = class VirtualMachinesListView extends React.Component
     onCancelSharing     : kd.noop
 
 
+  getStacks: ->
+
+    @props.stacks.filter (stack) -> stack.get('title').toLowerCase() isnt 'managed vms'
+
+
   onChangeAlwaysOn: (machine, state) ->
 
     @props.onChangeAlwaysOn machine.get('_id'), state
@@ -51,12 +56,8 @@ module.exports = class VirtualMachinesListView extends React.Component
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: ->
+  numberOfRowsInSection: -> @getStacks().size
 
-    @props.stacks
-      .toList()
-      .filter (stack) -> stack.get('title').toLowerCase() isnt 'managed vms'
-      .size
 
 
   renderSectionHeaderAtIndex: -> null
@@ -64,7 +65,7 @@ module.exports = class VirtualMachinesListView extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    stack = @props.stacks.toList().get rowIndex
+    stack = @getStacks().toList().get rowIndex
 
     stack.get 'machines'
       .sort (a, b) -> a.get('label').localeCompare(b.get('label')) # Sorting from a to z
