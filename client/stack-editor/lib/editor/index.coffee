@@ -167,18 +167,12 @@ module.exports = class StackEditorView extends kd.View
 
     @providersView.on 'ItemSelected', (credentialItem) =>
 
-      # After adding credential, we are sharing it with the current
-      # group, so anyone in this group can use this credential ~ GG
-      { slug } = kd.singletons.groupsController.getCurrentGroup()
-
       credential = credentialItem.getData()
 
-      credential.shareWith { target: slug }, (err) =>
-        console.warn 'Failed to share credential:', err  if err
-        @credentialStatusView.setCredential credential
+      @credentialStatusView.setCredential credential
 
-        @providersView.resetItems()
-        credentialItem.inuseView.show()
+      @providersView.resetItems()
+      credentialItem.inuseView.show()
 
     @providersView.on 'ItemDeleted', (credential) =>
 
@@ -326,7 +320,13 @@ module.exports = class StackEditorView extends kd.View
       cssClass       : 'GenericButton hidden set-default'
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
-        createShareModal()
+        createShareModal (needShare, modal) =>
+          @once 'Completed', =>
+            if needShare
+              @shareCredentials -> modal.destroy()
+            else
+              modal.destroy()
+          @handleSetDefaultTemplate()
 
     @buttons.addSubView @generateStackButton = new kd.ButtonView
       title          : 'INITIALIZE'
@@ -888,3 +888,12 @@ module.exports = class StackEditorView extends kd.View
             callback  : -> callback { status : yes, modal }
 
       modal.setAttribute 'testpath', 'RemoveStackModal'
+
+
+  shareCredentials: (callback) ->
+
+    [ credential ] = @credentialStatusView.credentialsData
+    { slug } = kd.singletons.groupsController.getCurrentGroup()
+    credential.shareWith { target: slug }, (err) =>
+      console.warn 'Failed to share credential:', err  if err
+      callback()
