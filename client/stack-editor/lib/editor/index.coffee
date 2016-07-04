@@ -28,6 +28,7 @@ generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 StackTemplatePreviewModal = require 'stacks/views/stacks/stacktemplatepreviewmodal'
 EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
+createShareModal = require './createShareModal'
 { actions : HomeActions } = require 'home/flux'
 
 module.exports = class StackEditorView extends kd.View
@@ -323,10 +324,9 @@ module.exports = class StackEditorView extends kd.View
     @buttons.addSubView @setAsDefaultButton = new kd.ButtonView
       title          : 'MAKE TEAM DEFAULT'
       cssClass       : 'GenericButton hidden set-default'
-      loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
-        @handleSetDefaultTemplate()
+        createShareModal()
 
     @buttons.addSubView @generateStackButton = new kd.ButtonView
       title          : 'INITIALIZE'
@@ -888,4 +888,3 @@ module.exports = class StackEditorView extends kd.View
             callback  : -> callback { status : yes, modal }
 
       modal.setAttribute 'testpath', 'RemoveStackModal'
-
