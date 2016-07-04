@@ -14,7 +14,6 @@ import (
 var SendEmailEventName = "send"
 
 const (
-	keyStartRegister         = "started to register"
 	keyInvitedCreateTeam     = "was invited to create a team"
 	subjectStartRegister     = "Welcome to Koding! ♥"
 	subjectInvitedCreateTeam = "You're invited to try Koding for Teams!"
@@ -84,7 +83,7 @@ func (c *Controller) Process(m *Mail) error {
 
 	escapedBody := template.HTMLEscapeString(m.HTML)
 
-	if m.Properties.Options["subject"] != keyStartRegister && m.Properties.Options["subject"] != keyInvitedCreateTeam {
+	if m.Properties.Options["subject"] != keyInvitedCreateTeam {
 		event := &eventexporter.Event{
 			Name:       m.Subject,
 			User:       user,
