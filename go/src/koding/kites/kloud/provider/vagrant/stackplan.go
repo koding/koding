@@ -199,6 +199,8 @@ func (s *Stack) InjectVagrantData() (string, stackplan.KiteMap, error) {
 
 		tunnel := s.newTunnel(resourceName)
 
+		s.Builder.BuildUserData(box, resourceName)
+
 		data := puser.Value{
 			Username:        s.Req.Username,
 			Groups:          []string{"sudo"},
