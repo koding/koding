@@ -302,9 +302,6 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 			// A shared user is (owner + permanent).
 			if (user.Sudo || !user.Permanent) && user.Owner {
 				validUsers[user.Id.Hex()] = user
-			} else {
-				// return early, we don't accept invalid inputs for apply method
-				return fmt.Errorf("machine '%s' is not valid. Aborting apply", machine.ObjectId.Hex())
 			}
 		}
 	}
