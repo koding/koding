@@ -62,7 +62,7 @@ loadIDE = (data) ->
   selectWorkspaceOnSidebar data
   actions.setSelectedMachineId machine._id
 
-  if machine.data.generatedFrom?
+  if machine.data?.generatedFrom?
     actions.setSelectedTemplateId machine.data.generatedFrom.templateId
 
   appManager = kd.getSingleton 'appManager'
