@@ -231,7 +231,9 @@ module.exports = class CredentialsController extends kd.Controller
         { items, selectedItem } = result
         return callback null, result  unless selectedItem
 
-        isAvailable = items.filter((item) -> item.identifier is selectedItem).length > 0
+        isAvailable = (
+          item for item in items when item.identifier is selectedItem
+        ).length > 0
         return callback null, result  if isAvailable
 
         # try to add stack credential to the list of credentials
@@ -239,7 +241,7 @@ module.exports = class CredentialsController extends kd.Controller
         remote.api.JCredential.one selectedItem, (err, credential) ->
           return callback err, result  if err or not credential
 
-          result.items.unshift credential
+          result.sharedCredential = credential
           callback null, result
 
 
