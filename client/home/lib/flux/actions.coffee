@@ -52,16 +52,8 @@ checkFinishedSteps = ->
   if reactor.evaluate(EnvironmentGetters.stacks).size
     markAsDone 'stackCreation'
 
-
   unobserve = reactor.observe EnvironmentGetters.stacks, (_stacks) ->
-    isStackBuilt = no
-    _stacks.forEach (stack) ->
-      return  if isStackBuilt
-      status = stack.get 'status'
-      if status isnt 'NotInitialized'
-        kd.utils.defer -> markAsDone 'buildStack'
-        isStackBuilt = yes
-        unobserve()
+    checkStacksForBuild _stacks, unobserve
 
   remote.api.JCredential.some {}, { limit: 1 }, (err, res) ->
     return  if err
@@ -92,7 +84,16 @@ checkFinishedSteps = ->
       kd.utils.killRepeat kiteTimer
       markAsDone 'installKd'
 
+checkStacksForBuild = (stacks, unobserve) ->
 
+  isStackBuilt = no
+  stacks.forEach (stack) ->
+    return  if isStackBuilt
+    status = stack.get 'status'
+    if status isnt 'NotInitialized'
+      kd.utils.defer -> markAsDone 'buildStack'
+      isStackBuilt = yes
+      unobserve()
 
 
 module.exports = {
