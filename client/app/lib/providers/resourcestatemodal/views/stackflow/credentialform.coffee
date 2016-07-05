@@ -40,7 +40,7 @@ module.exports = class CredentialForm extends JView
 
     @showLink  = new kd.CustomHTMLView
       tagName  : 'a'
-      cssClass : "show-link"
+      cssClass : 'show-link'
       click    : =>
 
         selectedItem = @selection.getValue()
