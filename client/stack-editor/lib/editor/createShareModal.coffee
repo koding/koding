@@ -35,11 +35,12 @@ module.exports = (_callback) ->
       <p>When you share your stack template, we will notify team members.</p>
     '''
   content.addSubView checkboxWrapper = new kd.CustomHTMLView { tagName : 'p' }
-  checkboxWrapper.addSubView checkbox = new kd.CheckBox
-    defaultValue : yes
-    label        : label = new kd.LabelView
-      title      : 'Share the credentials I used for this stack with my team.'
-  checkboxWrapper.addSubView label
+  checkboxWrapper.addSubView checkbox = new kd.CustomCheckBox()
+  checkbox.setValue yes
+  checkboxWrapper.addSubView label = new kd.CustomHTMLView
+    tagName  : 'span'
+    partial  : 'Share the credentials I used for this stack with my team.'
+    click    : -> checkbox.setValue not checkbox.getValue()
 
   modal = new ContentModal
     cssClass     : 'content-modal StackEditor-ShareModal'
