@@ -158,12 +158,11 @@ module.exports = class AvatarView extends LinkView
 
     kd.getSingleton('groupsController').ready =>
 
-      { _id } = @getData()
-
-      nickname = profile?.nickname
+      return  unless account = @getData()
 
       unless isKoding()
-        @getData()?.fetchMyPermissionsAndRoles (err, res) =>
+        return  if account.fake
+        account.fetchMyPermissionsAndRoles (err, res) =>
           { roles } = res
           hasOwner = 'owner' in roles
           hasAdmin = 'admin' in roles
@@ -180,7 +179,7 @@ module.exports = class AvatarView extends LinkView
       href = if payload?.channelIntegrationId
         "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
       else
-        if isKoding() and nickname
+        if isKoding() and nickname = account.profile
         then "/#{nickname}"
         else '/#'
 
