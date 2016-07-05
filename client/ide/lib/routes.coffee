@@ -64,6 +64,8 @@ loadIDE = (data) ->
 
   if machine.data?.generatedFrom?
     actions.setSelectedTemplateId machine.data.generatedFrom.templateId
+  else
+    actions.setSelectedTemplateId null
 
   appManager = kd.getSingleton 'appManager'
   ideApps    = appManager.appControllers.IDE
