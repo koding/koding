@@ -215,6 +215,11 @@ class IDEAppController extends AppController
 
     @on 'WorkspaceChannelChanged', @bound 'onWorkspaceChannelChanged'
 
+    return  unless @workspaceData
+
+    unless 'function' is typeof @workspaceData.on
+      @workspaceData = remote.revive @workspaceData
+
     @workspaceData.on 'update', (fields) =>
 
       fields.forEach (field) =>
