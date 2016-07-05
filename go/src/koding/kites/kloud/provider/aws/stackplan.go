@@ -85,7 +85,11 @@ func (s *Stack) InjectAWSData(ctx context.Context, username string, expandUserDa
 	kiteIDs := make(stackplan.KiteMap)
 
 	for resourceName, instance := range resource.AwsInstance {
-		instance["key_name"] = meta.KeyPair
+		// Do not overwrite SSH key pair with the bootstrap one
+		// when user sets it explicitly in a template.
+		if s, ok := instance["key_name"]; !ok || s == "" {
+			instance["key_name"] = meta.KeyPair
+		}
 
 		// if nothing is provided or the ami is empty use default Ubuntu AMI's
 		if a, ok := instance["ami"]; !ok {
