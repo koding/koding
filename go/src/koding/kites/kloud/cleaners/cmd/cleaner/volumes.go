@@ -14,7 +14,6 @@ type Volumes struct {
 	Volumes   *lookup.MultiVolumes
 	MongoDB   *lookup.MongoDB
 
-	notusedVolumes *lookup.MultiVolumes
 	largeInstances *lookup.MultiInstances
 	err            error
 	stopData       map[string]*StopData
@@ -24,7 +23,6 @@ func (v *Volumes) Process() {
 	largeVolumes := v.Volumes.GreaterThan(3)
 
 	inUse := largeVolumes.Status("in-use")
-	v.notusedVolumes = largeVolumes.Status("available").OlderThan(time.Hour)
 
 	instances := v.Instances.
 		States("running").
@@ -100,22 +98,11 @@ func (v *Volumes) Process() {
 }
 
 func (v *Volumes) Run() {
-	done := make(chan bool)
-	go func() {
-		if v.notusedVolumes.Total() > 0 {
-			v.notusedVolumes.TerminateAll()
-		}
-
-		close(done)
-	}()
-
 	v.largeInstances.StopAll()
 
 	for _, data := range v.stopData {
 		v.Cleaner.StopMachine(data)
 	}
-
-	<-done // wait for terminating not unused volumes
 }
 
 func (v *Volumes) Result() string {
@@ -124,10 +111,6 @@ func (v *Volumes) Result() string {
 	}
 
 	var result string
-	if v.notusedVolumes.Total() != 0 {
-		result = fmt.Sprintf("terminated '%d' not used volumes. ",
-			v.notusedVolumes.Total())
-	}
 
 	if v.largeInstances.Total() != 0 {
 		usernames := make([]string, 0)
