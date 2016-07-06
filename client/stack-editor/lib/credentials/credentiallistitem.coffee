@@ -82,6 +82,8 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
     { identifier } = @getData()
 
+    new kd.NotificationView { title : 'Verifying Credentials...', duration : 2000 }
+
     @warningView.hide()
 
     @getDelegate()
