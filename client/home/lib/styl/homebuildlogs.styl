@@ -12,20 +12,32 @@ homebuildlogs.styl
 
   .pane-header
     height                  40px
-    width                   640px
+    width                   674px
     bg                      color #4A4A4A
     margin                  40px 0px 0px 40px
-    span
+    .title
+    .vm-name
       color                 #fff
-      margin-left           20px
       font-size             12px
       letter-spacing        0.11px
-      line-height           47px
+      line-height           40px
+
+    .vm-name
+      margin-left           20px
+      float                 left
+
+    .title
+      float                 right
+      margin-right          20px
+
+  .build-logs-view
+    height                  calc(100% \- 166px) !important
+    clear                   both
+
 
   figure.kdview
-    width                   640px !important
+    width                   674px !important
     margin                  0px 40px 40px 40px
-    height                  500px !important
 
     .ace_gutter
       display               none
@@ -47,7 +59,7 @@ homebuildlogs.styl
 
   .HomeAppView--sectionHeader
     margin-left             40px
-    width                   640px
+    width                   674px
     height                  52px
     border-bottom           1px solid #d9d9d9
     display                 block
@@ -66,10 +78,3 @@ homebuildlogs.styl
       display               inline-block
       abs()
 
-  .vm-name
-    font-size               14px
-    color                   #898989
-    letter-spacing          0.15px
-    line-height             16px
-    margin-left             40px
-    font-weight             300

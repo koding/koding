@@ -21,6 +21,8 @@ module.exports = class HomeBuildLogs extends kd.View
 
     machine = computeController.findMachineFromMachineUId machineUid
 
+    @machineName = machine.label
+
     # Path of cloud-init-output log
     path = '/var/log/cloud-init-output.log'
     @file = FSHelper.createFileInstance { path, machine }
@@ -37,14 +39,13 @@ module.exports = class HomeBuildLogs extends kd.View
       tagName : 'a'
       partial : 'BACK TO VIRTUAL MACHINES'
       click : ->
-        kd.singletons.router.back()
-
-    @addSubView new kd.CustomHTMLView
-      cssClass : 'vm-name'
-      partial : 'VM Name Build Logs'
+        kd.singletons.router.handleRoute '/Home/Stacks/virtual-machines'
 
     @addSubView new kd.CustomHTMLView
       cssClass : 'pane-header'
-      partial : "<span class='title'>touch /var/log/cloud-init-output.log</span>"
+      partial : """
+        <div class='vm-name'> #{@machineName} Build Logs </div>
+        <div class='title'> /var/log/cloud-init-output.log</div>
+      """
 
-    @addSubView new IDETailerPane { file: @file, delegate: this }
+    @addSubView new IDETailerPane { cssClass: 'build-logs-view', file: @file, delegate: this }
