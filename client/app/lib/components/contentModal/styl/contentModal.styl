@@ -131,9 +131,28 @@ contentModal.styl
       margin                40px
       color                 #727272
 
+      .kdtabview
+        .kdtabhandlecontainer
+          padding-top       0px
+          border-bottom     0px
+
+        .kdtabhandle-tabs
+          top               2px
+
+        .kdtabhandle
+          max-width         150px !important
+          color             black
+          padding-bottom    35px
+
+          &.active
+            color           #727272
+
       .kdtabpaneview
         overflow            visible
         height              300px
+
+        main.main-container
+          margin            0px
 
       h5
       h2
@@ -264,3 +283,10 @@ main.main-container
       code
         display             inline-block
         white-space         normal
+
+&.has-markdown
+ pre
+  padding-top               0px
+
+  code
+    border                  1px solid #d2d2d2
