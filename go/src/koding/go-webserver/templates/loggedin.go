@@ -29,7 +29,8 @@ var LoggedInHome = `
         userEnvironmentData: {{.User.GetWithDefaultHash "EnvData" }},
         socialApiData: {{.User.GetWithDefaultHash "SocialApiData" }},
         userRoles: {{.User.GetWithDefaultHash "Roles" }},
-        userPermissions: {{.User.GetWithDefaultHash "Permissions" }}
+        userPermissions: {{.User.GetWithDefaultHash "Permissions" }},
+        userMachines: {{.User.GetWithDefaultHash "UserMachines" }}
       };
     </script>
 
