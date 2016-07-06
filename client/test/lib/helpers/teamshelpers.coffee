@@ -167,30 +167,27 @@ module.exports =
       .click                 '.TeamsModal-button-link a'
       .pause                 2000
 
-
-  createTeam: (browser, user, inviteOrCreateLink, invalidCredentials = no, callback) ->
-
+  fillTeamSignUp: (browser, user, invalidInfo = no) ->
     modalSelector       = '.TeamsModal.TeamsModal--create'
     emailSelector       = "#{modalSelector} input[name=email]"
     companyNameSelector = "#{modalSelector} input[name=companyName]"
     signUpButton        = "#{modalSelector} button[type=submit]"
-    # user                = utils.getUser()
-    inviteLink          = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
-    modalSelector       = '.TeamsModal.TeamsModal--create'
-    teamsModalSelector  = '.TeamsModal--groupCreation'
-    doneButton          = "#{teamsModalSelector} button.TeamsModal-button--green"
-    usernameInput       = "#{teamsModalSelector} input[name=username]"
-    passwordInput       = "#{teamsModalSelector} input[name=password]"
-    errorMessage        = '.kdnotification.main'
 
     browser
-      .url                    inviteOrCreateLink
       .waitForElementVisible  modalSelector, 20000
       .waitForElementVisible  emailSelector, 20000
       .waitForElementVisible  companyNameSelector, 20000
       .clearValue             emailSelector
 
-    if inviteOrCreateLink is inviteLink
+    if invalidInfo
+      browser
+        .setValue              emailSelector, user.email+'***'
+        .pause                 2000
+        .setValue              companyNameSelector, user.teamSlug
+        .click                 signUpButton
+        .pause                 2500
+        .waitForElementVisible 
+    else
       browser
         .setValue              emailSelector, user.email
         .pause                 2000
@@ -200,32 +197,71 @@ module.exports =
 
       @enterTeamURL(browser)
       @checkForgotPassword(browser)
+      @fillUsernamePasswordForm(browser, user)
+
+
+
+  createTeam: (browser, user, inviteOrCreateLink, invalidCredentials = no, fromHomepage, callback) ->
+
+    modalSelector       = '.TeamsModal.TeamsModal--create'
+    emailSelector       = "#{modalSelector} input[name=email]"
+    companyNameSelector = "#{modalSelector} input[name=companyName]"
+    signUpButton        = "#{modalSelector} button[type=submit]"
+    inviteLink          = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
+    teamsModalSelector  = '.TeamsModal--groupCreation'
+    doneButton          = "#{teamsModalSelector} button.TeamsModal-button--green"
+    usernameInput       = "#{teamsModalSelector} input[name=username]"
+    passwordInput       = "#{teamsModalSelector} input[name=password]"
+    errorMessage        = '.kdnotification.main'
+    teamCreateLink      = "a[href='/Teams/Create']"
+    url                 = helpers.getUrl()
+    
+    if fromHomepage
+      browser
+        .url url
+        .maximizeWindow()
+        .pause 3000
+        .waitForElementVisible teamCreateLink, 20000
+        .click teamCreateLink
 
       if invalidCredentials
-        @fillUsernamePasswordForm(browser, user, yes)
+        @fillTeamSignUp browser, user, yes
       else
-        @fillUsernamePasswordForm(browser, user)
+        @fillTeamSignUp browser, user, no
 
     else
-      browser
-        .setValue              emailSelector, user.email + 'test'
-        .pause                 2000
-        .setValue              companyNameSelector, user.teamSlug + 'test'
-        .click                 signUpButton
-        .pause                 2500
+      browser.url inviteOrCreateLink
+      browser.maximizeWindow()
+      
+      if inviteOrCreateLink is inviteLink
+        @fillTeamSignUp browser, user, no
+        @enterTeamURL(browser)
+        @checkForgotPassword(browser)
 
-      @enterTeamURL(browser)
+        if invalidCredentials
+          @fillUsernamePasswordForm(browser, user, yes)
+        else
+          @fillUsernamePasswordForm(browser, user)
 
-      browser
-        .waitForElementVisible  teamsModalSelector, 20000
-        .waitForElementVisible  usernameInput, 20000
-        .clearValue             usernameInput
-        .setValue               usernameInput, user.username
-        .setValue               passwordInput, user.password
-        .click                  doneButton
-        .waitForElementVisible  errorMessage, 20000
-        .assert.containsText    errorMessage, "Sorry, #{user.username} is already taken!"
+      else
+        browser
+          .setValue              emailSelector, user.email + 'test'
+          .pause                 2000
+          .setValue              companyNameSelector, user.teamSlug + 'test'
+          .click                 signUpButton
+          .pause                 2500
 
+        @enterTeamURL(browser)
+
+        browser
+          .waitForElementVisible  teamsModalSelector, 20000
+          .waitForElementVisible  usernameInput, 20000
+          .clearValue             usernameInput
+          .setValue               usernameInput, user.username
+          .setValue               passwordInput, user.password
+          .click                  doneButton
+          .waitForElementVisible  errorMessage, 20000
+          .assert.containsText    errorMessage, "Sorry, #{user.username} is already taken!"
 
 
   moveToSidebarHeader: (browser, plus, channelHeader) ->
@@ -832,13 +868,13 @@ module.exports =
         { status, value } = result
 
         if status is 0 and value
-          browser.waitForElementVisible '.WelcomeStacksView', 20000, yes, =>
+          browser.waitForElementVisible '.HomeAppView', 20000, yes, =>
             @logoutTeam browser, =>
               teamUrl       = helpers.getUrl yes
               invitationUrl = "#{teamUrl}/Invitation/#{result.value}"
               browser.url invitationUrl, =>
                 @fillJoinForm browser, user, yes, =>
-                  browser.waitForElementVisible '.WelcomeStacksView', 20000, yes, =>
+                  browser.waitForElementVisible '.HomeAppView', 20000, yes, =>
                     @logoutTeam browser, (res) =>
                       @loginToTeam browser, host, no, ->
                         callback res
