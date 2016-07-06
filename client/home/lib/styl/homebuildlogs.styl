@@ -1,0 +1,75 @@
+@css {
+/*
+Home My Team styles
+homebuildlogs.styl
+*/
+}
+
+.Build-Logs
+
+  .description-view
+    display                 none
+
+  .pane-header
+    height                  40px
+    width                   640px
+    bg                      color #4A4A4A
+    margin                  40px 0px 0px 40px
+    span
+      color                 #fff
+      margin-left           20px
+      font-size             12px
+      letter-spacing        0.11px
+      line-height           47px
+
+  figure.kdview
+    width                   640px !important
+    margin                  0px 40px 40px 40px
+    height                  500px !important
+
+    .ace_gutter
+      display               none
+
+    .ace_scroller
+      .ace_content
+        bg                  color #000
+
+      .ace_layer.ace_text-layer
+        padding             20px 0px 0px 20px !important
+
+    .ace_scrollbar-v
+      bg                    color #000
+      height                100%
+
+    .ace_scrollbar-h
+      bg                    color #000
+
+
+  .HomeAppView--sectionHeader
+    margin-left             40px
+    width                   640px
+    height                  52px
+    border-bottom           1px solid #d9d9d9
+    display                 block
+    position                relative
+    a
+      font-size             14px
+      color                 #67A2EE
+      letter-spacing        0.15px
+      text-decoration       none
+      line-height           16px
+      font-weight           300
+      margin-left           20px
+    &:before
+      content ''
+      r-sprite              app left_arrow
+      display               inline-block
+      abs()
+
+  .vm-name
+    font-size               14px
+    color                   #898989
+    letter-spacing          0.15px
+    line-height             16px
+    margin-left             40px
+    font-weight             300
