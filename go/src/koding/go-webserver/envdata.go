@@ -53,9 +53,9 @@ func fetchRolesAndPermissions(userInfo *UserInfo, user *LoggedInUser, wg *sync.W
 }
 
 func fetchUserMachines(userInfo *UserInfo, user *LoggedInUser, wg *sync.WaitGroup) {
-  defer wg.Done()
-  userMachines := getUserMachines(userInfo.UserId, userInfo.Group)
-  user.Set("UserMachines", userMachines)
+	defer wg.Done()
+	userMachines := getUserMachines(userInfo.UserId, userInfo.Group)
+	user.Set("UserMachines", userMachines)
 }
 
 func getEnvData(userInfo *UserInfo) *EnvData {
@@ -75,13 +75,13 @@ func getEnvData(userInfo *UserInfo) *EnvData {
 }
 
 func getUserMachines(userId bson.ObjectId, group *models.Group) []*modelhelper.MachineContainer {
-  machines, err := modelhelper.GetGroupMachines(userId, group)
-  if err != nil {
+	machines, err := modelhelper.GetGroupMachines(userId, group)
+	if err != nil {
 		Log.Error(fmt.Sprintf("Error fetching machines for: %s %s", userId, err))
 		return nil
-  }
+	}
 
-  return machines
+	return machines
 }
 
 func getOwn(userId bson.ObjectId, group *models.Group) []*MachineAndWorkspaces {
