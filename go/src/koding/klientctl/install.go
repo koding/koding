@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -142,11 +143,12 @@ func latestVersion(url string) (int, error) {
 	return int(version), nil
 }
 
-// InstallCommandFactory is the factory method for InstallCommand.
-func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
+// The implementation of InstallCommandFactory, with an error return. This
+// allows us to track the error metrics.
+func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit int, err error) {
 	if len(c.Args()) != 1 {
 		cli.ShowCommandHelp(c, "install")
-		return 1
+		return 1, errors.New("Incorrect cli usage. No args.")
 	}
 
 	// Now that we created the logfile, set our logger handler to use that newly created
@@ -159,6 +161,14 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		log.Info("Installation created log file at %q", LogFilePath)
 	}
 
+	// Track all failed installations.
+	defer func() {
+		if err != nil {
+			log.Error(err.Error())
+			metrics.TrackInstallFailed(err.Error(), config.VersionNum())
+		}
+	}()
+
 	authToken := c.Args().Get(0)
 
 	// We need to check if the authToken is somehow empty, because klient
@@ -166,7 +176,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	// the token flag)
 	if strings.TrimSpace(authToken) == "" {
 		cli.ShowCommandHelp(c, "install")
-		return 1
+		return 1, errors.New("Incorrect cli usage. Missing token.")
 	}
 
 	// Get the supplied kontrolURL, defaulting to the prod kontrol if
@@ -184,7 +194,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 			KlientDirectory, err,
 		)
 		fmt.Println(FailedInstallingKlient)
-		return 1
+		return 1, fmt.Errorf("Failed creating klient binary. err:%s", err)
 	}
 
 	klientBinPath := filepath.Join(KlientDirectory, "klient")
@@ -199,24 +209,22 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	if err := klientSh.Create(filepath.Join(KlientDirectory, "klient.sh")); err != nil {
-		log.Error("Error writing klient.sh file. err:%s", err)
+		err = fmt.Errorf("Error writing klient.sh file. err:%s", err)
 		fmt.Println(FailedInstallingKlient)
-		return 1
+		return 1, err
 	}
 
 	fmt.Println("Downloading...")
 
 	version, err := latestVersion(config.S3KlientLatest)
 	if err != nil {
-		log.Error("Error downloading klient binary. err: %s", err)
 		fmt.Printf(FailedDownloadingKlient)
-		return 1
+		return 1, fmt.Errorf("Error getting latest klient version. err: %s", err)
 	}
 
-	if err = downloadRemoteToLocal(config.S3Klient(version, config.Environment), klientBinPath); err != nil {
-		log.Error("Error downloading klient binary. err: %s", err)
+	if err := downloadRemoteToLocal(config.S3Klient(version, config.Environment), klientBinPath); err != nil {
 		fmt.Printf(FailedDownloadingKlient)
-		return 1
+		return 1, fmt.Errorf("Error downloading klient binary. err: %s", err)
 	}
 
 	fmt.Printf("Created %s\n", klientBinPath)
@@ -242,9 +250,9 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	cmd.Stderr = &errBuf
 
 	if err := cmd.Run(); err != nil {
-		log.Error("Error registering klient. err: %s: %s", err, errBuf.String())
+		err = fmt.Errorf("Error registering klient. err: %s, klient stderr: %s", err, errBuf.String())
 		fmt.Println(FailedRegisteringKlient)
-		return 1
+		return 1, err
 	}
 
 	fmt.Printf("Created %s\n", filepath.Join(config.KiteHome, "kite.key"))
@@ -252,22 +260,22 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	// Klient is setting the wrong file permissions when installed by ctl,
 	// so since this is just ctl problem, we'll just fix the permission
 	// here for now.
-	if err = os.Chmod(config.KiteHome, 0755); err != nil {
-		log.Error(
+	if err := os.Chmod(config.KiteHome, 0755); err != nil {
+		err = fmt.Errorf(
 			"Error chmodding KiteHome directory. dir:%s, err:%s",
 			config.KiteHome, err,
 		)
 		fmt.Println(FailedInstallingKlient)
-		return 1
+		return 1, err
 	}
 
-	if err = os.Chmod(filepath.Join(config.KiteHome, "kite.key"), 0644); err != nil {
-		log.Error(
+	if err := os.Chmod(filepath.Join(config.KiteHome, "kite.key"), 0644); err != nil {
+		err = fmt.Errorf(
 			"Error chmodding kite.key. path:%s, err:%s",
 			filepath.Join(config.KiteHome, "kite.key"), err,
 		)
 		fmt.Println(FailedInstallingKlient)
-		return 1
+		return 1, err
 	}
 
 	opts := &ServiceOptions{
@@ -278,9 +286,8 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	// Create our interface to the OS specific service
 	s, err := newService(opts)
 	if err != nil {
-		log.Error("Error creating Service. err:%s", err)
 		fmt.Println(GenericInternalNewCodeError)
-		return 1
+		return 1, fmt.Errorf("Error creating Service. err:%s", err)
 	}
 
 	// try to uninstall first, otherwise Install may fail if
@@ -288,10 +295,9 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	s.Uninstall()
 
 	// Install the klient binary as a OS service
-	if err = s.Install(); err != nil {
-		log.Error("Error installing Service. err:%s", err)
+	if err := s.Install(); err != nil {
 		fmt.Println(GenericInternalNewCodeError)
-		return 1
+		return 1, fmt.Errorf("Error installing Service. err:%s", err)
 	}
 
 	// Tell the service to start. Normally it starts automatically, but
@@ -301,10 +307,9 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	// Note that the service may error if it is already running, so
 	// we're ignoring any starting errors here. We will verify the
 	// connection below, anyway.
-	if err = s.Start(); err != nil {
-		log.Error("Error starting %s: %s", config.KlientName, err)
+	if err := s.Start(); err != nil {
 		fmt.Println(FailedStartKlient)
-		return 1
+		return 1, fmt.Errorf("Error starting %s: %s", config.KlientName, err)
 	}
 
 	fmt.Println("Verifying installation...")
@@ -313,9 +318,8 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	// After X times, if err != nil we failed to connect to klient.
 	// Inform the user.
 	if err != nil {
-		log.Error("Error verifying the installation of klient. %s", err)
 		fmt.Println(FailedInstallingKlient)
-		return 1
+		return 1, fmt.Errorf("Error verifying the installation of klient. %s", err)
 	}
 
 	// track metrics
@@ -323,7 +327,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 
 	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", config.KlientName)
 
-	return 0
+	return 0, nil
 }
 
 // createLogFile opens the given path for writing, sets the permissions,
