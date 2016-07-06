@@ -25,11 +25,12 @@ module.exports = class CredentialForm extends JView
       partial  : title
     @header.hide()  if hideTitle
 
-    selectOptions = items.map (item) -> { value : item.identifier, title : item.title }
+    selectOptions   = items.map (item) -> { value : item.identifier, title : item.title }
     selectOptions.unshift { value : '', title : selectionPlaceholder }
-    defaultValue = selectedItem ? ''
+    hasSelectedItem = (item for item in items when item.identifier is selectedItem).length > 0
+    defaultValue    = if hasSelectedItem then selectedItem else ''
     @selectionLabel = new kd.LabelView { title : selectionLabel }
-    @selection = new kd.SelectBox {
+    @selection      = new kd.SelectBox {
       selectOptions
       defaultValue
       label : @selectionLabel
