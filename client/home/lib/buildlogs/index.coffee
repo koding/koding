@@ -41,7 +41,7 @@ module.exports = class HomeBuildLogs extends kd.View
 
     @addSubView new kd.CustomHTMLView
       cssClass : 'vm-name'
-      partial : "VM Name Build Logs"
+      partial : 'VM Name Build Logs'
 
     @addSubView new kd.CustomHTMLView
       cssClass : 'pane-header'
