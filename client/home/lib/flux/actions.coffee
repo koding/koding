@@ -89,7 +89,7 @@ checkStacksForBuild = (stacks, unobserve) ->
   isStackBuilt = no
   stacks.forEach (stack) ->
     return  if isStackBuilt
-    status = stack.get 'status'
+    status = stack.getIn ['status', 'state']
     if status isnt 'NotInitialized'
       kd.utils.defer -> markAsDone 'buildStack'
       isStackBuilt = yes
