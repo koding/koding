@@ -101,6 +101,7 @@ Home My Account styles
 
   &.security
     overflow                hidden
+    height                  360px
 
     .enabled-intro
       p
@@ -133,7 +134,7 @@ Home My Account styles
             dIBlock()
 
     .AppModal-form
-      size                  224px 267px
+      size                  375px 300px
       border                1px solid #d0d0d0
       rounded               4px
       fr()
@@ -162,48 +163,62 @@ Home My Account styles
               padding       0 10px
               width         250px
 
+      &.with-fields
+        padding-top         20px
+
       input
         width               100%
 
       .button-field
         border-top          none !important
-        bottom              32px
+        bottom              -10px
+        left                8px
 
         button
           float             none
           rounded           4px
           height            42px
+          width             334px !important
+          .button-title
+            font-size       15px
 
-    .qrcode-view
-      size                  132px 132px
-      padding               8px
-      margin                70px 35px 0 15px
-      border                1px solid #d0d0d0
-      z-index: 1;
-      rel()
-      fr()
-      borderBox()
+      .formline.password
+      .formline.tfcode
+        float               right
+        width               215px
+        padding-right       20px
 
-      img
-        size                115px 115px
+      .qrcode-view
+        size                130px 130px
+        padding             8px
+        border              1px solid #d0d0d0
+        z-index             1
+        abs                 45px 0 0 20px
+        borderBox()
 
-      .HomeAppView--link
-        margin              15px auto
-        width               100px
-        text-align          center
-        dBlock()
+        img
+          size              115px 115px
+
+        .HomeAppView--link
+          margin            15px auto
+          width             117px
+          text-align        center
+          dBlock()
+
+      .qrcode-label
+        abs                 -22px 0 0 0
 
     .instructions
       top                   30px
       abs()
 
       .intro
-        width               357px
+        width               200px
         line-height         24px
 
       ul
-        margin              30px 0 60px
-        width               210px
+        margin              20px 0 59px
+        width               200px
 
         li
           line-height       normal
