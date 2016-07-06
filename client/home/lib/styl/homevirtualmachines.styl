@@ -191,6 +191,14 @@ $borderColor                = #CACACA
       margin-bottom         5px
       font-weight           600
 
+    .GenericToggler-button
+      margin-top            19px
+
+      &.disabled
+        pointer-events      none
+        .HomeAppView--button
+          color             #9f9f9f
+
 
   .GenericToggler-top
     padding                 25px 0
@@ -205,6 +213,10 @@ $borderColor                = #CACACA
 
     .pull-left
       flex                  1 0 auto
+
+    &.button
+      .GenericToggler-title
+        font-weight         300
 
 
 .MachineDetails-SpecsList

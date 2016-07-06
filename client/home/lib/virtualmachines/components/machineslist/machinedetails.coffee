@@ -8,7 +8,7 @@ Machine             = require 'app/providers/machine'
 SharingAutocomplete = require './sharing/autocomplete'
 SharingUserList     = require './sharing/userlist'
 ContentModal        = require 'app/components/contentModal'
-
+HomeBuildLogs = require 'home/buildlogs'
 module.exports = class MachineDetails extends React.Component
 
   @propTypes =
@@ -165,6 +165,31 @@ module.exports = class MachineDetails extends React.Component
       <SharingUserList users={machine.get 'sharedUsers'} onUserRemove={@props.onUnsharedWithUser} />
     </div>
 
+  renderBuildLog: ->
+
+    { machine } = @props
+    console.log {machine}
+
+    return  unless machine
+
+    state = machine.getIn ['status', 'state']
+    isMachineRunning = state is 'Running'
+
+    <GenericToggler
+      title='Build Logs'
+      description='Logs we have created while you build your VM.'
+      buttonTitle='Show Build Logs'
+      button=yes
+      onToggle={kd.noop}
+      onClickButton={@bound 'onClickBuildLog'}
+      machineState={isMachineRunning} />
+
+
+  onClickBuildLog: (e) ->
+
+    machineUid = @props.machine.get 'uid'
+    kd.singletons.router.handleRoute "/Home/build-logs/#{machineUid}"
+
 
   render: ->
 
@@ -174,6 +199,7 @@ module.exports = class MachineDetails extends React.Component
       {@renderAlwaysOnToggler()}
       {@renderDisconnectToggler()}
       {@renderSharingToggler()}
+      {@renderBuildLog()}
     </div>
 
 
