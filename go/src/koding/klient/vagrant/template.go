@@ -38,12 +38,12 @@ chmod +x provisionklient
 
 cat >user-data.sh <<EOF
 {{unbase64 .CustomScript}}
+
+echo _KD_DONE_
 EOF
 
 chmod +x user-data.sh
 ./user-data.sh 2>&1 | tee -a $USER_LOG || die "$(cat $USER_LOG | perl -pe 's/\n/\\\\n/g')"
-
-echo _KD_DONE_
 
 SCRIPT
 
@@ -66,6 +66,10 @@ end
 
 	vagrantTemplate = template.Must(template.New("vagrant").Funcs(template.FuncMap{
 		"unbase64": func(encS string) string {
+			if encS == "" {
+				return ""
+			}
+
 			if decP, err := base64.StdEncoding.DecodeString(encS); err == nil {
 				return string(decP)
 			}
