@@ -182,6 +182,23 @@ func GetOwnMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	return findMachineContainers(query)
 }
 
+func GetGroupMachines(userId bson.ObjectId, group *models.Group) ([]*MachineContainer, error) {
+	query := bson.M{
+		"users": bson.M{
+			"$elemMatch": bson.M{
+				"id":    userId,
+			},
+		},
+		"groups": bson.M{
+			"$elemMatch": bson.M{
+				"id": group.Id,
+			},
+		},
+	}
+
+  return findMachineContainers(query)
+}
+
 func GetOwnGroupMachines(userId bson.ObjectId, group *models.Group) ([]*MachineContainer, error) {
 	query := bson.M{
 		"users": bson.M{

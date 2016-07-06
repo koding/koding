@@ -29,9 +29,10 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	user.Set("Account", userInfo.Account)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(4)
 	go fetchSocial(userInfo, user, wg)
 	go fetchEnvData(userInfo, user, wg)
+	go fetchUserMachines(userInfo, user, wg)
 	go fetchRolesAndPermissions(userInfo, user, wg)
 
 	done := make(chan struct{}, 0) // signals when done prefetching items
