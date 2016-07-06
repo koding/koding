@@ -18,7 +18,7 @@ $script = <<SCRIPT
 set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
-export USER_LOG=/var/log/user-data.log
+export USER_LOG=/var/log/cloud-init-output.log
 
 die() {
 	echo "error: $1"
