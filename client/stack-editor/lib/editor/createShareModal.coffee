@@ -34,7 +34,9 @@ module.exports = (_callback) ->
       <h1>Share your stack template with your team members</h1>
       <p>When you share your stack template, we will notify team members.</p>
     '''
-  content.addSubView checkboxWrapper = new kd.CustomHTMLView { tagName : 'p' }
+  content.addSubView checkboxWrapper = new kd.CustomHTMLView
+    tagName  : 'p'
+    cssClass : 'checkbox-wrapper'
   checkboxWrapper.addSubView checkbox = new kd.CustomCheckBox()
   checkbox.setValue yes
   checkboxWrapper.addSubView label = new kd.CustomHTMLView
@@ -45,7 +47,7 @@ module.exports = (_callback) ->
   modal = new ContentModal
     cssClass     : 'content-modal StackEditor-ShareModal'
     overlay      : yes
-    width        : 600
+    width        : 700
     title        : 'Share Your Stack'
     content      : content
     buttons      :
