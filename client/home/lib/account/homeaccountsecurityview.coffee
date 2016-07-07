@@ -53,9 +53,8 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
 
         instructionsView = @getInstructionsView()
         instructionsView.addSubView
-        @getRenewQRCodeLink()
         @addSubView @getFormView()
-        @addSubView @getQrCodeView qrcode
+        @enableForm.addSubView @getQrCodeView qrcode
         @addSubView instructionsView
 
 
@@ -151,9 +150,16 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
     view = new kd.CustomHTMLView
       cssClass   : 'qrcode-view'
 
-    view.addSubView imageView = new kd.CustomHTMLView
+    view.addSubView new kd.CustomHTMLView
+      tagName : 'label'
+      cssClass : 'qrcode-label'
+      partial : 'QR Code'
+
+    view.addSubView @imageView = new kd.CustomHTMLView
       tagName    : 'img'
       attributes : { src : url }
+
+    view.addSubView @getRenewQRCodeLink()
 
     return view
 
@@ -161,8 +167,8 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
   getRenewQRCodeLink: ->
 
     new CustomLinkView
-      title      : 'RENEW QR'
-      cssClass   : 'HomeAppView--link'
+      title      : 'Renew QR Code'
+      cssClass   : 'HomeAppView--link primary refresh'
       click      : =>
         me = whoami()
         me.generate2FactorAuthKey (err, authInfo) =>
@@ -171,7 +177,7 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
 
           if authInfo
             @_activeKey = authInfo.key
-            imageView.setAttribute 'src', authInfo.qrcode
+            @imageView.setAttribute 'src', authInfo.qrcode
 
           kd.utils.defer button.bound 'hideLoader'
 
