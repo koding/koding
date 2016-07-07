@@ -12,3 +12,4 @@ module.exports =
   BUILD_LOG_TAIL_OFFSET                 : 15
   MAX_BUILD_PROGRESS_VALUE              : 60
   DEFAULT_BUILD_DURATION                : 300
+  TIMEOUT_DURATION                      : 120

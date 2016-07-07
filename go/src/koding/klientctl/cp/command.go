@@ -77,9 +77,9 @@ type Init struct {
 		RemoteCache(req.Cache, func(par *dnode.Partial)) error
 		RemoteReadDirectory(string, string) ([]fs.FileEntry, error)
 
-		// Tell is here solely for the SSH struct. Need to make that struct use
-		// a fully abstracted, Klient interface.
+		// These fields are needed for the ssh struct.
 		Tell(string, ...interface{}) (*dnode.Partial, error)
+		RemoteCurrentUsername(req.CurrentUsernameOptions) (string, error)
 	}
 
 	// The ctlcli Helper. See the type docs for a better understanding of this.
@@ -383,6 +383,7 @@ func (c *Command) getSSHKey() (*ssh.SSHKey, error) {
 	}
 
 	sshKey := &ssh.SSHKey{
+		Log:     c.Log,
 		KeyPath: path.Join(homeDir, c.Options.SSHDefaultKeyDir),
 		KeyName: c.Options.SSHDefaultKeyName,
 		Klient:  c.Klient,
@@ -399,7 +400,7 @@ func (c *Command) getSSHKey() (*ssh.SSHKey, error) {
 func (c *Command) prepareForSSH(machineName string, sshKey *ssh.SSHKey) error {
 	if err := sshKey.PrepareForSSH(machineName); err != nil {
 		if strings.Contains(err.Error(), "user: unknown user") {
-			c.Stdout.Printlnf(errormessages.CannotSSHManaged)
+			c.Stdout.Printlnf(errormessages.CannotFindSSHUser)
 			return fmt.Errorf("Cannot ssh into managed machines. err:%s", err)
 		}
 

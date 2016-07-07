@@ -16,6 +16,7 @@ kookies = require 'kookies'
 Tracker = require 'app/util/tracker'
 VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
 
+
 loadTeam = ->
 
   { groupsController, reactor } = kd.singletons
@@ -30,7 +31,9 @@ updateTeam = (dataToUpdate) ->
   { groupsController, reactor } = kd.singletons
 
   team = groupsController.getCurrentGroup()
-  groupsController.emit 'TEAM_DATA_TO_UPDATE', dataToUpdate
+  if dataToUpdate.customize
+    logo = dataToUpdate.customize?.logo
+    groupsController.emit 'TEAM_LOGO_CHANGED', logo
 
   new Promise (resolve, reject) ->
 
@@ -60,26 +63,24 @@ fetchMembers = (options = {}) ->
 
   team.fetchMembersWithEmail {}, options, (err, users) ->
     reactor.dispatch actions.FETCH_TEAM_MEMBERS_SUCCESS, { users }
+    fetchMembersRole users
 
 
-fetchMembersRole = ->
+fetchMembersRole = (users) ->
 
   { groupsController, reactor } = kd.singletons
 
   team = groupsController.getCurrentGroup()
-  new Promise (resolve, reject) ->
-    reactor.dispatch actions.FETCH_TEAM_MEMBERS_ROLES_BEGIN, { team }
 
-    myId = whoami().getId()
-    teamMemberIds = reactor.evaluate getters.TeamMembersIdStore
+  reactor.dispatch actions.ALL_USERS_LOADED  if users.length < 10
 
-    ids = teamMemberIds.toArray()
-    ids.push myId
+  myId = whoami().getId()
+  ids = users.map (user) -> user._id
 
-    team.fetchUserRoles ids, (err, roles) ->
-      reactor.dispatch actions.FETCH_TEAM_MEMBERS_ROLES_SUCCESS, roles
-      resolve { roles }
-      reject { err }
+  ids.push myId
+
+  team.fetchUserRoles ids, (err, roles) ->
+    reactor.dispatch actions.FETCH_TEAM_MEMBERS_ROLES_SUCCESS, roles
 
 
 loadPendingInvitations = ->
@@ -255,8 +256,8 @@ handleDisabledUser = (member) ->
 
   team.unblockMember options, (err) ->
     unless err
-      fetchMembers().then ->
-        fetchMembersRole()
+      fetchMembers().then (members) ->
+        fetchMembersRole members
         reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
   .catch (err) -> 'error occured while unblocking member'

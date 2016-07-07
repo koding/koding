@@ -5,16 +5,15 @@ actions         = require 'app/flux/environment/actions'
 KodingKontrol   = require 'app/kite/kodingkontrol'
 isTeamReactSide = require 'app/util/isTeamReactSide'
 CopyTooltipView = require 'app/components/common/copytooltipview'
+ContentModal = require 'app/components/contentModal'
 
-
-module.exports = class AddManagedMachineModal extends kd.ModalView
+module.exports = class AddManagedMachineModal extends ContentModal
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'add-managed-vm'
+    options.cssClass = 'add-managed-vm content-modal'
     options.title    = 'Add Your Own Machine'
-    options.width    = 690
-    options.height   = 310
+    options.width    = 720
     options.overlay  = yes
 
     super options, data
@@ -25,11 +24,14 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   createElements: ->
 
-    @addSubView new kd.CustomHTMLView
+    @addSubView @main = new kd.CustomHTMLView
+      tagName : 'main'
+
+    @main.addSubView new kd.CustomHTMLView
       cssClass: 'bg'
       partial : '<div class="extra"></div>'
 
-    @addSubView @content = new kd.CustomHTMLView
+    @main.addSubView @content = new kd.CustomHTMLView
       tagName: 'section'
       partial: """
         <p>Run the command below to connect your Ubuntu machine to Koding. Please note:</p>
@@ -43,7 +45,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
         </span>
       """
 
-    @addSubView @code = new kd.CustomHTMLView
+    @main.addSubView @code = new kd.CustomHTMLView
       tagName  : 'div'
       cssClass : 'code'
 
@@ -72,11 +74,14 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
         return @handleError err  if err
 
+        # FIXME ~ GG
         { plan, usage, plans } = userPlanInfo
         limit = plans[plan].managed
         used  = usage.total
 
-        return @handleUsageLimit()  if used >= limit
+        # this is hard coded for now
+        # we dont allow to add more than 3 managed VMs
+        return @handleUsageLimit()  if used >= 3
 
         whoami().fetchOtaToken (err, token) =>
           return @handleError err  if err
@@ -116,7 +121,11 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     computeController.managedKiteChecker.addListener @bound 'machineFoundCallback'
 
     kd.utils.wait 20000, =>
-      @addSubView new kd.LoaderView { showLoader: yes, size: { width: 26 } }
+      @main.addSubView new kd.LoaderView
+        cssClass : 'machine-search-loader'
+        showLoader: yes
+        size: { width: 26 }
+
       @setClass 'polling'
 
 
@@ -142,10 +151,11 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   handleUsageLimit: ->
 
-    @setTitle 'Uh oh! You already have a managed machine!'
-
     @code.destroy()
     @content.updatePartial '''
+      <h>
+        'Uh oh! You already have a managed machine!'
+      </h>
       <p>
         Free Koding accounts are limited to adding one external machine and
         you already have one connected. Paid accounts are allowed to add unlimited external machines.

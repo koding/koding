@@ -1,5 +1,5 @@
 module.exports = (options) ->
-  kiteHome = "#{options.projectRoot}/generated/kite_home/koding"
+  kiteHome = "$KONFIG_PROJECTROOT/generated/kite_home/koding"
 
   kodingdev_master_2016_05 =
     accessKeyId: ""
@@ -80,9 +80,14 @@ module.exports = (options) ->
     enabled:  yes
     ssl: no
   terraformer =
-    port : 2300
-    bucket: "kodingdev-terraformer-state-#{options.configName}"
-    localstorepath:  "#{options.projectRoot}/go/data/terraformer"
+    port: 2300
+    region: options.region
+    environment: options.environment
+    aws:
+      key: awsKeys.worker_terraformer.accessKeyId
+      secret: awsKeys.worker_terraformer.secretAccessKey
+      bucket: "kodingdev-terraformer-state-#{options.configName}"
+    localStorePath:  "$KONFIG_PROJECTROOT/go/data/terraformer"
   paymentwebhook =
     customersKey: 'R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
     secretKey: "paymentwebhooksecretkey-#{options.configName}"
@@ -170,14 +175,14 @@ module.exports = (options) ->
     secretKey: ""
   segment = ''
   kontrol =
-    publicKey: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pub"
-    privateKey: "#{options.projectRoot}/generated/private_keys/kontrol/kontrol.pem"
+    publicKey: "$KONFIG_PROJECTROOT/generated/private_keys/kontrol/kontrol.pub"
+    privateKey: "$KONFIG_PROJECTROOT/generated/private_keys/kontrol/kontrol.pem"
   kloud =
     publicKey: kontrol.publicKey
     privateKey: kontrol.privateKey
     secretKey: ''
-    userPublicKey: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pub"
-    userPrivateKey: "#{options.projectRoot}/generated/private_keys/kloud/kloud.pem"
+    userPublicKey: "$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pub"
+    userPrivateKey: "$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pem"
   dummyAdmins = ['superadmin', 'admin', 'koding']
 
   druid =

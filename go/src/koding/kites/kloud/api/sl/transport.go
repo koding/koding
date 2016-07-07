@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"koding/kites/kloud/httputil"
+	"koding/httputil"
 )
 
 var transportParams = &httputil.ClientConfig{

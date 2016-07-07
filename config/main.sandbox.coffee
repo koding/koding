@@ -13,7 +13,7 @@ Configuration = (options = {}) ->
     main: 'sandbox.koding.com'
     port: '80'
 
-  options.serviceHost = "10.0.0.136"
+  options.serviceHost = "10.0.0.23"
   options.publicPort = "80"
   options.hostname = "sandbox.koding.com#{if options.publicPort is "80" then "" else ":"+options.publicPort}"
   options.protocol = "https:"
@@ -93,7 +93,7 @@ Configuration = (options = {}) ->
     webserver           :
       instances         : 2
       supervisord       :
-        command         : "node #{options.projectRoot}/servers/index.js -c #{options.configName} -p #{KONFIG.webserver.port} --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{options.kiteHome}/kite.key"
+        command         : "node %(ENV_KONFIG_PROJECTROOT)s/servers/index.js -p #{KONFIG.webserver.port} --kite-port=#{KONFIG.webserver.kitePort}"
       nginx             :
         locations       : [
           {
@@ -108,16 +108,16 @@ Configuration = (options = {}) ->
     socialworker        :
       instances         : 4
       supervisord       :
-        command         : "node #{options.projectRoot}/workers/social/index.js -c #{options.configName} -p #{KONFIG.social.port} -r #{options.region} --kite-port=#{KONFIG.social.kitePort} --kite-key=#{options.kiteHome}/kite.key"
+        command         : "node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js -p #{KONFIG.social.port} --kite-port=#{KONFIG.social.kitePort}"
 
     authworker          :
       group             : "webserver"
       supervisord       :
-        command         : "node #{options.projectRoot}/workers/auth/index.js -c #{options.configName} -p #{KONFIG.authWorker.port}"
+        command         : "node %(ENV_KONFIG_PROJECTROOT)s/workers/auth/index.js"
 
     sourcemaps          :
       supervisord       :
-        command         : "node #{options.projectRoot}/servers/sourcemaps/index.js -c #{options.configName} -p #{KONFIG.sourcemaps.port}"
+        command         : "node %(ENV_KONFIG_PROJECTROOT)s/servers/sourcemaps/index.js"
 
     socialapi           :
       instances         : 2

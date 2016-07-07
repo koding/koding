@@ -24,7 +24,7 @@ module.exports = class APITokenItemView extends kd.ListItemView
           item          : this
           options       :
             title       : 'Remove API Token'
-            description : 'Do you want to remove ?'
+            description : 'Do you want to remove?'
 
     @deleteButton = new kd.ButtonView deleteButtonOptions
 

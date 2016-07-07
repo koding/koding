@@ -213,7 +213,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	if err = downloadRemoteToLocal(config.S3Klient(version, ""), klientBinPath); err != nil {
+	if err = downloadRemoteToLocal(config.S3Klient(version, config.Environment), klientBinPath); err != nil {
 		log.Error("Error downloading klient binary. err: %s", err)
 		fmt.Printf(FailedDownloadingKlient)
 		return 1
@@ -229,6 +229,9 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		"--kontrol-url", kontrolURL,
 		"--kite-home", config.KiteHome,
 	)
+
+	var errBuf bytes.Buffer
+
 	// Note that we are *only* printing to Stdout. This is done because
 	// Klient logs error messages to Stderr, and we want to control the UX for
 	// that interaction.
@@ -236,9 +239,10 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	// TODO: Logg Klient's Stderr message on error, if any.
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
+	cmd.Stderr = &errBuf
 
 	if err := cmd.Run(); err != nil {
-		log.Error("Error registering klient. err:%s", err)
+		log.Error("Error registering klient. err: %s: %s", err, errBuf.String())
 		fmt.Println(FailedRegisteringKlient)
 		return 1
 	}

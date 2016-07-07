@@ -206,7 +206,16 @@ func main() {
 			ShortName:   "s",
 			Usage:       "SSH into the machine.",
 			Description: cmdDescriptions["ssh"],
-			Action:      ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name: "debug",
+				},
+				cli.StringFlag{
+					Name:  "username",
+					Usage: "The username to ssh into on the remote machine.",
+				},
+			},
+			Action: ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
 		},
 		cli.Command{
 			Name:            "run",
@@ -340,6 +349,18 @@ func main() {
 			BashComplete: ctlcli.FactoryCompletion(
 				CpCommandFactory, log, "cp",
 			),
+		},
+		cli.Command{
+			Name: "log",
+			Flags: []cli.Flag{
+				cli.BoolFlag{Name: "debug"},
+				cli.BoolFlag{Name: "no-kd-log"},
+				cli.BoolFlag{Name: "no-klient-log"},
+				cli.StringFlag{Name: "kd-log-file"},
+				cli.StringFlag{Name: "klient-log-file"},
+				cli.IntFlag{Name: "lines, n"},
+			},
+			Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
 		},
 	}
 

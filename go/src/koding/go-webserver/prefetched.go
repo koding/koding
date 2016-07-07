@@ -16,11 +16,15 @@ import (
 
 const IntegrationProxyURL = "/api/integration"
 
-func sendAccount(account *models.Account, outputter *Outputter) {
-	outputter.OnItem <- &Item{Name: "Account", Data: account}
-}
+func fetchSocial(userInfo *UserInfo, user *LoggedInUser, wg *sync.WaitGroup) {
+	defer wg.Done()
+	// on new register, there's a race condition where SocialApiId
+	// isn't sometimes set; in that case don't prefetch socialdata
+	// since it'll return empty
+	if userInfo.SocialApiId == "" {
+		return
+	}
 
-func fetchSocial(userInfo *UserInfo, outputter *Outputter) {
 	showExempt := "false"
 	// show troll content if only user is admin or requester is marked as troll
 	if userInfo.Account != nil &&
@@ -28,34 +32,32 @@ func fetchSocial(userInfo *UserInfo, outputter *Outputter) {
 		showExempt = "true"
 	}
 
-	var wg sync.WaitGroup
+	var socialWg sync.WaitGroup
 	urls := socialUrls(userInfo, "showExempt="+showExempt)
 
 	onSocialItem := make(chan *Item, len(urls))
 
 	for name, url := range urls {
-		wg.Add(1)
+		socialWg.Add(1)
 		go func(name, url string) {
-			defer wg.Done()
+			defer socialWg.Done()
 
 			item, err := fetchSocialItem(url, userInfo)
 			if err != nil {
 				Log.Error("Fetching prefetched socialdata item: %s, %v", name, err)
-
-				onSocialItem <- &Item{Name: name, Data: nil}
-				return
 			}
 
 			onSocialItem <- &Item{Name: name, Data: item}
 		}(name, url)
 	}
 
-	wg.Wait()
+	socialWg.Wait()
 
-	collectSocialItems(onSocialItem, outputter, len(urls))
+	socialApiData := collectSocialItems(onSocialItem, len(urls))
+	user.Set("SocialApiData", socialApiData)
 }
 
-func collectSocialItems(onItem <-chan *Item, outputter *Outputter, max int) {
+func collectSocialItems(onItem <-chan *Item, max int) map[string]interface{} {
 	socialApiData := map[string]interface{}{}
 
 	for i := 1; i <= max; i++ {
@@ -66,7 +68,7 @@ func collectSocialItems(onItem <-chan *Item, outputter *Outputter, max int) {
 		}
 	}
 
-	outputter.OnItem <- &Item{Name: "SocialApiData", Data: socialApiData}
+	return socialApiData
 }
 
 var timeout = time.Duration(1 * time.Second)

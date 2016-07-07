@@ -4,6 +4,7 @@ DummyMachine = require '../../providers/dummymachine'
 kd = require 'kd'
 sortFiles = require '../sortFiles'
 globals = require 'globals'
+ContentModal = require 'app/components/contentModal'
 
 module.exports = class FSHelper
 
@@ -132,7 +133,7 @@ module.exports = class FSHelper
       tar       : "#{prefix} tar"
       unzip     : "#{prefix} unzip"
 
-    title       = "#{packageName or 'A'} command not found."
+    title       = "#{packageName or 'A'} command not found"
     command     = installers[packageName]
     overlay     = yes
     buttons     = {}
@@ -142,31 +143,38 @@ module.exports = class FSHelper
       callback  : -> modal.destroy()
     installBtn  =
       title     : 'Install Package'
-      cssClass  : 'solid green medium'
+      cssClass  : 'solid medium'
       callback  : ->
         kd.singletons.appManager.getFrontApp().emit 'InstallationRequired', command
         modal.destroy()
 
     if command
       content = """
-          We can try to install it for you by running:<br /><br />
-          <pre>#{command}</pre><br />
-          or you can install it manually to your VM and try this again.
+          <p>
+            We can try to install it for you by running:
+          </p>
+          <pre>#{command}</pre>
+          <p>
+            or you can install it manually to your VM and try this again.
+          </p>
         """
       buttons   =
-        install : installBtn
         cancel  : cancelBtn
+        install : installBtn
     else
       content = """
-        We need #{packageName} to be installed but currently we don't know how to
-        install it to your machine. You need to install it manually.
+        <p>
+          We need #{packageName} to be installed but currently we don't know how to
+          install it to your machine. You need to install it manually.
+        </p>
       """
 
       buttons = { cancel : cancelBtn }
       buttons.cancel.title = 'Close'
 
+    cssClass = 'content-modal'
 
-    modal = new kd.ModalView { title, content, overlay, buttons }
+    modal = new ContentModal { title, cssClass, content, overlay, buttons }
 
 
   # @exists = (path, vmName, callback=noop)->

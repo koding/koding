@@ -242,7 +242,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     if @state.activeMachine is @machine('_id')
       activeClass = 'active'
-      actions.setActiveStackId @props.stack.get('_id')  if @props.stack
 
     <div className="SidebarMachinesListItem #{status} #{activeClass}">
       <Link

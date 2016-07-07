@@ -82,9 +82,9 @@ bash autocompletions. Please run this command with sudo.`
 remote machine is running & accessible and try again.`,
 	)
 
-	// CannotSSHManaged is used when the managed machine has a different username
-	// than the current user. A temporary error, for a temporary limitation.
-	CannotSSHManaged = "Error: Currently unable to ssh into managed machines."
+	// CannotFindSSHUser is used when kd ssh cannot find the user on the remote
+	// machine.
+	CannotFindSSHUser = `Error: Cannot find ssh username on the remote machine.`
 
 	// RemoteProcessFailed is used when a command was run on the remote, but the
 	// process itself failed to execute properly. *Not* an exit code, but more like

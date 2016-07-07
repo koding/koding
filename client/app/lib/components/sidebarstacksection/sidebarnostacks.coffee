@@ -8,7 +8,7 @@ module.exports = class SidebarNoStacks extends React.Component
   render: ->
 
     <div className='SidebarTeamSection'>
-      <Link className='SidebarSection-headerTitle' href='/Home/Welcome'>
+      <Link className='SidebarSection-headerTitle' href='/Home/Stacks'>
         STACKS
       </Link>
       <section className='SidebarSection SidebarStackSection SidebarStackWidgets'>
@@ -18,7 +18,6 @@ module.exports = class SidebarNoStacks extends React.Component
             fully configured yet, please
             finalize onboarding steps.
           </p>
-          <Link href='/Home/Welcome'>Finalize steps</Link>
         </div>
       </section>
     </div>

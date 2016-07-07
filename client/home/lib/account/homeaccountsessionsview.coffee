@@ -19,6 +19,7 @@ module.exports = class HomeAccountSessionsView extends kd.CustomHTMLView
       wrapper             : no
       scrollView          : no
       useCustomScrollView : no
+      sort : { 'lastAccess' : -1 }
       noItemFoundText     : 'You have no active session.'
       itemClass           : AccountSessionListItem
       fetcherMethod       : (query, options, callback) ->

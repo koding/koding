@@ -22,28 +22,21 @@ module.exports = class OnboardingTask extends KDObject
 
   ###*
    * Executes itemMethod for each item in items.
-   * For all items which return error it repeats processing
+   * For all items which are still not ready it repeats processing
    * with delay of @timeInterval.
-   * If the task works more that @maxTime, it stops and logs
-   * all item errors in console
+   * If the task works more that @maxTime, it stops executing
    *
    * @param {Array} items       - a list of items
    * @param {string} itemMethod - name of method which should be executed for each item
   ###
   processItems: (items, itemMethod) ->
 
-    failedItems = []
-    errors      = []
+    notReadyItems = []
 
     for item in items
-      result = item[itemMethod]?()
-      if result instanceof Error
-        failedItems.push item
-        errors.push result
+      item[itemMethod]?()
+      if not item.isReady() and not item.isError
+        notReadyItems.push item
 
-    if errors.length > 0
-      if new Date() - @startTime >= @maxTime
-        for error in errors
-          kd.warn "Onbarding: #{error.message}"
-      else
-        kd.utils.wait @timeInterval, @lazyBound 'processItems', failedItems, itemMethod
+    if notReadyItems.length > 0 and new Date() - @startTime < @maxTime
+      kd.utils.wait @timeInterval, @lazyBound 'processItems', notReadyItems, itemMethod

@@ -1,7 +1,7 @@
 kd      = require 'kd'
 JView   = require 'app/jview'
 Tracker = require 'app/util/tracker'
-
+{ actions : HomeActions } = require 'home/flux'
 
 module.exports = class CredentialListItem extends kd.ListItemView
 
@@ -82,6 +82,8 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
     { identifier } = @getData()
 
+    new kd.NotificationView { title : 'Verifying Credentials...', duration : 2000 }
+
     @warningView.hide()
 
     @getDelegate()
@@ -92,6 +94,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
           if message = status.message
             message = message.split('\n')[..-2].join ''
           @setVerified status.verified, message
+          HomeActions.markAsDone 'enterCredentials'
         else
           @setVerified no
       .catch (err) =>

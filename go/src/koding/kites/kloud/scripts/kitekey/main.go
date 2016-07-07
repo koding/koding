@@ -61,7 +61,7 @@ func show() (err error) {
 
 		// try if it's a kite.key, if yes read kontrolKey
 		if tok, err := jwt.Parse(string(p), kitekey.GetKontrolKey); err == nil {
-			p = []byte(tok.Claims["kontrolKey"].(string))
+			p = []byte(tok.Claims.(*kitekey.KiteClaims).KontrolKey)
 		}
 
 		p = bytes.TrimSpace(p)

@@ -27,8 +27,7 @@ module.exports = class HomeAppView extends kd.ModalView
 
     @avatarArea = new HomeAppAvatarView
     @title      = new kd.CustomHTMLView
-      tagName    : 'a'
-      attributes : { href: '/Home/Welcome' }
+      tagName    : 'h3'
       cssClass   : 'HomeAppView-Nav--Title'
       partial    : 'Dashboard'
 
@@ -71,7 +70,7 @@ module.exports = class HomeAppView extends kd.ModalView
     { tabData, checkRoles }   = @getOptions()
 
     items   = []
-    myRoles = _globals.config.roles
+    myRoles = _globals.userRoles
 
     for item in tabData.items
 

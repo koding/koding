@@ -3,7 +3,7 @@ package kontrol
 import (
 	"errors"
 	"fmt"
-	"strings"
+	"net/url"
 	"sync/atomic"
 	"time"
 
@@ -19,64 +19,70 @@ import (
 func (k *Kontrol) HandleRegister(r *kite.Request) (interface{}, error) {
 	k.log.Info("Register request from: %s", r.Client.Kite)
 
-	if r.Args.One().MustMap()["url"].MustString() == "" {
-		return nil, errors.New("invalid url")
-	}
-
-	var args struct {
-		URL string `json:"url"`
-	}
-	r.Args.One().MustUnmarshal(&args)
-	if args.URL == "" {
-		return nil, errors.New("empty url")
-	}
-
 	// Only accept requests with kiteKey because we need this info
 	// for generating tokens for this kite.
 	if r.Auth.Type != "kiteKey" {
 		return nil, fmt.Errorf("Unexpected authentication type: %s", r.Auth.Type)
 	}
 
-	t, err := jwt.Parse(r.Auth.Key, kitekey.GetKontrolKey)
+	var args struct {
+		URL string `json:"url"`
+	}
+
+	if err := r.Args.One().Unmarshal(&args); err != nil {
+		return nil, err
+	}
+
+	if args.URL == "" {
+		return nil, errors.New("empty url")
+	}
+
+	if _, err := url.Parse(args.URL); err != nil {
+		return nil, fmt.Errorf("invalid register URL: %s", err)
+	}
+
+	res := &protocol.RegisterResult{
+		URL: args.URL,
+	}
+
+	ex := &kitekey.Extractor{
+		Claims: &kitekey.KiteClaims{},
+	}
+
+	t, err := jwt.ParseWithClaims(r.Auth.Key, ex.Claims, ex.Extract)
 	if err != nil {
 		return nil, err
 	}
 
-	publicKey, ok := t.Claims["kontrolKey"].(string)
-	if !ok {
-		return nil, errors.New("public key is not passed")
-	}
-
 	var keyPair *KeyPair
-	var newKey bool
+	var origKey = ex.Claims.KontrolKey
 
 	// check if the key is valid and is stored in the key pair storage, if not
 	// check if there is a new key we can use.
-	keyPair, err = k.keyPair.GetKeyFromPublic(strings.TrimSpace(publicKey))
+	keyPair, res.KiteKey, err = k.getOrUpdateKeyPub(ex.Claims.KontrolKey, t, r)
 	if err != nil {
-		newKey = true
-		keyPair, err = k.pickKey(r)
-		if err != nil {
-			return nil, err // nothing to do here ..
-		}
+		return nil, err
 	}
 
-	kiteURL := args.URL
-	remote := r.Client
+	if origKey != keyPair.Public {
+		// NOTE(rjeczalik): updates public key for old kites, new kites
+		// expect kite key to be updated
+		res.PublicKey = keyPair.Public
+	}
 
-	if err := validateKiteKey(&remote.Kite); err != nil {
+	if err := validateKiteKey(&r.Client.Kite); err != nil {
 		return nil, err
 	}
 
 	value := &kontrolprotocol.RegisterValue{
-		URL:   kiteURL,
+		URL:   args.URL,
 		KeyID: keyPair.ID,
 	}
 
 	// Register first by adding the value to the storage. Return if there is
 	// any error.
-	if err := k.storage.Upsert(&remote.Kite, value); err != nil {
-		k.log.Error("storage add '%s' error: %s", remote.Kite, err)
+	if err := k.storage.Upsert(&r.Client.Kite, value); err != nil {
+		k.log.Error("storage add '%s' error: %s", &r.Client.Kite, err)
 		return nil, errors.New("internal error - register")
 	}
 
@@ -85,7 +91,7 @@ func (k *Kontrol) HandleRegister(r *kite.Request) (interface{}, error) {
 	ping := make(chan struct{}, 1)
 	closed := int32(0)
 
-	kiteCopy := remote.Kite
+	kiteCopy := r.Client.Kite
 
 	updaterFunc := func() {
 		for {
@@ -138,7 +144,7 @@ func (k *Kontrol) HandleRegister(r *kite.Request) (interface{}, error) {
 	}
 
 	// now trigger the remote kite so it sends us periodically an heartbeat
-	resp := remote.GoWithTimeout("kite.heartbeat", 4*time.Second, heartbeatArgs...)
+	resp := r.Client.GoWithTimeout("kite.heartbeat", 4*time.Second, heartbeatArgs...)
 
 	go func() {
 		if err := (<-resp).Err; err != nil {
@@ -146,19 +152,15 @@ func (k *Kontrol) HandleRegister(r *kite.Request) (interface{}, error) {
 		}
 	}()
 
-	k.log.Info("Kite registered: %s", remote.Kite)
+	k.log.Info("Kite registered: %s", &r.Client.Kite)
 
-	remote.OnDisconnect(func() {
-		k.log.Info("Kite disconnected: %s", remote.Kite)
+	clientKite := r.Client.Kite.String()
+
+	r.Client.OnDisconnect(func() {
+		k.log.Info("Kite disconnected: %s", clientKite)
 	})
 
-	// send response back to the kite, also send the new public Key if it's exist
-	p := &protocol.RegisterResult{URL: args.URL}
-	if newKey {
-		p.PublicKey = keyPair.Public
-	}
-
-	return p, nil
+	return res, nil
 }
 
 func (k *Kontrol) HandleGetKites(r *kite.Request) (interface{}, error) {
@@ -177,15 +179,14 @@ func (k *Kontrol) HandleGetKites(r *kite.Request) (interface{}, error) {
 		// audience will go into the token as "aud" claim.
 		audience := getAudience(args.Query)
 
-		keyPair, err := k.keyPair.GetKeyFromID(kite.KeyID)
+		keyPair, err := k.getOrUpdateKeyID(kite.KeyID, r)
 		if err != nil {
 			return nil, err
 		}
 
 		// Generate token once here because we are using the same token for every
 		// kite we return and generating many tokens is really slow.
-		token, err := generateToken(audience, r.Username,
-			k.Kite.Kite().Username, keyPair.Private)
+		token, err := k.generateToken(audience, r.Username, k.Kite.Kite().Username, keyPair)
 		if err != nil {
 			return nil, err
 		}
@@ -200,9 +201,9 @@ func (k *Kontrol) HandleGetKites(r *kite.Request) (interface{}, error) {
 
 func (k *Kontrol) HandleGetToken(r *kite.Request) (interface{}, error) {
 	var query *protocol.KontrolQuery
-	err := r.Args.One().Unmarshal(&query)
-	if err != nil {
-		return nil, errors.New("Invalid query")
+
+	if err := r.Args.One().Unmarshal(&query); err != nil {
+		return nil, fmt.Errorf("invalid query: %s", err)
 	}
 
 	// check if it's exist
@@ -220,14 +221,14 @@ func (k *Kontrol) HandleGetToken(r *kite.Request) (interface{}, error) {
 	}
 
 	kite := kites[0]
-	audience := getAudience(query)
 
-	keyPair, err := k.keyPair.GetKeyFromID(kite.KeyID)
+	keyPair, err := k.getOrUpdateKeyID(kite.KeyID, r)
 	if err != nil {
 		return nil, err
 	}
+	audience := getAudience(query)
 
-	return generateToken(audience, r.Username, k.Kite.Kite().Username, keyPair.Private)
+	return k.generateToken(audience, r.Username, k.Kite.Kite().Username, keyPair)
 }
 
 func (k *Kontrol) HandleMachine(r *kite.Request) (interface{}, error) {
@@ -240,15 +241,22 @@ func (k *Kontrol) HandleMachine(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	var keyPair *KeyPair
+
 	if k.MachineAuthenticate != nil {
 		// an empty authType is ok, the implementer is responsible of it. It
 		// can care of it or it can return an error
 		if err := k.MachineAuthenticate(args.AuthType, r); err != nil {
-			return nil, errors.New("cannot authenticate user")
+			k.Kite.Log.Error("machine authentication error: %s", err)
+
+			return nil, fmt.Errorf("cannot authenticate user: %s", err)
 		}
+
+		keyPair, err = k.KeyPair()
+	} else {
+		keyPair, err = k.pickKey(r)
 	}
 
-	keyPair, err := k.pickKey(r)
 	if err != nil {
 		return nil, err
 	}
@@ -263,20 +271,27 @@ func (k *Kontrol) HandleGetKey(r *kite.Request) (interface{}, error) {
 		return nil, fmt.Errorf("Unexpected authentication type: %s", r.Auth.Type)
 	}
 
-	t, err := jwt.Parse(r.Auth.Key, kitekey.GetKontrolKey)
-	if err != nil {
+	ex := &kitekey.Extractor{
+		Claims: &kitekey.KiteClaims{},
+	}
+
+	if _, err := jwt.ParseWithClaims(r.Auth.Key, ex.Claims, ex.Extract); err != nil {
 		return nil, err
 	}
 
-	publicKey, ok := t.Claims["kontrolKey"].(string)
-	if !ok {
+	if ex.Claims.KontrolKey == "" {
 		return nil, errors.New("public key is not passed")
 	}
 
-	err = k.keyPair.IsValid(publicKey)
-	if err == nil {
+	switch k.keyPair.IsValid(ex.Claims.KontrolKey) {
+	case nil:
 		// everything is ok, just return the old one
-		return publicKey, nil
+		return ex.Claims.KontrolKey, nil
+	case ErrKeyDeleted:
+		// client is using old key, update to current
+		if kp, err := k.KeyPair(); err == nil {
+			return kp.Public, nil
+		}
 	}
 
 	keyPair, err := k.pickKey(r)
@@ -287,23 +302,97 @@ func (k *Kontrol) HandleGetKey(r *kite.Request) (interface{}, error) {
 	return keyPair.Public, nil
 }
 
+func (k *Kontrol) HandleVerify(r *kite.Request) (interface{}, error) {
+	return nil, nil
+}
+
 func (k *Kontrol) pickKey(r *kite.Request) (*KeyPair, error) {
 	if k.MachineKeyPicker != nil {
 		keyPair, err := k.MachineKeyPicker(r)
 		if err != nil {
 			return nil, err
 		}
+
 		return keyPair, nil
 	}
 
-	if len(k.lastPublic) != 0 && len(k.lastPrivate) != 0 {
-		return &KeyPair{
-			Public:  k.lastPublic[len(k.lastPublic)-1],
-			Private: k.lastPrivate[len(k.lastPrivate)-1],
-			ID:      k.lastIDs[len(k.lastIDs)-1],
-		}, nil
+	return nil, errors.New("no valid authentication key found")
+}
+
+func (k *Kontrol) updateKey(t *jwt.Token) (*KeyPair, string) {
+	kp, err := k.KeyPair()
+	if err != nil {
+		k.log.Error("key update error for %q: %s", t.Claims.(*kitekey.KiteClaims).Subject, err)
+
+		return nil, ""
 	}
 
-	k.log.Error("neither machineKeyPicker nor public/private keys are available")
-	return nil, errors.New("internal error - 1")
+	if kiteKey := k.updateKeyWithKeyPair(t, kp); kiteKey != "" {
+		return kp, kiteKey
+	}
+
+	return nil, ""
+}
+
+func (k *Kontrol) updateKeyWithKeyPair(t *jwt.Token, keyPair *KeyPair) string {
+	claims := t.Claims.(*kitekey.KiteClaims)
+
+	if claims.KontrolKey != "" {
+		claims.KontrolKey = keyPair.Public
+	}
+
+	rsaPrivate, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(keyPair.Private))
+	if err != nil {
+		k.log.Error("key update error for %q: %s", claims.Subject, err)
+
+		return ""
+	}
+
+	kiteKey, err := t.SignedString(rsaPrivate)
+	if err != nil {
+		k.log.Error("key update error for %q: %s", claims.Subject, err)
+
+		return ""
+	}
+
+	return kiteKey
+}
+
+func (k *Kontrol) getOrUpdateKeyPub(pub string, t *jwt.Token, r *kite.Request) (*KeyPair, string, error) {
+	var kiteKey string
+
+	kp, err := k.keyPair.GetKeyFromPublic(pub)
+	if err == ErrKeyDeleted {
+		kp, kiteKey = k.updateKey(t)
+	}
+
+	if kp == nil {
+		kp, err = k.pickKey(r)
+		if err != nil {
+			return nil, "", err
+		}
+
+		kiteKey = k.updateKeyWithKeyPair(t, kp)
+	}
+
+	return kp, kiteKey, nil
+}
+
+func (k *Kontrol) getOrUpdateKeyID(id string, r *kite.Request) (*KeyPair, error) {
+	kp, err := k.keyPair.GetKeyFromID(id)
+	if err == ErrKeyDeleted {
+		kp, err = k.KeyPair()
+		if err != nil {
+			k.log.Error("key get or update error %q: %s", r.Username, err)
+		}
+	}
+
+	if kp == nil {
+		kp, err = k.pickKey(r)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return kp, nil
 }

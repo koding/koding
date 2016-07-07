@@ -26,6 +26,7 @@ DifferentStackResourcesStore      = ['DifferentStackResourcesStore']
 ActiveStackStore                  = ['ActiveStackStore']
 TeamStackTemplatesStore           = ['TeamStackTemplatesStore']
 PrivateStackTemplatesStore        = ['PrivateStackTemplatesStore']
+SelectedTemplateIdStore           = ['SelectedTemplateIdStore']
 
 
 workspacesWithChannels = [
@@ -47,8 +48,11 @@ machinesWithWorkspaces = [
   (machines, workspaces, machinesWorkspaces) ->
 
     machines.map (machine) ->
+      # if we use the `sharedUsers` prop, we will have to add 1 to include the
+      # real owner of the machine. `users` prop already includes owner.
+      userCount = ((machine.get('sharedUsers')?.size + 1) or machine.get('users')?.size)
       machine
-        .set 'isShared', machine.get('users').size > 1
+        .set 'isShared', (userCount or 1) > 1
         .set 'workspaces', machinesWorkspaces.get(machine.get '_id')?.map (workspaceId) ->
           workspaces.get workspaceId
 ]
@@ -132,14 +136,16 @@ stacks = [
         stack
           .set 'accessLevel', templates.getIn [stack.get('baseStackId'), 'accessLevel']
           .update 'machines', (machines) ->
-            machines.map (id) ->
-              machine = machinesWorkspaces.get(id)
-              type    = if machine.getIn ['meta', 'oldOwner'] then 'reassigned' else 'own'
+            machines
+              .filter (id) -> !!machinesWorkspaces.get(id)
+              .map (id) ->
+                machine = machinesWorkspaces.get(id)
+                type    = if machine.getIn ['meta', 'oldOwner'] then 'reassigned' else 'own'
 
-              machine
-                .set 'type', type
-                .set 'owner', getMachineOwner machine
-                .set 'isApproved', yes
+                machine
+                  .set 'type', type
+                  .set 'owner', getMachineOwner machine
+                  .set 'isApproved', yes
 ]
 
 teamStacks = [
@@ -230,6 +236,7 @@ module.exports = {
   activeInvitationMachineId: ActiveInvitationMachineIdStore
   activeLeavingSharedMachineId: ActiveLeavingSharedMachineIdStore
   differentStackResourcesStore : DifferentStackResourcesStore
+  selectedTemplateId : SelectedTemplateIdStore
   teamStackTemplates
   privateStackTemplates
   inUseTeamStackTemplates

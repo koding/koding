@@ -23,7 +23,7 @@ module.exports = class StackTemplateList extends KodingListView
     { callback } = options
 
     modal = new KDModalView
-      title          : 'Editing default stack template ?'
+      title          : 'Editing default stack template?'
       overlay        : yes
       overlayOptions :
         cssClass     : 'second-overlay'

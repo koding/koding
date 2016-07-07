@@ -3,7 +3,6 @@ package provider
 import (
 	"errors"
 
-	"koding/kites/common"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -53,7 +52,7 @@ func (bp *BaseProvider) BaseStack(ctx context.Context) (*BaseStack, error) {
 	bs.Log = bp.Log.New(req.GroupName)
 
 	if traceID, ok := kloud.TraceFromContext(ctx); ok {
-		bs.Log = common.NewLogger("kloud-"+req.Provider, true).New(traceID)
+		bs.Log = logging.NewCustom("kloud-"+req.Provider, true).New(traceID)
 		bs.TraceID = traceID
 	}
 

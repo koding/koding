@@ -73,9 +73,9 @@ type MountCommand struct {
 		// For backwards compatibility with some helper funcs not yet embedded.
 		GetClient() *kite.Client
 
-		// Tell is here solely for the SSH struct. Need to make that struct use
-		// a fully abstracted, Klient interface.
+		// These fields are needed for the ssh struct.
 		Tell(string, ...interface{}) (*dnode.Partial, error)
+		RemoteCurrentUsername(req.CurrentUsernameOptions) (string, error)
 	}
 
 	// The options to use if this struct needs to dial Klient.
@@ -583,6 +583,7 @@ func (c *MountCommand) getSSHKey() (*ssh.SSHKey, error) {
 	// TODO: Use the ssh.Command's implementation of this logic, once ssh.Command is
 	// moved to this new struct setup.
 	sshKey := &ssh.SSHKey{
+		Log:     c.Log,
 		KeyPath: path.Join(homeDir, c.Options.SSHDefaultKeyDir),
 		KeyName: c.Options.SSHDefaultKeyName,
 		Klient:  c.Klient,
@@ -599,7 +600,7 @@ func (c *MountCommand) getSSHKey() (*ssh.SSHKey, error) {
 func (c *MountCommand) prepareForSSH(sshKey *ssh.SSHKey) error {
 	if err := sshKey.PrepareForSSH(c.Options.Name); err != nil {
 		if strings.Contains(err.Error(), "user: unknown user") {
-			c.printfln(CannotSSHManaged)
+			c.printfln(CannotFindSSHUser)
 			return fmt.Errorf("Cannot ssh into managed machines. err:%s", err)
 		}
 

@@ -68,7 +68,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
   onRemoveLogo: ->
     @refs.view.input.value = null
-    @updateTeam { dataToUpdate: customize: { logo: '' } }
+    @updateTeam { dataToUpdate: customize: { logo: null } }
 
 
   onUpdate: ->

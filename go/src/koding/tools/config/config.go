@@ -22,22 +22,10 @@ type Broker struct {
 }
 
 type Config struct {
-	Aws struct {
-		Key    string
-		Secret string
-	}
-	BuildNumber int
-	Environment string
-	Regions     struct {
-		Vagrant string
-		SJ      string
-		AWS     string
-		Premium string
-	}
+	BuildNumber     int
+	Environment     string
 	ProjectRoot     string
 	UserSitesDomain string
-	ContainerSubnet string
-	VmPool          string
 	Version         string
 	Client          struct {
 		StaticFilesBaseUrl string
@@ -56,36 +44,14 @@ type Config struct {
 	PremiumBroker     Broker
 	BrokerKite        Broker
 	PremiumBrokerKite Broker
-	ProxyKite         struct {
-		Domain   string
-		CertFile string
-		KeyFile  string
-	}
-	Kontrold struct {
-		Vhost    string
-		Overview struct {
-			ApiPort    int
-			ApiHost    string
-			Port       int
-			KodingHost string
-			SocialHost string
-		}
-		Api struct {
-			Port int
-			URL  string
-		}
-		Proxy struct {
-			Port    int
-			PortSSL int
-			FTPIP   string
-		}
-	}
-	Slack struct {
+	Slack             struct {
 		Token   string
 		Channel string
 	}
-	LogLevel             map[string]string
-	Redis                string
+	LogLevel map[string]string
+	Redis    struct {
+		Url string
+	}
 	SubscriptionEndpoint string
 	Gowebserver          struct {
 		Port int

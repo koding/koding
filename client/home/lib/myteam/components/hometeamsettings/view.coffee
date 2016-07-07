@@ -18,6 +18,7 @@ module.exports = class HomeTeamSettingsView extends React.Component
       <div className='HomeAppView--uploadLogo'>
         <TeamLogo
           team={@props.team}
+          canEdit={@props.canEdit}
           loading={@props.loading}
           callback={@bound 'onClickLogo'} />
         <div className='uploadInputWrapper'>
@@ -121,7 +122,7 @@ GenericButton = ({ className, title, callback }) ->
   </a>
 
 
-TeamLogo = ({ team, loading, callback }) ->
+TeamLogo = ({ team, canEdit, loading, callback }) ->
 
   src = team.getIn(['customize', 'logo'])
   src = DEFAULT_SPINNER_PATH  if loading
@@ -133,5 +134,8 @@ TeamLogo = ({ team, loading, callback }) ->
       backgroundSize : 'contain'
       backgroundPosition : 'center'
 
-  <div className='teamLogo-wrapper' onClick={callback} style={styles}>
+  className = 'teamLogo-wrapper'
+  className = 'teamLogo-wrapper member'  unless canEdit
+
+  <div className={className} onClick={callback} style={styles}>
   </div>

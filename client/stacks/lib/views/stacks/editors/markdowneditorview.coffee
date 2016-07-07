@@ -2,7 +2,7 @@ kd                  = require 'kd'
 KDButtonView        = kd.ButtonView
 BaseStackEditorView = require './basestackeditorview'
 applyMarkdown       = require 'app/util/applyMarkdown'
-
+ContentModal = require 'app/components/contentModal'
 
 module.exports = class MarkdownEditorView extends BaseStackEditorView
 
@@ -26,13 +26,23 @@ module.exports = class MarkdownEditorView extends BaseStackEditorView
   handlePreview: ->
 
     { title } = @getOptions()
-    content   = @getContent()
+    content = @getContent()
 
-    new kd.ModalView
-      title          : title or 'Readme Preview'
-      cssClass       : 'has-markdown content-modal'
-      height         : 500
-      overlay        : yes
+    scrollView = new kd.CustomScrollView { cssClass : 'readme-scroll' }
+
+    markdown = applyMarkdown content, { breaks: false }
+
+    scrollView.wrapper.addSubView markdown_content = new kd.CustomHTMLView
+      cssClass : 'markdown-content'
+      partial : markdown
+
+
+    new ContentModal
+      width : 600
+      overlay : yes
+      cssClass : 'readme-preview has-markdown content-modal'
       attributes     : { testpath: 'ReadmePreviewModal' }
       overlayOptions : { cssClass : 'second-overlay' }
-      content        : applyMarkdown content
+      title          : title or 'Readme Preview'
+      content        : scrollView
+

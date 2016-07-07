@@ -11,7 +11,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass   = 'team-name'
+    options.cssClass   = kd.utils.curry 'team-name', options.cssClass
     options.tagName    = 'a'
     options.attributes = { href: '#' }
 
@@ -55,7 +55,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
   handleDashboard: ->
 
-    kd.singletons.router.handleRoute '/Home/Welcome'
+    kd.singletons.router.handleRoute '/Home/Stacks'
 
 
   handleLogout: ->
@@ -65,7 +65,10 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
   handleSupport: ->
 
-    { mainController } = kd.singletons
+    { mainController, groupsController } = kd.singletons
+
+    if groupsController.canEditGroup()
+      return Intercom?('show')
 
     mainController.tellChatlioWidget 'show', { expanded: yes }, (err, result) ->
       showError err  if err

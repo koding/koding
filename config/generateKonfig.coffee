@@ -196,11 +196,11 @@ module.exports = (options, credentials) ->
     sitemap                : { redisDB: 0, updateInterval: "1m" }
     limits                 : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
     kloud                  : { secretKey: kloud.kloudSecretKey, address: kloud.address }
-    geoipdbpath            : "#{options.projectRoot}/go/data/geoipdb"
+    geoipdbpath            : "$KONFIG_PROJECTROOT/go/data/geoipdb"
     eventExchangeName      : "BrokerMessageBus"
     proxyUrl               : socialApiProxyUrl
     port                   : "7000"
-    configFilePath         : "#{options.projectRoot}/go/src/socialapi/config/#{options.configName}.toml"
+    configFilePath         : "$KONFIG_PROJECTROOT/go/src/socialapi/config/#{options.configName}.toml"
     disableCaching         : no
     debug                  : no
 
@@ -224,8 +224,8 @@ module.exports = (options, credentials) ->
     clientUploadS3BucketName      : options.clientUploadS3BucketName
 
     kiteHome                      : credentials.kiteHome
-    redis                         : credentials.redis.url
-    monitoringRedis               : credentials.monitoringRedis.url
+    redis                         : credentials.redis
+    monitoringRedis               : credentials.monitoringRedis
     mongo                         : credentials.mongo
     postgres                      : credentials.postgres
     mq                            : credentials.rabbitmq

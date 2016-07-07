@@ -165,7 +165,7 @@ module.exports = class OnboardingView extends JView
         selectedServices.push (toggle.getOption 'package' or toggle.getOption 'name')  if toggle.getValue()
 
       if selectedServices.length
-        serverConfig.user_data = "apt-get update -y\napt-get -y install #{selectedServices.join ' '}"
+        serverConfig.user_data = "export DEBIAN_FRONTEND=noninteractive\napt-get update -y\napt-get -y install #{selectedServices.join ' '}"
 
     stackTemplate    =
       provider       : PROVIDER_TEMPLATES[selectedProvider]
@@ -208,7 +208,10 @@ module.exports = class OnboardingView extends JView
         resource            :
           vagrant_instance  :
             localvm         :
-              user_data: '''
+              cpus          : 2
+              memory        : 2048
+              box           : 'ubuntu/trusty64'
+              user_data     : '''
                 sudo apt-get install sl -y
                 touch /tmp/${var.koding_user_username}.txt
               '''

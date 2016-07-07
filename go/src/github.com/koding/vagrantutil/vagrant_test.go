@@ -38,11 +38,7 @@ func TestMain(m *testing.M) {
 		log.Fatalln(err)
 	}
 
-	vg.Log = logging.NewLogger("vagrantutil_test")
-	vg.Log.SetLevel(logging.DEBUG)
-	h := logging.NewWriterHandler(os.Stderr)
-	h.SetLevel(logging.DEBUG)
-	vg.Log.SetHandler(h)
+	vg.Log = logging.NewCustom("vagrantutil_test", true)
 
 	ret := m.Run()
 	os.RemoveAll(vagrantName)
