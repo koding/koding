@@ -134,6 +134,16 @@ type ReadDirectoryOptions struct {
 	Machine string
 }
 
+type GetPathSizeOptions struct {
+	Debug bool
+
+	// The machine name to run the ReadDirectory on.
+	Machine string
+
+	// The path to get size of.
+	RemotePath string
+}
+
 // CurrentUsernameOptions
 type CurrentUsernameOptions struct {
 	Debug bool

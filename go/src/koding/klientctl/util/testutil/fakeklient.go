@@ -103,3 +103,7 @@ func (k *FakeKlient) RemoteReadDirectory(string, string) ([]fs.FileEntry, error)
 func (k *FakeKlient) RemoteCurrentUsername(req.CurrentUsernameOptions) (string, error) {
 	return "", nil
 }
+
+func (k *FakeKlient) RemoteGetPathSize(opts req.GetPathSizeOptions) (uint64, error) {
+	return 0, nil
+}
