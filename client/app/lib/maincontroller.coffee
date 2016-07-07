@@ -79,6 +79,8 @@ module.exports = class MainController extends KDController
     @detectIdleUser()
     @setTeamCookie()
 
+    @setElektronHandlers()
+
 
   createSingletons: ->
 
@@ -389,6 +391,26 @@ module.exports = class MainController extends KDController
       teams.latest      = group.slug
 
       kookies.set 'koding-teams', JSON.stringify(teams), { domain, maxAge, path }
+
+
+  setElektronHandlers: ->
+
+    return  unless window.nodeRequire
+
+    { ipcRenderer } = nodeRequire 'electron'
+
+    ipcRenderer.on 'get-previous-teams', ->
+      console.log('asd')
+      ipcRenderer.send 'answer-previous-teams', @getPreviousTeams()
+
+
+  getPreviousTeams: ->
+
+    try
+      teams = JSON.parse kookies.get 'koding-teams'
+
+    return teams  if teams and Object.keys(teams).length
+    return null
 
 
 # This function compares type of given account with global user
