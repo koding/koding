@@ -4,7 +4,7 @@ electron       = require 'electron'
 
 Tray           = electron.Tray
 Menu           = electron.Menu
-{ app, shell } = electron
+{ app, shell, ipcMain } = electron
 
 TRAY_ICON      = path.resolve path.join __dirname, '../assets/icons/kdTemplate.png'
 TRAY_ICON_REV  = path.resolve path.join __dirname, '../assets/icons/kdRev.png'
@@ -44,25 +44,30 @@ handleOpen = (path, terminal) -> ->
 
 module.exports = class KodingTray
 
-  constructor: (tray) ->
+  constructor: (mainWindow) ->
 
     # Globals
+    @_mainWindow = mainWindow
     @_inProgress  = no
     @_isKdRunning = no
     @_contextMenu = []
+    @_previousTeams = {}
 
     @tray = new Tray TRAY_ICON
     # @tray.setPressedImage TRAY_ICON_REV
 
     @tray.on 'click', => @handleClick()
 
-    setTimeout  =>
+    kallback = =>
       @checkKdStatus no
-    , 100
+      @loadPreviousTeams()
 
-    setInterval =>
-      @checkKdStatus no
-    , 1000 * CHECK_TIMER
+    @_mainWindow.webContents.on 'did-navigate', kallback
+    @_mainWindow.webContents.on 'did-navigate-in-page', kallback
+
+    setTimeout kallback, 2000
+    setInterval kallback, 1000 * CHECK_TIMER
+
 
 
   handleClick: ->
@@ -72,12 +77,15 @@ module.exports = class KodingTray
     else @checkKdStatus yes
 
 
-  setMenu: (menu, show = no) ->
+  setMenu: (menu = [], show = no) ->
 
     if typeof menu is 'string'
       menu = [ label: menu, enabled: no ]
 
-    @_contextMenu = Menu.buildFromTemplate menu.concat [
+    win = @_mainWindow
+    teams = @_previousTeams
+
+    menuItems = [
       type    : 'separator'
       visible : @_isKdRunning
     ,
@@ -99,7 +107,22 @@ module.exports = class KodingTray
       click   : -> app.quit()
     ]
 
+
+    if (keys = Object.keys teams).length
+      submenu = \
+        keys.map (key) ->
+          return  if key is 'latest'
+          teamName = teams[key]
+          return { label: teamName, click: -> win.loadURL "http://#{key}.koding.com" }
+        .filter(Boolean)
+
+      menu.unshift { type: 'separator', visible: on }
+      menu.unshift { label: 'Teams', submenu }
+
+    @_contextMenu = Menu.buildFromTemplate menu.concat menuItems
+
     @tray.popUpContextMenu @_contextMenu  if show
+
 
 
   setFailed: (err) ->
@@ -248,3 +271,14 @@ module.exports = class KodingTray
       else
         @_isKdRunning = yes
         @loadMachineMenu show
+
+
+  loadPreviousTeams: ->
+
+    ipcMain.once 'answer-previous-teams', (event, previousTeams) =>
+      console.log {previousTeams}
+      @_previousTeams = previousTeams
+      @setMenu()
+
+    console.log 'loading previous teams'
+    @_mainWindow.webContents.send 'get-previous-teams'
