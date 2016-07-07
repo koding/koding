@@ -1,37 +1,36 @@
 utils        = require '../utils/utils.js'
 helpers      = require '../helpers/helpers.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
+user         = utils.getUser()
 
 module.exports =
 
   createTeamWithInvalidEmail: (browser) ->
-    user       = utils.getUser(yes)
     teamsHelpers.createTeam(browser, user, '', 'InvalidEmail')
 
   createTeamWithInvalidTeamUrl: (browser) ->
-    user       = utils.getUser(yes)
-    teamsHelpers.createTeam(browser, user, '', 'InvalidTeamUrl')
+    teamsHelpers.createTeam(browser, user, '' , 'InvalidTeamUrl')
 
   createTeamWithAlreadyUsedTeamUrl: (browser) ->
-    user       = utils.getUser(yes)
-    teamsHelpers.createTeam(browser, user,'', 'AlreadyUsedTeamUrl')
+    teamsHelpers.createTeam(browser, user, '' , 'AlreadyUsedTeamUrl')
 
   createTeamWithInvalidUserName: (browser) ->
-    user       = utils.getUser(yes)
-    teamsHelpers.createTeam(browser, user,'', 'InvalidUserName')
+    user         = utils.getUser(yes)
+    teamsHelpers.createTeam(browser, user, '' , 'InvalidUserName')
 
   createAlreadyRegisteredUserName: (browser) ->
-    user        = utils.getUser(yes)
     createLink  = "#{helpers.getUrl()}/Teams/Create"
     inviteLink  = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
 
     teamsHelpers.createTeam(browser, user, inviteLink)
     teamsHelpers.createTeam(browser, user, createLink, 'AlreadyRegisteredUserName')
 
-  loginTeam: (browser) ->
+  createTeamWithShortPassword: (browser) ->
+    user = utils.getUser(yes)
+    teamsHelpers.createTeam(browser, user, '' , 'ShortPassword')
 
-    teamsHelpers.loginTeam(browser)
-    browser.end()
+  loginTeam: (browser) ->
+    teamsHelpers.loginTeam(browser, user, yes)
 
   after: (browser) ->
     browser.end()
