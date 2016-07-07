@@ -22,6 +22,8 @@ module.exports = class HomeBuildLogs extends kd.View
 
     options.cssClass = kd.utils.curry 'Build-Logs', options.cssClass
 
+    super options, data
+
     machine = computeController.findMachineFromMachineUId machineUid
 
     return router.handleNotFound path  unless machine
@@ -45,12 +47,9 @@ module.exports = class HomeBuildLogs extends kd.View
           duration: 2000
         return router.handleRoute '/Home/Stacks/virtual-machines'
 
-      if not readable
+      unless readable
         IDEHelpers.showFileAccessDeniedError()
         return router.handleRoute '/Home/Stacks/virtual-machines'
-
-
-    super options, data
 
 
   viewAppended: ->
