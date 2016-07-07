@@ -168,7 +168,6 @@ module.exports = class MachineDetails extends React.Component
   renderBuildLog: ->
 
     { machine } = @props
-    console.log {machine}
 
     return  unless machine
 
