@@ -20,7 +20,7 @@ var LoggedOutHome = `
       };
     </script>
 
-    <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
+    {{.UnsupportedHTML}}
     <script src="/a/site.landing/js/libs.js?{{.Version}}"></script>
     <script src="/a/site.landing/js/kd.libs.js?{{.Version}}"></script>
     <script src="/a/site.landing/js/kd.js?{{.Version}}"></script>

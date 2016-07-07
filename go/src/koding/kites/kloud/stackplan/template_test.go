@@ -8,7 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"koding/kites/common"
+	"github.com/koding/logging"
+
 	"koding/kites/kloud/provider"
 	"koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/stackplan"
@@ -38,7 +39,7 @@ const testTemplate = `{
     }
 }`
 
-var log = common.NewLogger("test", true)
+var log = logging.NewCustom("test", true)
 
 func TestTerraformTemplate_NewNil(t *testing.T) {
 	template, err := stackplan.ParseTemplate(testTemplate, log)

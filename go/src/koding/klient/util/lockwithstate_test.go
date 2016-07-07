@@ -1,13 +1,14 @@
 package util
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestMutexWithStateLock(t *testing.T) {
 	Convey("Given a MutextWithState", t, func() {
-		m := NewMutextWithState()
+		m := NewMutexWithState()
 		So(m.IsLocked(), ShouldBeFalse)
 
 		Convey("It should set IsLocked when locked", func() {
@@ -19,7 +20,7 @@ func TestMutexWithStateLock(t *testing.T) {
 
 func TestMutexWithStateUnlock(t *testing.T) {
 	Convey("Given a MutextWithState", t, func() {
-		m := NewMutextWithState()
+		m := NewMutexWithState()
 		So(m.IsLocked(), ShouldBeFalse)
 		m.Lock()
 		So(m.IsLocked(), ShouldBeTrue)

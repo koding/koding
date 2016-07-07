@@ -25,11 +25,10 @@ module.exports = class ThrobberView extends KDView
 
     { targetIsScrollable } = @getOptions()
     targetElement          = @getDelegate()
-    targetDomElement       = targetElement.getDomElement()
 
     if targetIsScrollable
-      targetElement.addSubView this
-      targetElement.setCss 'position', 'relative'  if targetDomElement.css('position') is 'static'
+      targetElement.append @getDomElement()
+      targetElement.css 'position', 'relative'  if targetElement.css('position') is 'static'
     else
       @appendToDomBody()
 
@@ -96,10 +95,11 @@ module.exports = class ThrobberView extends KDView
     { placementX, placementY, offsetX, offsetY, targetIsScrollable } = @getOptions()
 
     targetElement       = @getDelegate()
-    targetElementX      = if targetIsScrollable then 0 else targetElement.getX()
-    targetElementY      = if targetIsScrollable then 0 else targetElement.getY()
-    targetElementWidth  = targetElement.getWidth()
-    targetElementHeight = targetElement.getHeight()
+    targetClientRect    = targetElement[0].getBoundingClientRect()
+    targetElementX      = if targetIsScrollable then 0 else targetClientRect.left
+    targetElementY      = if targetIsScrollable then 0 else targetClientRect.top
+    targetElementWidth  = targetElement.outerWidth()
+    targetElementHeight = targetElement.outerHeight()
 
     throbberWidth       = @getWidth()
     throbberHeight      = @getHeight()

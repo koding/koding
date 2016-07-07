@@ -7,7 +7,6 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/common"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
@@ -106,7 +105,7 @@ func (bp *BaseProvider) BaseMachine(ctx context.Context, id string) (*BaseMachin
 	}
 
 	if traceID, ok := kloud.TraceFromContext(ctx); ok {
-		bm.Log = common.NewLogger("kloud-"+bp.Name, true).New(m.ObjectId.Hex()).New(traceID)
+		bm.Log = logging.NewCustom("kloud-"+bp.Name, true).New(m.ObjectId.Hex()).New(traceID)
 		bm.Debug = true
 		bm.TraceID = traceID
 	}

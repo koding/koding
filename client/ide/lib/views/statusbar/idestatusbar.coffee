@@ -77,10 +77,10 @@ module.exports = class IDEStatusBar extends kd.View
       placement : 'above'
       sticky    : yes
 
-    @addSubView new kd.CustomHTMLView
-      tagName  : 'i'
-      cssClass : 'icon help'
-      click    : -> new HelpSupportModal
+    # @addSubView new kd.CustomHTMLView
+    #   tagName  : 'i'
+    #   cssClass : 'icon help'
+    #   click    : -> Intercom?('show')
 
     @addSubView new kd.CustomHTMLView
       tagName  : 'i'

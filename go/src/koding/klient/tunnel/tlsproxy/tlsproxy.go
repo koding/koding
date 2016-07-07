@@ -21,12 +21,11 @@ import (
 
 	"github.com/koding/logging"
 
-	"koding/kites/common"
 	"koding/klient/tunnel/tlsproxy/pem"
 	"koding/tools/util"
 )
 
-var defaultLog = common.NewLogger("tlsproxy", false)
+var defaultLog = logging.NewCustom("tlsproxy", false)
 
 // Init adds local route for pem.Hostname to 127.0.0.1 address.
 func Init() error {

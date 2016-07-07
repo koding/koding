@@ -2,7 +2,6 @@ kd                   = require 'kd'
 remote               = require('app/remote').getInstance()
 JView                = require 'app/jview'
 whoami               = require 'app/util/whoami'
-VerifyPasswordModal  = require 'app/commonviews/verifypasswordmodal'
 CustomLinkView       = require 'app/customlinkview'
 
 notify = (title, duration = 2000) -> new kd.NotificationView { title, duration }

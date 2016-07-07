@@ -2,6 +2,7 @@
   "name": "home",
   "main": "./lib/index.coffee",
   "routes": {
+    "/Welcome": "welcome",
     "/Home": "home",
     "/Home/:section": "section",
     "/Home/:section/:action": "action",

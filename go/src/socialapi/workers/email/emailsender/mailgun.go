@@ -24,9 +24,7 @@ type EmailInvitationUser struct {
 type MailgunSender struct {
 	Conf                   *config.Config
 	Mailgun                mailgun.Mailgun
-	TemplateSignup         *template.Template
 	TemplateTeamInvite     *template.Template
-	TemplateSignupText     *texttemplate.Template
 	TemplateTeamInviteText *texttemplate.Template
 	VmHostname             string
 	Log                    logging.Logger
@@ -40,9 +38,7 @@ func NewMailgunSender(hostname string, log logging.Logger, conf *config.Config) 
 	ms.Conf = conf
 	ms.Mailgun = mailgun.NewMailgun(ms.Conf.Mailgun.Domain, ms.Conf.Mailgun.PrivateKey, ms.Conf.Mailgun.PublicKey)
 
-	ms.TemplateSignup = template.Must(template.New("email").Parse(TemplateSignup))
 	ms.TemplateTeamInvite = template.Must(template.New("email").Parse(TemplateTeamInvite))
-	ms.TemplateSignupText = texttemplate.Must(texttemplate.New("email").Parse(TemplateSignupText))
 	ms.TemplateTeamInviteText = texttemplate.Must(texttemplate.New("email").Parse(TemplateTeamInviteText))
 
 	return ms
@@ -51,25 +47,14 @@ func NewMailgunSender(hostname string, log logging.Logger, conf *config.Config) 
 func (m *MailgunSender) SendMailgunEmail(mail *Mail) error {
 	var subject string
 	var email string
-	var nickname string
 	var err error
 	var userId string
 	var tpl *template.Template
 	var tplText *texttemplate.Template
 	userObj := EmailInvitationUser{}
 
-	if mail.Properties.Options["subject"] == keyStartRegister {
-		userMap := mail.Properties.Options["user"].(map[string]interface{})
-		nickname = userMap["user_id"].(string)
-		email = userMap["email"].(string)
-		subject = subjectStartRegister
-		userObj.UserID = nickname
-		userObj.Pin = pinGenerateAndSave(nickname, m.Conf)
-		tpl = m.TemplateSignup
-		tplText = m.TemplateSignupText
-	} else if mail.Properties.Options["subject"] == keyInvitedCreateTeam {
+	if mail.Properties.Options["subject"] == keyInvitedCreateTeam {
 		email = mail.Properties.Options["invitee"].(string)
-		nickname = email
 		userObj.UserID = email
 		userObj.Link = mail.Properties.Options["link"].(string)
 		subject = subjectInvitedCreateTeam

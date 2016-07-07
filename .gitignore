@@ -1,6 +1,6 @@
 selenium-debug.log
-.*.nginx.conf
-.*.nginx.pid
+nginx.conf
+nginx.pid
 *.test
 *.dump
 *.orig
@@ -32,6 +32,7 @@ selenium-debug.log
 /broker/log
 kontrol-data-*
 /erl_crash.dump
+/go/src/socialapi/db/sql/kontrol/001-schema.sql
 
 /go/bin
 /go/bin-vagrant

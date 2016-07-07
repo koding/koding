@@ -342,6 +342,11 @@ setSelectedMachineId = (machineId) ->
   kd.singletons.reactor.dispatch actions.MACHINE_SELECTED, machineId
 
 
+setSelectedTemplateId = (templateId) ->
+
+  kd.singletons.reactor.dispatch actions.SET_SELECTED_TEMPLATE_ID, { id: templateId }
+
+
 setActiveStackId = (stackId) ->
 
   kd.utils.defer ->
@@ -385,9 +390,12 @@ reinitStackFromWidget = (stack) ->
 
   { computeController } = kd.singletons
 
-  computeController.reinitStack if stack
-  then remote.revive stack.toJS()
-  else computeController.getGroupStack()
+  new Promise (resolve, reject) ->
+
+    stack = if stack then stack.toJS() else computeController.getGroupStack()
+
+    computeController.reinitStack stack, (err) ->
+      if err then reject(err) else resolve()
 
 
 createWorkspace = (machine, workspace) ->
@@ -448,6 +456,10 @@ loadTeamStackTemplates = ->
 
     reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_SUCCESS, { query, templates }
 
+    templates.forEach (template) ->
+      template.on 'deleteInstance', ->
+        reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { template }
+
 
 loadPrivateStackTemplates = ->
 
@@ -465,6 +477,10 @@ loadPrivateStackTemplates = ->
     templates = templates.filter (t) -> t.accessLevel is 'private'
 
     reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_SUCCESS, { query, templates }
+
+    templates.forEach (template) ->
+      template.on 'deleteInstance', ->
+        reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { template }
 
 
 setMachineAlwaysOn = (machineId, state) ->
@@ -588,17 +604,21 @@ generateStack = (stackTemplateId) ->
 
   { computeController } = kd.singletons
 
-  computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) ->
-    return  if err
+  new Promise (resolve, reject) ->
+    computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) ->
+      return reject(err)  if err
 
-    generateStackFromTemplate stackTemplate
-      .then ({ stack }) ->
-        { results : { machines } } = stack
-        [ machine ] = machines
-        computeController.reset yes, ->
-          computeController.reloadIDE machine.obj.slug
-        new kd.NotificationView { title: 'Stack generated successfully' }
-      .catch (err) -> showError err
+      generateStackFromTemplate stackTemplate
+        .then ({ stack }) ->
+          { results : { machines } } = stack
+          [ machine ] = machines
+          computeController.reset yes, ->
+            computeController.reloadIDE machine.obj.slug
+            resolve({ stack })
+          new kd.NotificationView { title: 'Stack generated successfully' }
+        .catch (err) ->
+          showError err
+          reject(err)
 
 
 generateStackFromTemplate = (template) ->
@@ -669,6 +689,8 @@ deleteStack = ({ stackTemplateId, stack }) ->
       computeController.destroyStack _stack, (err) ->
         return  if showError err
 
+        reactor.dispatch actions.REMOVE_STACK, _stack._id
+
         computeController
           .reset yes
           .once 'RenderStacks', ->
@@ -734,6 +756,21 @@ unshareMachineWithUser = (machineId, nickname) ->
         showError err  unless err.message is 'user is not in the shared list.'
 
 
+unshareMachineWihAllUsers = (machineId) ->
+
+  machine = _kd.singletons.reactor.evaluate ['MachinesStore', machineId]
+
+  new Promise (resolve, reject) ->
+    queue = machine.get('sharedUsers').toJS().map (user) -> (next) ->
+      { nickname } = user.profile
+      unshareMachineWithUser(machineId, nickname)
+        .then -> next(null)
+        .catch (err) -> next(err)
+
+    async.series queue, (err) -> if err then reject() else resolve()
+
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -744,6 +781,7 @@ module.exports = {
   deleteWorkspace
   setSelectedWorkspaceId
   setSelectedMachineId
+  setSelectedTemplateId
   showDeleteWorkspaceWidget
   hideDeleteWorkspaceWidget
   showManagedMachineAddedModal
@@ -775,5 +813,6 @@ module.exports = {
   loadMachineSharedUsers
   shareMachineWithUser
   unshareMachineWithUser
+  unshareMachineWihAllUsers
   disconnectMachine
 }

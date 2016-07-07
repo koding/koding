@@ -1,15 +1,12 @@
-_                           = require 'lodash'
-kd                          = require 'kd'
-hljs                        = require 'highlight.js'
-
-showError                   = require 'app/util/showError'
-applyMarkdown               = require 'app/util/applyMarkdown'
-
-KDModalView                 = kd.ModalView
-KodingListView              = require 'app/kodinglist/kodinglistview'
-
-AccountCredentialListItem   = require './accountcredentiallistitem'
-AccountCredentialEditModal  = require './accountcredentialeditmodal'
+_ = require 'lodash'
+kd = require 'kd'
+hljs = require 'highlight.js'
+showError = require 'app/util/showError'
+ContentModal = require 'app/components/contentModal'
+applyMarkdown = require 'app/util/applyMarkdown'
+KodingListView = require 'app/kodinglist/kodinglistview'
+AccountCredentialListItem = require './accountcredentiallistitem'
+AccountCredentialEditModal = require './accountcredentialeditmodal'
 
 
 module.exports = class AccountCredentialList extends KodingListView
@@ -28,13 +25,14 @@ module.exports = class AccountCredentialList extends KodingListView
 
     { credential, cred } = options
 
-    new KDModalView
-      title          : credential.title
-      subtitle       : credential.provider
-      cssClass       : 'has-markdown credential-modal'
-      overlay        : yes
+    new ContentModal
+      width : 600
+      overlay : yes
+      title : "<h1 class=#{credential.provider}><span>#{credential.title} Preview</span></h1>"
+      cssClass : 'has-markdown content-modal'
       overlayOptions : { cssClass : 'second-overlay' }
-      content        : "<pre><code>#{cred}</code></pre>"
+      content : "<p><pre><code>#{cred}</code></pre></p>"
+
 
 
   askForConfirm: (options, callback) ->
@@ -62,7 +60,7 @@ module.exports = class AccountCredentialList extends KodingListView
         to stop working properly, please make sure that you don't have any
         stack or stack templates that depend on this credential.
         \n\n
-        Do you want to remove **#{credential.title}** ?
+        Do you want to remove **#{credential.title}**?
       "
 
     unless credential.owner
@@ -80,39 +78,43 @@ module.exports = class AccountCredentialList extends KodingListView
       bootstrapped = no
       removeButtonTitle = 'Remove Access'
 
-    modal              = new KDModalView
-      title          : 'Remove credential'
+
+    modal = new ContentModal
+      width : 600
+      overlay : yes
+      title          : 'Remove Credential'
       content        : "<div class='modalformline'>#{description}</div>"
-      cssClass       : 'has-markdown remove-credential'
+      cssClass       : 'content-modal'
       attributes     :
         testpath     : if bootstrapped then 'destroyCredentialModal' else 'removeCredentialModal'
-      overlay        : yes
       overlayOptions :
         cssClass     : 'second-overlay'
         overlayClick : yes
       buttons        :
+        cancel       :
+          title      : 'Cancel'
+          style      : "solid light-gray medium #{if bootstrapped then 'hidden'}"
+          callback   : ->
+            modal.destroy()
+            callback { action : 'Cancel', modal }
+        DestroyAll   :
+          title      : 'Destroy Everything'
+          style      : "solid medium #{unless bootstrapped then 'hidden' else 'cancel'}"
+          attributes :
+            testpath : 'destroyAll'
+          loader     :
+            shape    : 'spiral'
+            color    : '#a4a4a4'
+          callback   : ->
+            callback { action : 'DestroyAll', modal }
         Remove       :
           title      : removeButtonTitle ? 'Remove Credential'
-          style      : 'solid red medium'
+          style      : 'solid medium'
           attributes :
             testpath : 'removeCredential'
           loader     : yes
           callback   : ->
             callback { action : 'Remove', modal }
-        DestroyAll   :
-          title      : 'Destroy Everything'
-          style      : "solid red medium #{unless bootstrapped then 'hidden'}"
-          attributes :
-            testpath : 'destroyAll'
-          loader     : yes
-          callback   : ->
-            callback { action : 'DestroyAll', modal }
-        cancel       :
-          title      : 'Cancel'
-          style      : 'solid light-gray medium'
-          callback   : ->
-            modal.destroy()
-            callback { action : 'Cancel', modal }
 
 
   showCredentialEditModal: (options = {}) ->

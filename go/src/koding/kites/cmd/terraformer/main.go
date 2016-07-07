@@ -4,23 +4,31 @@ import (
 	"io/ioutil"
 	"log"
 
-	"koding/kites/common"
 	"koding/kites/terraformer"
 
+	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 )
 
 func main() {
 	conf := &terraformer.Config{}
-	// Load the config, reads environment variables or from flags
-	multiconfig.New().MustLoad(conf)
+
+	mc := multiconfig.New()
+	mc.Loader = multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.EnvironmentLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_TERRAFORMER"},
+		&multiconfig.FlagLoader{},
+	)
+
+	mc.MustLoad(conf)
 
 	if !conf.TerraformDebug {
 		// hashicorp.terraform outputs many logs, discard them
 		log.SetOutput(ioutil.Discard)
 	}
 
-	log := common.NewLogger(terraformer.Name, conf.Debug)
+	log := logging.NewCustom(terraformer.Name, conf.Debug)
 
 	// init terraformer
 	t, err := terraformer.New(conf, log)

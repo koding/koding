@@ -27,7 +27,8 @@ CredentialStatusView = require 'stacks/views/stacks/credentialstatusview'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 StackTemplatePreviewModal = require 'stacks/views/stacks/stacktemplatepreviewmodal'
 EnvironmentFlux = require 'app/flux/environment'
-
+ContentModal = require 'app/components/contentModal'
+{ actions : HomeActions } = require 'home/flux'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -94,6 +95,13 @@ module.exports = class StackEditorView extends kd.View
       cssClass : 'HomeAppView--button danger'
       title    : 'DELETE STACK TEMPLATE'
       click    : @bound 'deleteStack'
+
+    @secondaryActions.addSubView new CustomLinkView
+      cssClass : 'HomeAppView--button secondary fr'
+      attributes :
+        style  : 'color: #67a2ee;'
+      title    : 'CLICK HERE TO READ STACK SCRIPT DOCS'
+      href     : 'http://www.koding.com/docs'
 
     @tabView.unsetClass 'kdscrollview'
 
@@ -321,8 +329,8 @@ module.exports = class StackEditorView extends kd.View
         @handleSetDefaultTemplate()
 
     @buttons.addSubView @generateStackButton = new kd.ButtonView
-      title          : 'PROVISION'
-      cssClass       : 'GenericButton hidden provision'
+      title          : 'INITIALIZE'
+      cssClass       : 'GenericButton hidden initialize'
       loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
@@ -389,7 +397,9 @@ module.exports = class StackEditorView extends kd.View
           .add 'Checking provided credentials...'
 
         @checkAndBootstrapCredentials (err, credentials) =>
-          return @saveButton.hideLoader()  if err
+          if err
+            @credentialWarning.tooltip.show()
+            return @saveButton.hideLoader()
 
           @outputView
             .add 'Credentials are ready!'
@@ -403,7 +413,7 @@ module.exports = class StackEditorView extends kd.View
     canEditGroup = kd.singletons.groupsController.canEditGroup()
 
     switch method
-      when 'provision'
+      when 'initialize'
         @generateStackButton.show()
         @outputView.add '''
           Your stack script has been successfully saved.
@@ -420,7 +430,7 @@ module.exports = class StackEditorView extends kd.View
         @outputView.add '''
           Your stack script has been successfully saved.
 
-          If you want to auto-provision this template when new users join your team,
+          If you want to auto-initialize this template when new users join your team,
           you need to click "Make Team Default" after you save it.
 
           You can now close the stack editor or continue editing your stack.
@@ -482,7 +492,7 @@ module.exports = class StackEditorView extends kd.View
         if canEditGroup
           if hasGroupTemplates
             @afterProcessTemplate 'maketeamdefault'
-            @afterProcessTemplate 'provision'
+            @afterProcessTemplate 'initialize'
             computeController.checkGroupStacks()
           else
             @handleSetDefaultTemplate completed = no
@@ -497,7 +507,7 @@ module.exports = class StackEditorView extends kd.View
             computeController.checkGroupStacks()
         # member is creating a new stack
         else
-          @afterProcessTemplate 'provision'
+          @afterProcessTemplate 'initialize'
           computeController.checkGroupStacks()
 
 
@@ -700,6 +710,7 @@ module.exports = class StackEditorView extends kd.View
         @setData { stackTemplate }
 
         stackTemplate._updated = currentSum isnt stackTemplate.template.sum
+        HomeActions.markAsDone 'stackCreation'
 
       callback err, stackTemplate
 
@@ -739,7 +750,11 @@ module.exports = class StackEditorView extends kd.View
             errors[type] ?= []
             errors[type].push field
 
-      new StackTemplatePreviewModal {}, { errors, warnings, template }
+
+      new StackTemplatePreviewModal
+        width : 600
+        overlay : yes
+      , { errors, warnings, template }
 
       @previewButton.hideLoader()
 
@@ -783,9 +798,8 @@ module.exports = class StackEditorView extends kd.View
 
       @outputView.add 'Stack generated successfully. You can now build it.'
 
-      computeController.reset yes
-
-      kd.singletons.router.handleRoute "/IDE/#{result.results.machines[0].obj.label}"
+      computeController.reset yes, ->
+        kd.singletons.router.handleRoute "/IDE/#{result.results.machines[0].obj.slug}"
       @emit 'Reload'
 
 
@@ -833,7 +847,7 @@ module.exports = class StackEditorView extends kd.View
       return showError 'You currently have a stack generated from this template.'
 
     title       = 'Are you sure?'
-    description = 'Do you want to delete this stack template?'
+    description = '<h2>Do you want to delete this stack template?</h2>'
     callback    = ({ status, modal }) ->
       return  unless status
 
@@ -850,21 +864,28 @@ module.exports = class StackEditorView extends kd.View
       return showError err  if err
 
       if result
-        description = '''
+        description = '''<p>
           There is a stack generated from this template by another team member. Deleting it can break their stack.
-          Do you still want to delete this stack template?
+          Do you still want to delete this stack template?</p>
         '''
 
-      modal = kd.ModalView.confirm
-        title       : title
-        description : description
-        ok          :
-          title     : 'Yes'
-          callback  : -> callback { status : yes, modal }
-        cancel      :
-          title     : 'Cancel'
-          callback  : ->
-            modal.destroy()
-            callback { status : no }
+      modal = new ContentModal
+        width : 400
+        overlay : yes
+        cssClass : 'delete-stack-template content-modal'
+        title   : title
+        content : description
+        buttons :
+          cancel      :
+            title     : 'Cancel'
+            cssClass  : 'kdbutton solid medium'
+            callback  : ->
+              modal.destroy()
+              callback { status : no }
+          ok          :
+            title     : 'Yes'
+            cssClass  : 'kdbutton solid medium'
+            callback  : -> callback { status : yes, modal }
 
       modal.setAttribute 'testpath', 'RemoveStackModal'
+

@@ -2,7 +2,7 @@
 
 readonly releaseChannel="%RELEASE_CHANNEL%"
 
-readonly OSXFUSE_URL="http://downloads.sourceforge.net/project/osxfuse/osxfuse-2.8.0/osxfuse-2.8.0.dmg"
+readonly OSXFUSE_URL="https://s3.amazonaws.com/koding-dl/osxfuse-2.8.0.dmg"
 readonly VIRTUALBOX_URL_LINUX="http://download.virtualbox.org/virtualbox/5.0.20/VirtualBox-5.0.20-106931-Linux_amd64.run"
 readonly VIRTUALBOX_URL_DARWIN="http://download.virtualbox.org/virtualbox/5.0.20/VirtualBox-5.0.20-106931-OSX.dmg"
 readonly VAGRANT_URL_LINUX="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"

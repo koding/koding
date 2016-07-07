@@ -21,10 +21,9 @@ paymentHistory    = 'div.HomeAppView--section.HomeTeamInvoicesList'
 paymenthistoryBtn = '.HomeAppView--button.custom-link-view.primary:nth-of-type(2)'
 
 menuSelector      = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
-myAccountSelector = "#{menuSelector}:nth-of-type(1)"
-dashboardSelector = "#{menuSelector}:nth-of-type(2)"
-supportSelector   = "#{menuSelector}:nth-of-type(3)"
-logoutSelector    = "#{menuSelector}:nth-of-type(4)"
+dashboardSelector = "#{menuSelector}:nth-of-type(1)"
+supportSelector   = "#{menuSelector}:nth-of-type(2)"
+logoutSelector    = "#{menuSelector}:nth-of-type(3)"
 chatlioWidget     = '.chatlio-widget'
 
 pendingStack      = "#{WelcomeView} ul.bullets li:nth-of-type(1)"

@@ -248,9 +248,12 @@ module.exports = class MigrateFromSoloAppView extends kd.ModalView
 
   handleSupportRequest: (destroy = yes) ->
 
-    { mainController } = kd.singletons
+    { mainController, groupsController } = kd.singletons
 
-    mainController.tellChatlioWidget 'show', { expanded: yes }, (err, result) ->
-      showError err  if err
+    if groupsController.canEditGroup()
+      Intercom?('show')
+    else
+      mainController.tellChatlioWidget 'show', { expanded: yes }, (err, result) ->
+        showError err  if err
 
     @destroy()  if destroy

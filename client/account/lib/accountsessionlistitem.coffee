@@ -17,14 +17,14 @@ module.exports = class AccountSessionListItem extends KDListItemView
 
     deleteButtonOptions =
       title    : 'Terminate'
-      cssClass : 'solid compact red delete'
+      cssClass : 'solid compact delete'
       callback : =>
         listView.emit 'ItemAction',
           action        : 'RemoveItem'
           item          : this
           options       :
-            title       : 'Remove session ?'
-            description : 'Do you want to remove ?'
+            title       : 'Are you sure?'
+            description : 'Do you really want to remove this session?'
 
     if data and kookies.get('clientId') is data.clientId
       deleteButtonOptions.tooltip = { title : 'This will log you out!', placement: 'left' }
@@ -43,17 +43,21 @@ module.exports = class AccountSessionListItem extends KDListItemView
       then hostname
       else "#{groupName}.#{hostname}"
 
-    activeSession = ''
-    if kookies.get('clientId') is clientId
-      group = "#{group} (Active)"
-      activeSession = ' active'
-
     lastAccess = lastLoginDate or lastAccess
+
+    if kookies.get('clientId') is clientId
+      cssClass = 'active'
+    @session = new kd.CustomHTMLView
+      cssClass: 'group-name'
+      partial: group
+
 
     """
     <div class="session-item">
-      <div class="session-info">
-        <p class="group-name#{activeSession}">#{group}</p>
+      <div class='session-info'>
+        <div class="#{cssClass}">
+          {{> @session}}
+        </div>
         <p class="last-access">Last access: #{timeago lastAccess}</p>
       </div>
       {div.delete-button{> @deleteButton }}

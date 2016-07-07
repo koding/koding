@@ -10,7 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"koding/kites/common"
+	"github.com/koding/logging"
+
 	"koding/kites/tunnelproxy/discover/discovertest"
 	"koding/klient/app"
 	"koding/klient/remote/mount"
@@ -27,7 +28,7 @@ func TestUpdater(t *testing.T) {
 	u := &app.Updater{
 		Endpoint:    s.URL().String(),
 		Interval:    50 * time.Millisecond,
-		Log:         common.NewLogger("updater", true),
+		Log:         logging.NewCustom("updater", true),
 		MountEvents: events,
 	}
 

@@ -32,9 +32,11 @@ ResourceStateModal            = require 'app/providers/resourcestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
+ContentModal = require 'app/components/contentModal'
+
+NoStackFoundView = require 'app/nostackfoundview'
 
 require('./routes').init()
-
 
 module.exports =
 
@@ -212,6 +214,11 @@ class IDEAppController extends AppController
   bindWorkspaceDataEvents: ->
 
     @on 'WorkspaceChannelChanged', @bound 'onWorkspaceChannelChanged'
+
+    return  unless @workspaceData
+
+    unless 'function' is typeof @workspaceData.on
+      @workspaceData = remote.revive @workspaceData
 
     @workspaceData.on 'update', (fields) =>
 
@@ -608,6 +615,13 @@ class IDEAppController extends AppController
         callback null, machine
 
 
+  showNoMachineState: ->
+
+    return  if @noStackFoundView
+
+    @getView().addSubView @noStackFoundView = new NoStackFoundView
+
+
   mountMachineByMachineUId: (machineUId) ->
 
     return  if @mountedMachine
@@ -619,7 +633,7 @@ class IDEAppController extends AppController
     environmentDataProvider.fetchMachineByUId machineUId, (machineItem) =>
 
       unless machineItem
-        return @createMachineStateModal { state: 'NotFound', container }
+        return @showNoMachineState()
 
       unless machineItem instanceof Machine
         machineItem = new Machine { machine: machineItem }
@@ -672,7 +686,7 @@ class IDEAppController extends AppController
         adminMessage.showIfNeeded()
 
       else
-        @createMachineStateModal { state: 'NotFound', container }
+        return @showNoMachineState()
 
 
   bindMachineEvents: (machineItem) ->
@@ -1669,20 +1683,22 @@ class IDEAppController extends AppController
   showModal: (modalOptions = {}, callback = noop) ->
     return  if @modal
 
+    modalOptions.cssClass = 'content-modal'
     modalOptions.overlay  ?= yes
     modalOptions.blocking ?= no
     modalOptions.buttons or=
+      No         :
+        title    : 'Cancel'
+        cssClass : 'solid cancel medium'
+        callback : => @modal.destroy()
       Yes        :
-        cssClass : 'solid green medium'
+        title    : 'Yes'
+        cssClass : 'solid medium'
         loader   : yes
         callback : callback
-      No         :
-        cssClass : 'solid light-gray medium'
-        callback : => @modal.destroy()
 
     ModalClass = if modalOptions.blocking then kd.BlockingModalView else kd.ModalView
-
-    @modal = new ModalClass modalOptions
+    @modal = new ContentModal modalOptions
     @modal.once 'KDObjectWillBeDestroyed', =>
       delete @modal
 
@@ -1800,7 +1816,7 @@ class IDEAppController extends AppController
 
     options        =
       title        : 'Machine access revoked'
-      content      : 'Your access to this machine has been removed by its owner.'
+      content      : '<p>Your access to this machine has been removed by its owner.</p>'
       blocking     : yes
       buttons      :
         quit       :

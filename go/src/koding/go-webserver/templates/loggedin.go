@@ -11,7 +11,13 @@ var LoggedInHome = `
   </head>
 
   <body class='logged-in'>
-    <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
+    {{.UnsupportedHTML}}
+
+    <script>
+      !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="3.0.1";
+        analytics.load("{{.Segment}}");
+      }}();
+    </script>
 
     <script>
       var _globals = {
@@ -21,7 +27,10 @@ var LoggedInHome = `
         userAccount: {{.User.GetWithDefaultHash "Account"  }},
         currentGroup: {{.User.GetWithDefaultHash "Group" }},
         userEnvironmentData: {{.User.GetWithDefaultHash "EnvData" }},
-        socialApiData: {{.User.GetWithDefaultHash "SocialApiData" }}
+        socialApiData: {{.User.GetWithDefaultHash "SocialApiData" }},
+        userRoles: {{.User.GetWithDefaultHash "Roles" }},
+        userPermissions: {{.User.GetWithDefaultHash "Permissions" }},
+        userMachines: {{.User.GetWithDefaultHash "UserMachines" }}
       };
     </script>
 
@@ -40,7 +49,7 @@ var LoggedInHome = `
     </script>
 
     {{if not .Impersonating }}
-      <script type="text/javascript">
+      <script>
         (function () {
         var _user_id = '{{.User.GetWithDefaultStr "Username" }}'; var _session_id = '{{.User.GetWithDefaultStr "SessionId" }}'; var _sift = _sift || []; _sift.push(['_setAccount', 'f270274999']); _sift.push(['_setUserId', _user_id]); _sift.push(['_setSessionId', _session_id]); _sift.push(['_trackPageview']); (function() { function ls() { var e = document.createElement('script'); e.type = 'text/javascript'; e.async = true; e.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'cdn.siftscience.com/s.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(e, s); } if (window.attachEvent) { window.attachEvent('onload', ls); } else { window.addEventListener('load', ls, false); } })();
         })();
@@ -57,6 +66,7 @@ var LoggedInHome = `
         a.appendChild(r);
       })(window,document,'//static.hotjar.com/c/hotjar-','.js?sv=');
     </script>
+
 </body>
 </html>
 `

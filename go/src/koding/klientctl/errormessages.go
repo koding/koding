@@ -202,7 +202,7 @@ Please remove this path before trying to mount again to this path. `,
 	FailedGetSSHKey        = errormessages.FailedGetSSHKey
 	FailedPrefetchFolder   = errormessages.FailedPrefetchFolder
 	MachineNotValidYet     = errormessages.MachineNotValidYet
-	CannotSSHManaged       = errormessages.CannotSSHManaged
 	RemoteProcessFailed    = errormessages.RemoteProcessFailed
 	RemotePathDoesNotExist = errormessages.RemotePathDoesNotExist
+	CannotFindSSHUser      = errormessages.CannotFindSSHUser
 )

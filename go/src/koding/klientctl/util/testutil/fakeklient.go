@@ -99,3 +99,7 @@ func (k *FakeKlient) Tell(string, ...interface{}) (*dnode.Partial, error) {
 func (k *FakeKlient) RemoteReadDirectory(string, string) ([]fs.FileEntry, error) {
 	return nil, nil
 }
+
+func (k *FakeKlient) RemoteCurrentUsername(req.CurrentUsernameOptions) (string, error) {
+	return "", nil
+}

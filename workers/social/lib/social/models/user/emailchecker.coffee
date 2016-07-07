@@ -1,5 +1,4 @@
 KONFIG        = require 'koding-config-manager'
-KONFIG.redis  = process.env.REDIS_URL  if process.env.REDIS_URL
 redis         = require 'redis'
 REDIS_KEY     = 'social:disposable-email-addresses'
 DOMAINS       = require 'disposable-email-domains'
@@ -206,8 +205,8 @@ syncWithRedis = (callback) ->
 
   unless redisClient
     redisClient = redis.createClient(
-      KONFIG.redis.split(':')[1]
-      KONFIG.redis.split(':')[0]
+      KONFIG.redis.port
+      KONFIG.redis.host
       {}
     )
 

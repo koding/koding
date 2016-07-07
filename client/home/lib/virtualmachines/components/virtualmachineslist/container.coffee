@@ -19,10 +19,17 @@ module.exports = class VirtualMachinesListContainer extends React.Component
   onChangePowerStatus: (machineId, shouldStart) -> EnvironmentFlux.actions.setMachinePowerStatus machineId, shouldStart
 
 
+  onCancelSharing: (machineId) ->
+
+    EnvironmentFlux.actions.unshareMachineWihAllUsers machineId
+
+
   onSharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.shareMachineWithUser machineId, nickname
 
 
-  onUnsharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.unshareMachineWithUser machineId, nickname
+  onUnsharedWithUser: (machineId, nickname) ->
+
+    EnvironmentFlux.actions.unshareMachineWithUser machineId, nickname
 
 
   render: ->
@@ -31,6 +38,7 @@ module.exports = class VirtualMachinesListContainer extends React.Component
       onChangePowerStatus={@bound 'onChangePowerStatus'}
       onSharedWithUser={@bound 'onSharedWithUser'}
       onUnsharedWithUser={@bound 'onUnsharedWithUser'}
+      onCancelSharing={@bound 'onCancelSharing'}
     />
 
 

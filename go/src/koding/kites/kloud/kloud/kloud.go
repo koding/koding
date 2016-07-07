@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"os"
 	"sync"
 	"time"
 
@@ -83,20 +82,6 @@ func New() *Kloud {
 	kld.statusCache.StartGC(time.Second * 5)
 
 	return kld
-}
-
-func (k *Kloud) newLogger(name string) logging.Logger {
-	log := logging.NewLogger(name)
-	logHandler := logging.NewWriterHandler(os.Stderr)
-	logHandler.Colorize = true
-	log.SetHandler(logHandler)
-
-	if k.Debug {
-		log.SetLevel(logging.DEBUG)
-		logHandler.SetLevel(logging.DEBUG)
-	}
-
-	return log
 }
 
 // AddProvider adds the given Provider with the providerName. It returns an

@@ -64,13 +64,24 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
   handleAction: (action) ->
 
+    { onboarding } = kd.singletons
+
     for pane in @tabView.panes when kd.utils.slugify(pane.name) is action
       pane_ = @tabView.showPane pane
-      if action is 'virtual-machines'
-        VirtualMachinesSelectedMachineFlux.actions.setSelectedMachine null
+      switch action
+        when 'stacks'
+          onboarding.run 'StacksViewed', yes
+        when 'virtual-machines'
+          VirtualMachinesSelectedMachineFlux.actions.setSelectedMachine null
+          onboarding.run 'VMsViewed', yes
+        when 'credentials'
+          onboarding.run 'CredentialsViewed', yes
       break
 
+
   handleIdentifier: (identifier, action) ->
+
+    { onboarding } = kd.singletons
 
     for pane in @tabView.panes when kd.utils.slugify(pane.name) is action
       pane_ = @tabView.showPane pane
@@ -83,6 +94,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
         VirtualMachinesSelectedMachineFlux.actions.setSelectedMachine identifier
         EnvironmentFlux.actions.loadMachineSharedUsers machine.get '_id'
+        onboarding.run 'VMsViewed', yes
       break
 
   createStacksViews: ->

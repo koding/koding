@@ -3,18 +3,22 @@ KDModalViewWithForms = kd.ModalViewWithForms
 KDNotificationView = kd.NotificationView
 whoami = require 'app/util/whoami'
 showError = require 'app/util/showError'
+ContentModal = require 'app/components/contentModal'
 
-
-module.exports = class VerifyPasswordModal extends KDModalViewWithForms
+module.exports = class VerifyPasswordModal extends ContentModal
 
   constructor: (buttonTitle = 'Submit', partial = '', callback) ->
 
+    cssClass = 'content-modal'
+    cssClass = 'content-modal with-partial'  if partial
+
+
     options =
-      title                       : 'Please verify your current password '
+      title                       : 'Please verify your current password'
+      cssClass                    : cssClass
       overlay                     : yes
       overlayClick                : no
       width                       : 605
-      height                      : 'auto'
       tabs                        :
         navigable                 : yes
         forms                     :
@@ -23,12 +27,8 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
               callback @modalTabs.forms.verifyPasswordForm.inputs.password.getValue()
               @destroy()
             buttons               :
-              Submit              :
-                title             : buttonTitle
-                style             : 'solid green medium'
-                type              : 'submit'
               Forgot              :
-                style             : 'solid light-gray medium'
+                style             : 'solid medium cancel'
                 title             : 'Forgot Password?'
                 callback          : =>
                   account = whoami()
@@ -36,10 +36,15 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
                     return @showError err  if err
                     @doRecover email
                     @destroy()
+              Submit              :
+                title             : buttonTitle
+                style             : 'solid green medium'
+                type              : 'submit'
 
             fields                :
               planDetails     :
                 type          : 'hidden'
+                cssClass      : 'hidden'  unless partial
                 nextElement   :
                   planDetails :
                     cssClass  : 'content'
@@ -47,7 +52,9 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
                     partial   : partial
               password            :
                 name              : 'password'
-                placeholder       : 'current password'
+                cssClass          : 'line-with'
+                label             : 'Current Password'
+                placeholder       : 'Enter your current password'
                 type              : 'password'
                 validate          :
                   rules           :

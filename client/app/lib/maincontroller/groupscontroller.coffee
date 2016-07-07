@@ -38,6 +38,9 @@ module.exports = class GroupsController extends kd.Controller
       @on 'InstanceChanged', (data) ->
         remote_extensions.updateInstance data?.contents
 
+      @on 'InstanceDeleted', (data) ->
+        remote_extensions.removeInstance data?.contents
+
 
   getCurrentGroup: ->
     FIXME = 'FIXME: array should never be passed'
@@ -96,6 +99,7 @@ module.exports = class GroupsController extends kd.Controller
           'StackTemplateChanged'
           'GroupStackTemplateRemoved'
           'InstanceChanged'
+          'InstanceDeleted'
           'GroupDestroyed'
           'GroupJoined'
           'GroupLeft'
@@ -171,7 +175,7 @@ module.exports = class GroupsController extends kd.Controller
 
   canEditGroup: ->
     ['admin', 'owner'].reduce (prole, role) ->
-      prole or (role in _globals.config.roles)
+      prole or (role in _globals.userRoles)
     , no
 
   ###*

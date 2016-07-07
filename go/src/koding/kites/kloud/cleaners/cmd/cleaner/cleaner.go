@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"koding/db/models"
-	"koding/kites/common"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/cleaners/lookup"
 	"koding/kites/kloud/dnsstorage"
@@ -60,7 +59,7 @@ func NewCleaner(conf *Config) *Cleaner {
 	opts := &amazon.ClientOptions{
 		Credentials: creds,
 		Regions:     amazon.ProductionRegions,
-		Log:         common.NewLogger("cleaner", conf.Debug),
+		Log:         logging.NewCustom("cleaner", conf.Debug),
 		MaxResults:  int64(conf.MaxResults),
 		Debug:       conf.Debug,
 	}
@@ -75,7 +74,7 @@ func NewCleaner(conf *Config) *Cleaner {
 	dnsOpts := &dnsclient.Options{
 		Creds:      creds,
 		HostedZone: conf.HostedZone,
-		Log:        common.NewLogger("dns", conf.Debug),
+		Log:        logging.NewCustom("dns", conf.Debug),
 	}
 	dns, err := dnsclient.NewRoute53Client(dnsOpts)
 	if err != nil {
@@ -85,7 +84,7 @@ func NewCleaner(conf *Config) *Cleaner {
 	dnsdevOpts := &dnsclient.Options{
 		Creds:      creds,
 		HostedZone: "dev.koding.io",
-		Log:        common.NewLogger("dnsdev", conf.Debug),
+		Log:        logging.NewCustom("dnsdev", conf.Debug),
 	}
 	dnsdev, err := dnsclient.NewRoute53Client(dnsdevOpts)
 	if err != nil {
@@ -116,7 +115,7 @@ func NewCleaner(conf *Config) *Cleaner {
 		DNSDev:         dnsdev,
 		Domains:        domains,
 		Hook:           hook,
-		Log:            common.NewLogger("cleaner", conf.Debug),
+		Log:            logging.NewCustom("cleaner", conf.Debug),
 		Config:         conf,
 	}
 }

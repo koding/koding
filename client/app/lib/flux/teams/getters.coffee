@@ -13,6 +13,7 @@ invitationInputValues = ['TeamInvitationInputValuesStore']
 loggedInUserEmail = ['LoggedInUserEmailStore']
 teamInvitations = ['TeamInvitationStore']
 disabledUsers = ['TeamDisabledMembersStore']
+allUsersLoaded = ['TeamAllUsersLoadedStore']
 
 pendingInvitations = [
   teamInvitations
@@ -159,4 +160,5 @@ module.exports = {
   disabledUsers
   filteredMembersWithRoleAndDisabledUsers
   adminsList
+  allUsersLoaded
 }

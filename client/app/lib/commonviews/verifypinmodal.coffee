@@ -1,12 +1,12 @@
 kd = require 'kd'
-KDModalViewWithForms = kd.ModalViewWithForms
+ContentModal = require 'app/components/contentModal'
 
-
-module.exports = class VerifyPINModal extends KDModalViewWithForms
+module.exports = class VerifyPINModal extends ContentModal
 
   constructor: (buttonTitle = 'Submit', callback) ->
 
     options =
+      cssClass                    : 'content-modal'
       title                       : "Please provide the code that we've emailed"
       overlay                     : yes
       overlayClick                : no
@@ -27,7 +27,8 @@ module.exports = class VerifyPINModal extends KDModalViewWithForms
             fields                :
               pin                 :
                 name              : 'pin'
-                placeholder       : 'Code'
+                placeholder       : 'Enter pin code'
+                label             : 'Pin code'
                 testPath          : 'account-email-pin'
                 validate          :
                   rules           :

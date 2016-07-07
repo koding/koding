@@ -11,8 +11,8 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/koding/logging"
 
-	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils/res"
 )
@@ -50,7 +50,7 @@ func main() {
 	opts := &dnsclient.Options{
 		Creds:       credentials.NewStaticCredentials(accessKey, secretKey, ""),
 		HostedZone:  hostedZone,
-		Log:         common.NewLogger("dnsclient", os.Getenv("ROUTE53_DEBUG") == "1"),
+		Log:         logging.NewCustom("dnsclient", os.Getenv("ROUTE53_DEBUG") == "1"),
 		SyncTimeout: 5 * time.Minute,
 	}
 

@@ -214,31 +214,53 @@ Home My Account styles
 
   &.sessions
     .session-info
-      width                 450px
       fl()
+      display               block
+      margin                10px 0 0 0px
+      .last-access
+        text-align          left
+        font-size           14px
+        line-height         20px
+        color               #8E8E8E
+        letter-spacing      0px
 
-      p
-        margin              20px 0 0 40px
-        fl()
-        width               190px
+      .group-name
+        display             inline-block
+        max-width           300px
+        line-height         25px
+        height              23px
+        margin-right        5px
+        color               #929292
+        ellipsis()
 
-        &:first-child
-          margin-left       0
-          width             220px
-          ellipsis()
 
-        &.active
-          font-weight       700
+      .active:after
+        content             'Active'
+        font-size           12px
+        line-height         12px
+        font-weight         300
+        background-color    #48BA7D
+        padding             2px 10px
+        letter-spacing      0.2px
+        color               #FFFFFF
+        size                42px 14px
+        text-align          center
+        margin-top          3px
+        display             inline-block
+        vertical-align      top
+
+
+
 
     .delete-button
       fr()
 
       button
-        margin-top          20px
+        margin-top          10px
         bg                  color, transparent
 
       .button-title
-        color               #9f9f9f !important
+        color               #769ecc
 
   .HomeAppView--account-avatarArea-links
     clear                   both

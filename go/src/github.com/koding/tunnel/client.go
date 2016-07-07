@@ -190,7 +190,7 @@ func NewClient(cfg *ClientConfig) (*Client, error) {
 		yamuxConfig = cfg.YamuxConfig
 	}
 
-	log := newLogger("tunnel-client", cfg.Debug)
+	log := logging.NewCustom("tunnel-client", cfg.Debug)
 	if cfg.Log != nil {
 		log = cfg.Log
 	}

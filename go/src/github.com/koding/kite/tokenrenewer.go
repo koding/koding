@@ -1,12 +1,13 @@
 package kite
 
 import (
-	"errors"
 	"fmt"
 	"sync/atomic"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/koding/kite/kitekey"
+	"github.com/koding/kite/protocol"
 )
 
 const (
@@ -36,7 +37,9 @@ func NewTokenRenewer(r *Client, k *Kite) (*TokenRenewer, error) {
 
 // parse the token string and set
 func (t *TokenRenewer) parse(tokenString string) error {
-	token, err := jwt.Parse(tokenString, t.localKite.RSAKey)
+	claims := &kitekey.KiteClaims{}
+
+	_, err := jwt.ParseWithClaims(tokenString, claims, t.localKite.RSAKey)
 	if err != nil {
 		valErr, ok := err.(*jwt.ValidationError)
 		if !ok {
@@ -46,17 +49,12 @@ func (t *TokenRenewer) parse(tokenString string) error {
 		// do noy return for ValidationErrorSignatureValid. This is because we
 		// might asked for a kite who's public Key is different what we have.
 		// We still should be able to send them requests.
-		if valErr.Errors != jwt.ValidationErrorSignatureInvalid {
-			return fmt.Errorf("Cannot parse token: %s", err.Error())
+		if (valErr.Errors & jwt.ValidationErrorSignatureInvalid) == 0 {
+			return fmt.Errorf("Cannot parse token: %s", err)
 		}
 	}
 
-	exp, ok := token.Claims["exp"].(float64)
-	if !ok {
-		return errors.New("token: invalid exp claim")
-	}
-
-	t.validUntil = time.Unix(int64(exp), 0).UTC()
+	t.validUntil = time.Unix(claims.ExpiresAt, 0).UTC()
 	return nil
 }
 
@@ -64,6 +62,7 @@ func (t *TokenRenewer) parse(tokenString string) error {
 func (t *TokenRenewer) RenewWhenExpires() {
 	if atomic.CompareAndSwapUint32(&t.active, 0, 1) {
 		t.client.OnConnect(t.startRenewLoop)
+		t.client.OnTokenExpire(t.sendRenewTokenSignal)
 		t.client.OnDisconnect(t.sendDisconnectSignal)
 	}
 }
@@ -120,15 +119,24 @@ func (t *TokenRenewer) sendDisconnectSignal() {
 
 // renewToken gets a new token from a kontrolClient, parses it and sets it as the token.
 func (t *TokenRenewer) renewToken() error {
-	tokenString, err := t.localKite.GetToken(&t.client.Kite)
+	renew := &protocol.Kite{
+		ID: t.client.Kite.ID,
+	}
+
+	token, err := t.localKite.GetToken(renew)
 	if err != nil {
 		return err
 	}
 
-	if err = t.parse(tokenString); err != nil {
+	if err = t.parse(token); err != nil {
 		return err
 	}
 
-	t.client.Auth.Key = tokenString
+	t.client.authMu.Lock()
+	t.client.Auth.Key = token
+	t.client.authMu.Unlock()
+
+	t.client.callOnTokenRenewHandlers(token)
+
 	return nil
 }

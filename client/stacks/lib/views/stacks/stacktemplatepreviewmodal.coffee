@@ -1,24 +1,19 @@
-kd                       = require 'kd'
-KDTabView                = kd.TabView
-KDModalView              = kd.ModalView
-applyMarkdown            = require 'app/util/applyMarkdown'
-KDTabPaneView            = kd.TabPaneView
-KDCustomHTMLView         = kd.CustomHTMLView
+kd = require 'kd'
+applyMarkdown = require 'app/util/applyMarkdown'
+ContentModal = require 'app/components/contentModal'
 StackTemplateEditorView  = require './editors/stacktemplateeditorview'
 
-
-module.exports = class StackTemplatePreviewModal extends KDModalView
+module.exports = class StackTemplatePreviewModal extends ContentModal
 
 
   constructor: (options = {}, data) ->
 
     options.title           = 'Template Preview'
-    options.subtitle        = 'Generated from your account data'
+    options.content         = '<p style="font-weight:700">Generated from your account data</p>'
     options.cssClass        = kd.utils.curry 'stack-template-preview content-modal', options.cssClass
-    options.height        or= 500
-    options.width         or= 757
     options.overlay         = yes
     options.overlayOptions  = { cssClass : 'second-overlay' }
+    options.buttons         = null
 
     super options, data
 
@@ -27,14 +22,17 @@ module.exports = class StackTemplatePreviewModal extends KDModalView
     errors   = createReportFor errors,   'errors'
     warnings = createReportFor warnings, 'warnings'
 
-    @addSubView new KDCustomHTMLView
+    @addSubView @main = new kd.CustomHTMLView
+      tagName : 'main'
+
+    @main.addSubView new kd.CustomHTMLView
       cssClass : 'has-markdown'
       partial  : applyMarkdown """
         #{errors}
         #{warnings}
         """
 
-    @addSubView @tabView = new KDTabView { hideHandleCloseIcons : yes }
+    @main.addSubView @tabView = new kd.TabView { hideHandleCloseIcons : yes }
 
     @createYamlView()
     @createJSONView()
@@ -51,7 +49,7 @@ module.exports = class StackTemplatePreviewModal extends KDModalView
 
     view = @createEditorView options
 
-    @tabView.addPane yaml = new KDTabPaneView {
+    @tabView.addPane yaml = new kd.TabPaneView {
       name : 'YAML'
       view
     }
@@ -66,7 +64,7 @@ module.exports = class StackTemplatePreviewModal extends KDModalView
 
     view = @createEditorView options
 
-    @tabView.addPane yaml = new KDTabPaneView {
+    @tabView.addPane yaml = new kd.TabPaneView {
       name : 'JSON'
       view
     }
