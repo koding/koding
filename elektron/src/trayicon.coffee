@@ -89,7 +89,7 @@ module.exports = class KodingTray
       type    : 'separator'
       visible : @_isKdRunning
     ,
-      label   : 'Restart kd ...'
+      label   : 'Restart kd...'
       click   : handleOpen 'sudo kd restart', 'terminal'
       visible : @_isKdRunning
       enabled : !@_inProgress
@@ -113,11 +113,19 @@ module.exports = class KodingTray
         keys.map (key) ->
           return  if key is 'latest'
           teamName = teams[key]
-          return { label: teamName, click: -> win.loadURL "http://#{key}.koding.com" }
+          return { label: teamName, click: -> win.loadURL "https://#{key}.koding.com" }
         .filter(Boolean)
 
+      submenu or= []
+
+      submenu = submenu.concat [
+        { type: 'separator', visible: !!submenu.length }
+        { label: 'Login to Another Team', click: -> win.loadURL "https://koding.com/Teams" }
+        { label: 'Create a Team', click: -> win.loadURL "https://koding.com/Teams/Create" }
+      ]
+
       menu.unshift { type: 'separator', visible: on }
-      menu.unshift { label: 'Teams', submenu }
+      menu.unshift { label: 'Your Teams', submenu }
 
     @_contextMenu = Menu.buildFromTemplate menu.concat menuItems
 
@@ -206,8 +214,10 @@ module.exports = class KodingTray
 
       result.forEach (machine) =>
         # { team, teamUrl } = parseTeam machine.teams
+        label = "(#{machine.vmName})"
+        label = "#{machine.machineLabel} #{label}"  if machine.machineLabel
         item    = {
-          label   : "#{machine.machineLabel} (#{machine.vmName})"
+          label   : label
           submenu : [
           #   label : "Open #{team}"
           #   click : handleOpen teamUrl
