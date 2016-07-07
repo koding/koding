@@ -241,7 +241,7 @@ module.exports = class KodingTray
         ,
           label   : 'Start kd ...'
           click   : handleOpen 'sudo kd start', 'terminal'
-        ], yes
+        ], no
 
         @_isKdRunning = no
 
