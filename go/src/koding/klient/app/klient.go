@@ -627,7 +627,7 @@ func newKite(kconf *KlientConfig) *kite.Kite {
 	k.Config.Port = kconf.Port
 	k.Config.Environment = kconf.Environment
 	k.Config.Region = kconf.Region
-	k.Config.VerifyAudiencefunc = verifyAudience
+	k.Config.VerifyAudienceFunc = verifyAudience
 	k.Id = conf.Id // always boot up with the same id in the kite.key
 	// Set klient to use XHR Polling, since Prod Koding only supports XHR
 	k.Config.Transport = config.XHRPolling
