@@ -2,6 +2,7 @@ package logcmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"koding/klient/logfetcher"
 	"koding/klientctl/config"
@@ -114,6 +115,17 @@ func (c *Command) tailFile(path string, n int) error {
 	if err != nil {
 		return err
 	}
+
+	// NOTE(leeola): On some systems, seemingly at random, the opened file is
+	// nil. The resulting error would come from GetOffsetLines' use of Seek,
+	// complaining about an invalid argument.
+	//
+	// To be a bit less obtuse, i'm returning a custom message and error here.
+	if f == nil {
+		c.Log.Warning("Nil file encountered, with no error explaining why. path:%s", path)
+		return fmt.Errorf("File opened without err, but file is nil. path:%s", path)
+	}
+	defer f.Close()
 
 	lines, err := logfetcher.GetOffsetLines(f, 1024, n)
 	if err != nil {
