@@ -84,6 +84,9 @@ client/test/output
 client/test/logs
 client/test/globals.js
 
+new-client/node_modules
+new-client/.config.json
+
 supervisor.html
 .supervisor/*
 supervisord.conf
