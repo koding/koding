@@ -175,9 +175,14 @@ module.exports = class MachineDetails extends React.Component
     state = machine.getIn ['status', 'state']
     isMachineRunning = state is 'Running'
 
+    description = 'Logs we have created while you build your VM.'
+
+    description = 'Turn on your VM to see the build logs.' unless isMachineRunning
+
+
     <GenericToggler
       title='Build Logs'
-      description='Logs we have created while you build your VM.'
+      description={description}
       buttonTitle='Show Build Logs'
       button=yes
       onToggle={kd.noop}
