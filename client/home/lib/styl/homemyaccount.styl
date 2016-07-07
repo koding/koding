@@ -82,22 +82,29 @@ Home My Account styles
   &.password
     .HomeAppView--form
       div.Formline--half
-        padding             0 10px
+        padding-right       8px
         width               auto
-
-        &.confirmpassword
-          padding           0
 
       .formline.button-field
         border              none !important
 
       input.kdinput
-        width               212px
+        width               184px
 
       a
         right               66px
         bottom              58px
         abs()
+
+    .button-wrapper
+      padding-top           20px
+      border-top            1px solid #DDDDDD
+      a
+        float               right
+        margin-top          15px
+      .update-button:focus
+        border              0px
+
 
   &.security
     overflow                hidden
