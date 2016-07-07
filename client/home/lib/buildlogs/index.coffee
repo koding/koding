@@ -33,7 +33,7 @@ module.exports = class HomeBuildLogs extends kd.View
     @file = FSHelper.createFileInstance { path, machine }
 
 
-    @file.fetchPermissions (err, result) =>
+    @file.fetchPermissions (err, result) ->
 
       return showErrorNotification err  if err
 
@@ -43,11 +43,11 @@ module.exports = class HomeBuildLogs extends kd.View
         new kd.NotificationView
           title: 'Your build logs path is not exists'
           duration: 2000
-        return router.handleRoute '/IDE'
+        return router.handleRoute '/Home/Stacks/virtual-machines'
 
       if not readable
         IDEHelpers.showFileAccessDeniedError()
-        return router.handleRoute '/IDE'
+        return router.handleRoute '/Home/Stacks/virtual-machines'
 
 
     super options, data
