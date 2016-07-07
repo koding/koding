@@ -1,6 +1,9 @@
 kd = require 'kd'
 IDETailerPane = require 'ide/workspace/panes/idetailerpane'
 FSHelper = require 'app/util/fs/fshelper'
+IDEHelpers = require 'ide/idehelpers'
+showErrorNotification = require 'app/util/showErrorNotification'
+
 
 header = ->
   new kd.CustomHTMLView
@@ -11,9 +14,9 @@ module.exports = class HomeBuildLogs extends kd.View
 
   constructor: (options = {}, data) ->
 
-    { computeController } = kd.singletons
+    { computeController, router } = kd.singletons
 
-    path = kd.singletons.router.getCurrentPath()
+    path = router.getCurrentPath()
 
     machineUid = path.split('/').pop()
 
@@ -21,11 +24,30 @@ module.exports = class HomeBuildLogs extends kd.View
 
     machine = computeController.findMachineFromMachineUId machineUid
 
+    return router.handleNotFound path  unless machine
+
     @machineName = machine.label
 
     # Path of cloud-init-output log
     path = '/var/log/cloud-init-output.log'
     @file = FSHelper.createFileInstance { path, machine }
+
+
+    @file.fetchPermissions (err, result) =>
+
+      return showErrorNotification err  if err
+
+      { readable, writable, exists } = result
+
+      unless exists
+        new kd.NotificationView
+          title: 'Your build logs path is not exists'
+          duration: 2000
+        return router.handleRoute '/IDE'
+
+      if not readable
+        IDEHelpers.showFileAccessDeniedError()
+        return router.handleRoute '/IDE'
 
 
     super options, data
@@ -48,4 +70,4 @@ module.exports = class HomeBuildLogs extends kd.View
         <div class='title'> /var/log/cloud-init-output.log</div>
       """
 
-    @addSubView new IDETailerPane { cssClass: 'build-logs-view', file: @file, delegate: this }
+    @addSubView new IDETailerPane { cssClass: 'build-logs-view', @file, delegate: this }
