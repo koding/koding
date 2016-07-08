@@ -17,6 +17,7 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
 
     @createSingletons()
     @setupPageAnalyticsEvent()
+    @setElektronHandlers()
 
     kd.utils.defer =>
       # Keep referrer (if available) in memory
@@ -93,3 +94,15 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
       overlay      : yes
       cancelable   : no
       overlayClick : no
+
+
+  setElektronHandlers: ->
+
+    return  unless window.nodeRequire
+
+    { ipcRenderer } = nodeRequire 'electron'
+
+    ipcRenderer.on 'get-previous-teams', (event) ->
+      ipcRenderer.send 'answer-previous-teams', utils.getPreviousTeams()
+
+
