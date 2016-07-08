@@ -1,4 +1,5 @@
 kd                            = require 'kd'
+os                            = require 'os'
 sectionize                    = require '../commons/sectionize'
 headerize                     = require '../commons/headerize'
 HomeUtilitiesKD               = require './homeutilitieskd'
@@ -24,8 +25,13 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
     @wrapper.addSubView headerize  'KD CLI'
     @wrapper.addSubView sectionize 'KD CLI', HomeUtilitiesKD
 
-    @wrapper.addSubView headerize  'Koding OS X App'
-    @wrapper.addSubView sectionize 'Koding OS X App', HomeUtilitiesDesktopApp
+    switch os
+      when 'mac'
+        @wrapper.addSubView headerize  'Koding OS X App'
+        @wrapper.addSubView sectionize 'Koding App', HomeUtilitiesDesktopApp
+      when 'linux'
+        @wrapper.addSubView headerize  'Koding Linux App'
+        @wrapper.addSubView sectionize 'Koding App', HomeUtilitiesDesktopApp
 
     if '*' in allowedDomains or canEdit
         @wrapper.addSubView headerize  'Koding Button'
