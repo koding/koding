@@ -26,9 +26,9 @@ module.exports = class DesktopAppView extends React.Component
         collaboration
       </p>
       <ul>
-        <li>Only available for Mac OS X</li>
-        <li>Current build in Beta (v.024)</li>
-        <li>Requires 34MB of disk space</li>
+        <li>Only available for macOS & Linux</li>
+        <li>Current build in Beta</li>
+        <li>Requires ~37MB of disk space</li>
       </ul>
       <div className='link-holder'>
         {@renderDownloadButton()}
