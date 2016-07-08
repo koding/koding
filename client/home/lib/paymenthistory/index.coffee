@@ -5,11 +5,10 @@ PaymentFlux = require 'app/flux/payment'
 SECTIONS =
   'Payment History': HomeTeamInvoicesList
 
-header = (title) ->
+header = ->
   new kd.CustomHTMLView
     tagName  : 'header'
     cssClass : 'HomeAppView--sectionHeader'
-    partial  : title
 
 section = (name) -> new SECTIONS[name]
 
@@ -26,7 +25,12 @@ module.exports = class HomePaymentHistory extends kd.CustomScrollView
     mainController.ready =>
       PaymentFlux(reactor).actions.loadGroupInvoices()
 
-      @wrapper.addSubView header 'Payment History'
+      @wrapper.addSubView header = header()
+
+      header.addSubView new kd.CustomHTMLView
+        tagName : 'a'
+        partial : 'BACK TO TEAM BILLING'
+        click : ->
+          kd.singletons.router.handleRoute '/Home/team-billing'
+
       @wrapper.addSubView section 'Payment History'
-
-
