@@ -1,5 +1,6 @@
-kd               = require 'kd'
-React            = require 'kd-react'
+kd = require 'kd'
+os = require 'os'
+React = require 'kd-react'
 
 
 module.exports = class DesktopAppView extends React.Component
@@ -7,13 +8,17 @@ module.exports = class DesktopAppView extends React.Component
 
   renderGuideButton: ->
 
-    <a className="custom-link-view HomeAppView--button" href="https://www.koding.com/docs/desktop-app">
+    <a className="custom-link-view HomeAppView--button fl" href="https://www.koding.com/docs/desktop-app">
       <span className="title">VIEW GUIDE</span>
     </a>
 
   renderDownloadButton: ->
 
-    <a className="custom-link-view HomeAppView--button primary" href="https://www.koding.com/docs/desktop-app/download">
+    link = switch os
+      when 'mac' then 'https://koding-cdn.s3.amazonaws.com/koding-app/Koding-mac.zip'
+      when 'linux' then 'https://koding-cdn.s3.amazonaws.com/koding-app/Koding-linux.zip'
+
+    <a className="custom-link-view HomeAppView--button primary" href={link}>
       <span className="title">DOWNLOAD</span>
     </a>
 
@@ -31,8 +36,8 @@ module.exports = class DesktopAppView extends React.Component
         <li>Requires ~37MB of disk space</li>
       </ul>
       <div className='link-holder'>
-        {@renderDownloadButton()}
         {@renderGuideButton()}
+        {@renderDownloadButton()}
       </div>
     </div>
 
