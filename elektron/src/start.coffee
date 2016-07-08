@@ -53,7 +53,7 @@ module.exports = ->
   app.on 'will-quit', syncStorage
 
   # and load the index.html of the app.
-  mainWindow.loadURL ROOT_URL
+  mainWindow.loadURL storage.get()['last-route'] or ROOT_URL
 
   mainWindow.webContents.on 'new-window', (e, url) ->
     e.preventDefault()
