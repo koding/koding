@@ -50,6 +50,7 @@ module.exports = class Tracker extends bongo.Base
     STACKS_BUILD_FAILED       : 'stack build failed'
     STACKS_REINIT             : 'reinitialized stack'
     STACKS_DELETE             : 'deleted stack'
+    REQUESTED_TEAM_LIST       : 'requested their team list'
 
   @properties = {}
 

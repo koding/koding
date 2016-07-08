@@ -308,7 +308,7 @@ module.exports = class JAccount extends jraphical.Module
 
     roles = [ 'member', 'moderator', 'admin' ]
 
-    @fetchAllParticipatedGroups client, { roles }, (err, groups) ->
+    @fetchAllParticipatedGroups$ client, { roles }, (err, groups) ->
       return callback err   if err
       return callback null  if not groups
 
@@ -321,9 +321,12 @@ module.exports = class JAccount extends jraphical.Module
       async.parallel queue, callback
 
 
-  fetchAllParticipatedGroups: secure (client, options, callback) ->
+  fetchAllParticipatedGroups$: secure (client, options, callback) ->
 
-    { delegate } = client.connection
+    @fetchAllParticipatedGroups options, callback
+
+
+  fetchAllParticipatedGroups: (options, callback) ->
 
     [ options, callback ] = [ callback, options ]  unless callback
     options  ?= {}
@@ -336,7 +339,7 @@ module.exports = class JAccount extends jraphical.Module
     selector = {
       sourceName: 'JGroup'
       targetName: 'JAccount'
-      targetId: delegate.getId()
+      targetId: @getId()
       as: { $in: roles }
     }
 
@@ -1460,5 +1463,3 @@ module.exports = class JAccount extends jraphical.Module
     options  = { limit, skip, sort }
     JSession = require './session'
     JSession.some selector, options, callback
-
-

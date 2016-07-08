@@ -195,7 +195,7 @@ runTests = -> describe 'workers.social.user.account', ->
 
       it 'admin should have more than one group', (done) ->
 
-        adminAccount.fetchAllParticipatedGroups adminClient, (err, groups) ->
+        adminAccount.fetchAllParticipatedGroups$ adminClient, (err, groups) ->
           expect(err).to.not.exist
           expect(groups).to.have.length.above(1)
           done()
@@ -213,7 +213,7 @@ runTests = -> describe 'workers.social.user.account', ->
                 next()
 
             (next) ->
-              account.fetchAllParticipatedGroups client, (err, groups) ->
+              account.fetchAllParticipatedGroups$ client, (err, groups) ->
                 expect(err).to.not.exist
                 expect(groups).to.have.length.above(1)
                 next()
@@ -224,7 +224,7 @@ runTests = -> describe 'workers.social.user.account', ->
                 next()
 
             (next) ->
-              account.fetchAllParticipatedGroups client, (err, groups) ->
+              account.fetchAllParticipatedGroups$ client, (err, groups) ->
                 expect(err).to.not.exist
                 expect(groups).to.have.length(1)
                 next()
