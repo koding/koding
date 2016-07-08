@@ -212,6 +212,8 @@ module.exports = class KodingTray
 
       menu = []
 
+      result = result.filter (machine) -> machine.machineStatus isnt 1
+
       result.forEach (machine) =>
         # { team, teamUrl } = parseTeam machine.teams
         label = "(#{machine.vmName})"
