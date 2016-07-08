@@ -53,6 +53,7 @@ func New(c *Config) *kontrol.Kontrol {
 	met := common.MustInitMetrics(Name)
 
 	kon := kontrol.NewWithoutHandlers(kiteConf, Version)
+	kon.TokenNoNBF = true
 
 	kon.Kite.HandleFunc("register",
 		metricKiteHandler(met, "HandleRegister", kon.HandleRegister),
