@@ -103,7 +103,6 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
     { ipcRenderer } = nodeRequire 'electron'
 
     ipcRenderer.on 'get-previous-teams', (event) ->
-      console.log 'event geldi'
       ipcRenderer.send 'answer-previous-teams', utils.getPreviousTeams()
 
 

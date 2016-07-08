@@ -288,9 +288,7 @@ module.exports = class KodingTray
   loadPreviousTeams: ->
 
     ipcMain.once 'answer-previous-teams', (event, previousTeams) =>
-      console.log {previousTeams}
       @_previousTeams = previousTeams
       @setMenu()
 
-    console.log 'loading previous teams'
     @_mainWindow.webContents.send 'get-previous-teams'
