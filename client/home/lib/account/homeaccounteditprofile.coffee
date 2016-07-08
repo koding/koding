@@ -45,12 +45,14 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
         @account.modify { 'profile.avatar' : '' }, (err) ->
           console.warn err  if err
 
-    @avatarButtons = new KDCustomHTMLView
-      cssClass : 'HomeAppView--account-avatarArea-links'
+    @avatarWrapper = new KDCustomHTMLView
+      cssClass : 'HomeAppView--account-avatar-wrapper'
 
-    @avatarButtons.addSubView @useGravatarLink
-    @avatarButtons.addSubView @changeAvatarLink
-    @avatarButtons.addSubView @uploadAvatarInput
+    @avatarWrapper.addSubView @avatar
+
+    @avatarWrapper.addSubView @changeAvatarLink
+    @avatarWrapper.addSubView @useGravatarLink
+    @avatarWrapper.addSubView @uploadAvatarInput
 
 
     fields =
@@ -82,16 +84,14 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
     @submitButton = new kd.ButtonView
       type     : 'submit'
       loader   : yes
-      style    : 'solid green small'
-      title    : 'Save Changes'
+      style    : 'GenericButton'
+      title    : 'SAVE CHANGES'
       callback : @bound 'update'
 
     @userProfileForm = new kd.FormViewWithFields
       cssClass   : 'HomeAppView--form'
       fields     : fields
 
-    @userProfileForm.addSubView @avatar
-    @userProfileForm.addSubView @avatarButtons
     @userProfileForm.addSubView @submitButton
 
     @once 'viewAppended', @bound 'init'
@@ -209,7 +209,6 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
     @hideSaveButtonLoader()
 
 
-
   putDefaults: ->
 
     { email } = @userInfo
@@ -244,5 +243,6 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
 
   pistachio: ->
     '''
+    {{> @avatarWrapper}}
     {{> @userProfileForm}}
     '''

@@ -7,9 +7,11 @@ Home My Account styles
 .HomeAppView .my-account
   font-size                 14px
 
+  button:focus
+    border 0px
+
 .my-account .HomeAppView--section
   rel()
-
   label
     color                   #9F9F9F
 
@@ -18,69 +20,88 @@ Home My Account styles
     height                  70px
     borderizeListItems      0px, 1px solid #EBEBEB
 
-  .HomeAppView--form
-    overflow                hidden
-    padding-top             0
+  &.profile
+    display                 inline-block
 
-    .firstname
-      width                 184px
-      padding               0 10px
-
-    .lastname
-      width                 220px
-      padding               0
-
-    .email
-      padding               0 0 0 10px
-      width                 404px
-
-    input.kdinput
-      padding               10px 14px
-      width                 100%
-
-    input[type=file]
-      width                 112px
-
-    .HomeAppView--account-avatar
-      top                   60px
-      right                 29px
-      size                  132px 132px
-      overflow              visible
-      .badge
-        abs                 0 0px 10px 0
-        margin              0
-        padding             3px 10px 4px 20px
-        color               white
-        font-size           12px
-        line-height         12px
-        height              14px
-        rounded             11px
-        &::before
-          content           ''
-          abs               5px 0 0 6px
-        &.owner
-          bg                color #48BA7D
-          &::before
-            r-sprite        app badge_icon_owner
-        &.admin
-          bg                color #FFC442
-          &::before
-            r-sprite        app badge_icon_admin
-        &.compact
-          font-size         0
-          padding           3px 10px 4px 11px
-          &::before
-            left            3px
-
-
-    button[type=submit]
-      height                37px
+    .HomeAppView--form
+      overflow              hidden
+      padding-top           0
       fr()
-      .button-title
-        font-size           14px
+      width                 440px
+
+      .firstname
+      .lastname
+      .email
+        width               100%
+        padding-right       10px
+
+      input.kdinput
+        padding             10px 14px
+        width               100%
+
+      input[type=file]
+        width               112px
+
+      button
+        fr()
+        right               10px
+
+
+    .HomeAppView--account-avatar-wrapper
+      fl()
+      width                 170px
+      height                270px
+
+      a
+        display             inline-block
+        width               130px
+        text-align          center
+
+        &.HomeAppView--link.primary
+          margin            185px 40px 20px 0
+
+
+      .HomeAppView--account-avatar
+        top                 55px
+        left                30px
+        size                132px 132px
+        overflow            visible
+        .badge
+          abs               0 0px 10px 0
+          margin            0
+          padding           3px 10px 4px 20px
+          color             white
+          font-size         12px
+          line-height       12px
+          height            14px
+          rounded           11px
+          &::before
+            content         ''
+            abs             5px 0 0 6px
+          &.owner
+            bg              color #48BA7D
+            &::before
+              r-sprite      app badge_icon_owner
+          &.admin
+            bg              color #FFC442
+            &::before
+              r-sprite      app badge_icon_admin
+          &.compact
+            font-size       0
+            padding         3px 10px 4px 11px
+            &::before
+              left          3px
+
+      button[type=submit]
+        height              37px
+        fr()
+        .button-title
+          font-size         14px
 
   &.password
     .HomeAppView--form
+      overflow              hidden
+      padding-top           0
       div.Formline--half
         padding-right       8px
         width               auto
@@ -99,9 +120,13 @@ Home My Account styles
     .button-wrapper
       padding-top           20px
       border-top            1px solid #DDDDDD
+
       a
-        float               right
+        fl()
         margin-top          15px
+        width               412px
+
+
       .update-button:focus
         border              0px
 
@@ -188,6 +213,9 @@ Home My Account styles
           width             334px !important
           .button-title
             font-size       15px
+
+        button.enable-tf
+          bg                color #F2778A
 
       .formline.password
       .formline.tfcode
