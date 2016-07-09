@@ -58,7 +58,11 @@ module.exports = class JSession extends Model
 
 
   # TODO not sure why we are creating session only for guest user
-  @createSession = (callback) ->
+  @createSession = (options, callback) ->
+
+    [ options, callback ] = [ callback, options ]  unless callback
+    { group } = options ?= {}
+    group    ?= 'koding'
 
     JUser    = require './user'
     clientId = createId()
@@ -73,10 +77,12 @@ module.exports = class JSession extends Model
 
       { account } = resp
 
-      sessionOptions =
-        clientId          : clientId
+      sessionOptions = {
         username          : JUser.createGuestUsername()
+        groupName         : group
         guestSessionBegan : new Date()
+        clientId
+      }
 
       session = new JSession sessionOptions
 
