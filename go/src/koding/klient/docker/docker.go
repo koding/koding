@@ -11,10 +11,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
 	dockerclient "github.com/fsouza/go-dockerclient"
 	"github.com/koding/kite"
+	"github.com/rogpeppe/go-charset/charset"
+	_ "github.com/rogpeppe/go-charset/data"
 )
 
 // Docker defines the main configuration. One instance is running as one Docker
