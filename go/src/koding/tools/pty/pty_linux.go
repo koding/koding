@@ -8,9 +8,9 @@ import (
 	"syscall"
 	"unsafe"
 
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
 	"github.com/kr/pty"
+	"github.com/rogpeppe/go-charset/charset"
+	_ "github.com/rogpeppe/go-charset/data"
 )
 
 type PTY struct {
