@@ -22,6 +22,8 @@ module.exports = (req, res, next) ->
     # update clientId cookie
     updateCookie req, res, result.session
 
+    req.cookies.clientId = result.session.clientId
+
     remoteIp = req.headers['x-forwarded-for'] or req.connection.remoteAddress
     return next()  unless remoteIp
 
