@@ -18,6 +18,7 @@ module.exports = (req, res, next) ->
 
     # add referral code into session if there is one
     addReferralCode req, res
+
     # update clientId cookie
     updateCookie req, res, result.session
 
