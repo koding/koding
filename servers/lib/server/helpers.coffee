@@ -51,10 +51,11 @@ findUsernameFromKey = (req, res, callback) ->
 fetchSession = (req, res, callback) ->
 
   { clientId } = req.cookies
+
   unless clientId?
     return process.nextTick -> callback null
 
-  koding.models.JSession.fetchSession clientId, (err, result) ->
+  koding.models.JSession.fetchSession { clientId }, (err, result) ->
 
     if err
       return callback err

@@ -100,22 +100,25 @@ module.exports = class JSession extends Model
       return callback err  if err
       return callback null, session
 
+
   # fetchSession tries to fetch session with given clientId, if client id is not
   # set, it tries to create a new session, if session doesnt exist in db with
   # given clientId, it creates a new one
   #
   # ps: i didnt write this function, just documenting it ~ CS
-  @fetchSession = (clientId, callback) ->
+  @fetchSession = (options, callback) ->
 
-    return @createSession callback  unless clientId
+    { clientId, group } = options
+
+    return @createSession { group }, callback  unless clientId
 
     @one { clientId }, (err, session) =>
       if err
         callback err
-      else if session?
+      else if session
         callback null, { session }
       else
-        @createSession callback
+        @createSession { group }, callback
 
   # fetchSessionByData tries to fetch a session for given data, if
   # doesnt exist creates a new one with given data

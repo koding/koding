@@ -71,12 +71,11 @@ generateFakeClient = (options, callback) ->
       groupName   : 'koding'
     impersonating : false
 
-
   return callback null, fakeClient  unless clientId
 
   { JSession, JAccount } = bongo.models
 
-  JSession.fetchSession clientId, (err, response) ->
+  JSession.fetchSession { clientId }, (err, response) ->
 
     return handleError err, callback  if err
 

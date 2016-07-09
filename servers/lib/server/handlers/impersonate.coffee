@@ -9,7 +9,7 @@ module.exports = (req, res) ->
   { nickname }           = req.params
   { clientId }           = req.cookies
 
-  JSession.fetchSession clientId, (err, result) ->
+  JSession.fetchSession { clientId }, (err, result) ->
     return res.status(400).end()  if err or not result
 
     { session } = result

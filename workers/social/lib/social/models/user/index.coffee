@@ -363,7 +363,7 @@ module.exports = class JUser extends jraphical.Module
     { clientId, username } = options
 
     # fetch session of the current requester
-    JSession.fetchSession clientId, (err, { session: fetchedSession }) ->
+    JSession.fetchSession { clientId }, (err, { session: fetchedSession }) ->
       return callback err  if err
 
       session = fetchedSession
