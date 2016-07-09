@@ -18,8 +18,7 @@ module.exports = (req, res) ->
     { body }           = req
     { isUserLoggedIn } = body
 
-    # booleans are seralized as strings, so cast them back to booleans
-    isUserLoggedIn      = if isUserLoggedIn is 'true' then true else false
+    isUserLoggedIn      = isUserLoggedIn is 'true'
     body.isUserLoggedIn = isUserLoggedIn
 
     { JUser } = koding.models

@@ -58,7 +58,6 @@ module.exports = utils = {
     kodingDomains    = '(?:dev|sandbox|latest|prod)'
     baseDomain       = "#{kd.config.domains.base}".replace '.', '\\.'
 
-
     # e.g. [teamName.]dev|sandbox|latest|prod.koding.com
     teamPattern = if ///#{kodingDomains}\.#{baseDomain}$///.test hostname
     then ///(?:^(#{subDomainPattern})\.)?#{kodingDomains}\.#{baseDomain}$///
