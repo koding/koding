@@ -72,6 +72,8 @@ type (
 		DummyAdmins []string
 
 		Druid Druid
+
+		Clearbit string `env:"key=KONFIG_SOCIALAPI_CLEARBIT                             required"`
 	}
 
 	// Email holds Email Workers' config

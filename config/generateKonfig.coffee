@@ -184,6 +184,7 @@ module.exports = (options, credentials) ->
     segment                : credentials.segment
     dummyAdmins            : credentials.dummyAdmins
     druid                  : credentials.druid
+    clearbit               : credentials.clearbit
 
     algolia                : algoliaSecret
     gatekeeper             : gatekeeper
@@ -251,6 +252,7 @@ module.exports = (options, credentials) ->
     segment                       : credentials.segment
     dummyAdmins                   : credentials.dummyAdmins
     druid                         : credentials.druid
+    clearbit                      : credentials.clearbit
 
     paymentwebhook                : paymentwebhook
     regions                       : regions
