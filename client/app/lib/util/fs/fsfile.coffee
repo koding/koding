@@ -229,6 +229,5 @@ module.exports = class FSFile extends FSItem
     .nodeify (err, result) ->
 
       return callback err  if err
-
-      { readable, writable } = result
-      callback null, { readable, writable }
+      { readable, writable, exists } = result
+      callback null, { readable, writable, exists }

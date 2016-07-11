@@ -27,28 +27,60 @@ module.exports = class HomeAccountChangePassword extends kd.CustomHTMLView
         cssClass      : 'Formline--half'
         name          : 'password'
         type          : 'password'
-        label         : 'Password'
+        label         : 'New Password'
       confirm         :
         cssClass      : 'Formline--half'
         name          : 'confirmPassword'
         type          : 'password'
-        label         : 'Password (again)'
+        label         : 'Repeat New Password'
       currentPassword :
         cssClass      : 'Formline--half'
         name          : 'currentPassword'
         type          : 'password'
-        label         : 'Current Password'
+        label         : 'Your Current Password'
 
-    @updatePasswordLink  = new CustomLinkView
-      cssClass : 'HomeAppView--link primary'
-      title    : 'UPDATE'
-      click    : @bound 'update'
+    @updatePasswordLink  = new kd.ButtonView
+      cssClass : 'GenericButton update-button'
+      title    : 'UPDATE PASSWORD'
+      callback : @bound 'update'
+
+    @forgotPasswordLink = new CustomLinkView
+      cssClass : 'HomeAppView--link'
+      title : 'FORGOT PASSWORD'
+      click : @bound 'forgotPassword'
 
     @changePasswordForm = new kd.FormViewWithFields
       cssClass   : 'HomeAppView--form'
       fields     : fields
 
-    @changePasswordForm.addSubView @updatePasswordLink
+    @buttonWrapper = new kd.CustomHTMLView
+      cssClass : 'button-wrapper'
+
+    @buttonWrapper.addSubView @updatePasswordLink
+    @buttonWrapper.addSubView @forgotPasswordLink
+
+
+  forgotPassword: (event) ->
+
+    account = whoami()
+    account.fetchEmail (err, email) =>
+      return @showError err  if err
+      @doRecover email
+
+  doRecover: (email) ->
+    $.ajax
+      url         : '/Recover'
+      data        : { email, _csrf : Cookies.get '_csrf' }
+      type        : 'POST'
+      error       : (xhr) ->
+        { responseText } = xhr
+        new kd.NotificationView { title : responseText }
+      success     : ->
+        new kd.NotificationView
+          title     : 'Check your email'
+          content   : "We've sent you a password recovery code."
+          duration  : 4500
+
 
 
   update: (event) ->
@@ -101,4 +133,5 @@ module.exports = class HomeAccountChangePassword extends kd.CustomHTMLView
   pistachio: ->
     '''
     {{> @changePasswordForm}}
+    {{> @buttonWrapper}}
     '''

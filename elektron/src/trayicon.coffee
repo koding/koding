@@ -4,7 +4,7 @@ electron       = require 'electron'
 
 Tray           = electron.Tray
 Menu           = electron.Menu
-{ app, shell } = electron
+{ app, shell, ipcMain } = electron
 
 TRAY_ICON      = path.resolve path.join __dirname, '../assets/icons/kdTemplate.png'
 TRAY_ICON_REV  = path.resolve path.join __dirname, '../assets/icons/kdRev.png'
@@ -44,25 +44,30 @@ handleOpen = (path, terminal) -> ->
 
 module.exports = class KodingTray
 
-  constructor: (tray) ->
+  constructor: (mainWindow) ->
 
     # Globals
+    @_mainWindow = mainWindow
     @_inProgress  = no
     @_isKdRunning = no
     @_contextMenu = []
+    @_previousTeams = {}
 
     @tray = new Tray TRAY_ICON
     # @tray.setPressedImage TRAY_ICON_REV
 
     @tray.on 'click', => @handleClick()
 
-    setTimeout  =>
+    kallback = =>
       @checkKdStatus no
-    , 100
+      @loadPreviousTeams()
 
-    setInterval =>
-      @checkKdStatus no
-    , 1000 * CHECK_TIMER
+    @_mainWindow.webContents.on 'did-navigate', kallback
+    @_mainWindow.webContents.on 'did-navigate-in-page', kallback
+
+    setTimeout kallback, 2000
+    setInterval kallback, 1000 * CHECK_TIMER
+
 
 
   handleClick: ->
@@ -72,16 +77,19 @@ module.exports = class KodingTray
     else @checkKdStatus yes
 
 
-  setMenu: (menu, show = no) ->
+  setMenu: (menu = [], show = no) ->
 
     if typeof menu is 'string'
       menu = [ label: menu, enabled: no ]
 
-    @_contextMenu = Menu.buildFromTemplate menu.concat [
+    win = @_mainWindow
+    teams = @_previousTeams
+
+    menuItems = [
       type    : 'separator'
       visible : @_isKdRunning
     ,
-      label   : 'Restart kd ...'
+      label   : 'Restart kd...'
       click   : handleOpen 'sudo kd restart', 'terminal'
       visible : @_isKdRunning
       enabled : !@_inProgress
@@ -99,7 +107,30 @@ module.exports = class KodingTray
       click   : -> app.quit()
     ]
 
+
+    if (keys = Object.keys teams).length
+      submenu = \
+        keys.map (key) ->
+          return  if key is 'latest'
+          teamName = teams[key]
+          return { label: teamName, click: -> win.loadURL "https://#{key}.koding.com" }
+        .filter(Boolean)
+
+      submenu or= []
+
+      submenu = submenu.concat [
+        { type: 'separator', visible: !!submenu.length }
+        { label: 'Login to Another Team', click: -> win.loadURL "https://koding.com/Teams" }
+        { label: 'Create a Team', click: -> win.loadURL "https://koding.com/Teams/Create" }
+      ]
+
+      menu.unshift { type: 'separator', visible: on }
+      menu.unshift { label: 'Your Teams', submenu }
+
+    @_contextMenu = Menu.buildFromTemplate menu.concat menuItems
+
     @tray.popUpContextMenu @_contextMenu  if show
+
 
 
   setFailed: (err) ->
@@ -181,10 +212,14 @@ module.exports = class KodingTray
 
       menu = []
 
+      result = result.filter (machine) -> machine.machineStatus isnt 1
+
       result.forEach (machine) =>
         # { team, teamUrl } = parseTeam machine.teams
+        label = "(#{machine.vmName})"
+        label = "#{machine.machineLabel} #{label}"  if machine.machineLabel
         item    = {
-          label   : "#{machine.machineLabel} (#{machine.vmName})"
+          label   : label
           submenu : [
           #   label : "Open #{team}"
           #   click : handleOpen teamUrl
@@ -241,10 +276,19 @@ module.exports = class KodingTray
         ,
           label   : 'Start kd ...'
           click   : handleOpen 'sudo kd start', 'terminal'
-        ], yes
+        ], no
 
         @_isKdRunning = no
 
       else
         @_isKdRunning = yes
         @loadMachineMenu show
+
+
+  loadPreviousTeams: ->
+
+    ipcMain.once 'answer-previous-teams', (event, previousTeams) =>
+      @_previousTeams = previousTeams
+      @setMenu()
+
+    @_mainWindow.webContents.send 'get-previous-teams'
