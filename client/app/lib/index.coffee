@@ -8,6 +8,7 @@ ConnectionChecker      = require './connectionchecker'
 lazyrouter             = require './lazyrouter'
 setupAnalytics         = require './setupanalytics'
 setupChatlio           = require './setupchatlio'
+setupIntercom          = require './setupintercom'
 os                     = require 'os'
 localStorage           = require './localstorage'
 
@@ -72,7 +73,10 @@ bootup = ->
 
   ConnectionChecker.listen()
 
-  mainController.ready -> setupChatlio()
+  mainController.ready ->
+    setupChatlio()
+    setupIntercom()
+
 
   ###
   # CONNECTIVITY EVENTS
