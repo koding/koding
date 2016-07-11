@@ -1,6 +1,7 @@
 helpers                  = require '../helpers/helpers.js'
 utils                    = require '../utils/utils.js'
 staticContents           = require '../helpers/staticContents.js'
+async                    = require 'async'
 path                     = require 'path'
 awsKeyPath               = path.resolve __dirname, '../../../../../vault/config/aws/worker_ci_test_key.json'
 awsKey                   = require awsKeyPath
@@ -24,8 +25,22 @@ envMachineStateModal     = '.env-machine-state.env-modal'
 stackSettingsMenuIcon    = '.stacktemplates .stack-template-list .stack-settings-menu .chevron'
 myStackTemplatesButton   = '.kdview.kdtabhandle-tabs .my-stack-templates'
 closeButton              = "#{stackCatalogModal} .kdmodal-inner .closeModal"
-async                    = require 'async'
 closeModal               = '.HomeAppView .close-icon.closeModal'
+
+#Team Creation
+modalSelector            = '.TeamsModal.TeamsModal--create'
+emailSelector            = "#{modalSelector} input[name=email]"
+companyNameSelector      = "#{modalSelector} input[name=companyName]"
+signUpButton             = "#{modalSelector} button[type=submit]"
+teamsModalSelector       = '.TeamsModal--groupCreation'
+doneButton               = "#{teamsModalSelector} button.TeamsModal-button--green"
+usernameInput            = "#{teamsModalSelector} input[name=username]"
+passwordInput            = "#{teamsModalSelector} input[name=password]"
+errorMessage             = '.kdnotification.main'
+teamCreateLink           = "a[href='/Teams/Create']"
+userInfoErrorMsg         = '.validation-error .kdview.wrapper'
+alreadyMemberModal       = "#{teamsModalSelector}.alreadyMember"
+url                      = helpers.getUrl()
 
 module.exports =
 
@@ -37,29 +52,44 @@ module.exports =
       .waitForElementVisible  '.TeamsModal--domain', 20000
       .waitForElementVisible  'input[name=slug]', 20000
       .click                  'button[testpath=domain-button]'
-      .pause                  2000 # wait for modal change
 
 
-  fillUsernamePasswordForm: (browser, user, invalidUserName = no) ->
-
-    doneButton         = "#{teamsModalSelector} button.TeamsModal-button--green"
-    usernameInput      = "#{teamsModalSelector} input[name=username]"
-    passwordInput      = "#{teamsModalSelector} input[name=password]"
-    alreadyMemberModal = "#{teamsModalSelector}.alreadyMember"
-    usernameErrorMsg   = '.validation-error .kdview.wrapper'
-
+  fillUsernamePasswordForm: (browser, user, invalidCredential = no, invalidInfo) ->
     browser
       .waitForElementVisible   teamsModalSelector, 20000
+    if invalidCredential
+      switch invalidInfo
+        when 'InvalidUserName'
+          browser
+            .waitForElementVisible  usernameInput, 20000
+            .clearValue             usernameInput
+            .setValue               usernameInput, 'abc'
+            .setValue               passwordInput, user.password
+            .click                  doneButton
+            .waitForElementVisible  userInfoErrorMsg, 20000
+            .assert.containsText    userInfoErrorMsg, 'Username should be between 4 and 25 characters!'
 
-    if invalidUserName
-      browser
-        .waitForElementVisible  usernameInput, 20000
-        .clearValue             usernameInput
-        .setValue               usernameInput, 'abc'
-        .setValue               passwordInput, user.password
-        .click                  doneButton
-        .waitForElementVisible  usernameErrorMsg, 20000
-        .assert.containsText    usernameErrorMsg, 'Username should be between 4 and 25 characters!'
+        when 'AlreadyRegisteredUserName'
+          browser
+            .waitForElementVisible  usernameInput, 20000
+            .clearValue             usernameInput
+            .setValue               usernameInput, user.username
+            .setValue               passwordInput, user.password
+            .click                  doneButton
+            .waitForElementVisible  errorMessage, 20000
+            .assert.containsText    errorMessage, "Sorry, \"#{user.username}\" is already taken!"
+
+        when 'ShortPassword'
+          browser
+            .waitForElementVisible  usernameInput, 20000
+            .clearValue             usernameInput
+            .setValue               usernameInput, user.username
+            .setValue               passwordInput, '123'
+            .click                  doneButton
+            .waitForElementVisible  userInfoErrorMsg, 20000
+            .assert.containsText    userInfoErrorMsg, 'Passwords should be at least 8 characters.'
+
+
     else
       browser
         .element 'css selector', alreadyMemberModal, (result) =>
@@ -91,7 +121,7 @@ module.exports =
     console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password} to team: #{helpers.getUrl(yes)}"
 
 
-  loginToTeam: (browser, user, invalidCredentials = no, callback = -> ) ->
+  loginToTeam: (browser, user, invalidCredentials = no, invalidInfo, callback = -> ) ->
 
     incorrectEmailAddress = 'a@b.com'
     incorrectUserName     = 'testUserName'
@@ -108,40 +138,64 @@ module.exports =
       .pause                  2000 # wait for login page
       .waitForElementVisible  '.TeamsModal--login', 20000
       .waitForElementVisible  'form.login-form', 20000
-      .clearValue             'input[name=username]'
-      .clearValue             'input[name=password]'
-      .setValue               'input[name=username]', user.username
-      .setValue               'input[name=password]', user.password
 
     if invalidCredentials
       browser
-      .click 'button[testpath=login-button]'
-      .waitForElementVisible  notification, 20000
+        .clearValue           'input[name=username]'
+        .clearValue           'input[name=password]'
+      switch invalidInfo
+        when 'InvalidUserName'
+          browser
+            .setValue               'input[name=username]', user.username + 'test'
+            .setValue               'input[name=password]', user.password
+            .click                  'button[testpath=login-button]'
+            .waitForElementVisible  notification, 20000
+            .assert.containsText    notification, 'Unknown user name'
+
+        when 'InvalidPassword'
+          console.log()
+          browser
+            .setValue                'input[name=username]', user.username
+            .setValue                'input[name=password]', user.password + 'wrong'
+            .click                   'button[testpath=login-button]'
+            .waitForElementVisible   notification, 20000
+            .assert.containsText     notification, 'Access denied!'
+
+        when 'NotAllowedEmail'
+          email = 'kodingtestuser@koding.com'
+          browser
+            .setValue               'input[name=username]', email
+            .setValue               'input[name=password]', user.password
+            .click                  'button[testpath=login-button]'
+            .waitForElementVisible  notification, 20000
+            .assert.containsText    notification, 'Unrecognized email'
+
     else
-      browser.click 'button[testpath=login-button]', => @loginAssertion browser, callback
+      browser
+        .clearValue   'input[name=username]'
+        .clearValue   'input[name=password]'
+        .setValue     'input[name=username]', user.username
+        .setValue     'input[name=password]', user.password
+        .click        'button[testpath=login-button]', => @loginAssertion browser, callback
 
 
-
-  loginTeam: (browser, user, invalidCredentials = no, callback = -> ) ->
+  loginTeam: (browser, user, invalidCredentials = no, invalidInfo, callback = -> ) ->
 
     user               ?= utils.getUser()
     url                = "http://#{user.teamSlug}.dev.koding.com:8090"
     inviteLink         = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
-    invalidCredentials = no
-
-    teamsLogin        = '.TeamsModal--login'
-    stackCatalogModal = '.StackCatalogModal'
-    stackCloseButton  = "#{stackCatalogModal} .kdmodal-inner .closeModal"
+    teamsLogin         = '.TeamsModal--login'
+    stackCatalogModal  = '.StackCatalogModal'
+    stackCloseButton   = "#{stackCatalogModal} .kdmodal-inner .closeModal"
 
     browser.url url
     browser.maximizeWindow()
-
     browser.pause  3000
     browser.element 'css selector', teamsLogin, (result) =>
       if result.status is 0
-        @loginToTeam browser, user, invalidCredentials
+        @loginToTeam browser, user, invalidCredentials, invalidInfo
       else
-        @createTeam browser, user, inviteLink
+        @createTeam browser, user, inviteLink, invalidInfo
 
       browser.pause 3000
       browser.element 'css selector', stackCatalogModal, (result) ->
@@ -155,76 +209,91 @@ module.exports =
 
 
   checkForgotPassword: (browser, user, callback) ->
-
-    modalSelector   = '.kdview.kdtabpaneview.username'
-    sectionSelector = "#{modalSelector} section"
+    usernameModalSelector   = '.kdview.kdtabpaneview.username'
+    sectionSelector         = "#{usernameModalSelector} section"
     browser
-      .waitForElementVisible modalSelector, 20000
+      .waitForElementVisible usernameModalSelector, 20000
       .click                 '.TeamsModal-button-link a'
       .pause                 2000
-      .waitForElementVisible modalSelector, 20000
+      .waitForElementVisible usernameModalSelector, 20000
       .pause                 2000
       .click                 '.TeamsModal-button-link a'
       .pause                 2000
 
 
-  createTeam: (browser, user, inviteOrCreateLink, invalidCredentials = no, callback) ->
-
-    modalSelector       = '.TeamsModal.TeamsModal--create'
-    emailSelector       = "#{modalSelector} input[name=email]"
-    companyNameSelector = "#{modalSelector} input[name=companyName]"
-    signUpButton        = "#{modalSelector} button[type=submit]"
-    # user                = utils.getUser()
-    inviteLink          = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
-    modalSelector       = '.TeamsModal.TeamsModal--create'
-    teamsModalSelector  = '.TeamsModal--groupCreation'
-    doneButton          = "#{teamsModalSelector} button.TeamsModal-button--green"
-    usernameInput       = "#{teamsModalSelector} input[name=username]"
-    passwordInput       = "#{teamsModalSelector} input[name=password]"
-    errorMessage        = '.kdnotification.main'
-
+  fillTeamSignUp: (browser, email, teamSlug) ->
     browser
-      .url                    inviteOrCreateLink
       .waitForElementVisible  modalSelector, 20000
       .waitForElementVisible  emailSelector, 20000
       .waitForElementVisible  companyNameSelector, 20000
       .clearValue             emailSelector
+      .setValue               emailSelector, email
+      .pause                  2000
+      .setValue               companyNameSelector, teamSlug
+      .click                  signUpButton
+      .pause                  2500
+
+
+  createTeam: (browser, user, inviteOrCreateLink, invalidInfo, callback) ->
+    inviteLink               = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
+    createLink               = "#{helpers.getUrl()}/Teams/Create"
 
     if inviteOrCreateLink is inviteLink
-      browser
-        .setValue              emailSelector, user.email
-        .pause                 2000
-        .setValue              companyNameSelector, user.teamSlug
-        .click                 signUpButton
-        .pause                 2500
-
+      browser.url  inviteOrCreateLink
+      browser.maximizeWindow()
+      @fillTeamSignUp(browser, user.email, user.teamSlug)
       @enterTeamURL(browser)
       @checkForgotPassword(browser)
-
-      if invalidCredentials
-        @fillUsernamePasswordForm(browser, user, yes)
-      else
-        @fillUsernamePasswordForm(browser, user)
+      @fillUsernamePasswordForm(browser, user)
 
     else
       browser
-        .setValue              emailSelector, user.email + 'test'
-        .pause                 2000
-        .setValue              companyNameSelector, user.teamSlug + 'test'
-        .click                 signUpButton
-        .pause                 2500
+        .url url
+        .maximizeWindow()
+        .waitForElementVisible teamCreateLink, 20000
+        .click teamCreateLink
 
-      @enterTeamURL(browser)
+      switch invalidInfo
+        when 'InvalidEmail'
+          @fillTeamSignUp(browser, user.email + '***', user.teamSlug)
+          browser
+            .waitForElementVisible userInfoErrorMsg, 20000
+            .assert.containsText   userInfoErrorMsg, 'Please type a valid email address.'
 
-      browser
-        .waitForElementVisible  teamsModalSelector, 20000
-        .waitForElementVisible  usernameInput, 20000
-        .clearValue             usernameInput
-        .setValue               usernameInput, user.username
-        .setValue               passwordInput, user.password
-        .click                  doneButton
-        .waitForElementVisible  errorMessage, 20000
-        .assert.containsText    errorMessage, "Sorry, #{user.username} is already taken!"
+        when 'InvalidTeamUrl'
+          @fillTeamSignUp(browser, user.email, 'test')
+          @enterTeamURL(browser)
+          browser
+            .waitForElementVisible errorMessage, 5000
+            .assert.containsText   errorMessage, 'Invalid domain!'
+
+        when 'AlreadyUsedTeamUrl'
+          @fillTeamSignUp(browser, user.email, 'koding')
+          @enterTeamURL(browser)
+          browser
+            .waitForElementVisible errorMessage, 5000
+            .assert.containsText   errorMessage, 'Domain is taken!'
+
+        when 'InvalidUserName'
+          @fillTeamSignUp(browser, user.email, user.teamSlug)
+          @enterTeamURL(browser)
+          @checkForgotPassword(browser)
+          @fillUsernamePasswordForm(browser, user, yes, invalidInfo)
+
+        when 'AlreadyRegisteredUserName'
+          @fillTeamSignUp(browser, user.email + 'test', user.teamSlug + 'test')
+          @enterTeamURL(browser)
+          @fillUsernamePasswordForm(browser, user, yes, invalidInfo)
+
+        when 'ShortPassword'
+          @fillTeamSignUp(browser, user.email, user.teamSlug)
+          @enterTeamURL(browser)
+          @fillUsernamePasswordForm(browser, user, yes, invalidInfo)
+
+        when 'InvalidPassword'
+          @fillTeamSignUp(browser, user.email, user.teamSlug)
+          @enterTeamURL(browser)
+          @fillUsernamePasswordForm(browser, user, yes, invalidInfo)
 
 
 
