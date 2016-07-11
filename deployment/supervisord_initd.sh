@@ -24,15 +24,17 @@
 
 set -a
 
-PREFIX=/usr
+PREFIX=/usr/local
 
 SUPERVISORD=$PREFIX/bin/supervisord
 SUPERVISORCTL=$PREFIX/bin/supervisorctl
 
 PIDFILE=/var/run/supervisord.pid
+CONFFILE="/etc/supervisord.conf"
+
 LOCKFILE=/var/lock/subsys/supervisord
 
-OPTIONS="-c /etc/supervisord.conf"
+OPTIONS="-c $CONFFILE"
 
 # unset this variable if you don't care to wait for child processes to shutdown before removing the $LOCKFILE-lock
 WAIT_FOR_SUBPROCESSES=yes
@@ -42,6 +44,12 @@ ulimit -n 96000
 
 RETVAL=0
 
+# source koding env vars
+if [ ! -f /etc/sysconfig/supervisord ]; then
+    exit 6
+fi
+
+. /etc/sysconfig/supervisord
 
 running_pid()
 {
