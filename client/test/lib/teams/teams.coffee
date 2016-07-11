@@ -8,7 +8,7 @@ inviteLink   = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
 
 module.exports =
 
-  #Team Creation
+  # Team Creation
   createTeamWithInvalidEmail: (browser) ->
     teamsHelpers.createTeam(browser, user, '', 'InvalidEmail')
 
@@ -18,21 +18,30 @@ module.exports =
   createTeamWithAlreadyUsedTeamUrl: (browser) ->
     teamsHelpers.createTeam(browser, user, '' , 'AlreadyUsedTeamUrl')
 
-  #Create Account Steps in Team Creation
+  # Create Account Steps in Team Creation
   createAccountWithInvalidUserName: (browser) ->
     user         = utils.getUser(yes)
     teamsHelpers.createTeam(browser, user, '' , 'InvalidUserName')
-
-  createAccountAlreadyRegisteredUserName: (browser) ->
-    teamsHelpers.createTeam(browser, user, inviteLink)
-    teamsHelpers.createTeam(browser, user, createLink, 'AlreadyRegisteredUserName')
 
   createAccountWithShortPassword: (browser) ->
     user = utils.getUser(yes)
     teamsHelpers.createTeam(browser, user, '' , 'ShortPassword')
 
+  createAccountAlreadyRegisteredUserName: (browser) ->
+    teamsHelpers.createTeam(browser, user, inviteLink)
+    teamsHelpers.createTeam(browser, user, createLink, 'AlreadyRegisteredUserName')
+
+  signInWithNotAllowedEmail: (browser) ->
+    teamsHelpers.loginTeam(browser, user, yes , 'NotAllowedEmail')
+
+  signInWithInvalidUsername: (browser) ->
+    teamsHelpers.loginTeam(browser, user, yes, 'InvalidUserName')
+
+  signInWithInvalidPassword: (browser) ->
+    teamsHelpers.loginTeam(browser, user, yes, 'InvalidPassword')
+
   loginTeam: (browser) ->
-    teamsHelpers.loginTeam(browser, user, yes)
+    teamsHelpers.loginTeam(browser, user, no)
 
   after: (browser) ->
     browser.end()

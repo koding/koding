@@ -89,6 +89,7 @@ module.exports =
             .waitForElementVisible  userInfoErrorMsg, 20000
             .assert.containsText    userInfoErrorMsg, 'Passwords should be at least 8 characters.'
 
+
     else
       browser
         .element 'css selector', alreadyMemberModal, (result) =>
@@ -120,7 +121,7 @@ module.exports =
     console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password} to team: #{helpers.getUrl(yes)}"
 
 
-  loginToTeam: (browser, user, invalidCredentials = no, callback = -> ) ->
+  loginToTeam: (browser, user, invalidCredentials = no, invalidInfo, callback = -> ) ->
 
     incorrectEmailAddress = 'a@b.com'
     incorrectUserName     = 'testUserName'
@@ -137,22 +138,48 @@ module.exports =
       .pause                  2000 # wait for login page
       .waitForElementVisible  '.TeamsModal--login', 20000
       .waitForElementVisible  'form.login-form', 20000
-      .clearValue             'input[name=username]'
-      .clearValue             'input[name=password]'
-      .setValue               'input[name=username]', user.username
-      .setValue               'input[name=password]', user.password
 
     if invalidCredentials
       browser
-        .setValue 'input[name=password]', user.password + 'test'
-        .click    'button[testpath=login-button]'
-        .waitForElementVisible  notification, 20000
-        .assert.containsText notification, 'Access denied!'
+        .clearValue           'input[name=username]'
+        .clearValue           'input[name=password]'
+      switch invalidInfo
+        when 'InvalidUserName'
+          browser
+            .setValue               'input[name=username]', user.username + 'test'
+            .setValue               'input[name=password]', user.password
+            .click                  'button[testpath=login-button]'
+            .waitForElementVisible  notification, 20000
+            .assert.containsText    notification, 'Unknown user name'
+
+        when 'InvalidPassword'
+          console.log()
+          browser
+            .setValue                'input[name=username]', user.username
+            .setValue                'input[name=password]', user.password + 'wrong'
+            .click                   'button[testpath=login-button]'
+            .waitForElementVisible   notification, 20000
+            .assert.containsText     notification, 'Access denied!'
+
+        when 'NotAllowedEmail'
+          email = 'kodingtestuser@koding.com'
+          browser
+            .setValue               'input[name=username]', email
+            .setValue               'input[name=password]', user.password
+            .click                  'button[testpath=login-button]'
+            .waitForElementVisible  notification, 20000
+            .assert.containsText    notification, 'Unrecognized email'
+
     else
-      browser.click 'button[testpath=login-button]', => @loginAssertion browser, callback
+      browser
+        .clearValue   'input[name=username]'
+        .clearValue   'input[name=password]'
+        .setValue     'input[name=username]', user.username
+        .setValue     'input[name=password]', user.password
+        .click        'button[testpath=login-button]', => @loginAssertion browser, callback
 
 
-  loginTeam: (browser, user, invalidCredentials = no, callback = -> ) ->
+  loginTeam: (browser, user, invalidCredentials = no, invalidInfo, callback = -> ) ->
 
     user               ?= utils.getUser()
     url                = "http://#{user.teamSlug}.dev.koding.com:8090"
@@ -166,9 +193,9 @@ module.exports =
     browser.pause  3000
     browser.element 'css selector', teamsLogin, (result) =>
       if result.status is 0
-        @loginToTeam browser, user, invalidCredentials
+        @loginToTeam browser, user, invalidCredentials, invalidInfo
       else
-        @createTeam browser, user, inviteLink
+        @createTeam browser, user, inviteLink, invalidInfo
 
       browser.pause 3000
       browser.element 'css selector', stackCatalogModal, (result) ->
@@ -262,6 +289,12 @@ module.exports =
           @fillTeamSignUp(browser, user.email, user.teamSlug)
           @enterTeamURL(browser)
           @fillUsernamePasswordForm(browser, user, yes, invalidInfo)
+
+        when 'InvalidPassword'
+          @fillTeamSignUp(browser, user.email, user.teamSlug)
+          @enterTeamURL(browser)
+          @fillUsernamePasswordForm(browser, user, yes, invalidInfo)
+
 
 
   moveToSidebarHeader: (browser, plus, channelHeader) ->
