@@ -136,6 +136,9 @@ contentModal.styl
           padding-top       0px
           border-bottom     0px
 
+          .hide-close-icons
+            padding-top     6px
+
         .kdtabhandle-tabs
           top               2px
 
@@ -150,6 +153,11 @@ contentModal.styl
       .kdtabpaneview
         overflow            visible
         height              300px
+
+      .kdtabpaneview
+        &.stack-template
+        &.error-details
+          height            auto
 
         main.main-container
           margin            0px
@@ -254,7 +262,6 @@ main.main-container
 
   .kdscrollview
     borderBox()
-    max-height              250px
 
     .markdown-content
       margin-top            10px
@@ -278,15 +285,22 @@ main.main-container
       max-height             312px
 
   main.kdscrollview
+    max-height              350px
     margin                  0px
+    border                  1px solid #ddd
     .error-content
       code
         display             inline-block
         white-space         normal
 
-&.has-markdown
- pre
-  padding-top               0px
+  .kdcustomscrollview.has-vertical
+    padding-right           0px
 
-  code
-    border                  1px solid #d2d2d2
+&.has-markdown
+  pre
+    padding-top             0px
+
+    code
+      padding-top           12px
+      margin-top            1px
+      border                0px
