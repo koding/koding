@@ -175,6 +175,7 @@ func checkValuesForCompany(company *clearbit.Company) error {
 	return nil
 }
 
+// parseClearbitCompany parses company data of clearbit package into our company model struct
 func parseClearbitCompany(company *clearbit.Company) *mongomodels.Company {
 	return &mongomodels.Company{
 		Name:      *company.Name,
