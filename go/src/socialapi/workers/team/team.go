@@ -99,19 +99,16 @@ func (c *Controller) HandleCreator(channel *models.Channel) error {
 
 	creator, err := models.Cache.Account.ById(channel.CreatorId)
 	if err != nil {
-		return err
+		return nil
 	}
-
 	user, err := modelhelper.GetUser(creator.Nick)
 	if err != nil {
-		return err
+		return nil
 	}
-
 	// if user already has company, no need to fetch user's company info again.
 	if user.CompanyId.Hex() != "" {
 		return nil
 	}
-
 	// if user has no company data, then try to fetch info about company of user.
 	userData, err := c.clearbit.Enrichment().Combined(user.Email)
 	if err != nil {
@@ -134,24 +131,22 @@ func (c *Controller) HandleCreator(channel *models.Channel) error {
 	if err != nil && err != mgo.ErrNotFound {
 		return err
 	}
-
 	// if company is not found in db, then create new one
 	// after creation, update user's company with company id
 	if err == mgo.ErrNotFound {
-		companyData, err := checkValuesForCompany(userData.Company)
+		err := checkValuesForCompany(userData.Company)
 		if err != nil {
 			return nil
 		}
 
+		// parse company data of clearbit package into our company model struct
+		companyData := parseClearbitCompany(userData.Company)
+
 		// create company in db if it doesn't exist
-		if err := modelhelper.CreateCompany(companyData); err != nil {
-			return err
-		}
-		company, err = modelhelper.GetCompanyByNameOrSlug(companyData.Name)
+		company, err = modelhelper.CreateCompany(companyData)
 		if err != nil {
 			return err
 		}
-
 	}
 
 	// update the company info of user if company exist in mongo
@@ -160,30 +155,33 @@ func (c *Controller) HandleCreator(channel *models.Channel) error {
 	if err := modelhelper.UpdateUser(selector, update); err != nil {
 		return err
 	}
+	return nil
+}
+
+func checkValuesForCompany(company *clearbit.Company) error {
+	if company.Name == nil {
+		return ErrCompanyNameNotFound
+	}
+	if company.Metrics == nil {
+		return ErrCompanyMetricsNotFound
+	}
+	if company.Metrics.Employees == nil {
+		return ErrCompanyEmployeeNotFound
+	}
+	if company.Domain == nil {
+		return ErrCompanyDomainNotFound
+	}
 
 	return nil
 }
 
-func checkValuesForCompany(company *clearbit.Company) (*mongomodels.Company, error) {
-	if company.Name == nil {
-		return nil, ErrCompanyNameNotFound
-	}
-	if company.Metrics == nil {
-		return nil, ErrCompanyMetricsNotFound
-	}
-	if company.Metrics.Employees == nil {
-		return nil, ErrCompanyEmployeeNotFound
-	}
-	if company.Domain == nil {
-		return nil, ErrCompanyDomainNotFound
-	}
-
+func parseClearbitCompany(company *clearbit.Company) *mongomodels.Company {
 	return &mongomodels.Company{
 		Name:      *company.Name,
 		Slug:      strings.ToLower(*company.Name),
 		Employees: *company.Metrics.Employees,
 		Domain:    *company.Domain,
-	}, nil
+	}
 }
 
 // HandleParticipant handles participant operations
