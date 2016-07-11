@@ -186,7 +186,7 @@ func GetGroupMachines(userId bson.ObjectId, group *models.Group) ([]*MachineCont
 	query := bson.M{
 		"users": bson.M{
 			"$elemMatch": bson.M{
-				"id":    userId,
+				"id": userId,
 			},
 		},
 		"groups": bson.M{
@@ -196,7 +196,7 @@ func GetGroupMachines(userId bson.ObjectId, group *models.Group) ([]*MachineCont
 		},
 	}
 
-  return findMachineContainers(query)
+	return findMachineContainers(query)
 }
 
 func GetOwnGroupMachines(userId bson.ObjectId, group *models.Group) ([]*MachineContainer, error) {
