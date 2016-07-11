@@ -22,7 +22,7 @@ welcomeSteps = [
   welcomeStepsByRole
   (stacks, steps) ->
 
-    if stacks.size and status = stacks.first()?.get 'status'
+    if stacks.size and status = stacks.first()?.getIn ['status', 'state']
       if status isnt 'NotInitialized'
         steps = steps.delete 'pendingStack'
         steps = steps.delete 'stackCreation'  unless isAdmin()
