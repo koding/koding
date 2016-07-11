@@ -8,6 +8,9 @@ badRequest = (res, message = 'Bad request') -> res.status(400).send message
 
 generateCheckEmailCallback = (res, email, JUser) ->
 
+  unless KONFIG.environment is 'production'
+    res.header 'Access-Control-Allow-Origin', 'http://www.koding.com'
+
   return (err, info) ->
     { isValid : isEmail } = JUser.validateAt 'email', email, yes
 
