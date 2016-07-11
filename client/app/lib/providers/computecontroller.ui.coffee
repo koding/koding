@@ -566,9 +566,7 @@ module.exports = class ComputeControllerUI
 
   @showComputeError = (options) ->
 
-    { stack, errorMessage, title, subtitle, cssClass, message } = options
-
-    cssClass ?= ''
+    { stack, errorMessage, title, subtitle, message, cssClass } = options
 
     if /^invalid bootstrap metadata for/.test errorMessage
       errorMessage = """
@@ -584,7 +582,7 @@ module.exports = class ComputeControllerUI
       title : title ? 'An error occured'
       draggable : no
       width : 600
-      cssClass : "has-markdown #{cssClass} content-modal"
+      cssClass : "has-markdown content-modal #{cssClass}"
       overlay : yes
 
     content = (hljs.highlight 'profile', errorMessage).value
@@ -610,8 +608,10 @@ module.exports = class ComputeControllerUI
       """
 
     if stack
-
-      modal.addSubView tabView = new kd.TabView { hideHandleCloseIcons: yes }
+      modal.addSubView tabViewWrapper = new kd.CustomHTMLView
+        tagName : 'main'
+        cssClass : 'main-container'
+      tabViewWrapper.addSubView tabView = new kd.TabView { hideHandleCloseIcons: yes }
 
       tabView.addPane new kd.TabPaneView
         name : 'Error Details'

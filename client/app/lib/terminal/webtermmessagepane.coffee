@@ -87,7 +87,7 @@ module.exports = class WebTermMessagePane extends KDCustomScrollView
     else
 
       @setMessage \
-        'An unknown error occured, please open a new tab.
+        'An unknown error occurred, please open a new tab.
         Click here to dismiss this one.', 'DiscardSession'
 
       kd.warn '[Webterm]', err

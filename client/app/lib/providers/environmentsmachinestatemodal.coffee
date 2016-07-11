@@ -825,7 +825,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
   showErrorDetails: (errorMessage) ->
 
     kd.singletons.computeController.ui.showComputeError
-      title        : "An error occured while building #{@stack.title}"
+      title        : "An error occurred while building #{@stack.title}"
       stack        : @stack
       cssClass     : 'env-ide-error-modal'
       errorMessage : errorMessage ? @lastErrorMessage

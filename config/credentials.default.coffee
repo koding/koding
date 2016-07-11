@@ -184,10 +184,10 @@ module.exports = (options) ->
     userPublicKey: "$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pub"
     userPrivateKey: "$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pem"
   dummyAdmins = ['superadmin', 'admin', 'koding']
-
   druid =
     host : options.serviceHost
     port : 8090
+  clearbit = '9d961e7ac862a6bc430f783da5cf9422'
 
   return {
     kiteHome
@@ -229,4 +229,5 @@ module.exports = (options) ->
     vmwatcher
     dummyAdmins
     druid
+    clearbit
   }
