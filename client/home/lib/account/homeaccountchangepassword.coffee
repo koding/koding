@@ -56,8 +56,8 @@ module.exports = class HomeAccountChangePassword extends kd.CustomHTMLView
     @buttonWrapper = new kd.CustomHTMLView
       cssClass : 'button-wrapper'
 
-    @buttonWrapper.addSubView @updatePasswordLink
     @buttonWrapper.addSubView @forgotPasswordLink
+    @buttonWrapper.addSubView @updatePasswordLink
 
 
   forgotPassword: (event) ->

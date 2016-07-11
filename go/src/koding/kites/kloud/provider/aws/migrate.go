@@ -61,7 +61,7 @@ type MigrateProvider struct {
 	start    time.Time
 }
 
-func diff(lhs []*models.Machine, rhs []string) []string {
+func diff(lhs map[string]*models.Machine, rhs []string) []string {
 	all := make(map[string]struct{}, len(rhs))
 	for _, id := range rhs {
 		all[id] = struct{}{}
@@ -328,8 +328,8 @@ func (mp *MigrateProvider) migrateAsync(ctx context.Context, req *kloud.MigrateR
 	)
 
 	migrateOpts := &stackplan.MigrateOptions{
-		MachineIDs: make([]bson.ObjectId, n),
-		Machines:   make([]interface{}, n),
+		MachineIDs: make([]bson.ObjectId, 0, n),
+		Machines:   make([]interface{}, 0, n),
 		Provider:   "aws",
 		Identifier: req.Identifier,
 		Username:   mp.Stack.Req.Username,
@@ -338,7 +338,7 @@ func (mp *MigrateProvider) migrateAsync(ctx context.Context, req *kloud.MigrateR
 		Log:        mp.Log,
 	}
 
-	for i, m := range mp.Stack.Builder.Machines {
+	for _, m := range mp.Stack.Builder.Machines {
 		meta := mp.KodingMeta[m.ObjectId]
 		status := mp.Status[m.ObjectId]
 
@@ -351,8 +351,8 @@ func (mp *MigrateProvider) migrateAsync(ctx context.Context, req *kloud.MigrateR
 		}
 
 		stack.addInstance(mm)
-		migrateOpts.Machines[i] = mm
-		migrateOpts.MachineIDs[i] = m.ObjectId
+		migrateOpts.Machines = append(migrateOpts.Machines, mm)
+		migrateOpts.MachineIDs = append(migrateOpts.MachineIDs, m.ObjectId)
 	}
 
 	p, err := json.Marshal(stack)

@@ -72,6 +72,13 @@ type Stack struct {
 	// The field is set during injecting variables to a template.
 	Credential *stackplan.Credential
 
+	// The following fields are set by buildResources method:
+	ids        stackplan.KiteMap
+	urls       map[string]string
+	region     string
+	hostQuery  string
+	credential string
+
 	api *vagrantapi.Klient
 	p   *stackplan.Planner
 }
@@ -146,6 +153,9 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 	}
 
 	s.p.OnKlient = s.checkTunnel
+	bs.BuildResources = s.buildResources
+	bs.WaitResources = s.waitResources
+	bs.UpdateResources = s.updateResources
 
 	return s, nil
 }
