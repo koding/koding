@@ -566,7 +566,7 @@ module.exports = class ComputeControllerUI
 
   @showComputeError = (options) ->
 
-    { stack, errorMessage, title, subtitle, message } = options
+    { stack, errorMessage, title, subtitle, message, cssClass } = options
 
     if /^invalid bootstrap metadata for/.test errorMessage
       errorMessage = """
@@ -582,7 +582,7 @@ module.exports = class ComputeControllerUI
       title : title ? 'An error occured'
       draggable : no
       width : 600
-      cssClass : "has-markdown content-modal"
+      cssClass : "has-markdown content-modal #{cssClass}"
       overlay : yes
 
     content = (hljs.highlight 'profile', errorMessage).value
