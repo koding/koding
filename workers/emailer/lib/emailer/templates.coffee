@@ -69,3 +69,17 @@ module.exports = TEMPLATES = (data = {}) ->
     Get started with Koding today!
 
   """
+
+
+  REQUESTED_TEAM_LIST  :
+    subject            : 'Your Koding teams'
+    content            : """
+
+    Hi #{data.username or 'there'},
+
+    We searched for Koding teams you've created or already joined.
+    It looks like have several!
+
+    You can sign in to the following teams:
+    #{ ("#{group.title} - #{group.link}" for group in data.groups ? []).join('\n') }
+  """

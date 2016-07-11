@@ -20,6 +20,7 @@ module.exports = class EmailerWorker
     'REQUEST_EMAIL_CHANGE'
     'CHANGED_EMAIL'
     'INVITED_TEAM'
+    'REQUESTED_TEAM_LIST'
   ]
 
   getEmailType = (subject) ->
