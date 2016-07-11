@@ -1047,7 +1047,9 @@ module.exports = class ComputeController extends KDController
       # TMS-1919: This can stay as is, but this time it will create the first
       # avaiable stacktemplate for who has no stacks yet. ~ GG
 
-      @createDefaultStack yes  if @stacks.length is 0
+      groupStacks = @stacks.filter (stack) -> stack.config?.groupStack
+
+      @createDefaultStack yes  if groupStacks.length is 0
 
       @checkGroupStackRevisions()
 

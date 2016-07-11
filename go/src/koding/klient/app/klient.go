@@ -678,18 +678,12 @@ func (k *Klient) updateKiteKey(reg *kiteproto.RegisterResult) {
 		return
 	}
 
-	kiteKey := k.kite.KiteKey()
-
-	if kiteKey == reg.KiteKey {
-		return
-	}
-
-	if err := writeKiteKey(reg.KiteKey); err != nil {
+	if err := k.writeKiteKey(reg.KiteKey); err != nil {
 		k.kite.Log.Warning("kite.key update failed: %s", err)
 	}
 }
 
-func writeKiteKey(content string) error {
+func (k *Klient) writeKiteKey(content string) error {
 	kiteHome, err := kitekey.KiteHome()
 	if err != nil {
 		return err
@@ -715,7 +709,13 @@ func writeKiteKey(content string) error {
 
 	os.Remove(origPath)
 
-	return os.Rename(f.Name(), origPath)
+	if err := os.Rename(f.Name(), origPath); err != nil {
+		return err
+	}
+
+	k.kite.Log.Info("auth update: written new %q", origPath)
+
+	return nil
 }
 
 func openBoltDb(dbpath string) (*bolt.DB, error) {

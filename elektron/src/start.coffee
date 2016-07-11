@@ -16,14 +16,27 @@ NODE_REQUIRE     = path.resolve path.join __dirname, 'noderequire.js'
 
 module.exports = ->
 
+  # Create the browser window.
+  mainWindow = new BrowserWindow
+    width             : 1280
+    height            : 800
+    title             : 'Koding for Teams'
+    show              : yes
+    acceptFirstMouse  : yes
+    backgroundColor   : '#131313'
+    webPreferences    :
+      partition       : 'persist:koding'
+      preload         : NODE_REQUIRE
+      nodeIntegration : no
+
   # Set application menu
-  new ApplicationMenu
+  new ApplicationMenu mainWindow
 
   # Create System Tray
-  new TrayIcon
+  new TrayIcon mainWindow
 
   # Start listening the web app
-  new IPCReporter
+  new IPCReporter mainWindow
 
   # Prepare AppStorage
   storage = new Storage template : STORAGE_TEMPLATE
@@ -39,25 +52,13 @@ module.exports = ->
   # Sync storage on quit
   app.on 'will-quit', syncStorage
 
-  # Create the browser window.
-  mainWindow = new BrowserWindow
-    width             : 1280
-    height            : 800
-    title             : 'Koding for Teams'
-    show              : yes
-    acceptFirstMouse  : yes
-    backgroundColor   : '#131313'
-    webPreferences    :
-      partition       : 'persist:koding'
-      preload         : NODE_REQUIRE
-      nodeIntegration : no
-
   # and load the index.html of the app.
   mainWindow.loadURL storage.get()['last-route'] or ROOT_URL
 
   mainWindow.webContents.on 'new-window', (e, url) ->
     e.preventDefault()
     shell.openExternal url
+
 
   # Emitted when the window is closed.
   mainWindow.on 'close', ->
