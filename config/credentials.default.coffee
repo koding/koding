@@ -184,7 +184,6 @@ module.exports = (options) ->
     userPublicKey: "$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pub"
     userPrivateKey: "$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pem"
   dummyAdmins = ['superadmin', 'admin', 'koding']
-
   druid =
     host : options.serviceHost
     port : 8090
