@@ -12,21 +12,19 @@ const (
 	CompanyColl = "jCompanies"
 )
 
-func CreateCompany(c *models.Company) error {
+func CreateCompany(c *models.Company) (*models.Company, error) {
 	if err := c.CheckValues(); err != nil {
-		return err
+		return nil, err
 	}
 
-	company := &models.Company{
-		Id:        bson.NewObjectId(),
-		Name:      c.Name,
-		Slug:      c.Slug,
-		Employees: c.Employees,
-		Domain:    c.Domain,
+	c.Id = bson.NewObjectId()
+
+	query := insertQuery(c)
+	if err := Mongo.Run(CompanyColl, query); err != nil {
+		return nil, err
 	}
 
-	query := insertQuery(company)
-	return Mongo.Run(CompanyColl, query)
+	return c, nil
 }
 
 func UpdateCompany(selector, update bson.M) error {
