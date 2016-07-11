@@ -11,7 +11,7 @@ type Request struct {
 }
 
 func Info(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
-	token := h.Get("Authorization")
+	// token := h.Get("Authorization")
 
 	//user:= Get User with token
 
