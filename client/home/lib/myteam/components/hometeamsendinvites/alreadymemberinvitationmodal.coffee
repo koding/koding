@@ -7,10 +7,10 @@ module.exports = class AlreadyMemberInvitationModal extends ContentModal
   constructor: (options = {}, data) ->
 
     options = _.assign {}, options,
-      title                   : 'Invites Already Sent'
-      overlay                 : yes
-      height                  : 'auto'
-      cssClass                : 'admin-invite-confirm-modal content-modal'
+      title    : 'Invites Already Sent'
+      overlay  : yes
+      height   : 'auto'
+      cssClass : 'admin-invite-confirm-modal content-modal'
       buttons :
         OK :
           title: 'OK'
