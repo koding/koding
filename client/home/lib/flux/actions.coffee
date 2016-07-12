@@ -7,6 +7,8 @@ remote = require('app/remote').getInstance()
 { queryKites } = require 'app/providers/managed/helpers'
 { getters: EnvironmentGetters } = require 'app/flux/environment'
 
+kiteTimer = null
+
 markAsDone = (step) ->
   # set app state
   { reactor, mainController, appStorageController } = kd.singletons
@@ -76,6 +78,7 @@ checkFinishedSteps = ->
         mainController.emit 'AllWelcomeStepsNotDoneYet'
 
       return
+    return  if kiteTimer
 
     kiteTimer = kd.utils.repeat 30000, -> queryKites().then (result) ->
 
