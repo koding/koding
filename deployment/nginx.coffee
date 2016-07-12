@@ -247,8 +247,6 @@ module.exports.create = (KONFIG, environment)->
 
     #{createHealthcheck(KONFIG)}
 
-    add_header Access-Control-Allow-Origin #{KONFIG.hubspotPageURL} always;
-
     # start server
     server {
       # we should not timeout on proxy connections
