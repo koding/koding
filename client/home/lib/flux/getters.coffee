@@ -2,8 +2,11 @@ kd = require 'kd'
 welcomeStepsAll = [ 'WelcomeStepsStore' ]
 EnvironmentFlux = require 'app/flux/environment'
 
+teamHasStack = ->
+  kd.singletons.groupsController.getCurrentGroup().stackTemplates?.length
 
-isAdmin = -> kd.singletons.groupsController.canEditGroup()
+isAdmin = ->
+  kd.singletons.groupsController.canEditGroup()
 
 
 welcomeStepsByRole = [
@@ -22,10 +25,11 @@ welcomeSteps = [
   welcomeStepsByRole
   (stacks, steps) ->
 
+    if teamHasStack()
+      steps = steps.delete 'pendingStack'
     if stacks.size and status = stacks.first()?.getIn ['status', 'state']
-      if status isnt 'NotInitialized'
-        steps = steps.delete 'pendingStack'
-        steps = steps.delete 'stackCreation'  unless isAdmin()
+      if status isnt 'NotInitialized' and not isAdmin()
+        steps = steps.delete 'stackCreation'
     else
         steps = steps.delete 'buildStack'
 
