@@ -18,7 +18,7 @@ module.exports = class IntercomIntegrationContainer extends React.Component
 
   componentDidMount: ->
 
-    defaultValue = @state.team?.getIn (['customize', 'intercomId'])
+    defaultValue = @state.team?.getIn (['customize', 'intercomAppId'])
     defaultValue = ''  unless defaultValue
 
     @setState { defaultValue }
@@ -29,8 +29,8 @@ module.exports = class IntercomIntegrationContainer extends React.Component
     value = @state.defaultValue
 
     dataToUpdate = if @state.team.get('customize')
-    then { 'customize.intercomId' : value }
-    else { customize : { intercomId : value } }
+    then { 'customize.intercomAppId' : value }
+    else { customize : { intercomAppId : value } }
 
     TeamFlux.actions.updateTeam(dataToUpdate).then ({ message }) ->
 

@@ -5,8 +5,8 @@ fetchIntercomKey       = require 'app/util/fetchIntercomKey'
 
 module.exports = setupIntercom = ->
 
-  fetchIntercomKey (intercomId) ->
-    return  unless intercomId
+  fetchIntercomKey (intercomAppId) ->
+    return  unless intercomAppId
 
     w  = window
     ic = w.Intercom
@@ -20,18 +20,18 @@ module.exports = setupIntercom = ->
       i.q = []
       i.c = (args) -> i.q.push args
       w.Intercom = i
-      w.intercomSettings = { app_id : intercomId }
+      w.intercomSettings = { app_id : intercomAppId }
 
       s = d.createElement 'script'
       s.type  = 'text/javascript'
       s.async = yes
-      s.src = "https://widget.intercom.io/widget/#{intercomId}"
+      s.src = "https://widget.intercom.io/widget/#{intercomAppId}"
       x = d.getElementsByTagName('script')[0]
       x.parentNode.insertBefore s, x
 
       account = whoami()
       account.fetchEmail (err, email) ->
         window.Intercom 'boot',
-          app_id : intercomId
+          app_id : intercomAppId
           name   : getFullnameFromAccount account
           email  : email
