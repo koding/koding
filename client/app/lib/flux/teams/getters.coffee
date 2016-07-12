@@ -15,6 +15,8 @@ teamInvitations = ['TeamInvitationStore']
 disabledUsers = ['TeamDisabledMembersStore']
 allUsersLoaded = ['TeamAllUsersLoadedStore']
 
+focusFirstEmail = ['TeamSendInvitesFocusStore']
+
 pendingInvitations = [
   teamInvitations
   (invitations) ->
@@ -161,4 +163,5 @@ module.exports = {
   filteredMembersWithRoleAndDisabledUsers
   adminsList
   allUsersLoaded
+  focusFirstEmail
 }

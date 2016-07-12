@@ -302,6 +302,13 @@ leaveTeam = (partial) ->
             kookies.expire 'clientId'
             global.location.replace '/'
 
+focusSendInvites = (focus) ->
+
+  { reactor } = kd.singletons
+
+  console.log { focus }
+
+  reactor.dispatch actions.FOCUS_SEND_INVITES_SECTION, focus
 
 
 module.exports = {
@@ -322,4 +329,5 @@ module.exports = {
   loadDisabledUsers
   handleDisabledUser
   handlePermanentlyDeleteMember
+  focusSendInvites
 }
