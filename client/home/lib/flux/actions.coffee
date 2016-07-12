@@ -71,13 +71,11 @@ checkFinishedSteps = ->
   queryKites().then (result) ->
 
     if result?.length
+      return markAsDone 'installKd'
 
-      markAsDone 'installKd'
+    unless reactor.evaluate HomeGetters.areStepsFinished
+      mainController.emit 'AllWelcomeStepsNotDoneYet'
 
-      unless reactor.evaluate HomeGetters.areStepsFinished
-        mainController.emit 'AllWelcomeStepsNotDoneYet'
-
-      return
     return  if kiteTimer
 
     kiteTimer = kd.utils.repeat 30000, -> queryKites().then (result) ->
