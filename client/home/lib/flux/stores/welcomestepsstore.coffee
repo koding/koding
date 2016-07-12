@@ -1,6 +1,7 @@
 actions = require '../actiontypes'
 toImmutable = require 'app/util/toImmutable'
 KodingFluxStore = require 'app/flux/base/store'
+i18n = require 'i18next'
 
 module.exports = class WelcomeStepsStore extends KodingFluxStore
 
@@ -13,10 +14,10 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
       admin :
         stackCreation :
           path: '/Stack-Editor'
-          title: 'Create a Stack for Your Team'
-          actionTitle: 'Create'
-          miniTitle: 'Create a Stack'
-          description: 'Create a blueprint for your team’s entire infrastructure.'
+          title: i18n.t 'Create a Stack for Your Team'
+          actionTitle: i18n.t 'welcome: Create'
+          miniTitle: i18n.t 'Create a Stack'
+          description: i18n.t 'Create a blueprint for your team’s entire infrastructure'
           isDone: no
           order: 1
           skippable: no
