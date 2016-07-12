@@ -24,6 +24,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       pendingInvitations: TeamFlux.getters.pendingInvitations
       newInvitations: TeamFlux.getters.newInvitations
       resendInvitations: TeamFlux.getters.resendInvitations
+      focusFirstEmail: TeamFlux.getters.focusFirstEmail
     }
 
 
@@ -31,6 +32,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
     canEdit = kd.singletons.groupsController.canEditGroup()
     TeamFlux.actions.updateInvitationInputValue 0, 'canEdit', yes  if canEdit
+    document.querySelector('.user-email.focus-first-email').focus()  if @state.focusFirstEmail
 
 
   onUploadCsv: ->
@@ -176,8 +178,10 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
   render: ->
 
     canEdit = kd.singletons.groupsController.canEditGroup()
+
     <View
       canEdit={canEdit}
+      focusFirstEmail={@state.focusFirstEmail}
       inputValues={@state.inputValues}
       onUploadCsv={@bound 'onUploadCsv'}
       onInputChange={@bound 'onInputChange'}
