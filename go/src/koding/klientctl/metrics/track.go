@@ -11,6 +11,18 @@ func TrackInstall(version int) error {
 	return sendMetric(mc)
 }
 
+func TrackInstallFailed(errStr string, version int) error {
+	mc := &Metric{
+		Name: EventInstallFailed,
+		Properties: map[string]interface{}{
+			"version": version,
+			"err":     errStr,
+		},
+	}
+
+	return sendMetric(mc)
+}
+
 func TrackMount(machine, mountPath string, opts map[string]interface{}) error {
 	// don't track user owned info info like mountPath
 	opts["machine"] = machine

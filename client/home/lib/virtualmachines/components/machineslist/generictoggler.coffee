@@ -24,15 +24,34 @@ module.exports = class GenericToggler extends React.Component
 
   render: ->
 
+    { button, machineState } = @props
+
+    toggleClassName = 'GenericToggler-toggle'
+    buttonClassName = 'GenericToggler-button hidden'
+    topClassName = 'GenericToggler-top'
+
+    if button
+      buttonClassName = 'GenericToggler-button'
+      toggleClassName = 'GenericToggler-toggle hidden'
+      topClassName = 'GenericToggler-top button'
+
+    unless machineState
+      buttonClassName = "#{buttonClassName} disabled"
+
     <div className={kd.utils.curry @props.className, 'GenericToggler'}>
-      <div className="GenericToggler-top">
+      <div className={topClassName}>
         <div className='pull-left'>
           <div className='GenericToggler-title'>{@props.title}</div>
           <div className='GenericToggler-description'>{@props.description}</div>
         </div>
         <div className='pull-right'>
-          <div className='GenericToggler-toggle'>
+          <div className={toggleClassName}>
             <Toggle ref='toggle' callback={@props.onToggle} checked={@props.checked} disabled={@props.disabled} />
+          </div>
+          <div className={buttonClassName}>
+            <a className='custom-link-view HomeAppView--button primary fr' href='#' onClick={@props.onClickButton}>
+              <span className='title'>{@props.buttonTitle}</span>
+            </a>
           </div>
         </div>
       </div>

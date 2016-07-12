@@ -131,7 +131,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
       .then -> callback null
       .catch (err) ->
         kd.singletons.computeController.ui.showComputeError
-          title   : 'An error occured while destroying resources'
+          title   : 'An error occurred while destroying resources'
           message : "
             Some errors occurred while destroying resources that are created
             with this credential.

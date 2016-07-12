@@ -297,7 +297,7 @@ func main() {
 					Usage: "Specify an alternate Kontrol",
 				},
 			},
-			Action: ctlcli.ExitAction(InstallCommandFactory, log, "install"),
+			Action: ctlcli.ExitErrAction(InstallCommandFactory, log, "install"),
 		},
 		cli.Command{
 			Name:     "metrics",

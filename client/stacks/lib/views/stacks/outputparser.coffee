@@ -30,7 +30,7 @@ module.exports = outputParser =
     for errorString, niceMessage of HANDLED_ERRORS
       if content.indexOf(errorString) > -1
         modal = new kd.ModalView
-          title          : 'An error occured'
+          title          : 'An error occurred'
           content        : "#{niceMessage} <br/><br/> You can see more detailed error message in stack build output."
           overlay        : yes
           overlayOptions :

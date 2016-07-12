@@ -34,6 +34,10 @@ func init() {
 	if err != nil {
 		panic(fmt.Sprintf("kite: cannot get hostname: %s", err.Error()))
 	}
+
+	jwt.TimeFunc = func() time.Time {
+		return time.Now().UTC()
+	}
 }
 
 // Kite defines a single process that enables distributed service messaging
@@ -343,6 +347,25 @@ func (k *Kite) updateAuth(reg *protocol.RegisterResult) {
 	k.configMu.Lock()
 	defer k.configMu.Unlock()
 
+	switch {
+	case reg.KiteKey != "":
+		k.Config.KiteKey = reg.KiteKey
+
+		ex := &kitekey.Extractor{
+			Claims: &kitekey.KiteClaims{},
+		}
+
+		if _, err := jwt.ParseWithClaims(reg.KiteKey, ex.Claims, ex.Extract); err != nil {
+			k.Log.Error("auth update: unable to extract kontrol key: %s", err)
+
+			break
+		}
+
+		if ex.Claims.KontrolKey != "" {
+			reg.PublicKey = ex.Claims.KontrolKey
+		}
+	}
+
 	// we also received a new public key (means the old one was invalidated).
 	// Use it now.
 	if reg.PublicKey != "" {
@@ -350,16 +373,12 @@ func (k *Kite) updateAuth(reg *protocol.RegisterResult) {
 
 		key, err := jwt.ParseRSAPublicKeyFromPEM([]byte(reg.PublicKey))
 		if err != nil {
-			k.Log.Error("unable to update kontrol key: %s", err)
+			k.Log.Error("auth update: unable to update kontrol key: %s", err)
 
 			return
 		}
 
 		k.kontrolKey = key
-	}
-
-	if reg.KiteKey != "" {
-		k.Config.KiteKey = reg.KiteKey
 	}
 }
 

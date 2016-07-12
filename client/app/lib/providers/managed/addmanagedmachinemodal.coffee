@@ -6,6 +6,7 @@ KodingKontrol   = require 'app/kite/kodingkontrol'
 isTeamReactSide = require 'app/util/isTeamReactSide'
 CopyTooltipView = require 'app/components/common/copytooltipview'
 ContentModal = require 'app/components/contentModal'
+copyToClipboard = require 'app/util/copyToClipboard'
 
 module.exports = class AddManagedMachineModal extends ContentModal
 
@@ -99,23 +100,18 @@ module.exports = class AddManagedMachineModal extends ContentModal
 
     @loader.destroy()
 
-    inputWrapper = new kd.View
+    @inputWrapper = new kd.View
 
-    inputWrapper.addSubView @input = new kd.InputView
+    @inputWrapper.addSubView @input = new kd.InputView
       defaultValue : cmd
-      click        : =>
-        @showTooltip()
-        @input.selectAll()
+      click        : => @copyCode()
 
-    inputWrapper.addSubView @selectButton = new kd.CustomHTMLView
+    @code.addSubView new kd.CustomHTMLView
       cssClass : 'select-all'
-      partial  : '<span></span>SELECT'
-      click    : =>
-        @showTooltip()
-        @input.selectAll()
+      partial  : '<span></span>COPY'
+      click    : => @copyCode()
 
-    @code.addSubView @copyTooltipView = new CopyTooltipView
-      childView  : inputWrapper
+    @code.addSubView @inputWrapper
 
     { computeController } = kd.singletons
     computeController.managedKiteChecker.addListener @bound 'machineFoundCallback'
@@ -127,6 +123,12 @@ module.exports = class AddManagedMachineModal extends ContentModal
         size: { width: 26 }
 
       @setClass 'polling'
+
+  copyCode: ->
+
+    @input.selectAll()
+
+    copyToClipboard @inputWrapper.getElement()
 
 
   showTooltip: ->
@@ -181,8 +183,6 @@ module.exports = class AddManagedMachineModal extends ContentModal
 
 
   destroy: ->
-
-    @copyTooltipView?.unsetTooltip()
 
     super
 

@@ -10,6 +10,7 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/stackplan"
 
+	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"golang.org/x/net/context"
@@ -22,6 +23,16 @@ type BaseStack struct {
 	Req     *kite.Request
 	Builder *stackplan.Builder
 	Session *session.Session
+
+	// Resource callbacks - called during building stack definition
+	// for apply operations.
+	//
+	// TODO(rjeczalik): Create stackplan.ResourceBuilder interface and move all
+	// provider/* to stackplan.Builder in order to support multiple providers
+	// per stack.
+	BuildResources  func() error
+	WaitResources   func(context.Context) error
+	UpdateResources func(*terraform.State) error
 
 	// Keys and Eventer may be nil, it depends on the context used
 	// to initialize the Stack.
