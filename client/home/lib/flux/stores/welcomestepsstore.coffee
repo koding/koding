@@ -37,7 +37,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           isDone: no
           order: 3
         inviteTeam :
-          path: '/Home/My-Team'
+          path: '/Home/My-Team/send-invites'
           title: 'Invite Your Team'
           actionTitle: 'Invite'
           videoLink: ''
