@@ -25,23 +25,25 @@ module.exports = class CredentialForm extends JView
       partial  : title
     @header.hide()  if hideTitle
 
-    selectOptions   = items.map (item) -> { value : item.identifier, title : item.title }
+    selectOptions = items.map (item) -> { value : item.identifier, title : item.title }
     selectOptions.unshift { value : '', title : selectionPlaceholder }
-    hasSelectedItem = (item for item in items when item.identifier is selectedItem).length > 0
-    defaultValue    = if hasSelectedItem then selectedItem else ''
+    defaultValue = selectedItem ? ''
     @selectionLabel = new kd.LabelView { title : selectionLabel }
-    @selection      = new kd.SelectBox {
+    @selection = new kd.SelectBox {
       selectOptions
       defaultValue
       label : @selectionLabel
-      callback : @bound 'checkShowLinkVisibility'
+      callback : (selection) =>
+        if selection
+        then @showLink.show()
+        else @showLink.hide()
     }
 
     { ui } = kd.singletons.computeController
 
     @showLink  = new kd.CustomHTMLView
       tagName  : 'a'
-      cssClass : 'show-link'
+      cssClass : "show-link #{unless selectedItem then 'hidden' else ''}"
       click    : =>
 
         selectedItem = @selection.getValue()
@@ -56,8 +58,6 @@ module.exports = class CredentialForm extends JView
           }, @showLink.lazyBound 'unsetClass', 'loading'
 
           break
-
-    @checkShowLinkVisibility()
 
     @createNew = new kd.CustomHTMLView
       tagName  : 'a'
@@ -90,22 +90,6 @@ module.exports = class CredentialForm extends JView
       @unsetClass 'form-visible'
     else
       @setClass 'form-visible'
-
-
-  checkShowLinkVisibility: ->
-
-    { items } = @getData()
-    selectedItem = @selection.getValue()
-
-    return @showLink.hide()  unless selectedItem
-
-    isLocked = (
-      item for item in items when item.identifier is selectedItem and item.isLocked
-    ).length > 0
-
-    if isLocked
-    then @showLink.hide()
-    else @showLink.show()
 
 
   getScrollableContent: -> @form
