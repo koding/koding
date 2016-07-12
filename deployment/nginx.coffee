@@ -1,6 +1,8 @@
 fs                     = require 'fs'
 { isAllowed, isProxy } = require './grouptoenvmapping'
 
+_ = require 'lodash'
+
 createUpstreams = (KONFIG) ->
 
   upstreams = "# add global upstreams\n"
@@ -34,11 +36,12 @@ allowInternal = """
         deny                  all;
 """
 
-createWebLocation = ({name, locationConf}) ->
+createWebLocation = ({name, locationConf, cors}) ->
   { location, proxyPass, internalOnly, auth, extraParams } = locationConf
     # 3 tabs are just for style
   extraParamsStr = extraParams?.join("\n\t\t\t") or ""
   host = locationConf.host or "$host"
+
   return """\n
       location #{location} {
         proxy_pass            #{proxyPass};
@@ -54,6 +57,7 @@ createWebLocation = ({name, locationConf}) ->
         # proxy should connect in 1 second
         proxy_connect_timeout 1;
 
+        #{if cors then cors else ''}
         #{if internalOnly then allowInternal else ''}
         #{if auth then basicAuth else ''}
         #{extraParamsStr}
@@ -121,7 +125,14 @@ createLocations = (KONFIG) ->
       else
         auth = options.nginx.auth
 
-      locations += fn {name, locationConf: location, auth}
+      if location.cors
+        cors = """
+        if ($http_origin ~* (.*\.)*#{_.escapeRegExp KONFIG.domains.main}) {
+                add_header Access-Control-Allow-Origin $http_origin always;
+              }
+        """
+
+      locations += fn {name, locationConf: location, auth, cors}
 
   return locations
 
