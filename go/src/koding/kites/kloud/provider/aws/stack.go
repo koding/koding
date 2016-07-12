@@ -184,6 +184,12 @@ type Stack struct {
 
 	p *stackplan.Planner
 	m *MigrateProvider
+
+	// The following fields are set by buildResources method:
+	ids        stackplan.KiteMap
+	urls       map[string]string
+	region     string
+	credential string
 }
 
 // Ensure Provider implements the kloud.StackProvider interface.
@@ -191,7 +197,8 @@ type Stack struct {
 // StackProvider is an interface for team kloud API.
 var _ kloud.StackProvider = (*Provider)(nil)
 
-// Stack
+// Stack gives a kloud.Stacker value that implements stack
+// methods for the AWS cloud.
 func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 	bs, err := p.BaseStack(ctx)
 	if err != nil {
@@ -205,6 +212,10 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 			ResourceType: "instance",
 		},
 	}
+
+	bs.BuildResources = s.buildResources
+	bs.WaitResources = s.waitResources
+	bs.UpdateResources = s.updateResources
 
 	if p.Koding != nil {
 		s.m = &MigrateProvider{

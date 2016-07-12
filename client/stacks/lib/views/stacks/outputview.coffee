@@ -86,7 +86,7 @@ module.exports = class OutputView extends kd.ScrollView
     return this
 
 
-  handleError: (err, prefix = 'An error occured:') ->
+  handleError: (err, prefix = 'An error occurred:') ->
     return no  unless err
 
     kd.warn '[outputView]', err

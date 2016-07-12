@@ -45,6 +45,10 @@ type Helper func(io.Writer)
 // ExitingCommand is a function that returns an exit code
 type ExitingCommand func(*cli.Context, logging.Logger, string) int
 
+// ExitingErrCommand is a function that returns an exit code and an error. Behavior
+// is the same as ExitingCommand, but it also supports an error return.
+type ExitingErrCommand func(*cli.Context, logging.Logger, string) (int, error)
+
 // CommandFactory returns a struct implementing the Command interface.
 type CommandFactory func(*cli.Context, logging.Logger, string) Command
 
@@ -62,10 +66,19 @@ func CommandHelper(ctx *cli.Context, cmd string) Helper {
 	}
 }
 
-// ExitAction implements a cli.Command's Action field.
+// ExitAction implements a cli.Command's Action field for an ExitingCommand type.
 func ExitAction(f ExitingCommand, log logging.Logger, cmdName string) func(*cli.Context) {
 	return func(c *cli.Context) {
 		os.Exit(f(c, log, cmdName))
+	}
+}
+
+// ExitErrAction implements a cli.Command's Action field for an ExitingErrCommand
+func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) func(*cli.Context) {
+	return func(c *cli.Context) {
+		exit, err := f(c, log, cmdName)
+		log.Error("ExitErrAction encountered error. err:%s", err)
+		os.Exit(exit)
 	}
 }
 

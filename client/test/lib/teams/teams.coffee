@@ -1,41 +1,47 @@
 utils        = require '../utils/utils.js'
 helpers      = require '../helpers/helpers.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
+user         = utils.getUser()
+createLink   = "#{helpers.getUrl()}/Teams/Create"
+inviteLink   = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
 
 
 module.exports =
 
+  # Team Creation
+  createTeamWithInvalidEmail: (browser) ->
+    teamsHelpers.createTeam(browser, user, '', 'InvalidEmail')
 
-  createTeam: (browser) ->
+  createTeamWithInvalidTeamUrl: (browser) ->
+    teamsHelpers.createTeam(browser, user, '' , 'InvalidTeamUrl')
 
-    user       = utils.getUser(yes)
-    inviteLink = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
+  createTeamWithAlreadyUsedTeamUrl: (browser) ->
+    teamsHelpers.createTeam(browser, user, '' , 'AlreadyUsedTeamUrl')
 
+  # Create Account Steps in Team Creation
+  createAccountWithInvalidUserName: (browser) ->
+    user         = utils.getUser(yes)
+    teamsHelpers.createTeam(browser, user, '' , 'InvalidUserName')
+
+  createAccountWithShortPassword: (browser) ->
+    user = utils.getUser(yes)
+    teamsHelpers.createTeam(browser, user, '' , 'ShortPassword')
+
+  createAccountAlreadyRegisteredUserName: (browser) ->
     teamsHelpers.createTeam(browser, user, inviteLink)
-    browser.end()
+    teamsHelpers.createTeam(browser, user, createLink, 'AlreadyRegisteredUserName')
 
+  signInWithNotAllowedEmail: (browser) ->
+    teamsHelpers.loginTeam(browser, user, yes , 'NotAllowedEmail')
 
-  createTeamWithInvalidCredentials: (browser) ->
+  signInWithInvalidUsername: (browser) ->
+    teamsHelpers.loginTeam(browser, user, yes, 'InvalidUserName')
 
-    user       = utils.getUser(yes)
-    inviteLink = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
-
-    teamsHelpers.createTeam(browser, user, inviteLink, yes)
-    browser.end()
-
-
-  useAlreadyRegisteredUserName: (browser) ->
-
-    user        = utils.getUser(yes)
-    createLink  = "#{helpers.getUrl()}/Teams/Create"
-    inviteLink  = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
-
-    teamsHelpers.createTeam(browser, user, inviteLink)
-    teamsHelpers.createTeam(browser, user, createLink)
-    browser.end()
-
+  signInWithInvalidPassword: (browser) ->
+    teamsHelpers.loginTeam(browser, user, yes, 'InvalidPassword')
 
   loginTeam: (browser) ->
+    teamsHelpers.loginTeam(browser, user, no)
 
-    teamsHelpers.loginTeam(browser)
+  after: (browser) ->
     browser.end()

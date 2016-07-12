@@ -98,7 +98,7 @@ module.exports = (req, res, next) ->
         candidateUsername = email.split('@')[0]
         index = 1
 
-        generateUsername = ->
+        do generateUsername = ->
           _username = "#{candidateUsername}#{index++ or ''}"
 
           # fetch user with a candidate username

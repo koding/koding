@@ -260,7 +260,7 @@ handleDisabledUser = (member) ->
         fetchMembersRole members
         reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
-  .catch (err) -> 'error occured while unblocking member'
+  .catch (err) -> 'error occurred while unblocking member'
 
 
 handlePermanentlyDeleteMember = (member) ->
