@@ -94,12 +94,6 @@ func (db *mongoStore) Put(_ string, creds map[string]interface{}) error {
 		}
 
 		if e := modelhelper.UpdateCredentialData(ident, op); e != nil {
-			if e == mgo.ErrNotFound {
-				e = &NotFoundError{
-					Identifiers: []string{ident},
-				}
-			}
-
 			err = multierror.Append(err, e)
 		}
 	}
