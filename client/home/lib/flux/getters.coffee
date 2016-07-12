@@ -27,10 +27,13 @@ welcomeSteps = [
 
     if teamHasStack()
       steps = steps.delete 'pendingStack'
+      steps = steps.setIn ['stackCreation', 'isDone'], yes  if isAdmin()
+
     if stacks.size and status = stacks.first()?.getIn ['status', 'state']
       if status isnt 'NotInitialized' and not isAdmin()
         steps = steps.delete 'stackCreation'
     else
+      if kd.singletons.computeController.readyState
         steps = steps.delete 'buildStack'
 
     return steps.sortBy (a) -> a.get('order')
