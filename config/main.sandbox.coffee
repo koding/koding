@@ -103,6 +103,7 @@ Configuration = (options = {}) ->
           {
             location    : "/"
             auth        : yes
+            cors        : on
           }
         ]
     socialworker        :
