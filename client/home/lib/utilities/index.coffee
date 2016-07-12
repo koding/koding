@@ -1,12 +1,13 @@
-kd                            = require 'kd'
-os                            = require 'os'
-sectionize                    = require '../commons/sectionize'
-headerize                     = require '../commons/headerize'
-HomeUtilitiesKD               = require './homeutilitieskd'
-HomeUtilitiesTryOnKoding      = require './homeutilitiestryonkoding'
-HomeUtilitiesDesktopApp       = require './homeutilitiesdesktopapp'
-HomeUtilitiesCustomerFeedback = require './homeutilitiescustomerfeedback'
-TeamFlux                      = require 'app/flux/teams'
+kd                               = require 'kd'
+os                               = require 'os'
+sectionize                       = require '../commons/sectionize'
+headerize                        = require '../commons/headerize'
+HomeUtilitiesKD                  = require './homeutilitieskd'
+HomeUtilitiesTryOnKoding         = require './homeutilitiestryonkoding'
+HomeUtilitiesDesktopApp          = require './homeutilitiesdesktopapp'
+HomeUtilitiesCustomerFeedback    = require './homeutilitiescustomerfeedback'
+HomeUtilitiesIntercomIntegration = require './homeutilitiesintercomintegration'
+TeamFlux                         = require 'app/flux/teams'
 
 
 module.exports = class HomeUtilities extends kd.CustomScrollView
@@ -40,3 +41,4 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
     if canEdit
         @wrapper.addSubView headerize  'Integrations'
         @wrapper.addSubView sectionize 'Customer Feedback', HomeUtilitiesCustomerFeedback
+        @wrapper.addSubView sectionize 'Intercom Integration', HomeUtilitiesIntercomIntegration
