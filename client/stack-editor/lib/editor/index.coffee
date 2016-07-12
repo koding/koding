@@ -320,13 +320,7 @@ module.exports = class StackEditorView extends kd.View
       cssClass       : 'GenericButton hidden set-default'
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
-        createShareModal (needShare, modal) =>
-          @once 'Completed', =>
-            if needShare
-              @shareCredentials -> modal.destroy()
-            else
-              modal.destroy()
-          @handleSetDefaultTemplate()
+        @handleSetDefaultTemplate()
 
     @buttons.addSubView @generateStackButton = new kd.ButtonView
       title          : 'INITIALIZE'
@@ -469,15 +463,15 @@ module.exports = class StackEditorView extends kd.View
         if canEditGroup
           # admin is editing a team stack
           if stackTemplate.isDefault
-            @handleSetDefaultTemplate completed = no
-            @outputView.addAndWarn '''
-              Your stack script has been successfully saved and all your new team
-              members now will see this stack by default. Existing users
-              of the previous default-stack will be notified that default-stack has
-              changed.
+            @_handleSetDefaultTemplate =>
+              @outputView.add '''
+                Your stack script has been successfully saved and all your new team
+                members now will see this stack by default. Existing users
+                of the previous default-stack will be notified that default-stack has
+                changed.
 
-              You can now close this window or continue working with your stack.
-            '''
+                You can now close this window or continue working with your stack.
+              '''
           # admin is editing a private stack
           else
             @afterProcessTemplate 'maketeamdefault'
@@ -495,15 +489,15 @@ module.exports = class StackEditorView extends kd.View
             @afterProcessTemplate 'initialize'
             computeController.checkGroupStacks()
           else
-            @handleSetDefaultTemplate completed = no
-            @outputView.addAndWarn '''
-              Your stack script has been successfully saved and all your new team
-              members now will see this stack by default. Existing users
-              of the previous default-stack will be notified that default-stack has
-              changed.
+            @handleSetDefaultTemplate =>
+              @outputView.add '''
+                Your stack script has been successfully saved and all your new team
+                members now will see this stack by default. Existing users
+                of the previous default-stack will be notified that default-stack has
+                changed.
 
-              You can now close this window or continue working with your stack.
-            '''
+                You can now close this window or continue working with your stack.
+              '''
             computeController.checkGroupStacks()
         # member is creating a new stack
         else
@@ -803,7 +797,19 @@ module.exports = class StackEditorView extends kd.View
       @emit 'Reload'
 
 
-  handleSetDefaultTemplate: (completed = yes) ->
+  handleSetDefaultTemplate: (callback = kd.noop) ->
+
+    createShareModal (needShare, modal) =>
+      @_handleSetDefaultTemplate (stackTemplate) =>
+
+        if needShare
+        then @shareCredentials -> modal.destroy()
+        else modal.destroy()
+
+        callback stackTemplate
+
+
+  _handleSetDefaultTemplate: (callback = kd.noop) ->
 
     { stackTemplate }    = @getData()
     { groupsController, reactor } = kd.singletons
@@ -831,7 +837,7 @@ module.exports = class StackEditorView extends kd.View
       stackTemplate.isDefault = yes
 
       @emit 'Reload'
-      @emit 'Completed', stackTemplate  if completed
+      callback stackTemplate
 
 
   deleteStack: ->
