@@ -46,12 +46,7 @@ module.exports = class CredentialsPageView extends JView
   createCredentialView: ->
 
     { credentials } = @getData()
-    { provider, items, sharedCredential } = credentials
-
-    if sharedCredential
-      sharedCredential.title = 'Use default credential'
-      sharedCredential.isLocked = yes
-      items.unshift sharedCredential
+    { provider } = credentials
 
     options = helpers.getFormOptions provider
     if @requirementsForm.hasClass 'hidden'

@@ -91,11 +91,20 @@ func (opts *StoreOptions) new(logName string) *StoreOptions {
 
 // NewStore gives new credential store for the given options.
 //
-// The returned Store keeps all credentials encrypted in Sneaker.
+// The returned fetcher tries to fetch credential datas from sneaker,
+// for each missing credential it fallbacks to Mongo and on each
+// successful fetch from Mongo it updates the credential data back
+// on sneaker.
 func NewStore(opts *StoreOptions) Store {
-	return &socialStore{
+	mongo := &mongoStore{
+		StoreOptions: opts.new("mongo"),
+	}
+
+	social := &socialStore{
 		StoreOptions: opts.new("social"),
 	}
+
+	return MigratingStore(mongo, social)
 }
 
 // MigratingStore creates a Store that on Fetch tries to fetch
