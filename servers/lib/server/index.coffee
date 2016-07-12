@@ -79,6 +79,7 @@ app.all  '/-/unsubscribe/:token/:email'          , require './handlers/unsubscri
 app.post '/-/analytics/track'                    , require './handlers/analytics/track'
 app.post '/-/analytics/page'                     , require './handlers/analytics/page'
 
+app.get  '/-/i18n/:lang/:namespace?'          , require './handlers/i18n'
 app.get  '/-/my/permissionsAndRoles'             , require './handlers/myPermissionsAndRoles'
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
 app.get  '/-/auth/check/:key'                    , require './handlers/authkeycheck'
