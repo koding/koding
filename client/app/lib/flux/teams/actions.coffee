@@ -153,7 +153,6 @@ resendInvitations = ->
         .catch ({ title }) ->
           reject { title }
       else
-        newInvitations.size
         title  = "Invitation is resent to <strong>#{resendInvitations[0].get('email')}</strong>"
         title  = 'All invitations are resent.'  if resendInvitations.size > 1
         resolve { title }
