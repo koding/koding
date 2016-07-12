@@ -31,6 +31,18 @@ checkMigration = ->
     kd.singletons.reactor.dispatch actionTypes.MIGRATION_AVAILABLE
 
 
+queryForKd = ->
+
+  return  if kiteTimer
+
+  kiteTimer = kd.utils.repeat 30000, -> queryKites().then (result) ->
+
+    return  unless result?.length
+
+    kd.utils.killRepeat kiteTimer
+    markAsDone 'installKd'
+
+
 checkFinishedSteps = ->
 
   { appStorageController, groupsController
@@ -76,14 +88,8 @@ checkFinishedSteps = ->
     unless reactor.evaluate HomeGetters.areStepsFinished
       mainController.emit 'AllWelcomeStepsNotDoneYet'
 
-    return  if kiteTimer
+    queryForKd()
 
-    kiteTimer = kd.utils.repeat 30000, -> queryKites().then (result) ->
-
-      return  unless result?.length
-
-      kd.utils.killRepeat kiteTimer
-      markAsDone 'installKd'
 
 checkStacksForBuild = (stacks, unobserve) ->
 
