@@ -7,7 +7,8 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
   constructor: (options = {}, data) ->
 
     unless options.content
-      options.content = require '../defaulttemplate'
+      options.content     = (require '../defaulttemplate').yaml
+      options.contentType = 'yaml'
 
     super options, data
 

@@ -6,16 +6,16 @@ generateTemplateRawContent = require 'app/util/generateTemplateRawContent'
 module.exports = {
   title: generateStackTemplateTitle()
   description: '''
-    ##### Readme text for this stack template
+    ###### Stack Template Readme
 
-    You can write down a readme text for new users.
-    This text will be shown when they want to use this stack.
-    You can use markdown with the readme content.
+    You can write a readme for this stack template here.
+    It will be displayed whenever a user attempts to build this stack.
+    You can use markdown within the readme content.
 
   '''
 
-  template: defaultTemplate
-  rawContent: generateTemplateRawContent defaultTemplate
+  template: defaultTemplate.json
+  rawContent: defaultTemplate.yaml
   credentials: {}
   templateDetails: null
 }
