@@ -45,8 +45,9 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
           @form.tfcode.show()
           @form.tfcode.setFocus()
 
-    @form.button.unsetClass 'solid medium green'
-    @form.button.setClass 'TeamsModal-button TeamsModal-button--green'
+    ['button', 'gitlabButton'].forEach (button) =>
+      @form[button].unsetClass 'solid medium green'
+      @form[button].setClass 'TeamsModal-button TeamsModal-button--green TeamsModal-button--full'
 
     if location.search isnt '' and location.search.search('username=') > 0
       username = location.search.split('username=').last.replace(/\&.+/, '') # trim the rest params if any
