@@ -75,5 +75,8 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
     <div>{{> @password}}</div>
     <div>{{> @tfcode}}</div>
     <div>{{> @button}}</div>
-    <div>{{> @gitlabButton}}</div>
+    <div class='gitlab'>
+      <div class='or'><span>or</span></div>
+      {{> @gitlabButton}}
+    </div>
     '''

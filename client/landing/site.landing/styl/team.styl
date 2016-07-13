@@ -296,6 +296,41 @@ team.styl
   color                     white
   bg                        color #BDC3C7
 
+.TeamsModal-button--full
+  width                     100% !important
+
+.TeamsModal
+  .gitlab
+
+    > button.TeamsModal-button
+      margin-bottom         0 !important
+      background            #fff
+      border                1px solid #A8CEFF
+      color                 #999
+
+    div.or
+      position              relative
+      z-index               1
+      font-size             12px
+      color                 #999
+
+      &:before
+        border-top          1px solid #ddd
+        content             " "
+        margin              0 auto
+        right               0
+        bottom              0
+        width               100%
+        z-index             -1
+
+        abs                 50%, 0
+
+      > span
+        background          #fafafa
+        padding             0 5px
+        text-transform      uppercase
+
+
 .TeamsModal-linkButton
   color                     #929292
   font-size                 14px
