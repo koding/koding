@@ -106,7 +106,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     if resendInvitations?.size
       notifyPendingInvites resendInvitations, invitations
     else
-      sendInvitations invitations, alreadyMemberInvitations
+      sendInvitations invitations
 
 
   handleResendInvitations = (invitations) ->
