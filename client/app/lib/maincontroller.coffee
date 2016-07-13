@@ -221,6 +221,8 @@ module.exports = class MainController extends KDController
       wc = kd.singleton 'windowController'
       wc.clearUnloadListeners()
 
+      window.Intercom? 'shutdown'
+
       kd.utils.wait 1000, =>
         @swapAccount { replacementAccount: null }
         storage.setValue 'loggingOut', '1'
