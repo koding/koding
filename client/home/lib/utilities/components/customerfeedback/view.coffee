@@ -23,8 +23,8 @@ module.exports = class CustomerFeedBackView extends React.Component
         <InputArea value={@props.defaultValue} callback={@props.onInputAreaChange} />
         <SaveButton callback={@props.handleSaveButton} />
         <GuideButton callback={comingSoon} />
-      </filedset>
-    </p>
+      </fieldset>
+    </div>
 
 
 InputArea = ({ value, callback }) ->
