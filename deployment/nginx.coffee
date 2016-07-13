@@ -135,6 +135,8 @@ createLocations = (KONFIG) ->
                 add_header Access-Control-Allow-Origin $http_origin always;
               }
         """
+      else
+        cors = ''
 
       locations += fn {name, locationConf: location, auth, cors}
 
