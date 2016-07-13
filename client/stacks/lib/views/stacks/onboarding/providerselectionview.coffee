@@ -20,10 +20,7 @@ module.exports = class ProviderSelectionView extends JView
     providers        = [
       'aws', 'vagrant', 'azure', 'digitalocean', 'googlecloud', 'rackspace'
     ]
-    enabledProviders = ['aws']
-
-    if globals.config.environment isnt 'production' or checkFlag 'super-admin'
-      enabledProviders.push 'vagrant'
+    enabledProviders = ['aws', 'vagrant']
 
     @providers = new kd.CustomHTMLView { cssClass: 'providers box-wrapper clearfix' }
 
