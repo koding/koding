@@ -48,16 +48,19 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
 
     @button = new kd.ButtonView
       title       : 'SIGN IN'
-      style       : 'solid medium green'
+      style       : 'solid medium green koding'
+      icon        : 'koding'
+      loader      : yes
+      type        : 'submit'
       attributes  :
         testpath  : 'login-button'
-      type        : 'submit'
-      loader      : yes
 
     @gitlabButton = new kd.ButtonView
-      title       : 'GITLAB LOGIN'
-      style       : 'solid medium green'
-      loader      : yes
+      title       : 'SIGN IN WITH GITLAB'
+      style       : 'solid medium green gitlab'
+      icon        : 'gitlab'
+      loader      :
+        color     : '#48BA7D'
       callback    : ->
         kd.singletons.oauthController.redirectToOauth { provider: 'gitlab' }
 
