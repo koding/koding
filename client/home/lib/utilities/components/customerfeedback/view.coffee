@@ -22,7 +22,7 @@ module.exports = class CustomerFeedBackView extends React.Component
         <label>Chatlio.com <code className='HomeAppView--code'>data-widget-id</code></label>
         <InputArea value={@props.defaultValue} callback={@props.onInputAreaChange} />
         <SaveButton callback={@props.handleSaveButton} />
-        <GuideButton callback={comingSoon}/>
+        <GuideButton callback={comingSoon} />
       </filedset>
     </p>
 
@@ -48,7 +48,7 @@ GuideButton = ({ callback }) ->
     <span className="title">VIEW GUIDE</span>
   </a>
 
- comingSoon = ->
+comingSoon = ->
 
   return new kd.NotificationView
     title    : 'Coming Soon!'
