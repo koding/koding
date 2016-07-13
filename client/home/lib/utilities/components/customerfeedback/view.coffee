@@ -6,7 +6,7 @@ module.exports = class CustomerFeedBackView extends React.Component
 
   render: ->
 
-    <p>
+    <div className='HomeAppView--sectionWrapper'>
       <strong>Chatlio</strong>
       Enable Chatlio.com for real-time customer feedback
       <span className='separator'></span>
@@ -24,7 +24,7 @@ module.exports = class CustomerFeedBackView extends React.Component
         <SaveButton callback={@props.handleSaveButton} />
         <GuideButton />
       </fieldset>
-    </p>
+    </div>
 
 
 InputArea = ({ value, callback }) ->

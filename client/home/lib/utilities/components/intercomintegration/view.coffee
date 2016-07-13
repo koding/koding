@@ -6,7 +6,7 @@ module.exports = class IntercomIntegrationView extends React.Component
 
   render: ->
 
-    <p>
+    <div className='HomeAppView--sectionWrapper'>
       <strong>Intercom</strong>
       Enable Intercom.io for live chat, feedback, support and more.
       <span className='separator'></span>
@@ -19,7 +19,7 @@ module.exports = class IntercomIntegrationView extends React.Component
         Once you get your Intercom <code className='HomeAppView--code'>APP ID</code> and
         paste below, we will complete the integration for you.
       </cite>
-      <filedset>
+      <fieldset>
         <label>Intercom.io <code className='HomeAppView--code'>APP ID</code></label>
         <input
           type="text"
@@ -34,8 +34,8 @@ module.exports = class IntercomIntegrationView extends React.Component
             <span className="title">SAVE</span>
         </a>
         <GuideButton />
-      </filedset>
-    </p>
+      </fieldset>
+    </div>
 
 
 GuideButton = ->
