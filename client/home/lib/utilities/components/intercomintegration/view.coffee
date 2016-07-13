@@ -31,6 +31,13 @@ module.exports = class IntercomIntegrationView extends React.Component
           onClick={@props.onSave}>
             <span className="title">SAVE</span>
         </a>
-        <span className="clearfix" />
+        <GuideButton />
       </filedset>
     </p>
+
+
+GuideButton = ->
+
+  <a className="custom-link-view HomeAppView--button" href="https://www.koding.com/docs/intercom">
+    <span className="title">VIEW GUIDE</span>
+  </a>
