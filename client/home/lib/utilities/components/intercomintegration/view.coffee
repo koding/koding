@@ -7,15 +7,17 @@ module.exports = class IntercomIntegrationView extends React.Component
   render: ->
 
     <p>
-      <strong>Intercom Integration</strong>
-      Enable Intercom.io for live chat with your team
+      <strong>Intercom</strong>
+      Enable Intercom.io for live chat, feedback, support and more.
       <span className='separator'></span>
       <cite className='warning'>
+        It's a customer communication platform with a suite of integrated
+        products for every team—including sales, marketing, product, and support.
         For this integration you need to create an
         account at <a href='https://www.intercom.io' target='_blank'>intercom.io</a>.
         <br/><br/>
-        Once you get your Intercom <code className='HomeAppView--code'>APP ID</code>
-        and paste below, we will complete the integration for you.
+        Once you get your Intercom <code className='HomeAppView--code'>APP ID</code> and
+        paste below, we will complete the integration for you.
       </cite>
       <filedset>
         <label>Intercom.io <code className='HomeAppView--code'>APP ID</code></label>
