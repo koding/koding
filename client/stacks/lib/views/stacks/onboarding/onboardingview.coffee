@@ -132,7 +132,7 @@ module.exports = class OnboardingView extends JView
         @destroy()
         selectedProvider = @providerSelectionView.selected?.getOption 'provider'
         if selectedProvider?
-          options = { selectedProvider, template: { content: @stackTemplate } }
+          options = { selectedProvider }
         Tracker.track Tracker.STACKS_SKIP_SETUP
         @emit 'StackOnboardingCompleted', options
 

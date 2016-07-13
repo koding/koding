@@ -9,6 +9,7 @@ showError       = require 'app/util/showError'
 remote          = require('app/remote').getInstance()
 AdminInviteModalView = require './admininvitemodalview'
 ResendInvitationConfirmModal = require './resendinvitationconfirmmodal'
+AlreadyMemberInvitationsModal = require './alreadymemberinvitationmodal'
 isEmailValid = require 'app/util/isEmailValid'
 { actions : HomeActions } = require 'home/flux'
 
@@ -24,6 +25,8 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       pendingInvitations: TeamFlux.getters.pendingInvitations
       newInvitations: TeamFlux.getters.newInvitations
       resendInvitations: TeamFlux.getters.resendInvitations
+      focusFirstEmail: TeamFlux.getters.focusFirstEmail
+      alreadyMemberInvitations: TeamFlux.getters.alreadyMemberInvitations
     }
 
 
@@ -31,6 +34,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
     canEdit = kd.singletons.groupsController.canEditGroup()
     TeamFlux.actions.updateInvitationInputValue 0, 'canEdit', yes  if canEdit
+    document.querySelector('.user-email.focus-first-email').focus()  if @state.focusFirstEmail
 
 
   onUploadCsv: ->
@@ -56,6 +60,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     newInvitations = @state.newInvitations
     invitations = @state.invitations
     inputValues = @state.inputValues
+    alreadyMemberInvitations = @state.alreadyMemberInvitations
     ownEmail = kd.singletons.reactor.evaluate(['LoggedInUserEmailStore'])
     title = ''
     inputValues = inputValues.toArray()
@@ -75,7 +80,9 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
         duration : 5000
 
     if adminInvitations.size
-      notifyAdminInvites newInvitations, adminInvitations, resendInvitations
+      notifyAdminInvites newInvitations, adminInvitations, resendInvitations, alreadyMemberInvitations
+    else if alreadyMemberInvitations.size
+      notifyAlreadyMemberInvitations newInvitations, resendInvitations, alreadyMemberInvitations
     else
       handleInvitationRequest newInvitations, resendInvitations
 
@@ -94,7 +101,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
         duration : 5000
 
 
-  handleInvitationRequest = (invitations, resendInvitations) =>
+  handleInvitationRequest = (invitations, resendInvitations) ->
 
     if resendInvitations?.size
       notifyPendingInvites resendInvitations, invitations
@@ -114,7 +121,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
         duration : 5000
 
 
-  notifyAdminInvites = (invitations, admins, resendInvitations) ->
+  notifyAdminInvites = (invitations, admins, resendInvitations, alreadyMemberInvitations) ->
 
     admins = admins
       .map (admin) ->
@@ -126,7 +133,10 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       admins: admins
       title : title
       success: ->
-        handleInvitationRequest invitations, resendInvitations
+        if alreadyMemberInvitations.size
+          notifyAlreadyMemberInvitations invitations, resendInvitations, alreadyMemberInvitations
+        else
+          handleInvitationRequest invitations, resendInvitations
         modal.destroy()
       cancel: ->
         modal.destroy()
@@ -172,12 +182,33 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
     return emails
 
+  notifyAlreadyMemberInvitations = (invitations, resendInvitations, alreadyMemberInvitations) ->
+
+    return handleInvitationRequest invitations, resendInvitations  unless alreadyMemberInvitations.size
+
+    alreadyMembers = alreadyMemberInvitations
+      .map (i) -> i.get 'email'
+      .toArray()
+
+    content = prepareEmailsText alreadyMemberInvitations.toArray()
+    content = "<p>#{content} is already a member of your team.</p>"  if alreadyMembers.length is 1
+    content = "<p>#{content} are already members of your team.</p>"  if alreadyMembers.length > 1
+    console.log {content}
+    modal = new AlreadyMemberInvitationsModal
+      alreadyMembers: alreadyMembers
+      content: content
+      success: ->
+        handleInvitationRequest invitations, resendInvitations
+        modal.destroy()
+
 
   render: ->
 
     canEdit = kd.singletons.groupsController.canEditGroup()
+
     <View
       canEdit={canEdit}
+      focusFirstEmail={@state.focusFirstEmail}
       inputValues={@state.inputValues}
       onUploadCsv={@bound 'onUploadCsv'}
       onInputChange={@bound 'onInputChange'}

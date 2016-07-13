@@ -46,3 +46,4 @@ module.exports = (KONFIG, credentials, options) ->
     contentRotatorUrl    : 'http://koding.github.io'
     uploadsUri           : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
+    intercomAppId        : credentials.intercomAppId
