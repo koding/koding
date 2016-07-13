@@ -24,7 +24,11 @@ createUpstreams = (KONFIG) ->
 
 
 basicAuth = """
-auth_basic            "Restricted";
+satisfy any;
+      allow   127.0.0.1/32;
+      deny    all;
+
+      auth_basic            "Restricted";
       auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;"""
 
 allowInternal = """
