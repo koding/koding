@@ -40,5 +40,5 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
 
     if canEdit
         @wrapper.addSubView headerize  'Integrations'
-        @wrapper.addSubView sectionize 'Customer Feedback', HomeUtilitiesCustomerFeedback
         @wrapper.addSubView sectionize 'Intercom Integration', HomeUtilitiesIntercomIntegration
+        @wrapper.addSubView sectionize 'Customer Feedback', HomeUtilitiesCustomerFeedback
