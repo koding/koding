@@ -1,7 +1,6 @@
 package tunnelproxy
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -14,7 +13,6 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/koding/kite"
-	"github.com/koding/kite/config"
 	"github.com/koding/logging"
 	"github.com/koding/tunnel"
 )
@@ -92,17 +90,7 @@ type ClientOptions struct {
 	Debug   bool           // whether to use debug logging
 	NoProxy bool           // whether to not start TLS proxy
 	Log     logging.Logger // overwrites logger used with custom one
-	Config  *config.Config // configures kite.Kite to connect to tunnelserver
-}
-
-// Valid validates the ClientOptions, returning non-nil error when
-// a required field has zero value.
-func (opts *ClientOptions) Valid() error {
-	if opts.Config == nil {
-		return errors.New("kite configuration is missing")
-	}
-
-	return nil
+	Kite    *kite.Kite     // configures kite.Kite to connect to tunnelserver
 }
 
 func (opts *ClientOptions) tunnelKiteURL() string {
@@ -147,24 +135,14 @@ type Client struct {
 
 // NewClient gives new, unstarted tunnel client for the given options.
 func NewClient(opts *ClientOptions) (*Client, error) {
-	if err := opts.Valid(); err != nil {
-		return nil, err
-	}
-
 	optsCopy := *opts
-	optsCopy.Config = opts.Config.Copy()
 
 	if optsCopy.Log == nil {
 		optsCopy.Log = logging.NewCustom("tunnelclient", optsCopy.Debug)
 	}
 
-	k := kite.New(ClientKiteName, ClientKiteVersion)
-	if optsCopy.Debug {
-		k.SetLogLevel(kite.DEBUG)
-	}
-
 	c := &Client{
-		kite:          k,
+		kite:          optsCopy.Kite,
 		opts:          &optsCopy,
 		tunnelKiteURL: optsCopy.tunnelKiteURL(),
 		stateChanges:  make(chan *tunnel.ClientStateChange, 128),
@@ -182,7 +160,6 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		}
 	}
 
-	c.kite.Config = c.opts.Config
 	c.kite.ClientFunc = httputil.ClientFunc(opts.Debug)
 
 	cfg := &tunnel.ClientConfig{
@@ -559,7 +536,7 @@ func (c *Client) connect() (*kite.Client, error) {
 	client := c.kite.NewClient(c.tunnelKiteURL)
 	client.Auth = &kite.Auth{
 		Type: "kiteKey",
-		Key:  c.opts.Config.KiteKey,
+		Key:  c.opts.Kite.Config.KiteKey,
 	}
 
 	if err := client.DialTimeout(c.opts.timeout()); err != nil {
