@@ -30,16 +30,16 @@ module.exports = [
     { name: 'dashboard myteam' }
     { name: 'dashboard credentials' }
     { name: 'dashboard utilities' }
-    # { name: 'dashboard welcome' }
+    { name: 'dashboard onboarding' }
+    { name: 'dashboard sidebar' }
+    { name: 'dashboard teambilling' }
   ]
 
   [
     { name: 'register' }
-    { name: 'login' }
-    { name: 'logout' }
     { name: 'unittests' }
-    # { name: 'account accountsettings' }
-    # { name: 'teams inviteteams' }
+    { name: 'dashboard myaccount' }
+    { name: 'teams teams' }
   ]
 
   [
