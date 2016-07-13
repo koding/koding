@@ -22,9 +22,9 @@ module.exports = class CustomerFeedBackView extends React.Component
         <label>Chatlio.com <code className='HomeAppView--code'>data-widget-id</code></label>
         <InputArea value={@props.defaultValue} callback={@props.onInputAreaChange} />
         <SaveButton callback={@props.handleSaveButton} />
-        <GuideButton />
-      </fieldset>
-    </div>
+        <GuideButton callback={comingSoon}/>
+      </filedset>
+    </p>
 
 
 InputArea = ({ value, callback }) ->
@@ -42,8 +42,14 @@ SaveButton = ({ callback }) ->
   </a>
 
 
-GuideButton = ->
+GuideButton = ({ callback }) ->
 
-  <a className="custom-link-view HomeAppView--button" href="https://www.koding.com/docs/chatlio">
+  <a className="custom-link-view HomeAppView--button" onClick={callback}>
     <span className="title">VIEW GUIDE</span>
   </a>
+
+ comingSoon = ->
+
+  return new kd.NotificationView
+    title    : 'Coming Soon!'
+    duration : 2000
