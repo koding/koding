@@ -282,11 +282,26 @@ team.styl
   rounded                   3px
   size                      auto 50px
   text-transform            uppercase
+
   &.compact
     height                  24px
     font-size               10px
     line-height             16px
     padding                 4px 7px 0
+
+  &.koding
+    .icon
+      r-sprite              app 'iconkoding'
+
+  &.gitlab
+    .icon
+      r-sprite              app 'icongitlab'
+
+  .icon
+    display                 inline-block !important
+    float                   none !important
+    margin                  14px 0 0 -30px !important
+    abs() !important
 
 .TeamsModal-button--green
   color                     white
