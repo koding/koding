@@ -56,6 +56,27 @@ module.exports = class HomeBuildLogs extends kd.View
 
   addViews: (file, machineName) ->
 
+    @addSubView @loader = new kd.LoaderView
+      size       : { width : 26 }
+      cssClass   : 'build-logs-loader'
+      showLoader : yes
+
+    @addSubView @paneHeader = new kd.CustomHTMLView
+      cssClass : 'pane-header hide'
+      partial : """
+        <div class='vm-name'> #{machineName} Build Logs </div>
+        <div class='title'> /var/log/cloud-init-output.log</div>
+      """
+
+    @addSubView @tailer = new IDETailerPane { cssClass: 'build-logs-view hide', file, delegate: this }
+
+    @tailer.ready =>
+      @loader.destroy()
+      @paneHeader.unsetClass 'hide'
+      @tailer.unsetClass 'hide'
+
+  viewAppended: ->
+
     @addSubView @header = header()
 
     @header.addSubView new kd.CustomHTMLView
@@ -64,19 +85,8 @@ module.exports = class HomeBuildLogs extends kd.View
       click : ->
         kd.singletons.router.handleRoute '/Home/Stacks/virtual-machines'
 
-    @addSubView @backLink = new kd.CustomHTMLView
-      cssClass : 'pane-header'
-      partial : """
-        <div class='vm-name'> #{machineName} Build Logs </div>
-        <div class='title'> /var/log/cloud-init-output.log</div>
-      """
-
-    @addSubView @tailer = new IDETailerPane { cssClass: 'build-logs-view', file, delegate: this }
-
-
   destroyViews: ->
 
-    @header?.destroy()
-    @backLink?.destroy()
+    @paneHeader?.destroy()
     @tailer?.destroy()
-
+    @loader?.destroy()

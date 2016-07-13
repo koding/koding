@@ -7,6 +7,13 @@ homebuildlogs.styl
 
 .Build-Logs
 
+  .build-logs-loader
+    size                    26px 26px
+    top                     50%
+    position                absolute
+    left                    calc(50% \- 26px)
+    opacity                 1
+
   .description-view
     display                 none
 
@@ -30,6 +37,13 @@ homebuildlogs.styl
       float                 right
       margin-right          20px
 
+
+    &.hide
+      opacity 0
+
+    // &.show
+    opacity   1
+
   .build-logs-view
     height                  calc(100% \- 166px) !important
     clear                   both
@@ -37,6 +51,9 @@ homebuildlogs.styl
     .ace_scrollbar.ace_scrollbar-h
       height                13px !important
 
+    &.hide
+      opacity 0
+    opacity   1
 
   figure.kdview
     width                   674px !important
