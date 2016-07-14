@@ -1,3 +1,9 @@
+.collapsed
+  cite.WelcomeSteps-miniview--count
+    left                    18px
+  section.WelcomeSteps-miniview
+    left                    -5px
+
 section.WelcomeSteps-miniview
   abs                       42px 0 0 208px
   bg                        color #FFFFFF
@@ -6,6 +12,7 @@ section.WelcomeSteps-miniview
   z-index                   1001
   vendor                    transform-origin, 32px -24px
   vendor                    transform, scale(0)
+  vendor                    transition, left .3s ease
   opacity                   0
   shadow                    0 10px 30px rgba(0,0,0,.3)
   &.out
@@ -32,6 +39,7 @@ cite.WelcomeSteps-miniview--count
   min-width                 16px
   padding                   3px 4px 2px
   vendor                    transform, scale(0)
+  vendor                    transition, left .3s ease
   opacity                   0
   z-index                   1002
   pointer()
