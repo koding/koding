@@ -6,8 +6,8 @@ module.exports = class CustomerFeedBackView extends React.Component
 
   render: ->
 
-    <p>
-      <strong>Customer Feedback</strong>
+    <div className='HomeAppView--sectionWrapper'>
+      <strong>Chatlio</strong>
       Enable Chatlio.com for real-time customer feedback
       <span className='separator'></span>
       <cite className='warning'>
@@ -15,16 +15,16 @@ module.exports = class CustomerFeedBackView extends React.Component
         existing Slack service. For this integration you need to create an
         account at <a href='https://chatlio.com' target='_blank'>chatlio.com</a>. * Requires Slack integration.
         <br/><br/>
-        Once you get your Chatlio <code className='HomeAppView--code'>data-widget-id</code>
-        and paste below, we will complete the integration for you.
+        Once you get your Chatlio <code className='HomeAppView--code'>data-widget-id</code> and
+        paste below, we will complete the integration for you.
       </cite>
-      <filedset>
+      <fieldset>
         <label>Chatlio.com <code className='HomeAppView--code'>data-widget-id</code></label>
         <InputArea value={@props.defaultValue} callback={@props.onInputAreaChange} />
         <SaveButton callback={@props.handleSaveButton} />
         <GuideButton />
-      </filedset>
-    </p>
+      </fieldset>
+    </div>
 
 
 InputArea = ({ value, callback }) ->

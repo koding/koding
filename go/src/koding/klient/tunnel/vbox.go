@@ -97,7 +97,7 @@ func (t *Tunnel) Info(r *kite.Request) (interface{}, error) {
 		"kites": {Remote: 443}, // HTTPS kite server (actually TLS reverse proxy)
 	}
 
-	t.setLocalOrNAT(&info, "kite", t.opts.Config.Port)
+	t.setLocalOrNAT(&info, "kite", t.opts.Kite.Config.Port)
 	t.setLocalOrNAT(&info, "kites", 56790)
 
 	// Update kite tunnel (public endpoint) remote port, it may be
@@ -278,17 +278,10 @@ func (t *Tunnel) dialHostKite(addr string) (*kite.Client, error) {
 		Path:   "/kite",
 	}
 
-	k := kite.New("klienttunnel", "0.0.1")
-	k.Config = t.opts.Config.Copy()
-
-	if t.opts.Debug {
-		k.SetLogLevel(kite.DEBUG)
-	}
-
-	client := k.NewClient(hostKiteURL.String())
+	client := t.opts.Kite.NewClient(hostKiteURL.String())
 	client.Auth = &kite.Auth{
 		Type: "kiteKey",
-		Key:  k.Config.KiteKey,
+		Key:  t.opts.Kite.Config.KiteKey,
 	}
 
 	if err := client.DialTimeout(7 * time.Second); err != nil {

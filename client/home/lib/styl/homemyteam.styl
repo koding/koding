@@ -21,7 +21,7 @@ homemyteam.styl
         &:after
           content           ''
           r-sprite          'home' 'lock'
-          abs               120px 36px
+          abs               126px 36px
         input.kdinput
           opacity           .5
       &.TeamName
@@ -39,14 +39,19 @@ homemyteam.styl
         font-size           12px
         margin-bottom       10px
 
-      input.kdinput
+      input.kdinput.text
         font-size           14px
         display             block
         width               402px
         height 40px
         border              1px solid #D9D9D9
         rounded             3px
-        shadow              0 0 2px rgba(70, 70, 70, .15) inset
+
+        &:hover
+          border            1px solid #D3E6FF
+        &:focus
+          border            1px solid rgba(125,190,241,1)
+
 
     fieldset.half
       &:first-child
@@ -243,7 +248,7 @@ homemyteam.styl
 
   .invite-inputs
     width                   592px
-    border                  1px solid #D9D9D9
+    border-right            1px solid #D9D9D9
     rounded                 3px
     margin-bottom           10px
     color                   #6B6B6B
@@ -257,24 +262,38 @@ homemyteam.styl
       input.kdinput
         abs()
         font-size           0
+      label
+        z-index             1
 
     input.kdinput
-      border                none
+      border                1px solid #d9d9d9
       rounded               0
       font-weight           300
       font-size             12px
       borderBox()
 
+      &:hover
+        border              1px solid #D3E6FF
+      &:focus
+        border              1px solid rgba(125,190,241,1)
+
     input.kdinput.user-email
       width                 242px
-      border-right          1px solid #D9D9D9
+      border-right          none
 
     input.kdinput.firstname
       width                 152px
-      border-right          1px solid #D9D9D9
+      border-right          none
 
-    .lastname
-      width                 150px
+    input.kdinput.lastname
+      border-right          none
+      width                 197px
+      border-top-right-radius    3px
+      border-bottom-right-radius 3px
+      &:hover
+        border-right      1px solid #D3E6FF
+      &:focus
+        border-right      1px solid rgba(125,190,241,1)
 
   .invite-members
     fr()

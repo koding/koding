@@ -1,4 +1,5 @@
-module.exports = '''
+module.exports = {
+  json: '''
   {
     "provider": {
       "aws": {
@@ -8,17 +9,52 @@ module.exports = '''
     },
     "resource": {
       "aws_instance": {
-        "example": {
+        "example-instance": {
           "tags": {
             "Name": "${var.koding_user_username}-${var.koding_group_slug}"
           },
           "instance_type": "t2.nano",
-          "ami": ""
+          "ami": "",
+          "user_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
         }
       }
     }
   }
 '''
+  yaml: '''
+# Here is your stack preview
+# You can make advanced changes like modifying your VM,
+# installing packages, and running shell commands.
+
+provider:
+  aws:
+    access_key: '${var.aws_access_key}'
+    secret_key: '${var.aws_secret_key}'
+resource:
+  aws_instance:
+    # this is the name of your VM
+    example-instance:
+      # select your instance_type here: eg. c3.xlarge
+      instance_type: t2.nano
+      # select your ami (optional) eg. ami-xxxxx (it should be based on ubuntu 14.04)
+      ami: ''
+      # we will tag the instance here so you can identify it when you login to your AWS console
+      tags:
+        Name: '${var.koding_user_username}-${var.koding_group_slug}'
+      # on user_data section we will write bash and configure our VM
+      user_data: |-
+        # let's create a file on your root folder:
+        echo "hello world!" >> /helloworld.txt
+
+        # please note: all commands under user_data will be run as root.
+        # now add your credentials and save this stack.
+        # once vm finishes building, you can see this file by typing
+        # ls /
+        #
+        # for more information please click the link below "Stack Script Docs"
+
+'''
+}
 
 ### Full YAML Example
 
