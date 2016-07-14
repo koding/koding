@@ -297,69 +297,31 @@ module.exports = class Haydar extends events.EventEmitter
     # force browser-pack to expose require
     b._bpack.hasExports = true
 
-    bundle = =>
+    notify = @_notify.bind this
 
-      start = Date.now()
-      notify = @_notify.bind this
+    handleError = (err) ->
+      if opts.watchJs
+      then console.error inspect err, { colors: on }
+      else throw err
+
+    handleSuccess = (msg) ->
+      if opts.watchJs
+      then console.log(msg); notify('scripts', msg)
+      else done()
+
+    do bundle = ->
 
       b.bundle (err, src) ->
+        return handleError err  if err
 
-        if err
-          console.error inspect(err, { colors: true })
-          if not opts.watchJs
-            throw err
-          else
-            errString = JSON.stringify String err
-            src = "console.error('#{errString}')"
-            fs.writeFile outfile, src, (err) ->
-              if err
-                console.error err # wtf
-              else
-                console.log "written error to #{outfile}"
-        else
+        unless src
+          return
 
-          if opts.extractJsSourcemaps
-            s = fs.createWriteStream outfile
-            asStream(src).pipe(exorcist(opts.jsSourcemapsOutfile)).pipe(
-              asStream(convert.removeMapFileComments(src.toString()))
-            ).pipe(s)
+        if opts.extractJsSourcemaps
+          writeJSSourcemaps src, outfile, opts.jsSourcemapsOutfile, { handleSuccess, handleError }
+          return
 
-            s.once 'finish', ->
-              secs = ((Date.now() - start) / 1000).toFixed 2
-              msg = "written #{outfile} (#{secs} secs)"
-              console.log msg
-              console.log "extracted source maps to #{opts.jsSourcemapsOutfile}"
-              if not opts.watchJs
-                done()
-              else
-                notify 'scripts', msg
-
-            s.on 'error', (err) ->
-              if not opts.watchJs
-                throw err
-              else
-                console.error err
-
-          else
-
-            fs.writeFile outfile, src, (err, res) ->
-              if err
-                if not opts.watchJs
-                  throw err
-                else
-                  console.error err
-
-              else
-                secs = ((Date.now() - start) / 1000).toFixed 2
-                msg = "#{pretty(src.length)} written to #{outfile} (#{secs})"
-                console.log msg
-
-                if not opts.watchJs
-                  done()
-                else
-                  notify 'scripts', msg
-
-    bundle()
+        writeJS src, outfile, { handleSuccess, handleError }
 
 
   _styles: (done) ->
@@ -729,3 +691,43 @@ createDirs = (dirs, cb) ->
   async.parallel fns, (err) ->
     throw err  if err
     cb null
+
+writeError = (err) ->
+
+  src = "console.error('#{JSON.stringify String err}')"
+  fs.writeFile outfile, src, (err) ->
+    if err
+    then console.error err
+    else console.log "written error to #{outfile}"
+
+
+writeJSSourcemaps = (src, outfile, jsSourcemapsOutfile, callbacks) ->
+
+  start = Date.now()
+
+  s = fs.createWriteStream outfile
+  asStream(src).pipe(exorcist(jsSourcemapsOutfile)).pipe(
+    asStream(convert.removeMapFileComments(src.toString()))
+  ).pipe(s)
+
+  s.once 'finish', ->
+    secs = ((Date.now() - start) / 1000).toFixed 2
+    msg = "written #{outfile} (#{secs} secs)"
+    console.log msg
+    console.log "extracted source maps to #{jsSourcemapsOutfile}"
+    callbacks.handleSuccess msg
+
+  s.on 'error', callbacks.handleError
+
+
+writeJS = (src, outfile, callbacks) ->
+
+  start = Date.now()
+
+  fs.writeFile outfile, src, (err, res) ->
+    return callbacks.handleError err  if err
+
+    secs = ((Date.now() - start) / 1000).toFixed 2
+    msg = "#{pretty(src.length)} written to #{outfile} (#{secs})"
+    callbacks.handleSuccess msg
+
