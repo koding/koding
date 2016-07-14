@@ -210,6 +210,9 @@ type RuntimeOptions struct {
 		Main string `json:"main"`
 		Port string `json:"port"`
 	} `json:"domains"`
+	Gitlab struct {
+		Team string `json:"team"`
+	} `json:"gitlab"`
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN
