@@ -15,11 +15,11 @@ module.exports = (KONFIG, credentials, options) ->
     siftScience          : credentials.siftSciencePublic
     sessionCookie        : KONFIG.sessionCookie
     collaboration        : KONFIG.collaboration
-    authExchange         : "auth"
-    socialApiUri         : "/xhr"
-    apiUri               : "/"
-    sourceMapsUri        : "/sourcemaps"
-    mainUri              :  "/"
+    authExchange         : 'auth'
+    socialApiUri         : '/xhr'
+    apiUri               : '/'
+    sourceMapsUri        : '/sourcemaps'
+    mainUri              : '/'
     fileFetchTimeout     : 1000 * 15
     userIdleMs           : 1000 * 60 * 5
     kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
@@ -30,12 +30,12 @@ module.exports = (KONFIG, credentials, options) ->
       facebook           : { nicename: 'Facebook', urlLocation: 'link' }
       github             : { nicename: 'GitHub', urlLocation: 'html_url' }
       gitlab             : { nicename: 'GitLab' }
-    entryPoint           : { slug:'koding'     , type:'group' }
-    troubleshoot         : { idleTime: 1000 * 60 * 60, externalUrl: "https://s3.amazonaws.com/koding-ping/healthcheck.json" }
+    entryPoint           : { slug:'koding', type:'group' }
+    troubleshoot         : { idleTime: 1000 * 60 * 60, externalUrl: 'https://s3.amazonaws.com/koding-ping/healthcheck.json' }
     stripe               : { token: credentials.stripe.publicToken }
-    broker               : { uri: "/subscribe" }
-    google               : { apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo' }
-    gitlab               : { team: credentials.gitlab.team }
+    broker               : { uri: '/subscribe' }
+    google               : { apiKey: '' }
+    gitlab               : { team: credentials.gitlab?.team ? null }
     paypal               : { formUrl: credentials.paypal.formUrl }
     embedly              : { apiKey: credentials.embedly.apiKey }
     algolia              : { appId: credentials.algolia.appId, indexSuffix: options.algoliaIndexSuffix }
