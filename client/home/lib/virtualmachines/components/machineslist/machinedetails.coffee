@@ -8,7 +8,7 @@ Machine             = require 'app/providers/machine'
 SharingAutocomplete = require './sharing/autocomplete'
 SharingUserList     = require './sharing/userlist'
 ContentModal        = require 'app/components/contentModal'
-HomeBuildLogs = require 'home/buildlogs'
+
 module.exports = class MachineDetails extends React.Component
 
   @propTypes =
@@ -174,7 +174,7 @@ module.exports = class MachineDetails extends React.Component
     state = machine.getIn ['status', 'state']
     isMachineRunning = state is 'Running'
 
-    description = 'Logs we have created while you build your VM.'
+    description = 'Logs that were created while we built your VM.'
 
     description = 'Turn on your VM to see the build logs.' unless isMachineRunning
 
@@ -193,6 +193,7 @@ module.exports = class MachineDetails extends React.Component
 
     machineUid = @props.machine.get 'uid'
     kd.singletons.router.handleRoute "/Home/build-logs/#{machineUid}"
+
 
 
   render: ->

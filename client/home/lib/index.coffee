@@ -24,7 +24,7 @@ module.exports = class HomeAppController extends AppController
     { title : 'Payment History', viewClass : HomePaymentHistory }
     { title : 'Koding Utilities', viewClass : HomeUtilities, role: 'member' }
     { title : 'My Account', viewClass : HomeAccount, role: 'member' }
-    { title : 'Build Logs', viewClass : HomeBuildLogs }
+    { title : 'Build Logs', viewClass : HomeBuildLogs, role: 'member' }
   ]
 
 
