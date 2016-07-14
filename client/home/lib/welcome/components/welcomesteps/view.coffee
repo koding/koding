@@ -10,6 +10,12 @@ module.exports = class WelcomeStepsView extends React.Component
 
     <a className='WelcomeStepVideoIcon' href={link} target='_blank'> </a>
 
+  renderSkipLink: (key, step) ->
+
+    return null  if not step.skippable or step.isDone
+
+    <strong className='WelcomeStepLinkSkip' onClick={@props.onSkipClick.bind this, key}>skip this</strong>
+
 
   renderBullets: ->
 
@@ -18,6 +24,7 @@ module.exports = class WelcomeStepsView extends React.Component
       itemClass = ''
       itemClass = kd.utils.curry 'starred', itemClass  if step.starred
       itemClass = kd.utils.curry 'done', itemClass  if step.isDone
+      itemClass = kd.utils.curry 'pending', itemClass  if step.isPending
       itemClass = kd.utils.curry step.cssClass, itemClass  if step.cssClass
 
       <li key={ step.order } className={ itemClass }>
@@ -26,7 +33,7 @@ module.exports = class WelcomeStepsView extends React.Component
           <p dangerouslySetInnerHTML={ { __html : step.description } } />
           <cite>{ step.actionTitle }</cite>
         </a>
-        <strong className='WelcomeStepLinkSkip' onClick={@props.onSkipClick.bind this, key}>skip this</strong>
+        { @renderSkipLink key, step }
         { @renderVideoLink step.videoLink }
       </li>
 
