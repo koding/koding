@@ -33,6 +33,7 @@ collapse      = require 'bundle-collapser/plugin'
 convert       = require 'convert-source-map'
 globby        = require 'globby'
 babelify      = require 'babelify'
+cssModulesify = require 'css-modulesify'
 
 
 JS_OUTFILE                  = 'bundle.js'
@@ -244,15 +245,14 @@ module.exports = class Haydar extends events.EventEmitter
     aceBasePath = "#{opts.baseurl}/#{THIRDPARTY_OUTDIR}/ace"
 
     opts_ =
-      basedir    : opts.basedir
-      debug      : opts.debugJs
-      factor     : false
-      extensions : [ '.coffee' ]
-      transform  : transforms
-      rewriteMap : rewriteMap
-      noParse    : [
-      extensions   : [ '.coffee', 'js', '.es6', '.es6.js', 'jsx' ]
-      ignoreWatch  : ['**/node_modules/**']
+      basedir     : opts.basedir
+      debug       : opts.debugJs
+      factor      : no
+      extensions  : [ '.coffee', 'js', '.es6', '.es6.js', 'jsx' ]
+      transform   : transforms
+      rewriteMap  : rewriteMap
+      ignoreWatch : ['**/node_modules/**']
+      noParse     : [
         'jquery',
         'underscore',
         'lodash',
@@ -289,6 +289,10 @@ module.exports = class Haydar extends events.EventEmitter
     b.use manifests
 
     if opts.collapseJs then b.plugin collapse
+
+    b.plugin cssModulesify,
+      rootDir: opts.basedir
+      output: path.join opts.stylesOutdir, 'modules.css'
 
     # force browser-pack to expose require
     b._bpack.hasExports = true

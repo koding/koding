@@ -17,6 +17,7 @@
     "chalk": "1.0.0",
     "chokidar": "1.0.3",
     "coffeeify": "1.0.0",
+    "css-modulesify": "^0.25.1",
     "defined": "0.0.0",
     "exorcist": "0.1.6",
     "globby": "3.0.1",
