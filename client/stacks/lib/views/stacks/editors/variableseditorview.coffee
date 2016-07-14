@@ -6,15 +6,14 @@ module.exports = class VariablesEditorView extends BaseStackEditorView
 
     unless options.content
       options.content = '''
-        # Define custom variables here
         # You can define your custom variables, and use them in your stack template.
         # These variables will not be visible to your non-admins.
         #
-        # This is a YAML file which you can define key-value pairs like;
+        # This is a YAML file, you can define a key-value pair like this here;
         #
         #   foo: bar
         #
-        # and you can use this variable in your stack template like this;
+        # and you can use that variable in your stack template as below;
         #
         #   ${var.custom_foo}
 

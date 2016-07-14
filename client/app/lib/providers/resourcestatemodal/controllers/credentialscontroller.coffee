@@ -225,7 +225,24 @@ module.exports = class CredentialsController extends kd.Controller
         break  if provider in ['aws', 'vagrant']
       provider ?= (Object.keys stack.credentials ? { aws : yes }).first
 
-      helpers._loadCredentials { provider }, stack.credentials, callback
+      helpers._loadCredentials { provider }, stack.credentials, (err, result) ->
+        return callback err  if err
+
+        { items, selectedItem } = result
+        return callback null, result  unless selectedItem
+
+        isAvailable = (
+          item for item in items when item.identifier is selectedItem
+        ).length > 0
+        return callback null, result  if isAvailable
+
+        # try to add stack credential to the list of credentials
+        # if it's not there but it's shared with the team
+        remote.api.JCredential.one selectedItem, (err, credential) ->
+          return callback err, result  if err or not credential
+
+          result.sharedCredential = credential
+          callback null, result
 
 
     loadRequirements: (stack, callback) ->

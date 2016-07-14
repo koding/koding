@@ -153,7 +153,6 @@ resendInvitations = ->
         .catch ({ title }) ->
           reject { title }
       else
-        newInvitations.size
         title  = "Invitation is resent to <strong>#{resendInvitations[0].get('email')}</strong>"
         title  = 'All invitations are resent.'  if resendInvitations.size > 1
         resolve { title }
@@ -302,6 +301,13 @@ leaveTeam = (partial) ->
             kookies.expire 'clientId'
             global.location.replace '/'
 
+focusSendInvites = (focus) ->
+
+  { reactor } = kd.singletons
+
+  console.log { focus }
+
+  reactor.dispatch actions.FOCUS_SEND_INVITES_SECTION, focus
 
 
 module.exports = {
@@ -322,4 +328,5 @@ module.exports = {
   loadDisabledUsers
   handleDisabledUser
   handlePermanentlyDeleteMember
+  focusSendInvites
 }

@@ -188,6 +188,7 @@ module.exports = (options) ->
     host : options.serviceHost
     port : 8090
   clearbit = '9d961e7ac862a6bc430f783da5cf9422'
+  intercomAppId = ''
 
   return {
     kiteHome

@@ -39,6 +39,11 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
     kd.singletons.groupsController.ready @bound 'putViews'
 
 
+  handleAction: (action) ->
+
+    TeamFlux.actions.focusSendInvites yes  if action is 'send-invites'
+
+
   putViews: ->
 
     { JAccount } = remote.api
