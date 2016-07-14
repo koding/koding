@@ -63,7 +63,7 @@ checkFinishedSteps = ->
   if groupsController.getCurrentGroup().counts?.members > 1
     markAsDone 'inviteTeam'
 
-  if reactor.evaluate(EnvironmentGetters.stacks).size
+  if reactor.evaluate(EnvironmentGetters.privateStacks).size
     markAsDone 'stackCreation'
 
   unobserve = reactor.observe EnvironmentGetters.stacks, (_stacks) ->
