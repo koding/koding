@@ -25,7 +25,14 @@ do ->
 
   setGroup = (err, group) ->
     registerRoutes()
-    kd.config.group = group  if group
+
+    if group
+      kd.config.group = group
+      # add Gitlab Config into kd.config if it's enabled for this team
+      gitlab = window._runtimeOptions.gitlab ? {}
+      if gitlab.team is group.slug
+        kd.config.gitlab = gitlab
+
     # BIG BANG
     new MainController group
 
