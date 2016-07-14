@@ -6,12 +6,17 @@ pushd $(dirname $0)/..
 
 function build() {
   npm install --unsafe-perm
-  ./configure "$@"
+  configure
   go/build.sh
   make -C client dist
 }
 
+function configure() {
+  ./configure "$@"
+}
+
 function start() {
+  configure
   ./run exec scripts/check-service-connectivity.sh
   ./run migrate up
   nginx -c $(pwd)/nginx.conf
