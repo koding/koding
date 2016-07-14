@@ -25,9 +25,12 @@ module.exports = class WelcomeStepsContainer extends React.Component
 
   render: ->
     if @props.mini
-      <MiniView kdParent={@props.kdParent} steps={@state.steps.toList()}/>
+      <MiniView kdParent={@props.kdParent} steps={@state.steps.toList()} onSkipClick={kd.noop}/>
     else
-      <View steps={@state.steps.toList()}/>
+      <View steps={@state.steps} onSkipClick={@bound 'onSkipClick'}/>
+
+
+  onSkipClick: (key) -> HomeFlux.actions.markAsDone key
 
 
 WelcomeStepsContainer.include [KDReactorMixin]
