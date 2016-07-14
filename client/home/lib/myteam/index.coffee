@@ -7,6 +7,7 @@ TeamFlux             = require 'app/flux/teams'
 AppFlux              = require 'app/flux'
 whoami               = require 'app/util/whoami'
 remote               = require('app/remote').getInstance()
+camilizeString = require 'app/util/camilizeString'
 toImmutable = require 'app/util/toImmutable'
 
 SECTIONS =
@@ -38,10 +39,26 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
     kd.singletons.groupsController.ready @bound 'putViews'
 
+    @scroll = no
+    @scrollToSection = null
+
 
   handleAction: (action) ->
 
     TeamFlux.actions.focusSendInvites yes  if action is 'send-invites'
+
+    @scroll = yes
+    @scrollToSection = camilizeString action
+
+    return  unless @[@scrollToSection]
+
+    @scrollToSectionArea()
+
+
+  scrollToSectionArea: ->
+
+    if @scroll and @scrollToSection
+      @wrapper?.scrollToSubView @[@scrollToSection]
 
 
   putViews: ->
@@ -87,14 +104,17 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
         reactor.dispatch 'DELETE_TEAM_MEMBER', account._id
 
     @wrapper.addSubView header  'Team Settings'
-    @wrapper.addSubView section 'Team Settings'
+    @wrapper.addSubView @teamSettings = section 'Team Settings'
 
     @wrapper.addSubView header  'Send Invites'
-    @wrapper.addSubView section 'Send Invites'
+    @wrapper.addSubView @sendInvites = section 'Send Invites'
+
 
     @wrapper.addSubView header  'Invite Using Slack'
-    @wrapper.addSubView connectSlack = section 'Invite Using Slack'
-    connectSlack.on 'InvitationsAreSent', -> TeamFlux.actions.loadPendingInvitations()
+    @wrapper.addSubView @connectSlack = section 'Invite Using Slack'
+    @connectSlack.on 'InvitationsAreSent', -> TeamFlux.actions.loadPendingInvitations()
 
     @wrapper.addSubView header  'Teammates'
-    @wrapper.addSubView section 'Teammates'
+    @wrapper.addSubView @teammates = section 'Teammates'
+
+    @scrollToSectionArea()
