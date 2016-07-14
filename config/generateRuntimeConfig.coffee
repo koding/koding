@@ -35,6 +35,7 @@ module.exports = (KONFIG, credentials, options) ->
     stripe               : { token: credentials.stripe.publicToken }
     broker               : { uri: "/subscribe" }
     google               : { apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo' }
+    gitlab               : { team: credentials.gitlab.team }
     paypal               : { formUrl: credentials.paypal.formUrl }
     embedly              : { apiKey: credentials.embedly.apiKey }
     algolia              : { appId: credentials.algolia.appId, indexSuffix: options.algoliaIndexSuffix }

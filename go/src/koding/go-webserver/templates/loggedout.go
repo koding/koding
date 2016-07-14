@@ -15,6 +15,7 @@ var LoggedOutHome = `
     <script>
       window._runtimeOptions = {
         google    : {{.Runtime.Google}},
+        gitlab    : {{.Runtime.Gitlab}},
         recaptcha : {{.Runtime.Recaptcha}},
         domains   : {{.Runtime.Domains}}
       };
