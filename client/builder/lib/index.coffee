@@ -32,6 +32,7 @@ child_process = require 'child_process'
 collapse      = require 'bundle-collapser/plugin'
 convert       = require 'convert-source-map'
 globby        = require 'globby'
+babelify      = require 'babelify'
 
 
 JS_OUTFILE                  = 'bundle.js'
@@ -50,9 +51,9 @@ STYLES_KDJS_CSS_FILE        = 'dist/kd.css'
 STYLES_COMMONS_GLOB         = 'app/styl/**/*.styl'
 THROTTLE_WAIT               = 500
 
-module.exports =
+BUILDER_PATH = path.join __dirname, '..'
 
-class Haydar extends events.EventEmitter
+module.exports = class Haydar extends events.EventEmitter
 
   constructor: (opts) ->
 
@@ -223,7 +224,12 @@ class Haydar extends events.EventEmitter
     # the rest will be handled by coffeescript compiler itself.
     _reactify = [ reactify, { coffeeout: yes } ]
 
-    transforms = [ _reactify, coffeeify, pistachioify ]
+    _babelify = [ babelify, {
+      presets: ['es2015', 'react']
+      extensions: ['.js', '.es6', '.es6.js', '.jsx']
+    }]
+
+    transforms = [ _reactify, coffeeify, pistachioify, _babelify ]
 
     unless opts.excludeTestrunner
       transforms.push rewireify
@@ -245,6 +251,8 @@ class Haydar extends events.EventEmitter
       transform  : transforms
       rewriteMap : rewriteMap
       noParse    : [
+      extensions   : [ '.coffee', 'js', '.es6', '.es6.js', 'jsx' ]
+      ignoreWatch  : ['**/node_modules/**']
         'jquery',
         'underscore',
         'lodash',

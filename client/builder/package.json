@@ -12,6 +12,7 @@
     "JSONStream": "0.10.0",
     "as-stream": "0.1.1",
     "async": "0.9.0",
+    "babelify": "^7.3.0",
     "bundle-collapser": "1.1.4",
     "chalk": "1.0.0",
     "chokidar": "1.0.3",
