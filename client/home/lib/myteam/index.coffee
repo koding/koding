@@ -50,15 +50,27 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
     @scroll = yes
     @scrollToSection = camilizeString action
 
-    return  unless @[@scrollToSection]
-
     @scrollToSectionArea()
 
 
   scrollToSectionArea: ->
 
-    if @scroll and @scrollToSection
-      @wrapper?.scrollToSubView @[@scrollToSection]
+    return  unless @scrollToSection
+
+    if @scroll and subView = @[@scrollToSection]
+
+      viewTop = @wrapper.getY()
+      subViewTop = subView.getY()
+      sectionHeader = 88  # height of header of dashboard
+
+      scrollMuch = subViewTop - viewTop - sectionHeader
+
+      subViewHeight = subView.getHeight()
+
+      if subViewHeight > scrollMuch
+        scrollMuch = subViewHeight - scrollMuch
+
+      @wrapper?.scrollTo { top: scrollMuch }
 
 
   putViews: ->
