@@ -7,7 +7,7 @@ TeamFlux             = require 'app/flux/teams'
 AppFlux              = require 'app/flux'
 whoami               = require 'app/util/whoami'
 remote               = require('app/remote').getInstance()
-camilizeString = require 'app/util/camilizeString'
+camilizeString = require 'app/util/camelizeString'
 toImmutable = require 'app/util/toImmutable'
 
 SECTIONS =
