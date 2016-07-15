@@ -28,7 +28,8 @@ runTests = -> describe 'workers.social.models.gitprovider', ->
 
         withConvertedUser { createGroup : yes }, ({ client }) ->
 
-          rawContent  = '''
+          template   =
+            content  :'''
               provider:
                 aws:
                   access_key: '${var.aws_access_key}'
@@ -41,21 +42,23 @@ runTests = -> describe 'workers.social.models.gitprovider', ->
                     tags:
                       Name: '${var.koding_user_username}-${var.koding_group_slug}'
             '''
-          description = 'This is awesome stack template!!!'
+          readme      =
+            content   : 'This is awesome stack template!!!'
+
           originalUrl = 'https://github.com/koding/test'
           title       = 'Imported stack template'
 
-          importData = { rawContent, description, originalUrl }
+          importData = { template, readme, originalUrl }
 
-          GitProvider.createImportedStackTemplate client, title, importData, (err, template) ->
-            expect(err?.message)                          .not.exist
-            expect(template.title)                        .to.be.equal title
-            expect(template.description)                  .to.be.equal description
-            expect(template.config.requiredData)          .to.deep.equal { user: [ 'username' ], group: [ 'slug' ] }
-            expect(template.config.requiredProviders[0])  .to.equal 'aws'
-            expect(template.config.requiredProviders[1])  .to.equal 'koding'
-            expect(template.config.importData.originalUrl).to.be.equal originalUrl
-            expect(template.template.rawContent)          .to.be.equal rawContent
+          GitProvider.createImportedStackTemplate client, title, importData, (err, _template) ->
+            expect(err?.message)                               .not.exist
+            expect(_template.title)                            .to.be.equal title
+            expect(_template.description)                      .to.be.equal readme.content
+            expect(_template.config.requiredData)              .to.deep.equal { user: [ 'username' ], group: [ 'slug' ] }
+            expect(_template.config.requiredProviders[0])      .to.equal 'aws'
+            expect(_template.config.requiredProviders[1])      .to.equal 'koding'
+            expect(_template.config.remoteDetails.originalUrl) .to.be.equal originalUrl
+            expect(_template.template.rawContent)              .to.be.equal template.content
             done()
 
 
