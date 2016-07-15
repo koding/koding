@@ -1,10 +1,30 @@
 Constants   = require './constants'
 helpers     = require './utils/helpers'
 async       = require 'async'
+request     = require 'request'
 URL         = require 'url'
 _           = require 'lodash'
 GitlabAPI   = require 'gitlab'
 KodingError = require '../../error'
+getPrivateToken = (options, callback) ->
+
+  { urlData: { baseUrl }, token } = options
+
+  params    =
+    url     : "#{baseUrl}/api/v3/user"
+    headers : { Authorization : "Bearer #{token}" }
+
+  request.get params, (err, res, body) ->
+    return callback err  if err
+
+    try
+      data = JSON.parse body
+    catch e
+      return callback new KodingError 'Auth failed'
+
+    callback null, data.private_token
+
+
 
 module.exports = GitLabProvider =
 
