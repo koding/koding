@@ -21,6 +21,7 @@ func (k *Klient) addRemoteHandlers() {
 	k.kite.HandleFunc("remote.mountInfo", k.remote.MountInfoHandler)
 	k.kite.HandleFunc("remote.readDirectory", k.remote.ReadDirectoryHandler)
 	k.kite.HandleFunc("remote.currentUsername", k.remote.CurrentUsername)
+	k.kite.HandleFunc("remote.getPathSize", k.remote.GetPathSize)
 }
 
 // Initializing the remote re-establishes any previously-running remote

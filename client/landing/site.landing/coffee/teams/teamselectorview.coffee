@@ -74,7 +74,7 @@ module.exports = class TeamSelectorView extends JView
         return new kd.NotificationView
           title: 'We couldn\'t find your team.'
 
-      location.assign "#{location.protocol}//#{slug}.#{location.host}"
+      location.assign "#{location.protocol}//#{slug}.#{location.host}/Login"
 
 
   pistachio: ->
@@ -94,6 +94,5 @@ module.exports = class TeamSelectorView extends JView
     <section class="previous-teams">
       <p>Trying to create a team? <a href="/Teams/Create" target="_self">Click here</a> to get started.</p>
       {{> @previousTeams}}
-      <p>Looking for <a href="/Login" target="_self" testpath="koding-solo-login">Koding Solo</a>?</p>
     </section>
     """

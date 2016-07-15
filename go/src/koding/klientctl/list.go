@@ -51,6 +51,50 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 	// Sort our infos
 	sort.Sort(infos)
 
+	// Filter out infos for listing and json.
+	for i := 0; i < len(infos); i++ {
+		info := &infos[i]
+
+		onlineRecently := time.Since(info.OnlineAt) <= 24*time.Hour
+		hasMounts := len(info.Mounts) > 0
+		// Do not show machines that have been offline for more than 24h,
+		// but only if the machine doesn't have any mounts and we aren't using the --all
+		// flag.
+		if !hasMounts && !showAll && !onlineRecently {
+			// Remove this element from the slice, because we're not showing it as
+			// described above.
+			infos = append(infos[:i], infos[i+1:]...)
+			// Decrement the index, since we're removing the item from the slice.
+			i--
+			continue
+		}
+
+		// For a more clear UX, replace the team name of the default Koding team,
+		// with Koding.com
+		for i, team := range info.Teams {
+			if team == "Koding" {
+				info.Teams[i] = "koding.com"
+			}
+		}
+
+		switch info.MachineStatus {
+		case machine.MachineOffline:
+			info.MachineStatusName = "offline"
+		case machine.MachineOnline:
+			info.MachineStatusName = "online"
+		case machine.MachineDisconnected:
+			info.MachineStatusName = "disconnected"
+		case machine.MachineConnected:
+			info.MachineStatusName = "connected"
+		case machine.MachineError:
+			info.MachineStatusName = "error"
+		case machine.MachineRemounting:
+			info.MachineStatusName = "remounting"
+		default:
+			info.MachineStatusName = "unknown"
+		}
+	}
+
 	if c.Bool("json") {
 		jsonBytes, err := json.MarshalIndent(infos, "", "  ")
 		if err != nil {
@@ -63,34 +107,12 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 0
 	}
 
-	var listCount int
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tSTATUS\tMOUNTED PATHS\n")
-	for _, info := range infos {
-		onlineRecently := time.Since(info.OnlineAt) <= 24*time.Hour
-		hasMounts := len(info.Mounts) > 0
-		// Do not show machines that have been offline for more than 24h,
-		// but only if the machine doesn't have any mounts and we aren't using the --all
-		// flag.
-		if !hasMounts && !showAll && !onlineRecently {
-			continue
-		}
-
-		// Increase the visible machine count
-		listCount++
-
+	for i, info := range infos {
 		// Join multiple teams into a single identifier
 		team := strings.Join(info.Teams, ",")
 
-		// For a more clear UX, replace the team name of the default Koding team,
-		// with Koding.com
-		if team == "Koding" {
-			team = "koding.com"
-		}
-
-		// TODO: The UX for displaying multiple mounts is not decided, and
-		// we only support a single mount for now anyway. So, listing will just default
-		// to a single mount.
 		var formattedMount string
 		if len(info.Mounts) > 0 {
 			formattedMount += fmt.Sprintf(
@@ -100,23 +122,6 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 			)
 		}
 
-		// Defaulting to unknown, in case any weird status is returned.
-		status := "unknown"
-		switch info.MachineStatus {
-		case machine.MachineOffline:
-			status = "offline"
-		case machine.MachineOnline:
-			status = "online"
-		case machine.MachineDisconnected:
-			status = "disconnected"
-		case machine.MachineConnected:
-			status = "connected"
-		case machine.MachineError:
-			status = "error"
-		case machine.MachineRemounting:
-			status = "remounting"
-		}
-
 		// Currently we are displaying the status message over the formattedMount,
 		// if it exists.
 		if info.StatusMessage != "" {
@@ -124,7 +129,8 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 		}
 
 		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\t%s\n",
-			listCount, team, info.MachineLabel, info.IP, info.VMName, status, formattedMount,
+			i+1, team, info.MachineLabel, info.IP, info.VMName, info.MachineStatusName,
+			formattedMount,
 		)
 	}
 	w.Flush()
