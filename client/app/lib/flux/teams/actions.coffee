@@ -304,9 +304,6 @@ leaveTeam = (partial) ->
 focusSendInvites = (focus) ->
 
   { reactor } = kd.singletons
-
-  console.log { focus }
-
   reactor.dispatch actions.FOCUS_SEND_INVITES_SECTION, focus
 
 

@@ -70,8 +70,12 @@ $linkColor                  = #56A2D3
       border-bottom         none
       bg                    color #fff
       line-height           23px
-      &:hover a h3
-        color               $welcomeTitleColor
+      &:hover
+        a h3
+          color             $welcomeTitleColor
+        .WelcomeStepLinkSkip
+          visible()
+
       &:first-child
         rounded             3px 3px 0 0
       &:last-child
@@ -158,6 +162,20 @@ $linkColor                  = #56A2D3
         font-weight         300
         line-height         40px
         text-align          center
+
+      .WelcomeStepLinkSkip
+        hidden()
+        position            absolute
+        top                 51px
+        right               0px
+        width               119px
+        text-align          center
+        font-weight         300
+        color               #ccc
+        text-decoration     underline
+        text-transform      lowercase
+        font-size           14px
+        pointer()
 
   code
     bg                      color #F7F7F7

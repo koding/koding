@@ -33,8 +33,7 @@ welcomeSteps = [
       if status isnt 'NotInitialized' and not isAdmin()
         steps = steps.delete 'stackCreation'
     else
-      if kd.singletons.computeController.readyState
-        steps = steps.delete 'buildStack'
+      steps = steps.delete 'buildStack'  unless isAdmin()
 
     return steps.sortBy (a) -> a.get('order')
 ]

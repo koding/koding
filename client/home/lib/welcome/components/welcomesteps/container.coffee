@@ -15,15 +15,22 @@ module.exports = class WelcomeStepsContainer extends React.Component
 
   componentWillMount: ->
 
-    HomeFlux.actions.checkMigration()
-    HomeFlux.actions.checkFinishedSteps()
+    # this is required because we are only checking the state when we are
+    # mounting the component. These checks need to be done when the backend is
+    # ready, because mini view will be rendered on the page load. ~Umut
+    kd.singletons.mainController.ready =>
+      HomeFlux.actions.checkMigration()
+      HomeFlux.actions.checkFinishedSteps()
 
 
   render: ->
     if @props.mini
-      <MiniView kdParent={@props.kdParent} steps={@state.steps.toList()}/>
+      <MiniView kdParent={@props.kdParent} steps={@state.steps.toList()} onSkipClick={kd.noop}/>
     else
-      <View steps={@state.steps.toList()}/>
+      <View steps={@state.steps} onSkipClick={@bound 'onSkipClick'}/>
+
+
+  onSkipClick: (key) -> HomeFlux.actions.markAsDone key
 
 
 WelcomeStepsContainer.include [KDReactorMixin]

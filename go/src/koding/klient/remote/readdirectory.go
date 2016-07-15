@@ -11,8 +11,8 @@ import (
 	"github.com/koding/logging"
 )
 
-//  implements a prefetching / caching mechanism, currently
-// implemented
+// ReadDirectoryHandler calls a remote machine's fs.readDirectory method with
+// the given args.
 func (r *Remote) ReadDirectoryHandler(kreq *kite.Request) (interface{}, error) {
 	log := logging.NewLogger("remote").New("remote.readDirectory")
 

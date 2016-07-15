@@ -29,7 +29,7 @@ func StartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	fmt.Println("Waiting until started...")
+	fmt.Println("Starting...")
 
 	err = WaitUntilStarted(config.KlientAddress, CommandAttempts, CommandWaitTime)
 	if err != nil {

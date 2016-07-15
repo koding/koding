@@ -609,13 +609,13 @@ generateStack = (stackTemplateId) ->
       return reject(err)  if err
 
       generateStackFromTemplate stackTemplate
-        .then ({ stack }) ->
+        .then ({ stack, template }) ->
           { results : { machines } } = stack
           [ machine ] = machines
           computeController.reset yes, ->
             computeController.reloadIDE machine.obj.slug
-            resolve({ stack })
-          new kd.NotificationView { title: 'Stack generated successfully' }
+            new kd.NotificationView { title: 'Stack generated successfully' }
+            resolve({ stack, template })
         .catch (err) ->
           showError err
           reject(err)
