@@ -65,8 +65,17 @@ module.exports = GitLabProvider =
 
   parseImportUrl: (url) ->
 
+    # if user/repo/branch provided as url we will use
+    if not (/^http(|s)\:\/\//.test url) and (url.split '/').length in [2, 3]
+      return @parseRepo url
+
     { GITLAB_HOST } = Constants
     { protocol, host, pathname } = URL.parse url
+
+    return  if host not in [
+      GITLAB_HOST,
+      KONFIG.gitlab.host, "#{KONFIG.gitlab.host}:#{KONFIG.gitlab.port}"
+    ]
 
     [ empty, user, repo, tree, branch, rest... ] = pathname.split '/'
     return  if rest.length > 0
