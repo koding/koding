@@ -6,6 +6,9 @@ URL         = require 'url'
 _           = require 'lodash'
 GitlabAPI   = require 'gitlab'
 KodingError = require '../../error'
+KONFIG      = require 'koding-config-manager'
+
+
 getPrivateToken = (options, callback) ->
 
   { urlData: { baseUrl }, token } = options
@@ -28,6 +31,7 @@ getPrivateToken = (options, callback) ->
 
 module.exports = GitLabProvider =
 
+
   importStackTemplateData: (importParams, user, callback) ->
 
     { url, privateToken } = importParams
@@ -35,6 +39,8 @@ module.exports = GitLabProvider =
 
     if privateToken
       @importStackTemplateWithPrivateToken privateToken, urlData, callback
+    else if oauth = user.getAt 'foreignAuth.gitlab'
+      @importStackTemplateWithOauth oauth, urlData, callback
     else
       @importStackTemplateWithRawUrl urlData, callback
 
@@ -55,6 +61,23 @@ module.exports = GitLabProvider =
     return { originalUrl : url, baseUrl, user, repo, branch }
 
 
+  importStackTemplateWithOauth: (oauth, urlData, callback) ->
+
+    { baseUrl, user, repo, branch } = urlData
+    { token } = oauth
+
+    getPrivateToken { urlData, token }, (err, privateToken) =>
+
+      return callback err  if err
+
+      gitlab  = GitlabAPI {
+        url   : baseUrl
+        token : privateToken
+      }
+
+      @importStackTemplateWithPrivateToken privateToken, urlData, callback
+
+
   importStackTemplateWithPrivateToken: (privateToken, urlData, callback) ->
 
     { baseUrl, user, repo, branch } = urlData
@@ -66,6 +89,7 @@ module.exports = GitLabProvider =
     }
 
     queue = [
+
       (next) ->
 
         gitlab.projects.all (projects) ->
