@@ -24,7 +24,7 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
     allowedDomains = team.allowedDomains
 
     @wrapper.addSubView headerize  'KD CLI'
-    @wrapper.addSubView sectionize 'KD CLI', HomeUtilitiesKD
+    @wrapper.addSubView @kdCliSection = sectionize 'KD CLI', HomeUtilitiesKD
 
     switch os
       when 'mac'
@@ -42,3 +42,15 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
         @wrapper.addSubView headerize  'Integrations'
         @wrapper.addSubView sectionize 'Intercom Integration', HomeUtilitiesIntercomIntegration
         @wrapper.addSubView sectionize 'Customer Feedback', HomeUtilitiesCustomerFeedback
+
+
+  handleAction: (action) ->
+
+    return  unless action is 'kd-cli'
+    @kdCliSection.setClass 'show-code-border'
+
+
+  handleSection: (action) ->
+
+    @kdCliSection.unsetClass 'show-code-border'
+

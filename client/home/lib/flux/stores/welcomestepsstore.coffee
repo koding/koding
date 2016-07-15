@@ -92,7 +92,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
         #   order: 0
         #   skippable: no
         installKd :
-          path: '/Home/Koding-Utilities'
+          path: '/Home/Koding-Utilities/kd-cli'
           title: 'Install KD'
           actionTitle: 'Install'
           videoLink: ''

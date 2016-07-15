@@ -64,16 +64,8 @@ module.exports = class HomeAppController extends AppController
     else
       @doOnboarding targetPane
 
-    return  unless identifier and action
-
-    targetPaneView.emit 'SubTabRequested', action, identifier
-    { parentTabTitle } = targetPane.getOptions()
-
-    return  unless parentTabTitle
-
-    for handle in @getView().tabs.handles
-      if handle.getOption('title') is parentTabTitle
-        handle.setClass 'active'
+    unless identifier and action
+      return targetPaneView.handleSection?()  unless action
 
 
   loadView: (modal) ->
