@@ -38,11 +38,15 @@ do ->
 
   kd.registerRoutes 'Login',
 
-    '/Login/:token?' : ->
-      # we don't allow solo logins anymore - SY
-      # app.getView().animateToForm 'login'
-      # app.handleQuery options
-      kd.singletons.router.handleRoute '/Teams'
+    '/Login/:token?' : handler (app, options) ->
+      groupName = utils.getGroupNameFromLocation()
+
+      utils.checkIfGroupExists groupName, (err, group) ->
+        if group
+          app.getView().animateToForm 'login'
+          app.handleQuery options
+        else
+          kd.singletons.router.handleRoute '/Teams'
 
     '/Register' : ->
       # we don't allow solo registrations anymore - SY
