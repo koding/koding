@@ -47,6 +47,22 @@ module.exports = GitLabProvider =
     return yes
 
 
+  parseRepo: (url) ->
+
+    { gitlab } = KONFIG
+    [user, repo, branch] = url.split '/'
+
+    port    = if port = gitlab.port then ":#{port}" else ''
+    baseUrl = "http://#{gitlab.host}#{port}" # FIXME update protocol here ~GG
+    branch ?= 'master'
+    url     = "#{baseUrl}/#{user}/#{repo}"
+
+    if branch isnt 'master'
+      url = "#{url}/tree/#{branch}"
+
+    return { originalUrl : url, baseUrl, user, repo, branch }
+
+
   parseImportUrl: (url) ->
 
     { GITLAB_HOST } = Constants
