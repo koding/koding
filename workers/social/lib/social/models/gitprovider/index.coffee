@@ -59,26 +59,36 @@ module.exports = class GitProvider extends Base
 
     (client, title, importData, callback) ->
 
-      { rawContent, description } = importData
-      delete importData.rawContent
-      delete importData.description
+      { template, readme } = importData
 
-      requiredProviders = providersParser rawContent
-      requiredData      = requirementsParser rawContent
-      config            = { requiredData, requiredProviders, importData }
+      importData.commitId ?= importData.template.commitId
 
-      convertedDoc = yamlToJson Encoder.htmlDecode rawContent
+      delete importData.template
+      delete importData.readme
+
+      requiredProviders = providersParser template.content
+      requiredData      = requirementsParser template.content
+      config            = {
+        remoteDetails   : importData
+        requiredProviders
+        requiredData
+      }
+
+      description = readme.content
+      rawContent  = template.content
+
+      convertedDoc = yamlToJson Encoder.htmlDecode template.content
       if convertedDoc.err
         return callback new KodingError 'Failed to convert YAML to JSON'
 
       { contentObject } = convertedDoc
+
       addUserInputOptions contentObject, requiredData
       config.buildDuration = contentObject.koding?.buildDuration
 
       template = convertedDoc.content
-      title  or= 'Default stack template'
+      title  or= "#{importData.repo} Stack"
 
       JStackTemplate = require '../computeproviders/stacktemplate'
       data = { rawContent, template, title, description, config }
       JStackTemplate.create client, data, callback
-
