@@ -680,8 +680,13 @@ module.exports = class StackEditorView extends kd.View
         .add 'Following information will be fetched from variables section:'
         .add requiredData.custom
 
-    # Generate config data from parsed values
-    config = { requiredData, requiredProviders }
+    if stackTemplate?.config?
+      config = stackTemplate.config
+      config.requiredData = requiredData
+      config.requiredProviders = requiredProviders
+    else
+      # Generate config data from parsed values
+      config = { requiredData, requiredProviders }
 
     # Keep clone info if exists
     if clonedFrom = @stackTemplate?.config?.clonedFrom
