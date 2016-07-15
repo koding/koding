@@ -74,7 +74,7 @@ module.exports = class TeamSelectorView extends JView
         return new kd.NotificationView
           title: 'We couldn\'t find your team.'
 
-      location.assign "#{location.protocol}//#{slug}.#{location.host}"
+      location.assign "#{location.protocol}//#{slug}.#{location.host}/Login"
 
 
   pistachio: ->
