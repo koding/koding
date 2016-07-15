@@ -72,12 +72,12 @@ module.exports = class SidebarStackSection extends React.Component
     MENU.destroy()
 
     templateId = stack.get 'baseStackId'
-
     switch title
       when 'Edit' then router.handleRoute "/Stack-Editor/#{templateId}"
       when 'Reinitialize', 'Update'
         reinitStackFromWidget(stack).then ->
-          appManager.tell 'Stackeditor', 'reloadEditor', { _id: templateId }
+          # invalidate editor cache
+          appManager.tell 'Stackeditor', 'removeEditor', templateId
       when 'Destroy VMs' then deleteStack { stack }
       when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
 
