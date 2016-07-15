@@ -37,13 +37,22 @@ module.exports = class GitProvider extends Base
       shouldReviveProvider : no
     }, (client, importParams, callback) ->
 
-      { user }  = client.r
-      providers = [ GitHubProvider, GitLabProvider ]
+      providers =
+        gitlab  : GitLabProvider
+        github  : GitHubProvider
 
-      for provider in providers
-        return  if provider.importStackTemplateData importParams, user, callback
+      unless _provider = importParams.provider
+        return callback new KodingError 'Unknown provider'
 
-      callback new KodingError 'Invalid url'
+      provider = providers[_provider]
+
+      unless provider
+        return callback new KodingError 'Provider is not supported'
+
+      { user } = client.r
+
+      unless provider.importStackTemplateData importParams, user, callback
+        callback new KodingError 'Invalid url'
 
 
   @createImportedStackTemplate = permit 'import stack template',
