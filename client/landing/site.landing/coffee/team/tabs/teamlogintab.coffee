@@ -94,6 +94,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
       {{> @inviteDesc}}
       <p>Trying to create a team? <a href="/Teams/Create" target="_self">Sign up on the home page</a> to get started.</p>
       <p>Forgot your password? <a href='/Team/Recover'>Click here</a> to reset.</p>
+      <p>Find another team? <a href='/Team/FindTeam'>Click here</a></p>
     </section>
     <footer>
       <a href="https://www.koding.com/legal/teams-user-policy" target="_blank">Acceptable user policy</a><a href="https://www.koding.com/legal/teams-copyright" target="_blank">Copyright/DMCA guidelines</a><a href="https://www.koding.com/legal/teams-terms-of-service" target="_blank">Terms of service</a><a href="https://www.koding.com/legal/teams-privacy" target="_blank">Privacy policy</a>

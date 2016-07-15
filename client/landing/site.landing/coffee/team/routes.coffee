@@ -29,3 +29,10 @@ do ->
         tab = app.jumpTo 'reset'
         { mode } = kd.utils.parseQuery()
         tab.form.addCustomData { recoveryToken : token, mode }
+
+    '/Team/FindTeam' : ->
+
+      { router } = kd.singletons
+      router.openSection 'Team', null, null, (app) ->
+        tab = app.jumpTo 'findteam'
+        tab.setFocus()
