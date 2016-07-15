@@ -127,6 +127,7 @@ type RuntimeOptions struct {
 	UploadsUriForGroup string `json:"uploadsUriForGroup"`
 	FileFetchTimeout   int    `json:"fileFetchTimeout"`
 	UserIdleMs         int    `json:"userIdleMs"`
+	IntercomAppId      string `json:"intercomAppId"`
 	Embedly            struct {
 		ApiKey string `json:"apiKey"`
 	} `json:"embedly"`
