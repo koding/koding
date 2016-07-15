@@ -124,17 +124,29 @@ module.exports = GitLabProvider =
           else next new KodingError 'No repository found'
 
       (projectId, next) ->
-        params = { id : projectId, ref : branch, file_path : TEMPLATE_PATH }
-        gitlab.repositoryFiles.get params, (err, file) ->
-          return next err  if err
-          rawContent = helpers.decodeContent file
-          next null, projectId, rawContent
 
-      (projectId, rawContent, next) ->
-        params = { id : projectId, ref : branch, file_path : README_PATH }
-        gitlab.repositoryFiles.get params, (err, file) ->
-          description = helpers.decodeContent file  if file
-          next null, { rawContent, description }
+        params = { projectId, ref: branch, file_path: TEMPLATE_PATH }
+        gitlab.projects.repository.showFile params, (file) ->
+
+          template = if file then {
+            content  : helpers.decodeContent file
+            commitId : file.commit_id
+          } else {}
+
+          next null, projectId, template
+
+      (projectId, template, next) ->
+
+        params = { projectId, ref: branch, file_path: README_PATH }
+        gitlab.projects.repository.showFile params, (file) ->
+
+          readme = if file then {
+            content  : helpers.decodeContent file
+            commitId : file.commit_id
+          } else {}
+
+          next null, { template, readme }
+
     ]
 
     async.waterfall queue, (err, result) ->
