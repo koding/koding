@@ -1,5 +1,5 @@
 http       = require 'http'
-{ gitlab } = KONFIG
+{ gitlab } = require 'koding-config-manager'
 { redirectOauth, saveOauthToSession } = require './helpers'
 
 provider = 'gitlab'
