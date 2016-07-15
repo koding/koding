@@ -81,6 +81,8 @@
     "kd-react": "@koding/kd-react"
   },
   "devDependencies": {
+    "babel-preset-es2015": "6.9.0",
+    "babel-preset-react": "6.11.1",
     "chokidar": "1.0.1",
     "coffee-reactify": "3.0.0",
     "coffee-script": "1.8.0",

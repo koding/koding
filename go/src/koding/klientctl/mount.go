@@ -27,9 +27,16 @@ import (
 	"koding/klientctl/util"
 
 	"github.com/cheggaaa/pb"
+	"github.com/fatih/structs"
+	"github.com/fsouza/go-dockerclient/external/golang.org/x/sys/unix"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/logging"
+)
+
+const (
+	// a large folder is 1 gig.
+	largeFolderBytes = 1 * 1024 * 1024 * 1024
 )
 
 var IgnoreFiles = []string{
@@ -56,6 +63,10 @@ type MountOptions struct {
 	SSHDefaultKeyName string
 }
 
+func (opts *MountOptions) IsZero() bool {
+	return structs.IsZero(opts)
+}
+
 // Command implements a Command for `kd mount`.
 type MountCommand struct {
 	Options MountOptions
@@ -69,6 +80,7 @@ type MountCommand struct {
 		RemoteCache(req.Cache, func(par *dnode.Partial)) error
 		RemoteMountFolder(req.MountFolder) (string, error)
 		RemoteReadDirectory(string, string) ([]fs.FileEntry, error)
+		RemoteGetPathSize(req.GetPathSizeOptions) (uint64, error)
 
 		// For backwards compatibility with some helper funcs not yet embedded.
 		GetClient() *kite.Client
@@ -124,8 +136,14 @@ func (c *MountCommand) Run() (int, error) {
 		}
 	}()
 
-	if exit, err := c.handleOptions(); err != nil {
-		return exit, err
+	if c.Options.Debug {
+		c.Log.SetLevel(logging.DEBUG)
+	}
+
+	// allow scp like declaration, ie `<machine name>:/path/to/remote`
+	if strings.Contains(c.Options.Name, ":") {
+		names := strings.SplitN(c.Options.Name, ":", 2)
+		c.Options.Name, c.Options.RemotePath = names[0], names[1]
 	}
 
 	// setup our klient, if needed
@@ -136,6 +154,16 @@ func (c *MountCommand) Run() (int, error) {
 	// Get the machine name from a partial name, if needed.
 	if err := c.findMachineName(); err != nil {
 		return 1, err
+	}
+
+	// Decide smart options, if needed, before the rest of
+	// the flow.
+	if err := c.smartOptions(); err != nil {
+		return 1, err
+	}
+
+	if exit, err := c.handleOptions(); err != nil {
+		return exit, err
 	}
 
 	// create the mount dir if needed
@@ -155,7 +183,7 @@ func (c *MountCommand) Run() (int, error) {
 		if err := c.prefetchAll(); err != nil {
 			cleanupPath = true
 
-			return 1, fmt.Errorf("Failed to prefetch. err:%s", err)
+			return 1, fmt.Errorf("failed to prefetch: %s", err)
 		}
 	}
 
@@ -196,6 +224,125 @@ func (c *MountCommand) Run() (int, error) {
 	return 0, nil
 }
 
+// smartOptions attempts to assign options based on the remote and local environment.
+// Eg, if it's a small directory, pure fuse is used. Large directory, and
+// onewaysync is used. Massive directory (too big for local system), and fuse is used.
+func (c *MountCommand) smartOptions() (err error) {
+	if c.hasFlaggedOpts() {
+		c.Log.Debug("Mount has flagged options, not using SmartOptions.")
+		return nil
+	}
+
+	c.Log.Debug("Mount has no flagged options, using SmartOptions.")
+
+	if c.Options.Name == "" || c.Options.LocalPath == "" {
+		c.printfln("Mount name and local path are required options.\n")
+		c.Help()
+		return errors.New("not enough arguments: missing Name or LocalPath")
+	}
+
+	// Repeat the message after every smart option return, if no errors.
+	// Using a defer to avoid code reuse.
+	defer func() {
+		if err == nil {
+			c.printfln("To manually specify mount options, see: kd mount --help\n")
+		}
+	}()
+
+	remoteSize, err := c.Klient.RemoteGetPathSize(req.GetPathSizeOptions{
+		Debug:      c.Options.Debug,
+		Machine:    c.Options.Name,
+		RemotePath: c.Options.RemotePath,
+	})
+	if err != nil {
+		c.Log.Error("Unable to get remote path size. err:%s", err)
+		if klientctlerrors.IsRemotePathNotExistErr(err) {
+			c.printfln(errormessages.RemotePathDoesNotExist)
+			return fmt.Errorf("remote path does not exist: %s", err)
+		}
+		return err
+	}
+
+	// Using parent since the given directory will not yet exist.
+	localSize, err := getLocalDiskSize(filepath.Dir(c.Options.LocalPath))
+	if err != nil {
+		c.Log.Error("Unable to get local disk size. err:%s", err)
+		return err
+	}
+
+	c.Log.Debug(
+		"Deciding on smart options. RemotePathSize:%d, LocalDiskSize:%d",
+		remoteSize, localSize,
+	)
+
+	// if the folder is larger than our specified largeFolderBytes, store isLargeFolder
+	// for easy usage.
+	isLargeFolder := remoteSize > largeFolderBytes
+
+	// If the mounting the remote folder will take up more than 75% of
+	// the local disk, use fuse not rsync, no matter what size the remote folder is.
+	if remoteSize > uint64(float64(localSize)*0.75) {
+		c.printfln("Remote folder will take more than 75%% of local disk space.")
+
+		if isLargeFolder {
+			// no options needed, fuse is default.
+			c.printfln("Because of this, mounting via fuse.")
+		} else {
+			// if the remote folder is large, use fuse caching option.
+			c.printfln("Because of this, mounting via fuse and prefetchall.")
+			c.Options.PrefetchAll = true
+		}
+
+		// fuse is the default, so we don't need any values.
+		return nil
+	}
+
+	if isLargeFolder {
+		c.printfln("Remote folder is over 1Gb, mounting via oneway sync.")
+		c.Options.OneWaySync = true
+		return nil
+	}
+
+	c.printfln("Mounting via fuse.")
+
+	return nil
+}
+
+// hasFlaggedOpts checks whether this MountOptions object contains fields which,
+// when coming from CLI, use flags. For example:
+//
+//	`kd mount orange:foo ./foo` == HasFlaggedOpts=false
+//	`kd mount orange:foo ./foo -s` == HasFlaggedOpts=true
+func (c *MountCommand) hasFlaggedOpts() bool {
+	// To figure out if we have flagged opts, we can copy the current opts and
+	// remove the positional opts.
+	//
+	// If the resulting struct is zero value, then it *only* had positional fields,
+	// no flagged fields.
+	//
+	// Likewise if the struct is not zero value, then it must have had some flagged
+	// fields.
+	noPosOpts := c.Options
+
+	// Set pos opts to zero values.
+	noPosOpts.Name = ""
+	noPosOpts.LocalPath = ""
+	noPosOpts.RemotePath = ""
+	// Ignore debug like the others, so that we can --debug smart mounting.
+	noPosOpts.Debug = false
+
+	// If these options are using the default config values, then zero them as well.
+	// The user did not supply them.
+	if noPosOpts.SSHDefaultKeyDir == config.SSHDefaultKeyDir {
+		noPosOpts.SSHDefaultKeyDir = ""
+	}
+	if noPosOpts.SSHDefaultKeyName == config.SSHDefaultKeyName {
+		noPosOpts.SSHDefaultKeyName = ""
+	}
+
+	return !noPosOpts.IsZero()
+}
+
 // handleOptions deals with options, erroring if options are missing, etc.
 func (c *MountCommand) handleOptions() (int, error) {
 	if c.Options.Name == "" || c.Options.LocalPath == "" {
@@ -234,12 +381,6 @@ func (c *MountCommand) handleOptions() (int, error) {
 	if c.Options.NoPrefetchMeta && c.Options.PrefetchAll {
 		c.printfln(PrefetchAllAndMetaTogether)
 		return 1, fmt.Errorf("noPrefetchMeta and prefetchAll were both supplied")
-	}
-
-	// allow scp like declaration, ie `<machine name>:/path/to/remote`
-	if strings.Contains(c.Options.Name, ":") {
-		names := strings.Split(c.Options.Name, ":")
-		c.Options.Name, c.Options.RemotePath = names[0], names[1]
 	}
 
 	// send absolute local path to klient unless local path is empty
@@ -330,7 +471,6 @@ func (c *MountCommand) setupKlient() (int, error) {
 
 func (c *MountCommand) useSync() error {
 	c.Log.Debug("#useSync")
-	c.printfln("Warning: This feature is in alpha.")
 
 	// If the cachePath exists, move it to the mount location.
 	// No need to fail on an error during rename, we can just log it.
@@ -482,7 +622,7 @@ func (c *MountCommand) cacheWithProgress(cacheReq req.Cache) (err error) {
 		)
 	}
 
-	bar.FinishPrint("Prefetching complete.")
+	bar.Finish()
 
 	return nil
 }
@@ -761,6 +901,12 @@ func askToCreate(p string, r io.Reader, w io.Writer) error {
 	}
 
 	return os.Mkdir(p, 0755)
+}
+
+func getLocalDiskSize(path string) (uint64, error) {
+	var stat unix.Statfs_t
+	unix.Statfs(path, &stat)
+	return stat.Bavail * uint64(stat.Bsize), nil
 }
 
 func getCachePath(name string) string {

@@ -163,7 +163,7 @@ func TestUnmountFindMountAndPath(t *testing.T) {
 
 		Convey("Given a machine name that does not exist", func() {
 			c.Options.MountName = "bar"
-			fakeKlient.ReturnInfos = []list.KiteInfo{list.KiteInfo{restypes.ListMachineInfo{
+			fakeKlient.ReturnInfos = []list.KiteInfo{{ListMachineInfo: restypes.ListMachineInfo{
 				VMName: "foo",
 			}},
 			}
@@ -177,10 +177,10 @@ func TestUnmountFindMountAndPath(t *testing.T) {
 
 		Convey("Given a machine that has mounts", func() {
 			c.Options.MountName = "foo"
-			fakeKlient.ReturnInfos = []list.KiteInfo{list.KiteInfo{restypes.ListMachineInfo{
+			fakeKlient.ReturnInfos = []list.KiteInfo{{ListMachineInfo: restypes.ListMachineInfo{
 				VMName: "foo",
 				// Content doesn't matter, just length
-				Mounts: []restypes.ListMountInfo{restypes.ListMountInfo{}},
+				Mounts: []restypes.ListMountInfo{{}},
 			}},
 			}
 
@@ -191,7 +191,7 @@ func TestUnmountFindMountAndPath(t *testing.T) {
 
 		Convey("Given a machine that has no mounts", func() {
 			c.Options.MountName = "foo"
-			fakeKlient.ReturnInfos = []list.KiteInfo{list.KiteInfo{restypes.ListMachineInfo{
+			fakeKlient.ReturnInfos = []list.KiteInfo{{ListMachineInfo: restypes.ListMachineInfo{
 				VMName: "foo",
 				// Content doesn't matter, just length
 				Mounts: []restypes.ListMountInfo{},

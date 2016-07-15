@@ -20,7 +20,6 @@ module.exports = setupIntercom = ->
       i.q = []
       i.c = (args) -> i.q.push args
       w.Intercom = i
-      w.intercomSettings = { app_id : intercomAppId }
 
       s = d.createElement 'script'
       s.type  = 'text/javascript'
@@ -32,6 +31,7 @@ module.exports = setupIntercom = ->
       account = whoami()
       account.fetchEmail (err, email) ->
         window.Intercom 'boot',
-          app_id : intercomAppId
-          name   : getFullnameFromAccount account
-          email  : email
+          app_id  : intercomAppId
+          name    : getFullnameFromAccount account
+          email   : email
+          user_id : account._id

@@ -287,7 +287,7 @@ func (k *Klient) RemoteReadDirectory(mountName, remotePath string) ([]fs.FileEnt
 	return files, nil
 }
 
-// CurrentUsername calls klient's `remote.currentUsername` method
+// RemoteCurrentUsername calls klient's `remote.currentUsername` method
 func (k *Klient) RemoteCurrentUsername(opts req.CurrentUsernameOptions) (string, error) {
 	var username string
 
@@ -297,4 +297,16 @@ func (k *Klient) RemoteCurrentUsername(opts req.CurrentUsernameOptions) (string,
 	}
 
 	return username, kRes.Unmarshal(&username)
+}
+
+// RemoteGetPathSize calls the klient's `remote.getPathSize` method
+func (k *Klient) RemoteGetPathSize(opts req.GetPathSizeOptions) (uint64, error) {
+	var size uint64
+
+	kRes, err := k.Tell("remote.getPathSize", opts)
+	if err != nil {
+		return size, err
+	}
+
+	return size, kRes.Unmarshal(&size)
 }

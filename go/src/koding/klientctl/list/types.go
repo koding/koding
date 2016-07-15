@@ -13,6 +13,10 @@ import (
 
 type KiteInfo struct {
 	restypes.ListMachineInfo
+
+	// A human readable status rather than the integer type as we're using for
+	// the machine.MachineStatus'.
+	MachineStatusName string `json:"machineStatusName"`
 }
 
 // KiteInfos is a slice of KiteInfo with helper methods.

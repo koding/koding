@@ -38,11 +38,13 @@ do ->
 
   kd.registerRoutes 'Login',
 
-    '/Login/:token?' : handler (app, options) ->
-      app.getView().animateToForm 'login'
-      app.handleQuery options
+    '/Login/:token?' : ->
+      # we don't allow solo logins anymore - SY
+      # app.getView().animateToForm 'login'
+      # app.handleQuery options
+      kd.singletons.router.handleRoute '/Teams'
 
-    '/Register' : handler (app, options) ->
+    '/Register' : ->
       # we don't allow solo registrations anymore - SY
       kd.singletons.router.handleRoute '/Teams'
 
@@ -50,8 +52,8 @@ do ->
       app.getView().animateToForm 'register'
       app.handleQuery options
 
-    '/Redeem'       : handler (app) -> app.getView().animateToForm 'redeem'
-    '/Reset/:token' : handleResetRoute
+    # '/Redeem'       : handler (app) -> app.getView().animateToForm 'redeem'
+    # '/Reset/:token' : handleResetRoute
     '/ResendToken'  : handler (app) -> app.getView().animateToForm 'resendEmail'
     '/Recover'      : handler (app) -> app.getView().animateToForm 'recover'
 

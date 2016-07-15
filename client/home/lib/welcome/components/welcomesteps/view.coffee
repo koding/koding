@@ -10,27 +10,34 @@ module.exports = class WelcomeStepsView extends React.Component
 
     <a className='WelcomeStepVideoIcon' href={link} target='_blank'> </a>
 
+  renderSkipLink: (key, step) ->
+
+    return null  if not step.skippable or step.isDone
+
+    <strong className='WelcomeStepLinkSkip' onClick={@props.onSkipClick.bind this, key}>skip this</strong>
+
 
   renderBullets: ->
-    <ul className='bullets clearfix'>
-      {
-        @props.steps.map (step) =>
-          step = step.toJS()
-          itemClass = ''
-          itemClass = kd.utils.curry 'starred', itemClass  if step.starred
-          itemClass = kd.utils.curry 'done', itemClass  if step.isDone
-          itemClass = kd.utils.curry step.cssClass, itemClass  if step.cssClass
 
-          <li key={ step.order } className={ itemClass }>
-            <a className='WelcomeStepLink' href={ step.path }>
-              <h3>{ step.title }</h3>
-              <p dangerouslySetInnerHTML={ { __html : step.description } } />
-              <cite>{ step.actionTitle }</cite>
-            </a>
-            { @renderVideoLink step.videoLink }
-          </li>
-      }
-    </ul>
+    children = @props.steps.map (step, key) =>
+      step = step.toJS()
+      itemClass = ''
+      itemClass = kd.utils.curry 'starred', itemClass  if step.starred
+      itemClass = kd.utils.curry 'done', itemClass  if step.isDone
+      itemClass = kd.utils.curry 'pending', itemClass  if step.isPending
+      itemClass = kd.utils.curry step.cssClass, itemClass  if step.cssClass
+
+      <li key={ step.order } className={ itemClass }>
+        <a className='WelcomeStepLink' href={ step.path }>
+          <h3>{ step.title }</h3>
+          <p dangerouslySetInnerHTML={ { __html : step.description } } />
+          <cite>{ step.actionTitle }</cite>
+        </a>
+        { @renderSkipLink key, step }
+        { @renderVideoLink step.videoLink }
+      </li>
+
+    <ul className='bullets clearfix'>{ children.toList() }</ul>
 
 
   render : ->
