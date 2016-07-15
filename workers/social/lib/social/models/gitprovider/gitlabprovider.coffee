@@ -125,6 +125,13 @@ module.exports = GitLabProvider =
 
       (projectId, next) ->
 
+        gitlab.projects.repository.listBranches projectId, (branches) ->
+          if branches.filter((_branch) -> _branch.name is branch).length is 0
+          then next new KodingError 'No such branch exists'
+          else next null, projectId
+
+      (projectId, next) ->
+
         params = { projectId, ref: branch, file_path: TEMPLATE_PATH }
         gitlab.projects.repository.showFile params, (file) ->
 
