@@ -130,3 +130,4 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
       isDone: no
       order: 30
       starred: yes
+      skippable: yes
