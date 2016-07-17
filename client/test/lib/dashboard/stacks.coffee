@@ -24,20 +24,12 @@ module.exports =
       (next) ->
         teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
           next null, result
-      (next) ->
-        teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
-          next null, res
-      (next) ->
-        teamsHelpers.createStack browser, (res) ->
-          next null, res
-
-      (next) ->
-        teamsHelpers.createDefaultStackTemplate browser, (res) ->
-          # remove main url from result
-          # to get '/Stack-Editor/machineId'
-          res = res.substring helpers.getUrl(yes).length
-          stackSelector = res
-          next null, res
+      # (next) ->
+      #   teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
+      #     next null, res
+      # (next) ->
+      #   teamsHelpers.createDefaultStackTemplate browser, (res) ->
+      #     next null, res
       (next) ->
         teamsHelpers.buildStack browser, (res) ->
           next null, res
@@ -88,8 +80,6 @@ module.exports =
       (next) ->
         stackshelpers.createPrivateStackAsMember browser, (result) ->
           next null, result
-
-
 
     ]
 
