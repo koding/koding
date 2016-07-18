@@ -331,7 +331,7 @@ module.exports = class JAccount extends jraphical.Module
     [ options, callback ] = [ callback, options ]  unless callback
     options  ?= {}
 
-    { roles } = {}
+    { roles } = options
 
     unless Array.isArray roles
       roles = [ 'member', 'moderator', 'admin', 'owner' ]
