@@ -60,12 +60,6 @@ module.exports =
         stackshelpers.changeAndReinitializeStack browser, (res) ->
           next null, res
       (next) ->
-        stackshelpers.destroyPersonalStack browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.destroy browser, (result) ->
-          next null, result
-      (next) ->
         stackshelpers.deleteCredentialInUse browser, (result) ->
           next null, result
       (next) ->
@@ -73,6 +67,12 @@ module.exports =
           next null, result
       (next) ->
         stackshelpers.deleteStackTemplates browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.destroyPersonalStack browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.destroy browser, (result) ->
           next null, result
       (next) ->
         teamsHelpers.logoutTeam browser, (result) ->
