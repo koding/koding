@@ -343,6 +343,92 @@ runTests = -> describe 'workers.social.user.account', ->
           async.series queue, done
 
 
+  describe '#fetchAllParticipatedGroups$()', ->
+
+    client1  = {}
+    client2  = {}
+    account1 = {}
+    account2 = {}
+    group1   = {}
+    group2   = {}
+
+    checkFetchedGroups = (groups, expectedSlugs) ->
+
+      expect(groups.length).to.be.equal expectedSlugs.length
+
+      slugs = (group.slug for group in groups)
+      for slug in expectedSlugs
+        expect(slugs.indexOf slug).to.be.above -1
+
+
+    before (done) ->
+
+      queue = [
+        (next) ->
+          withConvertedUser { createGroup : yes }, ({ client, account, group }) ->
+            client1  = client
+            account1 = account
+            group1   = group
+            next()
+        (next) ->
+          withConvertedUser { createGroup : yes }, ({ client, account, group }) ->
+            client2  = client
+            account2 = account
+            group2   = group
+            group2.addAdmin account1, next
+      ]
+
+      async.series queue, (err) ->
+        expect(err).to.not.exist
+        expect(account1).to.exist
+        expect(group1).to.exist
+        expect(group2).to.exist
+        done()
+
+    it 'should return all user groups', (done) ->
+
+      queue = [
+        (next) ->
+          account1.fetchAllParticipatedGroups$ client1, (err, groups) ->
+            expect(err).to.not.exist
+            checkFetchedGroups groups, [ group1.slug, group2.slug, 'koding' ]
+            next()
+        (next) ->
+          account2.fetchAllParticipatedGroups$ client2, (err, groups) ->
+            expect(err).to.not.exist
+            checkFetchedGroups groups, [ group2.slug, 'koding' ]
+            next()
+      ]
+
+      async.series queue, done
+
+
+    it 'should return groups depending on user roles', (done) ->
+
+      queue = [
+        (next) ->
+          options = { roles : [ 'owner' ] }
+          account1.fetchAllParticipatedGroups$ client1, options, (err, groups) ->
+            expect(err).to.not.exist
+            checkFetchedGroups groups, [ group1.slug ]
+            next()
+        (next) ->
+          options = { roles : [ 'admin' ] }
+          account1.fetchAllParticipatedGroups$ client1, options, (err, groups) ->
+            expect(err).to.not.exist
+            checkFetchedGroups groups, [ group1.slug, group2.slug ]
+            next()
+        (next) ->
+          options = { roles : [ 'moderator' ] }
+          account1.fetchAllParticipatedGroups$ client1, options, (err, groups) ->
+            expect(err).to.not.exist
+            checkFetchedGroups groups, []
+            next()
+      ]
+
+      async.series queue, done
+
+
 beforeTests()
 
 runTests()
