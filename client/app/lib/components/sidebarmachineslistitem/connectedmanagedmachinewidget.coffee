@@ -54,7 +54,6 @@ module.exports = class ConnectedManagedMachineWidget extends React.Component
       <span className='close-icon'></span>
       <div className='main-wrapper'>
         <div className='image-wrapper'>
-          <img src='/a/images/managed_vm_success.svg' />
         </div>
         <div className='content'>
           <div className='label'>
