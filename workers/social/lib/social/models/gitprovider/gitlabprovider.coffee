@@ -21,11 +21,16 @@ getPrivateToken = (options, callback) ->
     return callback err  if err
 
     try
-      data = JSON.parse body
+      data  = JSON.parse body
+      token = data.private_token
     catch e
       return callback new KodingError 'Auth failed'
 
-    callback null, data.private_token
+    unless token
+      console.log '[GITLAB] TOKEN NOT FOUND ON DATA:', data
+      return callback new KodingError 'Auth failed'
+
+    callback null, token
 
 
 
@@ -95,10 +100,6 @@ module.exports = GitLabProvider =
 
       return callback err  if err
 
-      gitlab  = GitlabAPI {
-        url   : baseUrl
-        token : privateToken
-      }
 
       @importStackTemplateWithPrivateToken privateToken, urlData, callback
 
