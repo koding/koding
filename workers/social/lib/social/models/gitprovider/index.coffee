@@ -66,29 +66,42 @@ module.exports = class GitProvider extends Base
       delete importData.template
       delete importData.readme
 
-      requiredProviders = providersParser template.content
-      requiredData      = requirementsParser template.content
-      config            = {
-        remoteDetails   : importData
-        requiredProviders
-        requiredData
+      JStackTemplate = require '../computeproviders/stacktemplate'
+
+      # FIXME This fields requires index or we need to
+      # find a better way for this one ~ GG
+      selector = {
+        'config.remoteDetails.user': importData.user
+        'config.remoteDetails.repo': importData.repo
       }
 
-      description = readme.content
-      rawContent  = template.content
+      JStackTemplate.one$ client, selector, (err, stacktemplate) ->
 
-      convertedDoc = yamlToJson Encoder.htmlDecode template.content
-      if convertedDoc.err
-        return callback new KodingError 'Failed to convert YAML to JSON'
+        if not err and stacktemplate
+          return callback null, stacktemplate
 
-      { contentObject } = convertedDoc
+        requiredProviders = providersParser template.content
+        requiredData      = requirementsParser template.content
+        config            = {
+          remoteDetails   : importData
+          requiredProviders
+          requiredData
+        }
 
-      addUserInputOptions contentObject, requiredData
-      config.buildDuration = contentObject.koding?.buildDuration
+        description = readme.content
+        rawContent  = template.content
 
-      template = convertedDoc.content
-      title  or= "#{importData.repo} Stack"
+        convertedDoc = yamlToJson Encoder.htmlDecode template.content
+        if convertedDoc.err
+          return callback new KodingError 'Failed to convert YAML to JSON'
 
-      JStackTemplate = require '../computeproviders/stacktemplate'
-      data = { rawContent, template, title, description, config }
-      JStackTemplate.create client, data, callback
+        { contentObject } = convertedDoc
+
+        addUserInputOptions contentObject, requiredData
+        config.buildDuration = contentObject.koding?.buildDuration
+
+        template = convertedDoc.content
+        title  or= "#{importData.repo} Stack"
+
+        data = { rawContent, template, title, description, config }
+        JStackTemplate.create client, data, callback
