@@ -47,10 +47,13 @@ $warningColor               = #f2778a
         font-size           13.7px
         text-transform      none
         color               #57a2d2
-        bg                  color, #fafafa
-        border              1px solid #dedbdb
+        bg                  color, #f7f7f7
+        border              1px solid #e4e4e4
         display             block
         margin              0 auto
+
+        .button-title
+          font-weight       300
 
 
   .start-machine-flow
@@ -102,21 +105,22 @@ $warningColor               = #f2778a
   /* Wizard pane */
   .wizard-progress-pane
     bg                      color, #efefef
-    border-bottom           1px solid #dedbdb
+    border-bottom           1px solid #e4e4e4
     text-align              center
 
     .wizard-step
       display               inline-block
       borderBox()
       width                 200px
-      height                50px
+      height                35px
       font-size             16px
       font-weight           300
-      line-height           50px
+      line-height           35px
       bg                    color, #fff
       color                 #c6c6c6
       letter-spacing        .5px
       rel()
+      border-left           1px solid #e4e4e4
 
       .alien
         hidden()
@@ -131,11 +135,14 @@ $warningColor               = #f2778a
         display             inline-block
         margin-right        5px
 
+      .index
+        padding-right       10px
+
       &:first-child
-        border-left         1px solid #e6e6e6 !important
+        border-left         none !important
 
       &:last-child
-        border-right        1px solid #e6e6e6 !important
+        border-right        none !important
 
       &.current
         bg                  color, #57a2d2
@@ -146,7 +153,7 @@ $warningColor               = #f2778a
 
       &.completed
         bg                  color, #57a2d2
-        color               rgba(0,0,0,0.3)
+        color               #000
         border-right        1px solid #5095C2
         font-weight         400
 
@@ -253,23 +260,24 @@ $warningColor               = #f2778a
     section.main
 
       .kdcustomscrollview
-        height              270px
-        width               730px
+        height              296px
+        width               720px
         bg                  color, #fff
         styleScrollBars     rgba(0, 0, 0, .15)
-        rounded             5px
-        border              1px solid #ddd
+        rounded             8px
+        border              1px solid #e4e4e4
         margin              0 auto
 
+        .kdscrolltrack
+          rounded           0 5px 5px 0
+
       .description
-        padding             30px
+        padding             20px
         font-size           12px
         color               #333
 
       .GenericButton.secondary
-        margin-top          20px
-        border              none
-        abs                 99px, 40px
+        abs                 105px, 50px
 
   .stack-template-page
 
