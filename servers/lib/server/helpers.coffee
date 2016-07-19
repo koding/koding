@@ -119,16 +119,23 @@ isTeamPage = (req) ->
   # special case for QA team, sometimes they test on ips
   return no  if isV4Format hostname
 
-  for i, env of ['dev', 'sandbox', 'default', 'latest']
-    if hostname.indexOf(env) is 0 # damn nodejs doesnt have startsWith
-      return no
+  labels = hostname.split '.'
+  subdomains = labels.slice 0, labels.length - 2
 
-  subdomains = hostname.split('.')
+  return no  unless subdomain = subdomains.pop()
 
-  if subdomains.length < 3 # only koding.com has 2
-    return no
+  envMatch = no
 
-  return yes
+  for name in ['default', 'dev', 'sandbox', 'latest', 'prod']
+    if name is subdomain
+      envMatch = yes
+      break
+
+  return yes  unless envMatch
+
+  return if subdomain = subdomains.pop()
+  then yes
+  else no
 
 serveHome = (req, res, next) ->
   { JGroup } = bongoModels = koding.models
