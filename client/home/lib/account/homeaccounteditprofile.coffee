@@ -54,23 +54,14 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
     @avatarWrapper.addSubView @useGravatarLink
     @avatarWrapper.addSubView @uploadAvatarInput
 
-
     fields =
-      username       :
-        cssClass     : 'hidden'
-        placeholder  : 'username'
-        name         : 'username'
-        label        : 'Username'
-        attributes   :
-          readonly   : "#{not /^guest-/.test @account.profile.nickname}"
-        testPath     : 'account-username-input'
       firstName      :
-        cssClass     : 'Formline--half'
+        cssClass     : 'Formline--half firstname'
         placeholder  : 'firstname'
         name         : 'firstName'
         label        : 'First Name'
       lastName       :
-        cssClass     : 'Formline--half'
+        cssClass     : 'Formline--half lastname'
         placeholder  : 'lastname'
         name         : 'lastName'
         label        : 'Last Name'
@@ -80,6 +71,17 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
         name         : 'email'
         testPath     : 'account-email-input'
         label        : 'Email Address'
+      username       :
+        cssClass     : 'Formline--half username'
+        placeholder  : 'username'
+        name         : 'username'
+        label        : 'Username'
+        attributes   :
+          readonly   : yes
+          disabled   : yes
+        testPath     : 'account-username-input'
+
+
 
     @submitButton = new kd.ButtonView
       type     : 'submit'
