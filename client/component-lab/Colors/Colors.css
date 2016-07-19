@@ -1,0 +1,958 @@
+@value primary-1: #f2778a;
+.color-primary-1 {
+  color: primary-1;
+}
+
+.bg-primary-1 {
+  background-color: primary-1;
+}
+
+@value primary-2: #48ba7d;
+.color-primary-2 {
+  color: primary-2;
+}
+
+.bg-primary-2 {
+  background-color: primary-2;
+}
+
+@value primary-3: #358bb0;
+.color-primary-3 {
+  color: primary-3;
+}
+
+.bg-primary-3 {
+  background-color: primary-3;
+}
+
+@value primary-4: #ffc442;
+.color-primary-4 {
+  color: primary-4;
+}
+
+.bg-primary-4 {
+  background-color: primary-4;
+}
+
+@value primary-5: #7f7e9e;
+.color-primary-5 {
+  color: primary-5;
+}
+
+.bg-primary-5 {
+  background-color: primary-5;
+}
+
+@value primary-6: #67a2ee;
+.color-primary-6 {
+  color: primary-6;
+}
+
+.bg-primary-6 {
+  background-color: primary-6;
+}
+
+
+@value primary-1-light: #f38495;
+.color-primary-1-light {
+  color: primary-1-light;
+}
+
+.bg-primary-1-light {
+  background-color: primary-1-light;
+}
+
+@value primary-2-light: #5ac089;
+.color-primary-2-light {
+  color: primary-2-light;
+}
+
+.bg-primary-2-light {
+  background-color: primary-2-light;
+}
+
+@value primary-3-light: #4996b7;
+.color-primary-3-light {
+  color: primary-3-light;
+}
+
+.bg-primary-3-light {
+  background-color: primary-3-light;
+}
+
+@value primary-4-light: #ffc954;
+.color-primary-4-light {
+  color: primary-4-light;
+}
+
+.bg-primary-4-light {
+  background-color: primary-4-light;
+}
+
+@value primary-5-light: #8b8aa7;
+.color-primary-5-light {
+  color: primary-5-light;
+}
+
+.bg-primary-5-light {
+  background-color: primary-5-light;
+}
+
+@value primary-6-light: #76abef;
+.color-primary-6-light {
+  color: primary-6-light;
+}
+
+.bg-primary-6-light {
+  background-color: primary-6-light;
+}
+
+
+@value primary-1-dark: #e57082;
+.color-primary-1-dark {
+  color: primary-1-dark;
+}
+
+.bg-primary-1-dark {
+  background-color: primary-1-dark;
+}
+
+@value primary-2-dark: #44b076;
+.color-primary-2-dark {
+  color: primary-2-dark;
+}
+
+.bg-primary-2-dark {
+  background-color: primary-2-dark;
+}
+
+@value primary-3-dark: #3283a7;
+.color-primary-3-dark {
+  color: primary-3-dark;
+}
+
+.bg-primary-3-dark {
+  background-color: primary-3-dark;
+}
+
+@value primary-4-dark: #f2ba3e;
+.color-primary-4-dark {
+  color: primary-4-dark;
+}
+
+.bg-primary-4-dark {
+  background-color: primary-4-dark;
+}
+
+@value primary-5-dark: #787795;
+.color-primary-5-dark {
+  color: primary-5-dark;
+}
+
+.bg-primary-5-dark {
+  background-color: primary-5-dark;
+}
+
+@value primary-6-dark: #6199e1;
+.color-primary-6-dark {
+  color: primary-6-dark;
+}
+
+.bg-primary-6-dark {
+  background-color: primary-6-dark;
+}
+
+
+@value primary-1-darker: #d97080;
+.color-primary-1-darker {
+  color: primary-1-darker;
+}
+
+.bg-primary-1-darker {
+  background-color: primary-1-darker;
+}
+
+@value primary-2-darker: #48a975;
+.color-primary-2-darker {
+  color: primary-2-darker;
+}
+
+.bg-primary-2-darker {
+  background-color: primary-2-darker;
+}
+
+@value primary-3-darker: #3881a1;
+.color-primary-3-darker {
+  color: primary-3-darker;
+}
+
+.bg-primary-3-darker {
+  background-color: primary-3-darker;
+}
+
+@value primary-4-darker: #e5b243;
+.color-primary-4-darker {
+  color: primary-4-darker;
+}
+
+.bg-primary-4-darker {
+  background-color: primary-4-darker;
+}
+
+@value primary-5-darker: #777691;
+.color-primary-5-darker {
+  color: primary-5-darker;
+}
+
+.bg-primary-5-darker {
+  background-color: primary-5-darker;
+}
+
+@value primary-6-darker: #6295d5;
+.color-primary-6-darker {
+  color: primary-6-darker;
+}
+
+.bg-primary-6-darker {
+  background-color: primary-6-darker;
+}
+
+
+@value primary-1-faded: #fce4e8;
+.color-primary-1-faded {
+  color: primary-1-faded;
+}
+
+.bg-primary-1-faded {
+  background-color: primary-1-faded;
+}
+
+@value primary-2-faded: #daf1e5;
+.color-primary-2-faded {
+  color: primary-2-faded;
+}
+
+.bg-primary-2-faded {
+  background-color: primary-2-faded;
+}
+
+@value primary-3-faded: #d7e8ef;
+.color-primary-3-faded {
+  color: primary-3-faded;
+}
+
+.bg-primary-3-faded {
+  background-color: primary-3-faded;
+}
+
+@value primary-4-faded: #fff3d9;
+.color-primary-4-faded {
+  color: primary-4-faded;
+}
+
+.bg-primary-4-faded {
+  background-color: primary-4-faded;
+}
+
+@value primary-5-faded: #e5e5ec;
+.color-primary-5-faded {
+  color: primary-5-faded;
+}
+
+.bg-primary-5-faded {
+  background-color: primary-5-faded;
+}
+
+@value primary-6-faded: #e1ecfc;
+.color-primary-6-faded {
+  color: primary-6-faded;
+}
+
+.bg-primary-6-faded {
+  background-color: primary-6-faded;
+}
+
+
+@value primary-1-faded-light: #fef2f4;
+.color-primary-1-faded-light {
+  color: primary-1-faded-light;
+}
+
+.bg-primary-1-faded-light {
+  background-color: primary-1-faded-light;
+}
+
+@value primary-2-faded-light: #edf8f2;
+.color-primary-2-faded-light {
+  color: primary-2-faded-light;
+}
+
+.bg-primary-2-faded-light {
+  background-color: primary-2-faded-light;
+}
+
+@value primary-3-faded-light: #ebf4f7;
+.color-primary-3-faded-light {
+  color: primary-3-faded-light;
+}
+
+.bg-primary-3-faded-light {
+  background-color: primary-3-faded-light;
+}
+
+@value primary-4-faded-light: #fff9ec;
+.color-primary-4-faded-light {
+  color: primary-4-faded-light;
+}
+
+.bg-primary-4-faded-light {
+  background-color: primary-4-faded-light;
+}
+
+@value primary-5-faded-light: #f2f2f6;
+.color-primary-5-faded-light {
+  color: primary-5-faded-light;
+}
+
+.bg-primary-5-faded-light {
+  background-color: primary-5-faded-light;
+}
+
+@value primary-6-faded-light: #f0f6fe;
+.color-primary-6-faded-light {
+  color: primary-6-faded-light;
+}
+
+.bg-primary-6-faded-light {
+  background-color: primary-6-faded-light;
+}
+
+
+@value primary-1-faded-lighter: #fff9fa;
+.color-primary-1-faded-lighter {
+  color: primary-1-faded-lighter;
+}
+
+.bg-primary-1-faded-lighter {
+  background-color: primary-1-faded-lighter;
+}
+
+@value primary-2-faded-lighter: #f6fcf9;
+.color-primary-2-faded-lighter {
+  color: primary-2-faded-lighter;
+}
+
+.bg-primary-2-faded-lighter {
+  background-color: primary-2-faded-lighter;
+}
+
+@value primary-3-faded-lighter: #f5fafb;
+.color-primary-3-faded-lighter {
+  color: primary-3-faded-lighter;
+}
+
+.bg-primary-3-faded-lighter {
+  background-color: primary-3-faded-lighter;
+}
+
+@value primary-4-faded-lighter: #fffcf6;
+.color-primary-4-faded-lighter {
+  color: primary-4-faded-lighter;
+}
+
+.bg-primary-4-faded-lighter {
+  background-color: primary-4-faded-lighter;
+}
+
+@value primary-5-faded-lighter: #f9f9fb;
+.color-primary-5-faded-lighter {
+  color: primary-5-faded-lighter;
+}
+
+.bg-primary-5-faded-lighter {
+  background-color: primary-5-faded-lighter;
+}
+
+@value primary-6-faded-lighter: #f8fbff;
+.color-primary-6-faded-lighter {
+  color: primary-6-faded-lighter;
+}
+
+.bg-primary-6-faded-lighter {
+  background-color: primary-6-faded-lighter;
+}
+
+
+@value additional-1: #3c3c59;
+.color-additional-1 {
+  color: additional-1;
+}
+
+.bg-additional-1 {
+  background-color: additional-1;
+}
+
+@value additional-2: #394457;
+.color-additional-2 {
+  color: additional-2;
+}
+
+.bg-additional-2 {
+  background-color: additional-2;
+}
+
+@value additional-3: #000000;
+.color-additional-3 {
+  color: additional-3;
+}
+
+.bg-additional-3 {
+  background-color: additional-3;
+}
+
+@value additional-4: #515151;
+.color-additional-4 {
+  color: additional-4;
+}
+
+.bg-additional-4 {
+  background-color: additional-4;
+}
+
+@value additional-5: #727272;
+.color-additional-5 {
+  color: additional-5;
+}
+
+.bg-additional-5 {
+  background-color: additional-5;
+}
+
+@value additional-6: #989898;
+.color-additional-6 {
+  color: additional-6;
+}
+
+.bg-additional-6 {
+  background-color: additional-6;
+}
+
+@value additional-7: #a8ceff;
+.color-additional-7 {
+  color: additional-7;
+}
+
+.bg-additional-7 {
+  background-color: additional-7;
+}
+
+@value additional-8: #18cd7a;
+.color-additional-8 {
+  color: additional-8;
+}
+
+.bg-additional-8 {
+  background-color: additional-8;
+}
+
+@value additional-9: #d6a356;
+.color-additional-9 {
+  color: additional-9;
+}
+
+.bg-additional-9 {
+  background-color: additional-9;
+}
+
+
+@value additional-1-light: #4f4f69;
+.color-additional-1-light {
+  color: additional-1-light;
+}
+
+.bg-additional-1-light {
+  background-color: additional-1-light;
+}
+
+@value additional-2-light: #4c5667;
+.color-additional-2-light {
+  color: additional-2-light;
+}
+
+.bg-additional-2-light {
+  background-color: additional-2-light;
+}
+
+@value additional-3-light: #191919;
+.color-additional-3-light {
+  color: additional-3-light;
+}
+
+.bg-additional-3-light {
+  background-color: additional-3-light;
+}
+
+@value additional-4-light: #626262;
+.color-additional-4-light {
+  color: additional-4-light;
+}
+
+.bg-additional-4-light {
+  background-color: additional-4-light;
+}
+
+@value additional-5-light: #808080;
+.color-additional-5-light {
+  color: additional-5-light;
+}
+
+.bg-additional-5-light {
+  background-color: additional-5-light;
+}
+
+@value additional-6-light: #a2a2a2;
+.color-additional-6-light {
+  color: additional-6-light;
+}
+
+.bg-additional-6-light {
+  background-color: additional-6-light;
+}
+
+@value additional-7-light: #b0d2ff;
+.color-additional-7-light {
+  color: additional-7-light;
+}
+
+.bg-additional-7-light {
+  background-color: additional-7-light;
+}
+
+@value additional-8-light: #2fd287;
+.color-additional-8-light {
+  color: additional-8-light;
+}
+
+.bg-additional-8-light {
+  background-color: additional-8-light;
+}
+
+@value additional-9-light: #daac66;
+.color-additional-9-light {
+  color: additional-9-light;
+}
+
+.bg-additional-9-light {
+  background-color: additional-9-light;
+}
+
+
+@value additional-1-dark: #383854;
+.color-additional-1-dark {
+  color: additional-1-dark;
+}
+
+.bg-additional-1-dark {
+  background-color: additional-1-dark;
+}
+
+@value additional-2-dark: #364052;
+.color-additional-2-dark {
+  color: additional-2-dark;
+}
+
+.bg-additional-2-dark {
+  background-color: additional-2-dark;
+}
+
+@value additional-3-dark: #000000;
+.color-additional-3-dark {
+  color: additional-3-dark;
+}
+
+.bg-additional-3-dark {
+  background-color: additional-3-dark;
+}
+
+@value additional-4-dark: #4c4c4c;
+.color-additional-4-dark {
+  color: additional-4-dark;
+}
+
+.bg-additional-4-dark {
+  background-color: additional-4-dark;
+}
+
+@value additional-5-dark: #6c6c6c;
+.color-additional-5-dark {
+  color: additional-5-dark;
+}
+
+.bg-additional-5-dark {
+  background-color: additional-5-dark;
+}
+
+@value additional-6-dark: #909090;
+.color-additional-6-dark {
+  color: additional-6-dark;
+}
+
+.bg-additional-6-dark {
+  background-color: additional-6-dark;
+}
+
+@value additional-7-dark: #9fc3f2;
+.color-additional-7-dark {
+  color: additional-7-dark;
+}
+
+.bg-additional-7-dark {
+  background-color: additional-7-dark;
+}
+
+@value additional-8-dark: #16c273;
+.color-additional-8-dark {
+  color: additional-8-dark;
+}
+
+.bg-additional-8-dark {
+  background-color: additional-8-dark;
+}
+
+@value additional-9-dark: #cb9a51;
+.color-additional-9-dark {
+  color: additional-9-dark;
+}
+
+.bg-additional-9-dark {
+  background-color: additional-9-dark;
+}
+
+
+@value additional-1-darker: #3d3d57;
+.color-additional-1-darker {
+  color: additional-1-darker;
+}
+
+.bg-additional-1-darker {
+  background-color: additional-1-darker;
+}
+
+@value additional-2-darker: #3c4555;
+.color-additional-2-darker {
+  color: additional-2-darker;
+}
+
+.bg-additional-2-darker {
+  background-color: additional-2-darker;
+}
+
+@value additional-3-darker: #000000;
+.color-additional-3-darker {
+  color: additional-3-darker;
+}
+
+.bg-additional-3-darker {
+  background-color: additional-3-darker;
+}
+
+@value additional-4-darker: #4f4f4f;
+.color-additional-4-darker {
+  color: additional-4-darker;
+}
+
+.bg-additional-4-darker {
+  background-color: additional-4-darker;
+}
+
+@value additional-5-darker: #606060;
+.color-additional-5-darker {
+  color: additional-5-darker;
+}
+
+.bg-additional-5-darker {
+  background-color: additional-5-darker;
+}
+
+@value additional-6-darker: #8c8c8c;
+.color-additional-6-darker {
+  color: additional-6-darker;
+}
+
+.bg-additional-6-darker {
+  background-color: additional-6-darker;
+}
+
+@value additional-7-darker: #9abae5;
+.color-additional-7-darker {
+  color: additional-7-darker;
+}
+
+.bg-additional-7-darker {
+  background-color: additional-7-darker;
+}
+
+@value additional-8-darker: #1fb972;
+.color-additional-8-darker {
+  color: additional-8-darker;
+}
+
+.bg-additional-8-darker {
+  background-color: additional-8-darker;
+}
+
+@value additional-9-darker: #c19554;
+.color-additional-9-darker {
+  color: additional-9-darker;
+}
+
+.bg-additional-9-darker {
+  background-color: additional-9-darker;
+}
+
+
+@value additional-1-faded: #d8d8de;
+.color-additional-1-faded {
+  color: additional-1-faded;
+}
+
+.bg-additional-1-faded {
+  background-color: additional-1-faded;
+}
+
+@value additional-2-faded: #d7dadd;
+.color-additional-2-faded {
+  color: additional-2-faded;
+}
+
+.bg-additional-2-faded {
+  background-color: additional-2-faded;
+}
+
+@value additional-3-faded: #cccccc;
+.color-additional-3-faded {
+  color: additional-3-faded;
+}
+
+.bg-additional-3-faded {
+  background-color: additional-3-faded;
+}
+
+@value additional-4-faded: #dcdcdc;
+.color-additional-4-faded {
+  color: additional-4-faded;
+}
+
+.bg-additional-4-faded {
+  background-color: additional-4-faded;
+}
+
+@value additional-5-faded: #e3e3e3;
+.color-additional-5-faded {
+  color: additional-5-faded;
+}
+
+.bg-additional-5-faded {
+  background-color: additional-5-faded;
+}
+
+@value additional-6-faded: #eaeaea;
+.color-additional-6-faded {
+  color: additional-6-faded;
+}
+
+.bg-additional-6-faded {
+  background-color: additional-6-faded;
+}
+
+@value additional-7-faded: #eef5ff;
+.color-additional-7-faded {
+  color: additional-7-faded;
+}
+
+.bg-additional-7-faded {
+  background-color: additional-7-faded;
+}
+
+@value additional-8-faded: #18cd7a;
+.color-additional-8-faded {
+  color: additional-8-faded;
+}
+
+.bg-additional-8-faded {
+  background-color: additional-8-faded;
+}
+
+@value additional-9-faded: #f7eddd;
+.color-additional-9-faded {
+  color: additional-9-faded;
+}
+
+.bg-additional-9-faded {
+  background-color: additional-9-faded;
+}
+
+
+@value additional-1-faded-light: #ececef;
+.color-additional-1-faded-light {
+  color: additional-1-faded-light;
+}
+
+.bg-additional-1-faded-light {
+  background-color: additional-1-faded-light;
+}
+
+@value additional-2-faded-light: #f5f6f7;
+.color-additional-2-faded-light {
+  color: additional-2-faded-light;
+}
+
+.bg-additional-2-faded-light {
+  background-color: additional-2-faded-light;
+}
+
+@value additional-3-faded-light: #f2f2f2;
+.color-additional-3-faded-light {
+  color: additional-3-faded-light;
+}
+
+.bg-additional-3-faded-light {
+  background-color: additional-3-faded-light;
+}
+
+@value additional-4-faded-light: #f7f7f7;
+.color-additional-4-faded-light {
+  color: additional-4-faded-light;
+}
+
+.bg-additional-4-faded-light {
+  background-color: additional-4-faded-light;
+}
+
+@value additional-5-faded-light: #f8f8f8;
+.color-additional-5-faded-light {
+  color: additional-5-faded-light;
+}
+
+.bg-additional-5-faded-light {
+  background-color: additional-5-faded-light;
+}
+
+@value additional-6-faded-light: #fafafa;
+.color-additional-6-faded-light {
+  color: additional-6-faded-light;
+}
+
+.bg-additional-6-faded-light {
+  background-color: additional-6-faded-light;
+}
+
+@value additional-7-faded-light: #f7fbff;
+.color-additional-7-faded-light {
+  color: additional-7-faded-light;
+}
+
+.bg-additional-7-faded-light {
+  background-color: additional-7-faded-light;
+}
+
+@value additional-8-faded-light: #e8faf2;
+.color-additional-8-faded-light {
+  color: additional-8-faded-light;
+}
+
+.bg-additional-8-faded-light {
+  background-color: additional-8-faded-light;
+}
+
+@value additional-9-faded-light: #fbf6ee;
+.color-additional-9-faded-light {
+  color: additional-9-faded-light;
+}
+
+.bg-additional-9-faded-light {
+  background-color: additional-9-faded-light;
+}
+
+
+@value additional-1-faded-lighter: #f6f6f7;
+.color-additional-1-faded-lighter {
+  color: additional-1-faded-lighter;
+}
+
+.bg-additional-1-faded-lighter {
+  background-color: additional-1-faded-lighter;
+}
+
+@value additional-2-faded-lighter: #f5f6f7;
+.color-additional-2-faded-lighter {
+  color: additional-2-faded-lighter;
+}
+
+.bg-additional-2-faded-lighter {
+  background-color: additional-2-faded-lighter;
+}
+
+@value additional-3-faded-lighter: #f2f2f2;
+.color-additional-3-faded-lighter {
+  color: additional-3-faded-lighter;
+}
+
+.bg-additional-3-faded-lighter {
+  background-color: additional-3-faded-lighter;
+}
+
+@value additional-4-faded-lighter: #f7f7f7;
+.color-additional-4-faded-lighter {
+  color: additional-4-faded-lighter;
+}
+
+.bg-additional-4-faded-lighter {
+  background-color: additional-4-faded-lighter;
+}
+
+@value additional-5-faded-lighter: #f8f8f8;
+.color-additional-5-faded-lighter {
+  color: additional-5-faded-lighter;
+}
+
+.bg-additional-5-faded-lighter {
+  background-color: additional-5-faded-lighter;
+}
+
+@value additional-6-faded-lighter: #fafafa;
+.color-additional-6-faded-lighter {
+  color: additional-6-faded-lighter;
+}
+
+.bg-additional-6-faded-lighter {
+  background-color: additional-6-faded-lighter;
+}
+
+@value additional-7-faded-lighter: #f8fdff;
+.color-additional-7-faded-lighter {
+  color: additional-7-faded-lighter;
+}
+
+.bg-additional-7-faded-lighter {
+  background-color: additional-7-faded-lighter;
+}
+
+@value additional-8-faded-lighter: #f4fdf9;
+.color-additional-8-faded-lighter {
+  color: additional-8-faded-lighter;
+}
+
+.bg-additional-8-faded-lighter {
+  background-color: additional-8-faded-lighter;
+}
+
+@value additional-9-faded-lighter: #fdfbf7;
+.color-additional-9-faded-lighter {
+  color: additional-9-faded-lighter;
+}
+
+.bg-additional-9-faded-lighter {
+  background-color: additional-9-faded-lighter;
+}
+
