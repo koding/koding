@@ -3,6 +3,7 @@ GitProvider = require './index'
 { expect
   withConvertedUser
   expectAccessDenied
+  generateRandomString
   checkBongoConnectivity } = require '../../../../testhelper'
 
 
@@ -45,7 +46,7 @@ runTests = -> describe 'workers.social.models.gitprovider', ->
           readme      =
             content   : 'This is awesome stack template!!!'
 
-          originalUrl = 'https://github.com/koding/test'
+          originalUrl = "https://github.com/koding/#{generateRandomString()}"
           title       = 'Imported stack template'
 
           importData = { template, readme, originalUrl }
