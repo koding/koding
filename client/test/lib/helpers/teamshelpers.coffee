@@ -41,7 +41,7 @@ teamCreateLink           = "a[href='/Teams/Create']"
 userInfoErrorMsg         = '.validation-error .kdview.wrapper'
 alreadyMemberModal       = "#{teamsModalSelector}.alreadyMember"
 url                      = helpers.getUrl()
-
+    
 module.exports =
 
 
@@ -406,10 +406,7 @@ module.exports =
 
   buildStackFlow: (browser, done) ->
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
-
-   
     browser.getAttribute vmSelector, 'title', (result) =>
-
       status = result.value.substring 16
       switch status
         when 'NotInitialized' then @turnOnVm browser, yes, done
@@ -498,7 +495,7 @@ module.exports =
           @waitUntilVmRunning browser, done
 
 
-  createDefaultStackTemplate: (browser, done) ->
+  createDefaultStackTemplate: (browser, buildBefore = no, done) ->
 
     stackEditorUrl = "#{helpers.getUrl(yes)}/Home/stacks"
 
@@ -518,7 +515,7 @@ module.exports =
     successModal = '.kdmodal-inner .kdmodal-content'
     closeButton = '.ContentModal.kdmodal .kdmodal-inner .close-icon'
     shareButton  = '[testpath=proceed]'
-
+    
     browser
       .pause 2000
       .click useThisAndContinueButton
@@ -528,6 +525,8 @@ module.exports =
       .pause 1000
       .setValue stackTemplateNameArea, stackName
       .click saveButtonSelector, =>
+
+        console.log(vmStatus)
         @waitUntilToCreatePrivateStack browser, ->
           if teamStack            
             browser
@@ -544,6 +543,7 @@ module.exports =
   waitUntilToCreatePrivateStack: (browser, done) ->
     successModal = '.kdmodal-inner .kdmodal-content'
     closeButton  = '.ContentModal.kdmodal .kdmodal-inner .close-icon'
+
 
     browser.element 'css selector', successModal, (result) =>
       browser.pause 2000

@@ -24,12 +24,12 @@ module.exports =
       (next) ->
         teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
           next null, result
-      # (next) ->
-      #   teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
-      #     next null, res
-      # (next) ->
-      #   teamsHelpers.createDefaultStackTemplate browser, (res) ->
-      #     next null, res
+      (next) ->
+        teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.createDefaultStackTemplate browser, (res) ->
+          next null, res
       (next) ->
         teamsHelpers.buildStack browser, (res) ->
           next null, res

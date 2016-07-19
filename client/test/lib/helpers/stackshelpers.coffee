@@ -154,7 +154,7 @@ module.exports =
     teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
       browser
         .pause 2000
-        .waitForElementVisible WelcomeView, 20000, ->
+        .waitForElementVisible '.kdview', 20000, ->
           teamsHelpers.createDefaultStackTemplate browser, (res) ->
             done
 
