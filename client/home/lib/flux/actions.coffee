@@ -7,6 +7,8 @@ remote = require('app/remote').getInstance()
 { queryKites } = require 'app/providers/managed/helpers'
 { getters: EnvironmentGetters } = require 'app/flux/environment'
 
+kiteTimer = null
+
 markAsDone = (step) ->
   # set app state
   { reactor, mainController, appStorageController } = kd.singletons
@@ -29,6 +31,18 @@ checkMigration = ->
     kd.singletons.reactor.dispatch actionTypes.MIGRATION_AVAILABLE
 
 
+queryForKd = ->
+
+  return  if kiteTimer
+
+  kiteTimer = kd.utils.repeat 30000, -> queryKites().then (result) ->
+
+    return  unless result?.length
+
+    kd.utils.killRepeat kiteTimer
+    markAsDone 'installKd'
+
+
 checkFinishedSteps = ->
 
   { appStorageController, groupsController
@@ -49,7 +63,7 @@ checkFinishedSteps = ->
   if groupsController.getCurrentGroup().counts?.members > 1
     markAsDone 'inviteTeam'
 
-  if reactor.evaluate(EnvironmentGetters.stacks).size
+  if reactor.evaluate(EnvironmentGetters.privateStacks).size
     markAsDone 'stackCreation'
 
   unobserve = reactor.observe EnvironmentGetters.stacks, (_stacks) ->
@@ -69,20 +83,13 @@ checkFinishedSteps = ->
   queryKites().then (result) ->
 
     if result?.length
+      return markAsDone 'installKd'
 
-      markAsDone 'installKd'
+    unless reactor.evaluate HomeGetters.areStepsFinished
+      mainController.emit 'AllWelcomeStepsNotDoneYet'
 
-      unless reactor.evaluate HomeGetters.areStepsFinished
-        mainController.emit 'AllWelcomeStepsNotDoneYet'
+    queryForKd()
 
-      return
-
-    kiteTimer = kd.utils.repeat 30000, -> queryKites().then (result) ->
-
-      return  unless result?.length
-
-      kd.utils.killRepeat kiteTimer
-      markAsDone 'installKd'
 
 checkStacksForBuild = (stacks, unobserve) ->
 

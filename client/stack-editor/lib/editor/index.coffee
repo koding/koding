@@ -28,6 +28,7 @@ generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 StackTemplatePreviewModal = require 'stacks/views/stacks/stacktemplatepreviewmodal'
 EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
+createShareModal = require './createShareModal'
 { actions : HomeActions } = require 'home/flux'
 
 module.exports = class StackEditorView extends kd.View
@@ -166,18 +167,12 @@ module.exports = class StackEditorView extends kd.View
 
     @providersView.on 'ItemSelected', (credentialItem) =>
 
-      # After adding credential, we are sharing it with the current
-      # group, so anyone in this group can use this credential ~ GG
-      { slug } = kd.singletons.groupsController.getCurrentGroup()
-
       credential = credentialItem.getData()
 
-      credential.shareWith { target: slug }, (err) =>
-        console.warn 'Failed to share credential:', err  if err
-        @credentialStatusView.setCredential credential
+      @credentialStatusView.setCredential credential
 
-        @providersView.resetItems()
-        credentialItem.inuseView.show()
+      @providersView.resetItems()
+      credentialItem.inuseView.show()
 
     @providersView.on 'ItemDeleted', (credential) =>
 
@@ -323,7 +318,6 @@ module.exports = class StackEditorView extends kd.View
     @buttons.addSubView @setAsDefaultButton = new kd.ButtonView
       title          : 'MAKE TEAM DEFAULT'
       cssClass       : 'GenericButton hidden set-default'
-      loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
         @handleSetDefaultTemplate()
@@ -469,15 +463,15 @@ module.exports = class StackEditorView extends kd.View
         if canEditGroup
           # admin is editing a team stack
           if stackTemplate.isDefault
-            @handleSetDefaultTemplate completed = no
-            @outputView.addAndWarn '''
-              Your stack script has been successfully saved and all your new team
-              members now will see this stack by default. Existing users
-              of the previous default-stack will be notified that default-stack has
-              changed.
+            @_handleSetDefaultTemplate =>
+              @outputView.add '''
+                Your stack script has been successfully saved and all your new team
+                members now will see this stack by default. Existing users
+                of the previous default-stack will be notified that default-stack has
+                changed.
 
-              You can now close this window or continue working with your stack.
-            '''
+                You can now close this window or continue working with your stack.
+              '''
           # admin is editing a private stack
           else
             @afterProcessTemplate 'maketeamdefault'
@@ -495,15 +489,15 @@ module.exports = class StackEditorView extends kd.View
             @afterProcessTemplate 'initialize'
             computeController.checkGroupStacks()
           else
-            @handleSetDefaultTemplate completed = no
-            @outputView.addAndWarn '''
-              Your stack script has been successfully saved and all your new team
-              members now will see this stack by default. Existing users
-              of the previous default-stack will be notified that default-stack has
-              changed.
+            @handleSetDefaultTemplate =>
+              @outputView.add '''
+                Your stack script has been successfully saved and all your new team
+                members now will see this stack by default. Existing users
+                of the previous default-stack will be notified that default-stack has
+                changed.
 
-              You can now close this window or continue working with your stack.
-            '''
+                You can now close this window or continue working with your stack.
+              '''
             computeController.checkGroupStacks()
         # member is creating a new stack
         else
@@ -803,7 +797,19 @@ module.exports = class StackEditorView extends kd.View
       @emit 'Reload'
 
 
-  handleSetDefaultTemplate: (completed = yes) ->
+  handleSetDefaultTemplate: (callback = kd.noop) ->
+
+    createShareModal (needShare, modal) =>
+      @_handleSetDefaultTemplate (stackTemplate) =>
+
+        if needShare
+        then @shareCredentials -> modal.destroy()
+        else modal.destroy()
+
+        callback stackTemplate
+
+
+  _handleSetDefaultTemplate: (callback = kd.noop) ->
 
     { stackTemplate }    = @getData()
     { groupsController, reactor } = kd.singletons
@@ -831,7 +837,7 @@ module.exports = class StackEditorView extends kd.View
       stackTemplate.isDefault = yes
 
       @emit 'Reload'
-      @emit 'Completed', stackTemplate  if completed
+      callback stackTemplate
 
 
   deleteStack: ->
@@ -889,3 +895,11 @@ module.exports = class StackEditorView extends kd.View
 
       modal.setAttribute 'testpath', 'RemoveStackModal'
 
+
+  shareCredentials: (callback) ->
+
+    [ credential ] = @credentialStatusView.credentialsData
+    { slug } = kd.singletons.groupsController.getCurrentGroup()
+    credential.shareWith { target: slug }, (err) =>
+      console.warn 'Failed to share credential:', err  if err
+      callback()

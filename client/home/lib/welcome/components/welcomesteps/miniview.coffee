@@ -5,7 +5,7 @@ module.exports = class WelcomeStepsMiniView extends React.Component
 
   renderBullets: ->
 
-    <ul className='bullets'>
+    <ul className='bullets' onClick={@bound 'closeDropdown'}>
       {
         @props.steps.map (step, i) ->
           step = step.toJS()

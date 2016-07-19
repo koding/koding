@@ -45,11 +45,7 @@ module.exports = class CredentialStore
     data = { meta, originId, identifier }
 
     if @SNEAKER_SUPPORTED
-      storeOnSneaker client, data, (err) ->
-        # This part can be removed once kloud is ready
-        # to use sneaker by default ~ GG cc/ RJ
-        return callback err  if err
-        storeOnMongo data, callback
+      storeOnSneaker client, data, callback
     else
       storeOnMongo data, callback
 
@@ -121,14 +117,8 @@ module.exports = class CredentialStore
     { identifier, meta } = data
 
     if @SNEAKER_SUPPORTED
-
-      storeOnSneaker client, data, (err) ->
-        return callback err  if err
-
-        updateOnMongo identifier, meta, callback
-
+      storeOnSneaker client, data, callback
     else
-
       updateOnMongo identifier, meta, callback
 
   # UPDATE ENDS ---------------------------------------------------------------

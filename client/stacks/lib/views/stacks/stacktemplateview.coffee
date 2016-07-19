@@ -19,7 +19,7 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
 
     contentType = 'json'
 
-    if template  = stackTemplate?.template
+    if template = stackTemplate?.template
       if template.rawContent
         content     = Encoder.htmlDecode template.rawContent
         contentType = 'yaml'

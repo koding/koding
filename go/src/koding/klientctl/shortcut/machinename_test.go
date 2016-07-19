@@ -13,9 +13,9 @@ func TestMachineShortcutGetNameFromShortcut(t *testing.T) {
 	Convey("", t, func() {
 		k := &testutil.FakeKlient{
 			ReturnInfos: list.KiteInfos{
-				list.KiteInfo{restypes.ListMachineInfo{VMName: "foo"}},
-				list.KiteInfo{restypes.ListMachineInfo{VMName: "bar"}},
-				list.KiteInfo{restypes.ListMachineInfo{VMName: "caz"}},
+				list.KiteInfo{ListMachineInfo: restypes.ListMachineInfo{VMName: "foo"}},
+				list.KiteInfo{ListMachineInfo: restypes.ListMachineInfo{VMName: "bar"}},
+				list.KiteInfo{ListMachineInfo: restypes.ListMachineInfo{VMName: "caz"}},
 			},
 		}
 		ms := NewMachineShortcut(k)

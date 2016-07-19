@@ -18,4 +18,5 @@ module.exports = (options = {}) ->
 
   <link rel="stylesheet" href="/a/p/p/#{KONFIG.version}/kd.css" />
   <link rel="stylesheet" href="/a/p/p/#{KONFIG.version}/app.css" />
+  <link rel="stylesheet" href="/a/p/p/#{KONFIG.version}/modules.css" />
   """

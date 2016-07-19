@@ -93,8 +93,8 @@ module.exports = class Sidebar extends React.Component
     switch title
       when 'Edit' then router.handleRoute "/Stack-Editor/#{id}"
       when 'Initialize'
-        EnvironmentFlux.actions.generateStack(id).then ->
-          kd.singletons.appManager.tell 'Stackeditor', 'reloadEditor', { _id: id }
+        EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
+          kd.singletons.appManager.tell 'Stackeditor', 'reloadEditor', template
 
 
 

@@ -15,6 +15,8 @@ teamInvitations = ['TeamInvitationStore']
 disabledUsers = ['TeamDisabledMembersStore']
 allUsersLoaded = ['TeamAllUsersLoadedStore']
 
+focusFirstEmail = ['TeamSendInvitesFocusStore']
+
 pendingInvitations = [
   teamInvitations
   (invitations) ->
@@ -118,13 +120,31 @@ adminInvitations = [
     allInvitations.filter (value) -> value.get 'canEdit'
 ]
 
+alreadyMemberInvitations = [
+  allInvitations
+  UsersStore
+  (allInvitations, users) ->
+    userEmails = users
+      .map (user) -> user.getIn ['profile', 'email']
+      .toArray()
+
+    allInvitations.filter (i) -> i.get('email') in userEmails
+]
+
 newInvitations = [
   allInvitations
   pendingInvitations
-  (allInvitations, pendingInvitations) ->
+  alreadyMemberInvitations
+  (allInvitations, pendingInvitations, alreadyMemberInvitations) ->
     pendingEmails = pendingInvitations
       .map (i) -> i.get 'email'
       .toArray()
+
+    alreadyMembers = alreadyMemberInvitations
+      .map (i) -> i.get 'email'
+      .toArray()
+
+    pendingEmails = pendingEmails.concat alreadyMembers
 
     allInvitations = allInvitations.filter (invitation) ->
       invitation.get('email')  not in pendingEmails
@@ -161,4 +181,6 @@ module.exports = {
   filteredMembersWithRoleAndDisabledUsers
   adminsList
   allUsersLoaded
+  focusFirstEmail
+  alreadyMemberInvitations
 }

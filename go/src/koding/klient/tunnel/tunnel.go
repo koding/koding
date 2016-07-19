@@ -19,7 +19,6 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
-	"github.com/koding/kite/config"
 	"github.com/koding/tunnel"
 )
 
@@ -35,8 +34,6 @@ type Tunnel struct {
 	registerURL *url.URL
 
 	// Used to wait for first successful tunnel server registration.
-	register     sync.WaitGroup
-	once         sync.Once
 	onceServices sync.Once
 
 	state        tunnel.ClientState
@@ -58,9 +55,10 @@ type Options struct {
 	LastAddr      string `json:"lastAddr,omitempty"`
 	LastReachable bool   `json:"lastReachable,omitempty"`
 
-	DB     *bolt.DB       `json:"-"`
-	Log    kite.Logger    `json:"-"`
-	Config *config.Config `json:"-"`
+	DB           *bolt.DB                       `json:"-"`
+	Log          kite.Logger                    `json:"-"`
+	Kite         *kite.Kite                     `json:"-"`
+	StateChanges chan *tunnel.ClientStateChange `json:"-"`
 
 	Debug   bool `json:"-"`
 	NoProxy bool `json:"-"`
@@ -104,8 +102,8 @@ func (opts *Options) updateEmpty(defaults *Options) {
 		opts.Log = defaults.Log
 	}
 
-	if opts.Config == nil {
-		opts.Config = defaults.Config
+	if opts.Kite == nil {
+		opts.Kite = defaults.Kite
 	}
 
 	if !opts.Debug {
@@ -125,8 +123,8 @@ func (opts *Options) updateEmpty(defaults *Options) {
 func (opts *Options) copy() *Options {
 	optsCopy := *opts
 
-	if opts.Config != nil {
-		optsCopy.Config = opts.Config.Copy()
+	if opts.Kite != nil {
+		optsCopy.Kite = opts.Kite
 	}
 
 	return &optsCopy
@@ -135,7 +133,7 @@ func (opts *Options) copy() *Options {
 func New(opts *Options) (*Tunnel, error) {
 	optsCopy := *opts
 
-	target := net.JoinHostPort("127.0.0.1", strconv.Itoa(optsCopy.Config.Port))
+	target := net.JoinHostPort("127.0.0.1", strconv.Itoa(optsCopy.Kite.Config.Port))
 
 	t := &Tunnel{
 		db:           NewStorage(optsCopy.DB),
@@ -156,8 +154,6 @@ func New(opts *Options) (*Tunnel, error) {
 
 	go t.eventloop()
 
-	t.register.Add(1)
-
 	return t, nil
 }
 
@@ -168,7 +164,7 @@ func (t *Tunnel) clientOptions() *tunnelproxy.ClientOptions {
 		LastVirtualHost:    t.opts.VirtualHost,
 		LocalAddr:          t.opts.LocalAddr,
 		Services:           t.buildServices(),
-		Config:             t.opts.Config,
+		Kite:               t.opts.Kite,
 		Timeout:            t.opts.Timeout,
 		OnRegister:         t.updateOptions,
 		OnRegisterServices: t.updateServices,
@@ -184,6 +180,13 @@ func (t *Tunnel) eventloop() {
 		t.mu.Lock()
 		t.state = ch.Current
 		t.mu.Unlock()
+
+		if t.opts.StateChanges != nil {
+			select {
+			case t.opts.StateChanges <- ch:
+			default:
+			}
+		}
 	}
 }
 
@@ -210,7 +213,14 @@ func (t *Tunnel) updateOptions(reg *tunnelproxy.RegisterResult) {
 		t.opts.Log.Warning("tunnel: unable to update options: %s", err)
 	}
 
-	t.once.Do(t.register.Done)
+	t.registerURL.Host = t.opts.VirtualHost
+
+	if _, err := t.opts.Kite.RegisterHTTP(t.registerURL); err != nil {
+		t.opts.Log.Error("failed to re-register to kontrol with tunnel URL: %s", err)
+		return
+	}
+
+	t.opts.Log.Info("tunnel: connected as %q", t.opts.VirtualHost)
 }
 
 func (t *Tunnel) initServices() {
@@ -342,21 +352,9 @@ func (t *Tunnel) buildOptions(final *Options) {
 	}
 }
 
-// Start setups the client and connects to a tunnel server based on the given
-// configuration. It's non blocking and should be called only once.
-//
-// TODO(rjeczalik): tunnel should:
-//
-//   - reregister to kontrol when the tunnelserver goes down permanently
-//     and we receive new public endpoint (the tunnel name is persistent,
-//     but we could be assigned to a different endpoint)
-//   - by async, it should not block main program flow - the klient should
-//     register to kontrol with possibly NATed IP, and when tunnel goes
-//     on-line we should re-register with tunnel URL; it would require
-//     changing kite to make it more register-friendly, currently
-//     register+close causes lots of "could not send" errors
-//
-func (t *Tunnel) Start(opts *Options, registerURL *url.URL) error {
+// BuildOptions tries to detect whether tunnelled connection is needed
+// and eventually sets up a tunnel configuration.
+func (t *Tunnel) BuildOptions(opts *Options, registerURL *url.URL) error {
 	t.buildOptions(opts)
 
 	if t.opts.LastAddr != registerURL.Host {
@@ -388,27 +386,32 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) error {
 		return err
 	}
 
-	t.client = client
-	t.client.Start()
-	t.register.Wait()
-
 	u := *registerURL
-	u.Host = t.opts.VirtualHost
 	u.Path = "/klient/kite"
-
-	t.opts.Log.Info("tunnel: connected as %q", u.Host)
 	t.registerURL = &u
+	t.client = client
 
 	return nil
 }
 
-// RegisterURL gives public kite endpoint which should be used
-// to register with kontrol.
+// BuildOptions setups the client and connects to a tunnel server based on the given
+// configuration. It's non blocking and should be called only once.
 //
-// If tunnel is not connected and there is no public endpoint
-// available the method returns nil.
-func (t *Tunnel) PublicRegisterURL() *url.URL {
-	return t.registerURL
+// TODO(rjeczalik): tunnel should:
+//
+//   - reregister to kontrol when the tunnelserver goes down permanently
+//     and we receive new public endpoint (the tunnel name is persistent,
+//     but we could be assigned to a different endpoint)
+//   - by async, it should not block main program flow - the klient should
+//     register to kontrol with possibly NATed IP, and when tunnel goes
+//     on-line we should re-register with tunnel URL; it would require
+//     changing kite to make it more register-friendly, currently
+//     register+close causes lots of "could not send" errors
+//
+func (t *Tunnel) Start() {
+	if t.client != nil {
+		t.client.Start()
+	}
 }
 
 // LocalKontrolURL gives local address of kontrol if both kontrol and klient
@@ -416,11 +419,11 @@ func (t *Tunnel) PublicRegisterURL() *url.URL {
 //
 // If kontrol is not accessible on the same host, the method returns nil.
 func (t *Tunnel) LocalKontrolURL() *url.URL {
-	if t.opts.Config == nil {
+	if t.opts.Kite == nil || t.opts.Kite.Config == nil {
 		return nil
 	}
 
-	u, err := url.Parse(t.opts.Config.KontrolURL)
+	u, err := url.Parse(t.opts.Kite.Config.KontrolURL)
 	if err != nil {
 		return nil
 	}

@@ -7,6 +7,7 @@ TeamFlux             = require 'app/flux/teams'
 AppFlux              = require 'app/flux'
 whoami               = require 'app/util/whoami'
 remote               = require('app/remote').getInstance()
+camilizeString = require 'app/util/camelizeString'
 toImmutable = require 'app/util/toImmutable'
 
 SECTIONS =
@@ -37,6 +38,39 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
     super options, data
 
     kd.singletons.groupsController.ready @bound 'putViews'
+
+    @scroll = no
+    @scrollToSection = null
+
+
+  handleAction: (action) ->
+
+    TeamFlux.actions.focusSendInvites yes  if action is 'send-invites'
+
+    @scroll = yes
+    @scrollToSection = camilizeString action
+
+    @scrollToSectionArea()
+
+
+  scrollToSectionArea: ->
+
+    return  unless @scrollToSection
+
+    if @scroll and subView = @[@scrollToSection]
+
+      viewTop = @wrapper.getY()
+      subViewTop = subView.getY()
+      sectionHeader = 88  # height of header of dashboard
+
+      scrollMuch = subViewTop - viewTop - sectionHeader
+
+      subViewHeight = subView.getHeight()
+
+      if subViewHeight > scrollMuch
+        scrollMuch = subViewHeight - scrollMuch
+
+      @wrapper?.scrollTo { top: scrollMuch }
 
 
   putViews: ->
@@ -82,14 +116,17 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
         reactor.dispatch 'DELETE_TEAM_MEMBER', account._id
 
     @wrapper.addSubView header  'Team Settings'
-    @wrapper.addSubView section 'Team Settings'
+    @wrapper.addSubView @teamSettings = section 'Team Settings'
 
     @wrapper.addSubView header  'Send Invites'
-    @wrapper.addSubView section 'Send Invites'
+    @wrapper.addSubView @sendInvites = section 'Send Invites'
+
 
     @wrapper.addSubView header  'Invite Using Slack'
-    @wrapper.addSubView connectSlack = section 'Invite Using Slack'
-    connectSlack.on 'InvitationsAreSent', -> TeamFlux.actions.loadPendingInvitations()
+    @wrapper.addSubView @connectSlack = section 'Invite Using Slack'
+    @connectSlack.on 'InvitationsAreSent', -> TeamFlux.actions.loadPendingInvitations()
 
     @wrapper.addSubView header  'Teammates'
-    @wrapper.addSubView section 'Teammates'
+    @wrapper.addSubView @teammates = section 'Teammates'
+
+    @scrollToSectionArea()

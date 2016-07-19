@@ -277,7 +277,7 @@ func TestMountFindMachineName(t *testing.T) {
 		var stdout bytes.Buffer
 		c := &MountCommand{
 			Klient: &testutil.FakeKlient{
-				ReturnInfos: []list.KiteInfo{list.KiteInfo{restypes.ListMachineInfo{
+				ReturnInfos: []list.KiteInfo{{ListMachineInfo: restypes.ListMachineInfo{
 					VMName: "foo",
 				}},
 				},

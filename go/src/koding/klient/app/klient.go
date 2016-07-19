@@ -203,14 +203,10 @@ func NewKlient(conf *KlientConfig) *Klient {
 		Debug: conf.Debug,
 	}
 
-	// use websocket connection for tunnelserver
-	tunCfg := k.Config.Copy()
-	tunCfg.Transport = config.WebSocket
-
 	tunOpts := &tunnel.Options{
 		DB:      db,
 		Log:     k.Log,
-		Config:  tunCfg,
+		Kite:    k,
 		NoProxy: conf.NoProxy,
 	}
 
@@ -509,7 +505,7 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 		TunnelKiteURL: k.config.TunnelKiteURL,
 		PublicIP:      ip,
 		Debug:         k.config.Debug,
-		Config:        k.kite.Config.Copy(),
+		Kite:          k.kite,
 		NoProxy:       k.config.NoProxy,
 	}
 
@@ -544,10 +540,7 @@ func (k *Klient) Run() {
 			log.Fatal(err)
 		}
 
-		// If tunnel has started, the returned url overwrites registerURL
-		// pointing at public end of the tunnel. Otherwise it's a nop
-		// and returns registerURL.
-		if err = k.tunnel.Start(opts, registerURL); err != nil {
+		if err = k.tunnel.BuildOptions(opts, registerURL); err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -555,6 +548,11 @@ func (k *Klient) Run() {
 	if err := k.register(registerURL); err != nil {
 		log.Fatal(err)
 	}
+
+	// If tunnel has successfully started, it's going to re-register
+	// to Kontrol with new registerURL which will point to public
+	// side of the tunnel.
+	k.tunnel.Start()
 
 	if isKoding {
 		go gatherrun.Run(k.config.Environment, k.kite.Config.Username)
@@ -583,10 +581,6 @@ func (k *Klient) Run() {
 }
 
 func (k *Klient) register(registerURL *url.URL) error {
-	if u := k.tunnel.PublicRegisterURL(); u != nil {
-		registerURL = u
-	}
-
 	if u := k.tunnel.LocalKontrolURL(); u != nil {
 		origURL := k.kite.Config.KontrolURL
 		k.kite.Config.KontrolURL = u.String()
@@ -651,7 +645,7 @@ func (k *Klient) checkAuth(r *kite.Request) (interface{}, error) {
 	}
 
 	// lazy return for those, no need to fetch from the DB
-	if userIn(r.Username, []string{k.kite.Config.Username, "koding"}...) {
+	if userIn(r.Username, k.kite.Config.Username, "koding") {
 		return true, nil
 	}
 
@@ -661,7 +655,7 @@ func (k *Klient) checkAuth(r *kite.Request) (interface{}, error) {
 		return nil, fmt.Errorf("Can't read shared users from the storage. Err: %v", err)
 	}
 
-	sharedUsernames := make([]string, 0)
+	sharedUsernames := make([]string, 0, len(sharedUsers))
 	for username := range sharedUsers {
 		sharedUsernames = append(sharedUsernames, username)
 	}

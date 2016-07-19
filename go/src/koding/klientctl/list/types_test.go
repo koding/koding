@@ -4,13 +4,14 @@ import (
 	"sort"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"koding/klient/remote/machine"
 	"koding/klient/remote/restypes"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func newKiteInfo(vmName string, status machine.MachineStatus) KiteInfo {
-	info := KiteInfo{restypes.ListMachineInfo{
+	info := KiteInfo{ListMachineInfo: restypes.ListMachineInfo{
 		VMName:        vmName,
 		MachineStatus: status,
 	}}

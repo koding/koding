@@ -38,11 +38,16 @@ do ->
 
   kd.registerRoutes 'Login',
 
-    '/Login/:token?' : handler (app, options) ->
-      app.getView().animateToForm 'login'
-      app.handleQuery options
+    '/Login/:token?' : ->
+      groupName = utils.getGroupNameFromLocation()
 
-    '/Register' : handler (app, options) ->
+      if groupName is 'koding'
+        return location.assign 'https://www.koding.com/farewell-solo'
+
+      utils.checkIfGroupExists groupName, (err, group) ->
+        kd.singletons.router.handleRoute if group then '/' else '/Teams'
+
+    '/Register' : ->
       # we don't allow solo registrations anymore - SY
       kd.singletons.router.handleRoute '/Teams'
 
@@ -50,8 +55,8 @@ do ->
       app.getView().animateToForm 'register'
       app.handleQuery options
 
-    '/Redeem'       : handler (app) -> app.getView().animateToForm 'redeem'
-    '/Reset/:token' : handleResetRoute
+    # '/Redeem'       : handler (app) -> app.getView().animateToForm 'redeem'
+    # '/Reset/:token' : handleResetRoute
     '/ResendToken'  : handler (app) -> app.getView().animateToForm 'resendEmail'
     '/Recover'      : handler (app) -> app.getView().animateToForm 'recover'
 

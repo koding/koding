@@ -32,7 +32,7 @@ module.exports = class TryOnKodingContainer extends React.Component
     if team
       value = """
           <a href="https://#{team.get('slug')}.koding.com/Team/Join">
-            <img src="https://koding.com/a/img/try_on_koding.png" srcset="https://koding.com/a/img/try_on_koding@1x.png 1x, https://koding.com/a/img/try_on_koding@2x.png 2x" />
+            <img src="https://koding-cdn.s3.amazonaws.com/try_on_koding_1x.png" srcset="https://koding-cdn.s3.amazonaws.com/try_on_koding_1x.png 1x, https://koding-cdn.s3.amazonaws.com/try_on_koding_2x.png 2x" />
           </a>
           """
 

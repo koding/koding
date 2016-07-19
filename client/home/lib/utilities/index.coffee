@@ -1,12 +1,13 @@
-kd                            = require 'kd'
-os                            = require 'os'
-sectionize                    = require '../commons/sectionize'
-headerize                     = require '../commons/headerize'
-HomeUtilitiesKD               = require './homeutilitieskd'
-HomeUtilitiesTryOnKoding      = require './homeutilitiestryonkoding'
-HomeUtilitiesDesktopApp       = require './homeutilitiesdesktopapp'
-HomeUtilitiesCustomerFeedback = require './homeutilitiescustomerfeedback'
-TeamFlux                      = require 'app/flux/teams'
+kd                               = require 'kd'
+os                               = require 'os'
+sectionize                       = require '../commons/sectionize'
+headerize                        = require '../commons/headerize'
+HomeUtilitiesKD                  = require './homeutilitieskd'
+HomeUtilitiesTryOnKoding         = require './homeutilitiestryonkoding'
+HomeUtilitiesDesktopApp          = require './homeutilitiesdesktopapp'
+HomeUtilitiesCustomerFeedback    = require './homeutilitiescustomerfeedback'
+HomeUtilitiesIntercomIntegration = require './homeutilitiesintercomintegration'
+TeamFlux                         = require 'app/flux/teams'
 
 
 module.exports = class HomeUtilities extends kd.CustomScrollView
@@ -23,7 +24,7 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
     allowedDomains = team.allowedDomains
 
     @wrapper.addSubView headerize  'KD CLI'
-    @wrapper.addSubView sectionize 'KD CLI', HomeUtilitiesKD
+    @wrapper.addSubView @kdCliSection = sectionize 'KD CLI', HomeUtilitiesKD
 
     switch os
       when 'mac'
@@ -39,4 +40,17 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
 
     if canEdit
         @wrapper.addSubView headerize  'Integrations'
+        @wrapper.addSubView sectionize 'Intercom Integration', HomeUtilitiesIntercomIntegration
         @wrapper.addSubView sectionize 'Customer Feedback', HomeUtilitiesCustomerFeedback
+
+
+  handleAction: (action) ->
+
+    return  unless action is 'kd-cli'
+    @kdCliSection.setClass 'show-code-border'
+
+
+  handleSection: (action) ->
+
+    @kdCliSection.unsetClass 'show-code-border'
+

@@ -93,7 +93,8 @@ func (c *Controller) HandleChannel(channel *models.Channel) error {
 // HandleCreator finds the creator of the channel, and tries to find its
 // company name according to its email address
 func (c *Controller) HandleCreator(channel *models.Channel) error {
-	if channel.TypeConstant != models.Channel_TYPE_GROUP {
+	// we need to check environment, because we dont want to request to clearbit for our dev
+	if channel.TypeConstant != models.Channel_TYPE_GROUP || c.config.Environment != "production" {
 		return nil
 	}
 
