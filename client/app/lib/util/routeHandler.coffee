@@ -1,7 +1,6 @@
 kd              = require 'kd'
 lazyrouter      = require 'app/lazyrouter'
 
-
 WelcomeModal = require 'home/welcome/welcomemodal'
 IDEAppController = require 'ide'
 
