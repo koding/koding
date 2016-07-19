@@ -46,7 +46,7 @@ module.exports = (options) ->
       title    : "Processing #{repo}..."
       duration : 10000
 
-    appManager.once 'AppIsBeingShown', ->
+    appManager.once 'AppIsBeingShown', -> kd.utils.defer ->
 
       { GitProvider } = remote.api
       GitProvider.importStackTemplateData
