@@ -56,11 +56,12 @@ module.exports = class StackEditorView extends kd.View
       @isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
 
       unless @isMine
-        @tabView.setClass 'StackEditorTabs isntMine'
-        @warningView.show()
-        @secondaryActions.hide()
-        @saveButton.setClass 'isntMine'
-        @inputTitle.setClass 'template-title isntMine'
+        if stackTemplate
+          @tabView.setClass 'StackEditorTabs isntMine'
+          @warningView.show()
+          @secondaryActions.hide()
+          @saveButton.setClass 'isntMine'
+          @inputTitle.setClass 'template-title isntMine'
 
 
 
