@@ -31,9 +31,22 @@ Home My Account styles
 
       .firstname
       .lastname
-      .email
-        width               100%
         padding-right       10px
+        width               50%
+
+      .lastname
+        padding-left        0px
+
+      .email
+      .username
+        width               100%
+
+      .username
+        &:before
+          content           ''
+          r-sprite          home lock
+          abs               40px 25px 0 0
+          opacity           .5
 
       input.kdinput
         padding             10px 14px
