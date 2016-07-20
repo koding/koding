@@ -55,7 +55,7 @@ module.exports = class StackEditorView extends kd.View
       { groupsController } = kd.singletons
       @isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
 
-      unless @isMine
+      if not @isMine and stackTemplate
         @tabView.setClass 'StackEditorTabs isntMine'
         @warningView.show()
         @secondaryActions.hide()
