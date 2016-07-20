@@ -74,8 +74,6 @@ module.exports = class BuildStackPageView extends JView
 
   pistachio: ->
 
-    { stackName } = @getOptions()
-
     """
       <div class="build-stack-flow build-stack-page">
         <header>
@@ -83,8 +81,6 @@ module.exports = class BuildStackPageView extends JView
         </header>
         {{> @wizardPane}}
         <section class="main">
-          <h2><span>#{stackName}</span> is being built</h2>
-          <p>Your flawless dev environment will be ready soon</p>
           {{> @progressBar}}
           {{> @statusText}}
           {{> @logsContainer}}
