@@ -34,8 +34,8 @@ module.exports = class BuildStackErrorPageView extends BaseErrorPageView
         {{> @progressPane}}
         <section class="main">
           <h2>Oh no! Your stack build failed</h2>
-          <p>There was an error while building your stack.<br />
-          Please try building it again, or get in contact with us</p>
+          <p>There was an error while building your stack. Please try building it again,<br />
+          or get in contact with us</p>
           {{> @errorContainer}}
         </section>
         <footer>

@@ -30,10 +30,20 @@ $warningColor               = #f2778a
         float               left
         top                 26px
         left                20px
+        font-weight         300
 
     section.main
       width                 780px
       height                400px
+
+      h2
+        font-size           18px
+        letter-spacing      .21px
+        line-height         20px
+
+      p
+        letter-spacing      .15px
+        color               #989898
 
       .GenericButton
         text-transform      uppercase
@@ -44,7 +54,6 @@ $warningColor               = #f2778a
         width               165px
         height              41px
         padding             0
-        font-size           13.7px
         text-transform      none
         color               #57a2d2
         bg                  color, #f7f7f7
@@ -53,6 +62,7 @@ $warningColor               = #f2778a
         margin              0 auto
 
         .button-title
+          font-size         14px
           font-weight       300
 
 
@@ -187,17 +197,19 @@ $warningColor               = #f2778a
 
       > h2
         color               $warningColor
-        font-weight         bold
+        font-size           22px
+        letter-spacing      .22px
 
       > p
-        margin-bottom       30px
+        margin-top          5px
+        line-height         16px
 
     .wizard-progress-pane
 
       .wizard-step
         &.completed
           bg                color, $warningColor
-          color             #fff
+          color             #000
           border-right      1px solid #E97587
 
         &.current
@@ -216,20 +228,17 @@ $warningColor               = #f2778a
       margin                0 auto
       styleScrollBars       rgba(0, 0, 0, .15)
       border                1px solid $warningColor
-      rounded               5px
+      rounded               4px
       bg                    color, rgba(242,119,138,0.05)
 
       .error-content
         padding             15px 15px 20px 15px
         color               #5e5e5e
-        font-size           12px
+        font-size           13px
         line-height         16px
 
         p
           padding-top       12px
-
-        .error-title
-          font-weight       600
 
         ul
           list-style-type   disc
@@ -244,14 +253,6 @@ $warningColor               = #f2778a
 
         .error-content
           border            none
-
-    footer
-
-      a.back-link
-        color               $warningColor
-
-        .arrow
-          r-sprite          'app', 'back_arrow_pink'
 
 
   /* progress bar */
@@ -346,8 +347,8 @@ $warningColor               = #f2778a
       h3
         font-family         SoleilFamily
         font-weight         400
-        font-size           17px
-        letter-spacing      .4px
+        font-size           16px
+        letter-spacing      .45px
         margin-bottom       10px
         padding-right       15px
         color               #f2778a
@@ -503,11 +504,11 @@ $warningColor               = #f2778a
 
       &.left-form
         fl()
-        margin-left         45px
+        margin-left         30px
 
       &.right-form
         fr()
-        margin-right        35px
+        margin-right        30px
 
 
   .credentials-error-page
@@ -546,8 +547,8 @@ $warningColor               = #f2778a
     .wizard-progress-pane
       .wizard-step
         &.completed
-          bg                color, #efefef
-          border-right      1px solid #e6e6e6
+          bg                color, #d4d4d4
+          border-right      1px solid rgba(0,0,0,0.1)
 
         &.completed, &.current
           border-left       0
