@@ -254,6 +254,16 @@ $warningColor               = #f2778a
           r-sprite          'app', 'back_arrow_pink'
 
 
+  /* progress bar */
+  section.main .progressbar-container
+    height                  20px
+    rounded                 4px
+    margin-top              40px
+
+    .bar
+      rounded               4px
+
+
   /* Styles for specific pages */
   .readme-page
 
@@ -519,20 +529,16 @@ $warningColor               = #f2778a
         bg                  color, $warningColor
 
     .status-text
-      text-align            center
-      color                 #585858
-      padding-top           25px
       borderBox()
       ellipsis()
-      height                76px
+      height                70px
       width                 600px
       margin                0 auto
+      padding-top           5px
 
     .logs-pane
-      width                 600px
-      height                180px
-
-
+      width                 720px
+      height                255px
 
 
   .build-stack-error-page
