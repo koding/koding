@@ -44,6 +44,7 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
       title    : 'USE GRAVATAR'
       click : =>
         @account.modify { 'profile.avatar' : '' }, (err) =>
+          @uploadAvatarInput.setValue ''
           console.warn err  if err
 
     @spinner = new kd.CustomHTMLView
