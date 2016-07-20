@@ -1,0 +1,283 @@
+package: koding
+flatten: true
+import:
+- package: github.com/RangelReale/osin
+- package: github.com/VerbalExpressions/GoVerbalExpressions
+- package: github.com/algolia/algoliasearch-client-go
+  version: 57109f4eaa904be65be61a5e7c8ab257b95b9321
+  subpackages:
+  - algoliasearch
+- package: github.com/aws/aws-sdk-go
+  version: ^1.2.4
+  subpackages:
+  - aws
+  - aws/awserr
+  - aws/client
+  - aws/credentials
+  - aws/request
+  - aws/session
+  - private/waiter
+  - service/cloudwatch
+  - service/ec2
+  - service/iam
+  - service/kms
+  - service/route53
+  - service/s3
+  - service/s3/s3manager
+- package: github.com/boltdb/bolt
+  version: ^1.2.1
+- package: github.com/caglar10ur/lxc
+- package: github.com/cenkalti/backoff
+  version: ^1.0.0
+- package: github.com/cheggaaa/pb
+  version: ^1.0.4
+- package: github.com/chuckpreslar/inflect
+- package: github.com/cihangir/nisql
+- package: github.com/codahale/sneaker
+- package: github.com/codegangsta/cli
+  version: ^1.18.0
+- package: github.com/dchest/uniuri
+- package: github.com/dchest/validator
+- package: github.com/dgrijalva/jwt-go
+  version: ^3.0.0
+- package: github.com/fatih/structs
+- package: github.com/fsouza/go-dockerclient
+- package: github.com/garyburd/redigo
+  version: ^1.0.0
+  subpackages:
+  - redis
+- package: github.com/google/go-querystring
+  subpackages:
+  - query
+- package: github.com/gorilla/mux
+  version: ^1.1.0
+- package: github.com/gorilla/schema
+- package: github.com/hashicorp/go-multierror
+- package: github.com/hashicorp/go-version
+- package: github.com/hashicorp/hcl
+  version: d8c773c4cba11b11539e3d45f93daeaa5dcf1fa1
+  subpackages:
+  - hcl/ast
+  - json/parser
+  - hcl/fmtcmd
+  - hcl/parser
+  - hcl/token
+  - json/scanner
+  - json/token
+  - hcl/scanner
+  - hcl/strconv
+- package: github.com/hashicorp/hil
+  version: 6215360e5247e7c4bdc317a5f95e3fa5f084a33b
+- package: github.com/hashicorp/terraform
+  version: 0.6.16
+  flatten: true
+  subpackages:
+  - command
+  - config
+  - helper/schema
+  - plugin
+  - terraform
+- package: github.com/howeyc/fsnotify
+  version: ^0.9.0
+- package: github.com/hpcloud/tail
+  version: ^1.0.0
+- package: github.com/inconshreveable/go-update
+  version: 276093003334bfddde2b1759b864b7c59f38b55e
+- package: github.com/jacobsa/fuse
+  subpackages:
+  - fuseops
+  - fuseutil
+- package: github.com/jinzhu/gorm
+  version: 1ba5ce3bbce70623be21f3429e5c80648b05d96d
+- package: github.com/jinzhu/now
+- package: github.com/kennygrant/sanitize
+  version: ^1.0.0
+- package: github.com/koding/asgd
+- package: github.com/koding/bongo
+- package: github.com/koding/broker
+- package: github.com/koding/cache
+- package: github.com/koding/ec2dynamicdata
+- package: github.com/koding/eventexporter
+- package: github.com/koding/integration
+  subpackages:
+  - helpers
+  - services
+- package: github.com/koding/kite
+  subpackages:
+  - config
+  - dnode
+  - kitekey
+  - kontrol
+  - protocol
+  - reverseproxy
+  - sockjsclient
+- package: github.com/koding/logging
+- package: github.com/koding/metrics
+- package: github.com/koding/multiconfig
+- package: github.com/koding/passwd
+- package: github.com/koding/paypal
+- package: github.com/koding/pubnub
+- package: github.com/koding/rabbitmq
+- package: github.com/koding/redis
+- package: github.com/koding/runner
+- package: github.com/koding/service
+- package: github.com/koding/sshkey
+- package: github.com/koding/tunnel
+- package: github.com/koding/vagrantutil
+- package: github.com/kr/pty
+- package: github.com/kylemcc/twitter-text-go
+  subpackages:
+  - extract
+- package: github.com/pubnub/go
+  version: b7075cd5d74870710dfa5e3ebe8b4cb5c88a02fe
+- package: github.com/lann/squirrel
+- package: github.com/lib/pq
+- package: github.com/mailgun/mailgun-go
+- package: github.com/maximilien/softlayer-go
+  version: 0.4.0
+  subpackages:
+  - client
+  - data_types
+  - softlayer
+- package: github.com/mitchellh/cli
+- package: github.com/mitchellh/goamz
+  subpackages:
+  - aws
+  - ec2
+  - elb
+- package: github.com/mitchellh/mapstructure
+- package: github.com/mitchellh/osext
+- package: github.com/mitchellh/packer
+  version: ^0.10.1
+  subpackages:
+  - builder/amazon/ebs
+  - builder/digitalocean
+  - packer
+  - provisioner/file
+  - provisioner/shell
+- package: github.com/nlopes/slack
+- package: github.com/op/go-logging
+  version: ^1.0.0
+- package: github.com/oschwald/geoip2-golang
+  version: ^0.1.0
+- package: github.com/racker/perigee
+- package: github.com/rackspace/gophercloud
+- package: github.com/rcrowley/go-metrics
+- package: github.com/rcrowley/go-tigertonic
+- package: github.com/robfig/cron
+  version: ^1.0.0
+- package: github.com/rogpeppe/go-charset
+  subpackages:
+  - charset
+  - data
+- package: github.com/satori/go.uuid
+  version: ^1.1.0
+- package: github.com/segmentio/analytics-go
+  version: ^2.1.1
+- package: github.com/siesta/neo4j
+- package: github.com/smartystreets/goconvey
+  version: ^1.6.2
+  subpackages:
+  - convey
+- package: github.com/streadway/amqp
+- package: github.com/streadway/simpleuuid
+- package: github.com/stripe/stripe-go
+  version: 36186439722aa7b6b2c6056801ddc42eb4edfacf
+  subpackages:
+  - card
+  - customer
+  - invoice
+  - plan
+  - sub
+- package: github.com/stvp/slug
+- package: golang.org/x/crypto
+  subpackages:
+  - ssh
+- package: golang.org/x/net
+  subpackages:
+  - context
+  - trace
+  - websocket
+- package: golang.org/x/oauth2
+  subpackages:
+  - jwt
+- package: google.golang.org/api
+  subpackages:
+  - drive/v2
+  - googleapi
+- package: gopkg.in/fatih/set.v0
+  version: ^0.1.0
+- package: gopkg.in/fsnotify.v1
+  version: ^1.3.1
+- package: gopkg.in/mgo.v2
+  subpackages:
+  - bson
+- package: gopkg.in/throttled/throttled.v2
+  version: ^2.0.3
+  subpackages:
+  - store/memstore
+  - store/redigostore
+- package: gopkg.in/yaml.v2
+- package: github.com/canthefason/go-watcher
+- package: github.com/mattes/migrate
+- package: github.com/alecthomas/gocyclo
+- package: github.com/remyoudompheng/go-misc
+  subpackages:
+  - deadcode
+- package: github.com/opennota/check
+  subpackages:
+  - cmd/varcheck
+- package: github.com/barakmich/go-nyet
+- package: github.com/jteeuwen/go-bindata
+  subpackages:
+  - go-bindata
+- package: github.com/BurntSushi/toml
+- package: github.com/fatih/camelcase
+- package: github.com/coreos/go-etcd/etcd
+- package: github.com/gorilla/context
+- package: github.com/gorilla/websocket
+- package: github.com/hashicorp/golang-lru
+- package: github.com/juju/ratelimit
+- package: github.com/lann/builder
+- package: github.com/ooyala/go-dogstatsd
+- package: github.com/pborman/uuid
+- package: gopkg.in/igm/sockjs-go.v2/sockjs
+- package: github.com/armon/go-radix
+- package: github.com/bgentry/speakeasy
+- package: github.com/hashicorp/errwrap
+- package: github.com/hashicorp/yamux
+- package: github.com/mattn/go-isatty
+- package: github.com/mitchellh/reflectwalk
+- package: github.com/jinzhu/inflection
+- package: github.com/jehiah/go-strftime
+- package: github.com/segmentio/backo-go
+- package: github.com/xtgo/uuid
+- package: golang.org/x/sys/unix
+- package: github.com/jtolds/gls
+- package: github.com/oschwald/maxminddb-golang
+- package: github.com/smartystreets/assertions
+- package: golang.org/x/text/unicode/norm
+- package: github.com/f2prateek/clearbit-go
+- package: github.com/rjeczalik/gh/webhook
+- package: github.com/mattn/go-colorable
+- package: github.com/fatih/color
+- package: github.com/go-sql-driver/mysql
+- package: github.com/gocql/gocql
+- package: github.com/mattn/go-sqlite3
+- package: github.com/kisielk/gotool
+- package: golang.org/x/tools/go/loader
+ignore:
+- koding/tools/logger
+- koding/kite
+- koding/kodingkite
+- koding/kite/dnode
+- koding/tools/irc
+- koding/kites/kloud/protocol
+- koding/kite/kd/util
+- koding/kite/kodingkey
+- kite
+- koding/kites/klient/protocol
+- koding/virt
+- koding/databases/neo4j
+testImport:
+- package: launchpad.net/goyaml
