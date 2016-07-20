@@ -46,10 +46,6 @@ services=(
   koding/kites/kloud/scripts/sl
   koding/klient
 
-  github.com/koding/kite/kitectl
-  github.com/canthefason/go-watcher
-  github.com/mattes/migrate
-
   socialapi/workers/api
   socialapi/workers/cmd/notification
   socialapi/workers/cmd/pinnedpost
@@ -81,10 +77,13 @@ services=(
   socialapi/workers/cmd/integration/eventsender
   socialapi/workers/cmd/integration/webhookmiddleware
 
-  github.com/alecthomas/gocyclo
-  github.com/remyoudompheng/go-misc/deadcode
-  github.com/opennota/check/cmd/varcheck
-  github.com/jteeuwen/go-bindata/go-bindata
+  vendor/github.com/koding/kite/kitectl
+  vendor/github.com/canthefason/go-watcher
+  vendor/github.com/mattes/migrate
+  vendor/github.com/alecthomas/gocyclo
+  vendor/github.com/remyoudompheng/go-misc/deadcode
+  vendor/github.com/opennota/check/cmd/varcheck
+  vendor/github.com/jteeuwen/go-bindata/go-bindata
 )
 
 
@@ -96,16 +95,16 @@ cp bin/broker build/broker/broker
 
 # build terraform services
 terraformservices=(
-  github.com/hashicorp/terraform/builtin/bins/provider-aws
-  github.com/hashicorp/terraform/builtin/bins/provider-terraform
-  github.com/hashicorp/terraform/builtin/bins/provider-null
-  github.com/koding/terraform-provider-github/cmd/provider-github
   koding/kites/cmd/provider-vagrant
 
-  github.com/hashicorp/terraform/builtin/bins/provisioner-file
-  github.com/hashicorp/terraform/builtin/bins/provisioner-local-exec
-  github.com/hashicorp/terraform/builtin/bins/provisioner-remote-exec
+  vendor/github.com/hashicorp/terraform/builtin/bins/provider-aws
+  vendor/github.com/hashicorp/terraform/builtin/bins/provider-terraform
+  vendor/github.com/hashicorp/terraform/builtin/bins/provider-null
+  vendor/github.com/koding/terraform-provider-github/cmd/provider-github
 
+  vendor/github.com/hashicorp/terraform/builtin/bins/provisioner-file
+  vendor/github.com/hashicorp/terraform/builtin/bins/provisioner-local-exec
+  vendor/github.com/hashicorp/terraform/builtin/bins/provisioner-remote-exec
 )
 
 tldflags="-X main.GitCommit${LINK_OPERATOR}${version:0:8}"
