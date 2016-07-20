@@ -557,7 +557,7 @@ $warningColor               = #f2778a
 
     .wizard-step.current
       bg                    color, #57a2d2
-      color                 rgba(0,0,0,0.3)
+      color                 #000
       font-weight           400
 
       .icon
@@ -567,23 +567,24 @@ $warningColor               = #f2778a
         hidden()
 
     section.main
-      padding-left          430px
-      padding-top           90px
+      padding-left          420px
+      padding-top           105px
 
       h1
-        color               #57a2d2
-        font-size           50px
-        letter-spacing      .5px
-        line-height         44px
+        color               #48ba7d
+        font-size           40px
+        letter-spacing      .4px
+        line-height         43px
 
       h2
-        font-size           32px
+        font-size           20px
         font-weight         300
-        line-height         44px
-        color               rgba(0,0,0,0.5)
+        letter-spacing      .21px
+        line-height         16px
+        color               #989898
         text-align          left
         padding-top         17px
-        padding-bottom      21px
+        padding-bottom      55px
 
       .GenericButton.secondary
         margin              0
@@ -595,6 +596,13 @@ $warningColor               = #f2778a
         left                60px
         r-sprite            'app', 'buildstack_art_success'
 
+    footer
+      .GenericButton
+        float               none
+        right               0
+        margin              0 auto
+        display             block
+
 
   .build-stack-logs-page
 
@@ -603,7 +611,7 @@ $warningColor               = #f2778a
 
     .wizard-step.current
       bg                    color, #57a2d2
-      color                 rgba(0,0,0,0.3)
+      color                 #000
 
       .icon
         r-sprite            'app', 'checkmark'
@@ -614,6 +622,13 @@ $warningColor               = #f2778a
     .logs-pane
       width                 720px
       height                320px
+
+    footer
+      .GenericButton
+        float               none
+        right               0
+        margin              0 auto
+        display             block
 
 
   .start-machine-page

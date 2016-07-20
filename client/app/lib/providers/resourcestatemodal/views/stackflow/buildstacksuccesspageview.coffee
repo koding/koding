@@ -33,7 +33,7 @@ module.exports = class BuildStackSuccessPageView extends JView
         {{> @progressPane}}
         <section class="main">
           <div class="background"></div>
-          <h1>Success!</h1>
+          <h1>Success</h1>
           <h2>Your stack has been built</h2>
           {{> @logsButton}}
         </section>
