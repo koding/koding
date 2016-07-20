@@ -136,7 +136,7 @@ $warningColor               = #f2778a
         margin-right        5px
 
       .index
-        padding-right       10px
+        padding-right       5px
 
       &:first-child
         border-left         none !important
@@ -304,20 +304,28 @@ $warningColor               = #f2778a
 
     section.main
       > p
-        margin-bottom       30px
+        margin-bottom       24px
 
     .credential-form
       font-family           $helvetica-family
       color                 #929292
-      width                 340px
+      width                 350px
+      height                290px
       borderBox()
       float                 none
       margin                0 auto
+      padding               20px 5px 0 20px
+      rounded               4px
+      bg                    color, #fff
+      overflow              hidden
 
       .kdcustomscrollview
         styleScrollBars     rgba(0, 0, 0, .15)
-        max-height          325px
+        max-height          220px
         padding-right       15px !important
+
+        .kdscrolltrack.vertical
+          right             -2px
 
       a
         color               #57a2d2
@@ -327,11 +335,12 @@ $warningColor               = #f2778a
 
       h3
         font-family         SoleilFamily
-        font-weight         600
-        font-size           15px
+        font-weight         400
+        font-size           17px
         letter-spacing      .4px
-        margin-bottom       20px
+        margin-bottom       10px
         padding-right       15px
+        color               #f2778a
 
       .kdlabel
         display             block
@@ -340,16 +349,16 @@ $warningColor               = #f2778a
         margin-bottom       3px
         float               none
         color               inherit
+        margin-top          7px
 
       .formline:first-child .kdlabel
         margin-top          0px
 
       .formline .input-wrapper
-        margin-bottom       12px
+        margin-bottom       0px
 
       .kdinput.text
         font-size           13.7px
-        line-height         .3px
         rounded             3px
         bg                  color, #fff
         border              1px solid #ececec
@@ -361,7 +370,7 @@ $warningColor               = #f2778a
       div.kdselectbox
         rounded             3px
         border              1px solid #ececec
-        width               323px
+        width               308px
 
         span.title
           line-height       31px
@@ -399,7 +408,8 @@ $warningColor               = #f2778a
 
         a.show-link
           font-size         11px !important
-          abs               0px, 20px
+          fr()
+
           &:before
             content         'Show Details'
 
@@ -409,11 +419,17 @@ $warningColor               = #f2778a
             &:before
               content       'Loading...'
 
+        .kdlabel.selection-label
+          fl()
+          margin-top        0px
+          clear             none
+
       .advanced-mode-btn
         height              22px !important
         background-color    #666
         margin-bottom       20px
         box-shadow          none
+
         .button-title
           font-size         12px !important
           line-height       22px !important
@@ -446,11 +462,11 @@ $warningColor               = #f2778a
             margin          20px 0
             display         block
             rel()
-            width           316px
+            width           310px
 
             div
               ellipsis()
-              width         236px
+              width         230px
 
             cite
               abs           8px 13px
@@ -461,7 +477,7 @@ $warningColor               = #f2778a
 
       .form-container
         hidden()
-        height              250px
+        height              220px
 
       &.form-visible
         .form-container
