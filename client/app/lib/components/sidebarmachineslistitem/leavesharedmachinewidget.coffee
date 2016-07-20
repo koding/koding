@@ -3,6 +3,8 @@ actions                   = require 'app/flux/environment/actions'
 SidebarWidget             = require './sidebarwidget'
 InvitationWidgetUserPart  = require './invitationwidgetuserpart'
 Tracker                   = require 'app/util/tracker'
+ContentModal = require 'app/components/contentModal'
+
 
 module.exports = class LeaveSharedMachineWidget extends React.Component
 
@@ -12,12 +14,28 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
 
   onLeaveClicked: ->
 
-    actions.rejectInvitation @props.machine
-    Tracker.track Tracker.VM_LEFT_SHARED
+    modal = new ContentModal
+      title   : 'Are you sure?'
+      content : "<p>If you leave this session you won't be able to return back.</p>"
+      cssClass : 'content-modal'
+      buttons :
+        No         :
+          title    : 'Cancel'
+          cssClass : 'solid cancel medium'
+          callback : -> modal.destroy()
+        Yes        :
+          title    : 'Yes'
+          cssClass : 'solid medium'
+          loader   : yes
+          callback : =>
+            actions.rejectInvitation @props.machine
+            Tracker.track Tracker.VM_LEFT_SHARED
+            modal.destroy()
+
 
 
   render: ->
-
+    console.log @props.machine.get('type')
     buttonText = if @props.machine.get('type') is 'collaboration'
     then 'LEAVE SESSION'
     else 'LEAVE SHARED VM'
