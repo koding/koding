@@ -26,11 +26,11 @@ module.exports = class ApiToken extends React.Component
         Yes :
           title : 'Yes'
           callback  : =>
-              apiToken = remote.revive @props.apiToken.toJS()
-              apiToken.remove (err) =>
-                return showError err  if err
-                TeamFlux.actions.deleteApiToken @props.apiToken.get 'code'
-                modal.destroy()
+            apiToken = remote.revive @props.apiToken.toJS()
+            apiToken.remove (err) =>
+              return showError err  if err
+              TeamFlux.actions.deleteApiToken @props.apiToken.get 'code'
+              modal.destroy()
 
 
 

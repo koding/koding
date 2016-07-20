@@ -336,7 +336,7 @@ disableApiTokens = (state) ->
   new Promise (resolve, reject) ->
 
     team.modify { isApiEnabled : state }, (err) ->
-      return reject {err}  if err
+      return reject { err }  if err
       reactor.dispatch actions.SET_API_ACCESS_STATE, { state }
 
 
