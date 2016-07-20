@@ -35,7 +35,7 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
 
 
   render: ->
-    console.log @props.machine.get('type')
+
     buttonText = if @props.machine.get('type') is 'collaboration'
     then 'LEAVE SESSION'
     else 'LEAVE SHARED VM'
