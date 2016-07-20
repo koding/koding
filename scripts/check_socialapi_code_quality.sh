@@ -22,6 +22,3 @@ echo "checking go vet"
 
 echo "checking unused variables"
 ./scripts/govarcheck.sh
-
-echo "more aggressive go vet"
-./scripts/go-nyetcheck.sh
