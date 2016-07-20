@@ -19,7 +19,9 @@ module.exports = class CredentialForm extends JView
       tagName  : 'h3'
       partial  : title
 
-    @selectionLabel = new kd.LabelView { title : selectionLabel }
+    @selectionLabel = new kd.LabelView
+      title    : selectionLabel
+      cssClass : 'selection-label'
     @selection      = new kd.SelectBox {
       label : @selectionLabel
       callback : @bound 'checkShowLinkVisibility'
@@ -80,7 +82,7 @@ module.exports = class CredentialForm extends JView
 
     return  unless @selection
 
-    { selectionPlaceholder, hideTitle } = @getOptions()
+    { selectionPlaceholder } = @getOptions()
     { defaultItem, items } = @getData()
 
     selectOptions   = items.map (item) -> { value : item.identifier, title : item.title }
@@ -100,10 +102,7 @@ module.exports = class CredentialForm extends JView
 
     @setClass 'form-visible'
     @newHeader.hide()
-    if hideTitle
-      @header.hide()
-    else
-      @header.show()
+    @header.show()
 
 
   checkShowLinkVisibility: ->
@@ -136,11 +135,9 @@ module.exports = class CredentialForm extends JView
 
   onCancelNew: ->
 
-    { hideTitle } = @getOptions()
-
     @unsetClass 'form-visible'
     @newHeader.hide()
-    @header.show()  unless hideTitle
+    @header.show()
 
 
   selectValue: (value) ->
@@ -185,8 +182,8 @@ module.exports = class CredentialForm extends JView
     """
       {{> @header}}
       <div class='selection-container'>
-        {{> @selectionLabel}}
         {{> @showLink}}
+        {{> @selectionLabel}}
         {{> @selection}}
         {{> @createNew}}
       </div>

@@ -68,10 +68,7 @@ module.exports = class CredentialsPageView extends JView
     @addSharedCredential items, sharedCredential
 
     options = helpers.getFormOptions provider
-    if @requirementsForm.hasClass 'hidden'
-      options.hideTitle = yes
-    else
-      options.cssClass = 'left-form'
+    options.cssClass = 'left-form'  unless @requirementsForm.hasClass 'hidden'
     formClass = if provider is 'vagrant' then KDCredentialForm else CredentialForm
     @credentialForm = new formClass options, credentials
 
