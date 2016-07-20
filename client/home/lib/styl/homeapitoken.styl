@@ -5,17 +5,27 @@
   border-bottom             1px solid #ebebeb
   margin-bottom             24px
   height                    60px
-  label
-    abs                     12px 0 0 0
-  .GenericButton.fr
-    font-size               13px
-    font-weight             400
-    letter-spacing          0.3px
-    cursor                  pointer
-    &.disabled
-      opacity               0.5
-      pointer-events        none
+  .label
+    color                   #818181
+    font-size               16px
+    letter-spacing          0.15px
+    line-height             22px
 
+  .description
+    color                   #ACACAC
+    font-size               14px
+    letter-spacing          0.15px
+    line-height             16px
+
+
+.HomeApp-ApiToken--footer
+  border-top                1px solid #ebebeb
+  margin-top                20px
+
+.HomeApp-ApiToken--footer--button-wrapper
+  padding                   25px 0 6px 0
+  .custom-link-view.HomeAppView--button.primary.disabled
+    opacity                 0.5
 
 .HomeApp-ApiToken--ListItem
   height                    44px
@@ -23,13 +33,12 @@
   font-size                 15px
   rel()
 
-
 .HomeApp-ApiToken--ListItem:first-of-type
   .HomeApp-ApiToken--custom-link-view.delete-api-token
       abs                   18px 0px 0 0
 
 .HomeApp-ApiToken--swicth-toggle
-  abs -84px -32px 0 0
+  abs 8px 0px 0 0
   input.HomeApp-ApiToken--swicth-toggle
     display none
 
@@ -57,12 +66,9 @@
 
 .HomeApp-ApiToken
   .react-toggle:before
-    content 'DISABLE'
     top                     4px
-    left                    -67px
+    left                    -33px
     font-size               14px
-  .react-toggle--checked:before
-    content 'ENABLE'
 
 .HomeApp-ApiToken--api-wrapper--disabled
   opacity 0.5

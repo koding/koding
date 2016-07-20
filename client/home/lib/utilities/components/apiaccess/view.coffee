@@ -70,14 +70,41 @@ module.exports = class View extends React.Component
         rowClassName='HomeApp-ApiToken--ListItem'
         sectionClassName='HomeApp-ApiTokenSection'
       />
+      <div className='HomeApp-ApiToken--footer'>
+        <div className='HomeApp-ApiToken--footer--button-wrapper'>
+          <GuideButton />
+          <AddNewApiTokenButton toggleState={toggleState} callback={@bound 'addNewApiToken'}/>
+        </div>
+      </div>
+
     </div>
 
 Header = ({ toggleState, callback }) ->
 
-  className = 'kdbutton GenericButton fr'
-  className = "#{className} disabled"  unless toggleState
+  label = 'Enable API Access'
+  label = 'API Access is Disabled'  unless toggleState
+
+  description = 'Allow 3rd party services to securely communicate with Koding.'
+  description = 'Allow 3rd party services to securely communicate with Koding.'  unless toggleState
 
   <div className='HomeApp-ApiToken--header'>
-    <label> API Token List </label>
-    <button className={className} onClick={callback}>Add New API Token</button>
+    <div className='label'>{label}</div>
+    <span className='description'>{description}</span>
   </div>
+
+
+GuideButton = ->
+
+  <a className="custom-link-view HomeAppView--button fl" href="https://www.koding.com/docs/desktop-app">
+    <span className="title">VIEW GUIDE</span>
+  </a>
+
+
+AddNewApiTokenButton = ({ toggleState, callback }) ->
+
+  className = 'custom-link-view HomeAppView--button primary fr'
+  className = "#{className} disabled"  unless toggleState
+
+  <a className={className} onClick={callback}>
+    <span className="title">ADD NEW API TOKEN</span>
+  </a>
