@@ -13,7 +13,7 @@ module.exports = class BuildStackSuccessPageView extends JView
       currentStep : WizardSteps.BuildStack
 
     @logsButton = new kd.ButtonView
-      title    : 'See the logs here'
+      title    : 'See the Logs'
       cssClass : 'GenericButton secondary'
       callback : @lazyBound 'emit', 'LogsRequested'
 
