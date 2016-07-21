@@ -168,6 +168,8 @@ createGroupKallback = (client, req, res, body) ->
       domains
       # username or email of the user, can be already registered or a new one for creation
       username
+      # title of team's plan
+      plan
     } = body
 
     token = result.newToken or result.replacementToken
@@ -195,14 +197,17 @@ createGroupKallback = (client, req, res, body) ->
       username         : result.account.profile.nickname
     }
 
-    JGroup.create client,
+    createOptions =
       slug            : slug
       title           : companyName
-    # config          : { plan: 'trial' } # default team plan
       visibility      : 'hidden'
       allowedDomains  : convertToArray domains # clear & convert domains into array
       defaultChannels : []
-    , owner, afterGroupCreate
+
+    if plan
+      createOptions.config = { plan }
+
+    JGroup.create client, createOptions, owner, afterGroupCreate
 
 
 
