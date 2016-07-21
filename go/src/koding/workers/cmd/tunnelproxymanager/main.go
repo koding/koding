@@ -45,7 +45,7 @@ func main() {
 	route53Session := awssession.New(&aws.Config{
 		Credentials: credentials.NewStaticCredentials(
 			c.Route53AccessKeyID,
-			c.Route53AccessKeyID,
+			c.Route53SecretAccessKey,
 			"",
 		),
 		Region:     aws.String(conf.Region),
