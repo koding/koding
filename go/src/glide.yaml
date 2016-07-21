@@ -1,5 +1,12 @@
-package: koding
-flatten: true
+# TODO(rjeczalik): A number of vendored packages here
+# are pinned to a fixed commit version.
+#
+# This is caused by those packages being backward-incompatible
+# in either their api (build failures) or behaviour (runtime failures).
+#
+# While the former should be definitely fixed, the latter
+# needs a closer look.
+package: .
 import:
 - package: github.com/RangelReale/osin
 - package: github.com/VerbalExpressions/GoVerbalExpressions
@@ -88,7 +95,7 @@ import:
   - fuseops
   - fuseutil
 - package: github.com/jinzhu/gorm
-  version: 1ba5ce3bbce70623be21f3429e5c80648b05d96d
+  version: 29ac1920900ed00e18f838cba30d717b3dd8bc85
 - package: github.com/jinzhu/now
 - package: github.com/kennygrant/sanitize
   version: ^1.0.0
@@ -103,6 +110,7 @@ import:
   - helpers
   - services
 - package: github.com/koding/kite
+  version: eab5a1c457579262cc2cc9fa25f42420b60aecb1
   subpackages:
   - config
   - dnode
@@ -132,6 +140,7 @@ import:
   version: b7075cd5d74870710dfa5e3ebe8b4cb5c88a02fe
 - package: github.com/lann/squirrel
 - package: github.com/lib/pq
+  version: c4afb3f5ae09066d9aaec61eebd9496f7a852082
 - package: github.com/mailgun/mailgun-go
 - package: github.com/maximilien/softlayer-go
   version: 0.4.0
@@ -220,6 +229,7 @@ import:
 - package: gopkg.in/yaml.v2
 - package: github.com/canthefason/go-watcher
 - package: github.com/mattes/migrate
+  version: 9bb037339f0f7d2c7591ef148a5cbf78ff65d9b8
 - package: github.com/alecthomas/gocyclo
 - package: github.com/remyoudompheng/go-misc
   subpackages:
@@ -237,6 +247,9 @@ import:
 - package: github.com/gorilla/context
 - package: github.com/gorilla/websocket
 - package: github.com/hashicorp/golang-lru
+- package: github.com/golang/snappy
+- package: github.com/hailocab/go-hostpool
+- package: gopkg.in/inf.v0
 - package: github.com/juju/ratelimit
 - package: github.com/lann/builder
 - package: github.com/ooyala/go-dogstatsd
@@ -279,5 +292,7 @@ ignore:
 - koding/kites/klient/protocol
 - koding/virt
 - koding/databases/neo4j
+- code.google.com/p/goauth2
+- code.google.com/p/google-api-go-client
 testImport:
 - package: launchpad.net/goyaml
