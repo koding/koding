@@ -67,7 +67,8 @@ $regularColor               = #989898
           font-weight       300
 
 
-  .start-machine-flow
+  .start-machine-flow,
+  .stop-machine-flow
 
     header
       height                50px
@@ -96,21 +97,6 @@ $regularColor               = #989898
           font-size         16px
           line-height       18px
           text-transform    uppercase
-
-
-  .stop-machine-flow
-
-    header
-      height                70px
-
-      h1
-        font-size           25px
-        line-height         34px
-        padding-top         16px
-
-    section.main
-      width                 600px
-      height                250px
 
 
   /* Loader */
@@ -766,22 +752,17 @@ $regularColor               = #989898
   .stop-machine-progress-page
 
     section.main
+      height                250px
 
       h2
-        color               #777777
-        font-size           31px
-        font-weight         300
-        letter-spacing      .3px
+        color               #515151
+        font-size           20px
+        letter-spacing      .2px
         line-height         43px
-        padding-top         55px
-        padding-bottom      35px
-
-        span
-          font-weight       600
+        padding-top         30px
 
       .progressbar-container
-        border              1px solid #ccc
-        width               80%
+        width               500px
 
         .bar
           bg                color, #f2778a

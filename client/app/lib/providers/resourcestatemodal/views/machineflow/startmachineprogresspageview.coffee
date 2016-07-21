@@ -10,8 +10,9 @@ module.exports = class StartMachineProgressPageView extends JView
     super options, data
 
     @progressBar = new kd.ProgressBarView
-      initial : constants.INITIAL_PROGRESS_VALUE
-    @statusText  = new kd.CustomHTMLView { cssClass : 'status-text' }
+      initial    : constants.INITIAL_PROGRESS_VALUE
+    @statusText  = new kd.CustomHTMLView
+      cssClass   : 'status-text'
 
 
   updateProgress: (percentage, message) ->
