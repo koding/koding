@@ -80,9 +80,22 @@ $regularColor               = #989898
 
     section.main
       width                 600px
-      height                390px
       rounded               6px
       color                 $regularColor
+
+      p
+        color               $regularColor
+
+      .GenericButton
+        height              42px
+        min-width           160px
+        borderBox()
+        display             block
+
+        span.button-title
+          font-size         16px
+          line-height       18px
+          text-transform    uppercase
 
 
   .stop-machine-flow
@@ -643,6 +656,7 @@ $regularColor               = #989898
   .start-machine-page
 
     section.main
+      height                390px
 
       h2
         color               #358bb0
@@ -658,16 +672,7 @@ $regularColor               = #989898
         margin-bottom       44px
 
       .GenericButton
-        height              42px
-        width               160px
-        borderBox()
-        display             block
         margin              0 auto
-
-        span.button-title
-          font-size         16px
-          line-height       18px
-          text-transform    uppercase
 
       .background
         abs()
@@ -705,34 +710,28 @@ $regularColor               = #989898
 
     section.main
       height                320px
-      padding-left          370px
-      padding-top           80px
-
-      h1
-        color               #57a2d2
-        font-size           50px
-        letter-spacing      .5px
-        line-height         44px
+      padding-left          300px
+      padding-top           85px
 
       h2
-        font-size           32px
-        font-weight         300
-        line-height         44px
-        color               rgba(0,0,0,0.5)
+        color               #48ba7d
+        font-size           22px
+        letter-spacing      .22px
+        line-height         43px
         text-align          left
-        padding-top         17px
+        padding-top         0
+
+      p
+        text-align          left
+        line-height         16px
+        margin-bottom       27px
 
       .background
         abs()
-        top                 12px
-        left                30px
+        top                 50px
+        left                40px
         r-sprite            'app', 'buildstack__art_success'
 
-    footer
-      .GenericButton
-        sta()
-        margin              29px auto 0 auto
-        display             block
 
 
   .start-machine-error-page
