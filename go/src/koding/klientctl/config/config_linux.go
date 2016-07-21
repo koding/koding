@@ -14,7 +14,7 @@ const (
 // that exists. If none exist, empty is returned.
 func returnExistingPath(paths []string) string {
 	for _, p := range paths {
-		if _, err := os.Stat(logFilePath); !os.IsNotExist(err) {
+		if _, err := os.Stat(p); !os.IsNotExist(err) {
 			return p
 		}
 	}

@@ -55,10 +55,10 @@ module.exports = class StackEditorView extends kd.View
       { groupsController } = kd.singletons
       @isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
 
-      unless @isMine
+      if not @isMine and stackTemplate
         @tabView.setClass 'StackEditorTabs isntMine'
         @warningView.show()
-        @secondaryActions.hide()
+        @deleteStack.hide()
         @saveButton.setClass 'isntMine'
         @inputTitle.setClass 'template-title isntMine'
 
@@ -92,7 +92,7 @@ module.exports = class StackEditorView extends kd.View
       cssClass             : 'StackEditor-SecondaryActions'
 
 
-    @secondaryActions.addSubView new CustomLinkView
+    @secondaryActions.addSubView @deleteStack = new CustomLinkView
       cssClass : 'HomeAppView--button danger'
       title    : 'DELETE STACK TEMPLATE'
       click    : @bound 'deleteStack'

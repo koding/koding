@@ -41,9 +41,9 @@ func (e *NotFoundError) Underlying() error {
 	return e.Err
 }
 
-// resError is a helper function that decorates the given err with more
+// ResError is a helper function that decorates the given err with more
 // meaningful error value, giving the caller context to recover.
-func resError(err error, resource string) error {
+func ResError(err error, resource string) error {
 	switch err {
 	case mgo.ErrNotFound:
 		return &NotFoundError{
@@ -175,7 +175,7 @@ func (b *Builder) BuildStack(stackID string, credentials map[string][]string) er
 
 	computeStack, err := modelhelper.GetComputeStack(stackID)
 	if err != nil {
-		return resError(err, "jComputeStack")
+		return ResError(err, "jComputeStack")
 	}
 
 	b.Stack = &Stack{
@@ -203,7 +203,7 @@ func (b *Builder) BuildStack(stackID string, credentials map[string][]string) er
 
 		b.Stack.Template = stackTemplate.Template.Content
 	} else {
-		overallErr = resError(err, "jStackTemplate")
+		overallErr = ResError(err, "jStackTemplate")
 	}
 
 	// copy user based credentials
@@ -315,7 +315,7 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 
 	users, err := modelhelper.GetUsersById(allowedIds...)
 	if err != nil {
-		return resError(err, "jUser")
+		return ResError(err, "jUser")
 	}
 
 	// find whether requested user is among allowed ones
@@ -383,19 +383,19 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 	// fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
-		return resError(err, "jAccount")
+		return ResError(err, "jAccount")
 	}
 
 	// fetch jGroup from group slug name
 	group, err := modelhelper.GetGroup(groupname)
 	if err != nil {
-		return resError(err, "jGroup")
+		return ResError(err, "jGroup")
 	}
 
 	// fetch jUser from username
 	user, err := modelhelper.GetUser(username)
 	if err != nil {
-		return resError(err, "jUser")
+		return ResError(err, "jUser")
 	}
 
 	// validate if username belongs to groupnam
@@ -415,7 +415,7 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 	// 2- fetch credential from identifiers via args
 	credentials, err := modelhelper.GetCredentialsFromIdentifiers(identifiers...)
 	if err != nil {
-		return resError(err, "jCredential")
+		return ResError(err, "jCredential")
 	}
 
 	credentialTitles := make(map[string]string, len(credentials))
@@ -443,7 +443,7 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 
 		count, err := modelhelper.RelationshipCount(selector)
 		if err != nil {
-			return resError(err, "jRelationship")
+			return ResError(err, "jRelationship")
 		}
 		if count == 0 {
 			return fmt.Errorf("credential with identifier '%s' is not validated: %v", cred.Identifier, err)
@@ -462,7 +462,7 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 
 	if err := b.CredStore.Fetch(username, data); err != nil {
 		// TODO(rjeczalik): add *NotFoundError support to CredStore
-		return resError(err, "jCredentialData")
+		return ResError(err, "jCredentialData")
 	}
 
 	// 5- return list of keys.
