@@ -1,0 +1,15 @@
+language: go
+
+sudo: false
+
+install:
+  - go get -t -v ./...
+
+go:
+  - 1.4.3
+  - 1.5.4
+  - 1.6.2
+
+script:
+  - export GOMAXPROCS=$(nproc) # go1.4
+  - go test -race ./...

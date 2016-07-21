@@ -1,5 +1,5 @@
-hash: 0ae9d57945d1a6318ee1eb0c2a4caaa2c04cbca8835df8799ccd484ccf25fb0b
-updated: 2016-07-21T11:29:35.388445573Z
+hash: 82aabba8a2ac27205640c07c96401827fbb1117a080650301166096a64ce245a
+updated: 2016-07-21T19:21:26.377850986Z
 imports:
 - name: bitbucket.org/kardianos/osext
   version: 816c96ec6fef6a0cd72c9395d192c4bd0d918753
@@ -133,7 +133,7 @@ imports:
 - name: github.com/digitalocean/godo
   version: f75d769b07edce8a73682dcf325b4404f366ab3d
 - name: github.com/docker/docker
-  version: 2debfe84354d306236b576a0fde665f9af5e0994
+  version: 8cbe6541b2229357370e61ce6fb35d131be93cac
   subpackages:
   - opts
   - pkg/archive
@@ -180,10 +180,6 @@ imports:
   version: 3654d25ec346ee8ce71a68431025458d52a38ac0
 - name: github.com/gocql/gocql
   version: 94f1315e46b0b2eae3a48a77a49e3e1cc9377923
-  subpackages:
-  - internal/lru
-  - internal/murmur
-  - internal/streams
 - name: github.com/golang/protobuf
   version: 34a5f244f1c01cdfee8e60324258cfbb97a42aec
   subpackages:
@@ -415,7 +411,7 @@ imports:
 - name: github.com/lann/squirrel
   version: caff2d522d550f0998629c85898ad35e8a603328
 - name: github.com/lib/pq
-  version: 8ad2b298cadd691a77015666a5372eae5dbfac8f
+  version: e13b3d914f10f00d683dc1d22e6713e87af1df99
   subpackages:
   - oid
   - hstore
@@ -437,18 +433,14 @@ imports:
 - name: github.com/masterzen/xmlpath
   version: 13f4951698adc0fa9c1dda3e275d489a24201161
 - name: github.com/mattes/migrate
-  version: ce1b59bb819416ca67422929b1cb48bb342720b6
+  version: 0741616d2ea92fb372f8d5469d9256f3c856ffc1
   subpackages:
-  - driver/bash
-  - driver/cassandra
-  - driver/mysql
-  - driver/postgres
-  - driver/sqlite3
   - file
   - migrate
   - migrate/direction
   - pipe
   - driver
+  - driver/registry
 - name: github.com/mattn/go-colorable
   version: 9cbef7c35391cca05f15f8181dc0b18bc9736dbb
 - name: github.com/mattn/go-isatty
@@ -519,7 +511,7 @@ imports:
 - name: github.com/op/go-logging
   version: b2cb9fa56473e98db8caba80237377e83fe44db5
 - name: github.com/opencontainers/runc
-  version: 0ae6018eb9a3591c856c57c8caa4a6f3e89a2e67
+  version: fb221651e5120cd287a76c7c1b6c877520fbd034
   subpackages:
   - libcontainer/user
 - name: github.com/opennota/check
@@ -670,7 +662,7 @@ imports:
   - unicode/norm
   - transform
 - name: golang.org/x/tools
-  version: 55296b3bebf97ef1b14b5b86a4ecd6337ef99bb2
+  version: 5b59ce8b5f114a06fca053c08a380efbcbf7a5e5
   subpackages:
   - go/loader
   - go/types
@@ -719,7 +711,21 @@ imports:
 - name: gopkg.in/yaml.v2
   version: e4d366fc3c7938e2958e662b4258c7a89e1f0e3e
 testImports:
+- name: code.google.com/p/google-api-go-client
+  version: ""
+  subpackages:
+  - drive/v2
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
+- name: koding/kite
+  version: ""
+- name: koding/kite/protocol
+  version: ""
 - name: launchpad.net/goyaml
-  version: 51
+  version: |-
+    bzr: warning: unsupported locale setting
+      bzr could not set the application locale.
+      Although this should be no problem for bzr itself, it might
+      cause problems with some plugins. To investigate the issue,
+      look at the output of the locale(1p) tool.
+    51

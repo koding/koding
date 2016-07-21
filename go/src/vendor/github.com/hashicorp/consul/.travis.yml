@@ -1,0 +1,14 @@
+language: go
+
+go:
+  - tip
+
+branches:
+  only:
+    - master
+
+install: make deps
+script:
+  - make test
+
+sudo: false
