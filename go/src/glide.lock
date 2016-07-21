@@ -1,5 +1,5 @@
-hash: 82aabba8a2ac27205640c07c96401827fbb1117a080650301166096a64ce245a
-updated: 2016-07-21T19:21:26.377850986Z
+hash: 8b6e41c2ba6867b37f399757d2c8e5ef7e75c4459078519423d474282c1073b9
+updated: 2016-07-24T10:03:54.079934139Z
 imports:
 - name: bitbucket.org/kardianos/osext
   version: 816c96ec6fef6a0cd72c9395d192c4bd0d918753
@@ -16,7 +16,7 @@ imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
 - name: github.com/aws/aws-sdk-go
-  version: f8553d0e791b2d81406261a38be4fc0ebad0b6e0
+  version: 565027b24171359f23f883d0fc48c228cdde301d
   subpackages:
   - aws
   - aws/awserr
@@ -90,7 +90,7 @@ imports:
 - name: github.com/BurntSushi/toml
   version: 99064174e013895bbd9b025c31100bd1d9b590ca
 - name: github.com/caglar10ur/lxc
-  version: e963273a779104424d69783117317e588e6f054b
+  version: 5429ec248a1090edde6285e4bc729641f6f79b57
 - name: github.com/canthefason/go-watcher
   version: 732b348bdd1598f8ab0e6a5dcaa4a0a0595ed998
 - name: github.com/cenkalti/backoff
@@ -133,7 +133,7 @@ imports:
 - name: github.com/digitalocean/godo
   version: f75d769b07edce8a73682dcf325b4404f366ab3d
 - name: github.com/docker/docker
-  version: 8cbe6541b2229357370e61ce6fb35d131be93cac
+  version: ca663a400ceb122f154ca4d752a2b144642372dd
   subpackages:
   - opts
   - pkg/archive
@@ -147,7 +147,7 @@ imports:
   - pkg/system
   - pkg/longpath
 - name: github.com/docker/engine-api
-  version: c977588a28fa81fbbb06c295e936853cef37cf27
+  version: 53b6b19ee622c8584c28fdde0e3893383b290da3
   subpackages:
   - types/filters
   - types/versions
@@ -180,6 +180,10 @@ imports:
   version: 3654d25ec346ee8ce71a68431025458d52a38ac0
 - name: github.com/gocql/gocql
   version: 94f1315e46b0b2eae3a48a77a49e3e1cc9377923
+  subpackages:
+  - internal/lru
+  - internal/murmur
+  - internal/streams
 - name: github.com/golang/protobuf
   version: 34a5f244f1c01cdfee8e60324258cfbb97a42aec
   subpackages:
@@ -309,7 +313,7 @@ imports:
 - name: github.com/jehiah/go-strftime
   version: 834e15c05a45371503440cc195bbd05c9a0968d9
 - name: github.com/jinzhu/gorm
-  version: 1ba5ce3bbce70623be21f3429e5c80648b05d96d
+  version: 29ac1920900ed00e18f838cba30d717b3dd8bc85
 - name: github.com/jinzhu/inflection
   version: 8f4d3a0d04ce0b7c0cf3126fb98524246d00d102
 - name: github.com/jinzhu/now
@@ -348,7 +352,7 @@ imports:
   - helpers
   - services
 - name: github.com/koding/kite
-  version: c00e06435c6d4c1f5fa3ec084631f71e4b790b61
+  version: ""
   subpackages:
   - config
   - dnode
@@ -379,7 +383,7 @@ imports:
 - name: github.com/koding/rabbitmq
   version: 85d8cac01c9bf45a9ad3c2c1a53640143e3f632a
 - name: github.com/koding/redis
-  version: d857774d7246fb11a7ab888ede4dd853f2082858
+  version: 91ff95c82279304d541403ee6b2ddccedb3933d4
 - name: github.com/koding/runner
   version: 4731344e1a09114928a27d9b34e7d546f334d366
 - name: github.com/koding/service
@@ -391,7 +395,7 @@ imports:
   subpackages:
   - cmd/provider-github
 - name: github.com/koding/tunnel
-  version: 454fbb381e8d609ec442383774b9074eb9433c92
+  version: 61680ecd83609f8361a62fb2aacabf715b43f36f
 - name: github.com/koding/vagrantutil
   version: 72e6057782dc66468205cb161299ffae2215338e
 - name: github.com/kr/binarydist
@@ -411,7 +415,7 @@ imports:
 - name: github.com/lann/squirrel
   version: caff2d522d550f0998629c85898ad35e8a603328
 - name: github.com/lib/pq
-  version: e13b3d914f10f00d683dc1d22e6713e87af1df99
+  version: c4afb3f5ae09066d9aaec61eebd9496f7a852082
   subpackages:
   - oid
   - hstore
@@ -433,14 +437,18 @@ imports:
 - name: github.com/masterzen/xmlpath
   version: 13f4951698adc0fa9c1dda3e275d489a24201161
 - name: github.com/mattes/migrate
-  version: 0741616d2ea92fb372f8d5469d9256f3c856ffc1
+  version: 9bb037339f0f7d2c7591ef148a5cbf78ff65d9b8
   subpackages:
   - file
   - migrate
   - migrate/direction
   - pipe
   - driver
-  - driver/registry
+  - driver/bash
+  - driver/cassandra
+  - driver/mysql
+  - driver/postgres
+  - driver/sqlite3
 - name: github.com/mattn/go-colorable
   version: 9cbef7c35391cca05f15f8181dc0b18bc9736dbb
 - name: github.com/mattn/go-isatty
@@ -521,7 +529,7 @@ imports:
 - name: github.com/oschwald/geoip2-golang
   version: a612e006717fae98bcdd24877ffc3eac808e6b21
 - name: github.com/oschwald/maxminddb-golang
-  version: eccd8d633e8f832af840a3f371f010a521e98b3b
+  version: f4aa55714a3f843869ca9a38625e177a627c1ce6
 - name: github.com/packer-community/winrmcp
   version: 3d184cea22ee1c41ec1697e0d830ff0c78f7ea97
   subpackages:
@@ -563,7 +571,7 @@ imports:
   subpackages:
   - deadcode
 - name: github.com/rjeczalik/gh
-  version: e5264399f7d7bde35f50c75f2cb97162067f9240
+  version: 0b95825ced151ede9a6d957bc35e43de5ca2aef2
   subpackages:
   - webhook
 - name: github.com/robfig/cron
@@ -662,7 +670,7 @@ imports:
   - unicode/norm
   - transform
 - name: golang.org/x/tools
-  version: 5b59ce8b5f114a06fca053c08a380efbcbf7a5e5
+  version: ed69e84b1518b5857a9f4e01d1f9cefdcc45246e
   subpackages:
   - go/loader
   - go/types
