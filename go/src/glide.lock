@@ -1,5 +1,5 @@
-hash: 695fd9149683c205a92445ead6ffed207fe49cd5739dc80a12d7fd2c32284ce5
-updated: 2016-07-20T12:20:40.924632656Z
+hash: 0ae9d57945d1a6318ee1eb0c2a4caaa2c04cbca8835df8799ccd484ccf25fb0b
+updated: 2016-07-21T11:29:35.388445573Z
 imports:
 - name: bitbucket.org/kardianos/osext
   version: 816c96ec6fef6a0cd72c9395d192c4bd0d918753
@@ -133,7 +133,7 @@ imports:
 - name: github.com/digitalocean/godo
   version: f75d769b07edce8a73682dcf325b4404f366ab3d
 - name: github.com/docker/docker
-  version: 3d4bde92b72c963a01419c4827909e355b44e6f2
+  version: 2debfe84354d306236b576a0fde665f9af5e0994
   subpackages:
   - opts
   - pkg/archive
@@ -147,7 +147,7 @@ imports:
   - pkg/system
   - pkg/longpath
 - name: github.com/docker/engine-api
-  version: 55fc2a3c372dd40020d511a64926027a3051c677
+  version: c977588a28fa81fbbb06c295e936853cef37cf27
   subpackages:
   - types/filters
   - types/versions
@@ -190,6 +190,10 @@ imports:
   - proto
 - name: github.com/golang/snappy
   version: d9eb7a3d35ec988b8585d4a0068e462c27d28380
+- name: github.com/google/go-github
+  version: ac4445ca1c9dfacf5c0bbf34b712b23a3bb59b6c
+  subpackages:
+  - github
 - name: github.com/google/go-querystring
   version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
   subpackages:
@@ -365,7 +369,7 @@ imports:
   - kontrol/onceevery
   - kontrol/protocol
 - name: github.com/koding/logging
-  version: 3abdb29080cd6532283788f360a0b65959f6ce95
+  version: 8b5a689ed69b1c7cd1e3595276fc2a352d7818e0
 - name: github.com/koding/metrics
   version: 9a17123e052386b38746eb19fe9ec6f5bb047c90
 - name: github.com/koding/multiconfig
@@ -386,12 +390,16 @@ imports:
   version: c42533d8756bcad688f9cebe92b1b462d8842600
 - name: github.com/koding/sshkey
   version: 1394f67258c7dca5203b1dc75c50d0b9f5762cd0
+- name: github.com/koding/terraform-provider-github
+  version: 87ee82aca4229425971e2ca11a76f4e753b6da8f
+  subpackages:
+  - cmd/provider-github
 - name: github.com/koding/tunnel
   version: 454fbb381e8d609ec442383774b9074eb9433c92
 - name: github.com/koding/vagrantutil
   version: 72e6057782dc66468205cb161299ffae2215338e
 - name: github.com/kr/binarydist
-  version: 9955b0ab8708602d411341e55fffd7e0700f86bd
+  version: 3035450ff8b987ec4373f65c40767f096b35f2d2
 - name: github.com/kr/fs
   version: 2788f0dbd16903de03cb8186e5c7d97b69ad387b
 - name: github.com/kr/pty
@@ -511,7 +519,7 @@ imports:
 - name: github.com/op/go-logging
   version: b2cb9fa56473e98db8caba80237377e83fe44db5
 - name: github.com/opencontainers/runc
-  version: bd1d3ac0480c5d3babac10dc32cff2886563219c
+  version: 0ae6018eb9a3591c856c57c8caa4a6f3e89a2e67
   subpackages:
   - libcontainer/user
 - name: github.com/opennota/check
@@ -582,7 +590,7 @@ imports:
 - name: github.com/sendgrid/rest
   version: 2eefcc3c15fec755eadc793ec2de0214fe858ee9
 - name: github.com/sendgrid/sendgrid-go
-  version: 92b6ff54314e759a35b919335dfe2dcb060aeaf3
+  version: d739a63f3c117ccc0bfec449bf1e7a07df91f2a4
 - name: github.com/siesta/neo4j
   version: da0f3ffca5b3ebafaac6284af378baff0ebf8725
 - name: github.com/Sirupsen/logrus
@@ -647,7 +655,6 @@ imports:
   subpackages:
   - jwt
   - internal
-  - jws
 - name: golang.org/x/sys
   version: 62bee037599929a6e9146f29d10dd5208c43507d
   subpackages:
@@ -663,19 +670,17 @@ imports:
   - unicode/norm
   - transform
 - name: golang.org/x/tools
-  version: d4a8e583a10c1e702d1accc9e66c104f992115c8
+  version: 55296b3bebf97ef1b14b5b86a4ecd6337ef99bb2
   subpackages:
   - go/loader
   - go/types
   - go/ast/astutil
   - go/buildutil
 - name: google.golang.org/api
-  version: 43c645d4bcf9251ced36c823a93b6d198764aae4
+  version: 663fefdcec4e1ec9033ba302202321d3bff5fe6d
   subpackages:
   - drive/v2
   - googleapi
-  - gensupport
-  - googleapi/internal/uritemplates
 - name: google.golang.org/appengine
   version: b667a5000b082e49c6c6d16867d376a12e9490cd
   subpackages:
@@ -716,15 +721,5 @@ imports:
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
-- name: koding/kite
-  version: ""
-- name: koding/kite/protocol
-  version: ""
 - name: launchpad.net/goyaml
-  version: |-
-    bzr: warning: unsupported locale setting
-      bzr could not set the application locale.
-      Although this should be no problem for bzr itself, it might
-      cause problems with some plugins. To investigate the issue,
-      look at the output of the locale(1p) tool.
-    51
+  version: 51

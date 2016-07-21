@@ -1,5 +1,12 @@
-package: koding
-flatten: true
+# TODO(rjeczalik): A number of vendored packages here
+# are pinned to a fixed commit version.
+#
+# This is caused by those packages being backward-incompatible
+# in either their api (build failures) or behaviour (runtime failures).
+#
+# While the former should be definitely fixed, the latter
+# needs a closer look.
+package: .
 import:
 - package: github.com/RangelReale/osin
 - package: github.com/VerbalExpressions/GoVerbalExpressions
@@ -132,6 +139,7 @@ import:
   version: b7075cd5d74870710dfa5e3ebe8b4cb5c88a02fe
 - package: github.com/lann/squirrel
 - package: github.com/lib/pq
+  version: e13b3d914f10f00d683dc1d22e6713e87af1df99
 - package: github.com/mailgun/mailgun-go
 - package: github.com/maximilien/softlayer-go
   version: 0.4.0
@@ -220,6 +228,7 @@ import:
 - package: gopkg.in/yaml.v2
 - package: github.com/canthefason/go-watcher
 - package: github.com/mattes/migrate
+  version: 0741616d2ea92fb372f8d5469d9256f3c856ffc1
 - package: github.com/alecthomas/gocyclo
 - package: github.com/remyoudompheng/go-misc
   subpackages:
@@ -237,6 +246,9 @@ import:
 - package: github.com/gorilla/context
 - package: github.com/gorilla/websocket
 - package: github.com/hashicorp/golang-lru
+- package: github.com/golang/snappy
+- package: github.com/hailocab/go-hostpool
+- package: gopkg.in/inf.v0
 - package: github.com/juju/ratelimit
 - package: github.com/lann/builder
 - package: github.com/ooyala/go-dogstatsd
@@ -279,5 +291,7 @@ ignore:
 - koding/kites/klient/protocol
 - koding/virt
 - koding/databases/neo4j
+- code.google.com/p/goauth2
+- code.google.com/p/google-api-go-client
 testImport:
 - package: launchpad.net/goyaml
