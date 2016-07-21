@@ -771,19 +771,27 @@ $regularColor               = #989898
   .stop-machine-error-page
 
     section.main
+      min-height            390px
+
+      h2
+        line-height         43px
+        padding-top         30px
+        margin-bottom       -10px
+
+      > p
+        margin-bottom       20px
 
       .error-container
-        max-height          100px
+        max-height          205px
+        width               520px
 
       .GenericButton
-        width               226px
-        height              65px
-        borderBox()
-        margin-top          20px
+        margin              40px auto 90px auto
 
-        span.button-title
-          font-size         21.6px
-          line-height       30px
+      .background
+        abs()
+        bottom              0
+        r-sprite            'app', 'buildstack__art_fail'
 
 
   .no-stack-page

@@ -21,6 +21,7 @@ module.exports = class StopMachineErrorPageView extends BaseErrorPageView
           <h1>Turn Off VM</h1>
         </header>
         <section class="main">
+          <div class="background"></div>
           <h2>Something went wrong</h2>
           <p>Make sure all of your work has been saved before you turn off the VM.</p>
           {{> @errorContainer}}
