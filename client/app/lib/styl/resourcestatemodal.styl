@@ -44,7 +44,7 @@ $regularColor               = #989898
 
       p
         letter-spacing      .15px
-        color               #989898
+        color               $regularColor
 
       .GenericButton
         text-transform      uppercase
@@ -247,9 +247,12 @@ $regularColor               = #989898
       rounded               4px
       bg                    color, rgba(242,119,138,0.05)
 
+      &:not(.has-vertical)
+        height              auto
+
       .error-content
         padding             15px 15px 20px 15px
-        color               #5e5e5e
+        color               $regularColor
         font-size           13px
         line-height         16px
 
@@ -665,7 +668,7 @@ $regularColor               = #989898
         line-height         43px
         padding-top         50px
 
-      p
+      > p
         font-size           18px
         line-height         20px
         letter-spacing      .19px
@@ -721,7 +724,7 @@ $regularColor               = #989898
         text-align          left
         padding-top         0
 
-      p
+      > p
         text-align          left
         line-height         16px
         margin-bottom       27px
@@ -737,17 +740,27 @@ $regularColor               = #989898
   .start-machine-error-page
 
     section.main
-      height                350px
+      min-height            390px
+
+      h2
+        line-height         43px
+        padding-top         30px
+        margin-bottom       -10px
+
+      > p
+        margin-bottom       20px
 
       .error-container
-        max-height          180px
+        max-height          205px
         width               520px
 
-    footer
       .GenericButton
-        sta()
-        margin              29px auto 0 auto
-        display             block
+        margin              40px auto 90px auto
+
+      .background
+        abs()
+        bottom              0
+        r-sprite            'app', 'buildstack__art_fail'
 
 
   .stop-machine-progress-page
