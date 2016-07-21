@@ -1,0 +1,11 @@
+package: github.com/koding/terraform-provider-github
+import:
+- package: github.com/google/go-github
+  subpackages:
+  - /github
+- package: github.com/hashicorp/terraform
+  subpackages:
+  - /helper/schema
+  - plugin
+  - terraform
+- package: golang.org/x/oauth2

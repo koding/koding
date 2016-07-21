@@ -1,0 +1,201 @@
+#!/bin/bash
+
+# lxc: linux Container library
+
+# Authors:
+# Serge Hallyn <serge.hallyn@ubuntu.com>
+#
+# This is a test script for the lxc-user-nic program
+
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+# This test assumes an Ubuntu host
+
+DONE=0
+LXC_USER_NIC="@LIBEXECDIR@/lxc/lxc-user-nic"
+
+cleanup() {
+	(
+		set +e
+
+		lxc-stop -n usernic-c1 -k
+		lxc-destroy -n usernic-c1
+
+		sed -i '/usernic-user/d' /run/lxc/nics /etc/lxc/lxc-usernet
+		ifconfig usernic-br0 down
+		ifconfig usernic-br1 down
+		brctl delbr usernic-br0
+		brctl delbr usernic-br1
+
+		run_cmd "lxc-stop -n b1 -k"
+		pkill -u $(id -u usernic-user) -9
+
+		rm -rf /tmp/usernic-test /home/usernic-user /run/user/$(id -u usernic-user)
+
+		deluser usernic-user
+	) >/dev/null 2>&1
+
+	if [ "$DONE" = "1" ]; then
+		echo "PASS"
+		exit 0
+	fi
+
+	echo "FAIL"
+	exit 1
+}
+
+run_cmd() {
+	sudo -i -u usernic-user \
+	    env http_proxy=${http_proxy:-} https_proxy=${https_proxy:-} \
+	        XDG_RUNTIME_DIR=/run/user/$(id -u usernic-user) $*
+}
+
+ARCH=i386
+if type dpkg >/dev/null 2>&1; then
+	ARCH=$(dpkg --print-architecture)
+fi
+
+set -eu
+trap cleanup EXIT SIGHUP SIGINT SIGTERM
+
+# create a test user
+deluser usernic-user || true
+useradd usernic-user
+sudo mkdir -p /home/usernic-user
+sudo chown usernic-user: /home/usernic-user
+usermod -v 910000-919999 -w 910000-919999 usernic-user
+
+mkdir -p /home/usernic-user/.config/lxc/
+cat > /home/usernic-user/.config/lxc/default.conf << EOF
+lxc.network.type = empty
+lxc.id_map = u 0 910000 10000
+lxc.id_map = g 0 910000 10000
+EOF
+
+if which cgm >/dev/null 2>&1; then
+	cgm create all usernic-user
+	cgm chown all usernic-user $(id -u usernic-user) $(id -g usernic-user)
+	cgm movepid all usernic-user $$
+elif [ -e /sys/fs/cgroup/cgmanager/sock ]; then
+	for d in $(cut -d : -f 2 /proc/self/cgroup); do
+		dbus-send --print-reply --address=unix:path=/sys/fs/cgroup/cgmanager/sock \
+			--type=method_call /org/linuxcontainers/cgmanager org.linuxcontainers.cgmanager0_0.Create \
+			string:$d string:usernic-user >/dev/null
+
+		dbus-send --print-reply --address=unix:path=/sys/fs/cgroup/cgmanager/sock \
+			--type=method_call /org/linuxcontainers/cgmanager org.linuxcontainers.cgmanager0_0.Chown \
+			string:$d string:usernic-user int32:$(id -u usernic-user) int32:$(id -g usernic-user) >/dev/null
+
+		dbus-send --print-reply --address=unix:path=/sys/fs/cgroup/cgmanager/sock \
+			--type=method_call /org/linuxcontainers/cgmanager org.linuxcontainers.cgmanager0_0.MovePid \
+			string:$d string:usernic-user int32:$$ >/dev/null
+	done
+else
+	for d in /sys/fs/cgroup/*; do
+		[ -f $d/cgroup.clone_children ] && echo 1 > $d/cgroup.clone_children
+		[ ! -d $d/lxctest ] && mkdir $d/lxctest
+		chown -R usernic-user: $d/lxctest
+		echo $$ > $d/lxctest/tasks
+	done
+fi
+
+mkdir -p /run/user/$(id -u usernic-user)
+chown -R usernic-user: /run/user/$(id -u usernic-user) /home/usernic-user
+
+# Copy the download template cache if available
+run_cmd "mkdir -p /home/usernic-user/.cache/lxc"
+[ -d /var/cache/lxc/download ] && \
+    cp -R /var/cache/lxc/download /home/usernic-user/.cache/lxc && \
+    chown -R usernic-user: /home/usernic-user/.cache/lxc
+
+
+# Create two test bridges
+brctl addbr usernic-br0
+brctl addbr usernic-br1
+ifconfig usernic-br0 0.0.0.0 up
+ifconfig usernic-br1 0.0.0.0 up
+
+ARCH=i386
+if type dpkg >/dev/null 2>&1; then
+	ARCH=$(dpkg --print-architecture)
+fi
+
+# Create three containers
+run_cmd "lxc-create -t download -n b1 -- -d ubuntu -r trusty -a $ARCH"
+run_cmd "lxc-start -n b1 -d"
+p1=$(run_cmd "lxc-info -n b1 -p -H")
+
+lxcpath=/home/usernic-user/.local/share/lxc
+lxcname=b1
+
+# Assign one veth, should fail as no allowed entries yet
+if run_cmd "$LXC_USER_NIC $lxcpath $lxcname $p1 veth usernic-br0 xx1"; then
+	echo "FAIL: able to create nic with no entries"
+	exit 1
+fi
+
+# Give him a quota of two
+touch /etc/lxc/lxc-usernet
+sed -i '/^usernic-user/d' /etc/lxc/lxc-usernet
+echo "usernic-user veth usernic-br0 2" >> /etc/lxc/lxc-usernet
+
+# Assign one veth to second bridge, should fail
+if run_cmd "$LXC_USER_NIC $lxcpath $lxcname $p1 veth usernic-br1 xx1"; then
+	echo "FAIL: able to create nic with no entries"
+	exit 1
+fi
+
+# Assign two veths, should succeed
+if ! run_cmd "$LXC_USER_NIC $lxcpath $lxcname $p1 veth usernic-br0 xx2"; then
+	echo "FAIL: unable to create first nic"
+	exit 1
+fi
+
+if ! run_cmd "$LXC_USER_NIC $lxcpath $lxcname $p1 veth usernic-br0 xx3"; then
+	echo "FAIL: unable to create second nic"
+	exit 1
+fi
+
+# Assign one more veth, should fail.
+if run_cmd "$LXC_USER_NIC $lxcpath $lxcname $p1 veth usernic-br0 xx4"; then
+	echo "FAIL: able to create third nic"
+	exit 1
+fi
+
+# Shut down and restart the container, should be able to assign more nics
+run_cmd "lxc-stop -n b1 -k"
+run_cmd "lxc-start -n b1 -d"
+p1=$(run_cmd "lxc-info -n b1 -p -H")
+
+if ! run_cmd "$LXC_USER_NIC $lxcpath $lxcname $p1 veth usernic-br0 xx5"; then
+	echo "FAIL: unable to create nic after destroying the old"
+	cleanup 1
+fi
+
+run_cmd "lxc-stop -n b1 -k"
+
+# Create a root-owned ns
+lxc-create -t busybox -n usernic-c1
+lxc-start -n usernic-c1 -d
+p2=$(lxc-info -n usernic-c1 -p -H)
+
+# assign veth to it - should fail
+if run_cmd "$LXC_USER_NIC $lxcpath $lxcname $p2 veth usernic-br0 xx6"; then
+	echo "FAIL: able to attach nic to root-owned container"
+	cleanup 1
+fi
+
+echo "All tests passed"
+DONE=1
