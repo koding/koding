@@ -52,7 +52,9 @@ module.exports =
       (next) ->
         stackshelpers.editStackTemplates browser, (result) ->
           next null, result
-
+      (next) ->
+        stackshelpers.defineCustomVariables browser, (result) ->
+          next null, result   
       (next) ->
         stackshelpers.addRemoveFromSideBar browser, (res) ->
           next null, res

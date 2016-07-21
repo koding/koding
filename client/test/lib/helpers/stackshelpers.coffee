@@ -1,6 +1,7 @@
 helpers              = require '../helpers/helpers.js'
 teamsHelpers         = require '../helpers/teamshelpers.js'
 utils                = require '../utils/utils.js'
+staticContents       = require '../helpers/staticContents.js'
 stackEditorUrl       = "#{helpers.getUrl(yes)}/Home/stacks"
 stackSelector        = null
 sectionSelector      = '.kdview.kdtabpaneview.stacks'
@@ -38,6 +39,10 @@ sidebarVmSelector      = '.SidebarMachinesListItem--MainLink .SidebarListItem-ti
 proceedButton          = '[testpath=proceed]'
 draftStackTitle        = '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .HomeAppViewListItem.StackTemplateItem'
 privateStacksTitle     = '.HomeAppView--section.private-stacks .ListView-section.HomeAppViewStackSection .HomeAppViewListItem.StackTemplateItem'
+
+#Define Custom Variables
+errorIndicator             = '.kdtabhandle.custom-variables .indicator.red.in'
+customVariablesTabSelector = "#{stackEditorTab} div.kdtabhandle.custom-variables"
 
 
 module.exports =
@@ -92,7 +97,7 @@ module.exports =
               .getAttribute stackTemplateNameArea, 'placeholder', (result) ->
                 this.assert.equal result.value, 'NewStackName'
                 browser.pause 1000, done
-
+ 
 
   deleteCredentialInUse: (browser, done) ->
     browser
@@ -115,7 +120,6 @@ module.exports =
             browser.elementIdClick value.ELEMENT
             browser.pause 2000, ->
               browser.elements 'css selector', '.kdbutton.solid.compact.outline.red.secondary.delete', (buttons) ->
-                console.log(buttons)
                 buttonElement = buttons.value[index - 2].ELEMENT
                 browser.elementIdClick buttonElement
                 browser.pause 1000
@@ -191,6 +195,7 @@ module.exports =
         .refresh()
         .pause 3000, done
 
+  
   destroyPersonalStack: (browser, done) ->
     saveButtonSelector = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
     browser.refresh()
@@ -275,6 +280,60 @@ module.exports =
       .click '.HomeAppViewListItem-SecondaryContainer .HomeAppView--button'
       .assert.containsText '.HomeAppView--section .HomeAppView--button.primary', 'REMOVE FROM SIDEBAR'
       .pause 1000, done
+
+  defineCustomVariables: (browser, done) ->
+    wrongCustomVariable    = "foo: '"
+    correctCustomVariable  = "foo: 'bar'"
+
+    @gotoStackTemplate browser, =>
+      browser.waitForElementVisible stackTemplateNameArea, 2000
+      @switchTabOnStackCatalog browser, 'variables'
+      @setTextToEditor browser, 'variables', wrongCustomVariable
+      browser
+        .waitForElementVisible errorIndicator, 20000
+        .pause 2000 , =>
+          @setTextToEditor browser, 'variables', correctCustomVariable
+          browser.pause 1000, =>
+            browser.waitForElementNotPresent errorIndicator, 20000, =>
+              @switchTabOnStackCatalog browser, 'template'
+              @setTextToEditor browser, 'template', staticContents.stackTemplate
+              browser.pause 1000, done
+
+
+# possible values of tabName variable is 'stack', 'variables' or 'readme'
+  switchTabOnStackCatalog: (browser, tabName) ->
+    selector    =
+      template  : '.stack-template'
+      variables : '.custom-variables'
+      readme    : '.readme'
+
+    tabSelector = "#{stackEditorTab} div.kdtabhandle#{selector[tabName]}"
+    
+    browser
+      .waitForElementVisible stackEditorTab, 20000
+      .waitForElementVisible tabSelector, 20000
+      .click                 tabSelector
+
+
+  # possible values of tabName variable is 'template', 'variables' or 'readme'
+  setTextToEditor: (browser, tabName, text) ->
+    viewNames   =
+      template  : 'StackTemplateView'
+      variables : 'variablesView'
+      readme    : 'ReadmeView'
+
+    viewName = viewNames[tabName]
+    params   = [ viewName, text ]
+  
+    if tabName is 'template'
+      fn = (viewName, text) ->
+        _kd.singletons.appManager.appControllers.Stackeditor.instances.first
+        .selectedEditor.editorViews['stackTemplate'].editorView.setContent text
+    else
+      fn = (viewName, text) ->
+        _kd.singletons.appManager.appControllers.Stackeditor.instances.first
+        .selectedEditor.editorViews['variables'].editorView.setContent text
+    browser.execute fn, params
 
   getStackTitle: (browser, selector, callback) ->
     browser.getText selector, (res) ->
