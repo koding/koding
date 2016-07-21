@@ -95,7 +95,7 @@ import:
   - fuseops
   - fuseutil
 - package: github.com/jinzhu/gorm
-  version: 1ba5ce3bbce70623be21f3429e5c80648b05d96d
+  version: 29ac1920900ed00e18f838cba30d717b3dd8bc85
 - package: github.com/jinzhu/now
 - package: github.com/kennygrant/sanitize
   version: ^1.0.0
@@ -110,6 +110,7 @@ import:
   - helpers
   - services
 - package: github.com/koding/kite
+  version: eab5a1c457579262cc2cc9fa25f42420b60aecb1
   subpackages:
   - config
   - dnode
@@ -139,7 +140,7 @@ import:
   version: b7075cd5d74870710dfa5e3ebe8b4cb5c88a02fe
 - package: github.com/lann/squirrel
 - package: github.com/lib/pq
-  version: e13b3d914f10f00d683dc1d22e6713e87af1df99
+  version: c4afb3f5ae09066d9aaec61eebd9496f7a852082
 - package: github.com/mailgun/mailgun-go
 - package: github.com/maximilien/softlayer-go
   version: 0.4.0
@@ -228,7 +229,7 @@ import:
 - package: gopkg.in/yaml.v2
 - package: github.com/canthefason/go-watcher
 - package: github.com/mattes/migrate
-  version: 0741616d2ea92fb372f8d5469d9256f3c856ffc1
+  version: 9bb037339f0f7d2c7591ef148a5cbf78ff65d9b8
 - package: github.com/alecthomas/gocyclo
 - package: github.com/remyoudompheng/go-misc
   subpackages:
