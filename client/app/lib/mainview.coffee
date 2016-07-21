@@ -286,7 +286,7 @@ module.exports = class MainView extends kd.View
     doXhrRequest { endPoint, type }, (err, res) =>
 
       return  if err
-      return  if res.version is currentVersion
+      return  if String(res.version) is currentVersion
 
       kd.utils.wait 2000, =>
         @updateBanner = new BannerNotificationView
