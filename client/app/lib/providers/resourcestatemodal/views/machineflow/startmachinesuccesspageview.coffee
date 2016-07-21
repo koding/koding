@@ -22,11 +22,9 @@ module.exports = class StartMachineSuccessPageView extends JView
         </header>
         <section class="main">
           <div class="background"></div>
-          <h1>Success!</h1>
           <h2>Your VM is Booted</h2>
-        </section>
-        <footer>
+          <p>We are building your VM. Once we are finished you can get to coding.</p>
           {{> @closeButton}}
-        </footer>
+        </section>
       </div>
     '''
