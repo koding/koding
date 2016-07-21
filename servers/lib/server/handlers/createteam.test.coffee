@@ -596,6 +596,34 @@ runTests = -> describe 'server.handlers.createteam', ->
         done()
 
 
+  it 'should save given plan title to the config', (done) ->
+
+    options = { body: { plan: 'foo', slug: "slug#{generateRandomString 11}" } }
+
+    queue = [
+      (next) ->
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err).to.not.exist
+            expect(res.statusCode).to.be.equal 200
+            next()
+
+      (next) ->
+        setTimeout ->
+          JGroup.one { slug: options.body.slug }, (err, group) ->
+            console.log({err, group})
+            expect(err).to.not.exist
+            expect(group).to.exist
+            expect(group.config.plan).to.be.equal 'foo'
+            next()
+        , 1000
+    ]
+
+    async.series queue, (err) ->
+      expect(err).to.not.exist
+      done()
+
+
 beforeTests()
 
 runTests()
