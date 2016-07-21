@@ -259,13 +259,20 @@ $regularColor               = #989898
 
 
   /* progress bar */
-  section.main .progressbar-container
-    height                  20px
-    rounded                 4px
-    margin-top              40px
+  section.main
 
-    .bar
+    .progressbar-container
+      height                20px
       rounded               4px
+      margin-top            40px
+
+      .bar
+        rounded             4px
+
+    .status-text
+      ellipsis()
+      margin                0 auto
+      padding-top           7px
 
 
   /* Styles for specific pages */
@@ -535,11 +542,8 @@ $regularColor               = #989898
 
     .status-text
       borderBox()
-      ellipsis()
       height                70px
       width                 600px
-      margin                0 auto
-      padding-top           5px
 
     .logs-pane
       width                 720px
@@ -643,14 +647,12 @@ $regularColor               = #989898
       h2
         color               #358bb0
         font-size           22px
-        font-weight         300
         letter-spacing      .22px
         line-height         43px
         padding-top         50px
 
       p
         font-size           18px
-        font-weight         300
         line-height         20px
         letter-spacing      .19px
         margin-bottom       44px
@@ -677,26 +679,25 @@ $regularColor               = #989898
   .start-machine-progress-page
 
     section.main
+      height                460px
 
       h2
-        color               #777777
-        font-size           24px
-        font-weight         300
+        color               #515151
+        font-size           20px
         letter-spacing      .2px
         line-height         43px
-        padding-top         15px
+        padding-top         30px
+        margin-bottom       -10px
 
       .progressbar-container
-        border              1px solid #ccc
-        width               80%
+        width               500px
 
         .bar
-          bg                color, #57a2d2
+          bg                color, #67a2ee
 
       .background
         abs()
-        bottom              -140px
-        left                -100px
+        bottom              0
         r-sprite            'app', 'buildstack__art_building'
 
 
