@@ -5,6 +5,7 @@ sectionize = require '../commons/sectionize'
 HomeAccountEditProfile = require './homeaccounteditprofile'
 HomeAccountChangePassword = require './homeaccountchangepassword'
 HomeAccountSecurityView = require './homeaccountsecurityview'
+HomeAccountIntegrationsView = require './homeaccountintegrationsview'
 HomeAccountSessionsView = require './homeaccountsessionsview'
 
 
@@ -24,6 +25,9 @@ module.exports = class HomeAccount extends kd.CustomScrollView
 
     @wrapper.addSubView headerize 'Security'
     @wrapper.addSubView sectionize 'Security', HomeAccountSecurityView
+
+    @wrapper.addSubView headerize 'Integrations'
+    @wrapper.addSubView sectionize 'Integrations', HomeAccountIntegrationsView
 
     @wrapper.addSubView headerize 'Sessions'
     @wrapper.addSubView sectionize 'Sessions', HomeAccountSessionsView
