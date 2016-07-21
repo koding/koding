@@ -1,0 +1,169 @@
+#!/bin/bash
+
+# lxc: linux Container library
+
+# Authors:
+# Serge Hallyn <serge.hallyn@ubuntu.com>
+#
+# This is a test script for unprivileged containers
+
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+# This test assumes an Ubuntu host
+
+if [ $(id -u) -ne 0 ]; then
+	echo "ERROR: Must run as root."
+	exit 1
+fi
+which newuidmap >/dev/null 2>&1 || { echo "'newuidmap' command is missing" >&2; exit 1; }
+
+DONE=0
+cleanup() {
+	cd /
+
+	run_cmd lxc-stop -n c2 -k || true
+	run_cmd lxc-stop -n c1 -k || true
+	pkill -u $(id -u $TUSER) -9
+
+	sed -i '/lxcunpriv/d' /run/lxc/nics /etc/lxc/lxc-usernet
+	sed -i '/^lxcunpriv:/d' /etc/subuid /etc/subgid
+
+	rm -Rf $HDIR /run/user/$(id -u $TUSER)
+
+	deluser $TUSER
+
+	if [ $DONE -eq 0 ]; then
+		echo "FAIL"
+		exit 1
+	fi
+	echo "PASS"
+}
+
+run_cmd() {
+	sudo -i -u $TUSER \
+	    env http_proxy=${http_proxy:-} https_proxy=${https_proxy:-} \
+	        XDG_RUNTIME_DIR=/run/user/$(id -u $TUSER) $*
+}
+
+# create a test user
+TUSER=lxcunpriv
+HDIR=/home/$TUSER
+
+ARCH=i386
+if type dpkg >/dev/null 2>&1; then
+	ARCH=$(dpkg --print-architecture)
+fi
+
+trap cleanup EXIT SIGHUP SIGINT SIGTERM
+set -eu
+
+deluser $TUSER && rm -Rf $HDIR || true
+useradd $TUSER
+
+mkdir -p $HDIR
+echo "$TUSER veth lxcbr0 2" >> /etc/lxc/lxc-usernet
+sed -i '/^lxcunpriv:/d' /etc/subuid /etc/subgid
+
+usermod -v 910000-919999 -w 910000-919999 $TUSER
+
+mkdir -p $HDIR/.config/lxc/
+cat > $HDIR/.config/lxc/default.conf << EOF
+lxc.network.type = veth
+lxc.network.link = lxcbr0
+lxc.id_map = u 0 910000 9999
+lxc.id_map = g 0 910000 9999
+EOF
+chown -R $TUSER: $HDIR
+
+mkdir -p /run/user/$(id -u $TUSER)
+chown -R $TUSER: /run/user/$(id -u $TUSER)
+
+cd $HDIR
+
+if which cgm >/dev/null 2>&1; then
+	cgm create all $TUSER
+	cgm chown all $TUSER $(id -u $TUSER) $(id -g $TUSER)
+	cgm movepid all $TUSER $$
+elif [ -e /sys/fs/cgroup/cgmanager/sock ]; then
+	for d in $(cut -d : -f 2 /proc/self/cgroup); do
+		dbus-send --print-reply --address=unix:path=/sys/fs/cgroup/cgmanager/sock \
+			--type=method_call /org/linuxcontainers/cgmanager org.linuxcontainers.cgmanager0_0.Create \
+			string:$d string:$TUSER >/dev/null
+
+		dbus-send --print-reply --address=unix:path=/sys/fs/cgroup/cgmanager/sock \
+			--type=method_call /org/linuxcontainers/cgmanager org.linuxcontainers.cgmanager0_0.Chown \
+			string:$d string:$TUSER int32:$(id -u $TUSER) int32:$(id -g $TUSER) >/dev/null
+
+		dbus-send --print-reply --address=unix:path=/sys/fs/cgroup/cgmanager/sock \
+			--type=method_call /org/linuxcontainers/cgmanager org.linuxcontainers.cgmanager0_0.MovePid \
+			string:$d string:$TUSER int32:$$ >/dev/null
+	done
+else
+	for d in /sys/fs/cgroup/*; do
+		[ -f $d/cgroup.clone_children ] && echo 1 > $d/cgroup.clone_children
+		[ ! -d $d/lxctest ] && mkdir $d/lxctest
+		chown -R $TUSER: $d/lxctest
+		echo $$ > $d/lxctest/tasks
+	done
+fi
+
+# Copy the download template cache if available
+run_cmd mkdir -p $HDIR/.cache/lxc
+[ -d /var/cache/lxc/download ] && \
+    cp -R /var/cache/lxc/download $HDIR/.cache/lxc && \
+    chown -R $TUSER: $HDIR/.cache/lxc
+
+run_cmd lxc-create -t download -n c1 -- -d ubuntu -r trusty -a $ARCH
+
+# Make sure we can start it - twice
+
+for count in `seq 1 2`; do
+    run_cmd lxc-start -n c1 -d
+
+    p1=$(run_cmd lxc-info -n c1 -p -H)
+    [ "$p1" != "-1" ] || { echo "Failed to start container c1 (run $count)"; false; }
+
+    run_cmd lxc-info -n c1
+    run_cmd lxc-attach -n c1 -- /bin/true
+
+    run_cmd lxc-stop -n c1
+done
+
+run_cmd lxc-copy -s -n c1 -N c2
+run_cmd lxc-start -n c2 -d
+p1=$(run_cmd lxc-info -n c2 -p -H)
+[ "$p1" != "-1" ] || { echo "Failed to start container c2"; false; }
+
+run_cmd lxc-stop -n c2
+
+if which cgm >/dev/null 2>&1; then
+    echo "Testing containers under different cgroups per subsystem"
+    run_cmd cgm create freezer x1/x2
+    cgm movepid freezer x1 $$
+    run_cmd lxc-start -n c1 -d
+    p1=$(run_cmd lxc-info -n c1 -p -H)
+    [ "$p1" != "-1" ] || { echo "Failed to start container c1"; false; }
+    run_cmd lxc-info -n c1
+    run_cmd lxc-attach -n c1 -- /bin/true
+    run_cmd lxc-cgroup -n c1 freezer.state
+
+    echo "Testing lxc-attach and lxc-cgroup from different cgroup"
+    cgm movepid freezer x2 $$
+    run_cmd lxc-attach -n c1 -- /bin/true
+    run_cmd lxc-cgroup -n c1 freezer.state
+    run_cmd lxc-cgroup -n c1 memory.limit_in_bytes
+fi
+
+DONE=1

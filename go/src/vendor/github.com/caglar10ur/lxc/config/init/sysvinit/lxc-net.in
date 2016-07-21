@@ -1,0 +1,61 @@
+#!/bin/sh -
+#
+# lxc-net Start/Stop LXC Networking
+#
+# chkconfig: 345 98 01
+# description: Starts/Stops LXC Network Bridge
+#
+### BEGIN INIT INFO
+# Provides: lxc-net
+# Required-Start: $syslog $remote_fs
+# Required-Stop: $syslog $remote_fs
+# Should-Start:
+# Should-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop: 1
+# Short-Description: Bring up/down LXC Network Bridge
+# Description: Bring up/down LXC Network Bridge
+### END INIT INFO
+
+# To be replaced by LSB functions, if they can be found
+# Defined here for distributions that don't have log_daemon_msg
+log_daemon_msg () {
+    echo $@
+}
+
+# Try to source LSB init functions to define LSB log_* functions.
+test ! -r /lib/lsb/init-functions ||
+        . /lib/lsb/init-functions
+
+start() {
+    log_daemon_msg "Starting LXC network bridge: "
+    @LIBEXECDIR@/lxc/lxc-net start
+}
+
+stop() {
+    log_daemon_msg "Stopping LXC network bridge: "
+    @LIBEXECDIR@/lxc/lxc-net stop
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+    ;;
+
+    stop)
+        stop
+    ;;
+
+    restart|reload|force-reload)
+        $0 stop
+        $0 start
+    ;;
+
+    *)
+        echo "Usage: $0 {start|stop|restart|reload|force-reload}"
+        exit 2
+    ;;
+esac
+
+exit $?

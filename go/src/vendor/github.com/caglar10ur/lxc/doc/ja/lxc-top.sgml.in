@@ -1,0 +1,203 @@
+<!--
+
+Copyright © 2012 Oracle.
+
+Authors:
+Dwight Engen <dwight.engen@oracle.com>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+-->
+
+<!DOCTYPE refentry PUBLIC @docdtd@ [
+
+<!ENTITY seealso SYSTEM "@builddir@/see_also.sgml">
+]>
+
+<refentry>
+
+  <docinfo><date>@LXC_GENERATE_DATE@</date></docinfo>
+
+  <refmeta>
+    <refentrytitle>lxc-top</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>lxc-top</refname>
+
+    <refpurpose>
+      <!--
+      monitor container statistics
+      -->
+      コンテナの統計情報の表示
+    </refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>lxc-top</command>
+      <arg choice="opt">--help</arg>
+      <arg choice="opt">--delay <replaceable>delay</replaceable></arg>
+      <arg choice="opt">--sort <replaceable>sortby</replaceable></arg>
+      <arg choice="opt">--reverse</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title><!-- Description -->説明</title>
+    <para>
+      <!--
+      <command>lxc-top</command> displays container statistics. The output
+      is updated every <replaceable>delay</replaceable> seconds, and is
+      ordered according to the <replaceable>sortby</replaceable> value
+      given. <command>lxc-top</command> will display as many containers as
+      can fit in your terminal. Press 'q' to quit. Press one of the sort
+      key letters to sort by that statistic. Pressing a sort key letter a
+      second time reverses the sort order.
+      -->
+      <command>lxc-top</command> はコンテナの統計情報を表示します。出力は <replaceable>delay</replaceable> 秒ごとに更新されます。
+      そして、<replaceable>sortby</replaceable> の指定に従ってソートされます。<command>lxc-top</command> は使用しているターミナルに収まるようにできるだけ多くの数のコンテナを表示します。'q' を入力すると終了します。ソートのキーとなる文字を入力するとその統計値でソートします。ソートのキーとなる文字を 2 度入力するとソート順が逆になります。
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title><!-- Options -->オプション</title>
+    <variablelist>
+
+      <varlistentry>
+        <term>
+          <option>-d, --delay <replaceable>delay</replaceable></option>
+        </term>
+        <listitem>
+          <para>
+            <!--
+            Amount of time in seconds to delay between screen updates.
+            The default is 3 seconds.
+            -->
+            表示を更新する間隔を秒で指定します。デフォルトは 3 秒です。
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>-s, --sort <replaceable>sortby</replaceable></option>
+        </term>
+        <listitem>
+          <para>
+            <!--
+            Sort the containers by name, cpu use, or memory use. The
+            <replaceable>sortby</replaceable> argument should be one of
+            the letters n,c,b,m,k to sort by name, cpu use, block I/O, memory,
+            or kernel memory use respectively. The default is 'n'.
+            -->
+            名前、CPU 使用量、メモリ使用量でコンテナをソートします。<replaceable>sortby</replaceable> で指定する引数は n,c,b,m,k のどれかでなければなりません。
+            これはそれぞれ名前、CPU 使用量、ブロック I/O、メモリ使用量、カーネルメモリ使用量を表します。デフォルトは 'n' です。
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>-r, --reverse</option>
+        </term>
+        <listitem>
+          <para>
+            <!--
+            Reverse the default sort order. By default, names sort in
+            ascending alphabetical order and values sort in descending
+            amounts (ie. largest value first).
+            -->
+            デフォルトのソート順を逆転させます。デフォルトでは、名前のソートはアルファベットの昇順、値のソートは量の降順 (最も大きい数が最初) です。
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title><!-- Example -->例</title>
+    <variablelist>
+      <varlistentry>
+        <term>lxc-top --delay 1 --sort m</term>
+        <listitem>
+        <para>
+          <!--
+          Display containers, updating every second, sorted by memory use.
+          -->
+          コンテナを 1 秒ごとに更新し、メモリ使用量でソートして表示します。
+        </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title><!-- Notes -->注意</title>
+    <para>
+      <!--
+      For performance reasons the kernel does not account kernel memory use
+      unless a kernel memory limit is set. If a limit is not set, <command>
+      lxc-top</command> will display kernel memory use as 0. If no containers
+      are being accounted, the KMem column will not be displayed. A limit can
+      be set by specifying
+      <programlisting>
+      lxc.cgroup.memory.kmem.limit_in_bytes = <replaceable>number</replaceable>
+      </programlisting>
+      in your container configuration file, see
+      <citerefentry>
+        <refentrytitle>lxc.conf</refentrytitle>
+        <manvolnum>5</manvolnum>
+      </citerefentry>.
+      -->
+      パフォーマンスへの影響を考慮して、カーネルメモリの使用量は、カーネルメモリの制限値が設定されない限りはカウントされません。
+      もし、制限が設定されていない場合、<command>lxc-top</command> はカーネルメモリの使用量を 0 と表示します。
+      もし、カウントされているコンテナが存在しない場合、KMem カラムは表示されません。制限は
+      <programlisting>
+      lxc.cgroup.memory.kmem.limit_in_bytes = <replaceable>number</replaceable>
+      </programlisting>
+      のように、コンテナの設定ファイルで指定することができます。詳しくは、
+      <citerefentry>
+        <refentrytitle>lxc.conf</refentrytitle>
+        <manvolnum>5</manvolnum>
+      </citerefentry>
+      を参照してください。
+    </para>
+  </refsect1>
+
+  &seealso;
+
+  <refsect1>
+    <title><!-- Author -->作者</title>
+    <para>Dwight Engen <email>dwight.engen@oracle.com</email></para>
+  </refsect1>
+
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

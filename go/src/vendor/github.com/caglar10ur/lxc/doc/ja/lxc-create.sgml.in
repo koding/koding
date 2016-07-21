@@ -1,0 +1,302 @@
+<!--
+
+lxc: linux Container library
+
+(C) Copyright IBM Corp. 2007, 2008
+
+Authors:
+Daniel Lezcano <daniel.lezcano at free.fr>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+Translated into Japanese
+by KATOH Yasufumi <karma at jazz.email.ne.jp>
+
+-->
+
+<!DOCTYPE refentry PUBLIC @docdtd@ [
+
+<!ENTITY commonoptions SYSTEM "@builddir@/common_options.sgml">
+<!ENTITY seealso SYSTEM "@builddir@/see_also.sgml">
+]>
+
+<refentry>
+
+  <docinfo><date>@LXC_GENERATE_DATE@</date></docinfo>
+
+  <refmeta>
+    <refentrytitle>lxc-create</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>lxc-create</refname>
+
+    <refpurpose>
+      <!--
+      creates a container
+      -->
+      コンテナの作成
+    </refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>lxc-create</command>
+      <arg choice="req">-n <replaceable>name</replaceable></arg>
+      <arg choice="opt">-f <replaceable>config_file</replaceable></arg>
+      <arg choice="req">-t <replaceable>template</replaceable></arg>
+      <arg choice="opt">-B <replaceable>backingstore</replaceable></arg>
+      <arg choice="opt">-- <replaceable>template-options</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title><!-- Description -->説明</title>
+
+    <para>
+      <!--
+      <command>lxc-create</command> creates a system object where is
+      stored the configuration information and where can be stored
+      user information. The identifier <replaceable>name</replaceable>
+      is used to specify the container to be used with the different
+      lxc commands.
+      -->
+      <command>lxc-create</command> は、設定情報とユーザ情報が保存されているシステムオブジェクトを作成します。
+      <replaceable>name</replaceable> で指定された名前が、他の lxc コマンドで、コンテナを特定する名前として使われます。
+    </para>
+    <para>
+      <!--
+      The object is a directory created in <filename>@LXCPATH@</filename>
+      and identified by its name.
+      -->
+      オブジェクトは <filename>@LXCPATH@</filename> 内に作られる、自身の名前がついたディレクトリです。
+    </para>
+
+    <para>
+      <!--
+      The object is the definition of the different resources an
+      application can use or can see. The more the configuration file
+      contains information, the more the container is isolated and
+      the more the application is jailed.
+      -->
+      オブジェクトは、アプリケーションが使用したり、参照したりする様々なリソースの定義です。
+      設定ファイルがより多くの情報を持つほど、コンテナやアプリケーションはより隔離されたものになります。
+    </para>
+
+    <para>
+      <!--
+      If the configuration file <replaceable>config_file</replaceable>
+      is not specified, the container will be created with the default
+      isolation: processes, sysv ipc and mount points.
+      -->
+      設定ファイルが <replaceable>config_file</replaceable> で指定されない場合、コンテナはデフォルトの隔離状態で作られます: プロセス、sysv ipc、マウントポイントです。
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title><!-- Options -->オプション</title>
+    <variablelist>
+
+      <varlistentry>
+	<term>
+	  <option>-f, --config <replaceable>config_file</replaceable></option>
+	</term>
+	<listitem>
+	  <para>
+            <!--
+	    Specify the configuration file to configure the virtualization
+	    and isolation functionalities for the container.
+            -->
+            コンテナの仮想化と隔離機能を設定するための設定ファイルを指定します。
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+	  <option>-t, --template <replaceable>template</replaceable></option>
+	</term>
+	<listitem>
+	  <para>
+	    <!--
+            'template' is the short name of an existing 'lxc-template'
+	    script that is called by lxc-create,
+	    eg. busybox, debian, fedora, ubuntu or sshd.
+	    Refer to the examples in <filename>@LXCTEMPLATEDIR@</filename>
+	    for details of the expected script structure.
+	    Alternatively, the full path to an executable template script
+	    can also be passed as a parameter.
+	    "none" can be used to force lxc-create to skip rootfs creation.
+            -->
+            <replaceable>template</replaceable> は lxc-create コマンドが呼び出す、存在する 'lxc-template' スクリプトの短い名前です。
+            例えば、busybox, debian, fedora, ubuntu, sshd があります。
+            期待されるスクリプトの構造の詳細は、<filename>@LXCTEMPLATEDIR@</filename> 内の例を参照してください。
+            加えて、実行可能なテンプレートスクリプトへのフルパスも指定することが可能です。rootfs の作成を行わないように "none" を指定することも可能です。
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+	  <option>-B, --bdev <replaceable>backingstore</replaceable></option>
+	</term>
+	<listitem>
+          <para>
+            <!--
+	    'backingstore' is one of 'dir', 'lvm', 'loop', 'btrfs', 'zfs', 'rbd', or 'best'.  The
+	    default is 'dir', meaning that the container root filesystem
+	    will be a directory under <filename>@LXCPATH@/container/rootfs</filename>.
+	    This backing store type allows the optional
+	    <replaceable>&#045;&#045;dir ROOTFS</replaceable> to be specified, meaning
+	    that the container rootfs should be placed under the specified path,
+	    rather than the default.  (The 'none' backingstore type is an alias for
+	    'dir'.)  If 'btrfs' is specified, then the
+	    target filesystem must be btrfs, and the container rootfs will be
+	    created as a new subvolume.  This allows snapshotted clones to be
+	    created, but also causes rsync &#045;&#045;one-filesystem to treat it as a
+	    separate filesystem.
+	    If backingstore is 'lvm', then an lvm block device will be
+	    used and the following further options are available:
+            <replaceable>&#045;&#045;lvname lvname1</replaceable> will create an LV
+	    named <filename>lvname1</filename> rather than the default, which
+	    is the container name.  <replaceable>&#045;&#045;vgname vgname1</replaceable>
+	    will create the LV in volume group <filename>vgname1</filename>
+	    rather than the default, <filename>lxc</filename>.
+	    <replaceable>&#045;&#045;thinpool thinpool1</replaceable> will create the
+	    LV as a thin-provisioned volume in the pool named
+	    <filename>thinpool1</filename> rather than the
+	    default, <filename>lxc</filename>.
+	    <replaceable>&#045;&#045;fstype FSTYPE</replaceable> will create an FSTYPE
+	    filesystem on the LV, rather than the default, which is ext4.
+	    <replaceable>&#045;&#045;fssize SIZE</replaceable> will create a LV (and
+	    filesystem) of size SIZE rather than the default, which is 1G.
+            -->
+            'backingstore' には 'dir', 'lvm', 'loop', 'btrfs', 'zfs', 'rbd', 'best' のいずれかを指定します。
+            デフォルトは 'dir' で、コンテナのルートファイルシステムが <filename>@LXCPATH@/container/rootfs</filename> 以下のディレクトリであることを意味します。
+            'dir' にはオプションとして <replaceable>--dir ROOTFS</replaceable> を指定することも可能です。
+            このオプションは、デフォルトの代わりに特定のパス以下にコンテナの rootfs を置くということになります。
+            ('none' は 'dir' のエイリアスです。)
+            'btrfs' が指定された場合、ターゲットのファイルシステムは btrfs でなければいけません。
+            そして、コンテナの rootfs は新しい subvolume として作製されます。
+            このことにより、スナップショットによるクローンが作製可能になりますが、結果として rsync --one-filesystem が、別々のファイルシステムとして取り扱ってしまうことにもなります。
+            backingstore が 'lvm' である場合、lvm ブロックデバイスを使用します。
+            この時、以下のオプションが有効になります: <replaceable>--lvname lvname1</replaceable> はデフォルト値のコンテナ名の LV の代わりに <filename>lvname1</filename> という名前の LV を作成します。
+            <replaceable>--vgname vgname1</replaceable> は、デフォルト値である <filename>lxc</filename> という volume group の代わりに <filename>vgname1</filename> という名前の volume group 内に LV を作成します。
+            <replaceable>--thinpool thinpool1</replaceable> は、デフォルトである <filename>lxc</filename> のという名前のプールの代わりに <filename>thinpool1</filename> という名前のプール内にシンプロビジョニングされたボリュームとして LV を作成します。
+            <replaceable>--fstype FSTYPE</replaceable> は LV 上のファイルシステムをデフォルト値である ext4 の代わりに FSTYPE で指定したもので作成します。
+            <replaceable>--fssize SIZE</replaceable> はデフォルト値である 1G の代わりに SIZE で指定したサイズで LV を作成します。
+	  </para>
+	  <para>
+	    <!--
+	    If backingstore is 'loop', you can use <replaceable>&#045;&#045;fstype FSTYPE</replaceable> and <replaceable>&#045;&#045;fssize SIZE</replaceable> as 'lvm'. The default values for these options are the same as 'lvm'.
+	    -->
+	    backingstore が 'loop' の場合、'lvm' と同様に <replaceable>--fstype FSTYPE</replaceable> と <replaceable>--fssize SIZE</replaceable> が使えます。これらの値のデフォルト値は 'lvm' の場合と同じです。
+	  </para>
+	  <para>
+		 <!--
+		 If backingstore is 'rbd', then you will need to have a valid configuration in <filename>ceph.conf</filename> and a <filename>ceph.client.admin.keyring</filename> defined.
+		 You can specify the following options :
+		 <replaceable>&#045;&#045;rbdname RBDNAME</replaceable> will create a blockdevice named RBDNAME rather than the default, which is the container name.
+		 <replaceable>&#045;&#045;rbdpool POOL</replaceable> will create the blockdevice in the pool named POOL, rather than the default, which is 'lxc'.
+		 -->
+		 backingstore が 'rbd' の場合、<filename>ceph.conf</filename> に有効な設定がされており、<filename>ceph.client.admin.keyring</filename> が定義されている必要があります。
+		 <replaceable>--rbdname RBDNAME</replaceable> を指定すると、RBDNAME という名前のブロックデバイスを作成します。このオプションを指定しない場合のデフォルトのブロックデバイス名はコンテナ名です。
+		 <replaceable>--rbdpool POOL</replaceable> を指定すると、POOL という名前のプール内にブロックデバイスを作成します。このオプションを指定しない場合のデフォルトのプール名は 'lxc' です。
+	  </para>
+	  <para>
+            <!--
+	    If backingstore is 'best', then lxc will try, in order, btrfs,
+	    zfs, lvm, and finally a directory backing store.
+            -->
+            backingstore が 'best' の時、lxc は btrfs, zfs, lvm, dir の順に試行します。
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+	  <option>-- <replaceable>template-options</replaceable></option>
+	</term>
+	<listitem>
+	  <para>
+            <!--
+	    This will pass <replaceable>template-options</replaceable> to the
+	    template as arguments.  To see the list of options supported by
+	    the template, you can run
+	    <command>lxc-create -t TEMPLATE -h</command>.
+            -->
+            これは <replaceable>template-options</replaceable> で指定したものをオプションとしてテンプレートへ渡します。
+            テンプレートでサポートされているオプションを調べるには、<command>lxc-create -t TEMPLATE -h</command> というコマンドが使えます。
+	  </para>
+	</listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
+  &commonoptions;
+
+  <refsect1>
+    <title><!-- Diagnostic -->診断</title>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>The container already exists</term>
+        <listitem>
+          <para>
+            <!--
+	    As the message mention it, you try to create a container
+	    but there is a container with the same name. You can use
+	    the <command>lxc-ls</command> command to list the
+	    available containers on the system.
+            -->
+            メッセージの通り、コンテナを作成しようとしたけれども、同じ名前のコンテナが存在しています。
+            <command>lxc-ls</command> コマンドを使って、システム上に存在する利用可能なコンテナのリストが表示できます。
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
+  &seealso;
+
+  <refsect1>
+    <title><!-- Author -->作者</title>
+    <para>Daniel Lezcano <email>daniel.lezcano@free.fr</email></para>
+  </refsect1>
+
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->
