@@ -1,4 +1,5 @@
 $warningColor               = #f2778a
+$regularColor               = #989898
 
 /* General page structure and common styles */
 .resource-state-modal.kdmodal
@@ -69,17 +70,19 @@ $warningColor               = #f2778a
   .start-machine-flow
 
     header
-      height                70px
+      height                50px
 
       h1
-        font-size           25px
-        line-height         34px
-        padding-top         16px
+        font-size           17px
+        line-height         20px
+        padding-top         14px
+        color               $regularColor
 
     section.main
       width                 600px
-      height                360px
+      height                390px
       rounded               6px
+      color                 $regularColor
 
 
   .stop-machine-flow
@@ -289,6 +292,7 @@ $warningColor               = #f2778a
 
       .GenericButton.secondary
         abs                 105px, 50px
+
 
   .stack-template-page
 
@@ -637,36 +641,36 @@ $warningColor               = #f2778a
     section.main
 
       h2
-        color               #57a2d2
-        font-size           32px
-        font-weight         300
-        letter-spacing      .3px
-        line-height         43px
-        padding-top         39px
-
-      p
+        color               #358bb0
         font-size           22px
         font-weight         300
-        line-height         30px
-        margin-top          33px
+        letter-spacing      .22px
+        line-height         43px
+        padding-top         50px
+
+      p
+        font-size           18px
+        font-weight         300
+        line-height         20px
+        letter-spacing      .19px
         margin-bottom       44px
 
       .GenericButton
-        margin-left         -113px
-        height              65px
-        width               226px
-        left                50%
+        height              42px
+        width               160px
         borderBox()
+        display             block
+        margin              0 auto
 
         span.button-title
-          font-size         21.6px
-          line-height       30px
+          font-size         16px
+          line-height       18px
+          text-transform    uppercase
 
       .background
         abs()
-        bottom              -30px
         r-sprite            'app', 'buildstack__art_boot'
-        left                -90px
+        bottom              0
 
 
 
