@@ -13,9 +13,11 @@ $regularColor               = #989898
     header
       height                70px
       line-height           70px
+      border-bottom         1px solid #e4e4e4
 
       h1
         font-size           20px
+        color               $regularColor
 
     footer
       height                70px
@@ -42,9 +44,11 @@ $regularColor               = #989898
         letter-spacing      .21px
         line-height         20px
 
-      p
+      > p
         letter-spacing      .15px
         color               $regularColor
+        margin-top          0
+        margin-bottom       18px
 
       .GenericButton
         text-transform      uppercase
@@ -72,6 +76,7 @@ $regularColor               = #989898
 
     header
       height                50px
+      border-bottom         1px solid #e4e4e4
 
       h1
         font-size           17px
@@ -201,10 +206,14 @@ $regularColor               = #989898
         color               $warningColor
         font-size           22px
         letter-spacing      .22px
+        line-height         43px
+        margin-bottom       -10px
 
       > p
         margin-top          5px
         line-height         16px
+        height              50px
+        margin-bottom       0
 
     .wizard-progress-pane
 
@@ -592,7 +601,7 @@ $regularColor               = #989898
         font-weight         300
         letter-spacing      .21px
         line-height         16px
-        color               #989898
+        color               $regularColor
         text-align          left
         padding-top         5px
         padding-bottom      45px
@@ -728,14 +737,6 @@ $regularColor               = #989898
     section.main
       min-height            390px
 
-      h2
-        line-height         43px
-        padding-top         30px
-        margin-bottom       -10px
-
-      > p
-        margin-bottom       20px
-
       .error-container
         max-height          205px
         width               520px
@@ -772,14 +773,6 @@ $regularColor               = #989898
 
     section.main
       min-height            390px
-
-      h2
-        line-height         43px
-        padding-top         30px
-        margin-bottom       -10px
-
-      > p
-        margin-bottom       20px
 
       .error-container
         max-height          205px
