@@ -31,9 +31,22 @@ Home My Account styles
 
       .firstname
       .lastname
-      .email
-        width               100%
         padding-right       10px
+        width               50%
+
+      .lastname
+        padding-left        0px
+
+      .email
+      .username
+        width               100%
+
+      .username
+        &:before
+          content           ''
+          r-sprite          home lock
+          abs               40px 25px 0 0
+          opacity           .5
 
       input.kdinput
         padding             10px 14px
@@ -60,7 +73,8 @@ Home My Account styles
         &.HomeAppView--link.primary
           margin            185px 40px 20px 0
 
-
+      .HomeAppView--account-avatar-spinner
+        abs                 60px 0 0 37px
       .HomeAppView--account-avatar
         top                 55px
         left                30px
@@ -303,14 +317,11 @@ Home My Account styles
         display             inline-block
         vertical-align      top
 
-
-
-
     .delete-button
       fr()
 
       button
-        margin-top          10px
+        margin-top          20px
         bg                  color, transparent
 
       .button-title
@@ -329,8 +340,8 @@ Home My Account styles
 
   .HomeAppView--account-avatarArea-links-upload
     size                    112px 26px !important
-    margin-top              -7px
-    right                   20px
+    left                    42px
+    top                     204px
     z-index                 2
     opacity                 0
     abs()
