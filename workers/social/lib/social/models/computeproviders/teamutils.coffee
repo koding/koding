@@ -32,16 +32,15 @@ shareCredentials = (options, callback) ->
 # Returns plan data
 # If plan is not found, it fallbacks to default
 # If there are plan overrides, they override plan properties
-getPlanData = (planConfig) ->
+getPlanData = (planConfig, callback) ->
 
   { plan, overrides } = planConfig
 
-  if plan not in Object.keys TEAMPLANS
-    _.clone TEAMPLANS['default']
-  else
-    overrides ?= {}
-    _.extend {}, TEAMPLANS[plan], overrides
+  if plan in Object.keys TEAMPLANS
+    result = _.extend {}, TEAMPLANS[plan], (overrides || {})
+    return callback null, result
 
+  callback null, TEAMPLANS['default']
 
 # Takes plan config as reference and generates valid konstraint
 # rules based on the TEAMPLANS data ~ GG
