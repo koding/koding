@@ -48,9 +48,17 @@ module.exports = class TeamName extends kd.CustomHTMLView
       cssClass : 'HomeAppView-Nav--avatar-wrapper'
       click : -> kd.singletons.router.handleRoute '/Home/My-Account'
 
+    { profile } = account
+
+    pistachio = if profile.firstName is '' and profile.lastName is ''
+    then '{{#(profile.nickname)}}'
+    else "{{#(profile.firstName)+' '+#(profile.lastName)}}"
+
+    console.log {pistachio}
+
     profileName = new JCustomHTMLView
       cssClass   : 'HomeAppView-Nav--fullname'
-      pistachio  : '{{ #(profile.firstName)}} {{ #(profile.lastName)}}'
+      pistachio  : pistachio
     , account
 
     roles =  globals.userRoles
