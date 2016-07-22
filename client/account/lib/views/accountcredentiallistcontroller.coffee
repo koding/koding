@@ -277,11 +277,11 @@ module.exports = class AccountCredentialListController extends KodingListControl
           <p>Need some help? <a href='https://koding.com/docs/creating-an-aws-stack'>Follow our guide</a>
           '''
 
-    { ui }    = kd.singletons.computeController
+    { computeController } = kd.singletons
 
     noCredFound = not listView.items.length
 
-    view.form = ui.generateAddCredentialFormFor options, noCredFound
+    view.form = computeController.ui.generateAddCredentialFormFor options, noCredFound
     view.form.setClass 'credentials-form-view'
 
     view.form.on 'Cancel', =>
@@ -301,6 +301,8 @@ module.exports = class AccountCredentialListController extends KodingListControl
       then @addItem(credential).verifyCredential()
       else
         @addItem credential
+
+      computeController.emit 'CredentialAdded'
 
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
