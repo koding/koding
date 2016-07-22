@@ -12,6 +12,8 @@ module.exports =
     require './stores/teamdisabledmembersstore'
     require './stores/teamallmembersloadedstore'
     require './stores/teamsendinvitesfocusstore'
+    require './stores/teamapitokensstore'
+    require './stores/teamapiaccessstatestore'
   ]
 
   register: (reactor) -> reactor.registerStores @stores
