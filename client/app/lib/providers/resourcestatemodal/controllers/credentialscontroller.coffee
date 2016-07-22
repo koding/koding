@@ -21,7 +21,7 @@ module.exports = class CredentialsController extends kd.Controller
       kdCmd        : (next) -> helpers.getKDCmd next
     }
 
-    async.parallel queue, (err, results) =>
+    async.parallel queue, (err, results) ->
       return  if showError err
 
       { credentials, requirements, kdCmd } = results
