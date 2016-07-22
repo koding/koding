@@ -27,6 +27,10 @@ module.exports = class ConnectedManagedMachineWidget extends React.Component
     connectedManagedMachine: EnvironmentFlux.getters.connectedManagedMachine
 
 
+  onClose: ->
+
+    @removeFromStore()
+
   removeFromStore: ->
 
     kd.utils.defer =>
@@ -35,7 +39,16 @@ module.exports = class ConnectedManagedMachineWidget extends React.Component
 
   handleButtonClick: ->
 
+    { router } = kd.singletons
+    currentPath = router.getCurrentPath()
+    newPath = "/IDE/#{@props.machine.get('slug')}"
+
     @removeFromStore()
+    router.handleRoute newPath  unless newPath is currentPath
+
+
+  componentWillMount: ->
+
     kd.singletons.router.handleRoute "/IDE/#{@props.machine.get('slug')}"
 
 
@@ -47,11 +60,16 @@ module.exports = class ConnectedManagedMachineWidget extends React.Component
 
     provider = if PROVIDERS[connectedMachine.providerName] then connectedMachine.providerName else 'UnknownProvider'
 
-    <SidebarWidget {...@props} onClose={@bound 'removeFromStore'}>
+    # dashboardCloseButton = document.querySelector('.kdmodal.HomeAppView.kddraggable .close-icon')
+    # console.log {dashboardCloseButton}
+    # dashboardCloseButton.click()  if dashboardCloseButton
+
+
+    <SidebarWidget {...@props} onClose={@bound 'onClose'}>
       <div className='header'>
         <h1>Congratulations</h1>
       </div>
-      <span className='close-icon'></span>
+      <span className='close-icon' onClick={@bound 'onClose'}></span>
       <div className='main-wrapper'>
         <div className='image-wrapper'>
         </div>
