@@ -49,9 +49,7 @@ fetchPlanData = (planConfig, callback) ->
 
 # Takes plan config as reference and generates valid konstraint
 # rules based on the TEAMPLANS data ~ GG
-generateConstraints = (planConfig, callback) -> getPlanData planConfig, (err, plan) ->
-
-  return callback err  if err
+generateConstraints = (plan) ->
 
   # First rule be an object.
   rules = [ { $typeof : 'object' } ]
@@ -128,7 +126,7 @@ generateConstraints = (planConfig, callback) -> getPlanData planConfig, (err, pl
                  { 'volume_size?': { $gte: 3 } }  # min volume size 3GB
             ] }
 
-  callback null, rules
+  return rules
 
 
 module.exports = {
