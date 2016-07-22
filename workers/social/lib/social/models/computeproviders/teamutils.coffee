@@ -3,6 +3,7 @@ TEAMPLANS   = require './teamplans'
 
 konstraints = require 'konstraints'
 _           = require 'underscore'
+JGroupPlan  = require '../group/groupplan'
 
 
 shareCredentials = (options, callback) ->
@@ -40,7 +41,11 @@ getPlanData = (planConfig, callback) ->
     result = _.extend {}, TEAMPLANS[plan], (overrides || {})
     return callback null, result
 
-  callback null, TEAMPLANS['default']
+  JGroupPlan.one { name: plan }, (err, planData) ->
+    return callback err  if err
+    return callback null, TEAMPLANS['default']  unless planData
+    return callback null, planData
+
 
 # Takes plan config as reference and generates valid konstraint
 # rules based on the TEAMPLANS data ~ GG
