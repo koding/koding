@@ -43,8 +43,14 @@ fetchPlanData = (planConfig, callback) ->
 
   JGroupPlan.one { name: plan }, (err, planData) ->
     return callback err  if err
-    return callback null, TEAMPLANS['default']  unless planData
+    return callback null, _.clone TEAMPLANS['default']  unless planData
     return callback null, planData
+
+
+fetchConstraints = (planConfig, callback) ->
+  fetchPlanData planConfig, (err, plan) ->
+    return callback err  if err
+    callback null, generateConstraints plan
 
 
 # Takes plan config as reference and generates valid konstraint
@@ -130,5 +136,5 @@ generateConstraints = (plan) ->
 
 
 module.exports = {
-  generateConstraints, getPlanData, shareCredentials, TEAMPLANS
+  fetchConstraints, generateConstraints, fetchPlanData, shareCredentials, TEAMPLANS
 }
