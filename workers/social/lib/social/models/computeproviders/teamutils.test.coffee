@@ -49,7 +49,6 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
         ]
 
         async.series queue, (err) ->
-          console.log {err}
           expect(err).to.not.exist
           done()
 

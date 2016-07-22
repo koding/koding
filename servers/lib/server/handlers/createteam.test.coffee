@@ -610,7 +610,6 @@ runTests = -> describe 'server.handlers.createteam', ->
 
       (next) ->
         JGroup.one { slug: options.body.slug }, (err, group) ->
-          console.log({err, group})
           expect(err).to.not.exist
           expect(group).to.exist
           expect(group.config.plan).to.be.equal 'foo'
