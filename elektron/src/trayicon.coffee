@@ -107,6 +107,18 @@ module.exports = class KodingTray
       click   : -> app.quit()
     ]
 
+    menuItems = attachTeamsToMenu menuItems, teams
+
+    @_contextMenu = Menu.buildFromTemplate menu.concat menuItems
+
+    @tray.popUpContextMenu @_contextMenu  if show
+
+
+  attachTeamsToMenu = (menu, teams) ->
+
+    menu = menu.slice()
+
+    return menu  unless teams
 
     if (keys = Object.keys teams).length
       submenu = \
@@ -127,10 +139,7 @@ module.exports = class KodingTray
       menu.unshift { type: 'separator', visible: on }
       menu.unshift { label: 'Your Teams', submenu }
 
-    @_contextMenu = Menu.buildFromTemplate menu.concat menuItems
-
-    @tray.popUpContextMenu @_contextMenu  if show
-
+    return menu
 
 
   setFailed: (err) ->
