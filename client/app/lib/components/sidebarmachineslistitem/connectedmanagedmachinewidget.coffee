@@ -60,11 +60,6 @@ module.exports = class ConnectedManagedMachineWidget extends React.Component
 
     provider = if PROVIDERS[connectedMachine.providerName] then connectedMachine.providerName else 'UnknownProvider'
 
-    # dashboardCloseButton = document.querySelector('.kdmodal.HomeAppView.kddraggable .close-icon')
-    # console.log {dashboardCloseButton}
-    # dashboardCloseButton.click()  if dashboardCloseButton
-
-
     <SidebarWidget {...@props} onClose={@bound 'onClose'}>
       <div className='header'>
         <h1>Congratulations</h1>
