@@ -12,7 +12,7 @@ constants = require '../constants'
 
 module.exports = class CredentialsController extends kd.Controller
 
-  loadData: ->
+  fetchData: (callback) ->
 
     stack = @getData()
     queue = {
@@ -25,7 +25,10 @@ module.exports = class CredentialsController extends kd.Controller
       return  if showError err
 
       { credentials, requirements, kdCmd } = results
-      @setup credentials, requirements, kdCmd
+      callback credentials, requirements, kdCmd
+
+
+  loadData: -> @fetchData @bound 'setup'
 
 
   setup: (credentials, requirements, kdCmd) ->
@@ -40,9 +43,7 @@ module.exports = class CredentialsController extends kd.Controller
     }
     @errorPage = new CredentialsErrorPageView()
 
-    @_credentials = {}
-    credentials.items?.map (item) =>
-      @_credentials[item.identifier] = item
+    @cacheCredentials credentials
 
     @forwardEvent @credentialsPage, 'InstructionsRequested'
     @credentialsPage.on 'Submitted', @bound 'onSubmitted'
@@ -51,6 +52,29 @@ module.exports = class CredentialsController extends kd.Controller
     container.appendPages @credentialsPage, @errorPage
 
     @emit 'ready'
+
+
+  cacheCredentials: (credentials) ->
+
+    @_credentials = {}
+    credentials.items?.map (item) =>
+      @_credentials[item.identifier] = item
+
+
+  refresh: (credentials, requirements, kdCmd) ->
+
+    stack = @getData()
+
+    @credentialsPage.setData {
+      stack
+      credentials  : _.extend { kdCmd }, credentials
+      requirements
+    }
+
+    @cacheCredentials credentials
+
+
+  reloadData: -> @fetchData @bound 'refresh'
 
 
   submit: -> @credentialsPage.submit()

@@ -119,6 +119,10 @@ module.exports = class AccountCredentialListController extends KodingListControl
     credential.delete (err) ->
       listView.emit 'ItemDeleted', item  unless showError err
       Tracker.track Tracker.USER_DELETE_CREDENTIALS
+
+      { computeController } = kd.singletons
+      computeController.emit 'CredentialRemoved', credential  unless err
+
       callback err
 
 
