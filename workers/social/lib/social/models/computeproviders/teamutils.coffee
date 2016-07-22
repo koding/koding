@@ -38,7 +38,7 @@ getPlanData = (planConfig, callback) ->
   { plan, overrides } = planConfig
 
   if plan in Object.keys TEAMPLANS
-    result = _.extend {}, TEAMPLANS[plan], (overrides || {})
+    result = _.extend {}, TEAMPLANS[plan], (overrides ? {})
     return callback null, result
 
   JGroupPlan.one { name: plan }, (err, planData) ->
