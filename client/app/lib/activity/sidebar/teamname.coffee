@@ -54,8 +54,6 @@ module.exports = class TeamName extends kd.CustomHTMLView
     then '{{#(profile.nickname)}}'
     else "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
-    console.log {pistachio}
-
     profileName = new JCustomHTMLView
       cssClass   : 'HomeAppView-Nav--fullname'
       pistachio  : pistachio
