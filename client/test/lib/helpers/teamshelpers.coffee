@@ -493,6 +493,7 @@ module.exports =
       @createStack browser, 'DefaultStack', no, (res) ->
         done()
 
+
   createStack: (browser, stackName, teamStack = no, done) ->
 
     visibleStack = '[testpath=StackEditor-isVisible]'
@@ -517,7 +518,7 @@ module.exports =
       .click saveButtonSelector, =>
         browser.element 'css selector', vmSelector, (result) =>
           if result.status is 0
-            @waitUntilToCreatePrivateStack browser, ->
+            @waitUntilToSavePrivateStack browser, ->
               done()
           else
             @waitUntilToCreateStack browser, ->
@@ -533,19 +534,12 @@ module.exports =
                   done()
 
 
-  waitUntilToCreatePrivateStack: (browser, done) ->
+  waitUntilToSavePrivateStack: (browser, done) ->
     browser.elements 'css selector', '.kdbutton.GenericButton.save-test.w-loader.loading', (result) =>
       if result.value.length > 0
-        @waitUntilToCreatePrivateStack browser, done
+        @waitUntilToSavePrivateStack browser, done
       else
         browser.pause 1000, done
-
-        # browser.elements 'css selector', '.StackEditorView--header .kdbutton.GenericButton.set-default', (result) =>
-        #   console.log(result)
-        #   result.value.map (value) =>
-        #     browser.elementIdText value.ELEMENT, (res) =>
-        #       browser.elementIdDisplayed value.ELEMENT, (res) =>
-        #         console.log(res)
 
 
   waitUntilToCreateStack: (browser, done) ->
