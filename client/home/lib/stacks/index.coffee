@@ -93,7 +93,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
           .get(0)
 
         VirtualMachinesSelectedMachineFlux.actions.setSelectedMachine identifier
-        EnvironmentFlux.actions.loadMachineSharedUsers machine.get '_id'
+        EnvironmentFlux.actions.loadMachineSharedUsers machine.get '_id'  if machine
         onboarding.run 'VMsViewed', yes
       break
 
