@@ -609,14 +609,12 @@ runTests = -> describe 'server.handlers.createteam', ->
             next()
 
       (next) ->
-        setTimeout ->
-          JGroup.one { slug: options.body.slug }, (err, group) ->
-            console.log({err, group})
-            expect(err).to.not.exist
-            expect(group).to.exist
-            expect(group.config.plan).to.be.equal 'foo'
-            next()
-        , 1000
+        JGroup.one { slug: options.body.slug }, (err, group) ->
+          console.log({err, group})
+          expect(err).to.not.exist
+          expect(group).to.exist
+          expect(group.config.plan).to.be.equal 'foo'
+          next()
     ]
 
     async.series queue, (err) ->
