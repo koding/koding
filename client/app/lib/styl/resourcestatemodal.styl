@@ -68,7 +68,6 @@ $regularColor               = #989898
 
         .button-title
           font-size         14px
-          font-weight       300
 
 
   .start-machine-flow,
@@ -154,6 +153,7 @@ $regularColor               = #989898
 
       .index
         padding-right       5px
+        font-weight         400
 
       &:first-child
         border-left         none !important
@@ -172,13 +172,13 @@ $regularColor               = #989898
         bg                  color, #57a2d2
         color               #000
         border-right        1px solid #5095C2
-        font-weight         400
 
         .icon
           r-sprite          'app', 'check_mark'
 
       &.current, &.completed
         border-left         1px solid #70AED6
+        font-weight         400
 
 
   /* Logs pane */
@@ -281,6 +281,7 @@ $regularColor               = #989898
         rounded             4px
 
     .status-text
+      color                 #424242
       ellipsis()
       margin                0 auto
       padding-top           7px
@@ -678,7 +679,6 @@ $regularColor               = #989898
         bottom              0
 
 
-
   .start-machine-progress-page
 
     section.main
@@ -691,6 +691,9 @@ $regularColor               = #989898
         line-height         43px
         padding-top         30px
         margin-bottom       -10px
+
+      p
+        margin-top          0
 
       .progressbar-container
         width               500px
@@ -753,17 +756,18 @@ $regularColor               = #989898
   .stop-machine-progress-page
 
     section.main
-      height                250px
+      height                200px
 
       h2
         color               #515151
-        font-size           20px
-        letter-spacing      .2px
+        font-size           22px
+        letter-spacing      .22px
         line-height         43px
-        padding-top         30px
+        padding-top         40px
 
       .progressbar-container
         width               500px
+        margin-top          20px
 
         .bar
           bg                color, #f2778a
