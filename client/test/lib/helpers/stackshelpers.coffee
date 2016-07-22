@@ -97,7 +97,7 @@ module.exports =
               .getAttribute stackTemplateNameArea, 'placeholder', (result) ->
                 this.assert.equal result.value, 'NewStackName'
                 browser.pause 1000, done
- 
+
 
   deleteCredentialInUse: (browser, done) ->
     browser
@@ -195,7 +195,7 @@ module.exports =
         .refresh()
         .pause 3000, done
 
-  
+
   destroyPersonalStack: (browser, done) ->
     saveButtonSelector = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
     browser.refresh()
@@ -214,7 +214,7 @@ module.exports =
             .pause 3000
             .click stacksSelector
             .waitForElementVisible teamStacksSelector, 20000
-            .assert.containsText privateStacksTitle , res.value 
+            .assert.containsText privateStacksTitle , res.value
             .click sideBarSelector
             .click teamHeaderSelector
             .waitForElementVisible menuSelector, 20000
@@ -308,7 +308,6 @@ module.exports =
       readme    : '.readme'
 
     tabSelector = "#{stackEditorTab} div.kdtabhandle#{selector[tabName]}"
-    
     browser
       .waitForElementVisible stackEditorTab, 20000
       .waitForElementVisible tabSelector, 20000
@@ -324,7 +323,7 @@ module.exports =
 
     viewName = viewNames[tabName]
     params   = [ viewName, text ]
-  
+
     if tabName is 'template'
       fn = (viewName, text) ->
         _kd.singletons.appManager.appControllers.Stackeditor.instances.first

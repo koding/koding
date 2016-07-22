@@ -54,7 +54,7 @@ module.exports =
           next null, result
       (next) ->
         stackshelpers.defineCustomVariables browser, (result) ->
-          next null, result   
+          next null, result
       (next) ->
         stackshelpers.addRemoveFromSideBar browser, (res) ->
           next null, res
