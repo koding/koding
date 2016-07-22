@@ -302,7 +302,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
       else
         @addItem credential
 
-      computeController.emit 'CredentialAdded'
+      computeController.emit 'CredentialAdded', credential
 
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.

@@ -81,16 +81,18 @@ module.exports = class CredentialForm extends JView
     return  unless @selection
 
     { selectionPlaceholder, hideTitle } = @getOptions()
-    { selectedItem, items } = @getData()
+    { defaultItem, items } = @getData()
 
     selectOptions   = items.map (item) -> { value : item.identifier, title : item.title }
     selectOptions.unshift { value : '', title : selectionPlaceholder }
+
+    selectedItem    = @selection.getValue() or defaultItem
     hasSelectedItem = (item for item in items when item.identifier is selectedItem).length > 0
-    defaultValue    = if hasSelectedItem then selectedItem else ''
+    selectedItem    = ''  unless hasSelectedItem
 
     @selection.removeSelectOptions()
     @selection.setSelectOptions selectOptions
-    @selection.setDefaultValue defaultValue
+    @selection.setValue selectedItem
 
     @checkShowLinkVisibility()
 
@@ -139,6 +141,12 @@ module.exports = class CredentialForm extends JView
     @unsetClass 'form-visible'
     @newHeader.hide()
     @header.show()  unless hideTitle
+
+
+  selectValue: (value) ->
+
+    @selection.setValue value
+    @onCancelNew()
 
 
   setData: (data) ->

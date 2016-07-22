@@ -171,6 +171,9 @@ module.exports = class CredentialsController extends kd.Controller
         if pendingCredential
           @credentialsPage.selectNewCredential pendingCredential
 
+          { computeController } = kd.singletons
+          computeController.emit 'CredentialAdded', pendingCredential
+
         response = {}
         response[provider] = [ identifier ]
 
@@ -190,6 +193,10 @@ module.exports = class CredentialsController extends kd.Controller
       return callback err.message  if err
 
       @credentialsPage.selectNewRequirements newCredential
+
+      { computeController } = kd.singletons
+      computeController.emit 'CredentialAdded', newCredential
+
       kallback newCredential.identifier
 
 
@@ -237,8 +244,8 @@ module.exports = class CredentialsController extends kd.Controller
         return callback err  if err
 
         { provider } = selector
-        selectedItem = selectedCredentials?[provider]?.first
-        callback null, _.extend { items, selectedItem }, selector
+        defaultItem  = selectedCredentials?[provider]?.first
+        callback null, _.extend { items, defaultItem }, selector
 
 
     loadCredentials: (stack, callback) ->
@@ -252,17 +259,17 @@ module.exports = class CredentialsController extends kd.Controller
       helpers._loadCredentials { provider }, stack.credentials, (err, result) ->
         return callback err  if err
 
-        { items, selectedItem } = result
-        return callback null, result  unless selectedItem
+        { items, defaultItem } = result
+        return callback null, result  unless defaultItem
 
         isAvailable = (
-          item for item in items when item.identifier is selectedItem
+          item for item in items when item.identifier is defaultItem
         ).length > 0
         return callback null, result  if isAvailable
 
         # try to add stack credential to the list of credentials
         # if it's not there but it's shared with the team
-        remote.api.JCredential.one selectedItem, (err, credential) ->
+        remote.api.JCredential.one defaultItem, (err, credential) ->
           return callback err, result  if err or not credential
 
           result.sharedCredential = credential

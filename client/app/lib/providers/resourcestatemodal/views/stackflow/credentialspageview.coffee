@@ -101,18 +101,16 @@ module.exports = class CredentialsPageView extends JView
 
     { credentials } = @getData()
     credentials.items.push data
-    credentials.selectedItem = data.identifier
     @credentialForm.setData credentials
-    @credentialForm.onCancelNew()
+    @credentialForm.selectValue data.identifier
 
 
   selectNewRequirements: (data) ->
 
     { requirements } = @getData()
     requirements.items.push data
-    requirements.selectedItem = data.identifier
     @requirementsForm.setData requirements
-    @requirementsForm.onCancelNew()
+    @requirementsForm.selectValue data.identifier
 
 
   pistachio: ->
