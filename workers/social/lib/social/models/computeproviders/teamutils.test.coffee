@@ -17,7 +17,7 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
 
   describe 'teamutils', ->
 
-    describe '#getPlanData()', ->
+    describe '#fetchPlanData()', ->
 
       it 'should return hardcoded team plan if it exists', (done) ->
 
@@ -41,7 +41,7 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
               next()
 
           (next) ->
-            teamutils.getPlanData { plan: 'trial' }, (err, planData) ->
+            teamutils.fetchPlanData { plan: 'trial' }, (err, planData) ->
               expect(err).to.not.exist
               expect(planData).to.exist
               expect(planData).to.be.eql trialPlan
@@ -93,7 +93,7 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
               next()
 
           (next) ->
-            teamutils.getPlanData _group.config, (err, planData) ->
+            teamutils.fetchPlanData _group.config, (err, planData) ->
               expect(err).to.not.exist
               expect(planData).to.exist
               expect(planData.member).to.be.equal 5000
@@ -136,7 +136,7 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
               next()
 
           (next) ->
-            teamutils.getPlanData _group.config, (err, planData) ->
+            teamutils.fetchPlanData _group.config, (err, planData) ->
               expect(err).to.not.exist
 
               expect(planData).to.be.eql teamplans.default

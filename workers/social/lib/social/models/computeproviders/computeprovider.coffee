@@ -328,7 +328,7 @@ module.exports = class ComputeProvider extends Base
     catch
       callback new KodingError 'Template is not valid'
 
-    teamutils.generateConstraints planConfig, (err, rules) ->
+    teamutils.fetchConstraints planConfig, (err, rules) ->
 
       { passed, results } = konstraints template, rules, {}
       return new KodingError results.last[1]  unless passed
@@ -427,7 +427,7 @@ module.exports = class ComputeProvider extends Base
 
     planConfig = helpers.getPlanConfig group
 
-    teamutils.getPlanData planConfig, (err, plan) =>
+    teamutils.fetchPlanData planConfig, (err, plan) =>
 
       return callback err  if err
 
@@ -456,7 +456,7 @@ module.exports = class ComputeProvider extends Base
     planConfig   = helpers.getPlanConfig group
     maxAllowed   = MAX_INT
 
-    teamutils.getPlanData planConfig, (err, plan) =>
+    teamutils.fetchPlanData planConfig, (err, plan) =>
 
       return callback err  if err
 
