@@ -105,7 +105,7 @@ module.exports = class ComputeControllerUI
     fields           =
       title          :
         label        : 'Title'
-        placeholder  : 'title for this credential'
+        placeholder  : 'Title for this credential'
         defaultValue : defaultTitle or ''
         required     : yes
 
@@ -188,13 +188,16 @@ module.exports = class ComputeControllerUI
           form.toggleClass 'in-advanced-mode'
           @toggleClass 'green'
 
+    kiteQueryPath = new kd.CustomHTMLView
+      cssClass : 'kite-query-path'
+      partial : "<a href='https://www.koding.com/docs/creating-a-vagrant-stack'>Where do I get my Kite Query Path?</a>"
+
     form = new KDFormViewWithFields
       cssClass     : 'form-view'
       fields       : fields
-      buttons      : buttons
       callback     : (data) ->
 
-        @buttons.Save.showLoader()
+        @buttonField.buttons.Save.showLoader()
 
         { title } = data
         delete data.title
@@ -211,11 +214,13 @@ module.exports = class ComputeControllerUI
           remote.api.JCredential.create {
             provider, title, meta: data
           }, (err, credential) =>
-            @buttons.Save.hideLoader()
+            @buttonField.buttons.Save.hideLoader()
 
             unless showError err
               @emit 'CredentialAdded', credential, noCredFound
 
+    form.addSubView kiteQueryPath  if currentProvider.name is 'Vagrant'
+    form.createButtons buttons
 
     selectOptions.forEach (select) ->
       { field, values } = select
@@ -234,7 +239,7 @@ module.exports = class ComputeControllerUI
 
         title           :
           label         : 'Title'
-          placeholder   : 'title for this instance'
+          placeholder   : 'Title for this instance'
           validate      :
             rules       :
               required  : yes
