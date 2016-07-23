@@ -82,9 +82,6 @@ module.exports = class KodingTray
     if typeof menu is 'string'
       menu = [ label: menu, enabled: no ]
 
-    win = @_mainWindow
-    teams = @_previousTeams
-
     menuItems = [
       type    : 'separator'
       visible : @_isKdRunning
@@ -107,37 +104,37 @@ module.exports = class KodingTray
       click   : -> app.quit()
     ]
 
-    menuItems = attachTeamsToMenu menuItems, teams
+    menuItems = @attachTeamsToMenu menuItems
 
     @_contextMenu = Menu.buildFromTemplate menu.concat menuItems
 
     @tray.popUpContextMenu @_contextMenu  if show
 
 
-  attachTeamsToMenu = (menu, teams) ->
+  attachTeamsToMenu: (menu) ->
 
     menu = menu.slice()
 
-    return menu  unless teams
+    return menu  unless @_previousTeams
 
-    if (keys = Object.keys teams).length
+    if (keys = Object.keys @_previousTeams).length
       submenu = \
-        keys.map (key) ->
+        keys.map (key) =>
           return  if key is 'latest'
-          teamName = teams[key]
-          return { label: teamName, click: -> win.loadURL "https://#{key}.koding.com" }
+          teamName = @_previousTeams[key]
+          return { label: teamName, click: -> @_mainWindow.loadURL "https://#{key}.koding.com" }
         .filter(Boolean)
 
       submenu or= []
 
       submenu = submenu.concat [
         { type: 'separator', visible: !!submenu.length }
-        { label: 'Login to Another Team', click: -> win.loadURL "https://koding.com/Teams" }
-        { label: 'Create a Team', click: -> win.loadURL "https://koding.com/Teams/Create" }
+        { label: 'Login to Another Team', click: -> @_mainWindow.loadURL "https://koding.com/Teams" }
+        { label: 'Create a Team', click: -> @_mainWindow.loadURL "https://koding.com/Teams/Create" }
       ]
 
-      menu.unshift { type: 'separator', visible: on }
       menu.unshift { label: 'Your Teams', submenu }
+      menu.unshift { type: 'separator', visible: on }
 
     return menu
 
