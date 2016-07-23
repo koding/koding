@@ -111,11 +111,11 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
           done()
 
 
-      it 'should return default value when given plan is not even on the db', ->
+      it 'should return default value when given plan is not even on the db', (done) ->
         createGroupOptions =
           body:
             plan: "nonexistent-plan-#{generateRandomString 10}"
-            slug: "team-with-nonexistent-plan-config-#{generateRandomString 10}"
+            slug: "planless-team-#{generateRandomString 10}"
 
         _group = null
 
@@ -138,16 +138,13 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
           (next) ->
             teamutils.fetchPlanData _group.config, (err, planData) ->
               expect(err).to.not.exist
-
               expect(planData).to.be.eql teamplans.default
-
               next()
         ]
 
         async.series queue, (err) ->
           expect(err).to.not.exist
           done()
-
 
 
 beforeTests()
