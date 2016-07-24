@@ -1,8 +1,0 @@
-targets:
-  ubuntu-14.04:
-  ubuntu-12.04:
-  debian-7:
-  centos-6:
-before:
-  - mv packager/Procfile .
-after_install: ./packager/postinst
