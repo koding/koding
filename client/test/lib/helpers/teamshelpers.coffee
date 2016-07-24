@@ -388,18 +388,6 @@ module.exports =
       .pause 1000, -> done()
 
 
-  initializeStack: (browser, done) ->
-    browser
-      .waitForElementVisible menuSelector, 20000
-      .pause 3000
-      .click  "#{menuSelector}:nth-of-type(2)"
-      .waitForElementVisible '.kdnotification', 20000
-      .assert.containsText '.kdnotification', 'Stack generated successfully'
-      .pause 1000, =>
-        @buildStackFlow browser, ->
-          done()
-
-
   buildStack: (browser, done) ->
     sidebarSelector = '.SidebarTeamSection'
     buildStackModal = '.kdmodal.env-modal.env-machine-state.kddraggable.has-readme'
@@ -472,7 +460,6 @@ module.exports =
 
 
   waitUntilVmRunning: (browser, done) ->
-
     sidebarSelector = '.SidebarTeamSection'
     sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
@@ -486,6 +473,13 @@ module.exports =
         else
           console.log '   VM is still building'
           @waitUntilVmRunning browser, done
+
+
+  createPrivateStack: (browser, done) ->
+    @createCredential browser, 'aws', 'draft-stack', no, (res) =>
+      @createStack browser, 'PrivateStack', no, (res) =>
+        @initializeStack browser, ->
+          done()
 
 
   createDefaultStackTemplate: (browser, done) ->
@@ -552,6 +546,23 @@ module.exports =
         browser.waitForElementVisible successModal, 20000
         browser.waitForElementVisible closeButton,  20000, done
       else @waitUntilToCreateStack browser, done
+
+
+  initializeStack: (browser, done) ->
+    draftStackHeader     = '.SidebarTeamSection .SidebarSection.draft:nth-of-type(3)'
+    menuSelector         = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
+    browser
+      .click '#main-sidebar'
+      .waitForElementVisible draftStackHeader, 20000
+      .click draftStackHeader
+      .waitForElementVisible menuSelector, 20000
+      .pause 1000
+      .waitForElementVisible menuSelector, 20000
+      .pause 3000
+      .click  "#{menuSelector}:nth-of-type(2)"
+      .waitForElementVisible '.kdnotification', 20000
+      .assert.containsText '.kdnotification', 'Stack generated successfully'
+      .pause 1000, done
 
 
   getAwsKey: -> return awsKey

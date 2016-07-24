@@ -165,7 +165,8 @@ module.exports =
         .pause 2000
         .waitForElementVisible '.kdview', 20000, ->
           teamsHelpers.createDefaultStackTemplate browser, (res) ->
-            done
+            teamsHelpers.initializeStack browser, ->
+              done
 
 
   destroy: (browser, done) ->
@@ -193,20 +194,20 @@ module.exports =
 
   destroyPersonalStack: (browser, done) ->
     saveButtonSelector = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
+    privateStacks      = '.SidebarTeamSection .SidebarSection:nth-of-type(2)  .HomeAppViewListItem-label'
+
+    privateStacksDraft = '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row:nth-of-type(2)'
     browser.refresh()
-    @gotoStackTemplate browser, ->
+    browser.pause 1000, ->
       browser
-        .click saveButtonSelector
-        .pause 10000 # here wait around 50 secs to verify stack
+        .url stackEditorUrl
+        .waitForElementVisible sectionSelector, 20000
+        .scrollToElement draftStacksSelector
+        .waitForElementVisible privateStacksTitle, 20000
+        .click privateStacksTitle + ' .HomeAppViewListItem-label'
+        .pause 2000
         .getText teamHeaderSelector, (res) ->
           browser
-            .click sideBarSelector
-            .waitForElementVisible draftStackHeader, 20000
-            .click draftStackHeader
-            .waitForElementVisible menuSelector, 20000
-            .pause 1000
-            .click reinitSelector #initiliaze stack
-            .pause 3000
             .click stacksSelector
             .waitForElementVisible teamStacksSelector, 20000
             .assert.containsText privateStacksTitle , res.value
@@ -218,11 +219,11 @@ module.exports =
             .waitForElementVisible '[testpath=deleteStack]', 20000
             .click proceedButton
             .pause 3000
-            .click stacksSelector
+            .url stackEditorUrl
             .waitForElementVisible teamStacksSelector, 20000
             .scrollToElement draftStacksSelector
             .waitForElementVisible draftStacksSelector, 20000
-            .assert.containsText draftStackTitle , res.value
+            .assert.containsText privateStacksDraft , res.value
             .pause 1000, done
 
 

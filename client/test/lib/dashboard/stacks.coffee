@@ -33,6 +33,9 @@ module.exports =
       (next) ->
         teamsHelpers.buildStack browser, (res) ->
           next null, res
+      (next) ->
+        teamsHelpers.createPrivateStack browser, (res) ->
+          next null, res
     ]
 
     async.series queue, (err, result) ->
