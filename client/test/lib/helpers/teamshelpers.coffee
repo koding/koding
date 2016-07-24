@@ -501,31 +501,31 @@ module.exports =
     shareButton  = '[testpath=proceed]'
     vmSelector   = '.SidebarMachinesListItem cite'
 
-    browser
-      .pause 2000
-      .click useThisAndContinueButton
-      .waitForElementVisible editorPaneSelector, 20000
-      .waitForElementVisible stackTemplateNameArea, 2000
-      .setValue stackTemplateNameArea, ''
-      .pause 1000
-      .setValue stackTemplateNameArea, stackName
-      .click saveButtonSelector, =>
-        browser.element 'css selector', vmSelector, (result) =>
-          if result.status is 0
-            @waitUntilToSavePrivateStack browser, ->
-              done()
-          else
-            @waitUntilToCreateStack browser, ->
-              if teamStack
-                browser
-                  .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
-                  .click shareButton
-                  .waitForElementVisible '.ContentModal.content-modal main', 20000
-                  .click shareButton, ->
+    browser.pause 3000, =>
+      browser
+        .click useThisAndContinueButton
+        .waitForElementVisible editorPaneSelector, 20000
+        .waitForElementVisible stackTemplateNameArea, 2000
+        .setValue stackTemplateNameArea, ''
+        .pause 1000
+        .setValue stackTemplateNameArea, stackName
+        .click saveButtonSelector, =>
+          browser.element 'css selector', vmSelector, (result) =>
+            if result.status is 0
+              @waitUntilToSavePrivateStack browser, ->
+                done()
+            else
+              @waitUntilToCreateStack browser, ->
+                if teamStack
+                  browser
+                    .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
+                    .click shareButton
+                    .waitForElementVisible '.ContentModal.content-modal main', 20000
+                    .click shareButton, ->
+                      done()
+                else
+                  browser.click closeButton, ->
                     done()
-              else
-                browser.click closeButton, ->
-                  done()
 
 
   waitUntilToSavePrivateStack: (browser, done) ->
@@ -549,7 +549,7 @@ module.exports =
 
 
   initializeStack: (browser, done) ->
-    draftStackHeader     = '.SidebarTeamSection .SidebarSection.draft:nth-of-type(3)'
+    draftStackHeader     = '.SidebarTeamSection .SidebarSection.draft:last-child'
     menuSelector         = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
     browser
       .click '#main-sidebar'
@@ -622,7 +622,7 @@ module.exports =
       .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 20000
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 2000
-      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(3)'
+      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(4)'
       .pause 2000, -> callback()
 
 

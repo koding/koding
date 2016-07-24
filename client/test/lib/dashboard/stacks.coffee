@@ -24,18 +24,18 @@ module.exports =
       (next) ->
         teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
           next null, result
-      (next) ->
-        teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
-          next null, res
-      (next) ->
-        teamsHelpers.createDefaultStackTemplate browser, (res) ->
-          next null, res
-      (next) ->
-        teamsHelpers.buildStack browser, (res) ->
-          next null, res
-      (next) ->
-        teamsHelpers.createPrivateStack browser, (res) ->
-          next null, res
+      # (next) ->
+      #   teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
+      #     next null, res
+      # (next) ->
+      #   teamsHelpers.createDefaultStackTemplate browser, (res) ->
+      #     next null, res
+      # (next) ->
+      #   teamsHelpers.buildStack browser, (res) ->
+      #     next null, res
+      # (next) ->
+      #   teamsHelpers.createPrivateStack browser, (res) ->
+      #     next null, res
     ]
 
     async.series queue, (err, result) ->
@@ -50,38 +50,41 @@ module.exports =
         stackshelpers.seeTeamStackTemplates browser, (result) ->
           next null, result
       (next) ->
+        stackshelpers.seePrivateStackTemplates browser, (result) ->
+          next null, result
+      (next) ->
         stackshelpers.seeDraftStackTemplates browser, (result) ->
           next null, result
-      (next) ->
-        stackshelpers.editStackTemplates browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.defineCustomVariables browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.addRemoveFromSideBar browser, (res) ->
-          next null, res
-      (next) ->
-        stackshelpers.changeAndReinitializeStack browser, (res) ->
-          next null, res
-      (next) ->
-        stackshelpers.deleteCredentialInUse browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.deleteStackTemplatesInUse browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.deleteStackTemplates browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.destroyPersonalStack browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.destroy browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.createAndMakeStackTeamDefault browser, (result) ->
-          next null, result
+      # (next) ->
+      #   stackshelpers.editStackTemplates browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.defineCustomVariables browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.addRemoveFromSideBar browser, (res) ->
+      #     next null, res
+      # (next) ->
+      #   stackshelpers.changeAndReinitializeStack browser, (res) ->
+      #     next null, res
+      # (next) ->
+      #   stackshelpers.deleteCredentialInUse browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.deleteStackTemplatesInUse browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.deleteStackTemplates browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.destroyPersonalStack browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.destroy browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.createAndMakeStackTeamDefault browser, (result) ->
+      #     next null, result
       (next) ->
         teamsHelpers.logoutTeam browser, (result) ->
           next null, result

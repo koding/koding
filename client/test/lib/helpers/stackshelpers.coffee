@@ -1,15 +1,16 @@
-helpers              = require '../helpers/helpers.js'
-teamsHelpers         = require '../helpers/teamshelpers.js'
-utils                = require '../utils/utils.js'
-staticContents       = require '../helpers/staticContents.js'
-stackEditorUrl       = "#{helpers.getUrl(yes)}/Home/stacks"
-stackSelector        = null
-sectionSelector      = '.kdview.kdtabpaneview.stacks'
-newStackButton       = '.kdbutton.GenericButton.HomeAppView-Stacks--createButton'
-teamStacksSelector   = '.HomeAppView--section.team-stacks'
-stackTemplate        = "#{teamStacksSelector} .HomeAppViewListItem.StackTemplateItem"
-draftStacksSelector  = '.HomeAppView--section.drafts'
-menuSelector         = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
+helpers                = require '../helpers/helpers.js'
+teamsHelpers           = require '../helpers/teamshelpers.js'
+utils                  = require '../utils/utils.js'
+staticContents         = require '../helpers/staticContents.js'
+stackEditorUrl         = "#{helpers.getUrl(yes)}/Home/stacks"
+stackSelector          = null
+sectionSelector        = '.kdview.kdtabpaneview.stacks'
+newStackButton         = '.kdbutton.GenericButton.HomeAppView-Stacks--createButton'
+teamStacksSelector     = '.HomeAppView--section.team-stacks'
+stackTemplate          = "#{teamStacksSelector} .HomeAppViewListItem.StackTemplateItem"
+draftStacksSelector    = '.HomeAppView--section.drafts'
+privateStacksHeader    = '.HomeAppView--section.private-stacks'
+menuSelector           = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
 editSelector           = "#{menuSelector}:nth-of-type(1)"
 stackEditorView        = '.StackEditorView'
 sideBarSelector        = '#main-sidebar'
@@ -39,12 +40,16 @@ sidebarVmSelector      = '.SidebarMachinesListItem--MainLink .SidebarListItem-ti
 proceedButton          = '[testpath=proceed]'
 draftStackTitle        = '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .HomeAppViewListItem.StackTemplateItem'
 privateStacksTitle     = '.HomeAppView--section.private-stacks .ListView-section.HomeAppViewStackSection .HomeAppViewListItem.StackTemplateItem'
-addRemoveButton        = '.HomeAppViewListItem-SecondaryContainer .HomeAppView--button'
-addRemoveButtonPrimary = '.HomeAppView--section .HomeAppView--button.primary'
 shareButton            = '[testpath=proceed]'
 makeTeamDefaultButton  = '.StackEditorView--header .kdbutton.GenericButton.set-default'
 reinitializeSelector   = '.SidebarStackWidgets .SidebarSection-body a'
 reinitStackModal       = '[testpath=reinitStack]'
+saveButtonSelector     = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
+privateStacks          = '.SidebarTeamSection .SidebarSection:nth-of-type(2)  .HomeAppViewListItem-label'
+privateStacksDraft     = '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row:nth-of-type(2)'
+addRemoveButton        = "#{privateStacksDraft} .HomeAppViewListItem .HomeAppViewListItem-SecondaryContainer .HomeAppView--button"
+
+
 #Define Custom Variables
 errorIndicator             = '.kdtabhandle.custom-variables .indicator.red.in'
 customVariablesTabSelector = "#{stackEditorTab} div.kdtabhandle.custom-variables"
@@ -70,14 +75,9 @@ module.exports =
       .waitForElementVisible stackTemplate, 20000, done
 
   seePrivateStackTemplates: (browser, done) ->
-    # FIXME: reimplement after stacks page is done ~ HK
-    # privateStacksSelector = '.HomeAppView--section.private-stacks'
-    # stackTemplate = "#{privateStacksSelector} .HomeAppViewListItem.StackTemplateItem"
-
-    # browser
-    #   .pause 2000
-    #   .waitForElementVisible privateStacksSelector, 20000
-    #   .waitForElementVisible stackTemplate, 20000
+    browser
+      .waitForElementVisible privateStacksHeader, 20000
+      .waitForElementVisible privateStacksTitle, 20000, done
 
   seeDraftStackTemplates: (browser, done) ->
     browser
@@ -193,10 +193,6 @@ module.exports =
 
 
   destroyPersonalStack: (browser, done) ->
-    saveButtonSelector = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
-    privateStacks      = '.SidebarTeamSection .SidebarSection:nth-of-type(2)  .HomeAppViewListItem-label'
-
-    privateStacksDraft = '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row:nth-of-type(2)'
     browser.refresh()
     browser.pause 1000, ->
       browser
@@ -242,7 +238,6 @@ module.exports =
 
   changeAndReinitializeStack: (browser, done) ->
     host = utils.getUser no, 0
-
     browser
       .click closeModal
       .click sidebarVmSelector
@@ -271,11 +266,14 @@ module.exports =
       .url stackEditorUrl
       .waitForElementVisible teamStacksSelector, 20000
       .scrollToElement draftStacksSelector
+      .waitForElementVisible addRemoveButton, 20000
       .click addRemoveButton
-      .assert.containsText addRemoveButtonPrimary, 'ADD TO SIDEBAR'
+      .pause 5000
+      .assert.containsText addRemoveButton, 'ADD TO SIDEBAR'
       .click addRemoveButton
-      .assert.containsText addRemoveButtonPrimary, 'REMOVE FROM SIDEBAR'
+      .assert.containsText addRemoveButton, 'REMOVE FROM SIDEBAR'
       .pause 1000, done
+
 
   defineCustomVariables: (browser, done) ->
     wrongCustomVariable    = "foo: '"
