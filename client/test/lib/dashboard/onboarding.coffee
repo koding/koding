@@ -9,7 +9,7 @@ WelcomeView     = '.WelcomeStacksView'
 stackLink       = "#{WelcomeView} ul.bullets li:nth-of-type(1)"
 stackEditor     = '.StackEditor-OnboardingModal'
 
-notFoundLink    = "#{WelcomeView} ul.bullets li:nth-of-type(4)"
+notFoundLink    = "#{WelcomeView} ul.bullets li:nth-of-type(8)"
 notFounPage     = '.HomeAppView--section.kd-cli'
 
 
@@ -35,7 +35,7 @@ module.exports =
       .pause 2000
       .waitForElementVisible WelcomeView, 20000
 
-      #give error this part
+      #expect that this part will give error on wercker
       .click notFoundLink
       .waitForElementVisible notFounPage, 20000
 
