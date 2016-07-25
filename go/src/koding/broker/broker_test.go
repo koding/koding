@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	"code.google.com/p/go.net/websocket"
+	"golang.org/x/net/websocket"
 )
 
 // sock.js protocol is described here:

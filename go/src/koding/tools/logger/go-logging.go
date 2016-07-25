@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"runtime/debug"
 
-	"github.com/sent-hil/go-logging"
+	logging "github.com/op/go-logging"
 )
 
 var modules []string

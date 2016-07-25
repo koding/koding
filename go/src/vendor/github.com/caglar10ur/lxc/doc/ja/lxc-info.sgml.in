@@ -1,0 +1,260 @@
+<!--
+
+(C) Copyright Canonical Ltd. 2013
+
+Authors:
+Stéphane Graber <stgraber@ubuntu.com>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+Translated into Japanese
+by KATOH Yasufumi <karma at jazz.email.ne.jp>
+
+-->
+
+<!DOCTYPE refentry PUBLIC @docdtd@ [
+
+<!ENTITY commonoptions SYSTEM "@builddir@/common_options.sgml">
+<!ENTITY seealso SYSTEM "@builddir@/see_also.sgml">
+]>
+
+<refentry>
+
+  <docinfo><date>@LXC_GENERATE_DATE@</date></docinfo>
+
+  <refmeta>
+    <refentrytitle>lxc-info</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>lxc-info</refname>
+
+    <refpurpose>
+      <!--
+      query information about a container
+      -->
+      コンテナに関する情報の問い合わせ
+    </refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>lxc-info</command>
+      <arg choice="req">-n <replaceable>name</replaceable></arg>
+      <arg choice="opt">-c <replaceable>KEY</replaceable></arg>
+      <arg choice="opt">-s</arg>
+      <arg choice="opt">-p</arg>
+      <arg choice="opt">-i</arg>
+      <arg choice="opt">-S</arg>
+      <arg choice="opt">-H</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title><!-- Description -->説明</title>
+    <para>
+      <!--
+      <command>lxc-info</command> queries and shows information about a
+      container.
+      -->
+      <command>lxc-info</command> は、コンテナに関する情報を問い合わせ、表示します。
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title><!-- Options --></title>
+    <variablelist>
+
+      <varlistentry>
+        <term>
+          <option>-c, --config <replaceable>KEY</replaceable></option>
+        </term>
+        <listitem>
+          <para>
+            <!--
+            Print a configuration key from the container. This option
+            may be given multiple times to print out multiple key = value pairs.
+            -->
+            コンテナの設定値を表示します。このオプションは複数の key = value のペアを表示したい場合には複数回指定することも可能です。
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>-s, --state</option>
+        </term>
+        <listitem>
+          <para>
+            <!--
+            Just print the container's state.
+            -->
+            コンテナの状態のみを表示します。
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>-p, --pid</option>
+        </term>
+        <listitem>
+          <para>
+            <!--
+            Just print the container's pid.
+            -->
+            コンテナの pid を表示します。
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>-i, --ips</option>
+        </term>
+        <listitem>
+          <para>
+            <!--
+            Just print the container's IP addresses.
+            -->
+            コンテナの IP アドレスを表示します。
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>-S, --stats</option>
+        </term>
+        <listitem>
+          <para>
+            <!--
+            Just print the container's statistics.
+            Note that for performance reasons the kernel does not account
+            kernel memory use unless a kernel memory limit is set. If a limit
+            is not set, <command>lxc-info</command> will display kernel memory
+            use as 0. A limit can be set by specifying
+            <programlisting>
+            lxc.cgroup.memory.kmem.limit_in_bytes = <replaceable>number</replaceable>
+            </programlisting>
+            in your container configuration file, see
+            <citerefentry>
+              <refentrytitle>lxc.conf</refentrytitle>
+              <manvolnum>5</manvolnum>
+            </citerefentry>.
+            -->
+            コンテナの統計情報を表示します。
+            パフォーマンスへの影響を考慮して、カーネルメモリの使用量は、カーネルメモリの制限値が設定されない限りはカウントされません。
+            もし、制限が設定されていない場合、<command>lxc-info</command> はカーネルメモリの使用量を 0 と表示します。制限は
+            <programlisting>
+            lxc.cgroup.memory.kmem.limit_in_bytes = <replaceable>number</replaceable>
+            </programlisting>
+            のように、コンテナの設定ファイルで指定することができます。詳しくは、
+            <citerefentry>
+              <refentrytitle>lxc.conf</refentrytitle>
+              <manvolnum>5</manvolnum>
+            </citerefentry>
+            を参照してください。
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>-H, --no-humanize</option>
+        </term>
+        <listitem>
+          <para>
+            <!--
+            Print the container's statistics in raw, non-humanized form. The
+            default is to print statistics in humanized form.
+            -->
+            コンテナの統計情報を人間が読みやすい形に加工しないでそのまま表示します。
+            デフォルトは人間が読みやすい形の統計情報を表示します。
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  &commonoptions;
+
+  <refsect1>
+    <title><!-- Examples -->例</title>
+    <variablelist>
+      <varlistentry>
+        <term>lxc-info -n foo</term>
+        <listitem>
+          <para>
+            <!--
+            Show information for foo.
+            -->
+            foo という名前のコンテナの情報を表示します。
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>lxc-info -n 'ubuntu.*'</term>
+        <listitem>
+          <para>
+            <!--
+            Show information for all containers whose name starts with ubuntu.
+            -->
+            ubuntu という文字列で始まる名前の全てのコンテナの情報を表示します。
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>lxc-info -n foo -c lxc.network.0.veth.pair</term>
+        <listitem>
+          <para>
+            <!--
+            prints the veth pair name of foo.
+            -->
+            コンテナ foo の veth pair を表示します。
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  &seealso;
+
+  <refsect1>
+    <title><!-- Author -->作者</title>
+    <para>Stéphane Graber <email>stgraber@ubuntu.com</email></para>
+  </refsect1>
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

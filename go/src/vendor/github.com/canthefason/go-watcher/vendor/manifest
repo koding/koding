@@ -1,0 +1,38 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/fatih/color",
+			"repository": "https://github.com/fatih/color",
+			"vcs": "git",
+			"revision": "87d4004f2ab62d0d255e0a38f1680aa534549fe3",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/fsnotify/fsnotify",
+			"repository": "https://github.com/fsnotify/fsnotify",
+			"vcs": "git",
+			"revision": "30411dbcefb7a1da7e84f75530ad3abe4011b4f8",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/sys/unix",
+			"repository": "https://go.googlesource.com/sys",
+			"vcs": "git",
+			"revision": "62bee037599929a6e9146f29d10dd5208c43507d",
+			"branch": "master",
+			"path": "/unix",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/fsnotify.v1",
+			"repository": "https://gopkg.in/fsnotify.v1",
+			"vcs": "git",
+			"revision": "30411dbcefb7a1da7e84f75530ad3abe4011b4f8",
+			"branch": "master",
+			"notests": true
+		}
+	]
+}
