@@ -11,7 +11,7 @@ KONFIG      = require 'koding-config-manager'
 
 getPrivateToken = (options, callback) ->
 
-  { urlData: { baseUrl }, token } = options
+  { urlData: { baseUrl }, token, juser } = options
 
   params    =
     url     : "#{baseUrl}/api/v3/user"
@@ -30,8 +30,16 @@ getPrivateToken = (options, callback) ->
       console.log '[GITLAB] TOKEN NOT FOUND ON DATA:', data
       return callback new KodingError 'Auth failed'
 
-    callback null, token
+    juser.update {
+      $set: {
+        'foreignAuth.gitlab.privateToken': token
+      }
+    }, (err) ->
 
+      console.warn 'Error while updating private token:', err  if err
+
+      # Swallow update error here thus we don't need it ~GG
+      callback null, token
 
 
 module.exports = GitLabProvider =
@@ -42,10 +50,10 @@ module.exports = GitLabProvider =
     { url, privateToken } = importParams
     return  unless urlData = @parseImportUrl url
 
-    if privateToken
+    if privateToken or privateToken = user.getAt 'foreignAuth.gitlab.privateToken'
       @importStackTemplateWithPrivateToken privateToken, urlData, callback
     else if oauth = user.getAt 'foreignAuth.gitlab'
-      @importStackTemplateWithOauth oauth, urlData, callback
+      @importStackTemplateWithOauth oauth, urlData, user, callback
     else
       @importStackTemplateWithRawUrl urlData, callback
 
@@ -91,15 +99,14 @@ module.exports = GitLabProvider =
     return { originalUrl : url, baseUrl, user, repo, branch }
 
 
-  importStackTemplateWithOauth: (oauth, urlData, callback) ->
+  importStackTemplateWithOauth: (oauth, urlData, juser, callback) ->
 
     { baseUrl, user, repo, branch } = urlData
     { token } = oauth
 
-    getPrivateToken { urlData, token }, (err, privateToken) =>
+    getPrivateToken { urlData, token, juser }, (err, privateToken) =>
 
       return callback err  if err
-
 
       @importStackTemplateWithPrivateToken privateToken, urlData, callback
 
