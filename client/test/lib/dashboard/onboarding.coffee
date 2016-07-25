@@ -9,7 +9,7 @@ WelcomeView     = '.WelcomeStacksView'
 stackLink       = "#{WelcomeView} ul.bullets li:nth-of-type(1)"
 stackEditor     = '.StackEditor-OnboardingModal'
 
-notFoundLink    = "#{WelcomeView} ul.bullets li:nth-of-type(8)"
+notFoundLink    = "#{WelcomeView} ul.bullets li:nth-of-type(4)"
 notFounPage     = '.HomeAppView--section.kd-cli'
 
 
@@ -37,7 +37,7 @@ module.exports =
 
       #give error this part
       .click notFoundLink
-      .waitForElementVisible notFounPage
+      .waitForElementVisible notFounPage, 20000
 
 
   after: (browser) ->
