@@ -17,6 +17,9 @@ allUsersLoaded = ['TeamAllUsersLoadedStore']
 
 focusFirstEmail = ['TeamSendInvitesFocusStore']
 
+apiTokens = ['TeamAPITokensStore']
+apiAccessState = ['TeamAPIAccessStateStore']
+
 pendingInvitations = [
   teamInvitations
   (invitations) ->
@@ -183,4 +186,6 @@ module.exports = {
   allUsersLoaded
   focusFirstEmail
   alreadyMemberInvitations
+  apiTokens
+  apiAccessState
 }

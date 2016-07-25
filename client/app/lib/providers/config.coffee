@@ -176,5 +176,5 @@ module.exports = globals.config.providers =
     description            : 'Local provisioning with Vagrant'
     credentialFields       :
       queryString          :
-        label              : 'Kite Query Path'
-        placeholder        : 'querystring for local machine kite'
+        label              : 'Kite ID'
+        placeholder        : 'Querystring for local machine kite'
