@@ -353,9 +353,9 @@ module.exports =
         .click sideBarSelector
         .waitForElementVisible reinitNotification, 20000
         .assert.containsText reinitializeSelector, 'Reinitialize Default Stack'
-      # teamsHelpers.createPrivateStack browser, (res) ->
-      #   teamsHelpers.initializeStack browser, ->
-      browser.pause 1000, done
+      teamsHelpers.createPrivateStack browser, (res) ->
+        teamsHelpers.initializeStack browser, ->
+        done
 
 
   checkDraftsAsMember: (browser, done) ->
