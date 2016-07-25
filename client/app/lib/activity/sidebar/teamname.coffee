@@ -1,6 +1,10 @@
 kd    = require 'kd'
 JView = require '../../jview'
 showError = require 'app/util/showError'
+whoami = require 'app/util/whoami'
+AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
+JCustomHTMLView  = require 'app/jcustomhtmlview'
+globals = require 'globals'
 
 ACCOUNT_MENU  = null
 
@@ -33,11 +37,55 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
     callback = @bound 'handleMenuClick'
 
+    account = whoami()
+
+    avatar = new AvatarStaticView
+      cssClass   : 'HomeAppView-Nav--avatar'
+      size       : { width: 38, height: 38 }
+    , account
+
+    avatar_wrapper = new kd.CustomHTMLView
+      cssClass : 'HomeAppView-Nav--avatar-wrapper'
+      click : -> kd.singletons.router.handleRoute '/Home/My-Account'
+
+    { profile } = account
+
+    pistachio = if profile.firstName is '' and profile.lastName is ''
+    then '{{#(profile.nickname)}}'
+    else "{{#(profile.firstName)+' '+#(profile.lastName)}}"
+
+    profileName = new JCustomHTMLView
+      cssClass   : 'HomeAppView-Nav--fullname'
+      pistachio  : pistachio
+    , account
+
+    roles =  globals.userRoles
+    hasOwner = 'owner' in roles
+    hasAdmin = 'admin' in roles
+    userRole = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
+
+    role = new kd.CustomHTMLView
+      tagName : 'div'
+      cssClass : 'HomeAppView-Nav--role'
+      partial : userRole.capitalize()
+
+
+    fullnameAndRoleWrapper = new kd.CustomHTMLView
+      tagName : 'div'
+      cssClass : 'HomeAppView-Nav--fullname-role'
+
+    avatar_wrapper.addSubView avatar
+    fullnameAndRoleWrapper.addSubView profileName
+    fullnameAndRoleWrapper.addSubView role
+    avatar_wrapper.addSubView fullnameAndRoleWrapper
+
+
     ACCOUNT_MENU = new kd.ContextMenu
       cssClass : 'SidebarMenu'
       x        : 36
-      y        : 36
+      y        : 40
     ,
+      'customView' : avatar_wrapper
       'Dashboard'  : { callback }
       'Support'    : { callback }
       'Logout'     : { callback }

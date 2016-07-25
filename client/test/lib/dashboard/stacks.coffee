@@ -28,15 +28,7 @@ module.exports =
         teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
           next null, res
       (next) ->
-        teamsHelpers.createStack browser, (res) ->
-          next null, res
-
-      (next) ->
         teamsHelpers.createDefaultStackTemplate browser, (res) ->
-          # remove main url from result
-          # to get '/Stack-Editor/machineId'
-          res = res.substring helpers.getUrl(yes).length
-          stackSelector = res
           next null, res
       (next) ->
         teamsHelpers.buildStack browser, (res) ->
@@ -60,19 +52,15 @@ module.exports =
       (next) ->
         stackshelpers.editStackTemplates browser, (result) ->
           next null, result
-
+      (next) ->
+        stackshelpers.defineCustomVariables browser, (result) ->
+          next null, result
       (next) ->
         stackshelpers.addRemoveFromSideBar browser, (res) ->
           next null, res
       (next) ->
         stackshelpers.changeAndReinitializeStack browser, (res) ->
           next null, res
-      (next) ->
-        stackshelpers.destroyPersonalStack browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.destroy browser, (result) ->
-          next null, result
       (next) ->
         stackshelpers.deleteCredentialInUse browser, (result) ->
           next null, result
@@ -83,13 +71,20 @@ module.exports =
         stackshelpers.deleteStackTemplates browser, (result) ->
           next null, result
       (next) ->
+        stackshelpers.destroyPersonalStack browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.destroy browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.createAndMakeStackTeamDefault browser, (result) ->
+          next null, result
+      (next) ->
         teamsHelpers.logoutTeam browser, (result) ->
           next null, result
       (next) ->
         stackshelpers.createPrivateStackAsMember browser, (result) ->
           next null, result
-
-
 
     ]
 

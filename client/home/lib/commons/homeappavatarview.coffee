@@ -32,9 +32,15 @@ module.exports = class HomeAppAvatarArea extends kd.CustomHTMLView
       size       : { width: 38, height: 38 }
     , account
 
+    { profile } = account
+
+    pistachio = if profile.firstName is '' and profile.lastName is ''
+    then '{{#(profile.nickname)}}'
+    else "{{#(profile.firstName)+' '+#(profile.lastName)}}"
+
     @profileName = new JCustomHTMLView
       cssClass   : 'HomeAppView-Nav--fullname'
-      pistachio  : '{{ #(profile.firstName)}} {{ #(profile.lastName)}}'
+      pistachio  : pistachio
     , account
 
     @teamName = new JCustomHTMLView
