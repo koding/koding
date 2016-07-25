@@ -1,5 +1,5 @@
 kd = require 'kd'
-
+ContentModal = require 'app/components/contentModal'
 # You can find the list of AWS error messages here
 # http://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html
 VPC_WIKI_URL = 'http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Appendix_Limits.html'
@@ -29,9 +29,10 @@ module.exports = outputParser =
 
     for errorString, niceMessage of HANDLED_ERRORS
       if content.indexOf(errorString) > -1
-        modal = new kd.ModalView
+        modal = new ContentModal
+          cssClass       : 'content-modal'
           title          : 'An error occurred'
-          content        : "#{niceMessage} <br/><br/> You can see more detailed error message in stack build output."
+          content        : "<p>#{niceMessage}</p>"
           overlay        : yes
           overlayOptions :
             cssClass     : 'second-overlay'
@@ -39,7 +40,7 @@ module.exports = outputParser =
           buttons        :
             close        :
               title      : 'Close'
-              cssClass   : 'solid medium gray'
+              cssClass   : 'solid medium'
               callback   : -> modal.destroy()
 
         break
