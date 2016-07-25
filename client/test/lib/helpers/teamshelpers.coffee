@@ -542,7 +542,6 @@ module.exports =
   waitUntilToCreateStack: (browser, done) ->
     successModal          = '.kdmodal-inner .kdmodal-content'
     closeButton           = '.ContentModal.kdmodal .kdmodal-inner .close-icon'
-
     browser.element 'css selector', successModal, (result) =>
       browser.pause 2000
       if result.status is 0

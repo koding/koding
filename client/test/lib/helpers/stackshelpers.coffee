@@ -1,6 +1,7 @@
 helpers                = require '../helpers/helpers.js'
 teamsHelpers           = require '../helpers/teamshelpers.js'
 utils                  = require '../utils/utils.js'
+async                  = require 'async'
 staticContents         = require '../helpers/staticContents.js'
 stackEditorUrl         = "#{helpers.getUrl(yes)}/Home/stacks"
 stackSelector          = null
@@ -318,41 +319,68 @@ module.exports =
   createAndMakeStackTeamDefault: (browser, done) ->
     targetUser1 = utils.getUser no, 1
     admin       = utils.getUser no, 0
-    teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
-      browser
-        .pause 2000
-        .waitForElementVisible '.kdview', 20000
-        .click sideBarSelector
-        .waitForElementNotPresent reinitNotification, 20000
-    teamsHelpers.logoutTeam browser, (result) ->
-      teamsHelpers.loginToTeam browser, admin , no, '', ->
-        browser.pause 2000
-        teamsHelpers.createDefaultStackTemplate browser, (res) ->
-          browser.elements 'css selector', makeTeamDefaultButton, (result) ->
-            result.value.map (value) ->
-              browser.elementIdText value.ELEMENT, (res) ->
-                browser.elementIdDisplayed value.ELEMENT, (res) ->
-                  if res.value
-                    browser
-                      .elementIdClick value.ELEMENT, ->
-                        teamsHelpers.waitUntilToCreateStack browser, ->
-                          browser
-                            .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
-                            .click shareButton
-                            .waitForElementVisible '.ContentModal.content-modal main', 20000
-                            .click shareButton, ->
-                              browser.waitForElementVisible reinitNotification, 20000
-                              browser.assert.containsText reinitializeSelector, 'Reinitialize Default Stack'
-                              browser
-                                .click sideBarSelector
-                                .click reinitializeSelector
-                                .waitForElementVisible reinitStackModal, 20000
-                                .pause 2000
-                                .click proceedButton
-                                .waitForElementVisible notificationSelector, 20000
-                                .assert.containsText   notificationSelector, 'Reinitializing stack...'
-                                .pause 2000, ->
-                                  browser.waitForElementVisible '.kdview', 20000, done
+
+    queue = [
+      (next) ->
+        teamsHelpers.loginToTeam browser, targetUser1 , no, '', (result) ->
+          browser
+            .pause 2000
+            .waitForElementVisible '.kdview', 20000
+            .click sideBarSelector
+            .waitForElementNotPresent reinitNotification, 20000
+          next null, result
+      (next) ->
+        teamsHelpers.logoutTeam browser, (result) ->
+          next null, result
+      (next) ->
+        teamsHelpers.loginToTeam browser, admin , no, '', (result) ->
+          next null, result
+      (next) ->
+        teamsHelpers.createDefaultStackTemplate browser, (result) ->
+          next null, result
+      (next) =>
+        @makeStackTeamDefault browser, (result) ->
+          next null, result
+      (next) =>
+        @reinitializeTeamStack browser, (result) ->
+          next null, result
+    ]
+
+    async.series queue, (err, result) ->
+      done()  unless err
+
+
+  makeStackTeamDefault: (browser, done) ->
+    console.log('testtt')
+    browser.elements 'css selector', makeTeamDefaultButton, (result) ->
+      result.value.map (value) ->
+        browser.elementIdText value.ELEMENT, (res) ->
+          browser.elementIdDisplayed value.ELEMENT, (res) ->
+            if res.value
+              browser
+                .elementIdClick value.ELEMENT, ->
+                  teamsHelpers.waitUntilToCreateStack browser, ->
+                    done()
+
+
+  reinitializeTeamStack: (browser, done) ->
+    browser
+      .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
+      .click shareButton
+      .waitForElementVisible '.ContentModal.content-modal main', 20000
+      .click shareButton, ->
+        browser.waitForElementVisible reinitNotification, 20000
+        browser.assert.containsText reinitializeSelector, 'Reinitialize Default Stack'
+        browser
+          .click sideBarSelector
+          .click reinitializeSelector
+          .waitForElementVisible reinitStackModal, 20000
+          .pause 2000
+          .click proceedButton
+          .waitForElementVisible notificationSelector, 20000
+          .assert.containsText   notificationSelector, 'Reinitializing stack...'
+          .pause 2000, ->
+            browser.waitForElementVisible '.kdview', 20000, done
 
 
   createPrivateStackAsMember: (browser, done) ->
