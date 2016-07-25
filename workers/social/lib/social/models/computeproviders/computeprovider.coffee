@@ -326,14 +326,14 @@ module.exports = class ComputeProvider extends Base
     try
       template = JSON.parse content
     catch
-      callback new KodingError 'Template is not valid'
+      return callback new KodingError 'Template is not valid'
 
     teamutils.fetchConstraints planConfig, (err, rules) ->
 
       { passed, results } = konstraints template, rules, {}
-      return new KodingError results.last[1]  unless passed
+      return callback new KodingError results.last[1]  unless passed
 
-      return null
+      return callback null
 
 
   # Template checker, this will fetch the stack template from given id,
