@@ -160,28 +160,28 @@ module.exports = class JStackTemplate extends Module
       unless data?.title
         return callback new KodingError 'Title required.'
 
-      if validationError = validateTemplate data.template, group
-        return callback validationError
+      validateTemplate data.template, group, (err) ->
+        return callback validationError  if err
 
-      if data.config?
-        data.config.groupStack = no
+        if data.config?
+          data.config.groupStack = no
 
-      stackTemplate = new JStackTemplate
-        originId    : delegate.getId()
-        group       : client.context.group
-        title       : data.title
-        config      : data.config      ? {}
-        description : data.description ? ''
-        machines    : data.machines    ? []
-        accessLevel : data.accessLevel ? 'private'
-        template    : generateTemplateObject \
-          data.template, data.rawContent, data.templateDetails
-        credentials : data.credentials
+        stackTemplate = new JStackTemplate
+          originId    : delegate.getId()
+          group       : client.context.group
+          title       : data.title
+          config      : data.config      ? {}
+          description : data.description ? ''
+          machines    : data.machines    ? []
+          accessLevel : data.accessLevel ? 'private'
+          template    : generateTemplateObject \
+            data.template, data.rawContent, data.templateDetails
+          credentials : data.credentials
 
-      stackTemplate.save (err) ->
-        if err
-        then callback new KodingError 'Failed to save stack template', err
-        else callback null, stackTemplate
+        stackTemplate.save (err) ->
+          if err
+          then callback new KodingError 'Failed to save stack template', err
+          else callback null, stackTemplate
 
 
   @some$: permit 'list stack templates',
