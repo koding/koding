@@ -437,7 +437,9 @@ module.exports =
       .waitForElementVisible '.resource-state-modal.kdmodal .credentials-page .credential-form', 20000
       .click '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
       .waitForElementVisible '.BaseModalView.kdmodal section.main .progressbar-container', 20000
-
+      .waitForElementVisible '.kdview.kdscrollview', 20000
+      .waitForElementVisible '.kdview.jtreeview.expanded', 20000
+      .assert.containsText   'body.ide .kdlistitemview-finderitem > div .title', 'Applications'
     @waitUntilVmRunning browser, ->
       done()
 
@@ -501,7 +503,7 @@ module.exports =
     shareButton  = '[testpath=proceed]'
     vmSelector   = '.SidebarMachinesListItem cite'
 
-    browser.pause 3000, =>
+    browser.pause 1000, =>
       browser
         .waitForElementVisible useThisAndContinueButton, 30000
         .click useThisAndContinueButton
@@ -556,8 +558,6 @@ module.exports =
       .click '#main-sidebar'
       .waitForElementVisible draftStackHeader, 20000
       .click draftStackHeader
-      .waitForElementVisible menuSelector, 20000
-      .pause 1000
       .waitForElementVisible menuSelector, 20000
       .pause 3000
       .click  "#{menuSelector}:nth-of-type(2)"

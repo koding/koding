@@ -316,32 +316,43 @@ module.exports =
 
 
   createAndMakeStackTeamDefault: (browser, done) ->
-    teamsHelpers.createDefaultStackTemplate browser, (res) ->
-      browser.elements 'css selector', makeTeamDefaultButton, (result) ->
-        result.value.map (value) ->
-          browser.elementIdText value.ELEMENT, (res) ->
-            browser.elementIdDisplayed value.ELEMENT, (res) ->
-              if res.value
-                browser
-                  .elementIdClick value.ELEMENT, ->
-                    teamsHelpers.waitUntilToCreateStack browser, ->
-                      browser
-                        .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
-                        .click shareButton
-                        .waitForElementVisible '.ContentModal.content-modal main', 20000
-                        .click shareButton, ->
-                          browser.waitForElementVisible reinitNotification, 20000
-                          browser.assert.containsText reinitializeSelector, 'Reinitialize Default Stack'
+    targetUser1 = utils.getUser no, 1
+    admin       = utils.getUser no, 0
+    teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
+      browser
+        .pause 2000
+        .waitForElementVisible '.kdview', 20000
+        .click sideBarSelector
+        .waitForElementNotPresent reinitNotification, 20000
+    teamsHelpers.logoutTeam browser, (result) ->
+      teamsHelpers.loginToTeam browser, admin , no, '', ->
+        browser.pause 2000
+        teamsHelpers.createDefaultStackTemplate browser, (res) ->
+          browser.elements 'css selector', makeTeamDefaultButton, (result) ->
+            result.value.map (value) ->
+              browser.elementIdText value.ELEMENT, (res) ->
+                browser.elementIdDisplayed value.ELEMENT, (res) ->
+                  if res.value
+                    browser
+                      .elementIdClick value.ELEMENT, ->
+                        teamsHelpers.waitUntilToCreateStack browser, ->
                           browser
-                            .click sideBarSelector
-                            .click reinitializeSelector
-                            .waitForElementVisible reinitStackModal, 20000
-                            .pause 2000
-                            .click proceedButton
-                            .waitForElementVisible notificationSelector, 20000
-                            .assert.containsText   notificationSelector, 'Reinitializing stack...'
-                            .pause 2000, ->
-                              browser.waitForElementVisible '.kdview', 20000, done
+                            .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
+                            .click shareButton
+                            .waitForElementVisible '.ContentModal.content-modal main', 20000
+                            .click shareButton, ->
+                              browser.waitForElementVisible reinitNotification, 20000
+                              browser.assert.containsText reinitializeSelector, 'Reinitialize Default Stack'
+                              browser
+                                .click sideBarSelector
+                                .click reinitializeSelector
+                                .waitForElementVisible reinitStackModal, 20000
+                                .pause 2000
+                                .click proceedButton
+                                .waitForElementVisible notificationSelector, 20000
+                                .assert.containsText   notificationSelector, 'Reinitializing stack...'
+                                .pause 2000, ->
+                                  browser.waitForElementVisible '.kdview', 20000, done
 
 
   createPrivateStackAsMember: (browser, done) ->
@@ -354,28 +365,29 @@ module.exports =
         .waitForElementVisible reinitNotification, 20000
         .assert.containsText reinitializeSelector, 'Reinitialize Default Stack'
       teamsHelpers.createPrivateStack browser, (res) ->
-        teamsHelpers.initializeStack browser, ->
-        done
+        teamsHelpers.createDefaultStackTemplate browser, (result) ->
+          done()
 
 
   checkDraftsAsMember: (browser, done) ->
-    admin         = utils.getUser no, 0
-    adminUserName = capitalize admin.username
-    user          = utils.getUser no, 1
-
-    console.log(adminUserName)
-    teamStack     = adminUserName + "'s StackTeamStack"
-    draftStack    = adminUserName + "'s StackDefaultStack"
-    privateStack  = adminUserName + "'s StackPrivateStack"
+    admin          = utils.getUser no, 0
+    adminUserName  = capitalize admin.username
+    member         = utils.getUser no, 1
+    memberUserName = capitalize member.username
+    teamDefault    = adminUserName  + "'s StackDefaultStack"
+    memberDraft    = memberUserName + "'s StackDefaultStack"
+    privateStack   = adminUserName  + "'s StackPrivateStack"
+    draftSelector  = '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row'
 
     browser
       .url stackEditorUrl
       .waitForElementVisible teamStacksSelector, 20000
       .scrollToElement draftStacksSelector
       .waitForElementVisible draftStacksSelector, 20000
-      .assert.containsText '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row:nth-of-type(1) .HomeAppViewListItem-label' , teamStack
-      .assert.containsText '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row:last-child .HomeAppViewListItem-label' , draftStack
-      .expect.element('.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row:last-child .HomeAppViewListItem-label' ).text.to.not.equal(privateStack)
+      .assert.containsText "#{draftSelector}:nth-of-type(1) .HomeAppViewListItem-label" , teamDefault
+      .assert.containsText "#{draftSelector}:last-child .HomeAppViewListItem-label" , memberDraft
+      .expect.element("#{draftSelector}:last-child .HomeAppViewListItem-label").text.to.not.equal(privateStack)
+    browser.pause 1000, done
 
 
   getStackTitle: (browser, selector, callback) ->
@@ -385,6 +397,4 @@ module.exports =
 
 capitalize = (word) ->
   newWord = word.charAt(0).toUpperCase() + word.slice 1
-  console.log(newWord)
   return newWord
-

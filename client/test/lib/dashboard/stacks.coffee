@@ -83,6 +83,9 @@ module.exports =
         stackshelpers.destroy browser, (result) ->
           next null, result
       (next) ->
+        teamsHelpers.logoutTeam browser, (result) ->
+          next null, result
+      (next) ->
         stackshelpers.createAndMakeStackTeamDefault browser, (result) ->
           next null, result
       (next) ->
