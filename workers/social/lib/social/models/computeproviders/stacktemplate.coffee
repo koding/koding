@@ -135,13 +135,13 @@ module.exports = class JStackTemplate extends Module
     }
 
 
-  validateTemplate = (template, group) ->
+  validateTemplate = (template, group, callback) ->
 
     planConfig = helpers.getPlanConfig group
-    return  unless planConfig.plan # No plan, no pain.
+    return callback null  unless planConfig.plan # No plan, no pain.
 
     ComputeProvider = require './computeprovider'
-    return ComputeProvider.validateTemplateContent template, planConfig
+    ComputeProvider.validateTemplateContent template, planConfig, callback
 
 
   @create = permit 'create stack template',
