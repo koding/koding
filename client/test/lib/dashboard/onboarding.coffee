@@ -1,7 +1,17 @@
-utils          = require '../utils/utils.js'
-teamsHelpers   = require '../helpers/teamshelpers.js'
+utils             = require '../utils/utils.js'
+helpers           = require '../helpers/helpers.js'
+teamsHelpers      = require '../helpers/teamshelpers.js'
 onboardinghelper  = require '../helpers/onboardinghelpers.js'
-async = require 'async'
+async             = require 'async'
+
+welcomeLink     = "#{helpers.getUrl(yes)}/Welcome"
+WelcomeView     = '.WelcomeStacksView'
+stackLink       = "#{WelcomeView} ul.bullets li:nth-of-type(1)"
+stackEditor     = '.StackEditor-OnboardingModal'
+
+notFoundLink    = "#{WelcomeView} ul.bullets li:nth-of-type(8)"
+notFounPage     = '.HomeAppView--section.kd-cli'
+
 
 module.exports =
 
@@ -14,40 +24,21 @@ module.exports =
 
 
   dashboard: (browser) ->
-    queue = [
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openStackEditor browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openCredential browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openMyTeamScreen browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.installKDLink browser, (result) ->
-          next null, result
-      (next) ->
-        teamsHelpers.logoutTeam browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.onboardingScreenMember browser, (result) ->
-          next null, result
-    ]
 
-    async.series queue
+    browser
+      .url welcomeLink
+      .pause 2000
+      .waitForElementVisible WelcomeView, 20000
+      .click stackLink
+      .waitForElementVisible stackEditor, 20000
+      .url welcomeLink
+      .pause 2000
+      .waitForElementVisible WelcomeView, 20000
+
+      #give error this part
+      .click notFoundLink
+      .waitForElementVisible notFounPage
+
 
   after: (browser) ->
     browser.end()
