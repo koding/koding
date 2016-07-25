@@ -48,12 +48,9 @@ saveButtonSelector     = "#{visibleStack} .StackEditorView--header .kdbutton.Gen
 privateStacks          = '.SidebarTeamSection .SidebarSection:nth-of-type(2)  .HomeAppViewListItem-label'
 privateStacksDraft     = '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row:nth-of-type(2)'
 addRemoveButton        = "#{privateStacksDraft} .HomeAppViewListItem .HomeAppViewListItem-SecondaryContainer .HomeAppView--button"
-
-
-#Define Custom Variables
-errorIndicator             = '.kdtabhandle.custom-variables .indicator.red.in'
-customVariablesTabSelector = "#{stackEditorTab} div.kdtabhandle.custom-variables"
-
+errorIndicator          = '.kdtabhandle.custom-variables .indicator.red.in'
+customVariablesSelector = "#{stackEditorTab} div.kdtabhandle.custom-variables"
+reinitNotification      = '.SidebarStackWidgets.--DifferentStackResources'
 
 module.exports =
 
@@ -156,17 +153,6 @@ module.exports =
       .waitForElementVisible removeStackModal, 20000
       .click proceedButton
       .pause 1000, done
-
-
-  createPrivateStackAsMember: (browser, done) ->
-    targetUser1 = utils.getUser no, 1
-    teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
-      browser
-        .pause 2000
-        .waitForElementVisible '.kdview', 20000, ->
-          teamsHelpers.createDefaultStackTemplate browser, (res) ->
-            teamsHelpers.initializeStack browser, ->
-              done
 
 
   destroy: (browser, done) ->
@@ -344,7 +330,7 @@ module.exports =
                         .click shareButton
                         .waitForElementVisible '.ContentModal.content-modal main', 20000
                         .click shareButton, ->
-                          browser.waitForElementVisible '.SidebarStackWidgets.--DifferentStackResources', 20000
+                          browser.waitForElementVisible reinitNotification, 20000
                           browser.assert.containsText reinitializeSelector, 'Reinitialize Default Stack'
                           browser
                             .click sideBarSelector
@@ -358,8 +344,47 @@ module.exports =
                               browser.waitForElementVisible '.kdview', 20000, done
 
 
+  createPrivateStackAsMember: (browser, done) ->
+    targetUser1 = utils.getUser no, 1
+    teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
+      browser
+        .pause 2000
+        .waitForElementVisible '.kdview', 20000
+        .click sideBarSelector
+        .waitForElementVisible reinitNotification, 20000
+        .assert.containsText reinitializeSelector, 'Reinitialize Default Stack'
+      # teamsHelpers.createPrivateStack browser, (res) ->
+      #   teamsHelpers.initializeStack browser, ->
+      browser.pause 1000, done
+
+
+  checkDraftsAsMember: (browser, done) ->
+    admin         = utils.getUser no, 0
+    adminUserName = capitalize admin.username
+    user          = utils.getUser no, 1
+
+    console.log(adminUserName)
+    teamStack     = adminUserName + "'s StackTeamStack"
+    draftStack    = adminUserName + "'s StackDefaultStack"
+    privateStack  = adminUserName + "'s StackPrivateStack"
+
+    browser
+      .url stackEditorUrl
+      .waitForElementVisible teamStacksSelector, 20000
+      .scrollToElement draftStacksSelector
+      .waitForElementVisible draftStacksSelector, 20000
+      .assert.containsText '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row:nth-of-type(1) .HomeAppViewListItem-label' , teamStack
+      .assert.containsText '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row:last-child .HomeAppViewListItem-label' , draftStack
+      .expect.element('.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row:last-child .HomeAppViewListItem-label' ).text.to.not.equal(privateStack)
+
+
   getStackTitle: (browser, selector, callback) ->
     browser.getText selector, (res) ->
       return res.value
 
+
+capitalize = (word) ->
+  newWord = word.charAt(0).toUpperCase() + word.slice 1
+  console.log(newWord)
+  return newWord
 

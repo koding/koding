@@ -364,7 +364,7 @@ module.exports =
     newCredentialPage = '.kdview.stacks.stacks-v2'
     saveButton = "#{newCredentialPage} button[type=submit]"
     regionSelector = '.kdview.formline.region .kdselectbox select'
-    eu_west_1 = "#{regionSelector} option[value=eu-west-1]"
+    eu_west_1 = "#{regionSelector} option[value=us-west-1]"
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
@@ -476,7 +476,7 @@ module.exports =
 
 
   createPrivateStack: (browser, done) ->
-    @createCredential browser, 'aws', 'draft-stack', no, (res) =>
+    @createCredential browser, 'aws', 'private-stack', no, (res) =>
       @createStack browser, 'PrivateStack', no, (res) =>
         @initializeStack browser, ->
           done()
@@ -503,6 +503,7 @@ module.exports =
 
     browser.pause 3000, =>
       browser
+        .waitForElementVisible useThisAndContinueButton, 30000
         .click useThisAndContinueButton
         .waitForElementVisible editorPaneSelector, 20000
         .waitForElementVisible stackTemplateNameArea, 2000

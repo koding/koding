@@ -43,18 +43,18 @@ module.exports =
 
   stacks: (browser) ->
     queue = [
-      (next) ->
-        stackshelpers.clickNewStackButton browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.seeTeamStackTemplates browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.seePrivateStackTemplates browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.seeDraftStackTemplates browser, (result) ->
-          next null, result
+      # (next) ->
+      #   stackshelpers.clickNewStackButton browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.seeTeamStackTemplates browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.seePrivateStackTemplates browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   stackshelpers.seeDraftStackTemplates browser, (result) ->
+      #     next null, result
       # (next) ->
       #   stackshelpers.editStackTemplates browser, (result) ->
       #     next null, result
@@ -91,10 +91,13 @@ module.exports =
       (next) ->
         stackshelpers.createPrivateStackAsMember browser, (result) ->
           next null, result
+      (next) ->
+        stackshelpers.checkDraftsAsMember browser, (result) ->
+          next null, result
 
     ]
 
     async.series queue
 
-  after: (browser) ->
-    browser.end()
+  # after: (browser) ->
+  #   browser.end()
