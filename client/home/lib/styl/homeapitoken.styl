@@ -17,13 +17,10 @@
     letter-spacing          0.15px
     line-height             16px
 
-
-.HomeApp-ApiToken--footer
-  border-top                1px solid #ebebeb
-  margin-top                20px
-
 .HomeApp-ApiToken--footer--button-wrapper
-  padding                   25px 0 6px 0
+  padding                   26px 0 17px 0
+  cursor                    pointer
+
   .custom-link-view.HomeAppView--button.primary.disabled
     opacity                 0.5
 
@@ -36,6 +33,8 @@
 .HomeApp-ApiToken--ListItem:first-of-type
   .HomeApp-ApiToken--custom-link-view.delete-api-token
       abs                   18px 0px 0 0
+  .HomeApp-ApiToken--custom-link-view.copy-api-token
+      abs                   18px 78px 0 0
 
 .HomeApp-ApiToken--swicth-toggle
   abs 8px 0px 0 0
@@ -61,8 +60,13 @@
   color                     #769ECC
   abs                       38px 0px 0 0
   cursor                    pointer
-  &:first
-    abs                     18px 0px 0 0
+  font-size                 14px
+
+.HomeApp-ApiToken--custom-link-view.copy-api-token
+  color                     #769ECC
+  abs                       38px 78px 0 0
+  cursor                    pointer
+  font-size                 14px
 
 .HomeApp-ApiToken
   .react-toggle:before
@@ -72,3 +76,16 @@
 
 .HomeApp-ApiToken--api-wrapper--disabled
   opacity 0.5
+
+.HomeApp-ApiToken--no-token
+  color                     #ACACAC
+  font-size                 14px
+
+.HomeApp-ApiToken--label
+  height                    50px
+  color                     #5F5F5F
+
+.ListView-section.HomeApp-ApiTokenSection
+  border                    1px solid #ebebeb
+  padding                   20px
+  border-radius             5px
