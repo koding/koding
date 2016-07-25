@@ -281,6 +281,26 @@ var errUnknownZones = errors.New("unable to guess availability zones")
 // SubnetAvailabilityZones gives all availability zones that can be used
 // for creating a subnet for the account.
 func (c *Client) SubnetAvailabilityZones() ([]string, error) {
+	zones, err := c.guessAvailabilityZones()
+	if err == nil {
+		return zones, nil
+	}
+
+	resp, err := c.EC2.DescribeAvailabilityZones(nil)
+	if err != nil {
+		return nil, awsError(err)
+	}
+
+	zones = make([]string, len(resp.AvailabilityZones))
+
+	for i, zone := range resp.AvailabilityZones {
+		zones[i] = aws.StringValue(zone.ZoneName)
+	}
+
+	return zones, nil
+}
+
+func (c *Client) guessAvailabilityZones() ([]string, error) {
 	const errMsg = "Subnets can currently only be created in the following availability zones:"
 
 	params := &ec2.CreateSubnetInput{
