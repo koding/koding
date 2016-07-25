@@ -98,6 +98,7 @@
     "nightwatch": "0.8.8",
     "os-tmpdir": "1.0.1",
     "postcss": "^5.1.0",
+    "postcss-mixins": "^5.0.0",
     "postcss-modules-extract-imports": "^1.0.1",
     "postcss-modules-local-by-default": "^1.1.0",
     "postcss-modules-values": "^1.1.3",

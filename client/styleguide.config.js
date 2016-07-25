@@ -27,6 +27,7 @@ module.exports = {
 
     webpackConfig.postcss = function() {
       return originalPostcss.concat([
+        require('postcss-mixins'),
         require('postcss-modules-values'),
         require('postcss-modules-local-by-default'),
         require('postcss-modules-extract-imports'),
