@@ -526,7 +526,6 @@ generateDev = (KONFIG, options) ->
       fi
 
       build_services
-      importusers
       migrate up
 
     elif [ "$1" == "help" ]; then

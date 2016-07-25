@@ -37,7 +37,9 @@ module.exports = class View extends React.Component
       toggleState={toggleState} />  if apiToken
 
 
-  renderEmptySectionAtIndex: -> <div> No data found</div>
+  renderEmptySectionAtIndex: ->
+
+    <div className='HomeApp-ApiToken--no-token'> No tokens have been created yet. When you create, they will be listed here.</div>
 
 
   addNewApiToken: ->
@@ -60,7 +62,8 @@ module.exports = class View extends React.Component
     <div className='HomeApp-ApiToken'>
 
       <Toggle checked={toggleState} className='HomeApp-ApiToken--swicth-toggle' callback={@bound 'switchToggle'} />
-      <Header toggleState={toggleState} callback={@bound 'addNewApiToken'}/>
+      <Header callback={@bound 'addNewApiToken'}/>
+      <div className='HomeApp-ApiToken--label'>Active API Token List</div>
       <List
         numberOfSections={@bound 'numberOfSections'}
         numberOfRowsInSection={@bound 'numberOfRowsInSection'}
@@ -79,13 +82,10 @@ module.exports = class View extends React.Component
 
     </div>
 
-Header = ({ toggleState, callback }) ->
+Header = ({ callback }) ->
 
   label = 'Enable API Access'
-  label = 'API Access is Disabled'  unless toggleState
-
   description = 'Allow 3rd party services to securely communicate with Koding.'
-  description = 'Allow 3rd party services to securely communicate with Koding.'  unless toggleState
 
   <div className='HomeApp-ApiToken--header'>
     <div className='label'>{label}</div>
@@ -95,7 +95,7 @@ Header = ({ toggleState, callback }) ->
 
 GuideButton = ->
 
-  <a className="custom-link-view HomeAppView--button fl" href="https://www.koding.com/docs/desktop-app">
+  <a className="custom-link-view HomeAppView--button fl" href="https://www.koding.com/docs/api-tokens">
     <span className="title">VIEW GUIDE</span>
   </a>
 

@@ -5,12 +5,17 @@ ContentModal = require 'app/components/contentModal'
 TeamFlux = require 'app/flux/teams'
 showError = require 'app/util/showError'
 remote = require('app/remote').getInstance()
+copyToClipboard = require 'app/util/copyToClipboard'
 
 module.exports = class ApiToken extends React.Component
 
   constructor: (props) ->
 
     super props
+
+  copyApiToken: ->
+
+    copyToClipboard @refs.token
 
   deleteApiToken: ->
 
@@ -33,7 +38,6 @@ module.exports = class ApiToken extends React.Component
               modal.destroy()
 
 
-
   render: ->
 
     { code, createdAt, username } = @props.apiToken.toJS()
@@ -44,16 +48,20 @@ module.exports = class ApiToken extends React.Component
 
     <div>
       <div className={className}>
-        <div className='HomeApp-ApiToken--api-token'>
+        <div ref='token' className='HomeApp-ApiToken--api-token'>
           {code}
         </div>
         <div className='HomeApp-ApiToken--api-token-detail'>
           {createdAt} by {username}
         </div>
       </div>
+      <CopyButton callback={@bound 'copyApiToken'} />
       <DeleteButton callback={@bound 'deleteApiToken'}/>
     </div>
 
 
 DeleteButton = ({ callback }) ->
   <a className='HomeApp-ApiToken--custom-link-view delete-api-token fr' onClick={callback}>DELETE</a>
+
+CopyButton = ({ callback }) ->
+  <a className='HomeApp-ApiToken--custom-link-view copy-api-token' onClick={callback}>COPY</a>

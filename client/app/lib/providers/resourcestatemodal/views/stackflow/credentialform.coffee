@@ -12,27 +12,15 @@ module.exports = class CredentialForm extends JView
 
     super options, data
 
-    @createViews()
-
-
-  createViews: ->
-
-    { title, hideTitle, selectionPlaceholder, selectionLabel } = @getOptions()
-    { provider, fields, selectedItem, items } = @getData()
+    { title, selectionPlaceholder, selectionLabel } = @getOptions()
+    { provider, fields } = @getData()
 
     @header = new kd.CustomHTMLView
       tagName  : 'h3'
       partial  : title
-    @header.hide()  if hideTitle
 
-    selectOptions   = items.map (item) -> { value : item.identifier, title : item.title }
-    selectOptions.unshift { value : '', title : selectionPlaceholder }
-    hasSelectedItem = (item for item in items when item.identifier is selectedItem).length > 0
-    defaultValue    = if hasSelectedItem then selectedItem else ''
     @selectionLabel = new kd.LabelView { title : selectionLabel }
     @selection      = new kd.SelectBox {
-      selectOptions
-      defaultValue
       label : @selectionLabel
       callback : @bound 'checkShowLinkVisibility'
     }
@@ -43,6 +31,7 @@ module.exports = class CredentialForm extends JView
       tagName  : 'a'
       cssClass : 'show-link'
       click    : =>
+        { items } = @getData()
 
         selectedItem = @selection.getValue()
         return  if not selectedItem or @showLink.hasClass 'loading'
@@ -56,8 +45,6 @@ module.exports = class CredentialForm extends JView
           }, @showLink.lazyBound 'unsetClass', 'loading'
 
           break
-
-    @checkShowLinkVisibility()
 
     @createNew = new kd.CustomHTMLView
       tagName  : 'a'
@@ -86,10 +73,37 @@ module.exports = class CredentialForm extends JView
     @scroller = new kd.CustomScrollView()
     @scroller.wrapper.addSubView @getScrollableContent()
 
-    if items.length > 0
-      @unsetClass 'form-visible'
+    @render()
+
+
+  render: ->
+
+    return  unless @selection
+
+    { selectionPlaceholder, hideTitle } = @getOptions()
+    { defaultItem, items } = @getData()
+
+    selectOptions   = items.map (item) -> { value : item.identifier, title : item.title }
+    selectOptions.unshift { value : '', title : selectionPlaceholder }
+
+    selectedItem    = @selection.getValue() or defaultItem
+    hasSelectedItem = (item for item in items when item.identifier is selectedItem).length > 0
+    selectedItem    = ''  unless hasSelectedItem
+
+    @selection.removeSelectOptions()
+    @selection.setSelectOptions selectOptions
+    @selection.setValue selectedItem
+
+    @checkShowLinkVisibility()
+
+    return  if items.length > 0
+
+    @setClass 'form-visible'
+    @newHeader.hide()
+    if hideTitle
+      @header.hide()
     else
-      @setClass 'form-visible'
+      @header.show()
 
 
   checkShowLinkVisibility: ->
@@ -129,6 +143,21 @@ module.exports = class CredentialForm extends JView
     @header.show()  unless hideTitle
 
 
+  selectValue: (value) ->
+
+    @selection.setValue value
+    @onCancelNew()
+
+
+  setData: (data) ->
+
+    super data
+
+    # we need to update form even if parent page is not active at the moment
+    # so that once parent page gets opened all new data is already in the place
+    @render()  unless @parentIsInDom
+
+
   validate: ->
 
     @selection.unsetClass 'validation-error'
@@ -147,17 +176,6 @@ module.exports = class CredentialForm extends JView
 
     { provider } = @getData()
     @emit 'FormValidationPassed', { provider, newData : { title, fields } }
-
-
-  render: ->
-
-    @unsetClass 'form-visible'
-    @unsetClass 'selection-visible'
-    @destroySubViews()
-    @clear()
-
-    @createViews()
-    @viewAppended()
 
 
   pistachio: ->
