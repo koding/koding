@@ -36,9 +36,10 @@ module.exports = (options) ->
   handleGitLab = (options, path) ->
 
     { params } = options
-    { section, action, identifier, extra } = params
+    { section, action, identifier, extra, branch } = params
 
     repo = "#{identifier}/#{extra}"
+    repo = "#{repo}/#{branch}"  if branch
 
     { groupsController, router, appManager } = kd.singletons
 
@@ -97,5 +98,5 @@ module.exports = (options) ->
         kd.singletons.router.handleRoute homeRoute
       when 'section', 'action', 'identifier'
         handle info, path
-      when 'extra'
+      when 'extra', 'branch'
         handleGitLab info, path
