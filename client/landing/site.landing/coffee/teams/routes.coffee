@@ -42,5 +42,6 @@ do ->
 
   kd.registerRoutes 'Teams',
 
-    '/Teams'       : handleRoute
-    '/Teams/Create': handleInvitation
+    '/Teams'          : handleRoute
+    '/Teams/Create'   : handleInvitation
+    '/Teams/FindTeam' : handleRoute

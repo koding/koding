@@ -1,6 +1,7 @@
 kd                = require 'kd'
 TeamsView         = require './AppView'
 TeamSelectorView  = require './teamselectorview'
+FindTeamView      = require './findteamview'
 
 
 module.exports = class TeamsAppController extends kd.ViewController
@@ -13,9 +14,12 @@ module.exports = class TeamsAppController extends kd.ViewController
 
     { currentPath } = kd.singletons.router
 
-    if currentPath.indexOf('/Teams/Create') > -1
-    then options.view = new TeamsView { cssClass: 'content-page' }
-    else options.view = new TeamSelectorView { cssClass: 'content-page' }
+    options.view = switch
+      when currentPath.indexOf('/Teams/Create') > -1
+      then new TeamsView { cssClass: 'content-page' }
+      when currentPath.indexOf('/Teams/FindTeam') > -1
+      then new FindTeamView { cssClass: 'content-page' }
+      else new TeamSelectorView { cssClass: 'content-page' }
 
     super options, data
 

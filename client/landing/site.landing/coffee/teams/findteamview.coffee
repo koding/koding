@@ -1,9 +1,8 @@
 kd             = require 'kd'
 $              = require 'jquery'
-utils          = require '../../core/utils'
-JView          = require '../../core/jview'
-MainHeaderView = require '../../core/mainheaderview'
-FindTeamForm   = require '../forms/findteamform'
+utils          = require './../core/utils'
+JView          = require './../core/jview'
+FindTeamForm   = require './findteamform'
 
 track = (action) ->
 
@@ -12,29 +11,30 @@ track = (action) ->
   utils.analytics.track action, { category, label }
 
 
-module.exports = class FindTeamTab extends kd.TabPaneView
-
-  JView.mixin @prototype
+module.exports = class FindTeamView extends JView
 
   constructor: (options = {}, data) ->
+
+    options.cssClass = kd.utils.curry 'Team Teams-findteam', options.cssClass
 
     super options, data
 
     { mainController } = kd.singletons
     { group }          = kd.config
 
-    @header = new MainHeaderView
-      cssClass : 'team'
-      navItems : []
+    @header = new kd.CustomHTMLView
+      tagName  : 'header'
+      cssClass : 'Homepage-Header'
 
-    @logo = utils.getGroupLogo()
+    @header.addSubView new kd.CustomHTMLView
+      tagName   : 'a'
+      partial   : '<img src="/a/images/logos/header_logo.svg" />'
+      click     : (event) ->
+        kd.utils.stopDOMEvent event
+        kd.singletons.router.handleRoute '/'
 
     @form = new FindTeamForm
-      cssClass : 'login-form clearfix'
       callback : @bound 'findTeam'
-
-    @form.button.unsetClass 'solid medium green'
-    @form.button.setClass 'TeamsModal-button TeamsModal-button--green'
 
 
   setFocus: -> @form.setFocus()
@@ -73,10 +73,6 @@ module.exports = class FindTeamTab extends kd.TabPaneView
     '''
     {{> @header }}
     <div class="TeamsModal TeamsModal--login">
-      {{> @logo}}
       {{> @form}}
     </div>
-    <footer>
-      <a href="https://www.koding.com/legal/teams-user-policy" target="_blank">Acceptable user policy</a><a href="https://www.koding.com/legal/teams-copyright" target="_blank">Copyright/DMCA guidelines</a><a href="https://www.koding.com/legal/teams-terms-of-service" target="_blank">Terms of service</a><a href="https://www.koding.com/legal/teams-privacy" target="_blank">Privacy policy</a>
-    </footer>
     '''

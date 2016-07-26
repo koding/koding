@@ -1,13 +1,15 @@
 kd                  = require 'kd'
-utils               = require '../../core/utils'
-LoginViewInlineForm = require '../../login/loginviewinlineform'
-LoginInputView      = require '../../login/logininputview'
+utils               = require './../core/utils'
+LoginViewInlineForm = require './../login/loginviewinlineform'
+LoginInputView      = require './../login/logininputview'
 
 module.exports = class FindTeamForm extends LoginViewInlineForm
 
-  constructor: ->
+  constructor: (options = {}, data) ->
 
-    super
+    options.cssClass = kd.utils.curry 'login-form', options.cssClass
+
+    super options, data
 
     { invitation, signup } = utils.getTeamData()
     email = signup?.email or invitation?.email
@@ -16,7 +18,7 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
       inputOptions    :
         name          : 'email'
         placeholder   : 'Email address'
-        testPath      : 'find-teams-input'
+        testPath      : 'find-team-input'
         defaultValue  : email
         validate      :
           container   : this
@@ -26,8 +28,8 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
             required  : 'Please enter your email.'
 
     @button = new kd.ButtonView
-      title       : 'FIND YOUR TEAM'
-      style       : 'solid medium green'
+      title       : 'FIND MY TEAMS'
+      style       : 'TeamsModal-button TeamsModal-button--green'
       type        : 'submit'
       loader      : yes
 

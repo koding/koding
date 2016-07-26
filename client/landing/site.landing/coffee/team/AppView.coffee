@@ -12,7 +12,6 @@ module.exports = class TeamView extends kd.View
     join            : require './tabs/teamjointab'
     banned          : require './tabs/teambannedtab'
     authenticate    : require './tabs/teamauthenticatetab'
-    findteam        : require './tabs/findteamtab'
     # welcome         : require './tabs/teamwelcometab'
     # 'email-domains' : require './tabs/teamalloweddomaintab'
     # invite          : require './tabs/teaminvitetab'
