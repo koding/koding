@@ -149,6 +149,8 @@ module.exports = class StackEditorView extends kd.View
         title  : "You need to set your #{selectedProvider.toUpperCase()}
                   credentials to be able build this stack."
 
+    @credentialWarning.bindTransitionEnd()
+
     @credentialStatusView = new CredentialStatusView {
       stackTemplate, selectedProvider
     }
@@ -391,9 +393,15 @@ module.exports = class StackEditorView extends kd.View
           .add 'Checking provided credentials...'
 
         @checkAndBootstrapCredentials (err, credentials) =>
-          if err
+
+          return  unless err
+
+          @credentialWarning.once 'transitionend', =>
             @credentialWarning.tooltip.show()
-            return @saveButton.hideLoader()
+          @credentialWarning.setClass 'in'
+          @providersPane.tabHandle.setClass 'notification'
+          @_credentialsPassed = no
+          return @saveButton.hideLoader()
 
           @outputView
             .add 'Credentials are ready!'
