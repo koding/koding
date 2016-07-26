@@ -80,7 +80,7 @@ module.exports = class JApiToken extends jraphical.Module
           next()
 
       (next) ->
-        limitError = "You can't have more than #{JGroup.API_TOKEN_LIMIT} api tokens"
+        limitError = "You can't have more than #{JGroup.API_TOKEN_LIMIT} API tokens"
         JApiToken.count { group : groupObj.slug }, (err, count) ->
           return next err                         if err
           return next new KodingError limitError  if count >= JGroup.API_TOKEN_LIMIT

@@ -11,6 +11,7 @@ VerifyPINModal       = require 'app/commonviews/verifypinmodal'
 VerifyPasswordModal  = require 'app/commonviews/verifypasswordmodal'
 AvatarStaticView     = require 'app/commonviews/avatarviews/avatarstaticview'
 CustomLinkView       = require 'app/customlinkview'
+DEFAULT_SPINNER_PATH = '/a/images/logos/loader.svg'
 
 notify = (title, duration = 2000) -> new kd.NotificationView { title, duration }
 
@@ -41,36 +42,32 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
     @useGravatarLink  = new CustomLinkView
       cssClass : 'HomeAppView--link'
       title    : 'USE GRAVATAR'
-      callback : =>
-        @account.modify { 'profile.avatar' : '' }, (err) ->
+      click : =>
+        @account.modify { 'profile.avatar' : '' }, (err) =>
+          @uploadAvatarInput.setValue ''
           console.warn err  if err
+
+    @spinner = new kd.CustomHTMLView
+      cssClass : 'HomeAppView--account-avatar-spinner hidden'
+      partial : "<img src=#{DEFAULT_SPINNER_PATH}>"
 
     @avatarWrapper = new KDCustomHTMLView
       cssClass : 'HomeAppView--account-avatar-wrapper'
 
     @avatarWrapper.addSubView @avatar
-
+    @avatarWrapper.addSubView @spinner
     @avatarWrapper.addSubView @changeAvatarLink
     @avatarWrapper.addSubView @useGravatarLink
     @avatarWrapper.addSubView @uploadAvatarInput
 
-
     fields =
-      username       :
-        cssClass     : 'hidden'
-        placeholder  : 'username'
-        name         : 'username'
-        label        : 'Username'
-        attributes   :
-          readonly   : "#{not /^guest-/.test @account.profile.nickname}"
-        testPath     : 'account-username-input'
       firstName      :
-        cssClass     : 'Formline--half'
+        cssClass     : 'Formline--half firstname'
         placeholder  : 'firstname'
         name         : 'firstName'
         label        : 'First Name'
       lastName       :
-        cssClass     : 'Formline--half'
+        cssClass     : 'Formline--half lastname'
         placeholder  : 'lastname'
         name         : 'lastName'
         label        : 'Last Name'
@@ -80,6 +77,17 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
         name         : 'email'
         testPath     : 'account-email-input'
         label        : 'Email Address'
+      username       :
+        cssClass     : 'Formline--half username'
+        placeholder  : 'username'
+        name         : 'username'
+        label        : 'Username'
+        attributes   :
+          readonly   : yes
+          disabled   : yes
+        testPath     : 'account-username-input'
+
+
 
     @submitButton = new kd.ButtonView
       type     : 'submit'
@@ -123,6 +131,9 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
 
     return unless file
 
+    @avatar.hide()
+    @spinner.show()
+
     mimeType      = file.type
     reader        = new FileReader
     reader.onload = (event) =>
@@ -148,6 +159,9 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
     , (err, url) =>
 
       return showError err  if err
+
+      @spinner.hide()
+      @avatar.show()
 
       @account.modify { 'profile.avatar': "#{url}" }
 

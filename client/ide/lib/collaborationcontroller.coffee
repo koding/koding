@@ -1264,7 +1264,7 @@ module.exports = CollaborationController =
 
     options   =
       title   : 'Are you sure?'
-      content : "<p>If you leave this session you won't be able to return back.</p>"
+      content : "<p>This will remove the shared VM from your sidebar. If you want to get back to the collaboration session later, you will need to manually go to this session's URL.</p>"
 
     @showModal options, => @stateMachine.transition 'Ending'
 

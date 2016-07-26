@@ -3,6 +3,7 @@ os                               = require 'os'
 sectionize                       = require '../commons/sectionize'
 headerize                        = require '../commons/headerize'
 HomeUtilitiesKD                  = require './homeutilitieskd'
+HomeUtilitiesApiAccess           = require './homeutilitiesapiaccess'
 HomeUtilitiesTryOnKoding         = require './homeutilitiestryonkoding'
 HomeUtilitiesDesktopApp          = require './homeutilitiesdesktopapp'
 HomeUtilitiesCustomerFeedback    = require './homeutilitiescustomerfeedback'
@@ -42,7 +43,8 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
         @wrapper.addSubView headerize  'Integrations'
         @wrapper.addSubView sectionize 'Intercom Integration', HomeUtilitiesIntercomIntegration
         @wrapper.addSubView sectionize 'Customer Feedback', HomeUtilitiesCustomerFeedback
-
+        @wrapper.addSubView headerize 'API Access'
+        @wrapper.addSubView sectionize 'Api Access', HomeUtilitiesApiAccess
 
   handleAction: (action) ->
 

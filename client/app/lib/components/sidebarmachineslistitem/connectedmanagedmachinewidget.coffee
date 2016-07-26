@@ -27,6 +27,10 @@ module.exports = class ConnectedManagedMachineWidget extends React.Component
     connectedManagedMachine: EnvironmentFlux.getters.connectedManagedMachine
 
 
+  onClose: ->
+
+    @removeFromStore()
+
   removeFromStore: ->
 
     kd.utils.defer =>
@@ -35,7 +39,16 @@ module.exports = class ConnectedManagedMachineWidget extends React.Component
 
   handleButtonClick: ->
 
+    { router } = kd.singletons
+    currentPath = router.getCurrentPath()
+    newPath = "/IDE/#{@props.machine.get('slug')}"
+
     @removeFromStore()
+    router.handleRoute newPath  unless newPath is currentPath
+
+
+  componentWillMount: ->
+
     kd.singletons.router.handleRoute "/IDE/#{@props.machine.get('slug')}"
 
 
@@ -47,22 +60,26 @@ module.exports = class ConnectedManagedMachineWidget extends React.Component
 
     provider = if PROVIDERS[connectedMachine.providerName] then connectedMachine.providerName else 'UnknownProvider'
 
-    <SidebarWidget {...@props} onClose={@bound 'removeFromStore'}>
-      <div className='artboard'>
-        <img
-          className="#{PROVIDERS[provider]}"
-          src="/a/images/providers/#{provider.toLowerCase()}.png"
-          />
+    <SidebarWidget {...@props} onClose={@bound 'onClose'}>
+      <div className='header'>
+        <h1>Congratulations</h1>
       </div>
-      <h2>Your {PROVIDERS[provider] or ''} machine is now connected!</h2>
-      <p>
-        You may now use this machine just like you use your Koding VM.
-        You can open files, terminals and even initiate collaboration session.
-      </p>
-      <button className='kdbutton solid green medium close' onClick={@bound 'handleButtonClick'}>
-        <span className='icon check'></span>
-        <span className='button-title'>AWESOME</span>
-      </button>
+      <span className='close-icon' onClick={@bound 'onClose'}></span>
+      <div className='main-wrapper'>
+        <div className='image-wrapper'>
+        </div>
+        <div className='content'>
+          <div className='label'>
+            Your machine is now connected!
+          </div>
+          <div className='description'>
+            You may now use this machine just like you use your Koding VM. You can open files, terminals and even initiate collaboration session.
+          </div>
+          <button className='GenericButton' onClick={@bound 'handleButtonClick'}>Start Coding</button>
+        </div>
+      </div>
+
+
     </SidebarWidget>
 
 

@@ -7,6 +7,7 @@ articlize          = require 'indefinite-article'
 KDModalView        = kd.ModalView
 KDNotificationView = kd.NotificationView
 KDObject           = kd.Object
+ContentModal = require 'app/components/contentModal'
 
 remote_extensions  = require 'app/remote-extensions'
 
@@ -177,20 +178,22 @@ module.exports = class NotificationController extends KDObject
       # check if the notification is sent for current group
       return  unless group is getGroup().slug
 
-      modal = new KDModalView
-        title         : 'Your team role has been changed!'
-        overlay       : yes
-        width         : 500
-        content       :
+      modal = new ContentModal
+        title : 'Your team role has been changed!'
+        overlay : yes
+        width : 500
+        cssClass : 'content-modal'
+        content :
           """
-          <div class="modalformline">
+          <p>
             @#{adminNick} made you #{articlize role} <strong font-weight="bold">#{role}</strong>, please refresh your browser for changes to take effect.
-          </div>
+          </p>
           """
-        buttons       :
-          'Reload page'        :
-            style     : 'solid green medium'
-            callback  : (event) ->
+        buttons :
+          'Reload page' :
+            title : 'Reload Page'
+            style : 'solid medium'
+            callback : (event) ->
               modal.destroy()
               global.location.reload yes
 

@@ -27,7 +27,7 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 	s.Log.Debug("Fetching template for id %s", arg.StackTemplateID)
 	stackTemplate, err := modelhelper.GetStackTemplate(arg.StackTemplateID)
 	if err != nil {
-		return nil, err
+		return nil, stackplan.ResError(err, "jStackTemplate")
 	}
 
 	if stackTemplate.Template.Content == "" {

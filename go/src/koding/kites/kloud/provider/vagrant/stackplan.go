@@ -29,18 +29,9 @@ type VagrantResource struct {
 	Build map[string]map[string]interface{} `hcl:"vagrant_instance"`
 }
 
-func (s *Stack) updateCredential(cred *stackplan.Credential) error {
+func (s *Stack) updateCredential(cred *stackplan.Credential) {
 	meta := cred.Meta.(*VagrantMeta)
-	if !meta.SetDefaults() {
-		return nil
-	}
-	return modelhelper.UpdateCredentialData(cred.Identifier, bson.M{
-		"$set": bson.M{
-			"meta.memory": meta.Memory,
-			"meta.cpus":   meta.CPU,
-			"meta.box":    meta.Box,
-		},
-	})
+	meta.SetDefaults()
 }
 
 type Tunnel struct {
@@ -77,9 +68,7 @@ func (s *Stack) InjectVagrantData() (string, stackplan.KiteMap, error) {
 		return "", nil, errors.New("vagrant credential not found")
 	}
 
-	if err := s.updateCredential(s.Credential); err != nil {
-		return "", nil, err
-	}
+	s.updateCredential(s.Credential)
 
 	t := s.Builder.Template
 	meta := s.Credential.Meta.(*VagrantMeta)

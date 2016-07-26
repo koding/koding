@@ -8,6 +8,8 @@ KDCredentialForm = require './kdcredentialform'
 
 module.exports = class CredentialsPageView extends JView
 
+  SHARED_CREDENTIAL_TITLE = 'Use default credential'
+
   constructor: (options = {}, data) ->
 
     super options, data
@@ -31,6 +33,21 @@ module.exports = class CredentialsPageView extends JView
       callback : @bound 'submit'
 
 
+  setData: (data) ->
+
+    super data
+
+    return  unless @credentialForm
+
+    { credentials, requirements } = @getData()
+    { provider, items, sharedCredential } = credentials
+
+    @addSharedCredential items, sharedCredential
+
+    @credentialForm.setData credentials
+    @requirementsForm.setData requirements
+
+
   createRequirementsView: ->
 
     { requirements } = @getData()
@@ -48,10 +65,7 @@ module.exports = class CredentialsPageView extends JView
     { credentials } = @getData()
     { provider, items, sharedCredential } = credentials
 
-    if sharedCredential
-      sharedCredential.title = 'Use default credential'
-      sharedCredential.isLocked = yes
-      items.unshift sharedCredential
+    @addSharedCredential items, sharedCredential
 
     options = helpers.getFormOptions provider
     if @requirementsForm.hasClass 'hidden'
@@ -60,6 +74,16 @@ module.exports = class CredentialsPageView extends JView
       options.cssClass = 'left-form'
     formClass = if provider is 'vagrant' then KDCredentialForm else CredentialForm
     @credentialForm = new formClass options, credentials
+
+
+  addSharedCredential: (items, sharedCredential) ->
+
+    return  unless sharedCredential
+    return  if items.first?.title is SHARED_CREDENTIAL_TITLE
+
+    sharedCredential.title = SHARED_CREDENTIAL_TITLE
+    sharedCredential.isLocked = yes
+    items.unshift sharedCredential
 
 
   submit: ->
@@ -77,16 +101,16 @@ module.exports = class CredentialsPageView extends JView
 
     { credentials } = @getData()
     credentials.items.push data
-    credentials.selectedItem = data.identifier
     @credentialForm.setData credentials
+    @credentialForm.selectValue data.identifier
 
 
   selectNewRequirements: (data) ->
 
     { requirements } = @getData()
     requirements.items.push data
-    requirements.selectedItem = data.identifier
     @requirementsForm.setData requirements
+    @requirementsForm.selectValue data.identifier
 
 
   pistachio: ->

@@ -119,6 +119,10 @@ module.exports = class AccountCredentialListController extends KodingListControl
     credential.delete (err) ->
       listView.emit 'ItemDeleted', item  unless showError err
       Tracker.track Tracker.USER_DELETE_CREDENTIALS
+
+      { computeController } = kd.singletons
+      computeController.emit 'CredentialRemoved', credential  unless err
+
       callback err
 
 
@@ -273,11 +277,11 @@ module.exports = class AccountCredentialListController extends KodingListControl
           <p>Need some help? <a href='https://koding.com/docs/creating-an-aws-stack'>Follow our guide</a>
           '''
 
-    { ui }    = kd.singletons.computeController
+    { computeController } = kd.singletons
 
     noCredFound = not listView.items.length
 
-    view.form = ui.generateAddCredentialFormFor options, noCredFound
+    view.form = computeController.ui.generateAddCredentialFormFor options, noCredFound
     view.form.setClass 'credentials-form-view'
 
     view.form.on 'Cancel', =>
@@ -297,6 +301,8 @@ module.exports = class AccountCredentialListController extends KodingListControl
       then @addItem(credential).verifyCredential()
       else
         @addItem credential
+
+      computeController.emit 'CredentialAdded', credential
 
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.

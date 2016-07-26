@@ -1,6 +1,5 @@
 helpers                  = require '../helpers/helpers.js'
 utils                    = require '../utils/utils.js'
-staticContents           = require '../helpers/staticContents.js'
 async                    = require 'async'
 path                     = require 'path'
 awsKeyPath               = path.resolve __dirname, '../../../../../vault/config/aws/worker_ci_test_key.json'
@@ -25,8 +24,8 @@ envMachineStateModal     = '.env-machine-state.env-modal'
 stackSettingsMenuIcon    = '.stacktemplates .stack-template-list .stack-settings-menu .chevron'
 myStackTemplatesButton   = '.kdview.kdtabhandle-tabs .my-stack-templates'
 closeButton              = "#{stackCatalogModal} .kdmodal-inner .closeModal"
-closeModal               = '.HomeAppView .close-icon.closeModal'
-
+closeModal               = '.HomeWelcomeModal.kdmodal .kdmodal-inner .close-icon.closeModal'
+visibleStack             = '[testpath=StackEditor-isVisible]'
 #Team Creation
 modalSelector            = '.TeamsModal.TeamsModal--create'
 emailSelector            = "#{modalSelector} input[name=email]"
@@ -43,8 +42,6 @@ alreadyMemberModal       = "#{teamsModalSelector}.alreadyMember"
 url                      = helpers.getUrl()
 
 module.exports =
-
-
   enterTeamURL: (browser) ->
 
     browser
@@ -327,7 +324,6 @@ module.exports =
     providers = '.providers.box-wrapper'
     providerSelector = "#{providers} .provider.box.#{provider}"
     skipGuideButton = '.kdview.stack-onboarding.main-content a.custom-link-view.HomeAppView--button'
-    visibleStack = '[testpath=StackEditor-isVisible]'
     stackEditorTab = "#{visibleStack} .kdview.kdtabview.StackEditorTabs"
     credentialsTabSelector = "#{stackEditorTab} div.kdtabhandle.credentials.notification"
     checkForCredentials = ".kdview.kdlistitemview.kdlistitemview-default.StackEditor-CredentialItem.#{provider}"
@@ -393,32 +389,38 @@ module.exports =
 
 
   buildStack: (browser, done) ->
-
     sidebarSelector = '.SidebarTeamSection'
     buildStackModal = '.kdmodal.env-modal.env-machine-state.kddraggable.has-readme'
     buildStackButton = "#{buildStackModal} .kdbutton.turn-on.state-button.solid.green.medium.with-icon"
     progressBarSelector = "#{buildStackModal} .progressbar-container"
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
+    menuSelector   = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
+    draftStackHeader     = '.SidebarTeamSection .SidebarSection.draft'
+    defaultStackSelector = '.SidebarTeamSection .SidebarStackSection.draft.active'
+    closeButton = '.ContentModal.kdmodal .kdmodal-inner .close-icon'
 
     browser
       .pause 2000
-      .click closeModal
+      .click closeButton
       .click '#main-sidebar'
       .waitForElementVisible sidebarSelector, 20000
 
     browser.element 'css selector', vmSelector, (result) =>
       if result.status is -1
         @createCredential browser, 'aws', 'build-stack', no, (res) =>
-          @createStack browser, ->
+          @createStack browser, 'TeamStack', yes, (res) =>
+            browser.pause 3000, =>
+              @buildStackFlow browser, ->
+                done()
+      else
+        @buildStackFlow browser, ->
+          done()
 
+
+  buildStackFlow: (browser, done) ->
+    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
     browser.getAttribute vmSelector, 'title', (result) =>
-      ###
-        Machine status: 'status'
-        substring function remove 'Machine status:'
-        from title attribute
-      ###
       status = result.value.substring 16
-
       switch status
         when 'NotInitialized' then @turnOnVm browser, yes, done
         when 'Running' then done()
@@ -426,24 +428,20 @@ module.exports =
         when 'Stopped' then @turnOnVm browser, no, done
         when 'Starting' then @waitUntilVmRunning browser, done
 
-
   turnOnVm: (browser, firstBuild = no, done = -> ) ->
-
-    sidebarSelector = '.SidebarTeamSection'
-    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
-    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
-    buildStackModal = '.kdmodal.env-modal.env-machine-state.kddraggable.has-readme'
-    buildStackButton = "#{buildStackModal} .kdbutton.turn-on.state-button.solid.green.medium.with-icon"
-
-    unless firstBuild
-      buildStackModal = '.kdmodal.env-modal.env-machine-state'
-      buildStackButton = "#{buildStackModal} .kdbutton.turn-on.state-button.solid.green.medium.with-icon"
-
     browser
-      .waitForElementVisible buildStackModal, 20000
-      .waitForElementVisible buildStackButton, 20000
-      .click buildStackButton, =>
-        @waitUntilVmRunning browser, done
+      .waitForElementVisible '.kdview', 20000
+      .pause 2000
+      .waitForElementVisible '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton', 20000
+      .click '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
+      .waitForElementVisible '.resource-state-modal.kdmodal .credentials-page .credential-form', 20000
+      .click '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
+      .waitForElementVisible '.BaseModalView.kdmodal section.main .progressbar-container', 20000
+      .waitForElementVisible '.kdview.kdscrollview', 20000
+      .waitForElementVisible '.kdview.jtreeview.expanded', 20000
+      .assert.containsText   'body.ide .kdlistitemview-finderitem > div .title', 'Applications'
+    @waitUntilVmRunning browser, ->
+      done()
 
 
   waitUntilVmStopping: (browser, done) ->
@@ -464,7 +462,6 @@ module.exports =
 
 
   waitUntilVmRunning: (browser, done) ->
-
     sidebarSelector = '.SidebarTeamSection'
     sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
@@ -480,48 +477,20 @@ module.exports =
           @waitUntilVmRunning browser, done
 
 
-  createStack: (browser, done) ->
-    sidebarSelector = '.SidebarTeamSection'
-    sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
-    vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
-    visibleStack = '[testpath=StackEditor-isVisible]'
-
-    credentialSelector = '.kdview.kdlistitemview.kdlistitemview-default.StackEditor-CredentialItem'
-    useThisAndContinueButton = "#{visibleStack} .StackEditor-CredentialItem--buttons .kdbutton.solid.compact.outline.verify"
-    editorPaneSelector = "#{visibleStack} .kdview.pane.editor-pane.editor-view"
-    saveButtonSelector = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
-    successModal = '.kdmodal-inner .kdmodal-content'
-    closeButton = '.kdmodal-inner .kdview.kdmodal-buttons .kdbutton.solid.medium.gray'
-
-    browser
-      .element 'css selector', vmSelector, (result) ->
-        if result.status is 0
+  createPrivateStack: (browser, done) ->
+    @createCredential browser, 'aws', 'private-stack', no, (res) =>
+      @createStack browser, 'PrivateStack', no, (res) =>
+        @initializeStack browser, ->
           done()
-        else
-          browser
-            .pause 1000
-            .click useThisAndContinueButton
-            .waitForElementVisible editorPaneSelector, 20000
-            .waitForElementVisible saveButtonSelector, 20000
-            .click saveButtonSelector
-            .pause 10000 # here wait around 50 secs to create stack
-            .waitForElementVisible successModal, 40000
-            .click closeButton
-            .pause 2000, ->
-              done()
 
 
   createDefaultStackTemplate: (browser, done) ->
-
-    stackEditorUrl = "#{helpers.getUrl(yes)}/Home/stacks"
-
     @createCredential browser, 'aws', 'draft-stack', yes, (res) =>
-      @createPrivateStack browser, 'PrivateStack', (res) ->
-        browser.url stackEditorUrl, ->
-          done res.value
+      @createStack browser, 'DefaultStack', no, (res) ->
+        done()
 
 
-  createPrivateStack: (browser, stackName, done) ->
+  createStack: (browser, stackName, teamStack = no, done) ->
 
     visibleStack = '[testpath=StackEditor-isVisible]'
     stackEditorHeader = "#{visibleStack} .StackEditorView--header"
@@ -529,91 +498,74 @@ module.exports =
     editorPaneSelector = "#{visibleStack} .kdview.pane.editor-pane.editor-view"
     stackTemplateNameArea = "#{stackEditorHeader} .kdinput.text.template-title.autogrow"
     saveButtonSelector = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
+    successModal = '.kdmodal-inner .kdmodal-content'
+    closeButton = '.ContentModal.kdmodal .kdmodal-inner .close-icon'
+    shareButton  = '[testpath=proceed]'
+    vmSelector   = '.SidebarMachinesListItem cite'
 
+    browser.pause 1000, =>
+      browser
+        .waitForElementVisible useThisAndContinueButton, 30000
+        .click useThisAndContinueButton
+        .waitForElementVisible editorPaneSelector, 20000
+        .waitForElementVisible stackTemplateNameArea, 2000
+        .setValue stackTemplateNameArea, ''
+        .pause 1000
+        .setValue stackTemplateNameArea, stackName
+        .click saveButtonSelector, =>
+          browser.element 'css selector', vmSelector, (result) =>
+            if result.status is 0
+              @waitUntilToSavePrivateStack browser, ->
+                done()
+            else
+              @waitUntilToCreateStack browser, ->
+                if teamStack
+                  browser
+                    .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
+                    .click shareButton
+                    .waitForElementVisible '.ContentModal.content-modal main', 20000
+                    .click shareButton, ->
+                      done()
+                else
+                  browser.click closeButton, ->
+                    done()
+
+
+  waitUntilToSavePrivateStack: (browser, done) ->
+    browser.elements 'css selector', '.kdbutton.GenericButton.save-test.w-loader.loading', (result) =>
+      if result.value.length > 0
+        @waitUntilToSavePrivateStack browser, done
+      else
+        browser.pause 1000, done
+
+
+  waitUntilToCreateStack: (browser, done) ->
+    successModal          = '.kdmodal-inner .kdmodal-content'
+    closeButton           = '.ContentModal.kdmodal .kdmodal-inner .close-icon'
+    browser.element 'css selector', successModal, (result) =>
+      browser.pause 2000
+      if result.status is 0
+        browser.waitForElementVisible successModal, 20000
+        browser.waitForElementVisible closeButton,  20000, done
+      else @waitUntilToCreateStack browser, done
+
+
+  initializeStack: (browser, done) ->
+    draftStackHeader     = '.SidebarTeamSection .SidebarSection.draft:last-child'
+    menuSelector         = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
     browser
-      .pause 2000
-      .click useThisAndContinueButton
-      .waitForElementVisible editorPaneSelector, 20000
-      .waitForElementVisible stackTemplateNameArea, 2000
-      .setValue stackTemplateNameArea, ''
-      .pause 1000
-      .setValue stackTemplateNameArea, stackName
-      .click saveButtonSelector, =>
-        @waitUntilToCreatePrivateStack browser, done
-
-
-  waitUntilToCreatePrivateStack: (browser, done) ->
-
-    stackEditorHeader = '.StackEditorView--header'
-    makeTeamDefaultButton = "#{stackEditorHeader} .kdbutton.GenericButton.set-default.w-loader"
-
-    browser
+      .click '#main-sidebar'
+      .waitForElementVisible draftStackHeader, 20000
+      .click draftStackHeader
+      .waitForElementVisible menuSelector, 20000
       .pause 3000
-      .element 'css selector', makeTeamDefaultButton, (result) =>
-        if result.status is 0
-          browser.url (res) ->
-            done res
-
-        else @waitUntilToCreatePrivateStack browser, done
-
-
-  defineCustomVariables: (browser) ->
-
-    wrongCustomVariable    = "foo: '"
-    correctCustomVariable  = "foo: 'bar'"
-    errorIndicator         = '.kdtabhandle.custom-variables .indicator.red.in'
-
-    @switchTabOnStackCatalog browser, 'variables'
-    @setTextToEditor browser, 'variables', wrongCustomVariable
-    browser
-      .waitForElementVisible errorIndicator, 20000
-      .pause 1000
-
-    @setTextToEditor browser, 'variables', correctCustomVariable
-    browser
-      .waitForElementNotVisible errorIndicator, 20000
-      .pause 1000
-
-    @switchTabOnStackCatalog browser, 'template'
-    @setTextToEditor browser, 'template', staticContents.stackTemplate
+      .click  "#{menuSelector}:nth-of-type(2)"
+      .waitForElementVisible '.kdnotification', 20000
+      .assert.containsText '.kdnotification', 'Stack generated successfully'
+      .pause 1000, done
 
 
   getAwsKey: -> return awsKey
-
-
-  # possible values of tabName variable is 'stack', 'variables' or 'readme'
-  switchTabOnStackCatalog: (browser, tabName) ->
-
-    selector    =
-      template  : '.stack-template'
-      variables : '.custom-variables'
-      readme    : '.readme'
-
-    tabSelector = "#{stackCatalogModal} .kdtabhandle#{selector[tabName]}"
-
-    browser
-      .waitForElementVisible stackCatalogModal, 20000
-      .waitForElementVisible tabSelector, 20000
-      .click                 tabSelector
-
-
-  # possible values of tabName variable is 'template', 'variables' or 'readme'
-  setTextToEditor: (browser, tabName, text) ->
-
-    viewNames   =
-      template  : 'stackTemplateView'
-      variables : 'variablesView'
-      readme    : 'readmeView'
-
-    viewName = viewNames[tabName]
-    params   = [ viewName, text ]
-
-    fn = (viewName, text) ->
-      _kd.singletons.appManager.appControllers.Stacks.instances.first
-        .mainView.tabs.activePane.mainView.defineStackView[viewName]
-        .editorView.setContent text
-
-    browser.execute fn, params
 
 
   fillJoinForm: (browser, userData, assertLoggedIn = yes, callback = -> ) ->
@@ -623,7 +575,6 @@ module.exports =
     usernameInput = "#{loginForm} input[name=username]"
     passwordInput = "#{loginForm} input[name=password]"
     joinButton    = "#{loginForm} .TeamsModal-button--green"
-
 
     browser
       .waitForElementVisible loginForm, 20000
@@ -663,7 +614,6 @@ module.exports =
         callback invitationUrl
 
 
-
   logoutTeam: (browser, callback) ->
 
     browser
@@ -672,13 +622,11 @@ module.exports =
       .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 20000
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 2000
-      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(3)'
-
+      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(4)'
       .pause 2000, -> callback()
 
 
   inviteAndJoinWithUsers: (browser, users, callback) ->
-
     host = @loginTeam browser
     browser.pause 5000, =>
 
@@ -693,7 +641,6 @@ module.exports =
       ]
 
       async.series queue, (err, result) ->
-
         callback result
 
 
@@ -909,7 +856,7 @@ module.exports =
                 @fillJoinForm browser, user, yes, =>
                   browser.waitForElementVisible '.WelcomeStacksView', 20000, yes, =>
                     @logoutTeam browser, (res) =>
-                      @loginToTeam browser, host, no, ->
+                      @loginToTeam browser, host, no, '',  ->
                         callback res
         else
           callback('alreadyMember')

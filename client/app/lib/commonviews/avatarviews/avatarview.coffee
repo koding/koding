@@ -7,6 +7,7 @@ JView = require '../../jview'
 LinkView = require '../linkviews/linkview'
 isKoding = require '../../util/isKoding'
 TeamFlux = require 'app/flux/teams'
+globals = require 'globals'
 
 module.exports = class AvatarView extends LinkView
 
@@ -162,19 +163,19 @@ module.exports = class AvatarView extends LinkView
 
       unless isKoding()
         return  if account.fake
-        account.fetchMyPermissionsAndRoles (err, res) =>
-          { roles } = res
-          hasOwner = 'owner' in roles
-          hasAdmin = 'admin' in roles
-          userRole = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
 
-          return  if userRole is 'member'
+        roles =  globals.userRoles
+        hasOwner = 'owner' in roles
+        hasAdmin = 'admin' in roles
+        userRole = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
 
-          @badge.clear()
-          @badge.setClass userRole
-          @badge.setAttribute 'title', userRole
-          @badge.setPartial userRole.capitalize()
-          @badge.show()
+        return  if userRole is 'member'
+
+        @badge.clear()
+        @badge.setClass userRole
+        @badge.setAttribute 'title', userRole
+        @badge.setPartial userRole.capitalize()
+        @badge.show()
 
       href = if payload?.channelIntegrationId
         "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"

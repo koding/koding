@@ -301,10 +301,51 @@ leaveTeam = (partial) ->
             kookies.expire 'clientId'
             global.location.replace '/'
 
+
 focusSendInvites = (focus) ->
 
   { reactor } = kd.singletons
   reactor.dispatch actions.FOCUS_SEND_INVITES_SECTION, focus
+
+
+fetchApiTokens = ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+  team.fetchApiTokens (err, apiTokens)  ->
+
+    reactor.dispatch actions.FETCH_API_TOKENS_SUCCESS, { apiTokens }  unless err
+
+
+deleteApiToken = (apiTokenId) ->
+
+  { reactor } = kd.singletons
+  reactor.dispatch actions.DELETE_API_TOKEN_SUCCESS, { apiTokenId }
+
+
+addApiToken = (apiToken) ->
+
+  { reactor } = kd.singletons
+  reactor.dispatch actions.ADD_API_TOKEN_SUCCESS, { apiToken }
+
+
+disableApiTokens = (state) ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+  new Promise (resolve, reject) ->
+
+    team.modify { isApiEnabled : state }, (err) ->
+      return reject { err }  if err
+      reactor.dispatch actions.SET_API_ACCESS_STATE, { state }
+
+
+fetchCurrentStateOfApiAccess = ->
+
+  { groupsController, reactor } = kd.singletons
+  team = groupsController.getCurrentGroup()
+  state = team.isApiEnabled is yes
+  reactor.dispatch actions.SET_API_ACCESS_STATE, { state }
 
 
 module.exports = {
@@ -326,4 +367,9 @@ module.exports = {
   handleDisabledUser
   handlePermanentlyDeleteMember
   focusSendInvites
+  fetchApiTokens
+  deleteApiToken
+  addApiToken
+  disableApiTokens
+  fetchCurrentStateOfApiAccess
 }

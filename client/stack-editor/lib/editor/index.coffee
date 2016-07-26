@@ -55,10 +55,10 @@ module.exports = class StackEditorView extends kd.View
       { groupsController } = kd.singletons
       @isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
 
-      unless @isMine
+      if not @isMine and stackTemplate
         @tabView.setClass 'StackEditorTabs isntMine'
         @warningView.show()
-        @secondaryActions.hide()
+        @deleteStack.hide()
         @saveButton.setClass 'isntMine'
         @inputTitle.setClass 'template-title isntMine'
 
@@ -92,7 +92,7 @@ module.exports = class StackEditorView extends kd.View
       cssClass             : 'StackEditor-SecondaryActions'
 
 
-    @secondaryActions.addSubView new CustomLinkView
+    @secondaryActions.addSubView @deleteStack = new CustomLinkView
       cssClass : 'HomeAppView--button danger'
       title    : 'DELETE STACK TEMPLATE'
       click    : @bound 'deleteStack'
@@ -148,6 +148,8 @@ module.exports = class StackEditorView extends kd.View
       tooltip  :
         title  : "You need to set your #{selectedProvider.toUpperCase()}
                   credentials to be able build this stack."
+
+    @credentialWarning.bindTransitionEnd()
 
     @credentialStatusView = new CredentialStatusView {
       stackTemplate, selectedProvider
@@ -391,8 +393,14 @@ module.exports = class StackEditorView extends kd.View
           .add 'Checking provided credentials...'
 
         @checkAndBootstrapCredentials (err, credentials) =>
+
           if err
-            @credentialWarning.tooltip.show()
+            @credentialWarning.once 'transitionend', =>
+              @credentialWarning.tooltip.show()
+            @credentialWarning.setClass 'in'
+
+            @providersPane.tabHandle.setClass 'notification'
+            @_credentialsPassed = no
             return @saveButton.hideLoader()
 
           @outputView

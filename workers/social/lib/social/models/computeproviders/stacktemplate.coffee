@@ -496,7 +496,10 @@ module.exports = class JStackTemplate extends Module
     success: (client, callback) ->
 
       JComputeStack = require '../stack'
-      JComputeStack.some { baseStackId: @_id }, { limit: 1 }, (err, stacks) ->
+      JComputeStack.some {
+        baseStackId: @_id
+        'status.state': { $ne: 'Destroying' }
+      }, { limit: 1 }, (err, stacks) ->
         result = stacks?.length > 0
         callback err, result
 

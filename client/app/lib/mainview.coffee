@@ -126,7 +126,11 @@ module.exports = class MainView extends kd.View
         partial    : '<figure></figure>'
         click      : (event) -> kd.utils.stopDOMEvent event
     else
+      { nickname } = whoami().profile
       @logoWrapper.addSubView @teamname = new TeamName { cssClass: 'no-logo' }, getGroup()
+      @logoWrapper.addSubView @nickname = new kd.CustomHTMLView
+        cssClass : 'nickname no-logo'
+        partial : "@#{nickname}"
 
     @logoWrapper.addSubView closeHandle = new kd.CustomHTMLView
       cssClass : 'sidebar-close-handle'
@@ -239,6 +243,7 @@ module.exports = class MainView extends kd.View
       @teamLogo.setClass 'team-logo'
       @teamLogoWrapper.show()
       @teamname.unsetClass 'no-logo'
+      @nickname.unsetClass 'no-logo'
 
     groupsController.on 'TEAM_LOGO_CHANGED', (logo) =>
 
@@ -247,12 +252,14 @@ module.exports = class MainView extends kd.View
       unless logo
         @teamLogo.setAttribute 'src', ''
         @teamname.setClass 'no-logo'
+        @nickname.setClass 'no-logo'
         @teamLogoWrapper.hide()
       else
         @teamLogo.setAttribute 'src', logo
         @teamLogo.setClass 'team-logo'
         @teamLogoWrapper.show()
         @teamname.unsetClass 'no-logo'
+        @nickname.unsetClass 'no-logo'
 
   createMiniWelcomeSteps: ->
 
@@ -286,7 +293,7 @@ module.exports = class MainView extends kd.View
     doXhrRequest { endPoint, type }, (err, res) =>
 
       return  if err
-      return  if res.version is currentVersion
+      return  if String(res.version) is currentVersion
 
       kd.utils.wait 2000, =>
         @updateBanner = new BannerNotificationView

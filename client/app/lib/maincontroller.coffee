@@ -401,7 +401,7 @@ module.exports = class MainController extends KDController
 
     { ipcRenderer } = nodeRequire 'electron'
 
-    ipcRenderer.on 'get-previous-teams', ->
+    ipcRenderer.on 'get-previous-teams', =>
       ipcRenderer.send 'answer-previous-teams', @getPreviousTeams()
 
 

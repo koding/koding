@@ -150,8 +150,8 @@ generateCredentials = (opts = {}) ->
 
   credentials =
     tfcode              : ''
-    username            : 'devrim'
-    password            : 'devrim'
+    username            : 'admin'
+    password            : 'admin'
     groupName           : 'koding'
     invitationToken     : undefined
     groupIsBeingCreated : no

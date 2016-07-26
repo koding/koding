@@ -34,7 +34,7 @@ module.exports = class AccountCredentialEditModal extends ContentModal
         credential.update {
           provider, title, meta: data
         }, (err, credential) =>
-          @form.buttons.Save.hideLoader()
+          @form.buttonField.buttons.Save.hideLoader()
 
           unless showError err
             @form.emit 'CredentialUpdated', credential

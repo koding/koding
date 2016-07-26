@@ -133,6 +133,8 @@ module.exports = class OnboardingView extends JView
         selectedProvider = @providerSelectionView.selected?.getOption 'provider'
         if selectedProvider?
           options = { selectedProvider }
+          if selectedProvider is 'vagrant'
+            options.template = { content: @stackTemplate }
         Tracker.track Tracker.STACKS_SKIP_SETUP
         @emit 'StackOnboardingCompleted', options
 

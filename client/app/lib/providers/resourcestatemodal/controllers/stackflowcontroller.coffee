@@ -41,6 +41,8 @@ module.exports = class StackFlowController extends kd.Controller
 
     computeController.on "apply-#{stack._id}", @bound 'updateStatus'
     computeController.on "error-#{stack._id}", @bound 'onKloudError'
+    computeController.on [ 'CredentialAdded', 'CredentialRemoved'], =>
+      @credentials?.reloadData()
 
     if @state is 'Building'
       eventListener.addListener 'apply', stack._id
