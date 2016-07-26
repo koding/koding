@@ -140,11 +140,11 @@ module.exports = class CredentialsPageView extends JView
 
       switch provider
         when 'vagrant'
-          title : 'KD Local Host'
+          title : helpers.getCredentialsTitle provider
           selectionLabel : 'KD Selection'
           selectionPlaceholder : 'Select your existent KD...'
         when 'aws'
-          title : 'AWS Credential'
+          title : helpers.getCredentialsTitle provider
           selectionLabel : 'Credential Selection'
           selectionPlaceholder : 'Select credential...'
         when 'userInput'
@@ -156,20 +156,28 @@ module.exports = class CredentialsPageView extends JView
     getTitleAndDescription: (data) ->
 
       { credentials, requirements } = data
-      if not credentials.items.length and not requirements.fields
-        return {
-          title       : 'Create Your First Credential'
-          description : '''
-            Your Credential provides Koding with all of the information it needs to build your Stack
-          '''
-        }
+      { provider } = credentials
 
-      return {
-        title       : 'Select Credential and Fill the Requirements'
-        description : '''
-          Your stack requires AWS Credentials and a few requirements in order to boot
-        '''
-      }
+      hasCredentials  = credentials.items.length > 0
+      hasRequirements = requirements.fields?
+      title = switch
+        when not hasCredentials and not hasRequirements then 'Create Credentials'
+        when not hasRequirements then 'Select Credentials'
+        else 'Select Credentials and Other Requirements'
+
+      description  = "Your stack requires #{helpers.getCredentialsTitle provider} "
+      description += 'and a few requirements '  if requirements.fields
+      description += 'in order to boot'
+
+      return { title, description }
+
+
+    getCredentialsTitle: (provider) ->
+
+      switch provider
+        when 'vagrant' then 'KD Local Host'
+        when 'aws'     then 'AWS Credential'
+        else ''
 
 
     createValidationCallback: (form) ->

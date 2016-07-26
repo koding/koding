@@ -17,7 +17,7 @@ module.exports = class CredentialForm extends JView
 
     @header = new kd.CustomHTMLView
       tagName  : 'h3'
-      partial  : title
+      partial  : "#{title}:"
 
     @selectionLabel = new kd.LabelView
       title    : selectionLabel
@@ -63,7 +63,7 @@ module.exports = class CredentialForm extends JView
 
     @newHeader = new kd.CustomHTMLView
       tagName  : 'h3'
-      partial  : "New #{title}"
+      partial  : "New #{title}:"
     @cancelNew = new kd.CustomHTMLView
       tagName  : 'a'
       cssClass : 'cancel-new'
@@ -98,11 +98,12 @@ module.exports = class CredentialForm extends JView
 
     @checkShowLinkVisibility()
 
-    return  if items.length > 0
+    return @cancelNew.show()  if items.length > 0
 
     @setClass 'form-visible'
-    @newHeader.hide()
-    @header.show()
+    @newHeader.show()
+    @header.hide()
+    @cancelNew.hide()
 
 
   checkShowLinkVisibility: ->
