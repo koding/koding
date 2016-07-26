@@ -293,6 +293,9 @@ module.exports = class Haydar extends events.EventEmitter
     b.plugin cssModulesify,
       rootDir: opts.basedir
       output: path.join opts.stylesOutdir, 'modules.css'
+      before: [
+        require('postcss-mixins'),
+      ]
 
     # force browser-pack to expose require
     b._bpack.hasExports = true
