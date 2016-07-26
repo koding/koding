@@ -71,8 +71,9 @@ module.exports = class GitProvider extends Base
       # FIXME This fields requires index or we need to
       # find a better way for this one ~ GG
       selector = {
-        'config.remoteDetails.user': importData.user
-        'config.remoteDetails.repo': importData.repo
+        'config.remoteDetails.user'   : importData.user
+        'config.remoteDetails.repo'   : importData.repo
+        'config.remoteDetails.branch' : importData.branch
       }
 
       JStackTemplate.one$ client, selector, (err, stacktemplate) ->
@@ -101,7 +102,7 @@ module.exports = class GitProvider extends Base
         config.buildDuration = contentObject.koding?.buildDuration
 
         template = convertedDoc.content
-        title  or= "#{importData.repo} Stack"
+        title  or= "#{importData.repo} Stack (#{importData.branch})"
 
         data = { rawContent, template, title, description, config }
         JStackTemplate.create client, data, callback
