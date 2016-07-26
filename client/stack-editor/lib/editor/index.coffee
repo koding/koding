@@ -394,14 +394,14 @@ module.exports = class StackEditorView extends kd.View
 
         @checkAndBootstrapCredentials (err, credentials) =>
 
-          return  unless err
+          if err
+            @credentialWarning.once 'transitionend', =>
+              @credentialWarning.tooltip.show()
+            @credentialWarning.setClass 'in'
 
-          @credentialWarning.once 'transitionend', =>
-            @credentialWarning.tooltip.show()
-          @credentialWarning.setClass 'in'
-          @providersPane.tabHandle.setClass 'notification'
-          @_credentialsPassed = no
-          return @saveButton.hideLoader()
+            @providersPane.tabHandle.setClass 'notification'
+            @_credentialsPassed = no
+            return @saveButton.hideLoader()
 
           @outputView
             .add 'Credentials are ready!'

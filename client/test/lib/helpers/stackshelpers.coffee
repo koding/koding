@@ -1,15 +1,17 @@
-helpers              = require '../helpers/helpers.js'
-teamsHelpers         = require '../helpers/teamshelpers.js'
-utils                = require '../utils/utils.js'
-staticContents       = require '../helpers/staticContents.js'
-stackEditorUrl       = "#{helpers.getUrl(yes)}/Home/stacks"
-stackSelector        = null
-sectionSelector      = '.kdview.kdtabpaneview.stacks'
-newStackButton       = '.kdbutton.GenericButton.HomeAppView-Stacks--createButton'
-teamStacksSelector   = '.HomeAppView--section.team-stacks'
-stackTemplate        = "#{teamStacksSelector} .HomeAppViewListItem.StackTemplateItem"
-draftStacksSelector  = '.HomeAppView--section.drafts'
-menuSelector         = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
+helpers                = require '../helpers/helpers.js'
+teamsHelpers           = require '../helpers/teamshelpers.js'
+utils                  = require '../utils/utils.js'
+async                  = require 'async'
+staticContents         = require '../helpers/staticContents.js'
+stackEditorUrl         = "#{helpers.getUrl(yes)}/Home/stacks"
+stackSelector          = null
+sectionSelector        = '.kdview.kdtabpaneview.stacks'
+newStackButton         = '.kdbutton.GenericButton.HomeAppView-Stacks--createButton'
+teamStacksSelector     = '.HomeAppView--section.team-stacks'
+stackTemplate          = "#{teamStacksSelector} .HomeAppViewListItem.StackTemplateItem"
+draftStacksSelector    = '.HomeAppView--section.drafts'
+privateStacksHeader    = '.HomeAppView--section.private-stacks'
+menuSelector           = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
 editSelector           = "#{menuSelector}:nth-of-type(1)"
 stackEditorView        = '.StackEditorView'
 sideBarSelector        = '#main-sidebar'
@@ -39,16 +41,17 @@ sidebarVmSelector      = '.SidebarMachinesListItem--MainLink .SidebarListItem-ti
 proceedButton          = '[testpath=proceed]'
 draftStackTitle        = '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .HomeAppViewListItem.StackTemplateItem'
 privateStacksTitle     = '.HomeAppView--section.private-stacks .ListView-section.HomeAppViewStackSection .HomeAppViewListItem.StackTemplateItem'
-addRemoveButton        = '.HomeAppViewListItem-SecondaryContainer .HomeAppView--button'
-addRemoveButtonPrimary = '.HomeAppView--section .HomeAppView--button.primary'
 shareButton            = '[testpath=proceed]'
 makeTeamDefaultButton  = '.StackEditorView--header .kdbutton.GenericButton.set-default'
 reinitializeSelector   = '.SidebarStackWidgets .SidebarSection-body a'
 reinitStackModal       = '[testpath=reinitStack]'
-#Define Custom Variables
-errorIndicator             = '.kdtabhandle.custom-variables .indicator.red.in'
-customVariablesTabSelector = "#{stackEditorTab} div.kdtabhandle.custom-variables"
-
+saveButtonSelector     = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
+privateStacks          = '.SidebarTeamSection .SidebarSection:nth-of-type(2)  .HomeAppViewListItem-label'
+privateStacksDraft     = '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row:nth-of-type(2)'
+addRemoveButton        = "#{privateStacksDraft} .HomeAppViewListItem .HomeAppViewListItem-SecondaryContainer .HomeAppView--button"
+errorIndicator          = '.kdtabhandle.custom-variables .indicator.red.in'
+customVariablesSelector = "#{stackEditorTab} div.kdtabhandle.custom-variables"
+reinitNotification      = '.SidebarStackWidgets.--DifferentStackResources'
 
 module.exports =
 
@@ -70,14 +73,9 @@ module.exports =
       .waitForElementVisible stackTemplate, 20000, done
 
   seePrivateStackTemplates: (browser, done) ->
-    # FIXME: reimplement after stacks page is done ~ HK
-    # privateStacksSelector = '.HomeAppView--section.private-stacks'
-    # stackTemplate = "#{privateStacksSelector} .HomeAppViewListItem.StackTemplateItem"
-
-    # browser
-    #   .pause 2000
-    #   .waitForElementVisible privateStacksSelector, 20000
-    #   .waitForElementVisible stackTemplate, 20000
+    browser
+      .waitForElementVisible privateStacksHeader, 20000
+      .waitForElementVisible privateStacksTitle, 20000, done
 
   seeDraftStackTemplates: (browser, done) ->
     browser
@@ -158,16 +156,6 @@ module.exports =
       .pause 1000, done
 
 
-  createPrivateStackAsMember: (browser, done) ->
-    targetUser1 = utils.getUser no, 1
-    teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
-      browser
-        .pause 2000
-        .waitForElementVisible '.kdview', 20000, ->
-          teamsHelpers.createDefaultStackTemplate browser, (res) ->
-            done
-
-
   destroy: (browser, done) ->
     browser.getText teamHeaderSelector, (res) ->
       browser
@@ -192,21 +180,17 @@ module.exports =
 
 
   destroyPersonalStack: (browser, done) ->
-    saveButtonSelector = "#{visibleStack} .StackEditorView--header .kdbutton.GenericButton.save-test"
     browser.refresh()
-    @gotoStackTemplate browser, ->
+    browser.pause 1000, ->
       browser
-        .click saveButtonSelector
-        .pause 10000 # here wait around 50 secs to verify stack
+        .url stackEditorUrl
+        .waitForElementVisible sectionSelector, 20000
+        .scrollToElement draftStacksSelector
+        .waitForElementVisible privateStacksTitle, 20000
+        .click privateStacksTitle + ' .HomeAppViewListItem-label'
+        .pause 2000
         .getText teamHeaderSelector, (res) ->
           browser
-            .click sideBarSelector
-            .waitForElementVisible draftStackHeader, 20000
-            .click draftStackHeader
-            .waitForElementVisible menuSelector, 20000
-            .pause 1000
-            .click reinitSelector #initiliaze stack
-            .pause 3000
             .click stacksSelector
             .waitForElementVisible teamStacksSelector, 20000
             .assert.containsText privateStacksTitle , res.value
@@ -218,11 +202,11 @@ module.exports =
             .waitForElementVisible '[testpath=deleteStack]', 20000
             .click proceedButton
             .pause 3000
-            .click stacksSelector
+            .url stackEditorUrl
             .waitForElementVisible teamStacksSelector, 20000
             .scrollToElement draftStacksSelector
             .waitForElementVisible draftStacksSelector, 20000
-            .assert.containsText draftStackTitle , res.value
+            .assert.containsText privateStacksDraft , res.value
             .pause 1000, done
 
 
@@ -241,7 +225,6 @@ module.exports =
 
   changeAndReinitializeStack: (browser, done) ->
     host = utils.getUser no, 0
-
     browser
       .click closeModal
       .click sidebarVmSelector
@@ -270,11 +253,14 @@ module.exports =
       .url stackEditorUrl
       .waitForElementVisible teamStacksSelector, 20000
       .scrollToElement draftStacksSelector
+      .waitForElementVisible addRemoveButton, 20000
       .click addRemoveButton
-      .assert.containsText addRemoveButtonPrimary, 'ADD TO SIDEBAR'
+      .pause 5000
+      .assert.containsText addRemoveButton, 'ADD TO SIDEBAR'
       .click addRemoveButton
-      .assert.containsText addRemoveButtonPrimary, 'REMOVE FROM SIDEBAR'
+      .assert.containsText addRemoveButton, 'REMOVE FROM SIDEBAR'
       .pause 1000, done
+
 
   defineCustomVariables: (browser, done) ->
     wrongCustomVariable    = "foo: '"
@@ -331,32 +317,105 @@ module.exports =
 
 
   createAndMakeStackTeamDefault: (browser, done) ->
-    teamsHelpers.createDefaultStackTemplate browser, (res) ->
-      browser.elements 'css selector', makeTeamDefaultButton, (result) ->
-        result.value.map (value) ->
-          browser.elementIdText value.ELEMENT, (res) ->
-            browser.elementIdDisplayed value.ELEMENT, (res) ->
-              if res.value
-                browser
-                  .elementIdClick value.ELEMENT, ->
-                    teamsHelpers.waitUntilToCreateStack browser, ->
-                      browser
-                        .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
-                        .click shareButton
-                        .waitForElementVisible '.ContentModal.content-modal main', 20000
-                        .click shareButton, ->
-                          browser.waitForElementVisible '.SidebarStackWidgets.--DifferentStackResources', 20000
-                          browser.assert.containsText reinitializeSelector, 'Reinitialize Default Stack'
-                          browser
-                            .click sideBarSelector
-                            .click reinitializeSelector
-                            .waitForElementVisible reinitStackModal, 20000
-                            .pause 2000
-                            .click proceedButton
-                            .waitForElementVisible notificationSelector, 20000
-                            .assert.containsText   notificationSelector, 'Reinitializing stack...'
-                            .pause 2000, ->
-                              browser.waitForElementVisible '.kdview', 20000, done
+    targetUser1 = utils.getUser no, 1
+    admin       = utils.getUser no, 0
+
+    queue = [
+      (next) ->
+        teamsHelpers.loginToTeam browser, targetUser1 , no, '', (result) ->
+          browser
+            .pause 2000
+            .waitForElementVisible '.kdview', 20000
+            .click sideBarSelector
+            .waitForElementNotPresent reinitNotification, 20000
+          next null, result
+      (next) ->
+        teamsHelpers.logoutTeam browser, (result) ->
+          next null, result
+      (next) ->
+        teamsHelpers.loginToTeam browser, admin , no, '', (result) ->
+          next null, result
+      (next) ->
+        teamsHelpers.createDefaultStackTemplate browser, (result) ->
+          next null, result
+      (next) =>
+        @makeStackTeamDefault browser, (result) ->
+          next null, result
+      (next) =>
+        @reinitializeTeamStack browser, (result) ->
+          next null, result
+    ]
+
+    async.series queue, (err, result) ->
+      done()  unless err
+
+
+  makeStackTeamDefault: (browser, done) ->
+    console.log('testtt')
+    browser.elements 'css selector', makeTeamDefaultButton, (result) ->
+      result.value.map (value) ->
+        browser.elementIdText value.ELEMENT, (res) ->
+          browser.elementIdDisplayed value.ELEMENT, (res) ->
+            if res.value
+              browser
+                .elementIdClick value.ELEMENT, ->
+                  teamsHelpers.waitUntilToCreateStack browser, ->
+                    done()
+
+
+  reinitializeTeamStack: (browser, done) ->
+    browser
+      .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
+      .click shareButton
+      .waitForElementVisible '.ContentModal.content-modal main', 20000
+      .click shareButton, ->
+        browser.waitForElementVisible reinitNotification, 20000
+        browser.assert.containsText reinitializeSelector, 'Reinitialize Default Stack'
+        browser
+          .click sideBarSelector
+          .click reinitializeSelector
+          .waitForElementVisible reinitStackModal, 20000
+          .pause 2000
+          .click proceedButton
+          .waitForElementVisible notificationSelector, 20000
+          .assert.containsText   notificationSelector, 'Reinitializing stack...'
+          .pause 2000, ->
+            browser.waitForElementVisible '.kdview', 20000, done
+
+
+  createPrivateStackAsMember: (browser, done) ->
+    targetUser1 = utils.getUser no, 1
+    teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
+      browser
+        .pause 2000
+        .waitForElementVisible '.kdview', 20000
+        .click sideBarSelector
+        .waitForElementVisible reinitNotification, 20000
+        .assert.containsText reinitializeSelector, 'Reinitialize Default Stack'
+      teamsHelpers.createPrivateStack browser, (res) ->
+        teamsHelpers.createDefaultStackTemplate browser, (result) ->
+          done()
+
+
+  checkDraftsAsMember: (browser, done) ->
+    admin          = utils.getUser no, 0
+    adminUserName  = capitalize admin.username
+    member         = utils.getUser no, 1
+    memberUserName = capitalize member.username
+    teamDefault    = adminUserName  + "'s StackDefaultStack"
+    memberDraft    = memberUserName + "'s StackDefaultStack"
+    privateStack   = adminUserName  + "'s StackPrivateStack"
+    draftSelector  = '.HomeAppView--section.drafts .ListView-section.HomeAppViewStackSection .ListView-row'
+
+    browser
+      .url stackEditorUrl
+      .waitForElementVisible teamStacksSelector, 20000
+      .scrollToElement draftStacksSelector
+      .waitForElementVisible draftStacksSelector, 20000
+      .assert.containsText "#{draftSelector}:nth-of-type(1) .HomeAppViewListItem-label" , teamDefault
+      .assert.containsText "#{draftSelector}:last-child .HomeAppViewListItem-label" , memberDraft
+      .expect.element("#{draftSelector}:last-child .HomeAppViewListItem-label").text.to.not.equal(privateStack)
+    browser.pause 1000, done
 
 
   getStackTitle: (browser, selector, callback) ->
@@ -364,3 +423,6 @@ module.exports =
       return res.value
 
 
+capitalize = (word) ->
+  newWord = word.charAt(0).toUpperCase() + word.slice 1
+  return newWord
