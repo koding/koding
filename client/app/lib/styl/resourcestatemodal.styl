@@ -55,19 +55,17 @@ $regularColor               = #989898
         margin              0 auto
         display             block
 
-      .GenericButton.secondary
-        width               165px
-        height              41px
-        padding             0
-        text-transform      none
-        color               #57a2d2
-        bg                  color, #f7f7f7
-        border              1px solid #e4e4e4
-        display             block
-        margin              0 auto
+    .GenericButton.secondary
+      width               165px
+      height              42px
+      padding             0
+      text-transform      none !important
+      color               #57a2d2
+      bg                  color, #f7f7f7
+      border              1px solid #e4e4e4
 
-        .button-title
-          font-size         14px
+      .button-title
+        font-size         14px
 
 
   .start-machine-flow,
@@ -309,8 +307,11 @@ $regularColor               = #989898
         font-size           12px
         color               #333
 
+    footer
       .GenericButton.secondary
-        abs                 105px, 50px
+        abs()
+        top                 14px
+        left                30px
 
 
   .stack-template-page
@@ -329,9 +330,11 @@ $regularColor               = #989898
         .ace_gutter-layer
           bg                color, #FFF
 
+    footer
       .GenericButton.secondary
-        abs                 105px, 50px
-        z-index             11
+        abs()
+        top                 14px
+        left                30px
 
 
   .credentials-page
@@ -521,11 +524,6 @@ $regularColor               = #989898
           hidden()
 
       &.left-form
-      &.right-form
-        a.show-link
-          abs               44px, 20px
-
-      &.left-form
         fl()
         margin-left         30px
 
@@ -712,13 +710,14 @@ $regularColor               = #989898
     section.main
       height                320px
       padding-left          300px
-      padding-top           85px
+      padding-top           90px
+      padding-right         20px
 
       h2
         color               #48ba7d
-        font-size           22px
-        letter-spacing      .22px
-        line-height         43px
+        font-size           17px
+        letter-spacing      .17px
+        line-height         22px
         text-align          left
         padding-top         0
 
@@ -726,13 +725,13 @@ $regularColor               = #989898
         text-align          left
         line-height         16px
         margin-bottom       27px
+        margin-top          8px
 
       .background
         abs()
         top                 50px
         left                40px
         r-sprite            'app', 'buildstack__art_success'
-
 
 
   .start-machine-error-page
