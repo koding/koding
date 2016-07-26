@@ -57,6 +57,7 @@ var (
 	flagTunnelKiteURL = flag.String("tunnel-kite-url", "", "Change default tunnel server kite URL")
 	flagNoTunnel      = flag.Bool("no-tunnel", defaultNoTunnel(), "Force tunnel connection off")
 	flagNoProxy       = flag.Bool("no-proxy", false, "Force TLS proxy for tunneled connection off")
+	flagAutoupdate    = flag.Bool("autoupdate", false, "Force turn automatic updates on")
 
 	// Upload log flags
 	flagLogBucketRegion   = flag.String("log-bucket-region", "us-west-1", "Change bucket region to upload logs")
@@ -129,6 +130,7 @@ func realMain() int {
 		TunnelKiteURL:     *flagTunnelKiteURL,
 		NoTunnel:          *flagNoTunnel,
 		NoProxy:           *flagNoProxy,
+		Autoupdate:        *flagAutoupdate,
 		LogBucketRegion:   *flagLogBucketRegion,
 		LogBucketName:     *flagLogBucketName,
 		LogUploadLimit:    *flagLogUploadLimit,
