@@ -46,10 +46,12 @@ runTests = -> describe 'workers.social.models.gitprovider', ->
           readme      =
             content   : 'This is awesome stack template!!!'
 
-          originalUrl = "https://github.com/koding/#{generateRandomString()}"
+          user        = 'koding'
+          repo        = generateRandomString()
+          originalUrl = "https://github.com/#{user}/#{repo}"
           title       = 'Imported stack template'
 
-          importData = { template, readme, originalUrl }
+          importData = { template, readme, originalUrl, user, repo }
 
           GitProvider.createImportedStackTemplate client, title, importData, (err, _template) ->
             expect(err?.message)                               .not.exist
