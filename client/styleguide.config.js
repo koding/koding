@@ -12,7 +12,7 @@ module.exports = {
   getComponentPathLine: function(componentPath) {
     var name = path.basename(componentPath, '.js');
     var dir = path.dirname(componentPath);
-    return 'import ' + name + ' from \'' + dir + '\';';
+    return name + " = require '" + dir + "'"
   },
 
   updateWebpackConfig: function(webpackConfig, env) {
