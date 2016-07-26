@@ -23,6 +23,13 @@ module.exports = class TryOnKodingView extends React.Component
       {@renderGuideButton()} {@renderTryOnKodingButton()}
     </span>
 
+  renderFooter: ->
+
+    return  if @props.checked
+    <div className='TryOnKodingButton--footer'>
+      {@renderGuideButton()}
+    </div>
+
 
   render: ->
 
@@ -35,6 +42,7 @@ module.exports = class TryOnKodingView extends React.Component
         <CodeBlock cmd={@props.value} />
         {@renderButtons()}
       </p>
+      {@renderFooter()}
     </div>
 
 
