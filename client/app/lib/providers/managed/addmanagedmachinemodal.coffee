@@ -96,7 +96,7 @@ module.exports = class AddManagedMachineModal extends ContentModal
 
     if environment is 'production' and \
     location.hostname.indexOf("latest.#{globals.config.domains.base}") > -1
-      kontrolUrl = "export KONTROLURL=#{KodingKontrol.getKontrolUrl()} "
+      kontrolUrl = "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; "
     else
       kontrolUrl = if environment in ['dev', 'default', 'sandbox']
       then "export KONTROLURL=#{KodingKontrol.getKontrolUrl()} CHANNEL=devmanaged; "
