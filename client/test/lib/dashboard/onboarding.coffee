@@ -6,38 +6,25 @@ async             = require 'async'
 
 welcomeLink     = "#{helpers.getUrl(yes)}/Welcome"
 WelcomeView     = '.WelcomeStacksView'
-stackLink       = "#{WelcomeView} ul.bullets li:nth-of-type(1)"
-stackEditor     = '.StackEditor-OnboardingModal'
 
 notFoundLink    = "#{WelcomeView} ul.bullets li:nth-of-type(8)"
-notFounPage     = '.HomeAppView--section.kd-cli'
+notFoundPage     = '.HomeAppView--section.kd-cli'
 
+user            = utils.getUser()
 
 module.exports =
 
-  before: (browser, done) ->
-    targetUser1 = utils.getUser no, 1
-    targetUser1.role = 'member'
-    users = targetUser1
-    teamsHelpers.inviteAndJoinWithUsers browser, [users], (result) ->
-      done()
-
-
   dashboard: (browser) ->
 
-    browser
-      .url welcomeLink
-      .pause 2000
-      .waitForElementVisible WelcomeView, 20000
-      .click stackLink
-      .waitForElementVisible stackEditor, 20000
-      .url welcomeLink
-      .pause 2000
-      .waitForElementVisible WelcomeView, 20000
+    teamsHelpers.loginTeam browser, user, no , '', ->
+      browser
+        .url welcomeLink
+        .pause 2000
+        .waitForElementVisible WelcomeView, 20000
 
-      #expect that this part will give error on wercker
-      .click notFoundLink
-      .waitForElementVisible notFounPage, 20000
+        #expect that this part will give error on wercker
+        .click notFoundLink
+        .waitForElementVisible notFoundPage, 20000
 
 
   after: (browser) ->
