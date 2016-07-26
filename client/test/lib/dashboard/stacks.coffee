@@ -33,6 +33,9 @@ module.exports =
       (next) ->
         teamsHelpers.buildStack browser, (res) ->
           next null, res
+      (next) ->
+        teamsHelpers.createPrivateStack browser, (res) ->
+          next null, res
     ]
 
     async.series queue, (err, result) ->
@@ -45,6 +48,9 @@ module.exports =
           next null, result
       (next) ->
         stackshelpers.seeTeamStackTemplates browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.seePrivateStackTemplates browser, (result) ->
           next null, result
       (next) ->
         stackshelpers.seeDraftStackTemplates browser, (result) ->
@@ -77,6 +83,9 @@ module.exports =
         stackshelpers.destroy browser, (result) ->
           next null, result
       (next) ->
+        teamsHelpers.logoutTeam browser, (result) ->
+          next null, result
+      (next) ->
         stackshelpers.createAndMakeStackTeamDefault browser, (result) ->
           next null, result
       (next) ->
@@ -84,6 +93,9 @@ module.exports =
           next null, result
       (next) ->
         stackshelpers.createPrivateStackAsMember browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.checkDraftsAsMember browser, (result) ->
           next null, result
 
     ]

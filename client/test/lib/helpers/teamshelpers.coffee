@@ -364,7 +364,7 @@ module.exports =
     newCredentialPage = '.kdview.stacks.stacks-v2'
     saveButton = "#{newCredentialPage} button[type=submit]"
     regionSelector = '.kdview.formline.region .kdselectbox select'
-    eu_west_1 = "#{regionSelector} option[value=eu-west-1]"
+    eu_west_1 = "#{regionSelector} option[value=us-west-1]"
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
@@ -386,18 +386,6 @@ module.exports =
       .pause 200
       .click saveButton
       .pause 1000, -> done()
-
-
-  initializeStack: (browser, done) ->
-    browser
-      .waitForElementVisible menuSelector, 20000
-      .pause 3000
-      .click  "#{menuSelector}:nth-of-type(2)"
-      .waitForElementVisible '.kdnotification', 20000
-      .assert.containsText '.kdnotification', 'Stack generated successfully'
-      .pause 1000, =>
-        @buildStackFlow browser, ->
-          done()
 
 
   buildStack: (browser, done) ->
@@ -449,7 +437,9 @@ module.exports =
       .waitForElementVisible '.resource-state-modal.kdmodal .credentials-page .credential-form', 20000
       .click '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
       .waitForElementVisible '.BaseModalView.kdmodal section.main .progressbar-container', 20000
-
+      .waitForElementVisible '.kdview.kdscrollview', 20000
+      .waitForElementVisible '.kdview.jtreeview.expanded', 20000
+      .assert.containsText   'body.ide .kdlistitemview-finderitem > div .title', 'Applications'
     @waitUntilVmRunning browser, ->
       done()
 
@@ -472,7 +462,6 @@ module.exports =
 
 
   waitUntilVmRunning: (browser, done) ->
-
     sidebarSelector = '.SidebarTeamSection'
     sidebarStackSection = "#{sidebarSelector} .SidebarSection-body"
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
@@ -486,6 +475,13 @@ module.exports =
         else
           console.log '   VM is still building'
           @waitUntilVmRunning browser, done
+
+
+  createPrivateStack: (browser, done) ->
+    @createCredential browser, 'aws', 'private-stack', no, (res) =>
+      @createStack browser, 'PrivateStack', no, (res) =>
+        @initializeStack browser, ->
+          done()
 
 
   createDefaultStackTemplate: (browser, done) ->
@@ -507,31 +503,32 @@ module.exports =
     shareButton  = '[testpath=proceed]'
     vmSelector   = '.SidebarMachinesListItem cite'
 
-    browser
-      .pause 2000
-      .click useThisAndContinueButton
-      .waitForElementVisible editorPaneSelector, 20000
-      .waitForElementVisible stackTemplateNameArea, 2000
-      .setValue stackTemplateNameArea, ''
-      .pause 1000
-      .setValue stackTemplateNameArea, stackName
-      .click saveButtonSelector, =>
-        browser.element 'css selector', vmSelector, (result) =>
-          if result.status is 0
-            @waitUntilToSavePrivateStack browser, ->
-              done()
-          else
-            @waitUntilToCreateStack browser, ->
-              if teamStack
-                browser
-                  .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
-                  .click shareButton
-                  .waitForElementVisible '.ContentModal.content-modal main', 20000
-                  .click shareButton, ->
+    browser.pause 1000, =>
+      browser
+        .waitForElementVisible useThisAndContinueButton, 30000
+        .click useThisAndContinueButton
+        .waitForElementVisible editorPaneSelector, 20000
+        .waitForElementVisible stackTemplateNameArea, 2000
+        .setValue stackTemplateNameArea, ''
+        .pause 1000
+        .setValue stackTemplateNameArea, stackName
+        .click saveButtonSelector, =>
+          browser.element 'css selector', vmSelector, (result) =>
+            if result.status is 0
+              @waitUntilToSavePrivateStack browser, ->
+                done()
+            else
+              @waitUntilToCreateStack browser, ->
+                if teamStack
+                  browser
+                    .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
+                    .click shareButton
+                    .waitForElementVisible '.ContentModal.content-modal main', 20000
+                    .click shareButton, ->
+                      done()
+                else
+                  browser.click closeButton, ->
                     done()
-              else
-                browser.click closeButton, ->
-                  done()
 
 
   waitUntilToSavePrivateStack: (browser, done) ->
@@ -545,13 +542,27 @@ module.exports =
   waitUntilToCreateStack: (browser, done) ->
     successModal          = '.kdmodal-inner .kdmodal-content'
     closeButton           = '.ContentModal.kdmodal .kdmodal-inner .close-icon'
-
     browser.element 'css selector', successModal, (result) =>
       browser.pause 2000
       if result.status is 0
         browser.waitForElementVisible successModal, 20000
         browser.waitForElementVisible closeButton,  20000, done
       else @waitUntilToCreateStack browser, done
+
+
+  initializeStack: (browser, done) ->
+    draftStackHeader     = '.SidebarTeamSection .SidebarSection.draft:last-child'
+    menuSelector         = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
+    browser
+      .click '#main-sidebar'
+      .waitForElementVisible draftStackHeader, 20000
+      .click draftStackHeader
+      .waitForElementVisible menuSelector, 20000
+      .pause 3000
+      .click  "#{menuSelector}:nth-of-type(2)"
+      .waitForElementVisible '.kdnotification', 20000
+      .assert.containsText '.kdnotification', 'Stack generated successfully'
+      .pause 1000, done
 
 
   getAwsKey: -> return awsKey
@@ -611,7 +622,7 @@ module.exports =
       .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 20000
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 2000
-      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(3)'
+      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(4)'
       .pause 2000, -> callback()
 
 
