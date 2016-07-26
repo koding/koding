@@ -206,6 +206,8 @@ module.exports = class Haydar extends events.EventEmitter
       return acc
     , {}
 
+    rewriteMap['component-lab'] = "./component-lab/"
+
     modules = manifests.map (manifest) ->
       name = manifest.name
       if name is 'ide'
