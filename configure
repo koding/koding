@@ -110,8 +110,9 @@ rest = ->
     (require "./deployment/socialapiconfig.coffee").create KONFIG
 
   # write revision to client/.config.json
-  writeVersion = (obj) ->
+  writeVersion = (obj, isNew = no) ->
     file = __dirname + '/client/.config.json'
+    file = __dirname + '/new-client/.config.json'  if isNew
     config = if fs.existsSync file then require file else {}
     config.rev = obj.client.version
     configStr = JSON.stringify config
@@ -121,6 +122,7 @@ rest = ->
   createEnvFile KONFIG
   createRunFile KONFIG
   writeVersion KONFIG
+  writeVersion KONFIG, yes
 
   return  unless defaultEnv is 'default'
 

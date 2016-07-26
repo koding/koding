@@ -37,7 +37,6 @@ var LoggedInHome = `
 
     <script src="/a/p/p/{{.Version}}/thirdparty/pubnub.min.js"></script>
     <script src="/a/p/p/{{.Version}}/bundle.js"></script>
-    <script>require('app')();</script>
 
     <script>
       (function(d) {
