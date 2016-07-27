@@ -28,7 +28,7 @@ download_file() {
 # prompt_install <install info>
 prompt_install() {
   echo
-  read -p "${1} [y/N]" -n 1 -r < /dev/tty
+  read -p "${1} [y/N] " -n 1 -r < /dev/tty
   echo
 
   # default to no
@@ -100,6 +100,40 @@ install_vagrant_deps() {
   if ! vagrant box list | grep ubuntu/trusty64 >/dev/null; then
     vagrant box add ubuntu/trusty64
   fi
+}
+
+test_vagrant() {
+  echo "VirtualBox and Vagrant versions must match in order" 1>&2
+  echo "to be able to build a Vagrant box." 1>&2
+  echo 1>&2
+  echo "Vagrant 1.7.x expects VirtualBox 4.x versions and" 1>&2
+  echo "Vagrant 1.8.x expects VirtualBox 5.x versions." 1>&2
+  echo 1>&2
+
+  if ! prompt_install "Do you want to test building Vagrant box with VirtualBox provider?"; then
+	  return
+  fi
+
+  pushd $(mktemp -d)
+
+  cat >Vagrantfile <<EOF
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "ubuntu/trusty64"
+    config.vm.hostname = "kd-install-test"
+end
+EOF
+
+  vagrant up || die "error: building Vagrant box failed"
+  vagrant ssh -c "echo Hello"
+  vagrant destroy -f
+
+  popd
+
+  echo
+  echo
+  echo "Building Vagrant box was successful"
 }
 
 install_virtualbox() {
@@ -322,6 +356,8 @@ EOF
     if ! is_virtualbox || ! is_vagrant; then
       install_vagrant_deps
     fi
+
+    test_vagrant
 
     echo
     ;;
