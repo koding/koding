@@ -396,11 +396,16 @@ module.exports = class StackEditorView extends kd.View
 
           if err
             @credentialWarning.once 'transitionend', =>
-              @credentialWarning.tooltip.show()
-            @credentialWarning.setClass 'in'
+              if @credentialWarning.getAttribute('class').indexOf(' in') > 0
+                @credentialWarning.tooltip.show()
 
-            @providersPane.tabHandle.setClass 'notification'
-            @_credentialsPassed = no
+            if @credentialWarning.getAttribute('class').indexOf(' in') > 0
+              @credentialWarning.tooltip.show()
+            else
+              @providersPane.tabHandle.setClass 'notification'
+              @credentialWarning.setClass 'in'
+              @_credentialsPassed = no
+
             return @saveButton.hideLoader()
 
           @outputView
