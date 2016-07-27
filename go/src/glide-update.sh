@@ -21,7 +21,7 @@ GOPATH=$(git rev-parse --show-toplevel)/go
 
 pushd "$GOPATH/src"
 
-rm -rf vendor
+[[ ${1:-} != "-k" ]] && rm -rf vendor
 
 glide cc
 glide update --strip-vcs || true

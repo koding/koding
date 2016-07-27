@@ -279,6 +279,7 @@ import:
 - package: github.com/mattn/go-sqlite3
 - package: github.com/kisielk/gotool
 - package: golang.org/x/tools/go/loader
+- package: github.com/osin-mongo-storage/mgostore
 ignore:
 - koding/tools/logger
 - koding/kite
