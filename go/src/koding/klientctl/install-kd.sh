@@ -27,9 +27,13 @@ download_file() {
 
 # prompt_install <install info>
 prompt_install() {
-  echo
-  read -p "${1} [y/N] " -n 1 -r < /dev/tty
-  echo
+  if [ -z ${KD_NONINTERACTIVE:-} ]; then
+    echo
+    read -p "${1} [y/N] " -n 1 -r < /dev/tty
+    echo
+  else
+    REPLY=$KD_NONINTERACTIVE
+  fi
 
   # default to no
   if [ -z "$REPLY" ]; then
