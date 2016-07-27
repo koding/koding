@@ -1,0 +1,38 @@
+provider:
+  aws:
+    access_key: '${var.aws_access_key}'
+    secret_key: '${var.aws_secret_key}'
+resource:
+  aws_instance:
+    koding-instance:
+      root_block_device:
+        volume_size: 30
+      instance_type: c3.xlarge
+      ami: ''
+      tags:
+        Name: '${var.koding_user_username}-${var.koding_group_slug}'
+      user_data: |-
+
+        export KODING_USER=${var.koding_user_username}
+        export KODING_HOME=/home/$KODING_USER
+        export KODING_BOOTSTRAP=$KODING_HOME/koding-bootstrap.sh
+
+        curl -fsSL https://get.docker.com/ | sh
+        usermod -aG docker $KODING_USER
+
+        apt-get install -y python-pip
+        pip install docker-compose
+
+        cat > $KODING_BOOTSTRAP <<EOF
+        #!/bin/bash
+
+        git clone https://github.com/koding/docker-compose.git koding-docker-compose
+        cd koding-docker-compose
+        docker-compose up -d
+
+        EOF
+
+        chown $KODING_USER: $KODING_BOOTSTRAP
+        chmod +x $KODING_BOOTSTRAP
+
+        su - $KODING_USER -c $KODING_BOOTSTRAP

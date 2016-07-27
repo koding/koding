@@ -25,6 +25,13 @@ cd koding-docker-compose
 docker-compose up -d
 ```
 
+## Run Koding on Koding.com
+
+Yes, you can run koding on [koding.com](https://www.koding.com) by using
+provided [.koding.yml](https://github.com/koding/koding/blob/master/.koding.yml)
+
+For mor information about stacks: [koding.com/docs](https://www.koding.com/docs/creating-an-aws-stack)
+
 ## Getting started for Development
 
 If you wish to work on Koding itself, you need to install following software
