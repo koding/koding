@@ -147,7 +147,7 @@ module.exports = class StackEditorView extends kd.View
       partial  : '!'
       tooltip  :
         title  : "You need to set your #{selectedProvider.toUpperCase()}
-                  credentials to be able build this stack."
+                  credentials to be able to build this stack."
 
     @credentialWarning.bindTransitionEnd()
 
