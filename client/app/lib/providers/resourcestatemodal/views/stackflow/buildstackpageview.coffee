@@ -74,7 +74,7 @@ module.exports = class BuildStackPageView extends JView
 
   pistachio: ->
 
-    """
+    '''
       <div class="build-stack-flow build-stack-page">
         <header>
           <h1>Build Your Stack</h1>
@@ -88,4 +88,4 @@ module.exports = class BuildStackPageView extends JView
         <footer>
         </footer>
       </div>
-    """
+    '''
