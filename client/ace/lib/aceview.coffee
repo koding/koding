@@ -120,6 +120,9 @@ module.exports = class AceView extends JView
 
     @ace.on 'ace.requests.save', (contents) =>
       file = @getData()
+
+      return  if file.path.endsWith '.yaml'
+
       if /localfile:/.test file.path
         @openSaveDialog()
       else
