@@ -3,7 +3,7 @@ React = require 'kd-react'
 globals = require 'globals'
 Tracker = require 'app/util/tracker'
 copyToClipboard = require 'app/util/copyToClipboard'
-
+Spinner = require 'react-spinner'
 
 module.exports = class CodeBlock extends React.Component
 
@@ -33,7 +33,10 @@ module.exports = class CodeBlock extends React.Component
 
   render: ->
 
-     <code className='HomeAppView--code block'>
+    className = if @props.cmd then 'block' else 'loading'
+
+    <code className="HomeAppView--code #{className}">
+      <Spinner />
       <span ref='codeblock' onClick={@bound 'onCMDClick'}>
         {@props.cmd}
       </span>
