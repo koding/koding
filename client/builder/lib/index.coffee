@@ -206,6 +206,8 @@ module.exports = class Haydar extends events.EventEmitter
       return acc
     , {}
 
+    rewriteMap['component-lab'] = "./component-lab/"
+
     modules = manifests.map (manifest) ->
       name = manifest.name
       if name is 'ide'
@@ -293,6 +295,9 @@ module.exports = class Haydar extends events.EventEmitter
     b.plugin cssModulesify,
       rootDir: opts.basedir
       output: path.join opts.stylesOutdir, 'modules.css'
+      before: [
+        require('postcss-mixins'),
+      ]
 
     # force browser-pack to expose require
     b._bpack.hasExports = true

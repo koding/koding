@@ -1,4 +1,4 @@
-# Koding (the repository)
+# KODING IS NOW OPEN SOURCE! HERE IS [MORE](http://venturebeat.com/2016/07/26/koding-gitlab/)
 
 [![wercker status](https://app.wercker.com/status/8da42fd35762f3883b96b6d85b3f0c46/m "wercker status")](https://app.wercker.com/project/bykey/8da42fd35762f3883b96b6d85b3f0c46)
 
