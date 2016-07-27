@@ -28,8 +28,8 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
             required  : 'Please enter your email.'
 
     @button = new kd.ButtonView
-      title       : 'FIND MY TEAMS'
-      style       : 'TeamsModal-button TeamsModal-button--green'
+      title       : 'SEND TEAM LIST'
+      style       : 'TeamsModal-button'
       type        : 'submit'
       loader      : yes
 
@@ -46,6 +46,7 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
   pistachio: ->
 
     '''
-    <div>{{> @usernameOrEmail}}</div>
-    <div>{{> @button}}</div>
+    {{> @usernameOrEmail}}
+    {{> @button}}
+    <a href="/Teams" class="back-link" target="_self">BACK</a>
     '''

@@ -24,7 +24,7 @@ module.exports = class FindTeamView extends JView
 
     @header = new kd.CustomHTMLView
       tagName  : 'header'
-      cssClass : 'Homepage-Header'
+      cssClass : 'logo-header'
 
     @header.addSubView new kd.CustomHTMLView
       tagName   : 'a'
@@ -73,6 +73,12 @@ module.exports = class FindTeamView extends JView
     '''
     {{> @header }}
     <div class="TeamsModal TeamsModal--login">
+      <h4>Find My Teams</h4>
+      <h5>We will email you the list of teams you are part of.</h5>
       {{> @form}}
     </div>
+    <div class="additional-info">
+      Do you want to onboard a new team?<br />
+      <a href="/Teams/Create" class="back-link" target="_self">Create a new account</a>
+    </footer>
     '''
