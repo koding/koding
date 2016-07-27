@@ -4,18 +4,31 @@
 [![#koding on Freenode](https://img.shields.io/badge/koding-on%20freenode-brightgreen.svg?maxAge=2592000)]()
 [![Docker Pulls](https://img.shields.io/docker/pulls/koding/koding.svg?maxAge=2592000)](https://hub.docker.com/r/koding/koding/)
 
-Koding allows you to create a Stack for your team. A stack file is a
-YAML file that describes the complete development environment configuration
-which may include multiple VMs with different packages and applications
-installed on each VM.
+The Simplest Way to Manage Your Entire Dev Infrastructure!
+
+Koding is a development platform that provides you to build up your
+environment from scratch. Developers get everything they need to spin up
+full-stack, project-specific environments in seconds. Share them, update them,
+and manage infrastructure from a simple interface.
+
+You can try Koding now on [koding.com](https://www.koding.com)
 
 ## Quick Start with Docker
 
-Describe how we can use docker compose to easily run koding on a docker container
+Koding can be run as a docker container, it requires `docker-compose` which
+you can install from [here](https://docs.docker.com/compose/install/). For the
+rest you can follow these steps:
 
-## Getting started
+```bash
+git clone https://github.com/koding/docker-compose.git koding-docker-compose
+cd koding-docker-compose
+docker-compose up -d
+```
 
-If you wish to work on Koding itself, you need to install following software packages:
+## Getting started for Development
+
+If you wish to work on Koding itself, you need to install following software
+packages:
 
 ### Software Requirements
 
@@ -63,6 +76,9 @@ for your frontend client files.
 
 Now you can navigate to [](http://localhost:8090) to see your local Koding
 instance. Enjoy!
+
+You can follow [coffeescript-styleguide](https://github.com/koding/styleguide-coffeescript)
+that we are relying on.
 
 ## License
 
