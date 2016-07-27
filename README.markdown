@@ -1,7 +1,6 @@
 # Koding
 
-[![Gitter](https://img.shields.io/gitter/room/koding/koding.svg?maxAge=2592000)](https://gitter.im/koding)
-[![#koding on Freenode](https://img.shields.io/badge/koding-on%20freenode-brightgreen.svg?maxAge=2592000)]()
+[![Slack Status](http://cebeci.koding.com/slackin/badge.svg)](https://cebeci.koding.com/slackin/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/koding/koding.svg?maxAge=2592000)](https://hub.docker.com/r/koding/koding/)
 
 The Simplest Way to Manage Your Entire Dev Infrastructure!
@@ -96,4 +95,7 @@ Koding is licensed under [Apache 2.0](https://github.com/koding/koding/blob/mast
 The main purpose of this repository to continue evolve Koding, making it more
 stable and create the best development experience ever. If you're interested
 in helping with that, please check our [open
-issues](https://github.com/koding/koding/issues).
+issues](https://github.com/koding/koding/issues). You can also join the
+conversation in our [slack team]!
+
+[slack team]: http://cebeci.koding.com/slackin/
