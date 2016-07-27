@@ -123,6 +123,10 @@ install_virtualbox() {
 install_virtualbox_linux() {
   local vboxRun="/tmp/virtualbox.run"
 
+  if command -v apt-get >/dev/null; then
+    sudo apt-get install -q -y dkms linux-headers-$(uname -r) make build-essential screen
+  fi
+
   if ! download_file "$VIRTUALBOX_URL_LINUX" "$vboxRun"; then
     die "error: failed to download VirtualBox"
   fi
