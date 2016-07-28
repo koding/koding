@@ -152,7 +152,7 @@ contentModal.styl
 
       .kdtabpaneview
         overflow            visible
-        height              300px
+        height              400px
 
       .kdtabpaneview
         &.stack-template
@@ -311,3 +311,43 @@ main.main-container
       padding-top           12px
       margin-top            1px
       border                0px
+
+.ContentModal.content-modal.stack-template-preview
+  main
+    margin                  20px
+    .preview-label
+      color #868686
+      font-weight           300
+    .has-markdown
+      font-size             14px
+      color                 #727272
+      font-weight           300
+
+    button.expand-button
+      abs 0 40px 375px 0
+      z-index 10
+
+    button.minimize-button
+      display none
+
+
+.ContentModal.expanded-stack-template-preview
+
+  main:empty
+    display none
+
+  main
+    height calc(100% \- 80px)
+
+    .kdtabpaneview
+      height calc(100% \- 43px)
+
+
+  .expand-button
+  header
+  .preview-label
+    display none
+
+  button.minimize-button
+    abs 90px 60px 0 0
+    z-index 10
