@@ -85,8 +85,8 @@ module.exports = class Sidebar extends React.Component
   onMenuItemClick: (id, item, event) ->
 
     { router } = kd.singletons
-
     { title } = item.getData()
+
     MENU.destroy()
 
     draft = @state.drafts.get id
@@ -95,7 +95,9 @@ module.exports = class Sidebar extends React.Component
       when 'Initialize'
         EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
           kd.singletons.appManager.tell 'Stackeditor', 'reloadEditor', template
-
+      when 'Open on GitLab'
+        remoteUrl = draft.getIn ['config', 'remoteDetails', 'originalUrl']
+        window.open remoteUrl, '_blank'
 
 
   onDraftTitleClick: (id, event) ->
@@ -109,6 +111,10 @@ module.exports = class Sidebar extends React.Component
     callback = (item, event) => @onMenuItemClick id, item, event
 
     menuItems = {}
+    draft = @state.drafts.get id
+    if draft.getIn ['config', 'remoteDetails', 'originalUrl']
+      menuItems['Open on GitLab'] = { callback }
+
     ['Edit', 'Initialize'].forEach (name) => menuItems[name] = { callback }
 
     { top } = findDOMNode(@refs["draft-#{id}"]).getBoundingClientRect()

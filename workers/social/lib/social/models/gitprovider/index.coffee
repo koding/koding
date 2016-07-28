@@ -37,39 +37,72 @@ module.exports = class GitProvider extends Base
       shouldReviveProvider : no
     }, (client, importParams, callback) ->
 
-      { user }  = client.r
-      providers = [ GitHubProvider, GitLabProvider ]
+      providers =
+        gitlab  : GitLabProvider
+        github  : GitHubProvider
 
-      for provider in providers
-        return  if provider.importStackTemplateData importParams, user, callback
+      unless _provider = importParams.provider
+        return callback new KodingError 'Unknown provider'
 
-      callback new KodingError 'Invalid url'
+      provider = providers[_provider]
+
+      unless provider
+        return callback new KodingError 'Provider is not supported'
+
+      { user } = client.r
+
+      unless provider.importStackTemplateData importParams, user, callback
+        callback new KodingError 'Invalid url'
 
 
   @createImportedStackTemplate = permit 'import stack template',
 
     (client, title, importData, callback) ->
 
-      { rawContent, description } = importData
-      delete importData.rawContent
-      delete importData.description
+      { template, readme } = importData
 
-      requiredProviders = providersParser rawContent
-      requiredData      = requirementsParser rawContent
-      config            = { requiredData, requiredProviders, importData }
+      importData.commitId ?= importData.template.commitId
 
-      convertedDoc = yamlToJson Encoder.htmlDecode rawContent
-      if convertedDoc.err
-        return callback new KodingError 'Failed to convert YAML to JSON'
-
-      { contentObject } = convertedDoc
-      addUserInputOptions contentObject, requiredData
-      config.buildDuration = contentObject.koding?.buildDuration
-
-      template = convertedDoc.content
-      title  or= 'Default stack template'
+      delete importData.template
+      delete importData.readme
 
       JStackTemplate = require '../computeproviders/stacktemplate'
-      data = { rawContent, template, title, description, config }
-      JStackTemplate.create client, data, callback
 
+      # FIXME This fields requires index or we need to
+      # find a better way for this one ~ GG
+      selector = {
+        'config.remoteDetails.user'   : importData.user
+        'config.remoteDetails.repo'   : importData.repo
+        'config.remoteDetails.branch' : importData.branch
+      }
+
+      JStackTemplate.one$ client, selector, (err, stacktemplate) ->
+
+        if not err and stacktemplate
+          return callback null, stacktemplate
+
+        requiredProviders = providersParser template.content
+        requiredData      = requirementsParser template.content
+        config            = {
+          remoteDetails   : importData
+          requiredProviders
+          requiredData
+        }
+
+        description = readme.content
+        rawContent  = template.content
+
+        convertedDoc = yamlToJson Encoder.htmlDecode template.content
+        if convertedDoc.err
+          return callback new KodingError 'Failed to convert YAML to JSON'
+
+        { contentObject } = convertedDoc
+
+        addUserInputOptions contentObject, requiredData
+        config.buildDuration = contentObject.koding?.buildDuration
+
+        template = convertedDoc.content
+        title  or= "#{importData.repo} Stack (#{importData.branch})"
+
+        data = { rawContent, template, title, description, config }
+        JStackTemplate.create client, data, callback

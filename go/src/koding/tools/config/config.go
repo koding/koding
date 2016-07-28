@@ -162,6 +162,9 @@ type RuntimeOptions struct {
 			Nicename    string `json:"nicename"`
 			UrlLocation string `json:"urlLocation"`
 		} `json:"github"`
+		Gitlab struct {
+			Nicename string `json:"nicename"`
+		} `json:"gitlab"`
 	} `json:"externalProfiles"`
 	EntryPoint struct {
 		Slug string `json:"slug"`
@@ -207,6 +210,9 @@ type RuntimeOptions struct {
 		Main string `json:"main"`
 		Port string `json:"port"`
 	} `json:"domains"`
+	Gitlab struct {
+		Team string `json:"team"`
+	} `json:"gitlab"`
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN

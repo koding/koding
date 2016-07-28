@@ -100,6 +100,15 @@ module.exports = (options) ->
     clientId: ''
     clientSecret: ''
     redirectUri: 'http://dev.koding.com:8090/-/oauth/github/callback'
+  gitlab =
+    host: 'gitlab.com'
+    port: 80
+    applicationId: ''
+    applicationSecret: ''
+    redirectUri: "http://dev.koding.com:8090/-/oauth/gitlab/callback"
+    systemHookToken: 'some-random-token-here'
+    team: 'gitlab'
+    hooksEnabled: false
   facebook =
     clientId: ''
     clientSecret: ''
@@ -206,6 +215,7 @@ module.exports = (options) ->
     paymentwebhook
     googleapiServiceAccount
     github
+    gitlab
     facebook
     mailgun
     slack

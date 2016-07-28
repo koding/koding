@@ -172,6 +172,7 @@ module.exports = (options, credentials) ->
     stripe                 : credentials.stripe
     paypal                 : credentials.paypal
     github                 : credentials.github
+    gitlab                 : credentials.gitlab
     janitor                : credentials.janitor
     postgres               : credentials.postgres
     mq                     : credentials.rabbitmq
@@ -237,6 +238,7 @@ module.exports = (options, credentials) ->
     linkedin                      : credentials.linkedin
     datadog                       : credentials.datadog
     github                        : credentials.github
+    gitlab                        : credentials.gitlab
     facebook                      : credentials.facebook
     slack                         : credentials.slack
     sneakerS3                     : credentials.sneakerS3

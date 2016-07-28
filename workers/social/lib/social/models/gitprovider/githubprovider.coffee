@@ -62,19 +62,19 @@ module.exports = GitHubProvider =
         options = { user, repo, path: TEMPLATE_PATH, ref: branch }
         repos.getContent options, (err, data) ->
           return next err  if err
-          next null, helpers.decodeContent data
+          next null, { commitId: data.sha, content: helpers.decodeContent data }
 
       (next) ->
         options = { user, repo, path: README_PATH, ref: branch }
         repos.getContent options, (err, data) ->
           return next()  if err
-          next null, helpers.decodeContent data
+          next null, { commitId: data.sha, content: helpers.decodeContent data }
     ]
 
     return async.series queue, (err, results) ->
       return callback err  if err
-      [ rawContent, description ] = results
-      callback null, _.extend { rawContent, description }, urlData
+      [ template, readme ] = results
+      callback null, _.extend { template, readme }, urlData
 
 
   importStackTemplateWithRawUrl: (urlData, callback) ->
@@ -88,7 +88,8 @@ module.exports = GitHubProvider =
           host   : RAW_GITHUB_HOST
           path   : "/#{user}/#{repo}/#{branch}/#{TEMPLATE_PATH}"
           method : 'GET'
-        helpers.loadRawContent options, next
+        helpers.loadRawContent options, (err, template) ->
+          next null, { content: template }
 
       (next) ->
         options =
@@ -96,10 +97,10 @@ module.exports = GitHubProvider =
           path   : "/#{user}/#{repo}/#{branch}/#{README_PATH}"
           method : 'GET'
         helpers.loadRawContent options, (err, readme) ->
-          next null, readme
+          next null, { content: readme }
       ]
 
     return async.series queue, (err, results) ->
       return callback err  if err
-      [ rawContent, description ] = results
-      callback null, _.extend { rawContent, description }, urlData
+      [ template, readme ] = results
+      callback null, _.extend { template, readme }, urlData

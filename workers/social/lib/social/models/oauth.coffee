@@ -1,3 +1,5 @@
+# coffeelint: disable=cyclomatic_complexity
+
 bongo       = require 'bongo'
 { secure, signature } = bongo
 crypto      = require 'crypto'
@@ -27,6 +29,16 @@ module.exports = class OAuth extends bongo.Base
         scope = 'user:email'  unless scope
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
         url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=#{scope}&redirect_uri=#{redirectUri}"
+        callback null, url
+      when 'gitlab'
+        { applicationId, host, redirectUri, port } = KONFIG.gitlab
+        { returnUrl } = options
+        host ?= 'gitlab.com'
+        protocol = 'http://'
+        port = if port then ":#{port}" else ''
+        host = options.host ? host
+        redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
+        url = "#{protocol}#{host}#{port}/oauth/authorize?client_id=#{applicationId}&redirect_uri=#{redirectUri}&response_type=code"
         callback null, url
       when 'facebook'
         { clientId } = KONFIG.facebook

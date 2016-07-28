@@ -6,8 +6,10 @@ apiErrors                          = require './errors'
   handleClientIdNotFound
   checkAuthorizationBearerHeader } = require '../../helpers'
 { sendApiError
+  handleUsername
   verifyApiToken
   sendApiResponse
+  validateUsername
   checkApiAvailability
   isUsernameLengthValid
   isSuggestedUsernameLengthValid } = require './helpers'
@@ -98,64 +100,6 @@ validateData = (data, callback) ->
       return callback err  if err
 
       callback null, { apiToken, username }
-
-
-handleUsername = (username, suggestedUsername, callback) ->
-
-  queue = []
-
-  generateUsername = (next, results) ->
-    _username = "#{suggestedUsername}#{hat(32)}"
-    validateUsername _username, (err) ->
-      return next err  if err
-      next null, _username
-
-  queue.push (next) ->
-    # go next step and try suggestedUsername if no username is given
-    return next null, null  unless username
-
-    validateUsername username, (err) ->
-      if err
-        # try with suggestedUsername if one is given
-        return next null, null  if suggestedUsername
-        return next err
-
-      # no err, pass username to next function
-      next null, username
-
-  queue.push (username_, next) ->
-    # skip if username is returned from previous function
-    return next null, username_  if username_
-
-    # if suggestedUsername length is not valid, return error without trying
-    unless isSuggestedUsernameLengthValid suggestedUsername
-      return next apiErrors.outOfRangeSuggestedUsername
-
-    # try 10 times to generate a valid username
-    # will stop trying after first successful attempt
-    async.retry 10, generateUsername, (err, generatedUsername) ->
-      return next err  if err
-      next null, generatedUsername
-
-  async.waterfall queue, (err, username_) ->
-    return callback err  if err
-    return callback null, username_
-
-
-validateUsername = (username, callback) ->
-
-  { JUser } = koding.models
-
-  # checking if username has valid length
-  unless isUsernameLengthValid username
-    return callback apiErrors.outOfRangeUsername
-
-  # checking if username is available
-  JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
-    return callback apiErrors.internalError          if err
-    return callback apiErrors.usernameAlreadyExists  if kodingUser or forbidden
-    return callback null
-
 
 
 validateRequest = (req) ->
