@@ -4,6 +4,8 @@ set -o errexit
 
 pushd $(dirname $0)/..
 
+CONFIGURE_ARGS="$@"
+
 function build() {
   npm install --unsafe-perm
   configure
@@ -12,7 +14,7 @@ function build() {
 }
 
 function configure() {
-  ./configure "$@"
+  ./configure $CONFIGURE_ARGS
 }
 
 function start() {

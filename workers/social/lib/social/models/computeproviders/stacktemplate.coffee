@@ -135,13 +135,13 @@ module.exports = class JStackTemplate extends Module
     }
 
 
-  validateTemplate = (template, group) ->
+  validateTemplate = (template, group, callback) ->
 
     planConfig = helpers.getPlanConfig group
-    return  unless planConfig.plan # No plan, no pain.
+    return callback null  unless planConfig.plan # No plan, no pain.
 
     ComputeProvider = require './computeprovider'
-    return ComputeProvider.validateTemplateContent template, planConfig
+    ComputeProvider.validateTemplateContent template, planConfig, callback
 
 
   @create = permit 'create stack template',
@@ -160,28 +160,28 @@ module.exports = class JStackTemplate extends Module
       unless data?.title
         return callback new KodingError 'Title required.'
 
-      if validationError = validateTemplate data.template, group
-        return callback validationError
+      validateTemplate data.template, group, (err) ->
+        return callback validationError  if err
 
-      if data.config?
-        data.config.groupStack = no
+        if data.config?
+          data.config.groupStack = no
 
-      stackTemplate = new JStackTemplate
-        originId    : delegate.getId()
-        group       : client.context.group
-        title       : data.title
-        config      : data.config      ? {}
-        description : data.description ? ''
-        machines    : data.machines    ? []
-        accessLevel : data.accessLevel ? 'private'
-        template    : generateTemplateObject \
-          data.template, data.rawContent, data.templateDetails
-        credentials : data.credentials
+        stackTemplate = new JStackTemplate
+          originId    : delegate.getId()
+          group       : client.context.group
+          title       : data.title
+          config      : data.config      ? {}
+          description : data.description ? ''
+          machines    : data.machines    ? []
+          accessLevel : data.accessLevel ? 'private'
+          template    : generateTemplateObject \
+            data.template, data.rawContent, data.templateDetails
+          credentials : data.credentials
 
-      stackTemplate.save (err) ->
-        if err
-        then callback new KodingError 'Failed to save stack template', err
-        else callback null, stackTemplate
+        stackTemplate.save (err) ->
+          if err
+          then callback new KodingError 'Failed to save stack template', err
+          else callback null, stackTemplate
 
 
   @some$: permit 'list stack templates',
@@ -390,35 +390,37 @@ module.exports = class JStackTemplate extends Module
       # Update template sum if template update requested
       { template, templateDetails, rawContent } = data
 
-      if template?
+      async.series [
+        (next) =>
+          return next()  unless template?
 
-        if validationError = validateTemplate template, group
-          return callback validationError
+          validateTemplate template, group, (err) =>
+            return next validationError  if err
 
-        data.template = generateTemplateObject \
-          template, rawContent, templateDetails
+            data.template = generateTemplateObject \
+              template, rawContent, templateDetails
 
-        # Keep the existing template details if not provided
-        if not templateDetails?
-          data.template.details = @getAt 'template.details'
+            # Keep the existing template details if not provided
+            if not templateDetails?
+              data.template.details = @getAt 'template.details'
 
-        delete data.templateDetails
-        delete data.rawContent
+            delete data.templateDetails
+            delete data.rawContent
 
-        # Keep last updater info in the template details
-        data.template.details.lastUpdaterId = delegate.getId()
+            # Keep last updater info in the template details
+            data.template.details.lastUpdaterId = delegate.getId()
 
-        data['meta.modifiedAt'] = new Date
+            data['meta.modifiedAt'] = new Date
+        (next) =>
+          query = { $set: data }
 
-      query = { $set: data }
+          notifyOptions =
+            account : delegate
+            group   : group.slug
+            target  : if @accessLevel is 'group' then 'group' else 'account'
 
-      notifyOptions =
-        account : delegate
-        group   : group.slug
-        target  : if @accessLevel is 'group' then 'group' else 'account'
-
-      @updateAndNotify notifyOptions, query, (err) =>
-        callback err, this
+          @updateAndNotify notifyOptions, query, next
+      ], (err, results) => callback err, this
 
 
   cloneCustomCredentials = (client, credentials, callback) ->

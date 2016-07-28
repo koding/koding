@@ -46,7 +46,9 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
     avatar_wrapper = new kd.CustomHTMLView
       cssClass : 'HomeAppView-Nav--avatar-wrapper'
-      click : -> kd.singletons.router.handleRoute '/Home/My-Account'
+      click    : ->
+        ACCOUNT_MENU.destroy()
+        kd.singletons.router.handleRoute '/Home/My-Account'
 
     { profile } = account
 
