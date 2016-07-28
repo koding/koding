@@ -411,6 +411,8 @@ module.exports = class JStackTemplate extends Module
             data.template.details.lastUpdaterId = delegate.getId()
 
             data['meta.modifiedAt'] = new Date
+
+            next()
         (next) =>
           query = { $set: data }
 
