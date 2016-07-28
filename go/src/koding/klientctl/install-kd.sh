@@ -137,6 +137,7 @@ EOF
   echo
   echo
   echo "Building Vagrant box was successful"
+  echo
 }
 
 install_virtualbox() {
