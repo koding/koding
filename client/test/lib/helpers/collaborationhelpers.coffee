@@ -95,7 +95,7 @@ module.exports =
 
   startSessionAndInviteUser: (browser, firstUser, secondUser, callback, createDefaultFiles = no) ->
 
-    secondUserAvatar       = '.IDE-StatusBar .avatars .avatarview'
+    secondUserAvatar       = '.IDE-StatusBar .avatars.fr .avatarview'
     secondUserOnlineAvatar = "#{secondUserAvatar}.online"
 
     secondUser.role = 'member'
@@ -136,7 +136,8 @@ module.exports =
           console.log ' ✔ Collaboration link is ', result.value
           browser.writeCollabLink result.value, ->
             browser
-              .waitForElementVisible secondUserAvatar, 60000
+              .pause 5000
+              .waitForElementVisible secondUserAvatar, 50000
               .waitForElementVisible secondUserOnlineAvatar, 50000 # Assertion
 
             callback?()
@@ -153,11 +154,11 @@ module.exports =
     sessionLoading   = '.session-starting'
     teamurl         = helpers.getUrl(yes)
 
-    browser.url teamurl, ->
+    browser.pause 2000, ->
       browser.getMemberInvitation browser, (res) ->
         browser.url teamurl
         browser.maximizeWindow()
-        teamsHelpers.loginToTeam browser, secondUser, no, ->
+        teamsHelpers.loginToTeam browser, secondUser, no, '',  ->
           browser.getCollabLink browser, (url) ->
             console.log '>>>>>>>>>> Participant get the link', url
 
