@@ -1,4 +1,0 @@
-go-mixpanel
-===========
-
-Mixpanel Client
