@@ -11,7 +11,6 @@ import (
 
 	"gopkg.in/mgo.v2/bson"
 
-	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/utils"
 	"koding/kites/kloud/utils/res"
@@ -66,7 +65,6 @@ func (t *Team) Action(args []string) error {
 	}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, kiteKey, k)
-	modelhelper.Initialize(envMongoURL())
 	t.Resource.ContextFunc = func([]string) context.Context { return ctx }
 	return t.Resource.Main(args)
 }
@@ -250,7 +248,7 @@ func (cmd *TeamPlan) Run(ctx context.Context) error {
 
 	resp, err := k.TellWithTimeout("plan", defaultTellTimeout, req)
 	if err != nil {
-		return err
+		return fmt.Errorf("%v %s kloud error: %s", k.Kite, k.Hostname, err)
 	}
 
 	DefaultUi.Info("plan raw response: " + string(resp.Raw))
