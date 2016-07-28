@@ -118,7 +118,7 @@ test_vagrant() {
 	  return
   fi
 
-  pushd $(mktemp -d)
+  pushd $(mktemp -d /tmp/XXXXX)
 
   cat >Vagrantfile <<EOF
 VAGRANTFILE_API_VERSION = "2"
@@ -130,7 +130,6 @@ end
 EOF
 
   vagrant up || die "error: building Vagrant box failed"
-  vagrant ssh -c "echo Hello"
   vagrant destroy -f
 
   popd
@@ -361,8 +360,6 @@ EOF
       install_vagrant_deps
     fi
 
-    test_vagrant
-
     echo
     ;;
   windows)
@@ -431,6 +428,8 @@ with Vagrant provider ensure it is installed:
 
 EOF
 
+else
+  test_vagrant
 fi
 
 if [[ -n "$kiteQueryID" ]]; then
