@@ -3,6 +3,7 @@ package stackplan
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -44,15 +45,17 @@ func (e *NotFoundError) Underlying() error {
 // ResError is a helper function that decorates the given err with more
 // meaningful error value, giving the caller context to recover.
 func ResError(err error, resource string) error {
-	switch err {
-	case mgo.ErrNotFound:
+	if err == nil {
+		return nil
+	}
+	if err == mgo.ErrNotFound || strings.Contains(err.Error(), "not found") {
 		return &NotFoundError{
 			Resource: resource,
 			Err:      err,
 		}
-	default:
-		return err
 	}
+
+	return err
 }
 
 // IsNotFound gives true when err is of *NotFoundError type and its Resource

@@ -38,6 +38,7 @@ kontrol-data-*
 /go/bin-vagrant
 /go/build
 /go/pkg
+/go/data
 /go/binexport
 /go/src/socialapi/db/sql/kontrol
 /go/src/socialapi/config/*.toml
