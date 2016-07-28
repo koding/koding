@@ -56,7 +56,7 @@ do ->
       app.handleQuery options
 
     # '/Redeem'       : handler (app) -> app.getView().animateToForm 'redeem'
-    # '/Reset/:token' : handleResetRoute
+    '/Reset/:token' : handleResetRoute
     '/ResendToken'  : handler (app) -> app.getView().animateToForm 'resendEmail'
     '/Recover'      : handler (app) -> app.getView().animateToForm 'recover'
 

@@ -147,7 +147,7 @@ module.exports = class StackEditorView extends kd.View
       partial  : '!'
       tooltip  :
         title  : "You need to set your #{selectedProvider.toUpperCase()}
-                  credentials to be able build this stack."
+                  credentials to be able to build this stack."
 
     @credentialWarning.bindTransitionEnd()
 
@@ -396,11 +396,16 @@ module.exports = class StackEditorView extends kd.View
 
           if err
             @credentialWarning.once 'transitionend', =>
-              @credentialWarning.tooltip.show()
-            @credentialWarning.setClass 'in'
+              if @credentialWarning.hasClass 'in'
+                @credentialWarning.tooltip.show()
 
-            @providersPane.tabHandle.setClass 'notification'
-            @_credentialsPassed = no
+            if @credentialWarning.hasClass 'in'
+              @credentialWarning.tooltip.show()
+            else
+              @providersPane.tabHandle.setClass 'notification'
+              @credentialWarning.setClass 'in'
+              @_credentialsPassed = no
+
             return @saveButton.hideLoader()
 
           @outputView

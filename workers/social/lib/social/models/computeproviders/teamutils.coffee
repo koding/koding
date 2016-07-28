@@ -3,6 +3,7 @@ TEAMPLANS   = require './teamplans'
 
 konstraints = require 'konstraints'
 _           = require 'underscore'
+JGroupPlan  = require '../group/groupplan'
 
 
 shareCredentials = (options, callback) ->
@@ -32,22 +33,29 @@ shareCredentials = (options, callback) ->
 # Returns plan data
 # If plan is not found, it fallbacks to default
 # If there are plan overrides, they override plan properties
-getPlanData = (planConfig) ->
+fetchPlanData = (planConfig, callback) ->
 
   { plan, overrides } = planConfig
 
-  if plan not in Object.keys TEAMPLANS
-    _.clone TEAMPLANS['default']
-  else
-    overrides ?= {}
-    _.extend {}, TEAMPLANS[plan], overrides
+  if plan in Object.keys TEAMPLANS
+    result = _.extend {}, TEAMPLANS[plan], (overrides ? {})
+    return callback null, result
+
+  JGroupPlan.one { name: plan }, (err, planData) ->
+    return callback err  if err
+    return callback null, _.clone TEAMPLANS['default']  unless planData
+    return callback null, planData
+
+
+fetchConstraints = (planConfig, callback) ->
+  fetchPlanData planConfig, (err, plan) ->
+    return callback err  if err
+    callback null, generateConstraints plan
 
 
 # Takes plan config as reference and generates valid konstraint
 # rules based on the TEAMPLANS data ~ GG
-generateConstraints = (planConfig) ->
-
-  plan  = getPlanData planConfig
+generateConstraints = (plan) ->
 
   # First rule be an object.
   rules = [ { $typeof : 'object' } ]
@@ -128,5 +136,5 @@ generateConstraints = (planConfig) ->
 
 
 module.exports = {
-  generateConstraints, getPlanData, shareCredentials, TEAMPLANS
+  fetchConstraints, generateConstraints, fetchPlanData, shareCredentials, TEAMPLANS
 }
