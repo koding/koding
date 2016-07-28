@@ -9,10 +9,12 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"koding/klient/tunnel/tlsproxy/pem"
 
 	"github.com/boltdb/bolt"
+	"github.com/cenkalti/backoff"
 	"github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
@@ -447,9 +449,10 @@ var unquoter = strings.NewReplacer("\\n", "\n")
 // request.
 func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-chan *vagrantutil.CommandOutput, error)) (interface{}, error) {
 	var params struct {
-		Success dnode.Function
-		Failure dnode.Function
-		Output  dnode.Function
+		Success   dnode.Function
+		Failure   dnode.Function
+		Output    dnode.Function
+		Heartbeat dnode.Function
 	}
 
 	if r.Args == nil {
@@ -461,7 +464,10 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 	}
 
 	fail := func(err error) error {
-		params.Failure.Call(err.Error())
+		go retry(func() error {
+			return params.Failure.Call(err.Error())
+		})
+
 		return err
 	}
 
@@ -471,6 +477,27 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 
 	if !params.Success.IsValid() {
 		return nil, fail(errors.New("invalid request: missing success callback"))
+	}
+
+	if params.Heartbeat.IsValid() {
+		stop := make(chan struct{})
+		defer close(stop)
+
+		go func() {
+			t := time.NewTicker(5 * time.Second)
+			defer t.Stop()
+
+			for {
+				select {
+				case <-stop:
+					return
+				case <-t.C:
+					if err := params.Heartbeat.Call(); err != nil {
+						h.log.Debug("heartbeat failure for %q: %s", filePath, err)
+					}
+				}
+			}
+		}()
 	}
 
 	var verr error
@@ -522,8 +549,20 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 		}
 
 		h.log.Info("Klient %q success for %q", r.Method, filePath)
-		params.Success.Call()
+
+		retry(func() error {
+			return params.Success.Call()
+		})
 	}()
 
 	return true, nil
+}
+
+func retry(op func() error) {
+	retry := backoff.NewExponentialBackOff()
+	retry.MaxElapsedTime = 2 * time.Minute
+	retry.MaxInterval = 10 * time.Second
+	retry.Reset()
+
+	backoff.Retry(op, retry)
 }
