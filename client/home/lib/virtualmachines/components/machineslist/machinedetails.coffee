@@ -8,7 +8,9 @@ Machine             = require 'app/providers/machine'
 SharingAutocomplete = require './sharing/autocomplete'
 SharingUserList     = require './sharing/userlist'
 ContentModal        = require 'app/components/contentModal'
-
+FSHelper = require 'app/util/fs/fshelper'
+envDataProvider      = require 'app/userenvironmentdataprovider'
+remote  = require('app/remote').getInstance()
 module.exports = class MachineDetails extends React.Component
 
   @propTypes =
@@ -191,9 +193,24 @@ module.exports = class MachineDetails extends React.Component
 
   onClickBuildLog: (e) ->
 
-    machineUid = @props.machine.get 'uid'
-    kd.singletons.router.handleRoute "/Home/build-logs/#{machineUid}"
+    machineUId = @props.machine.get 'uid'
+    path = '/var/log/cloud-init-output.log'
+    kd.singletons.router.handleRoute "/IDE/#{@props.machine.get 'label'}"
 
+    { computeController } = kd.singletons
+    machine    = computeController.findMachineFromMachineUId machineUId
+
+    file = FSHelper.createFileInstance { path, machine }
+
+    return  unless ideApp = envDataProvider.getIDEFromUId machineUId
+
+    ideApp.tailFile {
+      file
+      description : '
+        Your Koding Stack has successfully been initialized. The log here
+        describes each executed step of the Stack creation process.
+      '
+    }
 
 
   render: ->
