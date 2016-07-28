@@ -41,12 +41,12 @@ module.exports = class ReadmePageView extends JView
         </header>
         {{> @progressPane}}
         <section class="main">
-          <h2>Read Me First</h2>
-          <p>Your admin created the following instructions to get you started</p>
+          <h2>Read Me</h2>
+          <p>Instructions on getting started</p>
           {{> @descriptionContainer}}
-          {{> @stackTemplateButton}}
         </section>
         <footer>
+          {{> @stackTemplateButton}}
           {{> @nextButton}}
         </footer>
       </div>
