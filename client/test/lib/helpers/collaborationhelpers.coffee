@@ -172,7 +172,7 @@ module.exports =
               .waitForElementVisible     rejectButton, 50000
               .click                     acceptButton
               .waitForElementNotPresent  shareModal, 50000
-              .pause                     3000 # wait for sidebar redraw
+              # .pause                     3000 # wait for sidebar redraw
               .waitForElementNotPresent  sessionLoading, 50000
               .waitForElementVisible     filetree, 50000
               .waitForTextToContain      filetree, firstUserName
@@ -388,3 +388,14 @@ module.exports =
 
         browser.pause 5000 # wait for host
         browser.end()
+
+
+  openVideochat: (browser) ->
+    videoChat = '.IDE-StatusBar .appear-in-button'
+
+    browser
+      .waitForElementVisible videoChat, 20000
+      .click videoChat, (result) ->
+        if result.state is 'success'
+          helpers.switchBrowser browser, '/appear.in/koding'
+
