@@ -1,0 +1,113 @@
+.change-team-modal.kdmodal
+
+  .kdmodal-inner
+    margin                  0
+
+    .kdmodal-content
+      margin                0
+      overflow              visible
+
+  .close-icon.closeModal
+    r-sprite                app, modal_close
+    top                     15px
+    right                   15px
+    z-index                 10  
+
+    &:hover
+      r-sprite              app, modal_close
+
+  .HomeAppView-Nav--avatar
+    kalc                    right, 50% \- 30px
+    top                     -30px
+    size                    60px, 60px
+
+    img
+      border                2px solid #fff
+
+    .badge
+      right                 -6px
+      bottom                0px
+
+  h1
+    font-size               27px
+    line-height             32px
+    color                   #f2778a
+    padding-top             45px
+    text-align              center
+
+  .kdmodal-content > p
+    font-size               18px
+    letter-spacing          .2px
+    line-height             27px
+    color                   #a59999
+    text-align              center
+
+  .listview-wrapper
+    margin-top              45px
+    margin-bottom           40px
+
+  .kdlistview
+    width                   400px
+    bg                      color, #fff
+    rounded                 4px
+    border                  1px solid #dcdcdc
+    margin                  0 auto
+
+  .change-team-item
+    height                  68px
+    border-bottom           1px solid #dcdcdc
+    padding                 0 20px
+    display                 flex
+    align-items             center
+    borderBox()
+    justify-content         space-between
+
+    &:last-child
+      border-bottom         0
+
+  .team-logo-wrapper
+    size                    40px, 40px
+    display                 flex
+    align-content           center
+    justify-content         center
+    margin-right            10px
+
+    img
+      max-width             100%
+      max-height            100%
+      height                auto
+      flex                  0 0 auto
+      align-self            center
+      rounded               3px
+
+  .team-title
+    color                   #8d8d8d
+    font-size               18px
+    letter-spacing          .35px
+    line-height             21px
+
+  .team-title-wrapper
+    display                 flex
+    align-items             center
+
+  .GenericButton
+    color                   #fff !important
+    text-decoration         none !important
+    padding                 4px 13px
+
+  .active-team-label
+    font-size               14px
+    letter-spacing          .05px
+    line-height             17px
+    color                   #989898
+    rel()
+    padding-right           18px
+
+    .circle
+      width                 12px
+      height                12px
+      rounded               6px
+      bg                    color, #48ba7d
+      abs()
+      right                 0
+      top                   3px
