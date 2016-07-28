@@ -131,7 +131,8 @@ func (bk *balancedKlients) init() error {
 	// in production environment klouds are balanced behind
 	// https://kontrol.com/kloud/kite, however get the uniq URLs
 	// in case we're running in different env
-	for _, klient := range klients {
+	for i, klient := range klients {
+		k.Log.Debug("kloud[%d] = %s", i, klient.Kite.Hostname)
 		uniq[klient.URL] = struct{}{}
 	}
 

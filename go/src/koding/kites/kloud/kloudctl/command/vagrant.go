@@ -55,7 +55,13 @@ func init() {
 
 	top := string(bytes.TrimSpace(p))
 
-	p, err = ioutil.ReadFile(filepath.Join(top, "vault", "private_keys", "kontrol", "kontrol.pem"))
+	credDir := filepath.Join(top, "vault")
+
+	if s := os.Getenv("KLOUDCTL_CREDSDIR"); s != "" {
+		credDir = s
+	}
+
+	p, err = ioutil.ReadFile(filepath.Join(credDir, "private_keys", "kontrol", "kontrol.pem"))
 	if err != nil {
 		log.Println("unable to read private key:", err)
 		return
@@ -63,7 +69,7 @@ func init() {
 
 	defaultPrivateKey = string(p)
 
-	p, err = ioutil.ReadFile(filepath.Join(top, "vault", "private_keys", "kontrol", "kontrol.pub"))
+	p, err = ioutil.ReadFile(filepath.Join(credDir, "private_keys", "kontrol", "kontrol.pub"))
 	if err != nil {
 		log.Println("unable to read private key:", err)
 		return
