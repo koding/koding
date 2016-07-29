@@ -4,9 +4,25 @@ services:
   backend:
     image: koding/base
     command: /opt/koding/scripts/bootstrap-container build
-    environment:
-      KONFIG_PROJECTROOT: /opt/koding
     volumes:
       - .:/opt/koding
     ports:
       - 8090:8090
+    links:
+      - mongo
+      - postgres
+      - rabbitmq
+      - redis
+
+  mongo:
+    image: koding/mongo
+    command: --dbpath /opt/db --smallfiles --nojournal
+
+  postgres:
+    image: koding/postgres
+
+  rabbitmq:
+    image: rabbitmq:3-management
+
+  redis:
+    image: redis
