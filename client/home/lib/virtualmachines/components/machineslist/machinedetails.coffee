@@ -199,18 +199,8 @@ module.exports = class MachineDetails extends React.Component
 
     { computeController } = kd.singletons
     machine    = computeController.findMachineFromMachineUId machineUId
-
-    file = FSHelper.createFileInstance { path, machine }
-
-    return  unless ideApp = envDataProvider.getIDEFromUId machineUId
-
-    ideApp.tailFile {
-      file
-      description : '
-        Your Koding Stack has successfully been initialized. The log here
-        describes each executed step of the Stack creation process.
-      '
-    }
+    tailOffset = 0
+    computeController.showBuildLogs machine, tailOffset
 
 
   render: ->
