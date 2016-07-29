@@ -8,9 +8,7 @@ Machine             = require 'app/providers/machine'
 SharingAutocomplete = require './sharing/autocomplete'
 SharingUserList     = require './sharing/userlist'
 ContentModal        = require 'app/components/contentModal'
-FSHelper = require 'app/util/fs/fshelper'
-envDataProvider      = require 'app/userenvironmentdataprovider'
-remote  = require('app/remote').getInstance()
+
 module.exports = class MachineDetails extends React.Component
 
   @propTypes =
