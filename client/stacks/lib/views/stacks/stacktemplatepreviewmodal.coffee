@@ -30,25 +30,18 @@ module.exports = class StackTemplatePreviewModal extends ContentModal
       callback : =>
         @unsetClass 'stack-template-preview'
         @setClass 'expanded-stack-template-preview'
-        @setModalHeight '98%'
-        @setModalWidth '99%'
-        @setOption 'position', { top:10, left:10 }
-        @setPositions()
         @minimizeButton.show()
         @resizeOpenPane()
 
 
     @main.addSubView @minimizeButton = new kd.ButtonView
       cssClass : 'solid compact light-gray minimize-button hidden'
-      title : 'Minimize'
+      title : 'Collapse'
       callback : =>
         @setClass 'stack-template-preview'
         @unsetClass 'expanded-stack-template-preview'
-        @setOption 'position', 'absolute'
-        @setModalHeight defaultHeight
-        @setModalWidth defaultWidth
-        @setPositions()
         @minimizeButton.hide()
+        @resizeOpenPane()
 
 
     @main.addSubView new kd.CustomHTMLView
