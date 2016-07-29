@@ -194,13 +194,11 @@ module.exports = class MachineDetails extends React.Component
   onClickBuildLog: (e) ->
 
     machineUId = @props.machine.get 'uid'
-    path = '/var/log/cloud-init-output.log'
     kd.singletons.router.handleRoute "/IDE/#{@props.machine.get 'label'}"
 
     { computeController } = kd.singletons
     machine    = computeController.findMachineFromMachineUId machineUId
-    tailOffset = 0
-    computeController.showBuildLogs machine, tailOffset
+    computeController.showBuildLogs machine, 0
 
 
   render: ->
