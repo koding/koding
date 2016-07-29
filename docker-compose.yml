@@ -10,4 +10,4 @@ services:
       - .:/opt/koding
     network_mode: host
     ports:
-      - $KONFIG_PUBLICPORT:$KONFIG_PUBLICPORT
+      - 8090:8090
