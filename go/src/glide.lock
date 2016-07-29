@@ -1,6 +1,8 @@
 hash: 8b6e41c2ba6867b37f399757d2c8e5ef7e75c4459078519423d474282c1073b9
 updated: 2016-07-24T10:03:54.079934139Z
 imports:
+- name: github.com/samuel/go-zookeeper
+  version: e64db453f3512cade908163702045e0f31137843
 - name: bitbucket.org/kardianos/osext
   version: 816c96ec6fef6a0cd72c9395d192c4bd0d918753
 - name: github.com/alecthomas/gocyclo
@@ -352,7 +354,7 @@ imports:
   - helpers
   - services
 - name: github.com/koding/kite
-  version: ""
+  version: 8c48065408a4c4c2dffb4db08b6de9457d8236c7
   subpackages:
   - config
   - dnode
@@ -725,15 +727,5 @@ testImports:
   - drive/v2
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
-- name: koding/kite
-  version: ""
-- name: koding/kite/protocol
-  version: ""
 - name: launchpad.net/goyaml
-  version: |-
-    bzr: warning: unsupported locale setting
-      bzr could not set the application locale.
-      Although this should be no problem for bzr itself, it might
-      cause problems with some plugins. To investigate the issue,
-      look at the output of the locale(1p) tool.
-    51
+  version: 51

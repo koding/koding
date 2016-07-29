@@ -21,10 +21,9 @@ GOPATH=$(git rev-parse --show-toplevel)/go
 
 pushd "$GOPATH/src"
 
-[[ ${1:-} != "-k" ]] && rm -rf vendor
+[[ ${1:-} != "-k" ]] && { rm -rf vendor; glide cc; }
 
-glide cc
-glide update --strip-vcs || true
+glide update --update-vendored --strip-vcs || true
 
 rm -rf vendor/github.com/hashicorp/terraform
 git clone git@github.com:koding/terraform vendor/github.com/hashicorp/terraform
@@ -33,10 +32,6 @@ rm -rf vendor/github.com/hashicorp/terraform/.git
 rm -rf vendor/github.com/jinzhu/gorm
 git clone git@github.com:koding/gorm vendor/github.com/jinzhu/gorm
 rm -rf vendor/github.com/jinzhu/gorm/.git
-
-rm -rf vendor/github.com/koding/kite
-git clone git@github.com:rjeczalik/kite vendor/github.com/koding/kite
-rm -rf vendor/github.com/koding/kite/.git
 
 popd
 

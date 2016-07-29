@@ -8,6 +8,7 @@
 # needs a closer look.
 package: .
 import:
+- package: github.com/samuel/go-zookeeper
 - package: github.com/RangelReale/osin
 - package: github.com/VerbalExpressions/GoVerbalExpressions
 - package: github.com/algolia/algoliasearch-client-go
@@ -110,7 +111,6 @@ import:
   - helpers
   - services
 - package: github.com/koding/kite
-  version: eab5a1c457579262cc2cc9fa25f42420b60aecb1
   subpackages:
   - config
   - dnode
