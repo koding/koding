@@ -27,9 +27,13 @@ download_file() {
 
 # prompt_install <install info>
 prompt_install() {
-  echo
-  read -p "${1} [y/N]" -n 1 -r < /dev/tty
-  echo
+  if [ -z ${KD_NONINTERACTIVE:-} ]; then
+    echo
+    read -p "${1} [y/N] " -n 1 -r < /dev/tty
+    echo
+  else
+    REPLY=$KD_NONINTERACTIVE
+  fi
 
   # default to no
   if [ -z "$REPLY" ]; then
@@ -102,6 +106,40 @@ install_vagrant_deps() {
   fi
 }
 
+test_vagrant() {
+  echo "VirtualBox and Vagrant versions must match in order" 1>&2
+  echo "to be able to build a Vagrant box." 1>&2
+  echo 1>&2
+  echo "Vagrant 1.7.x expects VirtualBox 4.x versions and" 1>&2
+  echo "Vagrant 1.8.x expects VirtualBox 5.x versions." 1>&2
+  echo 1>&2
+
+  if ! prompt_install "Do you want to test building Vagrant box with VirtualBox provider?"; then
+	  return
+  fi
+
+  pushd $(mktemp -d /tmp/XXXXX)
+
+  cat >Vagrantfile <<EOF
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "ubuntu/trusty64"
+    config.vm.hostname = "kd-install-test"
+end
+EOF
+
+  vagrant up || die "error: building Vagrant box failed"
+  vagrant destroy -f
+
+  popd
+
+  echo
+  echo
+  echo "Building Vagrant box was successful"
+  echo
+}
+
 install_virtualbox() {
   if is_virtualbox; then
     return 0
@@ -122,6 +160,10 @@ install_virtualbox() {
 
 install_virtualbox_linux() {
   local vboxRun="/tmp/virtualbox.run"
+
+  if command -v apt-get >/dev/null; then
+    sudo apt-get install -q -y dkms linux-headers-$(uname -r) make build-essential screen
+  fi
 
   if ! download_file "$VIRTUALBOX_URL_LINUX" "$vboxRun"; then
     die "error: failed to download VirtualBox"
@@ -387,6 +429,8 @@ with Vagrant provider ensure it is installed:
 
 EOF
 
+else
+  test_vagrant
 fi
 
 if [[ -n "$kiteQueryID" ]]; then
