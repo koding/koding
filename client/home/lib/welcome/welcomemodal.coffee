@@ -20,10 +20,27 @@ module.exports = class WelcomeModal extends kd.ModalView
 
     router.once 'RouteInfoHandled', => @destroy no
 
+    mainController.once 'AllWelcomeStepsDone', @bound 'showCongratulationModal'
     mainController.once 'AllWelcomeStepsDone', @bound 'destroy'
     mainController.once 'AllWelcomeStepsNotDoneYet', @bound 'initialShow'
 
     storage.setValue 'landedOnWelcome', ''
+
+
+  showCongratulationModal: ->
+
+    modal = new kd.ModalView
+      title : 'Success!'
+      width : 530
+      cssClass : 'Congratulation-modal'
+      content : "<p class='description'>Congratulations. You have completed all items on your onboarding list.</p>"
+
+    modal.addSubView new kd.CustomHTMLView
+      cssClass : 'image-wrapper'
+
+    modal.addSubView new kd.ButtonView
+      title : 'KEEP ROCKING!'
+      cssClass: 'GenericButton'
 
 
   initialShow: ->
