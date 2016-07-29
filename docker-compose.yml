@@ -3,6 +3,7 @@ version: '2'
 services:
   backend:
     image: koding/base
+    command: /opt/koding/scripts/bootstrap-container build
     environment:
       KONFIG_PROJECTROOT: /opt/koding
     volumes:
