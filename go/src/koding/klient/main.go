@@ -39,14 +39,13 @@ var (
 	flagUsername   = flag.String("username", "", "Username to be registered to Kontrol")
 	flagToken      = flag.String("token", "", "Token to be passed to Kontrol to register")
 	flagRegister   = flag.Bool("register", false, "Register to Kontrol with your Koding Password")
-	flagKontrolURL = flag.String("kontrol-url", "",
-		"Change kontrol URL to be used for registration")
+	flagKontrolURL = flag.String("kontrol-url", "", "Change kontrol URL to be used for registration")
 
 	// Update parameters
 	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
 		"Change interval for checking for new updates")
 	flagUpdateURL = flag.String("update-url",
-		"https://s3.amazonaws.com/koding-klient/"+protocol.Environment+"/latest-version.txt",
+		"",
 		"Change update endpoint for latest version")
 
 	// Vagrant flags
@@ -63,7 +62,7 @@ var (
 	flagLogBucketRegion   = flag.String("log-bucket-region", "us-west-1", "Change bucket region to upload logs")
 	flagLogBucketName     = flag.String("log-bucket-name", "koding-klient-logs", "Change bucket name to upload logs")
 	flagLogUploadLimit    = flag.Int("log-upload-limit", 1024*400, "Change file size of logs")
-	flagLogUploadInterval = flag.Duration("log-upload-interval", time.Minute*3*60, "Change interval of upload logs")
+	flagLogUploadInterval = flag.Duration("log-upload-interval", time.Hour*3, "Change interval of upload logs")
 )
 
 func main() {

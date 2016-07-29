@@ -8,9 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
-	"path"
 	"runtime"
 	"strconv"
 	"sync"
@@ -30,6 +28,7 @@ type Updater struct {
 	Endpoint       string
 	Interval       time.Duration
 	CurrentVersion string
+	KontrolURL     string
 	Log            kite.Logger
 	Wait           sync.WaitGroup
 	MountEvents    <-chan *mount.Event
@@ -62,15 +61,12 @@ func (u *Updater) checkAndUpdate() error {
 		return err
 	}
 
-	l, err := u.latestVersion()
+	l, err := u.latestVersion(protocol.Environment)
 	if err != nil {
-		u.Log.Debug("failure getting latest version from %s: %s", u.Endpoint, err)
-
 		return err
 	}
 
-	latestVer := fmt.Sprintf("0.1.%d", l)
-	latest, err := version.NewVersion(latestVer)
+	latest, err := version.NewVersion(fmt.Sprintf("0.1.%d", l))
 	if err != nil {
 		return err
 	}
@@ -85,30 +81,44 @@ func (u *Updater) checkAndUpdate() error {
 		return nil
 	}
 
-	u.Log.Info("Current version: %s is old. Going to update to: %s", u.CurrentVersion, latestVer)
-
-	var file string
-	if runtime.GOOS != "linux" {
-		// Backward-compatibility - linux uploads of klient are not suffixed
-		// with a platform_arch string.
-		//
-		// TODO(rjeczalik): Remove when we ensure all klients in the wild
-		// use new urls.
-		file = fmt.Sprintf("klient-%s.%s_%s.gz", latestVer, runtime.GOOS, runtime.GOARCH)
-	} else {
-		file = fmt.Sprintf("klient-%s.gz", latestVer)
-	}
-
-	latestKlientURL := &url.URL{
-		Scheme: "https",
-		Host:   "s3.amazonaws.com",
-		Path:   path.Join("/koding-klient", protocol.Environment, strconv.Itoa(l), file),
-	}
-
-	return u.updateBinary(latestKlientURL.String())
+	return u.update(latest, protocol.Environment)
 }
 
-func (u *Updater) updateBinary(url string) error {
+func (u *Updater) update(latest *version.Version, env string) error {
+	return u.updateBinary(u.endpointKlient(env, latest), latest)
+}
+
+// checkAndMigrate migrates from development environment
+// to production.
+//
+// Prior to 210 version, kloud did use development klient
+// on production. In order to migrate all them back to
+// production channel, then env is overwritten here.
+func (u *Updater) checkAndMigrate() error {
+	if err := hasFreeSpace(100); err != nil {
+		return err
+	}
+
+	if protocol.Environment != "development" || u.KontrolURL != "https://koding.com/kontrol/kite" {
+		return nil
+	}
+
+	l, err := u.latestVersion("production")
+	if err != nil {
+		return err
+	}
+
+	latest, err := version.NewVersion(fmt.Sprintf("0.1.%d", l))
+	if err != nil {
+		return err
+	}
+
+	return u.update(latest, "production")
+}
+
+func (u *Updater) updateBinary(url string, latest *version.Version) error {
+	u.Log.Info("Current version: %s is old. Going to update to: %s", u.CurrentVersion, latest)
+
 	updater := update.New()
 	err := updater.CanUpdate()
 	if err != nil {
@@ -159,8 +169,32 @@ func (u *Updater) updateBinary(url string) error {
 	return nil
 }
 
-func (u *Updater) latestVersion() (int, error) {
-	resp, err := http.Get(u.Endpoint)
+func (u *Updater) endpointVersion(env string) string {
+	if u.Endpoint != "" {
+		return u.Endpoint
+	}
+
+	return "https://s3.amazonaws.com/koding-klient/" + env + "/latest-version.txt"
+}
+
+func (u *Updater) endpointKlient(env string, latest *version.Version) string {
+	var file string
+	if runtime.GOOS != "linux" {
+		// Backward-compatibility - linux uploads of klient are not suffixed
+		// with a platform_arch string.
+		//
+		// TODO(rjeczalik): Remove when we ensure all klients in the wild
+		// use new urls.
+		file = fmt.Sprintf("klient-%s.%s_%s.gz", latest, runtime.GOOS, runtime.GOARCH)
+	} else {
+		file = fmt.Sprintf("klient-%s.gz", latest)
+	}
+
+	return fmt.Sprintf("https://s3.amazonaws.com/koding-klient/%s/%d/%s", env, latest.Segments()[2], file)
+}
+
+func (u *Updater) latestVersion(env string) (int, error) {
+	resp, err := http.Get(u.endpointVersion(env))
 	if err != nil {
 		return 0, err
 	}
@@ -207,7 +241,7 @@ func (u *Updater) fetch(url string) ([]byte, error) {
 // Run runs the updater in the background for the interval of updater interval.
 func (u *Updater) Run() {
 	u.Log.Info("Starting Updater with following options:\n\tinterval of: %s\n\tendpoint: %s",
-		u.Interval, u.Endpoint)
+		u.Interval, u.endpointVersion(protocol.Environment))
 
 	mounts := make(map[string]struct{})
 	enabled := true
@@ -256,8 +290,12 @@ func (u *Updater) Run() {
 				continue
 			}
 
+			if err := u.checkAndMigrate(); err != nil {
+				u.Log.Warning("self-migrate: %s", err)
+			}
+
 			if err := u.checkAndUpdate(); err != nil {
-				u.Log.Warning("Self-update: %s", err)
+				u.Log.Warning("self-update: %s", err)
 			}
 		}
 	}
@@ -268,6 +306,8 @@ func (u *Updater) Run() {
 func hasFreeSpace(mustHave uint64) error {
 	stat := new(syscall.Statfs_t)
 
+	// TODO(rjeczalik): /opt/kite/klient might be a separate filesystem,
+	// so checking for / migtht not work.
 	if err := syscall.Statfs("/", stat); err != nil {
 		return err
 	}
