@@ -24,6 +24,8 @@ cd koding-docker-compose
 docker-compose up -d
 ```
 
+Then you will be able to access Koding UI via the port `8090` (e.g. [localhost:8090](http://localhost:8090)) on your host.
+
 ## Run Koding on Koding.com
 
 Yes, you can run koding on [koding.com](https://www.koding.com) by using
