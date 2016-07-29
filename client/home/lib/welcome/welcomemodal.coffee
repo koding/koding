@@ -35,6 +35,11 @@ module.exports = class WelcomeModal extends kd.ModalView
       cssClass : 'Congratulation-modal'
       content : "<p class='description'>Congratulations. You have completed all items on your onboarding list.</p>"
 
+
+    kd.View::addSubView.call modal, new kd.CustomHTMLView
+      cssClass : 'alien'
+
+
     modal.addSubView new kd.CustomHTMLView
       cssClass : 'image-wrapper'
 
