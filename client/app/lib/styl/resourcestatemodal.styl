@@ -118,40 +118,38 @@ $regularColor               = #989898
 
   /* Wizard pane */
   .wizard-progress-pane
-    bg                      color, #efefef
     border-bottom           1px solid #e4e4e4
     text-align              center
 
     .wizard-step
       display               inline-block
       borderBox()
-      width                 200px
-      height                35px
-      font-size             16px
+      width                 260px
+      height                40px
+      font-size             14px
       font-weight           300
-      line-height           35px
-      bg                    color, #fff
-      color                 #c6c6c6
-      letter-spacing        .5px
+      letter-spacing        .27px
+      line-height           40px
+      bg                    color, #f4f4f4
+      color                 #727272
       rel()
-      border-left           1px solid #e4e4e4
+      border-left           1px solid #fff
 
       .alien
         hidden()
         abs()
         top                 -103px
-        left                60px
+        left                90px
         r-sprite            'app' 'login_alien'
 
-      .icon
-        rel()
-        top                 1px
-        display             inline-block
-        margin-right        5px
-
       .index
-        padding-right       5px
-        font-weight         400
+        display             inline-block
+        size                24px, 24px
+        bg                  color, #cacaca
+        color               #fff
+        line-height         24px
+        rounded             50%
+        margin-right        5px
 
       &:first-child
         border-left         none !important
@@ -160,23 +158,21 @@ $regularColor               = #989898
         border-right        none !important
 
       &.current
-        bg                  color, #57a2d2
+        bg                  color, #67A2EE
         color               #fff
+
+        .index
+          bg                color, #fff
+          color             #67A2EE
 
         .alien
           visible()
 
       &.completed
-        bg                  color, #57a2d2
-        color               #000
-        border-right        1px solid #5095C2
+        bg                  color, rgba(72,186,125,0.1)
 
-        .icon
-          r-sprite          'app', 'check_mark'
-
-      &.current, &.completed
-        border-left         1px solid #70AED6
-        font-weight         400
+        .index
+          bg                color, #48BA7D
 
 
   /* Logs pane */
@@ -215,21 +211,17 @@ $regularColor               = #989898
 
     .wizard-progress-pane
 
-      .wizard-step
-        &.completed
-          bg                color, $warningColor
+      .wizard-step.current
+        bg                  color, $warningColor
+        color               #fff
+
+        .indexText
+          hidden()
+
+        .indexSign:before
+          content           '!'
           color             #000
-          border-right      1px solid #E97587
-
-        &.current
-          bg                color, $warningColor
-          color             #fff
-
-          .alien
-            hidden()
-
-        &.current, &.completed
-          border-left       1px solid #EB8292
+          padding-left      1px
 
     .error-container
       max-height            240px
@@ -560,30 +552,7 @@ $regularColor               = #989898
       height                255px
 
 
-  .build-stack-error-page
-
-    .wizard-progress-pane
-      .wizard-step
-        &.completed
-          bg                color, #d4d4d4
-          border-right      1px solid rgba(0,0,0,0.1)
-
-        &.completed, &.current
-          border-left       0
-
-
   .build-stack-success-page
-
-    .wizard-step.current
-      bg                    color, #57a2d2
-      color                 #000
-      font-weight           400
-
-      .icon
-        r-sprite            'app', 'check_mark'
-
-      .alien
-        hidden()
 
     section.main
       padding-left          385px
@@ -627,16 +596,6 @@ $regularColor               = #989898
 
     section.main
       padding-top           65px
-
-    .wizard-step.current
-      bg                    color, #57a2d2
-      color                 #000
-
-      .icon
-        r-sprite            'app', 'check_mark'
-
-      .alien
-        hidden()
 
     .logs-pane
       width                 720px
