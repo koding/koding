@@ -1,5 +1,6 @@
 kd = require 'kd'
 JView = require 'app/jview'
+BuildStackHeaderView = require './buildstackheaderview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 applyMarkdown = require 'app/util/applyMarkdown'
@@ -10,13 +11,16 @@ module.exports = class ReadmePageView extends JView
 
     super options, data
 
+    { stack, stackTemplate } = @getData()
+
+    @header = new BuildStackHeaderView {}, stack
+
     @progressPane = new WizardProgressPane
       currentStep : WizardSteps.Instructions
 
-    { description } = @getData()
     descriptionView = new kd.CustomHTMLView
       cssClass : 'description has-markdown'
-      partial  : applyMarkdown description
+      partial  : applyMarkdown stackTemplate.description
     descriptionView.getDomElement().find('a').attr('target', '_blank')
     @descriptionContainer = new kd.CustomScrollView()
     @descriptionContainer.wrapper.addSubView descriptionView
@@ -36,9 +40,7 @@ module.exports = class ReadmePageView extends JView
 
     '''
       <div class="build-stack-flow readme-page">
-        <header>
-          <h1>Build Your Stack</h1>
-        </header>
+        {{> @header}}
         {{> @progressPane}}
         <section class="main">
           <h2>Read Me</h2>

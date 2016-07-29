@@ -41,7 +41,7 @@ module.exports = class CredentialsController extends kd.Controller
       credentials  : _.extend { kdCmd }, credentials
       requirements
     }
-    @errorPage = new CredentialsErrorPageView()
+    @errorPage = new CredentialsErrorPageView {}, { stack }
 
     @cacheCredentials credentials
 
