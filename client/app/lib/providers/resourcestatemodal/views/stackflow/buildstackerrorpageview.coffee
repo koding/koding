@@ -1,5 +1,6 @@
 kd = require 'kd'
 BaseErrorPageView = require '../baseerrorpageview'
+BuildStackHeaderView = require './buildstackheaderview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 
@@ -8,6 +9,9 @@ module.exports = class BuildStackErrorPageView extends BaseErrorPageView
   constructor: (options = {}, data) ->
 
     super options, data
+
+    { stack } = @getData()
+    @header   = new BuildStackHeaderView {}, stack
 
     @progressPane = new WizardProgressPane
       currentStep : WizardSteps.BuildStack
@@ -28,9 +32,7 @@ module.exports = class BuildStackErrorPageView extends BaseErrorPageView
 
     '''
       <div class="build-stack-flow error-page build-stack-error-page">
-        <header>
-          <h1>Build Your Stack</h1>
-        </header>
+        {{> @header}}
         {{> @progressPane}}
         <section class="main">
           <h2>Oh no! Your stack build failed</h2>

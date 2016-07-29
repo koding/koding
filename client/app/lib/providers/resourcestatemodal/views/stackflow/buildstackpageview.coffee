@@ -1,5 +1,6 @@
 kd = require 'kd'
 JView = require 'app/jview'
+BuildStackHeaderView = require './buildstackheaderview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 IDETailerPane = require 'ide/workspace/panes/idetailerpane'
@@ -12,6 +13,9 @@ module.exports = class BuildStackPageView extends JView
   constructor: (options = {}, data) ->
 
     super options, data
+
+    { stack } = @getData()
+    @header   = new BuildStackHeaderView {}, stack
 
     @wizardPane = new WizardProgressPane
       currentStep : WizardSteps.BuildStack
@@ -26,7 +30,7 @@ module.exports = class BuildStackPageView extends JView
 
   render: ->
 
-    file = @getData()
+    { file } = @getData()
     { tailOffset } = @getOptions()
 
     @logsContainer.destroySubViews()
@@ -76,9 +80,7 @@ module.exports = class BuildStackPageView extends JView
 
     '''
       <div class="build-stack-flow build-stack-page">
-        <header>
-          <h1>Build Your Stack</h1>
-        </header>
+        {{> @header}}
         {{> @wizardPane}}
         <section class="main">
           {{> @progressBar}}

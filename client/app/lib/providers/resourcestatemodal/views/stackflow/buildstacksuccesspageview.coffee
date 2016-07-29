@@ -1,5 +1,6 @@
 kd = require 'kd'
 JView = require 'app/jview'
+BuildStackHeaderView = require './buildstackheaderview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 
@@ -8,6 +9,9 @@ module.exports = class BuildStackSuccessPageView extends JView
   constructor: (options = {}, data) ->
 
     super options, data
+
+    { stack } = @getData()
+    @header   = new BuildStackHeaderView {}, stack
 
     @progressPane = new WizardProgressPane
       currentStep : WizardSteps.BuildStack
@@ -27,9 +31,7 @@ module.exports = class BuildStackSuccessPageView extends JView
 
     '''
       <div class="build-stack-flow build-stack-success-page">
-        <header>
-          <h1>Build Your Stack</h1>
-        </header>
+        {{> @header}}
         {{> @progressPane}}
         <section class="main">
           <div class="background"></div>

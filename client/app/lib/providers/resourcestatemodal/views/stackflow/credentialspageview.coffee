@@ -1,6 +1,7 @@
 kd = require 'kd'
 async = require 'async'
 JView = require 'app/jview'
+BuildStackHeaderView = require './buildstackheaderview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 CredentialForm = require './credentialform'
@@ -13,6 +14,9 @@ module.exports = class CredentialsPageView extends JView
   constructor: (options = {}, data) ->
 
     super options, data
+
+    { stack } = @getData()
+    @header   = new BuildStackHeaderView {}, stack
 
     @progressPane = new WizardProgressPane
       currentStep : WizardSteps.Credentials
@@ -116,9 +120,7 @@ module.exports = class CredentialsPageView extends JView
 
     """
       <div class="build-stack-flow credentials-page">
-        <header>
-          <h1>Build Your Stack</h1>
-        </header>
+        {{> @header}}
         {{> @progressPane}}
         <section class="main">
           <h2>#{title}</h2>
