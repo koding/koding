@@ -73,6 +73,7 @@ module.exports = class FindTeamView extends JView
     '''
     {{> @header }}
     <div class="TeamsModal TeamsModal--login">
+      <div class="alien"></div>
       <h4>Find My Teams</h4>
       <h5>We will email you the list of teams you are part of.</h5>
       {{> @form}}
@@ -80,5 +81,8 @@ module.exports = class FindTeamView extends JView
     <div class="additional-info">
       Do you want to onboard a new team?<br />
       <a href="/Teams/Create" class="back-link" target="_self">Create a new account</a>
-    </footer>
+    </div>
+    <div class="ufo-bg"></div>
+    <div class="ground-bg"></div>
+    <div class="footer-bg"></div>
     '''

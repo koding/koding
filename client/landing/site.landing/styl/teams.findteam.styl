@@ -1,8 +1,9 @@
 @import "lib/core.fn"
 
-.Teams-findteam
+.Teams-findteam.Team
   bg                        color, #3c3b58
   bg                        image, linear-gradient(-180deg,#3c3c57 11%,#8598be 100%)
+  min-height                1020px
 
   a
     color                   #56a2d3
@@ -29,6 +30,12 @@
     margin-top              180px
     size                    480px, 330px
     padding-top             38px
+
+    .alien
+      r-sprite              teams, alien
+      abs()
+      top                   -32px
+      kalc                  left, 50% \- 40px
 
     h4
       font-size             27px
@@ -73,8 +80,40 @@
       line-height           17px
 
   .additional-info
-    margin-top              40px
+    margin-top              50px
     color                   #fff
     font-size               14px
     line-height             17px
     text-align              center
+
+  .ufo-bg
+    abs()
+    bg                      color, transparent
+    bg                      image, url('/a/images/landing/ufo_1600.svg')
+    bg                      repeat, no-repeat
+    bg                      position, right bottom
+    bg                      size, 1051px 528px
+    width                   100%
+    height                  528px
+    bottom                  0
+    z-index                 1
+
+  .ground-bg
+    abs()
+    bg                      color, transparent
+    bg                      image, url('/a/images/landing/ground_1600.svg')
+    bg                      repeat, no-repeat
+    bg                      position, center bottom
+    bg                      size, 3184px 334px
+    width                   100%
+    height                  334px
+    bottom                  0
+    z-index                 1
+
+  .footer-bg
+    width                   100%
+    height                  67px
+    bg                      color, #fff
+    abs()
+    bottom                  0
+    z-index                 0
