@@ -31,8 +31,10 @@ module.exports = class WizardProgressPane extends kd.View
         cssClass
         partial  : """
           <div class='alien'></div>
-          <span class='icon'></span>
-          <span class='index'>#{++index}</span>
+          <span class='index'>
+            <span class='indexText'>#{++index}</span>
+            <span class='indexSign'></span>
+          </span>
           #{value}
         """
       }
