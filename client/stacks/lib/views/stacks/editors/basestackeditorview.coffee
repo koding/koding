@@ -61,6 +61,8 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
 
       @emit 'EditorReady'
 
+    ace.off 'ace.requests.save'
+
 
   resize: ->
 

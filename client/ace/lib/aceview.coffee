@@ -120,6 +120,7 @@ module.exports = class AceView extends JView
 
     @ace.on 'ace.requests.save', (contents) =>
       file = @getData()
+
       if /localfile:/.test file.path
         @openSaveDialog()
       else
