@@ -152,7 +152,7 @@ module.exports =
     rejectButton     = '.SidebarWidget .kdbutton.solid.red'
     filetree         = '.ide-files-tab'
     sessionLoading   = '.session-starting'
-    teamurl         = helpers.getUrl(yes)
+    teamurl          = helpers.getUrl(yes)
 
     browser.pause 2000, ->
       browser.getMemberInvitation browser, (res) ->
