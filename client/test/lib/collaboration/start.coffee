@@ -12,18 +12,29 @@ module.exports =
 
   afterEach: (browser, done) -> utils.afterEachCollaborationTest browser, done
 
-  # start: (browser) ->
+  start: (browser) ->
+    sidebarSelector          = '.activity-sidebar .SidebarTeamSection'
+    sidebarStackSection      = "#{sidebarSelector} .SidebarStackSection.active"
+    vmSelector               = "#{sidebarStackSection} .SidebarMachinesListItem cite"
 
-  #   callback = ->
+    hostCallback = ->
 
-  #     collaborationHelpers.leaveSession(browser)
-  #     collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+      browser.waitForElementVisible vmSelector, 20000
+      browser.waitForElementVisible '.SidebarMachinesListItem.Running .SidebarListItem-icon', 30000
 
-  #     browser.end()
+      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+      browser.end()
 
 
-  #   browser.pause 2500, -> # wait for user.json creation
-  #     collaborationHelpers.initiateCollaborationSession(browser, callback, callback)
+    participantCallback = ->
+
+      browser.waitForElementVisible '.SidebarMachinesListItem.NotInitialized .SidebarListItem-icon', 20000
+
+      collaborationHelpers.leaveSession(browser)
+      browser.end()
+
+    browser.pause 2500, -> # wait for user.json creation
+      collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
 
 
   # runCommandOnTerminal: (browser) ->
@@ -56,59 +67,58 @@ module.exports =
   #     collaborationHelpers.leaveSession(browser)
   #     browser.end()
 
-
   #   collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
 
 
-  openFile: (browser) ->
+  # openFile: (browser) ->
 
-    host                   = utils.getUser no, 0
-    user                   = utils.getUser no, 1
-    hostBrowser            = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    paneSelector           = '.kdsplitview-panel.panel-1 .pane-wrapper .application-tab-handle-holder'
-    lineWidgetSelector     = '.kdtabpaneview.active .ace-line-widget-'
-    participantFileName    = 'python.py'
-    participantFileContent = 'Hello World from Python by Koding'
-    hostFileName           = 'index.html'
-    hostFileContent        = 'Hello World from Html by Koding'
-    fileSelector           = "span[title='/home/#{host.username}/.config/python.py']"
-    htmlFileSelector       = "span[title='/home/#{host.username}/.config/index.html']"
-    markerSelector         = '.ace-line-widget .username'
+  #   host                   = utils.getUser no, 0
+  #   user                   = utils.getUser no, 1
+  #   hostBrowser            = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+  #   paneSelector           = '.kdsplitview-panel.panel-1 .pane-wrapper .application-tab-handle-holder'
+  #   lineWidgetSelector     = '.kdtabpaneview.active .ace-line-widget-'
+  #   participantFileName    = 'python.py'
+  #   participantFileContent = 'Hello World from Python by Koding'
+  #   hostFileName           = 'index.html'
+  #   hostFileContent        = 'Hello World from Html by Koding'
+  #   fileSelector           = "span[title='/home/#{host.username}/.config/python.py']"
+  #   htmlFileSelector       = "span[title='/home/#{host.username}/.config/index.html']"
+  #   markerSelector         = '.ace-line-widget .username'
 
-    hostCallback = ->
+  #   hostCallback = ->
 
-      ideHelpers.closeFile(browser, participantFileName, host)
-      ideHelpers.closeFile(browser, hostFileName, host)
-      browser
-        .waitForElementNotPresent  '.kdtabhandle.indexhtml', 20000
-        .waitForElementNotPresent  '.kdtabhandle.pythonpy', 20000
-
-
-      ideHelpers.openFileFromConfigFolder browser, host, hostFileName, hostFileContent
-      collaborationHelpers.answerPermissionRequest(browser, yes)
-      browser.waitForElementVisible "#{paneSelector} .pythonpy",  60000
-      browser
-        .waitForElementVisible     markerSelector, 20000
-        .assert.containsText       markerSelector, user.username
-
-      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
-      browser.pause 1000
-      helpers.deleteFile(browser, fileSelector)
-      helpers.deleteFile(browser, htmlFileSelector)
-
-      browser.end()
+  #     ideHelpers.closeFile(browser, participantFileName, host)
+  #     ideHelpers.closeFile(browser, hostFileName, host)
+  #     browser
+  #       .waitForElementNotPresent  '.kdtabhandle.indexhtml', 20000
+  #       .waitForElementNotPresent  '.kdtabhandle.pythonpy', 20000
 
 
-    participantCallback = ->
-      browser.pause 5000
-      browser.waitForElementVisible "#{paneSelector} .indexhtml", 60000
-      collaborationHelpers.requestPermission(browser, yes)
-      ideHelpers.openFileFromConfigFolder browser, host, participantFileName, participantFileContent
-      browser.pause 1000, ->
-        collaborationHelpers.leaveSession(browser)
-        browser.end()
+  #     ideHelpers.openFileFromConfigFolder browser, host, hostFileName, hostFileContent
+  #     collaborationHelpers.answerPermissionRequest(browser, yes)
+  #     browser.waitForElementVisible "#{paneSelector} .pythonpy",  60000
+  #     browser
+  #       .waitForElementVisible     markerSelector, 20000
+  #       .assert.containsText       markerSelector, user.username
 
-    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback, yes)
+  #     collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+  #     browser.pause 1000
+  #     helpers.deleteFile(browser, fileSelector)
+  #     helpers.deleteFile(browser, htmlFileSelector)
+
+  #     browser.end()
+
+
+  #   participantCallback = ->
+  #     browser.pause 5000
+  #     browser.waitForElementVisible "#{paneSelector} .indexhtml", 60000
+  #     collaborationHelpers.requestPermission(browser, yes)
+  #     ideHelpers.openFileFromConfigFolder browser, host, participantFileName, participantFileContent
+  #     browser.pause 1000, ->
+  #       collaborationHelpers.leaveSession(browser)
+  #       browser.end()
+
+  #   collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback, yes)
 
 
   # openTerminalWithInvitedUser: (browser) ->
