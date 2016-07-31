@@ -577,7 +577,6 @@ func retry(op func() error) {
 	retry := backoff.NewExponentialBackOff()
 	retry.MaxElapsedTime = 2 * time.Minute
 	retry.MaxInterval = 10 * time.Second
-	retry.Reset()
 
 	backoff.Retry(op, retry)
 }
