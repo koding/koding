@@ -24,6 +24,8 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
     canEdit = kd.singletons.groupsController.canEditGroup()
     allowedDomains = team.allowedDomains
 
+    TeamFlux.actions.fetchOtaToken()
+
     @wrapper.addSubView headerize  'KD CLI'
     @wrapper.addSubView @kdCliSection = sectionize 'KD CLI', HomeUtilitiesKD
 
