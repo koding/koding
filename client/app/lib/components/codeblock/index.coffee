@@ -3,7 +3,7 @@ React = require 'kd-react'
 globals = require 'globals'
 Tracker = require 'app/util/tracker'
 copyToClipboard = require 'app/util/copyToClipboard'
-Spinner = require 'react-spinner'
+Spinner = require 'app/components/reactspinner'
 
 module.exports = class CodeBlock extends React.Component
 
