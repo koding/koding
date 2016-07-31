@@ -15,7 +15,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/cenkalti/backoff"
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/logging"
@@ -479,27 +479,6 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 		return nil, fail(errors.New("invalid request: missing success callback"))
 	}
 
-	if params.Heartbeat.IsValid() {
-		stop := make(chan struct{})
-		defer close(stop)
-
-		go func() {
-			t := time.NewTicker(5 * time.Second)
-			defer t.Stop()
-
-			for {
-				select {
-				case <-stop:
-					return
-				case <-t.C:
-					if err := params.Heartbeat.Call(); err != nil {
-						h.log.Debug("heartbeat failure for %q: %s", filePath, err)
-					}
-				}
-			}
-		}()
-	}
-
 	var verr error
 	var fns OutputFuncs
 
@@ -537,6 +516,30 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 
 	go func() {
 		h.log.Debug("vagrant: waiting for output from %q...", r.Method)
+
+		if params.Heartbeat.IsValid() {
+			stop := make(chan struct{})
+			defer close(stop)
+
+			go func() {
+				t := time.NewTicker(5 * time.Second)
+				defer t.Stop()
+
+				for {
+					select {
+					case <-stop:
+						h.log.Debug("stopping heartbeat for %q", filePath)
+						return
+					case <-t.C:
+						h.log.Debug("sending heartbeat for %q", filePath)
+
+						if err := params.Heartbeat.Call(); err != nil {
+							h.log.Debug("heartbeat failure for %q: %s", filePath, err)
+						}
+					}
+				}
+			}()
+		}
 
 		err := w.Wait(out, nil)
 
