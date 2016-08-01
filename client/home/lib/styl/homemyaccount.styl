@@ -153,22 +153,26 @@ Home My Account styles
     overflow                hidden
     height                  360px
 
+    &.enabled2Factor
+      display flex
+
     .enabled-intro
+      width  352px
+      border-right          1px solid #D9D9D9
+      rel()
+      .HomeAppView--link
+        abs 0 0 0px 0
+
       p
-        width               380px
+        width               300px
+      .status
         font-size           12px
-        font-weight         400
+        font-weight         300
         vertical-align      top
         line-height         15px
         color               #ACACAC
         text-rendering      geometricPrecision
         dIBlock()
-
-        &:first-child
-          margin-right      28px
-          color             #929292
-          size              134px 35px
-          border-right      1px solid #D9D9D9
 
         strong
           color             #00b057
@@ -176,12 +180,11 @@ Home My Account styles
           font-weight       400
           margin-bottom     3px
           dBlock()
-
-          &:after
-            content         ''
-            margin-left     10px
-            r-sprite        home tick
-            dIBlock()
+      .info
+        font-size           12px
+        color               #ACACAC
+        font-weight         300
+        margin-top          20px
 
     .AppModal-form
       size                  375px 300px
@@ -192,29 +195,28 @@ Home My Account styles
       borderBox()
 
       &.enabled-form
-        width               100%
+        width               300px
         border              none
-        margin              25px 0
         float               none
         padding-top         12px
         height              auto
-        border-top          1px solid #d0d0d0
+        margin 0px
+        padding 0px
 
-        .Formline--half
-          width             165px
-          padding           0
+        div.Formline--half
+          padding-right 0px
           height            42px
-          margin-right      20px
-
+          &.disable-2-factor
           &.password
-            width           250px
-
+            width           262px
+            margin-left     10px
+            float           left
+            button
+              width         100%
             input
-              padding       0 10px
               width         250px
-
-      &.with-fields
-        padding-top         20px
+          .input-wrapper
+            overflow        visible
 
       input
         width               100%
