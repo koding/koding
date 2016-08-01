@@ -34,6 +34,7 @@ $regularColor               = #989898
         top                 26px
         left                20px
         font-weight         300
+        color               #989898
 
     section.main
       width                 780px
@@ -329,25 +330,22 @@ $regularColor               = #989898
 
   .credentials-page
 
-    section.main
-      > p
-        margin-bottom       24px
-
     .credential-form
       font-family           $helvetica-family
       color                 #929292
       width                 350px
-      height                290px
+      height                296px
       borderBox()
       float                 none
       margin                0 auto
       padding               20px 5px 0 20px
       rounded               4px
-      bg                    color, #fff
+      bg                    color, #f8f8f8
+      border                1px solid #e4e4e4
       overflow              hidden
 
       .kdcustomscrollview
-        styleScrollBars     rgba(0, 0, 0, .15)
+        styleScrollBars     #E0E0E0
         max-height          220px
         padding-right       15px !important
 
@@ -388,7 +386,7 @@ $regularColor               = #989898
         font-size           13.7px
         rounded             3px
         bg                  color, #fff
-        border              1px solid #ececec
+        border              1px solid #d9d9d9
         padding             5px 13px
 
       .validation-error
@@ -396,8 +394,8 @@ $regularColor               = #989898
 
       div.kdselectbox
         rounded             3px
-        border              1px solid #ececec
-        width               308px
+        border              1px solid #d9d9d9
+        width               306px
 
         span.title
           line-height       31px
