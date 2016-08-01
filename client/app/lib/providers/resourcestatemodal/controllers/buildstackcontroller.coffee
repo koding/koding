@@ -24,6 +24,7 @@ module.exports = class BuildStackController extends kd.Controller
     @logsPage = new BuildStackLogsPageView { tailOffset : constants.BUILD_LOG_TAIL_OFFSET }, { stack }
 
     @buildStackPage.on 'BuildDone', @bound 'completePostBuildProcess'
+    @forwardEvent @buildStackPage, 'ClosingRequested'
     @forwardEvent @errorPage, 'CredentialsRequested'
     @errorPage.on 'RebuildRequested', =>
       @buildStackPage.reset()

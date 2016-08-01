@@ -25,6 +25,7 @@ module.exports = class BuildStackPageView extends JView
     @statusText  = new kd.CustomHTMLView { cssClass : 'status-text' }
 
     @logsContainer = new kd.CustomHTMLView { cssClass : 'logs-pane' }
+
     @render()
 
 
@@ -51,6 +52,34 @@ module.exports = class BuildStackPageView extends JView
       }
       @forwardEvent postBuildLogs, 'BuildDone'
       postBuildLogs.on 'BuildNotification', @lazyBound 'setStatusText'
+      postBuildLogs.ready =>
+        @logsContainer.setClass 'with-info'
+        @logsContainer.addSubView @createPostBuildInfo()
+
+
+  createPostBuildInfo: ->
+
+    postBuildInfo = new kd.CustomHTMLView
+      cssClass : 'post-build-info'
+      partial  : '''
+        <h4>Your machine is now ready to use.</h4>
+        <h5>
+          However, your stack script is still installing software.
+          <div class="warning">Using your machine in this state may corrupt this process.</div>
+        </h5>
+      '''
+    postBuildInfo.addSubView new kd.ButtonView
+      title    : 'Start using My Machine'
+      cssClass : 'GenericButton'
+      callback : @lazyBound 'emit', 'ClosingRequested'
+    postBuildInfo.addSubView new kd.CustomHTMLView
+      tagName  : 'span'
+      cssClass : 'close-btn'
+      click    : =>
+        postBuildInfo.destroy()
+        @logsContainer.unsetClass 'with-info'
+
+    return postBuildInfo
 
 
   updateProgress: (percentage, message) ->
@@ -83,11 +112,11 @@ module.exports = class BuildStackPageView extends JView
         {{> @header}}
         {{> @wizardPane}}
         <section class="main">
-          {{> @progressBar}}
-          {{> @statusText}}
+          <div class="progressbar-wrapper">
+            {{> @progressBar}}
+            {{> @statusText}}
+          </div>
           {{> @logsContainer}}
         </section>
-        <footer>
-        </footer>
       </div>
     '''
