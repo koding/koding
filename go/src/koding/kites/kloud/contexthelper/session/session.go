@@ -7,6 +7,7 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
@@ -30,6 +31,13 @@ type Session struct {
 	// AWS
 	AWSClient  *amazon.Amazon
 	AWSClients *amazon.Clients
+
+	// Terraformer
+	//
+	// TODO(rjeczalik): Connect to terraformer once and use
+	// single connection instead of connecting for each
+	// request.
+	Terraformer *terraformer.Options
 
 	// Softlayer
 	SLClient *sl.Softlayer

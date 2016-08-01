@@ -183,7 +183,7 @@ func (bs *BaseStack) destroyAsync(ctx context.Context, req *kloud.ApplyRequest) 
 	if bs.Builder.Stack.Stack.State() != stackstate.NotInitialized {
 		bs.Log.Debug("Connection to Terraformer")
 
-		tfKite, err := terraformer.Connect(bs.Session.Kite)
+		tfKite, err := terraformer.Connect(bs.Session.Terraformer)
 		if err != nil {
 			return err
 		}
@@ -238,7 +238,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) er
 	bs.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", bs.Builder.Koding, bs.Builder.Template)
 	bs.Log.Debug("Connection to Terraformer")
 
-	tfKite, err := terraformer.Connect(bs.Session.Kite)
+	tfKite, err := terraformer.Connect(bs.Session.Terraformer)
 	if err != nil {
 		return err
 	}
