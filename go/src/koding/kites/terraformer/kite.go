@@ -3,7 +3,6 @@ package terraformer
 import (
 	"errors"
 	"koding/artifact"
-	"koding/kites/terraformer/secretkey"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
@@ -36,9 +35,11 @@ func NewKite(t *Terraformer, conf *Config) (*kite.Kite, error) {
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 
+	secretKey := conf.SecretKey
+
 	// allow kloud to make calls to us
 	k.Authenticators["kloud"] = func(r *kite.Request) error {
-		if r.Auth.Key != secretkey.TerraformSecretKey {
+		if r.Auth.Key != secretKey {
 			return errors.New("wrong secret key passed, you are not authenticated")
 		}
 		return nil
