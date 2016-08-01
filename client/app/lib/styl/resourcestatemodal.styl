@@ -273,19 +273,24 @@ $regularColor               = #989898
   /* progress bar */
   section.main
 
-    .progressbar-container
-      height                20px
-      rounded               4px
-      margin-top            40px
+    .progressbar-wrapper
+      rel()
+      margin                0 auto
 
-      .bar
-        rounded             4px
+    .progressbar-container
+      height                35px
+      width                 100%
 
     .status-text
-      color                 #424242
+      color                 #515151
       ellipsis()
-      margin                0 auto
-      padding-top           7px
+      text-align            center
+      padding               0
+      abs()
+      top                   0px
+      width                 100%
+      line-height           35px
+      z-index               3
 
 
   /* Styles for specific pages */
@@ -531,21 +536,63 @@ $regularColor               = #989898
 
   .build-stack-page
 
-    section.main > h2 span
-      font-weight           bold
+    section.main
+      height                484px
+      rounded               0 0 6px 6px
 
-    .progressbar-container
-      .bar
-        bg                  color, $warningColor
+      .progressbar-wrapper
+        margin-top          30px
+        width               720px
 
-    .status-text
-      borderBox()
-      height                70px
-      width                 600px
+        .bar
+          bg                color, $warningColor
 
     .logs-pane
+      margin-top            30px
       width                 720px
-      height                255px
+
+      .editor-main > figure.kdview
+        height              360px !important
+
+      &.with-info
+        .editor-main > figure.kdview
+          height            270px !important
+
+    .post-build-info
+      size                  100%, 90px
+      padding               15px 25px
+      borderBox()
+      bg                    color, #f4f4f4
+      border                1px solid #c0c0c0
+      border-top            0
+      rel()
+
+      h4
+        font-size           15px
+        line-height         17px
+        color               #515151
+
+      h5
+        font-size           15px
+        line-height         17px
+        color               $regularColor
+        margin-top          4px
+
+        .warning
+          color             $warningColor
+
+      .GenericButton
+        abs()
+        top                 30px
+        right               35px
+        padding             6px 10px
+
+      .close-btn
+        r-sprite            app, modal_close
+        abs()
+        top                 10px
+        right               10px
+        pointer()
 
 
   .build-stack-success-page
