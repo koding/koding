@@ -31,7 +31,7 @@ Then you will be able to access Koding UI via the port `8090` (e.g. [localhost:8
 Yes, you can run koding on [koding.com](https://www.koding.com) by using
 provided [.koding.yml](https://github.com/koding/koding/blob/master/.koding.yml)
 
-For mor information about stacks: [koding.com/docs](https://www.koding.com/docs/creating-an-aws-stack)
+For more information about stacks: [koding.com/docs](https://www.koding.com/docs/creating-an-aws-stack)
 
 ## Getting started for Development
 
