@@ -52,6 +52,8 @@ generateWorkerSection = (app, options = {}) ->
     startretries            : 5
     stopsignal              : 'TERM'
     stopwaitsecs            : 10
+    stopasgroup             : yes
+    killasgroup             : yes
     redirect_stderr         : yes
     stdout_logfile          : "%(ENV_KONFIG_SUPERVISORD_LOGDIR)s/#{app}.log"
     stdout_logfile_maxbytes : '1MB'
