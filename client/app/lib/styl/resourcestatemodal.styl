@@ -11,8 +11,8 @@ $regularColor               = #989898
   .build-stack-flow
 
     header
-      height                70px
-      line-height           70px
+      height                60px
+      line-height           60px
       border-bottom         1px solid #e4e4e4
 
       h1
@@ -37,18 +37,20 @@ $regularColor               = #989898
 
     section.main
       width                 780px
-      height                400px
+      height                413px
+      bg                    color, #fff
 
       h2
         font-size           18px
         letter-spacing      .21px
         line-height         20px
+        padding-top         29px
 
       > p
         letter-spacing      .15px
         color               $regularColor
         margin-top          0
-        margin-bottom       18px
+        margin-bottom       20px
 
       .GenericButton
         text-transform      uppercase
@@ -61,11 +63,19 @@ $regularColor               = #989898
       padding             0
       text-transform      none !important
       color               #57a2d2
-      bg                  color, #f7f7f7
+      bg                  color, #fff
       border              1px solid #e4e4e4
 
       .button-title
         font-size         14px
+
+    footer
+      bg                  color, #f4f4f4
+
+      .GenericButton.secondary
+        abs()
+        top               14px
+        left              30px
 
 
   .start-machine-flow,
@@ -138,7 +148,7 @@ $regularColor               = #989898
       .alien
         hidden()
         abs()
-        top                 -103px
+        top                 -92px
         left                90px
         r-sprite            'app' 'login_alien'
 
@@ -285,25 +295,19 @@ $regularColor               = #989898
       .kdcustomscrollview
         height              296px
         width               720px
-        bg                  color, #fff
-        styleScrollBars     rgba(0, 0, 0, .15)
-        rounded             8px
+        bg                  color, #f8f8f8
+        styleScrollBars     #e0e0e0
+        rounded             4px
         border              1px solid #e4e4e4
         margin              0 auto
 
         .kdscrolltrack
-          rounded           0 5px 5px 0
+          bg                color, transparent !important
 
       .description
         padding             20px
         font-size           12px
         color               #333
-
-    footer
-      .GenericButton.secondary
-        abs()
-        top                 14px
-        left                30px
 
 
   .stack-template-page
@@ -314,19 +318,13 @@ $regularColor               = #989898
         width               720px
         height              296px
         margin              0 auto
-        rounded             8px
+        rounded             4px
         border              1px solid #e4e4e4
         overflow            hidden
         borderBox()
 
-        .ace_gutter-layer
-          bg                color, #FFF
-
-    footer
-      .GenericButton.secondary
-        abs()
-        top                 14px
-        left                30px
+        .ace_editor, .ace_gutter-layer
+          bg                color, #f8f8f8
 
 
   .credentials-page
