@@ -48,7 +48,7 @@ module.exports = class StackTemplatePageView extends JView
         {{> @progressPane}}
         <section class="main">
           <h2>Stack Template</h2>
-          <p>&nbsp;</p>
+          <p>A preview of the stack you are about to build</p>
           {{> @editorView}}
         </section>
         <footer>
