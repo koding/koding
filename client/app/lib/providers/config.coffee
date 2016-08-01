@@ -177,4 +177,4 @@ module.exports = globals.config.providers =
     credentialFields       :
       queryString          :
         label              : 'Kite ID'
-        placeholder        : 'Querystring for local machine kite'
+        placeholder        : 'ID for my local machine kite'
