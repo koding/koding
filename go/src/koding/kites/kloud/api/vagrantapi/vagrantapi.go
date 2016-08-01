@@ -58,10 +58,11 @@ type Create struct {
 
 // Command represents vagrant.{up,halt,destroy} requests.
 type Command struct {
-	FilePath string // can be relative or absolute
-	Success  dnode.Function
-	Failure  dnode.Function
-	Output   dnode.Function
+	FilePath  string // can be relative or absolute
+	Success   dnode.Function
+	Failure   dnode.Function
+	Output    dnode.Function
+	Heartbeat dnode.Function
 }
 
 // Status response values for vagrant.{list,status} requests.
@@ -171,10 +172,47 @@ func (k *Klient) cmd(queryString, method, boxPath string) error {
 		done <- err
 	})
 
+	lost := make(chan struct{})
+	beat := make(chan struct{})
+	stop := make(chan struct{})
+	defer close(stop)
+
+	go func() {
+		// Heartbeat timer is initially stopped since at this
+		// point we do not know whether klient supports heartbeats.
+		// On first heartbeat we activate the timer and set the ch.
+		var (
+			t  *time.Timer
+			ch <-chan time.Time
+		)
+
+		for {
+			select {
+			case <-stop:
+				return
+			case <-ch:
+				lost <- struct{}{}
+			case <-beat:
+				if t == nil {
+					t = time.NewTimer(defaultDialTimeout)
+					ch = t.C
+					defer t.Stop()
+				}
+
+				t.Reset(defaultDialTimeout)
+			}
+		}
+	}()
+
+	heartbeat := dnode.Callback(func(r *dnode.Partial) {
+		beat <- struct{}{}
+	})
+
 	req := &Command{
-		FilePath: boxPath,
-		Success:  success,
-		Failure:  failure,
+		FilePath:  boxPath,
+		Success:   success,
+		Failure:   failure,
+		Heartbeat: heartbeat,
 	}
 
 	if k.Debug {
@@ -193,6 +231,8 @@ func (k *Klient) cmd(queryString, method, boxPath string) error {
 		return err
 	case <-time.After(k.timeout()):
 		return fmt.Errorf("timed out calling %q on %q", method, queryString)
+	case <-lost:
+		return errors.New("connection to your KD Daemon was lost due to inactivity")
 	}
 }
 

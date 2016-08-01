@@ -191,9 +191,12 @@ module.exports = class MachineDetails extends React.Component
 
   onClickBuildLog: (e) ->
 
-    machineUid = @props.machine.get 'uid'
-    kd.singletons.router.handleRoute "/Home/build-logs/#{machineUid}"
+    machineUId = @props.machine.get 'uid'
+    kd.singletons.router.handleRoute "/IDE/#{@props.machine.get 'label'}"
 
+    { computeController } = kd.singletons
+    machine    = computeController.findMachineFromMachineUId machineUId
+    computeController.showBuildLogs machine, 0
 
 
   render: ->
