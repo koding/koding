@@ -59,7 +59,7 @@ module.exports = utils = {
 
     # Base Domain may include port information which we don't need ~GG
     baseDomain       = (kd.config.domains.main.split ':')[0]
-    baseDomain       = "#{baseDomain}".replace '.', '\\.'
+    baseDomain       = "#{baseDomain}".replace /\./g, '\\.'
 
     # e.g. [teamName.]dev|sandbox|latest|prod.koding.com
     teamPattern = if ///#{kodingDomains}\.#{baseDomain}$///.test hostname
