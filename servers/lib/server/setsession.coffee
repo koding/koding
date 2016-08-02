@@ -9,7 +9,11 @@ module.exports = (req, res, next) ->
   { JSession } = koding.models
   { clientId } = req.cookies
 
-  group = req.subdomains[1] ? req.subdomains[0]
+  # It's not good but for now it works, this needs to be fixed ~ GG
+  group = if req.subdomains.length > 3 and /xip\.io$/.test req.host
+  then req.subdomains.reverse()[0]
+  else req.subdomains[1] ? req.subdomains[0]
+
   group = 'koding'  if not group or ///^#{group}\.///.test KONFIG.domains.base
 
   # fetchClient will validate the clientId.
