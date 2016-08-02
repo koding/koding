@@ -12,7 +12,7 @@ if [ ! -d "./vault" ]; then
   log "trying to clone it"
   git clone git@github.com:koding/vault.git ./vault
   exit 0;
-fi;
+fi
 
 
 cd ./vault
