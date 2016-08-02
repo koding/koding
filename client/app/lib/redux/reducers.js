@@ -3,7 +3,7 @@ import { combineReducers } from 'redux'
 const identity = (store) => store
 export const make = (reducers = {}) => (
   combineReducers({
-    // entery tour reducers here
+    // enter your reducers here
     ...reducers
   })
 )
