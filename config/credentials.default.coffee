@@ -83,6 +83,7 @@ module.exports = (options) ->
     port: 2300
     region: options.region
     environment: options.environment
+    secretKey: ''
     aws:
       key: awsKeys.worker_terraformer.accessKeyId
       secret: awsKeys.worker_terraformer.secretAccessKey
@@ -169,10 +170,10 @@ module.exports = (options) ->
     isSandbox: yes
     formUrl: 'https://www.sandbox.paypal.com/incontext'
   janitor =
-    port: "6700"
-    secretKey: ""
+    port: '6700'
+    secretKey: ''
   vmwatcher =
-    secretKey: ""
+    secretKey: ''
   segment = ''
   kontrol =
     publicKey: "$KONFIG_PROJECTROOT/generated/private_keys/kontrol/kontrol.pub"
@@ -181,6 +182,9 @@ module.exports = (options) ->
     publicKey: kontrol.publicKey
     privateKey: kontrol.privateKey
     secretKey: ''
+    janitorSecretKey: janitor.secretKey
+    vmwatcherSecretKey: vmwatcher.secretKey
+    terraformerSecretKey: terraformer.secretKey
     userPublicKey: "$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pub"
     userPrivateKey: "$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pem"
   dummyAdmins = ['superadmin', 'admin', 'koding']

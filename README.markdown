@@ -5,7 +5,7 @@
 
 The Simplest Way to Manage Your Entire Dev Infrastructure!
 
-Koding is a development platform that provides you to build up your
+Koding is a development platform that provides a manner for you to build up your
 environment from scratch. Developers get everything they need to spin up
 full-stack, project-specific environments in seconds. Share them, update them,
 and manage infrastructure from a simple interface.
@@ -24,14 +24,14 @@ cd koding-docker-compose
 docker-compose up -d
 ```
 
-Then you will be able to access Koding UI via the port `8090` (e.g. [localhost:8090](http://localhost:8090)) on your host.
+Then you will be able to access Koding UI via port `8090` (e.g. [localhost:8090](http://localhost:8090)) on your host.
 
 ## Run Koding on Koding.com
 
 Yes, you can run koding on [koding.com](https://www.koding.com) by using
-provided [.koding.yml](https://github.com/koding/koding/blob/master/.koding.yml)
+the provided [.koding.yml](https://github.com/koding/koding/blob/master/.koding.yml)
 
-For mor information about stacks: [koding.com/docs](https://www.koding.com/docs/creating-an-aws-stack)
+For more information about stacks: [koding.com/docs](https://www.koding.com/docs/creating-an-aws-stack)
 
 ## Getting started for Development
 
@@ -48,7 +48,7 @@ packages:
 ### Start developing
 
 If you have the above software packages installed on your computer, you can
-follow steps for running the instance:
+follow these steps for running an instance of Koding:
 
 ```bash
 git clone https://github.com/koding/koding.git /your/koding/path
@@ -68,8 +68,8 @@ cd /your/koding/path
 ./run # run all services
 ```
 
-As a result of this, you will have a file watcher watching your backend files
-(both node, and golang) and restart services when it's necessary. Now open up
+As a result of these steps, you will have a file watcher watching your backend files
+(both node, and golang) which will restart services when necessary. Now open up
 another terminal and run the following commands:
 
 ```bash
@@ -94,7 +94,7 @@ Koding is licensed under [Apache 2.0](https://github.com/koding/koding/blob/mast
 
 ## Contribute
 
-The main purpose of this repository to continue evolve Koding, making it more
+The main purpose of this repository to continue evolve Koding in order to make it more
 stable and create the best development experience ever. If you're interested
 in helping with that, please check our [open
 issues](https://github.com/koding/koding/issues). You can also join the

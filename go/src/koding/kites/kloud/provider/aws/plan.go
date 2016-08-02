@@ -46,7 +46,7 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 
 	// TODO(arslan): make one single persistent connection if needed, for now
 	// this is ok.
-	tfKite, err := terraformer.Connect(s.Session.Kite)
+	tfKite, err := terraformer.Connect(s.Session.Terraformer)
 	if err != nil {
 		return nil, err
 	}
