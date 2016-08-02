@@ -8,6 +8,5 @@ services:
       KONFIG_PROJECTROOT: /opt/koding
     volumes:
       - .:/opt/koding
-    network_mode: host
     ports:
       - 8090:8090
