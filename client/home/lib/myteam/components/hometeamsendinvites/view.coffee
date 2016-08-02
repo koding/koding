@@ -6,6 +6,8 @@ CheckBox = require 'app/components/common/checkbox'
 
 module.exports = class HomeTeamSendInvitesView extends React.Component
 
+  onClickUploadCsv: -> @input.click()
+
   numberOfSections: -> 1
 
 
@@ -64,7 +66,8 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
         <GenericButton
           title='UPLOAD CSV'
           className={'custom-link-view HomeAppView--button ft'}
-          callback={@props.onUploadCsv} />
+          callback={@bound 'onClickUploadCsv'} />
+        <input ref={(input) => @input = input} multiple accept='.csv' className='kdinput file uploadcsv' type='file' onChange={@props.onUploadCsv} />
       </fieldset>
     </div>
 
