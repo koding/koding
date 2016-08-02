@@ -5,6 +5,8 @@ services:
     image: koding/base
     command: /opt/koding/scripts/bootstrap-container build
     env_file: .env-docker-compose
+    environment:
+      DEFAULTENV: $DEFAULTENV
     volumes:
       - .:/opt/koding
     ports:
