@@ -34,12 +34,10 @@ module.exports = class BuildStackPageView extends JView
     { file } = @getData()
     { tailOffset } = @getOptions()
 
-    @logsContainer.destroySubViews()
-    @buildLogs = null
-
     isDummyFile = file.path.indexOf('localfile:/') is 0
 
     if isDummyFile
+      @buildLogs?.destroy()
       @logsContainer.addSubView @buildLogs = new BuildStackLogsPane {
         delegate : this
       }, file
@@ -53,6 +51,8 @@ module.exports = class BuildStackPageView extends JView
       @forwardEvent postBuildLogs, 'BuildDone'
       postBuildLogs.on 'BuildNotification', @lazyBound 'setStatusText'
       postBuildLogs.ready =>
+        @buildLogs?.destroy()
+        @buildLogs = postBuildLogs
         @logsContainer.setClass 'with-info'
         @logsContainer.addSubView @createPostBuildInfo()
 
@@ -90,7 +90,9 @@ module.exports = class BuildStackPageView extends JView
     message = helpers.formatProgressStatus message
     @setStatusText message  if message
 
-    @buildLogs.appendLogLine message  if @buildLogs and message
+    return  unless @buildLogs instanceof BuildStackLogsPane and message
+
+    @buildLogs.appendLogLine message
 
 
   reset: ->

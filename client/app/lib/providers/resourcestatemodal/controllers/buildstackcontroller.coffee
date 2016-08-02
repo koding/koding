@@ -78,13 +78,14 @@ module.exports = class BuildStackController extends kd.Controller
 
   completeBuildProcess: ->
 
+    { MAX_BUILD_PROGRESS_VALUE, DEFAULT_BUILD_DURATION } = constants
     { stack } = @getData()
 
     @buildStackPage.setData { stack, file : @getLogFile() }
-    @buildStackPage.setStatusText 'Installing software...'
+    @updateProgress  MAX_BUILD_PROGRESS_VALUE, 'Installing software...'
 
     { stackTemplate } = @getData()
-    duration = stackTemplate.config?.buildDuration ? constants.DEFAULT_BUILD_DURATION
+    duration = stackTemplate.config?.buildDuration ? DEFAULT_BUILD_DURATION
 
     @postBuildTimer = new ProgressUpdateTimer { duration }
     @postBuildTimer.on 'ProgressUpdated', @bound 'updatePostBuildProgress'
