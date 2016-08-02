@@ -1,4 +1,5 @@
 _               = require 'lodash'
+$               = require 'jquery'
 kd              = require 'kd'
 React           = require 'kd-react'
 TeamFlux        = require 'app/flux/teams'
@@ -37,11 +38,35 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     document.querySelector('.user-email.focus-first-email').focus()  if @state.focusFirstEmail
 
 
-  onUploadCsv: ->
-    return new kd.NotificationView
-      title    : 'Coming Soon!'
-      duration : 2000
+  onUploadCsv: (event) ->
 
+    event.preventDefault()
+
+    formData = new FormData()
+
+    for file in @refs.view.input.files
+      formData.append 'file', file, {
+        filename: file.name
+        contentType: 'multipart/form-data'
+      }
+
+    $.ajax
+      data : formData
+      method : 'POST'
+      url : '/-/teams/invite-by-csv'
+      contentType: false
+      processData : false # prevents illegal invocation error
+      success : @bound 'uploadCsvSuccess'
+      error : @bound 'uploadCsvFail'
+
+
+  uploadCsvSuccess: (naber) ->
+    location.reload()
+
+  uploadCsvFail: ->
+    kd.NotificationView
+      title    : 'Error Occured while sending invitations'
+      duration : 5000
 
   onInputChange: (index, inputName, event) ->
 
@@ -193,7 +218,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     content = prepareEmailsText alreadyMemberInvitations.toArray()
     content = "<p>#{content} is already a member of your team.</p>"  if alreadyMembers.length is 1
     content = "<p>#{content} are already members of your team.</p>"  if alreadyMembers.length > 1
-    console.log {content}
+
     modal = new AlreadyMemberInvitationsModal
       alreadyMembers: alreadyMembers
       content: content
@@ -207,6 +232,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     canEdit = kd.singletons.groupsController.canEditGroup()
 
     <View
+      ref='view'
       canEdit={canEdit}
       focusFirstEmail={@state.focusFirstEmail}
       inputValues={@state.inputValues}
