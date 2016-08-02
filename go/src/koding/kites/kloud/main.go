@@ -36,6 +36,7 @@ import (
 	"koding/kites/kloud/provider/vagrant"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stackplan/stackcred"
+	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -136,6 +137,7 @@ type Config struct {
 	VmwatcherSecretKey      string
 	PaymentwebhookSecretKey string
 	KloudSecretKey          string
+	TerraformerSecretKey    string
 }
 
 func main() {
@@ -403,6 +405,11 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 			},
 			KlientURL: conf.KlientURL,
 			Bucket:    userdata.NewBucket("koding-klient", klientFolder, c),
+		},
+		Terraformer: &terraformer.Options{
+			Endpoint:  "http://127.0.0.1:2300/kite",
+			SecretKey: conf.TerraformerSecretKey,
+			Kite:      k,
 		},
 		Log: logging.NewCustom("kloud", conf.DebugMode),
 	}

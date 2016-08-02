@@ -19,7 +19,7 @@ function configure() {
 
 function start() {
   configure
-  ./run exec scripts/check-service-connectivity.sh
+  ./run exec scripts/check-service-connectivity.sh || exit 255
   ./run migrate up
   nginx -c $(pwd)/nginx.conf
   ./run exec supervisord -c supervisord.conf
