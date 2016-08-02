@@ -1,7 +1,7 @@
 kd                        = require 'kd'
 React                     = require 'kd-react'
 ReactDOM                  = require 'react-dom'
-createLocation            = require 'history/lib/createLocation'
+{ createHistory }         = require 'history'
 handlers                  = require './routehandlers'
 lazyrouter                = require 'app/lazyrouter'
 isKoding                  = require 'app/util/isKoding'
@@ -44,6 +44,7 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
       else
         return ctx.handleRoute ''
 
+history = createHistory()
 ###*
  * Renders with react router.
 ###
@@ -51,7 +52,8 @@ handleReactivity = ({ query }, router) ->
 
   routes = require './reactivityroutes'
 
-  location = createLocation router.currentPath
+  location = history.createLocation
+    pathname: router.currentPath
 
   activityView (view) ->
 
