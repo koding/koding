@@ -1,5 +1,6 @@
 kd = require 'kd'
 JView = require 'app/jview'
+BuildStackHeaderView = require './buildstackheaderview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 IDETailerPane = require 'ide/workspace/panes/idetailerpane'
@@ -13,6 +14,9 @@ module.exports = class BuildStackPageView extends JView
 
     super options, data
 
+    { stack } = @getData()
+    @header   = new BuildStackHeaderView {}, stack
+
     @wizardPane = new WizardProgressPane
       currentStep : WizardSteps.BuildStack
 
@@ -21,12 +25,13 @@ module.exports = class BuildStackPageView extends JView
     @statusText  = new kd.CustomHTMLView { cssClass : 'status-text' }
 
     @logsContainer = new kd.CustomHTMLView { cssClass : 'logs-pane' }
+
     @render()
 
 
   render: ->
 
-    file = @getData()
+    { file } = @getData()
     { tailOffset } = @getOptions()
 
     @logsContainer.destroySubViews()
@@ -47,6 +52,34 @@ module.exports = class BuildStackPageView extends JView
       }
       @forwardEvent postBuildLogs, 'BuildDone'
       postBuildLogs.on 'BuildNotification', @lazyBound 'setStatusText'
+      postBuildLogs.ready =>
+        @logsContainer.setClass 'with-info'
+        @logsContainer.addSubView @createPostBuildInfo()
+
+
+  createPostBuildInfo: ->
+
+    postBuildInfo = new kd.CustomHTMLView
+      cssClass : 'post-build-info'
+      partial  : '''
+        <h4>Your machine is now ready to use.</h4>
+        <h5>
+          However, your stack script is still installing software.
+          <div class="warning">Using your machine in this state may corrupt this process.</div>
+        </h5>
+      '''
+    postBuildInfo.addSubView new kd.ButtonView
+      title    : 'Start using My Machine'
+      cssClass : 'GenericButton'
+      callback : @lazyBound 'emit', 'ClosingRequested'
+    postBuildInfo.addSubView new kd.CustomHTMLView
+      tagName  : 'span'
+      cssClass : 'close-btn'
+      click    : =>
+        postBuildInfo.destroy()
+        @logsContainer.unsetClass 'with-info'
+
+    return postBuildInfo
 
 
   updateProgress: (percentage, message) ->
@@ -74,22 +107,16 @@ module.exports = class BuildStackPageView extends JView
 
   pistachio: ->
 
-    { stackName } = @getOptions()
-
-    """
+    '''
       <div class="build-stack-flow build-stack-page">
-        <header>
-          <h1>Build Your Stack</h1>
-        </header>
+        {{> @header}}
         {{> @wizardPane}}
         <section class="main">
-          <h2><span>#{stackName}</span> is being built</h2>
-          <p>Your flawless dev environment will be ready soon</p>
-          {{> @progressBar}}
-          {{> @statusText}}
+          <div class="progressbar-wrapper">
+            {{> @progressBar}}
+            {{> @statusText}}
+          </div>
           {{> @logsContainer}}
         </section>
-        <footer>
-        </footer>
       </div>
-    """
+    '''

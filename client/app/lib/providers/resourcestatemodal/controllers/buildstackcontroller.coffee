@@ -18,12 +18,13 @@ module.exports = class BuildStackController extends kd.Controller
     { stack } = @getData()
     { container } = @getOptions()
 
-    @buildStackPage = new BuildStackPageView { stackName : stack.title }, @getLogFile()
-    @errorPage = new BuildStackErrorPageView()
-    @successPage = new BuildStackSuccessPageView()
-    @logsPage = new BuildStackLogsPageView { tailOffset : constants.BUILD_LOG_TAIL_OFFSET }
+    @buildStackPage = new BuildStackPageView {}, { stack, file : @getLogFile() }
+    @errorPage = new BuildStackErrorPageView {}, { stack }
+    @successPage = new BuildStackSuccessPageView {}, { stack }
+    @logsPage = new BuildStackLogsPageView { tailOffset : constants.BUILD_LOG_TAIL_OFFSET }, { stack }
 
     @buildStackPage.on 'BuildDone', @bound 'completePostBuildProcess'
+    @forwardEvent @buildStackPage, 'ClosingRequested'
     @forwardEvent @errorPage, 'CredentialsRequested'
     @errorPage.on 'RebuildRequested', =>
       @buildStackPage.reset()
@@ -77,7 +78,9 @@ module.exports = class BuildStackController extends kd.Controller
 
   completeBuildProcess: ->
 
-    @buildStackPage.setData @getLogFile()
+    { stack } = @getData()
+
+    @buildStackPage.setData { stack, file : @getLogFile() }
     @buildStackPage.setStatusText 'Installing software...'
 
     { stackTemplate } = @getData()
@@ -117,8 +120,9 @@ module.exports = class BuildStackController extends kd.Controller
   showLogs: ->
 
     { container } = @getOptions()
+    { stack }     = @getData()
     container.showPage @logsPage
-    @logsPage.setData @getLogFile()
+    @logsPage.setData { stack, file : @getLogFile() }
 
 
   show: ->
