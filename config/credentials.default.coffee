@@ -102,14 +102,14 @@ module.exports = (options) ->
     clientSecret: ''
     redirectUri: 'http://dev.koding.com:8090/-/oauth/github/callback'
   gitlab =
-    host: 'gitlab.com'
-    port: 80
+    host: ''
+    port: ''
     applicationId: ''
     applicationSecret: ''
-    redirectUri: "http://dev.koding.com:8090/-/oauth/gitlab/callback"
-    systemHookToken: 'some-random-token-here'
     team: 'gitlab'
-    hooksEnabled: false
+    redirectUri: ''
+    systemHookToken: ''
+    hooksEnabled: no
   facebook =
     clientId: ''
     clientSecret: ''

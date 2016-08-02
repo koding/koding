@@ -12,6 +12,16 @@ module.exports = (options, credentials) ->
     timeout     : 5000
     userAgent   : "Koding-Bridge-#{options.configName}"
 
+  gitlab =
+    host: options.gitlabHost ? credentials.gitlab.host
+    port: options.gitlabPort ? credentials.gitlab.port ? 3000
+    applicationId: options.gitlabAppId ? credentials.gitlab.applicationId
+    applicationSecret: options.gitlabAppSecret ? credentials.gitlab.applicationSecret
+    team: credentials.gitlab.team
+    redirectUri: "http://#{credentials.gitlab.team}.#{options.host}/-/oauth/gitlab/callback"
+    systemHookToken: options.gitlabToken ? credentials.gitlab.token
+    hooksEnabled: options.gitlabHost? or credentials.gitlab.host?
+
   regions =
     kodingme: "#{options.configName}"
     vagrant: "vagrant"
@@ -173,7 +183,7 @@ module.exports = (options, credentials) ->
     stripe                 : credentials.stripe
     paypal                 : credentials.paypal
     github                 : credentials.github
-    gitlab                 : credentials.gitlab
+    gitlab                 : gitlab
     janitor                : credentials.janitor
     postgres               : credentials.postgres
     mq                     : credentials.rabbitmq
@@ -239,7 +249,7 @@ module.exports = (options, credentials) ->
     linkedin                      : credentials.linkedin
     datadog                       : credentials.datadog
     github                        : credentials.github
-    gitlab                        : credentials.gitlab
+    gitlab                        : gitlab
     facebook                      : credentials.facebook
     slack                         : credentials.slack
     sneakerS3                     : credentials.sneakerS3
