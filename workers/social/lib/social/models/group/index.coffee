@@ -546,6 +546,34 @@ module.exports = class JGroup extends Module
         if oldSecretName then "group.secret.#{oldSecretName}"
 
 
+  fetchData: (callback) ->
+
+    slug = @getAt 'slug'
+
+    JGroupData = require './groupdata'
+    JGroupData.one { slug }, (err, data) ->
+      return callback err  if err
+
+      if not data
+        data = new JGroupData { slug }
+        data.save (err) ->
+          return callback err  if err
+          callback null, data
+      else
+        callback null, data
+
+
+  fetchDataAt: (path, callback) ->
+
+    @fetchData (err, data) ->
+
+      return callback err  if err
+
+      path = "data.#{path}"  if path.indexOf 'data' != 0
+      callback null, data.getAt path
+
+
+
   sendNotification: (event, contents, callback) ->
 
     message = {
