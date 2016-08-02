@@ -569,7 +569,7 @@ module.exports = class JGroup extends Module
 
       return callback err  if err
 
-      path = "data.#{path}"  if path.indexOf 'data' != 0
+      path = "data.#{path}"  if path.indexOf 'data' isnt 0
       callback null, data.getAt path
 
 
