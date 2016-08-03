@@ -364,7 +364,7 @@ module.exports =
     newCredentialPage = '.kdview.stacks.stacks-v2'
     saveButton = "#{newCredentialPage} button[type=submit]"
     regionSelector = '.kdview.formline.region .kdselectbox select'
-    eu_west_1 = "#{regionSelector} option[value=us-west-1]"
+    eu_west_1 = "#{regionSelector} option[value=ap-southeast-1]"
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
