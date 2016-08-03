@@ -3,6 +3,7 @@ BuildStackPageView = require '../views/stackflow/buildstackpageview'
 BuildStackErrorPageView = require '../views/stackflow/buildstackerrorpageview'
 BuildStackSuccessPageView = require '../views/stackflow/buildstacksuccesspageview'
 BuildStackLogsPageView = require '../views/stackflow/buildstacklogspageview'
+BuildStackTimeoutPageView = require '../views/stackflow/buildstacktimeoutpageview'
 constants = require '../constants'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
 FSHelper = require 'app/util/fs/fshelper'
@@ -22,6 +23,7 @@ module.exports = class BuildStackController extends kd.Controller
     @errorPage = new BuildStackErrorPageView {}, { stack }
     @successPage = new BuildStackSuccessPageView {}, { stack }
     @logsPage = new BuildStackLogsPageView { tailOffset : constants.BUILD_LOG_TAIL_OFFSET }, { stack }
+    @timeoutPage = new BuildStackTimeoutPageView {}, { stack }
 
     @buildStackPage.on 'BuildDone', @bound 'completePostBuildProcess'
     @forwardEvent @buildStackPage, 'ClosingRequested'
@@ -32,8 +34,9 @@ module.exports = class BuildStackController extends kd.Controller
     @forwardEvent @successPage, 'ClosingRequested'
     @successPage.on 'LogsRequested', @bound 'showLogs'
     @forwardEvent @logsPage, 'ClosingRequested'
+    @forwardEvent @timeoutPage, 'ClosingRequested'
 
-    container.appendPages @buildStackPage, @errorPage, @successPage, @logsPage
+    container.appendPages @buildStackPage, @errorPage, @successPage, @logsPage, @timeoutPage
 
     @timeoutChecker = new TimeoutChecker { duration : constants.TIMEOUT_DURATION }
     @timeoutChecker.on 'Timeout', @bound 'handleTimeout'
@@ -93,9 +96,7 @@ module.exports = class BuildStackController extends kd.Controller
 
   completePostBuildProcess: ->
 
-    @postBuildTimer.stop()  if @postBuildTimer
-    @postBuildTimer = null
-
+    @postBuildTimer?.stop()
     @timeoutChecker.stop()
 
     { container } = @getOptions()
@@ -104,7 +105,21 @@ module.exports = class BuildStackController extends kd.Controller
 
   handleTimeout: ->
 
-    @showError 'It\'s taking longer than expected. Please reload the page', yes
+    { MACHINE_PING_TIMEOUT } = constants
+    { machine } = @getData()
+    kite = machine.getBaseKite()
+
+    @postBuildTimer?.stop()
+
+    return @showError 'Machine doesn\'t respond'  unless kite.ping?
+
+    kite.ping()
+      .then (res) =>
+        { container } = @getOptions()
+        container.showPage @timeoutPage
+      .catch (err) =>
+        @showError err.message
+      .timeout MACHINE_PING_TIMEOUT * 1000
 
 
   showError: (err, skipTracking) ->
