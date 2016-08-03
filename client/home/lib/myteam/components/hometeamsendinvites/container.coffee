@@ -60,8 +60,10 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       error : @bound 'uploadCsvFail'
 
 
-  uploadCsvSuccess: (naber) ->
-    location.reload()
+  uploadCsvSuccess: (result) ->
+    # location.reload()
+    { myself, alreadyMembers, admins } = result
+
 
   uploadCsvFail: ->
     kd.NotificationView
