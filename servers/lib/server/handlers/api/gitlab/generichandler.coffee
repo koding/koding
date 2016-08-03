@@ -37,5 +37,5 @@ module.exports = class GenericHandler
 
       else
 
-        { error: apiErrors.internalError }
+        { error: apiErrors.notImplementedError }
 
