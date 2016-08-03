@@ -48,5 +48,49 @@ processInvitations = (fileName, client, callback) ->
     parser content.toString('utf8'), csvParseOpts, (err, data) ->
       return callback err, null if err
 
-      { JInvitation } = (require './../bongo').models
-      JInvitation.create client, { invitations: data }, callback
+      { connection: { delegate: account } } = client
+      { _id } = account
+      myEmail = null
+      account.fetchEmail (err, email) ->
+
+        myEmail = email
+
+        { JGroup } = (require './../bongo').models
+        { group: slug } = client.context
+        JGroup.one { slug }, (err, group) ->
+          return callback err, null  if err
+
+          group.fetchMembersWithEmail client, {}, (err, users) ->
+            return callback err, null  if err
+
+            adminEmails = []
+            alreadyMemberEmails = []
+            userEmails = []
+            myself = no
+
+            users.map (user) ->
+              { profile: { email } } = user
+              userEmails.push email
+
+            for key in data
+              if myEmail? and key.email is myEmail
+                myself = yes
+                continue
+
+              if key.email in userEmails
+                alreadyMemberEmails.push key.email
+                continue
+
+              if key.role? and key.role is 'admin'
+                adminEmails.push key.email
+                continue
+
+            result =
+              myself: myself
+              alreadyMembers: alreadyMemberEmails
+              admins : adminEmails
+
+            { JInvitation } = (require './../bongo').models
+            JInvitation.create client, { invitations: data }, (err) ->
+              return callback err, null  if err
+              callback null, result
