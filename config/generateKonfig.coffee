@@ -20,7 +20,7 @@ module.exports = (options, credentials) ->
     team: credentials.gitlab.team
     redirectUri: "http://#{credentials.gitlab.team}.#{options.host}/-/oauth/gitlab/callback"
     systemHookToken: options.gitlabToken ? credentials.gitlab.token
-    hooksEnabled: options.gitlabHost? or credentials.gitlab.host?
+    hooksEnabled: (options.gitlabHost ? credentials.gitlab.host) isnt ''
 
   regions =
     kodingme: "#{options.configName}"
