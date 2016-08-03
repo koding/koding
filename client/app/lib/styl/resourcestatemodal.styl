@@ -339,26 +339,21 @@ $regularColor               = #989898
   .credentials-page
 
     .credential-form
-      font-family           $helvetica-family
       color                 #929292
-      width                 350px
-      height                296px
+      size                  350px, 322px
       borderBox()
       float                 none
       margin                0 auto
       padding               20px 5px 0 20px
-      rounded               4px
-      bg                    color, #f8f8f8
-      border                1px solid #e4e4e4
-      overflow              hidden
 
       .kdcustomscrollview
         styleScrollBars     #E0E0E0
-        max-height          220px
+        max-height          268px
         padding-right       15px !important
 
         .kdscrolltrack.vertical
           right             -2px
+          bg                color, transparent !important
 
       a
         color               #57a2d2
@@ -377,7 +372,7 @@ $regularColor               = #989898
 
       .kdlabel
         display             block
-        font-size           11.7px
+        font-size           12px
         letter-spacing      .3px
         margin-bottom       3px
         float               none
@@ -510,7 +505,7 @@ $regularColor               = #989898
 
       .form-container
         hidden()
-        height              220px
+        height              268px
 
       &.form-visible
         .form-container
@@ -526,6 +521,15 @@ $regularColor               = #989898
       &.right-form
         fr()
         margin-right        30px
+        rel()
+
+        &:before
+          content           ''
+          size              1px, 250px
+          bg                color, #e8e8e8
+          abs()
+          top               25px
+          left              -10px
 
 
   .credentials-error-page
