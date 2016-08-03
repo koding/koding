@@ -21,7 +21,7 @@ module.exports = class KDCliContainer extends React.Component
 
     super props
 
-    @state=
+    @state =
       key : if globals.os is 'mac' then '⌘ + C' else 'Ctrl + C'
 
 
