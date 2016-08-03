@@ -14,7 +14,7 @@ module.exports = class TeamOTATokenStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actions.FETCH_OTA_TOKEN_SUCCESS, @setValue
+    @on actions.LOAD_OTA_TOKEN_SUCCESS, @setValue
 
 
   setValue: (value, { cmd }) -> cmd
