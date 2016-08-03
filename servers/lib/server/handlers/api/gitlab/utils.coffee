@@ -2,7 +2,7 @@ KONFIG = require 'koding-config-manager'
 
 utils = {}
 
-utils.GITLAB_TOKEN = KONFIG.gitlab.systemHookToken
+utils.GITLAB_TOKEN = String(KONFIG.gitlab.systemHookToken)
 
 utils.log = (rest...) -> console.log '[GitLab]', rest...
 
