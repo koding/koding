@@ -19,6 +19,8 @@ asStream      = require 'as-stream'
 notifier      = require 'node-notifier'
 mkdirp        = require 'mkdirp'
 nub           = require 'nub'
+gulp          = require 'gulp'
+i18next       = require 'i18next-parser'
 spritesmith   = require 'gulp.spritesmith'
 chalk         = require 'chalk'
 chokidar      = require 'chokidar'
@@ -317,10 +319,9 @@ module.exports = class Haydar extends events.EventEmitter
     do bundle = ->
 
       b.bundle (err, src) ->
-        return handleError err  if err
 
-        unless src
-          return
+        return handleError err  if err
+        return  unless src
 
         if opts.extractJsSourcemaps
           writeJSSourcemaps src, outfile, opts.jsSourcemapsOutfile, { handleSuccess, handleError }
@@ -736,3 +737,13 @@ writeJS = (src, outfile, callbacks) ->
     msg = "#{pretty(src.length)} written to #{outfile} (#{secs})"
     callbacks.handleSuccess msg
 
+    # loadPath = path.resolve __dirname, '../../../website/a/i18n'
+
+    # console.log outfile, loadPath
+    # gulp.src outfile
+    #   .pipe( i18next().on('reading', (path) -> console.log path) )
+    #   .pipe i18next
+    #     namespace: 'default'
+    #     locales: ['en', 'de', 'fr', 'tr']
+    #     output: '../../../website/a/i18n'
+    #   .pipe gulp.dest loadPath
