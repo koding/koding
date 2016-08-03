@@ -827,18 +827,21 @@ module.exports = class JGroup extends Module
         rest
       }
 
+  fetchMembersWithEmail: (client, rest...) ->
+    @baseFetcherOfGroupStaff {
+        method      : @fetchMembers
+        fetchEmail  : yes
+        client
+        rest
+      }
+
   fetchMembersWithEmail$: permit
     advanced: [
       { permission: 'list members' }
       { permission: 'list members', superadmin: yes }
     ]
     success:(client, rest...) ->
-      @baseFetcherOfGroupStaff {
-        method      : @fetchMembers
-        fetchEmail  : yes
-        client
-        rest
-      }
+      @fetchMembersWithEmail client, rest...
 
   fetchAdmins$: permit
     advanced: [
