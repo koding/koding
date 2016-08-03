@@ -21,7 +21,6 @@ module.exports =
 
       browser.waitForElementVisible vmSelector, 20000
       browser.waitForElementVisible '.SidebarMachinesListItem.Running .SidebarListItem-icon', 30000
-
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
 
@@ -29,7 +28,6 @@ module.exports =
     participantCallback = ->
 
       browser.waitForElementVisible '.SidebarMachinesListItem.NotInitialized .SidebarListItem-icon', 20000
-
       collaborationHelpers.leaveSession(browser)
       browser.end()
 
