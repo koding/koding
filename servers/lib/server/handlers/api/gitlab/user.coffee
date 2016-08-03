@@ -1,6 +1,7 @@
 hat = require 'hat'
 async = require 'async'
 
+KONFIG = require 'koding-config-manager'
 apiErrors = require '../errors'
 { handleUsername } = require '../helpers'
 
@@ -38,7 +39,7 @@ module.exports = class User extends GenericHandler
           next()
 
       (next) ->
-        context = { group: 'gitlab' }
+        context = { group: KONFIG.gitlab.team }
         bongo.fetchClient 1, context, (client_) ->
           return next apiErrors.internalError  if client_.message
           client = client_
@@ -88,7 +89,7 @@ module.exports = class User extends GenericHandler
       (next) ->
         JSession.createNewSession { username, groupName }, (err, session) ->
           if err or not session
-            return next err ? { message: 'user not exists' }
+            return next err ? { message: 'failed to create session' }
 
           bongo.fetchClient session.clientId, (client_) ->
             client = client_
