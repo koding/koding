@@ -452,15 +452,36 @@ $regularColor               = #989898
           margin-top        0px
           clear             none
 
-      .advanced-mode-btn
-        height              22px !important
-        background-color    #666
+      .kdbutton.advanced-mode-btn
+        size                140px, 32px
+        background-color    #fff
+        padding             0 10px
         margin-bottom       20px
         box-shadow          none
+        rounded             4px
+        border              1px solid #aaa
+        borderBox()
+        text-align          left
 
         .button-title
-          font-size         12px !important
-          line-height       22px !important
+          rel()
+          color             #fff
+          font-size         14px
+          line-height       16px !important
+
+          &:before
+            content         'Advanced Mode'
+            text-transform  uppercase
+            font-size       14px
+            line-height     16px !important
+            color           #5e5e5e
+            abs()
+
+      .in-advanced-mode .kdbutton.advanced-mode-btn
+        width               185px
+
+        .button-title:before
+          content           'Close Advanced Mode'
 
       article
         font-size           13px
