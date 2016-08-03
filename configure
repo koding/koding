@@ -8,10 +8,7 @@ git = require 'git-rev'
 request = require 'request'
 { extend, defaults, clone } = require 'underscore'
 
-# check if dev environment is avaliable
-defaultEnv = 'default'
-unless process.env.KODINGENV is defaultEnv
-  try fs.existsSync './config/main.dev.coffee'; defaultEnv = 'dev'
+defaultEnv = argv.config or process.env.DEFAULTENV or 'default'
 
 log "-------------------------"
 log ""
