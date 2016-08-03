@@ -19,7 +19,7 @@ module.exports = (options, credentials) ->
     applicationSecret: options.gitlabAppSecret ? credentials.gitlab.applicationSecret
     team: credentials.gitlab.team
     redirectUri: "http://#{credentials.gitlab.team}.#{options.host}/-/oauth/gitlab/callback"
-    systemHookToken: options.gitlabToken ? credentials.gitlab.token
+    systemHookToken: options.gitlabToken ? credentials.gitlab.systemHookToken
     hooksEnabled: (options.gitlabHost ? credentials.gitlab.host) isnt ''
 
   regions =
