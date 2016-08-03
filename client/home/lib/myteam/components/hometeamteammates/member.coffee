@@ -3,7 +3,7 @@ React = require 'kd-react'
 ProfilePicture = require 'app/components/profile/profilepicture'
 capitalizeFirstLetter = require 'app/util/capitalizefirstletter'
 ButtonWithMenu = require 'app/components/buttonwithmenu'
-
+whoami = require 'app/util/whoami'
 
 module.exports = class Member extends React.Component
 
@@ -92,17 +92,19 @@ module.exports = class Member extends React.Component
         admins={@props.admins}
         canEdit={canEdit}
         onClick={@onClickMemberRole.bind(this, role)}
-        isMenuOpen={@state.isMenuOpen} />
+        isMenuOpen={@state.isMenuOpen}
+        member={@props.member} />
     </div>
 
 
-MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen, admins }) ->
+MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen, admins, member }) ->
 
   showButtonWithMenu = role is 'owner' and admins.size is 0
 
   unless canEdit and not showButtonWithMenu
     <div className='dropdown'>
       <MemberRole role={role} canEdit={canEdit}  />
+      {<ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />  if member.get('inviter_id') is whoami()._id}
     </div>
   else
     <div className='dropdown' onClick={onClick}>
