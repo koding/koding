@@ -9,7 +9,7 @@ module.exports = locales = (req, res) ->
   namespace or= 'default'
 
   requestOptions  =
-    url     : "#{publicHostname}/a/locales/#{lang}/#{namespace}.json"
+    url     : "#{publicHostname}/a/i18n/#{lang}/#{namespace}.json"
     headers : { 'User-Agent': 'request' }
     timeout : 3000
 
