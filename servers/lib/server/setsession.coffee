@@ -10,7 +10,7 @@ module.exports = (req, res, next) ->
   { clientId } = req.cookies
 
   # It's not good but for now it works, this needs to be fixed ~ GG
-  group = if req.subdomains.length > 3 and /xip\.io$/.test req.host
+  group = if req.subdomains.length > 3 and /xip\.io$/.test req.hostname
   then req.subdomains.reverse()[0]
   else req.subdomains[1] ? req.subdomains[0]
 
