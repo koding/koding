@@ -17,10 +17,10 @@ import (
 const myPermissionsAndRolesPath = "/-/my/permissionsAndRoles"
 
 var defClient = httputil.NewClient(&httputil.ClientConfig{
-	DialTimeout:           1 * time.Second,
-	RoundTripTimeout:      2 * time.Second,
-	TLSHandshakeTimeout:   2 * time.Second,
-	ResponseHeaderTimeout: 2 * time.Second,
+	DialTimeout:           30 * time.Second,
+	RoundTripTimeout:      30 * time.Second,
+	TLSHandshakeTimeout:   10 * time.Second,
+	ResponseHeaderTimeout: 30 * time.Second,
 })
 
 type EnvData struct {
