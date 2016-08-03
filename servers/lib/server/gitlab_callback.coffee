@@ -1,4 +1,4 @@
-http       = require 'http'
+request    = require 'request'
 { gitlab } = require 'koding-config-manager'
 { redirectOauth, saveOauthToSession } = require './helpers'
 
@@ -7,91 +7,69 @@ headers  =
   'Accept'     : 'application/json'
   'User-Agent' : 'Koding'
 
+getUrlFor = (path) ->
+  "http://#{gitlab.host ? 'gitlab.com'}:#{gitlab.port ? 80}#{path}"
+
+fail = (req, res) ->
+  redirectOauth 'could not get access token', req, res, { provider }
+
 # Get user info with access token
-fetchUserInfo = (req, res, access_token) -> (userInfoResp) ->
+fetchUserInfo = (req, res, access_token) -> (error, response, body) ->
 
-  rawResp = ''
-  userInfoResp.on 'data', (chunk) -> rawResp += chunk
-  userInfoResp.on 'end', ->
+  if error or not id = body.id
+    return fail req, res
 
-    try
-      userInfo = JSON.parse rawResp
-    catch e
-      return redirectOauth 'could not parse gitlab response', req, res, { provider }
+  { username, id, email, name } = body
+  { returnUrl } = req.query
+  { clientId }  = req.cookies
 
-    { username, id, email, name } = userInfo
-    { returnUrl } = req.query
-    { clientId }  = req.cookies
+  if name
+    [firstName, restOfNames...] = name.split ' '
+    lastName = restOfNames.join ' '
 
-    if name
-      [firstName, restOfNames...] = name.split ' '
-      lastName = restOfNames.join ' '
+  resp = {
+    email
+    lastName
+    username
+    firstName
+    token     : access_token
+    profile   : lastName
+    foreignId : String(id)
+    returnUrl : returnUrl
+  }
 
-    resp = {
-      email
-      lastName
-      username
-      firstName
-      token     : access_token
-      profile   : lastName
-      foreignId : String(id)
-      returnUrl : returnUrl
-    }
-
-    saveOauthToSession resp, clientId, provider, (err) ->
-      options = { provider, returnUrl }
-      redirectOauth err, req, res, options
+  saveOauthToSession resp, clientId, provider, (err) ->
+    redirectOauth err, req, res, { provider, returnUrl }
 
 
 # Get access token with code
-authorizeUser = (req, res) -> (authUserResp) ->
+authorizeUser = (req, res) -> (error, response, body) ->
 
-  rawResp = ''
-  authUserResp.on 'data', (chunk) -> rawResp += chunk
-  authUserResp.on 'end', ->
+  if error or not access_token = body.access_token
+    return fail req, res
 
-    try
-      authResponse = JSON.parse rawResp
-    catch e
-      return redirectOauth 'could not parse gitlab response', req, res, { provider }
+  options   =
+    url     : getUrlFor '/api/v3/user'
+    method  : 'GET'
+    headers : headers
+    json    : { access_token }
 
-    { access_token } = authResponse
-
-    unless access_token
-      return redirectOauth 'could not get access token', req, res, { provider }
-
-    options   =
-      host    : gitlab.host ? 'gitlab.com'
-      port    : gitlab.port ? 80
-      path    : "/api/v3/user?access_token=#{access_token}"
-      method  : 'GET'
-      headers : headers
-
-    r = http.request options, fetchUserInfo req, res, access_token
-    r.end()
+  request options, fetchUserInfo req, res, access_token
 
 
 module.exports = (req, res) ->
 
-  { code } = req.query
+  return fail req, res  unless code = req.query.code
 
-  unless code
-    redirectOauth 'No code', req, res, { provider }
-    return
+  options           =
+    url             : getUrlFor '/oauth/token'
+    method          : 'POST'
+    headers         : headers
+    json            :
+      redirect_uri  : gitlab.redirectUri
+      grant_type    : 'authorization_code'
+      client_id     : gitlab.applicationId
+      client_secret : gitlab.applicationSecret
+      code          : code
 
-  path = '/oauth/token?'
-  path += "client_id=#{gitlab.applicationId}&"
-  path += "client_secret=#{gitlab.applicationSecret}&"
-  path += "code=#{code}&"
-  path += 'grant_type=authorization_code&'
-  path += "redirect_uri=#{gitlab.redirectUri}"
-
-  options   =
-    host    : gitlab.host ? 'gitlab.com'
-    port    : gitlab.port ? 80
-    path    : path
-    method  : 'POST'
-    headers : headers
-
-  r = http.request options, authorizeUser req, res
-  r.end()
+  request options, authorizeUser req, res
