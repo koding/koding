@@ -25,7 +25,7 @@ module.exports = class JInvitation extends jraphical.Module
   @set
     permissions     :
       'send invitations'  : ['member']
-      'remove invitation' : ['admin']
+      'remove invitation' : ['member']
     indexes         :
       code          : 'unique'
       # email         : 'ascending'
