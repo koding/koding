@@ -98,6 +98,8 @@ module.exports = class JInvitation extends jraphical.Module
       role          :
         type        : String
         default     : -> 'member'
+      inviter_id    :
+        type        : String
 
   accept$: permit 'send invitations',
     success: (client, callback) ->
@@ -222,6 +224,9 @@ module.exports = class JInvitation extends jraphical.Module
 
   createSingleInvite = (client, group, invitationData, end) ->
     { email, role, forceInvite, noEmail } = invitationData
+    { _id } = client.connection.delegate
+
+    invitationData.inviter_id = _id
 
     groupName  = group.slug
     inviteInfo = null
@@ -273,7 +278,7 @@ module.exports = class JInvitation extends jraphical.Module
 
   createInviteInstance = (options, callback) ->
 
-    { email, groupName, role, firstName, lastName } = options
+    { email, groupName, role, firstName, lastName, inviter_id } = options
 
     JUser = require './user'
     hash  = JUser.getHash email
@@ -285,6 +290,7 @@ module.exports = class JInvitation extends jraphical.Module
     # firstName and lastName are optional
     data.firstName = firstName  if firstName
     data.lastName  = lastName   if lastName
+    data.inviter_id = inviter_id
 
     invite = new JInvitation data
     invite.save (err) ->
