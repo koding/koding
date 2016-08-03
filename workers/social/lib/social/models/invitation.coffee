@@ -56,6 +56,8 @@ module.exports = class JInvitation extends jraphical.Module
           (signature Object, Function)
         byCode:
           (signature String, Function)
+        revokeInvitation:
+          (signature Object, Function)
         sendInvitationByCode:[
           (signature String, Function)
           (signature Object, String, Function)
@@ -100,6 +102,24 @@ module.exports = class JInvitation extends jraphical.Module
         default     : -> 'member'
       inviter_id    :
         type        : String
+
+  @revokeInvitation: permit 'remove invitation',
+    success: (client, invite, callback) ->
+
+      { connection: { delegate:account } } = client
+      account.fetchMyPermissions client, (err, permissionAndRoles) ->
+
+        { _id } = account
+        { roles } = permissionAndRoles
+
+        hasPermisson = 'admin' in roles or 'owner' in roles
+        { inviter_id, email, groupName } = invite
+
+        return callback 'noPermission'  if not hasPermisson and _id.toString() isnt inviter_id
+
+        JInvitation.remove { email, groupName }, (err) ->
+          return callback err
+
 
   accept$: permit 'send invitations',
     success: (client, callback) ->
