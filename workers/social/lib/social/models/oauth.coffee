@@ -1,5 +1,3 @@
-# coffeelint: disable=cyclomatic_complexity
-
 bongo       = require 'bongo'
 { secure, signature } = bongo
 crypto      = require 'crypto'
@@ -9,6 +7,7 @@ KodingError = require '../error'
 JSession    = require './session'
 
 module.exports = class OAuth extends bongo.Base
+
   @share()
 
   @set
@@ -16,21 +15,24 @@ module.exports = class OAuth extends bongo.Base
       static        :
         getUrl      : (signature Object, Function)
 
-  @getUrl = secure (client, options, callback) ->
-    { provider } = options
-    redirectUri = KONFIG[provider].redirectUri or KONFIG[provider].redirect_uri
-    if redirectUri
-      redirectUri = @prependGroupName redirectUri, client.context.group
 
-    switch provider
-      when 'github'
+  getUrlFor = (provider, redirectUri, options, callback) ->
+
+    {
+
+      github: ->
+
         { clientId } = KONFIG.github
         { scope, returnUrl } = options
         scope = 'user:email'  unless scope
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
         url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=#{scope}&redirect_uri=#{redirectUri}"
+
         callback null, url
-      when 'gitlab'
+
+
+      gitlab: ->
+
         { applicationId, host, redirectUri, port } = KONFIG.gitlab
         { returnUrl } = options
         host ?= 'gitlab.com'
@@ -39,12 +41,20 @@ module.exports = class OAuth extends bongo.Base
         host = options.host ? host
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
         url = "#{protocol}#{host}#{port}/oauth/authorize?client_id=#{applicationId}&redirect_uri=#{redirectUri}&response_type=code"
+
         callback null, url
-      when 'facebook'
+
+
+      facebook: ->
+
         { clientId } = KONFIG.facebook
         url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}&scope=email"
+
         callback null, url
-      when 'google'
+
+
+      google: ->
+
         { client_id } = KONFIG.google
         JSession.one { clientId: client.sessionToken }, (err, session) ->
           return callback err  if err
@@ -60,7 +70,10 @@ module.exports = class OAuth extends bongo.Base
           url += 'access_type=offline'
 
           callback null, url
-      when 'linkedin'
+
+
+      linkedin: ->
+
         { client_id } = KONFIG.linkedin
         state = crypto.createHash('md5').update((new Date).toString()).digest('hex')
 
@@ -71,8 +84,23 @@ module.exports = class OAuth extends bongo.Base
         url += "redirect_uri=#{redirectUri}"
 
         callback null, url
-      when 'twitter'
-        @saveTokensAndReturnUrl client, 'twitter', callback
+
+
+    }[provider]?()
+
+
+  @getUrl = secure (client, options, callback) ->
+
+    { provider } = options
+
+    if redirectUri = KONFIG[provider].redirectUri or KONFIG[provider].redirect_uri
+      redirectUri  = @prependGroupName redirectUri, client.context.group
+
+    if provider is 'twitter'
+      @saveTokensAndReturnUrl client, 'twitter', callback
+    else
+      getUrlFor provider, redirectUri, options, callback
+
 
   @prependGroupName = (url, groupName) ->
     return url  if groupName is 'koding'
@@ -80,6 +108,7 @@ module.exports = class OAuth extends bongo.Base
     url = parser.parse url
 
     return "#{url.protocol}//#{groupName}.#{url.host}#{url.path}"
+
 
   @saveTokensAndReturnUrl = (client, provider, callback) ->
     @getTokens provider, (err, data) =>
@@ -89,6 +118,7 @@ module.exports = class OAuth extends bongo.Base
       credentials = { requestToken, requestTokenSecret }
       @saveTokens client, provider, credentials, (err) ->
         callback err, url
+
 
   @getTokens = (provider, callback) ->
     {
@@ -114,6 +144,7 @@ module.exports = class OAuth extends bongo.Base
         requestTokenSecret : tokenSecret
         url                : tokenizedUrl
       }
+
 
   @saveTokens = (client, provider, credentials, callback) ->
     JSession.one { clientId: client.sessionToken }, (err, session) ->
