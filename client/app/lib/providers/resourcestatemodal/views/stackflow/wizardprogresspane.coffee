@@ -15,6 +15,7 @@ module.exports = class WizardProgressPane extends kd.View
 
     { currentStep }      = @getOptions()
     isCurrentStepReached = no
+    index                = 0
 
     for key, value of WizardSteps
       isCurrentStep        = value is currentStep
@@ -30,7 +31,10 @@ module.exports = class WizardProgressPane extends kd.View
         cssClass
         partial  : """
           <div class='alien'></div>
-          <span class='icon'></span>
+          <span class='index'>
+            <span class='indexText'>#{++index}</span>
+            <span class='indexSign'></span>
+          </span>
           #{value}
         """
       }
