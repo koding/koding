@@ -22,7 +22,7 @@ git config user.name 'Koding Bot'
 scripts/wercker/install-node-modules koding
 scripts/install-npm.sh -u
 
-./configure --host $HOST:8090 --disable-segment
+./configure --config dev --host $HOST:8090 --disable-segment
 ./run install
 
 export TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090"
