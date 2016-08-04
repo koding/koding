@@ -401,7 +401,6 @@ module.exports =
 
     browser
       .pause 2000
-      # .click closeButton
       .click '#main-sidebar'
       .waitForElementVisible sidebarSelector, 20000
 

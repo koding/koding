@@ -172,7 +172,6 @@ module.exports =
               .waitForElementVisible     rejectButton, 50000
               .click                     acceptButton
               .waitForElementNotPresent  shareModal, 50000
-              # .pause                     3000 # wait for sidebar redraw
               .waitForElementNotPresent  sessionLoading, 50000
               .waitForElementVisible     filetree, 50000
               .waitForTextToContain      filetree, firstUserName
