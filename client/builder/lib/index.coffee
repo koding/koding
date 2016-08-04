@@ -20,6 +20,7 @@ notifier      = require 'node-notifier'
 mkdirp        = require 'mkdirp'
 nub           = require 'nub'
 gulp          = require 'gulp'
+plumber       = require 'gulp-plumber'
 i18next       = require 'i18next-parser'
 spritesmith   = require 'gulp.spritesmith'
 chalk         = require 'chalk'
@@ -730,17 +731,6 @@ writeJS = (src, outfile, callbacks) ->
 
   start = Date.now()
 
-
-    # loadPath = path.resolve __dirname, '../../../website/a/i18n'
-
-    # console.log outfile, loadPath
-    # gulp.src outfile
-    #   .pipe( i18next().on('reading', (path) -> console.log path) )
-    #   .pipe i18next
-    #     namespace: 'default'
-    #     locales: ['en', 'de', 'fr', 'tr']
-    #     output: '../../../website/a/i18n'
-    #   .pipe gulp.dest loadPath  try
   try
     fs.writeFileSync outfile, src, 'utf8'
   catch e
@@ -749,3 +739,20 @@ writeJS = (src, outfile, callbacks) ->
   secs = ((Date.now() - start) / 1000).toFixed 2
   msg = "#{pretty(src.length)} written to #{outfile} (#{secs})"
   callbacks.handleSuccess msg
+
+  # relative to compiled javascript file, i.e. bundle.js
+  relLocalesPath = '../../../i18n'
+
+  # absolute path of locale files
+  absLocalesPath = path.resolve __dirname, '../../website/a/i18n'
+
+  gulp.src outfile
+    .pipe plumber()
+    .pipe i18next
+      output: relLocalesPath
+      locales: [ 'en', 'de', 'fr', 'tr', 'ru' ]
+      functions: [ '__t', '_t' ]
+      namespace: 'default'
+      keySeparator: '..'
+      namespaceSeparator: '::'
+    .pipe gulp.dest absLocalesPath
