@@ -109,13 +109,16 @@ module.exports = class JInvitation extends jraphical.Module
       { connection: { delegate:account } } = client
       account.fetchMyPermissions client, (err, permissionAndRoles) ->
 
+        return callback new KodingError 'Couldn\'t fetch user permissions'  if err
+
         { _id } = account
         { roles } = permissionAndRoles
 
         hasPermisson = 'admin' in roles or 'owner' in roles
         { inviterId, email, groupName } = invite
 
-        return callback 'noPermission'  if not hasPermisson and _id.toString() isnt inviterId
+        if not hasPermisson and _id.toString() isnt inviterId
+          return callback new KodingError 'You don\'t have permission'
 
         JInvitation.remove { email, groupName }, (err) ->
           return callback err
