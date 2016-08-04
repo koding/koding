@@ -730,12 +730,6 @@ writeJS = (src, outfile, callbacks) ->
 
   start = Date.now()
 
-  fs.writeFile outfile, src, (err, res) ->
-    return callbacks.handleError err  if err
-
-    secs = ((Date.now() - start) / 1000).toFixed 2
-    msg = "#{pretty(src.length)} written to #{outfile} (#{secs})"
-    callbacks.handleSuccess msg
 
     # loadPath = path.resolve __dirname, '../../../website/a/i18n'
 
@@ -746,4 +740,12 @@ writeJS = (src, outfile, callbacks) ->
     #     namespace: 'default'
     #     locales: ['en', 'de', 'fr', 'tr']
     #     output: '../../../website/a/i18n'
-    #   .pipe gulp.dest loadPath
+    #   .pipe gulp.dest loadPath  try
+  try
+    fs.writeFileSync outfile, src, 'utf8'
+  catch e
+    return callbacks.handleError err
+
+  secs = ((Date.now() - start) / 1000).toFixed 2
+  msg = "#{pretty(src.length)} written to #{outfile} (#{secs})"
+  callbacks.handleSuccess msg
