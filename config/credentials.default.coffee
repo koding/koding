@@ -60,16 +60,16 @@ module.exports = (options) ->
     apiSearchOnlyKey: ''
   postgres =
     host: "#{options.serviceHost}"
-    port: "5432"
-    username: "socialapplication"
-    password: "socialapplication"
-    dbname: "social"
+    port: '5432'
+    username: 'socialapplication'
+    password: 'socialapplication'
+    dbname: 'social'
   kontrolPostgres =
     host: "#{options.serviceHost}"
     port: 5432
-    username: "kontrolapplication"
-    password: "somerandompassword"
-    dbname: "social"
+    username: 'kontrolapplication'
+    password: 'kontrolapplication'
+    dbname: 'social'
     connecttimeout: 20
   pubnub =
     publishkey: ""
