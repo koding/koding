@@ -25,7 +25,7 @@ module.exports = class StackTemplatePreviewModal extends ContentModal
       tagName : 'main'
 
     @main.addSubView expandButton = new kd.ButtonView
-      cssClass : 'solid compact light-gray expand-button'
+      cssClass : 'solid compact expand-button'
       title : 'Expand'
       callback : =>
         @unsetClass 'stack-template-preview'
@@ -35,7 +35,7 @@ module.exports = class StackTemplatePreviewModal extends ContentModal
 
 
     @main.addSubView @minimizeButton = new kd.ButtonView
-      cssClass : 'solid compact light-gray minimize-button hidden'
+      cssClass : 'solid compact minimize-button hidden'
       title : 'Collapse'
       callback : =>
         @setClass 'stack-template-preview'
