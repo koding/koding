@@ -89,6 +89,8 @@ module.exports = class StackFlowController extends kd.Controller
 
     [ prevState, @state ] = [ @state, status ]
 
+    @createHeaderIfNeed()
+
     if error
       @buildStack.showError error
     else if percentage?
@@ -133,23 +135,34 @@ module.exports = class StackFlowController extends kd.Controller
     @buildStack.showError message
 
 
+  createHeaderIfNeed: ->
+
+    { container } = @getOptions()
+    { stack } = @getData()
+
+    return  if @header
+
+    @header = new BuildStackHeaderView {}, stack
+    container.prepend @header
+
+
   show: ->
 
     controller = switch @state
       when 'Building' then @buildStack
       when 'NotInitialized' then @instructions
 
-    controller.show()  if controller
+    return  unless controller
+
+    @createHeaderIfNeed()
+    controller.show()
 
 
   onPageDidShow: (page) ->
 
-    { container } = @getOptions()
     { stack } = @getData()
 
-    if not @header
-      @header = new BuildStackHeaderView {}, stack
-      container.prepend @header
+    @createHeaderIfNeed()
 
     { progressPane } = @header
 

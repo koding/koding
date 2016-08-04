@@ -1,15 +1,17 @@
 module.exports = {
-  'Instructions' :
+  'instructions' :
+    title        : 'Instructions'
     pages        : [
       require './readmepageview'
       require './stacktemplatepageview'
     ]
-  'Credentials'  :
+  'credentials'  :
+    title        : 'Credentials'
     pages        : [
       require './credentialspageview'
       require './credentialserrorpageview'
     ]
-  'BuildStack'   :
+  'buildstack'   :
     title        : 'Build Stack'
     pages        : [
       require './buildstackpageview'

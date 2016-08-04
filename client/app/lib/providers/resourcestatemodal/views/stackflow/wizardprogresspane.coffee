@@ -8,7 +8,11 @@ module.exports = class WizardProgressPane extends kd.View
     options.cssClass = kd.utils.curry 'wizard-progress-pane', options.cssClass
     super options, data
 
+    @addAlien()
     @addSteps()
+
+
+  addAlien: -> @addSubView new kd.CustomHTMLView { cssClass : 'alien' }
 
 
   addSteps: ->
@@ -21,7 +25,6 @@ module.exports = class WizardProgressPane extends kd.View
       @addSubView @steps[step] = new kd.CustomHTMLView {
         cssClass : 'wizard-step'
         partial  : """
-          <div class='alien'></div>
           <span class='index'>
             <span class='indexText'>#{++index}</span>
             <span class='indexSign'></span>
@@ -41,10 +44,12 @@ module.exports = class WizardProgressPane extends kd.View
 
       view.unsetClass 'completed'
       view.unsetClass 'current'
+      @unsetClass key
       if not isCurrentStepReached
         view.setClass 'completed'
       else if isCurrentStep
         view.setClass 'current'
+        @setClass key
 
 
   setWarningMode: (_on) ->
