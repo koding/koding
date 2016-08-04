@@ -48,7 +48,7 @@ Configuration = (options = {}) ->
   options.clientUploadS3BucketName or= 'kodingdev-client'
 
   customDomain =
-    public  : "#{options.scheme}://#{options.host}#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
+    public  : "#{options.scheme}://#{options.host}"
     public_ : options.host
     local   : "http://127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
     local_  : "127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
