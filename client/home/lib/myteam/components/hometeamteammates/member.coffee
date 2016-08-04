@@ -104,7 +104,7 @@ MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen, admin
   unless canEdit and not showButtonWithMenu
     <div className='dropdown'>
       <MemberRole role={role} canEdit={canEdit}  />
-      {<ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />  if member.get('inviter_id') is whoami()._id}
+      {<ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />  if member.get('inviterId') is whoami()._id}
     </div>
   else
     <div className='dropdown' onClick={onClick}>

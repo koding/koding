@@ -197,7 +197,7 @@ handlePendingInvitationUpdate = (account, action) ->
 
       title = 'You are not authorized to revoke this invite.'
 
-      return new kd.NotificationView { title, 5000 }  if err
+      return new kd.NotificationView { title, duration: 5000 }  if err
 
       reactor.dispatch actions.DELETE_PENDING_INVITATION_SUCCESS, { account }
 

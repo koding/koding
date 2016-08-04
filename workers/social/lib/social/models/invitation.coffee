@@ -100,7 +100,7 @@ module.exports = class JInvitation extends jraphical.Module
       role          :
         type        : String
         default     : -> 'member'
-      inviter_id    :
+      inviterId    :
         type        : String
 
   @revokeInvitation: permit 'remove invitation',
@@ -113,9 +113,9 @@ module.exports = class JInvitation extends jraphical.Module
         { roles } = permissionAndRoles
 
         hasPermisson = 'admin' in roles or 'owner' in roles
-        { inviter_id, email, groupName } = invite
+        { inviterId, email, groupName } = invite
 
-        return callback 'noPermission'  if not hasPermisson and _id.toString() isnt inviter_id
+        return callback 'noPermission'  if not hasPermisson and _id.toString() isnt inviterId
 
         JInvitation.remove { email, groupName }, (err) ->
           return callback err
@@ -246,7 +246,7 @@ module.exports = class JInvitation extends jraphical.Module
     { email, role, forceInvite, noEmail } = invitationData
     { _id } = client.connection.delegate
 
-    invitationData.inviter_id = _id
+    invitationData.inviterId = _id
 
     groupName  = group.slug
     inviteInfo = null
@@ -298,7 +298,7 @@ module.exports = class JInvitation extends jraphical.Module
 
   createInviteInstance = (options, callback) ->
 
-    { email, groupName, role, firstName, lastName, inviter_id } = options
+    { email, groupName, role, firstName, lastName, inviterId } = options
 
     JUser = require './user'
     hash  = JUser.getHash email
@@ -310,7 +310,7 @@ module.exports = class JInvitation extends jraphical.Module
     # firstName and lastName are optional
     data.firstName = firstName  if firstName
     data.lastName  = lastName   if lastName
-    data.inviter_id = inviter_id
+    data.inviterId = inviterId
 
     invite = new JInvitation data
     invite.save (err) ->
