@@ -69,7 +69,19 @@ Configuration = (options = {}) ->
     botchannel : yes
 
   KONFIG = require('./generateKonfig')(options, credentials)
+
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
+
+  options.disabledWorkers = [
+    "algoliaconnector"
+    "paymentwebhook"
+    "gatekeeper"
+    "vmwatcher"
+  ]
+
+  for worker in options.disabledWorkers
+    delete KONFIG.workers[worker]
+
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
   # Disable Sneaker for kloud.
@@ -77,13 +89,6 @@ Configuration = (options = {}) ->
 
   options.requirementCommands = [
     "$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh"
-  ]
-
-  options.disabledWorkers = [
-    "algoliaconnector"
-    "paymentwebhook"
-  # "gatekeeper"
-    "vmwatcher"
   ]
 
   KONFIG.supervisord =
