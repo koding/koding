@@ -4,6 +4,7 @@ set -euo pipefail
 
 export GOPATH=$(cd "$(dirname "$0")"; pwd)
 export GIT_DIR=$GOPATH/../.git
+export GOBIN=${GOBIN:-}
 
 if [ $# == 1 ]; then
   export GOBIN=$GOPATH/$1
