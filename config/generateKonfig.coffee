@@ -13,14 +13,14 @@ module.exports = (options, credentials) ->
     userAgent   : "Koding-Bridge-#{options.configName}"
 
   gitlab =
-    host: options.gitlabHost ? credentials.gitlab.host
-    port: options.gitlabPort ? credentials.gitlab.port ? 3000
-    applicationId: options.gitlabAppId ? credentials.gitlab.applicationId
-    applicationSecret: options.gitlabAppSecret ? credentials.gitlab.applicationSecret
+    host: options.gitlabHost or credentials.gitlab.host
+    port: options.gitlabPort or credentials.gitlab.port or 3000
+    applicationId: options.gitlabAppId or credentials.gitlab.applicationId
+    applicationSecret: options.gitlabAppSecret or credentials.gitlab.applicationSecret
     team: credentials.gitlab.team
     redirectUri: "http://#{credentials.gitlab.team}.#{options.host}/-/oauth/gitlab/callback"
-    systemHookToken: options.gitlabToken ? credentials.gitlab.systemHookToken
-    hooksEnabled: (options.gitlabHost ? credentials.gitlab.host) isnt ''
+    systemHookToken: options.gitlabToken or credentials.gitlab.systemHookToken
+    hooksEnabled: options.gitlabHost or credentials.gitlab.host
 
   regions =
     kodingme: "#{options.configName}"
