@@ -1,20 +1,11 @@
 kd = require 'kd'
 JView = require 'app/jview'
-BuildStackHeaderView = require './buildstackheaderview'
-WizardSteps = require './wizardsteps'
-WizardProgressPane = require './wizardprogresspane'
 
 module.exports = class BuildStackSuccessPageView extends JView
 
   constructor: (options = {}, data) ->
 
     super options, data
-
-    { stack } = @getData()
-    @header   = new BuildStackHeaderView {}, stack
-
-    @progressPane = new WizardProgressPane
-      currentStep : WizardSteps.BuildStack
 
     @logsButton = new kd.ButtonView
       title    : 'See the Logs'
@@ -30,9 +21,7 @@ module.exports = class BuildStackSuccessPageView extends JView
   pistachio: ->
 
     '''
-      <div class="build-stack-flow build-stack-success-page">
-        {{> @header}}
-        {{> @progressPane}}
+      <div class="build-stack-success-page">
         <section class="main">
           <div class="background"></div>
           <h1>Success</h1>

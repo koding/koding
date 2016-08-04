@@ -1,10 +1,23 @@
 kd = require 'kd'
+JView = require 'app/jview'
+WizardProgressPane = require './wizardprogresspane'
 
-module.exports = class BuildStackHeaderView extends kd.CustomHTMLView
+module.exports = class BuildStackHeaderView extends JView
 
   constructor: (options, data) ->
 
-    options.tagName ?= 'header'
-    options.partial ?= "<h1>Build #{data.title}</h1>"
-
     super options, data
+
+    @progressPane = new WizardProgressPane()
+
+
+  pistachio: ->
+
+    stack = @getData()
+
+    """
+      <header>
+        <h1>#{stack.title}</h1>
+      </header>
+      {{> @progressPane}}
+    """

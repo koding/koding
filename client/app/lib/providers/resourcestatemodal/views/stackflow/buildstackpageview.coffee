@@ -1,8 +1,5 @@
 kd = require 'kd'
 JView = require 'app/jview'
-BuildStackHeaderView = require './buildstackheaderview'
-WizardSteps = require './wizardsteps'
-WizardProgressPane = require './wizardprogresspane'
 IDETailerPane = require 'ide/workspace/panes/idetailerpane'
 BuildStackLogsPane = require './buildstacklogspane'
 helpers = require '../../helpers'
@@ -13,12 +10,6 @@ module.exports = class BuildStackPageView extends JView
   constructor: (options = {}, data) ->
 
     super options, data
-
-    { stack } = @getData()
-    @header   = new BuildStackHeaderView {}, stack
-
-    @wizardPane = new WizardProgressPane
-      currentStep : WizardSteps.BuildStack
 
     @progressBar = new kd.ProgressBarView
       initial : constants.INITIAL_PROGRESS_VALUE
@@ -110,9 +101,7 @@ module.exports = class BuildStackPageView extends JView
   pistachio: ->
 
     '''
-      <div class="build-stack-flow build-stack-page">
-        {{> @header}}
-        {{> @wizardPane}}
+      <div class="build-stack-page">
         <section class="main">
           <div class="progressbar-wrapper">
             {{> @progressBar}}

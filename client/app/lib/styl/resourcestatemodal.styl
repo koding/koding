@@ -185,6 +185,20 @@ $regularColor               = #989898
         .index
           bg                color, #48BA7D
 
+    &.warning-mode
+
+      .wizard-step.current
+        bg                  color, $warningColor
+        color               #fff
+
+        .indexText
+          hidden()
+
+        .indexSign:before
+          content           '!'
+          color             #000
+          padding-left      1px
+
 
   /* Logs pane */
   .logs-pane
@@ -219,20 +233,6 @@ $regularColor               = #989898
         line-height         16px
         height              60px
         margin-bottom       0
-
-    .wizard-progress-pane
-
-      .wizard-step.current
-        bg                  color, $warningColor
-        color               #fff
-
-        .indexText
-          hidden()
-
-        .indexSign:before
-          content           '!'
-          color             #000
-          padding-left      1px
 
     .error-container
       max-height            240px

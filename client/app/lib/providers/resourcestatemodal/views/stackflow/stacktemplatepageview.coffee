@@ -1,9 +1,6 @@
 kd = require 'kd'
 JView = require 'app/jview'
 Encoder = require 'htmlencode'
-BuildStackHeaderView = require './buildstackheaderview'
-WizardSteps = require './wizardsteps'
-WizardProgressPane = require './wizardprogresspane'
 StackTemplateEditorView = require 'stacks/views/stacks/editors/stacktemplateeditorview'
 
 module.exports = class StackTemplatePageView extends JView
@@ -13,11 +10,6 @@ module.exports = class StackTemplatePageView extends JView
     super options, data
 
     { stack, stackTemplate } = @getData()
-
-    @header = new BuildStackHeaderView {}, stack
-
-    @progressPane = new WizardProgressPane
-      currentStep : WizardSteps.Instructions
 
     { template: { rawContent } } = stackTemplate
     @editorView = new StackTemplateEditorView
@@ -43,9 +35,7 @@ module.exports = class StackTemplatePageView extends JView
   pistachio: ->
 
     '''
-      <div class="build-stack-flow stack-template-page">
-        {{> @header}}
-        {{> @progressPane}}
+      <div class="stack-template-page">
         <section class="main">
           <h2>Stack Template</h2>
           <p>A preview of the stack you are about to build</p>
