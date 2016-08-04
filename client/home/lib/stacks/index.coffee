@@ -150,7 +150,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     @vms.addSubView header = headerize 'Connected Machines'
     header.addSubView new kd.ButtonView
       cssClass : 'GenericButton HomeAppViewVMSection--addOwnMachineButton'
-      title    : 'Add a Connected Machine'
+      title    : 'Add Your Own Machine'
       callback : -> new AddManagedMachineModal
 
     @vms.addSubView sectionize 'Connected Machines', HomeVirtualMachinesConnectedMachines
