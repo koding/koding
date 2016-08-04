@@ -1,7 +1,10 @@
 {
   "Create": "Oluştur",
-  "Create a blueprint for your team's entire infrastructure": "Takımınızın geliştirme altyapısını oluşturun.",
   "Create a Stack": "Yığın Oluştur",
   "Create a Stack for Your Team": "Takımın için yığın oluştur",
-  "Enter your Credentials": "sacma sapan"
+  "Create a blueprint for your team's entire infrastructure": "Takımınızın geliştirme altyapısını oluşturun.",
+  "Enter": "",
+  "Enter Credentials": "",
+  "Enter your Credentials": "",
+  "To set up your machines we need your cloud provider credentials": ""
 }

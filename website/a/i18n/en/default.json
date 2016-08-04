@@ -1,6 +1,10 @@
 {
   "Create": "Create",
-  "Create a blueprint for your team's entire infrastructure": "Create a blueprint for your team's entire infrastructure.",
   "Create a Stack": "Create a Stack",
-  "Create a Stack for Your Team": "Create a Stack for Your Team"
+  "Create a Stack for Your Team": "Create a Stack for Your Team",
+  "Create a blueprint for your team's entire infrastructure": "Create a blueprint for your team's entire infrastructure.",
+  "Enter": "",
+  "Enter Credentials": "",
+  "Enter your Credentials": "",
+  "To set up your machines we need your cloud provider credentials": ""
 }

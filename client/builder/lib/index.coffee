@@ -750,7 +750,7 @@ writeJS = (src, outfile, callbacks) ->
     .pipe plumber()
     .pipe i18next
       output: relLocalesPath
-      locales: [ 'en', 'de', 'fr', 'tr', 'ru' ]
+      locales: [ 'en', 'tr' ]
       functions: [ '__t', '_t' ]
       namespace: 'default'
       keySeparator: '..'
