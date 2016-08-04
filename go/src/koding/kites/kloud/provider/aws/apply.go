@@ -52,17 +52,12 @@ func (s *Stack) buildResources() error {
 	return nil
 }
 
-func (s *Stack) waitResources(ctx context.Context) error {
+func (s *Stack) waitResources(ctx context.Context) (err error) {
 	s.Log.Debug("Checking total '%d' klients", len(s.ids))
 
-	urls, err := s.p.CheckKlients(ctx, s.ids)
-	if err != nil {
-		return err
-	}
+	s.urls, err = s.p.CheckKlients(ctx, s.ids)
 
-	s.urls = urls
-
-	return nil
+	return err
 }
 
 func (s *Stack) updateResources(state *terraform.State) error {

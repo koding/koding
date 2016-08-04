@@ -13,7 +13,6 @@ import (
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/utils"
 
-	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -41,6 +40,44 @@ type Machine struct {
 	RegisterURL     string            `json:"registerURL,omitempty"`
 	HostQueryString string            `json:"hostQueryString,omitempty"`
 	Attributes      map[string]string `json:"attributes"`
+}
+
+// DialState describes state of a single dial.
+type DialState struct {
+	Label   string // the vm label
+	KiteID  string // the kite ID being checked
+	KiteURL string // last resolved URL or empty
+	State   string // either "kontrol", "dial", "ping" or "provider"
+	Err     error  // underlying error
+}
+
+// DialError describes an error of CheckKlients.
+type DialError struct {
+	States []*DialState
+}
+
+// Error implements the built-in error interface.
+func (de *DialError) Error() string {
+	var buf bytes.Buffer
+
+	fmt.Fprintf(&buf, "Failed to dial the following kites:\n\n")
+
+	for _, s := range de.States {
+		fmt.Fprintf(&buf, "  * %s: %s (id=%q, url=%q, state=%q)\n", s.Label, s.Err, s.KiteID, s.KiteURL, s.State)
+	}
+
+	return buf.String()
+}
+
+// Err returns de if it contains at least 1 failed state.
+func (de *DialError) Err() error {
+	for _, s := range de.States {
+		if s.Err != nil {
+			return de
+		}
+	}
+
+	return nil
 }
 
 // KiteMap maps resource names to kite IDs they own.
@@ -268,6 +305,57 @@ func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 	return &out, nil
 }
 
+func (p *Planner) checkSingleKlient(k *kite.Kite, label, kiteID string) *DialState {
+	kiteID = utils.QueryString(kiteID)
+
+	start := time.Now()
+
+	c, err := klient.NewWithTimeout(k, kiteID, p.klientTimeout())
+	if err == klient.ErrDialingFailed {
+		return &DialState{
+			Label:   label,
+			KiteID:  kiteID,
+			KiteURL: c.Client.URL,
+			State:   "dial",
+			Err:     err,
+		}
+	}
+
+	if err != nil {
+		return &DialState{
+			Label:  label,
+			KiteID: kiteID,
+			State:  "kontrol",
+			Err:    err,
+		}
+	}
+
+	defer c.Close()
+
+	left := p.klientTimeout() - time.Now().Sub(start)
+
+	err = c.PingTimeout(max(left, klient.DefaultTimeout))
+	if err != nil {
+		return &DialState{
+			Label:  label,
+			KiteID: kiteID,
+			State:  "ping",
+			Err:    err,
+		}
+	}
+
+	if p.OnKlient != nil {
+		err = p.OnKlient(c.Client)
+	}
+
+	return &DialState{
+		Label:  label,
+		KiteID: kiteID,
+		State:  "provider",
+		Err:    err,
+	}
+}
+
 // CheckKlients checks connectivity to all klient kites given by the kiteIDs
 // parameter.
 //
@@ -278,57 +366,30 @@ func (p *Planner) CheckKlients(ctx context.Context, kiteIDs KiteMap) (map[string
 		return nil, err
 	}
 
-	var wg sync.WaitGroup
-	var mu sync.Mutex // protects multierror and outputs
-	var merr error
-	var urls = make(map[string]string, len(kiteIDs))
-
-	check := func(label, kiteID string) (string, error) {
-		queryString := utils.QueryString(kiteID)
-
-		sess.Log.Debug("[%s] Checking connectivity to %q", label, kiteID)
-
-		klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, p.klientTimeout())
-		if err != nil {
-			return "", err
-		}
-		defer klientRef.Close()
-
-		if err := klientRef.Ping(); err != nil {
-			return "", err
-		}
-
-		if p.OnKlient != nil {
-			if err := p.OnKlient(klientRef.Client); err != nil {
-				return "", err
-			}
-		}
-
-		return klientRef.Client.URL, nil
-	}
+	var (
+		wg   sync.WaitGroup
+		mu   sync.Mutex // protects multierror and outputs
+		urls = make(map[string]string, len(kiteIDs))
+		de   = &DialError{}
+	)
 
 	for l, k := range kiteIDs {
 		wg.Add(1)
 
 		go func(label, kiteID string) {
 			defer wg.Done()
-			url, err := check(label, kiteID)
+			state := p.checkSingleKlient(sess.Kite, label, kiteID)
 
 			mu.Lock()
-			defer mu.Unlock()
-
-			if err != nil {
-				merr = multierror.Append(merr, fmt.Errorf("Couldn't check '%s:%s': %s", label, kiteID, err))
-				return
-			}
-
-			urls[utils.QueryString(kiteID)] = url
+			de.States = append(de.States, state)
+			urls[state.KiteID] = state.KiteURL
+			mu.Unlock()
 		}(l, k)
 	}
 
 	wg.Wait()
 
-	return urls, merr
+	return urls, de.Err()
 }
 
 func (p *Planner) klientTimeout() time.Duration {
@@ -382,4 +443,11 @@ func FlattenValues(kv map[string][]string) []string {
 	}
 
 	return values
+}
+
+func max(d, t time.Duration) time.Duration {
+	if d > t {
+		return d
+	}
+	return t
 }
