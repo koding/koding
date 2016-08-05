@@ -67,6 +67,7 @@ app.post '/-/teams/join'                         , csrf,   require './handlers/j
 app.post '/-/teams/early-access'                 , require './handlers/earlyaccess'
 app.post '/-/teams/verify-domain'                , require './handlers/verifyslug'
 app.post '/-/teams/invite-by-csv'                , require('./handlers/invitetoteambycsv').handler
+app.post '/-/teams/invite-by-csv-analyze'        , require('./handlers/invitetoteambycsv2').handler
 app.get  '/-/teams/check-team-invitation'        , require './handlers/teaminvitationchecker'
 
 # fetches last members of team
