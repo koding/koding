@@ -1,0 +1,253 @@
+# Koding & GitLab
+
+This document will guide you about installing and configuring Koding with
+GitLab.
+
+First of all, to be able to use Koding and GitLab together you will need public
+access to your server. This allows you to use single sign-on from GitLab to
+Koding and using vms from cloud providers like AWS. Koding has a registry for
+
+VMs called Kontrol and it runs on the same server with Koding itself, VMs from
+cloud providers are registering them selves to Kontrol via the agent that we're
+putting into provisioned VMs. This agent is called Klient and it's providing
+Koding to access and manage the target machine.
+
+Kontrol and Klient are based on the another technology of Koding called Kite.
+Which is a microservice framework that allows you to develop microservices
+easily.
+
+
+## Requirements
+
+### Hardware
+
+Minimum requirements are;
+
+  - 2 cores CPU
+  - 3G RAM
+  - 10G Storage
+
+If you are planning to use AWS to install Koding it's recommended to use at
+least a `c3.xlarge` instance.
+
+### Software
+
+  - [git](https://git-scm.com)
+  - [docker](https://www.docker.com)
+  - [docker-compose](https://www.docker.com/products/docker-compose)
+
+Koding can run on most of the UNIX based operating systems, since it's shipping
+as containerized with Docker support, it can work on any operating system that
+supports Docker.
+
+Required services are;
+
+  - PostgreSQL # Kontrol and Service DB provider
+  - MongoDB    # Main DB provider the application
+  - Redis      # In memory DB used by both application and services
+  - RabbitMQ   # Message Queue for both application and services
+
+which are also provided as a Docker container by Koding.
+
+
+## Getting Started with Development Versions
+
+
+### Koding
+
+You can run `docker-compose` environment for developing koding by
+executing commands in the following snippet.
+
+```bash
+git clone https://github.com/koding/koding.git
+cd koding
+docker-compose up
+```
+
+This should start koding on `localhost:8090` by default there is no team
+created in Koding DB. But `gitlab` team is enabled for GitLab integrations on
+configuration. To make you can create the `gitlab` team as
+usual before starting on configuring.
+
+
+### GitLab
+
+To install GitLab to your environment for development purposes it's recommended
+to use GitLab Development Kit which you can get it from
+[here](https://gitlab.com/gitlab-org/gitlab-development-kit).
+
+After all those steps gitlab should be running on `localhost:3000`
+
+
+## Integration
+
+Integration includes following components;
+
+  - Single Sign On with OAuth from GitLab to Koding
+  - System Hook integration for handling GitLab events on Koding
+    (`project_created`, `user_joined` etc.)
+  - Service endpoints for importing/executing stacks from GitLab to Koding
+    (`Run/Try on IDE (Koding)` buttons on GitLab Projects, Issues, MRs)
+
+As it's pointed out before you will need a public access to this machine that
+you've installed Koding and GitLab on it. Better to use a domain but a static
+IP is also fine.
+
+For IP based installation you can use `xip.io` service which is free and
+provides DNS resolution to IP based requests like following;
+
+  - 127.0.0.1.xip.io              -> resolves to 127.0.0.1
+  - foo.bar.baz.127.0.0.1.xip.io  -> resolves to 127.0.0.1
+  - and so on...
+
+We'll need a domain for Koding's application part which is using subdomains for
+team names; `foo.127.0.0.1.xip.io` requests for a running koding instance on
+`127.0.0.1` server will be handled as `foo` team requests.
+
+
+### GitLab Side
+
+<!-- This part will be removed once MR!4769 merged EOC >> -->
+
+#### Checkout koding branch
+
+On `gitlab` folder you need to switch to `koding` branch from
+`gokmengoksel/gitlab-ce` remote;
+
+```bash
+cd gitlab-development-kit/gitlab
+git remote add -f gokmengoksel https://gitlab.com/gokmengoksel/gitlab-ce
+git checkout koding
+```
+
+<!-- << EOC-->
+
+
+#### Start GitLab with Koding URL
+
+To enable the integration you need to start your GitLab application with
+provided Koding URL; (please stop it first if it's already running)
+
+```bash
+cd gitlab-development-kit
+GITLAB_KODING_URL=http://gitlab.127.0.0.1.xip.io:8090 ./run app
+```
+
+_replace `127.0.0.1` with your instance public IP._
+
+By default Koding will enable the integration for `gitlab` team but you can
+change that behaviour on koding configuration.
+
+
+#### Registering Koding for OAuth integration
+
+We need `Application ID` and `Secret` to enable login to Koding via GitLab
+feature and to do that you need to register running Koding as a new application
+to your running GitLab application. Follow
+[these](http://docs.gitlab.com/ce/integration/oauth_provider.html) steps to
+enable this integration.
+
+Redirect URI should be `http://gitlab.127.0.0.1:8090/-/oauth/gitlab/callback`
+which again you need to _replace `127.0.0.1` with your instance public IP._
+
+Take a copy of `Application ID` and `Secret` that is generated by the GitLab
+application, we will need those on _Koding Part_ of this guide.
+
+
+#### Registering system hooks to Koding
+
+Koding can take actions based on the events generated by GitLab application.
+This feature is still in progress and only following events are processed by
+Koding at the moment;
+
+  - user_create
+  - user_destroy
+
+All system events are handled but not implemented on Koding side.
+
+To enable this feature you need to provide a `URL` and a `Secret Token` to your
+GitLab application. Open your admin area on your GitLab app from
+[http://127.0.0.1:3000/admin/hooks](http://127.0.0.1:3000/admin/hooks)
+and provide `URL` as `http://gitlab.127.0.0.1:8090/-/api/gitlab` which is the
+endpoint to handle GitLab events on Koding side. Provide a `Secret Token` and
+keep a copy of it, we will need it on _Koding Part_ of this guide.
+
+_(replace `127.0.0.1` with your instance public IP)_
+
+
+### Koding Part
+
+If you followed the steps in GitLab part we should have followings to enable
+Koding part integrations;
+
+  - `Application ID` and `Secret` for OAuth integration
+  - `Secret Token` for system hook integration
+  - Public address of running GitLab instance
+
+
+#### Start Koding with GitLab URL
+
+Now we need to configure Koding with these information to get things ready. If
+it's already running please stop koding first.
+
+##### From command-line
+
+Replace followings with the ones you got from GitLab part of this guide;
+
+```bash
+cd koding
+docker-compose run                              \
+  --service-ports backend                       \
+  /opt/koding/scripts/bootstrap-container build \
+  --host=**YOUR_IP**.xip.io                     \
+  --gitlabHost=**GITLAB_IP**                    \
+  --gitlabPort=**GITLAB_PORT**                  \
+  --gitlabToken=**SECRET_TOKEN**                \
+  --gitlabAppId=**APPLICATION_ID**              \
+  --gitlabAppSecret=**SECRET**
+```
+
+##### By updating configuration
+
+Alternatively you can update `gitlab` section on
+`config/credentials.default.coffee` like following;
+
+```
+gitlab =
+  host: '**GITLAB_IP**'
+  port: '**GITLAB_PORT**'
+  applicationId: '**APPLICATION_ID**'
+  applicationSecret: '**SECRET**'
+  team: 'gitlab'
+  redirectUri: ''
+  systemHookToken: '**SECRET_TOKEN**'
+  hooksEnabled: yes
+```
+
+and start by only providing the `host`;
+
+```bash
+cd koding
+docker-compose run                              \
+  --service-ports backend                       \
+  /opt/koding/scripts/bootstrap-container build \
+  --host=**YOUR_IP**.xip.io                     \
+```
+
+#### Enable Single Sign On
+
+Once you restarted your Koding and logged in with your username and password
+you need to activate oauth authentication for your user. To do that
+
+ - Navigate to Dashboard on Koding from;
+   `http://gitlab.**YOUR_IP**.xip.io:8090/Home/my-account`
+ - Scroll down to GitLab integration section
+ - Click toggle to turn On integration
+
+This will redirect you to your GitLab instance and will ask your permission (
+if you are not logged in to GitLab at this point you will be redirected after
+login) once you accept you will be redirected to your Koding instance.
+
+From now on you can login by using `SIGN IN WITH GITLAB` button on your Login
+screen in Koding instance.
+
