@@ -131,6 +131,7 @@ $regularColor               = #989898
   .wizard-progress-pane
     border-bottom           1px solid #e4e4e4
     text-align              center
+    rel()
 
     .wizard-step
       display               inline-block
@@ -145,13 +146,6 @@ $regularColor               = #989898
       color                 #727272
       rel()
       border-left           1px solid #fff
-
-      .alien
-        hidden()
-        abs()
-        top                 -91px
-        left                90px
-        r-sprite            'app' 'login_alien'
 
       .index
         display             inline-block
@@ -176,14 +170,40 @@ $regularColor               = #989898
           bg                color, #fff
           color             #67A2EE
 
-        .alien
-          visible()
-
       &.completed
         bg                  color, rgba(72,186,125,0.1)
 
         .index
           bg                color, #48BA7D
+
+    .alien
+      abs()
+      top                   -91px
+      r-sprite              'app' 'login_alien'
+      vendor                transition, transform .3s ease
+
+    &.instructions .alien
+      vendor                transform, translateX(90px)
+
+    &.credentials .alien
+      vendor                transform, translateX(350px)
+
+    &.buildstack .alien
+      vendor                transform, translateX(610px)
+
+    &.warning-mode
+
+      .wizard-step.current
+        bg                  color, $warningColor
+        color               #fff
+
+        .indexText
+          hidden()
+
+        .indexSign:before
+          content           '!'
+          color             #000
+          padding-left      1px
 
 
   /* Logs pane */
@@ -219,20 +239,6 @@ $regularColor               = #989898
         line-height         16px
         height              60px
         margin-bottom       0
-
-    .wizard-progress-pane
-
-      .wizard-step.current
-        bg                  color, $warningColor
-        color               #fff
-
-        .indexText
-          hidden()
-
-        .indexSign:before
-          content           '!'
-          color             #000
-          padding-left      1px
 
     .error-container
       max-height            240px
@@ -452,15 +458,36 @@ $regularColor               = #989898
           margin-top        0px
           clear             none
 
-      .advanced-mode-btn
-        height              22px !important
-        background-color    #666
+      .kdbutton.advanced-mode-btn
+        size                140px, 32px
+        background-color    #fff
+        padding             0 10px
         margin-bottom       20px
         box-shadow          none
+        rounded             4px
+        border              1px solid #aaa
+        borderBox()
+        text-align          left
 
         .button-title
-          font-size         12px !important
-          line-height       22px !important
+          rel()
+          color             #fff
+          font-size         14px
+          line-height       16px !important
+
+          &:before
+            content         'Advanced Mode'
+            text-transform  uppercase
+            font-size       14px
+            line-height     16px !important
+            color           #5e5e5e
+            abs()
+
+      .in-advanced-mode .kdbutton.advanced-mode-btn
+        width               185px
+
+        .button-title:before
+          content           'Close Advanced Mode'
 
       article
         font-size           13px

@@ -1,8 +1,5 @@
 kd = require 'kd'
 JView = require 'app/jview'
-BuildStackHeaderView = require './buildstackheaderview'
-WizardSteps = require './wizardsteps'
-WizardProgressPane = require './wizardprogresspane'
 applyMarkdown = require 'app/util/applyMarkdown'
 
 module.exports = class ReadmePageView extends JView
@@ -12,11 +9,6 @@ module.exports = class ReadmePageView extends JView
     super options, data
 
     { stack, stackTemplate } = @getData()
-
-    @header = new BuildStackHeaderView {}, stack
-
-    @progressPane = new WizardProgressPane
-      currentStep : WizardSteps.Instructions
 
     descriptionView = new kd.CustomHTMLView
       cssClass : 'description has-markdown'
@@ -39,9 +31,7 @@ module.exports = class ReadmePageView extends JView
   pistachio: ->
 
     '''
-      <div class="build-stack-flow readme-page">
-        {{> @header}}
-        {{> @progressPane}}
+      <div class="readme-page">
         <section class="main">
           <h2>Read Me</h2>
           <p>Instructions on getting started</p>

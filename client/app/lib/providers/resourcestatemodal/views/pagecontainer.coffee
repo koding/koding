@@ -20,3 +20,4 @@ module.exports = class PageContainer extends kd.TabView
     pane = _pane for _pane in @panes when _pane.options.view is page
     @showPane pane
     page.emit 'PageDidShow'
+    @emit 'PageDidShow', page
