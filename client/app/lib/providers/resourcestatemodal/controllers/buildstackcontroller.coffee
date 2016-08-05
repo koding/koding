@@ -38,9 +38,6 @@ module.exports = class BuildStackController extends kd.Controller
 
     container.appendPages @buildStackPage, @errorPage, @successPage, @logsPage, @timeoutPage
 
-    @timeoutChecker = new TimeoutChecker { duration : constants.TIMEOUT_DURATION }
-    @timeoutChecker.on 'Timeout', @bound 'handleTimeout'
-
 
   getLogFile: ->
 
@@ -58,7 +55,6 @@ module.exports = class BuildStackController extends kd.Controller
     { container } = @getOptions()
     container.showPage @buildStackPage
     @buildStackPage.updateProgress percentage, message
-    @timeoutChecker.update percentage
 
 
   updateBuildProgress: (percentage, message) ->
@@ -77,6 +73,7 @@ module.exports = class BuildStackController extends kd.Controller
     rate = (COMPLETE_PROGRESS_VALUE - MAX_BUILD_PROGRESS_VALUE) / COMPLETE_PROGRESS_VALUE
     percentage = MAX_BUILD_PROGRESS_VALUE + rate * percentage
     @updateProgress percentage
+    @timeoutChecker.update percentage
 
 
   completeBuildProcess: ->
@@ -92,11 +89,13 @@ module.exports = class BuildStackController extends kd.Controller
 
     @postBuildTimer = new ProgressUpdateTimer { duration }
     @postBuildTimer.on 'ProgressUpdated', @bound 'updatePostBuildProgress'
+    @timeoutChecker = new TimeoutChecker { duration : constants.TIMEOUT_DURATION }
+    @timeoutChecker.on 'Timeout', @bound 'handleTimeout'
 
 
   completePostBuildProcess: ->
 
-    @postBuildTimer?.stop()
+    @postBuildTimer.stop()
     @timeoutChecker.stop()
 
     { container } = @getOptions()
@@ -109,7 +108,7 @@ module.exports = class BuildStackController extends kd.Controller
     { machine } = @getData()
     kite = machine.getBaseKite()
 
-    @postBuildTimer?.stop()
+    @postBuildTimer.stop()
 
     return @showError 'Machine doesn\'t respond'  unless kite.ping?
 
