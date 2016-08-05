@@ -150,7 +150,7 @@ module.exports =
           .pause 3000
           .waitForElementNotPresent    saveAsDialog, 20000
           .refresh()
-          .pause 4000
+          .waitForElementVisible '.kdlistitemview-finderitem:last-child', 40000
           .assert.containsText  '.kdlistitemview-finderitem:last-child > div .title', 'newFile.txt'
 
 
