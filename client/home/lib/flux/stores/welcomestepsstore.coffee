@@ -33,16 +33,16 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           skippable: no
         buildStack :
           path: '/IDE'
-          title: 'Build Your Stack'
-          actionTitle: 'Build'
+          title: __t 'Build Your Stack'
+          actionTitle: __t 'Build'
           videoLink: ''
-          description: 'To access your VMs you need to build your stack.'
+          description: __t 'To access your VMs you need to build your stack.'
           isDone: no
           order: 3
           skippable: no
         inviteTeam :
           path: '/Home/My-Team/send-invites'
-          title: 'Invite Your Team'
+          title: __t 'Invite Your Team'
           actionTitle: 'Invite'
           videoLink: ''
           # videoLink: '//www.koding.com/docs'
