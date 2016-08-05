@@ -47,8 +47,6 @@ DesktopNotificationsController = require './desktopnotificationscontroller'
 bowser                         = require 'bowser'
 fetchChatlioKey                = require 'app/util/fetchChatlioKey'
 
-createStore = require('./redux/createStore').default
-
 
 module.exports = class MainController extends KDController
 
@@ -114,7 +112,6 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'onboarding',                new OnboardingController
     kd.registerSingleton 'machineShareManager',       new MachineShareManager
     kd.registerSingleton 'reactor',                   new KodingFluxReactor
-    kd.registerSingleton 'store',                     createStore()
 
     @registerFluxModules()
 
