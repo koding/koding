@@ -50,7 +50,7 @@ module.exports = class User extends GenericHandler
         userData = {
           email, username, firstName, lastName, password, passwordConfirm
           agree     : 'on'
-          groupName : 'gitlab'
+          groupName : KONFIG.gitlab.team
         }
 
         # here we don't check if email is in allowed domains
@@ -74,7 +74,7 @@ module.exports = class User extends GenericHandler
     { JSession, JUser } = @getModels()
     { username, email, name } = data
     bongo     = @getBongo()
-    groupName = 'gitlab'
+    groupName = KONFIG.gitlab.team
 
     client = null
     queue  = [
