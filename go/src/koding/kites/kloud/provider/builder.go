@@ -311,13 +311,29 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) er
 		return err
 	}
 
+	// at this point resources have been built successfully on the terraform side;
+	// if updating stack or provisioning klient on remote hosts fails,
+	// we need to cleanup the stack
+	defer func() {
+		if err != nil {
+			_, e := tfKite.Destroy(&tf.TerraformRequest{
+				ContentID: contentID,
+				TraceID:   bs.TraceID,
+			})
+
+			if e != nil {
+				bs.Log.Warning("error destroying stack after build failure: %s", e)
+			}
+		}
+	}()
+
 	bs.Eventer.Push(&eventer.Event{
 		Message:    "Checking VM connections",
 		Percentage: 70,
 		Status:     machinestate.Building,
 	})
 
-	if err := bs.WaitResources(ctx); err != nil {
+	if err = bs.WaitResources(ctx); err != nil {
 		return err
 	}
 
