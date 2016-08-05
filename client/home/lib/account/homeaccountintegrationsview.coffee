@@ -32,6 +32,7 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
     @addSubView loader = @getLoaderView()
 
     @switch = new KodingSwitch
+      cssClass: 'integration-switch'
       callback: (state) =>
         if state
           @link()
@@ -51,8 +52,8 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
       @fetched = yes
       @emit 'OauthInfoFetched'
 
+      @addSubView new kd.CustomHTMLView partial: 'GitLab Integration'
       @addSubView @switch
-      @addSubView @getLearnLink()
 
 
   link: ->
@@ -85,9 +86,3 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
         width    : 25
         height   : 25
 
-
-  getLearnLink: ->
-    "
-      <a class='learn-link HomeAppView--link primary' href='https://koding.com/docs/gitlab-integration/' target=_blank>
-      LEARN MORE</a>
-    "

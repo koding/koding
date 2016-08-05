@@ -241,8 +241,8 @@ you need to activate oauth authentication for your user. To do that
 
  - Navigate to Dashboard on Koding from;
    `http://gitlab.**YOUR_IP**.xip.io:8090/Home/my-account`
- - Scroll down to GitLab integration section
- - Click toggle to turn On integration
+ - Scroll down to Integrations section
+ - Click on toggle to turn On integration in GitLab integration section
 
 This will redirect you to your GitLab instance and will ask your permission (
 if you are not logged in to GitLab at this point you will be redirected after
