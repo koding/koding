@@ -1,17 +1,18 @@
-_               = require 'lodash'
-$               = require 'jquery'
-kd              = require 'kd'
-React           = require 'kd-react'
-TeamFlux        = require 'app/flux/teams'
-KDReactorMixin  = require 'app/flux/base/reactormixin'
-View            = require './view'
-whoami          = require 'app/util/whoami'
-showError       = require 'app/util/showError'
-remote          = require('app/remote').getInstance()
+_ = require 'lodash'
+$ = require 'jquery'
+kd = require 'kd'
+React = require 'kd-react'
+TeamFlux = require 'app/flux/teams'
+KDReactorMixin = require 'app/flux/base/reactormixin'
+View = require './view'
+whoami = require 'app/util/whoami'
+showError = require 'app/util/showError'
+remote = require('app/remote').getInstance()
 AdminInviteModalView = require './admininvitemodalview'
 ResendInvitationConfirmModal = require './resendinvitationconfirmmodal'
 AlreadyMemberInvitationsModal = require './alreadymemberinvitationmodal'
 isEmailValid = require 'app/util/isEmailValid'
+UploadCSVModal = require './uploadcsvmodal'
 { actions : HomeActions } = require 'home/flux'
 
 
@@ -40,34 +41,47 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
   onUploadCsv: (event) ->
 
-    event.preventDefault()
+    # event.preventDefault()
 
-    formData = new FormData()
+    # pass input file
 
-    for file in @refs.view.input.files
-      formData.append 'file', file, {
-        filename: file.name
-        contentType: 'multipart/form-data'
-      }
+    modal = new UploadCSVModal
+      input : @refs.view.input
+      success: @bound 'uploadCsvSuccess'
+      error: @bound 'uploadCsvFail'
+      cancel : -> modal.destroy()
 
-    $.ajax
-      data : formData
-      method : 'POST'
-      url : '/-/teams/invite-by-csv'
-      contentType: false
-      processData : false # prevents illegal invocation error
-      success : @bound 'uploadCsvSuccess'
-      error : @bound 'uploadCsvFail'
+
+
+  #   formData = new FormData()
+
+  #   for file in @refs.view.input.files
+  #     formData.append 'file', file, {
+  #       filename: file.name
+  #       contentType: 'multipart/form-data'
+  #     }
+
+  #   $.ajax
+  #     data : formData
+  #     method : 'POST'
+  #     url : '/-/teams/invite-by-csv'
+  #     contentType: false
+  #     processData : false # prevents illegal invocation error
+  #     success : @bound 'uploadCsvSuccess'
+  #     error : @bound 'uploadCsvFail'
 
 
   uploadCsvSuccess: (result) ->
     # location.reload()
-    { myself, alreadyMembers, admins } = result
+
+    new kd.NotificationView
+      title    : 'All invitations are sent!'
+      duration : 5000
 
 
   uploadCsvFail: ->
-    kd.NotificationView
-      title    : 'Error Occured while sending invitations'
+    new kd.NotificationView
+      title    : 'Error Occured while handling invitations'
       duration : 5000
 
   onInputChange: (index, inputName, event) ->

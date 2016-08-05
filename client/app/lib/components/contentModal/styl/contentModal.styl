@@ -366,3 +366,97 @@ main.main-container
   button.minimize-button
     abs 97px 60px 0 0
     z-index 10
+
+
+.ContentModal.csv-upload
+
+  .main-container
+    font-size 14px
+    color #727272
+    line-height 20px
+
+    &.trailer-state
+      p
+        letter-spacing 0.16px
+
+    &.uploading-state
+      text-align center
+      div
+        letter-spacing 0.13px
+
+      span.main-loader
+        color red // fix it HK
+
+    &.error-uploading
+
+      .show-error
+        border 1px solid #F2778A
+        padding 20px
+        font-size 13px
+        color #424242
+        height 100px
+        bg color #F6F0F1
+        letter-spacing 0.01px
+        line-height 16px
+        padding-bottom  10px
+
+        .file-format
+          color #79B3F2
+
+    &.success-state
+
+      .analyzeCSV
+        height  140px
+        padding 20px 40px
+        border-radius 4px
+        bg color #fff
+
+        div.wrapper
+          height 60px
+          display flex
+          padding 20px 0 0 20px
+          border-bottom 1px solid #EFEFEF
+          .total
+            width calc(100%/3)
+            border-right 1px solid #EFEFEF
+          .members
+            width calc(100%/3)
+            border-right 1px solid #EFEFEF
+          .admins
+            width calc(100%/3)
+            border-right 1px solid #EFEFEF
+        .alreadyInvited
+          text-align center
+          color #989898
+          font-size 14px
+          letter-spacing 0.13px
+          line-height 20px
+          margin-top 10px
+
+
+  .example-csv
+    height  110px
+    bg color #fff
+    padding 20px
+    font-size 10px
+    color #989898
+    letter-spacing 0.09px
+    line-height 20px
+    border-radius 4px
+
+  .button-wrapper
+    height                  60px
+    border-top              1px solid #ECEAEA
+    bg                      color #fff
+    padding-top             20px
+
+    .kdbutton.cancel
+      margin-left       20px
+      background        #FFFFFF
+      border            1px solid #BEBEBE
+      span
+        color           #5E5E5E
+
+    .kdbutton.select-upload
+      float right
+      margin-right 20px
