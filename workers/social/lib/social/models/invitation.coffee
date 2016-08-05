@@ -117,6 +117,9 @@ module.exports = class JInvitation extends jraphical.Module
         hasPermisson = 'admin' in roles or 'owner' in roles
         { inviterId, email, groupName } = invite
 
+        unless inviterId
+          return callback new KodingError 'You don\'t have permission'
+
         if not hasPermisson and _id.toString() isnt inviterId
           return callback new KodingError 'You don\'t have permission'
 
