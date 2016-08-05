@@ -740,6 +740,11 @@ writeJS = (src, outfile, callbacks) ->
   msg = "#{pretty(src.length)} written to #{outfile} (#{secs})"
   callbacks.handleSuccess msg
 
+  updateLanguageFiles outfile
+
+
+updateLanguageFiles = (outfile) ->
+
   # relative to compiled javascript file, i.e. bundle.js
   relLocalesPath = '../../../i18n'
 
@@ -756,3 +761,5 @@ writeJS = (src, outfile, callbacks) ->
       keySeparator: '..'
       namespaceSeparator: '::'
     .pipe gulp.dest absLocalesPath
+
+  console.log 'Language files updated'
