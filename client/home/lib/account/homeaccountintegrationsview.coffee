@@ -52,7 +52,7 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
       @fetched = yes
       @emit 'OauthInfoFetched'
 
-      @addSubView new kd.CustomHTMLView partial: 'GitLab Integration'
+      @addSubView new kd.CustomHTMLView { partial: 'GitLab Integration' }
       @addSubView @switch
 
 
