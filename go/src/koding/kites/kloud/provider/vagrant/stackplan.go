@@ -15,7 +15,6 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/vagrantapi"
-	"koding/kites/kloud/machinestate"
 	puser "koding/kites/kloud/scripts/provisionklient/userdata"
 	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/utils"
@@ -235,22 +234,19 @@ func (s *Stack) InjectVagrantData() (string, stackplan.KiteMap, error) {
 	return queryString, kiteIDs, nil
 }
 
-func (s *Stack) machinesFromTemplate(t *stackplan.Template, hostQueryString string) (*stackplan.Machines, error) {
+func (s *Stack) machinesFromTemplate(t *stackplan.Template) (stackplan.Machines, error) {
 	var res VagrantResource
 	if err := t.DecodeResource(&res); err != nil {
 		return nil, err
 	}
 
-	out := &stackplan.Machines{
-		Machines: make([]stackplan.Machine, 0, len(res.Build)),
-	}
+	machines := make(stackplan.Machines, len(res.Build))
 
 	for label, box := range res.Build {
-		m := stackplan.Machine{
-			Provider:        "vagrant",
-			Label:           label,
-			HostQueryString: hostQueryString,
-			Attributes:      map[string]string{},
+		m := &stackplan.Machine{
+			Provider:   "vagrant",
+			Label:      label,
+			Attributes: make(map[string]string),
 		}
 
 		if cpus, ok := box["cpus"].(string); ok && !stackplan.IsVariable(cpus) {
@@ -263,18 +259,22 @@ func (s *Stack) machinesFromTemplate(t *stackplan.Template, hostQueryString stri
 			m.Attributes["box"] = typ
 		}
 
-		out.Machines = append(out.Machines, m)
+		if _, ok := machines[label]; ok {
+			return nil, errors.New("duplicate instance labels: " + label)
+		}
+
+		machines[label] = m
 	}
 
-	return out, nil
+	return machines, nil
 }
 
-func (s *Stack) updateMachines(data *stackplan.Machines, jMachines map[string]*models.Machine) error {
+func (s *Stack) updateMachines(machines stackplan.Machines, jMachines map[string]*models.Machine) error {
 	for label, machine := range jMachines {
 		s.Log.Debug("Updating machine with %q label and %q provider", label, machine.Provider)
 
-		tf, err := data.WithLabel(label)
-		if err != nil {
+		tf, ok := machines[label]
+		if !ok {
 			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", label)
 		}
 
@@ -288,7 +288,7 @@ func (s *Stack) updateMachines(data *stackplan.Machines, jMachines map[string]*m
 	return nil
 }
 
-func updateVagrant(tf stackplan.Machine, machineId bson.ObjectId, credential string) error {
+func updateVagrant(tf *stackplan.Machine, machineId bson.ObjectId, credential string) error {
 	machine := bson.M{
 		"provider":           tf.Provider,
 		"queryString":        tf.QueryString,
@@ -298,9 +298,9 @@ func updateVagrant(tf stackplan.Machine, machineId bson.ObjectId, credential str
 		"meta.box":           tf.Attributes["box"],
 		"meta.hostname":      tf.Attributes["hostname"],
 		"meta.klientHostURL": tf.Attributes["klientHostURL"],
-		"status.state":       machinestate.Running.String(),
 		"status.modifiedAt":  time.Now().UTC(),
-		"status.reason":      "Created with kloud.apply",
+		"status.state":       tf.State,
+		"status.reason":      tf.StateReason,
 	}
 
 	if u, err := url.Parse(tf.RegisterURL); tf.RegisterURL != "" && err == nil {

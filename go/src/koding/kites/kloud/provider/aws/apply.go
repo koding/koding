@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/stackplan"
 
 	"github.com/hashicorp/go-multierror"
@@ -29,15 +28,15 @@ func (s *Stack) buildResources() error {
 
 		// check if this a second round and it's using a different region, we
 		// shouldn't allow it.
-		if s.region != "" && s.region != meta.Region {
+		if s.cred != nil && s.cred.Region != meta.Region {
 			return fmt.Errorf("multiple credentials with multiple regions detected: %s and %s. Aborting",
-				s.region, meta.Region)
+				s.cred.Region, meta.Region)
 		}
 
-		s.region = meta.Region
-		s.credential = cred.Identifier
+		s.ident = cred.Identifier
+		s.cred = meta
 
-		if err := s.SetAwsRegion(s.region); err != nil {
+		if err := s.SetAwsRegion(s.cred.Region); err != nil {
 			return err
 		}
 	}
@@ -52,35 +51,18 @@ func (s *Stack) buildResources() error {
 	return nil
 }
 
-func (s *Stack) waitResources(ctx context.Context) error {
+func (s *Stack) waitResources(ctx context.Context) (err error) {
 	s.Log.Debug("Checking total '%d' klients", len(s.ids))
 
-	urls, err := s.p.CheckKlients(ctx, s.ids)
-	if err != nil {
-		return err
-	}
+	s.klients, err = s.p.DialKlients(ctx, s.ids)
 
-	s.urls = urls
-
-	return nil
+	return err
 }
 
 func (s *Stack) updateResources(state *terraform.State) error {
-	output, err := s.p.MachinesFromState(state)
+	machines, err := s.p.MachinesFromState(state, s.klients)
 	if err != nil {
 		return err
-	}
-
-	output.AppendRegion(s.region)
-	output.AppendQueryString(s.ids)
-	output.AppendRegisterURL(s.urls)
-
-	machines := make(map[string]*stackplan.Machine, len(output.Machines))
-
-	for _, m := range output.Machines {
-		m := m // copy m to not have values in machines map point to the same m
-
-		machines[m.Label] = &m
 	}
 
 	now := time.Now().UTC()
@@ -112,17 +94,17 @@ func (s *Stack) updateMachine(id bson.ObjectId, m *stackplan.Machine, now time.T
 	}
 
 	return modelhelper.UpdateMachine(id, bson.M{"$set": bson.M{
-		"credential":         s.credential,
+		"credential":         s.ident,
 		"provider":           m.Provider,
-		"meta.region":        m.Region,
+		"meta.region":        s.cred.Region,
 		"queryString":        m.QueryString,
 		"ipAddress":          m.Attributes["public_ip"],
 		"meta.instanceId":    m.Attributes["id"],
 		"meta.instance_type": m.Attributes["instance_type"],
 		"meta.source_ami":    m.Attributes["ami"],
 		"meta.storage_size":  size,
-		"status.state":       machinestate.Running.String(),
 		"status.modifiedAt":  now,
-		"status.reason":      "Created with kloud.apply",
+		"status.state":       m.State,
+		"status.reason":      m.StateReason,
 	}})
 }
