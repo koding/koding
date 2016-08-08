@@ -46,11 +46,14 @@ module.exports =
     ideHelpers.openFile(browser, user, fileName)
     ideHelpers.setTextToEditor(browser, 'foo bar')
     ideHelpers.saveFile(browser)
+
     ideHelpers.closeFile(browser, fileName, user)
     helpers.deleteFile(browser, fileSelector)
 
     helpers.createFile(browser, user, null, null, fileName)
     ideHelpers.openFile(browser, user, fileName)
+
+    ideHelpers.saveAsFile(browser)
 
     browser
       .pause   3500

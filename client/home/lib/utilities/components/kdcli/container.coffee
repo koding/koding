@@ -1,40 +1,28 @@
-_               = require 'lodash'
-kd              = require 'kd'
-React           = require 'kd-react'
-globals         = require 'globals'
-whoami          = require 'app/util/whoami'
-Tracker         = require 'app/util/tracker'
+kd = require 'kd'
+React = require 'kd-react'
+globals = require 'globals'
+whoami = require 'app/util/whoami'
+Tracker = require 'app/util/tracker'
 copyToClipboard = require 'app/util/copyToClipboard'
-View            = require './view'
-KodingKontrol   = require 'app/kite/kodingkontrol'
-
+View  = require './view'
+TeamFlux = require 'app/flux/teams'
+KDReactorMixin = require 'app/flux/base/reactormixin'
 
 module.exports = class KDCliContainer extends React.Component
+
+  getDataBindings: ->
+
+    return {
+      otaToken: TeamFlux.getters.otaToken
+    }
+
 
   constructor: (props) ->
 
     super props
 
-    @state=
-      key : ''
-      cmd : ''
-
-
-  componentWillMount: ->
-
-    whoami().fetchOtaToken (err, token) =>
-
-      key = if globals.os is 'mac' then '⌘ + C' else 'Ctrl + C'
-      cmd = if err
-        "<a href='#'>Failed to generate your command, click to try again!</a>"
-      else
-        if globals.config.environment in ['dev', 'default', 'sandbox']
-          "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; curl -sL https://sandbox.kodi.ng/c/d/kd | bash -s #{token}"
-        else "curl -sL https://kodi.ng/c/p/kd | bash -s #{token}"
-
-      @setState
-        key : key
-        cmd : cmd
+    @state =
+      key : if globals.os is 'mac' then '⌘ + C' else 'Ctrl + C'
 
 
   onCMDClick: ->
@@ -50,5 +38,8 @@ module.exports = class KDCliContainer extends React.Component
     <View
       ref='view'
       copyKey={@state.key}
-      cmd={@state.cmd}
+      cmd={@state.otaToken}
       onCMDClick={@bound 'onCMDClick'} />
+
+KDCliContainer.include [KDReactorMixin]
+
