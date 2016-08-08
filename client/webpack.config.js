@@ -1,3 +1,5 @@
+global.Promise = global.Promise || require('bluebird')
+
 var path = require('path');
 var webpack = require('webpack');
 var configData = require('./.config.json')
