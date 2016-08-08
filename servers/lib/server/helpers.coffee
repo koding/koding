@@ -1,5 +1,5 @@
 koding = require './bongo'
-
+JName = require '../../models/name'
 KONFIG  = require 'koding-config-manager'
 request = require 'request'
 url     = require 'url'
@@ -338,6 +338,67 @@ checkAuthorizationBearerHeader = (req) ->
   return token
 
 
+analyzedInvitationResults = (params) ->
+
+  myself = no
+  adminEmails = 0
+  membersEmails = 0
+  alreadyMemberEmails = 0
+  alreadyInvitedEmails = 0
+  notValidInvites = 0
+
+  { data, userEmails, pendingEmails, myEmail } = params
+
+  invitationCount = data.length
+
+  while invitationCount > 0
+    invitationCount = invitationCount - 1
+    invite = data[invitationCount]
+
+    if not JName.validateEmail(invite.email) or not invite.role or invite.role is ''
+      notValidInvites = notValidInvites + 1
+      data.splice invitationCount, 1
+      continue
+
+    if myEmail? and invite.email is myEmail
+      data.splice invitationCount, 1
+      notValidInvites = notValidInvites + 1
+      myself = yes
+      continue
+
+    if invite.email in pendingEmails
+      data.splice invitationCount, 1
+      alreadyInvitedEmails = alreadyInvitedEmails + 1
+      continue
+
+    if invite.email in userEmails
+      data.splice invitationCount, 1
+      alreadyMemberEmails = alreadyMemberEmails + 1
+      continue
+
+    if invite.role.toLowerCase() is 'admin'
+      adminEmails = adminEmails + 1
+      continue
+
+    if invite.role.toLowerCase() is 'member'
+      membersEmails = membersEmails + 1
+      continue
+
+  result =
+    myself: myself
+    admins : adminEmails
+    members: membersEmails
+    extras :
+      alreadyMembers:
+        { count: alreadyMemberEmails, label: 'Already Members' }
+      notValidInvites:
+        { count: notValidInvites, label: 'Not Valid Invites' }
+      alreadyInvited:
+        { count: alreadyInvitedEmails, label: 'Already Invited' }
+
+  return { result, data }
+
+
 module.exports = {
   error_
   error_404
@@ -362,4 +423,5 @@ module.exports = {
   setSessionCookie
   checkAuthorizationBearerHeader
   isTeamPage
+  analyzedInvitationResults
 }
