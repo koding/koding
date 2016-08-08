@@ -301,9 +301,9 @@ module.exports = class ComputeControllerUI
           '
           button  : 'Proceed'
         reinitStack :
-          title   : 'Reinitialize Stack'
+          title   : 'YOUR DATA WILL BE LOST!'
           message : '
-            If you choose to proceed, this stack and all of its VMs will be
+            If you re-initialize this stack, the stack and all of its VMs will be
             re-initialized from the latest revision of this stack.
             You will lose all of your existing VMs and your data therein.
           '

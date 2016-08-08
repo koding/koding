@@ -6,7 +6,6 @@ set -euo pipefail
 
 go test -v koding/klient/client     \
 	       koding/klient/fs         \
-		   koding/klient/gatherrun  \
 		   koding/klient/info       \
 		   koding/klient/logfetcher \
 		   koding/klient/sshkeys    \
