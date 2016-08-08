@@ -10,6 +10,8 @@ globals              = require 'globals'
 FSHelper             = require 'app/util/fs/fshelper'
 settings             = require './settings'
 
+prependWithOrigin = (path) -> [location.origin, path].join '/'
+
 module.exports =
 
 class Ace extends KDView
@@ -25,11 +27,11 @@ class Ace extends KDView
 
   @registerStaticEmitter()
 
-  getscript globals.acePath, (err) ->
+  getscript prependWithOrigin(globals.acePath), (err) ->
     throw err  if err
 
     for k, v of globals.aceConfig
-      ace.config.set k, v
+      ace.config.set k, prependWithOrigin(v)
 
     ACE_READY = yes
     Ace.emit 'ScriptLoaded'
@@ -588,7 +590,8 @@ class Ace extends KDView
       EmmetLoadState.PENDING = yes
       emmetPath = globals.acePath.split('/').slice(0, -1)
         .concat(['_ext-emmet.js']).join('/')
-      getscript emmetPath, (err) ->
+
+      getscript prependWithOrigin(emmetPath), (err) ->
         cb err for key, cb of emmetLoadListeners when typeof cb is 'function'
         EmmetLoadState.READY = yes
         emmetLoadListeners = null
