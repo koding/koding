@@ -5,8 +5,9 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/koding/kite"
 	"koding/klient/kiteerrortypes"
+
+	"github.com/koding/kite"
 )
 
 // Error types, used when needing to return new instances with
@@ -107,18 +108,18 @@ func IsGetKitesFailure(err error) bool {
 }
 
 func IsMachineActionLockedErr(err error) bool {
-	return isKiteOfTypeErr(err, kiteerrortypes.MachineActionIsLocked)
+	return IsKiteOfTypeErr(err, kiteerrortypes.MachineActionIsLocked)
 }
 
 func IsRemotePathNotExistErr(err error) bool {
-	return isKiteOfTypeErr(err, kiteerrortypes.RemotePathDoesNotExist)
+	return IsKiteOfTypeErr(err, kiteerrortypes.RemotePathDoesNotExist)
 }
 
 func IsProcessError(err error) bool {
-	return isKiteOfTypeErr(err, kiteerrortypes.ProcessError)
+	return IsKiteOfTypeErr(err, kiteerrortypes.ProcessError)
 }
 
-func isKiteOfTypeErr(err error, t string) bool {
+func IsKiteOfTypeErr(err error, t string) bool {
 	if err == nil {
 		return false
 	}

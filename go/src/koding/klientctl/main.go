@@ -362,6 +362,17 @@ func main() {
 			},
 			Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
 		},
+		cli.Command{
+			Name: "open",
+			Usage: fmt.Sprintf(
+				"Open the given file(s) on the Koding UI",
+			),
+			Description: cmdDescriptions["open"],
+			Flags: []cli.Flag{
+				cli.BoolFlag{Name: "debug"},
+			},
+			Action: ctlcli.FactoryAction(OpenCommandFactory, log, "log"),
+		},
 	}
 
 	app.Run(os.Args)
