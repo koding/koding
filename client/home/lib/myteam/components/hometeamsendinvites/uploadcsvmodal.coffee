@@ -10,21 +10,18 @@ module.exports = class UploadCSVModal extends ContentModal
 
     { input: @input } = options
 
-    $('.uploadcsv').change =>
-      @createFormDataAndRequest()
-
     @trailerContent = '''
-      <p>Before starting to upload your file, please be sure that you have the right format. The file should contain Email, First Name, Last Name, and Role fields in the right order. Roles can be Admin or Member.
+      <p>Before starting to upload your file, please be sure that you have the right format.
+      The file should contain Email, First Name (optional), Last Name (optional), and Role fields in the right order.
+      Roles can be Admin or Member.
       </br></br>
       Here is an example:</p>
 
       <div class='example-csv'>
         Email, First Name, Last Name, Role </br>
-        somehting, somthing, something, somehting </br>
-        somehting, somthing, something, somehting </br>
-        somehting, somthing, something, somehting </br>
-        somehting, somthing, something, somehting </br>
-
+        micheal@example.com, Micheal R., Crawley, Member </br>
+        clora@example.com, Clora J., Ochoa, Member </br>
+        randy@example.com, Randy S., Engel, Admin
       </div>
     '''
 
@@ -81,14 +78,18 @@ module.exports = class UploadCSVModal extends ContentModal
     @buttonWrapper.addSubView @selectAndUpload = new kd.ButtonView
       cssClass: 'GenericButton select-upload'
       title: 'SELECT AND UPLOAD'
-      callback: => @input.click()
+      callback: =>
+        $('.uploadcsv').change (event) =>
+          @createFormDataAndRequest event
+        @errorUploading.updatePartial ''
+        @input.click()
 
     @buttonWrapper.addSubView @cancelButton = new kd.ButtonView
       cssClass: 'GenericButton cancel'
       title: 'Cancel'
-      callback: => @getOptions().cancel()
+      callback: => @destroy()
 
-    @buttonWrapper.addSubView @gonderGitsin = new kd.ButtonView
+    @buttonWrapper.addSubView @sendAllInvites = new kd.ButtonView
       cssClass: 'GenericButton select-upload hidden'
       title: 'SEND ALL INVITES'
       callback: =>
@@ -105,8 +106,7 @@ module.exports = class UploadCSVModal extends ContentModal
         height   : 25
 
 
-  createFormDataAndRequest : ->
-
+  createFormDataAndRequest : (event) ->
 
     @trailerPage.hide()
     @uploadingPage.show()
@@ -122,16 +122,19 @@ module.exports = class UploadCSVModal extends ContentModal
         contentType: 'multipart/form-data'
       }
 
-    @uploadingPage.setPartial "
+    @errorUploading?.hide()
+
+    @uploadingPage.updatePartial "
       <div>
-        Selected Files: </br>
+       Selected File: </br>
         #{fileNames.join '</br>'}
       </div>
     "
 
     @makeReq '/-/teams/invite-by-csv-analyze', 'successAnalyzeCSV', 'errorAnalyzeCSV'
-    @input.value = null
 
+    @input.value = null
+    $('.uploadcsv').unbind 'change'
 
   makeReq: (url, success, error) ->
 
@@ -151,12 +154,16 @@ module.exports = class UploadCSVModal extends ContentModal
 
 
   successAnalyzeCSV: (result) ->
-    console.log 'res ', result
+
     @loader.hide()
+
+    if typeof result is 'string'
+      @sendData()
+      return
     @successPage.show()
     @selectAndUpload.hide()
-    @gonderGitsin.show()
-    @uploadingPage.setPartial '''
+    @sendAllInvites.show()
+    @uploadingPage.updatePartial '''
       Would you like to send an invitation to all people below
       except already invited members? </br></br>
       In your files, we have found…
