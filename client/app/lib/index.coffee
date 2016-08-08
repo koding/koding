@@ -15,7 +15,7 @@ localStorage           = require './localstorage'
 isStarted = false
 
 
-module.exports = (defaults) ->
+run = (defaults) ->
 
   alreadyRunning = 'already running'
   if isStarted then throw alreadyRunning else isStarted = true
@@ -144,3 +144,5 @@ initialize = (defaults, next) ->
   enableLogs logsEnabled
 
   next()
+
+run()
