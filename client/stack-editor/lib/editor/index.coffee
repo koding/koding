@@ -30,6 +30,7 @@ EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
 createShareModal = require './createShareModal'
 { actions : HomeActions } = require 'home/flux'
+isMine = require 'app/util/isMine'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -53,7 +54,8 @@ module.exports = class StackEditorView extends kd.View
     kd.singletons.groupsController.ready =>
 
       { groupsController } = kd.singletons
-      @isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
+
+      @isMine = groupsController.canEditGroup() or isMine(stackTemplate)
 
       if not @isMine and stackTemplate
         @tabView.setClass 'StackEditorTabs isntMine'

@@ -1,6 +1,6 @@
 kd      = require 'kd'
 KDView  = kd.View
-curryIn = require 'app/util/curryIn'
+isMine  = require 'app/util/isMine'
 
 module.exports = class StackBaseEditorTabView extends KDView
 
@@ -16,8 +16,9 @@ module.exports = class StackBaseEditorTabView extends KDView
       return  unless data
 
       { stackTemplate } = data
-      isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
-      return  if isMine
+
+      return if groupsController.canEditGroup() or isMine(stackTemplate)
+
       @setClass 'isntMine'
       @editorView?.aceView.ace.editor.setReadOnly yes
 

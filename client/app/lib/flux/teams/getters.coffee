@@ -20,6 +20,8 @@ focusFirstEmail = ['TeamSendInvitesFocusStore']
 apiTokens = ['TeamAPITokensStore']
 apiAccessState = ['TeamAPIAccessStateStore']
 
+otaToken = ['TeamOTATokenStore']
+
 pendingInvitations = [
   teamInvitations
   (invitations) ->
@@ -188,4 +190,5 @@ module.exports = {
   alreadyMemberInvitations
   apiTokens
   apiAccessState
+  otaToken
 }

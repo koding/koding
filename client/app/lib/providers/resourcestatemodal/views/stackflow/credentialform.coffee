@@ -17,9 +17,11 @@ module.exports = class CredentialForm extends JView
 
     @header = new kd.CustomHTMLView
       tagName  : 'h3'
-      partial  : title
+      partial  : "#{title}:"
 
-    @selectionLabel = new kd.LabelView { title : selectionLabel }
+    @selectionLabel = new kd.LabelView
+      title    : selectionLabel
+      cssClass : 'selection-label'
     @selection      = new kd.SelectBox {
       label : @selectionLabel
       callback : @bound 'checkShowLinkVisibility'
@@ -61,7 +63,7 @@ module.exports = class CredentialForm extends JView
 
     @newHeader = new kd.CustomHTMLView
       tagName  : 'h3'
-      partial  : "New #{title}"
+      partial  : "New #{title}:"
     @cancelNew = new kd.CustomHTMLView
       tagName  : 'a'
       cssClass : 'cancel-new'
@@ -80,7 +82,7 @@ module.exports = class CredentialForm extends JView
 
     return  unless @selection
 
-    { selectionPlaceholder, hideTitle } = @getOptions()
+    { selectionPlaceholder } = @getOptions()
     { defaultItem, items } = @getData()
 
     selectOptions   = items.map (item) -> { value : item.identifier, title : item.title }
@@ -96,14 +98,12 @@ module.exports = class CredentialForm extends JView
 
     @checkShowLinkVisibility()
 
-    return  if items.length > 0
+    return @cancelNew.show()  if items.length > 0
 
     @setClass 'form-visible'
-    @newHeader.hide()
-    if hideTitle
-      @header.hide()
-    else
-      @header.show()
+    @newHeader.show()
+    @header.hide()
+    @cancelNew.hide()
 
 
   checkShowLinkVisibility: ->
@@ -136,11 +136,9 @@ module.exports = class CredentialForm extends JView
 
   onCancelNew: ->
 
-    { hideTitle } = @getOptions()
-
     @unsetClass 'form-visible'
     @newHeader.hide()
-    @header.show()  unless hideTitle
+    @header.show()
 
 
   selectValue: (value) ->
@@ -185,8 +183,8 @@ module.exports = class CredentialForm extends JView
     """
       {{> @header}}
       <div class='selection-container'>
-        {{> @selectionLabel}}
         {{> @showLink}}
+        {{> @selectionLabel}}
         {{> @selection}}
         {{> @createNew}}
       </div>
