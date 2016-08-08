@@ -4,6 +4,7 @@ hat = require 'hat'
 path = require 'path'
 Busboy = require 'busboy'
 parser = require 'csv-parse'
+helpers = require '../helpers'
 { generateFakeClient } = require './../client'
 { parserOpts: csvParseOpts } = require './invitetoteambycsv'
 
@@ -62,38 +63,23 @@ analyzeInvitations = (fileName, client, callback) ->
             return callback err, null  if err
             return callback null, 'Over 100 Invitation'  if users.length > 100
 
-            adminEmails = []
-            alreadyMemberEmails = []
             userEmails = []
-            myself = no
-            membersEmails = []
-
             users.map (user) ->
               { profile: { email } } = user
               userEmails.push email
 
-            for key in data
+            { JInvitation } = (require './../bongo').models
+            JInvitation.some$ client, { status: 'pending' }, {}, (err, invitations) ->
 
-              if myEmail? and key.email is myEmail
-                myself = yes
-                continue
+              pendingEmails = []
+              invitations.map (invitation) ->
+                pendingEmails.push invitation.email
 
-              if key.email in userEmails
-                alreadyMemberEmails.push key.email
-                continue
+              params = { data, userEmails, pendingEmails, myEmail }
+              { result, data } = helpers.analyzedInvitationResults params
 
-              if key.role? and key.role is 'admin'
-                adminEmails.push key.email
-                continue
+              return callback 'Totally Wrong' unless data.length
 
-              if key.role is null or key.role is 'member'
-                membersEmails.push key.email
-                continue
+              return callback null, result
 
-            result =
-              myself: myself
-              alreadyMembers: alreadyMemberEmails
-              admins : adminEmails
-              members: membersEmails
 
-            return callback null, result
