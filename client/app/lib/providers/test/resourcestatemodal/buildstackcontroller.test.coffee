@@ -16,7 +16,7 @@ describe 'BuildStackController', ->
   stackTemplate =
     description : 'Test template'
     template    : { rawContent : 'test' }
-    config      : { buildDuration : 0.01 }
+    config      : { buildDuration : 0.1 }
 
   beforeEach ->
 
@@ -113,7 +113,7 @@ describe 'BuildStackController', ->
 
         expect(controller.postBuildTimer).toExist()
 
-        kd.utils.wait stackTemplate.config.buildDuration * 1000 + 1, ->
+        kd.utils.wait stackTemplate.config.buildDuration * 1000 + 10, ->
           { buildStackPage : { progressBar } } = controller
           expect(progressBar.bar.getWidth()).toEqual COMPLETE_PROGRESS_VALUE
 
@@ -122,24 +122,31 @@ describe 'BuildStackController', ->
 
   describe '::completePostBuildProcess', ->
 
-    it 'should show success page and stop post build timer when build is done', (done) ->
+    it 'should show success page and stop post build timer and timeout checker when build is done', (done) ->
 
       controller = new BuildStackController { container }, { machine, stack, stackTemplate }
 
       kd.utils.defer ->
         controller.show()
 
-        controller.completeBuildProcess()
-        expect(controller.postBuildTimer).toExist()
-
-        controller.buildStackPage.emit 'BuildDone'
         expect(controller.postBuildTimer).toNotExist()
+        expect(controller.timeoutChecker).toNotExist()
 
-        activePane = container.getActivePane()
-        expect(activePane).toExist()
-        expect(activePane.mainView instanceof BuildStackSuccessPageView).toBeTruthy()
+        controller.completeBuildProcess()
 
-        done()
+        kd.utils.wait 10, ->
+          expect(controller.postBuildTimer.timer).toExist()
+          expect(controller.timeoutChecker.timer).toExist()
+          controller.buildStackPage.emit 'BuildDone'
+
+          expect(controller.postBuildTimer.timer).toNotExist()
+          expect(controller.timeoutChecker.timer).toNotExist()
+
+          activePane = container.getActivePane()
+          expect(activePane).toExist()
+          expect(activePane.mainView instanceof BuildStackSuccessPageView).toBeTruthy()
+
+          done()
 
 
   describe '::showError', ->

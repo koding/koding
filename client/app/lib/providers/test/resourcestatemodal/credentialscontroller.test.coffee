@@ -7,11 +7,14 @@ CredentialsErrorPageView = require 'app/providers/resourcestatemodal/views/stack
 
 describe 'CredentialsController', ->
 
-  container    = null
-  stack        = { title : 'Test stack', status : { state : 'NotInitialized' } }
-  credentials  = { provider : 'aws', items : [] }
-  requirements = { provider : 'userInput', items : [] }
-  kdCmd        = ''
+  container     = null
+  stack         =
+    title       : 'Test stack'
+    status      : { state : 'NotInitialized' }
+    credentials : { custom : [ '123' ] }
+  credentials   = { provider : 'aws', items : [] }
+  requirements  = { provider : 'userInput', items : [] }
+  kdCmd         = ''
 
   beforeEach ->
 
@@ -128,17 +131,16 @@ describe 'CredentialsController', ->
       expect(activePane).toExist()
       expect(activePane.mainView instanceof CredentialsErrorPageView).toBeTruthy()
 
-    it 'should emit StartBuild event with passed identifiers', ->
+    it 'should emit StartBuild event with passed identifiers', (done) ->
 
-      identifiers = ['123', '456']
+      identifiers = [ { aws : [ '456' ] } ]
 
       controller = new CredentialsController { container }, stack
       controller.setup credentials, requirements, kdCmd
 
-      listener = { callback: kd.noop }
-      spy = expect.spyOn listener, 'callback'
+      controller.on 'StartBuild', (_identifiers) ->
+        expect(_identifiers['aws']).toEqual [ '456' ]
+        expect(_identifiers['custom']).toEqual [ '123' ]
+        done()
 
-      controller.on 'StartBuild', (_identifiers) -> listener.callback _identifiers
       controller.handleSubmitResult null, identifiers
-
-      expect(spy).toHaveBeenCalledWith identifiers

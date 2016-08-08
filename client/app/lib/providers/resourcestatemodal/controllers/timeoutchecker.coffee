@@ -21,4 +21,8 @@ module.exports = class TimeoutChecker extends kd.Object
     { duration } = @getOptions()
     @timer = kd.utils.wait duration * 1000, @lazyBound 'emit', 'Timeout'
 
-  stop: -> kd.utils.killWait @timer
+
+  stop: ->
+
+    kd.utils.killWait @timer
+    @timer = null

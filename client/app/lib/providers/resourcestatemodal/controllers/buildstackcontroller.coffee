@@ -129,8 +129,6 @@ module.exports = class BuildStackController extends kd.Controller
     container.showPage @errorPage
     @errorPage.setErrors [ err ]
 
-    @timeoutChecker.stop()
-
 
   showLogs: ->
 

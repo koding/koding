@@ -8,6 +8,7 @@ StackTemplatePageView = require 'app/providers/resourcestatemodal/views/stackflo
 describe 'InstructionsController', ->
 
   stackTemplate = { description : 'Test template', template : { rawContent : 'test' } }
+  stack = { title : 'Test template stack' }
   container = null
 
   beforeEach ->
@@ -19,7 +20,7 @@ describe 'InstructionsController', ->
 
     it 'should show stack template page if readme page requests it', ->
 
-      controller = new InstructionsController { container }, stackTemplate
+      controller = new InstructionsController { container }, { stackTemplate, stack }
       controller.readmePage.emit 'StackTemplateRequested'
 
       activePane = container.getActivePane()
@@ -28,7 +29,7 @@ describe 'InstructionsController', ->
 
     it 'should show readme page if stack template page requests it', ->
 
-      controller = new InstructionsController { container }, stackTemplate
+      controller = new InstructionsController { container }, { stackTemplate, stack }
       controller.readmePage.emit 'StackTemplateRequested'
       controller.stackTemplatePage.emit 'ReadmeRequested'
 
@@ -38,7 +39,7 @@ describe 'InstructionsController', ->
 
     it 'requests next page from parent controller if readme or stack template pages ask for that', ->
 
-      controller = new InstructionsController { container }, stackTemplate
+      controller = new InstructionsController { container }, { stackTemplate, stack }
 
       listener = { callback: kd.noop }
       spy = expect.spyOn listener, 'callback'
@@ -56,7 +57,7 @@ describe 'InstructionsController', ->
 
     it 'should show readme page by default', ->
 
-      controller = new InstructionsController { container }, stackTemplate
+      controller = new InstructionsController { container }, { stackTemplate, stack }
       controller.show()
 
       activePane = container.getActivePane()
