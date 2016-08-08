@@ -1,6 +1,8 @@
 kd          = require 'kd'
 React       = require 'kd-react'
+htmlencode = require 'htmlencode'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
+
 
 module.exports = class WelcomeStepsView extends React.Component
 
@@ -42,7 +44,7 @@ module.exports = class WelcomeStepsView extends React.Component
 
   render : ->
 
-    name = getFullnameFromAccount null, yes
+    name = htmlencode.htmlDecode getFullnameFromAccount null, yes
 
     <section>
       <h2>You are almost there, {name}!</h2>

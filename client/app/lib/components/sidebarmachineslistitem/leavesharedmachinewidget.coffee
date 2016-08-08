@@ -16,7 +16,7 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
 
     modal = new ContentModal
       title   : 'Are you sure?'
-      content : "<p>This will remove the shared VM from your sidebar. If you want to get back to the collaboration session later, you will need to manually go to this session's URL.</p>"
+      content : "<p class='text-center'>This will remove the shared VM from your sidebar. You won't be able to access it unless you are invited again.</p>"
       cssClass : 'content-modal'
       buttons :
         No         :

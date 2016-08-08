@@ -23,9 +23,7 @@ import (
 	"koding/klient/collaboration"
 	"koding/klient/command"
 	"koding/klient/control"
-	"koding/klient/fix"
 	"koding/klient/fs"
-	"koding/klient/gatherrun"
 	"koding/klient/info"
 	"koding/klient/info/publicip"
 	"koding/klient/logfetcher"
@@ -558,15 +556,6 @@ func (k *Klient) Run() {
 	// to Kontrol with new registerURL which will point to public
 	// side of the tunnel.
 	k.tunnel.Start()
-
-	if isKoding {
-		go gatherrun.Run(k.config.Environment, k.kite.Config.Username)
-		go func() {
-			if err := fix.Run(k.kite.Config.Username); err != nil {
-				k.log.Error("Couldn't replace key %s", err)
-			}
-		}()
-	}
 
 	// Initializing the remote re-establishes any previously-running remote
 	// connections, such as mounted folders. This needs to be run *after*

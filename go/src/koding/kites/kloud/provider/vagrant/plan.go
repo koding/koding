@@ -56,20 +56,21 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 
 	s.Log.Debug("Injecting Vagrant data")
 
-	hostQueryString, _, err := s.InjectVagrantData()
-	if err != nil {
+	if _, _, err := s.InjectVagrantData(); err != nil {
 		return nil, err
 	}
 
 	s.Log.Debug("Parsing machines from template:")
 	s.Log.Debug("%v", s.Builder.Template)
 
-	machines, err := s.machinesFromTemplate(s.Builder.Template, hostQueryString)
+	machines, err := s.machinesFromTemplate(s.Builder.Template)
 	if err != nil {
 		return nil, errors.New("failure reading machines: " + err.Error())
 	}
 
 	s.Log.Debug("Machines planned to be created: %+v", machines)
 
-	return machines, nil
+	return &kloud.PlanResponse{
+		Machines: machines.Slice(),
+	}, nil
 }
