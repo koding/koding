@@ -3,7 +3,6 @@ package kitepinger
 import (
 	"errors"
 	"fmt"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/koding/kite"
@@ -20,7 +19,10 @@ func TestKitePingerPing(tt *testing.T) {
 	Convey("Given a KitePinger", tt, func() {
 		r := kite.New("remote", "0.0.0")
 		r.Config.DisableAuthentication = true
-		ts := httptest.NewServer(r)
+		go r.Run()
+		<-r.ServerReadyNotify()
+
+		kiteURL := fmt.Sprintf("http://127.0.0.1:%d/kite", r.Port())
 
 		var shouldPingError bool
 		r.HandleFunc("kite.ping", func(req *kite.Request) (interface{}, error) {
@@ -32,7 +34,7 @@ func TestKitePingerPing(tt *testing.T) {
 		})
 
 		Convey("When it can communicate with remote", func() {
-			l := kite.New("local", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
+			l := kite.New("local", "0.0.0").NewClient(kiteURL)
 			So(l.Dial(), ShouldBeNil)
 			p := NewKitePinger(l)
 
@@ -42,7 +44,7 @@ func TestKitePingerPing(tt *testing.T) {
 		})
 
 		Convey("When the kite is not dialed", func() {
-			l := kite.New("local", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
+			l := kite.New("local", "0.0.0").NewClient(kiteURL)
 			p := NewKitePinger(l)
 
 			Convey("It should return failure", func() {
@@ -52,7 +54,7 @@ func TestKitePingerPing(tt *testing.T) {
 
 		Convey("When the remote kite returns an error", func() {
 			shouldPingError = true
-			l := kite.New("local", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
+			l := kite.New("local", "0.0.0").NewClient(kiteURL)
 			So(l.Dial(), ShouldBeNil)
 			p := NewKitePinger(l)
 
@@ -62,10 +64,9 @@ func TestKitePingerPing(tt *testing.T) {
 		})
 
 		Convey("When the kite url is not responding", func() {
-			l := kite.New("local", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
+			l := kite.New("local", "0.0.0").NewClient(kiteURL)
 			So(l.Dial(), ShouldBeNil)
-			ts.CloseClientConnections()
-			ts.Close()
+			r.Close()
 			p := NewKitePinger(l)
 
 			Convey("It should return failure", func() {
