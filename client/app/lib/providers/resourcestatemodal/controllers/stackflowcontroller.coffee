@@ -2,6 +2,9 @@ kd = require 'kd'
 InstructionsController = require './instructionscontroller'
 CredentialsController = require './credentialscontroller'
 BuildStackController = require './buildstackcontroller'
+BuildStackHeaderView = require '../views/stackflow/buildstackheaderview'
+BaseErrorPageView = require '../views/baseerrorpageview'
+WizardSteps = require '../views/stackflow/wizardsteps'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 helpers = require '../helpers'
 constants = require '../constants'
@@ -13,8 +16,13 @@ module.exports = class StackFlowController extends kd.Controller
 
     super options, data
 
+    { container } = @getOptions()
     { stack } = @getData()
-    @state    = stack.status?.state
+
+    container.setClass 'build-stack-flow'
+    container.on 'PageDidShow', @bound 'onPageDidShow'
+
+    @state = stack.status?.state
 
 
   loadData: ->
@@ -53,7 +61,7 @@ module.exports = class StackFlowController extends kd.Controller
     { stack, machine } = @getData()
     { container }      = @getOptions()
 
-    @instructions = new InstructionsController { container }, stackTemplate
+    @instructions = new InstructionsController { container }, { stack, stackTemplate }
     @credentials  = new CredentialsController { container }, stack
     @buildStack   = new BuildStackController { container }, { stack, stackTemplate, machine }
 
@@ -80,6 +88,8 @@ module.exports = class StackFlowController extends kd.Controller
     return  unless helpers.isTargetEvent event, stack
 
     [ prevState, @state ] = [ @state, status ]
+
+    @createHeaderIfNeed()
 
     if error
       @buildStack.showError error
@@ -125,13 +135,45 @@ module.exports = class StackFlowController extends kd.Controller
     @buildStack.showError message
 
 
+  createHeaderIfNeed: ->
+
+    { container } = @getOptions()
+    { stack } = @getData()
+
+    return  if @header
+
+    @header = new BuildStackHeaderView {}, stack
+    container.prepend @header
+
+
   show: ->
 
     controller = switch @state
       when 'Building' then @buildStack
       when 'NotInitialized' then @instructions
 
-    controller.show()  if controller
+    return  unless controller
+
+    @createHeaderIfNeed()
+    controller.show()
+
+
+  onPageDidShow: (page) ->
+
+    { stack } = @getData()
+
+    @createHeaderIfNeed()
+
+    { progressPane } = @header
+
+    for step, data of WizardSteps
+      isProperStep = (
+        pageCtor for pageCtor in data.pages when page instanceof pageCtor
+      ).length > 0
+      continue  unless isProperStep
+
+      progressPane.setCurrentStep step
+      progressPane.setWarningMode page instanceof BaseErrorPageView
 
 
   destroy: ->

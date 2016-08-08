@@ -1,9 +1,10 @@
 package sockjs
 
 import (
-	"code.google.com/p/go.net/websocket"
 	"net/http"
 	"strings"
+
+	"golang.org/x/net/websocket"
 )
 
 func (service *Service) serveWebsocket(w http.ResponseWriter, r *http.Request) {
