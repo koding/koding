@@ -374,12 +374,18 @@ main.main-container
     font-size 14px
     color #727272
     line-height 20px
+    margin 40px 100px
 
     &.trailer-state
+      margin 40px
       p
         letter-spacing 0.16px
 
     &.uploading-state
+      font-weight 300
+      font-size 14px
+      color #727272
+      line-height 20px
       text-align center
       div
         letter-spacing 0.13px
@@ -390,32 +396,37 @@ main.main-container
     &.error-uploading
 
       .show-error
+        color #F2778A
         border 1px solid #F2778A
         padding 20px
         font-size 13px
-        color #424242
         height 100px
         bg color #F6F0F1
         letter-spacing 0.01px
         line-height 16px
         padding-bottom  10px
+        border-radius 4px
 
         .file-format
           color #79B3F2
+          cursor pointer
 
     &.success-state
 
       .analyzeCSV
-        height  140px
-        padding 20px 40px
+        padding 0px 40px
         border-radius 4px
         bg color #fff
 
         div.wrapper
+
           height 60px
           display flex
           padding 20px 0 0 20px
+          text-align center
           border-bottom 1px solid #EFEFEF
+          font-size 24px
+          color #F2778A
           .total
             width calc(100%/3)
             border-right 1px solid #EFEFEF
@@ -424,15 +435,21 @@ main.main-container
             border-right 1px solid #EFEFEF
           .admins
             width calc(100%/3)
-            border-right 1px solid #EFEFEF
+
+          .total-label
+          .members-label
+          .admins-label
+            font-size 14px
+            color #A8A8A8
+
         .alreadyInvited
+          font-weight 300
           text-align center
-          color #989898
+          color #a8a8a8
           font-size 14px
           letter-spacing 0.13px
           line-height 20px
-          margin-top 10px
-
+          margin 5px 0 5px 0
 
   .example-csv
     height  110px
