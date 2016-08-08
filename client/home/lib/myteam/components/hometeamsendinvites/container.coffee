@@ -13,6 +13,7 @@ ResendInvitationConfirmModal = require './resendinvitationconfirmmodal'
 AlreadyMemberInvitationsModal = require './alreadymemberinvitationmodal'
 isEmailValid = require 'app/util/isEmailValid'
 UploadCSVModal = require './uploadcsvmodal'
+UploadCSVModalSuccess = require './uploadcsvsuccessmodal'
 { actions : HomeActions } = require 'home/flux'
 
 
@@ -41,47 +42,19 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
   onUploadCsv: (event) ->
 
-    # event.preventDefault()
-
-    # pass input file
-
     modal = new UploadCSVModal
       input : @refs.view.input
-      success: @bound 'uploadCsvSuccess'
-      error: @bound 'uploadCsvFail'
-      cancel : -> modal.destroy()
-
-
-
-  #   formData = new FormData()
-
-  #   for file in @refs.view.input.files
-  #     formData.append 'file', file, {
-  #       filename: file.name
-  #       contentType: 'multipart/form-data'
-  #     }
-
-  #   $.ajax
-  #     data : formData
-  #     method : 'POST'
-  #     url : '/-/teams/invite-by-csv'
-  #     contentType: false
-  #     processData : false # prevents illegal invocation error
-  #     success : @bound 'uploadCsvSuccess'
-  #     error : @bound 'uploadCsvFail'
+      success : @bound 'uploadCsvSuccess'
+      error : @bound 'uploadCsvFail'
 
 
   uploadCsvSuccess: (result) ->
-    # location.reload()
-
-    new kd.NotificationView
-      title    : 'All invitations are sent!'
-      duration : 5000
+    new UploadCSVModalSuccess
 
 
   uploadCsvFail: ->
     new kd.NotificationView
-      title    : 'Error Occured while handling invitations'
+      title : 'Error Occured while handling invitations'
       duration : 5000
 
   onInputChange: (index, inputName, event) ->
