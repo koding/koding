@@ -1,3 +1,4 @@
+kd = require 'kd'
 React         = require 'kd-react'
 actions       = require 'app/flux/environment/actions'
 SidebarWidget = require 'app/components/sidebarmachineslistitem/sidebarwidget'
@@ -21,7 +22,8 @@ module.exports = class StackUpdatedWidget extends React.Component
 
 
   handleOnClick : ->
-
+    { appManager, router } = kd.singletons
+    appManager.tell 'Stackeditor', 'reloadEditor', @props.stack.get('baseTemplate').toJS()
     actions.reinitStackFromWidget @props.stack
 
 

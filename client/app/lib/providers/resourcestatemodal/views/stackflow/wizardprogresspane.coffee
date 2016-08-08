@@ -8,29 +8,53 @@ module.exports = class WizardProgressPane extends kd.View
     options.cssClass = kd.utils.curry 'wizard-progress-pane', options.cssClass
     super options, data
 
+    @addAlien()
     @addSteps()
+
+
+  addAlien: -> @addSubView new kd.CustomHTMLView { cssClass : 'alien' }
 
 
   addSteps: ->
 
-    { currentStep }      = @getOptions()
-    isCurrentStepReached = no
+    index  = 0
+    @steps = {}
 
-    for key, value of WizardSteps
-      isCurrentStep        = value is currentStep
-      isCurrentStepReached = yes  if isCurrentStep
-
-      cssClass = 'wizard-step'
-      if not isCurrentStepReached
-        cssClass += ' completed'
-      else if isCurrentStep
-        cssClass += ' current'
-
-      @addSubView new kd.CustomHTMLView {
-        cssClass
+    for step, data of WizardSteps
+      title = data.title ? step
+      @addSubView @steps[step] = new kd.CustomHTMLView {
+        cssClass : 'wizard-step'
         partial  : """
-          <div class='alien'></div>
-          <span class='icon'></span>
-          #{value}
+          <span class='index'>
+            <span class='indexText'>#{++index}</span>
+            <span class='indexSign'></span>
+          </span>
+          #{title}
         """
       }
+
+
+  setCurrentStep: (currentStep) ->
+
+    isCurrentStepReached = no
+
+    for key, view of @steps
+      isCurrentStep        = key is currentStep
+      isCurrentStepReached = yes  if isCurrentStep
+
+      view.unsetClass 'completed'
+      view.unsetClass 'current'
+      @unsetClass key
+      if not isCurrentStepReached
+        view.setClass 'completed'
+      else if isCurrentStep
+        view.setClass 'current'
+        @setClass key
+
+
+  setWarningMode: (_on) ->
+
+    if _on
+      @setClass 'warning-mode'
+    else
+      @unsetClass 'warning-mode'

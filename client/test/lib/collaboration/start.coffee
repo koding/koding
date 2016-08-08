@@ -13,17 +13,26 @@ module.exports =
   afterEach: (browser, done) -> utils.afterEachCollaborationTest browser, done
 
   start: (browser) ->
+    sidebarSelector          = '.activity-sidebar .SidebarTeamSection'
+    sidebarStackSection      = "#{sidebarSelector} .SidebarStackSection.active"
+    vmSelector               = "#{sidebarStackSection} .SidebarMachinesListItem cite"
 
-    callback = ->
+    hostCallback = ->
 
-      collaborationHelpers.leaveSession(browser)
+      browser.waitForElementVisible vmSelector, 20000
+      browser.waitForElementVisible '.SidebarMachinesListItem.Running .SidebarListItem-icon', 30000
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
-
       browser.end()
 
 
+    participantCallback = ->
+
+      browser.waitForElementVisible '.SidebarMachinesListItem.NotInitialized .SidebarListItem-icon', 20000
+      collaborationHelpers.leaveSession(browser)
+      browser.end()
+
     browser.pause 2500, -> # wait for user.json creation
-      collaborationHelpers.initiateCollaborationSession(browser, callback, callback)
+      collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
 
 
   runCommandOnTerminal: (browser) ->
@@ -56,13 +65,13 @@ module.exports =
       collaborationHelpers.leaveSession(browser)
       browser.end()
 
-
     collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
 
 
   openFile: (browser) ->
 
     host                   = utils.getUser no, 0
+    user                   = utils.getUser no, 1
     hostBrowser            = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     paneSelector           = '.kdsplitview-panel.panel-1 .pane-wrapper .application-tab-handle-holder'
     lineWidgetSelector     = '.kdtabpaneview.active .ace-line-widget-'
@@ -72,18 +81,24 @@ module.exports =
     hostFileContent        = 'Hello World from Html by Koding'
     fileSelector           = "span[title='/home/#{host.username}/.config/python.py']"
     htmlFileSelector       = "span[title='/home/#{host.username}/.config/index.html']"
-
+    markerSelector         = '.ace-line-widget .username'
 
     hostCallback = ->
+
       ideHelpers.closeFile(browser, participantFileName, host)
       ideHelpers.closeFile(browser, hostFileName, host)
       browser
         .waitForElementNotPresent  '.kdtabhandle.indexhtml', 20000
         .waitForElementNotPresent  '.kdtabhandle.pythonpy', 20000
 
+
       ideHelpers.openFileFromConfigFolder browser, host, hostFileName, hostFileContent
       collaborationHelpers.answerPermissionRequest(browser, yes)
       browser.waitForElementVisible "#{paneSelector} .pythonpy",  60000
+      browser
+        .waitForElementVisible     markerSelector, 20000
+        .assert.containsText       markerSelector, user.username
+
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.pause 1000
       helpers.deleteFile(browser, fileSelector)
@@ -97,9 +112,9 @@ module.exports =
       browser.waitForElementVisible "#{paneSelector} .indexhtml", 60000
       collaborationHelpers.requestPermission(browser, yes)
       ideHelpers.openFileFromConfigFolder browser, host, participantFileName, participantFileContent
-      collaborationHelpers.leaveSession(browser)
-      browser.end()
-
+      browser.pause 1000, ->
+        collaborationHelpers.leaveSession(browser)
+        browser.end()
 
     collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback, yes)
 
@@ -138,5 +153,56 @@ module.exports =
       collaborationHelpers.leaveSession(browser)
       browser.end()
 
+
+    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
+
+  openVideoChat: (browser) ->
+
+    hostCallback = ->
+      collaborationHelpers.openVideochat browser
+      collaborationHelpers.endSessionFromStatusBar(browser)
+      browser.end()
+
+    participantCallback = ->
+      browser.pause 8000, ->
+        browser
+          .waitForElementVisible '.kdmodal-content', 40000
+          .assert.containsText '.ContentModal.content-modal header > h1', 'Session ended'
+          .waitForElementVisible '.ContentModal.content-modal footer .kdbutton', 20000
+          .click '.ContentModal.content-modal footer .kdbutton'
+
+      browser.end()
+
+    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
+
+
+  inviteSameUserAndAccept: (browser) ->
+    shareModal        = '.Popover-Wrapper'
+    acceptButton      = '.SidebarWidget .kdbutton.green'
+    filetree          = '.ide-files-tab'
+    endButtonSelector = '.IDE-StatusBar .share.active button'
+
+    hostCallback = ->
+
+      browser.pause 20000
+      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+      browser.end()
+
+    participantCallback = ->
+
+      browser.keys([browser.Keys.COMMAND, 't'])
+      browser.pause 2000
+      browser.getCollabLink browser, (url) ->
+        browser
+          .url                       url
+          .waitForElementVisible     shareModal, 20000
+          .waitForElementVisible     acceptButton, 20000
+          .click                     acceptButton
+          .waitForElementVisible     filetree, 20000
+          .waitForElementVisible     endButtonSelector, 20000
+          .assert.containsText       endButtonSelector, 'LEAVE SESSION'
+
+        collaborationHelpers.leaveSession(browser)
+        browser.end()
 
     collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
