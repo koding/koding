@@ -42,6 +42,10 @@ analyzeInvitations = (fileName, client, callback) ->
     parser content.toString('utf8'), csvParseOpts, (err, data) ->
       return callback err, null if err
 
+      invitationCount = data.length
+
+      return callback null, 'Over 100 Invitation'  if invitationCount > 100
+
       { connection: { delegate: account } } = client
       { _id } = account
       myEmail = null
@@ -56,6 +60,7 @@ analyzeInvitations = (fileName, client, callback) ->
 
           group.fetchMembersWithEmail client, {}, (err, users) ->
             return callback err, null  if err
+            return callback null, 'Over 100 Invitation'  if users.length > 100
 
             adminEmails = []
             alreadyMemberEmails = []
