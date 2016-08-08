@@ -104,7 +104,7 @@ func (s *Stack) updateMachine(id bson.ObjectId, m *stackplan.Machine, now time.T
 		"meta.source_ami":    m.Attributes["ami"],
 		"meta.storage_size":  size,
 		"status.modifiedAt":  now,
-		"status.state":       m.State,
+		"status.state":       m.State.String(),
 		"status.reason":      m.StateReason,
 	}})
 }

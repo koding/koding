@@ -299,7 +299,7 @@ func updateVagrant(tf *stackplan.Machine, machineId bson.ObjectId, credential st
 		"meta.hostname":      tf.Attributes["hostname"],
 		"meta.klientHostURL": tf.Attributes["klientHostURL"],
 		"status.modifiedAt":  time.Now().UTC(),
-		"status.state":       tf.State,
+		"status.state":       tf.State.String(),
 		"status.reason":      tf.StateReason,
 	}
 
