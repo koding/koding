@@ -1,0 +1,80 @@
+{
+    "variable": {
+        "foo": {
+            "default": "bar",
+            "description": "bar"
+        },
+        "bar": {
+            "type": "string"
+        },
+        "baz": {
+            "type": "map",
+            "default": {
+                "key": "value"
+            }
+        }
+    },
+
+    "provider": {
+        "aws": {
+            "access_key": "foo",
+            "secret_key": "bar"
+        },
+
+        "do": {
+            "api_key": "${var.foo}"
+        }
+    },
+
+    "resource": {
+        "aws_instance": {
+            "db": {
+                "security_groups": ["${aws_security_group.firewall.*.id}"],
+                "VPC": "foo",
+                "depends_on": ["aws_instance.web"],
+
+                "provisioner": [{
+                    "file": {
+                        "source": "foo",
+                        "destination": "bar"
+                    }
+                }]
+            },
+
+            "web": {
+                "ami": "${var.foo}",
+                "security_groups": [
+                    "foo",
+                    "${aws_security_group.firewall.foo}"
+                ],
+                "network_interface": {
+                    "device_index": 0,
+                    "description": "Main network interface"
+                },
+
+                "provisioner": {
+                    "file": {
+                        "source": "foo",
+                        "destination": "bar"
+                    }
+                }
+            }
+        },
+
+        "aws_security_group": {
+            "firewall": {
+                "count": 5
+            }
+        }
+    },
+
+    "output": {
+        "web_ip": {
+            "value": "${aws_instance.web.private_ip}"
+        }
+    },
+
+    "atlas": {
+        "name": "mitchellh/foo"
+    }
+}

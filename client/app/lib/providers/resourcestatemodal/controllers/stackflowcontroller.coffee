@@ -53,7 +53,7 @@ module.exports = class StackFlowController extends kd.Controller
     { stack, machine } = @getData()
     { container }      = @getOptions()
 
-    @instructions = new InstructionsController { container }, stackTemplate
+    @instructions = new InstructionsController { container }, { stack, stackTemplate }
     @credentials  = new CredentialsController { container }, stack
     @buildStack   = new BuildStackController { container }, { stack, stackTemplate, machine }
 
