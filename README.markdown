@@ -40,50 +40,42 @@ packages:
 
 ### Software Requirements
 
-- [Golang](http://www.golang.org/) v1.4
-- [Node.js](https://nodejs.org/en/) v0.10
-- [Coffeescript](http://coffeescript.org/)
-- [Supervisord](http://supervisord.org/)
+- [git](https://git-scm.com)
+- [docker](https://www.docker.com)
+- [docker-compose](https://www.docker.com/products/docker-compose)
 
 ### Start developing
 
-If you have the above software packages installed on your computer, you can
-follow these steps for running an instance of Koding:
+You can run docker-compose environment for developing koding by
+executing commands in the following snippet.
 
 ```bash
-git clone https://github.com/koding/koding.git /your/koding/path
-cd /your/koding/path
-node -v # make sure your node version is not greater than `0.10.x`
-coffee -v # make sure this doesn't return an error
-npm install
+git clone https://github.com/koding/koding.git
+cd koding
+docker-compose up
 ```
 
-You should have packages ready for running build specific scripts.
-
-```bash
-cd /your/koding/path
-./configure # create necessary config files
-./run install # start to install dependencies
-./run buildservices # build the services
-./run # run all services
-```
-
-As a result of these steps, you will have a file watcher watching your backend files
-(both node, and golang) which will restart services when necessary. Now open up
-another terminal and run the following commands:
-
-```bash
-cd /your/koding/path
-cd client # move into frontend client folder
-npm install # install client dependencies
-make # this will run a client watcher for you
-```
-
-Right now you should have 2 different watchers for (1) your backend files, (2)
-for your frontend client files.
-
-Now you can navigate to [](http://localhost:8090) to see your local Koding
+Now you can navigate to http://localhost:8090 to see your local Koding
 instance. Enjoy!
+
+docker-compose will attach working tree to `/opt/koding` in backend
+service container.  Changes in edited files will be visible in the
+runtime environment.
+
+You will need to run client builder to see your changes in built
+frontend code. This can be achieved with command below.
+
+```bash
+docker exec koding_backend_1 make -C /opt/koding/client
+```
+
+If you need to execute some commands by yourself in runtime
+environment then you can use following snippet to start a shell in
+backend service container.
+
+```bash
+docker exec -it koding_backend_1 bash
+```
 
 You can follow [coffeescript-styleguide](https://github.com/koding/styleguide-coffeescript)
 that we are relying on.

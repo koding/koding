@@ -1,0 +1,103 @@
+_have lxc-start && {
+    _lxc_names() {
+        COMPREPLY=( $( compgen -W "$( lxc-ls )" "$cur" ) )
+    }
+
+    _lxc_states() {
+        COMPREPLY=( $( compgen -W "STOPPED STARTING RUNNING STOPPING ABORTING FREEZING FROZEN THAWED" "$cur" ) )
+    }
+
+    _lxc_templates() {
+        COMPREPLY=( $( compgen -W "$(ls @LXCTEMPLATEDIR@/ | sed -e 's|^lxc-||' )" "$cur" ) )
+    }
+
+    _lxc_generic_n() {
+        local cur prev
+
+        COMPREPLY=()
+        _get_comp_words_by_ref cur prev
+
+        case $prev in
+            -n)
+                _lxc_names "$cur"
+                return 0
+            ;;
+        esac
+
+        return 1
+    }
+
+    _lxc_generic_ns() {
+        local cur prev
+
+        COMPREPLY=()
+        _get_comp_words_by_ref cur prev
+
+        case $prev in
+            -n)
+                _lxc_names "$cur"
+                return 0
+            ;;
+
+            -s)
+                _lxc_states "$cur"
+                return 0
+            ;;
+        esac
+
+        return 1
+    }
+
+    _lxc_generic_t() {
+        local cur prev
+
+        COMPREPLY=()
+        _get_comp_words_by_ref cur prev
+
+        case $prev in
+            -t)
+                _lxc_templates "$cur"
+                return 0
+            ;;
+        esac
+
+        return 1
+    }
+
+    _lxc_generic_o() {
+        local cur prev
+
+        COMPREPLY=()
+        _get_comp_words_by_ref cur prev
+
+        case $prev in
+            -o)
+                _lxc_names "$cur"
+                return 0
+            ;;
+        esac
+
+        return 1
+    }
+
+    complete -o default -F _lxc_generic_n lxc-attach
+    complete -o default -F _lxc_generic_n lxc-cgroup
+    complete -o default -F _lxc_generic_n lxc-console
+    complete -o default -F _lxc_generic_n lxc-destroy
+    complete -o default -F _lxc_generic_n lxc-device
+    complete -o default -F _lxc_generic_n lxc-execute
+    complete -o default -F _lxc_generic_n lxc-freeze
+    complete -o default -F _lxc_generic_n lxc-info
+    complete -o default -F _lxc_generic_n lxc-monitor
+    complete -o default -F _lxc_generic_n lxc-snapshot
+    complete -o default -F _lxc_generic_n lxc-start
+    complete -o default -F _lxc_generic_n lxc-stop
+    complete -o default -F _lxc_generic_n lxc-unfreeze
+
+    complete -o default -F _lxc_generic_ns lxc-wait
+
+    complete -o default -F _lxc_generic_t lxc-create
+
+    complete -o default -F _lxc_generic_o lxc-copy
+    complete -o default -F _lxc_generic_o lxc-start-ephemeral
+}

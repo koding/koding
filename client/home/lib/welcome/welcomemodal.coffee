@@ -1,7 +1,7 @@
 kd = require 'kd'
 HomeWelcome = require './'
 LocalStorage = require 'app/localstorage'
-
+globals = require 'globals'
 
 module.exports = class WelcomeModal extends kd.ModalView
 
@@ -20,8 +20,8 @@ module.exports = class WelcomeModal extends kd.ModalView
 
     router.once 'RouteInfoHandled', => @destroy no
 
-    mainController.once 'AllWelcomeStepsDone', @bound 'showCongratulationModal'
     mainController.once 'AllWelcomeStepsDone', @bound 'destroy'
+    mainController.once 'AllWelcomeStepsDone', @bound 'showCongratulationModal'
     mainController.once 'AllWelcomeStepsNotDoneYet', @bound 'initialShow'
 
     storage.setValue 'landedOnWelcome', ''
@@ -29,23 +29,33 @@ module.exports = class WelcomeModal extends kd.ModalView
 
   showCongratulationModal: ->
 
-    modal = new kd.ModalView
-      title : 'Success!'
-      width : 530
-      cssClass : 'Congratulation-modal'
-      content : "<p class='description'>Congratulations. You have completed all items on your onboarding list.</p>"
+    { appStorageController } = kd.singletons
+
+    appStorage = appStorageController.storage "WelcomeSteps-#{globals.currentGroup.slug}"
+    appStorage.fetchValue 'OnboardingSuccessModalShown', (result) ->
+
+      return  if result
+
+      appStorage.setValue 'OnboardingSuccessModalShown', yes
+
+      modal = new kd.ModalView
+        title : 'Success!'
+        width : 530
+        cssClass : 'Congratulation-modal'
+        content : "<p class='description'>Congratulations. You have completed all items on your onboarding list.</p>"
 
 
-    kd.View::addSubView.call modal, new kd.CustomHTMLView
-      cssClass : 'alien'
+      kd.View::addSubView.call modal, new kd.CustomHTMLView
+        cssClass : 'alien'
 
 
-    modal.addSubView new kd.CustomHTMLView
-      cssClass : 'image-wrapper'
+      modal.addSubView new kd.CustomHTMLView
+        cssClass : 'image-wrapper'
 
-    modal.addSubView new kd.ButtonView
-      title : 'KEEP ROCKING!'
-      cssClass: 'GenericButton'
+      modal.addSubView new kd.ButtonView
+        title : 'KEEP ROCKING!'
+        cssClass: 'GenericButton'
+        callback : -> modal.destroy()
 
 
   initialShow: ->

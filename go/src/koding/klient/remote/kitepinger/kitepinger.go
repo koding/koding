@@ -1,6 +1,7 @@
 package kitepinger
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/koding/kite/dnode"
@@ -40,6 +41,7 @@ func (p *KitePinger) Ping() Status {
 	// If there is any error getting the response we consider it a failed ping. As such,
 	// we set the status to false.
 	if err != nil {
+		fmt.Println("Ping:", err)
 		status = Failure
 	}
 

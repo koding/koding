@@ -63,7 +63,7 @@ type Config struct {
 	PlanEndpoint string `required:"true"`
 
 	// CredentialEndpoint is an API for managing stack credentials.
-	CredentialEndpoint string `required:"true"`
+	CredentialEndpoint string
 
 	// Endpoint for fetching user machine network usage
 	NetworkUsageEndpoint string `required:"true"`
@@ -247,9 +247,16 @@ func newKite(conf *Config) *kite.Kite {
 		"paymentwebhook": conf.PaymentwebhookSecretKey,
 	}
 
-	credURL, err := url.Parse(conf.CredentialEndpoint)
-	if err != nil {
-		panic(err)
+	var credURL *url.URL
+
+	if conf.CredentialEndpoint != "" {
+		if u, err := url.Parse(conf.CredentialEndpoint); err == nil {
+			credURL = u
+		}
+	}
+
+	if credURL == nil {
+		sess.Log.Warning(`disabling "Sneaker" for storing stack credential data`)
 	}
 
 	storeOpts := &stackcred.StoreOptions{
