@@ -4,6 +4,7 @@ hat = require 'hat'
 path = require 'path'
 Busboy = require 'busboy'
 parser = require 'csv-parse'
+helpers = require '../helpers'
 { generateFakeClient } = require './../client'
 
 module.exports.parserOpts = csvParseOpts =
@@ -43,10 +44,45 @@ module.exports.handler = (req, rres) ->
 
 processInvitations = (fileName, client, callback) ->
   fs.readFile fileName, 'utf8', (err, content) ->
-    return callback err, null if err
+    return callback err if err
 
     parser content.toString('utf8'), csvParseOpts, (err, data) ->
-      return callback err, null if err
+      return callback err if err
+
+      if data.length < 100
+
+        { connection: { delegate: account } } = client
+        { _id } = account
+        myEmail = null
+        account.fetchEmail (err, email) ->
+
+          myEmail = email
+
+          { JGroup } = (require './../bongo').models
+          { group: slug } = client.context
+          JGroup.one { slug }, (err, group) ->
+            return callback err, null  if err
+
+            group.fetchMembersWithEmail client, {}, (err, users) ->
+              return callback err, null  if err
+              unless users.length > 100
+
+                userEmails = []
+                users.map (user) ->
+                  { profile: { email } } = user
+                  userEmails.push email
+
+                { JInvitation } = (require './../bongo').models
+                JInvitation.some$ client, { status: 'pending' }, {}, (err, invitations) ->
+
+                  pendingEmails = []
+                  invitations.map (invitation) ->
+                    pendingEmails.push invitation.email
+
+                  params = { data, userEmails, pendingEmails, myEmail }
+                  { data } = helpers.analyzedInvitationResults params
+
+                  return callback 'Totally Wrong' unless data.length
 
       { JInvitation } = (require './../bongo').models
       JInvitation.create client, { invitations: data }, callback
