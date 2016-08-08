@@ -5,15 +5,8 @@ path = require 'path'
 Busboy = require 'busboy'
 parser = require 'csv-parse'
 { generateFakeClient } = require './../client'
+{ parserOpts: csvParseOpts } = require './invitetoteambycsv'
 
-module.exports.parserOpts = csvParseOpts =
-  delimiter: ','
-  columns: ['email', 'firstName', 'lastName', 'role']
-  relax: no # Preserve quotes inside unquoted field.
-  relax_column_count: yes
-  skip_empty_lines: true
-  trim: true # remove whitespaces
-  auto_parse: no # convert integers to numbers etc
 
 module.exports.handler = (req, rres) ->
   generateFakeClient req, rres, (err, client, session) ->
