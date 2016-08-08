@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -73,11 +74,16 @@ func TestTail(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	var watchCount int
-	watchResult := []string{}
+	var watchResult []string
+	var watchMu sync.Mutex
+
 	watchFunc := dnode.Callback(func(r *dnode.Partial) {
 		watchCount++
 		line := r.One().MustString()
+
+		watchMu.Lock()
 		watchResult = append(watchResult, line)
+		watchMu.Unlock()
 	})
 
 	_, err = remote.Tell("tail", &Request{
@@ -92,19 +98,12 @@ func TestTail(t *testing.T) {
 	time.Sleep(time.Second * 1)
 
 	// Should return empty by default, since no new lines were given.
-	if !reflect.DeepEqual([]string{}, watchResult) {
-		t.Errorf(
-			"\nWatchFunc should not be called for pre-existing lines.\nWant: %#v\nGot : %#v\n",
-			[]string{}, watchResult,
-		)
-	}
+	watchMu.Lock()
+	n := len(watchResult)
+	watchMu.Unlock()
 
-	// Should not have called watcher at all
-	if watchCount != 0 {
-		t.Errorf(
-			"\nWatchFunc should not be called for pre-existing lines.\nWanted %d calls, Got %d calls",
-			0, watchCount,
-		)
+	if n != 0 {
+		t.Errorf("WatchFunc should not be called for pre-existing lines.\nWant: 0\nGot : %d\n", n)
 	}
 
 	file, err := os.OpenFile(tmpFile, os.O_APPEND|os.O_WRONLY, 0600)
@@ -114,17 +113,23 @@ func TestTail(t *testing.T) {
 
 	file.WriteString("Tail2\n")
 	file.WriteString("Tail3\n")
+	file.WriteString("Tail4\n")
 	file.Close()
 
 	// wait so the watch function picked up the tail changes
-	time.Sleep(time.Second * 1)
+	time.Sleep(time.Second * 5)
 
-	modifiedLines := []string{"Tail2", "Tail3"}
+	var modifiedLines = []string{"Tail2", "Tail3", "Tail4"}
+
+	watchMu.Lock()
 	if !reflect.DeepEqual(modifiedLines, watchResult) {
-		t.Errorf(
-			"\nWatchFunc should not be called for pre-existing lines.\nWant: %#v\nGot : %#v\n",
-			modifiedLines, watchResult,
-		)
+		err = fmt.Errorf("\nWatchFunc should not be called for pre-existing lines.\n"+
+			"Want: %#v\nGot : %#v\n", modifiedLines, watchResult)
+	}
+	watchMu.Unlock()
+
+	if err != nil {
+		t.Error(err)
 	}
 }
 

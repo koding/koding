@@ -1,4 +1,5 @@
 $warningColor               = #f2778a
+$regularColor               = #989898
 
 /* General page structure and common styles */
 .resource-state-modal.kdmodal
@@ -10,11 +11,13 @@ $warningColor               = #f2778a
   .build-stack-flow
 
     header
-      height                70px
-      line-height           70px
+      height                60px
+      line-height           60px
+      border-bottom         0
 
       h1
         font-size           20px
+        color               $regularColor
 
     footer
       height                70px
@@ -30,58 +33,83 @@ $warningColor               = #f2778a
         float               left
         top                 26px
         left                20px
+        font-weight         300
+        color               #989898
 
     section.main
       width                 780px
-      height                400px
+      height                414px
+      bg                    color, #fff
+
+      h2
+        font-size           18px
+        letter-spacing      .21px
+        line-height         20px
+        padding-top         29px
+
+      > p
+        letter-spacing      .15px
+        color               $regularColor
+        margin-top          0
+        margin-bottom       20px
 
       .GenericButton
         text-transform      uppercase
         margin              0 auto
         display             block
 
+    .GenericButton.secondary
+      width               165px
+      height              42px
+      padding             0
+      text-transform      none !important
+      color               #57a2d2
+      bg                  color, #fff
+      border              1px solid #e4e4e4
+
+      .button-title
+        font-size         14px
+
+    footer
+      bg                  color, #f4f4f4
+
       .GenericButton.secondary
-        width               165px
-        height              41px
-        padding             0
-        font-size           13.7px
-        text-transform      none
-        color               #57a2d2
-        bg                  color, #fafafa
-        border              1px solid #dedbdb
-        display             block
-        margin              0 auto
+        abs()
+        top               14px
+        left              30px
 
 
-  .start-machine-flow
-
-    header
-      height                70px
-
-      h1
-        font-size           25px
-        line-height         34px
-        padding-top         16px
-
-    section.main
-      width                 600px
-      height                360px
-      rounded               6px
-
-
+  .start-machine-flow,
   .stop-machine-flow
 
     header
-      height                70px
+      height                50px
+      border-bottom         1px solid #e4e4e4
 
       h1
-        font-size           25px
-        line-height         34px
-        padding-top         16px
+        font-size           17px
+        line-height         20px
+        padding-top         14px
+        color               $regularColor
 
     section.main
       width                 600px
-      height                250px
+      rounded               6px
+      color                 $regularColor
+
+      p
+        color               $regularColor
+
+      .GenericButton
+        height              42px
+        min-width           160px
+        borderBox()
+        display             block
+
+        span.button-title
+          font-size         16px
+          line-height       18px
+          text-transform    uppercase
 
 
   /* Loader */
@@ -101,60 +129,81 @@ $warningColor               = #f2778a
 
   /* Wizard pane */
   .wizard-progress-pane
-    bg                      color, #efefef
-    border-bottom           1px solid #dedbdb
+    border-bottom           1px solid #e4e4e4
     text-align              center
+    rel()
 
     .wizard-step
       display               inline-block
       borderBox()
-      width                 200px
-      height                50px
-      font-size             16px
+      width                 260px
+      height                40px
+      font-size             14px
       font-weight           300
-      line-height           50px
-      bg                    color, #fff
-      color                 #c6c6c6
-      letter-spacing        .5px
+      letter-spacing        .27px
+      line-height           40px
+      bg                    color, #f4f4f4
+      color                 #727272
       rel()
+      border-left           1px solid #fff
 
-      .alien
-        hidden()
-        abs()
-        top                 -103px
-        left                60px
-        r-sprite            'app' 'alien'
-
-      .icon
-        rel()
-        top                 1px
+      .index
         display             inline-block
+        size                24px, 24px
+        bg                  color, #cacaca
+        color               #fff
+        line-height         24px
+        rounded             50%
         margin-right        5px
 
       &:first-child
-        border-left         1px solid #e6e6e6 !important
+        border-left         none !important
 
       &:last-child
-        border-right        1px solid #e6e6e6 !important
+        border-right        none !important
 
       &.current
-        bg                  color, #57a2d2
+        bg                  color, #67A2EE
         color               #fff
 
-        .alien
-          visible()
+        .index
+          bg                color, #fff
+          color             #67A2EE
 
       &.completed
-        bg                  color, #57a2d2
-        color               rgba(0,0,0,0.3)
-        border-right        1px solid #5095C2
-        font-weight         400
+        bg                  color, rgba(72,186,125,0.1)
 
-        .icon
-          r-sprite          'app', 'checkmark'
+        .index
+          bg                color, #48BA7D
 
-      &.current, &.completed
-        border-left         1px solid #70AED6
+    .alien
+      abs()
+      top                   -91px
+      r-sprite              'app' 'login_alien'
+      vendor                transition, transform .3s ease
+
+    &.instructions .alien
+      vendor                transform, translateX(90px)
+
+    &.credentials .alien
+      vendor                transform, translateX(350px)
+
+    &.buildstack .alien
+      vendor                transform, translateX(610px)
+
+    &.warning-mode
+
+      .wizard-step.current
+        bg                  color, $warningColor
+        color               #fff
+
+        .indexText
+          hidden()
+
+        .indexSign:before
+          content           '!'
+          color             #000
+          padding-left      1px
 
 
   /* Logs pane */
@@ -180,28 +229,16 @@ $warningColor               = #f2778a
 
       > h2
         color               $warningColor
-        font-weight         bold
+        font-size           22px
+        letter-spacing      .22px
+        line-height         43px
+        margin-bottom       -10px
 
       > p
-        margin-bottom       30px
-
-    .wizard-progress-pane
-
-      .wizard-step
-        &.completed
-          bg                color, $warningColor
-          color             #fff
-          border-right      1px solid #E97587
-
-        &.current
-          bg                color, $warningColor
-          color             #fff
-
-          .alien
-            hidden()
-
-        &.current, &.completed
-          border-left       1px solid #EB8292
+        margin-top          5px
+        line-height         16px
+        height              60px
+        margin-bottom       0
 
     .error-container
       max-height            240px
@@ -209,20 +246,20 @@ $warningColor               = #f2778a
       margin                0 auto
       styleScrollBars       rgba(0, 0, 0, .15)
       border                1px solid $warningColor
-      rounded               5px
+      rounded               4px
       bg                    color, rgba(242,119,138,0.05)
+
+      &:not(.has-vertical)
+        height              auto
 
       .error-content
         padding             15px 15px 20px 15px
-        color               #5e5e5e
-        font-size           12px
+        color               $regularColor
+        font-size           13px
         line-height         16px
 
         p
           padding-top       12px
-
-        .error-title
-          font-weight       600
 
         ul
           list-style-type   disc
@@ -238,13 +275,28 @@ $warningColor               = #f2778a
         .error-content
           border            none
 
-    footer
 
-      a.back-link
-        color               $warningColor
+  /* progress bar */
+  section.main
 
-        .arrow
-          r-sprite          'app', 'back_arrow_pink'
+    .progressbar-wrapper
+      rel()
+      margin                0 auto
+
+    .progressbar-container
+      height                35px
+      width                 100%
+
+    .status-text
+      color                 #515151
+      ellipsis()
+      text-align            center
+      padding               0
+      abs()
+      top                   0px
+      width                 100%
+      line-height           34px
+      z-index               3
 
 
   /* Styles for specific pages */
@@ -253,63 +305,61 @@ $warningColor               = #f2778a
     section.main
 
       .kdcustomscrollview
-        height              270px
-        width               730px
-        bg                  color, #fff
-        styleScrollBars     rgba(0, 0, 0, .15)
-        rounded             5px
-        border              1px solid #ddd
+        height              296px
+        width               720px
+        bg                  color, #f8f8f8
+        styleScrollBars     #e0e0e0
+        rounded             4px
+        border              1px solid #e4e4e4
         margin              0 auto
 
+        .kdscrolltrack
+          bg                color, transparent !important
+
       .description
-        padding             30px
+        padding             20px
         font-size           12px
         color               #333
 
-      .GenericButton.secondary
-        margin-top          20px
-        border              none
-        abs                 99px, 40px
 
   .stack-template-page
 
     section.main
 
       .editor-view
-        width               730px
-        height              270px
+        width               720px
+        height              296px
         margin              0 auto
-        rounded             5px
-        border              1px solid #fff
+        rounded             4px
+        border              1px solid #e4e4e4
+        overflow            hidden
+        borderBox()
 
-        .ace_gutter-layer
-          bg                color, #FFF
+        .ace_editor, .ace_gutter-layer
+          bg                color, #f8f8f8
 
-      .GenericButton.secondary
-        margin-top          20px
-        border              none
-        abs                 99px, 40px
-        z-index             11
+        .ace_scrollbar::-webkit-scrollbar-thumb
+          bg                color, #E0E0E0
 
 
   .credentials-page
 
-    section.main
-      > p
-        margin-bottom       30px
-
     .credential-form
-      font-family           $helvetica-family
       color                 #929292
-      width                 340px
+      size                  350px, 322px
       borderBox()
       float                 none
       margin                0 auto
+      padding               20px 5px 0 20px
 
       .kdcustomscrollview
-        styleScrollBars     rgba(0, 0, 0, .15)
-        max-height          325px
+        styleScrollBars     #E0E0E0
+        max-height          268px
         padding-right       15px !important
+
+        .kdscrolltrack.vertical
+          right             -2px
+          bg                color, transparent !important
 
       a
         color               #57a2d2
@@ -319,32 +369,33 @@ $warningColor               = #f2778a
 
       h3
         font-family         SoleilFamily
-        font-weight         600
-        font-size           15px
-        letter-spacing      .4px
-        margin-bottom       20px
+        font-weight         400
+        font-size           16px
+        letter-spacing      .45px
+        margin-bottom       10px
         padding-right       15px
+        color               #f2778a
 
       .kdlabel
         display             block
-        font-size           11.7px
+        font-size           12px
         letter-spacing      .3px
         margin-bottom       3px
         float               none
         color               inherit
+        margin-top          7px
 
       .formline:first-child .kdlabel
         margin-top          0px
 
       .formline .input-wrapper
-        margin-bottom       12px
+        margin-bottom       0px
 
       .kdinput.text
         font-size           13.7px
-        line-height         .3px
         rounded             3px
         bg                  color, #fff
-        border              1px solid #ececec
+        border              1px solid #d9d9d9
         padding             5px 13px
 
       .validation-error
@@ -352,8 +403,8 @@ $warningColor               = #f2778a
 
       div.kdselectbox
         rounded             3px
-        border              1px solid #ececec
-        width               323px
+        border              1px solid #d9d9d9
+        width               306px
 
         span.title
           line-height       31px
@@ -391,7 +442,8 @@ $warningColor               = #f2778a
 
         a.show-link
           font-size         11px !important
-          abs               0px, 20px
+          fr()
+
           &:before
             content         'Show Details'
 
@@ -401,14 +453,41 @@ $warningColor               = #f2778a
             &:before
               content       'Loading...'
 
-      .advanced-mode-btn
-        height              22px !important
-        background-color    #666
+        .kdlabel.selection-label
+          fl()
+          margin-top        0px
+          clear             none
+
+      .kdbutton.advanced-mode-btn
+        size                140px, 32px
+        background-color    #fff
+        padding             0 10px
         margin-bottom       20px
         box-shadow          none
+        rounded             4px
+        border              1px solid #aaa
+        borderBox()
+        text-align          left
+
         .button-title
-          font-size         12px !important
-          line-height       22px !important
+          rel()
+          color             #fff
+          font-size         14px
+          line-height       16px !important
+
+          &:before
+            content         'Advanced Mode'
+            text-transform  uppercase
+            font-size       14px
+            line-height     16px !important
+            color           #5e5e5e
+            abs()
+
+      .in-advanced-mode .kdbutton.advanced-mode-btn
+        width               185px
+
+        .button-title:before
+          content           'Close Advanced Mode'
 
       article
         font-size           13px
@@ -438,11 +517,11 @@ $warningColor               = #f2778a
             margin          20px 0
             display         block
             rel()
-            width           316px
+            width           310px
 
             div
               ellipsis()
-              width         236px
+              width         230px
 
             cite
               abs           8px 13px
@@ -453,7 +532,7 @@ $warningColor               = #f2778a
 
       .form-container
         hidden()
-        height              250px
+        height              268px
 
       &.form-visible
         .form-container
@@ -463,17 +542,21 @@ $warningColor               = #f2778a
           hidden()
 
       &.left-form
-      &.right-form
-        a.show-link
-          abs               44px, 20px
-
-      &.left-form
         fl()
-        margin-left         45px
+        margin-left         30px
 
       &.right-form
         fr()
-        margin-right        35px
+        margin-right        30px
+        rel()
+
+        &:before
+          content           ''
+          size              1px, 250px
+          bg                color, #e8e8e8
+          abs()
+          top               25px
+          left              -10px
 
 
   .credentials-error-page
@@ -482,242 +565,235 @@ $warningColor               = #f2778a
       .background
         abs()
         bottom              0px
-        r-sprite            'app', 'buildstack_art_fail'
+        r-sprite            'app', 'buildstack__art_fail'
 
 
   .build-stack-page
 
-    section.main > h2 span
-      font-weight           bold
+    section.main
+      height                485px
+      rounded               0 0 6px 6px
 
-    .progressbar-container
-      .bar
-        bg                  color, $warningColor
+      .progressbar-wrapper
+        margin-top          30px
+        width               720px
 
-    .status-text
-      text-align            center
-      color                 #585858
-      padding-top           25px
-      borderBox()
-      ellipsis()
-      height                76px
-      width                 600px
-      margin                0 auto
+        .bar
+          bg                color, $warningColor
 
     .logs-pane
-      width                 600px
-      height                180px
+      margin-top            30px
+      width                 720px
+      max-height            360px
+      overflow              hidden
 
+      .editor-main > figure.kdview
+        height              360px !important
 
+      &.with-info
+        .editor-main > figure.kdview
+          height            270px !important
 
+    .post-build-info
+      size                  100%, 90px
+      padding               15px 25px
+      borderBox()
+      bg                    color, #f4f4f4
+      border                1px solid #c0c0c0
+      border-top            0
+      rel()
 
-  .build-stack-error-page
+      h4
+        font-size           15px
+        line-height         17px
+        color               #515151
 
-    .wizard-progress-pane
-      .wizard-step
-        &.completed
-          bg                color, #efefef
-          border-right      1px solid #e6e6e6
+      h5
+        font-size           15px
+        line-height         17px
+        color               $regularColor
+        margin-top          4px
 
-        &.completed, &.current
-          border-left       0
+        .warning
+          color             $warningColor
+
+      .GenericButton
+        abs()
+        top                 30px
+        right               35px
+        padding             6px 10px
+
+      .close-btn
+        r-sprite            app, modal_close
+        abs()
+        top                 10px
+        right               10px
+        pointer()
 
 
   .build-stack-success-page
 
-    .wizard-step.current
-      bg                    color, #57a2d2
-      color                 rgba(0,0,0,0.3)
-      font-weight           400
-
-      .icon
-        r-sprite            'app', 'checkmark'
-
-      .alien
-        hidden()
-
     section.main
-      padding-left          430px
-      padding-top           90px
+      padding-left          385px
+      padding-top           120px
 
       h1
-        color               #57a2d2
-        font-size           50px
-        letter-spacing      .5px
-        line-height         44px
+        color               #48ba7d
+        font-size           40px
+        letter-spacing      .4px
+        line-height         43px
 
       h2
-        font-size           32px
+        font-size           20px
         font-weight         300
-        line-height         44px
-        color               rgba(0,0,0,0.5)
+        letter-spacing      .21px
+        line-height         16px
+        color               $regularColor
         text-align          left
-        padding-top         17px
-        padding-bottom      21px
-
-      .GenericButton.secondary
-        margin              0
+        padding-top         5px
+        padding-bottom      45px
 
       .background
         abs()
-        top                 60px
-        left                60px
-        r-sprite            'app', 'buildstack_art_success'
+        top                 93px
+        left                125px
+        r-sprite            'app', 'buildstack__art_success'
 
 
   .build-stack-logs-page
 
     section.main
-      padding-top           80px
-
-    .wizard-step.current
-      bg                    color, #57a2d2
-      color                 rgba(0,0,0,0.3)
-
-      .icon
-        r-sprite            'app', 'checkmark'
-
-      .alien
-        hidden()
+      padding-top           29px
 
     .logs-pane
-      width                 700px
-      height                320px
+      width                 720px
+      height                356px
 
 
   .start-machine-page
 
     section.main
+      height                390px
 
       h2
-        color               #57a2d2
-        font-size           32px
-        font-weight         300
-        letter-spacing      .3px
-        line-height         43px
-        padding-top         39px
-
-      p
+        color               #358bb0
         font-size           22px
-        font-weight         300
-        line-height         30px
-        margin-top          33px
+        letter-spacing      .22px
+        line-height         43px
+        padding-top         50px
+
+      > p
+        font-size           18px
+        line-height         20px
+        letter-spacing      .19px
         margin-bottom       44px
 
       .GenericButton
-        margin-left         -113px
-        height              65px
-        width               226px
-        left                50%
-        borderBox()
-
-        span.button-title
-          font-size         21.6px
-          line-height       30px
+        margin              0 auto
 
       .background
         abs()
-        bottom              -30px
-        r-sprite            'app', 'buildstack_art_boot'
-        left                -90px
-
+        r-sprite            'app', 'buildstack__art_boot'
+        bottom              0
 
 
   .start-machine-progress-page
 
     section.main
+      height                460px
 
       h2
-        color               #777777
-        font-size           24px
-        font-weight         300
+        color               #515151
+        font-size           20px
         letter-spacing      .2px
         line-height         43px
-        padding-top         15px
+        padding-top         30px
+        margin-bottom       -10px
+
+      p
+        margin-top          0
+        margin-bottom       36px
 
       .progressbar-container
-        border              1px solid #ccc
-        width               80%
+        width               500px
 
         .bar
-          bg                color, #57a2d2
+          bg                color, #67a2ee
 
       .background
         abs()
-        bottom              -140px
-        left                -100px
-        r-sprite            'app', 'buildstack_art_building'
+        bottom              0
+        r-sprite            'app', 'buildstack__art_building'
 
 
   .start-machine-success-page
 
     section.main
       height                320px
-      padding-left          370px
-      padding-top           80px
-
-      h1
-        color               #57a2d2
-        font-size           50px
-        letter-spacing      .5px
-        line-height         44px
+      padding-left          300px
+      padding-top           90px
+      padding-right         20px
 
       h2
-        font-size           32px
-        font-weight         300
-        line-height         44px
-        color               rgba(0,0,0,0.5)
+        color               #48ba7d
+        font-size           17px
+        letter-spacing      .17px
+        line-height         22px
         text-align          left
-        padding-top         17px
+        padding-top         0
+
+      > p
+        text-align          left
+        line-height         16px
+        margin-bottom       27px
+        margin-top          8px
 
       .background
         abs()
-        top                 12px
-        left                30px
-        r-sprite            'app', 'buildstack_art_success'
-
-    footer
-      .GenericButton
-        sta()
-        margin              29px auto 0 auto
-        display             block
+        top                 50px
+        left                40px
+        r-sprite            'app', 'buildstack__art_success'
 
 
   .start-machine-error-page
 
     section.main
-      height                350px
+      min-height            390px
+
+      > h2
+        padding-top         30px
+
+      > p
+        height              65px
 
       .error-container
-        max-height          180px
+        max-height          205px
         width               520px
 
-    footer
       .GenericButton
-        sta()
-        margin              29px auto 0 auto
-        display             block
+        margin              40px auto 90px auto
+
+      .background
+        abs()
+        bottom              0
+        r-sprite            'app', 'buildstack__art_fail'
 
 
   .stop-machine-progress-page
 
     section.main
+      height                200px
 
       h2
-        color               #777777
-        font-size           31px
-        font-weight         300
-        letter-spacing      .3px
+        color               #515151
+        font-size           22px
+        letter-spacing      .22px
         line-height         43px
-        padding-top         55px
-        padding-bottom      35px
-
-        span
-          font-weight       600
+        padding-top         30px
 
       .progressbar-container
-        border              1px solid #ccc
-        width               80%
+        width               500px
+        margin-top          27px
 
         .bar
           bg                color, #f2778a
@@ -726,19 +802,25 @@ $warningColor               = #f2778a
   .stop-machine-error-page
 
     section.main
+      min-height            390px
+
+      > h2
+        padding-top         30px
+
+      > p
+        height              65px
 
       .error-container
-        max-height          100px
+        max-height          205px
+        width               520px
 
       .GenericButton
-        width               226px
-        height              65px
-        borderBox()
-        margin-top          20px
+        margin              40px auto 90px auto
 
-        span.button-title
-          font-size         21.6px
-          line-height       30px
+      .background
+        abs()
+        bottom              0
+        r-sprite            'app', 'buildstack__art_fail'
 
 
   .no-stack-page

@@ -95,7 +95,7 @@ module.exports =
 
   startSessionAndInviteUser: (browser, firstUser, secondUser, callback, createDefaultFiles = no) ->
 
-    secondUserAvatar       = '.IDE-StatusBar .avatars .avatarview'
+    secondUserAvatar       = '.IDE-StatusBar .avatars.fr .avatarview'
     secondUserOnlineAvatar = "#{secondUserAvatar}.online"
 
     secondUser.role = 'member'
@@ -136,7 +136,8 @@ module.exports =
           console.log ' ✔ Collaboration link is ', result.value
           browser.writeCollabLink result.value, ->
             browser
-              .waitForElementVisible secondUserAvatar, 60000
+              .pause 5000
+              .waitForElementVisible secondUserAvatar, 50000
               .waitForElementVisible secondUserOnlineAvatar, 50000 # Assertion
 
             callback?()
@@ -151,13 +152,13 @@ module.exports =
     rejectButton     = '.SidebarWidget .kdbutton.solid.red'
     filetree         = '.ide-files-tab'
     sessionLoading   = '.session-starting'
-    teamurl         = helpers.getUrl(yes)
+    teamurl          = helpers.getUrl(yes)
 
-    browser.url teamurl, ->
+    browser.pause 2000, ->
       browser.getMemberInvitation browser, (res) ->
         browser.url teamurl
         browser.maximizeWindow()
-        teamsHelpers.loginToTeam browser, secondUser, no, ->
+        teamsHelpers.loginToTeam browser, secondUser, no, '',  ->
           browser.getCollabLink browser, (url) ->
             console.log '>>>>>>>>>> Participant get the link', url
 
@@ -171,7 +172,6 @@ module.exports =
               .waitForElementVisible     rejectButton, 50000
               .click                     acceptButton
               .waitForElementNotPresent  shareModal, 50000
-              .pause                     3000 # wait for sidebar redraw
               .waitForElementNotPresent  sessionLoading, 50000
               .waitForElementVisible     filetree, 50000
               .waitForTextToContain      filetree, firstUserName
@@ -387,3 +387,14 @@ module.exports =
 
         browser.pause 5000 # wait for host
         browser.end()
+
+
+  openVideochat: (browser) ->
+    videoChat = '.IDE-StatusBar .appear-in-button'
+
+    browser
+      .waitForElementVisible videoChat, 20000
+      .click videoChat, (result) ->
+        if result.state is 'success'
+          helpers.switchBrowser browser, '/appear.in/koding'
+
