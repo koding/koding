@@ -1,0 +1,26 @@
+version: "{build}"
+
+os: Windows Server 2012 R2
+
+clone_folder: c:\projects\src\github.com\rjeczalik\gh
+
+environment:
+ PATH: c:\projects\bin;%PATH%
+ GOPATH: c:\projects
+
+install:
+ - cd %APPVEYOR_BUILD_FOLDER%
+ - go version
+ - go get golang.org/x/tools/cmd/vet
+ - go get -v -t ./...
+ - go get -v github.com/PuerkitoBio/goquery
+ - go generate -v ./...
+
+build_script:
+ - go tool vet -all .
+ - go build ./...
+ - go test -race -v ./...
+
+test: off
+
+deploy: off
