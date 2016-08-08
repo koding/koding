@@ -1,0 +1,9 @@
+2
+blacklist
+reject_force_umount  # comment this to allow umount -f;  not recommended
+[all]
+kexec_load errno 1
+open_by_handle_at errno 1
+init_module errno 1
+finit_module errno 1
+delete_module errno 1

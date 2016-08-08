@@ -8,7 +8,7 @@ module.exports = class StartMachineErrorPageView extends BaseErrorPageView
     super options, data
 
     @startButton = new kd.ButtonView
-      title    : 'Try Booting Again'
+      title    : 'Try Again'
       cssClass : 'GenericButton'
       callback : @lazyBound 'emit', 'StartMachine'
 
@@ -18,16 +18,15 @@ module.exports = class StartMachineErrorPageView extends BaseErrorPageView
     '''
       <div class="start-machine-flow error-page start-machine-error-page">
         <header>
-          <h1>VM Boot</h1>
+          <h1>Boot Virtual Machine</h1>
         </header>
         <section class="main">
-          <h2>Bummer:( It Didn't Work</h2>
-          <p>There was an error while turning your VM on. Please go back and try to turn it<br />
-          on again, or get in contact with us.</p>
+          <div class="background"></div>
+          <h2>Something Went Wrong</h2>
+          <p>There was an error while turning your VM on. Please try again or<br />
+          contact us if the error continues.</p>
           {{> @errorContainer}}
-        </section>
-        <footer>
           {{> @startButton}}
-        </footer>
+        </section>
       </div>
     '''

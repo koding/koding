@@ -135,15 +135,15 @@ func Tail(r *kite.Request) (interface{}, error) {
 
 			// stop the tail all together if it somehow comes to here.
 			tailedMu.Lock()
+			defer tailedMu.Unlock()
+
 			p, ok := tailedFiles[params.Path]
 			if !ok {
-				tailedMu.Unlock()
 				return
 			}
 
 			p.Tail.Stop()
 			delete(tailedFiles, params.Path)
-			tailedMu.Unlock()
 		}()
 	} else {
 		// tailing is already started with a previous connection, just add this
@@ -153,6 +153,8 @@ func Tail(r *kite.Request) (interface{}, error) {
 
 	r.Client.OnDisconnect(func() {
 		tailedMu.Lock()
+		defer tailedMu.Unlock()
+
 		p, ok := tailedFiles[params.Path]
 		if ok {
 			// delete the function for this connection
@@ -165,11 +167,8 @@ func Tail(r *kite.Request) (interface{}, error) {
 			if len(p.Listeners) == 0 {
 				p.Tail.Stop()
 				delete(tailedFiles, params.Path)
-			} else {
-				tailedFiles[params.Path] = p // add back the decreased listener
 			}
 		}
-		tailedMu.Unlock()
 	})
 
 	return true, nil

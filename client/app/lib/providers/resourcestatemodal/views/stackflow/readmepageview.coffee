@@ -1,7 +1,5 @@
 kd = require 'kd'
 JView = require 'app/jview'
-WizardSteps = require './wizardsteps'
-WizardProgressPane = require './wizardprogresspane'
 applyMarkdown = require 'app/util/applyMarkdown'
 
 module.exports = class ReadmePageView extends JView
@@ -10,13 +8,11 @@ module.exports = class ReadmePageView extends JView
 
     super options, data
 
-    @progressPane = new WizardProgressPane
-      currentStep : WizardSteps.Instructions
+    { stack, stackTemplate } = @getData()
 
-    { description } = @getData()
     descriptionView = new kd.CustomHTMLView
       cssClass : 'description has-markdown'
-      partial  : applyMarkdown description
+      partial  : applyMarkdown stackTemplate.description
     descriptionView.getDomElement().find('a').attr('target', '_blank')
     @descriptionContainer = new kd.CustomScrollView()
     @descriptionContainer.wrapper.addSubView descriptionView
@@ -35,18 +31,14 @@ module.exports = class ReadmePageView extends JView
   pistachio: ->
 
     '''
-      <div class="build-stack-flow readme-page">
-        <header>
-          <h1>Build Your Stack</h1>
-        </header>
-        {{> @progressPane}}
+      <div class="readme-page">
         <section class="main">
-          <h2>Read Me First</h2>
-          <p>Your admin created the following instructions to get you started</p>
+          <h2>Read Me</h2>
+          <p>Instructions on getting started</p>
           {{> @descriptionContainer}}
-          {{> @stackTemplateButton}}
         </section>
         <footer>
+          {{> @stackTemplateButton}}
           {{> @nextButton}}
         </footer>
       </div>

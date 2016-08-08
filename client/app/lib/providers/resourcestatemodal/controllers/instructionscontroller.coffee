@@ -10,10 +10,9 @@ module.exports = class InstructionsController extends kd.Controller
     super options, data
 
     { container } = @getOptions()
-    stackTemplate = @getData()
 
-    @readmePage = new ReadmePageView {}, stackTemplate
-    @stackTemplatePage = new StackTemplatePageView {}, stackTemplate
+    @readmePage = new ReadmePageView {}, @getData()
+    @stackTemplatePage = new StackTemplatePageView {}, @getData()
 
     @forwardEvent @readmePage, 'NextPageRequested'
     @readmePage.on 'StackTemplateRequested', => container.showPage @stackTemplatePage

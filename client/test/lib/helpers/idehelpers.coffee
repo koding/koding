@@ -129,6 +129,31 @@ module.exports =
       .waitForElementNotPresent saveIconSelector, 20000 # Assertion
 
 
+  saveAsFile: (browser) ->
+
+    saveAsSelector     = '.kdlistview-contextmenu li.save-as'
+    saveIconSelector = "#{tabHandleSelector} .modified"
+    saveAsDialog     = 'body.ide .kddialogview.save-as-dialog'
+    inputTxt = 'body.ide .kddialogview.save-as-dialog form .kdinput'
+
+    @openContextMenu(browser)
+
+    browser
+      .waitForElementVisible    saveAsSelector, 20000
+      .click                    saveAsSelector
+      .waitForElementPresent    saveAsDialog, 20000
+      .clearValue               inputTxt
+      .setValue                 inputTxt, [browser.Keys.COMMAND, 'a', browser.Keys.BACK_SPACE]
+      .setValue                 inputTxt, 'newFile.txt'
+      .click                    '.kdbutton.green', ->
+        browser
+          .pause 3000
+          .waitForElementNotPresent    saveAsDialog, 20000
+          .refresh()
+          .waitForElementVisible '.kdlistitemview-finderitem:last-child', 40000
+          .assert.containsText  '.kdlistitemview-finderitem:last-child > div .title', 'newFile.txt'
+
+
   closeFile: (browser, fileName, user) ->
 
     closeFileSelector = "#{tabHandleSelector} span.close-tab"

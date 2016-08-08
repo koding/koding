@@ -1,0 +1,297 @@
+<!--
+
+lxc: linux Container library
+
+(C) Copyright IBM Corp. 2007, 2008
+
+Authors:
+Daniel Lezcano <daniel.lezcano at free.fr>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+Translated into Japanese
+by KATOH Yasufumi <karma at jazz.email.ne.jp>
+
+-->
+
+<!DOCTYPE refentry PUBLIC @docdtd@ [
+
+<!ENTITY commonoptions SYSTEM "@builddir@/common_options.sgml">
+<!ENTITY seealso SYSTEM "@builddir@/see_also.sgml">
+]>
+
+<refentry>
+
+  <docinfo><date>@LXC_GENERATE_DATE@</date></docinfo>
+
+  <refmeta>
+    <refentrytitle>lxc-stop</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>lxc-stop</refname>
+
+    <refpurpose>
+      <!--
+      stop the application running inside a container
+      -->
+      コンテナ内で動作しているアプリケーションの停止
+    </refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>lxc-stop</command>
+      <arg choice="req">-n <replaceable>name</replaceable></arg>
+      <arg choice="opt">-W</arg>
+      <arg choice="opt">-r</arg>
+      <arg choice="opt">-t <replaceable>timeout</replaceable></arg>
+      <arg choice="opt">-k</arg>
+      <arg choice="opt">--nokill</arg>
+      <arg choice="opt">--nolock</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title><!-- Description -->説明</title>
+
+    <para>
+      <!--
+      <command>lxc-stop</command> reboots, cleanly shuts down, or kills
+      all the processes inside the container.  By default, it will
+      request a clean shutdown of the container by sending
+      <command>lxc.haltsignal</command> (defaults to SIGPWR) to
+      the container's init process, waiting up to 60 seconds for the container
+      to exit, and then returning. If the container fails to cleanly exit in
+      60 seconds, it will be sent the <command>lxc.stopsignal</command>
+      (defaults to SIGKILL) to force it to shut down. A request to reboot will
+      send the <command>lxc.rebootsignal</command> (defaults to SIGINT) to the
+      container's init process.
+      -->
+      <command>lxc-stop</command> は、リブート、クリーンシャットダウン、コンテナ内の全てのプロセスの kill のどれかを行います。
+      デフォルトでは、コンテナのクリーンなシャットダウンを <command>lxc.haltsignal</command> (デフォルトでは SIGPWR) をコンテナの init プロセスに送ることでリクエストし、コンテナの終了を 60 秒待ち、return します。
+      コンテナが 60 秒の間にクリーンに終了するのに失敗した場合、<command>lxc.stopsignal</command> (デフォルトは SIGKILL です) を送り、強制的にシャットダウンします。
+      リブートのリクエストは <command>lxc.rebootsignal</command> に設定されたシグナルをコンテナの init プロセスに送ります (デフォルトは SIGINT です)。
+    </para>
+
+    <para>
+      <!--
+      The <optional>-W</optional>, <optional>-r</optional>,
+      <optional>-k</optional> and <optional>\-\-nokill</optional>
+      options specify the action to perform.
+      <optional>-W</optional> indicates that after performing the specified
+      action, <command>lxc-stop</command> should immediately exit, while
+      <optional>-t TIMEOUT</optional> specifies the maximum amount of time
+      to wait for the container to complete the shutdown or reboot.
+      -->
+      <optional>-W</optional>, <optional>-r</optional>, <optional>-s</optional>, <optional>-k</optional>, <optional>--nokill</optional> オプションは実行する際のアクションを指定します。
+      <optional>-W</optional> は、指定したアクションの後に、<command>lxc-stop</command> は速やかに終了します。
+      一方、<optional>-t TIMEOUT</optional> はコンテナが完全にシャットダウンやリブートするのを待つ時間の最大値を設定します。
+    </para>
+
+  </refsect1>
+
+  <refsect1>
+    <title><!-- Options -->オプション</title>
+    <variablelist>
+
+    <varlistentry>
+	<term>
+	  <option>-r,--reboot </option>
+	</term>
+	<listitem>
+	  <para>
+            <!--
+	    Request a reboot of the container.
+            -->
+            コンテナのリブートをリクエストします。
+	  </para>
+	</listitem>
+	</varlistentry>
+
+    <varlistentry>
+	<term>
+	  <option>-k,--kill </option>
+	</term>
+	<listitem>
+	  <para>
+            <!--
+        Rather than requesting a clean shutdown of the container, explicitly
+        kill all tasks in the container.  This is the legacy
+        <command>lxc-stop</command> behavior.
+        -->
+           コンテナのクリーンシャットダウンをリクエストするのでなく、明確にコンテナ内の全てのタスクを kill します。
+            これは、以前の <command>lxc-stop</command> の動作です。
+	  </para>
+	</listitem>
+    </varlistentry>
+
+    <varlistentry>
+	<term>
+	  <option>--nokill</option>
+	</term>
+	<listitem>
+	  <para>
+            <!--
+	    Only request a clean shutdown, do not kill the container tasks if the
+		clean shutdown fails.
+              -->
+            クリーンなシャットダウンのみをリクエストします。
+            クリーンなシャットダウンに失敗した場合でも、コンテナのタスクを kill しません。
+	  </para>
+	</listitem>
+	</varlistentry>
+
+    <varlistentry>
+	<term>
+	  <option>--nolock </option>
+	</term>
+	<listitem>
+	  <para>
+            <!--
+	This option avoids the use of any of the API lxc locking, and should
+	only be used if <command>lxc-stop</command> is hanging due to a bad
+	system state.
+              -->
+            このオプションはいかなる場合でも API の lxc のロックの使用を回避します。
+            システム状態が不良な場合に lxc-stop の応答がない状態の場合のみ使用すべきです。
+	  </para>
+	</listitem>
+    </varlistentry>
+
+    <varlistentry>
+	<term>
+	  <option>-W,--nowait </option>
+	</term>
+	<listitem>
+	  <para>
+            <!--
+	    Simply perform the requestion action (reboot, shutdown, or hard
+		kill) and exit.
+              -->
+            リクエストされたアクション (reboot, shutdown, 強制的な kill) を実行するだけで (すぐに) 終了 (exit) します。
+	  </para>
+	</listitem>
+	</varlistentry>
+
+    <varlistentry>
+	<term>
+	  <option>-t,--timeout <replaceable>TIMEOUT</replaceable></option>
+	</term>
+	<listitem>
+	  <para>
+            <!--
+	    Wait TIMEOUT seconds before hard-stopping the container.
+              -->
+            コンテナの強制停止まで TIMEOUT 秒待ちます。
+	  </para>
+	</listitem>
+	</varlistentry>
+
+  </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title><!-- Exit value -->終了ステータス</title>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>0</term>
+        <listitem>
+          <para>
+            <!--
+	    The container was successfully stopped.
+            -->
+            コンテナの停止が成功しました。
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>1</term>
+        <listitem>
+          <para>
+            <!--
+	    An error occurred while stopping the container.
+            -->
+            コンテナの停止中にエラーが発生しました。
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>2</term>
+        <listitem>
+          <para>
+            <!--
+	    The specified container exists but was not running.
+            -->
+            指定のコンテナは存在しますが、実行中ではありません。
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+  <refsect1>
+    <title><!-- Diagnostic -->診断</title>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>The container was not found</term>
+        <listitem>
+          <para>
+            <!--
+	    The specified container was not created before with
+	    the <command>lxc-create</command> command.
+            -->
+            指定したコンテナが <command>lxc-create</command> で作成されておらず存在しません。
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
+  &seealso;
+
+  <refsect1>
+    <title><!-- Author -->作者</title>
+    <para>Daniel Lezcano <email>daniel.lezcano@free.fr</email></para>
+  </refsect1>
+
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->
