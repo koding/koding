@@ -82,12 +82,6 @@ module.exports = {
       { test: /\.(png|jpg)$/, loader: 'url?limit=8192' },
     ])
   },
-  devServer: {
-    contentBase: WEBSITE_PATH + '/',
-    hot: true,
-    publicPath: '/a/p/p/' + configData.rev + '/',
-    port: 2108
-  }
 }
 
 
