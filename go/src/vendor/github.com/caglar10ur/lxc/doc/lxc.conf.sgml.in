@@ -1,0 +1,154 @@
+<!--
+
+lxc: linux Container library
+
+(C) Copyright Canonical Ltd. 2014
+
+Authors:
+Stéphane Graber <stgraber@ubuntu.com>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+-->
+
+<!DOCTYPE refentry PUBLIC @docdtd@ [
+
+<!ENTITY seealso SYSTEM "@builddir@/see_also.sgml">
+]>
+
+<refentry>
+
+  <docinfo><date>@LXC_GENERATE_DATE@</date></docinfo>
+
+  <refmeta>
+    <refentrytitle>lxc.conf</refentrytitle>
+    <manvolnum>5</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>lxc.conf</refname>
+
+    <refpurpose>
+      Configuration files for LXC.
+    </refpurpose>
+  </refnamediv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para>
+      LXC configuration is split in two parts. Container configuration
+      and system configuration.
+    </para>
+
+    <refsect2>
+      <title>Container configuration</title>
+      <para>
+          The container configuration is held in the
+          <filename>config</filename> stored in the container's
+          directory.
+      </para>
+
+      <para>
+          A basic configuration is generated at container creation time
+          with the default's recommended for the chosen template as well
+          as extra default keys coming from the
+          <filename>default.conf</filename> file.
+      </para>
+
+      <para>
+          That <filename>default.conf</filename> file is either located
+          at <filename>@LXC_DEFAULT_CONFIG@</filename> or for
+          unprivileged containers at
+          <filename>~/.config/lxc/default.conf</filename>.
+      </para>
+
+      <para>
+          Details about the syntax of this file can be found in:
+          <citerefentry>
+            <refentrytitle><command>lxc.container.conf</command></refentrytitle>
+            <manvolnum>5</manvolnum>
+          </citerefentry>
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>System configuration</title>
+      <para>
+          The system configuration is located at
+          <filename>@LXC_GLOBAL_CONF@</filename> or
+          <filename>~/.config/lxc/lxc.conf</filename> for unprivileged
+          containers.
+      </para>
+
+      <para>
+          This configuration file is used to set values such as default
+          lookup paths and storage backend settings for LXC.
+      </para>
+
+      <para>
+          Details about the syntax of this file can be found in:
+          <citerefentry>
+            <refentrytitle><command>lxc.system.conf</command></refentrytitle>
+            <manvolnum>5</manvolnum>
+          </citerefentry>
+      </para>
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>See Also</title>
+    <simpara>
+      <citerefentry>
+        <refentrytitle><command>lxc</command></refentrytitle>
+        <manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle><command>lxc.container.conf</command></refentrytitle>
+        <manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle><command>lxc.system.conf</command></refentrytitle>
+        <manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle><command>lxc-usernet</command></refentrytitle>
+        <manvolnum>5</manvolnum>
+      </citerefentry>
+    </simpara>
+  </refsect1>
+
+  <refsect1>
+    <title>Author</title>
+    <para>Stéphane Graber <email>stgraber@ubuntu.com</email></para>
+  </refsect1>
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

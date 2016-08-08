@@ -10,14 +10,18 @@ module.exports = class StartMachineProgressPageView extends JView
     super options, data
 
     @progressBar = new kd.ProgressBarView
-      initial : constants.INITIAL_PROGRESS_VALUE
+      initial    : constants.INITIAL_PROGRESS_VALUE
+    @statusText  = new kd.CustomHTMLView
+      cssClass   : 'status-text'
 
 
   updateProgress: (percentage, message) ->
 
     percentage = Math.max percentage ? 0, constants.INITIAL_PROGRESS_VALUE
+    @progressBar.updateBar percentage
+
     message = helpers.formatProgressStatus message
-    @progressBar.updateBar percentage, '%', message
+    @statusText.updatePartial message  if message
 
 
   pistachio: ->
@@ -32,9 +36,12 @@ module.exports = class StartMachineProgressPageView extends JView
         </header>
         <section class="main">
           <div class="background"></div>
-          <h2>Spinning up the "#{title}" VM.</h2>
-          <p>We're building your VM. Once we're finished you can get to coding.</p>
-          {{> @progressBar}}
+          <h2>Spinning up #{title}</h2>
+          <p>We're building your VM. Once is running you can get to coding.</p>
+          <div class="progressbar-wrapper">
+            {{> @progressBar}}
+            {{> @statusText}}
+          </div>
         </section>
       </div>
     """

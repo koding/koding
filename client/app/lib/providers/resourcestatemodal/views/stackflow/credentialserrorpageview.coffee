@@ -1,5 +1,6 @@
 kd = require 'kd'
 BaseErrorPageView = require '../baseerrorpageview'
+BuildStackHeaderView = require './buildstackheaderview'
 WizardSteps = require './wizardsteps'
 WizardProgressPane = require './wizardprogresspane'
 
@@ -8,6 +9,9 @@ module.exports = class CredentialsErrorPageView extends BaseErrorPageView
   constructor: (options = {}, data) ->
 
     super options, data
+
+    { stack } = @getData()
+    @header   = new BuildStackHeaderView {}, stack
 
     @progressPane = new WizardProgressPane
       currentStep : WizardSteps.Credentials
@@ -23,9 +27,7 @@ module.exports = class CredentialsErrorPageView extends BaseErrorPageView
 
     '''
       <div class="build-stack-flow error-page credentials-error-page">
-        <header>
-          <h1>Build Your Stack</h1>
-        </header>
+        {{> @header}}
         {{> @progressPane}}
         <section class="main">
           <h2>Whoops, Those Credentials Didn't Work</h2>

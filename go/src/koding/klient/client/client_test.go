@@ -180,7 +180,11 @@ func TestSubscribe(t *testing.T) {
 	// Using a timer here, because c.OnDisconnect is called before the
 	// sub is actually removed. I do not know how to ensure the
 	// removeSubscription() func as called, this without the Sleep.
-	time.Sleep(1 * time.Millisecond)
+	//
+	// TODO(rjeczalik): we could use testHooks* like in
+	// golang.org/x/net/context/ctxhttp package and wait on
+	// testHookSubRemove call.
+	time.Sleep(2 * time.Second)
 
 	if len(ps.Subscriptions["test"]) != 1 {
 		t.Error("client.Subscribe",
