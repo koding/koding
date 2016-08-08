@@ -9,6 +9,30 @@ async            = require 'async'
 FSHelper         = require './util/fs/fshelper'
 registerAppClass = require './util/registerAppClass'
 
+AppClasses =
+  about: require 'about'
+  account: require 'account'
+  ace: require 'ace'
+  activity: require 'activity'
+  admin: require 'admin'
+  dashboard: require 'dashboard'
+  features: require 'features'
+  feeder: require 'feeder'
+  finder: require 'finder'
+  home: require 'home'
+  ide: require 'ide'
+  kites: require 'kites'
+  legal: require 'legal'
+  members: require 'members'
+  migratefromsolo: require 'migratefromsolo'
+  pricing: require 'pricing'
+  showcase: require 'showcase'
+  'stack-editor': require 'stack-editor'
+  stacks: require 'stacks'
+  testrunner: require 'testrunner'
+  # viewer: require 'viewer'
+
+
 module.exports = class KodingAppsController extends KDController
 
   name    = 'KodingAppsController'
@@ -29,7 +53,9 @@ module.exports = class KodingAppsController extends KDController
     app = globals.config.apps[name]
 
     @putAppScript app, (err, res) =>
-      AppClass = require res.app.identifier
+
+      AppClass = AppClasses[res.app.identifier] or kd.Object
+
       register = (klass) ->
         registerAppClass klass
         callback err, res
