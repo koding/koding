@@ -36,12 +36,12 @@ module.exports = class TryOnKodingView extends React.Component
     <div>
       <ToggleButton canEdit={@props.canEdit} checked={@props.checked} callback={@props.handleSwitch} />
       <Primary className={@props.primaryClassName}/>
-      <p className={@props.secondaryClassName}>
+      <div className={@props.secondaryClassName}>
         <strong>“Try On Koding” Button</strong>
         Visiting users will have access to all team stack scripts
         <CodeBlock cmd={@props.value} />
         {@renderButtons()}
-      </p>
+      </div>
       {@renderFooter()}
     </div>
 
