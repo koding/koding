@@ -61,7 +61,7 @@ module.exports = class KodingAppsController extends KDController
       @appendHeadElement 'script', \
         { app: app, url:app.script, identifier:app.identifier, force: yes }, callback
 
-    return
+    return callback null, { app }
 
   @unloadAppScript = (app, callback = kd.noop) ->
 
