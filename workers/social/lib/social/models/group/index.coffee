@@ -829,11 +829,11 @@ module.exports = class JGroup extends Module
 
   fetchMembersWithEmail: (client, rest...) ->
     @baseFetcherOfGroupStaff {
-        method      : @fetchMembers
-        fetchEmail  : yes
-        client
-        rest
-      }
+      method      : @fetchMembers
+      fetchEmail  : yes
+      client
+      rest
+    }
 
   fetchMembersWithEmail$: permit
     advanced: [
