@@ -1,0 +1,12 @@
+sudo: false
+
+language: go
+go:
+  - 1.4
+  - 1.5
+  - 1.6
+
+script:
+  - go test -v ./extract/
+  - go test -v ./validate/
+

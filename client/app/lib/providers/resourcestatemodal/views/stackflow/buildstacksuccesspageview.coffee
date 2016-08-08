@@ -1,7 +1,5 @@
 kd = require 'kd'
 JView = require 'app/jview'
-WizardSteps = require './wizardsteps'
-WizardProgressPane = require './wizardprogresspane'
 
 module.exports = class BuildStackSuccessPageView extends JView
 
@@ -9,11 +7,8 @@ module.exports = class BuildStackSuccessPageView extends JView
 
     super options, data
 
-    @progressPane = new WizardProgressPane
-      currentStep : WizardSteps.BuildStack
-
     @logsButton = new kd.ButtonView
-      title    : 'See the logs here'
+      title    : 'See the Logs'
       cssClass : 'GenericButton secondary'
       callback : @lazyBound 'emit', 'LogsRequested'
 
@@ -26,18 +21,14 @@ module.exports = class BuildStackSuccessPageView extends JView
   pistachio: ->
 
     '''
-      <div class="build-stack-flow build-stack-success-page">
-        <header>
-          <h1>Build Your Stack</h1>
-        </header>
-        {{> @progressPane}}
+      <div class="build-stack-success-page">
         <section class="main">
           <div class="background"></div>
-          <h1>Success!</h1>
+          <h1>Success</h1>
           <h2>Your stack has been built</h2>
-          {{> @logsButton}}
         </section>
         <footer>
+          {{> @logsButton}}
           {{> @closeButton}}
         </footer>
       </div>

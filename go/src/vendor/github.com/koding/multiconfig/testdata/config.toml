@@ -1,0 +1,12 @@
+Name              = "koding"
+Enabled           = true
+Users             = ["ankara", "istanbul"]
+Interval 	  = 10000000000
+ID       	  = 1234567890
+Labels       	  = [123,456]
+
+[Postgres]
+Enabled           = true
+Port              = 5432
+Hosts             = ["192.168.2.1", "192.168.2.2", "192.168.2.3"]
+AvailabilityRatio = 8.23
