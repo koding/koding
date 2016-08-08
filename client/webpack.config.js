@@ -37,8 +37,6 @@ module.exports = {
   context: __dirname,
   debug: true,
   entry: [
-    './webpack/dev-server-client?http://localhost:2108/',
-    'webpack/hot/only-dev-server',
     './app/lib/index'
   ],
   resolve: {
@@ -80,7 +78,7 @@ module.exports = {
       // { test: /jquery-mousewheel$/, loaders: ['imports?define=>false'], include: path.join(__dirname, 'node_modules', 'kd.js') },
       { test: /\.js$/, loaders: ['babel'], include: path.join(__dirname, 'src') },
       { test: /\.json$/, loaders: ['json'], include: __dirname, exclude: [ path.join(__dirname, 'builder'), ] },
-      { test: /\.coffee$/, loaders: ['react-hot', 'pistachio', 'coffee', 'cjsx'], include: __dirname, exclude: [ path.join(__dirname, 'src'), path.join(__dirname, 'builder'), require.resolve('./globals.coffee') ] },
+      { test: /\.coffee$/, loaders: ['pistachio', 'coffee', 'cjsx'], include: __dirname, exclude: [ path.join(__dirname, 'src'), path.join(__dirname, 'builder'), require.resolve('./globals.coffee') ] },
       { test: /\.(png|jpg)$/, loader: 'url?limit=8192' },
     ])
   },
