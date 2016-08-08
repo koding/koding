@@ -155,7 +155,7 @@ module.exports = class InviteSomeoneView extends KDView
       resendButtonText = 'Resend Invitations'
       cancelButtonText = 'Just send the new ones' if newInvites.length
 
-    @resendInvitationConfirmModal = modal = new kd.ModalViewWithForms
+    options =
       title                   : 'Resend invitation'
       overlay                 : yes
       height                  : 'auto'
@@ -163,17 +163,7 @@ module.exports = class InviteSomeoneView extends KDView
       tabs                    :
         forms                 :
           confirm             :
-            buttons           :
-              "#{resendButtonText}" :
-                itemClass     : kd.ButtonView
-                cssClass      : 'confirm'
-                style         : 'solid green medium'
-                loader        : { color: '#444444' }
-                callback      : => @handleResendInvitations pendingInvites, newInvites
-              "#{cancelButtonText}" :
-                itemClass     : kd.ButtonView
-                style         : 'solid medium'
-                callback      : => @sendInvitations newInvites
+            buttons           : {}
             fields            :
               planDetails     :
                 type          : 'hidden'
@@ -182,6 +172,20 @@ module.exports = class InviteSomeoneView extends KDView
                     cssClass  : 'content'
                     itemClass : kd.View
                     partial   : partial
+
+    options.tabs.forms.confirm.buttons[resendButtonText] =
+      itemClass     : kd.ButtonView
+      cssClass      : 'confirm'
+      style         : 'solid green medium'
+      loader        : { color: '#444444' }
+      callback      : => @handleResendInvitations pendingInvites, newInvites
+
+    options.tabs.forms.confirm.buttons[cancelButtonText] =
+      itemClass     : kd.ButtonView
+      style         : 'solid medium'
+      callback      : => @sendInvitations newInvites
+
+    @resendInvitationConfirmModal = modal = new kd.ModalViewWithForms options
 
     modal.overlay.setClass 'second-overlay'
 
