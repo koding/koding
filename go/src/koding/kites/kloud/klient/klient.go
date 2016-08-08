@@ -17,6 +17,7 @@ import (
 var (
 	ErrDialingFailed = errors.New("Dialing klient failed.")
 	DefaultTimeout   = 60 * time.Second
+	DefaultInterval  = 10 * time.Second
 )
 
 // KlientPool represents a pool of connected klients
@@ -145,17 +146,22 @@ func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	remoteKite := kites[0]
 	remoteKite.ReadBufferSize = 512
 	remoteKite.WriteBufferSize = 512
-	if err := remoteKite.DialTimeout(t); err != nil {
-		k.Log.Debug("Dialing kite failed: %s", err)
-		return nil, ErrDialingFailed
+
+	err = remoteKite.DialTimeout(t)
+	if err != nil {
+		// If kite exists but dialing failed, we still return the *Klient
+		// value, althought not connected, in order to allow the caller
+		// inspect the URL and eventually recover.
+		err = ErrDialingFailed
 	}
 
-	// klient connection is ready now
+	k.Log.Debug("Dialing %q (%s) kite failed: %s", queryString, remoteKite.URL, err)
+
 	return &Klient{
 		kite:     k,
 		Client:   remoteKite,
 		Username: remoteKite.Username,
-	}, nil
+	}, err
 }
 
 func (k *Klient) URL() string {
@@ -171,9 +177,9 @@ func (k *Klient) IpAddress() (string, error) {
 	return u.Host, nil
 }
 
-func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient, error) {
+func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (klient *Klient, err error) {
 	timeout := time.After(t)
-	ticker := time.NewTicker(4 * time.Second)
+	ticker := time.NewTicker(DefaultInterval)
 	defer ticker.Stop()
 
 	for {
@@ -181,12 +187,12 @@ func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 		case <-ticker.C:
 			k.Log.Debug("trying to connect to klient: %s", queryString)
 
-			if klient, err := Connect(k, queryString); err == nil {
+			if klient, err = ConnectTimeout(k, queryString, DefaultInterval); err == nil {
 				return klient, nil
 			}
 
 		case <-timeout:
-			return nil, ErrDialingFailed
+			return klient, err
 		}
 	}
 }
@@ -228,6 +234,26 @@ func (k *Klient) Ping() error {
 	}
 
 	return fmt.Errorf("wrong response %s", out)
+}
+
+// PingTimeout issues a ping requests for the duration t. It returns
+// with nil error as soon as a ping requests succeeds.
+func (k *Klient) PingTimeout(t time.Duration) (err error) {
+	timeout := time.After(t)
+	ticker := time.NewTicker(DefaultInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			if err = k.Ping(); err == nil {
+				return nil
+			}
+
+		case <-timeout:
+			return err
+		}
+	}
 }
 
 // AddUser adds the given username to the klient's permission list. Once added

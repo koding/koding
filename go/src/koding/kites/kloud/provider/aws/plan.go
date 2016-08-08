@@ -127,9 +127,10 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	machines.AppendRegion(region)
 
 	s.Log.Debug("Machines planned to be created: %+v", machines)
 
-	return machines, nil
+	return &kloud.PlanResponse{
+		Machines: machines.Slice(),
+	}, nil
 }
