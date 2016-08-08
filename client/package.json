@@ -34,7 +34,7 @@
     "kd-shim-jquery-sketchpad": "0.1.1",
     "kd-shim-jspath": "0.2.0",
     "kd-shim-sockjs-client": "0.3.4",
-    "kd.js": "1.1.24",
+    "kd.js": "usirin/kd#master",
     "keycode": "2.0.0",
     "kite.js": "0.5.2",
     "konstraints": "0.1.5",
