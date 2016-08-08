@@ -14,6 +14,8 @@ module.exports = class BaseErrorPageView extends JView
       cssClass : 'error-container'
     @errorContainer.wrapper.addSubView @errorContent
 
+    @on 'PageDidShow', @bound 'onPageDidShow'
+
 
   setErrors: (errs) ->
 
@@ -29,5 +31,13 @@ module.exports = class BaseErrorPageView extends JView
 
     @errorContent.updatePartial """
       <span class='error-title'>#{title}</span>
-        <pre>#{content}</pre>
+      #{content}
     """
+
+
+  onPageDidShow: ->
+
+    # it needs to update container height if it can't be set fixed in css.
+    # otherwise, custom scroll doesn't work properly
+    container = @getDomElement().find '.main'
+    container.css 'height', container.height()

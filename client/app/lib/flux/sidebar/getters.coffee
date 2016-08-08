@@ -27,8 +27,11 @@ sidebarStacks = [
           return yes
 
       .map (stack) ->
-        templateTitle = templates.getIn [stack.get('baseStackId'), 'title']
+        template = templates.get(stack.get 'baseStackId')
+
+        templateTitle = template?.get('title') or ''
         stack = stack.set 'title', _.unescape templateTitle  if templateTitle
+        stack = stack.set 'baseTemplate', template  if template
 
         return stack
 ]

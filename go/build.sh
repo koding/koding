@@ -1,22 +1,29 @@
 #! /bin/bash
-set -o errexit
+
+set -euo pipefail
 
 export GOPATH=$(cd "$(dirname "$0")"; pwd)
 export GIT_DIR=$GOPATH/../.git
+export GOBIN=${GOBIN:-}
+
 if [ $# == 1 ]; then
   export GOBIN=$GOPATH/$1
 fi
+
+LINK_OPERATOR=" "
+VENDOR_DIR=""
 
 # ver contains the last digit of a go version, i.e: for v1.5 it contains 5, for
 # devel version it's empty; we are using it because the link operator has
 # changed after v1.5, previously it was an empty space, now its '='
 # (following code is retrieved from: https://github.com/coreos/etcd/blob/master/build)
-val=$(go version)
-ver=$(echo $val | awk -F ' ' '{print $3}' | awk -F '.' '{print $2}')
-if [[ -z "$ver" ]] || [[ $ver -gt 4 ]]; then
+minor=$(go version | cut -d' ' -f3 | cut -d. -f2)
+if [[ -z "$minor" ]] || [[ $minor -gt 4 ]]; then
 	LINK_OPERATOR="="
-else
-	LINK_OPERATOR=" "
+fi
+
+if [[ -z "$minor" ]] || [[ $minor -gt 6 ]]; then
+	VENDOR_DIR="vendor/"
 fi
 
 # first try to fetch it from git HEAD
@@ -45,10 +52,6 @@ services=(
   koding/kites/kloud/scripts/userdebug
   koding/kites/kloud/scripts/sl
   koding/klient
-
-  github.com/koding/kite/kitectl
-  github.com/canthefason/go-watcher
-  github.com/mattes/migrate
 
   socialapi/workers/api
   socialapi/workers/cmd/notification
@@ -81,11 +84,12 @@ services=(
   socialapi/workers/cmd/integration/eventsender
   socialapi/workers/cmd/integration/webhookmiddleware
 
-  github.com/alecthomas/gocyclo
-  github.com/remyoudompheng/go-misc/deadcode
-  github.com/opennota/check/cmd/varcheck
-  github.com/barakmich/go-nyet
-  github.com/jteeuwen/go-bindata/go-bindata
+  ${VENDOR_DIR}github.com/koding/kite/kitectl
+  ${VENDOR_DIR}github.com/canthefason/go-watcher
+  ${VENDOR_DIR}github.com/mattes/migrate
+  ${VENDOR_DIR}github.com/alecthomas/gocyclo
+  ${VENDOR_DIR}github.com/remyoudompheng/go-misc/deadcode
+  ${VENDOR_DIR}github.com/jteeuwen/go-bindata/go-bindata
 )
 
 
@@ -97,16 +101,16 @@ cp bin/broker build/broker/broker
 
 # build terraform services
 terraformservices=(
-  github.com/hashicorp/terraform/builtin/bins/provider-aws
-  github.com/hashicorp/terraform/builtin/bins/provider-terraform
-  github.com/hashicorp/terraform/builtin/bins/provider-null
-  github.com/koding/terraform-provider-github/cmd/provider-github
   koding/kites/cmd/provider-vagrant
 
-  github.com/hashicorp/terraform/builtin/bins/provisioner-file
-  github.com/hashicorp/terraform/builtin/bins/provisioner-local-exec
-  github.com/hashicorp/terraform/builtin/bins/provisioner-remote-exec
+  ${VENDOR_DIR}github.com/hashicorp/terraform/builtin/bins/provider-aws
+  ${VENDOR_DIR}github.com/hashicorp/terraform/builtin/bins/provider-terraform
+  ${VENDOR_DIR}github.com/hashicorp/terraform/builtin/bins/provider-null
+  ${VENDOR_DIR}github.com/koding/terraform-provider-github/cmd/provider-github
 
+  ${VENDOR_DIR}github.com/hashicorp/terraform/builtin/bins/provisioner-file
+  ${VENDOR_DIR}github.com/hashicorp/terraform/builtin/bins/provisioner-local-exec
+  ${VENDOR_DIR}github.com/hashicorp/terraform/builtin/bins/provisioner-remote-exec
 )
 
 tldflags="-X main.GitCommit${LINK_OPERATOR}${version:0:8}"
