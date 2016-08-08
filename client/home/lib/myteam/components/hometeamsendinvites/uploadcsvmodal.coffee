@@ -161,15 +161,30 @@ module.exports = class UploadCSVModal extends ContentModal
       except already invited members? </br></br>
       In your files, we have found…
     '''
-    @successPage.setPartial '''<div class='analyzeCSV'>
-      <div class='wrapper'>
-        <div class='total'>159</div>
-        <div class='members'>89</div>
-        <div class='admins'>15</div>
-      </div>
-      <div class='alreadyInvited'>+17 Already Invited members</div>
-      </div>
-    '''
+    { myself, admins, members, extras } = result
+    @successPage.addSubView analyzeCSV = new kd.CustomHTMLView
+      cssClass: 'analyzeCSV'
+      partial: """
+        <div class='wrapper'>
+          <div class='total'>
+            #{admins+members}</br>
+            <label class='total-label'> Total
+          </div>
+          <div class='members'>
+            #{members}</br>
+            <label class='members-label'> Members
+          </div>
+          <div class='admins'>
+            #{admins}</br>
+            <label class='admins-label'> Admins
+          </div>
+        </div>
+      """
+    analyzeCSV.addSubView extraInfo = new kd.CustomHTMLView
+    for ex in Object.keys(extras)
+      if extras["#{ex}"].count
+        extraInfo.setPartial """<div class='alreadyInvited'>+#{extras["#{ex}"].count} #{extras["#{ex}"].label}</div>"""
+
 
   errorAnalyzeCSV: (err) ->
 
