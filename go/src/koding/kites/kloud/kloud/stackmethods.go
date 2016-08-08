@@ -177,6 +177,11 @@ type PlanRequest struct {
 	GroupName       string `json:"groupName"`
 }
 
+// PlanResponse represents a reponse type of the plan kite method.
+type PlanResponse struct {
+	Machines interface{} `json:"machines"`
+}
+
 // Valid implements the Validator interface.
 func (req *PlanRequest) Valid() error {
 	if req.StackTemplateID == "" {

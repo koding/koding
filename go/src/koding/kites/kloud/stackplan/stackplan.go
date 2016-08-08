@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -11,9 +12,9 @@ import (
 	"koding/db/models"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
+	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/utils"
 
-	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -34,13 +35,76 @@ var credPermissions = map[string][]string{
 
 // Machine represents a jComputeStack.machine value.
 type Machine struct {
-	Provider        string            `json:"provider"`
-	Label           string            `json:"label"`
-	Region          string            `json:"region"`
-	QueryString     string            `json:"queryString,omitempty"`
-	RegisterURL     string            `json:"registerURL,omitempty"`
-	HostQueryString string            `json:"hostQueryString,omitempty"`
-	Attributes      map[string]string `json:"attributes"`
+	// Fields set by kloud.plan:
+	Provider   string            `json:"provider"`
+	Label      string            `json:"label"`
+	Attributes map[string]string `json:"attributes"`
+
+	// Fields set by kloud.apply:
+	QueryString string             `json:"queryString,omitempty"`
+	RegisterURL string             `json:"registerURL,omitempty"`
+	State       machinestate.State `json:"state,omitempty"`
+	StateReason string             `json:"stateReason,omitempty"`
+}
+
+// Machines represents group of machines mapped by a label.
+type Machines map[string]*Machine
+
+// Slice gives list of machines sorted by a label.
+func (m Machines) Slice() []*Machine {
+	labels := make([]string, 0, len(m))
+
+	for label := range m {
+		labels = append(labels, label)
+	}
+
+	sort.Strings(labels)
+
+	machines := make([]*Machine, 0, len(m))
+
+	for _, label := range labels {
+		machines = append(machines, m[label])
+	}
+
+	return machines
+}
+
+// DialState describes state of a single dial.
+type DialState struct {
+	Label   string // the vm label
+	KiteID  string // the kite ID being checked
+	KiteURL string // last resolved URL or empty
+	State   string // either "kontrol", "dial", "ping" or "provider"
+	Err     error  // underlying error
+}
+
+// DialError describes an error of DialKlients.
+type DialError struct {
+	States []*DialState
+}
+
+// Error implements the built-in error interface.
+func (de *DialError) Error() string {
+	var buf bytes.Buffer
+
+	fmt.Fprintf(&buf, "Failed to dial the following kites:\n\n")
+
+	for _, s := range de.States {
+		fmt.Fprintf(&buf, "  * %s: %s (id=%q, url=%q, state=%q)\n", s.Label, s.Err, s.KiteID, s.KiteURL, s.State)
+	}
+
+	return buf.String()
+}
+
+// Err returns de if it contains at least 1 failed state.
+func (de *DialError) Err() error {
+	for _, s := range de.States {
+		if s.Err != nil {
+			return de
+		}
+	}
+
+	return nil
 }
 
 // KiteMap maps resource names to kite IDs they own.
@@ -64,11 +128,6 @@ type Stack struct {
 	Stack *models.ComputeStack
 }
 
-// Machines is a list of machines.
-type Machines struct {
-	Machines []Machine `json:"machines"`
-}
-
 // Credential represents jCredential{Datas} value. Meta is of a provider-specific
 // type, defined by a ctor func in MetaFuncs map.
 type Credential struct {
@@ -76,64 +135,6 @@ type Credential struct {
 	Provider   string
 	Identifier string
 	Meta       interface{}
-}
-
-// String implememts the fmt.Stringer interface.
-func (m *Machines) String() string {
-	var txt string
-	for i, machine := range m.Machines {
-		txt += fmt.Sprintf("[%d] %+v\n", i, machine)
-	}
-	return txt
-}
-
-func (m *Machines) AppendRegion(region string) {
-	for i, machine := range m.Machines {
-		machine.Region = region
-		m.Machines[i] = machine
-	}
-}
-
-func (m *Machines) AppendQueryString(queryStrings map[string]string) {
-	for i, machine := range m.Machines {
-		queryString, ok := queryStrings[machine.Label]
-		if !ok {
-			continue
-		}
-
-		machine.QueryString = utils.QueryString(queryString)
-		m.Machines[i] = machine
-	}
-}
-
-func (m *Machines) AppendRegisterURL(urls map[string]string) {
-	for i, machine := range m.Machines {
-		registerURL, ok := urls[machine.QueryString]
-		if !ok {
-			continue
-		}
-
-		machine.RegisterURL = registerURL
-		m.Machines[i] = machine
-	}
-}
-
-func (m *Machines) AppendHostQueryString(s string) {
-	for i, machine := range m.Machines {
-		machine.HostQueryString = utils.QueryString(s)
-		m.Machines[i] = machine
-	}
-}
-
-// WithLabel returns the machine with the associated label
-func (m *Machines) WithLabel(label string) (Machine, error) {
-	for _, machine := range m.Machines {
-		if machine.Label == label {
-			return machine, nil
-		}
-	}
-
-	return Machine{}, fmt.Errorf("couldn't find machine with label '%s", label)
 }
 
 // UserData injects header/footer into custom script and ensures it has
@@ -166,9 +167,9 @@ type Planner struct {
 
 	KlientTimeout time.Duration // when zero-value, DefaultKlientTimeout is used
 
-	// OnKlient, when non-nil, is called to perform additional check
-	// for CheckKlients method.
-	OnKlient func(*kite.Client) error
+	// OnDial, when non-nil, is called to perform additional check
+	// for DialKlients method.
+	OnDial func(*kite.Client) error
 
 	// SessionFunc is used to build a session value from the context.
 	//
@@ -180,12 +181,12 @@ type Planner struct {
 //
 // It ignores any other resources than those specified by p.ResourceType
 // and p.Provider.
-func (p *Planner) MachinesFromState(state *terraform.State) (*Machines, error) {
+func (p *Planner) MachinesFromState(state *terraform.State, klients map[string]*DialState) (map[string]*Machine, error) {
 	if len(state.Modules) == 0 {
 		return nil, errors.New("state modules is empty")
 	}
 
-	var out Machines
+	machines := make(map[string]*Machine)
 
 	for _, m := range state.Modules {
 		for resource, r := range m.Resources {
@@ -207,22 +208,38 @@ func (p *Planner) MachinesFromState(state *terraform.State) (*Machines, error) {
 				attrs[key] = val
 			}
 
-			out.Machines = append(out.Machines, Machine{
-				Provider:   provider,
-				Label:      label,
-				Attributes: attrs,
-			})
+			state, ok := klients[label]
+			if !ok {
+				return nil, fmt.Errorf("no klient state found for %q %s", label, p.ResourceType)
+			}
+
+			machine := &Machine{
+				Provider:    p.Provider,
+				Label:       label,
+				Attributes:  attrs,
+				QueryString: state.KiteID,
+				RegisterURL: state.KiteURL,
+				State:       machinestate.Running,
+				StateReason: "Created with kloud.apply",
+			}
+
+			if state.Err != nil {
+				machine.State = machinestate.Stopped
+				machine.StateReason = fmt.Sprintf("Stopped due to dial failure: %s", state.Err)
+			}
+
+			machines[machine.Label] = machine
 		}
 	}
 
-	return &out, nil
+	return machines, nil
 }
 
 // MachinesFromPlan builds a list of machines from Terraform plan result.
 //
 // It ignores any other resources than those specified by p.ResourceType
 // and p.Provider.
-func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
+func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (Machines, error) {
 	if plan.Diff == nil {
 		return nil, errors.New("plan diff is empty")
 	}
@@ -231,7 +248,7 @@ func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 		return nil, errors.New("plan diff module is empty")
 	}
 
-	var out Machines
+	machines := make(Machines)
 
 	for _, d := range plan.Diff.Modules {
 		if d.Resources == nil {
@@ -257,78 +274,104 @@ func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 				attrs[name] = a.New
 			}
 
-			out.Machines = append(out.Machines, Machine{
+			machines[label] = &Machine{
 				Provider:   provider,
 				Label:      label,
 				Attributes: attrs,
-			})
+			}
 		}
 	}
 
-	return &out, nil
+	return machines, nil
 }
 
-// CheckKlients checks connectivity to all klient kites given by the kiteIDs
+func (p *Planner) checkSingleKlient(k *kite.Kite, label, kiteID string) *DialState {
+	kiteID = utils.QueryString(kiteID)
+
+	start := time.Now()
+
+	c, err := klient.NewWithTimeout(k, kiteID, p.klientTimeout())
+	if err == klient.ErrDialingFailed {
+		return &DialState{
+			Label:   label,
+			KiteID:  kiteID,
+			KiteURL: c.Client.URL,
+			State:   "dial",
+			Err:     err,
+		}
+	}
+
+	if err != nil {
+		return &DialState{
+			Label:  label,
+			KiteID: kiteID,
+			State:  "kontrol",
+			Err:    err,
+		}
+	}
+
+	defer c.Close()
+
+	left := p.klientTimeout() - time.Now().Sub(start)
+
+	err = c.PingTimeout(max(left, klient.DefaultTimeout))
+	if err != nil {
+		return &DialState{
+			Label:  label,
+			KiteID: kiteID,
+			State:  "ping",
+			Err:    err,
+		}
+	}
+
+	if p.OnDial != nil {
+		err = p.OnDial(c.Client)
+	}
+
+	return &DialState{
+		Label:  label,
+		KiteID: kiteID,
+		State:  "provider",
+		Err:    err,
+	}
+}
+
+// DialKlients checks connectivity to all klient kites given by the kiteIDs
 // parameter.
 //
 // It returns RegisterURLs mapped to each kite's query string.
-func (p *Planner) CheckKlients(ctx context.Context, kiteIDs KiteMap) (map[string]string, error) {
+func (p *Planner) DialKlients(ctx context.Context, kiteIDs KiteMap) (map[string]*DialState, error) {
 	sess, err := p.session(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var wg sync.WaitGroup
-	var mu sync.Mutex // protects multierror and outputs
-	var merr error
-	var urls = make(map[string]string, len(kiteIDs))
-
-	check := func(label, kiteID string) (string, error) {
-		queryString := utils.QueryString(kiteID)
-
-		sess.Log.Debug("[%s] Checking connectivity to %q", label, kiteID)
-
-		klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, p.klientTimeout())
-		if err != nil {
-			return "", err
-		}
-		defer klientRef.Close()
-
-		if err := klientRef.Ping(); err != nil {
-			return "", err
-		}
-
-		if p.OnKlient != nil {
-			if err := p.OnKlient(klientRef.Client); err != nil {
-				return "", err
-			}
-		}
-
-		return klientRef.Client.URL, nil
-	}
+	var (
+		wg   sync.WaitGroup
+		mu   sync.Mutex // protects multierror and outputs
+		urls = make(map[string]*DialState, len(kiteIDs))
+		de   = &DialError{}
+	)
 
 	for l, k := range kiteIDs {
 		wg.Add(1)
 
 		go func(label, kiteID string) {
 			defer wg.Done()
-			url, err := check(label, kiteID)
+			state := p.checkSingleKlient(sess.Kite, label, kiteID)
 
 			mu.Lock()
-			defer mu.Unlock()
-
-			if err != nil {
-				merr = multierror.Append(merr, fmt.Errorf("Couldn't check '%s:%s': %s", label, kiteID, err))
-				return
+			if state.Err != nil {
+				de.States = append(de.States, state)
 			}
-
-			urls[utils.QueryString(kiteID)] = url
+			urls[label] = state
+			mu.Unlock()
 		}(l, k)
 	}
 
 	wg.Wait()
 
-	return urls, merr
+	return urls, de.Err()
 }
 
 func (p *Planner) klientTimeout() time.Duration {
@@ -382,4 +425,11 @@ func FlattenValues(kv map[string][]string) []string {
 	}
 
 	return values
+}
+
+func max(d, t time.Duration) time.Duration {
+	if d > t {
+		return d
+	}
+	return t
 }

@@ -1,7 +1,5 @@
 kd = require 'kd'
 JView = require 'app/jview'
-WizardSteps = require './wizardsteps'
-WizardProgressPane = require './wizardprogresspane'
 IDETailerPane = require 'ide/workspace/panes/idetailerpane'
 
 module.exports = class BuildStackLogsPageView extends JView
@@ -9,9 +7,6 @@ module.exports = class BuildStackLogsPageView extends JView
   constructor: (options = {}, data) ->
 
     super options, data
-
-    @progressPane = new WizardProgressPane
-      currentStep : WizardSteps.BuildStack
 
     @startCodingButton = new kd.ButtonView
       title    : 'Start Coding'
@@ -25,7 +20,7 @@ module.exports = class BuildStackLogsPageView extends JView
   render: ->
 
     { tailOffset } = @getOptions()
-    file = @getData()
+    { file } = @getData()
 
     @logsContainer.destroySubViews()
     return  unless file
@@ -41,11 +36,7 @@ module.exports = class BuildStackLogsPageView extends JView
   pistachio: ->
 
     '''
-      <div class="build-stack-flow build-stack-logs-page">
-        <header>
-          <h1>Build Your Stack</h1>
-        </header>
-        {{> @progressPane}}
+      <div class="build-stack-logs-page">
         <section class="main">
           {{> @logsContainer}}
         </section>

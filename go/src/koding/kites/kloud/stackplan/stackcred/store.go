@@ -93,6 +93,12 @@ func (opts *StoreOptions) new(logName string) *StoreOptions {
 //
 // The returned Store keeps all credentials encrypted in Sneaker.
 func NewStore(opts *StoreOptions) Store {
+	if opts.CredURL == nil {
+		return &mongoStore{
+			StoreOptions: opts.new("mongo"),
+		}
+	}
+
 	return &socialStore{
 		StoreOptions: opts.new("social"),
 	}
