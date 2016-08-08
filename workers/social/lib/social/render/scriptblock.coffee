@@ -70,9 +70,7 @@ module.exports = (options = {}, callback) ->
       };
     </script>
 
-    <script src="/a/p/p/#{KONFIG.version}/thirdparty/pubnub.min.js"></script>
     <script src="/a/p/p/#{KONFIG.version}/bundle.js"></script>
-    <script>require('app')();</script>
 
     <script>
       (function(d) {
