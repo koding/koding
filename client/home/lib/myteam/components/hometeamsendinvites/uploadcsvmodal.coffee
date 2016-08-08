@@ -175,18 +175,29 @@ module.exports = class UploadCSVModal extends ContentModal
 
     @loader.hide()
     @errorUploading.show()
-    @errorUploading.setPartial '''<div class='show-error'>
-      It seems that the files you have selected not formatted right or empty.
-      Please make sure that you have selected the right files </br></br>
-      <div class='file-format'>See the information about file format.</div>
-    </div>'''
+    @errorUploading.addSubView showError = new kd.CustomHTMLView
+      cssClass: 'show-error'
+      partial: '''
+        It seems that the files you have selected not formatted right or empty or there are no valid data.
+        Please make sure that you have selected the right files </br></br>
+      '''
+
+    showError.addSubView fileFormat = new kd.CustomHTMLView
+      cssClass: 'file-format'
+      partial: 'See the information about file format.'
+      click: =>
+        @errorUploading.updatePartial ''
+        @trailerPage.show()
+        @uploadingPage.hide()
 
 
   error: (err) ->
+
     @getOptions().error()
     @destroy()
 
 
   success: (result) ->
+
     @getOptions().success()
     @destroy()
