@@ -93,7 +93,7 @@ TeamDomain = ({ slug }) ->
 TeamName = ({ canEdit, title, teamName, callback }) ->
 
   encode = if title then title else ''
-  value = teamName or Encoder.htmlDecode encode
+  value = teamName ? Encoder.htmlDecode encode
 
   className = if canEdit then 'half' else 'half TeamName'
 
