@@ -215,7 +215,6 @@ pushLoader([
 // plugins
 
 webpackConfig.plugins = [
-  new webpack.optimize.OccurrenceOrderPlugin(),
   // move thirdparty folder
   new CopyWebpackPlugin([
     { from: THIRD_PARTY_PATH, to: path.join(BUILD_PATH, '..', 'thirdparty') }
@@ -228,6 +227,7 @@ if (__DEV__) {
 // prod environment specific plugins.
 else if (__PROD__) {
   webpackConfig.plugins.push(
+    new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.DedupePlugin(),
     new webpack.optimize.UglifyJsPlugin({
       compress: {
