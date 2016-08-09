@@ -33,7 +33,7 @@ module.exports = class MachineFlowController extends kd.Controller
       .then (response) =>
         @onDataLoaded()
         @updateStatus
-          status     : response.Status
+          status     : response.State
           percentage : response.percentage
           eventId    : machineId
       .catch (err) =>

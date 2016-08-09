@@ -3,6 +3,7 @@ BuildStackPageView = require '../views/stackflow/buildstackpageview'
 BuildStackErrorPageView = require '../views/stackflow/buildstackerrorpageview'
 BuildStackSuccessPageView = require '../views/stackflow/buildstacksuccesspageview'
 BuildStackLogsPageView = require '../views/stackflow/buildstacklogspageview'
+BuildStackTimeoutPageView = require '../views/stackflow/buildstacktimeoutpageview'
 constants = require '../constants'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
 FSHelper = require 'app/util/fs/fshelper'
@@ -22,6 +23,7 @@ module.exports = class BuildStackController extends kd.Controller
     @errorPage = new BuildStackErrorPageView {}, { stack }
     @successPage = new BuildStackSuccessPageView {}, { stack }
     @logsPage = new BuildStackLogsPageView { tailOffset : constants.BUILD_LOG_TAIL_OFFSET }, { stack }
+    @timeoutPage = new BuildStackTimeoutPageView {}, { stack }
 
     @buildStackPage.on 'BuildDone', @bound 'completePostBuildProcess'
     @forwardEvent @buildStackPage, 'ClosingRequested'
@@ -32,11 +34,9 @@ module.exports = class BuildStackController extends kd.Controller
     @forwardEvent @successPage, 'ClosingRequested'
     @successPage.on 'LogsRequested', @bound 'showLogs'
     @forwardEvent @logsPage, 'ClosingRequested'
+    @forwardEvent @timeoutPage, 'ClosingRequested'
 
-    container.appendPages @buildStackPage, @errorPage, @successPage, @logsPage
-
-    @timeoutChecker = new TimeoutChecker { duration : constants.TIMEOUT_DURATION }
-    @timeoutChecker.on 'Timeout', @bound 'handleTimeout'
+    container.appendPages @buildStackPage, @errorPage, @successPage, @logsPage, @timeoutPage
 
 
   getLogFile: ->
@@ -55,7 +55,6 @@ module.exports = class BuildStackController extends kd.Controller
     { container } = @getOptions()
     container.showPage @buildStackPage
     @buildStackPage.updateProgress percentage, message
-    @timeoutChecker.update percentage
 
 
   updateBuildProgress: (percentage, message) ->
@@ -74,28 +73,28 @@ module.exports = class BuildStackController extends kd.Controller
     rate = (COMPLETE_PROGRESS_VALUE - MAX_BUILD_PROGRESS_VALUE) / COMPLETE_PROGRESS_VALUE
     percentage = MAX_BUILD_PROGRESS_VALUE + rate * percentage
     @updateProgress percentage
+    @timeoutChecker.update percentage
 
 
   completeBuildProcess: ->
 
-    { MAX_BUILD_PROGRESS_VALUE, DEFAULT_BUILD_DURATION } = constants
-    { stack } = @getData()
+    { MAX_BUILD_PROGRESS_VALUE, DEFAULT_BUILD_DURATION, TIMEOUT_DURATION } = constants
+    { stack, stackTemplate } = @getData()
 
     @buildStackPage.setData { stack, file : @getLogFile() }
     @updateProgress  MAX_BUILD_PROGRESS_VALUE, 'Installing software...'
 
-    { stackTemplate } = @getData()
     duration = stackTemplate.config?.buildDuration ? DEFAULT_BUILD_DURATION
 
     @postBuildTimer = new ProgressUpdateTimer { duration }
     @postBuildTimer.on 'ProgressUpdated', @bound 'updatePostBuildProgress'
+    @timeoutChecker = new TimeoutChecker { duration : TIMEOUT_DURATION }
+    @timeoutChecker.on 'Timeout', @bound 'handleTimeout'
 
 
   completePostBuildProcess: ->
 
-    @postBuildTimer.stop()  if @postBuildTimer
-    @postBuildTimer = null
-
+    @postBuildTimer.stop()
     @timeoutChecker.stop()
 
     { container } = @getOptions()
@@ -104,7 +103,22 @@ module.exports = class BuildStackController extends kd.Controller
 
   handleTimeout: ->
 
-    @showError 'It\'s taking longer than expected. Please reload the page', yes
+    { MACHINE_PING_TIMEOUT } = constants
+    { machine } = @getData()
+    kite = machine.getBaseKite()
+
+    @postBuildTimer.stop()
+    @timeoutChecker.stop()
+
+    return @showError 'Machine doesn\'t respond'  unless kite.ping?
+
+    kite.ping()
+      .then (res) =>
+        { container } = @getOptions()
+        container.showPage @timeoutPage
+      .catch (err) =>
+        @showError err.message
+      .timeout MACHINE_PING_TIMEOUT * 1000
 
 
   showError: (err, skipTracking) ->
@@ -114,8 +128,6 @@ module.exports = class BuildStackController extends kd.Controller
     { container } = @getOptions()
     container.showPage @errorPage
     @errorPage.setErrors [ err ]
-
-    @timeoutChecker.stop()
 
 
   showLogs: ->

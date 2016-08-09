@@ -18,5 +18,6 @@ module.exports = {
       require './buildstacksuccesspageview'
       require './buildstackerrorpageview'
       require './buildstacklogspageview'
+      require './buildstacktimeoutpageview'
     ]
 }
