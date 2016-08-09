@@ -14,6 +14,7 @@ localStorage           = require './localstorage'
 
 isStarted = false
 
+require './styl/require-styles'
 
 run = (defaults) ->
 
