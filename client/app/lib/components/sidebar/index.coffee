@@ -18,6 +18,9 @@ TeamFlux = require 'app/flux/teams'
 DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 MENU = null
 
+require './styl/sidebar.styl'
+require './styl/sidebarmenu.styl'
+
 module.exports = class Sidebar extends React.Component
 
   PREVIEW_COUNT = 10
