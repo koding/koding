@@ -2,6 +2,8 @@ React      = require 'kd-react'
 immutable  = require 'immutable'
 classnames = require 'classnames'
 
+require './styl/sidebarlistitem.styl'
+
 module.exports = class SidebarList extends React.Component
 
   @propTypes =
