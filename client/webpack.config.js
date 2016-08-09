@@ -10,10 +10,9 @@ var CopyWebpackPlugin = require('copy-webpack-plugin')
 // this config is being generated `./configure` in koding root.
 var configData = require('./.config.json')
 
+var CLIENT_PATH        = __dirname
 var BUILD_PATH         = path.join(__dirname, '../website/a/p/p', configData.rev)
-var CLIENT_PATH        = path.join(__dirname, '..', 'client')
 var WEBSITE_PATH       = path.join(__dirname, '..', 'website')
-var OLD_BUILDER_PATH   = path.join(CLIENT_PATH, './builder')
 var THIRD_PARTY_PATH   = path.join(CLIENT_PATH, './thirdparty')
 var ASSETS_PATH        = path.join(CLIENT_PATH, './assets')
 var COMMON_STYLES_PATH = path.join(CLIENT_PATH, 'app/styl/**/*.styl')
@@ -74,19 +73,6 @@ webpackConfig.resolve = {
     })
 }
 
-// loader resolvers
-webpackConfig.resolveLoader = {
-  root: __dirname,
-  // we need to include `web_loaders` here so that webpack will pick local
-  // loaders in `koding/client/webpack/web_loaders` folder.
-  modulesDirectories: ["node_modules", "web_loaders"],
-  alias: {
-    // we have a loader for injecting runtime variables via an easy `require
-    // 'globals'`. This is the loader which enables this.
-    'globals-loader': path.join(__dirname, './webpack/web_loaders/globals-loader')
-  }
-}
-
 // Loader config
 
 // These are the dependencies that are using some magic to identify module
@@ -129,7 +115,8 @@ pushLoader([
   {
     test: require.resolve('./globals.coffee'),
     loaders: [
-      'globals-loader', 'coffee'
+      path.join(CLIENT_PATH, './webpack/web_loaders/globals-loader.js?clientPath=' + CLIENT_PATH),
+      'coffee'
     ]
   }
 ])
