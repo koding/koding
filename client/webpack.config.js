@@ -143,7 +143,6 @@ pushLoader([
     include: __dirname,
     exclude: [
       path.join(__dirname, 'src'),
-      path.join(__dirname, 'builder'),
       // globals has its own loader
       require.resolve('./globals.coffee'),
     ],
@@ -155,9 +154,6 @@ pushLoader([
     test: /\.json$/,
     loaders: ['json'],
     include: __dirname,
-    exclude: [
-      path.join(__dirname, 'builder'),
-    ]
   },
 ])
 
