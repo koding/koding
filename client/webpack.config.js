@@ -6,6 +6,7 @@ var webpack = require('webpack')
 var glob = require('glob')
 var _ = require('lodash')
 var CopyWebpackPlugin = require('copy-webpack-plugin')
+var ProgressBarPlugin = require('progress-bar-webpack-plugin')
 
 // this config is being generated `./configure` in koding root.
 var configData = require('./.config.json')
@@ -219,6 +220,11 @@ webpackConfig.plugins = [
   new CopyWebpackPlugin([
     { from: THIRD_PARTY_PATH, to: path.join(BUILD_PATH, '..', 'thirdparty') }
   ]),
+  new ProgressBarPlugin({
+    format: ' client: [:bar] :percent ',
+    // to trigger 100% terminal width.
+    width: 1024
+  })
 ]
 
 // development environment specific plugins.
