@@ -5,10 +5,6 @@ var LoggedInHome = `
   <html lang="en">
   <head>
     {{template "header" . }}
-
-    <link rel="stylesheet" href="/a/p/p/{{.Version}}/kd.css" />
-    <link rel="stylesheet" href="/a/p/p/{{.Version}}/app.css" />
-    <link rel="stylesheet" href="/a/p/p/{{.Version}}/modules.css" />
   </head>
 
   <body class='logged-in'>
