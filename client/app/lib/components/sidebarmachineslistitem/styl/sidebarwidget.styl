@@ -131,6 +131,7 @@
       margin                0 auto
 
   &.StackUpdated
+  &.stackTemplate
     .Popover-Wrapper
 
       span
@@ -184,7 +185,17 @@
         margin-left         10px
         dIBlock()
 
- &.StackUpdated
-   .Popover-Wrapper
-     &::before
-       top                  13px
+  &.StackUpdated
+    .Popover-Wrapper
+      &::before
+        top                 13px
+
+  &.stackTemplate
+    .Popover-Wrapper
+      &::before
+        top                 initial
+        left                15px
+        bottom              -20px
+        border-left         10px solid transparent
+        border-right        10px solid transparent
+        border-top          10px solid #fff
