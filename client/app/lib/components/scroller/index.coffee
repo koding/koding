@@ -3,6 +3,8 @@ React = require 'kd-react'
 
 PerfectScrollbar = require 'app/components/perfectscrollbar'
 
+require './styl/scrollable.styl'
+
 module.exports = class Scroller extends React.Component
 
   @defaultProps =
