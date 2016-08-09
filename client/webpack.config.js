@@ -7,6 +7,7 @@ var glob = require('glob')
 var _ = require('lodash')
 var CopyWebpackPlugin = require('copy-webpack-plugin')
 var ProgressBarPlugin = require('progress-bar-webpack-plugin')
+var WebpackNotifierPlugin = require('webpack-notifier')
 
 // this config is being generated `./configure` in koding root.
 var configData = require('./.config.json')
@@ -229,6 +230,9 @@ webpackConfig.plugins = [
 
 // development environment specific plugins.
 if (__DEV__) {
+  webpackConfig.plugins.push(
+    new WebpackNotifierPlugin({ title: 'Koding Frontend' })
+  )
 }
 // prod environment specific plugins.
 else if (__PROD__) {
