@@ -1,53 +1,31 @@
-utils          = require '../utils/utils.js'
-teamsHelpers   = require '../helpers/teamshelpers.js'
+utils             = require '../utils/utils.js'
+helpers           = require '../helpers/helpers.js'
+teamsHelpers      = require '../helpers/teamshelpers.js'
 onboardinghelper  = require '../helpers/onboardinghelpers.js'
-async = require 'async'
+async             = require 'async'
+
+welcomeLink     = "#{helpers.getUrl(yes)}/Welcome"
+WelcomeView     = '.WelcomeStacksView'
+
+notFoundLink    = "#{WelcomeView} ul.bullets li:nth-of-type(8)"
+notFoundPage     = '.HomeAppView--section.kd-cli'
+
+user            = utils.getUser()
 
 module.exports =
 
-  before: (browser, done) ->
-    targetUser1 = utils.getUser no, 1
-    targetUser1.role = 'member'
-    users = targetUser1
-    teamsHelpers.inviteAndJoinWithUsers browser, [users], (result) ->
-      done()
-
-
   dashboard: (browser) ->
-    queue = [
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openStackEditor browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openCredential browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openMyTeamScreen browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.installKDLink browser, (result) ->
-          next null, result
-      (next) ->
-        teamsHelpers.logoutTeam browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.onboardingScreenMember browser, (result) ->
-          next null, result
-    ]
 
-    async.series queue
+    teamsHelpers.loginTeam browser, user, no , '', ->
+      browser
+        .url welcomeLink
+        .pause 2000
+        .waitForElementVisible WelcomeView, 20000
+
+        #expect that this part will give error on wercker
+        .click notFoundLink
+        .waitForElementVisible notFoundPage, 20000
+
 
   after: (browser) ->
     browser.end()
