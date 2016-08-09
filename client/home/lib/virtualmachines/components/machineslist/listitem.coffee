@@ -5,7 +5,7 @@ Machine = require 'app/providers/machine'
 immutable = require 'immutable'
 VirtualMachinesSelectedMachineFlux = require 'home/virtualmachines/flux/selectedmachine'
 KDReactorMixin = require 'app/flux/base/reactormixin'
-
+EnvironmentFlux = require 'app/flux/environment'
 module.exports = class MachinesListItem extends React.Component
 
   @propTypes =
@@ -43,6 +43,14 @@ module.exports = class MachinesListItem extends React.Component
     return {
       selectedMachine: VirtualMachinesSelectedMachineFlux.getters.selectedMachine
     }
+
+  constructor: (props) ->
+
+    super props
+
+    @state =
+      machineLabel: @props.machine.get 'label'
+
 
 
   renderMachineDetails: ->
@@ -114,6 +122,31 @@ module.exports = class MachinesListItem extends React.Component
       <cite style={width: "#{percentage}%"} />
     </div>
 
+  setMachineLabel: ->
+
+    machineUId = @props.machine.get 'uid'
+    EnvironmentFlux.actions.setLabel machineUId, @state.machineLabel
+
+  inputOnChange: (event) ->
+
+    { value: machineLabel } = event.target
+    @setState { machineLabel: machineLabel }
+
+
+  renderStackTitle: ->
+
+    <div className="MachinesListItem-stackLabel">
+      <a href="#" className="HomeAppView--button primary">{@props.stack.get 'title'}</a>
+    </div>
+
+  inputOnBlur: (event) ->
+
+    @setMachineLabel()
+
+  inputOnKeyDown: (event) ->
+
+    if event.keyCode is 13
+      @refs.inputbox.blur()
 
   render: ->
 
@@ -134,9 +167,7 @@ module.exports = class MachinesListItem extends React.Component
           {@renderProgressbar()}
         </div>
         {@renderIpAddress()}
-        <div className="MachinesListItem-stackLabel">
-          <a href="#" className="HomeAppView--button primary">{@props.stack.get 'title'}</a>
-        </div>
+        {@renderStackTitle()}
         {@renderDetailToggle()}
       </header>
       {@renderMachineDetails()}
