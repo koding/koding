@@ -75,9 +75,9 @@
     "c-lab:server": "styleguidist server",
     "c-lab:build": "styleguidist build",
     "c-lab": "npm run c-lab:server",
-    "build:dev": "NODE_ENV=development webpack",
-    "build:prod": "NODE_ENV=production webpack",
-    "watch:dev": "NODE_ENV=development webpack --colors --debug --watch"
+    "build:dev": "NODE_ENV=development webpack --config webpack.config.coffee",
+    "build:prod": "NODE_ENV=production webpack --config webpack.config.coffee",
+    "watch:dev": "NODE_ENV=development webpack --config webpack.config.coffee --colors --debug --watch"
   },
   "browser": {
     "kd": "kd.js",
