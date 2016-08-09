@@ -18,6 +18,9 @@ SidebarWorkspacesListItem      = require './sidebarworkspaceslistitem'
 isMachineSettingsIconEnabled   = require 'app/util/isMachineSettingsIconEnabled'
 ConnectedManagedMachineWidget  = require './connectedmanagedmachinewidget'
 
+require './styl/sidebarmachineslistItem.styl'
+require './styl/sidebarwidget.styl'
+
 
 module.exports = class SidebarMachinesListItem extends React.Component
 
