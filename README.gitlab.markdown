@@ -1,20 +1,19 @@
 # Koding & GitLab
 
-This document will guide you about installing and configuring Koding with
+This document will guide you through installing and configuring Koding with
 GitLab.
 
 First of all, to be able to use Koding and GitLab together you will need public
 access to your server. This allows you to use single sign-on from GitLab to
 Koding and using vms from cloud providers like AWS. Koding has a registry for
+VMs, called Kontrol and it runs on the same server as Koding itself, VMs from
+cloud providers register themselves to Kontrol via the agent that we put into
+provisioned VMs. This agent is called Klient and it provides Koding to access
+and manage the target machine.
 
-VMs called Kontrol and it runs on the same server with Koding itself, VMs from
-cloud providers are registering them selves to Kontrol via the agent that we're
-putting into provisioned VMs. This agent is called Klient and it's providing
-Koding to access and manage the target machine.
-
-Kontrol and Klient are based on the another technology of Koding called Kite.
-Which is a microservice framework that allows you to develop microservices
-easily.
+Kontrol and Klient are based on another technology called
+[Kite](github.com/koding/kite), that we have written at Koding. Which is a
+microservice framework that allows you to develop microservices easily.
 
 
 ## Requirements
@@ -27,7 +26,7 @@ Minimum requirements are;
   - 3G RAM
   - 10G Storage
 
-If you are planning to use AWS to install Koding it's recommended to use at
+If you plan to use AWS to install Koding it is recommended that you use at
 least a `c3.xlarge` instance.
 
 ### Software
@@ -36,7 +35,7 @@ least a `c3.xlarge` instance.
   - [docker](https://www.docker.com)
   - [docker-compose](https://www.docker.com/products/docker-compose)
 
-Koding can run on most of the UNIX based operating systems, since it's shipping
+Koding can run on most of the UNIX based operating systems, since it's shipped
 as containerized with Docker support, it can work on any operating system that
 supports Docker.
 
@@ -64,10 +63,12 @@ cd koding
 docker-compose up
 ```
 
-This should start koding on `localhost:8090` by default there is no team
-created in Koding DB. But `gitlab` team is enabled for GitLab integrations on
-configuration. To make you can create the `gitlab` team as
-usual before starting on configuring.
+This should start koding on `localhost:8090`.
+
+By default there is no team exists in Koding DB. You'll need to create a team
+called `gitlab` which is the default team name for GitLab integration in the
+configuration. To make things in order it's recommended to create the `gitlab`
+team first thing after setting up Koding.
 
 
 ### GitLab
@@ -76,7 +77,7 @@ To install GitLab to your environment for development purposes it's recommended
 to use GitLab Development Kit which you can get it from
 [here](https://gitlab.com/gitlab-org/gitlab-development-kit).
 
-After all those steps gitlab should be running on `localhost:3000`
+After all those steps, gitlab should be running on `localhost:3000`
 
 
 ## Integration
@@ -89,20 +90,20 @@ Integration includes following components;
   - Service endpoints for importing/executing stacks from GitLab to Koding
     (`Run/Try on IDE (Koding)` buttons on GitLab Projects, Issues, MRs)
 
-As it's pointed out before you will need a public access to this machine that
-you've installed Koding and GitLab on it. Better to use a domain but a static
-IP is also fine.
+As it's pointed out before, you will need public access to this machine that
+you've installed Koding and GitLab on. Better to use a domain but a static IP
+is also fine.
 
-For IP based installation you can use `xip.io` service which is free and
-provides DNS resolution to IP based requests like following;
+For IP based installation you can use [xip.io](https://xip.io) service which is
+free and provides DNS resolution to IP based requests like following;
 
   - 127.0.0.1.xip.io              -> resolves to 127.0.0.1
   - foo.bar.baz.127.0.0.1.xip.io  -> resolves to 127.0.0.1
   - and so on...
 
-We'll need a domain for Koding's application part which is using subdomains for
-team names; `foo.127.0.0.1.xip.io` requests for a running koding instance on
-`127.0.0.1` server will be handled as `foo` team requests.
+As Koding needs subdomains for team names; `foo.127.0.0.1.xip.io` requests for
+a running koding instance on `127.0.0.1` server will be handled as `foo` team
+requests.
 
 
 ### GitLab Side
@@ -125,7 +126,7 @@ git checkout koding
 
 #### Start GitLab with Koding URL
 
-To enable the integration you need to start your GitLab application with
+To enable the integration you need to start your GitLab application with the
 provided Koding URL; (please stop it first if it's already running)
 
 ```bash
@@ -136,7 +137,7 @@ GITLAB_KODING_URL=http://gitlab.127.0.0.1.xip.io:8090 ./run app
 _replace `127.0.0.1` with your instance public IP._
 
 By default Koding will enable the integration for `gitlab` team but you can
-change that behaviour on koding configuration.
+change that behavior on koding configuration.
 
 
 #### Registering Koding for OAuth integration
@@ -187,8 +188,8 @@ Koding part integrations;
 
 #### Start Koding with GitLab URL
 
-Now we need to configure Koding with these information to get things ready. If
-it's already running please stop koding first.
+Now we need to configure Koding with all this information to get things ready.
+If it's already running please stop koding first.
 
 ##### From command-line
 
@@ -249,5 +250,5 @@ if you are not logged in to GitLab at this point you will be redirected after
 login) once you accept you will be redirected to your Koding instance.
 
 From now on you can login by using `SIGN IN WITH GITLAB` button on your Login
-screen in Koding instance.
+screen in your Koding instance.
 
