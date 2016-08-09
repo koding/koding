@@ -186,10 +186,10 @@ type Stack struct {
 	m *MigrateProvider
 
 	// The following fields are set by buildResources method:
-	ids        stackplan.KiteMap
-	urls       map[string]string
-	region     string
-	credential string
+	ids     stackplan.KiteMap
+	klients map[string]*stackplan.DialState
+	ident   string
+	cred    *AwsMeta
 }
 
 // Ensure Provider implements the kloud.StackProvider interface.

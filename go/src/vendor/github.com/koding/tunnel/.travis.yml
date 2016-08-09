@@ -1,0 +1,19 @@
+language: go
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+    - moreutils
+
+go:
+  - 1.4.3
+  - 1.5.4
+  - 1.6.2
+
+script:
+  - export GOMAXPROCS=$(nproc)
+  - gofmt -s -l . | ifne false
+  - go build ./...
+  - go test -race ./...
