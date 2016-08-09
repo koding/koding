@@ -2,6 +2,7 @@ kd = require 'kd'
 _ = require 'lodash'
 React = require 'kd-react'
 TimeAgo = require 'app/components/common/timeago'
+UnreadCount = require 'app/components/sidebarmachineslistitem/unreadcount'
 
 module.exports = class StackTemplateItem extends React.Component
 
@@ -14,6 +15,19 @@ module.exports = class StackTemplateItem extends React.Component
     else
       <a href="#" className="HomeAppView--button primary" onClick={onAddToSidebar}>ADD TO SIDEBAR</a>
 
+
+  getStackUnreadCount: ->
+
+    @props.stack?.getIn [ '_revisionStatus', 'status', 'code' ]
+
+
+  renderUnreadCount: ->
+
+    return null  unless @getStackUnreadCount()
+
+    <UnreadCount
+      count={@getStackUnreadCount()}
+      onClick={@bound 'handleUnreadCountClick'} />
 
   render: ->
 
@@ -30,6 +44,7 @@ module.exports = class StackTemplateItem extends React.Component
         onClick={onOpen}>
         { makeTitle { template, stack } }
       </a>
+      {@renderUnreadCount()}
       <div className='HomeAppViewListItem-description'>
         Last updated <TimeAgo from={template.getIn ['meta', 'modifiedAt']} />
       </div>
