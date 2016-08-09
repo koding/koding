@@ -37,6 +37,7 @@ module.exports = class TeamStacksListView extends React.Component
       onOpen={@props.onOpenItem}
       onAddToSidebar={onAddToSidebar}
       onRemoveFromSidebar={onRemoveFromSidebar}
+      stack={stack}
     />
 
 
