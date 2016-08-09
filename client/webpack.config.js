@@ -36,7 +36,6 @@ var manifests = glob.sync('*/bant.json', {
 
 var webpackConfig = {
   context: __dirname,
-  debug: true,
   entry: [
     './app/lib/index.coffee'
   ],
