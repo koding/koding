@@ -74,7 +74,10 @@
     "test": "make test",
     "c-lab:server": "styleguidist server",
     "c-lab:build": "styleguidist build",
-    "c-lab": "npm run c-lab:server"
+    "c-lab": "npm run c-lab:server",
+    "build:dev": "NODE_ENV=development webpack",
+    "build:prod": "NODE_ENV=production webpack",
+    "watch:dev": "NODE_ENV=development webpack --colors --debug --watch"
   },
   "browser": {
     "kd": "kd.js",
