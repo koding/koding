@@ -24,7 +24,6 @@ AppClasses =
   kites: require 'kites'
   legal: require 'legal'
   members: require 'members'
-  migratefromsolo: require 'migratefromsolo'
   pricing: require 'pricing'
   showcase: require 'showcase'
   'stack-editor': require 'stack-editor'
