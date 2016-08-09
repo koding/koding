@@ -9,6 +9,9 @@ getBoundingClientReact    = require 'app/util/getBoundingClientReact'
 SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
 { findDOMNode } = require 'react-dom'
 
+require './styl/sidebarstacksection.styl'
+require './styl/sidebarstackwidgets.styl'
+
 MENU = null
 
 module.exports = class SidebarStackSection extends React.Component
