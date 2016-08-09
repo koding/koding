@@ -122,11 +122,15 @@ module.exports = class MachinesListItem extends React.Component
     else ''
 
     <div className="MachinesListItem#{expanded}">
-      <header>
-        <div
-          className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}"
-          onClick={@bound 'toggle'}>
-          {@props.machine.get 'label'}
+      <header className='MachinesListItem-header'>
+        <div className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}">
+          <input
+            ref='inputbox'
+            value={@state.machineLabel}
+            className="kdinput text template-title autogrow"
+            onChange={@bound 'inputOnChange'}
+            onBlur={@bound 'inputOnBlur'}
+            onKeyDown={@bound 'inputOnKeyDown'} />
           {@renderProgressbar()}
         </div>
         {@renderIpAddress()}
