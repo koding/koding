@@ -1,5 +1,7 @@
 kd = require 'kd'
 expect  = require 'expect'
+Promise = require 'bluebird'
+async = require 'async'
 constants = require 'app/providers/resourcestatemodal/constants'
 BuildStackController = require 'app/providers/resourcestatemodal/controllers/buildstackcontroller'
 PageContainer = require 'app/providers/resourcestatemodal/views/pagecontainer'
@@ -7,6 +9,7 @@ BuildStackPageView = require 'app/providers/resourcestatemodal/views/stackflow/b
 BuildStackErrorPageView = require 'app/providers/resourcestatemodal/views/stackflow/buildstackerrorpageview'
 BuildStackSuccessPageView = require 'app/providers/resourcestatemodal/views/stackflow/buildstacksuccesspageview'
 BuildStackLogsPageView = require 'app/providers/resourcestatemodal/views/stackflow/buildstacklogspageview'
+BuildStackTimeoutPageView = require 'app/providers/resourcestatemodal/views/stackflow/buildstacktimeoutpageview'
 
 describe 'BuildStackController', ->
 
@@ -195,3 +198,93 @@ describe 'BuildStackController', ->
         expect(activePane.mainView instanceof BuildStackPageView).toBeTruthy()
 
         done()
+
+
+  describe '::handleTimeout', ->
+
+    it 'it should show timeout page once timeout is emitted and machine works fine', (done) ->
+
+      listener = { callback : kd.noop }
+      spy      = expect.spyOn listener, 'callback'
+
+      machine       =
+        status      : { state : 'Building' }
+        getBaseKite : ->
+          ping      : ->
+            listener.callback()
+            Promise.resolve 'pong'
+
+      controller = new BuildStackController { container }, { machine, stack, stackTemplate }
+
+      queue = [
+        (next) ->
+          kd.utils.defer next
+        (next) ->
+          controller.show()
+
+          activePane = container.getActivePane()
+          expect(activePane).toExist()
+          expect(activePane.mainView instanceof BuildStackPageView).toBeTruthy()
+
+          controller.completeBuildProcess()
+          kd.utils.wait 1, next
+        (next) ->
+          expect(controller.postBuildTimer.timer).toExist()
+          expect(controller.timeoutChecker.timer).toExist()
+          controller.timeoutChecker.emit 'Timeout'
+          kd.utils.wait 1, next
+        (next) ->
+          expect(controller.postBuildTimer.timer).toNotExist()
+          expect(controller.timeoutChecker.timer).toNotExist()
+
+          expect(spy).toHaveBeenCalled()
+
+          activePane = container.getActivePane()
+          expect(activePane).toExist()
+          expect(activePane.mainView instanceof BuildStackTimeoutPageView).toBeTruthy()
+
+          next()
+      ]
+
+      async.series queue, done
+
+    it 'it should show error page once timeout is emitted and machine doesnt respond', (done) ->
+
+      listener = { callback : kd.noop }
+      spy      = expect.spyOn listener, 'callback'
+
+      machine       =
+        status      : { state : 'Building' }
+        getBaseKite : ->
+          ping      : ->
+            listener.callback()
+            Promise.reject new Error 'Error!'
+
+      controller = new BuildStackController { container }, { machine, stack, stackTemplate }
+
+      queue = [
+        (next) ->
+          kd.utils.defer next
+        (next) ->
+          controller.show()
+          controller.completeBuildProcess()
+          kd.utils.wait 1, next
+        (next) ->
+          expect(controller.postBuildTimer.timer).toExist()
+          expect(controller.timeoutChecker.timer).toExist()
+          controller.timeoutChecker.emit 'Timeout'
+          kd.utils.wait 1, next
+        (next) ->
+          expect(controller.postBuildTimer.timer).toNotExist()
+          expect(controller.timeoutChecker.timer).toNotExist()
+
+          expect(spy).toHaveBeenCalled()
+
+          activePane = container.getActivePane()
+          expect(activePane).toExist()
+          expect(activePane.mainView instanceof BuildStackErrorPageView).toBeTruthy()
+
+          next()
+      ]
+
+      async.series queue, done

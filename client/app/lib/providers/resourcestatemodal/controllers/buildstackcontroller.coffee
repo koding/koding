@@ -78,18 +78,17 @@ module.exports = class BuildStackController extends kd.Controller
 
   completeBuildProcess: ->
 
-    { MAX_BUILD_PROGRESS_VALUE, DEFAULT_BUILD_DURATION } = constants
-    { stack } = @getData()
+    { MAX_BUILD_PROGRESS_VALUE, DEFAULT_BUILD_DURATION, TIMEOUT_DURATION } = constants
+    { stack, stackTemplate } = @getData()
 
     @buildStackPage.setData { stack, file : @getLogFile() }
     @updateProgress  MAX_BUILD_PROGRESS_VALUE, 'Installing software...'
 
-    { stackTemplate } = @getData()
     duration = stackTemplate.config?.buildDuration ? DEFAULT_BUILD_DURATION
 
     @postBuildTimer = new ProgressUpdateTimer { duration }
     @postBuildTimer.on 'ProgressUpdated', @bound 'updatePostBuildProgress'
-    @timeoutChecker = new TimeoutChecker { duration : constants.TIMEOUT_DURATION }
+    @timeoutChecker = new TimeoutChecker { duration : TIMEOUT_DURATION }
     @timeoutChecker.on 'Timeout', @bound 'handleTimeout'
 
 
@@ -109,6 +108,7 @@ module.exports = class BuildStackController extends kd.Controller
     kite = machine.getBaseKite()
 
     @postBuildTimer.stop()
+    @timeoutChecker.stop()
 
     return @showError 'Machine doesn\'t respond'  unless kite.ping?
 
