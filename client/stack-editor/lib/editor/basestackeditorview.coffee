@@ -2,7 +2,7 @@ kd                          = require 'kd'
 Encoder                     = require 'htmlencode'
 curryIn                     = require 'app/util/curryIn'
 FSHelper                    = require 'app/util/fs/fshelper'
-{ jsonToYaml, yamlToJson }  = require '../yamlutils'
+{ jsonToYaml, yamlToJson }  = require 'app/util/stacks/yamlutils'
 IDEEditorPane               = require 'ide/workspace/panes/ideeditorpane'
 
 

@@ -1,9 +1,8 @@
 kd                  = require 'kd'
-KDView              = kd.View
 CredentialListView  = require './credentiallistview'
 
 
-module.exports = class ProvidersView extends KDView
+module.exports = class ProvidersView extends kd.View
 
 
   constructor: (options = {}, data) ->
@@ -18,7 +17,7 @@ module.exports = class ProvidersView extends KDView
 
     @forwardEvents @credentialList.list, ['ItemSelected', 'ItemDeleted']
 
-    mainView = @addSubView new KDView
+    mainView = @addSubView new kd.View
       cssClass: 'stacks stacks-v2'
 
     mainView.addSubView @credentialList
