@@ -11,7 +11,6 @@ registerAppClass = require './util/registerAppClass'
 
 AppClasses =
   ace: require 'ace'
-  activity: require 'activity'
   dashboard: require 'dashboard'
   features: require 'features'
   feeder: require 'feeder'

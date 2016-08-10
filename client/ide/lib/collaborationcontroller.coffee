@@ -969,7 +969,7 @@ module.exports = CollaborationController =
 
   bindAutoInviteHandlers: ->
 
-    { actions } = require 'activity/flux'
+    { actions } = require 'app/flux/socialapi'
     { notificationController, mainController, socialapi } = kd.singletons
 
     channel = @socialChannel

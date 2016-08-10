@@ -15,3 +15,6 @@ module.exports =
     SidebarFlux = require 'app/flux/sidebar'
     SidebarFlux.register reactor
 
+    SocialApiFlux = require 'app/flux/socialapi'
+    SocialApiFlux.register reactor
+
