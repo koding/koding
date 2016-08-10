@@ -4,7 +4,7 @@ async          = require 'async'
 remote         = require('app/remote').getInstance()
 whoami         = require 'app/util/whoami'
 Tracker        = require 'app/util/tracker'
-SlackUserItem  = require 'admin/views/invitations/slackuseritem'
+SlackUserItem  = require './views/slackuseritem'
 CustomLinkView = require 'app/customlinkview'
 
 titleDecorator = (channel) -> if channel.is_group then channel.name else "##{channel.name}"
