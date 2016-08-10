@@ -268,7 +268,7 @@ acceptInvitation = (machine) ->
 
     if invitation?.type is 'collaboration' or machine.get('type') is 'collaboration'
       _getInvitationChannelId { uid, invitation }, (channelId) ->
-        require('activity/flux/actions/channel').loadChannel(channelId).then ({ channel }) ->
+        require('app/flux/socialapi/actions/channel').loadChannel(channelId).then ({ channel }) ->
           if channel.isParticipant
             return kallback "/IDE/#{channelId}", ->
               reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'

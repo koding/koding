@@ -96,7 +96,7 @@ module.exports = class MessageEventManager extends KDObject
       @addMessageReply message, reply
 
 
-  addMessageReply: require 'activity/mixins/addmessagereply'
+  addMessageReply: require 'app/mixins/addmessagereply'
 
 
   removeReply: (options) ->

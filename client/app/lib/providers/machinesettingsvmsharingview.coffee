@@ -10,7 +10,7 @@ KDCustomHTMLView                 = kd.CustomHTMLView
 ComputeErrorUsageModal           = require './computeerrorusagemodal'
 KDAutoCompleteController         = kd.AutoCompleteController
 MachineSettingsCommonView        = require './machinesettingscommonview'
-ActivityAutoCompleteUserItemView = require 'activity/views/activityautocompleteuseritemview'
+ActivityAutoCompleteUserItemView = require 'app/activity/activityautocompleteuseritemview'
 Tracker                          = require 'app/util/tracker'
 
 

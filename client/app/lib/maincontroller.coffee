@@ -358,7 +358,6 @@ module.exports = class MainController extends KDController
   registerFluxModules: ->
 
     fluxModules = [
-      require 'activity/flux'
       require 'app/flux'
       require 'app/flux/environment'
       require 'app/flux/teams'

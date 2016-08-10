@@ -1,5 +1,4 @@
 require '../../app/test'
-require '../../activity/lib/test'
 require '../../ide/test'
 require '../../app/lib/providers/test'
 require '../../home/lib/virtualmachines/test/'
