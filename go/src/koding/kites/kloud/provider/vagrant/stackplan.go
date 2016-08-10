@@ -189,6 +189,10 @@ func (s *Stack) InjectVagrantData() (string, stackplan.KiteMap, error) {
 
 		s.Builder.BuildUserData(box, resourceName)
 
+		if b, ok := box["debug"].(bool); ok && b {
+			s.Debug = true
+		}
+
 		data := puser.Value{
 			Username:        s.Req.Username,
 			Groups:          []string{"sudo"},

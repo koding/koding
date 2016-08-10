@@ -39,6 +39,7 @@ type BaseStack struct {
 	Keys    *publickeys.Keys
 	Eventer eventer.Eventer
 
+	Debug   bool
 	TraceID string
 }
 

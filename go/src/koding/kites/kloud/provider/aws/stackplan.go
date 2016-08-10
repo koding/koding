@@ -121,6 +121,11 @@ func (s *Stack) InjectAWSData() (stackplan.KiteMap, error) {
 
 		s.Builder.BuildUserData(instance, resourceName)
 
+		if b, ok := instance["debug"].(bool); ok && b {
+			s.Debug = true
+			delete(instance, "debug")
+		}
+
 		if s, ok := instance["user_data"].(string); ok {
 			userCfg.UserData = s
 		}
