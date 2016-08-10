@@ -7,10 +7,10 @@ module.exports = (options, credentials) ->
     forcedRecipientEmail: null
     forcedRecipientUsername: null
 
-  githubapi      =
-    debug       : options.debugGithubAPI
-    timeout     : 5000
-    userAgent   : "Koding-Bridge-#{options.configName}"
+  githubapi =
+    debug: options.debugGithubAPI
+    timeout: 5000
+    userAgent: "Koding-Bridge-#{options.configName}"
 
   gitlab =
     host: options.gitlabHost or credentials.gitlab.host
@@ -20,7 +20,7 @@ module.exports = (options, credentials) ->
     team: credentials.gitlab.team
     redirectUri: "http://#{credentials.gitlab.team}.#{options.host}/-/oauth/gitlab/callback"
     systemHookToken: options.gitlabToken or credentials.gitlab.systemHookToken
-    hooksEnabled: options.gitlabHost or credentials.gitlab.host
+    hooksEnabled: options.gitlabHost? or credentials.gitlab?.host? or credentials.gitlab?.hooksEnabled
 
   regions =
     kodingme: "#{options.configName}"
