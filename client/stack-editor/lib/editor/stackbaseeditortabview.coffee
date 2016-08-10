@@ -1,8 +1,7 @@
 kd      = require 'kd'
-KDView  = kd.View
 isMine  = require 'app/util/isMine'
 
-module.exports = class StackBaseEditorTabView extends KDView
+module.exports = class StackBaseEditorTabView extends kd.View
 
 
   constructor: (options = {}, data) ->

@@ -3,7 +3,7 @@ kd = require 'kd'
 AppController = require 'app/appcontroller'
 StackEditorView = require './editor'
 showError = require 'app/util/showError'
-OnboardingView = require 'stacks/views/stacks/onboarding/onboardingview'
+OnboardingView = require './onboarding/onboardingview'
 EnvironmentFlux = require 'app/flux/environment'
 
 do require './routehandler'

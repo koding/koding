@@ -21,7 +21,7 @@ ContentModal = require 'app/components/contentModal'
 
 MissingDataView      = require './missingdataview'
 
-{ jsonToYaml }       = require 'stacks/views/stacks/yamlutils'
+{ jsonToYaml }       = require 'app/util/stacks/yamlutils'
 
 
 module.exports = class ComputeControllerUI

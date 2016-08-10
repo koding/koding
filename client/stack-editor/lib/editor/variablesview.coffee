@@ -1,12 +1,11 @@
 kd                         = require 'kd'
 _                          = require 'lodash'
 remote                     = require('app/remote').getInstance()
-KDView                     = kd.View
-StackBaseEditorTabView     = require './stackbaseeditortabview'
-requirementsParser         = require './requirementsparser'
-VariablesEditorView        = require './editors/variableseditorview'
-{ yamlToJson, jsonToYaml } = require './yamlutils'
+requirementsParser         = require 'app/util/stacks/requirementsparser'
+{ yamlToJson, jsonToYaml } = require 'app/util/stacks/yamlutils'
 
+StackBaseEditorTabView     = require './stackbaseeditortabview'
+VariablesEditorView        = require './variableseditorview'
 
 module.exports = class VariablesView extends StackBaseEditorTabView
 
@@ -35,7 +34,7 @@ module.exports = class VariablesView extends StackBaseEditorTabView
   viewAppended: ->
     super
 
-    @indicator = @parent.tabHandle.addSubView new KDView
+    @indicator = @parent.tabHandle.addSubView new kd.View
       cssClass : 'indicator'
       partial  : '0'
 

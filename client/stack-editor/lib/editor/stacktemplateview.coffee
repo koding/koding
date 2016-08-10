@@ -3,7 +3,7 @@ KDButtonView            = kd.ButtonView
 Encoder                 = require 'htmlencode'
 curryIn                 = require 'app/util/curryIn'
 StackBaseEditorTabView  = require './stackbaseeditortabview'
-StackTemplateEditorView = require './editors/stacktemplateeditorview'
+StackTemplateEditorView = require './stacktemplateeditorview'
 
 
 module.exports = class StackTemplateView extends StackBaseEditorTabView
