@@ -521,6 +521,7 @@ func newKodingProvider(sess *session.Session, conf *Config, authUsers map[string
 			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
 		},
 		AuthorizedUsers: authUsers,
+		NopDestroy:      true,
 	}
 	// TODO(rjeczalik): move interval to config
 	go kp.RunCleaners(time.Minute * 60)

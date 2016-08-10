@@ -40,6 +40,7 @@ type Provider struct {
 	CheckerFetcher plans.CheckerFetcher
 
 	AuthorizedUsers map[string]string
+	NopDestroy      bool
 }
 
 func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
@@ -53,6 +54,8 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	// thing. (Because findAndModify() also returns "not found" for the case
 	// where the id exist but someone else is the assignee).
 	machine := NewMachine()
+	machine.NopDestroy = p.NopDestroy
+
 	if err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.FindId(bson.ObjectIdHex(id)).One(machine.Machine)
 	}); err == mgo.ErrNotFound {

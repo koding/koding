@@ -47,13 +47,14 @@ type Machine struct {
 	*models.Machine
 
 	// internal fields, not availabile in MongoDB schema
-	Username string                 `bson:"-"`
-	User     *models.User           `bson:"-"`
-	Payment  *plans.PaymentResponse `bson:"-"`
-	Checker  plans.Checker          `bson:"-"`
-	Session  *session.Session       `bson:"-"`
-	Log      logging.Logger         `bson:"-"`
-	Locker   kloud.Locker           `bson:"-"`
+	Username   string                 `bson:"-"`
+	User       *models.User           `bson:"-"`
+	Payment    *plans.PaymentResponse `bson:"-"`
+	Checker    plans.Checker          `bson:"-"`
+	Session    *session.Session       `bson:"-"`
+	Log        logging.Logger         `bson:"-"`
+	Locker     kloud.Locker           `bson:"-"`
+	NopDestroy bool                   `bson:"-"`
 
 	// cleanFuncs are a list of functions that are called when after a method
 	// is finished
