@@ -132,3 +132,4 @@ resource:
       email: '${var.koding_username}@koding.com'
       notificationEmail: '${var.koding_user_contact_email}'
 ###
+

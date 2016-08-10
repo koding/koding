@@ -1,4 +1,4 @@
-defaultTemplate = require './views/stacks/defaulttemplate'
+defaultTemplate = require './defaulttemplate'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 generateTemplateRawContent = require 'app/util/generateTemplateRawContent'
 
@@ -19,3 +19,4 @@ module.exports = {
   credentials: {}
   templateDetails: null
 }
+

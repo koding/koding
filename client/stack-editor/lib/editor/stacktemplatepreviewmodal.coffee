@@ -1,7 +1,7 @@
 kd = require 'kd'
 applyMarkdown = require 'app/util/applyMarkdown'
 ContentModal = require 'app/components/contentModal'
-StackTemplateEditorView  = require './editors/stacktemplateeditorview'
+StackTemplateEditorView  = require './stacktemplateeditorview'
 
 module.exports = class StackTemplatePreviewModal extends ContentModal
 
