@@ -189,6 +189,7 @@ type RuntimeOptions struct {
 		Moderation bool `json:"moderation"`
 		Teams      bool `json:"teams"`
 		BotChannel bool `json:"botchannel"`
+		Gitlab     bool `json:"gitlab"`
 	} `json:"disabledFeatures"`
 	ContentRotatorUrl string `json:"contentRotatorUrl"`
 	Integration       struct {

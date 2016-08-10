@@ -78,6 +78,7 @@ Configuration = (options = {}) ->
     moderation : yes
     teams      : no
     botchannel : yes
+    gitlab     : yes
 
   KONFIG = require('./generateKonfig')(options, credentials)
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
