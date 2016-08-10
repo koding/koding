@@ -1,12 +1,11 @@
 .SidebarWidget
   .Popover-Wrapper
     padding                 20px
-    size                    210px auto
+    size                    200px auto
     bg                      color, #FFFFFF
-    // border                  1px solid #c1c1c1
     shadow                  0 0 29px rgba(0,0,0,0.33)
-    rounded                 3px
-    font-family             adelleSans
+    rounded                 4px
+    font-family             SoleilFamily
 
     &::before
       content               ''
@@ -135,18 +134,29 @@
     .Popover-Wrapper
 
       span
-        color               #515151
-        font-size           16px
+        color               #F2778A
+        font-size           17px
+        font-weight         500
 
       .kdbutton
         float               none
-        bg                  color #51BE84
+        bg                  color #F2778A
+        width               100%
+        .button-title
+          font-weight       600
+          font-size         13px
         &:hover
-          bg                color #44B076
+          bg                color #DD6E7F
+        &:focus
+          border            1px solid #7dbef1
+          -webkit-box-shadow 0 0 3px rgba(125,190,241,.7)
+          -moz-box-shadow 0 0 3px rgba(125,190,241,.7)
+          box-shadow 0 0 3px rgba(125,190,241,.7)
 
       p
         dBlock()
-        margin              10px 0
+        margin              10px 0 20px 0
+        font-weight         300
 
   &.DeleteWorkspace
     .DeleteWorkspace-Guide
