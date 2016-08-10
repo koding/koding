@@ -230,7 +230,7 @@ saveOauthToSession = (oauthInfo, clientId, provider, callback) ->
 redirectOauth = (err, req, res, options) ->
   { returnUrl, provider } = options
 
-  redirectUrl = "/Account/Oauth?provider=#{provider}&error=#{err}"
+  redirectUrl = "/Home/Oauth?provider=#{provider}&error=#{err}"
 
   # when returnUrl does not exist, handle oauth authentication in client side
   # this is temporary solution for authenticating registered users
