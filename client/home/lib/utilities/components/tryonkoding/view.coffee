@@ -6,9 +6,15 @@ CodeBlock = require 'app/components/codeblock'
 
 module.exports = class TryOnKodingView extends React.Component
 
+  comingSoon: ->
+
+    return new kd.NotificationView
+      title    : 'Coming Soon!'
+      duration : 2000
+
   renderGuideButton: ->
 
-    <a className='custom-link-view HomeAppView--button' href='https://www.koding.com/docs/koding-button'>
+    <a className='custom-link-view HomeAppView--button' onClick={@comingSoon}>
       <span className='title'>VIEW GUIDE</span>
     </a>
 

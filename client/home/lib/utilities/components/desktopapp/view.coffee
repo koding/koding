@@ -8,9 +8,16 @@ module.exports = class DesktopAppView extends React.Component
 
   renderGuideButton: ->
 
-    <a className="custom-link-view HomeAppView--button fl" href="https://www.koding.com/docs/desktop-app">
+    <a className="custom-link-view HomeAppView--button fl" onClick={@comingSoon}>
       <span className="title">VIEW GUIDE</span>
     </a>
+
+  comingSoon: ->
+
+    return new kd.NotificationView
+      title    : 'Coming Soon!'
+      duration : 2000
+
 
   renderDownloadButton: ->
 
