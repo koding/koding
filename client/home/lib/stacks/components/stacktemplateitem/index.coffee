@@ -1,5 +1,6 @@
 kd = require 'kd'
 _ = require 'lodash'
+$ = require 'jquery'
 React = require 'kd-react'
 TimeAgo = require 'app/components/common/timeago'
 UnreadCount = require 'app/components/sidebarmachineslistitem/unreadcount'
@@ -18,13 +19,14 @@ module.exports = class StackTemplateItem extends React.Component
         top       : 0
       showWidget  : no
 
-    $('.kdscrollview').on 'scroll', @bound 'scrollOnPage'
-
 
   componentWillReceiveProps: -> @setCoordinates()
 
 
-  componentDidMount: -> @setCoordinates()
+  componentDidMount: ->
+    $('.kdscrollview').on 'scroll', _.debounce @bound('scrollOnPage'), 500, { leading: yes, trailing: no }
+    @setCoordinates()
+
 
   scrollOnPage: ->
 
@@ -76,7 +78,8 @@ module.exports = class StackTemplateItem extends React.Component
     return null  unless @getStackUnreadCount()
     return null  if not coordinates.left and coordinates.top
 
-    coordinates.top = coordinates.top - 156
+    coordinates.top = coordinates.top - 148
+    coordinates.left = coordinates.left - 22
     <StackUpdatedWidget className={'StackTemplate'} coordinates={coordinates} stack={@props.stack} show={showWidget} />
 
 
@@ -106,6 +109,7 @@ module.exports = class StackTemplateItem extends React.Component
       </div>
     </div>
 
+
 makeTitle = ({ template, stack }) ->
 
   title = _.unescape template.get 'title'
@@ -114,4 +118,3 @@ makeTitle = ({ template, stack }) ->
   return title  unless oldOwner = stack.getIn(['config', 'oldOwner'])
 
   return "#{title} (@#{oldOwner})"
-
