@@ -78,7 +78,7 @@ module.exports = class StackTemplateItem extends React.Component
     return null  unless @getStackUnreadCount()
     return null  if not coordinates.left and coordinates.top
 
-    coordinates.top = coordinates.top - 148
+    coordinates.top = coordinates.top - 160
     coordinates.left = coordinates.left - 22
     <StackUpdatedWidget className={'StackTemplate'} coordinates={coordinates} stack={@props.stack} show={showWidget} />
 
