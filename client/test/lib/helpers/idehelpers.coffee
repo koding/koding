@@ -1,4 +1,5 @@
 helpers           = require './helpers.js'
+utils = require '../utils/utils.js'
 panelSelector     = '.pane-wrapper .kdsplitview-panel.panel-1'
 tabHandleSelector = "#{panelSelector} .application-tab-handle-holder"
 
@@ -81,17 +82,26 @@ module.exports =
     newName             = helpers.getFakeText().split(' ')[0] + '.txt'
     titleSelector       = "div[title='/home/#{user.username}/#{newName}']"
     saveButtonSelector  = "#{saveAsModalSelector} .kddialog-buttons .green span.button-title"
-
+    text                ?= 'For example'
+    closeSelector       = '.ContentModal.content-modal footer .kdbutton.cancel'
 
     @openNewFile(browser)
 
     if text
-      @setTextToEditor browser, text
+      @setTextToEditor browser, 'For example'
 
+    @closeFile browser, newName, user
+
+    browser
+      .waitForElementVisible closeSelector, 20000
+      .click closeSelector
+
+    @openNewFile(browser)
     @openContextMenu(browser)
 
     browser
       .waitForElementVisible  saveSelector, 20000
+      .pause 5000
       .click                  saveSelector
       .waitForElementVisible  saveAsModalSelector, 20000
       .waitForElementVisible  saveAsInputSelector, 20000
@@ -102,9 +112,6 @@ module.exports =
       .waitForElementVisible  filesTabSelector, 20000
       .waitForTextToContain   filesTabSelector, newName # Assertion
 
-    if text
-      browser.assert.containsText panelSelector, text
-
     browser.pause 10, -> callback()
 
     return newName
@@ -113,7 +120,6 @@ module.exports =
   setTextToEditor: (browser, text) ->
 
     browser.execute "_kd.singletons.appManager.frontApp.activeTabView.activePane.view.setContent('#{text}')"
-
 
 
   saveFile: (browser) ->
@@ -236,8 +242,8 @@ module.exports =
 
     configPath     = '/home/' + user.username + '/.config'
     name        = fileFolderName
-    packageInstallerModal = '.kdmodal.kddraggable.with-buttons'
-    installPackageButton = "#{packageInstallerModal} .kdbutton.solid.green.medium"
+    packageInstallerModal = '.kdmodal-inner'
+    installPackageButton = '[testpath=proceed]'
 
     if type is 'folder'
       configPath   = '/home/' + user.username
@@ -283,3 +289,27 @@ module.exports =
 
     helpers.deleteFile browser, fileFolderSelector , ->
       helpers.deleteFile browser, newFile, -> callback()
+
+  #Will be reimplement
+  # dragDropFile: (browser, fileName) ->
+  #   user = utils.getUser()
+  #   filePath            = "/home/#{user.username}/.config/#{fileName}"
+  #   fileSelector        = "span[title='#{filePath}']"
+  #   dropFilePath        = '.vm'
+
+  #   paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
+  #   tabSelector  = '.kdtabhandle.terminal:nth-of-type(2)'
+
+  #   # helpers.openFolderContextMenu(browser, user, '.config')
+
+  #   browser
+  #     .pause   4000
+  #     .waitForElementVisible    tabSelector, 20000
+  #     .waitForElementVisible    paneSelector, 20000
+  #     .waitForElementVisible    '.kdtabhandle.plus:nth-of-type(1)', 20000
+  #     .moveToElement            tabSelector, 20, 3
+  #     .mouseButtonDown 0
+  #     .pause 2000
+  #     .moveToElement           '.kdtabhandle.plus:nth-of-type(1)',  0,  0
+  #     .mouseButtonUp 0
+  #     .pause 5000
