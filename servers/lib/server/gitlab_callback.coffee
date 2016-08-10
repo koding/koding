@@ -17,7 +17,7 @@ fail = (req, res) ->
 fetchUserInfo = (req, res, access_token) -> (error, response, body) ->
 
   if error or not id = body.id
-    console.error '[GITLAB] Failed fetch user info:', error
+    console.error '[GITLAB][3/3] Failed to fetch user info:', error
     return fail req, res
 
   { username, id, email, name } = body
@@ -47,7 +47,7 @@ fetchUserInfo = (req, res, access_token) -> (error, response, body) ->
 authorizeUser = (req, res) -> (error, response, body) ->
 
   if error or not access_token = body.access_token
-    console.error '[GITLAB] Failed to get access_token:', error
+    console.error '[GITLAB][2/3] Failed to get access_token:', error
     return fail req, res
 
   options   =
@@ -62,7 +62,7 @@ authorizeUser = (req, res) -> (error, response, body) ->
 module.exports = (req, res) ->
 
   unless code = req.query.code
-    console.error '[GITLAB] Failed to get code from query:', req.query
+    console.error '[GITLAB][1/3] Failed to get code from query:', req.query
     return fail req, res
 
   options           =

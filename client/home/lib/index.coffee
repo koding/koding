@@ -78,7 +78,7 @@ module.exports = class HomeAppController extends AppController
     error = null  if error is 'null'
     kd.singletons.oauthController.authCompleted error, provider
 
-    kd.singletons.router.handleRoute "/#{@options.name}/my-account#integrations",
+    kd.singletons.router.handleRoute "/#{@options.name}/my-account",
       shouldPushState : yes
       replaceState    : yes
 
