@@ -3,7 +3,7 @@
     padding                 20px
     size                    210px auto
     bg                      color, #FFFFFF
-    border                  1px solid #c1c1c1
+    // border                  1px solid #c1c1c1
     shadow                  0 0 29px rgba(0,0,0,0.33)
     rounded                 3px
     font-family             adelleSans
@@ -48,10 +48,10 @@
          dIBlock()
 
   .SidebarWidget-Title
-    color                   #909090
+    color                   #979797
     font-size               14px
     margin                  10px 0
-    line-height             20px
+    line-height             18px
 
   .kdbutton.green
     fr()
@@ -135,12 +135,14 @@
     .Popover-Wrapper
 
       span
-        color               #02a74d
-        font-size           17px
+        color               #515151
+        font-size           16px
 
       .kdbutton
         float               none
-        margin              0 auto
+        bg                  color #51BE84
+        &:hover
+          bg                color #44B076
 
       p
         dBlock()
@@ -190,7 +192,7 @@
       &::before
         top                 13px
 
-  &.stackTemplate
+  &.StackTemplate
     .Popover-Wrapper
       &::before
         top                 initial
@@ -198,4 +200,4 @@
         bottom              -20px
         border-left         10px solid transparent
         border-right        10px solid transparent
-        border-top          10px solid #fff
+        border-top          10px solid #FFF
