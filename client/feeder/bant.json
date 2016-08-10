@@ -1,7 +1,0 @@
-{
-  "name": "feeder",
-  "main": "./lib/index.coffee",
-  "styles": [
-    "./lib/styl/*.styl"
-  ]
-}
