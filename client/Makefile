@@ -4,6 +4,8 @@ CLIENT=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SCRIPTS=$(CLIENT)/../scripts
 RUN=$(CLIENT)/../run
 
+all: landing development
+
 build-prod:
 	npm run build:prod
 
@@ -13,11 +15,11 @@ build-dev:
 watch-dev:
 	npm run watch:dev
 
-all: landing development
+watch: bongo_schema node_modules watch-dev
 
-dist: landing build-prod
+dist: bongo_schema node_modules landing build-prod
 
-development: bongo_schema node_modules watch-dev
+development: watch
 
 bongo_schema:
 	$(RUN) exec $(SCRIPTS)/generate-bongo-schema > $(MKFILE_DIR).schema.json
