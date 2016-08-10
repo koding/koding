@@ -1,8 +1,8 @@
 kd = require 'kd'
 Encoder = require 'htmlencode'
-MarkdownEditorView = require './editors/markdowneditorview'
+MarkdownEditorView = require './markdowneditorview'
 StackBaseEditorTabView = require './stackbaseeditortabview'
-defaults = require '../../defaults'
+defaults = require 'app/util/stacks/defaults'
 
 
 module.exports = class ReadmeView extends StackBaseEditorTabView

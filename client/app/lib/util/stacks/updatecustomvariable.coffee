@@ -64,3 +64,4 @@ module.exports = updateCustomVariable = (options, callback) ->
 
   else
     createAndUpdate { provider, title, meta, stackTemplate }, callback
+

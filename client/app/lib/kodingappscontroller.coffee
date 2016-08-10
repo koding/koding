@@ -25,7 +25,6 @@ AppClasses =
   pricing: require 'pricing'
   showcase: require 'showcase'
   'stack-editor': require 'stack-editor'
-  stacks: require 'stacks'
   testrunner: require 'testrunner'
   # viewer: require 'viewer'
 
