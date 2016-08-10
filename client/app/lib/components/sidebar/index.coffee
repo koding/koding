@@ -3,7 +3,6 @@ kd = require 'kd'
 Link = require 'app/components/common/link'
 React = require 'kd-react'
 Scroller = require 'app/components/scroller'
-ActivityFlux = require 'activity/flux'
 KDReactorMixin = require 'app/flux/base/reactormixin'
 EnvironmentFlux = require 'app/flux/environment'
 SidebarNoStacks = require 'app/components/sidebarstacksection/sidebarnostacks'
@@ -25,8 +24,6 @@ module.exports = class Sidebar extends React.Component
 
   PREVIEW_COUNT = 10
 
-  { getters, actions } = ActivityFlux
-
   constructor: (props) ->
 
     super props
@@ -36,9 +33,6 @@ module.exports = class Sidebar extends React.Component
 
   getDataBindings: ->
     return {
-      publicChannels               : getters.followedPublicChannelThreadsWithSelectedChannel
-      privateChannels              : getters.followedPrivateChannelThreads
-      selectedThreadId             : getters.selectedChannelThreadId
       stacks                       : SidebarFlux.getters.sidebarStacks
       drafts                       : SidebarFlux.getters.sidebarDrafts
       sharedMachines               : EnvironmentFlux.getters.sharedMachines
