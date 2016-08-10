@@ -111,7 +111,7 @@ func realMain() error {
 }
 
 func createUser(username string, groups []string) error {
-	var args = []string{"--disabled-password", "--shell", "/bin/bash", "--gecos", "Koding", username}
+	var args = []string{"--disabled-password", "--shell", "/bin/bash", "--gecos", "Koding", "--force-badname", username}
 	adduser := newCommand("adduser", args...)
 	if err := adduser.Run(); err != nil {
 		return err
