@@ -7,13 +7,12 @@ groupifyLink                    = require '../../util/groupifyLink'
 CustomLinkView                  = require '../../customlinkview'
 ChatSearchModal                 = require './chatsearchmodal'
 ActivitySideView                = require './activitysideview'
-KDCustomHTMLView                = kd.CustomHTMLView
 SidebarTopicItem                = require './sidebartopicitem'
 isFeatureEnabled                = require 'app/util/isFeatureEnabled'
-fetchChatChannels               = require 'activity/util/fetchChatChannels'
+fetchChatChannels               = require 'app/util/fetchChatChannels'
 isSoloProductLite               = require 'app/util/issoloproductlite'
 SidebarMessageItem              = require './sidebarmessageitem'
-fetchChatChannelCount           = require 'activity/util/fetchChatChannelCount'
+fetchChatChannelCount           = require 'app/util/fetchChatChannelCount'
 sortEnvironmentStacks           = require 'app/util/sortEnvironmentStacks'
 isChannelCollaborative          = require '../../util/isChannelCollaborative'
 SidebarOwnMachinesList          = require './sidebarownmachineslist'
@@ -29,7 +28,7 @@ ChannelActivitySideView         = require './channelactivitysideview'
 # vm menu and activity menu should be separated
 # needs a little refactor. - SY
 
-module.exports = class ActivitySidebar extends KDCustomHTMLView
+module.exports = class ActivitySidebar extends kd.CustomHTMLView
 
   revive = (data) ->
 
@@ -477,7 +476,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     if @groupStacksChangedWarning and not @groupStacksChangedWarning.isDestroyed
       return @groupStacksChangedWarning.show()
 
-    view = new KDCustomHTMLView
+    view = new kd.CustomHTMLView
       cssClass : 'warning-section'
       partial  : """
         <header class='SidebarSection-header'>
@@ -489,7 +488,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         </p>
       """
 
-    view.addSubView new KDCustomHTMLView
+    view.addSubView new kd.CustomHTMLView
       tagName: 'a'
       partial: 'Show Stacks'
       attributes: { href: '/Stacks' }
@@ -530,18 +529,15 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
           """
 
       cssClass = 'warning-section hidden'
-      view     = new KDCustomHTMLView { cssClass, partial }
+      view     = new kd.CustomHTMLView { cssClass, partial }
 
       unless 'admin' in (roles ? [])
-        view.addSubView new KDCustomHTMLView
+        view.addSubView new kd.CustomHTMLView
           tagName: 'a'
           partial: 'Message admin'
           attributes: { href: '/Messages/New' }
           click: (event) ->
             kd.utils.stopDOMEvent event
-
-            ActivityFlux = require 'activity/flux'
-            ActivityFlux.actions.thread.switchToDefaultChannelForStackRequest()
 
       @stacksNotConfiguredWarning = @machinesWrapper.addSubView view, null, yes
 
@@ -575,7 +571,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @machineListsByName = {}
 
     unless @machinesWrapper
-      @addSubView @machinesWrapper = new KDCustomHTMLView
+      @addSubView @machinesWrapper = new kd.CustomHTMLView
         cssClass: 'machines-wrapper'
 
     @createDefaultMachineList expandedBoxUIds
