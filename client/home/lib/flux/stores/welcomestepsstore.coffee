@@ -106,8 +106,6 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
 
     @on actions.MARK_WELCOME_STEP_AS_DONE, @handleMarkAsDone
 
-    @on actions.MIGRATION_AVAILABLE, @handleMigration
-
 
   handleMarkAsDone: (steps, { step }) ->
 
@@ -119,15 +117,3 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
 
 
 
-  handleMigration: (steps) ->
-
-    steps.setIn [ 'common', 'migrateFromKoding' ], toImmutable
-      path: '/MigrateFromSolo'
-      title: 'Migrate from Solo'
-      actionTitle: 'Migrate'
-      videoLink: ''
-      description: 'You can migrate your solo machines to team!'
-      isDone: no
-      order: 30
-      starred: yes
-      skippable: yes

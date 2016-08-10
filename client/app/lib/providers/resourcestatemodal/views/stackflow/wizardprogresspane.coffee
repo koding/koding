@@ -12,7 +12,11 @@ module.exports = class WizardProgressPane extends kd.View
     @addSteps()
 
 
-  addAlien: -> @addSubView new kd.CustomHTMLView { cssClass : 'alien' }
+  addAlien: ->
+
+    @addSubView new kd.CustomHTMLView
+      tagName  : 'figure'
+      cssClass : 'alien'
 
 
   addSteps: ->
