@@ -1,5 +1,5 @@
 kd                         = require 'kd'
-AdminAppController         = require 'admin/index'
+AppController              = require 'app/appcontroller'
 StackCatalogModalView      = require './views/customviews/stackcatalogmodalview'
 
 YourStacksView             = require 'app/environment/yourstacksview'
@@ -9,7 +9,7 @@ GroupStackTemplatesView    = require './views/stacks/group/groupstacktemplatesvi
 
 require('./routehandler')()
 
-module.exports = class StacksAppController extends AdminAppController
+module.exports = class StacksAppController extends AppController
 
   @options     =
     name       : 'Stacks'
