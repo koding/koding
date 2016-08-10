@@ -30,7 +30,7 @@ do ->
       kd.config.group = group
       # add Gitlab Config into kd.config if it's enabled for this team
       gitlab = window._runtimeOptions.gitlab ? {}
-      if gitlab.team is group.slug
+      if gitlab.team is group.slug and kd.config.environment isnt 'production'
         kd.config.gitlab = gitlab
 
     # BIG BANG
