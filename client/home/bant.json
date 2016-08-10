@@ -6,9 +6,7 @@
     "/Home": "home",
     "/Home/:section": "section",
     "/Home/:section/:action": "action",
-    "/Home/:section/:action/:identifier": "identifier",
-    "/Home/:section/:action/:identifier/:extra": "extra",
-    "/Home/:section/:action/:identifier/:extra/:branch": "branch"
+    "/Home/:section/:action/:identifier": "identifier"
   },
   "sprites": [
     "./lib/sprites"

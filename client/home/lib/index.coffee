@@ -63,7 +63,7 @@ module.exports = class HomeAppController extends AppController
     if identifier
       targetPaneView.handleIdentifier? identifier, action
     else if action
-      targetPaneView.handleAction? action
+      targetPaneView.handleAction? action, query
     else
       @doOnboarding targetPane
 
