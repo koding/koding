@@ -14,7 +14,6 @@ AppClasses =
   account: require 'account'
   ace: require 'ace'
   activity: require 'activity'
-  admin: require 'admin'
   dashboard: require 'dashboard'
   features: require 'features'
   feeder: require 'feeder'

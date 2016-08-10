@@ -83,6 +83,10 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       document.cookie = 'clientId=false'
       location.reload()
 
+    # this whole block is probably unnecessary, because we are not supporting
+    # /(teamName|groupName) scheme anymore. We would probably just return a not
+    # found here no matter what, because this block is being hit ONLY IF there
+    # is no other matching route found. ~Umut
     when 'name'
       open = (routeInfo, model) ->
         switch model?.bongo_?.constructorName
@@ -92,9 +96,9 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
             (createSectionHandler 'Activity') routeInfo, model
           else
             ctx.handleNotFound routeInfo.params.name
-      # (routeInfo, state, route)->
 
       if state? then open.call this, info, state
+      else if not info?.params?.name then open.call this, info
       else
         remote.cacheable info.params.name, (err, models, name) =>
           if models?
