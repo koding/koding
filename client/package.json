@@ -76,7 +76,7 @@
     "c-lab:build": "styleguidist build",
     "c-lab": "npm run c-lab:server",
     "build:dev": "NODE_ENV=development webpack --config webpack.config.coffee",
-    "build:prod": "NODE_ENV=production webpack --config webpack.config.coffee",
+    "build:prod": "NODE_ENV=production webpack --config webpack.config.coffee --bail",
     "watch:dev": "NODE_ENV=development webpack --config webpack.config.coffee --colors --debug --watch"
   },
   "browser": {
