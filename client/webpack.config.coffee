@@ -19,6 +19,7 @@ THIRD_PARTY_PATH   = path.join CLIENT_PATH, './thirdparty'
 ASSETS_PATH        = path.join CLIENT_PATH, './assets'
 COMMON_STYLES_PATH = path.join CLIENT_PATH, 'app/styl/**/*.styl'
 PUBNUB_PATH        = path.join THIRD_PARTY_PATH, 'pubnub.min.js'
+IMAGES_PATH        = path.join WEBSITE_PATH, 'a', 'images'
 
 # we are gonna set NODE_ENV to either `production` or `development` to figure
 # out the compile target.
@@ -69,6 +70,7 @@ webpackConfig.resolve =
     kd: 'kd.js'
     pubnub: PUBNUB_PATH
     assets: ASSETS_PATH
+    images: IMAGES_PATH
 
 # Loader config
 
