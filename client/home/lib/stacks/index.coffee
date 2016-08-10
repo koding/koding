@@ -1,6 +1,7 @@
 kd = require 'kd'
 sectionize = require '../commons/sectionize'
 headerize = require '../commons/headerize'
+isFeatureEnabled = require 'app/util/isFeatureEnabled'
 
 HomeStacksCreate = require './homestackscreate'
 HomeStacksTeamStacks = require './homestacksteamstacks'
@@ -8,6 +9,7 @@ HomeStacksPrivateStacks = require './homestacksprivatestacks'
 HomeStacksDisabledUsers = require './homestacksdisableduserstacks'
 HomeStacksDrafts = require './homestacksdrafts'
 HomeStacksTabHandle = require './homestackstabhandle'
+HomeStacksImport = require './homestacksimport'
 
 HomeVirtualMachinesVirtualMachines = require '../virtualmachines/homevirtualmachinesvirtualmachines'
 HomeVirtualMachinesConnectedMachines = require '../virtualmachines/homevirtualmachinesconnectedmachines'
@@ -45,6 +47,11 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     @tabView.addPane @vms         = new kd.TabPaneView { name: 'Virtual Machines' }
     @tabView.addPane @credentials = new kd.TabPaneView { name: 'Credentials' }
 
+    if isFeatureEnabled 'gitlab'
+      @tabView.addPane @importView  = new kd.TabPaneView {
+        view: new HomeStacksImport
+        name: 'Import'
+      }
 
     @tabView.showPane @stacks
 
