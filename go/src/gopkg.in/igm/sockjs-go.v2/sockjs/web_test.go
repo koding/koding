@@ -3,6 +3,7 @@ package sockjs
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -26,6 +27,21 @@ func TestXhrCors(t *testing.T) {
 	xhrCors(rec, req)
 	if rec.Header().Get("access-control-allow-headers") != "some value" {
 		t.Errorf("Incorent value for ACAH, got %s", rec.Header().Get("access-control-allow-headers"))
+	}
+
+	rec = httptest.NewRecorder()
+	xhrCors(rec, req)
+	if rec.Header().Get("access-control-allow-credentials") != "true" {
+		t.Errorf("Incorent value for ACAC, got %s", rec.Header().Get("access-control-allow-credentials"))
+	}
+
+	// verify that if Access-Control-Allow-Credentials was previously set that xhrCors() does not duplicate the value
+	rec = httptest.NewRecorder()
+	rec.Header().Set("Access-Control-Allow-Credentials", "true")
+	xhrCors(rec, req)
+	acac := rec.Header()["Access-Control-Allow-Credentials"]
+	if len(acac) != 1 || acac[0] != "true" {
+		t.Errorf("Incorent value for ACAC, got %s", strings.Join(acac, ","))
 	}
 }
 
