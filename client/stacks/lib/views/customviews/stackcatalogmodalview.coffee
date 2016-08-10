@@ -1,8 +1,8 @@
-AdminAppView                = require 'admin/views/customviews/adminappview'
+kd = require 'kd'
 StackCatalogMainTabPaneView = require './stackcatalogmaintabpaneview'
 
 
-module.exports = class StackCatalogModalView extends AdminAppView
+module.exports = class StackCatalogModalView extends kd.View
 
 
   constructor: (options = {}, data) ->
