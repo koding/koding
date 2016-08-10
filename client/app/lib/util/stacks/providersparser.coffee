@@ -10,3 +10,4 @@ module.exports = providersParser = (content) ->
 
   # Return list of providers
   return Object.keys providers
+

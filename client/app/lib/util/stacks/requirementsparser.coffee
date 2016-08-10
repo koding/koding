@@ -96,3 +96,4 @@ module.exports = requirementsParser = (content) ->
     requirements[match] = Object.keys requirements[match]
 
   return requirements
+
