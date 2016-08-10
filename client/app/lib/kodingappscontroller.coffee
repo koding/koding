@@ -10,7 +10,6 @@ FSHelper         = require './util/fs/fshelper'
 registerAppClass = require './util/registerAppClass'
 
 AppClasses =
-  about: require 'about'
   account: require 'account'
   ace: require 'ace'
   activity: require 'activity'
