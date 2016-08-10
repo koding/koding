@@ -23,7 +23,6 @@ AppClasses =
   ide: require 'ide'
   kites: require 'kites'
   legal: require 'legal'
-  members: require 'members'
   pricing: require 'pricing'
   showcase: require 'showcase'
   'stack-editor': require 'stack-editor'
