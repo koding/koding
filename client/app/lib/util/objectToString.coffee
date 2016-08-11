@@ -9,7 +9,9 @@
 # If fails, returns [Object object]
 #
 
-module.exports = (object, options = {}) ->
+Encoder = require 'htmlencode'
+
+module.exports = objectToString = (object, options = {}) ->
 
   { maxDepth, separator } = options
 
@@ -37,7 +39,7 @@ module.exports = (object, options = {}) ->
       return value
 
   try
-    s = JSON.stringify object, stringify(), separator
+    s = (Encoder.htmlDecode JSON.stringify object, stringify(), separator).replace(/\\n/g, "\n")
   catch e
     console.warn 'Failed to stringify:', e, object
     s = '[Object object]'
