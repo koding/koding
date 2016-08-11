@@ -1,7 +1,6 @@
 require '../../app/test'
 require '../../activity/lib/test'
 require '../../ide/test'
-require '../../account/lib/test'
 require '../../app/lib/providers/test'
 require '../../home/lib/virtualmachines/test/'
 require '../../home/lib/myteam/test/'

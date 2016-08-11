@@ -23,6 +23,7 @@ restoreDefaults = ->
       title      : 'Cancel'
       callback   : -> modal.destroy()
 
+# require './shortcuts.styl'
 
 module.exports =
 
@@ -30,7 +31,6 @@ class AccountEditShortcuts extends kd.View
 
   destroy: ->
 
-    @parent.parent.off 'KDTabPaneInactive', @bound 'destroy'
     @tabView.off 'PaneDidShow', recorder.cancel
 
     kd.getSingleton('shortcuts').unpause()
@@ -40,8 +40,6 @@ class AccountEditShortcuts extends kd.View
 
 
   viewAppended: ->
-
-    @parent.parent.on 'KDTabPaneInactive', @bound 'destroy'
 
     { shortcuts } = kd.singletons
 

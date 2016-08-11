@@ -20,7 +20,7 @@
       border                1px solid #b4b4b4
 
     .icon
-      r-sprite              activity 'check_gray'
+      r-sprite              app 'check_gray'
       margin                0 6px 0 0
       padding               0
       opacity               .3
@@ -30,7 +30,7 @@
       hidden()
 
   .enabled .toggle .icon
-    r-sprite                activity 'check_green'
+    r-sprite                app 'check_green'
     opacity                 1
 
   button.restore
@@ -90,14 +90,14 @@
           display           none
 
         span.cancel
-          r-sprite          account 'shortcuts_cancel'
+          r-sprite          app 'shortcuts_cancel'
           size              9px 9px
           position          absolute
           right             16px
           top               10px
 
           &:hover
-            r-sprite        account 'shortcuts_cancel_hover'
+            r-sprite        app 'shortcuts_cancel_hover'
 
       .col
         display             table-column
@@ -150,7 +150,7 @@
           padding-right     25px
         &:after
           content           ""
-          r-sprite          account 'shortcuts_dup'
+          r-sprite          app 'shortcuts_dup'
           size              20px 21px
           position          absolute
           top               5px
