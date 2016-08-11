@@ -771,8 +771,11 @@ unshareMachineWihAllUsers = (machineId) ->
 
 setLabel = (machineUId, label) ->
 
-  fetchMachineByUId machineUId, (machine) ->
-    machine.setLabel label
+  new Promise (resolve, reject) ->
+    fetchMachineByUId machineUId, (machine) ->
+      machine.setLabel label, (err, newLabel) ->
+        return reject err  if err
+        resolve newLabel
 
 
 module.exports = {
