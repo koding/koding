@@ -11,14 +11,13 @@ module.exports = class UploadCSVModal extends ContentModal
     { input: @input } = options
 
     @trailerContent = '''
-      <p>Before starting to upload your file, please be sure that you have the right format.
-      The file should contain Email, First Name (optional), Last Name (optional), and Role fields in the right order.
-      Roles can be Admin or Member.
+      <p>Before uploading your file, please make sure you have the right format.
+      The file should contain <strong>Email</strong>, <strong>First Name</strong> (optional), <strong>Last Name</strong> (optional), and <strong>Role fields in the right order.
+      Roles can be <strong>Admin</strong> or <strong>Member</strong>.
       </br></br>
-      Here is an example:</p>
-
+      <strong>Here is an example:</strong></p>
+      </br>
       <div class='example-csv'>
-        Email, First Name, Last Name, Role </br>
         micheal@example.com, Micheal R., Crawley, Member </br>
         clora@example.com, Clora J., Ochoa, Member </br>
         randy@example.com, Randy S., Engel, Admin
@@ -26,11 +25,12 @@ module.exports = class UploadCSVModal extends ContentModal
     '''
 
     options = _.assign {}, options,
-      title: 'Upload CSV File'
       cssClass: 'content-modal csv-upload'
       width: 600
 
     super options
+
+    @setTitle 'Upload CSV File'
 
     @createTrailerStatePage()
     @createUploadingStatePage()
@@ -52,8 +52,6 @@ module.exports = class UploadCSVModal extends ContentModal
     @addSubView @uploadingPage = new kd.CustomHTMLView
       tagName: 'main'
       cssClass: 'main-container uploading-state hidden'
-
-    @uploadingPage.addSubView @loader = @getLoaderView()
 
 
   createErrorUploadingPage: ->
@@ -108,28 +106,28 @@ module.exports = class UploadCSVModal extends ContentModal
 
   createFormDataAndRequest : (event) ->
 
+    @setTitle 'Uploading'
     @trailerPage.hide()
     @uploadingPage.show()
 
-    fileNames = []
-
     @formData = new FormData()
 
-    for file in @input.files
-      fileNames.push file.name
-      @formData.append 'file', file, {
-        filename: file.name
-        contentType: 'multipart/form-data'
-      }
+    file = @input.files[0]
+    @formData.append 'file', file, {
+      filename: file.name
+      contentType: 'multipart/form-data'
+    }
 
     @errorUploading?.hide()
 
     @uploadingPage.updatePartial "
       <div>
-       Selected File: </br>
-        #{fileNames.join '</br>'}
+       <p>Selected File: </p>
+        #{file.name}
       </div>
     "
+
+    @uploadingPage.addSubView @loader = @getLoaderView()
 
     @makeReq '/-/teams/invite-by-csv-analyze', 'successAnalyzeCSV', 'errorAnalyzeCSV'
 
@@ -156,6 +154,7 @@ module.exports = class UploadCSVModal extends ContentModal
   successAnalyzeCSV: (result) ->
 
     @loader.hide()
+    @setTitle 'Send Invitations'
 
     if typeof result is 'string'
       @sendData()
@@ -164,44 +163,72 @@ module.exports = class UploadCSVModal extends ContentModal
     @selectAndUpload.hide()
     @sendAllInvites.show()
     @uploadingPage.updatePartial '''
-      Would you like to send an invitation to all people below
-      except already invited members? </br></br>
+      <p>
+        Would you like to send an invitation to all people below
+        except already invited members?
+      </p>
+      </br></br>
       In your files, we have found…
     '''
     { myself, admins, members, extras } = result
+
+    memberLabel = if members.length > 1 then 'Members' else 'Member'
+    adminLabel = if admins.length > 1 then 'Admins' else 'Admin'
+
+    @totalInvitation = admins + members
+
+    analyzeWrapperClassName = 'wrapper'
+    for ex in Object.keys(extras)
+      value = extras["#{ex}"]
+      if value
+        analyzeWrapperClassName = 'wrapper-with-extras'
+        @totalInvitation = @totalInvitation + value
+
+
+
     @successPage.addSubView analyzeCSV = new kd.CustomHTMLView
       cssClass: 'analyzeCSV'
       partial: """
-        <div class='wrapper'>
+        <div class=#{analyzeWrapperClassName}>
           <div class='total'>
-            #{admins+members}</br>
+            #{@totalInvitation}</br>
             <label class='total-label'> Total
           </div>
           <div class='members'>
             #{members}</br>
-            <label class='members-label'> Members
+            <label class='members-label'>#{memberLabel}
           </div>
           <div class='admins'>
             #{admins}</br>
-            <label class='admins-label'> Admins
+            <label class='admins-label'>#{adminLabel}
           </div>
         </div>
       """
+
     analyzeCSV.addSubView extraInfo = new kd.CustomHTMLView
+      cssClass: 'extras-wrapper'
     for ex in Object.keys(extras)
-      if extras["#{ex}"].count
-        extraInfo.setPartial """<div class='alreadyInvited'>+#{extras["#{ex}"].count} #{extras["#{ex}"].label}</div>"""
+      value = extras["#{ex}"]
+      if value
+        if ex is 'alreadyMembers'
+          label = if ex > 1 then 'Already Members' else 'Already Member'
+        else if ex is 'notValidInvites'
+          label = if ex > 1 then 'Invalid Invites' else 'Invalid Invite'
+        else if ex is 'alreadyInvited'
+          label = 'Already Invited'
+        extraInfo.setPartial """<div class='alreadyInvited'><strong>+</strong> #{value} #{label}</div>"""
 
 
   errorAnalyzeCSV: (err) ->
 
+    @setTitle 'Something Went Wrong'
     @loader.hide()
     @errorUploading.show()
     @errorUploading.addSubView showError = new kd.CustomHTMLView
       cssClass: 'show-error'
       partial: '''
-        It seems that the files you have selected not formatted right or empty or there are no valid data.
-        Please make sure that you have selected the right files </br></br>
+        It seems that the file you have selected is not formatted right or has no valid data in it.
+        </br></br>
       '''
 
     showError.addSubView fileFormat = new kd.CustomHTMLView
@@ -221,5 +248,5 @@ module.exports = class UploadCSVModal extends ContentModal
 
   success: (result) ->
 
-    @getOptions().success()
+    @getOptions().success @totalInvitation
     @destroy()
