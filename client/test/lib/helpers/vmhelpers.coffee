@@ -4,6 +4,7 @@ async    = require 'async'
 helpers  = require '../helpers/helpers.js'
 environmentHelpers = require '../helpers/environmenthelpers.js'
 teamsHelpers       = require '../helpers/teamshelpers.js'
+collaborationHelpers = require '../helpers/collaborationhelpers.js'
 utils      = require '../utils/utils.js'
 
 
@@ -21,12 +22,16 @@ vmSharingToggleSelector = "#{vmSharingSelector} .react-toggle-thumb"
 virtualMachineSelector  = '.HomeAppView--section.virtual-machines'
 runningVMSelector       = "#{virtualMachineSelector} .MachinesListItem-machineLabel.Running"
 
-sidebarSharedMachinesSection = '.SidebarSection.SidebarSharedMachinesSection'
-sidebarPopover           = '.Popover-Wrapper'
-acceptSharedMachine      = "#{sidebarPopover} .kdbutton.solid.green.medium"
-rejectSharedMachine      = "#{sidebarPopover} .kdbutton.solid.red.medium"
-closeModal               = '.HomeWelcomeModal.kdmodal .kdmodal-inner .close-icon.closeModal'
-fullName         = '.SidebarWidget-FullName'
+sharedMachineSelector = '.SidebarMachinesListItem.Running'
+sidebarPopover = '.Popover-Wrapper'
+acceptSharedMachine = "#{sidebarPopover} .kdbutton.solid.green.medium"
+rejectSharedMachine = "#{sidebarPopover} .kdbutton.solid.red.medium"
+closeModal = '.HomeWelcomeModal.kdmodal .kdmodal-inner .close-icon.closeModal'
+fullName = '.SidebarWidget-FullName'
+leaveSessionButton = '.SidebarWidget .kdbutton.solid.red'
+proceedButton  = '[testpath=proceed]'
+sharedMachineButtonSettings = '.MachineSettings'
+removeSharedMachineMember = "#{membersList} .remove"
 
 module.exports =
 
@@ -54,11 +59,9 @@ module.exports =
 
   handleInvitation: (browser, host, participant, accept, endSessionAfterAcceptingInvite = yes) ->
 
-    sharedMachineSelector = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
-
     url = helpers.getUrl(yes)
     
-    browser.pause 5000, =>
+    browser.pause 2000, =>
       browser.url url
       browser.maximizeWindow()
       teamsHelpers.loginToTeam browser, participant, no, '',  =>
@@ -67,21 +70,26 @@ module.exports =
           .click closeModal
           .waitForElementVisible '.kdview', 20000
         
-        browser.element 'css selector', sidebarSharedMachinesSection, (result) ->
-          if result.status is 0
-            browser
-              .waitForElementPresent  sidebarSharedMachinesSection, 20000
-            @acceptOrRejectInvitation(browser, host, participant, accept)
+        @waitInvitation browser, (result) =>
+          @openMachineSettings browser
+          browser.element 'css selector', acceptSharedMachine, (result) =>
+            if result.status is 0
+              @acceptOrRejectInvitation(browser, host, participant, accept)
 
         if endSessionAfterAcceptingInvite
           browser.end()
 
 
-  handleInvite: (browser, host, participant, callback) ->
+  waitInvitation: (browser, callback) ->
+    browser.element 'css selector', sharedMachineSelector, (result) =>
+      if result.status is 0
+        callback()
+      else
+        @waitInvitation browser, callback
 
-    modalSelector         = '.computeplan-modal.free-plan .kdmodal-inner'
-    userSelector          = '.listview-wrapper .kdlistitemview-user'
-    sharedMachineSelector = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
+  
+  handleInvite: (browser, host, participant, isInvite, callback) ->
+
     participant.role = 'member'
 
     users = [
@@ -99,14 +107,31 @@ module.exports =
     ]
 
     async.series queue
-    @shareTheMachineWithMembers browser, participant, (result) ->
-      browser.pause 4000, callback 
+    if isInvite
+      @shareTheMachineWithMembers browser, participant, (result) ->
+        browser.pause 4000, callback
+    else
+      @checkInvitedUser  browser, participant, (result) ->
+        callback
 
-  
-  shareTheMachineWithMembers: (browser, member, callback) ->
-    removeSharedMachineMember = "#{membersList} .remove"
-    memberNicknameToShareMachine = "@#{member.username}"
+  checkInvitedUser: (browser, member, callback) ->
     
+    memberNicknameToShareMachine = "@#{member.username}"
+    browser
+      .url virtualMachinesUrl
+      .waitForElementVisible virtualMachineSelector, 20000
+      .waitForElementVisible runningVMSelector, 20000
+      .click runningVMSelector
+      .scrollToElement addAConnectedMachineButtonSelector
+    
+    browser.element 'css selector', '.react-toggle--checked .react-toggle-track:last', (result) ->
+      if result.status is -1
+        callback
+
+
+  shareTheMachineWithMembers: (browser, member, callback) ->
+    
+    memberNicknameToShareMachine = "@#{member.username}"
     browser
       .url virtualMachinesUrl
       .waitForElementVisible virtualMachineSelector, 20000
@@ -151,3 +176,31 @@ module.exports =
         if length - 1 > 0 then close()
 
     close()
+
+
+  leaveMachine: (browser, participant, callback) ->
+    url = helpers.getUrl(yes)
+    browser.pause 3000, =>
+      browser.url url
+      browser.maximizeWindow()
+      teamsHelpers.loginToTeam browser, participant, no, '',  =>
+        browser
+          .waitForElementVisible closeModal, 20000
+          .click closeModal
+        @openMachineSettings browser
+        browser
+          .waitForElementVisible     leaveSessionButton, 20000
+          .click                     leaveSessionButton
+          .waitForElementVisible     '.kdmodal-content', 20000
+          .click                     proceedButton
+          .waitForElementNotVisible  sharedMachineSelector, 30000, callback
+
+
+  openMachineSettings: (browser) ->
+    browser
+      .click                     '#main-sidebar'
+      .waitForElementVisible     sharedMachineSelector, 20000
+      .moveToElement             sharedMachineSelector, 100, 10
+      .waitForElementVisible     sharedMachineButtonSettings, 20000
+      .click                     sharedMachineButtonSettings
+      .waitForElementVisible     sidebarPopover, 20000

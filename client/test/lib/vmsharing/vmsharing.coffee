@@ -9,7 +9,23 @@ module.exports =
 
   before: (browser) -> utils.beforeCollaborationSuite browser
 
-  shareVMAndAcceptInvitaion: (browser) ->
+  # shareVMAndAcceptInvitaion: (browser) ->
+
+  #   host                  = utils.getUser no, 0
+  #   hostBrowser           = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+  #   participant           = utils.getUser no, 1
+
+  #   browser.pause 2500, -> # wait for user.json creation
+  #     if hostBrowser
+  #       callback = ->
+  #         browser.end()
+
+  #       vmHelpers.handleInvite(browser, host, participant, yes, callback)
+  #     else
+  #       vmHelpers.handleInvitation(browser, host, participant, yes)
+
+
+  leaveVMSharing: (browser) ->
 
     host                  = utils.getUser no, 0
     hostBrowser           = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
@@ -20,26 +36,21 @@ module.exports =
         callback = ->
           browser.end()
 
-        vmHelpers.handleInvite(browser, host, participant, callback)
+        vmHelpers.handleInvite(browser, host, participant, no, callback)
       else
-        vmHelpers.handleInvitation(browser, host, participant, yes)
+        vmHelpers.leaveMachine(browser, participant, callback)
 
-
+  
   # shareVMAndRejectInvitaion: (browser) ->
 
   #   host                  = utils.getUser no, 0
   #   hostBrowser           = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
   #   participant           = utils.getUser no, 1
-  #   vmSharingListSelector = '.vm-sharing.active'
-  #   userAvatar            = "a.avatarview[href='/#{participant.username}']"
 
   #   browser.pause 2500, -> # wait for user.json creation
   #     if hostBrowser
-
   #       callback = ->
-  #         browser
-  #           .waitForElementNotPresent  userAvatar, 30000
-  #           .end()
+  #         browser.end()
 
   #       vmHelpers.handleInvite(browser, host, participant, callback)
   #     else
