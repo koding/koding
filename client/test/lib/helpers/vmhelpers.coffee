@@ -1,119 +1,77 @@
 assert   = require 'assert'
 helpers  = require '../helpers/helpers.js'
-
+async    = require 'async'
+helpers  = require '../helpers/helpers.js'
 environmentHelpers = require '../helpers/environmenthelpers.js'
-helpers            = require '../helpers/helpers.js'
+teamsHelpers       = require '../helpers/teamshelpers.js'
+utils      = require '../utils/utils.js'
 
+
+virtualMachinesUrl      = "#{helpers.getUrl(yes)}/Home/Stacks/virtual-machines"
+machineSharingDetails   = '.MachineSharingDetails'
+inputSelector           = "#{machineSharingDetails} input.kdinput.text"
+memberSelector          = "#{machineSharingDetails} .AutocompleteListItem"
+membersList             = "#{machineSharingDetails} .UserList"
+sharedUserlist          = "#{machineSharingDetails} .UserList"
+noFoundUserList         = "#{machineSharingDetails} .NoItem"
+addAConnectedMachineButtonSelector = '.kdbutton.GenericButton.HomeAppViewVMSection--addOwnMachineButton'
+machineDetailSelector   = '.MachinesListItem-machineDetails'
+vmSharingSelector       = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(4)"
+vmSharingToggleSelector = "#{vmSharingSelector} .react-toggle-thumb"
+virtualMachineSelector  = '.HomeAppView--section.virtual-machines'
+runningVMSelector       = "#{virtualMachineSelector} .MachinesListItem-machineLabel.Running"
+
+sidebarSharedMachinesSection = '.SidebarSection.SidebarSharedMachinesSection'
+sidebarPopover           = '.Popover-Wrapper'
+acceptSharedMachine      = "#{sidebarPopover} .kdbutton.solid.green.medium"
+rejectSharedMachine      = "#{sidebarPopover} .kdbutton.solid.red.medium"
+closeModal               = '.HomeWelcomeModal.kdmodal .kdmodal-inner .close-icon.closeModal'
+fullName         = '.SidebarWidget-FullName'
 
 module.exports =
 
   acceptOrRejectInvitation: (browser, firstUser, secondUser, accept) ->
 
     firstUserName    = firstUser.username
-    shareModal       = '.share-modal'
-    fullName         = shareModal + ' .user-details .fullname'
-    acceptButton     = shareModal + ' .kdbutton.green'
-    rejectButton     = shareModal + ' .kdbutton.red'
-    selectedMachine  = '.shared-machines .sidebar-machine-box'
-    openMachine      = "#{selectedMachine} .running"
-
     browser
-      .waitForElementVisible     shareModal, 500000 # wait for vm turn on for host
-      .waitForElementVisible     fullName, 50000
-      .assert.containsText       shareModal, firstUserName
+      .waitForElementVisible     sidebarPopover, 50000
+      .waitForElementVisible     fullName, 20000
+      .assert.containsText       fullName, firstUserName
 
     if accept
       browser
-        .waitForElementVisible   acceptButton, 50000
-        .click                   acceptButton
+        .waitForElementVisible   acceptSharedMachine, 20000
+        .click                   acceptSharedMachine
     else
       browser
-        .waitForElementVisible   rejectButton, 50000
-        .click                   rejectButton
+        .waitForElementVisible   rejectSharedMachine, 20000
+        .click                   rejectSharedMachine
 
     browser
-      .waitForElementNotPresent  shareModal, 50000
+      .waitForElementNotPresent  sidebarPopover, 20000
       .pause                     3000 # wait for sidebar redraw
-
-    if accept
-      browser.waitForElementVisible     openMachine, 20000 # Assertion
-    else
-      browser.waitForElementNotPresent  selectedMachine, 20000 # Assertion
-
-
-  clickAddUserButton: (browser) ->
-
-    vmSharingListSelector = '.vm-sharing.active'
-    addUserButtonSelector = "#{vmSharingListSelector} .kdheaderview .green"
-
-    browser
-      .waitForElementVisible  vmSharingListSelector, 20000
-      .waitForElementVisible  addUserButtonSelector, 20000
-      .click                  addUserButtonSelector
-
-
-  upgradePlanForVMSharing: (browser) ->
-
-    modalSelector = '.computeplan-modal.free-plan .kdmodal-inner'
-
-    browser
-      .click                   "#{modalSelector} a[href='/Pricing']"
-      .waitForElementVisible   '.content-page.pricing', 20000
-
-    helpers.selectPlan(browser, 'developer')
-    helpers.fillPaymentForm(browser, 'developer')
-    helpers.submitForm(browser, yes)
-    browser.url helpers.getUrl()
-
-    environmentHelpers.openVmSharingSettings(browser)
-    @clickAddUserButton(browser)
-
-
-  inviteUser: (browser, participant, callback) ->
-
-    addUserInputSelector  = '.add-view input.text'
-
-    browser
-      .waitForElementVisible   addUserInputSelector, 20000
-      .setValue                addUserInputSelector, participant.username
-      .pause                   2000
-      .element 'css selector', '.kdlistitemview-dropdown-member', (result) ->
-        if result.status is 0
-          browser
-            .click '.kdlistitemview-dropdown-member'
-            .pause 3000
-            callback()
-        else
-          browser
-            .waitForElementVisible  '.kdlistview-default', 20000
-            .click                  '.kdlistview-default'
-            .setValue               addUserInputSelector, participant.username
-            .pause                  2000
-            .waitForElementVisible  '.kdlistitemview-dropdown-member', 20000
-            .click                  '.kdlistitemview-dropdown-member'
-            .pause 3000
-            callback()
 
 
   handleInvitation: (browser, host, participant, accept, endSessionAfterAcceptingInvite = yes) ->
 
     sharedMachineSelector = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
 
-    helpers.beginTest(browser, participant)
-
-    title = "Open IDE for koding-vm-0 (shared by @#{host.username})"
-
-    browser.element 'css selector', "a[title='#{title}']", (result) =>
-
-      if result.status is 0
+    url = helpers.getUrl(yes)
+    
+    browser.pause 5000, =>
+      browser.url url
+      browser.maximizeWindow()
+      teamsHelpers.loginToTeam browser, participant, no, '',  =>
         browser
-          .pause 7000 # wait for host to end
-          .end()
-      else
-        browser.waitForElementPresent  sharedMachineSelector, 600000
-        @acceptOrRejectInvitation(browser, host, participant, accept)
-
-        browser.pause 5000
+          .waitForElementVisible closeModal, 20000
+          .click closeModal
+          .waitForElementVisible '.kdview', 20000
+        
+        browser.element 'css selector', sidebarSharedMachinesSection, (result) ->
+          if result.status is 0
+            browser
+              .waitForElementPresent  sidebarSharedMachinesSection, 20000
+            @acceptOrRejectInvitation(browser, host, participant, accept)
 
         if endSessionAfterAcceptingInvite
           browser.end()
@@ -124,25 +82,53 @@ module.exports =
     modalSelector         = '.computeplan-modal.free-plan .kdmodal-inner'
     userSelector          = '.listview-wrapper .kdlistitemview-user'
     sharedMachineSelector = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
+    participant.role = 'member'
 
-    helpers.beginTest(browser, host)
-    helpers.waitForVMRunning(browser)
+    users = [
+      participant
+    ]
 
-    environmentHelpers.openVmSharingSettings(browser)
+    queue = [
+      (next) ->
+        teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
+          browser.writeMemberInvitation 'Participant joined to team', ->
+            next null, result
+      (next) ->
+        teamsHelpers.buildStack browser, (res) ->
+          next null, res
+    ]
 
-    browser.pause 5000 # wait for user list
-    browser.element 'css selector', userSelector, (result) =>
+    async.series queue
+    @shareTheMachineWithMembers browser, participant, (result) ->
+      browser.pause 4000, callback 
+
+  
+  shareTheMachineWithMembers: (browser, member, callback) ->
+    removeSharedMachineMember = "#{membersList} .remove"
+    memberNicknameToShareMachine = "@#{member.username}"
+    
+    browser
+      .url virtualMachinesUrl
+      .waitForElementVisible virtualMachineSelector, 20000
+      .waitForElementVisible runningVMSelector, 20000
+      .click runningVMSelector
+
+    browser.element 'css selector', '.react-toggle--checked .react-toggle-track:last', (result) ->
+      if result.status is -1
+        browser      
+          .scrollToElement addAConnectedMachineButtonSelector
+          .click vmSharingToggleSelector
+
+    browser.element 'css selector', noFoundUserList, (result) ->
       if result.status is 0
-        @removeAllInvitations(browser)
-
-      @clickAddUserButton(browser)
-      browser.pause  3000 # wait for modal
-
-      browser.element 'css selector', modalSelector, (result) =>
-        if result.status is 0
-          @upgradePlanForVMSharing(browser)
-
-        @inviteUser browser, participant, callback
+        browser
+          .waitForElementVisible inputSelector, 20000
+          .setValue inputSelector, memberNicknameToShareMachine
+          .click inputSelector
+          .waitForElementVisible memberSelector, 20000
+          .click memberSelector
+          .waitForElementVisible membersList, 20000
+          .waitForElementVisible removeSharedMachineMember, 20000, callback
 
 
   removeAllInvitations: (browser) ->
@@ -156,7 +142,6 @@ module.exports =
         .moveToElement firstUserItem, 15, 15
         .click         removeButton
         .pause         2000
-
 
     close = ->
       browser.elements 'css selector', userItemSelector, (result) ->
