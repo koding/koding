@@ -136,6 +136,10 @@ module.exports = class MachinesListItem extends React.Component
 
   setMachineLabel: ->
 
+    unless @state.machineLabel
+      @setState { machineLabel: @props.machine.get 'label'}
+      return
+
     machineUId = @props.machine.get 'uid'
     EnvironmentFlux.actions.setLabel machineUId, @state.machineLabel
       .then (label) =>
