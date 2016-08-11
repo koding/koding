@@ -1,5 +1,4 @@
 kd = require 'kd'
-JView = require 'app/jview'
 Encoder = require 'htmlencode'
 EnvironmentFlux = require 'app/flux/environment'
 
@@ -22,43 +21,64 @@ getRepoFromQuery = (query) ->
 
 module.exports = class HomeStacksImport extends kd.CustomHTMLView
 
-  JView.mixin @prototype
-
   constructor: (options = {}, data) ->
 
     options.cssClass = 'HomeAppView-Stacks--import'
 
     super options, data
 
-    gitlabUrl = 'gitlabUrl-here'
 
-    @message = new kd.CustomHTMLView
-      tagName: 'p'
-      partial: """
-        This tool is intended to use with GitLab integration which is enabled
-        for this team on <b>#{gitlabUrl}</b>. You can use action endpoints
-        provided in your GitLab service to be able to use this tool to try
-        your projects.
-      """
+  viewAppended: ->
 
-    @loader = new kd.LoaderView
+    @addSubView new kd.CustomHTMLView
+      tagName: 'h2'
+      partial: "Stack Importer"
+
+    @addSubView @loader = new kd.LoaderView
+      showLoader : yes
       size       :
         width    : 22
         height   : 22
 
-    @outputView = new OutputView
+    @addSubView @message = new kd.CustomHTMLView
+      tagName: 'p'
+      partial: "Loading..."
+
+    @addSubView @outputView = new OutputView
       delegate: @getDelegate()
       cssClass: 'hidden'
       separator: '  '
 
-    @actionButton = new kd.ButtonView
-      cssClass : 'GenericButton HomeAppView-Stacks--actionButton'
+    @addSubView @actionButton = new kd.ButtonView
+      cssClass : 'GenericButton HomeAppView-Stacks--actionButton hidden'
       title: 'Open GitLab'
-      callback: ->
-        window.open gitlabUrl, '_blank'
+
+    remote.api.GitProvider.fetchConfig 'gitlab', (err, config) =>
+
+      @loader.hide()
+
+      if err
+        @message.updatePartial err.message ? 'This integration is not enabled.'
+        return
+
+      { host } = config
+      _host    = "http://#{host}"  # FIXME Add protocol support ~ GG
+
+      @actionButton.show()
+      @actionButton.setTitle 'Open GitLab'
+      @actionButton.setCallback -> window.open _host, '_blank'
+
+      @message.updatePartial """
+        This tool is intended to use with GitLab integration which is enabled
+        for this team on <a href="#{_host}">#{host}</a>. You can use action
+        endpoints provided in your GitLab service to be able to use this tool
+        to try your projects on Koding.
+      """
+
+      @emit 'ready'
 
 
-  handleQuery: (query = {}) ->
+  handleQuery: (query = {}) -> @ready =>
 
     repo = getRepoFromQuery query
 
@@ -81,6 +101,7 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
 
         if err
           @outputView.add 'Import failed:', err
+          @actionButton.hide()
           return
 
         @outputView.add 'Import successful!', stackData
@@ -92,6 +113,7 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
 
           if err
             @outputView.add 'Stack create failed:', err
+            @actionButton.hide()
 
           else
             @loader.hide()
@@ -127,14 +149,3 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
         EnvironmentFlux.actions.loadPrivateStackTemplates()
 
       callback err, stack
-
-
-  pistachio: ->
-
-    '''
-    <h2>Stack Importer</h2>
-    {{> @message}}
-    {{> @loader}}
-    {{> @outputView}}
-    {{> @actionButton}}
-    '''
