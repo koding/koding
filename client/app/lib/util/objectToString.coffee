@@ -39,7 +39,7 @@ module.exports = objectToString = (object, options = {}) ->
       return value
 
   try
-    s = (Encoder.htmlDecode JSON.stringify object, stringify(), separator).replace(/\\n/g, "\n")
+    s = (Encoder.htmlDecode JSON.stringify object, stringify(), separator).replace(/\\n/g, '\n')
   catch e
     console.warn 'Failed to stringify:', e, object
     s = '[Object object]'
