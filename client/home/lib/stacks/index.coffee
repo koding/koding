@@ -84,7 +84,8 @@ module.exports = class HomeStacks extends kd.CustomScrollView
         when 'credentials'
           onboarding.run 'CredentialsViewed', yes
 
-      pane.mainView?.handleQuery? query
+      if (Object.keys query).length
+        pane.mainView?.handleQuery? query
 
       break
 

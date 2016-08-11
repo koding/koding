@@ -30,14 +30,25 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
 
     super options, data
 
+    gitlabUrl = 'gitlabUrl-here'
+
+    @message = new kd.CustomHTMLView
+      tagName: 'p'
+      partial: """
+        This tool is intended to use with GitLab integration which is enabled
+        for this team on <b>#{gitlabUrl}</b>. You can use action endpoints
+        provided in your GitLab service to be able to use this tool to try
+        your projects.
+      """
+
     @loader = new kd.LoaderView
-      showLoader : yes
       size       :
         width    : 22
         height   : 22
 
     @outputView = new OutputView
       delegate: @getDelegate()
+      cssClass: 'hidden'
       separator: '  '
 
 
@@ -45,6 +56,8 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
 
     repo = getRepoFromQuery query
 
+    @message.hide()
+    @outputView.show()
     @outputView.add 'Got repo as follow:', repo
 
     { groupsController, router } = kd.singletons
@@ -107,6 +120,7 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
 
     '''
     <h2>Stack Importer</h2>
+    {{> @message}}
     {{> @loader}}
     {{> @outputView}}
     '''
