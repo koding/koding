@@ -388,7 +388,7 @@ module.exports = class JAccount extends jraphical.Module
         @fetchEmail next
       (email, next) ->
         JInvitation = require './invitation'
-        JInvitation.some { email }, options, next
+        JInvitation.some { email, status : 'pending' }, options, next
       (invitations, next) ->
         { uniq, map } = _
         slugs  = uniq map invitations, (invitation) -> invitation.groupName
