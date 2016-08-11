@@ -37,12 +37,17 @@ module.exports = class ChangeTeamListItem extends kd.ListItemView
     hostname     = globals.config.domains.main
     domain       = if slug is 'koding' then hostname else "#{slug}.#{hostname}"
 
+    hasInvitation  = team.invitationCode?
+    actionTitle    = if hasInvitation then 'Join' else 'Switch'
+    actionLink     = "#{protocol}//#{domain}"
+    actionLink    += "/Invitation/#{encodeURIComponent team.invitationCode}"  if hasInvitation
+    actionCssClass = "GenericButton #{if hasInvitation then 'join' else ''}"
     @actionElement = new kd.CustomHTMLView
       tagName    : 'a'
-      partial    : 'Switch'
-      cssClass   : 'GenericButton'
+      partial    : actionTitle
+      cssClass   : actionCssClass
       attributes :
-        href     : "#{protocol}//#{domain}"
+        href     : actionLink
         target   : '_self'
 
 

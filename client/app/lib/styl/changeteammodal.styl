@@ -44,15 +44,23 @@
 
   .listview-wrapper
     margin-top              45px
-    margin-bottom           40px
 
   .kdcustomscrollview
     width                   420px
+    max-height              332px
     styleScrollBars         rgba(0, 0, 0, .15)
     margin-left             38px
 
+  .loaded
+    .kdcustomscrollview.has-vertical
+      height                332px
+
+    .lazy-loader
+      hidden()
+
   .kdscrollview
     width                   400px
+    margin-bottom           40px
 
   .change-team-item
     height                  68px
@@ -97,10 +105,19 @@
     display                 flex
     align-items             center
 
-  .GenericButton
-    color                   #fff !important
+  .kdmodal-content a.GenericButton
+    font-size               14px
+    color                   #fff
     text-decoration         none !important
-    padding                 4px 13px
+    padding                 4px 0
+    width                   74px
+    borderBox()
+    text-align              center
+
+    &.join
+      bg                    color, #fff
+      color                 #727272
+      border                1px solid #d0d0d0
 
   .active-team-label
     font-size               14px

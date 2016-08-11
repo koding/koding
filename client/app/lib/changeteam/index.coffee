@@ -1,8 +1,7 @@
 kd = require 'kd'
 whoami = require 'app/util/whoami'
-KodingListController = require 'app/kodinglist/kodinglistcontroller'
+ChangeTeamController = require './controller'
 AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
-ChangeTeamListItem = require './itemview'
 
 module.exports = class ChangeTeamView extends kd.ModalView
 
@@ -29,9 +28,8 @@ module.exports = class ChangeTeamView extends kd.ModalView
       tagName : 'p'
       partial : 'Here is the list of your teams. Select to switch.'
 
-    listController = new KodingListController
-      itemClass           : ChangeTeamListItem
-      fetcherMethod       : (query, options, callback) ->
-        account.fetchAllParticipatedGroups options, (err, groups) -> callback err, groups
-
-    @addSubView listController.getView()
+    controller = new ChangeTeamController()
+    @addSubView list = controller.getView()
+    controller.on 'ItemsLoaded', ->
+      # delay is needed to let custom scroll view set their css classes on the list
+      kd.utils.defer -> list.setClass 'loaded'

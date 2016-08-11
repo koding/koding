@@ -1,5 +1,6 @@
 _           = require 'underscore'
 jraphical   = require 'jraphical'
+async       = require 'async'
 KodingError = require '../error'
 ApiError    = require './socialapi/error'
 Tracker     = require './tracker'
@@ -169,6 +170,8 @@ module.exports = class JAccount extends jraphical.Module
         fetchMetaInformation :
           (signature Function)
         fetchAllParticipatedGroups :
+          (signature Object, Function)
+        fetchInviteGroups:
           (signature Object, Function)
         setLastLoginTimezoneOffset:
           (signature Object, Function)
@@ -368,6 +371,33 @@ module.exports = class JAccount extends jraphical.Module
             group
 
           callback null, groups
+
+
+  fetchInviteGroups: secure (client, options, callback) ->
+
+    [ options, callback ] = [ callback, options ]  unless callback
+    options ?= {}
+
+    queue = [
+      (next) =>
+        @fetchEmail next
+      (email, next) ->
+        JInvitation = require './invitation'
+        JInvitation.some { email }, options, next
+      (invitations, next) ->
+        { uniq, map } = _
+        slugs  = uniq map invitations, (invitation) -> invitation.groupName
+        JGroup = require './group'
+        JGroup.some { slug : { $in : slugs } }, {}, (err, groups) ->
+          return next err  if err
+          groups = groups.map (group) ->
+            for invitation in invitations when invitation.groupName is group.slug
+              group.invitationCode = invitation.code
+            return group
+          next null, groups
+    ]
+
+    async.waterfall queue, callback
 
 
   createSocialApiId: (callback) ->
