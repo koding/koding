@@ -9,8 +9,10 @@ isKoding       = require './util/isKoding'
 whoami         = require './util/whoami'
 nick           = require './util/nick'
 showError      = require 'app/util/showError'
+
 EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MachineSettingsModal    = require 'app/providers/machinesettingsmodal'
+ShortcutsModal = require 'app/shortcuts/shortcutsmodalview'
 
 getAction = (formName) -> switch formName
   when 'login'    then 'log in'
@@ -118,6 +120,9 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
     when 'request-collaboration'
       { nickname, channelId } = info.params
       requestCollaboration { nickname, channelId }
+
+    when 'shortcuts'
+      new ShortcutsModal
 
     when 'machine-settings'
       { uid, state } = info.params
