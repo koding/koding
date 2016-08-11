@@ -2,7 +2,6 @@ kd             = require 'kd'
 hljs           = require 'highlight.js'
 dateFormat     = require 'dateformat'
 
-JView          = require 'app/jview'
 curryIn        = require 'app/util/curryIn'
 outputParser   = require './outputparser'
 objectToString = require 'app/util/objectToString'
@@ -10,7 +9,6 @@ objectToString = require 'app/util/objectToString'
 
 module.exports = class OutputView extends kd.ScrollView
 
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -27,6 +25,7 @@ module.exports = class OutputView extends kd.ScrollView
 
     @highlight = (@getOption 'highlight') or 'profile'
 
+  viewAppended: -> @addSubView @container
 
   raise : -> @setClass   'raise'
 
@@ -95,5 +94,3 @@ module.exports = class OutputView extends kd.ScrollView
     return @add prefix, err.message or err
 
 
-  pistachio: ->
-    '''{{> @container}}'''
