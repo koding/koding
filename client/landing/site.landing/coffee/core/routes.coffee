@@ -102,7 +102,7 @@ do ->
     # the routes below are subdomain routes
     # e.g. team.koding.com/Invitation
     '/Invitation/:token'   : handleInvitation
-    '/Account/Oauth'       : handleOauth
+    '/Home/Oauth'          : handleOauth
     # '/Welcome'             : handleTeamOnboardingRoute.bind this, 'welcome'
     '/Join'                : handleTeamOnboardingRoute.bind this, 'join'
     '/Authenticate/:step?' : handleTeamOnboardingRoute.bind this, 'stacks'
