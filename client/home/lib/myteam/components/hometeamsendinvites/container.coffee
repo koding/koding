@@ -50,6 +50,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
   uploadCsvSuccess: (result) ->
     new UploadCSVModalSuccess
+      totalInvitation: result
     TeamFlux.actions.loadPendingInvitations()
 
 
