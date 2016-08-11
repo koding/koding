@@ -64,7 +64,7 @@ module.exports = class NoStackFoundView extends ReactView
       <div className="NoStackFoundView-wrapper">
         <h2>Your Team Stack is Pending</h2>
         <p>
-          Your team admins haven't created your stack yet. If you want to experiment
+          Your team admins haven&apos;t created your stack yet. If you want to experiment
           the stacks you can go ahead and create a personal stack.
           We will guide you through setting up a stack on Koding. You can read more
           information about stacks <a href="https://www.koding.com/docs/creating-an-aws-stack">here</a>.
