@@ -25,6 +25,12 @@ module.exports = class OutputView extends kd.ScrollView
 
     @highlight = (@getOption 'highlight') or 'profile'
 
+    @stringifyOptions = {}
+
+    if separator = @getOption 'separator'
+      @stringifyOptions = { separator }
+
+
   viewAppended: -> @addSubView @container
 
   raise : -> @setClass   'raise'
@@ -36,18 +42,18 @@ module.exports = class OutputView extends kd.ScrollView
     @code.updatePartial ''
     return this
 
-  stringify = (content) ->
+  stringify: (content) ->
 
     for item, i in content
-      content[i] = if typeof item is 'object' \
-                   then objectToString item else item
+      content[i] = if typeof item is 'object'
+      then objectToString item, @stringifyOptions else item
 
     content = content.join ' '
 
 
   add: (content...) ->
 
-    content = stringify content
+    content = @stringify content
     content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}\n"
     @code.setPartial hljs.highlight(@highlight, content).value
     @scrollToBottom()
@@ -78,7 +84,7 @@ module.exports = class OutputView extends kd.ScrollView
 
   set: (content...) ->
 
-    content = stringify content
+    content = @stringify content
     @code.updatePartial hljs.highlight(@highlight, content).value
     @scrollToBottom()
 
@@ -94,3 +100,8 @@ module.exports = class OutputView extends kd.ScrollView
     return @add prefix, err.message or err
 
 
+  scrollToBottom: ->
+
+    @getDelegate()?.scrollToBottom?()
+
+    super
