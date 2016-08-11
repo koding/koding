@@ -18,7 +18,6 @@ AppClasses =
   kites: require 'kites'
   'stack-editor': require 'stack-editor'
   testrunner: require 'testrunner'
-  # viewer: require 'viewer'
 
 
 module.exports = class KodingAppsController extends KDController
