@@ -39,8 +39,8 @@ module.exports =
 
     firstUserName    = firstUser.username
     browser
-      .waitForElementVisible     sidebarPopover, 50000
       .waitForElementVisible     fullName, 20000
+      .pause 2000
       .assert.containsText       fullName, firstUserName
 
     if accept
@@ -71,7 +71,13 @@ module.exports =
           .waitForElementVisible '.kdview', 20000
         
         @waitInvitation browser, (result) =>
-          @openMachineSettings browser
+          browser
+            .click                     '#main-sidebar'
+            .waitForElementVisible     sharedMachineSelector, 20000
+            .moveToElement             sharedMachineSelector, 100, 10
+            .click                     sharedMachineSelector
+            .click                     sharedMachineSelector
+            .waitForElementVisible     sidebarPopover, 20000
           browser.element 'css selector', acceptSharedMachine, (result) =>
             if result.status is 0
               @acceptOrRejectInvitation(browser, host, participant, accept)
@@ -198,7 +204,6 @@ module.exports =
 
   openMachineSettings: (browser) ->
     browser
-      .click                     '#main-sidebar'
       .waitForElementVisible     sharedMachineSelector, 20000
       .moveToElement             sharedMachineSelector, 100, 10
       .waitForElementVisible     sharedMachineButtonSettings, 20000
