@@ -50,8 +50,11 @@ $borderColor                = #CACACA
         margin-right        0
 
     .MachinesListItem-machineLabel
+      margin-right          18px
       .kdinput.text
         flex                0 1 auto
+        padding-top         7px
+        padding-bottom      7px
         margin              -16px 0 0 18px
         width               150px
         padding-left        10px
@@ -61,8 +64,10 @@ $borderColor                = #CACACA
         border-radius       3px
         box-shadow          none
         cursor              text
-        &:hover
+        pointer-events      none
+
         &:focus
+          pointer-events    auto
           border            1px solid #e3e3e3
 
     .SidebarListItem-progressbar
@@ -189,7 +194,15 @@ $borderColor                = #CACACA
         bg                  color $red
 
 
+.MachineListItem--Edit-name
+  margin-left               29px
+  font-size                 13px
+  color                     #67A2EE
+  width                     64px
+
 .MachineDetails
+
+  margin-top                -10px
 
   .GenericToggler
     font-size               14px
