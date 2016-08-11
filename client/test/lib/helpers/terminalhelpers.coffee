@@ -31,9 +31,11 @@ module.exports =
       browser
         .moveToElement           sessionLink, 50, 50
         .waitForElementVisible   openNewTerminal, 20000
+        .pause                   2000
         .click                   openNewTerminal
         .pause                   5000, -> callback null #wait for terminal to be displayed
 
+  
   createTerminalSession: ( browser, user, callback = -> ) ->
 
     userName                   = user.username

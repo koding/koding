@@ -1,37 +1,40 @@
-assert   = require 'assert'
-helpers  = require '../helpers/helpers.js'
-async    = require 'async'
-helpers  = require '../helpers/helpers.js'
+assert = require 'assert'
+helpers = require '../helpers/helpers.js'
+async = require 'async'
+helpers = require '../helpers/helpers.js'
+utils = require '../utils/utils.js'
 environmentHelpers = require '../helpers/environmenthelpers.js'
-teamsHelpers       = require '../helpers/teamshelpers.js'
+teamsHelpers = require '../helpers/teamshelpers.js'
 collaborationHelpers = require '../helpers/collaborationhelpers.js'
-utils      = require '../utils/utils.js'
-
-
-virtualMachinesUrl      = "#{helpers.getUrl(yes)}/Home/Stacks/virtual-machines"
-machineSharingDetails   = '.MachineSharingDetails'
-inputSelector           = "#{machineSharingDetails} input.kdinput.text"
-memberSelector          = "#{machineSharingDetails} .AutocompleteListItem"
-membersList             = "#{machineSharingDetails} .UserList"
-sharedUserlist          = "#{machineSharingDetails} .UserList"
-noFoundUserList         = "#{machineSharingDetails} .NoItem"
+terminalHelpers = require '../helpers/terminalhelpers.js'
+virtualMachinesUrl = "#{helpers.getUrl(yes)}/Home/Stacks/virtual-machines"
+machineSharingDetails = '.MachineSharingDetails'
+inputSelector = "#{machineSharingDetails} input.kdinput.text"
+memberSelector = "#{machineSharingDetails} .AutocompleteListItem"
+membersList = "#{machineSharingDetails} .UserList"
+sharedUserlist = "#{machineSharingDetails} .UserList"
+noFoundUserList = "#{machineSharingDetails} .NoItem"
 addAConnectedMachineButtonSelector = '.kdbutton.GenericButton.HomeAppViewVMSection--addOwnMachineButton'
-machineDetailSelector   = '.MachinesListItem-machineDetails'
-vmSharingSelector       = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(4)"
+machineDetailSelector = '.MachinesListItem-machineDetails'
+vmSharingSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(4)"
 vmSharingToggleSelector = "#{vmSharingSelector} .react-toggle-thumb"
 virtualMachineSelector  = '.HomeAppView--section.virtual-machines'
-runningVMSelector       = "#{virtualMachineSelector} .MachinesListItem-machineLabel.Running"
-
+runningVMSelector = "#{virtualMachineSelector} .MachinesListItem-machineLabel.Running"
 sharedMachineSelector = '.SidebarMachinesListItem.Running'
 sidebarPopover = '.Popover-Wrapper'
 acceptSharedMachine = "#{sidebarPopover} .kdbutton.solid.green.medium"
 rejectSharedMachine = "#{sidebarPopover} .kdbutton.solid.red.medium"
-closeModal = '.HomeWelcomeModal.kdmodal .kdmodal-inner .close-icon.closeModal'
+closeModal = '.close-icon.closeModal'
 fullName = '.SidebarWidget-FullName'
 leaveSessionButton = '.SidebarWidget .kdbutton.solid.red'
-proceedButton  = '[testpath=proceed]'
+proceedButton = '[testpath=proceed]'
 sharedMachineButtonSettings = '.MachineSettings'
 removeSharedMachineMember = "#{membersList} .remove"
+url = helpers.getUrl(yes)
+activeTerminal = '.kdtabpaneview.terminal.active'
+insertCommand  = 'window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input'
+executeCommand = "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
+      
 
 module.exports =
 
@@ -57,10 +60,8 @@ module.exports =
       .pause                     3000 # wait for sidebar redraw
 
 
-  handleInvitation: (browser, host, participant, accept, endSessionAfterAcceptingInvite = yes) ->
+  handleInvitation: (browser, host, participant, accept, callback) ->
 
-    url = helpers.getUrl(yes)
-    
     browser.pause 2000, =>
       browser.url url
       browser.maximizeWindow()
@@ -81,10 +82,10 @@ module.exports =
           browser.element 'css selector', acceptSharedMachine, (result) =>
             if result.status is 0
               @acceptOrRejectInvitation(browser, host, participant, accept)
+       
+          callback?()
 
-        if endSessionAfterAcceptingInvite
-          browser.end()
-
+       
 
   waitInvitation: (browser, callback) ->
     browser.element 'css selector', sharedMachineSelector, (result) =>
@@ -115,11 +116,12 @@ module.exports =
     async.series queue
     if isInvite
       @shareTheMachineWithMembers browser, participant, (result) ->
-        browser.pause 4000, callback
+        browser.pause 2000, callback
     else
       @checkInvitedUser  browser, participant, (result) ->
-        callback
+        callback?()
 
+  
   checkInvitedUser: (browser, member, callback) ->
     
     memberNicknameToShareMachine = "@#{member.username}"
@@ -132,7 +134,14 @@ module.exports =
     
     browser.element 'css selector', '.react-toggle--checked .react-toggle-track:last', (result) ->
       if result.status is -1
-        callback
+        browser.click closeModal, ->
+          callback()
+      else
+        browser
+          .waitForElementVisible membersList, 20000
+          .waitForElementVisible removeSharedMachineMember, 20000
+          .click closeModal, ->
+            callback()
 
 
   shareTheMachineWithMembers: (browser, member, callback) ->
@@ -157,9 +166,12 @@ module.exports =
           .setValue inputSelector, memberNicknameToShareMachine
           .click inputSelector
           .waitForElementVisible memberSelector, 20000
+          .moveToElement memberSelector, 0,0
           .click memberSelector
           .waitForElementVisible membersList, 20000
-          .waitForElementVisible removeSharedMachineMember, 20000, callback
+          .waitForElementVisible removeSharedMachineMember, 20000
+          .click closeModal, ->
+            callback()
 
 
   removeAllInvitations: (browser) ->
@@ -185,7 +197,6 @@ module.exports =
 
 
   leaveMachine: (browser, participant, callback) ->
-    url = helpers.getUrl(yes)
     browser.pause 3000, =>
       browser.url url
       browser.maximizeWindow()
@@ -209,3 +220,27 @@ module.exports =
       .waitForElementVisible     sharedMachineButtonSettings, 20000
       .click                     sharedMachineButtonSettings
       .waitForElementVisible     sidebarPopover, 20000
+
+
+  runCommandonTerminal: (browser, participant, callback) ->
+    browser.url url
+    browser.maximizeWindow()
+    teamsHelpers.loginToTeam browser, participant, no, '',  ->
+      browser
+        .waitForElementVisible closeModal, 20000
+        .click closeModal
+        .click sharedMachineSelector
+        .click sharedMachineSelector
+
+      browser.element 'css selector', activeTerminal, (result) ->
+          if result.status is -1
+            terminalHelpers.openNewTerminalMenu(browser)
+            terminalHelpers.openTerminal(browser)
+
+          helpers.runCommandOnTerminal(browser, 'Text pasted into the terminal')
+            #clearing the terminal for second test run
+          browser
+            .execute  "#{insertCommand}('clear')"
+            .execute  executeCommand
+            .pause    5000, callback
+
