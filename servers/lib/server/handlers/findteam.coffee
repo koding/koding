@@ -18,36 +18,38 @@ module.exports = (req, res) ->
         return next err  if err
         return next 'User not found'  unless user
         next null, user
+
     (user, next) ->
       username = user.getAt('username')
       user.fetchOwnAccount (err, account) ->
         return next err  if err
         return next 'Account not found'  unless account
         next null, username, account
+
     (username, account, next) ->
-      account.fetchAllParticipatedGroups {}, (err, groups) ->
+
+      async.parallel [
+        (_next) -> account.fetchAllParticipatedGroups {}, _next
+        (_next) -> account.fetchInviteGroups {}, _next
+      ], (err, results) ->
         return next err  if err
-        next null, username, groups
-    (username, groups, next) ->
-      items = (
-        helper.createGroupItem group for group in groups when group.slug isnt 'koding'
-      )
+        groups = results[0].concat results[1]
+        next null, username, account, groups
+
+    (username, account, groups, next) ->
+      groups = groups.filter (group) -> group.slug isnt 'koding'
 
       Tracker.identify username, { email }
       Tracker.track username, {
-        to         : email
-        subject    : Tracker.types.REQUESTED_TEAM_LIST
-      }, { items }, next
+        to      : email
+        subject : Tracker.types.REQUESTED_TEAM_LIST
+      }, {
+        email
+        account
+        teams : groups
+      }, next
   ]
 
-  async.waterfall queue, (err, username, groups) ->
+  async.waterfall queue, (err) ->
     return res.status(403).send err.message ? err  if err
     res.status(200).end()
-
-
-  helper =
-
-    createGroupItem: (group) ->
-
-      title : group.title
-      link  : "#{protocol}//#{group.slug}.#{hostname}/"

@@ -373,7 +373,12 @@ module.exports = class JAccount extends jraphical.Module
           callback null, groups
 
 
-  fetchInviteGroups: secure (client, options, callback) ->
+  fetchInviteGroups$: secure (client, options, callback) ->
+
+    @fetchInviteGroups options, callback
+
+
+  fetchInviteGroups: (options, callback) ->
 
     [ options, callback ] = [ callback, options ]  unless callback
     options ?= {}
