@@ -51,12 +51,20 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
       cssClass: 'hidden'
       separator: '  '
 
+    @actionButton = new kd.ButtonView
+      cssClass : 'GenericButton HomeAppView-Stacks--actionButton'
+      title: 'Open GitLab'
+      callback: ->
+        window.open gitlabUrl, '_blank'
+
 
   handleQuery: (query = {}) ->
 
     repo = getRepoFromQuery query
 
     @message.hide()
+    @actionButton.hide()
+
     @outputView.show()
     @outputView.add 'Got repo as follow:', repo
 
@@ -88,10 +96,15 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
           else
             @loader.hide()
             @outputView.add 'Stack created:', stack
-            @outputView.add 'Switching to Editor...'
+            @outputView.add 'You can now open editor for imported stack template.'
 
-            kd.utils.wait 5000, ->
+            @actionButton.setTitle 'Open Editor'
+            @actionButton.setCallback ->
               router.handleRoute "/Stack-Editor/#{stack._id}"
+
+            @actionButton.show()
+
+            @getDelegate().scrollToBottom()
 
 
   importStackTemplate: (repo, callback) ->
@@ -123,4 +136,5 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
     {{> @message}}
     {{> @loader}}
     {{> @outputView}}
+    {{> @actionButton}}
     '''
