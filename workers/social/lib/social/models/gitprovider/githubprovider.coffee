@@ -9,6 +9,8 @@ KodingError = require '../../error'
 
 module.exports = GitHubProvider =
 
+  getConfig: -> [ null, { host: Constants.GITHUB_HOST } ]
+
   importStackTemplateData: (importParams, user, callback) ->
 
     { url } = importParams
