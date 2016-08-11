@@ -389,12 +389,9 @@ analyzedInvitationResults = (params) ->
     admins : adminEmails
     members: membersEmails
     extras :
-      alreadyMembers:
-        { count: alreadyMemberEmails, label: 'Already Members' }
-      notValidInvites:
-        { count: notValidInvites, label: 'Not Valid Invites' }
-      alreadyInvited:
-        { count: alreadyInvitedEmails, label: 'Already Invited' }
+      alreadyMembers: alreadyMemberEmails
+      notValidInvites: notValidInvites
+      alreadyInvited: alreadyInvitedEmails
 
   return { result, data }
 
