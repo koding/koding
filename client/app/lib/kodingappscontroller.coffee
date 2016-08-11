@@ -16,7 +16,6 @@ AppClasses =
   home: require 'home'
   ide: require 'ide'
   kites: require 'kites'
-  showcase: require 'showcase'
   'stack-editor': require 'stack-editor'
   testrunner: require 'testrunner'
   # viewer: require 'viewer'
