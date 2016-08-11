@@ -9,6 +9,24 @@ addUserInputOptions = require './utils/addUserInputOptions'
 { yamlToJson }      = require './utils/yamlutils'
 KodingError         = require '../../error'
 
+PROVIDERS =
+  gitlab  : GitLabProvider
+  github  : GitHubProvider
+
+
+getProvider = (options, callback) ->
+
+  unless _provider = options.provider
+    callback new KodingError 'Unknown provider'
+    return
+
+  unless provider = PROVIDERS[_provider]
+    callback new KodingError 'Provider is not supported'
+    return
+
+  return provider
+
+
 module.exports = class GitProvider extends Base
 
   @trait __dirname, '../../traits/protected'
@@ -25,10 +43,24 @@ module.exports = class GitProvider extends Base
 
     sharedMethods :
       static      :
+        fetchConfig:
+          (signature String, Function)
         importStackTemplateData :
           (signature Object, Function)
         createImportedStackTemplate :
           (signature String, Object, Function)
+
+
+  @fetchConfig = permit 'import stack template',
+    success: revive {
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+    }, (client, provider, callback) ->
+
+      return  unless _provider = getProvider { provider }, callback
+
+      [ err, config ] = _provider.getConfig client
+      callback err, config
 
 
   @importStackTemplateData = permit 'import stack template',
@@ -37,17 +69,7 @@ module.exports = class GitProvider extends Base
       shouldReviveProvider : no
     }, (client, importParams, callback) ->
 
-      providers =
-        gitlab  : GitLabProvider
-        github  : GitHubProvider
-
-      unless _provider = importParams.provider
-        return callback new KodingError 'Unknown provider'
-
-      provider = providers[_provider]
-
-      unless provider
-        return callback new KodingError 'Provider is not supported'
+      return  unless provider = getProvider importParams, callback
 
       { user } = client.r
 
