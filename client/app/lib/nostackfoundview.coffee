@@ -2,6 +2,8 @@ kd = require 'kd'
 React = require 'kd-react'
 globals = require 'globals'
 ReactView = require 'app/react/reactview'
+canCreateStacks = require 'app/util/canCreateStacks'
+isAdmin = require 'app/util/isAdmin'
 
 module.exports = class NoStackFoundView extends ReactView
 
@@ -27,12 +29,12 @@ module.exports = class NoStackFoundView extends ReactView
 
   renderReact: ->
 
-    { groupsController, computeController, mainView } = kd.singletons
+    { computeController, mainView } = kd.singletons
 
     return <div/>  unless globals.userRoles
     return <div/>  if mainView.introVideoViewIsShown
 
-    if groupsController.canEditGroup()
+    if isAdmin()
 
       <div className="NoStackFoundView-wrapper">
         <h2>Create a stack for your team</h2>
@@ -44,6 +46,17 @@ module.exports = class NoStackFoundView extends ReactView
         <div className='ButtonContainer'>
           <button className='GenericButton' onClick={@bound 'onClick'}>CREATE A TEAM STACK</button>
         </div>
+      </div>
+
+    else if not canCreateStacks()
+
+      <div className="NoStackFoundView-wrapper">
+        <h2>Your Team Stack is Pending</h2>
+        <p>
+          Your team admins haven&apos;t created your stack yet.
+          Unfortunately there is not much you can do at this moment.
+          Please contact your team admin.
+        </p>
       </div>
 
     else
