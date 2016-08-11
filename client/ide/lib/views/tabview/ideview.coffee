@@ -10,7 +10,6 @@ IDEEditorPane         = require '../../workspace/panes/ideeditorpane'
 IDETailerPane         = require '../../workspace/panes/idetailerpane'
 KDContextMenu         = kd.ContextMenu
 KDTabPaneView         = kd.TabPaneView
-IDEPreviewPane        = require '../../workspace/panes/idepreviewpane'
 IDEDrawingPane        = require '../../workspace/panes/idedrawingpane'
 IDETerminalPane       = require '../../workspace/panes/ideterminalpane'
 generatePassword      = require 'app/util/generatePassword'
@@ -56,7 +55,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @on 'RemoveSplitRegions', => @tabView.removeSplitRegions()
 
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
-    @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
     @tabView.on 'TerminalPaneRequested',    @bound 'createTerminal'
     # obsolete: 'preview file' feature was removed (bug #82710798)
     @tabView.on 'PreviewPaneRequested',     (url) -> global.open "http://#{url}"
@@ -429,17 +427,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @emitChange  drawingPane, { context: {} }  unless paneHash
 
 
-  createPreview: (url) ->
-
-    previewPane = new IDEPreviewPane { url }
-    @createPane_ previewPane, { name: 'Browser' }
-
-    previewPane.on 'LocationChanged', (newLocation) =>
-      @updateStatusBar 'preview', newLocation
-
-    @emitChange previewPane, { context: { url } }
-
-
   showView: (view, name = 'Search Result') -> @createPane_ view, { name }
 
 
@@ -464,9 +451,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       else if paneType is 'terminal'
         machineName = subView.machine.getName()
         data   = { machineName }
-
-      else if paneType is 'preview'
-        data   = subView.getOptions().url or 'Enter a URL to browse...'
 
       else if paneType is 'drawing'
         data   = 'Use this panel to draw something'
@@ -605,9 +589,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
 
   openMachineTerminal: (machine) -> @createTerminal { machine }
-
-
-  openMachineWebPage: (machine) -> @createPreview machine.ipAddress
 
 
   closeTabByFile: (file)  ->
