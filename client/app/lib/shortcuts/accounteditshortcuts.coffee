@@ -23,11 +23,16 @@ restoreDefaults = ->
       title      : 'Cancel'
       callback   : -> modal.destroy()
 
-# require './shortcuts.styl'
+require './shortcuts.styl'
 
 module.exports =
 
 class AccountEditShortcuts extends kd.View
+
+  constructor: (options = {}, data) ->
+    options.cssClass = 'AccountEditShortcuts'
+
+    super options, data
 
   destroy: ->
 
@@ -57,6 +62,7 @@ class AccountEditShortcuts extends kd.View
       partial  : 'To change a shortcut, click on it, then type the new keys.'
 
     @addSubView @tabView = new kd.TabView
+      cssClass             : 'ShortcutsModalTabView'
       tabClass             : Pane
       paneData             : paneData
       hideHandleCloseIcons : yes
