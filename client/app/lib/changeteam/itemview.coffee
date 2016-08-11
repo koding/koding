@@ -18,10 +18,13 @@ module.exports = class ChangeTeamListItem extends kd.ListItemView
     logo = team.customize?.logo ? ''
     @logoWrapper = new kd.CustomHTMLView
       cssClass : 'team-logo-wrapper'
-    @logoWrapper.addSubView new kd.CustomHTMLView
-      tagName    : 'img'
-      attributes :
-        src      : "#{logo}"
+    if logo
+      @logoWrapper.addSubView new kd.CustomHTMLView
+        tagName    : 'img'
+        attributes :
+          src      : "#{logo}"
+    else
+      @logoWrapper.hide()
 
     { groupsController } = kd.singletons
     currentGroup = groupsController.getCurrentGroup()

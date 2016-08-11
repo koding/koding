@@ -22,6 +22,7 @@ module.exports = class ChangeTeamController extends KodingListController
       async.parallel queue, (err, results) ->
         return  if showError err
         groups = results[0].concat results[1]
+        groups = groups.filter (group) -> group.slug isnt 'koding'
         callback null, groups
 
     super options, data
