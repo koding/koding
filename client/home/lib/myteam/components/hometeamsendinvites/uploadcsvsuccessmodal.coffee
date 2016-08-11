@@ -26,10 +26,6 @@ module.exports = class UploadCSVSuccessModal extends ContentModal
         close:
           cssClass: 'GenericButton fr'
           title: 'Close'
-          callback: =>
-            @destroy()
+          callback: => @destroy()
 
     super options
-
-  destroy: ->
-    location.reload()
