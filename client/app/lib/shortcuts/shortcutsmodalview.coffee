@@ -7,7 +7,6 @@ module.exports = class ShortcutsModalView extends kd.ModalView
   constructor: (options = {}, data) ->
 
     options.title     or= 'Shortcuts'
-    options.height     or= 805
     options.cssClass    = kd.utils.curry 'AppModal AppModal--account shortcuts', options.cssClass
     options.overlay    ?= yes
 
