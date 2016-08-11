@@ -22,14 +22,6 @@ markAsDone = (step) ->
     finishedSteps[step] = yes
     appStorage.setValue 'finishedSteps', finishedSteps
 
-checkMigration = ->
-
-  kd.singletons.computeController.fetchSoloMachines (err, machines) ->
-
-    return  unless machines?.length
-
-    kd.singletons.reactor.dispatch actionTypes.MIGRATION_AVAILABLE
-
 
 queryForKd = ->
 
@@ -105,6 +97,5 @@ checkStacksForBuild = (stacks, unobserve) ->
 
 module.exports = {
   markAsDone
-  checkMigration
   checkFinishedSteps
 }

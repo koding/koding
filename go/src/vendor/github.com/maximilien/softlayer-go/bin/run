@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -e
+
+export GOPATH=$(godep path):$GOPATH
+
+$(dirname $0)/build
+go run -race $(dirname $0)/../main/slgo.go "$@"
