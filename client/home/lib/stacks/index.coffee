@@ -49,7 +49,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
     if isFeatureEnabled 'gitlab'
       @tabView.addPane @importView  = new kd.TabPaneView {
-        view: new HomeStacksImport
+        view: new HomeStacksImport { delegate: this.wrapper }
         name: 'Import'
       }
 

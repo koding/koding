@@ -37,6 +37,8 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
         height   : 22
 
     @outputView = new OutputView
+      delegate: @getDelegate()
+      separator: '  '
 
 
   handleQuery: (query = {}) ->
@@ -71,6 +73,7 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
             @outputView.add 'Stack create failed:', err
 
           else
+            @loader.hide()
             @outputView.add 'Stack created:', stack
             @outputView.add 'Switching to Editor...'
 
