@@ -1,13 +1,8 @@
 kd = require 'kd'
 welcomeStepsAll = [ 'WelcomeStepsStore' ]
 EnvironmentFlux = require 'app/flux/environment'
-
-teamHasStack = ->
-  kd.singletons.groupsController.getCurrentGroup().stackTemplates?.length
-
-isAdmin = ->
-  kd.singletons.groupsController.canEditGroup()
-
+isAdmin = require 'app/util/isAdmin'
+teamHasStack = require 'app/util/teamHasStack'
 
 welcomeStepsByRole = [
   EnvironmentFlux.getters.stacks
