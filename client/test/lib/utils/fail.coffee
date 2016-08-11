@@ -2,9 +2,7 @@ fs  = require 'fs'
 NW  = require '../../../../node_modules/nightwatch/lib/api/element-commands/_waitForElement.js'
 AWS = require 'aws-sdk'
 
-require 'coffee-script/register' # require coffee to parse main.dev
-
-config      = require '../../../../../config/main.dev.coffee'
+config      = require 'koding-config-manager'
 NW_ORG_FAIL = NW::fail
 
 
@@ -13,7 +11,7 @@ NW::fail = (result, actual, expected, defaultMsg) ->
   test     = api.currentTest
   filename = "#{test.module}-#{test.name}-#{Date.now()}.png"
 
-  { accessKeyId, secretAccessKey } = config().awsKeys.worker_test_data_exporter
+  { accessKeyId, secretAccessKey } = config.awsKeys.worker_test_data_exporter
 
   try
 
