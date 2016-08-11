@@ -38,11 +38,13 @@ module.exports = class MachinesListItem extends React.Component
     onUnsharedWithUser     : kd.noop
     onDisconnectVM         : kd.noop
 
+
   getDataBindings: ->
 
     return {
       selectedMachine: VirtualMachinesSelectedMachineFlux.getters.selectedMachine
     }
+
 
   constructor: (props) ->
 
@@ -52,12 +54,10 @@ module.exports = class MachinesListItem extends React.Component
       machineLabel: @props.machine.get 'label'
 
 
-
   renderMachineDetails: ->
 
     return null  unless @props.shouldRenderDetails
     return null  unless @props.machine.get('label') is @state.selectedMachine
-
 
     <main className="MachinesListItem-machineDetails">
       <MachineDetails
@@ -75,6 +75,17 @@ module.exports = class MachinesListItem extends React.Component
         onDisconnectVM={@props.onDisconnectVM}
       />
     </main>
+
+
+  renderEditname: ->
+
+    return null  unless @props.shouldRenderDetails
+    return null  unless @props.machine.get('label') is @state.selectedMachine
+
+    <div className='MachineListItem--Edit-name' onClick={@bound 'onClickEditname'}>Edit Name </div>
+
+
+  onClickEditname: -> @refs.inputbox.focus()
 
 
   toggle: (event) ->
@@ -122,10 +133,17 @@ module.exports = class MachinesListItem extends React.Component
       <cite style={width: "#{percentage}%"} />
     </div>
 
+
   setMachineLabel: ->
 
     machineUId = @props.machine.get 'uid'
     EnvironmentFlux.actions.setLabel machineUId, @state.machineLabel
+      .then (label) =>
+        kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines/#{@state.machineLabel}"
+      .catch (err) =>
+        @setState { machineLabel: @props.machine.get 'label' }
+        new kd.NotificationView { title: 'Something went wrong', duration: 2000 }
+
 
   inputOnChange: (event) ->
 
@@ -170,6 +188,7 @@ module.exports = class MachinesListItem extends React.Component
         {@renderStackTitle()}
         {@renderDetailToggle()}
       </header>
+      {@renderEditname()}
       {@renderMachineDetails()}
     </div>
 
