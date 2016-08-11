@@ -3,18 +3,21 @@ HomeTeamConnectSlack = require './hometeamconnectslack'
 HomeTeamSendInvites  = require './hometeamsendinvites'
 HomeTeamTeammates    = require './hometeamteammates'
 HomeTeamSettings     = require './hometeamsettings'
+HomeTeamPermissions  = require './hometeampermissions'
 TeamFlux             = require 'app/flux/teams'
 AppFlux              = require 'app/flux'
 whoami               = require 'app/util/whoami'
 remote               = require('app/remote').getInstance()
 camilizeString = require 'app/util/camelizeString'
 toImmutable = require 'app/util/toImmutable'
+isAdmin = require 'app/util/isAdmin'
 
 SECTIONS =
   'Invite Using Slack' : HomeTeamConnectSlack
   'Send Invites'       : HomeTeamSendInvites
   Teammates            : HomeTeamTeammates
   'Team Settings'      : HomeTeamSettings
+  Permissions          : HomeTeamPermissions
 
 header = (title) ->
   new kd.CustomHTMLView
@@ -120,6 +123,9 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
     @wrapper.addSubView header  'Send Invites'
     @wrapper.addSubView @sendInvites = section 'Send Invites'
+    if isAdmin()
+      @wrapper.addSubView header  'Permissions'
+      @wrapper.addSubView @permissions = section 'Permissions'
 
 
     @wrapper.addSubView header  'Invite Using Slack'
