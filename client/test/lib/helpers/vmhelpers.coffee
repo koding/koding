@@ -3,6 +3,7 @@ helpers = require '../helpers/helpers.js'
 async = require 'async'
 helpers = require '../helpers/helpers.js'
 utils = require '../utils/utils.js'
+ideHelpers = require '../helpers/idehelpers.js'
 environmentHelpers = require '../helpers/environmenthelpers.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
 collaborationHelpers = require '../helpers/collaborationhelpers.js'
@@ -244,3 +245,15 @@ module.exports =
             .execute  executeCommand
             .pause    5000, callback
 
+
+  CreateFile: (browser, host, participant, fileName, callback) ->
+    browser.url url
+    browser.maximizeWindow()
+    teamsHelpers.loginToTeam browser, participant, no, '',  ->
+      browser
+        .waitForElementVisible closeModal, 20000
+        .click closeModal
+        .click sharedMachineSelector
+        .click sharedMachineSelector
+
+      helpers.createFile(browser, host, null, null, fileName)

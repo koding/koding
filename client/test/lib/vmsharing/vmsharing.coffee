@@ -3,6 +3,7 @@ vmHelpers       = require '../helpers/vmhelpers.js'
 terminalHelpers = require '../helpers/terminalhelpers.js'
 helpers         = require '../helpers/helpers.js'
 teamsHelpers    = require '../helpers/teamshelpers.js'
+ideHelpers      = require '../helpers/idehelpers.js'
 assert          = require 'assert'
 url             = helpers.getUrl(yes)
 host            = utils.getUser no, 0
@@ -65,6 +66,25 @@ module.exports =
         vmHelpers.runCommandonTerminal(browser, participant, participantCallback)
          
 
+  createNewFile: (browser) ->
+    hostFakeText       = host.fakeText.split(' ')
+    fileName           = hostFakeText[0]
+    fileContent        = hostFakeText[1]
+
+    browser.pause 2500, -> # wait for user.json creation
+      callback = ->
+        ideHelpers.openFile(browser, host, fileName)
+        # browser.end()
+
+      participantCallback = ->
+        browser.pause 3000
+        # browser.end()
+
+      if hostBrowser
+        vmHelpers.handleInvite(browser, host, participant, no, callback)
+      else
+        vmHelpers.CreateFile(browser, host, participant,fileName, participantCallback)
+         
 
   leaveVMSharing: (browser) ->
 
