@@ -2,8 +2,8 @@ kd                              = require 'kd'
 curryIn                         = require 'app/util/curryIn'
 
 CredentialListItem              = require 'app/stacks/credentiallistitem'
-AccountCredentialList           = require 'account/accountcredentiallist'
-AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
+AccountCredentialList           = require 'app/views/credentiallist/accountcredentiallist'
+AccountCredentialListController = require 'app/views/credentiallist/accountcredentiallistcontroller'
 
 
 module.exports = class CredentialListView extends kd.View
