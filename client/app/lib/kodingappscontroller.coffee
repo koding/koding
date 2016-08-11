@@ -16,7 +16,6 @@ AppClasses =
   home: require 'home'
   ide: require 'ide'
   kites: require 'kites'
-  legal: require 'legal'
   pricing: require 'pricing'
   showcase: require 'showcase'
   'stack-editor': require 'stack-editor'
