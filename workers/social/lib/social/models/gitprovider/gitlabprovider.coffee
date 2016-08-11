@@ -44,6 +44,19 @@ getPrivateToken = (options, callback) ->
 
 module.exports = GitLabProvider =
 
+  getConfig: (client) ->
+
+    { team, host, port } = KONFIG.gitlab
+
+    if client.r.group.slug isnt team
+      return [
+        new KodingError 'GitLab integration is not enabled for this team.'
+      ]
+
+    port = if port then ":#{port}" else ''
+
+    return [ null, { host: "#{host}#{port}" } ]
+
 
   importStackTemplateData: (importParams, user, callback) ->
 
