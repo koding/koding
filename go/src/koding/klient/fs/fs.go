@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"sync"
 	"syscall"
 
@@ -35,6 +36,14 @@ type ReadDirectoryOptions struct {
 	// IgnoreFolders specifies which folders to not return results for
 	// when reading recursively.
 	IgnoreFolders []string
+}
+
+type GetInfoOptions struct {
+	Path string `json:"path"`
+}
+
+type GetFolderSizeOptions struct {
+	Path string `json:"path"`
 }
 
 func ReadDirectory(r *kite.Request) (interface{}, error) {
@@ -244,15 +253,13 @@ func UniquePath(r *kite.Request) (interface{}, error) {
 }
 
 func GetInfo(r *kite.Request) (interface{}, error) {
-	var params struct {
-		Path string
-	}
+	var opts GetInfoOptions
 
-	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
+	if r.Args.One().Unmarshal(&opts) != nil || opts.Path == "" {
 		return nil, errors.New("{ path: [string] }")
 	}
 
-	return getInfo(params.Path)
+	return getInfo(opts.Path)
 }
 
 type setPermissionsParams struct {
@@ -396,4 +403,23 @@ func GetDiskInfo(r *kite.Request) (interface{}, error) {
 	di.BlocksUsed = di.BlocksTotal - di.BlocksFree
 
 	return di, nil
+}
+
+func GetPathSize(r *kite.Request) (interface{}, error) {
+	var opts GetFolderSizeOptions
+
+	if r.Args.One().Unmarshal(&opts) != nil || opts.Path == "" {
+		return nil, errors.New("{ path: [string] }")
+	}
+
+	var total int64
+	err := filepath.Walk(opts.Path, func(_ string, fi os.FileInfo, err error) error {
+		if !fi.IsDir() {
+			total += fi.Size()
+		}
+
+		return err
+	})
+
+	return total, err
 }
