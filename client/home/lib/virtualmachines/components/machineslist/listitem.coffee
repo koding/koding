@@ -182,7 +182,7 @@ module.exports = class MachinesListItem extends React.Component
           <input
             ref='inputbox'
             value={@state.machineLabel}
-            className="kdinput text template-title autogrow"
+            className="kdinput text"
             onChange={@bound 'inputOnChange'}
             onBlur={@bound 'inputOnBlur'}
             onKeyDown={@bound 'inputOnKeyDown'} />
