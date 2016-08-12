@@ -1,8 +1,26 @@
 React = require 'kd-react'
 Link  = require 'app/components/common/link'
+canCreateStacks = require 'app/util/canCreateStacks'
+isAdmin = require 'app/util/isAdmin'
 
 
 module.exports = class SidebarNoStacks extends React.Component
+
+  renderMessage: ->
+    if canCreateStacks()
+      <p>
+        Your stacks has not been
+        fully configured yet, please
+        finalize onboarding steps.
+      </p>
+    else
+      <p>
+        Your stacks has not been
+        fully configured yet, please
+        wait until your admin sets
+        them up for you.
+      </p>
+
 
 
   render: ->
@@ -13,11 +31,7 @@ module.exports = class SidebarNoStacks extends React.Component
       </Link>
       <section className='SidebarSection SidebarStackSection SidebarStackWidgets'>
         <div className='SidebarSection-body'>
-          <p>
-            Your stacks has not been
-            fully configured yet, please
-            finalize onboarding steps.
-          </p>
+          {@renderMessage()}
         </div>
       </section>
     </div>
