@@ -1,8 +1,7 @@
-import immutable from 'immutable'
-import toImmutable from 'app/util/toImmutable'
+import Immutable from 'seamless-immutable'
 import kd from 'kd'
 
-const initialState = immutable.Map()
+const initialState = Immutable({})
 const LOAD_TEAM = 'app/team/LOAD_TEAM'
 
 export default function reducer(state = initialState, action = {}){
@@ -20,7 +19,7 @@ export function loadTeam(){
   const team = kd.singletons.groupsController.getCurrentGroup()
 
   return {
-    payload: toImmutable(team),
+    payload: Immutable(team),
     type: LOAD_TEAM
   };
 }
