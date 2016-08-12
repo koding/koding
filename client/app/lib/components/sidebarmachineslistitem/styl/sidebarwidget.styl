@@ -21,6 +21,14 @@
     .badge
       display             none
 
+    button.kdbutton.green
+      bg color #51BE84
+      &:hover
+        bg color #48BA7D
+    button
+      .button-title
+        font-weight         300
+
   .SidebarWidget-Link
     dIBlock()
 
@@ -63,8 +71,10 @@
     .SidebarWidget-UserView
       margin-bottom         10px
 
-    .kdbutton.red
-      width                 210px
+    .kdbutton.GenericButton
+      width                 100%
+      .button-title
+        font-weight         300
 
   &.ConnectedManagedVm
     .Popover-Wrapper

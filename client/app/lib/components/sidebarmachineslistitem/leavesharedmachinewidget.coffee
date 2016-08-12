@@ -45,7 +45,7 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
       <InvitationWidgetUserPart
         owner={@props.machine.get 'owner'}
        />
-      <button className='kdbutton solid medium red' onClick={@bound 'onLeaveClicked'}>
+      <button className='kdbutton GenericButton' onClick={@bound 'onLeaveClicked'}>
         <span className='button-title'>{buttonText}</span>
       </button>
     </SidebarWidget>
