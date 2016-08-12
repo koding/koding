@@ -15,12 +15,13 @@ $borderColor                = #E3E3E3
   flex-flow                 row nowrap
   justify-content           space-around
   margin-bottom             33px
-  &:before
-    content                 ''
-    bg                      color #73C461
-    size                    10px 10px
-    abs                     61px 0 0 42px
-    rounded                 5px
+
+  .edit-name
+    color #67A2EE
+    text-decoration none
+    font-size 13px
+    font-weight 300
+    abs 81px 0 0 42px
 
   .buttons
     flex                    1 0 auto
@@ -34,13 +35,12 @@ $borderColor                = #E3E3E3
       display               none
 
 
-
   .kdinput.text
     flex                    0 1 auto
     font-size               20px
     display                 block
-    size                    auto 50px
-    padding                 10px 25px
+    size                    auto 42px
+    padding                 5px 0
     border                  1px solid transparent
     rounded                 3px
     color                   #424242
@@ -49,12 +49,18 @@ $borderColor                = #E3E3E3
     font-weight             400
     outline                 none
     shadow                  none
+    pointer-events          none
     &.isntMine
       opacity               .5
       pointer-events        none
 
-    &:focus
     &:hover
+      border                1px solid transparent
+
+    &:focus
+      pointer-events        auto
+      padding-left          10px
+      padding-right         10px
       outline               inherit
       bg                    color #FFFFFF
       border                1px solid $borderColor
