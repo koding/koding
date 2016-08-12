@@ -1,3 +1,5 @@
+// +build ignore
+
 package api
 
 import (
@@ -7,7 +9,6 @@ import (
 	"socialapi/workers/common/mux"
 
 	"github.com/RangelReale/osin"
-	"gopkg.in/mgo.v2"
 )
 
 const (
