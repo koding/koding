@@ -257,3 +257,5 @@ module.exports =
         .click sharedMachineSelector
 
       helpers.createFile(browser, host, null, null, fileName)
+      browser.pause  2000, callback
+

@@ -67,18 +67,25 @@ module.exports =
          
 
   createNewFile: (browser) ->
-    hostFakeText       = host.fakeText.split(' ')
-    fileName           = hostFakeText[0]
-    fileContent        = hostFakeText[1]
-
+    hostFakeText = host.fakeText.split(' ')
+    fileName     = hostFakeText[0]
+    fileContent  = hostFakeText[1]
+    hostFileName = hostFakeText[2]
+    hostFileSelector =  "span[title='/home/#{host.username}/.config/#{hostFileName}']" 
+    fileSelector =  "span[title='/home/#{host.username}/.config/#{fileName}']"
+    fileSlug = hostFileName.replace '.', ''
+    
     browser.pause 2500, -> # wait for user.json creation
       callback = ->
-        ideHelpers.openFile(browser, host, fileName)
-        # browser.end()
+        helpers.createFile(browser, host, null, null, hostFileName)
+        browser.end()
 
       participantCallback = ->
-        browser.pause 3000
-        # browser.end()
+        
+        browser.waitForElementVisible  hostFileSelector, 20000
+        ideHelpers.openFile(browser, host, hostFileName)
+        
+        browser.end()
 
       if hostBrowser
         vmHelpers.handleInvite(browser, host, participant, no, callback)
