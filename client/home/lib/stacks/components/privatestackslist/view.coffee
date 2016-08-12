@@ -38,6 +38,7 @@ module.exports = class PrivateStacksListView extends React.Component
       onOpen={@props.onOpenItem}
       onAddToSidebar={onAddToSidebar}
       onRemoveFromSidebar={onRemoveFromSidebar}
+      stack={stack}
     />
 
 
