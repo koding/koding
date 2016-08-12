@@ -64,6 +64,7 @@
     "record-shortcuts": "0.1.4",
     "redux": "3.5.2",
     "redux-thunk": "2.1.0",
+    "seamless-immutable": "6.1.1",
     "shortcuts": "0.5.7",
     "sinkrow": "koding/sinkrow#v0.1.3",
     "timeago": "0.2.0",
