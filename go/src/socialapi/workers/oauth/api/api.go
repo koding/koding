@@ -1,4 +1,6 @@
-package main
+// +build ignore
+
+package api
 
 import (
 	"errors"

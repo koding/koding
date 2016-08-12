@@ -19,7 +19,6 @@ module.exports = class WelcomeStepsContainer extends React.Component
     # mounting the component. These checks need to be done when the backend is
     # ready, because mini view will be rendered on the page load. ~Umut
     kd.singletons.mainController.ready =>
-      HomeFlux.actions.checkMigration()
       HomeFlux.actions.checkFinishedSteps()
 
 

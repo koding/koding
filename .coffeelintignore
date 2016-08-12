@@ -57,7 +57,6 @@ client/home/lib/virtualmachines/homevirtualmachinesvirtualmachines.coffee
 client/home/lib/welcome/index.coffee
 client/mocks/
 client/stack-editor/lib/editor/index.coffee
-client/migratefromsolo/lib
 
 client/app/lib/nostackfoundview.coffee
 client/home/lib/welcome/components/welcomesteps/container.coffee

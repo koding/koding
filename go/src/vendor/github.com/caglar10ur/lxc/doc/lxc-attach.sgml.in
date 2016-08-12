@@ -1,0 +1,394 @@
+<!--
+
+lxc: linux Container library
+
+(C) Copyright IBM Corp. 2007, 2008
+
+Authors:
+Daniel Lezcano <daniel.lezcano at free.fr>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+-->
+
+
+<!DOCTYPE refentry PUBLIC @docdtd@ [
+
+<!ENTITY commonoptions SYSTEM "@builddir@/common_options.sgml">
+<!ENTITY seealso SYSTEM "@builddir@/see_also.sgml">
+]>
+
+<refentry>
+
+  <docinfo><date>@LXC_GENERATE_DATE@</date></docinfo>
+
+  <refmeta>
+    <refentrytitle>lxc-attach</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>lxc-attach</refname>
+
+    <refpurpose>
+      start a process inside a running container.
+    </refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>lxc-attach</command>
+      <arg choice="req">-n <replaceable>name</replaceable></arg>
+      <arg choice="opt">-a <replaceable>arch</replaceable></arg>
+      <arg choice="opt">-e</arg>
+      <arg choice="opt">-s <replaceable>namespaces</replaceable></arg>
+      <arg choice="opt">-R</arg>
+      <arg choice="opt">--keep-env</arg>
+      <arg choice="opt">--clear-env</arg>
+      <arg choice="opt">-- <replaceable>command</replaceable></arg>
+      <arg choice="opt">-L <replaceable>file</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para>
+      <command>lxc-attach</command> runs the specified
+      <replaceable>command</replaceable> inside the container
+      specified by <replaceable>name</replaceable>. The container
+      has to be running already.
+    </para>
+    <para>
+      If no <replaceable>command</replaceable> is specified, the
+      current default shell of the user running
+      <command>lxc-attach</command> will be looked up inside the
+      container and executed. This will fail if no such user exists
+      inside the container or the container does not have a working
+      nsswitch mechanism.
+    </para>
+    <para>
+    Previous versions of <command>lxc-attach</command> simply attached to the
+    specified namespaces of a container and ran a shell or the specified command
+    without first allocating a pseudo terminal. This made them vulnerable to
+    input faking via a TIOCSTI <command>ioctl</command> call after switching
+    between userspace execution contexts with different privilege levels. Newer
+    versions of <command>lxc-attach</command> will try to allocate a pseudo
+    terminal master/slave pair on the host and attach any standard file
+    descriptors which refer to a terminal to the slave side of the pseudo
+    terminal before executing a shell or command. Note, that if none of the
+    standard file descriptors refer to a terminal <command>lxc-attach</command>
+    will not try to allocate a pseudo terminal. Instead it will simply attach
+    to the containers namespaces and run a shell or the specified command.
+    </para>
+
+  </refsect1>
+
+  <refsect1>
+
+    <title>Options</title>
+
+    <variablelist>
+
+      <varlistentry>
+	<term>
+	  <option>-a, --arch <replaceable>arch</replaceable></option>
+	</term>
+	<listitem>
+	  <para>
+	    Specify the architecture which the kernel should appear to be
+	    running as to the command executed. This option will accept the
+	    same settings as the <option>lxc.arch</option> option in
+	    container configuration files, see
+	    <citerefentry>
+	      <refentrytitle><filename>lxc.conf</filename></refentrytitle>
+	      <manvolnum>5</manvolnum>
+	    </citerefentry>. By default, the current archictecture of the
+	    running container will be used.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+	  <option>
+      -e, --elevated-privileges <replaceable>privileges</replaceable>
+    </option>
+	</term>
+	<listitem>
+	  <para>
+	    Do not drop privileges when running
+	    <replaceable>command</replaceable> inside the container. If
+	    this option is specified, the new process will
+	    <emphasis>not</emphasis> be added to the container's cgroup(s)
+	    and it will not drop its capabilities before executing.
+	  </para>
+    <para>
+      You may specify privileges, in case you do not want to elevate all of
+      them, as a pipe-separated list, e.g.
+      <replaceable>CGROUP|LSM</replaceable>. Allowed values are
+      <replaceable>CGROUP</replaceable>, <replaceable>CAP</replaceable> and
+      <replaceable>LSM</replaceable> representing cgroup, capabilities and
+      restriction privileges respectively. (The pipe symbol needs to be escaped,
+      e.g. <replaceable>CGROUP\|LSM</replaceable> or quoted, e.g.
+      <replaceable>"CGROUP|LSM"</replaceable>.)
+    </para>
+	  <para>
+	    <emphasis>Warning:</emphasis> This may leak privileges into the
+	    container if the command starts subprocesses that remain active
+	    after the main process that was attached is terminated. The
+	    (re-)starting of daemons inside the container is problematic,
+	    especially if the daemon starts a lot of subprocesses such as
+	    <command>cron</command> or <command>sshd</command>.
+	    <emphasis>Use with great care.</emphasis>
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+	  <option>-s, --namespaces <replaceable>namespaces</replaceable></option>
+	</term>
+	<listitem>
+	  <para>
+	    Specify the namespaces to attach to, as a pipe-separated list,
+	    e.g. <replaceable>NETWORK|IPC</replaceable>. Allowed values are
+	    <replaceable>MOUNT</replaceable>, <replaceable>PID</replaceable>,
+	    <replaceable>UTSNAME</replaceable>, <replaceable>IPC</replaceable>,
+	    <replaceable>USER </replaceable> and
+	    <replaceable>NETWORK</replaceable>. This allows one to change
+	    the context of the process to e.g. the network namespace of the
+	    container while retaining the other namespaces as those of the
+            host. (The pipe symbol needs to be escaped, e.g.
+            <replaceable>MOUNT\|PID</replaceable> or quoted, e.g.
+            <replaceable>"MOUNT|PID"</replaceable>.)
+	  </para>
+	  <para>
+	    <emphasis>Important:</emphasis> This option implies
+	    <option>-e</option>.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+	  <option>-R, --remount-sys-proc</option>
+	</term>
+	<listitem>
+	  <para>
+	    When using <option>-s</option> and the mount namespace is not
+	    included, this flag will cause <command>lxc-attach</command>
+	    to remount <replaceable>/proc</replaceable> and
+	    <replaceable>/sys</replaceable> to reflect the current other
+	    namespace contexts.
+	  </para>
+	  <para>
+	    Please see the <emphasis>Notes</emphasis> section for more
+	    details.
+	  </para>
+	  <para>
+	    This option will be ignored if one tries to attach to the
+	    mount namespace anyway.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+	  <option>--keep-env</option>
+	</term>
+	<listitem>
+	  <para>
+	    Keep the current environment for attached programs. This is
+	    the current default behaviour (as of version 0.9), but is
+	    is likely to change in the future, since this may leak
+	    undesirable information into the container. If you rely on
+	    the environment being available for the attached program,
+	    please use this option to be future-proof. In addition to
+	    current environment variables, container=lxc will be set.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+	  <option>--clear-env</option>
+	</term>
+	<listitem>
+	  <para>
+	    Clear the environment before attaching, so no undesired
+	    environment variables leak into the container. The variable
+	    container=lxc will be the only environment with which the
+	    attached program starts.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+	  <option>-L, --pty-log <replaceable>file</replaceable></option>
+	</term>
+	<listitem>
+	  <para>
+	Specify a file where the output of <command>lxc-attach</command> will be
+	logged.
+	  </para>
+	  <para>
+	    <emphasis>Important:</emphasis>  When a standard file descriptor
+	    does not refer to a pty output produced on it will not be logged.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+     </variablelist>
+
+  </refsect1>
+
+  &commonoptions;
+
+  <refsect1>
+    <title>Examples</title>
+      <para>
+        To spawn a new shell running inside an existing container, use
+        <programlisting>
+          lxc-attach -n container
+        </programlisting>
+      </para>
+      <para>
+        To restart the cron service of a running Debian container, use
+        <programlisting>
+          lxc-attach -n container -- /etc/init.d/cron restart
+        </programlisting>
+      </para>
+      <para>
+        To deactivate the network link eth1 of a running container that
+        does not have the NET_ADMIN capability, use either the
+        <option>-e</option> option to use increased capabilities,
+        assuming the <command>ip</command> tool is installed:
+        <programlisting>
+          lxc-attach -n container -e -- /sbin/ip link delete eth1
+        </programlisting>
+        Or, alternatively, use the <option>-s</option> to use the
+        tools installed on the host outside the container:
+        <programlisting>
+          lxc-attach -n container -s NETWORK -- /sbin/ip link delete eth1
+        </programlisting>
+      </para>
+  </refsect1>
+
+  <refsect1>
+    <title>Compatibility</title>
+    <para>
+      Attaching completely (including the pid and mount namespaces) to a
+      container requires a kernel of version 3.8 or higher, or a
+      patched kernel, please see the lxc website for
+      details. <command>lxc-attach</command> will fail in that case if
+      used with an unpatched kernel of version 3.7 and prior.
+    </para>
+    <para>
+      Nevertheless, it will succeed on an unpatched kernel of version 3.0
+      or higher if the <option>-s</option> option is used to restrict the
+      namespaces that the process is to be attached to to one or more of
+      <replaceable>NETWORK</replaceable>, <replaceable>IPC</replaceable>
+      and <replaceable>UTSNAME</replaceable>.
+    </para>
+    <para>
+      Attaching to user namespaces is supported by kernel 3.8 or higher
+      with enabling user namespace.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>Notes</title>
+    <para>
+      The Linux <replaceable>/proc</replaceable> and
+      <replaceable>/sys</replaceable> filesystems contain information
+      about some quantities that are affected by namespaces, such as
+      the directories named after process ids in
+      <replaceable>/proc</replaceable> or the network interface information
+      in <replaceable>/sys/class/net</replaceable>. The namespace of the
+      process mounting the pseudo-filesystems determines what information
+      is shown, <emphasis>not</emphasis> the namespace of the process
+      accessing <replaceable>/proc</replaceable> or
+      <replaceable>/sys</replaceable>.
+    </para>
+    <para>
+      If one uses the <option>-s</option> option to only attach to
+      the pid namespace of a container, but not its mount namespace
+      (which will contain the <replaceable>/proc</replaceable> of the
+      container and not the host), the contents of <option>/proc</option>
+      will reflect that of the host and not the container. Analogously,
+      the same issue occurs when reading the contents of
+      <replaceable>/sys/class/net</replaceable> and attaching to just
+      the network namespace.
+    </para>
+    <para>
+      To work around this problem, the <option>-R</option> flag provides
+      the option to remount <replaceable>/proc</replaceable> and
+      <replaceable>/sys</replaceable> in order for them to reflect the
+      network/pid namespace context of the attached process. In order
+      not to interfere with the host's actual filesystem, the mount
+      namespace will be unshared (like <command>lxc-unshare</command>
+      does) before this is done, essentially giving the process a new
+      mount namespace, which is identical to the hosts's mount namespace
+      except for the <replaceable>/proc</replaceable> and
+      <replaceable>/sys</replaceable> filesystems.
+    </para>
+    <para>
+      Previous versions of <command>lxc-attach</command> suffered a bug whereby
+      a user could attach to a containers namespace without being placed in a
+      writeable cgroup for some critical subsystems. Newer versions of
+      <command>lxc-attach</command> will check whether a user is in a writeable
+      cgroup for those critical subsystems. <command>lxc-attach</command> might
+      thus fail unexpectedly for some users (E.g. on systems where an
+      unprivileged user is not placed in a writeable cgroup in critical
+      subsystems on login.). However, this behavior is correct and more secure.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>Security</title>
+    <para>
+      The <option>-e</option> and <option>-s</option> options should
+      be used with care, as it may break the isolation of the containers
+      if used improperly.
+    </para>
+  </refsect1>
+
+  &seealso;
+
+  <refsect1>
+    <title>Author</title>
+    <para>Daniel Lezcano <email>daniel.lezcano@free.fr</email></para>
+  </refsect1>
+
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

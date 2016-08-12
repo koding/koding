@@ -74,7 +74,7 @@ type Stack struct {
 
 	// The following fields are set by buildResources method:
 	ids        stackplan.KiteMap
-	urls       map[string]string
+	klients    map[string]*stackplan.DialState
 	region     string
 	hostQuery  string
 	credential string
@@ -152,7 +152,7 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 		},
 	}
 
-	s.p.OnKlient = s.checkTunnel
+	s.p.OnDial = s.checkTunnel
 	bs.BuildResources = s.buildResources
 	bs.WaitResources = s.waitResources
 	bs.UpdateResources = s.updateResources

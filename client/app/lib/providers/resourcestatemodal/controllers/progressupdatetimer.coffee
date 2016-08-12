@@ -29,3 +29,4 @@ module.exports = class ProgressUpdateTimer extends kd.Object
   stop: ->
 
     kd.utils.killWait @timer
+    @timer = null
