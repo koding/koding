@@ -77,13 +77,18 @@ module.exports =
     
     browser.pause 2500, -> # wait for user.json creation
       callback = ->
-        helpers.createFile(browser, host, null, null, hostFileName)
-        browser.end()
+        helpers.createFile(browser, host, null, null, hostFileName) 
+        browser.refresh()
+        ideHelpers.openFile(browser, host, fileName)
+        ideHelpers.openFile(browser, host, hostFileName)
+
 
       participantCallback = ->
         
         browser.waitForElementVisible  hostFileSelector, 20000
         ideHelpers.openFile(browser, host, hostFileName)
+        browser.pause 2000
+        ideHelpers.setTextToEditor(browser, fileContent)
         
         browser.end()
 
