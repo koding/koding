@@ -1,5 +1,5 @@
 kd = require 'kd'
-isAdmin = require 'app/util/isAdmin'
+getGroup = require 'app/util/getGroup'
 
 module.exports = canCreateStacks = ->
-  isAdmin() or !!kd.singletons.groupsController.getCurrentGroup().customize?.membersCanCreateStacks
+  isAdmin() or !!getGroup().customize?.membersCanCreateStacks

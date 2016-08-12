@@ -1,3 +1,3 @@
-kd = require 'kd'
+getGroup = require 'app/util/getGroup'
 
-module.exports = teamHasStack = -> !!kd.singletons.groupsController.getCurrentGroup().stackTemplates?.length
+module.exports = teamHasStack = -> !!getGroup().stackTemplates?.length

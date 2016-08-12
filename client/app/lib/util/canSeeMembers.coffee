@@ -1,4 +1,4 @@
-kd = require 'kd'
+getGroup = require 'app/util/getGroup'
 
 module.exports = canSeeMembers = ->
-  !kd.singletons.groupsController.getCurrentGroup().customize?.hideTeamMembers
+  !getGroup().customize?.hideTeamMembers
