@@ -7,7 +7,8 @@ const LOAD_TEAM = 'app/team/LOAD_TEAM'
 export default function reducer(state = initialState, action = {}){
   switch(action.type){
     case LOAD_TEAM:
-      return { team: action.payload };
+      const prototype = Object.getPrototypeOf(action.payload)
+      return Immutable(action.payload, { prototype: prototype })
 
     default:
       return state;
@@ -19,7 +20,7 @@ export function loadTeam(){
   const team = kd.singletons.groupsController.getCurrentGroup()
 
   return {
-    payload: Immutable(team),
+    payload: team,
     type: LOAD_TEAM
   };
 }
