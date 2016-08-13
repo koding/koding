@@ -31,9 +31,9 @@ describe 'MessageLikersStore', ->
 
       likers = @reactor.evaluateToJS [MessageLikersStore.getterPath]
 
-      expect(likers.popular).toEqual {1: '1', 2: '2'}
-      expect(likers.message).toEqual {2: '2', 3: '3'}
-      expect(likers.comment).toEqual {1: '1'}
+      expect(likers.popular).toEqual { 1: '1', 2: '2' }
+      expect(likers.message).toEqual { 2: '2', 3: '3' }
+      expect(likers.comment).toEqual { 1: '1' }
       expect(likers.newMessage).toEqual {}
       expect(likers.newComment).toEqual {}
 
@@ -57,9 +57,9 @@ describe 'MessageLikersStore', ->
       it "adds given userId to given message's likers map", ->
         likers = @reactor.evaluateToJS [MessageLikersStore.getterPath]
 
-        expect(likers.foo).toEqual {1: '1'}
-        expect(likers.bar).toEqual {1: '1'}
-        expect(likers.baz).toEqual {1: '1'}
+        expect(likers.foo).toEqual { 1: '1' }
+        expect(likers.bar).toEqual { 1: '1' }
+        expect(likers.baz).toEqual { 1: '1' }
 
     describe '#removeLiker', ->
 
@@ -82,4 +82,4 @@ describe 'MessageLikersStore', ->
 
 
 messageWithLikers = (id, actorsPreview) ->
-  return { id, interactions: like: { actorsPreview } }
+  return { id, interactions: { like: { actorsPreview } } }

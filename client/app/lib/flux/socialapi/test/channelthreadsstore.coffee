@@ -9,7 +9,7 @@ describe 'ChannelThreadsStore', ->
   reactor = null
   beforeEach ->
     reactor = new Reactor
-    reactor.registerStores channelThreads: ChannelThreadsStore
+    reactor.registerStores { channelThreads: ChannelThreadsStore }
     channelId = '123'
 
 
@@ -17,7 +17,7 @@ describe 'ChannelThreadsStore', ->
 
     it 'should add successful message to store', ->
 
-      message = id: '567'
+      message = { id: '567' }
       reactor.dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { channelId, message }
 
       storeState = reactor.evaluateToJS ['channelThreads']

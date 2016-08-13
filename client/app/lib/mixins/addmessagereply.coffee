@@ -3,7 +3,7 @@ addMessageReply = (message, reply) ->
   message.replyIds[reply.id] = yes
   message.repliesCount++
 
-  message.emit "AddReply", reply
-  message.emit "update"
+  message.emit 'AddReply', reply
+  message.emit 'update'
 
 module.exports = addMessageReply

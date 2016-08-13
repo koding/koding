@@ -10,7 +10,7 @@ describe 'SuggestionsSelectedIndexStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores suggestionsSelectedIndex : SuggestionsSelectedIndexStore
+    @reactor.registerStores { suggestionsSelectedIndex : SuggestionsSelectedIndexStore }
 
 
   describe '#setIndex', ->
@@ -27,7 +27,7 @@ describe 'SuggestionsSelectedIndexStore', ->
 
   describe '#moveToNextIndex', ->
 
-  	it 'moves to next index', ->
+    it 'moves to next index', ->
 
       index = 3
       nextIndex = index + 1
@@ -36,7 +36,7 @@ describe 'SuggestionsSelectedIndexStore', ->
       selectedIndex = @reactor.evaluate ['suggestionsSelectedIndex']
 
       expect(selectedIndex).toEqual index
-      
+
       @reactor.dispatch actions.MOVE_TO_NEXT_SUGGESTIONS_INDEX
       selectedIndex = @reactor.evaluate ['suggestionsSelectedIndex']
 
@@ -54,7 +54,7 @@ describe 'SuggestionsSelectedIndexStore', ->
       selectedIndex = @reactor.evaluate ['suggestionsSelectedIndex']
 
       expect(selectedIndex).toEqual index
-      
+
       @reactor.dispatch actions.MOVE_TO_PREV_SUGGESTIONS_INDEX
       selectedIndex = @reactor.evaluate ['suggestionsSelectedIndex']
 
