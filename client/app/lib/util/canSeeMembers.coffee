@@ -1,4 +1,3 @@
 getGroup = require 'app/util/getGroup'
 
-module.exports = canSeeMembers = ->
-  !getGroup().customize?.hideTeamMembers
+module.exports = canSeeMembers = -> not getGroup().customize?.hideTeamMembers
