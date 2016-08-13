@@ -136,10 +136,13 @@ module.exports = class StackEditorAppController extends AppController
     editor?.destroy()
 
 
-  reloadEditor: (template) ->
+  reloadEditor: (templateId) ->
 
-    @removeEditor template._id
-    @showView template
+    { computeController } = kd.singletons
+
+    computeController.fetchStackTemplate templateId, (err, template) =>
+      @removeEditor template._id
+      @showView template
 
 
   createEditor: (stackTemplate) ->
