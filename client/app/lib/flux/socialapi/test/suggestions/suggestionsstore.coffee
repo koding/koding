@@ -10,7 +10,7 @@ describe 'SuggestionsStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores currentSuggestions : SuggestionsStore
+    @reactor.registerStores { currentSuggestions : SuggestionsStore }
 
 
   describe '#handleFetchSuccess', ->
@@ -24,7 +24,7 @@ describe 'SuggestionsStore', ->
         { id : '1', body : suggestionBody1 }
         { id : '2', body : suggestionBody2 }
       ]
-      @reactor.dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, data : list
+      @reactor.dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, { data : list }
       suggestions = @reactor.evaluate ['currentSuggestions']
 
       expect(suggestions.size).toEqual 2
@@ -34,7 +34,7 @@ describe 'SuggestionsStore', ->
       list = [
         { id : '3', body : suggestionBody3 }
       ]
-      @reactor.dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, data : list
+      @reactor.dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, { data : list }
       suggestions = @reactor.evaluate ['currentSuggestions']
 
       expect(suggestions.size).toEqual 1
@@ -52,7 +52,7 @@ describe 'SuggestionsStore', ->
 
     it 'resets store data', ->
 
-      @reactor.dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, data : list
+      @reactor.dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, { data : list }
 
       @reactor.dispatch actionTypes.SUGGESTIONS_DATA_RESET
       suggestions = @reactor.evaluate ['currentSuggestions']
@@ -61,7 +61,7 @@ describe 'SuggestionsStore', ->
 
     it 'handles fetch data failure', ->
 
-      @reactor.dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, data : list
+      @reactor.dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, { data : list }
 
       @reactor.dispatch actionTypes.FETCH_SUGGESTIONS_FAIL
       suggestions = @reactor.evaluate ['currentSuggestions']

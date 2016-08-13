@@ -443,7 +443,7 @@ sidebarPublicChannels      = [
   SidebarPublicChannelsTabStore
   (threads, filteredChannels, query, tab) ->
     if (query)
-      result = threads.filter (thread) =>
+      result = threads.filter (thread) ->
         channel = thread.get('channel').toJS()
         name = channel.name.toLowerCase()
         return name.indexOf(query.toLowerCase()) > -1 and isPublicChannel channel

@@ -6,7 +6,7 @@ AutoCompleteProfileTextView = require 'app/commonviews/linkviews/autocompletepro
 
 module.exports = class ActivityAutoCompleteUserItemView extends KDAutoCompleteListItemView
 
-  constructor:(options, data)->
+  constructor: (options, data) ->
 
     options.type = 'dropdown-member'
 

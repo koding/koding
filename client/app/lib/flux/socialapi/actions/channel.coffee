@@ -351,7 +351,7 @@ deletePrivateChannel = (channelId) ->
 
     .catch (err) ->
       dispatch DELETE_PRIVATE_CHANNEL_FAIL , { channelId }
-      showErrorNotification err, userMessage: err.message
+      showErrorNotification err, { userMessage: err.message }
 
 
 leavePrivateChannel = (channelId) ->
@@ -367,7 +367,7 @@ leavePrivateChannel = (channelId) ->
   channel.leave { channelId }, (err, result) ->
     if err
       dispatch LEAVE_PRIVATE_CHANNEL_FAIL , { err, channelId, accountId }
-      return showErrorNotification err, userMessage: err.message
+      return showErrorNotification err, { userMessage: err.message }
 
     dispatch LEAVE_PRIVATE_CHANNEL_SUCCESS, { channelId, accountId }
 
@@ -383,7 +383,7 @@ addParticipants = (channelId, accountIds, userIds) ->
 
   dispatch ADD_PARTICIPANTS_TO_CHANNEL_BEGIN, options
 
-  channel.addParticipants options, (err, result) =>
+  channel.addParticipants options, (err, result) ->
     if err
       dispatch ADD_PARTICIPANTS_TO_CHANNEL_FAIL, options
       showErrorNotification err.description
@@ -417,13 +417,13 @@ inviteMember = (invites) ->
   { INVITE_MEMBER_SUCCESS, INVITE_MEMBER_FAIL } = actionTypes
 
   new Promise (resolve, reject) ->
-    remote.api.JInvitation.create invitations: invites, (err) =>
+    remote.api.JInvitation.create { invitations: invites }, (err) ->
       if err
         showError 'Failed to send invite, please try again.'
         return dispatch actionTypes.INVITE_MEMBER_FAIL, invites
 
       dispatch actionTypes.INVITE_MEMBER_SUCCESS, invites
-      showNotification 'Invitation sent.', type: 'main'
+      showNotification 'Invitation sent.', { type: 'main' }
 
       resolve()
 
@@ -501,7 +501,7 @@ setLastSeenTime = (channelId, timestamp) ->
  *
  * @param {object=} options
 ###
-updateChannel = (options={}) ->
+updateChannel = (options = {}) ->
 
   { socialapi } = kd.singletons
   { UPDATE_CHANNEL_BEGIN
@@ -510,7 +510,7 @@ updateChannel = (options={}) ->
 
   dispatch actionTypes.UPDATE_CHANNEL_BEGIN, options
 
-  socialapi.channel.update options, (err, channel) =>
+  socialapi.channel.update options, (err, channel) ->
     if err
       return dispatch UPDATE_CHANNEL_FAIL, err
 
