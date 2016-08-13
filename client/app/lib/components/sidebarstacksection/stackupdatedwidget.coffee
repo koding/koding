@@ -23,8 +23,9 @@ module.exports = class StackUpdatedWidget extends React.Component
 
   handleOnClick : ->
     { appManager, router } = kd.singletons
-    appManager.tell 'Stackeditor', 'reloadEditor', @props.stack.get('baseTemplate').toJS()
-    actions.reinitStackFromWidget @props.stack
+    { templateId } =  @props.stack.get('baseTemplate').toJS()
+    actions.reinitStackFromWidget(@props.stack).then ->
+      appManager.tell 'Stackeditor', 'reloadEditor', templateId
 
 
   handleOnClose: ->

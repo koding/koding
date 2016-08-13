@@ -106,7 +106,7 @@ module.exports = class StackEditorAppController extends AppController
 
     unless @editors[id]
       @editors[id] = editor = @createEditor stackTemplate
-      editor.on 'Reload', @lazyBound 'reloadEditor', stackTemplate
+      editor.on 'Reload', @lazyBound 'reloadEditor', stackTemplate._id
       @mainView.addSubView editor
 
     return  unless editor = @editors[id]
