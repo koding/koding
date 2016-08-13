@@ -10,7 +10,7 @@ describe 'MessagesStore', ->
   reactor = null
   beforeEach ->
     reactor = new Reactor
-    reactor.registerStores messages: MessagesStore
+    reactor.registerStores { messages: MessagesStore }
 
 
   describe '#handleLoadMessageSuccess', ->
@@ -47,7 +47,7 @@ describe 'MessagesStore', ->
       body = 'hello world'
       messageId = '123'
 
-      reactor.dispatch actionTypes.CREATE_MESSAGE_BEGIN, {clientRequestId, body}
+      reactor.dispatch actionTypes.CREATE_MESSAGE_BEGIN, { clientRequestId, body }
 
       # mock serverside response
       mockMessage = MessageCollectionHelpers.createFakeMessage messageId, body
@@ -87,13 +87,13 @@ describe 'MessagesStore', ->
       message   = MessageCollectionHelpers.createFakeMessage messageId, body
 
       reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { messageId, message }
-      reactor.dispatch actionTypes.EDIT_MESSAGE_BEGIN, { messageId, body: 'Hello World Edited', payload: foo: 'bar' }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_BEGIN, { messageId, body: 'Hello World Edited', payload: { foo: 'bar' } }
 
       storeState = reactor.evaluate ['messages']
       message = storeState.get messageId
 
       expect(message.get '__editedBody').toEqual 'Hello World Edited'
-      expect(message.get('__editedPayload').toJS()).toEqual foo: 'bar'
+      expect(message.get('__editedPayload').toJS()).toEqual { foo: 'bar' }
 
 
   describe '#handleEditMessageSuccess', ->
@@ -106,7 +106,7 @@ describe 'MessagesStore', ->
       successMessage   = MessageCollectionHelpers.createFakeMessage messageId, 'Hello World Edited'
 
       reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { messageId, message }
-      reactor.dispatch actionTypes.EDIT_MESSAGE_BEGIN, { messageId, body: 'Hello World Edited', payload: foo: 'bar' }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_BEGIN, { messageId, body: 'Hello World Edited', payload: { foo: 'bar' } }
       reactor.dispatch actionTypes.EDIT_MESSAGE_SUCCESS, { messageId, message: successMessage }
 
       storeState = reactor.evaluate ['messages']
@@ -126,7 +126,7 @@ describe 'MessagesStore', ->
       message   = MessageCollectionHelpers.createFakeMessage messageId, body
 
       reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { messageId, message }
-      reactor.dispatch actionTypes.EDIT_MESSAGE_BEGIN, { messageId, body: 'Hello World Edited', payload: foo: 'bar' }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_BEGIN, { messageId, body: 'Hello World Edited', payload: { foo: 'bar' } }
       reactor.dispatch actionTypes.EDIT_MESSAGE_FAIL, { messageId }
 
       storeState = reactor.evaluate ['messages']
@@ -157,7 +157,7 @@ describe 'MessagesStore', ->
       body = 'hello world'
       commentId = '123'
 
-      reactor.dispatch actionTypes.CREATE_COMMENT_BEGIN, {clientRequestId, body}
+      reactor.dispatch actionTypes.CREATE_COMMENT_BEGIN, { clientRequestId, body }
 
       comment = MessageCollectionHelpers.createFakeMessage commentId, body
       reactor.dispatch actionTypes.CREATE_COMMENT_SUCCESS, {

@@ -68,7 +68,7 @@ postNotificationForReceivedMessage = (channel, messages, accounts) ->
       kd.singletons.desktopNotifications.notify(notification)
       _reset()
   else
-    userActions.loadAccount(messages[0].account._id).then ({ account })->
+    userActions.loadAccount(messages[0].account._id).then ({ account }) ->
       title   = "New message from #{account.profile.nickname}"
       message = _sliceLongText messages[0].body
 
@@ -90,21 +90,21 @@ _reset = ->
   accounts    = []
 
 _prepareBody = (accounts) ->
-    body = 'from '
-    len  = accounts.length
-    [0...len].forEach (i)->
-      body += accounts[i].profile.nickname
-      if i + 2 is len
-        body += " and "
-      else if i + 1 is len
-        body += ""
-      else
-        body += ", "
+  body = 'from '
+  len  = accounts.length
+  [0...len].forEach (i) ->
+    body += accounts[i].profile.nickname
+    if i + 2 is len
+      body += ' and '
+    else if i + 1 is len
+      body += ''
+    else
+      body += ', '
 
-    return _sliceLongText body
+  return _sliceLongText body
 
 _sliceLongText = (text) ->
-  text = text.replace(/(\r\n|\n|\r)/gm, " ").trim()
+  text = text.replace(/(\r\n|\n|\r)/gm, ' ').trim()
   text = if text.length > 30 then "#{text.slice 0, 30}..." else text
   return text
 

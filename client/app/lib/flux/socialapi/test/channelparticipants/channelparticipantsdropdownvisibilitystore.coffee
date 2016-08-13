@@ -10,7 +10,7 @@ describe 'ChannelParticipantsDropdownVisibilityStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores channelParticipantsDropdownVisibility : ChannelParticipantsDropdownVisibilityStore
+    @reactor.registerStores { channelParticipantsDropdownVisibility : ChannelParticipantsDropdownVisibilityStore }
 
 
   describe '#setVisibility', ->

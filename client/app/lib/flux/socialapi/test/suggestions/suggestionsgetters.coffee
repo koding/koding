@@ -26,7 +26,7 @@ describe 'SuggestionsGetters', ->
       { getters } = ActivityFlux
       suggestions = []
 
-      @reactor.dispatch actions.FETCH_SUGGESTIONS_SUCCESS, data : suggestions
+      @reactor.dispatch actions.FETCH_SUGGESTIONS_SUCCESS, { data : suggestions }
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
 
       selectedIndex = @reactor.evaluate getters.currentSuggestionsSelectedIndex
@@ -43,7 +43,7 @@ describe 'SuggestionsGetters', ->
         { id : '3' }
       ]
 
-      @reactor.dispatch actions.FETCH_SUGGESTIONS_SUCCESS, data : suggestions
+      @reactor.dispatch actions.FETCH_SUGGESTIONS_SUCCESS, { data : suggestions }
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
 
       selectedIndex = @reactor.evaluate getters.currentSuggestionsSelectedIndex
@@ -62,7 +62,7 @@ describe 'SuggestionsGetters', ->
         { id : '5' }
       ]
 
-      @reactor.dispatch actions.FETCH_SUGGESTIONS_SUCCESS, data : suggestions
+      @reactor.dispatch actions.FETCH_SUGGESTIONS_SUCCESS, { data : suggestions }
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
 
       selectedIndex = @reactor.evaluate getters.currentSuggestionsSelectedIndex
@@ -79,7 +79,7 @@ describe 'SuggestionsGetters', ->
         { id : '3' }
       ]
 
-      @reactor.dispatch actions.FETCH_SUGGESTIONS_SUCCESS, data : suggestions
+      @reactor.dispatch actions.FETCH_SUGGESTIONS_SUCCESS, { data : suggestions }
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
 
       selectedIndex = @reactor.evaluate getters.currentSuggestionsSelectedIndex
@@ -98,7 +98,7 @@ describe 'SuggestionsGetters', ->
         { id : '3' }
       ]
 
-      @reactor.dispatch actions.FETCH_SUGGESTIONS_SUCCESS, data : suggestions
+      @reactor.dispatch actions.FETCH_SUGGESTIONS_SUCCESS, { data : suggestions }
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
 
       selectedItem = @reactor.evaluateToJS getters.currentSuggestionsSelectedItem

@@ -72,7 +72,7 @@ dispatchLoadMessageSuccess = (channelId, message) ->
   dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { channelId, channel, message }
 
   message.replies.forEach (comment) ->
-    dispatch actionTypes.LOAD_COMMENT_SUCCESS, {messageId: message.id, comment}
+    dispatch actionTypes.LOAD_COMMENT_SUCCESS, { messageId: message.id, comment }
     realtimeActionCreators.bindMessageEvents comment
 
 
@@ -369,7 +369,7 @@ editMessage = (messageId, body, payload) ->
   callback = (err, embedPayload) ->
     payload = mergeEmbedPayload payload, embedPayload
 
-    socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
+    socialapi.message.edit { id: messageId, body, payload }, (err, message) ->
       if err
         dispatch EDIT_MESSAGE_FAIL, { err, messageId }
         return
@@ -593,7 +593,7 @@ setChannelMessagesSearchQuery = (query) ->
   dispatch SET_CHANNEL_MESSAGES_SEARCH_QUERY, { query }
 
 
-fetchMessagesByQuery = (channelId, query, options={}) ->
+fetchMessagesByQuery = (channelId, query, options = {}) ->
 
   {
     LOAD_MESSAGES_SUCCESS
