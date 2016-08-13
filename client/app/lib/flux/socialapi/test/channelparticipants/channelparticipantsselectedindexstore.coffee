@@ -10,7 +10,7 @@ describe 'ChannelParticipantsSelectedIndexStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores channelParticipantsSelectedIndex : ChannelParticipantsSelectedIndexStore
+    @reactor.registerStores { channelParticipantsSelectedIndex : ChannelParticipantsSelectedIndexStore }
 
 
   describe '#setIndex', ->

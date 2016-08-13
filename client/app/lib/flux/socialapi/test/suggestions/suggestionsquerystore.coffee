@@ -10,7 +10,7 @@ describe 'SuggestionsQueryStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores currentSuggestionsQuery : SuggestionsQueryStore
+    @reactor.registerStores { currentSuggestionsQuery : SuggestionsQueryStore }
 
 
   describe '#setQuery', ->
@@ -20,12 +20,12 @@ describe 'SuggestionsQueryStore', ->
       query1 = 'test query 1'
       query2 = 'test query 2'
 
-      @reactor.dispatch actionTypes.SET_SUGGESTIONS_QUERY, query : query1
+      @reactor.dispatch actionTypes.SET_SUGGESTIONS_QUERY, { query : query1 }
       query = @reactor.evaluate ['currentSuggestionsQuery']
 
       expect(query).toEqual query1
 
-      @reactor.dispatch actionTypes.SET_SUGGESTIONS_QUERY, query: query2
+      @reactor.dispatch actionTypes.SET_SUGGESTIONS_QUERY, { query: query2 }
       query = @reactor.evaluate ['currentSuggestionsQuery']
 
       expect(query).toEqual query2

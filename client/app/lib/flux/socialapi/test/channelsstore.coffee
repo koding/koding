@@ -18,7 +18,7 @@ describe 'ChannelsStore', ->
 
     it 'listens to regular load channel success', ->
 
-      mockChannel = { id: 'public', name: 'public', typeConstant: 'group'}
+      mockChannel = { id: 'public', name: 'public', typeConstant: 'group' }
 
       @reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, {
         channel: mockChannel
@@ -60,41 +60,40 @@ describe 'ChannelsStore', ->
 
     it 'loads a list of popular channels', ->
 
-       channel1 = { id : 'programming', name : 'programming' }
-       channel2 = { id : 'testing', name : 'testing' }
-       channels = [ channel1, channel2 ]
+      channel1 = { id : 'programming', name : 'programming' }
+      channel2 = { id : 'testing', name : 'testing' }
+      channels = [ channel1, channel2 ]
 
-       @reactor.dispatch actionTypes.LOAD_POPULAR_CHANNELS_SUCCESS, { channels }
+      @reactor.dispatch actionTypes.LOAD_POPULAR_CHANNELS_SUCCESS, { channels }
+      storeState = @reactor.evaluateToJS ['ChannelsStore']
 
-       storeState = @reactor.evaluateToJS ['ChannelsStore']
-
-       expect(storeState.programming).toEqual channel1
-       expect(storeState.testing).toEqual channel2
+      expect(storeState.programming).toEqual channel1
+      expect(storeState.testing).toEqual channel2
 
 
   describe 'handleFollowChannelSuccess', ->
 
     it 'follows a channel', ->
 
-       channel  = { id : 'koding', name : 'koding', isParticipant: no }
+      channel  = { id : 'koding', name : 'koding', isParticipant: no }
 
-       @reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, { channel }
-       @reactor.dispatch actionTypes.FOLLOW_CHANNEL_SUCCESS, { channelId: 'koding' }
+      @reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, { channel }
+      @reactor.dispatch actionTypes.FOLLOW_CHANNEL_SUCCESS, { channelId: 'koding' }
 
-       storeState = @reactor.evaluate ['ChannelsStore']
+      storeState = @reactor.evaluate ['ChannelsStore']
 
-       expect(storeState.getIn ['koding', 'isParticipant']).toEqual yes
+      expect(storeState.getIn ['koding', 'isParticipant']).toEqual yes
 
 
   describe 'handleUnfollowChannelSuccess', ->
 
     it 'unfollows a channel', ->
 
-       channel  = { id : 'koding', name : 'koding', isParticipant: yes }
+      channel  = { id : 'koding', name : 'koding', isParticipant: yes }
 
-       @reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, { channel }
-       @reactor.dispatch actionTypes.UNFOLLOW_CHANNEL_SUCCESS, { channelId: 'koding' }
+      @reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, { channel }
+      @reactor.dispatch actionTypes.UNFOLLOW_CHANNEL_SUCCESS, { channelId: 'koding' }
 
-       storeState = @reactor.evaluate ['ChannelsStore']
+      storeState = @reactor.evaluate ['ChannelsStore']
 
-       expect(storeState.getIn ['koding', 'isParticipant']).toEqual no
+      expect(storeState.getIn ['koding', 'isParticipant']).toEqual no

@@ -5,7 +5,7 @@ isPublicChannel      = require 'app/util/isPublicChannel'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
-_cache = channel: {}, message: {}
+_cache = { channel: {}, message: {} }
 
 bindChannelEvents = (channel) ->
 
@@ -181,7 +181,7 @@ bindAppBadgeNotifiers = ->
  * @param {KodingFluxReactor} _reactor
  * @param {function}
 ###
-_createUnreadCountDispatchFn = (_reactor) -> ({unreadCount, channel}) ->
+_createUnreadCountDispatchFn = (_reactor) -> ({ unreadCount, channel }) ->
   _reactor.dispatch actions.SET_CHANNEL_UNREAD_COUNT,
     unreadCount : unreadCount
     channelId   : channel.id
@@ -195,7 +195,7 @@ _createUnreadCountDispatchFn = (_reactor) -> ({unreadCount, channel}) ->
  * @param {function}
 ###
 _createLoadMessageFn = (_reactor) -> (payload) ->
-  {channel, channelMessage} = payload
+  { channel, channelMessage } = payload
 
   dispatch actions.LOAD_MESSAGE_SUCCESS,
     channel   : channel

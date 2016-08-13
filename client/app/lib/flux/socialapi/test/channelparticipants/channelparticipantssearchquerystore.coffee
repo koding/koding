@@ -10,7 +10,7 @@ describe 'ChannelParticipantsSearchQueryStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores channelParticipantsSearchQuery : ChannelParticipantsSearchQueryStore
+    @reactor.registerStores { channelParticipantsSearchQuery : ChannelParticipantsSearchQueryStore }
 
 
   describe '#setQuery', ->
@@ -20,12 +20,12 @@ describe 'ChannelParticipantsSearchQueryStore', ->
       query1 = 'koding'
       query2 = 'kodingen'
 
-      @reactor.dispatch actions.SET_CHANNEL_PARTICIPANTS_QUERY, query : query1
+      @reactor.dispatch actions.SET_CHANNEL_PARTICIPANTS_QUERY, { query : query1 }
       query = @reactor.evaluate ['channelParticipantsSearchQuery']
 
       expect(query).toEqual query1
 
-      @reactor.dispatch actions.SET_CHANNEL_PARTICIPANTS_QUERY, query: query2
+      @reactor.dispatch actions.SET_CHANNEL_PARTICIPANTS_QUERY, { query: query2 }
       query = @reactor.evaluate ['channelParticipantsSearchQuery']
 
       expect(query).toEqual query2
@@ -37,7 +37,7 @@ describe 'ChannelParticipantsSearchQueryStore', ->
 
       testQuery = 'koding'
 
-      @reactor.dispatch actions.SET_CHANNEL_PARTICIPANTS_QUERY, query : testQuery
+      @reactor.dispatch actions.SET_CHANNEL_PARTICIPANTS_QUERY, { query : testQuery }
       query = @reactor.evaluate ['channelParticipantsSearchQuery']
 
       expect(query).toEqual testQuery
