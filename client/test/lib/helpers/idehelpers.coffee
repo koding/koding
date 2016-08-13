@@ -118,6 +118,7 @@ module.exports =
 
 
   setTextToEditor: (browser, text) ->
+
     browser.execute "_kd.singletons.appManager.frontApp.activeTabView.activePane.view.setContent('#{text}')"
 
 
@@ -199,6 +200,7 @@ module.exports =
 
     helpers.openFolderContextMenu browser, user, '.config'
 
+    console.log(fileContent)
     browser
       .waitForElementVisible   'li.expand', 15000
       .click                   'li.expand'
@@ -220,6 +222,7 @@ module.exports =
     contextMenuSelector = '.kdlistview-contextmenu'
     openFileSelector    = "#{contextMenuSelector} li.open-file"
     fileTabSelector     = "div[title='#{filePath}']"
+
     browser
       .waitForElementVisible  fileSelector, 20000
       .moveToElement          fileSelector, 120, 12

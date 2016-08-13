@@ -77,11 +77,14 @@ module.exports =
     
     browser.pause 2500, -> # wait for user.json creation
       callback = ->
-        helpers.createFile(browser, host, null, null, hostFileName) 
+        helpers.createFile(browser, host, null, null, hostFileName)
         browser.refresh()
-        ideHelpers.openFile(browser, host, fileName)
-        ideHelpers.openFile(browser, host, hostFileName)
+        ideHelpers.openFileFromConfigFolder(browser, host, hostFileName, fileContent)
+        editorSelector = ".kdtabpaneview.#{fileSlug} .ace_content"
+        browser.assert.containsText editorSelector, fileContent
 
+        browser.waitForElementVisible  fileSelector, 30000
+        browser.end()
 
       participantCallback = ->
         
@@ -89,6 +92,8 @@ module.exports =
         ideHelpers.openFile(browser, host, hostFileName)
         browser.pause 2000
         ideHelpers.setTextToEditor(browser, fileContent)
+        ideHelpers.saveFile(browser)
+        ideHelpers.closeFile(browser, hostFileName, host)
         
         browser.end()
 
