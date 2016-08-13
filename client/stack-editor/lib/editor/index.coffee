@@ -64,6 +64,7 @@ module.exports = class StackEditorView extends kd.View
         @deleteStack.hide()
         @saveButton.setClass 'isntMine'
         @inputTitle.setClass 'template-title isntMine'
+        @editName.hide()
 
 
 
