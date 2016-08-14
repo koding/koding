@@ -21,11 +21,20 @@
     .badge
       display             none
 
-    button.kdbutton.green
-      bg color #51BE84
-      &:hover
-        bg color #48BA7D
+
     button
+      height  42px
+
+    button.reject
+      float   left
+      background            #FFFFFF
+      border                1px solid #BEBEBE
+      border-radius         4px
+      span
+        color               #5E5E5E
+
+    button.accept
+      float                 right
       .button-title
         font-weight         300
 
@@ -60,8 +69,8 @@
     margin                  10px 0
     line-height             18px
 
-  .kdbutton.green
-    fr()
+  // .kdbutton.green
+  //   fr()
 
   &.Approved
 
