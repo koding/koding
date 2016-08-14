@@ -6,6 +6,27 @@ FAILING_INSTANCES_DATA_FILE=$(mktemp)
 
 SCRIPTS=$(dirname $0)/..
 
+function repeat () {
+  INTERVAL=$1
+  TRY_COUNT=$2
+  COUNTER=0
+
+  shift 2
+
+  until "$@"; do
+    COUNTER=$((COUNTER + 1))
+    if [ $COUNTER -eq $TRY_COUNT ]; then
+      echo "failed: $@"
+      return 1
+    fi
+    echo "pending: $@"
+    sleep $INTERVAL
+  done
+
+  echo "succeeded: $@"
+  return 0
+}
+
 function terminate_failing_instances () {
   INSTANCES=$(cat $FAILING_INSTANCES_DATA_FILE)
 
