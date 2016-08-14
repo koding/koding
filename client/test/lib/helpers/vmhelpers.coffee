@@ -175,28 +175,6 @@ module.exports =
             callback()
 
 
-  removeAllInvitations: (browser) ->
-
-    userItemSelector = '.listview-wrapper .kdlistitemview-user'
-    firstUserItem    = "#{userItemSelector}:first-child"
-    removeButton     = "#{firstUserItem} .remove"
-
-    doClose = ->
-      browser
-        .moveToElement firstUserItem, 15, 15
-        .click         removeButton
-        .pause         2000
-
-    close = ->
-      browser.elements 'css selector', userItemSelector, (result) ->
-        length = result.value.length
-
-        if result.value.length isnt 0 then doClose()
-        if length - 1 > 0 then close()
-
-    close()
-
-
   leaveMachine: (browser, participant, callback) ->
     browser.pause 3000, =>
       browser.url url
@@ -211,9 +189,8 @@ module.exports =
           .click                     leaveSessionButton
           .waitForElementVisible     '.kdmodal-content', 20000
           .click                     proceedButton
-          .waitForElementNotVisible  sharedMachineSelector, 30000
-          .pause 1000, callback()
-
+          .waitForElementNotVisible  sharedMachineSelector, 30000, callback
+        
 
   openMachineSettings: (browser) ->
     browser
@@ -270,7 +247,8 @@ module.exports =
       .scrollToElement addAConnectedMachineButtonSelector
       .waitForElementVisible membersList, 20000
       .moveToElement membersList, 0, 0
+      .click membersList
       .waitForElementVisible removeSharedMachineMember, 20000
       .click removeSharedMachineMember, ->
-        callback()
+        browser.pause 3000, callback
 

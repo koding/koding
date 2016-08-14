@@ -12,6 +12,7 @@ participant     = utils.getUser no, 1
 sharedMachineSelector = '.SidebarMachinesListItem.Running'
 closeModal = '.HomeWelcomeModal.kdmodal .kdmodal-inner .close-icon.closeModal'
 proceedButton = '[testpath=proceed]'
+addAConnectedMachineButtonSelector = '.kdbutton.GenericButton.HomeAppViewVMSection--addOwnMachineButton'
 
 module.exports =
 
@@ -113,29 +114,48 @@ module.exports =
   
   leaveVMSharing: (browser) ->
 
-   browser.pause 2500, -> # wait for user.json creation
+    browser.pause 2500, -> # wait for user.json creation
+      callback = ->
+        browser.end()
+
+      participantCallback = ->
+        console.log('asadadada')
+        browser.end()
+
       if hostBrowser
-        callback = ->
-          browser.end()
-
-        participantCallback = ->
-          console.log('asadadada')
-          browser.end()
-
         vmHelpers.handleInvite(browser, host, participant, no, callback)
       else
         vmHelpers.leaveMachine(browser, participant, participantCallback)
 
 
   removeUserFromVmSharing:(browser) ->
+    machineDetailSelector = '.MachinesListItem-machineDetails'
+    vmSharingSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(4)"
+    vmSharingToggleSelector = "#{vmSharingSelector} .react-toggle-thumb"
 
+    noFoundUserList         = '.MachineSharingDetails .NoItem'
     browser.pause 2500, -> # wait for user.json creation
       callback = ->
         vmHelpers.removeUser browser, host, participant, ->
-          browser.pause 2000
+          browser.refresh()
+          browser
+            .waitForElementVisible machineDetailSelector, 20000
+            .scrollToElement addAConnectedMachineButtonSelector
+          browser.element 'css selector', '.react-toggle--checked .react-toggle-track:last', (result) ->
+            if result.status is -1
+              browser
+                .click vmSharingToggleSelector
+                .waitForElementVisible noFoundUserList, 20000
+                .end()
 
       participantCallback = ->
-        browser.end()
+        browser
+          .waitForElementVisible '.kdmodal-inner', 40000
+          .assert.containsText '.kdmodal-content', 'Machine access revoked'
+          .waitForElementVisible proceedButton, 20000
+          .click proceedButton
+          .waitForElementNotPresent sharedMachineSelector, 60000
+          .end()
 
       if hostBrowser
         vmHelpers.handleInvite(browser, host, participant, yes, callback)
