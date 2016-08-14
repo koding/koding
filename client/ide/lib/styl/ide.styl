@@ -862,33 +862,26 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
       color                 #FFF
 
   .kdbutton#cancel-button
-    background              transparent
-    padding                 0
-    margin                  0 25px 0 0
-    position                relative
-
-    &:focus
-      box-shadow            none
-
-    .button-title
-      color                 #bbb
+    background              #FFFFFF
+    border                  1px solid #BEBEBE
+    border-radius           4px
+    padding                 0px 24px
+    height  42px
+    span
+      color                 #5E5E5E
+      line-height           42px !important
 
   .kdbutton#search-button
-    rounded                 5px !important
-    bg                      color, #4EA04C
-    padding                 0
-    padding                 13px 18px 15px 19px
-
-    span
-      font-size             14px
-      font-weight           normal
-      line-height           45px
-      position              relative
-      top                   -13px
-
+    rounded                 4px !important
+    bg                      color, #F2778A
+    padding                 0px 24px
+    height  42px
     &.loading
       span
-        top                 16px !important
+        line-height         21px !important
+        top                 21px !important
+    span
+      line-height           42px !important
 
   .icon
     abs()
@@ -948,19 +941,15 @@ body.ide .kddialogview.save-as-dialog
     padding                 0 32px 32px
     borderBox()
 
-    .kdbutton.green
-      background            #4EA04C
-      rounded               5px
-      width                 82px
-
-    .kdbutton.nobg
-      background            transparent
-      padding               0
-      margin                0 25px 0 0
-
-      .button-title
-        color               #767676
-        text-decoration     underline
+    .kdbutton.GenericButton
+      margin-left           10px
+      padding               12px 24px
+      &.cancel
+        background          #FFFFFF
+        border              1px solid #BEBEBE
+        border-radius       4px
+        span
+          color             #5E5E5E
 
 .drawing-pane
   styleScrollBars rgba(255,255,255,.25)

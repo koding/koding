@@ -1814,7 +1814,7 @@ class IDEAppController extends AppController
       blocking     : yes
       buttons      :
         quit       :
-          style    : 'solid light-gray medium'
+          style    : 'GenericButton'
           title    : 'OK'
           callback : =>
 
