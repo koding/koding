@@ -17,7 +17,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
     { identifier, owner, title, verified } = credential = @getData()
 
     @deleteButton = new kd.ButtonView
-      cssClass  : 'solid compact outline red secondary delete'
+      cssClass  : 'solid compact outline primary secondary delete'
       title     : 'DELETE'
       callback  : =>
         delegate.emit 'ItemAction', { action : 'RemoveItem', item : this }
