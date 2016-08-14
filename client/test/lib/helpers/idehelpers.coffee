@@ -64,7 +64,6 @@ module.exports =
 
     fileSelector    = "#{tabHandleSelector} .kdtabhandle.active"
     optionsSelector = "#{fileSelector} span.options"
-
     browser
       .waitForElementVisible  fileSelector, 20000
       .moveToElement          fileSelector, 60, 17
@@ -141,9 +140,10 @@ module.exports =
     saveIconSelector = "#{tabHandleSelector} .modified"
     saveAsDialog     = 'body.ide .kddialogview.save-as-dialog'
     inputTxt = 'body.ide .kddialogview.save-as-dialog form .kdinput'
-
+    host = utils.getUser no, 0
+    
     @openContextMenu(browser)
-
+    
     browser
       .waitForElementVisible    saveAsSelector, 20000
       .click                    saveAsSelector
@@ -151,19 +151,21 @@ module.exports =
       .clearValue               inputTxt
       .setValue                 inputTxt, [browser.Keys.COMMAND, 'a', browser.Keys.BACK_SPACE]
       .setValue                 inputTxt, 'newFile.txt'
+      .pause                    2000
       .click                    '.kdbutton.green', ->
         browser
           .pause 3000
           .waitForElementNotPresent    saveAsDialog, 20000
           .refresh()
           .waitForElementVisible '.kdlistitemview-finderitem:last-child', 40000
+
+          .waitForElementVisible  "span[title='/home/#{host.username}/newFile.txt']", 20000
           .assert.containsText  '.kdlistitemview-finderitem:last-child > div .title', 'newFile.txt'
 
 
   closeFile: (browser, fileName, user) ->
 
     closeFileSelector = "#{tabHandleSelector} span.close-tab"
-
     browser
       .moveToElement             tabHandleSelector, 60, 15
       .waitForElementVisible     closeFileSelector, 20000
@@ -199,8 +201,6 @@ module.exports =
     tabSelector   = ".kdtabpaneview.#{fileNameSlug}.active"
 
     helpers.openFolderContextMenu browser, user, '.config'
-
-    console.log(fileContent)
     browser
       .waitForElementVisible   'li.expand', 15000
       .click                   'li.expand'

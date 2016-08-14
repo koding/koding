@@ -71,37 +71,60 @@ module.exports =
     fileName     = hostFakeText[0]
     fileContent  = hostFakeText[1]
     hostFileName = hostFakeText[2]
+    newFileName  = hostFakeText[3]
     hostFileSelector =  "span[title='/home/#{host.username}/.config/#{hostFileName}']" 
     fileSelector =  "span[title='/home/#{host.username}/.config/#{fileName}']"
     fileSlug = hostFileName.replace '.', ''
     
     browser.pause 2500, -> # wait for user.json creation
       callback = ->
+   
         helpers.createFile(browser, host, null, null, hostFileName)
-        browser.refresh()
         ideHelpers.openFileFromConfigFolder(browser, host, hostFileName, fileContent)
+        browser.waitForElementVisible  fileSelector, 40000
+        browser.refresh()
         editorSelector = ".kdtabpaneview.#{fileSlug} .ace_content"
+        browser.waitForElementVisible  editorSelector, 30000
         browser.assert.containsText editorSelector, fileContent
-
-        browser.waitForElementVisible  fileSelector, 30000
+        ideHelpers.closeFile(browser, hostFileName, host)
+        ideHelpers.openFile(browser, host, fileName)
+        ideHelpers.closeFile(browser, fileName, host)
+        browser.waitForElementVisible  "span[title='/home/#{host.username}/newFile.txt']",50000
         browser.end()
 
       participantCallback = ->
-        
-        browser.waitForElementVisible  hostFileSelector, 20000
+
+        browser.waitForElementVisible  hostFileSelector, 70000
         ideHelpers.openFile(browser, host, hostFileName)
         browser.pause 2000
         ideHelpers.setTextToEditor(browser, fileContent)
         ideHelpers.saveFile(browser)
         ideHelpers.closeFile(browser, hostFileName, host)
-        
+        helpers.createFile(browser, host, null, null, newFileName)
+        ideHelpers.openFile(browser, host, newFileName)
+        ideHelpers.saveAsFile(browser)
         browser.end()
+
+      if hostBrowser
+          vmHelpers.handleInvite(browser, host, participant, no, callback)
+      else
+        vmHelpers.createFile(browser, host, participant,fileName, participantCallback)
+
+         
+  saveAsFile:(browser) ->
+    hostFakeText = host.fakeText.split(' ')
+    fileName     = hostFakeText[3]
+
+    browser.pause 2500, -> # wait for user.json creation
+      callback = ->
+
+      participantCallback = ->
+        
 
       if hostBrowser
         vmHelpers.handleInvite(browser, host, participant, no, callback)
       else
-        vmHelpers.CreateFile(browser, host, participant,fileName, participantCallback)
-         
+        vmHelpers.saveAsFile(browser, host, participant,fileName, participantCallback)
 
   leaveVMSharing: (browser) ->
 

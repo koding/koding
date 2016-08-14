@@ -246,7 +246,7 @@ module.exports =
             .pause    5000, callback
 
 
-  CreateFile: (browser, host, participant, fileName, callback) ->
+  createFile: (browser, host, participant, fileName, callback) ->
     browser.url url
     browser.maximizeWindow()
     teamsHelpers.loginToTeam browser, participant, no, '',  ->
@@ -255,7 +255,6 @@ module.exports =
         .click closeModal
         .click sharedMachineSelector
         .click sharedMachineSelector
-
+     
       helpers.createFile(browser, host, null, null, fileName)
-      browser.pause  2000, callback
-
+      browser.pause  3000, callback
