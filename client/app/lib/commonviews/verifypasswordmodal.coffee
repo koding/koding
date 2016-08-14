@@ -38,7 +38,7 @@ module.exports = class VerifyPasswordModal extends ContentModal
                     @destroy()
               Submit              :
                 title             : buttonTitle
-                style             : 'solid green medium'
+                style             : 'GenericButton'
                 type              : 'submit'
 
             fields                :

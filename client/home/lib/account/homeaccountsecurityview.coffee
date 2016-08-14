@@ -137,8 +137,8 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
       buttons              :
         Enable             :
           type             : 'submit'
-          title            : 'Enable 2-Factor Auth'
-          style            : 'solid green small enable-tf'
+          title            : 'ENABLE 2-FACTOR AUTH'
+          style            : 'GenericButton enable-tf'
       callback             : @bound 'handleEnableFormButton'
 
 
