@@ -274,13 +274,12 @@ module.exports = class StackEditorView extends kd.View
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
 
+    @header.addSubView @inputTitle = new kd.InputView options
+
     @header.addSubView @editName = new CustomLinkView
       cssClass: 'edit-name'
       title: 'Edit Name'
-      click : =>
-        @inputTitle.setFocus()
-
-    @header.addSubView @inputTitle = new kd.InputView options
+      click : @inputTitle.bound 'setFocus'
 
     kd.singletons.reactor.observe valueGetter, (value) =>
 
@@ -294,8 +293,11 @@ module.exports = class StackEditorView extends kd.View
       @inputTitle.prepareClone()
       @inputTitle.resize()
 
-    @inputTitle.on 'blur', =>
-      @editName.show()
+    @inputTitle.on 'blur', @editName.bound 'show'
+
+    @inputTitle.on 'keydown', (event) =>
+      return  unless event.keyCode is 13
+      @inputTitle.setBlur()
 
     @inputTitle.on 'focus', =>
       @inputTitle.resize()
