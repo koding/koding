@@ -11,7 +11,7 @@ hostBrowser     = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
 participant     = utils.getUser no, 1
 sharedMachineSelector = '.SidebarMachinesListItem.Running'
 closeModal = '.HomeWelcomeModal.kdmodal .kdmodal-inner .close-icon.closeModal'
-
+proceedButton = '[testpath=proceed]'
 
 module.exports =
 
@@ -67,6 +67,7 @@ module.exports =
          
 
   createNewFile: (browser) ->
+    
     hostFakeText = host.fakeText.split(' ')
     fileName     = hostFakeText[0]
     fileContent  = hostFakeText[1]
@@ -109,35 +110,35 @@ module.exports =
           vmHelpers.handleInvite(browser, host, participant, no, callback)
       else
         vmHelpers.createFile(browser, host, participant,fileName, participantCallback)
-
-         
-  saveAsFile:(browser) ->
-    hostFakeText = host.fakeText.split(' ')
-    fileName     = hostFakeText[3]
-
-    browser.pause 2500, -> # wait for user.json creation
-      callback = ->
-
-      participantCallback = ->
-        
-
-      if hostBrowser
-        vmHelpers.handleInvite(browser, host, participant, no, callback)
-      else
-        vmHelpers.saveAsFile(browser, host, participant,fileName, participantCallback)
-
+  
   leaveVMSharing: (browser) ->
 
-    host                  = utils.getUser no, 0
-    hostBrowser           = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    participant           = utils.getUser no, 1
-
-    browser.pause 2500, -> # wait for user.json creation
+   browser.pause 2500, -> # wait for user.json creation
       if hostBrowser
         callback = ->
           browser.end()
 
+        participantCallback = ->
+          console.log('asadadada')
+          browser.end()
+
         vmHelpers.handleInvite(browser, host, participant, no, callback)
       else
-        vmHelpers.leaveMachine(browser, participant, callback)
+        vmHelpers.leaveMachine(browser, participant, participantCallback)
 
+
+  removeUserFromVmSharing:(browser) ->
+
+    browser.pause 2500, -> # wait for user.json creation
+      callback = ->
+        vmHelpers.removeUser browser, host, participant, ->
+          browser.pause 2000
+
+      participantCallback = ->
+        browser.end()
+
+      if hostBrowser
+        vmHelpers.handleInvite(browser, host, participant, yes, callback)
+      else
+        vmHelpers.handleInvitation(browser, host, participant, yes, participantCallback)
+     

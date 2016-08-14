@@ -211,7 +211,8 @@ module.exports =
           .click                     leaveSessionButton
           .waitForElementVisible     '.kdmodal-content', 20000
           .click                     proceedButton
-          .waitForElementNotVisible  sharedMachineSelector, 30000, callback
+          .waitForElementNotVisible  sharedMachineSelector, 30000
+          .pause 1000, callback()
 
 
   openMachineSettings: (browser) ->
@@ -258,3 +259,18 @@ module.exports =
      
       helpers.createFile(browser, host, null, null, fileName)
       browser.pause  3000, callback
+
+
+  removeUser: (browser, host, member, callback) ->
+    browser
+      .url virtualMachinesUrl
+      .waitForElementVisible virtualMachineSelector, 20000
+      .waitForElementVisible runningVMSelector, 20000
+      .click runningVMSelector
+      .scrollToElement addAConnectedMachineButtonSelector
+      .waitForElementVisible membersList, 20000
+      .moveToElement membersList, 0, 0
+      .waitForElementVisible removeSharedMachineMember, 20000
+      .click removeSharedMachineMember, ->
+        callback()
+
