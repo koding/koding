@@ -186,7 +186,7 @@ module.exports = class UploadCSVModal extends ContentModal
       cssClass: 'success-state-label'
       partial: '''
         <p>
-            In your files, we have found…
+            In your file, we have found…
         </p>
       '''
 
