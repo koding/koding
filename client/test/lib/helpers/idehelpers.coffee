@@ -141,9 +141,9 @@ module.exports =
     saveAsDialog     = 'body.ide .kddialogview.save-as-dialog'
     inputTxt = 'body.ide .kddialogview.save-as-dialog form .kdinput'
     host = utils.getUser no, 0
-    
+
     @openContextMenu(browser)
-    
+
     browser
       .waitForElementVisible    saveAsSelector, 20000
       .click                    saveAsSelector
