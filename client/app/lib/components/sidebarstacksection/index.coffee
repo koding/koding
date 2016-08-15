@@ -72,12 +72,13 @@ module.exports = class SidebarStackSection extends React.Component
     MENU.destroy()
 
     templateId = stack.get 'baseStackId'
+
     switch title
       when 'Edit' then router.handleRoute "/Stack-Editor/#{templateId}"
       when 'Reinitialize', 'Update'
         reinitStackFromWidget(stack).then ->
           # invalidate editor cache
-          appManager.tell 'Stackeditor', 'removeEditor', templateId
+          appManager.tell 'Stackeditor', 'reloadEditor', stack.get('baseTemplate').toJS()
       when 'Destroy VMs' then deleteStack { stack }
       when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
 
@@ -120,6 +121,11 @@ module.exports = class SidebarStackSection extends React.Component
 
     return null  unless @getStackUnreadCount()
     return null  if not coordinates.left and coordinates.top
+
+
+    coordinates =
+      left : coordinates.left + 6
+      top : coordinates.top - 2
 
     <StackUpdatedWidget coordinates={coordinates} stack={@props.stack} show={showWidget} />
 

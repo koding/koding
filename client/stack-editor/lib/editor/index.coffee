@@ -30,6 +30,8 @@ EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
 createShareModal = require './createShareModal'
 { actions : HomeActions } = require 'home/flux'
+isMine = require 'app/util/isMine'
+CustomLinkView = require 'app/customlinkview'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -53,7 +55,8 @@ module.exports = class StackEditorView extends kd.View
     kd.singletons.groupsController.ready =>
 
       { groupsController } = kd.singletons
-      @isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
+
+      @isMine = groupsController.canEditGroup() or isMine(stackTemplate)
 
       if not @isMine and stackTemplate
         @tabView.setClass 'StackEditorTabs isntMine'
@@ -270,9 +273,13 @@ module.exports = class StackEditorView extends kd.View
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
 
+    @header.addSubView @editName = new CustomLinkView
+      cssClass: 'edit-name'
+      title: 'Edit Name'
+      click : =>
+        @inputTitle.setFocus()
 
     @header.addSubView @inputTitle = new kd.InputView options
-
 
     kd.singletons.reactor.observe valueGetter, (value) =>
 
@@ -285,6 +292,13 @@ module.exports = class StackEditorView extends kd.View
     @inputTitle.on 'viewAppended', =>
       @inputTitle.prepareClone()
       @inputTitle.resize()
+
+    @inputTitle.on 'blur', =>
+      @editName.show()
+
+    @inputTitle.on 'focus', =>
+      @inputTitle.resize()
+      @editName.hide()
 
 
   createOutputView: ->

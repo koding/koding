@@ -122,9 +122,9 @@ describe 'MachineFlowController', ->
       expect(activePane).toExist()
       expect(activePane.mainView instanceof StartMachineProgressPageView).toBeTruthy()
 
-      { progressBar } = controller.startMachineProgressPage
+      { progressBar, statusText } = controller.startMachineProgressPage
       expect(progressBar.bar.getWidth()).toEqual percentage
-      expect(progressBar.darkLabel.getElement().innerHTML).toEqual "#{message}&nbsp;"
+      expect(statusText.getElement().innerHTML).toEqual message
 
     it 'should show progress page when machine is stopping', ->
 
@@ -140,9 +140,9 @@ describe 'MachineFlowController', ->
       expect(activePane).toExist()
       expect(activePane.mainView instanceof StopMachineProgressPageView).toBeTruthy()
 
-      { progressBar } = controller.stopMachineProgressPage
+      { progressBar, statusText } = controller.stopMachineProgressPage
       expect(progressBar.bar.getWidth()).toEqual percentage
-      expect(progressBar.darkLabel.getElement().innerHTML).toEqual "#{message}&nbsp;"
+      expect(statusText.getElement().innerHTML).toEqual message
 
     it 'should emit ResourceBecameRunning event if machine unexpectedly became running', ->
 

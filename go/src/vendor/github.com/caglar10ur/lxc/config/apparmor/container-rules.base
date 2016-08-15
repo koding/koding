@@ -1,0 +1,15 @@
+# Run lxc-generate-aa-rules.py on this file after any modification, to generate
+# the container-rules file which is appended to container-base.in to create the
+# final abstractions/container-base.
+
+block /sys
+allow /sys/fs/cgroup/**
+allow /sys/devices/virtual/net/**
+allow /sys/class/net/**
+block /proc/sys
+allow /proc/sys/kernel/shm*
+allow /proc/sys/kernel/sem*
+allow /proc/sys/kernel/msg*
+allow /proc/sys/kernel/hostname
+allow /proc/sys/kernel/domainname
+allow /proc/sys/net/**

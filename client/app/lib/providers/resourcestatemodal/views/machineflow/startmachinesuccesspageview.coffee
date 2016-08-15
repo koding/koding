@@ -8,7 +8,7 @@ module.exports = class StartMachineSuccessPageView extends JView
     super options, data
 
     @closeButton = new kd.ButtonView
-      title    : 'Start Coding'
+      title    : 'Start Using My VM'
       cssClass : 'GenericButton'
       callback : @lazyBound 'emit', 'ClosingRequested'
 
@@ -22,11 +22,9 @@ module.exports = class StartMachineSuccessPageView extends JView
         </header>
         <section class="main">
           <div class="background"></div>
-          <h1>Success!</h1>
-          <h2>Your VM is Booted</h2>
-        </section>
-        <footer>
+          <h2>Your VM has finished Booting</h2>
+          <p>We have finished booting your VM. You can now use your VM</p>
           {{> @closeButton}}
-        </footer>
+        </section>
       </div>
     '''
