@@ -21,7 +21,8 @@ git config user.name 'Koding Bot'
 
 npm install --unsafe-perm
 ./configure --config dev --host $HOST:8090 --disable-segment
-./run install
+go/build.sh
+make -C client dist
 
 export TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090"
 make -C client/test build
