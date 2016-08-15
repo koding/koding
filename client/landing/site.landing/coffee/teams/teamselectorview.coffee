@@ -15,8 +15,9 @@ track = (action, entry) ->
   utils.analytics.track action, { category, label, entry }
 
 
-module.exports = class TeamSelectorView extends JView
+module.exports = class TeamSelectorView extends kd.TabPaneView
 
+  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -33,6 +34,17 @@ module.exports = class TeamSelectorView extends JView
 
     @form = new TeamsSelectorForm
       callback : @bound 'goToTeam'
+
+    @findTeam = new kd.CustomHTMLView
+      tagName  : 'a'
+      cssClass : 'secondary-link'
+      partial  : 'Forgot your team name?'
+      click    : -> kd.singletons.router.handleRoute '/Teams/FindTeam'
+
+    @createTeam = new kd.CustomHTMLView
+      tagName : 'a'
+      partial : 'Create a new account'
+      click   : -> kd.singletons.router.handleRoute '/Teams/Create'
 
     @previousTeams = new kd.CustomHTMLView { tagName: 'p' }
 
@@ -88,10 +100,11 @@ module.exports = class TeamSelectorView extends JView
       <h4>Welcome!</h4>
       <h5>Enter your team's Koding domain.</h5>
       {{> @form}}
+      {{> @findTeam}}
     </div>
     <section class="previous-teams additional-info">
       Do you want to onboard a new team?<br />
-      <a href="/Teams/Create" class="back-link" target="_self">Create a new account</a>
+      {{> @createTeam}}
       {{> @previousTeams}}
     </section>
     <div class="ufo-bg"></div>

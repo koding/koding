@@ -3,7 +3,7 @@ utils = require './../core/utils'
 
 do ->
 
-  handleRoute = ({ params, query }) ->
+  handleRoute = ({ params, query }, pageName = 'select') ->
 
     { router } = kd.singletons
     { token }  = params
@@ -17,7 +17,9 @@ do ->
       location.assign href
       return
 
-    cb = (app) -> app.handleQuery query  if query
+    cb = (app) ->
+      app.showPage pageName
+      app.handleQuery query  if query
     router.openSection 'Teams', null, null, cb
 
 
@@ -37,11 +39,11 @@ do ->
     if email
       utils.storeNewTeamData 'invitation', { email }
 
-    handleRoute { params, query }
+    handleRoute { params, query }, 'create'
 
 
   kd.registerRoutes 'Teams',
 
     '/Teams'          : handleRoute
     '/Teams/Create'   : handleInvitation
-    '/Teams/FindTeam' : handleRoute
+    '/Teams/FindTeam' : (routeInfo) -> handleRoute routeInfo, 'find'

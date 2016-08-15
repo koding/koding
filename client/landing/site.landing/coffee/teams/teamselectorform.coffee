@@ -53,5 +53,4 @@ module.exports = class TeamsSelectorForm extends kd.FormView
     """
     {{> @inputView}}
     <div class='submit'>{{> @button}}</div>
-    <a href="/Teams/FindTeam" class="secondary-link" target="_self">Forgot your team name?</a>
     """

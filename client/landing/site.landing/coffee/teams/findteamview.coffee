@@ -12,7 +12,9 @@ track = (action) ->
   utils.analytics.track action, { category, label }
 
 
-module.exports = class FindTeamView extends JView
+module.exports = class FindTeamView extends kd.TabPaneView
+
+  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -29,6 +31,17 @@ module.exports = class FindTeamView extends JView
 
     @form = new FindTeamForm
       callback : @bound 'findTeam'
+
+    @back = new kd.CustomHTMLView
+      tagName  : 'a'
+      cssClass : 'secondary-link'
+      partial  : 'BACK'
+      click    : -> kd.singletons.router.handleRoute '/Teams'
+
+    @createTeam = new kd.CustomHTMLView
+      tagName : 'a'
+      partial : 'Create a new account'
+      click   : -> kd.singletons.router.handleRoute '/Teams/Create'
 
 
   setFocus: -> @form.setFocus()
@@ -70,10 +83,11 @@ module.exports = class FindTeamView extends JView
       <h4>Find My Teams</h4>
       <h5>We will email you the list of teams you are part of.</h5>
       {{> @form}}
+      {{> @back}}
     </div>
     <div class="additional-info">
       Do you want to onboard a new team?<br />
-      <a href="/Teams/Create" class="back-link" target="_self">Create a new account</a>
+      {{> @createTeam}}
     </div>
     <div class="ufo-bg"></div>
     <div class="ground-bg"></div>

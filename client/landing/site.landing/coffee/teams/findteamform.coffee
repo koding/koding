@@ -27,6 +27,8 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
           messages    :
             required  : 'Please enter your email.'
 
+    @usernameOrEmail.inputReceivedKeyup()  if email
+
     @button = new kd.ButtonView
       title       : 'SEND TEAM LIST'
       style       : 'TeamsModal-button'
@@ -48,5 +50,4 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
     '''
     {{> @usernameOrEmail}}
     {{> @button}}
-    <a href="/Teams" class="secondary-link" target="_self">BACK</a>
     '''
