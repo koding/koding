@@ -32,7 +32,7 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
 
     @addSubView new kd.CustomHTMLView
       tagName: 'h2'
-      partial: "Stack Importer"
+      partial: 'Stack Importer'
 
     @addSubView @loader = new kd.LoaderView
       showLoader : yes
@@ -42,7 +42,7 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
 
     @addSubView @message = new kd.CustomHTMLView
       tagName: 'p'
-      partial: "Loading..."
+      partial: 'Loading...'
 
     @addSubView @outputView = new OutputView
       delegate: @getDelegate()
@@ -69,10 +69,10 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
       @actionButton.setCallback -> window.open _host, '_blank'
 
       @message.updatePartial """
-        This tool is intended to use with GitLab integration which is enabled
-        for this team on <a href="#{_host}">#{host}</a>. You can use action
-        endpoints provided in your GitLab service to be able to use this tool
-        to try your projects on Koding.
+        This tool is intended to be used with GitLab. The integration is
+        enabled for this team at <a href="#{_host}">#{host}</a>. To be able to
+        run your projects on Koding, please use action endpoints provided in
+        your GitLab service.
       """
 
       @emit 'ready'
