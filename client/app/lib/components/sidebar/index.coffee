@@ -97,7 +97,7 @@ module.exports = class Sidebar extends React.Component
           kd.singletons.appManager.tell 'Stackeditor', 'reloadEditor', template._id
       when 'Open on GitLab'
         remoteUrl = draft.getIn ['config', 'remoteDetails', 'originalUrl']
-        window.open remoteUrl, '_blank'
+        kd.singletons.linkController.openOrFocus remoteUrl
 
 
   onDraftTitleClick: (id, event) ->

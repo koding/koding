@@ -66,7 +66,8 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
 
       @actionButton.show()
       @actionButton.setTitle 'Open GitLab'
-      @actionButton.setCallback -> window.open _host, '_blank'
+      @actionButton.setCallback ->
+        kd.singletons.linkController.openOrFocus _host
 
       @message.updatePartial """
         This tool is intended to be used with GitLab. The integration is

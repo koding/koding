@@ -84,7 +84,7 @@ module.exports = class SidebarStackSection extends React.Component
       when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
       when 'Open on GitLab'
         remoteUrl = stack.getIn ['config', 'remoteDetails', 'originalUrl']
-        window.open remoteUrl, '_blank'
+        kd.singletons.linkController.openOrFocus remoteUrl
 
 
   onTitleClick: (event) ->
