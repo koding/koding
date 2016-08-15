@@ -9,13 +9,13 @@ additionalChecks =
 module.exports = (feature) ->
 
   isDisabled = globals.config.disabledFeatures[feature]
-  additionalCheckPassed = additionalChecks[feature]?() ? true
+  additionalChecksPassed = additionalChecks[feature]?() ? true
 
   # feature is not defined
   return false  unless isDisabled?
 
   # god mode for super-admin if additional checks passed
-  return true  if checkFlag 'super-admin' and additionalCheckPassed
+  return true  if checkFlag 'super-admin' and additionalChecksPassed
 
   # check if feature is not disabled and additional check passed
-  return not isDisabled and additionalCheckPassed
+  return not isDisabled and additionalChecksPassed
