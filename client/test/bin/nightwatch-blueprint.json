@@ -33,6 +33,8 @@
     "host": {
       "selenium_port": 42420,
       "desiredCapabilities": {
+        "browserName": "firefox",
+        "marionette": true,
         "javascriptEnabled": true,
         "acceptSslCerts": true
       }
@@ -41,6 +43,8 @@
     "participant": {
       "selenium_port": 42421,
       "desiredCapabilities": {
+        "browserName": "firefox",
+        "marionette": true,
         "javascriptEnabled": true,
         "acceptSslCerts": true
       }

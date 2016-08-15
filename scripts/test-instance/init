@@ -44,6 +44,7 @@ Xvfb $DISPLAY -shmem -screen 0 1440x900x16 &
 java -jar $TEST_VENDOR/selenium-server-standalone.jar \
      -host 0.0.0.0 \
      -port 42420 \
+     -Dwebdriver.gecko.driver=$TEST_VENDOR/geckodriver/linux64/geckodriver \
      &> $REPOSITORY_PATH/.logs/selenium-host.log &
 
 export DISPLAY=:1
@@ -51,6 +52,7 @@ Xvfb $DISPLAY -shmem -screen 1 1440x900x16 &
 java -jar $TEST_VENDOR/selenium-server-standalone.jar \
      -host 0.0.0.0 \
      -port 42421 \
+     -Dwebdriver.gecko.driver=$TEST_VENDOR/geckodriver/linux64/geckodriver \
      &> $REPOSITORY_PATH/.logs/selenium-participant.log &
 
 sleep 10
