@@ -14,7 +14,7 @@ module.exports = GitHubProvider =
   importStackTemplateData: (importParams, user, callback) ->
 
     { url } = importParams
-    return  unless urlData = @parseImportUrl url
+    return  unless urlData = @parseImportData url
 
     oauth = user.getAt 'foreignAuth.github'
 
@@ -26,7 +26,7 @@ module.exports = GitHubProvider =
     return yes
 
 
-  parseImportUrl: (url) ->
+  parseImportData: (url) ->
 
     { GITHUB_HOST }    = Constants
     { host, pathname } = URL.parse url
