@@ -19,14 +19,13 @@ cd $REPOSITORY_PATH
 git config user.email 'sysops@koding.com'
 git config user.name 'Koding Bot'
 
-scripts/wercker/install-node-modules koding
-scripts/install-npm.sh -u
-
+npm install --unsafe-perm
 ./configure --config dev --host $HOST:8090 --disable-segment
-./run install
+go/build.sh
+make -C client dist
 
-export TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090"
-make -C client/test build
+TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" \
+  make -C client/test build
 
 ./run services
 
