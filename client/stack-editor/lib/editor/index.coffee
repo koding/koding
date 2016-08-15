@@ -32,6 +32,7 @@ createShareModal = require './createShareModal'
 { actions : HomeActions } = require 'home/flux'
 isMine = require 'app/util/isMine'
 CustomLinkView = require 'app/customlinkview'
+isAdmin = require 'app/util/isAdmin'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -56,7 +57,7 @@ module.exports = class StackEditorView extends kd.View
 
       { groupsController } = kd.singletons
 
-      @isMine = groupsController.canEditGroup() or isMine(stackTemplate)
+      @isMine = isAdmin() or isMine(stackTemplate)
 
       if not @isMine and stackTemplate
         @tabView.setClass 'StackEditorTabs isntMine'
@@ -431,8 +432,6 @@ module.exports = class StackEditorView extends kd.View
 
   afterProcessTemplate: (method) ->
 
-    canEditGroup = kd.singletons.groupsController.canEditGroup()
-
     switch method
       when 'initialize'
         @generateStackButton.show()
@@ -461,7 +460,6 @@ module.exports = class StackEditorView extends kd.View
   processTemplate: (stackTemplate) ->
 
     { groupsController, computeController } = kd.singletons
-    canEditGroup = groupsController.canEditGroup()
 
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
@@ -487,7 +485,7 @@ module.exports = class StackEditorView extends kd.View
       # stacktemplates set for a team this will be broken ~ GG
 
       if hasStack
-        if canEditGroup
+        if isAdmin()
           # admin is editing a team stack
           if stackTemplate.isDefault
             @_handleSetDefaultTemplate =>
