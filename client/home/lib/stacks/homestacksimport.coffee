@@ -132,12 +132,10 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
   importStackTemplate: (repo, callback) ->
 
     { GitProvider } = remote.api
-    GitProvider.importStackTemplateData
-
-      provider : 'gitlab'
-      url      : repo
-
-    , callback
+    GitProvider.importStackTemplateData {
+      provider: 'gitlab'
+      repo
+    }, callback
 
 
   createStackTemplate: (stackData, callback) ->

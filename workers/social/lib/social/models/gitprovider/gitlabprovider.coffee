@@ -60,8 +60,8 @@ module.exports = GitLabProvider =
 
   importStackTemplateData: (importParams, user, callback) ->
 
-    { url, privateToken } = importParams
-    return  unless urlData = @parseImportUrl url
+    { url, repo, privateToken } = importParams
+    return  unless urlData = @parseImportData url, repo
 
     if privateToken or privateToken = user.getAt 'foreignAuth.gitlab.privateToken'
       @importStackTemplateWithPrivateToken privateToken, urlData, callback
@@ -89,11 +89,11 @@ module.exports = GitLabProvider =
     return { originalUrl : url, baseUrl, user, repo, branch }
 
 
-  parseImportUrl: (url) ->
+  parseImportData: (url, repo) ->
 
     # if user/repo/branch provided as url we will use
-    if not (/^http(|s)\:\/\//.test url) and (url.split '/').length in [2, 3]
-      return @parseRepo url
+    if repo
+      return @parseRepo repo
 
     { GITLAB_HOST } = Constants
     { protocol, host, pathname } = URL.parse url

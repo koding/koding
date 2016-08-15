@@ -74,7 +74,7 @@ module.exports = class GitProvider extends Base
       { user } = client.r
 
       unless provider.importStackTemplateData importParams, user, callback
-        callback new KodingError 'Invalid url'
+        callback new KodingError 'Invalid url or repository'
 
 
   @createImportedStackTemplate = permit 'import stack template',
