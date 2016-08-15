@@ -13,6 +13,13 @@ sharedMachineSelector = '.SidebarMachinesListItem.Running'
 closeModal = '.HomeWelcomeModal.kdmodal .kdmodal-inner .close-icon.closeModal'
 proceedButton = '[testpath=proceed]'
 addAConnectedMachineButtonSelector = '.kdbutton.GenericButton.HomeAppViewVMSection--addOwnMachineButton'
+vmSharingListSelector = '.vm-sharing.active'
+terminalSelector = '.kdview.ws-tabview .application-tabview .terminal'
+machineDetailSelector = '.MachinesListItem-machineDetails'
+vmSharingSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(4)"
+vmSharingToggleSelector = "#{vmSharingSelector} .react-toggle-thumb"
+noFoundUserList = '.MachineSharingDetails .NoItem'
+
 
 module.exports =
 
@@ -20,38 +27,33 @@ module.exports =
 
   shareVMAndRejectInvitaion: (browser) ->
 
-    host                  = utils.getUser no, 0
-    hostBrowser           = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    participant           = utils.getUser no, 1
-
     callback = ->
+      browser.end()
+
+    participantCallback = ->
       browser.end()
 
     if hostBrowser
       vmHelpers.handleInvite(browser, host, participant, yes, callback)
     else
-      vmHelpers.handleInvitation(browser, host, participant, no, callback)
+      vmHelpers.handleInvitation(browser, host, participant, no, participantCallback)
 
 
   shareVMAndAcceptInvitaion: (browser) ->
 
-    host                  = utils.getUser no, 0
-    hostBrowser           = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    participant           = utils.getUser no, 1
-
     callback = ->
+      browser.end()
+
+    participantCallback = ->
       browser.end()
 
     if hostBrowser
       vmHelpers.handleInvite(browser, host, participant, yes, callback)
     else
-      vmHelpers.handleInvitation(browser, host, participant, yes, callback)
+      vmHelpers.handleInvitation(browser, host, participant, yes, participantCallback)
 
 
   shareVMAcceptInvitaionAndRunOnTerminal: (browser) ->
-
-    vmSharingListSelector = '.vm-sharing.active'
-    terminalSelector      = '.kdview.ws-tabview .application-tabview .terminal'
 
     browser.pause 2500, -> # wait for user.json creation
       callback = ->
@@ -65,22 +67,22 @@ module.exports =
         vmHelpers.handleInvite(browser, host, participant, no, callback)
       else
         vmHelpers.runCommandonTerminal(browser, participant, participantCallback)
-         
+
 
   createNewFile: (browser) ->
-    
+
     hostFakeText = host.fakeText.split(' ')
     fileName     = hostFakeText[0]
     fileContent  = hostFakeText[1]
     hostFileName = hostFakeText[2]
     newFileName  = hostFakeText[3]
-    hostFileSelector =  "span[title='/home/#{host.username}/.config/#{hostFileName}']" 
+    hostFileSelector =  "span[title='/home/#{host.username}/.config/#{hostFileName}']"
     fileSelector =  "span[title='/home/#{host.username}/.config/#{fileName}']"
     fileSlug = hostFileName.replace '.', ''
-    
+
     browser.pause 2500, -> # wait for user.json creation
       callback = ->
-   
+
         helpers.createFile(browser, host, null, null, hostFileName)
         ideHelpers.openFileFromConfigFolder(browser, host, hostFileName, fileContent)
         browser.waitForElementVisible  fileSelector, 40000
@@ -91,7 +93,7 @@ module.exports =
         ideHelpers.closeFile(browser, hostFileName, host)
         ideHelpers.openFile(browser, host, fileName)
         ideHelpers.closeFile(browser, fileName, host)
-        browser.waitForElementVisible  "span[title='/home/#{host.username}/newFile.txt']",50000
+        browser.waitForElementVisible  "span[title='/home/#{host.username}/newFile.txt']", 50000
         browser.end()
 
       participantCallback = ->
@@ -108,10 +110,10 @@ module.exports =
         browser.end()
 
       if hostBrowser
-          vmHelpers.handleInvite(browser, host, participant, no, callback)
+        vmHelpers.handleInvite(browser, host, participant, no, callback)
       else
-        vmHelpers.createFile(browser, host, participant,fileName, participantCallback)
-  
+        vmHelpers.createFile(browser, host, participant, fileName, participantCallback)
+
   leaveVMSharing: (browser) ->
 
     browser.pause 2500, -> # wait for user.json creation
@@ -119,7 +121,6 @@ module.exports =
         browser.end()
 
       participantCallback = ->
-        console.log('asadadada')
         browser.end()
 
       if hostBrowser
@@ -129,11 +130,7 @@ module.exports =
 
 
   removeUserFromVmSharing:(browser) ->
-    machineDetailSelector = '.MachinesListItem-machineDetails'
-    vmSharingSelector = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(4)"
-    vmSharingToggleSelector = "#{vmSharingSelector} .react-toggle-thumb"
 
-    noFoundUserList         = '.MachineSharingDetails .NoItem'
     browser.pause 2500, -> # wait for user.json creation
       callback = ->
         vmHelpers.removeUser browser, host, participant, ->
@@ -161,4 +158,3 @@ module.exports =
         vmHelpers.handleInvite(browser, host, participant, yes, callback)
       else
         vmHelpers.handleInvitation(browser, host, participant, yes, participantCallback)
-     

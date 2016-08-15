@@ -35,7 +35,7 @@ url = helpers.getUrl(yes)
 activeTerminal = '.kdtabpaneview.terminal.active'
 insertCommand  = 'window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input'
 executeCommand = "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
-      
+
 
 module.exports =
 
@@ -71,7 +71,7 @@ module.exports =
           .waitForElementVisible closeModal, 20000
           .click closeModal
           .waitForElementVisible '.kdview', 20000
-        
+
         @waitInvitation browser, (result) =>
           browser
             .click                     '#main-sidebar'
@@ -83,10 +83,8 @@ module.exports =
           browser.element 'css selector', acceptSharedMachine, (result) =>
             if result.status is 0
               @acceptOrRejectInvitation(browser, host, participant, accept)
-       
           callback?()
 
-       
 
   waitInvitation: (browser, callback) ->
     browser.element 'css selector', sharedMachineSelector, (result) =>
@@ -95,7 +93,7 @@ module.exports =
       else
         @waitInvitation browser, callback
 
-  
+
   handleInvite: (browser, host, participant, isInvite, callback) ->
 
     participant.role = 'member'
@@ -122,9 +120,9 @@ module.exports =
       @checkInvitedUser  browser, participant, (result) ->
         callback?()
 
-  
+
   checkInvitedUser: (browser, member, callback) ->
-    
+
     memberNicknameToShareMachine = "@#{member.username}"
     browser
       .url virtualMachinesUrl
@@ -132,7 +130,7 @@ module.exports =
       .waitForElementVisible runningVMSelector, 20000
       .click runningVMSelector
       .scrollToElement addAConnectedMachineButtonSelector
-    
+
     browser.element 'css selector', '.react-toggle--checked .react-toggle-track:last', (result) ->
       if result.status is -1
         browser.click closeModal, ->
@@ -146,7 +144,7 @@ module.exports =
 
 
   shareTheMachineWithMembers: (browser, member, callback) ->
-    
+
     memberNicknameToShareMachine = "@#{member.username}"
     browser
       .url virtualMachinesUrl
@@ -156,7 +154,7 @@ module.exports =
 
     browser.element 'css selector', '.react-toggle--checked .react-toggle-track:last', (result) ->
       if result.status is -1
-        browser      
+        browser
           .scrollToElement addAConnectedMachineButtonSelector
           .click vmSharingToggleSelector
 
@@ -167,7 +165,7 @@ module.exports =
           .setValue inputSelector, memberNicknameToShareMachine
           .click inputSelector
           .waitForElementVisible memberSelector, 20000
-          .moveToElement memberSelector, 0,0
+          .moveToElement memberSelector, 0, 0
           .click memberSelector
           .waitForElementVisible membersList, 20000
           .waitForElementVisible removeSharedMachineMember, 20000
@@ -190,7 +188,7 @@ module.exports =
           .waitForElementVisible     '.kdmodal-content', 20000
           .click                     proceedButton
           .waitForElementNotVisible  sharedMachineSelector, 30000, callback
-        
+
 
   openMachineSettings: (browser) ->
     browser
@@ -212,16 +210,16 @@ module.exports =
         .click sharedMachineSelector
 
       browser.element 'css selector', activeTerminal, (result) ->
-          if result.status is -1
-            terminalHelpers.openNewTerminalMenu(browser)
-            terminalHelpers.openTerminal(browser)
+        if result.status is -1
+          terminalHelpers.openNewTerminalMenu(browser)
+          terminalHelpers.openTerminal(browser)
 
-          helpers.runCommandOnTerminal(browser, 'Text pasted into the terminal')
-            #clearing the terminal for second test run
-          browser
-            .execute  "#{insertCommand}('clear')"
-            .execute  executeCommand
-            .pause    5000, callback
+        helpers.runCommandOnTerminal(browser, 'Text pasted into the terminal')
+          #clearing the terminal for second test run
+        browser
+          .execute  "#{insertCommand}('clear')"
+          .execute  executeCommand
+          .pause    5000, callback
 
 
   createFile: (browser, host, participant, fileName, callback) ->
@@ -233,7 +231,6 @@ module.exports =
         .click closeModal
         .click sharedMachineSelector
         .click sharedMachineSelector
-     
       helpers.createFile(browser, host, null, null, fileName)
       browser.pause  3000, callback
 
