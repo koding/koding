@@ -9,6 +9,16 @@ KodingError = require '../../error'
 KONFIG      = require 'koding-config-manager'
 
 
+injectQueryStrings = (templateData) ->
+
+  { template: { content }, branch } = templateData
+
+  templateData.template.content = content
+    .replace /\$\{var\.koding_queryString_branch\}/g, branch
+
+  return templateData
+
+
 getPrivateToken = (options, callback) ->
 
   { urlData: { baseUrl }, token, juser } = options
@@ -179,7 +189,7 @@ module.exports = GitLabProvider =
 
     async.waterfall queue, (err, result) ->
       return callback err  if err
-      callback null, _.extend result, urlData
+      callback null, injectQueryStrings _.extend result, urlData
 
 
   importStackTemplateWithRawUrl: (urlData, callback) ->
@@ -208,5 +218,7 @@ module.exports = GitLabProvider =
 
     return async.series queue, (err, results) ->
       return callback err  if err
-      [ rawContent, description ] = results
-      callback null, _.extend { rawContent, description }, urlData
+      [ template, readme ] = results
+      callback null, injectQueryStrings _.extend {
+        template, readme
+      }, urlData
