@@ -122,6 +122,11 @@ module.exports = class SidebarStackSection extends React.Component
     return null  unless @getStackUnreadCount()
     return null  if not coordinates.left and coordinates.top
 
+
+    coordinates =
+      left : coordinates.left + 6
+      top : coordinates.top - 2
+
     <StackUpdatedWidget coordinates={coordinates} stack={@props.stack} show={showWidget} />
 
 

@@ -8,7 +8,7 @@ getPathInfo = require '../util/getPathInfo'
 FSHelper = require '../util/fs/fshelper'
 FSItem = require '../util/fs/fsitem'
 showError = require '../util/showError'
-
+ContentModal = require 'app/components/contentModal'
 
 module.exports = class DNDUploader extends KDView
 
@@ -261,32 +261,32 @@ module.exports = class DNDUploader extends KDView
 
         else
 
-          modalStack.addModal modal = new KDModalView
-
-            overlay        : no
-            title          : 'Overwrite File?'
-            content        : """
-              <div class='modalformline'>
-                You already have the file <code>#{fsFileItem.path}</code>. Do you want
+          modalStack.addModal modal = new ContentModal
+            cssClass : 'content-modal'
+            overlay : no
+            title : 'Overwrite File?'
+            content : """
+              <p>
+                You already have the file <strong>#{fsFileItem.path}</strong>. Do you want
                 to overwrite it?
-              </div>
+              </p>
             """
-
-            buttons        :
-
-              overwrite    :
-                cssClass   : 'solid green medium'
-                callback   : =>
+            buttons :
+              'cancel all' :
+                title : 'CANCEL ALL'
+                cssClass : 'kdbutton solid medium cancel'
+                callback : -> modalStack.destroy()
+              cancel :
+                title : 'CANCEL'
+                attributes : { style : 'margin-left : 10px' }
+                cssClass : 'kdbutton solid medium cancel'
+                callback : -> modal.destroy()
+              overwrite :
+                title : 'OVERWRITE'
+                cssClass : 'kdbutton GenericButton'
+                callback : =>
                   @saveFile fsFileItem, contents
                   modal.destroy()
-
-              cancel       :
-                cssClass   : 'solid light-gray medium'
-                callback   : -> modal.destroy()
-
-              'cancel all' :
-                cssClass   : 'solid light-gray medium'
-                callback   : -> modalStack.destroy()
 
 
     fsFolderItem.exists (err, exists) ->

@@ -769,6 +769,13 @@ unshareMachineWihAllUsers = (machineId) ->
 
     async.series queue, (err) -> if err then reject() else resolve()
 
+setLabel = (machineUId, label) ->
+
+  new Promise (resolve, reject) ->
+    fetchMachineByUId machineUId, (machine) ->
+      machine.setLabel label, (err, newLabel) ->
+        return reject err  if err
+        resolve newLabel
 
 
 module.exports = {
@@ -815,4 +822,5 @@ module.exports = {
   unshareMachineWithUser
   unshareMachineWihAllUsers
   disconnectMachine
+  setLabel
 }
