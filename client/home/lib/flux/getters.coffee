@@ -1,13 +1,9 @@
 kd = require 'kd'
 welcomeStepsAll = [ 'WelcomeStepsStore' ]
 EnvironmentFlux = require 'app/flux/environment'
-
-teamHasStack = ->
-  kd.singletons.groupsController.getCurrentGroup().stackTemplates?.length
-
-isAdmin = ->
-  kd.singletons.groupsController.canEditGroup()
-
+canCreateStacks = require 'app/util/canCreateStacks'
+isAdmin = require 'app/util/isAdmin'
+teamHasStack = require 'app/util/teamHasStack'
 
 welcomeStepsByRole = [
   EnvironmentFlux.getters.stacks
@@ -34,6 +30,10 @@ welcomeSteps = [
         steps = steps.delete 'stackCreation'
     else
       steps = steps.delete 'buildStack'  unless isAdmin()
+
+    unless canCreateStacks()
+      steps = steps.delete 'stackCreation'
+      steps = steps.delete 'installKd'
 
     return steps.sortBy (a) -> a.get('order')
 ]

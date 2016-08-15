@@ -52,7 +52,7 @@ ToggleButton = ({ checked, callback, canEdit }) ->
 
   return <span></span>  unless canEdit
 
-  <Toggle checked={checked} className='TryOnKoding-onOffButton' callback={callback} />
+  <Toggle checked={checked} className='TryOnKoding-onOffButton OnOffButton' callback={callback} />
 
 
 Primary = ({ className }) ->
