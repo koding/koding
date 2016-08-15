@@ -13,6 +13,29 @@ import (
 	"testing"
 )
 
+func TestOrganizationsService_ListAll(t *testing.T) {
+	setup()
+	defer teardown()
+
+	since := 1342004
+	mux.HandleFunc("/organizations", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		testFormValues(t, r, values{"since": "1342004"})
+		fmt.Fprint(w, `[{"id":4314092}]`)
+	})
+
+	opt := &OrganizationsListOptions{Since: since}
+	orgs, _, err := client.Organizations.ListAll(opt)
+	if err != nil {
+		t.Errorf("Organizations.ListAll returned error: %v", err)
+	}
+
+	want := []*Organization{{ID: Int(4314092)}}
+	if !reflect.DeepEqual(orgs, want) {
+		t.Errorf("Organizations.ListAll returned %+v, want %+v", orgs, want)
+	}
+}
+
 func TestOrganizationsService_List_authenticatedUser(t *testing.T) {
 	setup()
 	defer teardown()
@@ -27,7 +50,7 @@ func TestOrganizationsService_List_authenticatedUser(t *testing.T) {
 		t.Errorf("Organizations.List returned error: %v", err)
 	}
 
-	want := []Organization{{ID: Int(1)}, {ID: Int(2)}}
+	want := []*Organization{{ID: Int(1)}, {ID: Int(2)}}
 	if !reflect.DeepEqual(orgs, want) {
 		t.Errorf("Organizations.List returned %+v, want %+v", orgs, want)
 	}
@@ -49,7 +72,7 @@ func TestOrganizationsService_List_specifiedUser(t *testing.T) {
 		t.Errorf("Organizations.List returned error: %v", err)
 	}
 
-	want := []Organization{{ID: Int(1)}, {ID: Int(2)}}
+	want := []*Organization{{ID: Int(1)}, {ID: Int(2)}}
 	if !reflect.DeepEqual(orgs, want) {
 		t.Errorf("Organizations.List returned %+v, want %+v", orgs, want)
 	}

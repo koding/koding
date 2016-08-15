@@ -9,12 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
-	"path"
-	"path/filepath"
 	"regexp"
-	"runtime"
-	"strings"
 	"sync"
 	"time"
 )
@@ -28,19 +23,9 @@ type fmtVerb int
 const (
 	fmtVerbTime fmtVerb = iota
 	fmtVerbLevel
-	fmtVerbID
-	fmtVerbPid
-	fmtVerbProgram
+	fmtVerbId
 	fmtVerbModule
 	fmtVerbMessage
-	fmtVerbLongfile
-	fmtVerbShortfile
-	fmtVerbLongpkg
-	fmtVerbShortpkg
-	fmtVerbLongfunc
-	fmtVerbShortfunc
-	fmtVerbCallpath
-	fmtVerbLevelColor
 
 	// Keep last, there are no match for these below.
 	fmtVerbUnknown
@@ -51,44 +36,17 @@ var fmtVerbs = []string{
 	"time",
 	"level",
 	"id",
-	"pid",
-	"program",
 	"module",
 	"message",
-	"longfile",
-	"shortfile",
-	"longpkg",
-	"shortpkg",
-	"longfunc",
-	"shortfunc",
-	"callpath",
-	"color",
 }
-
-const rfc3339Milli = "2006-01-02T15:04:05.999Z07:00"
 
 var defaultVerbsLayout = []string{
-	rfc3339Milli,
+	"2006-01-02T15:04:05.999Z-07:00",
 	"s",
 	"d",
-	"d",
 	"s",
 	"s",
-	"s",
-	"s",
-	"s",
-	"s",
-	"s",
-	"s",
-	"s",
-	"s",
-	"",
 }
-
-var (
-	pid     = os.Getpid()
-	program = filepath.Base(os.Args[0])
-)
 
 func getFmtVerbByName(name string) fmtVerb {
 	for i, verb := range fmtVerbs {
@@ -101,7 +59,7 @@ func getFmtVerbByName(name string) fmtVerb {
 
 // Formatter is the required interface for a custom log record formatter.
 type Formatter interface {
-	Format(calldepth int, r *Record, w io.Writer) error
+	Format(*Record, io.Writer) error
 }
 
 // formatter is used by all backends unless otherwise overriden.
@@ -118,10 +76,10 @@ func getFormatter() Formatter {
 
 var (
 	// DefaultFormatter is the default formatter used and is only the message.
-	DefaultFormatter = MustStringFormatter("%{message}")
+	DefaultFormatter Formatter = MustStringFormatter("%{message}")
 
-	// GlogFormatter mimics the glog format
-	GlogFormatter = MustStringFormatter("%{level:.1s}%{time:0102 15:04:05.999999} %{pid} %{shortfile}] %{message}")
+	// TODO add filename and line
+	// GlogFormatter Formatter = MustStringFormatter("%{level:.1}%%{time:0102 15:04:05.99999} 0 %{file}:%{line} %{message}")
 )
 
 // SetFormatter sets the default formatter for all new backends. A backend will
@@ -134,7 +92,8 @@ func SetFormatter(f Formatter) {
 	formatter.def = f
 }
 
-var formatRe = regexp.MustCompile(`%{([a-z]+)(?::(.*?[^\\]))?}`)
+// TODO use ${} instead?
+var formatRe *regexp.Regexp = regexp.MustCompile(`%{([a-z]+)(?::(.*?[^\\]))?}`)
 
 type part struct {
 	verb   fmtVerb
@@ -153,17 +112,11 @@ type stringFormatter struct {
 // The verbs:
 //
 // General:
-//     %{id}        Sequence number for log message (uint64).
-//     %{pid}       Process id (int)
-//     %{time}      Time when log occurred (time.Time)
-//     %{level}     Log level (Level)
-//     %{module}    Module (string)
-//     %{program}   Basename of os.Args[0] (string)
-//     %{message}   Message (string)
-//     %{longfile}  Full file name and line number: /a/b/c/d.go:23
-//     %{shortfile} Final file name element and line number: d.go:23
-//     %{callpath}  Callpath like main.a.b.c...c  "..." meaning recursive call
-//     %{color}     ANSI color based on log level
+//     %{id}      Sequence number for log message (uint64).
+//     %{time}    Time when log occurred (time.Time)
+//     %{level}   Log level (Level)
+//     %{module}  Module (string)
+//     %{message} Message (string)
 //
 // For normal types, the output can be customized by using the 'verbs' defined
 // in the fmt package, eg. '%{id:04d}' to make the id output be '%04d' as the
@@ -171,28 +124,7 @@ type stringFormatter struct {
 //
 // For time.Time, use the same layout as time.Format to change the time format
 // when output, eg "2006-01-02T15:04:05.999Z-07:00".
-//
-// For the 'color' verb, the output can be adjusted to either use bold colors,
-// i.e., '%{color:bold}' or to reset the ANSI attributes, i.e.,
-// '%{color:reset}' Note that if you use the color verb explicitly, be sure to
-// reset it or else the color state will persist past your log message.  e.g.,
-// "%{color:bold}%{time:15:04:05} %{level:-8s}%{color:reset} %{message}" will
-// just colorize the time and level, leaving the message uncolored.
-//
-// Colors on Windows is unfortunately not supported right now and is currently
-// a no-op.
-//
-// There's also a couple of experimental 'verbs'. These are exposed to get
-// feedback and needs a bit of tinkering. Hence, they might change in the
-// future.
-//
-// Experimental:
-//     %{longpkg}   Full package path, eg. github.com/go-logging
-//     %{shortpkg}  Base package path, eg. go-logging
-//     %{longfunc}  Full function name, eg. littleEndian.PutUint32
-//     %{shortfunc} Base function name, eg. PutUint32
-//     %{callpath}  Call function path, eg. main.a.b.c
-func NewStringFormatter(format string) (Formatter, error) {
+func NewStringFormatter(format string) (*stringFormatter, error) {
 	var fmter = &stringFormatter{}
 
 	// Find the boundaries of all %{vars}
@@ -216,12 +148,12 @@ func NewStringFormatter(format string) (Formatter, error) {
 		}
 
 		// Handle layout customizations or use the default. If this is not for the
-		// time or color formatting, we need to prefix with %.
+		// time formatting, we need to prefix with %.
 		layout := defaultVerbsLayout[verb]
 		if m[4] != -1 {
 			layout = format[m[4]:m[5]]
 		}
-		if verb != fmtVerbTime && verb != fmtVerbLevelColor {
+		if verb != fmtVerbTime {
 			layout = "%" + layout
 		}
 
@@ -242,19 +174,21 @@ func NewStringFormatter(format string) (Formatter, error) {
 		Id:     12345,
 		Time:   t,
 		Module: "logger",
-		Args:   []interface{}{"go"},
 		fmt:    "hello %s",
+		args:   []interface{}{"go"},
 	}
-	if err := fmter.Format(0, r, &bytes.Buffer{}); err != nil {
+	if err := fmter.Format(r, &bytes.Buffer{}); err != nil {
 		return nil, err
 	}
+
+	formatter.def = fmter
 
 	return fmter, nil
 }
 
 // MustStringFormatter is equivalent to NewStringFormatter with a call to panic
 // on error.
-func MustStringFormatter(format string) Formatter {
+func MustStringFormatter(format string) *stringFormatter {
 	f, err := NewStringFormatter(format)
 	if err != nil {
 		panic("Failed to initialized string formatter: " + err.Error())
@@ -266,28 +200,21 @@ func (f *stringFormatter) add(verb fmtVerb, layout string) {
 	f.parts = append(f.parts, part{verb, layout})
 }
 
-func (f *stringFormatter) Format(calldepth int, r *Record, output io.Writer) error {
+func (f *stringFormatter) Format(r *Record, output io.Writer) error {
+	// TODO collect and call fprintf once?
 	for _, part := range f.parts {
 		if part.verb == fmtVerbStatic {
 			output.Write([]byte(part.layout))
 		} else if part.verb == fmtVerbTime {
 			output.Write([]byte(r.Time.Format(part.layout)))
-		} else if part.verb == fmtVerbLevelColor {
-			doFmtVerbLevelColor(part.layout, r.Level, output)
 		} else {
 			var v interface{}
 			switch part.verb {
 			case fmtVerbLevel:
 				v = r.Level
 				break
-			case fmtVerbID:
+			case fmtVerbId:
 				v = r.Id
-				break
-			case fmtVerbPid:
-				v = pid
-				break
-			case fmtVerbProgram:
-				v = program
 				break
 			case fmtVerbModule:
 				v = r.Module
@@ -295,26 +222,6 @@ func (f *stringFormatter) Format(calldepth int, r *Record, output io.Writer) err
 			case fmtVerbMessage:
 				v = r.Message()
 				break
-			case fmtVerbLongfile, fmtVerbShortfile:
-				_, file, line, ok := runtime.Caller(calldepth + 1)
-				if !ok {
-					file = "???"
-					line = 0
-				} else if part.verb == fmtVerbShortfile {
-					file = filepath.Base(file)
-				}
-				v = fmt.Sprintf("%s:%d", file, line)
-			case fmtVerbLongfunc, fmtVerbShortfunc,
-				fmtVerbLongpkg, fmtVerbShortpkg:
-				// TODO cache pc
-				v = "???"
-				if pc, _, _, ok := runtime.Caller(calldepth + 1); ok {
-					if f := runtime.FuncForPC(pc); f != nil {
-						v = formatFuncName(part.verb, f.Name())
-					}
-				}
-			case fmtVerbCallpath:
-				v = formatCallpath(calldepth + 1)
 			default:
 				panic("unhandled format part")
 			}
@@ -322,79 +229,4 @@ func (f *stringFormatter) Format(calldepth int, r *Record, output io.Writer) err
 		}
 	}
 	return nil
-}
-
-// formatFuncName tries to extract certain part of the runtime formatted
-// function name to some pre-defined variation.
-//
-// This function is known to not work properly if the package path or name
-// contains a dot.
-func formatFuncName(v fmtVerb, f string) string {
-	i := strings.LastIndex(f, "/")
-	j := strings.Index(f[i+1:], ".")
-	if j < 1 {
-		return "???"
-	}
-	pkg, fun := f[:i+j+1], f[i+j+2:]
-	switch v {
-	case fmtVerbLongpkg:
-		return pkg
-	case fmtVerbShortpkg:
-		return path.Base(pkg)
-	case fmtVerbLongfunc:
-		return fun
-	case fmtVerbShortfunc:
-		i = strings.LastIndex(fun, ".")
-		return fun[i+1:]
-	}
-	panic("unexpected func formatter")
-}
-
-func formatCallpath(calldepth int) string {
-	v := ""
-	callers := make([]uintptr, 64)
-	n := runtime.Callers(calldepth+2, callers)
-	oldPc := callers[n-1]
-
-	recursiveCall := false
-	for i := n - 3; i >= 0; i-- {
-		pc := callers[i]
-		if oldPc == pc {
-			recursiveCall = true
-			continue
-		}
-		oldPc = pc
-		if recursiveCall {
-			recursiveCall = false
-			v += ".."
-		}
-		if i < n-3 {
-			v += "."
-		}
-		if f := runtime.FuncForPC(pc); f != nil {
-			v += formatFuncName(fmtVerbShortfunc, f.Name())
-		}
-	}
-	return v
-}
-
-// backendFormatter combines a backend with a specific formatter making it
-// possible to have different log formats for different backends.
-type backendFormatter struct {
-	b Backend
-	f Formatter
-}
-
-// NewBackendFormatter creates a new backend which makes all records that
-// passes through it beeing formatted by the specific formatter.
-func NewBackendFormatter(b Backend, f Formatter) Backend {
-	return &backendFormatter{b, f}
-}
-
-// Log implements the Log function required by the Backend interface.
-func (bf *backendFormatter) Log(level Level, calldepth int, r *Record) error {
-	// Make a shallow copy of the record and replace any formatter
-	r2 := *r
-	r2.formatter = bf.f
-	return bf.b.Log(level, calldepth+1, &r2)
 }

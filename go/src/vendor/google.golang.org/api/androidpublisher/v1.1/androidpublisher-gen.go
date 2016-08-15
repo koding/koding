@@ -150,7 +150,7 @@ type SubscriptionPurchase struct {
 	AutoRenewing bool `json:"autoRenewing,omitempty"`
 
 	// InitiationTimestampMsec: Time at which the subscription was granted,
-	// in milliseconds since Epoch.
+	// in milliseconds since the Epoch.
 	InitiationTimestampMsec int64 `json:"initiationTimestampMsec,omitempty,string"`
 
 	// Kind: This kind represents a subscriptionPurchase object in the
@@ -158,7 +158,7 @@ type SubscriptionPurchase struct {
 	Kind string `json:"kind,omitempty"`
 
 	// ValidUntilTimestampMsec: Time at which the subscription will expire,
-	// in milliseconds since Epoch.
+	// in milliseconds since the Epoch.
 	ValidUntilTimestampMsec int64 `json:"validUntilTimestampMsec,omitempty,string"`
 
 	// ServerResponse contains the HTTP response code and headers from the
@@ -244,10 +244,7 @@ func (c *InapppurchasesGetCall) doRequest(alt string) (*http.Response, error) {
 		"productId":   c.productId,
 		"token":       c.token,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.inapppurchases.get" call.
@@ -378,10 +375,7 @@ func (c *PurchasesCancelCall) doRequest(alt string) (*http.Response, error) {
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.purchases.cancel" call.
@@ -498,10 +492,7 @@ func (c *PurchasesGetCall) doRequest(alt string) (*http.Response, error) {
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.purchases.get" call.

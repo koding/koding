@@ -13,7 +13,7 @@ function setup() {
     setup_busybox
 
     # Add cgroup path
-    sed -i 's/\("linux": {\)/\1\n    "cgroupsPath": "runc-update-integration-test",/'  ${BUSYBOX_BUNDLE}/config.json
+    sed -i 's/\("linux": {\)/\1\n    "cgroupsPath": "\/runc-update-integration-test",/'  ${BUSYBOX_BUNDLE}/config.json
 
     # Set some initial known values
     DATA=$(cat <<EOF
@@ -48,6 +48,7 @@ function check_cgroup_value() {
 }
 
 @test "update" {
+    requires cgroups_kmem
     # run a few busyboxes detached
     runc run -d --console /dev/pts/ptmx test_update
     [ "$status" -eq 0 ]

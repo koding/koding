@@ -23,7 +23,7 @@ pushd "$GOPATH/src"
 
 [[ ${1:-} != "-k" ]] && { rm -rf vendor; glide cc; }
 
-glide update --update-vendored --strip-vcs || true
+glide --debug update --quick --update-vendored --strip-vcs || true
 
 rm -rf vendor/github.com/hashicorp/terraform
 git clone git@github.com:koding/terraform vendor/github.com/hashicorp/terraform

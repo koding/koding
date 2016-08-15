@@ -1,5 +1,14 @@
 package mailgun
 
+import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
+	"io"
+	"net/http"
+)
+
 // GetWebhooks returns the complete set of webhooks configured for your domain.
 // Note that a zero-length mapping is not an error.
 func (mg *MailgunImpl) GetWebhooks() (map[string]string, error) {
@@ -66,4 +75,21 @@ func (mg *MailgunImpl) UpdateWebhook(t, u string) error {
 	p.addValue("url", u)
 	_, err := makePutRequest(r, p)
 	return err
+}
+
+func (mg *MailgunImpl) VerifyWebhookRequest(req *http.Request) (verified bool, err error) {
+	h := hmac.New(sha256.New, []byte(mg.ApiKey()))
+	io.WriteString(h, req.Form.Get("timestamp"))
+	io.WriteString(h, req.Form.Get("token"))
+
+	calculatedSignature := h.Sum(nil)
+	signature, err := hex.DecodeString(req.Form.Get("signature"))
+	if err != nil {
+		return false, err
+	}
+	if len(calculatedSignature) != len(signature) {
+		return false, nil
+	}
+
+	return subtle.ConstantTimeCompare(signature, calculatedSignature) == 1, nil
 }

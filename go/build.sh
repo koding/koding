@@ -22,7 +22,7 @@ if [[ -z "$minor" ]] || [[ $minor -gt 4 ]]; then
 	LINK_OPERATOR="="
 fi
 
-if [[ -z "$minor" ]] || [[ $minor -gt 6 ]]; then
+if [[ -z "$minor" ]] || [[ $minor -ge 6 ]]; then
 	VENDOR_DIR="vendor/"
 fi
 

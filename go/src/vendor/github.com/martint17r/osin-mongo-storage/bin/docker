@@ -1,0 +1,42 @@
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+cd "${DIR}/.."
+
+NAME=${1:-mtvb/osin-mongo-storage:latest}
+CONTAINERSUFFIX=$(mktemp -u XXXXXX)
+MONGOCONTAINERNAME=mongodb-osin--$CONTAINERSUFFIX
+
+# make sure the container does not exist yet.
+docker inspect $MONGOCONTAINERNAME > /dev/null 2>&1 && (echo "Panic!"; exit 1)
+
+function buildContainer() {
+	#docker build --quiet --tag $NAME --rm .
+	docker build --tag $NAME --rm .
+}
+
+function runMongo() {
+	docker run -d --name $MONGOCONTAINERNAME dockerfile/mongodb \
+			mongod --nopreallocj --noprealloc --smallfiles
+}
+
+function runAndForget() {
+	prepareEnv 
+	docker inspect $MONGOCONTAINERNAME >/dev/null 2>&1 && LINK="--link $MONGOCONTAINERNAME:mongodb"
+	docker run $VARS -it --rm $LINK $NAME "$@"
+}
+
+function runAndForgetDetached() {
+	prepareEnv 
+	docker inspect $MONGOCONTAINERNAME >/dev/null 2>&1 && LINK="--link $MONGOCONTAINERNAME:mongodb"
+	CID=$(docker run $VARS -d $LINK $NAME "$@")
+}
+
+function evictContainer() {
+	docker stop $@ >/dev/null
+	docker rm $@ >/dev/null
+}
+
+function prepareEnv() {
+	VARS=$(env | grep ^OSIN_MONGO_ | perl -ne 'chomp;print qq!-e $_ !; END {print "\n"}')
+}

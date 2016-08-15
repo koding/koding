@@ -29,7 +29,7 @@ func TestRepositoriesService_ListDeployments(t *testing.T) {
 		t.Errorf("Repositories.ListDeployments returned error: %v", err)
 	}
 
-	want := []Deployment{{ID: Int(1)}, {ID: Int(2)}}
+	want := []*Deployment{{ID: Int(1)}, {ID: Int(2)}}
 	if !reflect.DeepEqual(deployments, want) {
 		t.Errorf("Repositories.ListDeployments returned %+v, want %+v", deployments, want)
 	}
@@ -39,13 +39,14 @@ func TestRepositoriesService_CreateDeployment(t *testing.T) {
 	setup()
 	defer teardown()
 
-	input := &DeploymentRequest{Ref: String("1111"), Task: String("deploy")}
+	input := &DeploymentRequest{Ref: String("1111"), Task: String("deploy"), TransientEnvironment: Bool(true)}
 
 	mux.HandleFunc("/repos/o/r/deployments", func(w http.ResponseWriter, r *http.Request) {
 		v := new(DeploymentRequest)
 		json.NewDecoder(r.Body).Decode(v)
 
 		testMethod(t, r, "POST")
+		testHeader(t, r, "Accept", mediaTypeDeploymentStatusPreview)
 		if !reflect.DeepEqual(v, input) {
 			t.Errorf("Request body = %+v, want %+v", v, input)
 		}
@@ -80,8 +81,38 @@ func TestRepositoriesService_ListDeploymentStatuses(t *testing.T) {
 		t.Errorf("Repositories.ListDeploymentStatuses returned error: %v", err)
 	}
 
-	want := []DeploymentStatus{{ID: Int(1)}, {ID: Int(2)}}
+	want := []*DeploymentStatus{{ID: Int(1)}, {ID: Int(2)}}
 	if !reflect.DeepEqual(statutses, want) {
 		t.Errorf("Repositories.ListDeploymentStatuses returned %+v, want %+v", statutses, want)
+	}
+}
+
+func TestRepositoriesService_CreateDeploymentStatus(t *testing.T) {
+	setup()
+	defer teardown()
+
+	input := &DeploymentStatusRequest{State: String("inactive"), Description: String("deploy"), AutoInactive: Bool(false)}
+
+	mux.HandleFunc("/repos/o/r/deployments/1/statuses", func(w http.ResponseWriter, r *http.Request) {
+		v := new(DeploymentStatusRequest)
+		json.NewDecoder(r.Body).Decode(v)
+
+		testMethod(t, r, "POST")
+		testHeader(t, r, "Accept", mediaTypeDeploymentStatusPreview)
+		if !reflect.DeepEqual(v, input) {
+			t.Errorf("Request body = %+v, want %+v", v, input)
+		}
+
+		fmt.Fprint(w, `{"state": "inactive", "description": "deploy"}`)
+	})
+
+	deploymentStatus, _, err := client.Repositories.CreateDeploymentStatus("o", "r", 1, input)
+	if err != nil {
+		t.Errorf("Repositories.CreateDeploymentStatus returned error: %v", err)
+	}
+
+	want := &DeploymentStatus{State: String("inactive"), Description: String("deploy")}
+	if !reflect.DeepEqual(deploymentStatus, want) {
+		t.Errorf("Repositories.CreateDeploymentStatus returned %+v, want %+v", deploymentStatus, want)
 	}
 }
