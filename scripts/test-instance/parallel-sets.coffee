@@ -21,67 +21,63 @@
 
 module.exports = [
 
-  [
-    { name: 'dashboard virtualmachines' }
-  ]
-
-  [
-    { name: 'dashboard stacks' }
-    { name: 'dashboard myteam' }
-    { name: 'dashboard credentials' }
-    { name: 'dashboard utilities' }
-    { name: 'dashboard onboarding' }
-    { name: 'dashboard sidebar' }
-    # { name: 'dashboard teambilling' }
-  ]
+  # [
+  #   { name: 'dashboard myaccount' }
+  #   { name: 'dashboard stacks' }
+  #   { name: 'dashboard virtualmachines' }
+  #   { name: 'dashboard myteam' }
+  #   { name: 'dashboard credentials' }
+  #   { name: 'dashboard utilities' }
+  #   { name: 'dashboard onboarding' }
+  #   { name: 'dashboard sidebar' }
+  #   { name: 'dashboard teambilling' }
+  # ]
 
   [
     { name: 'register' }
-    { name: 'unittests' }
-    { name: 'dashboard myaccount' }
     { name: 'teams teams' }
+    # { name: 'unittests' }
   ]
 
-  [
-    { name: 'ide file' }
-    { name: 'ide folder' }
-  ]
+  # [
+  #   { name: 'ide file' }
+  #   { name: 'ide folder' }
+  # ]
 
-  [
-    # { name: 'ide workspace' }
-    { name: 'ide layout' }
-  ]
+  # [
+  #   # { name: 'ide workspace' }
+  #   { name: 'ide layout' }
+  # ]
 
-  [
-    { name: 'ide search' }
-    { name: 'ide general' }
-  ]
+  # [
+  #   { name: 'ide search' }
+  #   { name: 'ide general' }
+  # ]
 
-  [
-    { name: 'ide terminal' }
-  ]
+  # [
+  #   { name: 'ide terminal' }
+  # ]
 
-  [
-    { name: 'collaboration collaborationsingle'}
-    { name: 'collaboration collaborationpermission', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  ]
+  # [
+  #   { name: 'collaboration collaborationsingle'}
+  #   { name: 'collaboration collaborationpermission', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
 
-  [
-    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  ]
+  # [
+  #   { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
 
-  [
-    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  ]
+  # [
+  #   { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
 
-  [
-    { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  ]
+  # [
+  #   { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
 
-  [
-    { name: 'vmsharing vmsharing', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  ]
-
+  # [
+  #   { name: 'vmsharing vmsharing', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
 
   # [
   #   { name: 'environments vm' }
