@@ -24,8 +24,8 @@ npm install --unsafe-perm
 go/build.sh
 make -C client dist
 
-export TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090"
-make -C client/test build
+TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" \
+  make -C client/test build
 
 ./run services
 
