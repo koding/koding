@@ -2,6 +2,7 @@ kd             = require 'kd'
 $              = require 'jquery'
 utils          = require './../core/utils'
 JView          = require './../core/jview'
+MainHeaderView = require './../core/mainheaderview'
 FindTeamForm   = require './findteamform'
 
 track = (action) ->
@@ -15,23 +16,16 @@ module.exports = class FindTeamView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'Team Teams-findteam', options.cssClass
+    options.cssClass = kd.utils.curry 'Team Team--ufo', options.cssClass
 
     super options, data
 
     { mainController } = kd.singletons
     { group }          = kd.config
 
-    @header = new kd.CustomHTMLView
-      tagName  : 'header'
-      cssClass : 'logo-header'
-
-    @header.addSubView new kd.CustomHTMLView
-      tagName   : 'a'
-      partial   : '<img src="/a/images/logos/header_logo.svg" />'
-      click     : (event) ->
-        kd.utils.stopDOMEvent event
-        kd.singletons.router.handleRoute '/'
+    @header = new MainHeaderView
+      cssClass : 'team'
+      navItems : []
 
     @form = new FindTeamForm
       callback : @bound 'findTeam'
@@ -72,8 +66,7 @@ module.exports = class FindTeamView extends JView
 
     '''
     {{> @header }}
-    <div class="TeamsModal TeamsModal--login">
-      <div class="alien"></div>
+    <div class="TeamsModal TeamsModal--findTeam">
       <h4>Find My Teams</h4>
       <h5>We will email you the list of teams you are part of.</h5>
       {{> @form}}

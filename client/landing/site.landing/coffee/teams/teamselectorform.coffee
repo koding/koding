@@ -21,7 +21,7 @@ module.exports = class TeamsSelectorForm extends kd.FormView
       click        : => @input.setFocus()
 
     @inputView.addSubView @input = new kd.InputView
-      placeholder  : 'your-team'
+      placeholder  : 'Your team'
       attributes   : 10
       name         : 'slug'
       defaultValue : lastTeam  if lastTeam
@@ -52,6 +52,6 @@ module.exports = class TeamsSelectorForm extends kd.FormView
 
     """
     {{> @inputView}}
-    <div class='TeamsModal-button-separator'></div>
     <div class='submit'>{{> @button}}</div>
+    <a href="/Teams/FindTeam" class="secondary-link" target="_self">Forgot your team name?</a>
     """

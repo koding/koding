@@ -1,6 +1,6 @@
 @import "lib/core.fn"
 
-.Teams-findteam.Team
+.Team--ufo.Team
   bg                        color, #3c3b58
   bg                        image, linear-gradient(-180deg,#3c3c57 11%,#8598be 100%)
   min-height                1020px
@@ -9,29 +9,32 @@
     color                   #56a2d3
     text-decoration         none
 
-  .logo-header
-    bg                      color, #3C3D58
+  .main-header.team
+    max-width               100%
+    border-bottom           1px solid rgba(0,0,0,0.15)
+    abs()
+    top                     0
     height                  69px
-    width                   100%
-    z-index                 2
-    abs                     0, 0, auto, 0
-    border-bottom           1px solid rgba(0,0,0,.15)
-    display                 flex
+    padding                 0 40px
 
-    a
-      display               flex
-      padding-left          40px
-      padding-right         40px
+    .koding-header-logo
+      left                  auto
+      top                   18px
 
-    img
-      width                 95px
+    .hiring-badge
+      top                   21px
+
+    nav.full-menu
+      margin-top            21px
 
   .TeamsModal
     margin-top              180px
-    size                    480px, 330px
+    width                   480px
     padding-top             38px
 
-    .alien
+    &.TeamsModal--domain::after
+    &.TeamsModal--findTeam::after
+      content               ''
       r-sprite              teams, alien
       abs()
       top                   -32px
@@ -55,6 +58,8 @@
     .login-input-view
       width                 400px !important
       margin                0 auto
+      margin-bottom         19px
+      borderBox()
 
       input.kdinput
         border              1px solid #d9d9d9
@@ -64,6 +69,25 @@
 
       &.validation-error input.kdinput
         border-width        1px !important
+
+    &.TeamsModal--domain
+      .login-input-view
+        border              1px solid #d9d9d9 !important
+        rounded             3px
+        text-align          left
+        padding-left        15px
+
+    &.TeamsModal--findTeam
+      .login-input-view
+        .placeholder-helper
+          color             #ccc
+          font-size         18px
+          top               16px
+
+          &.out
+            color           #999
+            font-size       12px
+            top             -15px
 
     .TeamsModal-button
       margin                0 auto
@@ -75,16 +99,43 @@
       line-height           21px
       margin-bottom         25px
 
-    .back-link
+    .secondary-link
       font-size             14px
       line-height           17px
 
+    &.TeamsModal--domain
+      .login-input-view
+        span
+          display           inline-block
+          margin            0
+          fr()
+          padding           0 15px
+          border-left       1px solid #d9d9d9
+          bg                color, #fafafa
+          font-size         18px !important
+
+        input.kdinput
+          font-size         18px
+
   .additional-info
     margin-top              50px
+    padding                 0
     color                   #fff
     font-size               14px
     line-height             17px
     text-align              center
+    rel()
+    z-index                 10
+
+    a
+      color                 #56a2d3
+      text-decoration       none
+
+    p
+      margin-top            10px
+
+      a.previous-team:hover
+        color               #56a2d3
 
   .ufo-bg
     abs()
@@ -117,3 +168,27 @@
     abs()
     bottom                  0
     z-index                 0
+
+
+@media screen and (max-width : 767px)
+
+  .expand-menu
+    .Team--ufo
+      .main-header.team
+        height              100%
+
+        nav.full-menu
+          a.mobile-trigger
+            top             26px
+
+  .Team--ufo.Team
+    .main-header.team
+      nav.full-menu
+        margin-top          0
+
+        a.mobile-trigger
+          top               26px
+
+    .TeamsModal--domain::after
+      margin-left           0
+      kalc                  left, 50% \- 40px, !important

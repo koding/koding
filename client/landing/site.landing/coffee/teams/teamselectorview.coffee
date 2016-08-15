@@ -20,7 +20,7 @@ module.exports = class TeamSelectorView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'Team', options.cssClass
+    options.cssClass = kd.utils.curry 'Team Team--ufo', options.cssClass
 
     super options, data
 
@@ -29,9 +29,7 @@ module.exports = class TeamSelectorView extends JView
 
     @header = new MainHeaderView
       cssClass : 'team'
-      navItems : [
-        { title : 'Login',    href : '/Teams',     name : 'login' }
-      ]
+      navItems : []
 
     @form = new TeamsSelectorForm
       callback : @bound 'goToTeam'
@@ -87,12 +85,16 @@ module.exports = class TeamSelectorView extends JView
       <p>We don't currently support</br>using Koding on mobile devices.</p>
     </div>
     <div class="TeamsModal TeamsModal--select TeamsModal--domain TeamsModal-login">
-      <h4>Sign in to your team</h4>
-      <h5>Enter your team's <b>Koding</b> domain.</h5>
+      <h4>Welcome!</h4>
+      <h5>Enter your team's Koding domain.</h5>
       {{> @form}}
     </div>
-    <section class="previous-teams">
-      <p>Trying to create a team? <a href="/Teams/Create" target="_self">Click here</a> to get started.</p>
+    <section class="previous-teams additional-info">
+      Do you want to onboard a new team?<br />
+      <a href="/Teams/Create" class="back-link" target="_self">Create a new account</a>
       {{> @previousTeams}}
     </section>
+    <div class="ufo-bg"></div>
+    <div class="ground-bg"></div>
+    <div class="footer-bg"></div>
     """

@@ -48,5 +48,5 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
     '''
     {{> @usernameOrEmail}}
     {{> @button}}
-    <a href="/Teams" class="back-link" target="_self">BACK</a>
+    <a href="/Teams" class="secondary-link" target="_self">BACK</a>
     '''
