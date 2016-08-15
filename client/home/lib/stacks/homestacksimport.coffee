@@ -6,9 +6,9 @@ remote = require('app/remote').getInstance()
 showError = require 'app/util/showError'
 OutputView = require 'stacks/views/stacks/outputview'
 
-getRepoFromQuery = (query) ->
+parseQuery = (query) ->
 
-  { repo, branch } = query
+  { repo, branch, sha } = query
 
   repo = Encoder.XSSEncode repo
 
@@ -16,7 +16,7 @@ getRepoFromQuery = (query) ->
     branch = Encoder.XSSEncode branch
     repo = "#{repo}/#{branch}"  if branch
 
-  return repo
+  return { repo, commitId: sha, branch }
 
 
 module.exports = class HomeStacksImport extends kd.CustomHTMLView
@@ -81,7 +81,7 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
 
   handleQuery: (query = {}) -> @ready =>
 
-    repo = getRepoFromQuery query
+    { repo, commitId } = parseQuery query
 
     @message.hide()
     @actionButton.hide()
@@ -89,7 +89,17 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
     @outputView.show()
     @outputView.add 'Got repo as follow:', repo
 
-    { groupsController, router } = kd.singletons
+    { computeController, groupsController, router } = kd.singletons
+
+    if commitId
+      @outputView.add 'Checking existing VM for given commit id:', commitId
+      if machine = computeController.findMachineFromRemoteData { commitId }
+        @outputView.add "Found VM: #{machine.label} redirecting..."
+        kd.utils.wait 2000, ->
+          router.handleRoute "/IDE/#{machine.slug}"
+        return
+
+      @outputView.add "Couldn't find any VM, processing request..."
 
     groupsController.ready =>
 
