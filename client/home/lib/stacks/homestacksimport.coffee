@@ -119,11 +119,13 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
           else
             @loader.hide()
             @outputView.add 'Stack created:', stack
-            @outputView.add 'You can now open editor for imported stack template.'
+            @outputView.add 'Launching editor for imported stack template...'
 
-            @actionButton.setTitle 'Open Editor'
-            @actionButton.setCallback ->
-              router.handleRoute "/Stack-Editor/#{stack._id}"
+            launchEditor = -> router.handleRoute "/Stack-Editor/#{stack._id}"
+            kd.utils.wait 2000, launchEditor
+
+            @actionButton.setTitle 'Launch Editor Now'
+            @actionButton.setCallback launchEditor
 
             @actionButton.show()
 
