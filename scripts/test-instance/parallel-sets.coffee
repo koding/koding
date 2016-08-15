@@ -32,7 +32,7 @@ module.exports = [
     { name: 'dashboard utilities' }
     { name: 'dashboard onboarding' }
     { name: 'dashboard sidebar' }
-    { name: 'dashboard teambilling' }
+    # { name: 'dashboard teambilling' }
   ]
 
   [
