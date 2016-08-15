@@ -6,6 +6,7 @@
     bg                      color #fff
     text-align              center
     pointer-events          none
+    margin-bottom           0px
 
     span.title
       color                 #727272
@@ -73,20 +74,27 @@
 
     &.success-state
 
+      .success-state-label
+        text-align          center
+        margin-bottom       20px
+        p
+          font-weight       600
+
       .analyzeCSV
-        padding             0px 40px
         border-radius       4px
         bg                  color #fff
 
         div.wrapper-with-extras
         div.wrapper
-          height            60px
+        div.extras-wrapper
+          height            auto
           display           flex
-          padding-top       15px
           text-align        center
           font-size         24px
           color             #F2778A
           border-bottom     none
+          margin            0 20px
+          padding-top       20px
 
           .total-label
           .members-label
@@ -97,9 +105,13 @@
           .total
           .members
           .admins
+            padding         10px 0
             border-right    1px solid #EFEFEF
             width           calc(100%/3)
             margin-bottom   15px
+            -webkit-box-sizing border-box
+            -moz-box-sizing border-box
+            box-sizing border-box
 
           .admins
             border-right    0px
@@ -112,20 +124,33 @@
             margin-bottom   0px
 
         .extras-wrapper
-          padding-bottom    1px
-          .alreadyInvited
-            font-weight     300
-            text-align      center
-            color           #a8a8a8
-            font-size       14px
-            letter-spacing  0.13px
-            line-height     20px
-            margin          5px 0 5px 0
-            &:last-child
-              margin-bottom 10px
-            strong
-              font-weight   600
-              color         #727272
+          padding-top       0px !important
+          padding-bottom    20px
+          text-align        center
+
+          .secondary-wrapper
+            width           100%
+            .alreadyInvited
+              color         #989898
+              font-size     18px
+              display       inline-block
+              padding       10px 0px
+              border-right  1px solid #efefef
+              width         calc(100%/3)
+              -webkit-box-sizing border-box
+              -moz-box-sizing border-box
+              box-sizing    border-box
+
+              &:last-child
+                border-right  0px
+
+              label
+                font-size       14px
+                color           #A8A8A8
+
+          .extras-wrapper:empty
+            display none
+
 
   .example-csv
     height                  60px

@@ -12,7 +12,7 @@ module.exports = class UploadCSVModal extends ContentModal
 
     @trailerContent = '''
       <p>Before uploading your file, please make sure you have the right format.
-      The file should contain <strong>Email</strong>, <strong>First Name</strong> (optional), <strong>Last Name</strong> (optional), and <strong>Role fields in the right order.
+      The file should contain <strong>Email</strong>, <strong>First Name</strong> (optional), <strong>Last Name</strong> (optional), and <strong>Role </strong> fields in the right order.
       Roles can be <strong>Admin</strong> or <strong>Member</strong>.
       </br></br>
       <strong>Here is an example:</strong></p>
@@ -84,12 +84,11 @@ module.exports = class UploadCSVModal extends ContentModal
 
     @buttonWrapper.addSubView @cancelButton = new kd.ButtonView
       cssClass: 'GenericButton cancel'
-      title: 'Cancel'
+      title: 'CANCEL'
       callback: => @destroy()
 
     @buttonWrapper.addSubView @sendAllInvites = new kd.ButtonView
       cssClass: 'GenericButton select-upload hidden'
-      title: 'SEND ALL INVITES'
       callback: =>
         @sendData()
 
@@ -159,23 +158,21 @@ module.exports = class UploadCSVModal extends ContentModal
     if typeof result is 'string'
       @sendData()
       return
+
     @successPage.show()
     @selectAndUpload.hide()
     @sendAllInvites.show()
-    @uploadingPage.updatePartial '''
-      <p>
-        Would you like to send an invitation to all people below
-        except already invited members?
-      </p>
-      </br></br>
-      In your files, we have found…
-    '''
+
+    @uploadingPage.hide()
     { myself, admins, members, extras } = result
 
     memberLabel = if members.length > 1 then 'Members' else 'Member'
     adminLabel = if admins.length > 1 then 'Admins' else 'Admin'
 
     @totalInvitation = admins + members
+    @validInvitations = admins + members
+
+    @sendAllInvites.setTitle "SEND #{@validInvitations} INVITES"
 
     analyzeWrapperClassName = 'wrapper'
     for ex in Object.keys(extras)
@@ -185,6 +182,13 @@ module.exports = class UploadCSVModal extends ContentModal
         @totalInvitation = @totalInvitation + value
 
 
+    @successPage.addSubView label = new kd.CustomHTMLView
+      cssClass: 'success-state-label'
+      partial: '''
+        <p>
+            In your files, we have found…
+        </p>
+      '''
 
     @successPage.addSubView analyzeCSV = new kd.CustomHTMLView
       cssClass: 'analyzeCSV'
@@ -205,8 +209,11 @@ module.exports = class UploadCSVModal extends ContentModal
         </div>
       """
 
+    return  unless analyzeWrapperClassName is 'wrapper-with-extras'
     analyzeCSV.addSubView extraInfo = new kd.CustomHTMLView
       cssClass: 'extras-wrapper'
+    extraInfo.addSubView secondaryWrapper = new kd.CustomHTMLView
+      cssClass: 'secondary-wrapper'
     for ex in Object.keys(extras)
       value = extras["#{ex}"]
       if value
@@ -216,7 +223,14 @@ module.exports = class UploadCSVModal extends ContentModal
           label = if ex > 1 then 'Invalid Invites' else 'Invalid Invite'
         else if ex is 'alreadyInvited'
           label = 'Already Invited'
-        extraInfo.setPartial """<div class='alreadyInvited'><strong>+</strong> #{value} #{label}</div>"""
+        secondaryWrapper.setPartial """
+          <div class='alreadyInvited'>
+            #{value}</br>
+            <label>
+              #{label}
+            </label>
+          </div>
+        """
 
 
   errorAnalyzeCSV: (err) ->
@@ -248,5 +262,5 @@ module.exports = class UploadCSVModal extends ContentModal
 
   success: (result) ->
 
-    @getOptions().success @totalInvitation
+    @getOptions().success @validInvitations
     @destroy()
