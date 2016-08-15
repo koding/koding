@@ -35,7 +35,7 @@ module.exports =
         .click                   openNewTerminal
         .pause                   5000, -> callback null #wait for terminal to be displayed
 
-  
+
   createTerminalSession: ( browser, user, callback = -> ) ->
 
     userName                   = user.username
