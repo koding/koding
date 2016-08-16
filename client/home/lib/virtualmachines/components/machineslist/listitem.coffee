@@ -91,9 +91,9 @@ module.exports = class MachinesListItem extends React.Component
 
     @setState { showEditName: no }
     @refs.inputbox.focus()
-    setTimeout =>
+
+    kd.utils.defer =>
       @refs.inputbox.selectionStart = @refs.inputbox.selectionEnd = 100000
-    , 0
 
 
   toggle: (event) ->
