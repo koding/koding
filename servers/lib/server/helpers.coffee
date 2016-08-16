@@ -337,23 +337,23 @@ checkAuthorizationBearerHeader = (req) ->
 
   return token
 
-fetchGroupMembersAndInvitations = (client, data, callback, params) ->
+fetchGroupMembersAndInvitations = (client, data, callback) ->
 
   { JGroup, JInvitation } = koding.models
   { group: slug } = client.context
   { connection: { delegate: account } } = client
 
-  queue = {
-    userEmails: (next) ->
+  queue = [
+    (next) ->
       JGroup.one { slug }, (err, group) ->
 
-        return callback err  if err
+        return next err  if err
+
+        return next 'There are more than 100 members', null  if group.count.members > 100
 
         group.fetchMembersWithEmail client, {}, (err, users) ->
 
-          return callback err  if err
-
-          return next 'There are more than 100 members', null  if users.length > 100
+          return next err  if err
 
           userEmails = []
           users.map (user) ->
@@ -362,14 +362,13 @@ fetchGroupMembersAndInvitations = (client, data, callback, params) ->
 
           next null, userEmails
 
-    myEmail: (next) ->
+    (next) ->
       account.fetchEmail (err, email) ->
 
         return next null, null  if err
         next null, email
 
-    pendingEmails: (next) ->
-
+    (next) ->
       JInvitation.some$ client, { status: 'pending' }, {}, (err, invitations) ->
 
         return next null, []  if err
@@ -379,11 +378,14 @@ fetchGroupMembersAndInvitations = (client, data, callback, params) ->
           pendingEmails.push invitation.email
 
         next null, pendingEmails
-  }
+  ]
 
   async.series queue, (err, results) ->
 
-    return params err, results
+    [ userEmails, myEmail, pendingEmails ] = results
+    results = { userEmails, myEmail, pendingEmails }
+
+    return callback err, results
 
 
 analyzedInvitationResults = (params) ->

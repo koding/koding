@@ -55,9 +55,11 @@ processInvitations = (fileName, client, callback) ->
 
       return sendAllInvites client, data, callback  if data.length > 100
 
-      helpers.fetchGroupMembersAndInvitations client, data, callback, (err, params) ->
+      helpers.fetchGroupMembersAndInvitations client, data, (err, params) ->
 
-        return sendAllInvites client, data, callback  if err #'There are more than 100 members'
+        if err
+          return sendAllInvites client, data, callback  if err is 'There are more than 100 members'
+          return callback err
 
         params = _.assign {}, params, { data }
 

@@ -49,9 +49,12 @@ analyzeInvitations = (fileName, client, callback) ->
 
       return callback null, 'Over 100 Invitation'  if invitationCount > 100
 
-      helpers.fetchGroupMembersAndInvitations client, data, callback, (err, params) ->
+      helpers.fetchGroupMembersAndInvitations client, data, (err, params) ->
 
-        return callback null, err if err #'There are more than 100 members'
+        if err
+          return callback null, err if err is 'There are more than 100 members'
+          return callback err
+
 
         params = _.assign {}, params, { data }
         { result, data } = helpers.analyzedInvitationResults params
