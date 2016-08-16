@@ -27,16 +27,26 @@ module.exports = class ResourceStateModal extends BaseModalView
 
   show: ->
 
-    { container } = @getOptions()
-    @overlay      = new kd.OverlayView
-      appendToDomBody : no
-      isRemovable     : no
-      cssClass        : 'env-modal-overlay'
+    if @parent
+      super
+      @overlay.show()
+    else
+      { container } = @getOptions()
+      @overlay      = new kd.OverlayView
+        appendToDomBody : no
+        isRemovable     : no
+        cssClass        : 'env-modal-overlay'
 
-    container.addSubView @overlay
-    container.addSubView this
+      container.addSubView @overlay
+      container.addSubView this
 
     @setPositions()
+
+
+  hide: (skipOverlay) ->
+
+    return super()  unless skipOverlay
+    kd.View::hide.call this
 
 
   setPositions: ->
