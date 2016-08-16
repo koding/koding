@@ -75,8 +75,8 @@
     "preinstall": "./.npm-preinstall.sh",
     "postinstall": "./.npm-postinstall.sh",
     "test": "make test",
-    "c-lab:server": "styleguidist server",
-    "c-lab:build": "styleguidist build",
+    "c-lab:server": "start-storybook -p 9001",
+    "c-lab:build": "build-storybook",
     "c-lab": "npm run c-lab:server",
     "build:dev": "NODE_ENV=development webpack --config webpack.config.coffee",
     "build:prod": "NODE_ENV=production webpack --config webpack.config.coffee --bail",
@@ -92,6 +92,7 @@
     "kd-react": "@koding/kd-react"
   },
   "devDependencies": {
+    "@kadira/storybook": "2.2.1",
     "babel-core": "6.13.2",
     "babel-loader": "6.2.4",
     "babel-plugin-add-module-exports": "0.2.1",
@@ -125,7 +126,6 @@
     "postcss-modules-values": "1.1.3",
     "progress-bar-webpack-plugin": "1.9.0",
     "react-addons-test-utils": "0.14.6",
-    "react-styleguidist": "3.0.0",
     "script-loader": "0.7.0",
     "sinon": "1.14.1",
     "socket.io": "1.3.5",
