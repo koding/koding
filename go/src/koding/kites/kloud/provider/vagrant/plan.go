@@ -56,7 +56,8 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 
 	s.Log.Debug("Injecting Vagrant data")
 
-	if _, _, err := s.InjectVagrantData(); err != nil {
+	hostQuery, _, err := s.InjectVagrantData()
+	if err != nil {
 		return nil, err
 	}
 
@@ -66,6 +67,12 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 	machines, err := s.machinesFromTemplate(s.Builder.Template)
 	if err != nil {
 		return nil, errors.New("failure reading machines: " + err.Error())
+	}
+
+	if hostQuery != "" {
+		for _, m := range machines {
+			m.HostQueryString = hostQuery
+		}
 	}
 
 	s.Log.Debug("Machines planned to be created: %+v", machines)
