@@ -29,18 +29,19 @@ func (c *KodingContext) run(cmd cli.Command, content io.Reader, destroy bool, ar
 		}
 	}
 
-	args := argsFunc(paths, destroy)
-	exitCode := cmd.Run(args)
+	exitCode := cmd.Run(argsFunc(paths, destroy))
+
 	if exitCode != 0 {
-		return nil, fmt.Errorf(
-			"apply failed with code: %d, output: %s",
-			exitCode,
-			c.Buffer.String(),
-		)
+		err = fmt.Errorf("apply failed with code: %d, output: %s", exitCode, c.Buffer)
 	}
 
 	// copy all contents from local to remote for later operating
-	if err := c.LocalStorage.Clone(c.ContentID, c.RemoteStorage); err != nil {
+	e := c.LocalStorage.Clone(c.ContentID, c.RemoteStorage)
+	if e != nil && err == nil {
+		err = e
+	}
+
+	if err != nil {
 		return nil, err
 	}
 
