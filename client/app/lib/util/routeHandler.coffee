@@ -2,6 +2,7 @@ kd             = require 'kd'
 lazyrouter     = require 'app/lazyrouter'
 
 WelcomeModal = require 'home/welcome/welcomemodal'
+IDEAppController = require 'ide'
 
 module.exports = (options) ->
 
@@ -33,12 +34,19 @@ module.exports = (options) ->
 
     { appManager, router, groupsController } = kd.singletons
 
-    unless appManager.getFrontApp()
+    frontApp = appManager.getFrontApp()
+    unless frontApp
       appManager.once 'AppIsBeingShown', ->
         router.handleRoute path
       router.handleRoute '/IDE'
     else
-      groupsController.ready -> new WelcomeModal
+      groupsController.ready ->
+        modal = new WelcomeModal()
+        return  unless frontApp instanceof IDEAppController
+
+        modal.once 'KDObjectWillBeDestroyed', ->
+          frontApp.showMachineStateModal()
+        frontApp.hideMachineStateModal yes
 
 
   lazyrouter.bind name, (type, info, state, path, ctx) ->
@@ -49,5 +57,3 @@ module.exports = (options) ->
         kd.singletons.router.handleRoute homeRoute
       when 'section', 'action', 'identifier'
         handle info, path
-
-
