@@ -8,7 +8,7 @@ module.exports = class UploadCSVModal extends ContentModal
 
   constructor: (options = {}, data) ->
 
-    { input: @input } = options
+    # { input: @input } = options
 
     options = _.assign {}, options,
       cssClass: 'content-modal csv-upload'
@@ -71,14 +71,20 @@ module.exports = class UploadCSVModal extends ContentModal
     @addSubView @buttonWrapper = new kd.CustomHTMLView
       cssClass: 'button-wrapper'
 
+    @buttonWrapper.addSubView @input = new kd.InputView
+      cssClass: 'uploadcsvinput'
+      type: 'file'
+      attributes:
+        accept: '.csv'
+      change: @bound 'createFormDataAndRequest'
+
     @buttonWrapper.addSubView @selectAndUpload = new kd.ButtonView
       cssClass: 'GenericButton select-upload'
       title: 'SELECT AND UPLOAD'
       callback: =>
-        $('.uploadcsv').change (event) =>
-          @createFormDataAndRequest event
+        @input.getDomElement().click()
         @errorUploading.updatePartial ''
-        @input.click()
+
 
     @buttonWrapper.addSubView @cancelButton = new kd.ButtonView
       cssClass: 'GenericButton cancel'
@@ -100,10 +106,10 @@ module.exports = class UploadCSVModal extends ContentModal
         height   : 25
 
 
-  createFormDataAndRequest : (event) ->
+  createFormDataAndRequest : () ->
 
     @formData = new FormData()
-    file = @input.files[0]
+    file = @input.getElement().files[0]
     unless file
       return new kd.NotificationView
         title: 'Error! Please Try Again'
@@ -132,7 +138,7 @@ module.exports = class UploadCSVModal extends ContentModal
 
     @makeReq '/-/teams/invite-by-csv-analyze', 'successAnalyzeCSV', 'errorAnalyzeCSV'
 
-    @input.value = null
+    @input.setValue ''
     $('.uploadcsv').unbind 'change'
 
   makeReq: (url, success, error) ->
@@ -142,7 +148,7 @@ module.exports = class UploadCSVModal extends ContentModal
       method : 'POST'
       url : url
       contentType: false
-      processData : false # prevents illegal invocation error
+      processData : false # prs illegal invocation error
       success : @bound success
       error : @bound error
 

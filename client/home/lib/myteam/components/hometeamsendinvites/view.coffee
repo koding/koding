@@ -65,7 +65,6 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
           title='UPLOAD CSV'
           className={'custom-link-view HomeAppView--button ft'}
           callback={@props.onUploadCSV} />
-        <input ref={(input) => @input = input} accept='.csv' className='kdinput file uploadcsv' type='file' />
       </fieldset>
     </div>
 

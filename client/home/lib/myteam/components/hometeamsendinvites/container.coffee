@@ -43,7 +43,6 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
   onUploadCSV: (event) ->
 
     modal = new UploadCSVModal
-      input : @refs.view.input
       success : @bound 'uploadCSVSuccess'
       error : @bound 'uploadCsvFail'
 
