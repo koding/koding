@@ -511,7 +511,7 @@ module.exports = class StackEditorView extends kd.View
 
       else
         # admin is creating a new stack
-        if canEditGroup
+        if isAdmin()
           if hasGroupTemplates
             @afterProcessTemplate 'maketeamdefault'
             @afterProcessTemplate 'initialize'
