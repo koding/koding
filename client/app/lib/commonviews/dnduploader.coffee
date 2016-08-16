@@ -59,14 +59,15 @@ module.exports = class DNDUploader extends KDView
       </p>
     "
 
-    modal = new KDModalView
+    modal = new ContentModal
       title        : 'Upload File Error'
       width        : 500
-      overlay      : yes
-      cssClass     : 'new-kdmodal'
+      cssClass     : 'content-modal'
       content      : "<div class='modalformline'>#{message}</div>"
+      overlay      : yes
       buttons      :
         Ok         :
+          title    : 'OK'
           style    : 'solid green medium'
           callback : -> modal.destroy()
 
