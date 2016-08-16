@@ -1225,13 +1225,13 @@ module.exports = CollaborationController =
   showKickedModal: ->
     options        =
       title        : 'Your session has been closed'
-      content      : "<p>You have been removed from the session by @#{@collaborationHost}.</p>"
+      content      : "<p>You have been removed from the session by <strong>@#{@collaborationHost}</strong>.</p>"
       cssClass     : 'kicked-modal'
       blocking     : yes
       buttons      :
         ok         :
           title    : 'OK'
-          style    : 'solid green medium'
+          style    : 'GenericButton'
           callback : =>
             @modal.destroy()
 
@@ -1242,7 +1242,7 @@ module.exports = CollaborationController =
 
     { content, redirect } = options
 
-    content ?= "This collaboration session has been terminated by the host @#{@collaborationHost}."
+    content ?= "<p>This collaboration session has been terminated by the host <strong>@#{@collaborationHost}</strong>.</p>"
 
     options        =
       title        : 'Session ended'
@@ -1250,7 +1250,7 @@ module.exports = CollaborationController =
       blocking     : yes
       buttons      :
         quit       :
-          style    : 'solid light-gray medium'
+          style    : 'GenericButton'
           title    : 'LEAVE'
           callback : =>
             @modal.destroy()
