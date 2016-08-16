@@ -16,10 +16,10 @@ module.exports = (container, callback = kd.noop, options = {}) ->
     container     : container
     height        : 'auto'
     buttons       :
-      Save        :
+      SAVE        :
         style     : 'GenericButton primary'
         callback  : -> callback input, finderController, dialog
-      Cancel      :
+      CANCEL      :
         style     : 'GenericButton cancel'
         callback  : ->
           finderController.stopAllWatchers()
