@@ -232,16 +232,16 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
         Search              :
           buttons           :
             searchButton    :
-              title         : 'Search'
-              style         : 'search solid green medium'
+              title         : 'SEARCH'
+              style         : 'GenericButton search'
               domId         : 'search-button'
               type          : 'submit'
               loader        :
                 color       : '#FFFFFF'
               callback      : @bound 'search'
             cancel          :
-              title         : 'Close'
-              style         : 'solid cancel medium'
+              title         : 'CLOSE'
+              style         : 'GenericButton cancel'
               domId         : 'cancel-button'
               callback      : @bound 'destroy'
           fields            :

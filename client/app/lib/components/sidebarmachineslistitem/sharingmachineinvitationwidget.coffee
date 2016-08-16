@@ -58,10 +58,10 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
         owner={@props.machine.get 'owner'}
        />
       <p className='SidebarWidget-Title'>{text}</p>
-      <button className='kdbutton GenericButton' onClick={@bound 'onRejectClicked'}>
+      <button className='kdbutton GenericButton reject' onClick={@bound 'onRejectClicked'}>
         <span className='button-title'>REJECT</span>
       </button>
-      <button className='kdbutton solid green medium' onClick={@bound 'onAcceptClicked'}>
+      <button className='kdbutton GenericButton accept' onClick={@bound 'onAcceptClicked'}>
         <span className='button-title'>ACCEPT</span>
       </button>
     </SidebarWidget>

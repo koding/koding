@@ -428,12 +428,26 @@ module.exports =
         when 'Starting' then @waitUntilVmRunning browser, done
 
   turnOnVm: (browser, firstBuild = no, done = -> ) ->
+    credentialSelector = '.kdselectbox'
+    credential = "#{credentialSelector} option[text='test credential']"
+
     browser
       .waitForElementVisible '.kdview', 20000
       .pause 2000
-      .waitForElementVisible '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton', 20000
-      .click '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
+      .waitForElementVisible '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton:nth-of-type(2)', 20000
+      .click '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton:nth-of-type(2)'
       .waitForElementVisible '.resource-state-modal.kdmodal .credentials-page .credential-form', 20000
+
+    browser.getValue credentialSelector, (result) ->
+      if result.value is ''
+        browser
+          .click credentialSelector
+          .pause 200
+          .waitForElementVisible credential, 20000
+          .click credential
+          .pause 200
+
+    browser
       .click '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
       .waitForElementVisible '.BaseModalView.kdmodal section.main .progressbar-container', 20000
       .waitForElementVisible '.kdview.kdscrollview', 20000

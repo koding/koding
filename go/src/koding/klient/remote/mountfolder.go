@@ -7,7 +7,6 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"strconv"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -142,44 +141,13 @@ func checkIfUserHasFolderPerms(folderPath string) error {
 	return err
 }
 
-// getSizeOfRemoteFolder asks remote machine for size of specified remote folder
-// and returns it in bytes.
-func getSizeOfRemoteFolder(m *machine.Machine, remotePath string) (int, error) {
-	if remotePath == "" {
-		return 0, errGetSizeMissingRemotePath
-	}
-
-	if m == nil {
-		return 0, errGetSizeMissingMachine
-	}
-
-	var (
-		kreq = struct{ Command string }{"du -sb " + remotePath}
-		kres struct {
-			Stdout     string `json:"stdout"`
-			Stderr     string `json:"stderr"`
-			ExitStatus int    `json:"exitStatus"`
-		}
-	)
-	raw, err := m.Tell("exec", kreq)
-	if err != nil {
-		return 0, err
-	}
-
-	if err := raw.Unmarshal(&kres); err != nil {
-		return 0, err
-	}
-
-	return strconv.Atoi(digitRegex.FindString(kres.Stdout))
-}
-
 // checkSizeOfRemoteFolder asks remote machine for size of specified remote folder
 // and returns warning if size if greater than 100MB.
 //
 // Note we return a warning since you can technically mount any size you want,
 // however the performance will degrade.
 func checkSizeOfRemoteFolder(remoteMachine *machine.Machine, remotePath string) (interface{}, error) {
-	sizeInB, err := getSizeOfRemoteFolder(remoteMachine, remotePath)
+	sizeInB, err := remoteMachine.GetFolderSize(remotePath)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +166,7 @@ func checkSizeOfRemoteFolder(remoteMachine *machine.Machine, remotePath string) 
 
 // getSizeOfLocalFolder asks remote machine for size of specified remote folder
 // and returns it in bytes.
-func getSizeOfLocalPath(localPath string) (int, error) {
+func getSizeOfLocalPath(localPath string) (int64, error) {
 	var size int64
 	err := filepath.Walk(localPath, func(_ string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
@@ -207,7 +175,7 @@ func getSizeOfLocalPath(localPath string) (int, error) {
 		return err
 	})
 
-	return int(size), err
+	return size, err
 }
 
 // changeSummaryToBool is a simple func that converts a ChangeSummary channel to a
