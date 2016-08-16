@@ -23,4 +23,20 @@ type Group struct {
 	// to this group, participants will be automatically added to regarding
 	// channels
 	DefaultChannels []string `bson:"defaultChannels,omitempty" json:"defaultChannels"`
+	Payment         Payment  `bson:"payment" json:"payment"`
+}
+
+type Payment struct {
+	Subscription Subscription
+	Customer     Customer
+}
+
+type Subscription struct {
+	// Allowed values are "trialing", "active", "past_due", "canceled", "unpaid".
+	State string `bson:"state" json:"state"`
+	ID    string `bson:"id" json:"id"`
+}
+
+type Customer struct {
+	ID string `bson:"id" json:"id"`
 }
