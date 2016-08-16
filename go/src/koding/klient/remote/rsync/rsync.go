@@ -38,7 +38,7 @@ type SyncOpts struct {
 	SSHPrivateKeyPath string `json:"sshPrivateKeyPath"`
 	RemoteDir         string `json:"remoteDir"`
 	LocalDir          string `json:"localDir"`
-	DirSize           int    `json:"dirSize"`
+	DirSize           int64  `json:"dirSize"`
 	LocalToRemote     bool   `json:"localToRemote"`
 	IgnoreFile        string `json:"ignoreFile"`
 	IncludePath       bool   `json:"includePath"`

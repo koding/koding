@@ -45,6 +45,7 @@ client/home/lib/homeappview.coffee
 client/home/lib/myteam/components
 client/home/lib/myteam/hometeamsendinvites.coffee
 client/home/lib/myteam/hometeamsettings.coffee
+client/home/lib/myteam/hometeampermissions.coffee
 client/home/lib/myteam/hometeamteammates.coffee
 client/home/lib/paymenthistory/
 client/home/lib/stacks/

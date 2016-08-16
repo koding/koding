@@ -123,7 +123,7 @@ module.exports =
             browser.elementIdClick value.ELEMENT
             browser.pause 2000, ->
               browser.elements 'css selector', '.kdbutton.solid.compact.outline.red.secondary.delete', (buttons) ->
-                buttonElement = buttons.value[index - 2].ELEMENT
+                buttonElement = buttons.value[index - 1].ELEMENT
                 browser.elementIdClick buttonElement
                 browser.pause 1000
                 browser.waitForElementVisible '.kdnotification.main', 20000

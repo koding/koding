@@ -6,8 +6,8 @@ welcomeLink    = "#{helpers.getUrl(yes)}/Welcome"
 WelcomeView       = '.WelcomeStacksView'
 stackLink         = "#{WelcomeView} ul.bullets li:nth-of-type(1)"
 credentialLink    = "#{WelcomeView} ul.bullets li:nth-of-type(2)"
-teamLink          = "#{WelcomeView} ul.bullets li:nth-of-type(3)"
-installKDLink     = "#{WelcomeView} ul.bullets li:nth-of-type(4)"
+teamLink          = "#{WelcomeView} ul.bullets li:nth-of-type(4)"
+installKDLink     = "#{WelcomeView} ul.bullets li:nth-of-type(5)"
 headerSelector    = '.HomeAppView--sectionHeader'
 stackEditor       = '.StackEditor-OnboardingModal'
 teamSettings      = '.HomeAppView--section.team-settings'
@@ -21,7 +21,7 @@ chatlioWidget     = '.chatlio-widget'
 
 pendingStack         = "#{WelcomeView} ul.bullets li:nth-of-type(1)"
 userstackLink        = "#{WelcomeView} ul.bullets li:nth-of-type(2)"
-memberInstallKDLink  = "#{WelcomeView} ul.bullets li:nth-of-type(3)"
+memberInstallKDLink  = "#{WelcomeView} ul.bullets li:nth-of-type(5)"
 sidebar              = '#main-sidebar'
 
 module.exports =

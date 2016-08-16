@@ -28,7 +28,7 @@ module.exports = class VerifyPasswordModal extends ContentModal
               @destroy()
             buttons               :
               Forgot              :
-                style             : 'solid medium cancel'
+                style             : 'GenericButton cancel'
                 title             : 'Forgot Password?'
                 callback          : =>
                   account = whoami()
@@ -38,7 +38,7 @@ module.exports = class VerifyPasswordModal extends ContentModal
                     @destroy()
               Submit              :
                 title             : buttonTitle
-                style             : 'solid green medium'
+                style             : 'GenericButton'
                 type              : 'submit'
 
             fields                :
