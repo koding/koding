@@ -1,6 +1,8 @@
 kd      = require 'kd'
 JView   = require 'app/jview'
 Tracker = require 'app/util/tracker'
+CustomLinkView = require 'app/customlinkview'
+
 { actions : HomeActions } = require 'home/flux'
 
 module.exports = class CredentialListItem extends kd.ListItemView
@@ -16,17 +18,18 @@ module.exports = class CredentialListItem extends kd.ListItemView
     delegate = @getDelegate()
     { identifier, owner, title, verified } = credential = @getData()
 
-    @deleteButton = new kd.ButtonView
-      cssClass  : 'solid compact outline primary secondary delete'
-      title     : 'DELETE'
-      callback  : =>
-        delegate.emit 'ItemAction', { action : 'RemoveItem', item : this }
-
-    @showCredentialButton = new kd.ButtonView
-      cssClass  : 'solid compact outline secondary show'
-      title     : 'SHOW'
-      callback  : =>
+    @showCredentialButton = new CustomLinkView
+      cssClass : 'secondary show'
+      title : 'PREVIEW'
+      click : =>
         delegate.emit 'ItemAction', { action : 'ShowItem', item : this }
+
+
+    @deleteButton = new CustomLinkView
+      cssClass : 'secondary delete'
+      title : 'DELETE'
+      click : =>
+        delegate.emit 'ItemAction', { action : 'RemoveItem', item : this }
 
     @verifyButton = new kd.ButtonView
       cssClass : 'solid compact outline verify'
