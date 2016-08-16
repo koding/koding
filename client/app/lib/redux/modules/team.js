@@ -15,7 +15,7 @@ export default function reducer(state = initialState, action = {}){
   }
 }
 
-export function loadTeam(){
+export function loadTeam() {
 
   const team = kd.singletons.groupsController.getCurrentGroup()
 
