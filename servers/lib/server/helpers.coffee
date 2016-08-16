@@ -353,7 +353,7 @@ fetchGroupMembersAndInvitations = (client, data, callback, params) ->
 
           return callback err  if err
 
-          return next 'There are more than 100 members', null  if users.length > 1
+          return next 'There are more than 100 members', null  if users.length > 100
 
           userEmails = []
           users.map (user) ->

@@ -1,5 +1,8 @@
 .ContentModal.csv-upload
 
+  .uploadcsvinput
+    opacity 0
+
   .kdmodal-title
     height                  60px
     border-bottom           1px solid #ECEAEA
@@ -109,9 +112,7 @@
             border-right    1px solid #EFEFEF
             width           calc(100%/3)
             margin-bottom   15px
-            -webkit-box-sizing border-box
-            -moz-box-sizing border-box
-            box-sizing border-box
+            borderBox()
 
           .admins
             border-right    0px
@@ -137,9 +138,7 @@
               padding       10px 0px
               border-right  1px solid #efefef
               width         calc(100%/3)
-              -webkit-box-sizing border-box
-              -moz-box-sizing border-box
-              box-sizing    border-box
+              borderBox()
 
               &:last-child
                 border-right  0px
@@ -149,7 +148,7 @@
                 color           #A8A8A8
 
           .extras-wrapper:empty
-            display none
+            hidden()
 
 
   .example-csv
@@ -169,6 +168,7 @@
     padding-top             20px
 
     .kdbutton.cancel
+      float                 left
       margin-left           20px
       background            #FFFFFF
       border                1px solid #BEBEBE

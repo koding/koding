@@ -47,7 +47,7 @@ analyzeInvitations = (fileName, client, callback) ->
 
       invitationCount = data.length
 
-      return callback null, 'Over 100 Invitation'  if invitationCount > 1
+      return callback null, 'Over 100 Invitation'  if invitationCount > 100
 
       helpers.fetchGroupMembersAndInvitations client, data, callback, (err, params) ->
 

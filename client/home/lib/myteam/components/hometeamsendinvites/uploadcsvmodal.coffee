@@ -139,7 +139,7 @@ module.exports = class UploadCSVModal extends ContentModal
     @makeReq '/-/teams/invite-by-csv-analyze', 'successAnalyzeCSV', 'errorAnalyzeCSV'
 
     @input.setValue ''
-    $('.uploadcsv').unbind 'change'
+
 
   makeReq: (url, success, error) ->
 
