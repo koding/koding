@@ -1,3 +1,4 @@
+_ = require 'lodash'
 os = require 'os'
 fs = require 'fs'
 hat = require 'hat'
@@ -30,6 +31,7 @@ module.exports.handler = (req, rres) ->
 
     busboy.on 'finish', ->
       analyzeInvitations fileName, client, (err, result) ->
+
         return respond 500, err if err
 
         respond 200, result
@@ -45,41 +47,15 @@ analyzeInvitations = (fileName, client, callback) ->
 
       invitationCount = data.length
 
-      return callback null, 'Over 100 Invitation'  if invitationCount > 100
+      return callback null, 'Over 100 Invitation'  if invitationCount > 1
 
-      { connection: { delegate: account } } = client
-      { _id } = account
-      myEmail = null
-      account.fetchEmail (err, email) ->
+      helpers.fetchGroupMembersAndInvitations client, data, callback, (err, params) ->
 
-        myEmail = email
+        return callback null, err if err #'There are more than 100 members'
 
-        { JGroup } = (require './../bongo').models
-        { group: slug } = client.context
-        JGroup.one { slug }, (err, group) ->
-          return callback err, null  if err
+        params = _.assign {}, params, { data }
+        { result, data } = helpers.analyzedInvitationResults params
 
-          group.fetchMembersWithEmail client, {}, (err, users) ->
-            return callback err, null  if err
-            return callback null, 'Over 100 Invitation'  if users.length > 100
+        return callback 'There is no valid data in your csv file' unless data.length
 
-            userEmails = []
-            users.map (user) ->
-              { profile: { email } } = user
-              userEmails.push email
-
-            { JInvitation } = (require './../bongo').models
-            JInvitation.some$ client, { status: 'pending' }, {}, (err, invitations) ->
-
-              pendingEmails = []
-              invitations.map (invitation) ->
-                pendingEmails.push invitation.email
-
-              params = { data, userEmails, pendingEmails, myEmail }
-              { result, data } = helpers.analyzedInvitationResults params
-
-              return callback 'Totally Wrong' unless data.length
-
-              return callback null, result
-
-
+        return callback null, result

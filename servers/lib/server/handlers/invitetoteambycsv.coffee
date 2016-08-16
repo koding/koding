@@ -1,3 +1,4 @@
+_ = require 'lodash'
 os = require 'os'
 fs = require 'fs'
 hat = require 'hat'
@@ -35,54 +36,39 @@ module.exports.handler = (req, rres) ->
       file.pipe(fs.createWriteStream(fileName))
 
     busboy.on 'finish', ->
-      processInvitations fileName, client, (err) ->
+      processInvitations fileName, client, (err, result) ->
+
         return respond 500, err if err
 
-        respond 200, "That's all folk"
+        respond 200, result
 
     return req.pipe busboy
+
 
 processInvitations = (fileName, client, callback) ->
   fs.readFile fileName, 'utf8', (err, content) ->
     return callback err if err
 
     parser content.toString('utf8'), csvParseOpts, (err, data) ->
+
       return callback err if err
 
-      if data.length < 100
+      return sendAllInvites client, data, callback  if data.length > 100
 
-        { connection: { delegate: account } } = client
-        { _id } = account
-        myEmail = null
-        account.fetchEmail (err, email) ->
+      helpers.fetchGroupMembersAndInvitations client, data, callback, (err, params) ->
 
-          myEmail = email
+        return sendAllInvites client, data, callback  if err #'There are more than 100 members'
 
-          { JGroup } = (require './../bongo').models
-          { group: slug } = client.context
-          JGroup.one { slug }, (err, group) ->
-            return callback err, null  if err
+        params = _.assign {}, params, { data }
 
-            group.fetchMembersWithEmail client, {}, (err, users) ->
-              return callback err, null  if err
-              unless users.length > 100
+        { data } = helpers.analyzedInvitationResults params
 
-                userEmails = []
-                users.map (user) ->
-                  { profile: { email } } = user
-                  userEmails.push email
+        return callback 'There is no valid data in your csv file' unless data.length
 
-                { JInvitation } = (require './../bongo').models
-                JInvitation.some$ client, { status: 'pending' }, {}, (err, invitations) ->
+        sendAllInvites client, data, callback
 
-                  pendingEmails = []
-                  invitations.map (invitation) ->
-                    pendingEmails.push invitation.email
 
-                  params = { data, userEmails, pendingEmails, myEmail }
-                  { data } = helpers.analyzedInvitationResults params
+sendAllInvites = (client, data, callback) ->
 
-                  return callback 'Totally Wrong' unless data.length
-
-      { JInvitation } = (require './../bongo').models
-      JInvitation.create client, { invitations: data }, callback
+  { JInvitation } = (require './../bongo').models
+  JInvitation.create client, { invitations: data }, callback

@@ -3,7 +3,7 @@ JName = require '../../models/name'
 KONFIG  = require 'koding-config-manager'
 request = require 'request'
 url     = require 'url'
-
+async = require 'async'
 error_messages =
   404: 'Page not found'
   500: 'Something wrong.'
@@ -337,6 +337,54 @@ checkAuthorizationBearerHeader = (req) ->
 
   return token
 
+fetchGroupMembersAndInvitations = (client, data, callback, params) ->
+
+  { JGroup, JInvitation } = koding.models
+  { group: slug } = client.context
+  { connection: { delegate: account } } = client
+
+  queue = {
+    userEmails: (next) ->
+      JGroup.one { slug }, (err, group) ->
+
+        return callback err  if err
+
+        group.fetchMembersWithEmail client, {}, (err, users) ->
+
+          return callback err  if err
+
+          return next 'There are more than 100 members', null  if users.length > 1
+
+          userEmails = []
+          users.map (user) ->
+            { profile: { email } } = user
+            userEmails.push email
+
+          next null, userEmails
+
+    myEmail: (next) ->
+      account.fetchEmail (err, email) ->
+
+        return next null, null  if err
+        next null, email
+
+    pendingEmails: (next) ->
+
+      JInvitation.some$ client, { status: 'pending' }, {}, (err, invitations) ->
+
+        return next null, []  if err
+
+        pendingEmails = []
+        invitations.map (invitation) ->
+          pendingEmails.push invitation.email
+
+        next null, pendingEmails
+  }
+
+  async.series queue, (err, results) ->
+
+    return params err, results
+
 
 analyzedInvitationResults = (params) ->
 
@@ -421,4 +469,5 @@ module.exports = {
   checkAuthorizationBearerHeader
   isTeamPage
   analyzedInvitationResults
+  fetchGroupMembersAndInvitations
 }
