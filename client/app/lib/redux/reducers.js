@@ -1,9 +1,9 @@
 import { combineReducers } from 'redux'
-import team from './team'
+import teamReducer from './modules/team'
 
 export const make = (reducers = {}) => (
   combineReducers({
-    team,
+    teamReducer,
     ...reducers
   })
 )
