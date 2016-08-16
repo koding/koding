@@ -20,6 +20,7 @@ ASSETS_PATH        = path.join CLIENT_PATH, './assets'
 COMMON_STYLES_PATH = path.join CLIENT_PATH, 'app/styl/**/*.styl'
 PUBNUB_PATH        = path.join THIRD_PARTY_PATH, 'pubnub.min.js'
 IMAGES_PATH        = path.join WEBSITE_PATH, 'a', 'images'
+COMPONENT_LAB_PATH = path.join CLIENT_PATH, 'component-lab'
 
 # we are gonna set NODE_ENV to either `production` or `development` to figure
 # out the compile target.
@@ -65,12 +66,13 @@ appAliases = manifests.reduce (res, manifest) ->
 # module resolvers
 webpackConfig.resolve =
   root: CLIENT_PATH,
-  extensions: ['', '.coffee', '.js', '.json']
+  extensions: ['', '.coffee', '.js', '.json', '.styl']
   alias: _.assign {}, appAliases,
     kd: 'kd.js'
     pubnub: PUBNUB_PATH
     assets: ASSETS_PATH
     images: IMAGES_PATH
+    lab: COMPONENT_LAB_PATH
 
 # Loader config
 
@@ -131,15 +133,23 @@ pushLoader [
   include: CLIENT_PATH
 ]
 
+
 # Style loaders configuration
 pushLoader [
   test: /\.styl$/
   include: CLIENT_PATH
-  loaders: ['style', 'css', 'stylus']
+  loaders: [
+    'style'
+    'css?modules&importLoaders=1?localIdentName=[path][name]-[local]-[hash:base64:5]'
+    'stylus'
+  ]
 ,
   test: /\.css$/
   include: CLIENT_PATH
-  loaders: ['style', 'css']
+  loaders: [
+    'style'
+    'css?modules&importLoaders=1?localIdentName=[path][name]-[local]-[hash:base64:5]'
+  ]
 ]
 
 # File & Url loaders
@@ -199,6 +209,7 @@ webpackConfig.stylus =
   use: [require('nib')()]
   import: [ '~nib/lib/nib/index.styl', COMMON_STYLES_PATH ]
   define: { assetsPath: '/assets', rootPath: CLIENT_PATH }
+
 
 module.exports = webpackConfig
 
