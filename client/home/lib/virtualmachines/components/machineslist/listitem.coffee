@@ -52,6 +52,7 @@ module.exports = class MachinesListItem extends React.Component
 
     @state =
       machineLabel: @props.machine.get 'label'
+      showEditName: yes
 
 
   renderMachineDetails: ->
@@ -79,13 +80,20 @@ module.exports = class MachinesListItem extends React.Component
 
   renderEditname: ->
 
+    return null  unless @state.showEditName
     return null  unless @props.shouldRenderDetails
     return null  unless @props.machine.get('label') is @state.selectedMachine
 
     <div className='MachineListItem--Edit-name' onClick={@bound 'onClickEditname'}>Edit Name </div>
 
 
-  onClickEditname: -> @refs.inputbox.focus()
+  onClickEditname: ->
+
+    @setState { showEditName: no }
+    @refs.inputbox.focus()
+    setTimeout =>
+      @refs.inputbox.selectionStart = @refs.inputbox.selectionEnd = 100000
+    , 0
 
 
   toggle: (event) ->
@@ -163,6 +171,7 @@ module.exports = class MachinesListItem extends React.Component
 
   inputOnBlur: (event) ->
 
+    @setState { showEditName: yes }
     @setMachineLabel()
 
   inputOnKeyDown: (event) ->
