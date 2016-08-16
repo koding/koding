@@ -10,20 +10,6 @@ module.exports = class UploadCSVModal extends ContentModal
 
     { input: @input } = options
 
-    @trailerContent = '''
-      <p>Before uploading your file, please make sure you have the right format.
-      The file should contain <strong>Email</strong>, <strong>First Name</strong> (optional), <strong>Last Name</strong> (optional), and <strong>Role </strong> fields in the right order.
-      Roles can be <strong>Admin</strong> or <strong>Member</strong>.
-      </br></br>
-      <strong>Here is an example:</strong></p>
-      </br>
-      <div class='example-csv'>
-        micheal@example.com, Micheal R., Crawley, Member </br>
-        clora@example.com, Clora J., Ochoa, Member </br>
-        randy@example.com, Randy S., Engel, Admin
-      </div>
-    '''
-
     options = _.assign {}, options,
       cssClass: 'content-modal csv-upload'
       width: 600
@@ -36,7 +22,7 @@ module.exports = class UploadCSVModal extends ContentModal
     @createUploadingStatePage()
     @createErrorUploadingPage()
     @createSuccessPage()
-    @creatButtons()
+    @createButtons()
 
 
   createTrailerStatePage: ->
@@ -44,7 +30,19 @@ module.exports = class UploadCSVModal extends ContentModal
     @addSubView @trailerPage = new kd.CustomHTMLView
       tagName: 'main'
       cssClass: 'main-container trailer-state'
-      partial: @trailerContent
+      partial: '''
+        <p>Before uploading your file, please make sure you have the right format.
+        The file should contain <strong>Email</strong>, <strong>First Name</strong> (optional), <strong>Last Name</strong> (optional), and <strong>Role </strong> fields in the right order.
+        Roles can be <strong>Admin</strong> or <strong>Member</strong>.
+        </br></br>
+        <strong>Here is an example:</strong></p>
+        </br>
+        <div class='example-csv'>
+          micheal@example.com, Micheal R., Crawley, Member </br>
+          clora@example.com, Clora J., Ochoa, Member </br>
+          randy@example.com, Randy S., Engel, Admin
+        </div>
+      '''
 
 
   createUploadingStatePage: ->
@@ -68,7 +66,7 @@ module.exports = class UploadCSVModal extends ContentModal
       cssClass: 'main-container success-state hidden'
 
 
-  creatButtons: ->
+  createButtons: ->
 
     @addSubView @buttonWrapper = new kd.CustomHTMLView
       cssClass: 'button-wrapper'
@@ -85,12 +83,11 @@ module.exports = class UploadCSVModal extends ContentModal
     @buttonWrapper.addSubView @cancelButton = new kd.ButtonView
       cssClass: 'GenericButton cancel'
       title: 'CANCEL'
-      callback: => @destroy()
+      callback: @bound 'destroy'
 
     @buttonWrapper.addSubView @sendAllInvites = new kd.ButtonView
       cssClass: 'GenericButton select-upload hidden'
-      callback: =>
-        @sendData()
+      callback: @bound 'sendData'
 
 
   getLoaderView: ->
@@ -105,17 +102,22 @@ module.exports = class UploadCSVModal extends ContentModal
 
   createFormDataAndRequest : (event) ->
 
-    @setTitle 'Uploading'
-    @trailerPage.hide()
-    @uploadingPage.show()
-
     @formData = new FormData()
-
     file = @input.files[0]
+    unless file
+      return new kd.NotificationView
+        title: 'Error! Please Try Again'
+        duration: 2000
+
     @formData.append 'file', file, {
       filename: file.name
       contentType: 'multipart/form-data'
     }
+
+    @setTitle 'Uploading'
+    @trailerPage.hide()
+    @uploadingPage.show()
+
 
     @errorUploading?.hide()
 
@@ -176,7 +178,7 @@ module.exports = class UploadCSVModal extends ContentModal
 
     analyzeWrapperClassName = 'wrapper'
     for ex in Object.keys(extras)
-      value = extras["#{ex}"]
+      value = extras[ex]
       if value
         analyzeWrapperClassName = 'wrapper-with-extras'
         @totalInvitation = @totalInvitation + value
@@ -210,12 +212,13 @@ module.exports = class UploadCSVModal extends ContentModal
       """
 
     return  unless analyzeWrapperClassName is 'wrapper-with-extras'
+
     analyzeCSV.addSubView extraInfo = new kd.CustomHTMLView
       cssClass: 'extras-wrapper'
     extraInfo.addSubView secondaryWrapper = new kd.CustomHTMLView
       cssClass: 'secondary-wrapper'
     for ex in Object.keys(extras)
-      value = extras["#{ex}"]
+      value = extras[ex]
       if value
         if ex is 'alreadyMembers'
           label = if ex > 1 then 'Already Members' else 'Already Member'
@@ -262,5 +265,6 @@ module.exports = class UploadCSVModal extends ContentModal
 
   success: (result) ->
 
+    @validInvitations = '' unless @validInvitations
     @getOptions().success @validInvitations
     @destroy()

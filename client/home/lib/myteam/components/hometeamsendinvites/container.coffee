@@ -40,15 +40,16 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     document.querySelector('.user-email.focus-first-email').focus()  if @state.focusFirstEmail
 
 
-  onUploadCsv: (event) ->
+  onUploadCSV: (event) ->
 
     modal = new UploadCSVModal
       input : @refs.view.input
-      success : @bound 'uploadCsvSuccess'
+      success : @bound 'uploadCSVSuccess'
       error : @bound 'uploadCsvFail'
 
 
-  uploadCsvSuccess: (result) ->
+  uploadCSVSuccess: (result) ->
+
     new UploadCSVModalSuccess
       totalInvitation: result
     TeamFlux.actions.loadPendingInvitations()
@@ -227,7 +228,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       canEdit={canEdit}
       focusFirstEmail={@state.focusFirstEmail}
       inputValues={@state.inputValues}
-      onUploadCsv={@bound 'onUploadCsv'}
+      onUploadCSV={@bound 'onUploadCSV'}
       onInputChange={@bound 'onInputChange'}
       onSendInvites={@bound 'onSendInvites'} />
 
