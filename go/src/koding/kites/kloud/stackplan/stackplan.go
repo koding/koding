@@ -45,6 +45,11 @@ type Machine struct {
 	RegisterURL string             `json:"registerURL,omitempty"`
 	State       machinestate.State `json:"state,omitempty"`
 	StateReason string             `json:"stateReason,omitempty"`
+
+	// Fields that client expects to be set. The value is
+	// copied from credentials.
+	Region          string `json:"region"`
+	HostQueryString string `json:"hostQueryString"`
 }
 
 // Machines represents group of machines mapped by a label.

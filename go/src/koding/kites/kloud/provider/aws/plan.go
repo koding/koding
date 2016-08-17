@@ -130,6 +130,14 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 
 	s.Log.Debug("Machines planned to be created: %+v", machines)
 
+	if region != "" {
+		// Update Region for all the machine. See inline
+		// doc for the field.
+		for _, m := range machines {
+			m.Region = region
+		}
+	}
+
 	return &kloud.PlanResponse{
 		Machines: machines.Slice(),
 	}, nil
