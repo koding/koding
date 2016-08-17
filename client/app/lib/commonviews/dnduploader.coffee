@@ -80,6 +80,7 @@ module.exports = class DNDUploader extends KDView
 
     if files.length >= 20
       @showGenericError()
+      return
 
     if items?[0].webkitGetAsEntry?
 
