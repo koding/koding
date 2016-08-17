@@ -30,6 +30,8 @@ module.exports = sendDataDogEvent = (eventName, options = {}) ->
 
       sendEvent logs
 
+    , options.prefix
+
   else
 
     # Send only events on production

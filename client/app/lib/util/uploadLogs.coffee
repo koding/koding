@@ -4,8 +4,9 @@ parseLogs = require './parseLogs'
 module.exports = uploadLogs = (callback, prefix, content) ->
 
   content ?= parseLogs()
+  prefix = "#{prefix}_"  if prefix
 
   s3upload {
-    name: "logs_#{new Date().toISOString()}.txt"
+    name: "logs_#{prefix ? ''}#{new Date().toISOString()}.txt"
     content
   }, callback
