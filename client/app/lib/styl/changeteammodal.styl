@@ -1,4 +1,7 @@
 .change-team-modal.kdmodal
+  -webkit-font-smoothing    antialiased
+  -moz-osx-font-smoothing   grayscale
+  rounded                   6px
 
   .kdmodal-inner
     margin                  0
@@ -8,13 +11,13 @@
       overflow              visible
 
   .close-icon.closeModal
-    r-sprite                app, modal_close
-    top                     15px
-    right                   15px
+    r-sprite                app, modal-close-small
+    top                     18px
+    right                   18px
     z-index                 10
 
     &:hover
-      r-sprite              app, modal_close
+      r-sprite              app, modal-close-small
 
   .HomeAppView-Nav--avatar
     kalc                    right, 50% \- 30px
@@ -93,7 +96,11 @@
       height                auto
       flex                  0 0 auto
       align-self            center
-      rounded               3px
+      rounded               4px
+
+    .default-team-logo
+      r-sprite              app, team-logo
+      rounded               4px
 
   .team-title
     color                   #8d8d8d
