@@ -34,7 +34,7 @@ describe 'server.handlers.confirm', ->
     withRegisteredUser ({ username }) ->
 
       loginWithTokenRequestParams = generateLoginWithTokenRequestParams
-        qs : { token : createJWT { username: '', groupName: ''} }
+        qs : { token : createJWT { username: '', groupName: '' } }
 
       request.get loginWithTokenRequestParams, (err, res, body) ->
         expect(err).to.not.exist

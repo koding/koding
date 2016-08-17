@@ -4,20 +4,18 @@ KONFIG = require 'koding-config-manager'
 { secret } = KONFIG.jwt
 { setSessionCookie } = require '../helpers'
 
+secret = "2tE4Mw4GDg3kuPoevBaARnYqauCKE22F"
+
 module.exports = (req, res, next) ->
 
   { JUser, JSession, JAccount } = (require './../bongo').models
 
   { token, redirectTo } = req.query
 
-  return res.status(400).send "Token is not set"   if not token
+  return res.status(400).send 'Token is not set'   if not token
 
   queue = [
-    (next) ->
-      Jwt.verify token, secret, { algorithms: ['HS256'] }, (err, decoded) ->
-        return next err  if err
-
-        return next null, decoded
+    (next) -> Jwt.verify token, secret, { algorithms: ['HS256'] }, next
 
     (decoded, next) ->
       unless username = decoded.username
@@ -44,16 +42,15 @@ module.exports = (req, res, next) ->
 
     (account, groupName, next) ->
       data = { username: account.profile.nickname, groupName }
-      JSession.createNewSession data, (err, session) ->
-        return next err  if err
-        return next 'Invalid session' if not session
 
-        return next null, session.clientId
+      JSession.createNewSession data, next
   ]
 
-  async.waterfall queue, (err, clientId) ->
+  async.waterfall queue, (err, session) ->
     return res.status(400).send err.message or err  if err
+    return res.status(400).send 'session is not valid'  if not session
 
-    setSessionCookie res, clientId
+
+    setSessionCookie res, session.clientId
 
     res.redirect redirectTo or '/'

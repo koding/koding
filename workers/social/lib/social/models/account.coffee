@@ -388,7 +388,7 @@ module.exports = class JAccount extends jraphical.Module
 
   checkGroupMembership: secure (client, groupName, callback) ->
     unless client?.connection?.delegate
-      return callback new KodingError "invalid request"
+      return callback new KodingError 'invalid request'
     JAccount.checkGroupMembership client.connection.delegate, groupName, callback
 
   @checkGroupMembership: (account, groupName, callback) ->
