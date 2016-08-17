@@ -29,19 +29,19 @@ module.exports = class DataDog extends Base
       title  : 'vms.failed'
       text   : 'VM start failed for user: %nickname%'
       notify : '@slack-alerts'
-      tags   : ['user:%nickname%', 'version:%version%', 'context:vms']
+      tags   : ['user:%nickname%', 'team:%team%', 'version:%version%', 'context:vms']
 
     TerminalConnectionFailed:
       title  : 'terminal.failed'
       text   : 'Terminal connection failed for user: %nickname%'
       notify : '@slack-alerts'
-      tags   : ['user:%nickname%', 'version:%version%', 'context:terminal']
+      tags   : ['user:%nickname%', 'team:%team%', 'version:%version%', 'context:terminal']
 
     ForbiddenChannel:
       title  : 'channel.forbidden'
       text   : 'Access is prohibited for channel with token: %channelToken%'
       notify : '@slack-alerts'
-      tags   : ['user:%nickname%', 'version:%version%', 'context:pubnub-channel', 'channel-token:%channelToken%']
+      tags   : ['user:%nickname%', 'team:%team%', 'version:%version%', 'context:pubnub-channel', 'channel-token:%channelToken%']
 
     MachineTurnedOn:
       title         : 'machine.turnedon'
@@ -83,7 +83,7 @@ module.exports = class DataDog extends Base
 
   @sendEvent = secure (client, data, callback = -> ) ->
 
-    { connection:{ delegate } } = client
+    { connection: { delegate }, context: { group } } = client
 
     unless delegate
       return callback new KodingError 'Account not found'
@@ -100,6 +100,7 @@ module.exports = class DataDog extends Base
 
     { nickname } = delegate.profile
     tags['nickname'] = nickname
+    tags['team'] = group
 
     title = ev.title
     text  = parseText ev.text, tags
