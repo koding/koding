@@ -387,15 +387,19 @@ module.exports = class JAccount extends jraphical.Module
         return callback null, account.id
 
   checkGroupMembership: secure (client, groupName, callback) ->
-    { delegate } = client.connection
+    unless client?.connection?.delegate
+      return callback new KodingError "invalid request"
+    JAccount.checkGroupMembership client.connection.delegate, groupName, callback
+
+  @checkGroupMembership: (account, groupName, callback) ->
     JGroup = require './group'
     JGroup.one { slug : groupName }, (err, group) ->
       return callback new KodingError 'An error occurred!' if err
-      return callback null, no unless group
+      return callback new KodingError 'Group not found'  unless group
 
       Relationship.one {
         as          : 'member'
-        targetId    : delegate.getId()
+        targetId    : account.getId()
         sourceId    : group.getId()
       }, (err, relation) ->
         return callback new KodingError 'An error occurred!' if err
