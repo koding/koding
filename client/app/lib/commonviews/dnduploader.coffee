@@ -68,7 +68,7 @@ module.exports = class DNDUploader extends KDView
       buttons      :
         Ok         :
           title    : 'OK'
-          style    : 'solid green medium'
+          style    : 'GenericButton'
           callback : -> modal.destroy()
 
 
