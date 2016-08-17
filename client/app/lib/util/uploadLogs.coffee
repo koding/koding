@@ -1,7 +1,7 @@
 s3upload  = require './s3upload'
 parseLogs = require './parseLogs'
 
-module.exports = (callback, content) ->
+module.exports = uploadLogs = (callback, prefix, content) ->
 
   content ?= parseLogs()
 

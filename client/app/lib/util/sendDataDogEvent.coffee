@@ -3,7 +3,7 @@ parseLogs = require './parseLogs'
 uploadLogs = require './uploadLogs'
 globals = require 'globals'
 
-module.exports = (eventName, options = {}) ->
+module.exports = sendDataDogEvent = (eventName, options = {}) ->
 
   options.eventName = eventName
   options.sendLogs ?= yes
