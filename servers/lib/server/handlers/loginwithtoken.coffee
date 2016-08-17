@@ -4,8 +4,6 @@ KONFIG = require 'koding-config-manager'
 { secret } = KONFIG.jwt
 { setSessionCookie } = require '../helpers'
 
-secret = "2tE4Mw4GDg3kuPoevBaARnYqauCKE22F"
-
 module.exports = (req, res, next) ->
 
   { JUser, JSession, JAccount } = (require './../bongo').models
