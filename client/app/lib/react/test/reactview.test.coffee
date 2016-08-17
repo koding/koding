@@ -1,5 +1,4 @@
 expect = require 'expect'
-React  = require 'react-addons-test-utils'
 
 ReactView = require '../reactview'
 
