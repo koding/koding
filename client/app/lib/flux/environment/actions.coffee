@@ -599,6 +599,20 @@ updateStackTemplate = (stackTemplate, options) ->
       reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, successPayload
       resolve successPayload
 
+fetchAndUpdateStackTemplate = (templateId) ->
+
+  { computeController, reactor } = kd.singletons
+  reactor.dispatch actions.UPDATE_STACK_TEMPLATE_BEGIN
+
+  new Promise (resolve, reject) ->
+    computeController.fetchStackTemplate templateId, (err, stackTemplate) ->
+      if err
+        reactor.dispatch actions.UPDATE_STACK_TEMPLATE_FAIL, { err }
+        reject err
+        return
+
+      reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
+      resolve stackTemplate
 
 generateStack = (stackTemplateId) ->
 
@@ -823,4 +837,5 @@ module.exports = {
   unshareMachineWihAllUsers
   disconnectMachine
   setLabel
+  fetchAndUpdateStackTemplate
 }

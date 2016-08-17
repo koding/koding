@@ -140,7 +140,7 @@ module.exports = class StackEditorAppController extends AppController
 
     { computeController } = kd.singletons
 
-    computeController.fetchStackTemplate templateId, (err, template) =>
+    EnvironmentFlux.actions.fetchAndUpdateStackTemplate templateId, (template) =>
       @removeEditor template._id
       @showView template
 
