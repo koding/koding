@@ -1,15 +1,15 @@
 import { combineReducers } from 'redux'
-import team from './team'
+import group from './modules/group'
 
+const identity = (store) => store
 export const make = (reducers = {}) => (
   combineReducers({
-    team,
+    group,
     ...reducers
   })
 )
 
 export const inject = (store, { key, reducer }) => {
-
   if (!store.reducers) {
     store.reducers = {}
   }
