@@ -37,6 +37,12 @@ module.exports = class DataDog extends Base
       notify : '@slack-alerts'
       tags   : ['user:%nickname%', 'team:%team%', 'version:%version%', 'context:terminal']
 
+    StackBuildFailed:
+      title  : 'stack.failed'
+      text   : 'Stack build failed for user %nickname% on %team% team'
+      notify : '@slack-alerts'
+      tags   : ['user:%nickname%', 'team:%team%', 'version:%version%', 'context:stacks']
+
     ForbiddenChannel:
       title  : 'channel.forbidden'
       text   : 'Access is prohibited for channel with token: %channelToken%'
