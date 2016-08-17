@@ -4,7 +4,7 @@ kd = require 'kd'
 remote = require('../remote').getInstance()
 uuid = require 'node-uuid'
 
-module.exports = (options, callback = kd.noop) ->
+module.exports = s3upload = (options, callback = kd.noop) ->
 
   { name, content, mimeType, timeout } = options
 

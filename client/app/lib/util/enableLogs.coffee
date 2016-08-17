@@ -2,7 +2,7 @@ dateFormat = require 'dateformat'
 globals = require 'globals'
 disableLogs = require './disableLogs'
 
-module.exports = (state = yes) ->
+module.exports = enableLogs = (state = yes) ->
 
   return disableLogs()  unless state
   return if globals.logsEnabled
