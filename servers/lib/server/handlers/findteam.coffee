@@ -27,14 +27,8 @@ module.exports = (req, res) ->
         next null, account
 
     (account, next) ->
-
-      async.parallel [
-        (_next) -> account.fetchAllParticipatedGroups {}, _next
-        (_next) -> account.fetchInviteGroups {}, _next
-      ], (err, results) ->
-        return next err  if err
-        groups = results[0].concat results[1]
-        next null, account, groups
+      account.fetchRelativeGroups (err, groups) ->
+        next err, account, groups
 
     (account, groups, next) ->
       groups = groups.filter (group) -> group.slug isnt 'koding'

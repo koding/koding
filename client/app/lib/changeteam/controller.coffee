@@ -12,16 +12,8 @@ module.exports = class ChangeTeamController extends KodingListController
     options.itemClass      = ChangeTeamListItem
     options.loadWithScroll = no
     options.fetcherMethod  = (query, options, callback) ->
-      account = whoami()
-      queue   = [
-        (next) ->
-          account.fetchAllParticipatedGroups {}, next
-        (next) ->
-          account.fetchInviteGroups {}, next
-      ]
-      async.parallel queue, (err, results) ->
+      whoami().fetchRelativeGroups (err, groups) ->
         return  if showError err
-        groups = results[0].concat results[1]
         groups = groups.filter (group) -> group.slug isnt 'koding'
         callback null, groups
 

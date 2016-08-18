@@ -169,10 +169,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchMetaInformation :
           (signature Function)
-        fetchAllParticipatedGroups :
-          (signature Object, Function)
-        fetchInviteGroups:
-          (signature Object, Function)
+        fetchRelativeGroups:
+          (signature Function)
         setLastLoginTimezoneOffset:
           (signature Object, Function)
         expireSubscription:
@@ -311,7 +309,7 @@ module.exports = class JAccount extends jraphical.Module
 
     roles = [ 'member', 'moderator', 'admin' ]
 
-    @fetchAllParticipatedGroups$ client, { roles }, (err, groups) ->
+    @fetchAllParticipatedGroups { roles }, (err, groups) ->
       return callback err   if err
       return callback null  if not groups
 
@@ -322,11 +320,6 @@ module.exports = class JAccount extends jraphical.Module
           group.leave client, fin
 
       async.parallel queue, callback
-
-
-  fetchAllParticipatedGroups$: secure (client, options, callback) ->
-
-    @fetchAllParticipatedGroups options, callback
 
 
   fetchAllParticipatedGroups: (options, callback) ->
@@ -373,22 +366,14 @@ module.exports = class JAccount extends jraphical.Module
           callback null, groups
 
 
-  fetchInviteGroups$: secure (client, options, callback) ->
-
-    @fetchInviteGroups options, callback
-
-
-  fetchInviteGroups: (options, callback) ->
-
-    [ options, callback ] = [ callback, options ]  unless callback
-    options ?= {}
+  fetchInvitedGroups: (callback) ->
 
     queue = [
       (next) =>
         @fetchEmail next
       (email, next) ->
         JInvitation = require './invitation'
-        JInvitation.some { email, status : 'pending' }, options, next
+        JInvitation.some { email, status : 'pending' }, { limit : 10 }, next
       (invitations, next) ->
         { uniq, map } = _
         slugs  = uniq map invitations, (invitation) -> invitation.groupName
@@ -403,6 +388,26 @@ module.exports = class JAccount extends jraphical.Module
     ]
 
     async.waterfall queue, callback
+
+
+  fetchRelativeGroups$: secure (client, callback) ->
+
+    @fetchRelativeGroups callback
+
+
+  fetchRelativeGroups: (callback) ->
+
+    queue =
+      participated: (next) =>
+        @fetchAllParticipatedGroups {}, next
+      invited: (next) =>
+        @fetchInvitedGroups next
+
+    async.parallel queue, (err, results) ->
+      return callback err  if err
+      { participated, invited } = results
+      groups = participated.concat invited
+      callback null, groups
 
 
   createSocialApiId: (callback) ->
