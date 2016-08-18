@@ -78,6 +78,18 @@ _bindStackEvents = ->
     computeController.checkGroupStacks()
 
 
+_bindTemplateEvents = (stackTemplate) ->
+
+  { reactor } = kd.singletons
+
+  { _id: id } = stackTemplate
+
+  stackTemplate.on 'update', ->
+    reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
+  stackTemplate.on 'deleteInstance', ->
+    reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { id }
+
+
 handleMemberWarning = (message) ->
 
   console.warn '[member:warning]', message
@@ -450,15 +462,13 @@ loadTeamStackTemplates = ->
   remote.api.JStackTemplate.some query, { limit: 30 }, (err, templates) ->
 
     if err
-      reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_FAIL, { query, err }
+      return reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_FAIL, { query, err }
 
     templates = templates.filter (t) -> t.accessLevel is 'group'
 
     reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_SUCCESS, { query, templates }
 
-    templates.forEach (template) ->
-      template.on 'deleteInstance', ->
-        reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { template }
+    templates.forEach (template) -> _bindTemplateEvents template
 
 
 loadPrivateStackTemplates = ->
@@ -478,9 +488,7 @@ loadPrivateStackTemplates = ->
 
     reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_SUCCESS, { query, templates }
 
-    templates.forEach (template) ->
-      template.on 'deleteInstance', ->
-        reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { template }
+    templates.forEach (template) -> _bindTemplateEvents template
 
 
 setMachineAlwaysOn = (machineId, state) ->
@@ -541,6 +549,7 @@ createStackTemplate = (options) ->
         return
 
       reactor.dispatch actions.CREATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
+      _bindTemplateEvents stackTemplate
       resolve { stackTemplate }
 
 
@@ -597,7 +606,9 @@ updateStackTemplate = (stackTemplate, options) ->
       successPayload = { stackTemplate: updatedTemplate }
 
       reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, successPayload
+      _bindTemplateEvents updatedTemplate
       resolve successPayload
+
 
 fetchAndUpdateStackTemplate = (templateId) ->
 
@@ -612,6 +623,7 @@ fetchAndUpdateStackTemplate = (templateId) ->
         return
 
       reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
+      _bindTemplateEvents stackTemplate
       resolve stackTemplate
 
 generateStack = (stackTemplateId) ->
