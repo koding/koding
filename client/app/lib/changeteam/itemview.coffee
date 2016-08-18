@@ -56,10 +56,10 @@ module.exports = class ChangeTeamListItem extends kd.ListItemView
 
   pistachio: ->
 
-    """
+    '''
       <div class="team-title-wrapper">
         {{> @logoWrapper}}
         {span.team-title{#(title)}}
       </div>
       {{> @actionElement }}
-    """
+    '''
