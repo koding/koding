@@ -7,6 +7,7 @@ parser = require 'csv-parse'
   generateUrl
   generateRandomEmail
   generateRandomString
+  generateRandomInvitationsWithEmailRole
   checkBongoConnectivity
   generateRequestParamsEncodeBody } = require '../../../testhelper'
 
@@ -93,4 +94,4 @@ brokenFile = '''
 #   { email: 'cihangir6@koding.com.cihangir6.savas6.member' }
 # ] }
 
-lotsOfInvitations = (generateRandomEmail() for i in [1...500]).join('\n')
+lotsOfInvitations = (generateRandomInvitationsWithEmailRole() for i in [1...500]).join('\n')
