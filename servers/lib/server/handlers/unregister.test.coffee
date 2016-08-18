@@ -1,20 +1,12 @@
-Cookie = require 'tough-cookie'
 koding = require './../bongo'
 { withRegisteredUser } = require '../../../testhelper/handler/registerhelper'
 { async
   expect
   request
   generateUrl
+  getCookiesFromHeader
   generateRequestParamsEncodeBody
 } = require '../../../testhelper'
-
-# getCookiesFromHeader returns cookies obtained from a header
-getCookiesFromHeader = (headers) ->
-  return [] unless headers?['set-cookie']
-  if headers['set-cookie'] instanceof Array
-    return headers['set-cookie'].map Cookie.parse
-  else
-    return [Cookie.parse(headers['set-cookie'])]
 
 describe 'server.handlers.unregister', ->
 
