@@ -4,6 +4,7 @@ teamsHelpers = require '../helpers/teamshelpers.js'
 myTeamLink = "#{helpers.getUrl(yes)}/Home/my-team"
 welcomeLink    = "#{helpers.getUrl(yes)}/Welcome"
 sectionSelector   = '.HomeAppView--section.team-settings'
+sectionSendInvites = '.HomeAppView--section.send-invites'
 buttonSelector    = "#{sectionSelector} .uploadInputWrapper .HomeAppView--button.custom-link-view"
 uploadLogoButton  = "#{buttonSelector}.primary"
 removeLogoButton  = "#{buttonSelector}.remove"
@@ -30,6 +31,7 @@ passwordSelector     = 'input[name=password]'
 forgotPasswordButton = '.kdbutton.solid.light-gray'
 confirmButton        = 'button[type=submit]'
 notification         = '.kdnotification.main'
+proceedButton        = '[testpath=proceed]'
 
 index              = ''
 indexOfTargetUser1 = ''
@@ -74,7 +76,7 @@ module.exports =
       teamsHelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser1], (res) ->
         teamsHelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser2], (res) ->
           teamsHelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser3], (res) ->
-            browser.pause 1000, callback
+    browser.pause 1000, callback
 
 
   seeTeammatesList: (browser, callback) ->
@@ -151,36 +153,59 @@ module.exports =
     browser
       .waitForElementVisible sendInvitesButton, 5000
       .click sendInvitesButton
-    teamsHelpers.acceptConfirmModal browser
-    teamsHelpers.assertConfirmation browser, "Invitation is sent to #{invitations[indexOfTargetUser1].email}"
-    browser.pause 3000, callback
+    browser
+      .waitForElementVisible '.ContentModal', 20000
+      .assert.containsText '.ContentModal.content-modal main', "#{invitations[indexOfTargetUser1].email} is already a member of your team"
+      .click proceedButton
+    teamsHelpers.clearInviteInputByIndex browser, 2
+    browser.pause 2000, callback
 
 
   sendAlreadyAdminInvite: (browser, callback) ->
+    browser.refresh()
+    browser
+      .waitForElementVisible sectionSelector, 20000
+      .scrollToElement sectionSendInvites
     teamsHelpers.fillInviteInputByIndex browser, 1, invitations[indexOfTargetUser2].email
     browser
-      .waitForElementVisible sendInvitesButton, 5000
+      .waitForElementVisible sendInvitesButton, 500000
       .click sendInvitesButton
-    teamsHelpers.acceptConfirmModal browser
-    teamsHelpers.assertConfirmation browser, "Invitation is sent to #{invitations[indexOfTargetUser2].email}"
+    browser
+      .waitForElementVisible '.ContentModal', 20000
+      .assert.containsText '.ContentModal.content-modal header', "You're adding an admin"
+      .waitForElementVisible proceedButton, 20000
+      .click proceedButton
+      .waitForElementVisible '.ContentModal', 20000
+      .assert.containsText '.ContentModal.content-modal main', "#{invitations[indexOfTargetUser2].email} is already a member of your team"
+      .click proceedButton
     browser.pause 3000, callback
 
 
   sendInviteToPendingMember: (browser, callback) ->
-    teamsHelpers.inviteUser browser, 'member', invitations[indexOfTargetUser1 + 1]
-    browser.pause 3000
-    teamsHelpers.inviteUser browser, 'admin',  invitations[indexOfTargetUser2 + 1]
-    browser.pause 3000, callback
+    browser.url myTeamLink
+    browser
+      .waitForElementVisible sectionSelector, 20000
+      .scrollToElement sectionSendInvites
+    teamsHelpers.inviteUser browser, 'member', invitations[indexOfTargetUser1 + 1].email, no
+    browser.pause 1000, callback
 
 
   sendNewAdminInvite: (browser, callback) ->
-    teamsHelpers.inviteUser browser, 'admin'
-    browser.pause 3000, callback
+    browser.url myTeamLink
+    browser
+      .waitForElementVisible sectionSelector, 20000
+      .scrollToElement sectionSendInvites
+    teamsHelpers.inviteUser browser, 'admin',null, yes
+    browser.pause 1000, callback
 
 
   sendNewMemberInvite:  (browser, callback) ->
-    teamsHelpers.inviteUser browser, 'member'
-    browser.pause 3000, callback
+    browser.url myTeamLink
+    browser
+      .waitForElementVisible sectionSelector, 20000
+      .scrollToElement sectionSendInvites
+    teamsHelpers.inviteUser browser, 'member', null, yes
+    browser.pause 1000, callback
 
 
   sendInviteAll: (browser, callback) ->
@@ -189,9 +214,13 @@ module.exports =
 
 
   sendNewInviteFromResendModal: (browser, callback) ->
-    teamsHelpers.newInviteFromResendModal browser, 'member'
+    browser.url myTeamLink
+    browser
+      .waitForElementVisible sectionSelector, 20000
+      .scrollToElement sectionSendInvites
+    teamsHelpers.newInviteFromResendModal browser, 'member', null, yes
     browser.pause 3000
-    teamsHelpers.newInviteFromResendModal browser, 'admin'
+    teamsHelpers.newInviteFromResendModal browser, 'admin', null, yes
     browser.pause 1000, callback
 
 

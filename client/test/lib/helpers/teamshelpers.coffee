@@ -39,6 +39,7 @@ errorMessage             = '.kdnotification.main'
 teamCreateLink           = "a[href='/Teams/Create']"
 userInfoErrorMsg         = '.validation-error .kdview.wrapper'
 alreadyMemberModal       = "#{teamsModalSelector}.alreadyMember"
+proceedButton            = '[testpath=proceed]'
 url                      = helpers.getUrl()
 
 module.exports =
@@ -656,27 +657,40 @@ module.exports =
         callback result
 
 
-  inviteUser: (browser, role) ->
+  inviteUser: (browser, role, email, isNew) ->
 
     index = if role is 'member' then 2 else 1
 
     invitationsModalSelector = '.HomeAppView--section.send-invites'
     sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
+    successMessage = ''
 
     browser
       .waitForElementVisible invitationsModalSelector, 20000
 
-    userEmail = @fillInviteInputByIndex browser, index
-    successMessage = "Invitation is sent to #{userEmail}"
+    email = @fillInviteInputByIndex browser, index, email
 
     browser
       .waitForElementVisible sendInvitesButton, 5000
       .click sendInvitesButton
 
-    @acceptConfirmModal browser
-    @assertConfirmation browser, successMessage
+    if role is 'admin'
+      browser
+        .waitForElementVisible '.ContentModal', 20000
+        .assert.containsText '.ContentModal.content-modal header', "You're adding an admin"
+        .waitForElementVisible proceedButton, 20000
+        .click proceedButton
+      successMessage = "Invitation is sent to #{email}"
 
-    return userEmail
+    unless isNew
+      browser
+        .waitForElementVisible '.ContentModal', 20000
+        .assert.containsText '.ContentModal.content-modal header', 'Resend Invitation'
+        .waitForElementVisible proceedButton, 20000
+        .click proceedButton
+      successMessage = "Invitation is resent to #{email}"
+
+    @assertConfirmation browser, successMessage
 
   inviteAll: (browser) ->
 
@@ -716,46 +730,6 @@ module.exports =
       .waitForElementVisible invitationsModalSelector, 20000
       .click uploadCSVButtonSelector
     @assertConfirmation browser, message
-
-
-  resendInvitation: (browser, role) ->
-
-    invitationsModalSelector = '.HomeAppView--section.send-invites'
-
-    sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
-    index = if role is 'member' then 2 else 1
-
-    browser
-      .waitForElementVisible invitationsModalSelector, 20000
-
-    userEmail = @fillInviteInputByIndex browser, index
-    successMessage = "Invitation is sent to #{userEmail}"
-
-    browser
-      .pause 2000
-      .waitForElementVisible sendInvitesButton, 5000
-      .click sendInvitesButton
-    @acceptConfirmModal browser if role is 'admin'
-    @assertConfirmation browser, successMessage
-    browser
-      .pause 10000
-
-    userEmail = @fillInviteInputByIndex browser, index, userEmail
-    successMessage = "Invitation is resent to #{userEmail}"
-
-    browser
-      .waitForElementVisible sendInvitesButton, 5000
-      .click sendInvitesButton
-
-    @acceptConfirmModal browser
-
-    if role is 'admin'
-      browser
-        .pause 2000
-      @acceptConfirmModal browser
-    @assertConfirmation browser, successMessage
-
-    return userEmail
 
 
   newInviteFromResendModal: (browser, role) ->
@@ -815,7 +789,7 @@ module.exports =
     browser
       .waitForElementVisible '.kdnotification', 20000
       .assert.containsText '.kdnotification', successMessage
-      .pause 2000
+      .pause 3000
 
 
   fillInviteInputByIndex: (browser, index, userEmail = null) ->
@@ -823,14 +797,24 @@ module.exports =
     invitationsModalSelector = '.HomeAppView--section.send-invites'
     emailInputSelector = "#{invitationsModalSelector} .ListView-row:nth-of-type(#{index}) .kdinput.text.user-email"
     userEmail ?= "#{helpers.getFakeText().split(' ')[0]}#{Date.now()}@kd.io"
-
     browser
       .waitForElementVisible emailInputSelector, 20000
       .setValue emailInputSelector, userEmail
 
     return userEmail
 
+  clearInviteInputByIndex: (browser, index) ->
+    invitationsModalSelector = '.HomeAppView--section.send-invites'
+    emailInputSelector = "#{invitationsModalSelector} .ListView-row:nth-of-type(#{index}) .kdinput.text.user-email"
+ 
+    browser
+      .click invitationsModalSelector
+      .waitForElementVisible emailInputSelector, 20000
+      .clearValue emailInputSelector
+      .setValue emailInputSelector, ''
+      .click invitationsModalSelector
 
+  
   inviteUsers: (browser, invitations, callback) ->
 
     fn = ( invitations, done ) ->

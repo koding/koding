@@ -29,7 +29,7 @@ module.exports =
           next null, result
       (next) ->
         myteamhelper.changeMemberRole browser, host, (result) ->
-          next null, result
+      #     next null, result
       (next) ->
         myteamhelper.uploadCSV browser, (result) ->
           next null, result
@@ -51,9 +51,9 @@ module.exports =
       (next) ->
         myteamhelper.sendInviteAll browser, (result) ->
           next null, result
-      (next) ->
-        myteamhelper.sendNewInviteFromResendModal browser, (result) ->
-          next null, result
+      # (next) ->
+      #   myteamhelper.sendNewInviteFromResendModal browser, (result) ->
+      #     next null, result
       (next) ->
         myteamhelper.changeTeamName browser, (result) ->
           next null, result
