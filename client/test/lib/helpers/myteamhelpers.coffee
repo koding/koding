@@ -2,7 +2,7 @@ utils = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
 myTeamLink = "#{helpers.getUrl(yes)}/Home/my-team"
-
+welcomeLink    = "#{helpers.getUrl(yes)}/Welcome"
 sectionSelector   = '.HomeAppView--section.team-settings'
 buttonSelector    = "#{sectionSelector} .uploadInputWrapper .HomeAppView--button.custom-link-view"
 uploadLogoButton  = "#{buttonSelector}.primary"
@@ -59,8 +59,13 @@ module.exports =
 
 
   inviteAndJoinToTeam: (browser, host, callback) ->
+    
+    browser
+      .url welcomeLink
+      .pause 2000
     { invitations, index } = utils.getInvitationData()
-    index = if index is 0 then 1 else index
+
+    index = if index is 0 then 0 else index
     indexOfTargetUser1 = if 1 % index isnt 0 then 1 else 2
     indexOfTargetUser2 = if 3 % index isnt 0 then 3 else 4
     indexOfTargetUser3 = if 5 % index isnt 0 then 5 else 6
@@ -83,43 +88,49 @@ module.exports =
       .assert.containsText   selector(indexOfTargetUser2 + 1), 'Member'
       .assert.containsText   selector(indexOfTargetUser3 + 1), 'Member'
       .pause 1000, callback
-
-
+    
+    
   changeMemberRole: (browser, host, callback) ->
+
     invitations[indexOfTargetUser1].accepted = 'Member'
     invitations[indexOfTargetUser2].accepted = 'Admin'
     invitations[indexOfTargetUser3].accepted = 'Member'
     invitations[index].accepted = 'Owner'
-
+    
+    user = utils.getUser no, 1
     lastPendingInvitationIndex = 0
+    pendingInvitations = []
     invitations.forEach (invitation, i) ->
       unless invitation.accepted
-        lastPendingInvitationIndex = i
+        if invitation.email isnt user.email
+          pendingInvitations.push i 
+          lastPendingInvitationIndex = i
+
     browser
       .url myTeamLink
       .waitForElementVisible sectionSelector, 20000
       .scrollToElement "#{teammateSectionSelector} .ListView"
-      .waitForElementVisible selector(1), 20000
-      .click selector(1), ->
-        teamsHelpers.checkTeammates browser, invitations[0], nthItem(1), nthItem(2), selector(1), no, ->
-          browser.waitForElementVisible selector(1), 20000
-          browser.click selector(2), ->
-            teamsHelpers.checkTeammates browser, invitations[1], nthItem(1), nthItem(2), selector(2), no, ->
-              browser.click selector(indexOfTargetUser2 + 1), ->
+      .waitForElementVisible selector(pendingInvitations[0] + 1), 20000
+      .click selector(pendingInvitations[0] + 1), ->
+        teamsHelpers.checkTeammates browser, invitations[pendingInvitations[0]], nthItem(1), nthItem(2), selector(1), no, -> #resend invitation
+          browser.waitForElementVisible selector(pendingInvitations[0] + 1), 20000
+          browser.click selector(indexOfTargetUser1 + 1), ->
+            teamsHelpers.checkTeammates browser, invitations[indexOfTargetUser1], nthItem(1), nthItem(2), selector(2), no, -> #make admin then member
+              browser.click selector(indexOfTargetUser2 + 1), -> #make admin
                 browser
                   .pause 1000
                   .click nthItem(2)
                   .pause 1000
                   .waitForElementVisible selector(indexOfTargetUser2 + 1), 20000
                   .assert.containsText selector(indexOfTargetUser2 + 1), 'Admin'
-                  browser.expect.element(selector(index + 1)).text.to.contain 'Owner'
+                browser.expect.element(selector(index + 1)).text.to.contain 'Owner'
                 browser.click selector(lastPendingInvitationIndex + 1), ->
                   browser.waitForElementVisible selector(lastPendingInvitationIndex + 1), 20000
                   teamsHelpers.checkTeammates browser, invitations[lastPendingInvitationIndex], nthItem(1), nthItem(2), selector(lastPendingInvitationIndex + 1), yes, ->
                     teamsHelpers.logoutTeam browser, (res) ->
-                      teamsHelpers.loginToTeam browser, invitations[lastPendingInvitationIndex], yes, ->
+                      teamsHelpers.loginToTeam browser, invitations[lastPendingInvitationIndex], yes, 'InvalidUserName', ->
                       browser.assert.containsText notification, 'Unknown user name'
-                      teamsHelpers.loginToTeam browser, host , no, ->
+                      teamsHelpers.loginToTeam browser, host , no, '', ->
                         browser
                           .waitForElementVisible welcomeView, 20000
                           .url myTeamLink
@@ -188,7 +199,7 @@ module.exports =
   changeTeamName: (browser, callback) ->
     targetUser1 = invitations[1]
     teamsHelpers.logoutTeam browser, (res) ->
-    teamsHelpers.loginToTeam browser, targetUser1 , no, ->
+    teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
       browser
         .waitForElementVisible welcomeView, 20000
         .url myTeamLink

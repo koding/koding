@@ -20,50 +20,50 @@ module.exports =
     queue = [
       (next) ->
         myteamhelper.editTeamName browser, host, (result) ->
-          next null, result
+          next null, result      
       (next) ->
         myteamhelper.inviteAndJoinToTeam browser, host, (result) ->
           next null, result
-      # (next) ->
-      #   myteamhelper.seeTeammatesList browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   myteamhelper.changeMemberRole browser, host, (result) ->
-      #     next null, result
-      # (next) ->
-      #   myteamhelper.uploadCSV browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   myteamhelper.sendAlreadyMemberInvite browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   myteamhelper.sendAlreadyAdminInvite browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   myteamhelper.sendInviteToPendingMember browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   myteamhelper.sendNewAdminInvite browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   myteamhelper.sendNewMemberInvite browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   myteamhelper.sendInviteAll browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   myteamhelper.sendNewInviteFromResendModal browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   myteamhelper.changeTeamName browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   myteamhelper.leaveTeam browser, (result) ->
-      #     next null, result
+      (next) ->
+        myteamhelper.seeTeammatesList browser, (result) ->
+          next null, result
+      (next) ->
+        myteamhelper.changeMemberRole browser, host, (result) ->
+          next null, result
+      (next) ->
+        myteamhelper.uploadCSV browser, (result) ->
+          next null, result
+      (next) ->
+        myteamhelper.sendAlreadyMemberInvite browser, (result) ->
+          next null, result
+      (next) ->
+        myteamhelper.sendAlreadyAdminInvite browser, (result) ->
+          next null, result
+      (next) ->
+        myteamhelper.sendInviteToPendingMember browser, (result) ->
+          next null, result
+      (next) ->
+        myteamhelper.sendNewAdminInvite browser, (result) ->
+          next null, result
+      (next) ->
+        myteamhelper.sendNewMemberInvite browser, (result) ->
+          next null, result
+      (next) ->
+        myteamhelper.sendInviteAll browser, (result) ->
+          next null, result
+      (next) ->
+        myteamhelper.sendNewInviteFromResendModal browser, (result) ->
+          next null, result
+      (next) ->
+        myteamhelper.changeTeamName browser, (result) ->
+          next null, result
+      (next) ->
+        myteamhelper.leaveTeam browser, (result) ->
+          next null, result
     ]
 
     async.series queue
 
 
-  # after: (browser) ->
-  #   browser.end()
+  after: (browser) ->
+    browser.end()

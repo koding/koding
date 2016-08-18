@@ -150,7 +150,6 @@ module.exports =
             .assert.containsText    notification, 'Unknown user name'
 
         when 'InvalidPassword'
-          console.log()
           browser
             .setValue                'input[name=username]', user.username
             .setValue                'input[name=password]', user.password + 'wrong'
