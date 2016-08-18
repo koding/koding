@@ -28,11 +28,11 @@ sendInvitesButton       = '.HomeAppView--section.send-invites .custom-link-view.
 welcomeView          = '.WelcomeStacksView'
 leaveTeamButton      = '.HomeAppView--button'
 passwordSelector     = 'input[name=password]'
-forgotPasswordButton = '.kdbutton.solid.light-gray'
+forgotPasswordButton = '.kdbutton.cancel'
 confirmButton        = 'button[type=submit]'
 notification         = '.kdnotification.main'
 proceedButton        = '[testpath=proceed]'
-
+mainSideBar          = '.main-sidebar'
 index              = ''
 indexOfTargetUser1 = ''
 indexOfTargetUser2 = ''
@@ -76,7 +76,7 @@ module.exports =
       teamsHelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser1], (res) ->
         teamsHelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser2], (res) ->
           teamsHelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser3], (res) ->
-    browser.pause 1000, callback
+            browser.pause 1000, callback
 
 
   seeTeammatesList: (browser, callback) ->
@@ -230,7 +230,7 @@ module.exports =
     teamsHelpers.logoutTeam browser, (res) ->
     teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
       browser
-        .waitForElementVisible welcomeView, 20000
+        .waitForElementVisible welcomeView, 60000
         .url myTeamLink
         .waitForElementVisible sectionSelector, 20000
         .waitForElementNotPresent checkboxSelector, 20000
