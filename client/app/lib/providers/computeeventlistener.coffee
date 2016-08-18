@@ -3,6 +3,7 @@ globals  = require 'globals'
 Machine  = require './machine'
 Tracker  = require 'app/util/tracker'
 getGroup = require 'app/util/getGroup'
+sendDataDogEvent = require 'app/util/sendDataDogEvent'
 
 
 module.exports = class ComputeEventListener extends kd.Object
@@ -169,6 +170,7 @@ module.exports = class ComputeEventListener extends kd.Object
           computeController.triggerReviveFor eventId, type is 'apply'
         else if event.error and event.percentage is 100 and type is 'apply'
           if isMyStack
+            sendDataDogEvent 'StackBuildFailed', { prefix: 'stack-build' }
             Tracker.track Tracker.STACKS_BUILD_FAILED, {
               customEvent :
                 stackId   : eventId

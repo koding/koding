@@ -76,8 +76,6 @@ module.exports = class WebTermMessagePane extends KDCustomScrollView
         'Failed to connect to terminal,
         click here to try again.', 'RequestReconnect'
 
-      sendDataDogEvent 'TerminalConnectionFailed'
-
     else if err.message is 'session limit has reached'
 
       @setMessage \
