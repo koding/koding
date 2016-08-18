@@ -8,6 +8,10 @@ error_messages =
   404: 'Page not found'
   500: 'Something wrong.'
 
+validateEmail = (email) ->
+  re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  return re.test email
+
 error_ = (code, message) ->
   # Refactor this to use pistachio instead of underscore template engine - FKA
   staticpages  = require './staticpages'
@@ -405,10 +409,16 @@ analyzedInvitationResults = (params) ->
     invitationCount = invitationCount - 1
     invite = data[invitationCount]
 
-    if not JName.validateEmail(invite.email) or not invite.role or invite.role is ''
+    if not validateEmail(invite.email) or not invite.role
       notValidInvites = notValidInvites + 1
       data.splice invitationCount, 1
       continue
+
+    if invite.role
+      if invite.role.toLowerCase() isnt 'admin' and invite.role.toLowerCase() isnt 'member'
+        notValidInvites = notValidInvites + 1
+        data.splice invitationCount, 1
+        continue
 
     if myEmail? and invite.email is myEmail
       data.splice invitationCount, 1
