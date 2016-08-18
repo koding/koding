@@ -408,6 +408,7 @@ analyzedInvitationResults = (params) ->
   while invitationCount > 0
     invitationCount = invitationCount - 1
     invite = data[invitationCount]
+    invite.role = invite.role?.toLowerCase()
 
     if not validateEmail(invite.email) or not invite.role
       notValidInvites = notValidInvites + 1
@@ -415,12 +416,12 @@ analyzedInvitationResults = (params) ->
       continue
 
     if invite.role
-      if invite.role.toLowerCase() isnt 'admin' and invite.role.toLowerCase() isnt 'member'
+      if invite.role isnt 'admin' and invite.role isnt 'member'
         notValidInvites = notValidInvites + 1
         data.splice invitationCount, 1
         continue
 
-    if myEmail? and invite.email is myEmail
+    if invite.email is myEmail
       data.splice invitationCount, 1
       notValidInvites = notValidInvites + 1
       myself = yes
@@ -436,11 +437,11 @@ analyzedInvitationResults = (params) ->
       alreadyMemberEmails = alreadyMemberEmails + 1
       continue
 
-    if invite.role.toLowerCase() is 'admin'
+    if invite.role is 'admin'
       adminEmails = adminEmails + 1
       continue
 
-    if invite.role.toLowerCase() is 'member'
+    if invite.role is 'member'
       membersEmails = membersEmails + 1
       continue
 
