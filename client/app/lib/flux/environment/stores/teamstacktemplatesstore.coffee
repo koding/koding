@@ -41,7 +41,7 @@ module.exports = class TeamStackTemplatesStore extends KodingFluxStore
         .setIn [id, 'isDirty'], yes
 
 
-  remove: (stackTemplates, { template }) -> stackTemplates.remove template._id
+  remove: (stackTemplates, { id }) -> stackTemplates.remove id
 
   updateSingle: (stackTemplates, { stackTemplate }) ->
 

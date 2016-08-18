@@ -660,24 +660,24 @@ disconnectMachine = (machine) ->
   computeController.destroy machine
 
 
-removeStackTemplate = (template) ->
+removeStackTemplate = (stackTemplate) ->
 
   { reactor, groupsController } = kd.singletons
 
   currentGroup = groupsController.getCurrentGroup()
 
   return new Promise (resolve, reject) ->
-    reactor.dispatch actions.REMOVE_STACK_TEMPLATE_BEGIN, { template }
-    template.delete (err) ->
+    reactor.dispatch actions.REMOVE_STACK_TEMPLATE_BEGIN, { stackTemplate }
+    stackTemplate.delete (err) ->
       if err
-        reactor.dispatch actions.REMOVE_STACK_TEMPLATE_FAIL, { template, err }
+        reactor.dispatch actions.REMOVE_STACK_TEMPLATE_FAIL, { stackTemplate, err }
         reject err
         return
 
-      if template.accessLevel is 'group'
-        currentGroup.sendNotification 'GroupStackTemplateRemoved', template._id
+      if stackTemplate.accessLevel is 'group'
+        currentGroup.sendNotification 'GroupStackTemplateRemoved', stackTemplate._id
 
-      reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { template }
+      reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { id: stackTemplate._id }
       resolve()
 
       Tracker.track Tracker.STACKS_DELETE_TEMPLATE
