@@ -44,7 +44,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
     modal = new UploadCSVModal
       success : @bound 'uploadCSVSuccess'
-      error : @bound 'uploadCsvFail'
+      error : @bound 'uploadCSVFail'
 
 
   uploadCSVSuccess: (result) ->
@@ -54,7 +54,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     TeamFlux.actions.loadPendingInvitations()
 
 
-  uploadCsvFail: ->
+  uploadCSVFail: ->
     new kd.NotificationView
       title : 'Error Occured while handling invitations'
       duration : 5000
