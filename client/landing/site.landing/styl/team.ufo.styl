@@ -3,7 +3,10 @@
 .Team--ufo.Team
   bg                        color, #3c3b58
   bg                        image, linear-gradient(-180deg,#3c3c57 11%,#8598be 100%)
-  min-height                1020px
+  min-height                820px
+  font-family               ProximaNovaFamily
+  -webkit-font-smoothing    antialiased
+  -moz-osx-font-smoothing   grayscale
 
   a
     color                   #56a2d3
@@ -41,12 +44,14 @@
       kalc                  left, 50% \- 40px
 
     h4
+      font-family           ProximaNovaFamily
       font-size             27px
       line-height           32px
       color                 #f2778a
       font-weight           normal
 
     h5
+      font-family           ProximaNovaFamily
       font-size             18px
       letter-spacing        .21px
       line-height           27px
@@ -56,6 +61,7 @@
       margin-top            40px !important
 
     .login-input-view
+      font-family           ProximaNovaFamily
       width                 400px !important
       margin                0 auto
       margin-bottom         19px
@@ -64,37 +70,27 @@
       input.kdinput
         border              1px solid #d9d9d9
         font-size           18px
+        font-family         ProximaNovaFamily
         letter-spacing      .35px
+        line-height         25px
+        height              51px
         color               #4a4a4a !important
+        text-align          left
+        padding             10px 14px 14px
+        margin              0
+        borderBox()
 
       &.validation-error input.kdinput
         border-width        1px !important
 
-    &.TeamsModal--domain
-      .login-input-view
-        border              1px solid #d9d9d9 !important
-        rounded             3px
-        text-align          left
-        padding-left        15px
-
-    &.TeamsModal--findTeam
-      .login-input-view
-        .placeholder-helper
-          color             #ccc
-          font-size         18px
-          top               16px
-
-          &.out
-            color           #999
-            font-size       12px
-            top             -15px
-
     .TeamsModal-button
       margin                0 auto
+      padding               10px 0 12px 0
       bg                    color, #f2778a
       color                 #fff
       rounded               4px
       width                 400px
+      font-family           ProximaNovaFamily
       font-size             18px
       line-height           21px
       margin-bottom         25px
@@ -105,20 +101,34 @@
 
     &.TeamsModal--domain
       .login-input-view
+        border              1px solid #d9d9d9 !important
+        rounded             3px
+        dFlex()
+
         span
-          display           inline-block
+          font-size         18px !important
+          line-height       25px
+          padding           10px 14px 14px
           margin            0
-          fr()
-          padding           0 15px
           border-left       1px solid #d9d9d9
           bg                color, #fafafa
-          font-size         18px !important
+          borderBox()
 
         input.kdinput
           font-size         18px
+          text-align        left
+          padding           10px 14px 14px
+          height            49px
+          vendor            flex-grow, 1
+          border            0
+
+    &.TeamsModal--findTeam
+      h5
+        font-size           17px
 
   .additional-info
     margin-top              50px
+    margin-bottom           0
     padding                 0
     color                   #fff
     font-size               14px
@@ -170,7 +180,35 @@
     z-index                 0
 
 
-@media screen and (max-width : 767px)
+@media screen and (max-width : 1600px)
+
+  .Team--ufo.Team
+    .ufo-bg
+      bg                      image, url('/a/images/landing/ufo_1200.svg')
+      bg                      size, 1051px 528px
+      height                  528px
+
+    .ground-bg
+      bg                      image, url('/a/images/landing/ground_1200.svg')
+      bg                      size, 1614px 260px
+      height                  260px
+
+
+@media screen and (max-width : 1200px)
+
+  .Team--ufo.Team
+    .ufo-bg
+      bg                      image, url('/a/images/landing/ufo_1200.svg')
+      bg                      size, 1051px 528px
+      height                  528px
+
+    .ground-bg
+      bg                      image, url('/a/images/landing/ground_768.svg')
+      bg                      size, 1457px 248px
+      height                  248px
+
+
+@media screen and (max-width : 768px)
 
   .expand-menu
     .Team--ufo
@@ -192,3 +230,11 @@
     .TeamsModal--domain::after
       margin-left           0
       kalc                  left, 50% \- 40px, !important
+
+    .ufo-bg
+      hidden()
+
+    .ground-bg
+      bg                      image, url('/a/images/landing/ground_ufo_375.svg')
+      bg                      size, 798px 637px
+      height                  637px

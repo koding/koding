@@ -91,11 +91,6 @@ module.exports = class TeamSelectorView extends kd.TabPaneView
 
     """
     {{> @header }}
-    <div class="TeamsModal TeamsModal--select TeamsModal--domain not-supported-for-mobile">
-      <h4>Apologies earthling!</h4>
-      <hr></hr>
-      <p>We don't currently support</br>using Koding on mobile devices.</p>
-    </div>
     <div class="TeamsModal TeamsModal--select TeamsModal--domain TeamsModal-login">
       <h4>Welcome!</h4>
       <h5>Enter your team's Koding domain.</h5>

@@ -15,19 +15,18 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
     email = signup?.email or invitation?.email
 
     @usernameOrEmail = new LoginInputView
-      inputOptions    :
-        name          : 'email'
-        placeholder   : 'Email address'
-        testPath      : 'find-team-input'
-        defaultValue  : email
-        validate      :
-          container   : this
-          rules       :
-            required  : yes
-          messages    :
-            required  : 'Please enter your email.'
-
-    @usernameOrEmail.inputReceivedKeyup()  if email
+      inputOptions             :
+        name                   : 'email'
+        placeholder            : 'Email address...'
+        useOriginalPlaceholder : yes
+        testPath               : 'find-team-input'
+        defaultValue           : email
+        validate               :
+          container            : this
+          rules                :
+            required           : yes
+          messages             :
+            required           : 'Please enter your email.'
 
     @button = new kd.ButtonView
       title       : 'SEND TEAM LIST'

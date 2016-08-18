@@ -21,8 +21,7 @@ module.exports = class TeamsSelectorForm extends kd.FormView
       click        : => @input.setFocus()
 
     @inputView.addSubView @input = new kd.InputView
-      placeholder  : 'Your team'
-      attributes   : 10
+      placeholder  : 'Your team name...'
       name         : 'slug'
       defaultValue : lastTeam  if lastTeam
 
@@ -30,9 +29,6 @@ module.exports = class TeamsSelectorForm extends kd.FormView
       tagName      : 'span'
       partial      : ".#{kd.config.domains.main}"
 
-    @inputView.addSubView @fakeView = new kd.CustomHTMLView
-      tagName      : 'div'
-      cssClass     : 'fake-view'
 
     @button = new kd.ButtonView
       title       : 'Login'
@@ -43,9 +39,6 @@ module.exports = class TeamsSelectorForm extends kd.FormView
 
     @input.on 'ValidationFeedbackCleared', =>
       @inputView.unsetClass 'validation-error validation-passed'
-
-    # Listen text change event in real time
-    @input.on [ 'input', 'viewAppended' ], => utils.repositionSuffix @input, @fakeView
 
 
   pistachio: ->
