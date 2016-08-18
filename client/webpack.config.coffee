@@ -140,7 +140,7 @@ pushLoader [
   include: CLIENT_PATH
   loaders: [
     'style'
-    'css?modules&importLoaders=1?localIdentName=[path][name]-[local]-[hash:base64:5]'
+    'css'
     'stylus'
   ]
 ,
@@ -148,7 +148,7 @@ pushLoader [
   include: CLIENT_PATH
   loaders: [
     'style'
-    'css?modules&importLoaders=1?localIdentName=[path][name]-[local]-[hash:base64:5]'
+    'css'
   ]
 ]
 
