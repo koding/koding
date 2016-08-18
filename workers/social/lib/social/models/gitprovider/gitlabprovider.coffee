@@ -11,10 +11,18 @@ KONFIG      = require 'koding-config-manager'
 
 injectQueryStrings = (templateData) ->
 
-  { template: { content }, branch } = templateData
+  { template: { content }, user, repo, branch } = templateData
+
+  config = { repo: "#{user}/#{repo}", branch }
+
+  { content } = templateData.template
+
+  Object.keys(config).forEach (key) ->
+    value   = config[key]
+    content = content
+      .replace ///\$\{var\.koding_queryString_#{key}\}///g, value
 
   templateData.template.content = content
-    .replace /\$\{var\.koding_queryString_branch\}/g, branch
 
   return templateData
 
