@@ -78,7 +78,7 @@ module.exports = class SidebarStackSection extends React.Component
       when 'Reinitialize', 'Update'
         reinitStackFromWidget(stack).then ->
           # invalidate editor cache
-          appManager.tell 'Stackeditor', 'reloadEditor', stack.get('baseTemplate').toJS()
+          appManager.tell 'Stackeditor', 'reloadEditor', templateId
       when 'Destroy VMs' then deleteStack { stack }
       when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
 

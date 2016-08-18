@@ -106,7 +106,7 @@ module.exports = class StackEditorAppController extends AppController
 
     unless @editors[id]
       @editors[id] = editor = @createEditor stackTemplate
-      editor.on 'Reload', @lazyBound 'reloadEditor', stackTemplate
+      editor.on 'Reload', @lazyBound 'reloadEditor', stackTemplate._id
       @mainView.addSubView editor
 
     return  unless editor = @editors[id]
@@ -136,10 +136,13 @@ module.exports = class StackEditorAppController extends AppController
     editor?.destroy()
 
 
-  reloadEditor: (template) ->
+  reloadEditor: (templateId) ->
 
-    @removeEditor template._id
-    @showView template
+    { computeController } = kd.singletons
+
+    EnvironmentFlux.actions.fetchAndUpdateStackTemplate templateId, (template) =>
+      @removeEditor template._id
+      @showView template
 
 
   createEditor: (stackTemplate) ->
