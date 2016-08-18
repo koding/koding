@@ -1,7 +1,7 @@
 kd = require 'kd'
 React = require 'kd-react'
 ReactView = require 'app/react/reactview'
-PlansList = require './components/planslist'
+Subscription = require 'component-lab/Subscription'
 
 module.exports = class HomeTeamBillingCreditCard extends ReactView
 
@@ -12,7 +12,4 @@ module.exports = class HomeTeamBillingCreditCard extends ReactView
     super options, data
 
 
-  renderReact: -> <PlansList.Container />
-
-
-
+  renderReact: -> <Subscription />
