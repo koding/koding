@@ -7,6 +7,7 @@ EnvironmentFlux           = require 'app/flux/environment'
 StackUpdatedWidget        = require './stackupdatedwidget'
 getBoundingClientReact    = require 'app/util/getBoundingClientReact'
 SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
+isAdmin = require 'app/util/isAdmin'
 { findDOMNode } = require 'react-dom'
 
 MENU = null
@@ -78,7 +79,7 @@ module.exports = class SidebarStackSection extends React.Component
       when 'Reinitialize', 'Update'
         reinitStackFromWidget(stack).then ->
           # invalidate editor cache
-          appManager.tell 'Stackeditor', 'reloadEditor', stack.get('baseTemplate').toJS()
+          appManager.tell 'Stackeditor', 'reloadEditor', templateId
       when 'Destroy VMs' then deleteStack { stack }
       when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
 
@@ -103,7 +104,8 @@ module.exports = class SidebarStackSection extends React.Component
     if managedVM
       menuItems['VMs'] = { callback }
     else
-      ['Edit', 'Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
+      menuItems['Edit'] = { callback }  if isAdmin()
+      ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
         menuItems[name] = { callback }
 
     { top } = findDOMNode(this).getBoundingClientRect()
