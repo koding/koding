@@ -7,7 +7,7 @@ FindTeamForm   = require './findteamform'
 
 track = (action) ->
 
-  category = 'Team'
+  category = 'Teams'
   label    = 'FindTeam'
   utils.analytics.track action, { category, label }
 
@@ -32,16 +32,16 @@ module.exports = class FindTeamView extends kd.TabPaneView
     @form = new FindTeamForm
       callback : @bound 'findTeam'
 
-    @back = new kd.CustomHTMLView
-      tagName  : 'a'
-      cssClass : 'secondary-link'
-      partial  : 'BACK'
-      click    : -> kd.singletons.router.handleRoute '/Teams'
+    @back        = new kd.CustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'secondary-link'
+      partial    : 'BACK'
+      attributes : { href : '/Teams' }
 
-    @createTeam = new kd.CustomHTMLView
-      tagName : 'a'
-      partial : 'Create a new account'
-      click   : -> kd.singletons.router.handleRoute '/Teams/Create'
+    @createTeam  = new kd.CustomHTMLView
+      tagName    : 'a'
+      partial    : 'create a new team'
+      attributes : { href : '/Teams/Create' }
 
 
   setFocus: -> @form.setFocus()
@@ -52,12 +52,7 @@ module.exports = class FindTeamView extends kd.TabPaneView
     track 'submitted find teams form'
 
     { email } = formData
-    group = utils.getGroupNameFromLocation()
-
-    $.ajax
-      url         : '/findteam'
-      data        : { email, _csrf : Cookies.get('_csrf'), group }
-      type        : 'POST'
+    utils.findTeam email,
       error       : (xhr) =>
         { responseText } = xhr
         new kd.NotificationView { title : responseText }
@@ -86,8 +81,7 @@ module.exports = class FindTeamView extends kd.TabPaneView
       {{> @back}}
     </div>
     <div class="additional-info">
-      Do you want to onboard a new team?<br />
-      {{> @createTeam}}
+      Do you want to {{> @createTeam}}?
     </div>
     <div class="ufo-bg"></div>
     <div class="ground-bg"></div>

@@ -6,6 +6,8 @@ emailsanitize = require '../../../../workers/social/lib/social/models/user/email
 
 module.exports = (req, res) ->
 
+  UNKNOWN_USER_ERROR = 'User not found'
+
   { email } = req.body
   { JUser } = koding.models
 
@@ -16,17 +18,15 @@ module.exports = (req, res) ->
       sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
       JUser.one { sanitizedEmail }, (err, user) ->
         return next err  if err
-        return next 'User not found'  unless user
+        return next UNKNOWN_USER_ERROR  unless user
         next null, user
 
     (user, next) ->
-      username = user.getAt('username')
       user.fetchOwnAccount (err, account) ->
         return next err  if err
-        return next 'Account not found'  unless account
-        next null, username, account
+        next null, account
 
-    (username, account, next) ->
+    (account, next) ->
 
       async.parallel [
         (_next) -> account.fetchAllParticipatedGroups {}, _next
@@ -34,22 +34,25 @@ module.exports = (req, res) ->
       ], (err, results) ->
         return next err  if err
         groups = results[0].concat results[1]
-        next null, username, account, groups
+        next null, account, groups
 
-    (username, account, groups, next) ->
+    (account, groups, next) ->
       groups = groups.filter (group) -> group.slug isnt 'koding'
 
-      Tracker.identify username, { email }
-      Tracker.track username, {
-        to      : email
-        subject : Tracker.types.REQUESTED_TEAM_LIST
-      }, {
-        email
-        account
-        teams : groups
-      }, next
+      { profile : { nickname } } = account
+      Tracker.identify nickname, { email }, (err) ->
+        return next err  if err
+        Tracker.track nickname, {
+          to      : email
+          subject : Tracker.types.REQUESTED_TEAM_LIST
+        }, {
+          email
+          account
+          teams : groups
+        }, next
   ]
 
   async.waterfall queue, (err) ->
-    return res.status(403).send err.message ? err  if err
+    if err and err isnt UNKNOWN_USER_ERROR
+      return res.status(403).send err.message ? err
     res.status(200).end()

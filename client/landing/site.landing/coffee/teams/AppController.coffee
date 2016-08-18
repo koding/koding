@@ -26,7 +26,7 @@ module.exports = class TeamsAppController extends kd.ViewController
 
     if pane = view.getPaneByName name
     then view.showPane pane
-    else view.addPane pane = new PAGES[name] { name, cssClass : 'content-page' }
+    else view.addPane new PAGES[name] { name, cssClass : 'content-page' }
 
 
   handleQuery: (query) ->

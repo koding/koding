@@ -13,12 +13,10 @@ module.exports = class ChangeTeamView extends kd.ModalView
 
     super options, data
 
-    account = whoami()
-
     @addSubView new AvatarStaticView
       cssClass   : 'HomeAppView-Nav--avatar'
       size       : { width: 60, height: 60 }
-    , account
+    , whoami()
 
     @addSubView new kd.CustomHTMLView
       tagName : 'h1'

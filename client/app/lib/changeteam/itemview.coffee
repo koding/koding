@@ -15,10 +15,9 @@ module.exports = class ChangeTeamListItem extends kd.ListItemView
     team = @getData()
     { customize, slug } = team
 
-    logo = team.customize?.logo ? ''
     @logoWrapper = new kd.CustomHTMLView
       cssClass : 'team-logo-wrapper'
-    if logo
+    if logo = team.customize?.logo
       @logoWrapper.addSubView new kd.CustomHTMLView
         tagName    : 'img'
         attributes :
@@ -33,18 +32,18 @@ module.exports = class ChangeTeamListItem extends kd.ListItemView
     if currentGroup.slug is slug
       @actionElement = new kd.CustomHTMLView
         tagName  : 'span'
-        cssClass : 'active-team-label'
-        partial  : 'Active Team <div class="circle"></div>'
+        cssClass : 'current-team-label'
+        partial  : 'Current Team'
       return
 
-    { protocol } = document.location
     hostname     = globals.config.domains.main
     domain       = if slug is 'koding' then hostname else "#{slug}.#{hostname}"
 
     hasInvitation  = team.invitationCode?
     actionTitle    = if hasInvitation then 'Join' else 'Switch'
-    actionLink     = "#{protocol}//#{domain}"
-    actionLink    += "/Invitation/#{encodeURIComponent team.invitationCode}"  if hasInvitation
+    actionLink     = "//#{domain}"
+    if hasInvitation
+      actionLink   = "#{actionLink}/Invitation/#{encodeURIComponent team.invitationCode}"
     actionCssClass = "GenericButton #{if hasInvitation then 'join' else ''}"
     @actionElement = new kd.CustomHTMLView
       tagName    : 'a'
@@ -57,12 +56,10 @@ module.exports = class ChangeTeamListItem extends kd.ListItemView
 
   pistachio: ->
 
-    { title } = @getData()
-
     """
       <div class="team-title-wrapper">
         {{> @logoWrapper}}
-        <span class="team-title">#{title}</span>
+        {span.team-title{#(title)}}
       </div>
       {{> @actionElement }}
     """

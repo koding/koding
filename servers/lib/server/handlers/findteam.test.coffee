@@ -84,7 +84,7 @@ runTests = -> describe 'server.handlers.findteam', ->
     async.series queue, done
 
 
-  it 'should send HTTP 403 if email is not registered', (done) ->
+  it 'should send HTTP 200 if email is not registered', (done) ->
 
     requestParams = FindTeamHelper.generateRequestParams
       body    :
@@ -92,8 +92,8 @@ runTests = -> describe 'server.handlers.findteam', ->
 
     request.post requestParams, (err, res, body) ->
       expect(err).to.not.exist
-      expect(res.statusCode).to.be.equal 403
-      expect(body).to.be.equal 'User not found'
+      expect(res.statusCode).to.be.equal 200
+      expect(body).to.be.equal ''
       done()
 
 

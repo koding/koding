@@ -395,10 +395,10 @@ module.exports = class JAccount extends jraphical.Module
         JGroup = require './group'
         JGroup.some { slug : { $in : slugs } }, {}, (err, groups) ->
           return next err  if err
-          groups = groups.map (group) ->
-            for invitation in invitations when invitation.groupName is group.slug
-              group.invitationCode = invitation.code
-            return group
+          for group in groups
+            groupInvitations = invitations.filter (invitation) ->
+              invitation.groupName is group.slug
+            group.invitationCode = groupInvitations.first?.code
           next null, groups
     ]
 

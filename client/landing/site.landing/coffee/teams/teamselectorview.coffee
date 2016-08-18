@@ -35,16 +35,16 @@ module.exports = class TeamSelectorView extends kd.TabPaneView
     @form = new TeamsSelectorForm
       callback : @bound 'goToTeam'
 
-    @findTeam = new kd.CustomHTMLView
-      tagName  : 'a'
-      cssClass : 'secondary-link'
-      partial  : 'Forgot your team name?'
-      click    : -> kd.singletons.router.handleRoute '/Teams/FindTeam'
+    @findTeam    = new kd.CustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'secondary-link'
+      partial    : 'Forgot your team name?'
+      attributes : { href : '/Teams/FindTeam' }
 
-    @createTeam = new kd.CustomHTMLView
-      tagName : 'a'
-      partial : 'Create a new account'
-      click   : -> kd.singletons.router.handleRoute '/Teams/Create'
+    @createTeam  = new kd.CustomHTMLView
+      tagName    : 'a'
+      partial    : 'create a new team'
+      attributes : { href : '/Teams/Create' }
 
     @previousTeams = new kd.CustomHTMLView { tagName: 'p' }
 
@@ -98,8 +98,7 @@ module.exports = class TeamSelectorView extends kd.TabPaneView
       {{> @findTeam}}
     </div>
     <section class="previous-teams additional-info">
-      Do you want to onboard a new team?<br />
-      {{> @createTeam}}
+      Do you want to {{> @createTeam}}?
       {{> @previousTeams}}
     </section>
     <div class="ufo-bg"></div>
