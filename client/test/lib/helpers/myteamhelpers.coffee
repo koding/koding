@@ -11,11 +11,12 @@ removeLogoButton  = "#{buttonSelector}.remove"
 teamNameSelector  = "#{sectionSelector} .half input[type=text]"
 saveChangesButton = '.HomeAppView--section .HomeAppView--button.fr'
 
-kodingLogo      = "#{sectionSelector} .HomeAppView--uploadLogo img"
+logo      = ".HomeAppView--uploadLogo .teamLogo-wrapper"
 defaultLogoPath = "#{helpers.getUrl(yes)}/a/images/logos/sidebar_footer_logo.svg"
-localImage      = "#{__dirname}/upload.png"
+localImage      = "#{__dirname}/koding.jpeg"
 localImage      = require('path').resolve(localImage)
-teamLogo        = "#{sectionSelector} .kdinput.file"
+imagePath       = require('path').resolve('sidebar_footer_logo.svg')
+teamLogo        = '.HomeAppView--uploadLogo .uploadInputWrapper .kdinput.file'
 successMessage  = 'Team settings has been successfully updated.'
 executeCommand  = "document.querySelector('.teamLogo').setAttribute('src', 'some_path');"
 
@@ -58,6 +59,16 @@ module.exports =
       .click saveChangesButton
     teamsHelpers.assertConfirmation browser, successMessage
     browser.pause 1000, callback
+
+  
+  # uploadAndRemoveLogo: (browser, callback) ->
+  #   aaa = require('path').resolve("#{__dirname}", 'koding.jpeg')
+  #   console.log(imagePath);
+  #   console.log(aaa)
+
+  #   browser
+  #     .waitForElementVisible logo, 20000
+  #     .setValue '.HomeAppView--uploadLogo .uploadInputWrapper', aaa
 
 
   inviteAndJoinToTeam: (browser, host, callback) ->
@@ -220,27 +231,27 @@ module.exports =
       .waitForElementVisible sectionSelector, 20000
     targetUser1 = invitations[indexOfTargetUser3]
     teamsHelpers.logoutTeam browser, (res) ->
-    teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
-      browser
-        .waitForElementVisible welcomeView, 60000
-        .url myTeamLink
-        .waitForElementVisible sectionSelector, 20000
-        .waitForElementNotPresent checkboxSelector, 20000
-        .expect.element(adminTextSelector).text.to.not.contain 'Admin'
+      teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
+        browser
+          .waitForElementVisible welcomeView, 60000
+          .url myTeamLink
+          .waitForElementVisible sectionSelector, 20000
+          .waitForElementNotPresent checkboxSelector, 20000
+          .expect.element(adminTextSelector).text.to.not.contain 'Admin'
 
-      browser
-        .scrollToElement "#{teammateSectionSelector} .ListView"
-        .waitForElementVisible teammateSection, 20000
-        .waitForElementVisible teammateSectionSelector, 20000
-        .pause 5000
-        .click selector(1)
-        .waitForElementNotPresent nthItem(1), 20000
-        .scrollToElement sectionSelector
-        .waitForElementNotPresent removeLogoButton, 20000
-        .waitForElementNotPresent uploadLogoButton, 20000
-        .waitForElementNotPresent '.HomeAppView--button .custom-link-view .fr .hidden', 20000
-        .assert.attributeEquals teamNameSelector, 'disabled', 'true'
-        .pause 1000, callback
+        browser
+          .scrollToElement "#{teammateSectionSelector} .ListView"
+          .waitForElementVisible teammateSection, 20000
+          .waitForElementVisible teammateSectionSelector, 20000
+          .pause 5000
+          .click selector(1)
+          .waitForElementNotPresent nthItem(1), 20000
+          .scrollToElement sectionSelector
+          .waitForElementNotPresent removeLogoButton, 20000
+          .waitForElementNotPresent uploadLogoButton, 20000
+          .waitForElementNotPresent '.HomeAppView--button .custom-link-view .fr .hidden', 20000
+          .assert.attributeEquals teamNameSelector, 'disabled', 'true'
+          .pause 1000, callback
 
 
   leaveTeam: (browser, callback) ->
@@ -273,7 +284,31 @@ module.exports =
       .assert.urlContains helpers.getUrl(yes)
     teamsHelpers.loginToTeam browser, targetUser1 , yes, 'NotAllowedEmail', ->
       browser
-        .pause 1000000, callback
+        .pause 1000, callback
+
+  
+  checkAdmin: (browser, callback) ->
+
+    user = invitations[indexOfTargetUser2]
+    teamsHelpers.logoutTeam browser, (res) ->
+      teamsHelpers.loginToTeam browser, user, no, '', ->
+        browser
+          .click '#main-sidebar'
+          .waitForElementVisible '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 20000
+          .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
+          .waitForElementVisible '.HomeAppView-Nav--role', 30000
+          .assert.containsText '.HomeAppView-Nav--role', 'Admin'
+          .pause 1000, callback
+
+
+  sendInviteToRegisteredUser: (browser, callback) ->
+    registeredUser = utils.getUser no, 5
+    browser.url myTeamLink
+    browser
+      .waitForElementVisible sectionSelector, 20000
+      .scrollToElement sectionSendInvites
+    teamsHelpers.inviteUser browser, 'member', registeredUser.email, no
+    browser.pause 1000, callback
 
 
 selector = (index) ->

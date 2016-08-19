@@ -7,11 +7,28 @@ async        = require 'async'
 module.exports =
 
   before: (browser, done) ->
+    registeredUser = utils.getUser no, 5
     targetUser1 = utils.getUser no, 1
     targetUser1.role = 'member'
-    users = targetUser1
-    teamsHelpers.inviteAndJoinWithUsers browser, [users], (result) ->
-      done()
+    users = [
+      targetUser1
+    ]
+
+    queue = [
+      (next) ->
+        teamsHelpers.loginTeam browser, registeredUser, no, '', (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.logoutTeam browser, (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
+          next null, result
+
+    ]
+
+    async.series queue, (err, result) ->
+      done()  unless err
 
   teamSettings: (browser) ->
     member = utils.getUser no, 1
@@ -20,7 +37,10 @@ module.exports =
     queue = [
       (next) ->
         myteamhelper.editTeamName browser, host, (result) ->
-          next null, result      
+          next null, result
+      # (next) ->
+      #   myteamhelper.uploadAndRemoveLogo browser, host, (result) ->
+      #     next null, result    
       (next) ->
         myteamhelper.inviteAndJoinToTeam browser, host, (result) ->
           next null, result
@@ -52,11 +72,18 @@ module.exports =
         myteamhelper.sendInviteAll browser, (result) ->
           next null, result
       (next) ->
+        myteamhelper.sendInviteToRegisteredUser browser, (result) ->
+          next null, result
+      (next) ->
         myteamhelper.changeTeamName browser, (result) ->
           next null, result
       (next) ->
         myteamhelper.leaveTeam browser, (result) ->
           next null, result
+      (next) ->
+        myteamhelper.checkAdmin browser, (result) ->
+          next null, result
+
     ]
 
     async.series queue
