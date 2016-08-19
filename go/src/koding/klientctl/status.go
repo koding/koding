@@ -247,6 +247,23 @@ func (c *HealthChecker) CheckRemote() error {
 // TODO: Enable debug logs
 // log.Print(err.Error())
 func (c *HealthChecker) CheckAllWithResponse() (res string, ok bool) {
+	// Check remote endpoints first, to debug what might be blocking Klient
+	// from starting.
+	if err := defaultHealthChecker.CheckRemote(); err != nil {
+		switch err.(type) {
+		case ErrHealthNoInternet:
+			res = fmt.Sprintf(`Error: You do not appear to have a properly working internet connection.`)
+
+		case ErrHealthNoKontrolHTTPResponse:
+			res = fmt.Sprintf(`Error: koding.com does not appear to be responding.`)
+
+		default:
+			res = fmt.Sprintf("Unknown remote healthcheck error: %s", err.Error())
+		}
+
+		return res, false
+	}
+
 	if err := defaultHealthChecker.CheckLocal(); err != nil {
 		switch err.(type) {
 		case ErrHealthNoHTTPReponse:
@@ -279,21 +296,6 @@ Please run the following command:
 
 		default:
 			res = fmt.Sprintf("Unknown local healthcheck error: %s", err.Error())
-		}
-
-		return res, false
-	}
-
-	if err := defaultHealthChecker.CheckRemote(); err != nil {
-		switch err.(type) {
-		case ErrHealthNoInternet:
-			res = fmt.Sprintf(`Error: You do not appear to have a properly working internet connection.`)
-
-		case ErrHealthNoKontrolHTTPResponse:
-			res = fmt.Sprintf(`Error: koding.com does not appear to be responding.`)
-
-		default:
-			res = fmt.Sprintf("Unknown remote healthcheck error: %s", err.Error())
 		}
 
 		return res, false
