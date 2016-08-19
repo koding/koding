@@ -1,0 +1,8 @@
+{
+  "error": {
+    "type": "card_error",
+    "code": "invalid_email",
+    "message": "Your email is invalid.",
+    "param": "email"
+  }
+}

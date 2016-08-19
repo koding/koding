@@ -1,0 +1,8 @@
+{
+  "error": {
+    "type": "card_error",
+    "code": "invalid_expiry_year",
+    "message": "Your card's expiration year is invalid.",
+    "param": "exp_year"
+  }
+}
