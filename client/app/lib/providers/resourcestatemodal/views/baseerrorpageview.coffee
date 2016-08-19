@@ -1,5 +1,7 @@
 kd = require 'kd'
 JView = require 'app/jview'
+copyToClipboard = require 'app/util/copyToClipboard'
+getCopyToClipboardShortcut = require 'app/util/getCopyToClipboardShortcut'
 
 module.exports = class BaseErrorPageView extends JView
 
@@ -21,18 +23,22 @@ module.exports = class BaseErrorPageView extends JView
 
     isSingleError = errs.length is 1
 
-    title = if isSingleError
-    then 'You got an error:'
-    else 'You got some errors:'
+    @errorContent.destroySubViews()
 
-    content = if isSingleError
-    then "<p>#{errs.first}</p>"
-    else "<ul>#{(errs.map (err) -> "<li>#{err}</li>").join ''}</ul>"
+    @errorContent.addSubView new kd.CustomHTMLView
+      cssClass : 'error-title'
+      partial  : """
+        You got #{if isSingleError then 'an error' else 'some errors'}:
+        <cite>#{getCopyToClipboardShortcut()}</cite>
+      """
 
-    @errorContent.updatePartial """
-      <span class='error-title'>#{title}</span>
-      #{content}
-    """
+    errorPartial = if isSingleError
+    then errs.first
+    else (errs.map (err) -> "<li>#{err}</li>").join ''
+    @errorContent.addSubView new kd.CustomHTMLView
+      tagName  : if isSingleError then 'p' else 'ul'
+      partial  : errorPartial
+      click    : -> copyToClipboard @getElement()
 
 
   onPageDidShow: ->
