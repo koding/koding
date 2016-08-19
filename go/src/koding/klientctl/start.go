@@ -7,6 +7,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	"github.com/koding/service"
 )
 
 // StartCommand starts local klient. Requires sudo.
@@ -23,21 +24,9 @@ func StartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	if err := s.Start(); err != nil {
-		log.Error("Error starting Service. err:%s", err)
-		fmt.Println(FailedStartKlient)
-		return 1
-	}
-
-	fmt.Println("Starting...")
-
-	err = WaitUntilStarted(config.KlientAddress, CommandAttempts, CommandWaitTime)
-	if err != nil {
-		log.Error(
-			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
-			15, err,
-		)
-		fmt.Println(FailedStartKlient)
+	// No UX message needed, startKlient will do that itself.
+	if err := startKlient(log, s); err != nil {
+		log.Error("failed to start klient: %s", err)
 		return 1
 	}
 
@@ -61,4 +50,43 @@ func WaitUntilStarted(address string, attempts int, pauseIntv time.Duration) err
 		}
 	}
 	return err
+}
+
+func startKlient(log logging.Logger, s service.Service) error {
+	// For debug purposes, run a health check before we even attempt to start. This
+	// will help give us a sense of what this machine's health check was before
+	// klient tried to start.
+	if res, ok := defaultHealthChecker.CheckAllWithResponse(); !ok {
+		log.Warning("before attempting to start klient health check returned not-okay. reason: %s", res)
+	}
+
+	if err := s.Start(); err != nil {
+		log.Error("Error starting Service. err:%s", err)
+		fmt.Println(FailedStartKlient)
+		return err
+	}
+
+	fmt.Println("Starting...")
+
+	err := WaitUntilStarted(config.KlientAddress, CommandAttempts, CommandWaitTime)
+	if err != nil {
+		log.Error(
+			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
+			CommandAttempts, err,
+		)
+
+		if s, ok := defaultHealthChecker.CheckAllWithResponse(); !ok {
+			fmt.Printf(`Failed to start %s in time.
+
+A health check found the following issue:
+%s
+`, config.KlientName, s)
+		} else {
+			fmt.Println(FailedStartKlient)
+		}
+
+		return err
+	}
+
+	return nil
 }
