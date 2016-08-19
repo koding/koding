@@ -4,6 +4,7 @@ _ = require 'lodash'
 exports.make = make = (reducers = {}) ->
 
   customReducers = {
+    stripe: require './modules/stripe'
   }
 
   reducers = _.assign {}, customReducers, reducers
