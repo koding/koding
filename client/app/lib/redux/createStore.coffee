@@ -3,13 +3,13 @@
 
 module.exports = (initialState = {}) ->
 
-  remote = require('app/remote').getInstance()
-  kd = require 'kd'
+  remote = require 'app/remote'
+  { token: stripeToken } = globals.config.stripe
 
   middlewares = [
     require('./middleware/bongo')(remote)
-    require('./middleware/stripe')
     require('./middleware/payment')(require './services/payment')
+    require('./middleware/stripe')(require('./services/stripe'), stripeToken)
     require('./middleware/promise')
   ]
 

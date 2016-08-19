@@ -1,0 +1,9 @@
+{
+  "error": {
+    "type": "card_error",
+    "code": "invalid_expiry_month",
+    "message": "The card's expiration month is invalid.",
+    "param": "exp_month"
+  }
+}
+

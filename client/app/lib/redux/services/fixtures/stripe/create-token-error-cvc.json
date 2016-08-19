@@ -1,0 +1,8 @@
+{
+  "error": {
+    "type": "card_error",
+    "code": "invalid_cvc",
+    "message": "The card's security code is invalid.",
+    "param": "cvc"
+  }
+}
