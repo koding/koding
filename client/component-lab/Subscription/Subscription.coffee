@@ -10,7 +10,6 @@ TrialExpireWarning = require 'lab/TrialExpireWarning'
 module.exports = class Subscription extends React.Component
 
   @propsTypes =
-
     subscriptionTitle: React.PropTypes.string
     pricePerSeat: React.PropTypes.string
     teamSize: React.PropTypes.string
@@ -53,16 +52,16 @@ module.exports = class Subscription extends React.Component
   renderHeader: ->
 
     title = "#{@props.pricePerSeat} per Developer (#{@props.teamSize} Developers)"
-    subTitle = "Your next billing date is #{@props.endsAt}."
+    subtitle = "Your next billing date is #{@props.endsAt}."
 
     if @props.isTrial
       title = @props.subscriptionTitle
-      subTitle = "You have #{@props.trialEndsAt} days left." #plural singular
+      subtitle = "You have #{@props.trialEndsAt} days left." #plural singular
 
     <SubscriptionHeader
       danger={@props.isExpired}
       title={title}
-      subTitle={subTitle}
+      subtitle={subtitle}
       freeCredit={@props.freeCredit}
       nextBillingAmount={@props.nextBillingAmount} />
 
@@ -71,7 +70,10 @@ module.exports = class Subscription extends React.Component
 
     return  if @props.isExpired
 
-    <ChargeInfo teamSize={@props.teamSize} pricePerSeat={@props.pricePerSeat} onClick={@props.onClickInfo} />
+    <ChargeInfo
+      teamSize={@props.teamSize}
+      pricePerSeat={@props.pricePerSeat}
+      onClick={@props.onClickInfo} />
 
 
   renderVerifyEmailWarning: ->
@@ -94,7 +96,9 @@ module.exports = class Subscription extends React.Component
 
     return  unless @props.isExpired
 
-    <TrialExpireWarning teamSize={@props.teamSize} pricePerSeat={@props.pricePerSeat} />
+    <TrialExpireWarning
+      teamSize={@props.teamSize}
+      pricePerSeat={@props.pricePerSeat} />
 
 
   renderButtons: ->
@@ -119,3 +123,5 @@ module.exports = class Subscription extends React.Component
       {@renderTrialExpireWarning()}
       {@renderButtons()}
     </div>
+
+

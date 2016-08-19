@@ -8,7 +8,7 @@ module.exports = class VerifyEmailWarning extends React.Component
     className: React.PropTypes.string
     onClick: React.PropTypes.func
 
-  @defaultTypes =
+  @defaultProps =
     email: 'admin@koding.com'
     className: ''
     onClick: kd.noop
@@ -18,9 +18,13 @@ module.exports = class VerifyEmailWarning extends React.Component
     className = kd.utils.curry 'VerifyEmailWarning', @props.className
 
     <div className={className}>
-      <label className='VerifyEmailWarning--label'>Please verify your email address.</label>
+      <label className='VerifyEmailWarning--label'>
+        Please verify your email address.
+      </label>
       <div className='VerifyEmailWarning--content'>
         We have sent an email to {@props.email} ..........
-        <a className='VerifyEmailWarning--resend' onClick={@props.onClick}>click to resend</a>
+        <a className='VerifyEmailWarning--resend' onClick={@props.onClick}>
+          click to resend
+        </a>
       </div>
     </div>

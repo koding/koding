@@ -1,6 +1,6 @@
 kd = require 'kd'
 React = require 'react'
-ChargeInfo = require '../ChargeInfo'
+ChargeInfo = require 'lab/ChargeInfo'
 
 module.exports = class TrialExpireWarning extends React.Component
 
@@ -27,5 +27,10 @@ module.exports = class TrialExpireWarning extends React.Component
       </div>
       <div className='TrialExpireWarning--content'>
       </div>
-      <ChargeInfo teamSize={@props.teamSize} moneyPerUser={@props.moneyPerUser} onClick={@props.onClickInfo} />
+      <ChargeInfo
+        teamSize={@props.teamSize}
+        moneyPerUser={@props.moneyPerUser}
+        onClick={@props.onClickInfo} />
     </div>
+
+
