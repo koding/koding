@@ -20,21 +20,19 @@ import (
 	"github.com/koding/logging"
 )
 
-var (
-	flagConfFile       = flag.String("c", "", "Configuration profile from file")
-	flagRegion         = flag.String("r", "", "Region name")
-	flagDebug          = flag.Bool("d", false, "Debug mode")
-	flagVersion        = flag.Int("v", 0, "Worker Version")
-	flagOutputMetrics  = flag.Bool("outputMetrics", false, "Output metrics")
-	flagKiteInit       = flag.Bool("kite-init", false, "Init kite system with the worker.")
-	flagKiteLocal      = flag.Bool("kite-local", false, "Start kite system in local mode.")
-	flagKiteProxy      = flag.Bool("kite-proxy", false, "Start kite system behind a proxy")
-	flagKiteKontrolURL = flag.String("kite-kontrol-url", "", "Change kite's register URL to kontrol")
-
-	// for socialAPI worker
-	flagHost = flag.String("host", "0.0.0.0", "listen address")
-	flagPort = flag.String("port", "7000", "listen port")
-)
+type flagConfig struct {
+	confFile       *string
+	region         *string
+	debug          *bool
+	version        *int
+	outputMetrics  *bool
+	kiteInit       *bool
+	kiteLocal      *bool
+	kiteProxy      *bool
+	kiteKontrolURL *string
+	host           *string
+	port           *string
+}
 
 type Runner struct {
 	Log             logging.Logger
@@ -46,10 +44,34 @@ type Runner struct {
 	Kite            *kite.Kite
 	Metrics         *metrics.Metrics
 	DogStatsD       *metrics.DogStatsD
+
+	flag *flagConfig
 }
 
 func New(name string) *Runner {
-	return &Runner{Name: name}
+
+	f1 := flag.NewFlagSet(name, flag.ExitOnError)
+
+	c := &flagConfig{
+		confFile:       f1.String("c", "", "Configuration profile from file"),
+		region:         f1.String("r", "", "Region name"),
+		debug:          f1.Bool("d", false, "Debug mode"),
+		version:        f1.Int("v", 0, "Worker Version"),
+		outputMetrics:  f1.Bool("outputMetrics", false, "Output metrics"),
+		kiteInit:       f1.Bool("kite-init", false, "Init kite system with the worker."),
+		kiteLocal:      f1.Bool("kite-local", false, "Start kite system in local mode."),
+		kiteProxy:      f1.Bool("kite-proxy", false, "Start kite system behind a proxy"),
+		kiteKontrolURL: f1.String("kite-kontrol-url", "", "Change kite's register URL to kontrol"),
+		// for socialAPI worker
+		host: f1.String("host", "0.0.0.0", "listen address"),
+		port: f1.String("port", "7000", "listen port"),
+	}
+
+	if err := f1.Parse(os.Args[1:]); err == nil {
+		panic(err.Error())
+	}
+
+	return &Runner{Name: name, flag: c}
 }
 
 func WrapWithVersion(name string, version *int) string {
@@ -57,7 +79,7 @@ func WrapWithVersion(name string, version *int) string {
 }
 
 func (r *Runner) Init() error {
-	return r.InitWithConfigFile(*flagConfFile)
+	return r.InitWithConfigFile(*r.flag.confFile)
 }
 
 // InitWithConfigFile used for externally setting config file.
@@ -68,33 +90,33 @@ func (r *Runner) InitWithConfigFile(configFile string) error {
 
 	// set config file after parsing
 	if configFile == "" {
-		configFile = *flagConfFile
+		configFile = *r.flag.confFile
 	}
 
 	r.Conf = MustRead(configFile)
 
 	// override Debug if only it is true
-	if *flagDebug {
-		r.Conf.Debug = *flagDebug
+	if *r.flag.debug {
+		r.Conf.Debug = *r.flag.debug
 	}
 
-	r.Conf.Host = *flagHost
-	r.Conf.Port = *flagPort
+	r.Conf.Host = *r.flag.host
+	r.Conf.Port = *r.flag.port
 
 	// create logger for our package
 	r.Log = CreateLogger(
-		WrapWithVersion(r.Name, flagVersion),
+		WrapWithVersion(r.Name, r.flag.version),
 		r.Conf.Debug,
 	)
 
-	metrics, dogstatsd := CreateMetrics(r.Name, r.Log, *flagOutputMetrics)
+	metrics, dogstatsd := CreateMetrics(r.Name, r.Log, *r.flag.outputMetrics)
 	r.Metrics = metrics
 	r.DogStatsD = dogstatsd
 
 	// panics if not successful
 	r.Bongo = MustInitBongo(
-		WrapWithVersion(r.Name, flagVersion),
-		WrapWithVersion(r.Conf.EventExchangeName, flagVersion),
+		WrapWithVersion(r.Name, r.flag.version),
+		WrapWithVersion(r.Conf.EventExchangeName, r.flag.version),
 		r.Conf,
 		r.Log,
 		metrics,
@@ -105,7 +127,7 @@ func (r *Runner) InitWithConfigFile(configFile string) error {
 	r.Done = make(chan error, 1)
 	r.RegisterSignalHandler()
 
-	if *flagKiteInit {
+	if *r.flag.kiteInit {
 		if err := r.initKite(); err != nil {
 			return err
 		}
@@ -120,7 +142,7 @@ func (r *Runner) InitWithConfigFile(configFile string) error {
 
 func (r *Runner) initKite() error {
 	// init kite here
-	k := kite.New(r.Name, "0.0."+strconv.Itoa(*flagVersion))
+	k := kite.New(r.Name, "0.0."+strconv.Itoa(*r.flag.version))
 
 	var err error
 	k.Config, err = kiteconfig.Get()
@@ -131,7 +153,7 @@ func (r *Runner) initKite() error {
 	// no need to set, will be set randomly.
 	// k.Config.Port = 9876
 	k.Config.Environment = r.Conf.Environment
-	region := *flagRegion
+	region := *r.flag.region
 	// if region is not given, get it from config
 	if region == "" {
 		region = k.Config.Region
@@ -151,9 +173,9 @@ func (r *Runner) RegisterToKontrol() error {
 		return errors.New("kite is not initialized yet")
 	}
 
-	registerURL := r.Kite.RegisterURL(*flagKiteLocal)
-	if *flagKiteKontrolURL != "" {
-		u, err := url.Parse(*flagKiteKontrolURL)
+	registerURL := r.Kite.RegisterURL(*r.flag.kiteLocal)
+	if *r.flag.kiteKontrolURL != "" {
+		u, err := url.Parse(*r.flag.kiteKontrolURL)
 		if err != nil {
 			r.Log.Fatal("Couldn't parse register url: %s", err)
 		}
@@ -162,7 +184,7 @@ func (r *Runner) RegisterToKontrol() error {
 	}
 
 	r.Log.Info("Going to register to kontrol with URL: %s", registerURL)
-	if *flagKiteProxy {
+	if *r.flag.kiteProxy {
 		// Koding proxies in production only
 		proxyQuery := &protocol.KontrolQuery{
 			Username:    "koding",
@@ -195,7 +217,7 @@ func (r *Runner) Listen() error {
 func (r *Runner) Close() error {
 	r.ShutdownHandler()
 	err := r.Bongo.Close()
-	if *flagKiteInit {
+	if *r.flag.kiteInit {
 		if r.Kite == nil {
 			// dont forget to return the error
 			return err
