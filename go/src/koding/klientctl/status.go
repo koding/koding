@@ -239,6 +239,40 @@ func (c *HealthChecker) CheckRemote() error {
 	return nil
 }
 
+// CheckAllExceptRunning runs local and remote checks, but ignores
+// running and connectivity errors. Eg, if klient isn't running, this
+// can still succeed.
+//
+// This is useful in the event that if klient fails to start and a health
+// check is run, you don't respond with:
+//
+// 		We couldn't start. Reason: klient isn't running!
+//
+// Which is far from the best UX.
+func (c *HealthChecker) CheckAllExceptRunning() (res string, ok bool) {
+	// Check remote endpoints first, to debug what might be blocking Klient
+	// from starting.
+	if err := defaultHealthChecker.CheckRemote(); err != nil {
+		return c.errorToMessage(err), false
+	}
+
+	if err := defaultHealthChecker.CheckLocal(); err != nil {
+		switch err.(type) {
+		// Ignore dialing or bad klient http responses for CheckAllExceptRunning.
+		case ErrHealthNoHTTPReponse:
+		case ErrHealthDialFailed:
+		default:
+			return c.errorToMessage(err), false
+		}
+	}
+
+	res = fmt.Sprintf(
+		"The %s appears to be running and is healthy.", config.KlientName,
+	)
+
+	return res, true
+}
+
 // CheckAllWithResponse checks local and remote, and parses the response to a
 // user-friendly response. Because a response may be good or bad, a bool is also
 // returned. If true, the response is good _(ie, positive, not an problem)_, and
@@ -250,55 +284,11 @@ func (c *HealthChecker) CheckAllWithResponse() (res string, ok bool) {
 	// Check remote endpoints first, to debug what might be blocking Klient
 	// from starting.
 	if err := defaultHealthChecker.CheckRemote(); err != nil {
-		switch err.(type) {
-		case ErrHealthNoInternet:
-			res = fmt.Sprintf(`Error: You do not appear to have a properly working internet connection.`)
-
-		case ErrHealthNoKontrolHTTPResponse:
-			res = fmt.Sprintf(`Error: koding.com does not appear to be responding.`)
-
-		default:
-			res = fmt.Sprintf("Unknown remote healthcheck error: %s", err.Error())
-		}
-
-		return res, false
+		return c.errorToMessage(err), false
 	}
 
 	if err := defaultHealthChecker.CheckLocal(); err != nil {
-		switch err.(type) {
-		case ErrHealthNoHTTPReponse:
-			res = KlientIsntRunning
-
-		case ErrHealthUnexpectedResponse:
-			res = fmt.Sprintf(`Error: The %s is not running properly. Please run the
-following command to restart it:
-
-    sudo kd restart
-`,
-				config.KlientName)
-
-		case ErrHealthUnreadableKiteKey:
-			res = fmt.Sprintf(`Error: The authorization file for the %s is malformed
-or missing. Please run the following command:
-
-    sudo kd install
-`,
-				config.KlientName)
-
-		// TODO: What are some good steps for the user to take if dial fails?
-		case ErrHealthDialFailed:
-			res = fmt.Sprintf(`Error: The %s does not appear to be running properly.
-Please run the following command:
-
-    sudo kd restart
-`,
-				config.KlientName)
-
-		default:
-			res = fmt.Sprintf("Unknown local healthcheck error: %s", err.Error())
-		}
-
-		return res, false
+		return c.errorToMessage(err), false
 	}
 
 	res = fmt.Sprintf(
@@ -306,6 +296,56 @@ Please run the following command:
 	)
 
 	return res, true
+}
+
+func (c *HealthChecker) errorToMessage(err error) (res string) {
+	// Check for nil before we type match it.
+	if err == nil {
+		return ""
+	}
+
+	switch err.(type) {
+	// Remote errors
+	case ErrHealthNoInternet:
+		res = fmt.Sprintf(`Error: You do not appear to have a properly working internet connection.`)
+
+	case ErrHealthNoKontrolHTTPResponse:
+		res = fmt.Sprintf(`Error: koding.com does not appear to be responding.`)
+
+	case ErrHealthNoHTTPReponse:
+		res = KlientIsntRunning
+
+		// Local errors
+	case ErrHealthUnexpectedResponse:
+		res = fmt.Sprintf(`Error: The %s is not running properly. Please run the
+following command to restart it:
+
+    sudo kd restart
+`,
+			config.KlientName)
+
+	case ErrHealthUnreadableKiteKey:
+		res = fmt.Sprintf(`Error: The authorization file for the %s is malformed
+or missing. Please run the following command:
+
+    sudo kd install
+`,
+			config.KlientName)
+
+	// TODO: What are some good steps for the user to take if dial fails?
+	case ErrHealthDialFailed:
+		res = fmt.Sprintf(`Error: The %s does not appear to be running properly.
+Please run the following command:
+
+    sudo kd restart
+`,
+			config.KlientName)
+
+	default:
+		res = fmt.Sprintf("Unknown healthcheck error: %s", err.Error())
+	}
+
+	return res
 }
 
 // CheckAllFailureOrMessagef runs CheckAllWithResponse and if there is a failure,

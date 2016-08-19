@@ -56,7 +56,7 @@ func startKlient(log logging.Logger, s service.Service) error {
 	// For debug purposes, run a health check before we even attempt to start. This
 	// will help give us a sense of what this machine's health check was before
 	// klient tried to start.
-	if res, ok := defaultHealthChecker.CheckAllWithResponse(); !ok {
+	if res, ok := defaultHealthChecker.CheckAllExceptRunning(); !ok {
 		log.Warning("before attempting to start klient health check returned not-okay. reason: %s", res)
 	}
 
@@ -75,7 +75,7 @@ func startKlient(log logging.Logger, s service.Service) error {
 			CommandAttempts, err,
 		)
 
-		if s, ok := defaultHealthChecker.CheckAllWithResponse(); !ok {
+		if s, ok := defaultHealthChecker.CheckAllExceptRunning(); !ok {
 			fmt.Printf(`Failed to start %s in time.
 
 A health check found the following issue:
