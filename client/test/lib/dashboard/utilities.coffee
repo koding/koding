@@ -31,7 +31,7 @@ module.exports =
         utilitieshelpers.checkViewGuideButton browser, kdCliViewGuideButton, kdCliBrowser, (result) ->
           next null, result
       (next) ->
-        utilitieshelpers.toggleKodingButton browser, (result) ->
+        utilitieshelpers.enableDisableTryOnKodingButton browser, (result) ->
           next null, result
       (next) ->
         utilitieshelpers.checkCodeBlock browser, (result) ->

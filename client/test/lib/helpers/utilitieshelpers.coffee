@@ -43,17 +43,19 @@ module.exports =
           browser.pause 1000, done
 
 
-  toggleKodingButton: (browser, done) ->
+  enableDisableTryOnKodingButton: (browser, done) ->
     browser
       .url utilitiesLink
-      .waitForElementVisible kodingButtonsectionSelector, 20000
       .scrollToElement kodingButtonsectionSelector
+      .waitForElementVisible kodingButtonsectionSelector, 20000
       .pause 2000
       .elements 'css selector', domainSelector, (result) ->
 
         unless result.value.length
           browser
             .waitForElementVisible toggleButtonSelector, 10000
+            .click toggleButtonSelector
+            .waitForElementVisible tryOnKodingButtonSelector, 20000
             .click toggleButtonSelector
       .pause 1000, done
 
@@ -64,12 +66,6 @@ module.exports =
       .click kodingBtncodeBlockSelector
       .waitForElementVisible '.kdnotification', 20000
       .assert.containsText '.kdnotification', 'Copied to clipboard!'
-      .pause 1000, done
-
-
-  seeTryOnKodingButton: (browser, done) ->
-    browser
-      .waitForElementVisible tryOnKodingButtonSelector, 20000
       .pause 1000, done
 
 
