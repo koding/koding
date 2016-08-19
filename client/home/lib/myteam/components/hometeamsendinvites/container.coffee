@@ -1,16 +1,19 @@
-_               = require 'lodash'
-kd              = require 'kd'
-React           = require 'kd-react'
-TeamFlux        = require 'app/flux/teams'
-KDReactorMixin  = require 'app/flux/base/reactormixin'
-View            = require './view'
-whoami          = require 'app/util/whoami'
-showError       = require 'app/util/showError'
-remote          = require('app/remote').getInstance()
+_ = require 'lodash'
+$ = require 'jquery'
+kd = require 'kd'
+React = require 'kd-react'
+TeamFlux = require 'app/flux/teams'
+KDReactorMixin = require 'app/flux/base/reactormixin'
+View = require './view'
+whoami = require 'app/util/whoami'
+showError = require 'app/util/showError'
+remote = require('app/remote').getInstance()
 AdminInviteModalView = require './admininvitemodalview'
 ResendInvitationConfirmModal = require './resendinvitationconfirmmodal'
 AlreadyMemberInvitationsModal = require './alreadymemberinvitationmodal'
 isEmailValid = require 'app/util/isEmailValid'
+UploadCSVModal = require './uploadcsvmodal'
+UploadCSVModalSuccess = require './uploadcsvsuccessmodal'
 { actions : HomeActions } = require 'home/flux'
 
 
@@ -37,11 +40,24 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     document.querySelector('.user-email.focus-first-email').focus()  if @state.focusFirstEmail
 
 
-  onUploadCsv: ->
-    return new kd.NotificationView
-      title    : 'Coming Soon!'
-      duration : 2000
+  onUploadCSV: (event) ->
 
+    modal = new UploadCSVModal
+      success : @bound 'uploadCSVSuccess'
+      error : @bound 'uploadCSVFail'
+
+
+  uploadCSVSuccess: (result) ->
+
+    new UploadCSVModalSuccess
+      totalInvitation: result
+    TeamFlux.actions.loadPendingInvitations()
+
+
+  uploadCSVFail: ->
+    new kd.NotificationView
+      title : 'Error Occured while handling invitations'
+      duration : 5000
 
   onInputChange: (index, inputName, event) ->
 
@@ -193,7 +209,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     content = prepareEmailsText alreadyMemberInvitations.toArray()
     content = "<p>#{content} is already a member of your team.</p>"  if alreadyMembers.length is 1
     content = "<p>#{content} are already members of your team.</p>"  if alreadyMembers.length > 1
-    console.log {content}
+
     modal = new AlreadyMemberInvitationsModal
       alreadyMembers: alreadyMembers
       content: content
@@ -207,10 +223,11 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
     canEdit = kd.singletons.groupsController.canEditGroup()
 
     <View
+      ref='view'
       canEdit={canEdit}
       focusFirstEmail={@state.focusFirstEmail}
       inputValues={@state.inputValues}
-      onUploadCsv={@bound 'onUploadCsv'}
+      onUploadCSV={@bound 'onUploadCSV'}
       onInputChange={@bound 'onInputChange'}
       onSendInvites={@bound 'onSendInvites'} />
 
