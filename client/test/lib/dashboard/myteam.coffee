@@ -9,7 +9,7 @@ host           = utils.getUser no, 0
 module.exports =
 
   before: (browser, done) ->
-
+    registeredUser = utils.getUser no, 5
     targetUser1 = utils.getUser no, 1
     targetUser1.role = 'member'
     users = [
@@ -40,6 +40,9 @@ module.exports =
       (next) ->
         myteamhelper.editTeamName browser, host, (result) ->
           next null, result
+      # (next) ->
+      #   myteamhelper.uploadAndRemoveLogo browser, host, (result) ->
+      #     next null, result    
       (next) ->
         myteamhelper.inviteAndJoinToTeam browser, host, (result) ->
           next null, result
