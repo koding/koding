@@ -173,3 +173,14 @@ module.exports =
       teamsHelpers.loginToTeam browser, user , no, '', ->
         browser.waitForElementVisible WelcomeView, 60000, done
 
+
+  loginToTeamWithNonRegisteredAccount: (browser, done) ->
+
+    user =  utils.getUser no, 3
+    teamsHelpers.logoutTeam browser, (res) ->
+      teamsHelpers.loginTeam browser, user , no, '', ->
+        browser
+          .waitForElementVisible WelcomeView, 60000
+          .url utilitiesLink
+        teamsHelpers.loginToTeam browser, user , no, '', ->
+          browser.waitForElementVisible sectionSelector, 60000, done

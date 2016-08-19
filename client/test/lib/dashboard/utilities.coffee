@@ -25,12 +25,12 @@ module.exports =
     ]
 
     queue = [
-      # (next) ->
-      #   teamsHelpers.loginTeam browser, registeredUser, no, null,  (res) ->
-      #     next null, res
-      # (next) ->
-      #   teamsHelpers.logoutTeam browser, (res) ->
-      #     next null, res
+      (next) ->
+        teamsHelpers.loginTeam browser, registeredUser, no, null,  (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.logoutTeam browser, (res) ->
+          next null, res
       (next) ->
         teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
           next null, result
@@ -77,6 +77,9 @@ module.exports =
           next null, result
       (next) ->
         utilitieshelpers.loginToTeamWithRegisteredAccount browser, (result) ->
+          next null, result
+      (next) ->
+        utilitieshelpers.loginToTeamWithNonRegisteredAccount browser, (result) ->
           next null, result
       (next) ->
         teamsHelpers.logoutTeam browser, (result) ->
