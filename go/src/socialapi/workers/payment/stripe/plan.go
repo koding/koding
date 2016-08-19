@@ -6,6 +6,7 @@ import (
 	"socialapi/workers/payment/paymentplan"
 
 	stripe "github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/currency"
 	stripePlan "github.com/stripe/stripe-go/plan"
 )
 
@@ -34,25 +35,25 @@ func CreateDefaultPlans() error {
 	return nil
 }
 
-func getStripePlanInterval(i paymentplan.PlanInterval) stripe.PlanInternval {
+func getStripePlanInterval(i paymentplan.PlanInterval) stripe.PlanInterval {
 	switch i.ToString() {
 	case "month":
-		return stripe.Month
+		return stripePlan.Month
 	case "year":
-		return stripe.Year
+		return stripePlan.Year
 	}
 
-	return stripe.Month
+	return stripePlan.Month
 }
 
 // CreatePlan creates plan in Stripe and saves it locally. It deals with
 // cases where plan exists in stripe, but not locally.
 func CreatePlan(id, title, nameForStripe, cType string, interval paymentplan.PlanInterval, amount uint64) (*paymentmodels.Plan, error) {
 	planParams := &stripe.PlanParams{
-		Id:       id,
+		ID:       id,
 		Name:     nameForStripe,
 		Amount:   amount,
-		Currency: stripe.USD,
+		Currency: currency.USD,
 		Interval: getStripePlanInterval(interval),
 	}
 

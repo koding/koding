@@ -69,7 +69,7 @@ func createCustomer(token, id, username, email string, meta map[string]string, c
 
 	customerModel := &paymentmodels.Customer{
 		OldId:              id,
-		ProviderCustomerId: externalCustomer.Id,
+		ProviderCustomerId: externalCustomer.ID,
 		Provider:           ProviderName,
 		Username:           username,
 		TypeConstant:       cType,
@@ -105,5 +105,6 @@ func DeleteCustomer(accId string) error {
 		return err
 	}
 
-	return stripeCustomer.Del(customer.ProviderCustomerId)
+	_, err = stripeCustomer.Del(customer.ProviderCustomerId)
+	return err
 }
