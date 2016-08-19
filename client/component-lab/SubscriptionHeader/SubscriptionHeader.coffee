@@ -9,6 +9,7 @@ Box = require 'lab/Box'
 Label = require 'lab/Text/Label'
 textStyles = require 'lab/Text/Text.stylus'
 
+
 module.exports = class SubscriptionHeader extends Component
 
   render: ->
