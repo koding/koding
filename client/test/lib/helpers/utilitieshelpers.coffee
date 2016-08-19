@@ -69,7 +69,7 @@ module.exports =
       .pause 1000, done
 
 
-  checkSaveButton: (browser, done) ->
+  saveChatlio: (browser, done) ->
     browser
       .scrollToElement integrationSectionSelector
       .waitForElementVisible integrationSectionSelector, 10000
@@ -80,7 +80,7 @@ module.exports =
       .assert.containsText '.kdnotification', saveButtonTurnedOffResponse
       .pause 5000
       .waitForElementVisible inputSelector, 5000
-      .setValue inputSelector, 'something'
+      .setValue inputSelector, 'Chatlio data-widget-id'
       .pause 2000
       .click saveButton
       .waitForElementVisible '.kdnotification', 10000

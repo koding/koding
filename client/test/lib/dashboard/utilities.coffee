@@ -24,12 +24,12 @@ module.exports =
 
   utilities: (browser) ->
     queue = [
-      (next) ->
-        utilitieshelpers.checkKdCliCodeBlock browser, (result) ->
-          next null, result
-      (next) ->
-        utilitieshelpers.checkViewGuideButton browser, kdCliViewGuideButton, kdCliBrowser, (result) ->
-          next null, result
+      # (next) ->
+      #   utilitieshelpers.checkKdCliCodeBlock browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   utilitieshelpers.checkViewGuideButton browser, kdCliViewGuideButton, kdCliBrowser, (result) ->
+      #     next null, result
       (next) ->
         utilitieshelpers.enableDisableTryOnKodingButton browser, (result) ->
           next null, result
@@ -40,10 +40,7 @@ module.exports =
         utilitieshelpers.checkViewGuideButton browser, kdBtnviewGuideButton, kdbuttonBrowser, (result) ->
           next null, result
       (next) ->
-        utilitieshelpers.seeTryOnKodingButton browser, (result) ->
-          next null, result
-      (next) ->
-        utilitieshelpers.checkSaveButton browser, (result) ->
+        utilitieshelpers.saveChatlio browser, (result) ->
           next null, result
       (next) ->
         utilitieshelpers.checkChatlioLink browser, (result) ->
