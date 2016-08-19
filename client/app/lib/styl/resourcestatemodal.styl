@@ -21,12 +21,23 @@ $regularColor               = #989898
 
     footer
       height                70px
+      bg                    color, #f4f4f4
 
       .GenericButton
-        position            relative
-        float               right
+        abs()
         right               30px
         top                 14px
+
+        &.secondary
+          left              30px
+          right             auto
+          padding           0 15px
+          color             #5e5e5e
+          bg                color, #fff
+          border            1px solid #e4e4e4
+
+        .button-title
+          font-size         14px
 
       a.back-link
         position            relative
@@ -52,31 +63,6 @@ $regularColor               = #989898
         color               $regularColor
         margin-top          0
         margin-bottom       20px
-
-      .GenericButton
-        text-transform      uppercase
-        margin              0 auto
-        display             block
-
-    .GenericButton.secondary
-      min-width             146px
-      height                42px
-      padding               0 15px
-      text-transform        uppercase
-      color                 #5e5e5e
-      bg                    color, #fff
-      border                1px solid #e4e4e4
-
-      .button-title
-        font-size           14px
-
-    footer
-      bg                    color, #f4f4f4
-
-      .GenericButton.secondary
-        abs()
-        top                 14px
-        left                30px
 
 
   .start-machine-flow,
