@@ -1,4 +1,5 @@
 helpers                     = require '../helpers/helpers.js'
+teamsHelpers           = require '../helpers/teamshelpers.js'
 utils                       = require '../utils/utils.js'
 utilitiesLink               = "#{helpers.getUrl(yes)}/Home/koding-utilities"
 sectionSelector             = '.HomeAppView--section.kd-cli'
@@ -24,6 +25,7 @@ saveButtonSaveResponse      = 'Chatlio id successfully saved!'
 module.exports =
 
   checkKdCliCodeBlock: (browser, done) ->
+
     browser
       .url utilitiesLink
       .waitForElementVisible sectionSelector, 20000
@@ -36,6 +38,7 @@ module.exports =
 
 
   checkViewGuideButton: (browser, buttonSelector, browserSelector, done) ->
+
     browser
       .click buttonSelector, (result) ->
         if result.state is 'success'
@@ -44,6 +47,7 @@ module.exports =
 
 
   enableDisableTryOnKodingButton: (browser, done) ->
+
     browser
       .url utilitiesLink
       .scrollToElement kodingButtonsectionSelector
@@ -61,6 +65,7 @@ module.exports =
 
 
   checkCodeBlock: (browser, done) ->
+
     browser
       .waitForElementVisible kodingBtncodeBlockSelector, 20000
       .click kodingBtncodeBlockSelector
@@ -70,6 +75,7 @@ module.exports =
 
 
   saveChatlio: (browser, done) ->
+
     browser
       .scrollToElement integrationSectionSelector
       .waitForElementVisible integrationSectionSelector, 10000
@@ -89,8 +95,22 @@ module.exports =
 
 
   checkChatlioLink: (browser, done) ->
+
     browser
       .click chatlioLink, (result) ->
         if result.state is 'success'
           helpers.switchBrowser browser, 'chatlio.com'
       .pause 1000, done
+
+
+  seeTryOnKodingButton: (browser, done) ->
+
+    targetUser1 = utils.getUser no, 1
+    teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
+      browser
+        .url utilitiesLink
+        .waitForElementVisible sectionSelector, 40000
+        .scrollToElement kodingButtonsectionSelector
+        .waitForElementVisible kodingButtonsectionSelector, 20000
+        .waitForElementNotPresent toggleButtonSelector, 10000
+        .pause 2000, done

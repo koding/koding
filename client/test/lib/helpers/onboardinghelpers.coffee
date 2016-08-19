@@ -59,7 +59,7 @@ module.exports =
   #Test Onboarding Screen for User
   onboardingScreenMember: (browser) ->
     targetUser1 = utils.getUser no, 1
-    teamsHelpers.loginToTeam browser, targetUser1 , no, ->
+    teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
       browser
         .pause 2000
         .waitForElementVisible WelcomeView, 20000
