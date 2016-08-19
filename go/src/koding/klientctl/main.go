@@ -151,27 +151,32 @@ func main() {
 				},
 				cli.IntFlag{
 					Name:  "oneway-interval",
-					Usage: "Sets how frequently local folder will sync with remote, in seconds. Default is 2 seconds.",
+					Usage: "Sets how frequently local folder will sync with remote, in seconds. ",
+					Value: 2,
+				},
+				cli.BoolFlag{
+					Name:  "fuse, f",
+					Usage: "Mount the remote folder via Fuse.",
 				},
 				cli.BoolFlag{
 					Name:  "noprefetch-meta, p",
-					Usage: "Retrieve only top level folder/files. Rest is fetched on request (fastest to mount).",
+					Usage: "For fuse: Retrieve only top level folder/files. Rest is fetched on request (fastest to mount).",
 				},
 				cli.BoolFlag{
 					Name:  "prefetch-all, a",
-					Usage: "Prefetch all contents of the remote directory up front.",
+					Usage: "For fuse: Prefetch all contents of the remote directory up front.",
 				},
 				cli.IntFlag{
 					Name:  "prefetch-interval",
-					Usage: "Sets how frequently remote folder will sync with local, in seconds.",
+					Usage: "For fuse: Sets how frequently remote folder will sync with local, in seconds.",
 				},
 				cli.BoolFlag{
 					Name:  "nowatch, w",
-					Usage: "Disable watching for changes on remote machine.",
+					Usage: "For fuse: Disable watching for changes on remote machine.",
 				},
 				cli.BoolFlag{
 					Name:  "noignore, i",
-					Usage: "Retrieve all files and folders, including ignored folders like .git & .svn.",
+					Usage: "For fuse: Retrieve all files and folders, including ignored folders like .git & .svn.",
 				},
 				cli.BoolFlag{
 					Name:  "trace, t",
