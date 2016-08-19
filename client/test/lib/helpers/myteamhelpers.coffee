@@ -107,7 +107,6 @@ module.exports =
         if invitation.email isnt user.email
           pendingInvitations.push i 
           lastPendingInvitationIndex = i
-
     browser
       .url myTeamLink
       .waitForElementVisible sectionSelector, 20000
@@ -117,7 +116,7 @@ module.exports =
         teamsHelpers.checkTeammates browser, invitations[pendingInvitations[0]], nthItem(1), nthItem(2), selector(1), no, -> #resend invitation
           browser.waitForElementVisible selector(pendingInvitations[0] + 1), 20000
           browser.click selector(indexOfTargetUser1 + 1), ->
-            teamsHelpers.checkTeammates browser, invitations[indexOfTargetUser1], nthItem(1), nthItem(2), selector(2), no, -> #make admin then member
+            teamsHelpers.checkTeammates browser, invitations[indexOfTargetUser1], nthItem(1), nthItem(2), selector(indexOfTargetUser1 + 1), no, -> #make admin then member
               browser.click selector(indexOfTargetUser2 + 1), -> #make admin
                 browser
                   .pause 1000
@@ -213,20 +212,13 @@ module.exports =
     browser.pause 3000, callback
 
 
-  sendNewInviteFromResendModal: (browser, callback) ->
+  #Member can not change team name and team logo
+  changeTeamName: (browser, callback) ->
+
     browser.url myTeamLink
     browser
       .waitForElementVisible sectionSelector, 20000
-      .scrollToElement sectionSendInvites
-    teamsHelpers.newInviteFromResendModal browser, 'member', null, yes
-    browser.pause 3000
-    teamsHelpers.newInviteFromResendModal browser, 'admin', null, yes
-    browser.pause 1000, callback
-
-
-  #Member can not change team name and team logo
-  changeTeamName: (browser, callback) ->
-    targetUser1 = invitations[1]
+    targetUser1 = invitations[indexOfTargetUser3]
     teamsHelpers.logoutTeam browser, (res) ->
     teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
       browser
@@ -252,7 +244,8 @@ module.exports =
 
 
   leaveTeam: (browser, callback) ->
-    targetUser1 = invitations[1]
+
+    targetUser1 = invitations[indexOfTargetUser3]
     browser
       .waitForElementVisible leaveTeamButton, 20000
       .click leaveTeamButton
@@ -278,7 +271,9 @@ module.exports =
       .setValue passwordSelector, targetUser1.password
       .click confirmButton
       .assert.urlContains helpers.getUrl(yes)
-      .pause 1000, callback
+    teamsHelpers.loginToTeam browser, targetUser1 , yes, 'NotAllowedEmail', ->
+      browser
+        .pause 1000000, callback
 
 
 selector = (index) ->
