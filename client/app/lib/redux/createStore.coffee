@@ -1,3 +1,4 @@
+globals = require 'globals'
 { applyMiddleware, compose, createStore } = require 'redux'
 { make: makeReducer, inject: injectReducer } = require './reducers'
 
