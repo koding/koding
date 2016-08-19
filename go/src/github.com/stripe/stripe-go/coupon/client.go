@@ -1,4 +1,4 @@
-// package coupon provides the /coupons APIs
+// Package coupon provides the /coupons APIs
 package coupon
 
 import (
@@ -6,28 +6,35 @@ import (
 	"net/url"
 	"strconv"
 
-	. "github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
+)
+
+const (
+	Forever   stripe.CouponDuration = "forever"
+	Once      stripe.CouponDuration = "once"
+	Repeating stripe.CouponDuration = "repeating"
 )
 
 // Client is used to invoke /coupons APIs.
 type Client struct {
-	B   Backend
+	B   stripe.Backend
 	Key string
 }
 
 // New POSTs new coupons.
 // For more details see https://stripe.com/docs/api#create_coupon.
-func New(params *CouponParams) (*Coupon, error) {
+func New(params *stripe.CouponParams) (*stripe.Coupon, error) {
 	return getC().New(params)
 }
 
-func (c Client) New(params *CouponParams) (*Coupon, error) {
-	body := &url.Values{
-		"duration": {string(params.Duration)},
-	}
+func (c Client) New(params *stripe.CouponParams) (*stripe.Coupon, error) {
+	// TODO: this doesn't check that the params are not nil.
 
-	if len(params.Id) > 0 {
-		body.Add("id", params.Id)
+	body := &stripe.RequestValues{}
+	body.Add("duration", string(params.Duration))
+
+	if len(params.ID) > 0 {
+		body.Add("id", params.ID)
 	}
 
 	if params.Percent > 0 {
@@ -54,67 +61,88 @@ func (c Client) New(params *CouponParams) (*Coupon, error) {
 
 	params.AppendTo(body)
 
-	coupon := &Coupon{}
-	err := c.B.Call("POST", "/coupons", c.Key, body, coupon)
+	coupon := &stripe.Coupon{}
+
+	err := c.B.Call("POST", "/coupons", c.Key, body, &params.Params, coupon)
 
 	return coupon, err
 }
 
 // Get returns the details of a coupon.
 // For more details see https://stripe.com/docs/api#retrieve_coupon.
-func Get(id string, params *CouponParams) (*Coupon, error) {
+func Get(id string, params *stripe.CouponParams) (*stripe.Coupon, error) {
 	return getC().Get(id, params)
 }
 
-func (c Client) Get(id string, params *CouponParams) (*Coupon, error) {
-	var body *url.Values
+func (c Client) Get(id string, params *stripe.CouponParams) (*stripe.Coupon, error) {
+	var body *stripe.RequestValues
+	var commonParams *stripe.Params
 
 	if params != nil {
-		body = &url.Values{}
+		commonParams = &params.Params
+		body = &stripe.RequestValues{}
 		params.AppendTo(body)
 	}
 
-	coupon := &Coupon{}
-	err := c.B.Call("GET", "/coupons/"+id, c.Key, body, coupon)
+	coupon := &stripe.Coupon{}
+
+	err := c.B.Call("GET", "/coupons/"+url.QueryEscape(id), c.Key, body, commonParams, coupon)
+
+	return coupon, err
+}
+
+// Update updates a coupon's properties.
+// For more details see https://stripe.com/docs/api#update_coupon.
+func Update(id string, params *stripe.CouponParams) (*stripe.Coupon, error) {
+	return getC().Update(id, params)
+}
+
+func (c Client) Update(id string, params *stripe.CouponParams) (*stripe.Coupon, error) {
+	body := &stripe.RequestValues{}
+
+	params.AppendTo(body)
+
+	coupon := &stripe.Coupon{}
+	err := c.B.Call("POST", "/coupons/"+url.QueryEscape(id), c.Key, body, &params.Params, coupon)
 
 	return coupon, err
 }
 
 // Del removes a coupon.
 // For more details see https://stripe.com/docs/api#delete_coupon.
-func Del(id string) error {
+func Del(id string) (*stripe.Coupon, error) {
 	return getC().Del(id)
 }
 
-func (c Client) Del(id string) error {
-	return c.B.Call("DELETE", "/coupons/"+id, c.Key, nil, nil)
+func (c Client) Del(id string) (*stripe.Coupon, error) {
+	coupon := &stripe.Coupon{}
+	err := c.B.Call("DELETE", "/coupons/"+url.QueryEscape(id), c.Key, nil, nil, coupon)
+
+	return coupon, err
 }
 
 // List returns a list of coupons.
 // For more details see https://stripe.com/docs/api#list_coupons.
-func List(params *CouponListParams) *CouponIter {
+func List(params *stripe.CouponListParams) *Iter {
 	return getC().List(params)
 }
 
-func (c Client) List(params *CouponListParams) *CouponIter {
-	type couponList struct {
-		ListMeta
-		Values []*Coupon `json:"data"`
-	}
-
-	var body *url.Values
-	var lp *ListParams
+func (c Client) List(params *stripe.CouponListParams) *Iter {
+	var body *stripe.RequestValues
+	var lp *stripe.ListParams
+	var p *stripe.Params
 
 	if params != nil {
-		body = &url.Values{}
+		body = &stripe.RequestValues{}
 
 		params.AppendTo(body)
 		lp = &params.ListParams
+		p = params.ToParams()
 	}
 
-	return &CouponIter{GetIter(lp, body, func(b url.Values) ([]interface{}, ListMeta, error) {
-		list := &couponList{}
-		err := c.B.Call("GET", "/coupons", c.Key, &b, list)
+	return &Iter{stripe.GetIter(lp, body, func(b *stripe.RequestValues) ([]interface{}, stripe.ListMeta, error) {
+		list := &stripe.CouponList{}
+		err := c.B.Call("GET", "/coupons", c.Key, b, p, list)
 
 		ret := make([]interface{}, len(list.Values))
 		for i, v := range list.Values {
@@ -125,6 +153,19 @@ func (c Client) List(params *CouponListParams) *CouponIter {
 	})}
 }
 
+// Iter is an iterator for lists of Coupons.
+// The embedded Iter carries methods with it;
+// see its documentation for details.
+type Iter struct {
+	*stripe.Iter
+}
+
+// Coupon returns the most recent Coupon
+// visited by a call to Next.
+func (i *Iter) Coupon() *stripe.Coupon {
+	return i.Current().(*stripe.Coupon)
+}
+
 func getC() Client {
-	return Client{GetBackend(), Key}
+	return Client{stripe.GetBackend(stripe.APIBackend), stripe.Key}
 }
