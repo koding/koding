@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"koding/kites/kloud/stackctl/command"
+	"koding/kites/kloud/kloudctl/command"
 
 	"github.com/mitchellh/cli"
 )
