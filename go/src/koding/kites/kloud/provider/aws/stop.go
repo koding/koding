@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/stack"
 
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2"
@@ -15,7 +15,7 @@ import (
 func (m *Machine) Stop(ctx context.Context) error {
 	err := m.stop(ctx)
 	if err != nil {
-		return kloud.NewEventerError(err)
+		return stack.NewEventerError(err)
 	}
 
 	return nil

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"koding/kites/kloud/api/vagrantapi"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/provider"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/utils"
 	"koding/klient/tunnel"
@@ -21,7 +21,7 @@ func init() {
 	stackplan.MetaFuncs["vagrant"] = func() interface{} { return &VagrantMeta{} }
 }
 
-var _ kloud.Validator = (*VagrantMeta)(nil)
+var _ stack.Validator = (*VagrantMeta)(nil)
 
 // VagrantMeta represents jCredentialDatas.meta for "vagrant" provider.
 type VagrantMeta struct {
@@ -122,10 +122,10 @@ func (s *Stack) checkTunnel(c *kite.Client) error {
 // Ensure Provider implements the kloud.StackProvider interface.
 //
 // StackProvider is an interface for team kloud API.
-var _ kloud.StackProvider = (*Provider)(nil)
+var _ stack.StackProvider = (*Provider)(nil)
 
 // Stack
-func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
+func (p *Provider) Stack(ctx context.Context) (stack.Stacker, error) {
 	bs, err := p.BaseStack(ctx)
 	if err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-package kloud
+package stack
 
 import (
 	"koding/kites/kloud/eventer"

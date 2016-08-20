@@ -2,7 +2,7 @@ package command
 
 import (
 	"fmt"
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 
 	"github.com/mitchellh/cli"
 )
@@ -42,7 +42,7 @@ func (b *Build) Action(args []string) error {
 		return err
 	}
 
-	var result kloud.ControlResult
+	var result stack.ControlResult
 	err = resp.Unmarshal(&result)
 	if err != nil {
 		return err

@@ -10,7 +10,7 @@ import (
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan/stackcred"
 	"koding/kites/kloud/userdata"
 
@@ -59,7 +59,7 @@ func (bp *BaseProvider) BaseMachine(ctx context.Context, id string) (*BaseMachin
 
 	m, err := modelhelper.GetMachine(id)
 	if err == mgo.ErrNotFound {
-		return nil, kloud.NewError(kloud.ErrMachineNotFound)
+		return nil, stack.NewError(stack.ErrMachineNotFound)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("unable to get machine: %s", err)
@@ -104,7 +104,7 @@ func (bp *BaseProvider) BaseMachine(ctx context.Context, id string) (*BaseMachin
 		}
 	}
 
-	if traceID, ok := kloud.TraceFromContext(ctx); ok {
+	if traceID, ok := stack.TraceFromContext(ctx); ok {
 		bm.Log = logging.NewCustom("kloud-"+bp.Name, true).New(m.ObjectId.Hex()).New(traceID)
 		bm.Debug = true
 		bm.TraceID = traceID
@@ -126,7 +126,7 @@ func (bp *BaseProvider) FetchCredData(bm *BaseMachine, data interface{}) error {
 
 func (bp *BaseProvider) ValidateUser(user *models.User, users []models.MachineUser, r *kite.Request) error {
 	// give access to kloudctl immediately
-	if kloud.IsKloudctlAuth(r, bp.KloudSecretKey) {
+	if stack.IsKloudctlAuth(r, bp.KloudSecretKey) {
 		return nil
 	}
 
@@ -140,7 +140,7 @@ func (bp *BaseProvider) ValidateUser(user *models.User, users []models.MachineUs
 	}
 
 	if user.Status != "confirmed" {
-		return kloud.NewError(kloud.ErrUserNotConfirmed)
+		return stack.NewError(stack.ErrUserNotConfirmed)
 	}
 
 	return nil

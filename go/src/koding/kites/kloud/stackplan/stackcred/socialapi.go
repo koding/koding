@@ -8,7 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 	"net/http"
 	"path"
 
@@ -137,7 +137,7 @@ func (s *socialStore) do(req *socialRequest) error {
 
 	var body io.Reader
 	if req.body != nil {
-		if validator, ok := req.body.(kloud.Validator); ok {
+		if validator, ok := req.body.(stack.Validator); ok {
 			if err := validator.Valid(); err != nil {
 				return fmt.Errorf("%q: failed valitating data: %s", req.ident, err)
 			}
@@ -180,7 +180,7 @@ func (s *socialStore) do(req *socialRequest) error {
 			return fmt.Errorf("%q: failed decoding data: %s", req.ident, err)
 		}
 
-		if validator, ok := req.resp.(kloud.Validator); ok {
+		if validator, ok := req.resp.(stack.Validator); ok {
 			if err := validator.Valid(); err != nil {
 				return fmt.Errorf("%q: failed valitating data: %s", req.ident, err)
 			}
