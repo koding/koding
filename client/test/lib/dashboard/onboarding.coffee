@@ -8,7 +8,9 @@ module.exports =
   before: (browser, done) ->
     targetUser1 = utils.getUser no, 1
     targetUser1.role = 'member'
-    users = targetUser1
+    users = [
+      targetUser1
+    ]
     teamsHelpers.inviteAndJoinWithUsers browser, [users], (result) ->
       done()
 
@@ -33,21 +35,21 @@ module.exports =
       (next) ->
         onboardinghelper.openMyTeamScreen browser, (result) ->
           next null, result
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.installKDLink browser, (result) ->
-          next null, result
-      (next) ->
-        teamsHelpers.logoutTeam browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.onboardingScreenMember browser, (result) ->
-          next null, result
+      # (next) ->
+      #   onboardinghelper.openOnboarding browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   onboardinghelper.installKDLink browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   teamsHelpers.logoutTeam browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   onboardinghelper.onboardingScreenMember browser, (result) ->
+      #     next null, result
     ]
 
     async.series queue
 
-  after: (browser) ->
-    browser.end()
+  # after: (browser) ->
+  #   browser.end()

@@ -22,6 +22,7 @@
 module.exports = [
 
   [
+<<<<<<< b22e8348ecd301d3ce324ac961929e355510b8a1
   #   { name: 'dashboard myaccount' }
   #   { name: 'dashboard stacks' }
   #   { name: 'dashboard virtualmachines' }
@@ -31,6 +32,17 @@ module.exports = [
       { name: 'dashboard onboarding' }
   #   { name: 'dashboard sidebar' }
   #   { name: 'dashboard teambilling' }
+=======
+    # { name: 'dashboard myaccount' }
+    { name: 'dashboard stacks' }
+    { name: 'dashboard virtualmachines' }
+    { name: 'dashboard myteam' }
+    { name: 'dashboard credentials' }
+    { name: 'dashboard utilities' }
+    { name: 'dashboard onboarding' }
+    { name: 'dashboard sidebar' }
+    { name: 'dashboard teambilling' }
+>>>>>>> Test/Onboarding fix selector error
   ]
 
   # [
