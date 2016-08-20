@@ -35,21 +35,21 @@ module.exports =
       (next) ->
         onboardinghelper.openMyTeamScreen browser, (result) ->
           next null, result
-      # (next) ->
-      #   onboardinghelper.openOnboarding browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   onboardinghelper.installKDLink browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   teamsHelpers.logoutTeam browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   onboardinghelper.onboardingScreenMember browser, (result) ->
-      #     next null, result
+      (next) ->
+        onboardinghelper.openOnboarding browser, (result) ->
+          next null, result
+      (next) ->
+        onboardinghelper.installKDLink browser, (result) ->
+          next null, result
+      (next) ->
+        teamsHelpers.logoutTeam browser, (result) ->
+          next null, result
+      (next) ->
+        onboardinghelper.onboardingScreenMember browser, (result) ->
+          next null, result
     ]
 
     async.series queue
 
-  # after: (browser) ->
-  #   browser.end()
+  after: (browser) ->
+    browser.end()
