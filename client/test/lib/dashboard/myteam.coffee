@@ -42,7 +42,7 @@ module.exports =
           next null, result
       # (next) ->
       #   myteamhelper.uploadAndRemoveLogo browser, host, (result) ->
-      #     next null, result    
+      #     next null, result
       (next) ->
         myteamhelper.inviteAndJoinToTeam browser, host, (result) ->
           next null, result
