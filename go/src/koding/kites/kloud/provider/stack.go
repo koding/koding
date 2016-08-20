@@ -7,7 +7,7 @@ import (
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan"
 
 	"github.com/hashicorp/terraform/terraform"
@@ -52,7 +52,7 @@ func (bp *BaseProvider) BaseStack(ctx context.Context) (*BaseStack, error) {
 		return nil, errors.New("request not available in context")
 	}
 
-	req, ok := kloud.TeamRequestFromContext(ctx)
+	req, ok := stack.TeamRequestFromContext(ctx)
 	if !ok {
 		return nil, errors.New("team request not available in context")
 	}
@@ -63,7 +63,7 @@ func (bp *BaseProvider) BaseStack(ctx context.Context) (*BaseStack, error) {
 
 	bs.Log = bp.Log.New(req.GroupName)
 
-	if traceID, ok := kloud.TraceFromContext(ctx); ok {
+	if traceID, ok := stack.TraceFromContext(ctx); ok {
 		bs.Log = logging.NewCustom("kloud-"+req.Provider, true).New(traceID)
 		bs.TraceID = traceID
 	}

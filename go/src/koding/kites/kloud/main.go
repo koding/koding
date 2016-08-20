@@ -25,7 +25,6 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/keycreator"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/plans"
 	"koding/kites/kloud/provider"
@@ -35,6 +34,7 @@ import (
 	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/provider/vagrant"
 	"koding/kites/kloud/queue"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan/stackcred"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
@@ -155,7 +155,7 @@ func main() {
 	mc.MustLoad(conf)
 
 	if conf.Version {
-		fmt.Println(kloud.VERSION)
+		fmt.Println(stack.VERSION)
 		os.Exit(0)
 	}
 
@@ -197,7 +197,7 @@ func main() {
 }
 
 func newKite(conf *Config) *kite.Kite {
-	k := kite.New(kloud.NAME, kloud.VERSION)
+	k := kite.New(stack.NAME, stack.VERSION)
 	k.Config = kiteconfig.MustGet()
 	k.Config.Port = conf.Port
 
@@ -297,7 +297,7 @@ func newKite(conf *Config) *kite.Kite {
 
 	stats := common.MustInitMetrics(Name)
 
-	kld := kloud.New()
+	kld := stack.New()
 	kld.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)
 	}
@@ -463,7 +463,7 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 // due to missing configuration or any other reason, we return
 // disabled provider that rejects all requests with 411 *kite.Error.
 
-func newKodingProvider(sess *session.Session, conf *Config, authUsers map[string]string) kloud.Provider {
+func newKodingProvider(sess *session.Session, conf *Config, authUsers map[string]string) stack.Provider {
 	if conf.Environment == "default" {
 		// TODO(rjeczalik): Koding provider (the one behind Koding Solo) is
 		// disabled for default environment as it relies heavily on
@@ -528,7 +528,7 @@ func newKodingProvider(sess *session.Session, conf *Config, authUsers map[string
 	return kp
 }
 
-func newSoftlayerProvider(sess *session.Session, conf *Config) kloud.Provider {
+func newSoftlayerProvider(sess *session.Session, conf *Config) stack.Provider {
 	if sess.DNSClient == nil {
 		sess.Log.Warning(`disabling "softlayer" provider due to invalid/missing Route53 credentials`)
 
@@ -569,7 +569,7 @@ func newSoftlayerProvider(sess *session.Session, conf *Config) kloud.Provider {
 	}
 }
 
-func runQueue(k, aws kloud.Provider, sess *session.Session, conf *Config) {
+func runQueue(k, aws stack.Provider, sess *session.Session, conf *Config) {
 	q := &queue.Queue{
 		Log: sess.Log.New("queue"),
 	}
