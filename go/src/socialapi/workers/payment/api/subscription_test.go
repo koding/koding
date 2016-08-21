@@ -17,9 +17,9 @@ func TestCreateSubscription(t *testing.T) {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withTestPlan(func(planID string) {
-					createUrl := fmt.Sprintf("%s/payment/subscription/create", endpoint)
-					deleteUrl := fmt.Sprintf("%s/payment/subscription/delete", endpoint)
-					getUrl := fmt.Sprintf("%s/payment/subscription/get", endpoint)
+					createUrl := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
+					deleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionDelete)
+					getUrl := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionGet)
 
 					group, err := modelhelper.GetGroup(groupName)
 					So(err, ShouldBeNil)

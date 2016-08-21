@@ -11,7 +11,7 @@ import (
 func TestWebhook(t *testing.T) {
 	Convey("Given a user", t, func() {
 		withTestServer(t, func(endpoint string) {
-			webhookUrl := fmt.Sprintf("%s/payment/webhook", endpoint)
+			webhookUrl := fmt.Sprintf("%s%s", endpoint, EndpointWebhook)
 
 			Convey("Should give error when event id is not valid", func() {
 				req := []byte(webhookTestData["charge.succeeded"])

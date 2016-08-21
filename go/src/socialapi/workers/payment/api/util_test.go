@@ -17,8 +17,8 @@ import (
 )
 
 func withStubData(endpoint string, f func(username string, groupName string, sessionID string)) {
-	createUrl := fmt.Sprintf("%s/payment/customer/create", endpoint)
-	deleteUrl := fmt.Sprintf("%s/payment/customer/delete", endpoint)
+	createUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerCreate)
+	deleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerDelete)
 
 	acc, _, groupName := models.CreateRandomGroupDataWithChecks()
 

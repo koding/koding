@@ -22,8 +22,8 @@ func TestCustomer(t *testing.T) {
 
 					So(group.Payment.Customer.ID, ShouldNotBeBlank)
 					Convey("We should be able to get the customer", func() {
-						getUrl := fmt.Sprintf("%s/payment/customer/get", endpoint)
-						updateUrl := fmt.Sprintf("%s/payment/customer/update", endpoint)
+						getUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerGet)
+						updateUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
 
 						res, err := rest.DoRequestWithAuth("GET", getUrl, nil, sessionID)
 						So(err, ShouldBeNil)
@@ -79,7 +79,7 @@ func TestCouponApply(t *testing.T) {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withTestCoupon(func(couponID string) {
-					updateUrl := fmt.Sprintf("%s/payment/customer/update", endpoint)
+					updateUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
 
 					cp := &stripe.CustomerParams{
 						Coupon: couponID,

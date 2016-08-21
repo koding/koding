@@ -20,16 +20,6 @@ func DeleteSubscription(u *url.URL, h http.Header, _ interface{}, context *model
 	)
 }
 
-func UpdateSubscription(u *url.URL, h http.Header, params *stripe.SubParams, context *models.Context) (int, http.Header, interface{}, error) {
-	if err := checkContext(context); err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	return response.HandleResultAndError(
-		payment.UpdateSubscriptionForGroup(context.GroupName, params),
-	)
-}
-
 func GetSubscription(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	if err := checkContext(context); err != nil {
 		return response.NewBadRequest(err)
