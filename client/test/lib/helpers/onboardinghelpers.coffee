@@ -64,11 +64,3 @@ module.exports =
         .pause 2000
         .waitForElementVisible WelcomeView, 20000
         .assert.containsText   pendingStack, 'Your Team Stack is Pending'
-        .waitForElementVisible WelcomeView, 20000
-        .click userstackLink
-        .waitForElementVisible stackEditor, 20000
-        .url  welcomeLink
-        .pause 2000
-        .waitForElementVisible WelcomeView, 20000
-        .click memberInstallKDLink
-        .waitForElementVisible kodingUtilities, 20000
