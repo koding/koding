@@ -20,7 +20,6 @@ func TestInvoiceList(t *testing.T) {
 				withTestPlan(func(planID string) {
 					createUrl := fmt.Sprintf("%s/payment/subscription/create", endpoint)
 					deleteUrl := fmt.Sprintf("%s/payment/subscription/delete", endpoint)
-					getUrl := fmt.Sprintf("%s/payment/subscription/get", endpoint)
 
 					group, err := modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)
@@ -50,10 +49,21 @@ func TestInvoiceList(t *testing.T) {
 							err = json.Unmarshal(res, &invoices)
 							So(err, ShouldBeNil)
 							So(len(invoices), ShouldBeGreaterThan, 0)
+							Convey("We should be able to list invoices with startingAfter query param", func() {
+								listInvoicesUrlWithQuery := fmt.Sprintf("%s/payment/invoice/list?startingAfter=%s", endpoint, invoices[0].ID)
 
-							Convey("We should be able to cancel the subscription", func() {
-								res, err = rest.DoRequestWithAuth("DELETE", deleteUrl, req, sessionID)
+								res, err = rest.DoRequestWithAuth("GET", listInvoicesUrlWithQuery, nil, sessionID)
 								tests.ResultedWithNoErrorCheck(res, err)
+
+								var invoices []*stripe.Invoice
+								err = json.Unmarshal(res, &invoices)
+								So(err, ShouldBeNil)
+								So(len(invoices), ShouldEqual, 0)
+
+								Convey("We should be able to cancel the subscription", func() {
+									res, err = rest.DoRequestWithAuth("DELETE", deleteUrl, req, sessionID)
+									tests.ResultedWithNoErrorCheck(res, err)
+								})
 							})
 						})
 					})
