@@ -98,15 +98,12 @@ func AddHandlers(m *mux.Mux) {
 		},
 	)
 
-	// //----------------------------------------------------------
-	// // Invoices
-	// //----------------------------------------------------------
-	// m.AddHandler(
-	// 	handler.Request{
-	// 		Handler:  GroupInvoiceRequest,
-	// 		Name:     "payment-group-invoices",
-	// 		Type:     handler.GetRequest,
-	// 		Endpoint: "/payment/group/invoices/{groupId}",
-	// 	},
-	// )
+	m.AddHandler(
+		handler.Request{
+			Handler:  ListInvoice,
+			Name:     "payment-list-invoices",
+			Type:     handler.GetRequest,
+			Endpoint: "/payment/invoice/list",
+		},
+	)
 }

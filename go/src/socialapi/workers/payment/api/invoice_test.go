@@ -1,29 +1,64 @@
 package api
 
 import (
+	"encoding/json"
+	"fmt"
+	"koding/db/mongodb/modelhelper"
+	"socialapi/rest"
+	"socialapi/workers/common/tests"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	stripe "github.com/stripe/stripe-go"
 )
 
-func TestGetInvoice(t *testing.T) {
-	Convey("Given a subscribed user", t, nil) // subscribeFn(func(token, accId, email string) {
-	// 	Convey("Then it should return list of invoices for the user", func() {
-	// invoices, err := FindInvoicesForCustomer(accId)
-	// So(err, ShouldBeNil)
+func TestInvoiceList(t *testing.T) {
+	Convey("Given stub data", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withStubData(endpoint, func(username, groupName, sessionID string) {
+				withTestPlan(func(planID string) {
+					createUrl := fmt.Sprintf("%s/payment/subscription/create", endpoint)
+					deleteUrl := fmt.Sprintf("%s/payment/subscription/delete", endpoint)
+					getUrl := fmt.Sprintf("%s/payment/subscription/get", endpoint)
 
-	// So(len(invoices), ShouldEqual, 1)
+					group, err := modelhelper.GetGroup(groupName)
+					tests.ResultedWithNoErrorCheck(group, err)
 
-	// firstInvoice := invoices[0]
-	// So(firstInvoice.PeriodStart.IsZero(), ShouldBeFalse)
-	// So(firstInvoice.PeriodEnd.IsZero(), ShouldBeFalse)
-	// So(firstInvoice.Amount, ShouldEqual, StartingPlanPrice)
+					Convey("We should be able to create a subscription", func() {
+						req, err := json.Marshal(&stripe.SubParams{
+							Customer: group.Payment.Customer.ID,
+							Plan:     planID,
+						})
+						tests.ResultedWithNoErrorCheck(req, err)
 
-	// ccResp := firstInvoice.CreditCardResponse
+						res, err := rest.DoRequestWithAuth("POST", createUrl, req, sessionID)
+						tests.ResultedWithNoErrorCheck(res, err)
 
-	// So(ccResp, ShouldNotBeNil)
-	// So(ccResp.LastFour, ShouldEqual, "4242")
-	// 		})
-	// }),
+						v := &stripe.Sub{}
+						err = json.Unmarshal(res, v)
+						So(err, ShouldBeNil)
+						So(v.Status, ShouldEqual, "active")
 
+						Convey("We should be able to list invoices", func() {
+							listInvoicesUrl := fmt.Sprintf("%s/payment/invoice/list", endpoint)
+
+							res, err = rest.DoRequestWithAuth("GET", listInvoicesUrl, nil, sessionID)
+							tests.ResultedWithNoErrorCheck(res, err)
+
+							var invoices []*stripe.Invoice
+							err = json.Unmarshal(res, &invoices)
+							So(err, ShouldBeNil)
+							So(len(invoices), ShouldBeGreaterThan, 0)
+
+							Convey("We should be able to cancel the subscription", func() {
+								res, err = rest.DoRequestWithAuth("DELETE", deleteUrl, req, sessionID)
+								tests.ResultedWithNoErrorCheck(res, err)
+							})
+						})
+					})
+				})
+			})
+		})
+	})
 }
