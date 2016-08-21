@@ -68,7 +68,6 @@ func GetCustomerForGroup(groupName string) (*stripe.Customer, error) {
 }
 
 func CreateCustomerForGroup(username, groupName string, req *stripe.CustomerParams) (*stripe.Customer, error) {
-
 	req, err := populateCustomerParams(username, groupName, req)
 	if err != nil {
 		return nil, err
@@ -98,8 +97,8 @@ func CreateCustomerForGroup(username, groupName string, req *stripe.CustomerPara
 	return cus, nil
 }
 
-func deleteCustomer(customerId string) error {
-	cus, err := customer.Del(customerId)
+func deleteCustomer(customerID string) error {
+	cus, err := customer.Del(customerID)
 	if cus != nil && cus.Deleted { // if customer is already deleted previously
 		return nil
 	}

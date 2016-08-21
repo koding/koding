@@ -2,11 +2,11 @@ package payment
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/email/emailsender"
 
-	"github.com/kr/pretty"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
 )
@@ -15,7 +15,6 @@ var mailSender = emailsender.Send
 
 func chargeSucceededHandler(raw []byte) error {
 	var charge *stripe.Charge
-
 	err := json.Unmarshal(raw, &charge)
 	if err != nil {
 		return err
@@ -29,7 +28,6 @@ func chargeSucceededHandler(raw []byte) error {
 
 func chargeFailedHandler(raw []byte) error {
 	var charge *stripe.Charge
-
 	err := json.Unmarshal(raw, &charge)
 	if err != nil {
 		return err
@@ -48,7 +46,6 @@ func getAmountOpts(charge *stripe.Charge) map[string]interface{} {
 
 func customerSubscriptionCreatedHandler(raw []byte) error {
 	var req *stripe.Sub
-
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -61,7 +58,6 @@ func customerSubscriptionCreatedHandler(raw []byte) error {
 
 func customerSubscriptionDeletedHandler(raw []byte) error {
 	var req *stripe.Sub
-
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -74,7 +70,6 @@ func customerSubscriptionDeletedHandler(raw []byte) error {
 
 func customerSubscriptionUpdatedHandler(raw []byte) error {
 	var req *stripe.Sub
-
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -87,7 +82,6 @@ func customerSubscriptionUpdatedHandler(raw []byte) error {
 
 func customerSubscriptionTrialWillEndHandler(raw []byte) error {
 	var req *stripe.Sub
-
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -100,7 +94,6 @@ func customerSubscriptionTrialWillEndHandler(raw []byte) error {
 
 func invoiceCreatedHandler(raw []byte) error {
 	var invoice *stripe.Invoice
-
 	err := json.Unmarshal(raw, &invoice)
 	if err != nil {
 		return err
@@ -111,7 +104,6 @@ func invoiceCreatedHandler(raw []byte) error {
 
 func invoicePaymentFailedHandler(raw []byte) error {
 	var invoice *stripe.Invoice
-
 	err := json.Unmarshal(raw, &invoice)
 	if err != nil {
 		return err
@@ -122,7 +114,6 @@ func invoicePaymentFailedHandler(raw []byte) error {
 
 func invoicePaymentSucceededHandler(raw []byte) error {
 	var invoice *stripe.Invoice
-
 	err := json.Unmarshal(raw, &invoice)
 	if err != nil {
 		return err
@@ -138,17 +129,13 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 	}
 
 	if cus.Subs.Count != 1 {
-		fmt.Printf("customer should only have one sub %# v", pretty.Formatter(cus))
 		// TODO CRITICAL
-		return nil
+		return errors.New("customer should only have one subscription")
 	}
 
 	status := cus.Subs.Values[0].Status
 
-	// state :=
-	groupName := cus.Meta["groupName"]
-
-	group, err := modelhelper.GetGroup(groupName)
+	group, err := modelhelper.GetGroup(cus.Meta["groupName"])
 	if err != nil {
 		return err
 	}
