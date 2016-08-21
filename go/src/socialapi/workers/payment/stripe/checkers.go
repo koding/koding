@@ -39,11 +39,11 @@ func IsSubscribedToPlan(subscription paymentmodels.Subscription, plan *paymentmo
 	return subscription.PlanId == plan.Id
 }
 
-func IsNoCreditCards(cardList *stripe.CardList) bool {
+func IsNoCreditCards(cardList *stripe.SourceList) bool {
 	return cardList == nil || cardList.Count == 0
 }
 
-func IsTooManyCreditCards(cardList *stripe.CardList) bool {
+func IsTooManyCreditCards(cardList *stripe.SourceList) bool {
 	return cardList.Count > 1
 }
 

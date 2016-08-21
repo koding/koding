@@ -28,7 +28,7 @@ func CreateSubscription(customer *paymentmodels.Customer, plan *paymentmodels.Pl
 	subModel := &paymentmodels.Subscription{
 		PlanId:                 plan.Id,
 		CustomerId:             customer.Id,
-		ProviderSubscriptionId: sub.Id,
+		ProviderSubscriptionId: sub.ID,
 		Provider:               ProviderName,
 		State:                  "active",
 		CurrentPeriodStart:     start,
@@ -72,7 +72,7 @@ func CancelSubscription(customer *paymentmodels.Customer, subscription *paymentm
 		Customer: customer.ProviderCustomerId,
 	}
 
-	err := stripeSub.Cancel(subscription.ProviderSubscriptionId, subParams)
+	_, err := stripeSub.Cancel(subscription.ProviderSubscriptionId, subParams)
 	if err != nil {
 		Log.Error(err.Error())
 	}

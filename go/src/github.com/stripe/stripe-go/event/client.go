@@ -1,49 +1,44 @@
-// package event provides the /events APIs
+// Package event provides the /events APIs
 package event
 
 import (
-	"net/url"
 	"strconv"
 
-	. "github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 )
 
 // Client is used to invoke /events APIs.
 type Client struct {
-	B   Backend
+	B   stripe.Backend
 	Key string
 }
 
 // Get returns the details of an event
 // For more details see https://stripe.com/docs/api#retrieve_event.
-func Get(id string) (*Event, error) {
-	return getC().Get(id)
+func Get(id string, params *stripe.Params) (*stripe.Event, error) {
+	return getC().Get(id, params)
 }
 
-func (c Client) Get(id string) (*Event, error) {
-	event := &Event{}
-	err := c.B.Call("GET", "/events/"+id, c.Key, nil, event)
+func (c Client) Get(id string, params *stripe.Params) (*stripe.Event, error) {
+	event := &stripe.Event{}
+	err := c.B.Call("GET", "/events/"+id, c.Key, nil, params, event)
 
 	return event, err
 }
 
 // List returns a list of events.
 // For more details see https://stripe.com/docs/api#list_events
-func List(params *EventListParams) *EventIter {
+func List(params *stripe.EventListParams) *Iter {
 	return getC().List(params)
 }
 
-func (c Client) List(params *EventListParams) *EventIter {
-	type eventList struct {
-		ListMeta
-		Values []*Event `json:"data"`
-	}
-
-	var body *url.Values
-	var lp *ListParams
+func (c Client) List(params *stripe.EventListParams) *Iter {
+	var body *stripe.RequestValues
+	var lp *stripe.ListParams
+	var p *stripe.Params
 
 	if params != nil {
-		body = &url.Values{}
+		body = &stripe.RequestValues{}
 
 		if params.Created > 0 {
 			body.Add("created", strconv.FormatInt(params.Created, 10))
@@ -55,11 +50,12 @@ func (c Client) List(params *EventListParams) *EventIter {
 
 		params.AppendTo(body)
 		lp = &params.ListParams
+		p = params.ToParams()
 	}
 
-	return &EventIter{GetIter(lp, body, func(b url.Values) ([]interface{}, ListMeta, error) {
-		list := &eventList{}
-		err := c.B.Call("GET", "/events", c.Key, &b, list)
+	return &Iter{stripe.GetIter(lp, body, func(b *stripe.RequestValues) ([]interface{}, stripe.ListMeta, error) {
+		list := &stripe.EventList{}
+		err := c.B.Call("GET", "/events", c.Key, b, p, list)
 
 		ret := make([]interface{}, len(list.Values))
 		for i, v := range list.Values {
@@ -70,6 +66,19 @@ func (c Client) List(params *EventListParams) *EventIter {
 	})}
 }
 
+// Iter is an iterator for lists of Events.
+// The embedded Iter carries methods with it;
+// see its documentation for details.
+type Iter struct {
+	*stripe.Iter
+}
+
+// Event returns the most recent Event
+// visited by a call to Next.
+func (i *Iter) Event() *stripe.Event {
+	return i.Current().(*stripe.Event)
+}
+
 func getC() Client {
-	return Client{GetBackend(), Key}
+	return Client{stripe.GetBackend(stripe.APIBackend), stripe.Key}
 }
