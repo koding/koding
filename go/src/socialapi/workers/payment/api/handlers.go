@@ -89,6 +89,15 @@ func AddHandlers(m *mux.Mux) {
 		},
 	)
 
+	m.AddHandler(
+		handler.Request{
+			Handler:  Webhook,
+			Name:     "payment-webhoook",
+			Type:     handler.PostRequest,
+			Endpoint: "/payment/webhook",
+		},
+	)
+
 	// //----------------------------------------------------------
 	// // Invoices
 	// //----------------------------------------------------------

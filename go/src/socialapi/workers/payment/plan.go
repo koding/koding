@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"socialapi/config"
 	"strings"
 
 	stripe "github.com/stripe/stripe-go"
@@ -12,7 +13,7 @@ import (
 // Over 50 users:  $34.97 per developer per month
 
 const (
-	usd = stripe.Currency("USD")
+	USD = stripe.Currency("USD")
 )
 
 // TrialPeriod: Specifies a trial period in (an integer number of) days. If you
@@ -28,7 +29,7 @@ var Plans = []*stripe.PlanParams{
 		IntervalCount: 1,
 		TrialPeriod:   0,
 		Name:          "Free Forever",
-		Currency:      usd,
+		Currency:      USD,
 		ID:            "p_free_forever",
 		Statement:     "FREE",
 	},
@@ -40,7 +41,7 @@ var Plans = []*stripe.PlanParams{
 		IntervalCount: 1,
 		TrialPeriod:   7,
 		Name:          "Free For 7 days",
-		Currency:      usd,
+		Currency:      USD,
 		ID:            "p_free_for_7_days",
 		Statement:     "FREE FOR 7 DAYS",
 	},
@@ -52,7 +53,7 @@ var Plans = []*stripe.PlanParams{
 		IntervalCount: 1,
 		TrialPeriod:   30,
 		Name:          "Free For 30 days",
-		Currency:      usd,
+		Currency:      USD,
 		ID:            "p_free_for_30_days",
 		Statement:     "FREE FOR 30 DAYS",
 	},
@@ -63,27 +64,29 @@ var Plans = []*stripe.PlanParams{
 		IntervalCount: 1,
 		TrialPeriod:   0,
 		Name:          "Up to 10 users",
-		Currency:      usd,
+		Currency:      USD,
 		ID:            "p_up_to_10",
 		Statement:     "UP TO 10 USERS",
 	},
+
 	&stripe.PlanParams{
 		Amount:        3997,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
 		TrialPeriod:   0,
 		Name:          "Up to 50 users",
-		Currency:      usd,
+		Currency:      USD,
 		ID:            "p_up_to_50",
 		Statement:     "UP TO 50 USERS",
 	},
+
 	&stripe.PlanParams{
 		Amount:        3497,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
 		TrialPeriod:   0,
 		Name:          "Over 50 users",
-		Currency:      usd,
+		Currency:      USD,
 		ID:            "p_over_50",
 		Statement:     "OVER 50 USERS",
 	},
@@ -107,5 +110,11 @@ func CreateDefaultPlans() error {
 		}
 	}
 
+	return nil
+}
+
+func Initialize(conf *config.Config) error {
+	stripe.Key = conf.Stripe.SecretToken
+	go CreateDefaultPlans() // for now only default plan creation
 	return nil
 }

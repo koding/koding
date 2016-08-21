@@ -1,4 +1,4 @@
-package payment
+package api
 
 import (
 	"fmt"
@@ -6,16 +6,14 @@ import (
 	"net"
 	"socialapi/config"
 	"socialapi/workers/common/mux"
-	paymentapi "socialapi/workers/payment/api"
+	"socialapi/workers/payment"
 	"strconv"
 	"testing"
 
 	"github.com/koding/runner"
-	"github.com/stripe/stripe-go"
 )
 
 func withTestServer(t *testing.T, f func(url string)) {
-	stripe.Key = ""
 	const workerName = "paymentwebhook"
 
 	r := runner.New(workerName)
@@ -24,7 +22,7 @@ func withTestServer(t *testing.T, f func(url string)) {
 	}
 
 	c := config.MustRead(r.Conf.Path)
-
+	payment.Initialize(c)
 	// init mongo connection
 	modelhelper.Initialize(c.Mongo)
 	defer modelhelper.Close()
@@ -34,7 +32,7 @@ func withTestServer(t *testing.T, f func(url string)) {
 	mc.Debug = r.Conf.Debug
 	m := mux.New(mc, r.Log, r.Metrics)
 
-	paymentapi.AddHandlers(m)
+	AddHandlers(m)
 
 	m.Listen()
 
