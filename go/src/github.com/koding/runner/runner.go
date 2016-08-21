@@ -67,7 +67,7 @@ func New(name string) *Runner {
 		port: f1.String("port", "7000", "listen port"),
 	}
 
-	if err := f1.Parse(os.Args[1:]); err == nil {
+	if err := f1.Parse(os.Args[1:]); err != nil {
 		panic(err.Error())
 	}
 
@@ -85,8 +85,6 @@ func (r *Runner) Init() error {
 // InitWithConfigFile used for externally setting config file.
 // This is used for testing purposes, and usage of Init method is encouraged
 func (r *Runner) InitWithConfigFile(configFile string) error {
-
-	flag.Parse()
 
 	// set config file after parsing
 	if configFile == "" {
