@@ -18,8 +18,8 @@ func TestCreditCard(t *testing.T) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				Convey("When a credit card added", func() {
 					withTestCreditCardToken(func(token string) {
-						updateUrl := fmt.Sprintf("%s/payment/customer/update", endpoint)
-						getUrl := fmt.Sprintf("%s/payment/customer/get", endpoint)
+						updateUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
+						getUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerGet)
 
 						cp := &stripe.CustomerParams{
 							Source: &stripe.SourceParams{
@@ -70,7 +70,7 @@ func TestCreditCard(t *testing.T) {
 										So(c1.DefaultSource.ID, ShouldNotEqual, c2.DefaultSource.ID)
 
 										Convey("After deleting the credit card", func() {
-											ccdeleteUrl := fmt.Sprintf("%s/payment/creditcard/delete", endpoint)
+											ccdeleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
 
 											res, err = rest.DoRequestWithAuth("DELETE", ccdeleteUrl, nil, sessionID)
 											So(err, ShouldBeNil)
@@ -114,7 +114,7 @@ func TestCreditCardNonAdmin(t *testing.T) {
 			So(ses, ShouldNotBeNil)
 
 			Convey("Endpoint should return error", func() {
-				ccdeleteUrl := fmt.Sprintf("%s/payment/creditcard/delete", endpoint)
+				ccdeleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
 				_, err := rest.DoRequestWithAuth("DELETE", ccdeleteUrl, nil, ses.ClientId)
 				So(err, ShouldNotBeNil)
 			})
@@ -126,7 +126,7 @@ func TestCreditCardLoggedOut(t *testing.T) {
 	Convey("When a non registered request comes", t, func() {
 		withTestServer(t, func(endpoint string) {
 			Convey("Endpoint should return error", func() {
-				ccdeleteUrl := fmt.Sprintf("%s/payment/creditcard/delete", endpoint)
+				ccdeleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
 				_, err := rest.DoRequestWithAuth("DELETE", ccdeleteUrl, nil, "")
 				So(err, ShouldNotBeNil)
 			})
@@ -152,7 +152,7 @@ func TestCreditCardNotSubscribingMember(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Endpoint should return error", func() {
-					ccdeleteUrl := fmt.Sprintf("%s/payment/creditcard/delete", endpoint)
+					ccdeleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
 					_, err = rest.DoRequestWithAuth("DELETE", ccdeleteUrl, nil, sessionID)
 					So(err, ShouldNotBeNil)
 

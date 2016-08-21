@@ -5,22 +5,26 @@ import (
 	"socialapi/workers/common/mux"
 )
 
+const (
+	EndpointSubscriptionDelete = "/payment/subscription/delete"
+	EndpointSubscriptionGet    = "/payment/subscription/get"
+	EndpointSubscriptionCreate = "/payment/subscription/create"
+	EndpointCustomerCreate     = "/payment/customer/create"
+	EndpointCustomerGet        = "/payment/customer/get"
+	EndpointCustomerUpdate     = "/payment/customer/update"
+	EndpointCustomerDelete     = "/payment/customer/delete"
+	EndpointCreditCardDelete   = "/payment/creditcard/delete"
+	EndpointWebhook            = "/payment/webhook"
+	EndpointInvoiceList        = "/payment/invoice/list"
+)
+
 func AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{
 			Handler:  DeleteSubscription,
 			Name:     "payment-delete-subscription",
 			Type:     handler.DeleteRequest,
-			Endpoint: "/payment/subscription/delete",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  UpdateSubscription,
-			Name:     "payment-update-subscription",
-			Type:     handler.PostRequest,
-			Endpoint: "/payment/subscription/update",
+			Endpoint: EndpointSubscriptionDelete,
 		},
 	)
 
@@ -29,7 +33,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  GetSubscription,
 			Name:     "payment-get-subscription",
 			Type:     handler.GetRequest,
-			Endpoint: "/payment/subscription/get",
+			Endpoint: EndpointSubscriptionGet,
 		},
 	)
 
@@ -38,7 +42,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  CreateSubscription,
 			Name:     "payment-create-subscription",
 			Type:     handler.PostRequest,
-			Endpoint: "/payment/subscription/create",
+			Endpoint: EndpointSubscriptionCreate,
 		},
 	)
 
@@ -49,7 +53,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  DeleteCustomer,
 			Name:     "payment-delete-customer",
 			Type:     handler.DeleteRequest,
-			Endpoint: "/payment/customer/delete",
+			Endpoint: EndpointCustomerDelete,
 		},
 	)
 
@@ -58,7 +62,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  UpdateCustomer,
 			Name:     "payment-update-customer",
 			Type:     handler.PostRequest,
-			Endpoint: "/payment/customer/update",
+			Endpoint: EndpointCustomerUpdate,
 		},
 	)
 
@@ -67,7 +71,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  GetCustomer,
 			Name:     "payment-get-customer",
 			Type:     handler.GetRequest,
-			Endpoint: "/payment/customer/get",
+			Endpoint: EndpointCustomerGet,
 		},
 	)
 
@@ -76,7 +80,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  CreateCustomer,
 			Name:     "payment-create-customer",
 			Type:     handler.PostRequest,
-			Endpoint: "/payment/customer/create",
+			Endpoint: EndpointCustomerCreate,
 		},
 	)
 
@@ -85,7 +89,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  DeleteCreditCard,
 			Name:     "payment-delete-creditcard",
 			Type:     handler.DeleteRequest,
-			Endpoint: "/payment/creditcard/delete",
+			Endpoint: EndpointCreditCardDelete,
 		},
 	)
 
@@ -94,7 +98,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  Webhook,
 			Name:     "payment-webhoook",
 			Type:     handler.PostRequest,
-			Endpoint: "/payment/webhook",
+			Endpoint: EndpointWebhook,
 		},
 	)
 
@@ -103,7 +107,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  ListInvoice,
 			Name:     "payment-list-invoices",
 			Type:     handler.GetRequest,
-			Endpoint: "/payment/invoice/list",
+			Endpoint: EndpointInvoiceList,
 		},
 	)
 }

@@ -18,8 +18,8 @@ func TestInvoiceList(t *testing.T) {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withTestPlan(func(planID string) {
-					createUrl := fmt.Sprintf("%s/payment/subscription/create", endpoint)
-					deleteUrl := fmt.Sprintf("%s/payment/subscription/delete", endpoint)
+					createUrl := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
+					deleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionDelete)
 
 					group, err := modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)
@@ -40,7 +40,7 @@ func TestInvoiceList(t *testing.T) {
 						So(v.Status, ShouldEqual, "active")
 
 						Convey("We should be able to list invoices", func() {
-							listInvoicesUrl := fmt.Sprintf("%s/payment/invoice/list", endpoint)
+							listInvoicesUrl := fmt.Sprintf("%s%s", endpoint, EndpointInvoiceList)
 
 							res, err = rest.DoRequestWithAuth("GET", listInvoicesUrl, nil, sessionID)
 							tests.ResultedWithNoErrorCheck(res, err)
@@ -50,7 +50,7 @@ func TestInvoiceList(t *testing.T) {
 							So(err, ShouldBeNil)
 							So(len(invoices), ShouldBeGreaterThan, 0)
 							Convey("We should be able to list invoices with startingAfter query param", func() {
-								listInvoicesUrlWithQuery := fmt.Sprintf("%s/payment/invoice/list?startingAfter=%s", endpoint, invoices[0].ID)
+								listInvoicesUrlWithQuery := fmt.Sprintf("%s%s?startingAfter=%s", endpoint, EndpointInvoiceList, invoices[0].ID)
 
 								res, err = rest.DoRequestWithAuth("GET", listInvoicesUrlWithQuery, nil, sessionID)
 								tests.ResultedWithNoErrorCheck(res, err)
