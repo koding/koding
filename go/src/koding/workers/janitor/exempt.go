@@ -3,7 +3,6 @@ package main
 import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"socialapi/workers/payment/paymentapi"
 	"strings"
 
 	"gopkg.in/mgo.v2"
@@ -35,16 +34,7 @@ func NewChecker(name string, fn func(*models.User, *Warning) (bool, error)) *Exe
 
 // IsUserPaidFn checks if user is paid or not. All paid users are exempt.
 func IsUserPaidFn(user *models.User, _ *Warning) (bool, error) {
-	account, err := modelhelper.GetAccount(user.Name)
-	if err == mgo.ErrNotFound {
-		return false, nil
-	}
-
-	if err != nil {
-		return false, err
-	}
-
-	return paymentapi.New("").IsPaidAccount(account)
+	return false, nil
 }
 
 // IsUserNotConfirmedFn checks if user is 'unconfirmed'. Unconfirmed users
