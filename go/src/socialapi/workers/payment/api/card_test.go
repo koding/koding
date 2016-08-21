@@ -1,8 +1,10 @@
-package payment
+package api
 
 import (
 	"encoding/json"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
+	"socialapi/models"
 	"socialapi/rest"
 	"testing"
 
@@ -96,6 +98,73 @@ func TestCreditCard(t *testing.T) {
 							})
 						})
 					})
+				})
+			})
+		})
+	})
+}
+
+func TestCreditCardNonAdmin(t *testing.T) {
+	Convey("When a non admin user request comes", t, func() {
+		withTestServer(t, func(endpoint string) {
+			acc, _, groupName := models.CreateRandomGroupDataWithChecks()
+
+			ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
+			Convey("Endpoint should return error", func() {
+				ccdeleteUrl := fmt.Sprintf("%s/payment/creditcard/delete", endpoint)
+				_, err := rest.DoRequestWithAuth("DELETE", ccdeleteUrl, nil, ses.ClientId)
+				So(err, ShouldNotBeNil)
+			})
+		})
+	})
+}
+
+func TestCreditCardLoggedOut(t *testing.T) {
+	Convey("When a non registered request comes", t, func() {
+		withTestServer(t, func(endpoint string) {
+			Convey("Endpoint should return error", func() {
+				ccdeleteUrl := fmt.Sprintf("%s/payment/creditcard/delete", endpoint)
+				_, err := rest.DoRequestWithAuth("DELETE", ccdeleteUrl, nil, "")
+				So(err, ShouldNotBeNil)
+			})
+		})
+	})
+}
+
+func TestCreditCardNotSubscribingMember(t *testing.T) {
+	Convey("When a non subscribed user request to delete CC", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withStubData(endpoint, func(username, groupName, sessionID string) {
+
+				group, err := modelhelper.GetGroup(groupName)
+				So(err, ShouldBeNil)
+				So(group, ShouldNotBeNil)
+
+				err = modelhelper.UpdateGroupPartial(
+					modelhelper.Selector{"_id": group.Id},
+					modelhelper.Selector{
+						"$unset": modelhelper.Selector{"payment.customer.id": ""},
+					},
+				)
+				So(err, ShouldBeNil)
+
+				Convey("Endpoint should return error", func() {
+					ccdeleteUrl := fmt.Sprintf("%s/payment/creditcard/delete", endpoint)
+					_, err = rest.DoRequestWithAuth("DELETE", ccdeleteUrl, nil, sessionID)
+					So(err, ShouldNotBeNil)
+
+					// set the customer id back becase test data callback requires it.
+					err = modelhelper.UpdateGroupPartial(
+						modelhelper.Selector{"_id": group.Id},
+						modelhelper.Selector{
+							"$set": modelhelper.Selector{"payment.customer.id": group.Payment.Customer.ID},
+						},
+					)
+					So(err, ShouldBeNil)
+
 				})
 			})
 		})

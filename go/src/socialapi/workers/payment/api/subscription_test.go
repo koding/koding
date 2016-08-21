@@ -1,4 +1,4 @@
-package payment
+package api
 
 import (
 	"encoding/json"

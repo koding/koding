@@ -9,13 +9,12 @@ import (
 )
 
 func TestCreateDefaultPlans(t *testing.T) {
-	withTestServer(t, func(endpoint string) {
-
+	withConfiguration(t, func() {
 		Convey("Given default plans object", t, func() {
 			err := CreateDefaultPlans()
 			So(err, ShouldBeNil)
 
-			Convey("Plans should in Stripe", func() {
+			Convey("Plans should be in Stripe", func() {
 				for _, plan := range Plans {
 					_, err := stripePlan.Get(plan.ID, nil)
 					So(err, ShouldBeNil)
