@@ -33,8 +33,8 @@ type Payment struct {
 
 type Subscription struct {
 	// Allowed values are "trialing", "active", "past_due", "canceled", "unpaid".
-	Status string `bson:"status" json:"status"`
-	ID     string `bson:"id" json:"id"`
+	State string `bson:"state" json:"state"`
+	ID    string `bson:"id" json:"id"`
 }
 
 type Customer struct {
