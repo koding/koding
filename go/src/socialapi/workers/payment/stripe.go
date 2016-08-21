@@ -1,6 +1,9 @@
 package payment
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type StripeHandler func([]byte) error
 
@@ -25,4 +28,15 @@ func GetHandler(name string) (StripeHandler, error) {
 	}
 
 	return nil, errors.New("handler not found")
+}
+
+func formatCurrency(currencyStr string, amount uint64) string {
+	switch currencyStr {
+	case "USD", "usd":
+		currencyStr = "$"
+	default:
+		return ""
+	}
+
+	return fmt.Sprintf("%s%v", currencyStr, amount/100)
 }

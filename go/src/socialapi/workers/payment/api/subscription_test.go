@@ -13,7 +13,7 @@ import (
 )
 
 func TestCreateSubscription(t *testing.T) {
-	Convey("Given a user", t, func() {
+	Convey("Given stub data", t, func() {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withTestPlan(func(planID string) {
@@ -25,38 +25,41 @@ func TestCreateSubscription(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(group, ShouldNotBeNil)
 
-					req, err := json.Marshal(&stripe.SubParams{
-						Customer: group.Payment.Customer.ID,
-						Plan:     planID,
+					Convey("We should be able to create a subscription", func() {
+						req, err := json.Marshal(&stripe.SubParams{
+							Customer: group.Payment.Customer.ID,
+							Plan:     planID,
+						})
+						So(err, ShouldBeNil)
+						So(req, ShouldNotBeNil)
+
+						res, err := rest.DoRequestWithAuth("POST", createUrl, req, sessionID)
+						So(err, ShouldBeNil)
+						So(res, ShouldNotBeNil)
+
+						res, err = rest.DoRequestWithAuth("GET", getUrl, nil, sessionID)
+						So(err, ShouldBeNil)
+						So(res, ShouldNotBeNil)
+
+						v := &stripe.Sub{}
+						err = json.Unmarshal(res, v)
+						So(err, ShouldBeNil)
+						So(v.Status, ShouldEqual, "active")
+						Convey("We should be able to cancel the subscription", func() {
+							res, err = rest.DoRequestWithAuth("DELETE", deleteUrl, req, sessionID)
+							So(err, ShouldBeNil)
+							So(res, ShouldNotBeNil)
+
+							res, err = rest.DoRequestWithAuth("GET", getUrl, nil, sessionID)
+							So(err, ShouldBeNil)
+							So(res, ShouldNotBeNil)
+
+							v = &stripe.Sub{}
+							err = json.Unmarshal(res, v)
+							So(err, ShouldBeNil)
+							So(v.Status, ShouldEqual, "canceled")
+						})
 					})
-					So(err, ShouldBeNil)
-					So(req, ShouldNotBeNil)
-
-					res, err := rest.DoRequestWithAuth("POST", createUrl, req, sessionID)
-					So(err, ShouldBeNil)
-					So(res, ShouldNotBeNil)
-
-					res, err = rest.DoRequestWithAuth("GET", getUrl, nil, sessionID)
-					So(err, ShouldBeNil)
-					So(res, ShouldNotBeNil)
-
-					v := &stripe.Sub{}
-					err = json.Unmarshal(res, v)
-					So(err, ShouldBeNil)
-					So(v.Status, ShouldEqual, "active")
-
-					res, err = rest.DoRequestWithAuth("DELETE", deleteUrl, req, sessionID)
-					So(err, ShouldBeNil)
-					So(res, ShouldNotBeNil)
-
-					res, err = rest.DoRequestWithAuth("GET", getUrl, nil, sessionID)
-					So(err, ShouldBeNil)
-					So(res, ShouldNotBeNil)
-
-					v = &stripe.Sub{}
-					err = json.Unmarshal(res, v)
-					So(err, ShouldBeNil)
-					So(v.Status, ShouldEqual, "canceled")
 				})
 			})
 		})
