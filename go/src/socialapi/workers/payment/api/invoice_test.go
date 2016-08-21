@@ -58,7 +58,7 @@ func TestInvoiceList(t *testing.T) {
 								var invoices []*stripe.Invoice
 								err = json.Unmarshal(res, &invoices)
 								So(err, ShouldBeNil)
-								So(len(invoices), ShouldEqual, 0)
+								So(len(invoices), ShouldEqual, 0) // because we only have one invoice
 
 								Convey("We should be able to cancel the subscription", func() {
 									res, err = rest.DoRequestWithAuth("DELETE", deleteUrl, req, sessionID)
