@@ -9,7 +9,6 @@ import (
 )
 
 func DeleteCreditCardForGroup(groupName string) (*stripe.Card, error) {
-
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
 		return nil, err
