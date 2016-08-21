@@ -174,7 +174,7 @@ func (u *Updater) endpointVersion(env string) string {
 		return u.Endpoint
 	}
 
-	return "https://s3.amazonaws.com/koding-klient/" + env + "/latest-version.txt"
+	return "https://koding-klient.s3.amazonaws.com/" + env + "/latest-version.txt"
 }
 
 func (u *Updater) endpointKlient(env string, latest *version.Version) string {
@@ -190,7 +190,7 @@ func (u *Updater) endpointKlient(env string, latest *version.Version) string {
 		file = fmt.Sprintf("klient-%s.gz", latest)
 	}
 
-	return fmt.Sprintf("https://s3.amazonaws.com/koding-klient/%s/%d/%s", env, latest.Segments()[2], file)
+	return fmt.Sprintf("https://koding-klient.s3.amazonaws.com/%s/%d/%s", env, latest.Segments()[2], file)
 }
 
 func (u *Updater) latestVersion(env string) (int, error) {

@@ -141,7 +141,7 @@ remove_service() {
 download_klient() {
 	KONTROLURL=${KONTROLURL:-https://koding.com/kontrol/kite}
 	CHANNEL=${CHANNEL:-managed}
-	VERSION=$(curl -sSL https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
+	VERSION=$(curl -sSL https://koding-klient.s3.amazonaws.com/${CHANNEL}/latest-version.txt)
 
 	sudo mkdir -p /opt/kite/klient
 	[[ -n "$USER" ]] && sudo chown -R "$USER" /opt/kite || true
@@ -151,7 +151,7 @@ Downloading Koding Service Connector 0.1.${VERSION}...
 
 EOF
 	if [[ ${is_macosx} -eq 1 ]]; then
-		LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/${VERSION}/klient-0.1.${VERSION}.darwin_amd64.gz"
+		LATESTURL="https://koding-klient.s3.amazonaws.com/${CHANNEL}/${VERSION}/klient-0.1.${VERSION}.darwin_amd64.gz"
 
 		if ! sudo curl -sSL $LATESTURL -o /opt/kite/klient/klient.gz; then
 			cat << EOF
@@ -171,7 +171,7 @@ EOF
 		return 0
 	fi
 
-	LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/${VERSION}/klient_0.1.${VERSION}_${CHANNEL}_amd64.deb"
+	LATESTURL="https://koding-klient.s3.amazonaws.com/${CHANNEL}/${VERSION}/klient_0.1.${VERSION}_${CHANNEL}_amd64.deb"
 
 	if ! curl -sSL $LATESTURL -o klient.deb; then
 		cat << EOF
