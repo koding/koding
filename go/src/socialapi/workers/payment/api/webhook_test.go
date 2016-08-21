@@ -11,20 +11,18 @@ import (
 func TestWebhook(t *testing.T) {
 	Convey("Given a user", t, func() {
 		withTestServer(t, func(endpoint string) {
-			withStubData(endpoint, func(username, groupName, sessionID string) {
-				webhookUrl := fmt.Sprintf("%s/payment/webhook", endpoint)
+			webhookUrl := fmt.Sprintf("%s/payment/webhook", endpoint)
 
-				Convey("Should give error when event id is not valid", func() {
-					req := []byte(webhookTestData["charge.succeeded"])
-					_, err := rest.DoRequestWithAuth("POST", webhookUrl, req, sessionID)
-					So(err, ShouldNotBeNil)
-				})
+			Convey("Should give error when event id is not valid", func() {
+				req := []byte(webhookTestData["charge.succeeded"])
+				_, err := rest.DoRequestWithAuth("POST", webhookUrl, req, "")
+				So(err, ShouldNotBeNil)
+			})
 
-				Convey("Should not give error when event type is not supported", func() {
-					req := []byte(webhookTestData["invalid.event_name"])
-					_, err := rest.DoRequestWithAuth("POST", webhookUrl, req, sessionID)
-					So(err, ShouldBeNil)
-				})
+			Convey("Should not give error when event type is not supported", func() {
+				req := []byte(webhookTestData["invalid.event_name"])
+				_, err := rest.DoRequestWithAuth("POST", webhookUrl, req, "")
+				So(err, ShouldBeNil)
 			})
 		})
 	})

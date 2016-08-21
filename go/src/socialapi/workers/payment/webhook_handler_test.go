@@ -3,35 +3,32 @@ package payment
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/models"
+	"socialapi/workers/common/tests"
 	"socialapi/workers/email/emailsender"
 	"testing"
 
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/kr/pretty"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stripe/stripe-go"
 )
 
 func withStubData(f func(username string, groupName string, sessionID string)) {
-
 	acc, _, groupName := models.CreateRandomGroupDataWithChecks()
 
 	group, err := modelhelper.GetGroup(groupName)
-	So(err, ShouldBeNil)
-	So(group, ShouldNotBeNil)
+	tests.ResultedWithNoErrorCheck(group, err)
 
 	err = modelhelper.MakeAdmin(bson.ObjectIdHex(acc.OldId), group.Id)
 	So(err, ShouldBeNil)
 
 	ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
-	So(err, ShouldBeNil)
-	So(ses, ShouldNotBeNil)
+	tests.ResultedWithNoErrorCheck(ses, err)
 
 	cus, err := CreateCustomerForGroup(acc.Nick, groupName, &stripe.CustomerParams{})
-	So(err, ShouldBeNil)
-	So(cus, ShouldNotBeNil)
+	tests.ResultedWithNoErrorCheck(cus, err)
 
 	f(acc.Nick, groupName, ses.ClientId)
 
@@ -52,33 +49,37 @@ func TestChargeSuccededHandler(t *testing.T) {
     "paid": true,
     "status": "succeeded"
 }`
-	withConfiguration(t, func() {
+	tests.WithConfiguration(t, func(c *config.Config) {
+		stripe.Key = c.Stripe.SecretToken
+
 		Convey("Given stub data", t, func() {
 			withStubData(func(username, groupName, sessionID string) {
 				Convey("Then Group should have customer id", func() {
 					group, err := modelhelper.GetGroup(groupName)
-					So(err, ShouldBeNil)
-					So(group, ShouldNotBeNil)
+					tests.ResultedWithNoErrorCheck(group, err)
 
 					So(group.Payment.Customer.ID, ShouldNotBeBlank)
 
-					raw := []byte(fmt.Sprintf(testData, group.Payment.Customer.ID))
+					Convey("When charge.succeeded is triggered", func() {
 
-					var capturedMail *emailsender.Mail
+						raw := []byte(fmt.Sprintf(testData, group.Payment.Customer.ID))
 
-					realMailSender := mailSender
-					mailSender = func(m *emailsender.Mail) error {
-						capturedMail = m
-						return nil
-					}
-					chargeSucceededHandler(raw)
-					mailSender = realMailSender
+						var capturedMail *emailsender.Mail
 
-					So(capturedMail, ShouldNotBeNil)
-					So(capturedMail.Subject, ShouldEqual, "charge succeeded")
-					So(capturedMail.Properties.Options["amount"], ShouldEqual, "$1")
+						realMailSender := mailSender
+						mailSender = func(m *emailsender.Mail) error {
+							capturedMail = m
+							return nil
+						}
+						chargeSucceededHandler(raw)
+						mailSender = realMailSender
 
-					fmt.Printf("capturedMail %# v", pretty.Formatter(capturedMail))
+						Convey("properties of event should be set accordingly", func() {
+							So(capturedMail, ShouldNotBeNil)
+							So(capturedMail.Subject, ShouldEqual, "charge succeeded")
+							So(capturedMail.Properties.Options["amount"], ShouldEqual, "$1")
+						})
+					})
 				})
 			})
 		})
@@ -98,31 +99,35 @@ func TestChargeFailedHandler(t *testing.T) {
     "paid": false,
     "status": "succeeded"
 }`
-	withConfiguration(t, func() {
+	tests.WithConfiguration(t, func(c *config.Config) {
+		stripe.Key = c.Stripe.SecretToken
+
 		Convey("Given stub data", t, func() {
 			withStubData(func(username, groupName, sessionID string) {
 				Convey("Then Group should have customer id", func() {
 					group, err := modelhelper.GetGroup(groupName)
-					So(err, ShouldBeNil)
-					So(group, ShouldNotBeNil)
+					tests.ResultedWithNoErrorCheck(group, err)
 
 					So(group.Payment.Customer.ID, ShouldNotBeBlank)
 
-					raw := []byte(fmt.Sprintf(testData, group.Payment.Customer.ID))
+					Convey("When charge.succeeded is triggered", func() {
+						raw := []byte(fmt.Sprintf(testData, group.Payment.Customer.ID))
 
-					var capturedMail *emailsender.Mail
+						var capturedMail *emailsender.Mail
 
-					realMailSender := mailSender
-					mailSender = func(m *emailsender.Mail) error {
-						capturedMail = m
-						return nil
-					}
-					chargeFailedHandler(raw)
-					mailSender = realMailSender
-
-					So(capturedMail, ShouldNotBeNil)
-					So(capturedMail.Subject, ShouldEqual, "charge failed")
-					So(capturedMail.Properties.Options["amount"], ShouldEqual, "$10")
+						realMailSender := mailSender
+						mailSender = func(m *emailsender.Mail) error {
+							capturedMail = m
+							return nil
+						}
+						chargeFailedHandler(raw)
+						mailSender = realMailSender
+						Convey("properties of event should be set accordingly", func() {
+							So(capturedMail, ShouldNotBeNil)
+							So(capturedMail.Subject, ShouldEqual, "charge failed")
+							So(capturedMail.Properties.Options["amount"], ShouldEqual, "$10")
+						})
+					})
 				})
 			})
 		})
