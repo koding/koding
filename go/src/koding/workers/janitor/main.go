@@ -59,10 +59,6 @@ func main() {
 	// warnings contains list of warnings to be iterated upon in a certain
 	// interval.
 	warnings := []*Warning{
-		VMDeletionWarning1,
-		VMDeletionWarning2,
-		DeleteInactiveUserVM,
-		DeleteBlockedUserVM,
 		newDeleteInactiveUsersWarning(conf),
 	}
 
