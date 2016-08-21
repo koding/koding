@@ -174,7 +174,6 @@ import:
 - package: github.com/streadway/amqp
 - package: github.com/streadway/simpleuuid
 - package: github.com/stripe/stripe-go
-  version: 36186439722aa7b6b2c6056801ddc42eb4edfacf
 - package: github.com/stvp/slug
 - package: golang.org/x/crypto
   subpackages:

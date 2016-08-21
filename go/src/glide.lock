@@ -853,15 +853,7 @@ imports:
 - name: github.com/streadway/simpleuuid
   version: 6617b501e485b77e61b98cd533aefff9e258b5a7
 - name: github.com/stripe/stripe-go
-  version: 1246ca8b1c71b33c3b55b819dfb0a416f93332c4
-  subpackages:
-  - card
-  - customer
-  - invoice
-  - orderitem
-  - plan
-  - sub
-  - token
+  version: d260377cdf1c5e7d3c333d411085d270158d2f0b
 - name: github.com/stvp/slug
   version: 5ab8191bb1fecafb3e73d3dc71cc81585ec57e5d
 - name: github.com/tent/http-link-go

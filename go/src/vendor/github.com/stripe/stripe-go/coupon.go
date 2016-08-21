@@ -6,18 +6,12 @@ import "encoding/json"
 // Allowed values are "forever", "once", "repeating".
 type CouponDuration string
 
-const (
-	Forever   CouponDuration = "forever"
-	Once      CouponDuration = "once"
-	Repeating CouponDuration = "repeating"
-)
-
 // CouponParams is the set of parameters that can be used when creating a coupon.
 // For more details see https://stripe.com/docs/api#create_coupon.
 type CouponParams struct {
 	Params
 	Duration                                     CouponDuration
-	Id                                           string
+	ID                                           string
 	Currency                                     Currency
 	Amount, Percent, DurationPeriod, Redemptions uint64
 	RedeemBy                                     int64
@@ -32,7 +26,7 @@ type CouponListParams struct {
 // Coupon is the resource representing a Stripe coupon.
 // For more details see https://stripe.com/docs/api#coupons.
 type Coupon struct {
-	Id             string            `json:"id"`
+	ID             string            `json:"id"`
 	Live           bool              `json:"livemode"`
 	Created        int64             `json:"created"`
 	Duration       CouponDuration    `json:"duration"`
@@ -45,33 +39,18 @@ type Coupon struct {
 	RedeemBy       int64             `json:"redeem_by"`
 	Redeemed       uint64            `json:"times_redeemed"`
 	Valid          bool              `json:"valid"`
+	Deleted        bool              `json:"deleted"`
 }
 
-// CouponIter is a iterator for list responses.
-type CouponIter struct {
-	Iter *Iter
+// CouponList is a list of coupons as retrieved from a list endpoint.
+type CouponList struct {
+	ListMeta
+	Values []*Coupon `json:"data"`
 }
 
-// Next returns the next value in the list.
-func (i *CouponIter) Next() (*Coupon, error) {
-	c, err := i.Iter.Next()
-	if err != nil {
-		return nil, err
-	}
-
-	return c.(*Coupon), err
-}
-
-// Stop returns true if there are no more iterations to be performed.
-func (i *CouponIter) Stop() bool {
-	return i.Iter.Stop()
-}
-
-// Meta returns the list metadata.
-func (i *CouponIter) Meta() *ListMeta {
-	return i.Iter.Meta()
-}
-
+// UnmarshalJSON handles deserialization of a Coupon.
+// This custom unmarshaling is needed because the resulting
+// property may be an id or the full struct if it was expanded.
 func (c *Coupon) UnmarshalJSON(data []byte) error {
 	type coupon Coupon
 	var cc coupon
@@ -79,8 +58,8 @@ func (c *Coupon) UnmarshalJSON(data []byte) error {
 	if err == nil {
 		*c = Coupon(cc)
 	} else {
-		// the id is surrounded by escaped \, so ignore those
-		c.Id = string(data[1 : len(data)-1])
+		// the id is surrounded by "\" characters, so strip them
+		c.ID = string(data[1 : len(data)-1])
 	}
 
 	return nil

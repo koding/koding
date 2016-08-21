@@ -1,21 +1,34 @@
 package stripe
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 // Event is the resource representing a Stripe event.
 // For more details see https://stripe.com/docs/api#events.
 type Event struct {
-	Id       string     `json:"id"`
+	ID       string     `json:"id"`
 	Live     bool       `json:"livemode"`
 	Created  int64      `json:"created"`
 	Data     *EventData `json:"data"`
 	Webhooks uint64     `json:"pending_webhooks"`
 	Type     string     `json:"type"`
 	Req      string     `json:"request"`
+	UserID   string     `json:"user_id"`
 }
 
 // EventData is the unmarshalled object as a map.
 type EventData struct {
-	Obj  map[string]interface{} `json:"object"`
+	Raw  json.RawMessage        `json:"object"`
 	Prev map[string]interface{} `json:"previous_attributes"`
+	Obj  map[string]interface{}
+}
+
+// EventList is a list of events as retrieved from a list endpoint.
+type EventList struct {
+	ListMeta
+	Values []*Event `json:"data"`
 }
 
 // EventListParams is the set of parameters that can be used when listing events.
@@ -25,31 +38,6 @@ type EventListParams struct {
 	Created int64
 	// Type is one of the values documented at https://stripe.com/docs/api#event_types.
 	Type string
-}
-
-// EventIter is a iterator for list responses.
-type EventIter struct {
-	Iter *Iter
-}
-
-// Next returns the next value in the list.
-func (i *EventIter) Next() (*Event, error) {
-	e, err := i.Iter.Next()
-	if err != nil {
-		return nil, err
-	}
-
-	return e.(*Event), err
-}
-
-// Stop returns true if there are no more iterations to be performed.
-func (i *EventIter) Stop() bool {
-	return i.Iter.Stop()
-}
-
-// Meta returns the list metadata.
-func (i *EventIter) Meta() *ListMeta {
-	return i.Iter.Meta()
 }
 
 // GetObjValue returns the value from the e.Data.Obj bag based on the keys hierarchy.
@@ -62,6 +50,20 @@ func (e *Event) GetPrevValue(keys ...string) string {
 	return getValue(e.Data.Prev, keys)
 }
 
+// UnmarshalJSON handles deserialization of the EventData.
+// This custom unmarshaling exists so that we can keep both the map and raw data.
+func (e *EventData) UnmarshalJSON(data []byte) error {
+	type eventdata EventData
+	var ee eventdata
+	err := json.Unmarshal(data, &ee)
+	if err != nil {
+		return err
+	}
+
+	*e = EventData(ee)
+	return json.Unmarshal(e.Raw, &e.Obj)
+}
+
 // getValue returns the value from the m map based on the keys.
 func getValue(m map[string]interface{}, keys []string) string {
 	node := m[keys[0]]
@@ -70,5 +72,9 @@ func getValue(m map[string]interface{}, keys []string) string {
 		node = node.(map[string]interface{})[keys[i]]
 	}
 
-	return node.(string)
+	if node == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%v", node)
 }
