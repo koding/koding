@@ -16,6 +16,8 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
+	log = log.New("cmd:restart")
+
 	s, err := newService(nil)
 	if err != nil {
 		log.Error("Error creating Service. err:%s", err)

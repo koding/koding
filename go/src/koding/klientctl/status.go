@@ -25,17 +25,15 @@ var defaultClient = httputil.NewClient(&httputil.ClientConfig{
 	ResponseHeaderTimeout: 3 * time.Second,
 })
 
-var defaultHealthChecker = &HealthChecker{
-	HTTPClient:           defaultClient,
-	LocalKlientAddress:   config.KlientAddress,
-	KontrolAddress:       config.KontrolURL,
-	InternetCheckAddress: config.S3KlientctlLatest,
-}
+// TODO(leeola): deprecate this default, instead passing it as a dependency
+// to the users of it.
+var defaultHealthChecker *HealthChecker
 
 // HealthChecker implements state for the various HealthCheck functions,
 // ideal for mocking the health check interfaces (local kite, remote http,
 // remote kite, etc)
 type HealthChecker struct {
+	Log        kodinglogging.Logger
 	HTTPClient *http.Client
 
 	// Used for verifying a locally / remotely running kite
@@ -44,6 +42,16 @@ type HealthChecker struct {
 
 	// Used for verifying a working internet connection
 	InternetCheckAddress string
+}
+
+func NewDefaultHealthChecker(l kodinglogging.Logger) *HealthChecker {
+	return &HealthChecker{
+		Log:                  l.New("HealthChecker"),
+		HTTPClient:           defaultClient,
+		LocalKlientAddress:   config.KlientAddress,
+		KontrolAddress:       config.KontrolURL,
+		InternetCheckAddress: config.S3KlientctlLatest,
+	}
 }
 
 // ErrHealthDialFailed is used when dialing klient itself is failing. Local or remote,
@@ -109,13 +117,13 @@ func (e ErrHealthNoKontrolHTTPResponse) Error() string {
 // is not an error because outgoing klient communication will still work,
 // but incoming klient functionality will obviously be limited. So by
 // checking, we can inform the user.
-func StatusCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
+func StatusCommand(c *cli.Context, log kodinglogging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "status")
 		return 1
 	}
 
-	res, ok := defaultHealthChecker.CheckAllWithResponse()
+	res, ok := NewDefaultHealthChecker(log).CheckAllWithResponse()
 	fmt.Println(res)
 	if !ok {
 		return 1
@@ -264,16 +272,18 @@ func (c *HealthChecker) CheckRemote() error {
 func (c *HealthChecker) CheckAllExceptRunning() (res string, ok bool) {
 	// Check remote endpoints first, to debug what might be blocking Klient
 	// from starting.
-	if err := defaultHealthChecker.CheckRemote(); err != nil {
+	if err := c.CheckRemote(); err != nil {
+		c.Log.Warning("CheckAllExceptRunning found remote error: %s", err)
 		return c.errorToMessage(err), false
 	}
 
-	if err := defaultHealthChecker.CheckLocal(); err != nil {
+	if err := c.CheckLocal(); err != nil {
 		switch err.(type) {
 		// Ignore dialing or bad klient http responses for CheckAllExceptRunning.
 		case ErrHealthNoHTTPReponse:
 		case ErrHealthDialFailed:
 		default:
+			c.Log.Warning("CheckAllExceptRunning found local error: %s", err)
 			return c.errorToMessage(err), false
 		}
 	}
@@ -295,11 +305,13 @@ func (c *HealthChecker) CheckAllExceptRunning() (res string, ok bool) {
 func (c *HealthChecker) CheckAllWithResponse() (res string, ok bool) {
 	// Check remote endpoints first, to debug what might be blocking Klient
 	// from starting.
-	if err := defaultHealthChecker.CheckRemote(); err != nil {
+	if err := c.CheckRemote(); err != nil {
+		c.Log.Warning("CheckAllWithResponse found remote error: %s", err)
 		return c.errorToMessage(err), false
 	}
 
-	if err := defaultHealthChecker.CheckLocal(); err != nil {
+	if err := c.CheckLocal(); err != nil {
+		c.Log.Warning("CheckAllWithResponse found local error: %s", err)
 		return c.errorToMessage(err), false
 	}
 
@@ -420,7 +432,7 @@ func IsKlientRunning(a string) bool {
 }
 
 func getListErrRes(err error, healthChecker *HealthChecker) string {
-	res, ok := defaultHealthChecker.CheckAllWithResponse()
+	res, ok := healthChecker.CheckAllWithResponse()
 
 	// If the health check response is not okay, return that because it's likely
 	// more informed (such as no internet, etc)
