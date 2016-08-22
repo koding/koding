@@ -1,33 +1,40 @@
-// package recipient provides the /recipients APIs
+// Package recipient provides the /recipients APIs
 package recipient
 
 import (
-	"net/url"
 	"strconv"
 
-	. "github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
+)
+
+const (
+	Individual stripe.RecipientType = "individual"
+	Corp       stripe.RecipientType = "corporation"
 )
 
 // Client is used to invoke /recipients APIs.
 type Client struct {
-	B   Backend
+	B   stripe.Backend
 	Key string
 }
 
 // New POSTs a new recipient.
 // For more details see https://stripe.com/docs/api#create_recipient.
-func New(params *RecipientParams) (*Recipient, error) {
+func New(params *stripe.RecipientParams) (*stripe.Recipient, error) {
 	return getC().New(params)
 }
 
-func (c Client) New(params *RecipientParams) (*Recipient, error) {
-	body := &url.Values{
-		"name": {params.Name},
-		"type": {string(params.Type)},
-	}
+func (c Client) New(params *stripe.RecipientParams) (*stripe.Recipient, error) {
+	body := &stripe.RequestValues{}
+	body.Add("name", params.Name)
+	body.Add("type", string(params.Type))
 
 	if params.Bank != nil {
-		params.Bank.AppendDetails(body)
+		if len(params.Bank.Token) > 0 {
+			body.Add("bank_account", params.Bank.Token)
+		} else {
+			params.Bank.AppendDetails(body)
+		}
 	}
 
 	if len(params.Token) > 0 {
@@ -36,8 +43,8 @@ func (c Client) New(params *RecipientParams) (*Recipient, error) {
 		params.Card.AppendDetails(body, true)
 	}
 
-	if len(params.TaxId) > 0 {
-		body.Add("tax_id", params.TaxId)
+	if len(params.TaxID) > 0 {
+		body.Add("tax_id", params.TaxID)
 	}
 
 	if len(params.Email) > 0 {
@@ -47,53 +54,60 @@ func (c Client) New(params *RecipientParams) (*Recipient, error) {
 	if len(params.Desc) > 0 {
 		body.Add("description", params.Desc)
 	}
-
 	params.AppendTo(body)
 
-	recipient := &Recipient{}
-	err := c.B.Call("POST", "/recipients", c.Key, body, recipient)
+	recipient := &stripe.Recipient{}
+	err := c.B.Call("POST", "/recipients", c.Key, body, &params.Params, recipient)
 
 	return recipient, err
 }
 
 // Get returns the details of a recipient.
 // For more details see https://stripe.com/docs/api#retrieve_recipient.
-func Get(id string, params *RecipientParams) (*Recipient, error) {
+func Get(id string, params *stripe.RecipientParams) (*stripe.Recipient, error) {
 	return getC().Get(id, params)
 }
 
-func (c Client) Get(id string, params *RecipientParams) (*Recipient, error) {
-	var body *url.Values
+func (c Client) Get(id string, params *stripe.RecipientParams) (*stripe.Recipient, error) {
+	var body *stripe.RequestValues
+	var commonParams *stripe.Params
 
 	if params != nil {
-		body = &url.Values{}
+		commonParams = &params.Params
+		body = &stripe.RequestValues{}
 		params.AppendTo(body)
 	}
 
-	recipient := &Recipient{}
-	err := c.B.Call("GET", "/recipients/"+id, c.Key, body, recipient)
+	recipient := &stripe.Recipient{}
+	err := c.B.Call("GET", "/recipients/"+id, c.Key, body, commonParams, recipient)
 
 	return recipient, err
 }
 
 // Update updates a recipient's properties.
 // For more details see https://stripe.com/docs/api#update_recipient.
-func Update(id string, params *RecipientParams) (*Recipient, error) {
+func Update(id string, params *stripe.RecipientParams) (*stripe.Recipient, error) {
 	return getC().Update(id, params)
 }
 
-func (c Client) Update(id string, params *RecipientParams) (*Recipient, error) {
-	var body *url.Values
+func (c Client) Update(id string, params *stripe.RecipientParams) (*stripe.Recipient, error) {
+	var body *stripe.RequestValues
+	var commonParams *stripe.Params
 
 	if params != nil {
-		body = &url.Values{}
+		commonParams = &params.Params
+		body = &stripe.RequestValues{}
 
 		if len(params.Name) > 0 {
 			body.Add("name", params.Name)
 		}
 
 		if params.Bank != nil {
-			params.Bank.AppendDetails(body)
+			if len(params.Bank.Token) > 0 {
+				body.Add("bank_account", params.Bank.Token)
+			} else {
+				params.Bank.AppendDetails(body)
+			}
 		}
 
 		if len(params.Token) > 0 {
@@ -102,8 +116,8 @@ func (c Client) Update(id string, params *RecipientParams) (*Recipient, error) {
 			params.Card.AppendDetails(body, true)
 		}
 
-		if len(params.TaxId) > 0 {
-			body.Add("tax_id", params.TaxId)
+		if len(params.TaxID) > 0 {
+			body.Add("tax_id", params.TaxID)
 		}
 
 		if len(params.DefaultCard) > 0 {
@@ -121,39 +135,38 @@ func (c Client) Update(id string, params *RecipientParams) (*Recipient, error) {
 		params.AppendTo(body)
 	}
 
-	recipient := &Recipient{}
-	err := c.B.Call("POST", "/recipients/"+id, c.Key, body, recipient)
+	recipient := &stripe.Recipient{}
+	err := c.B.Call("POST", "/recipients/"+id, c.Key, body, commonParams, recipient)
 
 	return recipient, err
 }
 
 // Del removes a recipient.
 // For more details see https://stripe.com/docs/api#delete_recipient.
-func Del(id string) error {
+func Del(id string) (*stripe.Recipient, error) {
 	return getC().Del(id)
 }
 
-func (c Client) Del(id string) error {
-	return c.B.Call("DELETE", "/recipients/"+id, c.Key, nil, nil)
+func (c Client) Del(id string) (*stripe.Recipient, error) {
+	recipient := &stripe.Recipient{}
+	err := c.B.Call("DELETE", "/recipients/"+id, c.Key, nil, nil, recipient)
+
+	return recipient, err
 }
 
 // List returns a list of recipients.
 // For more details see https://stripe.com/docs/api#list_recipients.
-func List(params *RecipientListParams) *RecipientIter {
+func List(params *stripe.RecipientListParams) *Iter {
 	return getC().List(params)
 }
 
-func (c Client) List(params *RecipientListParams) *RecipientIter {
-	type recipientList struct {
-		ListMeta
-		Values []*Recipient `json:"data"`
-	}
-
-	var body *url.Values
-	var lp *ListParams
+func (c Client) List(params *stripe.RecipientListParams) *Iter {
+	var body *stripe.RequestValues
+	var lp *stripe.ListParams
+	var p *stripe.Params
 
 	if params != nil {
-		body = &url.Values{}
+		body = &stripe.RequestValues{}
 
 		if params.Verified {
 			body.Add("verified", strconv.FormatBool(true))
@@ -161,11 +174,12 @@ func (c Client) List(params *RecipientListParams) *RecipientIter {
 
 		params.AppendTo(body)
 		lp = &params.ListParams
+		p = params.ToParams()
 	}
 
-	return &RecipientIter{GetIter(lp, body, func(b url.Values) ([]interface{}, ListMeta, error) {
-		list := &recipientList{}
-		err := c.B.Call("GET", "/recipients", c.Key, &b, list)
+	return &Iter{stripe.GetIter(lp, body, func(b *stripe.RequestValues) ([]interface{}, stripe.ListMeta, error) {
+		list := &stripe.RecipientList{}
+		err := c.B.Call("GET", "/recipients", c.Key, b, p, list)
 
 		ret := make([]interface{}, len(list.Values))
 		for i, v := range list.Values {
@@ -176,6 +190,19 @@ func (c Client) List(params *RecipientListParams) *RecipientIter {
 	})}
 }
 
+// Iter is an iterator for lists of Recipients.
+// The embedded Iter carries methods with it;
+// see its documentation for details.
+type Iter struct {
+	*stripe.Iter
+}
+
+// Recipient returns the most recent Recipient
+// visited by a call to Next.
+func (i *Iter) Recipient() *stripe.Recipient {
+	return i.Current().(*stripe.Recipient)
+}
+
 func getC() Client {
-	return Client{GetBackend(), Key}
+	return Client{stripe.GetBackend(stripe.APIBackend), stripe.Key}
 }

@@ -2,6 +2,7 @@ kd = require 'kd'
 JView = require 'app/jview'
 CredentialForm = require './credentialform'
 copyToClipboard = require 'app/util/copyToClipboard'
+getCopyToClipboardShortcut = require 'app/util/getCopyToClipboardShortcut'
 
 module.exports = class KDCredentialForm extends CredentialForm
 
@@ -13,7 +14,7 @@ module.exports = class KDCredentialForm extends CredentialForm
       cssClass : 'block'
       partial  : """
         <div>#{kdCmd}</div>
-        <cite>Ctrl + C</cite>
+        <cite>#{getCopyToClipboardShortcut()}</cite>
       """
       click    : ->
         copyToClipboard @getElement().querySelector 'div'

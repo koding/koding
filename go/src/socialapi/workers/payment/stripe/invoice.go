@@ -29,11 +29,11 @@ func FindInvoicesForCustomer(oldId string) ([]*StripeInvoiceResponse, error) {
 	invoices := []*StripeInvoiceResponse{}
 
 	list := stripeInvoice.List(invoiceListParams)
-	for !list.Stop() {
-		raw, err := list.Next()
-		if err != nil {
-			return nil, handleStripeError(err)
-		}
+	for list.Next() {
+		raw := list.Invoice()
+		// if err != nil {
+		// 	return nil, handleStripeError(err)
+		// }
 
 		start := time.Unix(raw.Start, 0)
 		end := time.Unix(raw.End, 0)
@@ -45,8 +45,8 @@ func FindInvoicesForCustomer(oldId string) ([]*StripeInvoiceResponse, error) {
 			PeriodEnd:   end,
 		}
 
-		if raw.Charge != nil && raw.Charge.Card != nil {
-			invoice.CreditCardResponse = newCreditCardResponseFromStripe(raw.Charge.Card)
+		if raw.Charge != nil && raw.Charge.Source != nil && raw.Charge.Source.Card != nil {
+			invoice.CreditCardResponse = newCreditCardResponseFromStripe(raw.Charge.Source.Card)
 		}
 
 		invoices = append(invoices, invoice)
