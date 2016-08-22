@@ -21,6 +21,10 @@ func checkContext(c *models.Context) error {
 		return models.ErrAccessDenied
 	}
 
+	return nil
+	//
+	// for now disable confirmation checking
+	//
 	u, err := modelhelper.GetUser(c.Client.Account.Nick)
 	if err != nil {
 		return err
