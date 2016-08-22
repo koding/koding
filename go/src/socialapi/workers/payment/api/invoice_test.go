@@ -18,8 +18,8 @@ func TestInvoiceList(t *testing.T) {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withTestPlan(func(planID string) {
-					createUrl := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
-					deleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionDelete)
+					createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
+					deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionDelete)
 
 					group, err := modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)
@@ -31,7 +31,7 @@ func TestInvoiceList(t *testing.T) {
 						})
 						tests.ResultedWithNoErrorCheck(req, err)
 
-						res, err := rest.DoRequestWithAuth("POST", createUrl, req, sessionID)
+						res, err := rest.DoRequestWithAuth("POST", createURL, req, sessionID)
 						tests.ResultedWithNoErrorCheck(res, err)
 
 						v := &stripe.Sub{}
@@ -40,9 +40,9 @@ func TestInvoiceList(t *testing.T) {
 						So(v.Status, ShouldEqual, "active")
 
 						Convey("We should be able to list invoices", func() {
-							listInvoicesUrl := fmt.Sprintf("%s%s", endpoint, EndpointInvoiceList)
+							listInvoicesURL := fmt.Sprintf("%s%s", endpoint, EndpointInvoiceList)
 
-							res, err = rest.DoRequestWithAuth("GET", listInvoicesUrl, nil, sessionID)
+							res, err = rest.DoRequestWithAuth("GET", listInvoicesURL, nil, sessionID)
 							tests.ResultedWithNoErrorCheck(res, err)
 
 							var invoices []*stripe.Invoice
@@ -50,9 +50,9 @@ func TestInvoiceList(t *testing.T) {
 							So(err, ShouldBeNil)
 							So(len(invoices), ShouldBeGreaterThan, 0)
 							Convey("We should be able to list invoices with startingAfter query param", func() {
-								listInvoicesUrlWithQuery := fmt.Sprintf("%s%s?startingAfter=%s", endpoint, EndpointInvoiceList, invoices[0].ID)
+								listInvoicesURLWithQuery := fmt.Sprintf("%s%s?startingAfter=%s", endpoint, EndpointInvoiceList, invoices[0].ID)
 
-								res, err = rest.DoRequestWithAuth("GET", listInvoicesUrlWithQuery, nil, sessionID)
+								res, err = rest.DoRequestWithAuth("GET", listInvoicesURLWithQuery, nil, sessionID)
 								tests.ResultedWithNoErrorCheck(res, err)
 
 								var invoices []*stripe.Invoice
@@ -61,7 +61,7 @@ func TestInvoiceList(t *testing.T) {
 								So(len(invoices), ShouldEqual, 0) // because we only have one invoice
 
 								Convey("We should be able to cancel the subscription", func() {
-									res, err = rest.DoRequestWithAuth("DELETE", deleteUrl, req, sessionID)
+									res, err = rest.DoRequestWithAuth("DELETE", deleteURL, req, sessionID)
 									tests.ResultedWithNoErrorCheck(res, err)
 								})
 							})

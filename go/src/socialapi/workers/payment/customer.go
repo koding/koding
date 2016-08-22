@@ -10,10 +10,14 @@ import (
 )
 
 var (
+	// ErrCustomerNotSubscribedToAnyPlans error for not subscribed users
 	ErrCustomerNotSubscribedToAnyPlans = errors.New("user is not subscribed to any plans")
+	// ErrCustomerNotExists error for not created users
 	ErrCustomerNotExists               = errors.New("user is not created for subscription")
 )
 
+// DeleteCustomerForGroup deletes the customer for a given group. If customer is
+// not registered, returns error. If customer is already deleted, returns success.
 func DeleteCustomerForGroup(groupName string) error {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
@@ -36,6 +40,7 @@ func DeleteCustomerForGroup(groupName string) error {
 	)
 }
 
+// UpdateCustomerForGroup updates customer data of a group`
 func UpdateCustomerForGroup(username, groupName string, params *stripe.CustomerParams) (*stripe.Customer, error) {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
@@ -54,6 +59,7 @@ func UpdateCustomerForGroup(username, groupName string, params *stripe.CustomerP
 	return customer.Update(group.Payment.Customer.ID, params)
 }
 
+// GetCustomerForGroup get the registered customer info of a group if exists
 func GetCustomerForGroup(groupName string) (*stripe.Customer, error) {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
@@ -67,6 +73,7 @@ func GetCustomerForGroup(groupName string) (*stripe.Customer, error) {
 	return customer.Get(group.Payment.Customer.ID, nil)
 }
 
+// CreateCustomerForGroup registers a customer for a group
 func CreateCustomerForGroup(username, groupName string, req *stripe.CustomerParams) (*stripe.Customer, error) {
 	req, err := populateCustomerParams(username, groupName, req)
 	if err != nil {

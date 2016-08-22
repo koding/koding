@@ -17,9 +17,9 @@ func TestCreateSubscription(t *testing.T) {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withTestPlan(func(planID string) {
-					createUrl := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
-					deleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionDelete)
-					getUrl := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionGet)
+					createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
+					deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionDelete)
+					getURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionGet)
 
 					group, err := modelhelper.GetGroup(groupName)
 					So(err, ShouldBeNil)
@@ -33,11 +33,11 @@ func TestCreateSubscription(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(req, ShouldNotBeNil)
 
-						res, err := rest.DoRequestWithAuth("POST", createUrl, req, sessionID)
+						res, err := rest.DoRequestWithAuth("POST", createURL, req, sessionID)
 						So(err, ShouldBeNil)
 						So(res, ShouldNotBeNil)
 
-						res, err = rest.DoRequestWithAuth("GET", getUrl, nil, sessionID)
+						res, err = rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
 						So(err, ShouldBeNil)
 						So(res, ShouldNotBeNil)
 
@@ -46,11 +46,11 @@ func TestCreateSubscription(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(v.Status, ShouldEqual, "active")
 						Convey("We should be able to cancel the subscription", func() {
-							res, err = rest.DoRequestWithAuth("DELETE", deleteUrl, req, sessionID)
+							res, err = rest.DoRequestWithAuth("DELETE", deleteURL, req, sessionID)
 							So(err, ShouldBeNil)
 							So(res, ShouldNotBeNil)
 
-							res, err = rest.DoRequestWithAuth("GET", getUrl, nil, sessionID)
+							res, err = rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
 							So(err, ShouldBeNil)
 							So(res, ShouldNotBeNil)
 

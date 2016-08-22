@@ -8,6 +8,9 @@ import (
 	"github.com/stripe/stripe-go/customer"
 )
 
+// DeleteCreditCardForGroup deletes credit card of the group, if customer is not
+// registered yet for the group, returns error. Credit card operations hanled by
+// Stripe.
 func DeleteCreditCardForGroup(groupName string) (*stripe.Card, error) {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {

@@ -18,8 +18,8 @@ func TestCreditCard(t *testing.T) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				Convey("When a credit card added", func() {
 					withTestCreditCardToken(func(token string) {
-						updateUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
-						getUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerGet)
+						updateURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
+						getURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerGet)
 
 						cp := &stripe.CustomerParams{
 							Source: &stripe.SourceParams{
@@ -31,7 +31,7 @@ func TestCreditCard(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(req, ShouldNotBeNil)
 
-						res, err := rest.DoRequestWithAuth("POST", updateUrl, req, sessionID)
+						res, err := rest.DoRequestWithAuth("POST", updateURL, req, sessionID)
 						So(err, ShouldBeNil)
 						So(res, ShouldNotBeNil)
 						Convey("Customer should have the credit card", func() {
@@ -54,7 +54,7 @@ func TestCreditCard(t *testing.T) {
 									So(err, ShouldBeNil)
 									So(req, ShouldNotBeNil)
 
-									res, err = rest.DoRequestWithAuth("POST", updateUrl, req, sessionID)
+									res, err = rest.DoRequestWithAuth("POST", updateURL, req, sessionID)
 									So(err, ShouldBeNil)
 									So(res, ShouldNotBeNil)
 
@@ -70,9 +70,9 @@ func TestCreditCard(t *testing.T) {
 										So(c1.DefaultSource.ID, ShouldNotEqual, c2.DefaultSource.ID)
 
 										Convey("After deleting the credit card", func() {
-											ccdeleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
+											ccdeleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
 
-											res, err = rest.DoRequestWithAuth("DELETE", ccdeleteUrl, nil, sessionID)
+											res, err = rest.DoRequestWithAuth("DELETE", ccdeleteURL, nil, sessionID)
 											So(err, ShouldBeNil)
 											So(res, ShouldNotBeNil)
 
@@ -81,7 +81,7 @@ func TestCreditCard(t *testing.T) {
 											So(err, ShouldBeNil)
 											So(c.Deleted, ShouldBeTrue)
 
-											res, err = rest.DoRequestWithAuth("GET", getUrl, nil, sessionID)
+											res, err = rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
 											So(err, ShouldBeNil)
 											So(res, ShouldNotBeNil)
 
@@ -114,8 +114,8 @@ func TestCreditCardNonAdmin(t *testing.T) {
 			So(ses, ShouldNotBeNil)
 
 			Convey("Endpoint should return error", func() {
-				ccdeleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
-				_, err := rest.DoRequestWithAuth("DELETE", ccdeleteUrl, nil, ses.ClientId)
+				ccdeleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
+				_, err := rest.DoRequestWithAuth("DELETE", ccdeleteURL, nil, ses.ClientId)
 				So(err, ShouldNotBeNil)
 			})
 		})
@@ -126,8 +126,8 @@ func TestCreditCardLoggedOut(t *testing.T) {
 	Convey("When a non registered request comes", t, func() {
 		withTestServer(t, func(endpoint string) {
 			Convey("Endpoint should return error", func() {
-				ccdeleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
-				_, err := rest.DoRequestWithAuth("DELETE", ccdeleteUrl, nil, "")
+				ccdeleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
+				_, err := rest.DoRequestWithAuth("DELETE", ccdeleteURL, nil, "")
 				So(err, ShouldNotBeNil)
 			})
 		})
@@ -152,8 +152,8 @@ func TestCreditCardNotSubscribingMember(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Endpoint should return error", func() {
-					ccdeleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
-					_, err = rest.DoRequestWithAuth("DELETE", ccdeleteUrl, nil, sessionID)
+					ccdeleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
+					_, err = rest.DoRequestWithAuth("DELETE", ccdeleteURL, nil, sessionID)
 					So(err, ShouldNotBeNil)
 
 					// set the customer id back becase test data callback requires it.

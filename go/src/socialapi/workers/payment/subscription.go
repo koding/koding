@@ -7,6 +7,7 @@ import (
 	"github.com/stripe/stripe-go/sub"
 )
 
+// DeleteSubscriptionForGroup deletes the subscription of a group
 func DeleteSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
@@ -20,6 +21,7 @@ func DeleteSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 	return sub.Cancel(group.Payment.Subscription.ID, nil)
 }
 
+// UpdateSubscriptionForGroup updates the subscription of a group
 func UpdateSubscriptionForGroup(groupName string, params *stripe.SubParams) (*stripe.Sub, error) {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
@@ -33,6 +35,7 @@ func UpdateSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 	return sub.Cancel(group.Payment.Subscription.ID, nil)
 }
 
+// GetSubscriptionForGroup gets the subscription of a group
 func GetSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
@@ -46,6 +49,7 @@ func GetSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 	return sub.Get(group.Payment.Subscription.ID, nil)
 }
 
+// CreateSubscriptionForGroup creates a subscription for a group
 func CreateSubscriptionForGroup(groupName string, params *stripe.SubParams) (*stripe.Sub, error) {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {

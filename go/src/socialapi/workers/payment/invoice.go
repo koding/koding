@@ -7,6 +7,7 @@ import (
 	"github.com/stripe/stripe-go/invoice"
 )
 
+// ListInvoicesForGroup lists invoices of a group
 func ListInvoicesForGroup(groupName string, startingAfter string, limit int) ([]*stripe.Invoice, error) {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
