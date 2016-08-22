@@ -31,6 +31,11 @@ generateRandomEmail = (domain = 'koding.com') ->
   return "kodingtestuser+#{generateRandomString()}@#{domain}"
 
 
+generateRandomInvitationsWithEmailRole = (domain = 'koding.com') ->
+
+  return "kodingtestuser+#{generateRandomString()}@#{domain},,,member"
+
+
 generateRandomUsername = -> generateRandomString()
 
 
@@ -181,6 +186,7 @@ module.exports = {
   convertToArray
   deepObjectExtend
   generateRandomEmail
+  generateRandomInvitationsWithEmailRole
   getCookiesFromHeader
   generateRandomString
   generateRandomUsername
