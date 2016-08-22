@@ -1098,27 +1098,14 @@ module.exports = class JGroup extends Module
     success  : (client, data, callback) ->
 
       # it's not allowed to change followings
-      blacklist  = ['slug', 'slug_', 'config', '_activePlan']
+      blacklist  = ['slug', 'slug_', 'config']
       data[item] = null  for item in blacklist when data[item]?
 
       notifyOptions =
         group   : client?.context?.group
         target  : 'group'
 
-      { reviveGroupPlan } = require '../computeproviders/computeutils'
-
-      reviveGroupPlan this, (err, group) =>
-
-        # we need to make sure if given stack template is
-        # valid for the current group plan ~ GG
-        templates = data.stackTemplates
-        if templates?.length > 0 and group._activePlan
-          ComputeProvider = require '../computeproviders/computeprovider'
-          ComputeProvider.validateTemplates client, templates, group, (err) =>
-            return callback err  if err
-            @updateAndNotify notifyOptions, { $set: data }, callback
-        else
-          @updateAndNotify notifyOptions, { $set: data }, callback
+      @updateAndNotify notifyOptions, { $set: data }, callback
 
 
   setPlan    : permit

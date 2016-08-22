@@ -39,31 +39,6 @@ reviveProvisioners = (client, provisioners, callback, revive = no) ->
     else
       callback null, [ provision.slug ]
 
-
-reviveGroupPlan = (group, callback) ->
-
-  # Support for test plan data to cover test cases that we need
-  # to be able to run tests for different plans but we don't
-  # need to update plan data on payment endpoint ~ GG
-  if testPlan = group?.getAt 'config.testplan'
-
-    group._activePlan = testPlan
-    callback null, group
-
-    return
-
-  Payment = require '../payment'
-  Payment.fetchGroupPlan group, (err, plan) ->
-
-    return callback err  if err
-    return callback new KodingError 'Plan not found'  unless plan
-
-    if plan.planTitle is 'team_base'
-      group._activePlan = 'unlimited'
-
-    callback null, group
-
-
 reviveCredential = (client, credential, callback) ->
 
   [credential, callback] = [callback, credential]  unless callback?
@@ -104,18 +79,7 @@ reviveClient = (client, callback, options) ->
       return callback new KodingError 'User not found'  unless user
 
       res.user = user
-
-      if shouldFetchGroupPlan
-
-        reviveGroupPlan res.group, (err, group) ->
-          return callback err  if err
-          res.group = group
-          callback null, res
-
-      else
-
-        callback null, res
-
+      callback null, res
 
 reviveOauth = (client, oauthProvider, callback) ->
 
@@ -427,6 +391,6 @@ fetchUsage = (client, options, callback) ->
 module.exports = {
   fetchUserPlan, fetchGroupStackTemplate, fetchUsage
   PLANS, PROVIDERS, guessNextLabel, checkUsage
-  revive, reviveClient, reviveCredential, reviveGroupPlan
+  revive, reviveClient, reviveCredential
   checkTemplateUsage
 }

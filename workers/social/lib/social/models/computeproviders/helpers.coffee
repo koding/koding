@@ -61,7 +61,7 @@ updateMachine = (options, callback) ->
 getPlanConfig = (group) ->
 
   return {
-    plan      : group._activePlan ? 'unlimited'
+    plan      : 'unlimited'
     overrides : group.getAt 'config.planOverrides'
   }
 

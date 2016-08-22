@@ -63,44 +63,6 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
           expect(managedVm.postCreateOptions.ipAddress).to.equal options.ipAddress
           done()
 
-
-    it 'should fail to create required managed vm data if plan limit has been reached', (done) ->
-
-      withConvertedUser { createGroup: 'yes' }, ({ client, account, user, group }) ->
-
-        async.series [
-
-          (next) ->
-            withConvertedUser { role: 'admin' }, (data) ->
-              _client = data.client
-              group._activePlan = 'test'
-              next()
-
-          (next) ->
-
-            _options = {
-              instanceCount : 1
-              instanceOnly  : yes
-              details       : { account, provider: 'managed' }
-              change        : 'increment'
-              group
-            }
-
-            ComputeProvider.updateGroupResourceUsage _options, (err) ->
-              expect(err).to.not.exist
-              next()
-
-          (next) ->
-            client.r = { account, user, group }
-            Managed.create client, options, (err) ->
-              expect(err).to.exist
-              expect(err.message).to.be.equal 'Provided limit has been reached'
-
-              next()
-
-        ], done
-
-
   describe '#postCreate()', ->
 
     it 'should update machine and create workspace', (done) ->
