@@ -66,6 +66,7 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
       viewTop = @wrapper.getY()
       subViewTop = subView.getY()
       sectionHeader = 88  # height of header of dashboard
+      sectionHeader = sectionHeader + 235 # height of permisson section
 
       scrollMuch = subViewTop - viewTop - sectionHeader
 
