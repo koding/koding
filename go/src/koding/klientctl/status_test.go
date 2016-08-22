@@ -24,8 +24,8 @@ func TestHealthCheckRemote(t *testing.T) {
 			HTTPClient: &http.Client{
 				Timeout: 4 * time.Second,
 			},
-			RemoteKiteAddress: ts.URL,
-			RemoteHTTPAddress: ts.URL,
+			KontrolAddress:       ts.URL,
+			InternetCheckAddress: ts.URL,
 		}
 
 		So(c.CheckRemote(), ShouldBeNil)
@@ -37,8 +37,8 @@ func TestHealthCheckRemote(t *testing.T) {
 			HTTPClient: &http.Client{
 				Timeout: 4 * time.Second,
 			},
-			RemoteKiteAddress: "http://foo",
-			RemoteHTTPAddress: "http://bar",
+			KontrolAddress:       "http://foo",
+			InternetCheckAddress: "http://bar",
 		}
 
 		err := c.CheckRemote()
@@ -61,8 +61,8 @@ func TestHealthCheckRemote(t *testing.T) {
 			HTTPClient: &http.Client{
 				Timeout: 4 * time.Second,
 			},
-			RemoteKiteAddress: tsKon.URL,
-			RemoteHTTPAddress: tsNet.URL,
+			KontrolAddress:       tsKon.URL,
+			InternetCheckAddress: tsNet.URL,
 		}
 
 		err := c.CheckRemote()
@@ -84,8 +84,8 @@ func TestHealthCheckRemote(t *testing.T) {
 			HTTPClient: &http.Client{
 				Timeout: 4 * time.Second,
 			},
-			RemoteKiteAddress: tsNet.URL,
-			RemoteHTTPAddress: tsKon.URL,
+			KontrolAddress:       tsNet.URL,
+			InternetCheckAddress: tsKon.URL,
 		}
 
 		err := c.CheckRemote()
@@ -107,8 +107,8 @@ func TestHealthCheckRemote(t *testing.T) {
 			HTTPClient: &http.Client{
 				Timeout: 1 * time.Second,
 			},
-			RemoteKiteAddress: ts.URL,
-			RemoteHTTPAddress: ts.URL,
+			KontrolAddress:       ts.URL,
+			InternetCheckAddress: ts.URL,
 		}
 
 		err := c.CheckRemote()
