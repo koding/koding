@@ -627,6 +627,7 @@ module.exports =
         callback invitationUrl
 
 
+  
   logoutTeam: (browser, callback) ->
 
     browser.element 'css selector', closeModal, (result) =>
