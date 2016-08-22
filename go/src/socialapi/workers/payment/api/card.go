@@ -9,6 +9,7 @@ import (
 	"socialapi/workers/payment"
 )
 
+// DeleteCreditCard deletes the credit card of a group
 func DeleteCreditCard(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	if err := checkContext(context); err != nil {
 		return response.NewBadRequest(err)

@@ -13,6 +13,7 @@ import (
 
 var mailSender = emailsender.Send
 
+// StripeHandler is the type of handlers for stripe webhook operations
 type StripeHandler func([]byte) error
 
 var stripeActions = map[string]StripeHandler{
@@ -29,6 +30,7 @@ var stripeActions = map[string]StripeHandler{
 	"invoice.payment_succeeded": invoicePaymentFailedHandler,
 }
 
+// GetHandler returns the registered handler for stripe webhooks if registered
 func GetHandler(name string) (StripeHandler, error) {
 	action, ok := stripeActions[name]
 	if ok {

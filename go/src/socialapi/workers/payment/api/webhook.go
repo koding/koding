@@ -11,6 +11,7 @@ import (
 	"socialapi/workers/payment"
 )
 
+// Webhook handles events from stripe
 func Webhook(u *url.URL, h http.Header, req *stripe.Event) (int, http.Header, interface{}, error) {
 	// if we dont support the handler, just return success so they dont try again.
 	handler, err := payment.GetHandler(req.Type)

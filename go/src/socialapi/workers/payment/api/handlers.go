@@ -18,6 +18,7 @@ const (
 	EndpointInvoiceList        = "/payment/invoice/list"
 )
 
+// AddHandlers injects handlers for payment system
 func AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{

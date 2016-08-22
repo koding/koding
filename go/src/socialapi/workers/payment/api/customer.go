@@ -10,6 +10,7 @@ import (
 	"github.com/stripe/stripe-go"
 )
 
+// DeleteCustomer deletes customer for a group
 func DeleteCustomer(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	if err := checkContext(context); err != nil {
 		return response.NewBadRequest(err)
@@ -22,6 +23,7 @@ func DeleteCustomer(u *url.URL, h http.Header, _ interface{}, context *models.Co
 	return response.NewDeleted()
 }
 
+// UpdateCustomer updates customer of a group
 func UpdateCustomer(u *url.URL, h http.Header, params *stripe.CustomerParams, context *models.Context) (int, http.Header, interface{}, error) {
 	if err := checkContext(context); err != nil {
 		return response.NewBadRequest(err)
@@ -36,6 +38,7 @@ func UpdateCustomer(u *url.URL, h http.Header, params *stripe.CustomerParams, co
 	)
 }
 
+// GetCustomer returns the customer info of a group
 func GetCustomer(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	if err := checkContext(context); err != nil {
 		return response.NewBadRequest(err)
@@ -46,6 +49,7 @@ func GetCustomer(u *url.URL, h http.Header, _ interface{}, context *models.Conte
 	)
 }
 
+// CreateCustomer creates the customer for a group
 func CreateCustomer(u *url.URL, h http.Header, req *stripe.CustomerParams, context *models.Context) (int, http.Header, interface{}, error) {
 	if err := checkContext(context); err != nil {
 		return response.NewBadRequest(err)
