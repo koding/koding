@@ -13,7 +13,7 @@ module.exports = class JComputeStack extends jraphical.Module
   { permit }         = require './group/permissionset'
   Validators         = require './group/validators'
 
-  { PROVIDERS, reviveGroupPlan } = require './computeproviders/computeutils'
+  { PROVIDERS } = require './computeproviders/computeutils'
 
   @trait __dirname, '../traits/protected'
 
@@ -184,13 +184,8 @@ module.exports = class JComputeStack extends jraphical.Module
       JComputeStack.fetchGroup data.groupSlug, (err, group) ->
         return callback err  if err or not group
 
-        updateGroupResourceUsage data, group, 'increment', (err) ->
-          return callback err  if err
-
-          JComputeStack.create data, (err, stack) ->
-            if err
-            then updateGroupResourceUsage data, group, 'decrement', -> callback err
-            else callback null, stack
+        JComputeStack.create data, (err, stack) ->
+          return callback err, stack
 
 
   ###*
@@ -234,8 +229,7 @@ module.exports = class JComputeStack extends jraphical.Module
   @fetchGroup = (slug, callback) ->
 
     JGroup = require './group'
-    JGroup.one { slug }, (err, group) ->
-      reviveGroupPlan group, callback
+    JGroup.one { slug }, callback
 
 
   fetchGroup: (callback) ->
@@ -334,16 +328,6 @@ module.exports = class JComputeStack extends jraphical.Module
     , (err) -> callback err
 
 
-  updateGroupResourceUsage = (stack, group, change, callback) ->
-
-    ComputeProvider = require './computeproviders/computeprovider'
-    instanceCount   = (stack.getAt?('machines') ? stack.machines ? []).length
-
-    ComputeProvider.updateGroupResourceUsage {
-      group, change, instanceCount
-    }, callback
-
-
   destroy: (callback) ->
 
     @fetchGroup (err, group) =>
@@ -354,26 +338,24 @@ module.exports = class JComputeStack extends jraphical.Module
 
         JMachine = require './computeproviders/machine'
 
-        updateGroupResourceUsage this, group, 'decrement', =>
+        machineIds = (machineId for machineId in @machines)
 
-          machineIds = (machineId for machineId in @machines)
+        JMachine.update
+          _id   :
+            $in : machineIds
+        ,
+          $set  :
+            'status.state' : 'Terminated'
+            'users'        : [] # remove users from machines since it's going
+                                # to be terminated so users of this
+                                # machine won't be able to see it ~ GG
+        , { multi : yes }
+        , (err) =>
 
-          JMachine.update
-            _id   :
-              $in : machineIds
-          ,
-            $set  :
-              'status.state' : 'Terminated'
-              'users'        : [] # remove users from machines since it's going
-                                  # to be terminated so users of this
-                                  # machine won't be able to see it ~ GG
-          , { multi : yes }
-          , (err) =>
+          if err
+            console.warn 'Failed to mark stack machines as Terminated:', err
 
-            if err
-              console.warn 'Failed to mark stack machines as Terminated:', err
-
-            @unuseStackTemplate callback
+          @unuseStackTemplate callback
 
 
   delete: (callback, force = no) ->
