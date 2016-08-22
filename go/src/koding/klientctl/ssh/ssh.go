@@ -295,9 +295,9 @@ func (s *SSHKey) GetUsername(name string) (username string, err error) {
 
 // GenerateAndSaveKey generates a new SSH key pair and saves it to local.
 func (s *SSHKey) GenerateAndSaveKey() ([]byte, error) {
-	var perms os.FileMode = 400
+	var perms os.FileMode = 0600
 
-	if err := os.MkdirAll(filepath.Dir(s.PrivateKeyPath()), 700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(s.PrivateKeyPath()), 0700); err != nil {
 		return nil, err
 	}
 
