@@ -68,8 +68,6 @@ module.exports = class ComputeProvider extends Base
           (signature Function)
         createGroupStack  :
           (signature Function)
-        updateTeamCounters:
-          (signature String, Function)
         fetchSoloMachines :
           (signature Function)
 
@@ -196,9 +194,7 @@ module.exports = class ComputeProvider extends Base
 
   @fetchTeamPlans = permit 'create machines',
     success: (client, callback) ->
-      callback null, if KONFIG.environment is 'default'
-      then { unlimited: teamutils.TEAMPLANS.unlimited }
-      else teamutils.TEAMPLANS
+      callback null, teamutils.TEAMPLANS
 
 
   @update = secure revive
@@ -421,194 +417,6 @@ module.exports = class ComputeProvider extends Base
       ComputeProvider.createGroupStack client, callback
 
 
-  @updateGroupStackUsage = (group, change, callback) ->
-
-    return callback null  if group.slug is 'koding'
-
-    planConfig = helpers.getPlanConfig group
-
-    teamutils.fetchPlanData planConfig, (err, plan) =>
-
-      return callback err  if err
-
-      maxAllowed = plan.member ? MAX_INT
-
-      JCounter = require '../counter'
-      JCounter[change]
-        namespace : group.getAt 'slug'
-        type      : @COUNTER_TYPE.stacks
-        max       : maxAllowed
-        min       : 0
-      , (err) ->
-        # no worries about `decrement` errors
-        # since 0 is already defined as min ~ GG
-        callback if change is 'increment' then err else null
-
-
-  @updateGroupInstanceUsage = (options, callback) ->
-
-    { group, change, amount } = options
-
-    # We don't need to do anything if amount somehow is 0
-    # A stack template without machines in it? ~ GG
-    return callback null  if group.slug is 'koding' or amount is 0
-
-    planConfig   = helpers.getPlanConfig group
-    maxAllowed   = MAX_INT
-
-    teamutils.fetchPlanData planConfig, (err, plan) =>
-
-      return callback err  if err
-
-      maxAllowed = plan.maxInstance  if plan
-
-      JCounter = require '../counter'
-      JCounter[change]
-        namespace : group.getAt 'slug'
-        amount    : amount
-        type      : @COUNTER_TYPE.instances
-        max       : maxAllowed
-        min       : 0
-      , (err) ->
-        # no worries about `decrement` errors
-        # since 0 is already defined as min ~ GG
-        callback if change is 'increment' then err else null
-
-
-  @updateGroupResourceUsage = (options, callback) ->
-
-    { notifyAdmins } = require '../notify'
-    { group, instanceCount, instanceOnly, change, details } = options
-
-    return callback null  if group.slug is 'koding'
-
-    handleResult = (err, item) ->
-
-      if err and change is 'increment'
-
-        { account, template, provider } = details ? {}
-        user     = account?.getAt?('profile.nickname') ? 'an unknown user'
-        provider = if provider? then "#{provider} " else ''
-        template = if template?.title?
-        then "Stack: #{template.title} - #{template._id}"
-        else ''
-
-        message = "
-          #{user} failed to create #{provider}#{item} due to
-          plan limitations. #{template}
-        "
-
-        KodingLogger.warn group, message
-        notifyAdmins group, 'MemberWarning', message
-
-      callback err
-
-    options = { group, change, amount: instanceCount }
-
-    if instanceOnly
-      @updateGroupInstanceUsage options, (err) ->
-        handleResult err, 'machine'
-
-      return
-
-    @updateGroupStackUsage group, change, (err) =>
-      return handleResult err, 'stack'  if err
-
-      @updateGroupInstanceUsage options, (err) =>
-        if err and change is 'increment'
-          @updateGroupStackUsage group, 'decrement', ->
-            handleResult err, 'machine'
-        else
-          handleResult err, 'resource'
-
-
-  @updateTeamCounters$ = permit
-    advanced : [{ permission: 'sudoer', superadmin: yes }]
-    success  : (client, team, callback) ->
-      ComputeProvider.updateTeamCounters team, callback
-
-
-  @updateTeamCounters = (team, callback) ->
-
-    return callback new KodingError 'Team slug is required'  unless team
-
-    JGroup        = require '../group'
-    JCounter      = require '../counter'
-    JComputeStack = require '../stack'
-
-    COUNTER_TYPE  = @COUNTER_TYPE
-
-    async.waterfall [
-
-      (next) ->
-
-        JGroup.one { slug: team }, (err, group) ->
-          if err or not group
-            err ?= new KodingError 'Team not found'
-          next err, group
-
-      (group, next) ->
-
-        options = { namespace: group.slug, type: COUNTER_TYPE.stacks }
-        JCounter.count options, (err, count = 0) ->
-          next err, group, count
-
-      (group, stackCount, next) ->
-
-        options = { namespace: group.slug, type: COUNTER_TYPE.instances }
-        JCounter.count options, (err, count = 0) ->
-          next err, group, stackCount, count
-
-      (group, stackCount, machineCount, next) ->
-
-        changes   =
-          before  : { stacks: stackCount, instances: machineCount }
-          current : {}
-          after   : {}
-
-        JComputeStack.count {
-          'status.state' : { $ne: 'Destroying' }
-          group          : group.slug
-        }, (err, count) ->
-          changes.current.stacks = count
-          next err, group, changes
-
-      (group, changes, next) ->
-
-        JMachine.count {
-          'status.state' : { $nin       : [ 'Terminated', 'Terminating' ] }
-          groups         : { $elemMatch : { id: group.getId() } }
-        }, (err, count) ->
-          changes.current.instances = count
-          next err, group, changes
-
-      (group, changes, next) ->
-
-        options     = {
-          namespace : group.slug
-          type      : COUNTER_TYPE.stacks
-          value     : changes.current.stacks
-        }
-
-        JCounter.setCount options, (err, count) ->
-          changes.after.stacks = count
-          next err, group, changes
-
-      (group, changes, next) ->
-
-        options     = {
-          namespace : group.slug
-          type      : COUNTER_TYPE.instances
-          value     : changes.current.instances
-        }
-
-        JCounter.setCount options, (err, count) ->
-          changes.after.instances = count
-          next err, changes
-
-    ], callback
-
-
   @fetchGroupResources = (group, selector, options, callback) ->
 
     selector ?= {}
@@ -682,17 +490,6 @@ module.exports = class ComputeProvider extends Base
           next err
 
       (next) ->
-        instanceCount = template.machines?.length or 0
-        change        = 'increment'
-
-        details = { template, account }
-
-        ComputeProvider.updateGroupResourceUsage {
-          group, change, instanceCount, details
-        }, (err) ->
-          next err
-
-      (next) ->
         checkTemplateUsage template, account, (err) ->
           return next err  if err
           account.addStackTemplate template, (err) ->
@@ -708,10 +505,7 @@ module.exports = class ComputeProvider extends Base
         ComputeProvider.generateStackFromTemplate res, options, (err, stack) ->
           if err
             # swallowing errors for followings since we need the real error ~GG
-            account.removeStackTemplate template, ->
-              ComputeProvider.updateGroupResourceUsage {
-                group, change: 'decrement', instanceCount
-              }, -> next err
+            account.removeStackTemplate template, -> next err
           else
             createdStack = stack
             next()

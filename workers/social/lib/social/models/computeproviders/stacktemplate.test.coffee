@@ -235,45 +235,6 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           ], done
 
 
-    describe 'when team plan limit has been reached', ->
-
-      it 'should fail to generate a stack from the template', (done) ->
-
-        options       =
-          machines    : generateStackMachineData 2
-          createGroup : yes
-
-        withConvertedUserAndStackTemplate options, ({ client, group, stackTemplate }) ->
-
-          async.series [
-
-            (next) ->
-              group.update { $set: { 'config.testplan': 'test' } }, (err) ->
-                expect(err).to.not.exist
-                next()
-
-            (next) ->
-              ComputeProvider   = require './computeprovider'
-              ComputeProvider.updateGroupStackUsage group, 'increment', (err) ->
-                expect(err).to.not.exist
-                next()
-
-            (next) ->
-              config = { verified: yes }
-              stackTemplate.update$ client, { config }, (err) ->
-                expect(err).to.not.exist
-                next()
-
-            (next) ->
-              stackTemplate.generateStack client, (err, res) ->
-                expect(err).to.exist
-                expect(err.message).to.be.equal 'Provided limit has been reached'
-                expect(res).to.not.exist
-                next()
-
-          ], done
-
-
   describe 'update$()', ->
 
     describe 'when user doesnt have the permission', ->
