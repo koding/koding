@@ -6,19 +6,19 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/rest"
-	"socialapi/workers/payment"
 
 	. "github.com/smartystreets/goconvey/convey"
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/coupon"
+	"github.com/stripe/stripe-go/currency"
 	"github.com/stripe/stripe-go/plan"
 	"github.com/stripe/stripe-go/token"
 	"gopkg.in/mgo.v2/bson"
 )
 
 func withStubData(endpoint string, f func(username string, groupName string, sessionID string)) {
-	createUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerCreate)
-	deleteUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerDelete)
+	createURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerCreate)
+	deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerDelete)
 
 	acc, _, groupName := models.CreateRandomGroupDataWithChecks()
 
@@ -37,13 +37,13 @@ func withStubData(endpoint string, f func(username string, groupName string, ses
 	So(err, ShouldBeNil)
 	So(req, ShouldNotBeNil)
 
-	res, err := rest.DoRequestWithAuth("POST", createUrl, req, ses.ClientId)
+	res, err := rest.DoRequestWithAuth("POST", createURL, req, ses.ClientId)
 	So(err, ShouldBeNil)
 	So(res, ShouldNotBeNil)
 
 	f(acc.Nick, groupName, ses.ClientId)
 
-	res, err = rest.DoRequestWithAuth("DELETE", deleteUrl, nil, ses.ClientId)
+	res, err = rest.DoRequestWithAuth("DELETE", deleteURL, nil, ses.ClientId)
 	So(err, ShouldBeNil)
 	So(res, ShouldNotBeNil)
 }
@@ -55,7 +55,7 @@ func withTestPlan(f func(planID string)) {
 		IntervalCount: 1,
 		TrialPeriod:   0,
 		Name:          "Free Forever",
-		Currency:      payment.USD,
+		Currency:      currency.USD,
 		ID:            fmt.Sprintf("p_%s", bson.NewObjectId().Hex()),
 		Statement:     "FREE",
 	}

@@ -22,10 +22,10 @@ func TestCustomer(t *testing.T) {
 
 					So(group.Payment.Customer.ID, ShouldNotBeBlank)
 					Convey("We should be able to get the customer", func() {
-						getUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerGet)
-						updateUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
+						getURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerGet)
+						updateURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
 
-						res, err := rest.DoRequestWithAuth("GET", getUrl, nil, sessionID)
+						res, err := rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
 						So(err, ShouldBeNil)
 						So(res, ShouldNotBeNil)
 
@@ -51,11 +51,11 @@ func TestCustomer(t *testing.T) {
 							So(err, ShouldBeNil)
 							So(req, ShouldNotBeNil)
 
-							res, err := rest.DoRequestWithAuth("POST", updateUrl, req, sessionID)
+							res, err := rest.DoRequestWithAuth("POST", updateURL, req, sessionID)
 							So(err, ShouldBeNil)
 							So(res, ShouldNotBeNil)
 
-							res, err = rest.DoRequestWithAuth("GET", getUrl, nil, sessionID)
+							res, err = rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
 							So(err, ShouldBeNil)
 							So(res, ShouldNotBeNil)
 
@@ -79,7 +79,7 @@ func TestCouponApply(t *testing.T) {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withTestCoupon(func(couponID string) {
-					updateUrl := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
+					updateURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
 
 					cp := &stripe.CustomerParams{
 						Coupon: couponID,
@@ -89,7 +89,7 @@ func TestCouponApply(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(req, ShouldNotBeNil)
 
-					res, err := rest.DoRequestWithAuth("POST", updateUrl, req, sessionID)
+					res, err := rest.DoRequestWithAuth("POST", updateURL, req, sessionID)
 					So(err, ShouldBeNil)
 					So(res, ShouldNotBeNil)
 
