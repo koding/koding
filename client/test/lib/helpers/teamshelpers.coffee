@@ -628,6 +628,7 @@ module.exports =
 
 
   
+  
   logoutTeam: (browser, callback) ->
 
     browser.element 'css selector', closeModal, (result) =>
