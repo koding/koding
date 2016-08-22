@@ -51,47 +51,47 @@ module.exports = class Payment extends Base
 
 
   @subscribe = secure (client, data, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @subscribeGroup = secure (client, data, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @fetchGroupPlan = secure (client, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @cancelGroupPlan = secure (client, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @subscriptions = secure (client, data, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @fetchGroupInvoices = secure (client, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @invoices = secure (client, data, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @creditCard = secure (client, data, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @fetchGroupCreditCard$ = secure (client, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @updateCreditCard = secure (client, data, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @updateGroupCreditCard = secure (client, data, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @canChangePlan = secure (client, data, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @logOrder = secure (client, raw, callback) ->
     SiftScience = require './siftscience'
     SiftScience.createOrder client, raw, callback
 
   @canUserPurchase = secure (client, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
 
   @deleteAccount = (client, callback) ->
-    return callback new Error "subscriptions are closed via this endpoint"
+    return callback new Error 'subscriptions are closed via this endpoint'
