@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/koding/runner"
+	"github.com/stripe/stripe-go"
 )
 
 func withTestServer(t *testing.T, f func(url string)) {
@@ -22,14 +23,18 @@ func withTestServer(t *testing.T, f func(url string)) {
 	}
 
 	c := config.MustRead(r.Conf.Path)
-	payment.Initialize(c)
 	// init mongo connection
 	modelhelper.Initialize(c.Mongo)
 	defer modelhelper.Close()
 
+	payment.Initialize(c)
+
 	port := getPort()
 	mc := mux.NewConfig(workerName, "localhost", port)
 	mc.Debug = r.Conf.Debug
+	if r.Conf.Debug {
+		stripe.LogLevel = 3
+	}
 	m := mux.New(mc, r.Log, r.Metrics)
 
 	AddHandlers(m)
