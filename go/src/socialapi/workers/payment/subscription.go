@@ -18,7 +18,33 @@ func DeleteSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 		return nil, ErrCustomerNotSubscribedToAnyPlans
 	}
 
-	return sub.Cancel(group.Payment.Subscription.ID, nil)
+	sub, err := deleteSubscription(group.Payment.Subscription.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := modelhelper.UpdateGroupPartial(
+		modelhelper.Selector{"_id": group.Id},
+		modelhelper.Selector{
+			"$unset": modelhelper.Selector{
+				"payment.subscription.id":     sub.ID,
+				"payment.subscription.status": sub.Status,
+			},
+		},
+	); err != nil {
+		return nil, err
+	}
+
+	return sub, nil
+}
+
+func deleteSubscription(subscriptionID string) (*stripe.Sub, error) {
+	sub, err := sub.Cancel(subscriptionID, nil)
+	if sub != nil && sub.Status == "canceled" {
+		return sub, nil
+	}
+
+	return sub, err
 }
 
 // UpdateSubscriptionForGroup updates the subscription of a group
