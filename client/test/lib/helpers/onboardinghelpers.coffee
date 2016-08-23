@@ -53,7 +53,7 @@ module.exports =
     browser
       .click installKDLink
       .waitForElementVisible kodingUtilities, 20000
-      .waitForElementVisible closeModal, 30000
+      .click sidebar
       .click closeModal
       .pause 1000, callback
 

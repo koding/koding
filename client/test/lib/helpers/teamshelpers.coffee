@@ -633,7 +633,7 @@ module.exports =
 
     browser.element 'css selector', closeModal, (result) =>
       if result.status is 0
-        console.log(result.status + 'asdadadaas')
+        browser.waitForElementVisible closeModal, 30000
         browser.click closeModal
 
     browser
