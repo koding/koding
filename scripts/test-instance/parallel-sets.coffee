@@ -34,8 +34,7 @@ module.exports = [
   # ]
 
   [
-    { name: 'register' }
-    { name: 'teams teams' }
+    # { name: 'teams teams' }
     # { name: 'unittests' }
   ]
 
