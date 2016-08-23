@@ -22,7 +22,7 @@ import (
 
 var (
 	// The script is located at go/src/koding/kites/kloud/provisioner.
-	PostInstallScriptUri = "https://s3.amazonaws.com/koding-softlayer/softlayer-cloud-init.sh"
+	PostInstallScriptUri = "https://koding-softlayer.s3.amazonaws.com/softlayer-cloud-init.sh"
 
 	// Only lookup images that have this tag
 	DefaultTemplateTag = "koding-stable"
