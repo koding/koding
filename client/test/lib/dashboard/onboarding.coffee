@@ -17,30 +17,30 @@ module.exports =
 
   dashboard: (browser) ->
     queue = [
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openStackEditor browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openCredential browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openMyTeamScreen browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.openOnboarding browser, (result) ->
-          next null, result
-      (next) ->
-        onboardinghelper.installKDLink browser, (result) ->
-          next null, result
+      # (next) ->
+      #   onboardinghelper.openOnboarding browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   onboardinghelper.openStackEditor browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   onboardinghelper.openOnboarding browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   onboardinghelper.openCredential browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   onboardinghelper.openOnboarding browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   onboardinghelper.openMyTeamScreen browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   onboardinghelper.openOnboarding browser, (result) ->
+      #     next null, result
+      # (next) ->
+      #   onboardinghelper.installKDLink browser, (result) ->
+      #     next null, result
       (next) ->
         teamsHelpers.logoutTeam browser, (result) ->
           next null, result
