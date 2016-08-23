@@ -13,9 +13,6 @@ import (
 )
 
 // GetPathSize gets the size of a remote path.
-//
-// NOTE: This implementation is the same as what mountFolder is using. A more
-// robust one should be implemented on the remote klient. Eg, fs.getSize, etc.
 func (r *Remote) GetPathSize(kreq *kite.Request) (interface{}, error) {
 	log := logging.NewLogger("remote").New("remote.getPathSize")
 
@@ -85,9 +82,10 @@ func (r *Remote) GetPathSize(kreq *kite.Request) (interface{}, error) {
 		return nil, mount.ErrRemotePathDoesNotExist
 	}
 
-	size, err := getSizeOfRemoteFolder(remoteMachine, opts.RemotePath)
+	size, err := remoteMachine.GetFolderSize(opts.RemotePath)
 	if err != nil {
 		log.Error("Failed to get remote size. path:%s, err:%s", opts.RemotePath, err)
 	}
+
 	return size, err
 }

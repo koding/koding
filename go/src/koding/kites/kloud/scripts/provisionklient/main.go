@@ -18,6 +18,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/user"
+	"strconv"
 	"strings"
 )
 
@@ -109,7 +111,7 @@ func realMain() error {
 }
 
 func createUser(username string, groups []string) error {
-	var args = []string{"--disabled-password", "--shell", "/bin/bash", "--gecos", "Koding", username}
+	var args = []string{"--disabled-password", "--shell", "/bin/bash", "--gecos", "Koding", "--force-badname", username}
 	adduser := newCommand("adduser", args...)
 	if err := adduser.Run(); err != nil {
 		return err
@@ -133,6 +135,25 @@ func createUser(username string, groups []string) error {
 	}
 
 	return nil
+}
+
+func lookupUser(username string) (uid, gid int, err error) {
+	u, err := user.Lookup(username)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	uid, err = strconv.Atoi(u.Uid)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	gid, err = strconv.Atoi(u.Gid)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return uid, gid, nil
 }
 
 // installKlient(val.Username, val.LatestKlientURL, val.RegisterURL, val.KontrolURL, val.TunnelURL)
@@ -181,6 +202,18 @@ func installKlient(val *userdata.Value) error {
 
 	if err := ioutil.WriteFile("/etc/init/klient.conf", []byte(newContent), 0644); err != nil {
 		return err
+	}
+
+	// Ensure the klient is able to update itself.
+	uid, gid, err := lookupUser(val.Username)
+	if err != nil {
+		return err
+	}
+
+	for _, path := range []string{"/opt/kite/klient", "/opt/kite/klient/klient"} {
+		if err := os.Chown(path, uid, gid); err != nil {
+			return err
+		}
 	}
 
 	log.Println(">> Restarting klient")

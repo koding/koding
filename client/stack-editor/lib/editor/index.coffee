@@ -30,6 +30,9 @@ EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
 createShareModal = require './createShareModal'
 { actions : HomeActions } = require 'home/flux'
+isMine = require 'app/util/isMine'
+CustomLinkView = require 'app/customlinkview'
+isAdmin = require 'app/util/isAdmin'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -53,7 +56,8 @@ module.exports = class StackEditorView extends kd.View
     kd.singletons.groupsController.ready =>
 
       { groupsController } = kd.singletons
-      @isMine = stackTemplate?.isMine() or groupsController.canEditGroup()
+
+      @isMine = isAdmin() or isMine(stackTemplate)
 
       if not @isMine and stackTemplate
         @tabView.setClass 'StackEditorTabs isntMine'
@@ -61,6 +65,7 @@ module.exports = class StackEditorView extends kd.View
         @deleteStack.hide()
         @saveButton.setClass 'isntMine'
         @inputTitle.setClass 'template-title isntMine'
+        @editName.hide()
 
 
 
@@ -147,7 +152,7 @@ module.exports = class StackEditorView extends kd.View
       partial  : '!'
       tooltip  :
         title  : "You need to set your #{selectedProvider.toUpperCase()}
-                  credentials to be able build this stack."
+                  credentials to be able to build this stack."
 
     @credentialWarning.bindTransitionEnd()
 
@@ -270,9 +275,12 @@ module.exports = class StackEditorView extends kd.View
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
 
-
     @header.addSubView @inputTitle = new kd.InputView options
 
+    @header.addSubView @editName = new CustomLinkView
+      cssClass: 'edit-name'
+      title: 'Edit Name'
+      click : @inputTitle.bound 'setFocus'
 
     kd.singletons.reactor.observe valueGetter, (value) =>
 
@@ -285,6 +293,16 @@ module.exports = class StackEditorView extends kd.View
     @inputTitle.on 'viewAppended', =>
       @inputTitle.prepareClone()
       @inputTitle.resize()
+
+    @inputTitle.on 'blur', @editName.bound 'show'
+
+    @inputTitle.on 'keydown', (event) =>
+      return  unless event.keyCode is 13
+      @inputTitle.setBlur()
+
+    @inputTitle.on 'focus', =>
+      @inputTitle.resize()
+      @editName.hide()
 
 
   createOutputView: ->
@@ -396,11 +414,16 @@ module.exports = class StackEditorView extends kd.View
 
           if err
             @credentialWarning.once 'transitionend', =>
-              @credentialWarning.tooltip.show()
-            @credentialWarning.setClass 'in'
+              if @credentialWarning.hasClass 'in'
+                @credentialWarning.tooltip.show()
 
-            @providersPane.tabHandle.setClass 'notification'
-            @_credentialsPassed = no
+            if @credentialWarning.hasClass 'in'
+              @credentialWarning.tooltip.show()
+            else
+              @providersPane.tabHandle.setClass 'notification'
+              @credentialWarning.setClass 'in'
+              @_credentialsPassed = no
+
             return @saveButton.hideLoader()
 
           @outputView
@@ -411,8 +434,6 @@ module.exports = class StackEditorView extends kd.View
 
 
   afterProcessTemplate: (method) ->
-
-    canEditGroup = kd.singletons.groupsController.canEditGroup()
 
     switch method
       when 'initialize'
@@ -442,7 +463,6 @@ module.exports = class StackEditorView extends kd.View
   processTemplate: (stackTemplate) ->
 
     { groupsController, computeController } = kd.singletons
-    canEditGroup = groupsController.canEditGroup()
 
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
@@ -468,7 +488,7 @@ module.exports = class StackEditorView extends kd.View
       # stacktemplates set for a team this will be broken ~ GG
 
       if hasStack
-        if canEditGroup
+        if isAdmin()
           # admin is editing a team stack
           if stackTemplate.isDefault
             @_handleSetDefaultTemplate =>
@@ -491,7 +511,7 @@ module.exports = class StackEditorView extends kd.View
 
       else
         # admin is creating a new stack
-        if canEditGroup
+        if isAdmin()
           if hasGroupTemplates
             @afterProcessTemplate 'maketeamdefault'
             @afterProcessTemplate 'initialize'
@@ -830,9 +850,8 @@ module.exports = class StackEditorView extends kd.View
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
 
-      template = stackTemplate
       reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-      reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { template }
+      reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
 
       @setAsDefaultButton.hideLoader()
 

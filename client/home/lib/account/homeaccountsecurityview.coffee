@@ -67,7 +67,14 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
           <p class='status'><strong>ACTIVE</strong> Your 2-factor status</p>
           <p class='info'>To change your code generator you must first disable the current authentication.</p>
         </div>
+        <div>
+          <a class='learn-link HomeAppView--link primary' href='https://koding.com/docs/2-factor-auth/' target=_blank>
+            LEARN MORE</a>
+        </div>
       "
+
+    @setHeight 240
+    @setClass 'enabled2Factor'
 
     @addSubView @disableForm = new kd.FormViewWithFields
       cssClass             : 'AppModal-form enabled-form'
@@ -83,8 +90,8 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
           label            : '&nbsp;'
           cssClass         : 'Formline--half'
           itemClass        : kd.ButtonView
-          title            : 'DISABLE'
-          style            : 'GenericButton danger disable-tf'
+          title            : 'DISABLE 2-FACTOR'
+          style            : 'GenericButton disable-tf'
       callback             : @bound 'handleDisableFormButton'
 
 
@@ -111,6 +118,8 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
         type  : 'mini'
 
       @buildInitialView()
+      @unsetClass 'enabled2Factor'
+      @setHeight 360
 
 
   getFormView: ->
@@ -128,8 +137,8 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
       buttons              :
         Enable             :
           type             : 'submit'
-          title            : 'Enable 2-Factor Auth'
-          style            : 'solid green small enable-tf'
+          title            : 'ENABLE 2-FACTOR AUTH'
+          style            : 'GenericButton enable-tf'
       callback             : @bound 'handleEnableFormButton'
 
 

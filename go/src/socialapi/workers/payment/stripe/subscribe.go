@@ -117,7 +117,7 @@ func handleCancel(customer *paymentmodels.Customer) error {
 func deleteCustomer(customer *paymentmodels.Customer) {
 	removeCreditCardHelper(customer)
 
-	if err := stripeCustomer.Del(customer.ProviderCustomerId); err != nil {
+	if _, err := stripeCustomer.Del(customer.ProviderCustomerId); err != nil {
 		Log.Error("Error deleting customer from Stripe: %v", err)
 	}
 

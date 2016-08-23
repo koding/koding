@@ -98,7 +98,6 @@ $subtleColor                = #A59999
     margin                  40px 20px
     width                   auto
     display                 block
-    // font-family             monoFamily
     rel()
 
     span
@@ -117,11 +116,29 @@ $subtleColor                = #A59999
       font-size             14px
       line-height           20px
       padding               0
-      // font-family           monoFamily
       borderBox()
+    .react-spinner
+      display               none
+
+
+  &.loading
+    color                   #858585
+    margin                  40px 20px
+    display                 block
+    height                  92px
+    rel()
+    cite
+      display               none
+
+
 
 .HomeAppViewListItem
   rel()
+
+  .SidebarListItem-unreadCount
+    right                   initial
+    margin-left             10px
+    margin-top              5px
 
 .HomeAppViewListItem-description
 .HomeAppViewListItem-label

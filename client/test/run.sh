@@ -72,6 +72,7 @@ function run_test_case() {
   TEST_FILE=$(get_test_suite_path $TEST_GROUP $TEST_SUITE)
   $NIGHTWATCH_CMD --test $TEST_FILE --testcase $TEST_CASE 2>&1 | \
     tee $LOG_DIR/nightwatch-$TEST_GROUP-$TEST_SUITE-$TEST_CASE.log
+  return ${PIPESTATUS[0]}
 }
 
 function run_test_suite() {

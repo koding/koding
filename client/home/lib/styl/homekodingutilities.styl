@@ -42,16 +42,18 @@ welcome.styl
 
 .HomeAppView--section.koding-button
 .HomeAppView--section.customer-feedback
+.HomeAppView--section.permissions
 .HomeAppView--section.intercom-integration
   z-index                   1
   rel()
 
-  .TryOnKoding-onOffButton
+  .OnOffButton
     abs                     47px 36px
-  input.TryOnKoding-onOffButton
+  input.OnOffButton
     hidden()
 
-  p
+  .primary
+  .secondary
   .HomeAppView--sectionWrapper
     strong
       font-weight           bold
@@ -83,6 +85,12 @@ welcome.styl
 .TryOnKodingButton
   r-sprite                  home try_on_koding
   margin-top                -8px
+
+.TryOnKodingButton--footer
+  border-top                1px solid #ddd
+  height                    15px
+  margin-top                20px
+  padding-top               20px
 
 
 .HomeAppView--section.customer-feedback

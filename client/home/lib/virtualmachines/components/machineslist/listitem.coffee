@@ -5,7 +5,7 @@ Machine = require 'app/providers/machine'
 immutable = require 'immutable'
 VirtualMachinesSelectedMachineFlux = require 'home/virtualmachines/flux/selectedmachine'
 KDReactorMixin = require 'app/flux/base/reactormixin'
-
+EnvironmentFlux = require 'app/flux/environment'
 module.exports = class MachinesListItem extends React.Component
 
   @propTypes =
@@ -38,6 +38,7 @@ module.exports = class MachinesListItem extends React.Component
     onUnsharedWithUser     : kd.noop
     onDisconnectVM         : kd.noop
 
+
   getDataBindings: ->
 
     return {
@@ -45,11 +46,19 @@ module.exports = class MachinesListItem extends React.Component
     }
 
 
+  constructor: (props) ->
+
+    super props
+
+    @state =
+      machineLabel: @props.machine.get 'label'
+      showEditName: yes
+
+
   renderMachineDetails: ->
 
     return null  unless @props.shouldRenderDetails
     return null  unless @props.machine.get('label') is @state.selectedMachine
-
 
     <main className="MachinesListItem-machineDetails">
       <MachineDetails
@@ -67,6 +76,24 @@ module.exports = class MachinesListItem extends React.Component
         onDisconnectVM={@props.onDisconnectVM}
       />
     </main>
+
+
+  renderEditname: ->
+
+    return null  unless @state.showEditName
+    return null  unless @props.shouldRenderDetails
+    return null  unless @props.machine.get('label') is @state.selectedMachine
+
+    <div className='MachineListItem--Edit-name' onClick={@bound 'onClickEditname'}>Edit Name </div>
+
+
+  onClickEditname: ->
+
+    @setState { showEditName: no }
+    @refs.inputbox.focus()
+
+    kd.utils.defer =>
+      @refs.inputbox.selectionStart = @refs.inputbox.selectionEnd = 100000
 
 
   toggle: (event) ->
@@ -115,6 +142,43 @@ module.exports = class MachinesListItem extends React.Component
     </div>
 
 
+  setMachineLabel: ->
+
+    unless @state.machineLabel
+      @setState { machineLabel: @props.machine.get 'label'}
+      return
+
+    machineUId = @props.machine.get 'uid'
+    EnvironmentFlux.actions.setLabel machineUId, @state.machineLabel
+      .then (label) =>
+        kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines/#{@state.machineLabel}"
+      .catch (err) =>
+        @setState { machineLabel: @props.machine.get 'label' }
+        new kd.NotificationView { title: 'Something went wrong', duration: 2000 }
+
+
+  inputOnChange: (event) ->
+
+    { value: machineLabel } = event.target
+    @setState { machineLabel: machineLabel }
+
+
+  renderStackTitle: ->
+
+    <div className="MachinesListItem-stackLabel">
+      <a href="#" className="HomeAppView--button primary">{@props.stack.get 'title'}</a>
+    </div>
+
+  inputOnBlur: (event) ->
+
+    @setState { showEditName: yes }
+    @setMachineLabel()
+
+  inputOnKeyDown: (event) ->
+
+    if event.keyCode is 13
+      @refs.inputbox.blur()
+
   render: ->
 
     expanded = if @props.machine.get('label') is @state.selectedMachine
@@ -122,19 +186,22 @@ module.exports = class MachinesListItem extends React.Component
     else ''
 
     <div className="MachinesListItem#{expanded}">
-      <header>
-        <div
-          className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}"
-          onClick={@bound 'toggle'}>
-          {@props.machine.get 'label'}
+      <header className='MachinesListItem-header'>
+        <div className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}">
+          <input
+            ref='inputbox'
+            value={@state.machineLabel}
+            className="kdinput text"
+            onChange={@bound 'inputOnChange'}
+            onBlur={@bound 'inputOnBlur'}
+            onKeyDown={@bound 'inputOnKeyDown'} />
           {@renderProgressbar()}
         </div>
         {@renderIpAddress()}
-        <div className="MachinesListItem-stackLabel">
-          <a href="#" className="HomeAppView--button primary">{@props.stack.get 'title'}</a>
-        </div>
+        {@renderStackTitle()}
         {@renderDetailToggle()}
       </header>
+      {@renderEditname()}
       {@renderMachineDetails()}
     </div>
 

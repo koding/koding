@@ -161,7 +161,7 @@ module.exports = class ComputeControllerUI
       Save       :
         title    : saveButtonTitle
         type     : 'submit'
-        style    : 'solid green medium save-btn'
+        style    : 'solid primary medium save-btn'
         loader   : { color : '#444444' }
         callback : -> @hideLoader()
 
@@ -182,11 +182,15 @@ module.exports = class ComputeControllerUI
 
 
       buttons['Advanced Mode'] =
+        title    : 'Advanced Mode'
         style    : 'solid medium advanced-mode-btn'
         type     : 'button'
         callback : ->
           form.toggleClass 'in-advanced-mode'
-          @toggleClass 'green'
+          if @buttonTitle is 'Advanced Mode'
+          then @setTitle 'Basic Mode'
+          else @setTitle 'Advanced Mode'
+
 
     kiteQueryPath = new kd.CustomHTMLView
       cssClass : 'kite-query-path'
@@ -301,9 +305,9 @@ module.exports = class ComputeControllerUI
           '
           button  : 'Proceed'
         reinitStack :
-          title   : 'Reinitialize Stack'
+          title   : 'YOUR DATA WILL BE LOST!'
           message : '
-            If you choose to proceed, this stack and all of its VMs will be
+            If you re-initialize this stack, the stack and all of its VMs will be
             re-initialized from the latest revision of this stack.
             You will lose all of your existing VMs and your data therein.
           '

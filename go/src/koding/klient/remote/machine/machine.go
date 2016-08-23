@@ -2,14 +2,13 @@ package machine
 
 import (
 	"errors"
-	"fmt"
 	"path"
 	"time"
 
 	"github.com/koding/logging"
 
 	"koding/kites/tunnelproxy/discover"
-	"koding/klient/command"
+	"koding/klient/fs"
 	"koding/klient/kiteerrortypes"
 	"koding/klient/os"
 	"koding/klient/remote/kitepinger"
@@ -54,12 +53,6 @@ const (
 const (
 	// The duration between IsConnected() checks performed by WaitUntilOnline()
 	waitUntilOnlinePause = 5 * time.Second
-
-	// The command fed to the remote Klient to check whether a remote dir exists.
-	remoteDirExistsBashCmd = `bash -c "[ -d %s ]"`
-
-	// The command fed to the remote Klient to check whether a remote path exists.
-	remotePathExistsBashCmd = `bash -c "[ -e %s ]"`
 )
 
 var (
@@ -482,23 +475,39 @@ func (m *Machine) UnlockMounting() {
 // DoesRemotePathExist checks if the given remote dir exists for this
 // machine.
 func (m *Machine) DoesRemoteDirExist(p string) (bool, error) {
-	params := struct {
-		Command string
-	}{
-		Command: fmt.Sprintf(remoteDirExistsBashCmd, p),
+	opts := fs.GetInfoOptions{
+		Path: p,
 	}
 
-	kRes, err := m.TellWithTimeout("exec", 4*time.Second, params)
+	kRes, err := m.TellWithTimeout("fs.getInfo", 4*time.Second, opts)
 	if err != nil {
 		return false, err
 	}
 
-	var res command.Output
-	if err := kRes.Unmarshal(&res); err != nil {
+	var f fs.FileEntry
+	if err := kRes.Unmarshal(&f); err != nil {
 		return false, err
 	}
 
-	return res.ExitStatus == 0, nil
+	return f.Exists && f.IsDir, nil
+}
+
+func (m *Machine) GetFolderSize(p string) (int64, error) {
+	opts := fs.GetFolderSizeOptions{
+		Path: p,
+	}
+
+	kRes, err := m.TellWithTimeout("fs.getPathSize", 4*time.Second, opts)
+	if err != nil {
+		return 0, err
+	}
+
+	var size int64
+	if err := kRes.Unmarshal(&size); err != nil {
+		return 0, err
+	}
+
+	return size, nil
 }
 
 // Home attempts to return the home directory of the remote machine.
@@ -562,23 +571,21 @@ func (m *Machine) HomeWithDefault() (string, error) {
 // DoesRemotePathExist checks if the given remote path exists for this
 // machine.
 func (m *Machine) DoesRemotePathExist(p string) (bool, error) {
-	params := struct {
-		Command string
-	}{
-		Command: fmt.Sprintf(remotePathExistsBashCmd, p),
+	opts := fs.GetInfoOptions{
+		Path: p,
 	}
 
-	kRes, err := m.TellWithTimeout("exec", 4*time.Second, params)
+	kRes, err := m.TellWithTimeout("fs.getInfo", 4*time.Second, opts)
 	if err != nil {
 		return false, err
 	}
 
-	var res command.Output
-	if err := kRes.Unmarshal(&res); err != nil {
+	var f fs.FileEntry
+	if err := kRes.Unmarshal(&f); err != nil {
 		return false, err
 	}
 
-	return res.ExitStatus == 0, nil
+	return f.Exists, nil
 }
 
 func (ms MachineStatus) String() string {

@@ -755,10 +755,24 @@ class IDEAppController extends AppController
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
     @machineStateModal.once 'IDEBecameReady', @bound 'handleIDEBecameReady'
 
+    @emit 'MachineStateModalReady', @machineStateModal
+
     # stop IDE onboarding if it's running
     # since machine state is changed and state modal appears,
     # onboarding throbbers will be unavailable and should be hidden
     @stopOnboarding()
+
+
+  showMachineStateModal: ->
+
+    return @machineStateModal.show()  if @machineStateModal
+    @once 'MachineStateModalReady', => @machineStateModal.show()
+
+
+  hideMachineStateModal: (skipOverlay) ->
+
+    return @machineStateModal.hide skipOverlay  if @machineStateModal
+    @once 'MachineStateModalReady', => @machineStateModal.hide skipOverlay
 
 
   collapseSidebar: ->
@@ -1814,7 +1828,7 @@ class IDEAppController extends AppController
       blocking     : yes
       buttons      :
         quit       :
-          style    : 'solid light-gray medium'
+          style    : 'GenericButton'
           title    : 'OK'
           callback : =>
 

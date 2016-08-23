@@ -15,7 +15,8 @@ s3upload = require 'app/util/s3upload'
 kookies = require 'kookies'
 Tracker = require 'app/util/tracker'
 VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
-
+KodingKontrol = require 'app/kite/kodingkontrol'
+globals = require 'globals'
 
 loadTeam = ->
 
@@ -192,11 +193,13 @@ handlePendingInvitationUpdate = (account, action) ->
   { reactor } = kd.singletons
 
   if action is 'revoke'
-    remote.api.JInvitation.some { '_id': account.get '_id' }, {}, (err, invitations) ->
-      invitation = invitations[0]
-      invitation.remove (err) ->
-        unless err
-          reactor.dispatch actions.DELETE_PENDING_INVITATION_SUCCESS, { account }
+    remote.api.JInvitation.revokeInvitation account, (err) ->
+
+      title = 'You are not authorized to revoke this invite.'
+
+      return new kd.NotificationView { title, duration: 5000 }  if err
+
+      reactor.dispatch actions.DELETE_PENDING_INVITATION_SUCCESS, { account }
 
   else if action is 'resend'
     remote.api.JInvitation.sendInvitationByCode account.get('code'), (err) ->
@@ -347,6 +350,21 @@ fetchCurrentStateOfApiAccess = ->
   state = team.isApiEnabled is yes
   reactor.dispatch actions.SET_API_ACCESS_STATE, { state }
 
+loadOtaToken = ->
+
+  { reactor } = kd.singletons
+  whoami().fetchOtaToken (err, token) ->
+
+    cmd = if err
+      "<a href='#'>Failed to generate your command, click to try again!</a>"
+    else
+      if globals.config.environment in ['dev', 'default', 'sandbox']
+        "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; curl -sL https://sandbox.kodi.ng/c/d/kd | bash -s #{token}"
+      else "curl -sL https://kodi.ng/c/p/kd | bash -s #{token}"
+
+    reactor.dispatch actions.LOAD_OTA_TOKEN_SUCCESS, { cmd }
+
+
 
 module.exports = {
   loadTeam
@@ -372,4 +390,5 @@ module.exports = {
   addApiToken
   disableApiTokens
   fetchCurrentStateOfApiAccess
+  loadOtaToken
 }

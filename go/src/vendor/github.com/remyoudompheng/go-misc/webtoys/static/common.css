@@ -1,0 +1,18 @@
+label {
+    padding-top: 1ex;
+    display: block;
+}
+
+input {
+    display: block;
+}
+
+.ui-dialog {
+    font-size: 75%;
+}
+
+#vcf-addr table {
+    width: 95%;
+    margin: 1em;
+}
+

@@ -19,6 +19,9 @@ EnvironmentFlux = require 'app/flux/environment'
 AddManagedMachineModal = require 'app/providers/managed/addmanagedmachinemodal'
 VirtualMachinesSelectedMachineFlux = require 'home/virtualmachines/flux/selectedmachine'
 
+canCreateStacks = require 'app/util/canCreateStacks'
+isAdmin = require 'app/util/isAdmin'
+
 module.exports = class HomeStacks extends kd.CustomScrollView
 
   constructor: (options = {}, data) ->
@@ -105,11 +108,12 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     actions.loadTeamStackTemplates()
     actions.loadPrivateStackTemplates()
 
-    @stacks.addSubView view = new HomeStacksCreate
+    if canCreateStacks()
+      @stacks.addSubView view = new HomeStacksCreate
 
-    view.on 'CreateButtonClick', =>
-      @destroy()
-      kd.singletons.router.handleRoute '/Stack-Editor/New'
+      view.on 'CreateButtonClick', =>
+        @destroy()
+        kd.singletons.router.handleRoute '/Stack-Editor/New'
 
     @stacks.addSubView headerize 'Team Stacks'
     @stacks.addSubView sectionize 'Team Stacks', HomeStacksTeamStacks, { delegate : this }
@@ -150,7 +154,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     @vms.addSubView header = headerize 'Connected Machines'
     header.addSubView new kd.ButtonView
       cssClass : 'GenericButton HomeAppViewVMSection--addOwnMachineButton'
-      title    : 'Add a Connected Machine'
+      title    : 'Add Your Own Machine'
       callback : -> new AddManagedMachineModal
 
     @vms.addSubView sectionize 'Connected Machines', HomeVirtualMachinesConnectedMachines

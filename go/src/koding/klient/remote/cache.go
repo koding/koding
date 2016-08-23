@@ -96,14 +96,14 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		}
 	}
 
-	var remoteSize int
+	var remoteSize int64
 	if params.LocalToRemote {
 		remoteSize, err = getSizeOfLocalPath(params.LocalPath)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		remoteSize, err = getSizeOfRemoteFolder(remoteMachine, params.RemotePath)
+		remoteSize, err = remoteMachine.GetFolderSize(params.RemotePath)
 		if err != nil {
 			return nil, err
 		} else {

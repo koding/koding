@@ -26,7 +26,7 @@ ssh -o 'StrictHostKeyChecking no' \
     WERCKER_BUILD_URL="'$WERCKER_BUILD_URL'" \
     WERCKER_GIT_BRANCH="'$WERCKER_GIT_BRANCH'" \
     WERCKER_STARTED_BY="'$WERCKER_STARTED_BY'" \
-    "sudo -E /opt/koding/client/test/run.sh $OPTIONS" &
+    "sudo -E /opt/koding/run exec /opt/koding/client/test/run.sh $OPTIONS" &
 
 PID=$!
 

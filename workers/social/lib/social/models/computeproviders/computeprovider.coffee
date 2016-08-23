@@ -321,19 +321,19 @@ module.exports = class ComputeProvider extends Base
 
   # Just takes the plan config and the stack template content generates rules
   # based on th plan then verifies the content based on the rules generated
-  @validateTemplateContent = (content, planConfig) ->
-
-    rules = teamutils.generateConstraints planConfig
+  @validateTemplateContent = (content, planConfig, callback) ->
 
     try
       template = JSON.parse content
     catch
-      return new KodingError 'Template is not valid'
+      return callback new KodingError 'Template is not valid'
 
-    { passed, results } = konstraints template, rules, {}
-    return new KodingError results.last[1]  unless passed
+    teamutils.fetchConstraints planConfig, (err, rules) ->
 
-    return null
+      { passed, results } = konstraints template, rules, {}
+      return callback new KodingError results.last[1]  unless passed
+
+      return callback null
 
 
   # Template checker, this will fetch the stack template from given id,
@@ -351,7 +351,7 @@ module.exports = class ComputeProvider extends Base
       return callback err  if err
       return callback new KodingError 'Stack template not found'  unless data
 
-      callback @validateTemplateContent data.template.content, planConfig
+      @validateTemplateContent data.template.content, planConfig, callback
 
 
   # Takes an array of stack template ids and returns the final result ^^
@@ -425,23 +425,24 @@ module.exports = class ComputeProvider extends Base
 
     return callback null  if group.slug is 'koding'
 
-    planConfig   = helpers.getPlanConfig group
+    planConfig = helpers.getPlanConfig group
 
-    maxAllowed   = MAX_INT
-    if planConfig.plan
-      plan       = teamutils.getPlanData planConfig
+    teamutils.fetchPlanData planConfig, (err, plan) =>
+
+      return callback err  if err
+
       maxAllowed = plan.member ? MAX_INT
 
-    JCounter = require '../counter'
-    JCounter[change]
-      namespace : group.getAt 'slug'
-      type      : @COUNTER_TYPE.stacks
-      max       : maxAllowed
-      min       : 0
-    , (err) ->
-      # no worries about `decrement` errors
-      # since 0 is already defined as min ~ GG
-      callback if change is 'increment' then err else null
+      JCounter = require '../counter'
+      JCounter[change]
+        namespace : group.getAt 'slug'
+        type      : @COUNTER_TYPE.stacks
+        max       : maxAllowed
+        min       : 0
+      , (err) ->
+        # no worries about `decrement` errors
+        # since 0 is already defined as min ~ GG
+        callback if change is 'increment' then err else null
 
 
   @updateGroupInstanceUsage = (options, callback) ->
@@ -452,23 +453,26 @@ module.exports = class ComputeProvider extends Base
     # A stack template without machines in it? ~ GG
     return callback null  if group.slug is 'koding' or amount is 0
 
-    maxAllowed   = MAX_INT
     planConfig   = helpers.getPlanConfig group
-    if planConfig.plan
-      plan       = teamutils.getPlanData planConfig
-      maxAllowed = plan.maxInstance ? MAX_INT
+    maxAllowed   = MAX_INT
 
-    JCounter = require '../counter'
-    JCounter[change]
-      namespace : group.getAt 'slug'
-      amount    : amount
-      type      : @COUNTER_TYPE.instances
-      max       : maxAllowed
-      min       : 0
-    , (err) ->
-      # no worries about `decrement` errors
-      # since 0 is already defined as min ~ GG
-      callback if change is 'increment' then err else null
+    teamutils.fetchPlanData planConfig, (err, plan) =>
+
+      return callback err  if err
+
+      maxAllowed = plan.maxInstance  if plan
+
+      JCounter = require '../counter'
+      JCounter[change]
+        namespace : group.getAt 'slug'
+        amount    : amount
+        type      : @COUNTER_TYPE.instances
+        max       : maxAllowed
+        min       : 0
+      , (err) ->
+        # no worries about `decrement` errors
+        # since 0 is already defined as min ~ GG
+        callback if change is 'increment' then err else null
 
 
   @updateGroupResourceUsage = (options, callback) ->

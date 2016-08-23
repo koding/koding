@@ -75,7 +75,7 @@ module.exports = class ConnectedManagedMachineWidget extends React.Component
           <div className='description'>
             You may now use this machine just like you use your Koding VM. You can open files, terminals and even initiate collaboration session.
           </div>
-          <button className='GenericButton' onClick={@bound 'handleButtonClick'}>Start Coding</button>
+          <button className='GenericButton' onClick={@bound 'handleButtonClick'}>START CODING</button>
         </div>
       </div>
 

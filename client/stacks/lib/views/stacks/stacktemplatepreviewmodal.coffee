@@ -9,7 +9,6 @@ module.exports = class StackTemplatePreviewModal extends ContentModal
   constructor: (options = {}, data) ->
 
     options.title           = 'Template Preview'
-    options.content         = '<p style="font-weight:700">Generated from your account data</p>'
     options.cssClass        = kd.utils.curry 'stack-template-preview content-modal', options.cssClass
     options.overlay         = yes
     options.overlayOptions  = { cssClass : 'second-overlay' }
@@ -25,6 +24,29 @@ module.exports = class StackTemplatePreviewModal extends ContentModal
     @addSubView @main = new kd.CustomHTMLView
       tagName : 'main'
 
+    @main.addSubView expandButton = new kd.ButtonView
+      cssClass : 'solid compact solid-bg expand-button'
+      title : 'Expand'
+      callback : =>
+        @unsetClass 'stack-template-preview'
+        @setClass 'expanded-stack-template-preview'
+        @minimizeButton.show()
+        @resizeOpenPane()
+
+
+    @main.addSubView @minimizeButton = new kd.ButtonView
+      cssClass : 'solid compact solid-bg minimize-button hidden'
+      title : 'Collapse'
+      callback : =>
+        @setClass 'stack-template-preview'
+        @unsetClass 'expanded-stack-template-preview'
+        @minimizeButton.hide()
+        @resizeOpenPane()
+
+
+    @main.addSubView new kd.CustomHTMLView
+      partial : "<p class='preview-label'>This Preview is generated from your account data.</p>"
+
     @main.addSubView new kd.CustomHTMLView
       cssClass : 'has-markdown'
       partial  : applyMarkdown """
@@ -38,6 +60,14 @@ module.exports = class StackTemplatePreviewModal extends ContentModal
     @createJSONView()
 
     @tabView.showPaneByIndex 0
+    @tabView.on 'PaneDidShow', => @resizeOpenPane()
+
+    defaultHeight = @getHeight()
+    defaultWidth = @getWidth()
+
+  resizeOpenPane: ->
+
+    return window.dispatchEvent new Event 'resize'
 
 
   createYamlView: ->

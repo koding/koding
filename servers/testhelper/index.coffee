@@ -2,6 +2,7 @@ _           = require 'underscore'
 hat         = require 'hat'
 async       = require 'async'
 Bongo       = require 'bongo'
+Cookie      = require 'tough-cookie'
 request     = require 'request'
 querystring = require 'querystring'
 
@@ -28,6 +29,11 @@ generateRandomString = (length = 20) -> hat().slice(32 - length)
 generateRandomEmail = (domain = 'koding.com') ->
 
   return "kodingtestuser+#{generateRandomString()}@#{domain}"
+
+
+generateRandomInvitationsWithEmailRole = (domain = 'koding.com') ->
+
+  return "kodingtestuser+#{generateRandomString()}@#{domain},,,member"
 
 
 generateRandomUsername = -> generateRandomString()
@@ -161,6 +167,13 @@ convertToArray = (commaSeparatedData = '') ->
 
   return data
 
+# getCookiesFromHeader returns cookies obtained from a header
+getCookiesFromHeader = (headers) ->
+  return [] unless headers?['set-cookie']
+  if headers['set-cookie'] instanceof Array
+    return headers['set-cookie'].map Cookie.parse
+  else
+    return [Cookie.parse(headers['set-cookie'])]
 
 module.exports = {
   _
@@ -173,6 +186,8 @@ module.exports = {
   convertToArray
   deepObjectExtend
   generateRandomEmail
+  generateRandomInvitationsWithEmailRole
+  getCookiesFromHeader
   generateRandomString
   generateRandomUsername
   checkBongoConnectivity

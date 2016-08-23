@@ -12,6 +12,16 @@ contentModal.styl
   border                    none
   z-index                   10003
 
+  button.solid-bg
+    background-color        #fff
+    border                  2px solid #CBCBCB
+    span.button-title
+    &:active span.button-title
+      color                 #858585
+      line-height           25px
+    &:hover
+      background-color      #fff
+
   &.kdmodal
     .kdmodal-inner
     .kdmodal-content
@@ -152,7 +162,7 @@ contentModal.styl
 
       .kdtabpaneview
         overflow            visible
-        height              300px
+        height              400px
 
       .kdtabpaneview
         &.stack-template
@@ -311,3 +321,48 @@ main.main-container
       padding-top           12px
       margin-top            1px
       border                0px
+
+.ContentModal.content-modal.stack-template-preview
+  main
+    margin                  20px
+    .preview-label
+      color #868686
+      font-weight           300
+    .has-markdown
+      font-size             14px
+      color                 #727272
+      font-weight           300
+
+    button.expand-button
+      abs 0 40px 375px 0
+      z-index 10
+
+    button.minimize-button
+      display none
+
+
+.ContentModal.expanded-stack-template-preview
+  left 10px !important
+  top 10px !important
+  width 99% !important
+  height 98% !important
+
+  main:empty
+    display none
+
+  main
+    height calc(100% \- 80px)
+
+    .kdtabpaneview
+      height calc(100% \- 43px)
+
+
+  .expand-button
+  header
+  .preview-label
+  .has-markdown
+    display none
+
+  button.minimize-button
+    abs 97px 60px 0 0
+    z-index 10

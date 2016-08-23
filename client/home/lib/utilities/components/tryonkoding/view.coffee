@@ -23,18 +23,28 @@ module.exports = class TryOnKodingView extends React.Component
       {@renderGuideButton()} {@renderTryOnKodingButton()}
     </span>
 
+  renderFooter: ->
+
+    return  if @props.checked
+    <div className='TryOnKodingButton--footer'>
+      {@renderGuideButton()}
+    </div>
+
 
   render: ->
 
     <div>
       <ToggleButton canEdit={@props.canEdit} checked={@props.checked} callback={@props.handleSwitch} />
       <Primary className={@props.primaryClassName}/>
-      <p className={@props.secondaryClassName}>
-        <strong>“Try On Koding” Button</strong>
-        Visiting users will have access to all team stack scripts
+      <div className={@props.secondaryClassName}>
+        <p>
+          <strong>“Try On Koding” Button</strong>
+          Visiting users will have access to all team stack scripts
+        </p>
         <CodeBlock cmd={@props.value} />
         {@renderButtons()}
-      </p>
+      </div>
+      {@renderFooter()}
     </div>
 
 
@@ -42,7 +52,7 @@ ToggleButton = ({ checked, callback, canEdit }) ->
 
   return <span></span>  unless canEdit
 
-  <Toggle checked={checked} className='TryOnKoding-onOffButton' callback={callback} />
+  <Toggle checked={checked} className='TryOnKoding-onOffButton OnOffButton' callback={callback} />
 
 
 Primary = ({ className }) ->

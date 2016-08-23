@@ -36,6 +36,7 @@ import (
 	"koding/kites/kloud/provider/vagrant"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stackplan/stackcred"
+	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -62,7 +63,7 @@ type Config struct {
 	PlanEndpoint string `required:"true"`
 
 	// CredentialEndpoint is an API for managing stack credentials.
-	CredentialEndpoint string `required:"true"`
+	CredentialEndpoint string
 
 	// Endpoint for fetching user machine network usage
 	NetworkUsageEndpoint string `required:"true"`
@@ -136,6 +137,7 @@ type Config struct {
 	VmwatcherSecretKey      string
 	PaymentwebhookSecretKey string
 	KloudSecretKey          string
+	TerraformerSecretKey    string
 }
 
 func main() {
@@ -245,9 +247,16 @@ func newKite(conf *Config) *kite.Kite {
 		"paymentwebhook": conf.PaymentwebhookSecretKey,
 	}
 
-	credURL, err := url.Parse(conf.CredentialEndpoint)
-	if err != nil {
-		panic(err)
+	var credURL *url.URL
+
+	if conf.CredentialEndpoint != "" {
+		if u, err := url.Parse(conf.CredentialEndpoint); err == nil {
+			credURL = u
+		}
+	}
+
+	if credURL == nil {
+		sess.Log.Warning(`disabling "Sneaker" for storing stack credential data`)
 	}
 
 	storeOpts := &stackcred.StoreOptions{
@@ -403,6 +412,11 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 			},
 			KlientURL: conf.KlientURL,
 			Bucket:    userdata.NewBucket("koding-klient", klientFolder, c),
+		},
+		Terraformer: &terraformer.Options{
+			Endpoint:  "http://127.0.0.1:2300/kite",
+			SecretKey: conf.TerraformerSecretKey,
+			Kite:      k,
 		},
 		Log: logging.NewCustom("kloud", conf.DebugMode),
 	}

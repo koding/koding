@@ -55,6 +55,10 @@ func (q *Queue) AttachSession(m *awsprovider.Machine) (*awsprovider.Machine, con
 		Method: "internal",
 	}
 
+	if u := m.Owner(); u != nil {
+		req.Username = u.Username
+	}
+
 	ctx := request.NewContext(context.Background(), req)
 	builtM, err := q.AwsProvider.Machine(ctx, m.ObjectId.Hex())
 	if err != nil {

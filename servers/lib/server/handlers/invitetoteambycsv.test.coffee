@@ -1,4 +1,5 @@
 parser = require 'csv-parse'
+helpers = require '../helpers'
 { withConvertedUser } = require '../../../../workers/social/testhelper'
 
 { async
@@ -7,6 +8,7 @@ parser = require 'csv-parse'
   generateUrl
   generateRandomEmail
   generateRandomString
+  generateRandomInvitationsWithEmailRole
   checkBongoConnectivity
   generateRequestParamsEncodeBody } = require '../../../testhelper'
 
@@ -52,12 +54,20 @@ validateInvitation = (data, callback) ->
     return callback err if err
 
     JInvitation = require '../../../models/invitation'
-    # 4 is a RANDOM NUMBER OK?.
-    JInvitation.one { email: data[4].email }, (err, invitation) ->
+    data = analyzeInvitations data
+    random = Math.floor(Math.random() * data.length)
+    JInvitation.one { email: data[random].email }, (err, invitation) ->
       return callback err if err
       return callback new Error 'invitation is not found' if not invitation
 
       return callback null
+
+
+analyzeInvitations = (data, callback) ->
+  params = { data, userEmails: [], pendingEmails: [], myEmail: '' }
+  { data } = helpers.analyzedInvitationResults params
+  return data
+
 
 brokenFile = '''
   this is not an valid line that contains email
@@ -93,4 +103,4 @@ brokenFile = '''
 #   { email: 'cihangir6@koding.com.cihangir6.savas6.member' }
 # ] }
 
-lotsOfInvitations = (generateRandomEmail() for i in [1...500]).join('\n')
+lotsOfInvitations = (generateRandomInvitationsWithEmailRole() for i in [1...100]).join('\n')

@@ -20,6 +20,9 @@ type Config struct {
 
 	// LocalStorePath stores base path for local store
 	LocalStorePath string `required:"true"`
+
+	// SecretKey is used for kite-to-kite communication.
+	SecretKey string
 }
 
 // AWS holds config variables for remote AWS

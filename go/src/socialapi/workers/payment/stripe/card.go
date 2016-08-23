@@ -29,19 +29,19 @@ func GetCreditCard(oldId string) (*CreditCardResponse, error) {
 		return nil, err
 	}
 
-	creditCardList := externalCustomer.Cards
-	if IsNoCreditCards(creditCardList) {
+	sourceList := externalCustomer.Sources
+	if IsNoCreditCards(sourceList) {
 		return &CreditCardResponse{}, nil
 	}
 
-	if IsTooManyCreditCards(creditCardList) {
+	if IsTooManyCreditCards(sourceList) {
 		Log.Error(
 			"Customer (stripe): %s has too many: %s credit cards.",
-			customer.ProviderCustomerId, creditCardList.Count,
+			customer.ProviderCustomerId, sourceList.Count,
 		)
 	}
 
-	creditCardResponse := newCreditCardResponseFromStripe(creditCardList.Values[0])
+	creditCardResponse := newCreditCardResponseFromStripe(sourceList.Values[0].Card)
 	creditCardResponse.Email = externalCustomer.Email
 
 	return creditCardResponse, nil
@@ -73,24 +73,25 @@ func RemoveCreditCard(customer *paymentmodels.Customer) error {
 		return err
 	}
 
-	creditCardList := externalCustomer.Cards
-	if IsNoCreditCards(creditCardList) {
+	sourceList := externalCustomer.Sources
+	if IsNoCreditCards(sourceList) {
 		return paymenterrors.ErrNoCreditCard
 	}
 
-	if IsTooManyCreditCards(creditCardList) {
+	if IsTooManyCreditCards(sourceList) {
 		Log.Error(
 			"Customer (stripe): %s has too many: %s credit cards.",
-			customer.ProviderCustomerId, creditCardList.Count,
+			customer.ProviderCustomerId, sourceList.Count,
 		)
 	}
 
-	creditCard := creditCardList.Values[0]
+	creditCard := sourceList.Values[0].Card
 
 	creditCardParams := &stripe.CardParams{
-		Customer: externalCustomer.Id,
+		Customer: externalCustomer.ID,
 	}
-	err = stripeCard.Del(creditCard.Id, creditCardParams)
+
+	_, err = stripeCard.Del(creditCard.ID, creditCardParams)
 
 	return err
 }

@@ -46,7 +46,7 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 
 	// TODO(arslan): make one single persistent connection if needed, for now
 	// this is ok.
-	tfKite, err := terraformer.Connect(s.Session.Kite)
+	tfKite, err := terraformer.Connect(s.Session.Terraformer)
 	if err != nil {
 		return nil, err
 	}
@@ -127,9 +127,10 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	machines.AppendRegion(region)
 
 	s.Log.Debug("Machines planned to be created: %+v", machines)
 
-	return machines, nil
+	return &kloud.PlanResponse{
+		Machines: machines.Slice(),
+	}, nil
 }

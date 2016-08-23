@@ -6,6 +6,27 @@ FAILING_INSTANCES_DATA_FILE=$(mktemp)
 
 SCRIPTS=$(dirname $0)/..
 
+function repeat () {
+  INTERVAL=$1
+  TRY_COUNT=$2
+  COUNTER=0
+
+  shift 2
+
+  until "$@"; do
+    COUNTER=$((COUNTER + 1))
+    if [ $COUNTER -eq $TRY_COUNT ]; then
+      echo "failed: $@"
+      return 1
+    fi
+    echo "pending: $@"
+    sleep $INTERVAL
+  done
+
+  echo "succeeded: $@"
+  return 0
+}
+
 function terminate_failing_instances () {
   INSTANCES=$(cat $FAILING_INSTANCES_DATA_FILE)
 
@@ -23,8 +44,8 @@ function check_revision () {
   HOST=$(echo $INSTANCE | awk ' {print $2}')
   REMOTE_REVISION=$($SCRIPTS/test-instance/ssh $HOST 'GIT_DIR=/opt/koding/.git git rev-parse HEAD')
 
-  if [ $REMOTE_REVISION != $REVISION ]; then
-    echo "error: revision does not match on $INSTANCE"
+  if [ "$REMOTE_REVISION" != "$REVISION" ]; then
+    echo "failed: $INSTANCE revision does not match"
     return 1
   fi
 
@@ -33,21 +54,12 @@ function check_revision () {
 
 function check_connectivity () {
   INSTANCE=$1
+  PORT=$2
+
   INSTANCE_ID=$(echo $INSTANCE | awk '{print $1}')
   HOST=$(echo $INSTANCE | awk '{print $2}')
 
-  PORT=$2
-  INTERVAL=$3
-  TRY_COUNT=$4
-
-  $SCRIPTS/test-instance/check-connectivity $HOST $PORT $INTERVAL $TRY_COUNT
-  EXIT_CODE=$?
-
-  if [ $EXIT_CODE -ne 0 ]; then
-    echo $INSTANCE >> $FAILING_INSTANCES_DATA_FILE
-  fi
-
-  return $EXIT_CODE
+  nc $HOST $PORT
 }
 
 function health_check () {
@@ -58,7 +70,6 @@ function health_check () {
   STATUS_LINE=$(echo "$STATUS_LINE" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
   if [ "$STATUS_LINE" != "HTTP/1.1 200 OK" ]; then
-    echo "$INSTANCE fails health check"
     return 1
   fi
 
@@ -79,10 +90,8 @@ truncate --size 0 $INSTANCE_DATA_FILE
 for INSTANCE in $INSTANCES; do
   (
     check_revision $INSTANCE || fail_instance $INSTANCE
-    check_connectivity $INSTANCE  8090 1m 10 || fail_instance $INSTANCE
-    check_connectivity $INSTANCE 42420 1m 5 || fail_instance $INSTANCE
-    check_connectivity $INSTANCE 42421 1m 5 || fail_instance $INSTANCE
-    health_check $INSTANCE || fail_instance $INSTANCE
+    repeat 1m 20 check_connectivity $INSTANCE 8090 || fail_instance $INSTANCE
+    repeat 1m 10 health_check $INSTANCE || fail_instance $INSTANCE
     echo $INSTANCE >> $INSTANCE_DATA_FILE
   ) &
 done

@@ -22,7 +22,7 @@ module.exports = class VerifyPINModal extends ContentModal
             buttons               :
               Submit              :
                 title             : buttonTitle
-                cssClass          : 'solid green medium'
+                cssClass          : 'GenericButton'
                 type              : 'submit'
             fields                :
               pin                 :

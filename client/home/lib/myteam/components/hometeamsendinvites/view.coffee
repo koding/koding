@@ -64,7 +64,7 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
         <GenericButton
           title='UPLOAD CSV'
           className={'custom-link-view HomeAppView--button ft'}
-          callback={@props.onUploadCsv} />
+          callback={@props.onUploadCSV} />
       </fieldset>
     </div>
 

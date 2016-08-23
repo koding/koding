@@ -12,8 +12,8 @@ import (
 
 	"koding/kites/kloud/keycreator"
 
-	"code.google.com/p/go.crypto/ssh"
-	"gopkg.in/yaml.v2"
+	"golang.org/x/crypto/ssh"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type Userdata struct {

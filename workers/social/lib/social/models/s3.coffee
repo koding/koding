@@ -39,6 +39,10 @@ module.exports = class S3 extends Base
     unless delegate.type is 'registered'
       return callback new KodingError 'Not allowed'
 
+    if not AWS_KEY or not AWS_SECRET
+      return callback new KodingError \
+        'S3 logs upload disabled because of missing configuration'
+
     { nickname } = delegate.profile
 
     expiration = new Date(Date.now() + EXPIREIN * 1000).toISOString()

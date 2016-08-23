@@ -9,11 +9,13 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"koding/klient/tunnel/tlsproxy/pem"
 
 	"github.com/boltdb/bolt"
-	"github.com/hashicorp/go-multierror"
+	"github.com/cenkalti/backoff"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/logging"
@@ -223,13 +225,27 @@ func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 			params.TLSProxyHostname = pem.Hostname
 		}
 
-		if !params.Dirty {
+		switch {
+		case !params.Dirty:
 			// Ensure vagrant working dir has no machine provisioned.
 			err := vagrantutil.Wait(v.Destroy())
 			if err != nil {
-				h.log.Debug("unable to destroy before create: %s", err)
+				h.log.Error("unable to destroy before create: %s", err)
+				break
+			}
+
+			status, err := v.Status()
+			if err != nil {
+				h.log.Error("unable to check status: %s", err)
+				break
+			}
+
+			if status != vagrantutil.NotCreated {
+				h.log.Error("dirty Vagrant directory: want status to be %v, was %v", vagrantutil.NotCreated, status)
 			}
 		}
+
+		h.boxAdd(v, params.Box, params.FilePath)
 
 		vagrantFile, err := createTemplate(&params)
 		if err != nil {
@@ -239,8 +255,6 @@ func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 		if err := v.Create(vagrantFile); err != nil {
 			return nil, err
 		}
-
-		h.boxAdd(v, params.Box, params.FilePath)
 
 		return params, nil
 	}
@@ -447,9 +461,10 @@ var unquoter = strings.NewReplacer("\\n", "\n")
 // request.
 func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-chan *vagrantutil.CommandOutput, error)) (interface{}, error) {
 	var params struct {
-		Success dnode.Function
-		Failure dnode.Function
-		Output  dnode.Function
+		Success   dnode.Function
+		Failure   dnode.Function
+		Output    dnode.Function
+		Heartbeat dnode.Function
 	}
 
 	if r.Args == nil {
@@ -461,7 +476,10 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 	}
 
 	fail := func(err error) error {
-		params.Failure.Call(err.Error())
+		go retry(func() error {
+			return params.Failure.Call(err.Error())
+		})
+
 		return err
 	}
 
@@ -511,6 +529,30 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 	go func() {
 		h.log.Debug("vagrant: waiting for output from %q...", r.Method)
 
+		if params.Heartbeat.IsValid() {
+			stop := make(chan struct{})
+			defer close(stop)
+
+			go func() {
+				t := time.NewTicker(5 * time.Second)
+				defer t.Stop()
+
+				for {
+					select {
+					case <-stop:
+						h.log.Debug("stopping heartbeat for %q", filePath)
+						return
+					case <-t.C:
+						h.log.Debug("sending heartbeat for %q", filePath)
+
+						if err := params.Heartbeat.Call(); err != nil {
+							h.log.Debug("heartbeat failure for %q: %s", filePath, err)
+						}
+					}
+				}
+			}()
+		}
+
 		err := w.Wait(out, nil)
 
 		if err != nil {
@@ -522,8 +564,19 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 		}
 
 		h.log.Info("Klient %q success for %q", r.Method, filePath)
-		params.Success.Call()
+
+		retry(func() error {
+			return params.Success.Call()
+		})
 	}()
 
 	return true, nil
+}
+
+func retry(op func() error) {
+	retry := backoff.NewExponentialBackOff()
+	retry.MaxElapsedTime = 2 * time.Minute
+	retry.MaxInterval = 10 * time.Second
+
+	backoff.Retry(op, retry)
 }

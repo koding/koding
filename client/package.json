@@ -20,6 +20,7 @@
     "emoji-categories": "0.1.0",
     "emojify.js": "1.1.0",
     "emojis-keywords": "1.0.3",
+    "es6-promise": "3.2.1",
     "geopattern": "1.2.3",
     "highlight.js": "8.9.0",
     "history": "1.12.0",
@@ -57,6 +58,7 @@
     "react-radio": "1.0.6",
     "react-router": "1.0.0-rc4",
     "react-select": "1.0.0-beta12",
+    "react-spinner": "0.2.6",
     "react-toggle": "2.0.1",
     "react-waypoint": "1.2.3",
     "record-shortcuts": "0.1.4",
@@ -69,7 +71,10 @@
   "scripts": {
     "preinstall": "./.npm-preinstall.sh",
     "postinstall": "./.npm-postinstall.sh",
-    "test": "make test"
+    "test": "make test",
+    "c-lab:server": "styleguidist server",
+    "c-lab:build": "styleguidist build",
+    "c-lab": "npm run c-lab:server"
   },
   "browser": {
     "kd": "kd.js",
@@ -83,17 +88,26 @@
   "devDependencies": {
     "babel-preset-es2015": "6.9.0",
     "babel-preset-react": "6.11.1",
+    "babel-preset-react-hmre": "1.1.1",
     "chokidar": "1.0.1",
     "coffee-reactify": "3.0.0",
     "coffee-script": "1.8.0",
+    "css-loader": "0.23.1",
     "expect": "1.13.3",
     "express": "4.12.3",
     "mocha": "2.2.4",
     "nightwatch": "0.8.8",
     "os-tmpdir": "1.0.1",
+    "postcss": "5.1.0",
+    "postcss-mixins": "5.0.0",
+    "postcss-modules-extract-imports": "1.0.1",
+    "postcss-modules-local-by-default": "1.1.0",
+    "postcss-modules-values": "1.1.3",
     "react-addons-test-utils": "0.14.6",
+    "react-styleguidist": "3.0.0",
     "sinon": "1.14.1",
     "socket.io": "1.3.5",
+    "style-loader": "0.13.1",
     "yargs": "3.5.4"
   }
 }

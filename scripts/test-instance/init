@@ -19,14 +19,13 @@ cd $REPOSITORY_PATH
 git config user.email 'sysops@koding.com'
 git config user.name 'Koding Bot'
 
-scripts/wercker/install-node-modules koding
-scripts/install-npm.sh -u
+npm install --unsafe-perm
+./configure --config dev --host $HOST:8090 --disable-segment
+go/build.sh
+make -C client dist
 
-./configure --host $HOST:8090 --disable-segment
-./run install
-
-export TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090"
-make -C client/test build
+TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" \
+  make -C client/test build
 
 ./run services
 
@@ -45,6 +44,7 @@ Xvfb $DISPLAY -shmem -screen 0 1440x900x16 &
 java -jar $TEST_VENDOR/selenium-server-standalone.jar \
      -host 0.0.0.0 \
      -port 42420 \
+     -Dwebdriver.gecko.driver=$TEST_VENDOR/geckodriver/linux64/geckodriver \
      &> $REPOSITORY_PATH/.logs/selenium-host.log &
 
 export DISPLAY=:1
@@ -52,6 +52,7 @@ Xvfb $DISPLAY -shmem -screen 1 1440x900x16 &
 java -jar $TEST_VENDOR/selenium-server-standalone.jar \
      -host 0.0.0.0 \
      -port 42421 \
+     -Dwebdriver.gecko.driver=$TEST_VENDOR/geckodriver/linux64/geckodriver \
      &> $REPOSITORY_PATH/.logs/selenium-participant.log &
 
 sleep 10

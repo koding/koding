@@ -20,44 +20,30 @@ type FeeListParams struct {
 // Fee is the resource representing a Stripe application fee.
 // For more details see https://stripe.com/docs/api#application_fees.
 type Fee struct {
-	Id             string         `json:"id"`
-	Live           bool           `json:"livemode"`
-	Account        *Account       `json:"account"`
-	Amount         uint64         `json:"amount"`
-	App            string         `json:"application"`
-	Tx             *Transaction   `json:"balance_transaction"`
-	Charge         *Charge        `json:"charge"`
-	Created        int64          `json:"created"`
-	Currency       Currency       `json:"currency"`
-	Refunded       bool           `json:"refunded"`
-	Refunds        *FeeRefundList `json:"refunds"`
-	AmountRefunded uint64         `json:"amount_refunded"`
+	ID                     string         `json:"id"`
+	Live                   bool           `json:"livemode"`
+	Account                *Account       `json:"account"`
+	Amount                 uint64         `json:"amount"`
+	App                    string         `json:"application"`
+	Tx                     *Transaction   `json:"balance_transaction"`
+	Charge                 *Charge        `json:"charge"`
+	OriginatingTransaction *Charge        `json:"originating_transaction"`
+	Created                int64          `json:"created"`
+	Currency               Currency       `json:"currency"`
+	Refunded               bool           `json:"refunded"`
+	Refunds                *FeeRefundList `json:"refunds"`
+	AmountRefunded         uint64         `json:"amount_refunded"`
 }
 
-// FeeIter is a iterator for list responses.
-type FeeIter struct {
-	Iter *Iter
+// FeeList is a list of fees as retrieved from a list endpoint.
+type FeeList struct {
+	ListMeta
+	Values []*Fee `json:"data"`
 }
 
-// Next returns the next value in the list.
-func (i *FeeIter) Next() (*Fee, error) {
-	f, err := i.Iter.Next()
-	if err != nil {
-		return nil, err
-	}
-
-	return f.(*Fee), err
-}
-
-// Stop returns true if there are no more iterations to be performed.
-func (i *FeeIter) Stop() bool {
-	return i.Iter.Stop()
-}
-
-// Meta returns the list metadata.
-func (i *FeeIter) Meta() *ListMeta {
-	return i.Iter.Meta()
-}
+// UnmarshalJSON handles deserialization of a Fee.
+// This custom unmarshaling is needed because the resulting
+// property may be an id or the full struct if it was expanded.
 func (f *Fee) UnmarshalJSON(data []byte) error {
 	type appfee Fee
 	var ff appfee
@@ -65,8 +51,8 @@ func (f *Fee) UnmarshalJSON(data []byte) error {
 	if err == nil {
 		*f = Fee(ff)
 	} else {
-		// the id is surrounded by escaped \, so ignore those
-		f.Id = string(data[1 : len(data)-1])
+		// the id is surrounded by "\" characters, so strip them
+		f.ID = string(data[1 : len(data)-1])
 	}
 
 	return nil

@@ -42,7 +42,7 @@ func (s *Stack) bootstrap(arg *kloud.BootstrapRequest) (interface{}, error) {
 
 	s.Log.Debug("Connecting to terraformer kite")
 
-	tfKite, err := terraformer.Connect(s.Session.Kite)
+	tfKite, err := terraformer.Connect(s.Session.Terraformer)
 	if err != nil {
 		return nil, err
 	}

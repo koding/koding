@@ -135,6 +135,7 @@ stacks = [
       .map (stack) ->
         stack
           .set 'accessLevel', templates.getIn [stack.get('baseStackId'), 'accessLevel']
+          .set 'baseTemplate', templates.get stack.get 'baseStackId'
           .update 'machines', (machines) ->
             machines
               .filter (id) -> !!machinesWorkspaces.get(id)

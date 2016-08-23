@@ -1,3 +1,4 @@
+kd = require 'kd'
 React         = require 'kd-react'
 actions       = require 'app/flux/environment/actions'
 SidebarWidget = require 'app/components/sidebarmachineslistitem/sidebarwidget'
@@ -17,12 +18,14 @@ module.exports = class StackUpdatedWidget extends React.Component
 
   componentWillReceiveProps: (nextProps) ->
 
-    @setState { isShown : no }  if nextProps.show
+    @setState { isShown : not nextProps.show }
 
 
   handleOnClick : ->
-
-    actions.reinitStackFromWidget @props.stack
+    { appManager, router } = kd.singletons
+    templateId =  @props.stack.get 'baseStackId'
+    actions.reinitStackFromWidget(@props.stack).then ->
+      appManager.tell 'Stackeditor', 'reloadEditor', templateId
 
 
   handleOnClose: ->

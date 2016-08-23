@@ -116,7 +116,7 @@ func (opts *Options) updateEmpty(defaults *Options) {
 
 	// set defaults
 	if opts.Timeout == 0 {
-		opts.Timeout = 5 * time.Minute
+		opts.Timeout = 1 * time.Minute
 	}
 }
 
