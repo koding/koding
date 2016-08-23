@@ -1,4 +1,5 @@
 kd = require 'kd'
+JView = require './../core/jview'
 LoginViewInlineForm = require './loginviewinlineform'
 LoginInputView      = require './logininputview'
 
@@ -48,11 +49,30 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
 
     @button = new kd.ButtonView
       title       : 'SIGN IN'
-      style       : 'solid medium green'
+      style       : 'solid medium green koding'
+      icon        : 'koding'
+      loader      : yes
+      type        : 'submit'
       attributes  :
         testpath  : 'login-button'
-      type        : 'submit'
-      loader      : yes
+
+    @gitlabButton = new kd.ButtonView
+      title       : 'SIGN IN WITH GITLAB'
+      style       : 'solid medium green gitlab'
+      icon        : 'gitlab'
+      loader      :
+        color     : '#48BA7D'
+      callback    : ->
+        kd.singletons.oauthController.redirectToOauth { provider: 'gitlab' }
+
+    @gitlabLogin = new JView
+      cssClass  : 'gitlab hidden'
+      pistachioParams : { @gitlabButton }
+      pistachio : '''
+        <div class='or'><span>or</span></div>
+          {{> gitlabButton}}
+        </div>
+      '''
 
   activate: ->
     @username.setFocus()
@@ -68,4 +88,5 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
     <div>{{> @password}}</div>
     <div>{{> @tfcode}}</div>
     <div>{{> @button}}</div>
+    {{> @gitlabLogin}}
     '''

@@ -2,7 +2,6 @@ kd             = require 'kd'
 hljs           = require 'highlight.js'
 dateFormat     = require 'dateformat'
 
-JView          = require 'app/jview'
 curryIn        = require 'app/util/curryIn'
 outputParser   = require './outputparser'
 objectToString = require 'app/util/objectToString'
@@ -10,7 +9,6 @@ objectToString = require 'app/util/objectToString'
 
 module.exports = class OutputView extends kd.ScrollView
 
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -27,6 +25,13 @@ module.exports = class OutputView extends kd.ScrollView
 
     @highlight = (@getOption 'highlight') or 'profile'
 
+    @stringifyOptions = {}
+
+    if separator = @getOption 'separator'
+      @stringifyOptions = { separator }
+
+
+  viewAppended: -> @addSubView @container
 
   raise : -> @setClass   'raise'
 
@@ -37,18 +42,18 @@ module.exports = class OutputView extends kd.ScrollView
     @code.updatePartial ''
     return this
 
-  stringify = (content) ->
+  stringify: (content) ->
 
     for item, i in content
-      content[i] = if typeof item is 'object' \
-                   then objectToString item else item
+      content[i] = if typeof item is 'object'
+      then objectToString item, @stringifyOptions else item
 
     content = content.join ' '
 
 
   add: (content...) ->
 
-    content = stringify content
+    content = @stringify content
     content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}\n"
     @code.setPartial hljs.highlight(@highlight, content).value
     @scrollToBottom()
@@ -79,7 +84,7 @@ module.exports = class OutputView extends kd.ScrollView
 
   set: (content...) ->
 
-    content = stringify content
+    content = @stringify content
     @code.updatePartial hljs.highlight(@highlight, content).value
     @scrollToBottom()
 
@@ -95,5 +100,8 @@ module.exports = class OutputView extends kd.ScrollView
     return @add prefix, err.message or err
 
 
-  pistachio: ->
-    '''{{> @container}}'''
+  scrollToBottom: ->
+
+    @getDelegate()?.scrollToBottom?()
+
+    super

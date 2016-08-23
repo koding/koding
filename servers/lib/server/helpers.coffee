@@ -55,10 +55,11 @@ findUsernameFromKey = (req, res, callback) ->
 fetchSession = (req, res, callback) ->
 
   { clientId } = req.cookies
+
   unless clientId?
     return process.nextTick -> callback null
 
-  koding.models.JSession.fetchSession clientId, (err, result) ->
+  koding.models.JSession.fetchSession { clientId }, (err, result) ->
 
     if err
       return callback err
@@ -229,7 +230,7 @@ saveOauthToSession = (oauthInfo, clientId, provider, callback) ->
 redirectOauth = (err, req, res, options) ->
   { returnUrl, provider } = options
 
-  redirectUrl = "/Account/Oauth?provider=#{provider}&error=#{err}"
+  redirectUrl = "/Home/Oauth?provider=#{provider}&error=#{err}"
 
   # when returnUrl does not exist, handle oauth authentication in client side
   # this is temporary solution for authenticating registered users
