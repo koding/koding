@@ -1,18 +1,18 @@
 package payment
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"strings"
 
 	stripe "github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/currency"
 	stripeplan "github.com/stripe/stripe-go/plan"
-	 "github.com/stripe/stripe-go/currency"
 )
 
 // Up to 10 users:  $49.97 per developer per month
 // Up to 50 users:  $39.97 per developer per month
 // Over 50 users:  $34.97 per developer per month
-
 
 // TrialPeriod: Specifies a trial period in (an integer number of) days. If you
 // include a trial period, the customer won’t be billed for the first time until
@@ -112,9 +112,13 @@ func CreateDefaultPlans() error {
 	return nil
 }
 
-// Initialize inits the payment worker for further operations 
+// Initialize inits the payment worker for further operations
 func Initialize(conf *config.Config) error {
 	stripe.Key = conf.Stripe.SecretToken
-	go CreateDefaultPlans() // for now only default plan creation
+	if conf.Debug {
+		stripe.LogLevel = 3
+	}
+	go CreateDefaultPlans()
+	go modelhelper.EnsureDeletedMemberIndex()
 	return nil
 }
