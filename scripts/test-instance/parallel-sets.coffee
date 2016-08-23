@@ -21,7 +21,7 @@
 
 module.exports = [
 
-  # [
+  [
   #   { name: 'dashboard myaccount' }
   #   { name: 'dashboard stacks' }
   #   { name: 'dashboard virtualmachines' }
@@ -31,12 +31,12 @@ module.exports = [
   #   { name: 'dashboard onboarding' }
   #   { name: 'dashboard sidebar' }
   #   { name: 'dashboard teambilling' }
-  # ]
+  ]
 
-  [
+  # [
     # { name: 'teams teams' }
     # { name: 'unittests' }
-  ]
+  # ]
 
   # [
   #   { name: 'ide file' }
