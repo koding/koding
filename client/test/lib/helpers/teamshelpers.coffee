@@ -24,7 +24,7 @@ envMachineStateModal     = '.env-machine-state.env-modal'
 stackSettingsMenuIcon    = '.stacktemplates .stack-template-list .stack-settings-menu .chevron'
 myStackTemplatesButton   = '.kdview.kdtabhandle-tabs .my-stack-templates'
 closeButton              = "#{stackCatalogModal} .kdmodal-inner .closeModal"
-closeModal               = '.HomeWelcomeModal.kdmodal .kdmodal-inner .close-icon.closeModal'
+closeModal               = '.close-icon.closeModal'
 visibleStack             = '[testpath=StackEditor-isVisible]'
 #Team Creation
 modalSelector            = '.TeamsModal.TeamsModal--create'
@@ -629,12 +629,19 @@ module.exports =
 
   logoutTeam: (browser, callback) ->
 
+    browser.element 'css selector', closeModal, (result) =>
+      if result.status is 0
+        browser.click closeModal
+
     browser
-      .click '#main-sidebar'
+      .waitForElementVisible '#main-sidebar', 30000
       .waitForElementVisible '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 20000
+      .click '.Sidebar-logo-wrapper'
+      .click '#main-sidebar'
+      .moveToElement '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 0, 0
       .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
-      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 20000
-      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 2000
+      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 40000
+      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 20000
       .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(4)'
       .pause 2000, -> callback()
 
@@ -676,7 +683,7 @@ module.exports =
 
     if role is 'admin'
       browser
-        .waitForElementVisible '.ContentModal', 20000
+        .waitForElementVisible '.ContentModal', 50000
         .assert.containsText '.ContentModal.content-modal header', "You're adding an admin"
         .waitForElementVisible proceedButton, 20000
         .click proceedButton
@@ -729,7 +736,9 @@ module.exports =
     browser
       .waitForElementVisible invitationsModalSelector, 20000
       .click uploadCSVButtonSelector
-    @assertConfirmation browser, message
+      .waitForElementVisible '.content-modal.csv-upload', 20000
+      .assert.containsText '.ContentModal.csv-upload .kdmodal-title span.title', 'Upload CSV File'
+      .click '.ContentModal.csv-upload .button-wrapper .kdbutton.cancel'
 
 
   newInviteFromResendModal: (browser, role) ->
@@ -780,8 +789,8 @@ module.exports =
         if result.status is 0
           browser
             .pause 2000
-            .waitForElementVisible confirmButton, 10000
-            .click                 confirmButton
+            .waitForElementVisible proceedButton, 10000
+            .click                 proceedButton
 
 
   assertConfirmation: (browser, successMessage) ->
@@ -844,7 +853,8 @@ module.exports =
         { status, value } = result
 
         if status is 0 and value
-          browser.waitForElementVisible '.WelcomeStacksView', 20000, yes, =>
+          browser.waitForElementVisible '.WelcomeStacksView', 50000, yes, =>
+            browser.click closeModal
             @logoutTeam browser, =>
               teamUrl       = helpers.getUrl yes
               invitationUrl = "#{teamUrl}/Invitation/#{result.value}"

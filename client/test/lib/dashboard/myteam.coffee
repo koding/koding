@@ -3,11 +3,13 @@ helpers      = require '../helpers/helpers.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
 myteamhelper = require '../helpers/myteamhelpers.js'
 async        = require 'async'
+registeredUser = utils.getUser no, 9
+host           = utils.getUser no, 0
 
 module.exports =
 
   before: (browser, done) ->
-    registeredUser = utils.getUser no, 5
+
     targetUser1 = utils.getUser no, 1
     targetUser1.role = 'member'
     users = [
@@ -38,9 +40,6 @@ module.exports =
       (next) ->
         myteamhelper.editTeamName browser, host, (result) ->
           next null, result
-      # (next) ->
-      #   myteamhelper.uploadAndRemoveLogo browser, host, (result) ->
-      #     next null, result    
       (next) ->
         myteamhelper.inviteAndJoinToTeam browser, host, (result) ->
           next null, result

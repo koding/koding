@@ -25,7 +25,7 @@ module.exports = [
   #   { name: 'dashboard myaccount' }
   #   { name: 'dashboard stacks' }
   #   { name: 'dashboard virtualmachines' }
-  #   { name: 'dashboard myteam' }
+      { name: 'dashboard myteam' }
   #   { name: 'dashboard credentials' }
   #   { name: 'dashboard utilities' }
   #   { name: 'dashboard onboarding' }

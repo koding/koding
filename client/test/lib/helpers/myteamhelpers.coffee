@@ -11,7 +11,7 @@ removeLogoButton  = "#{buttonSelector}.remove"
 teamNameSelector  = "#{sectionSelector} .half input[type=text]"
 saveChangesButton = '.HomeAppView--section .HomeAppView--button.fr'
 
-logo      = ".HomeAppView--uploadLogo .teamLogo-wrapper"
+logo = '.HomeAppView--uploadLogo .teamLogo-wrapper'
 defaultLogoPath = "#{helpers.getUrl(yes)}/a/images/logos/sidebar_footer_logo.svg"
 localImage      = "#{__dirname}/koding.jpeg"
 localImage      = require('path').resolve(localImage)
@@ -60,7 +60,7 @@ module.exports =
     teamsHelpers.assertConfirmation browser, successMessage
     browser.pause 1000, callback
 
-  
+
   # uploadAndRemoveLogo: (browser, callback) ->
   #   aaa = require('path').resolve("#{__dirname}", 'koding.jpeg')
   #   console.log(imagePath);
@@ -72,7 +72,6 @@ module.exports =
 
 
   inviteAndJoinToTeam: (browser, host, callback) ->
-    
     browser
       .url welcomeLink
       .pause 2000
@@ -82,7 +81,6 @@ module.exports =
     indexOfTargetUser1 = if 1 % index isnt 0 then 1 else 2
     indexOfTargetUser2 = if 3 % index isnt 0 then 3 else 4
     indexOfTargetUser3 = if 5 % index isnt 0 then 5 else 6
-
     teamsHelpers.inviteUsers browser, invitations, (res) ->
       teamsHelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser1], (res) ->
         teamsHelpers.acceptAndJoinInvitation host, browser, invitations[indexOfTargetUser2], (res) ->
@@ -101,23 +99,24 @@ module.exports =
       .assert.containsText   selector(indexOfTargetUser2 + 1), 'Member'
       .assert.containsText   selector(indexOfTargetUser3 + 1), 'Member'
       .pause 1000, callback
-    
-    
+
+
   changeMemberRole: (browser, host, callback) ->
 
     invitations[indexOfTargetUser1].accepted = 'Member'
     invitations[indexOfTargetUser2].accepted = 'Admin'
     invitations[indexOfTargetUser3].accepted = 'Member'
     invitations[index].accepted = 'Owner'
-    
+
     user = utils.getUser no, 1
     lastPendingInvitationIndex = 0
     pendingInvitations = []
     invitations.forEach (invitation, i) ->
       unless invitation.accepted
         if invitation.email isnt user.email
-          pendingInvitations.push i 
+          pendingInvitations.push i
           lastPendingInvitationIndex = i
+
     browser
       .url myTeamLink
       .waitForElementVisible sectionSelector, 20000
@@ -159,6 +158,10 @@ module.exports =
 
 
   sendAlreadyMemberInvite: (browser, callback) ->
+    browser
+      .url myTeamLink
+      .waitForElementVisible sectionSelector, 20000
+      .scrollToElement '.HomeAppView--section.send-invites'
     teamsHelpers.fillInviteInputByIndex browser, 2, invitations[indexOfTargetUser1].email
     browser
       .waitForElementVisible sendInvitesButton, 5000
@@ -205,7 +208,7 @@ module.exports =
     browser
       .waitForElementVisible sectionSelector, 20000
       .scrollToElement sectionSendInvites
-    teamsHelpers.inviteUser browser, 'admin',null, yes
+    teamsHelpers.inviteUser browser, 'admin', null, yes
     browser.pause 1000, callback
 
 
@@ -286,7 +289,7 @@ module.exports =
       browser
         .pause 1000, callback
 
-  
+
   checkAdmin: (browser, callback) ->
 
     user = invitations[indexOfTargetUser2]
@@ -302,12 +305,12 @@ module.exports =
 
 
   sendInviteToRegisteredUser: (browser, callback) ->
-    registeredUser = utils.getUser no, 5
+    registeredUser = utils.getUser no, 9
     browser.url myTeamLink
     browser
       .waitForElementVisible sectionSelector, 20000
       .scrollToElement sectionSendInvites
-    teamsHelpers.inviteUser browser, 'member', registeredUser.email, no
+    teamsHelpers.inviteUser browser, 'member', registeredUser.email, yes
     browser.pause 1000, callback
 
 
