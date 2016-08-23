@@ -40,3 +40,13 @@ type Subscription struct {
 type Customer struct {
 	ID string `bson:"id" json:"id"`
 }
+
+// DeletedMember holds information about deleted members from a group.
+type DeletedMember struct {
+	Id        bson.ObjectId `bson:"_id" json:"-"`
+	AccountID bson.ObjectId `bson:"accountId" json:"accountId"`
+	GroupID   bson.ObjectId `bson:"groupId" json:"groupId"`
+	// these will be read only during query/modify time, otherwise do not access
+	// SubscriptionID string
+	// UpdatedAt time.Time
+}
