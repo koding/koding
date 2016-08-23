@@ -20,7 +20,11 @@ CREATE ROLE kontrol;
 
 -- create user
 -- please change this password according to your conventions
+<<<<<<< 09e28193d71835257dd994a42da0b867bedd3533:go/src/github.com/koding/kite/kontrol/001-schema.sql
 CREATE USER kontrolapplication PASSWORD 'somerandompassword';
+=======
+CREATE USER kontrolapp_2016_05 PASSWORD 'kontrolapp_2016_05';
+>>>>>>> Test resolve conflict:go/src/socialapi/db/sql/kontrol/001-schema.sql
 
-GRANT kontrol TO kontrolapplication;
+GRANT kontrol TO kontrolapp_2016_05;
 

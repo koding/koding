@@ -30,19 +30,28 @@ module.exports =
 
   checkKdCliCodeBlock: (browser, done) ->
 
-    @openUtilities browser, ->
-      browser
-        .assert.containsText codeBlockText, 'd/kd | bash -s'
-        .pause 1000
-        .click codeBlockSelector
-        .waitForElementVisible '.kdnotification', 20000
-        .assert.containsText '.kdnotification', 'Copied to clipboard!'
-        .pause 1000, done
+    browser
+      .url utilitiesLink
+      .waitForElementVisible sectionSelector, 40000
+      .assert.containsText codeBlockText, 'd/kd | bash -s'
+      .pause 1000
+      .click codeBlockSelector
+      .waitForElementVisible '.kdnotification', 20000
+      .assert.containsText '.kdnotification', 'Copied to clipboard!'
+      .pause 1000, done
 
-  
+
   downloadKodingApp: (browser, done) ->
 
-    # options = 
+    browser
+      .scrollToElement kodingAppSelector
+      .waitForElementVisible kodingAppSelector, 20000
+      .waitForElementVisible kodingAppLink, 20000
+      .pause 1000, done
+
+  # downloadKodingApp: (browser, done) ->
+
+    # options =
     #   host: "https://koding-cdn.s3.amazonaws.com"
     #   path: '/koding-app/Koding-mac.zip'
     #   port: '80'
@@ -57,12 +66,6 @@ module.exports =
 
     # req.on "error", (e) ->
     #     console.log(e)
-
-    browser
-      .scrollToElement kodingAppSelector
-      # .waitForElementVisible kodingAppLink, 20000
-    browser.pause 1000, done
-
 
   checkViewGuideButton: (browser, buttonSelector, browserSelector, done) ->
 
@@ -98,6 +101,7 @@ module.exports =
       .waitForElementVisible kodingButtonsectionSelector, 20000
       .click toggleButtonSelector
       .pause 1000, done
+
 
   checkCodeBlock: (browser, done) ->
 
@@ -152,20 +156,6 @@ module.exports =
         .pause 2000, done
 
 
-  # openUtilities: (browser, done) ->
-
-  #   # browser
-  #   #   .url "#{helpers.getUrl(yes)}/Home/Stacks"
-  #   #   .waitForElementVisible '.HomeAppView', 40000
-  #   #   .waitForElementVisible '.HomeAppView-Nav--Item:nth-of-type(3)', 30000
-  #   #   .click '.HomeAppView-Nav--Item:nth-of-type(3)'
-  #   #   .waitForElementVisible sectionSelector, 40000, done
-
-  #   browser
-  #     .url utilitiesLink
-  #     .waitForElementVisible sectionSelector, 40000, done
-
-
   loginToTeamWithRegisteredAccount: (browser, done) ->
 
     user =  utils.getUser no, 2
@@ -184,3 +174,4 @@ module.exports =
           .url utilitiesLink
         teamsHelpers.loginToTeam browser, user , no, '', ->
           browser.waitForElementVisible sectionSelector, 60000, done
+

@@ -45,9 +45,6 @@ module.exports =
       (next) ->
         utilitieshelpers.checkKdCliCodeBlock browser, (result) ->
           next null, result
-      # (next) ->
-      #   utilitieshelpers.downloadKodingApp browser, (result) ->
-      #     next null, result
       (next) ->
         utilitieshelpers.checkViewGuideButton browser, kdCliViewGuideButton, kdCliBrowser, (result) ->
           next null, result
@@ -89,6 +86,9 @@ module.exports =
           next null, result
       (next) ->
         utilitieshelpers.disableTryOnKodingButton browser, (result) ->
+          next null, result
+      (next) ->
+        utilitieshelpers.downloadKodingApp browser, (result) ->
           next null, result
     ]
 
