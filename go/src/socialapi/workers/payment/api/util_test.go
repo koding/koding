@@ -99,3 +99,42 @@ func withTestCoupon(f func(string)) {
 	So(c1, ShouldNotBeNil)
 	So(c1.Deleted, ShouldBeTrue)
 }
+
+func withSubscription(endpoint, groupName, sessionID, planID string, f func(subscriptionID string)) {
+	createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
+	deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionDelete)
+
+	group, err := modelhelper.GetGroup(groupName)
+	So(err, ShouldBeNil)
+	So(group, ShouldNotBeNil)
+
+	Convey("We should be able to create a subscription", func() {
+		req, err := json.Marshal(&stripe.SubParams{
+			Customer: group.Payment.Customer.ID,
+			Plan:     planID,
+		})
+		So(err, ShouldBeNil)
+		So(req, ShouldNotBeNil)
+
+		res, err := rest.DoRequestWithAuth("POST", createURL, req, sessionID)
+		So(err, ShouldBeNil)
+		So(res, ShouldNotBeNil)
+
+		v := &stripe.Sub{}
+		err = json.Unmarshal(res, v)
+		So(err, ShouldBeNil)
+
+		f(v.ID)
+
+		Convey("We should be able to cancel the subscription", func() {
+			res, err = rest.DoRequestWithAuth("DELETE", deleteURL, req, sessionID)
+			So(err, ShouldBeNil)
+			So(res, ShouldNotBeNil)
+
+			v = &stripe.Sub{}
+			err = json.Unmarshal(res, v)
+			So(err, ShouldBeNil)
+			So(v.Status, ShouldEqual, "canceled")
+		})
+	})
+}
