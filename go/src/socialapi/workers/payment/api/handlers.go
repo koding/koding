@@ -16,6 +16,7 @@ const (
 	EndpointCreditCardDelete   = "/payment/creditcard/delete"
 	EndpointWebhook            = "/payment/webhook"
 	EndpointInvoiceList        = "/payment/invoice/list"
+	EndpointInfo               = "/payment/info"
 )
 
 // AddHandlers injects handlers for payment system
@@ -109,6 +110,15 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "payment-list-invoices",
 			Type:     handler.GetRequest,
 			Endpoint: EndpointInvoiceList,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  Info,
+			Name:     "payment-info",
+			Type:     handler.GetRequest,
+			Endpoint: EndpointInfo,
 		},
 	)
 }

@@ -63,3 +63,14 @@ func CreateCustomer(u *url.URL, h http.Header, req *stripe.CustomerParams, conte
 		),
 	)
 }
+
+// Info return usage info for a group
+func Info(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	if err := checkContext(context); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.HandleResultAndError(
+		payment.GetInfoForGroup(context.GroupName),
+	)
+}
