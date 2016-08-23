@@ -23,6 +23,7 @@ pendingStack         = "#{WelcomeView} ul.bullets li:nth-of-type(1)"
 userstackLink        = "#{WelcomeView} ul.bullets li:nth-of-type(2)"
 memberInstallKDLink  = "#{WelcomeView} ul.bullets li:nth-of-type(5)"
 sidebar              = '#main-sidebar'
+closeModal = '.close-icon.closeModal'
 
 module.exports =
 
@@ -52,7 +53,8 @@ module.exports =
     browser
       .click installKDLink
       .waitForElementVisible kodingUtilities, 20000
-      .click sidebar
+      .waitForElementVisible closeModal, 30000
+      .click closeModal
       .pause 1000, callback
 
 

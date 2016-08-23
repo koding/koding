@@ -633,6 +633,7 @@ module.exports =
 
     browser.element 'css selector', closeModal, (result) =>
       if result.status is 0
+        console.log(result.status + 'asdadadaas')
         browser.click closeModal
 
     browser

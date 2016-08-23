@@ -33,10 +33,6 @@ module.exports = [
   #   { name: 'dashboard teambilling' }
 
   ]
-
-
-
-  # [
     # { name: 'teams teams' }
     # { name: 'unittests' }
   # ]
