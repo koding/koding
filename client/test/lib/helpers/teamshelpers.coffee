@@ -667,7 +667,6 @@ module.exports =
   inviteUser: (browser, role, email, isNew) ->
 
     index = if role is 'member' then 2 else 1
-
     invitationsModalSelector = '.HomeAppView--section.send-invites'
     sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
     successMessage = ''
