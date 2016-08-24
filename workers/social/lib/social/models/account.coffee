@@ -399,7 +399,13 @@ module.exports = class JAccount extends jraphical.Module
 
     queue =
       participated: (next) =>
-        @fetchAllParticipatedGroups {}, next
+        @fetchAllParticipatedGroups {}, (err, groups) =>
+          return next err  if err
+          JUser = require './user'
+          username = @profile.nickname
+          for group in groups
+            group.jwtToken = JUser.createJWT { username, groupName : group.slug }
+          next null, groups
       invited: (next) =>
         @fetchInvitedGroups next
 

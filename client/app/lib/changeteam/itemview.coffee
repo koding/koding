@@ -41,9 +41,9 @@ module.exports = class ChangeTeamListItem extends kd.ListItemView
 
     hasInvitation  = team.invitationCode?
     actionTitle    = if hasInvitation then 'Join' else 'Switch'
-    actionLink     = "//#{domain}"
-    if hasInvitation
-      actionLink   = "#{actionLink}/Invitation/#{encodeURIComponent team.invitationCode}"
+    actionLink     = if hasInvitation
+    then "//#{domain}/Invitation/#{encodeURIComponent team.invitationCode}"
+    else "//#{domain}/-/loginwithtoken?token=#{team.jwtToken}"
     actionCssClass = "GenericButton #{if hasInvitation then 'join' else ''}"
     @actionElement = new kd.CustomHTMLView
       tagName    : 'a'
