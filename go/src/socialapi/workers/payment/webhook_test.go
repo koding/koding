@@ -134,6 +134,115 @@ func TestChargeFailedHandler(t *testing.T) {
 	})
 }
 
+func TestInvoiceCreatedHandler(t *testing.T) {
+	testData := `
+{
+    "id": "in_00000000000000",
+    "object": "invoice",
+    "amount_due": 0,
+    "application_fee": null,
+    "attempt_count": 0,
+    "attempted": false,
+    "charge": null,
+    "closed": false,
+    "currency": "usd",
+    "customer": "%s",
+    "date": 1471348722,
+    "description": null,
+    "discount": null,
+    "ending_balance": 0,
+    "forgiven": false,
+    "lines": {
+        "data": [
+            {
+                "id": "sub_918UwtRVQpmBpX",
+                "object": "line_item",
+                "amount": 0,
+                "currency": "usd",
+                "description": null,
+                "discountable": true,
+                "livemode": true,
+                "metadata": {},
+                "period": {
+                    "start": 1474027122,
+                    "end": 1476619122
+                },
+                "plan": {
+                    "id": "p_57b2da7d9bc22b6280dba16c",
+                    "object": "plan",
+                    "amount": 0,
+                    "created": 1471339133,
+                    "currency": "usd",
+                    "interval": "month",
+                    "interval_count": 1,
+                    "livemode": false,
+                    "metadata": {},
+                    "name": "Free Forever",
+                    "statement_descriptor": "FREE",
+                    "trial_period_days": null
+                },
+                "proration": false,
+                "quantity": 1,
+                "subscription": null,
+                "type": "subscription"
+            }
+        ],
+        "total_count": 1,
+        "object": "list",
+        "url": "/v1/invoices/in_18j6DOAub2qoNeqqzCbMjcIC/lines"
+    },
+    "livemode": false,
+    "metadata": {},
+    "next_payment_attempt": null,
+    "paid": true,
+    "period_end": 1471348722,
+    "period_start": 1471348722,
+    "receipt_number": null,
+    "starting_balance": 0,
+    "statement_descriptor": null,
+    "subscription": "sub_00000000000000",
+    "subtotal": 0,
+    "tax": null,
+    "tax_percent": null,
+    "total": 0,
+    "webhooks_delivered_at": 1471348722
+}`
+
+	tests.WithConfiguration(t, func(c *config.Config) {
+		stripe.Key = c.Stripe.SecretToken
+
+		Convey("Given stub data", t, func() {
+			withStubData(func(username, groupName, sessionID string) {
+				Convey("Then Group should have customer id", func() {
+					group, err := modelhelper.GetGroup(groupName)
+					tests.ResultedWithNoErrorCheck(group, err)
+
+					So(group.Payment.Customer.ID, ShouldNotBeBlank)
+
+					Convey("When charge.succeeded is triggered", func() {
+						raw := []byte(fmt.Sprintf(testData, group.Payment.Customer.ID))
+
+						var capturedMail *emailsender.Mail
+
+						realMailSender := mailSender
+						mailSender = func(m *emailsender.Mail) error {
+							capturedMail = m
+							return nil
+						}
+						chargeFailedHandler(raw)
+						mailSender = realMailSender
+						Convey("properties of event should be set accordingly", func() {
+							So(capturedMail, ShouldNotBeNil)
+							So(capturedMail.Subject, ShouldEqual, "charge failed")
+							So(capturedMail.Properties.Options["amount"], ShouldEqual, "$0")
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
 var webhookTestData = map[string]string{
 	"invalid.event_name": `{
     "created": 1326853478,
