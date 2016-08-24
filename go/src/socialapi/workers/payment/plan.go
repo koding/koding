@@ -19,56 +19,65 @@ import (
 // the trial period ends. If the customer cancels before the trial period is
 // over, she’ll never be billed at all.
 
+const (
+	FreeForever   = "p_free_forever"
+	FreeFor7Days  = "p_free_for_7_days"
+	FreeFor30Days = "p_free_for_30_days"
+	UpTo10Users   = "p_up_to_10"
+	UpTo50Users   = "p_up_to_50"
+	Over50Users   = "p_over_50"
+)
+
 // Plans holds koding provided plans on stripe
-var Plans = []*stripe.PlanParams{
+var Plans = map[string]*stripe.PlanParams{
 	// Forever free koding
-	&stripe.PlanParams{
+	FreeForever: &stripe.PlanParams{
 		Amount:        0,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
 		TrialPeriod:   0,
 		Name:          "Free Forever",
 		Currency:      currency.USD,
-		ID:            "p_free_forever",
+		ID:            FreeForever,
 		Statement:     "FREE",
 	},
 
 	// 7 days free koding
-	&stripe.PlanParams{
+	FreeFor7Days: &stripe.PlanParams{
 		Amount:        0,
 		Interval:      stripeplan.Week,
 		IntervalCount: 1,
 		TrialPeriod:   7,
 		Name:          "Free For 7 days",
 		Currency:      currency.USD,
-		ID:            "p_free_for_7_days",
+		ID:            FreeFor7Days,
 		Statement:     "FREE FOR 7 DAYS",
 	},
 
 	// 30 days free koding
-	&stripe.PlanParams{
+	FreeFor30Days: &stripe.PlanParams{
 		Amount:        0,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
 		TrialPeriod:   30,
 		Name:          "Free For 30 days",
 		Currency:      currency.USD,
-		ID:            "p_free_for_30_days",
+		ID:            FreeFor30Days,
 		Statement:     "FREE FOR 30 DAYS",
 	},
 
-	&stripe.PlanParams{
+	UpTo10Users: &stripe.PlanParams{
 		Amount:        4997,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
 		TrialPeriod:   0,
 		Name:          "Up to 10 users",
 		Currency:      currency.USD,
-		ID:            "p_up_to_10",
+		ID:            UpTo10Users,
 		Statement:     "UP TO 10 USERS",
 	},
 
-	&stripe.PlanParams{
+	UpTo50Users: &stripe.PlanParams{
 		Amount:        3997,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
@@ -79,7 +88,7 @@ var Plans = []*stripe.PlanParams{
 		Statement:     "UP TO 50 USERS",
 	},
 
-	&stripe.PlanParams{
+	Over50Users: &stripe.PlanParams{
 		Amount:        3497,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
@@ -89,6 +98,19 @@ var Plans = []*stripe.PlanParams{
 		ID:            "p_over_50",
 		Statement:     "OVER 50 USERS",
 	},
+}
+
+// GetPlanID returns id of the plan according to the give user count
+func GetPlanID(userCount int) string {
+	if userCount < 10 {
+		return Plans[UpTo10Users].ID
+	}
+
+	if userCount < 50 {
+		return Plans[UpTo50Users].ID
+	}
+
+	return Plans[Over50Users].ID
 }
 
 // CreateDefaultPlans creates predefined default plans. This is meant to be run
