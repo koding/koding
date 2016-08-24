@@ -284,7 +284,7 @@ func (s *Stack) updateMachines(machines stackplan.Machines, jMachines map[string
 
 		if tf.Provider == "vagrant" {
 			if err := updateVagrant(tf, machine.ObjectId, s.Credential.Identifier); err != nil {
-				return err
+				return stackplan.ResError(err, "jMachine")
 			}
 		}
 	}

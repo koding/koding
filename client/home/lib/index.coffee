@@ -41,6 +41,10 @@ module.exports = class HomeAppController extends AppController
 
   openSection_: (section, query, action, identifier) ->
 
+    if section is 'Oauth' and query.provider?
+      @handleOauthRedirect query
+      return
+
     targetPane = null
     @mainView.tabs.panes.forEach (pane) ->
       paneAction = pane.getOption 'action'
@@ -59,12 +63,24 @@ module.exports = class HomeAppController extends AppController
     if identifier
       targetPaneView.handleIdentifier? identifier, action
     else if action
-      targetPaneView.handleAction? action
+      targetPaneView.handleAction? action, query
     else
       @doOnboarding targetPane
 
     unless identifier and action
       return targetPaneView.handleSection?()  unless action
+
+
+  handleOauthRedirect: (options) ->
+
+    { error, provider } = options
+
+    error = null  if error is 'null'
+    kd.singletons.oauthController.authCompleted error, provider
+
+    kd.singletons.router.handleRoute "/#{@options.name}/my-account",
+      shouldPushState : yes
+      replaceState    : yes
 
 
   loadView: (modal) ->

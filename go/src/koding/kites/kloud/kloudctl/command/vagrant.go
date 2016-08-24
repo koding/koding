@@ -26,7 +26,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const latest = "https://s3.amazonaws.com/koding-klient/development/latest-version.txt"
+const latest = "https://koding-klient.s3.amazonaws.com/development/latest-version.txt"
 
 var (
 	defaultHost        = os.Getenv("KLOUDCTL_VAGRANT_HOST")

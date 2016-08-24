@@ -365,6 +365,11 @@ module.exports.create = (KONFIG, environment)->
         resolver 8.8.8.8;
       }
 
+      # redirect /s3/:bucket/:key to :bucket.s3.amazonaws.com/:key
+      location ~^/s3/([^/]*)/(.*)$ {
+        return 302 https://$1.s3.amazonaws.com/$2;
+      }
+
       # Hackathon2014 is the old hackathon page and served via webserver
       # todo(cihangir) remove after hubspot integration
       location = /Hackathon2014 {

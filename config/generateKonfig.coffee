@@ -7,10 +7,20 @@ module.exports = (options, credentials) ->
     forcedRecipientEmail: null
     forcedRecipientUsername: null
 
-  githubapi      =
-    debug       : options.debugGithubAPI
-    timeout     : 5000
-    userAgent   : "Koding-Bridge-#{options.configName}"
+  githubapi =
+    debug: options.debugGithubAPI
+    timeout: 5000
+    userAgent: "Koding-Bridge-#{options.configName}"
+
+  gitlab =
+    host: options.gitlabHost or credentials.gitlab.host
+    port: options.gitlabPort or credentials.gitlab.port or 3000
+    applicationId: options.gitlabAppId or credentials.gitlab.applicationId
+    applicationSecret: options.gitlabAppSecret or credentials.gitlab.applicationSecret
+    team: credentials.gitlab.team
+    redirectUri: "http://#{credentials.gitlab.team}.#{options.host}/-/oauth/gitlab/callback"
+    systemHookToken: options.gitlabToken or credentials.gitlab.systemHookToken
+    hooksEnabled: options.gitlabHost? or credentials.gitlab?.host? or credentials.gitlab?.hooksEnabled
 
   regions =
     kodingme: "#{options.configName}"
@@ -173,6 +183,7 @@ module.exports = (options, credentials) ->
     stripe                 : credentials.stripe
     paypal                 : credentials.paypal
     github                 : credentials.github
+    gitlab                 : gitlab
     janitor                : credentials.janitor
     postgres               : credentials.postgres
     mq                     : credentials.rabbitmq
@@ -238,6 +249,7 @@ module.exports = (options, credentials) ->
     linkedin                      : credentials.linkedin
     datadog                       : credentials.datadog
     github                        : credentials.github
+    gitlab                        : gitlab
     facebook                      : credentials.facebook
     slack                         : credentials.slack
     sneakerS3                     : credentials.sneakerS3

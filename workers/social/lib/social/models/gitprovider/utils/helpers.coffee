@@ -11,7 +11,8 @@ module.exports = helpers =
 
     { content, encoding } = data
 
-    return new Buffer(content, encoding).toString()  if encoding
+    content = new Buffer(content, encoding).toString()  if encoding
+
     return content
 
 
