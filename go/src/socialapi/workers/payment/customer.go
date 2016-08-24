@@ -14,6 +14,7 @@ import (
 
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
+	stripeplan "github.com/stripe/stripe-go/plan"
 	"github.com/stripe/stripe-go/sub"
 )
 
@@ -110,6 +111,24 @@ func GetInfoForGroup(groupName string) (*Usage, error) {
 		return nil, ErrCustomerNotSubscribedToAnyPlans
 	}
 
+	usage, err := fetchParallelizableeUsageItems(group)
+	if err != nil {
+		return nil, err
+	}
+
+	plan, err := getPlan(usage.Subscription, usage.User.Total)
+	if err != nil {
+		return nil, err
+	}
+
+	usage.Plan = plan
+	usage.Due = uint64(usage.User.Total) * plan.Amount
+
+	return usage, nil
+
+}
+
+func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 	var infoErr error
 	var errMu sync.RWMutex
 	var wg sync.WaitGroup
@@ -165,7 +184,6 @@ func GetInfoForGroup(groupName string) (*Usage, error) {
 		return nil, infoErr
 	}
 
-	p := Plans[0]
 	totalCount := activeCount + deletedCount
 
 	usage := &Usage{
@@ -175,13 +193,35 @@ func GetInfoForGroup(groupName string) (*Usage, error) {
 			Deleted: deletedCount,
 		},
 		Plan:            nil,
-		Due:             uint64(totalCount) * p.Amount,
-		NextBillingDate: time.Now(),
+		Due:             0,
+		NextBillingDate: time.Unix(subscription.PeriodEnd, 0),
 		Subscription:    subscription,
 	}
 
 	return usage, nil
+}
 
+func getPlan(subscription *stripe.Sub, totalCount int) (*stripe.Plan, error) {
+	plan := subscription.Plan
+
+	if plan.Amount == 0 { // we are on trial period
+		return plan, nil
+	}
+
+	// in the cases where the active subscription and the have-to-be
+	// subscription is different, fetch the real plan from system. This can only
+	// happen if the team got more members than the previous subscription's user
+	// count in the current month. The subscription will be automatically fixed
+	// on the next billing date. We do not change the subscription on each user
+	// addition or deletion becasue Stripe charges the user whenever a
+	// subscription change happens, so we only change the subscription on the
+	// billing date with cancelling the previous subscription & invoice and
+	// creating a new subscription with new requirement
+	if plan.ID == GetPlanID(totalCount) {
+		return plan, nil
+	}
+
+	return stripeplan.Get(GetPlanID(totalCount), nil)
 }
 
 func createFilter(groupID bson.ObjectId) modelhelper.Selector {
