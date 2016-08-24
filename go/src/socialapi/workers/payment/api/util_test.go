@@ -69,6 +69,27 @@ func withTestPlan(f func(planID string)) {
 	So(err, ShouldBeNil)
 }
 
+func withNonFreeTestPlan(f func(planID string)) {
+	pp := &stripe.PlanParams{
+		Amount:        12345,
+		Interval:      plan.Month,
+		IntervalCount: 1,
+		TrialPeriod:   0,
+		Name:          "If only that much free",
+		Currency:      currency.USD,
+		ID:            fmt.Sprintf("p_%s", bson.NewObjectId().Hex()),
+		Statement:     "NAN-FREE",
+	}
+
+	_, err := plan.New(pp)
+	So(err, ShouldBeNil)
+
+	f(pp.ID)
+
+	_, err = plan.Del(pp.ID)
+	So(err, ShouldBeNil)
+}
+
 func withTestCreditCardToken(f func(token string)) {
 	t, err := token.New(&stripe.TokenParams{
 		Card: &stripe.CardParams{
