@@ -47,20 +47,6 @@ func deleteSubscription(subscriptionID string) (*stripe.Sub, error) {
 	return sub, err
 }
 
-// UpdateSubscriptionForGroup updates the subscription of a group
-func UpdateSubscriptionForGroup(groupName string, params *stripe.SubParams) (*stripe.Sub, error) {
-	group, err := modelhelper.GetGroup(groupName)
-	if err != nil {
-		return nil, err
-	}
-
-	if group.Payment.Subscription.ID == "" {
-		return nil, ErrCustomerNotSubscribedToAnyPlans
-	}
-
-	return sub.Cancel(group.Payment.Subscription.ID, nil)
-}
-
 // GetSubscriptionForGroup gets the subscription of a group
 func GetSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 	group, err := modelhelper.GetGroup(groupName)
