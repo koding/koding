@@ -511,7 +511,7 @@ module.exports =
     passwordSelector          = 'input[name=password]'
     confirmPasswordSelector   = 'input[name=confirmPassword]'
     currentPasswordSelector   = 'input[name=currentPassword]'
-    saveButtonSelector        = '.my-account .HomeAppView--section.password .HomeAppView--form a'
+    saveButtonSelector        = '.my-account .HomeAppView--section.password .button-wrapper button.update-button'
 
     browser
       .waitForElementVisible   passwordSelector, 20000

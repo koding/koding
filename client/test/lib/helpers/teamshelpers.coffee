@@ -627,10 +627,7 @@ module.exports =
         callback invitationUrl
 
 
-  
-  
-   logoutTeam: (browser, callback) ->
-
+  logoutTeam: (browser, callback) ->
     browser.element 'css selector', closeModal, (result) =>
       if result.status is 0
         browser.waitForElementVisible closeModal, 30000
