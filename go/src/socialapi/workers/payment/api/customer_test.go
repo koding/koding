@@ -228,7 +228,6 @@ func TestInfoDeletedUsers(t *testing.T) {
 
 									v2 := &payment.Usage{}
 									So(json.Unmarshal(res, v2), ShouldBeNil)
-
 									So(v2.User.Active, ShouldEqual, v.User.Active)
 									So(v2.User.Deleted, ShouldBeGreaterThan, v.User.Deleted)
 									So(v2.User.Total, ShouldBeGreaterThan, v.User.Total)
@@ -259,6 +258,30 @@ func TestInfoDeletedUsers(t *testing.T) {
 									})
 								})
 							})
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
+func TestInfoPlan(t *testing.T) {
+	Convey("Given a user", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withStubData(endpoint, func(username, groupName, sessionID string) {
+				withTestPlan(func(planID string) {
+					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
+						Convey("We should be able to get info", func() {
+							infoURL := fmt.Sprintf("%s%s", endpoint, EndpointInfo)
+							res, err := rest.DoRequestWithAuth("GET", infoURL, nil, sessionID)
+							tests.ResultedWithNoErrorCheck(res, err)
+
+							v := &payment.Usage{}
+							err = json.Unmarshal(res, v)
+							So(err, ShouldBeNil)
+
+							So(v.Plan.ID, ShouldEqual, planID)
 						})
 					})
 				})
