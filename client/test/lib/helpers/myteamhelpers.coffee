@@ -181,7 +181,7 @@ module.exports =
       .scrollToElement sectionSendInvites
     teamsHelpers.fillInviteInputByIndex browser, 1, invitations[indexOfTargetUser2].email
     browser
-      .waitForElementVisible sendInvitesButton, 500000
+      .waitForElementVisible sendInvitesButton, 30000
       .click sendInvitesButton
     browser
       .waitForElementVisible '.ContentModal', 20000
