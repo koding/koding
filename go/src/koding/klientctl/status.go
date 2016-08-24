@@ -40,6 +40,9 @@ type HealthChecker struct {
 	LocalKlientAddress string
 	KontrolAddress     string
 
+	// eg http://t.koding.com/kite
+	TunnelKiteAddress string
+
 	// Used for verifying a working internet connection
 	InternetCheckAddress string
 }
@@ -51,6 +54,7 @@ func NewDefaultHealthChecker(l kodinglogging.Logger) *HealthChecker {
 		LocalKlientAddress:   config.KlientAddress,
 		KontrolAddress:       config.KontrolURL,
 		InternetCheckAddress: config.S3KlientctlLatest,
+		TunnelKiteAddress:    config.TunnelKiteAddress,
 	}
 }
 
@@ -58,7 +62,7 @@ func NewDefaultHealthChecker(l kodinglogging.Logger) *HealthChecker {
 // it depends on the error message.
 type ErrHealthDialFailed struct{ Message string }
 
-// ErrHealthNoHTTPReponse is used when a klient is not returning an http
+// ErrHealthNoHTTPReponse is used when a kite is not returning an http
 // response. Local or remote, it depends on the error message.
 type ErrHealthNoHTTPReponse struct{ Message string }
 
@@ -76,6 +80,13 @@ type ErrHealthUnexpectedResponse struct{ Message string }
 // (Google.com, for example) was unable to connect. If this is the case, the
 // user is having internet troubles.
 type ErrHealthNoInternet struct{ Message string }
+
+// ErrKodingService is returned when a Koding service which KD depends upon
+// (kontrol, ip check, tunneling, etc) does not appear to be operating correctly.
+type ErrKodingService struct {
+	Message     string
+	ServiceName string
+}
 
 // ErrHealthNoKontrolHTTPResponse is used when the http response from
 // https://koding.com/kontrol/kite failed. Koding itself might be down, or the
@@ -99,6 +110,9 @@ func (e ErrHealthNoInternet) Error() string {
 }
 func (e ErrHealthNoKontrolHTTPResponse) Error() string {
 	return fmt.Sprintf("ErrHealthNoKontrolHTTPResponse: %s", e.Message)
+}
+func (e ErrKodingService) Error() string {
+	return fmt.Sprintf("ErrKodingService: %s: %s", e.ServiceName, e.Message)
 }
 
 // StatusCommand informs the user about the status of the Klient service. It
@@ -209,51 +223,13 @@ func (c *HealthChecker) CheckRemote() error {
 
 	// Attempt to connect to kontrol's http page, simply to get an idea
 	// if Koding is running or not.
-	res, err = c.HTTPClient.Get(c.KontrolAddress)
-	if err != nil {
-		return ErrHealthNoKontrolHTTPResponse{Message: fmt.Sprintf(
-			"http request to Kontrol failed: %s", err,
-		)}
-	}
-	defer res.Body.Close()
-
-	// Kontrol should return a 200 response.
-	switch res.StatusCode {
-	case http.StatusOK, http.StatusNoContent:
-	default:
-		return ErrHealthNoKontrolHTTPResponse{Message: fmt.Sprintf(
-			"http request to kontrol returned bad status code: %d",
-			res.StatusCode,
-		)}
+	if err := c.checkKiteHttp(c.KontrolAddress); err != nil {
+		return ErrKodingService{ServiceName: "kontrol", Message: err.Error()}
 	}
 
-	// TODO: Check the local ip address for an open port. We
-	// need to implement a service on Koding to properly ip check though,
-	// since we've been having problems with echoip.net failing.
-
-	if res.StatusCode == http.StatusNoContent {
-		return nil
-	}
-
-	// It should be safe to ignore any errors dumping the response data,
-	// since we just want to check the data itself. Handling the error
-	// might aid with debugging any problems though.
-	//
-	// TODO: Log the response if it's not as expected, to help
-	// debug Cloudflare/nginx issues.
-	p, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
-			"error reading response from %s: %s",
-			c.KontrolAddress, err,
-		)}
-	}
-
-	if bytes.Compare(kiteHTTPResponse, bytes.TrimSpace(p)) != 0 {
-		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
-			"the %q route is returning an unexpected response: %s",
-			c.KontrolAddress, p,
-		)}
+	// Check if tunnel http is accessible.
+	if err := c.checkKiteHttp(c.TunnelKiteAddress); err != nil {
+		return ErrKodingService{ServiceName: "tunnel", Message: err.Error()}
 	}
 
 	return nil
@@ -328,7 +304,7 @@ func (c *HealthChecker) errorToMessage(err error) (res string) {
 		return ""
 	}
 
-	switch err.(type) {
+	switch errType := err.(type) {
 	// Remote errors
 	case ErrHealthNoInternet:
 		res = fmt.Sprintf(`Error: You do not appear to have a properly stable internet connection.`)
@@ -365,6 +341,15 @@ Please run the following command:
 `,
 			config.KlientName)
 
+	case ErrKodingService:
+		res = fmt.Sprintf(`Error: kd is unable to connect to a required Koding service: %s
+
+Please ensure that your local internet is stable and that Koding.com is
+operating functionally for you.
+`,
+			errType.ServiceName,
+		)
+
 	default:
 		res = fmt.Sprintf("Unknown healthcheck error: %s", err.Error())
 	}
@@ -398,6 +383,48 @@ func (c *HealthChecker) CheckAllFailureOrMessagef(f string, i ...interface{}) st
 	}
 
 	return fmt.Sprintf(f, i...)
+}
+
+// checkKiteHttp returns an error if a kite's http is not running or returning
+// the expected response.
+func (c *HealthChecker) checkKiteHttp(addr string) error {
+	res, err := defaultClient.Get(addr)
+	if err != nil {
+		return fmt.Errorf("kite http request failed: %s", err)
+	}
+
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		// ok - check response
+	case http.StatusNoContent:
+		// no content status is not an error for a kite, return nil signaling that this
+		// kite is okay.
+		return nil
+	default:
+		return fmt.Errorf("kite at %q returned unexpected code: %d", addr, res.StatusCode)
+	}
+
+	// It should be safe to ignore any errors dumping the response data,
+	// since we just want to check the data itself. Handling the error
+	// might aid with debugging any problems though.
+	p, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read kite response body: %s", err)
+	}
+
+	if bytes.Compare(kiteHTTPResponse, bytes.TrimSpace(p)) != 0 {
+		// get a summary of the response, in case it's very large (as it might be
+		// if some other webservice is running in the kite's place)
+		summary := p
+		if len(summary) > 50 {
+			summary = summary[:50]
+		}
+		return fmt.Errorf("unexpected kite response: %s", summary)
+	}
+
+	return nil
 }
 
 // IsKlientRunning does a quick check against klient's http server

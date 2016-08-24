@@ -26,6 +26,7 @@ func TestHealthCheckRemote(t *testing.T) {
 			},
 			KontrolAddress:       ts.URL,
 			InternetCheckAddress: ts.URL,
+			TunnelKiteAddress:    ts.URL,
 		}
 
 		So(c.CheckRemote(), ShouldBeNil)
@@ -67,7 +68,7 @@ func TestHealthCheckRemote(t *testing.T) {
 
 		err := c.CheckRemote()
 		So(err, ShouldNotBeNil)
-		So(err, ShouldHaveSameTypeAs, ErrHealthNoKontrolHTTPResponse{})
+		So(err, ShouldHaveSameTypeAs, ErrKodingService{})
 	})
 
 	Convey("Should return unexpected response if the kontrol response is.. unexpected", t, func() {
@@ -90,7 +91,7 @@ func TestHealthCheckRemote(t *testing.T) {
 
 		err := c.CheckRemote()
 		So(err, ShouldNotBeNil)
-		So(err, ShouldHaveSameTypeAs, ErrHealthUnexpectedResponse{})
+		So(err, ShouldHaveSameTypeAs, ErrKodingService{})
 	})
 
 	Convey("Should timeout after X seconds", t, func() {

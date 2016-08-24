@@ -28,10 +28,15 @@ if [[ "$CHANNEL" == "development" ]]; then
 	KONTROL_URL="https://sandbox.koding.com/kontrol/kite"
 fi
 
+TUNNEL_URL="http://t.koding.com/kite"
+if [[ "$CHANNEL" == "development" ]]; then
+	TUNNEL_URL="http://dev-t.koding.com/kite"
+fi
+
 # NOTE(rjeczalik): kd expects the version to be a single digit, while klient
 # expect semver - making a note until this is made consistent.
 kd_build() {
-	GOOS="${1:-}" GOARCH=amd64 go build -v -ldflags "-X koding/klientctl/config.Version $NEWBUILDNO -X koding/klientctl/config.SegmentKey \"$KD_SEGMENTIO_KEY\" -X koding/klientctl/config.Environment $CHANNEL -X koding/klientctl/config.KontrolURL $KONTROL_URL" -o kd koding/klientctl
+	GOOS="${1:-}" GOARCH=amd64 go build -v -ldflags "-X koding/klientctl/config.Version $NEWBUILDNO -X koding/klientctl/config.SegmentKey \"$KD_SEGMENTIO_KEY\" -X koding/klientctl/config.Environment $CHANNEL -X koding/klientctl/config.TunnelKiteAddress $TUNNEL_URL -X koding/klientctl/config.KontrolURL $KONTROL_URL" -o kd koding/klientctl
 }
 
 # build klient binary for linux
