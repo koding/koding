@@ -9,6 +9,7 @@ import (
 
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
+	stripeinvoice "github.com/stripe/stripe-go/invoice"
 )
 
 var mailSender = emailsender.Send
@@ -137,7 +138,54 @@ func invoiceCreatedHandler(raw []byte) error {
 		return err
 	}
 
-	return nil
+	// we cant do anything to the closed invoices.
+	if invoice.Closed {
+		return nil
+	}
+
+	if invoice.Paid {
+		return nil
+	}
+
+	cus, err := customer.Get(invoice.Customer.ID, nil)
+	if err != nil {
+		return err
+	}
+
+	group, err := modelhelper.GetGroup(cus.Meta["groupName"])
+	if err != nil {
+		return err
+	}
+
+	info, err := GetInfoForGroup(cus.Meta["groupName"])
+	if err != nil {
+		return err
+	}
+
+	// the amount that stripe will withdraw and what we want is same, so we are done.
+	if invoice.Total == int64(info.Due) {
+		// clean up waiting deleted users
+		_, err = modelhelper.CalculateAndApplyDeletedMembers(group.Id, invoice.Sub)
+		return err
+	}
+
+	// first close the invoice
+	_, err = stripeinvoice.Update(invoice.ID, &stripe.InvoiceParams{Closed: true})
+	if err != nil {
+		return err
+	}
+
+	planID := GetPlanID(info.User.Total)
+
+	_, err = DeleteSubscriptionForGroup(cus.Meta["groupName"])
+
+	params := &stripe.SubParams{
+		Plan:     planID,
+		Quantity: uint64(info.User.Total),
+	}
+	_, err = CreateSubscriptionForGroup(cus.Meta["groupName"], params)
+
+	return err
 }
 
 func invoicePaymentFailedHandler(raw []byte) error {
@@ -176,6 +224,10 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 	group, err := modelhelper.GetGroup(cus.Meta["groupName"])
 	if err != nil {
 		return err
+	}
+
+	if group.Payment.Subscription.Status == string(status) {
+		return nil
 	}
 
 	if err := modelhelper.UpdateGroupPartial(
