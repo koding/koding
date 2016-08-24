@@ -4,7 +4,7 @@ EnvironmentFlux = require 'app/flux/environment'
 
 remote = require('app/remote').getInstance()
 showError = require 'app/util/showError'
-OutputView = require 'stacks/views/stacks/outputview'
+OutputView = require 'stack-editor/editor/outputview'
 
 parseQuery = (query) ->
 
