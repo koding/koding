@@ -34,15 +34,16 @@ module.exports = (req, res) ->
       groups = groups.filter (group) -> group.slug isnt 'koding'
 
       { profile : { nickname } } = account
+
       Tracker.identify nickname, { email }, (err) ->
         return next err  if err
         Tracker.track nickname, {
           to      : email
           subject : Tracker.types.REQUESTED_TEAM_LIST
         }, {
-          email
-          account
-          teams : groups
+          teams         : groups.map (group) -> helper.createTeamItem group
+          findTeamUrl   : "#{protocol}//#{hostname}/Teams/FindTeam"
+          createTeamUrl : "#{protocol}//#{hostname}/Teams/Create"
         }, next
   ]
 
@@ -50,3 +51,23 @@ module.exports = (req, res) ->
     if err and err isnt UNKNOWN_USER_ERROR
       return res.status(403).send err.message ? err
     res.status(200).end()
+
+
+  helper =
+
+    createTeamItem: (group) ->
+
+      { slug, title, customize, invitationCode } = group
+
+      domain  = "#{slug}.#{hostname}"
+      rootUrl = "#{protocol}//#{domain}"
+      if invitationCode
+        joinUrl = "#{rootUrl}/Invitation/#{encodeURIComponent invitationCode}"
+
+      return {
+        title
+        domain
+        rootUrl
+        joinUrl
+        avatarUrl : customize?.logo
+      }
