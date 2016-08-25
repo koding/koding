@@ -335,6 +335,16 @@ module.exports = utils = {
         callbacks.error.call this, xhr.responseText
 
 
+  findTeam: (email, callbacks = {}) ->
+
+    $.ajax
+      url         : '/findteam'
+      data        : { email, _csrf : Cookies.get '_csrf' }
+      type        : 'POST'
+      error       : callbacks.error
+      success     : callbacks.success
+
+
   getGravatarUrl : (size = 80, hash) ->
 
     fallback = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"

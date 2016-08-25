@@ -98,6 +98,7 @@ app.post '/:name?/Register'                      , csrf,   require './handlers/r
 app.post '/:name?/Login'                         , csrf,   require './handlers/login'
 app.post '/Impersonate/:nickname'                , csrf,   require './handlers/impersonate'
 app.post '/:name?/Recover'                       , csrf,   require './handlers/recover'
+app.post '/findteam'                             , csrf,   require './handlers/findteam'
 app.post '/:name?/Reset'                         , csrf,   require './handlers/reset'
 app.post '/:name?/Optout'                        , require './handlers/optout'
 app.all  '/:name?/Logout'                        , csrf,   require './handlers/logout'
