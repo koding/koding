@@ -20,12 +20,10 @@ import (
 // over, she’ll never be billed at all.
 
 const (
-	FreeForever   = "p_free_forever"
-	FreeFor7Days  = "p_free_for_7_days"
-	FreeFor30Days = "p_free_for_30_days"
-	UpTo10Users   = "p_up_to_10"
-	UpTo50Users   = "p_up_to_50"
-	Over50Users   = "p_over_50"
+	FreeForever = "p_free_forever"
+	UpTo10Users = "p_up_to_10"
+	UpTo50Users = "p_up_to_50"
+	Over50Users = "p_over_50"
 )
 
 // Plans holds koding provided plans on stripe
@@ -42,35 +40,11 @@ var Plans = map[string]*stripe.PlanParams{
 		Statement:     "FREE",
 	},
 
-	// 7 days free koding
-	FreeFor7Days: &stripe.PlanParams{
-		Amount:        0,
-		Interval:      stripeplan.Week,
-		IntervalCount: 1,
-		TrialPeriod:   7,
-		Name:          "Free For 7 days",
-		Currency:      currency.USD,
-		ID:            FreeFor7Days,
-		Statement:     "FREE FOR 7 DAYS",
-	},
-
-	// 30 days free koding
-	FreeFor30Days: &stripe.PlanParams{
-		Amount:        0,
-		Interval:      stripeplan.Month,
-		IntervalCount: 1,
-		TrialPeriod:   30,
-		Name:          "Free For 30 days",
-		Currency:      currency.USD,
-		ID:            FreeFor30Days,
-		Statement:     "FREE FOR 30 DAYS",
-	},
-
 	UpTo10Users: &stripe.PlanParams{
 		Amount:        4997,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
-		TrialPeriod:   0,
+		TrialPeriod:   7,
 		Name:          "Up to 10 users",
 		Currency:      currency.USD,
 		ID:            UpTo10Users,
@@ -81,7 +55,7 @@ var Plans = map[string]*stripe.PlanParams{
 		Amount:        3997,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
-		TrialPeriod:   0,
+		TrialPeriod:   7,
 		Name:          "Up to 50 users",
 		Currency:      currency.USD,
 		ID:            "p_up_to_50",
@@ -92,7 +66,7 @@ var Plans = map[string]*stripe.PlanParams{
 		Amount:        3497,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
-		TrialPeriod:   0,
+		TrialPeriod:   7,
 		Name:          "Over 50 users",
 		Currency:      currency.USD,
 		ID:            "p_over_50",
