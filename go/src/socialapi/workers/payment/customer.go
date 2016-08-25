@@ -174,7 +174,7 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 	var deletedCount int
 	wg.Add(1)
 	go withCheck(func() (err error) {
-		deletedCount, err = calculateDeletedUserCount(group.Id)
+		deletedCount, err = modelhelper.GetDeletedMemberCountByGroupId(group.Id)
 		return err
 	})
 
@@ -265,13 +265,13 @@ func createFilter(groupID bson.ObjectId) modelhelper.Selector {
 // ])
 //
 func calculateActiveUserCount(groupID bson.ObjectId) (int, error) {
-
 	accounts := set.New()
+
 	iterOptions := helpers.NewIterOptions()
 	iterOptions.F = func(rel interface{}) error {
 		result, ok := rel.(*models.Relationship)
 		if !ok {
-			return errors.New("not a relationship data")
+			return errors.New("not a relationship")
 		}
 		accounts.Add(result.TargetId)
 		return nil
@@ -289,10 +289,6 @@ func calculateActiveUserCount(groupID bson.ObjectId) (int, error) {
 	}
 
 	return accounts.Size(), nil
-}
-
-func calculateDeletedUserCount(groupID bson.ObjectId) (int, error) {
-	return modelhelper.GetDeletedMemberCountByGroupId(groupID)
 }
 
 // CreateCustomerForGroup registers a customer for a group
@@ -326,6 +322,7 @@ func CreateCustomerForGroup(username, groupName string, req *stripe.CustomerPara
 	return cus, nil
 }
 
+// deleteCustomer tries to make customer deletion idempotent
 func deleteCustomer(customerID string) error {
 	cus, err := customer.Del(customerID)
 	if cus != nil && cus.Deleted { // if customer is already deleted previously

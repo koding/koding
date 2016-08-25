@@ -17,7 +17,6 @@ import (
 
 func withStubData(f func(username string, groupName string, sessionID string)) {
 	acc, _, groupName := models.CreateRandomGroupDataWithChecks()
-
 	group, err := modelhelper.GetGroup(groupName)
 	tests.ResultedWithNoErrorCheck(group, err)
 

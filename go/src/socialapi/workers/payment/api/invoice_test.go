@@ -41,7 +41,6 @@ func TestInvoiceList(t *testing.T) {
 
 						Convey("We should be able to list invoices", func() {
 							listInvoicesURL := fmt.Sprintf("%s%s", endpoint, EndpointInvoiceList)
-
 							res, err = rest.DoRequestWithAuth("GET", listInvoicesURL, nil, sessionID)
 							tests.ResultedWithNoErrorCheck(res, err)
 
@@ -51,7 +50,6 @@ func TestInvoiceList(t *testing.T) {
 							So(len(invoices), ShouldBeGreaterThan, 0)
 							Convey("We should be able to list invoices with startingAfter query param", func() {
 								listInvoicesURLWithQuery := fmt.Sprintf("%s%s?startingAfter=%s", endpoint, EndpointInvoiceList, invoices[0].ID)
-
 								res, err = rest.DoRequestWithAuth("GET", listInvoicesURLWithQuery, nil, sessionID)
 								tests.ResultedWithNoErrorCheck(res, err)
 

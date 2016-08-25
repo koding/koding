@@ -6,6 +6,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/rest"
+	"socialapi/workers/common/tests"
 
 	. "github.com/smartystreets/goconvey/convey"
 	stripe "github.com/stripe/stripe-go"
@@ -23,29 +24,24 @@ func withStubData(endpoint string, f func(username string, groupName string, ses
 	acc, _, groupName := models.CreateRandomGroupDataWithChecks()
 
 	group, err := modelhelper.GetGroup(groupName)
-	So(err, ShouldBeNil)
-	So(group, ShouldNotBeNil)
+	tests.ResultedWithNoErrorCheck(group, err)
 
 	err = modelhelper.MakeAdmin(bson.ObjectIdHex(acc.OldId), group.Id)
 	So(err, ShouldBeNil)
 
 	ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
-	So(err, ShouldBeNil)
-	So(ses, ShouldNotBeNil)
+	tests.ResultedWithNoErrorCheck(ses, err)
 
 	req, err := json.Marshal(&stripe.CustomerParams{})
-	So(err, ShouldBeNil)
-	So(req, ShouldNotBeNil)
+	tests.ResultedWithNoErrorCheck(req, err)
 
 	res, err := rest.DoRequestWithAuth("POST", createURL, req, ses.ClientId)
-	So(err, ShouldBeNil)
-	So(res, ShouldNotBeNil)
+	tests.ResultedWithNoErrorCheck(res, err)
 
 	f(acc.Nick, groupName, ses.ClientId)
 
 	res, err = rest.DoRequestWithAuth("DELETE", deleteURL, nil, ses.ClientId)
-	So(err, ShouldBeNil)
-	So(res, ShouldNotBeNil)
+	tests.ResultedWithNoErrorCheck(res, err)
 }
 
 func withTestPlan(f func(planID string)) {
@@ -99,8 +95,7 @@ func withTestCreditCardToken(f func(token string)) {
 			CVC:    "123",
 		},
 	})
-	So(err, ShouldBeNil)
-	So(t, ShouldNotBeNil)
+	tests.ResultedWithNoErrorCheck(t, err)
 	f(t.ID)
 }
 
@@ -126,20 +121,17 @@ func withSubscription(endpoint, groupName, sessionID, planID string, f func(subs
 	deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionDelete)
 
 	group, err := modelhelper.GetGroup(groupName)
-	So(err, ShouldBeNil)
-	So(group, ShouldNotBeNil)
+	tests.ResultedWithNoErrorCheck(group, err)
 
 	Convey("We should be able to create a subscription", func() {
 		req, err := json.Marshal(&stripe.SubParams{
 			Customer: group.Payment.Customer.ID,
 			Plan:     planID,
 		})
-		So(err, ShouldBeNil)
-		So(req, ShouldNotBeNil)
+		tests.ResultedWithNoErrorCheck(req, err)
 
 		res, err := rest.DoRequestWithAuth("POST", createURL, req, sessionID)
-		So(err, ShouldBeNil)
-		So(res, ShouldNotBeNil)
+		tests.ResultedWithNoErrorCheck(res, err)
 
 		v := &stripe.Sub{}
 		err = json.Unmarshal(res, v)
@@ -149,8 +141,7 @@ func withSubscription(endpoint, groupName, sessionID, planID string, f func(subs
 
 		Convey("We should be able to cancel the subscription", func() {
 			res, err = rest.DoRequestWithAuth("DELETE", deleteURL, req, sessionID)
-			So(err, ShouldBeNil)
-			So(res, ShouldNotBeNil)
+			tests.ResultedWithNoErrorCheck(res, err)
 
 			v = &stripe.Sub{}
 			err = json.Unmarshal(res, v)
