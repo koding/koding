@@ -3,6 +3,7 @@ JView = require '../../jview'
 showError = require 'app/util/showError'
 whoami = require 'app/util/whoami'
 AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
+ChangeTeamView = require 'app/changeteam'
 JCustomHTMLView  = require 'app/jcustomhtmlview'
 globals = require 'globals'
 
@@ -87,10 +88,11 @@ module.exports = class TeamName extends kd.CustomHTMLView
       x        : 36
       y        : 40
     ,
-      'customView' : avatar_wrapper
-      'Dashboard'  : { callback }
-      'Support'    : { callback }
-      'Logout'     : { callback }
+      'customView'  : avatar_wrapper
+      'Dashboard'   : { callback }
+      'Support'     : { callback }
+      'Change Team' : { callback }
+      'Logout'      : { callback }
 
     ACCOUNT_MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> ACCOUNT_MENU = null
 
@@ -122,5 +124,9 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
     mainController.tellChatlioWidget 'show', { expanded: yes }, (err, result) ->
       showError err  if err
+
+
+  handleChangeTeam: -> new ChangeTeamView()
+
 
   pistachio: -> '{{ #(title)}}'
