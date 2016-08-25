@@ -1,0 +1,53 @@
+@import '~lab/Colors/Colors.stylus'
+
+$padding = 25px
+$border-radius = 4px
+
+.Box
+  width                     100%
+  border-radius             $border-radius
+  font-family               SoleilFamily
+  overflow                  hidden
+  borderBox()
+
+.content
+  padding                   $padding
+
+.default
+  composes                  Box
+  background-color          white
+
+.transparent
+  composes                  Box
+  background-color          transparent
+  border-color              rgba(0, 0, 0, 0.1)
+
+.danger
+  composes                  Box
+  background-color          $primary-1-faded-light
+  border-color              $primary-1-faded
+
+.success
+  composes                  Box
+  background-color          $primary-2-faded-light
+  border-color              $primary-2-faded
+
+.info
+  composes                  Box
+  background-color          $primary-4-faded-light
+  border-color              $primary-4-faded
+
+.secondary
+  composes                  Box
+  background-color          $additional-3-faded-light
+  border-color              $additional-3-faded
+
+.border
+  border-style              solid
+.border-1
+  border-width              1px
+.border-2
+  border-width              2px
+.border-3
+  border-width              3px
+
