@@ -2,6 +2,7 @@ package payment
 
 import (
 	"fmt"
+	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/models"
@@ -9,10 +10,11 @@ import (
 	"socialapi/workers/email/emailsender"
 	"testing"
 
-	"gopkg.in/mgo.v2/bson"
-
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/currency"
+	"github.com/stripe/stripe-go/plan"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func withStubData(f func(username string, groupName string, sessionID string)) {
@@ -133,7 +135,7 @@ func TestChargeFailedHandler(t *testing.T) {
 	})
 }
 
-func TestInvoiceCreatedHandler(t *testing.T) {
+func TestInvoiceCreatedHandlerStayInTheSamePlan(t *testing.T) {
 	testData := `
 {
     "id": "in_00000000000000",
@@ -151,95 +153,399 @@ func TestInvoiceCreatedHandler(t *testing.T) {
     "discount": null,
     "ending_balance": 0,
     "forgiven": false,
-    "lines": {
-        "data": [
-            {
-                "id": "sub_918UwtRVQpmBpX",
-                "object": "line_item",
-                "amount": 0,
-                "currency": "usd",
-                "description": null,
-                "discountable": true,
-                "livemode": true,
-                "metadata": {},
-                "period": {
-                    "start": 1474027122,
-                    "end": 1476619122
-                },
-                "plan": {
-                    "id": "p_57b2da7d9bc22b6280dba16c",
-                    "object": "plan",
-                    "amount": 0,
-                    "created": 1471339133,
-                    "currency": "usd",
-                    "interval": "month",
-                    "interval_count": 1,
-                    "livemode": false,
-                    "metadata": {},
-                    "name": "Free Forever",
-                    "statement_descriptor": "FREE",
-                    "trial_period_days": null
-                },
-                "proration": false,
-                "quantity": 1,
-                "subscription": null,
-                "type": "subscription"
-            }
-        ],
-        "total_count": 1,
-        "object": "list",
-        "url": "/v1/invoices/in_18j6DOAub2qoNeqqzCbMjcIC/lines"
-    },
     "livemode": false,
     "metadata": {},
     "next_payment_attempt": null,
-    "paid": true,
+    "paid": false,
     "period_end": 1471348722,
     "period_start": 1471348722,
     "receipt_number": null,
     "starting_balance": 0,
     "statement_descriptor": null,
-    "subscription": "sub_00000000000000",
+    "subscription": "%s",
     "subtotal": 0,
     "tax": null,
     "tax_percent": null,
-    "total": 0,
+    "total": %d,
     "webhooks_delivered_at": 1471348722
 }`
 
 	tests.WithConfiguration(t, func(c *config.Config) {
 		stripe.Key = c.Stripe.SecretToken
-
 		Convey("Given stub data", t, func() {
 			withStubData(func(username, groupName, sessionID string) {
-				Convey("Then Group should have customer id", func() {
-					group, err := modelhelper.GetGroup(groupName)
-					tests.ResultedWithNoErrorCheck(group, err)
+				group, err := modelhelper.GetGroup(groupName)
+				tests.ResultedWithNoErrorCheck(group, err)
 
-					So(group.Payment.Customer.ID, ShouldNotBeBlank)
+				withTestCreditCardToken(func(token string) {
+					// attach payment source
+					cp := &stripe.CustomerParams{
+						Source: &stripe.SourceParams{
+							Token: token,
+						},
+					}
 
-					Convey("When charge.succeeded is triggered", func() {
-						raw := []byte(fmt.Sprintf(testData, group.Payment.Customer.ID))
+					c, err := UpdateCustomerForGroup(username, groupName, cp)
+					tests.ResultedWithNoErrorCheck(c, err)
 
-						var capturedMail *emailsender.Mail
+					// generate 9 members with a total of 1 deleted user (also there is an admin)
+					generateAndAddMembersToGroup(group.Id, 7)
+					generateDeletedMemberAndAddToGroup(group.Id, 1)
 
-						realMailSender := mailSender
-						mailSender = func(m *emailsender.Mail) error {
-							capturedMail = m
-							return nil
-						}
-						chargeFailedHandler(raw)
-						mailSender = realMailSender
-						Convey("properties of event should be set accordingly", func() {
-							So(capturedMail, ShouldNotBeNil)
-							So(capturedMail.Subject, ShouldEqual, "charge failed")
-							So(capturedMail.Properties.Options["amount"], ShouldEqual, "$0")
+					// create test plan
+					id := fmt.Sprintf("p_%s", bson.NewObjectId().Hex())
+					pp := &stripe.PlanParams{
+						Amount:        Plans[UpTo10Users].Amount,
+						Interval:      plan.Month,
+						IntervalCount: 1,
+						TrialPeriod:   0,
+						Name:          id,
+						Currency:      currency.USD,
+						ID:            id,
+					}
+
+					p, err := plan.New(pp)
+					So(err, ShouldBeNil)
+
+					// subscribe to test plan
+					params := &stripe.SubParams{
+						Customer: group.Payment.Customer.ID,
+						Plan:     p.ID,
+						Quantity: 9,
+					}
+
+					sub, err := CreateSubscriptionForGroup(group.Slug, params)
+					tests.ResultedWithNoErrorCheck(sub, err)
+
+					// check if group has correct sub id
+					groupAfterSub, err := modelhelper.GetGroup(groupName)
+					tests.ResultedWithNoErrorCheck(groupAfterSub, err)
+					So(sub.ID, ShouldEqual, groupAfterSub.Payment.Subscription.ID)
+
+					Convey("When invoice.created is triggered with right amount of total fee", func() {
+						raw := []byte(fmt.Sprintf(
+							testData,
+							group.Payment.Customer.ID,
+							sub.ID,
+							Plans[UpTo10Users].Amount*9,
+						))
+
+						err := invoiceCreatedHandler(raw)
+						So(err, ShouldBeNil)
+
+						Convey("subscription id should stay same", func() {
+							groupAfterHook, err := modelhelper.GetGroup(groupName)
+							tests.ResultedWithNoErrorCheck(groupAfterHook, err)
+
+							// group should have correct sub id
+							So(sub.ID, ShouldEqual, groupAfterHook.Payment.Subscription.ID)
+
+							count, err := modelhelper.GetDeletedMemberCountByGroupId(group.Id)
+							So(err, ShouldBeNil)
+							So(count, ShouldEqual, 0)
+
+							Convey("we should clean up successfully", func() {
+								sub, err := DeleteSubscriptionForGroup(group.Slug)
+								tests.ResultedWithNoErrorCheck(sub, err)
+
+								_, err = plan.Del(pp.ID)
+								So(err, ShouldBeNil)
+							})
 						})
 					})
 				})
 			})
 		})
 	})
+}
+
+func TestInvoiceCreatedHandlerUpgradePlan(t *testing.T) {
+	testData := `
+{
+    "id": "in_00000000000000",
+    "object": "invoice",
+    "amount_due": 0,
+    "application_fee": null,
+    "attempt_count": 0,
+    "attempted": false,
+    "charge": null,
+    "closed": false,
+    "currency": "usd",
+    "customer": "%s",
+    "date": 1471348722,
+    "description": null,
+    "discount": null,
+    "ending_balance": 0,
+    "forgiven": false,
+    "livemode": false,
+    "metadata": {},
+    "next_payment_attempt": null,
+    "paid": false,
+    "period_end": 1471348722,
+    "period_start": 1471348722,
+    "receipt_number": null,
+    "starting_balance": 0,
+    "statement_descriptor": null,
+    "subscription": "%s",
+    "subtotal": 0,
+    "tax": null,
+    "tax_percent": null,
+    "total": %d,
+    "webhooks_delivered_at": 1471348722
+}`
+
+	tests.WithConfiguration(t, func(c *config.Config) {
+		stripe.Key = c.Stripe.SecretToken
+		Convey("Given stub data", t, func() {
+			withStubData(func(username, groupName, sessionID string) {
+				group, err := modelhelper.GetGroup(groupName)
+				tests.ResultedWithNoErrorCheck(group, err)
+
+				withTestCreditCardToken(func(token string) {
+					// attach payment source
+					cp := &stripe.CustomerParams{
+						Source: &stripe.SourceParams{
+							Token: token,
+						},
+					}
+
+					c, err := UpdateCustomerForGroup(username, groupName, cp)
+					tests.ResultedWithNoErrorCheck(c, err)
+
+					// generate 9 members with a total of 1 deleted user (also there is an admin)
+					generateAndAddMembersToGroup(group.Id, 7)
+					generateDeletedMemberAndAddToGroup(group.Id, 1)
+
+					// create test plan
+					id := fmt.Sprintf("p_%s", bson.NewObjectId().Hex())
+					pp := &stripe.PlanParams{
+						Amount:        Plans[UpTo10Users].Amount,
+						Interval:      plan.Month,
+						IntervalCount: 1,
+						TrialPeriod:   0,
+						Name:          id,
+						Currency:      currency.USD,
+						ID:            id,
+					}
+
+					p, err := plan.New(pp)
+					So(err, ShouldBeNil)
+
+					// subscribe to test plan
+					params := &stripe.SubParams{
+						Customer: group.Payment.Customer.ID,
+						Plan:     p.ID,
+						Quantity: 9,
+					}
+
+					sub, err := CreateSubscriptionForGroup(group.Slug, params)
+					tests.ResultedWithNoErrorCheck(sub, err)
+
+					// check if group has correct sub id
+					groupAfterSub, err := modelhelper.GetGroup(groupName)
+					tests.ResultedWithNoErrorCheck(groupAfterSub, err)
+					So(sub.ID, ShouldEqual, groupAfterSub.Payment.Subscription.ID)
+
+					// add 1 more user to force plan upgrade
+					generateAndAddMembersToGroup(group.Id, 1)
+
+					Convey("When invoice.created is triggered with previous plan's amount", func() {
+						raw := []byte(fmt.Sprintf(
+							testData,
+							group.Payment.Customer.ID,
+							sub.ID,
+							Plans[UpTo10Users].Amount*9,
+						))
+
+						So(invoiceCreatedHandler(raw), ShouldBeNil)
+
+						Convey("subscription id should not stay same", func() {
+							groupAfterHook, err := modelhelper.GetGroup(groupName)
+							tests.ResultedWithNoErrorCheck(groupAfterHook, err)
+
+							// group should have correct sub id
+							So(sub.ID, ShouldNotEqual, groupAfterHook.Payment.Subscription.ID)
+
+							sub, err := GetSubscriptionForGroup(groupName)
+							tests.ResultedWithNoErrorCheck(sub, err)
+
+							So(sub.Plan.ID, ShouldEqual, UpTo50Users)
+
+							count, err := modelhelper.GetDeletedMemberCountByGroupId(group.Id)
+							So(err, ShouldBeNil)
+							So(count, ShouldEqual, 0)
+
+							Convey("we should clean up successfully", func() {
+								sub, err := DeleteSubscriptionForGroup(group.Slug)
+								tests.ResultedWithNoErrorCheck(sub, err)
+
+								_, err = plan.Del(pp.ID)
+								So(err, ShouldBeNil)
+							})
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
+func TestInvoiceCreatedHandlerDowngradePlan(t *testing.T) {
+	testData := `
+{
+    "id": "in_00000000000000",
+    "object": "invoice",
+    "amount_due": 0,
+    "application_fee": null,
+    "attempt_count": 0,
+    "attempted": false,
+    "charge": null,
+    "closed": false,
+    "currency": "usd",
+    "customer": "%s",
+    "date": 1471348722,
+    "description": null,
+    "discount": null,
+    "ending_balance": 0,
+    "forgiven": false,
+    "livemode": false,
+    "metadata": {},
+    "next_payment_attempt": null,
+    "paid": false,
+    "period_end": 1471348722,
+    "period_start": 1471348722,
+    "receipt_number": null,
+    "starting_balance": 0,
+    "statement_descriptor": null,
+    "subscription": "%s",
+    "subtotal": 0,
+    "tax": null,
+    "tax_percent": null,
+    "total": %d,
+    "webhooks_delivered_at": 1471348722
+}`
+
+	tests.WithConfiguration(t, func(c *config.Config) {
+		stripe.Key = c.Stripe.SecretToken
+		Convey("Given stub data", t, func() {
+			withStubData(func(username, groupName, sessionID string) {
+				group, err := modelhelper.GetGroup(groupName)
+				tests.ResultedWithNoErrorCheck(group, err)
+
+				withTestCreditCardToken(func(token string) {
+					// attach payment source
+					cp := &stripe.CustomerParams{
+						Source: &stripe.SourceParams{
+							Token: token,
+						},
+					}
+
+					c, err := UpdateCustomerForGroup(username, groupName, cp)
+					tests.ResultedWithNoErrorCheck(c, err)
+
+					// generate 9 members with a total of 1 deleted user (also there is an admin)
+					generateAndAddMembersToGroup(group.Id, 7)
+					generateDeletedMemberAndAddToGroup(group.Id, 1)
+
+					// create test plan
+					id := fmt.Sprintf("p_%s", bson.NewObjectId().Hex())
+					pp := &stripe.PlanParams{
+						Amount:        Plans[UpTo50Users].Amount,
+						Interval:      plan.Month,
+						IntervalCount: 1,
+						TrialPeriod:   0,
+						Name:          id,
+						Currency:      currency.USD,
+						ID:            id,
+					}
+
+					p, err := plan.New(pp)
+					So(err, ShouldBeNil)
+
+					// subscribe to test plan with more than actual number, simulating having 11 members previous month
+					params := &stripe.SubParams{
+						Customer: group.Payment.Customer.ID,
+						Plan:     p.ID,
+						Quantity: 11,
+					}
+
+					sub, err := CreateSubscriptionForGroup(group.Slug, params)
+					tests.ResultedWithNoErrorCheck(sub, err)
+
+					// check if group has correct sub id
+					groupAfterSub, err := modelhelper.GetGroup(groupName)
+					tests.ResultedWithNoErrorCheck(groupAfterSub, err)
+					So(sub.ID, ShouldEqual, groupAfterSub.Payment.Subscription.ID)
+
+					Convey("When invoice.created is triggered with previous plan's amount", func() {
+						raw := []byte(fmt.Sprintf(
+							testData,
+							group.Payment.Customer.ID,
+							sub.ID,
+							Plans[UpTo10Users].Amount*11,
+						))
+
+						So(invoiceCreatedHandler(raw), ShouldBeNil)
+
+						Convey("subscription id should not stay same", func() {
+							groupAfterHook, err := modelhelper.GetGroup(groupName)
+							tests.ResultedWithNoErrorCheck(groupAfterHook, err)
+
+							// group should have correct sub id
+							So(sub.ID, ShouldNotEqual, groupAfterHook.Payment.Subscription.ID)
+
+							sub, err := GetSubscriptionForGroup(groupName)
+							tests.ResultedWithNoErrorCheck(sub, err)
+
+							So(sub.Plan.ID, ShouldEqual, UpTo10Users)
+
+							count, err := modelhelper.GetDeletedMemberCountByGroupId(group.Id)
+							So(err, ShouldBeNil)
+							So(count, ShouldEqual, 0)
+
+							Convey("we should clean up successfully", func() {
+								sub, err := DeleteSubscriptionForGroup(group.Slug)
+								tests.ResultedWithNoErrorCheck(sub, err)
+
+								_, err = plan.Del(pp.ID)
+								So(err, ShouldBeNil)
+							})
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
+func generateAndAddMembersToGroup(groupID bson.ObjectId, count int) {
+	// generate members
+	for i := 0; i < count; i++ {
+		account := models.CreateAccountInBothDbsWithCheck()
+		acc, err := modelhelper.GetAccount(account.Nick)
+		tests.ResultedWithNoErrorCheck(acc, err)
+
+		err = modelhelper.AddRelationship(&mongomodels.Relationship{
+			Id:         bson.NewObjectId(),
+			TargetId:   acc.Id,
+			TargetName: "JAccount",
+			SourceId:   groupID,
+			SourceName: "JGroup",
+			As:         "member",
+		})
+		So(err, ShouldBeNil)
+	}
+}
+
+func generateDeletedMemberAndAddToGroup(groupID bson.ObjectId, count int) {
+	// generate members
+	for i := 0; i < count; i++ {
+		account1 := models.CreateAccountInBothDbsWithCheck()
+		acc, err := modelhelper.GetAccount(account1.Nick)
+		tests.ResultedWithNoErrorCheck(acc, err)
+		dm, err := modelhelper.CreateDeletedMember(groupID, acc.Id)
+		tests.ResultedWithNoErrorCheck(dm, err)
+	}
 }
 
 var webhookTestData = map[string]string{
