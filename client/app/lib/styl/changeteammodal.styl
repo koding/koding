@@ -72,9 +72,11 @@
     border-bottom           0
     padding                 0 20px
     bg                      color, #fff
-    display                 flex
+    dFlex()
+    -webkit-align-items     center
     align-items             center
     borderBox()
+    -webkit-justify-content space-between
     justify-content         space-between
 
     &:first-of-type
@@ -88,8 +90,10 @@
 
   .team-logo-wrapper
     size                    40px, 40px
-    display                 flex
+    dFlex()
+    -webkit-align-content   center
     align-content           center
+    -webkit-justify-content center
     justify-content         center
     margin-right            10px
 
@@ -98,6 +102,7 @@
       max-height            100%
       height                auto
       flex                  0 0 auto
+      -webkit-align-self    center
       align-self            center
       rounded               4px
 
@@ -112,7 +117,8 @@
     line-height             21px
 
   .team-title-wrapper
-    display                 flex
+    dFlex()
+    -webkit-align-items     center
     align-items             center
 
   .kdmodal-content a.GenericButton
