@@ -23,12 +23,12 @@ module.exports =
       (next) ->
         teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
           next null, result
-      (next) ->
-        teamsHelpers.createCredential browser, 'aws', 'aws1', yes, (res) ->
-          next null, res
-      (next) ->
-        teamsHelpers.createCredential browser, 'aws', 'aws2', yes, (res) ->
-          next null, res
+      # (next) ->
+      #   teamsHelpers.createCredential browser, 'aws', 'aws1', yes, (res) ->
+      #     next null, res
+      # (next) ->
+      #   teamsHelpers.createCredential browser, 'aws', 'aws2', yes, (res) ->
+      #     next null, res
     ]
 
     async.series queue, (err, result) ->
