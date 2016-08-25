@@ -3,7 +3,8 @@ import centered from './centered'
 
 addDecorator(centered)
 
-const req = require.context('../component-lab', true, /\.story\.js$/)
+
+const req = require.context('../component-lab', true, /\.story\.(js|coffee)$/)
 
 const loadStories = () => req.keys().forEach(req)
 
