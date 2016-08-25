@@ -1,4 +1,4 @@
-@import '../Colors/Colors.styl'
+@import '../Colors/Colors.stylus'
 
 $padding-small = 6px 20px 7px
 $padding-medium = 10px 30px
