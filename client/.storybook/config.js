@@ -1,6 +1,8 @@
 import { configure, addDecorator } from '@kadira/storybook'
 import centered from './centered'
 
+require('app/styl/require-styles')
+
 addDecorator(centered)
 
 
