@@ -3,12 +3,16 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/rest"
+	"socialapi/workers/common/tests"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
-
 	stripe "github.com/stripe/stripe-go"
+	currency "github.com/stripe/stripe-go/currency"
+	stripeplan "github.com/stripe/stripe-go/plan"
 )
 
 func TestCreateSubscription(t *testing.T) {
@@ -21,8 +25,7 @@ func TestCreateSubscription(t *testing.T) {
 						Convey("We should be able to get the subscription", func() {
 							getURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionGet)
 							res, err := rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
-							So(err, ShouldBeNil)
-							So(res, ShouldNotBeNil)
+							tests.ResultedWithNoErrorCheck(res, err)
 
 							v := &stripe.Sub{}
 							err = json.Unmarshal(res, v)
@@ -51,20 +54,17 @@ func TestCreateSubscriptionWithPlan(t *testing.T) {
 						}
 
 						req, err := json.Marshal(cp)
-						So(err, ShouldBeNil)
-						So(req, ShouldNotBeNil)
+						tests.ResultedWithNoErrorCheck(req, err)
 
 						res, err := rest.DoRequestWithAuth("POST", updateURL, req, sessionID)
-						So(err, ShouldBeNil)
-						So(res, ShouldNotBeNil)
+						tests.ResultedWithNoErrorCheck(res, err)
 
 						withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
 							So(subscriptionID, ShouldNotBeEmpty)
 							Convey("We should be able to get the subscription", func() {
 								getURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionGet)
 								res, err := rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
-								So(err, ShouldBeNil)
-								So(res, ShouldNotBeNil)
+								tests.ResultedWithNoErrorCheck(res, err)
 
 								v := &stripe.Sub{}
 								err = json.Unmarshal(res, v)
