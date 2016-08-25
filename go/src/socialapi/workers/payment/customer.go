@@ -97,20 +97,7 @@ func GetCustomerForGroup(groupName string) (*stripe.Customer, error) {
 }
 
 // GetInfoForGroup get the current usage info of a group
-func GetInfoForGroup(groupName string) (*Usage, error) {
-	group, err := modelhelper.GetGroup(groupName)
-	if err != nil {
-		return nil, err
-	}
-
-	if group.Payment.Customer.ID == "" {
-		return nil, ErrCustomerNotExists
-	}
-
-	if group.Payment.Subscription.ID == "" {
-		return nil, ErrCustomerNotSubscribedToAnyPlans
-	}
-
+func GetInfoForGroup(group *models.Group) (*Usage, error) {
 	usage, err := fetchParallelizableeUsageItems(group)
 	if err != nil {
 		return nil, err
@@ -153,6 +140,10 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 	var cus *stripe.Customer
 	wg.Add(1)
 	go withCheck(func() (err error) {
+		if group.Payment.Customer.ID == "" {
+			return ErrCustomerNotExists
+		}
+
 		cus, err = customer.Get(group.Payment.Customer.ID, nil)
 		return err
 	})
@@ -160,6 +151,10 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 	var subscription *stripe.Sub
 	wg.Add(1)
 	go withCheck(func() (err error) {
+		if group.Payment.Subscription.ID == "" {
+			return ErrCustomerNotSubscribedToAnyPlans
+		}
+
 		subscription, err = sub.Get(group.Payment.Subscription.ID, nil)
 		return err
 	})
