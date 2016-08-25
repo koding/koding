@@ -1,6 +1,7 @@
 package api
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -70,7 +71,12 @@ func Info(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 		return response.NewBadRequest(err)
 	}
 
+	group, err := modelhelper.GetGroup(context.GroupName)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	return response.HandleResultAndError(
-		payment.GetInfoForGroup(context.GroupName),
+		payment.GetInfoForGroup(group),
 	)
 }
