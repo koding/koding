@@ -6,6 +6,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/rest"
+	"socialapi/workers/common/tests"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -28,8 +29,7 @@ func TestCreditCard(t *testing.T) {
 						}
 
 						req, err := json.Marshal(cp)
-						So(err, ShouldBeNil)
-						So(req, ShouldNotBeNil)
+						tests.ResultedWithNoErrorCheck(req, err)
 
 						res, err := rest.DoRequestWithAuth("POST", updateURL, req, sessionID)
 						So(err, ShouldBeNil)
@@ -51,12 +51,10 @@ func TestCreditCard(t *testing.T) {
 									}
 
 									req, err := json.Marshal(cp)
-									So(err, ShouldBeNil)
-									So(req, ShouldNotBeNil)
+									tests.ResultedWithNoErrorCheck(req, err)
 
 									res, err = rest.DoRequestWithAuth("POST", updateURL, req, sessionID)
-									So(err, ShouldBeNil)
-									So(res, ShouldNotBeNil)
+									tests.ResultedWithNoErrorCheck(res, err)
 
 									c2 := &stripe.Customer{}
 									err = json.Unmarshal(res, c2)
@@ -73,8 +71,7 @@ func TestCreditCard(t *testing.T) {
 											ccdeleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
 
 											res, err = rest.DoRequestWithAuth("DELETE", ccdeleteURL, nil, sessionID)
-											So(err, ShouldBeNil)
-											So(res, ShouldNotBeNil)
+											tests.ResultedWithNoErrorCheck(res, err)
 
 											c := &stripe.Card{}
 											err = json.Unmarshal(res, c)
@@ -110,8 +107,7 @@ func TestCreditCardNonAdmin(t *testing.T) {
 			acc, _, groupName := models.CreateRandomGroupDataWithChecks()
 
 			ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
-			So(err, ShouldBeNil)
-			So(ses, ShouldNotBeNil)
+			tests.ResultedWithNoErrorCheck(ses, err)
 
 			Convey("Endpoint should return error", func() {
 				ccdeleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
@@ -138,10 +134,8 @@ func TestCreditCardNotSubscribingMember(t *testing.T) {
 	Convey("When a non subscribed user request to delete CC", t, func() {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
-
 				group, err := modelhelper.GetGroup(groupName)
-				So(err, ShouldBeNil)
-				So(group, ShouldNotBeNil)
+				tests.ResultedWithNoErrorCheck(group, err)
 
 				err = modelhelper.UpdateGroupPartial(
 					modelhelper.Selector{"_id": group.Id},
