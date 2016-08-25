@@ -1,0 +1,7 @@
+.image
+  m-sprite                  'app', 'buildstack__art_success'
+  background-size           203px 180px !important
+  size                      203px 180px !important
+
+.imageContainer
+  margin-bottom             20px
