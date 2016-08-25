@@ -1,9 +1,12 @@
 import { configure, addDecorator } from '@kadira/storybook'
 import centered from './centered'
 
+require('app/styl/require-styles')
+
 addDecorator(centered)
 
-const req = require.context('../component-lab', true, /\.story\.js$/)
+
+const req = require.context('../component-lab', true, /\.story\.(js|coffee)$/)
 
 const loadStories = () => req.keys().forEach(req)
 
