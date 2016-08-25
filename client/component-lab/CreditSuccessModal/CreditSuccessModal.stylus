@@ -1,0 +1,11 @@
+@import '~lab/Colors/Colors.stylus'
+
+.header
+  font-size                 27px
+  margin-bottom             10px
+  color                     $primary-2
+  font-weight               200
+
+.subHeader
+  font-size                 18px
+  color                     $additional-5
