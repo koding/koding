@@ -3,6 +3,7 @@ remote     = require 'app/remote'
 globals    = require 'globals'
 isLoggedIn = require './util/isLoggedIn'
 identified = false
+kookies    = require 'kookies'
 
 setupIdentify = ->
 
@@ -31,6 +32,7 @@ identifyUser = (account) ->
       { userAgent } = window.navigator
 
       traits = { email, subscription, env, userAgent }
+      traits.transaction_id = tid  if tid = kookies.get 'tid'
 
       analytics?.identify nickname, traits
 
