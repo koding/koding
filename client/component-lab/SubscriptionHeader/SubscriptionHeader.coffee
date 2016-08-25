@@ -1,36 +1,67 @@
 kd = require 'kd'
-React = require 'react'
+{ PropTypes, Component } = React = require 'react'
+{ Grid, Row, Col } = require 'react-flexbox-grid'
+moment = require 'moment'
 
-module.exports = class SubscriptionHeader extends React.Component
+dateDiffInDays = require 'app/util/dateDiffInDays'
 
-  @propTypes =
-    className: React.PropTypes.string
-    title: React.PropTypes.string
-    subtitle: React.PropTypes.string
-    freeCredit: React.PropTypes.string
-    nextBillingAmount: React.PropTypes.string
-    danger: React.PropTypes.bool
+Box = require 'lab/Box'
+Label = require 'lab/Text/Label'
+textStyles = require 'lab/Text/Text.stylus'
 
-  @defaultProps =
-    className: ''
-    title: 'Koding Basic Trial (1 Week)'
-    subtitle: 'You have 7 days left.'
-    freeCredit: '100.00'
-    nextBillingAmount: null
-    danger: no # trial is about to expire or expired
-
+module.exports = class SubscriptionHeader extends Component
 
   render: ->
+    { title, teamSize, isTrial, endsAt } = @props
+    isDanger = no
 
-    className = kd.utils.curry 'SubscriptionHeader', @props.className
+    if isTrial
+      daysLeft = Math.max 0, dateDiffInDays(new Date(Number endsAt), new Date)
+      subtitle = "You have #{daysLeft} days left in your trial."
+      isDanger = yes  if daysLeft < 4
+    else
+      billingDate = moment(Number endsAt).format 'MMM Do, YYYY'
+      subtitle = "Your next billing date is #{billingDate}."
+      title = "#{title} (#{teamSize} Developers)"
 
-    <div className={className}>
-      <div>
-        <div className='SubscriptionHeader--title'>{@props.title}</div>
-        <div className='SubscriptionHeader--freeCredit'>Free Credit: ${@props.freeCredit}</div>
-      </div>
-      <div>
-        <div className='SubscriptionHeader--subtitle'>{@props.subtitle}</div>
-        <div className='SubscriptionHeader--billingAmount'>Next Bill Amount: ${@props.nextBillingAmount}</div>
-      </div>
-    </div>
+    <Row>
+
+      <Col xs={8}>
+        <Label size="medium">
+          <strong>{title}</strong>
+        </Label>
+      </Col>
+
+      <Col xs={4} className={textStyles.right}>
+        <Label size="small" type="info">Free Credit: </Label>
+        <Label size="small" type="success">${@props.freeCredit}</Label>
+      </Col>
+
+      <Col xs={8}>
+        <Label size="small" type={if isDanger then 'danger' else 'info'}>
+          <em>{subtitle}</em>
+        </Label>
+      </Col>
+
+      {unless @props.isTrial
+        <Col xs={4} className={textStyles.right}>
+          <Label size="small" type="info">
+            Next Bill Amount: <strong>${@props.nextBillingAmount}</strong>
+          </Label>
+        </Col>
+      }
+    </Row>
+
+SubscriptionHeader.propTypes =
+  isTrial: PropTypes.bool
+  title: PropTypes.string
+  freeCredit: PropTypes.number
+  nextBillingAmount: PropTypes.number
+  endsAt: PropTypes.string.isRequired
+
+SubscriptionHeader.defaultProps =
+  title: 'Koding subscription title'
+  freeCredit: 0
+  nextBillingAmount: 0
+  isTrial: no
+
