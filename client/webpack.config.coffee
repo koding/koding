@@ -136,6 +136,14 @@ pushLoader [
 
 # Style loaders configuration
 pushLoader [
+  test: /\.stylus$/
+  include: CLIENT_PATH
+  loaders: [
+    'style'
+    'css?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]'
+    'stylus'
+  ]
+,
   test: /\.styl$/
   include: CLIENT_PATH
   loaders: [
@@ -146,10 +154,15 @@ pushLoader [
 ,
   test: /\.css$/
   include: CLIENT_PATH
+  exclude: /flexboxgrid/,
   loaders: [
     'style'
     'css'
   ]
+,
+  test: /\.css$/,
+  loader: 'style!css?modules',
+  include: /flexboxgrid/,
 ]
 
 # File & Url loaders
