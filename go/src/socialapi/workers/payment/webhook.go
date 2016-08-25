@@ -183,8 +183,10 @@ func invoiceCreatedHandler(raw []byte) error {
 		Plan:     planID,
 		Quantity: uint64(info.User.Total),
 	}
-	_, err = CreateSubscriptionForGroup(cus.Meta["groupName"], params)
 
+	sub, err := CreateSubscriptionForGroup(cus.Meta["groupName"], params)
+
+	_, err = modelhelper.CalculateAndApplyDeletedMembers(group.Id, sub.ID)
 	return err
 }
 
