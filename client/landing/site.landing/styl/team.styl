@@ -2,7 +2,7 @@
 @import 'lib/core.fn'
 
 modalBackground             = #FAFAFA
-greenLink                   = #27ae60
+greenLink                   = #48BA7D
 dimmedGray                  = #848484
 
 @css {
@@ -68,7 +68,7 @@ team.styl
       border                1px solid #e8e2de
       display               block
       &:hover
-        color               #27ae60
+        color               #48BA7D
         bg                  color white
 
     p
@@ -174,7 +174,7 @@ team.styl
     margin                  -10px auto 0
 
   > h4
-    color                   #00B153
+    color                   #48BA7D
     font-family             openSansFamily
     font-size               24px
     line-height             50px
@@ -282,19 +282,69 @@ team.styl
   rounded                   3px
   size                      auto 50px
   text-transform            uppercase
+
   &.compact
     height                  24px
     font-size               10px
     line-height             16px
     padding                 4px 7px 0
 
+  &.koding
+    .icon
+      r-sprite              app 'iconkoding'
+
+  &.gitlab
+    .icon
+      r-sprite              app 'icongitlab'
+
+  .icon
+    display                 inline-block !important
+    float                   none !important
+    margin                  14px 0 0 -30px !important
+    abs() !important
+
 .TeamsModal-button--green
   color                     white
-  bg                        color #00B057
+  bg                        color #48BA7D
 
 .TeamsModal-button--gray
   color                     white
   bg                        color #BDC3C7
+
+.TeamsModal-button--full
+  width                     100% !important
+
+.TeamsModal
+  .gitlab
+
+    > button.TeamsModal-button
+      margin-bottom         0 !important
+      background            #fff
+      border                1px solid #A8CEFF
+      color                 #999
+
+    div.or
+      position              relative
+      z-index               1
+      font-size             14px
+      color                 #BBB
+
+      &:before
+        border-top          1px solid #ddd
+        content             " "
+        margin              0 auto
+        right               0
+        bottom              0
+        width               100%
+        z-index             -1
+
+        abs                 50%, 0
+
+      > span
+        background          #fafafa
+        padding             0 15px
+        text-transform      uppercase
+
 
 .TeamsModal-linkButton
   color                     #929292

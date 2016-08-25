@@ -1,9 +1,11 @@
-kd                = require 'kd'
-TeamsView         = require './AppView'
-TeamSelectorView  = require './teamselectorview'
-
+kd = require 'kd'
 
 module.exports = class TeamsAppController extends kd.ViewController
+
+  PAGES =
+    create : require './AppView'
+    select : require './teamselectorview'
+    find   : require './findteamview'
 
 
   kd.registerAppClass this, { name : 'Teams' }
@@ -13,17 +15,25 @@ module.exports = class TeamsAppController extends kd.ViewController
 
     { currentPath } = kd.singletons.router
 
-    if currentPath.indexOf('/Teams/Create') > -1
-    then options.view = new TeamsView { cssClass: 'content-page' }
-    else options.view = new TeamSelectorView { cssClass: 'content-page' }
+    options.view = new kd.TabView { hideHandleContainer : yes }
 
     super options, data
+
+
+  showPage: (name) ->
+
+    view = @getView()
+
+    if pane = view.getPaneByName name
+    then view.showPane pane
+    else view.addPane new PAGES[name] { name, cssClass : 'content-page' }
 
 
   handleQuery: (query) ->
 
     return  if not query or not query.group
 
-    { input } = @getView().form.companyName
+    page = @getView().getActivePane()
+    { input } = page.form.companyName
     input.setValue query.group.capitalize()
-    @getView().form.companyName.inputReceivedKeyup()
+    page.form.companyName.inputReceivedKeyup()

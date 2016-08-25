@@ -39,6 +39,7 @@ module.exports = (options, callback) ->
       <script>
         window._runtimeOptions = {
           google    : #{JSON.stringify KONFIG.client.runtimeOptions.google},
+          gitlab    : #{JSON.stringify KONFIG.client.runtimeOptions.gitlab},
           recaptcha : #{JSON.stringify KONFIG.client.runtimeOptions.recaptcha},
           domains   : #{JSON.stringify KONFIG.client.runtimeOptions.domains}
         }

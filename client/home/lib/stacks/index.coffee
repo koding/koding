@@ -1,6 +1,7 @@
 kd = require 'kd'
 sectionize = require '../commons/sectionize'
 headerize = require '../commons/headerize'
+isFeatureEnabled = require 'app/util/isFeatureEnabled'
 
 HomeStacksCreate = require './homestackscreate'
 HomeStacksTeamStacks = require './homestacksteamstacks'
@@ -8,6 +9,7 @@ HomeStacksPrivateStacks = require './homestacksprivatestacks'
 HomeStacksDisabledUsers = require './homestacksdisableduserstacks'
 HomeStacksDrafts = require './homestacksdrafts'
 HomeStacksTabHandle = require './homestackstabhandle'
+HomeStacksImport = require './homestacksimport'
 
 HomeVirtualMachinesVirtualMachines = require '../virtualmachines/homevirtualmachinesvirtualmachines'
 HomeVirtualMachinesConnectedMachines = require '../virtualmachines/homevirtualmachinesconnectedmachines'
@@ -45,12 +47,13 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     @tabView.addPane @vms         = new kd.TabPaneView { name: 'Virtual Machines' }
     @tabView.addPane @credentials = new kd.TabPaneView { name: 'Credentials' }
 
-    @tabView.showPane @stacks
+    if isFeatureEnabled 'gitlab'
+      @tabView.addPane @importView  = new kd.TabPaneView {
+        view: new HomeStacksImport { delegate: this.wrapper }
+        name: 'Import'
+      }
 
-    # @tabView.on 'PaneDidShow', (pane) ->
-    #   { router } = kd.singletons
-    #   path = router.getCurrentPath()
-    #   router.handleRoute "/Home/Stacks/#{kd.utils.slugify pane.name}"
+    @tabView.showPane @stacks
 
     { mainController, computeController, reactor } = kd.singletons
 
@@ -59,18 +62,19 @@ module.exports = class HomeStacks extends kd.CustomScrollView
       @createVMsViews()
       @createCredentialsViews()
 
-
     computeController.on 'MachineBeingDestroyed', (machine) ->
       stack = computeController.findStackFromMachineId machine._id
       reactor.dispatch actions.REMOVE_STACK, stack._id
 
 
-  handleAction: (action) ->
+  handleAction: (action, query) ->
 
     { onboarding } = kd.singletons
 
     for pane in @tabView.panes when kd.utils.slugify(pane.name) is action
-      pane_ = @tabView.showPane pane
+
+      @tabView.showPane pane
+
       switch action
         when 'stacks'
           onboarding.run 'StacksViewed', yes
@@ -79,6 +83,10 @@ module.exports = class HomeStacks extends kd.CustomScrollView
           onboarding.run 'VMsViewed', yes
         when 'credentials'
           onboarding.run 'CredentialsViewed', yes
+
+      if (Object.keys query).length
+        pane.mainView?.handleQuery? query
+
       break
 
 

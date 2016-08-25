@@ -21,7 +21,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
     super options, data
 
     { mainController } = kd.singletons
-    { group }          = kd.config
+    { group, gitlab } = kd.config
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -45,8 +45,12 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
           @form.tfcode.show()
           @form.tfcode.setFocus()
 
-    @form.button.unsetClass 'solid medium green'
-    @form.button.setClass 'TeamsModal-button TeamsModal-button--green'
+    if group.slug is gitlab?.team
+      @form.gitlabLogin.show()
+
+    ['button', 'gitlabButton'].forEach (button) =>
+      @form[button].unsetClass 'solid medium green'
+      @form[button].setClass 'TeamsModal-button TeamsModal-button--green TeamsModal-button--full'
 
     if location.search isnt '' and location.search.search('username=') > 0
       username = location.search.split('username=').last.replace(/\&.+/, '') # trim the rest params if any

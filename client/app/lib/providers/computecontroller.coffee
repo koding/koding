@@ -293,6 +293,19 @@ module.exports = class ComputeController extends KDController
       else callback null, (new Machine { machine } for machine in machines)
 
 
+  findStackFromRemoteData: (options) ->
+
+    { commitId } = options
+    for stack in @stacks when _commitId = stack.config?.remoteDetails?.commitId
+      return stack  if ///^#{commitId}///.test _commitId
+
+
+  findMachineFromRemoteData: (options) ->
+
+    return  unless stack = @findStackFromRemoteData options
+    return  stack.machines?.first
+
+
   findMachineFromMachineId: (machineId) ->
     return @machinesById[machineId]
 
