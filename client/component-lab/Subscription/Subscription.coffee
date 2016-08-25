@@ -1,127 +1,82 @@
 kd = require 'kd'
-React = require 'react'
+{ PropTypes, Component } = React = require 'react'
+{ Grid, Row, Col } = require 'react-flexbox-grid'
+
 SubscriptionHeader = require 'lab/SubscriptionHeader'
-ChargeInfo = require 'lab/ChargeInfo'
+TrialChargeInfo = require 'lab/TrialChargeInfo'
 VerifyEmailWarning = require 'lab/VerifyEmailWarning'
 Survey = require 'lab/Survey'
-
 TrialExpireWarning = require 'lab/TrialExpireWarning'
 
-module.exports = class Subscription extends React.Component
+Content = ({ children }) -> <div className={styles.box}>{children}</div>
 
-  @propsTypes =
-    subscriptionTitle: React.PropTypes.string
-    pricePerSeat: React.PropTypes.string
-    teamSize: React.PropTypes.string
-    trialEndsAt: React.PropTypes.string
-    endsAt: React.PropTypes.string
-    freeCredit: React.PropTypes.string
-    nextBillingAmount: React.PropTypes.string
-    creditAmount: React.PropTypes.string
-    isExpired: React.PropTypes.bool
-    isSurveyTaken: React.PropTypes.bool
-    isEmailVerified: React.PropTypes.bool
-    isTrial: React.PropTypes.bool
-    onClickPricingDetail: React.PropTypes.func
-    onClickViewMembers: React.PropTypes.func
-    onClickInfo: React.PropTypes.func
-    onClickTakeSurvey: React.PropTypes.func
-    onClickResendEmail: React.PropTypes.func
+styles = require './Subscription.stylus'
 
-
-  @defaultProps =
-
-    subscriptionTitle: 'Koding Basic Trial (1 Week)'
-    pricePerSeat: '49.97'
-    teamSize: '4'
-    trialEndsAt: 'You have 6 days left'
-    endsAt: 'Sep 28, 2016'
-    freeCredit: '100.00'
-    nextBillingAmount: '99.88'
-    isExpired: no
-    isSurveyTaken: no
-    isEmailVerified: no
-    isTrial: no
-    onClickPricingDetail: kd.noop
-    onClickViewMembers: kd.noop
-    onClickInfo: kd.noop
-    onClickTakeSurvey: kd.noop
-    onClickResendEmail: kd.noop
-
+module.exports = class Subscription extends Component
 
   renderHeader: ->
 
-    title = "#{@props.pricePerSeat} per Developer (#{@props.teamSize} Developers)"
-    subtitle = "Your next billing date is #{@props.endsAt}."
+    { teamSize, pricePerSeat, isTrial, freeCredit, endsAt, title } = @props
 
-    if @props.isTrial
-      title = @props.subscriptionTitle
-      subtitle = "You have #{@props.trialEndsAt} days left." #plural singular
+    nextAmount = Number(teamSize) * Number(pricePerSeat)
 
     <SubscriptionHeader
-      danger={@props.isExpired}
+      isTrial={isTrial}
       title={title}
-      subtitle={subtitle}
-      freeCredit={@props.freeCredit}
-      nextBillingAmount={@props.nextBillingAmount} />
+      teamSize={teamSize}
+      freeCredit={freeCredit}
+      nextBillingAmount={nextAmount}
+      endsAt={endsAt} />
 
 
-  renderChargeInfo: ->
+  renderTrialChargeInfo: ->
 
-    return  if @props.isExpired
+    return  unless @props.isTrial
 
-    <ChargeInfo
+    <TrialChargeInfo
+      endsAt={@props.endsAt}
       teamSize={@props.teamSize}
       pricePerSeat={@props.pricePerSeat}
       onClick={@props.onClickInfo} />
 
 
-  renderVerifyEmailWarning: ->
+  renderExtras: ->
 
-    return  if @props.isExpired
-    return  unless @props.isEmailVerified
+    { isEmailVerified, isSurveyTaken, onClickTakeSurvey, email } = @props
 
-    <VerifyEmailWarning />
-
-
-  renderSurvey: ->
-
-    return  if @props.isExpired
-    return  if @props.isSurveyTaken
-
-    <Survey onClick={@props.onClickTakeSurvey} />
-
-
-  renderTrialExpireWarning: ->
-
-    return  unless @props.isExpired
-
-    <TrialExpireWarning
-      teamSize={@props.teamSize}
-      pricePerSeat={@props.pricePerSeat} />
-
-
-  renderButtons: ->
-
-    className = 'HomeAppView Subscription--footer'
-    if @props.isEmailVerified and @props.isSurveyTaken
-      className = "#{className} with-border"
-
-    <div className={className}>
-      <button onClick={@props.onClickPricingDetail}>PRICING DETAILS</button>
-      <button onClick={@props.onClickViewMembers}>VIEW MEMBERS</button>
-    </div>
+    if not isEmailVerified
+      <VerifyEmailWarning email={email} />
+    else if not isSurveyTaken
+      <Survey onClick={onClickTakeSurvey} />
 
 
   render: ->
 
-    <div className='Subscription'>
-      {@renderHeader()}
-      {@renderChargeInfo()}
-      {@renderSurvey()}
-      {@renderVerifyEmailWarning()}
-      {@renderTrialExpireWarning()}
-      {@renderButtons()}
+    <div>
+      <Content>{@renderHeader()}</Content>
+      <Content>{@renderTrialChargeInfo()}</Content>
+      <Content>{@renderExtras()}</Content>
     </div>
 
+
+Subscription.propsTypes =
+  title: PropTypes.string
+  pricePerSeat: PropTypes.number.isRequired
+  teamSize: PropTypes.number
+  endsAt: PropTypes.string.isRequired
+  freeCredit: PropTypes.string
+  isSurveyTaken: PropTypes.bool
+  isEmailVerified: PropTypes.bool
+  isTrial: PropTypes.bool
+  onClickTakeSurvey: PropTypes.func
+
+
+Subscription.defaultProps =
+  title: 'Koding Basic Trial (1 Week)'
+  teamSize: 1
+  freeCredit: 0
+  isSurveyTaken: yes
+  isEmailVerified: no
+  isTrial: no
+  onClickTakeSurvey: kd.noop
 
