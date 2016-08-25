@@ -18,7 +18,11 @@ func DeleteSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 		return nil, ErrCustomerNotSubscribedToAnyPlans
 	}
 
-	sub, err := deleteSubscription(group.Payment.Subscription.ID)
+	if group.Payment.Customer.ID == "" {
+		return nil, ErrCustomerNotExists
+	}
+
+	sub, err := deleteSubscription(group.Payment.Subscription.ID, group.Payment.Customer.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -38,8 +42,8 @@ func DeleteSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 	return sub, nil
 }
 
-func deleteSubscription(subscriptionID string) (*stripe.Sub, error) {
-	sub, err := sub.Cancel(subscriptionID, nil)
+func deleteSubscription(subscriptionID, customerID string) (*stripe.Sub, error) {
+	sub, err := sub.Cancel(subscriptionID, &stripe.SubParams{Customer: customerID})
 	if sub != nil && sub.Status == "canceled" {
 		return sub, nil
 	}
