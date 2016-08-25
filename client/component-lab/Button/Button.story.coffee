@@ -1,10 +1,10 @@
-import React from 'react'
-import { storiesOf, action } from '@kadira/storybook'
+React = require 'react'
+{ storiesOf, action } = require '@kadira/storybook'
 
-import Button from './Button'
+Button = require './Button'
 
-storiesOf('Button', module)
-  .add('xlarge button', () => (
+storiesOf 'Button', module
+  .add 'xlarge button', ->
     <div>
       <Button type="primary-1" size="xlarge">primary-1</Button>
       <Button type="primary-2" size="xlarge">primary-2</Button>
@@ -13,8 +13,8 @@ storiesOf('Button', module)
       <Button type="primary-5" size="xlarge">primary-5</Button>
       <Button type="primary-6" size="xlarge">primary-6</Button>
     </div>
-  ))
-  .add('large button', () => (
+
+  .add 'large button', ->
     <div>
       <Button type="primary-1" size="large">primary-1</Button>
       <Button type="primary-2" size="large">primary-2</Button>
@@ -23,8 +23,8 @@ storiesOf('Button', module)
       <Button type="primary-5" size="large">primary-5</Button>
       <Button type="primary-6" size="large">primary-6</Button>
     </div>
-  ))
-  .add('medium button', () => (
+
+  .add 'medium button', ->
     <div>
       <Button type="primary-1" size="medium">primary-1</Button>
       <Button type="primary-2" size="medium">primary-2</Button>
@@ -33,8 +33,8 @@ storiesOf('Button', module)
       <Button type="primary-5" size="medium">primary-5</Button>
       <Button type="primary-6" size="medium">primary-6</Button>
     </div>
-  ))
-  .add('small button', () => (
+
+  .add 'small button', ->
     <div>
       <Button type="primary-1" size="small">primary-1</Button>
       <Button type="primary-2" size="small">primary-2</Button>
@@ -43,9 +43,9 @@ storiesOf('Button', module)
       <Button type="primary-5" size="small">primary-5</Button>
       <Button type="primary-6" size="small">primary-6</Button>
     </div>
-  ))
-  .add('full width button', () => (
-    <div>
+
+  .add 'full width button', ->
+    <div style={{width: '100%'}}>
       <div style={{marginBottom: '5px'}}><Button type="primary-1" auto>Next</Button></div>
       <div style={{marginBottom: '5px'}}><Button type="primary-2" auto>Next</Button></div>
       <div style={{marginBottom: '5px'}}><Button type="primary-3" auto>Next</Button></div>
@@ -56,4 +56,4 @@ storiesOf('Button', module)
       <div style={{marginBottom: '5px'}}><Button type="primary" auto disabled>Next</Button></div>
       <div style={{marginBottom: '5px'}}><Button type="secondary" auto disabled>Next</Button></div>
     </div>
-  ))
+
