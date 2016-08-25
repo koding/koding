@@ -17,8 +17,8 @@ module.exports = class ChangeTeamController extends KodingListController
         groups = groups.filter (group) -> group.slug isnt 'koding'
         callback null, groups
     options.noItemFoundWidget = new kd.CustomHTMLView
-        tagName  : 'p'
-        cssClass : 'no-item-found'
-        partial  : 'No item found!'
+      tagName  : 'p'
+      cssClass : 'no-item-found'
+      partial  : 'No item found!'
 
     super options, data
