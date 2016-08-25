@@ -1,0 +1,99 @@
+@import '~lab/Colors/Colors.stylus'
+
+.modal
+  position                  absolute
+  top                       50%
+  left                      50%
+  right                     auto
+  bottom                    auto
+  margin-right              -50%
+  transform                 translate(-50%, -50%)
+  outline                   none
+
+.wrapper
+  font-family               SoleilFamily
+  height                    100%
+  width                     100%
+  display                   flex
+  flex-direction            column
+  background-color          $additional-6-faded-light
+  border-radius             4px
+  position                  relative
+
+.alien
+  m-sprite                  app login_alien
+  abs()
+  top                       -31px
+  left                      50%
+  right                     auto
+  transform                 translateX(-50%)
+
+.large
+  width                     600px
+.medium
+  width                     500px
+.small
+  width                     300px
+
+.shorter
+  height                    200px
+.short
+  height                    300px
+.normal
+  height                    470px
+.tall
+  height                    540px
+
+.overlay
+  position                  fixed
+  top                       0
+  left                      0
+  right                     0
+  bottom                    0
+  background-color          rgba(0, 0, 0, 0.2)
+
+.header
+  text-align                center
+  border-bottom             1px solid #ebebeb
+  justify-content           center
+  border-radius             4px 4px 0 0
+
+  > span
+    font-size               18px
+    margin-bottom           0
+
+.footer
+  border-top                1px solid #ebebeb
+  border-radius             0 0 4px 4px
+
+.header
+.footer
+.content
+  display                   flex
+  align-items               center
+  borderBox()
+
+.header
+.footer
+  background-color          white
+  flex                      0 70px
+
+.footer
+  justify-content           flex-end
+
+.content
+  flex                      1 auto
+  justify-content           center
+  flex-direction            column
+  background-color          transparent
+  padding                   40px
+  text-align                center
+
+  p
+    margin                  30px 0
+
+.footerContainer
+  button
+    margin-right            15px
+
+
