@@ -29,7 +29,7 @@ func TestHealthCheckRemote(t *testing.T) {
 			TunnelKiteAddress:    ts.URL,
 		}
 
-		So(c.CheckRemote(), ShouldBeNil)
+		So(c.RemoteRequirements(), ShouldBeNil)
 	})
 
 	Convey("Should return no internet if the inetAddress fails", t, func() {
@@ -42,7 +42,7 @@ func TestHealthCheckRemote(t *testing.T) {
 			InternetCheckAddress: "http://bar",
 		}
 
-		err := c.CheckRemote()
+		err := c.RemoteRequirements()
 		So(err, ShouldNotBeNil)
 		So(err, ShouldHaveSameTypeAs, ErrHealthNoInternet{})
 	})
@@ -66,7 +66,7 @@ func TestHealthCheckRemote(t *testing.T) {
 			InternetCheckAddress: tsNet.URL,
 		}
 
-		err := c.CheckRemote()
+		err := c.RemoteRequirements()
 		So(err, ShouldNotBeNil)
 		So(err, ShouldHaveSameTypeAs, ErrKodingService{})
 	})
@@ -89,7 +89,7 @@ func TestHealthCheckRemote(t *testing.T) {
 			InternetCheckAddress: tsKon.URL,
 		}
 
-		err := c.CheckRemote()
+		err := c.RemoteRequirements()
 		So(err, ShouldNotBeNil)
 		So(err, ShouldHaveSameTypeAs, ErrKodingService{})
 	})
@@ -112,7 +112,7 @@ func TestHealthCheckRemote(t *testing.T) {
 			InternetCheckAddress: ts.URL,
 		}
 
-		err := c.CheckRemote()
+		err := c.RemoteRequirements()
 		So(err, ShouldNotBeNil)
 	})
 }

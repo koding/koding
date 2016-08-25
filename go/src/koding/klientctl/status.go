@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
 	"time"
 
 	"koding/httputil"
@@ -88,6 +89,12 @@ type ErrKodingService struct {
 	ServiceName string
 }
 
+// ErrMissingSystemBinary is used when a binary cannot be located.
+type ErrMissingSystemBinary struct {
+	Message    string
+	BinaryName string
+}
+
 // ErrHealthNoKontrolHTTPResponse is used when the http response from
 // https://koding.com/kontrol/kite failed. Koding itself might be down, or the
 // users internet might be spotty.
@@ -113,6 +120,9 @@ func (e ErrHealthNoKontrolHTTPResponse) Error() string {
 }
 func (e ErrKodingService) Error() string {
 	return fmt.Sprintf("ErrKodingService: %s: %s", e.ServiceName, e.Message)
+}
+func (e ErrMissingSystemBinary) Error() string {
+	return fmt.Sprintf("ErrMissingSystemBinary: %s: %s", e.BinaryName, e.Message)
 }
 
 // StatusCommand informs the user about the status of the Klient service. It
@@ -146,12 +156,26 @@ func StatusCommand(c *cli.Context, log kodinglogging.Logger, _ string) int {
 	return 0
 }
 
+func (c *HealthChecker) SystemRequirements() error {
+	binariesToLookup := []string{"ssh", "rsync"}
+	for _, bin := range binariesToLookup {
+		if _, err := exec.LookPath(bin); err != nil {
+			return ErrMissingSystemBinary{
+				BinaryName: bin,
+				Message:    err.Error(),
+			}
+		}
+	}
+
+	return nil
+}
+
 // CheckLocal runs several diagnostics on the local Klient. Errors
 // indicate an unhealthy or not running Klient, and can be compare to
 // the ErrHealth* types.
 //
 // TODO: Possibly return a set of warnings too? If we have any..
-func (c *HealthChecker) CheckLocal() error {
+func (c *HealthChecker) LocalRequirements() error {
 	res, err := c.HTTPClient.Get(c.LocalKlientAddress)
 	// If there was an error even talking to Klient, something is wrong.
 	if err != nil {
@@ -207,9 +231,9 @@ func (c *HealthChecker) CheckLocal() error {
 	return nil
 }
 
-// CheckRemote checks the integrity of the ability to connect
+// RemoteRequirements checks the integrity of the ability to connect
 // to remote addresses, and thus verifying internet.
-func (c *HealthChecker) CheckRemote() error {
+func (c *HealthChecker) RemoteRequirements() error {
 	// Attempt to connect to google (or some reliable service) to
 	// confirm the user's outbound internet connection.
 	res, err := c.HTTPClient.Get(c.InternetCheckAddress)
@@ -248,12 +272,12 @@ func (c *HealthChecker) CheckRemote() error {
 func (c *HealthChecker) CheckAllExceptRunning() (res string, ok bool) {
 	// Check remote endpoints first, to debug what might be blocking Klient
 	// from starting.
-	if err := c.CheckRemote(); err != nil {
+	if err := c.RemoteRequirements(); err != nil {
 		c.Log.Warning("CheckAllExceptRunning found remote error: %s", err)
 		return c.errorToMessage(err), false
 	}
 
-	if err := c.CheckLocal(); err != nil {
+	if err := c.LocalRequirements(); err != nil {
 		switch err.(type) {
 		// Ignore dialing or bad klient http responses for CheckAllExceptRunning.
 		case ErrHealthNoHTTPReponse:
@@ -262,6 +286,11 @@ func (c *HealthChecker) CheckAllExceptRunning() (res string, ok bool) {
 			c.Log.Warning("CheckAllExceptRunning found local error: %s", err)
 			return c.errorToMessage(err), false
 		}
+	}
+
+	if err := c.SystemRequirements(); err != nil {
+		c.Log.Warning("CheckAllExceptRunning found system requirement error: %s", err)
+		return c.errorToMessage(err), false
 	}
 
 	res = fmt.Sprintf(
@@ -275,19 +304,21 @@ func (c *HealthChecker) CheckAllExceptRunning() (res string, ok bool) {
 // user-friendly response. Because a response may be good or bad, a bool is also
 // returned. If true, the response is good _(ie, positive, not an problem)_, and
 // if it is false the response represents a problem.
-//
-// TODO: Enable debug logs
-// log.Print(err.Error())
 func (c *HealthChecker) CheckAllWithResponse() (res string, ok bool) {
 	// Check remote endpoints first, to debug what might be blocking Klient
 	// from starting.
-	if err := c.CheckRemote(); err != nil {
+	if err := c.RemoteRequirements(); err != nil {
 		c.Log.Warning("CheckAllWithResponse found remote error: %s", err)
 		return c.errorToMessage(err), false
 	}
 
-	if err := c.CheckLocal(); err != nil {
+	if err := c.LocalRequirements(); err != nil {
 		c.Log.Warning("CheckAllWithResponse found local error: %s", err)
+		return c.errorToMessage(err), false
+	}
+
+	if err := c.SystemRequirements(); err != nil {
+		c.Log.Warning("CheckAllWithResponse found system requirement error: %s", err)
 		return c.errorToMessage(err), false
 	}
 
@@ -348,6 +379,14 @@ Please ensure that your local internet is stable and that Koding.com is
 operating functionally for you.
 `,
 			errType.ServiceName,
+		)
+
+	case ErrMissingSystemBinary:
+		res = fmt.Sprintf(`Error: %s is a required binary for kd to operate fully.
+
+Please ensure that %s is installed and accessible from your system path.
+`,
+			errType.BinaryName, errType.BinaryName,
 		)
 
 	default:
