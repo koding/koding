@@ -43,15 +43,17 @@ Configuration = (options = {}) ->
   options.scheme = 'http'
   options.suppressLogs = no
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
-  options.host or= options.hostname
   options.credentialPath or= "$KONFIG_PROJECTROOT/config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName or= 'kodingdev-client'
+
+  _port = if options.publicPort is '80' then '' else ":#{options.publicPort}"
+  options.host or= "#{options.hostname}#{_port}"
 
   customDomain =
     public  : "#{options.scheme}://#{options.host}"
     public_ : options.host
-    local   : "http://127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
-    local_  : "127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
+    local   : "http://127.0.0.1#{_port}"
+    local_  : "127.0.0.1#{_port}"
     port    : parseInt(options.publicPort, 10)
 
   options.customDomain = customDomain
