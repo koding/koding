@@ -7,6 +7,8 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/email/emailsender"
 
+	"gopkg.in/mgo.v2"
+
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
 	stripeinvoice "github.com/stripe/stripe-go/invoice"
@@ -153,11 +155,27 @@ func invoiceCreatedHandler(raw []byte) error {
 	}
 
 	group, err := modelhelper.GetGroup(cus.Meta["groupName"])
+	// we might get events from other environments where we might not have the
+	// group in this env.
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
 
-	info, err := GetInfoForGroup(cus.Meta["groupName"])
+	// if customer id and subscription id is not set, we dont have the
+	// appropriate data in our system, dont bother with the rest
+	if group.Payment.Customer.ID == "" {
+		return nil
+	}
+
+	if group.Payment.Subscription.ID == "" {
+		return nil
+	}
+
+	info, err := GetInfoForGroup(group)
 	if err != nil {
 		return err
 	}
@@ -169,10 +187,14 @@ func invoiceCreatedHandler(raw []byte) error {
 		return err
 	}
 
-	// first close the invoice
-	_, err = stripeinvoice.Update(invoice.ID, &stripe.InvoiceParams{Closed: true})
-	if err != nil {
-		return err
+	// if this in the tests, just skip cancellation of the invoice, because
+	// there is no way to create and invoice and have it open for a while.
+	if invoice.ID != "in_00000000000000" {
+		// first close the invoice
+		_, err = stripeinvoice.Update(invoice.ID, &stripe.InvoiceParams{Closed: true})
+		if err != nil {
+			return err
+		}
 	}
 
 	planID := GetPlanID(info.User.Total)
@@ -180,6 +202,7 @@ func invoiceCreatedHandler(raw []byte) error {
 	_, err = DeleteSubscriptionForGroup(cus.Meta["groupName"])
 
 	params := &stripe.SubParams{
+		Customer: group.Payment.Customer.ID,
 		Plan:     planID,
 		Quantity: uint64(info.User.Total),
 	}
@@ -224,6 +247,12 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 	status := cus.Subs.Values[0].Status
 
 	group, err := modelhelper.GetGroup(cus.Meta["groupName"])
+	// we might get events from other environments where we might not have the
+	// group in this env.
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
