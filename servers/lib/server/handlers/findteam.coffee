@@ -35,16 +35,14 @@ module.exports = (req, res) ->
 
       { profile : { nickname } } = account
 
-      Tracker.identify nickname, { email }, (err) ->
-        return next err  if err
-        Tracker.track nickname, {
-          to      : email
-          subject : Tracker.types.REQUESTED_TEAM_LIST
-        }, {
-          teams         : groups.map (group) -> helper.createTeamItem group
-          findTeamUrl   : "#{protocol}//#{hostname}/Teams/FindTeam"
-          createTeamUrl : "#{protocol}//#{hostname}/Teams/Create"
-        }, next
+      Tracker.identifyAndTrack nickname, {
+        to      : email
+        subject : Tracker.types.REQUESTED_TEAM_LIST
+      }, {
+        teams         : groups.map (group) -> helper.createTeamItem group
+        findTeamUrl   : "#{protocol}//#{hostname}/Teams/FindTeam"
+        createTeamUrl : "#{protocol}//#{hostname}/Teams/Create"
+      }, next
   ]
 
   async.waterfall queue, (err) ->
