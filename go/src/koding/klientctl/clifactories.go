@@ -45,6 +45,7 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctl
 		OneWaySync:       c.Bool("oneway-sync"),
 		OneWayInterval:   c.Int("oneway-interval"),
 		Debug:            c.Bool("debug"),
+		Fuse:             c.Bool("fuse"),
 
 		// Used for prefetch
 		SSHDefaultKeyDir:  config.SSHDefaultKeyDir,
