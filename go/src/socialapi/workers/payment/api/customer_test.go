@@ -272,6 +272,59 @@ func TestInfoDeletedUsers(t *testing.T) {
 	})
 }
 
+func TestInfoDeletedUsersAreNotCounted(t *testing.T) {
+	Convey("Given a user", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withStubData(endpoint, func(username, groupName, sessionID string) {
+				withTrialTestPlan(func(planID string) {
+					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
+						Convey("We should be able to get info", func() {
+							infoURL := fmt.Sprintf("%s%s", endpoint, EndpointInfo)
+							res, err := rest.DoRequestWithAuth("GET", infoURL, nil, sessionID)
+							tests.ResultedWithNoErrorCheck(res, err)
+
+							v := &payment.Usage{}
+							err = json.Unmarshal(res, v)
+							So(err, ShouldBeNil)
+
+							Convey("When we add deleted members", func() {
+								group, err := modelhelper.GetGroup(groupName)
+								tests.ResultedWithNoErrorCheck(group, err)
+
+								account1 := models.CreateAccountInBothDbsWithCheck()
+								acc, err := modelhelper.GetAccount(account1.Nick)
+								tests.ResultedWithNoErrorCheck(acc, err)
+								dm, err := modelhelper.CreateDeletedMember(group.Id, acc.Id)
+								tests.ResultedWithNoErrorCheck(dm, err)
+
+								account2 := models.CreateAccountInBothDbsWithCheck()
+								acc2, err := modelhelper.GetAccount(account2.Nick)
+								tests.ResultedWithNoErrorCheck(acc2, err)
+								dm2, err := modelhelper.CreateDeletedMember(group.Id, acc2.Id)
+								tests.ResultedWithNoErrorCheck(dm2, err)
+
+								Convey("They should not be counted", func() {
+									res, err = rest.DoRequestWithAuth("GET", infoURL, nil, sessionID)
+									tests.ResultedWithNoErrorCheck(res, err)
+
+									v2 := &payment.Usage{}
+									So(json.Unmarshal(res, v2), ShouldBeNil)
+									So(v2.User.Active, ShouldEqual, v.User.Active)
+									So(v2.User.Deleted, ShouldBeGreaterThan, v.User.Deleted)
+									So(v2.User.Total, ShouldEqual, v.User.Total)
+
+									So(v2.User.Total, ShouldEqual, 1)
+									So(v2.User.Deleted, ShouldEqual, 2)
+								})
+							})
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
 func TestInfoPlan(t *testing.T) {
 	Convey("Given a user", t, func() {
 		withTestServer(t, func(endpoint string) {
