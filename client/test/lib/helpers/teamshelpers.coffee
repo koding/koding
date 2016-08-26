@@ -41,6 +41,8 @@ userInfoErrorMsg         = '.validation-error .kdview.wrapper'
 alreadyMemberModal       = "#{teamsModalSelector}.alreadyMember"
 proceedButton            = '[testpath=proceed]'
 url                      = helpers.getUrl()
+logoutUrl  = "#{helpers.getUrl(yes)}/logout"
+
 
 module.exports =
   enterTeamURL: (browser) ->
@@ -626,21 +628,34 @@ module.exports =
 
         callback invitationUrl
 
-  logoutTeam: (browser, callback) ->
+  logoutTeamfromUrl: (browser, callback) ->
+    browser.url logoutUrl, ->
+      callback()
+
+  
+  closeModal: (browser, done) ->
     browser.element 'css selector', closeModal, (result) =>
       if result.status is 0
         browser.waitForElementVisible closeModal, 30000
         browser.click closeModal
+        browser.pause 1000, done
+      else
+        @closeModal browser, done
 
-    browser
-      .waitForElementVisible '#main-sidebar', 30000
-      .waitForElementVisible '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 20000
-      .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
-      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 40000
-      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 20000
-      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(5)'
-      .pause 2000, -> callback()
+  logoutTeam: (browser, callback) ->
 
+    @closeModal browser, ->
+      browser
+        .waitForElementVisible '#main-sidebar', 30000
+        .waitForElementVisible '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 20000
+        .click '.Sidebar-logo-wrapper'
+        .click '#main-sidebar'
+        .moveToElement '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 0, 0
+        .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
+        .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 40000
+        .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 20000
+        .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(5)'
+        .pause 2000, -> callback()
 
   inviteAndJoinWithUsers: (browser, users, callback) ->
     host = @loginTeam browser

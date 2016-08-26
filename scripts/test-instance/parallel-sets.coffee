@@ -22,6 +22,7 @@
 module.exports = [
 
   [
+<<<<<<< 45881697f6bd96f077ca6c78d9e0c1c53d5822bc
   #   { name: 'dashboard myaccount' }
   #   { name: 'dashboard stacks' }
   #   { name: 'dashboard virtualmachines' }
@@ -32,15 +33,33 @@ module.exports = [
   #   { name: 'dashboard sidebar' }
   #   { name: 'dashboard teambilling' }
 
+<<<<<<< 4adee2995c7810e6785d050c863f728690c0dcc7
   ]
     # { name: 'teams teams' }
-    # { name: 'unittests' }
-  # ]
+=======
+  [
+    { name: 'teams teams' }
+    { name: 'dashboard myaccount' }
+    { name: 'dashboard stacks' }
+    { name: 'dashboard virtualmachines' }
+    { name: 'dashboard myteam' }
+    { name: 'dashboard credentials' }
+    { name: 'dashboard utilities' }
+    { name: 'dashboard onboarding' }
+    { name: 'dashboard sidebar' }
+  #   { name: 'dashboard teambilling' }
+  ]
 
-  # [
-  #   { name: 'ide file' }
-  #   { name: 'ide folder' }
-  # ]
+  [
+    { name: 'teams teams' }
+>>>>>>> Test fix errors in VirtualMachines
+    # { name: 'unittests' }
+  ]
+
+  [
+    { name: 'ide file' }
+    { name: 'ide folder' }
+  ]
 
   # [
   #   # { name: 'ide workspace' }
