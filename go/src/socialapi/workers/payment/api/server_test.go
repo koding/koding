@@ -19,7 +19,7 @@ func withTestServer(t *testing.T, f func(url string)) {
 
 	r := runner.New(workerName)
 	if err := r.Init(); err != nil {
-		t.Fatal(err.Error())
+		t.Fatal(err)
 	}
 
 	c := config.MustRead(r.Conf.Path)

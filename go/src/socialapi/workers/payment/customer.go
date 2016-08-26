@@ -117,16 +117,16 @@ func GetInfoForGroup(group *models.Group) (*Usage, error) {
 
 func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 	var infoErr error
-	var errMu sync.RWMutex
+	var errMu sync.Mutex
 	var wg sync.WaitGroup
 
 	withCheck := func(f func() error) {
-		errMu.RLock()
+		errMu.Lock()
 		if infoErr != nil {
-			errMu.RUnlock()
+			errMu.Unlock()
 			return
 		}
-		errMu.RUnlock()
+		errMu.Unlock()
 
 		err := f()
 		if err != nil {

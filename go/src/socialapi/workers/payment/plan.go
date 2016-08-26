@@ -3,7 +3,6 @@ package payment
 import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
-	"strings"
 
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/currency"
@@ -96,11 +95,17 @@ func CreateDefaultPlans() error {
 			continue
 		}
 
-		if _, err := stripeplan.New(planParams); err != nil {
-			if strings.Contains(err.Error(), "already exists") {
-				continue
-			}
+		stripeErr, ok := err.(*stripe.Error)
+		if !ok {
+			return err
+		}
 
+		if stripeErr.Type != stripe.ErrorTypeInvalidRequest {
+			return err
+		}
+
+		_, err = stripeplan.New(planParams)
+		if err != nil {
 			return err
 		}
 	}
