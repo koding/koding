@@ -35,7 +35,7 @@ func CalculateAndApplyDeletedMembers(groupID bson.ObjectId, subscriptionID strin
 		change := bson.M{
 			"$set": bson.M{
 				"subscriptionId": subscriptionID,
-				"updatedAt":      time.Now(),
+				"updatedAt":      time.Now().UTC(),
 			},
 		}
 
