@@ -642,7 +642,7 @@ module.exports =
       .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 40000
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 20000
-      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(4)'
+      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(5)'
       .pause 2000, -> callback()
 
 
