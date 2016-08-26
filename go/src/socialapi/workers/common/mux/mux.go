@@ -40,7 +40,7 @@ type Mux struct {
 	redis  *redis.RedisSession
 
 	closing bool
-	closeMu sync.RWMutex
+	closeMu sync.Mutex
 }
 
 func New(mc *Config, log logging.Logger, metrics *metrics.Metrics) *Mux {
@@ -155,8 +155,8 @@ func (m *Mux) SetRedis(r *redis.RedisSession) {
 
 func (m *Mux) listener() {
 	if err := m.server.ListenAndServe(); err != nil {
-		m.closeMu.RLock()
-		defer m.closeMu.RUnlock()
+		m.closeMu.Lock()
+		defer m.closeMu.Unlock()
 
 		if !m.closing {
 			panic(err)

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"koding/db/mongodb/modelhelper"
 
 	"socialapi/models"
@@ -19,19 +18,6 @@ func checkContext(c *models.Context) error {
 
 	if !isAdmin {
 		return models.ErrAccessDenied
-	}
-
-	return nil
-	//
-	// for now disable confirmation checking
-	//
-	u, err := modelhelper.GetUser(c.Client.Account.Nick)
-	if err != nil {
-		return err
-	}
-
-	if u.Status != "confirmed" {
-		return errors.New("user should confirm email")
 	}
 
 	return nil

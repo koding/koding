@@ -40,6 +40,7 @@ type janitor struct {
 
 var j = &janitor{}
 
+// TODO(cihangir): Remove unnecessary code from Janitor.
 func main() {
 	j.initializeRunner()
 
