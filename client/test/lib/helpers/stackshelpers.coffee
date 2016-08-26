@@ -85,6 +85,7 @@ module.exports =
 
 
   editStackTemplates: (browser, done) ->
+    browser.click closeModal
     @gotoStackTemplate browser, ->
       browser
         .waitForElementVisible stackTemplateNameArea, 2000
@@ -116,19 +117,20 @@ module.exports =
     browser.elements 'css selector', '.StackEditor-CredentialItem--info .custom-tag.inuse', (result) ->
       index = 0
       result.value.map (value) ->
-        index += 1
         browser.elementIdText value.ELEMENT, (res) ->
           if res.value is 'IN USE'
             browser.assert.equal res.value, 'IN USE'
             browser.elementIdClick value.ELEMENT
             browser.pause 2000, ->
-              browser.elements 'css selector', '.kdbutton.solid.compact.outline.red.secondary.delete', (buttons) ->
+              browser.elements 'css selector', '.StackEditor-CredentialItem--buttons .custom-link-view.delete', (buttons) ->
                 buttonElement = buttons.value[index - 1].ELEMENT
                 browser.elementIdClick buttonElement
                 browser.pause 1000
                 browser.waitForElementVisible '.kdnotification.main', 20000
                 browser.assert.containsText '.kdnotification.main', 'This credential is currently in-use'
                 browser.pause 1000, done
+
+          index += 1
 
 
   deleteStackTemplatesInUse: (browser, done) ->
@@ -159,6 +161,7 @@ module.exports =
   destroy: (browser, done) ->
     browser.getText teamHeaderSelector, (res) ->
       browser
+        .click closeModal
         .click sideBarSelector
         .waitForElementVisible teamHeaderSelector, 20000
         .click teamHeaderSelector
@@ -194,9 +197,10 @@ module.exports =
             .click stacksSelector
             .waitForElementVisible teamStacksSelector, 20000
             .assert.containsText privateStacksTitle , res.value
+            .click closeModal
             .click sideBarSelector
             .click teamHeaderSelector
-            .waitForElementVisible menuSelector, 20000
+            .waitForElementVisible menuSelector, 30000
             .pause 3000
             .click destroySelector
             .waitForElementVisible '[testpath=deleteStack]', 20000
@@ -266,6 +270,7 @@ module.exports =
     wrongCustomVariable    = "foo: '"
     correctCustomVariable  = "foo: 'bar'"
 
+    browser.click closeModal
     @gotoStackTemplate browser, =>
       browser.waitForElementVisible stackTemplateNameArea, 2000
       @switchTabOnStackCatalog browser, 'variables'
@@ -330,7 +335,7 @@ module.exports =
             .waitForElementNotPresent reinitNotification, 20000
           next null, result
       (next) ->
-        teamsHelpers.logoutTeam browser, (result) ->
+        teamsHelpers.logoutTeamfromUrl browser, (result) ->
           next null, result
       (next) ->
         teamsHelpers.loginToTeam browser, admin , no, '', (result) ->
@@ -392,6 +397,7 @@ module.exports =
         .click sideBarSelector
         .waitForElementVisible reinitNotification, 20000
         .assert.containsText reinitializeSelector, 'Reinitialize Default Stack'
+        .url stackEditorUrl
       teamsHelpers.createPrivateStack browser, (res) ->
         teamsHelpers.createDefaultStackTemplate browser, (result) ->
           done()
