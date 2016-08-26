@@ -27,7 +27,7 @@ stackEditorTab         = "#{visibleStack} .kdview.kdtabview.StackEditorTabs"
 credentialsTabSelector = 'div.kdtabhandle.credentials'
 listCredential         = '.kdview.stacks.stacks-v2'
 deletebutton           = "#{visibleStack} .custom-link-view.HomeAppView--button.danger"
-
+editNamebutton         = "#{visibleStack} .StackEditorView--header .edit-name"
 WelcomeView            = '.WelcomeStacksView'
 userstackLink          = "#{WelcomeView} ul.bullets li:nth-of-type(2)"
 destroySelector        = "#{menuSelector}:nth-of-type(4)"
@@ -89,6 +89,8 @@ module.exports =
     @gotoStackTemplate browser, ->
       browser
         .waitForElementVisible stackTemplateNameArea, 2000
+        .waitForElementVisible editNamebutton, 20000
+        .click editNamebutton
         .clearValue stackTemplateNameArea
         .pause 1000
         .setValue stackTemplateNameArea, 'NewStackName'
