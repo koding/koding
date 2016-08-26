@@ -181,6 +181,12 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 
 	totalCount := activeCount + deletedCount
 
+	// if the team is in trialing period, and when we want to charge them, do
+	// not include the deleted members
+	if subscription.Status == "trialing" {
+		totalCount = activeCount
+	}
+
 	usage := &Usage{
 		User: &UserInfo{
 			Total:   totalCount,
