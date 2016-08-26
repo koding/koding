@@ -3,11 +3,12 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"testing"
+
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
-	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stripe/stripe-go"

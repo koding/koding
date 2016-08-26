@@ -36,11 +36,11 @@ var stripeActions = map[string]StripeHandler{
 // GetHandler returns the registered handler for stripe webhooks if registered
 func GetHandler(name string) (StripeHandler, error) {
 	action, ok := stripeActions[name]
-	if ok {
-		return action, nil
+	if !ok {
+		return nil, errors.New("handler not found")
 	}
 
-	return nil, errors.New("handler not found")
+	return action, nil
 }
 
 func formatCurrency(currencyStr string, amount uint64) string {
