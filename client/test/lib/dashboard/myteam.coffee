@@ -3,15 +3,34 @@ helpers      = require '../helpers/helpers.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
 myteamhelper = require '../helpers/myteamhelpers.js'
 async        = require 'async'
+registeredUser = utils.getUser no, 9
+host           = utils.getUser no, 0
 
 module.exports =
 
   before: (browser, done) ->
+
     targetUser1 = utils.getUser no, 1
     targetUser1.role = 'member'
-    users = targetUser1
-    teamsHelpers.inviteAndJoinWithUsers browser, [users], (result) ->
-      done()
+    users = [
+      targetUser1
+    ]
+
+    queue = [
+      (next) ->
+        teamsHelpers.loginTeam browser, registeredUser, no, '', (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.logoutTeam browser, (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
+          next null, result
+
+    ]
+
+    async.series queue, (err, result) ->
+      done()  unless err
 
   teamSettings: (browser) ->
     member = utils.getUser no, 1
@@ -52,7 +71,7 @@ module.exports =
         myteamhelper.sendInviteAll browser, (result) ->
           next null, result
       (next) ->
-        myteamhelper.sendNewInviteFromResendModal browser, (result) ->
+        myteamhelper.sendInviteToRegisteredUser browser, (result) ->
           next null, result
       (next) ->
         myteamhelper.changeTeamName browser, (result) ->
@@ -60,6 +79,10 @@ module.exports =
       (next) ->
         myteamhelper.leaveTeam browser, (result) ->
           next null, result
+      (next) ->
+        myteamhelper.checkAdmin browser, (result) ->
+          next null, result
+
     ]
 
     async.series queue

@@ -124,5 +124,4 @@ module.exports =
     invitations = _.sortBy(_.sortBy(_.sortBy(invitations, 'firstName'), 'lastName'), 'email')
 
     index = invitations.indexOf host
-
     return { invitations, index }
