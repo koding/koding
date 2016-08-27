@@ -2,9 +2,10 @@ helpers           = require './helpers.js'
 utils = require '../utils/utils.js'
 panelSelector     = '.pane-wrapper .kdsplitview-panel.panel-1'
 tabHandleSelector = "#{panelSelector} .application-tab-handle-holder"
-
 activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active'
 filesTabSelector    = '.ide-files-tab .file-container'
+packageInstallerModal = '.kdmodal-inner'
+installPackageButton = '[testpath=proceed]'
 
 module.exports =
 
@@ -243,8 +244,6 @@ module.exports =
 
     configPath     = '/home/' + user.username + '/.config'
     name        = fileFolderName
-    packageInstallerModal = '.kdmodal-inner'
-    installPackageButton = '[testpath=proceed]'
 
     if type is 'folder'
       configPath   = '/home/' + user.username
@@ -270,6 +269,21 @@ module.exports =
       .pause                     2000
 
     # install zip package if it is not exist
+    browser.element 'css selector', packageInstallerModal, (result) =>
+      if result.status is 0
+        @installZipPackage browser, fileFolderSelector, submenuSelector, =>
+          browser.element 'css selector', packageInstallerModal, (result) =>
+            if result.status is 0
+              @installZipPackage browser, fileFolderSelector, submenuSelector, ->
+
+    @waitNewFile browser, newFile, fileFolderSelector, ->
+      callback()
+    # browser.waitForElementPresent newFile, 50000 # Assertion
+
+    # helpers.deleteFile browser, fileFolderSelector , ->
+    #   helpers.deleteFile browser, newFile, -> callback()
+
+  installZipPackage: (browser, fileFolderSelector, submenuSelector, done) ->
     browser.element 'css selector', packageInstallerModal, (result) ->
       if result.status is 0
         browser
@@ -284,12 +298,18 @@ module.exports =
           .click                     'li.compress'
           .waitForElementVisible     submenuSelector, 20000
           .click                     submenuSelector
-          .pause                     2000
-    browser
-      .waitForElementPresent     newFile, 20000 # Assertion
+          .pause                     2000, done
 
-    helpers.deleteFile browser, fileFolderSelector , ->
-      helpers.deleteFile browser, newFile, -> callback()
+  waitNewFile: (browser, newFile, fileFolderSelector, done) ->
+    browser.element 'css selector', newFile, (result) ->
+      if result.status is 0
+        browser.waitForElementPresent newFile, 20000
+        helpers.deleteFile browser, fileFolderSelector , ->
+          helpers.deleteFile browser, newFile, -> done
+      else 
+        @waitNewFile browser, newFile, done
+
+
 
   #Will be reimplement
   # dragDropFile: (browser, fileName) ->

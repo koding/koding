@@ -23,9 +23,9 @@ module.exports =
       (next) ->
         teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
           next null, result
-      (next) ->
-        teamsHelpers.buildStack browser, (res) ->
-          next null, res
+      # (next) ->
+      #   teamsHelpers.buildStack browser, (res) ->
+      #     next null, res
 
       # go to IDE url
       (next) ->
@@ -118,11 +118,11 @@ module.exports =
           ideHelpers.compressFileFolder browser, user, 'file', fileName, 'targz', -> next null
 
        # drag drop file
-      (next) ->
-        fileName = helpers.createFile browser, user, null, null, null, (res) ->
-          ideHelpers.dragDropFile browser, 'fileName', -> next null
+      # (next) ->
+      #   fileName = helpers.createFile browser, user, null, null, null, (res) ->
+      #     ideHelpers.dragDropFile browser, 'fileName', -> next null
     ]
 
     async.series queue
 
-  after: (browser) -> browser.end()
+  # after: (browser) -> browser.end()
