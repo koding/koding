@@ -23,13 +23,18 @@ if [[ "$CHANNEL" == "development" ]]; then
 	KONTROL_URL="https://sandbox.koding.com/kontrol/kite"
 fi
 
+TUNNEL_URL="http://t.koding.com/kite"
+if [[ "$CHANNEL" == "development" ]]; then
+	TUNNEL_URL="http://dev-t.koding.com/kite"
+fi
+
 if [[ -z "$VERSION" ]]; then
 	VERSION=$(curl -sSL https://koding-kd.s3.amazonaws.com/${CHANNEL}/latest-version.txt)
 	let VERSION++
 fi
 
 kd_build() {
-	go build -v -ldflags "-X koding/klientctl/config.Version=$VERSION -X koding/klientctl/config.SegmentKey=$KD_SEGMENTIO_KEY -X koding/klientctl/config.Environment=$CHANNEL -X koding/klientctl/config.KontrolURL=$KONTROL_URL" koding/klientctl
+	go build -v -ldflags "-X koding/klientctl/config.Version=$VERSION -X koding/klientctl/config.SegmentKey=$KD_SEGMENTIO_KEY -X koding/klientctl/config.Environment=$CHANNEL -X koding/klientctl/config.TunnelKiteAddress $TUNNEL_URL -X koding/klientctl/config.KontrolURL=$KONTROL_URL" koding/klientctl
 	mv "${REPO_PATH}/klientctl" "${REPO_PATH}/kd"
 }
 
