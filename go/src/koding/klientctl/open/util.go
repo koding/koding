@@ -25,7 +25,10 @@ func Mkfiles(paths []string, perm os.FileMode) (err error) {
 	for _, path := range paths {
 		if _, err := os.Stat(path); err != nil {
 			if os.IsNotExist(err) {
-				os.MkdirAll(filepath.Dir(path), perm)
+				if mkdirErr := os.MkdirAll(filepath.Dir(path), perm); mkdirErr != nil {
+					return mkdirErr
+				}
+
 				// The file doesn't exist, create it.
 				f, err := os.Create(path)
 				if err != nil {

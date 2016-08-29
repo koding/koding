@@ -99,10 +99,6 @@ func (c *Command) Run() (exit int, err error) {
 		}
 	}()
 
-	// if err := c.handleOptions(); err != nil {
-	// 	return 1, err
-	// }
-
 	if err := c.setupKlient(); err != nil {
 		return 1, err
 	}
