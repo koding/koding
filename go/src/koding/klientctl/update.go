@@ -328,11 +328,7 @@ func flagsFromContext(c *cli.Context) []string {
 // as would be returned by Context.String("flagName").
 func isStringZeroValue(s string) bool {
 	switch s {
-	case "":
-		return true
-	case "0":
-		return true
-	case "false":
+	case "", "0", "false":
 		return true
 	default:
 		return false
