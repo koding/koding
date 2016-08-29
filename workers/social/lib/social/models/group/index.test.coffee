@@ -130,6 +130,15 @@ runTests = -> describe 'workers.social.group.index', ->
                 next()
 
             (next) ->
+              # make sure we store kicked members in the deleted collection
+              JDeletedMember = require '../deletedmember'
+              query = { groupId: group.getId(), accountId: account.getId() }
+              JDeletedMember.one query, (err, deletedMember) ->
+                expect(err).to.not.exist
+                expect(deletedMember).to.exist
+                next()
+
+            (next) ->
               # we should be able to unblock the member
               options =
                 id: account.getId()
@@ -145,6 +154,65 @@ runTests = -> describe 'workers.social.group.index', ->
                 expect(err).to.not.exist
                 next()
 
+          ]
+
+          async.series queue, done
+
+  describe '#leave()', ->
+
+    describe 'when group slug is not koding', ->
+
+      group        = {}
+      groupSlug    = generateRandomString()
+      adminClient  = {}
+      adminAccount = {}
+
+      # before running test cases creating a group
+      before (done) ->
+
+        options = { createGroup : yes, context : { group : groupSlug } }
+        withConvertedUser options, (data) ->
+          { group, client : adminClient, account : adminAccount } = data
+          done()
+
+      it 'should be able leave the group', (done) ->
+
+        options = { context : { group : groupSlug } }
+        withConvertedUser options, ({ client, account, userFormData }) ->
+
+          queue = [
+            (next) ->
+              # expecting no error from kick member request
+              group.leave client, {}, (err) ->
+                expect(err).to.not.exist
+                next()
+
+            (next) ->
+              # admin client search for kicked member within group member
+              group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
+                expect(err).to.not.exist
+                expect(members.length).to.be.equal 0
+                next()
+
+            (next) ->
+              # expecting session to be deleted after kicking member
+              params =
+                username  : account.profile.nickname
+                groupName : client.context.group
+
+              JSession.one params, (err, data) ->
+                expect(err).to.not.exist
+                expect(data).to.not.exist
+                next()
+
+            (next) ->
+              # make sure we store left members in the deleted collection
+              JDeletedMember = require '../deletedmember'
+              query = { groupId: group.getId(), accountId: account.getId() }
+              JDeletedMember.one query, (err, deletedMember) ->
+                expect(err).to.not.exist
+                expect(deletedMember).to.exist
+                next()
           ]
 
           async.series queue, done
