@@ -265,7 +265,7 @@ func main() {
 					Name: "continue",
 					// TODO(leeola): Update to the latest cli package, and use the Hidden flag
 					// for this bool flag.
-					Usage: "An internal flag, not intended for use.",
+					Usage: "Internal use only.",
 				},
 			},
 		},
