@@ -10,7 +10,7 @@ teamLink          = "#{WelcomeView} ul.bullets li:nth-of-type(4)"
 installKDLink     = "#{WelcomeView} ul.bullets li:nth-of-type(5)"
 headerSelector    = '.HomeAppView--sectionHeader'
 stackEditor       = '.StackEditor-OnboardingModal'
-sendInvites      = '.HomeAppView--section.send-invites'
+teamSettings      = '.HomeAppView--section.send-invites'
 kodingUtilities   = '.HomeAppView--section.kd-cli'
 
 menuSelector      = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
@@ -23,6 +23,7 @@ pendingStack         = "#{WelcomeView} ul.bullets li:nth-of-type(1)"
 userstackLink        = "#{WelcomeView} ul.bullets li:nth-of-type(2)"
 memberInstallKDLink  = "#{WelcomeView} ul.bullets li:nth-of-type(5)"
 sidebar              = '#main-sidebar'
+closeModal = '.close-icon.closeModal'
 
 module.exports =
 
@@ -53,22 +54,15 @@ module.exports =
       .click installKDLink
       .waitForElementVisible kodingUtilities, 20000
       .click sidebar
+      .click closeModal
       .pause 1000, callback
 
 
   #Test Onboarding Screen for User
   onboardingScreenMember: (browser) ->
     targetUser1 = utils.getUser no, 1
-    teamsHelpers.loginToTeam browser, targetUser1 , no, ->
+    teamsHelpers.loginToTeam browser, targetUser1 , no, '', ->
       browser
         .pause 2000
         .waitForElementVisible WelcomeView, 20000
         .assert.containsText   pendingStack, 'Your Team Stack is Pending'
-        .waitForElementVisible WelcomeView, 20000
-        .click userstackLink
-        .waitForElementVisible stackEditor, 20000
-        .url  welcomeLink
-        .pause 2000
-        .waitForElementVisible WelcomeView, 20000
-        .click memberInstallKDLink
-        .waitForElementVisible kodingUtilities, 20000

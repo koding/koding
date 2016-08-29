@@ -27,13 +27,12 @@ module.exports = [
   #   { name: 'dashboard virtualmachines' }
       { name: 'dashboard myteam' }
   #   { name: 'dashboard credentials' }
-  #   { name: 'dashboard utilities' }
-  #   { name: 'dashboard onboarding' }
+      { name: 'dashboard utilities' }
+      { name: 'dashboard onboarding' }
   #   { name: 'dashboard sidebar' }
   #   { name: 'dashboard teambilling' }
-  ]
 
-  # [
+  ]
     # { name: 'teams teams' }
     # { name: 'unittests' }
   # ]

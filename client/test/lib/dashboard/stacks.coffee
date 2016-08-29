@@ -55,9 +55,9 @@ module.exports =
       (next) ->
         stackshelpers.seeDraftStackTemplates browser, (result) ->
           next null, result
-      (next) ->
-        stackshelpers.editStackTemplates browser, (result) ->
-          next null, result
+      # (next) ->
+      #   stackshelpers.editStackTemplates browser, (result) ->
+      #     next null, result
       (next) ->
         stackshelpers.defineCustomVariables browser, (result) ->
           next null, result
