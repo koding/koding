@@ -559,13 +559,14 @@ imports:
   - helpers
   - services
 - name: github.com/koding/kite
-  version: 5558a9e83796a95f2506a0378641f26788d613ea
+  version: c81a54521915fd3f4a8b9ee20d10bf2c158dc500
   subpackages:
   - config
   - dnode
   - kitectl
   - kitectl/command
   - kitekey
+  - kitetest
   - kontrol
   - kontrol/onceevery
   - kontrol/protocol

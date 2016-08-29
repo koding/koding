@@ -103,6 +103,7 @@ import:
   - dnode
   - kitekey
   - kitectl
+  - kitetest
   - kontrol
   - protocol
   - reverseproxy
