@@ -49,7 +49,7 @@ module.exports = [
   ]
 
   [
-  #   { name: 'ide search' }
+    { name: 'ide search' }
     { name: 'ide general' }
   ]
 
