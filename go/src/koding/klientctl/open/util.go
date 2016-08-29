@@ -21,29 +21,28 @@ func PreparePaths(paths []string) ([]string, error) {
 }
 
 // Like MkdirAll, Mkfiles creates any files as needed.
-func Mkfiles(paths []string, perm os.FileMode) (err error) {
+func Mkfiles(paths []string, perm os.FileMode) error {
 	for _, path := range paths {
-		if _, err := os.Stat(path); err != nil {
-			if os.IsNotExist(err) {
-				if mkdirErr := os.MkdirAll(filepath.Dir(path), perm); mkdirErr != nil {
-					return mkdirErr
-				}
-
-				// The file doesn't exist, create it.
-				f, err := os.Create(path)
-				if err != nil {
-					return err
-				}
-				f.Chmod(perm)
-				f.Close()
-			} else {
-				// If we don't know what to do with the error, it might be
-				// permissions/etc. Return it.
+		_, err := os.Stat(path)
+		if os.IsNotExist(err) {
+			if err := os.MkdirAll(filepath.Dir(path), perm); err != nil {
 				return err
 			}
+
+			// The file doesn't exist, create it.
+			f, err := os.Create(path)
+			if err != nil {
+				return err
+			}
+			f.Chmod(perm)
+			f.Close()
+		} else if err != nil {
+			// If we don't know what to do with the error, it might be
+			// permissions/etc. Return it.
+			return err
 		}
 	}
-	return
+	return nil
 }
 
 // Split a slice of paths into files and dirs.
