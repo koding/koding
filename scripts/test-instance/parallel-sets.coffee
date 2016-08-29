@@ -44,15 +44,14 @@ module.exports = [
     { name: 'ide folder' }
   ]
 
-  # [
-  #   # { name: 'ide workspace' }
-  #   { name: 'ide layout' }
-  # ]
+  [
+    { name: 'ide layout' }
+  ]
 
-  # [
+  [
   #   { name: 'ide search' }
-  #   { name: 'ide general' }
-  # ]
+    { name: 'ide general' }
+  ]
 
   # [
   #   { name: 'ide terminal' }
