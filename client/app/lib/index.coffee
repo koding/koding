@@ -1,16 +1,18 @@
 # Make sure none of these modules are calling remote#getInstance before this file. -og
-globals                = require 'globals'
-kookies                = require 'kookies'
-kd                     = require 'kd'
-socketConnected        = require './util/socketConnected'
-enableLogs             = require './util/enableLogs'
-ConnectionChecker      = require './connectionchecker'
-lazyrouter             = require './lazyrouter'
-setupAnalytics         = require './setupanalytics'
-setupChatlio           = require './setupchatlio'
-setupIntercom          = require './setupintercom'
-os                     = require 'os'
-localStorage           = require './localstorage'
+globals           = require 'globals'
+kookies           = require 'kookies'
+kd                = require 'kd'
+socketConnected   = require './util/socketConnected'
+enableLogs        = require './util/enableLogs'
+ConnectionChecker = require './connectionchecker'
+lazyrouter        = require './lazyrouter'
+setupAnalytics    = require './setupanalytics'
+setupChatlio      = require './setupchatlio'
+setupIntercom     = require './setupintercom'
+os                = require 'os'
+localStorage      = require './localstorage'
+i18n              = require 'i18next'
+i18nXHR           = require 'i18next-xhr-backend'
 
 isStarted = false
 
@@ -70,12 +72,10 @@ bootup = ->
   firstLoad = yes
 
   mainController.tempStorage = {}
+  mainController.ready -> setupChatlio()
 
   ConnectionChecker.listen()
 
-  mainController.ready ->
-    setupChatlio()
-    setupIntercom()
 
 
   ###
@@ -143,4 +143,19 @@ initialize = (defaults, next) ->
   logsEnabled = (kookies.get 'enableLogs') or not globals.config?.suppressLogs
   enableLogs logsEnabled
 
-  next()
+  # init localization
+  window.i18n = i18n
+  i18n
+    .use i18nXHR
+    .init
+      debug: globals.config.environment in [ 'dev', 'sandbox', 'latest' ]
+      lng: 'en'
+      ns: 'default'
+      fallbackLng: 'en'
+      defaultNS: 'default'
+      fallbackNS: 'default'
+      backend :
+        loadPath: '/-/i18n/{{lng}}/{{ns}}'
+        allowMultiLoading: no
+        crossDomain: no
+    , next

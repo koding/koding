@@ -19,6 +19,9 @@ asStream      = require 'as-stream'
 notifier      = require 'node-notifier'
 mkdirp        = require 'mkdirp'
 nub           = require 'nub'
+gulp          = require 'gulp'
+plumber       = require 'gulp-plumber'
+i18next       = require 'i18next-parser'
 spritesmith   = require 'gulp.spritesmith'
 chalk         = require 'chalk'
 chokidar      = require 'chokidar'
@@ -317,10 +320,9 @@ module.exports = class Haydar extends events.EventEmitter
     do bundle = ->
 
       b.bundle (err, src) ->
-        return handleError err  if err
 
-        unless src
-          return
+        return handleError err  if err
+        return  unless src
 
         if opts.extractJsSourcemaps
           writeJSSourcemaps src, outfile, opts.jsSourcemapsOutfile, { handleSuccess, handleError }
@@ -729,10 +731,35 @@ writeJS = (src, outfile, callbacks) ->
 
   start = Date.now()
 
-  fs.writeFile outfile, src, (err, res) ->
-    return callbacks.handleError err  if err
+  try
+    fs.writeFileSync outfile, src, 'utf8'
+  catch e
+    return callbacks.handleError err
 
-    secs = ((Date.now() - start) / 1000).toFixed 2
-    msg = "#{pretty(src.length)} written to #{outfile} (#{secs})"
-    callbacks.handleSuccess msg
+  secs = ((Date.now() - start) / 1000).toFixed 2
+  msg = "#{pretty(src.length)} written to #{outfile} (#{secs})"
+  callbacks.handleSuccess msg
 
+  updateLanguageFiles outfile
+
+
+updateLanguageFiles = (outfile) ->
+
+  # relative to compiled javascript file, i.e. bundle.js
+  relLocalesPath = '../../../i18n'
+
+  # absolute path of locale files
+  absLocalesPath = path.resolve __dirname, '../../website/a/i18n'
+
+  gulp.src outfile
+    .pipe plumber()
+    .pipe i18next
+      output: relLocalesPath
+      locales: [ 'en', 'tr' ]
+      functions: [ '__t', '_t' ]
+      namespace: 'default'
+      keySeparator: '..'
+      namespaceSeparator: '::'
+    .pipe gulp.dest absLocalesPath
+
+  console.log 'Language files updated'

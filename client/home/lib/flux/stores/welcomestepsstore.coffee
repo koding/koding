@@ -1,6 +1,7 @@
 actions = require '../actiontypes'
 toImmutable = require 'app/util/toImmutable'
 KodingFluxStore = require 'app/flux/base/store'
+__t = require('i18next').t
 
 module.exports = class WelcomeStepsStore extends KodingFluxStore
 
@@ -13,35 +14,35 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
       admin :
         stackCreation :
           path: '/Stack-Editor'
-          title: 'Create a Stack for Your Team'
-          actionTitle: 'Create'
-          miniTitle: 'Create a Stack'
-          description: 'Create a blueprint for your team’s entire infrastructure.'
+          title: __t 'Create a Stack for Your Team'
+          actionTitle: __t 'Create'
+          miniTitle: __t 'Create a Stack'
+          description: __t "Create a blueprint for your team's entire infrastructure"
           isDone: no
           order: 1
           skippable: no
         enterCredentials :
           path: '/Stack-Editor'
-          title: 'Enter your Credentials'
-          actionTitle: 'Enter'
+          title: __t 'Enter your Credentials'
+          actionTitle: __t 'Enter'
           videoLink: ''
-          miniTitle: 'Enter Credentials'
-          description: 'To set up your machines we need your cloud provider credentials.'
+          miniTitle: __t 'Enter Credentials'
+          description: __t 'To set up your machines we need your cloud provider credentials.'
           isDone: no
           order: 2
           skippable: no
         buildStack :
           path: '/IDE'
-          title: 'Build Your Stack'
-          actionTitle: 'Build'
+          title: __t 'Build Your Stack'
+          actionTitle: __t 'Build'
           videoLink: ''
-          description: 'To access your VMs you need to build your stack.'
+          description: __t 'To access your VMs you need to build your stack.'
           isDone: no
           order: 3
           skippable: no
         inviteTeam :
           path: '/Home/My-Team/send-invites'
-          title: 'Invite Your Team'
+          title: __t 'Invite Your Team'
           actionTitle: 'Invite'
           videoLink: ''
           # videoLink: '//www.koding.com/docs'
