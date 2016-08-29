@@ -53,9 +53,9 @@ module.exports = [
     { name: 'ide general' }
   ]
 
-  # [
-  #   { name: 'ide terminal' }
-  # ]
+  [
+    { name: 'ide terminal' }
+  ]
 
   # [
   #   { name: 'collaboration collaborationsingle'}

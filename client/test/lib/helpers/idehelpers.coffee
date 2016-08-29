@@ -6,13 +6,21 @@ activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.
 filesTabSelector    = '.ide-files-tab .file-container'
 packageInstallerModal = '.kdmodal-inner'
 installPackageButton = '[testpath=proceed]'
+successModal          = '.kdmodal-inner .kdmodal-content'
+closeButton           = '.ContentModal.kdmodal .kdmodal-inner .close-icon'
 
 module.exports =
-
 
   openNewFile: ( browser, callback = -> ) ->
 
     @closeAllTabs browser
+
+    browser.elements 'css selector', successModal, (result) ->
+      if result.value.length
+        browser
+          .waitForElementVisible '.ContentModal.content-modal header > h1', 20000
+          .waitForElementVisible closeButton,  20000
+          .click closeButton
 
     activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active .ace_content'
     plusSelector         = tabHandleSelector + ' .visible-tab-handle.plus'
@@ -37,7 +45,6 @@ module.exports =
     handleSelector = '.panel-1 .pane-wrapper .kdtabhandle.kddraggable'
     modalSelector  = '.autoremovepane-confirm'
 
-
     doClose = ->
       browser
         .moveToElement handleSelector, 5, 5
@@ -49,14 +56,9 @@ module.exports =
               .click   "#{modalSelector} .kdbutton.red"
               .pause   500
 
-
     close = ->
       browser.elements 'css selector', handleSelector, (result) ->
-        length = result.value.length
-
         if result.value.length isnt 0 then doClose()
-        if length - 1 > 0 then close()
-
 
     close()
 
@@ -71,7 +73,9 @@ module.exports =
       .moveToElement          optionsSelector, 8, 8
       .waitForElementVisible  optionsSelector, 20000
       .click                  optionsSelector
-      .waitForElementVisible  '.kdlistview-contextmenu', 20000, false, callback() # Assertion
+      .waitForElementVisible  '.kdlistview-contextmenu', 50000
+      .pause 2000, ->
+        callback() # Assertion
 
 
   createAndSaveNewFile: (browser, user, text, callback) ->
@@ -81,22 +85,15 @@ module.exports =
     saveAsInputSelector = "#{saveAsModalSelector} input[type=text]"
     newName             = helpers.getFakeText().split(' ')[0] + '.txt'
     titleSelector       = "div[title='/home/#{user.username}/#{newName}']"
-    saveButtonSelector  = "#{saveAsModalSelector} .kddialog-buttons .green span.button-title"
+    saveButtonSelector  = "#{saveAsModalSelector} .kdbutton.GenericButton.primary"
     text                ?= 'For example'
     closeSelector       = '.ContentModal.content-modal footer .kdbutton.cancel'
 
     @openNewFile(browser)
 
     if text
-      @setTextToEditor browser, 'For example'
+      @setTextToEditor browser, text
 
-    @closeFile browser, newName, user
-
-    browser
-      .waitForElementVisible closeSelector, 20000
-      .click closeSelector
-
-    @openNewFile(browser)
     @openContextMenu(browser)
 
     browser
@@ -110,7 +107,7 @@ module.exports =
       .click                  saveButtonSelector
       .waitForElementVisible  "#{tabHandleSelector} #{titleSelector}", 20000 # Assertion
       .waitForElementVisible  filesTabSelector, 20000
-      .waitForTextToContain   filesTabSelector, newName # Assertion
+      .assert.containsText    filesTabSelector, newName # Assertion
 
     browser.pause 10, -> callback()
 
@@ -190,7 +187,7 @@ module.exports =
       .click                  'li.open-file'
       .pause                  3000 # wait for tabHandle
       .waitForElementVisible  "#{tabHandleSelector} div[title='/home/#{user.username}/#{fileName}']", 20000 # Assertion
-      .waitForTextToContain   activeEditorSelector, text # Assertion
+      .assert.containsText    activeEditorSelector, text # Assertion
 
 
   openFileFromConfigFolder: ( browser, user, fileName, fileContent, callback = -> ) ->
@@ -306,10 +303,8 @@ module.exports =
         browser.waitForElementPresent newFile, 20000
         helpers.deleteFile browser, fileFolderSelector , ->
           helpers.deleteFile browser, newFile, -> done
-      else 
+      else
         @waitNewFile browser, newFile, done
-
-
 
   #Will be reimplement
   # dragDropFile: (browser, fileName) ->

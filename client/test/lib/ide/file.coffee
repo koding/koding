@@ -23,9 +23,9 @@ module.exports =
       (next) ->
         teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
           next null, result
-      # (next) ->
-      #   teamsHelpers.buildStack browser, (res) ->
-      #     next null, res
+      (next) ->
+        teamsHelpers.buildStack browser, (res) ->
+          next null, res
 
       # go to IDE url
       (next) ->
@@ -125,4 +125,4 @@ module.exports =
 
     async.series queue
 
-  # after: (browser) -> browser.end()
+  after: (browser) -> browser.end()
