@@ -10,7 +10,7 @@ teamLink          = "#{WelcomeView} ul.bullets li:nth-of-type(4)"
 installKDLink     = "#{WelcomeView} ul.bullets li:nth-of-type(5)"
 headerSelector    = '.HomeAppView--sectionHeader'
 stackEditor       = '.StackEditor-OnboardingModal'
-teamSettings      = '.HomeAppView--section.team-settings'
+sendInvites      = '.HomeAppView--section.send-invites'
 kodingUtilities   = '.HomeAppView--section.kd-cli'
 
 menuSelector      = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'
@@ -46,7 +46,7 @@ module.exports =
   openMyTeamScreen: (browser, callback) ->
     browser
       .click teamLink
-      .waitForElementVisible teamSettings, 20000, callback
+      .waitForElementVisible sendInvites, 20000, callback
 
   installKDLink: (browser, callback) ->
     browser
