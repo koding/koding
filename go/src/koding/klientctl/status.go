@@ -280,8 +280,7 @@ func (c *HealthChecker) CheckAllExceptRunning() (res string, ok bool) {
 	if err := c.LocalRequirements(); err != nil {
 		switch err.(type) {
 		// Ignore dialing or bad klient http responses for CheckAllExceptRunning.
-		case ErrHealthNoHTTPReponse:
-		case ErrHealthDialFailed:
+		case ErrHealthNoHTTPReponse, ErrHealthDialFailed:
 		default:
 			c.Log.Warning("CheckAllExceptRunning found local error: %s", err)
 			return c.errorToMessage(err), false
