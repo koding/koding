@@ -266,6 +266,12 @@ func main() {
 					Name:  "force",
 					Usage: "Updates kd & klient to latest available version.",
 				},
+				cli.BoolFlag{
+					Name: "continue",
+					// TODO(leeola): Update to the latest cli package, and use the Hidden flag
+					// for this bool flag.
+					Usage: "Internal use only.",
+				},
 			},
 		},
 		cli.Command{

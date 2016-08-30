@@ -627,18 +627,18 @@ module.exports =
         callback invitationUrl
 
 
-  logoutTeam: (browser, callback) ->
+  
+  
+   logoutTeam: (browser, callback) ->
 
     browser.element 'css selector', closeModal, (result) =>
       if result.status is 0
+        browser.waitForElementVisible closeModal, 30000
         browser.click closeModal
 
     browser
       .waitForElementVisible '#main-sidebar', 30000
       .waitForElementVisible '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 20000
-      .click '.Sidebar-logo-wrapper'
-      .click '#main-sidebar'
-      .moveToElement '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 0, 0
       .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 40000
       .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 20000
