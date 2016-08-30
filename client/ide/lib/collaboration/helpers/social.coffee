@@ -1,5 +1,5 @@
 kd                            = require 'kd'
-remote                        = require('app/remote').getInstance()
+remote                        = require 'app/remote'
 getNick                       = require 'app/util/nick'
 actionTypes                   = require 'app/flux/socialapi/actions/actiontypes'
 isTeamReactSide               = require 'app/util/isTeamReactSide'

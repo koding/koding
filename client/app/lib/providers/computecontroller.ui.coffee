@@ -10,7 +10,7 @@ KDCustomScrollView   = kd.CustomScrollView
 KDFormViewWithFields = kd.FormViewWithFields
 
 globals              = require 'globals'
-remote               = require('../remote').getInstance()
+remote               = require('../remote')
 
 isMine               = require 'app/util/isMine'
 showError            = require 'app/util/showError'

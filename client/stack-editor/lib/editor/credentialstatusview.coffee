@@ -1,7 +1,7 @@
 kd             = require 'kd'
 KDView         = kd.View
 JView          = require 'app/jview'
-remote         = require('app/remote').getInstance()
+remote         = require 'app/remote'
 curryIn        = require 'app/util/curryIn'
 
 

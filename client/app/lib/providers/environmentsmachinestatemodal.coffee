@@ -9,7 +9,7 @@ KDNotificationView      = kd.NotificationView
 KDHitEnterInputView     = kd.HitEnterInputView
 KDCustomScrollView      = kd.CustomScrollView
 
-remote                  = require('../remote').getInstance()
+remote                  = require('../remote')
 Machine                 = require './machine'
 ComputeHelpers          = require './computehelpers'
 ComputeController       = require './computecontroller'

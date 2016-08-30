@@ -1,4 +1,4 @@
-remote = require('app/remote').getInstance()
+remote = require 'app/remote'
 EnvironmentFlux = require 'app/flux/environment'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 

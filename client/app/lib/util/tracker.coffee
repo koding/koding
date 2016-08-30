@@ -1,6 +1,6 @@
 _       = require 'lodash'
 kd      = require 'kd'
-remote  = require('app/remote').getInstance()
+remote  = require 'app/remote'
 globals = require 'globals'
 
 defaults = require './tracking/defaults'

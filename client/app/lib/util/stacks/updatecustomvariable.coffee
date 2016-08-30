@@ -1,5 +1,5 @@
 kd     = require 'kd'
-remote = require('app/remote').getInstance()
+remote = require 'app/remote'
 
 shareWithGroup = (credential, callback) ->
 

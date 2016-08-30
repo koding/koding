@@ -1,6 +1,6 @@
 kd         = require 'kd'
 IDEHelpers = require 'ide/idehelpers'
-remote     = require('app/remote').getInstance()
+remote     = require 'app/remote'
 showError  = require 'app/util/showError'
 
 module.exports = class StackAdminMessageController extends kd.Controller

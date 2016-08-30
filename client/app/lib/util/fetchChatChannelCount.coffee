@@ -1,4 +1,4 @@
-remote           = require('app/remote').getInstance()
+remote           = require 'app/remote'
 isFeatureEnabled = require 'app/util/isFeatureEnabled'
 
 module.exports = fetchPrivateMessageCount = (options, callback) ->

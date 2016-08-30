@@ -1,7 +1,7 @@
 kd                   = require 'kd'
 KDDelimitedInputView = kd.DelimitedInputView
 KDFormViewWithFields = kd.FormViewWithFields
-remote               = require('app/remote').getInstance()
+remote               = require 'app/remote'
 
 
 module.exports = class GroupPackEditForm extends KDFormViewWithFields

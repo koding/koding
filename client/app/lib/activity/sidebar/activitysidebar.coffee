@@ -1,6 +1,6 @@
 kd                              = require 'kd'
 whoami                          = require '../../util/whoami'
-remote                          = require('../../remote').getInstance()
+remote                          = require('../../remote')
 isKoding                        = require 'app/util/isKoding'
 showError                       = require '../../util/showError'
 groupifyLink                    = require '../../util/groupifyLink'

@@ -30,7 +30,7 @@ bootup = ->
   # `remote` must be initialized after globals is set and ready
   # `MainController` & `Status` have some self-invoking methods
   # that depend on `remote`, and here we are. -og
-  remote = require('./remote').getInstance()
+  remote = require('./remote')
   # it is very important that you invoke this method before anything else does, so f important.
 
   globals.os = os # linux, mac or windows

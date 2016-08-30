@@ -15,7 +15,7 @@ MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemvi
 
 KodingListController        = require 'app/kodinglist/kodinglistcontroller'
 
-remote                      = require('app/remote').getInstance()
+remote                      = require 'app/remote'
 globals                     = require 'globals'
 showError                   = require 'app/util/showError'
 Tracker                     = require 'app/util/tracker'

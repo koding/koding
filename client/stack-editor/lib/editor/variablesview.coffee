@@ -1,6 +1,6 @@
 kd                         = require 'kd'
 _                          = require 'lodash'
-remote                     = require('app/remote').getInstance()
+remote                     = require 'app/remote'
 requirementsParser         = require 'app/util/stacks/requirementsparser'
 { yamlToJson, jsonToYaml } = require 'app/util/stacks/yamlutils'
 

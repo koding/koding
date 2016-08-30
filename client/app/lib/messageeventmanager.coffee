@@ -1,4 +1,4 @@
-remote = require('./remote').getInstance()
+remote = require('./remote')
 getMessageOwner = require './util/getMessageOwner'
 filterTrollActivity = require './util/filterTrollActivity'
 whoami = require './util/whoami'

@@ -1,6 +1,6 @@
 globals              = require 'globals'
 kd                   = require 'kd'
-remote               = require('./remote').getInstance()
+remote               = require('./remote')
 showError            = require './util/showError'
 KodingAppsController = require './kodingappscontroller'
 HomeGetters          = require 'home/flux/getters'

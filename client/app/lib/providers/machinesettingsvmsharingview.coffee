@@ -1,7 +1,7 @@
 _                                = require 'lodash'
 kd                               = require 'kd'
 nick                             = require 'app/util/nick'
-remote                           = require('app/remote').getInstance()
+remote                           = require 'app/remote'
 KDView                           = kd.View
 Machine                          = require 'app/providers/machine'
 isKoding                         = require 'app/util/isKoding'

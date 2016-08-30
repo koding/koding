@@ -1,7 +1,7 @@
 kd             = require 'kd'
 KDRouter       = kd.Router
 
-remote         = require('./remote').getInstance()
+remote         = require('./remote')
 globals        = require 'globals'
 
 lazyrouter     = require './lazyrouter'
