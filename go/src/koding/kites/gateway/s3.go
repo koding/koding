@@ -29,6 +29,7 @@ var (
 			Effect: "Allow",
 			Action: []string{
 				"s3:PutObject",
+				"s3:PutObjectAcl",
 			},
 			Resource: []string{
 				"arn:aws:s3:::%[1]s/%[2]s",
@@ -43,7 +44,7 @@ var (
 			Effect: "Allow",
 			Action: []string{
 				"s3:PutObject",
-				"s3:PutObjectAcl", // TODO(rjeczalik): no idea why this is required, since credentials does not have such policy so setting this should be a nop
+				"s3:PutObjectAcl",
 			},
 			Resource: []string{
 				"arn:aws:s3:::%[1]s/%[2]s",
@@ -77,15 +78,19 @@ func NewUserBucket(cfg *Config) *UserBucket {
 
 // Put
 func (ub *UserBucket) Put(key string, rs io.ReadSeeker) error {
+	return ub.userPut(ub.cfg.username()+"/"+key, rs)
+}
+
+func (ub *UserBucket) userPut(path string, rs io.ReadSeeker) error {
 	type lener interface {
 		Len() int
 	}
 
 	input := &s3.PutObjectInput{
-		ACL:    aws.String("authenticated-read"),
+		ACL:    aws.String("bucket-owner-full-control"),
 		Body:   rs,
 		Bucket: &ub.cfg.Bucket,
-		Key:    aws.String(ub.cfg.username() + "/" + key),
+		Key:    &path,
 	}
 
 	if l, ok := rs.(lener); ok {
