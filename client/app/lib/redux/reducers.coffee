@@ -4,9 +4,9 @@ _ = require 'lodash'
 exports.make = make = (reducers = {}) ->
 
   customReducers =
-    creditCard: require './modules/creditcard'
     invoices: require './modules/invoices'
     stripe: require './modules/stripe'
+    creditCard: require './modules/payment/creditcard'
     subscription: require './modules/payment/subscription'
     customer: require './modules/payment/customer'
 
