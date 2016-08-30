@@ -8,8 +8,8 @@ module.exports = (initialState = {}) ->
 
   middlewares = [
     require('./middleware/bongo')(remote)
-    require('./middleware/payment')(kd.singletons.paymentController)
     require('./middleware/stripe')
+    require('./middleware/payment')(require './services/payment')
     require('./middleware/promise')
   ]
 
