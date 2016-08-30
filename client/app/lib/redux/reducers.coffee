@@ -5,6 +5,7 @@ exports.make = make = (reducers = {}) ->
 
   customReducers = {
     stripe: require './modules/stripe'
+    customer: require './modules/payment/customer'
   }
 
   reducers = _.assign {}, customReducers, reducers
