@@ -74,6 +74,7 @@ website/a/out
 website/a/p
 
 client/.sprites
+client/.tmp
 client/node_modules
 client/.config.json
 client/.schema.json
