@@ -1,16 +1,15 @@
 require('coffee-script/register')
 var path = require('path')
+// polyfill path.parse for node v0.10
+path.parse = require('path-parse')
+
 var clientConfig = require('../webpack.config')
-
 var CLIENT_PATH = path.resolve(__dirname, '..')
-
-console.log('conf', clientConfig)
 
 var isStyleLoader = function(loaderConfig) {
   if (!Array.isArray(loaderConfig.loaders)) return false
 
   return loaderConfig.loaders.reduce(function(res, loader) {
-    console.log('loader', loader)
     return res || /css/.test(loader)
   }, false)
 }
@@ -20,6 +19,4 @@ module.exports = {
     loaders: clientConfig.module.loaders.filter(isStyleLoader)
   }
 }
-
-console.log(module.exports.module.loaders)
 
