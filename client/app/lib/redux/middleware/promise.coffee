@@ -1,4 +1,4 @@
-_ = require 'lodash'
+{ assign, omit } = require 'lodash'
 
 module.exports = promiseMiddleware = (store) -> (next) -> (action) ->
 
@@ -11,12 +11,13 @@ module.exports = promiseMiddleware = (store) -> (next) -> (action) ->
 
   [BEGIN, SUCCESS, FAIL] = types
 
-  action = _.omit action, ['promise', 'types']
+  action = omit action, ['promise', 'types']
 
-  next _.assign {}, action, { type: BEGIN }
-  return promise().then(
-    (result) -> next _.assign {}, action, { result, type: SUCCESS }
-    (error) -> next _.assign {}, action, { error, type: FAIL }
-  ).catch (error) -> next _.assign {}, action, { error, type: FAIL }
+  begin = -> next(assign {}, action, { type: BEGIN })
+  success = (result) -> next(assign {}, action, { result, type: SUCCESS })
+  fail = (error) -> next(assign {}, action, { error, type: FAIL })
+
+  begin()
+  return promise().then(success, fail).catch(fail)
 
 
