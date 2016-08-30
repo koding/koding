@@ -7,7 +7,7 @@ exports.make = make = (reducers = {}) ->
     creditCard: require './modules/creditcard'
     invoices: require './modules/invoices'
     stripe: require './modules/stripe'
-    subscription: require './modules/subscription'
+    subscription: require './modules/payment/subscription'
     customer: require './modules/payment/customer'
 
   reducers = _.assign {}, customReducers, reducers
