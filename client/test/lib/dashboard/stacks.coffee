@@ -24,18 +24,18 @@ module.exports =
       (next) ->
         teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
           next null, result
-      # (next) ->
-      #   teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
-      #     next null, res
-      # (next) ->
-      #   teamsHelpers.createDefaultStackTemplate browser, (res) ->
-      #     next null, res
-      # (next) ->
-      #   teamsHelpers.buildStack browser, (res) ->
-      #     next null, res
-      # (next) ->
-      #   teamsHelpers.createPrivateStack browser, (res) ->
-      #     next null, res
+      (next) ->
+        teamsHelpers.createCredential browser, 'aws', 'test credential', no, (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.createDefaultStackTemplate browser, (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.buildStack browser, (res) ->
+          next null, res
+      (next) ->
+        teamsHelpers.createPrivateStack browser, (res) ->
+          next null, res
     ]
 
     async.series queue, (err, result) ->
@@ -55,9 +55,9 @@ module.exports =
       (next) ->
         stackshelpers.seeDraftStackTemplates browser, (result) ->
           next null, result
-      # (next) ->
-      #   stackshelpers.editStackTemplates browser, (result) ->
-      #     next null, result
+      (next) ->
+        stackshelpers.editStackTemplates browser, (result) ->
+          next null, result
       (next) ->
         stackshelpers.defineCustomVariables browser, (result) ->
           next null, result
@@ -88,15 +88,6 @@ module.exports =
       (next) ->
         stackshelpers.createAndMakeStackTeamDefault browser, (result) ->
           next null, result
-      # (next) ->
-      #   teamsHelpers.logoutTeamfromUrl browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   stackshelpers.createPrivateStackAsMember browser, (result) ->
-      #     next null, result
-      # (next) ->
-      #   stackshelpers.checkDraftsAsMember browser, (result) ->
-      #     next null, result
 
     ]
 

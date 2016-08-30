@@ -117,7 +117,7 @@ module.exports =
         fileName = helpers.createFile browser, user, null, null, null, (res) ->
           ideHelpers.compressFileFolder browser, user, 'file', fileName, 'targz', -> next null
 
-       # drag drop file
+       # drag drop file will be implemented
       # (next) ->
       #   fileName = helpers.createFile browser, user, null, null, null, (res) ->
       #     ideHelpers.dragDropFile browser, 'fileName', -> next null

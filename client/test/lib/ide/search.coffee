@@ -156,7 +156,6 @@ module.exports =
           ideHelpers.saveFile(browser)
           ideHelpers.closeFile(browser, fileName, user)
           ideHelpers.openAnExistingFile(browser, user, fileName, text)
-          console.log('sadad')
           browser
             .waitForTextToContain activeEditorSelector, text # Assertion
             .pause 1, -> next null
