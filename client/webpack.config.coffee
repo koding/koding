@@ -202,7 +202,7 @@ webpackConfig.plugins = [
 # development environment specific plugins.
 if __DEV__
   webpackConfig.plugins.push(
-    new WebpackNotifierPlugin { title: 'Koding Frontend' }
+    new WebpackNotifierPlugin { title: 'Koding Frontend', alwaysNotify: yes }
   )
 # prod environment specific plugins.
 else if __PROD__
