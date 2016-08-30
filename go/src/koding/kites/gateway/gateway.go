@@ -183,7 +183,7 @@ func (s *Server) Auth(r *kite.Request) (interface{}, error) {
 	token := &sts.GetFederationTokenInput{
 		Name:            &req.User,
 		DurationSeconds: aws.Int64(int64(s.expire() / time.Second)),
-		Policy:          aws.String(policy),
+		Policy:          &policy,
 	}
 
 	resp, err := s.sts.GetFederationToken(token)
@@ -199,6 +199,8 @@ func (s *Server) Auth(r *kite.Request) (interface{}, error) {
 		Bucket: &s.cfg.Bucket,
 		Policy: aws.String(policy),
 	}
+
+	s.cfg.log().Debug("PutBucketPolicy()=%+v", bucket)
 
 	_, err = s.s3.PutBucketPolicy(bucket)
 	if err != nil {
