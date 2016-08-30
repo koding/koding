@@ -47,6 +47,7 @@
     "moment": "2.10.6",
     "ndpane": "0.1.2",
     "node-uuid": "1.4.2",
+    "normalizr": "2.2.1",
     "nuclear-js": "1.1.0",
     "nuclear-module": "0.5.1",
     "perfect-scrollbar": "0.6.7",
