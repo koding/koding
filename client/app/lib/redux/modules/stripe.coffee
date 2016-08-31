@@ -1,55 +1,40 @@
-{ isEmail } = require 'validator'
-
+_ = require 'lodash'
 immutable = require 'app/util/immutable'
 
-CREATE_TOKEN_BEGIN = 'koding/stripe/CREATE_TOKEN_BEGIN'
-CREATE_TOKEN_SUCCESS = 'koding/stripe/CREATE_TOKEN_SUCCESS'
-CREATE_TOKEN_FAIL = 'koding/stripe/CREATE_TOKEN_FAIL'
+{ makeNamespace, expandActionType,
+  normalize, defineSchema } = require 'app/redux/helper'
 
-initialState = immutable { token: null, errors: null }
+withNamespace = makeNamespace 'koding', 'stripe'
 
-module.exports = reducer = (state = initialState, action = {}) ->
+CREATE_TOKEN = expandActionType withNamespace 'CREATE_TOKEN'
+
+initialState = immutable { errors: null }
+
+reducer = (state = initialState, action = {}) ->
 
   switch action.type
-    when CREATE_TOKEN_SUCCESS
-      state
-        .set 'token', action.result
-        .set 'errors', null
-    when CREATE_TOKEN_FAIL
+    when CREATE_TOKEN.BEGIN, CREATE_TOKEN.SUCCESS
+      return state.set 'errors', null
+
+    when CREATE_TOKEN.FAIL
       { error } = action
-      error = [error]  unless Array.isArray error
-      state.set 'errors', immutable errors
-    else state
+      errors = if Array.isArray(error) then error else [error]
+      return state.set 'errors', errors
+
+    else
+      return state
 
 
-exports.createToken = createToken = (options) ->
-
-  types: [CREATE_TOKEN_BEGIN, CREATE_TOKEN_SUCCESS, CREATE_TOKEN_FAIL]
-  stripe: (Stripe) -> new Promise (resolve, reject) ->
-    return reject errors  if errors = getErrors Stripe, options
-    Stripe.card.createToken options, (status, response) ->
-      return reject error  if error = response.error
-      resolve response.id
+createToken = (options) ->
+  return {
+    types: [CREATE_TOKEN.BEGIN, CREATE_TOKEN.SUCCESS, CREATE_TOKEN.FAIL]
+    stripe: (service) -> service.createToken options
+  }
 
 
-exports.token = (state) -> state.stripe.token
-
-
-exports.errors = (state) -> state.stripe.errors
-
-
-getErrors = (Stripe, options) ->
-
-  validators =
-    number: Stripe.card.validateCardNumber
-    cvc: Stripe.card.validateCVC
-    exp_month: (val) -> 0 < Number(val) < 13
-    exp_year: (val) -> val.length in [2, 4]
-    email: isEmail
-
-  errors = []
-  for key, isValid of validators when not isValid options[key]
-    errors.push { param: key }
-
-  return errors
-
+module.exports = _.assign reducer, {
+  namespace: withNamespace()
+  reducer
+  createToken
+  CREATE_TOKEN
+}
