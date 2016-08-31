@@ -89,7 +89,8 @@
     "c-lab": "npm run c-lab:server",
     "build:dev": "NODE_ENV=development webpack --config webpack.config.coffee",
     "build:prod": "NODE_ENV=production webpack --config webpack.config.coffee --bail",
-    "watch:dev": "NODE_ENV=development webpack --config webpack.config.coffee --colors --debug --watch"
+    "watch:dev": "NODE_ENV=development webpack --config webpack.config.coffee --colors --debug --watch",
+    "test:redux": "mocha-webpack --webpack-config webpack.config.test.js 'app/lib/redux/**/*.test.coffee'"
   },
   "browser": {
     "kd": "kd.js",
