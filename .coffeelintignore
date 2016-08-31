@@ -66,3 +66,5 @@ client/home/lib/welcome/components/welcomesteps/view.coffee
 client/home/lib/welcome/homewelcomesteps.coffee
 
 client/app/lib/shortcuts/accounteditshortcutsrow.coffee
+
+client/component-lab/
