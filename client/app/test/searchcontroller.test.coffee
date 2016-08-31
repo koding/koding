@@ -2,7 +2,7 @@ kd      = require 'kd'
 mock    = require '../../mocks/mockingjay'
 nick    = require 'app/util/nick'
 expect  = require 'expect'
-remote  = require('app/remote').getInstance()
+remote  = require 'app/remote'
 
 SearchController   = require 'app/searchcontroller'
 { mainController } = kd.singletons

@@ -15,6 +15,7 @@
     "/Unsubscribe/:email/:opt?": "unsubscribe",
     "/:name": "name",
     "/Reset/:token": "reset",
+    "/Shortcuts": "shortcuts",
     "/Machines/:uid/:state?": "machine-settings",
     "/My-Machines/:stackId?": "my-machines",
     "/Collaboration/:nickname/:channelId": "request-collaboration"

@@ -1,6 +1,6 @@
 kd                          = require 'kd'
 async                       = require 'async'
-remote                      = require('app/remote').getInstance()
+remote                      = require 'app/remote'
 whoami                      = require 'app/util/whoami'
 Tracker                     = require 'app/util/tracker'
 getGroup                    = require 'app/util/getGroup'

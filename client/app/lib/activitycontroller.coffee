@@ -1,4 +1,4 @@
-remote                = require('./remote').getInstance()
+remote                = require('./remote')
 whoami                = require './util/whoami'
 showErrorNotification = require './util/showErrorNotification'
 showNotification      = require './util/showNotification'

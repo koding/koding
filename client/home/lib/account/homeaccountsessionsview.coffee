@@ -1,5 +1,5 @@
 kd                     = require 'kd'
-AccountSessionListItem = require 'account/accountsessionlistitem'
+AccountSessionListItem = require 'app/views/sessionlist/accountsessionlistitem'
 KodingListController   = require 'app/kodinglist/kodinglistcontroller'
 kookies                = require 'kookies'
 whoami                 = require 'app/util/whoami'

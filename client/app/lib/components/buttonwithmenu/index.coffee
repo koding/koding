@@ -4,6 +4,8 @@ ReactDOM = require 'react-dom'
 Portal   = require('react-portal').default
 $        = require 'jquery'
 
+require './styl/buttonwithmenu.styl'
+
 
 module.exports = class ButtonWithMenu extends React.Component
 

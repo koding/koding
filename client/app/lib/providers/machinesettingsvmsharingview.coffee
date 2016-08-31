@@ -1,7 +1,7 @@
 _                                = require 'lodash'
 kd                               = require 'kd'
 nick                             = require 'app/util/nick'
-remote                           = require('app/remote').getInstance()
+remote                           = require 'app/remote'
 KDView                           = kd.View
 Machine                          = require 'app/providers/machine'
 isKoding                         = require 'app/util/isKoding'
@@ -10,7 +10,7 @@ KDCustomHTMLView                 = kd.CustomHTMLView
 ComputeErrorUsageModal           = require './computeerrorusagemodal'
 KDAutoCompleteController         = kd.AutoCompleteController
 MachineSettingsCommonView        = require './machinesettingscommonview'
-ActivityAutoCompleteUserItemView = require 'activity/views/activityautocompleteuseritemview'
+ActivityAutoCompleteUserItemView = require 'app/activity/activityautocompleteuseritemview'
 Tracker                          = require 'app/util/tracker'
 
 

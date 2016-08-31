@@ -1,6 +1,0 @@
-require './mostreadarticleswidget'
-require './postingguidelineswidget'
-require './mostactivechannelswidget'
-require './socialmediawidget'
-require './activityannouncementwidget'
-require './mostactivechannellistitem'

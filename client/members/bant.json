@@ -1,7 +1,0 @@
-{
-  "name": "members",
-  "main": "./lib/index.coffee",
-  "styles": [
-    "./lib/styl/*.styl"
-  ]
-}
