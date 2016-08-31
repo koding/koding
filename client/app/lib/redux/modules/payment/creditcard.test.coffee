@@ -65,7 +65,7 @@ describe 'redux/modules/creditcard#reducer', ->
 
 describe 'redux/modules/creditcard#actions', ->
 
-  {Endpoints} = paymentService = require 'app/redux/services/payment'
+  { Endpoints } = paymentService = require 'app/redux/services/payment'
 
   mockStore = configureStore [
     require('app/redux/middleware/payment')(require 'app/redux/services/payment')

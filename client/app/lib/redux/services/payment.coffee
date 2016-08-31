@@ -4,16 +4,16 @@ makeHttpClient = require 'app/util/makeHttpClient'
 exports.client = client = makeHttpClient { baseURL: '/api/social/payment' }
 
 exports.Endpoints = Endpoints =
-  SubscriptionDelete : "/subscription/delete"
-  SubscriptionGet    : "/subscription/get"
-  SubscriptionCreate : "/subscription/create"
-  CustomerCreate     : "/customer/create"
-  CustomerGet        : "/customer/get"
-  CustomerUpdate     : "/customer/update"
-  CustomerDelete     : "/customer/delete"
-  CreditCardDelete   : "/creditcard/delete"
-  InvoiceList        : "/invoice/list"
-  Info               : "/info"
+  SubscriptionDelete : '/subscription/delete'
+  SubscriptionGet    : '/subscription/get'
+  SubscriptionCreate : '/subscription/create'
+  CustomerCreate     : '/customer/create'
+  CustomerGet        : '/customer/get'
+  CustomerUpdate     : '/customer/update'
+  CustomerDelete     : '/customer/delete'
+  CreditCardDelete   : '/creditcard/delete'
+  InvoiceList        : '/invoice/list'
+  Info               : '/info'
 
 
 # fetchCustomer: fetches current group's payment customer.

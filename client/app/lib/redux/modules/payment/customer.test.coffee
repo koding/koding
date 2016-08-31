@@ -2,7 +2,7 @@ expect = require 'expect'
 configureStore = require 'redux-mock-store'
 
 fixtures = require 'app/redux/services/fixtures/payment'
-{reducer} = customer = require './customer'
+{ reducer } = customer = require './customer'
 
 describe 'redux/modules/customer#reducer', ->
 
@@ -74,7 +74,7 @@ describe 'redux/modules/customer#reducer', ->
 
 describe 'redux/modules/customer#actions', ->
 
-  {Endpoints} = paymentService = require 'app/redux/services/payment'
+  { Endpoints } = paymentService = require 'app/redux/services/payment'
   mockStore = configureStore [
     require('app/redux/middleware/payment')(require 'app/redux/services/payment')
     require('app/redux/middleware/promise')
