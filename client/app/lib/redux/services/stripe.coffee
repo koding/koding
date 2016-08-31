@@ -1,6 +1,7 @@
 appendHeadElement = require 'app/util/appendHeadElement'
 { isEmail } = require 'validator'
 cardValidator = require 'card-validator'
+stripeFixtures = require 'app/redux/services/fixtures/stripe'
 
 STRIPE_API_URL = 'https://js.stripe.com/v2/'
 
@@ -31,9 +32,17 @@ exports.createToken = createToken = (options) ->
   return ensureClient().then(success)
 
 
+validateErrorResponses =
+  number: stripeFixtures.createTokenError.number
+  cvc: stripeFixtures.createTokenError.cvc
+  exp_year: stripeFixtures.createTokenError.year
+  exp_month: stripeFixtures.createTokenError.month
+  email: stripeFixtures.createTokenError.email
+
+
 validateOptions = (options) ->
 
-  { pickBy, mapValues, map } = _
+  { pickBy, map } = _
 
   { card: { isAmex } } = cardValidator.number options.number
 
@@ -46,7 +55,7 @@ validateOptions = (options) ->
   errorMap = pickBy validators, (validator, key) -> validator options[key]
   # return a list with an item of { param: key } where key is one of the keys
   # with errors.
-  return map errorMap, (error, key) -> { param: key }
+  return map errorMap, (error, key) -> validateErrorResponses[key]
 
 
 makeValidators = (isAmex) ->
