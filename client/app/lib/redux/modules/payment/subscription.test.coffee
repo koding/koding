@@ -81,7 +81,7 @@ describe 'redux/modules/subscription#reducer', ->
 
 describe 'redux/modules/subscription#actions', ->
 
-  {Endpoints} = paymentService = require 'app/redux/services/payment'
+  { Endpoints } = paymentService = require 'app/redux/services/payment'
 
   # SubscriptionDelete : "/subscription/delete"
   # SubscriptionGet    : "/subscription/get"
