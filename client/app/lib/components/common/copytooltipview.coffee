@@ -2,6 +2,8 @@ kd              = require 'kd'
 KDView          = kd.View
 getCopyShortcut = require 'app/util/getCopyShortcut'
 
+require './styl/copytooltipview.styl'
+
 
 module.exports = class CopyTooltipView extends KDView
 

@@ -1,7 +1,0 @@
-{
-  "name": "legal",
-  "main": "./lib/index.coffee",
-  "styles": [
-    "./lib/styl/*.styl"
-  ]
-}

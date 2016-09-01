@@ -1,4 +1,4 @@
-remote                = require('../remote').getInstance()
+remote                = require('../remote')
 kd                    = require 'kd'
 KDListView            = kd.ListView
 KDModalView           = kd.ModalView

@@ -238,7 +238,7 @@ module.exports =
     return fileName
 
 
-  createFolder: ( browser, user, callback = -> ) ->
+  createFolder: ( browser, user, callback ) ->
 
     folderName     = @getFakeText().split(' ')[0]
     folderPath     = '/home/' + user.username + '/' + folderName
@@ -262,7 +262,7 @@ module.exports =
       .pause                   3000 # wait for
       .setValue                'li.selected .rename-container .hitenterview', folderName + '\n'
       .pause                   3000 # required
-      .waitForElementPresent   folderSelector, 50000, false, callback() # Assertion
+      .waitForElementPresent   folderSelector, 50000, false # Assertion
 
     data = {
       name: folderName
@@ -270,7 +270,7 @@ module.exports =
       selector: folderSelector
     }
 
-    return data
+    callback data
 
 
   deleteFile: ( browser, fileSelector, callback = -> ) ->
@@ -511,7 +511,7 @@ module.exports =
     passwordSelector          = 'input[name=password]'
     confirmPasswordSelector   = 'input[name=confirmPassword]'
     currentPasswordSelector   = 'input[name=currentPassword]'
-    saveButtonSelector        = '.my-account .HomeAppView--section.password .HomeAppView--form a'
+    saveButtonSelector        = '.my-account .HomeAppView--section.password .button-wrapper button.update-button'
 
     browser
       .waitForElementVisible   passwordSelector, 20000

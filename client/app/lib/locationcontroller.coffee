@@ -1,5 +1,5 @@
 kookies = require 'kookies'
-remote = require('./remote').getInstance()
+remote = require('./remote')
 showError = require './util/showError'
 kd = require 'kd'
 KDController = kd.Controller

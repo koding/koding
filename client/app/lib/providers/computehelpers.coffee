@@ -4,7 +4,7 @@ KDNotificationView     = kd.NotificationView
 globals                = require 'globals'
 Promise                = require 'bluebird'
 
-remote                 = require('app/remote').getInstance()
+remote                 = require 'app/remote'
 nick                   = require 'app/util/nick'
 showError              = require 'app/util/showError'
 
@@ -193,7 +193,7 @@ module.exports = class ComputeHelpers
     provisioner = machine.provisioners?.first
     return callback null  unless provisioner
 
-    remote = require('app/remote').getInstance()
+    remote = require 'app/remote'
     remote.api.JProvisioner.one { slug: provisioner }, callback
 
 

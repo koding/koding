@@ -1,6 +1,8 @@
 kd    = require 'kd'
 React = require 'kd-react'
 
+require './styl/tooltip.styl'
+
 module.exports = class Tooltip extends React.Component
 
 

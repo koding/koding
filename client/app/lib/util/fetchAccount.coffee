@@ -1,4 +1,4 @@
-remote = require('app/remote').getInstance()
+remote = require 'app/remote'
 
 ###*
  * Wrapper function around `JAccount#cacheable`
