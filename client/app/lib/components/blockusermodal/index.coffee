@@ -3,6 +3,8 @@ React         = require 'kd-react'
 AppFlux       = require 'app/flux'
 ActivityModal = require 'app/components/activitymodal'
 
+require './styl/blockuser.styl'
+
 
 module.exports = class BlockUserModal extends React.Component
 

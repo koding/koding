@@ -3,7 +3,7 @@ KDController                   = kd.Controller
 KDNotificationView             = kd.NotificationView
 kookies                        = require 'kookies'
 globals                        = require 'globals'
-remote                         = require('./remote').getInstance()
+remote                         = require('./remote')
 checkGuestUser                 = require './util/checkGuestUser'
 getGroup                       = require './util/getGroup'
 setPreferredDomain             = require './util/setPreferredDomain'
@@ -46,7 +46,7 @@ KodingFluxReactor              = require './flux/base/reactor'
 DesktopNotificationsController = require './desktopnotificationscontroller'
 bowser                         = require 'bowser'
 fetchChatlioKey                = require 'app/util/fetchChatlioKey'
-
+createStore = require './redux/createStore'
 
 module.exports = class MainController extends KDController
 
@@ -112,6 +112,7 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'onboarding',                new OnboardingController
     kd.registerSingleton 'machineShareManager',       new MachineShareManager
     kd.registerSingleton 'reactor',                   new KodingFluxReactor
+    kd.registerSingleton 'store',                     createStore()
 
     @registerFluxModules()
 
@@ -358,7 +359,6 @@ module.exports = class MainController extends KDController
   registerFluxModules: ->
 
     fluxModules = [
-      require 'activity/flux'
       require 'app/flux'
       require 'app/flux/environment'
       require 'app/flux/teams'
