@@ -10,11 +10,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
+// Policy represents S3/STS policy document.
 type Policy struct {
 	Version   string       `json:"Version"`
 	Statement []Permission `json:"Statement"`
 }
 
+// Permission represents single permission statement within Policy document.
 type Permission struct {
 	Effect    string      `json:"Effect"`
 	Action    []string    `json:"Action"`
@@ -57,13 +59,16 @@ var (
 	})
 )
 
-// UserBucket
+// UserBucket provides a client for writing to a publicly
+// available bucket.
+//
+// Used for storing user logs.
 type UserBucket struct {
 	cfg *Config
 	s3  *s3.S3
 }
 
-// NewUserBucket
+// NewUserBucket creates new bucket value for the given configuration.
 func NewUserBucket(cfg *Config) *UserBucket {
 	p := NewProvider(cfg)
 
@@ -76,7 +81,7 @@ func NewUserBucket(cfg *Config) *UserBucket {
 	}
 }
 
-// Put
+// Put streams the content of rs reader to the S3 bucket under the given key.
 func (ub *UserBucket) Put(key string, rs io.ReadSeeker) error {
 	return ub.userPut(ub.cfg.username()+"/"+key, rs)
 }

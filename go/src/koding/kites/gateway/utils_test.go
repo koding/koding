@@ -60,7 +60,7 @@ func (d *Driver) BeforeFunc(cfg *gateway.Config) <-chan time.Time {
 			return fn(t)
 		}
 
-		return gateway.Before(t)
+		return gateway.DefaultBefore(t)
 	}
 
 	return ch

@@ -14,14 +14,20 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
-	"github.com/koding/multiconfig"
 )
 
 // TODO(rjeczalik): refactor Server/Provider to support multiple auth types (AuthRequest.Type)
 
 var defaultLog = logging.NewCustom("gateway", false)
 
-// Config
+// DefaultBefore is a default behavior for Config.BeforeFunc field.
+var DefaultBefore = func(expire time.Time) bool {
+	return expire.Before(time.Now())
+}
+
+// Config defines configuration for Server, Provider and UserBucket types.
+//
+// TODO(rjeczalik): Split into ServerConfig / ClientConfig.
 type Config struct {
 	RootUser string // kite user allowed to impersonate other users; "koding" by default
 
@@ -30,7 +36,6 @@ type Config struct {
 	SecretKey string // AWS secret key; required
 	Bucket    string // S3 bucket resource for "s3" auth; required
 	Region    string // S3 bucket region; "us-east-1" by default
-	Quota     int    // max cumulative S3 space per user; value <= 0 means no limit
 
 	// AuthFuc is used to authorize temporary credential request
 	// on top of kite authorization.
@@ -48,7 +53,7 @@ type Config struct {
 	Kite         *kite.Kite
 	ServerURL    string
 	Timeout      time.Duration        // max time of client<->server communication; 15s by default
-	BeforeFunc   func(time.Time) bool // time func to check expiration against; by default global Before is used
+	BeforeFunc   func(time.Time) bool // time func to check expiration against; by default DefaultBefore is used
 	Log          logging.Logger
 }
 
@@ -80,51 +85,27 @@ func (cfg *Config) log() logging.Logger {
 	return defaultLog
 }
 
-// ConfigFromEnv
-func ConfigFromEnv() *Config {
-	var cfg Config
-
-	mc := multiconfig.New()
-
-	mc.Loader = multiconfig.MultiLoader(
-		&multiconfig.TagLoader{},
-		&multiconfig.EnvironmentLoader{},
-		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_GATEWAY"},
-		&multiconfig.EnvironmentLoader{Prefix: "GATEWAY"},
-		&multiconfig.FlagLoader{},
-	)
-
-	mc.MustLoad(&cfg)
-
-	return &cfg
-}
-
-// AuthRequest
+// AuthRequest represents request message for the "gateway.auth" method.
 type AuthRequest struct {
 	User string `json:"user"`
 	Type string `json:"type"`
 }
 
-// AuthResponse
+// AuthResponse represents response message for the "gateway.auth" method.
 type AuthResponse struct {
 	Type     string      `json:"type"`
 	Resource string      `json:"resource"`
 	Value    interface{} `json:"value"`
 }
 
-// Before
-func Before(expire time.Time) bool {
-	return expire.Before(time.Now())
-}
-
-// Server
+// Server is a gateway server.
 type Server struct {
 	cfg *Config
 	sts *sts.STS
 	s3  *s3.S3
 }
 
-// NewServer
+// NewServer gives new server value created from the given configuration.
 func NewServer(cfg *Config) *Server {
 	awsCfg := &aws.Config{
 		Credentials: credentials.NewStaticCredentials(cfg.AccessKey, cfg.SecretKey, ""),
@@ -150,7 +131,7 @@ func NewServer(cfg *Config) *Server {
 	return s
 }
 
-// Auth
+// Auth is a kite handler for the "gateway.auth" method.
 func (s *Server) Auth(r *kite.Request) (interface{}, error) {
 	if r.Args == nil {
 		return nil, errors.New("missing argument")
@@ -172,10 +153,6 @@ func (s *Server) Auth(r *kite.Request) (interface{}, error) {
 
 	if req.Type != "s3" {
 		return nil, fmt.Errorf("authorization type not supported: %q", req.Type)
-	}
-
-	if err := s.checkQuota(req.User); err != nil {
-		return nil, err
 	}
 
 	policy := fmt.Sprintf(stsPolicyTmpl, s.cfg.Bucket, req.User)
@@ -217,10 +194,6 @@ func (s *Server) Auth(r *kite.Request) (interface{}, error) {
 	}, nil
 }
 
-func (s *Server) checkQuota(user string) error {
-	return nil // TODO(rjeczalik): missing implementation
-}
-
 func (s *Server) expire() time.Duration {
 	if s.cfg.AuthExpire != 0 {
 		return s.cfg.AuthExpire
@@ -245,7 +218,8 @@ func (s *Server) userAuth(cr *AuthRequest) error {
 	return nil
 }
 
-// Provider
+// Provider provides an implementation for the AWS credentials.Provider
+// by obtaining temporary token from gateway server.
 type Provider struct {
 	cfg    *Config
 	expire time.Time
@@ -253,7 +227,7 @@ type Provider struct {
 
 var _ credentials.Provider = (*Provider)(nil)
 
-// NewProvider
+// NewProvider gives new provider value created from the given configuration.
 func NewProvider(cfg *Config) *Provider {
 	p := &Provider{
 		cfg: cfg,
@@ -262,7 +236,7 @@ func NewProvider(cfg *Config) *Provider {
 	return p
 }
 
-// Retrieve
+// Retrieve implements the credentials.Provider interface.
 func (p *Provider) Retrieve() (v credentials.Value, err error) {
 	client := p.cfg.Kite.NewClient(p.cfg.ServerURL)
 	client.Auth = &kite.Auth{
@@ -311,7 +285,7 @@ func (p *Provider) Retrieve() (v credentials.Value, err error) {
 	}, nil
 }
 
-// IsExpired
+// IsExpired implements the credentials.Provider interface.
 func (p *Provider) IsExpired() bool {
 	return p.before(p.expire)
 }
@@ -337,5 +311,5 @@ func (p *Provider) before(t time.Time) bool {
 		return p.cfg.BeforeFunc(t)
 	}
 
-	return Before(t)
+	return DefaultBefore(t)
 }
