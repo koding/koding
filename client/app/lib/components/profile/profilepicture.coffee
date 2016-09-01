@@ -2,6 +2,8 @@ React = require 'kd-react'
 
 helper = require './helper'
 
+require './styl/profile.styl'
+
 module.exports = class ProfilePicture extends React.Component
 
   @defaultProps =
