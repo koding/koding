@@ -1,4 +1,4 @@
-remote  = require('app/remote').getInstance()
+remote  = require 'app/remote'
 globals = require 'globals'
 
 

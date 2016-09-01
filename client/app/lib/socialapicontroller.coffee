@@ -3,7 +3,7 @@ htmlencode = require 'htmlencode'
 globals = require 'globals'
 getGroup = require './util/getGroup'
 doXhrRequest = require './util/doXhrRequest'
-remote = require('./remote').getInstance()
+remote = require('./remote')
 checkFlag = require './util/checkFlag'
 whoami = require './util/whoami'
 kd = require 'kd'
@@ -1247,7 +1247,7 @@ module.exports = class SocialApiController extends KDController
         .map (id) -> "id=#{id}"
         .join '&'
 
-      type = options.type or ''
+      type = ''
 
       doXhrRequest
         endPoint: "/api/social/channel/by/participants?#{serialized}&type=#{type}"

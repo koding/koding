@@ -1,5 +1,5 @@
 _ = require 'lodash'
-remote = require('../../remote').getInstance()
+remote = require('../../remote')
 kd = require 'kd'
 KDFormViewWithFields = kd.FormViewWithFields
 KDLoaderView = kd.LoaderView

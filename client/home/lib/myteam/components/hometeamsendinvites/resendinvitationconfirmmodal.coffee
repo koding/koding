@@ -11,20 +11,22 @@ module.exports = class ResendInvitationConfirmationModal extends ContentModal
       overlay                 : yes
       height                  : 'auto'
       cssClass                : 'admin-invite-confirm-modal content-modal'
-      buttons :
-        "#{options.cancelButtonText}" :
-          title: 'Cancel'
-          cssClass : 'cancel'
-          itemClass : kd.ButtonView
-          style : 'solid medium'
-          callback : -> options.cancel()
-        "#{options.resendButtonText}" :
-          title: 'Resend'
-          itemClass : kd.ButtonView
-          cssClass : 'GenericButton confirm'
-          style : 'solid medium'
-          loader : { color: '#444444' }
-          callback : -> options.success()
+      buttons : {}
+
+    options.buttons[options.cancelButtonText]
+      title: 'Cancel'
+      cssClass : 'cancel'
+      itemClass : kd.ButtonView
+      style : 'solid medium'
+      callback : -> options.cancel()
+
+    options.buttons[options.resendButtonText] =
+      title: 'Resend'
+      itemClass : kd.ButtonView
+      cssClass : 'GenericButton confirm'
+      style : 'solid medium'
+      loader : { color: '#444444' }
+      callback : -> options.success()
 
 
     super options, data

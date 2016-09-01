@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
 	"time"
 
 	"koding/httputil"
@@ -25,32 +26,44 @@ var defaultClient = httputil.NewClient(&httputil.ClientConfig{
 	ResponseHeaderTimeout: 3 * time.Second,
 })
 
-var defaultHealthChecker = &HealthChecker{
-	HTTPClient:        defaultClient,
-	LocalKiteAddress:  config.KlientAddress,
-	RemoteKiteAddress: config.KontrolURL,
-	RemoteHTTPAddress: config.S3KlientctlLatest,
-}
+// TODO(leeola): deprecate this default, instead passing it as a dependency
+// to the users of it.
+var defaultHealthChecker *HealthChecker
 
 // HealthChecker implements state for the various HealthCheck functions,
 // ideal for mocking the health check interfaces (local kite, remote http,
 // remote kite, etc)
 type HealthChecker struct {
+	Log        kodinglogging.Logger
 	HTTPClient *http.Client
 
 	// Used for verifying a locally / remotely running kite
-	LocalKiteAddress  string
-	RemoteKiteAddress string
+	LocalKlientAddress string
+	KontrolAddress     string
+
+	// eg http://t.koding.com/kite
+	TunnelKiteAddress string
 
 	// Used for verifying a working internet connection
-	RemoteHTTPAddress string
+	InternetCheckAddress string
+}
+
+func NewDefaultHealthChecker(l kodinglogging.Logger) *HealthChecker {
+	return &HealthChecker{
+		Log:                  l.New("HealthChecker"),
+		HTTPClient:           defaultClient,
+		LocalKlientAddress:   config.KlientAddress,
+		KontrolAddress:       config.KontrolURL,
+		InternetCheckAddress: config.S3KlientctlLatest,
+		TunnelKiteAddress:    config.TunnelKiteAddress,
+	}
 }
 
 // ErrHealthDialFailed is used when dialing klient itself is failing. Local or remote,
 // it depends on the error message.
 type ErrHealthDialFailed struct{ Message string }
 
-// ErrHealthNoHTTPReponse is used when a klient is not returning an http
+// ErrHealthNoHTTPReponse is used when a kite is not returning an http
 // response. Local or remote, it depends on the error message.
 type ErrHealthNoHTTPReponse struct{ Message string }
 
@@ -69,17 +82,48 @@ type ErrHealthUnexpectedResponse struct{ Message string }
 // user is having internet troubles.
 type ErrHealthNoInternet struct{ Message string }
 
+// ErrKodingService is returned when a Koding service which KD depends upon
+// (kontrol, ip check, tunneling, etc) does not appear to be operating correctly.
+type ErrKodingService struct {
+	Message     string
+	ServiceName string
+}
+
+// ErrMissingSystemBinary is used when a binary cannot be located.
+type ErrMissingSystemBinary struct {
+	Message    string
+	BinaryName string
+}
+
 // ErrHealthNoKontrolHTTPResponse is used when the http response from
 // https://koding.com/kontrol/kite failed. Koding itself might be down, or the
 // users internet might be spotty.
 type ErrHealthNoKontrolHTTPResponse struct{ Message string }
 
-func (e ErrHealthDialFailed) Error() string            { return e.Message }
-func (e ErrHealthNoHTTPReponse) Error() string         { return e.Message }
-func (e ErrHealthUnreadableKiteKey) Error() string     { return e.Message }
-func (e ErrHealthUnexpectedResponse) Error() string    { return e.Message }
-func (e ErrHealthNoInternet) Error() string            { return e.Message }
-func (e ErrHealthNoKontrolHTTPResponse) Error() string { return e.Message }
+func (e ErrHealthDialFailed) Error() string {
+	return fmt.Sprintf("ErrHealthDialFailed: %s", e.Message)
+}
+func (e ErrHealthNoHTTPReponse) Error() string {
+	return fmt.Sprintf("ErrHealthNoHTTPReponse: %s", e.Message)
+}
+func (e ErrHealthUnreadableKiteKey) Error() string {
+	return fmt.Sprintf("ErrHealthUnreadableKiteKey: %s", e.Message)
+}
+func (e ErrHealthUnexpectedResponse) Error() string {
+	return fmt.Sprintf("ErrHealthUnexpectedResponse: %s", e.Message)
+}
+func (e ErrHealthNoInternet) Error() string {
+	return fmt.Sprintf("ErrHealthNoInternet: %s", e.Message)
+}
+func (e ErrHealthNoKontrolHTTPResponse) Error() string {
+	return fmt.Sprintf("ErrHealthNoKontrolHTTPResponse: %s", e.Message)
+}
+func (e ErrKodingService) Error() string {
+	return fmt.Sprintf("ErrKodingService: %s: %s", e.ServiceName, e.Message)
+}
+func (e ErrMissingSystemBinary) Error() string {
+	return fmt.Sprintf("ErrMissingSystemBinary: %s: %s", e.BinaryName, e.Message)
+}
 
 // StatusCommand informs the user about the status of the Klient service. It
 // does this in multiple stages, to help identify specific problems.
@@ -97,13 +141,13 @@ func (e ErrHealthNoKontrolHTTPResponse) Error() string { return e.Message }
 // is not an error because outgoing klient communication will still work,
 // but incoming klient functionality will obviously be limited. So by
 // checking, we can inform the user.
-func StatusCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
+func StatusCommand(c *cli.Context, log kodinglogging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "status")
 		return 1
 	}
 
-	res, ok := defaultHealthChecker.CheckAllWithResponse()
+	res, ok := NewDefaultHealthChecker(log).CheckAllWithResponse()
 	fmt.Println(res)
 	if !ok {
 		return 1
@@ -112,17 +156,31 @@ func StatusCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	return 0
 }
 
+func (c *HealthChecker) SystemRequirements() error {
+	binariesToLookup := []string{"ssh", "rsync"}
+	for _, bin := range binariesToLookup {
+		if _, err := exec.LookPath(bin); err != nil {
+			return ErrMissingSystemBinary{
+				BinaryName: bin,
+				Message:    err.Error(),
+			}
+		}
+	}
+
+	return nil
+}
+
 // CheckLocal runs several diagnostics on the local Klient. Errors
 // indicate an unhealthy or not running Klient, and can be compare to
 // the ErrHealth* types.
 //
 // TODO: Possibly return a set of warnings too? If we have any..
-func (c *HealthChecker) CheckLocal() error {
-	res, err := c.HTTPClient.Get(c.LocalKiteAddress)
+func (c *HealthChecker) LocalRequirements() error {
+	res, err := c.HTTPClient.Get(c.LocalKlientAddress)
 	// If there was an error even talking to Klient, something is wrong.
 	if err != nil {
 		return ErrHealthNoHTTPReponse{Message: fmt.Sprintf(
-			"The local klient /kite route is returning an error: '%s'", err,
+			"local klient /kite route is returning an error: %s", err,
 		)}
 	}
 	defer res.Body.Close()
@@ -131,7 +189,7 @@ func (c *HealthChecker) CheckLocal() error {
 	case http.StatusOK, http.StatusNoContent:
 	default:
 		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
-			"Unexpected status code. Code: %d", res.StatusCode,
+			"unexpected status code: %d", res.StatusCode,
 		)}
 	}
 
@@ -142,13 +200,13 @@ func (c *HealthChecker) CheckLocal() error {
 		p, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
-				"Failure reading local klient /kite response: %s", err,
+				"failure reading local klient /kite response: %s", err,
 			)}
 		}
 
 		if bytes.Compare(kiteHTTPResponse, bytes.TrimSpace(p)) != 0 {
 			return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
-				"The local klient /kite route is returning an unexpected response: '%s'", p,
+				"local klient /kite route is returning an unexpected response: %s", p,
 			)}
 		}
 	}
@@ -158,7 +216,7 @@ func (c *HealthChecker) CheckLocal() error {
 	k, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {
 		return ErrHealthUnreadableKiteKey{Message: fmt.Sprintf(
-			"The klient kite key is unable to be read. Reason: '%s'", err.Error(),
+			"klient kite key is unable to be read: %s", err,
 		)}
 	}
 
@@ -166,137 +224,72 @@ func (c *HealthChecker) CheckLocal() error {
 	// responses.
 	if err = k.Dial(); err != nil {
 		return ErrHealthDialFailed{Message: fmt.Sprintf(
-			"Dailing local klient failed. Reason: %s", err,
+			"dailing local klient failed: %s", err,
 		)}
 	}
 
 	return nil
 }
 
-// CheckRemote checks the integrity of the ability to connect
+// RemoteRequirements checks the integrity of the ability to connect
 // to remote addresses, and thus verifying internet.
-func (c *HealthChecker) CheckRemote() error {
+func (c *HealthChecker) RemoteRequirements() error {
 	// Attempt to connect to google (or some reliable service) to
 	// confirm the user's outbound internet connection.
-	res, err := c.HTTPClient.Get(c.RemoteHTTPAddress)
+	res, err := c.HTTPClient.Get(c.InternetCheckAddress)
 	if err != nil {
 		return ErrHealthNoInternet{Message: fmt.Sprintf(
-			"The internet connection fails to '%s'. Reason: %s",
-			c.RemoteHTTPAddress, err.Error(),
+			"http check to %q failed: %s",
+			c.InternetCheckAddress, err,
 		)}
 	}
 	defer res.Body.Close()
 
 	// Attempt to connect to kontrol's http page, simply to get an idea
 	// if Koding is running or not.
-	res, err = c.HTTPClient.Get(c.RemoteKiteAddress)
-	if err != nil {
-		return ErrHealthNoKontrolHTTPResponse{Message: fmt.Sprintf(
-			"A http request to Kontrol failed. Reason: %s", err.Error(),
-		)}
-	}
-	defer res.Body.Close()
-
-	// Kontrol should return a 200 response.
-	switch res.StatusCode {
-	case http.StatusOK, http.StatusNoContent:
-	default:
-		return ErrHealthNoKontrolHTTPResponse{Message: fmt.Sprintf(
-			"A http request to Kontrol returned bad status code. Code: %d",
-			res.StatusCode,
-		)}
+	if err := c.checkKiteHttp(c.KontrolAddress); err != nil {
+		return ErrKodingService{ServiceName: "kontrol", Message: err.Error()}
 	}
 
-	// TODO: Check the local ip address for an open port. We
-	// need to implement a service on Koding to properly ip check though,
-	// since we've been having problems with echoip.net failing.
-
-	if res.StatusCode == http.StatusNoContent {
-		return nil
-	}
-
-	// It should be safe to ignore any errors dumping the response data,
-	// since we just want to check the data itself. Handling the error
-	// might aid with debugging any problems though.
-	//
-	// TODO: Log the response if it's not as expected, to help
-	// debug Cloudflare/nginx issues.
-	p, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
-			"Error reading response from %s: '%s'",
-			c.RemoteKiteAddress, p,
-		)}
-	}
-
-	if bytes.Compare(kiteHTTPResponse, bytes.TrimSpace(p)) != 0 {
-		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
-			"The '%s' route is returning an unexpected response: '%s'",
-			c.RemoteKiteAddress, p,
-		)}
+	// Check if tunnel http is accessible.
+	if err := c.checkKiteHttp(c.TunnelKiteAddress); err != nil {
+		return ErrKodingService{ServiceName: "tunnel", Message: err.Error()}
 	}
 
 	return nil
 }
 
-// CheckAllWithResponse checks local and remote, and parses the response to a
-// user-friendly response. Because a response may be good or bad, a bool is also
-// returned. If true, the response is good _(ie, positive, not an problem)_, and
-// if it is false the response represents a problem.
+// CheckAllExceptRunning runs local and remote checks, but ignores
+// running and connectivity errors. Eg, if klient isn't running, this
+// can still succeed.
 //
-// TODO: Enable debug logs
-// log.Print(err.Error())
-func (c *HealthChecker) CheckAllWithResponse() (res string, ok bool) {
-	if err := defaultHealthChecker.CheckLocal(); err != nil {
-		switch err.(type) {
-		case ErrHealthNoHTTPReponse:
-			res = KlientIsntRunning
-
-		case ErrHealthUnexpectedResponse:
-			res = fmt.Sprintf(`Error: The %s is not running properly. Please run the
-following command to restart it:
-
-    sudo kd restart
-`,
-				config.KlientName)
-
-		case ErrHealthUnreadableKiteKey:
-			res = fmt.Sprintf(`Error: The authorization file for the %s is malformed
-or missing. Please run the following command:
-
-    sudo kd install
-`,
-				config.KlientName)
-
-		// TODO: What are some good steps for the user to take if dial fails?
-		case ErrHealthDialFailed:
-			res = fmt.Sprintf(`Error: The %s does not appear to be running properly.
-Please run the following command:
-
-    sudo kd restart
-`,
-				config.KlientName)
-
-		default:
-			res = fmt.Sprintf("Unknown local healthcheck error: %s", err.Error())
-		}
-
-		return res, false
+// This is useful in the event that if klient fails to start and a health
+// check is run, you don't respond with:
+//
+// 		We couldn't start. Reason: klient isn't running!
+//
+// Which is far from the best UX.
+func (c *HealthChecker) CheckAllExceptRunning() (res string, ok bool) {
+	// Check remote endpoints first, to debug what might be blocking Klient
+	// from starting.
+	if err := c.RemoteRequirements(); err != nil {
+		c.Log.Warning("CheckAllExceptRunning found remote error: %s", err)
+		return c.errorToMessage(err), false
 	}
 
-	if err := defaultHealthChecker.CheckRemote(); err != nil {
+	if err := c.LocalRequirements(); err != nil {
 		switch err.(type) {
-		case ErrHealthNoInternet:
-			res = fmt.Sprintf(`Error: You do not appear to have a properly working internet connection.`)
-
-		case ErrHealthNoKontrolHTTPResponse:
-			res = fmt.Sprintf(`Error: koding.com does not appear to be responding.`)
-
+		// Ignore dialing or bad klient http responses for CheckAllExceptRunning.
+		case ErrHealthNoHTTPReponse, ErrHealthDialFailed:
 		default:
-			res = fmt.Sprintf("Unknown remote healthcheck error: %s", err.Error())
+			c.Log.Warning("CheckAllExceptRunning found local error: %s", err)
+			return c.errorToMessage(err), false
 		}
+	}
 
-		return res, false
+	if err := c.SystemRequirements(); err != nil {
+		c.Log.Warning("CheckAllExceptRunning found system requirement error: %s", err)
+		return c.errorToMessage(err), false
 	}
 
 	res = fmt.Sprintf(
@@ -304,6 +297,102 @@ Please run the following command:
 	)
 
 	return res, true
+}
+
+// CheckAllWithResponse checks local and remote, and parses the response to a
+// user-friendly response. Because a response may be good or bad, a bool is also
+// returned. If true, the response is good _(ie, positive, not an problem)_, and
+// if it is false the response represents a problem.
+func (c *HealthChecker) CheckAllWithResponse() (res string, ok bool) {
+	// Check remote endpoints first, to debug what might be blocking Klient
+	// from starting.
+	if err := c.RemoteRequirements(); err != nil {
+		c.Log.Warning("CheckAllWithResponse found remote error: %s", err)
+		return c.errorToMessage(err), false
+	}
+
+	if err := c.LocalRequirements(); err != nil {
+		c.Log.Warning("CheckAllWithResponse found local error: %s", err)
+		return c.errorToMessage(err), false
+	}
+
+	if err := c.SystemRequirements(); err != nil {
+		c.Log.Warning("CheckAllWithResponse found system requirement error: %s", err)
+		return c.errorToMessage(err), false
+	}
+
+	res = fmt.Sprintf(
+		"The %s appears to be running and is healthy.", config.KlientName,
+	)
+
+	return res, true
+}
+
+func (c *HealthChecker) errorToMessage(err error) (res string) {
+	// Check for nil before we type match it.
+	if err == nil {
+		return ""
+	}
+
+	switch errType := err.(type) {
+	// Remote errors
+	case ErrHealthNoInternet:
+		res = fmt.Sprintf(`Error: You do not appear to have a properly stable internet connection.`)
+
+	case ErrHealthNoKontrolHTTPResponse:
+		res = fmt.Sprintf(`Error: koding.com does not appear to be responding.`)
+
+	case ErrHealthNoHTTPReponse:
+		res = KlientIsntRunning
+
+		// Local errors
+	case ErrHealthUnexpectedResponse:
+		res = fmt.Sprintf(`Error: The %s is not running properly. Please run the
+following command to restart it:
+
+    sudo kd restart
+`,
+			config.KlientName)
+
+	case ErrHealthUnreadableKiteKey:
+		res = fmt.Sprintf(`Error: The authorization file for the %s is malformed
+or missing. Please run the following command:
+
+    sudo kd install
+`,
+			config.KlientName)
+
+	// TODO: What are some good steps for the user to take if dial fails?
+	case ErrHealthDialFailed:
+		res = fmt.Sprintf(`Error: The %s does not appear to be running properly.
+Please run the following command:
+
+    sudo kd restart
+`,
+			config.KlientName)
+
+	case ErrKodingService:
+		res = fmt.Sprintf(`Error: kd is unable to connect to a required Koding service: %s
+
+Please ensure that your local internet is stable and that Koding.com is
+operating functionally for you.
+`,
+			errType.ServiceName,
+		)
+
+	case ErrMissingSystemBinary:
+		res = fmt.Sprintf(`Error: %s is a required binary for kd to operate fully.
+
+Please ensure that %s is installed and accessible from your system path.
+`,
+			errType.BinaryName, errType.BinaryName,
+		)
+
+	default:
+		res = fmt.Sprintf("Unknown healthcheck error: %s", err.Error())
+	}
+
+	return res
 }
 
 // CheckAllFailureOrMessagef runs CheckAllWithResponse and if there is a failure,
@@ -332,6 +421,48 @@ func (c *HealthChecker) CheckAllFailureOrMessagef(f string, i ...interface{}) st
 	}
 
 	return fmt.Sprintf(f, i...)
+}
+
+// checkKiteHttp returns an error if a kite's http is not running or returning
+// the expected response.
+func (c *HealthChecker) checkKiteHttp(addr string) error {
+	res, err := defaultClient.Get(addr)
+	if err != nil {
+		return fmt.Errorf("kite http request failed: %s", err)
+	}
+
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		// ok - check response
+	case http.StatusNoContent:
+		// no content status is not an error for a kite, return nil signaling that this
+		// kite is okay.
+		return nil
+	default:
+		return fmt.Errorf("kite at %q returned unexpected code: %d", addr, res.StatusCode)
+	}
+
+	// It should be safe to ignore any errors dumping the response data,
+	// since we just want to check the data itself. Handling the error
+	// might aid with debugging any problems though.
+	p, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read kite response body: %s", err)
+	}
+
+	if bytes.Compare(kiteHTTPResponse, bytes.TrimSpace(p)) != 0 {
+		// get a summary of the response, in case it's very large (as it might be
+		// if some other webservice is running in the kite's place)
+		summary := p
+		if len(summary) > 50 {
+			summary = summary[:50]
+		}
+		return fmt.Errorf("unexpected kite response: %s", summary)
+	}
+
+	return nil
 }
 
 // IsKlientRunning does a quick check against klient's http server
@@ -366,7 +497,7 @@ func IsKlientRunning(a string) bool {
 }
 
 func getListErrRes(err error, healthChecker *HealthChecker) string {
-	res, ok := defaultHealthChecker.CheckAllWithResponse()
+	res, ok := healthChecker.CheckAllWithResponse()
 
 	// If the health check response is not okay, return that because it's likely
 	// more informed (such as no internet, etc)

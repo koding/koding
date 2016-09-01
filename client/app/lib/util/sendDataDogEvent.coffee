@@ -1,4 +1,4 @@
-remote = require('../remote').getInstance()
+remote = require('../remote')
 parseLogs = require './parseLogs'
 uploadLogs = require './uploadLogs'
 globals = require 'globals'

@@ -82,6 +82,11 @@ var (
 	// KontrolURL is overwritten during deploy via linker flag.
 	KontrolURL = "https://koding.com/kontrol/kite"
 
+	// TunnelKiteAddress is the address that koding's tunnel service is run on.
+	//
+	// This is overwritten during deploy via linker flag.
+	TunnelKiteAddress = "http://t.koding.com/kite"
+
 	// S3KlientLatest is URL to the latest version of the klient.
 	S3KlientLatest = "https://koding-klient.s3.amazonaws.com/" + kd2klient(Environment) + "/latest-version.txt"
 
@@ -97,6 +102,7 @@ func init() {
 		fmt.Println("KiteVersion", KiteVersion)
 		fmt.Println("KiteKeyPath", KiteKeyPath)
 		fmt.Println("KontrolURL", KontrolURL)
+		fmt.Println("TunnelKiteAddress", TunnelKiteAddress)
 		fmt.Println("S3KlientLatest", S3KlientLatest)
 		fmt.Println("S3KlientctlLatest", S3KlientctlLatest)
 	}
