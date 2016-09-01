@@ -1,0 +1,199 @@
+// this file needs to be rewritten (most part)
+// no conventions, no guides applied
+// too many unnecessary importants etc. - SY
+
+.AppModal--account.shortcuts
+
+  .toggle
+    size                    26px 24px
+    background              #fff
+    shadow                  none
+    outline                 none
+    rounded                 4px
+    border                  1px solid #d2d2d2
+    margin                  0
+    padding                 0
+    cursor                  pointer
+    borderBox()
+
+    &:hover
+      border                1px solid #b4b4b4
+
+    .icon
+      r-sprite              app 'check_gray'
+      margin                0 6px 0 0
+      padding               0
+      opacity               .3
+      fr()
+
+    .button-title
+      hidden()
+
+  .enabled .toggle .icon
+    r-sprite                app 'check_green'
+    opacity                 1
+
+  button.restore
+    margin-top              20px
+    float                   left
+    height                  27px
+    padding-left            8px
+    padding-right           8px
+    margin-left             0
+    background-color        transparent
+    border                  1px solid #ccc
+
+    span.button-title
+      font-size             1em
+      letter-spacing        .02em
+      line-height           0px !important
+      color                 #aaa
+
+    &:hover
+      background-color      #bbb
+      border                1px solid #bbb
+
+      span.button-title
+        color               #fff
+
+  div.instructions
+    margin-bottom           18px
+    margin-top              6px
+    font-size               14px
+    color                   rgb(120, 120, 120)
+    height                  auto
+
+  .AccountEditShortcuts
+    height                  450px
+    overflow                hidden
+      main.kdscrollview
+        width               508px
+
+    .ShortcutsModalTabView
+      overflow              hidden
+
+    div.row
+      width                 100% !important
+      clear                 both
+      border-bottom         1px solid #e0e0e0
+      height                30px
+      padding               8px 0px
+      cursor                pointer
+
+      &:hover
+        background-color    #fff
+
+        .col:nth-child(3)
+          color             #01B05A
+
+      &.active
+        background-color    #fffcdc
+
+        &:after
+          display           none
+
+        span.cancel
+          r-sprite          app 'shortcuts_cancel'
+          size              9px 9px
+          position          absolute
+          right             16px
+          top               10px
+
+          &:hover
+            r-sprite        app 'shortcuts_cancel_hover'
+
+      .col
+        display             table-column
+        width               60%
+        float               left
+        font-size           .94em
+        line-height         22px
+        padding             4px 16px 4px 0px
+        borderBox()
+
+        > *
+          display           table-cell
+          vertical-align    middle
+
+      .col:first-child
+        width               9%
+        text-align          center
+        padding-left        6px
+
+      .col:nth-child(2)
+        width               60%
+        padding             4px 0px
+
+      .col:nth-child(3)
+        text-align          right !important
+        float               right
+        width               auto
+
+        &:hover
+          color             #01B05A
+
+        span
+          font-size         1em !important
+          font-weight       bold
+          padding-left      8px
+
+        span:first-child
+          padding-left      0
+
+    div.row.multi-line-row
+      height                50px
+      padding               8px 0px 10px 0px
+
+      .col:nth-child(2)
+        height              auto
+
+    div.row.collides
+      .col:nth-child(3)
+        span:last-child
+          padding-right     25px
+        &:after
+          content           ""
+          r-sprite          app 'shortcuts_dup'
+          size              20px 21px
+          position          absolute
+          top               5px
+          right             10px
+
+  .kdtabhandlecontainer
+    background-color        transparent !important
+    border                  none
+    margin                  0
+    max-width               600px
+    padding                 0
+    height                  36px
+    shadow                  inset 0 -2px 0 #e0e0e0
+    borderBox()
+
+    .kdtabhandle
+      background-color      transparent !important
+      border                none
+      height                36px
+      noTextDeco()
+      fl()
+
+      b
+        display             inline !important
+        text-decoration     none
+        height              36px
+        line-height         20px
+        color               #969696
+        text-align          left
+        font-size           16px
+        borderBox()
+
+      &.active
+        shadow              inset 0 -2px 0 #01B05A
+        background          none
+
+        b
+          color             #01B05A !important
+
+  .kdcustomscrollview
+    .kdscrolltrack.vertical
+      .kdscrollthumb
+        bg                  color rgba(0, 0, 0, .2)

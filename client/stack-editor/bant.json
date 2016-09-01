@@ -1,5 +1,5 @@
 {
-  "name": "stackeditor",
+  "name": "stack-editor",
   "main": "./lib/index.coffee",
   "routes": {
     "/Stack-Editor": "home",

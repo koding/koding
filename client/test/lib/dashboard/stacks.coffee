@@ -55,9 +55,9 @@ module.exports =
       (next) ->
         stackshelpers.seeDraftStackTemplates browser, (result) ->
           next null, result
-      # (next) ->
-      #   stackshelpers.editStackTemplates browser, (result) ->
-      #     next null, result
+      (next) ->
+        stackshelpers.editStackTemplates browser, (result) ->
+          next null, result
       (next) ->
         stackshelpers.defineCustomVariables browser, (result) ->
           next null, result
@@ -83,19 +83,10 @@ module.exports =
         stackshelpers.destroy browser, (result) ->
           next null, result
       (next) ->
-        teamsHelpers.logoutTeam browser, (result) ->
+        teamsHelpers.logoutTeamfromUrl browser, (result) ->
           next null, result
       (next) ->
         stackshelpers.createAndMakeStackTeamDefault browser, (result) ->
-          next null, result
-      (next) ->
-        teamsHelpers.logoutTeam browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.createPrivateStackAsMember browser, (result) ->
-          next null, result
-      (next) ->
-        stackshelpers.checkDraftsAsMember browser, (result) ->
           next null, result
 
     ]

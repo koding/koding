@@ -3,7 +3,7 @@ React = require 'kd-react'
 ApiToken = require './apitoken'
 List = require 'app/components/list'
 Toggle = require 'app/components/common/toggle'
-remote = require('app/remote').getInstance()
+remote = require 'app/remote'
 TeamFlux = require 'app/flux/teams'
 showError = require 'app/util/showError'
 

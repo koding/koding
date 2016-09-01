@@ -2,7 +2,7 @@ _ = require 'lodash'
 kd = require 'kd'
 KDListViewController = kd.ListViewController
 GroupsBlockedUserListItemView = require './groupsblockeduserlistitemview'
-remote = require('app/remote').getInstance()
+remote = require 'app/remote'
 JView = require 'app/jview'
 
 

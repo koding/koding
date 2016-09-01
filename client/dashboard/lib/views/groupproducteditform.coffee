@@ -4,7 +4,7 @@ KDDelimitedInputView = kd.DelimitedInputView
 KDFormViewWithFields = kd.FormViewWithFields
 KDOnOffSwitch        = kd.OnOffSwitch
 KDSelectBox          = kd.SelectBox
-remote               = require('app/remote').getInstance()
+remote               = require 'app/remote'
 
 
 module.exports = class GroupProductEditForm extends KDFormViewWithFields
