@@ -1,0 +1,101 @@
+@import '../Colors/Colors.styl'
+
+$padding-small = 6px 20px 7px
+$padding-medium = 10px 30px
+$padding-large = 13px 40px 14px
+$padding-xlarge = 17px 50px
+
+$fs-small = 14px
+$fs-medium = 17px
+$fs-large = 20px
+$fs-xlarge = 22px
+
+$br-small = 3px
+$br-medium = 4px
+$br-large = 4px
+$br-xlarge = 4px
+
+createSizeClass(size)
+  .{size}
+    font-family             -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif
+    cursor                  pointer
+    padding                 $padding-+size
+    padding                 lookup('$padding-'+size)
+    font-size               lookup('$fs-'+size)
+    border-radius           lookup('$br-'+size)
+
+
+createPrimaryClass(type, textColor = white)
+  .{type}
+    border                  none
+    background-color        lookup('$'+type)
+    color                   textColor
+
+    &:focus
+      outline               none
+
+    &:hover
+      background-color      lookup('$'+type+'-light')
+
+    &:active
+      background-color      lookup('$'+type+'-dark')
+
+    &.disabled:hover
+      background-color      lookup('$'+type)
+
+    &.disabled:active
+      background-color      lookup('$'+type)
+
+createSizeClass('small')
+createSizeClass('medium')
+createSizeClass('large')
+createSizeClass('xlarge')
+
+createPrimaryClass('primary-1')
+createPrimaryClass('primary-2')
+createPrimaryClass('primary-3')
+createPrimaryClass('primary-4', #7d6e4d)
+createPrimaryClass('primary-5')
+createPrimaryClass('primary-6')
+
+.secondary
+  border                    1px solid $additional-4-faded
+  color                     $additional-5
+  background-color          white
+
+  &:hover
+    background-color        $additional-5-light
+    color                   white
+
+  &:active
+    background-color        $additional-5-dark
+    color                   white
+
+  &.disabled
+    &:active
+    &:hover
+      background-color      white
+      color                 $additional-5
+
+
+.secondary-on-dark
+  border                    1px solid $additional-4
+  color                     white
+  background-color          rgba(255, 255, 255, .2)
+
+.secondary-on-dark:hover
+  background-color          rgba(255, 255, 255, .8)
+  color                     $additional-4
+
+.secondary-on-dark:active
+  background-color          white
+  color                     $additional-4
+
+.disabled
+  opacity                   .35
+
+.auto
+  display                   block
+  width                     100%
+  padding                   10px auto
+

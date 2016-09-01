@@ -93,6 +93,12 @@ func main() {
 		os.Exit(10)
 	}
 
+	// TODO(leeola): deprecate this default, instead passing it as a dependency
+	// to the users of it.
+	//
+	// init the defaultHealthChecker with the log.
+	defaultHealthChecker = NewDefaultHealthChecker(log)
+
 	app := cli.NewApp()
 	app.Name = config.Name
 	app.Version = getReadableVersion(config.Version)

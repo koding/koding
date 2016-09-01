@@ -1,5 +1,5 @@
 kd                   = require 'kd'
-remote               = require('app/remote').getInstance()
+remote               = require 'app/remote'
 JView                = require 'app/jview'
 whoami               = require 'app/util/whoami'
 CustomLinkView       = require 'app/customlinkview'
