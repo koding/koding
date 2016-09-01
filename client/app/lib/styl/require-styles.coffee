@@ -35,6 +35,8 @@ require './terminal/solarized-light.styl'
 require './terminal/terminal.styl'
 require './terminal/webterm.styl'
 
+require './changeteammodal.styl'
+
 # require 'about/styl'
 # require 'account/styl'
 require 'ace/styl'
