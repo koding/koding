@@ -17,6 +17,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/httputil"
 	"koding/kites/common"
+	"koding/kites/gateway"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/publickeys"
@@ -47,8 +48,9 @@ var Name = "kloud"
 
 // Kloud represents a configured kloud kite.
 type Kloud struct {
-	Kite  *kite.Kite
-	Stack *stack.Kloud
+	Kite    *kite.Kite
+	Stack   *stack.Kloud
+	Gateway *gateway.Server
 }
 
 // Config defines the configuration that Kloud needs to operate.
@@ -125,6 +127,13 @@ type Config struct {
 	// keys.
 	UserPublicKey  string `required:"true"`
 	UserPrivateKey string `required:"true"`
+
+	// Gateway configuration.
+	GatewayAccessKey string
+	GatewaySecretKey string
+	GatewayBucket    string
+	GatewayRegion    string        `default:"us-east-1"`
+	GatewayTokenTTL  time.Duration `default:"3h"`
 
 	// --- KONTROL CONFIGURATION ---
 	Public      bool   // Try to register with a public ip
@@ -288,6 +297,21 @@ func New(conf *Config) (*Kloud, error) {
 		return nil, err
 	}
 
+	var gwSrv *gateway.Server
+	if conf.GatewayAccessKey != "" && conf.GatewaySecretKey != "" {
+		cfg := &gateway.Config{
+			AccessKey:  conf.GatewayAccessKey,
+			SecretKey:  conf.GatewaySecretKey,
+			Region:     conf.GatewayRegion,
+			Bucket:     conf.GatewayBucket,
+			AuthExpire: conf.GatewayTokenTTL,
+			AuthFunc:   kld.ValidateUser,
+			Kite:       k,
+		}
+
+		gwSrv = gateway.NewServer(cfg)
+	}
+
 	// Teams/stack handling methods
 	k.HandleFunc("plan", kld.Plan)
 	k.HandleFunc("apply", kld.Apply)
@@ -361,8 +385,9 @@ func New(conf *Config) (*Kloud, error) {
 	}
 
 	return &Kloud{
-		Kite:  k,
-		Stack: kld,
+		Kite:    k,
+		Stack:   kld,
+		Gateway: gwSrv,
 	}, nil
 }
 

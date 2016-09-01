@@ -1,9 +1,13 @@
 package stack
 
 import (
+	"errors"
 	"sync"
 	"time"
 
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"koding/kites/gateway"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
@@ -100,4 +104,19 @@ func (k *Kloud) setTraceID(user, method string, ctx context.Context) context.Con
 	traceID := uuid.NewV4().String()
 	k.Log.Info("Tracing request for user=%s, method=%s: %s", user, method, traceID)
 	return context.WithValue(ctx, TraceKey, traceID)
+}
+
+// ValidateUser is an AuthFunc, that ensures user is active.
+func (k *Kloud) ValidateUser(req *gateway.AuthRequest) error {
+	status, err := modelhelper.UserStatus(req.User)
+	if err != nil {
+		return err
+	}
+
+	switch status {
+	case models.UserActive, models.UserConfirmed:
+		return nil
+	default:
+		return errors.New("user is not active")
+	}
 }

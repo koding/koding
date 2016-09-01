@@ -50,7 +50,7 @@ func IsUserPaidFn(user *models.User, _ *Warning) (bool, error) {
 // IsUserNotConfirmedFn checks if user is 'unconfirmed'. Unconfirmed users
 // don't get an email, but their vms get deleted.
 func IsUserNotConfirmedFn(user *models.User, _ *Warning) (bool, error) {
-	notConfirmed := user.Status != modelhelper.UserStatusConfirmed
+	notConfirmed := user.Status != models.UserConfirmed
 	return notConfirmed, nil
 }
 
