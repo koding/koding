@@ -2,26 +2,52 @@ package gateway_test
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"koding/kites/gateway"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/koding/logging"
 )
 
+type Flags struct {
+	AccessKey string        `required:"true"`
+	SecretKey string        `required:"true"`
+	Bucket    string        `default:"kodingdev-publiclogs"`
+	Region    string        `default:"us-east-1"`
+	Expire    time.Duration `default:"15m0s"`
+}
+
 func TestGateway_UserBucket(t *testing.T) {
-	drv := &Driver{}
+	var f Flags
+
+	if err := ParseFlags(&f); err != nil {
+		t.Fatal(err)
+	}
+
+	// to cleanup after tests
+	rootS3 := s3.New(session.New(&aws.Config{
+		Credentials: credentials.NewStaticCredentials(f.AccessKey, f.SecretKey, ""),
+		Region:      &f.Region,
+	}))
+
+	drv := &Driver{
+		ChanCap: 1,
+	}
+
 	cfg := &gateway.Config{
-		AccessKey:  os.Getenv("GATEWAY_ACCESSKEY"),
-		SecretKey:  os.Getenv("GATEWAY_SECRETKEY"),
-		Bucket:     "kodingdev-publiclogs",
-		AuthExpire: 15 * time.Minute,
-		Log:        logging.NewCustom("gateway-test", true),
+		AccessKey:  f.AccessKey,
+		SecretKey:  f.SecretKey,
+		Bucket:     f.Bucket,
+		AuthExpire: f.Expire,
+		Region:     f.Region,
+		Log:        logging.NewCustom("gateway-test", testing.Verbose()),
 	}
 
 	defer drv.Server(cfg)()
@@ -31,12 +57,15 @@ func TestGateway_UserBucket(t *testing.T) {
 		Content string
 	}{
 		"testuser1": {
+			{"user", "testuser1"},
 			{"time", time.Now().String()},
 		},
 		"testuser2": {
+			{"user", "testuser2"},
 			{"time", time.Now().String()},
 		},
 		"testuser3": {
+			{"user", "testuser3"},
 			{"time", time.Now().String()},
 		},
 	}
@@ -48,6 +77,11 @@ func TestGateway_UserBucket(t *testing.T) {
 			if err := ub.Put(file.Key, strings.NewReader(file.Content)); err != nil {
 				t.Fatalf("%s: Put(%s)=%s", username, file.Key, err)
 			}
+
+			defer rootS3.DeleteObject(&s3.DeleteObjectInput{
+				Bucket: &cfg.Bucket,
+				Key:    aws.String(username + "/" + file.Key),
+			})
 		}
 
 		for otherUser, files := range populate {
