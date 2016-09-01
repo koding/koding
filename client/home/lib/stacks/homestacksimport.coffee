@@ -2,9 +2,9 @@ kd = require 'kd'
 Encoder = require 'htmlencode'
 EnvironmentFlux = require 'app/flux/environment'
 
-remote = require('app/remote').getInstance()
+remote = require 'app/remote'
 showError = require 'app/util/showError'
-OutputView = require 'stacks/views/stacks/outputview'
+OutputView = require 'stack-editor/editor/outputview'
 
 parseQuery = (query) ->
 

@@ -5,6 +5,7 @@ isKoding           = require 'app/util/isKoding'
 classnames         = require 'classnames'
 UnreadCount        = require 'app/components/sidebarmachineslistitem/unreadcount'
 
+require './styl/sidebarsection.styl'
 
 module.exports = class SidebarSection extends React.Component
 

@@ -1,6 +1,6 @@
 kd = require 'kd'
 KDTabView = kd.TabView
-remote = require('app/remote').getInstance()
+remote = require 'app/remote'
 
 
 module.exports = class EmbedCodeView extends KDTabView

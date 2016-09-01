@@ -87,7 +87,7 @@ module.exports = class IDEStatusBar extends kd.View
       cssClass : 'icon shortcuts'
       click    : (event) ->
         kd.utils.stopDOMEvent event
-        router.handleRoute '/Account/Shortcuts'
+        router.handleRoute '/Shortcuts'
 
     @addSubView @share = new ButtonViewWithProgressBar
       cssClass        : 'share fr hidden'

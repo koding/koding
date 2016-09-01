@@ -2,7 +2,7 @@ kd = require 'kd'
 globals = require 'globals'
 actionTypes = require './actiontypes'
 HomeGetters = require './getters'
-remote = require('app/remote').getInstance()
+remote = require 'app/remote'
 
 { queryKites } = require 'app/providers/managed/helpers'
 { getters: EnvironmentGetters } = require 'app/flux/environment'

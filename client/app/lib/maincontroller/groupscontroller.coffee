@@ -5,7 +5,7 @@ kookies           = require 'kookies'
 getGroup          = require '../util/getGroup'
 showError         = require '../util/showError'
 
-remote            = require('../remote').getInstance()
+remote            = require('../remote')
 globals           = require 'globals'
 GroupData         = require './groupdata'
 remote_extensions = require 'app/remote-extensions'

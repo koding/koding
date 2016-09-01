@@ -1,3 +1,0 @@
-describe 'ChannelParticipantsDropdownItem', ->
-  require './view'
-

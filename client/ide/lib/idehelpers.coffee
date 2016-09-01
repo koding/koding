@@ -1,5 +1,5 @@
 kd                     = require 'kd'
-remote                 = require('app/remote').getInstance()
+remote                 = require 'app/remote'
 actions                = require 'app/flux/environment/actions'
 FSHelper               = require 'app/util/fs/fshelper'
 showError              = require 'app/util/showError'

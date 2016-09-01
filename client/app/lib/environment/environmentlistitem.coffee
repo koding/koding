@@ -7,7 +7,7 @@ showNotification          = require 'app/util/showNotification'
 isManagedVMStack          = require 'app/util/isManagedVMStack'
 hasManagedVMStack         = require 'app/util/hasManagedVMStack'
 
-remote                    = require('app/remote').getInstance()
+remote                    = require 'app/remote'
 
 MachinesList              = require './machineslist'
 MachinesListController    = require './machineslistcontroller'

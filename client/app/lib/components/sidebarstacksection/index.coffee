@@ -10,6 +10,9 @@ SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
 isAdmin = require 'app/util/isAdmin'
 { findDOMNode } = require 'react-dom'
 
+require './styl/sidebarstacksection.styl'
+require './styl/sidebarstackwidgets.styl'
+
 MENU = null
 
 module.exports = class SidebarStackSection extends React.Component

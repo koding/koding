@@ -1,5 +1,5 @@
 kd                                 = require 'kd'
-remote                             = require('app/remote').getInstance()
+remote                             = require 'app/remote'
 snapshotHelpers                    = require './snapshothelpers'
 openIdeByMachine                   = require '../util/openIdeByMachine'
 JView                              = require '../jview'
