@@ -18,8 +18,9 @@ module.exports =
 
     queue = [
       (next) ->
-        teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
-          next null, result
+        teamsHelpers.loginTeam browser
+        browser.pause 2000, (res)->
+          next null, res 
       (next) ->
         teamsHelpers.buildStack browser, (res) ->
           next null, res
@@ -36,10 +37,13 @@ module.exports =
 
 
   settings: (browser, done) ->
+    user = utils.getUser()
 
     queue = [
       (next) ->
         ideSettings.enableAutosave browser, (res) -> next null
+      (next) ->
+        ideSettings.toggleLineNumbers browser, user, (res) -> next null
 
   	]
 

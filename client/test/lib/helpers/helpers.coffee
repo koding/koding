@@ -207,7 +207,6 @@ module.exports =
       .pause                    3000 # required
       .waitForElementPresent    "span[title='" + folderPath + '/' + fileName + "']", 50000, false, -> callback() # Assertion
 
-
     return fileName
 
 
