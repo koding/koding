@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/koding/kite"
-	"github.com/koding/kite/dnode"
 	"koding/klient/kiteerrortypes"
 	"koding/klient/util"
+
+	"github.com/koding/kite"
+	"github.com/koding/kite/dnode"
 )
 
 var (
@@ -110,9 +111,9 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 
 	subs, ok := c.Subscriptions[params.EventName]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf(
+		return nil, util.KiteErrorf(kiteerrortypes.NoSubscribers,
 			"client.Publish: No client.Subscribers found for '%s'",
-			params.EventName))
+			params.EventName)
 	}
 
 	// This condition should never occur - Subscription() should remove

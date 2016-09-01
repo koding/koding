@@ -266,6 +266,12 @@ func main() {
 					Name:  "force",
 					Usage: "Updates kd & klient to latest available version.",
 				},
+				cli.BoolFlag{
+					Name: "continue",
+					// TODO(leeola): Update to the latest cli package, and use the Hidden flag
+					// for this bool flag.
+					Usage: "Internal use only.",
+				},
 			},
 		},
 		cli.Command{
@@ -366,6 +372,17 @@ func main() {
 				cli.IntFlag{Name: "lines, n"},
 			},
 			Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
+		},
+		cli.Command{
+			Name: "open",
+			Usage: fmt.Sprintf(
+				"Open the given file(s) on the Koding UI",
+			),
+			Description: cmdDescriptions["open"],
+			Flags: []cli.Flag{
+				cli.BoolFlag{Name: "debug"},
+			},
+			Action: ctlcli.FactoryAction(OpenCommandFactory, log, "log"),
 		},
 	}
 

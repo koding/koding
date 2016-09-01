@@ -70,18 +70,6 @@ func TestIsUpdateAvailable(t *testing.T) {
 		So(noUpdate, ShouldBeFalse)
 	})
 
-	Convey("It shouldn't update if randomly seeded number is not 1", t, func() {
-		u := CheckUpdate{
-			LocalVersion:       1,
-			Location:           "http://location:9999",
-			RandomSeededNumber: 2,
-		}
-
-		noUpdate, err := u.IsUpdateAvailable()
-		So(err, ShouldBeNil)
-		So(noUpdate, ShouldBeFalse)
-	})
-
 	Convey("It should return err if unable to check for update", t, func() {
 		u := CheckUpdate{Location: "http://location:9999", RandomSeededNumber: 1}
 
