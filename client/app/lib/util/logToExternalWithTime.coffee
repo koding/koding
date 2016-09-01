@@ -1,4 +1,4 @@
-remote = require('../remote').getInstance()
+remote = require('../remote')
 logToExternal = require './logToExternal'
 troubleshoot = require './troubleshoot'
 

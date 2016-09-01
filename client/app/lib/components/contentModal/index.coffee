@@ -1,6 +1,8 @@
 _ = require 'lodash'
 kd = require 'kd'
 
+require './styl/contentModal.styl'
+
 
 module.exports = class ContentModal extends kd.ModalView
 

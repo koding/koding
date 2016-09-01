@@ -50,8 +50,8 @@ module.exports =
 
       # saveFileToFolder
       (next) ->
-        folderData = helpers.createFolder browser, user, ->
-          helpers.createFile browser, user, 'li.new-file', folderData.name, null, ->
+        helpers.createFolder browser, user, (result) ->
+          helpers.createFile browser, user, 'li.new-file', result.name, null, ->
             next null
 
       # createFolderFromContextMenu
@@ -61,12 +61,9 @@ module.exports =
 
       # deleteFolder
       (next) ->
-        folderData = helpers.createFolder(browser, user)
-        path    = '/home/' + user.username
-        selector   = "span[title='" + path + '/' + folderData.name + "']"
-
-        helpers.deleteFile browser, folderData.selector, ->
-          next null
+        helpers.createFolder browser, user, (result) ->
+          helpers.deleteFile browser, result.selector, ->
+            next null
 
       # terminalFromHereFolder
       (next) ->
@@ -86,14 +83,14 @@ module.exports =
 
         # compressFolderZip
         (next) ->
-          folderName = helpers.createFolder browser, user, ->
-            ideHelpers.compressFileFolder browser, user, 'folder', folderName, 'zip', ->
+          helpers.createFolder browser, user, (result) ->
+            ideHelpers.compressFileFolder browser, user, 'folder', result.name, 'zip', ->
               next null
 
         # compressFolderTarGz
         (next) ->
-          folderName = helpers.createFolder browser, user, ->
-            ideHelpers.compressFileFolder browser, user, 'folder', folderName, 'targz', ->
+          helpers.createFolder browser, user, (result) ->
+            ideHelpers.compressFileFolder browser, user, 'folder', result.name, 'targz', ->
               next null
     ]
 

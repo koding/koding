@@ -4,6 +4,8 @@ SidebarList              = require 'app/components/sidebarlist'
 SidebarSection           = require 'app/components/sidebarsection'
 SidebarChannelsListItem  = require 'app/components/sidebarchannelslistitem'
 
+require './styl/sidebarchannelssection.styl'
+
 
 module.exports = class SidebarChannelsSection extends React.Component
 

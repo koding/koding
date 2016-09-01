@@ -1,5 +1,5 @@
 kd           = require 'kd'
-remote       = require('app/remote').getInstance()
+remote       = require 'app/remote'
 globals      = require 'globals'
 doXhrRequest = require 'app/util/doXhrRequest'
 whoami       = require 'app/util/whoami'

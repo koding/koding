@@ -1,5 +1,5 @@
 kd                   = require 'kd'
-remote               = require('app/remote').getInstance()
+remote               = require 'app/remote'
 SnapshotListItem     = require '../snapshotlistitem'
 KodingListController = require 'app/kodinglist/kodinglistcontroller'
 
