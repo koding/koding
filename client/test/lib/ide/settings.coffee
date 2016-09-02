@@ -42,9 +42,11 @@ module.exports =
         ideSettings.enableAutoSave browser, (result) ->
           next null, result
       (next) ->
-        ideSettings.toggleLineNumbers browser, (result) ->
+        ideSettings.toggleLineNumbers browser, user, (result) ->
           next null, result
-
+      (next) ->
+        ideSettings.showInvisibles browser, (result) ->
+          next null, result
     ]
 
     async.series queue

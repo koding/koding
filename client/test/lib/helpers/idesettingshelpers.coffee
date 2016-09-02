@@ -44,7 +44,6 @@ module.exports =
 
 
   toggleLineNumbers: (browser, user, callback) ->
-    user = utils.getUser()
     @openSettingsMenu browser, =>
       @toogleOnOff browser, 3, no, =>
         browser.click fileTabSelector, =>
@@ -57,7 +56,15 @@ module.exports =
               @toogleOnOff browser, 3, yes, ->
                 browser.waitForElementVisible lineNumber, 40000
                 ideHelpers.closeFile browser, fileName, user
-                browser.pause 1, -> callback()
+                browser.pause 1, callback()
+
+
+  showInvisibles: (browser, callback) ->
+    @openSettingsMenu browser, =>
+      @toogleOnOff browser, 8, yes, =>
+        @openSettingsMenu browser, =>
+          @toogleOnOff browser, 8, no, ->
+            browser.pause 1, callback()
 
 
   toogleOnOff: (browser, index, isOn, callback) ->
@@ -67,10 +74,12 @@ module.exports =
       browser.element 'css selector', toggleElementSelector(index) + '.off', (result) ->
         if result.status is 0
           browser.click toggleElementSelector(index)
+          browser.waitForElementVisible toggleElementSelector(index) + '.on', 20000
     else
       browser.element 'css selector', toggleElementSelector(index) + '.on', (result) ->
         if result.status is 0
           browser.click toggleElementSelector(index)
+          browser.waitForElementVisible toggleElementSelector(index) + '.off', 20000
 
     browser.pause 1, -> callback()
 
