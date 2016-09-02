@@ -519,6 +519,141 @@ func TestInvoiceCreatedHandlerDowngradePlan(t *testing.T) {
 	})
 }
 
+func TestCustomerSubscriptionCreatedHandler(t *testing.T) {
+	testData := `
+{
+    "id": "sub_94xDGmeKJ35NhI",
+    "object": "subscription",
+    "application_fee_percent": null,
+    "cancel_at_period_end": false,
+    "canceled_at": 1472229377,
+    "created": 1472229375,
+    "current_period_end": 1472229675,
+    "current_period_start": 1472229375,
+    "customer": "%s",
+    "discount": null,
+    "ended_at": 1472229377,
+    "livemode": false,
+    "metadata": {},
+    "plan": {
+        "id": "my_test_plan",
+        "object": "plan",
+        "amount": 12345,
+        "created": 1472229375,
+        "currency": "usd",
+        "interval": "month",
+        "interval_count": 1,
+        "livemode": false,
+        "metadata": {},
+        "name": "plan for 57c06ffc9bc22b9f5db651c6",
+        "statement_descriptor": "NAN-FREE",
+        "trial_period_days": 1
+    },
+    "quantity": 1,
+    "start": 1472229376,
+    "status": "trialing",
+    "tax_percent": null,
+    "trial_end": 1472834175,
+    "trial_start": 1472229375
+}`
+	tests.WithConfiguration(t, func(c *config.Config) {
+		stripe.Key = c.Stripe.SecretToken
+
+		Convey("Given stub data", t, func() {
+			withStubData(func(username, groupName, sessionID string) {
+				Convey("Then Group should have customer id", func() {
+					group, err := modelhelper.GetGroup(groupName)
+					tests.ResultedWithNoErrorCheck(group, err)
+
+					So(group.Payment.Customer.ID, ShouldNotBeBlank)
+
+					Convey("When subscription.created is triggered", func() {
+						raw := []byte(fmt.Sprintf(testData, group.Payment.Customer.ID))
+
+						var capturedMails []*emailsender.Mail
+
+						realMailSender := mailSender
+						mailSender = func(m *emailsender.Mail) error {
+							capturedMails = append(capturedMails, m)
+							return nil
+						}
+						err := customerSubscriptionCreatedHandler(raw)
+						So(err, ShouldBeNil)
+						mailSender = realMailSender
+						Convey("properties of event should be set accordingly", func() {
+							So(len(capturedMails), ShouldEqual, 2)
+							So(capturedMails[0].Subject, ShouldEqual, "subscribed to my_test_plan plan")
+							So(capturedMails[1].Subject, ShouldEqual, "seven days trial started")
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
+func TestCustomerSourceCreatedHandler(t *testing.T) {
+	testData := `
+{
+      "id": "card_00000000000000",
+      "object": "card",
+      "address_city": null,
+      "address_country": null,
+      "address_line1": null,
+      "address_line1_check": null,
+      "address_line2": null,
+      "address_state": null,
+      "address_zip": null,
+      "address_zip_check": null,
+      "brand": "Visa",
+      "country": "US",
+      "customer": "%s",
+      "cvc_check": null,
+      "dynamic_last4": null,
+      "exp_month": 10,
+      "exp_year": 2020,
+      "funding": "credit",
+      "last4": "4242",
+      "metadata": {},
+      "name": null,
+      "tokenization_method": null,
+      "fingerprint": "VLZ7tf1OXmWI4TVF"
+}`
+	tests.WithConfiguration(t, func(c *config.Config) {
+		stripe.Key = c.Stripe.SecretToken
+
+		Convey("Given stub data", t, func() {
+			withStubData(func(username, groupName, sessionID string) {
+				Convey("Then Group should have customer id", func() {
+					group, err := modelhelper.GetGroup(groupName)
+					tests.ResultedWithNoErrorCheck(group, err)
+
+					So(group.Payment.Customer.ID, ShouldNotBeBlank)
+
+					Convey("When customer.source.created is triggered", func() {
+						raw := []byte(fmt.Sprintf(testData, group.Payment.Customer.ID))
+
+						var capturedMails []*emailsender.Mail
+
+						realMailSender := mailSender
+						mailSender = func(m *emailsender.Mail) error {
+							capturedMails = append(capturedMails, m)
+							return nil
+						}
+						err := customerSourceCreatedHandler(raw)
+						So(err, ShouldBeNil)
+						mailSender = realMailSender
+						Convey("properties of event should be set accordingly", func() {
+							So(len(capturedMails), ShouldEqual, 1)
+							So(capturedMails[0].Subject, ShouldEqual, "entered credit card")
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
 func generateAndAddMembersToGroup(groupID bson.ObjectId, count int) {
 	// generate members
 	for i := 0; i < count; i++ {
