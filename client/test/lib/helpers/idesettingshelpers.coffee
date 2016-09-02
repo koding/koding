@@ -8,8 +8,12 @@ settingsHeader = '.settings-pane .settings-header'
 lineNumberToggleSelector = '.settings-pane li:nth-of-type(3) .settings-on-off'
 fileTabSelector = '.ide-files-tab .kdtabhandle.files'
 activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active .ace_content'
-fileName = 'text.txt'
+lineNumber = '.ace_folding-enabled > .ace_gutter-cell'
 user = utils.getUser()
+fileName = 'text.txt'
+fileSelector  = "span[title='/home/#{user.username}/.config/#{fileName}']"
+text = 'test enable AutoSave'
+
 
 module.exports =
 
@@ -22,9 +26,8 @@ module.exports =
 
 
   enableAutoSave: (browser, callback) ->
-    text = 'test enable AutoSave'
     @openSettingsMenu browser, =>
-      @toogleOnOff browser, 1, ->
+      @toogleOnOff browser, 1, yes, ->
         browser
           .waitForElementVisible fileTabSelector, 20000
           .click fileTabSelector, ->
@@ -40,11 +43,35 @@ module.exports =
               browser.pause 1, callback()
 
 
-  toogleOnOff: (browser, index, callback) ->
+  toggleLineNumbers: (browser, user, callback) ->
+    user = utils.getUser()
+    @openSettingsMenu browser, =>
+      @toogleOnOff browser, 3, no, =>
+        browser.click fileTabSelector, =>
+          browser.waitForElementVisible fileSelector, 40000
+          ideHelpers.openFile browser, user, fileName, =>
+            ideHelpers.setTextToEditor browser, text
+            browser.pause 2000
+            browser.waitForElementNotVisible lineNumber, 20000
+            @openSettingsMenu browser, =>
+              @toogleOnOff browser, 3, yes, ->
+                browser.waitForElementVisible lineNumber, 40000
+                ideHelpers.closeFile browser, fileName, user
+                browser.pause 1, -> callback()
+
+
+  toogleOnOff: (browser, index, isOn, callback) ->
     browser.waitForElementVisible toggleElementSelector(index), 20000
-    browser.element 'css selector', toggleElementSelector(index) + '.off', (result) ->
-      if result.status is 0
-        browser.click toggleElementSelector(index)
+
+    if isOn
+      browser.element 'css selector', toggleElementSelector(index) + '.off', (result) ->
+        if result.status is 0
+          browser.click toggleElementSelector(index)
+    else
+      browser.element 'css selector', toggleElementSelector(index) + '.on', (result) ->
+        if result.status is 0
+          browser.click toggleElementSelector(index)
+
     browser.pause 1, -> callback()
 
 

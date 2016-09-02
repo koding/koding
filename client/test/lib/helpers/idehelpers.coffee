@@ -213,7 +213,6 @@ module.exports =
       .pause 10, -> callback()
 
   openFile: ( browser, user, fileName, callback = -> ) ->
-
     filePath            = "/home/#{user.username}/.config/#{fileName}"
     fileSelector        = "span[title='#{filePath}']"
     chevronSelector     = "#{fileSelector} + span.chevron"

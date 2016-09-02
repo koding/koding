@@ -24,14 +24,8 @@ module.exports =
           next null, result
       (next) ->
         teamsHelpers.buildStack browser, (res) ->
-          browser.refresh()
+          browser.url url
           browser.pause 1, -> next null, res
-
-      # # go to IDE url
-      # (next) ->
-      #   teamUrl = helpers.getUrl yes
-      #   browser.url url, -> next null
-
       (next) ->
         ideHelpers.openNewFile browser, ->
           helpers.createFile browser, user, null, null, 'text.txt', (res) -> next null, res
@@ -47,9 +41,12 @@ module.exports =
       (next) ->
         ideSettings.enableAutoSave browser, (result) ->
           next null, result
+      (next) ->
+        ideSettings.toggleLineNumbers browser, (result) ->
+          next null, result
 
     ]
 
     async.series queue
 
-  # after: (browser) -> browser.end()
+  after: (browser) -> browser.end()
