@@ -55,6 +55,7 @@ module.exports = [
 
   [
     { name: 'ide terminal' }
+    { name: 'ide settings' }
   ]
 
   # [

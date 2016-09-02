@@ -366,7 +366,7 @@ module.exports =
     newCredentialPage = '.kdview.stacks.stacks-v2'
     saveButton = "#{newCredentialPage} button[type=submit]"
     regionSelector = '.kdview.formline.region .kdselectbox select'
-    eu_west_1 = "#{regionSelector} option[value=ap-southeast-1]"
+    eu_west_1 = "#{regionSelector} option[value=us-west-1]"
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
@@ -432,12 +432,13 @@ module.exports =
   turnOnVm: (browser, firstBuild = no, done = -> ) ->
     credentialSelector = '.kdselectbox'
     credential = "#{credentialSelector} option[text='test credential']"
+    buttonSelector = '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
 
     browser
       .waitForElementVisible '.kdview', 20000
       .pause 2000
-      .waitForElementVisible '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton:nth-of-type(2)', 20000
-      .click '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton:nth-of-type(2)'
+      .waitForElementVisible buttonSelector + ':nth-of-type(2)', 20000
+      .click buttonSelector + ':nth-of-type(2)'
       .waitForElementVisible '.resource-state-modal.kdmodal .credentials-page .credential-form', 20000
 
     browser.getValue credentialSelector, (result) ->
@@ -450,14 +451,25 @@ module.exports =
           .pause 200
 
     browser
-      .click '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
+      .click buttonSelector
       .waitForElementVisible '.BaseModalView.kdmodal section.main .progressbar-container', 20000
       .waitForElementVisible '.kdview.kdscrollview', 20000
       .waitForElementVisible '.kdview.jtreeview.expanded', 20000
       .assert.containsText   'body.ide .kdlistitemview-finderitem > div .title', 'Applications'
-    @waitUntilVmRunning browser, ->
-      done()
+    @waitUntilVmRunning browser, =>
+      @waitStartCoding browser, ->
+        done()
 
+  waitStartCoding: (browser, done) ->
+    buttonSelector = '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
+
+    browser.element 'css selector', buttonSelector + ':nth-of-type(2)', (result) ->
+      if result.status is 0
+        browser.waitForElementVisible buttonSelector + ':nth-of-type(2)', 20000
+        browser.click buttonSelector + ':nth-of-type(2)'
+        done()
+      else
+        @waitStartCoding browser, done
 
   waitUntilVmStopping: (browser, done) ->
 
