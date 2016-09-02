@@ -4,6 +4,7 @@ _ = require 'lodash'
 exports.make = make = (reducers = {}) ->
 
   customReducers =
+    bongo: require './modules/bongo'
     stripe: require './modules/stripe'
     creditCard: require './modules/payment/creditcard'
     invoices: require './modules/payment/invoices'
