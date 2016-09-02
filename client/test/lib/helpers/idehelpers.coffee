@@ -224,6 +224,7 @@ module.exports =
     browser
       .waitForElementVisible  fileSelector, 20000
       .moveToElement          fileSelector, 120, 12
+      .click fileSelector
       .waitForElementVisible  chevronSelector, 20000
       .click                  chevronSelector
       .waitForElementVisible  contextMenuSelector, 20000

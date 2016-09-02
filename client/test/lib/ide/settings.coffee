@@ -3,7 +3,9 @@ ideHelpers = require '../helpers/idehelpers.js'
 utils = require '../utils/utils.js'
 async = require 'async'
 teamsHelpers = require '../helpers/teamshelpers.js'
-ideSettings = require '../helpers/idesettings.js'
+ideSettings = require '../helpers/idesettingshelpers.js'
+user = utils.getUser()
+url = "#{helpers.getUrl(yes)}/IDE"
 
 module.exports =
 
@@ -18,18 +20,22 @@ module.exports =
 
     queue = [
       (next) ->
-        teamsHelpers.loginTeam browser
-        browser.pause 2000, (res)->
-          next null, res 
+        teamsHelpers.inviteAndJoinWithUsers browser, users, (result) ->
+          next null, result
       (next) ->
         teamsHelpers.buildStack browser, (res) ->
-          next null, res
+          browser.refresh()
+          browser.pause 1, -> next null, res
 
-      # go to IDE url
+      # # go to IDE url
+      # (next) ->
+      #   teamUrl = helpers.getUrl yes
+      #   browser.url url, -> next null
+
       (next) ->
-        teamUrl = helpers.getUrl yes
-        url = "#{teamUrl}/IDE"
-        browser.url url, -> next null
+        ideHelpers.openNewFile browser, ->
+          helpers.createFile browser, user, null, null, 'text.txt', (res) -> next null, res
+
     ]
 
     async.series queue, (err, result) ->
@@ -37,15 +43,12 @@ module.exports =
 
 
   settings: (browser, done) ->
-    user = utils.getUser()
-
     queue = [
       (next) ->
-        ideSettings.enableAutosave browser, (res) -> next null
-      (next) ->
-        ideSettings.toggleLineNumbers browser, user, (res) -> next null
+        ideSettings.enableAutoSave browser, (result) ->
+          next null, result
 
-  	]
+    ]
 
     async.series queue
 
