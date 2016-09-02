@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/email/emailsender"
+	"time"
 
 	"gopkg.in/mgo.v2"
 
@@ -27,10 +28,12 @@ var stripeActions = map[string]StripeHandler{
 	"customer.subscription.deleted":        customerSubscriptionDeletedHandler,
 	"customer.subscription.updated":        customerSubscriptionUpdatedHandler,
 	"customer.subscription.trial_will_end": customerSubscriptionTrialWillEndHandler,
+	"customer.source.created":              customerSourceCreatedHandler,
+	"customer.source.deleted":              customerSourceDeletedHandler,
 
 	"invoice.created":           invoiceCreatedHandler,
-	"invoice.payment_failed":    invoicePaymentFailedHandler,
-	"invoice.payment_succeeded": invoicePaymentFailedHandler,
+	"invoice.payment_failed":    invoicePaymentHandler,
+	"invoice.payment_succeeded": invoicePaymentHandler,
 }
 
 // GetHandler returns the registered handler for stripe webhooks if registered
@@ -85,6 +88,10 @@ func getAmountOpts(charge *stripe.Charge) map[string]interface{} {
 	return map[string]interface{}{"amount": amount}
 }
 
+var oneDayTrialDur int64 = 24 * 60 * 60
+var sevenDayTrialDur int64 = 7 * oneDayTrialDur
+var thirtyDayTrialDur int64 = 30 * oneDayTrialDur
+
 func customerSubscriptionCreatedHandler(raw []byte) error {
 	var req *stripe.Sub
 	err := json.Unmarshal(raw, &req)
@@ -93,7 +100,26 @@ func customerSubscriptionCreatedHandler(raw []byte) error {
 	}
 
 	eventName := fmt.Sprintf("subscribed to %s plan", req.Plan.ID)
+	if err := sendEventForCustomer(req.Customer.ID, eventName, nil); err != nil {
+		return err
+	}
 
+	if req.Status != "trialing" {
+		return nil
+	}
+
+	durSec := req.TrialEnd - req.TrialStart
+	durStr := ""
+	switch durSec {
+	case sevenDayTrialDur:
+		durStr = "seven days"
+	case thirtyDayTrialDur:
+		durStr = "thirty days"
+	default:
+		durStr = time.Duration(durSec).String()
+	}
+
+	eventName = fmt.Sprintf("%s trial started", durStr)
 	return sendEventForCustomer(req.Customer.ID, eventName, nil)
 }
 
@@ -128,7 +154,35 @@ func customerSubscriptionTrialWillEndHandler(raw []byte) error {
 		return err
 	}
 
+	if err := sendEventForCustomer(req.Customer.ID, "three days left in trial", nil); err != nil {
+		return err
+	}
+
 	eventName := fmt.Sprintf("trial of %s plan subscription will end", req.Plan.ID)
+
+	return sendEventForCustomer(req.Customer.ID, eventName, nil)
+}
+
+func customerSourceCreatedHandler(raw []byte) error {
+	var req *stripe.Card
+	err := json.Unmarshal(raw, &req)
+	if err != nil {
+		return err
+	}
+
+	const eventName = "entered credit card"
+
+	return sendEventForCustomer(req.Customer.ID, eventName, nil)
+}
+
+func customerSourceDeletedHandler(raw []byte) error {
+	var req *stripe.Card
+	err := json.Unmarshal(raw, &req)
+	if err != nil {
+		return err
+	}
+
+	const eventName = "credit card removed"
 
 	return sendEventForCustomer(req.Customer.ID, eventName, nil)
 }
@@ -213,17 +267,7 @@ func invoiceCreatedHandler(raw []byte) error {
 	return err
 }
 
-func invoicePaymentFailedHandler(raw []byte) error {
-	var invoice *stripe.Invoice
-	err := json.Unmarshal(raw, &invoice)
-	if err != nil {
-		return err
-	}
-
-	return handleInvoiceStateChange(invoice)
-}
-
-func invoicePaymentSucceededHandler(raw []byte) error {
+func invoicePaymentHandler(raw []byte) error {
 	var invoice *stripe.Invoice
 	err := json.Unmarshal(raw, &invoice)
 	if err != nil {
@@ -272,7 +316,7 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 		return err
 	}
 
-	eventName := fmt.Sprintf("invoice status changed to %s", status)
+	eventName := fmt.Sprintf("subscription status %s", status)
 	return sendEventForCustomer(invoice.Customer.ID, eventName, nil)
 }
 
