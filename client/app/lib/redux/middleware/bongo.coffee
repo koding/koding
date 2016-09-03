@@ -1,4 +1,6 @@
 _ = require 'lodash'
+{ LOAD, REMOVE } = require 'app/redux/modules/bongo'
+
 
 module.exports = bongoMiddleware = (remote) -> (store) -> (next) -> (action) ->
   return next action  unless action.bongo
@@ -6,17 +8,17 @@ module.exports = bongoMiddleware = (remote) -> (store) -> (next) -> (action) ->
   rest = _.omit action, ['bongo', 'type', 'types']
 
   next
-    types: types or generateTypes(type or 'BONGO')
+    types: types or generateTypes(type)
     promise: ->
       bongo(remote, { getState: store.getState }).then (results) ->
         results = [results]  unless Array.isArray results
         results.forEach (result) ->
           result.on 'update', ->
-            store.dispatch { type: 'BONGO_SUCCESS', result }
+            store.dispatch { type: LOAD.SUCCESS, result }
 
           result.on 'deleteInstance', ->
             store.dispatch
-              type: 'BONGO_DELETE_SUCCESS'
+              type: REMOVE.SUCCESS
               result: result
 
         return results

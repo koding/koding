@@ -37,28 +37,28 @@ reducer = (state = immutable({}), action) ->
 
 loadAll = (constructorName) ->
   return {
-    type: LOAD.SUCCESS
+    types: [ LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL ]
     bongo: (remote) -> remote.api[constructorName].some({})
   }
 
 
 update = (instance, query) ->
   return {
-    type: LOAD.SUCCESS
+    types: [ LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL ]
     bongo: -> instance.update query, (result) -> { result: instance }
   }
 
 
 remove = (instance) ->
   return {
-    type: REMOVE.SUCCESS
+    types: [ REMOVE.BEGIN, REMOVE.SUCCESS, REMOVE.FAIL ]
     bongo: -> instance.remove().then -> { result: instance }
   }
 
 
 load = (constructorName, _id) ->
   return {
-    type: LOAD.SUCCESS
+    types: [ LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL ]
     bongo: (remote) -> remote.api[constructorName].one { _id }
   }
 
