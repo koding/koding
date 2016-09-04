@@ -1,17 +1,59 @@
-package gateway_test
+package gatewaytest
 
 import (
 	"fmt"
 	"os"
+	"strings"
+	"testing"
 	"time"
 
 	"koding/kites/gateway"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/kitetest"
+	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 )
+
+// Flags represents command line flags used for configuring gateway-related
+// e2e tests.
+//
+// In order to set or override the value, set the flags after
+// the -- separator, e.g.:
+//
+//   $ go test koding/kites/gateway -- -accesskey abc -secretkey def
+//
+type Flags struct {
+	EnvPrefix string        `default:"gateway"`
+	AccessKey string        `required:"true"`
+	SecretKey string        `required:"true"`
+	Bucket    string        `default:"kodingdev-publiclogs"`
+	Region    string        `default:"us-east-1"`
+	Expire    time.Duration `default:"15m0s"`
+}
+
+// Config creates new gateway.Config value from the given flags.
+func (f *Flags) Config() *gateway.Config {
+	return &gateway.Config{
+		AccessKey:  f.AccessKey,
+		SecretKey:  f.SecretKey,
+		Bucket:     f.Bucket,
+		AuthExpire: f.Expire,
+		Region:     f.Region,
+		Log:        logging.NewCustom("gateway-test", testing.Verbose()),
+	}
+}
+
+// AWSConfig creates new aws.Config value from the given flags.
+func (f *Flags) AWSConfig() *aws.Config {
+	return &aws.Config{
+		Credentials: credentials.NewStaticCredentials(f.AccessKey, f.SecretKey, ""),
+		Region:      &f.Region,
+	}
+}
 
 // DefaultKeyPair is a pem-encoded rsa private/public
 // key pair, used to generate kite.key values.
@@ -114,6 +156,29 @@ func (d *Driver) keyPair() *kitetest.KeyPair {
 // ParseFlags uses multiconfig to fill the given v with matching
 // flag values read from tags, environment and command line.
 func ParseFlags(v interface{}) error {
+	type parentFlags interface {
+		Underlying() *Flags
+	}
+
+	envPrefix := "gateway"
+
+	// Try to read the EnvPrefix from the v, so it is possible
+	// to set different flags for different tests when
+	// run at once e.g. with:
+	//
+	//   go test ./...
+	//
+	switch f := v.(type) {
+	case *Flags:
+		if f.EnvPrefix != "" {
+			envPrefix = f.EnvPrefix
+		}
+	case parentFlags:
+		if f := f.Underlying(); f.EnvPrefix != "" {
+			envPrefix = f.EnvPrefix
+		}
+	}
+
 	args := make([]string, 0) // non-nil to force FlagLoader to not read test flags
 
 	for i, arg := range os.Args {
@@ -127,7 +192,7 @@ func ParseFlags(v interface{}) error {
 	mc.Loader = multiconfig.MultiLoader(
 		&multiconfig.TagLoader{},
 		&multiconfig.EnvironmentLoader{
-			Prefix: "GATEWAY",
+			Prefix: strings.ToUpper(envPrefix),
 		},
 		&multiconfig.FlagLoader{
 			Args: args,
