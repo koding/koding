@@ -5,8 +5,8 @@ immutable = require 'app/util/immutable'
 
 withNamespace = makeNamespace 'koding', 'bongo'
 
-LOAD = expandActionType makeNamespace 'LOAD'
-REMOVE = expandActionType makeNamespace 'REMOVE'
+LOAD = expandActionType withNamespace 'LOAD'
+REMOVE = expandActionType withNamespace 'REMOVE'
 
 reducer = (state = immutable({}), action) ->
 
