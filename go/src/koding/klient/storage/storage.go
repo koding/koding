@@ -17,6 +17,12 @@ type Interface interface {
 	Delete(key string) error
 }
 
+// ValueInterfaces is an interface for encoding storage.
+type ValueInterface interface {
+	GetValue(key string, value interface{}) error
+	SetValue(key string, value interface{}) error
+}
+
 type Storage struct {
 	Interface
 }
@@ -103,6 +109,8 @@ type EncodingStorage struct {
 	MarshalFunc   func(interface{}) ([]byte, error)
 	UnmarshalFunc func([]byte, interface{}) error
 }
+
+var _ ValueInterface = (*EncodingStorage)(nil)
 
 func NewEncodingStorage(db *bolt.DB, bucketName []byte) *EncodingStorage {
 	if boltdb, err := NewBoltStorageBucket(db, bucketName); err == nil {
