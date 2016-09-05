@@ -15,6 +15,10 @@ import (
 	stripeinvoice "github.com/stripe/stripe-go/invoice"
 )
 
+const (
+	EventNameJoinedNewPricingTier = "joined new pricing tier"
+)
+
 var mailSender = emailsender.Send
 
 // StripeHandler is the type of handlers for stripe webhook operations
@@ -253,7 +257,10 @@ func invoiceCreatedHandler(raw []byte) error {
 
 	planID := GetPlanID(info.User.Total)
 
-	_, err = DeleteSubscriptionForGroup(cus.Meta["groupName"])
+	prevSub, err := DeleteSubscriptionForGroup(cus.Meta["groupName"])
+	if err != nil {
+		return err
+	}
 
 	params := &stripe.SubParams{
 		Customer: group.Payment.Customer.ID,
@@ -262,9 +269,20 @@ func invoiceCreatedHandler(raw []byte) error {
 	}
 
 	sub, err := CreateSubscriptionForGroup(cus.Meta["groupName"], params)
+	if err != nil {
+		return err
+	}
 
 	_, err = modelhelper.CalculateAndApplyDeletedMembers(group.Id, sub.ID)
-	return err
+	if err != nil {
+		return err
+	}
+
+	opts := map[string]interface{}{
+		"oldPlanID": prevSub.Plan.ID,
+		"newPlanID": sub.Plan.ID,
+	}
+	return sendEventForCustomer(cus.ID, EventNameJoinedNewPricingTier, opts)
 }
 
 func invoicePaymentHandler(raw []byte) error {
