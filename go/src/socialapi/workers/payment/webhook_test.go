@@ -358,7 +358,23 @@ func TestInvoiceCreatedHandlerUpgradePlan(t *testing.T) {
 							Plans[UpTo10Users].Amount*9,
 						))
 
+						var capturedMails []*emailsender.Mail
+						realMailSender := mailSender
+						mailSender = func(m *emailsender.Mail) error {
+							capturedMails = append(capturedMails, m)
+							return nil
+						}
 						So(invoiceCreatedHandler(raw), ShouldBeNil)
+						mailSender = realMailSender
+
+						So(len(capturedMails), ShouldEqual, 1)
+						So(capturedMails[0].Subject, ShouldEqual, EventNameJoinedNewPricingTier)
+						So(len(capturedMails[0].Properties.Options), ShouldBeGreaterThan, 1)
+						oldPlanID := capturedMails[0].Properties.Options["oldPlanID"]
+						newPlanID := capturedMails[0].Properties.Options["newPlanID"]
+						So(oldPlanID, ShouldNotBeBlank)
+						So(newPlanID, ShouldNotBeBlank)
+						So(newPlanID, ShouldNotEqual, oldPlanID)
 
 						Convey("subscription id should not stay same", func() {
 							groupAfterHook, err := modelhelper.GetGroup(groupName)
