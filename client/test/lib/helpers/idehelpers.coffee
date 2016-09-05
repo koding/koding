@@ -213,7 +213,6 @@ module.exports =
       .pause 10, -> callback()
 
   openFile: ( browser, user, fileName, callback = -> ) ->
-
     filePath            = "/home/#{user.username}/.config/#{fileName}"
     fileSelector        = "span[title='#{filePath}']"
     chevronSelector     = "#{fileSelector} + span.chevron"
@@ -224,6 +223,7 @@ module.exports =
     browser
       .waitForElementVisible  fileSelector, 20000
       .moveToElement          fileSelector, 120, 12
+      .click fileSelector
       .waitForElementVisible  chevronSelector, 20000
       .click                  chevronSelector
       .waitForElementVisible  contextMenuSelector, 20000
