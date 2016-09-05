@@ -12,6 +12,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/coupon"
 	"github.com/stripe/stripe-go/currency"
 	"github.com/stripe/stripe-go/plan"
 	"github.com/stripe/stripe-go/token"
@@ -164,7 +165,7 @@ func TestInvoiceCreatedHandlerStayInTheSamePlan(t *testing.T) {
     "starting_balance": 0,
     "statement_descriptor": null,
     "subscription": "%s",
-    "subtotal": 0,
+    "subtotal": %d,
     "tax": null,
     "tax_percent": null,
     "total": %d,
@@ -229,6 +230,7 @@ func TestInvoiceCreatedHandlerStayInTheSamePlan(t *testing.T) {
 							group.Payment.Customer.ID,
 							sub.ID,
 							Plans[UpTo10Users].Amount*9,
+							Plans[UpTo10Users].Amount*9,
 						))
 
 						err := invoiceCreatedHandler(raw)
@@ -251,6 +253,163 @@ func TestInvoiceCreatedHandlerStayInTheSamePlan(t *testing.T) {
 
 								_, err = plan.Del(pp.ID)
 								So(err, ShouldBeNil)
+							})
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
+func TestInvoiceCreatedHandlerWithCouponAndAccountBalance(t *testing.T) {
+	testData := `
+{
+    "id": "in_00000000000000",
+    "object": "invoice",
+    "amount_due": 0,
+    "charge": null,
+    "closed": false,
+    "currency": "usd",
+    "customer": "%s",
+    "discount":{
+      "object": "discount",
+      "coupon": {
+        "id": "QtadvP4t",
+        "object": "coupon",
+        "amount_off": %d,
+        "created": 1473113335,
+        "currency": "usd",
+        "duration": "once",
+        "valid": true
+      },
+      "customer": "cus_98mqDLgCNhwhIo",
+      "end": null,
+      "start": 1473113336,
+      "subscription": null
+    },
+    "date": 1471348722,
+    "ending_balance": 0,
+    "forgiven": false,
+    "livemode": false,
+    "metadata": {},
+    "next_payment_attempt": null,
+    "paid": false,
+    "period_end": 1471348722,
+    "period_start": 1471348722,
+    "receipt_number": null,
+    "starting_balance": %d,
+    "statement_descriptor": null,
+    "subscription": "%s",
+    "subtotal": %d,
+    "tax": null,
+    "tax_percent": null,
+    "total": %d,
+    "webhooks_delivered_at": 1471348722
+}`
+	tests.WithConfiguration(t, func(c *config.Config) {
+		stripe.Key = c.Stripe.SecretToken
+		Convey("Given stub data", t, func() {
+			withStubData(func(username, groupName, sessionID string) {
+				group, err := modelhelper.GetGroup(groupName)
+				tests.ResultedWithNoErrorCheck(group, err)
+
+				// add credit card to the user
+				withTestCreditCardToken(func(token string) {
+					var offAmount uint64 = 100
+					var offBalance int64 = 200
+					withTestCoupon(offAmount, func(couponCode string) {
+
+						// attach payment source
+						cp := &stripe.CustomerParams{
+							// add our coupon
+							Coupon: couponCode,
+							// add some credit to user
+							Balance: -offBalance,
+							// add the CC
+							Source: &stripe.SourceParams{
+								Token: token,
+							},
+						}
+
+						c, err := UpdateCustomerForGroup(username, groupName, cp)
+						tests.ResultedWithNoErrorCheck(c, err)
+
+						// generate 9 members with a total of 1 deleted user (also there is an admin)
+						generateAndAddMembersToGroup(group.Id, 7)
+						generateDeletedMemberAndAddToGroup(group.Id, 1)
+
+						// create test plan
+						id := fmt.Sprintf("p_%s", bson.NewObjectId().Hex())
+						pp := &stripe.PlanParams{
+							Amount:        Plans[UpTo10Users].Amount,
+							Interval:      plan.Month,
+							IntervalCount: 1,
+							TrialPeriod:   0,
+							Name:          id,
+							Currency:      currency.USD,
+							ID:            id,
+						}
+
+						p, err := plan.New(pp)
+						So(err, ShouldBeNil)
+
+						// subscribe to test plan
+						params := &stripe.SubParams{
+							Customer: group.Payment.Customer.ID,
+							Plan:     p.ID,
+							Quantity: 9,
+						}
+
+						sub, err := CreateSubscriptionForGroup(group.Slug, params)
+						tests.ResultedWithNoErrorCheck(sub, err)
+
+						// check if group has correct sub id
+						groupAfterSub, err := modelhelper.GetGroup(groupName)
+						tests.ResultedWithNoErrorCheck(groupAfterSub, err)
+						So(sub.ID, ShouldEqual, groupAfterSub.Payment.Subscription.ID)
+
+						Convey("When invoice.created is triggered with right amount of total fee", func() {
+							totalDiscount := uint64(offBalance) + offAmount
+							raw := []byte(fmt.Sprintf(
+								testData,
+								group.Payment.Customer.ID,
+								offAmount,
+								-offBalance,
+								sub.ID,
+								Plans[UpTo10Users].Amount*9,
+								(Plans[UpTo10Users].Amount*9)-(totalDiscount),
+							))
+							var capturedMails []*emailsender.Mail
+							realMailSender := mailSender
+							mailSender = func(m *emailsender.Mail) error {
+								capturedMails = append(capturedMails, m)
+								return nil
+							}
+							So(invoiceCreatedHandler(raw), ShouldBeNil)
+							mailSender = realMailSender
+
+							// this means we didnt change the subscription.
+							So(len(capturedMails), ShouldEqual, 0)
+
+							Convey("subscription id should stay same", func() {
+								groupAfterHook, err := modelhelper.GetGroup(groupName)
+								tests.ResultedWithNoErrorCheck(groupAfterHook, err)
+
+								// group should have correct sub id
+								So(sub.ID, ShouldEqual, groupAfterHook.Payment.Subscription.ID)
+
+								count, err := modelhelper.GetDeletedMemberCountByGroupId(group.Id)
+								So(err, ShouldBeNil)
+								So(count, ShouldEqual, 0)
+
+								Convey("we should clean up successfully", func() {
+									sub, err := DeleteSubscriptionForGroup(group.Slug)
+									tests.ResultedWithNoErrorCheck(sub, err)
+
+									_, err = plan.Del(pp.ID)
+									So(err, ShouldBeNil)
+								})
 							})
 						})
 					})
@@ -288,7 +447,7 @@ func TestInvoiceCreatedHandlerUpgradePlan(t *testing.T) {
     "starting_balance": 0,
     "statement_descriptor": null,
     "subscription": "%s",
-    "subtotal": 0,
+    "subtotal": %d,
     "tax": null,
     "tax_percent": null,
     "total": %d,
@@ -356,6 +515,7 @@ func TestInvoiceCreatedHandlerUpgradePlan(t *testing.T) {
 							group.Payment.Customer.ID,
 							sub.ID,
 							Plans[UpTo10Users].Amount*9,
+							Plans[UpTo10Users].Amount*9,
 						))
 
 						var capturedMails []*emailsender.Mail
@@ -367,6 +527,7 @@ func TestInvoiceCreatedHandlerUpgradePlan(t *testing.T) {
 						So(invoiceCreatedHandler(raw), ShouldBeNil)
 						mailSender = realMailSender
 
+						// check we are sending events on subscription change.
 						So(len(capturedMails), ShouldEqual, 1)
 						So(capturedMails[0].Subject, ShouldEqual, EventNameJoinedNewPricingTier)
 						So(len(capturedMails[0].Properties.Options), ShouldBeGreaterThan, 1)
@@ -435,7 +596,7 @@ func TestInvoiceCreatedHandlerDowngradePlan(t *testing.T) {
     "starting_balance": 0,
     "statement_descriptor": null,
     "subscription": "%s",
-    "subtotal": 0,
+    "subtotal": %d,
     "tax": null,
     "tax_percent": null,
     "total": %d,
@@ -499,6 +660,7 @@ func TestInvoiceCreatedHandlerDowngradePlan(t *testing.T) {
 							testData,
 							group.Payment.Customer.ID,
 							sub.ID,
+							Plans[UpTo10Users].Amount*11,
 							Plans[UpTo10Users].Amount*11,
 						))
 
@@ -711,4 +873,19 @@ func withTestCreditCardToken(f func(token string)) {
 	})
 	tests.ResultedWithNoErrorCheck(t, err)
 	f(t.ID)
+}
+
+func withTestCoupon(amount uint64, f func(string)) {
+	c, err := coupon.New(&stripe.CouponParams{
+		Amount:   amount,
+		Duration: "once",
+		Currency: "usd",
+	})
+	So(err, ShouldBeNil)
+	So(c, ShouldNotBeNil)
+	f(c.ID)
+	c1, err := coupon.Del(c.ID)
+	So(err, ShouldBeNil)
+	So(c1, ShouldNotBeNil)
+	So(c1.Deleted, ShouldBeTrue)
 }

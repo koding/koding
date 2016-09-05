@@ -238,8 +238,10 @@ func invoiceCreatedHandler(raw []byte) error {
 		return err
 	}
 
-	// the amount that stripe will withdraw and what we want is same, so we are done.
-	if invoice.Total == int64(info.Due) {
+	// if the amount that stripe will withdraw and what we want is same, so we
+	// are done. Subtotal -> Total of all subscriptions, invoice items, and
+	// prorations on the invoice before any discount is applied
+	if invoice.Subtotal == int64(info.Due) {
 		// clean up waiting deleted users
 		_, err = modelhelper.CalculateAndApplyDeletedMembers(group.Id, invoice.Sub)
 		return err
