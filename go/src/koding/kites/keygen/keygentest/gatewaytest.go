@@ -1,4 +1,4 @@
-package gatewaytest
+package keygentest
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"koding/kites/gateway"
+	"koding/kites/keygen"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -36,8 +36,8 @@ type Flags struct {
 }
 
 // Config creates new gateway.Config value from the given flags.
-func (f *Flags) Config() *gateway.Config {
-	return &gateway.Config{
+func (f *Flags) Config() *keygen.Config {
+	return &keygen.Config{
 		AccessKey:  f.AccessKey,
 		SecretKey:  f.SecretKey,
 		Bucket:     f.Bucket,
@@ -70,11 +70,11 @@ type Driver struct {
 // to the returned channel.
 //
 // If cfg.AuthFunc is non-nil, it is called after the value is sent.
-func (d *Driver) AuthFunc(cfg *gateway.Config) <-chan *gateway.AuthRequest {
-	ch := make(chan *gateway.AuthRequest, d.ChanCap)
+func (d *Driver) AuthFunc(cfg *keygen.Config) <-chan *keygen.AuthRequest {
+	ch := make(chan *keygen.AuthRequest, d.ChanCap)
 	fn := cfg.AuthFunc
 
-	cfg.AuthFunc = func(req *gateway.AuthRequest) error {
+	cfg.AuthFunc = func(req *keygen.AuthRequest) error {
 		ch <- req
 
 		if fn != nil {
@@ -91,7 +91,7 @@ func (d *Driver) AuthFunc(cfg *gateway.Config) <-chan *gateway.AuthRequest {
 // to the returned channel.
 //
 // If cfg.BeforeFunc is non-nil, it is called after the value is sent.
-func (d *Driver) BeforeFunc(cfg *gateway.Config) <-chan time.Time {
+func (d *Driver) BeforeFunc(cfg *keygen.Config) <-chan time.Time {
 	ch := make(chan time.Time, d.ChanCap)
 	fn := cfg.BeforeFunc
 
@@ -102,14 +102,14 @@ func (d *Driver) BeforeFunc(cfg *gateway.Config) <-chan time.Time {
 			return fn(t)
 		}
 
-		return gateway.DefaultBefore(t)
+		return keygen.DefaultBefore(t)
 	}
 
 	return ch
 }
 
 // Kite sets cfg.Kite with kite.key generated for the given username.
-func (d *Driver) Kite(cfg *gateway.Config, username string) *gateway.Config {
+func (d *Driver) Kite(cfg *keygen.Config, username string) *keygen.Config {
 	key, err := kitetest.GenerateKiteKey(&kitetest.KiteKey{Username: username}, d.keyPair())
 	if err != nil {
 		panic(err)
@@ -132,10 +132,10 @@ func (d *Driver) Kite(cfg *gateway.Config, username string) *gateway.Config {
 //
 // It returns a function that can be used to explicitely stop
 // the kite server.
-func (d *Driver) Server(cfg *gateway.Config) (cancel func()) {
+func (d *Driver) Server(cfg *keygen.Config) (cancel func()) {
 	kiteCfg := d.Kite(cfg, "gateway")
 
-	gateway.NewServer(kiteCfg)
+	keygen.NewServer(kiteCfg)
 
 	go kiteCfg.Kite.Run()
 	<-kiteCfg.Kite.ServerReadyNotify()

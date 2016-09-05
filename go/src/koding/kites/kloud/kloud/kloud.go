@@ -17,7 +17,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/httputil"
 	"koding/kites/common"
-	"koding/kites/gateway"
+	"koding/kites/keygen"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/publickeys"
@@ -50,7 +50,7 @@ var Name = "kloud"
 type Kloud struct {
 	Kite    *kite.Kite
 	Stack   *stack.Kloud
-	Gateway *gateway.Server
+	Gateway *keygen.Server
 }
 
 // Config defines the configuration that Kloud needs to operate.
@@ -297,9 +297,9 @@ func New(conf *Config) (*Kloud, error) {
 		return nil, err
 	}
 
-	var gwSrv *gateway.Server
+	var gwSrv *keygen.Server
 	if conf.GatewayAccessKey != "" && conf.GatewaySecretKey != "" {
-		cfg := &gateway.Config{
+		cfg := &keygen.Config{
 			AccessKey:  conf.GatewayAccessKey,
 			SecretKey:  conf.GatewaySecretKey,
 			Region:     conf.GatewayRegion,
@@ -309,7 +309,7 @@ func New(conf *Config) (*Kloud, error) {
 			Kite:       k,
 		}
 
-		gwSrv = gateway.NewServer(cfg)
+		gwSrv = keygen.NewServer(cfg)
 	}
 
 	// Teams/stack handling methods

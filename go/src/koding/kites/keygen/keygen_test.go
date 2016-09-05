@@ -1,4 +1,4 @@
-package gateway_test
+package keygen_test
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"koding/kites/gateway"
-	"koding/kites/gateway/gatewaytest"
+	"koding/kites/keygen"
+	"koding/kites/keygen/keygentest"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -16,15 +16,15 @@ import (
 )
 
 func TestGateway_UserBucket(t *testing.T) {
-	var f gatewaytest.Flags
+	var f keygentest.Flags
 
-	if err := gatewaytest.ParseFlags(&f); err != nil {
+	if err := keygentest.ParseFlags(&f); err != nil {
 		t.Fatal(err)
 	}
 
 	// to cleanup after tests
 	rootS3 := s3.New(session.New(f.AWSConfig()))
-	drv := &gatewaytest.Driver{ChanCap: 1}
+	drv := &keygentest.Driver{ChanCap: 1}
 	cfg := f.Config()
 
 	defer drv.Server(cfg)()
@@ -48,7 +48,7 @@ func TestGateway_UserBucket(t *testing.T) {
 	}
 
 	for username, files := range populate {
-		ub := gateway.NewUserBucket(drv.Kite(cfg, username))
+		ub := keygen.NewUserBucket(drv.Kite(cfg, username))
 
 		for _, file := range files {
 			if err := ub.Put(file.Key, strings.NewReader(file.Content)); err != nil {
