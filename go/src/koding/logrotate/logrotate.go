@@ -80,6 +80,12 @@ func (ne *NopError) Error() string {
 	return fmt.Sprintf(`no content left after rotating "%s.%d"`, ne.Key, ne.N)
 }
 
+// IsNop gives true if err is non-nil and is of *NopError type.
+func IsNop(err error) bool {
+	_, ok := err.(*NopError)
+	return ok
+}
+
 // Putter is responsible for streaming the content under the given key path.
 type Putter interface {
 	Put(key string, content io.ReadSeeker) error
@@ -136,11 +142,7 @@ func (l *Logger) Upload(key string, content io.ReadSeeker) error {
 
 	meta := l.meta(key)
 	part, err := rotate(content, meta)
-	switch err.(type) {
-	case nil:
-	case *NopError:
-		return nil
-	default:
+	if err != nil {
 		return err
 	}
 
