@@ -1,0 +1,14 @@
+.main
+  width                     100%
+  > div
+    margin                  0
+    padding-bottom          25px
+
+.mainCol
+  padding                   0
+  max-width                 260px
+  borderBox()
+
+.tight input
+  padding                   0 15px
+
