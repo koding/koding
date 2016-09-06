@@ -50,3 +50,13 @@ type DeletedMember struct {
 	// SubscriptionID string
 	// UpdatedAt time.Time
 }
+
+// IsSubActive checks if subscription is in valid state for operation
+func (g *Group) IsSubActive() bool {
+	switch g.Payment.Subscription.Status {
+	case "active", "trialing":
+		return true
+	default:
+		return false
+	}
+}
