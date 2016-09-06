@@ -112,7 +112,7 @@ func TestLogrotate_Upload(t *testing.T) {
 	ub := make(UserBucket)
 	m := storage.NewMemoryStorage()
 
-	l := &logrotate.Logger{
+	l := &logrotate.Uploader{
 		UserBucket: ub,
 		MetaStore: &storage.EncodingStorage{
 			Interface: m,

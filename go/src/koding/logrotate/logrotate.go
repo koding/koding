@@ -91,10 +91,10 @@ type Putter interface {
 	Put(key string, content io.ReadSeeker) error
 }
 
-// Logger is used to stream logs' contents.
+// Uploader is used to stream logs' contents.
 //
 // It is also compresses log content.
-type Logger struct {
+type Uploader struct {
 	// UserBucket is used to stream log contents.
 	// Required.
 	UserBucket Putter
@@ -112,7 +112,7 @@ type Logger struct {
 //
 // The key is constructed by joining prefix and the
 // canonical form of the file path.
-func (l *Logger) UploadFile(prefix, file string) error {
+func (l *Uploader) UploadFile(prefix, file string) error {
 	key := filepath.ToSlash(filepath.Clean(file))
 	if prefix != "" {
 		key = prefix + "/" + key
@@ -135,7 +135,7 @@ func (l *Logger) UploadFile(prefix, file string) error {
 //
 // TODO(rjeczalik): detect if content is already gzipped and do not
 // double-compress it
-func (l *Logger) Upload(key string, content io.ReadSeeker) error {
+func (l *Uploader) Upload(key string, content io.ReadSeeker) error {
 	if c, ok := content.(io.Closer); ok {
 		defer c.Close()
 	}
@@ -170,7 +170,7 @@ func (l *Logger) Upload(key string, content io.ReadSeeker) error {
 	return nil
 }
 
-func (l *Logger) meta(key string) *Metadata {
+func (l *Uploader) meta(key string) *Metadata {
 	var meta Metadata
 
 	err := l.MetaStore.GetValue(key, &meta)
@@ -185,7 +185,7 @@ func (l *Logger) meta(key string) *Metadata {
 	return &Metadata{Key: key}
 }
 
-func (l *Logger) gzip(key string, rs io.ReadSeeker, n *int64) (io.ReadSeeker, error) {
+func (l *Uploader) gzip(key string, rs io.ReadSeeker, n *int64) (io.ReadSeeker, error) {
 	var buf bytes.Buffer
 	var w io.Writer = &CountingWriter{W: &buf, N: n}
 
@@ -205,7 +205,7 @@ func (l *Logger) gzip(key string, rs io.ReadSeeker, n *int64) (io.ReadSeeker, er
 	return bytes.NewReader(buf.Bytes()), nil
 }
 
-func (l *Logger) log() logging.Logger {
+func (l *Uploader) log() logging.Logger {
 	if l.Log != nil {
 		return l.Log
 	}
