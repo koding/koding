@@ -143,7 +143,6 @@ module.exports = (options, credentials) ->
 
     janitorSecretKey: credentials.janitor.secretKey
     vmWatcherSecretKey: credentials.vmwatcher.secretKey
-    paymentWebHookSecretKey: credentials.paymentwebhook.secretKey
     terraformerSecretKey: credentials.terraformer.secretKey
 
     awsAccessKeyId: credentials.awsKeys.vm_kloud.accessKeyId
