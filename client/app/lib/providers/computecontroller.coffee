@@ -960,14 +960,13 @@ module.exports = class ComputeController extends KDController
     KiteCache.unset machine.queryString
     delete kontrol.kites?.klient?[machine.uid]
 
-
-  checkStackRevisions: ->
+  checkStackRevisions: (stacks = null) ->
 
     return  if isKoding()
 
     # TMS-1919: This is already written for multiple stacks, code change
     # might be required if existing flow changes ~ GG
-
+    @stacks = stacks  if stacks
     @stacks.forEach (stack) =>
 
       stack.checkRevision (error, data) =>
