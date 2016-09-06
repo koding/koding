@@ -3,7 +3,7 @@ version: '2'
 services:
   backend:
     image: koding/base
-    command: /opt/koding/scripts/bootstrap-container build
+    entrypoint: /opt/koding/scripts/bootstrap-container
     env_file: .env-docker-compose
     environment:
       DEFAULTENV: $DEFAULTENV
