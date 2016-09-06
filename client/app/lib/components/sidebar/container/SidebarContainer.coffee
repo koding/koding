@@ -27,27 +27,13 @@ mapDispatchToProps = (dispatch) ->
 
   return {
     reinitStack: (stack, machines, template) ->
-      dispatch(destroyStack stack, machines).then (res) ->
-        handleRoute '/IDE'
-        dispatch(initializeStack template).then  (res) ->
-          # result[0] is always stack [1], [2] ... machines
-          { result } = res
-          machine = result[1]
-          reloadIDE machine.label # we can extract label from res as well
-
+      reinitStack(stack, machines, template)(dispatch)
 
     destroyStack: (stack, machines) ->
-      dispatch(destroyStack stack, machines).then (res) ->
-        handleRoute '/IDE'
-
+      dispatch(destroyStack stack, machines)
 
     initializeStack: (template) ->
-      dispatch(initializeStack template).then (res) ->
-        # result[0] is always stack [1], [2] ... machines
-        { result } = res
-        machine = result[1]
-        reloadIDE machine.label
-
+      initializeStack(template)(dispatch)
 
     handleRoute: (route) ->
       handleRoute route

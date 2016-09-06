@@ -5,6 +5,7 @@ immutable = require 'app/util/immutable'
 showError = require 'app/util/showError'
 whoami = require 'app/util/whoami'
 getMachineOwner = require 'app/util/getMachineOwner'
+{ series, waterfall } = require 'async'
 
 { makeNamespace, expandActionType,
   normalize, defineSchema } = require 'app/redux/helper'
@@ -33,19 +34,26 @@ reducer = (state = immutable({}), action) ->
 
 # actions
 
-initializeStack = (template) ->
+initializeStack = (template) -> (dispatch) ->
 
-  return {
-    types: [LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL]
-    bongo: -> template.generateStack().then (result) ->
+  waterfall([
+    (next) ->
+      dispatch {
+        types: [LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL]
+        bongo: -> template.generateStack().then (result) ->
+          { stack, results: { machines } } = result
+          instances = []
+          instances.push stack
+          machines.forEach (machine) -> instances.push machine.obj
+          next null, machines[0].obj
 
-      { stack, results: { machines } } = result
-      instances = []
-      instances.push stack
-      machines.forEach (machine) -> instances.push machine.obj
+          return instances
+        }
 
-      return instances
-  }
+    (machine, next) ->
+      reloadIDE machine.label
+      next()
+  ])
 
 
 openOnGitlab = (stack) ->
@@ -59,7 +67,7 @@ handleRoute = (route) ->
   kd.singletons.router.handleRoute route
 
 
-destroyStack = (stack, machines) ->
+destroyStack = (stack, machines, type = 'deleteStack') ->
 
   return  unless stack
 
@@ -68,7 +76,7 @@ destroyStack = (stack, machines) ->
   return {
     types: [REMOVE.BEGIN, REMOVE.SUCCESS, REMOVE.FAIL]
     promise: -> new Promise (resolve, reject) ->
-      computeController.ui.askFor 'deleteStack', {}, (status) ->
+      computeController.ui.askFor type, {}, (status) ->
 
         return  unless status.confirmed # reject
 
@@ -80,6 +88,7 @@ destroyStack = (stack, machines) ->
             result.push stack
 
             machines.forEach (machine) -> result.push machine
+            handleRoute '/IDE'
             return resolve result
 
           , followEvents = no
@@ -92,21 +101,19 @@ reloadIDE = (machineSlug) ->
   computeController.reloadIDE machineSlug
 
 
-reinitStack = (stack, template) ->
+reinitStack = (stack, machines, template) -> (dispatch) ->
 
   return  unless template or not stack
 
-  { computeController } = kd.singletons
+  { computeController, appManager } = kd.singletons
 
-  console.log 'reinit stack', stack, template
-  return {
-    type: []
-    promise: -> new Promise (resolve, reject) ->
-      computeController.ui.askFor 'reinitStack', {}, (status) ->
+  series([
+    (next) -> dispatch(destroyStack stack, machines, 'reinitStack').then ->
+      next()
+    (next) ->
+      initializeStack(template)(dispatch)
+  ])
 
-        return  unless status.confirmed # reject
-
-  }
 
 # selectors
 
