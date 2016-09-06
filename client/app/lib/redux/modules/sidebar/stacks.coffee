@@ -14,6 +14,7 @@ withNamespace = makeNamespace 'koding', 'sidebar', 'stacks'
 GENERATE_STACK = expandActionType withNamespace 'GENERATE_STACK'
 EDIT = expandActionType withNamespace 'EDIT'
 INITIALIZE = expandActionType withNamespace 'INITIALIZE'
+{ LOAD, REMOVE } = require 'app/redux/modules/bongo'
 
 
 reducer = (state = immutable({}), action) ->
@@ -35,6 +36,7 @@ reducer = (state = immutable({}), action) ->
 initializeStack = (template) ->
 
   return {
+    types: [LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL]
     bongo: -> template.generateStack().then (result) ->
 
       { stack, results: { machines } } = result
@@ -64,7 +66,7 @@ destroyStack = (stack, machines) ->
   { computeController, appManager } = kd.singletons
 
   return {
-    types: ['BONGO_DELETE', 'BONGO_DELETE_SUCCESS', 'BONGO_DELETE_FAIL']
+    types: [REMOVE.BEGIN, REMOVE.SUCCESS, REMOVE.FAIL]
     promise: -> new Promise (resolve, reject) ->
       computeController.ui.askFor 'deleteStack', {}, (status) ->
 
