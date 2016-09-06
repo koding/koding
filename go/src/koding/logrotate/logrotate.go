@@ -39,7 +39,7 @@ var defaultLog = logging.NewCustom("logrotate", false)
 // TODO(rjeczalik): make Logger use configurable ChecksumSize
 const DefaultChecksumSize = 128
 
-// Metadata
+// Metadata represents a metadata of a single object, e.g. file.
 type Metadata struct {
 	Key   string          `json:"key"`
 	Parts []*MetadataPart `json:"parts"`
@@ -56,7 +56,7 @@ func (meta *Metadata) LastPart() *MetadataPart {
 	return nil
 }
 
-// MetadataPart
+// MetadataPart represents a metadata of a signel object's part.
 type MetadataPart struct {
 	CreatedAt      time.Time `json:"createdAt"`
 	Offset         int64     `json:"offset"`
@@ -187,10 +187,11 @@ func (l *Logger) meta(key string) *Metadata {
 
 func (l *Logger) gzip(key string, rs io.ReadSeeker, n *int64) (io.ReadSeeker, error) {
 	var buf bytes.Buffer
+	var w io.Writer = &CountingWriter{W: &buf, N: n}
 
-	cw := gzip.NewWriter(&buf)
+	cw := gzip.NewWriter(w)
 
-	_, err := io.Copy(&CountingWriter{W: cw, N: n}, rs)
+	_, err := io.Copy(cw, rs)
 	if err = nonil(err, cw.Close()); err != nil {
 		if _, e := rs.Seek(0, io.SeekStart); e != nil {
 			return nil, err

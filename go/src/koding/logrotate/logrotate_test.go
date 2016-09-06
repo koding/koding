@@ -2,6 +2,7 @@ package logrotate_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -109,11 +110,12 @@ func TestLogrotate_Rotate(t *testing.T) {
 
 func TestLogrotate_Upload(t *testing.T) {
 	ub := make(UserBucket)
+	m := storage.NewMemoryStorage()
 
 	l := &logrotate.Logger{
 		UserBucket: ub,
 		MetaStore: &storage.EncodingStorage{
-			Interface: storage.NewMemoryStorage(),
+			Interface: m,
 		},
 	}
 
@@ -141,5 +143,36 @@ func TestLogrotate_Upload(t *testing.T) {
 
 	if len(ub) != len(parts) {
 		t.Fatalf("got %d, want %d", len(ub), len(parts))
+	}
+
+	for name, s := range m.M {
+		var meta logrotate.Metadata
+
+		if err := json.Unmarshal([]byte(s), &meta); err != nil {
+			t.Errorf("%s: Unmarshal()=%s", name, err)
+			continue
+		}
+
+		for i, p := range meta.Parts {
+			if p.Size == 0 {
+				t.Errorf("%s: %d: want p.Size != 0", name, i)
+				continue
+			}
+
+			if p.CompressedSize == 0 {
+				t.Errorf("%s: %d: want p.CompressedSize != 0", name, i)
+				continue
+			}
+
+			if p.Checksum == "" {
+				t.Errorf(`%s: %d: want p.Checksum != ""`, name, i)
+				continue
+			}
+
+			if p.Size <= p.CompressedSize {
+				t.Errorf("%s: %d: want p.Size=%d > p.CompressedSize=%d", name, i, p.Size, p.CompressedSize)
+				continue
+			}
+		}
 	}
 }
