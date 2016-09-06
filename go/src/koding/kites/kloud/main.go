@@ -27,11 +27,9 @@ import (
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/plans"
 	"koding/kites/kloud/provider"
 	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/disabled"
-	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/provider/vagrant"
 	"koding/kites/kloud/queue"
@@ -64,9 +62,6 @@ type Config struct {
 
 	// CredentialEndpoint is an API for managing stack credentials.
 	CredentialEndpoint string
-
-	// Endpoint for fetching user machine network usage
-	NetworkUsageEndpoint string `required:"true"`
 
 	// --- DEVELOPMENT CONFIG ---
 	// Show version and exit if enabled
@@ -133,11 +128,10 @@ type Config struct {
 	SLUsername string
 	SLAPIKey   string
 
-	JanitorSecretKey        string
-	VmwatcherSecretKey      string
-	PaymentwebhookSecretKey string
-	KloudSecretKey          string
-	TerraformerSecretKey    string
+	JanitorSecretKey     string
+	VmwatcherSecretKey   string
+	KloudSecretKey       string
+	TerraformerSecretKey string
 }
 
 func main() {
@@ -215,11 +209,6 @@ func newKite(conf *Config) *kite.Kite {
 		k.Config.Environment = conf.Environment
 	}
 
-	if conf.AMITag != "" {
-		k.Log.Warning("Default AMI Tag changed from %s to %s", koding.DefaultCustomAMITag, conf.AMITag)
-		koding.DefaultCustomAMITag = conf.AMITag
-	}
-
 	if conf.SLTemplateTag != "" {
 		k.Log.Warning("Default Template tag changed from %s to %s",
 			softlayer.DefaultTemplateTag, conf.SLTemplateTag)
@@ -241,10 +230,9 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	authUsers := map[string]string{
-		"kloudctl":       conf.KloudSecretKey,
-		"janitor":        conf.JanitorSecretKey,
-		"vmwatcher":      conf.VmwatcherSecretKey,
-		"paymentwebhook": conf.PaymentwebhookSecretKey,
+		"kloudctl":  conf.KloudSecretKey,
+		"janitor":   conf.JanitorSecretKey,
+		"vmwatcher": conf.VmwatcherSecretKey,
 	}
 
 	var credURL *url.URL
@@ -287,13 +275,7 @@ func newKite(conf *Config) *kite.Kite {
 
 	softlayerProvider := newSoftlayerProvider(sess, conf)
 
-	kodingProvider := newKodingProvider(sess, conf, authUsers)
-
-	if k, ok := kodingProvider.(*koding.Provider); ok {
-		awsProvider.Koding = k
-	}
-
-	go runQueue(kodingProvider, awsProvider, sess, conf)
+	go runQueue(awsProvider, sess, conf)
 
 	stats := common.MustInitMetrics(Name)
 
@@ -317,11 +299,6 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Locker = bp
 	kld.Log = sess.Log
 	kld.SecretKey = conf.KloudSecretKey
-
-	err = kld.AddProvider("koding", kodingProvider)
-	if err != nil {
-		panic(err)
-	}
 
 	err = kld.AddProvider("aws", awsProvider)
 	if err != nil {
@@ -458,76 +435,6 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 	return sess, nil
 }
 
-// Providers ctors. If a provider has a dependencty on a service
-// defined in *session.Session, and the service is disabled (nil)
-// due to missing configuration or any other reason, we return
-// disabled provider that rejects all requests with 411 *kite.Error.
-
-func newKodingProvider(sess *session.Session, conf *Config, authUsers map[string]string) kloud.Provider {
-	if conf.Environment == "default" {
-		// TODO(rjeczalik): Koding provider (the one behind Koding Solo) is
-		// disabled for default environment as it relies heavily on
-		// bootstrapped AWS environment with a fixed VPC, Subnet names,
-		// tags etc.
-		//
-		// The TODO is to either parametrize all used by koding provider
-		// AWS resources or remove koding provider altogether replacing
-		// it with team provider.
-		sess.Log.Warning(`disabling "koding" provider for default environment`)
-
-		return disabled.NewProvider("koding")
-	}
-
-	if sess.DNSClient == nil {
-		sess.Log.Warning(`disabling "koding" provider due to invalid/missing Route53 credentials`)
-
-		return disabled.NewProvider("koding")
-	}
-
-	if sess.AWSClients == nil {
-		sess.Log.Warning(`disabling "koding" provider due to invalid/missing EC2 credentials`)
-
-		return disabled.NewProvider("koding")
-	}
-
-	// TODO(rjeczalik): refactor koding provider to use interface instead
-	dns, ok := sess.DNSStorage.(*dnsstorage.MongodbStorage)
-	if !ok {
-		sess.Log.Warning(`disabling "koding" provider due to invalid DNS storage: %T`, sess.DNSStorage)
-
-		return disabled.NewProvider("koding")
-	}
-
-	// TODO(rjeczalik): refactor koding provider to use interface instead
-	dnsClient, ok := sess.DNSClient.(*dnsclient.Route53)
-	if !ok {
-		sess.Log.Warning(`disabling "koding" provider due to invalid DNS client: %T`, sess.DNSClient)
-
-		return disabled.NewProvider("koding")
-	}
-
-	kp := &koding.Provider{
-		DB:         sess.DB,
-		Log:        sess.Log.New("koding"),
-		DNSClient:  dnsClient,
-		DNSStorage: dns,
-		Kite:       sess.Kite,
-		EC2Clients: sess.AWSClients,
-		Userdata:   sess.Userdata,
-		PaymentFetcher: &plans.Payment{
-			PaymentEndpoint: conf.PlanEndpoint,
-		},
-		CheckerFetcher: &plans.KodingChecker{
-			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
-		},
-		AuthorizedUsers: authUsers,
-	}
-	// TODO(rjeczalik): move interval to config
-	go kp.RunCleaners(time.Minute * 60)
-
-	return kp
-}
-
 func newSoftlayerProvider(sess *session.Session, conf *Config) kloud.Provider {
 	if sess.DNSClient == nil {
 		sess.Log.Warning(`disabling "softlayer" provider due to invalid/missing Route53 credentials`)
@@ -569,17 +476,13 @@ func newSoftlayerProvider(sess *session.Session, conf *Config) kloud.Provider {
 	}
 }
 
-func runQueue(k, aws kloud.Provider, sess *session.Session, conf *Config) {
+func runQueue(aws kloud.Provider, sess *session.Session, conf *Config) {
 	q := &queue.Queue{
 		Log: sess.Log.New("queue"),
 	}
 
 	if p, ok := aws.(*awsprovider.Provider); ok {
 		q.AwsProvider = p
-	}
-
-	if p, ok := k.(*koding.Provider); ok {
-		q.KodingProvider = p
 	}
 
 	// TODO(rjeczalik): move to config
