@@ -20,10 +20,11 @@ Button.propTypes =
   auto: PropTypes.bool
   disabled: PropTypes.bool
   onClick: PropTypes.func
-  type: PropTypes.oneOf [
-    'primary', 'primary-1', 'primary-2', 'primary-3', 'primary-4',
-    'primary-5', 'primary-6', 'primary', 'secondary', 'secondary-on-dark'
-  ]
+  # type: PropTypes.oneOf [
+  #   'primary', 'primary-1', 'primary-2', 'primary-3', 'primary-4',
+  #   'primary-5', 'primary-6', 'primary', 'secondary', 'secondary-on-dark'
+  #   'link-secondary', 'link-primary-1'
+  # ]
   size: PropTypes.oneOf [
     'small', 'medium', 'large', 'xlarge'
   ]
