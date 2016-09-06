@@ -19,7 +19,6 @@ createSizeClass(size)
   .{size}
     font-family             -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif
     cursor                  pointer
-    padding                 $padding-+size
     padding                 lookup('$padding-'+size)
     font-size               lookup('$fs-'+size)
     border-radius           lookup('$br-'+size)
@@ -98,4 +97,43 @@ createPrimaryClass('primary-6')
   display                   block
   width                     100%
   padding                   10px auto
+
+
+.link-button
+  color                     transparent
+  border                    0
+
+
+createLinkClass(type, name = type)
+
+  $color = lookup('$'+type)
+  $light = lighten($color, 50%)
+  $lighter = lighten($color, 90%)
+  $lightest = lighten($color, 95%)
+
+  .link-{name}
+    border                  1px solid transparent
+    background-color        transparent
+    color                   $color
+    borderBox()
+
+    &:focus
+      outline               none
+
+    &:hover
+      background-color      $lightest
+      border-color          $light
+
+    &:active
+      background-color      $lighter
+
+createLinkClass('primary-1')
+createLinkClass('primary-2')
+createLinkClass('primary-3')
+createLinkClass('primary-4')
+createLinkClass('primary-5')
+createLinkClass('primary-6')
+createLinkClass('primary-1', 'primary')
+createLinkClass('additional-3-faded', 'secondary')
+
 
