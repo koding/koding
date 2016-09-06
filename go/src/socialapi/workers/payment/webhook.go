@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/workers/api/realtimehelper"
 	"socialapi/workers/email/emailsender"
 	"time"
 
@@ -324,6 +325,16 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 	if group.Payment.Subscription.Status == string(status) {
 		return nil
 	}
+
+	// send instance notification to group
+	go realtimehelper.NotifyGroup(
+		group.Slug,
+		"payment_status_changed",
+		map[string]string{
+			"oldStatus": group.Payment.Subscription.Status,
+			"newStatus": string(status),
+		},
+	)
 
 	if err := modelhelper.UpdateGroupPartial(
 		modelhelper.Selector{"_id": group.Id},
