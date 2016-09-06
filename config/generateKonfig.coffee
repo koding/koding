@@ -29,12 +29,6 @@ module.exports = (options, credentials) ->
     aws: "aws"
     premium: "vagrant"
 
-  paymentwebhook =
-    port: "6600"
-    debug: false
-    customersKey: credentials.paymentwebhook.customersKey
-    secretKey: credentials.paymentwebhook.secretKey
-
   broker =
     name: "broker"
     serviceGenericName: "broker"
@@ -145,9 +139,7 @@ module.exports = (options, credentials) ->
     tunnelUrl: "#{options.tunnelUrl}"
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
 
-    planEndpoint: "#{socialApiProxyUrl}/payments/subscriptions"
     credentialEndPoint: "#{socialApiProxyUrl}/credential"
-    networkUsageEndpoint: "http://localhost:#{vmwatcherPort}"
 
     janitorSecretKey: credentials.janitor.secretKey
     vmWatcherSecretKey: credentials.vmwatcher.secretKey
@@ -181,7 +173,6 @@ module.exports = (options, credentials) ->
     disabledFeatures       : options.disabledFeatures
 
     stripe                 : credentials.stripe
-    paypal                 : credentials.paypal
     github                 : credentials.github
     gitlab                 : gitlab
     janitor                : credentials.janitor
