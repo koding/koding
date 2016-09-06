@@ -33,8 +33,6 @@ type (
 
 		Stripe Stripe
 
-		Paypal Paypal
-
 		// Holds access information for realtime message authenticator
 		GateKeeper GateKeeper
 
@@ -45,8 +43,6 @@ type (
 		WebhookMiddleware WebhookMiddleware
 
 		Kloud Kloud
-
-		PaymentWebhook PaymentWebhook
 
 		ProxyURL string
 
@@ -121,15 +117,6 @@ type (
 		SecretToken string `env:"key=KONFIG_SOCIALAPI_STRIPE_SECRETTOKEN"`
 	}
 
-	Paypal struct {
-		Username  string `env:"key=KONFIG_SOCIALAPI_PAYPAL_USERNAME"`
-		Password  string `env:"key=KONFIG_SOCIALAPI_PAYPAL_PASSWORD"`
-		Signature string `env:"key=KONFIG_SOCIALAPI_PAYPAL_SIGNATURE"`
-		ReturnUrl string `env:"key=KONFIG_SOCIALAPI_PAYPAL_RETURNURL"`
-		CancelUrl string `env:"key=KONFIG_SOCIALAPI_PAYPAL_CANCELURL"`
-		IsSandbox bool   `env:"key=KONFIG_SOCIALAPI_PAYPAL_ISANDBOX"`
-	}
-
 	GateKeeper struct {
 		Host   string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_HOST"`
 		Port   string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PORT"`
@@ -163,12 +150,6 @@ type (
 	Kloud struct {
 		SecretKey string `env:"key=KONFIG_SOCIALAPI_KLOUD_SECRETKEY"`
 		Address   string `env:"key=KONFIG_SOCIALAPI_KLOUD_ADDRESS"`
-	}
-
-	PaymentWebhook struct {
-		Port      string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_PORT"`
-		Debug     bool   `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_DEBUG"`
-		SecretKey string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_SECRETKEY"`
 	}
 
 	GoogleapiServiceAccount struct {
