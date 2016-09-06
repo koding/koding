@@ -23,6 +23,13 @@ module.exports = class StackEditorAppController extends AppController
 
     @selectedEditor = null
 
+    { router } = kd.singletons
+    router.on 'RouteInfoHandled', (routeInfo) =>
+      return  unless @selectedEditor
+
+      { data, reloadRequired } = @selectedEditor
+      @removeEditor data.stackTemplate._id  if reloadRequired
+
 
   openEditor: (stackTemplateId) ->
 
@@ -140,9 +147,8 @@ module.exports = class StackEditorAppController extends AppController
 
     { computeController } = kd.singletons
 
-    EnvironmentFlux.actions.fetchAndUpdateStackTemplate templateId, (template) =>
-      @removeEditor template._id
-      @showView template
+    EnvironmentFlux.actions.fetchAndUpdateStackTemplate(templateId).then (template) =>
+      @editors[template._id]?.reloadRequired = yes
 
 
   createEditor: (stackTemplate) ->

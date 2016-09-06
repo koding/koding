@@ -865,7 +865,7 @@ module.exports = class StackEditorView extends kd.View
 
       return  if @outputView.handleError err
 
-      @setAsDefaultButton.hide()
+      @setAsDefaultButton.disable()
 
       Tracker.track Tracker.STACKS_MAKE_DEFAULT
 
