@@ -1,10 +1,11 @@
+kd = require 'kd'
 React                     = require 'kd-react'
 actions                   = require 'app/flux/environment/actions'
 SidebarWidget             = require './sidebarwidget'
 InvitationWidgetUserPart  = require './invitationwidgetuserpart'
 Tracker                   = require 'app/util/tracker'
 ContentModal = require 'app/components/contentModal'
-
+{ byId, REMOVE } = require 'app/redux/modules/bongo'
 
 module.exports = class LeaveSharedMachineWidget extends React.Component
 
@@ -30,8 +31,12 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
           callback : =>
             actions.rejectInvitation @props.machine
             Tracker.track Tracker.VM_LEFT_SHARED
+            machine = byId('JMachine', @props.machine.get('_id'))(kd.singletons.store.getState())
+            kd.singletons.store.dispatch {
+              type: REMOVE.SUCCESS
+              result: machine
+            }
             modal.destroy()
-
 
 
   render: ->
