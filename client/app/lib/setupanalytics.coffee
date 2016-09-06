@@ -1,5 +1,5 @@
 kd         = require 'kd'
-remote     = require('app/remote').getInstance()
+remote     = require 'app/remote'
 globals    = require 'globals'
 isLoggedIn = require './util/isLoggedIn'
 identified = false

@@ -36,7 +36,7 @@ gzip -d -f provisionklient.gz || die "unarchiving provisionklient failed"
 chmod +x provisionklient
 ./provisionklient -data '{{.ProvisionData}}'
 
-cat >user-data.sh <<EOF
+cat >user-data.sh <<"EOF"
 {{unbase64 .CustomScript}}
 
 echo _KD_DONE_

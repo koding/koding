@@ -1,4 +1,4 @@
-remote = require('app/remote').getInstance()
+remote = require 'app/remote'
 
 
 module.exports = (machine) ->

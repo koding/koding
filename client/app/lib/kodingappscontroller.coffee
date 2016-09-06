@@ -9,6 +9,17 @@ async            = require 'async'
 FSHelper         = require './util/fs/fshelper'
 registerAppClass = require './util/registerAppClass'
 
+AppClasses =
+  ace: require 'ace'
+  dashboard: require 'dashboard'
+  finder: require 'finder'
+  home: require 'home'
+  ide: require 'ide'
+  kites: require 'kites'
+  'stack-editor': require 'stack-editor'
+  testrunner: require 'testrunner'
+
+
 module.exports = class KodingAppsController extends KDController
 
   name    = 'KodingAppsController'
@@ -29,7 +40,9 @@ module.exports = class KodingAppsController extends KDController
     app = globals.config.apps[name]
 
     @putAppScript app, (err, res) =>
-      AppClass = require res.app.identifier
+
+      AppClass = AppClasses[res.app.identifier] or kd.Object
+
       register = (klass) ->
         registerAppClass klass
         callback err, res
@@ -61,7 +74,7 @@ module.exports = class KodingAppsController extends KDController
       @appendHeadElement 'script', \
         { app: app, url:app.script, identifier:app.identifier, force: yes }, callback
 
-    return
+    return callback null, { app }
 
   @unloadAppScript = (app, callback = kd.noop) ->
 

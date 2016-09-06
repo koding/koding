@@ -1,7 +1,7 @@
 kd           = require 'kd'
 async        = require 'async'
 KDController = kd.Controller
-remote       = require('./remote').getInstance()
+remote       = require('./remote')
 showError    = require './util/showError'
 FSHelper     = require './util/fs/fshelper'
 

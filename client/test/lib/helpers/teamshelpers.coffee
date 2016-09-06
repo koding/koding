@@ -24,7 +24,7 @@ envMachineStateModal     = '.env-machine-state.env-modal'
 stackSettingsMenuIcon    = '.stacktemplates .stack-template-list .stack-settings-menu .chevron'
 myStackTemplatesButton   = '.kdview.kdtabhandle-tabs .my-stack-templates'
 closeButton              = "#{stackCatalogModal} .kdmodal-inner .closeModal"
-closeModal               = '.HomeWelcomeModal.kdmodal .kdmodal-inner .close-icon.closeModal'
+closeModal               = '.close-icon.closeModal'
 visibleStack             = '[testpath=StackEditor-isVisible]'
 #Team Creation
 modalSelector            = '.TeamsModal.TeamsModal--create'
@@ -39,7 +39,10 @@ errorMessage             = '.kdnotification.main'
 teamCreateLink           = "a[href='/Teams/Create']"
 userInfoErrorMsg         = '.validation-error .kdview.wrapper'
 alreadyMemberModal       = "#{teamsModalSelector}.alreadyMember"
+proceedButton            = '[testpath=proceed]'
 url                      = helpers.getUrl()
+logoutUrl  = "#{helpers.getUrl(yes)}/logout"
+
 
 module.exports =
   enterTeamURL: (browser) ->
@@ -150,7 +153,6 @@ module.exports =
             .assert.containsText    notification, 'Unknown user name'
 
         when 'InvalidPassword'
-          console.log()
           browser
             .setValue                'input[name=username]', user.username
             .setValue                'input[name=password]', user.password + 'wrong'
@@ -364,7 +366,7 @@ module.exports =
     newCredentialPage = '.kdview.stacks.stacks-v2'
     saveButton = "#{newCredentialPage} button[type=submit]"
     regionSelector = '.kdview.formline.region .kdselectbox select'
-    eu_west_1 = "#{regionSelector} option[value=ap-southeast-1]"
+    eu_west_1 = "#{regionSelector} option[value=us-west-1]"
 
     { accessKeyId, secretAccessKey } = @getAwsKey()
 
@@ -430,12 +432,13 @@ module.exports =
   turnOnVm: (browser, firstBuild = no, done = -> ) ->
     credentialSelector = '.kdselectbox'
     credential = "#{credentialSelector} option[text='test credential']"
+    buttonSelector = '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
 
     browser
       .waitForElementVisible '.kdview', 20000
       .pause 2000
-      .waitForElementVisible '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton:nth-of-type(2)', 20000
-      .click '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton:nth-of-type(2)'
+      .waitForElementVisible buttonSelector + ':nth-of-type(2)', 20000
+      .click buttonSelector + ':nth-of-type(2)'
       .waitForElementVisible '.resource-state-modal.kdmodal .credentials-page .credential-form', 20000
 
     browser.getValue credentialSelector, (result) ->
@@ -448,14 +451,25 @@ module.exports =
           .pause 200
 
     browser
-      .click '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
+      .click buttonSelector
       .waitForElementVisible '.BaseModalView.kdmodal section.main .progressbar-container', 20000
       .waitForElementVisible '.kdview.kdscrollview', 20000
       .waitForElementVisible '.kdview.jtreeview.expanded', 20000
       .assert.containsText   'body.ide .kdlistitemview-finderitem > div .title', 'Applications'
-    @waitUntilVmRunning browser, ->
-      done()
+    @waitUntilVmRunning browser, =>
+      @waitStartCoding browser, ->
+        done()
 
+  waitStartCoding: (browser, done) ->
+    buttonSelector = '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
+
+    browser.element 'css selector', buttonSelector + ':nth-of-type(2)', (result) ->
+      if result.status is 0
+        browser.waitForElementVisible buttonSelector + ':nth-of-type(2)', 20000
+        browser.click buttonSelector + ':nth-of-type(2)'
+        done()
+      else
+        @waitStartCoding browser, done
 
   waitUntilVmStopping: (browser, done) ->
 
@@ -626,18 +640,34 @@ module.exports =
 
         callback invitationUrl
 
+  logoutTeamfromUrl: (browser, callback) ->
+    browser.url logoutUrl, ->
+      callback()
+
+  
+  closeModal: (browser, done) ->
+    browser.element 'css selector', closeModal, (result) =>
+      if result.status is 0
+        browser.waitForElementVisible closeModal, 30000
+        browser.click closeModal
+        browser.pause 1000, done
+      else
+        @closeModal browser, done
 
   logoutTeam: (browser, callback) ->
 
-    browser
-      .click '#main-sidebar'
-      .waitForElementVisible '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 20000
-      .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
-      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 20000
-      .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 2000
-      .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(4)'
-      .pause 2000, -> callback()
-
+    @closeModal browser, ->
+      browser
+        .waitForElementVisible '#main-sidebar', 30000
+        .waitForElementVisible '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 20000
+        .click '.Sidebar-logo-wrapper'
+        .click '#main-sidebar'
+        .moveToElement '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 0, 0
+        .click '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name'
+        .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistview-contextmenu.default', 40000
+        .waitForElementVisible '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default', 20000
+        .click '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default:nth-of-type(5)'
+        .pause 2000, -> callback()
 
   inviteAndJoinWithUsers: (browser, users, callback) ->
     host = @loginTeam browser
@@ -657,27 +687,39 @@ module.exports =
         callback result
 
 
-  inviteUser: (browser, role) ->
+  inviteUser: (browser, role, email, isNew) ->
 
     index = if role is 'member' then 2 else 1
-
     invitationsModalSelector = '.HomeAppView--section.send-invites'
     sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
+    successMessage = ''
 
     browser
       .waitForElementVisible invitationsModalSelector, 20000
 
-    userEmail = @fillInviteInputByIndex browser, index
-    successMessage = "Invitation is sent to #{userEmail}"
+    email = @fillInviteInputByIndex browser, index, email
 
     browser
       .waitForElementVisible sendInvitesButton, 5000
       .click sendInvitesButton
 
-    @acceptConfirmModal browser
-    @assertConfirmation browser, successMessage
+    if role is 'admin'
+      browser
+        .waitForElementVisible '.ContentModal', 50000
+        .assert.containsText '.ContentModal.content-modal header', "You're adding an admin"
+        .waitForElementVisible proceedButton, 20000
+        .click proceedButton
+      successMessage = "Invitation is sent to #{email}"
 
-    return userEmail
+    unless isNew
+      browser
+        .waitForElementVisible '.ContentModal', 20000
+        .assert.containsText '.ContentModal.content-modal header', 'Resend Invitation'
+        .waitForElementVisible proceedButton, 20000
+        .click proceedButton
+      successMessage = "Invitation is resent to #{email}"
+
+    @assertConfirmation browser, successMessage
 
   inviteAll: (browser) ->
 
@@ -716,47 +758,9 @@ module.exports =
     browser
       .waitForElementVisible invitationsModalSelector, 20000
       .click uploadCSVButtonSelector
-    @assertConfirmation browser, message
-
-
-  resendInvitation: (browser, role) ->
-
-    invitationsModalSelector = '.HomeAppView--section.send-invites'
-
-    sendInvitesButton = "#{invitationsModalSelector} .custom-link-view.HomeAppView--button.primary.fr"
-    index = if role is 'member' then 2 else 1
-
-    browser
-      .waitForElementVisible invitationsModalSelector, 20000
-
-    userEmail = @fillInviteInputByIndex browser, index
-    successMessage = "Invitation is sent to #{userEmail}"
-
-    browser
-      .pause 2000
-      .waitForElementVisible sendInvitesButton, 5000
-      .click sendInvitesButton
-    @acceptConfirmModal browser if role is 'admin'
-    @assertConfirmation browser, successMessage
-    browser
-      .pause 10000
-
-    userEmail = @fillInviteInputByIndex browser, index, userEmail
-    successMessage = "Invitation is resent to #{userEmail}"
-
-    browser
-      .waitForElementVisible sendInvitesButton, 5000
-      .click sendInvitesButton
-
-    @acceptConfirmModal browser
-
-    if role is 'admin'
-      browser
-        .pause 2000
-      @acceptConfirmModal browser
-    @assertConfirmation browser, successMessage
-
-    return userEmail
+      .waitForElementVisible '.content-modal.csv-upload', 20000
+      .assert.containsText '.ContentModal.csv-upload .kdmodal-title span.title', 'Upload CSV File'
+      .click '.ContentModal.csv-upload .button-wrapper .kdbutton.cancel'
 
 
   newInviteFromResendModal: (browser, role) ->
@@ -807,8 +811,8 @@ module.exports =
         if result.status is 0
           browser
             .pause 2000
-            .waitForElementVisible confirmButton, 10000
-            .click                 confirmButton
+            .waitForElementVisible proceedButton, 10000
+            .click                 proceedButton
 
 
   assertConfirmation: (browser, successMessage) ->
@@ -816,7 +820,7 @@ module.exports =
     browser
       .waitForElementVisible '.kdnotification', 20000
       .assert.containsText '.kdnotification', successMessage
-      .pause 2000
+      .pause 3000
 
 
   fillInviteInputByIndex: (browser, index, userEmail = null) ->
@@ -824,14 +828,24 @@ module.exports =
     invitationsModalSelector = '.HomeAppView--section.send-invites'
     emailInputSelector = "#{invitationsModalSelector} .ListView-row:nth-of-type(#{index}) .kdinput.text.user-email"
     userEmail ?= "#{helpers.getFakeText().split(' ')[0]}#{Date.now()}@kd.io"
-
     browser
       .waitForElementVisible emailInputSelector, 20000
       .setValue emailInputSelector, userEmail
 
     return userEmail
 
+  clearInviteInputByIndex: (browser, index) ->
+    invitationsModalSelector = '.HomeAppView--section.send-invites'
+    emailInputSelector = "#{invitationsModalSelector} .ListView-row:nth-of-type(#{index}) .kdinput.text.user-email"
+ 
+    browser
+      .click invitationsModalSelector
+      .waitForElementVisible emailInputSelector, 20000
+      .clearValue emailInputSelector
+      .setValue emailInputSelector, ''
+      .click invitationsModalSelector
 
+  
   inviteUsers: (browser, invitations, callback) ->
 
     fn = ( invitations, done ) ->
@@ -861,7 +875,8 @@ module.exports =
         { status, value } = result
 
         if status is 0 and value
-          browser.waitForElementVisible '.WelcomeStacksView', 20000, yes, =>
+          browser.waitForElementVisible '.WelcomeStacksView', 50000, yes, =>
+            browser.click closeModal
             @logoutTeam browser, =>
               teamUrl       = helpers.getUrl yes
               invitationUrl = "#{teamUrl}/Invitation/#{result.value}"
