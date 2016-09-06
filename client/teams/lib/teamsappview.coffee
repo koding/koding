@@ -1,6 +1,6 @@
 kd              = require 'kd'
 JView           = require 'app/jview'
-remote          = require 'app/remote'
+remote          = require('app/remote').getInstance()
 
 module.exports = class TeamsAppView extends kd.CustomHTMLView
 

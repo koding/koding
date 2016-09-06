@@ -556,7 +556,7 @@ func (k *Klient) Run() {
 	// If tunnel has successfully started, it's going to re-register
 	// to Kontrol with new registerURL which will point to public
 	// side of the tunnel.
-	go k.tunnel.Start()
+	k.tunnel.Start()
 
 	// Initializing the remote re-establishes any previously-running remote
 	// connections, such as mounted folders. This needs to be run *after*

@@ -12,7 +12,7 @@ showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 actions              = require 'app/flux/environment/actions'
 
-remote               = require('../remote')
+remote               = require('../remote').getInstance()
 Machine              = require './machine'
 KiteCache            = require '../kite/kitecache'
 ComputeStateChecker  = require './computestatechecker'

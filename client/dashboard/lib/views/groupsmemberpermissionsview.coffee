@@ -4,7 +4,7 @@ KDCustomHTMLView = kd.CustomHTMLView
 KDHitEnterInputView = kd.HitEnterInputView
 KDListViewController = kd.ListViewController
 GroupsMemberPermissionsListItemView = require './groupsmemberpermissionslistitemview'
-remote = require 'app/remote'
+remote = require('app/remote').getInstance()
 JView = require 'app/jview'
 
 

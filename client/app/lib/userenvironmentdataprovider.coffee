@@ -1,6 +1,6 @@
 kd      = require 'kd'
 globals = require 'globals'
-remote  = require 'app/remote'
+remote  = require('app/remote').getInstance()
 Machine = require 'app/providers/machine'
 async   = require 'async'
 

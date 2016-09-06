@@ -1,0 +1,15 @@
+{
+  "name": "account",
+  "main": "./lib/index.coffee",
+  "routes": {
+    "/Account": "profile",
+    "/Account/:section": "section",
+    "/Account/Referrer": "referrer"
+  },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl/*.styl"
+  ]
+}

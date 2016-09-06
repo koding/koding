@@ -2,8 +2,9 @@ teamsHelpers            = require '../helpers/teamshelpers.js'
 helpers                 = require '../helpers/helpers.js'
 utils                   = require '../utils/utils.js'
 virtualMachinesUrl      = "#{helpers.getUrl(yes)}/Home/Stacks/virtual-machines"
+
 virtualMachineSelector  = '.HomeAppView--section.virtual-machines'
-runningVMSelector       = '.MachinesListItem-detailToggle'
+runningVMSelector       = "#{virtualMachineSelector} .MachinesListItem-machineLabel.Running"
 machineDetailSelector   = '.MachinesListItem-machineDetails'
 machineDetailSpecsList  = "#{machineDetailSelector} .MachineDetails-SpecsList"
 vmPowerSelector         = "#{machineDetailSelector} .MachineDetails div.GenericToggler:nth-of-type(2)"
@@ -24,12 +25,12 @@ addYourOwnMachineSelector          = '.kdmodal.add-managed-vm.kddraggable'
 
 selectButtonSelector               = "#{addYourOwnMachineSelector} .code .select-all"
 closeAddYourOwnMachineModal        = "#{addYourOwnMachineSelector} .close-icon.closeModal"
-pressCMDCNotificationSelector      = 'input.kdinput.text:focus, textarea.kdinput.text:focus'
+pressCMDCNotificationSelector      = '.kdview.kdtooltip.just-text.placement-top.direction-center'
 
 sidebarSharedMachinesSection       = '.SidebarSection.SidebarSharedMachinesSection'
 sidebarPopover                     = '.Popover-Wrapper'
-acceptSharedMachine                = '.SidebarWidget .Popover-Wrapper button.accept'
-rejectSharedMachine                = '.SidebarWidget .Popover-Wrapper button.reject'
+acceptSharedMachine                = "#{sidebarPopover} .kdbutton.solid.green.medium"
+rejectSharedMachine                = "#{sidebarPopover} .kdbutton.solid.red.medium"
 
 sharedMachineSection               = '.HomeAppView--section.shared-machines'
 sharedMachinesList                 = "#{sharedMachineSection} .ListView"
@@ -89,10 +90,9 @@ module.exports =
 
   # check shared machine for member
   acceptSharedMachine: (browser, host, member, callback) ->
-
     @shareTheMachineWithMembers browser, member, ->
-      teamsHelpers.logoutTeamfromUrl browser, ->
-        teamsHelpers.loginToTeam browser, member, no, null, ->
+      teamsHelpers.logoutTeam browser, ->
+        teamsHelpers.loginToTeam browser, member, no, ->
           browser
             .waitForElementVisible sidebarSharedMachinesSection, 20000
             .click sidebarSharedMachinesSection
@@ -104,8 +104,8 @@ module.exports =
             .waitForElementVisible sharedMachineSection, 20000
             .waitForElementVisible sharedMachinesList, 20000
             .pause 2000, ->
-              teamsHelpers.logoutTeamfromUrl browser, ->
-                teamsHelpers.loginToTeam browser, host, no, null, ->
+              teamsHelpers.logoutTeam browser, ->
+                teamsHelpers.loginToTeam browser, host, no, ->
                   browser
                     .pause 2000
                     .url virtualMachinesUrl
@@ -118,8 +118,8 @@ module.exports =
   rejectAndAcceptSharedMachine: (browser, host, member, callback) ->
 
     @shareTheMachineWithMembers browser, member, =>
-      teamsHelpers.logoutTeamfromUrl browser, =>
-        teamsHelpers.loginToTeam browser, member, no, null, =>
+      teamsHelpers.logoutTeam browser, =>
+        teamsHelpers.loginToTeam browser, member, no, =>
           browser
             .waitForElementVisible sidebarSharedMachinesSection, 20000
             .click sidebarSharedMachinesSection
@@ -131,8 +131,8 @@ module.exports =
             .waitForElementVisible sharedMachineSection, 20000
             .waitForElementVisible sharedMachinesList, 20000
             .pause 2000, =>
-              teamsHelpers.logoutTeamfromUrl browser, =>
-                teamsHelpers.loginToTeam browser, host, no, null, =>
+              teamsHelpers.logoutTeam browser, =>
+                teamsHelpers.loginToTeam browser, host, no, =>
                   browser
                     .pause 2000
                     .url virtualMachinesUrl

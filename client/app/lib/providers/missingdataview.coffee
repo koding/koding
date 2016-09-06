@@ -2,8 +2,8 @@ kd                              = require 'kd'
 curryIn                         = require 'app/util/curryIn'
 
 CustomDataListItem              = require 'app/stacks/customdatalistitem'
-AccountCredentialList           = require 'app/views/credentiallist/accountcredentiallist'
-AccountCredentialListController = require 'app/views/credentiallist/accountcredentiallistcontroller'
+AccountCredentialList           = require 'account/accountcredentiallist'
+AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
 
 module.exports = class MissingDataView extends kd.View

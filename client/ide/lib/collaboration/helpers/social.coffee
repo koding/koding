@@ -1,7 +1,7 @@
 kd                            = require 'kd'
-remote                        = require 'app/remote'
+remote                        = require('app/remote').getInstance()
 getNick                       = require 'app/util/nick'
-actionTypes                   = require 'app/flux/socialapi/actions/actiontypes'
+actionTypes                   = require 'activity/flux/actions/actiontypes'
 isTeamReactSide               = require 'app/util/isTeamReactSide'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 

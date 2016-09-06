@@ -2,7 +2,7 @@ kd                             = require 'kd'
 Link                           = require 'app/components/common/link'
 React                          = require 'kd-react'
 ReactDOM                       = require 'react-dom'
-remote                         = require 'app/remote'
+remote                         = require('app/remote').getInstance()
 actions                        = require 'app/flux/environment/actions'
 Machine                        = require 'app/providers/machine'
 isKoding                       = require 'app/util/isKoding'
@@ -17,9 +17,6 @@ LeaveSharedMachineWidget       = require './leavesharedmachinewidget'
 SidebarWorkspacesListItem      = require './sidebarworkspaceslistitem'
 isMachineSettingsIconEnabled   = require 'app/util/isMachineSettingsIconEnabled'
 ConnectedManagedMachineWidget  = require './connectedmanagedmachinewidget'
-
-require './styl/sidebarmachineslistItem.styl'
-require './styl/sidebarwidget.styl'
 
 
 module.exports = class SidebarMachinesListItem extends React.Component

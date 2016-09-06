@@ -1,4 +1,4 @@
-remote = require('../../remote')
+remote = require('../../remote').getInstance()
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 JView = require '../../jview'

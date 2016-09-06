@@ -5,9 +5,9 @@ credential             = '.kdview.kdlistitemview.kdlistitemview-default.credenti
 showButton             = "#{credential} .custom-link-view.HomeAppView--link.primary"
 removeButton           = "#{credential} .custom-link-view.HomeAppView--link"
 closeModal             = '.kdmodal-inner .close-icon.closeModal'
-removeCredentialButton = '[testpath=proceed]:nth-of-type(3)'
+removeCredentialButton = '[testpath=removeCredential]'
 credentialInfo         = "#{credential} .credential-info"
-credentialHeader       = '.kdview.kdtabpaneview.credentials.clearfix.active .HomeAppView--sectionHeader'
+credentialHeader       = '.HomeAppView--sectionHeader'
 
 module.exports =
 
@@ -33,8 +33,7 @@ module.exports =
     browser
       .assert.containsText credentialInfo, 'aws2'
       .click removeButton
-      .waitForElementVisible '.kdmodal-inner', 20000
-      .waitForElementVisible removeCredentialButton, 40000
+      .waitForElementVisible removeCredentialButton, 20000
       .click removeCredentialButton
       .pause 2000
       .waitForElementVisible credential, 20000

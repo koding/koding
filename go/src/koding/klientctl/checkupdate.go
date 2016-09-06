@@ -75,6 +75,10 @@ func NewCheckUpdate() *CheckUpdate {
 
 // IsUpdateAvailable checks if a newer version of `kd` is available.
 func (c *CheckUpdate) IsUpdateAvailable() (bool, error) {
+	if !c.ForceCheck && c.RandomSeededNumber != 1 {
+		return false, nil
+	}
+
 	resp, err := http.Get(c.Location)
 	if err != nil {
 		return false, err

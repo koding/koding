@@ -3,6 +3,7 @@ kd = require 'kd'
 Link = require 'app/components/common/link'
 React = require 'kd-react'
 Scroller = require 'app/components/scroller'
+ActivityFlux = require 'activity/flux'
 KDReactorMixin = require 'app/flux/base/reactormixin'
 EnvironmentFlux = require 'app/flux/environment'
 SidebarNoStacks = require 'app/components/sidebarstacksection/sidebarnostacks'
@@ -17,12 +18,11 @@ TeamFlux = require 'app/flux/teams'
 DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 MENU = null
 
-require './styl/sidebar.styl'
-require './styl/sidebarmenu.styl'
-
 module.exports = class Sidebar extends React.Component
 
   PREVIEW_COUNT = 10
+
+  { getters, actions } = ActivityFlux
 
   constructor: (props) ->
 
@@ -33,6 +33,9 @@ module.exports = class Sidebar extends React.Component
 
   getDataBindings: ->
     return {
+      publicChannels               : getters.followedPublicChannelThreadsWithSelectedChannel
+      privateChannels              : getters.followedPrivateChannelThreads
+      selectedThreadId             : getters.selectedChannelThreadId
       stacks                       : SidebarFlux.getters.sidebarStacks
       drafts                       : SidebarFlux.getters.sidebarDrafts
       sharedMachines               : EnvironmentFlux.getters.sharedMachines

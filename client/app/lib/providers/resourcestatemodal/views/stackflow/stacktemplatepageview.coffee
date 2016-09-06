@@ -1,7 +1,7 @@
 kd = require 'kd'
 JView = require 'app/jview'
 Encoder = require 'htmlencode'
-StackTemplateEditorView = require 'stack-editor/editor/stacktemplateeditorview'
+StackTemplateEditorView = require 'stacks/views/stacks/editors/stacktemplateeditorview'
 
 module.exports = class StackTemplatePageView extends JView
 

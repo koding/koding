@@ -13,7 +13,6 @@ import (
 
 	"koding/klient/kiteerrortypes"
 	"koding/klient/remote/restypes"
-	klienttestutil "koding/klient/testutil"
 	"koding/klient/util"
 	"koding/klientctl/klientctlerrors"
 	"koding/klientctl/list"
@@ -23,10 +22,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-func init() {
-	defaultHealthChecker = NewDefaultHealthChecker(klienttestutil.DiscardLogger)
-}
 
 // BlockingIO is a struct primarily for mocking the behavior of Stdin. Stdin blocks
 // the Reader while waiting for input, so mocking Stdin with a typical Buffer can

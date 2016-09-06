@@ -1,4 +1,4 @@
-remote = require('../remote')
+remote = require('../remote').getInstance()
 isLoggedIn = require '../util/isLoggedIn'
 kd = require 'kd'
 whoami = require 'app/util/whoami'

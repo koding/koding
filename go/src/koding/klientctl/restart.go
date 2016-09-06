@@ -16,8 +16,6 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	log = log.New("cmd:restart")
-
 	s, err := newService(nil)
 	if err != nil {
 		log.Error("Error creating Service. err:%s", err)
@@ -56,9 +54,21 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println("Stopped successfully.")
 	}
 
-	// No UX message needed, startKlient will do that itself.
-	if err := startKlient(log, s); err != nil {
-		log.Error("failed to start klient: %s", err)
+	if err := s.Start(); err != nil {
+		log.Error("Error starting Service. err:%s", err)
+		fmt.Println(FailedStartKlient)
+		return 1
+	}
+
+	fmt.Println("Starting...")
+
+	err = WaitUntilStarted(config.KlientAddress, CommandAttempts, CommandWaitTime)
+	if err != nil {
+		log.Error(
+			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
+			15, err,
+		)
+		fmt.Println(FailedStartKlient)
 		return 1
 	}
 

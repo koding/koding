@@ -1,0 +1,15 @@
+{
+  "name": "pricing",
+  "main": "./lib/index.coffee",
+  "routes": {
+    "/name:?/Pricing": "home",
+    "/name:?/Pricing/Teams": "teams",
+    "/name:?/Pricing/Individuals": "individuals"
+  },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl/*.styl"
+  ]
+}

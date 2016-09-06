@@ -1,7 +1,7 @@
 kd                      = require 'kd'
 async                   = require 'async'
 globals                 = require 'globals'
-remote                  = require('./remote')
+remote                  = require('./remote').getInstance()
 isLoggedIn              = require './util/isLoggedIn'
 whoami                  = require './util/whoami'
 isKoding                = require './util/isKoding'

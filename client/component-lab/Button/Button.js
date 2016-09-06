@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react'
 import classNames from 'classnames'
 
-import classes from './Button.styl'
+import classes from './Button.css'
 
 const Button = ({ type, size, disabled, auto, children }) => {
   type = type === 'primary' ? 'primary-1' : type

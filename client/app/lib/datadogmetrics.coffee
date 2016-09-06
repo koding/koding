@@ -1,6 +1,6 @@
 kd = require 'kd'
 KDObject = kd.Object
-remote = require 'app/remote'
+remote = require('app/remote').getInstance()
 
 module.exports = class DatadogMetrics extends KDObject
 

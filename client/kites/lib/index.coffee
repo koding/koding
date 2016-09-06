@@ -4,7 +4,7 @@ KDNotificationView = kd.NotificationView
 KiteDetailsView = require './views/kitedetailsview'
 showError = require 'app/util/showError'
 AppController = require 'app/appcontroller'
-remote = require 'app/remote'
+remote = require('app/remote').getInstance()
 
 
 module.exports = class KitesAppController extends AppController

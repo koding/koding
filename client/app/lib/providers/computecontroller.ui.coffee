@@ -10,7 +10,7 @@ KDCustomScrollView   = kd.CustomScrollView
 KDFormViewWithFields = kd.FormViewWithFields
 
 globals              = require 'globals'
-remote               = require('../remote')
+remote               = require('../remote').getInstance()
 
 isMine               = require 'app/util/isMine'
 showError            = require 'app/util/showError'
@@ -21,7 +21,7 @@ ContentModal = require 'app/components/contentModal'
 
 MissingDataView      = require './missingdataview'
 
-{ jsonToYaml }       = require 'app/util/stacks/yamlutils'
+{ jsonToYaml }       = require 'stacks/views/stacks/yamlutils'
 
 
 module.exports = class ComputeControllerUI

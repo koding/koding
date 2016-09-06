@@ -2,7 +2,6 @@ kd          = require 'kd'
 React       = require 'kd-react'
 ReactToggle = require 'react-toggle'
 
-require './styl/popover.styl'
 
 module.exports = class Toggle extends React.Component
 

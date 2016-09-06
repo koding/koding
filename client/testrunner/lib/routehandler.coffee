@@ -1,8 +1,9 @@
 lazyrouter            = require 'app/lazyrouter'
 kd                    = require 'kd'
+KodingAppsController  = require 'app/kodingappscontroller'
 RunnerSocketConnector = require './runnersocketconnector'
 
-addToHead = (args...) -> require('app/kodingappscontroller').appendHeadElement args...
+addToHead = KodingAppsController.appendHeadElement.bind KodingAppsController
 
 SOCKET_PORT = 1777
 

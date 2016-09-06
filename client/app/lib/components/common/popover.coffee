@@ -3,8 +3,6 @@ React     = require 'kd-react'
 Portal    = require('react-portal').default
 ReactDOM  = require 'react-dom'
 
-require './styl/popover.styl'
-
 
 module.exports = class Popover extends React.Component
 

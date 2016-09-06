@@ -1,6 +1,6 @@
 _                           = require 'lodash'
 async                       = require 'async'
-remote                      = require 'app/remote'
+remote                      = require('app/remote').getInstance()
 socialHelpers               = require './social'
 userEnvironmentDataProvider = require 'app/userenvironmentdataprovider'
 
