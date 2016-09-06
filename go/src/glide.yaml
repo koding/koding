@@ -123,7 +123,6 @@ import:
 - package: github.com/koding/metrics
 - package: github.com/koding/multiconfig
 - package: github.com/koding/passwd
-- package: github.com/koding/paypal
 - package: github.com/koding/pubnub
 - package: github.com/koding/rabbitmq
 - package: github.com/koding/redis
