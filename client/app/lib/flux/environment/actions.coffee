@@ -530,24 +530,17 @@ setMachinePowerStatus = (machineId, shouldStart) ->
 
 createStackTemplate = (options) ->
 
-  { reactor } = kd.singletons
+  { reactor, store } = kd.singletons
 
   { title, template, credentials, rawContent
     templateDetails, config, description } = options
 
   return new Promise (resolve, reject) ->
-
-    reactor.dispatch actions.CREATE_STACK_TEMPLATE_BEGIN
-
-    remote.api.JStackTemplate.create {
-      title, template, credentials, rawContent
-      templateDetails, config, description
-    }, (err, stackTemplate) ->
-      if err
-        reactor.dispatch actions.CREATE_STACK_TEMPLATE_FAIL, { err }
-        reject err
-        return
-
+    store.dispatch(create 'JStackTemplate', options).then (results) ->
+      # will be removed once we use only redux store
+      { result, error } = results
+      reject error  if error
+      stackTemplate = result[0]
       reactor.dispatch actions.CREATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
       _bindTemplateEvents stackTemplate
       resolve { stackTemplate }
