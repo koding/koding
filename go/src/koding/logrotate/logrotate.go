@@ -115,7 +115,7 @@ type Uploader struct {
 func (l *Uploader) UploadFile(prefix, file string) error {
 	key := filepath.ToSlash(filepath.Clean(file))
 	if prefix != "" {
-		key = prefix + "/" + key
+		key = path.Clean(prefix + "/" + key)
 	}
 
 	f, err := os.Open(file)
