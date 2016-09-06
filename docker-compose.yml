@@ -19,7 +19,6 @@ services:
 
   mongo:
     image: koding/mongo
-    command: --dbpath /opt/db --smallfiles --nojournal
 
   postgres:
     image: koding/postgres
