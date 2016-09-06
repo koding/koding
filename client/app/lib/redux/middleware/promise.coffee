@@ -13,11 +13,18 @@ module.exports = promiseMiddleware = (store) -> (next) -> (action) ->
 
   action = omit action, ['promise', 'types']
 
-  begin = -> next(assign {}, action, { type: BEGIN })
-  success = (result) -> next(assign {}, action, { result, type: SUCCESS })
-  fail = (error) -> next(assign {}, action, { error, type: FAIL })
+  return new Promise (resolve, reject) ->
 
-  begin()
-  return promise().then(success, fail).catch(fail)
+    begin = ->
+      store.dispatch(assign {}, action, { type: BEGIN })
 
+    success = (result) ->
+      store.dispatch(assign {}, action, { result, type: SUCCESS })
+      resolve(result)
 
+    fail = (error) ->
+      store.dispatch(assign {}, action, { error, type: FAIL })
+      reject(error)
+
+    begin()
+    promise().then(success, fail).catch(fail)
