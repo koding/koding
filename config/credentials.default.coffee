@@ -128,6 +128,7 @@ module.exports = (options) ->
     client_id: ''
     client_secret: ''
     redirect_uri: "http://dev.koding.com:8090/-/oauth/google/callback"
+    apiKey: ''
   twitter =
     key: ''
     secret: ''
@@ -245,4 +246,5 @@ module.exports = (options) ->
     dummyAdmins
     druid
     clearbit
+    intercomAppId
   }

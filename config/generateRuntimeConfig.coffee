@@ -34,7 +34,7 @@ module.exports = (KONFIG, credentials, options) ->
     troubleshoot         : { idleTime: 1000 * 60 * 60, externalUrl: 'https://s3.amazonaws.com/koding-ping/healthcheck.json' }
     stripe               : { token: credentials.stripe.publicToken }
     broker               : { uri: '/subscribe' }
-    google               : { apiKey: '' }
+    google               : { apiKey: credentials.google.apiKey }
     gitlab               : { team: credentials.gitlab.team }
     paypal               : { formUrl: credentials.paypal.formUrl }
     embedly              : { apiKey: credentials.embedly.apiKey }
