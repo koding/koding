@@ -85,7 +85,7 @@
     "preinstall": "./.npm-preinstall.sh",
     "postinstall": "./.npm-postinstall.sh",
     "test": "make test",
-    "c-lab:server": "start-storybook -p 9001",
+    "c-lab:server": "start-storybook -p 9009",
     "c-lab:build": "build-storybook",
     "c-lab": "npm run c-lab:server",
     "build:dev": "NODE_ENV=development webpack --config webpack.config.coffee",
