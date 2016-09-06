@@ -18,7 +18,7 @@ providersParser = require 'app/util/stacks/providersparser'
 requirementsParser = require 'app/util/stacks/requirementsparser'
 generateTemplateRawContent = require 'app/util/generateTemplateRawContent'
 Tracker = require 'app/util/tracker'
-
+{ create, LOAD } = require 'app/redux/modules/bongo'
 _eventsCache = { machine: {}, stack: no }
 
 _bindMachineEvents = (environmentData) ->
@@ -99,6 +99,11 @@ handleSharedMachineInvitation = (sharedMachine) ->
 
   # Inconsistent property definition.
   { machineUId, uid } = sharedMachine
+
+  kd.singletons.store.dispatch {
+    types: [LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL]
+    bongo: (remote) -> remote.api.JMachine.one machineUId or uid
+  }
 
   fetchMachineByUId (machineUId or uid), (machine) ->
     machine = toImmutable machine
