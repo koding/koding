@@ -26,6 +26,7 @@ import (
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/provider"
+	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/disabled"
 	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/provider/vagrant"

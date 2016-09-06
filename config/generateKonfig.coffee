@@ -192,7 +192,6 @@ module.exports = (options, credentials) ->
     gatekeeper             : gatekeeper
     integration            : integration
     webhookMiddleware      : webhookMiddleware
-    paymentwebhook         : paymentwebhook
     customDomain           : options.customDomain
     email                  : email
 
@@ -257,7 +256,6 @@ module.exports = (options, credentials) ->
     druid                         : credentials.druid
     clearbit                      : credentials.clearbit
 
-    paymentwebhook                : paymentwebhook
     regions                       : regions
     broker                        : broker
     tunnelproxymanager            : tunnelproxymanager
