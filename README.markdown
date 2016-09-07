@@ -75,7 +75,7 @@ You will need to run client builder to see your changes in built
 frontend code. This can be achieved with command below.
 
 ```bash
-docker exec koding_backend_1 make -C /opt/koding/client
+docker-compose exec backend make -C /opt/koding/client
 ```
 
 If you need to execute some commands by yourself in runtime
@@ -83,7 +83,7 @@ environment then you can use following snippet to start a shell in
 backend service container.
 
 ```bash
-docker exec -it koding_backend_1 bash
+docker-compose exec backend bash
 ```
 
 You can follow [coffeescript-styleguide](https://github.com/koding/styleguide-coffeescript)
