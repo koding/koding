@@ -13,7 +13,7 @@ module.exports = class ResendInvitationConfirmationModal extends ContentModal
       cssClass                : 'admin-invite-confirm-modal content-modal'
       buttons : {}
 
-    options.buttons[options.cancelButtonText]
+    options.buttons[options.cancelButtonText] =
       title: 'Cancel'
       cssClass : 'cancel'
       itemClass : kd.ButtonView
