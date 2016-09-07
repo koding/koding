@@ -19,6 +19,7 @@ require './resurrection.sidebar.styl'
 require './resurrection.styl'
 require './onboardingcongratmodal.styl'
 require '../components/common/styl/toggle.styl'
+require '../components/sidebarlist/styl/sidebarlistitem.styl'
 
 # include app styles
 require './reactivity/brandcolors.styl'
