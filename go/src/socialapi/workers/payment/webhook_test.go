@@ -262,6 +262,85 @@ func TestInvoiceCreatedHandlerStayInTheSamePlan(t *testing.T) {
 	})
 }
 
+func TestInvoiceCreatedHandlerCustomPlan(t *testing.T) {
+	testData := `
+{
+    "closed": false,
+    "paid": false,
+    "customer": "%s"
+}`
+
+	tests.WithConfiguration(t, func(c *config.Config) {
+		stripe.Key = c.Stripe.SecretToken
+		Convey("Given stub data", t, func() {
+			withStubData(func(username, groupName, sessionID string) {
+				group, err := modelhelper.GetGroup(groupName)
+				tests.ResultedWithNoErrorCheck(group, err)
+
+				// create custom test plan
+				id := fmt.Sprintf("p_c_%s", bson.NewObjectId().Hex())
+				pp := &stripe.PlanParams{
+					Amount:        Plans[UpTo10Users].Amount,
+					Interval:      plan.Month,
+					IntervalCount: 1,
+					TrialPeriod:   1,
+					Name:          id,
+					Currency:      currency.USD,
+					ID:            id,
+				}
+
+				p, err := plan.New(pp)
+				So(err, ShouldBeNil)
+
+				// subscribe to test plan
+				params := &stripe.SubParams{
+					Customer: group.Payment.Customer.ID,
+					Plan:     p.ID,
+					Quantity: 9,
+				}
+
+				sub, err := CreateSubscriptionForGroup(group.Slug, params)
+				tests.ResultedWithNoErrorCheck(sub, err)
+
+				// check if group has correct sub id
+				groupAfterSub, err := modelhelper.GetGroup(groupName)
+				tests.ResultedWithNoErrorCheck(groupAfterSub, err)
+				So(sub.ID, ShouldEqual, groupAfterSub.Payment.Subscription.ID)
+
+				Convey("When invoice.created is triggered with custom plan", func() {
+					raw := []byte(fmt.Sprintf(
+						testData,
+						group.Payment.Customer.ID,
+					))
+
+					err := invoiceCreatedHandler(raw)
+					So(err, ShouldBeNil)
+
+					Convey("subscription id should stay same", func() {
+						groupAfterHook, err := modelhelper.GetGroup(groupName)
+						tests.ResultedWithNoErrorCheck(groupAfterHook, err)
+
+						// group should have correct sub id
+						So(sub.ID, ShouldEqual, groupAfterHook.Payment.Subscription.ID)
+
+						count, err := modelhelper.GetDeletedMemberCountByGroupId(group.Id)
+						So(err, ShouldBeNil)
+						So(count, ShouldEqual, 0)
+
+						Convey("we should clean up successfully", func() {
+							sub, err := DeleteSubscriptionForGroup(group.Slug)
+							tests.ResultedWithNoErrorCheck(sub, err)
+
+							_, err = plan.Del(pp.ID)
+							So(err, ShouldBeNil)
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
 func TestInvoiceCreatedHandlerWithCouponAndAccountBalance(t *testing.T) {
 	testData := `
 {
