@@ -25,18 +25,27 @@
     button
       height  42px
 
-    button.reject
-      float   left
-      background            #FFFFFF
-      border                1px solid #BEBEBE
-      border-radius         4px
-      span
-        color               #5E5E5E
-
-    button.accept
-      float                 right
+    .GenericButton
+      max-width 100px
       .button-title
-        font-weight         300
+        line-height 14px
+        font-size 14px
+    .button-wrapper
+      width   200px
+      display flex
+      button.reject
+        float   left
+        background            #FFFFFF
+        border                1px solid #BEBEBE
+        border-radius         4px
+        margin-right 5px
+        span
+          color               #5E5E5E
+
+      button.accept
+        float                 right
+        .button-title
+          font-weight         300
 
   .SidebarWidget-Link
     dIBlock()
