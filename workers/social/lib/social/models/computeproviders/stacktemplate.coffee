@@ -342,17 +342,27 @@ module.exports = class JStackTemplate extends Module
 
       { account, group, user } = client.r
 
+      ComputeProvider = require './computeprovider'
 
-      checkTemplateUsage this, account, (err) =>
+      instanceCount = @machines?.length or 0
+      change        = 'increment'
+
+      details = { account, template: this }
+
+      ComputeProvider.updateGroupResourceUsage {
+        group, change, instanceCount, details
+      }, (err) =>
         return callback err  if err
 
-        account.addStackTemplate this, (err) =>
+        checkTemplateUsage this, account, (err) =>
+          return callback err  if err
 
-          details = { account, user, group, client }
-          details.template = this
+          account.addStackTemplate this, (err) =>
 
-          ComputeProvider = require './computeprovider'
-          ComputeProvider.generateStackFromTemplate details, {}, callback
+            details = { account, user, group, client }
+            details.template = this
+
+            ComputeProvider.generateStackFromTemplate details, {}, callback
 
 
   update$: permit

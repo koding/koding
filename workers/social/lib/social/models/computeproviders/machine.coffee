@@ -687,7 +687,23 @@ module.exports = class JMachine extends Module
 
       isKoding = group.slug is 'koding'
 
-      JMachine::shareWith.call this, options, callback
+      # Permanent option is only valid for paid accounts
+      # if its passed then we need to check payment
+      #
+      if permanent and @provider in ['managed', 'koding'] and isKoding
+
+        Payment = require '../payment'
+        Payment.subscriptions client, {}, (err, subscription) =>
+
+          if err? or not subscription? or subscription.planTitle is 'free'
+            return callback \
+              new KodingError "You don't have a paid subscription!"
+
+          JMachine::shareWith.call this, options, callback
+
+      else
+
+        JMachine::shareWith.call this, options, callback
 
 
   share: secure (client, users, callback) ->
