@@ -63,6 +63,14 @@ docker-compose will attach working tree to `/opt/koding` in backend
 service container.  Changes in edited files will be visible in the
 runtime environment.
 
+`docker-compose up` will build koding working tree every time.  If you
+did not make huge changes and fine with current state then you can
+just run backend service directly with following command.
+
+```bash
+docker-compose run --service-ports backend
+```
+
 You will need to run client builder to see your changes in built
 frontend code. This can be achieved with command below.
 
