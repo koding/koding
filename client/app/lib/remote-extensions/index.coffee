@@ -21,13 +21,11 @@ module.exports = RemoteExtensions =
 
     (Object.keys remote.api).forEach (model) ->
 
-      original = remote.api[model]::init
-
       # overriding ::init on all `remote.api` which is getting called
       # inside of it's constructor.
       remote.api[model]::init = (data) ->
 
-        original.call(this, data)
+        super
 
         # on each newlistener add we need to check and cache the instance
         # if update listener is added. which is used by kd.js to get data

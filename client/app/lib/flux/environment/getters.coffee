@@ -3,7 +3,7 @@ machineRuleChecker = require 'app/util/machinerulechecker'
 getMachineOwner    = require 'app/util/getMachineOwner'
 getGroup           = require 'app/util/getGroup'
 
-{ allChannels }    = require 'app/flux/socialapi/getters'
+{ allChannels }    = require 'activity/flux/getters'
 
 withEmptyMap       = (storeData) -> storeData or immutable.Map()
 

@@ -6,8 +6,6 @@ Ps = require 'perfect-scrollbar'
 
 { PropTypes, Component } = React
 
-require './styl/perfectscrollbar.styl'
-
 
 module.exports = class PerfectScrollbar extends Component
 

@@ -1,7 +1,7 @@
 kd      = require 'kd'
 globals = require 'globals'
 
-remote  = require('./remote')
+remote  = require('./remote').getInstance()
 
 
 module.exports = class KiteLogger

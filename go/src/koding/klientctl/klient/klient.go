@@ -4,7 +4,6 @@ package klient
 import (
 	"errors"
 	"io/ioutil"
-	"koding/klient/client"
 	"koding/klient/command"
 	"koding/klient/fs"
 	"koding/klient/remote/req"
@@ -310,13 +309,4 @@ func (k *Klient) RemoteGetPathSize(opts req.GetPathSizeOptions) (uint64, error) 
 	}
 
 	return size, kRes.Unmarshal(&size)
-}
-
-func (k *Klient) LocalOpenFiles(files ...string) error {
-	_, err := k.Tell("client.Publish", FilesEvent{
-		PublishRequest: client.PublishRequest{EventName: "openFiles"},
-		Files:          files,
-	})
-
-	return err
 }

@@ -80,5 +80,7 @@ createInstance = ->
   return bongoInstance
 
 
-module.exports = createInstance()
+instance = null
 
+exports.getInstance = ->
+  instance ?= createInstance()

@@ -378,8 +378,6 @@ imports:
   version: adb14a9648f101b3a5ac2b370a7d37c4a4a08b39
 - name: github.com/koding/passwd
   version: 12dbab6d6d5ca38ffa3c772d5d86bcc5ef1f0ad5
-- name: github.com/koding/paypal
-  version: 0f12d2c2a1863a6afa6b678afc70e364c8603b6b
 - name: github.com/koding/pubnub
   version: 15d1b6752e311e8b3e5eede1951dfb4949c061b9
 - name: github.com/koding/rabbitmq

@@ -54,7 +54,9 @@ module.exports =
         fileNameSelector            = '.content-search-result .filename > span'
 
         ideHelpers.openNewFile browser, ->
+
           ideHelpers.openContextMenu browser, ->
+
             browser
               .waitForElementVisible     findInFilesSelector, 20000
               .click                     findInFilesSelector
@@ -142,20 +144,21 @@ module.exports =
 
       # openAnExistingFileAndSave
       (next) ->
-        oldText  = 'Tests'
         text     = helpers.getFakeText()
-        fileName = ideHelpers.createAndSaveNewFile browser, user, oldText, ->
+        fileName = ideHelpers.createAndSaveNewFile browser, user, text, ->
 
           ideHelpers.closeFile(browser, fileName, user)
-          ideHelpers.openAnExistingFile(browser, user, fileName, oldText)
+          ideHelpers.openAnExistingFile(browser, user, fileName, text)
 
           ideHelpers.setTextToEditor(browser, text)
-          browser.assert.containsText    activeEditorSelector, text # Assertion
+          browser
+            .assert.containsText    activeEditorSelector, text # Assertion
 
-          # ideHelpers.closeFile(browser, fileName, user)
+          ideHelpers.closeFile(browser, fileName, user)
           ideHelpers.saveFile(browser)
           ideHelpers.closeFile(browser, fileName, user)
           ideHelpers.openAnExistingFile(browser, user, fileName, text)
+
           browser
             .waitForTextToContain activeEditorSelector, text # Assertion
             .pause 1, -> next null

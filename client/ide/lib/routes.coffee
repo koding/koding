@@ -1,6 +1,6 @@
 kd              = require 'kd'
 nick            = require 'app/util/nick'
-remote          = require 'app/remote'
+remote          = require('app/remote').getInstance()
 actions         = require 'app/flux/environment/actions'
 Machine         = require 'app/providers/machine'
 lazyrouter      = require 'app/lazyrouter'

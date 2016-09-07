@@ -1,4 +1,4 @@
-remote = require('./remote')
+remote = require('./remote').getInstance()
 getMessageOwner = require './util/getMessageOwner'
 filterTrollActivity = require './util/filterTrollActivity'
 whoami = require './util/whoami'
@@ -96,7 +96,7 @@ module.exports = class MessageEventManager extends KDObject
       @addMessageReply message, reply
 
 
-  addMessageReply: require 'app/mixins/addmessagereply'
+  addMessageReply: require 'activity/mixins/addmessagereply'
 
 
   removeReply: (options) ->

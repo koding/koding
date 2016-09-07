@@ -5,8 +5,8 @@ KDSelectBox    = kd.SelectBox
 KDLabelView    = kd.LabelView
 KDHeaderView   = kd.HeaderView
 
-AccountCredentialList           = require 'app/views/credentiallist/accountcredentiallist'
-AccountCredentialListController = require 'app/views/credentiallist/accountcredentiallistcontroller'
+AccountCredentialList           = require 'account/accountcredentiallist'
+AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
 
 module.exports = class HomeAccountCredentialsView extends kd.CustomHTMLView

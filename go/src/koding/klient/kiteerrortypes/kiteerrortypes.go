@@ -64,8 +64,4 @@ const (
 	// Returned from a klient/command.Command when running the command fails in a
 	// non-exit status way.
 	ProcessError = "ProcessError"
-
-	// Returned from klient/client/Publish when there are no listeners for the given
-	// event.
-	NoSubscribers = "NoSubscribers"
 )

@@ -6,7 +6,7 @@ KDView                  = kd.View
 ComputePlansModal       = require './computeplansmodal'
 CustomLinkView          = require '../customlinkview'
 CustomPlanStorageSlider = require './customplanstorageslider'
-remote                  = require('../remote')
+remote                  = require('../remote').getInstance()
 
 
 module.exports = class ComputePlansModalPaid extends ComputePlansModal

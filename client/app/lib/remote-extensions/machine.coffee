@@ -1,5 +1,5 @@
 kd             = require 'kd'
-remote         = require('../remote')
+remote         = require('../remote').getInstance()
 Machine        = require 'app/providers/machine'
 
 

@@ -9,8 +9,6 @@ KDTimeAgoView = kd.TimeAgoView
 backoff = require 'backoff'
 PubnubChannel = require './pubnubchannel'
 
-require 'pubnub'
-
 
 module.exports = class RealtimeController extends KDController
 

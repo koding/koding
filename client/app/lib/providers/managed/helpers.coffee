@@ -1,5 +1,5 @@
 kd       = require 'kd'
-remote   = require 'app/remote'
+remote   = require('app/remote').getInstance()
 globals  = require 'globals'
 
 nick     = require 'app/util/nick'

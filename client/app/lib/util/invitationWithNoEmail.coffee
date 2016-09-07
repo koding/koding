@@ -1,4 +1,4 @@
-remote  = require 'app/remote'
+remote  = require('app/remote').getInstance()
 
 module.exports = (data, currentGroup, callback) ->
 

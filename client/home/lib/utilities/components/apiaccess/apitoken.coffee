@@ -4,7 +4,7 @@ timeago = require 'timeago'
 ContentModal = require 'app/components/contentModal'
 TeamFlux = require 'app/flux/teams'
 showError = require 'app/util/showError'
-remote = require 'app/remote'
+remote = require('app/remote').getInstance()
 copyToClipboard = require 'app/util/copyToClipboard'
 
 module.exports = class ApiToken extends React.Component

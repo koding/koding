@@ -95,12 +95,6 @@ machineName:path/to/file syntax. Example:
 
 `,
 	),
-	"open": fmtDesc(
-		"[optional args] <file1> [file2] [file3]",
-		`Open a file on the Koding UI, if the given machine is visible on Koding.
-
-`,
-	),
 }
 
 func init() {

@@ -14,9 +14,8 @@ localStorage           = require './localstorage'
 
 isStarted = false
 
-require './styl/require-styles'
 
-run = (defaults) ->
+module.exports = (defaults) ->
 
   alreadyRunning = 'already running'
   if isStarted then throw alreadyRunning else isStarted = true
@@ -30,7 +29,7 @@ bootup = ->
   # `remote` must be initialized after globals is set and ready
   # `MainController` & `Status` have some self-invoking methods
   # that depend on `remote`, and here we are. -og
-  remote = require('./remote')
+  remote = require('./remote').getInstance()
   # it is very important that you invoke this method before anything else does, so f important.
 
   globals.os = os # linux, mac or windows
@@ -145,5 +144,3 @@ initialize = (defaults, next) ->
   enableLogs logsEnabled
 
   next()
-
-run()

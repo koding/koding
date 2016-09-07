@@ -1,1 +1,0 @@
-require './resurrection.finder.styl'

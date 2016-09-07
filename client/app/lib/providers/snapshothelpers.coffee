@@ -1,5 +1,5 @@
 kd                          = require 'kd'
-remote                      = require 'app/remote'
+remote                      = require('app/remote').getInstance()
 
 EnvironmentsProgressModal   = require './environmentsprogressmodal'
 { handleNewMachineRequest } = require './computehelpers'

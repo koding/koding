@@ -2,25 +2,16 @@ helpers           = require './helpers.js'
 utils = require '../utils/utils.js'
 panelSelector     = '.pane-wrapper .kdsplitview-panel.panel-1'
 tabHandleSelector = "#{panelSelector} .application-tab-handle-holder"
+
 activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active'
 filesTabSelector    = '.ide-files-tab .file-container'
-packageInstallerModal = '.kdmodal-inner'
-installPackageButton = '[testpath=proceed]'
-successModal          = '.kdmodal-inner .kdmodal-content'
-closeButton           = '.ContentModal.kdmodal .kdmodal-inner .close-icon'
 
 module.exports =
+
 
   openNewFile: ( browser, callback = -> ) ->
 
     @closeAllTabs browser
-
-    browser.elements 'css selector', successModal, (result) ->
-      if result.value.length
-        browser
-          .waitForElementVisible '.ContentModal.content-modal header > h1', 20000
-          .waitForElementVisible closeButton,  20000
-          .click closeButton
 
     activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active .ace_content'
     plusSelector         = tabHandleSelector + ' .visible-tab-handle.plus'
@@ -45,6 +36,7 @@ module.exports =
     handleSelector = '.panel-1 .pane-wrapper .kdtabhandle.kddraggable'
     modalSelector  = '.autoremovepane-confirm'
 
+
     doClose = ->
       browser
         .moveToElement handleSelector, 5, 5
@@ -56,9 +48,14 @@ module.exports =
               .click   "#{modalSelector} .kdbutton.red"
               .pause   500
 
+
     close = ->
       browser.elements 'css selector', handleSelector, (result) ->
+        length = result.value.length
+
         if result.value.length isnt 0 then doClose()
+        if length - 1 > 0 then close()
+
 
     close()
 
@@ -73,9 +70,7 @@ module.exports =
       .moveToElement          optionsSelector, 8, 8
       .waitForElementVisible  optionsSelector, 20000
       .click                  optionsSelector
-      .waitForElementVisible  '.kdlistview-contextmenu', 50000
-      .pause 2000, ->
-        callback() # Assertion
+      .waitForElementVisible  '.kdlistview-contextmenu', 20000, false, callback() # Assertion
 
 
   createAndSaveNewFile: (browser, user, text, callback) ->
@@ -85,15 +80,22 @@ module.exports =
     saveAsInputSelector = "#{saveAsModalSelector} input[type=text]"
     newName             = helpers.getFakeText().split(' ')[0] + '.txt'
     titleSelector       = "div[title='/home/#{user.username}/#{newName}']"
-    saveButtonSelector  = "#{saveAsModalSelector} .kdbutton.GenericButton.primary"
+    saveButtonSelector  = "#{saveAsModalSelector} .kddialog-buttons .green span.button-title"
     text                ?= 'For example'
     closeSelector       = '.ContentModal.content-modal footer .kdbutton.cancel'
 
     @openNewFile(browser)
 
     if text
-      @setTextToEditor browser, text
+      @setTextToEditor browser, 'For example'
 
+    @closeFile browser, newName, user
+
+    browser
+      .waitForElementVisible closeSelector, 20000
+      .click closeSelector
+
+    @openNewFile(browser)
     @openContextMenu(browser)
 
     browser
@@ -107,7 +109,7 @@ module.exports =
       .click                  saveButtonSelector
       .waitForElementVisible  "#{tabHandleSelector} #{titleSelector}", 20000 # Assertion
       .waitForElementVisible  filesTabSelector, 20000
-      .assert.containsText    filesTabSelector, newName # Assertion
+      .waitForTextToContain   filesTabSelector, newName # Assertion
 
     browser.pause 10, -> callback()
 
@@ -187,7 +189,7 @@ module.exports =
       .click                  'li.open-file'
       .pause                  3000 # wait for tabHandle
       .waitForElementVisible  "#{tabHandleSelector} div[title='/home/#{user.username}/#{fileName}']", 20000 # Assertion
-      .assert.containsText    activeEditorSelector, text # Assertion
+      .waitForTextToContain   activeEditorSelector, text # Assertion
 
 
   openFileFromConfigFolder: ( browser, user, fileName, fileContent, callback = -> ) ->
@@ -213,6 +215,7 @@ module.exports =
       .pause 10, -> callback()
 
   openFile: ( browser, user, fileName, callback = -> ) ->
+
     filePath            = "/home/#{user.username}/.config/#{fileName}"
     fileSelector        = "span[title='#{filePath}']"
     chevronSelector     = "#{fileSelector} + span.chevron"
@@ -223,7 +226,6 @@ module.exports =
     browser
       .waitForElementVisible  fileSelector, 20000
       .moveToElement          fileSelector, 120, 12
-      .click fileSelector
       .waitForElementVisible  chevronSelector, 20000
       .click                  chevronSelector
       .waitForElementVisible  contextMenuSelector, 20000
@@ -241,6 +243,8 @@ module.exports =
 
     configPath     = '/home/' + user.username + '/.config'
     name        = fileFolderName
+    packageInstallerModal = '.kdmodal-inner'
+    installPackageButton = '[testpath=proceed]'
 
     if type is 'folder'
       configPath   = '/home/' + user.username
@@ -266,21 +270,6 @@ module.exports =
       .pause                     2000
 
     # install zip package if it is not exist
-    browser.element 'css selector', packageInstallerModal, (result) =>
-      if result.status is 0
-        @installZipPackage browser, fileFolderSelector, submenuSelector, =>
-          browser.element 'css selector', packageInstallerModal, (result) =>
-            if result.status is 0
-              @installZipPackage browser, fileFolderSelector, submenuSelector, ->
-
-    @waitNewFile browser, newFile, fileFolderSelector, ->
-      callback()
-    # browser.waitForElementPresent newFile, 50000 # Assertion
-
-    # helpers.deleteFile browser, fileFolderSelector , ->
-    #   helpers.deleteFile browser, newFile, -> callback()
-
-  installZipPackage: (browser, fileFolderSelector, submenuSelector, done) ->
     browser.element 'css selector', packageInstallerModal, (result) ->
       if result.status is 0
         browser
@@ -295,16 +284,12 @@ module.exports =
           .click                     'li.compress'
           .waitForElementVisible     submenuSelector, 20000
           .click                     submenuSelector
-          .pause                     2000, done
+          .pause                     2000
+    browser
+      .waitForElementPresent     newFile, 20000 # Assertion
 
-  waitNewFile: (browser, newFile, fileFolderSelector, done) ->
-    browser.element 'css selector', newFile, (result) ->
-      if result.status is 0
-        browser.waitForElementPresent newFile, 20000
-        helpers.deleteFile browser, fileFolderSelector , ->
-          helpers.deleteFile browser, newFile, -> done
-      else
-        @waitNewFile browser, newFile, done
+    helpers.deleteFile browser, fileFolderSelector , ->
+      helpers.deleteFile browser, newFile, -> callback()
 
   #Will be reimplement
   # dragDropFile: (browser, fileName) ->

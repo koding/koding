@@ -1,5 +1,5 @@
 kd                      = require 'kd'
-remote                  = require 'app/remote'
+remote                  = require('app/remote').getInstance()
 KDView                  = kd.View
 KDListViewController    = kd.ListViewController
 KDCustomHTMLView        = kd.CustomHTMLView

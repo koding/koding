@@ -36,7 +36,6 @@ module.exports = (KONFIG, credentials, options) ->
     broker               : { uri: '/subscribe' }
     google               : { apiKey: '' }
     gitlab               : { team: credentials.gitlab.team }
-    paypal               : { formUrl: credentials.paypal.formUrl }
     embedly              : { apiKey: credentials.embedly.apiKey }
     algolia              : { appId: credentials.algolia.appId, indexSuffix: options.algoliaIndexSuffix }
     github               : { clientId: credentials.github.clientId }

@@ -1,6 +1,6 @@
 htmlencode = require 'htmlencode'
 kookies = require 'kookies'
-remote = require('./remote')
+remote = require('./remote').getInstance()
 kd = require 'kd'
 KDController = kd.Controller
 module.exports = class WidgetController extends KDController

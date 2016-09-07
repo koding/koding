@@ -24,12 +24,11 @@ func TestHealthCheckRemote(t *testing.T) {
 			HTTPClient: &http.Client{
 				Timeout: 4 * time.Second,
 			},
-			KontrolAddress:       ts.URL,
-			InternetCheckAddress: ts.URL,
-			TunnelKiteAddress:    ts.URL,
+			RemoteKiteAddress: ts.URL,
+			RemoteHTTPAddress: ts.URL,
 		}
 
-		So(c.RemoteRequirements(), ShouldBeNil)
+		So(c.CheckRemote(), ShouldBeNil)
 	})
 
 	Convey("Should return no internet if the inetAddress fails", t, func() {
@@ -38,11 +37,11 @@ func TestHealthCheckRemote(t *testing.T) {
 			HTTPClient: &http.Client{
 				Timeout: 4 * time.Second,
 			},
-			KontrolAddress:       "http://foo",
-			InternetCheckAddress: "http://bar",
+			RemoteKiteAddress: "http://foo",
+			RemoteHTTPAddress: "http://bar",
 		}
 
-		err := c.RemoteRequirements()
+		err := c.CheckRemote()
 		So(err, ShouldNotBeNil)
 		So(err, ShouldHaveSameTypeAs, ErrHealthNoInternet{})
 	})
@@ -62,13 +61,13 @@ func TestHealthCheckRemote(t *testing.T) {
 			HTTPClient: &http.Client{
 				Timeout: 4 * time.Second,
 			},
-			KontrolAddress:       tsKon.URL,
-			InternetCheckAddress: tsNet.URL,
+			RemoteKiteAddress: tsKon.URL,
+			RemoteHTTPAddress: tsNet.URL,
 		}
 
-		err := c.RemoteRequirements()
+		err := c.CheckRemote()
 		So(err, ShouldNotBeNil)
-		So(err, ShouldHaveSameTypeAs, ErrKodingService{})
+		So(err, ShouldHaveSameTypeAs, ErrHealthNoKontrolHTTPResponse{})
 	})
 
 	Convey("Should return unexpected response if the kontrol response is.. unexpected", t, func() {
@@ -85,13 +84,13 @@ func TestHealthCheckRemote(t *testing.T) {
 			HTTPClient: &http.Client{
 				Timeout: 4 * time.Second,
 			},
-			KontrolAddress:       tsNet.URL,
-			InternetCheckAddress: tsKon.URL,
+			RemoteKiteAddress: tsNet.URL,
+			RemoteHTTPAddress: tsKon.URL,
 		}
 
-		err := c.RemoteRequirements()
+		err := c.CheckRemote()
 		So(err, ShouldNotBeNil)
-		So(err, ShouldHaveSameTypeAs, ErrKodingService{})
+		So(err, ShouldHaveSameTypeAs, ErrHealthUnexpectedResponse{})
 	})
 
 	Convey("Should timeout after X seconds", t, func() {
@@ -108,11 +107,11 @@ func TestHealthCheckRemote(t *testing.T) {
 			HTTPClient: &http.Client{
 				Timeout: 1 * time.Second,
 			},
-			KontrolAddress:       ts.URL,
-			InternetCheckAddress: ts.URL,
+			RemoteKiteAddress: ts.URL,
+			RemoteHTTPAddress: ts.URL,
 		}
 
-		err := c.RemoteRequirements()
+		err := c.CheckRemote()
 		So(err, ShouldNotBeNil)
 	})
 }

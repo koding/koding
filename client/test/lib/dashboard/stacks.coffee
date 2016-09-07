@@ -83,10 +83,19 @@ module.exports =
         stackshelpers.destroy browser, (result) ->
           next null, result
       (next) ->
-        teamsHelpers.logoutTeamfromUrl browser, (result) ->
+        teamsHelpers.logoutTeam browser, (result) ->
           next null, result
       (next) ->
         stackshelpers.createAndMakeStackTeamDefault browser, (result) ->
+          next null, result
+      (next) ->
+        teamsHelpers.logoutTeam browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.createPrivateStackAsMember browser, (result) ->
+          next null, result
+      (next) ->
+        stackshelpers.checkDraftsAsMember browser, (result) ->
           next null, result
 
     ]

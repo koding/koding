@@ -2,8 +2,6 @@ React                    = require 'kd-react'
 ReactDOM                 = require 'react-dom'
 isScrollThresholdReached = require 'app/util/isScrollThresholdReached'
 
-require './styl/infinitescroll.styl'
-
 module.exports = class InfiniteScroll extends React.Component
 
   @defaultProps =

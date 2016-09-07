@@ -1,7 +1,7 @@
 kd                    = require 'kd'
 JView                 = require 'app/jview'
 KDButtonViewWithMenu  = kd.ButtonViewWithMenu
-ActivityItemMenuItem  = require 'app/activity/activityitemmenuitem'
+ActivityItemMenuItem  = require 'activity/views/activityitemmenuitem'
 
 
 module.exports = class BaseStackTemplateListItem extends kd.ListItemView

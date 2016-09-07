@@ -6,7 +6,7 @@ GroupPackEditForm = require '../views/grouppackeditform'
 GroupPlanAddProductsModal = require '../views/groupplanaddproductsmodal'
 GroupProductEditForm = require '../views/groupproducteditform'
 GroupProductView = require '../views/groupproductview'
-remote = require 'app/remote'
+remote = require('app/remote').getInstance()
 showError = require 'app/util/showError'
 getGroup = require 'app/util/getGroup'
 

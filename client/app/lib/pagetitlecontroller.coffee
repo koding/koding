@@ -1,5 +1,5 @@
 kd                = require 'kd'
-remote            = require('./remote')
+remote            = require('./remote').getInstance()
 { htmlDecode }    = require 'htmlencode'
 isKoding          = require 'app/util/isKoding'
 KDObject          = kd.Object

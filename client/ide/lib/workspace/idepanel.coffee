@@ -4,6 +4,7 @@ IDEDrawingPane            = require './panes/idedrawingpane'
 IDEEditorPane             = require './panes/ideeditorpane'
 IDETailerPane             = require './panes/idetailerpane'
 IDEFinderPane             = require './panes/idefinderpane'
+IDEPreviewPane            = require './panes/idepreviewpane'
 IDETerminalPane           = require './panes/ideterminalpane'
 IDEWorkspaceLayoutBuilder = require './ideworkspacelayoutbuilder'
 
@@ -56,6 +57,7 @@ module.exports = class IDEPanel extends KDView
     paneClasses =
       terminal  : IDETerminalPane
       editor    : IDEEditorPane
+      preview   : IDEPreviewPane
       finder    : IDEFinderPane
       drawing   : IDEDrawingPane
       tailer    : IDETailerPane

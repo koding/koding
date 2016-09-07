@@ -1,6 +1,6 @@
 kd                  = require 'kd'
 expect              = require 'expect'
-remote              = require 'app/remote'
+remote              = require('app/remote').getInstance()
 SnapshotListItem    = require '../snapshotlistitem'
 SnapshotsController = require '../controllers/machinesettingssnapshotscontroller'
 

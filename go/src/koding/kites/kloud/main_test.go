@@ -68,7 +68,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -89,44 +88,32 @@ import (
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/publickeys"
-	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
-	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/plans"
 	"koding/kites/kloud/provider/aws"
-	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/userdata"
 	"koding/kites/terraformer"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 var (
-	kloudKite      *kite.Kite
-	kld            *kloud.Kloud
-	conf           *config.Config
-	kodingProvider *koding.Provider
-	awsProvider    *awsprovider.Provider
-	slProvider     *softlayer.Provider
+	kloudKite   *kite.Kite
+	kld         *kloud.Kloud
+	conf        *config.Config
+	awsProvider *awsprovider.Provider
+	slProvider  *softlayer.Provider
 
 	defaultRegion       = "eu-west-1"
 	defaultDatacenter   = "sjc01"
 	defaultInstanceType = "t2.nano"
-
-	solo = &Client{
-		Provider:     "softlayer", // overwrite with KLOUD_TEST_PROVIDER
-		Region:       "",          // overwrite with KLOUD_TEST_REGION
-		InstanceType: "",          // overwrite with KLOUD_TEST_INSTANCE_TYPE
-	}
 
 	team = &Client{
 		Provider:     "aws",
@@ -182,17 +169,11 @@ type singleUser struct {
 
 func init() {
 	if s := os.Getenv("KLOUD_TEST_REGION"); s != "" {
-		solo.Region = s
 		team.Region = s
 	}
 	if s := os.Getenv("KLOUD_TEST_INSTANCE_TYPE"); s != "" {
-		solo.InstanceType = s
 		team.InstanceType = s
 	}
-	if s := os.Getenv("KLOUD_TEST_PROVIDER"); s != "" {
-		solo.Provider = s
-	}
-
 	repoPath, err := currentRepoPath()
 	if err != nil {
 		log.Fatal("currentRepoPath error:", err)
@@ -233,10 +214,10 @@ func init() {
 		log.Fatal("kloud ", err.Error())
 	}
 
-	kodingProvider, awsProvider, slProvider = providers()
+	awsProvider, slProvider = providers()
 
 	// Add Kloud handlers
-	kld := kloudWithProviders(kodingProvider, awsProvider, slProvider)
+	kld := kloudWithProviders(awsProvider, slProvider)
 	kloudKite.HandleFunc("plan", kld.Plan)
 	kloudKite.HandleFunc("apply", kld.Apply)
 	kloudKite.HandleFunc("bootstrap", kld.Bootstrap)
@@ -475,275 +456,6 @@ func TestTerraformStack(t *testing.T) {
 	if err := listenEvent(eArgs, machinestate.Terminated, remote); err != nil {
 		t.Error(err)
 	}
-}
-
-func TestBuild(t *testing.T) {
-	t.Parallel()
-	username := "testuser"
-	userData, err := solo.CreateUser(username, "koding")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	machineId := userData.MachineIds[0].Hex()
-
-	if err := solo.Build(machineId, userData.Remote); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Restarting machine")
-	if err := solo.Restart(machineId, userData.Remote); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Stopping machine")
-	if err := solo.Stop(machineId, userData.Remote); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Starting machine")
-	if err := solo.Start(machineId, userData.Remote); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Reiniting  machine")
-	if err := solo.Reinit(machineId, userData.Remote); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Destroying machine")
-	if err := solo.Destroy(machineId, userData.Remote); err != nil {
-		t.Fatal(err)
-	}
-
-	// now try to ssh into the machine with temporary private key we created in
-	// the beginning
-	//
-	// BUG(rjeczalik):
-	//
-	//   --- FAIL: TestBuild (218.10s)
-	//        main_test.go:440: cannot connect with ssh: ssh: handshake failed:
-	//        ssh: unable to authenticate, attempted methods [none publickey], no supported methods remain
-	//
-	// if err := checkSSHKey(userData.MachineIds[0].Hex(), userData.PrivateKey); err != nil {
-	//	t.Error(err)
-	// }
-
-	// invalid calls after build
-	// if err := build(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
-	// 	t.Error("`build` method can not be called on `running` machines.")
-	// }
-
-	// if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-	// 	t.Error(err)
-	// }
-}
-
-func checkSSHKey(id, privateKey string) error {
-	log.Println("Checking deployed ssh key")
-	// now try to ssh into the machine with temporary private key we created in
-	// the beginning
-	ctx := request.NewContext(context.Background(), &kite.Request{
-		Username: "testuser",
-	})
-	ctx = eventer.NewContext(ctx, eventer.New(id))
-
-	m, err := kodingProvider.Machine(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	machine, ok := m.(*koding.Machine)
-	if !ok {
-		return fmt.Errorf("%v doesn't is a koding.Machine struct", m)
-	}
-
-	sshConfig, err := sshutil.SshConfig("root", privateKey)
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Connecting to machine with ip '%s' via ssh\n", machine.IpAddress)
-	sshClient, err := sshutil.ConnectSSH(machine.IpAddress+":22", sshConfig)
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Testing SSH deployment")
-	output, err := sshClient.StartCommand("whoami")
-	if err != nil {
-		return err
-	}
-
-	if strings.TrimSpace(string(output)) != "root" {
-		return fmt.Errorf("Whoami result should be root, got: %s", string(output))
-	}
-
-	return nil
-}
-
-func TestStop(t *testing.T) {
-	t.Parallel()
-	username := "testuser2"
-	userData, err := solo.CreateUser(username, "koding")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := solo.Build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Stopping machine")
-	if err := solo.Stop(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-		t.Fatal(err)
-	}
-
-	// the following calls should give an error, if not there is a problem
-	if err := solo.Build(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
-		t.Error("`build` method can not be called on `stopped` machines.")
-	}
-
-	if err := solo.Stop(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
-		t.Error("`stop` method can not be called on `stopped` machines.")
-	}
-
-	if err := solo.Destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestStart(t *testing.T) {
-	t.Parallel()
-	username := "testuser3"
-	userData, err := solo.CreateUser(username, "koding")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := solo.Build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Stopping machine to start machine again")
-	if err := solo.Stop(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Starting machine")
-	if err := solo.Start(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-		t.Errorf("`start` method can not be called on `stopped` machines: %s\n", err)
-	}
-
-	if err := solo.Start(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
-		t.Error("`start` method can not be called on `started` machines.")
-	}
-
-	if err := solo.Destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestSnapshot(t *testing.T) {
-	t.Parallel()
-	username := "testuser4"
-	userData, err := solo.CreateUser(username, "koding")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := solo.Build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Creating snapshot")
-	if err := solo.CreateSnapshot(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-		t.Error(err)
-	}
-
-	log.Println("Retrieving snapshot id")
-	snapshotId, err := getSnapshotId(userData.MachineIds[0].Hex(), userData.AccountId)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Deleting snapshot")
-	if err := solo.DeleteSnapshot(userData.MachineIds[0].Hex(), snapshotId, userData.Remote); err != nil {
-		t.Error(err)
-	}
-
-	// once deleted there shouldn't be any snapshot data in MongoDB
-	log.Println("Checking snapshot data in MongoDB")
-	if err := checkSnapshotMongoDB(snapshotId, userData.AccountId); err != errNoSnapshotFound {
-		t.Error(err)
-	}
-
-	// also check AWS, be sure it's been deleted
-	log.Println("Checking snapshot data in AWS")
-	err = checkSnapshotAWS(userData.MachineIds[0].Hex(), snapshotId)
-	if err != nil && !amazon.IsNotFound(err) {
-		t.Error(err)
-	}
-
-	if err := solo.Destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestResize(t *testing.T) {
-	t.Parallel()
-	username := "testuser"
-	userData, err := solo.CreateUser(username, "koding")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := solo.Build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-		t.Fatal(err)
-	}
-
-	defer func() {
-		log.Println("Destroying machine")
-		if err := solo.Destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-			t.Error(err)
-		}
-	}()
-
-	resize := func(storageWant int) {
-		log.Printf("Resizing machine to %dGB\n", storageWant)
-		err = kodingProvider.DB.Run("jMachines", func(c *mgo.Collection) error {
-			return c.UpdateId(
-				bson.ObjectIdHex(userData.MachineIds[0].Hex()),
-				bson.M{
-					"$set": bson.M{
-						"meta.storage_size": storageWant,
-					},
-				},
-			)
-		})
-		if err != nil {
-			t.Error(err)
-		}
-
-		if err := solo.Resize(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-			t.Error(err)
-		}
-
-		storageGot, err := getAmazonStorageSize(username, userData.MachineIds[0].Hex())
-		if err != nil {
-			t.Error(err)
-		}
-
-		if storageGot != storageWant {
-			t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
-				storageWant,
-				storageGot,
-			)
-		}
-	}
-
-	resize(5) // first increase
-	resize(7) // second increase
 }
 
 // CreateUser creates a test user in jUsers and a single jMachine document.
@@ -1354,7 +1066,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *
 	}
 }
 
-func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) {
+func providers() (*awsprovider.Provider, *softlayer.Provider) {
 	c := credentials.NewStaticCredentials(os.Getenv("KLOUD_ACCESSKEY"), os.Getenv("KLOUD_SECRETKEY"), "")
 
 	mongoURL := os.Getenv("KLOUD_MONGODB_URL")
@@ -1401,18 +1113,6 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 		os.Getenv("KLOUD_TESTACCOUNT_SLAPIKEY"),
 	)
 
-	kdp := &koding.Provider{
-		DB:             db,
-		Log:            opts.Log,
-		DNSClient:      dnsInstance,
-		DNSStorage:     dnsStorage,
-		Kite:           kloudKite,
-		EC2Clients:     ec2clients,
-		Userdata:       usd,
-		PaymentFetcher: NewTestFetcher("hobbyist"),
-		CheckerFetcher: NewTestChecker(),
-	}
-
 	awsp := &awsprovider.Provider{
 		DB:         db,
 		Log:        logging.NewCustom("kloud-aws", true),
@@ -1435,15 +1135,15 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 	return kdp, awsp, slp
 }
 
-func kloudWithProviders(p *koding.Provider, a *awsprovider.Provider, s *softlayer.Provider) *kloud.Kloud {
+func kloudWithProviders(a *awsprovider.Provider, s *softlayer.Provider) *kloud.Kloud {
 	kloudLogger := logging.NewCustom("kloud", true)
 	sess := &session.Session{
-		DB:         p.DB,
-		Kite:       p.Kite,
-		DNSClient:  p.DNSClient,
-		DNSStorage: p.DNSStorage,
-		AWSClients: p.EC2Clients,
-		Userdata:   p.Userdata,
+		DB:         a.DB,
+		Kite:       a.Kite,
+		DNSClient:  a.DNSClient,
+		DNSStorage: a.DNSStorage,
+		AWSClients: a.EC2Clients,
+		Userdata:   a.Userdata,
 		Log:        kloudLogger,
 	}
 
@@ -1470,153 +1170,6 @@ func kloudWithProviders(p *koding.Provider, a *awsprovider.Provider, s *softlaye
 	kld.AddProvider("aws", a)
 	kld.AddProvider("softlayer", s)
 	return kld
-}
-
-func getAmazonStorageSize(username, machineId string) (int, error) {
-	ctx := request.NewContext(context.Background(), &kite.Request{
-		Username: username,
-	})
-	ctx = eventer.NewContext(ctx, eventer.New(machineId))
-
-	m, err := kodingProvider.Machine(ctx, machineId)
-	if err != nil {
-		return 0, err
-	}
-
-	machine, ok := m.(*koding.Machine)
-	if !ok {
-		return 0, fmt.Errorf("%v doesn't is a koding.Machine struct", m)
-	}
-
-	a := machine.Session.AWSClient
-
-	instance, err := a.Instance()
-	if err != nil {
-		return 0, err
-	}
-
-	// TODO(rjeczalik): make this check part of (*Client).Instance(id)
-	if len(instance.BlockDeviceMappings) == 0 {
-		return 0, fmt.Errorf("fatal error: no block device available")
-	}
-
-	oldVolumeId := aws.StringValue(instance.BlockDeviceMappings[0].Ebs.VolumeId)
-
-	oldVol, err := machine.Session.AWSClient.VolumeByID(oldVolumeId)
-	if err != nil {
-		return 0, err
-	}
-	return int(aws.Int64Value(oldVol.Size)), nil
-}
-
-func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
-	var snapshot *models.Snapshot
-	if err := kodingProvider.DB.Run("jSnapshots", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"originId": accountId, "machineId": bson.ObjectIdHex(machineId)}).One(&snapshot)
-	}); err != nil {
-		return "", err
-	}
-
-	return snapshot.SnapshotId, nil
-}
-
-func checkSnapshotAWS(machineId, snapshotId string) error {
-	ctx := request.NewContext(context.Background(), &kite.Request{
-		Username: "testuser4",
-	})
-	ctx = eventer.NewContext(ctx, eventer.New(machineId))
-
-	m, err := kodingProvider.Machine(ctx, machineId)
-	if err != nil {
-		return err
-	}
-
-	machine, ok := m.(*koding.Machine)
-	if !ok {
-		return fmt.Errorf("%v doesn't is a koding.Machine struct", m)
-	}
-
-	_, err = machine.Session.AWSClient.SnapshotByID(snapshotId)
-	return err // nil means it exists
-}
-
-func checkSnapshotMongoDB(snapshotId string, accountId bson.ObjectId) error {
-	var err error
-	var count int
-
-	err = kodingProvider.DB.Run("jSnapshots", func(c *mgo.Collection) error {
-		count, err = c.Find(bson.M{
-			"originId":   accountId,
-			"snapshotId": snapshotId,
-		}).Count()
-		return err
-	})
-
-	if err != nil {
-		log.Printf("Could not fetch %v: err: %v", snapshotId, err)
-		return errors.New("could not check Snapshot existency")
-	}
-
-	if count == 0 {
-		return errNoSnapshotFound
-	}
-
-	return nil
-}
-
-// TestFetcher satisfies the fetcher interface
-type TestFetcher struct {
-	Plan string
-}
-
-func NewTestFetcher(plan string) *TestFetcher {
-	return &TestFetcher{
-		Plan: plan,
-	}
-}
-
-func (t *TestFetcher) Fetch(ctx context.Context, username string) (*plans.PaymentResponse, error) {
-	return &plans.PaymentResponse{
-		Plan:  t.Plan,
-		State: "active",
-	}, nil
-}
-
-// TestFetcher satisfies the fetcher interface
-type TestChecker struct{}
-
-func NewTestChecker() *TestChecker {
-	return &TestChecker{}
-}
-
-func (t *TestChecker) Fetch(ctx context.Context, plan string) (plans.Checker, error) {
-	return &TestPlan{}, nil
-}
-
-type TestPlan struct{}
-
-func (t *TestPlan) Total(username string) error {
-	return nil
-}
-
-func (t *TestPlan) AlwaysOn(username string) error {
-	return nil
-}
-
-func (t *TestPlan) SnapshotTotal(machineId, username string) error {
-	return nil
-}
-
-func (t *TestPlan) Storage(wantStorage int, username string) error {
-	return nil
-}
-
-func (t *TestPlan) AllowedInstances(wantInstance plans.InstanceType) error {
-	return nil
-}
-
-func (t *TestPlan) NetworkUsage(username string) error {
-	return nil
 }
 
 // randomID generates a random string of the given length

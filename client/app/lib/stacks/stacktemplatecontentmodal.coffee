@@ -3,7 +3,7 @@ timeago = require 'timeago'
 
 Encoder = require 'htmlencode'
 
-StackTemplateEditorView = require 'stack-editor/editor/stacktemplateeditorview'
+StackTemplateEditorView = require 'stacks/views/stacks/editors/stacktemplateeditorview'
 
 module.exports = class StackTemplateContentModal extends kd.ModalView
 

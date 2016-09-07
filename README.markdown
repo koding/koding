@@ -21,7 +21,6 @@ rest you can follow these steps:
 ```bash
 git clone https://github.com/koding/docker-compose.git koding-docker-compose
 cd koding-docker-compose
-# Requires docker-compose version >= 1.6
 docker-compose up -d
 ```
 

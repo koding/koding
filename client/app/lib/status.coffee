@@ -1,6 +1,6 @@
 kd = require 'kd'
 KDController = kd.Controller
-remote = require('./remote')
+remote = require('./remote').getInstance()
 
 # Responsible for emitting connection related events.
 module.exports = class Status extends KDController

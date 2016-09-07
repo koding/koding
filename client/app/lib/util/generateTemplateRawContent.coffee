@@ -1,4 +1,4 @@
-{ jsonToYaml } = require 'app/util/stacks/yamlutils'
+{ jsonToYaml } = require 'stacks/views/stacks/yamlutils'
 
 module.exports = (jsonTemplate, addReadme = yes) ->
 

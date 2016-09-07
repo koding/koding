@@ -1,5 +1,5 @@
 getFullnameFromAccount = require '../util/getFullnameFromAccount'
-remote = require('../remote')
+remote = require('../remote').getInstance()
 kd = require 'kd'
 KDController = kd.Controller
 ContentDisplay = require './contentdisplay'

@@ -1,4 +1,4 @@
-remote = require('./remote')
+remote = require('./remote').getInstance()
 showError = require './util/showError'
 kd = require 'kd'
 KDView = kd.View
