@@ -27,7 +27,7 @@ var (
 
 type Usage struct {
 	User            *UserInfo
-	Plan            *stripe.Plan
+	ExpectedPlan    *stripe.Plan
 	Due             uint64
 	NextBillingDate time.Time
 	Subscription    *stripe.Sub
@@ -108,7 +108,7 @@ func GetInfoForGroup(group *models.Group) (*Usage, error) {
 		return nil, err
 	}
 
-	usage.Plan = plan
+	usage.ExpectedPlan = plan
 	usage.Due = uint64(usage.User.Total) * plan.Amount
 
 	return usage, nil
@@ -193,7 +193,7 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 			Active:  activeCount,
 			Deleted: deletedCount,
 		},
-		Plan:            nil,
+		ExpectedPlan:    nil,
 		Due:             0,
 		NextBillingDate: time.Unix(subscription.PeriodEnd, 0),
 		Subscription:    subscription,
