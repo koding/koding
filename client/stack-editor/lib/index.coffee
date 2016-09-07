@@ -20,15 +20,14 @@ module.exports = class StackEditorAppController extends AppController
 
     # a cache to register created views.
     @editors = {}
+    # a map of stack template ids for which editors should be reloaded
+    @shouldReloadMap = {}
 
     @selectedEditor = null
 
     { router } = kd.singletons
     router.on 'RouteInfoHandled', (routeInfo) =>
-      return  unless @selectedEditor
-
-      { data, reloadRequired } = @selectedEditor
-      @removeEditor data.stackTemplate._id  if reloadRequired
+      Object.keys(@shouldReloadMap).forEach @bound 'removeEditor'
 
 
   openEditor: (stackTemplateId) ->
@@ -139,6 +138,7 @@ module.exports = class StackEditorAppController extends AppController
 
     editor = @editors[templateId]
     delete @editors[templateId]
+    delete @shouldReloadMap[templateId]
 
     editor?.destroy()
 
@@ -148,7 +148,8 @@ module.exports = class StackEditorAppController extends AppController
     { computeController } = kd.singletons
 
     EnvironmentFlux.actions.fetchAndUpdateStackTemplate(templateId).then (template) =>
-      @editors[template._id]?.reloadRequired = yes
+      templateId = template._id
+      @shouldReloadMap[templateId] = yes  if @editors[templateId]?
 
 
   createEditor: (stackTemplate) ->
