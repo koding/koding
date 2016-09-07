@@ -137,6 +137,7 @@ $subtleColor                = #A59999
     right                   initial
     margin-left             10px
     margin-top              5px
+    pointer()
 
 .HomeAppViewListItem-description
 .HomeAppViewListItem-label
@@ -150,6 +151,8 @@ $subtleColor                = #A59999
   pointer()
   text-decoration           none
   fontPrecisionForSoleil()
+  &.member
+    pointer-events          none
 
 .HomeAppViewListItem-description
   font-style                italic
