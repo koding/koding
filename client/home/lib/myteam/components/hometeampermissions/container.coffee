@@ -36,7 +36,6 @@ module.exports = class HomeTeamPermissionsContainer extends React.Component
   render: ->
 
     <View
-      ref='view'
       team={@state.team}
       canCreateStacks={@state.team.getIn ['customize', 'membersCanCreateStacks']}
       seeTeamMembers={not @state.team.getIn ['customize', 'hideTeamMembers']}
