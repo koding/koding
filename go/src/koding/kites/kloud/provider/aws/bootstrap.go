@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
 
@@ -17,7 +17,7 @@ import (
 
 // Bootstrap
 func (s *Stack) Bootstrap(context.Context) (interface{}, error) {
-	var arg kloud.BootstrapRequest
+	var arg stack.BootstrapRequest
 	if err := s.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func (s *Stack) Bootstrap(context.Context) (interface{}, error) {
 	return s.bootstrap(&arg)
 }
 
-func (s *Stack) bootstrap(arg *kloud.BootstrapRequest) (interface{}, error) {
+func (s *Stack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error) {
 	if err := arg.Valid(); err != nil {
 		return nil, err
 	}

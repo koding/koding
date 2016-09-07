@@ -5,7 +5,7 @@ import (
 
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"golang.org/x/net/context"
@@ -13,7 +13,7 @@ import (
 
 // Authenticate
 func (s *Stack) Authenticate(ctx context.Context) (interface{}, error) {
-	var arg kloud.AuthenticateRequest
+	var arg stack.AuthenticateRequest
 	if err := s.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
 	}
@@ -28,10 +28,10 @@ func (s *Stack) Authenticate(ctx context.Context) (interface{}, error) {
 
 	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
 
-	resp := make(kloud.AuthenticateResponse)
+	resp := make(stack.AuthenticateResponse)
 
 	for _, cred := range s.Builder.Credentials {
-		res := &kloud.AuthenticateResult{}
+		res := &stack.AuthenticateResult{}
 		resp[cred.Identifier] = res
 
 		if cred.Provider != "aws" {

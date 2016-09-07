@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"koding/db/models"
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -41,13 +41,13 @@ func (bp *BaseProvider) Lock(id string) error {
 	// query didn't matched, means it's assigned to some other Kloud
 	// instances and an ongoing event is in process.
 	if err == mgo.ErrNotFound {
-		return kloud.ErrLockAcquired
+		return stack.ErrLockAcquired
 	}
 
 	// some other error, this shouldn't be happed
 	if err != nil {
 		bp.Log.Error("Storage get error: %s", err)
-		return kloud.NewError(kloud.ErrBadState)
+		return stack.NewError(stack.ErrBadState)
 	}
 
 	return nil

@@ -13,10 +13,10 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/plans"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
@@ -56,7 +56,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	if err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.FindId(bson.ObjectIdHex(id)).One(machine.Machine)
 	}); err == mgo.ErrNotFound {
-		return nil, kloud.NewError(kloud.ErrMachineNotFound)
+		return nil, stack.NewError(stack.ErrMachineNotFound)
 	}
 
 	req, ok := request.FromContext(ctx)
@@ -128,7 +128,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	// attach user specific log
 	machine.Log = p.Log.New(machine.ObjectId.Hex())
 
-	if traceID, ok := kloud.TraceFromContext(ctx); ok {
+	if traceID, ok := stack.TraceFromContext(ctx); ok {
 		machine.Log = logging.NewCustom("kloud-koding", true).New(machine.ObjectId.Hex()).New(traceID)
 	}
 
@@ -198,7 +198,7 @@ func (p *Provider) validate(m *Machine, r *kite.Request) error {
 	}
 
 	if m.User.Status != "confirmed" {
-		return kloud.NewError(kloud.ErrUserNotConfirmed)
+		return stack.NewError(stack.ErrUserNotConfirmed)
 	}
 
 	return nil

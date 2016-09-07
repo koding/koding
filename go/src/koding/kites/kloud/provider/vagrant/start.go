@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"koding/kites/kloud/klient"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/stack"
 
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
@@ -19,7 +19,7 @@ func (m *Machine) Start(ctx context.Context) error {
 	// when its state is effectively stopped.
 	err := m.start(machinestate.Stopped, machinestate.Stopping)
 	if err != nil {
-		return kloud.NewEventerError(err)
+		return stack.NewEventerError(err)
 	}
 
 	return nil

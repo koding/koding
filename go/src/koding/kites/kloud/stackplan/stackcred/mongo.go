@@ -3,7 +3,7 @@ package stackcred
 import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 
 	"github.com/hashicorp/go-multierror"
 
@@ -58,7 +58,7 @@ func (db *mongoStore) Fetch(_ string, creds map[string]interface{}) error {
 				continue
 			}
 
-			if validator, ok := v.(kloud.Validator); ok {
+			if validator, ok := v.(stack.Validator); ok {
 				if err := validator.Valid(); err != nil {
 					missing = append(missing, ident)
 					continue

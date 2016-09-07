@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 
 	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
@@ -38,7 +38,7 @@ func (i *Info) SingleMachine(id string, k *kite.Client) (string, error) {
 		return "", err
 	}
 
-	var result kloud.InfoResponse
+	var result stack.InfoResponse
 	err = resp.Unmarshal(&result)
 	if err != nil {
 		return "", err

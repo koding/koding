@@ -24,9 +24,9 @@ import (
 
 	"koding/db/models"
 	"koding/kites/kloud/api/sl"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/utils/res"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -1252,7 +1252,7 @@ func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 		return err
 	}
 
-	var result kloud.ControlResult
+	var result stack.ControlResult
 	return resp.Unmarshal(&result)
 }
 
@@ -1472,7 +1472,7 @@ func (cmd *GroupDelete) destroy(ctx context.Context, item Item) error {
 		return err
 	}
 
-	var result kloud.ControlResult
+	var result stack.ControlResult
 	return resp.Unmarshal(&result)
 }
 
