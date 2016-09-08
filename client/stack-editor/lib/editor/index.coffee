@@ -377,10 +377,10 @@ module.exports = class StackEditorView extends kd.View
       @saveButton.hideLoader()
       return
 
-    @saveAndTestStackTemplate()
+    @saveAndTestStackTemplate (err, stackTemplate) => @emit 'Reload', err?
 
 
-  saveAndTestStackTemplate: ->
+  saveAndTestStackTemplate: (callback) ->
 
     # Show default first pane.
     @tabView.showPaneByIndex 0
@@ -394,7 +394,7 @@ module.exports = class StackEditorView extends kd.View
 
       if @outputView.handleError err, 'Stack template save failed:'
         @saveButton.hideLoader()
-        return
+        return callback err
 
       @outputView
         .add 'Template content saved.'
@@ -407,7 +407,7 @@ module.exports = class StackEditorView extends kd.View
 
         if @outputView.handleError err
           @saveButton.hideLoader()
-          return
+          return callback err
 
         @outputView
           .add 'Custom variables are set.'
@@ -427,13 +427,14 @@ module.exports = class StackEditorView extends kd.View
               @credentialWarning.setClass 'in'
               @_credentialsPassed = no
 
-            return @saveButton.hideLoader()
+            @saveButton.hideLoader()
+            return callback err
 
           @outputView
             .add 'Credentials are ready!'
             .add 'Starting to process the template...'
 
-          @processTemplate _stackTemplate
+          @processTemplate _stackTemplate, callback
 
 
   afterProcessTemplate: (method) ->
@@ -463,7 +464,7 @@ module.exports = class StackEditorView extends kd.View
         '''
 
 
-  processTemplate: (stackTemplate) ->
+  processTemplate: (stackTemplate, callback) ->
 
     { groupsController, computeController } = kd.singletons
 
@@ -476,7 +477,7 @@ module.exports = class StackEditorView extends kd.View
 
       if err
         @outputView.add 'Parsing failed, please check your template and try again'
-        return
+        return callback err
 
       { stackTemplates }       = groupsController.getCurrentGroup()
       stackTemplate.isDefault ?= stackTemplate._id in (stackTemplates or [])
@@ -534,6 +535,8 @@ module.exports = class StackEditorView extends kd.View
         else
           @afterProcessTemplate 'initialize'
           computeController.checkGroupStacks()
+
+      callback null, stackTemplate
 
 
   checkAndBootstrapCredentials: (callback) ->

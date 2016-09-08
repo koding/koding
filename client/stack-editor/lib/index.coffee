@@ -143,13 +143,17 @@ module.exports = class StackEditorAppController extends AppController
     editor?.destroy()
 
 
-  reloadEditor: (templateId) ->
+  reloadEditor: (templateId, skipDataUpdate) ->
 
-    { computeController } = kd.singletons
+    return @markAsReloadRequired templateId  if skipDataUpdate
 
-    EnvironmentFlux.actions.fetchAndUpdateStackTemplate(templateId).then (template) =>
-      templateId = template._id
-      @shouldReloadMap[templateId] = yes  if @editors[templateId]?
+    EnvironmentFlux.actions.fetchAndUpdateStackTemplate(templateId)
+      .then @lazyBound 'markAsReloadRequired', templateId
+
+
+  markAsReloadRequired: (templateId) ->
+
+    @shouldReloadMap[templateId] = yes  if @editors[templateId]?
 
 
   createEditor: (stackTemplate) ->
