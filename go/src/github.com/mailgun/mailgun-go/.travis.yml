@@ -1,9 +1,0 @@
-language: go
-go:
-  - 1.4
-  - 1.3.3
-env:
-  - GOARCH=amd64
-  - GOARCH=386
-script:
-  - go test

@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	"github.com/RangelReale/osin"
-	"github.com/osin-mongo-storage/mgostore"
+	"github.com/martint17r/osin-mongo-storage/mgostore"
 )
 
 var (

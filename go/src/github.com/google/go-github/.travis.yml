@@ -1,7 +1,0 @@
-language: go
-go:
- - 1.4
- - 1.5
- - tip
-install: go get -v ./github
-script: go test -v ./github

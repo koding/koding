@@ -1,4 +1,0 @@
-# Container with new network withtout network devices
-lxc.utsname = omega
-lxc.network.type = empty
-lxc.network.flags = up

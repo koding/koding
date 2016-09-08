@@ -12,7 +12,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/mgo.v2/bson"
-	"launchpad.net/goyaml"
+	goyaml "gopkg.in/yaml.v2"
 )
 
 type Conformance struct {

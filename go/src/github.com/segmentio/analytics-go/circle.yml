@@ -1,8 +1,0 @@
-dependencies:
-  override:
-    - go get -d -t ./...
-    - go get github.com/tools/godep
-
-test:
-  override:
-    - make test

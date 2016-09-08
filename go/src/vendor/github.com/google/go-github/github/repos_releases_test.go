@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -31,7 +32,7 @@ func TestRepositoriesService_ListReleases(t *testing.T) {
 	if err != nil {
 		t.Errorf("Repositories.ListReleases returned error: %v", err)
 	}
-	want := []RepositoryRelease{{ID: Int(1)}}
+	want := []*RepositoryRelease{{ID: Int(1)}}
 	if !reflect.DeepEqual(releases, want) {
 		t.Errorf("Repositories.ListReleases returned %+v, want %+v", releases, want)
 	}
@@ -181,7 +182,7 @@ func TestRepositoriesService_ListReleaseAssets(t *testing.T) {
 	if err != nil {
 		t.Errorf("Repositories.ListReleaseAssets returned error: %v", err)
 	}
-	want := []ReleaseAsset{{ID: Int(1)}}
+	want := []*ReleaseAsset{{ID: Int(1)}}
 	if !reflect.DeepEqual(assets, want) {
 		t.Errorf("Repositories.ListReleaseAssets returned %+v, want %+v", assets, want)
 	}
@@ -218,7 +219,7 @@ func TestRepositoriesService_DownloadReleaseAsset_Stream(t *testing.T) {
 		fmt.Fprint(w, "Hello World")
 	})
 
-	reader, err := client.Repositories.DownloadReleaseAsset("o", "r", 1)
+	reader, _, err := client.Repositories.DownloadReleaseAsset("o", "r", 1)
 	if err != nil {
 		t.Errorf("Repositories.DownloadReleaseAsset returned error: %v", err)
 	}
@@ -239,28 +240,42 @@ func TestRepositoriesService_DownloadReleaseAsset_Redirect(t *testing.T) {
 	mux.HandleFunc("/repos/o/r/releases/assets/1", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
 		testHeader(t, r, "Accept", defaultMediaType)
-		w.Header().Set("Location", server.URL+"/github-cloud/releases/1/hello-world.txt")
-		w.WriteHeader(http.StatusFound)
+		http.Redirect(w, r, "/yo", http.StatusFound)
 	})
 
-	mux.HandleFunc("/github-cloud/releases/1/hello-world.txt", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
-		w.Header().Set("Content-Type", "application/octet-stream")
-		w.Header().Set("Content-Disposition", "attachment; filename=hello-world.txt")
-		fmt.Fprint(w, "Hello World")
-	})
-
-	reader, err := client.Repositories.DownloadReleaseAsset("o", "r", 1)
+	_, got, err := client.Repositories.DownloadReleaseAsset("o", "r", 1)
 	if err != nil {
 		t.Errorf("Repositories.DownloadReleaseAsset returned error: %v", err)
 	}
-	want := []byte("Hello World")
-	content, err := ioutil.ReadAll(reader)
-	if err != nil {
-		t.Errorf("Repositories.DownloadReleaseAsset returned bad reader: %v", err)
+	want := "/yo"
+	if !strings.HasSuffix(got, want) {
+		t.Errorf("Repositories.DownloadReleaseAsset returned %+v, want %+v", got, want)
 	}
-	if !bytes.Equal(want, content) {
-		t.Errorf("Repositories.DownloadReleaseAsset returned %+v, want %+v", content, want)
+}
+
+func TestRepositoriesService_DownloadReleaseAsset_APIError(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/repos/o/r/releases/assets/1", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", defaultMediaType)
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprint(w, `{"message":"Not Found","documentation_url":"https://developer.github.com/v3"}`)
+	})
+
+	resp, loc, err := client.Repositories.DownloadReleaseAsset("o", "r", 1)
+	if err == nil {
+		t.Error("Repositories.DownloadReleaseAsset did not return an error")
+	}
+
+	if resp != nil {
+		resp.Close()
+		t.Error("Repositories.DownloadReleaseAsset returned stream, want nil")
+	}
+
+	if loc != "" {
+		t.Errorf(`Repositories.DownloadReleaseAsset returned "%s", want empty ""`, loc)
 	}
 }
 

@@ -3,14 +3,16 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build integration
+
 package tests
 
 import (
 	"net/http"
+	"reflect"
 	"testing"
 
 	"github.com/google/go-github/github"
-	"reflect"
 )
 
 func TestRepositories_CRUD(t *testing.T) {
@@ -141,5 +143,32 @@ func TestRepositories_EditBranches(t *testing.T) {
 	_, err = client.Repositories.Delete(*repo.Owner.Login, *repo.Name)
 	if err != nil {
 		t.Fatalf("Repositories.Delete() returned error: %v", err)
+	}
+}
+
+func TestRepositories_List(t *testing.T) {
+	if !checkAuth("TestRepositories_List") {
+		return
+	}
+
+	_, _, err := client.Repositories.List("", nil)
+	if err != nil {
+		t.Fatalf("Repositories.List('') returned error: %v", err)
+	}
+
+	_, _, err = client.Repositories.List("google", nil)
+	if err != nil {
+		t.Fatalf("Repositories.List('google') returned error: %v", err)
+	}
+
+	opt := github.RepositoryListOptions{Sort: "created"}
+	repos, _, err := client.Repositories.List("google", &opt)
+	if err != nil {
+		t.Fatalf("Repositories.List('google') with Sort opt returned error: %v", err)
+	}
+	for i, repo := range repos {
+		if i > 0 && (*repos[i-1].CreatedAt).Time.Before((*repo.CreatedAt).Time) {
+			t.Fatalf("Repositories.List('google') with default descending Sort returned incorrect order")
+		}
 	}
 }

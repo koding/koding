@@ -14,8 +14,8 @@ var versionRegexp *regexp.Regexp
 
 // The raw regular expression string used for testing the validity
 // of a version.
-const VersionRegexpRaw string = `([0-9]+(\.[0-9]+){0,2})` +
-	`(-([0-9A-Za-z\-]+(\.[0-9A-Za-z\-]+)*))?` +
+const VersionRegexpRaw string = `v?([0-9]+(\.[0-9]+)*?)` +
+	`(-?([0-9A-Za-z\-]+(\.[0-9A-Za-z\-]+)*))?` +
 	`(\+([0-9A-Za-z\-]+(\.[0-9A-Za-z\-]+)*))?` +
 	`?`
 
@@ -38,9 +38,8 @@ func NewVersion(v string) (*Version, error) {
 	if matches == nil {
 		return nil, fmt.Errorf("Malformed version: %s", v)
 	}
-
 	segmentsStr := strings.Split(matches[1], ".")
-	segments := make([]int, len(segmentsStr), 3)
+	segments := make([]int, len(segmentsStr))
 	si := 0
 	for i, str := range segmentsStr {
 		val, err := strconv.ParseInt(str, 10, 32)
@@ -50,8 +49,12 @@ func NewVersion(v string) (*Version, error) {
 		}
 
 		segments[i] = int(val)
-		si += 1
+		si++
 	}
+
+	// Even though we could support more than three segments, if we
+	// got less than three, pad it with 0s. This is to cover the basic
+	// default usecase of semver, which is MAJOR.MINOR.PATCH at the minimum
 	for i := len(segments); i < 3; i++ {
 		segments = append(segments, 0)
 	}
@@ -106,21 +109,56 @@ func (v *Version) Compare(other *Version) int {
 		return comparePrereleases(preSelf, preOther)
 	}
 
+	// Get the highest specificity (hS), or if they're equal, just use segmentSelf length
+	lenSelf := len(segmentsSelf)
+	lenOther := len(segmentsOther)
+	hS := lenSelf
+	if lenSelf < lenOther {
+		hS = lenOther
+	}
 	// Compare the segments
-	for i := 0; i < len(segmentsSelf); i++ {
+	// Because a constraint could have more/less specificity than the version it's
+	// checking, we need to account for a lopsided or jagged comparison
+	for i := 0; i < hS; i++ {
+		if i > lenSelf-1 {
+			// This means Self had the lower specificity
+			// Check to see if the remaining segments in Other are all zeros
+			if !allZero(segmentsOther[i:]) {
+				// if not, it means that Other has to be greater than Self
+				return -1
+			}
+			break
+		} else if i > lenOther-1 {
+			// this means Other had the lower specificity
+			// Check to see if the remaining segments in Self are all zeros -
+			if !allZero(segmentsSelf[i:]) {
+				//if not, it means that Self has to be greater than Other
+				return 1
+			}
+			break
+		}
 		lhs := segmentsSelf[i]
 		rhs := segmentsOther[i]
-
 		if lhs == rhs {
 			continue
 		} else if lhs < rhs {
 			return -1
-		} else {
-			return 1
 		}
+		// Otherwis, rhs was > lhs, they're not equal
+		return 1
 	}
 
-	panic("should not be reached")
+	// if we got this far, they're equal
+	return 0
+}
+
+func allZero(segs []int) bool {
+	for _, s := range segs {
+		if s != 0 {
+			return false
+		}
+	}
+	return true
 }
 
 func comparePart(preSelf string, preOther string) int {
@@ -239,7 +277,13 @@ func (v *Version) Segments() []int {
 // and metadata information.
 func (v *Version) String() string {
 	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "%d.%d.%d", v.segments[0], v.segments[1], v.segments[2])
+	fmtParts := make([]string, len(v.segments))
+	for i, s := range v.segments {
+		// We can ignore err here since we've pre-parsed the values in segments
+		str := strconv.Itoa(s)
+		fmtParts[i] = str
+	}
+	fmt.Fprintf(&buf, strings.Join(fmtParts, "."))
 	if v.pre != "" {
 		fmt.Fprintf(&buf, "-%s", v.pre)
 	}

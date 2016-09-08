@@ -952,6 +952,10 @@ type TripOptionsRequest struct {
 	// Solutions: The number of solutions to return, maximum 500.
 	Solutions int64 `json:"solutions,omitempty"`
 
+	// TicketingCountry: IATA country code representing the point of
+	// ticketing.
+	TicketingCountry string `json:"ticketingCountry,omitempty"`
+
 	// ForceSendFields is a list of field names (e.g. "MaxPrice") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
@@ -1095,10 +1099,7 @@ func (c *TripsSearchCall) doRequest(alt string) (*http.Response, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "qpxExpress.trips.search" call.

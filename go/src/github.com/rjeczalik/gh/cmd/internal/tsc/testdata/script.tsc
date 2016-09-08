@@ -1,2 +1,0 @@
-{{with $e := .}}name={{$e.Name}}
-payload={{$e.Payload}}{{range $k, $v := $e.Args}}{{printf "\n%s=%s" $k $v}}{{end}}{{end}}

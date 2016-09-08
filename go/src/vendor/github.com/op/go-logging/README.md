@@ -1,70 +1,10 @@
 ## Golang logging library
 
-[![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/op/go-logging) [![build](https://img.shields.io/travis/op/go-logging.svg?style=flat)](https://travis-ci.org/op/go-logging)
+[![Build Status](https://travis-ci.org/op/go-logging.png)](https://travis-ci.org/op/go-logging)
 
-Package logging implements a logging infrastructure for Go. Its output format
-is customizable and supports different logging backends like syslog, file and
-memory. Multiple backends can be utilized with different log levels per backend
-and logger.
-
-## Example
-
-Let's have a look at an [example](examples/example.go) which demonstrates most
-of the features found in this library.
-
-[![Example Output](examples/example.png)](examples/example.go)
-
-```go
-package main
-
-import (
-	"os"
-
-	"github.com/op/go-logging"
-)
-
-var log = logging.MustGetLogger("example")
-
-// Example format string. Everything except the message has a custom color
-// which is dependent on the log level. Many fields have a custom output
-// formatting too, eg. the time returns the hour down to the milli second.
-var format = logging.MustStringFormatter(
-	`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
-)
-
-// Password is just an example type implementing the Redactor interface. Any
-// time this is logged, the Redacted() function will be called.
-type Password string
-
-func (p Password) Redacted() interface{} {
-	return logging.Redact(string(p))
-}
-
-func main() {
-	// For demo purposes, create two backend for os.Stderr.
-	backend1 := logging.NewLogBackend(os.Stderr, "", 0)
-	backend2 := logging.NewLogBackend(os.Stderr, "", 0)
-
-	// For messages written to backend2 we want to add some additional
-	// information to the output, including the used log level and the name of
-	// the function.
-	backend2Formatter := logging.NewBackendFormatter(backend2, format)
-
-	// Only errors and more severe messages should be sent to backend1
-	backend1Leveled := logging.AddModuleLevel(backend1)
-	backend1Leveled.SetLevel(logging.ERROR, "")
-
-	// Set the backends to be used.
-	logging.SetBackend(backend1Leveled, backend2Formatter)
-
-	log.Debugf("debug %s", Password("secret"))
-	log.Info("info")
-	log.Notice("notice")
-	log.Warning("warning")
-	log.Error("err")
-	log.Critical("crit")
-}
-```
+Package logging implements a logging infrastructure for Go. It supports
+different logging backends like syslog, file and memory. Multiple backends
+can be utilized with different log levels per backend and logger.
 
 ## Installing
 
@@ -74,16 +14,83 @@ func main() {
 
 After this command *go-logging* is ready to use. Its source will be in:
 
-    $GOPATH/src/pkg/github.com/op/go-logging
+    $GOROOT/src/pkg/github.com/op/go-logging
 
-You can use `go get -u` to update the package.
+You can use `go get -u -a` to update all installed packages.
+
+## Example
+
+You can find a more detailed example at the end.
+
+```go
+package main
+
+import "github.com/op/go-logging"
+
+var log = logging.MustGetLogger("package.example")
+
+func main() {
+	var format = logging.MustStringFormatter("%{level} %{message}")
+	logging.SetFormatter(format)
+	logging.SetLevel(logging.INFO, "package.example")
+
+	log.Debug("hello %s", "golang")
+	log.Info("hello %s", "golang")
+}
+```
 
 ## Documentation
 
 For docs, see http://godoc.org/github.com/op/go-logging or run:
 
-    $ godoc github.com/op/go-logging
+    $ go doc github.com/op/go-logging
 
-## Additional resources
+## Full example
 
-* [wslog](https://godoc.org/github.com/cryptix/go/logging/wslog) -- exposes log messages through a WebSocket.
+```go
+package main
+
+import (
+	stdlog "log"
+	"os"
+
+	"github.com/op/go-logging"
+)
+
+var log = logging.MustGetLogger("test")
+
+type Password string
+
+func (p Password) Redacted() interface{} {
+	return logging.Redact(string(p))
+}
+
+func main() {
+	// Customize the output format
+	logging.SetFormatter(logging.MustStringFormatter("▶ %{level:.1s} 0x%{id:x} %{message}"))
+
+	// Setup one stdout and one syslog backend.
+	logBackend := logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
+	logBackend.Color = true
+
+	syslogBackend, err := logging.NewSyslogBackend("")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Combine them both into one logging backend.
+	logging.SetBackend(logBackend, syslogBackend)
+
+	// Run one with debug setup for "test" and one with error.
+	for _, level := range []logging.Level{logging.DEBUG, logging.ERROR} {
+		logging.SetLevel(level, "test")
+
+		log.Critical("crit")
+		log.Error("err")
+		log.Warning("warning")
+		log.Notice("notice")
+		log.Info("info")
+		log.Debug("debug %s", Password("secret"))
+	}
+}
+```

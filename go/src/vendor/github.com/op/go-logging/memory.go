@@ -2,35 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build !appengine
-
 package logging
 
 import (
 	"sync"
 	"sync/atomic"
-	"time"
 	"unsafe"
 )
 
 // TODO pick one of the memory backends and stick with it or share interface.
-
-// InitForTesting is a convenient method when using logging in a test. Once
-// called, the time will be frozen to January 1, 1970 UTC.
-func InitForTesting(level Level) *MemoryBackend {
-	Reset()
-
-	memoryBackend := NewMemoryBackend(10240)
-
-	leveledBackend := AddModuleLevel(memoryBackend)
-	leveledBackend.SetLevel(level, "")
-	SetBackend(leveledBackend)
-
-	timeNow = func() time.Time {
-		return time.Unix(0, 0).UTC()
-	}
-	return memoryBackend
-}
 
 // Node is a record node pointing to an optional next node.
 type node struct {
@@ -168,7 +148,6 @@ func (b *ChannelMemoryBackend) Start() {
 }
 
 func (b *ChannelMemoryBackend) process() {
-	defer b.stopWg.Done()
 	for {
 		select {
 		case rec := <-b.incoming:
@@ -176,7 +155,7 @@ func (b *ChannelMemoryBackend) process() {
 		case e := <-b.events:
 			switch e {
 			case eventStop:
-				return
+				break
 			case eventFlush:
 				for len(b.incoming) > 0 {
 					b.insertRecord(<-b.incoming)
@@ -185,6 +164,7 @@ func (b *ChannelMemoryBackend) process() {
 			}
 		}
 	}
+	b.stopWg.Done()
 }
 
 func (b *ChannelMemoryBackend) insertRecord(rec *Record) {
@@ -199,7 +179,7 @@ func (b *ChannelMemoryBackend) insertRecord(rec *Record) {
 	if b.maxSize > 0 && b.size >= b.maxSize {
 		b.head = b.head.next
 	} else {
-		b.size++
+		b.size += 1
 	}
 }
 

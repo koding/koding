@@ -254,8 +254,11 @@ type FilterPair struct {
 	//   "FILTER_TRUEVIEW_AD_GROUP_ID"
 	//   "FILTER_TRUEVIEW_AGE"
 	//   "FILTER_TRUEVIEW_CATEGORY"
+	//   "FILTER_TRUEVIEW_CITY"
 	//   "FILTER_TRUEVIEW_CONVERSION_TYPE"
+	//   "FILTER_TRUEVIEW_COUNTRY"
 	//   "FILTER_TRUEVIEW_CUSTOM_AFFINITY"
+	//   "FILTER_TRUEVIEW_DMA"
 	//   "FILTER_TRUEVIEW_GENDER"
 	//   "FILTER_TRUEVIEW_IAR_AGE"
 	//   "FILTER_TRUEVIEW_IAR_CATEGORY"
@@ -273,7 +276,10 @@ type FilterPair struct {
 	//   "FILTER_TRUEVIEW_KEYWORD"
 	//   "FILTER_TRUEVIEW_PARENTAL_STATUS"
 	//   "FILTER_TRUEVIEW_PLACEMENT"
+	//   "FILTER_TRUEVIEW_REGION"
 	//   "FILTER_TRUEVIEW_REMARKETING_LIST"
+	//   "FILTER_TRUEVIEW_URL"
+	//   "FILTER_TRUEVIEW_ZIPCODE"
 	//   "FILTER_UNKNOWN"
 	//   "FILTER_USER_LIST"
 	//   "FILTER_USER_LIST_FIRST_PARTY"
@@ -508,8 +514,11 @@ type Parameters struct {
 	//   "FILTER_TRUEVIEW_AD_GROUP_ID"
 	//   "FILTER_TRUEVIEW_AGE"
 	//   "FILTER_TRUEVIEW_CATEGORY"
+	//   "FILTER_TRUEVIEW_CITY"
 	//   "FILTER_TRUEVIEW_CONVERSION_TYPE"
+	//   "FILTER_TRUEVIEW_COUNTRY"
 	//   "FILTER_TRUEVIEW_CUSTOM_AFFINITY"
+	//   "FILTER_TRUEVIEW_DMA"
 	//   "FILTER_TRUEVIEW_GENDER"
 	//   "FILTER_TRUEVIEW_IAR_AGE"
 	//   "FILTER_TRUEVIEW_IAR_CATEGORY"
@@ -527,7 +536,10 @@ type Parameters struct {
 	//   "FILTER_TRUEVIEW_KEYWORD"
 	//   "FILTER_TRUEVIEW_PARENTAL_STATUS"
 	//   "FILTER_TRUEVIEW_PLACEMENT"
+	//   "FILTER_TRUEVIEW_REGION"
 	//   "FILTER_TRUEVIEW_REMARKETING_LIST"
+	//   "FILTER_TRUEVIEW_URL"
+	//   "FILTER_TRUEVIEW_ZIPCODE"
 	//   "FILTER_UNKNOWN"
 	//   "FILTER_USER_LIST"
 	//   "FILTER_USER_LIST_FIRST_PARTY"
@@ -724,6 +736,7 @@ type Parameters struct {
 	//   "METRIC_PROFIT_VIEWABLE_ECPM_ADVERTISER"
 	//   "METRIC_PROFIT_VIEWABLE_ECPM_PARTNER"
 	//   "METRIC_PROFIT_VIEWABLE_ECPM_USD"
+	//   "METRIC_REACH_COOKIE_REACH"
 	//   "METRIC_REVENUE_ADVERTISER"
 	//   "METRIC_REVENUE_ECPAPC_ADVERTISER"
 	//   "METRIC_REVENUE_ECPAPC_PARTNER"
@@ -785,6 +798,9 @@ type Parameters struct {
 	//   "METRIC_TOTAL_MEDIA_COST_VIEWABLE_ECPM_ADVERTISER"
 	//   "METRIC_TOTAL_MEDIA_COST_VIEWABLE_ECPM_PARTNER"
 	//   "METRIC_TOTAL_MEDIA_COST_VIEWABLE_ECPM_USD"
+	//   "METRIC_TRUEVIEW_AVERAGE_CPE_ADVERTISER"
+	//   "METRIC_TRUEVIEW_AVERAGE_CPE_PARTNER"
+	//   "METRIC_TRUEVIEW_AVERAGE_CPE_USD"
 	//   "METRIC_TRUEVIEW_CONVERSION_COST_MANY_PER_VIEW_ADVERTISER"
 	//   "METRIC_TRUEVIEW_CONVERSION_COST_MANY_PER_VIEW_PARTNER"
 	//   "METRIC_TRUEVIEW_CONVERSION_COST_MANY_PER_VIEW_USD"
@@ -810,6 +826,8 @@ type Parameters struct {
 	//   "METRIC_TRUEVIEW_EARNED_SHARES"
 	//   "METRIC_TRUEVIEW_EARNED_SUBSCRIBERS"
 	//   "METRIC_TRUEVIEW_EARNED_VIEWS"
+	//   "METRIC_TRUEVIEW_ENGAGEMENTS"
+	//   "METRIC_TRUEVIEW_ENGAGEMENT_RATE"
 	//   "METRIC_TRUEVIEW_IMPRESSION_SHARE"
 	//   "METRIC_TRUEVIEW_LOST_IS_BUDGET"
 	//   "METRIC_TRUEVIEW_LOST_IS_RANK"
@@ -1438,10 +1456,7 @@ func (c *LineitemsDownloadlineitemsCall) doRequest(alt string) (*http.Response, 
 	req, _ := http.NewRequest("POST", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "doubleclickbidmanager.lineitems.downloadlineitems" call.
@@ -1543,10 +1558,7 @@ func (c *LineitemsUploadlineitemsCall) doRequest(alt string) (*http.Response, er
 	req, _ := http.NewRequest("POST", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "doubleclickbidmanager.lineitems.uploadlineitems" call.
@@ -1648,10 +1660,7 @@ func (c *QueriesCreatequeryCall) doRequest(alt string) (*http.Response, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "doubleclickbidmanager.queries.createquery" call.
@@ -1751,10 +1760,7 @@ func (c *QueriesDeletequeryCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"queryId": strconv.FormatInt(c.queryId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "doubleclickbidmanager.queries.deletequery" call.
@@ -1848,10 +1854,7 @@ func (c *QueriesGetqueryCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"queryId": strconv.FormatInt(c.queryId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "doubleclickbidmanager.queries.getquery" call.
@@ -1969,10 +1972,7 @@ func (c *QueriesListqueriesCall) doRequest(alt string) (*http.Response, error) {
 	req, _ := http.NewRequest("GET", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "doubleclickbidmanager.queries.listqueries" call.
@@ -2075,10 +2075,7 @@ func (c *QueriesRunqueryCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"queryId": strconv.FormatInt(c.queryId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "doubleclickbidmanager.queries.runquery" call.
@@ -2175,10 +2172,7 @@ func (c *ReportsListreportsCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"queryId": strconv.FormatInt(c.queryId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "doubleclickbidmanager.reports.listreports" call.
@@ -2290,10 +2284,7 @@ func (c *RubiconNotifyproposalchangeCall) doRequest(alt string) (*http.Response,
 	req, _ := http.NewRequest("POST", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "doubleclickbidmanager.rubicon.notifyproposalchange" call.
