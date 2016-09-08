@@ -211,10 +211,9 @@ module.exports = class Terminal extends KDObject
 
     @updateAppSize()
 
-    return  unless @parent
-
     [swidth, sheight] = [@parent.getWidth(), @parent.getHeight()]
 
+    return  if 0 in [swidth, sheight]
     return  if not force and swidth is @currentWidth and sheight is @currentHeight
 
     @scrollToBottom()
