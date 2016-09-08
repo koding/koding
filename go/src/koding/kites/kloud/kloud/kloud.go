@@ -48,9 +48,9 @@ var Name = "kloud"
 
 // Kloud represents a configured kloud kite.
 type Kloud struct {
-	Kite    *kite.Kite
-	Stack   *stack.Kloud
-	Gateway *keygen.Server
+	Kite   *kite.Kite
+	Stack  *stack.Kloud
+	Keygen *keygen.Server
 }
 
 // Config defines the configuration that Kloud needs to operate.
@@ -128,12 +128,12 @@ type Config struct {
 	UserPublicKey  string `required:"true"`
 	UserPrivateKey string `required:"true"`
 
-	// Gateway configuration.
-	GatewayAccessKey string
-	GatewaySecretKey string
-	GatewayBucket    string
-	GatewayRegion    string        `default:"us-east-1"`
-	GatewayTokenTTL  time.Duration `default:"3h"`
+	// Keygen configuration.
+	KeygenAccessKey string
+	KeygenSecretKey string
+	KeygenBucket    string
+	KeygenRegion    string        `default:"us-east-1"`
+	KeygenTokenTTL  time.Duration `default:"3h"`
 
 	// --- KONTROL CONFIGURATION ---
 	Public      bool   // Try to register with a public ip
@@ -298,18 +298,20 @@ func New(conf *Config) (*Kloud, error) {
 	}
 
 	var gwSrv *keygen.Server
-	if conf.GatewayAccessKey != "" && conf.GatewaySecretKey != "" {
+	if conf.KeygenAccessKey != "" && conf.KeygenSecretKey != "" {
 		cfg := &keygen.Config{
-			AccessKey:  conf.GatewayAccessKey,
-			SecretKey:  conf.GatewaySecretKey,
-			Region:     conf.GatewayRegion,
-			Bucket:     conf.GatewayBucket,
-			AuthExpire: conf.GatewayTokenTTL,
+			AccessKey:  conf.KeygenAccessKey,
+			SecretKey:  conf.KeygenSecretKey,
+			Region:     conf.KeygenRegion,
+			Bucket:     conf.KeygenBucket,
+			AuthExpire: conf.KeygenTokenTTL,
 			AuthFunc:   kld.ValidateUser,
 			Kite:       k,
 		}
 
 		gwSrv = keygen.NewServer(cfg)
+	} else {
+		k.Log.Warning(`disabling "keygen" methods due to missing S3/STS credentials`)
 	}
 
 	// Teams/stack handling methods
@@ -385,9 +387,9 @@ func New(conf *Config) (*Kloud, error) {
 	}
 
 	return &Kloud{
-		Kite:    k,
-		Stack:   kld,
-		Gateway: gwSrv,
+		Kite:   k,
+		Stack:  kld,
+		Keygen: gwSrv,
 	}, nil
 }
 

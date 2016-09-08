@@ -125,7 +125,7 @@ func NewServer(cfg *Config) *Server {
 	}
 
 	if s.cfg.Kite != nil {
-		s.cfg.Kite.HandleFunc("gateway.auth", s.Auth)
+		s.cfg.Kite.HandleFunc("keygen.auth", s.Auth)
 	}
 
 	return s
@@ -254,7 +254,7 @@ func (p *Provider) Retrieve() (v credentials.Value, err error) {
 		Type: p.typ(),
 	}
 
-	part, err := client.TellWithTimeout("gateway.auth", p.timeout(), req)
+	part, err := client.TellWithTimeout("keygen.auth", p.timeout(), req)
 	if err != nil {
 		return v, err
 	}
