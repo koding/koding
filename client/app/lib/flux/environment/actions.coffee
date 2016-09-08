@@ -797,9 +797,12 @@ unshareMachineWihAllUsers = (machineId) ->
 
 setLabel = (machineUId, label) ->
 
+  {computeController} = kd.singletons
+
   new Promise (resolve, reject) ->
     fetchMachineByUId machineUId, (machine) ->
       machine.setLabel label, (err, newLabel) ->
+        computeController.triggerReviveFor machine._id
         return reject err  if err
         resolve newLabel
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
@@ -15,7 +15,7 @@ import (
 
 // Plan
 func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
-	var arg kloud.PlanRequest
+	var arg stack.PlanRequest
 	if err := s.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 
 	s.Log.Debug("Machines planned to be created: %+v", machines)
 
-	return &kloud.PlanResponse{
+	return &stack.PlanResponse{
 		Machines: machines.Slice(),
 	}, nil
 }

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 
 	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
@@ -53,8 +53,8 @@ func (e *Event) Action(args []string) error {
 
 // watch watches the events of the specified event type.
 func watch(k *kite.Client, eventType string, eventId string, interval time.Duration) error {
-	eventArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
+	eventArgs := stack.EventArgs([]stack.EventArg{
+		stack.EventArg{
 			Type:    eventType,
 			EventId: eventId,
 		},
@@ -66,7 +66,7 @@ func watch(k *kite.Client, eventType string, eventId string, interval time.Durat
 			return err
 		}
 
-		var events []kloud.EventResponse
+		var events []stack.EventResponse
 		if err := resp.Unmarshal(&events); err != nil {
 			return err
 		}
