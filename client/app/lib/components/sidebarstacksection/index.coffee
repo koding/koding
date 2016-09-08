@@ -113,7 +113,8 @@ module.exports = class SidebarStackSection extends React.Component
     if managedVM
       menuItems['VMs'] = { callback }
     else
-      menuItems['Edit'] = { callback }  if isAdmin()
+      if isAdmin() or @props.stack.get('accessLevel') is 'private'
+        menuItems['Edit'] = { callback }
       ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
         menuItems[name] = { callback }
 
