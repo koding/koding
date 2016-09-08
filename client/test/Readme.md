@@ -10,7 +10,7 @@ Follow steps in  https://github.com/koding/koding in order to setup koding envir
 Firefox version must be less than version 40
 
 # test architecture
- All files related with testing is under the Koding/client/test directory.
+ All files related with testing is under the ```Koding/client/test``` directory.
  Take a look at these 2 folders and 1 file that are important in order to write test cases.
 
 **lib:** All test file and helper files are written under this folder.  All modules has separated folder and their helper files under the helper folder. 
