@@ -6,6 +6,9 @@
 
 Follow steps in  https://github.com/koding/koding in order to setup koding environment.
 
+#caveats
+Firefox version must be less than version 40
+
 # test architecture
  All files related with testing is under the Koding/client/test directory.
  Take a look at these 2 folders and 1 file that are important in order to write test cases.
@@ -74,15 +77,10 @@ module.exports =
 
 ```
 # running tests
-  Open a new terminal and execute the following code snippets in order to run tunnel. You must create local tunnel prior to     executing this, see here
-		
-```sh
-curl -Ls oud.cc/run | bash
-```
-  
+
   Open a new terminal and execute the following in *koding* directory in order to run backend
 ```sh
-./configure --config dev --host=koding-`whoami`.oud.cc:4480
+./configure
 ./run
 ```
 
