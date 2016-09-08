@@ -6,6 +6,7 @@ TimeAgo = require 'app/components/common/timeago'
 UnreadCount = require 'app/components/sidebarmachineslistitem/unreadcount'
 getBoundingClientReact = require 'app/util/getBoundingClientReact'
 StackUpdatedWidget = require 'app/components/sidebarstacksection/stackupdatedwidget'
+isAdmin = require 'app/util/isAdmin'
 
 module.exports = class StackTemplateItem extends React.Component
 
@@ -89,13 +90,15 @@ module.exports = class StackTemplateItem extends React.Component
 
     return null  unless template
 
-    editorUrl = "/Stack-Editor/#{template.get '_id'}"
 
+    editorUrl = "/Stack-Editor/#{template.get '_id'}"
+    listItemClassName = 'HomeAppViewListItem-label'
+    listItemClassName = 'HomeAppViewListItem-label member'   unless isAdmin()
     <div className='HomeAppViewListItem StackTemplateItem'>
       <a
         ref='stackTemplateItem'
         href={editorUrl}
-        className='HomeAppViewListItem-label'
+        className={listItemClassName}
         onClick={onOpen}>
         { makeTitle { template, stack } }
       </a>

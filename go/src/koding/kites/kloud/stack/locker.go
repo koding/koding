@@ -1,4 +1,4 @@
-package kloud
+package stack
 
 var ErrLockAcquired = NewError(ErrMachineIsLocked)
 

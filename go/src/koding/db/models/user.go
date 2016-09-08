@@ -6,6 +6,16 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type UserStatus string
+
+const (
+	UserActive      = UserStatus("active")
+	UserBlocked     = UserStatus("blocked")
+	UserConfirmed   = UserStatus("confirmed")
+	UserDeleted     = UserStatus("deleted")
+	UserUnconfirmed = UserStatus("unconfirmed")
+)
+
 type User struct {
 	ObjectId       bson.ObjectId `bson:"_id" json:"_id"`
 	Uid            int           `bson:"uid" json:"uid"`
@@ -18,11 +28,11 @@ type User struct {
 	// TODO left this for consistency, but should be converted into Username
 	Name string `bson:"username" json:"username"`
 
-	OldName  string `bson:"oldUsername" json:"oldUserName"`
-	Password string `bson:"password" json:"password"`
-	Status   string `bson:"status" json:"status"`
-	Salt     string `bson:"salt" json:"salt"`
-	Shell    string `bson:"shell" json:"shell"`
+	OldName  string     `bson:"oldUsername" json:"oldUserName"`
+	Password string     `bson:"password" json:"password"`
+	Status   UserStatus `bson:"status" json:"status"`
+	Salt     string     `bson:"salt" json:"salt"`
+	Shell    string     `bson:"shell" json:"shell"`
 	SshKeys  []struct {
 		Title string `bson:"title"`
 		Key   string `bson:"key"`

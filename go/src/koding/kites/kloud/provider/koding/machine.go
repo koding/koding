@@ -7,9 +7,9 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
+	"koding/kites/kloud/stack"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -53,7 +53,7 @@ type Machine struct {
 	Checker  plans.Checker          `bson:"-"`
 	Session  *session.Session       `bson:"-"`
 	Log      logging.Logger         `bson:"-"`
-	Locker   kloud.Locker           `bson:"-"`
+	Locker   stack.Locker           `bson:"-"`
 
 	// cleanFuncs are a list of functions that are called when after a method
 	// is finished
@@ -239,7 +239,7 @@ func (m *Machine) isKlientReady() bool {
 // Lock performs a Lock on this Machine
 func (m *Machine) Lock() error {
 	if !m.ObjectId.Valid() {
-		return kloud.NewError(kloud.ErrMachineIdMissing)
+		return stack.NewError(stack.ErrMachineIdMissing)
 	}
 
 	if m.Locker == nil {
@@ -252,7 +252,7 @@ func (m *Machine) Lock() error {
 // Unlock performs an Unlock on this Machine instance
 func (m *Machine) Unlock() error {
 	if !m.ObjectId.Valid() {
-		return kloud.NewError(kloud.ErrMachineIdMissing)
+		return stack.NewError(stack.ErrMachineIdMissing)
 	}
 
 	if m.Locker == nil {

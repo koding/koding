@@ -12,12 +12,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-var (
-	UserColl              = "jUsers"
-	UserStatusConfirmed   = "confirmed"
-	UserStatusUnConfirmed = "unconfirmed"
-	UserStatusBlocked     = "blocked"
-)
+const UserColl = "jUsers"
 
 // CheckAndGetUser validates the user with the given password. If not
 // successfull it returns nil
@@ -146,7 +141,7 @@ func FetchUserByEmail(email string) (*models.User, error) {
 func BlockUser(username, reason string, duration time.Duration) error {
 	selector := bson.M{"username": username}
 	updateQuery := bson.M{"$set": bson.M{
-		"status":        UserStatusBlocked,
+		"status":        models.UserBlocked,
 		"blockedReason": reason, "blockedUntil": time.Now().UTC().Add(duration),
 	}}
 
@@ -156,6 +151,26 @@ func BlockUser(username, reason string, duration time.Duration) error {
 	}
 
 	return Mongo.Run(UserColl, query)
+}
+
+func UserStatus(username string) (models.UserStatus, error) {
+	var status struct {
+		Status string `bson:"status"`
+	}
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"username": username}).One(&status)
+	}
+
+	if err := Mongo.Run(UserColl, query); err != nil {
+		return "", err
+	}
+
+	if status.Status == "" {
+		return "", mgo.ErrNotFound
+	}
+
+	return models.UserStatus(status.Status), nil
 }
 
 func RemoveUser(username string) error {

@@ -11,7 +11,7 @@ import (
 
 	"gopkg.in/mgo.v2/bson"
 
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/utils"
 	"koding/kites/kloud/utils/res"
 
@@ -239,7 +239,7 @@ func (cmd *TeamPlan) Run(ctx context.Context) error {
 	k := kiteFromContext(ctx)
 
 	req := impersonate(cmd.Username,
-		&kloud.PlanRequest{
+		&stack.PlanRequest{
 			Provider:        cmd.Provider,
 			GroupName:       cmd.Team,
 			StackTemplateID: cmd.StackTemplateID,
@@ -304,7 +304,7 @@ func (cmd *TeamApply) Run(ctx context.Context) error {
 	k := kiteFromContext(ctx)
 
 	req := impersonate(cmd.Username,
-		&kloud.ApplyRequest{
+		&stack.ApplyRequest{
 			Provider:  cmd.Provider,
 			StackID:   cmd.StackID,
 			GroupName: cmd.Team,
@@ -317,7 +317,7 @@ func (cmd *TeamApply) Run(ctx context.Context) error {
 		return err
 	}
 
-	var result kloud.ControlResult
+	var result stack.ControlResult
 	err = resp.Unmarshal(&result)
 	if err != nil {
 		return err
@@ -380,7 +380,7 @@ func (cmd *TeamAuth) Run(ctx context.Context) error {
 	k := kiteFromContext(ctx)
 
 	req := impersonate(cmd.Username,
-		&kloud.AuthenticateRequest{
+		&stack.AuthenticateRequest{
 			Provider:    cmd.Provider,
 			GroupName:   cmd.Team,
 			Identifiers: strings.Split(cmd.Creds, ","),
@@ -445,7 +445,7 @@ func (cmd *TeamBootstrap) Run(ctx context.Context) error {
 	k := kiteFromContext(ctx)
 
 	req := impersonate(cmd.Username,
-		&kloud.BootstrapRequest{
+		&stack.BootstrapRequest{
 			Provider:    cmd.Provider,
 			GroupName:   cmd.Team,
 			Identifiers: strings.Split(cmd.Creds, ","),

@@ -1,4 +1,3 @@
-kd     = require 'kd'
 React  = require 'kd-react'
 Toggle = require 'app/components/common/toggle'
 
