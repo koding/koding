@@ -15,7 +15,7 @@ For example if you want to add new test file about dashboard, you have to create
 	
 **bin:** It includes all tests file in javascript format. When we add coffee file, it is automatically converted to javascript format. We do not add or change anything under this folder. 
 
-**users.json:** It includes default created user information in json format. We use these informations  during test. When you want to create new users, you just delete all contents of the file then run test. When test is started to run, it will be recreated automatically.
+**users.json:** It includes default created user information in json format. These informations are used during test. When you want to create new users, you just delete all contents of the file then run test. When test is started to run, it will be recreated automatically.
 
 # nightwatch.js 
 You can find all commands and selenium  protocol with examples  in [Nightwatch.js](http://nightwatchjs.org) website
@@ -62,7 +62,7 @@ module.exports =
       .waitForElementVisible notification, 20000
       .assert.containsText notification, "We couldn't find your team"
 ```
-  Add following codes in login.coffee. We call logintoTeam function in this file. 
+  Add following lines in login.coffee. 
 ```sh
   loginhelpers = require '../helpers/loginhelpers.js'
 
@@ -74,7 +74,7 @@ module.exports =
 
 ```
 # running tests
-  Open new terminal and type following code snippets in order to run tunnel. You must create local tunnel prior to     executing this, see here
+  Open a new terminal and execute the following code snippets in order to run tunnel. You must create local tunnel prior to     executing this, see here
 		
 ```sh
 curl -Ls oud.cc/run | bash
@@ -101,7 +101,7 @@ make
 	git push koding TestLogin
 
 #standardization
-Tests must be written in coffeescript and in [coffeescript-styleguide](https://github.com/koding/styleguide-coffeescript) that we are relying on.
+* Tests must be written in coffeescript and in [coffeescript-styleguide](https://github.com/koding/styleguide-coffeescript) that we are relying on.
 
 * All functions must be in related helper file. 
 
