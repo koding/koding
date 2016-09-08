@@ -93,7 +93,8 @@ module.exports = class StackTemplateItem extends React.Component
 
     editorUrl = "/Stack-Editor/#{template.get '_id'}"
     listItemClassName = 'HomeAppViewListItem-label'
-    listItemClassName = 'HomeAppViewListItem-label member'   unless isAdmin()
+    unless isAdmin() or stack.get('accessLevel') is 'private'
+      listItemClassName = 'HomeAppViewListItem-label member'
     <div className='HomeAppViewListItem StackTemplateItem'>
       <a
         ref='stackTemplateItem'
