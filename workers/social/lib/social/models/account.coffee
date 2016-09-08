@@ -147,10 +147,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
           (signature Object, Function)
         ]
-        fetchPlansAndSubscriptions: [
-          (signature Function)
-          (signature Object, Function)
-        ]
         fetchEmailAndStatus:
           (signature Function)
         fetchEmailFrequency:
@@ -1270,21 +1266,6 @@ module.exports = class JAccount extends jraphical.Module
 
     @fetchSubscriptions {}, queryOptions, callback
 
-  fetchPlansAndSubscriptions: secure (client, options, callback) ->
-    JPaymentPlan = require './payment/plan'
-
-    [options, callback] = [callback, options] unless callback
-    options ?= {}
-
-    @fetchSubscriptions$ client, options, (err, subscriptions) ->
-      return callback err  if err
-
-      planCodes = (s.planCode for s in subscriptions)
-
-      JPaymentPlan.all { planCode: { $in: planCodes } }, (err, plans) ->
-        return callback err  if err
-
-        callback null, { subscriptions, plans }
 
   fetchEmailAndStatus: secure (client, callback) ->
     @fetchFromUser client, ['email', 'status'], callback

@@ -181,40 +181,6 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
-  describe '::fetchPlans', ->
-
-    it 'should fail if user doesnt have permission', (done) ->
-
-      expectAccessDenied ComputeProvider, 'fetchPlans', done
-
-
-    it 'should be able to fetch plans', (done) ->
-
-      withConvertedUserAndCredential ({ client, credential }) ->
-        ComputeProvider.fetchPlans client, (err, usage) ->
-          expect(err).to.not.exist
-          expect(usage).to.be.an 'object'
-          done()
-
-
-  describe '::fetchTeamLimits', ->
-
-    it 'should fail if user doesnt have a valid session', (done) ->
-
-      expectAccessDenied ComputeProvider, 'fetchTeamLimits', done
-
-
-    it 'should be able to fetch team limits for koding admins', (done) ->
-
-      withConvertedUser { role: 'admin' }, ({ client }) ->
-
-        ComputeProvider.fetchTeamLimits client, (err, limits) ->
-          expect(err).to.not.exist
-          expect(limits).to.be.an 'object'
-          expect(limits).to.be.deep.equal teamutils.TEAMLIMITS
-          done()
-
-
   describe '::updateGroupStackUsage', ->
 
     testGroup = null

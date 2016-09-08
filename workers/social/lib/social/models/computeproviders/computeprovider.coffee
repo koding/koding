@@ -60,10 +60,6 @@ module.exports = class ComputeProvider extends Base
           (signature Object, Function)
         fetchUsage        :
           (signature Object, Function)
-        fetchPlans        :
-          (signature Function)
-        fetchTeamLimits    :
-          (signature Function)
         fetchProviders    :
           (signature Function)
         createGroupStack  :
@@ -187,18 +183,6 @@ module.exports = class ComputeProvider extends Base
 
     { slug } = options.provider
     fetchUsage client, { provider: slug }, callback
-
-
-  @fetchPlans = permit 'create machines',
-    success: (client, callback) ->
-      callback null, PLANS
-
-
-  @fetchTeamLimits = permit 'create machines',
-    success: (client, callback) ->
-      callback null, if KONFIG.environment is 'default'
-      then { unlimited: teamutils.TEAMLIMITS.unlimited }
-      else teamutils.TEAMLIMITS
 
 
   @update = secure revive

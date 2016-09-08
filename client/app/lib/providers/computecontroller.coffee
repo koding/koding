@@ -64,11 +64,6 @@ module.exports = class ComputeController extends KDController
         @stateChecker.machines = @machines
         @stateChecker.start()
 
-        kd.singletons
-          .paymentController.on ['UserPlanUpdated', 'PaypalRequestFinished'], =>
-            @lastKnownUserPlan = null
-            @fetchUserPlan()
-
         @createDefaultStack()
 
         @storage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
@@ -342,68 +337,7 @@ module.exports = class ComputeController extends KDController
     remote.api.ComputeProvider.fetchUsage options, callback
 
 
-  fetchUserPlan: (callback = kd.noop) ->
-
-    if @lastKnownUserPlan?
-      return callback @lastKnownUserPlan
-
-    kd.singletons.paymentController.subscriptions (err, subscription) =>
-
-      kd.warn 'Failed to fetch subscription:', err  if err?
-
-      if err? or not subscription?
-      then callback 'free'
-      else callback @lastKnownUserPlan = subscription.planTitle
-
-
-  fetchPlans: (callback = kd.noop) ->
-
-    if @plans
-      kd.utils.defer => callback @plans
-    else
-      remote.api.ComputeProvider.fetchPlans (err, plans) =>
-        # If there is an error at least return a simple plan
-        # which includes only 'free' plan
-        if err? or not plans?
-          kd.warn err
-          callback { free: { total: 1, alwaysOn: 0, storage: 3 } }
-        else
-          @plans = plans
-          callback plans
-
-
-  fetchTeamLimits: (callback = kd.noop) ->
-
-    if @teamlimits
-      kd.utils.defer => callback @teamlimits
-    else
-      remote.api.ComputeProvider.fetchTeamLimits (err, limits) =>
-        # If there is an error at least return a simple plan
-        # which includes only 'default' plan
-        if err? or not limits?
-          kd.warn err
-          callback
-            default              :
-              member             : 1  # max number, can be overwritten in group data
-                                      # by a super-admin (an admin in Koding group)
-              validFor           : 0  # no expire date
-              instancePerMember  : 1  # allows one instance per member
-              allowedInstances   : [ 't2.nano', 't2.micro' ]
-              maxInstance        : 1  # maximum instance count for this group (total)
-              storagePerInstance : 5  # means 5GB storage for this plan in total (max).
-                                      # 1 member x 1 instancePerMember = 1 instance
-                                      # 5GB per instance x 1 instances = 5GB in total
-              restrictions       :
-                supports         : [ 'provider', 'resource' ]
-                provider         : [ 'aws' ]
-                resource         : [ 'aws_instance' ]
-                custom           :
-                  ami            : no
-                  tags           : no
-                  user_data      : yes
-        else
-          @teamlimits = limits
-          callback limits
+  fetchUserPlan: (callback = kd.noop) -> callback 'free'
 
 
   fetchRewards: (options, callback) ->
@@ -423,21 +357,6 @@ module.exports = class ComputeController extends KDController
       amount = Math.floor amount / 1000  if unit is 'GB'
 
       callback null, amount
-
-
-  fetchPlanCombo: (provider, callback) ->
-
-    [callback, provider] = [provider, callback]  unless callback?
-    provider ?= 'koding'
-
-    @fetchUserPlan (plan) => @fetchPlans (plans) =>
-      @fetchUsage { provider }, (err, usage) =>
-        @fetchRewards { unit: 'GB' }, (err, reward) ->
-          # If there is an invalid plan set for user
-          # or plans failed to fetch, then fallback to 'free' plan
-          plan = 'free'  unless plans[plan]?
-
-          callback err, { plan, plans, usage, reward }
 
 
   # create helpers on top of remote.ComputeProvider
