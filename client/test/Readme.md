@@ -33,13 +33,13 @@ git pull --rebase koding master
 git checkout -b 'TestLogin'
 ```
 
-  Create new folder named login under *koding/client/test/lib/* directory. 
+  Create new folder named login under ```koding/client/test/lib/``` directory.
 
-  Create  login.coffee file under the *login* folder.
+  Create  ```login.coffee``` file under the ```login``` folder.
 
-  Create loginhelpers.coffee file under the *koding/client/test/lib/helpers/* folder.
+  Create ```loginhelpers.coffee``` file under the ```koding/client/test/lib/helpers/``` folder.
   
-  Add following lines in loginhelpers.coffee.  (Indentation must be 2 spaces)
+  Add following lines in ```loginhelpers.coffee```.  (Indentation must be 2 spaces)
 ```sh
 utils = require '../utils/utils.js'
 teamsLogin = '.TeamsModal'
@@ -65,7 +65,7 @@ module.exports =
       .waitForElementVisible notification, 20000
       .assert.containsText notification, "We couldn't find your team"
 ```
-  Add following lines in login.coffee. 
+  Add following lines in ```login.coffee```. 
 ```sh
   loginhelpers = require '../helpers/loginhelpers.js'
 
@@ -78,13 +78,13 @@ module.exports =
 ```
 # running tests
 
-  Open a new terminal and execute the following in *koding* directory in order to run backend
+  Open a new terminal and execute the following in ```koding``` directory in order to run backend
 ```sh
 ./configure
 ./run
 ```
 
-  Open a new terminal and execute following code snippet in *koding/client* directory to build and run frontend
+  Open a new terminal and execute following code snippet in ```koding/client``` directory to build and run frontend
 ```sh
 make  
 ```
