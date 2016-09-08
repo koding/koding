@@ -7,11 +7,11 @@ MINOR=`echo $VERSION | cut -d. -f2`
 
 if [[ $MAJOR -lt 1 ]]; then
   MISMATCH=1
-elif [[ $MAJOR -eq 1 && $MINOR -lt 4 ]]; then
+elif [[ $MAJOR -eq 1 && $MINOR -lt 7 ]]; then
   MISMATCH=1
 fi
 
 if [[ -n $MISMATCH ]]; then
-  echo "error: go version must be 1.4.x\n"
+  echo "error: go version must be 1.7.x\n"
   exit 1
 fi
