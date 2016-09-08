@@ -204,6 +204,11 @@ type ExecutionResponse struct {
 	// as a `string`, `number`, `array`, `object`, or `boolean`.
 	Result interface{} `json:"result,omitempty"`
 
+	// Possible values:
+	//   "SUCCESS"
+	//   "CANCELED"
+	Status string `json:"status,omitempty"`
+
 	// ForceSendFields is a list of field names (e.g. "Result") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
@@ -400,10 +405,7 @@ func (c *ScriptsRunCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"scriptId": c.scriptId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "script.scripts.run" call.

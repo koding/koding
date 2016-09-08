@@ -68,6 +68,62 @@ func importGroup(importPath string) int {
 	return 0
 }
 
+// packageInfo is a summary of features found in a package.
+type packageInfo struct {
+	Globals map[string]bool // symbol => true
+}
+
+// dirPackageInfo gets information from other files in the package.
+func dirPackageInfo(srcDir, filename string) (*packageInfo, error) {
+	considerTests := strings.HasSuffix(filename, "_test.go")
+
+	// Handle file from stdin
+	if _, err := os.Stat(filename); err != nil {
+		if os.IsNotExist(err) {
+			return &packageInfo{}, nil
+		}
+		return nil, err
+	}
+
+	fileBase := filepath.Base(filename)
+	packageFileInfos, err := ioutil.ReadDir(srcDir)
+	if err != nil {
+		return nil, err
+	}
+
+	info := &packageInfo{Globals: make(map[string]bool)}
+	for _, fi := range packageFileInfos {
+		if fi.Name() == fileBase || !strings.HasSuffix(fi.Name(), ".go") {
+			continue
+		}
+		if !considerTests && strings.HasSuffix(fi.Name(), "_test.go") {
+			continue
+		}
+
+		fileSet := token.NewFileSet()
+		root, err := parser.ParseFile(fileSet, filepath.Join(srcDir, fi.Name()), nil, 0)
+		if err != nil {
+			continue
+		}
+
+		for _, decl := range root.Decls {
+			genDecl, ok := decl.(*ast.GenDecl)
+			if !ok {
+				continue
+			}
+
+			for _, spec := range genDecl.Specs {
+				valueSpec, ok := spec.(*ast.ValueSpec)
+				if !ok {
+					continue
+				}
+				info.Globals[valueSpec.Names[0].Name] = true
+			}
+		}
+	}
+	return info, nil
+}
+
 func fixImports(fset *token.FileSet, f *ast.File, filename string) (added []string, err error) {
 	// refs are a set of possible package references currently unsatisfied by imports.
 	// first key: either base package (e.g. "fmt") or renamed package
@@ -85,6 +141,9 @@ func fixImports(fset *token.FileSet, f *ast.File, filename string) (added []stri
 	if Debug {
 		log.Printf("fixImports(filename=%q), abs=%q, srcDir=%q ...", filename, abs, srcDir)
 	}
+
+	var packageInfo *packageInfo
+	var loadedPackageInfo bool
 
 	// collect potential uses of packages.
 	var visitor visitFn
@@ -117,7 +176,11 @@ func fixImports(fset *token.FileSet, f *ast.File, filename string) (added []stri
 			if refs[pkgName] == nil {
 				refs[pkgName] = make(map[string]bool)
 			}
-			if decls[pkgName] == nil {
+			if !loadedPackageInfo {
+				loadedPackageInfo = true
+				packageInfo, _ = dirPackageInfo(srcDir, filename)
+			}
+			if decls[pkgName] == nil && (packageInfo == nil || !packageInfo.Globals[pkgName]) {
 				refs[pkgName][v.Sel.Name] = true
 			}
 		}
@@ -661,7 +724,7 @@ func findImportGoPath(pkgName string, symbols map[string]bool, filename string) 
 	// TODO(bradfitz): run each $GOPATH entry async. But nobody
 	// really has more than one anyway, so low priority.
 	scanGoRootOnce.Do(scanGoRoot) // async
-	if !strings.HasPrefix(filename, build.Default.GOROOT) {
+	if !fileInDir(filename, build.Default.GOROOT) {
 		scanGoPathOnce.Do(scanGoPath) // blocking
 	}
 	<-scanGoRootDone
@@ -897,4 +960,16 @@ func findImportStdlib(shortPkg string, symbols map[string]bool) (importPath stri
 		return "crypto/rand", false, true
 	}
 	return importPath, false, importPath != ""
+}
+
+// fileInDir reports whether the provided file path looks like
+// it's in dir. (without hitting the filesystem)
+func fileInDir(file, dir string) bool {
+	rest := strings.TrimPrefix(file, dir)
+	if len(rest) == len(file) {
+		// dir is not a prefix of file.
+		return false
+	}
+	// Check for boundary: either nothing (file == dir), or a slash.
+	return len(rest) == 0 || rest[0] == '/' || rest[0] == '\\'
 }

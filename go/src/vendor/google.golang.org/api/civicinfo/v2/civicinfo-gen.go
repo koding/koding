@@ -149,6 +149,8 @@ type AdministrativeBody struct {
 	// information on absentee voting.
 	AbsenteeVotingInfoUrl string `json:"absenteeVotingInfoUrl,omitempty"`
 
+	AddressLines []string `json:"addressLines,omitempty"`
+
 	// BallotInfoUrl: A URL provided by this administrative body to give
 	// contest information to the voter.
 	BallotInfoUrl string `json:"ballotInfoUrl,omitempty"`
@@ -1037,10 +1039,7 @@ func (c *DivisionsSearchCall) doRequest(alt string) (*http.Response, error) {
 	req, _ := http.NewRequest("GET", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "civicinfo.divisions.search" call.
@@ -1153,10 +1152,7 @@ func (c *ElectionsElectionQueryCall) doRequest(alt string) (*http.Response, erro
 	req, _ := http.NewRequest("GET", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "civicinfo.elections.electionQuery" call.
@@ -1279,10 +1275,7 @@ func (c *ElectionsVoterInfoQueryCall) doRequest(alt string) (*http.Response, err
 	req, _ := http.NewRequest("GET", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "civicinfo.elections.voterInfoQuery" call.
@@ -1470,10 +1463,7 @@ func (c *RepresentativesRepresentativeInfoByAddressCall) doRequest(alt string) (
 	req, _ := http.NewRequest("GET", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "civicinfo.representatives.representativeInfoByAddress" call.
@@ -1709,10 +1699,7 @@ func (c *RepresentativesRepresentativeInfoByDivisionCall) doRequest(alt string) 
 	googleapi.Expand(req.URL, map[string]string{
 		"ocdId": c.ocdId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "civicinfo.representatives.representativeInfoByDivision" call.

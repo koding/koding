@@ -58,22 +58,22 @@ func TestMemoryBackend(t *testing.T) {
 		t.Errorf("record length: %d", backend.size)
 	}
 	record := MemoryRecordN(backend, 0)
-	if "5" != record.Formatted(0) {
-		t.Errorf("unexpected start: %s", record.Formatted(0))
+	if "5" != record.Formatted() {
+		t.Errorf("unexpected start: %s", record.Formatted())
 	}
 	for i := 0; i < 8; i++ {
 		record = MemoryRecordN(backend, i)
-		if strconv.Itoa(i+5) != record.Formatted(0) {
-			t.Errorf("unexpected record: %v", record.Formatted(0))
+		if strconv.Itoa(i+5) != record.Formatted() {
+			t.Errorf("unexpected record: %v", record.Formatted())
 		}
 	}
 	record = MemoryRecordN(backend, 7)
-	if "12" != record.Formatted(0) {
-		t.Errorf("unexpected end: %s", record.Formatted(0))
+	if "12" != record.Formatted() {
+		t.Errorf("unexpected end: %s", record.Formatted())
 	}
 	record = MemoryRecordN(backend, 8)
 	if nil != record {
-		t.Errorf("unexpected eof: %s", record.Formatted(0))
+		t.Errorf("unexpected eof: %s", record.Formatted())
 	}
 }
 
@@ -97,21 +97,21 @@ func TestChannelMemoryBackend(t *testing.T) {
 		t.Errorf("record length: %d", backend.size)
 	}
 	record := ChannelMemoryRecordN(backend, 0)
-	if "5" != record.Formatted(0) {
-		t.Errorf("unexpected start: %s", record.Formatted(0))
+	if "5" != record.Formatted() {
+		t.Errorf("unexpected start: %s", record.Formatted())
 	}
 	for i := 0; i < 8; i++ {
 		record = ChannelMemoryRecordN(backend, i)
-		if strconv.Itoa(i+5) != record.Formatted(0) {
-			t.Errorf("unexpected record: %v", record.Formatted(0))
+		if strconv.Itoa(i+5) != record.Formatted() {
+			t.Errorf("unexpected record: %v", record.Formatted())
 		}
 	}
 	record = ChannelMemoryRecordN(backend, 7)
-	if "12" != record.Formatted(0) {
-		t.Errorf("unexpected end: %s", record.Formatted(0))
+	if "12" != record.Formatted() {
+		t.Errorf("unexpected end: %s", record.Formatted())
 	}
 	record = ChannelMemoryRecordN(backend, 8)
 	if nil != record {
-		t.Errorf("unexpected eof: %s", record.Formatted(0))
+		t.Errorf("unexpected eof: %s", record.Formatted())
 	}
 }

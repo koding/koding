@@ -5,24 +5,24 @@
 package docker
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"reflect"
-	"runtime"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/fsouza/go-dockerclient/external/github.com/hashicorp/go-cleanhttp"
+	"github.com/hashicorp/go-cleanhttp"
 )
 
 func TestStateString(t *testing.T) {
@@ -816,6 +816,33 @@ func TestStartContainer(t *testing.T) {
 	}
 }
 
+func TestStartContainerHostConfigAPI124(t *testing.T) {
+	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
+	client := newTestClient(fakeRT)
+	client.serverAPIVersion = apiVersion124
+	id := "4fa6e0f0c6786287e131c3852c58a2e01cc697a68231826813597e4994f1d6e2"
+	err := client.StartContainer(id, &HostConfig{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	req := fakeRT.requests[0]
+	if req.Method != "POST" {
+		t.Errorf("StartContainer(%q): wrong HTTP method. Want %q. Got %q.", id, "POST", req.Method)
+	}
+	expectedURL, _ := url.Parse(client.getURL("/containers/" + id + "/start"))
+	if gotPath := req.URL.Path; gotPath != expectedURL.Path {
+		t.Errorf("StartContainer(%q): Wrong path in request. Want %q. Got %q.", id, expectedURL.Path, gotPath)
+	}
+	notAcceptedContentType := "application/json"
+	if contentType := req.Header.Get("Content-Type"); contentType == notAcceptedContentType {
+		t.Errorf("StartContainer(%q): Unepected %q Content-Type in request.", id, contentType)
+	}
+	if req.Body != nil {
+		data, _ := ioutil.ReadAll(req.Body)
+		t.Errorf("StartContainer(%q): Unexpected data sent: %s", id, data)
+	}
+}
+
 func TestStartContainerNilHostConfig(t *testing.T) {
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
@@ -1310,12 +1337,14 @@ func TestAttachToContainerSentinel(t *testing.T) {
 		RawTerminal:  true,
 		Success:      success,
 	}
+	errCh := make(chan error)
 	go func() {
-		if err := client.AttachToContainer(opts); err != nil {
-			t.Error(err)
-		}
+		errCh <- client.AttachToContainer(opts)
 	}()
 	success <- <-success
+	if err := <-errCh; err != nil {
+		t.Error(err)
+	}
 }
 
 func TestAttachToContainerNilStdout(t *testing.T) {
@@ -1689,9 +1718,6 @@ func TestExportContainer(t *testing.T) {
 }
 
 func TestExportContainerViaUnixSocket(t *testing.T) {
-	if runtime.GOOS != "darwin" {
-		t.Skip(fmt.Sprintf("skipping test on %s", runtime.GOOS))
-	}
 	content := "exported container tar content"
 	var buf []byte
 	out := bytes.NewBuffer(buf)
@@ -1708,9 +1734,10 @@ func TestExportContainerViaUnixSocket(t *testing.T) {
 	}
 	listening := make(chan string)
 	done := make(chan int)
-	go runStreamConnServer(t, "unix", tempSocket, listening, done)
+	containerID := "4fa6e0f0c678"
+	go runStreamConnServer(t, "unix", tempSocket, listening, done, containerID)
 	<-listening // wait for server to start
-	opts := ExportContainerOptions{ID: "4fa6e0f0c678", OutputStream: out}
+	opts := ExportContainerOptions{ID: containerID, OutputStream: out}
 	err := client.ExportContainer(opts)
 	<-done // make sure server stopped
 	if err != nil {
@@ -1721,7 +1748,7 @@ func TestExportContainerViaUnixSocket(t *testing.T) {
 	}
 }
 
-func runStreamConnServer(t *testing.T, network, laddr string, listening chan<- string, done chan<- int) {
+func runStreamConnServer(t *testing.T, network, laddr string, listening chan<- string, done chan<- int, containerID string) {
 	defer close(done)
 	l, err := net.Listen(network, laddr)
 	if err != nil {
@@ -1736,8 +1763,14 @@ func runStreamConnServer(t *testing.T, network, laddr string, listening chan<- s
 		t.Logf("Accept failed: %v", err)
 		return
 	}
+	defer c.Close()
+	breader := bufio.NewReader(c)
+	req, err := http.ReadRequest(breader)
+	if path := "/containers/" + containerID + "/export"; req.URL.Path != path {
+		t.Errorf("wrong path. Want %q. Got %q", path, req.URL.Path)
+		return
+	}
 	c.Write([]byte("HTTP/1.1 200 OK\n\nexported container tar content"))
-	c.Close()
 }
 
 func tempfile(filename string) string {
@@ -1865,6 +1898,16 @@ func TestRestartOnFailure(t *testing.T) {
 	}
 }
 
+func TestRestartUnlessStopped(t *testing.T) {
+	policy := RestartUnlessStopped()
+	if policy.Name != "unless-stopped" {
+		t.Errorf("RestartUnlessStopped(): wrong policy name. Want %q. Got %q", "unless-stopped", policy.Name)
+	}
+	if policy.MaximumRetryCount != 0 {
+		t.Errorf("RestartUnlessStopped(): wrong MaximumRetryCount. Want 0. Got %d", policy.MaximumRetryCount)
+	}
+}
+
 func TestNeverRestart(t *testing.T) {
 	policy := NeverRestart()
 	if policy.Name != "no" {
@@ -1958,33 +2001,59 @@ func TestTopContainerWithPsArgs(t *testing.T) {
 }
 
 func TestStatsTimeout(t *testing.T) {
-	l, err := net.Listen("unix", "/tmp/docker_test.sock")
+	tmpdir, err := ioutil.TempDir("", "socket")
 	if err != nil {
 		t.Fatal(err)
 	}
-	received := false
+	defer os.RemoveAll(tmpdir)
+	socketPath := filepath.Join(tmpdir, "docker_test.sock")
+	t.Logf("socketPath=%s", socketPath)
+	l, err := net.Listen("unix", socketPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	received := make(chan bool)
 	defer l.Close()
 	go func() {
-		l.Accept()
-		received = true
-		time.Sleep(time.Second)
+		conn, err := l.Accept()
+		if err != nil {
+			t.Logf("Failed to accept connection: %s", err)
+			return
+		}
+		breader := bufio.NewReader(conn)
+		req, err := http.ReadRequest(breader)
+		if err != nil {
+			t.Logf("Failed to read request: %s", err)
+			return
+		}
+		if req.URL.Path != "/containers/c/stats" {
+			t.Logf("Wrong URL path for stats: %q", req.URL.Path)
+			return
+		}
+		received <- true
+		time.Sleep(2 * time.Second)
 	}()
-	client, _ := NewClient("unix:///tmp/docker_test.sock")
+	client, _ := NewClient("unix://" + socketPath)
 	client.SkipServerVersionCheck = true
 	errC := make(chan error, 1)
 	statsC := make(chan *Stats)
 	done := make(chan bool)
+	defer close(done)
 	go func() {
-		errC <- client.Stats(StatsOptions{"c", statsC, true, done, time.Millisecond * 100})
+		errC <- client.Stats(StatsOptions{ID: "c", Stats: statsC, Stream: true, Done: done, Timeout: time.Millisecond})
 		close(errC)
 	}()
 	err = <-errC
 	e, ok := err.(net.Error)
 	if !ok || !e.Timeout() {
-		t.Error("Failed to receive timeout exception")
+		t.Errorf("Failed to receive timeout error, got %#v", err)
 	}
-	if !received {
-		t.Fatal("Failed to receive message")
+	recvTimeout := 2 * time.Second
+	select {
+	case <-received:
+		return
+	case <-time.After(recvTimeout):
+		t.Fatalf("Timeout waiting to receive message after %v", recvTimeout)
 	}
 }
 
@@ -2260,8 +2329,9 @@ func TestStats(t *testing.T) {
 	errC := make(chan error, 1)
 	statsC := make(chan *Stats)
 	done := make(chan bool)
+	defer close(done)
 	go func() {
-		errC <- client.Stats(StatsOptions{id, statsC, true, done, 0})
+		errC <- client.Stats(StatsOptions{ID: id, Stats: statsC, Stream: true, Done: done})
 		close(errC)
 	}()
 	var resultStats []*Stats
@@ -2298,7 +2368,8 @@ func TestStatsContainerNotFound(t *testing.T) {
 	client := newTestClient(&FakeRoundTripper{message: "no such container", status: http.StatusNotFound})
 	statsC := make(chan *Stats)
 	done := make(chan bool)
-	err := client.Stats(StatsOptions{"abef348", statsC, true, done, 0})
+	defer close(done)
+	err := client.Stats(StatsOptions{ID: "abef348", Stats: statsC, Stream: true, Done: done})
 	expected := &NoSuchContainer{ID: "abef348"}
 	if !reflect.DeepEqual(err, expected) {
 		t.Errorf("Stats: Wrong error returned. Want %#v. Got %#v.", expected, err)

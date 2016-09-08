@@ -1457,9 +1457,10 @@ func (s *Season) MarshalJSON() ([]byte, error) {
 // SubscriptionDeferralInfo: A SubscriptionDeferralInfo contains the
 // data needed to defer a subscription purchase to a future expiry time.
 type SubscriptionDeferralInfo struct {
-	// DesiredExpiryTimeMillis: The desired next expiry time for the
-	// subscription in milliseconds since Epoch. The given time must be
-	// after the current expiry time for the subscription.
+	// DesiredExpiryTimeMillis: The desired next expiry time to assign to
+	// the subscription, in milliseconds since the Epoch. The given time
+	// must be later/greater than the current expiry time for the
+	// subscription.
 	DesiredExpiryTimeMillis int64 `json:"desiredExpiryTimeMillis,omitempty,string"`
 
 	// ExpectedExpiryTimeMillis: The expected expiry time for the
@@ -1490,8 +1491,8 @@ type SubscriptionPurchase struct {
 	// when it reaches its current expiry time.
 	AutoRenewing bool `json:"autoRenewing,omitempty"`
 
-	// CancelReason: The cancel reason of the subscription, if the
-	// subscription is not auto renewing. Possible values are:
+	// CancelReason: The reason why a subscription was cancelled or is not
+	// auto-renewing. Possible values are:
 	// - User cancelled the subscription
 	// - Subscription was cancelled by the system, for example because of a
 	// billing problem
@@ -1506,7 +1507,7 @@ type SubscriptionPurchase struct {
 	DeveloperPayload string `json:"developerPayload,omitempty"`
 
 	// ExpiryTimeMillis: Time at which the subscription will expire, in
-	// milliseconds since Epoch.
+	// milliseconds since the Epoch.
 	ExpiryTimeMillis int64 `json:"expiryTimeMillis,omitempty,string"`
 
 	// Kind: This kind represents a subscriptionPurchase object in the
@@ -1520,9 +1521,9 @@ type SubscriptionPurchase struct {
 	PaymentState int64 `json:"paymentState,omitempty"`
 
 	// PriceAmountMicros: Price of the subscription, not including tax.
-	// Price is expressed in micro-units, where 1,000,000 micro-units equal
-	// one unit of the currency. For example, if the subscription price is
-	// €1.99, price_amount_micros is 1990000.
+	// Price is expressed in micro-units, where 1,000,000 micro-units
+	// represents one unit of the currency. For example, if the subscription
+	// price is €1.99, price_amount_micros is 1990000.
 	PriceAmountMicros int64 `json:"priceAmountMicros,omitempty,string"`
 
 	// PriceCurrencyCode: ISO 4217 currency code for the subscription price.
@@ -1531,7 +1532,7 @@ type SubscriptionPurchase struct {
 	PriceCurrencyCode string `json:"priceCurrencyCode,omitempty"`
 
 	// StartTimeMillis: Time at which the subscription was granted, in
-	// milliseconds since Epoch.
+	// milliseconds since the Epoch.
 	StartTimeMillis int64 `json:"startTimeMillis,omitempty,string"`
 
 	// ServerResponse contains the HTTP response code and headers from the
@@ -1811,10 +1812,7 @@ func (c *EditsCommitCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.commit" call.
@@ -1936,10 +1934,7 @@ func (c *EditsDeleteCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.delete" call.
@@ -2047,10 +2042,7 @@ func (c *EditsGetCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.get" call.
@@ -2175,10 +2167,7 @@ func (c *EditsInsertCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"packageName": c.packageNameid,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.insert" call.
@@ -2295,10 +2284,7 @@ func (c *EditsValidateCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.validate" call.
@@ -2425,10 +2411,7 @@ func (c *EditsApklistingsDeleteCall) doRequest(alt string) (*http.Response, erro
 		"apkVersionCode": strconv.FormatInt(c.apkVersionCode, 10),
 		"language":       c.language,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.apklistings.delete" call.
@@ -2539,10 +2522,7 @@ func (c *EditsApklistingsDeleteallCall) doRequest(alt string) (*http.Response, e
 		"editId":         c.editId,
 		"apkVersionCode": strconv.FormatInt(c.apkVersionCode, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.apklistings.deleteall" call.
@@ -2663,10 +2643,7 @@ func (c *EditsApklistingsGetCall) doRequest(alt string) (*http.Response, error) 
 		"apkVersionCode": strconv.FormatInt(c.apkVersionCode, 10),
 		"language":       c.language,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.apklistings.get" call.
@@ -2819,10 +2796,7 @@ func (c *EditsApklistingsListCall) doRequest(alt string) (*http.Response, error)
 		"editId":         c.editId,
 		"apkVersionCode": strconv.FormatInt(c.apkVersionCode, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.apklistings.list" call.
@@ -2965,10 +2939,7 @@ func (c *EditsApklistingsPatchCall) doRequest(alt string) (*http.Response, error
 		"apkVersionCode": strconv.FormatInt(c.apkVersionCode, 10),
 		"language":       c.language,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.apklistings.patch" call.
@@ -3120,10 +3091,7 @@ func (c *EditsApklistingsUpdateCall) doRequest(alt string) (*http.Response, erro
 		"apkVersionCode": strconv.FormatInt(c.apkVersionCode, 10),
 		"language":       c.language,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.apklistings.update" call.
@@ -3272,10 +3240,7 @@ func (c *EditsApksAddexternallyhostedCall) doRequest(alt string) (*http.Response
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.apks.addexternallyhosted" call.
@@ -3412,10 +3377,7 @@ func (c *EditsApksListCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.apks.list" call.
@@ -3608,10 +3570,7 @@ func (c *EditsApksUploadCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.apks.upload" call.
@@ -3790,10 +3749,7 @@ func (c *EditsDetailsGetCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.details.get" call.
@@ -3921,10 +3877,7 @@ func (c *EditsDetailsPatchCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.details.patch" call.
@@ -4054,10 +4007,7 @@ func (c *EditsDetailsUpdateCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.details.update" call.
@@ -4200,10 +4150,7 @@ func (c *EditsExpansionfilesGetCall) doRequest(alt string) (*http.Response, erro
 		"apkVersionCode":    strconv.FormatInt(c.apkVersionCode, 10),
 		"expansionFileType": c.expansionFileType,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.expansionfiles.get" call.
@@ -4360,10 +4307,7 @@ func (c *EditsExpansionfilesPatchCall) doRequest(alt string) (*http.Response, er
 		"apkVersionCode":    strconv.FormatInt(c.apkVersionCode, 10),
 		"expansionFileType": c.expansionFileType,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.expansionfiles.patch" call.
@@ -4523,10 +4467,7 @@ func (c *EditsExpansionfilesUpdateCall) doRequest(alt string) (*http.Response, e
 		"apkVersionCode":    strconv.FormatInt(c.apkVersionCode, 10),
 		"expansionFileType": c.expansionFileType,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.expansionfiles.update" call.
@@ -4752,10 +4693,7 @@ func (c *EditsExpansionfilesUploadCall) doRequest(alt string) (*http.Response, e
 		"apkVersionCode":    strconv.FormatInt(c.apkVersionCode, 10),
 		"expansionFileType": c.expansionFileType,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.expansionfiles.upload" call.
@@ -4950,10 +4888,7 @@ func (c *EditsImagesDeleteCall) doRequest(alt string) (*http.Response, error) {
 		"imageType":   c.imageType,
 		"imageId":     c.imageId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.images.delete" call.
@@ -5094,10 +5029,7 @@ func (c *EditsImagesDeleteallCall) doRequest(alt string) (*http.Response, error)
 		"language":    c.language,
 		"imageType":   c.imageType,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.images.deleteall" call.
@@ -5272,10 +5204,7 @@ func (c *EditsImagesListCall) doRequest(alt string) (*http.Response, error) {
 		"language":    c.language,
 		"imageType":   c.imageType,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.images.list" call.
@@ -5511,10 +5440,7 @@ func (c *EditsImagesUploadCall) doRequest(alt string) (*http.Response, error) {
 		"language":    c.language,
 		"imageType":   c.imageType,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.images.upload" call.
@@ -5716,10 +5642,7 @@ func (c *EditsListingsDeleteCall) doRequest(alt string) (*http.Response, error) 
 		"editId":      c.editId,
 		"language":    c.language,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.listings.delete" call.
@@ -5818,10 +5741,7 @@ func (c *EditsListingsDeleteallCall) doRequest(alt string) (*http.Response, erro
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.listings.deleteall" call.
@@ -5930,10 +5850,7 @@ func (c *EditsListingsGetCall) doRequest(alt string) (*http.Response, error) {
 		"editId":      c.editId,
 		"language":    c.language,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.listings.get" call.
@@ -6075,10 +5992,7 @@ func (c *EditsListingsListCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.listings.list" call.
@@ -6209,10 +6123,7 @@ func (c *EditsListingsPatchCall) doRequest(alt string) (*http.Response, error) {
 		"editId":      c.editId,
 		"language":    c.language,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.listings.patch" call.
@@ -6352,10 +6263,7 @@ func (c *EditsListingsUpdateCall) doRequest(alt string) (*http.Response, error) 
 		"editId":      c.editId,
 		"language":    c.language,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.listings.update" call.
@@ -6502,10 +6410,7 @@ func (c *EditsTestersGetCall) doRequest(alt string) (*http.Response, error) {
 		"editId":      c.editId,
 		"track":       c.track,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.testers.get" call.
@@ -6652,10 +6557,7 @@ func (c *EditsTestersPatchCall) doRequest(alt string) (*http.Response, error) {
 		"editId":      c.editId,
 		"track":       c.track,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.testers.patch" call.
@@ -6805,10 +6707,7 @@ func (c *EditsTestersUpdateCall) doRequest(alt string) (*http.Response, error) {
 		"editId":      c.editId,
 		"track":       c.track,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.testers.update" call.
@@ -6966,10 +6865,7 @@ func (c *EditsTracksGetCall) doRequest(alt string) (*http.Response, error) {
 		"editId":      c.editId,
 		"track":       c.track,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.tracks.get" call.
@@ -7122,10 +7018,7 @@ func (c *EditsTracksListCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.tracks.list" call.
@@ -7258,10 +7151,7 @@ func (c *EditsTracksPatchCall) doRequest(alt string) (*http.Response, error) {
 		"editId":      c.editId,
 		"track":       c.track,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.tracks.patch" call.
@@ -7415,10 +7305,7 @@ func (c *EditsTracksUpdateCall) doRequest(alt string) (*http.Response, error) {
 		"editId":      c.editId,
 		"track":       c.track,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.edits.tracks.update" call.
@@ -7598,10 +7485,7 @@ func (c *EntitlementsListCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"packageName": c.packageName,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.entitlements.list" call.
@@ -7730,10 +7614,7 @@ func (c *InappproductsBatchCall) doRequest(alt string) (*http.Response, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.inappproducts.batch" call.
@@ -7837,10 +7718,7 @@ func (c *InappproductsDeleteCall) doRequest(alt string) (*http.Response, error) 
 		"packageName": c.packageNameid,
 		"sku":         c.skuid,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.inappproducts.delete" call.
@@ -7946,10 +7824,7 @@ func (c *InappproductsGetCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageName,
 		"sku":         c.skuid,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.inappproducts.get" call.
@@ -8082,10 +7957,7 @@ func (c *InappproductsInsertCall) doRequest(alt string) (*http.Response, error) 
 	googleapi.Expand(req.URL, map[string]string{
 		"packageName": c.packageNameid,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.inappproducts.insert" call.
@@ -8236,10 +8108,7 @@ func (c *InappproductsListCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"packageName": c.packageNameid,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.inappproducts.list" call.
@@ -8384,10 +8253,7 @@ func (c *InappproductsPatchCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"sku":         c.skuid,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.inappproducts.patch" call.
@@ -8532,10 +8398,7 @@ func (c *InappproductsUpdateCall) doRequest(alt string) (*http.Response, error) 
 		"packageName": c.packageNameid,
 		"sku":         c.skuid,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.inappproducts.update" call.
@@ -8680,10 +8543,7 @@ func (c *PurchasesProductsGetCall) doRequest(alt string) (*http.Response, error)
 		"productId":   c.productId,
 		"token":       c.token,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.purchases.products.get" call.
@@ -8814,10 +8674,7 @@ func (c *PurchasesSubscriptionsCancelCall) doRequest(alt string) (*http.Response
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.purchases.subscriptions.cancel" call.
@@ -8927,10 +8784,7 @@ func (c *PurchasesSubscriptionsDeferCall) doRequest(alt string) (*http.Response,
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.purchases.subscriptions.defer" call.
@@ -9079,10 +8933,7 @@ func (c *PurchasesSubscriptionsGetCall) doRequest(alt string) (*http.Response, e
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.purchases.subscriptions.get" call.
@@ -9214,10 +9065,7 @@ func (c *PurchasesSubscriptionsRefundCall) doRequest(alt string) (*http.Response
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.purchases.subscriptions.refund" call.
@@ -9321,10 +9169,7 @@ func (c *PurchasesSubscriptionsRevokeCall) doRequest(alt string) (*http.Response
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.purchases.subscriptions.revoke" call.
@@ -9437,10 +9282,7 @@ func (c *ReviewsGetCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"reviewId":    c.reviewId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.reviews.get" call.
@@ -9588,10 +9430,7 @@ func (c *ReviewsListCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"packageName": c.packageNameid,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.reviews.list" call.
@@ -9725,10 +9564,7 @@ func (c *ReviewsReplyCall) doRequest(alt string) (*http.Response, error) {
 		"packageName": c.packageNameid,
 		"reviewId":    c.reviewId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "androidpublisher.reviews.reply" call.

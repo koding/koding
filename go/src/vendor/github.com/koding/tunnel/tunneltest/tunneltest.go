@@ -77,8 +77,7 @@ func parseHostPort(addr string) (string, int, error) {
 	return host, int(n), nil
 }
 
-// UsableAddrs returns all tcp addresses that we can bind a listener
-// to.
+// UsableAddrs returns all tcp addresses that we can bind a listener to.
 func UsableAddrs() ([]*net.TCPAddr, error) {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -170,19 +169,23 @@ type Tunnel struct {
 }
 
 type TunnelTest struct {
-	Server    *tunnel.Server
-	Clients   map[string]*tunnel.Client
-	Listeners map[string][2]net.Listener // [0] is local listener, [1] is remote one (for TCP tunnels)
-	Addrs     []*net.TCPAddr
-	Tunnels   map[string]*Tunnel
-	DebugNet  bool // for debugging network communication
+	Server              *tunnel.Server
+	ServerStateRecorder *StateRecorder
+	Clients             map[string]*tunnel.Client
+	Listeners           map[string][2]net.Listener // [0] is local listener, [1] is remote one (for TCP tunnels)
+	Addrs               []*net.TCPAddr
+	Tunnels             map[string]*Tunnel
+	DebugNet            bool // for debugging network communication
 
 	mu sync.Mutex // protects Listeners
 }
 
 func NewTunnelTest() (*TunnelTest, error) {
+	rec := NewStateRecorder()
+
 	cfg := &tunnel.ServerConfig{
-		Debug: testing.Verbose(),
+		StateChanges: rec.C(),
+		Debug:        testing.Verbose(),
 	}
 	s, err := tunnel.NewServer(cfg)
 	if err != nil {
@@ -206,12 +209,13 @@ func NewTunnelTest() (*TunnelTest, error) {
 	go (&http.Server{Handler: s}).Serve(l)
 
 	return &TunnelTest{
-		Server:    s,
-		Clients:   make(map[string]*tunnel.Client),
-		Listeners: map[string][2]net.Listener{"": {l, nil}},
-		Addrs:     addrs,
-		Tunnels:   make(map[string]*Tunnel),
-		DebugNet:  debugNet,
+		Server:              s,
+		ServerStateRecorder: rec,
+		Clients:             make(map[string]*tunnel.Client),
+		Listeners:           map[string][2]net.Listener{"": {l, nil}},
+		Addrs:               addrs,
+		Tunnels:             make(map[string]*Tunnel),
+		DebugNet:            debugNet,
 	}, nil
 }
 
@@ -262,13 +266,19 @@ func (tt *TunnelTest) serveSingle(ident string, t *Tunnel) (bool, error) {
 		l = dbgListener{l}
 	}
 
+	localAddr := l.Addr().String()
+	httpProxy := &tunnel.HTTPProxy{LocalAddr: localAddr}
+	tcpProxy := &tunnel.TCPProxy{FetchLocalAddr: tt.fetchLocalAddr}
+
 	cfg := &tunnel.ClientConfig{
-		Identifier:     ident,
-		ServerAddr:     tt.ServerAddr().String(),
-		LocalAddr:      l.Addr().String(),
-		FetchLocalAddr: tt.fetchLocalAddr,
-		Debug:          testing.Verbose(),
-		StateChanges:   t.StateChanges,
+		Identifier: ident,
+		ServerAddr: tt.ServerAddr().String(),
+		Proxy: tunnel.Proxy(tunnel.ProxyFuncs{
+			HTTP: httpProxy.Proxy,
+			TCP:  tcpProxy.Proxy,
+		}),
+		StateChanges: t.StateChanges,
+		Debug:        testing.Verbose(),
 	}
 
 	// Register tunnel:
@@ -299,7 +309,7 @@ func (tt *TunnelTest) serveSingle(ident string, t *Tunnel) (bool, error) {
 
 		go (&http.Server{Handler: h}).Serve(l)
 
-		tt.Server.AddHost(cfg.LocalAddr, ident)
+		tt.Server.AddHost(localAddr, ident)
 
 		tt.mu.Lock()
 		tt.Listeners[ident] = [2]net.Listener{l, nil}
@@ -309,7 +319,7 @@ func (tt *TunnelTest) serveSingle(ident string, t *Tunnel) (bool, error) {
 			return false, fmt.Errorf("error creating client for %q tunnel: %s", ident, err)
 		}
 
-		logf("registered HTTP tunnel: host=%s, ident=%s", cfg.LocalAddr, ident)
+		logf("registered HTTP tunnel: host=%s, ident=%s", localAddr, ident)
 
 	case TypeTCP:
 		// TODO(rjeczalik): refactor to separate method

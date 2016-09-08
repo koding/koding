@@ -28,10 +28,10 @@ import (
 
 	"github.com/cheggaaa/pb"
 	"github.com/fatih/structs"
-	"github.com/fsouza/go-dockerclient/external/golang.org/x/sys/unix"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/logging"
+	"golang.org/x/sys/unix"
 )
 
 const (

@@ -1,9 +1,9 @@
 package strftime
 
 import (
-	"time"
 	"fmt"
 	"testing"
+	"time"
 )
 
 func ExampleFormat() {
@@ -26,7 +26,6 @@ func TestNoLeadingPercentSign(t *testing.T) {
 	}
 }
 
-
 func TestUnsupported(t *testing.T) {
 	tm := time.Unix(1340244776, 0)
 	utc, _ := time.LoadLocation("UTC")
@@ -38,3 +37,13 @@ func TestUnsupported(t *testing.T) {
 	}
 }
 
+func TestRubyStrftime(t *testing.T) {
+	tm := time.Unix(1340244776, 0)
+	utc, _ := time.LoadLocation("UTC")
+	tm = tm.In(utc)
+	result := Format("%H:%M:%S%L", tm)
+	if result != "02:12:56.000" {
+		t.Logf("%s != %s", result, "02:12:56.000")
+		t.Fail()
+	}
+}

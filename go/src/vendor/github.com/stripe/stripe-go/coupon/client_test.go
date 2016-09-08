@@ -5,18 +5,19 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/currency"
 	. "github.com/stripe/stripe-go/utils"
 )
 
 func init() {
-	Key = GetTestKey()
+	stripe.Key = GetTestKey()
 }
 
 func TestCouponNew(t *testing.T) {
-	couponParams := &CouponParams{
+	couponParams := &stripe.CouponParams{
 		Amount:         99,
-		Currency:       USD,
+		Currency:       currency.USD,
 		Duration:       Repeating,
 		DurationPeriod: 3,
 		Redemptions:    1,
@@ -57,38 +58,66 @@ func TestCouponNew(t *testing.T) {
 		t.Errorf("Coupon is not valid, but was expecting it to be\n")
 	}
 
-	Del(target.Id)
+	Del(target.ID)
 }
 
 func TestCouponGet(t *testing.T) {
-	couponParams := &CouponParams{
-		Id:       "test_coupon",
+	couponParams := &stripe.CouponParams{
+		ID:       "test_coupon",
 		Duration: Once,
 		Percent:  50,
 	}
 
 	New(couponParams)
-	target, err := Get(couponParams.Id, nil)
+	target, err := Get(couponParams.ID, nil)
 
 	if err != nil {
 		t.Error(err)
 	}
 
-	if target.Id != couponParams.Id {
-		t.Errorf("Id %q does not match expected id %q\n", target.Id, couponParams.Id)
+	if target.ID != couponParams.ID {
+		t.Errorf("ID %q does not match expected id %q\n", target.ID, couponParams.ID)
 	}
 
 	if target.Percent != couponParams.Percent {
 		t.Errorf("Percent %v does not match expected percent %v\n", target.Percent, couponParams.Percent)
 	}
 
-	Del(target.Id)
+	Del(target.ID)
+}
+
+func TestCouponUpdate(t *testing.T) {
+	couponParams := &stripe.CouponParams{
+		ID:       "test_coupon",
+		Duration: Once,
+		Percent:  50,
+	}
+
+	New(couponParams)
+
+	updateParams := &stripe.CouponParams{}
+	updateParams.AddMeta("key", "value")
+	target, err := Update(couponParams.ID, updateParams)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if target.ID != couponParams.ID {
+		t.Errorf("ID %q does not match expected id %q\n", target.ID, couponParams.ID)
+	}
+
+	if target.Meta["key"] != updateParams.Meta["key"] {
+		t.Errorf("Meta %v does not match expected Meta %v\n", target.Meta, updateParams.Meta)
+	}
+
+	Del(target.ID)
 }
 
 func TestCouponList(t *testing.T) {
 	for i := 0; i < 5; i++ {
-		couponParams := &CouponParams{
-			Id:       fmt.Sprintf("test_%v", i),
+		couponParams := &stripe.CouponParams{
+			ID:       fmt.Sprintf("test_%v", i),
 			Duration: Once,
 			Percent:  50,
 		}
@@ -97,14 +126,8 @@ func TestCouponList(t *testing.T) {
 	}
 
 	i := List(nil)
-	for !i.Stop() {
-		target, err := i.Next()
-
-		if err != nil {
-			t.Error(err)
-		}
-
-		if target == nil {
+	for i.Next() {
+		if i.Coupon() == nil {
 			t.Error("No nil values expected")
 		}
 
@@ -112,8 +135,28 @@ func TestCouponList(t *testing.T) {
 			t.Error("No metadata returned")
 		}
 	}
+	if err := i.Err(); err != nil {
+		t.Error(err)
+	}
 
 	for i := 0; i < 5; i++ {
 		Del(fmt.Sprintf("test_%v", i))
+	}
+}
+
+func TestCouponDel(t *testing.T) {
+	couponParams := &stripe.CouponParams{
+		Duration: Once,
+		Percent:  50,
+	}
+
+	target, err := New(couponParams)
+	if err != nil {
+		t.Error(err)
+	}
+
+	coupon, err := Del(target.ID)
+	if !coupon.Deleted {
+		t.Errorf("Coupon id %v expected to be marked as deleted on the returned resource\n", coupon.ID)
 	}
 }

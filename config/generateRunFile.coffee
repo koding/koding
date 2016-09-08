@@ -332,7 +332,7 @@ generateDev = (KONFIG, options) ->
 
       # Include this to dockerfile before we continute with building
       mkdir -p kontrol
-      cp $KONFIG_PROJECTROOT/go/src/github.com/koding/kite/kontrol/*.sql kontrol/
+      cp $KONFIG_PROJECTROOT/go/src/vendor/github.com/koding/kite/kontrol/*.sql kontrol/
       sed -i -e "s/somerandompassword/$KONFIG_KONTROL_POSTGRES_PASSWORD/" kontrol/001-schema.sql
       sed -i -e "s/kontrolapplication/$KONFIG_KONTROL_POSTGRES_USERNAME/" kontrol/001-schema.sql
 

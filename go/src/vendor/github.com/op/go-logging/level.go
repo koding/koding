@@ -10,13 +10,11 @@ import (
 	"sync"
 )
 
-// ErrInvalidLogLevel is used when an invalid log level has been used.
 var ErrInvalidLogLevel = errors.New("logger: invalid log level")
 
 // Level defines all available log levels for log messages.
 type Level int
 
-// Log levels.
 const (
 	CRITICAL Level = iota
 	ERROR
@@ -50,8 +48,6 @@ func LogLevel(level string) (Level, error) {
 	return ERROR, ErrInvalidLogLevel
 }
 
-// Leveled interface is the interface required to be able to add leveled
-// logging.
 type Leveled interface {
 	GetLevel(string) Level
 	SetLevel(Level, string)
@@ -111,7 +107,6 @@ func (l *moduleLeveled) IsEnabledFor(level Level, module string) bool {
 
 func (l *moduleLeveled) Log(level Level, calldepth int, rec *Record) (err error) {
 	if l.IsEnabledFor(level, rec.Module) {
-		// TODO get rid of traces of formatter here. BackendFormatter should be used.
 		rec.formatter = l.getFormatterAndCacheCurrent()
 		err = l.backend.Log(level, calldepth+1, rec)
 	}

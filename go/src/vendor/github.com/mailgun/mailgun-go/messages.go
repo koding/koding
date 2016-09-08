@@ -21,6 +21,7 @@ type Message struct {
 	attachments       []string
 	readerAttachments []ReaderAttachment
 	inlines           []string
+	readerInlines     []ReaderAttachment
 
 	testMode           bool
 	tracking           bool
@@ -52,19 +53,24 @@ type ReaderAttachment struct {
 // because that's how it's sent over the wire, and it's how encoding/json expects this field
 // to be.
 type StoredMessage struct {
-	Recipients        string                 `json:"recipients"`
-	Sender            string                 `json:"sender"`
-	From              string                 `json:"from"`
-	Subject           string                 `json:"subject"`
-	BodyPlain         string                 `json:"body-plain"`
-	StrippedText      string                 `json:"stripped-text"`
-	StrippedSignature string                 `json:"stripped-signature"`
-	BodyHtml          string                 `json:"body-html"`
-	StrippedHtml      string                 `json:"stripped-html"`
-	Attachments       []StoredAttachment     `json:"attachments"`
-	MessageUrl        string                 `json:"message-url"`
-	ContentIDMap      map[string]interface{} `json:"content-id-map"`
-	MessageHeaders    [][]string             `json:"message-headers"`
+	Recipients        string             `json:"recipients"`
+	Sender            string             `json:"sender"`
+	From              string             `json:"from"`
+	Subject           string             `json:"subject"`
+	BodyPlain         string             `json:"body-plain"`
+	StrippedText      string             `json:"stripped-text"`
+	StrippedSignature string             `json:"stripped-signature"`
+	BodyHtml          string             `json:"body-html"`
+	StrippedHtml      string             `json:"stripped-html"`
+	Attachments       []StoredAttachment `json:"attachments"`
+	MessageUrl        string             `json:"message-url"`
+	ContentIDMap      map[string]struct {
+		Url         string `json:"url"`
+		ContentType string `json:"content-type"`
+		Name        string `json:"name"`
+		Size        int64  `json:"size"`
+	} `json:"content-id-map"`
+	MessageHeaders [][]string `json:"message-headers"`
 }
 
 // StoredAttachment structures contain information on an attachment associated with a stored message.
@@ -229,6 +235,16 @@ func (m *Message) AddAttachment(attachment string) {
 	m.attachments = append(m.attachments, attachment)
 }
 
+// AddReaderInline arranges to send a file along with the e-mail message.
+// File contents are read from a io.ReadCloser.
+// The filename parameter is the resulting filename of the attachment.
+// The readCloser parameter is the io.ReadCloser which reads the actual bytes to be used
+// as the contents of the attached file.
+func (m *Message) AddReaderInline(filename string, readCloser io.ReadCloser) {
+	ra := ReaderAttachment{Filename: filename, ReadCloser: readCloser}
+	m.readerInlines = append(m.readerInlines, ra)
+}
+
 // AddInline arranges to send a file along with the e-mail message, but does so
 // in a way that its data remains "inline" with the rest of the message.  This
 // can be used to send image or font data along with an HTML-encoded message body.
@@ -297,6 +313,10 @@ func (mm *mimeMessage) recipientCount() int {
 
 func (m *Message) send() (string, string, error) {
 	return m.mg.Send(m)
+}
+
+func (m *Message) SetReplyTo(recipient string) {
+	m.AddHeader("Reply-To", recipient)
 }
 
 // AddCC appends a receiver to the carbon-copy header of a message.
@@ -484,6 +504,12 @@ func (m *MailgunImpl) Send(message *Message) (mes string, id string, err error) 
 			}
 		}
 
+		if message.readerInlines != nil {
+			for _, readerAttachment := range message.readerInlines {
+				payload.addReadCloser("inline", readerAttachment.Filename, readerAttachment.ReadCloser)
+			}
+		}
+
 		r := newHTTPRequest(generateApiUrl(m, message.specific.endpoint()))
 		r.setClient(m.Client())
 		r.setBasicAuth(basicAuthUser, m.ApiKey())
@@ -574,7 +600,7 @@ func (pm *plainMessage) isValid() bool {
 		return false
 	}
 
-	if pm.text == "" {
+	if pm.text == "" && pm.html == "" {
 		return false
 	}
 
