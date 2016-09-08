@@ -340,30 +340,25 @@ guessNextLabel = (options, callback) ->
 fetchUserPlan = (client, callback) ->
 
   { clone } = require 'underscore'
-  Payment   = require '../payment'
-  Payment.subscriptions client, {}, (err, subscription) ->
+  plan = 'free'
 
-    if err? or not subscription?
-    then plan = 'free'
-    else plan = subscription.planTitle
+  # we need to clone the plan data since we are using global data here,
+  # when we modify it at line 84 everything will be broken after the
+  # first operation until this social restarts ~ GG
+  planData  = clone PLANS[plan]
 
-    # we need to clone the plan data since we are using global data here,
-    # when we modify it at line 84 everything will be broken after the
-    # first operation until this social restarts ~ GG
-    planData  = clone PLANS[plan]
+  JReward   = require '../rewards'
+  JReward.fetchEarnedAmount
+    unit     : 'MB'
+    type     : 'disk'
+    originId : client.r.account.getId()
 
-    JReward   = require '../rewards'
-    JReward.fetchEarnedAmount
-      unit     : 'MB'
-      type     : 'disk'
-      originId : client.r.account.getId()
+  , (err, amount) ->
 
-    , (err, amount) ->
+    amount = 0  if err
+    planData.storage += Math.floor amount / 1000
 
-      amount = 0  if err
-      planData.storage += Math.floor amount / 1000
-
-      callback err, planData
+    callback err, planData
 
 
 checkUsage = (usage, plan, storage) ->
