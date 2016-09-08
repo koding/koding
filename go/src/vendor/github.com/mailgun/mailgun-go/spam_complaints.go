@@ -19,8 +19,8 @@ type Complaint struct {
 }
 
 type complaintsEnvelope struct {
-	TotalCount int         `json:"total_count"`
-	Items      []Complaint `json:"items"`
+	Items  []Complaint `json:"items"`
+	Paging Paging      `json:"paging"`
 }
 
 // GetComplaints returns a set of spam complaints registered against your domain.
@@ -43,7 +43,7 @@ func (m *MailgunImpl) GetComplaints(limit, skip int) (int, []Complaint, error) {
 	if err != nil {
 		return -1, nil, err
 	}
-	return envelope.TotalCount, envelope.Items, nil
+	return len(envelope.Items), envelope.Items, nil
 }
 
 // GetSingleComplaint returns a single complaint record filed by a recipient at the email address provided.

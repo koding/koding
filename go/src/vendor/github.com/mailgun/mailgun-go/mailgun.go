@@ -100,7 +100,7 @@ import (
 )
 
 const (
-	apiBase                 = "https://api.mailgun.net/v2"
+	apiBase                 = "https://api.mailgun.net/v3"
 	messagesEndpoint        = "messages"
 	mimeMessagesEndpoint    = "messages.mime"
 	addressValidateEndpoint = "address/validate"

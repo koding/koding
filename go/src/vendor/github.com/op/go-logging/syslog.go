@@ -31,22 +31,20 @@ func NewSyslogBackendPriority(prefix string, priority syslog.Priority) (b *Syslo
 	return &SyslogBackend{w}, err
 }
 
-// Log implements the Backend interface.
 func (b *SyslogBackend) Log(level Level, calldepth int, rec *Record) error {
-	line := rec.Formatted(calldepth + 1)
 	switch level {
 	case CRITICAL:
-		return b.Writer.Crit(line)
+		return b.Writer.Crit(rec.Formatted())
 	case ERROR:
-		return b.Writer.Err(line)
+		return b.Writer.Err(rec.Formatted())
 	case WARNING:
-		return b.Writer.Warning(line)
+		return b.Writer.Warning(rec.Formatted())
 	case NOTICE:
-		return b.Writer.Notice(line)
+		return b.Writer.Notice(rec.Formatted())
 	case INFO:
-		return b.Writer.Info(line)
+		return b.Writer.Info(rec.Formatted())
 	case DEBUG:
-		return b.Writer.Debug(line)
+		return b.Writer.Debug(rec.Formatted())
 	default:
 	}
 	panic("unhandled log level")

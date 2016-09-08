@@ -81,6 +81,10 @@ func (a *API) sortedSchemaNames() (names []string) {
 	return
 }
 
+func (a *API) Schema(name string) *Schema {
+	return a.schemas[name]
+}
+
 type AllAPIs struct {
 	Items []*API `json:"items"`
 }
@@ -1056,6 +1060,15 @@ func (s *Schema) properties() []*Property {
 	return pl
 }
 
+func (s *Schema) HasContentType() bool {
+	for _, p := range s.properties() {
+		if p.GoName() == "ContentType" && p.Type().AsGo() == "string" {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Schema) populateSubSchemas() (outerr error) {
 	defer func() {
 		r := recover()
@@ -1157,9 +1170,16 @@ func (s *Schema) GoName() string {
 			s.goName = name
 		} else {
 			base := initialCap(s.apiName)
-			if s.api.Name == "appengine" && s.apiName == "Service" {
-				// Avoid getting "Service1".
-				base = "Module"
+			// Avoid a confusing "Service1" name.
+			if s.apiName == "Service" {
+				switch s.api.Name {
+				case "appengine":
+					base = "Module"
+				case "servicemanagement":
+					base = "ServiceConfig"
+				default:
+					panic("API requires a manual renaming for Service type")
+				}
 			}
 			s.goName = s.api.GetName(base)
 		}
@@ -1332,7 +1352,6 @@ func (s *Schema) writeSchemaStruct(api *API) {
 	s.api.pn("\t%s []string `json:\"-\"`", forceSendName)
 	s.api.pn("}")
 	s.writeSchemaMarshal(forceSendName)
-	return
 }
 
 // writeSchemaMarshal writes a custom MarshalJSON function for s, which allows
@@ -1736,6 +1755,17 @@ func (meth *Method) generateCode() {
 		// See comments on https://code-review.googlesource.com/#/c/3970/
 		p("\n%s", asComment("", comment))
 		pn("func (c *%s) Media(r io.Reader, options ...googleapi.MediaOption) *%s {", callName, callName)
+		// We check if the body arg, if any, has a content type and apply it here.
+		// In practice, this only happens for the storage API today.
+		// TODO(djd): check if we can cope with the developer setting the body's Content-Type field
+		// after they've made this call.
+		if ba := args.bodyArg(); ba != nil {
+			if ba.schema.HasContentType() {
+				pn("  if ct := c.%s.ContentType; ct != \"\" {", ba.goname)
+				pn("   options = append([]googleapi.MediaOption{googleapi.ContentType(ct)}, options...)")
+				pn("  }")
+			}
+		}
 		pn(" opts := googleapi.ProcessMediaOptions(options)")
 		pn(" chunkSize := opts.ChunkSize")
 		pn(" if !opts.ForceEmptyContentType {")
@@ -1878,10 +1908,7 @@ func (meth *Method) generateCode() {
 		pn(`googleapi.SetOpaque(req.URL)`)
 	}
 
-	pn("if c.ctx_ != nil {")
-	pn(" return ctxhttp.Do(c.ctx_, c.s.client, req)")
-	pn("}")
-	pn("return c.s.client.Do(req)")
+	pn("return gensupport.SendRequest(c.ctx_, c.s.client, req)")
 	pn("}")
 
 	if meth.supportsMediaDownload() {
@@ -2138,12 +2165,17 @@ func (meth *Method) NewArguments() (args *arguments) {
 
 func (meth *Method) NewBodyArg(m map[string]interface{}) *argument {
 	reftype := jstr(m, "$ref")
+	schem := meth.api.Schema(reftype)
+	if schem == nil {
+		panicf("unable to find schema for type %q", reftype)
+	}
 	return &argument{
 		goname:   validGoIdentifer(strings.ToLower(reftype)),
 		apiname:  "REQUEST",
-		gotype:   "*" + reftype,
+		gotype:   "*" + schem.GoName(),
 		apitype:  reftype,
 		location: "body",
+		schema:   schem,
 	}
 }
 
@@ -2171,6 +2203,7 @@ func (meth *Method) NewArg(apiname string, p *Param) *argument {
 
 type argument struct {
 	method           *Method
+	schema           *Schema // Set if location == "body".
 	apiname, apitype string
 	goname, gotype   string
 	location         string // "path", "query", "body"

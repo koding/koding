@@ -17,13 +17,16 @@ type Bounce struct {
 	Error     string      `json:"error"`
 }
 
-type bounceEnvelope struct {
-	TotalCount int      `json:"total_count"`
-	Items      []Bounce `json:"items"`
+type Paging struct {
+	First    string `json:"first"`
+	Next     string `json:"next"`
+	Previous string `json:"previous"`
+	Last     string `json:"last"`
 }
 
-type singleBounceEnvelope struct {
-	Bounce Bounce `json:"bounce"`
+type bounceEnvelope struct {
+	Items  []Bounce `json:"items"`
+	Paging Paging   `json:"paging"`
 }
 
 // GetCreatedAt parses the textual, RFC-822 timestamp into a standard Go-compatible
@@ -68,7 +71,7 @@ func (m *MailgunImpl) GetBounces(limit, skip int) (int, []Bounce, error) {
 		return -1, nil, err
 	}
 
-	return response.TotalCount, response.Items, nil
+	return len(response.Items), response.Items, nil
 }
 
 // GetSingleBounce retrieves a single bounce record, if any exist, for the given recipient address.
@@ -77,9 +80,9 @@ func (m *MailgunImpl) GetSingleBounce(address string) (Bounce, error) {
 	r.setClient(m.Client())
 	r.setBasicAuth(basicAuthUser, m.ApiKey())
 
-	var response singleBounceEnvelope
+	var response Bounce
 	err := getResponseFromJSON(r, &response)
-	return response.Bounce, err
+	return response, err
 }
 
 // AddBounce files a bounce report.

@@ -3,7 +3,8 @@ version: '2'
 services:
   backend:
     image: koding/base
-    command: /opt/koding/scripts/bootstrap-container build
+    entrypoint: /opt/koding/scripts/bootstrap-container
+    command: build
     env_file: .env-docker-compose
     environment:
       DEFAULTENV: $DEFAULTENV
@@ -19,7 +20,6 @@ services:
 
   mongo:
     image: koding/mongo
-    command: --dbpath /opt/db --smallfiles --nojournal
 
   postgres:
     image: koding/postgres

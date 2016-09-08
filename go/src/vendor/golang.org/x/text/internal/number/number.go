@@ -135,3 +135,11 @@ func (n Info) Digit(asciiDigit rune) rune {
 func (n Info) Symbol(t SymbolType) string {
 	return symData.Elem(int(symIndex[n.symIndex][t]))
 }
+
+func formatForLang(t language.Tag, index []byte) *Format {
+	for ; ; t = t.Parent() {
+		if x, ok := language.CompactIndex(t); ok {
+			return &formats[index[x]]
+		}
+	}
+}

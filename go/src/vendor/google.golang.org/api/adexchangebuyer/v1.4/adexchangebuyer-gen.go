@@ -680,6 +680,10 @@ type Creative struct {
 	// servingRestrictions directly.
 	DealsStatus string `json:"dealsStatus,omitempty"`
 
+	// DetectedDomains: Detected domains for this creative. Read-only. This
+	// field should not be set in requests.
+	DetectedDomains []string `json:"detectedDomains,omitempty"`
+
 	// FilteringReasons: The filtering reasons for the creative. Read-only.
 	// This field should not be set in requests.
 	FilteringReasons *CreativeFilteringReasons `json:"filteringReasons,omitempty"`
@@ -1141,6 +1145,8 @@ func (s *DealServingMetadata) MarshalJSON() ([]byte, error) {
 // || has_seller_paused. Each of the has_buyer_paused or the
 // has_seller_paused bits can be set independently.
 type DealServingMetadataDealPauseStatus struct {
+	BuyerPauseReason string `json:"buyerPauseReason,omitempty"`
+
 	// FirstPausedBy: If the deal is paused, records which party paused the
 	// deal first.
 	FirstPausedBy string `json:"firstPausedBy,omitempty"`
@@ -1149,7 +1155,9 @@ type DealServingMetadataDealPauseStatus struct {
 
 	HasSellerPaused bool `json:"hasSellerPaused,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "FirstPausedBy") to
+	SellerPauseReason string `json:"sellerPauseReason,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "BuyerPauseReason") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -1191,6 +1199,10 @@ type DealTerms struct {
 	// price deals.
 	NonGuaranteedFixedPriceTerms *DealTermsNonGuaranteedFixedPriceTerms `json:"nonGuaranteedFixedPriceTerms,omitempty"`
 
+	// RubiconNonGuaranteedTerms: The terms for rubicon non-guaranteed
+	// deals.
+	RubiconNonGuaranteedTerms *DealTermsRubiconNonGuaranteedTerms `json:"rubiconNonGuaranteedTerms,omitempty"`
+
 	// SellerTimeZone: For deals with Cost Per Day billing, defines the
 	// timezone used to mark the boundaries of a day (buyer-readonly)
 	SellerTimeZone string `json:"sellerTimeZone,omitempty"`
@@ -1225,8 +1237,14 @@ type DealTermsGuaranteedFixedPriceTerms struct {
 	GuaranteedImpressions int64 `json:"guaranteedImpressions,omitempty,string"`
 
 	// GuaranteedLooks: Count of guaranteed looks. Required for deal,
-	// optional for product.
+	// optional for product. For CPD deals, buyer changes to
+	// guaranteed_looks will be ignored.
 	GuaranteedLooks int64 `json:"guaranteedLooks,omitempty,string"`
+
+	// MinimumDailyLooks: Count of minimum daily looks for a CPD deal. For
+	// CPD deals, buyer should negotiate on this field instead of
+	// guaranteed_looks.
+	MinimumDailyLooks int64 `json:"minimumDailyLooks,omitempty,string"`
 
 	// ForceSendFields is a list of field names (e.g. "BillingInfo") to
 	// unconditionally include in API requests. By default, fields with
@@ -1256,9 +1274,10 @@ type DealTermsGuaranteedFixedPriceTermsBillingInfo struct {
 	DfpLineItemId int64 `json:"dfpLineItemId,omitempty,string"`
 
 	// OriginalContractedQuantity: The original contracted quantity (#
-	// impressions) for this deal. To ensure delivery, sometimes publisher
-	// will book the deal with a impression buffer, however clients are
-	// billed using the original contracted quantity.
+	// impressions) for this deal. To ensure delivery, sometimes the
+	// publisher will book the deal with a impression buffer, such that
+	// guaranteed_looks is greater than the contracted quantity. However
+	// clients are billed using the original contracted quantity.
 	OriginalContractedQuantity int64 `json:"originalContractedQuantity,omitempty,string"`
 
 	// Price: The original reservation price for the deal, if the currency
@@ -1321,6 +1340,30 @@ type DealTermsNonGuaranteedFixedPriceTerms struct {
 
 func (s *DealTermsNonGuaranteedFixedPriceTerms) MarshalJSON() ([]byte, error) {
 	type noMethod DealTermsNonGuaranteedFixedPriceTerms
+	raw := noMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
+}
+
+type DealTermsRubiconNonGuaranteedTerms struct {
+	// PriorityPrice: Optional price for Rubicon priority access in the
+	// auction.
+	PriorityPrice *Price `json:"priorityPrice,omitempty"`
+
+	// StandardPrice: Optional price for Rubicon standard access in the
+	// auction.
+	StandardPrice *Price `json:"standardPrice,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "PriorityPrice") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+}
+
+func (s *DealTermsRubiconNonGuaranteedTerms) MarshalJSON() ([]byte, error) {
+	type noMethod DealTermsRubiconNonGuaranteedTerms
 	raw := noMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
@@ -1592,7 +1635,10 @@ func (s *GetOrderDealsResponse) MarshalJSON() ([]byte, error) {
 }
 
 type GetOrderNotesResponse struct {
-	// Notes: The list of matching notes.
+	// Notes: The list of matching notes. The notes for a proposal are
+	// ordered from oldest to newest. If the notes span multiple proposals,
+	// they will be grouped by proposal, with the notes for the most
+	// recently modified proposal appearing first.
 	Notes []*MarketplaceNote `json:"notes,omitempty"`
 
 	// ServerResponse contains the HTTP response code and headers from the
@@ -1679,7 +1725,7 @@ type MarketplaceDeal struct {
 	// safeFrame compatible (buyer-readonly)
 	CreativeSafeFrameCompatibility string `json:"creativeSafeFrameCompatibility,omitempty"`
 
-	// DealId: A unique deal=id for the deal (readonly).
+	// DealId: A unique deal-id for the deal (readonly).
 	DealId string `json:"dealId,omitempty"`
 
 	// DealServingMetadata: Metadata about the serving status of this deal
@@ -2250,6 +2296,9 @@ type Price struct {
 	// CurrencyCode: The currency code for the price.
 	CurrencyCode string `json:"currencyCode,omitempty"`
 
+	// ExpectedCpmMicros: In case of CPD deals, the expected CPM in micros.
+	ExpectedCpmMicros float64 `json:"expectedCpmMicros,omitempty"`
+
 	// PricingType: The pricing type for the deal/product.
 	PricingType string `json:"pricingType,omitempty"`
 
@@ -2464,7 +2513,7 @@ type Proposal struct {
 	// create)
 	Buyer *Buyer `json:"buyer,omitempty"`
 
-	// BuyerContacts: Optional contact information fort the buyer.
+	// BuyerContacts: Optional contact information of the buyer.
 	// (seller-readonly)
 	BuyerContacts []*ContactInformation `json:"buyerContacts,omitempty"`
 
@@ -2472,7 +2521,7 @@ type Proposal struct {
 	BuyerPrivateData *PrivateData `json:"buyerPrivateData,omitempty"`
 
 	// HasBuyerSignedOff: When an proposal is in an accepted state,
-	// indicates whether the buyer has signed off Once both sides have
+	// indicates whether the buyer has signed off. Once both sides have
 	// signed off on a deal, the proposal can be finalized by the seller.
 	// (seller-readonly)
 	HasBuyerSignedOff bool `json:"hasBuyerSignedOff,omitempty"`
@@ -2538,7 +2587,7 @@ type Proposal struct {
 	// create)
 	Seller *Seller `json:"seller,omitempty"`
 
-	// SellerContacts: Optional contact information for the seller
+	// SellerContacts: Optional contact information of the seller
 	// (buyer-readonly).
 	SellerContacts []*ContactInformation `json:"sellerContacts,omitempty"`
 
@@ -2943,10 +2992,7 @@ func (c *AccountsGetCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": strconv.FormatInt(c.id, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.accounts.get" call.
@@ -3067,10 +3113,7 @@ func (c *AccountsListCall) doRequest(alt string) (*http.Response, error) {
 	req, _ := http.NewRequest("GET", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.accounts.list" call.
@@ -3177,10 +3220,7 @@ func (c *AccountsPatchCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": strconv.FormatInt(c.id, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.accounts.patch" call.
@@ -3301,10 +3341,7 @@ func (c *AccountsUpdateCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": strconv.FormatInt(c.id, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.accounts.update" call.
@@ -3433,10 +3470,7 @@ func (c *BillingInfoGetCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"accountId": strconv.FormatInt(c.accountId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.billingInfo.get" call.
@@ -3558,10 +3592,7 @@ func (c *BillingInfoListCall) doRequest(alt string) (*http.Response, error) {
 	req, _ := http.NewRequest("GET", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.billingInfo.list" call.
@@ -3678,10 +3709,7 @@ func (c *BudgetGetCall) doRequest(alt string) (*http.Response, error) {
 		"accountId": strconv.FormatInt(c.accountId, 10),
 		"billingId": strconv.FormatInt(c.billingId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.budget.get" call.
@@ -3812,10 +3840,7 @@ func (c *BudgetPatchCall) doRequest(alt string) (*http.Response, error) {
 		"accountId": strconv.FormatInt(c.accountId, 10),
 		"billingId": strconv.FormatInt(c.billingId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.budget.patch" call.
@@ -3949,10 +3974,7 @@ func (c *BudgetUpdateCall) doRequest(alt string) (*http.Response, error) {
 		"accountId": strconv.FormatInt(c.accountId, 10),
 		"billingId": strconv.FormatInt(c.billingId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.budget.update" call.
@@ -4080,10 +4102,7 @@ func (c *CreativesAddDealCall) doRequest(alt string) (*http.Response, error) {
 		"buyerCreativeId": c.buyerCreativeId,
 		"dealId":          strconv.FormatInt(c.dealId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.creatives.addDeal" call.
@@ -4199,10 +4218,7 @@ func (c *CreativesGetCall) doRequest(alt string) (*http.Response, error) {
 		"accountId":       strconv.FormatInt(c.accountId, 10),
 		"buyerCreativeId": c.buyerCreativeId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.creatives.get" call.
@@ -4323,10 +4339,7 @@ func (c *CreativesInsertCall) doRequest(alt string) (*http.Response, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.creatives.insert" call.
@@ -4510,10 +4523,7 @@ func (c *CreativesListCall) doRequest(alt string) (*http.Response, error) {
 	req, _ := http.NewRequest("GET", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.creatives.list" call.
@@ -4701,10 +4711,7 @@ func (c *CreativesRemoveDealCall) doRequest(alt string) (*http.Response, error) 
 		"buyerCreativeId": c.buyerCreativeId,
 		"dealId":          strconv.FormatInt(c.dealId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.creatives.removeDeal" call.
@@ -4809,10 +4816,7 @@ func (c *MarketplacedealsDeleteCall) doRequest(alt string) (*http.Response, erro
 	googleapi.Expand(req.URL, map[string]string{
 		"proposalId": c.proposalId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.marketplacedeals.delete" call.
@@ -4932,10 +4936,7 @@ func (c *MarketplacedealsInsertCall) doRequest(alt string) (*http.Response, erro
 	googleapi.Expand(req.URL, map[string]string{
 		"proposalId": c.proposalId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.marketplacedeals.insert" call.
@@ -5069,10 +5070,7 @@ func (c *MarketplacedealsListCall) doRequest(alt string) (*http.Response, error)
 	googleapi.Expand(req.URL, map[string]string{
 		"proposalId": c.proposalId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.marketplacedeals.list" call.
@@ -5126,7 +5124,7 @@ func (c *MarketplacedealsListCall) Do(opts ...googleapi.CallOption) (*GetOrderDe
 	//       "type": "string"
 	//     },
 	//     "proposalId": {
-	//       "description": "The proposalId to get deals for. To search across proposals specify order_id = '-' as part of the URL.",
+	//       "description": "The proposalId to get deals for. To search across all proposals specify order_id = '-' as part of the URL.",
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
@@ -5195,10 +5193,7 @@ func (c *MarketplacedealsUpdateCall) doRequest(alt string) (*http.Response, erro
 	googleapi.Expand(req.URL, map[string]string{
 		"proposalId": c.proposalId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.marketplacedeals.update" call.
@@ -5318,10 +5313,7 @@ func (c *MarketplacenotesInsertCall) doRequest(alt string) (*http.Response, erro
 	googleapi.Expand(req.URL, map[string]string{
 		"proposalId": c.proposalId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.marketplacenotes.insert" call.
@@ -5407,6 +5399,15 @@ func (r *MarketplacenotesService) List(proposalId string) *MarketplacenotesListC
 	return c
 }
 
+// PqlQuery sets the optional parameter "pqlQuery": Query string to
+// retrieve specific notes. To search the text contents of notes, please
+// use syntax like "WHERE note.note = "foo" or "WHERE note.note LIKE
+// "%bar%"
+func (c *MarketplacenotesListCall) PqlQuery(pqlQuery string) *MarketplacenotesListCall {
+	c.urlParams_.Set("pqlQuery", pqlQuery)
+	return c
+}
+
 // Fields allows partial responses to be retrieved. See
 // https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -5448,10 +5449,7 @@ func (c *MarketplacenotesListCall) doRequest(alt string) (*http.Response, error)
 	googleapi.Expand(req.URL, map[string]string{
 		"proposalId": c.proposalId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.marketplacenotes.list" call.
@@ -5499,8 +5497,13 @@ func (c *MarketplacenotesListCall) Do(opts ...googleapi.CallOption) (*GetOrderNo
 	//     "proposalId"
 	//   ],
 	//   "parameters": {
+	//     "pqlQuery": {
+	//       "description": "Query string to retrieve specific notes. To search the text contents of notes, please use syntax like \"WHERE note.note = \"foo\" or \"WHERE note.note LIKE \"%bar%\"",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "proposalId": {
-	//       "description": "The proposalId to get notes for.",
+	//       "description": "The proposalId to get notes for. To search across all proposals specify order_id = '-' as part of the URL.",
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
@@ -5568,10 +5571,7 @@ func (c *MarketplaceprivateauctionUpdateproposalCall) doRequest(alt string) (*ht
 	googleapi.Expand(req.URL, map[string]string{
 		"privateAuctionId": c.privateAuctionId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.marketplaceprivateauction.updateproposal" call.
@@ -5686,10 +5686,7 @@ func (c *PerformanceReportListCall) doRequest(alt string) (*http.Response, error
 	req, _ := http.NewRequest("GET", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.performanceReport.list" call.
@@ -5830,10 +5827,7 @@ func (c *PretargetingConfigDeleteCall) doRequest(alt string) (*http.Response, er
 		"accountId": strconv.FormatInt(c.accountId, 10),
 		"configId":  strconv.FormatInt(c.configId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.pretargetingConfig.delete" call.
@@ -5941,10 +5935,7 @@ func (c *PretargetingConfigGetCall) doRequest(alt string) (*http.Response, error
 		"accountId": strconv.FormatInt(c.accountId, 10),
 		"configId":  strconv.FormatInt(c.configId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.pretargetingConfig.get" call.
@@ -6070,10 +6061,7 @@ func (c *PretargetingConfigInsertCall) doRequest(alt string) (*http.Response, er
 	googleapi.Expand(req.URL, map[string]string{
 		"accountId": strconv.FormatInt(c.accountId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.pretargetingConfig.insert" call.
@@ -6202,10 +6190,7 @@ func (c *PretargetingConfigListCall) doRequest(alt string) (*http.Response, erro
 	googleapi.Expand(req.URL, map[string]string{
 		"accountId": strconv.FormatInt(c.accountId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.pretargetingConfig.list" call.
@@ -6327,10 +6312,7 @@ func (c *PretargetingConfigPatchCall) doRequest(alt string) (*http.Response, err
 		"accountId": strconv.FormatInt(c.accountId, 10),
 		"configId":  strconv.FormatInt(c.configId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.pretargetingConfig.patch" call.
@@ -6462,10 +6444,7 @@ func (c *PretargetingConfigUpdateCall) doRequest(alt string) (*http.Response, er
 		"accountId": strconv.FormatInt(c.accountId, 10),
 		"configId":  strconv.FormatInt(c.configId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.pretargetingConfig.update" call.
@@ -6601,10 +6580,7 @@ func (c *ProductsGetCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"productId": c.productId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.products.get" call.
@@ -6731,10 +6707,7 @@ func (c *ProductsSearchCall) doRequest(alt string) (*http.Response, error) {
 	req, _ := http.NewRequest("GET", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.products.search" call.
@@ -6854,10 +6827,7 @@ func (c *ProposalsGetCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"proposalId": c.proposalId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.proposals.get" call.
@@ -6970,10 +6940,7 @@ func (c *ProposalsInsertCall) doRequest(alt string) (*http.Response, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.proposals.insert" call.
@@ -7089,10 +7056,7 @@ func (c *ProposalsPatchCall) doRequest(alt string) (*http.Response, error) {
 		"revisionNumber": strconv.FormatInt(c.revisionNumber, 10),
 		"updateAction":   c.updateAction,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.proposals.patch" call.
@@ -7251,10 +7215,7 @@ func (c *ProposalsSearchCall) doRequest(alt string) (*http.Response, error) {
 	req, _ := http.NewRequest("GET", urls, body)
 	req.Header = reqHeaders
 	googleapi.SetOpaque(req.URL)
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.proposals.search" call.
@@ -7361,10 +7322,7 @@ func (c *ProposalsSetupcompleteCall) doRequest(alt string) (*http.Response, erro
 	googleapi.Expand(req.URL, map[string]string{
 		"proposalId": c.proposalId,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.proposals.setupcomplete" call.
@@ -7459,10 +7417,7 @@ func (c *ProposalsUpdateCall) doRequest(alt string) (*http.Response, error) {
 		"revisionNumber": strconv.FormatInt(c.revisionNumber, 10),
 		"updateAction":   c.updateAction,
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.proposals.update" call.
@@ -7618,10 +7573,7 @@ func (c *PubprofilesListCall) doRequest(alt string) (*http.Response, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"accountId": strconv.FormatInt(c.accountId, 10),
 	})
-	if c.ctx_ != nil {
-		return ctxhttp.Do(c.ctx_, c.s.client, req)
-	}
-	return c.s.client.Do(req)
+	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
 
 // Do executes the "adexchangebuyer.pubprofiles.list" call.

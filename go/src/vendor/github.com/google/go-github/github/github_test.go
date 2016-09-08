@@ -101,7 +101,7 @@ func testFormValues(t *testing.T, r *http.Request, values values) {
 
 func testHeader(t *testing.T, r *http.Request, header string, want string) {
 	if got := r.Header.Get(header); got != want {
-		t.Errorf("Header.Get(%q) returned %s, want %s", header, got, want)
+		t.Errorf("Header.Get(%q) returned %q, want %q", header, got, want)
 	}
 }
 
@@ -163,6 +163,13 @@ func TestNewClient(t *testing.T) {
 	}
 }
 
+// Ensure that length of Client.rateLimits is the same as number of fields in RateLimits struct.
+func TestClient_rateLimits(t *testing.T) {
+	if got, want := len(Client{}.rateLimits), reflect.TypeOf(RateLimits{}).NumField(); got != want {
+		t.Errorf("len(Client{}.rateLimits) is %v, want %v", got, want)
+	}
+}
+
 func TestNewRequest(t *testing.T) {
 	c := NewClient(nil)
 
@@ -191,7 +198,7 @@ func TestNewRequest_invalidJSON(t *testing.T) {
 	c := NewClient(nil)
 
 	type T struct {
-		A map[int]interface{}
+		A map[interface{}]interface{}
 	}
 	_, err := c.NewRequest("GET", "/", &T{})
 
@@ -390,7 +397,6 @@ func TestDo_rateLimit(t *testing.T) {
 
 	req, _ := client.NewRequest("GET", "/", nil)
 	_, err := client.Do(req, nil)
-
 	if err != nil {
 		t.Errorf("Do returned unexpected error: %v", err)
 	}
@@ -474,7 +480,61 @@ func TestDo_rateLimit_rateLimitError(t *testing.T) {
 	}
 	reset := time.Date(2013, 7, 1, 17, 47, 53, 0, time.UTC)
 	if rateLimitErr.Rate.Reset.UTC() != reset {
-		t.Errorf("rateLimitErr rate reset = %v, want %v", client.Rate().Reset, reset)
+		t.Errorf("rateLimitErr rate reset = %v, want %v", rateLimitErr.Rate.Reset.UTC(), reset)
+	}
+}
+
+// Ensure a network call is not made when it's known that API rate limit is still exceeded.
+func TestDo_rateLimit_noNetworkCall(t *testing.T) {
+	setup()
+	defer teardown()
+
+	reset := time.Now().UTC().Round(time.Second).Add(time.Minute) // Rate reset is a minute from now, with 1 second precision.
+
+	mux.HandleFunc("/first", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add(headerRateLimit, "60")
+		w.Header().Add(headerRateRemaining, "0")
+		w.Header().Add(headerRateReset, fmt.Sprint(reset.Unix()))
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(http.StatusForbidden)
+		fmt.Fprintln(w, `{
+   "message": "API rate limit exceeded for xxx.xxx.xxx.xxx. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
+   "documentation_url": "https://developer.github.com/v3/#rate-limiting"
+}`)
+	})
+
+	madeNetworkCall := false
+	mux.HandleFunc("/second", func(w http.ResponseWriter, r *http.Request) {
+		madeNetworkCall = true
+	})
+
+	// First request is made, and it makes the client aware of rate reset time being in the future.
+	req, _ := client.NewRequest("GET", "/first", nil)
+	client.Do(req, nil)
+
+	// Second request should not cause a network call to be made, since client can predict a rate limit error.
+	req, _ = client.NewRequest("GET", "/second", nil)
+	_, err := client.Do(req, nil)
+
+	if madeNetworkCall {
+		t.Fatal("Network call was made, even though rate limit is known to still be exceeded.")
+	}
+
+	if err == nil {
+		t.Error("Expected error to be returned.")
+	}
+	rateLimitErr, ok := err.(*RateLimitError)
+	if !ok {
+		t.Fatalf("Expected a *RateLimitError error; got %#v.", err)
+	}
+	if got, want := rateLimitErr.Rate.Limit, 60; got != want {
+		t.Errorf("rateLimitErr rate limit = %v, want %v", got, want)
+	}
+	if got, want := rateLimitErr.Rate.Remaining, 0; got != want {
+		t.Errorf("rateLimitErr rate remaining = %v, want %v", got, want)
+	}
+	if rateLimitErr.Rate.Reset.UTC() != reset {
+		t.Errorf("rateLimitErr rate reset = %v, want %v", rateLimitErr.Rate.Reset.UTC(), reset)
 	}
 }
 
@@ -490,7 +550,6 @@ func TestDo_noContent(t *testing.T) {
 
 	req, _ := client.NewRequest("GET", "/", nil)
 	_, err := client.Do(req, &body)
-
 	if err != nil {
 		t.Fatalf("Do returned unexpected error: %v", err)
 	}
@@ -520,7 +579,8 @@ func TestCheckResponse(t *testing.T) {
 		Request:    &http.Request{},
 		StatusCode: http.StatusBadRequest,
 		Body: ioutil.NopCloser(strings.NewReader(`{"message":"m",
-			"errors": [{"resource": "r", "field": "f", "code": "c"}]}`)),
+			"errors": [{"resource": "r", "field": "f", "code": "c"}],
+			"block": {"reason": "dmca", "created_at": "2016-03-17T15:39:46Z"}}`)),
 	}
 	err := CheckResponse(res).(*ErrorResponse)
 
@@ -532,6 +592,13 @@ func TestCheckResponse(t *testing.T) {
 		Response: res,
 		Message:  "m",
 		Errors:   []Error{{Resource: "r", Field: "f", Code: "c"}},
+		Block: &struct {
+			Reason    string     `json:"reason,omitempty"`
+			CreatedAt *Timestamp `json:"created_at,omitempty"`
+		}{
+			Reason:    "dmca",
+			CreatedAt: &Timestamp{time.Date(2016, 3, 17, 15, 39, 46, 0, time.UTC)},
+		},
 	}
 	if !reflect.DeepEqual(err, want) {
 		t.Errorf("Error = %#v, want %#v", err, want)
@@ -561,7 +628,6 @@ func TestCheckResponse_noBody(t *testing.T) {
 
 func TestParseBooleanResponse_true(t *testing.T) {
 	result, err := parseBoolResponse(nil)
-
 	if err != nil {
 		t.Errorf("parseBoolResponse returned error: %+v", err)
 	}
@@ -574,7 +640,6 @@ func TestParseBooleanResponse_true(t *testing.T) {
 func TestParseBooleanResponse_false(t *testing.T) {
 	v := &ErrorResponse{Response: &http.Response{StatusCode: http.StatusNotFound}}
 	result, err := parseBoolResponse(v)
-
 	if err != nil {
 		t.Errorf("parseBoolResponse returned error: %+v", err)
 	}
@@ -620,7 +685,6 @@ func TestRateLimit(t *testing.T) {
 		if m := "GET"; m != r.Method {
 			t.Errorf("Request method = %v, want %v", r.Method, m)
 		}
-		//fmt.Fprint(w, `{"resources":{"core": {"limit":2,"remaining":1,"reset":1372700873}}}`)
 		fmt.Fprint(w, `{"resources":{
 			"core": {"limit":2,"remaining":1,"reset":1372700873},
 			"search": {"limit":3,"remaining":2,"reset":1372700874}
@@ -675,6 +739,13 @@ func TestRateLimits(t *testing.T) {
 	}
 	if !reflect.DeepEqual(rate, want) {
 		t.Errorf("RateLimits returned %+v, want %+v", rate, want)
+	}
+
+	if got, want := client.rateLimits[coreCategory], *want.Core; got != want {
+		t.Errorf("client.rateLimits[coreCategory] is %+v, want %+v", got, want)
+	}
+	if got, want := client.rateLimits[searchCategory], *want.Search; got != want {
+		t.Errorf("client.rateLimits[searchCategory] is %+v, want %+v", got, want)
 	}
 }
 

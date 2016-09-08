@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/koding/tunnel/proto"
+
 	"github.com/cenkalti/backoff"
 )
 
@@ -103,8 +105,8 @@ func (c *callbacks) call(identifier string) error {
 }
 
 // Returns server control url as a string. Reads scheme and remote address from connection.
-func controlUrl(conn net.Conn) string {
-	return fmt.Sprint(scheme(conn), "://", conn.RemoteAddr(), controlPath)
+func controlURL(conn net.Conn) string {
+	return fmt.Sprint(scheme(conn), "://", conn.RemoteAddr(), proto.ControlPath)
 }
 
 func scheme(conn net.Conn) (scheme string) {

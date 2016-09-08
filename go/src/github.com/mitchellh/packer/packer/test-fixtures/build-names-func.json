@@ -1,5 +1,0 @@
-{
-    "builders": [
-        {"type": "{{upper `tubes`}}"}
-    ]
-}
