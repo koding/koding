@@ -234,7 +234,7 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         sendNotification:
           (signature String, String, Function)
-        setPlan:
+        setLimit:
           (signature Object, Function)
         fetchApiTokens: [
           (signature Function)
@@ -1099,21 +1099,21 @@ module.exports = class JGroup extends Module
     success  : (client, data, callback) ->
 
       # it's not allowed to change followings
-      blacklist  = ['slug', 'slug_', 'config', '_activePlan']
+      blacklist  = ['slug', 'slug_', 'config', '_activeLimit']
       data[item] = null  for item in blacklist when data[item]?
 
       notifyOptions =
         group   : client?.context?.group
         target  : 'group'
 
-      { reviveGroupPlan } = require '../computeproviders/computeutils'
+      { reviveGroupLimits } = require '../computeproviders/computeutils'
 
-      reviveGroupPlan this, (err, group) =>
+      reviveGroupLimits this, (err, group) =>
 
         # we need to make sure if given stack template is
-        # valid for the current group plan ~ GG
+        # valid for the current group limit ~ GG
         templates = data.stackTemplates
-        if templates?.length > 0 and group._activePlan
+        if templates?.length > 0 and group._activeLimit
           ComputeProvider = require '../computeproviders/computeprovider'
           ComputeProvider.validateTemplates client, templates, group, (err) =>
             return callback err  if err
@@ -1122,22 +1122,22 @@ module.exports = class JGroup extends Module
           @updateAndNotify notifyOptions, { $set: data }, callback
 
 
-  setPlan    : permit
+  setLimit    : permit
     advanced : [{ permission: 'edit groups', superadmin: yes }]
     success  : (client, data, callback) ->
 
       if (@getAt 'slug') is 'koding'
         return callback new KodingError \
-          'Setting a plan on koding is not allowed'
+          'Setting a limit on koding is not allowed'
 
-      dataToUpdate = { 'config.planOverrides' : data.overrides }
+      dataToUpdate = { 'config.limitOverrides' : data.overrides }
 
-      # Allow koding admins to set a testplan on dev environments
-      if data.plan and KONFIG.environment isnt 'production'
-        dataToUpdate['config.testplan'] = data.plan
+      # Allow koding admins to set a testlimit on dev environments
+      if data.limit and KONFIG.environment isnt 'production'
+        dataToUpdate['config.testlimit'] = data.limit
 
-      if data.plan is 'noplan' and not data.overrides
-        dataToUpdate['config.testplan'] = {}
+      if data.limit is 'nolimit' and not data.overrides
+        dataToUpdate['config.testlimit'] = {}
         @update { $unset: dataToUpdate }, callback
       else
         @update { $set: dataToUpdate }, callback

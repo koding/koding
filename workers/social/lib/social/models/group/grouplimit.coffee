@@ -1,6 +1,6 @@
 { Module } = require 'jraphical'
 
-module.exports = class JGroupPlan extends Module
+module.exports = class JGroupLimit extends Module
 
   @set
     indexes:

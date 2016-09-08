@@ -197,21 +197,21 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
-  describe '::fetchTeamPlans', ->
+  describe '::fetchTeamLimits', ->
 
     it 'should fail if user doesnt have a valid session', (done) ->
 
-      expectAccessDenied ComputeProvider, 'fetchTeamPlans', done
+      expectAccessDenied ComputeProvider, 'fetchTeamLimits', done
 
 
-    it 'should be able to fetch team plans for koding admins', (done) ->
+    it 'should be able to fetch team limits for koding admins', (done) ->
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
-        ComputeProvider.fetchTeamPlans client, (err, plans) ->
+        ComputeProvider.fetchTeamLimits client, (err, limits) ->
           expect(err).to.not.exist
-          expect(plans).to.be.an 'object'
-          expect(plans).to.be.deep.equal teamutils.TEAMPLANS
+          expect(limits).to.be.an 'object'
+          expect(limits).to.be.deep.equal teamutils.TEAMLIMITS
           done()
 
 
@@ -256,7 +256,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
-        testGroup._activePlan = 'test'
+        testGroup._activeLimit = 'test'
 
         # checking in parallel to test lock mechanism ~ GG
         #
@@ -278,9 +278,9 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
         overrides = { member: 3 }
 
-        testGroup._activePlan = 'test'
+        testGroup._activeLimit = 'test'
 
-        testGroup.setPlan client, { overrides }, (err) ->
+        testGroup.setLimit client, { overrides }, (err) ->
           expect(err).to.not.exist
 
           async.parallel [
@@ -358,7 +358,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
-        testGroup._activePlan = 'test'
+        testGroup._activeLimit = 'test'
 
         options  =
           group  : testGroup
@@ -375,10 +375,10 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
-        testGroup._activePlan = 'test'
+        testGroup._activeLimit = 'test'
         overrides = { maxInstance: 3 }
 
-        testGroup.setPlan client, { overrides }, (err) ->
+        testGroup.setLimit client, { overrides }, (err) ->
           expect(err).to.not.exist
 
           options  =
@@ -461,7 +461,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
         { group } = options
 
-        group._activePlan = 'test'
+        group._activeLimit = 'test'
 
         options.change = 'increment'
 

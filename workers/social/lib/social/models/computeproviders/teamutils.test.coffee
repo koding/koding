@@ -5,10 +5,10 @@ async = require 'async'
 { checkBongoConnectivity, request } = require '../../../../../../servers/testhelper'
 
 teamutils = require './teamutils'
-teamplans = require './teamplans'
+teamlimits = require './teamlimits'
 
 JGroup = require '../group'
-JGroupPlan = require '../group/groupplan'
+JGroupLimit = require '../group/grouplimit'
 
 beforeTests = -> before (done) -> checkBongoConnectivity done
 
@@ -17,13 +17,13 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
 
   describe 'teamutils', ->
 
-    describe '#fetchPlanData()', ->
+    describe '#fetchLimitData()', ->
 
-      it 'should return hardcoded team plan if it exists', (done) ->
+      it 'should return hardcoded team limit if it exists', (done) ->
 
-        trialPlan = teamplans['trial']
+        trialLimits = teamlimits['trial']
 
-        options = { body: { plan: 'trial', slug: "trial-plan-#{generateRandomString 10}" } }
+        options = { body: { limit: 'trial', slug: "trial-limit-#{generateRandomString 10}" } }
 
         queue = [
           (next) ->
@@ -37,14 +37,14 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
             JGroup.one { slug: options.body.slug }, (err, group) ->
               expect(err).to.not.exist
               expect(group).to.exist
-              expect(group.config.plan).to.be.equal 'trial'
+              expect(group.config.limit).to.be.equal 'trial'
               next()
 
           (next) ->
-            teamutils.fetchPlanData { plan: 'trial' }, (err, planData) ->
+            teamutils.fetchLimitData { limit: 'trial' }, (err, limitData) ->
               expect(err).to.not.exist
-              expect(planData).to.exist
-              expect(planData).to.be.eql trialPlan
+              expect(limitData).to.exist
+              expect(limitData).to.be.eql trialLimits
               next()
         ]
 
@@ -53,15 +53,15 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
           done()
 
 
-      it 'should return a team plan from db if it exists', (done) ->
+      it 'should return a team limit from db if it exists', (done) ->
 
         createGroupOptions =
           body:
-            plan: "awesome-plan-#{generateRandomString 10}"
+            limit: "awesome-limit-#{generateRandomString 10}"
             slug: "awesome-team-#{generateRandomString 10}"
 
         onDemandPlanOptions =
-          name               : createGroupOptions.body.plan
+          name               : createGroupOptions.body.limit
           member             : 5000
           validFor           : 0
           instancePerMember  : 90
@@ -74,8 +74,8 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
 
         queue = [
           (next) ->
-            # we are saving a group plan first
-            (new JGroupPlan onDemandPlanOptions).save next
+            # we are saving a group limit first
+            (new JGroupLimit onDemandPlanOptions).save next
 
           (next) ->
             generateCreateTeamRequestParams createGroupOptions, (createTeamRequestParams) ->
@@ -88,21 +88,21 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
             JGroup.one { slug: createGroupOptions.body.slug }, (err, group) ->
               expect(err).to.not.exist
               expect(group).to.exist
-              expect(group.config.plan).to.be.equal createGroupOptions.body.plan
+              expect(group.config.limit).to.be.equal createGroupOptions.body.limit
               _group = group
               next()
 
           (next) ->
-            teamutils.fetchPlanData _group.config, (err, planData) ->
+            teamutils.fetchLimitData _group.config, (err, limitData) ->
               expect(err).to.not.exist
-              expect(planData).to.exist
-              expect(planData.member).to.be.equal 5000
-              expect(planData.validFor).to.be.equal 0
-              expect(planData.instancePerMember).to.be.equal 90
-              expect(planData.maxInstance).to.be.equal 9000
-              expect(planData.storagePerInstance).to.be.equal 1000
-              expect(planData.allowedInstances.length).to.be.eql 0
-              expect(planData.restrictions).to.be.eql {}
+              expect(limitData).to.exist
+              expect(limitData.member).to.be.equal 5000
+              expect(limitData.validFor).to.be.equal 0
+              expect(limitData.instancePerMember).to.be.equal 90
+              expect(limitData.maxInstance).to.be.equal 9000
+              expect(limitData.storagePerInstance).to.be.equal 1000
+              expect(limitData.allowedInstances.length).to.be.eql 0
+              expect(limitData.restrictions).to.be.eql {}
               next()
         ]
 
@@ -111,11 +111,11 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
           done()
 
 
-      it 'should return default value when given plan is not even on the db', (done) ->
+      it 'should return default value when given limit is not even on the db', (done) ->
         createGroupOptions =
           body:
-            plan: "nonexistent-plan-#{generateRandomString 10}"
-            slug: "planless-team-#{generateRandomString 10}"
+            limit: "nonexistent-limit-#{generateRandomString 10}"
+            slug: "limitless-team-#{generateRandomString 10}"
 
         _group = null
 
@@ -131,14 +131,14 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
             JGroup.one { slug: createGroupOptions.body.slug }, (err, group) ->
               expect(err).to.not.exist
               expect(group).to.exist
-              expect(group.config.plan).to.be.equal createGroupOptions.body.plan
+              expect(group.config.limit).to.be.equal createGroupOptions.body.limit
               _group = group
               next()
 
           (next) ->
-            teamutils.fetchPlanData _group.config, (err, planData) ->
+            teamutils.fetchLimitData _group.config, (err, limitData) ->
               expect(err).to.not.exist
-              expect(planData).to.be.eql teamplans.default
+              expect(limitData).to.be.eql teamlimits.default
               next()
         ]
 

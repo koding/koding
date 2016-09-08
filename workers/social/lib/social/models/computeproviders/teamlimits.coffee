@@ -18,7 +18,7 @@ module.exports = clone
     instancePerMember  : 1  # allows one instance per member
     allowedInstances   : [ 't2.nano' ]
     maxInstance        : 1  # maximum instance count for this group (total)
-    storagePerInstance : 5  # means 5GB storage for this plan in total (max).
+    storagePerInstance : 5  # means 5GB storage in total (max).
                             # 1 member x 1 instancePerMember = 1 instance
                             # 5GB per instance x 1 instances = 5GB in total
     restrictions       : BASIC_RESTRICTIONS
@@ -30,7 +30,7 @@ module.exports = clone
     instancePerMember  : 2  # allows two instances per member
     allowedInstances   : [ 't2.nano' ]
     maxInstance        : 10 # maximum instance count for this group (total)
-    storagePerInstance : 50 # means 500GB storage for this plan in total (max).
+    storagePerInstance : 50 # means 500GB storage in total (max).
                             # 5 members x 2 instancePerMember = 10 instances
                             # 50GB per instance x 10 instances = 500GB in total
     restrictions       : BASIC_RESTRICTIONS
@@ -51,7 +51,7 @@ module.exports = clone
     instancePerMember  : 2  # allows two instances per member
     allowedInstances   : [ 't2.nano', 't2.micro', 't2.small' ]
     maxInstance        : 20 # maximum instance count for this group (total)
-    storagePerInstance : 10 # means 100GB storage for this plan in total (max).
+    storagePerInstance : 10 # means 100GB storage in total (max).
                             # 5 member x 2 instancePerMember   = 10 instances
                             # 10GB per instance x 10 instances = 100GB in total
     restrictions       : BASIC_RESTRICTIONS

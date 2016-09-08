@@ -3,8 +3,6 @@ KONFIG = require 'koding-config-manager'
 { extend, defaults }  = require 'underscore'
 KodingError = require '../error'
 
-TEAM_PLANS  = require '../models/computeproviders/teamplans'
-
 module.exports = class Payment extends Base
   @share()
 

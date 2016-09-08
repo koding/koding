@@ -40,28 +40,17 @@ reviveProvisioners = (client, provisioners, callback, revive = no) ->
       callback null, [ provision.slug ]
 
 
-reviveGroupPlan = (group, callback) ->
+reviveGroupLimits = (group, callback) ->
 
   # Support for test plan data to cover test cases that we need
   # to be able to run tests for different plans but we don't
   # need to update plan data on payment endpoint ~ GG
-  if testPlan = group?.getAt 'config.testplan'
+  if testLimit = group?.getAt 'config.testlimit'
+    group._activeLimit = testLimit
+  else
+    group._activeLimit = 'unlimited'
 
-    group._activePlan = testPlan
-    callback null, group
-
-    return
-
-  Payment = require '../payment'
-  Payment.fetchGroupPlan group, (err, plan) ->
-
-    return callback err  if err
-    return callback new KodingError 'Plan not found'  unless plan
-
-    if plan.planTitle is 'team_base'
-      group._activePlan = 'unlimited'
-
-    callback null, group
+  callback null, group
 
 
 reviveCredential = (client, credential, callback) ->
@@ -80,7 +69,7 @@ reviveCredential = (client, credential, callback) ->
 
 reviveClient = (client, callback, options) ->
 
-  { shouldReviveClient, shouldFetchGroupPlan } = options ? {}
+  { shouldReviveClient, shouldFetchGroupLimit } = options ? {}
   shouldReviveClient ?= yes
 
   return callback null  unless shouldReviveClient
@@ -105,9 +94,9 @@ reviveClient = (client, callback, options) ->
 
       res.user = user
 
-      if shouldFetchGroupPlan
+      if shouldFetchGroupLimit
 
-        reviveGroupPlan res.group, (err, group) ->
+        reviveGroupLimits res.group, (err, group) ->
           return callback err  if err
           res.group = group
           callback null, res
@@ -155,7 +144,7 @@ revive = do -> (
     shouldPassCredential
     shouldReviveProvider
     shouldReviveProvisioners
-    shouldFetchGroupPlan
+    shouldFetchGroupLimit
     shouldLockProcess
     shouldHaveOauth
     hasOptions
@@ -246,7 +235,7 @@ revive = do -> (
 
         , shouldReviveProvisioners
 
-    , { shouldReviveClient, shouldFetchGroupPlan }
+    , { shouldReviveClient, shouldFetchGroupLimit }
 
 
 checkTemplateUsage = (template, account, callback) ->
@@ -305,7 +294,7 @@ fetchGroupStackTemplate = (client, callback) ->
         res.template = template
         callback null, res
 
-  , { shouldFetchGroupPlan: yes }
+  , { shouldFetchGroupLimit: yes }
 
 
 guessNextLabel = (options, callback) ->
@@ -427,6 +416,6 @@ fetchUsage = (client, options, callback) ->
 module.exports = {
   fetchUserPlan, fetchGroupStackTemplate, fetchUsage
   PLANS, PROVIDERS, guessNextLabel, checkUsage
-  revive, reviveClient, reviveCredential, reviveGroupPlan
+  revive, reviveClient, reviveCredential, reviveGroupLimits
   checkTemplateUsage
 }

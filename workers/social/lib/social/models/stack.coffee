@@ -13,7 +13,7 @@ module.exports = class JComputeStack extends jraphical.Module
   { permit }         = require './group/permissionset'
   Validators         = require './group/validators'
 
-  { PROVIDERS, reviveGroupPlan } = require './computeproviders/computeutils'
+  { PROVIDERS, reviveGroupLimits } = require './computeproviders/computeutils'
 
   @trait __dirname, '../traits/protected'
 
@@ -235,7 +235,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
     JGroup = require './group'
     JGroup.one { slug }, (err, group) ->
-      reviveGroupPlan group, callback
+      reviveGroupLimits group, callback
 
 
   fetchGroup: (callback) ->

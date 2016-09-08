@@ -372,15 +372,15 @@ module.exports = class ComputeController extends KDController
           callback plans
 
 
-  fetchTeamPlans: (callback = kd.noop) ->
+  fetchTeamLimits: (callback = kd.noop) ->
 
-    if @teamplans
-      kd.utils.defer => callback @teamplans
+    if @teamlimits
+      kd.utils.defer => callback @teamlimits
     else
-      remote.api.ComputeProvider.fetchTeamPlans (err, plans) =>
+      remote.api.ComputeProvider.fetchTeamLimits (err, limits) =>
         # If there is an error at least return a simple plan
         # which includes only 'default' plan
-        if err? or not plans?
+        if err? or not limits?
           kd.warn err
           callback
             default              :
@@ -402,8 +402,8 @@ module.exports = class ComputeController extends KDController
                   tags           : no
                   user_data      : yes
         else
-          @teamplans = plans
-          callback plans
+          @teamlimits = limits
+          callback limits
 
 
   fetchRewards: (options, callback) ->
