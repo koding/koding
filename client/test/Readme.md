@@ -1,127 +1,114 @@
 # test
 
-this folder contains browser automated tests that run on [selenium server](http://www.seleniumhq.org).
+ This folder contains browser automated tests that run on [selenium server](http://www.seleniumhq.org).
+
+# setup environment
+
+Follow steps in  https://github.com/koding/koding in order to setup koding environment.
+
+#caveats
+Firefox version must be less than version 40
+
+# test architecture
+ All files related with testing is under the ```Koding/client/test``` directory.
+ Take a look at these 2 folders and 1 file that are important in order to write test cases.
+
+**lib:** All test file and helper files are written under this folder.  All modules has separated folder and their helper files under the helper folder. 
+For example if you want to add new test file about dashboard, you have to create new file under dashboard folder and you are writing functions under dashboardhelper.coffee. All test functions are written in related helper file. We call functions in the main test file. 
+	
+**bin:** It includes all tests file in javascript format. When we add coffee file, it is automatically converted to javascript format. We do not add or change anything under this folder. 
+
+**users.json:** It includes default created user information in json format. These informations are used during test. When you want to create new users, you just delete all contents of the file then run test. When test is started to run, it will be recreated automatically.
+
+# nightwatch.js 
+You can find all commands and selenium  protocol with examples  in [Nightwatch.js](http://nightwatchjs.org) website
 
 # quick start
-
-Go to [client](../client) folder and run:
-
+**Writing Sample Test : Team Login Integration Test**
+	
+  Open terminal, pull latest version of Koding and create new branch named TestLogin
+  
 ```sh
-λ koding/client make test
+git pull --rebase koding master 
+git checkout -b 'TestLogin'
 ```
 
-This will configure your `nightwatch` environment, transpile coffee-scripts under `test/lib` directory into `test/build`, start [selenium-server,](./vendor) and run your tests in the correct order that they need to be run.
+  Create new folder named login under ```koding/client/test/lib/``` directory.
 
-# configuration
+  Create  ```login.coffee``` file under the ```login``` folder.
 
-In order to run tests written with [Nightwatch.js](http://nightwatchjs.org) framework, you need to generate a [configuration script.](http://nightwatchjs.org/guide#settings-file)
-
-This file can be automatically generated with:
-
+  Create ```loginhelpers.coffee``` file under the ```koding/client/test/lib/helpers/``` folder.
+  
+  Add following lines in ```loginhelpers.coffee```.  (Indentation must be 2 spaces)
 ```sh
-λ client/test make configure
+utils = require '../utils/utils.js'
+teamsLogin = '.TeamsModal'
+loginForm = 'form.login-form'
+teamNameSelector = 'input[name=slug]'
+loginButton = 'button[testpath=goto-team-button]'
+notification = '.kdnotification'
+
+module.exports =
+
+  logintoTeam: (browser) ->
+    user = utils.getUser()
+    url  = "http://#{user.teamSlug}.dev.koding.com:8090"
+    browser
+      .url url
+      .maximizeWindow()
+      .pause 2000
+      .waitForElementVisible teamsLogin, 20000
+      .waitForElementVisible loginForm, 20000
+      .clearValue teamNameSelector
+      .setValue teamNameSelector, user.teamSlug
+      .click loginButton
+      .waitForElementVisible notification, 20000
+      .assert.containsText notification, "We couldn't find your team"
 ```
-
-or you can directly run the configuration tool itself:
-
+  Add following lines in ```login.coffee```. 
 ```sh
-λ client/test ./bin/cmd.coffee browser
-```
+  loginhelpers = require '../helpers/loginhelpers.js'
 
-Running any of those will write two files in `client` directory:
-
-### client/.nightwatch.json
-
-This is the configuration file expected by `nightwatch` and it is generated specifically for the platform (os) you are on.
-
-By default configuration tool, uses [a blueprint file](bin/nightwatch-blueprint.json) for the defaults.
-
-But you can overwrite [any key](http://nightwatchjs.org/guide#settings-file) from cli using [dot notation](https://github.com/bcoe/yargs#dot-notation):
-
-```sh
-λ client/test ./bin/cmd.coffee browser --selenium.port 5555
-```
-
-### client/.config.json
-
-This file is also extended with a `test.url` key that you have specified.
-
-Following is the help output of the configuration tool:
+  module.exports =
+  
+  loginTeam: (browser) ->
+    loginhelpers.logintoTeam browser
+    browser.end()
 
 ```
-usage: coffee bin/cmd.coffee <command> [options]
-
-Commands:
-  browser    configure browser tests
-
-Options:
-  --help, -h        show this message
-  --url             specify a url that koding webserver is running on
-  --nightwatch      specify a nightwatch config blueprint file.
-                    actual config file will be written to client/.nightwatch.json
-  --start-selenium  if enabled starts a selenium server process [default: true]
-```
-
 # running tests
 
-There is a handful of `Makefile` targets defined to make life easier:
-
-Configure and write `client/.nightwatch.json` file:
-
+  Open a new terminal and execute the following in ```koding``` directory in order to run backend
 ```sh
-λ client/test make configure
+./configure
+./run
 ```
 
-You can pass additional args that is expected by configuration tool (`bin/cmd.coffee`):
-
+  Open a new terminal and execute following code snippet in ```koding/client``` directory to build and run frontend
 ```sh
-λ client/test TEST_EXTRAS=--no-start-selenium make configure
+make  
 ```
 
-Transpile coffee files under `test/lib` into `test/build`:
-
+  Another terminal type following comment in order to run test
 ```sh
-λ client/test make compile
+./run exec client/test/run.sh login login
 ```
 
-A complete build with configuration and transpilation:
+**push changes to Koding**
+	
+	git push koding TestLogin
 
-```sh
-λ client/test make build
-```
+#standardization
+* Tests must be written in coffeescript and in [coffeescript-styleguide](https://github.com/koding/styleguide-coffeescript) that we are relying on.
 
-Run tests in the correct order that they need to be run:
+* All functions must be in related helper file. 
 
-```sh
-λ client/test make run
-```
+* Css selectors must be defined in top of the file.
 
-Build and run:
+* Indentation must be 2 spaces
 
-```sh
-λ client/test make all
-```
-
-# running tests individually
-
-You can run tests individually using either `test` or `run.sh` scripts, these scripts are same except that `test` retranspiles coffees before running:
-
-Run `activity` suite tests:
-
-```sh
-λ client/test ./test activity
-```
-
-Run `activity/likeunlike` suite
-
-```sh
-λ client/test ./test activity likeunlike
-```
-
-Gravatar:
-
-username: kodingtestuser1 / kodingtestuser@koding.com
-password: passfortestuser
+#highlights
+* WaitForElement function should be used instead of Pause function
 
 # license
 
