@@ -100,6 +100,18 @@ func (ub *UserBucket) userPut(path string, rs io.ReadSeeker) error {
 
 	if l, ok := rs.(lener); ok {
 		input.ContentLength = aws.Int64(int64(l.Len()))
+	} else {
+		size, err := rs.Seek(0, io.SeekEnd)
+		if err != nil {
+			return err
+		}
+
+		_, err = rs.Seek(0, io.SeekStart)
+		if err != nil {
+			return err
+		}
+
+		input.ContentLength = aws.Int64(size)
 	}
 
 	ub.cfg.log().Debug("PutObject()=%+v", input)

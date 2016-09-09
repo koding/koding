@@ -130,8 +130,8 @@ func (l *Uploader) UploadFile(prefix, file string) error {
 //
 // If content implements io.Closer it will get called upon method return.
 //
-// If the file name of the key ends with .gz extension, the content is going to
-// be additionally compressed with gzip.
+// If key has .gz extension, the content is assummed to be gzipped
+// and is not additionally gzipped by the Upload method.
 //
 // TODO(rjeczalik): detect if content is already gzipped and do not
 // double-compress it
@@ -146,15 +146,18 @@ func (l *Uploader) Upload(key string, content io.ReadSeeker) error {
 		return err
 	}
 
-	uniqueKey := fmt.Sprintf("%s.%d", key, len(meta.Parts))
+	var uniqueKey string
 
-	if isGzip(key) {
+	if !isGzip(key) {
 		c, err := l.gzip(uniqueKey, content, &part.CompressedSize)
 		if err != nil {
 			return err
 		}
 
 		content = c
+		uniqueKey = fmt.Sprintf("%s.%d", key, len(meta.Parts))
+	} else {
+		uniqueKey = fmt.Sprintf("%s.gz.%d", key, len(meta.Parts))
 	}
 
 	if err = l.UserBucket.Put(uniqueKey, content); err != nil {
