@@ -175,6 +175,9 @@ module.exports = class StackEditorView extends kd.View
     @createOutputView()
     @createMainButtons()
 
+    # if stackTemplate is initialized make save button disabled
+    @saveButton.setClass 'disableButton'  if stackTemplate?.machines.length
+
     @providersView.on 'ItemSelected', (credentialItem) =>
 
       credential = credentialItem.getData()
@@ -237,6 +240,7 @@ module.exports = class StackEditorView extends kd.View
 
       editorView.on 'EditorReady', =>
         ace.on 'FileContentChanged', =>
+          @saveButton.unsetClass 'disableButton'
           @changedContents[key] = ace.isContentChanged()
 
 
