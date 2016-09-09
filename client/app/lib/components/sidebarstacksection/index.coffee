@@ -9,6 +9,7 @@ getBoundingClientReact    = require 'app/util/getBoundingClientReact'
 SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
 isAdmin = require 'app/util/isAdmin'
 remote = require 'app/remote'
+isStackTemplateSharedWithTeam = require 'app/util/isstacktemplatesharedwithteam'
 { findDOMNode } = require 'react-dom'
 
 require './styl/sidebarstacksection.styl'
@@ -122,7 +123,7 @@ module.exports = class SidebarStackSection extends React.Component
         menuItems['Edit'] = { callback }
       ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
         menuItems[name] = { callback }
-      if isAdmin() and not @isSharedTeamStackTemplate()
+      if isAdmin() and not isStackTemplateSharedWithTeam @props.stack.get 'baseStackId'
         menuItems['Make Team Default'] = { callback }
 
     { top } = findDOMNode(this).getBoundingClientRect()
@@ -132,14 +133,6 @@ module.exports = class SidebarStackSection extends React.Component
     MENU = new kd.ContextMenu menuOptions, menuItems
 
     MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
-
-
-  isSharedTeamStackTemplate: ->
-
-    { groupsController } = kd.singletons
-    { stackTemplates } = groupsController.getCurrentGroup()
-
-    return @props.stack.get('baseStackId') in stackTemplates
 
 
   renderStackUpdatedWidget: ->
