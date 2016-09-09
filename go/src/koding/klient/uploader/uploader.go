@@ -31,28 +31,6 @@ type Options struct {
 	Log       kite.Logger // optional; defaultLog if nil
 }
 
-// Logger is a wrapper for kite.Logger that implements logging.Logger.
-//
-// TODO(rjeczalik): make kite.Logger compatible with logging.Logger
-type Logger struct {
-	kite.Logger
-}
-
-var _ logging.Logger = (*Logger)(nil)
-
-func (l Logger) SetLevel(logging.Level)     {}
-func (l Logger) SetHandler(logging.Handler) {}
-func (l Logger) SetCallDepth(int)           {}
-
-func (l Logger) New(prefixes ...interface{}) logging.Logger { return l }
-
-func (l Logger) Notice(format string, args ...interface{})   { l.Logger.Info(format, args...) }
-func (l Logger) Critical(format string, args ...interface{}) { l.Logger.Fatal(format, args...) }
-func (l Logger) Panic(format string, args ...interface{}) {
-	l.Logger.Fatal(format, args...)
-	panic(fmt.Errorf(format, args...))
-}
-
 // Uploader is a kite handler for "log.upload" method.
 type Uploader struct {
 	cfg    *Options
@@ -63,9 +41,9 @@ type Uploader struct {
 
 // New gives new uploader built from the given options.
 func New(cfg *Options) *Uploader {
-	log := cfg.Log
-	if log == nil {
-		log = defaultLog
+	log := defaultLog
+	if l, ok := cfg.Log.(logging.Logger); ok {
+		log = l
 	}
 
 	up := &Uploader{
@@ -76,7 +54,7 @@ func New(cfg *Options) *Uploader {
 				Kite:      cfg.Kite,
 				Bucket:    cfg.Bucket,
 				Region:    cfg.Region,
-				Log:       Logger{log},
+				Log:       log,
 			}),
 			MetaStore: storage.NewEncodingStorage(cfg.DB, []byte("uploader.metadata")),
 		},
