@@ -191,7 +191,16 @@ func (up *Uploader) process() {
 			0: {Dir: reflect.SelectRecv, Chan: reflect.ValueOf(up.close)},
 			1: {Dir: reflect.SelectRecv, Chan: reflect.ValueOf(up.req)},
 		}
-		prefix = up.cfg.Kite.Config.Id
+		prefix  = up.cfg.Kite.Config.Id
+		watched = func(file string) bool {
+			for _, f := range files {
+				if f == file {
+					return true
+				}
+			}
+
+			return false
+		}
 	)
 
 	for {
@@ -211,14 +220,16 @@ func (up *Uploader) process() {
 					req.Interval = 15 * time.Minute
 				}
 
-				t := time.NewTicker(req.Interval)
+				if !watched(req.File) {
+					t := time.NewTicker(req.Interval)
 
-				tickers = append(tickers, t)
-				files[len(cases)] = req.File
-				cases = append(cases, reflect.SelectCase{
-					Dir:  reflect.SelectRecv,
-					Chan: reflect.ValueOf(t.C),
-				})
+					tickers = append(tickers, t)
+					files[len(cases)] = req.File
+					cases = append(cases, reflect.SelectCase{
+						Dir:  reflect.SelectRecv,
+						Chan: reflect.ValueOf(t.C),
+					})
+				}
 			}
 
 			fallthrough
