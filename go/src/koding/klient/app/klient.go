@@ -71,6 +71,7 @@ var (
 		"/Library/Logs/kd.log",
 		"/var/log/cloud-init-output.log",
 		"/var/log/cloud-init.log",
+		"/var/lib/koding/user-data.sh",
 	}
 )
 

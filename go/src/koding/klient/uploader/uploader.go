@@ -259,7 +259,7 @@ func (up *Uploader) process() {
 			case os.IsNotExist(r.err):
 				up.log().Debug("%s: file does not exist", req.File)
 			default:
-				up.log().Error("%s: failed to upload: %s", req.File, r.err)
+				up.log().Debug("%s: failed to upload: %s", req.File, r.err)
 			}
 		}
 	}

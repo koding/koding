@@ -15,8 +15,6 @@ VAGRANTFILE_API_VERSION = "2"
 $script = <<SCRIPT
 #!/bin/bash
 
-{{if .Strict}}set -euo pipefail{{end}}
-
 export DEBIAN_FRONTEND=noninteractive
 export USER_LOG=/var/log/cloud-init-output.log
 
@@ -25,7 +23,7 @@ die() {
 	exit 2
 }
 
-trap 'echo _KD_DONE_' EXIT
+trap "echo _KD_DONE_ | tee -a $USER_LOG" EXIT
 
 {{if .TLSProxyHostname}}
 echo 127.0.0.1 {{.TLSProxyHostname}} >> /etc/hosts
@@ -47,7 +45,7 @@ chmod -R 0755 /var/lib/koding
 
 pushd /var/lib/koding
 ./user-data.sh 2>&1 | tee -a $USER_LOG || die "$(cat $USER_LOG | perl -pe 's/\n/\\\\n/g')"
-popd /var/lib/koding
+popd
 
 SCRIPT
 
