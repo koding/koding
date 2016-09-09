@@ -133,7 +133,7 @@ func (d *Driver) Kite(cfg *keygen.Config, username string) *keygen.Config {
 // It returns a function that can be used to explicitely stop
 // the kite server.
 func (d *Driver) Server(cfg *keygen.Config) (cancel func()) {
-	kiteCfg := d.Kite(cfg, "gateway")
+	kiteCfg := d.Kite(cfg, "keygen")
 
 	keygen.NewServer(kiteCfg)
 
@@ -160,7 +160,7 @@ func ParseFlags(v interface{}) error {
 		Underlying() *Flags
 	}
 
-	envPrefix := "gateway"
+	envPrefix := "keygen"
 
 	// Try to read the EnvPrefix from the v, so it is possible
 	// to set different flags for different tests when

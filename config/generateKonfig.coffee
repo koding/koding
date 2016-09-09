@@ -138,9 +138,9 @@ module.exports = (options, credentials) ->
     userPublicKey: credentials.kloud.userPublicKey
     userPrivateKey: credentials.kloud.userPrivateKey
 
-    keygenAccessKey: credentials.kloud.gatewayAccessKey
-    keygenSecretKey: credentials.kloud.gatewaySecretKey
-    keygenBucket: credentials.kloud.gatewayAccessKey
+    keygenAccessKey: credentials.kloud.keygenAccessKey
+    keygenSecretKey: credentials.kloud.keygenSecretKey
+    keygenBucket: credentials.kloud.keygenAccessKey
 
     address: "http://localhost:#{kloudPort}/kite"
 

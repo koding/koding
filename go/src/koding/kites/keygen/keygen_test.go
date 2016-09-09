@@ -15,7 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func TestGateway_UserBucket(t *testing.T) {
+func TestKeygen_UserBucket(t *testing.T) {
 	var f keygentest.Flags
 
 	if err := keygentest.ParseFlags(&f); err != nil {

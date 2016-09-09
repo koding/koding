@@ -18,7 +18,7 @@ import (
 
 // TODO(rjeczalik): refactor Server/Provider to support multiple auth types (AuthRequest.Type)
 
-var defaultLog = logging.NewCustom("gateway", false)
+var defaultLog = logging.NewCustom("keygen", false)
 
 // DefaultBefore is a default behavior for Config.BeforeFunc field.
 var DefaultBefore = func(expire time.Time) bool {
@@ -85,20 +85,20 @@ func (cfg *Config) log() logging.Logger {
 	return defaultLog
 }
 
-// AuthRequest represents request message for the "gateway.auth" method.
+// AuthRequest represents request message for the "keygen.auth" method.
 type AuthRequest struct {
 	User string `json:"user"`
 	Type string `json:"type"`
 }
 
-// AuthResponse represents response message for the "gateway.auth" method.
+// AuthResponse represents response message for the "keygen.auth" method.
 type AuthResponse struct {
 	Type     string      `json:"type"`
 	Resource string      `json:"resource"`
 	Value    interface{} `json:"value"`
 }
 
-// Server is a gateway server.
+// Server is a keygen server.
 type Server struct {
 	cfg *Config
 	sts *sts.STS
@@ -131,7 +131,7 @@ func NewServer(cfg *Config) *Server {
 	return s
 }
 
-// Auth is a kite handler for the "gateway.auth" method.
+// Auth is a kite handler for the "keygen.auth" method.
 func (s *Server) Auth(r *kite.Request) (interface{}, error) {
 	if r.Args == nil {
 		return nil, errors.New("missing argument")
@@ -219,7 +219,7 @@ func (s *Server) userAuth(cr *AuthRequest) error {
 }
 
 // Provider provides an implementation for the AWS credentials.Provider
-// by obtaining temporary token from gateway server.
+// by obtaining temporary token from keygen server.
 type Provider struct {
 	cfg    *Config
 	expire time.Time
@@ -281,7 +281,7 @@ func (p *Provider) Retrieve() (v credentials.Value, err error) {
 		AccessKeyID:     aws.StringValue(cred.AccessKeyId),
 		SecretAccessKey: aws.StringValue(cred.SecretAccessKey),
 		SessionToken:    aws.StringValue(cred.SessionToken),
-		ProviderName:    "gateway",
+		ProviderName:    "keygen",
 	}, nil
 }
 
