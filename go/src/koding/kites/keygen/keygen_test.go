@@ -51,7 +51,7 @@ func TestKeygen_UserBucket(t *testing.T) {
 		ub := keygen.NewUserBucket(drv.Kite(cfg, username))
 
 		for _, file := range files {
-			if err := ub.Put(file.Key, strings.NewReader(file.Content)); err != nil {
+			if _, err := ub.Put(file.Key, strings.NewReader(file.Content)); err != nil {
 				t.Fatalf("%s: Put(%s)=%s", username, file.Key, err)
 			}
 
@@ -67,7 +67,7 @@ func TestKeygen_UserBucket(t *testing.T) {
 
 				// Ensure current user has no permission to upload to other user directories.
 				if username != otherUser {
-					err := ub.UserPut(key, strings.NewReader(file.Content))
+					_, err := ub.UserPut(key, strings.NewReader(file.Content))
 
 					if e := testErrorCode(err, "AccessDenied"); e != nil {
 						t.Errorf("%s -> %s: PutObject: %s", username, otherUser, e)

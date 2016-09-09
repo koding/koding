@@ -16,6 +16,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -88,7 +89,7 @@ func IsNop(err error) bool {
 
 // Putter is responsible for streaming the content under the given key path.
 type Putter interface {
-	Put(key string, content io.ReadSeeker) error
+	Put(key string, content io.ReadSeeker) (*url.URL, error)
 }
 
 // Uploader is used to stream logs' contents.
@@ -112,7 +113,7 @@ type Uploader struct {
 //
 // The key is constructed by joining prefix and the
 // canonical form of the file path.
-func (l *Uploader) UploadFile(prefix, file string) error {
+func (l *Uploader) UploadFile(prefix, file string) (*url.URL, error) {
 	key := filepath.ToSlash(filepath.Clean(file))
 	if prefix != "" {
 		key = path.Clean(prefix + "/" + key)
@@ -120,7 +121,7 @@ func (l *Uploader) UploadFile(prefix, file string) error {
 
 	f, err := os.Open(file)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	return l.Upload(key, f)
@@ -135,7 +136,7 @@ func (l *Uploader) UploadFile(prefix, file string) error {
 //
 // TODO(rjeczalik): detect if content is already gzipped and do not
 // double-compress it
-func (l *Uploader) Upload(key string, content io.ReadSeeker) error {
+func (l *Uploader) Upload(key string, content io.ReadSeeker) (*url.URL, error) {
 	if c, ok := content.(io.Closer); ok {
 		defer c.Close()
 	}
@@ -143,7 +144,7 @@ func (l *Uploader) Upload(key string, content io.ReadSeeker) error {
 	meta := l.meta(key)
 	part, err := rotate(content, meta)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var uniqueKey string
@@ -151,17 +152,21 @@ func (l *Uploader) Upload(key string, content io.ReadSeeker) error {
 	if !isGzip(key) {
 		c, err := l.gzip(uniqueKey, content, &part.CompressedSize)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		content = c
-		uniqueKey = fmt.Sprintf("%s.%d", key, len(meta.Parts))
-	} else {
 		uniqueKey = fmt.Sprintf("%s.gz.%d", key, len(meta.Parts))
+	} else {
+		part.CompressedSize = part.Size
+		uniqueKey = fmt.Sprintf("%s.%d", key, len(meta.Parts))
 	}
 
-	if err = l.UserBucket.Put(uniqueKey, content); err != nil {
-		return err
+	l.log().Debug("uploading %q...", uniqueKey)
+
+	url, err := l.UserBucket.Put(uniqueKey, content)
+	if err != nil {
+		return nil, err
 	}
 
 	meta.Parts = append(meta.Parts, part)
@@ -170,7 +175,7 @@ func (l *Uploader) Upload(key string, content io.ReadSeeker) error {
 		l.log().Error("failure updating metadata for %q: %s", key, err)
 	}
 
-	return nil
+	return url, nil
 }
 
 func (l *Uploader) meta(key string) *Metadata {
@@ -283,5 +288,5 @@ func readChecksum(rs io.ReadSeeker, offset, size int64) (string, error) {
 }
 
 func isGzip(key string) bool {
-	return strings.HasSuffix(strings.ToLower(path.Base(key)), ".gz")
+	return strings.HasSuffix(strings.ToLower(key), ".gz")
 }

@@ -3,6 +3,7 @@ package keygen
 import (
 	"encoding/json"
 	"io"
+	"net/url"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -82,11 +83,11 @@ func NewUserBucket(cfg *Config) *UserBucket {
 }
 
 // Put streams the content of rs reader to the S3 bucket under the given key.
-func (ub *UserBucket) Put(key string, rs io.ReadSeeker) error {
+func (ub *UserBucket) Put(key string, rs io.ReadSeeker) (*url.URL, error) {
 	return ub.userPut(ub.cfg.username()+"/"+key, rs)
 }
 
-func (ub *UserBucket) userPut(path string, rs io.ReadSeeker) error {
+func (ub *UserBucket) userPut(path string, rs io.ReadSeeker) (*url.URL, error) {
 	type lener interface {
 		Len() int
 	}
@@ -103,12 +104,12 @@ func (ub *UserBucket) userPut(path string, rs io.ReadSeeker) error {
 	} else {
 		size, err := rs.Seek(0, io.SeekEnd)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		_, err = rs.Seek(0, io.SeekStart)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		input.ContentLength = aws.Int64(size)
@@ -116,8 +117,26 @@ func (ub *UserBucket) userPut(path string, rs io.ReadSeeker) error {
 
 	ub.cfg.log().Debug("PutObject()=%+v", input)
 
-	_, err := ub.s3.PutObject(input)
-	return err
+	if _, err := ub.s3.PutObject(input); err != nil {
+		return nil, err
+	}
+
+	u := &url.URL{
+		Scheme: "https",
+		Path:   "/" + path,
+	}
+
+	// S3 bucket endpoints, for more details see:
+	//
+	//   http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingBucket.html
+	//
+	if ub.cfg.Region == "us-east-1" {
+		u.Host = ub.cfg.Bucket + ".s3.amazonaws.com"
+	} else {
+		u.Host = ub.cfg.Bucket + ".s3-" + ub.cfg.Region + ".amazonaws.com"
+	}
+
+	return u, nil
 }
 
 // mustJSON returns a JSON representation of v as a string,

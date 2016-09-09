@@ -122,7 +122,7 @@ func TestLogrotate_Upload(t *testing.T) {
 	for i, part := range parts {
 		c := reader(0, part.Size)
 
-		if err := l.Upload("content.gz", c); err != nil {
+		if _, err := l.Upload("content.gz", c); err != nil {
 			t.Fatalf("%d: Put()=%s", i, err)
 		}
 

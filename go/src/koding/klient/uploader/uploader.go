@@ -3,7 +3,7 @@ package uploader
 import (
 	"bytes"
 	"errors"
-	"fmt"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -34,7 +34,7 @@ type Options struct {
 type Uploader struct {
 	cfg    *Options
 	rotate *logrotate.Uploader
-	req    chan *UploadRequest
+	req    chan *request
 	close  chan struct{}
 }
 
@@ -57,7 +57,7 @@ func New(cfg *Options) *Uploader {
 			}),
 			MetaStore: storage.NewEncodingStorage(cfg.DB, []byte("uploader.metadata")),
 		},
-		req:   make(chan *UploadRequest),
+		req:   make(chan *request),
 		close: make(chan struct{}),
 	}
 
@@ -104,14 +104,6 @@ func (req *UploadRequest) Valid() error {
 	return nil
 }
 
-func (req *UploadRequest) key() string {
-	if len(req.Content) != 0 && req.File == "" {
-		return req.Key
-	}
-
-	return req.File
-}
-
 // UploadResponse represents a response of the "log.upload" kite method.
 type UploadResponse struct {
 	URL string `json:"url"`
@@ -120,7 +112,7 @@ type UploadResponse struct {
 // UploadFile uploads the given file to the S3.
 //
 // If interval is > 0 then the given file is uploaded to S3 at the given interval.
-func (up *Uploader) UploadFile(file string, interval time.Duration) (string, error) {
+func (up *Uploader) UploadFile(file string, interval time.Duration) (*url.URL, error) {
 	req := &UploadRequest{
 		File:     file,
 		Interval: interval,
@@ -140,13 +132,13 @@ func (up *Uploader) Upload(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	s, err := up.upload(&req)
+	url, err := up.upload(&req)
 	if err != nil {
 		return nil, err
 	}
 
 	return &UploadResponse{
-		URL: s,
+		URL: url.String(),
 	}, nil
 }
 
@@ -160,18 +152,24 @@ func (up *Uploader) Close() error {
 	return nil
 }
 
-func (up *Uploader) upload(req *UploadRequest) (string, error) {
+func (up *Uploader) upload(req *UploadRequest) (*url.URL, error) {
 	if err := req.Valid(); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	up.req <- req
+	respC := make(chan *response, 1)
 
-	return up.url(req), nil
-}
+	up.req <- &request{
+		UploadRequest: req,
+		respC:         respC,
+	}
 
-func (up *Uploader) url(req *UploadRequest) string {
-	return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", up.cfg.Bucket, path.Clean(up.cfg.Kite.Config.Id+"/"+req.key()))
+	select {
+	case <-up.close:
+		return nil, errors.New("Uploader was closed")
+	case r := <-respC:
+		return r.url, r.err
+	}
 }
 
 func (up *Uploader) log() kite.Logger {
@@ -182,6 +180,24 @@ func (up *Uploader) log() kite.Logger {
 	return defaultLog
 }
 
+type request struct {
+	*UploadRequest
+	respC chan<- *response
+}
+
+type response struct {
+	url *url.URL
+	err error
+}
+
+// process is a worker goroutine that serializes access
+// to up.rotate; the MetaStore used in default implementation
+// is not goroutine safe - trying to upload the same file
+// in two concurrent goroutines could corrupt BoltDB database.
+//
+// TODO(rjeczalik): To increase throughput process could spawn
+// multiple goroutines ensuring there's at most one concurrent
+// upload per unique key.
 func (up *Uploader) process() {
 	watched := make(map[string]struct{})
 	prefix := up.cfg.Kite.Config.Id
@@ -209,8 +225,10 @@ func (up *Uploader) process() {
 							case <-up.close:
 								return
 							case <-t.C:
-								up.req <- &UploadRequest{
-									File: file,
+								up.req <- &request{
+									UploadRequest: &UploadRequest{
+										File: file,
+									},
 								}
 							}
 						}
@@ -218,26 +236,30 @@ func (up *Uploader) process() {
 				}
 			}
 
-			var err error
-			var key string
+			var r response
 
 			if req.File != "" {
-				err = up.rotate.UploadFile(prefix, req.File)
-				key = prefix + "/" + req.File
+				r.url, r.err = up.rotate.UploadFile(prefix, req.File)
 			} else {
-				err = up.rotate.Upload(key, bytes.NewReader(req.Content))
-				key = prefix + "/" + req.Key
+				r.url, r.err = up.rotate.Upload(path.Clean(prefix+"/"+req.Key), bytes.NewReader(req.Content))
 			}
 
-			switch key = path.Clean(key); {
-			case err == nil:
-				up.log().Debug("%s: uploaded successfully", key)
-			case logrotate.IsNop(err):
-				up.log().Debug("%s: nothing to upload", key)
-			case os.IsNotExist(err):
-				up.log().Debug("%s: file does not exist", key)
+			if req.respC != nil {
+				select {
+				case req.respC <- &r:
+				default:
+				}
+			}
+
+			switch {
+			case r.err == nil:
+				up.log().Debug("%s: uploaded successfully", req.File)
+			case logrotate.IsNop(r.err):
+				up.log().Debug("%s: nothing to upload", req.File)
+			case os.IsNotExist(r.err):
+				up.log().Debug("%s: file does not exist", req.File)
 			default:
-				up.log().Error("%s: failed to upload: %s", key, err)
+				up.log().Error("%s: failed to upload: %s", req.File, r.err)
 			}
 		}
 	}

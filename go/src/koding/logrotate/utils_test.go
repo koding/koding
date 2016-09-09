@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"strings"
 
 	"koding/logrotate"
@@ -15,7 +16,7 @@ import (
 
 type UserBucket map[string][]byte
 
-func (ub UserBucket) Put(key string, rs io.ReadSeeker) (err error) {
+func (ub UserBucket) Put(key string, rs io.ReadSeeker) (u *url.URL, err error) {
 	var r io.Reader = rs
 	var origKey = key
 
@@ -24,20 +25,22 @@ func (ub UserBucket) Put(key string, rs io.ReadSeeker) (err error) {
 	}
 
 	if logrotate.IsGzip(origKey) {
-
 		if r, err = gzip.NewReader(rs); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	p, err := ioutil.ReadAll(r)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	ub[key] = p
 
-	return nil
+	return &url.URL{
+		Scheme: "memory",
+		Path:   "0xDD",
+	}, nil
 }
 
 func reader(offset, size int64) io.ReadSeeker {
