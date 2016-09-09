@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"reflect"
 	"time"
 
 	"koding/kites/keygen"
@@ -184,64 +183,45 @@ func (up *Uploader) log() kite.Logger {
 }
 
 func (up *Uploader) process() {
-	var (
-		files   = make(map[int]string)
-		tickers []*time.Ticker
-		cases   = []reflect.SelectCase{
-			0: {Dir: reflect.SelectRecv, Chan: reflect.ValueOf(up.close)},
-			1: {Dir: reflect.SelectRecv, Chan: reflect.ValueOf(up.req)},
-		}
-		prefix  = up.cfg.Kite.Config.Id
-		watched = func(file string) bool {
-			for _, f := range files {
-				if f == file {
-					return true
-				}
-			}
-
-			return false
-		}
-	)
+	watched := make(map[string]struct{})
+	prefix := up.cfg.Kite.Config.Id
 
 	for {
-		var req *UploadRequest
-
-		switch n, v, _ := reflect.Select(cases); n {
-		case 0:
-			for _, t := range tickers {
-				t.Stop()
-			}
+		select {
+		case <-up.close:
 			return
-		case 1:
-			req = v.Interface().(*UploadRequest)
 
+		case req := <-up.req:
+			// Upload file at the given interval, if the file
+			// is requested to be watched.
 			if req.Interval > 0 && req.File != "" {
 				if req.Interval < 15*time.Minute {
 					req.Interval = 15 * time.Minute
 				}
 
-				if !watched(req.File) {
-					t := time.NewTicker(req.Interval)
+				if _, ok := watched[req.File]; !ok {
+					go func(file string) {
+						t := time.NewTicker(req.Interval)
+						defer t.Stop()
 
-					tickers = append(tickers, t)
-					files[len(cases)] = req.File
-					cases = append(cases, reflect.SelectCase{
-						Dir:  reflect.SelectRecv,
-						Chan: reflect.ValueOf(t.C),
-					})
+						for {
+							select {
+							case <-up.close:
+								return
+							case <-t.C:
+								up.req <- &UploadRequest{
+									File: file,
+								}
+							}
+						}
+					}(req.File)
 				}
 			}
 
-			fallthrough
-
-		default:
 			var err error
 			var key string
 
-			if req == nil {
-				err = up.rotate.UploadFile(prefix, files[n])
-				key = prefix + "/" + files[n]
-			} else if req.File != "" {
+			if req.File != "" {
 				err = up.rotate.UploadFile(prefix, req.File)
 				key = prefix + "/" + req.File
 			} else {
