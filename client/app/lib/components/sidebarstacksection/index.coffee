@@ -8,6 +8,7 @@ StackUpdatedWidget        = require './stackupdatedwidget'
 getBoundingClientReact    = require 'app/util/getBoundingClientReact'
 SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
 isAdmin = require 'app/util/isAdmin'
+remote = require 'app/remote'
 { findDOMNode } = require 'react-dom'
 
 require './styl/sidebarstacksection.styl'
@@ -68,7 +69,7 @@ module.exports = class SidebarStackSection extends React.Component
 
   onMenuItemClick: (item, event) ->
 
-    { appManager, router } = kd.singletons
+    { appManager, router, linkController, computeController } = kd.singletons
     { stack } = @props
     { reinitStackFromWidget, deleteStack } = EnvironmentFlux.actions
 
@@ -76,6 +77,7 @@ module.exports = class SidebarStackSection extends React.Component
     MENU.destroy()
 
     templateId = stack.get 'baseStackId'
+
 
     switch title
       when 'Edit' then router.handleRoute "/Stack-Editor/#{templateId}"
@@ -87,7 +89,10 @@ module.exports = class SidebarStackSection extends React.Component
       when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
       when 'Open on GitLab'
         remoteUrl = stack.getIn ['config', 'remoteDetails', 'originalUrl']
-        kd.singletons.linkController.openOrFocus remoteUrl
+        linkController.openOrFocus remoteUrl
+      when 'Make Team Default'
+        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
+          computeController.makeTeamDefault template, no  unless err
 
 
   onTitleClick: (event) ->
@@ -117,6 +122,8 @@ module.exports = class SidebarStackSection extends React.Component
         menuItems['Edit'] = { callback }
       ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
         menuItems[name] = { callback }
+      if isAdmin() and not @isSharedTeamStackTemplate()
+        menuItems['Make Team Default'] = { callback }
 
     { top } = findDOMNode(this).getBoundingClientRect()
 
@@ -125,6 +132,14 @@ module.exports = class SidebarStackSection extends React.Component
     MENU = new kd.ContextMenu menuOptions, menuItems
 
     MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
+
+
+  isSharedTeamStackTemplate: ->
+
+    { groupsController } = kd.singletons
+    { stackTemplates } = groupsController.getCurrentGroup()
+
+    return @props.stack.get('baseStackId') in stackTemplates
 
 
   renderStackUpdatedWidget: ->

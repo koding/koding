@@ -16,6 +16,7 @@ SidebarFlux = require 'app/flux/sidebar'
 TeamFlux = require 'app/flux/teams'
 DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 MENU = null
+isAdmin = require 'app/util/isAdmin'
 
 require './styl/sidebar.styl'
 require './styl/sidebarmenu.styl'
@@ -81,7 +82,7 @@ module.exports = class Sidebar extends React.Component
 
   onMenuItemClick: (id, item, event) ->
 
-    { router } = kd.singletons
+    { router, linkController, appManager, computeController } = kd.singletons
     { title } = item.getData()
 
     MENU.destroy()
@@ -91,10 +92,13 @@ module.exports = class Sidebar extends React.Component
       when 'Edit' then router.handleRoute "/Stack-Editor/#{id}"
       when 'Initialize'
         EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
-          kd.singletons.appManager.tell 'Stackeditor', 'reloadEditor', template._id
+          appManager.tell 'Stackeditor', 'reloadEditor', template._id
       when 'Open on GitLab'
         remoteUrl = draft.getIn ['config', 'remoteDetails', 'originalUrl']
-        kd.singletons.linkController.openOrFocus remoteUrl
+        linkController.openOrFocus remoteUrl
+      when 'Make Team Default'
+        computeController.makeTeamDefault draft.toJS(), yes
+
 
 
   onDraftTitleClick: (id, event) ->
@@ -109,10 +113,13 @@ module.exports = class Sidebar extends React.Component
 
     menuItems = {}
     draft = @state.drafts.get id
+
     if draft.getIn ['config', 'remoteDetails', 'originalUrl']
       menuItems['Open on GitLab'] = { callback }
 
     ['Edit', 'Initialize'].forEach (name) => menuItems[name] = { callback }
+
+    menuItems['Make Team Default'] = { callback } if isAdmin() and draft.get('machines').length
 
     { top } = findDOMNode(@refs["draft-#{id}"]).getBoundingClientRect()
 
