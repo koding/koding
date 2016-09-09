@@ -48,6 +48,7 @@ services=(
   koding/kites/kloud/scripts/userdebug
   koding/kites/kloud/scripts/sl
   koding/klient
+  koding/scripts/ssh
 
   socialapi/workers/api
   socialapi/workers/cmd/notification
