@@ -33,12 +33,12 @@ var defaultLog = logging.NewCustom("logrotate", false)
 // DefaultChecksumSize is a size of a part that is going to be checksummed.
 //
 // E.g. if your log file contains a lot of lines that have exact the same
-// content and additionally those lines are long ones (>128 characters),
+// content and additionally those lines are long ones (>DefaultChecksumSize characters),
 // you may want to increase the DefaultChecksumSize to ensure
 // there are not false-positive checksum matches.
 //
 // TODO(rjeczalik): make Logger use configurable ChecksumSize
-const DefaultChecksumSize = 128
+const DefaultChecksumSize = 256
 
 // Metadata represents a metadata of a single object, e.g. file.
 type Metadata struct {
