@@ -12,8 +12,6 @@ Minimum requirements are;
   - 10G Storage
 
 ### Software
-
-  - [git](https://git-scm.com)
   - [selenium server jar file](https://selenium-release.storage.googleapis.com/index.html)
   - [nightwatch.js](http://nightwatchjs.org)
   - [firefox version 46.0 or earlier versions](https://www.mozilla.org/en-US/firefox/46.0/releasenotes/) ( we have compatible issue with latest version of firefox) 
@@ -22,7 +20,7 @@ Minimum requirements are;
 Follow steps in  https://github.com/koding/koding in order to setup koding environment.
 
 
-# quick start
+## Quick Start
 **Writing Sample Test : Team Login Integration Test**
 	
   Open terminal, pull latest version of Koding and create new branch named TestLogin
@@ -32,13 +30,17 @@ git pull --rebase koding master
 git checkout -b 'TestLogin'
 ```
 
-  Create new folder named login under ```koding/client/test/lib/``` directory.
-
-  Create  ```login.coffee``` file under the ```login``` folder.
-
-  Create ```loginhelpers.coffee``` file under the ```koding/client/test/lib/helpers/``` folder.
+  Create a ```login``` folder then create ```login.coffee``` and ```loginhelpers.coffee``` file under  ```koding/client/test/lib/``` directory.
   
-  Add following lines in ```loginhelpers.coffee```.  (Indentation must be 2 spaces)
+```sh
+cd koding/client/test/lib
+mkdir login
+touch login/login.coffee
+touch helpers/loginhelpers.coffee
+```
+
+
+  Add following lines in ```loginhelpers.coffee```
 ```sh
 utils = require '../utils/utils.js'
 teamsLogin = '.TeamsModal'
@@ -75,29 +77,18 @@ module.exports =
     browser.end()
 
 ```
-# running tests
+### Running Tests
 
-  Open a new terminal and execute the following in ```koding``` directory in order to run backend
-```sh
-./configure
-./run
-```
-
-  Open a new terminal and execute following code snippet in ```koding/client``` directory to build and run frontend
-```sh
-make  
-```
-
-  Another terminal type following comment in order to run test
+Execute to following line in ```Koding``` directory
 ```sh
 ./run exec client/test/run.sh login login
 ```
 
 **push changes to Koding**
 	
-	git push koding TestLogin
+```git push koding TestLogin```
 
-# test architecture
+## Test Architecture
  All files related with testing is under the ```Koding/client/test``` directory.
  Take a look at these 2 folders and 1 file that are important in order to write test cases.
 
@@ -108,10 +99,10 @@ For example if you want to add new test file about dashboard, you have to create
 
 **users.json:** It includes default created user information in json format. These informations are used during test. When you want to create new users, you just delete all contents of the file then run test. When test is started to run, it will be recreated automatically.
 
-# nightwatch.js 
+## nightwatch.js 
 You can find all commands and selenium  protocol with examples  in [Nightwatch.js](http://nightwatchjs.org) website
 
-#standardization
+## Standardization
 * Tests must be written in coffeescript and in [coffeescript-styleguide](https://github.com/koding/styleguide-coffeescript) that we are relying on.
 
 * All functions must be in related helper file. 
@@ -120,9 +111,6 @@ You can find all commands and selenium  protocol with examples  in [Nightwatch.j
 
 * Indentation must be 2 spaces
 
-#highlights
-* WaitForElement function should be used instead of Pause function
+## License
 
-# license
-
-2015 Koding, Inc
+Koding is licensed under [[Apache 2.0.](https://github.com/koding/koding/blob/master/LICENSE)
