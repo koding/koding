@@ -243,6 +243,7 @@ import:
 - package: github.com/segmentio/backo-go
 - package: github.com/xtgo/uuid
 - package: golang.org/x/sys/unix
+- package: github.com/vaughan0/go-ini
 - package: github.com/jtolds/gls
 - package: github.com/oschwald/maxminddb-golang
 - package: github.com/smartystreets/assertions

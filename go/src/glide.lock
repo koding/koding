@@ -13,6 +13,8 @@ imports:
   version: a3ebdb999b831ecb6ab8a226e31b07b2b9061c47
   subpackages:
   - cidr
+- name: github.com/vaughan0/go-ini
+  version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
 - name: github.com/apparentlymart/go-grafana-api
   version: d49f95c81c580a4e7a15244b9b12dce8f60750f4
 - name: github.com/apparentlymart/go-rundeck-api
