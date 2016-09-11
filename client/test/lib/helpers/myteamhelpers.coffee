@@ -26,6 +26,7 @@ checkboxSelector        = '.HomeAppView--section.send-invites .invite-inputs .kd
 adminTextSelector       = '.HomeAppView--section.send-invites .information .invite-labels label:last-child span:last-child'
 sendInvitesButton       = '.HomeAppView--section.send-invites .custom-link-view.HomeAppView--button.primary.fr'
 
+closeModal           = '.close-icon.closeModal'
 welcomeView          = '.WelcomeStacksView'
 leaveTeamButton      = '.HomeAppView--button'
 passwordSelector     = 'input[name=password]'
@@ -295,6 +296,12 @@ module.exports =
     user = invitations[indexOfTargetUser2]
     teamsHelpers.logoutTeam browser, (res) ->
       teamsHelpers.loginToTeam browser, user, no, '', ->
+        browser.pause 2000
+        browser.element 'css selector', closeModal, (result) ->
+          if result.status is 0
+            browser.waitForElementVisible closeModal, 30000
+            browser.click closeModal
+
         browser
           .click '#main-sidebar'
           .waitForElementVisible '#kdmaincontainer.with-sidebar #main-sidebar .logo-wrapper .team-name', 20000
