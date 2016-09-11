@@ -106,6 +106,7 @@ func newService(opts *ServiceOptions) (service.Service, error) {
 			"LogStdout":     true,
 			"After":         "network.target",
 			"RequiredStart": "$network",
+			"LogFile":       true,
 			"Environment": map[string]string{
 				"USERNAME":         opts.Username,
 				"KITE_USERNAME":    "",
