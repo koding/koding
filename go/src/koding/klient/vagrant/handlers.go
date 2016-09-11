@@ -13,7 +13,9 @@ import (
 	"sync"
 	"time"
 
+	"koding/klient/protocol"
 	"koding/klient/tunnel/tlsproxy/pem"
+	"koding/logrotate"
 
 	"github.com/boltdb/bolt"
 	"github.com/cenkalti/backoff"
@@ -194,157 +196,201 @@ func (h *Handlers) absolute(path string) string {
 	return filepath.Clean(path)
 }
 
-// List returns a list of vagrant boxes with their status, paths and unique ids
-func (h *Handlers) List(r *kite.Request) (interface{}, error) {
-	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		vagrants, err := v.List()
-		if err != nil {
-			return nil, err
-		}
-
-		response := make([]Info, len(vagrants))
-		for i, vg := range vagrants {
-			response[i] = Info{
-				FilePath: vg.VagrantfilePath,
-				State:    vg.State,
-			}
-		}
-
-		return response, nil
+func (h *Handlers) list(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
+	vagrants, err := v.List()
+	if err != nil {
+		return nil, err
 	}
 
-	return h.withPath(r, fn)
+	response := make([]Info, len(vagrants))
+	for i, vg := range vagrants {
+		response[i] = Info{
+			FilePath: vg.VagrantfilePath,
+			State:    vg.State,
+		}
+	}
+
+	return response, nil
+}
+
+// List returns a list of vagrant boxes with their status, paths and unique ids
+func (h *Handlers) List(r *kite.Request) (interface{}, error) {
+	return h.withPath(r, h.list)
+}
+
+func (h *Handlers) create(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
+	if r.Args == nil {
+		return nil, errors.New("missing arguments")
+	}
+
+	var params VagrantCreateOptions
+	if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, err
+	}
+
+	params.FilePath = h.absolute(params.FilePath)
+
+	if params.Box == "" {
+		params.Box = "ubuntu/trusty64"
+	}
+
+	if params.Hostname == "" {
+		params.Hostname = r.LocalKite.Config.Username
+	}
+
+	if params.Memory == 0 {
+		params.Memory = 1024
+	}
+
+	if params.Cpus == 0 {
+		params.Cpus = 1
+	}
+
+	if params.TLSProxyHostname == "" {
+		params.TLSProxyHostname = pem.Hostname
+	}
+
+	switch {
+	case !params.Dirty:
+		// Ensure vagrant working dir has no machine provisioned.
+		err := vagrantutil.Wait(v.Destroy())
+		if err != nil {
+			h.log().Error("unable to destroy before create: %s", err)
+			break
+		}
+
+		status, err := v.Status()
+		if err != nil {
+			h.log().Error("unable to check status: %s", err)
+			break
+		}
+
+		if status != vagrantutil.NotCreated {
+			h.log().Error("dirty Vagrant directory: want status to be %v, was %v", vagrantutil.NotCreated, status)
+		}
+	}
+
+	h.boxAdd(v, params.Box, params.FilePath)
+
+	vagrantFile, err := createTemplate(&params)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := v.Create(vagrantFile); err != nil {
+		return nil, err
+	}
+
+	return params, nil
 }
 
 // Create creates the Vagrantfile source inside the specified file path
 func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
-	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		if r.Args == nil {
-			return nil, errors.New("arguments are not passed")
-		}
+	return h.withPath(r, h.create)
+}
 
-		var params VagrantCreateOptions
-		if err := r.Args.One().Unmarshal(&params); err != nil {
-			return nil, err
-		}
-
-		params.FilePath = h.absolute(params.FilePath)
-
-		if params.Box == "" {
-			params.Box = "ubuntu/trusty64"
-		}
-
-		if params.Hostname == "" {
-			params.Hostname = r.LocalKite.Config.Username
-		}
-
-		if params.Memory == 0 {
-			params.Memory = 1024
-		}
-
-		if params.Cpus == 0 {
-			params.Cpus = 1
-		}
-
-		if params.TLSProxyHostname == "" {
-			params.TLSProxyHostname = pem.Hostname
-		}
-
-		switch {
-		case !params.Dirty:
-			// Ensure vagrant working dir has no machine provisioned.
-			err := vagrantutil.Wait(v.Destroy())
-			if err != nil {
-				h.log().Error("unable to destroy before create: %s", err)
-				break
-			}
-
-			status, err := v.Status()
-			if err != nil {
-				h.log().Error("unable to check status: %s", err)
-				break
-			}
-
-			if status != vagrantutil.NotCreated {
-				h.log().Error("dirty Vagrant directory: want status to be %v, was %v", vagrantutil.NotCreated, status)
-			}
-		}
-
-		h.boxAdd(v, params.Box, params.FilePath)
-
-		vagrantFile, err := createTemplate(&params)
-		if err != nil {
-			return nil, err
-		}
-
-		if err := v.Create(vagrantFile); err != nil {
-			return nil, err
-		}
-
-		return params, nil
-	}
-
-	return h.withPath(r, fn)
+func (h *Handlers) provider(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
+	return v.Provider()
 }
 
 // Provider returns the provider of the given Vagrantfile. Such as "virtualbox".
 func (h *Handlers) Provider(r *kite.Request) (interface{}, error) {
-	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		return v.Provider()
-	}
-	return h.withPath(r, fn)
+	return h.withPath(r, h.provider)
+}
+
+func (h *Handlers) destroy(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
+	return h.watchCommand(r, v.VagrantfilePath, v.Destroy)
 }
 
 // Destroy destroys the given Vagrant box specified in the path
 func (h *Handlers) Destroy(r *kite.Request) (interface{}, error) {
-	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		return h.watchCommand(r, v.VagrantfilePath, v.Destroy)
-	}
-	return h.withPath(r, fn)
+	return h.withPath(r, h.destroy)
+}
+
+func (h *Handlers) halt(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
+	return h.watchCommand(r, v.VagrantfilePath, v.Halt)
 }
 
 // Halt stops the given Vagrant box specified in the path
 func (h *Handlers) Halt(r *kite.Request) (interface{}, error) {
-	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		return h.watchCommand(r, v.VagrantfilePath, v.Halt)
+	return h.withPath(r, h.halt)
+}
+
+func (h *Handlers) up(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
+	if err := h.boxWait(v.VagrantfilePath); err != nil {
+		return nil, err
 	}
-	return h.withPath(r, fn)
+
+	return h.watchCommand(r, v.VagrantfilePath, v.Up)
 }
 
 // Up starts and creates the given Vagrant box specified in the path
 func (h *Handlers) Up(r *kite.Request) (interface{}, error) {
-	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		if err := h.boxWait(v.VagrantfilePath); err != nil {
-			return nil, err
-		}
+	return h.withPath(r, h.up)
+}
 
-		return h.watchCommand(r, v.VagrantfilePath, v.Up)
+func (h *Handlers) status(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
+	status, err := v.Status()
+	if err != nil {
+		return nil, err
 	}
-	return h.withPath(r, fn)
+
+	return Info{
+		FilePath: v.VagrantfilePath,
+		State:    status.String(),
+	}, nil
 }
 
 // Status returns the status of the box specified in the path
 func (h *Handlers) Status(r *kite.Request) (interface{}, error) {
-	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		status, err := v.Status()
+	return h.withPath(r, h.status)
+}
+
+type versionRequest struct {
+	Name string `json:"name"`
+}
+
+type versionResponse struct {
+	Vagrant string `json:"vagrant,omitempty"`
+	Klient  string `json:"klient,omitempty"`
+}
+
+func (h *Handlers) version(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
+	if r.Args == nil {
+		return nil, errors.New("missing arguments")
+	}
+
+	var req versionRequest
+
+	if err := r.Args.One().Unmarshal(&req); err != nil {
+		return nil, err
+	}
+
+	var resp versionResponse
+
+	switch req.Name {
+	case "klient":
+		resp.Klient = protocol.Version
+	case "vagrant":
+		ver, err := v.Version()
 		if err != nil {
 			return nil, err
 		}
 
-		return Info{
-			FilePath: v.VagrantfilePath,
-			State:    status.String(),
-		}, nil
+		resp.Vagrant = ver
+	case "":
+		// Backward-compatibility with old kloud version.
+		//
+		// TODO(rjeczalik): If you read this probably it can be removed.
+		return v.Version()
 	}
-	return h.withPath(r, fn)
+
+	return &resp, nil
 }
 
 // Version returns the Vagrant version of the system
 func (h *Handlers) Version(r *kite.Request) (interface{}, error) {
-	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		return v.Version()
-	}
-	return h.withPath(r, fn)
+	return h.withPath(r, h.version)
 }
 
 // ForwardedPorts lists all forwarded port rules for the given box.
@@ -575,7 +621,7 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn commandFunc
 		h.log().Debug("vagrant: waiting for output from %q...", r.Method)
 
 		defer func() {
-			if err := output.Close(); err != nil {
+			if err := output.Close(); err != nil && !logrotate.IsNop(err) {
 				h.log().Warning("failure closing %q: %s", path, err)
 			}
 		}()

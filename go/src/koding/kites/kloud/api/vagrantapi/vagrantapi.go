@@ -309,12 +309,27 @@ func (k *Klient) Halt(queryString, boxPath string) error {
 
 // Version calls vagrant.version method on a kite given by the queryString.
 func (k *Klient) Version(queryString string) (string, error) {
-	req := struct{ FilePath string }{"."} // workaround for TMS-2106
-	var resp string
+	req := &struct {
+		FilePath string `json:"filePath"`
+		Name     string `json:"name"`
+	}{
+		".",
+		"vagrant",
+	}
+	var resp = &struct {
+		Vagrant string `json:"vagrant"`
+	}{}
 
-	if _, err := k.send(queryString, "vagrant.version", req, &resp); err != nil {
+	_, err := k.send(queryString, "vagrant.version", req, resp)
+	if err != nil {
+		// TODO(rjeczalik): koding/kite wraps *json.UnmarshalTypeError
+		// so we need to compare error string instead - fix it
+		if strings.Contains(err.Error(), "json: cannot unmarshal") {
+			return "", errors.New(`Your KD is outdated. Please run "sudo kd update" to upgrade and retry.`)
+		}
+
 		return "", err
 	}
 
-	return resp, nil
+	return resp.Vagrant, nil
 }
