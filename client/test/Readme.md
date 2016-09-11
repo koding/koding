@@ -24,10 +24,9 @@ git checkout -b 'TestLogin'
   Create a ```login``` folder then create ```login.coffee``` and ```loginhelpers.coffee``` file under  ```koding/client/test/lib/``` directory.
   
 ```sh
-cd koding/client/test/lib
-mkdir login
-touch login/login.coffee
-touch helpers/loginhelpers.coffee
+mkdir client/test/lib/login
+touch client/test/lib/login/login.coffee
+touch client/test/lib/helpers/loginhelpers.coffee
 ```
 
 Test functions should be written in ```loginhelpers.coffee```. We can test login to team in just 5 following line. Open url and wait until the login form be visible then enter team name and click login button. It will show notification because of that the team has not been created before.
