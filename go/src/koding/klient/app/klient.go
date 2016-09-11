@@ -125,7 +125,8 @@ type Klient struct {
 	updater *Updater
 
 	// uploader streams logs to an S3 bucket
-	uploader *uploader.Uploader
+	uploader       *uploader.Uploader
+	logUploadDelay time.Duration
 
 	// publicIP is a cached public IP address of the klient.
 	publicIP net.IP
@@ -282,6 +283,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 			// MountEvents:    mountEvents,
 			Log: k.Log,
 		},
+		logUploadDelay: 3 * time.Minute,
 	}
 
 	kl.kite.OnRegister(kl.updateKiteKey)
@@ -556,17 +558,22 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 // Run registers klient to Kontrol and starts the kite server. It also runs any
 // necessary workers in the background.
 func (k *Klient) Run() {
-	for _, file := range logFiles {
-		_, err := k.uploader.UploadFile(file, k.config.LogUploadInterval)
-		if err != nil && !os.IsNotExist(err) {
-			k.log.Warning("failed to upload %q: %s", file, err)
+	go func() {
+		// Delay uploading log files to give klient a chance to:
+		//
+		//   - write the file first-time
+		//   - log essential statuses from tunnel / kontrol register
+		//
+		// Additionally do not block startup routine with log uploading.
+		time.Sleep(k.logUploadDelay)
+
+		for _, file := range logFiles {
+			_, err := k.uploader.UploadFile(file, k.config.LogUploadInterval)
+			if err != nil && !os.IsNotExist(err) {
+				k.log.Warning("failed to upload %q: %s", file, err)
+			}
 		}
-		// TODO
-		//
-		// - make vagrant don't destroy stack on failure
-		// - make klient/vagrant log all outputs from building and upload logs
-		//
-	}
+	}()
 
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
