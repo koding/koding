@@ -875,14 +875,13 @@ module.exports =
         { status, value } = result
 
         if status is 0 and value
-          browser.waitForElementVisible '.WelcomeStacksView', 50000, yes, =>
-            browser.click closeModal
+          browser.waitForElementVisible '#main-sidebar .logo-wrapper .nickname', 50000, yes, =>
             @logoutTeam browser, =>
               teamUrl       = helpers.getUrl yes
               invitationUrl = "#{teamUrl}/Invitation/#{result.value}"
               browser.url invitationUrl, =>
                 @fillJoinForm browser, user, yes, =>
-                  browser.waitForElementVisible '.WelcomeStacksView', 20000, yes, =>
+                  browser.waitForElementVisible '#main-sidebar .logo-wrapper .nickname', 20000, yes, =>
                     @logoutTeam browser, (res) =>
                       @loginToTeam browser, host, no, '',  ->
                         callback res
