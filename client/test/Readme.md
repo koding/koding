@@ -60,9 +60,8 @@ Execute to following line in ```Koding``` directory
 ./run exec client/test/run.sh login login
 ```
 
-**push changes to Koding**
-	
-```git push koding TestLogin```
+![Video Walkthrough](loginToTeam.gif)
+
 
 ## Test Architecture
  All files related with testing is under the ```Koding/client/test``` directory.
