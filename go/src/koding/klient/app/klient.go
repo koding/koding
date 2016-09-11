@@ -217,11 +217,21 @@ func NewKlient(conf *KlientConfig) *Klient {
 		k.Log.Warning("Couldn't open BoltDB: %s", err)
 	}
 
+	up := uploader.New(&uploader.Options{
+		KeygenURL: conf.LogKeygenURL,
+		Kite:      k,
+		Bucket:    conf.LogBucketName,
+		Region:    conf.LogBucketRegion,
+		DB:        db,
+		Log:       k.Log,
+	})
+
 	vagrantOpts := &vagrant.Options{
-		Home:  conf.VagrantHome,
-		DB:    db, // nil is ok, fallbacks to in-memory storage
-		Log:   k.Log,
-		Debug: conf.Debug,
+		Home:   conf.VagrantHome,
+		DB:     db, // nil is ok, fallbacks to in-memory storage
+		Log:    k.Log,
+		Debug:  conf.Debug,
+		Output: up.Output,
 	}
 
 	tunOpts := &tunnel.Options{
@@ -251,15 +261,6 @@ func NewKlient(conf *KlientConfig) *Klient {
 		// EventSub: mountEvents,
 	}
 
-	uploaderOpts := &uploader.Options{
-		KeygenURL: conf.LogKeygenURL,
-		Kite:      k,
-		Bucket:    conf.LogBucketName,
-		Region:    conf.LogBucketRegion,
-		DB:        db,
-		Log:       k.Log,
-	}
-
 	kl := &Klient{
 		kite:    k,
 		collab:  collaboration.New(db), // nil is ok, fallbacks to in memory storage
@@ -272,7 +273,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		log:      k.Log,
 		config:   conf,
 		remote:   remote.NewRemote(remoteOpts),
-		uploader: uploader.New(uploaderOpts),
+		uploader: up,
 		updater: &Updater{
 			Endpoint:       conf.UpdateURL,
 			Interval:       conf.UpdateInterval,

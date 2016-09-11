@@ -109,7 +109,7 @@ func realMain() int {
 	vagrantHome := ""
 	u, err := user.Current()
 	if err == nil {
-		dbPath = filepath.Join(u.HomeDir, "/.config/koding/klient.bolt")
+		dbPath = filepath.Join(u.HomeDir, filepath.FromSlash(".config/koding/klient.bolt"))
 		vagrantHome = filepath.Join(u.HomeDir, ".vagrant.d")
 	}
 

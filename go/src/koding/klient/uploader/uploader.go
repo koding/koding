@@ -20,6 +20,16 @@ import (
 
 var defaultLog = logging.NewCustom("uploader", false)
 
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+
+	return nil
+}
+
 // Options represents arguments required to create a Uploader value.
 type Options struct {
 	KeygenURL string      // required
@@ -168,6 +178,8 @@ func (up *Uploader) upload(req *UploadRequest) (*url.URL, error) {
 	case <-up.close:
 		return nil, errors.New("Uploader was closed")
 	case r := <-respC:
+		up.log().Debug("upload result: %+v", r)
+
 		return r.url, r.err
 	}
 }
