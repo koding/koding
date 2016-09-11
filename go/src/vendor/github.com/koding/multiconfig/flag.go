@@ -134,36 +134,44 @@ func (f *FlagLoader) processField(fieldName string, field *structs.Field) error 
 }
 
 // fieldValue satisfies the flag.Value and flag.Getter interfaces
-type fieldValue structs.Field
+type fieldValue struct {
+	field *structs.Field
+}
 
 func newFieldValue(f *structs.Field) *fieldValue {
-	fl := fieldValue(*f)
-	return &fl
+	return &fieldValue{
+		field: f,
+	}
 }
 
 func (f *fieldValue) Set(val string) error {
-	field := (*structs.Field)(f)
-	return fieldSet(field, val)
+	return fieldSet(f.field, val)
 }
 
 func (f *fieldValue) String() string {
-	fl := (*structs.Field)(f)
-	return fmt.Sprintf("%v", fl.Value())
+	if f.IsZero() {
+		return ""
+	}
+
+	return fmt.Sprintf("%v", f.field.Value())
 }
 
 func (f *fieldValue) Get() interface{} {
-	fl := (*structs.Field)(f)
-	return fl.Value()
+	if f.IsZero() {
+		return nil
+	}
+
+	return f.field.Value()
+}
+
+func (f *fieldValue) IsZero() bool {
+	return f.field == nil
 }
 
 // This is an unexported interface, be careful about it.
 // https://code.google.com/p/go/source/browse/src/pkg/flag/flag.go?name=release#101
 func (f *fieldValue) IsBoolFlag() bool {
-	fl := (*structs.Field)(f)
-	if fl.Kind() == reflect.Bool {
-		return true
-	}
-	return false
+	return f.field.Kind() == reflect.Bool
 }
 
 // flagUsageDefault is the default "FlagUsageFunc" use in filling out
