@@ -35,6 +35,10 @@ $secondaryActiveColor       = #656565
     &:hover
       bg                    color, $secondaryActiveColor
 
+  &:focus
+    border          1px solid rgba(125,190,241,1)
+    shadow          0 0 3px rgba(125,190,241,.7), 0 0 0px 1px #7dbef1 !important
+
   span.button-title
     font-family             SoleilFamily
     font-size               13.5px
@@ -48,6 +52,11 @@ $secondaryActiveColor       = #656565
       font-size             14px
       font-weight           500
       letter-spacing        .3px
+
+.GenericButton[disabled]
+.GenericButton[disabled]:hover
+.GenericButton[disabled]:active
+  bg                        color, $accentColor !important
 
 
 .GenericButtonGroup

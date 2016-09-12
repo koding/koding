@@ -8,6 +8,8 @@ StackUpdatedWidget        = require './stackupdatedwidget'
 getBoundingClientReact    = require 'app/util/getBoundingClientReact'
 SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
 isAdmin = require 'app/util/isAdmin'
+remote = require 'app/remote'
+isStackTemplateSharedWithTeam = require 'app/util/isstacktemplatesharedwithteam'
 { findDOMNode } = require 'react-dom'
 
 require './styl/sidebarstacksection.styl'
@@ -33,10 +35,16 @@ module.exports = class SidebarStackSection extends React.Component
 
 
   getDataBindings: ->
+
     selectedTemplateId: EnvironmentFlux.getters.selectedTemplateId
 
 
-  componentWillReceiveProps: -> @setCoordinates()
+  componentWillReceiveProps: (nextProps) ->
+
+    nextStackUnreadCount = @getStackUnreadCount nextProps.stack
+    @setState { showWidget : yes }  if nextStackUnreadCount > @getStackUnreadCount()
+
+    @setCoordinates()
 
 
   componentDidMount: -> @setCoordinates()
@@ -68,7 +76,7 @@ module.exports = class SidebarStackSection extends React.Component
 
   onMenuItemClick: (item, event) ->
 
-    { appManager, router } = kd.singletons
+    { appManager, router, linkController, computeController } = kd.singletons
     { stack } = @props
     { reinitStackFromWidget, deleteStack } = EnvironmentFlux.actions
 
@@ -76,6 +84,7 @@ module.exports = class SidebarStackSection extends React.Component
     MENU.destroy()
 
     templateId = stack.get 'baseStackId'
+
 
     switch title
       when 'Edit' then router.handleRoute "/Stack-Editor/#{templateId}"
@@ -87,7 +96,10 @@ module.exports = class SidebarStackSection extends React.Component
       when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
       when 'Open on GitLab'
         remoteUrl = stack.getIn ['config', 'remoteDetails', 'originalUrl']
-        kd.singletons.linkController.openOrFocus remoteUrl
+        linkController.openOrFocus remoteUrl
+      when 'Make Team Default'
+        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
+          computeController.makeTeamDefault template, no  unless err
 
 
   onTitleClick: (event) ->
@@ -117,6 +129,8 @@ module.exports = class SidebarStackSection extends React.Component
         menuItems['Edit'] = { callback }
       ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
         menuItems[name] = { callback }
+      if isAdmin() and not isStackTemplateSharedWithTeam @props.stack.get 'baseStackId'
+        menuItems['Make Team Default'] = { callback }
 
     { top } = findDOMNode(this).getBoundingClientRect()
 
@@ -139,7 +153,12 @@ module.exports = class SidebarStackSection extends React.Component
       left : coordinates.left + 6
       top : coordinates.top - 2
 
-    <StackUpdatedWidget coordinates={coordinates} stack={@props.stack} show={showWidget} />
+    <StackUpdatedWidget
+      coordinates={coordinates}
+      stack={@props.stack}
+      visible={showWidget}
+      onClose={@bound 'onWidgetClose'}
+    />
 
 
   unreadCountClickHandler: ->
@@ -147,9 +166,14 @@ module.exports = class SidebarStackSection extends React.Component
     @setState { showWidget: yes }
 
 
-  getStackUnreadCount: ->
+  onWidgetClose: ->
 
-    @props.stack.getIn [ '_revisionStatus', 'status', 'code' ]
+    @setState { showWidget: no }
+
+
+  getStackUnreadCount: (stack = @props.stack) ->
+
+    stack?.getIn [ '_revisionStatus', 'status', 'code' ]
 
 
   render: ->

@@ -1,4 +1,5 @@
-kd = require 'kd'
+kd            = require 'kd'
+immutable     = require 'immutable'
 React         = require 'kd-react'
 actions       = require 'app/flux/environment/actions'
 SidebarWidget = require 'app/components/sidebarmachineslistitem/sidebarwidget'
@@ -8,36 +9,24 @@ module.exports = class StackUpdatedWidget extends React.Component
 
   @defaultProps =
     className   : 'StackUpdated'
-
-
-  constructor: ->
-
-    @state    =
-      isShown : no
-
-
-  componentWillReceiveProps: (nextProps) ->
-
-    @setState { isShown : not nextProps.show }
+    visible     : no
+    onClose     : kd.noop
+    stack       : immutable.Map()
 
 
   handleOnClick : ->
+
     { appManager, router } = kd.singletons
     templateId =  @props.stack.get 'baseStackId'
     actions.reinitStackFromWidget(@props.stack).then ->
       appManager.tell 'Stackeditor', 'reloadEditor', templateId
 
 
-  handleOnClose: ->
-
-    @setState { isShown : yes }
-
-
   render: ->
 
-    return null  if @state.isShown
+    return null  unless @props.visible
 
-    <SidebarWidget {...@props} onClose={@bound 'handleOnClose'}>
+    <SidebarWidget {...@props} onClose={@props.onClose}>
       <span>STACK UPDATED</span>
       <p className='SidebarWidget-Title'>You need to reinitialize your machines before booting.</p>
       <button className='kdbutton solid medium green reinit-stack' onClick={@bound 'handleOnClick'}>

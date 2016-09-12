@@ -1,8 +1,12 @@
+
 ## Automated Tests in Koding
  This document will guide you through setting up and  writing integration test using [Nightwatch.js](http://nightwatchjs.org)  
  
  Nightwatch.js is an easy to use Node.js based End-to-End (E2E) testing framework for browser based websites. It uses the [Selenium WebDriver API](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) to perform commands and assertions on DOM elements. You can find all commands and selenium protocol with examples in [Nightwatch API](http://nightwatchjs.org/api). You will see that how easy to write a integration test in a _Quick Start_ section with a login example.
- 
+
+## Koding Test Cases
+[Our test document](https://docs.google.com/spreadsheets/d/1QB4uj37kH2ozwWo9KWmdndvW-LVkBhRFbSjkp6EFibE/edit) includes all implemented and unimplemented test cases. When you implement the test cases, we pay you for each test case. Price may vary based on the difficulty level of test. For more information [Upwork](https://www.upwork.com/)
+
 ## Requirements
   - [selenium server jar file](https://selenium-release.storage.googleapis.com/index.html)
   - [nightwatch.js](http://nightwatchjs.org)
