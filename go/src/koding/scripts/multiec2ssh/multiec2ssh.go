@@ -9,13 +9,14 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/ec2"
-	"github.com/mitchellh/goamz/elb"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/elb"
 )
 
 var (
-	// these keys are already on main.dev.coffee
 	// ELB & EC2 -> AmazonEC2ReadOnlyAccess
 	flagAWSSecret = flag.String("awsSecret", "", "aws secret key")
 	flagAWSAccess = flag.String("awsAccess", "", "aws access key")
@@ -47,19 +48,19 @@ var Tags = map[string]string{
 	"sandbox": "sandbox.koding.com",
 }
 
-var ELB2Region = map[string]aws.Region{
+var ELB2Region = map[string]string{
 	// proxies
-	"awseb-e-s-AWSEBLoa-1LOTB5BKTJJBW": aws.EUWest,
-	"awseb-e-a-AWSEBLoa-RTLJ62SKJY5G":  aws.USEast,
-	"awseb-e-7-AWSEBLoa-1V808KG9PDQH5": aws.USWest2,
-	"awseb-e-u-AWSEBLoa-15H1DQTBBUMG":  aws.APSoutheast,
+	"awseb-e-s-AWSEBLoa-1LOTB5BKTJJBW": "eu-west-1",
+	"awseb-e-a-AWSEBLoa-RTLJ62SKJY5G":  "us-east-1",
+	"awseb-e-7-AWSEBLoa-1V808KG9PDQH5": "us-west-2",
+	"awseb-e-u-AWSEBLoa-15H1DQTBBUMG":  "ap-southeast-1",
 
 	// app ELBs
-	"awseb-e-j-AWSEBLoa-AQBHUYZM5ZX6":  aws.USEast,
-	"awseb-e-x-AWSEBLoa-2AG3XORA8JXC":  aws.USEast,
-	"awseb-e-3-AWSEBLoa-1S2VPBAQXDRW9": aws.USEast,
-	"awseb-e-p-AWSEBLoa-1POHSLP6A7STY": aws.USEast,
-	"awseb-e-e-AWSEBLoa-A6GVWAANHT2N":  aws.USEast,
+	"awseb-e-j-AWSEBLoa-AQBHUYZM5ZX6":  "us-east-1",
+	"awseb-e-x-AWSEBLoa-2AG3XORA8JXC":  "us-east-1",
+	"awseb-e-3-AWSEBLoa-1S2VPBAQXDRW9": "us-east-1",
+	"awseb-e-p-AWSEBLoa-1POHSLP6A7STY": "us-east-1",
+	"awseb-e-e-AWSEBLoa-A6GVWAANHT2N":  "us-east-1",
 }
 
 func getEC2(elbName string) *ec2.EC2 {
@@ -68,10 +69,17 @@ func getEC2(elbName string) *ec2.EC2 {
 		panic(elbName)
 	}
 
-	return ec2.New(aws.Auth{
-		AccessKey: *flagAWSAccess,
-		SecretKey: *flagAWSSecret,
-	}, reg)
+	ses := session.New(&aws.Config{
+		Credentials: credentials.NewStaticCredentials(
+			*flagAWSAccess,
+			*flagAWSSecret,
+			"",
+		),
+		Region:     aws.String(reg),
+		MaxRetries: aws.Int(5),
+	})
+
+	return ec2.New(ses)
 }
 
 func getELB(elbName string) *elb.ELB {
@@ -80,10 +88,17 @@ func getELB(elbName string) *elb.ELB {
 		panic(elbName)
 	}
 
-	return elb.New(aws.Auth{
-		AccessKey: *flagAWSAccess,
-		SecretKey: *flagAWSSecret,
-	}, reg)
+	ses := session.New(&aws.Config{
+		Credentials: credentials.NewStaticCredentials(
+			*flagAWSAccess,
+			*flagAWSSecret,
+			"",
+		),
+		Region:     aws.String(reg),
+		MaxRetries: aws.Int(5),
+	})
+
+	return elb.New(ses)
 }
 
 func main() {
@@ -114,11 +129,11 @@ func main() {
 		}
 	}
 
-	_, err := exec.Command("i2cssh", strings.Fields(createI2csshString(*flagHost, currentELBInstances))...).Output()
+	f := createI2csshString(*flagHost, currentELBInstances)
+	_, err := exec.Command("i2cssh", strings.Fields(f)...).Output()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
 }
 
 var paramToKey = map[string]string{
@@ -144,25 +159,30 @@ func createI2csshString(param string, instances []string) string {
 
 // fetch currently attached instances to the prod ELB
 func fetchProdELBAttachedInstances(elbName string) ([]string, error) {
-	dlr := &elb.DescribeLoadBalancer{
-		Names: []string{elbName},
+	params := &elb.DescribeLoadBalancersInput{
+		LoadBalancerNames: []*string{
+			aws.String(elbName),
+		},
 	}
-
-	res, err := getELB(elbName).DescribeLoadBalancers(dlr)
+	res, err := getELB(elbName).DescribeLoadBalancers(params)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(res.LoadBalancers) < 1 {
+	if len(res.LoadBalancerDescriptions) < 1 {
 		return nil, fmt.Errorf("%s ELB not found!", elbName)
 	}
 
-	attachedInstances := make([]string, 0)
-	for _, inst := range res.LoadBalancers[0].Instances {
+	attachedInstances := make([]*string, 0)
+	for _, inst := range res.LoadBalancerDescriptions[0].Instances {
 		attachedInstances = append(attachedInstances, inst.InstanceId)
 	}
 
-	resp, err := getEC2(elbName).Instances(attachedInstances, ec2.NewFilter())
+	resp, err := getEC2(elbName).DescribeInstances(
+		&ec2.DescribeInstancesInput{
+			InstanceIds: attachedInstances,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -170,8 +190,8 @@ func fetchProdELBAttachedInstances(elbName string) ([]string, error) {
 	instanceIps := make([]string, 0)
 	for _, reservations := range resp.Reservations {
 		for _, instance := range reservations.Instances {
-			if instance.PublicIpAddress != "" {
-				instanceIps = append(instanceIps, instance.PublicIpAddress)
+			if *instance.PublicIpAddress != "" {
+				instanceIps = append(instanceIps, *instance.PublicIpAddress)
 			}
 		}
 	}
@@ -180,12 +200,23 @@ func fetchProdELBAttachedInstances(elbName string) ([]string, error) {
 }
 
 func GetchInstancesByTag(elbName string, environmentTag string) ([]string, error) {
-
-	filter := ec2.NewFilter()
-	filter.Add("tag-key", "environment")
-	filter.Add("tag-value", environmentTag)
-
-	resp, err := getEC2(elbName).Instances(nil, filter)
+	params := &ec2.DescribeInstancesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name: aws.String("tag-key"),
+				Values: []*string{
+					aws.String("environment"),
+				},
+			},
+			{
+				Name: aws.String("tag-value"),
+				Values: []*string{
+					aws.String(environmentTag),
+				},
+			},
+		},
+	}
+	resp, err := getEC2(elbName).DescribeInstances(params)
 	if err != nil {
 		return nil, err
 	}
@@ -193,8 +224,8 @@ func GetchInstancesByTag(elbName string, environmentTag string) ([]string, error
 	instances := make([]string, 0)
 	for _, reservations := range resp.Reservations {
 		for _, instance := range reservations.Instances {
-			if instance.PublicIpAddress != "" {
-				instances = append(instances, instance.PublicIpAddress)
+			if *instance.PublicIpAddress != "" {
+				instances = append(instances, *instance.PublicIpAddress)
 			}
 		}
 	}

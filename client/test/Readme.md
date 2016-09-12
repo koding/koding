@@ -1,29 +1,17 @@
-# test
+## Automated Tests in Koding
+ This document will guide you through setting up and  writing integration test using [Nightwatch.js](http://nightwatchjs.org)  
+ 
+ Nightwatch.js is an easy to use Node.js based End-to-End (E2E) testing framework for browser based websites. It uses the [Selenium WebDriver API](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) to perform commands and assertions on DOM elements. You can find all commands and selenium protocol with examples in [Nightwatch API](http://nightwatchjs.org/api). You will see that how easy to write a integration test in a _Quick Start_ section with a login example.
+ 
+## Requirements
+  - [selenium server jar file](https://selenium-release.storage.googleapis.com/index.html)
+  - [nightwatch.js](http://nightwatchjs.org)
+  - [firefox version 46.0 or earlier versions](https://www.mozilla.org/en-US/firefox/46.0/releasenotes/) ( we have compatible issue with latest version of firefox) 
 
- This folder contains browser automated tests that run on [selenium server](http://www.seleniumhq.org).
-
-# setup environment
-
+## Setup Environment
 Follow steps in  https://github.com/koding/koding in order to setup koding environment.
 
-#caveats
-Firefox version must be less than version 40
-
-# test architecture
- All files related with testing is under the ```Koding/client/test``` directory.
- Take a look at these 2 folders and 1 file that are important in order to write test cases.
-
-**lib:** All test file and helper files are written under this folder.  All modules has separated folder and their helper files under the helper folder. 
-For example if you want to add new test file about dashboard, you have to create new file under dashboard folder and you are writing functions under dashboardhelper.coffee. All test functions are written in related helper file. We call functions in the main test file. 
-	
-**bin:** It includes all tests file in javascript format. When we add coffee file, it is automatically converted to javascript format. We do not add or change anything under this folder. 
-
-**users.json:** It includes default created user information in json format. These informations are used during test. When you want to create new users, you just delete all contents of the file then run test. When test is started to run, it will be recreated automatically.
-
-# nightwatch.js 
-You can find all commands and selenium  protocol with examples  in [Nightwatch.js](http://nightwatchjs.org) website
-
-# quick start
+## Quick Start
 **Writing Sample Test : Team Login Integration Test**
 	
   Open terminal, pull latest version of Koding and create new branch named TestLogin
@@ -33,72 +21,69 @@ git pull --rebase koding master
 git checkout -b 'TestLogin'
 ```
 
-  Create new folder named login under ```koding/client/test/lib/``` directory.
-
-  Create  ```login.coffee``` file under the ```login``` folder.
-
-  Create ```loginhelpers.coffee``` file under the ```koding/client/test/lib/helpers/``` folder.
+  Create a ```login``` folder then create ```login.coffee``` and ```loginhelpers.coffee``` file under  ```koding/client/test/lib/``` directory.
   
-  Add following lines in ```loginhelpers.coffee```.  (Indentation must be 2 spaces)
 ```sh
-utils = require '../utils/utils.js'
-teamsLogin = '.TeamsModal'
-loginForm = 'form.login-form'
-teamNameSelector = 'input[name=slug]'
-loginButton = 'button[testpath=goto-team-button]'
-notification = '.kdnotification'
+mkdir client/test/lib/login
+touch client/test/lib/login/login.coffee
+touch client/test/lib/helpers/loginhelpers.coffee
+```
 
+Test functions should be written in ```loginhelpers.coffee```. We can test login to team in just 5 following line. Open url and wait until the login form be visible then enter team name and click login button. It will show notification because of that the team has not been created before.
+
+```sh
 module.exports =
-
-  logintoTeam: (browser) ->
-    user = utils.getUser()
-    url  = "http://#{user.teamSlug}.dev.koding.com:8090"
-    browser
+  loginToTeam: (browser) ->
+     browser
       .url url
-      .maximizeWindow()
-      .pause 2000
-      .waitForElementVisible teamsLogin, 20000
-      .waitForElementVisible loginForm, 20000
-      .clearValue teamNameSelector
+      .waitForElementVisible loginForm, 40000
       .setValue teamNameSelector, user.teamSlug
       .click loginButton
-      .waitForElementVisible notification, 20000
       .assert.containsText notification, "We couldn't find your team"
 ```
-  Add following lines in ```login.coffee```. 
-```sh
-  loginhelpers = require '../helpers/loginhelpers.js'
+You can copy the completed code from [loginhelpers.coffee](https://gist.github.com/ezgikaysi/981f49469b3425e6d527b6e2dc9883da)
 
+We just call ```loginToTeam``` function in ```login.coffee```.
+
+```sh
   module.exports =
-  
-  loginTeam: (browser) ->
-    loginhelpers.logintoTeam browser
+   loginToTeam: (browser) ->
+    loginhelpers.loginToTeam browser
     browser.end()
-
 ```
-# running tests
+You can copy the completed code from [login.coffee](https://gist.github.com/ezgikaysi/59d497e077d9f1523a92fc2dd9bc133c)
 
-  Open a new terminal and execute the following in ```koding``` directory in order to run backend
-```sh
-./configure
-./run
-```
+### Running Tests
 
-  Open a new terminal and execute following code snippet in ```koding/client``` directory to build and run frontend
-```sh
-make  
-```
-
-  Another terminal type following comment in order to run test
+Execute to following line in ```Koding``` directory
 ```sh
 ./run exec client/test/run.sh login login
 ```
 
-**push changes to Koding**
-	
-	git push koding TestLogin
+![Video Walkthrough](loginToTeam.gif)
 
-#standardization
+
+## Test Architecture
+ All files related with testing is under the ```Koding/client/test``` directory.
+ ```bash
+Coverage.md    build          logs           users.json
+Makefile       globals.coffee loop           vendor
+Readme.md      globals.js     output
+bin            lib            run.sh
+```
+ Take a look at these 2 folders and 3 files that are important in order to write test cases.
+
+**lib:** All test files and helper files are written under this directory.  
+
+**bin:** It includes all tests file in javascript format. When we add coffee file, it is automatically converted to javascript format. We do not add or change anything under this folder. 
+
+**users.json:** It includes default created user information in json format. These informations are used during test. When you want to create new users, you just delete all contents of the file and then run test. When test is started to run, it will be recreated automatically.
+
+**helpers.coffee** It includes common functions such as ```getUrl```, ```createFolder```, ```deleteFolder```, ```createFile``` etc.
+
+**utils.coffee** It includes common functions about users such as ``generateUsers``, ``getUser``, ``getPassword``, ``getUser``
+
+## Standardization
 * Tests must be written in coffeescript and in [coffeescript-styleguide](https://github.com/koding/styleguide-coffeescript) that we are relying on.
 
 * All functions must be in related helper file. 
@@ -107,9 +92,6 @@ make
 
 * Indentation must be 2 spaces
 
-#highlights
-* WaitForElement function should be used instead of Pause function
+## License
 
-# license
-
-2015 Koding, Inc
+Koding is licensed under [Apache 2.0.](https://github.com/koding/koding/blob/master/LICENSE)
