@@ -21,8 +21,8 @@ exports.fetchCustomer = fetchCustomer = pickData ->
   client.get Endpoints.CustomerGet
 
 # createCustomer: creates a customer for current group.
-exports.createCustomer = createCustomer = pickData ->
-  client.post Endpoints.CustomerCreate
+exports.createCustomer = createCustomer = pickData (params = {}) ->
+  client.post Endpoints.CustomerCreate, params
 
 # updateCustomer: update current group's payment customer.
 exports.updateCustomer = updateCustomer = pickData (params = {}) ->
@@ -35,8 +35,8 @@ exports.deleteCustomer = deleteCustomer = pickData (params = {}) ->
 exports.fetchSubscription = fetchSubscription = pickData ->
   client.get Endpoints.SubscriptionGet
 
-exports.createSubscription = createSubscription = pickData ({ customer, plan }) ->
-  client.post Endpoints.SubscriptionCreate, { customer, plan }
+exports.createSubscription = createSubscription = pickData (params = {}) ->
+  client.post Endpoints.SubscriptionCreate, params
 
 exports.deleteSubscription = deleteSubscription = pickData (params = {}) ->
   client.delete Endpoints.SubscriptionDelete, params

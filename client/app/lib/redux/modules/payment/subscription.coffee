@@ -1,3 +1,4 @@
+_ = require 'lodash'
 immutable = require 'app/util/immutable'
 { createSelector } = require 'reselect'
 dateDiffInDays = require 'app/util/dateDiffInDays'
@@ -45,13 +46,12 @@ load = ->
   }
 
 
-create = (customerId, planId) ->
+create = (customerId, planId, options = {}) ->
   return {
     types: [CREATE.BEGIN, CREATE.SUCCESS, CREATE.FAIL]
     payment: (service) ->
-      service.createSubscription
-        customer: customerId
-        plan: planId
+      params = _.assign {}, options, { customer: customerId, plan: planId }
+      service.createSubscription params
   }
 
 
