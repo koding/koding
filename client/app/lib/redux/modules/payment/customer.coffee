@@ -10,8 +10,7 @@ schema = defineSchema 'customer',
   sources:
     data: defineSchema ['sources']
   subscriptions:
-    data: defineSchema ['subscriptions'],
-      plan: defineSchema 'plan'
+    data: defineSchema ['subscriptions']
 
 
 LOAD = expandActionType withNamespace 'LOAD'
