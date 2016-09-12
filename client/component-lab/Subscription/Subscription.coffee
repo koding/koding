@@ -15,11 +15,13 @@ module.exports = class Subscription extends Component
 
   renderHeader: ->
 
-    { teamSize, pricePerSeat, isTrial, freeCredit, endsAt, title } = @props
+    { loading, teamSize, pricePerSeat
+      isTrial, freeCredit, endsAt, title } = @props
 
     nextAmount = Number(teamSize) * Number(pricePerSeat)
 
     <SubscriptionHeader
+      loading={loading}
       isTrial={isTrial}
       title={title}
       teamSize={teamSize}
@@ -51,10 +53,12 @@ module.exports = class Subscription extends Component
 
   render: ->
 
+    { loading } = @props
+
     <div>
       <Content>{@renderHeader()}</Content>
-      <Content>{@renderTrialChargeInfo()}</Content>
-      <Content>{@renderExtras()}</Content>
+      {not loading and <Content>{@renderTrialChargeInfo()}</Content>}
+      {not loading and <Content>{@renderExtras()}</Content>}
     </div>
 
 
@@ -62,7 +66,7 @@ Subscription.propsTypes =
   title: PropTypes.string
   pricePerSeat: PropTypes.number.isRequired
   teamSize: PropTypes.number
-  endsAt: PropTypes.string.isRequired
+  endsAt: PropTypes.number.isRequired
   freeCredit: PropTypes.string
   isSurveyTaken: PropTypes.bool
   isEmailVerified: PropTypes.bool
