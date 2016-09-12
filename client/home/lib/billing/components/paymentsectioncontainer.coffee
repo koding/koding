@@ -1,8 +1,9 @@
-{ isDirty } = require 'redux-form'
+{ isDirty, reset: resetForm } = require 'redux-form'
 { connect } = require 'react-redux'
 { createSelector } = require 'reselect'
 
 { CREATE_TOKEN } = stripe = require 'app/redux/modules/stripe'
+creditCard = require 'app/redux/modules/payment/creditcard'
 
 PaymentSection = require './paymentsection'
 
@@ -22,25 +23,35 @@ formMessages[CREATE_TOKEN.FAIL] =
 
 formMessage = createSelector(
   stripe.lastAction
-  (lastAction) ->
-    switch lastAction
-      when CREATE_TOKEN.FAIL, CREATE_TOKEN.SUCCESS then formMessages[lastAction]
-      else null
+  (lastAction) -> lastAction and formMessages[lastAction]
 )
 
 submitting = (formName) -> (state) -> state.form[formName]?.submitting
 
+hasSuccessModal = createSelector(
+  stripe.lastAction
+  (lastAction) -> lastAction is CREATE_TOKEN.SUCCESS
+)
+
 mapStateToProps = (state) ->
   return {
-    hasCard: state.creditCard
+    hasCard: !!state.creditCard
     submitting: submitting('create-credit-card')(state)
     isDirty: isDirty('create-credit-card')(state)
     message: formMessage state
+    operation: if state.creditCard then 'update' else 'create'
   }
 
 mapDispatchToProps = (dispatch) ->
   return {
-    onMessageClose: -> dispatch(stripe.resetLastAction())
+    onMessageClose: ->
+      dispatch(stripe.resetLastAction())
+    onResetForm: ->
+      dispatch(stripe.resetLastAction())
+      dispatch(resetForm('create-credit-card'))
+    onRemoveCard: ->
+      dispatch(stripe.resetLastAction())
+      dispatch(creditCard.remove())
   }
 
 module.exports = connect(
