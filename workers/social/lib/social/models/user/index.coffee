@@ -189,6 +189,9 @@ module.exports = class JUser extends jraphical.Module
       ownAccount        :
         targetType      : JAccount
         as              : 'owner'
+    customData :
+      type     : Object
+      default  : {}
 
   sessions  = {}
   users     = {}
