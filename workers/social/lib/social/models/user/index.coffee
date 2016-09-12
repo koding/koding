@@ -1628,7 +1628,7 @@ module.exports = class JUser extends jraphical.Module
           currentPeriodStart : date
           currentPeriodEnd   : date
 
-        args = { user, account, subscription, pin, oldUsername }
+        args = { user, account, subscription, pin, oldUsername, tid }
         identifyUserOnRegister disableCaptcha, args
 
         JUser.emit 'UserRegistered', { user, account }
@@ -1662,7 +1662,7 @@ module.exports = class JUser extends jraphical.Module
 
     return  if disableCaptcha
 
-    { user, account, subscription, pin, oldUsername } = args
+    { user, account, subscription, pin, oldUsername, tid } = args
     { status, lastLoginDate, username, email } = user
     { createdAt, profile } = account.meta
     { firstName, lastName } = account.profile
@@ -1690,6 +1690,7 @@ module.exports = class JUser extends jraphical.Module
 
       pin
       jwtToken
+      transaction_id : tid
     }
 
     Tracker.identify username, traits
