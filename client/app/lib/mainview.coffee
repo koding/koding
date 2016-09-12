@@ -41,7 +41,6 @@ module.exports = class MainView extends kd.View
   viewAppended: ->
 
     @createSidebar()
-    @createHeader()
     @createPanelWrapper()
     # @checkForIntroVideo()  unless isKoding()
     @showRegistrationsClosedWarning()  if isSoloProductLite() and isKoding()
@@ -58,41 +57,6 @@ module.exports = class MainView extends kd.View
 
       @setStickyNotification()
       @emit 'ready'
-
-
-  createHeader: ->
-
-    entryPoint = globals.config.entryPoint
-
-    @addSubView @header = new kd.View
-      tagName    : 'header'
-      domId      : 'main-header'
-      attributes :
-        testpath : 'main-header'
-
-    @header.addSubView new TopNavigation
-
-    @header.addSubView @logo = new kd.CustomHTMLView
-      tagName    : 'a'
-      attributes : { href : '/' }
-      domId      : 'koding-logo'
-      cssClass   : if entryPoint?.type is 'group' then 'group' else ''
-      partial    : '<cite></cite>'
-      click     : (event) ->
-        kd.utils.stopDOMEvent event
-        { router } = kd.singletons
-        router.handleRoute router.getDefaultRoute()
-
-    @logo.setClass globals.config.environment
-
-    @header.addSubView @logotype = new CustomLinkView
-      cssClass : 'logotype'
-      title    : 'Koding'
-      href     : '/'
-      click    : (event) ->
-        kd.utils.stopDOMEvent event
-        { router } = kd.singletons
-        router.handleRoute router.getDefaultRoute()
 
 
   createSidebar: ->
