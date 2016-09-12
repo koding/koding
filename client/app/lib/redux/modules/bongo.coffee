@@ -63,7 +63,7 @@ load = (constructorName, _id) ->
   }
 
 
-byId = (constructorName, id) -> (state) -> state.bongo[constructorName][id]
+byId = (constructorName, id) -> (state) -> state.bongo[constructorName]?[id]
 
 
 all = (constructorName) -> (state) -> state.bongo[constructorName]
