@@ -22,6 +22,8 @@ classnames              = require 'classnames'
 DEAFULT_TEAM_LOGO       = '/a/images/logos/default_team_logo.svg'
 HomeWelcomeSteps        = require 'home/welcome/homewelcomesteps'
 
+HeaderMessageView = require 'app/components/headermessage/headermessageview'
+
 
 module.exports = class MainView extends kd.View
 
@@ -151,6 +153,8 @@ module.exports = class MainView extends kd.View
     @addSubView @panelWrapper = new kd.View
       tagName  : 'section'
       domId    : 'main-panel-wrapper'
+
+    @panelWrapper.addSubView new HeaderMessageView
 
     @panelWrapper.addSubView new kd.CustomHTMLView
       tagName  : 'cite'
