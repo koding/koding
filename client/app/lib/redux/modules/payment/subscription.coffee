@@ -5,8 +5,7 @@ customer = require './customer'
 { makeNamespace, expandActionType,
   normalize, defineSchema } = require 'app/redux/helper'
 
-schema = defineSchema 'subscription',
-  plan: defineSchema 'plan'
+schema = defineSchema 'subscription'
 
 withNamespace = makeNamespace 'koding', 'payment', 'subscription'
 
