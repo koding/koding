@@ -18,7 +18,9 @@ module.exports = class DisabledMemberModal extends ReactView
 
     switch status
       when 'expired'
-        onClick = -> router.handleRoute '/Disabled/Member/notify-success'
+        onClick = =>
+          @destroy()
+          router.handleRoute '/Disabled/Member/notify-success'
         <TrialEndedMemberModal
           isOpen={yes}
           onButtonClick={onClick} />
