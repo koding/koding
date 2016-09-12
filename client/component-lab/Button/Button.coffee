@@ -13,7 +13,10 @@ module.exports = Button = ({ type, size, disabled, auto, children, onClick }) ->
     !!auto and styles.auto
   ]
 
-  <button className={className} onClick={onClick}>{children}</button>
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={className}>{children}</button>
 
 
 Button.propTypes =
