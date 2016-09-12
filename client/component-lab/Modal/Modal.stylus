@@ -1,5 +1,7 @@
 @import '~lab/Colors/Colors.stylus'
 
+$modal-z-index              = 20000
+
 .modal
   position                  absolute
   top                       50%
@@ -9,7 +11,7 @@
   margin-right              -50%
   transform                 translate(-50%, -50%)
   outline                   none
-  z-index                   100
+  z-index                   $modal-z-index
 
 .wrapper
   font-family               SoleilFamily
@@ -52,7 +54,7 @@
   right                     0
   bottom                    0
   background-color          rgba(0, 0, 0, 0.5)
-  z-index                   99
+  z-index                   $modal-z-index - 1
 
 .header
   text-align                center
