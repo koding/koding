@@ -1,6 +1,7 @@
 bongo        = require 'bongo'
 KodingError  = require '../error'
 KodingLogger = require './kodinglogger'
+JUser        = require './user'
 
 { secure, signature } = bongo
 
@@ -55,15 +56,20 @@ module.exports = class Tracker extends bongo.Base
       traits.email = forcedRecipientEmail
 
     traits = @addDefaults traits
-    analytics?.identify { userId: username, traits }
 
-    return  callback null  unless analytics
+    JUser.one { username }, (err, user) ->
 
-    # force flush so identify call doesn't sit in queue, while events
-    # from Go/other systems are being sent
-    analytics.flush (err, batch) ->
-      console.error "flushing identify failed: #{err} @sent-hil"  if err
-      callback err
+      traits.transaction_id = tid  if tid = user?.customData.tid
+
+      analytics?.identify { userId: username, traits }
+
+      return  callback null  unless analytics
+
+      # force flush so identify call doesn't sit in queue, while events
+      # from Go/other systems are being sent
+      analytics.flush (err, batch) ->
+        console.error "flushing identify failed: #{err} @sent-hil"  if err
+        callback err
 
 
   @track$ = secure (client, subject, options = {}, callback) ->
