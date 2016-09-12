@@ -168,7 +168,7 @@ module.exports = class JUser extends jraphical.Module
 
       sshKeys       :
         type        : Object
-        default     : []
+        default     : -> []
 
       foreignAuth            :
         github               :
@@ -187,7 +187,7 @@ module.exports = class JUser extends jraphical.Module
           foreignId          : String
       customData :
         type     : Object
-        default  : {}
+        default  : -> {}
     relationships       :
       ownAccount        :
         targetType      : JAccount
