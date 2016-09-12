@@ -28,6 +28,7 @@ import (
 	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
+	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/stackplan/stackcred"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
@@ -225,10 +226,14 @@ func New(conf *Config) (*Kloud, error) {
 	kld.SecretKey = conf.KloudSecretKey
 
 	for name, fn := range provider.All {
-		err = kld.AddProvider(name, fn(bp.New(name)))
+		p := fn(bp.New(name))
+
+		err = kld.AddProvider(name, p)
 		if err != nil {
 			return nil, err
 		}
+
+		stackplan.MetaFuncs[name] = p.Meta
 	}
 
 	var gwSrv *keygen.Server

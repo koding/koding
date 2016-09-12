@@ -17,16 +17,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-func init() {
-	stackplan.MetaFuncs["vagrant"] = func() interface{} { return &VagrantMeta{} }
-
-	stack.Providers["vagrant"] = func(bp *provider.BaseProvider) interface{} {
-		return &Provider{
-			BaseProvider: bp,
-		}
-	}
-}
-
 var _ stack.Validator = (*VagrantMeta)(nil)
 
 // VagrantMeta represents jCredentialDatas.meta for "vagrant" provider.

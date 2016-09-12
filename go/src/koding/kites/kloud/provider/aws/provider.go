@@ -12,6 +12,14 @@ import (
 	"golang.org/x/net/context"
 )
 
+func init() {
+	provider.All["aws"] = func(bp *provider.BaseProvider) stack.Provider {
+		return &Provider{
+			BaseProvider: bp,
+		}
+	}
+}
+
 type Provider struct {
 	*provider.BaseProvider
 }
