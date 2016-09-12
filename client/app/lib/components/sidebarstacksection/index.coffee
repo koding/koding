@@ -35,10 +35,16 @@ module.exports = class SidebarStackSection extends React.Component
 
 
   getDataBindings: ->
+
     selectedTemplateId: EnvironmentFlux.getters.selectedTemplateId
 
 
-  componentWillReceiveProps: -> @setCoordinates()
+  componentWillReceiveProps: (nextProps) ->
+
+    nextStackUnreadCount = @getStackUnreadCount nextProps.stack
+    @setState { showWidget : yes }  if nextStackUnreadCount > @getStackUnreadCount()
+
+    @setCoordinates()
 
 
   componentDidMount: -> @setCoordinates()
@@ -147,7 +153,12 @@ module.exports = class SidebarStackSection extends React.Component
       left : coordinates.left + 6
       top : coordinates.top - 2
 
-    <StackUpdatedWidget coordinates={coordinates} stack={@props.stack} show={showWidget} />
+    <StackUpdatedWidget
+      coordinates={coordinates}
+      stack={@props.stack}
+      visible={showWidget}
+      onClose={@bound 'onWidgetClose'}
+    />
 
 
   unreadCountClickHandler: ->
@@ -155,9 +166,14 @@ module.exports = class SidebarStackSection extends React.Component
     @setState { showWidget: yes }
 
 
-  getStackUnreadCount: ->
+  onWidgetClose: ->
 
-    @props.stack.getIn [ '_revisionStatus', 'status', 'code' ]
+    @setState { showWidget: no }
+
+
+  getStackUnreadCount: (stack = @props.stack) ->
+
+    stack?.getIn [ '_revisionStatus', 'status', 'code' ]
 
 
   render: ->

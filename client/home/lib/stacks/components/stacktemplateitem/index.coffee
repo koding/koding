@@ -21,10 +21,16 @@ module.exports = class StackTemplateItem extends React.Component
       showWidget  : no
 
 
-  componentWillReceiveProps: -> @setCoordinates()
+  componentWillReceiveProps: (nextProps) ->
+
+    nextStackUnreadCount = @getStackUnreadCount nextProps.stack
+    @setState { showWidget : yes }  if nextStackUnreadCount > @getStackUnreadCount()
+
+    @setCoordinates()
 
 
   componentDidMount: ->
+
     $('.kdscrollview').on 'scroll', _.debounce @bound('scrollOnPage'), 500, { leading: yes, trailing: no }
     @setCoordinates()
 
@@ -52,9 +58,9 @@ module.exports = class StackTemplateItem extends React.Component
       <a href="#" className="HomeAppView--button primary" onClick={onAddToSidebar}>ADD TO SIDEBAR</a>
 
 
-  getStackUnreadCount: ->
+  getStackUnreadCount: (stack = @props.stack) ->
 
-    @props.stack?.getIn [ '_revisionStatus', 'status', 'code' ]
+    stack?.getIn [ '_revisionStatus', 'status', 'code' ]
 
 
   renderUnreadCount: ->
@@ -72,6 +78,11 @@ module.exports = class StackTemplateItem extends React.Component
     @setState { showWidget: yes }
 
 
+  onWidgetClose: ->
+
+    @setState { showWidget: no }
+
+
   renderStackUpdatedWidget: ->
 
     { coordinates, showWidget } = @state
@@ -81,7 +92,14 @@ module.exports = class StackTemplateItem extends React.Component
 
     coordinates.top = coordinates.top - 160
     coordinates.left = coordinates.left - 22
-    <StackUpdatedWidget className={'StackTemplate'} coordinates={coordinates} stack={@props.stack} show={showWidget} />
+
+    <StackUpdatedWidget
+      className='StackTemplate'
+      coordinates={coordinates}
+      stack={@props.stack}
+      visible={showWidget}
+      onClose={@bound 'onWidgetClose'}
+    />
 
 
   render: ->
