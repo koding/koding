@@ -55,6 +55,7 @@ nicename = ->
 
 initialValues = (state) ->
   return  unless user = accountUser(state)
+  return  unless state.customer
 
   ccValues = creditCard.values(state)
 
@@ -106,6 +107,7 @@ addCardToCustomer = (values, dispatch) ->
 
 formOptions =
   form: FORM_NAME
+  enableReinitialize: yes
   onSubmit: addCardToCustomer
 
 
