@@ -56,6 +56,7 @@ client/home/lib/virtualmachines/homevirtualmachinesconnectedmachines.coffee
 client/home/lib/virtualmachines/homevirtualmachinessharedmachines.coffee
 client/home/lib/virtualmachines/homevirtualmachinesvirtualmachines.coffee
 client/home/lib/welcome/index.coffee
+client/home/lib/billing/index.coffee
 client/mocks/
 client/stack-editor/lib/editor/index.coffee
 
