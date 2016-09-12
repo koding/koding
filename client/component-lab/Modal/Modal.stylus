@@ -9,6 +9,7 @@
   margin-right              -50%
   transform                 translate(-50%, -50%)
   outline                   none
+  z-index                   100
 
 .wrapper
   font-family               SoleilFamily
@@ -50,7 +51,8 @@
   left                      0
   right                     0
   bottom                    0
-  background-color          rgba(0, 0, 0, 0.2)
+  background-color          rgba(0, 0, 0, 0.5)
+  z-index                   99
 
 .header
   text-align                center
