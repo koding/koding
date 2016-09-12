@@ -1,3 +1,4 @@
+_ = require 'lodash'
 { reduxForm, formValueSelector, SubmissionError, isDirty } = require 'redux-form'
 { connect } = require 'react-redux'
 { createSelector } = require 'reselect'
@@ -53,12 +54,14 @@ nicename = ->
   else ''
 
 initialValues = (state) ->
-  return  unless userEmail(state)
-  return  unless state.creditCard
+  return  unless user = accountUser(state)
 
-  email = customer.email(state)
+  ccValues = creditCard.values(state)
 
-  return creditCard.values(state).set('email', email)
+  email = customer.email(state) or user.email
+  name = ccValues?.name or nicename()
+
+  return _.assign {}, ccValues, { name, email }
 
 
 mapStateToProps = (state) ->
