@@ -10,10 +10,10 @@ textStyles = require '../Text/Text.stylus'
 
 module.exports = CreditCard = (props) ->
 
-  { brand, number, name, exp_year: year, exp_month: month } = props
+  { brand, number, name, exp_year, exp_month } = props
 
-  month or= CreditCard.defaultProps.exp_month
-  year or= CreditCard.defaultProps.exp_year
+  exp_month or= CreditCard.defaultProps.exp_month
+  exp_year or= CreditCard.defaultProps.exp_year
 
   <Box className={styles.main}>
     <Row className={styles.header}>
@@ -30,7 +30,7 @@ module.exports = CreditCard = (props) ->
         <CardName name={name} />
       </Col>
       <Col xs={4} className={textStyles.right}>
-        <CardDate month={month} year={year} />
+        <CardDate month={exp_month} year={exp_year} />
       </Col>
     </Row>
   </Box>
@@ -74,6 +74,10 @@ CardNumber = ({ number, brand, reverse }) ->
 CardName = ({ name }) -> <Label size='small' type='secondary'>{name}</Label>
 
 
-CardDate = ({ month, year }) -> <Label size='small' type='secondary'>{month}/{year.substr year.length - 2}</Label>
+CardDate = ({ month, year }) ->
+  year = String year
+  <Label size='small' type='secondary'>
+    {month}/{year.substr year.length - 2}
+  </Label>
 
 
