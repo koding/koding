@@ -185,13 +185,13 @@ module.exports = class JUser extends jraphical.Module
           token              : String
         linkedin             :
           foreignId          : String
+      customData :
+        type     : Object
+        default  : {}
     relationships       :
       ownAccount        :
         targetType      : JAccount
         as              : 'owner'
-    customData :
-      type     : Object
-      default  : {}
 
   sessions  = {}
   users     = {}
