@@ -1,5 +1,9 @@
 .main
   position                  relative
+  padding-right             45px
+
+.icon
+  width                     50px
 
 .close
   position                  absolute
@@ -13,3 +17,7 @@
 
   figure
     m-sprite                app, content_modal_close_icon
+
+.description
+  margin                    1px 3px
+  borderBox()
