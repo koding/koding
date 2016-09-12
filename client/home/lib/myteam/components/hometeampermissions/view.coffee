@@ -29,4 +29,8 @@ module.exports = class HomeTeamPermissionsView extends React.Component
 
 ToggleButton = ({ checked, callback }) ->
 
+  checked ?= no
+
   <Toggle checked={checked} className='OnOffButton' callback={callback} />
+
+
