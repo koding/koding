@@ -54,17 +54,19 @@ module.exports = class SubscriptionHeader extends Component
       }
     </Row>
 
+
 SubscriptionHeader.propTypes =
   isTrial: PropTypes.bool
   title: PropTypes.string
   freeCredit: PropTypes.number
   nextBillingAmount: PropTypes.number
-  endsAt: PropTypes.string
+  endsAt: PropTypes.number
+
 
 SubscriptionHeader.defaultProps =
   title: 'Koding subscription title'
   freeCredit: 0
   nextBillingAmount: 0
   isTrial: no
-  endsAt: String Date.now()
+  endsAt: Date.now()
 
