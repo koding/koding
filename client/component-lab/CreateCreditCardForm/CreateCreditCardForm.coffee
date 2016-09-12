@@ -1,3 +1,4 @@
+_ = require 'lodash'
 { PropTypes } = React = require 'react'
 { Grid, Row, Col } = require 'react-flexbox-grid'
 
@@ -9,8 +10,13 @@ styles = require './CreateCreditCardForm.stylus'
 
 module.exports = CreateCreditCardForm = (props) ->
 
-  { values, handleSubmit } = props
+  { formValues, initialValues, handleSubmit, isDirty, loading } = props
+
+  values = formValues or initialValues
+
   { brand } = values
+
+  brand or= 'visa'
 
   <form className={styles.main} onSubmit={handleSubmit}>
     <Row bottom='xs' between='xs'>
@@ -18,6 +24,7 @@ module.exports = CreateCreditCardForm = (props) ->
         <Row>
           <Col xs={12}>
             <CreditCardInput.Field
+              disabled={loading}
               fieldType='number'
               name='number'
               brand={brand}
@@ -33,11 +40,13 @@ module.exports = CreateCreditCardForm = (props) ->
           </Col>
           <Col xs={4} className={styles.tight}>
             <Input.Field
+              disabled={loading}
               name='exp_year'
               placeholder='Year' />
           </Col>
           <Col xs={4} className={styles.tight}>
             <CreditCardInput.Field
+              disabled={loading}
               key={brand}
               name='cvc'
               brand={brand}
@@ -48,6 +57,7 @@ module.exports = CreateCreditCardForm = (props) ->
         <Row>
           <Col xs={12}>
             <Input.Field
+              disabled={loading}
               name='name'
               placeholder='Enter your name and surname…'
               title='Full Name' />
@@ -57,12 +67,13 @@ module.exports = CreateCreditCardForm = (props) ->
       <Col xs className={styles.mainCol}>
         <Row bottom='xs'>
           <Col xs={12}>
-            <CreditCard brand={brand} {...values} />
+            <CreditCard {...values} brand={brand} />
           </Col>
         </Row>
         <Row bottom='xs'>
           <Col xs={12}>
             <Input.Field
+              disabled={loading}
               name='email'
               placeholder='Enter billing email…'
               title='Billing Email Adress' />
