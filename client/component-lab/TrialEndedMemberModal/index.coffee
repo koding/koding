@@ -1,1 +1,1 @@
-module.exports = require './TrialEndedModal'
+module.exports = require './TrialEndedMemberModal'
