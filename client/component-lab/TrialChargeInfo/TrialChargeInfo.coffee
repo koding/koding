@@ -12,6 +12,8 @@ Label = require 'lab/Text/Label'
 
 ExpirationMessage = ({ daysLeft }) ->
 
+  daysLeft ?= 100
+
   title = if daysLeft > 0
   then "Your trial period is about to expire"
   else "Your trial period has expired"
@@ -61,12 +63,12 @@ TrialChargeInfo = ({ teamSize, pricePerSeat, endsAt }) ->
 
 TrialChargeInfo.propTypes =
   teamSize: PropTypes.number
-  pricePerSeat: PropTypes.string
-  endsAt: PropTypes.string.isRequired
+  pricePerSeat: PropTypes.number
+  endsAt: PropTypes.number.isRequired
 
 TrialChargeInfo.defaultProps =
   teamSize: 1
-  pricePerSeat: '49.97'
+  pricePerSeat: 49.97
 
 module.exports = TrialChargeInfo
 
