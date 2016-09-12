@@ -38,10 +38,10 @@ load = ->
   }
 
 
-create = ->
+create = (options = {}) ->
   return {
     types: [CREATE.BEGIN, CREATE.SUCCESS, CREATE.FAIL]
-    payment: (service) -> service.createCustomer()
+    payment: (service) -> service.createCustomer(options)
   }
 
 
